@@ -1,10 +1,6 @@
 {
   "name": "app-reg-poc-frontend",
   "version": "0.0.0",
-  "volta": {
-    "node": "20.11.1",
-    "yarn": "4.8.1"
-  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve --proxy-config proxy.conf.json",
