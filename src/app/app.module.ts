@@ -3,19 +3,21 @@ import { BrowserModule }            from '@angular/platform-browser';
 import { NgModule }                 from '@angular/core';
 import { ReactiveFormsModule }      from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
-import {HTTP_INTERCEPTORS, provideHttpClient} from '@angular/common/http';   // standalone provider for HttpClient
+import {HTTP_INTERCEPTORS} from '@angular/common/http';   // standalone provider for HttpClient
 import { AppRoutingModule }         from './app-routing.module';
 import { AppComponent }             from './app.component';
 import { LoginComponent }           from './pages/login/login.component';
 import { AuthService }              from './services/auth.service';
 import { TokenInterceptorService }  from "./auth/token-interceptor/token-interceptor.service";
+import { DateInputComponent } from './shared/components/date-input/date-input.component';
 
 // Note: using functional guard 'authGuard' in routes, no AuthGuard class/provider here
 
 @NgModule({
   declarations: [
     AppComponent,
-    LoginComponent
+    LoginComponent,
+    DateInputComponent
   ],
   imports: [
     BrowserModule,
