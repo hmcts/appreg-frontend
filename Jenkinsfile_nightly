@@ -2,14 +2,15 @@
 
 properties([
 // H allow predefined but random minute see https://en.wikipedia.org/wiki/Cron#Non-standard_characters
-pipelineTriggers([cron('H 07 * * 1-5')])
+pipelineTriggers([cron('H 08 * * 1-5')])
 ])
 
 @Library("Infrastructure")
 
-def type = "nodejs"
-def product = "rpe"
-def component = "expressjs-template"
+def type = "angular"
+def product = "appreg"
+def component = "frontend"
+
 
 withNightlyPipeline(type, product, component) {
 

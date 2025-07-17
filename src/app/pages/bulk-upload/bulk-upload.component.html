@@ -1,0 +1,91 @@
+<a [routerLink]="['/applications-list', id]" class="govuk-back-link">Back</a>
+
+<h1 class="govuk-heading-xl">Bulk upload applications</h1>
+
+<!-- Notification banner shown after upload -->
+<div *ngIf="uploadSummary as summary" class="govuk-notification-banner" role="region"
+     aria-labelledby="upload-summary-title">
+  <div class="govuk-notification-banner__header">
+    <h2 class="govuk-notification-banner__title" id="upload-summary-title">
+      Upload complete
+    </h2>
+  </div>
+  <div class="govuk-notification-banner__content">
+    <p class="govuk-body">
+      {{ summary.successCount }} application{{ summary.successCount === 1 ? '' : 's' }} uploaded successfully.
+    </p>
+    <p class="govuk-body" *ngIf="summary.errorCount > 0">
+      {{ summary.errorCount }} application{{ summary.errorCount === 1 ? '' : 's' }} failed to upload.
+    </p>
+  </div>
+</div>
+
+<!-- File upload input -->
+<form (ngSubmit)="upload()" novalidate>
+  <div class="govuk-form-group" [class.govuk-form-group--error]="uploadError">
+    <label class="govuk-label" for="file-upload">Upload a CSV file</label>
+
+    <!-- GovUK styling wrapper if you still want the drop-zone look: -->
+    <div class="govuk-drop-zone">
+      <!-- 1) Button forwards click -->
+      <button
+        class="govuk-file-upload-button govuk-file-upload-button--empty"
+        type="button"
+        (click)="fileInput.click()"
+      >
+        <span class="govuk-body govuk-file-upload-button__status" aria-live="polite">
+          {{ selectedFile?.name || 'No file chosen' }}
+        </span>
+        <span class="govuk-visually-hidden">, </span>
+        <span class="govuk-file-upload-button__pseudo-button-container">
+          <span class="govuk-button govuk-button--secondary govuk-file-upload-button__pseudo-button">
+            Choose file
+          </span>
+          <span class="govuk-body govuk-file-upload-button__instruction">or drop file</span>
+        </span>
+      </button>
+
+      <!-- 2) Hidden input still fires your onFileChange -->
+      <input
+        #fileInput
+        class="govuk-file-upload"
+        id="file-upload"
+        name="file"
+        type="file"
+        accept=".csv"
+        style="display:none"
+        (change)="onFileChange($event)"
+      />
+    </div>
+
+    <div *ngIf="uploadError" class="govuk-error-message">
+      <span class="govuk-visually-hidden">Error:</span> {{ uploadError }}
+    </div>
+  </div>
+
+  <!-- Buttons -->
+  <div class="govuk-button-group">
+    <button type="button" class="govuk-button" (click)="upload()" [disabled]="!selectedFile">
+      Upload file
+    </button>
+
+    <a
+      class="govuk-button govuk-button--secondary"
+      [routerLink]="['/applications-list', id, 'bulk-upload', 'fee-details']"
+    >
+      Add fee details
+    </a>
+  </div>
+</form>
+
+<!-- GOV.UK screen-reader live region for drop-zone -->
+<span class="govuk-file-upload-announcements govuk-visually-hidden"
+      aria-live="assertive">
+  </span>
+
+<!-- Your error message stanza, exactly as before -->
+<div *ngIf="uploadError" class="govuk-error-message">
+  <span class="govuk-visually-hidden">Error:</span>
+  {{ uploadError }}
+</div>
+

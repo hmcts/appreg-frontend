@@ -1,24 +1,31 @@
+/* To learn more about this file see: https://angular.io/config/tsconfig. */
 {
+  "compileOnSave": false,
   "compilerOptions": {
-    "outDir": "./src/",
-    "module": "commonjs",
+    "baseUrl": "./",
+    "outDir": "./dist/out-tsc",
+    "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "target": "ES2020",
     "strict": true,
-    "noImplicitAny": true,
-    "noImplicitThis": false,
-    "moduleResolution": "node",
-    "noUnusedLocals": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "sourceMap": true,
+    "declaration": false,
     "experimentalDecorators": true,
-    "useUnknownInCatchVariables": false,
-    "skipLibCheck": true,
-    "lib": ["es2020", "dom", "dom.iterable"],
-    "baseUrl": "src/main",
-    "paths": {
-      "router/*": ["router/*"],
-      "routes/*": ["routes/*"]
-    }
+    "moduleResolution": "node",
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "es2020",
+    "lib": [
+      "es2018",
+      "dom"
+    ],
+    "useDefineForClassFields": false
   },
-  "exclude": ["**/*.test.ts", "**/codecept.conf.ts", "**/__mocks__/*"]
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
+  }
 }

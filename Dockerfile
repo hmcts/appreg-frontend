@@ -1,21 +1,11 @@
-# ---- Base image ----
-FROM hmctspublic.azurecr.io/base/node:20-alpine as base
-
-USER root
-RUN corepack enable
-USER hmcts
+FROM hmctspublic.azurecr.io/base/node:22-alpine AS base
 
 COPY --chown=hmcts:hmcts . .
+RUN yarn install
+RUN yarn build
 
-# ---- Build image ----
-FROM base as build
+ENV NODE_ENV=production
 
-RUN yarn build:prod && \
-    rm -rf webpack/ webpack.config.js
+EXPOSE 3000
 
-# ---- Runtime image ----
-FROM base as runtime
-
-COPY --from=build $WORKDIR/src/main ./src/main
-# TODO: expose the right port for your application
-EXPOSE 3100
+CMD ["node", "dist/server/server"]
