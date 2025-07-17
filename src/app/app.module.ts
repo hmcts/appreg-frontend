@@ -16,14 +16,14 @@ import { DateInputComponent } from './shared/components/date-input/date-input.co
 @NgModule({
   declarations: [
     AppComponent,
-    LoginComponent,
-    DateInputComponent
+    LoginComponent
   ],
   imports: [
     BrowserModule,
     ReactiveFormsModule,
     AppRoutingModule,
-    HttpClientModule
+    HttpClientModule,
+    DateInputComponent
   ],
   providers: [
     // provideHttpClient(),  // registers HttpClient providers

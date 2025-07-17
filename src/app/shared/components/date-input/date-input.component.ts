@@ -11,11 +11,12 @@ import {
   selector: 'app-date-input',
   templateUrl: './date-input.component.html',
   styleUrls: ['./date-input.component.scss'],
+  standalone: true,
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => DateInputComponent),
-    multi: true
-  }]
+    multi: true,
+  }],
 })
 export class DateInputComponent implements ControlValueAccessor {
   /** Displayed legend text */

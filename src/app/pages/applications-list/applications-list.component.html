@@ -4,39 +4,12 @@
 <form #listForm="ngForm" (ngSubmit)="onSubmit($event)">
   <div class="govuk-grid-row">
     <!-- Date -->
-    <div class="govuk-grid-column-one-quarter">
-      <div class="govuk-form-group">
-        <fieldset class="govuk-fieldset" role="group" aria-describedby="day-hint">
-          <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
-            <h1 class="govuk-fieldset__heading">Date</h1>
-          </legend>
-          <div id="day-hint" class="govuk-hint">For example, 27 3 2007</div>
-          <div class="govuk-date-input" id="day">
-            <div class="govuk-date-input__item">
-              <div class="govuk-form-group">
-                <label class="govuk-label govuk-date-input__label" for="day-day">Day</label>
-                <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="day-day"
-                       name="day-day" type="text" inputmode="numeric">
-              </div>
-            </div>
-            <div class="govuk-date-input__item">
-              <div class="govuk-form-group">
-                <label class="govuk-label govuk-date-input__label" for="day-month">Month</label>
-                <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="day-month"
-                       name="day-month" type="text" inputmode="numeric">
-              </div>
-            </div>
-            <div class="govuk-date-input__item">
-              <div class="govuk-form-group">
-                <label class="govuk-label govuk-date-input__label" for="day-year">Year</label>
-                <input class="govuk-input govuk-date-input__input govuk-input--width-4" id="day-year"
-                       name="day-year" type="text" inputmode="numeric">
-              </div>
-            </div>
-          </div>
-        </fieldset>
-      </div>
-    </div>
+    <app-date-input
+      formControlName=""
+      label="Date"
+      hint="For example, 27 3 2007"
+      idPrefix="date">
+    </app-date-input>
 
     <!-- Time -->
     <div class="govuk-grid-column-one-quarter">
@@ -150,31 +123,31 @@
   </tr>
   </thead>
   <tbody class="govuk-table__body">
-    <tr class="govuk-table__row" *ngFor="let list of lists">
-      <th scope="row" class="govuk-table__header">{{ list.date }}</th>
-      <td class="govuk-table__cell">{{ list.time }}</td>
-      <td class="govuk-table__cell">{{ list.courthouse?.name || 'N/A' }}</td>
-      <td class="govuk-table__cell">{{ list.description }}</td>
-      <td class="govuk-table__cell govuk-table__cell--numeric">TODO</td>
-      <td class="govuk-table__cell">{{ list.status }}</td>
-      <td class="govuk-table__cell">
-        <div class="govuk-button-group">
-          <a
-            [routerLink]="['/applications-list', list.id]"
-            class="govuk-button govuk-button--secondary"
-          >
-            Open
-          </a>
-          <button
-            type="button"
-            class="govuk-button govuk-button--warning"
-            (click)="onDelete(list.id)"
-          >
-            Delete
-          </button>
-        </div>
-      </td>
-    </tr>
+  <tr class="govuk-table__row" *ngFor="let list of lists">
+    <th scope="row" class="govuk-table__header">{{ list.date }}</th>
+    <td class="govuk-table__cell">{{ list.time }}</td>
+    <td class="govuk-table__cell">{{ list.courthouse?.name || 'N/A' }}</td>
+    <td class="govuk-table__cell">{{ list.description }}</td>
+    <td class="govuk-table__cell govuk-table__cell--numeric">TODO</td>
+    <td class="govuk-table__cell">{{ list.status }}</td>
+    <td class="govuk-table__cell">
+      <div class="govuk-button-group">
+        <a
+          [routerLink]="['/applications-list', list.id]"
+          class="govuk-button govuk-button--secondary"
+        >
+          Open
+        </a>
+        <button
+          type="button"
+          class="govuk-button govuk-button--warning"
+          (click)="onDelete(list.id)"
+        >
+          Delete
+        </button>
+      </div>
+    </td>
+  </tr>
   </tbody>
 </table>
 
