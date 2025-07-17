@@ -32,12 +32,12 @@
             "assets": [
               {
                 "glob": "**/*",
-                "input": "node_modules/govuk-frontend/dist/govuk/assets",
+                "input": "dist/app-reg-poc-frontend/browser/assets",
                 "output": "assets"
               },
               {
                 "glob": "favicon.ico",
-                "input": "node_modules/govuk-frontend/dist/govuk/assets/images",
+                "input": "dist/app-reg-poc-frontend/browser/assets",
                 "output": "."
               }
             ],
