@@ -273,7 +273,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/cli@npm:^18.2.19":
+"@angular/cli@npm:18.2.20":
   version: 18.2.20
   resolution: "@angular/cli@npm:18.2.20"
   dependencies:
@@ -3598,7 +3598,7 @@ __metadata:
   dependencies:
     "@angular-devkit/build-angular": "npm:^18.2.19"
     "@angular/animations": "npm:^18.2.13"
-    "@angular/cli": "npm:^18.2.19"
+    "@angular/cli": "npm:18.2.20"
     "@angular/common": "npm:^18.2.13"
     "@angular/compiler": "npm:^18.2.13"
     "@angular/compiler-cli": "npm:^18.2.13"
