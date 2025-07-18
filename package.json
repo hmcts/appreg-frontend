@@ -8,7 +8,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --proxy-config proxy.conf.json",
-    "build": "pnpify run ng build",
+    "build": "node scripts/copy-govuk-assets.ts && ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
@@ -31,10 +31,11 @@
     "@angular-devkit/build-angular": "^18.2.19",
     "@angular/cli": "18.2.20",
     "@angular/compiler-cli": "^18.2.13",
+    "@types/fs-extra": "^11",
     "@types/govuk-frontend": "^5.9.0",
     "@types/jasmine": "~3.8.0",
     "@types/node": "^12.11.1",
-    "@yarnpkg/pnpify": "^4.1.5",
+    "fs-extra": "^11.3.0",
     "jasmine-core": "~3.8.0",
     "jsonc-parser": "^3.3.1",
     "karma": "~6.3.0",
@@ -42,7 +43,6 @@
     "karma-coverage": "~2.0.3",
     "karma-jasmine": "~4.0.0",
     "karma-jasmine-html-reporter": "~1.7.0",
-    "pnp-webpack-plugin": "^1.7.0",
     "typescript": "~5.4.5"
   }
 }

@@ -30,15 +30,11 @@
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
+              "src/assets",
               {
                 "glob": "**/*",
-                "input": "dist/appreg-frontend/browser/assets",
+                "input": "src/assets/govuk",
                 "output": "assets"
-              },
-              {
-                "glob": "favicon.ico",
-                "input": "dist/appreg-frontend/browser/assets",
-                "output": "."
               }
             ],
             "styles": [
