@@ -10,6 +10,7 @@ import { LoginComponent }           from './pages/login/login.component';
 import { AuthService }              from './services/auth.service';
 import { TokenInterceptorService }  from "./auth/token-interceptor/token-interceptor.service";
 import { DateInputComponent } from './shared/components/date-input/date-input.component';
+import { SelectInputComponent } from './shared/components/select-input/select-input.component';
 
 // Note: using functional guard 'authGuard' in routes, no AuthGuard class/provider here
 
@@ -23,7 +24,8 @@ import { DateInputComponent } from './shared/components/date-input/date-input.co
     ReactiveFormsModule,
     AppRoutingModule,
     HttpClientModule,
-    DateInputComponent
+    DateInputComponent,
+    SelectInputComponent
   ],
   providers: [
     // provideHttpClient(),  // registers HttpClient providers
