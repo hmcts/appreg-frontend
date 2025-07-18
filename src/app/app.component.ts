@@ -32,4 +32,8 @@ export class AppComponent implements OnInit {
       this.router.navigate(['/login']);
     }
   }
+
+  get currentRoute(): string {
+    return this.router.url;
+  }
 }

@@ -5,6 +5,7 @@ import {RouterLink} from "@angular/router";
 import {ApplicationListService} from "../../services/applications-list/application-list.service";
 import {ApplicationList} from "../../models/application-list";
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
+import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 
 interface Court {
   id: number;
@@ -19,8 +20,9 @@ interface Court {
     FormsModule,
     RouterLink,
     DateInputComponent,
-    ReactiveFormsModule
-    ],
+    ReactiveFormsModule,
+    SelectInputComponent,
+  ],
   templateUrl: './applications-list.component.html',
   styleUrls: ['./applications-list.component.scss']
 })
@@ -30,6 +32,8 @@ export class ApplicationsListComponent implements OnInit {
 
   courthouses: Court[] = [];
   filteredCourts: Court[] = [];
+
+  selectedStatus = 'choose';
 
   constructor(private applicationListService: ApplicationListService) {}
 

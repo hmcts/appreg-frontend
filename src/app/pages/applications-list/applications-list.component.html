@@ -34,21 +34,18 @@
     </div>
 
     <!-- Status -->
-    <div class="govuk-grid-column-one-quarter">
-      <div class="govuk-form-group">
-        <label class="govuk-label govuk-label--m" for="status">
-          Select status
-        </label>
-        <div id="status-hint" class="govuk-hint">
-          The status of the application list
-        </div>
-        <select class="govuk-select" id="status" name="status" aria-describedby="status-hint">
-          <option value="choose" selected>Choose status</option>
-          <option value="eastmidlands">Open</option>
-          <option value="eastofengland">Closed</option>
-        </select>
-      </div>
-    </div>
+    <app-select-input
+      name="status"
+      [(ngModel)]="selectedStatus"
+      label="Select status"
+      hint="The status of the application list"
+      idPrefix="status"
+      [options]="[
+      {value: 'choose', label: 'Choose status'},
+      {value: 'open',   label: 'Open'},
+      {value: 'closed', label: 'Closed'}
+    ]">
+    </app-select-input>
   </div>
 
   <div class="govuk-grid-row">
