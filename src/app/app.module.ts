@@ -12,6 +12,7 @@ import { TokenInterceptorService }  from "./auth/token-interceptor/token-interce
 import { DateInputComponent } from './shared/components/date-input/date-input.component';
 import { HeaderComponent } from './shared/components/header/header.component';
 import { ServiceNavigationComponent } from './shared/components/service-navigation/service-navigation.component';
+import { FooterComponent } from './shared/components/footer/footer.component';
 
 // Note: using functional guard 'authGuard' in routes, no AuthGuard class/provider here
 
@@ -27,7 +28,8 @@ import { ServiceNavigationComponent } from './shared/components/service-navigati
     HttpClientModule,
     DateInputComponent,
     HeaderComponent,
-    ServiceNavigationComponent
+    ServiceNavigationComponent,
+    FooterComponent
   ],
   providers: [
     // provideHttpClient(),  // registers HttpClient providers
