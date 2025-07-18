@@ -11,6 +11,7 @@ import { AuthService }              from './services/auth.service';
 import { TokenInterceptorService }  from "./auth/token-interceptor/token-interceptor.service";
 import { DateInputComponent } from './shared/components/date-input/date-input.component';
 import { HeaderComponent } from './shared/components/header/header.component';
+import { ServiceNavigationComponent } from './shared/components/service-navigation/service-navigation.component';
 
 // Note: using functional guard 'authGuard' in routes, no AuthGuard class/provider here
 
@@ -25,7 +26,8 @@ import { HeaderComponent } from './shared/components/header/header.component';
     AppRoutingModule,
     HttpClientModule,
     DateInputComponent,
-    HeaderComponent
+    HeaderComponent,
+    ServiceNavigationComponent
   ],
   providers: [
     // provideHttpClient(),  // registers HttpClient providers

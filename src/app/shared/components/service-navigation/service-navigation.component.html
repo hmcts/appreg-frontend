@@ -1,0 +1,105 @@
+<section
+  *ngIf="isLoginPage"
+  class="govuk-service-navigation"
+  data-module="govuk-service-navigation"
+>
+  <div class="govuk-width-container">
+    <div class="govuk-service-navigation__container">
+      <span class="govuk-service-navigation__service-name">
+        <a href="/" class="govuk-service-navigation__link">
+          Application register
+        </a>
+      </span>
+    </div>
+  </div>
+</section>
+
+<section
+  *ngIf="!isLoginPage"
+  aria-label="Service information"
+  class="govuk-service-navigation"
+  data-module="govuk-service-navigation"
+>
+  <div class="govuk-width-container">
+    <div class="govuk-service-navigation__container">
+      <span class="govuk-service-navigation__service-name">
+        <a routerLink="/applications-list" class="govuk-service-navigation__link">Application register</a>
+      </span>
+      <nav aria-label="Menu" class="govuk-service-navigation__wrapper">
+        <ul class="govuk-service-navigation__list" id="navigation">
+          <li
+            class="govuk-service-navigation__item"
+            routerLinkActive="govuk-service-navigation__item--active"
+            [routerLinkActiveOptions]="{ exact: false }"
+          >
+            <a
+              routerLink="/applications-list"
+              class="govuk-service-navigation__link"
+              [attr.aria-current]="rlaAppList.isActive ? 'page' : null"
+            >
+              Applications list
+            </a>
+          </li>
+          <li
+            class="govuk-service-navigation__item"
+            routerLinkActive="govuk-service-navigation__item--active"
+            [routerLinkActiveOptions]="{ exact: false }"
+          >
+            <a
+              routerLink="/applications"
+              class="govuk-service-navigation__link"
+              routerLinkActive
+              #rlaApp="routerLinkActive"
+              [attr.aria-current]="rlaApp.isActive ? 'page' : null"
+            >
+              Applications
+            </a>
+          </li>
+          <li
+            class="govuk-service-navigation__item"
+            routerLinkActive="govuk-service-navigation__item--active"
+            [routerLinkActiveOptions]="{ exact: false }"
+          >
+            <a
+              routerLink="/standard-applicants"
+              class="govuk-service-navigation__link"
+              routerLinkActive
+              #rlaAppList="routerLinkActive"
+              [attr.aria-current]="rlaAppList.isActive ? 'page' : null"
+            >
+              Standard applicants
+            </a>
+          </li>
+          <li
+            class="govuk-service-navigation__item"
+            routerLinkActive="govuk-service-navigation__item--active"
+            [routerLinkActiveOptions]="{ exact: true }"
+          >
+            <a
+              routerLink="/reports"
+              class="govuk-service-navigation__link"
+              routerLinkActive
+              #rlaAppList="routerLinkActive"
+              [attr.aria-current]="rlaAppList.isActive ? 'page' : null"
+            >
+              Reports
+            </a>
+          </li>
+          <li
+            class="govuk-service-navigation__item"
+            routerLinkActive="govuk-service-navigation__item--active"
+            [routerLinkActiveOptions]="{ exact: true }"
+          >
+            <a
+              href="#"
+              class="govuk-service-navigation__link"
+              (click)="handleSignOut($event)"
+            >
+              Sign out
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</section>
