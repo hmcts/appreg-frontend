@@ -10,7 +10,7 @@ import { LoginComponent }           from './pages/login/login.component';
 import { AuthService }              from './services/auth.service';
 import { TokenInterceptorService }  from "./auth/token-interceptor/token-interceptor.service";
 import { DateInputComponent } from './shared/components/date-input/date-input.component';
-import { SelectInputComponent } from './shared/components/select-input/select-input.component';
+import { HeaderComponent } from './shared/components/header/header.component';
 
 // Note: using functional guard 'authGuard' in routes, no AuthGuard class/provider here
 
@@ -25,7 +25,7 @@ import { SelectInputComponent } from './shared/components/select-input/select-in
     AppRoutingModule,
     HttpClientModule,
     DateInputComponent,
-    SelectInputComponent
+    HeaderComponent
   ],
   providers: [
     // provideHttpClient(),  // registers HttpClient providers
