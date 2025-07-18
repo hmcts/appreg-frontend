@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "app-reg-poc-frontend": {
+    "appreg-frontend": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -21,7 +21,7 @@
           "builder": "@angular-devkit/build-angular:application",
           "options": {
             "outputPath": {
-              "base": "dist/app-reg-poc-frontend"
+              "base": "dist/appreg-frontend"
             },
             "index": "src/index.html",
             "polyfills": [
@@ -32,12 +32,12 @@
             "assets": [
               {
                 "glob": "**/*",
-                "input": "dist/app-reg-poc-frontend/browser/assets",
+                "input": "dist/appreg-frontend/browser/assets",
                 "output": "assets"
               },
               {
                 "glob": "favicon.ico",
-                "input": "dist/app-reg-poc-frontend/browser/assets",
+                "input": "dist/appreg-frontend/browser/assets",
                 "output": "."
               }
             ],
@@ -85,10 +85,10 @@
           },
           "configurations": {
             "production": {
-              "buildTarget": "app-reg-poc-frontend:build:production"
+              "buildTarget": "appreg-frontend:build:production"
             },
             "development": {
-              "buildTarget": "app-reg-poc-frontend:build:development"
+              "buildTarget": "appreg-frontend:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -96,7 +96,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "buildTarget": "app-reg-poc-frontend:build"
+            "buildTarget": "appreg-frontend:build"
           }
         },
         "test": {

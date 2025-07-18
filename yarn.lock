@@ -3804,9 +3804,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"app-reg-poc-frontend@workspace:.":
+"appreg-frontend@workspace:.":
   version: 0.0.0-use.local
-  resolution: "app-reg-poc-frontend@workspace:."
+  resolution: "appreg-frontend@workspace:."
   dependencies:
     "@angular-devkit/build-angular": "npm:^18.2.19"
     "@angular/animations": "npm:^18.2.13"

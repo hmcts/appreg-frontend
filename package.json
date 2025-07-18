@@ -1,5 +1,5 @@
 {
-  "name": "app-reg-poc-frontend",
+  "name": "appreg-frontend",
   "version": "0.0.0",
   "volta": {
     "node": "20.11.1",
