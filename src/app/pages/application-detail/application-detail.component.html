@@ -299,18 +299,13 @@
         </div>
 
         <!-- Duration -->
-        <div class="govuk-grid-column-one-quarter">
-          <label class="govuk-label govuk-label--m">Duration</label>
-          <div id="duration-hint" class="govuk-hint">Duration of the list</div>
-          <div class="govuk-input__wrapper">
-            <input class="govuk-input govuk-input--width-2" id="hours" name="hours" type="text" spellcheck="false"
-                   [(ngModel)]="formModel.duration.hours">
-            <div class="govuk-input__suffix govuk-!-margin-right-3" aria-hidden="true">HH</div>
-            <input class="govuk-input govuk-input--width-2" id="minutes" name="minutes" type="text" spellcheck="false"
-                   [(ngModel)]="formModel.duration.minutes">
-            <div class="govuk-input__suffix govuk-!-margin-right-3" aria-hidden="true">MM</div>
-          </div>
-        </div>
+        <app-duration-input
+          name="duration"
+          [(ngModel)]="formModel.duration"
+          label="Duration"
+          hint="Duration of the list"
+          idPrefix="duration">
+        </app-duration-input>
       </div>
 
       <div class="govuk-button-group">

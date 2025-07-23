@@ -14,6 +14,7 @@ import { HeaderComponent } from './shared/components/header/header.component';
 import { ServiceNavigationComponent } from './shared/components/service-navigation/service-navigation.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { TextInputComponent } from './shared/components/text-input/text-input.component';
+import { DurationInputComponent } from './shared/components/duration-input/duration-input.component';
 
 @NgModule({
   declarations: [
@@ -29,7 +30,8 @@ import { TextInputComponent } from './shared/components/text-input/text-input.co
     HeaderComponent,
     ServiceNavigationComponent,
     FooterComponent,
-    TextInputComponent
+    TextInputComponent,
+    DurationInputComponent
   ],
   providers: [
     AuthService,

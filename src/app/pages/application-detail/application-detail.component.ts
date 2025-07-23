@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
 import {ApplicationListService} from "../../services/applications-list/application-list.service";
 import {ApplicationList} from "../../models/application-list";
 import {Application} from "../../models/application";
+import { DurationInputComponent } from '../../shared/components/duration-input/duration-input.component';
 
 @Component({
   selector: 'app-application-detail',
@@ -18,7 +19,8 @@ import {Application} from "../../models/application";
     ReactiveFormsModule,
     RouterLink,
     NgClass,
-    CurrencyPipe
+    CurrencyPipe,
+    DurationInputComponent,
   ],
   templateUrl: './application-detail.component.html',
   styleUrl: './application-detail.component.scss'
@@ -29,7 +31,6 @@ export class ApplicationDetailComponent {
 
   applicationList: ApplicationList | null = null;
   applications: Application[] = [];
-  applicationListDateParts = { day: '', month: '', year: '' };
   formModel = {
     description: '',
     status: '',
