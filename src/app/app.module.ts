@@ -13,6 +13,7 @@ import { DateInputComponent } from './shared/components/date-input/date-input.co
 import { HeaderComponent } from './shared/components/header/header.component';
 import { ServiceNavigationComponent } from './shared/components/service-navigation/service-navigation.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
+import { TextInputComponent } from './shared/components/text-input/text-input.component';
 
 @NgModule({
   declarations: [
@@ -27,7 +28,8 @@ import { FooterComponent } from './shared/components/footer/footer.component';
     DateInputComponent,
     HeaderComponent,
     ServiceNavigationComponent,
-    FooterComponent
+    FooterComponent,
+    TextInputComponent
   ],
   providers: [
     AuthService,

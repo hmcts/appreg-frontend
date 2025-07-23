@@ -12,15 +12,12 @@
     </app-date-input>
 
     <!-- Time -->
-    <div class="govuk-grid-column-one-quarter">
-      <div class="govuk-form-group">
-        <div class="govuk-label-wrapper">
-          <label class="govuk-label govuk-label--m" for="time">Time</label>
-        </div>
-        <div id="time-hint" class="govuk-hint">Enter the time in 24-hour format, for example 08:30</div>
-        <input class="govuk-input govuk-input--width-10" id="time" name="time" type="text">
-      </div>
-    </div>
+    <app-text-input
+      formControlName="time"
+      label="Time"
+      hint="Enter the time in 24-hour format, for example 08:30"
+      idPrefix="time">
+    </app-text-input>
 
     <!-- Description -->
     <div class="govuk-grid-column-one-quarter">

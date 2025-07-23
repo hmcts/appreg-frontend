@@ -6,6 +6,7 @@ import {ApplicationListService} from "../../services/applications-list/applicati
 import {ApplicationList} from "../../models/application-list";
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
+import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 
 interface Court {
   id: number;
@@ -22,6 +23,7 @@ interface Court {
     DateInputComponent,
     ReactiveFormsModule,
     SelectInputComponent,
+    TextInputComponent,
   ],
   templateUrl: './applications-list.component.html',
   styleUrls: ['./applications-list.component.scss']
