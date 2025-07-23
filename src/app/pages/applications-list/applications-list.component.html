@@ -20,15 +20,12 @@
     </app-text-input>
 
     <!-- Description -->
-    <div class="govuk-grid-column-one-quarter">
-      <div class="govuk-form-group">
-        <div class="govuk-label-wrapper">
-          <label class="govuk-label govuk-label--m" for="description">Description</label>
-        </div>
-        <div id="description-hint" class="govuk-hint">A description of the application list</div>
-        <input class="govuk-input govuk-input--width-10" id="description" name="description" type="text">
-      </div>
-    </div>
+    <app-text-input
+      formControlName="description"
+      label="Description"
+      hint="A description of the application list"
+      idPrefix="description">
+    </app-text-input>
 
     <!-- Status -->
     <app-select-input
