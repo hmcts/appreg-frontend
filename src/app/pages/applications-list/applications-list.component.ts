@@ -7,6 +7,7 @@ import {ApplicationList} from "../../models/application-list";
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
+import { Duration, DurationInputComponent } from '../../shared/components/duration-input/duration-input.component';
 
 interface Court {
   id: number;
@@ -24,6 +25,7 @@ interface Court {
     ReactiveFormsModule,
     SelectInputComponent,
     TextInputComponent,
+    DurationInputComponent,
   ],
   templateUrl: './applications-list.component.html',
   styleUrls: ['./applications-list.component.scss']
@@ -36,6 +38,8 @@ export class ApplicationsListComponent implements OnInit {
   filteredCourts: Court[] = [];
 
   selectedStatus = 'choose';
+
+  duration: Duration = { hours: null, minutes: null };
 
   constructor(private applicationListService: ApplicationListService) {}
 

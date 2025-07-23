@@ -12,12 +12,13 @@
     </app-date-input>
 
     <!-- Time -->
-    <app-text-input
-      formControlName="time"
+Mod    <app-duration-input
+      name="time"
+      [(ngModel)]="duration"
       label="Time"
       hint="Enter the time in 24-hour format, for example 08:30"
       idPrefix="time">
-    </app-text-input>
+    </app-duration-input>
 
     <!-- Description -->
     <app-text-input

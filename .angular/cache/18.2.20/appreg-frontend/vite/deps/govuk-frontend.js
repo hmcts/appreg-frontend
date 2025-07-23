@@ -1,7 +1,7 @@
 import "./chunk-WDMUDEB6.js";
 
 // node_modules/govuk-frontend/dist/govuk/common/govuk-frontend-version.mjs
-var version = "5.11.0";
+var version = "5.11.1";
 
 // node_modules/govuk-frontend/dist/govuk/common/index.mjs
 function getFragmentFromUrl(url) {
