@@ -1,10 +1,14 @@
 {
-  "name": "app-reg-poc-frontend",
+  "name": "appreg-frontend",
   "version": "0.0.0",
+  "volta": {
+    "node": "20.11.1",
+    "yarn": "4.8.1"
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve --proxy-config proxy.conf.json",
-    "build": "ng build",
+    "build": "node scripts/copy-govuk-assets.ts && ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
@@ -25,12 +29,15 @@
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^18.2.19",
-    "@angular/cli": "^18.2.19",
+    "@angular/cli": "18.2.20",
     "@angular/compiler-cli": "^18.2.13",
+    "@types/fs-extra": "^11",
     "@types/govuk-frontend": "^5.9.0",
     "@types/jasmine": "~3.8.0",
     "@types/node": "^12.11.1",
+    "fs-extra": "^11.3.0",
     "jasmine-core": "~3.8.0",
+    "jsonc-parser": "^3.3.1",
     "karma": "~6.3.0",
     "karma-chrome-launcher": "~3.1.0",
     "karma-coverage": "~2.0.3",

@@ -3,14 +3,16 @@ import { BrowserModule }            from '@angular/platform-browser';
 import { NgModule }                 from '@angular/core';
 import { ReactiveFormsModule }      from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
-import {HTTP_INTERCEPTORS, provideHttpClient} from '@angular/common/http';   // standalone provider for HttpClient
+import {HTTP_INTERCEPTORS} from '@angular/common/http';
 import { AppRoutingModule }         from './app-routing.module';
 import { AppComponent }             from './app.component';
 import { LoginComponent }           from './pages/login/login.component';
 import { AuthService }              from './services/auth.service';
 import { TokenInterceptorService }  from "./auth/token-interceptor/token-interceptor.service";
-
-// Note: using functional guard 'authGuard' in routes, no AuthGuard class/provider here
+import { DateInputComponent } from './shared/components/date-input/date-input.component';
+import { HeaderComponent } from './shared/components/header/header.component';
+import { ServiceNavigationComponent } from './shared/components/service-navigation/service-navigation.component';
+import { FooterComponent } from './shared/components/footer/footer.component';
 
 @NgModule({
   declarations: [
@@ -21,11 +23,14 @@ import { TokenInterceptorService }  from "./auth/token-interceptor/token-interce
     BrowserModule,
     ReactiveFormsModule,
     AppRoutingModule,
-    HttpClientModule
+    HttpClientModule,
+    DateInputComponent,
+    HeaderComponent,
+    ServiceNavigationComponent,
+    FooterComponent
   ],
   providers: [
-    // provideHttpClient(),  // registers HttpClient providers
-    AuthService, // authentication service
+    AuthService,
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptorService, multi: true }
   ],
   bootstrap: [AppComponent]

@@ -1,9 +1,11 @@
 import { Component, OnInit }   from '@angular/core';
 import { CommonModule }  from "@angular/common";
-import {FormsModule} from "@angular/forms";
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {RouterLink} from "@angular/router";
 import {ApplicationListService} from "../../services/applications-list/application-list.service";
 import {ApplicationList} from "../../models/application-list";
+import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
+import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 
 interface Court {
   id: number;
@@ -17,7 +19,10 @@ interface Court {
     CommonModule,
     FormsModule,
     RouterLink,
-    /* … */],
+    DateInputComponent,
+    ReactiveFormsModule,
+    SelectInputComponent,
+  ],
   templateUrl: './applications-list.component.html',
   styleUrls: ['./applications-list.component.scss']
 })
@@ -27,6 +32,8 @@ export class ApplicationsListComponent implements OnInit {
 
   courthouses: Court[] = [];
   filteredCourts: Court[] = [];
+
+  selectedStatus = 'choose';
 
   constructor(private applicationListService: ApplicationListService) {}
 
