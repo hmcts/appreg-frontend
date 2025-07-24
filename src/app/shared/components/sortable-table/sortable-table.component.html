@@ -83,7 +83,18 @@
         *ngIf="ci !== 0"
         class="govuk-table__cell"
         [class.govuk-table__cell--numeric]="col.numeric">
-        {{ row[col.field] }}
+
+        <!-- Custom‐template slot for 'actions' -->
+        <ng-container *ngIf="col.field === 'actions'; else normalCell">
+          <ng-container
+            *ngTemplateOutlet="actionsTpl ?? null; context: { $implicit: row }">
+          </ng-container>
+        </ng-container>
+
+        <!-- Default cell content -->
+        <ng-template #normalCell>
+          {{ row[col.field] }}
+        </ng-template>
       </td>
     </ng-container>
   </tr>

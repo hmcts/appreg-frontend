@@ -11,6 +11,7 @@ import { SortableTableComponent } from '../../shared/components/sortable-table/s
     FormsModule,
     ReactiveFormsModule,
     SortableTableComponent,
+    RouterLink,
   ],
   templateUrl: './applications.component.html',
   styleUrl: './applications.component.scss'

@@ -1,8 +1,8 @@
 import {
-  Component,
+  Component, ContentChild,
   Input,
   OnChanges,
-  SimpleChanges
+  SimpleChanges, TemplateRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
@@ -16,6 +16,9 @@ type SortDirection = 'asc' | 'desc';
   styleUrls: ['./sortable-table.component.scss']
 })
 export class SortableTableComponent implements OnChanges {
+
+  @ContentChild('actionsTemplate', { read: TemplateRef }) actionsTpl?: TemplateRef<any>;
+
   /** Table caption */
   @Input() caption = '';
 
