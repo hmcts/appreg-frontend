@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
-import {FormsModule, ReactiveFormsModule} from "@angular/forms";
-import {NgIf} from "@angular/common";
-import {RouterLink} from "@angular/router";
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { NgIf } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
 
 @Component({
@@ -14,19 +14,19 @@ import { SortableTableComponent } from '../../shared/components/sortable-table/s
     RouterLink,
   ],
   templateUrl: './applications.component.html',
-  styleUrl: './applications.component.scss'
+  styleUrl: './applications.component.scss',
 })
 export class ApplicationsComponent {
 
   columns = [
-    { header: 'Date',             field: 'date',       sortable: true },
-    { header: 'Applicant',        field: 'applicant',  sortable: true },
-    { header: 'Respondent',       field: 'respondent', sortable: true },
-    { header: 'Application title',field: 'title',      sortable: true },
-    { header: 'Fee req',          field: 'fee',        sortable: true, numeric: false },
-    { header: 'Resulted',         field: 'resulted',   sortable: true },
-    { header: 'Status',           field: 'status',     sortable: true },
-    { header: 'Actions',          field: 'actions',    sortable: false }
+    { header: 'Date', field: 'date', sortable: true },
+    { header: 'Applicant', field: 'applicant', sortable: true },
+    { header: 'Respondent', field: 'respondent', sortable: true },
+    { header: 'Application title', field: 'title', sortable: true },
+    { header: 'Fee', field: 'fee', sortable: true, numeric: false },
+    { header: 'Resulted', field: 'resulted', sortable: true },
+    { header: 'Status', field: 'status', sortable: true },
+    { header: 'Actions', field: 'actions', sortable: false },
   ];
 
   data = [
@@ -38,7 +38,7 @@ export class ApplicationsComponent {
       fee: 'Yes',
       resulted: 'Yes',
       status: 'Open',
-      actions: ''
+      actions: '',
     },
     {
       date: '2024-11-12',
@@ -48,7 +48,7 @@ export class ApplicationsComponent {
       fee: 'Yes',
       resulted: 'No',
       status: 'Closed',
-      actions: ''
+      actions: '',
     },
     {
       date: '2024-09-05',
@@ -58,7 +58,7 @@ export class ApplicationsComponent {
       fee: 'No',
       resulted: 'Yes',
       status: 'Pending',
-      actions: ''
+      actions: '',
     },
     {
       date: '2024-12-22',
@@ -68,7 +68,7 @@ export class ApplicationsComponent {
       fee: 'Yes',
       resulted: 'Yes',
       status: 'Completed',
-      actions: ''
+      actions: '',
     },
     {
       date: '2025-01-03',
@@ -78,7 +78,7 @@ export class ApplicationsComponent {
       fee: 'No',
       resulted: 'No',
       status: 'Open',
-      actions: ''
+      actions: '',
     },
     {
       date: '2025-02-15',
@@ -88,8 +88,8 @@ export class ApplicationsComponent {
       fee: 'Yes',
       resulted: 'Pending',
       status: 'In progress',
-      actions: ''
-    }
+      actions: '',
+    },
   ];
 
   onSubmit(event: SubmitEvent) {
