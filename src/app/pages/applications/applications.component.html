@@ -58,7 +58,8 @@
           <label class="govuk-label govuk-label--m" for="respondent-organisation">Respondent Org</label>
         </div>
         <div id="respondent-organisation-hint" class="govuk-hint">Enter the respondents organisation</div>
-        <input class="govuk-input govuk-input--width-10" id="respondent-organisation" name="respondent-organisation" type="text">
+        <input class="govuk-input govuk-input--width-10" id="respondent-organisation" name="respondent-organisation"
+               type="text">
       </div>
     </div>
 
@@ -144,7 +145,6 @@
         />
       </div>
     </div>
-
   </div>
 
   <div class="govuk-grid-row">
@@ -213,7 +213,6 @@
         />
       </div>
     </div>
-
   </div>
 
   <div class="govuk-button-group">
@@ -224,79 +223,220 @@
 
 <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
-<table class="govuk-table">
-  <caption class="govuk-table__caption govuk-table__caption--m">Lists</caption>
-  <thead class="govuk-table__head">
-  <tr class="govuk-table__row">
-    <th scope="col" class="govuk-table__header">Date</th>
-    <th scope="col" class="govuk-table__header">Applicant</th>
-    <th scope="col" class="govuk-table__header">Respondent</th>
-    <th scope="col" class="govuk-table__header">Application title</th>
-    <th scope="col" class="govuk-table__header">Fee req</th>
-    <th scope="col" class="govuk-table__header">Resulted</th>
-    <th scope="col" class="govuk-table__header">Status</th>
-    <th scope="col" class="govuk-table__header">Actions</th>
-  </tr>
-  </thead>
-  <tbody class="govuk-table__body">
-  <!--  <tr class="govuk-table__row" *ngFor="let list of lists">-->
-  <!--    <th scope="row" class="govuk-table__header">{{ list.date }}</th>-->
-  <!--    <td class="govuk-table__cell">{{ list.time }}</td>-->
-  <!--    <td class="govuk-table__cell">{{ list.location }}</td>-->
-  <!--    <td class="govuk-table__cell">{{ list.description }}</td>-->
-  <!--    <td class="govuk-table__cell govuk-table__cell&#45;&#45;numeric">{{ list.entries }}</td>-->
-  <!--    <td class="govuk-table__cell">{{ list.status }}</td>-->
-  <!--    <td class="govuk-table__cell">-->
-  <!--      <div class="govuk-button-group">-->
-  <!--        <a-->
-  <!--          [routerLink]="['/applications', list.id]"-->
-  <!--          class="govuk-button govuk-button&#45;&#45;secondary"-->
-  <!--        >-->
-  <!--          Open-->
-  <!--        </a>-->
-  <!--        <button-->
-  <!--          type="button"-->
-  <!--          class="govuk-button govuk-button&#45;&#45;warning"-->
-  <!--          (click)="onDelete(list.id)"-->
-  <!--        >-->
-  <!--          Delete-->
-  <!--        </button>-->
-  <!--      </div>-->
-  <!--    </td>-->
-  <!--  </tr>-->
-  <tr class="govuk-table__row">
-    <th scope="row" class="govuk-table__header">10/10/2024</th>
-    <td class="govuk-table__cell">MCPLLL3</td>
-    <td class="govuk-table__cell">MCPLLL3</td>
-    <td class="govuk-table__cell">Extract from the Court Register</td>
-    <td class="govuk-table__cell">Yes</td>
-    <td class="govuk-table__cell">Yes</td>
-    <td class="govuk-table__cell">Open</td>
-    <td class="govuk-table__cell">
-      <div class="govuk-button-group">
-        <a
-          class="govuk-button"
-          routerLink="/applications/1"
-        >
-          Open
-        </a>
-        <button
-          type="button"
-          class="govuk-button govuk-button--secondary"
-        >
-          Update
-        </button>
-      </div>
-    </td>
-  </tr>
-  </tbody>
-</table>
+<!--<table class="govuk-table" data-module="moj-sortable-table">-->
+<!--  <caption class="govuk-table__caption govuk-table__caption&#45;&#45;m">Lists</caption>-->
+<!--  <thead class="govuk-table__head">-->
+<!--  <tr class="govuk-table__row" aria-sort="ascending">-->
+<!--    <th scope="col" class="govuk-table__header">-->
+<!--      <button type="button" data-index="0">Date-->
+<!--        <svg width="22" height="22" focusable="false" aria-hidden="true" role="img" viewBox="0 0 22 22" fill="none"-->
+<!--             xmlns="http://www.w3.org/2000/svg">-->
+<!--          <path d="M6.5625 15.5L11 6.63125L15.4375 15.5H6.5625Z" fill="currentColor"></path>-->
+<!--        </svg>-->
+<!--      </button>-->
+<!--    </th>-->
+<!--    <th scope="col" class="govuk-table__header">-->
+<!--      <button type="button" data-index="0">Applicant-->
+<!--        <svg width="22" height="22" focusable="false" aria-hidden="true" role="img" viewBox="0 0 22 22" fill="none"-->
+<!--             xmlns="http://www.w3.org/2000/svg">-->
+<!--          <path d="M6.5625 15.5L11 6.63125L15.4375 15.5H6.5625Z" fill="currentColor"></path>-->
+<!--        </svg>-->
+<!--      </button>-->
+<!--    </th>-->
+<!--    <th scope="col" class="govuk-table__header">-->
+<!--      <button type="button" data-index="0">Respondent-->
+<!--        <svg width="22" height="22" focusable="false" aria-hidden="true" role="img" viewBox="0 0 22 22" fill="none"-->
+<!--             xmlns="http://www.w3.org/2000/svg">-->
+<!--          <path d="M6.5625 15.5L11 6.63125L15.4375 15.5H6.5625Z" fill="currentColor"></path>-->
+<!--        </svg>-->
+<!--      </button>-->
+<!--    </th>-->
+<!--    <th scope="col" class="govuk-table__header">-->
+<!--      <button type="button" data-index="0">Application title-->
+<!--        <svg width="22" height="22" focusable="false" aria-hidden="true" role="img" viewBox="0 0 22 22" fill="none"-->
+<!--             xmlns="http://www.w3.org/2000/svg">-->
+<!--          <path d="M6.5625 15.5L11 6.63125L15.4375 15.5H6.5625Z" fill="currentColor"></path>-->
+<!--        </svg>-->
+<!--      </button>-->
+<!--    </th>-->
+<!--    <th scope="col" class="govuk-table__header">-->
+<!--      <button type="button" data-index="0">Fee-->
+<!--        <svg width="22" height="22" focusable="false" aria-hidden="true" role="img" viewBox="0 0 22 22" fill="none"-->
+<!--             xmlns="http://www.w3.org/2000/svg">-->
+<!--          <path d="M6.5625 15.5L11 6.63125L15.4375 15.5H6.5625Z" fill="currentColor"></path>-->
+<!--        </svg>-->
+<!--      </button>-->
+<!--    </th>-->
+<!--    <th scope="col" class="govuk-table__header">-->
+<!--      <button type="button" data-index="0">Resulted-->
+<!--        <svg width="22" height="22" focusable="false" aria-hidden="true" role="img" viewBox="0 0 22 22" fill="none"-->
+<!--             xmlns="http://www.w3.org/2000/svg">-->
+<!--          <path d="M6.5625 15.5L11 6.63125L15.4375 15.5H6.5625Z" fill="currentColor"></path>-->
+<!--        </svg>-->
+<!--      </button>-->
+<!--    </th>-->
+<!--    <th scope="col" class="govuk-table__header">-->
+<!--      <button type="button" data-index="0">Status-->
+<!--        <svg width="22" height="22" focusable="false" aria-hidden="true" role="img" viewBox="0 0 22 22" fill="none"-->
+<!--             xmlns="http://www.w3.org/2000/svg">-->
+<!--          <path d="M6.5625 15.5L11 6.63125L15.4375 15.5H6.5625Z" fill="currentColor"></path>-->
+<!--        </svg>-->
+<!--      </button>-->
+<!--    </th>-->
+<!--    <th scope="col" class="govuk-table__header">-->
+<!--      <button type="button" data-index="0">Actions-->
+<!--        <svg width="22" height="22" focusable="false" aria-hidden="true" role="img" viewBox="0 0 22 22" fill="none"-->
+<!--             xmlns="http://www.w3.org/2000/svg">-->
+<!--          <path d="M6.5625 15.5L11 6.63125L15.4375 15.5H6.5625Z" fill="currentColor"></path>-->
+<!--        </svg>-->
+<!--      </button>-->
+<!--    </th>-->
+<!--  </tr>-->
+<!--  </thead>-->
+<!--  <tbody class="govuk-table__body">-->
+
+<!--  <tr class="govuk-table__row">-->
+<!--    <th scope="row" class="govuk-table__header">10/10/2024</th>-->
+<!--    <td class="govuk-table__cell">MCPLLL3</td>-->
+<!--    <td class="govuk-table__cell">MCPLLL3</td>-->
+<!--    <td class="govuk-table__cell">Extract from the Court</td>-->
+<!--    <td class="govuk-table__cell">Yes</td>-->
+<!--    <td class="govuk-table__cell">Yes</td>-->
+<!--    <td class="govuk-table__cell">Open</td>-->
+<!--    <td class="govuk-table__cell">-->
+<!--      <div class="govuk-button-group">-->
+<!--        <a-->
+<!--          class="govuk-button"-->
+<!--          routerLink="/applications/1"-->
+<!--        >-->
+<!--          Open-->
+<!--        </a>-->
+<!--        <button-->
+<!--          type="button"-->
+<!--          class="govuk-button govuk-button&#45;&#45;secondary"-->
+<!--        >-->
+<!--          Update-->
+<!--        </button>-->
+<!--      </div>-->
+<!--    </td>-->
+<!--  </tr>-->
+<!--  <tr class="govuk-table__row">-->
+<!--    <th scope="row" class="govuk-table__header">12/11/2024</th>-->
+<!--    <td class="govuk-table__cell">AB12345</td>-->
+<!--    <td class="govuk-table__cell">AB12345</td>-->
+<!--    <td class="govuk-table__cell">Full transcript of hearing</td>-->
+<!--    <td class="govuk-table__cell">Yes</td>-->
+<!--    <td class="govuk-table__cell">No</td>-->
+<!--    <td class="govuk-table__cell">Closed</td>-->
+<!--    <td class="govuk-table__cell">-->
+<!--      <div class="govuk-button-group">-->
+<!--        <a-->
+<!--          class="govuk-button"-->
+<!--          routerLink="/applications/1"-->
+<!--        >-->
+<!--          Open-->
+<!--        </a>-->
+<!--        <button-->
+<!--          type="button"-->
+<!--          class="govuk-button govuk-button&#45;&#45;secondary"-->
+<!--        >-->
+<!--          Update-->
+<!--        </button>-->
+<!--      </div>-->
+<!--    </td>-->
+<!--  </tr>-->
+<!--  <tr class="govuk-table__row">-->
+<!--    <th scope="row" class="govuk-table__header">05/09/2024</th>-->
+<!--    <td class="govuk-table__cell">XY98765</td>-->
+<!--    <td class="govuk-table__cell">XY98765</td>-->
+<!--    <td class="govuk-table__cell">Witness statement</td>-->
+<!--    <td class="govuk-table__cell">No</td>-->
+<!--    <td class="govuk-table__cell">Yes</td>-->
+<!--    <td class="govuk-table__cell">Pending</td>-->
+<!--    <td class="govuk-table__cell">-->
+<!--      <div class="govuk-button-group">-->
+<!--        <a-->
+<!--          class="govuk-button"-->
+<!--          routerLink="/applications/1"-->
+<!--        >-->
+<!--          Open-->
+<!--        </a>-->
+<!--        <button-->
+<!--          type="button"-->
+<!--          class="govuk-button govuk-button&#45;&#45;secondary"-->
+<!--        >-->
+<!--          Update-->
+<!--        </button>-->
+<!--      </div>-->
+<!--    </td>-->
+<!--  </tr>-->
+<!--  <tr class="govuk-table__row">-->
+<!--    <th scope="row" class="govuk-table__header">22/12/2024</th>-->
+<!--    <td class="govuk-table__cell">LMN45678</td>-->
+<!--    <td class="govuk-table__cell">LMN45678</td>-->
+<!--    <td class="govuk-table__cell">Court order copy</td>-->
+<!--    <td class="govuk-table__cell">Yes</td>-->
+<!--    <td class="govuk-table__cell">Yes</td>-->
+<!--    <td class="govuk-table__cell">Completed</td>-->
+<!--    <td class="govuk-table__cell">-->
+<!--      <div class="govuk-button-group">-->
+<!--        <a-->
+<!--          class="govuk-button"-->
+<!--          routerLink="/applications/1"-->
+<!--        >-->
+<!--          Open-->
+<!--        </a>-->
+<!--        <button-->
+<!--          type="button"-->
+<!--          class="govuk-button govuk-button&#45;&#45;secondary"-->
+<!--        >-->
+<!--          Update-->
+<!--        </button>-->
+<!--      </div>-->
+<!--    </td>-->
+<!--  </tr>-->
+<!--  <tr class="govuk-table__row">-->
+<!--    <th scope="row" class="govuk-table__header">03/01/2025</th>-->
+<!--    <td class="govuk-table__cell">PQ23456</td>-->
+<!--    <td class="govuk-table__cell">PQ23456</td>-->
+<!--    <td class="govuk-table__cell">Registry index extract</td>-->
+<!--    <td class="govuk-table__cell">No</td>-->
+<!--    <td class="govuk-table__cell">No</td>-->
+<!--    <td class="govuk-table__cell">Open</td>-->
+<!--    <td class="govuk-table__cell">-->
+<!--      <div class="govuk-button-group">-->
+<!--        <a-->
+<!--          class="govuk-button"-->
+<!--          routerLink="/applications/1"-->
+<!--        >-->
+<!--          Open-->
+<!--        </a>-->
+<!--        <button-->
+<!--          type="button"-->
+<!--          class="govuk-button govuk-button&#45;&#45;secondary"-->
+<!--        >-->
+<!--          Update-->
+<!--        </button>-->
+<!--      </div>-->
+<!--    </td>-->
+<!--  </tr>-->
+
+<!--  </tbody>-->
+<!--</table>-->
+
+<app-sortable-table
+  [caption]="'Lists'"
+  [columns]="columns"
+  [data]="data">
+</app-sortable-table>
 
 <nav class="govuk-pagination" aria-label="Pagination">
   <div class="govuk-pagination__prev">
     <a class="govuk-link govuk-pagination__link" href="#" rel="prev">
-      <svg class="govuk-pagination__icon govuk-pagination__icon--prev" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
-        <path d="m6.5938-0.0078125-6.7266 6.7266 6.7441 6.4062 1.377-1.449-4.1856-3.9768h12.896v-2h-12.984l4.2931-4.293-1.414-1.414z"></path>
+      <svg class="govuk-pagination__icon govuk-pagination__icon--prev" xmlns="http://www.w3.org/2000/svg" height="13"
+           width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
+        <path
+          d="m6.5938-0.0078125-6.7266 6.7266 6.7441 6.4062 1.377-1.449-4.1856-3.9768h12.896v-2h-12.984l4.2931-4.293-1.414-1.414z"></path>
       </svg>
       <span class="govuk-pagination__link-title">
         Previous<span class="govuk-visually-hidden"> page</span>
@@ -325,8 +465,10 @@
       <span class="govuk-pagination__link-title">
         Next<span class="govuk-visually-hidden"> page</span>
       </span>
-      <svg class="govuk-pagination__icon govuk-pagination__icon--next" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
-        <path d="m8.107-0.0078125-1.4136 1.414 4.2926 4.293h-12.986v2h12.896l-4.1855 3.9766 1.377 1.4492 6.7441-6.4062-6.7246-6.7266z"></path>
+      <svg class="govuk-pagination__icon govuk-pagination__icon--next" xmlns="http://www.w3.org/2000/svg" height="13"
+           width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
+        <path
+          d="m8.107-0.0078125-1.4136 1.414 4.2926 4.293h-12.986v2h12.896l-4.1855 3.9766 1.377 1.4492 6.7441-6.4062-6.7246-6.7266z"></path>
       </svg>
     </a>
   </div>

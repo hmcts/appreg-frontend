@@ -1,0 +1,86 @@
+import {
+  Component,
+  Input,
+  OnChanges,
+  SimpleChanges
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+type SortDirection = 'asc' | 'desc';
+
+@Component({
+  selector: 'app-sortable-table',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './sortable-table.component.html',
+  styleUrls: ['./sortable-table.component.scss']
+})
+export class SortableTableComponent implements OnChanges {
+  /** Table caption */
+  @Input() caption = '';
+
+  /** Column definitions */
+  @Input() columns: Array<{
+    header: string;
+    field: string;
+    sortable?: boolean;
+    numeric?: boolean;
+  }> = [];
+
+  /** Row data */
+  @Input() data: any[] = [];
+
+  /** Internal copy that we sort */
+  sortedData: any[] = [];
+
+  /** Which field are we sorting on? */
+  sortField?: string;
+
+  /** Current direction */
+  sortDir: SortDirection = 'asc';
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.data) {
+      // whenever the input data changes, reset our sortedData
+      this.sortedData = [...this.data];
+      if (this.sortField) {
+        this.applySort();
+      }
+    }
+  }
+
+  onHeaderClick(col: { field: string; sortable?: boolean }) {
+    if (!col.sortable) return;
+    if (this.sortField === col.field) {
+      // flip direction
+      this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      // new column → always start asc
+      this.sortField = col.field;
+      this.sortDir   = 'asc';
+    }
+    this.applySort();  // your existing sort logic
+  }
+
+  private applySort() {
+    const field = this.sortField!;
+    const dir = this.sortDir === 'asc' ? 1 : -1;
+
+    this.sortedData.sort((a, b) => {
+      const x = a[field];
+      const y = b[field];
+
+      // null/undefined first
+      if (x == null) return -1 * dir;
+      if (y == null) return 1 * dir;
+
+      // numeric sort if both are numbers
+      if (typeof x === 'number' && typeof y === 'number') {
+        return (x - y) * dir;
+      }
+
+      // fallback to string
+      return String(x).localeCompare(String(y)) * dir;
+    });
+  }
+}

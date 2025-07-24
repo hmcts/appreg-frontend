@@ -15,6 +15,7 @@ import { ServiceNavigationComponent } from './shared/components/service-navigati
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { TextInputComponent } from './shared/components/text-input/text-input.component';
 import { DurationInputComponent } from './shared/components/duration-input/duration-input.component';
+import { SortableTableComponent } from './shared/components/sortable-table/sortable-table.component';
 
 @NgModule({
   declarations: [
@@ -31,7 +32,8 @@ import { DurationInputComponent } from './shared/components/duration-input/durat
     ServiceNavigationComponent,
     FooterComponent,
     TextInputComponent,
-    DurationInputComponent
+    DurationInputComponent,
+    SortableTableComponent
   ],
   providers: [
     AuthService,

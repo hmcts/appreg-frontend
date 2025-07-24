@@ -1,0 +1,91 @@
+<!-- src/app/shared/components/sortable-table/sortable-table.component.html -->
+<table class="govuk-table" [attr.aria-describedby]="'sortable-' + caption">
+  <caption
+    class="govuk-table__caption govuk-table__caption--m"
+    id="sortable-{{caption}}">
+    {{ caption }}
+  </caption>
+
+  <thead class="govuk-table__head">
+  <tr class="govuk-table__row">
+    <th
+      *ngFor="let col of columns"
+      scope="col"
+      class="govuk-table__header"
+      [class.govuk-table__header--numeric]="col.numeric"
+      [attr.aria-sort]="
+    sortField === col.field
+      ? (sortDir === 'asc' ? 'ascending' : 'descending')
+      : 'none'
+  ">
+      <button
+        *ngIf="col.sortable; else justHeader"
+        type="button"
+        (click)="onHeaderClick(col)">
+        {{ col.header }}
+        <svg
+          width="22"
+          height="22"
+          focusable="false"
+          aria-hidden="true"
+          role="img"
+          viewBox="0 0 22 22"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg">
+
+          <!-- 1) Unsorted: show both arrows -->
+          <ng-container *ngIf="sortField !== col.field">
+            <path
+              d="M8.1875 9.5L10.9609 3.95703L13.7344 9.5H8.1875Z"
+              fill="currentColor">
+            </path>
+            <path
+              d="M13.7344 12.0781L10.9609 17.6211L8.1875 12.0781H13.7344Z"
+              fill="currentColor">
+            </path>
+          </ng-container>
+
+          <!-- 2) Sorted ascending: only up‐triangle -->
+          <path
+            *ngIf="sortField === col.field && sortDir === 'asc'"
+            d="M8.1875 9.5L10.9609 3.95703L13.7344 9.5H8.1875Z"
+            fill="currentColor">
+          </path>
+
+          <!-- 3) Sorted descending: only down‐triangle -->
+          <path
+            *ngIf="sortField === col.field && sortDir === 'desc'"
+            d="M13.7344 12.0781L10.9609 17.6211L8.1875 12.0781H13.7344Z"
+            fill="currentColor">
+          </path>
+        </svg>
+      </button>
+      <ng-template #justHeader>
+        {{ col.header }}
+      </ng-template>
+    </th>
+  </tr>
+  </thead>
+
+  <tbody class="govuk-table__body">
+  <tr
+    *ngFor="let row of sortedData; let i = index"
+    class="govuk-table__row">
+    <ng-container *ngFor="let col of columns; let ci = index">
+      <th
+        *ngIf="ci === 0"
+        scope="row"
+        class="govuk-table__header"
+        [class.govuk-table__cell--numeric]="col.numeric">
+        {{ row[col.field] }}
+      </th>
+      <td
+        *ngIf="ci !== 0"
+        class="govuk-table__cell"
+        [class.govuk-table__cell--numeric]="col.numeric">
+        {{ row[col.field] }}
+      </td>
+    </ng-container>
+  </tr>
+  </tbody>
+</table>
