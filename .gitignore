@@ -79,10 +79,6 @@ xcuserdata/
 !.vscode/launch.json
 !.vscode/extensions.json
 
-# Maven
-/target
-/log
-
 # Misc
 /.sass-cache
 /connect.lock
@@ -94,7 +90,6 @@ testem.log
 /typings
 /reports
 /src/translations/template.*
-# /src/environments/.env.*
 
 # System Files
 Thumbs.db
