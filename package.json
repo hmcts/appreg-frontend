@@ -10,7 +10,8 @@
     "start": "ng serve --proxy-config proxy.conf.json",
     "build": "node scripts/copy-govuk-assets.ts && ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "test:smoke": "ng test --include 'src/test/smoke/**/*.ts' --watch=false --browsers=ChromeHeadless"
   },
   "private": true,
   "dependencies": {

@@ -21,6 +21,7 @@ node-rpm-packaging/
 mochawesome-report/
 npm-debug.log.*
 
+.angular
 .project
 .settings/
 dist/
