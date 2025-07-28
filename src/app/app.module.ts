@@ -1,4 +1,3 @@
-// src/app/app.module.ts
 import { BrowserModule }            from '@angular/platform-browser';
 import { NgModule }                 from '@angular/core';
 import { ReactiveFormsModule }      from '@angular/forms';
@@ -16,6 +15,7 @@ import { FooterComponent } from './shared/components/footer/footer.component';
 import { TextInputComponent } from './shared/components/text-input/text-input.component';
 import { DurationInputComponent } from './shared/components/duration-input/duration-input.component';
 import { SortableTableComponent } from './shared/components/sortable-table/sortable-table.component';
+import { PaginationComponent } from './shared/components/pagination/pagination.component';
 
 @NgModule({
   declarations: [
@@ -33,7 +33,8 @@ import { SortableTableComponent } from './shared/components/sortable-table/sorta
     FooterComponent,
     TextInputComponent,
     DurationInputComponent,
-    SortableTableComponent
+    SortableTableComponent,
+    PaginationComponent
   ],
   providers: [
     AuthService,

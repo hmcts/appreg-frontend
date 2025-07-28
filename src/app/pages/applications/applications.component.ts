@@ -3,6 +3,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgIf } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
+import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-applications',
@@ -12,6 +13,7 @@ import { SortableTableComponent } from '../../shared/components/sortable-table/s
     ReactiveFormsModule,
     SortableTableComponent,
     RouterLink,
+    PaginationComponent,
   ],
   templateUrl: './applications.component.html',
   styleUrl: './applications.component.scss',
@@ -34,7 +36,7 @@ export class ApplicationsComponent {
       date: '2024-10-10',
       applicant: 'MCPLLL3',
       respondent: 'MCPLLL3',
-      title: 'Extract from the Court Register',
+      title: 'From the Court Register',
       fee: 'Yes',
       resulted: 'Yes',
       status: 'Open',
@@ -54,7 +56,7 @@ export class ApplicationsComponent {
       date: '2024-09-05',
       applicant: 'XY98765',
       respondent: 'ZY56789',
-      title: 'Witness statement summary',
+      title: 'Witness statement',
       fee: 'No',
       resulted: 'Yes',
       status: 'Pending',
@@ -91,6 +93,23 @@ export class ApplicationsComponent {
       actions: '',
     },
   ];
+
+  readonly itemsPerPage = 3;
+  currentPage = 1;
+
+  get totalPages(): number {
+    return Math.ceil(this.data.length / this.itemsPerPage);
+  }
+
+  // slice out only the rows we should show on the current page
+  get pagedData() {
+    const start = (this.currentPage - 1) * this.itemsPerPage;
+    return this.data.slice(start, start + this.itemsPerPage);
+  }
+
+  onPageChange(newPage: number) {
+    this.currentPage = newPage;
+  }
 
   onSubmit(event: SubmitEvent) {
     event.preventDefault();
