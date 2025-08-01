@@ -1,17 +1,14 @@
 import { Component } from '@angular/core';
-import {ReactiveFormsModule} from "@angular/forms";
-import {ActivatedRoute, RouterLink} from "@angular/router";
-import {initAll} from "govuk-frontend";
+import { ReactiveFormsModule } from '@angular/forms';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { initAll } from 'govuk-frontend';
 
 @Component({
   selector: 'app-fee-details',
   standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    RouterLink
-  ],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './fee-details.component.html',
-  styleUrl: './fee-details.component.scss'
+  styleUrl: './fee-details.component.scss',
 })
 export class FeeDetailsComponent {
   public id!: string;

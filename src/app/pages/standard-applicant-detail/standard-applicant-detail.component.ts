@@ -1,15 +1,13 @@
 import { Component } from '@angular/core';
-import {initAll} from "govuk-frontend";
-import {ActivatedRoute, RouterLink} from "@angular/router";
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { initAll } from 'govuk-frontend';
 
 @Component({
   selector: 'app-standard-applicant-detail',
   standalone: true,
-  imports: [
-    RouterLink
-  ],
+  imports: [RouterLink],
   templateUrl: './standard-applicant-detail.component.html',
-  styleUrl: './standard-applicant-detail.component.scss'
+  styleUrl: './standard-applicant-detail.component.scss',
 })
 export class StandardApplicantDetailComponent {
   public id!: string;
@@ -20,5 +18,4 @@ export class StandardApplicantDetailComponent {
     this.id = this.route.snapshot.paramMap.get('id')!;
     initAll();
   }
-
 }

@@ -6,9 +6,7 @@ export class FeeReportService {
   constructor(private http: HttpClient) {}
 
   downloadReport(filters: any) {
-    let params = new HttpParams()
-      .set('startDate', filters.startDate)
-      .set('endDate', filters.endDate);
+    let params = new HttpParams().set('startDate', filters.startDate).set('endDate', filters.endDate);
 
     if (filters.standardApplicantCode) {
       params = params.set('standardApplicantCode', filters.standardApplicantCode);
@@ -22,7 +20,7 @@ export class FeeReportService {
 
     return this.http.get('/reports/fees', {
       params,
-      responseType: 'blob'
+      responseType: 'blob',
     });
   }
 }

@@ -1,27 +1,24 @@
 <body class="govuk-template__body js-enabled govuk-frontend-supported">
-<script>
-  document.body.className += ' js-enabled' + ('noModule' in HTMLScriptElement.prototype ? ' govuk-frontend-supported' : '');
-</script>
-<a href="#main-content" class="govuk-skip-link" data-module="govuk-skip-link">Skip to main content</a>
-<app-header></app-header>
-<app-service-navigation
-  [isLoginPage]="currentRoute === '/login'"
-  (signOut)="onSignOut($event)">
-</app-service-navigation>
-<div class="govuk-width-container">
-  <main class="govuk-main-wrapper" id="main-content">
-    <router-outlet></router-outlet>
-  </main>
-</div>
+  <script>
+    document.body.className +=
+      ' js-enabled' + ('noModule' in HTMLScriptElement.prototype ? ' govuk-frontend-supported' : '');
+  </script>
+  <a href="#main-content" class="govuk-skip-link" data-module="govuk-skip-link">Skip to main content</a>
+  <app-header></app-header>
+  <app-service-navigation [isLoginPage]="currentRoute === '/login'" (signOut)="onSignOut($event)">
+  </app-service-navigation>
+  <div class="govuk-width-container">
+    <main class="govuk-main-wrapper" id="main-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
 
-<app-footer></app-footer>
+  <app-footer></app-footer>
 
-<script type="module" src="/javascripts/govuk-frontend.min.js"></script>
-<script type="module">
-  import {
-    initAll,
-  } from '/javascripts/govuk-frontend.min.js';
+  <script type="module" src="/javascripts/govuk-frontend.min.js"></script>
+  <script type="module">
+    import { initAll } from '/javascripts/govuk-frontend.min.js';
 
-  initAll();
-</script>
+    initAll();
+  </script>
 </body>

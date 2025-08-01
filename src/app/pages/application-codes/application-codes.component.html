@@ -2,7 +2,7 @@
 
 <h1 class="govuk-heading-xl">Applications codes</h1>
 
-<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" />
 <form #listForm="ngForm" (ngSubmit)="onSubmit($event)">
   <div class="govuk-grid-row">
     <!-- Lodgement date -->
@@ -12,50 +12,42 @@
           <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
             <h1 class="govuk-fieldset__heading">Lodgement date</h1>
           </legend>
-          <div id="lodgement-date-hint" class="govuk-hint">
-            For example, 27 3 2025
-          </div>
+          <div id="lodgement-date-hint" class="govuk-hint">For example, 27 3 2025</div>
           <div class="govuk-date-input" id="lodgement-date">
             <div class="govuk-date-input__item">
               <div class="govuk-form-group">
-                <label class="govuk-label govuk-date-input__label" for="lodgement-day">
-                  Day
-                </label>
+                <label class="govuk-label govuk-date-input__label" for="lodgement-day"> Day </label>
                 <input
                   class="govuk-input govuk-date-input__input govuk-input--width-2"
                   id="lodgement-day"
                   name="lodgement-day"
                   type="text"
                   inputmode="numeric"
-                >
+                />
               </div>
             </div>
             <div class="govuk-date-input__item">
               <div class="govuk-form-group">
-                <label class="govuk-label govuk-date-input__label" for="lodgement-month">
-                  Month
-                </label>
+                <label class="govuk-label govuk-date-input__label" for="lodgement-month"> Month </label>
                 <input
                   class="govuk-input govuk-date-input__input govuk-input--width-2"
                   id="lodgement-month"
                   name="lodgement-month"
                   type="text"
                   inputmode="numeric"
-                >
+                />
               </div>
             </div>
             <div class="govuk-date-input__item">
               <div class="govuk-form-group">
-                <label class="govuk-label govuk-date-input__label" for="lodgement-year">
-                  Year
-                </label>
+                <label class="govuk-label govuk-date-input__label" for="lodgement-year"> Year </label>
                 <input
                   class="govuk-input govuk-date-input__input govuk-input--width-4"
                   id="lodgement-year"
                   name="lodgement-year"
                   type="text"
                   inputmode="numeric"
-                >
+                />
               </div>
             </div>
           </div>
@@ -66,38 +58,30 @@
     <!-- Application code -->
     <div class="govuk-grid-column-one-quarter">
       <div class="govuk-form-group">
-        <label class="govuk-label govuk-label--m" for="application-code">
-          Application code
-        </label>
-        <div id="application-code-hint" class="govuk-hint">
-          The code for the application e.g. APP-12345
-        </div>
+        <label class="govuk-label govuk-label--m" for="application-code"> Application code </label>
+        <div id="application-code-hint" class="govuk-hint">The code for the application e.g. APP-12345</div>
         <input
           class="govuk-input govuk-input--width-10"
           id="application-code"
           name="applicationCode"
           type="text"
           aria-describedby="application-code-hint"
-        >
+        />
       </div>
     </div>
 
     <!-- Application title -->
     <div class="govuk-grid-column-one-quarter">
       <div class="govuk-form-group">
-        <label class="govuk-label govuk-label--m" for="application-title">
-          Application title
-        </label>
-        <div id="application-title-hint" class="govuk-hint">
-          Enter a concise title for this application
-        </div>
+        <label class="govuk-label govuk-label--m" for="application-title"> Application title </label>
+        <div id="application-title-hint" class="govuk-hint">Enter a concise title for this application</div>
         <input
           class="govuk-input govuk-input--width-10"
           id="application-title"
           name="applicationTitle"
           type="text"
           aria-describedby="application-title-hint"
-        >
+        />
       </div>
     </div>
   </div>
@@ -107,72 +91,82 @@
   </div>
 </form>
 
-
-<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" />
 
 <table class="govuk-table">
-  <caption class="govuk-table__caption govuk-table__caption--m">Codes</caption>
+  <caption class="govuk-table__caption govuk-table__caption--m">
+    Codes
+  </caption>
   <thead class="govuk-table__head">
-  <tr class="govuk-table__row">
-    <th scope="col" class="govuk-table__header">Code</th>
-    <th scope="col" class="govuk-table__header">Application title</th>
-    <th scope="col" class="govuk-table__header">Bulk</th>
-    <th scope="col" class="govuk-table__header">Fee req</th>
-    <th scope="col" class="govuk-table__header">Actions</th>
-  </tr>
+    <tr class="govuk-table__row">
+      <th scope="col" class="govuk-table__header">Code</th>
+      <th scope="col" class="govuk-table__header">Application title</th>
+      <th scope="col" class="govuk-table__header">Bulk</th>
+      <th scope="col" class="govuk-table__header">Fee req</th>
+      <th scope="col" class="govuk-table__header">Actions</th>
+    </tr>
   </thead>
   <tbody class="govuk-table__body">
-  <tr class="govuk-table__row">
-    <th scope="row" class="govuk-table__header">C123</th>
-    <td class="govuk-table__cell">Standard Application</td>
-    <td class="govuk-table__cell">Yes</td>
-    <td class="govuk-table__cell">£100.00</td>
-    <td class="govuk-table__cell">
-      <div class="govuk-button-group">
-        <button type="button" class="govuk-button">Add code</button>
-        <button type="button" class="govuk-button govuk-button--secondary">Add wording</button>
-      </div>
-    </td>
-  </tr>
+    <tr class="govuk-table__row">
+      <th scope="row" class="govuk-table__header">C123</th>
+      <td class="govuk-table__cell">Standard Application</td>
+      <td class="govuk-table__cell">Yes</td>
+      <td class="govuk-table__cell">£100.00</td>
+      <td class="govuk-table__cell">
+        <div class="govuk-button-group">
+          <button type="button" class="govuk-button">Add code</button>
+          <button type="button" class="govuk-button govuk-button--secondary">Add wording</button>
+        </div>
+      </td>
+    </tr>
   </tbody>
 </table>
-
 
 <nav class="govuk-pagination" aria-label="Pagination">
   <div class="govuk-pagination__prev">
     <a class="govuk-link govuk-pagination__link" href="#" rel="prev">
-      <svg class="govuk-pagination__icon govuk-pagination__icon--prev" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
-        <path d="m6.5938-0.0078125-6.7266 6.7266 6.7441 6.4062 1.377-1.449-4.1856-3.9768h12.896v-2h-12.984l4.2931-4.293-1.414-1.414z"></path>
+      <svg
+        class="govuk-pagination__icon govuk-pagination__icon--prev"
+        xmlns="http://www.w3.org/2000/svg"
+        height="13"
+        width="15"
+        aria-hidden="true"
+        focusable="false"
+        viewBox="0 0 15 13"
+      >
+        <path
+          d="m6.5938-0.0078125-6.7266 6.7266 6.7441 6.4062 1.377-1.449-4.1856-3.9768h12.896v-2h-12.984l4.2931-4.293-1.414-1.414z"
+        ></path>
       </svg>
-      <span class="govuk-pagination__link-title">
-        Previous<span class="govuk-visually-hidden"> page</span>
-      </span>
+      <span class="govuk-pagination__link-title"> Previous<span class="govuk-visually-hidden"> page</span> </span>
     </a>
   </div>
   <ul class="govuk-pagination__list">
     <li class="govuk-pagination__item">
-      <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page 1">
-        1
-      </a>
+      <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page 1"> 1 </a>
     </li>
     <li class="govuk-pagination__item govuk-pagination__item--current">
-      <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page 2" aria-current="page">
-        2
-      </a>
+      <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page 2" aria-current="page"> 2 </a>
     </li>
     <li class="govuk-pagination__item">
-      <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page 3">
-        3
-      </a>
+      <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page 3"> 3 </a>
     </li>
   </ul>
   <div class="govuk-pagination__next">
     <a class="govuk-link govuk-pagination__link" href="#" rel="next">
-      <span class="govuk-pagination__link-title">
-        Next<span class="govuk-visually-hidden"> page</span>
-      </span>
-      <svg class="govuk-pagination__icon govuk-pagination__icon--next" xmlns="http://www.w3.org/2000/svg" height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
-        <path d="m8.107-0.0078125-1.4136 1.414 4.2926 4.293h-12.986v2h12.896l-4.1855 3.9766 1.377 1.4492 6.7441-6.4062-6.7246-6.7266z"></path>
+      <span class="govuk-pagination__link-title"> Next<span class="govuk-visually-hidden"> page</span> </span>
+      <svg
+        class="govuk-pagination__icon govuk-pagination__icon--next"
+        xmlns="http://www.w3.org/2000/svg"
+        height="13"
+        width="15"
+        aria-hidden="true"
+        focusable="false"
+        viewBox="0 0 15 13"
+      >
+        <path
+          d="m8.107-0.0078125-1.4136 1.414 4.2926 4.293h-12.986v2h12.896l-4.1855 3.9766 1.377 1.4492 6.7441-6.4062-6.7246-6.7266z"
+        ></path>
       </svg>
     </a>
   </div>

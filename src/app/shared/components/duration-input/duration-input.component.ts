@@ -1,11 +1,6 @@
-import { Component, forwardRef, Input } from '@angular/core';
-import {
-  ControlValueAccessor,
-  NG_VALUE_ACCESSOR,
-  FormsModule,
-  ReactiveFormsModule
-} from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { Component, Input, forwardRef } from '@angular/core';
+import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 
 export interface Duration {
   hours: number | null;
@@ -15,14 +10,16 @@ export interface Duration {
 @Component({
   selector: 'app-duration-input',
   standalone: true,
-  imports: [ CommonModule, FormsModule, ReactiveFormsModule ],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './duration-input.component.html',
   styleUrls: ['./duration-input.component.scss'],
-  providers: [{
-    provide: NG_VALUE_ACCESSOR,
-    useExisting: forwardRef(() => DurationInputComponent),
-    multi: true
-  }]
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => DurationInputComponent),
+      multi: true,
+    },
+  ],
 })
 export class DurationInputComponent implements ControlValueAccessor {
   /** Label text above the inputs */
@@ -49,8 +46,12 @@ export class DurationInputComponent implements ControlValueAccessor {
     }
   }
 
-  registerOnChange(fn: any): void   { this.onChange = fn; }
-  registerOnTouched(fn: any): void  { this.onTouched = fn; }
+  registerOnChange(fn: any): void {
+    this.onChange = fn;
+  }
+  registerOnTouched(fn: any): void {
+    this.onTouched = fn;
+  }
 
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
@@ -60,7 +61,7 @@ export class DurationInputComponent implements ControlValueAccessor {
   private propagate() {
     const out: Duration = {
       hours: this.hours,
-      minutes: this.minutes
+      minutes: this.minutes,
     };
     // only emit once we’ve touched it
     this.onChange(out);

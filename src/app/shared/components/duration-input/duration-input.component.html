@@ -1,16 +1,10 @@
 <div class="govuk-grid-column-one-quarter">
   <div class="govuk-form-group">
-    <label
-      *ngIf="label"
-      class="govuk-label govuk-label--m"
-      [for]="idPrefix + '-hours'">
+    <label *ngIf="label" class="govuk-label govuk-label--m" [for]="idPrefix + '-hours'">
       {{ label }}
     </label>
 
-    <div
-      *ngIf="hint"
-      [id]="idPrefix + '-hint'"
-      class="govuk-hint">
+    <div *ngIf="hint" [id]="idPrefix + '-hint'" class="govuk-hint">
       {{ hint }}
     </div>
 
@@ -28,11 +22,7 @@
         (blur)="touch()"
         [disabled]="disabled"
       />
-      <div
-        class="govuk-input__suffix govuk-!-margin-right-3"
-        aria-hidden="true">
-        HH
-      </div>
+      <div class="govuk-input__suffix govuk-!-margin-right-3" aria-hidden="true">HH</div>
 
       <!-- Minutes -->
       <input
@@ -47,11 +37,7 @@
         (blur)="touch()"
         [disabled]="disabled"
       />
-      <div
-        class="govuk-input__suffix govuk-!-margin-right-3"
-        aria-hidden="true">
-        MM
-      </div>
+      <div class="govuk-input__suffix govuk-!-margin-right-3" aria-hidden="true">MM</div>
     </div>
   </div>
 </div>

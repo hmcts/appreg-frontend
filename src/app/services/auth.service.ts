@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { map, tap, catchError } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 
 export interface LoginCreds {
   username: string;
@@ -14,8 +14,8 @@ interface AuthResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly TOKEN_KEY    = 'AUTH_TOKEN';
-  private readonly LOGIN_URL    = '/auth/token';
+  private readonly TOKEN_KEY = 'AUTH_TOKEN';
+  private readonly LOGIN_URL = '/auth/token';
 
   constructor(private http: HttpClient) {}
 
@@ -25,13 +25,11 @@ export class AuthService {
    * On error, emit `false`.
    */
   login(creds: LoginCreds): Observable<boolean> {
-    return this.http
-      .post<AuthResponse>(this.LOGIN_URL, creds)
-      .pipe(
-        tap(res => localStorage.setItem(this.TOKEN_KEY, res.token)),
-        map(() => true),
-        catchError(() => of(false))
-      );
+    return this.http.post<AuthResponse>(this.LOGIN_URL, creds).pipe(
+      tap(res => localStorage.setItem(this.TOKEN_KEY, res.token)),
+      map(() => true),
+      catchError(() => of(false))
+    );
   }
 
   /** Returns true if we have a token in localStorage */

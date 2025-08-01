@@ -1,12 +1,13 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import {ApplicationList, ApplicationListWrite} from "../../models/application-list";
-import {Application} from "../../models/application";
-import {BulkUploadResponse} from "../../models/bulk-upload-response";
+
+import { Application } from '../../models/application';
+import { ApplicationList, ApplicationListWrite } from '../../models/application-list';
+import { BulkUploadResponse } from '../../models/bulk-upload-response';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ApplicationListService {
   private readonly API_URL = '/application-lists';
@@ -40,9 +41,6 @@ export class ApplicationListService {
     const formData = new FormData();
     formData.append('file', file);
 
-    return this.http.post<BulkUploadResponse>(
-      `${this.API_URL}/${listId}/applications/bulk-upload`,
-      formData
-    );
+    return this.http.post<BulkUploadResponse>(`${this.API_URL}/${listId}/applications/bulk-upload`, formData);
   }
 }

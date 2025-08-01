@@ -1,11 +1,6 @@
-import { Component, Input, forwardRef } from '@angular/core';
-import {
-  ControlValueAccessor,
-  NG_VALUE_ACCESSOR,
-  FormsModule,
-  ReactiveFormsModule
-} from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { Component, Input, forwardRef } from '@angular/core';
+import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 
 export interface SelectOption {
   value: string;
@@ -18,11 +13,13 @@ export interface SelectOption {
   imports: [FormsModule, ReactiveFormsModule, CommonModule],
   templateUrl: './select-input.component.html',
   styleUrls: ['./select-input.component.scss'],
-  providers: [{
-    provide: NG_VALUE_ACCESSOR,
-    useExisting: forwardRef(() => SelectInputComponent),
-    multi: true
-  }]
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => SelectInputComponent),
+      multi: true,
+    },
+  ],
 })
 export class SelectInputComponent implements ControlValueAccessor {
   /** Legend text for the field */
@@ -43,8 +40,12 @@ export class SelectInputComponent implements ControlValueAccessor {
   writeValue(obj: string | null): void {
     this.value = obj;
   }
-  registerOnChange(fn: any): void { this.onChange = fn; }
-  registerOnTouched(fn: any): void { this.onTouched = fn; }
+  registerOnChange(fn: any): void {
+    this.onChange = fn;
+  }
+  registerOnTouched(fn: any): void {
+    this.onTouched = fn;
+  }
   setDisabledState(isDisabled: boolean): void {
     // we let the native <select> handle disabled
   }

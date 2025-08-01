@@ -1,13 +1,13 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { CommonModule }   from '@angular/common';
-import { RouterModule }   from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-service-navigation',
   standalone: true,
-  imports: [ CommonModule, RouterModule ],
+  imports: [CommonModule, RouterModule],
   templateUrl: './service-navigation.component.html',
-  styleUrls: ['./service-navigation.component.scss']
+  styleUrls: ['./service-navigation.component.scss'],
 })
 export class ServiceNavigationComponent {
   @Input() isLoginPage = false;

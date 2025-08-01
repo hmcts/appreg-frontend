@@ -1,8 +1,7 @@
 <!-- src/app/date-input/date-input.component.html -->
 <div class="govuk-grid-column-one-quarter">
   <div class="govuk-form-group">
-    <fieldset class="govuk-fieldset" role="group"
-              [attr.aria-describedby]="idPrefix + '-hint'">
+    <fieldset class="govuk-fieldset" role="group" [attr.aria-describedby]="idPrefix + '-hint'">
       <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
         <h1 class="govuk-fieldset__heading">{{ label }}</h1>
       </legend>
@@ -15,51 +14,45 @@
         <!-- Day -->
         <div class="govuk-date-input__item">
           <div class="govuk-form-group">
-            <label class="govuk-label govuk-date-input__label"
-                   [for]="idPrefix + '-day'">
-              Day
-            </label>
+            <label class="govuk-label govuk-date-input__label" [for]="idPrefix + '-day'"> Day </label>
             <input
               class="govuk-input govuk-date-input__input govuk-input--width-2"
               [id]="idPrefix + '-day'"
               [name]="idPrefix + '-day'"
               type="text"
               inputmode="numeric"
-              formControlName="day">
+              formControlName="day"
+            />
           </div>
         </div>
 
         <!-- Month -->
         <div class="govuk-date-input__item">
           <div class="govuk-form-group">
-            <label class="govuk-label govuk-date-input__label"
-                   [for]="idPrefix + '-month'">
-              Month
-            </label>
+            <label class="govuk-label govuk-date-input__label" [for]="idPrefix + '-month'"> Month </label>
             <input
               class="govuk-input govuk-date-input__input govuk-input--width-2"
               [id]="idPrefix + '-month'"
               [name]="idPrefix + '-month'"
               type="text"
               inputmode="numeric"
-              formControlName="month">
+              formControlName="month"
+            />
           </div>
         </div>
 
         <!-- Year -->
         <div class="govuk-date-input__item">
           <div class="govuk-form-group">
-            <label class="govuk-label govuk-date-input__label"
-                   [for]="idPrefix + '-year'">
-              Year
-            </label>
+            <label class="govuk-label govuk-date-input__label" [for]="idPrefix + '-year'"> Year </label>
             <input
               class="govuk-input govuk-date-input__input govuk-input--width-4"
               [id]="idPrefix + '-year'"
               [name]="idPrefix + '-year'"
               type="text"
               inputmode="numeric"
-              formControlName="year">
+              formControlName="year"
+            />
           </div>
         </div>
       </div>

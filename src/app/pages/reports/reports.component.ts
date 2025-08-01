@@ -1,20 +1,18 @@
+import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component } from '@angular/core';
-import { CommonModule }            from '@angular/common';
-import { FormsModule }             from '@angular/forms';
-import { initAll }                 from 'govuk-frontend';
-import {FeeReportService} from "../../services/fee-report.service";
-import { CourthouseService} from '../../services/courthouse.service';
+import { FormsModule } from '@angular/forms';
+import { initAll } from 'govuk-frontend';
+
+import { CourthouseService } from '../../services/courthouse.service';
+import { FeeReportService } from '../../services/fee-report.service';
 
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-  ],
+  imports: [CommonModule, FormsModule],
   providers: [FeeReportService],
   templateUrl: './reports.component.html',
-  styleUrls: ['./reports.component.scss']
+  styleUrls: ['./reports.component.scss'],
 })
 export class ReportsComponent implements AfterViewInit {
   selectedReport = '';
@@ -37,7 +35,7 @@ export class ReportsComponent implements AfterViewInit {
     startYear: '',
     endDay: '',
     endMonth: '',
-    endYear: ''
+    endYear: '',
   };
 
   constructor(
@@ -58,9 +56,7 @@ export class ReportsComponent implements AfterViewInit {
 
   onCourthouseInputChange(): void {
     const searchTerm = this.courthouseSearch.toLowerCase();
-    this.filteredCourthouses = this.courthouses.filter(c =>
-      c.name.toLowerCase().includes(searchTerm)
-    );
+    this.filteredCourthouses = this.courthouses.filter(c => c.name.toLowerCase().includes(searchTerm));
   }
 
   selectCourthouse(courthouse: any): void {
@@ -88,8 +84,10 @@ export class ReportsComponent implements AfterViewInit {
       return;
     }
 
-    if (!this.isDateComplete(this.filters.startDay, this.filters.startMonth, this.filters.startYear) ||
-      !this.isDateComplete(this.filters.endDay, this.filters.endMonth, this.filters.endYear)) {
+    if (
+      !this.isDateComplete(this.filters.startDay, this.filters.startMonth, this.filters.startYear) ||
+      !this.isDateComplete(this.filters.endDay, this.filters.endMonth, this.filters.endYear)
+    ) {
       alert('Start and end dates are required.');
       return;
     }
@@ -99,16 +97,19 @@ export class ReportsComponent implements AfterViewInit {
 
     console.log('Selected filters:', this.filters); // optional debug
 
-    this.reportService.downloadReport(this.filters).subscribe(blob => {
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'fee-report.csv';
-      link.click();
-      window.URL.revokeObjectURL(url);
-    }, err => {
-      console.error('Failed to download fee report', err);
-      alert('Failed to download report. Please check the filters and try again.');
-    });
+    this.reportService.downloadReport(this.filters).subscribe(
+      blob => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'fee-report.csv';
+        link.click();
+        window.URL.revokeObjectURL(url);
+      },
+      err => {
+        console.error('Failed to download fee report', err);
+        alert('Failed to download report. Please check the filters and try again.');
+      }
+    );
   }
 }

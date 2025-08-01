@@ -1,22 +1,18 @@
-import { Component, forwardRef, Input } from '@angular/core';
-import {
-  ControlValueAccessor,
-  NG_VALUE_ACCESSOR,
-  FormBuilder,
-  FormGroup,
-  Validators
-} from '@angular/forms';
+import { Component, Input, forwardRef } from '@angular/core';
+import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-date-input',
   templateUrl: './date-input.component.html',
   styleUrls: ['./date-input.component.scss'],
   standalone: true,
-  providers: [{
-    provide: NG_VALUE_ACCESSOR,
-    useExisting: forwardRef(() => DateInputComponent),
-    multi: true,
-  }],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => DateInputComponent),
+      multi: true,
+    },
+  ],
 })
 export class DateInputComponent implements ControlValueAccessor {
   /** Displayed legend text */
@@ -34,9 +30,9 @@ export class DateInputComponent implements ControlValueAccessor {
 
   constructor(private fb: FormBuilder) {
     this.dateForm = this.fb.group({
-      day:   ['', [Validators.required, Validators.pattern(/^\d{1,2}$/)]],
+      day: ['', [Validators.required, Validators.pattern(/^\d{1,2}$/)]],
       month: ['', [Validators.required, Validators.pattern(/^\d{1,2}$/)]],
-      year:  ['', [Validators.required, Validators.pattern(/^\d{4}$/)]],
+      year: ['', [Validators.required, Validators.pattern(/^\d{4}$/)]],
     });
 
     // Emit a YYYY-MM-DD string when the form is valid, otherwise null
@@ -62,8 +58,12 @@ export class DateInputComponent implements ControlValueAccessor {
     }
   }
 
-  registerOnChange(fn: any): void   { this.onChange = fn; }
-  registerOnTouched(fn: any): void  { this.onTouched = fn; }
+  registerOnChange(fn: any): void {
+    this.onChange = fn;
+  }
+  registerOnTouched(fn: any): void {
+    this.onTouched = fn;
+  }
 
   setDisabledState(isDisabled: boolean): void {
     isDisabled ? this.dateForm.disable() : this.dateForm.enable();

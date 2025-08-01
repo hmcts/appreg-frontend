@@ -8,9 +8,9 @@
 //   status: string;
 // }
 
+import { ApplicationCode } from './application-code';
 import { IdentityDetails } from './identity-details';
 import { StandardApplicant } from './standard-applicant';
-import { ApplicationCode } from './application-code';
 
 export interface Application {
   id: number;

@@ -1,18 +1,18 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
+import { ActivatedRoute, Router } from '@angular/router';
 import * as GOVUKFrontend from 'govuk-frontend';
-import {ApplicationService} from "../../services/application.service";
-import {ApplicationListService} from "../../services/applications-list/application-list.service";
+
+import { ApplicationService } from '../../services/application.service';
+import { ApplicationListService } from '../../services/applications-list/application-list.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss']
+  styleUrls: ['./login.component.scss'],
 })
 export class LoginComponent implements OnInit, AfterViewInit {
-
   passwordVisible = false;
 
   created = false;
@@ -24,11 +24,11 @@ export class LoginComponent implements OnInit, AfterViewInit {
     private fb: UntypedFormBuilder,
     private authService: AuthService,
     private router: Router,
-    private route: ActivatedRoute,
+    private route: ActivatedRoute
   ) {
     this.loginForm = this.fb.group({
       username: ['', Validators.required],
-      password: ['', Validators.required]
+      password: ['', Validators.required],
     });
   }
 
@@ -66,6 +66,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
       },
       () => {
         this.error = 'An unexpected error occurred';
-      });
+      }
+    );
   }
 }

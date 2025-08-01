@@ -1,7 +1,8 @@
-import {Injectable} from "@angular/core";
-import {HttpClient} from "@angular/common/http";
-import {Observable} from "rxjs";
-import {CourtHouse} from "../models/court-house";
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+
+import { CourtHouse } from '../models/court-house';
 
 @Injectable({ providedIn: 'root' })
 export class CourthouseService {

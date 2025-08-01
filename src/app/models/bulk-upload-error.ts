@@ -1,4 +1,4 @@
-import {CsvRow} from "./bulk-upload-csv-row";
+import { CsvRow } from './bulk-upload-csv-row';
 
 export interface BulkUploadError {
   rowNumber: number;

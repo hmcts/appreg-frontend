@@ -1,12 +1,12 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
   selector: 'app-pagination',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './pagination.component.html',
-  styleUrls: ['./pagination.component.scss']
+  styleUrls: ['./pagination.component.scss'],
 })
 export class PaginationComponent {
   /** Zero‑based or one‑based? We’ll assume 1-based pages. */
@@ -27,7 +27,7 @@ export class PaginationComponent {
   }
 
   goTo(page: number) {
-    if (page < 1 || page > this.totalPages || page === this.currentPage) return;
+    if (page < 1 || page > this.totalPages || page === this.currentPage) {return;}
     this.pageChange.emit(page);
   }
 

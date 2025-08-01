@@ -1,20 +1,18 @@
-import { Component } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { HttpErrorResponse } from '@angular/common/http';
-import { initAll } from 'govuk-frontend';
-import {ApplicationListService} from "../../services/applications-list/application-list.service";
-import {BulkUploadResponse} from "../../models/bulk-upload-response";
 import { CommonModule } from '@angular/common';
-import {FormsModule} from "@angular/forms";
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { initAll } from 'govuk-frontend';
+
+import { BulkUploadResponse } from '../../models/bulk-upload-response';
+import { ApplicationListService } from '../../services/applications-list/application-list.service';
 
 @Component({
   selector: 'app-bulk-upload',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterLink,
-    FormsModule
-  ],  templateUrl: './bulk-upload.component.html',
+  imports: [CommonModule, RouterLink, FormsModule],
+  templateUrl: './bulk-upload.component.html',
   styleUrl: './bulk-upload.component.scss',
 })
 export class BulkUploadComponent {

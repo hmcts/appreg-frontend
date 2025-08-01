@@ -1,25 +1,19 @@
+import { NgIf } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { NgIf } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
+
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
+import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
 
 @Component({
   selector: 'app-applications',
   standalone: true,
-  imports: [
-    FormsModule,
-    ReactiveFormsModule,
-    SortableTableComponent,
-    RouterLink,
-    PaginationComponent,
-  ],
+  imports: [FormsModule, ReactiveFormsModule, SortableTableComponent, RouterLink, PaginationComponent],
   templateUrl: './applications.component.html',
   styleUrl: './applications.component.scss',
 })
 export class ApplicationsComponent {
-
   columns = [
     { header: 'Date', field: 'date', sortable: true },
     { header: 'Applicant', field: 'applicant', sortable: true },
@@ -114,7 +108,7 @@ export class ApplicationsComponent {
   onSubmit(event: SubmitEvent) {
     event.preventDefault();
     const btn = event.submitter as HTMLButtonElement;
-    const action = btn.value;  // "search" or "create"
+    const action = btn.value; // "search" or "create"
 
     // read your form values however you like:
     const form = event.target as HTMLFormElement;
@@ -126,5 +120,4 @@ export class ApplicationsComponent {
       // handle create…
     }
   }
-
 }

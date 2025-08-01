@@ -1,19 +1,13 @@
 // scripts/copy-govuk-to-src.js
-const fs = require('fs-extra');
 const path = require('path');
 
+const fs = require('fs-extra');
+
 // Where govuk-frontend actually installs its assets
-const src = path.resolve(
-  __dirname, '..',
-  'node_modules', 'govuk-frontend',
-  'dist', 'govuk', 'assets',
-);
+const src = path.resolve(__dirname, '..', 'node_modules', 'govuk-frontend', 'dist', 'govuk', 'assets');
 
 // Your staging area in src/
-const dest = path.resolve(
-  __dirname, '..',
-  'src', 'assets', 'govuk',
-);
+const dest = path.resolve(__dirname, '..', 'src', 'assets', 'govuk');
 
 // Delete any old copy, then mirror everything
 fs.rmSync(dest, { recursive: true, force: true });

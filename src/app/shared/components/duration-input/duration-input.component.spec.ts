@@ -8,9 +8,8 @@ describe('DurationInputComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DurationInputComponent]
-    })
-    .compileComponents();
+      imports: [DurationInputComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(DurationInputComponent);
     component = fixture.componentInstance;

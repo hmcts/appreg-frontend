@@ -1,13 +1,12 @@
-import { TestBed } from '@angular/core/testing';
-import { AppComponent } from '../../app/app.component';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
+
+import { AppComponent } from '../../app/app.component';
 
 describe('App Smoke Test', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [
-        HttpClientTestingModule,
-      ],
+      imports: [HttpClientTestingModule],
       declarations: [AppComponent],
     }).compileComponents();
   });

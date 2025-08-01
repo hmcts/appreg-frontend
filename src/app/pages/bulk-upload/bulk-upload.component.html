@@ -3,12 +3,14 @@
 <h1 class="govuk-heading-xl">Bulk upload applications</h1>
 
 <!-- Notification banner shown after upload -->
-<div *ngIf="uploadSummary as summary" class="govuk-notification-banner" role="region"
-     aria-labelledby="upload-summary-title">
+<div
+  *ngIf="uploadSummary as summary"
+  class="govuk-notification-banner"
+  role="region"
+  aria-labelledby="upload-summary-title"
+>
   <div class="govuk-notification-banner__header">
-    <h2 class="govuk-notification-banner__title" id="upload-summary-title">
-      Upload complete
-    </h2>
+    <h2 class="govuk-notification-banner__title" id="upload-summary-title">Upload complete</h2>
   </div>
   <div class="govuk-notification-banner__content">
     <p class="govuk-body">
@@ -53,7 +55,7 @@
         name="file"
         type="file"
         accept=".csv"
-        style="display:none"
+        style="display: none"
         (change)="onFileChange($event)"
       />
     </div>
@@ -65,9 +67,7 @@
 
   <!-- Buttons -->
   <div class="govuk-button-group">
-    <button type="button" class="govuk-button" (click)="upload()" [disabled]="!selectedFile">
-      Upload file
-    </button>
+    <button type="button" class="govuk-button" (click)="upload()" [disabled]="!selectedFile">Upload file</button>
 
     <a
       class="govuk-button govuk-button--secondary"
@@ -79,13 +79,10 @@
 </form>
 
 <!-- GOV.UK screen-reader live region for drop-zone -->
-<span class="govuk-file-upload-announcements govuk-visually-hidden"
-      aria-live="assertive">
-  </span>
+<span class="govuk-file-upload-announcements govuk-visually-hidden" aria-live="assertive"> </span>
 
 <!-- Your error message stanza, exactly as before -->
 <div *ngIf="uploadError" class="govuk-error-message">
   <span class="govuk-visually-hidden">Error:</span>
   {{ uploadError }}
 </div>
-

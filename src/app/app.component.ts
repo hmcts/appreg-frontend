@@ -1,7 +1,8 @@
-import {Component, OnInit} from '@angular/core';
-import {Router, NavigationEnd} from '@angular/router';
-import {filter} from 'rxjs/operators';
-import {AuthService} from "./services/auth.service";
+import { Component, OnInit } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
+import { filter } from 'rxjs/operators';
+
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -19,9 +20,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.router.events
-      .pipe(
-        filter((e): e is NavigationEnd => e instanceof NavigationEnd)
-      )
+      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe((e: NavigationEnd): void => {
         this.isLoginPage = e.urlAfterRedirects === '/login';
       });

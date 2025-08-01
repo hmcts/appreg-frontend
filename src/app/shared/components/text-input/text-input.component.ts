@@ -1,11 +1,6 @@
-import { Component, forwardRef, Input } from '@angular/core';
-import {
-  ControlValueAccessor,
-  NG_VALUE_ACCESSOR,
-  FormsModule,
-  ReactiveFormsModule
-} from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { Component, Input, forwardRef } from '@angular/core';
+import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-text-input',
@@ -13,11 +8,13 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './text-input.component.html',
   styleUrls: ['./text-input.component.scss'],
-  providers: [{
-    provide: NG_VALUE_ACCESSOR,
-    useExisting: forwardRef(() => TextInputComponent),
-    multi: true
-  }]
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => TextInputComponent),
+      multi: true,
+    },
+  ],
 })
 export class TextInputComponent implements ControlValueAccessor {
   /** The label shown above the input */
@@ -38,8 +35,12 @@ export class TextInputComponent implements ControlValueAccessor {
   writeValue(obj: string | null): void {
     this.value = obj;
   }
-  registerOnChange(fn: any): void   { this.onChange = fn; }
-  registerOnTouched(fn: any): void  { this.onTouched = fn; }
+  registerOnChange(fn: any): void {
+    this.onChange = fn;
+  }
+  registerOnTouched(fn: any): void {
+    this.onTouched = fn;
+  }
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
   }

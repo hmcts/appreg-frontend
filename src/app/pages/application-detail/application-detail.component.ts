@@ -1,29 +1,21 @@
+import { CommonModule, CurrencyPipe , NgClass } from '@angular/common';
 import { Component } from '@angular/core';
-import {ActivatedRoute, NavigationEnd, Router, RouterLink} from "@angular/router";
-import {FormsModule, ReactiveFormsModule} from "@angular/forms";
-import {initAll} from "govuk-frontend";
-import {CurrencyPipe, NgClass} from "@angular/common";
-import {filter} from "rxjs/operators";
-import { CommonModule } from '@angular/common';
-import {ApplicationListService} from "../../services/applications-list/application-list.service";
-import {ApplicationList} from "../../models/application-list";
-import {Application} from "../../models/application";
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
+import { initAll } from 'govuk-frontend';
+import { filter } from 'rxjs/operators';
+
+import { Application } from '../../models/application';
+import { ApplicationList } from '../../models/application-list';
+import { ApplicationListService } from '../../services/applications-list/application-list.service';
 import { DurationInputComponent } from '../../shared/components/duration-input/duration-input.component';
 
 @Component({
   selector: 'app-application-detail',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    RouterLink,
-    NgClass,
-    CurrencyPipe,
-    DurationInputComponent,
-  ],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink, NgClass, CurrencyPipe, DurationInputComponent],
   templateUrl: './application-detail.component.html',
-  styleUrl: './application-detail.component.scss'
+  styleUrl: './application-detail.component.scss',
 })
 export class ApplicationDetailComponent {
   public id!: number;
@@ -39,7 +31,7 @@ export class ApplicationDetailComponent {
     cja: 'Default CJA',
     date: { day: '', month: '', year: '' },
     duration: { hours: '', minutes: '' },
-    courthouseName: ''
+    courthouseName: '',
   };
 
   constructor(
@@ -51,11 +43,9 @@ export class ApplicationDetailComponent {
   ngOnInit() {
     this.id = Number(this.route.snapshot.paramMap.get('id'));
     initAll();
-    this.router.events
-      .pipe(filter(e => e instanceof NavigationEnd))
-      .subscribe(() => {
-        this.currentFragment = this.route.snapshot.fragment;
-      });
+    this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(() => {
+      this.currentFragment = this.route.snapshot.fragment;
+    });
 
     this.loadApplicationList();
     this.loadApplications();
@@ -63,7 +53,7 @@ export class ApplicationDetailComponent {
 
   loadApplicationList(): void {
     this.appListService.get(this.id).subscribe({
-      next: (list) => {
+      next: list => {
         this.applicationList = list;
 
         this.formModel.description = list.description || '';
@@ -79,21 +69,21 @@ export class ApplicationDetailComponent {
         const [hours, minutes] = (list.time || '').split(':');
         this.formModel.duration = { hours: hours || '', minutes: minutes || '' };
       },
-      error: (err) => console.error('Failed to load application list', err)
+      error: err => console.error('Failed to load application list', err),
     });
   }
 
   loadApplications(): void {
     this.appListService.getApplicationsByListId(this.id).subscribe({
-      next: (apps) => this.applications = apps,
-      error: (err) => console.error('Failed to load applications', err)
+      next: apps => (this.applications = apps),
+      error: err => console.error('Failed to load applications', err),
     });
   }
 
   onSubmit(event: SubmitEvent) {
     event.preventDefault();
     const btn = event.submitter as HTMLButtonElement;
-    const action = btn.value;  // "search" or "create"
+    const action = btn.value; // "search" or "create"
 
     // read your form values however you like:
     const form = event.target as HTMLFormElement;

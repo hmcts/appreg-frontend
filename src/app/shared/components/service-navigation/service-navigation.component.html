@@ -1,14 +1,8 @@
-<section
-  *ngIf="isLoginPage"
-  class="govuk-service-navigation"
-  data-module="govuk-service-navigation"
->
+<section *ngIf="isLoginPage" class="govuk-service-navigation" data-module="govuk-service-navigation">
   <div class="govuk-width-container">
     <div class="govuk-service-navigation__container">
       <span class="govuk-service-navigation__service-name">
-        <a href="/" class="govuk-service-navigation__link">
-          Application register
-        </a>
+        <a href="/" class="govuk-service-navigation__link"> Application register </a>
       </span>
     </div>
   </div>
@@ -90,13 +84,7 @@
             routerLinkActive="govuk-service-navigation__item--active"
             [routerLinkActiveOptions]="{ exact: true }"
           >
-            <a
-              href="#"
-              class="govuk-service-navigation__link"
-              (click)="handleSignOut($event)"
-            >
-              Sign out
-            </a>
+            <a href="#" class="govuk-service-navigation__link" (click)="handleSignOut($event)"> Sign out </a>
           </li>
         </ul>
       </nav>

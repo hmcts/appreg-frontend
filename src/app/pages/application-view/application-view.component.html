@@ -2,14 +2,14 @@
 
 <h1 class="govuk-heading-xl">Application name</h1>
 
-<script>document.body.className += ' js-enabled' + ('noModule' in HTMLScriptElement.prototype ? ' govuk-frontend-supported' : '');</script>
+<script>
+  document.body.className +=
+    ' js-enabled' + ('noModule' in HTMLScriptElement.prototype ? ' govuk-frontend-supported' : '');
+</script>
 
 <div class="govuk-tabs" data-module="govuk-tabs" data-govuk-tabs-init="">
-  <h2 class="govuk-tabs__title">
-    Contents
-  </h2>
+  <h2 class="govuk-tabs__title">Contents</h2>
   <ul class="govuk-tabs__list" role="tablist">
-
     <!-- Summary tab -->
     <li
       class="govuk-tabs__list-item"
@@ -200,7 +200,10 @@
   >
     <h2 class="govuk-heading-l">Summary</h2>
 
-    <script>document.body.className += ' js-enabled' + ('noModule' in HTMLScriptElement.prototype ? ' govuk-frontend-supported' : '');</script>
+    <script>
+      document.body.className +=
+        ' js-enabled' + ('noModule' in HTMLScriptElement.prototype ? ' govuk-frontend-supported' : '');
+    </script>
 
     <dl class="govuk-summary-list">
       <div class="govuk-summary-list__row">
@@ -256,20 +259,14 @@
     <h2 class="govuk-heading-l">Applicant</h2>
 
     <div class="govuk-accordion">
-
       <!-- show-all / hide-all control -->
       <div class="govuk-accordion__controls">
-        <button
-          type="button"
-          class="govuk-accordion__show-all"
-          [attr.aria-expanded]="allOpen"
-          (click)="toggleAll()"
-        >
+        <button type="button" class="govuk-accordion__show-all" [attr.aria-expanded]="allOpen" (click)="toggleAll()">
           <span
             class="govuk-accordion-nav__chevron"
             [ngClass]="{
               'govuk-accordion-nav__chevron--down': !allOpen,
-              'govuk-accordion-nav__chevron--up': allOpen
+              'govuk-accordion-nav__chevron--up': allOpen,
             }"
             aria-hidden="true"
           ></span>
@@ -278,7 +275,6 @@
           </span>
         </button>
       </div>
-
 
       <!-- -- Person section -- -->
       <div class="govuk-accordion__section">
@@ -293,13 +289,8 @@
               [attr.aria-label]="'Person, ' + (personOpen ? 'Hide' : 'Show') + ' this section'"
             >
               <!-- heading text -->
-              <span
-                class="govuk-accordion__section-heading-text"
-                id="panel-person-heading"
-              >
-                <span class="govuk-accordion__section-heading-text-focus">
-                  Person
-                </span>
+              <span class="govuk-accordion__section-heading-text" id="panel-person-heading">
+                <span class="govuk-accordion__section-heading-text-focus"> Person </span>
               </span>
 
               <!-- divider for screen readers -->
@@ -312,7 +303,7 @@
                     class="govuk-accordion-nav__chevron"
                     [ngClass]="{
                       'govuk-accordion-nav__chevron--down': !personOpen,
-                      'govuk-accordion-nav__chevron--up':   personOpen
+                      'govuk-accordion-nav__chevron--up': personOpen,
                     }"
                     aria-hidden="true"
                   ></span>
@@ -325,24 +316,14 @@
           </h2>
         </div>
 
-        <div
-          id="panel-person"
-          role="region"
-          aria-labelledby="panel-person-heading"
-          [hidden]="!personOpen"
-        >
-
+        <div id="panel-person" role="region" aria-labelledby="panel-person-heading" [hidden]="!personOpen">
           <h3 class="govuk-heading-m">Names</h3>
           <div class="govuk-grid-row">
             <!-- Title -->
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
-                <label class="govuk-label govuk-label--s" for="title">
-                  Select title
-                </label>
-                <div id="title-hint" class="govuk-hint">
-                  The person’s title, for example Mr, Mrs, Dr
-                </div>
+                <label class="govuk-label govuk-label--s" for="title"> Select title </label>
+                <div id="title-hint" class="govuk-hint">The person’s title, for example Mr, Mrs, Dr</div>
                 <select class="govuk-select" id="title" name="title" aria-describedby="title-hint">
                   <option value="">Select title</option>
                   <option value="Mr">Mr</option>
@@ -358,16 +339,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="first-name">First name</label>
-                <div id="first-name-hint" class="govuk-hint">
-                  Enter the person’s given name
-                </div>
+                <div id="first-name-hint" class="govuk-hint">Enter the person’s given name</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="first-name"
                   name="firstName"
                   type="text"
                   aria-describedby="first-name-hint"
-                >
+                />
               </div>
             </div>
 
@@ -375,16 +354,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="middle-names">Middle names</label>
-                <div id="middle-names-hint" class="govuk-hint">
-                  Enter any middle names (leave blank if none)
-                </div>
+                <div id="middle-names-hint" class="govuk-hint">Enter any middle names (leave blank if none)</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="middle-names"
                   name="middleNames"
                   type="text"
                   aria-describedby="middle-names-hint"
-                >
+                />
               </div>
             </div>
 
@@ -392,21 +369,19 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="surname">Surname</label>
-                <div id="surname-hint" class="govuk-hint">
-                  Enter the person’s family name
-                </div>
+                <div id="surname-hint" class="govuk-hint">Enter the person’s family name</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="surname"
                   name="surname"
                   type="text"
                   aria-describedby="surname-hint"
-                >
+                />
               </div>
             </div>
           </div>
 
-          <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+          <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" />
 
           <h3 class="govuk-heading-m">Address</h3>
 
@@ -415,16 +390,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="person-address-line-1">Address line 1</label>
-                <div id="person-address-line-1-hint" class="govuk-hint">
-                  Building and street
-                </div>
+                <div id="person-address-line-1-hint" class="govuk-hint">Building and street</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="person-address-line-1"
                   name="personAddressLine1"
                   type="text"
                   aria-describedby="person-address-line-1-hint"
-                >
+                />
               </div>
             </div>
 
@@ -432,16 +405,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="person-address-line-2">Address line 2</label>
-                <div id="person-address-line-2-hint" class="govuk-hint">
-                  District or locality (optional)
-                </div>
+                <div id="person-address-line-2-hint" class="govuk-hint">District or locality (optional)</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="person-address-line-2"
                   name="personAddressLine2"
                   type="text"
                   aria-describedby="person-address-line-2-hint"
-                >
+                />
               </div>
             </div>
 
@@ -449,16 +420,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="person-address-line-3">Address line 3</label>
-                <div id="person-address-line-3-hint" class="govuk-hint">
-                  Town or city
-                </div>
+                <div id="person-address-line-3-hint" class="govuk-hint">Town or city</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="person-address-line-3"
                   name="personAddressLine3"
                   type="text"
                   aria-describedby="person-address-line-3-hint"
-                >
+                />
               </div>
             </div>
 
@@ -466,16 +435,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="person-address-line-4">Address line 4</label>
-                <div id="person-address-line-4-hint" class="govuk-hint">
-                  County or region
-                </div>
+                <div id="person-address-line-4-hint" class="govuk-hint">County or region</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="person-address-line-4"
                   name="personAddressLine4"
                   type="text"
                   aria-describedby="person-address-line-4-hint"
-                >
+                />
               </div>
             </div>
           </div>
@@ -485,16 +452,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="person-address-line-5">Address line 5</label>
-                <div id="person-address-line-5-hint" class="govuk-hint">
-                  Post town, e.g. Manchester
-                </div>
+                <div id="person-address-line-5-hint" class="govuk-hint">Post town, e.g. Manchester</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="person-address-line-5"
                   name="personAddressLine5"
                   type="text"
                   aria-describedby="person-address-line-5-hint"
-                >
+                />
               </div>
             </div>
 
@@ -502,21 +467,19 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="person-postcode">Postcode</label>
-                <div id="person-postcode-hint" class="govuk-hint">
-                  e.g. SW1A 2AA
-                </div>
+                <div id="person-postcode-hint" class="govuk-hint">e.g. SW1A 2AA</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="person-postcode"
                   name="personPostcode"
                   type="text"
                   aria-describedby="person-postcode-hint"
-                >
+                />
               </div>
             </div>
           </div>
 
-          <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+          <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" />
 
           <h3 class="govuk-heading-m">Contact details</h3>
 
@@ -525,16 +488,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="person-phone-number">Phone number</label>
-                <div id="person-phone-number-hint" class="govuk-hint">
-                  Landline, e.g. 020 7946 0000
-                </div>
+                <div id="person-phone-number-hint" class="govuk-hint">Landline, e.g. 020 7946 0000</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="person-phone-number"
                   name="phoneNumber"
                   type="tel"
                   aria-describedby="person-phone-number-hint"
-                >
+                />
               </div>
             </div>
 
@@ -542,16 +503,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="person-mobile-number">Mobile number</label>
-                <div id="person-mobile-number-hint" class="govuk-hint">
-                  UK mobile, e.g. 07123 456789
-                </div>
+                <div id="person-mobile-number-hint" class="govuk-hint">UK mobile, e.g. 07123 456789</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="person-mobile-number"
                   name="mobileNumber"
                   type="tel"
                   aria-describedby="person-mobile-number-hint"
-                >
+                />
               </div>
             </div>
 
@@ -559,16 +518,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="person-email-address">Email address</label>
-                <div id="person-email-address-hint" class="govuk-hint">
-                  e.g. name&#64;department.gov.uk
-                </div>
+                <div id="person-email-address-hint" class="govuk-hint">e.g. name&#64;department.gov.uk</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="person-email-address"
                   name="emailAddress"
                   type="email"
                   aria-describedby="person-email-address-hint"
-                >
+                />
               </div>
             </div>
           </div>
@@ -588,13 +545,8 @@
               [attr.aria-label]="'Organisation, ' + (organisationOpen ? 'Hide' : 'Show') + ' this section'"
             >
               <!-- heading text -->
-              <span
-                class="govuk-accordion__section-heading-text"
-                id="panel-organisation-heading"
-              >
-                <span class="govuk-accordion__section-heading-text-focus">
-                  Organisation
-                </span>
+              <span class="govuk-accordion__section-heading-text" id="panel-organisation-heading">
+                <span class="govuk-accordion__section-heading-text-focus"> Organisation </span>
               </span>
 
               <!-- divider for screen readers -->
@@ -607,7 +559,7 @@
                     class="govuk-accordion-nav__chevron"
                     [ngClass]="{
                       'govuk-accordion-nav__chevron--down': !organisationOpen,
-                      'govuk-accordion-nav__chevron--up':   organisationOpen
+                      'govuk-accordion-nav__chevron--up': organisationOpen,
                     }"
                     aria-hidden="true"
                   ></span>
@@ -632,21 +584,19 @@
             <div class="govuk-grid-column-one-half">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="org-name">Organisation Name</label>
-                <div id="org-name-hint" class="govuk-hint">
-                  The name of the organisation
-                </div>
+                <div id="org-name-hint" class="govuk-hint">The name of the organisation</div>
                 <input
                   class="govuk-input govuk-input--width-40"
                   id="org-name"
                   name="orgName"
                   type="text"
                   aria-describedby="org-name-hint"
-                >
+                />
               </div>
             </div>
           </div>
 
-          <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+          <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" />
 
           <h3 class="govuk-heading-m">Address</h3>
 
@@ -655,16 +605,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="org-address-line-1">Address line 1</label>
-                <div id="org-address-line-1-hint" class="govuk-hint">
-                  Building and street
-                </div>
+                <div id="org-address-line-1-hint" class="govuk-hint">Building and street</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="org-address-line-1"
                   name="orgAddressLine1"
                   type="text"
                   aria-describedby="org-address-line-1-hint"
-                >
+                />
               </div>
             </div>
 
@@ -672,16 +620,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="org-address-line-2">Address line 2</label>
-                <div id="org-address-line-2-hint" class="govuk-hint">
-                  District or locality (optional)
-                </div>
+                <div id="org-address-line-2-hint" class="govuk-hint">District or locality (optional)</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="org-address-line-2"
                   name="orgAddressLine2"
                   type="text"
                   aria-describedby="org-address-line-2-hint"
-                >
+                />
               </div>
             </div>
 
@@ -689,16 +635,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="org-address-line-3">Address line 3</label>
-                <div id="org-address-line-3-hint" class="govuk-hint">
-                  Town or city
-                </div>
+                <div id="org-address-line-3-hint" class="govuk-hint">Town or city</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="org-address-line-3"
                   name="orgAddressLine3"
                   type="text"
                   aria-describedby="org-address-line-3-hint"
-                >
+                />
               </div>
             </div>
 
@@ -706,16 +650,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="org-address-line-4">Address line 4</label>
-                <div id="org-address-line-4-hint" class="govuk-hint">
-                  County or region
-                </div>
+                <div id="org-address-line-4-hint" class="govuk-hint">County or region</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="org-address-line-4"
                   name="orgAddressLine4"
                   type="text"
                   aria-describedby="org-address-line-4-hint"
-                >
+                />
               </div>
             </div>
           </div>
@@ -725,16 +667,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="org-address-line-5">Address line 5</label>
-                <div id="org-address-line-5-hint" class="govuk-hint">
-                  Post town, e.g. Manchester
-                </div>
+                <div id="org-address-line-5-hint" class="govuk-hint">Post town, e.g. Manchester</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="org-address-line-5"
                   name="orgAddressLine5"
                   type="text"
                   aria-describedby="org-address-line-5-hint"
-                >
+                />
               </div>
             </div>
 
@@ -742,21 +682,19 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="org-postcode">Postcode</label>
-                <div id="org-postcode-hint" class="govuk-hint">
-                  e.g. SW1A 2AA
-                </div>
+                <div id="org-postcode-hint" class="govuk-hint">e.g. SW1A 2AA</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="org-postcode"
                   name="orgPostcode"
                   type="text"
                   aria-describedby="org-postcode-hint"
-                >
+                />
               </div>
             </div>
           </div>
 
-          <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+          <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" />
 
           <h3 class="govuk-heading-m">Contact details</h3>
 
@@ -765,16 +703,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="org-phone-number">Phone number</label>
-                <div id="org-phone-number-hint" class="govuk-hint">
-                  Landline, e.g. 020 7946 0000
-                </div>
+                <div id="org-phone-number-hint" class="govuk-hint">Landline, e.g. 020 7946 0000</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="org-phone-number"
                   name="phoneNumber"
                   type="tel"
                   aria-describedby="org-phone-number-hint"
-                >
+                />
               </div>
             </div>
 
@@ -782,16 +718,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="org-mobile-number">Mobile number</label>
-                <div id="org-mobile-number-hint" class="govuk-hint">
-                  UK mobile, e.g. 07123 456789
-                </div>
+                <div id="org-mobile-number-hint" class="govuk-hint">UK mobile, e.g. 07123 456789</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="org-mobile-number"
                   name="mobileNumber"
                   type="tel"
                   aria-describedby="org-mobile-number-hint"
-                >
+                />
               </div>
             </div>
 
@@ -799,16 +733,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="org-email-address">Email address</label>
-                <div id="org-email-address-hint" class="govuk-hint">
-                  e.g. name&#64;department.gov.uk
-                </div>
+                <div id="org-email-address-hint" class="govuk-hint">e.g. name&#64;department.gov.uk</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="org-email-address"
                   name="emailAddress"
                   type="email"
                   aria-describedby="org-email-address-hint"
-                >
+                />
               </div>
             </div>
           </div>
@@ -828,13 +760,8 @@
               [attr.aria-label]="'Standard applicant, ' + (standardOpen ? 'Hide' : 'Show') + ' this section'"
             >
               <!-- heading text -->
-              <span
-                class="govuk-accordion__section-heading-text"
-                id="panel-standard-heading"
-              >
-                <span class="govuk-accordion__section-heading-text-focus">
-                  Standard applicant
-                </span>
+              <span class="govuk-accordion__section-heading-text" id="panel-standard-heading">
+                <span class="govuk-accordion__section-heading-text-focus"> Standard applicant </span>
               </span>
 
               <!-- divider for screen readers -->
@@ -847,7 +774,7 @@
                     class="govuk-accordion-nav__chevron"
                     [ngClass]="{
                       'govuk-accordion-nav__chevron--down': !standardOpen,
-                      'govuk-accordion-nav__chevron--up':   standardOpen
+                      'govuk-accordion-nav__chevron--up': standardOpen,
                     }"
                     aria-hidden="true"
                   ></span>
@@ -860,47 +787,51 @@
           </h2>
         </div>
 
-        <div
-          id="panel-standard"
-          role="region"
-          aria-labelledby="panel-standard-heading"
-          [hidden]="!standardOpen"
-        >
+        <div id="panel-standard" role="region" aria-labelledby="panel-standard-heading" [hidden]="!standardOpen">
           <table class="govuk-table">
-            <caption class="govuk-table__caption govuk-table__caption--m">Lists</caption>
+            <caption class="govuk-table__caption govuk-table__caption--m">
+              Lists
+            </caption>
             <thead class="govuk-table__head">
-            <tr class="govuk-table__row">
-              <th scope="col" class="govuk-table__header">Code</th>
-              <th scope="col" class="govuk-table__header">Name</th>
-              <th scope="col" class="govuk-table__header">Address line 1</th>
-              <th scope="col" class="govuk-table__header">Use from</th>
-              <th scope="col" class="govuk-table__header">Use to</th>
-              <th scope="col" class="govuk-table__header">Actions</th>
-            </tr>
+              <tr class="govuk-table__row">
+                <th scope="col" class="govuk-table__header">Code</th>
+                <th scope="col" class="govuk-table__header">Name</th>
+                <th scope="col" class="govuk-table__header">Address line 1</th>
+                <th scope="col" class="govuk-table__header">Use from</th>
+                <th scope="col" class="govuk-table__header">Use to</th>
+                <th scope="col" class="govuk-table__header">Actions</th>
+              </tr>
             </thead>
             <tbody class="govuk-table__body">
-            <tr class="govuk-table__row">
-              <th scope="row" class="govuk-table__header">C001</th>
-              <td class="govuk-table__cell">Acme Ltd</td>
-              <td class="govuk-table__cell">123 High Street</td>
-              <td class="govuk-table__cell">01/01/2025</td>
-              <td class="govuk-table__cell">31/12/2025</td>
-              <td class="govuk-table__cell">
-                <button type="button" class="govuk-button">Select</button>
-              </td>
-            </tr>
-            <!-- repeat <tr> for further rows -->
+              <tr class="govuk-table__row">
+                <th scope="row" class="govuk-table__header">C001</th>
+                <td class="govuk-table__cell">Acme Ltd</td>
+                <td class="govuk-table__cell">123 High Street</td>
+                <td class="govuk-table__cell">01/01/2025</td>
+                <td class="govuk-table__cell">31/12/2025</td>
+                <td class="govuk-table__cell">
+                  <button type="button" class="govuk-button">Select</button>
+                </td>
+              </tr>
+              <!-- repeat <tr> for further rows -->
             </tbody>
           </table>
-
 
           <nav class="govuk-pagination" aria-label="Pagination">
             <div class="govuk-pagination__prev">
               <a class="govuk-link govuk-pagination__link" href="#" rel="prev">
-                <svg class="govuk-pagination__icon govuk-pagination__icon--prev" xmlns="http://www.w3.org/2000/svg"
-                     height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
+                <svg
+                  class="govuk-pagination__icon govuk-pagination__icon--prev"
+                  xmlns="http://www.w3.org/2000/svg"
+                  height="13"
+                  width="15"
+                  aria-hidden="true"
+                  focusable="false"
+                  viewBox="0 0 15 13"
+                >
                   <path
-                    d="m6.5938-0.0078125-6.7266 6.7266 6.7441 6.4062 1.377-1.449-4.1856-3.9768h12.896v-2h-12.984l4.2931-4.293-1.414-1.414z"></path>
+                    d="m6.5938-0.0078125-6.7266 6.7266 6.7441 6.4062 1.377-1.449-4.1856-3.9768h12.896v-2h-12.984l4.2931-4.293-1.414-1.414z"
+                  ></path>
                 </svg>
                 <span class="govuk-pagination__link-title">
                   Previous<span class="govuk-visually-hidden"> page</span>
@@ -909,30 +840,30 @@
             </div>
             <ul class="govuk-pagination__list">
               <li class="govuk-pagination__item">
-                <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page 1">
-                  1
-                </a>
+                <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page 1"> 1 </a>
               </li>
               <li class="govuk-pagination__item govuk-pagination__item--current">
-                <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page 2" aria-current="page">
-                  2
-                </a>
+                <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page 2" aria-current="page"> 2 </a>
               </li>
               <li class="govuk-pagination__item">
-                <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page 3">
-                  3
-                </a>
+                <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page 3"> 3 </a>
               </li>
             </ul>
             <div class="govuk-pagination__next">
               <a class="govuk-link govuk-pagination__link" href="#" rel="next">
-                <span class="govuk-pagination__link-title">
-                  Next<span class="govuk-visually-hidden"> page</span>
-                </span>
-                <svg class="govuk-pagination__icon govuk-pagination__icon--next" xmlns="http://www.w3.org/2000/svg"
-                     height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
+                <span class="govuk-pagination__link-title"> Next<span class="govuk-visually-hidden"> page</span> </span>
+                <svg
+                  class="govuk-pagination__icon govuk-pagination__icon--next"
+                  xmlns="http://www.w3.org/2000/svg"
+                  height="13"
+                  width="15"
+                  aria-hidden="true"
+                  focusable="false"
+                  viewBox="0 0 15 13"
+                >
                   <path
-                    d="m8.107-0.0078125-1.4136 1.414 4.2926 4.293h-12.986v2h12.896l-4.1855 3.9766 1.377 1.4492 6.7441-6.4062-6.7246-6.7266z"></path>
+                    d="m8.107-0.0078125-1.4136 1.414 4.2926 4.293h-12.986v2h12.896l-4.1855 3.9766 1.377 1.4492 6.7441-6.4062-6.7246-6.7266z"
+                  ></path>
                 </svg>
               </a>
             </div>
@@ -940,7 +871,6 @@
         </div>
       </div>
     </div>
-
   </div>
 
   <!-- Applicant codes panel -->
@@ -952,7 +882,7 @@
     [class.govuk-tabs__panel--hidden]="currentFragment !== 'applicant-codes'"
   >
     <h2 class="govuk-heading-l">Applicant codes</h2>
-    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" />
     <form #listForm="ngForm" (ngSubmit)="onSubmit($event)">
       <div class="govuk-grid-row">
         <!-- Lodgement date -->
@@ -967,22 +897,37 @@
                 <div class="govuk-date-input__item govuk-!-margin-right-3">
                   <div class="govuk-form-group">
                     <label class="govuk-label govuk-date-input__label" for="day-day">Day</label>
-                    <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="day-day"
-                           name="day-day" type="text" inputmode="numeric">
+                    <input
+                      class="govuk-input govuk-date-input__input govuk-input--width-2"
+                      id="day-day"
+                      name="day-day"
+                      type="text"
+                      inputmode="numeric"
+                    />
                   </div>
                 </div>
                 <div class="govuk-date-input__item govuk-!-margin-right-3">
                   <div class="govuk-form-group">
                     <label class="govuk-label govuk-date-input__label" for="day-month">Month</label>
-                    <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="day-month"
-                           name="day-month" type="text" inputmode="numeric">
+                    <input
+                      class="govuk-input govuk-date-input__input govuk-input--width-2"
+                      id="day-month"
+                      name="day-month"
+                      type="text"
+                      inputmode="numeric"
+                    />
                   </div>
                 </div>
                 <div class="govuk-date-input__item govuk-!-margin-right-3">
                   <div class="govuk-form-group">
                     <label class="govuk-label govuk-date-input__label" for="day-year">Year</label>
-                    <input class="govuk-input govuk-date-input__input govuk-input--width-4" id="day-year"
-                           name="day-year" type="text" inputmode="numeric">
+                    <input
+                      class="govuk-input govuk-date-input__input govuk-input--width-4"
+                      id="day-year"
+                      name="day-year"
+                      type="text"
+                      inputmode="numeric"
+                    />
                   </div>
                 </div>
               </div>
@@ -993,38 +938,30 @@
         <!-- Application code -->
         <div class="govuk-grid-column-one-quarter">
           <div class="govuk-form-group">
-            <label class="govuk-label govuk-label--m" for="application-code">
-              Application code
-            </label>
-            <div id="application-code-hint" class="govuk-hint">
-              The code for the application e.g. APP-12345
-            </div>
+            <label class="govuk-label govuk-label--m" for="application-code"> Application code </label>
+            <div id="application-code-hint" class="govuk-hint">The code for the application e.g. APP-12345</div>
             <input
               class="govuk-input govuk-input--width-10"
               id="application-code"
               name="applicationCode"
               type="text"
               aria-describedby="application-code-hint"
-            >
+            />
           </div>
         </div>
 
         <!-- Application title -->
         <div class="govuk-grid-column-one-quarter">
           <div class="govuk-form-group">
-            <label class="govuk-label govuk-label--m" for="application-title">
-              Application title
-            </label>
-            <div id="application-title-hint" class="govuk-hint">
-              Enter a concise title for this application
-            </div>
+            <label class="govuk-label govuk-label--m" for="application-title"> Application title </label>
+            <div id="application-title-hint" class="govuk-hint">Enter a concise title for this application</div>
             <input
               class="govuk-input govuk-input--width-10"
               id="application-title"
               name="applicationTitle"
               type="text"
               aria-describedby="application-title-hint"
-            >
+            />
           </div>
         </div>
       </div>
@@ -1034,76 +971,82 @@
       </div>
     </form>
 
-
-    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" />
 
     <table class="govuk-table">
-      <caption class="govuk-table__caption govuk-table__caption--m">Codes</caption>
+      <caption class="govuk-table__caption govuk-table__caption--m">
+        Codes
+      </caption>
       <thead class="govuk-table__head">
-      <tr class="govuk-table__row">
-        <th scope="col" class="govuk-table__header">Code</th>
-        <th scope="col" class="govuk-table__header">Application title</th>
-        <th scope="col" class="govuk-table__header">Bulk</th>
-        <th scope="col" class="govuk-table__header">Fee req</th>
-        <th scope="col" class="govuk-table__header">Actions</th>
-      </tr>
+        <tr class="govuk-table__row">
+          <th scope="col" class="govuk-table__header">Code</th>
+          <th scope="col" class="govuk-table__header">Application title</th>
+          <th scope="col" class="govuk-table__header">Bulk</th>
+          <th scope="col" class="govuk-table__header">Fee req</th>
+          <th scope="col" class="govuk-table__header">Actions</th>
+        </tr>
       </thead>
       <tbody class="govuk-table__body">
-      <tr class="govuk-table__row">
-        <th scope="row" class="govuk-table__header">C123</th>
-        <td class="govuk-table__cell">Standard Application</td>
-        <td class="govuk-table__cell">Yes</td>
-        <td class="govuk-table__cell">£100.00</td>
-        <td class="govuk-table__cell">
-          <div class="govuk-button-group">
-            <button type="button" class="govuk-button">Add code</button>
-            <button type="button" class="govuk-button govuk-button--secondary">Add wording</button>
-          </div>
-        </td>
-      </tr>
+        <tr class="govuk-table__row">
+          <th scope="row" class="govuk-table__header">C123</th>
+          <td class="govuk-table__cell">Standard Application</td>
+          <td class="govuk-table__cell">Yes</td>
+          <td class="govuk-table__cell">£100.00</td>
+          <td class="govuk-table__cell">
+            <div class="govuk-button-group">
+              <button type="button" class="govuk-button">Add code</button>
+              <button type="button" class="govuk-button govuk-button--secondary">Add wording</button>
+            </div>
+          </td>
+        </tr>
       </tbody>
     </table>
-
 
     <nav class="govuk-pagination" aria-label="Pagination">
       <div class="govuk-pagination__prev">
         <a class="govuk-link govuk-pagination__link" href="#" rel="prev">
-          <svg class="govuk-pagination__icon govuk-pagination__icon--prev" xmlns="http://www.w3.org/2000/svg"
-               height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
+          <svg
+            class="govuk-pagination__icon govuk-pagination__icon--prev"
+            xmlns="http://www.w3.org/2000/svg"
+            height="13"
+            width="15"
+            aria-hidden="true"
+            focusable="false"
+            viewBox="0 0 15 13"
+          >
             <path
-              d="m6.5938-0.0078125-6.7266 6.7266 6.7441 6.4062 1.377-1.449-4.1856-3.9768h12.896v-2h-12.984l4.2931-4.293-1.414-1.414z"></path>
+              d="m6.5938-0.0078125-6.7266 6.7266 6.7441 6.4062 1.377-1.449-4.1856-3.9768h12.896v-2h-12.984l4.2931-4.293-1.414-1.414z"
+            ></path>
           </svg>
-          <span class="govuk-pagination__link-title">
-        Previous<span class="govuk-visually-hidden"> page</span>
-      </span>
+          <span class="govuk-pagination__link-title"> Previous<span class="govuk-visually-hidden"> page</span> </span>
         </a>
       </div>
       <ul class="govuk-pagination__list">
         <li class="govuk-pagination__item">
-          <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page 1">
-            1
-          </a>
+          <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page 1"> 1 </a>
         </li>
         <li class="govuk-pagination__item govuk-pagination__item--current">
-          <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page 2" aria-current="page">
-            2
-          </a>
+          <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page 2" aria-current="page"> 2 </a>
         </li>
         <li class="govuk-pagination__item">
-          <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page 3">
-            3
-          </a>
+          <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page 3"> 3 </a>
         </li>
       </ul>
       <div class="govuk-pagination__next">
         <a class="govuk-link govuk-pagination__link" href="#" rel="next">
-      <span class="govuk-pagination__link-title">
-        Next<span class="govuk-visually-hidden"> page</span>
-      </span>
-          <svg class="govuk-pagination__icon govuk-pagination__icon--next" xmlns="http://www.w3.org/2000/svg"
-               height="13" width="15" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
+          <span class="govuk-pagination__link-title"> Next<span class="govuk-visually-hidden"> page</span> </span>
+          <svg
+            class="govuk-pagination__icon govuk-pagination__icon--next"
+            xmlns="http://www.w3.org/2000/svg"
+            height="13"
+            width="15"
+            aria-hidden="true"
+            focusable="false"
+            viewBox="0 0 15 13"
+          >
             <path
-              d="m8.107-0.0078125-1.4136 1.414 4.2926 4.293h-12.986v2h12.896l-4.1855 3.9766 1.377 1.4492 6.7441-6.4062-6.7246-6.7266z"></path>
+              d="m8.107-0.0078125-1.4136 1.414 4.2926 4.293h-12.986v2h12.896l-4.1855 3.9766 1.377 1.4492 6.7441-6.4062-6.7246-6.7266z"
+            ></path>
           </svg>
         </a>
       </div>
@@ -1124,38 +1067,30 @@
       <!-- Court name -->
       <div class="govuk-grid-column-one-quarter">
         <div class="govuk-form-group">
-          <label class="govuk-label govuk-label--s" for="court-name">
-            Court name
-          </label>
-          <div id="court-name-hint" class="govuk-hint">
-            Enter the official name of the court
-          </div>
+          <label class="govuk-label govuk-label--s" for="court-name"> Court name </label>
+          <div id="court-name-hint" class="govuk-hint">Enter the official name of the court</div>
           <input
             class="govuk-input govuk-input--width-10"
             id="court-name"
             name="courtName"
             type="text"
             aria-describedby="court-name-hint"
-          >
+          />
         </div>
       </div>
 
       <!-- Organisation name -->
       <div class="govuk-grid-column-one-quarter">
         <div class="govuk-form-group">
-          <label class="govuk-label govuk-label--s" for="organisation-name">
-            Organisation name
-          </label>
-          <div id="organisation-name-hint" class="govuk-hint">
-            Enter the legal name of the organisation
-          </div>
+          <label class="govuk-label govuk-label--s" for="organisation-name"> Organisation name </label>
+          <div id="organisation-name-hint" class="govuk-hint">Enter the legal name of the organisation</div>
           <input
             class="govuk-input govuk-input--width-10"
             id="organisation-name"
             name="organisationName"
             type="text"
             aria-describedby="organisation-name-hint"
-          >
+          />
         </div>
       </div>
     </div>
@@ -1171,20 +1106,14 @@
   >
     <h2 class="govuk-heading-l">Respondent</h2>
     <div class="govuk-accordion">
-
       <!-- show-all / hide-all control -->
       <div class="govuk-accordion__controls">
-        <button
-          type="button"
-          class="govuk-accordion__show-all"
-          [attr.aria-expanded]="allOpen"
-          (click)="toggleAll()"
-        >
+        <button type="button" class="govuk-accordion__show-all" [attr.aria-expanded]="allOpen" (click)="toggleAll()">
           <span
             class="govuk-accordion-nav__chevron"
             [ngClass]="{
               'govuk-accordion-nav__chevron--down': !allOpen,
-              'govuk-accordion-nav__chevron--up': allOpen
+              'govuk-accordion-nav__chevron--up': allOpen,
             }"
             aria-hidden="true"
           ></span>
@@ -1193,7 +1122,6 @@
           </span>
         </button>
       </div>
-
 
       <!-- -- Person section -- -->
       <div class="govuk-accordion__section">
@@ -1208,13 +1136,8 @@
               [attr.aria-label]="'Person, ' + (personOpen ? 'Hide' : 'Show') + ' this section'"
             >
               <!-- heading text -->
-              <span
-                class="govuk-accordion__section-heading-text"
-                id="panel-person-heading-respondent"
-              >
-                <span class="govuk-accordion__section-heading-text-focus">
-                  Person
-                </span>
+              <span class="govuk-accordion__section-heading-text" id="panel-person-heading-respondent">
+                <span class="govuk-accordion__section-heading-text-focus"> Person </span>
               </span>
 
               <!-- divider for screen readers -->
@@ -1227,7 +1150,7 @@
                     class="govuk-accordion-nav__chevron"
                     [ngClass]="{
                       'govuk-accordion-nav__chevron--down': !personOpen,
-                      'govuk-accordion-nav__chevron--up':   personOpen
+                      'govuk-accordion-nav__chevron--up': personOpen,
                     }"
                     aria-hidden="true"
                   ></span>
@@ -1240,24 +1163,14 @@
           </h2>
         </div>
 
-        <div
-          id="panel-person-respondent"
-          role="region"
-          aria-labelledby="panel-person-heading"
-          [hidden]="!personOpen"
-        >
-
+        <div id="panel-person-respondent" role="region" aria-labelledby="panel-person-heading" [hidden]="!personOpen">
           <h3 class="govuk-heading-m">Details</h3>
           <div class="govuk-grid-row">
             <!-- Title -->
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
-                <label class="govuk-label govuk-label--s" for="title">
-                  Select title
-                </label>
-                <div id="title-hint-respondent" class="govuk-hint">
-                  The person’s title, for example Mr, Mrs, Dr
-                </div>
+                <label class="govuk-label govuk-label--s" for="title"> Select title </label>
+                <div id="title-hint-respondent" class="govuk-hint">The person’s title, for example Mr, Mrs, Dr</div>
                 <select class="govuk-select" id="title-respondent" name="title" aria-describedby="title-hint">
                   <option value="">Select title</option>
                   <option value="Mr">Mr</option>
@@ -1273,16 +1186,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="first-name-respondent">First name</label>
-                <div id="first-name-respondent-hint" class="govuk-hint">
-                  Enter the person’s given name
-                </div>
+                <div id="first-name-respondent-hint" class="govuk-hint">Enter the person’s given name</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="first-name-respondent"
                   name="firstName"
                   type="text"
                   aria-describedby="first-name-respondent-hint"
-                >
+                />
               </div>
             </div>
 
@@ -1299,7 +1210,7 @@
                   name="middleNames"
                   type="text"
                   aria-describedby="middle-names-respondent-hint"
-                >
+                />
               </div>
             </div>
 
@@ -1307,16 +1218,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="surname-respondent">Surname</label>
-                <div id="surname-respondent-hint" class="govuk-hint">
-                  Enter the person’s family name
-                </div>
+                <div id="surname-respondent-hint" class="govuk-hint">Enter the person’s family name</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="surname-respondent"
                   name="surname"
                   type="text"
                   aria-describedby="surname-respondent-hint"
-                >
+                />
               </div>
             </div>
           </div>
@@ -1333,22 +1242,37 @@
                     <div class="govuk-date-input__item govuk-!-margin-right-3">
                       <div class="govuk-form-group">
                         <label class="govuk-label govuk-date-input__label" for="dob-day">Day</label>
-                        <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="dob-day"
-                               name="dob-day" type="text" inputmode="numeric">
+                        <input
+                          class="govuk-input govuk-date-input__input govuk-input--width-2"
+                          id="dob-day"
+                          name="dob-day"
+                          type="text"
+                          inputmode="numeric"
+                        />
                       </div>
                     </div>
                     <div class="govuk-date-input__item govuk-!-margin-right-3">
                       <div class="govuk-form-group">
                         <label class="govuk-label govuk-date-input__label" for="dob-month">Month</label>
-                        <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="dob-month"
-                               name="dob-month" type="text" inputmode="numeric">
+                        <input
+                          class="govuk-input govuk-date-input__input govuk-input--width-2"
+                          id="dob-month"
+                          name="dob-month"
+                          type="text"
+                          inputmode="numeric"
+                        />
                       </div>
                     </div>
                     <div class="govuk-date-input__item govuk-!-margin-right-3">
                       <div class="govuk-form-group">
                         <label class="govuk-label govuk-date-input__label" for="dob-year">Year</label>
-                        <input class="govuk-input govuk-date-input__input govuk-input--width-4" id="dob-year"
-                               name="dob-year" type="text" inputmode="numeric">
+                        <input
+                          class="govuk-input govuk-date-input__input govuk-input--width-4"
+                          id="dob-year"
+                          name="dob-year"
+                          type="text"
+                          inputmode="numeric"
+                        />
                       </div>
                     </div>
                   </div>
@@ -1357,7 +1281,7 @@
             </div>
           </div>
 
-          <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+          <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" />
 
           <h3 class="govuk-heading-m">Address</h3>
 
@@ -1366,16 +1290,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="person-address-line-1-respondent">Address line 1</label>
-                <div id="person-address-line-1-respondent-hint" class="govuk-hint">
-                  Building and street
-                </div>
+                <div id="person-address-line-1-respondent-hint" class="govuk-hint">Building and street</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="person-address-line-1-respondent"
                   name="personAddressLine1"
                   type="text"
                   aria-describedby="person-address-line-1-respondent-hint"
-                >
+                />
               </div>
             </div>
 
@@ -1383,16 +1305,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="person-address-line-2-respondent">Address line 2</label>
-                <div id="person-address-line-2-respondent-hint" class="govuk-hint">
-                  District or locality (optional)
-                </div>
+                <div id="person-address-line-2-respondent-hint" class="govuk-hint">District or locality (optional)</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="person-address-line-2-respondent"
                   name="personAddressLine2"
                   type="text"
                   aria-describedby="person-address-line-2-respondent-hint"
-                >
+                />
               </div>
             </div>
 
@@ -1400,16 +1320,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="person-address-line-3-respondent">Address line 3</label>
-                <div id="person-address-line-3-respondent-hint" class="govuk-hint">
-                  Town or city
-                </div>
+                <div id="person-address-line-3-respondent-hint" class="govuk-hint">Town or city</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="person-address-line-3-respondent"
                   name="personAddressLine3"
                   type="text"
                   aria-describedby="person-address-line-3-respondent-hint"
-                >
+                />
               </div>
             </div>
 
@@ -1417,16 +1335,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="person-address-line-4-respondent">Address line 4</label>
-                <div id="person-address-line-4-respondent-hint" class="govuk-hint">
-                  County or region
-                </div>
+                <div id="person-address-line-4-respondent-hint" class="govuk-hint">County or region</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="person-address-line-4-respondent"
                   name="personAddressLine4"
                   type="text"
                   aria-describedby="person-address-line-4-respondent-hint"
-                >
+                />
               </div>
             </div>
           </div>
@@ -1436,16 +1352,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="person-address-line-5-respondent">Address line 5</label>
-                <div id="person-address-line-5-respondent-hint" class="govuk-hint">
-                  Post town, e.g. Manchester
-                </div>
+                <div id="person-address-line-5-respondent-hint" class="govuk-hint">Post town, e.g. Manchester</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="person-address-line-5-respondent"
                   name="personAddressLine5"
                   type="text"
                   aria-describedby="person-address-line-5-respondent-hint"
-                >
+                />
               </div>
             </div>
 
@@ -1453,21 +1367,19 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="person-postcode-respondent">Postcode</label>
-                <div id="person-postcode-respondent-hint" class="govuk-hint">
-                  e.g. SW1A 2AA
-                </div>
+                <div id="person-postcode-respondent-hint" class="govuk-hint">e.g. SW1A 2AA</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="person-postcode-respondent"
                   name="personPostcode"
                   type="text"
                   aria-describedby="person-postcode-respondent-hint"
-                >
+                />
               </div>
             </div>
           </div>
 
-          <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+          <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" />
 
           <h3 class="govuk-heading-m">Contact details</h3>
 
@@ -1476,16 +1388,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="person-phone-number-respondent">Phone number</label>
-                <div id="person-phone-number-respondent-hint" class="govuk-hint">
-                  Landline, e.g. 020 7946 0000
-                </div>
+                <div id="person-phone-number-respondent-hint" class="govuk-hint">Landline, e.g. 020 7946 0000</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="person-phone-number-respondent"
                   name="phoneNumber"
                   type="tel"
                   aria-describedby="person-phone-number-respondent-hint"
-                >
+                />
               </div>
             </div>
 
@@ -1493,16 +1403,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="person-mobile-number-respondent">Mobile number</label>
-                <div id="person-mobile-number-respondent-hint" class="govuk-hint">
-                  UK mobile, e.g. 07123 456789
-                </div>
+                <div id="person-mobile-number-respondent-hint" class="govuk-hint">UK mobile, e.g. 07123 456789</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="person-mobile-number-respondent"
                   name="mobileNumber"
                   type="tel"
                   aria-describedby="person-mobile-number-respondent-hint"
-                >
+                />
               </div>
             </div>
 
@@ -1510,16 +1418,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="person-email-address-respondent">Email address</label>
-                <div id="person-email-address-respondent-hint" class="govuk-hint">
-                  e.g. name&#64;department.gov.uk
-                </div>
+                <div id="person-email-address-respondent-hint" class="govuk-hint">e.g. name&#64;department.gov.uk</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="person-email-address-respondent"
                   name="emailAddress"
                   type="email"
                   aria-describedby="person-email-address-respondent-hint"
-                >
+                />
               </div>
             </div>
           </div>
@@ -1539,13 +1445,8 @@
               [attr.aria-label]="'Organisation, ' + (organisationOpen ? 'Hide' : 'Show') + ' this section'"
             >
               <!-- heading text -->
-              <span
-                class="govuk-accordion__section-heading-text"
-                id="panel-organisation-respondent-heading"
-              >
-                <span class="govuk-accordion__section-heading-text-focus">
-                  Organisation
-                </span>
+              <span class="govuk-accordion__section-heading-text" id="panel-organisation-respondent-heading">
+                <span class="govuk-accordion__section-heading-text-focus"> Organisation </span>
               </span>
 
               <!-- divider for screen readers -->
@@ -1558,7 +1459,7 @@
                     class="govuk-accordion-nav__chevron"
                     [ngClass]="{
                       'govuk-accordion-nav__chevron--down': !organisationOpen,
-                      'govuk-accordion-nav__chevron--up':   organisationOpen
+                      'govuk-accordion-nav__chevron--up': organisationOpen,
                     }"
                     aria-hidden="true"
                   ></span>
@@ -1583,21 +1484,19 @@
             <div class="govuk-grid-column-one-half">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="org-name-respondent">Organisation Name</label>
-                <div id="org-name-respondent-hint" class="govuk-hint">
-                  The name of the organisation
-                </div>
+                <div id="org-name-respondent-hint" class="govuk-hint">The name of the organisation</div>
                 <input
                   class="govuk-input govuk-input--width-40"
                   id="org-name-respondent"
                   name="orgName"
                   type="text"
                   aria-describedby="org-name-respondent-hint"
-                >
+                />
               </div>
             </div>
           </div>
 
-          <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+          <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" />
 
           <h3 class="govuk-heading-m">Address</h3>
 
@@ -1606,16 +1505,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="org-address-line-1-respondent">Address line 1</label>
-                <div id="org-address-line-1-respondent-hint" class="govuk-hint">
-                  Building and street
-                </div>
+                <div id="org-address-line-1-respondent-hint" class="govuk-hint">Building and street</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="org-address-line-1-respondent"
                   name="orgAddressLine1"
                   type="text"
                   aria-describedby="org-address-line-1-respondent-hint"
-                >
+                />
               </div>
             </div>
 
@@ -1623,16 +1520,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="org-address-line-2-respondent">Address line 2</label>
-                <div id="org-address-line-2-respondent-hint" class="govuk-hint">
-                  District or locality (optional)
-                </div>
+                <div id="org-address-line-2-respondent-hint" class="govuk-hint">District or locality (optional)</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="org-address-line-2-respondent"
                   name="orgAddressLine2"
                   type="text"
                   aria-describedby="org-address-line-2-respondent-hint"
-                >
+                />
               </div>
             </div>
 
@@ -1640,16 +1535,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="org-address-line-3-respondent">Address line 3</label>
-                <div id="org-address-line-3-respondent-hint" class="govuk-hint">
-                  Town or city
-                </div>
+                <div id="org-address-line-3-respondent-hint" class="govuk-hint">Town or city</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="org-address-line-3-respondent"
                   name="orgAddressLine3"
                   type="text"
                   aria-describedby="org-address-line-3-respondent-hint"
-                >
+                />
               </div>
             </div>
 
@@ -1657,16 +1550,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="org-address-line-4-respondent">Address line 4</label>
-                <div id="org-address-line-4-respondent-hint" class="govuk-hint">
-                  County or region
-                </div>
+                <div id="org-address-line-4-respondent-hint" class="govuk-hint">County or region</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="org-address-line-4-respondent"
                   name="orgAddressLine4"
                   type="text"
                   aria-describedby="org-address-line-4-respondent-hint"
-                >
+                />
               </div>
             </div>
           </div>
@@ -1676,16 +1567,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="org-address-line-5-respondent">Address line 5</label>
-                <div id="org-address-line-5-respondent-hint" class="govuk-hint">
-                  Post town, e.g. Manchester
-                </div>
+                <div id="org-address-line-5-respondent-hint" class="govuk-hint">Post town, e.g. Manchester</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="org-address-line-5-respondent"
                   name="orgAddressLine5"
                   type="text"
                   aria-describedby="org-address-line-5-respondent-hint"
-                >
+                />
               </div>
             </div>
 
@@ -1693,21 +1582,19 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="org-postcode-respondent">Postcode</label>
-                <div id="org-postcode-respondent-hint" class="govuk-hint">
-                  e.g. SW1A 2AA
-                </div>
+                <div id="org-postcode-respondent-hint" class="govuk-hint">e.g. SW1A 2AA</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="org-postcode-respondent"
                   name="orgPostcode"
                   type="text"
                   aria-describedby="org-postcode-respondent-hint"
-                >
+                />
               </div>
             </div>
           </div>
 
-          <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+          <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" />
 
           <h3 class="govuk-heading-m">Contact details</h3>
 
@@ -1716,16 +1603,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="org-phone-number-respondent">Phone number</label>
-                <div id="org-phone-number-respondent-hint" class="govuk-hint">
-                  Landline, e.g. 020 7946 0000
-                </div>
+                <div id="org-phone-number-respondent-hint" class="govuk-hint">Landline, e.g. 020 7946 0000</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="org-phone-number-respondent"
                   name="phoneNumber"
                   type="tel"
                   aria-describedby="org-phone-number-respondent-hint"
-                >
+                />
               </div>
             </div>
 
@@ -1733,16 +1618,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="org-mobile-number">Mobile number</label>
-                <div id="org-mobile-number-respondent-hint" class="govuk-hint">
-                  UK mobile, e.g. 07123 456789
-                </div>
+                <div id="org-mobile-number-respondent-hint" class="govuk-hint">UK mobile, e.g. 07123 456789</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="org-mobile-number-respondent"
                   name="mobileNumber"
                   type="tel"
                   aria-describedby="org-mobile-number-respondent-hint"
-                >
+                />
               </div>
             </div>
 
@@ -1750,16 +1633,14 @@
             <div class="govuk-grid-column-one-quarter">
               <div class="govuk-form-group">
                 <label class="govuk-label govuk-label--s" for="org-email-address-respondent">Email address</label>
-                <div id="org-email-address-respondent-hint" class="govuk-hint">
-                  e.g. name&#64;department.gov.uk
-                </div>
+                <div id="org-email-address-respondent-hint" class="govuk-hint">e.g. name&#64;department.gov.uk</div>
                 <input
                   class="govuk-input govuk-input--width-10"
                   id="org-email-address-respondent"
                   name="emailAddress"
                   type="email"
                   aria-describedby="org-email-address-respondent-hint"
-                >
+                />
               </div>
             </div>
           </div>
@@ -1779,34 +1660,35 @@
     <h2 class="govuk-heading-l">Civil fee</h2>
 
     <table class="govuk-table">
-      <caption class="govuk-table__caption govuk-table__caption--s">Fee Reference: CO9.2 </caption>
-      <caption class="govuk-table__caption govuk-table__caption--s">Amount: £75.00</caption>
+      <caption class="govuk-table__caption govuk-table__caption--s">
+        Fee Reference: CO9.2 
+      </caption>
+      <caption class="govuk-table__caption govuk-table__caption--s">
+        Amount: £75.00
+      </caption>
       <thead class="govuk-table__head">
-      <tr class="govuk-table__row">
-        <th scope="col" class="govuk-table__header">Fee Status</th>
-        <th scope="col" class="govuk-table__header">Status Date</th>
-        <th scope="col" class="govuk-table__header">Payment Ref</th>
-      </tr>
+        <tr class="govuk-table__row">
+          <th scope="col" class="govuk-table__header">Fee Status</th>
+          <th scope="col" class="govuk-table__header">Status Date</th>
+          <th scope="col" class="govuk-table__header">Payment Ref</th>
+        </tr>
       </thead>
       <tbody class="govuk-table__body">
-      <tr class="govuk-table__row">
-        <th scope="row" class="govuk-table__header">Paid</th>
-        <td class="govuk-table__cell">15/05/2025</td>
-        <td class="govuk-table__cell">PMT-2025-000123</td>
-      </tr>
+        <tr class="govuk-table__row">
+          <th scope="row" class="govuk-table__header">Paid</th>
+          <td class="govuk-table__cell">15/05/2025</td>
+          <td class="govuk-table__cell">PMT-2025-000123</td>
+        </tr>
       </tbody>
     </table>
 
     <h2 class="govuk-heading-l">Update fee status</h2>
     <div class="govuk-grid-row">
-
       <!-- Fee status -->
       <div class="govuk-grid-column-one-quarter">
         <div class="govuk-form-group">
           <label class="govuk-label govuk-label--m" for="fee-status">Fee status</label>
-          <div id="fee-status-hint" class="govuk-hint">
-            Select the status of the fee to be paid
-          </div>
+          <div id="fee-status-hint" class="govuk-hint">Select the status of the fee to be paid</div>
           <select
             class="govuk-select govuk-!-width-one-half"
             id="fee-status"
@@ -1828,9 +1710,7 @@
             <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
               <h1 class="govuk-fieldset__heading">Status date</h1>
             </legend>
-            <div id="status-date-hint" class="govuk-hint">
-              For example, 15 5 2025
-            </div>
+            <div id="status-date-hint" class="govuk-hint">For example, 15 5 2025</div>
             <div class="govuk-date-input" id="status-date">
               <div class="govuk-date-input__item govuk-!-margin-right-3">
                 <div class="govuk-form-group">
@@ -1841,7 +1721,7 @@
                     name="status-day"
                     type="text"
                     inputmode="numeric"
-                  >
+                  />
                 </div>
               </div>
               <div class="govuk-date-input__item govuk-!-margin-right-3">
@@ -1853,7 +1733,7 @@
                     name="status-month"
                     type="text"
                     inputmode="numeric"
-                  >
+                  />
                 </div>
               </div>
               <div class="govuk-date-input__item">
@@ -1865,7 +1745,7 @@
                     name="status-year"
                     type="text"
                     inputmode="numeric"
-                  >
+                  />
                 </div>
               </div>
             </div>
@@ -1877,22 +1757,19 @@
       <div class="govuk-grid-column-one-quarter">
         <div class="govuk-form-group">
           <label class="govuk-label govuk-label--m" for="payment-ref">Payment reference</label>
-          <div id="payment-ref-hint" class="govuk-hint">
-            Enter the unique reference assigned to this payment
-          </div>
+          <div id="payment-ref-hint" class="govuk-hint">Enter the unique reference assigned to this payment</div>
           <input
             class="govuk-input govuk-input--width-10"
             id="payment-ref"
             name="paymentRef"
             type="text"
             aria-describedby="payment-ref-hint"
-          >
+          />
         </div>
       </div>
     </div>
 
-    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
-
+    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" />
   </div>
 
   <!-- Notes panel -->
@@ -1905,7 +1782,6 @@
   >
     <h2 class="govuk-heading-l">Notes</h2>
     <div class="govuk-grid-row">
-
       <!-- Case reference -->
       <div class="govuk-grid-column-one-quarter">
         <div class="govuk-form-group">
@@ -1919,7 +1795,7 @@
             name="caseReference"
             type="text"
             aria-describedby="case-reference-hint"
-          >
+          />
         </div>
       </div>
 
@@ -1936,19 +1812,18 @@
             name="accountReference"
             type="text"
             aria-describedby="account-reference-hint"
-          >
+          />
         </div>
       </div>
     </div>
 
     <div class="govuk-form-group">
       <h1 class="govuk-label-wrapper">
-        <label class="govuk-label govuk-label--m" for="application-details">
-          Application details
-        </label>
+        <label class="govuk-label govuk-label--m" for="application-details"> Application details </label>
       </h1>
       <div id="application-details-hint" class="govuk-hint">
-        Provide any additional information about the application (for example special requirements or notes). Do not include sensitive personal data.
+        Provide any additional information about the application (for example special requirements or notes). Do not
+        include sensitive personal data.
       </div>
       <textarea
         class="govuk-textarea"
@@ -1971,34 +1846,30 @@
     <h2 class="govuk-heading-l">Result wording</h2>
     <table class="govuk-table">
       <thead class="govuk-table__head">
-      <tr class="govuk-table__row">
-        <th scope="col" class="govuk-table__header">Applicant(s)</th>
-        <th scope="col" class="govuk-table__header">Respondent(s)</th>
-        <th scope="col" class="govuk-table__header">Application title(s)</th>
-      </tr>
+        <tr class="govuk-table__row">
+          <th scope="col" class="govuk-table__header">Applicant(s)</th>
+          <th scope="col" class="govuk-table__header">Respondent(s)</th>
+          <th scope="col" class="govuk-table__header">Application title(s)</th>
+        </tr>
       </thead>
       <tbody class="govuk-table__body">
-      <tr class="govuk-table__row">
-        <td class="govuk-table__cell">John Smith; Alice Brown</td>
-        <td class="govuk-table__cell">Acme Holdings Ltd</td>
-        <td class="govuk-table__cell">Land Registry Appeal</td>
-      </tr>
-      <!-- repeat <tr> for further rows -->
+        <tr class="govuk-table__row">
+          <td class="govuk-table__cell">John Smith; Alice Brown</td>
+          <td class="govuk-table__cell">Acme Holdings Ltd</td>
+          <td class="govuk-table__cell">Land Registry Appeal</td>
+        </tr>
+        <!-- repeat <tr> for further rows -->
       </tbody>
     </table>
 
-    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" />
 
     <div class="govuk-form-group">
       <h1 class="govuk-label-wrapper">
-        <label class="govuk-label govuk-label--l" for="event-name">
-          Result code
-        </label>
+        <label class="govuk-label govuk-label--l" for="event-name"> Result code </label>
       </h1>
-      <div id="event-name-hint" class="govuk-hint">
-        Start typing to search for a result code
-      </div>
-      <input class="govuk-input" id="event-name" name="eventName" type="text" aria-describedby="event-name-hint">
+      <div id="event-name-hint" class="govuk-hint">Start typing to search for a result code</div>
+      <input class="govuk-input" id="event-name" name="eventName" type="text" aria-describedby="event-name-hint" />
     </div>
   </div>
 
@@ -2017,18 +1888,9 @@
       <!-- Title -->
       <div class="govuk-grid-column-one-quarter">
         <div class="govuk-form-group">
-          <label class="govuk-label govuk-label--s" for="mags1-title">
-            Select magistrate’s title
-          </label>
-          <div id="mags1-title-hint" class="govuk-hint">
-            The magistrate’s formal title, for example Mr, Mrs, Dr
-          </div>
-          <select
-            class="govuk-select"
-            id="mags1-title"
-            name="mags1Title"
-            aria-describedby="mags1-title-hint"
-          >
+          <label class="govuk-label govuk-label--s" for="mags1-title"> Select magistrate’s title </label>
+          <div id="mags1-title-hint" class="govuk-hint">The magistrate’s formal title, for example Mr, Mrs, Dr</div>
+          <select class="govuk-select" id="mags1-title" name="mags1Title" aria-describedby="mags1-title-hint">
             <option value="">Select title</option>
             <option>Mr</option>
             <option>Mrs</option>
@@ -2042,12 +1904,8 @@
       <!-- First name -->
       <div class="govuk-grid-column-one-quarter">
         <div class="govuk-form-group">
-          <label class="govuk-label govuk-label--s" for="mags1-first-name">
-            Magistrate’s first name
-          </label>
-          <div id="mags1-first-name-hint" class="govuk-hint">
-            Enter the magistrate’s given name
-          </div>
+          <label class="govuk-label govuk-label--s" for="mags1-first-name"> Magistrate’s first name </label>
+          <div id="mags1-first-name-hint" class="govuk-hint">Enter the magistrate’s given name</div>
           <input
             class="govuk-input govuk-input--width-10"
             id="mags1-first-name"
@@ -2061,12 +1919,8 @@
       <!-- Surname -->
       <div class="govuk-grid-column-one-quarter">
         <div class="govuk-form-group">
-          <label class="govuk-label govuk-label--s" for="mags1-surname">
-            Magistrate’s surname
-          </label>
-          <div id="mags1-surname-hint" class="govuk-hint">
-            Enter the magistrate’s family name
-          </div>
+          <label class="govuk-label govuk-label--s" for="mags1-surname"> Magistrate’s surname </label>
+          <div id="mags1-surname-hint" class="govuk-hint">Enter the magistrate’s family name</div>
           <input
             class="govuk-input govuk-input--width-10"
             id="mags1-surname"
@@ -2084,18 +1938,9 @@
       <!-- Title -->
       <div class="govuk-grid-column-one-quarter">
         <div class="govuk-form-group">
-          <label class="govuk-label govuk-label--s" for="mags2-title">
-            Select magistrate’s title
-          </label>
-          <div id="mags2-title-hint" class="govuk-hint">
-            The magistrate’s formal title, for example Mr, Mrs, Dr
-          </div>
-          <select
-            class="govuk-select"
-            id="mags2-title"
-            name="mags2Title"
-            aria-describedby="mags2-title-hint"
-          >
+          <label class="govuk-label govuk-label--s" for="mags2-title"> Select magistrate’s title </label>
+          <div id="mags2-title-hint" class="govuk-hint">The magistrate’s formal title, for example Mr, Mrs, Dr</div>
+          <select class="govuk-select" id="mags2-title" name="mags2Title" aria-describedby="mags2-title-hint">
             <option value="">Select title</option>
             <option>Mr</option>
             <option>Mrs</option>
@@ -2109,12 +1954,8 @@
       <!-- First name -->
       <div class="govuk-grid-column-one-quarter">
         <div class="govuk-form-group">
-          <label class="govuk-label govuk-label--s" for="mags2-first-name">
-            Magistrate’s first name
-          </label>
-          <div id="mags2-first-name-hint" class="govuk-hint">
-            Enter the magistrate’s given name
-          </div>
+          <label class="govuk-label govuk-label--s" for="mags2-first-name"> Magistrate’s first name </label>
+          <div id="mags2-first-name-hint" class="govuk-hint">Enter the magistrate’s given name</div>
           <input
             class="govuk-input govuk-input--width-10"
             id="mags2-first-name"
@@ -2128,12 +1969,8 @@
       <!-- Surname -->
       <div class="govuk-grid-column-one-quarter">
         <div class="govuk-form-group">
-          <label class="govuk-label govuk-label--s" for="mags2-surname">
-            Magistrate’s surname
-          </label>
-          <div id="mags2-surname-hint" class="govuk-hint">
-            Enter the magistrate’s family name
-          </div>
+          <label class="govuk-label govuk-label--s" for="mags2-surname"> Magistrate’s surname </label>
+          <div id="mags2-surname-hint" class="govuk-hint">Enter the magistrate’s family name</div>
           <input
             class="govuk-input govuk-input--width-10"
             id="mags2-surname"
@@ -2151,18 +1988,9 @@
       <!-- Title -->
       <div class="govuk-grid-column-one-quarter">
         <div class="govuk-form-group">
-          <label class="govuk-label govuk-label--s" for="mags3-title">
-            Select magistrate’s title
-          </label>
-          <div id="mags3-title-hint" class="govuk-hint">
-            The magistrate’s formal title, for example Mr, Mrs, Dr
-          </div>
-          <select
-            class="govuk-select"
-            id="mags3-title"
-            name="mags3Title"
-            aria-describedby="mags3-title-hint"
-          >
+          <label class="govuk-label govuk-label--s" for="mags3-title"> Select magistrate’s title </label>
+          <div id="mags3-title-hint" class="govuk-hint">The magistrate’s formal title, for example Mr, Mrs, Dr</div>
+          <select class="govuk-select" id="mags3-title" name="mags3Title" aria-describedby="mags3-title-hint">
             <option value="">Select title</option>
             <option>Mr</option>
             <option>Mrs</option>
@@ -2176,12 +2004,8 @@
       <!-- First name -->
       <div class="govuk-grid-column-one-quarter">
         <div class="govuk-form-group">
-          <label class="govuk-label govuk-label--s" for="mags3-first-name">
-            Magistrate’s first name
-          </label>
-          <div id="mags3-first-name-hint" class="govuk-hint">
-            Enter the magistrate’s given name
-          </div>
+          <label class="govuk-label govuk-label--s" for="mags3-first-name"> Magistrate’s first name </label>
+          <div id="mags3-first-name-hint" class="govuk-hint">Enter the magistrate’s given name</div>
           <input
             class="govuk-input govuk-input--width-10"
             id="mags3-first-name"
@@ -2195,12 +2019,8 @@
       <!-- Surname -->
       <div class="govuk-grid-column-one-quarter">
         <div class="govuk-form-group">
-          <label class="govuk-label govuk-label--s" for="mags3-surname">
-            Magistrate’s surname
-          </label>
-          <div id="mags3-surname-hint" class="govuk-hint">
-            Enter the magistrate’s family name
-          </div>
+          <label class="govuk-label govuk-label--s" for="mags3-surname"> Magistrate’s surname </label>
+          <div id="mags3-surname-hint" class="govuk-hint">Enter the magistrate’s family name</div>
           <input
             class="govuk-input govuk-input--width-10"
             id="mags3-surname"
@@ -2212,7 +2032,7 @@
       </div>
     </div>
 
-    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" />
 
     <h2 class="govuk-heading-l">Officials</h2>
 
@@ -2220,18 +2040,9 @@
       <!-- Official’s Title -->
       <div class="govuk-grid-column-one-quarter">
         <div class="govuk-form-group">
-          <label class="govuk-label govuk-label--s" for="official-title">
-            Select court official’s title
-          </label>
-          <div id="official-title-hint" class="govuk-hint">
-            The official’s formal title, for example Mr, Mrs, Dr
-          </div>
-          <select
-            class="govuk-select"
-            id="official-title"
-            name="officialTitle"
-            aria-describedby="official-title-hint"
-          >
+          <label class="govuk-label govuk-label--s" for="official-title"> Select court official’s title </label>
+          <div id="official-title-hint" class="govuk-hint">The official’s formal title, for example Mr, Mrs, Dr</div>
+          <select class="govuk-select" id="official-title" name="officialTitle" aria-describedby="official-title-hint">
             <option value="">Select title</option>
             <option>Mr</option>
             <option>Mrs</option>
@@ -2245,12 +2056,8 @@
       <!-- Official’s First Name -->
       <div class="govuk-grid-column-one-quarter">
         <div class="govuk-form-group">
-          <label class="govuk-label govuk-label--s" for="official-first-name">
-            Official’s first name
-          </label>
-          <div id="official-first-name-hint" class="govuk-hint">
-            Enter the official’s given name
-          </div>
+          <label class="govuk-label govuk-label--s" for="official-first-name"> Official’s first name </label>
+          <div id="official-first-name-hint" class="govuk-hint">Enter the official’s given name</div>
           <input
             class="govuk-input govuk-input--width-10"
             id="official-first-name"
@@ -2264,12 +2071,8 @@
       <!-- Official’s Surname -->
       <div class="govuk-grid-column-one-quarter">
         <div class="govuk-form-group">
-          <label class="govuk-label govuk-label--s" for="official-surname">
-            Official’s surname
-          </label>
-          <div id="official-surname-hint" class="govuk-hint">
-            Enter the official’s family name
-          </div>
+          <label class="govuk-label govuk-label--s" for="official-surname"> Official’s surname </label>
+          <div id="official-surname-hint" class="govuk-hint">Enter the official’s family name</div>
           <input
             class="govuk-input govuk-input--width-10"
             id="official-surname"
