@@ -1,0 +1,11 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: apps-reg-frontend:latest
+    ports:
+      - "8080:80"
+
+volumes:
+  db-data:

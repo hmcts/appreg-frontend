@@ -61,5 +61,8 @@
     "stylelint": "^16.23.0",
     "stylelint-config-standard-scss": "^15.0.1",
     "typescript": "~5.4.5"
+  },
+  "resolutions": {
+    "wrap-ansi": "7.0.0"
   }
 }

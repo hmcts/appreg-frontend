@@ -1,18 +1,41 @@
-# exclude all by default
-
+# Exclude all files by default
 *
 
-# exceptions from `exclude all` rule
-
+# Exceptions from the exclusion rule
 !package.json
 !yarn.lock
 !version
+!.yarn/
 !.yarn/**
 !.yarnrc.yml
 !.pnp.cjs
 
+# Angular workspace configuration
+!angular.json
+!angular*.json
+
+# TypeScript configuration files
 !tsconfig.json
+!tsconfig.app.json
+!tsconfig.spec.json
+!tsconfig.eslint.json
+
+# Application source
+!src/
+!src/**
+
+# Environment files
+!src/environments/
+!src/environments/**
+
+# Webpack configuration
+!webpack/
 !webpack/**
-!src/main/**
-!config/**
 !webpack.config.js
+
+# Additional config directories
+!config/
+!config/**
+
+# Custom scripts\!scripts/
+!scripts/**
