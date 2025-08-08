@@ -35,12 +35,14 @@ version
 .eslintcache
 
 .yarn/*
-!.yarn/cache/*
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+.yarn/cache/
+.yarn/install-state.gz
 
 # Compiled output
 /dist
