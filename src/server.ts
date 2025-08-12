@@ -10,6 +10,8 @@ import { Helmet } from './modules/helmet';
 import { AppInsights } from './modules/appinsights';
 import { PropertiesVolume } from './modules/properties-volume';
 import { setupHealthcheck } from './routes/health';
+import * as os from 'node:os';
+import { infoRequestHandler } from '@hmcts/info-provider';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
@@ -24,6 +26,17 @@ await new AppInsights().enable();
 new Helmet(developmentMode).enableFor(app);
 
 setupHealthcheck(app);
+
+app.get('/info',
+  infoRequestHandler({
+    extraBuildInfo: {
+      host: os.hostname(),
+      name: 'hmcts-court-fines',
+      uptime: process.uptime(),
+    },
+    info: {},
+  })
+);
 
 /**
  * Example Express Rest API endpoints can be defined here.

@@ -44,6 +44,7 @@
     "@angular/platform-server": "^20.1.0",
     "@angular/router": "^20.1.0",
     "@angular/ssr": "^20.1.5",
+    "@hmcts/info-provider": "^1.2.3",
     "@hmcts/nodejs-healthcheck": "^1.8.6",
     "@hmcts/properties-volume": "^1.2.0",
     "@types/helmet": "^4.0.0",
