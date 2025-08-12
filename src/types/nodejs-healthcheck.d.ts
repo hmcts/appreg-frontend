@@ -1,0 +1,13 @@
+declare module '@hmcts/nodejs-healthcheck' {
+  import type { Application } from 'express';
+
+  export interface HealthCheckConfig {
+    checks?: Record<string, () => never>;
+    readinessChecks?: Record<string, () => never>;
+  }
+
+  export function raw(fn: () => never): never;
+  export function up(): never;
+  export function down(): never;
+  export function addTo(app: Application, config: HealthCheckConfig): void;
+}

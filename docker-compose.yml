@@ -1,11 +1,14 @@
 services:
-  frontend:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
-    image: apps-reg-frontend:latest
+      target: runtime
+    image: appreg-frontend:latest
+    container_name: appreg-frontend
+    environment:
+      NODE_ENV: production
+      PORT: 4000
     ports:
-      - "8080:80"
-
-volumes:
-  db-data:
+      - "4000:4000"
+    restart: unless-stopped

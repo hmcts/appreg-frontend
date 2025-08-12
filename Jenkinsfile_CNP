@@ -2,15 +2,15 @@
 
 @Library("Infrastructure")
 
-def type = "angular"
-def product = "appreg"
-def component = "frontend"
+def type = "nodejs"
+def product = "rpe"
+def component = "appreg-frotend"
 
-def branchesToSync = ['demo', 'ithc']
+def yarnBuilder = new uk.gov.hmcts.contino.YarnBuilder(this)
 
 withPipeline(type, product, component) {
-  enableSlackNotifications('#appreg-builds')
-  disableCleanupOfHelmReleaseOnFailure()
-
-  syncBranchesWithMaster(branchesToSync)
+  afterSuccess('build') {
+    yarnBuilder.yarn('rebuild puppeteer')
+    yarnBuilder.yarn('build')
+  }
 }

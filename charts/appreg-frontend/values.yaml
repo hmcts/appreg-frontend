@@ -1,14 +1,11 @@
 nodejs:
-  applicationPort: 3000
-  image: 'sdshmctspublic.azurecr.io/appreg/frontend:latest'
-  ingressHost: appreg.{{ .Values.global.environment }}.apps.hmcts.net
-  aadIdentityName: appreg
-  readinessPeriod: 5
-  terminationGracePeriodSeconds: 65
-  keyVaults:
-    appreg:
-      secrets:
-        - redis-connection-string
+  applicationPort: 3100
+  aadIdentityName: rpe
+  ingressHost: appreg-frontend.{{ .Values.global.environment }}.platform.hmcts.net
+  image: 'hmctspublic.azurecr.io/rpe/appreg-frontend:latest'
+  #  Uncomment once the vault containing the app insights key has been set up
+  #  keyVaults:
+  #    rpe:
+  #      secrets:
+  #        - AppInsightsInstrumentationKey
   environment:
-    ALLOW_CONFIG_MUTATIONS: true
-    APPREG_API_URL: https://appreg-api.{{ .Values.global.environment }}.platform.hmcts.net

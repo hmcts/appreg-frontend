@@ -1,7 +1,10 @@
 # Generated files
-src/main/public/main-dev.css
-src/main/public/main*.css
-src/main/public/main*.js
 .pnp.*
-src/main/views/govuk
 .yarn/
+
+# Config files
+cypress-cucumber-preprocessor.config.js
+jest.a11y.config.js
+jest.config.js
+jest.routes.config.js
+jest.smoke.config.js
