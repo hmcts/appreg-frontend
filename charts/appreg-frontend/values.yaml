@@ -2,7 +2,7 @@ nodejs:
   applicationPort: 4000
   aadIdentityName: appreg
   ingressHost: appreg.{{ .Values.global.environment }}.platform.hmcts.net
-  image: "hmctspublic.azurecr.io/appreg/frontend:latest"
+  image: "sdshmctspublic.azurecr.io/appreg/frontend:latest"
   keyVaults:
     appreg:
       secrets:
