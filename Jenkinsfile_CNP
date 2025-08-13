@@ -2,7 +2,7 @@
 
 @Library("Infrastructure")
 
-def type = "nodejs"
+def type = "angular"
 def product = "appreg"
 def component = "frontend"
 
