@@ -1,42 +1,42 @@
+import { access } from 'node:fs/promises';
 import pa11y from 'pa11y';
-import fetch from 'cross-fetch';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const BASE_URL = process.env['BASE_URL'] || 'http://localhost:4000';
 const hide = '.govuk-footer__licence-logo, .govuk-header__logotype-crown';
 
-type Pa11yResult = Awaited<ReturnType<typeof pa11y>>;
-type Pa11yIssue = Pa11yResult['issues'][number];
+const DIST_DIR = 'dist/appreg-frontend/browser';
 
-async function ensurePageLoads(path: string): Promise<void> {
-  const res = await fetch(`${BASE_URL}${path}`, { redirect: 'manual' });
-  if (res.status >= 300 && res.status < 400) {
-    throw new Error(
-      `Unexpected redirect on ${path} → ${res.headers.get('location')}`,
-    );
-  }
-  if (res.status >= 500) {
-    throw new Error(`Server error (${res.status}) on ${path}`);
-  }
+const ROOT = pathToFileURL(path.resolve(DIST_DIR)).href.replace(/\/$/, '');
+
+function resolveFileUrl(p: string): string {
+  const rel = p === '/' ? '/index.html' : p.replace(/^\//, '/');
+  return `${ROOT}${rel}`;
 }
 
-function runPa11y(path: string): Promise<Pa11yResult> {
-  return pa11y(`${BASE_URL}${path}`, { hideElements: hide });
+async function ensurePageLoads(p: string): Promise<void> {
+  const filePath = fileURLToPath(new URL(resolveFileUrl(p)));
+  await access(filePath);
 }
 
-function assertNoErrors(issues: Pa11yIssue[]): void {
-  const errors = issues.filter((i: Pa11yIssue) => i.type === 'error');
-  if (errors.length > 0) {
+function runPa11y(p: string) {
+  return pa11y(resolveFileUrl(p), { hideElements: hide });
+}
+
+function assertNoErrors(issues: Awaited<ReturnType<typeof pa11y>>['issues']) {
+  const errors = issues.filter((i) => i.type === 'error');
+  if (errors.length) {
     throw new Error(
       `Accessibility errors:\n${JSON.stringify(errors, null, 2)}`,
     );
   }
 }
 
-function testAccessibility(path: string): void {
-  describe(`Page ${path}`, () => {
+function testAccessibility(p: string): void {
+  describe(`Page ${p}`, () => {
     test('should have no accessibility errors', async () => {
-      await ensurePageLoads(path);
-      const result = await runPa11y(path);
+      await ensurePageLoads(p);
+      const result = await runPa11y(p);
       expect(Array.isArray(result.issues)).toBe(true);
       assertNoErrors(result.issues);
     });

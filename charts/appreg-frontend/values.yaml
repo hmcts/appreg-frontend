@@ -1,11 +1,13 @@
 nodejs:
-  applicationPort: 3100
-  aadIdentityName: rpe
-  ingressHost: appreg-frontend.{{ .Values.global.environment }}.platform.hmcts.net
-  image: "hmctspublic.azurecr.io/rpe/appreg-frontend:latest"
-  #  Uncomment once the vault containing the app insights key has been set up
-  #  keyVaults:
-  #    rpe:
-  #      secrets:
-  #        - AppInsightsInstrumentationKey
+  applicationPort: 4000
+  aadIdentityName: appreg
+  ingressHost: appreg.{{ .Values.global.environment }}.platform.hmcts.net
+  image: "sdshmctspublic.azurecr.io/appreg/frontend:latest"
+  keyVaults:
+    appreg:
+      secrets:
+        - name: AppInsightsInstrumentationKey
+          alias: APP_INSIGHTS_INSTRUMENTATION_KEY
+        - name: app-insights-connection-string
+          alias: app-insights-connection-string
   environment:
