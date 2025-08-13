@@ -1,0 +1,1 @@
+{"value":"@types/helmet","children":{"ID":"@types/helmet (deprecation)","Issue":"This is a stub types definition. helmet provides its own type definitions, so you do not need this installed.","Severity":"moderate","Vulnerable Versions":"4.0.0","Tree Versions":["4.0.0"],"Dependents":["appreg-frontend@workspace:."]}}
