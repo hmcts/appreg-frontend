@@ -11,7 +11,7 @@
     "lint": "stylelint **/*.scss -v -q && eslint . --ext .js,.ts --max-warnings 0 && prettier --check .",
     "lint:fix": "prettier --write . && eslint --fix .",
     "build": "ng build",
-    "build:prod": "ng build --configuration production",
+    "build:ssr": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "npx if-env CI=true && exit 0 || yarn test:unit",
     "test:unit": "jest",
