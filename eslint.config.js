@@ -32,7 +32,7 @@ module.exports = defineConfig([
     "jest.*config.js",
     ".eslintrc.js",
     "**/*.js",
-    ".pnp.*"
+    ".pnp.*",
   ]),
 
   // Allow dev-only requires in config files
