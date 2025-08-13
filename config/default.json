@@ -1,8 +1,14 @@
 {
-  "secrets": {
-    "appreg": {
-      "AppInsightsInstrumentationKey": "00000000-0000-0000-0000-000000000000",
-      "redis-connection-string": "redis://localhost:6379",
+  "useCSRFProtection": true,
+  "appInsights": {
+    "instrumentationKey": false
+  },
+  "security": {
+    "referrerPolicy": "same-origin",
+    "hsts": {
+      "maxAge": 31536000,
+      "includeSubDomains": true,
+      "preload": true
     }
   }
 }

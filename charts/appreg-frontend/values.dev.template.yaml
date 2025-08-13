@@ -1,6 +1,0 @@
-nodejs:
-  # Don't modify below here
-  image: ${IMAGE_NAME}
-  ingressHost: ${SERVICE_FQDN}
-  environment:
-    APPREG_API_URL: https://appreg-api.staging.platform.hmcts.net
