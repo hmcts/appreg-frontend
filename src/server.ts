@@ -3,23 +3,23 @@ import {
   createNodeRequestHandler,
   isMainModule,
   writeResponseToNodeResponse,
-} from '@angular/ssr/node';
-import express from 'express';
-import { join } from 'node:path';
-import { Helmet } from './modules/helmet';
-import { AppInsights } from './modules/appinsights';
-import { PropertiesVolume } from './modules/properties-volume';
-import { setupHealthcheck } from './routes/health';
-import * as os from 'node:os';
-import { infoRequestHandler } from '@hmcts/info-provider';
+} from "@angular/ssr/node";
+import express from "express";
+import { join } from "node:path";
+import { Helmet } from "./modules/helmet";
+import { AppInsights } from "./modules/appinsights";
+import { PropertiesVolume } from "./modules/properties-volume";
+import { setupHealthcheck } from "./routes/health";
+import * as os from "node:os";
+import { infoRequestHandler } from "@hmcts/info-provider";
 
-const browserDistFolder = join(import.meta.dirname, '../browser');
+const browserDistFolder = join(import.meta.dirname, "../browser");
 
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 
-const env = process.env['NODE_ENV'] || 'development';
-const developmentMode = env === 'development';
+const env = process.env["NODE_ENV"] || "development";
+const developmentMode = env === "development";
 
 await new PropertiesVolume().enableFor(app);
 await new AppInsights().enable();
@@ -28,11 +28,11 @@ new Helmet(developmentMode).enableFor(app);
 setupHealthcheck(app);
 
 app.get(
-  '/info',
+  "/info",
   infoRequestHandler({
     extraBuildInfo: {
       host: os.hostname(),
-      name: 'hmcts-court-fines',
+      name: "hmcts-court-fines",
       uptime: process.uptime(),
     },
     info: {},
@@ -56,7 +56,7 @@ app.get(
  */
 app.use(
   express.static(browserDistFolder, {
-    maxAge: '1y',
+    maxAge: "1y",
     index: false,
     redirect: false,
   }),
@@ -79,7 +79,7 @@ app.use((req, res, next) => {
  * The server listens on the port defined by the `PORT` environment variable, or defaults to 4000.
  */
 if (isMainModule(import.meta.url)) {
-  const port = process.env['PORT'] || 4000;
+  const port = process.env["PORT"] || 4000;
   app.listen(port, (error) => {
     if (error) {
       throw error;

@@ -1,7 +1,7 @@
-import * as express from 'express';
-import helmet from 'helmet';
+import * as express from "express";
+import helmet from "helmet";
 
-const googleAnalyticsDomain = '*.google-analytics.com';
+const googleAnalyticsDomain = "*.google-analytics.com";
 const self = "'self'";
 
 /**
@@ -35,14 +35,14 @@ export class Helmet {
           directives: {
             connectSrc: [self],
             defaultSrc: ["'none'"],
-            fontSrc: [self, 'data:'],
+            fontSrc: [self, "data:"],
             imgSrc: [self, googleAnalyticsDomain],
             objectSrc: [self],
             scriptSrc,
             styleSrc: [self, "'unsafe-inline'"],
           },
         },
-        referrerPolicy: { policy: 'origin' },
+        referrerPolicy: { policy: "origin" },
       }),
     );
   }

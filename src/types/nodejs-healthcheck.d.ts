@@ -1,5 +1,5 @@
-declare module '@hmcts/nodejs-healthcheck' {
-  import type { Application } from 'express';
+declare module "@hmcts/nodejs-healthcheck" {
+  import type { Application } from "express";
 
   export interface HealthCheckConfig {
     checks?: Record<string, () => never>;

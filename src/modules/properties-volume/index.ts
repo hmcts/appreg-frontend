@@ -1,20 +1,20 @@
-import type { IConfig } from 'config';
-import type * as PV from '@hmcts/properties-volume';
-import { Application } from 'express';
-import { createRequire } from 'module';
+import type { IConfig } from "config";
+import type * as PV from "@hmcts/properties-volume";
+import { Application } from "express";
+import { createRequire } from "module";
 
 const require = createRequire(import.meta.url);
 
 export class PropertiesVolume {
   async enableFor(server: Application): Promise<void> {
-    if (server.locals['ENV'] !== 'development') {
-      const { default: config } = (await import('config')) as {
+    if (server.locals["ENV"] !== "development") {
+      const { default: config } = (await import("config")) as {
         default: IConfig;
       };
-      const pvm = require('@hmcts/properties-volume') as typeof PV;
-      const { get, set } = require('lodash') as {
-        get: (typeof import('lodash'))['get'];
-        set: (typeof import('lodash'))['set'];
+      const pvm = require("@hmcts/properties-volume") as typeof PV;
+      const { get, set } = require("lodash") as {
+        get: (typeof import("lodash"))["get"];
+        set: (typeof import("lodash"))["set"];
       };
 
       pvm.addTo(config);
@@ -22,8 +22,8 @@ export class PropertiesVolume {
         config,
         get,
         set,
-        'secrets.rpe.AppInsightsInstrumentationKey',
-        'appInsights.instrumentationKey',
+        "secrets.rpe.AppInsightsInstrumentationKey",
+        "appInsights.instrumentationKey",
       );
     }
   }
