@@ -28,14 +28,11 @@ module.exports = defineConfig([
     "coverage/",
     "setup.jest.ts",
     "setup.a11y.ts",
-<<<<<<< HEAD
     "**/*.d.ts",
     "jest.*config.js",
     ".eslintrc.js",
     "**/*.js",
     ".pnp.*",
-=======
->>>>>>> 38048e2 (Rebasing Code)
   ]),
 
   // Allow dev-only requires in config files

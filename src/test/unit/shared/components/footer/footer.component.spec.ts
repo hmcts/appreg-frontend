@@ -1,16 +1,8 @@
-<<<<<<< HEAD
-import { ComponentFixture, TestBed } from "@angular/core/testing";
-
-import { FooterComponent } from "../../../../../app/shared/components/footer/footer.component";
-
-describe("FooterComponent", () => {
-=======
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { FooterComponent } from '../../../../../app/shared/components/footer/footer.component';
 
 describe('FooterComponent', () => {
->>>>>>> 38048e2 (Rebasing Code)
   let component: FooterComponent;
   let fixture: ComponentFixture<FooterComponent>;
 
@@ -24,11 +16,7 @@ describe('FooterComponent', () => {
     fixture.detectChanges();
   });
 
-<<<<<<< HEAD
-  it("should create", () => {
-=======
   it('should create', () => {
->>>>>>> 38048e2 (Rebasing Code)
     expect(component).toBeTruthy();
   });
 });

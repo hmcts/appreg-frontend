@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-declare module "@hmcts/nodejs-healthcheck" {
-  import type { Application } from "express";
-=======
 declare module '@hmcts/nodejs-healthcheck' {
   import type { Application } from 'express';
->>>>>>> 38048e2 (Rebasing Code)
 
   export interface HealthCheckConfig {
     checks?: Record<string, () => never>;
