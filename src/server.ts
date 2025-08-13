@@ -27,7 +27,8 @@ new Helmet(developmentMode).enableFor(app);
 
 setupHealthcheck(app);
 
-app.get('/info',
+app.get(
+  '/info',
   infoRequestHandler({
     extraBuildInfo: {
       host: os.hostname(),
@@ -35,7 +36,7 @@ app.get('/info',
       uptime: process.uptime(),
     },
     info: {},
-  })
+  }),
 );
 
 /**
