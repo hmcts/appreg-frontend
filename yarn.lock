@@ -5270,7 +5270,10 @@ __metadata:
     eslint-plugin-prettier: "npm:^5.5.4"
     express: "npm:^5.1.0"
     glob: "npm:^11.0.3"
+<<<<<<< HEAD
     globals: "npm:^16.3.0"
+=======
+>>>>>>> 38048e2 (Rebasing Code)
     govuk-frontend: "npm:^5.11.1"
     helmet: "npm:^7.0.0"
     jest: "npm:^30.0.5"
@@ -9173,6 +9176,7 @@ __metadata:
   languageName: node
   linkType: hard
 
+<<<<<<< HEAD
 "globals@npm:^16.3.0":
   version: 16.3.0
   resolution: "globals@npm:16.3.0"
@@ -9180,6 +9184,8 @@ __metadata:
   languageName: node
   linkType: hard
 
+=======
+>>>>>>> 38048e2 (Rebasing Code)
 "globalthis@npm:^1.0.4":
   version: 1.0.4
   resolution: "globalthis@npm:1.0.4"

@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 import * as express from "express";
 import helmet from "helmet";
 
 const googleAnalyticsDomain = "*.google-analytics.com";
+=======
+import * as express from 'express';
+import helmet from 'helmet';
+
+const googleAnalyticsDomain = '*.google-analytics.com';
+>>>>>>> 38048e2 (Rebasing Code)
 const self = "'self'";
 
 /**
@@ -35,14 +42,22 @@ export class Helmet {
           directives: {
             connectSrc: [self],
             defaultSrc: ["'none'"],
+<<<<<<< HEAD
             fontSrc: [self, "data:"],
+=======
+            fontSrc: [self, 'data:'],
+>>>>>>> 38048e2 (Rebasing Code)
             imgSrc: [self, googleAnalyticsDomain],
             objectSrc: [self],
             scriptSrc,
             styleSrc: [self, "'unsafe-inline'"],
           },
         },
+<<<<<<< HEAD
         referrerPolicy: { policy: "origin" },
+=======
+        referrerPolicy: { policy: 'origin' },
+>>>>>>> 38048e2 (Rebasing Code)
       }),
     );
   }
