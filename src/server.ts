@@ -12,6 +12,7 @@ import { PropertiesVolume } from './modules/properties-volume';
 import { setupHealthcheck } from './routes/health';
 import * as os from 'node:os';
 import { infoRequestHandler } from '@hmcts/info-provider';
+import '@angular/compiler';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
