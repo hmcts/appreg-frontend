@@ -1,6 +1,6 @@
 import fetch from 'cross-fetch';
 
-const BASE_URL = process.env['BASE_URL'] ?? 'http://localhost:4000';
+const BASE_URL = process.env['TEST_URL'] ?? 'http://localhost:4000';
 
 async function waitForServer(url: string, timeoutMs = 30000, intervalMs = 500) {
   const start = Date.now();
