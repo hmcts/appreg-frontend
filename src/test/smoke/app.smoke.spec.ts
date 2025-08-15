@@ -8,13 +8,17 @@ async function waitForServer(url: string, timeoutMs = 30000, intervalMs = 500) {
   while (Date.now() - start < timeoutMs) {
     try {
       const res = await fetch(url);
-      if (res.ok) {return res;}
+      if (res.ok) {
+        return res;
+      }
     } catch (e) {
       lastErr = e;
     }
-    await new Promise(r => setTimeout(r, intervalMs));
+    await new Promise((r) => setTimeout(r, intervalMs));
   }
-  throw new Error(`Server at ${url} not reachable after ${timeoutMs}ms. Last error: ${String(lastErr)}`);
+  throw new Error(
+    `Server at ${url} not reachable after ${timeoutMs}ms. Last error: ${String(lastErr)}`,
+  );
 }
 
 describe('Smoke Test', () => {
