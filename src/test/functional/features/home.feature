@@ -4,7 +4,7 @@ Feature: Home page
   So that I can see the default page template
 
   Scenario: Load home page
-    Given the app is running at "<BASE_URL>"
+    Given the app is running at "<TEST_URL>"
     When I visit the "/" route
     Then I should see the "Default page template" heading
     And I should see the "#main-content" element

@@ -2,8 +2,8 @@ import { Given, Then, When } from '@badeball/cypress-cucumber-preprocessor';
 
 Given('the app is running at {string}', (url: string) => {
   const base =
-    url === '<BASE_URL>'
-      ? (Cypress.env('BASE_URL') as string) || Cypress.config('baseUrl')
+    url === '<TEST_URL>'
+      ? (Cypress.env('TEST_URL') as string) || Cypress.config('baseUrl')
       : url;
   cy.wrap(base).as('baseUrl');
 });

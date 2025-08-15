@@ -10,7 +10,7 @@ const {
 module.exports = defineConfig({
   e2e: {
     specPattern: "src/test/functional/**/*.feature",
-    baseUrl: process.env.BASE_URL || "http://localhost:4000",
+    baseUrl: process.env.TEST_URL || "http://localhost:4000",
     supportFile: false,
 
     async setupNodeEvents(on, config) {
