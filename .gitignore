@@ -50,3 +50,6 @@ Thumbs.db
 
 # Cypress
 /cypress
+
+# Configuration files
+/config/development.json
