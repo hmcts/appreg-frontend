@@ -1,15 +1,16 @@
+/* eslint.config.js */
 const { defineConfig, globalIgnores } = require("eslint/config");
 const globals = require("globals");
+const js = require("@eslint/js");
+const { FlatCompat } = require("@eslint/eslintrc");
+const { fixupPluginRules, fixupConfigRules } = require("@eslint/compat");
+
 const tsParser = require("@typescript-eslint/parser");
+const tsEslintPlugin = require("@typescript-eslint/eslint-plugin");
 
 const importPlugin = require("eslint-plugin-import");
 const jestPlugin = require("eslint-plugin-jest");
-const tsEslintPlugin = require("@typescript-eslint/eslint-plugin");
 const nodePlugin = require("eslint-plugin-node");
-
-const { fixupPluginRules, fixupConfigRules } = require("@eslint/compat");
-const js = require("@eslint/js");
-const { FlatCompat } = require("@eslint/eslintrc");
 
 const compat = new FlatCompat({
   baseDirectory: __dirname,
@@ -34,12 +35,11 @@ module.exports = defineConfig([
     ".pnp.*",
   ]),
 
-  // Base JS/TS-agnostic rules and plugins (no Node rules here)
+  // Base (shared) – no type-aware parser configured here
   {
     plugins: {
       import: fixupPluginRules(importPlugin),
       jest: fixupPluginRules(jestPlugin),
-      "@typescript-eslint": fixupPluginRules(tsEslintPlugin),
     },
     extends: fixupConfigRules(
       compat.extends(
@@ -51,14 +51,22 @@ module.exports = defineConfig([
       ),
     ),
     languageOptions: {
+      ecmaVersion: 2018,
+      sourceType: "module",
       globals: {
         ...globals.browser,
         ...globals.node,
         Atomics: "readonly",
         SharedArrayBuffer: "readonly",
       },
-      ecmaVersion: 2018,
-      sourceType: "module",
+    },
+    // Keep the import resolver here (non-parser); point it at ONE project.
+    settings: {
+      "import/resolver": {
+        typescript: {
+          project: ["./tsconfig.eslint.json"],
+        },
+      },
     },
     rules: {
       curly: "error",
@@ -68,11 +76,7 @@ module.exports = defineConfig([
       "no-unneeded-ternary": ["error", { defaultAssignment: false }],
       "object-curly-spacing": ["error", "always"],
       "object-shorthand": ["error", "properties"],
-      quotes: [
-        "error",
-        "single",
-        { allowTemplateLiterals: false, avoidEscape: true },
-      ],
+      quotes: ["error", "single", { allowTemplateLiterals: false, avoidEscape: true }],
       semi: ["error", "always"],
       "sort-imports": [
         "error",
@@ -95,28 +99,28 @@ module.exports = defineConfig([
       "jest/prefer-to-have-length": "error",
       "jest/valid-expect": "off",
     },
-    settings: {
-      "import/resolver": {
-        typescript: {
-          project: ["./tsconfig.eslint.json", "./test/tsconfig.json"],
-        },
-      },
-    },
   },
 
-  // TypeScript files (type-aware)
+  // APPLICATION / LIBRARY TS (type-aware) — explicitly exclude tests here
   {
     files: ["**/*.ts", "**/*.tsx"],
+    ignores: [
+      "**/*.spec.ts",
+      "**/*.test.ts",
+      "**/*.routes.spec.ts",
+      "**/*.a11y.spec.ts",
+      "test/**",
+    ],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: ["./tsconfig.eslint.json", "./test/tsconfig.json"],
+        // exactly one project for this block
+        project: "./tsconfig.eslint.json",
         tsconfigRootDir: __dirname,
+        noWarnOnMultipleProjects: true, // hard stop for the warning
       },
     },
-    plugins: {
-      "@typescript-eslint": fixupPluginRules(tsEslintPlugin),
-    },
+    plugins: { "@typescript-eslint": fixupPluginRules(tsEslintPlugin) },
     extends: fixupConfigRules(
       compat.extends(
         "plugin:@typescript-eslint/eslint-recommended",
@@ -129,28 +133,12 @@ module.exports = defineConfig([
       "@typescript-eslint/explicit-module-boundary-types": "error",
       "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/no-shadow": "error",
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        { ignoreRestSiblings: true },
-      ],
+      "@typescript-eslint/no-unused-vars": ["error", { ignoreRestSiblings: true }],
       "@typescript-eslint/no-var-requires": "off",
     },
   },
 
-  // JS config files (Node context)
-  {
-    files: ["**/*.config.js", "**/jest.routes.config.js", "cypress.config.js"],
-    plugins: { node: fixupPluginRules(nodePlugin) },
-    extends: fixupConfigRules(compat.extends("plugin:node/recommended")),
-    rules: {
-      "node/no-unpublished-require": "off",
-      "node/no-missing-require": "off",
-      "import/order": "off", // optional: configs often group imports differently
-      quotes: "off", // optional
-    },
-  },
-
-  // Jest test files override (keeps your “unsafe-*” relaxed for tests)
+  // TESTS (type-aware), with their own single project + resolver scoped here
   {
     files: [
       "**/*.spec.ts",
@@ -158,7 +146,32 @@ module.exports = defineConfig([
       "**/*.routes.spec.ts",
       "**/*.a11y.spec.ts",
     ],
-    languageOptions: { globals: { ...globals.jest } },
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        // exactly one project for tests
+        project: "./test/tsconfig.json",
+        tsconfigRootDir: __dirname,
+        noWarnOnMultipleProjects: true, // belt-and-braces
+      },
+      globals: { ...globals.jest },
+    },
+    // Make the import resolver use the TEST tsconfig for these files only
+    settings: {
+      "import/resolver": {
+        typescript: {
+          project: ["./test/tsconfig.json"],
+        },
+      },
+    },
+    plugins: { "@typescript-eslint": fixupPluginRules(tsEslintPlugin) },
+    extends: fixupConfigRules(
+      compat.extends(
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:@typescript-eslint/recommended-requiring-type-checking",
+      ),
+    ),
     rules: {
       "@typescript-eslint/no-unsafe-call": "off",
       "@typescript-eslint/no-unsafe-assignment": "off",
@@ -168,7 +181,7 @@ module.exports = defineConfig([
     },
   },
 
-  // Cypress step definitions (no type-aware parsing here)
+  // Cypress step definitions (no type-aware parsing)
   {
     files: ["test/functional/**/*.steps.ts"],
     plugins: { node: fixupPluginRules(nodePlugin) },
