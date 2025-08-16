@@ -1,4 +1,3 @@
-/* eslint.config.js */
 const { defineConfig, globalIgnores } = require("eslint/config");
 const globals = require("globals");
 const js = require("@eslint/js");
@@ -11,6 +10,7 @@ const tsEslintPlugin = require("@typescript-eslint/eslint-plugin");
 const importPlugin = require("eslint-plugin-import");
 const jestPlugin = require("eslint-plugin-jest");
 const nodePlugin = require("eslint-plugin-node");
+const cypressPlugin = require("eslint-plugin-cypress");
 
 const compat = new FlatCompat({
   baseDirectory: __dirname,
@@ -60,7 +60,7 @@ module.exports = defineConfig([
         SharedArrayBuffer: "readonly",
       },
     },
-    // Keep the import resolver here (non-parser); point it at ONE project.
+    // Default TS import resolver (parser-independent)
     settings: {
       "import/resolver": {
         typescript: {
@@ -76,7 +76,11 @@ module.exports = defineConfig([
       "no-unneeded-ternary": ["error", { defaultAssignment: false }],
       "object-curly-spacing": ["error", "always"],
       "object-shorthand": ["error", "properties"],
-      quotes: ["error", "single", { allowTemplateLiterals: false, avoidEscape: true }],
+      quotes: [
+        "error",
+        "single",
+        { allowTemplateLiterals: false, avoidEscape: true },
+      ],
       semi: ["error", "always"],
       "sort-imports": [
         "error",
@@ -114,10 +118,9 @@ module.exports = defineConfig([
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        // exactly one project for this block
         project: "./tsconfig.eslint.json",
         tsconfigRootDir: __dirname,
-        noWarnOnMultipleProjects: true, // hard stop for the warning
+        noWarnOnMultipleProjects: true,
       },
     },
     plugins: { "@typescript-eslint": fixupPluginRules(tsEslintPlugin) },
@@ -133,8 +136,26 @@ module.exports = defineConfig([
       "@typescript-eslint/explicit-module-boundary-types": "error",
       "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/no-shadow": "error",
-      "@typescript-eslint/no-unused-vars": ["error", { ignoreRestSiblings: true }],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { ignoreRestSiblings: true },
+      ],
       "@typescript-eslint/no-var-requires": "off",
+      // Core 'no-undef' is unreliable for TS; rely on TS instead.
+      "no-undef": "off",
+    },
+  },
+
+  // JS config files (Node context)
+  {
+    files: ["**/*.config.js", "**/jest.routes.config.js", "cypress.config.js"],
+    plugins: { node: fixupPluginRules(nodePlugin) },
+    extends: fixupConfigRules(compat.extends("plugin:node/recommended")),
+    rules: {
+      "node/no-unpublished-require": "off",
+      "node/no-missing-require": "off",
+      "import/order": "off",
+      quotes: "off",
     },
   },
 
@@ -149,14 +170,12 @@ module.exports = defineConfig([
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        // exactly one project for tests
         project: "./test/tsconfig.json",
         tsconfigRootDir: __dirname,
-        noWarnOnMultipleProjects: true, // belt-and-braces
+        noWarnOnMultipleProjects: true,
       },
       globals: { ...globals.jest },
     },
-    // Make the import resolver use the TEST tsconfig for these files only
     settings: {
       "import/resolver": {
         typescript: {
@@ -178,16 +197,29 @@ module.exports = defineConfig([
       "@typescript-eslint/no-unsafe-return": "off",
       "@typescript-eslint/no-unsafe-member-access": "off",
       "@typescript-eslint/no-unsafe-argument": "off",
+      "no-undef": "off",
     },
   },
 
-  // Cypress step definitions (no type-aware parsing)
+  // Cypress step definitions – parse TS syntax (no type-aware linting here)
   {
     files: ["test/functional/**/*.steps.ts"],
-    plugins: { node: fixupPluginRules(nodePlugin) },
+    plugins: {
+      node: fixupPluginRules(nodePlugin),
+      cypress: fixupPluginRules(cypressPlugin),
+      "@typescript-eslint": fixupPluginRules(tsEslintPlugin),
+    },
     languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        tsconfigRootDir: __dirname,
+      },
       globals: {
         ...globals.cypress,
+        cy: "readonly",
+        Cypress: "readonly",
+        expect: "readonly",
+        assert: "readonly",
         Given: "readonly",
         When: "readonly",
         Then: "readonly",
@@ -201,6 +233,7 @@ module.exports = defineConfig([
       "node/no-unpublished-import": "off",
       "node/no-unpublished-require": "off",
       "node/no-missing-import": "off",
+      "no-undef": "off",
       "@typescript-eslint/no-unsafe-call": "off",
       "@typescript-eslint/no-unsafe-member-access": "off",
       "@typescript-eslint/no-unsafe-assignment": "off",
