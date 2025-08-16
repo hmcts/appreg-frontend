@@ -22,4 +22,9 @@ export class ServiceNavigationComponent implements OnInit {
 
   ngOnInit(): void {
   }
+
+  onSignOutClicked(e: Event): void {
+    e.preventDefault();
+    window.location.href = '/sso/logout';
+  }
 }

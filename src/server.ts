@@ -11,6 +11,7 @@ import { AppInsights } from './modules/appinsights';
 import { PropertiesVolume } from './modules/properties-volume';
 import { setupHealthcheck } from './routes/health';
 import { setupInfoRoute } from './routes/info';
+import authRoutes from './routes/sso';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
@@ -26,6 +27,7 @@ new Helmet(developmentMode).enableFor(app);
 
 setupHealthcheck(app);
 setupInfoRoute(app);
+app.use(authRoutes);
 
 /**
  * Serve static files from /browser

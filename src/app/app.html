@@ -1,26 +1,9 @@
-<body class="govuk-template__body js-enabled govuk-frontend-supported">
-  <script>
-    document.body.className +=
-      " js-enabled" +
-      ("noModule" in HTMLScriptElement.prototype
-        ? " govuk-frontend-supported"
-        : "");
-  </script>
+<app-header></app-header>
 
-  <app-header></app-header>
+<div class="govuk-width-container">
+  <main class="govuk-main-wrapper" id="main-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>
 
-  <div class="govuk-width-container">
-    <main class="govuk-main-wrapper" id="main-content">
-      <router-outlet></router-outlet>
-    </main>
-  </div>
-
-  <app-footer></app-footer>
-
-  <script type="module" src="/javascripts/govuk-frontend.min.js"></script>
-  <script type="module">
-    import { initAll } from "/javascripts/govuk-frontend.min.js";
-
-    initAll();
-  </script>
-</body>
+<app-footer></app-footer>
