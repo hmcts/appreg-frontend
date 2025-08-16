@@ -1,4 +1,4 @@
-import { routes } from '../../app/app.routes';
+import { routes } from '../../src/app/app.routes';
 
 describe('App Routes', () => {
   it('should be defined', () => {
