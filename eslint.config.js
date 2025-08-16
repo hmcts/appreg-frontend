@@ -24,35 +24,21 @@ module.exports = defineConfig([
     "dist/",
     "node_modules/",
     ".yarn/",
-    "eslint.config.js",
     "coverage/",
     "setup.jest.ts",
     "setup.a11y.ts",
     "**/*.d.ts",
     "jest.*config.js",
     ".eslintrc.js",
-    "**/*.js",
+    "eslint.config.js",
     ".pnp.*",
   ]),
 
-  // Allow dev-only requires in config files
-  {
-    files: ["**/*.config.js", "**/jest.routes.config.js"],
-    plugins: {
-      node: fixupPluginRules(nodePlugin),
-    },
-    rules: {
-      "node/no-unpublished-require": "off",
-      "node/no-missing-require": "off",
-    },
-  },
-
-  // Base JS rules and plugins
+  // Base JS/TS-agnostic rules and plugins (no Node rules here)
   {
     plugins: {
       import: fixupPluginRules(importPlugin),
       jest: fixupPluginRules(jestPlugin),
-      node: fixupPluginRules(nodePlugin),
       "@typescript-eslint": fixupPluginRules(tsEslintPlugin),
     },
     extends: fixupConfigRules(
@@ -61,7 +47,6 @@ module.exports = defineConfig([
         "plugin:import/errors",
         "plugin:import/warnings",
         "plugin:import/typescript",
-        "plugin:node/recommended",
         "prettier",
       ),
     ),
@@ -83,11 +68,7 @@ module.exports = defineConfig([
       "no-unneeded-ternary": ["error", { defaultAssignment: false }],
       "object-curly-spacing": ["error", "always"],
       "object-shorthand": ["error", "properties"],
-      quotes: [
-        "error",
-        "single",
-        { allowTemplateLiterals: false, avoidEscape: true },
-      ],
+      quotes: ["error", "single", { allowTemplateLiterals: false, avoidEscape: true }],
       semi: ["error", "always"],
       "sort-imports": [
         "error",
@@ -110,15 +91,22 @@ module.exports = defineConfig([
       "jest/prefer-to-have-length": "error",
       "jest/valid-expect": "off",
     },
+    settings: {
+      "import/resolver": {
+        typescript: {
+          project: ["./tsconfig.eslint.json", "./test/tsconfig.json"],
+        },
+      },
+    },
   },
 
-  // TypeScript files linting (enable type-checking)
+  // TypeScript files (type-aware)
   {
     files: ["**/*.ts", "**/*.tsx"],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: "./tsconfig.eslint.json",
+        project: ["./tsconfig.eslint.json", "./test/tsconfig.json"],
         tsconfigRootDir: __dirname,
       },
     },
@@ -137,37 +125,28 @@ module.exports = defineConfig([
       "@typescript-eslint/explicit-module-boundary-types": "error",
       "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/no-shadow": "error",
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        { ignoreRestSiblings: true },
-      ],
+      "@typescript-eslint/no-unused-vars": ["error", { ignoreRestSiblings: true }],
       "@typescript-eslint/no-var-requires": "off",
-      "node/no-unsupported-features/es-syntax": "off",
-      "node/no-missing-import": "off",
-      "import/order": "off",
-    },
-    settings: {
-      "import/resolver": {
-        typescript: {
-          project: "./tsconfig.eslint.json",
-        },
-      },
     },
   },
 
-  // Jest test files override
+  // JS config files (Node context)
   {
-    files: [
-      "**/*.spec.ts",
-      "**/*.test.ts",
-      "**/*.routes.spec.ts",
-      "**/*.a11y.spec.ts",
-    ],
-    languageOptions: {
-      globals: {
-        ...globals.jest,
-      },
+    files: ["**/*.config.js", "**/jest.routes.config.js", "cypress.config.js"],
+    plugins: { node: fixupPluginRules(nodePlugin) },
+    extends: fixupConfigRules(compat.extends("plugin:node/recommended")),
+    rules: {
+      "node/no-unpublished-require": "off",
+      "node/no-missing-require": "off",
+      "import/order": "off", // optional: configs often group imports differently
+      quotes: "off",         // optional
     },
+  },
+
+  // Jest test files override (keeps your “unsafe-*” relaxed for tests)
+  {
+    files: ["**/*.spec.ts", "**/*.test.ts", "**/*.routes.spec.ts", "**/*.a11y.spec.ts"],
+    languageOptions: { globals: { ...globals.jest } },
     rules: {
       "@typescript-eslint/no-unsafe-call": "off",
       "@typescript-eslint/no-unsafe-assignment": "off",
@@ -177,12 +156,10 @@ module.exports = defineConfig([
     },
   },
 
-  // Cypress step definitions (no type-checking)
+  // Cypress step definitions (no type-aware parsing here)
   {
-    files: ["src/test/functional/**/*.steps.ts"],
-    plugins: {
-      node: fixupPluginRules(nodePlugin),
-    },
+    files: ["test/functional/**/*.steps.ts"],
+    plugins: { node: fixupPluginRules(nodePlugin) },
     languageOptions: {
       globals: {
         ...globals.cypress,
@@ -194,15 +171,11 @@ module.exports = defineConfig([
         Before: "readonly",
         After: "readonly",
       },
-      // Note: no parserOptions.project here
     },
     rules: {
-      // disable node import checks
       "node/no-unpublished-import": "off",
       "node/no-unpublished-require": "off",
       "node/no-missing-import": "off",
-
-      // disable all the unsafe-* rules in these test files
       "@typescript-eslint/no-unsafe-call": "off",
       "@typescript-eslint/no-unsafe-member-access": "off",
       "@typescript-eslint/no-unsafe-assignment": "off",
@@ -211,25 +184,9 @@ module.exports = defineConfig([
     },
   },
 
-  // Server entrypoints
+  // Server entrypoints (allow console)
   {
     files: ["src/main.ts", "src/server.ts"],
-    rules: {
-      "no-console": "off",
-    },
-  },
-
-  // Cypress config file override
-  {
-    files: ["cypress.config.js"],
-    plugins: {
-      node: fixupPluginRules(nodePlugin),
-    },
-    rules: {
-      "node/no-unpublished-require": "off",
-      "node/no-missing-require": "off",
-      "import/order": "off",
-      quotes: "off",
-    },
+    rules: { "no-console": "off" },
   },
 ]);

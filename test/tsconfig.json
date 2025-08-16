@@ -1,11 +1,14 @@
 {
   "extends": "../tsconfig.json",
-
   "compilerOptions": {
-    "outDir": "../../out-tsc/test",
-
-    "types": ["jest", "cypress", "@badeball/cypress-cucumber-preprocessor"]
+    "noEmit": true,
+    "types": [
+      "jest",
+      "cypress",
+      "@badeball/cypress-cucumber-preprocessor",
+      "node"
+    ]
   },
-
-  "include": ["**/*.ts", "**/*.feature"]
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
 }
