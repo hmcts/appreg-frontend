@@ -7,7 +7,7 @@
   "scripts": {
     "ng": "ng",
     "start": "node dist/appreg-frontend/server/server.mjs",
-    "start:dev": "node --watch dist/appreg-frontend/server/server.mjs",
+    "start:dev": "nodemon --config nodemon.json",
     "lint": "stylelint **/*.scss -v -q && eslint . --ext .js,.ts --max-warnings 0 && prettier --check .",
     "lint:fix": "prettier --write . && eslint --fix .",
     "build": "ng build",
@@ -97,6 +97,7 @@
     "jest-axe": "^10.0.0",
     "jest-environment-jsdom": "^30.0.5",
     "jest-preset-angular": "^15.0.0",
+    "nodemon": "^3.1.10",
     "prettier": "^3.6.2",
     "stylelint": "^16.23.1",
     "stylelint-config-standard-scss": "^15.0.1",
