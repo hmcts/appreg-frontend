@@ -1,13 +1,5 @@
-import {
-  Component,
-  EventEmitter,
-  OnInit,
-  Output,
-} from '@angular/core';
-import {
-  RouterLink,
-  RouterLinkActive,
-} from '@angular/router';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { NgIf } from '@angular/common';
 
 @Component({
@@ -20,8 +12,7 @@ export class ServiceNavigationComponent implements OnInit {
 
   @Output() signOut = new EventEmitter<void>();
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
   onSignOutClicked(e: Event): void {
     e.preventDefault();

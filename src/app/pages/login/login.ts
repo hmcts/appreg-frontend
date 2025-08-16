@@ -7,7 +7,6 @@ import { Component } from '@angular/core';
   styleUrl: './login.scss',
 })
 export class Login {
-
   goLogin(): void {
     window.location.href = '/sso/login';
   }
