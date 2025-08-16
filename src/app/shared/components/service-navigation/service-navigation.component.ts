@@ -1,6 +1,6 @@
+import { NgIf } from '@angular/common';
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { NgIf } from '@angular/common';
 
 @Component({
   selector: 'app-service-navigation',

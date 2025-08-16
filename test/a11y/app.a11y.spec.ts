@@ -1,7 +1,8 @@
 import { access } from 'node:fs/promises';
-import pa11y from 'pa11y';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+
+import pa11y from 'pa11y';
 
 const hide = '.govuk-footer__licence-logo, .govuk-header__logotype-crown';
 

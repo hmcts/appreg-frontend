@@ -68,7 +68,11 @@ module.exports = defineConfig([
       "no-unneeded-ternary": ["error", { defaultAssignment: false }],
       "object-curly-spacing": ["error", "always"],
       "object-shorthand": ["error", "properties"],
-      quotes: ["error", "single", { allowTemplateLiterals: false, avoidEscape: true }],
+      quotes: [
+        "error",
+        "single",
+        { allowTemplateLiterals: false, avoidEscape: true },
+      ],
       semi: ["error", "always"],
       "sort-imports": [
         "error",
@@ -125,7 +129,10 @@ module.exports = defineConfig([
       "@typescript-eslint/explicit-module-boundary-types": "error",
       "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/no-shadow": "error",
-      "@typescript-eslint/no-unused-vars": ["error", { ignoreRestSiblings: true }],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { ignoreRestSiblings: true },
+      ],
       "@typescript-eslint/no-var-requires": "off",
     },
   },
@@ -139,13 +146,18 @@ module.exports = defineConfig([
       "node/no-unpublished-require": "off",
       "node/no-missing-require": "off",
       "import/order": "off", // optional: configs often group imports differently
-      quotes: "off",         // optional
+      quotes: "off", // optional
     },
   },
 
   // Jest test files override (keeps your “unsafe-*” relaxed for tests)
   {
-    files: ["**/*.spec.ts", "**/*.test.ts", "**/*.routes.spec.ts", "**/*.a11y.spec.ts"],
+    files: [
+      "**/*.spec.ts",
+      "**/*.test.ts",
+      "**/*.routes.spec.ts",
+      "**/*.a11y.spec.ts",
+    ],
     languageOptions: { globals: { ...globals.jest } },
     rules: {
       "@typescript-eslint/no-unsafe-call": "off",

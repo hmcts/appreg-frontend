@@ -1,6 +1,7 @@
-import type { IConfig } from 'config';
-import type * as AI from 'applicationinsights';
 import { createRequire } from 'module';
+
+import type * as AI from 'applicationinsights';
+import type { IConfig } from 'config';
 
 const require = createRequire(import.meta.url);
 

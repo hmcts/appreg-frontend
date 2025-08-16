@@ -1,6 +1,6 @@
-import { PLATFORM_ID , inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
+import { PLATFORM_ID, inject } from '@angular/core';
+import { CanActivateFn, Router } from '@angular/router';
 
 export const sessionGuard: CanActivateFn = async () => {
   const router = inject(Router);
@@ -13,7 +13,9 @@ export const sessionGuard: CanActivateFn = async () => {
 
   try {
     const res = await fetch('/sso/me', { credentials: 'include' });
-    if (res.ok) {return true;}
+    if (res.ok) {
+      return true;
+    }
   } catch {
     // ignore and fall through
   }

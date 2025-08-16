@@ -1,14 +1,14 @@
-import express, { NextFunction, Request, Response } from 'express';
-import cookieParser from 'cookie-parser';
-import session from 'express-session';
-import { v4 as uuid } from 'uuid';
-import config from 'config';
 import {
   AccountInfo,
   AuthorizationCodeRequest,
   AuthorizationUrlRequest,
   ConfidentialClientApplication,
 } from '@azure/msal-node';
+import config from 'config';
+import cookieParser from 'cookie-parser';
+import express, { NextFunction, Request, Response } from 'express';
+import session from 'express-session';
+import { v4 as uuid } from 'uuid';
 
 // ---- Augment express-session so req.session has typed fields ----
 declare module 'express-session' {

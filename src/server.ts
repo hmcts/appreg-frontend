@@ -1,3 +1,5 @@
+import { join } from 'node:path';
+
 import {
   AngularNodeAppEngine,
   createNodeRequestHandler,
@@ -5,9 +7,9 @@ import {
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
 import express from 'express';
-import { join } from 'node:path';
-import { Helmet } from './modules/helmet';
+
 import { AppInsights } from './modules/appinsights';
+import { Helmet } from './modules/helmet';
 import { PropertiesVolume } from './modules/properties-volume';
 import { setupHealthcheck } from './routes/health';
 import { setupInfoRoute } from './routes/info';
