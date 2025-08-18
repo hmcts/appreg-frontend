@@ -48,29 +48,11 @@ export class ServiceNavigationComponent implements OnInit {
       });
   }
 
-  async onSignOutClicked(ev: Event): Promise<void> {
+  onSignOutClicked(ev: Event): void {
     ev.preventDefault();
-
-    // Ask for confirmation
-    const ok = window.confirm('Are you sure you want to sign out?');
-    if (!ok) {
+    if (!window.confirm('Are you sure you want to sign out?')) {
       return;
     }
-
-    // (optional) guard against double-clicks
-    (ev.currentTarget as HTMLElement)?.setAttribute('aria-busy', 'true');
-
-    try {
-      await fetch('/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-        cache: 'no-store',
-      });
-    } catch {
-      // ignore network errors; we'll still send the user to /login
-    }
-
-    this.session.setAuthenticated(false);
-    await this.router.navigateByUrl('/login');
+    window.location.assign('/sso/logout');
   }
 }
