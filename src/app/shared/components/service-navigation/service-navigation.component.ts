@@ -1,21 +1,61 @@
-import { NgIf } from '@angular/common';
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { isPlatformBrowser } from '@angular/common';
+import {
+  Component,
+  Inject,
+  OnInit,
+  PLATFORM_ID,
+  computed,
+  signal,
+} from '@angular/core';
+import {
+  NavigationEnd,
+  Router,
+  RouterLink,
+  RouterLinkActive,
+} from '@angular/router';
+import { filter } from 'rxjs/operators';
+
+import { SessionService } from '../../../core/session.service';
 
 @Component({
   selector: 'app-service-navigation',
   templateUrl: './service-navigation.component.html',
-  imports: [RouterLinkActive, RouterLink, NgIf],
+  standalone: true,
+  imports: [RouterLinkActive, RouterLink],
 })
 export class ServiceNavigationComponent implements OnInit {
-  isLoginPage = false;
+  readonly isLoginPage = signal(false);
+  readonly showMenu = computed(
+    () => this.session.isAuthenticated() && !this.isLoginPage(),
+  );
 
-  @Output() signOut = new EventEmitter<void>();
+  constructor(
+    public session: SessionService, // public so template can read it if needed
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: object,
+  ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    // set initial state (important on first paint)
+    if (isPlatformBrowser(this.platformId)) {
+      this.isLoginPage.set(this.router.url.startsWith('/login'));
+    }
 
-  onSignOutClicked(e: Event): void {
-    e.preventDefault();
-    window.location.href = '/sso/logout';
+    this.router.events
+      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+      .subscribe((e) => {
+        this.isLoginPage.set(e.urlAfterRedirects.startsWith('/login'));
+      });
+  }
+
+  async onSignOutClicked(ev: Event): Promise<void> {
+    ev.preventDefault();
+    try {
+      await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
+    } catch {
+      /* empty */
+    }
+    this.session.setAuthenticated(false);
+    await this.router.navigateByUrl('/login');
   }
 }

@@ -13,13 +13,19 @@ import { Subscription, filter } from 'rxjs';
 
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { HeaderComponent } from './shared/components/header/header.component';
+import { ServiceNavigationComponent } from './shared/components/service-navigation/service-navigation.component';
 
 type GovUkInitAll = (opts?: { scope?: HTMLElement }) => void;
 type GovUkGlobal = { GOVUKFrontend?: { initAll?: GovUkInitAll } };
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, FooterComponent, HeaderComponent],
+  imports: [
+    RouterOutlet,
+    FooterComponent,
+    HeaderComponent,
+    ServiceNavigationComponent,
+  ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

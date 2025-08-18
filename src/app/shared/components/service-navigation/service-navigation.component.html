@@ -1,21 +1,4 @@
 <section
-  *ngIf="isLoginPage"
-  class="govuk-service-navigation"
-  data-module="govuk-service-navigation"
->
-  <div class="govuk-width-container">
-    <div class="govuk-service-navigation__container">
-      <span class="govuk-service-navigation__service-name">
-        <a href="/" class="govuk-service-navigation__link">
-          Application register
-        </a>
-      </span>
-    </div>
-  </div>
-</section>
-
-<section
-  *ngIf="!isLoginPage"
   aria-label="Service information"
   class="govuk-service-navigation"
   data-module="govuk-service-navigation"
@@ -26,10 +9,10 @@
         <a
           routerLink="/applications-list"
           class="govuk-service-navigation__link"
-          >Application register</a
+        >Application register</a
         >
       </span>
-      <nav aria-label="Menu" class="govuk-service-navigation__wrapper">
+      <nav [hidden]="!showMenu()" aria-label="Menu" class="govuk-service-navigation__wrapper">
         <ul class="govuk-service-navigation__list" id="navigation">
           <li
             class="govuk-service-navigation__item"
