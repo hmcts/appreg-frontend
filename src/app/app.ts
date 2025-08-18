@@ -59,12 +59,14 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
     this.navSub = this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe(() => {
-        const main =
-          document.querySelector<HTMLElement>('main.govuk-main-wrapper') ??
-          document.querySelector<HTMLElement>('main');
-        if (main) {
-          void this.initGovUkFrontend(main);
-        }
+        requestAnimationFrame(() => {
+          const main =
+            document.querySelector<HTMLElement>('main.govuk-main-wrapper') ??
+            document.querySelector<HTMLElement>('main');
+          if (main) {
+            void this.initGovUkFrontend(main);
+          }
+        });
       });
   }
 

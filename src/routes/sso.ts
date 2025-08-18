@@ -122,7 +122,7 @@ router.get(
       req.session.account = tokenResponse.account;
       req.session.tokenCache = cca.getTokenCache().serialize();
 
-      res.redirect('/applications'); // change landing route if needed
+      res.redirect('/applications-list'); // change landing route if needed
       return;
     } catch (err) {
       next(err);
