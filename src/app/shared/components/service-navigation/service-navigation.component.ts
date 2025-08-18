@@ -50,11 +50,26 @@ export class ServiceNavigationComponent implements OnInit {
 
   async onSignOutClicked(ev: Event): Promise<void> {
     ev.preventDefault();
-    try {
-      await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
-    } catch {
-      /* empty */
+
+    // Ask for confirmation
+    const ok = window.confirm('Are you sure you want to sign out?');
+    if (!ok) {
+      return;
     }
+
+    // (optional) guard against double-clicks
+    (ev.currentTarget as HTMLElement)?.setAttribute('aria-busy', 'true');
+
+    try {
+      await fetch('/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+        cache: 'no-store',
+      });
+    } catch {
+      // ignore network errors; we'll still send the user to /login
+    }
+
     this.session.setAuthenticated(false);
     await this.router.navigateByUrl('/login');
   }
