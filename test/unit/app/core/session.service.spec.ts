@@ -3,7 +3,10 @@ import { TestBed } from '@angular/core/testing';
 
 import { SessionService } from '../../../../src/app/core/session.service';
 
-type FetchFn = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+type FetchFn = (
+  input: RequestInfo | URL,
+  init?: RequestInit,
+) => Promise<Response>;
 type FetchArgs = Parameters<FetchFn>;
 type FetchRet = ReturnType<FetchFn>;
 
@@ -12,12 +15,14 @@ describe('SessionService (browser platform)', () => {
   let fetchMock: jest.Mock<FetchRet, FetchArgs>;
 
   // Preserve whatever fetch the environment already has
-  const originalFetch: typeof fetch | undefined =
-    (globalThis as { fetch?: typeof fetch }).fetch;
+  const originalFetch: typeof fetch | undefined = (
+    globalThis as { fetch?: typeof fetch }
+  ).fetch;
 
   beforeEach(() => {
     fetchMock = jest.fn<FetchRet, FetchArgs>();
-    (globalThis as { fetch: typeof fetch }).fetch = fetchMock as unknown as typeof fetch;
+    (globalThis as { fetch: typeof fetch }).fetch =
+      fetchMock as unknown as typeof fetch;
 
     TestBed.configureTestingModule({
       providers: [
@@ -94,12 +99,14 @@ describe('SessionService (browser platform)', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, opts] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe('/sso/me');
-    expect(opts).toEqual(expect.objectContaining({
-      credentials: 'include',
-      cache: 'no-store',
-      redirect: 'manual',
-      headers: expect.objectContaining({ accept: 'application/json' }),
-    }));
+    expect(opts).toEqual(
+      expect.objectContaining({
+        credentials: 'include',
+        cache: 'no-store',
+        redirect: 'manual',
+        headers: expect.objectContaining({ accept: 'application/json' }),
+      }),
+    );
   });
 });
 
@@ -107,18 +114,17 @@ describe('SessionService (server platform)', () => {
   let service: SessionService;
   let fetchMock: jest.Mock<FetchRet, FetchArgs>;
 
-  const originalFetch: typeof fetch | undefined =
-    (globalThis as { fetch?: typeof fetch }).fetch;
+  const originalFetch: typeof fetch | undefined = (
+    globalThis as { fetch?: typeof fetch }
+  ).fetch;
 
   beforeEach(() => {
     fetchMock = jest.fn<FetchRet, FetchArgs>();
-    (globalThis as { fetch: typeof fetch }).fetch = fetchMock as unknown as typeof fetch;
+    (globalThis as { fetch: typeof fetch }).fetch =
+      fetchMock as unknown as typeof fetch;
 
     TestBed.configureTestingModule({
-      providers: [
-        SessionService,
-        { provide: PLATFORM_ID, useValue: 'server' },
-      ],
+      providers: [SessionService, { provide: PLATFORM_ID, useValue: 'server' }],
     });
 
     service = TestBed.inject(SessionService);

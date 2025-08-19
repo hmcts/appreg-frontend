@@ -1,12 +1,10 @@
-import { Component , PLATFORM_ID, signal } from '@angular/core';
+import { Component, PLATFORM_ID, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 
 import { SessionService } from '../../../../../../src/app/core/session.service';
-import {
-  ServiceNavigationComponent
-} from '../../../../../../src/app/shared/components/service-navigation/service-navigation.component';
+import { ServiceNavigationComponent } from '../../../../../../src/app/shared/components/service-navigation/service-navigation.component';
 
 // A tiny standalone component to satisfy route matches
 @Component({ standalone: true, template: '' })

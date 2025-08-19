@@ -8,7 +8,9 @@ export class AppInsights {
   }
 
   async enable(): Promise<void> {
-    const { default: config } = (await import('config')) as { default: IConfig };
+    const { default: config } = (await import('config')) as {
+      default: IConfig;
+    };
 
     const key = 'app-insights-connection-string';
     if (config.has(key)) {

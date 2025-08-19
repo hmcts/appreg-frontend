@@ -7,6 +7,10 @@ import { Login } from './pages/login/login';
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: Login },
-  { path: 'applications-list', component: ApplicationsList, canActivate: [sessionGuard] },
+  {
+    path: 'applications-list',
+    component: ApplicationsList,
+    canActivate: [sessionGuard],
+  },
   { path: '**', redirectTo: 'login' },
 ];

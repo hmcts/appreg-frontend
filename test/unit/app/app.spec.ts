@@ -17,18 +17,22 @@ describe('App (browser platform)', () => {
   // Make requestAnimationFrame immediate for deterministic assertions
   const originalRAF = globalThis.requestAnimationFrame;
   beforeAll(() => {
-    (globalThis as unknown as {
-      requestAnimationFrame: (cb: FrameRequestCallback) => number;
-    }).requestAnimationFrame = (cb) => {
+    (
+      globalThis as unknown as {
+        requestAnimationFrame: (cb: FrameRequestCallback) => number;
+      }
+    ).requestAnimationFrame = (cb) => {
       cb(0);
       return 0;
     };
   });
   afterAll(() => {
     if (originalRAF) {
-      (globalThis as unknown as {
-        requestAnimationFrame: (cb: FrameRequestCallback) => number;
-      }).requestAnimationFrame = originalRAF;
+      (
+        globalThis as unknown as {
+          requestAnimationFrame: (cb: FrameRequestCallback) => number;
+        }
+      ).requestAnimationFrame = originalRAF;
     }
   });
 
@@ -89,9 +93,9 @@ describe('App (browser platform)', () => {
 
     expect(document.body.classList.contains('js-enabled')).toBe(true);
     // With `noModule` present, we expect the extra class:
-    expect(
-      document.body.classList.contains('govuk-frontend-supported'),
-    ).toBe(true);
+    expect(document.body.classList.contains('govuk-frontend-supported')).toBe(
+      true,
+    );
 
     initSpy.mockRestore();
 
@@ -188,9 +192,9 @@ describe('App (server platform)', () => {
     fixture.detectChanges();
 
     expect(document.body.classList.contains('js-enabled')).toBe(false);
-    expect(
-      document.body.classList.contains('govuk-frontend-supported'),
-    ).toBe(false);
+    expect(document.body.classList.contains('govuk-frontend-supported')).toBe(
+      false,
+    );
 
     // AfterViewInit should early-return too; no init calls
     expect(initSpy).not.toHaveBeenCalled();

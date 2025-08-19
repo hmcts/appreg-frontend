@@ -21,11 +21,9 @@ jest.mock('applicationinsights', () => {
 });
 
 // Helpers to access typed mocks
-const getConfigMock = (): MockConfig =>
-  (jest.requireMock('config')).default;
+const getConfigMock = (): MockConfig => jest.requireMock('config').default;
 
-const getAiMock = () =>
-  jest.requireMock('applicationinsights');
+const getAiMock = () => jest.requireMock('applicationinsights');
 
 describe('AppInsights.enable', () => {
   const KEY = 'app-insights-connection-string';

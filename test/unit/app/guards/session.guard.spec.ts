@@ -19,7 +19,10 @@ describe('sessionGuard (browser platform)', () => {
       imports: [RouterTestingModule],
       providers: [
         { provide: PLATFORM_ID, useValue: 'browser' },
-        { provide: SessionService, useValue: { refresh: refreshMock } as Pick<SessionService, 'refresh'> },
+        {
+          provide: SessionService,
+          useValue: { refresh: refreshMock } as Pick<SessionService, 'refresh'>,
+        },
       ],
     });
 
@@ -37,7 +40,9 @@ describe('sessionGuard (browser platform)', () => {
     const state = router.routerState.snapshot;
     const route = state.root;
 
-    const result = await TestBed.runInInjectionContext(() => sessionGuard(route, state));
+    const result = await TestBed.runInInjectionContext(() =>
+      sessionGuard(route, state),
+    );
 
     expect(refreshMock).toHaveBeenCalledTimes(1);
     expect(result).toBe(true);
@@ -49,12 +54,16 @@ describe('sessionGuard (browser platform)', () => {
     const originalCreateUrlTree = router.createUrlTree.bind(router);
     const expected: UrlTree = originalCreateUrlTree(['/login']);
 
-    const createSpy = jest.spyOn(router, 'createUrlTree').mockReturnValue(expected);
+    const createSpy = jest
+      .spyOn(router, 'createUrlTree')
+      .mockReturnValue(expected);
 
     const state = router.routerState.snapshot;
     const route = state.root;
 
-    const result = await TestBed.runInInjectionContext(() => sessionGuard(route, state));
+    const result = await TestBed.runInInjectionContext(() =>
+      sessionGuard(route, state),
+    );
 
     expect(refreshMock).toHaveBeenCalledTimes(1);
     expect(createSpy).toHaveBeenCalledWith(['/login']);
@@ -73,7 +82,10 @@ describe('sessionGuard (server platform)', () => {
       imports: [RouterTestingModule],
       providers: [
         { provide: PLATFORM_ID, useValue: 'server' },
-        { provide: SessionService, useValue: { refresh: refreshMock } as Pick<SessionService, 'refresh'> },
+        {
+          provide: SessionService,
+          useValue: { refresh: refreshMock } as Pick<SessionService, 'refresh'>,
+        },
       ],
     });
 
@@ -90,7 +102,9 @@ describe('sessionGuard (server platform)', () => {
     const state = router.routerState.snapshot;
     const route = state.root;
 
-    const result = await TestBed.runInInjectionContext(() => sessionGuard(route, state));
+    const result = await TestBed.runInInjectionContext(() =>
+      sessionGuard(route, state),
+    );
 
     expect(result).toBe(true);
     expect(refreshMock).not.toHaveBeenCalled();

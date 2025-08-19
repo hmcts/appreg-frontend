@@ -18,9 +18,7 @@
           "builder": "@angular/build:application",
           "options": {
             "stylePreprocessorOptions": {
-              "includePaths": [
-                "node_modules/govuk-frontend/dist"
-              ]
+              "includePaths": ["node_modules/govuk-frontend/dist"]
             },
             "assets": [
               {
@@ -40,14 +38,10 @@
               }
             ],
             "browser": "src/main.ts",
-            "polyfills": [
-              "zone.js"
-            ],
+            "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
-            "styles": [
-              "src/styles.scss"
-            ],
+            "styles": ["src/styles.scss"],
             "server": "src/main.server.ts",
             "outputMode": "server",
             "ssr": {
