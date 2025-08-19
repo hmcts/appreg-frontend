@@ -13,16 +13,29 @@ type AuthCodeUrlReq = {
   nonce: string;
   prompt: 'select_account';
 };
+type AcquireTokenReq = { code: string; scopes: string[]; redirectUri: string };
+type AccountInfo = {
+  homeAccountId: string;
+  environment: string;
+  tenantId: string;
+  username: string;
+  name?: string;
+};
+type AcquireTokenResp = { account?: AccountInfo };
+
 const getAuthCodeUrlMock: jest.Mock<
   Promise<string>,
   [AuthCodeUrlReq]
 > = jest.fn();
+const acquireTokenByCodeMock: jest.Mock<Promise<AcquireTokenResp | null>, [AcquireTokenReq]> =
+  jest.fn();
+const serializeMock: jest.Mock<string, []> = jest.fn();
 
 jest.mock('@azure/msal-node', () => {
   const ConfidentialClientApplication = jest.fn(() => ({
     getAuthCodeUrl: getAuthCodeUrlMock,
-    acquireTokenByCode: jest.fn(),
-    getTokenCache: () => ({ serialize: jest.fn() }),
+    acquireTokenByCode: acquireTokenByCodeMock,   // ← use the real mock
+    getTokenCache: () => ({ serialize: serializeMock }), // ← and here
   }));
   return { __esModule: true, ConfidentialClientApplication };
 });
@@ -112,3 +125,141 @@ describe('GET /sso/login', () => {
     expect(res.headers['set-cookie']).toBeDefined();
   });
 });
+
+describe('GET /sso/login-callback', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    // /sso/login uses two UUIDs: state then nonce
+    uuidV4()
+      .mockReset()
+      .mockReturnValueOnce('state-123')
+      .mockReturnValueOnce('nonce-456');
+
+    getAuthCodeUrlMock
+      .mockReset()
+      .mockResolvedValue('https://login.microsoftonline.com/tenant-xyz/oauth2/v2.0/authorize?...');
+
+    acquireTokenByCodeMock.mockReset();
+    serializeMock.mockReset().mockReturnValue('cache-string');
+  });
+
+  // Helper: new app instance with router + error handler
+  function makeApp() {
+    const app = express();
+    app.use(router);
+    app.use((
+      err: unknown,
+      _req: express.Request,
+      res: express.Response,
+    ) => {
+      // If anything goes wrong, make debugging easy
+      res.status(500).send(String(err instanceof Error ? err.message : err));
+    });
+    return app;
+  }
+
+  it('400 when code is missing', async () => {
+    const app = makeApp();
+    const agent = request.agent(app);
+
+    // First establish session + authState via /sso/login
+    await agent.get('/sso/login').expect(302);
+
+    // Missing code
+    const res = await agent.get('/sso/login-callback?state=state-123').expect(400);
+    expect(res.text).toContain('Invalid auth response.');
+    expect(acquireTokenByCodeMock).not.toHaveBeenCalled();
+  });
+
+  it('400 when state is missing', async () => {
+    const app = makeApp();
+    const agent = request.agent(app);
+
+    await agent.get('/sso/login').expect(302);
+
+    const res = await agent.get('/sso/login-callback?code=abc').expect(400);
+    expect(res.text).toContain('Invalid auth response.');
+    expect(acquireTokenByCodeMock).not.toHaveBeenCalled();
+  });
+
+  it('400 when state does not match session', async () => {
+    const app = makeApp();
+    const agent = request.agent(app);
+
+    await agent.get('/sso/login').expect(302);
+
+    const res = await agent.get('/sso/login-callback?code=abc&state=wrong').expect(400);
+    expect(res.text).toContain('Invalid auth response.');
+    expect(acquireTokenByCodeMock).not.toHaveBeenCalled();
+  });
+
+  it('401 when MSAL returns no account', async () => {
+    const app = makeApp();
+    const agent = request.agent(app);
+
+    await agent.get('/sso/login').expect(302);
+
+    // Simulate missing account (null or { } both should 401)
+    acquireTokenByCodeMock.mockResolvedValueOnce({} as AcquireTokenResp);
+
+    const res = await agent
+      .get('/sso/login-callback?code=abc&state=state-123')
+      .expect(401);
+
+    expect(res.text).toContain('No account in token.');
+    expect(acquireTokenByCodeMock).toHaveBeenCalledTimes(1);
+
+    const [arg] = acquireTokenByCodeMock.mock.calls[0];
+    expect(arg).toEqual(
+      expect.objectContaining<AcquireTokenReq>({
+        code: 'abc',
+        redirectUri: 'https://example.test/auth/callback',
+        scopes: ['openid', 'profile'],
+      }),
+    );
+  });
+
+  it('302 success: stores account + cache, then /sso/me is 200', async () => {
+    const app = makeApp();
+    const agent = request.agent(app);
+
+    await agent.get('/sso/login').expect(302);
+
+    acquireTokenByCodeMock.mockResolvedValueOnce({
+      account: {
+        homeAccountId: 'home-1',
+        environment: 'login.microsoftonline.com',
+        tenantId: 'tenant-xyz',
+        username: 'user@example.test',
+        name: 'User Example',
+      },
+    });
+
+    const res = await agent
+      .get('/sso/login-callback?code=the-code&state=state-123')
+      .expect(302);
+
+    expect(res.headers['location']).toBe('/applications-list');
+    expect(acquireTokenByCodeMock).toHaveBeenCalledTimes(1);
+    expect(serializeMock).toHaveBeenCalledTimes(1);
+
+    const [arg] = acquireTokenByCodeMock.mock.calls[0];
+    expect(arg).toEqual(
+      expect.objectContaining<AcquireTokenReq>({
+        code: 'the-code',
+        redirectUri: 'https://example.test/auth/callback',
+        scopes: ['openid', 'profile'],
+      }),
+    );
+
+    // Prove session.account is set by hitting /sso/me
+    const me = await agent.get('/sso/me').expect(200);
+    expect(me.body).toMatchObject({
+      authenticated: true,
+      name: 'User Example',
+      username: 'user@example.test',
+    });
+  });
+});
+
