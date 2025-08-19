@@ -1,5 +1,7 @@
-import type { Application } from 'express';
 import { createRequire } from 'module';
+
+import type { Application } from 'express';
+
 const require = createRequire(import.meta.url);
 
 const healthcheck =

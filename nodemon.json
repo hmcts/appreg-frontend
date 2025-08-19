@@ -1,0 +1,6 @@
+{
+  "watch": ["src", "dist/appreg-frontend/server"],
+  "ignore": ["dist"],
+  "ext": "ts,js,html,scss",
+  "exec": "yarn build && node dist/appreg-frontend/server/server.mjs"
+}

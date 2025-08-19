@@ -19,6 +19,8 @@ export class Helmet {
       self,
       googleAnalyticsDomain,
       "'sha256-+6WnXIl4mbFTCARd8N3COQmT3bJJmo32N8q8ZSQAIcU='",
+      "'sha256-VM2mZqyEQZoLzoTrp5EigFvzQ0+f1wSeBuoOn95WHCg='",
+      "'sha256-8sGKvDKC8crv9OBcqEMvqrNDWlm1/80h7NJpJzqOnLI='",
     ];
 
     if (this.developmentMode) {
