@@ -27,14 +27,16 @@ const getAuthCodeUrlMock: jest.Mock<
   Promise<string>,
   [AuthCodeUrlReq]
 > = jest.fn();
-const acquireTokenByCodeMock: jest.Mock<Promise<AcquireTokenResp | null>, [AcquireTokenReq]> =
-  jest.fn();
+const acquireTokenByCodeMock: jest.Mock<
+  Promise<AcquireTokenResp | null>,
+  [AcquireTokenReq]
+> = jest.fn();
 const serializeMock: jest.Mock<string, []> = jest.fn();
 
 jest.mock('@azure/msal-node', () => {
   const ConfidentialClientApplication = jest.fn(() => ({
     getAuthCodeUrl: getAuthCodeUrlMock,
-    acquireTokenByCode: acquireTokenByCodeMock,   // ← use the real mock
+    acquireTokenByCode: acquireTokenByCodeMock, // ← use the real mock
     getTokenCache: () => ({ serialize: serializeMock }), // ← and here
   }));
   return { __esModule: true, ConfidentialClientApplication };
@@ -138,7 +140,9 @@ describe('GET /sso/login-callback', () => {
 
     getAuthCodeUrlMock
       .mockReset()
-      .mockResolvedValue('https://login.microsoftonline.com/tenant-xyz/oauth2/v2.0/authorize?...');
+      .mockResolvedValue(
+        'https://login.microsoftonline.com/tenant-xyz/oauth2/v2.0/authorize?...',
+      );
 
     acquireTokenByCodeMock.mockReset();
     serializeMock.mockReset().mockReturnValue('cache-string');
@@ -148,11 +152,7 @@ describe('GET /sso/login-callback', () => {
   function makeApp() {
     const app = express();
     app.use(router);
-    app.use((
-      err: unknown,
-      _req: express.Request,
-      res: express.Response,
-    ) => {
+    app.use((err: unknown, _req: express.Request, res: express.Response) => {
       // If anything goes wrong, make debugging easy
       res.status(500).send(String(err instanceof Error ? err.message : err));
     });
@@ -167,7 +167,9 @@ describe('GET /sso/login-callback', () => {
     await agent.get('/sso/login').expect(302);
 
     // Missing code
-    const res = await agent.get('/sso/login-callback?state=state-123').expect(400);
+    const res = await agent
+      .get('/sso/login-callback?state=state-123')
+      .expect(400);
     expect(res.text).toContain('Invalid auth response.');
     expect(acquireTokenByCodeMock).not.toHaveBeenCalled();
   });
@@ -189,7 +191,9 @@ describe('GET /sso/login-callback', () => {
 
     await agent.get('/sso/login').expect(302);
 
-    const res = await agent.get('/sso/login-callback?code=abc&state=wrong').expect(400);
+    const res = await agent
+      .get('/sso/login-callback?code=abc&state=wrong')
+      .expect(400);
     expect(res.text).toContain('Invalid auth response.');
     expect(acquireTokenByCodeMock).not.toHaveBeenCalled();
   });
@@ -276,7 +280,7 @@ describe('GET /sso/logout', () => {
     getAuthCodeUrlMock
       .mockReset()
       .mockResolvedValue(
-        'https://login.microsoftonline.com/tenant-xyz/oauth2/v2.0/authorize?...'
+        'https://login.microsoftonline.com/tenant-xyz/oauth2/v2.0/authorize?...',
       );
 
     serializeMock.mockReset().mockReturnValue('cache-string');
@@ -286,11 +290,7 @@ describe('GET /sso/logout', () => {
     const app = express();
     app.use(router);
     // 4-arg error handler to surface unexpected errors during tests
-    app.use((
-      err: unknown,
-      _req: express.Request,
-      res: express.Response,
-    ) => {
+    app.use((err: unknown, _req: express.Request, res: express.Response) => {
       res.status(500).send(String(err instanceof Error ? err.message : err));
     });
     return app;
@@ -308,7 +308,7 @@ describe('GET /sso/logout', () => {
     // post_logout_redirect_uri must be URL-encoded
     expect(res.headers['location']).toBe(
       'https://login.microsoftonline.com/tenant-xyz/oauth2/v2.0/logout' +
-      '?post_logout_redirect_uri=https%3A%2F%2Fexample.test%2Fsigned-out'
+        '?post_logout_redirect_uri=https%3A%2F%2Fexample.test%2Fsigned-out',
     );
 
     // Session should be gone → /sso/me returns 401
@@ -323,7 +323,7 @@ describe('GET /sso/logout', () => {
 
     expect(res.headers['location']).toBe(
       'https://login.microsoftonline.com/tenant-xyz/oauth2/v2.0/logout' +
-      '?post_logout_redirect_uri=https%3A%2F%2Fexample.test%2Fsigned-out'
+        '?post_logout_redirect_uri=https%3A%2F%2Fexample.test%2Fsigned-out',
     );
 
     // Still unauthorized on /sso/me
@@ -344,7 +344,7 @@ describe('GET /sso/me', () => {
     getAuthCodeUrlMock
       .mockReset()
       .mockResolvedValue(
-        'https://login.microsoftonline.com/tenant-xyz/oauth2/v2.0/authorize?...'
+        'https://login.microsoftonline.com/tenant-xyz/oauth2/v2.0/authorize?...',
       );
 
     acquireTokenByCodeMock.mockReset();
@@ -355,11 +355,7 @@ describe('GET /sso/me', () => {
     const app = express();
     app.use(router);
     // 4-arg error handler to surface unexpected errors during tests
-    app.use((
-      err: unknown,
-      _req: express.Request,
-      res: express.Response
-    ) => {
+    app.use((err: unknown, _req: express.Request, res: express.Response) => {
       res.status(500).send(String(err instanceof Error ? err.message : err));
     });
     return app;
