@@ -1,10 +1,6 @@
-import { createRequire } from 'module';
-
 import type * as PV from '@hmcts/properties-volume';
 import type { IConfig } from 'config';
-import { Application } from 'express';
-
-const require = createRequire(import.meta.url);
+import type { Application } from 'express';
 
 export class PropertiesVolume {
   async enableFor(server: Application): Promise<void> {
@@ -12,11 +8,15 @@ export class PropertiesVolume {
       const { default: config } = (await import('config')) as {
         default: IConfig;
       };
-      const pvm = require('@hmcts/properties-volume') as typeof PV;
-      const { get, set } = require('lodash') as {
-        get: (typeof import('lodash'))['get'];
-        set: (typeof import('lodash'))['set'];
-      };
+
+      // Dynamically import CJS modules without createRequire/import.meta
+      const pvm = (await import(
+        '@hmcts/properties-volume'
+      )) as unknown as typeof PV;
+      const { get, set } = (await import('lodash')) as Pick<
+        typeof import('lodash'),
+        'get' | 'set'
+      >;
 
       pvm.addTo(config);
       this.setSecret(
