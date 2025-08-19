@@ -1,39 +1,44 @@
-// eslint-disable-next-line node/no-unpublished-require
 const { pathsToModuleNameMapper } = require("ts-jest");
-
 const { compilerOptions } = require("./tsconfig.spec.json");
 
 module.exports = {
-  preset: "jest-preset-angular",
   displayName: "routes",
+  testEnvironment: "node",
 
   // Only look in the routes test directory
   roots: ["<rootDir>/test/routes"],
 
-  // Match files ending with .routes.spec.ts or .routing.spec.ts
+  // Match all .spec.ts in that folder
   testMatch: ["**/*.spec.ts"],
 
-  // Bootstrap the Angular testing environment
-  setupFilesAfterEnv: ["<rootDir>/setup.jest.ts"],
+  // IMPORTANT: do not load Angular/Zone setup for Node route tests
+  setupFilesAfterEnv: [],
 
-  // Recognize these extensions
-  moduleFileExtensions: ["ts", "js", "html", "json"],
+  // Recognized extensions
+  moduleFileExtensions: ["ts", "js", "json"],
 
-  // Transform TS, JS, HTML via jest-preset-angular
+  // Use ts-jest to compile TS
   transform: {
-    "^.+\\.(ts|js|html)$": [
-      "jest-preset-angular",
+    "^.+\\.ts$": [
+      "ts-jest",
       {
         tsconfig: "<rootDir>/tsconfig.spec.json",
-        stringifyContentPathRegex: "\\.(html|svg)$",
       },
     ],
   },
 
-  // Map paths from tsconfig
+  // Map tsconfig paths
   moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths || {}, {
     prefix: "<rootDir>/",
   }),
-  transformIgnorePatterns: ["node_modules/(?!.*\\.mjs$)"],
+
+  // Don’t try to transform node_modules
+  transformIgnorePatterns: ["/node_modules/"],
+
   collectCoverage: false,
+
+  // Nice to have for isolated tests
+  clearMocks: true,
+  resetMocks: true,
+  restoreMocks: true,
 };
