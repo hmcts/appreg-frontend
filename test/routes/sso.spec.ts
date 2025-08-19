@@ -263,3 +263,70 @@ describe('GET /sso/login-callback', () => {
   });
 });
 
+describe('GET /sso/logout', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    // /sso/login uses two UUIDs: state then nonce
+    uuidV4()
+      .mockReset()
+      .mockReturnValueOnce('state-123')
+      .mockReturnValueOnce('nonce-456');
+
+    getAuthCodeUrlMock
+      .mockReset()
+      .mockResolvedValue(
+        'https://login.microsoftonline.com/tenant-xyz/oauth2/v2.0/authorize?...'
+      );
+
+    serializeMock.mockReset().mockReturnValue('cache-string');
+  });
+
+  function makeApp() {
+    const app = express();
+    app.use(router);
+    // 4-arg error handler to surface unexpected errors during tests
+    app.use((
+      err: unknown,
+      _req: express.Request,
+      res: express.Response,
+    ) => {
+      res.status(500).send(String(err instanceof Error ? err.message : err));
+    });
+    return app;
+  }
+
+  it('redirects to Entra logout URL and destroys session (user logged in)', async () => {
+    const app = makeApp();
+    const agent = request.agent(app);
+
+    // Establish a session via /sso/login (sets cookie + authState)
+    await agent.get('/sso/login').expect(302);
+
+    const res = await agent.get('/sso/logout').expect(302);
+
+    // post_logout_redirect_uri must be URL-encoded
+    expect(res.headers['location']).toBe(
+      'https://login.microsoftonline.com/tenant-xyz/oauth2/v2.0/logout' +
+      '?post_logout_redirect_uri=https%3A%2F%2Fexample.test%2Fsigned-out'
+    );
+
+    // Session should be gone → /sso/me returns 401
+    await agent.get('/sso/me').expect(401);
+  });
+
+  it('redirects to Entra logout URL even if not logged in', async () => {
+    const app = makeApp();
+    const agent = request.agent(app);
+
+    const res = await agent.get('/sso/logout').expect(302);
+
+    expect(res.headers['location']).toBe(
+      'https://login.microsoftonline.com/tenant-xyz/oauth2/v2.0/logout' +
+      '?post_logout_redirect_uri=https%3A%2F%2Fexample.test%2Fsigned-out'
+    );
+
+    // Still unauthorized on /sso/me
+    await agent.get('/sso/me').expect(401);
+  });
+});
