@@ -9,20 +9,20 @@ const { defineConfig } = require("cypress");
 
 module.exports = defineConfig({
   e2e: {
-    specPattern: "src/test/functional/**/*.feature",
+    specPattern: "test/functional/**/*.feature",
     baseUrl: process.env.TEST_URL || "http://localhost:4000",
     supportFile: false,
 
     async setupNodeEvents(on, config) {
       await addCucumberPreprocessorPlugin(on, config, {
-        stepDefinitions: ["src/test/functional/steps/**/*.steps.ts"],
+        stepDefinitions: ["test/functional/steps/**/*.steps.ts"],
       });
 
       on(
         "file:preprocessor",
         createBundler({
           plugins: [createEsbuildPlugin(config)],
-          tsconfig: "src/test/tsconfig.json",
+          tsconfig: "test/tsconfig.json",
         }),
       );
 
