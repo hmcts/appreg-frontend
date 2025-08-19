@@ -10,7 +10,7 @@ describe('Smoke Test', () => {
     const html = await res.text();
 
     expect(html).toMatch(/<main[^>]*id="main-content"/);
-    expect(html).toMatch(/<h1[^>]*>Default page template<\/h1>/);
+    expect(html).toMatch(/<h1[^>]*>Sign in<\/h1>/);
     expect(html).toContain('<app-header');
     expect(html).toContain('<app-footer');
   });
