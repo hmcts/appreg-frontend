@@ -55,6 +55,7 @@
     "cookie-parser": "^1.4.7",
     "cross-fetch": "^4.1.0",
     "express": "^5.1.0",
+    "express-rate-limit": "^8.0.1",
     "express-session": "^1.18.2",
     "glob": "^11.0.3",
     "govuk-frontend": "^5.11.1",

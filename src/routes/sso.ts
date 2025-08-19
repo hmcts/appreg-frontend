@@ -7,6 +7,7 @@ import {
 import config from 'config';
 import cookieParser from 'cookie-parser';
 import express, { NextFunction, Request, Response } from 'express';
+import { type RateLimitRequestHandler, rateLimit } from 'express-rate-limit';
 import session from 'express-session';
 import { v4 as uuid } from 'uuid';
 
@@ -26,6 +27,28 @@ const clientSecret = config.get<string>('secrets.apps-reg.app-CLIENT-SECRET');
 const redirectUri = config.get<string>('auth.redirectUri');
 const scopes = config.get<string[]>('auth.scopes');
 const postLogoutRedirectUri = config.get<string>('auth.postLogoutRedirectUri');
+
+// Optional: make window/max configurable; provide sensible defaults
+const loginRateWindowMs =
+  (config.has?.('rateLimit.login.windowMs') &&
+    config.get<number>('rateLimit.login.windowMs')) ||
+  60_000; // 1 minute
+const loginRateMax =
+  (config.has?.('rateLimit.login.max') &&
+    config.get<number>('rateLimit.login.max')) ||
+  10; // 10 req/min per IP
+
+// Per-route limiter for /sso/login
+const loginLimiter: RateLimitRequestHandler = rateLimit({
+  windowMs: loginRateWindowMs,
+  max: loginRateMax,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: 'Too many login attempts, please try again later.',
+  statusCode: 429,
+  // If you only want to penalize failing attempts, you could enable:
+  // skipSuccessfulRequests: true,
+});
 
 const cca = new ConfidentialClientApplication({
   auth: {
@@ -72,9 +95,10 @@ const buildAuthCodeRequest = (code: string): AuthorizationCodeRequest => ({
   redirectUri,
 });
 
-// GET /sso/login -> redirect to Entra ID
+// GET /sso/login -> redirect to Entra ID (rate-limited)
 router.get(
   '/sso/login',
+  loginLimiter, // ← apply limiter here
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const state = uuid();
