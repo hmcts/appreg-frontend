@@ -27,7 +27,6 @@ type GovUkGlobal = { GOVUKFrontend?: { initAll?: GovUkInitAll } };
     ServiceNavigationComponent,
   ],
   templateUrl: './app.html',
-  styleUrl: './app.scss',
 })
 export class App implements OnInit, AfterViewInit, OnDestroy {
   protected readonly title = signal('appreg-frontend');

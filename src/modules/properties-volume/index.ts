@@ -1,32 +1,46 @@
-import type * as PV from '@hmcts/properties-volume';
 import type { IConfig } from 'config';
 import type { Application } from 'express';
 
 export class PropertiesVolume {
   async enableFor(server: Application): Promise<void> {
-    if (server.locals['ENV'] !== 'development') {
-      const { default: config } = (await import('config')) as {
-        default: IConfig;
-      };
+    if (server.locals['ENV'] === 'development') {return;}
 
-      // Dynamically import CJS modules without createRequire/import.meta
-      const pvm = (await import(
-        '@hmcts/properties-volume'
-      )) as unknown as typeof PV;
-      const { get, set } = (await import('lodash')) as Pick<
-        typeof import('lodash'),
-        'get' | 'set'
-      >;
+    const { default: config } = (await import('config')) as { default: IConfig };
 
-      pvm.addTo(config);
-      this.setSecret(
-        config,
-        get,
-        set,
-        'secrets.rpe.AppInsightsInstrumentationKey',
-        'appInsights.instrumentationKey',
-      );
+    // --- @hmcts/properties-volume (CJS) ------------------------------------
+    const pvMod = await import('@hmcts/properties-volume');
+    const addToMaybe =
+      (pvMod as { addTo?: (cfg: IConfig, opts?: unknown) => void }).addTo ??
+      (pvMod as { default?: { addTo?: (cfg: IConfig, opts?: unknown) => void } })
+        .default?.addTo;
+
+    if (typeof addToMaybe !== 'function') {
+      throw new Error('properties-volume.addTo not found (CJS/ESM interop)');
     }
+    const addTo = addToMaybe as (cfg: IConfig, opts?: unknown) => void;
+
+    // --- lodash (CJS) ------------------------------------------------------
+    const ldMod = await import('lodash');
+    const getMaybe = (ldMod as { get?: <T>(o: unknown, p: string) => T }).get
+      ?? (ldMod as { default?: { get?: <T>(o: unknown, p: string) => T } }).default?.get;
+    const setMaybe = (ldMod as { set?: (o: unknown, p: string, v: unknown) => void }).set
+      ?? (ldMod as { default?: { set?: (o: unknown, p: string, v: unknown) => void } }).default?.set;
+
+    if (typeof getMaybe !== 'function' || typeof setMaybe !== 'function') {
+      throw new Error('lodash.get/set not found (CJS/ESM interop)');
+    }
+    const get = getMaybe as <T>(obj: unknown, path: string) => T;
+    const set = setMaybe as (obj: unknown, path: string, value: unknown) => void;
+
+    // Apply properties volume and copy secret if present
+    addTo(config);
+    this.setSecret(
+      config,
+      get,
+      set,
+      'secrets.rpe.AppInsightsInstrumentationKey',
+      'appInsights.instrumentationKey',
+    );
   }
 
   private setSecret(

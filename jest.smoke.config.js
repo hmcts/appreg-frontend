@@ -9,7 +9,7 @@ module.exports = {
   testTimeout: 30000,
 
   // Only load tests from the smoke folder
-  roots: ["<rootDir>/src/test/smoke"],
+  roots: ["<rootDir>/test/smoke"],
 
   // Match files ending in .smoke.spec.ts
   testMatch: ["**/*.smoke.spec.ts"],

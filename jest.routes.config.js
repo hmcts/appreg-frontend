@@ -8,10 +8,10 @@ module.exports = {
   displayName: "routes",
 
   // Only look in the routes test directory
-  roots: ["<rootDir>/src/test/routes"],
+  roots: ["<rootDir>/test/routes"],
 
   // Match files ending with .routes.spec.ts or .routing.spec.ts
-  testMatch: ["**/?(*.)+(routes|routing).spec.ts"],
+  testMatch: ['**/*.spec.ts'],
 
   // Bootstrap the Angular testing environment
   setupFilesAfterEnv: ["<rootDir>/setup.jest.ts"],
