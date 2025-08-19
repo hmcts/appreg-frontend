@@ -20,7 +20,6 @@ type GovUkGlobal = { GOVUKFrontend?: { initAll?: GovUkInitAll } };
   selector: 'app-root',
   imports: [RouterOutlet, FooterComponent, HeaderComponent],
   templateUrl: './app.html',
-  styleUrl: './app.scss',
 })
 export class App implements OnInit, AfterViewInit, OnDestroy {
   protected readonly title = signal('appreg-frontend');
