@@ -5379,7 +5379,7 @@ __metadata:
     ts-jest: "npm:^29.4.1"
     tslib: "npm:^2.3.0"
     typescript: "npm:~5.8.2"
-    uuid: "npm:^11.1.0"  
+    uuid: "npm:^11.1.0"
     zone.js: "npm:0.15"
   languageName: unknown
   linkType: soft
