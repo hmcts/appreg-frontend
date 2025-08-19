@@ -330,3 +330,79 @@ describe('GET /sso/logout', () => {
     await agent.get('/sso/me').expect(401);
   });
 });
+
+describe('GET /sso/me', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    // /sso/login uses two UUIDs: state then nonce
+    uuidV4()
+      .mockReset()
+      .mockReturnValueOnce('state-123')
+      .mockReturnValueOnce('nonce-456');
+
+    getAuthCodeUrlMock
+      .mockReset()
+      .mockResolvedValue(
+        'https://login.microsoftonline.com/tenant-xyz/oauth2/v2.0/authorize?...'
+      );
+
+    acquireTokenByCodeMock.mockReset();
+    serializeMock.mockReset().mockReturnValue('cache-string');
+  });
+
+  function makeApp() {
+    const app = express();
+    app.use(router);
+    // 4-arg error handler to surface unexpected errors during tests
+    app.use((
+      err: unknown,
+      _req: express.Request,
+      res: express.Response
+    ) => {
+      res.status(500).send(String(err instanceof Error ? err.message : err));
+    });
+    return app;
+  }
+
+  it('returns 401 when no account is in the session', async () => {
+    const app = makeApp();
+    const agent = request.agent(app);
+
+    // Fresh session: no login performed
+    const res = await agent.get('/sso/me').expect(401);
+    expect(res.body).toEqual({ authenticated: false });
+  });
+
+  it('returns 200 with user details after successful login', async () => {
+    const app = makeApp();
+    const agent = request.agent(app);
+
+    // Establish session + state via /sso/login
+    await agent.get('/sso/login').expect(302);
+
+    // Mock MSAL token exchange to return an account
+    acquireTokenByCodeMock.mockResolvedValueOnce({
+      account: {
+        homeAccountId: 'home-1',
+        environment: 'login.microsoftonline.com',
+        tenantId: 'tenant-xyz',
+        username: 'user@example.test',
+        name: 'User Example',
+      },
+    });
+
+    // Complete the login-callback with the matching state
+    await agent
+      .get('/sso/login-callback?code=the-code&state=state-123')
+      .expect(302);
+
+    // Now /sso/me should reflect the populated session
+    const me = await agent.get('/sso/me').expect(200);
+    expect(me.body).toEqual({
+      authenticated: true,
+      name: 'User Example',
+      username: 'user@example.test',
+    });
+  });
+});
