@@ -1,7 +1,8 @@
-import type { IConfig } from 'config';
-import type * as PV from '@hmcts/properties-volume';
-import { Application } from 'express';
 import { createRequire } from 'module';
+
+import type * as PV from '@hmcts/properties-volume';
+import type { IConfig } from 'config';
+import { Application } from 'express';
 
 const require = createRequire(import.meta.url);
 

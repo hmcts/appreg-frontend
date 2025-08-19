@@ -13,7 +13,10 @@ type AuthCodeUrlReq = {
   nonce: string;
   prompt: 'select_account';
 };
-const getAuthCodeUrlMock: jest.Mock<Promise<string>, [AuthCodeUrlReq]> = jest.fn();
+const getAuthCodeUrlMock: jest.Mock<
+  Promise<string>,
+  [AuthCodeUrlReq]
+> = jest.fn();
 
 jest.mock('@azure/msal-node', () => {
   const ConfidentialClientApplication = jest.fn(() => ({
@@ -29,16 +32,26 @@ jest.mock('config', () => {
   // Correct Jest type: Return = unknown, Args = [string]
   const get: jest.Mock<unknown, [string]> = jest.fn((key: string): unknown => {
     switch (key) {
-      case 'secrets.apps-reg.app-TENANT-ID':       return 'tenant-xyz';
-      case 'secrets.apps-reg.app-CLIENT-ID':       return 'client-abc';
-      case 'secrets.apps-reg.app-CLIENT-SECRET':   return 'super-secret';
-      case 'auth.redirectUri':                     return 'https://example.test/auth/callback';
-      case 'auth.scopes':                          return ['openid', 'profile'];
-      case 'auth.postLogoutRedirectUri':           return 'https://example.test/signed-out';
-      case 'session.cookieName':                   return 'sid';
-      case 'session.secret':                       return 'session-secret';
-      case 'session.secure':                       return false; // important for HTTP in tests
-      default: throw new Error(`Unexpected config.get(${key})`);
+      case 'secrets.apps-reg.app-TENANT-ID':
+        return 'tenant-xyz';
+      case 'secrets.apps-reg.app-CLIENT-ID':
+        return 'client-abc';
+      case 'secrets.apps-reg.app-CLIENT-SECRET':
+        return 'super-secret';
+      case 'auth.redirectUri':
+        return 'https://example.test/auth/callback';
+      case 'auth.scopes':
+        return ['openid', 'profile'];
+      case 'auth.postLogoutRedirectUri':
+        return 'https://example.test/signed-out';
+      case 'session.cookieName':
+        return 'sid';
+      case 'session.secret':
+        return 'session-secret';
+      case 'session.secure':
+        return false; // important for HTTP in tests
+      default:
+        throw new Error(`Unexpected config.get(${key})`);
     }
   });
   return { __esModule: true, default: { get } };
@@ -47,7 +60,7 @@ jest.mock('config', () => {
 // ---- uuid mock -------------------------------------------------------------
 jest.mock('uuid', () => ({ v4: jest.fn() }));
 function uuidV4(): jest.Mock<string, []> {
-  return (jest.requireMock('uuid')).v4;
+  return jest.requireMock('uuid').v4;
 }
 
 // Import the router AFTER mocks
@@ -63,7 +76,7 @@ describe('GET /sso/login', () => {
     getAuthCodeUrlMock
       .mockReset()
       .mockResolvedValue(
-        'https://login.microsoftonline.com/tenant-xyz/oauth2/v2.0/authorize?...'
+        'https://login.microsoftonline.com/tenant-xyz/oauth2/v2.0/authorize?...',
       );
   });
 
@@ -72,11 +85,7 @@ describe('GET /sso/login', () => {
     app.use(router);
 
     // Proper 4-arg error handler (so any failure shows as 500 with a message)
-    app.use((
-      err: unknown,
-      _req: express.Request,
-      res: express.Response
-    ) => {
+    app.use((err: unknown, _req: express.Request, res: express.Response) => {
       res.status(500).send(String(err instanceof Error ? err.message : err));
     });
 
@@ -96,7 +105,7 @@ describe('GET /sso/login', () => {
         scopes: ['openid', 'profile'],
         responseMode: 'query',
         prompt: 'select_account',
-      })
+      }),
     );
 
     // Session cookie should be set after the redirect
