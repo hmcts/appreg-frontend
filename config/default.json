@@ -10,5 +10,22 @@
       "includeSubDomains": true,
       "preload": true
     }
+  },
+  "secrets": {
+    "apps-reg": {
+      "app-CLIENT-ID": "dummyClientId",
+      "app-TENANT-ID": "dummyTenantId",
+      "app-CLIENT-SECRET": "dummyClientSecret"
+    }
+  },
+  "auth": {
+    "redirectUri": "http://localhost:4000/sso/login-callback",
+    "postLogoutRedirectUri": "http://localhost:4000/login",
+    "scopes": ["openid", "profile", "email", "offline_access"]
+  },
+  "session": {
+    "cookieName": "appreg.sid",
+    "secret": "change-me-in-env",
+    "secure": false
   }
 }
