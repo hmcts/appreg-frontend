@@ -1,4 +1,3 @@
-import { isPlatformBrowser } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -8,25 +7,20 @@ import {
   PLATFORM_ID,
   signal,
 } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { Subscription, filter } from 'rxjs';
-
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { HeaderComponent } from './shared/components/header/header.component';
-import { ServiceNavigationComponent } from './shared/components/service-navigation/service-navigation.component';
+import { Subscription, filter } from 'rxjs';
 
 type GovUkInitAll = (opts?: { scope?: HTMLElement }) => void;
 type GovUkGlobal = { GOVUKFrontend?: { initAll?: GovUkInitAll } };
 
 @Component({
   selector: 'app-root',
-  imports: [
-    RouterOutlet,
-    FooterComponent,
-    HeaderComponent,
-    ServiceNavigationComponent,
-  ],
+  imports: [RouterOutlet, FooterComponent, HeaderComponent],
   templateUrl: './app.html',
+  styleUrl: './app.scss',
 })
 export class App implements OnInit, AfterViewInit, OnDestroy {
   protected readonly title = signal('appreg-frontend');
@@ -64,14 +58,12 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
     this.navSub = this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe(() => {
-        requestAnimationFrame(() => {
-          const main =
-            document.querySelector<HTMLElement>('main.govuk-main-wrapper') ??
-            document.querySelector<HTMLElement>('main');
-          if (main) {
-            void this.initGovUkFrontend(main);
-          }
-        });
+        const main =
+          document.querySelector<HTMLElement>('main.govuk-main-wrapper') ??
+          document.querySelector<HTMLElement>('main');
+        if (main) {
+          void this.initGovUkFrontend(main);
+        }
       });
   }
 

@@ -1,14 +1,14 @@
+import express, { NextFunction, Request, Response } from 'express';
+import cookieParser from 'cookie-parser';
+import session from 'express-session';
+import { v4 as uuid } from 'uuid';
+import config from 'config';
 import {
   AccountInfo,
   AuthorizationCodeRequest,
   AuthorizationUrlRequest,
   ConfidentialClientApplication,
 } from '@azure/msal-node';
-import config from 'config';
-import cookieParser from 'cookie-parser';
-import express, { NextFunction, Request, Response } from 'express';
-import session from 'express-session';
-import { v4 as uuid } from 'uuid';
 
 // ---- Augment express-session so req.session has typed fields ----
 declare module 'express-session' {
@@ -122,7 +122,7 @@ router.get(
       req.session.account = tokenResponse.account;
       req.session.tokenCache = cca.getTokenCache().serialize();
 
-      res.redirect('/applications-list'); // change landing route if needed
+      res.redirect('/applications'); // change landing route if needed
       return;
     } catch (err) {
       next(err);

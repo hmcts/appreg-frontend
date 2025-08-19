@@ -55,4 +55,9 @@ export class ServiceNavigationComponent implements OnInit {
     }
     window.location.assign('/sso/logout');
   }
+
+  onSignOutClicked(e: Event): void {
+    e.preventDefault();
+    window.location.href = '/sso/logout';
+  }
 }
