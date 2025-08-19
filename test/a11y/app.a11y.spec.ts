@@ -45,5 +45,6 @@ function testAccessibility(p: string): void {
 }
 
 describe('Accessibility', () => {
-  testAccessibility('/');
+  testAccessibility('/login');
+  testAccessibility('/applications-list');
 });
