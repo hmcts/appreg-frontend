@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { App } from '../../src/app/app';
+import { App } from '../../../src/app/app';
 
 @Component({ selector: 'app-header', template: '', standalone: true })
 class FakeHeaderComponent {}

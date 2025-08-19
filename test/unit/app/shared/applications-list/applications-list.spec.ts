@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ApplicationsList } from '../../../../src/app/pages/applications-list/applications-list';
+import { ApplicationsList } from '../../../../../src/app/pages/applications-list/applications-list';
 
 describe('ApplicationsListComponent', () => {
   let component: ApplicationsList;
