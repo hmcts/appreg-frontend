@@ -1,11 +1,221 @@
 # AppregFrontend
 
+This README contains a setup guide for setting up your dev environment (Copied from [Confluence](https://tools.hmcts.net/confluence/display/ARM/Frontend+development+setup+for+new+users)).
+
+---
+
 ## Prereqs
 
-    - Ensure you have nvm and node installed (node: 20.19.4)
-    - You don't need Yarn installed locally
+- Ensure you have **nvm** and **node** installed (**node: 20.19.4**)
+- You don’t need Yarn installed locally
 
-# Setup
+---
 
-    - run "corepack enable"
-    - run "yarn install" then "yarn build" then "yarn start:dev"
+## Setup
+
+```bash
+corepack enable
+yarn install
+yarn build
+yarn start:dev
+```
+
+---
+
+## Prerequisites
+
+- HMCTS.NET account
+- GitHub account with HMCTS.NET account linked
+- Git installed
+- Access to repos in GitHub (see GitHub page)
+- Code editor/IDE of choice installed (Eclipse, VS Code, IntelliJ, etc.)
+
+---
+
+## MacOS & Linux
+
+You can either run a provided script or install manually.
+
+### Script installation
+
+1. Clone the Git repo
+2. Run the `appreg-env-setup.sh` script in your terminal (ensure you are in the root directory of the repo)
+   - This script runs through the steps of the manual installation
+   - If the script fails, attempt installation manually
+   - If you get `permission denied` errors, run:
+
+   ```bash
+   sudo chmod +x appreg-env-setup.sh
+   ```
+
+### Manual Installation
+
+1. Ensure Git repo is cloned
+2. Install **NVM** from: <https://github.com/nvm-sh/nvm>
+3. After installation, add to your shell config:
+
+   ```bash
+   export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+   ```
+
+4. Verify installation:
+
+   ```bash
+   nvm --version
+   ```
+
+5. Install Node.js version 20.19.4 and set it:
+
+   ```bash
+   nvm install 20.19.4
+   nvm use 20.19.4
+   ```
+
+6. Check Node.js version:
+
+   ```bash
+   node --version  # should be v20.19.4
+   ```
+
+7. Navigate to root of `appreg-frontend` directory and run:
+
+   ```bash
+   corepack enable
+   yarn install
+   yarn build
+   ```
+
+8. Run a local dev version:
+
+   ```bash
+   yarn start:dev
+   ```
+
+---
+
+## Troubleshooting
+
+### Curl not found
+
+- Curl should come preinstalled on Linux and MacOS
+- Verify with:
+
+  ```bash
+  which curl
+  ```
+
+  It should return `/usr/bin/curl`. If missing, install manually:
+
+  **Linux:**
+
+  ```bash
+  sudo apt-get update && sudo apt-get upgrade
+  sudo apt-get install curl
+  ```
+
+  **MacOS:**
+
+  - Install Homebrew from [brew.sh](https://brew.sh/)
+  - Run:
+
+    ```bash
+    brew install curl
+    echo 'export PATH="$(brew --prefix)/opt/curl/bin:$PATH"' >> ~/.zshrc
+    source ~/.zshrc
+    ```
+
+### NVM or Node issues
+
+- Restart terminal:
+
+  ```bash
+  exec $SHELL
+  ```
+
+- See troubleshooting: <https://github.com/nvm-sh/nvm>
+
+### Yarn
+
+- Ensure you are inside the `appreg-frontend` directory
+- Restart terminal, then:
+
+  ```bash
+  exec $SHELL
+  corepack enable
+  ```
+
+- If `node_modules` and `yarn.lock` exist, delete them and run:
+
+  ```bash
+  yarn cache clear
+  yarn install && yarn build
+  ```
+
+---
+
+## Windows
+
+### Using WSL
+
+- Follow the **MacOS & Linux** steps (since WSL is a Linux environment)
+
+### Native Windows
+
+1. Clone Git repo  
+2. Install Node.js version 20.19.4:
+   - **Option 1 (simpler):** Install from [Node.js site](https://nodejs.org/en/download)
+   - **Option 2:** Install `nvm-windows` from [here](https://github.com/coreybutler/nvm-windows?tab=readme-ov-file)
+
+   ```powershell
+   nvm install 20.19.4
+   nvm use 20.19.4
+   ```
+
+3. Verify installation:
+
+   ```powershell
+   node --version
+   ```
+
+4. In the `appreg-frontend` directory, run:
+
+   ```powershell
+   corepack enable
+   yarn install && yarn build
+   ```
+
+---
+
+### Troubleshooting (Windows)
+
+#### Node
+
+- Restart PowerShell
+- Verify install:
+
+  ```powershell
+  node --version && npm --version
+  ```
+
+- If not found, add Node.js install path to PATH (usually `C:\Program Files\nodejs\`):
+  - Press `Win + R`, type `sysdm.cpl`, press Enter
+  - Go to **Advanced → Environment Variables**
+  - Under **System variables**, edit `Path` → Add new entry: `C:\Program Files\nodejs\`
+  - Restart PowerShell
+
+#### Yarn
+
+- Ensure you are inside `appreg-frontend` directory
+- Restart PowerShell, then:
+
+  ```powershell
+  corepack enable
+  ```
+
+- If `node_modules` and `yarn.lock` exist, delete them and run:
+
+  ```powershell
+  yarn cache clear
+  yarn install && yarn build
+  ```
