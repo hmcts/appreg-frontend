@@ -115,7 +115,6 @@ You can either run a provided script or install manually.
   ```
 
   **MacOS:**
-
   - Install Homebrew from [brew.sh](https://brew.sh/)
   - Run:
 
@@ -162,7 +161,7 @@ You can either run a provided script or install manually.
 
 ### Native Windows
 
-1. Clone Git repo  
+1. Clone Git repo
 2. Install Node.js version 20.19.4:
    - **Option 1 (simpler):** Install from [Node.js site](https://nodejs.org/en/download)
    - **Option 2:** Install `nvm-windows` from [here](https://github.com/coreybutler/nvm-windows?tab=readme-ov-file)
