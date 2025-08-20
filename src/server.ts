@@ -32,7 +32,9 @@ setupHealthcheck(app);
 setupInfoRoute(app);
 app.use(authRoutes);
 
-const logger: HmctsLogger = Logger.getLogger('hmcts applications register - server');
+const logger: HmctsLogger = Logger.getLogger(
+  'hmcts applications register - server',
+);
 
 /**
  * Serve static files from /browser
