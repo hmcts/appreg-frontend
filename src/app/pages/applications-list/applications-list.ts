@@ -9,5 +9,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
   templateUrl: './applications-list.html',
 })
 export class ApplicationsList implements OnInit {
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    // Not implemented yet
+  }
 }

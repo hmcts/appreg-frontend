@@ -5,7 +5,7 @@ import { Inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 export class SessionService {
   readonly isAuthenticated = signal(false);
 
-  constructor(@Inject(PLATFORM_ID) private platformId: object) {}
+  constructor(@Inject(PLATFORM_ID) private readonly platformId: object) {}
 
   setAuthenticated(v: boolean): void {
     this.isAuthenticated.set(v);
