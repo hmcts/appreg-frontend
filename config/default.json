@@ -15,7 +15,8 @@
     "apps-reg": {
       "app-CLIENT-ID": "dummyClientId",
       "app-TENANT-ID": "dummyTenantId",
-      "app-CLIENT-SECRET": "dummyClientSecret"
+      "app-CLIENT-SECRET": "dummyClientSecret",
+      "app-insights-connection-string": "dummyInstrumentationKey"
     }
   },
   "auth": {
