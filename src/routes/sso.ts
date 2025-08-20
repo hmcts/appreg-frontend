@@ -4,6 +4,7 @@ import {
   AuthorizationUrlRequest,
   ConfidentialClientApplication,
 } from '@azure/msal-node';
+import * as nodejsLogging from '@hmcts/nodejs-logging';
 import config from 'config';
 import cookieParser from 'cookie-parser';
 import express, { NextFunction, Request, Response } from 'express';
@@ -11,7 +12,21 @@ import { type RateLimitRequestHandler, rateLimit } from 'express-rate-limit';
 import session from 'express-session';
 import { v4 as uuid } from 'uuid';
 
-// ---- Augment express-session so req.session has typed fields ----
+// ---- Logger (typed to avoid "unsafe" eslint rules) -------------------------
+type HmctsLogger = {
+  info(msg: string, ...meta: unknown[]): void;
+  warn(msg: string, ...meta: unknown[]): void;
+  error(msg: string | Error, ...meta: unknown[]): void;
+  debug?: (msg: string, ...meta: unknown[]) => void;
+};
+const { Logger } = nodejsLogging as unknown as {
+  Logger: { getLogger(name: string): HmctsLogger };
+};
+const logger: HmctsLogger = Logger.getLogger(
+  'hmcts applications register - sso routes',
+);
+
+// ---- Augment express-session so req.session has typed fields ---------------
 declare module 'express-session' {
   interface SessionData {
     authState?: string;
@@ -46,8 +61,6 @@ const loginLimiter: RateLimitRequestHandler = rateLimit({
   legacyHeaders: false,
   message: 'Too many login attempts, please try again later.',
   statusCode: 429,
-  // If you only want to penalize failing attempts, you could enable:
-  // skipSuccessfulRequests: true,
 });
 
 const cca = new ConfidentialClientApplication({
@@ -98,20 +111,27 @@ const buildAuthCodeRequest = (code: string): AuthorizationCodeRequest => ({
 // GET /sso/login -> redirect to Entra ID (rate-limited)
 router.get(
   '/sso/login',
-  loginLimiter, // ← apply limiter here
+  loginLimiter,
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    logger.info('GET /sso/login start', {
+      ip: req.ip,
+      ua: req.get('user-agent'),
+    });
     try {
       const state = uuid();
       const nonce = uuid();
       req.session.authState = state;
       req.session.nonce = nonce;
+      logger.debug?.('Stored auth state/nonce in session');
 
       const url = await cca.getAuthCodeUrl(
         buildAuthCodeUrlRequest(state, nonce),
       );
+      logger.info('Redirecting to Entra ID authorize endpoint');
       res.redirect(url);
       return;
     } catch (err) {
+      logger.error(err as Error, 'Error during /sso/login');
       next(err);
       return;
     }
@@ -122,6 +142,7 @@ router.get(
 router.get(
   '/sso/login-callback',
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    logger.info('GET /sso/login-callback start', { ip: req.ip });
     try {
       // Type-guard the query params
       const code =
@@ -129,7 +150,16 @@ router.get(
       const state =
         typeof req.query['state'] === 'string' ? req.query['state'] : undefined;
 
-      if (!code || !state || state !== req.session.authState) {
+      if (!code || !state) {
+        logger.info('Invalid auth response: missing code or state');
+        res.status(400).send('Invalid auth response.');
+        return;
+      }
+      if (state !== req.session.authState) {
+        logger.info('Invalid auth response: state mismatch', {
+          expected: 'session.authState',
+          received: 'query.state',
+        });
         res.status(400).send('Invalid auth response.');
         return;
       }
@@ -138,17 +168,25 @@ router.get(
         buildAuthCodeRequest(code),
       );
       if (!tokenResponse || !tokenResponse.account) {
+        logger.info('No account in token from MSAL');
         res.status(401).send('No account in token.');
         return;
       }
 
       // Persist minimal session info (store cache string server-side)
       req.session.account = tokenResponse.account;
-      req.session.tokenCache = cca.getTokenCache().serialize();
+      const cache = cca.getTokenCache().serialize();
+      req.session.tokenCache = cache;
+      logger.info('User signed in', {
+        username: tokenResponse.account.username,
+        name: tokenResponse.account.name,
+      });
+      logger.debug?.(`Token cache serialized (len=${cache?.length ?? 0})`);
 
       res.redirect('/applications-list'); // change landing route if needed
       return;
     } catch (err) {
+      logger.error(err as Error, 'Error during /sso/login-callback');
       next(err);
       return;
     }
@@ -157,17 +195,26 @@ router.get(
 
 // GET /sso/logout -> clear session and call Entra logout
 router.get('/sso/logout', (req: Request, res: Response): void => {
+  logger.info('GET /sso/logout requested', {
+    username: req.session.account?.username,
+  });
+
   const logoutUrl =
     `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/logout` +
     `?post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`;
 
   req.session.destroy(() => {
+    logger.info('Session destroyed, redirecting to Entra logout');
     res.redirect(logoutUrl);
   });
 });
 
 // GET /sso/me -> probe session from the SPA
 router.get('/sso/me', (req: Request, res: Response): void => {
+  logger.debug?.('GET /sso/me probe', {
+    hasAccount: Boolean(req.session.account),
+  });
+
   if (req.session.account) {
     res.json({
       authenticated: true,

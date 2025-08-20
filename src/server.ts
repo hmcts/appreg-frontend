@@ -6,6 +6,7 @@ import {
   isMainModule,
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
+import { type HmctsLogger, Logger } from '@hmcts/nodejs-logging';
 import express from 'express';
 
 import { AppInsights } from './modules/appinsights';
@@ -30,6 +31,10 @@ new Helmet(developmentMode).enableFor(app);
 setupHealthcheck(app);
 setupInfoRoute(app);
 app.use(authRoutes);
+
+const logger: HmctsLogger = Logger.getLogger(
+  'hmcts applications register - server',
+);
 
 /**
  * Serve static files from /browser
@@ -65,7 +70,7 @@ if (isMainModule(import.meta.url)) {
       throw error;
     }
 
-    console.log(
+    logger.info(
       `Apps Reg Node Express server listening on http://localhost:${port}`,
     );
   });
