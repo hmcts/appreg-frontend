@@ -31,8 +31,8 @@ export class ServiceNavigationComponent implements OnInit {
 
   constructor(
     public session: SessionService, // public so template can read it if needed
-    private router: Router,
-    @Inject(PLATFORM_ID) private platformId: object,
+    private readonly router: Router,
+    @Inject(PLATFORM_ID) private readonly platformId: object,
   ) {}
 
   ngOnInit(): void {
