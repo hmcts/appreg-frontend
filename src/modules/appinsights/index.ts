@@ -1,23 +1,41 @@
-import { createRequire } from 'module';
+import { createRequire } from 'node:module';
 
-import type * as AI from 'applicationinsights';
-import type { IConfig } from 'config';
+import type { TelemetryClient } from 'applicationinsights';
 
 const require = createRequire(import.meta.url);
+const applicationinsights =
+  require('applicationinsights') as typeof import('applicationinsights');
 
+/**
+ * AppInsights — singleton-style initializer + accessors.
+ */
 export class AppInsights {
-  async enable(): Promise<void> {
-    const { default: config } = (await import('config')) as {
-      default: IConfig;
-    };
-    const appInsights = require('applicationinsights') as typeof AI;
+  private static started = false;
 
-    const key = 'app-insights-connection-string';
-    if (config.has(key)) {
-      const connStr = config.get<string>(key);
-      if (connStr) {
-        appInsights.setup(connStr).start();
-      }
+  /** Initialise once (idempotent). Call BEFORE creating any HMCTS loggers. */
+  static enable(connectionString: string): void {
+    if (this.started) {
+      return;
     }
+
+    applicationinsights
+      .setup(connectionString)
+      .setAutoCollectConsole(true, true)
+      .setAutoCollectDependencies(true)
+      .setAutoCollectExceptions(true)
+      .setSendLiveMetrics(true)
+      .start();
+
+    this.started = true;
+  }
+
+  /** Access the raw SDK namespace if you need it. */
+  static sdk(): typeof applicationinsights {
+    return applicationinsights;
+  }
+
+  /** Convenience: get the TelemetryClient. */
+  static client(): TelemetryClient {
+    return applicationinsights.defaultClient;
   }
 }
