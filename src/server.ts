@@ -1,4 +1,5 @@
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import {
   AngularNodeAppEngine,
@@ -6,39 +7,49 @@ import {
   isMainModule,
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
-import { type HmctsLogger, Logger } from '@hmcts/nodejs-logging';
+import type { HmctsLogger } from '@hmcts/nodejs-logging';
+import config from 'config';
 import express from 'express';
 
 import { AppInsights } from './modules/appinsights';
 import { Helmet } from './modules/helmet';
+import { HmctsLoggerBridge } from './modules/logger';
 import { PropertiesVolume } from './modules/properties-volume';
 import { setupHealthcheck } from './routes/health';
 import { setupInfoRoute } from './routes/info';
 import authRoutes from './routes/sso';
 
-const browserDistFolder = join(import.meta.dirname, '../browser');
+// ----- Paths (ESM-safe)
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const browserDistFolder = join(__dirname, '../browser');
 
+// ----- App + Angular engine
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 
+// ----- Env
 const env = process.env['NODE_ENV'] || 'development';
 const developmentMode = env === 'development';
+const CONNECTION_STRING = config.get<string>(
+  'secrets.apps-reg.app-insights-connection-string',
+);
 
+// ----- Platform modules
 await new PropertiesVolume().enableFor(app);
-await new AppInsights().enable();
 new Helmet(developmentMode).enableFor(app);
+AppInsights.enable(CONNECTION_STRING);
 
+const logger: HmctsLogger = HmctsLoggerBridge.enable(
+  'hmcts applications register - server',
+  AppInsights.client(),
+);
+
+// ----- Routes
 setupHealthcheck(app);
 setupInfoRoute(app);
 app.use(authRoutes);
 
-const logger: HmctsLogger = Logger.getLogger(
-  'hmcts applications register - server',
-);
-
-/**
- * Serve static files from /browser
- */
+// ----- Static
 app.use(
   express.static(browserDistFolder, {
     maxAge: '1y',
@@ -47,9 +58,7 @@ app.use(
   }),
 );
 
-/**
- * Handle all other requests by rendering the Angular application.
- */
+// ----- SSR handler
 app.use((req, res, next) => {
   angularApp
     .handle(req)
@@ -59,10 +68,7 @@ app.use((req, res, next) => {
     .catch(next);
 });
 
-/**
- * Start the server if this module is the main entry point.
- * The server listens on the port defined by the `PORT` environment variable, or defaults to 4000.
- */
+// ----- Listen (only when running as entrypoint)
 if (isMainModule(import.meta.url)) {
   const port = process.env['PORT'] || 4000;
   app.listen(port, (error) => {
@@ -76,7 +82,5 @@ if (isMainModule(import.meta.url)) {
   });
 }
 
-/**
- * Request handler used by the Angular CLI (for dev-server and during build) or Firebase Cloud Functions.
- */
+// ----- Export for CLI/dev server / Cloud Functions
 export const reqHandler = createNodeRequestHandler(app);
