@@ -13,7 +13,7 @@ nodejs:
         - name: azure-tenant-id
           alias: azure-tenant-id
         - name: azure-client-secret
-          alias: azure-client-secret	
+          alias: azure-client-secret
         - name: azure-app-id
           alias: azure-app-id
   environment:
