@@ -10,4 +10,10 @@ nodejs:
           alias: APP_INSIGHTS_INSTRUMENTATION_KEY
         - name: app-insights-connection-string
           alias: app-insights-connection-string
+        - name: azure-tenant-id
+          alias: azure-tenant-id
+        - name: azure-client-secret
+          alias: azure-client-secret
+        - name: azure-app-id
+          alias: azure-app-id
   environment:
