@@ -200,4 +200,71 @@ describe('App (server platform)', () => {
     expect(initSpy).not.toHaveBeenCalled();
     initSpy.mockRestore();
   });
+
+  type GovUkInitAll = (opts: { scope?: HTMLElement }) => void;
+  type G = typeof globalThis & { GOVUKFrontend?: { initAll?: GovUkInitAll } };
+  const GBL = globalThis as G; // local, typed reference
+
+  it('initGovUkFrontend uses npm module when available', async () => {
+    jest.resetModules();
+    const initAllMock: jest.Mock<void, [{ scope?: HTMLElement }]> = jest.fn();
+
+    jest.doMock('govuk-frontend', () => ({ initAll: initAllMock }), {
+      virtual: true,
+    });
+
+    const globalInit: jest.Mock<void, [{ scope?: HTMLElement }]> = jest.fn();
+    GBL.GOVUKFrontend = { initAll: globalInit };
+
+    const scope = document.createElement('main');
+    await (
+      component as unknown as {
+        initGovUkFrontend(scope?: HTMLElement): Promise<void>;
+      }
+    ).initGovUkFrontend(scope);
+
+    expect(initAllMock).toHaveBeenCalledWith({ scope });
+    expect(globalInit).not.toHaveBeenCalled();
+
+    jest.dontMock('govuk-frontend');
+    delete GBL.GOVUKFrontend;
+  });
+
+  it('initGovUkFrontend falls back to global initAll when module missing or throws', async () => {
+    jest.resetModules();
+    // Case A: module present but no initAll
+    jest.doMock('govuk-frontend', () => ({}), { virtual: true });
+
+    const globalInit: jest.Mock<void, [{ scope?: HTMLElement }]> = jest.fn();
+    GBL.GOVUKFrontend = { initAll: globalInit };
+
+    const scopeA = document.createElement('main');
+    await (
+      component as unknown as {
+        initGovUkFrontend(scope?: HTMLElement): Promise<void>;
+      }
+    ).initGovUkFrontend(scopeA);
+    expect(globalInit).toHaveBeenLastCalledWith({ scope: scopeA });
+
+    // Case B: import throws
+    jest.resetModules();
+    jest.doMock(
+      'govuk-frontend',
+      () => {
+        throw new Error('boom');
+      },
+      { virtual: true },
+    );
+
+    const scopeB = document.createElement('main');
+    await (
+      component as unknown as {
+        initGovUkFrontend(scope?: HTMLElement): Promise<void>;
+      }
+    ).initGovUkFrontend(scopeB);
+    expect(globalInit).toHaveBeenLastCalledWith({ scope: scopeB });
+
+    jest.dontMock('govuk-frontend');
+    delete GBL.GOVUKFrontend;
+  });
 });

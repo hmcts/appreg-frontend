@@ -35,8 +35,8 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
   private didGlobalInit = false;
 
   constructor(
-    @Inject(PLATFORM_ID) private platformId: object,
-    private router: Router,
+    @Inject(PLATFORM_ID) private readonly platformId: object,
+    private readonly router: Router,
   ) {}
 
   ngOnInit(): void {
