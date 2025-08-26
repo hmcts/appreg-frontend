@@ -1,35 +1,42 @@
+const { defineConfig } = require("cypress");
+const createBundler = require("@bahmutov/cypress-esbuild-preprocessor");
 const {
   addCucumberPreprocessorPlugin,
 } = require("@badeball/cypress-cucumber-preprocessor");
 const {
   createEsbuildPlugin,
 } = require("@badeball/cypress-cucumber-preprocessor/esbuild");
-const createBundler = require("@bahmutov/cypress-esbuild-preprocessor");
-const { defineConfig } = require("cypress");
 
 module.exports = defineConfig({
   e2e: {
-    specPattern: "test/functional/**/*.feature",
+    specPattern: "cypress/e2e/**/*.feature",
+    supportFile: "cypress/support/e2e.ts",
+    fixturesFolder: "cypress/fixtures",
     baseUrl: process.env.TEST_URL || "http://localhost:4000",
-    supportFile: false,
-
     async setupNodeEvents(on, config) {
-      await addCucumberPreprocessorPlugin(on, config, {
-        stepDefinitions: ["test/functional/steps/**/*.steps.ts"],
+      await addCucumberPreprocessorPlugin(on, {
+        ...config,
+        cucumber: {
+          stepDefinitions: "cypress/e2e/step_definitions/**/*.ts",
+        },
       });
-
       on(
         "file:preprocessor",
         createBundler({
           plugins: [createEsbuildPlugin(config)],
-          tsconfig: "test/tsconfig.json",
         }),
       );
-
       return config;
     },
-
-    defaultCommandTimeout: 10000,
-    pageLoadTimeout: 30000,
+  },
+  component: {
+    specPattern: "cypress/component/**/*.cy.{js,ts}",
+    supportFile: "cypress/support/component.js",
+    fixturesFolder: "cypress/fixtures",
+    devServer: {
+      framework: "angular",
+      bundler: "webpack",
+    },
+    baseUrl: process.env.TEST_URL || "http://localhost:4000",
   },
 });
