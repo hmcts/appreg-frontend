@@ -9,18 +9,28 @@ type LoggerWithLevels = {
   error: (...args: unknown[]) => void;
 };
 
-const toSeverity = (level: LevelName): 0 | 1 | 2 | 3 =>
-  level === 'debug' ? 0 : level === 'info' ? 1 : level === 'warn' ? 2 : 3;
+const SEVERITY = {
+  debug: 0,
+  info: 1,
+  warn: 2,
+  error: 3,
+} as const satisfies Record<LevelName, 0 | 1 | 2 | 3>;
+
+const toSeverity = (level: LevelName): 0 | 1 | 2 | 3 => SEVERITY[level];
 
 const stringifyArgs = (args: unknown[]): string =>
   args
-    .map((a) =>
-      a instanceof Error
-        ? a.message
-        : typeof a === 'string'
-          ? a
-          : JSON.stringify(a),
-    )
+    .map((a) => {
+      let out: string | undefined;
+      if (a instanceof Error) {
+        out = a.message;
+      } else if (typeof a === 'string') {
+        out = a;
+      } else {
+        out = JSON.stringify(a);
+      }
+      return out;
+    })
     .join(' ');
 
 /**
@@ -28,7 +38,7 @@ const stringifyArgs = (args: unknown[]): string =>
  * Uses a WeakSet to avoid double-wrapping the same logger instance.
  */
 export class HmctsLoggerBridge {
-  private static wrapped = new WeakSet<LoggerWithLevels>();
+  private static readonly wrapped = new WeakSet<LoggerWithLevels>();
 
   static enable(name: string, client: TelemetryClient): HmctsLogger {
     const base = Logger.getLogger(name) as unknown as LoggerWithLevels;
