@@ -22,6 +22,8 @@
     "test:functional": "echo 'NODE_TLS_REJECT_UNAUTHORIZED=0 cypress run'",
     "cichecks": "yarn build && yarn lint && yarn test && yarn test:routes && yarn test:a11y",
     "prepare": "husky install"
+    ,"cypress:open": "cypress open"
+    ,"cypress:run": "cypress run"
   },
   "prettier": {
     "overrides": [

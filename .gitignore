@@ -48,8 +48,5 @@ Thumbs.db
 !.yarn/sdks
 !.yarn/versions
 
-# Cypress
-/cypress
-
 # Configuration files
 /config/development.json
