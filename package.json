@@ -15,7 +15,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "npx if-env CI=true && exit 0 || yarn test:unit",
     "test:unit": "jest",
-    "test:coverage": "jest --coverage",
+    "test:coverage": "jest --config jest.config.js --coverage",
     "test:routes": "jest -c jest.routes.config.js",
     "test:a11y": "jest --detectOpenHandles --forceExit -c jest.a11y.config.js --maxWorkers 15",
     "test:smoke": "NODE_TLS_REJECT_UNAUTHORIZED=0 jest -c jest.smoke.config.js",
