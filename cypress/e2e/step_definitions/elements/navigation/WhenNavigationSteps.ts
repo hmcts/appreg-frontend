@@ -1,5 +1,5 @@
 import { Given } from '@badeball/cypress-cucumber-preprocessor';
 
-Given('I open the application', () => {
+Given('User Is On The Portal Page', () => {
   cy.visit('/');
 });

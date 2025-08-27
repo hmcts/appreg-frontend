@@ -12,7 +12,7 @@ module.exports = defineConfig({
     specPattern: "cypress/e2e/**/*.feature",
     supportFile: "cypress/support/e2e.ts",
     fixturesFolder: "cypress/fixtures",
-    baseUrl: process.env.TEST_URL || "http://localhost:4000",
+    baseUrl: process.env.BASE_URL || "http://localhost:4000",
     async setupNodeEvents(on, config) {
       await addCucumberPreprocessorPlugin(on, {
         ...config,
@@ -37,6 +37,6 @@ module.exports = defineConfig({
       framework: "angular",
       bundler: "webpack",
     },
-    baseUrl: process.env.TEST_URL || "http://localhost:4000",
+    baseUrl: process.env.BASE_URL || "http://localhost:4000",
   },
 });
