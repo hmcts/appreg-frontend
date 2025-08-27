@@ -203,7 +203,7 @@ module.exports = defineConfig([
 
   // Cypress step definitions – parse TS syntax (no type-aware linting here)
   {
-    files: ["test/functional/**/*.steps.ts"],
+    files: ["cypress/e2e/step_definitions/**/*.ts", "cypress/support/**/*.ts"],
     plugins: {
       node: fixupPluginRules(nodePlugin),
       cypress: fixupPluginRules(cypressPlugin),
@@ -212,7 +212,9 @@ module.exports = defineConfig([
     languageOptions: {
       parser: tsParser,
       parserOptions: {
+        project: "./tsconfig.cypress.json",
         tsconfigRootDir: __dirname,
+        noWarnOnMultipleProjects: true,
       },
       globals: {
         ...globals.cypress,

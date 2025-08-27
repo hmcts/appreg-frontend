@@ -224,35 +224,35 @@ You can either run a provided script or install manually.
 ## Folder Structure
 
 cypress/
-  e2e/
-    features/
-      smoke/
-        smoke.feature
-    step_definitions/
-      elements/
-        navigation/
-          WhenNavigationSteps.ts
-  fixtures/
-    test-data.json
-  support/
-    e2e.js
+e2e/
+features/
+smoke/
+smoke.feature
+step_definitions/
+elements/
+navigation/
+WhenNavigationSteps.ts
+fixtures/
+test-data.json
+support/
+e2e.js
 
 ## Configuration Files
+
 - cypress.config.js: Cypress configuration
 - cypress.env.json: (optional) Local environment variables
 
 ## Running Tests Locally
 
 1. Install dependencies:
-      npm install
+   npm install
 
 2. Open Cypress UI:
-      npx cypress open
+   npx cypress open
 
    or run all tests headlessly:
-      npx cypress run
+   npx cypress run
 
 ## Sample Test
+
 A sample BDD feature file is provided at `cypress/e2e/features/smoke/smoke.feature` with step definitions in `cypress/e2e/step_definitions/elements/navigation/WhenNavigationSteps.ts`.
-
-
