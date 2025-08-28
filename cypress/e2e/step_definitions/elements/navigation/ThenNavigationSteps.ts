@@ -1,7 +1,7 @@
 import { Then } from '@badeball/cypress-cucumber-preprocessor';
-import { AssertionHelper } from '../../../../support/helper/assertion/assertionHelper';
+import { NavigationHelper } from '../../../../support/helper/navigation/NavigationHelper';
 
 Then('User Verify The Page Title Is {string}', (expectedTitle: string) => {
-  AssertionHelper.verifyPageTitle(expectedTitle);
+  NavigationHelper.verifyPageTitle(expectedTitle);
 
 });

@@ -4,3 +4,5 @@ import {NavigationHelper} from '../../../../support/helper/navigation/Navigation
 Given('User Is On The Portal Page', () => {
   NavigationHelper.navigateToPortalPage();
 });
+
+

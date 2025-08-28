@@ -10,4 +10,8 @@ export class NavigationHelper {
   static navigateToLogin() {
     cy.visit('/login');
   }
+
+  static verifyPageTitle(expectedTitle: string) {
+    cy.title().should('eq', expectedTitle);
+  }
 }
