@@ -4,7 +4,10 @@ import {
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { firstValueFrom } from 'rxjs';
+import { take } from 'rxjs/operators';
 
+import { API_BASE_URL } from '../../../../src/app/api-base-url.token';
 import { CourtHouse } from '../../../../src/app/core/models/court-house';
 import { CourthouseService } from '../../../../src/app/core/services/court-locations.service';
 
@@ -18,6 +21,7 @@ describe('CourtLocationsService', () => {
         CourthouseService,
         provideHttpClient(),
         provideHttpClientTesting(),
+        { provide: API_BASE_URL, useValue: '' }, // base URL
       ],
     });
     service = TestBed.inject(CourthouseService);
@@ -32,7 +36,7 @@ describe('CourtLocationsService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('getAllCourtLocations() should GET /court-locations and return data', async () => {
+  it('getAllCourtLocations$ should GET /court-locations and return data', (done) => {
     const mock: CourtHouse[] = [
       {
         id: 1,
@@ -60,17 +64,25 @@ describe('CourtLocationsService', () => {
       },
     ];
 
-    const promise = service.getAllCourtLocations();
+    service
+      .getAllCourtLocations$()
+      .pipe(take(1))
+      .subscribe({
+        next: (data) => {
+          expect(data).toEqual(mock);
+          done();
+        },
+        error: done,
+      });
+
     const req = httpMock.expectOne('/court-locations');
     expect(req.request.method).toBe('GET');
     req.flush(mock);
-    const data = await promise;
-    expect(data).toEqual(mock);
   });
 
-  it('getCourtLocationById() should GET /court-locations/:id and return data', async () => {
+  it('getCourtLocationById$ should GET /court-locations/:id and return data', (done) => {
     const mock: CourtHouse = {
-      id: 7,
+      id: 20,
       name: 'court 1',
       welshName: '',
       courtType: 'court type',
@@ -82,59 +94,69 @@ describe('CourtLocationsService', () => {
       endDate: '2023/12/31',
     };
 
-    const promise = service.getCourtLocationById(7);
+    service
+      .getCourtLocationById$(20)
+      .pipe(take(1))
+      .subscribe({
+        next: (data) => {
+          expect(data).toEqual(mock);
+          done();
+        },
+        error: done,
+      });
+
     const req = httpMock.expectOne('/court-locations/7');
     expect(req.request.method).toBe('GET');
     req.flush(mock);
-    const data = await promise;
-    expect(data).toEqual(mock);
   });
 
-  it('maps 404 for getCourtLocationById', async () => {
-    const promise = service.getCourtLocationById(9999999);
+  // 404
+  it('on 404, getCourtLocationById$ returns null and emits error$', async () => {
+    const dataP = firstValueFrom(
+      service.getCourtLocationById$(9999999).pipe(take(1)),
+    );
+    const errP = firstValueFrom(service.error$.pipe(take(1)));
+
     const req = httpMock.expectOne('/court-locations/9999999');
     expect(req.request.method).toBe('GET');
     req.flush('Not found', { status: 404, statusText: 'Not Found' });
 
-    await expect(promise).rejects.toMatchObject({
-      status: 404,
-      message: {
-        error: 'Court location not found',
-        status: 404,
-        message: expect.any(String),
-      },
-    });
+    const [data, msg] = await Promise.all([dataP, errP]);
+    expect(data).toBeNull();
+    expect(msg).toMatch(/court location not found/i);
   });
 
-  it('should map network error (status 0) for getAllCourtLocations()', async () => {
-    const promise = service.getAllCourtLocations();
+  // 0
+  it('on network error (0), getAllCourtLocations$ returns [] and emits error$', async () => {
+    const dataP = firstValueFrom(service.getAllCourtLocations$().pipe(take(1)));
+    const errP = firstValueFrom(service.error$.pipe(take(1)));
+
     const req = httpMock.expectOne('/court-locations');
     expect(req.request.method).toBe('GET');
-    req.flush('Unknown Error', { status: 0, statusText: 'Unknown Error' });
-
-    await expect(promise).rejects.toMatchObject({
+    req.error(new ProgressEvent('error'), {
       status: 0,
-      message: {
-        error: 'Unable to load court location. Please try again later',
-        status: 0,
-        message: expect.any(String),
-      },
+      statusText: 'Unknown Error',
     });
+
+    const [data, msg] = await Promise.all([dataP, errP]);
+    expect(data).toEqual([]);
+    // match the actual message your service returns
+    expect(msg).toMatch(
+      /Unable to load court location. Please try again later/i,
+    );
   });
 
-  it('maps 500 error for getAllCourtLocations', async () => {
-    const promise = service.getAllCourtLocations();
+  // 500
+  it('on 500, getAllCourtLocations$ returns [] and emits error$', async () => {
+    const dataP = firstValueFrom(service.getAllCourtLocations$().pipe(take(1)));
+    const errP = firstValueFrom(service.error$.pipe(take(1)));
+
     const req = httpMock.expectOne('/court-locations');
     expect(req.request.method).toBe('GET');
     req.flush('Server error', { status: 500, statusText: 'Server Error' });
 
-    await expect(promise).rejects.toMatchObject({
-      status: 500,
-      message: {
-        error: 'Server error',
-        status: 500,
-        message: expect.any(String),
-      },
-    });
+    const [data, msg] = await Promise.all([dataP, errP]);
+    expect(data).toEqual([]);
+    expect(msg).toMatch(/Server error./i);
   });
 });

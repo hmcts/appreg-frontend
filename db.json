@@ -1,0 +1,25 @@
+{
+  "court-locations": [
+    {
+      "id": 1,
+      "name": "Demo Court",
+      "postcode": "AB1 2CD",
+      "addressLines": ["123 Street"],
+      "telephoneNo": 1234567890
+    },
+    {
+      "id": 2,
+      "name": "Demo Court",
+      "postcode": "AB1 2CD",
+      "addressLines": ["123 Street"],
+      "telephoneNo": 1234567890
+    },
+    {
+      "id": 3,
+      "name": "Demo Court",
+      "postcode": "AB1 2CD",
+      "addressLines": ["123 Street"],
+      "telephoneNo": 1234567890
+    }
+  ]
+}

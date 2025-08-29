@@ -44,6 +44,18 @@ const logger: HmctsLogger = HmctsLoggerBridge.enable(
   AppInsights.client(),
 );
 
+// ----- CSP, workaround for CSP issue for testing DEV ENV ONLY
+if (developmentMode) {
+  // TODO: Production ready needs the API origin added instead of localhost
+  app.use((req, res, next) => {
+    res.setHeader(
+      'Content-Security-Policy',
+      "default-src 'self'; connect-src 'self' http://localhost:8080; img-src 'self'; script-src 'self'; style-src 'self'",
+    );
+    next();
+  });
+}
+
 // ----- Routes
 setupHealthcheck(app);
 setupInfoRoute(app);

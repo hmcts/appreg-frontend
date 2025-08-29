@@ -1,0 +1,39 @@
+<section aria-label="Court locations" class="govuk-main-wrapper">
+  @if (items$ | async; as items) {
+    @if (items.length) {
+      <ul class="govuk-list">
+        @for (c of items; track c.id) {
+          <li>
+            <!-- use a button, not a link -->
+            <button
+              type="button"
+              class="govuk-link"
+              (click)="loadCourtById(c.id)"
+            >
+              {{ c.name }} — {{ c.postcode }}
+            </button>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p>No court locations found.</p>
+    }
+  } @else {
+    <p>Loading court locations…</p>
+  }
+
+  @if (selected$ | async; as selected) {
+    @if (selected) {
+      <div class="govuk-inset-text">
+        <h2 class="govuk-heading-m">{{ selected.name }}</h2>
+        <p>{{ selected.addressLines.join(", ") }}</p>
+        <p>{{ selected.postcode }}</p>
+        <p>Tel: {{ selected.telephoneNo }}</p>
+      </div>
+    }
+  }
+
+  @if (error$ | async; as err) {
+    <div class="govuk-error-message">{{ err }}</div>
+  }
+</section>
