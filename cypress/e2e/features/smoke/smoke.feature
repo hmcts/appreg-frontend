@@ -1,5 +1,6 @@
 Feature: Smoke Test
 
+  @smoke
   Scenario: Visit the base URL
     Given User Is On The Portal Page
     Then User Verify The Page Title Is "HMCTS Applications Register - Home - GOV.UK"
