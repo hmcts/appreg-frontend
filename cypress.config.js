@@ -17,6 +17,9 @@ module.exports = defineConfig({
     inlineAssets: true,
     saveAllAttempts: false,
   },
+  typescript: {
+    configFile: 'tsconfig.cypress.json'
+  },
   e2e: {
     // Test Files Configuration
     specPattern: "cypress/e2e/**/*.feature",

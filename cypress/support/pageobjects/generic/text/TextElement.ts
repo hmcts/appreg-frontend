@@ -3,11 +3,11 @@ export class TextElement {
    * Returns a Cypress chainable for a text element by CSS selector
    * @param selector CSS selector for the text element
    */
-  static getText(selector: string) {
+  static getText(selector: string): Cypress.Chainable {
     return cy.get(selector);
   }
 
-  static getTextByContent(content: string) {
+  static getTextByContent(content: string): Cypress.Chainable {
     return cy.contains(content);
   }
 }

@@ -1,4 +1,5 @@
 import { When } from '@badeball/cypress-cucumber-preprocessor';
+
 import { ButtonHelper } from '../../../../support/helper/forms/button/ButtonHelper';
 
 When('User Signs In With Microsoft SSO As {string}', (userType: string) => {
@@ -18,7 +19,7 @@ When('User Signs In With Microsoft SSO As {string}', (userType: string) => {
   cy.origin(
     'https://login.microsoftonline.com',
     { args: { emailSSO, passwordSSO } },
-    ({ emailSSO, passwordSSO }) => {
+    ({ emailSSO: email, passwordSSO: password }) => {
       // Wait for page load and verify we're on the correct page
       cy.wait(2000, { log: false });
       cy.location('hostname', { timeout: 20000, log: false }).should('eq', 'login.microsoftonline.com', { log: false });

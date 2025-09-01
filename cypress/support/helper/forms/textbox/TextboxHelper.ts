@@ -6,7 +6,7 @@ export class TextboxHelper {
    * @param selector selector for the textbox
    * @param text The text to type
    */
-  static typeInTextbox(selector: string, text: string) {
+  static typeInTextbox(selector: string, text: string): void {
     TextboxElement.findTextbox(selector)
       .should('be.visible')
       .should('be.enabled')
@@ -17,7 +17,7 @@ export class TextboxHelper {
    * Clears text from a textbox
    * @param selector selector for the textbox
    */
-  static clearTextbox(selector: string) {
+  static clearTextbox(selector: string): void {
     TextboxElement.findTextbox(selector)
       .should('be.visible')
       .should('be.enabled')
@@ -28,7 +28,7 @@ export class TextboxHelper {
    * Gets the value from a textbox
    * @param selector Smart selector for the textbox
    */
-  static getValueInTextbox(selector: string) {
+  static getValueInTextbox(selector: string): Cypress.Chainable {
     return TextboxElement.findTextbox(selector)
       .invoke('val');
   }
@@ -37,7 +37,7 @@ export class TextboxHelper {
    * Checks if a textbox is enabled
    * @param selector Smart selector for the textbox
    */
-  static TextboxIsEnabled(selector: string) {
+  static TextboxIsEnabled(selector: string): Cypress.Chainable {
     return TextboxElement.findTextbox(selector)
       .should('be.enabled');
   }
@@ -46,7 +46,7 @@ export class TextboxHelper {
    * Checks if a textbox is disabled
    * @param selector Smart selector for the textbox
    */
-  static TextboxIsDisabled(selector: string) {
+  static TextboxIsDisabled(selector: string): Cypress.Chainable {
     return TextboxElement.findTextbox(selector)
       .should('be.disabled');
   }
@@ -55,7 +55,7 @@ export class TextboxHelper {
    * Checks if a textbox is visible
    * @param selector Smart selector for the textbox
    */
-  static TextboxIsVisible(selector: string) {
+  static TextboxIsVisible(selector: string): Cypress.Chainable {
     return TextboxElement.findTextbox(selector)
       .should('be.visible');
   }
