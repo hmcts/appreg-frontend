@@ -4,7 +4,6 @@
       <ul class="govuk-list">
         @for (c of items; track c.id) {
           <li>
-            <!-- use a button, not a link -->
             <button
               type="button"
               class="govuk-link"
@@ -26,14 +25,151 @@
     @if (selected) {
       <div class="govuk-inset-text">
         <h2 class="govuk-heading-m">{{ selected.name }}</h2>
-        <p>{{ selected.addressLines.join(", ") }}</p>
+        @if (selected.addressLines.length) {
+          <p>
+            {{ selected.addressLines.join(", ") }}
+          </p>
+        }
         <p>{{ selected.postcode }}</p>
-        <p>Tel: {{ selected.telephoneNo }}</p>
+        @if (selected.telephoneNo != null) {
+          <p>Tel: {{ selected.telephoneNo }}</p>
+        }
+        @if (selected.welshName) {
+          <p>Welsh name: {{ selected.welshName }}</p>
+        }
+        @if (selected.courtType) {
+          <p>Type: {{ selected.courtType }}</p>
+        }
+        @if (selected.courtLocationCode) {
+          <p>Code: {{ selected.courtLocationCode }}</p>
+        }
+        @if (selected.startDate) {
+          <p>Start: {{ selected.startDate }}</p>
+        }
+        @if (selected.endDate) {
+          <p>End: {{ selected.endDate }}</p>
+        }
+
+        <button
+          type="button"
+          class="govuk-button govuk-!-margin-top-2"
+          (click)="startEdit(selected)"
+          [disabled]="editingId === selected.id || saving"
+        >
+          Edit
+        </button>
       </div>
     }
   }
 
+  @if (editingId) {
+    <form class="govuk-form-group" [formGroup]="form" (ngSubmit)="save()">
+      <fieldset class="govuk-fieldset">
+        <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+          Edit court details
+        </legend>
+
+        <label class="govuk-label" for="name">Name</label>
+        <input id="name" class="govuk-input" formControlName="name" />
+
+        <label class="govuk-label govuk-!-margin-top-2" for="postcode"
+          >Postcode</label
+        >
+        <input id="postcode" class="govuk-input" formControlName="postcode" />
+
+        <label class="govuk-label govuk-!-margin-top-2" for="addressLines"
+          >Address lines (comma separated)</label
+        >
+        <input
+          id="addressLines"
+          class="govuk-input"
+          formControlName="addressLines"
+        />
+
+        <label class="govuk-label govuk-!-margin-top-2" for="telephoneNo"
+          >Telephone (optional)</label
+        >
+        <input
+          id="telephoneNo"
+          type="number"
+          class="govuk-input"
+          formControlName="telephoneNo"
+        />
+
+        <label class="govuk-label govuk-!-margin-top-2" for="welshName"
+          >Welsh name (optional)</label
+        >
+        <input id="welshName" class="govuk-input" formControlName="welshName" />
+
+        <label class="govuk-label govuk-!-margin-top-2" for="courtType"
+          >Type (optional)</label
+        >
+        <input id="courtType" class="govuk-input" formControlName="courtType" />
+
+        <label class="govuk-label govuk-!-margin-top-2" for="courtLocationCode"
+          >Location Code (optional)</label
+        >
+        <input
+          id="courtLocationCode"
+          class="govuk-input"
+          formControlName="courtLocationCode"
+        />
+
+        <label class="govuk-label govuk-!-margin-top-2" for="startDate"
+          >Start date</label
+        >
+        <span class="govuk-hint">Format: DD/MM/YYYY (optional)</span>
+        <input id="startDate" class="govuk-input" formControlName="startDate" />
+        @if (
+          form.get("startDate")?.touched &&
+          form.get("startDate")?.errors?.["dateFormat"]
+        ) {
+          <p class="govuk-error-message">Enter a valid date in DD/MM/YYYY.</p>
+        }
+
+        <label class="govuk-label govuk-!-margin-top-2" for="endDate"
+          >End date</label
+        >
+        <span class="govuk-hint">Format: DD/MM/YYYY (optional)</span>
+        <input id="endDate" class="govuk-input" formControlName="endDate" />
+        @if (
+          form.get("endDate")?.touched &&
+          form.get("endDate")?.errors?.["dateFormat"]
+        ) {
+          <p class="govuk-error-message">Enter a valid date in DD/MM/YYYY.</p>
+        }
+
+        @if ((form.touched || form.dirty) && form.errors?.['dateRange']) {
+          <p class="govuk-error-message">
+            Start date must be on or before end date or leave end date empty.
+          </p>
+        }
+
+        <div class="govuk-button-group govuk-!-margin-top-3">
+          <button
+            type="submit"
+            class="govuk-button"
+            [disabled]="form.invalid || form.pristine || saving"
+            [attr.title]="saveTitle"
+          >
+            {{ saveLabel }}
+          </button>
+
+          <button
+            type="button"
+            class="govuk-button govuk-button--secondary"
+            (click)="cancelEdit()"
+            [disabled]="saving"
+            [attr.title]="cancelTitle"
+          >
+            {{ cancelLabel }}
+          </button>
+        </div>
+      </fieldset>
+    </form>
+  }
+
   @if (error$ | async; as err) {
-    <div class="govuk-error-message">{{ err }}</div>
+    <div class="govuk-error-message govuk-!-margin-top-3">{{ err }}</div>
   }
 </section>

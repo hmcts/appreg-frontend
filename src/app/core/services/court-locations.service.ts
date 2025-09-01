@@ -34,6 +34,20 @@ export class CourthouseService {
     );
   }
 
+  updateCourtLocation$(
+    id: number,
+    body: Partial<CourtHouse>,
+  ): Observable<CourtHouse | null> {
+    return this.http
+      .put<CourtHouse>(`${this.base}/court-locations/${id}`, body)
+      .pipe(
+        catchError((err) => {
+          this.errorSubject.next(this.errorMsg(err));
+          return of(null as unknown as CourtHouse);
+        }),
+      );
+  }
+
   private errorMsg(err: unknown): string {
     const e =
       err instanceof HttpErrorResponse
