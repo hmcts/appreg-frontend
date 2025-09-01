@@ -4,5 +4,4 @@
 import './commands';
 import 'cypress-mochawesome-reporter/register';
 
-
 // You can add global before/after hooks if needed

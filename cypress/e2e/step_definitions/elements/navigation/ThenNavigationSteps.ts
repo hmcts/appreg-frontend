@@ -4,5 +4,4 @@ import { NavigationHelper } from '../../../../support/helper/navigation/Navigati
 
 Then('User Verify The Page Title Is {string}', (expectedTitle: string) => {
   NavigationHelper.verifyPageTitle(expectedTitle);
-
 });

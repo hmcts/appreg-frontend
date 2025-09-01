@@ -21,8 +21,9 @@ export class TextboxElement {
       case '&': // aria-label
         return cy.get(`input[aria-label="${value}"]`);
 
-      case '~': { // label text
-        return cy.contains('label', value).then($label => {
+      case '~': {
+        // label text
+        return cy.contains('label', value).then(($label) => {
           const forAttr = $label.attr('for');
           if (forAttr) {
             return cy.get(`#${forAttr}`);

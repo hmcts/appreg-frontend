@@ -29,8 +29,7 @@ export class TextboxHelper {
    * @param selector Smart selector for the textbox
    */
   static getValueInTextbox(selector: string): Cypress.Chainable {
-    return TextboxElement.findTextbox(selector)
-      .invoke('val');
+    return TextboxElement.findTextbox(selector).invoke('val');
   }
 
   /**
@@ -38,8 +37,7 @@ export class TextboxHelper {
    * @param selector Smart selector for the textbox
    */
   static TextboxIsEnabled(selector: string): Cypress.Chainable {
-    return TextboxElement.findTextbox(selector)
-      .should('be.enabled');
+    return TextboxElement.findTextbox(selector).should('be.enabled');
   }
 
   /**
@@ -47,8 +45,7 @@ export class TextboxHelper {
    * @param selector Smart selector for the textbox
    */
   static TextboxIsDisabled(selector: string): Cypress.Chainable {
-    return TextboxElement.findTextbox(selector)
-      .should('be.disabled');
+    return TextboxElement.findTextbox(selector).should('be.disabled');
   }
 
   /**
@@ -56,7 +53,6 @@ export class TextboxHelper {
    * @param selector Smart selector for the textbox
    */
   static TextboxIsVisible(selector: string): Cypress.Chainable {
-    return TextboxElement.findTextbox(selector)
-      .should('be.visible');
+    return TextboxElement.findTextbox(selector).should('be.visible');
   }
 }

@@ -22,8 +22,14 @@ When('User Signs In With Microsoft SSO As {string}', (userType: string) => {
     ({ emailSSO: email, passwordSSO: password }) => {
       // Wait for page load and verify we're on the correct page
       cy.wait(2000, { log: false });
-      cy.location('hostname', { timeout: 20000, log: false }).should('eq', 'login.microsoftonline.com', { log: false });
-      cy.document({ log: false }).should('not.have.property', 'documentMode', { log: false });
+      cy.location('hostname', { timeout: 20000, log: false }).should(
+        'eq',
+        'login.microsoftonline.com',
+        { log: false },
+      );
+      cy.document({ log: false }).should('not.have.property', 'documentMode', {
+        log: false,
+      });
 
       // Enter email and submit
       cy.get('input[name="loginfmt"]')
@@ -41,15 +47,11 @@ When('User Signs In With Microsoft SSO As {string}', (userType: string) => {
         .type(password);
 
       // Click Sign in
-      cy.get('input[type="submit"]')
-        .should('be.visible')
-        .click();
+      cy.get('input[type="submit"]').should('be.visible').click();
 
       // Handle "Stay signed in" prompt
       cy.wait(2000, { log: false });
-      cy.get('#idBtn_Back')
-        .should('be.visible')
-        .click();
-    }
+      cy.get('#idBtn_Back').should('be.visible').click();
+    },
   );
 });

@@ -5,5 +5,3 @@ import { NavigationHelper } from '../../../../support/helper/navigation/Navigati
 Given('User Is On The Portal Page', () => {
   NavigationHelper.navigateToPortalPage();
 });
-
-
