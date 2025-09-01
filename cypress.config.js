@@ -19,6 +19,7 @@ module.exports = defineConfig({
     responseTimeout: 30000,
     chromeWebSecurity: false,
     experimentalModifyObstructiveThirdPartyCode: true,
+    experimentalOriginDependencies: true,
     async setupNodeEvents(on, config) {
       // Set up environment variables for Microsoft AD login
       config.env = {

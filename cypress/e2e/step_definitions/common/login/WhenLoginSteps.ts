@@ -1,6 +1,5 @@
 import { When } from '@badeball/cypress-cucumber-preprocessor';
 import { ButtonHelper } from '../../../../support/helper/forms/button/ButtonHelper';
-import { TextboxHelper } from '../../../../support/helper/forms/textbox/TextboxHelper';
 
 When('User Signs In With Microsoft SSO As {string}', (userType: string) => {
   const ssoUsers = Cypress.env('SSO_USERS');
@@ -26,18 +25,29 @@ When('User Signs In With Microsoft SSO As {string}', (userType: string) => {
       cy.document({ log: false }).should('not.have.property', 'documentMode', { log: false });
       
       // Enter email and submit
-      TextboxHelper.typeInTextbox('@loginfmt', emailSSO);
-      ButtonHelper.clickButton('[type="submit"]');
+      cy.get('input[name="loginfmt"]')
+        .should('be.visible')
+        .should('be.enabled')
+        .type(emailSSO);
+      cy.get('input[type="submit"]')
+        .should('be.visible')
+        .click();
 
       // Enter password and submit
       cy.wait(2000, { log: false });
-      TextboxHelper.typeInTextbox('@passwd', passwordSSO);
-      ButtonHelper.clickButton('[type="submit"]');
+      cy.get('input[name="passwd"]')
+        .should('be.visible')
+        .should('be.enabled')
+        .type(passwordSSO);
+      cy.get('input[type="submit"]')
+        .should('be.visible')
+        .click();
 
       // Handle "Stay signed in" prompt
       cy.wait(2000, { log: false });
-      ButtonHelper.isButtonVisible('#idBtn_Back');
-      ButtonHelper.clickButton('#idBtn_Back');
+      cy.get('#idBtn_Back')
+        .should('be.visible')
+        .click();
     }
   );
 });
