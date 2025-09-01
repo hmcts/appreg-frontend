@@ -8,18 +8,37 @@ const {
 } = require("@badeball/cypress-cucumber-preprocessor/esbuild");
 
 module.exports = defineConfig({
+  // Report Configuration
+  reporter: 'cypress-mochawesome-reporter',
+  reporterOptions: {
+    charts: true,
+    reportPageTitle: 'Application Register Test Results',
+    embeddedScreenshots: true,
+    inlineAssets: true,
+    saveAllAttempts: false,
+  },
   e2e: {
+    // Test Files Configuration
     specPattern: "cypress/e2e/**/*.feature",
     supportFile: "cypress/support/e2e.ts",
     fixturesFolder: "cypress/fixtures",
+    
+    // Base URL and Timeouts
     baseUrl: process.env.BASE_URL || "http://localhost:4000",
     defaultCommandTimeout: 20000,
     pageLoadTimeout: 120000,
     requestTimeout: 20000,
     responseTimeout: 30000,
+    
+    // Browser and Security Settings
     chromeWebSecurity: false,
     experimentalModifyObstructiveThirdPartyCode: true,
     experimentalOriginDependencies: true,
+    
+    // Report and Media Settings
+    video: false,
+    screenshotOnRunFailure: true,
+    screenshotsFolder: 'cypress/reports/html/screenshots',
     async setupNodeEvents(on, config) {
       // Set up environment variables for Microsoft AD login
       config.env = {
@@ -36,6 +55,7 @@ module.exports = defineConfig({
         }
       };
       
+      require('cypress-mochawesome-reporter/plugin')(on);
       await addCucumberPreprocessorPlugin(on, {
         ...config,
         cucumber: {
