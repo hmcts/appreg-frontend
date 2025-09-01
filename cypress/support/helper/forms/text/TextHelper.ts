@@ -1,4 +1,4 @@
-import { TextElement } from '../../../pageobjects/webelements/text/TextElement';
+import { TextElement } from '../../../pageobjects/generic/text/TextElement';
 
 export class TextHelper {
   /**
