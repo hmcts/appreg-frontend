@@ -32,6 +32,19 @@ yarn start:dev
 
 ---
 
+## Accessibility (a11y) testing
+
+This project includes automated accessibility checks using pa11y.
+
+### Run the tests
+```bash
+yarn test:a11y
+```
+
+### Coverage
+
+Make sure all the paths in your application are covered by accessibility tests (see a11y.ts at src/test/a11y/a11y.ts). Add or update entries in that file whenever you introduce new pages or significant UI changes.
+
 ## MacOS & Linux
 
 You can either run a provided script or install manually.
