@@ -105,7 +105,7 @@ describe('CourtLocationsService', () => {
         error: done,
       });
 
-    const req = httpMock.expectOne('/court-locations/7');
+    const req = httpMock.expectOne('/court-locations/20');
     expect(req.request.method).toBe('GET');
     req.flush(mock);
   });
