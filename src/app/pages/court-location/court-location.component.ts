@@ -20,8 +20,8 @@ import {
 } from 'rxjs';
 import { map, startWith, switchMap, take } from 'rxjs/operators';
 
-import { CourtHouse } from '../../../core/models/court-house';
-import { CourthouseService } from '../../../core/services/court-locations.service';
+import { CourtHouse } from '../../core/models/court-house';
+import { CourthouseService } from '../../core/services/court-locations.service';
 
 @Component({
   selector: 'app-court-locations',
@@ -139,8 +139,12 @@ export class CourtLocationsComponent {
     a: { d: number; m: number; y: number },
     b: { d: number; m: number; y: number },
   ): number {
-    if (a.y !== b.y) {return a.y - b.y;}
-    if (a.m !== b.m) {return a.m - b.m;}
+    if (a.y !== b.y) {
+      return a.y - b.y;
+    }
+    if (a.m !== b.m) {
+      return a.m - b.m;
+    }
     return a.d - b.d;
   }
 
@@ -155,10 +159,14 @@ export class CourtLocationsComponent {
     const s = g.controls.startDate.value;
     const e = g.controls.endDate.value;
 
-    if (!s || !e) {return null;}
+    if (!s || !e) {
+      return null;
+    }
     const ps = this.parseToDMY(s.trim());
     const pe = this.parseToDMY(e.trim());
-    if (!ps || !pe) {return null;}
+    if (!ps || !pe) {
+      return null;
+    }
 
     return this.cmpDMY(ps, pe) <= 0 ? null : { dateRange: true };
   };

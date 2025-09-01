@@ -2,8 +2,8 @@ import { Routes } from '@angular/router';
 
 import { sessionGuard } from './guards/session.guard';
 import { ApplicationsList } from './pages/applications-list/applications-list';
+import { CourtLocationsComponent } from './pages/court-location/court-location.component';
 import { Login } from './pages/login/login';
-import { CourtLocationsComponent } from './shared/components/court-location/court-location.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
