@@ -4,7 +4,9 @@ const TEST_URL = process.env['TEST_URL'] || 'http://localhost:4000';
 
 describe('Smoke Test', () => {
   it('Home page loads', async () => {
-    const res = await fetch(`${TEST_URL}/`);
+    const res = await fetch(`${TEST_URL}/`, {
+      headers: { Accept: 'text/html' },
+    });
     expect(res.status).toBe(200);
 
     const html = await res.text();
