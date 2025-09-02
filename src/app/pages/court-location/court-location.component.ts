@@ -103,7 +103,7 @@ export class CourtLocationsComponent {
         : null;
     }
 
-    return null; // deliberately do not guess MM/DD/YYYY
+    return null;
   }
 
   private validDMY(d: number, m: number, y: number): boolean {
@@ -191,7 +191,7 @@ export class CourtLocationsComponent {
   }
 
   loadCourtById(id: number): void {
-    void this.router.navigate(['/national-court-houses', id]);
+    void this.router.navigate(['/court-locations', id]);
   }
 
   readonly error$ = inject(ErrorBus).error$;
