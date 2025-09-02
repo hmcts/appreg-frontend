@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -9,7 +10,15 @@ import {
 } from '@angular/ssr/node';
 import type { HmctsLogger } from '@hmcts/nodejs-logging';
 import config from 'config';
-import express from 'express';
+import cookieParser from 'cookie-parser';
+import express, {
+  type NextFunction,
+  type Request,
+  RequestHandler,
+  type Response,
+} from 'express';
+import * as httpProxy from 'http-proxy-middleware';
+type ProxyOptions = httpProxy.Options;
 
 import { AppInsights } from './modules/appinsights';
 import { Helmet } from './modules/helmet';
@@ -26,6 +35,7 @@ const browserDistFolder = join(__dirname, '../browser');
 // ----- App + Angular engine
 const app = express();
 const angularApp = new AngularNodeAppEngine();
+app.use(cookieParser());
 
 // ----- Env
 const env = process.env['NODE_ENV'] || 'development';
@@ -38,6 +48,74 @@ const CONNECTION_STRING = config.get<string>(
 await new PropertiesVolume().enableFor(app);
 new Helmet(developmentMode).enableFor(app);
 AppInsights.enable(CONNECTION_STRING);
+
+// ---- helpers
+type Cookies = Record<string, string | undefined>;
+
+function cookiesOf(req: Request): Cookies {
+  const c = (req as Request & { cookies?: unknown }).cookies;
+  return c && typeof c === 'object' && !Array.isArray(c) ? (c as Cookies) : {};
+}
+
+// 1) Issue XSRF token on safe methods for everyone (so Angular can echo it)
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (
+    req.method === 'GET' ||
+    req.method === 'HEAD' ||
+    req.method === 'OPTIONS'
+  ) {
+    const cookies = cookiesOf(req);
+    if (!cookies['XSRF-TOKEN']) {
+      const token = crypto.randomBytes(16).toString('hex');
+      res.cookie('XSRF-TOKEN', token, {
+        httpOnly: false,
+        sameSite: 'lax',
+        secure: process.env['NODE_ENV'] === 'production',
+        path: '/',
+      });
+    }
+  }
+  next();
+});
+
+const proxyOptions: ProxyOptions = {
+  target: 'http://localhost:4550',
+  changeOrigin: true,
+  xfwd: true,
+};
+
+const apiProxy: RequestHandler = httpProxy.createProxyMiddleware(proxyOptions);
+
+// 3) Global API gate (skip SSR HTML, static assets, and node routes)
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const accept = String(req.headers['accept'] ?? '');
+  const path = req.path;
+
+  const isHtmlNav = accept.includes('text/html');
+  const isStatic = /^\/(assets|browser|favicon\.ico)/.test(path);
+  const isNodeRoute = /^\/(health|info|sso|login|logout)(\/|$)/.test(path);
+
+  if (isHtmlNav || isStatic || isNodeRoute) {
+    return next();
+  }
+
+  // CSRF check for mutating methods
+  if (
+    req.method === 'POST' ||
+    req.method === 'PUT' ||
+    req.method === 'PATCH' ||
+    req.method === 'DELETE'
+  ) {
+    const cookies = cookiesOf(req);
+    const cookie = cookies['XSRF-TOKEN'];
+    const header = req.get('X-XSRF-TOKEN');
+    if (!cookie || !header || cookie !== header) {
+      return res.sendStatus(403);
+    }
+  }
+
+  return apiProxy(req, res, next);
+});
 
 const logger: HmctsLogger = HmctsLoggerBridge.enable(
   'hmcts applications register - server',
