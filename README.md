@@ -1,4 +1,4 @@
-# AppregFrontend
+# Applications Register Frontend
 
 This README contains a setup guide for setting up your dev environment (Copied from [Confluence](https://tools.hmcts.net/confluence/display/ARM/Frontend+development+setup+for+new+users)).
 
@@ -32,18 +32,117 @@ yarn start:dev
 
 ---
 
-## Accessibility (a11y) testing
+## Developing
+
+### Code style
+
+We use [ESLint](https://github.com/typescript-eslint/typescript-eslint)
+
+Running the linting with auto fix:
+
+```bash
+yarn lint:fix
+```
+
+### Unit testing
+
+This app uses [Jest](https://jestjs.io//) as the test engine for unit tests.
+
+#### Run unit tests
+
+```bash
+yarn test
+```
+
+#### Run unit tests with coverage (consumed by SonarQube)
+
+```bash
+yarn test:coverage
+```
+
+#### Coverage
+
+- **Target:** To meet **HMCTS ways of working**, overall test coverage must be **≥ 80%**.
+
+- Ensure new and changed logic includes tests that keep the project at or above this threshold.
+
+- Focus on:
+
+  - Pure functions, utilities, and components
+
+  - Happy paths, edge cases, and error handling
+
+  - Modules with external dependencies (use mocks/stubs where appropriate)
+
+Place tests under test/unit/**, and add/update tests whenever you introduce new code or significant changes.
+
+### Route testing
+
+This app uses [Jest](https://jestjs.io//) as the test engine for route-level tests.
+
+#### Run the tests
+
+```bash
+yarn test:routes
+```
+
+#### Coverage
+
+Ensure each HTTP route is exercised, including:
+
+- Expected status codes, headers, and response bodies.
+
+- Validation failures, error paths, and error handlers.
+
+- Authentication/authorization checks, redirects, and cache/control behavior where relevant.
+
+Place tests under test/routes/**, and add/update tests whenever you introduce new endpoints or make significant changes to existing routes.
+
+### Accessibility (a11y) testing
 
 This project includes automated accessibility checks using pa11y.
 
-### Run the tests
+#### Run the tests
+
 ```bash
 yarn test:a11y
 ```
 
-### Coverage
+#### Coverage
 
-Make sure all the paths in your application are covered by accessibility tests (see a11y.ts at src/test/a11y/a11y.ts). Add or update entries in that file whenever you introduce new pages or significant UI changes.
+Make sure all the paths in your application are covered by accessibility tests (see a11y.ts at test/a11y/app.a11y.spec.ts). Add or update entries in that file whenever you introduce new pages or significant UI changes.
+
+### Security
+
+#### Helmet
+
+This application uses [Helmet](https://helmetjs.github.io/), which adds various security-related HTTP headers
+to the responses. Apart from default Helmet functions, following headers are set:
+
+- [Referrer-Policy](https://helmetjs.github.io/docs/referrer-policy/)
+- [Content-Security-Policy](https://helmetjs.github.io/docs/csp/)
+
+There is a configuration section related with those headers, where you can specify:
+
+- `referrerPolicy` - value of the `Referrer-Policy` header
+
+Here's an example setup:
+
+```json
+    "security": {
+"referrerPolicy": "origin",
+}
+```
+
+Make sure you have those values set correctly for your application.
+
+### Healthcheck
+
+The application exposes a health endpoint (https://localhost:4000/health), created with the use of
+[Nodejs Healthcheck](https://github.com/hmcts/nodejs-healthcheck) library. This endpoint is defined
+in [health.ts](src/routes/health.ts) file. Make sure you adjust it correctly in your application.
+In particular, remember to replace the sample check with checks specific to your frontend app,
+e.g. the ones verifying the state of each service it depends on.
 
 ## MacOS & Linux
 
@@ -53,9 +152,10 @@ You can either run a provided script or install manually.
 
 1. Clone the Git repo
 2. Run the `appreg-env-setup.sh` script in your terminal (ensure you are in the root directory of the repo)
-   - This script runs through the steps of the manual installation
-   - If the script fails, attempt installation manually
-   - If you get `permission denied` errors, run:
+
+- This script runs through the steps of the manual installation
+- If the script fails, attempt installation manually
+- If you get `permission denied` errors, run:
 
    ```bash
    sudo chmod +x appreg-env-setup.sh
@@ -176,8 +276,9 @@ You can either run a provided script or install manually.
 
 1. Clone Git repo
 2. Install Node.js version 20.19.4:
-   - **Option 1 (simpler):** Install from [Node.js site](https://nodejs.org/en/download)
-   - **Option 2:** Install `nvm-windows` from [here](https://github.com/coreybutler/nvm-windows?tab=readme-ov-file)
+
+- **Option 1 (simpler):** Install from [Node.js site](https://nodejs.org/en/download)
+- **Option 2:** Install `nvm-windows` from [here](https://github.com/coreybutler/nvm-windows?tab=readme-ov-file)
 
    ```powershell
    nvm install 20.19.4
