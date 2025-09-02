@@ -77,7 +77,7 @@ describe('CourtLocationsComponent', () => {
   it('navigates on loadCourtById()', () => {
     component.loadCourtById(7);
     expect(routerMock.navigate).toHaveBeenCalledWith([
-      '/national-court-houses',
+      '/court-locations',
       7,
     ]);
   });
