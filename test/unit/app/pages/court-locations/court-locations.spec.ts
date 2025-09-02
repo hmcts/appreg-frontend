@@ -76,10 +76,7 @@ describe('CourtLocationsComponent', () => {
 
   it('navigates on loadCourtById()', () => {
     component.loadCourtById(7);
-    expect(routerMock.navigate).toHaveBeenCalledWith([
-      '/court-locations',
-      7,
-    ]);
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/court-locations', 7]);
   });
 
   it('requests selected details when route id is present', () => {

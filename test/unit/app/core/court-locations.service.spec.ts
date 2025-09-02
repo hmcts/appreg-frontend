@@ -139,7 +139,9 @@ describe('CourtLocationsService', () => {
 
     const [data, msg] = await Promise.all([dataP, errP]);
     expect(data).toEqual([]);
-    expect(msg).toMatch(/Unable to load court location. Please try again later/i);
+    expect(msg).toMatch(
+      /Unable to load court location. Please try again later/i,
+    );
   });
 
   it('on 500, getAllCourtLocations$ returns [] and emits error$', async () => {

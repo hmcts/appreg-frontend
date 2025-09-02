@@ -16,15 +16,15 @@ export class CourthouseService {
     return this.api
       .get<Page<CourtHouse>>(this.basePath, { params: { size: 50 } })
       .pipe(
-        map(res => res?.content ?? []),
-        catchError(() => of([]))
+        map((res) => res?.content ?? []),
+        catchError(() => of([])),
       );
   }
 
   getCourtLocationById$(id: number): Observable<CourtHouse | null> {
-    return this.api.get<CourtHouse>(`${this.basePath}/${id}`).pipe(
-      catchError(() => of(null))
-    );
+    return this.api
+      .get<CourtHouse>(`${this.basePath}/${id}`)
+      .pipe(catchError(() => of(null)));
   }
 
   updateCourtLocation$(
