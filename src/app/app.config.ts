@@ -1,4 +1,9 @@
-import { provideHttpClient } from '@angular/common/http';
+import {
+  HttpInterceptorFn,
+  provideHttpClient,
+  withInterceptors,
+  withXsrfConfiguration,
+} from '@angular/common/http';
 import {
   ApplicationConfig,
   provideBrowserGlobalErrorListeners,
@@ -10,8 +15,15 @@ import {
 } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 
-import { API_BASE_URL } from './api-base-url.token';
 import { routes } from './app.routes';
+import {
+  API_BASE_URL,
+  apiInterceptor,
+} from './core/services/api-client.service';
+
+export const credentialsInterceptor: HttpInterceptorFn = (req, next) => {
+  return next(req.clone({ withCredentials: true }));
+};
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -19,7 +31,13 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideClientHydration(withEventReplay()),
-    provideHttpClient(),
-    { provide: API_BASE_URL, useValue: 'http://localhost:8080' },
+    provideHttpClient(
+      withInterceptors([apiInterceptor]),
+      withXsrfConfiguration({
+        cookieName: 'XSRF-TOKEN',
+        headerName: 'X-XSRF-TOKEN',
+      }),
+    ),
+    { provide: API_BASE_URL, useValue: 'http://localhost:4550' },
   ],
 };

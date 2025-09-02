@@ -17,26 +17,17 @@ describe('CourtLocationsComponent', () => {
     {
       id: 1,
       name: 'Demo Court',
-      postcode: 'AB1 2CD',
-      addressLines: ['1 St'],
-      telephoneNo: 123,
       courtType: '',
     },
     {
       id: 2,
       name: 'Demo Court 2',
-      postcode: 'AB1 2CD',
-      addressLines: ['2 St'],
-      telephoneNo: 456,
       courtType: '',
     },
   ];
   const DETAIL_2: CourtHouse = {
     id: 2,
     name: 'Demo Court 2',
-    postcode: 'AB1 2CD',
-    addressLines: ['2 St'],
-    telephoneNo: 456,
     endDate: '01/01/2002',
     courtType: '',
   };
@@ -85,7 +76,10 @@ describe('CourtLocationsComponent', () => {
 
   it('navigates on loadCourtById()', () => {
     component.loadCourtById(7);
-    expect(routerMock.navigate).toHaveBeenCalledWith(['/court-locations', 7]);
+    expect(routerMock.navigate).toHaveBeenCalledWith([
+      '/national-court-houses',
+      7,
+    ]);
   });
 
   it('requests selected details when route id is present', () => {
@@ -100,8 +94,6 @@ describe('CourtLocationsComponent', () => {
     expect(component.editingId).toBe(2);
     const v = component.form.getRawValue();
     expect(v.name).toBe(DETAIL_2.name);
-    expect(v.postcode).toBe(DETAIL_2.postcode);
-    expect(v.addressLines).toBe('2 St');
     expect(component.form.pristine).toBe(true);
   });
 
@@ -126,8 +118,6 @@ describe('CourtLocationsComponent', () => {
     // Valid form
     component.form.patchValue({
       name: 'Updated',
-      postcode: 'AB1 2CD',
-      addressLines: '2 St',
       startDate: '2024-10-09',
       endDate: '10/10/2024',
     });
@@ -149,7 +139,6 @@ describe('CourtLocationsComponent', () => {
       name: 'Updated',
       startDate: '09/10/2024',
       endDate: '10/10/2024',
-      addressLines: ['2 St'],
     });
 
     expect(component.editingId).toBeNull();

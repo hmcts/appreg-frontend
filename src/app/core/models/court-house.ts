@@ -4,9 +4,6 @@ export interface CourtHouse {
   welshName?: string;
   courtType: string;
   courtLocationCode?: string;
-  addressLines: string[];
-  postcode: string;
-  telephoneNo: number;
   startDate?: string;
   endDate?: string;
 }

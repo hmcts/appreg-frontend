@@ -21,6 +21,7 @@ import {
 import { map, startWith, switchMap, take } from 'rxjs/operators';
 
 import { CourtHouse } from '../../core/models/court-house';
+import { ErrorBus } from '../../core/services/api-client.service';
 import { CourthouseService } from '../../core/services/court-locations.service';
 
 @Component({
@@ -190,10 +191,10 @@ export class CourtLocationsComponent {
   }
 
   loadCourtById(id: number): void {
-    void this.router.navigate(['/court-locations', id]);
+    void this.router.navigate(['/national-court-houses', id]);
   }
 
-  readonly error$ = this.svc.error$;
+  readonly error$ = inject(ErrorBus).error$;
 
   editingId: number | null = null;
   saving = false;
@@ -201,9 +202,6 @@ export class CourtLocationsComponent {
   readonly form = this.fb.nonNullable.group(
     {
       name: ['', [this.required, Validators.maxLength(120)]],
-      postcode: ['', [this.required]],
-      addressLines: ['', [this.required]],
-      telephoneNo: this.fb.control<number | null>(null),
       welshName: this.fb.control<string | null>(null),
       courtType: this.fb.control<string | null>(null),
       courtLocationCode: this.fb.control<string | null>(null),
@@ -221,9 +219,6 @@ export class CourtLocationsComponent {
     this.editingId = c.id;
     this.form.reset({
       name: c.name ?? '',
-      postcode: c.postcode ?? '',
-      addressLines: (c.addressLines ?? []).join(', '),
-      telephoneNo: c.telephoneNo ?? null,
       welshName: c.welshName ?? null,
       courtType: c.courtType ?? null,
       courtLocationCode: c.courtLocationCode ?? null,
@@ -251,12 +246,6 @@ export class CourtLocationsComponent {
     const v = this.form.getRawValue();
     const body = {
       name: v.name,
-      postcode: v.postcode,
-      addressLines: v.addressLines
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean),
-      telephoneNo: v.telephoneNo ?? null,
       welshName: v.welshName ?? null,
       courtType: v.courtType ?? null,
       courtLocationCode: v.courtLocationCode ?? null,
