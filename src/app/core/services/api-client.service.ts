@@ -65,10 +65,14 @@ const errorMsg = (err: ApiError): string => {
 };
 
 const isAbsolute = (u: string) => /^https?:\/\//i.test(u);
-const joinUrl = (base: string, url: string) =>
-  isAbsolute(url)
-    ? url
-    : `${base.replace(/\/+$/, '')}/${url.replace(/^\/+/, '')}`;
+export const joinUrl = (base: string, url: string): string => {
+  if (isAbsolute(url)) {
+    return url;
+  }
+  const a = base.endsWith('/') ? base.slice(0, -1) : base;
+  const b = url.startsWith('/') ? url.slice(1) : url;
+  return `${a}/${b}`;
+};
 
 export const apiInterceptor: HttpInterceptorFn = (req, next) => {
   const base = inject(API_BASE_URL);
