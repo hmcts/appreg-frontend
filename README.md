@@ -4,24 +4,6 @@ This README contains a setup guide for setting up your dev environment (Copied f
 
 ---
 
-## Prereqs
-
-- Ensure you have **nvm** and **node** installed (**node: 20.19.4**)
-- You don’t need Yarn installed locally
-
----
-
-## Setup
-
-```bash
-corepack enable
-yarn install
-yarn build
-yarn start:dev
-```
-
----
-
 ## Prerequisites
 
 - HMCTS.NET account
