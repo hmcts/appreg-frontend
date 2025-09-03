@@ -1,4 +1,4 @@
-export interface CourtHouse {
+export interface NationalCourtHouse {
   id: number;
   name: string;
   welshName?: string;

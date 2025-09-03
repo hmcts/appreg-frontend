@@ -7,28 +7,28 @@ import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { take } from 'rxjs/operators';
 
-import { CourtHouse } from '../../../../src/app/core/models/court-house';
+import { NationalCourtHouse } from '../../../../src/app/core/models/court-house';
 import {
   ErrorBus,
   apiInterceptor,
 } from '../../../../src/app/core/services/api-client.service';
-import { CourthouseService } from '../../../../src/app/core/services/court-locations.service';
+import { NationalCourtHouseService } from '../../../../src/app/core/services/national-court-houses.service';
 
 describe('CourtLocationsService', () => {
-  let service: CourthouseService;
+  let service: NationalCourtHouseService;
   let httpMock: HttpTestingController;
   let bus: ErrorBus;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        CourthouseService,
+        NationalCourtHouseService,
         ErrorBus,
         provideHttpClient(withInterceptors([apiInterceptor])),
         provideHttpClientTesting(),
       ],
     });
-    service = TestBed.inject(CourthouseService);
+    service = TestBed.inject(NationalCourtHouseService);
     httpMock = TestBed.inject(HttpTestingController);
     bus = TestBed.inject(ErrorBus);
   });
@@ -42,7 +42,7 @@ describe('CourtLocationsService', () => {
   });
 
   it('getAllCourtLocations$ should GET /national-court-houses and return data', async () => {
-    const mock: CourtHouse[] = [
+    const mock: NationalCourtHouse[] = [
       {
         id: 1,
         name: 'court 1',
@@ -77,7 +77,7 @@ describe('CourtLocationsService', () => {
   });
 
   it('getCourtLocationById$ should GET /national-court-houses/:id and return data', (done) => {
-    const mock: CourtHouse = {
+    const mock: NationalCourtHouse = {
       id: 20,
       name: 'court 1',
       welshName: '',
