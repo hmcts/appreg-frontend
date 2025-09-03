@@ -75,19 +75,6 @@ export class ApplicationsList implements OnInit {
       // TODO: handle create using `values`
     }
   }
-
-  private buildTableRows(): void {
-    this.tableRows = (this.lists ?? []).map((l) => ({
-      id: l.id,
-      date: l.date,
-      time: l.time,
-      location: l.courthouse?.name ?? 'N/A',
-      description: l.description,
-      entries: 0, // TODO: replace with real count when available
-      status: l.status,
-    }));
-  }
-
   loadApplications(): void {
     // TODO: fetch lists
   }
