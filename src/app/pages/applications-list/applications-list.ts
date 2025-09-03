@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
-import { ApplicationList } from '../../models/application-list';
+import { ApplicationList } from '../../core/models/application-list';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
   Duration,

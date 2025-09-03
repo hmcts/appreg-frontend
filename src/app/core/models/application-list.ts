@@ -1,4 +1,4 @@
-import { CourtHouse } from './court-house';
+import { NationalCourtHouse } from './national-court-house';
 
 export interface ApplicationList {
   id: number;
@@ -9,7 +9,7 @@ export interface ApplicationList {
   changedDate: string;
   changedBy: string;
   version: number;
-  courthouse: CourtHouse;
+  courthouse: NationalCourtHouse;
   cja: 'Default CJA';
   location: '-';
   hours: '05';
