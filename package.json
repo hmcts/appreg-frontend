@@ -116,7 +116,7 @@
     "stylelint-scss": "^6.12.1",
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.1",
-    "typescript": "~5.8.2"
+    "typescript": "~5.9.0"
   },
   "packageManager": "yarn@4.8.1"
 }
