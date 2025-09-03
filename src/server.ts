@@ -70,34 +70,7 @@ app.use(
   }),
 );
 
-// ----- SSR handler
-app.use((req, res, next) => {
-  angularApp
-    .handle(req)
-    .then((response) =>
-      response ? writeResponseToNodeResponse(response, res) : next(),
-    )
-    .catch(next);
-});
-
-// ----- Listen (only when running as entrypoint)
-if (isMainModule(import.meta.url)) {
-  const port = process.env['PORT'] || 4000;
-  app.listen(port, (error) => {
-    if (error) {
-      throw error;
-    }
-
-    logger.info(
-      `Apps Reg Node Express server listening on http://localhost:${port}`,
-    );
-  });
-}
-
-// ----- Export for CLI/dev server / Cloud Functions
-export const reqHandler = createNodeRequestHandler(app);
-
-// CSRF
+// CSRF + proxy
 type Cookies = Record<string, string | undefined>;
 
 function cookiesOf(req: Request): Cookies {
@@ -138,21 +111,21 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   const path = req.path;
 
   const isHtmlNav = accept.includes('text/html');
-  const isStatic = /^\/(assets|browser|favicon\.ico)/.test(path);
+  const isStatic =
+    req.method === 'GET' &&
+    (path.startsWith('/assets/') ||
+      path.startsWith('/browser/') ||
+      /\.(?:js|mjs|css|map|json|png|jpe?g|gif|svg|webp|ico|woff2?|ttf)$/.test(
+        path,
+      ));
   const isNodeRoute = /^\/(health|info|sso|login|logout)(\/|$)/.test(path);
 
   if (isHtmlNav || isStatic || isNodeRoute) {
     return next();
   }
 
-  if (
-    req.method === 'POST' ||
-    req.method === 'PUT' ||
-    req.method === 'PATCH' ||
-    req.method === 'DELETE'
-  ) {
-    const cookies = cookiesOf(req);
-    const cookie = cookies['XSRF-TOKEN'];
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
+    const cookie = cookiesOf(req)['XSRF-TOKEN'];
     const header = req.get('X-XSRF-TOKEN');
     if (!cookie || !header || cookie !== header) {
       return res.sendStatus(403);
@@ -161,3 +134,30 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
   return apiProxy(req, res, next);
 });
+
+// ----- SSR handler
+app.use((req, res, next) => {
+  angularApp
+    .handle(req)
+    .then((response) =>
+      response ? writeResponseToNodeResponse(response, res) : next(),
+    )
+    .catch(next);
+});
+
+// ----- Listen (only when running as entrypoint)
+if (isMainModule(import.meta.url)) {
+  const port = process.env['PORT'] || 4000;
+  app.listen(port, (error) => {
+    if (error) {
+      throw error;
+    }
+
+    logger.info(
+      `Apps Reg Node Express server listening on http://localhost:${port}`,
+    );
+  });
+}
+
+// ----- Export for CLI/dev server / Cloud Functions
+export const reqHandler = createNodeRequestHandler(app);
