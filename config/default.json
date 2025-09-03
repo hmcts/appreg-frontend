@@ -28,5 +28,6 @@
     "cookieName": "appreg.sid",
     "secret": "change-me-in-env",
     "secure": false
-  }
+  },
+  "api": { "baseUrl": "http://localhost:4550" }
 }

@@ -35,8 +35,8 @@ export class Helmet {
       helmet({
         contentSecurityPolicy: {
           directives: {
-            connectSrc: [self],
-            defaultSrc: ["'none'"],
+            connectSrc: ["'self'", 'http://localhost:4550'],
+            defaultSrc: ["'self'", 'http://localhost:4550'],
             fontSrc: [self, 'data:'],
             imgSrc: [self, googleAnalyticsDomain],
             objectSrc: [self],

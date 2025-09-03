@@ -1,5 +1,5 @@
 apiVersion: v2
-appVersion: "1.0"
+appVersion: '1.0'
 description: A Helm chart for appreg-frontend App
 name: appreg-frontend
 home: https://github.com/hmcts/appreg-frontend
@@ -7,4 +7,4 @@ version: 0.0.11
 dependencies:
   - name: nodejs
     version: 3.2.0
-    repository: "oci://hmctspublic.azurecr.io/helm"
+    repository: 'oci://hmctspublic.azurecr.io/helm'
