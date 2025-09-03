@@ -28,6 +28,7 @@
     "cypress:run:cucumber": "cypress run && yarn cucumber:report"
   },
   "prettier": {
+    "singleQuote": true,
     "overrides": [
       {
         "files": "*.html",
