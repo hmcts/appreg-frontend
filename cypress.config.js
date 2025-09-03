@@ -13,21 +13,21 @@ module.exports = defineConfig({
   },
   e2e: {
     // Report Configuration
-    reporter: 'cypress-multi-reporters',
+    reporter: "cypress-multi-reporters",
     reporterOptions: {
-      reporterEnabled: 'cypress-mochawesome-reporter, mocha-junit-reporter',
+      reporterEnabled: "cypress-mochawesome-reporter, mocha-junit-reporter",
       mochaJunitReporterReporterOptions: {
-        mochaFile: 'cypress/reports/junit/e2e-results-[hash].xml',
-        toConsole: false
+        mochaFile: "cypress/reports/junit/e2e-results-[hash].xml",
+        toConsole: false,
       },
       cypressMochawesomeReporterReporterOptions: {
-        reportDir: 'cypress/reports/e2e',
+        reportDir: "cypress/reports/e2e",
         charts: true,
-        reportPageTitle: 'Application Register E2E Test Results',
+        reportPageTitle: "Application Register E2E Test Results",
         embeddedScreenshots: true,
         html: true,
-        json: true
-      }
+        json: true,
+      },
     },
     // Test Files Configuration
     specPattern: "cypress/e2e/**/*.feature",
@@ -51,7 +51,7 @@ module.exports = defineConfig({
     screenshotOnRunFailure: true,
     screenshotsFolder: "cypress/reports/html/screenshots",
     async setupNodeEvents(on, config) {
-      require('cypress-mochawesome-reporter/plugin')(on);
+      require("cypress-mochawesome-reporter/plugin")(on);
       // Set up environment variables for Microsoft AD login
       config.env = {
         ...config.env,
@@ -104,21 +104,21 @@ module.exports = defineConfig({
     },
     baseUrl: process.env.BASE_URL || "http://localhost:4000",
     // Component Test Report Configuration
-    reporter: 'cypress-multi-reporters',
+    reporter: "cypress-multi-reporters",
     reporterOptions: {
-      reporterEnabled: 'cypress-mochawesome-reporter, mocha-junit-reporter',
+      reporterEnabled: "cypress-mochawesome-reporter, mocha-junit-reporter",
       mochaJunitReporterReporterOptions: {
-        mochaFile: 'cypress/reports/junit/component-results-[hash].xml',
-        toConsole: false
+        mochaFile: "cypress/reports/junit/component-results-[hash].xml",
+        toConsole: false,
       },
       cypressMochawesomeReporterReporterOptions: {
-        reportDir: 'cypress/reports/component',
+        reportDir: "cypress/reports/component",
         charts: true,
-        reportPageTitle: 'Application Register Component Test Results',
+        reportPageTitle: "Application Register Component Test Results",
         embeddedScreenshots: true,
         html: true,
-        json: true
-      }
-    }
+        json: true,
+      },
+    },
   },
 });

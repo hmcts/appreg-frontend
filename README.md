@@ -246,6 +246,7 @@ Or, to run tests and generate the report in one step:
 yarn cypress:run:cucumber
 
 This will:
+
 - Run your Cypress tests and generate a Cucumber JSON report in cypress/reports/cucumber-json/
 - Create an HTML report in cypress/reports/cucumber-html/ with custom headings and run info
 
