@@ -16,10 +16,7 @@ import {
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
-import {
-  API_BASE_URL,
-  apiInterceptor,
-} from './core/services/api-client.service';
+import { apiInterceptor } from './core/services/api-client.service';
 
 export const credentialsInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req.clone({ withCredentials: true }));
@@ -38,6 +35,5 @@ export const appConfig: ApplicationConfig = {
         headerName: 'X-XSRF-TOKEN',
       }),
     ),
-    { provide: API_BASE_URL, useValue: 'http://localhost:4550' },
   ],
 };

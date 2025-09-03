@@ -9,7 +9,6 @@ import { take } from 'rxjs/operators';
 
 import { CourtHouse } from '../../../../src/app/core/models/court-house';
 import {
-  API_BASE_URL,
   ErrorBus,
   apiInterceptor,
 } from '../../../../src/app/core/services/api-client.service';
@@ -25,7 +24,6 @@ describe('CourtLocationsService', () => {
       providers: [
         CourthouseService,
         ErrorBus,
-        { provide: API_BASE_URL, useValue: '' },
         provideHttpClient(withInterceptors([apiInterceptor])),
         provideHttpClientTesting(),
       ],

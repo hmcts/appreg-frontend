@@ -191,6 +191,9 @@ export class CourtLocationsComponent {
   }
 
   loadCourtById(id: number): void {
+    if (!Number.isFinite(id)) {
+      return;
+    }
     void this.router.navigate(['/court-locations', id]);
   }
 

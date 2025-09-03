@@ -43,6 +43,7 @@ const developmentMode = env === 'development';
 const CONNECTION_STRING = config.get<string>(
   'secrets.apps-reg.app-insights-connection-string',
 );
+const apiBase: string = config.get<string>('api.baseUrl');
 
 // ----- Platform modules
 await new PropertiesVolume().enableFor(app);
@@ -125,7 +126,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 const proxyOptions: ProxyOptions = {
-  target: 'http://localhost:4550',
+  target: apiBase,
   changeOrigin: true,
   xfwd: true,
 };

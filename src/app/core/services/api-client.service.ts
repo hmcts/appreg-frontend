@@ -5,11 +5,9 @@ import {
   HttpInterceptorFn,
   HttpParams,
 } from '@angular/common/http';
-import { Injectable, InjectionToken, inject } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable, Subject, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-
-export const API_BASE_URL = new InjectionToken<string>('API_BASE_URL');
 
 export interface ApiError {
   status: number;
@@ -64,23 +62,10 @@ const errorMsg = (err: ApiError): string => {
   return 'Server error.';
 };
 
-const isAbsolute = (u: string) => /^https?:\/\//i.test(u);
-export const joinUrl = (base: string, url: string): string => {
-  if (isAbsolute(url)) {
-    return url;
-  }
-  const a = base.endsWith('/') ? base.slice(0, -1) : base;
-  const b = url.startsWith('/') ? url.slice(1) : url;
-  return `${a}/${b}`;
-};
-
 export const apiInterceptor: HttpInterceptorFn = (req, next) => {
-  const base = inject(API_BASE_URL);
   const bus = inject(ErrorBus);
 
-  const url = joinUrl(base, req.url);
-
-  return next(req.clone({ url, withCredentials: true })).pipe(
+  return next(req.clone({ withCredentials: true })).pipe(
     catchError((err: unknown) => {
       const apiErr = toApiError(err);
       bus.notify(errorMsg(apiErr));
