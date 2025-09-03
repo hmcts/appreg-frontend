@@ -1,5 +1,5 @@
-@use "govuk/index" as govuk;
-@use "govuk-frontend/dist/govuk/index" as *;
+@use 'govuk/index' as govuk;
+@use 'govuk-frontend/dist/govuk/index' as *;
 
 .govuk-width-container {
   max-width: 1100px;
