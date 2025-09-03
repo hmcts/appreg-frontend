@@ -2,7 +2,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { DateInputComponent } from '../../../../../../src/app/shared/components/date-input/date-input.component';
 
-
 describe('DateInputComponent', () => {
   let fixture: ComponentFixture<DateInputComponent>;
   let component: DateInputComponent;
@@ -52,7 +51,11 @@ describe('DateInputComponent', () => {
     component.registerOnChange(onChange);
 
     component.writeValue('2024-02-01'); // emitEvent: false in implementation
-    expect(component.dateForm.value).toEqual({ day: '01', month: '02', year: '2024' });
+    expect(component.dateForm.value).toEqual({
+      day: '01',
+      month: '02',
+      year: '2024',
+    });
     expect(onChange).not.toHaveBeenCalled();
   });
 
