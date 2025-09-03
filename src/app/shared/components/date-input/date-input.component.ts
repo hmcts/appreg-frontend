@@ -23,14 +23,10 @@ import {
   imports: [ReactiveFormsModule],
 })
 export class DateInputComponent implements ControlValueAccessor {
-  /** Displayed legend text */
   @Input() label = 'Date';
-  /** Displayed hint text */
   @Input() hint = 'For example, 27 3 2007';
-  /** Prefix used for id/name attributes */
   @Input() idPrefix = 'date';
 
-  /** Strongly typed internal form group with day/month/year controls */
   dateForm: FormGroup<{
     day: FormControl<string>;
     month: FormControl<string>;
