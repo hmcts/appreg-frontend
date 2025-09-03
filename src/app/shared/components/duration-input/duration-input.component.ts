@@ -1,6 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, forwardRef } from '@angular/core';
-import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
+import {
+  ControlValueAccessor,
+  FormsModule,
+  NG_VALUE_ACCESSOR,
+  ReactiveFormsModule,
+} from '@angular/forms';
 
 export interface Duration {
   hours: number | null;
@@ -33,6 +38,8 @@ export class DurationInputComponent implements ControlValueAccessor {
   minutes: number | null = null;
 
   disabled = false;
+
+  /** CVA callbacks (typed) */
   private onChange: (value: Duration | null) => void = () => {};
   private onTouched: () => void = () => {};
 
@@ -45,10 +52,11 @@ export class DurationInputComponent implements ControlValueAccessor {
     }
   }
 
-  registerOnChange(fn: any): void {
+  registerOnChange(fn: (value: Duration | null) => void): void {
     this.onChange = fn;
   }
-  registerOnTouched(fn: any): void {
+
+  registerOnTouched(fn: () => void): void {
     this.onTouched = fn;
   }
 
@@ -57,29 +65,28 @@ export class DurationInputComponent implements ControlValueAccessor {
   }
 
   /** Call whenever either input changes */
-  private propagate() {
+  private propagate(): void {
     const out: Duration = {
       hours: this.hours,
       minutes: this.minutes,
     };
-    // only emit once we’ve touched it
     this.onChange(out);
   }
 
-  onHoursInput(e: Event) {
+  onHoursInput(e: Event): void {
     const val = parseInt((e.target as HTMLInputElement).value, 10);
-    this.hours = isNaN(val) ? null : val;
+    this.hours = Number.isNaN(val) ? null : val;
     this.propagate();
   }
 
-  onMinutesInput(e: Event) {
+  onMinutesInput(e: Event): void {
     const val = parseInt((e.target as HTMLInputElement).value, 10);
-    this.minutes = isNaN(val) ? null : val;
+    this.minutes = Number.isNaN(val) ? null : val;
     this.propagate();
   }
 
   // mark as touched on blur of either input
-  touch() {
+  touch(): void {
     this.onTouched();
   }
 }

@@ -1,6 +1,8 @@
 <h1 class="govuk-heading-xl">Applications list</h1>
 
-<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" />
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
 <form [formGroup]="form" (ngSubmit)="onSubmit($event)">
   <div class="govuk-grid-row">
     <!-- Date -->
@@ -39,7 +41,7 @@
       [options]="[
         { value: 'choose', label: 'Choose status' },
         { value: 'open', label: 'Open' },
-        { value: 'closed', label: 'Closed' }
+        { value: 'closed', label: 'Closed' },
       ]"
     >
     </app-select-input>
@@ -76,24 +78,30 @@
 
   <div class="govuk-button-group">
     <button type="submit" class="govuk-button" value="search">Search</button>
-    <button type="submit" class="govuk-button govuk-button--secondary" value="create">
+    <button
+      type="submit"
+      class="govuk-button govuk-button--secondary"
+      value="create"
+    >
       Create
     </button>
   </div>
 </form>
 
-<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" />
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
 
 <app-sortable-table
   caption="Lists"
   [columns]="[
-    { header: 'Date',        field: 'date',        sortable: true },
-    { header: 'Time',        field: 'time',        sortable: true },
-    { header: 'Location',    field: 'location',    sortable: true },
+    { header: 'Date', field: 'date', sortable: true },
+    { header: 'Time', field: 'time', sortable: true },
+    { header: 'Location', field: 'location', sortable: true },
     { header: 'Description', field: 'description', sortable: true },
-    { header: 'Entries',     field: 'entries',     sortable: true, numeric: true },
-    { header: 'Status',      field: 'status',      sortable: true },
-    { header: 'Actions',     field: 'actions' }
+    { header: 'Entries', field: 'entries', sortable: true, numeric: true },
+    { header: 'Status', field: 'status', sortable: true },
+    { header: 'Actions', field: 'actions' },
   ]"
   [data]="$any(tableRows)"
 >

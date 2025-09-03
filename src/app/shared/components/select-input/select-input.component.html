@@ -6,8 +6,17 @@
     <div id="status-hint" class="govuk-hint">
       {{ hint }}
     </div>
-    <select class="govuk-select" id="status" name="status" aria-describedby="status-hint">
-      <option *ngFor="let opt of options" [value]="opt.value" [selected]="opt.value === value">
+    <select
+      class="govuk-select"
+      id="status"
+      name="status"
+      aria-describedby="status-hint"
+    >
+      <option
+        *ngFor="let opt of options"
+        [value]="opt.value"
+        [selected]="opt.value === value"
+      >
         {{ opt.label }}
       </option>
     </select>

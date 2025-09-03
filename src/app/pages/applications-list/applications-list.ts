@@ -77,7 +77,7 @@ export class ApplicationsList implements OnInit {
   }
 
   private buildTableRows(): void {
-    this.tableRows = (this.lists ?? []).map(l => ({
+    this.tableRows = (this.lists ?? []).map((l) => ({
       id: l.id,
       date: l.date,
       time: l.time,

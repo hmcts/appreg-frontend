@@ -1,6 +1,11 @@
 <div class="govuk-grid-column-one-quarter">
   <div class="govuk-form-group">
-    <fieldset class="govuk-fieldset" role="group" [attr.aria-describedby]="idPrefix + '-hint'" [formGroup]="dateForm">
+    <fieldset
+      class="govuk-fieldset"
+      role="group"
+      [attr.aria-describedby]="idPrefix + '-hint'"
+      [formGroup]="dateForm"
+    >
       <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
         <h1 class="govuk-fieldset__heading">{{ label }}</h1>
       </legend>
@@ -13,7 +18,12 @@
         <!-- Day -->
         <div class="govuk-date-input__item">
           <div class="govuk-form-group">
-            <label class="govuk-label govuk-date-input__label" [for]="idPrefix + '-day'"> Day </label>
+            <label
+              class="govuk-label govuk-date-input__label"
+              [for]="idPrefix + '-day'"
+            >
+              Day
+            </label>
             <input
               class="govuk-input govuk-date-input__input govuk-input--width-2"
               [id]="idPrefix + '-day'"
@@ -28,7 +38,12 @@
         <!-- Month -->
         <div class="govuk-date-input__item">
           <div class="govuk-form-group">
-            <label class="govuk-label govuk-date-input__label" [for]="idPrefix + '-month'"> Month </label>
+            <label
+              class="govuk-label govuk-date-input__label"
+              [for]="idPrefix + '-month'"
+            >
+              Month
+            </label>
             <input
               class="govuk-input govuk-date-input__input govuk-input--width-2"
               [id]="idPrefix + '-month'"
@@ -43,7 +58,12 @@
         <!-- Year -->
         <div class="govuk-date-input__item">
           <div class="govuk-form-group">
-            <label class="govuk-label govuk-date-input__label" [for]="idPrefix + '-year'"> Year </label>
+            <label
+              class="govuk-label govuk-date-input__label"
+              [for]="idPrefix + '-year'"
+            >
+              Year
+            </label>
             <input
               class="govuk-input govuk-date-input__input govuk-input--width-4"
               [id]="idPrefix + '-year'"

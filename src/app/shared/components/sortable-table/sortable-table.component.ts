@@ -1,5 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, ContentChild, Input, OnChanges, SimpleChanges, TemplateRef } from '@angular/core';
+import {
+  Component,
+  ContentChild,
+  Input,
+  OnChanges,
+  SimpleChanges,
+  TemplateRef,
+} from '@angular/core';
 
 type SortDirection = 'asc' | 'desc';
 
@@ -10,7 +17,8 @@ type SortDirection = 'asc' | 'desc';
   templateUrl: './sortable-table.component.html',
 })
 export class SortableTableComponent implements OnChanges {
-  @ContentChild('actionsTemplate', { read: TemplateRef }) actionsTpl?: TemplateRef<never>;
+  @ContentChild('actionsTemplate', { read: TemplateRef })
+  actionsTpl?: TemplateRef<never>;
 
   /** Table caption */
   @Input() caption = '';
@@ -46,7 +54,9 @@ export class SortableTableComponent implements OnChanges {
   }
 
   onHeaderClick(col: { field: string; sortable?: boolean }): void {
-    if (!col.sortable) {return;}
+    if (!col.sortable) {
+      return;
+    }
     if (this.sortField === col.field) {
       // flip direction
       this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
@@ -67,8 +77,12 @@ export class SortableTableComponent implements OnChanges {
       const y = b[field];
 
       // null/undefined first
-      if (x === null) {return -1 * dir;}
-      if (y === null) {return 1 * dir;}
+      if (x === null) {
+        return -1 * dir;
+      }
+      if (y === null) {
+        return 1 * dir;
+      }
 
       // numeric sort if both are numbers
       if (typeof x === 'number' && typeof y === 'number') {

@@ -1,11 +1,12 @@
 import { Component, Input, forwardRef } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
+  FormControl,
   FormGroup,
   NG_VALUE_ACCESSOR,
+  NonNullableFormBuilder,
   ReactiveFormsModule,
-  Validators
+  Validators,
 } from '@angular/forms';
 
 @Component({
@@ -29,26 +30,47 @@ export class DateInputComponent implements ControlValueAccessor {
   /** Prefix used for id/name attributes */
   @Input() idPrefix = 'date';
 
-  /** Internal form group with day/month/year controls */
-  dateForm: FormGroup;
+  /** Strongly typed internal form group with day/month/year controls */
+  dateForm: FormGroup<{
+    day: FormControl<string>;
+    month: FormControl<string>;
+    year: FormControl<string>;
+  }>;
 
-  private onTouched = () => {};
+  /** Callbacks supplied by Angular forms */
+  private onTouched: () => void = () => {};
   private onChange: (value: string | null) => void = () => {};
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: NonNullableFormBuilder) {
     this.dateForm = this.fb.group({
-      day: ['', [Validators.required, Validators.pattern(/^\d{1,2}$/)]],
-      month: ['', [Validators.required, Validators.pattern(/^\d{1,2}$/)]],
-      year: ['', [Validators.required, Validators.pattern(/^\d{4}$/)]],
+      day: this.fb.control('', {
+        validators: [
+          // Wrap to avoid `unbound-method` on Validators.required
+          (c) => Validators.required(c),
+          (c) => Validators.pattern(/^\d{1,2}$/)(c),
+        ],
+      }),
+      month: this.fb.control('', {
+        validators: [
+          (c) => Validators.required(c),
+          (c) => Validators.pattern(/^\d{1,2}$/)(c),
+        ],
+      }),
+      year: this.fb.control('', {
+        validators: [
+          (c) => Validators.required(c),
+          (c) => Validators.pattern(/^\d{4}$/)(c),
+        ],
+      }),
     });
 
     // Emit a YYYY-MM-DD string when the form is valid, otherwise null
-    this.dateForm.valueChanges.subscribe((val) => {
+    this.dateForm.valueChanges.subscribe(() => {
       if (this.dateForm.valid) {
-        const d = val.day.padStart(2, '0');
-        const m = val.month.padStart(2, '0');
-        const y = val.year;
-        this.onChange(`${y}-${m}-${d}`);
+        const { day, month, year } = this.dateForm.getRawValue(); // strongly typed
+        const d = day.padStart(2, '0');
+        const m = month.padStart(2, '0');
+        this.onChange(`${year}-${m}-${d}`);
       } else {
         this.onChange(null);
       }
@@ -60,7 +82,7 @@ export class DateInputComponent implements ControlValueAccessor {
     if (value) {
       const [y, m, d] = value.split('-');
       this.dateForm.setValue(
-        { day: d, month: m, year: y },
+        { day: d ?? '', month: m ?? '', year: y ?? '' },
         { emitEvent: false },
       );
     } else {
@@ -71,14 +93,19 @@ export class DateInputComponent implements ControlValueAccessor {
     }
   }
 
-  registerOnChange(fn: any): void {
+  registerOnChange(fn: (value: string | null) => void): void {
     this.onChange = fn;
   }
-  registerOnTouched(fn: any): void {
+
+  registerOnTouched(fn: () => void): void {
     this.onTouched = fn;
   }
 
   setDisabledState(isDisabled: boolean): void {
-    isDisabled ? this.dateForm.disable() : this.dateForm.enable();
+    if (isDisabled) {
+      this.dateForm.disable();
+    } else {
+      this.dateForm.enable();
+    }
   }
 }
