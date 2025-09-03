@@ -235,6 +235,23 @@ e2e.js
    or run all tests headlessly:
    npx cypress run
 
+## Generating Cucumber HTML Reports
+
+After running your Cypress tests, you can generate a Cucumber HTML report using the following command:
+
+yarn cucumber:report
+
+Or, to run tests and generate the report in one step:
+
+yarn cypress:run:cucumber
+
+This will:
+
+- Run your Cypress tests and generate a Cucumber JSON report in cypress/reports/cucumber-json/
+- Create an HTML report in cypress/reports/cucumber-html/ with custom headings and run info
+
+You can customize the report by editing cypress/scripts/generate-cucumber-report.js.
+
 ## Sample Test
 
 A sample BDD feature file is provided at `cypress/e2e/features/smoke/smoke.feature` with step definitions in `cypress/e2e/step_definitions/elements/navigation/WhenNavigationSteps.ts`.
