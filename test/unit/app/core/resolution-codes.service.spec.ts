@@ -14,7 +14,7 @@ import {
 } from '../../../../src/app/core/services/api-client.service';
 import { ResolutionCodesService } from '../../../../src/app/core/services/resolution-codes.service';
 
-describe('CourtLocationsService', () => {
+describe('ResolutionCodesService', () => {
   let service: ResolutionCodesService;
   let httpMock: HttpTestingController;
 
