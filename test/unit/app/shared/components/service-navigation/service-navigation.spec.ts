@@ -4,9 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 
 import { SessionService } from '../../../../../../src/app/core/session.service';
-import {
-  ServiceNavigationComponent
-} from '../../../../../../src/app/shared/components/service-navigation/service-navigation.component';
+import { ServiceNavigationComponent } from '../../../../../../src/app/shared/components/service-navigation/service-navigation.component';
 
 @Component({ standalone: true, template: '' })
 class DummyComponent {}
@@ -96,7 +94,9 @@ describe('ServiceNavigationComponent (browser)', () => {
 
     const preventDefault = jest.fn<void, []>();
     const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(false);
-    const consoleErrSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     component.onSignOutClicked({ preventDefault } as unknown as Event);
 
@@ -110,7 +110,9 @@ describe('ServiceNavigationComponent (browser)', () => {
 
     const preventDefault = jest.fn<void, []>();
     const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
-    const consoleErrSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     component.onSignOutClicked({ preventDefault } as unknown as Event);
 
@@ -120,7 +122,9 @@ describe('ServiceNavigationComponent (browser)', () => {
     // jsdom logs: "Not implemented: navigation (except hash changes)"
     expect(consoleErrSpy).toHaveBeenCalled();
 
-    const joined = consoleErrSpy.mock.calls.map(args => args.join(' ')).join(' ');
+    const joined = consoleErrSpy.mock.calls
+      .map((args) => args.join(' '))
+      .join(' ');
     expect(joined).toContain('Not implemented: navigation');
   });
 });
