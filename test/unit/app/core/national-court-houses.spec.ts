@@ -7,7 +7,7 @@ import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { take } from 'rxjs/operators';
 
-import { NationalCourtHouse } from '../../../../src/app/core/models/court-house';
+import { NationalCourtHouse } from '../../../../src/app/core/models/national-court-house';
 import {
   ErrorBus,
   apiInterceptor,
