@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router, UrlTree } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 
-import { SessionService } from '../../../../src/app/core/session.service';
+import { SessionService } from '../../../../src/app/core/services/session.service';
 import { sessionGuard } from '../../../../src/app/guards/session.guard';
 
 type RefreshMock = jest.Mock<Promise<boolean>, []>;

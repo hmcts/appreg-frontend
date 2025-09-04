@@ -4,24 +4,6 @@ This README contains a setup guide for setting up your dev environment (Copied f
 
 ---
 
-## Prereqs
-
-- Ensure you have **nvm** and **node** installed (**node: 20.19.4**)
-- You don’t need Yarn installed locally
-
----
-
-## Setup
-
-```bash
-corepack enable
-yarn install
-yarn build
-yarn start:dev
-```
-
----
-
 ## Prerequisites
 
 - HMCTS.NET account
@@ -332,3 +314,58 @@ You can either run a provided script or install manually.
   yarn cache clear
   yarn install && yarn build
   ```
+
+##### Cypress Frontend Automation Setup
+
+## Folder Structure
+
+cypress/
+e2e/
+features/
+smoke/
+smoke.feature
+step_definitions/
+elements/
+navigation/
+WhenNavigationSteps.ts
+fixtures/
+test-data.json
+support/
+e2e.js
+
+## Configuration Files
+
+- cypress.config.js: Cypress configuration
+- cypress.env.json: (optional) Local environment variables
+
+## Running Tests Locally
+
+1. Install dependencies:
+   npm install
+
+2. Open Cypress UI:
+   npx cypress open
+
+   or run all tests headlessly:
+   npx cypress run
+
+## Generating Cucumber HTML Reports
+
+After running your Cypress tests, you can generate a Cucumber HTML report using the following command:
+
+yarn cucumber:report
+
+Or, to run tests and generate the report in one step:
+
+yarn cypress:run:cucumber
+
+This will:
+
+- Run your Cypress tests and generate a Cucumber JSON report in cypress/reports/cucumber-json/
+- Create an HTML report in cypress/reports/cucumber-html/ with custom headings and run info
+
+You can customize the report by editing cypress/scripts/generate-cucumber-report.js.
+
+## Sample Test
+
+A sample BDD feature file is provided at `cypress/e2e/features/smoke/smoke.feature` with step definitions in `cypress/e2e/step_definitions/elements/navigation/WhenNavigationSteps.ts`.

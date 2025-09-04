@@ -15,7 +15,7 @@ import {
 } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
-import { SessionService } from '../../../core/session.service';
+import { SessionService } from '../../../core/services/session.service';
 
 @Component({
   selector: 'app-service-navigation',
@@ -31,8 +31,8 @@ export class ServiceNavigationComponent implements OnInit {
 
   constructor(
     public session: SessionService, // public so template can read it if needed
-    private router: Router,
-    @Inject(PLATFORM_ID) private platformId: object,
+    private readonly router: Router,
+    @Inject(PLATFORM_ID) private readonly platformId: object,
   ) {}
 
   ngOnInit(): void {

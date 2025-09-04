@@ -39,6 +39,11 @@ testem.log
 .DS_Store
 Thumbs.db
 
+# Cypress
+cypress/reports/
+cypress/screenshots/
+cypress/videos/
+
 # .yarn folder
 .yarn/*
 !.yarn/cache/*
@@ -47,9 +52,6 @@ Thumbs.db
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
-
-# Cypress
-/cypress
 
 # Configuration files
 /config/development.json

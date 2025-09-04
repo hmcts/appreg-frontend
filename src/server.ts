@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -9,7 +10,15 @@ import {
 } from '@angular/ssr/node';
 import type { HmctsLogger } from '@hmcts/nodejs-logging';
 import config from 'config';
-import express from 'express';
+import cookieParser from 'cookie-parser';
+import express, {
+  type NextFunction,
+  type Request,
+  RequestHandler,
+  type Response,
+} from 'express';
+import * as httpProxy from 'http-proxy-middleware';
+type ProxyOptions = httpProxy.Options;
 
 import { AppInsights } from './modules/appinsights';
 import { Helmet } from './modules/helmet';
@@ -26,6 +35,7 @@ const browserDistFolder = join(__dirname, '../browser');
 // ----- App + Angular engine
 const app = express();
 const angularApp = new AngularNodeAppEngine();
+app.use(cookieParser());
 
 // ----- Env
 const env = process.env['NODE_ENV'] || 'development';
@@ -33,12 +43,14 @@ const developmentMode = env === 'development';
 const CONNECTION_STRING = config.get<string>(
   'secrets.apps-reg.app-insights-connection-string',
 );
+const apiBase: string = config.get<string>('api.baseUrl');
 
 // ----- Platform modules
 await new PropertiesVolume().enableFor(app);
 new Helmet(developmentMode).enableFor(app);
 AppInsights.enable(CONNECTION_STRING);
 
+// ---- helpers
 const logger: HmctsLogger = HmctsLoggerBridge.enable(
   'hmcts applications register - server',
   AppInsights.client(),
@@ -57,6 +69,71 @@ app.use(
     redirect: false,
   }),
 );
+
+// CSRF + proxy
+type Cookies = Record<string, string | undefined>;
+
+function cookiesOf(req: Request): Cookies {
+  const c = (req as Request & { cookies?: unknown }).cookies;
+  return c && typeof c === 'object' && !Array.isArray(c) ? (c as Cookies) : {};
+}
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (
+    req.method === 'GET' ||
+    req.method === 'HEAD' ||
+    req.method === 'OPTIONS'
+  ) {
+    const cookies = cookiesOf(req);
+    if (!cookies['XSRF-TOKEN']) {
+      const token = crypto.randomBytes(16).toString('hex');
+      res.cookie('XSRF-TOKEN', token, {
+        httpOnly: false,
+        sameSite: 'lax',
+        secure: process.env['NODE_ENV'] === 'production',
+        path: '/',
+      });
+    }
+  }
+  next();
+});
+
+const proxyOptions: ProxyOptions = {
+  target: apiBase,
+  changeOrigin: true,
+  xfwd: true,
+};
+
+const apiProxy: RequestHandler = httpProxy.createProxyMiddleware(proxyOptions);
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const accept = String(req.headers['accept'] ?? '');
+  const path = req.path;
+
+  const isHtmlNav = accept.includes('text/html');
+  const isStatic =
+    req.method === 'GET' &&
+    (path.startsWith('/assets/') ||
+      path.startsWith('/browser/') ||
+      /\.(?:js|mjs|css|map|json|png|jpe?g|gif|svg|webp|ico|woff2?|ttf)$/.test(
+        path,
+      ));
+  const isNodeRoute = /^\/(health|info|sso|login|logout)(\/|$)/.test(path);
+
+  if (isHtmlNav || isStatic || isNodeRoute) {
+    return next();
+  }
+
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
+    const cookie = cookiesOf(req)['XSRF-TOKEN'];
+    const header = req.get('X-XSRF-TOKEN');
+    if (!cookie || !header || cookie !== header) {
+      return res.sendStatus(403);
+    }
+  }
+
+  return apiProxy(req, res, next);
+});
 
 // ----- SSR handler
 app.use((req, res, next) => {
