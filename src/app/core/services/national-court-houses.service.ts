@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
-import { NationalCourtHouse } from '../models/court-house';
+import { NationalCourtHouse } from '../models/national-court-house';
 
 import { ApiClient } from './api-client.service';
 
