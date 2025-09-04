@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 
 type SortDirection = 'asc' | 'desc';
+type RowLike = Record<string, unknown>;
 
 @Component({
   selector: 'app-sortable-table',
@@ -18,7 +19,7 @@ type SortDirection = 'asc' | 'desc';
 })
 export class SortableTableComponent implements OnChanges {
   @ContentChild('actionsTemplate', { read: TemplateRef })
-  actionsTpl?: TemplateRef<never>;
+  actionsTpl?: TemplateRef<unknown>;
 
   /** Table caption */
   @Input() caption = '';
@@ -31,11 +32,11 @@ export class SortableTableComponent implements OnChanges {
     numeric?: boolean;
   }[] = [];
 
-  /** Row data */
-  @Input() data: never[] = [];
+  /** Row data (generic objects, not `never[]`) */
+  @Input() data: RowLike[] = [];
 
   /** Internal copy that we sort */
-  sortedData: never[] = [];
+  sortedData: RowLike[] = [];
 
   /** Which field are we sorting on? */
   sortField?: string;
@@ -43,9 +44,28 @@ export class SortableTableComponent implements OnChanges {
   /** Current direction */
   sortDir: SortDirection = 'asc';
 
+  /** Optional key name to use for tracking rows */
+  @Input() idField?: string;
+
+  /** Optional custom trackBy callback (index, row) => key */
+  @Input() trackBy?: (index: number, row: RowLike) => unknown;
+
+  /**
+   * Helper for `@for (...; track trackRow($index, row))`.
+   * Prefers `trackBy`, then `idField`, then `$index`.
+   */
+  trackRow = (index: number, row: RowLike): unknown => {
+    if (this.trackBy) {
+      return this.trackBy(index, row);
+    }
+    if (this.idField && this.idField in row) {
+      return row[this.idField];
+    }
+    return index;
+  };
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['data']) {
-      // whenever the input data changes, reset our sortedData
       this.sortedData = [...this.data];
       if (this.sortField) {
         this.applySort();
@@ -55,41 +75,46 @@ export class SortableTableComponent implements OnChanges {
 
   onHeaderClick(col: { field: string; sortable?: boolean }): void {
     if (!col.sortable) {
-      return;
+      return; // braces added to satisfy `curly`
     }
+
     if (this.sortField === col.field) {
-      // flip direction
       this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
     } else {
-      // new column → always start asc
       this.sortField = col.field;
       this.sortDir = 'asc';
     }
-    this.applySort(); // your existing sort logic
+    this.applySort();
   }
 
-  private applySort() {
-    const field = this.sortField!;
+  private applySort(): void {
+    const field = this.sortField;
+    if (!field) {
+      return; // guard instead of using non-null assertion
+    }
+
     const dir = this.sortDir === 'asc' ? 1 : -1;
 
-    this.sortedData.sort((a, b) => {
+    this.sortedData.sort((a: RowLike, b: RowLike) => {
       const x = a[field];
       const y = b[field];
 
-      // null/undefined first
-      if (x === null) {
+      const xNull = x === null || x === undefined;
+      const yNull = y === null || y === undefined;
+      if (xNull && !yNull) {
         return -1 * dir;
       }
-      if (y === null) {
+      if (!xNull && yNull) {
         return 1 * dir;
       }
+      if (xNull && yNull) {
+        return 0;
+      }
 
-      // numeric sort if both are numbers
       if (typeof x === 'number' && typeof y === 'number') {
         return (x - y) * dir;
       }
 
-      // fallback to string
       return String(x).localeCompare(String(y)) * dir;
     });
   }

@@ -1,16 +1,19 @@
 <div class="govuk-grid-column-one-quarter">
   <div class="govuk-form-group">
-    <label
-      *ngIf="label"
-      class="govuk-label govuk-label--m"
-      [for]="idPrefix + '-hours'"
-    >
-      {{ label }}
-    </label>
+    @if (label) {
+      <label
+        class="govuk-label govuk-label--m"
+        [for]="idPrefix + '-hours'"
+      >
+        {{ label }}
+      </label>
+    }
 
-    <div *ngIf="hint" [id]="idPrefix + '-hint'" class="govuk-hint">
-      {{ hint }}
-    </div>
+    @if (hint) {
+      <div [id]="idPrefix + '-hint'" class="govuk-hint">
+        {{ hint }}
+      </div>
+    }
 
     <div class="govuk-input__wrapper">
       <!-- Hours -->
