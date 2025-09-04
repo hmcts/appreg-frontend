@@ -1,1 +1,132 @@
 <h1 class="govuk-heading-xl">Applications list</h1>
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
+<form [formGroup]="form" (ngSubmit)="onSubmit($event)">
+  <div class="govuk-grid-row">
+    <!-- Date -->
+    <app-date-input
+      formControlName="date"
+      label="Date"
+      hint="For example, 27 3 2007"
+      idPrefix="date"
+    >
+    </app-date-input>
+
+    <!-- Time -->
+    <app-duration-input
+      formControlName="time"
+      label="Time"
+      hint="Enter the time in 24-hour format, for example 08:30"
+      idPrefix="time"
+    >
+    </app-duration-input>
+
+    <!-- Description -->
+    <app-text-input
+      formControlName="description"
+      label="Description"
+      hint="A description of the application list"
+      idPrefix="description"
+    >
+    </app-text-input>
+
+    <!-- Status -->
+    <app-select-input
+      formControlName="status"
+      label="Select status"
+      hint="The status of the application list"
+      idPrefix="status"
+      [options]="[
+        { value: 'choose', label: 'Choose status' },
+        { value: 'open', label: 'Open' },
+        { value: 'closed', label: 'Closed' },
+      ]"
+    >
+    </app-select-input>
+  </div>
+
+  <div class="govuk-grid-row">
+    <!-- Court -->
+    <app-text-input
+      formControlName="court"
+      label="Court"
+      hint="A description of the court"
+      idPrefix="court"
+    >
+    </app-text-input>
+
+    <!-- Other location -->
+    <app-text-input
+      formControlName="location"
+      label="Other location"
+      hint="Other location description"
+      idPrefix="location"
+    >
+    </app-text-input>
+
+    <!-- CJA -->
+    <app-text-input
+      formControlName="cja"
+      label="CJA"
+      hint="Criminal justice area"
+      idPrefix="cja"
+    >
+    </app-text-input>
+  </div>
+
+  <div class="govuk-button-group">
+    <button type="submit" class="govuk-button" value="search">Search</button>
+    <button
+      type="submit"
+      class="govuk-button govuk-button--secondary"
+      value="create"
+    >
+      Create
+    </button>
+  </div>
+</form>
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
+
+<app-sortable-table
+  caption="Lists"
+  [columns]="[
+    { header: 'Date', field: 'date', sortable: true },
+    { header: 'Time', field: 'time', sortable: true },
+    { header: 'Location', field: 'location', sortable: true },
+    { header: 'Description', field: 'description', sortable: true },
+    { header: 'Entries', field: 'entries', sortable: true, numeric: true },
+    { header: 'Status', field: 'status', sortable: true },
+    { header: 'Actions', field: 'actions' },
+  ]"
+  [data]="$any(tableRows)"
+>
+  <!-- actions slot -->
+  <ng-template #actionsTemplate let-row>
+    <div class="govuk-button-group">
+      <a
+        [routerLink]="['/applications-list', row.id]"
+        class="govuk-button govuk-button--secondary"
+      >
+        Open
+      </a>
+      <button
+        type="button"
+        class="govuk-button govuk-button--warning"
+        (click)="onDelete(row.id)"
+      >
+        Delete
+      </button>
+    </div>
+  </ng-template>
+</app-sortable-table>
+
+<app-pagination
+  [currentPage]="currentPage"
+  [totalPages]="totalPages"
+  (pageChange)="onPageChange($event)"
+></app-pagination>
