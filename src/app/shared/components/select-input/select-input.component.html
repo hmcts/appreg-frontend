@@ -15,10 +15,7 @@
       aria-describedby="status-hint"
     >
       @for (opt of options; track opt.value) {
-        <option
-          [value]="opt.value"
-          [selected]="opt.value === value"
-        >
+        <option [value]="opt.value" [selected]="opt.value === value">
           {{ opt.label }}
         </option>
       }
