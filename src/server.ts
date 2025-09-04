@@ -41,7 +41,7 @@ app.use(cookieParser());
 const env = process.env['NODE_ENV'] || 'development';
 const developmentMode = env === 'development';
 const CONNECTION_STRING = config.get<string>(
-  'secrets.apps-reg.app-insights-connection-string',
+  'secrets.appreg.app-insights-connection-string-fe',
 );
 const apiBase: string = config.get<string>('api.baseUrl');
 

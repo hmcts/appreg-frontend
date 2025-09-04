@@ -30,9 +30,9 @@ declare module 'express-session' {
   }
 }
 
-const tenantId = config.get<string>('secrets.apps-reg.app-TENANT-ID');
-const clientId = config.get<string>('secrets.apps-reg.app-CLIENT-ID');
-const clientSecret = config.get<string>('secrets.apps-reg.app-CLIENT-SECRET');
+const tenantId = config.get<string>('secrets.appreg.azure-tenant-id-fe');
+const clientId = config.get<string>('secrets.appreg.azure-app-id-fe');
+const clientSecret = config.get<string>('secrets.appreg.azure-client-secret-fe');
 const redirectUri = config.get<string>('auth.redirectUri');
 const scopes = config.get<string[]>('auth.scopes');
 const postLogoutRedirectUri = config.get<string>('auth.postLogoutRedirectUri');

@@ -12,11 +12,11 @@
     }
   },
   "secrets": {
-    "apps-reg": {
-      "app-CLIENT-ID": "dummyClientId",
-      "app-TENANT-ID": "dummyTenantId",
-      "app-CLIENT-SECRET": "dummyClientSecret",
-      "app-insights-connection-string": "dummyInstrumentationKey"
+    "appreg": {
+      "azure-app-id-fe": "dummyClientId",
+      "azure-tenant-id-fe": "dummyTenantId",
+      "azure-client-secret-fe": "dummyClientSecret",
+      "app-insights-connection-string-fe": "dummyInstrumentationKey"
     }
   },
   "auth": {

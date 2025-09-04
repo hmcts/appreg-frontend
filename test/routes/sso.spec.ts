@@ -47,11 +47,11 @@ jest.mock('config', () => {
   // Correct Jest type: Return = unknown, Args = [string]
   const get: jest.Mock<unknown, [string]> = jest.fn((key: string): unknown => {
     switch (key) {
-      case 'secrets.apps-reg.app-TENANT-ID':
+      case 'secrets.appreg.azure-tenant-id-fe':
         return 'tenant-xyz';
-      case 'secrets.apps-reg.app-CLIENT-ID':
+      case 'secrets.appreg.azure-app-id-fe':
         return 'client-abc';
-      case 'secrets.apps-reg.app-CLIENT-SECRET':
+      case 'secrets.appreg.azure-client-secret-fe':
         return 'super-secret';
       case 'auth.redirectUri':
         return 'https://example.test/auth/callback';
