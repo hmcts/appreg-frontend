@@ -30,3 +30,9 @@ Scenario: Successful Login and Invalid or expired token
     Then User Clicks On The Link "Sign out"
     Then User Verify The Page URL Contains "/login"
     Then User Verify The "appreg.sid" Cookie Should Not Exist
+
+@smoke @regression @ARCPOC-426 @accessibility
+  Scenario: Accessibility check on Login Page
+    Given User Is On The Portal Page
+    Then User Checks Accessibility Of The Current Page
+
