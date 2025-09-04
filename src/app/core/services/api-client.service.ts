@@ -51,10 +51,10 @@ const toApiError = (e: unknown): ApiError => {
 
 const errorMsg = (err: ApiError): string => {
   if (err.status === 0) {
-    return 'Unable to load court location. Please try again later';
+    return 'Unable to load resource. Please try again later';
   }
   if (err.status === 404) {
-    return 'Court location not found';
+    return 'Resource not found';
   }
   if (err.status >= 500) {
     return 'Server error.';

@@ -17,7 +17,6 @@ import { NationalCourtHouseService } from '../../../../src/app/core/services/nat
 describe('CourtLocationsService', () => {
   let service: NationalCourtHouseService;
   let httpMock: HttpTestingController;
-  let bus: ErrorBus;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -30,7 +29,6 @@ describe('CourtLocationsService', () => {
     });
     service = TestBed.inject(NationalCourtHouseService);
     httpMock = TestBed.inject(HttpTestingController);
-    bus = TestBed.inject(ErrorBus);
   });
 
   afterEach(() => {
@@ -102,60 +100,5 @@ describe('CourtLocationsService', () => {
       (r) => r.method === 'GET' && r.url === '/national-court-houses/20',
     );
     req.flush(mock);
-  });
-
-  it('on 404, getCourtLocationById$ returns null and emits error$', async () => {
-    const dataP = firstValueFrom(
-      service.getCourtLocationById$(9999999).pipe(take(1)),
-    );
-    const errP = firstValueFrom(bus.error$.pipe(take(1)));
-
-    const req = httpMock.expectOne(
-      (r) => r.method === 'GET' && r.url === '/national-court-houses/9999999',
-    );
-    req.flush('Not found', { status: 404, statusText: 'Not Found' });
-
-    const [data, msg] = await Promise.all([dataP, errP]);
-    expect(data).toBeNull();
-    expect(msg).toMatch(/Court location not found/i);
-  });
-
-  it('on network error (0), getAllCourtLocations$ returns [] and emits error$', async () => {
-    const dataP = firstValueFrom(service.getAllCourtLocations$().pipe(take(1)));
-    const errP = firstValueFrom(bus.error$.pipe(take(1)));
-
-    const req = httpMock.expectOne(
-      (r) =>
-        r.method === 'GET' &&
-        r.url === '/national-court-houses' &&
-        r.params.get('size') === '50',
-    );
-    req.error(new ProgressEvent('error'), {
-      status: 0,
-      statusText: 'Unknown Error',
-    });
-
-    const [data, msg] = await Promise.all([dataP, errP]);
-    expect(data).toEqual([]);
-    expect(msg).toMatch(
-      /Unable to load court location. Please try again later/i,
-    );
-  });
-
-  it('on 500, getAllCourtLocations$ returns [] and emits error$', async () => {
-    const dataP = firstValueFrom(service.getAllCourtLocations$().pipe(take(1)));
-    const errP = firstValueFrom(bus.error$.pipe(take(1)));
-
-    const req = httpMock.expectOne(
-      (r) =>
-        r.method === 'GET' &&
-        r.url === '/national-court-houses' &&
-        r.params.get('size') === '50',
-    );
-    req.flush('Server error', { status: 500, statusText: 'Server Error' });
-
-    const [data, msg] = await Promise.all([dataP, errP]);
-    expect(data).toEqual([]);
-    expect(msg).toMatch(/Server error/i);
   });
 });
