@@ -1,14 +1,12 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { ApplicationList } from '../../core/models/application-list';
+import { ApiClient } from '../../core/services/api-client.service';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
-import {
-  Duration,
-  DurationInputComponent,
-} from '../../shared/components/duration-input/duration-input.component';
+import { Duration, DurationInputComponent } from '../../shared/components/duration-input/duration-input.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
@@ -31,9 +29,12 @@ import { TextInputComponent } from '../../shared/components/text-input/text-inpu
   templateUrl: './applications-list.html',
 })
 export class ApplicationsList implements OnInit {
-  private _id: number | undefined;
 
-  // Reactive form backing the template
+  loginMsg = '';
+
+  private readonly api = inject(ApiClient);
+  private readonly platformId = inject(PLATFORM_ID);
+
   form = new FormGroup({
     date: new FormControl<string | null>(null),
     time: new FormControl<Duration | null>(null),
@@ -44,9 +45,7 @@ export class ApplicationsList implements OnInit {
     cja: new FormControl<string>(''),
   });
 
-  // Lists to display in the table
   lists: ApplicationList[] = [];
-
   currentPage = 1;
   totalPages = 5;
 
@@ -61,6 +60,12 @@ export class ApplicationsList implements OnInit {
   }[] = [];
 
   ngOnInit(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      this.api.get<string>('/test').subscribe({
+        next: (msg: string) => (this.loginMsg = msg ?? ''),
+        error: () => (this.loginMsg = ''),
+      });
+    }
     this.loadApplications();
   }
 
@@ -68,23 +73,24 @@ export class ApplicationsList implements OnInit {
     event.preventDefault();
     const btn = event.submitter as HTMLButtonElement | null;
     const action = btn?.value ?? 'search';
-
     if (action === 'search') {
-      // TODO: handle search using `values`
+      // TODO
     } else if (action === 'create') {
-      // TODO: handle create using `values`
+      // TODO
     }
   }
+
   loadApplications(): void {
     // TODO: fetch lists
   }
 
   onDelete(id: number): void {
-    this._id = id;
+    void id; // ✅ keeps template binding, no unused warnings
+    // TODO: implement delete
   }
 
   onPageChange(page: number): void {
     this.currentPage = page;
-    this.loadApplications(); // fetch page `page`
+    this.loadApplications();
   }
 }
