@@ -4,8 +4,6 @@
 import './commands';
 import 'cypress-mochawesome-reporter/register';
 
-// You can add global before/after hooks if needed
-
 beforeEach(() => {
   // Add any setup code needed before each test
   // Example: cy.clearCookies();
@@ -18,9 +16,8 @@ afterEach(function () {
 });
 
 after(() => {
-  Cypress.session.clearAllSavedSessions();
-  cy.clearCookies();
-
-  cy.clearCookies({ domain: '.microsoftonline.com' });
-  cy.clearCookies({ domain: 'login.microsoftonline.com' });
+  void Cypress.session.clearAllSavedSessions();
+  void cy.clearCookies();
+  void cy.clearCookies({ domain: '.microsoftonline.com' });
+  void cy.clearCookies({ domain: 'login.microsoftonline.com' });
 });

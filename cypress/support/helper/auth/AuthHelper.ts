@@ -1,6 +1,5 @@
 /// <reference types="cypress" />
 import { ButtonHelper } from '../../../support/helper/forms/button/ButtonHelper';
-import { AlertHelper } from '../forms/alert/AlertHelper';
 import { LinkHelper } from '../forms/link/LinkHelper';
 import { NavigationHelper } from '../navigation/NavigationHelper';
 
@@ -15,14 +14,14 @@ export class AuthHelper {
         cy.origin(
           'https://login.microsoftonline.com',
           { args: { email, password } },
-          ({ email, password }) => {
+          ({ email: innerEmail, password: innerPassword }) => {
             cy.get('input[name="loginfmt"]')
               .should('be.visible')
-              .type(email, { log: false });
+              .type(innerEmail, { log: false });
             cy.get('input[type="submit"]').click();
             cy.get('input[name="passwd"]')
               .should('be.visible')
-              .type(password, { log: false });
+              .type(innerPassword, { log: false });
             cy.get('input[type="submit"]').should('be.visible').click();
             cy.get('#idBtn_Back').should('be.visible').click();
           },
