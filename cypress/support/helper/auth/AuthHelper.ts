@@ -1,5 +1,7 @@
 /// <reference types="cypress" />
 import { ButtonHelper } from '../../../support/helper/forms/button/ButtonHelper';
+import { AlertHelper } from '../forms/alert/AlertHelper';
+import { LinkHelper } from '../forms/link/LinkHelper';
 import { NavigationHelper } from '../navigation/NavigationHelper';
 
 export class AuthHelper {
@@ -14,12 +16,14 @@ export class AuthHelper {
           'https://login.microsoftonline.com',
           { args: { email, password } },
           ({ email, password }) => {
-            cy.wait(2000, { log: false });
-            cy.get('input[name="loginfmt"]').should('be.visible').type(email);
+            cy.get('input[name="loginfmt"]')
+              .should('be.visible')
+              .type(email, { log: false });
             cy.get('input[type="submit"]').click();
-            cy.get('input[name="passwd"]').should('be.visible').type(password);
+            cy.get('input[name="passwd"]')
+              .should('be.visible')
+              .type(password, { log: false });
             cy.get('input[type="submit"]').should('be.visible').click();
-            cy.wait(2000, { log: false });
             cy.get('#idBtn_Back').should('be.visible').click();
           },
         );
@@ -32,6 +36,27 @@ export class AuthHelper {
       },
     );
     NavigationHelper.navigateToUrl('/applications-list');
+  }
+
+  static aadSignOut(): void {
+    // Click the app's sign out link or button
+    LinkHelper.clickLink('Sign out');
+    cy.log('AAD logout initiated');
+
+    // If redirected to Microsoft account picker, click the user tile to fully sign out
+    cy.origin('https://login.microsoftonline.com', () => {
+      cy.get('body', { timeout: 10000 }).then(($body) => {
+        if ($body.find('.table-cell.tile-img > .tile-img').length) {
+          cy.get('.table-cell.tile-img > .tile-img')
+            .should('be.visible')
+            .click();
+        }
+      });
+    });
+
+    // Verify signed-out state in app
+    cy.visit('/');
+    cy.contains(/sign in|login/i, { timeout: 10000 }).should('be.visible');
   }
 
   static verifyCookieExists(cookieName: string): void {

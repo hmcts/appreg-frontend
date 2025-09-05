@@ -27,9 +27,8 @@ Scenario: Successful Login and Invalid or expired token
     Then User Verify The Page URL Contains "/login"
     Then User Signs In With Microsoft SSO As "default"
     Then User Verify The Page URL Contains "/applications-list"
-    Then User Clicks On The Link "Sign out"
+    Then User Signs Out From The Application
     Then User Verify The Page URL Contains "/login"
-    Then User Verify The "appreg.sid" Cookie Should Not Exist
 
 @smoke @regression @ARCPOC-426 @accessibility
   Scenario: Accessibility check on Login Page

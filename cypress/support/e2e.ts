@@ -16,3 +16,11 @@ afterEach(function () {
     cy.screenshot(`success-${this.currentTest.title}`);
   }
 });
+
+after(() => {
+  Cypress.session.clearAllSavedSessions();
+  cy.clearCookies();
+
+  cy.clearCookies({ domain: '.microsoftonline.com' });
+  cy.clearCookies({ domain: 'login.microsoftonline.com' });
+});

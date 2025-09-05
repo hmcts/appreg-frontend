@@ -38,6 +38,7 @@ module.exports = defineConfig({
     chromeWebSecurity: false,
     experimentalModifyObstructiveThirdPartyCode: true,
     experimentalOriginDependencies: true,
+    testIsolation: true,
 
     // Report and Media Settings
     video: false,
