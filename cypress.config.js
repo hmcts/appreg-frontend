@@ -49,8 +49,14 @@ module.exports = defineConfig({
         logA11yViolations(violations) {
           const fs = require('fs');
           const path = require('path');
-          const logPath = path.join(__dirname, 'cypress/reports/a11y-violations.log');
-          fs.appendFileSync(logPath, JSON.stringify(violations, null, 2) + '\n');
+          const logPath = path.join(
+            __dirname,
+            'cypress/reports/a11y-violations.log',
+          );
+          fs.appendFileSync(
+            logPath,
+            JSON.stringify(violations, null, 2) + '\n',
+          );
           return null;
         },
       });
