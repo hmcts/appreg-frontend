@@ -12,22 +12,15 @@ module.exports = defineConfig({
     configFile: 'tsconfig.cypress.json',
   },
   e2e: {
-    // Report Configuration
-    reporter: 'cypress-multi-reporters',
+    reporter: 'cypress-mochawesome-reporter',
     reporterOptions: {
-      reporterEnabled: 'cypress-mochawesome-reporter, mocha-junit-reporter',
-      mochaJunitReporterReporterOptions: {
-        mochaFile: 'cypress/reports/junit/e2e-results-[hash].xml',
-        toConsole: false,
-      },
-      cypressMochawesomeReporterReporterOptions: {
-        reportDir: 'cypress/reports/e2e',
-        charts: true,
-        reportPageTitle: 'Application Register E2E Test Results',
-        embeddedScreenshots: true,
-        html: true,
-        json: true,
-      },
+      reportFilename: '[datetime]-[name]-report',
+      reportDir: 'cypress/reports/e2e/html',
+      embeddedScreenshots: true,
+      charts: true,
+      reportPageTitle: 'AppregFrontend E2E Test Results',
+      inlineAssets: true,
+      saveAllAttempts: false,
     },
     // Test Files Configuration
     specPattern: 'cypress/e2e/**/*.feature',
@@ -51,6 +44,16 @@ module.exports = defineConfig({
     screenshotOnRunFailure: true,
     screenshotsFolder: 'cypress/reports/html/screenshots',
     async setupNodeEvents(on, config) {
+      // Custom task to log accessibility violations
+      on('task', {
+        logA11yViolations(violations) {
+          const fs = require('fs');
+          const path = require('path');
+          const logPath = path.join(__dirname, 'cypress/reports/a11y-violations.log');
+          fs.appendFileSync(logPath, JSON.stringify(violations, null, 2) + '\n');
+          return null;
+        },
+      });
       require('cypress-mochawesome-reporter/plugin')(on);
       // Set up environment variables for Microsoft AD login
       config.env = {

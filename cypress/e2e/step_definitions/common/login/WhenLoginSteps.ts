@@ -9,11 +9,13 @@ When('User Signs In With Microsoft SSO As {string}', (userType: string) => {
     throw new Error(`SSO user type "${userType}" not found in configuration`);
   }
   AuthHelper.signInWithMicrosoftSSO(user.email, user.password);
+  cy.screenshot(`SSOLogin-${userType}`);
 });
 
 When(
   'the user signs in with SSO credentials {string} and {string}',
   (emailSSO: string, passwordSSO: string) => {
     AuthHelper.signInWithMicrosoftSSO(emailSSO, passwordSSO);
+    cy.screenshot(`SSOLogin-${emailSSO}`);
   },
 );

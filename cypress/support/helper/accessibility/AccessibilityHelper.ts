@@ -7,6 +7,10 @@ export class AccessibilityHelper {
     cy.injectAxe();
     cy.checkA11y(undefined, undefined, (violations: Result[]) => {
       if (violations.length) {
+        // Log all violations to file for reporting
+        cy.task('logA11yViolations', violations);
+
+        // Filter for critical and serious violations
         const criticalViolations = violations.filter(
           (violation) =>
             violation.impact === 'critical' || violation.impact === 'serious',
@@ -27,11 +31,10 @@ export class AccessibilityHelper {
 
         if (criticalViolations.length) {
           cy.then(() => {
-            // Put the message on .equal(...) to avoid any stray Jest typings
-            expect(criticalViolations.length).to.equal(
-              0,
+            expect(
+              criticalViolations.length,
               `Found ${criticalViolations.length} critical/serious accessibility violations`,
-            );
+            ).to.equal(0);
           });
         }
       }
@@ -43,7 +46,6 @@ export class AccessibilityHelper {
     AccessibilityHelper.checkAccessibility();
   }
 
-  // Use T[] style for ESLint rule
   static checkAccessibilityOnPages(pages: { url: string }[]): void {
     pages.forEach((row) => {
       cy.visit(row.url);
