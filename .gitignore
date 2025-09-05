@@ -55,3 +55,4 @@ cypress/videos/
 
 # Configuration files
 /config/development.json
+/config/development_alt.json
