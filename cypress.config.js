@@ -28,7 +28,7 @@ module.exports = defineConfig({
     fixturesFolder: 'cypress/fixtures',
 
     // Base URL and Timeouts
-    baseUrl: process.env.BASE_URL || 'http://localhost:4000',
+    baseUrl: process.env.TEST_URL || 'http://localhost:4000',
     defaultCommandTimeout: 20000,
     pageLoadTimeout: 120000,
     requestTimeout: 20000,
@@ -112,7 +112,7 @@ module.exports = defineConfig({
       framework: 'angular',
       bundler: 'webpack',
     },
-    baseUrl: process.env.BASE_URL || 'http://localhost:4000',
+    baseUrl: process.env.TEST_URL || 'http://localhost:4000',
     // Component Test Report Configuration
     reporter: 'cypress-multi-reporters',
     reporterOptions: {
