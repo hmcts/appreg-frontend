@@ -11,6 +11,9 @@ When('User Signs In With Microsoft SSO As {string}', (userType: string) => {
   AuthHelper.signInWithMicrosoftSSO(user.email, user.password);
 });
 
-When('the user signs in with SSO credentials {string} and {string}', (emailSSO: string, passwordSSO: string) => {
-  AuthHelper.signInWithMicrosoftSSO(emailSSO, passwordSSO);
-});
+When(
+  'the user signs in with SSO credentials {string} and {string}',
+  (emailSSO: string, passwordSSO: string) => {
+    AuthHelper.signInWithMicrosoftSSO(emailSSO, passwordSSO);
+  },
+);

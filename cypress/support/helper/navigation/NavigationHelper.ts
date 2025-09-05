@@ -21,15 +21,13 @@ export class NavigationHelper {
     cy.url().should('eq', expectedUrl);
   }
 
-    static verifyPageUrlContains(partialUrl: string): void {
-      cy.log(`Verifying page URL contains ${partialUrl}`);
-      cy.url().should('include', partialUrl);
-    }
+  static verifyPageUrlContains(partialUrl: string): void {
+    cy.log(`Verifying page URL contains ${partialUrl}`);
+    cy.url().should('include', partialUrl);
+  }
 
-    static verifySignOutLinkVisible(): void {
-      cy.log('Verifying Sign out link is visible');
-      NavigationPage.signOutLink().should('be.visible');
-    }
-
-  
+  static verifySignOutLinkVisible(): void {
+    cy.log('Verifying Sign out link is visible');
+    NavigationPage.signOutLink().should('be.visible');
+  }
 }
