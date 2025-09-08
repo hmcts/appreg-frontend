@@ -1,3 +1,4 @@
 # Generated files
 .pnp.*
 .yarn/
+cypress/reports/

@@ -6,6 +6,8 @@ reporter.generate({
   reportName: 'AppReg Frontend Cucumber Report',
   pageTitle: 'AppReg Test Results',
   displayDuration: true,
+  screenshotsDirectory: 'cypress/reports/html/screenshots',
+  customStyle: 'cypress/scripts/custom.css',
   metadata: {
     browser: {
       name: 'chrome',
@@ -23,6 +25,10 @@ reporter.generate({
       { label: 'Project', value: 'AppReg Frontend' },
       { label: 'Release', value: '1.0.0' },
       { label: 'Cycle', value: 'Regression' },
+      {
+        label: 'Environment',
+        value: process.env.TEST_URL || 'http://localhost:4000',
+      },
       { label: 'Execution Start Time', value: new Date().toLocaleString() },
     ],
   },
