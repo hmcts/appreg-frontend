@@ -1,0 +1,5 @@
+img.screenshot {
+  max-width: 600px !important;
+  height: auto !important;
+  border: 1px solid #ccc;
+}

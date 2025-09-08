@@ -33,6 +33,7 @@ module.exports = defineConfig([
     '.eslintrc.js',
     'eslint.config.js',
     '.pnp.*',
+    'cypress/reports/',
   ]),
 
   // Base (shared) – no type-aware parser configured here
