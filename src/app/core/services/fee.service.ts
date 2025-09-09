@@ -41,7 +41,7 @@ export class FeeService {
       catchError(() => of(emptyPage)),
     );
   }
-  
+
   getAllFee$(params: FeeSearchParams = {}): Observable<Fee[]> {
     return this.getFeePage$(params).pipe(map((res) => res.content));
   }
