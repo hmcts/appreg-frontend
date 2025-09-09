@@ -39,7 +39,7 @@ describe('FeeService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('getAllFee$ should GET /fee and return data', async () => {
+  it('getAllFee$ (default) calls /fee?page=1&size=10 and returns content[]', async () => {
     const mock: Fee[] = [
       {
         fee_id: 101,
@@ -65,44 +65,43 @@ describe('FeeService', () => {
         fee_changed_date: '2025-02-05',
         fee_user_name: 'bob.jones',
       },
-      {
-        fee_id: 103,
-        fee_reference: 'FEE-000103',
-        fee_description: 'Late payment charge',
-        fee_value: 50,
-        fee_start_date: '2024-11-01',
-        fee_end_date: null,
-        fee_version: 5,
-        fee_changed_by: 77,
-        fee_changed_date: '2025-03-12',
-        fee_user_name: 'bob.jones',
-      },
-      {
-        fee_id: 104,
-        fee_reference: 'FEE-000104',
-        fee_description: 'Document handling fee',
-        fee_value: 19.99,
-        fee_start_date: '2025-03-01',
-        fee_end_date: null,
-        fee_version: 2,
-        fee_changed_by: 12,
-        fee_changed_date: '2025-03-10',
-        fee_user_name: 'carol.ng',
-      },
     ];
 
     const dataP = firstValueFrom(service.getAllFee$().pipe(take(1)));
 
     const req = httpMock.expectOne(
       (r) =>
-        r.method === 'GET' && r.url === '/fee' && r.params.get('size') === '50',
+        r.method === 'GET' &&
+        r.url === '/fee' &&
+        r.params.get('page') === '1' &&
+        r.params.get('size') === '10',
     );
-    req.flush({ content: mock });
+    req.flush({ content: mock, totalElements: 2, totalPages: 1 });
 
     await expect(dataP).resolves.toEqual(mock);
   });
 
-  it('getFeeById$ should GET /fee/:id and return data', (done) => {
+  it('getAllFee$ passes query params when provided', async () => {
+    const dataP = firstValueFrom(
+      service
+        .getAllFee$({ reference: 'FEE-000101', page: 2, size: 50 })
+        .pipe(take(1)),
+    );
+
+    const req = httpMock.expectOne(
+      (r) =>
+        r.method === 'GET' &&
+        r.url === '/fee' &&
+        r.params.get('reference') === 'FEE-000101' &&
+        r.params.get('page') === '2' &&
+        r.params.get('size') === '50',
+    );
+    req.flush({ content: [], totalElements: 0, totalPages: 0 });
+
+    await expect(dataP).resolves.toEqual([]);
+  });
+
+  it('getFeeById$ calls /fee/:id and returns data', (done) => {
     const mock: Fee = {
       fee_id: 101,
       fee_reference: 'FEE-000101',

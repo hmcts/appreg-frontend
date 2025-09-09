@@ -10,3 +10,13 @@ export interface Fee {
   fee_changed_date: string;
   fee_user_name: string;
 }
+
+// Optional params
+export type FeeSearchParams = {
+  reference?: string;
+  startDate?: string; // 'DD/MM/YYYY'
+  endDate?: string;
+  value?: number;
+  page?: number;
+  size?: number;
+};
