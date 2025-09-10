@@ -17,7 +17,9 @@ export class AccessibilityHelper {
         );
 
         violations.forEach((violation) => {
-          cy.log(`${violation.id} (${violation.impact}): ${violation.description}`);
+          cy.log(
+            `${violation.id} (${violation.impact}): ${violation.description}`,
+          );
           violation.nodes.forEach((node: NodeResult) => {
             cy.log(`Element: ${JSON.stringify(node.target)}`);
             cy.log(`Failure Summary: ${node.failureSummary}`);

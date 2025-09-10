@@ -206,18 +206,18 @@ You can either run a provided script or install manually.
 ## Folder Structure
 
 cypress/
-   e2e/
-      features/
-         smoke/
-         smoke.feature
-   step_definitions/
-      elements/
-         navigation/
-            WhenNavigationSteps.ts
-   fixtures/
-      test-data.json
+e2e/
+features/
+smoke/
+smoke.feature
+step_definitions/
+elements/
+navigation/
+WhenNavigationSteps.ts
+fixtures/
+test-data.json
 support/
-   e2e.js
+e2e.js
 
 ## Configuration Files
 
@@ -234,10 +234,10 @@ support/
 
    or run all tests headlessly:
    yarn cypress run
-   
-3.    For all tests: yarn test:functional
-      For smoke tests: yarn test:functional --cypress-args=\"--env TAGS=@smoke\"
-      For any tags: yarn test:functional --cypress-args=\"--env TAGS=@yourtag\"
+
+3. For all tests: yarn test:functional
+   For smoke tests: yarn test:functional --cypress-args=\"--env TAGS=@smoke\"
+   For any tags: yarn test:functional --cypress-args=\"--env TAGS=@yourtag\"
 
 ## Sample Test
 
