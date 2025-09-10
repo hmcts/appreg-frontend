@@ -63,9 +63,14 @@ const errorMsg = (err: ApiError): string => {
 };
 
 export const apiInterceptor: HttpInterceptorFn = (req, next) => {
+  const base = 'http://localhost:4550'; // we need to change this in prod
   const bus = inject(ErrorBus);
 
-  return next(req.clone({ withCredentials: true })).pipe(
+  const isAbsolute = /^https?:\/\//i.test(req.url);
+  const url = isAbsolute ? req.url : `${base}${req.url}`;
+  const r = req.clone({ url, withCredentials: true });
+
+  return next(r).pipe(
     catchError((err: unknown) => {
       const apiErr = toApiError(err);
       bus.notify(errorMsg(apiErr));

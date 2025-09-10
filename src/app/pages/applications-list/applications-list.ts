@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TransferState, makeStateKey } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { ApplicationList } from '../../core/models/application-list';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
@@ -13,6 +13,8 @@ import { PaginationComponent } from '../../shared/components/pagination/paginati
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
+
+import { NationalCourtHouse } from 'src/app/core/models/national-court-house';
 
 @Component({
   selector: 'app-applications-list',
@@ -32,6 +34,15 @@ import { TextInputComponent } from '../../shared/components/text-input/text-inpu
 })
 export class ApplicationsList implements OnInit {
   private _id: number | undefined;
+
+  NCH_KEY = makeStateKey<never[]>('nch');
+
+  constructor(
+    private route: ActivatedRoute,
+    private readonly state: TransferState,
+  ) {}
+
+  nationalCourtHouses: NationalCourtHouse[] = [];
 
   // Reactive form backing the template
   form = new FormGroup({
@@ -61,6 +72,13 @@ export class ApplicationsList implements OnInit {
   }[] = [];
 
   ngOnInit(): void {
+    const cached = this.state.get(this.NCH_KEY, null);
+    if (cached) {
+      console.log('SSR cached', cached);
+      this.state.remove(this.NCH_KEY);
+      return;
+    }
+
     this.loadApplications();
   }
 
@@ -75,8 +93,16 @@ export class ApplicationsList implements OnInit {
       // TODO: handle create using `values`
     }
   }
+
   loadApplications(): void {
     // TODO: fetch lists
+
+    // Load National Court Houses
+    const raw: unknown = this.route.snapshot.data['nationalCourtHouses'];
+    this.nationalCourtHouses = Array.isArray(raw)
+      ? (raw as NationalCourtHouse[])
+      : [];
+    console.log(this.nationalCourtHouses);
   }
 
   onDelete(id: number): void {

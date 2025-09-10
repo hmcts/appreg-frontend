@@ -17,14 +17,20 @@ export class NationalCourtHouseService {
       .get<Page<NationalCourtHouse>>(this.basePath, { params: { size: 50 } })
       .pipe(
         map((res) => res?.content ?? []),
-        catchError(() => of([])),
+        catchError((err) => {
+          console.error('[fetch failed]', err);
+          return of([]);
+        }),
       );
   }
 
   getCourtLocationById$(id: number): Observable<NationalCourtHouse | null> {
-    return this.api
-      .get<NationalCourtHouse>(`${this.basePath}/${id}`)
-      .pipe(catchError(() => of(null)));
+    return this.api.get<NationalCourtHouse>(`${this.basePath}/${id}`).pipe(
+      catchError((err) => {
+        console.error('[fetch failed]', err);
+        return of(null);
+      }),
+    );
   }
 
   updateCourtLocation$(
