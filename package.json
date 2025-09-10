@@ -46,7 +46,7 @@
     "@angular/forms": "^20.1.0",
     "@angular/platform-browser": "^20.1.0",
     "@angular/platform-browser-dynamic": "^20.1.0",
-    "@angular/platform-server": "^20.1.0",
+    "@angular/platform-server": "^20.3.0",
     "@angular/router": "^20.1.0",
     "@angular/ssr": "^20.1.5",
     "@azure/msal-node": "^3.7.1",
