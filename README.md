@@ -227,30 +227,17 @@ e2e.js
 ## Running Tests Locally
 
 1. Install dependencies:
-   npm install
+   yarn install
 
 2. Open Cypress UI:
-   npx cypress open
+   yarn cypress open
 
    or run all tests headlessly:
-   npx cypress run
+   yarn cypress run
 
-## Generating Cucumber HTML Reports
-
-After running your Cypress tests, you can generate a Cucumber HTML report using the following command:
-
-yarn cucumber:report
-
-Or, to run tests and generate the report in one step:
-
-yarn cypress:run:cucumber
-
-This will:
-
-- Run your Cypress tests and generate a Cucumber JSON report in cypress/reports/cucumber-json/
-- Create an HTML report in cypress/reports/cucumber-html/ with custom headings and run info
-
-You can customize the report by editing cypress/scripts/generate-cucumber-report.js.
+3. For all tests: yarn test:functional
+   For smoke tests: yarn test:functional --cypress-args=\"--env TAGS=@smoke\"
+   For any tags: yarn test:functional --cypress-args=\"--env TAGS=@yourtag\"
 
 ## Sample Test
 

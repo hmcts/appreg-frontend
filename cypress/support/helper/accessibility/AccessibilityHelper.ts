@@ -17,15 +17,12 @@ export class AccessibilityHelper {
         );
 
         violations.forEach((violation) => {
-          // eslint-disable-next-line no-console
-          console.log(
+          cy.log(
             `${violation.id} (${violation.impact}): ${violation.description}`,
           );
           violation.nodes.forEach((node: NodeResult) => {
-            // eslint-disable-next-line no-console
-            console.log('Element:', node.target);
-            // eslint-disable-next-line no-console
-            console.log('Failure Summary:', node.failureSummary);
+            cy.log(`Element: ${JSON.stringify(node.target)}`);
+            cy.log(`Failure Summary: ${node.failureSummary}`);
           });
         });
 
