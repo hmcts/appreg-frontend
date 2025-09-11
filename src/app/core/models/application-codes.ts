@@ -1,19 +1,19 @@
-export interface ApplicationCodes {
-  acId: number;
-  applicationCode: string; // varchar(10)
-  applicationCodeTitle: string; // varchar(500)
-  applicationCodeWording: string; // text
-  applicationLegislation?: string | null; // text, nullable
-  feeDue: string; // char(1)
-  applicationCodeRespondent: string; // char(1)
-  acDestinationEmailAddress1?: string | null; // varchar(253), nullable
-  acDestinationEmailAddress2?: string | null; // varchar(253), nullable
-  applicationCodeStartDate: string; // timestamp 
-  applicationCodeEndDate?: string | null; // timestamp
-  bulkRespondentAllowed: string; // char(1)
-  version: number; // numeric
-  changedBy: number; // numeric
-  changedDate: string; // timestamp
-  userName?: string | null; // varchar(250), nullable
-  acFeeReference?: string | null;
+export interface ApplicationCode {
+  id: number;
+  applicationCode: string;
+  title: string;
+  wording: string;
+  legislation: string | null;
+  feeDue: boolean;
+  requiresRespondent: boolean;
+  bulkRespondentAllowed: boolean;
+  destinationEmail1: string | null;
+  destinationEmail2: string | null;
+  startDate: string;
+  endDate: string | null;
+  feeReference: string | null;
+  mainFeeDescription: string | null;
+  mainFeeAmount: number | null;
+  offsetFeeDescription: string | null;
+  offsetFeeAmount: number | null;
 }
