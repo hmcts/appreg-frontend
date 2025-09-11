@@ -22,6 +22,15 @@ import { TextInputComponent } from '../../shared/components/text-input/text-inpu
 
 import { NationalCourtHouse } from 'src/app/core/models/national-court-house';
 
+type FieldKey =
+  | 'date'
+  | 'time'
+  | 'description'
+  | 'status'
+  | 'court'
+  | 'location'
+  | 'cja';
+
 @Component({
   selector: 'app-applications-list',
   standalone: true,
@@ -50,7 +59,18 @@ export class ApplicationsList implements OnInit {
 
   nationalCourtHouses: NationalCourtHouse[] = [];
   courtOptions: string[] = [];
+  dateInvalid: boolean | null = null;
   @Input() listId?: string;
+
+  invalidField: Record<FieldKey, boolean | null> = {
+    date: null,
+    time: null,
+    description: null,
+    status: null,
+    court: null,
+    location: null,
+    cja: null,
+  };
 
   // Reactive form backing the template
   form = new FormGroup({
@@ -100,7 +120,22 @@ export class ApplicationsList implements OnInit {
     const action = btn?.value ?? 'search';
 
     if (action === 'search') {
-      // TODO: handle search using `values`
+      // TODO: Add data validation for each form value
+      const formValues = this.form.getRawValue();
+
+      this.form.patchValue({
+        description: formValues.description,
+        status: formValues.status,
+        court: formValues.court,
+        location: formValues.location,
+        cja: formValues.cja,
+      });
+
+      // console.log(this.form.value);
+      // console.log(this.form.controls.date.errors?.['dateInvalid']);
+      this.invalidField.date = this.form.controls.date.errors?.[
+        'dateInvalid'
+      ] as boolean | null;
     } else if (action === 'create') {
       // TODO: handle create using `values`
     }

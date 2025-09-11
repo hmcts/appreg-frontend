@@ -47,6 +47,11 @@
     </app-select-input>
   </div>
 
+  <!-- Notify of invalid fields -->
+  @if (invalidField.date) {
+    <div class="govuk-error-message">Enter a valid date.</div>
+  }
+
   <div class="govuk-grid-row">
     <!-- Court -->
     <app-text-input
