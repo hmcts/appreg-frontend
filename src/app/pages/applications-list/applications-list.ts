@@ -1,5 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, TransferState, makeStateKey } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnInit,
+  TransferState,
+  makeStateKey,
+} from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
@@ -43,6 +49,8 @@ export class ApplicationsList implements OnInit {
   ) {}
 
   nationalCourtHouses: NationalCourtHouse[] = [];
+  courtOptions: string[] = [];
+  @Input() listId?: string;
 
   // Reactive form backing the template
   form = new FormGroup({
@@ -72,9 +80,13 @@ export class ApplicationsList implements OnInit {
   }[] = [];
 
   ngOnInit(): void {
-    const cached = this.state.get(this.NCH_KEY, null);
-    if (cached) {
-      console.log('SSR cached', cached);
+    // Use cached data from prerendering
+    if (this.state.hasKey(this.NCH_KEY)) {
+      this.nationalCourtHouses = this.state.get(this.NCH_KEY, []);
+      this.courtOptions = this.nationalCourtHouses.map((c) =>
+        c.courtLocationCode ? `${c.name} — ${c.courtLocationCode}` : c.name,
+      );
+      // TODO: as we add more services we need to add it here too for caching
       this.state.remove(this.NCH_KEY);
       return;
     }
@@ -102,7 +114,11 @@ export class ApplicationsList implements OnInit {
     this.nationalCourtHouses = Array.isArray(raw)
       ? (raw as NationalCourtHouse[])
       : [];
-    console.log(this.nationalCourtHouses);
+
+    // UI: Datalist of court houses
+    this.courtOptions = this.nationalCourtHouses.map((c) =>
+      c.courtLocationCode ? `${c.name} — ${c.courtLocationCode}` : c.name,
+    );
   }
 
   onDelete(id: number): void {

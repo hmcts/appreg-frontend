@@ -12,7 +12,10 @@ export const routes: Routes = [
     path: 'applications-list',
     component: ApplicationsList,
     canActivate: [sessionGuard],
-    resolve: { nationalCourtHouses: nationalCourtHousesResolver },
+    resolve: {
+      nationalCourtHouses: nationalCourtHousesResolver,
+      // We can add more services here when needed
+    },
   },
   { path: '**', redirectTo: 'login' },
 ];

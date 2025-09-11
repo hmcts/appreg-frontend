@@ -3,7 +3,7 @@
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
-<form [formGroup]="form" (ngSubmit)="onSubmit($event)">
+<form [formGroup]="form" (ngSubmit)="onSubmit($event)" autocomplete="off">
   <div class="govuk-grid-row">
     <!-- Date -->
     <app-date-input
@@ -52,10 +52,23 @@
     <app-text-input
       formControlName="court"
       label="Court"
-      hint="A description of the court"
+      hint="Start typing to filter courts"
       idPrefix="court"
+      [listId]="'court-suggestions'"
     >
+      >
     </app-text-input>
+
+    <datalist id="court-suggestions">
+      @for (c of nationalCourtHouses; track c.id) {
+        <option
+          [value]="c.name"
+          [attr.label]="
+            c.courtLocationCode ? c.name + ' — ' + c.courtLocationCode : c.name
+          "
+        ></option>
+      }
+    </datalist>
 
     <!-- Other location -->
     <app-text-input

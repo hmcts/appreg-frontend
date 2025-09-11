@@ -17,8 +17,7 @@ export class NationalCourtHouseService {
       .get<Page<NationalCourtHouse>>(this.basePath, { params: { size: 50 } })
       .pipe(
         map((res) => res?.content ?? []),
-        catchError((err) => {
-          console.error('[fetch failed]', err);
+        catchError(() => {
           return of([]);
         }),
       );
@@ -26,8 +25,7 @@ export class NationalCourtHouseService {
 
   getCourtLocationById$(id: number): Observable<NationalCourtHouse | null> {
     return this.api.get<NationalCourtHouse>(`${this.basePath}/${id}`).pipe(
-      catchError((err) => {
-        console.error('[fetch failed]', err);
+      catchError(() => {
         return of(null);
       }),
     );

@@ -29,6 +29,7 @@ export class TextInputComponent implements ControlValueAccessor {
   @Input() idPrefix = 'text-input';
   /** Optional width class (e.g. 'govuk-input--width-10') */
   @Input() widthClass = 'govuk-input--width-10';
+  @Input() listId?: string;
 
   value: string | null = null;
   disabled = false;
