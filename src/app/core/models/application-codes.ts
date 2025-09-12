@@ -1,4 +1,4 @@
-export interface ApplicationCode {
+export interface ApplicationCodes {
   id: number;
   applicationCode: string;
   title: string;
