@@ -1,10 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, forwardRef } from '@angular/core';
 import {
+  AbstractControl,
   ControlValueAccessor,
   FormsModule,
+  NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ReactiveFormsModule,
+  ValidationErrors,
+  Validator,
 } from '@angular/forms';
 
 export interface Duration {
@@ -23,14 +27,16 @@ export interface Duration {
       useExisting: forwardRef(() => DurationInputComponent),
       multi: true,
     },
+    {
+      provide: NG_VALIDATORS,
+      useExisting: forwardRef(() => DurationInputComponent),
+      multi: true,
+    },
   ],
 })
-export class DurationInputComponent implements ControlValueAccessor {
-  /** Label text above the inputs */
+export class DurationInputComponent implements ControlValueAccessor, Validator {
   @Input() label = 'Duration';
-  /** Hint text below the label */
   @Input() hint = '';
-  /** Prefix for id/name attrs (so you can have multiple on one page) */
   @Input() idPrefix = 'duration';
 
   /** Internal model */
@@ -42,6 +48,7 @@ export class DurationInputComponent implements ControlValueAccessor {
   /** CVA callbacks (typed) */
   private onChange: (value: Duration | null) => void = () => {};
   private onTouched: () => void = () => {};
+  private onValidatorChange: () => void = () => {};
 
   writeValue(value: Duration | null): void {
     if (value) {
@@ -64,6 +71,28 @@ export class DurationInputComponent implements ControlValueAccessor {
     this.disabled = isDisabled;
   }
 
+  // Validation (hours: 0–23, mins: 0–59)
+  validate(_: AbstractControl): ValidationErrors | null {
+    void _;
+    const h = this.hours;
+    const m = this.minutes;
+
+    if ((h === null || h === undefined) && (m === null || m === undefined)) {
+      return null;
+    }
+
+    const isHoursValid =
+      Number.isInteger(h) && (h as number) >= 0 && (h as number) <= 23;
+    const isMinsValid =
+      Number.isInteger(m) && (m as number) >= 0 && (m as number) <= 59;
+
+    return isHoursValid && isMinsValid ? null : { durationInvalid: true };
+  }
+
+  registerOnValidatorChange(fn: () => void): void {
+    this.onValidatorChange = fn;
+  }
+
   /** Call whenever either input changes */
   private propagate(): void {
     const out: Duration = {
@@ -71,6 +100,7 @@ export class DurationInputComponent implements ControlValueAccessor {
       minutes: this.minutes,
     };
     this.onChange(out);
+    this.onValidatorChange();
   }
 
   onHoursInput(e: Event): void {

@@ -119,25 +119,39 @@ export class ApplicationsList implements OnInit {
     const btn = event.submitter as HTMLButtonElement | null;
     const action = btn?.value ?? 'search';
 
+    const formValues = this.form.getRawValue();
+
+    this.form.patchValue({
+      date: formValues.date,
+      description: formValues.description,
+      status: formValues.status,
+      court: formValues.court,
+      location: formValues.location,
+      cja: formValues.cja,
+    });
+
+    console.log(this.form.value);
+    // console.log(this.form.controls.date.errors?.['dateInvalid']);
+
+    // Is field valid && populated?
+    for (const k of Object.keys(this.invalidField) as FieldKey[]) {
+      const ctrl = this.form.controls[k];
+      const errs = ctrl.errors as Record<string, unknown> | null;
+
+      if (!errs) {
+        this.invalidField[k] = null;
+        continue;
+      }
+
+      const key = `${k}Invalid`;
+      this.invalidField[k] = key in errs || Object.keys(errs).length > 0;
+    }
+
     if (action === 'search') {
-      // TODO: Add data validation for each form value
-      const formValues = this.form.getRawValue();
-
-      this.form.patchValue({
-        description: formValues.description,
-        status: formValues.status,
-        court: formValues.court,
-        location: formValues.location,
-        cja: formValues.cja,
-      });
-
-      // console.log(this.form.value);
-      // console.log(this.form.controls.date.errors?.['dateInvalid']);
-      this.invalidField.date = this.form.controls.date.errors?.[
-        'dateInvalid'
-      ] as boolean | null;
+      // TODO: handle search using 'values'
     } else if (action === 'create') {
       // TODO: handle create using `values`
+      // when we create we want to check if ALL fields are populated
     }
   }
 

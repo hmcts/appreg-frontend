@@ -52,6 +52,10 @@
     <div class="govuk-error-message">Enter a valid date.</div>
   }
 
+  @if (invalidField.time) {
+    <div class="govuk-error-message">Enter a valid time.</div>
+  }
+
   <div class="govuk-grid-row">
     <!-- Court -->
     <app-text-input
