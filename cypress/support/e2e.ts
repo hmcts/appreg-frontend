@@ -1,5 +1,3 @@
-// cypress/support/e2e.js
-// Add custom commands or setup code for e2e tests here
 /// <reference types="cypress" />
 
 import './commands';
@@ -7,7 +5,8 @@ import 'cypress-mochawesome-reporter/register';
 
 beforeEach(() => {
   // Add any setup code needed before each test
-  // Example: cy.clearCookies();
+  cy.viewport(1280, 720); // Set a default viewport size
+
 });
 
 afterEach(function () {
@@ -19,6 +18,4 @@ afterEach(function () {
 after(() => {
   void Cypress.session.clearAllSavedSessions();
   void cy.clearCookies();
-  void cy.clearCookies({ domain: '.microsoftonline.com' });
-  void cy.clearCookies({ domain: 'login.microsoftonline.com' });
 });
