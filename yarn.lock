@@ -1323,13 +1323,13 @@ __metadata:
   linkType: hard
 
 "@bahmutov/cypress-esbuild-preprocessor@npm:^2.2.5":
-  version: 2.2.5
-  resolution: "@bahmutov/cypress-esbuild-preprocessor@npm:2.2.5"
+  version: 2.2.6
+  resolution: "@bahmutov/cypress-esbuild-preprocessor@npm:2.2.6"
   dependencies:
-    debug: "npm:4.4.1"
+    debug: "npm:4.4.3"
   peerDependencies:
     esbuild: ">=0.17.0"
-  checksum: 10/7e676f6c9d0ed94761edf9cc76cc76bde62490b6c139a1752de24b5cb6718bbeb32de4a1ebd98a0e45cc4ded9b682d0261997d2b9ddf7247c627b20e05b576a4
+  checksum: 10/733218434dc6d8b0448f0d39cb7520c5d894482a4b891573416c834db0bdb99f631a1b88a6dacfac0f978f0db363399222c518abd5df07cba0ff033c8fac96e3
   languageName: node
   linkType: hard
 
@@ -7028,7 +7028,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"debug@npm:4, debug@npm:4.4.1, debug@npm:^4, debug@npm:^4.1.0, debug@npm:^4.1.1, debug@npm:^4.3.1, debug@npm:^4.3.2, debug@npm:^4.3.3, debug@npm:^4.3.4, debug@npm:^4.3.5, debug@npm:^4.3.6, debug@npm:^4.3.7, debug@npm:^4.4.0, debug@npm:^4.4.1":
+"debug@npm:4, debug@npm:^4, debug@npm:^4.1.0, debug@npm:^4.1.1, debug@npm:^4.3.1, debug@npm:^4.3.2, debug@npm:^4.3.3, debug@npm:^4.3.4, debug@npm:^4.3.5, debug@npm:^4.3.6, debug@npm:^4.3.7, debug@npm:^4.4.0, debug@npm:^4.4.1":
   version: 4.4.1
   resolution: "debug@npm:4.4.1"
   dependencies:
@@ -7049,6 +7049,18 @@ __metadata:
     supports-color:
       optional: true
   checksum: 10/0073c3bcbd9cb7d71dd5f6b55be8701af42df3e56e911186dfa46fac3a5b9eb7ce7f377dd1d3be6db8977221f8eb333d945216f645cf56f6b688cd484837d255
+  languageName: node
+  linkType: hard
+
+"debug@npm:4.4.3":
+  version: 4.4.3
+  resolution: "debug@npm:4.4.3"
+  dependencies:
+    ms: "npm:^2.1.3"
+  peerDependenciesMeta:
+    supports-color:
+      optional: true
+  checksum: 10/9ada3434ea2993800bd9a1e320bd4aa7af69659fb51cca685d390949434bc0a8873c21ed7c9b852af6f2455a55c6d050aa3937d52b3c69f796dab666f762acad
   languageName: node
   linkType: hard
 
