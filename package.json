@@ -5,6 +5,7 @@
     "node": ">=20.19.4"
   },
   "scripts": {
+    "update": "ng update @angular/cli",
     "ng": "ng",
     "start": "node dist/appreg-frontend/server/server.mjs",
     "start:dev": "nodemon --config nodemon.json",
