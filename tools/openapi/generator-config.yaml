@@ -1,0 +1,17 @@
+generatorName: typescript-angular
+inputSpec: tools/dist/openapi.bundled.yaml
+outputDir: src/app/core/openapi
+additionalProperties:
+  fileNaming: kebab-case
+  withInterfaces: true
+  stringEnums: true
+  enumPropertyNaming: UPPERCASE
+  providedInRoot: true
+  serviceSuffix: Api
+  useSingleRequestParameter: true
+generateAliasAsModel: true
+globalProperty:
+  apis: true
+  models: true
+  apiDocs: false
+  modelDocs: false
