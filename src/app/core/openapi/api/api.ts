@@ -16,4 +16,11 @@ export * from './result-codes.serviceInterface';
 export * from './standard-applicants.service';
 import { StandardApplicantsApi } from './standard-applicants.service';
 export * from './standard-applicants.serviceInterface';
-export const APIS = [ApplicationCodesApi, CourtLocationApi, CourtLocationsApi, CriminalJusticeAreasApi, ResultCodesApi, StandardApplicantsApi];
+export const APIS = [
+  ApplicationCodesApi,
+  CourtLocationApi,
+  CourtLocationsApi,
+  CriminalJusticeAreasApi,
+  ResultCodesApi,
+  StandardApplicantsApi,
+];

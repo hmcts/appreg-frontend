@@ -46,10 +46,10 @@ npm link
 In your project:
 
 ```console
-npm link 
+npm link
 ```
 
-__Note for Windows users:__ The Angular CLI has troubles to use linked npm packages.
+**Note for Windows users:** The Angular CLI has troubles to use linked npm packages.
 Please refer to this issue <https://github.com/angular/angular-cli/issues/8284> for a solution / workaround.
 Published packages are not effected by this issue.
 
@@ -58,22 +58,22 @@ Published packages are not effected by this issue.
 In your Angular project:
 
 ```typescript
-
 import { ApplicationConfig } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { provideApi } from '';
 
 export const appConfig: ApplicationConfig = {
-    providers: [
-        // ...
-        provideHttpClient(),
-        provideApi()
-    ],
+  providers: [
+    // ...
+    provideHttpClient(),
+    provideApi(),
+  ],
 };
 ```
 
 **NOTE**
 If you're still using `AppModule` and haven't [migrated](https://angular.dev/reference/migrations/standalone) yet, you can still import an Angular module:
+
 ```typescript
 import { ApiModule } from '';
 ```
@@ -86,11 +86,11 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideApi } from '';
 
 export const appConfig: ApplicationConfig = {
-    providers: [
-        // ...
-        provideHttpClient(),
-        provideApi('http://localhost:9999')
-    ],
+  providers: [
+    // ...
+    provideHttpClient(),
+    provideApi('http://localhost:9999'),
+  ],
 };
 ```
 
@@ -101,15 +101,15 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideApi } from '';
 
 export const appConfig: ApplicationConfig = {
-    providers: [
-        // ...
-        provideHttpClient(),
-        provideApi({
-            withCredentials: true,
-            username: 'user',
-            password: 'password'
-        })
-    ],
+  providers: [
+    // ...
+    provideHttpClient(),
+    provideApi({
+      withCredentials: true,
+      username: 'user',
+      password: 'password',
+    }),
+  ],
 };
 ```
 
@@ -120,21 +120,22 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideApi, Configuration } from '';
 
 export const appConfig: ApplicationConfig = {
-    providers: [
-        // ...
-        provideHttpClient(),
-        {
-            provide: Configuration,
-            useFactory: (authService: AuthService) => new Configuration({
-                    basePath: 'http://localhost:9999',
-                    withCredentials: true,
-                    username: authService.getUsername(),
-                    password: authService.getPassword(),
-            }),
-            deps: [AuthService],
-            multi: false
-        }
-    ],
+  providers: [
+    // ...
+    provideHttpClient(),
+    {
+      provide: Configuration,
+      useFactory: (authService: AuthService) =>
+        new Configuration({
+          basePath: 'http://localhost:9999',
+          withCredentials: true,
+          username: authService.getUsername(),
+          password: authService.getPassword(),
+        }),
+      deps: [AuthService],
+      multi: false,
+    },
+  ],
 };
 ```
 
@@ -151,12 +152,12 @@ import { HttpClientModule } from '@angular/common/http';
 import { environment } from '../environments/environment';
 
 export const appConfig: ApplicationConfig = {
-    providers: [
-        // ...
-        provideHttpClient(),
-        provideUserApi(environment.basePath),
-        provideAdminApi(environment.basePath),
-    ],
+  providers: [
+    // ...
+    provideHttpClient(),
+    provideUserApi(environment.basePath),
+    provideAdminApi(environment.basePath),
+  ],
 };
 ```
 
@@ -176,8 +177,8 @@ Example value for use in your Configuration-Provider:
 
 ```typescript
 new Configuration({
-    encodeParam: (param: Param) => myFancyParamEncoder(param),
-})
+  encodeParam: (param: Param) => myFancyParamEncoder(param),
+});
 ```
 
 [parameter-locations-url]: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#parameter-locations
