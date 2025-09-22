@@ -28,9 +28,7 @@
     "cichecks": "yarn build && yarn lint && yarn test && yarn test:routes && yarn test:a11y",
     "prepare": "husky install",
     "cypress:open": "cypress open",
-    "cypress:run": "cypress run",
-    "cucumber:report": "node cypress/scripts/generate-cucumber-report.js",
-    "cypress:run:cucumber": "cypress run && yarn cucumber:report"
+    "cypress:run": "cypress run && node cypress/scripts/generate-cucumber-report.js"
   },
   "prettier": {
     "singleQuote": true,
