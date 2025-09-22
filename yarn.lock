@@ -1332,10 +1332,14 @@ __metadata:
 "@bahmutov/cypress-esbuild-preprocessor@npm:^2.2.5":
   version: 2.2.6
   resolution: "@bahmutov/cypress-esbuild-preprocessor@npm:2.2.6"
+  version: 2.2.6
+  resolution: "@bahmutov/cypress-esbuild-preprocessor@npm:2.2.6"
   dependencies:
+    debug: "npm:4.4.3"
     debug: "npm:4.4.3"
   peerDependencies:
     esbuild: ">=0.17.0"
+  checksum: 10/733218434dc6d8b0448f0d39cb7520c5d894482a4b891573416c834db0bdb99f631a1b88a6dacfac0f978f0db363399222c518abd5df07cba0ff033c8fac96e3
   checksum: 10/733218434dc6d8b0448f0d39cb7520c5d894482a4b891573416c834db0bdb99f631a1b88a6dacfac0f978f0db363399222c518abd5df07cba0ff033c8fac96e3
   languageName: node
   linkType: hard
@@ -4913,8 +4917,11 @@ __metadata:
 "@types/node@npm:^20.17.19":
   version: 20.19.16
   resolution: "@types/node@npm:20.19.16"
+  version: 20.19.16
+  resolution: "@types/node@npm:20.19.16"
   dependencies:
     undici-types: "npm:~6.21.0"
+  checksum: 10/19e2887c09f920f629f04b874542f277da6db35812f8acc2ad6d09652d21c9a26161f70752e2b9473b1e185cd63c64439875e0b714b9e0f7c3168aed9a2f514a
   checksum: 10/19e2887c09f920f629f04b874542f277da6db35812f8acc2ad6d09652d21c9a26161f70752e2b9473b1e185cd63c64439875e0b714b9e0f7c3168aed9a2f514a
   languageName: node
   linkType: hard
@@ -7768,6 +7775,7 @@ __metadata:
   linkType: hard
 
 "debug@npm:4, debug@npm:^4, debug@npm:^4.1.0, debug@npm:^4.1.1, debug@npm:^4.3.1, debug@npm:^4.3.2, debug@npm:^4.3.3, debug@npm:^4.3.4, debug@npm:^4.3.5, debug@npm:^4.3.6, debug@npm:^4.3.7, debug@npm:^4.4.0, debug@npm:^4.4.1":
+"debug@npm:4, debug@npm:^4, debug@npm:^4.1.0, debug@npm:^4.1.1, debug@npm:^4.3.1, debug@npm:^4.3.2, debug@npm:^4.3.3, debug@npm:^4.3.4, debug@npm:^4.3.5, debug@npm:^4.3.6, debug@npm:^4.3.7, debug@npm:^4.4.0, debug@npm:^4.4.1":
   version: 4.4.1
   resolution: "debug@npm:4.4.1"
   dependencies:
@@ -7788,6 +7796,18 @@ __metadata:
     supports-color:
       optional: true
   checksum: 10/0073c3bcbd9cb7d71dd5f6b55be8701af42df3e56e911186dfa46fac3a5b9eb7ce7f377dd1d3be6db8977221f8eb333d945216f645cf56f6b688cd484837d255
+  languageName: node
+  linkType: hard
+
+"debug@npm:4.4.3":
+  version: 4.4.3
+  resolution: "debug@npm:4.4.3"
+  dependencies:
+    ms: "npm:^2.1.3"
+  peerDependenciesMeta:
+    supports-color:
+      optional: true
+  checksum: 10/9ada3434ea2993800bd9a1e320bd4aa7af69659fb51cca685d390949434bc0a8873c21ed7c9b852af6f2455a55c6d050aa3937d52b3c69f796dab666f762acad
   languageName: node
   linkType: hard
 
@@ -17608,6 +17628,10 @@ __metadata:
   languageName: node
   linkType: hard
 
+"undici-types@npm:~7.12.0":
+  version: 7.12.0
+  resolution: "undici-types@npm:7.12.0"
+  checksum: 10/4a0f927c98828f76fb0d64f356e36e5ac6e074ae4c7bec08d6de8bc36b7cf08ae27a3518fa8eb703f51c1a675241e2d07359bbce63f5575299148a270cea7e43
 "undici-types@npm:~7.12.0":
   version: 7.12.0
   resolution: "undici-types@npm:7.12.0"
