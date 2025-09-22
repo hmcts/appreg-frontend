@@ -58,4 +58,5 @@ cypress/videos/
 /config/development_alt.json
 
 # OpenAPI
+/src/app/core/openapi
 /tools/dist/openapi.bundled.yaml
