@@ -5,7 +5,6 @@ import {
 } from '@angular/common/http';
 import {
   ApplicationConfig,
-  importProvidersFrom,
   provideBrowserGlobalErrorListeners,
   provideZoneChangeDetection,
 } from '@angular/core';
@@ -16,7 +15,7 @@ import {
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
-import { ApiModule, BASE_PATH, Configuration } from './core/openapi';
+import { BASE_PATH } from './core/openapi/variables';
 
 export const credentialsInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req.clone({ withCredentials: true }));
@@ -34,11 +33,6 @@ export const appConfig: ApplicationConfig = {
         headerName: 'X-XSRF-TOKEN',
       }),
     ),
-    { provide: BASE_PATH, useValue: 'http://localhost:4550' },
-    importProvidersFrom(
-      ApiModule.forRoot(
-        () => new Configuration({ basePath: 'http://localhost:4550' }),
-      ),
-    ),
+    { provide: BASE_PATH, useValue: '' },
   ],
 };
