@@ -28,15 +28,17 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 }
 
 withPipeline(type, product, component) {
-    loadVaultSecrets(secrets)
-    enableSlackNotifications('#appreg-builds')
+  loadVaultSecrets(secrets)
+  enableSlackNotifications('#appreg-builds')
 
-    syncBranchesWithMaster(branchesToSync)
+  syncBranchesWithMaster(branchesToSync)
 
+  node('linux') {
     stage('OpenAPI: bundle + generate') {
-    sh '''
-      set -euxo pipefail
-      yarn api:all
-    '''
+      sh '''
+        set -euxo pipefail
+        yarn api:all
+      '''
+    }
   }
 }
