@@ -873,13 +873,13 @@ __metadata:
   linkType: hard
 
 "@azure/msal-node@npm:^3.5.0, @azure/msal-node@npm:^3.7.1":
-  version: 3.7.3
-  resolution: "@azure/msal-node@npm:3.7.3"
+  version: 3.7.4
+  resolution: "@azure/msal-node@npm:3.7.4"
   dependencies:
     "@azure/msal-common": "npm:15.12.0"
     jsonwebtoken: "npm:^9.0.0"
     uuid: "npm:^8.3.0"
-  checksum: 10/43d525e7248b60fd2906c89c9d000d301524d7d32b60475a17fe9fb22a38e20376f2e295066ba55cd67cdf921a0bfed6d6b6c39ce3e64848790883eb05fbb19a
+  checksum: 10/d673d2017831a842dc5eb12ccb21d958d96454440ffd849c9656db6de7785151056d9c9d5319b1916e532ffef9997059eea3176e8cfd93d1471be9770078bd58
   languageName: node
   linkType: hard
 
