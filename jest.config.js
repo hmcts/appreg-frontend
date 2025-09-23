@@ -22,9 +22,10 @@ module.exports = {
     '\\.(jpg|jpeg|png|gif|svg)$': '<rootDir>/__mocks__/file-mock.js',
     '^@app/(.*)$': '<rootDir>/src/app/$1',
     '^@env/(.*)$': '<rootDir>/src/environments/$1',
-    '^src/app/core/openapi$': useStub
-      ? '<rootDir>/test/stubs/openapi.stub.ts'
-      : '<rootDir>/src/app/core/openapi',
+    '^@openapi$':
+      process.env.OPENAPI_STUB === '1'
+        ? '<rootDir>/test/stubs/openapi.stub.ts'
+        : '<rootDir>/src/app/core/openapi',
   },
 
   transformIgnorePatterns: ['node_modules/(?!.*\\.mjs$)'],

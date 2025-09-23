@@ -5,7 +5,7 @@ import {
 } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { ApplicationCodesApi } from 'src/app/core/openapi';
+import { ApplicationCodesApi } from '@openapi';
 
 describe('OpenAPI client smoke (no backend)', () => {
   let http: HttpTestingController;
