@@ -1,3 +1,5 @@
+const useStub = process.env.OPENAPI_STUB === '1'; // Allows for offline testing of OpenAPI tests
+
 module.exports = {
   preset: 'jest-preset-angular',
   roots: ['<rootDir>/test/unit'],
@@ -20,6 +22,9 @@ module.exports = {
     '\\.(jpg|jpeg|png|gif|svg)$': '<rootDir>/__mocks__/file-mock.js',
     '^@app/(.*)$': '<rootDir>/src/app/$1',
     '^@env/(.*)$': '<rootDir>/src/environments/$1',
+    '^src/app/core/openapi$': useStub
+      ? '<rootDir>/test/stubs/openapi.stub.ts'
+      : '<rootDir>/src/app/core/openapi',
   },
 
   transformIgnorePatterns: ['node_modules/(?!.*\\.mjs$)'],
