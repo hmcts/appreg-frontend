@@ -32,4 +32,11 @@ withPipeline(type, product, component) {
     enableSlackNotifications('#appreg-builds')
 
     syncBranchesWithMaster(branchesToSync)
+
+    stage('OpenAPI: bundle + generate') {
+    sh '''
+      set -euxo pipefail
+      yarn api:all
+    '''
+  }
 }
