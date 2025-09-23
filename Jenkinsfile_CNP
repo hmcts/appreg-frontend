@@ -36,6 +36,8 @@ withPipeline(type, product, component) {
   node {
     stage('OpenAPI: bundle + generate') {
       sh '''
+        #!/usr/bin/env bash
+        
         set -euxo pipefail
         yarn api:all
       '''
