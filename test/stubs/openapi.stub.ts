@@ -7,17 +7,22 @@ export const BASE_PATH = new InjectionToken<string>('BASE_PATH');
 export class ApplicationCodesApi {
   constructor(
     private http: HttpClient,
-    @Optional() @Inject(BASE_PATH) private basePath: string = ''
+    @Optional() @Inject(BASE_PATH) private basePath: string = '',
   ) {}
 
   getApplicationCodes(params?: { page?: number; size?: number }) {
-    return this.http.get(`${this.basePath}/application-codes`, { params: params as any });
+    return this.http.get(`${this.basePath}/application-codes`, {
+      params: params as any,
+    });
   }
 
   getApplicationCodeByCode(params: { code: string; date: string }) {
     const { code, date } = params;
-    return this.http.get(`${this.basePath}/application-codes/${encodeURIComponent(code)}`, {
-      params: { date },
-    });
+    return this.http.get(
+      `${this.basePath}/application-codes/${encodeURIComponent(code)}`,
+      {
+        params: { date },
+      },
+    );
   }
 }
