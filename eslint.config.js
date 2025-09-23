@@ -35,6 +35,7 @@ module.exports = defineConfig([
     '.pnp.*',
     'cypress/reports/',
     'src/app/core/openapi',
+    'test/stubs/**',
   ]),
 
   // Base (shared) – no type-aware parser configured here
