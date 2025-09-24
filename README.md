@@ -222,20 +222,33 @@ e2e.js
 ## Configuration Files
 
 - cypress.config.js: Cypress configuration
-- cypress.env.json: (optional) Local environment variables
 
 ## Running Tests Locally
 
 1. Install dependencies:
    yarn install
 
-2. Open Cypress UI:
+2. Add users to development.json add your actual test credentials:
+
+   # User credentials
+
+   TEST_USER1_EMAIL=your-user1@hmcts.net
+   TEST_USER1_PASSWORD=your-actual-password
+
+   # Admin credentials
+
+   TEST_ADMIN1_EMAIL=your-admin1@hmcts.net
+   TEST_ADMIN1_PASSWORD=your-actual-admin-password
+
+   # ... fill in all other credentials
+
+3. Run Cypress tests:
    yarn cypress open
 
    or run all tests headlessly:
    yarn cypress run
 
-3. For all tests: yarn test:functional
+4. For all tests: yarn test:functional
    For smoke tests: yarn test:functional --cypress-args=\"--env TAGS=@smoke\"
    For any tags: yarn test:functional --cypress-args=\"--env TAGS=@yourtag\"
 

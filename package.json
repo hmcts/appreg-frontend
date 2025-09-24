@@ -128,5 +128,9 @@
     "ts-jest": "^29.4.1",
     "typescript": "~5.9.0"
   },
+  "resolutions": {
+    "@azure/keyvault-secrets": "4.10.0",
+    "@azure/keyvault-common": "2.0.0"
+  },
   "packageManager": "yarn@4.9.4"
 }

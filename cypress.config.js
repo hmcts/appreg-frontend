@@ -6,6 +6,7 @@ const {
 const {
   createEsbuildPlugin,
 } = require('@badeball/cypress-cucumber-preprocessor/esbuild');
+const appConfig = require('config');
 
 module.exports = defineConfig({
   typescript: {
@@ -62,29 +63,60 @@ module.exports = defineConfig({
         },
       });
       require('cypress-mochawesome-reporter/plugin')(on);
-      // Set up environment variables for Microsoft AD login
+      // Set up test users using dynamic config loading
       config.env = {
         ...config.env,
         SSO_USERS: {
-          default: {
+          user1: {
             email:
-              process.env.CYPRESS_TEST_EMAIL ||
-              process.env.TEST_USER_EMAIL ||
-              'opal-test@hmcts.net',
+              appConfig.get('secrets.apps-reg.testUsers.TEST_USER1_EMAIL') ||
+              'ar-test-1@hmcts.net',
             password:
-              process.env.CYPRESS_TEST_PASSWORD ||
-              process.env.TEST_USER_PASSWORD ||
-              'OpalFinesService1',
+              appConfig.get('secrets.apps-reg.testUsers.TEST_USER1_PASSWORD') ||
+              '',
           },
-          admin: {
+          user2: {
             email:
-              process.env.ADMIN_TEST_EMAIL ||
-              process.env.TEST_ADMIN_EMAIL ||
-              'opal-test@hmcts.net',
+              appConfig.get('secrets.apps-reg.testUsers.TEST_USER2_EMAIL') ||
+              'ar-test-2@hmcts.net',
             password:
-              process.env.ADMIN_TEST_PASSWORD ||
-              process.env.TEST_ADMIN_PASSWORD ||
-              'OpalFinesService1',
+              appConfig.get('secrets.apps-reg.testUsers.TEST_USER2_PASSWORD') ||
+              '',
+          },
+          user3: {
+            email:
+              appConfig.get('secrets.apps-reg.testUsers.TEST_USER3_EMAIL') ||
+              'ar-test-3@hmcts.net',
+            password:
+              appConfig.get('secrets.apps-reg.testUsers.TEST_USER3_PASSWORD') ||
+              '',
+          },
+          admin1: {
+            email:
+              appConfig.get('secrets.apps-reg.testUsers.TEST_ADMIN1_EMAIL') ||
+              'ar-test-4@hmcts.net',
+            password:
+              appConfig.get(
+                'secrets.apps-reg.testUsers.TEST_ADMIN1_PASSWORD',
+              ) || '',
+          },
+          admin2: {
+            email:
+              appConfig.get('secrets.apps-reg.testUsers.TEST_ADMIN2_EMAIL') ||
+              'ar-test-5@hmcts.net',
+            password:
+              appConfig.get(
+                'secrets.apps-reg.testUsers.TEST_ADMIN2_PASSWORD',
+              ) || '',
+          },
+          admin3: {
+            email:
+              appConfig.get('secrets.apps-reg.testUsers.TEST_ADMIN3_EMAIL') ||
+              'ar-test-6@hmcts.net',
+            password:
+              appConfig.get(
+                'secrets.apps-reg.testUsers.TEST_ADMIN3_PASSWORD',
+              ) || '',
           },
         },
       };
