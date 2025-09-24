@@ -1,5 +1,5 @@
 /// <reference types="cypress" />
-import { ButtonHelper } from '../../../support/helper/forms/button/ButtonHelper';
+import { ButtonHelper } from '../forms/button/ButtonHelper';
 import { LinkHelper } from '../forms/link/LinkHelper';
 import { NavigationHelper } from '../navigation/NavigationHelper';
 
