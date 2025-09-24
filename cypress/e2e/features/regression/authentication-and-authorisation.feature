@@ -7,7 +7,7 @@ Feature: Authentication and Authorisation
   Scenario: Successful Login and Invalid or expired token
     Given User Is On The Portal Page
     Then User Verify The Page URL Contains "/login"
-    Then User Signs In With Microsoft SSO As "default"
+    Then User Signs In With Microsoft SSO As "user1"
     Then User Verify The Page URL Contains "/applications-list"
     Then User Verify The "appreg.sid" Cookie Should Exist
     When User Clears Cookies And Storage
@@ -25,7 +25,7 @@ Feature: Authentication and Authorisation
   Scenario: Sign out
     Given User Is On The Portal Page
     Then User Verify The Page URL Contains "/login"
-    Then User Signs In With Microsoft SSO As "default"
+    Then User Signs In With Microsoft SSO As "user1"
     Then User Verify The Page URL Contains "/applications-list"
     Then User Signs Out From The Application
     Then User Verify The Page URL Contains "/login"

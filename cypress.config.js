@@ -66,25 +66,65 @@ module.exports = defineConfig({
       config.env = {
         ...config.env,
         SSO_USERS: {
-          default: {
+          user1: {
             email:
               process.env.CYPRESS_TEST_EMAIL ||
               process.env.TEST_USER_EMAIL ||
-              'opal-test@hmcts.net',
+              'ar-test-1@hmcts.net',
             password:
               process.env.CYPRESS_TEST_PASSWORD ||
               process.env.TEST_USER_PASSWORD ||
-              'OpalFinesService1',
+              'Xowo743945',
           },
-          admin: {
+          user2: {
+            email:
+              process.env.CYPRESS_TEST_EMAIL ||
+              process.env.TEST_USER_EMAIL ||
+              'ar-test-2@hmcts.net',
+            password:
+              process.env.CYPRESS_TEST_PASSWORD ||
+              process.env.TEST_USER_PASSWORD ||
+              'Xowo743945',
+          },
+          user3: {
+            email:
+              process.env.CYPRESS_TEST_EMAIL ||
+              process.env.TEST_USER_EMAIL ||
+              'ar-test-3@hmcts.net',
+            password:
+              process.env.CYPRESS_TEST_PASSWORD ||
+              process.env.TEST_USER_PASSWORD ||
+              'Xowo743945',
+          },
+          admin1: {
             email:
               process.env.ADMIN_TEST_EMAIL ||
               process.env.TEST_ADMIN_EMAIL ||
-              'opal-test@hmcts.net',
+              'ar-test-4@hmcts.net',
             password:
               process.env.ADMIN_TEST_PASSWORD ||
               process.env.TEST_ADMIN_PASSWORD ||
-              'OpalFinesService1',
+              'Xowo743945',
+          },
+          admin2: {
+            email:
+              process.env.ADMIN_TEST_EMAIL ||
+              process.env.TEST_ADMIN_EMAIL ||
+              'ar-test-5@hmcts.net',
+            password:
+              process.env.ADMIN_TEST_PASSWORD ||
+              process.env.TEST_ADMIN_PASSWORD ||
+              'Xowo743945',
+          },
+          admin3: {
+            email:
+              process.env.ADMIN_TEST_EMAIL ||
+              process.env.TEST_ADMIN_EMAIL ||
+              'ar-test-6@hmcts.net',
+            password:
+              process.env.ADMIN_TEST_PASSWORD ||
+              process.env.TEST_ADMIN_PASSWORD ||
+              'Xowo743945',
           },
         },
       };
