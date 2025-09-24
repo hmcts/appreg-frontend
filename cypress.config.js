@@ -74,7 +74,7 @@ module.exports = defineConfig({
             password:
               process.env.CYPRESS_TEST_PASSWORD ||
               process.env.TEST_USER_PASSWORD ||
-              'Xowo743945',
+              '',
           },
           user2: {
             email:
@@ -84,7 +84,7 @@ module.exports = defineConfig({
             password:
               process.env.CYPRESS_TEST_PASSWORD ||
               process.env.TEST_USER_PASSWORD ||
-              'Xowo743945',
+              '',
           },
           user3: {
             email:
@@ -94,7 +94,7 @@ module.exports = defineConfig({
             password:
               process.env.CYPRESS_TEST_PASSWORD ||
               process.env.TEST_USER_PASSWORD ||
-              'Xowo743945',
+              '',
           },
           admin1: {
             email:
@@ -104,7 +104,7 @@ module.exports = defineConfig({
             password:
               process.env.ADMIN_TEST_PASSWORD ||
               process.env.TEST_ADMIN_PASSWORD ||
-              'Xowo743945',
+              '',
           },
           admin2: {
             email:
@@ -114,7 +114,7 @@ module.exports = defineConfig({
             password:
               process.env.ADMIN_TEST_PASSWORD ||
               process.env.TEST_ADMIN_PASSWORD ||
-              'Xowo743945',
+              '',
           },
           admin3: {
             email:
@@ -124,7 +124,7 @@ module.exports = defineConfig({
             password:
               process.env.ADMIN_TEST_PASSWORD ||
               process.env.TEST_ADMIN_PASSWORD ||
-              'Xowo743945',
+              '',
           },
         },
       };
