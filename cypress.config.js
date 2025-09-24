@@ -6,9 +6,7 @@ const {
 const {
   createEsbuildPlugin,
 } = require('@badeball/cypress-cucumber-preprocessor/esbuild');
-
-// Load test users from development config
-const developmentConfig = require('./config/development.json');
+const appConfig = require('config');
 
 module.exports = defineConfig({
   typescript: {
@@ -65,81 +63,60 @@ module.exports = defineConfig({
         },
       });
       require('cypress-mochawesome-reporter/plugin')(on);
-      // Set up environment variables for Microsoft AD login
+      // Set up test users using dynamic config loading
       config.env = {
         ...config.env,
         SSO_USERS: {
           user1: {
             email:
-              process.env.TEST_USER1_EMAIL ||
-              (developmentConfig.testUsers &&
-                developmentConfig.testUsers.TEST_USER1_EMAIL) ||
+              appConfig.get('secrets.apps-reg.testUsers.TEST_USER1_EMAIL') ||
               'ar-test-1@hmcts.net',
             password:
-              process.env.TEST_USER1_PASSWORD ||
-              (developmentConfig.testUsers &&
-                developmentConfig.testUsers.TEST_USER1_PASSWORD) ||
+              appConfig.get('secrets.apps-reg.testUsers.TEST_USER1_PASSWORD') ||
               '',
           },
           user2: {
             email:
-              process.env.TEST_USER2_EMAIL ||
-              (developmentConfig.testUsers &&
-                developmentConfig.testUsers.TEST_USER2_EMAIL) ||
+              appConfig.get('secrets.apps-reg.testUsers.TEST_USER2_EMAIL') ||
               'ar-test-2@hmcts.net',
             password:
-              process.env.TEST_USER2_PASSWORD ||
-              (developmentConfig.testUsers &&
-                developmentConfig.testUsers.TEST_USER2_PASSWORD) ||
+              appConfig.get('secrets.apps-reg.testUsers.TEST_USER2_PASSWORD') ||
               '',
           },
           user3: {
             email:
-              process.env.TEST_USER3_EMAIL ||
-              (developmentConfig.testUsers &&
-                developmentConfig.testUsers.TEST_USER3_EMAIL) ||
+              appConfig.get('secrets.apps-reg.testUsers.TEST_USER3_EMAIL') ||
               'ar-test-3@hmcts.net',
             password:
-              process.env.TEST_USER3_PASSWORD ||
-              (developmentConfig.testUsers &&
-                developmentConfig.testUsers.TEST_USER3_PASSWORD) ||
+              appConfig.get('secrets.apps-reg.testUsers.TEST_USER3_PASSWORD') ||
               '',
           },
           admin1: {
             email:
-              process.env.TEST_ADMIN1_EMAIL ||
-              (developmentConfig.testUsers &&
-                developmentConfig.testUsers.TEST_ADMIN1_EMAIL) ||
+              appConfig.get('secrets.apps-reg.testUsers.TEST_ADMIN1_EMAIL') ||
               'ar-test-4@hmcts.net',
             password:
-              process.env.TEST_ADMIN1_PASSWORD ||
-              (developmentConfig.testUsers &&
-                developmentConfig.testUsers.TEST_ADMIN1_PASSWORD) ||
-              '',
+              appConfig.get(
+                'secrets.apps-reg.testUsers.TEST_ADMIN1_PASSWORD',
+              ) || '',
           },
           admin2: {
             email:
-              process.env.TEST_ADMIN2_EMAIL ||
-              (developmentConfig.testUsers &&
-                developmentConfig.testUsers.TEST_ADMIN2_EMAIL) ||
+              appConfig.get('secrets.apps-reg.testUsers.TEST_ADMIN2_EMAIL') ||
               'ar-test-5@hmcts.net',
             password:
-              process.env.TEST_ADMIN2_PASSWORD ||
-              (developmentConfig.testUsers &&
-                developmentConfig.testUsers.TEST_ADMIN2_PASSWORD) ||
-              '',
+              appConfig.get(
+                'secrets.apps-reg.testUsers.TEST_ADMIN2_PASSWORD',
+              ) || '',
           },
           admin3: {
             email:
-              process.env.TEST_ADMIN3_EMAIL ||
-              (developmentConfig.testUsers &&
-                developmentConfig.testUsers.TEST_ADMIN3_EMAIL) ||
+              appConfig.get('secrets.apps-reg.testUsers.TEST_ADMIN3_EMAIL') ||
               'ar-test-6@hmcts.net',
             password:
-              process.env.TEST_ADMIN3_PASSWORD ||
-              (developmentConfig.testUsers &&
-                developmentConfig.testUsers.TEST_ADMIN3_PASSWORD) ||
-              '',
+              appConfig.get(
+                'secrets.apps-reg.testUsers.TEST_ADMIN3_PASSWORD',
+              ) || '',
           },
         },
       };
