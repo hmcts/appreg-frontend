@@ -228,17 +228,17 @@ e2e.js
 1. Install dependencies:
    yarn install
 
-2. Create `.env.local` and add your actual test credentials:
+2. Add users to development.json add your actual test credentials:
 
    # User credentials
 
-   CYPRESS_USER1_EMAIL=your-user1@hmcts.net
-   CYPRESS_USER1_PASSWORD=your-actual-password
+   TEST_USER1_EMAIL=your-user1@hmcts.net
+   TEST_USER1_PASSWORD=your-actual-password
 
    # Admin credentials
 
-   CYPRESS_ADMIN1_EMAIL=your-admin1@hmcts.net
-   CYPRESS_ADMIN1_PASSWORD=your-actual-admin-password
+   TEST_ADMIN1_EMAIL=your-admin1@hmcts.net
+   TEST_ADMIN1_PASSWORD=your-actual-admin-password
 
    # ... fill in all other credentials
 
