@@ -22,8 +22,8 @@
     "test:functional": "echo 'NODE_TLS_REJECT_UNAUTHORIZED=0 cypress run'",
     "cichecks": "yarn build && yarn lint && yarn test && yarn test:routes && yarn test:a11y",
     "prepare": "husky install",
-    "cypress:open": "cypress open",
-    "cypress:run": "cypress run && node cypress/scripts/generate-cucumber-report.js"
+    "cypress:open": "node -r dotenv/config cypress open dotenv_config_path=.env.local",
+    "cypress:run": "node -r dotenv/config cypress run dotenv_config_path=.env.local && node cypress/scripts/generate-cucumber-report.js"
   },
   "prettier": {
     "singleQuote": true,
@@ -102,6 +102,7 @@
     "cypress-axe": "^1.7.0",
     "cypress-mochawesome-reporter": "^4.0.2",
     "cypress-multi-reporters": "^2.0.5",
+    "dotenv": "^17.2.2",
     "esbuild": "^0.25.9",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.8",

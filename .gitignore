@@ -55,3 +55,7 @@ cypress/videos/
 
 # Configuration files
 /config/development.json
+
+# Environment variables
+.env.local
+.env.*.local

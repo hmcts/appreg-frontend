@@ -7,6 +7,9 @@ const {
   createEsbuildPlugin,
 } = require('@badeball/cypress-cucumber-preprocessor/esbuild');
 
+// Load environment variables from .env.local
+require('dotenv').config({ path: '.env.local' });
+
 module.exports = defineConfig({
   typescript: {
     configFile: 'tsconfig.cypress.json',
@@ -67,64 +70,28 @@ module.exports = defineConfig({
         ...config.env,
         SSO_USERS: {
           user1: {
-            email:
-              process.env.CYPRESS_TEST_EMAIL ||
-              process.env.TEST_USER_EMAIL ||
-              'ar-test-1@hmcts.net',
-            password:
-              process.env.CYPRESS_TEST_PASSWORD ||
-              process.env.TEST_USER_PASSWORD ||
-              '',
+            email: process.env.CYPRESS_USER1_EMAIL || 'ar-test-1@hmcts.net',
+            password: process.env.CYPRESS_USER1_PASSWORD || '',
           },
           user2: {
-            email:
-              process.env.CYPRESS_TEST_EMAIL ||
-              process.env.TEST_USER_EMAIL ||
-              'ar-test-2@hmcts.net',
-            password:
-              process.env.CYPRESS_TEST_PASSWORD ||
-              process.env.TEST_USER_PASSWORD ||
-              '',
+            email: process.env.CYPRESS_USER2_EMAIL || 'ar-test-2@hmcts.net',
+            password: process.env.CYPRESS_USER2_PASSWORD || '',
           },
           user3: {
-            email:
-              process.env.CYPRESS_TEST_EMAIL ||
-              process.env.TEST_USER_EMAIL ||
-              'ar-test-3@hmcts.net',
-            password:
-              process.env.CYPRESS_TEST_PASSWORD ||
-              process.env.TEST_USER_PASSWORD ||
-              '',
+            email: process.env.CYPRESS_USER3_EMAIL || 'ar-test-3@hmcts.net',
+            password: process.env.CYPRESS_USER3_PASSWORD || '',
           },
           admin1: {
-            email:
-              process.env.ADMIN_TEST_EMAIL ||
-              process.env.TEST_ADMIN_EMAIL ||
-              'ar-test-4@hmcts.net',
-            password:
-              process.env.ADMIN_TEST_PASSWORD ||
-              process.env.TEST_ADMIN_PASSWORD ||
-              '',
+            email: process.env.CYPRESS_ADMIN1_EMAIL || 'ar-test-4@hmcts.net',
+            password: process.env.CYPRESS_ADMIN1_PASSWORD || '',
           },
           admin2: {
-            email:
-              process.env.ADMIN_TEST_EMAIL ||
-              process.env.TEST_ADMIN_EMAIL ||
-              'ar-test-5@hmcts.net',
-            password:
-              process.env.ADMIN_TEST_PASSWORD ||
-              process.env.TEST_ADMIN_PASSWORD ||
-              '',
+            email: process.env.CYPRESS_ADMIN2_EMAIL || 'ar-test-5@hmcts.net',
+            password: process.env.CYPRESS_ADMIN2_PASSWORD || '',
           },
           admin3: {
-            email:
-              process.env.ADMIN_TEST_EMAIL ||
-              process.env.TEST_ADMIN_EMAIL ||
-              'ar-test-6@hmcts.net',
-            password:
-              process.env.ADMIN_TEST_PASSWORD ||
-              process.env.TEST_ADMIN_PASSWORD ||
-              '',
+            email: process.env.CYPRESS_ADMIN3_EMAIL || 'ar-test-6@hmcts.net',
+            password: process.env.CYPRESS_ADMIN3_PASSWORD || '',
           },
         },
       };

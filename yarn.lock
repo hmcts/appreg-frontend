@@ -5331,6 +5331,7 @@ __metadata:
     cypress-axe: "npm:^1.7.0"
     cypress-mochawesome-reporter: "npm:^4.0.2"
     cypress-multi-reporters: "npm:^2.0.5"
+    dotenv: "npm:^17.2.2"
     esbuild: "npm:^0.25.9"
     eslint: "npm:^9.32.0"
     eslint-config-prettier: "npm:^10.1.8"
@@ -7508,6 +7509,13 @@ __metadata:
     domelementtype: "npm:^2.3.0"
     domhandler: "npm:^5.0.3"
   checksum: 10/2e08842151aa406f50fe5e6d494f4ec73c2373199fa00d1f77b56ec604e566b7f226312ae35ab8160bb7f27a27c7285d574c8044779053e499282ca9198be210
+  languageName: node
+  linkType: hard
+
+"dotenv@npm:^17.2.2":
+  version: 17.2.2
+  resolution: "dotenv@npm:17.2.2"
+  checksum: 10/258210c403a426e887f0fb63d1cddb2e7dcc028974a38a4a440411b651b9c588ee4e8605e252d87d15489b3e311d7ba56d588d6cfda1b11bfbf494dd7b3ef2a3
   languageName: node
   linkType: hard
 
