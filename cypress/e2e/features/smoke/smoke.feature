@@ -27,5 +27,3 @@ Feature: Application Register Portal Access
       | admin1 |
       | admin2 |
       | admin3 |
-
-  

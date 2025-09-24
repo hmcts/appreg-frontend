@@ -35,3 +35,24 @@ Feature: Authentication and Authorisation
     Given User Is On The Portal Page
     Then User Checks Accessibility Of The Current Page
 
+  @regression @ARCPOC-426
+  Scenario: Verify SSO login flow
+    Given User Is On The Portal Page
+    Then User Verify The Page Title Is "HMCTS Applications Register - Home - GOV.UK"
+    And User See "Application register" On The Page
+    And User See "Sign in" On The Page
+    And User See "To access this service, you now must use the Ministry of Justice Modernisation Platform’s Single Sign On (SSO):" On The Page
+    When User Verifies The Button "Sign in with your Justice SSO account" Should Be Visible
+    Then User Signs In With Microsoft SSO As "user1"
+    And User See "Application register" On The Page
+
+  @regression @ARCPOC-426
+  Scenario: Verify error on invalid email
+    Given User Is On The Portal Page
+    When User Tries To Sign In With Invalid Email "invalid_email@hmcts.net" And Expects Error "This username may be incorrect. Make sure you typed it correctly. Otherwise, contact your admin."
+
+    @regression @ARCPOC-426
+  Scenario: Verify error on valid email and invalid password
+    Given User Is On The Portal Page
+    When User Tries To Sign In With Valid Email "ar-test-1@hmcts.net" And Invalid Password "any_password" And Expects Error "Your account or password is incorrect. If you don't remember your password, reset it now."
+

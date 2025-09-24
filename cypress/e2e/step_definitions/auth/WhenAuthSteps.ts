@@ -13,7 +13,7 @@ When('User Signs In With Microsoft SSO As {string}', (userType: string) => {
 });
 
 When(
-  'the user signs in with SSO credentials {string} and {string}',
+  'User Signs In With SSO Credentials {string} and {string}',
   (emailSSO: string, passwordSSO: string) => {
     AuthHelper.signInWithMicrosoftSSO(emailSSO, passwordSSO);
     cy.screenshot(`SSOLogin-${emailSSO}`);
@@ -32,3 +32,24 @@ When('User Clears Cookies And Storage', () => {
 When('User Refreshes The Page', () => {
   AuthHelper.pageRefresh();
 });
+
+When(
+  'User Tries To Sign In With Invalid Email {string} And Expects Error {string}',
+  (invalidEmail: string, expectedError: string) => {
+    AuthHelper.signInWithInvalidEmailAndVerifyError(
+      invalidEmail,
+      expectedError,
+    );
+  },
+);
+
+When(
+  'User Tries To Sign In With Valid Email {string} And Invalid Password {string} And Expects Error {string}',
+  (validEmail: string, invalidPassword: string, expectedError: string) => {
+    AuthHelper.signInWithValidEmailInvalidPasswordAndVerifyError(
+      validEmail,
+      invalidPassword,
+      expectedError,
+    );
+  },
+);
