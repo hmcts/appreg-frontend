@@ -146,7 +146,7 @@ You can either run a provided script or install manually.
 1. Clone Git repo
 2. Install Node.js version 20.19.4:
    - **Option 1 (simpler):** Install from [Node.js site](https://nodejs.org/en/download)
-   - **Option 2:** Install `nvm-windows` from [here](https://github.com/coreybutler/nvm-windows?tab=readme-ov-file)
+   - **Option 2:** Install `nvm-windows` from [nvm-windows Github](https://github.com/coreybutler/nvm-windows?tab=readme-ov-file)
 
    ```powershell
    nvm install 20.19.4
@@ -185,7 +185,7 @@ You can either run a provided script or install manually.
   - Under **System variables**, edit `Path` → Add new entry: `C:\Program Files\nodejs\`
   - Restart PowerShell
 
-#### Yarn
+#### Yarn (Windows)
 
 - Ensure you are inside `appreg-frontend` directory
 - Restart PowerShell, then:
@@ -230,17 +230,17 @@ e2e.js
 
 2. Add users to development.json add your actual test credentials:
 
-   # User credentials
+   ### User credentials
 
-   TEST_USER1_EMAIL=your-user1@hmcts.net
+   TEST_USER1_EMAIL=<your-user1@hmcts.net>
    TEST_USER1_PASSWORD=your-actual-password
 
-   # Admin credentials
+   ### Admin credentials
 
-   TEST_ADMIN1_EMAIL=your-admin1@hmcts.net
+   TEST_ADMIN1_EMAIL=<your-admin1@hmcts.net>
    TEST_ADMIN1_PASSWORD=your-actual-admin-password
 
-   # ... fill in all other credentials
+   ### ... fill in all other credentials
 
 3. Run Cypress tests:
    yarn cypress open
@@ -255,3 +255,17 @@ e2e.js
 ## Sample Test
 
 A sample BDD feature file is provided at `cypress/e2e/features/smoke/smoke.feature` with step definitions in `cypress/e2e/step_definitions/elements/navigation/WhenNavigationSteps.ts`.
+
+## OpenAPI
+
+In this section, we will document how you generate the required services and models using [@openapitools/openapi-generator-cli](https://www.npmjs.com/package/@openapitools/openapi-generator-cli/v/2.9.0?activeTab=readme).
+
+### Scripts
+
+These are the scripts needed:
+
+- `yarn api:validate` - Validates the OpenAPI spec (`tools/openapi/openapi.yaml`)
+- `yarn api:clear` - Recursively deletes current OpenAPI generated files held at `src/app/core/openapi`
+- `yarn api:generate` - Generates files based on the OpenAPI spec and the config file at `tools/openapi/generator-config.yaml`
+- `yarn api:bundle` - Bundles the OpenAPI spec, schemas, responses into `tools/dist/openapi.bundled.yaml`
+- `yarn api:all` - Runs all API scripts (api:validate -> api:clear -> api:bundle -> api:generate)
