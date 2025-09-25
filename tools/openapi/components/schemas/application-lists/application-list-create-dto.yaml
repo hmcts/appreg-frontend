@@ -10,7 +10,6 @@ required:
   - criminalJusticeArea
 
 properties:
-
   date:
     type: string
     format: date
@@ -33,7 +32,7 @@ properties:
   otherLocationDescription:
     type: string
     description: Free-text location if not using a standard court.
-    example: "Temporary Courtroom at Town Hall"
+    example: 'Temporary Courtroom at Town Hall'
     nullable: true
 
   criminalJusticeArea:

@@ -7,10 +7,10 @@ parameters:
 
 get:
   operationId: getApplicationList
-  tags: [ application-lists ]
+  tags: [application-lists]
   summary: Get an Application List by id
   responses:
-    "200":
+    '200':
       description: Application List detail
       headers:
         Vary:
@@ -20,16 +20,19 @@ get:
             example: Accept
       content:
         application/vnd.hmcts.appreg.v1+json:
-          schema: { $ref: "../../components/schemas/application-lists/application-list-get-detail-dto.yaml" }
-    "400": { $ref: "../../components/responses/bad-request-error.yaml" }
-    "401": { $ref: "../../components/responses/unauthorized-error.yaml" }
-    "403": { $ref: "../../components/responses/forbidden-error.yaml" }
-    "404": { $ref: "../../components/responses/not-found-error.yaml" }
-    "500": { $ref: "../../components/responses/internal-server-error.yaml" }
+          schema:
+            {
+              $ref: '../../components/schemas/application-lists/application-list-get-detail-dto.yaml',
+            }
+    '400': { $ref: '../../components/responses/bad-request-error.yaml' }
+    '401': { $ref: '../../components/responses/unauthorized-error.yaml' }
+    '403': { $ref: '../../components/responses/forbidden-error.yaml' }
+    '404': { $ref: '../../components/responses/not-found-error.yaml' }
+    '500': { $ref: '../../components/responses/internal-server-error.yaml' }
 
 put:
   operationId: updateApplicationList
-  tags: [ application-lists ]
+  tags: [application-lists]
   summary: Update an Application List
   description: >
     Full replacement (PUT) of an existing Application List. The `id` is taken from
@@ -40,9 +43,12 @@ put:
     required: true
     content:
       application/json:
-        schema: { $ref: "../../components/schemas/application-lists/application-list-update-dto.yaml" }
+        schema:
+          {
+            $ref: '../../components/schemas/application-lists/application-list-update-dto.yaml',
+          }
   responses:
-    "200":
+    '200':
       description: Updated Application List
       headers:
         Vary:
@@ -52,21 +58,24 @@ put:
             example: Accept
       content:
         application/vnd.hmcts.appreg.v1+json:
-          schema: { $ref: "../../components/schemas/application-lists/application-list-get-detail-dto.yaml" }
-    "400": { $ref: "../../components/responses/bad-request-error.yaml" }
-    "401": { $ref: "../../components/responses/unauthorized-error.yaml" }
-    "403": { $ref: "../../components/responses/forbidden-error.yaml" }
-    "404": { $ref: "../../components/responses/not-found-error.yaml" }
-    "409": { $ref: "../../components/responses/conflict-error.yaml" }
-    "500": { $ref: "../../components/responses/internal-server-error.yaml" }
+          schema:
+            {
+              $ref: '../../components/schemas/application-lists/application-list-get-detail-dto.yaml',
+            }
+    '400': { $ref: '../../components/responses/bad-request-error.yaml' }
+    '401': { $ref: '../../components/responses/unauthorized-error.yaml' }
+    '403': { $ref: '../../components/responses/forbidden-error.yaml' }
+    '404': { $ref: '../../components/responses/not-found-error.yaml' }
+    '409': { $ref: '../../components/responses/conflict-error.yaml' }
+    '500': { $ref: '../../components/responses/internal-server-error.yaml' }
 
 delete:
   operationId: deleteApplicationList
-  tags: [ application-lists ]
+  tags: [application-lists]
   summary: Delete an Application List
   description: Permanently deletes the Application List identified by `id`.
   responses:
-    "204":
+    '204':
       description: Application List deleted (no content)
       headers:
         Vary:
@@ -74,9 +83,9 @@ delete:
           schema:
             type: string
             example: Accept
-    "400": { $ref: "../../components/responses/bad-request-error.yaml" }
-    "401": { $ref: "../../components/responses/unauthorized-error.yaml" }
-    "403": { $ref: "../../components/responses/forbidden-error.yaml" }
-    "404": { $ref: "../../components/responses/not-found-error.yaml" }
-    "409": { $ref: "../../components/responses/conflict-error.yaml" }
-    "500": { $ref: "../../components/responses/internal-server-error.yaml" }
+    '400': { $ref: '../../components/responses/bad-request-error.yaml' }
+    '401': { $ref: '../../components/responses/unauthorized-error.yaml' }
+    '403': { $ref: '../../components/responses/forbidden-error.yaml' }
+    '404': { $ref: '../../components/responses/not-found-error.yaml' }
+    '409': { $ref: '../../components/responses/conflict-error.yaml' }
+    '500': { $ref: '../../components/responses/internal-server-error.yaml' }
