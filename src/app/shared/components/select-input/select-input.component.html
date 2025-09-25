@@ -13,6 +13,7 @@
       id="status"
       name="status"
       aria-describedby="status-hint"
+      (change)="onSelectChange($event)"
     >
       @for (opt of options; track opt.value) {
         <option [value]="opt.value" [selected]="opt.value === value">

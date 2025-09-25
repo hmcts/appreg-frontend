@@ -59,7 +59,13 @@ export class ApplicationsList implements OnInit {
 
   nationalCourtHouses: NationalCourtHouse[] = [];
   courtOptions: string[] = [];
-  dateInvalid: boolean | null = null;
+
+  // Create: Store unpopulated fields
+  unpopField: string[] = [];
+  createInvalid: boolean = false;
+
+  errorHint: string = ''; // Page hint when error occurs
+
   @Input() listId?: string;
 
   invalidField: Record<FieldKey, boolean | null> = {
@@ -119,6 +125,10 @@ export class ApplicationsList implements OnInit {
     const btn = event.submitter as HTMLButtonElement | null;
     const action = btn?.value ?? 'search';
 
+    this.unpopField = [];
+    this.createInvalid = false;
+    this.errorHint = '';
+
     const formValues = this.form.getRawValue();
 
     this.form.patchValue({
@@ -130,28 +140,71 @@ export class ApplicationsList implements OnInit {
       cja: formValues.cja,
     });
 
-    console.log(this.form.value);
-    // console.log(this.form.controls.date.errors?.['dateInvalid']);
-
     // Is field valid && populated?
     for (const k of Object.keys(this.invalidField) as FieldKey[]) {
       const ctrl = this.form.controls[k];
       const errs = ctrl.errors as Record<string, unknown> | null;
+      const key = `${k}Invalid`;
 
       if (!errs) {
         this.invalidField[k] = null;
         continue;
       }
 
-      const key = `${k}Invalid`;
       this.invalidField[k] = key in errs || Object.keys(errs).length > 0;
     }
 
     if (action === 'search') {
       // TODO: handle search using 'values'
     } else if (action === 'create') {
-      // TODO: handle create using `values`
-      // when we create we want to check if ALL fields are populated
+      let mutex = false;
+      const value = this.form.value as Record<FieldKey, unknown>;
+      const has = (x: unknown) =>
+        x !== null && x !== undefined && x !== '' && x !== 'choose'; // Conditions for unpopulated
+
+      // Record unpopulated required fields
+      (['date', 'time', 'description', 'status'] as const).forEach((k) => {
+        if (!has(value[k])) {
+          this.unpopField.push(k);
+        }
+      });
+
+      const court = has(value.court);
+      const loc = has(value.location);
+      const cja = has(value.cja);
+
+      if (court && (loc || cja)) {
+        this.createInvalid = true;
+        mutex = true;
+      }
+
+      if (!court && !(loc && cja)) {
+        if (!loc) {
+          this.unpopField.push('location');
+        }
+        if (!cja) {
+          this.unpopField.push('cja');
+        }
+      }
+
+      // show error hint if any required fields unpopuluated
+      if (this.unpopField.length) {
+        this.createInvalid = true;
+        if (!mutex) {
+          this.errorHint = 'Please fill in all the required fields:';
+        } else {
+          this.errorHint =
+            'Please fill in all the required fields and provide either Court OR Location/CJA, not both:';
+        }
+        return;
+      } else if (mutex) {
+        this.errorHint =
+          'Please provide either Court OR Location/CJA, not both.';
+        return;
+      }
+
+      this.createInvalid = false;
+      // TODO: Create list
     }
   }
 
