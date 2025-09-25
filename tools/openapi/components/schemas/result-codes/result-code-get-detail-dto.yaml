@@ -4,6 +4,8 @@ required:
   - resultCode
   - title
   - wording
+  - startDate
+  - endDate
 properties:
   resultCode:
     type: string
@@ -14,3 +16,12 @@ properties:
   wording:
     type: string
     description: Full descriptive wording, potentially with blank fields to be inputted by the user.
+  startDate:
+    type: string
+    format: date
+    description: Date the Result Code became active.
+  endDate:
+    type: string
+    format: date
+    description: Date the Result Code became inactive. `null` indicates that this row is still active.
+    nullable: true

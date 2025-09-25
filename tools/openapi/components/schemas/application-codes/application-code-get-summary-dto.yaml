@@ -7,6 +7,7 @@ required:
   - isFeeDue
   - requiresRespondent
   - bulkRespondentAllowed
+
 properties:
   applicationCode:
     type: string
@@ -37,16 +38,48 @@ properties:
     nullable: true
     description: A short reference code that identifies a Fee.
   feeAmount:
-    allOf:
-      - $ref: '../common/money-gbp.yaml'
+    type: object
+    description: >
+      Fee amount for this Application Code, expressed in pence (GBP minor units).
+      Always use integer values; 1 GBP = 100 pence.
     nullable: true
-    description: Fee amount for this Application Code, expressed in pence (GBP minor units).
+    required:
+      - value
+    properties:
+      value:
+        type: integer
+        format: int64
+        minimum: 0
+        description: Amount in pence.
+        example: 1299   # £12.99
+      currency:
+        type: string
+        description: ISO 4217 currency code (always "GBP" for now).
+        example: GBP
+        default: GBP
+        enum: [ GBP ]
   feeDescription:
     type: string
     nullable: true
     description: Descriptive text for the fee.
   offsiteFeeAmount:
-    allOf:
-      - $ref: '../common/money-gbp.yaml'
+    type: object
+    description: >
+      Fee amount for this Application Code, expressed in pence (GBP minor units).
+      Always use integer values; 1 GBP = 100 pence.
     nullable: true
-    description: Offsite fee amount, expressed in pence (GBP minor units).
+    required:
+      - value
+    properties:
+      value:
+        type: integer
+        format: int64
+        minimum: 0
+        description: Amount in pence.
+        example: 1299   # £12.99
+      currency:
+        type: string
+        description: ISO 4217 currency code (always "GBP" for now).
+        example: GBP
+        default: GBP
+        enum: [ GBP ]
