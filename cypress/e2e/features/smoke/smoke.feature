@@ -8,9 +8,22 @@ Feature: Application Register Portal Access
     And User See "Sign in" On The Page
     And User See "To access this service, you now must use the Ministry of Justice Modernisation Platform’s Single Sign On (SSO):" On The Page
     When User Verifies The Button "Sign in with your Justice SSO account" Should Be Visible
-    Then User Signs In With Microsoft SSO As "default"
+    Then User Signs In With Microsoft SSO As "user1"
     And User See "Application register" On The Page
 
+  Scenario Outline: Sign in and Sign out flow for "<role>"
+    Given User Is On The Portal Page
+    Then User Signs In With Microsoft SSO As "<role>"
+    And User See "Application register" On The Page
+    Then User Verify The Page URL Contains "/applications-list"
+    Then User Signs Out From The Application
+    Then User Verify The Page URL Contains "/login"
 
-
-  
+    Examples:
+      | role   |
+      | user1  |
+      | user2  |
+      | user3  |
+      | admin1 |
+      | admin2 |
+      | admin3 |

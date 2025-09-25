@@ -1,5 +1,5 @@
 /// <reference types="cypress" />
-import { ButtonHelper } from '../../../support/helper/forms/button/ButtonHelper';
+import { ButtonHelper } from '../forms/button/ButtonHelper';
 import { LinkHelper } from '../forms/link/LinkHelper';
 import { NavigationHelper } from '../navigation/NavigationHelper';
 
@@ -90,5 +90,54 @@ export class AuthHelper {
   static pageRefresh(): void {
     cy.log('Refreshing the page');
     cy.reload();
+  }
+
+  static signInWithInvalidEmailAndVerifyError(
+    invalidEmail: string,
+    expectedError: string,
+  ): void {
+    cy.visit('/');
+    ButtonHelper.clickButton('Sign in');
+    cy.url().should('include', 'login.microsoftonline.com');
+    cy.origin(
+      'https://login.microsoftonline.com',
+      { args: { invalidEmail, expectedError } },
+      ({ invalidEmail: emailArg, expectedError: errorArg }) => {
+        cy.get('input[name="loginfmt"]')
+          .should('be.visible')
+          .type(emailArg, { log: false });
+        cy.get('input[type="submit"]').click();
+        cy.contains(errorArg, { timeout: 10000 }).should('be.visible');
+      },
+    );
+  }
+
+  static signInWithValidEmailInvalidPasswordAndVerifyError(
+    validEmail: string,
+    invalidPassword: string,
+    expectedError: string,
+  ): void {
+    cy.visit('/');
+    ButtonHelper.clickButton('Sign in');
+    cy.url().should('include', 'login.microsoftonline.com');
+    cy.origin(
+      'https://login.microsoftonline.com',
+      { args: { validEmail, invalidPassword, expectedError } },
+      ({
+        validEmail: emailArg,
+        invalidPassword: passArg,
+        expectedError: errorArg,
+      }) => {
+        cy.get('input[name="loginfmt"]')
+          .should('be.visible')
+          .type(emailArg, { log: false });
+        cy.get('input[type="submit"]').click();
+        cy.get('input[type="password"]', { timeout: 30000 })
+          .should('be.visible')
+          .type(passArg, { log: false });
+        cy.get('input[type="submit"]').click();
+        cy.contains(errorArg, { timeout: 10000 }).should('be.visible');
+      },
+    );
   }
 }
