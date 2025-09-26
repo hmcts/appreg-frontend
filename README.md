@@ -265,7 +265,7 @@ In this section, we will document how you generate the required services and mod
 These are the scripts needed:
 
 - `yarn api:validate` - Validates the OpenAPI spec (`tools/openapi/openapi.yaml`)
-- `yarn api:clear` - Recursively deletes current OpenAPI generated files held at `src/app/core/openapi`
+- `yarn api:clear` - Recursively deletes current OpenAPI generated files held at `src/generated/openapi`
 - `yarn api:generate` - Generates files based on the OpenAPI spec and the config file at `tools/openapi/generator-config.yaml`
 - `yarn api:bundle` - Bundles the OpenAPI spec, schemas, responses into `tools/dist/openapi.bundled.yaml`
 - `yarn api:all` - Runs all API scripts (api:validate -> api:clear -> api:bundle -> api:generate)
