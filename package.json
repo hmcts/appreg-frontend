@@ -6,7 +6,7 @@
   },
   "scripts": {
     "ng": "ng",
-    "api:clear": "rimraf src/app/core/openapi",
+    "api:clear": "rimraf src/generated/openapi",
     "api:validate": "openapi-generator-cli validate -i tools/openapi/openapi.yaml",
     "api:generate": "openapi-generator-cli generate -c tools/openapi/generator-config.yaml",
     "api:bundle": "redocly bundle tools/openapi/openapi.yaml -o tools/dist/openapi.bundled.yaml",
