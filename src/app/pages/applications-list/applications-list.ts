@@ -9,7 +9,6 @@ import {
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
-import { ApplicationList } from '../../core/models/application-list';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
   Duration,
@@ -91,9 +90,6 @@ export class ApplicationsList implements OnInit {
     location: new FormControl<string>(''),
     cja: new FormControl<string>(''),
   });
-
-  // Lists to display in the table
-  lists: ApplicationList[] = [];
 
   currentPage = 1;
   totalPages = 5;
