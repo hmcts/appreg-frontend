@@ -34,7 +34,7 @@ module.exports = defineConfig([
     'eslint.config.js',
     '.pnp.*',
     'cypress/reports/',
-    'src/app/core/openapi',
+    'src/generated',
   ]),
 
   // Base (shared) – no type-aware parser configured here
