@@ -78,6 +78,9 @@ export class ApplicationsList implements OnInit {
     cja: null,
   };
 
+  offendingFields: FieldKey[] = [];
+  anyInvalid = false;
+
   // Reactive form backing the template
   form = new FormGroup({
     date: new FormControl<string | null>(null),
@@ -140,7 +143,7 @@ export class ApplicationsList implements OnInit {
       cja: formValues.cja,
     });
 
-    // Is field valid && populated?
+    // Is field valid if populated?
     for (const k of Object.keys(this.invalidField) as FieldKey[]) {
       const ctrl = this.form.controls[k];
       const errs = ctrl.errors as Record<string, unknown> | null;
@@ -154,13 +157,27 @@ export class ApplicationsList implements OnInit {
       this.invalidField[k] = key in errs || Object.keys(errs).length > 0;
     }
 
+    this.offendingFields = (
+      Object.keys(this.invalidField) as FieldKey[]
+    ).filter((k) => this.invalidField[k] === true);
+
+    if (this.offendingFields.length) {
+      this.anyInvalid = true;
+      this.errorHint =
+        'Error - the following field/s are incorrectly formatted';
+    }
+
     if (action === 'search') {
       // TODO: handle search using 'values'
     } else if (action === 'create') {
-      let mutex = false;
       const value = this.form.value as Record<FieldKey, unknown>;
       const has = (x: unknown) =>
         x !== null && x !== undefined && x !== '' && x !== 'choose'; // Conditions for unpopulated
+      const court = has(value.court);
+      const loc = has(value.location);
+      const cja = has(value.cja);
+
+      let mutex = false; // Court XOR (Location & CJA)
 
       // Record unpopulated required fields
       (['date', 'time', 'description', 'status'] as const).forEach((k) => {
@@ -169,13 +186,9 @@ export class ApplicationsList implements OnInit {
         }
       });
 
-      const court = has(value.court);
-      const loc = has(value.location);
-      const cja = has(value.cja);
-
       if (court && (loc || cja)) {
-        this.createInvalid = true;
         mutex = true;
+        this.createInvalid = true;
       }
 
       if (!court && !(loc && cja)) {
@@ -189,17 +202,17 @@ export class ApplicationsList implements OnInit {
 
       // show error hint if any required fields unpopuluated
       if (this.unpopField.length) {
-        this.createInvalid = true;
+        this.createInvalid = true; // Ensures the create was invalid
         if (!mutex) {
           this.errorHint = 'Please fill in all the required fields:';
         } else {
           this.errorHint =
-            'Please fill in all the required fields and provide either Court OR Location/CJA, not both:';
+            'Please fill in all the required fields and provide either Court OR Location AND CJA, not both:';
         }
         return;
       } else if (mutex) {
         this.errorHint =
-          'Please provide either Court OR Location/CJA, not both.';
+          'Please provide either Court OR Location AND CJA, not both.';
         return;
       }
 

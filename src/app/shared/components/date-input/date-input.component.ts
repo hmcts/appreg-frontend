@@ -47,6 +47,8 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
   private onChange: (value: string | null) => void = () => {};
   private onValidatorChange: () => void = () => {};
 
+  private blockValues: boolean = false;
+
   constructor(private fb: NonNullableFormBuilder) {
     this.dateForm = this.fb.group(
       {
@@ -67,12 +69,16 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
     );
 
     this.dateForm.valueChanges.subscribe(() => {
+      const { day, month, year } = this.dateForm.getRawValue();
+      const empty = !day && !month && !year;
+
+      this.blockValues = !empty && this.dateForm.invalid;
+
       if (this.dateForm.valid) {
-        const { day, month, year } = this.dateForm.getRawValue(); // strongly typed
         const d = day.padStart(2, '0');
         const m = month.padStart(2, '0');
         this.onChange(`${year}-${m}-${d}`);
-      } else {
+      } else if (empty) {
         this.onChange(null);
       }
       this.onValidatorChange();
@@ -117,6 +123,10 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
 
   // Called by the forms API to write to the view when model changes
   writeValue(value: string | null): void {
+    if (this.blockValues) {
+      // No write if invalid. Allows for necessary error message to be shown in the UI
+      return;
+    }
     if (value) {
       const [y, m, d] = value.split('-');
       this.dateForm.setValue(
