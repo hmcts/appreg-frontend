@@ -2,6 +2,7 @@ import {
   HttpInterceptorFn,
   provideHttpClient,
   withInterceptors,
+  withInterceptors,
   withXsrfConfiguration,
 } from '@angular/common/http';
 import {
@@ -16,8 +17,6 @@ import {
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
-
-import { provideApi } from 'src/generated/openapi';
 
 import { BASE_PATH } from 'src/generated/openapi';
 import { Configuration } from 'src/generated/openapi/configuration';
@@ -49,6 +48,5 @@ export const appConfig: ApplicationConfig = {
           withCredentials: true,
         }),
     },
-    provideApi(''),
   ],
 };

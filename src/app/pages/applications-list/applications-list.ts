@@ -11,6 +11,7 @@ import {
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
+import { ApplicationListPage, ApplicationListsApi } from '../../../generated/openapi';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
   Duration,
@@ -75,43 +76,8 @@ interface MojInitEl extends HTMLElement {
 export class ApplicationsList implements OnInit {
   private _id: number | undefined;
 
-  constructor(
-    private route: ActivatedRoute,
-    private readonly state: TransferState,
-    private readonly cjaApi: CriminalJusticeAreasApi,
-    private readonly courtLocationApi: CourtLocationsApi,
-    private readonly listsApi: ApplicationListsApi,
-    @Inject(PLATFORM_ID) private readonly platformId: object
-  ) {}
-
-  // Loaded lists
-  cja: CriminalJusticeAreaGetDto[] = [];
-  filteredCja: CriminalJusticeAreaGetDto[] = [];
-  cjaSearch = '';
-
-  courtLocations: CourtLocationGetSummaryDto[] = [];
-  filteredCourthouses: CourtLocationGetSummaryDto[] = [];
-  courthouseSearch = '';
-
-  // Check for invalid inputs on submit
-  submitted = false;
-  errorHint: string = ''; // Page hint when error occurs
-  offendingFields: FieldKey[] = [];
-  anyInvalid = false;
-  @Input() listId?: string;
-
-  // If the field is populated and invalid it will return true and stored here
-  invalidField: Record<FieldKey, boolean | null> = {
-    date: null,
-    time: null,
-    description: null,
-    status: null,
-    court: null,
-    location: null,
-    cja: null,
-  };
-  openMenuForId: number | null = null;
-  openPrintSelectForId: number | null = null;
+  // ✅ Message rendered at the top of the page
+  loginMsg: string | undefined;
 
   // Reactive form backing the template
   form = new FormGroup({
@@ -127,23 +93,17 @@ export class ApplicationsList implements OnInit {
   currentPage = 1;
   totalPages = 5;
 
-  columns: TableColumn[] = [
-    { header: 'Date', field: 'date' },
-    { header: 'Time', field: 'time' },
-    { header: 'Location', field: 'location' },
-    { header: 'Description', field: 'description' },
-    { header: 'Entries', field: 'entries', numeric: true },
-    { header: 'Status', field: 'status' },
-    { header: 'Actions', field: 'actions', sortable: false },
-  ];
+  tableRows: {
+    id: number;
+    date: string;
+    time: string;
+    location: string;
+    description: string;
+    entries: number | string;
+    status: string;
+  }[] = [];
 
-  status = [
-    { label: 'Choose', value: 'choose' },
-    { label: 'Open', value: 'open' },
-    { label: 'Closed', value: 'closed' },
-  ];
-
-  rows: ApplicationListRow[] = [];
+  constructor(private readonly listsApi: ApplicationListsApi) {}
 
   ngOnInit(): void {
     // TODO: Use cache where possible
@@ -212,88 +172,22 @@ export class ApplicationsList implements OnInit {
       },
     });
     this.loadApplications();
-  columns: TableColumn[] = [
-    { header: 'Date', field: 'date' },
-    { header: 'Time', field: 'time' },
-    { header: 'Location', field: 'location' },
-    { header: 'Description', field: 'description' },
-    { header: 'Entries', field: 'entries', numeric: true },
-    { header: 'Status', field: 'status' },
-    { header: 'Actions', field: 'actions', sortable: false },
-  ];
 
-  status = [
-    { label: 'Choose', value: 'choose' },
-    { label: 'Open', value: 'open' },
-    { label: 'Closed', value: 'closed' },
-  ];
+    // 👇 Tiny SSR-friendly call to compute a “you have N lists” message
+    // Passing 'body' selects the overload that returns ApplicationListPage (typed).
+    this.listsApi.listApplicationLists({ page: 0, size: 1 }, 'body').subscribe({
+      next: (page: ApplicationListPage) => {
+        const total =
+          (page).totalElements ??
+          ((page).content?.length ?? 0);
 
-  rows: ApplicationListRow[] = [];
-
-  constructor(@Inject(PLATFORM_ID) private readonly platformId: object) {}
-
-  ngOnInit(): void {}
-
-  ngAfterViewInit(): void {
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-
-    void import('@ministryofjustice/frontend')
-      .then(({ ButtonMenu }) => {
-        const nodes = document.querySelectorAll<HTMLElement>(
-          '[data-module="moj-button-menu"]',
-        );
-
-        for (const el of nodes) {
-          const flagged = el as MojInitEl;
-          if (flagged.__mojInit) {
-            continue;
-          }
-
-          // use the instance so 'no-new' doesn't complain
-          const instance = new ButtonMenu(flagged);
-          if (typeof (instance as { init?: () => void }).init === 'function') {
-            instance.init(); // some versions require explicit init
-          }
-
-          flagged.__mojInit = true;
-        }
-      })
-      .catch(() => {
-        // no-op for non-browser/test environments
-      });
-  }
-
-  ngAfterViewInit(): void {
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-
-    void import('@ministryofjustice/frontend')
-      .then(({ ButtonMenu }) => {
-        const nodes = document.querySelectorAll<HTMLElement>(
-          '[data-module="moj-button-menu"]',
-        );
-
-        for (const el of nodes) {
-          const flagged = el as MojInitEl;
-          if (flagged.__mojInit) {
-            continue;
-          }
-
-          // use the instance so 'no-new' doesn't complain
-          const instance = new ButtonMenu(flagged);
-          if (typeof (instance as { init?: () => void }).init === 'function') {
-            instance.init(); // some versions require explicit init
-          }
-
-          flagged.__mojInit = true;
-        }
-      })
-      .catch(() => {
-        // no-op for non-browser/test environments
-      });
+        this.loginMsg = `Signed in successfully. You have ${total} application list${total === 1 ? '' : 's'}.`;
+      },
+      error: () => {
+        // Non-fatal: still show the page if this probe fails for any reason
+        this.loginMsg = 'Signed in successfully. Not calling backend';
+      },
+    });
   }
 
   onSubmit(event: SubmitEvent): void {
@@ -308,160 +202,9 @@ export class ApplicationsList implements OnInit {
     }
   }
 
-  loadApplicationsLists(): void {
-    // Hard-coded sample data for now
-    this.rows = [
-      {
-        id: 101,
-        date: '2025-09-29',
-        time: '09:30',
-        location: 'Birmingham',
-        description: 'Morning list',
-        entries: 12,
-        status: 'Open',
-      },
-      {
-        id: 102,
-        date: '2025-09-29',
-        time: '13:45',
-        location: 'Birmingham',
-        description: 'Afternoon list',
-        entries: 8,
-        status: 'Closed',
-      },
-      {
-        id: 103,
-        date: '2025-09-30',
-        time: '10:00',
-        location: 'Manchester',
-        description: 'Applications block',
-        entries: 16,
-        status: 'Open',
-      },
-      {
-        id: 104,
-        date: '2025-09-30',
-        time: '14:15',
-        location: 'Manchester',
-        description: 'Enforcement',
-        entries: 5,
-        status: 'Closed',
-      },
-      {
-        id: 105,
-        date: '2025-10-01',
-        time: '09:00',
-        location: 'Bristol',
-        description: 'Housing list',
-        entries: 20,
-        status: 'Open',
-      },
-      {
-        id: 106,
-        date: '2025-10-01',
-        time: '11:30',
-        location: 'Bristol',
-        description: 'Small claims',
-        entries: 9,
-        status: 'Open',
-      },
-      {
-        id: 107,
-        date: '2025-10-02',
-        time: '10:45',
-        location: 'Leeds',
-        description: 'Family applications',
-        entries: 14,
-        status: 'Closed',
-      },
-      {
-        id: 108,
-        date: '2025-10-02',
-        time: '15:00',
-        location: 'Leeds',
-        description: 'Costs review',
-        entries: 6,
-        status: 'Open',
-      },
-    ];
-  loadApplicationsLists(): void {
-    // Hard-coded sample data for now
-    this.rows = [
-      {
-        id: 101,
-        date: '2025-09-29',
-        time: '09:30',
-        location: 'Birmingham',
-        description: 'Morning list',
-        entries: 12,
-        status: 'Open',
-      },
-      {
-        id: 102,
-        date: '2025-09-29',
-        time: '13:45',
-        location: 'Birmingham',
-        description: 'Afternoon list',
-        entries: 8,
-        status: 'Closed',
-      },
-      {
-        id: 103,
-        date: '2025-09-30',
-        time: '10:00',
-        location: 'Manchester',
-        description: 'Applications block',
-        entries: 16,
-        status: 'Open',
-      },
-      {
-        id: 104,
-        date: '2025-09-30',
-        time: '14:15',
-        location: 'Manchester',
-        description: 'Enforcement',
-        entries: 5,
-        status: 'Closed',
-      },
-      {
-        id: 105,
-        date: '2025-10-01',
-        time: '09:00',
-        location: 'Bristol',
-        description: 'Housing list',
-        entries: 20,
-        status: 'Open',
-      },
-      {
-        id: 106,
-        date: '2025-10-01',
-        time: '11:30',
-        location: 'Bristol',
-        description: 'Small claims',
-        entries: 9,
-        status: 'Open',
-      },
-      {
-        id: 107,
-        date: '2025-10-02',
-        time: '10:45',
-        location: 'Leeds',
-        description: 'Family applications',
-        entries: 14,
-        status: 'Closed',
-      },
-      {
-        id: 108,
-        date: '2025-10-02',
-        time: '15:00',
-        location: 'Leeds',
-        description: 'Costs review',
-        entries: 6,
-        status: 'Open',
-      },
-    ]
+  loadApplications(): void {
+    // TODO: fetch and map the current page of lists into `tableRows`
   }
-}
 
   onDelete(id: number): void {
     this._id = id;
