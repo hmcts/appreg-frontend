@@ -1,0 +1,96 @@
+<h1 class="govuk-heading-l">Private prosecutors index</h1>
+
+<!-- Bind this sub-form to the nested FormGroup provided by the parent -->
+<div class="govuk-grid-row" [formGroup]="group">
+  <!-- Date from -->
+  <app-date-input
+    formControlName="dateFrom"
+    label="Date from"
+    hint="For example, 27 3 2007"
+    idPrefix="ppi-date-from">
+  </app-date-input>
+
+  <!-- Date to -->
+  <app-date-input
+    formControlName="dateTo"
+    label="Date to"
+    hint="For example, 27 3 2007"
+    idPrefix="ppi-date-to">
+  </app-date-input>
+
+  <!-- Applicant surname/organisation -->
+  <app-text-input
+    formControlName="applicantSurnameOrOrg"
+    label="Surname/organisation"
+    hint="Enter the applicant’s surname or organisation"
+    idPrefix="ppi-applicant-surname-org">
+  </app-text-input>
+
+  <!-- Applicant first name -->
+  <app-text-input
+    formControlName="applicantFirst"
+    label="Applicant first name"
+    hint="Enter the applicant’s first name"
+    idPrefix="ppi-applicant-first">
+  </app-text-input>
+</div>
+
+<div class="govuk-grid-row" [formGroup]="group">
+  <!-- Standard applicant name -->
+  <app-text-input
+    formControlName="standardApplicantName"
+    label="Applicant name"
+    hint="Enter the standard applicant’s name"
+    idPrefix="ppi-standard-applicant">
+  </app-text-input>
+
+  <!-- Respondent first name -->
+  <app-text-input
+    formControlName="respondentFirst"
+    label="Respondent first name"
+    hint="Enter the respondent’s first name"
+    idPrefix="ppi-respondent-first">
+  </app-text-input>
+
+  <!-- Respondent surname -->
+  <app-text-input
+    formControlName="respondentSurname"
+    label="Respondent surname"
+    hint="Enter the respondent’s surname"
+    idPrefix="ppi-respondent-surname">
+  </app-text-input>
+
+  <!-- Respondent organisation -->
+  <app-text-input
+    formControlName="respondentOrg"
+    label="Organisation"
+    hint="Enter the respondent’s organisation name"
+    idPrefix="ppi-respondent-org">
+  </app-text-input>
+</div>
+
+<div class="govuk-grid-row" [formGroup]="group">
+  <!-- Court -->
+  <app-text-input
+    formControlName="court"
+    label="Court"
+    hint="Enter the full official name of the court"
+    idPrefix="ppi-court">
+  </app-text-input>
+
+  <!-- Other location -->
+  <app-text-input
+    formControlName="otherLocation"
+    label="Other location"
+    hint="Provide an alternative location if needed"
+    idPrefix="ppi-other-location">
+  </app-text-input>
+
+  <!-- CJA -->
+  <app-text-input
+    formControlName="cja"
+    label="CJA"
+    hint="The code for criminal justice area"
+    idPrefix="ppi-cja">
+  </app-text-input>
+</div>
