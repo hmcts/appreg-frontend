@@ -1,0 +1,148 @@
+<h1 class="govuk-heading-xl">Applications</h1>
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
+<form [formGroup]="form" (ngSubmit)="onSubmit($event)">
+  <div class="govuk-grid-row">
+    <!-- Date -->
+    <app-date-input
+      formControlName="date"
+      label="Date"
+      hint="For example, 27 3 2007"
+      idPrefix="date"
+    >
+    </app-date-input>
+
+    <!-- Applicant Org -->
+    <app-text-input
+      formControlName="description"
+      label="Applicant Org"
+      hint="Enter the applicants organisation"
+      idPrefix="description"
+    >
+    </app-text-input>
+
+    <!-- Respondent Org -->
+    <app-text-input
+      formControlName="description"
+      label="Respondent Org"
+      hint="Enter the respondents organisation"
+      idPrefix="description"
+    >
+    </app-text-input>
+
+    <!-- Court -->
+    <app-text-input
+      formControlName="description"
+      label="Court"
+      hint="Enter a description of the court"
+      idPrefix="description"
+    >
+    </app-text-input>
+  </div>
+
+  <div class="govuk-grid-row">
+    <!-- Court -->
+    <app-text-input
+      formControlName="description"
+      label="Applicant surname"
+      hint="The applicants last name"
+      idPrefix="description"
+    >
+    </app-text-input>
+
+    <!-- Respondent surname -->
+    <app-text-input
+      formControlName="description"
+      label="Respondent surname"
+      hint="The respondent last name"
+      idPrefix="description"
+    >
+    </app-text-input>
+
+    <!-- Location Description -->
+    <app-text-input
+      formControlName="description"
+      label="List other location"
+      hint="Other location description"
+      idPrefix="description"
+    >
+    </app-text-input>
+
+    <!-- Location Standard -->
+    <app-text-input
+      formControlName="description"
+      label="Applicant code"
+      hint="The standard applicant code"
+      idPrefix="description"
+    >
+    </app-text-input>
+  </div>
+
+  <div class="govuk-grid-row">
+    <!-- Court -->
+    <app-text-input
+      formControlName="description"
+      label="Post code"
+      hint="Respondents post code"
+      idPrefix="description"
+    >
+    </app-text-input>
+
+    <!-- CJA -->
+    <app-text-input
+      formControlName="description"
+      label="CJA"
+      hint="Criminal justice area"
+      idPrefix="description"
+    >
+    </app-text-input>
+
+    <!-- Status -->
+    <app-select-input
+      formControlName="status"
+      label="Select status"
+      hint="The status of the application list"
+      idPrefix="status"
+      [options]="status"
+    >
+    </app-select-input>
+
+    <!-- Account reference -->
+    <app-text-input
+      formControlName="description"
+      label="Account reference"
+      hint="The account reference code"
+      idPrefix="description"
+    >
+    </app-text-input>
+  </div>
+
+  <div class="govuk-button-group">
+    <button type="button" class="govuk-button">Search</button>
+  </div>
+</form>
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
+
+<!-- Sortable table component -->
+<app-sortable-table [caption]="'Lists'" [columns]="columns">
+  <ng-template #actionsTemplate let-row>
+    <div class="govuk-button-group">
+      <a class="govuk-button" [routerLink]="['/applications', row.id]">Open</a>
+      <button type="button" class="govuk-button govuk-button--secondary">
+        Update
+      </button>
+    </div>
+  </ng-template>
+</app-sortable-table>
+
+<!-- Pager -->
+<app-pagination
+  [currentPage]="currentPage"
+  [totalPages]="totalPages"
+  (pageChange)="onPageChange($event)"
+></app-pagination>
