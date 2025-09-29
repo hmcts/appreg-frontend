@@ -44,14 +44,6 @@ export class StandardApplicants {
 
   onSubmit(event: SubmitEvent): void {
     event.preventDefault();
-    const btn = event.submitter as HTMLButtonElement;
-    const action = btn.value; // "search" or "create"
-
-    if (action === 'search') {
-      // handle search…
-    } else {
-      // handle create…
-    }
   }
 
   loadStandardApplicants(): void {
