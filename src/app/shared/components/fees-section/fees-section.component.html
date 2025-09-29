@@ -1,0 +1,62 @@
+<h1 class="govuk-heading-l">Fees</h1>
+
+<!-- Bind the sub-form -->
+<div class="govuk-grid-row" [formGroup]="group">
+  <!-- Date from -->
+  <app-date-input
+    formControlName="dateFrom"
+    label="Date from"
+    hint="For example, 27 3 2007"
+    idPrefix="fees-date-from">
+  </app-date-input>
+
+  <!-- Date to -->
+  <app-date-input
+    formControlName="dateTo"
+    label="Date to"
+    hint="For example, 27 3 2007"
+    idPrefix="fees-date-to">
+  </app-date-input>
+
+  <!-- Standard Applicant code -->
+  <app-text-input
+    formControlName="applicantCode"
+    label="Applicant code"
+    hint="Enter a valid standard applicant code"
+    idPrefix="fees-applicant-code">
+  </app-text-input>
+
+  <!-- Applicant surname/organisation -->
+  <app-text-input
+    formControlName="surnameOrOrg"
+    label="Surname/organisation"
+    hint="Applicants surname or organisation name"
+    idPrefix="fees-surname-org">
+  </app-text-input>
+</div>
+
+<div class="govuk-grid-row" [formGroup]="group">
+  <!-- Court -->
+  <app-text-input
+    formControlName="court"
+    label="Court"
+    hint="Start typing to search the list"
+    idPrefix="fees-court">
+  </app-text-input>
+
+  <!-- Other location -->
+  <app-text-input
+    formControlName="otherLocation"
+    label="Other location"
+    hint="Other location description"
+    idPrefix="fees-other-location">
+  </app-text-input>
+
+  <!-- CJA -->
+  <app-text-input
+    formControlName="cja"
+    label="CJA"
+    hint="Criminal justice area"
+    idPrefix="fees-cja">
+  </app-text-input>
+</div>
