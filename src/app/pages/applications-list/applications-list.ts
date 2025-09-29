@@ -171,6 +171,22 @@ export class ApplicationsList implements OnInit {
     if (typeof currentCja === 'string' && currentCja.trim()) {
       this.cjaSearch = currentCja;
     }
+
+    // 👇 Tiny SSR-friendly call to compute a “you have N lists” message
+    // Passing 'body' selects the overload that returns ApplicationListPage (typed).
+    this.listsApi.listApplicationLists({ page: 0, size: 1 }, 'body').subscribe({
+      next: (page: ApplicationListPage) => {
+        const total =
+          (page).totalElements ??
+          ((page).content?.length ?? 0);
+
+        this.loginMsg = `Signed in successfully. You have ${total} application list${total === 1 ? '' : 's'}.`;
+      },
+      error: () => {
+        // Non-fatal: still show the page if this probe fails for any reason
+        this.loginMsg = 'Signed in successfully. Not calling backend';
+      },
+    });
   }
 
   onSubmit(event: SubmitEvent): void {
@@ -308,6 +324,14 @@ export class ApplicationsList implements OnInit {
     this.cjaSearch = label;
     this.form.controls.cja.setValue(label);
     this.filteredCja = [];
+      // TODO: handle search using `values`
+    } else if (action === 'create') {
+      // TODO: handle create using `values`
+    }
+  }
+
+  loadApplications(): void {
+    // TODO: fetch and map the current page of lists into `tableRows`
   }
 
   onDelete(id: number): void {

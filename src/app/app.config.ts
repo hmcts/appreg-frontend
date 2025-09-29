@@ -1,6 +1,7 @@
 import {
   HttpInterceptorFn,
   provideHttpClient,
+  withInterceptors,
   withXsrfConfiguration,
 } from '@angular/common/http';
 import {
@@ -18,6 +19,9 @@ import { routes } from './app.routes';
 
 import { provideApi } from 'src/generated/openapi';
 
+import { BASE_PATH } from 'src/generated/openapi';
+import { Configuration } from 'src/generated/openapi/configuration';
+
 export const credentialsInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req.clone({ withCredentials: true }));
 };
@@ -33,7 +37,18 @@ export const appConfig: ApplicationConfig = {
         cookieName: 'XSRF-TOKEN',
         headerName: 'X-XSRF-TOKEN',
       }),
+      withInterceptors([credentialsInterceptor]),
     ),
+
+    { provide: BASE_PATH, useValue: '' },
+    {
+      provide: Configuration,
+      useFactory: () =>
+        new Configuration({
+          basePath: '',
+          withCredentials: true,
+        }),
+    },
     provideApi(''),
   ],
 };

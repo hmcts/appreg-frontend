@@ -1,3 +1,4 @@
+import type { ClientRequest, IncomingMessage } from 'http';
 import crypto from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -8,6 +9,7 @@ import {
   isMainModule,
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
+import type { AccountInfo } from '@azure/msal-node';
 import type { HmctsLogger } from '@hmcts/nodejs-logging';
 import config from 'config';
 import cookieParser from 'cookie-parser';
@@ -17,8 +19,11 @@ import express, {
   RequestHandler,
   type Response,
 } from 'express';
-import * as httpProxy from 'http-proxy-middleware';
-type ProxyOptions = httpProxy.Options;
+import session from 'express-session';
+import {
+  type Options as ProxyOptions,
+  createProxyMiddleware,
+} from 'http-proxy-middleware';
 
 import { AppInsights } from './modules/appinsights';
 import { Helmet } from './modules/helmet';
@@ -26,7 +31,7 @@ import { HmctsLoggerBridge } from './modules/logger';
 import { PropertiesVolume } from './modules/properties-volume';
 import { setupHealthcheck } from './routes/health';
 import { setupInfoRoute } from './routes/info';
-import authRoutes from './routes/sso';
+import ssoRouter, { cca } from './routes/sso';
 
 // ----- Paths (ESM-safe)
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -35,15 +40,23 @@ const browserDistFolder = join(__dirname, '../browser');
 // ----- App + Angular engine
 const app = express();
 const angularApp = new AngularNodeAppEngine();
+
+// Trust proxy (for secure cookies behind ingress)
+app.set('trust proxy', 1);
 app.use(cookieParser());
 
 // ----- Env
 const env = process.env['NODE_ENV'] || 'development';
 const developmentMode = env === 'development';
 const CONNECTION_STRING = config.get<string>(
-  'secrets.apps-reg.app-insights-connection-string',
+  'secrets.appreg.app-insights-connection-string-fe',
 );
+
+// API + scopes for resource access
 const apiBase: string = config.get<string>('api.baseUrl');
+const apiScopes: string[] = config.has('api.scopes')
+  ? config.get<string[]>('api.scopes')
+  : [];
 
 // ----- Platform modules
 await new PropertiesVolume().enableFor(app);
@@ -56,10 +69,29 @@ const logger: HmctsLogger = HmctsLoggerBridge.enable(
   AppInsights.client(),
 );
 
+// ----- Session (must be before auth/proxy/SSR so req.session is available everywhere)
+app.use(
+  session({
+    name: config.has('session.cookieName')
+      ? config.get<string>('session.cookieName')
+      : 'sid',
+    secret: config.get<string>('session.secret'),
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: config.has('session.secure')
+        ? config.get<boolean>('session.secure')
+        : env === 'production',
+    },
+  }),
+);
+
 // ----- Routes
 setupHealthcheck(app);
 setupInfoRoute(app);
-app.use(authRoutes);
+app.use(ssoRouter);
 
 // ----- Static
 app.use(
@@ -90,7 +122,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
       res.cookie('XSRF-TOKEN', token, {
         httpOnly: false,
         sameSite: 'lax',
-        secure: process.env['NODE_ENV'] === 'production',
+        secure: env === 'production',
         path: '/',
       });
     }
@@ -98,15 +130,82 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
+interface SessionShape {
+  account?: AccountInfo;
+  tokenCache?: string;
+}
+
+type ReqWithSession = Request & { session?: SessionShape };
+type ReqWithToken = Request & {
+  apiAccessToken?: string | null;
+  session?: SessionShape;
+};
+
+// Acquire an API access token from the session-backed MSAL cache
+async function acquireApiToken(req: ReqWithSession): Promise<string | null> {
+  const sess = req.session;
+  const account = sess?.account;
+  const cache = sess?.tokenCache;
+
+  if (!account || !cache || apiScopes.length === 0) {
+    console.info(
+      `[proxy] acquireApiToken: missing ${
+        !account ? 'account' : !cache ? 'cache' : 'scopes'
+      }`,
+    );
+    return null;
+  }
+
+  try {
+    // Hydrate cache for this request
+    cca.getTokenCache().deserialize(cache);
+    const result = await cca.acquireTokenSilent({
+      account,
+      scopes: apiScopes,
+      // forceRefresh: true, // optionally enable if you suspect cache staleness
+    });
+    if (result?.accessToken) {
+      // Persist any cache updates (refresh tokens, expiry, etc.)
+      if (sess) {
+        sess.tokenCache = cca.getTokenCache().serialize();
+      }
+      console.info(
+        `[proxy] acquired token exp=${result.expiresOn?.toISOString?.() ?? 'n/a'}`,
+      );
+      return result.accessToken;
+    }
+    console.warn('[proxy] acquireTokenSilent returned no accessToken');
+  } catch (e) {
+    console.warn('[proxy] acquireTokenSilent failed', e);
+  }
+  return null;
+}
+
 const proxyOptions: ProxyOptions = {
   target: apiBase,
   changeOrigin: true,
   xfwd: true,
+  secure: env === 'production',
+  on: {
+    proxyReq: (
+      proxyReq: ClientRequest,
+      req: IncomingMessage & { apiAccessToken?: string | null },
+    ) => {
+      const token = req.apiAccessToken ?? null;
+      const urlShown = req.url ?? ''; // ✅ typed url from IncomingMessage
+      console.info(
+        `[proxy] forwarding ${urlShown} tokenPresent=${Boolean(token)}`,
+      );
+      if (token) {
+        proxyReq.setHeader('authorization', `Bearer ${token}`);
+      }
+    },
+  },
 };
 
-const apiProxy: RequestHandler = httpProxy.createProxyMiddleware(proxyOptions);
+const apiProxy: RequestHandler = createProxyMiddleware(proxyOptions);
 
-app.use((req: Request, res: Response, next: NextFunction) => {
+app.use(async (req: Request, res: Response, next: NextFunction) => {
   const accept = String(req.headers['accept'] ?? '');
   const path = req.path;
 
@@ -131,6 +230,18 @@ app.use((req: Request, res: Response, next: NextFunction) => {
       return res.sendStatus(403);
     }
   }
+
+  // Debug: show session + scopes before attempting token acquisition
+  console.info(
+    `[proxy] path=${req.path} hasSession=${Boolean(
+      (req as ReqWithSession).session?.account,
+    )} scopes="${apiScopes.join(' ')}"`,
+  );
+
+  // Stash a Bearer token (if available) for the proxy to inject
+  (req as ReqWithToken).apiAccessToken = await acquireApiToken(
+    req as ReqWithSession,
+  );
 
   return apiProxy(req, res, next);
 });
