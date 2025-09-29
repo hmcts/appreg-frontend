@@ -5,6 +5,7 @@ import {
   ConfidentialClientApplication,
 } from '@azure/msal-node';
 import * as nodejsLogging from '@hmcts/nodejs-logging';
+import { HmctsLogger } from '@hmcts/nodejs-logging';
 import config from 'config';
 import cookieParser from 'cookie-parser';
 import express, { NextFunction, Request, Response } from 'express';
@@ -12,13 +13,6 @@ import { type RateLimitRequestHandler, rateLimit } from 'express-rate-limit';
 import session from 'express-session';
 import { v4 as uuid } from 'uuid';
 
-// ---- Logger (typed to avoid "unsafe" eslint rules) -------------------------
-type HmctsLogger = {
-  info(msg: string, ...meta: unknown[]): void;
-  warn(msg: string, ...meta: unknown[]): void;
-  error(msg: string | Error, ...meta: unknown[]): void;
-  debug?: (msg: string, ...meta: unknown[]) => void;
-};
 const { Logger } = nodejsLogging as unknown as {
   Logger: { getLogger(name: string): HmctsLogger };
 };
@@ -36,9 +30,9 @@ declare module 'express-session' {
   }
 }
 
-const tenantId = config.get<string>('secrets.apps-reg.app-TENANT-ID');
-const clientId = config.get<string>('secrets.apps-reg.app-CLIENT-ID');
-const clientSecret = config.get<string>('secrets.apps-reg.app-CLIENT-SECRET');
+const tenantId = config.get<string>('secrets.appreg.azure-tenant-id-fe');
+const clientId = config.get<string>('secrets.appreg.azure-app-id-fe');
+const clientSecret = config.get<string>('secrets.appreg.azure-client-secret-fe');
 const redirectUri = config.get<string>('auth.redirectUri');
 const scopes = config.get<string[]>('auth.scopes');
 const postLogoutRedirectUri = config.get<string>('auth.postLogoutRedirectUri');
@@ -63,7 +57,7 @@ const loginLimiter: RateLimitRequestHandler = rateLimit({
   statusCode: 429,
 });
 
-const cca = new ConfidentialClientApplication({
+export const cca = new ConfidentialClientApplication({
   auth: {
     clientId,
     authority: `https://login.microsoftonline.com/${tenantId}`,
