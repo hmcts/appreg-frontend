@@ -1,0 +1,34 @@
+<div class="govuk-form-group">
+  <fieldset class="govuk-fieldset" [attr.aria-describedby]="ariaDescribedBy">
+    <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
+      <h1 class="govuk-fieldset__heading">{{ legend }}</h1>
+    </legend>
+
+    <div class="govuk-radios" data-module="govuk-radios">
+      @for (r of options; track r.id) {
+        <div class="govuk-radios__item">
+          <input
+            class="govuk-radios__input"
+            [id]="idPrefix + '-' + r.id"
+            [name]="name"
+            type="radio"
+            [value]="r.id"
+            [disabled]="disabled || !!r.disabled"
+            [(ngModel)]="value"
+            (ngModelChange)="onModelChange($event)"
+            (blur)="onTouched()" />
+          <label class="govuk-label govuk-radios__label" [for]="idPrefix + '-' + r.id">
+            {{ r.label }}
+          </label>
+          @if (r.hint) {
+            <div class="govuk-hint govuk-radios__hint" [id]="idPrefix + '-' + r.id + '-hint'">
+              {{ r.hint }}
+            </div>
+          }
+        </div>
+      } @empty {
+        <p class="govuk-hint">No options.</p>
+      }
+    </div>
+  </fieldset>
+</div>
