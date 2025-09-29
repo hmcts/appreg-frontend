@@ -62,11 +62,7 @@
       label="Select status"
       hint="The status of the application list"
       idPrefix="status"
-      [options]="[
-        { value: 'choose', label: 'Choose status' },
-        { value: 'open', label: 'Open' },
-        { value: 'closed', label: 'Closed' },
-      ]"
+      [options]="status"
     >
     </app-select-input>
   </div>
@@ -138,19 +134,8 @@
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 
-<app-sortable-table
-  caption="Lists"
-  [columns]="[
-    { header: 'Date', field: 'date', sortable: true },
-    { header: 'Time', field: 'time', sortable: true },
-    { header: 'Location', field: 'location', sortable: true },
-    { header: 'Description', field: 'description', sortable: true },
-    { header: 'Entries', field: 'entries', sortable: true, numeric: true },
-    { header: 'Status', field: 'status', sortable: true },
-    { header: 'Actions', field: 'actions' },
-  ]"
-  [data]="$any(tableRows)"
->
+<!-- Sortable table component -->
+<app-sortable-table caption="Lists" [columns]="columns">
   <!-- actions slot -->
   <ng-template #actionsTemplate let-row>
     <div class="govuk-button-group">
@@ -171,6 +156,7 @@
   </ng-template>
 </app-sortable-table>
 
+<!-- Pager -->
 <app-pagination
   [currentPage]="currentPage"
   [totalPages]="totalPages"

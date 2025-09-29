@@ -94,15 +94,21 @@ export class ApplicationsList implements OnInit {
   currentPage = 1;
   totalPages = 5;
 
-  tableRows: {
-    id: number;
-    date: string;
-    time: string;
-    location: string;
-    description: string;
-    entries: number | string;
-    status: string;
-  }[] = [];
+  columns = [
+    { header: 'Date', field: 'date', sortable: true },
+    { header: 'Time', field: 'time', sortable: true },
+    { header: 'Location', field: 'location', sortable: true },
+    { header: 'Description', field: 'description', sortable: true },
+    { header: 'Entries', field: 'entries', sortable: true, numeric: true },
+    { header: 'Status', field: 'status', sortable: true },
+    { header: 'Actions', field: 'actions' },
+  ];
+
+  status = [
+    { label: 'Choose', value: 'choose' },
+    { label: 'Open', value: 'open' },
+    { label: 'Closed', value: 'closed' },
+  ];
 
   ngOnInit(): void {
     // Use cached data from prerendering
@@ -116,7 +122,7 @@ export class ApplicationsList implements OnInit {
       return;
     }
 
-    this.loadApplications();
+    this.loadApplicationsLists();
   }
 
   onSubmit(event: SubmitEvent): void {
@@ -217,7 +223,8 @@ export class ApplicationsList implements OnInit {
     }
   }
 
-  loadApplications(): void {
+
+  loadApplicationsLists(): void {
     // TODO: fetch lists
 
     // Load National Court Houses
@@ -238,6 +245,6 @@ export class ApplicationsList implements OnInit {
 
   onPageChange(page: number): void {
     this.currentPage = page;
-    this.loadApplications(); // fetch page `page`
+    this.loadApplicationsLists(); // fetch page `page`
   }
 }
