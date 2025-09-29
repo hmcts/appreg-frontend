@@ -8,7 +8,12 @@ import { TextInputComponent } from '../text-input/text-input.component';
 @Component({
   selector: 'app-search-warrants-section',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DateInputComponent, TextInputComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    DateInputComponent,
+    TextInputComponent,
+  ],
   templateUrl: './search-warrants-section.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

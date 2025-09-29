@@ -8,7 +8,12 @@ import { TextInputComponent } from '../text-input/text-input.component';
 @Component({
   selector: 'app-duration-section',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DateInputComponent, TextInputComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    DateInputComponent,
+    TextInputComponent,
+  ],
   templateUrl: './duration-section.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -1,6 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, forwardRef } from '@angular/core';
-import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
+import {
+  ControlValueAccessor,
+  FormsModule,
+  NG_VALUE_ACCESSOR,
+} from '@angular/forms';
 
 export interface ReportOption {
   id: string;
@@ -17,10 +21,10 @@ export interface ReportOption {
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => ReportSelectorComponent),
-      multi: true
-    }
+      multi: true,
+    },
   ],
-  templateUrl: './report-selector.component.html'
+  templateUrl: './report-selector.component.html',
 })
 export class ReportSelectorComponent implements ControlValueAccessor {
   /** Required: the list of radio options */
@@ -37,10 +41,8 @@ export class ReportSelectorComponent implements ControlValueAccessor {
   disabled = false;
   value: string | null = null;
 
-  onChange: (v: string | null) => void = () => {
-  };
-  onTouched: () => void = () => {
-  };
+  onChange: (v: string | null) => void = () => {};
+  onTouched: () => void = () => {};
 
   writeValue(v: string | null): void {
     this.value = v;

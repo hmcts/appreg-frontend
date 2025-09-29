@@ -16,12 +16,19 @@
             [disabled]="disabled || !!r.disabled"
             [(ngModel)]="value"
             (ngModelChange)="onModelChange($event)"
-            (blur)="onTouched()" />
-          <label class="govuk-label govuk-radios__label" [for]="idPrefix + '-' + r.id">
+            (blur)="onTouched()"
+          />
+          <label
+            class="govuk-label govuk-radios__label"
+            [for]="idPrefix + '-' + r.id"
+          >
             {{ r.label }}
           </label>
           @if (r.hint) {
-            <div class="govuk-hint govuk-radios__hint" [id]="idPrefix + '-' + r.id + '-hint'">
+            <div
+              class="govuk-hint govuk-radios__hint"
+              [id]="idPrefix + '-' + r.id + '-hint'"
+            >
               {{ r.hint }}
             </div>
           }
