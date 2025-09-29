@@ -33,6 +33,16 @@ type FieldKey =
   | 'location'
   | 'cja';
 
+type CreateListPayload = {
+  date: string | null;
+  time: Duration | null;
+  description: string;
+  status: string;
+  court?: string;
+  location?: string;
+  cja?: string;
+}
+
 @Component({
   selector: 'app-applications-list',
   standalone: true,
@@ -130,6 +140,7 @@ export class ApplicationsListCreate implements OnInit {
     this.offendingFields = [];
     this.createInvalid = false;
     this.anyInvalid = false;
+    this.createDone = false;
     this.errorHint = '';
 
     const formValues = this.form.getRawValue();
@@ -218,6 +229,37 @@ export class ApplicationsListCreate implements OnInit {
       this.createInvalid = false;
       // TODO: clean and create list
       // TODO: When we clean we have to ensure court && (loc || cja) is false and remove the appropriate field from the post/patch or whatever it is
+    }
+
+    if (!this.createInvalid) {
+
+      const { date, time, description, status, court, location, cja } =
+        this.form.getRawValue();
+      const has = (x: unknown) =>
+        x !== null && x !== undefined && x !== '' && x !== 'choose';
+      const useCourt = has(court);
+
+      const payload: CreateListPayload = {
+        date,
+        time,
+        description: (description ?? '').trim(),
+        status: status as string,
+        ...(useCourt
+          ? { court: court as string }
+          : { location: location as string, cja: cja as string }),
+      };
+
+      console.log(payload);
+
+      // Optional: drop undefined keys
+      // const cleaned = Object.fromEntries(
+      //   Object.entries(payload).filter(([, v]) => v !== undefined),
+      // );
+
+      // TODO: send object
+      // this.listsApi.create(cleaned as CreateListPayload).subscribe(/* ... */);
+
+      this.createDone = true;
     }
   }
 
