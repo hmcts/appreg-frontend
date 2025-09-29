@@ -1,0 +1,46 @@
+<h1 class="govuk-heading-l">Workload</h1>
+
+<!-- Bind this sub-form to the nested FormGroup provided by the parent -->
+<div class="govuk-grid-row" [formGroup]="group">
+  <!-- Date from -->
+  <app-date-input
+    formControlName="dateFrom"
+    label="Date from"
+    hint="For example, 27 3 2007"
+    idPrefix="wl-date-from">
+  </app-date-input>
+
+  <!-- Date to -->
+  <app-date-input
+    formControlName="dateTo"
+    label="Date to"
+    hint="For example, 27 3 2007"
+    idPrefix="wl-date-to">
+  </app-date-input>
+
+  <!-- Court -->
+  <app-text-input
+    formControlName="court"
+    label="Court"
+    hint="Enter the full official name of the court"
+    idPrefix="wl-court">
+  </app-text-input>
+
+  <!-- Other location -->
+  <app-text-input
+    formControlName="otherLocation"
+    label="Other location"
+    hint="Provide an alternative location if needed"
+    idPrefix="wl-other-location">
+  </app-text-input>
+</div>
+
+<div class="govuk-grid-row" [formGroup]="group">
+  <!-- CJA -->
+  <app-text-input
+    formControlName="cja"
+    label="CJA"
+    hint="Criminal justice area code"
+    idPrefix="wl-cja">
+  </app-text-input>
+</div>
