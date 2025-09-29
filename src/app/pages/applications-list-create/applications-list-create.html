@@ -1,39 +1,15 @@
-<div
-  class="govuk-!-margin-bottom-4"
-  style="
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
-  "
+<a [routerLink]="['/applications-list']" class="govuk-back-link"
+  >Back to Applications List</a
 >
-  <h1 class="govuk-heading-xl govuk-!-margin-bottom-0">Applications list</h1>
+<h1 class="govuk-heading-xl">Create new applications list</h1>
 
-  <a
-    [routerLink]="['/applications-list-create']"
-    role="button"
-    draggable="false"
-    class="govuk-button govuk-button--start govuk-!-margin-bottom-0"
-    data-module="govuk-button"
-  >
-    Create a new list
-    <svg
-      class="govuk-button__start-icon"
-      xmlns="http://www.w3.org/2000/svg"
-      width="17.5"
-      height="19"
-      viewBox="0 0 33 40"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path fill="currentColor" d="M0 0h13l20 20-20 20H0l20-20z" />
-    </svg>
-  </a>
-</div>
+<p class="govuk-body-l">
+  Please fill in all the required fields.<br /><br />
+  Ensure that you either provide either Court OR Location AND CJA, not both.
+</p>
 
 <!-- Error Summary -->
-@if (createInvalid || anyInvalid) {
+@if (createInvalid) {
   <div class="govuk-error-summary" data-module="govuk-error-summary">
     <div role="alert">
       <h2 class="govuk-error-summary__title">{{ errorHint }}</h2>
@@ -44,14 +20,39 @@
               <li>{{ c }}</li>
             }
           }
-
-          @if (anyInvalid) {
-            @for (c of offendingFields; track c) {
-              <li>{{ c }}</li>
-            }
-          }
         </ul>
       </div>
+    </div>
+  </div>
+}
+
+<!-- TODO: only create if POST req is successful -->
+@if (createDone) {
+  <div
+    class="govuk-notification-banner govuk-notification-banner--success"
+    role="alert"
+    aria-labelledby="govuk-notification-banner-title"
+    data-module="govuk-notification-banner"
+  >
+    <div class="govuk-notification-banner__header">
+      <h2
+        class="govuk-notification-banner__title"
+        id="govuk-notification-banner-title"
+      >
+        Success
+      </h2>
+    </div>
+    <div class="govuk-notification-banner__content">
+      <h3 class="govuk-notification-banner__heading">
+        Applications list successfully created
+      </h3>
+      <p class="govuk-body">
+        <a
+          class="govuk-notification-banner__link"
+          [routerLink]="['/applications-list']"
+          >Click here to go back</a
+        >
+      </p>
     </div>
   </div>
 }
@@ -94,7 +95,11 @@
       label="Select status"
       hint="The status of the application list"
       idPrefix="status"
-      [options]="status"
+      [options]="[
+        { value: 'choose', label: 'Choose status' },
+        { value: 'open', label: 'Open' },
+        { value: 'closed', label: 'Closed' },
+      ]"
     >
     </app-select-input>
   </div>
@@ -130,39 +135,10 @@
   </div>
 
   <div class="govuk-button-group">
-    <button type="submit" class="govuk-button" value="search">Search</button>
+    <button type="submit" class="govuk-button" value="create">Create</button>
   </div>
 </form>
 
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
-
-<!-- Sortable table component -->
-<app-sortable-table caption="Lists" [columns]="columns">
-  <!-- actions slot -->
-  <ng-template #actionsTemplate let-row>
-    <div class="govuk-button-group">
-      <a
-        [routerLink]="['/applications-list', row.id]"
-        class="govuk-button govuk-button--secondary"
-      >
-        Open
-      </a>
-      <button
-        type="button"
-        class="govuk-button govuk-button--warning"
-        (click)="onDelete(row.id)"
-      >
-        Delete
-      </button>
-    </div>
-  </ng-template>
-</app-sortable-table>
-
-<!-- Pager -->
-<app-pagination
-  [currentPage]="currentPage"
-  [totalPages]="totalPages"
-  (pageChange)="onPageChange($event)"
-></app-pagination>

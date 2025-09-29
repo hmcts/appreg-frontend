@@ -1,18 +1,39 @@
 <div class="govuk-grid-column-one-quarter">
-  <div class="govuk-form-group">
+  <div
+    class="govuk-form-group"
+    [class.govuk-form-group--error]="
+      dateForm.invalid && (dateForm.touched || dateForm.dirty)
+    "
+  >
     <fieldset
       class="govuk-fieldset"
       role="group"
-      [attr.aria-describedby]="idPrefix + '-hint'"
+      [attr.aria-describedby]="
+        idPrefix + '-hint' + (dateForm.invalid ? ' ' + idPrefix + '-error' : '')
+      "
       [formGroup]="dateForm"
     >
       <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
         <h1 class="govuk-fieldset__heading">{{ label }}</h1>
       </legend>
 
-      <div [id]="idPrefix + '-hint'" class="govuk-hint">
-        {{ hint }}
-      </div>
+      <div [id]="idPrefix + '-hint'" class="govuk-hint">{{ hint }}</div>
+
+      <!-- Group error -->
+      @if (dateForm.invalid && (dateForm.touched || dateForm.dirty)) {
+        <p [id]="idPrefix + '-error'" class="govuk-error-message">
+          <span class="govuk-visually-hidden">Error:</span>
+          @if (dateForm.errors?.['requiredParts']) {
+            Enter day, month and year
+          } @else if (dateForm.errors?.['invalidDate']) {
+            Enter a real date
+          } @else if (dateForm.errors?.['mustBePast']) {
+            Date must be in the past
+          } @else if (dateForm.errors?.['mustBeFuture']) {
+            Date must be in the future
+          }
+        </p>
+      }
 
       <div class="govuk-date-input" [id]="idPrefix">
         <!-- Day -->
@@ -21,15 +42,23 @@
             <label
               class="govuk-label govuk-date-input__label"
               [for]="idPrefix + '-day'"
+              >Day</label
             >
-              Day
-            </label>
             <input
               class="govuk-input govuk-date-input__input govuk-input--width-2"
+              [class.govuk-input--error]="
+                dateForm.get('day')?.invalid &&
+                (dateForm.get('day')?.touched || dateForm.get('day')?.dirty)
+              "
               [id]="idPrefix + '-day'"
               [name]="idPrefix + '-day'"
               type="text"
               inputmode="numeric"
+              pattern="[0-9]*"
+              maxlength="2"
+              autocomplete="off"
+              spellcheck="false"
+              [attr.aria-invalid]="dateForm.get('day')?.invalid ? 'true' : null"
               formControlName="day"
             />
           </div>
@@ -41,15 +70,25 @@
             <label
               class="govuk-label govuk-date-input__label"
               [for]="idPrefix + '-month'"
+              >Month</label
             >
-              Month
-            </label>
             <input
               class="govuk-input govuk-date-input__input govuk-input--width-2"
+              [class.govuk-input--error]="
+                dateForm.get('month')?.invalid &&
+                (dateForm.get('month')?.touched || dateForm.get('month')?.dirty)
+              "
               [id]="idPrefix + '-month'"
               [name]="idPrefix + '-month'"
               type="text"
               inputmode="numeric"
+              pattern="[0-9]*"
+              maxlength="2"
+              autocomplete="off"
+              spellcheck="false"
+              [attr.aria-invalid]="
+                dateForm.get('month')?.invalid ? 'true' : null
+              "
               formControlName="month"
             />
           </div>
@@ -61,15 +100,25 @@
             <label
               class="govuk-label govuk-date-input__label"
               [for]="idPrefix + '-year'"
+              >Year</label
             >
-              Year
-            </label>
             <input
               class="govuk-input govuk-date-input__input govuk-input--width-4"
+              [class.govuk-input--error]="
+                dateForm.get('year')?.invalid &&
+                (dateForm.get('year')?.touched || dateForm.get('year')?.dirty)
+              "
               [id]="idPrefix + '-year'"
               [name]="idPrefix + '-year'"
               type="text"
               inputmode="numeric"
+              pattern="[0-9]*"
+              maxlength="4"
+              autocomplete="off"
+              spellcheck="false"
+              [attr.aria-invalid]="
+                dateForm.get('year')?.invalid ? 'true' : null
+              "
               formControlName="year"
             />
           </div>

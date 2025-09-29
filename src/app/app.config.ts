@@ -16,6 +16,8 @@ import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
 
+import { provideApi } from 'src/generated/openapi';
+
 export const credentialsInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req.clone({ withCredentials: true }));
 };
@@ -32,5 +34,6 @@ export const appConfig: ApplicationConfig = {
         headerName: 'X-XSRF-TOKEN',
       }),
     ),
+    provideApi(''),
   ],
 };

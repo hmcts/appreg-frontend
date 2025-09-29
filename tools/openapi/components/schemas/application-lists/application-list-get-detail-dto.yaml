@@ -9,29 +9,28 @@ required:
   - version
 
 properties:
-
   id:
     type: string
     format: uuid
     description: Unique identifier of the Application List.
-    example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+    example: '3fa85f64-5717-4562-b3fc-2c963f66afa6'
 
   date:
     type: string
     format: date
     description: The calendar date on which the Application List is scheduled.
-    example: "2025-09-17"
+    example: '2025-09-17'
 
   time:
     type: string
     format: time
     description: The time of day at which the Application List is scheduled.
-    example: "10:30:00"
+    example: '10:30:00'
 
   description:
     type: string
     description: Human-readable description of the Application List (e.g. session title or purpose).
-    example: "Morning session for traffic-related applications"
+    example: 'Morning session for traffic-related applications'
 
   status:
     $ref: './application-list-status.yaml'
@@ -42,7 +41,7 @@ properties:
   otherLocationDescription:
     type: string
     description: Free-text location if not using a standard court.
-    example: "Temporary Courtroom at Town Hall"
+    example: 'Temporary Courtroom at Town Hall'
 
   criminalJusticeArea:
     $ref: '../criminal-justice-areas/criminal-justice-area-get-dto.yaml'

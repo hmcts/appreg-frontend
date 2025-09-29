@@ -14,9 +14,7 @@ import {
   Duration,
   DurationInputComponent,
 } from '../../shared/components/duration-input/duration-input.component';
-import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
-import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 
 import {
@@ -46,12 +44,10 @@ type FieldKey =
     TextInputComponent,
     SelectInputComponent,
     RouterLink,
-    PaginationComponent,
-    SortableTableComponent,
   ],
-  templateUrl: './applications-list.html',
+  templateUrl: './applications-list-create.html',
 })
-export class ApplicationsList implements OnInit {
+export class ApplicationsListCreate implements OnInit {
   private _id: number | undefined;
 
   NCH_KEY = makeStateKey<never[]>('nch');
@@ -69,6 +65,7 @@ export class ApplicationsList implements OnInit {
   // Create: Store unpopulated fields
   unpopField: string[] = [];
   createInvalid: boolean = false;
+  createDone: boolean = false;
 
   errorHint: string = ''; // Page hint when error occurs
 
@@ -102,31 +99,25 @@ export class ApplicationsList implements OnInit {
   currentPage = 1;
   totalPages = 5;
 
-  columns = [
-    { header: 'Date', field: 'date', sortable: true },
-    { header: 'Time', field: 'time', sortable: true },
-    { header: 'Location', field: 'location', sortable: true },
-    { header: 'Description', field: 'description', sortable: true },
-    { header: 'Entries', field: 'entries', sortable: true, numeric: true },
-    { header: 'Status', field: 'status', sortable: true },
-    { header: 'Actions', field: 'actions' },
-  ];
-
-  status = [
-    { label: 'Choose', value: 'choose' },
-    { label: 'Open', value: 'open' },
-    { label: 'Closed', value: 'closed' },
-  ];
+  tableRows: {
+    id: number;
+    date: string;
+    time: string;
+    location: string;
+    description: string;
+    entries: number | string;
+    status: string;
+  }[] = [];
 
   ngOnInit(): void {
-    // Not workie rn TODO: we should try and cache data. Here we can store cached data and load.
+    // not workie rn TODO: we should try and cache data. Here we can store cached data and load.
     if (this.state.hasKey(this.NCH_KEY)) {
-      this.loadApplicationsLists();
+      this.loadLists();
       this.state.remove(this.NCH_KEY);
       return;
     }
 
-    this.loadApplicationsLists();
+    this.loadLists();
   }
 
   onSubmit(event: SubmitEvent): void {
@@ -176,12 +167,61 @@ export class ApplicationsList implements OnInit {
         'Error - the following field/s are incorrectly formatted';
     }
 
-    if (action === 'search') {
-      // TODO: handle search using 'values'
+    // Prevent accidental submissions, button has to be clicked
+    if (action === 'create') {
+      const value = this.form.value as Record<FieldKey, unknown>;
+      const has = (x: unknown) =>
+        x !== null && x !== undefined && x !== '' && x !== 'choose'; // Conditions for unpopulated
+      const court = has(value.court);
+      const loc = has(value.location);
+      const cja = has(value.cja);
+
+      let mutex = false; // Court XOR (Location & CJA)
+
+      // Record unpopulated required fields
+      (['date', 'time', 'description', 'status'] as const).forEach((k) => {
+        if (!has(value[k])) {
+          this.unpopField.push(k);
+        }
+      });
+
+      if (court && (loc || cja)) {
+        mutex = true;
+        this.createInvalid = true;
+      }
+
+      if (!court && !(loc && cja)) {
+        if (!loc) {
+          this.unpopField.push('location');
+        }
+        if (!cja) {
+          this.unpopField.push('cja');
+        }
+      }
+
+      // show error hint if any required fields unpopuluated
+      if (this.unpopField.length) {
+        this.createInvalid = true; // Ensures the create was invalid
+        if (!mutex) {
+          this.errorHint = 'Please fill in all the required fields:';
+        } else {
+          this.errorHint =
+            'Please fill in all the required fields and provide either Court OR Location AND CJA, not both:';
+        }
+        return;
+      } else if (mutex) {
+        this.errorHint =
+          'Please provide either Court OR Location AND CJA, not both.';
+        return;
+      }
+
+      this.createInvalid = false;
+      // TODO: clean and create list
+      // TODO: When we clean we have to ensure court && (loc || cja) is false and remove the appropriate field from the post/patch or whatever it is
     }
   }
 
-  loadApplicationsLists(): void {
+  loadLists(): void {
     // TODO: fetch lists
     this.loadCourtLocations();
     this.loadCJAs();
@@ -213,6 +253,6 @@ export class ApplicationsList implements OnInit {
 
   onPageChange(page: number): void {
     this.currentPage = page;
-    this.loadApplicationsLists(); // fetch page `page`
+    this.loadLists(); // fetch page `page`
   }
 }
