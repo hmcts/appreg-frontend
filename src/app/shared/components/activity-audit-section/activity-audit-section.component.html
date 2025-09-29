@@ -1,0 +1,36 @@
+<h1 class="govuk-heading-l">Activity audit</h1>
+
+<!-- Bind this sub-form to the group passed in from the parent -->
+<div class="govuk-grid-row" [formGroup]="group">
+  <!-- Date from -->
+  <app-date-input
+    formControlName="dateFrom"
+    label="Date from"
+    hint="For example, 27 3 2007"
+    idPrefix="date-from">
+  </app-date-input>
+
+  <!-- Date to -->
+  <app-date-input
+    formControlName="dateTo"
+    label="Date to"
+    hint="For example, 27 3 2007"
+    idPrefix="date-to">
+  </app-date-input>
+
+  <!-- Username -->
+  <app-text-input
+    formControlName="username"
+    label="Username"
+    hint="Type the exact username you wish to audit"
+    idPrefix="username">
+  </app-text-input>
+
+  <!-- Activity -->
+  <app-text-input
+    formControlName="activity"
+    label="Activity"
+    hint="Show activity regarding the creation"
+    idPrefix="activity">
+  </app-text-input>
+</div>
