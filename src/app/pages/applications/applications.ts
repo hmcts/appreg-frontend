@@ -1,41 +1,40 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Component } from '@angular/core';
+import {
+  FormControl,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
-import {
-  Duration,
-  DurationInputComponent,
-} from '../../shared/components/duration-input/duration-input.component';
+import { Duration } from '../../shared/components/duration-input/duration-input.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 
 @Component({
-  selector: 'app-applications-list',
+  selector: 'app-applications',
   standalone: true,
   imports: [
-    CommonModule,
+    FormsModule,
     ReactiveFormsModule,
-    DateInputComponent,
-    DurationInputComponent,
-    TextInputComponent,
-    SelectInputComponent,
     RouterLink,
-    PaginationComponent,
     SortableTableComponent,
+    DateInputComponent,
+    TextInputComponent,
+    PaginationComponent,
+    SelectInputComponent,
   ],
-  templateUrl: './applications-list.html',
+  templateUrl: './applications.html',
 })
-export class ApplicationsList implements OnInit {
-  private _id: number | undefined;
-
-  // Reactive form backing the template
+export class Applications {
   form = new FormGroup({
     date: new FormControl<string | null>(null),
     time: new FormControl<Duration | null>(null),
+    applicantOrg: new FormControl<string>(''),
+    registeredUser: new FormControl<string>(''),
     description: new FormControl<string>(''),
     status: new FormControl<string>('choose'),
     court: new FormControl<string>(''),
@@ -48,12 +47,13 @@ export class ApplicationsList implements OnInit {
 
   columns = [
     { header: 'Date', field: 'date', sortable: true },
-    { header: 'Time', field: 'time', sortable: true },
-    { header: 'Location', field: 'location', sortable: true },
-    { header: 'Description', field: 'description', sortable: true },
-    { header: 'Entries', field: 'entries', sortable: true, numeric: true },
+    { header: 'Applicant', field: 'applicant', sortable: true },
+    { header: 'Respondent', field: 'respondent', sortable: true },
+    { header: 'Application title', field: 'title', sortable: true },
+    { header: 'Fee', field: 'fee', sortable: true, numeric: false },
+    { header: 'Resulted', field: 'resulted', sortable: true },
     { header: 'Status', field: 'status', sortable: true },
-    { header: 'Actions', field: 'actions' },
+    { header: 'Actions', field: 'actions', sortable: false },
   ];
 
   status = [
@@ -62,32 +62,16 @@ export class ApplicationsList implements OnInit {
     { label: 'Closed', value: 'closed' },
   ];
 
-  ngOnInit(): void {
-    this.loadApplicationsLists();
-  }
-
   onSubmit(event: SubmitEvent): void {
     event.preventDefault();
-    const btn = event.submitter as HTMLButtonElement | null;
-    const action = btn?.value ?? 'search';
-
-    if (action === 'search') {
-      // TODO: handle search using `values`
-    } else if (action === 'create') {
-      // TODO: handle create using `values`
-    }
   }
 
-  loadApplicationsLists(): void {
+  loadApplications(): void {
     // TODO: fetch lists
-  }
-
-  onDelete(id: number): void {
-    this._id = id;
   }
 
   onPageChange(page: number): void {
     this.currentPage = page;
-    this.loadApplicationsLists(); // fetch page `page`
+    this.loadApplications(); // fetch page `page`
   }
 }
