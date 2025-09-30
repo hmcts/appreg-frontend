@@ -1,0 +1,210 @@
+<nav class="govuk-breadcrumbs" aria-label="Breadcrumb">
+  <ol class="govuk-breadcrumbs__list">
+    <li class="govuk-breadcrumbs__list-item">
+      <a class="govuk-breadcrumbs__link" href="/applications-list">Applications list</a>
+    </li>
+  </ol>
+</nav>
+
+<h1 class="govuk-heading-xl">Applications list</h1>
+
+<!-- REMOVE the manual body-class script block -->
+
+<div class="govuk-tabs" data-module="govuk-tabs">
+  <h2 class="govuk-tabs__title">Contents</h2>
+
+  <ul class="govuk-tabs__list" role="tablist">
+    <!-- Applications tab -->
+    <li class="govuk-tabs__list-item govuk-tabs__list-item--selected" role="presentation">
+      <a
+        class="govuk-tabs__tab"
+        href="#applications"
+        id="tab_applications"
+        role="tab"
+        aria-controls="applications"
+        aria-selected="true"
+      >
+        Applications
+      </a>
+    </li>
+
+    <!-- List details tab -->
+    <li class="govuk-tabs__list-item" role="presentation">
+      <a
+        class="govuk-tabs__tab"
+        href="#list-details"
+        id="tab_list-details"
+        role="tab"
+        aria-controls="list-details"
+        aria-selected="false"
+      >
+        List details
+      </a>
+    </li>
+  </ul>
+
+  <!-- Applications panel -->
+  <div
+    class="govuk-tabs__panel"
+    id="applications"
+    role="tabpanel"
+    aria-labelledby="tab_applications"
+  >
+    <div class="header-with-actions">
+      <h2 class="govuk-heading-l">Applications</h2>
+      <div class="govuk-button-group">
+        <button type="button" class="govuk-button">Create</button>
+        <button type="button" class="govuk-button govuk-button--secondary">Bulk upload</button>
+      </div>
+    </div>
+
+    <table class="govuk-table">
+      <thead class="govuk-table__head">
+      <tr class="govuk-table__row">
+        <th scope="col" class="govuk-table__header govuk-table__header--numeric">Sequence number</th>
+        <th scope="col" class="govuk-table__header">Account number</th>
+        <th scope="col" class="govuk-table__header">Applicant</th>
+        <th scope="col" class="govuk-table__header">Respondent</th>
+        <th scope="col" class="govuk-table__header">Post code</th>
+        <th scope="col" class="govuk-table__header">Title</th>
+        <th scope="col" class="govuk-table__header govuk-table__header--numeric">Fee req</th>
+        <th scope="col" class="govuk-table__header">Resulted</th>
+        <th scope="col" class="govuk-table__header">Actions</th>
+      </tr>
+      </thead>
+    </table>
+
+    <nav class="govuk-pagination" aria-label="Pagination">
+      <!-- … pagination unchanged … -->
+    </nav>
+  </div>
+
+  <!-- List details panel -->
+  <div
+    class="govuk-tabs__panel govuk-tabs__panel--hidden"
+    id="list-details"
+    role="tabpanel"
+    aria-labelledby="tab_list-details"
+  >
+    <h2 class="govuk-heading-l">List details</h2>
+
+    <form #listForm="ngForm">
+      <div class="govuk-grid-row">
+        <!-- Date -->
+        <div class="govuk-grid-column-one-quarter">
+          <div class="govuk-form-group">
+            <fieldset class="govuk-fieldset" role="group" aria-describedby="day-hint">
+              <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+                <h1 class="govuk-fieldset__heading">Date</h1>
+              </legend>
+              <div id="day-hint" class="govuk-hint">For example, 27 3 2007</div>
+              <div class="govuk-date-input" id="day">
+                <div class="govuk-date-input__item govuk-!-margin-right-3">
+                  <div class="govuk-form-group">
+                    <label class="govuk-label govuk-date-input__label" for="day-day">Day</label>
+                    <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="day-day" name="day-day" type="text" inputmode="numeric" />
+                  </div>
+                </div>
+                <div class="govuk-date-input__item govuk-!-margin-right-3">
+                  <div class="govuk-form-group">
+                    <label class="govuk-label govuk-date-input__label" for="day-month">Month</label>
+                    <input class="govuk-input govuk-date-input__input govuk-input--width-2" id="day-month" name="day-month" type="text" inputmode="numeric" />
+                  </div>
+                </div>
+                <div class="govuk-date-input__item govuk-!-margin-right-3">
+                  <div class="govuk-form-group">
+                    <label class="govuk-label govuk-date-input__label" for="day-year">Year</label>
+                    <input class="govuk-input govuk-date-input__input govuk-input--width-4" id="day-year" name="day-year" type="text" inputmode="numeric" />
+                  </div>
+                </div>
+              </div>
+            </fieldset>
+          </div>
+        </div>
+
+        <!-- Time -->
+        <div class="govuk-grid-column-one-quarter">
+          <div class="govuk-form-group">
+            <div class="govuk-label-wrapper">
+              <label class="govuk-label govuk-label--m" for="time">Time</label>
+            </div>
+            <div id="time-hint" class="govuk-hint">Enter the time in 24-hour format, for example 08:30</div>
+            <input class="govuk-input govuk-input--width-10" id="time" name="time" type="text" />
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="govuk-grid-column-one-quarter">
+          <div class="govuk-form-group">
+            <div class="govuk-label-wrapper">
+              <label class="govuk-label govuk-label--m" for="description">Description</label>
+            </div>
+            <div id="description-hint" class="govuk-hint">A description of the application list</div>
+            <input class="govuk-input govuk-input--width-10" id="description" name="description" type="text" />
+          </div>
+        </div>
+
+        <!-- Status -->
+        <div class="govuk-grid-column-one-quarter">
+          <div class="govuk-form-group">
+            <label class="govuk-label govuk-label--m" for="status">Select status</label>
+            <div id="status-hint" class="govuk-hint">The status of the application list</div>
+            <select class="govuk-select" id="status" name="status" aria-describedby="status-hint">
+              <option value="" disabled>Choose status</option>
+              <option value="Open">Open</option>
+              <option value="Closed">Closed</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="govuk-grid-row">
+        <!-- Court -->
+        <div class="govuk-grid-column-one-quarter">
+          <div class="govuk-form-group">
+            <div class="govuk-label-wrapper">
+              <label class="govuk-label govuk-label--m" for="court">Court</label>
+            </div>
+            <div id="court-hint" class="govuk-hint">A description of the court</div>
+            <input class="govuk-input govuk-input--width-10" id="court" name="court" type="text" disabled />
+          </div>
+        </div>
+
+        <!-- Other location -->
+        <div class="govuk-grid-column-one-quarter">
+          <div class="govuk-form-group">
+            <div class="govuk-label-wrapper">
+              <label class="govuk-label govuk-label--m" for="location">Other location</label>
+            </div>
+            <div id="location-hint" class="govuk-hint">Other location description</div>
+            <input class="govuk-input govuk-input--width-10" id="location" name="location" type="text" />
+          </div>
+        </div>
+
+        <!-- CJA -->
+        <div class="govuk-grid-column-one-quarter">
+          <div class="govuk-form-group">
+            <div class="govuk-label-wrapper">
+              <label class="govuk-label govuk-label--m" for="cja">CJA</label>
+            </div>
+            <div id="cja-hint" class="govuk-hint">Criminal justice area</div>
+            <input class="govuk-input govuk-input--width-10" id="cja" name="cja" type="text" />
+          </div>
+        </div>
+
+        <!-- Duration -->
+        <app-duration-input
+          name="duration"
+          [(ngModel)]="formModel.duration"
+          label="Duration"
+          hint="Duration of the list"
+          idPrefix="duration"
+        ></app-duration-input>
+      </div>
+
+      <div class="govuk-button-group">
+        <button type="submit" class="govuk-button">Update</button>
+      </div>
+    </form>
+  </div>
+</div>
