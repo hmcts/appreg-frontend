@@ -26,5 +26,13 @@
       [disabled]="disabled"
       [attr.list]="listId || null"
     />
+
+    @if (listId) {
+      <datalist [id]="listId">
+        @for (s of suggestions; track s.value) {
+          <option [value]="s.value">{{ s.label || s.value }}</option>
+        }
+      </datalist>
+    }
   </div>
 </div>

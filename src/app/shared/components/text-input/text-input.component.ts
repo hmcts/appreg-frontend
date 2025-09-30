@@ -30,6 +30,11 @@ export class TextInputComponent implements ControlValueAccessor {
   /** Optional width class (e.g. 'govuk-input--width-10') */
   @Input() widthClass = 'govuk-input--width-10';
   @Input() listId?: string;
+  @Input() suggestions: {
+    value: string;
+    label?: string;
+    [key: string]: unknown;
+  }[] = [];
 
   value: string | null = null;
   disabled = false;

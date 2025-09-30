@@ -106,6 +106,8 @@
       label="Court"
       hint="Start typing to filter courts"
       idPrefix="court"
+      [listId]="'court-list'"
+      [suggestions]="courtLocationOptions"
     >
       >
     </app-text-input>
@@ -125,7 +127,10 @@
       label="CJA"
       hint="Criminal justice area"
       idPrefix="cja"
+      [listId]="'cja-list'"
+      [suggestions]="cjaOptions"
     >
+      >
     </app-text-input>
   </div>
 

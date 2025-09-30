@@ -1,11 +1,5 @@
 import { CommonModule } from '@angular/common';
-import {
-  Component,
-  Input,
-  OnInit,
-  TransferState,
-  makeStateKey,
-} from '@angular/core';
+import { Component, Input, OnInit, TransferState } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
@@ -41,7 +35,7 @@ type CreateListPayload = {
   court?: string;
   location?: string;
   cja?: string;
-}
+};
 
 @Component({
   selector: 'app-applications-list',
@@ -59,8 +53,6 @@ type CreateListPayload = {
 })
 export class ApplicationsListCreate implements OnInit {
   private _id: number | undefined;
-
-  NCH_KEY = makeStateKey<never[]>('nch');
 
   constructor(
     private route: ActivatedRoute,
@@ -120,12 +112,7 @@ export class ApplicationsListCreate implements OnInit {
   }[] = [];
 
   ngOnInit(): void {
-    // not workie rn TODO: we should try and cache data. Here we can store cached data and load.
-    if (this.state.hasKey(this.NCH_KEY)) {
-      this.loadLists();
-      this.state.remove(this.NCH_KEY);
-      return;
-    }
+    // TODO: use cached data
 
     this.loadLists();
   }
@@ -227,12 +214,9 @@ export class ApplicationsListCreate implements OnInit {
       }
 
       this.createInvalid = false;
-      // TODO: clean and create list
-      // TODO: When we clean we have to ensure court && (loc || cja) is false and remove the appropriate field from the post/patch or whatever it is
     }
 
     if (!this.createInvalid) {
-
       const { date, time, description, status, court, location, cja } =
         this.form.getRawValue();
       const has = (x: unknown) =>
@@ -287,6 +271,20 @@ export class ApplicationsListCreate implements OnInit {
         // console.log(this.courtLocations); // Sanity check
       },
     });
+  }
+
+  get courtLocationOptions(): { value: string; label: string }[] {
+    return this.courtLocations.map((c: CourtLocationGetSummaryDto) => ({
+      value: c.locationCode ?? '',
+      label: `${c.name ?? ''} (${c.locationCode ?? ''})`,
+    }));
+  }
+
+  get cjaOptions(): { value: string; label: string }[] {
+    return this.cja.map((c: CriminalJusticeAreaGetDto) => ({
+      value: c.code ?? '',
+      label: `${c.code ?? ''} (${c.description ?? ''})`,
+    }));
   }
 
   onDelete(id: number): void {
