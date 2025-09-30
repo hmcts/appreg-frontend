@@ -38,14 +38,22 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
   @Input() label = 'Duration';
   @Input() hint = '';
   @Input() idPrefix = 'duration';
-  @Input() submitted = false; // optional: show errors after form submit
+  @Input() submitted = false;
 
-  hours: number | null = null;
-  minutes: number | null = null;
   disabled = false;
-
-  // local touch flag for error display
   private touchedFlag = false;
+
+  // keep raw text so non-digits are detectable
+  private hoursText = '';
+  private minutesText = '';
+
+  // expose values for template bindings `[value]="hours ?? ''"` etc.
+  get hours(): string | null {
+    return this.hoursText;
+  }
+  get minutes(): string | null {
+    return this.minutesText;
+  }
 
   private onChange: (value: Duration | null) => void = () => {};
   private onTouched: () => void = () => {};
@@ -53,10 +61,11 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
 
   writeValue(value: Duration | null): void {
     if (value) {
-      this.hours = value.hours;
-      this.minutes = value.minutes;
+      this.hoursText = value.hours !== null ? String(value.hours) : '';
+      this.minutesText = value.minutes !== null ? String(value.minutes) : '';
     } else {
-      this.hours = this.minutes = null;
+      this.hoursText = '';
+      this.minutesText = '';
     }
   }
   registerOnChange(fn: (value: Duration | null) => void): void {
@@ -69,7 +78,7 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
     this.disabled = isDisabled;
   }
 
-  // ---- Validation ----
+  // Validation
   validate(_: AbstractControl): ValidationErrors | null {
     void _;
     return this.computeErrors();
@@ -79,25 +88,26 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
   }
 
   private computeErrors(): ValidationErrors | null {
-    const h = this.hours;
-    const m = this.minutes;
+    const h = this.hoursText.trim();
+    const m = this.minutesText.trim();
 
-    // optional when both empty
-    if ((h === null || h === undefined) && (m === null || m === undefined)) {
+    if (h === '' && m === '') {
       return null;
-    }
-
-    // one missing -> require both parts
-    if (h === null || h === undefined || m === null || m === undefined) {
+    } // optional if both empty
+    if (h === '' || m === '') {
       return { requiredParts: true };
     }
 
-    const hoursOk = Number.isInteger(h) && h >= 0 && h <= 23;
-    const minsOk = Number.isInteger(m) && m >= 0 && m <= 59;
-
-    if (!hoursOk || !minsOk) {
+    if (!/^\d{1,2}$/.test(h) || !/^\d{1,2}$/.test(m)) {
       return { durationInvalid: true };
     }
+
+    const hh = Number(h),
+      mm = Number(m);
+    if (hh < 0 || hh > 23 || mm < 0 || mm > 59) {
+      return { durationInvalid: true };
+    }
+
     return null;
   }
 
@@ -120,17 +130,23 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
 
   // ---- events ----
   private propagate(): void {
-    this.onChange({ hours: this.hours, minutes: this.minutes });
+    const errs = this.computeErrors();
+    if (!errs) {
+      this.onChange({
+        hours: Number(this.hoursText),
+        minutes: Number(this.minutesText),
+      });
+    } else {
+      this.onChange(null);
+    }
     this.onValidatorChange();
   }
   onHoursInput(e: Event): void {
-    const val = parseInt((e.target as HTMLInputElement).value, 10);
-    this.hours = Number.isNaN(val) ? null : val;
+    this.hoursText = (e.target as HTMLInputElement).value;
     this.propagate();
   }
   onMinutesInput(e: Event): void {
-    const val = parseInt((e.target as HTMLInputElement).value, 10);
-    this.minutes = Number.isNaN(val) ? null : val;
+    this.minutesText = (e.target as HTMLInputElement).value;
     this.propagate();
   }
   touch(): void {
