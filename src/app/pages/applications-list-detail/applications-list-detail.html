@@ -1,15 +1,11 @@
-<nav class="govuk-breadcrumbs" aria-label="Breadcrumb">
-  <ol class="govuk-breadcrumbs__list">
-    <li class="govuk-breadcrumbs__list-item">
-      <a class="govuk-breadcrumbs__link" href="/applications-list">Applications list</a>
-    </li>
-  </ol>
-</nav>
+<!-- Breadcrumbs -->
+<app-breadcrumbs
+  [items]="[{ label: 'Applications list', link: '/applications-list' }]"
+></app-breadcrumbs>
 
 <h1 class="govuk-heading-xl">Applications list</h1>
 
-<!-- REMOVE the manual body-class script block -->
-
+<!-- Tabs -->
 <div class="govuk-tabs" data-module="govuk-tabs">
   <h2 class="govuk-tabs__title">Contents</h2>
 

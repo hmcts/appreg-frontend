@@ -14,6 +14,7 @@ import { PaginationComponent } from '../../shared/components/pagination/paginati
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
+import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 
 type DurationValue = { hours: string; minutes: string };
 
@@ -30,6 +31,7 @@ type DurationValue = { hours: string; minutes: string };
     SelectInputComponent,
     SortableTableComponent,
     PaginationComponent,
+    BreadcrumbsComponent,
   ],
   templateUrl: './applications-list-detail.html',
 })
