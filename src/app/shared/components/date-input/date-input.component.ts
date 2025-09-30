@@ -67,15 +67,14 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
     ) as DateForm;
 
     this.dateForm.valueChanges.subscribe(() => {
-      const { day, month, year } = this.dateForm.getRawValue(); // typed strings
+      const { day, month, year } = this.dateForm.getRawValue();
       const allEmpty = day === '' && month === '' && year === '';
 
+      let value: string | null = null;
       if (!allEmpty && this.dateForm.valid) {
-        const iso = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-        this.onChange(iso);
-      } else if (allEmpty) {
-        this.onChange(null);
+        value = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
       }
+      this.onChange(value);
       this.onValidatorChange();
     });
   }
@@ -116,25 +115,20 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
       return { dateInvalid: true };
     }
 
-    if (this.requirePast) {
-      const input = new Date(y, m - 1, d);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      if (input >= today) {
-        return { mustBePast: true };
-      }
-    }
-
     return null;
   };
 
   // ControlValueAccessor
   writeValue(value: string | null): void {
     const { day, month, year } = this.dateForm.getRawValue();
-    const current = year && month && day ? `${year}-${month}-${day}` : null;
+    const current =
+      this.dateForm.valid && day && month && year
+        ? `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+        : null;
+
     if (value === current) {
       return;
-    } // no-op
+    }
 
     if (value && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
       const [y, m, d] = value.split('-');
