@@ -32,6 +32,16 @@
   }
 }
 
+.govuk-breadcrumbs {
+  margin-top: -15px;
+}
+
+@media (max-width: 640px) {
+  .govuk-breadcrumbs {
+    margin-top: 0;
+  }
+}
+
 [aria-sort] button,
 [aria-sort] button:hover {
   display: inline-flex;
@@ -60,3 +70,20 @@
     0 -2px $govuk-focus-colour,
     0 4px $govuk-focus-text-colour;
 }
+
+/* Layout for title + actions row */
+.app-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Stack neatly on very small screens */
+@media (max-width: 40em) {
+  .app-header-row {
+    align-items: flex-start;
+  }
+}
+
