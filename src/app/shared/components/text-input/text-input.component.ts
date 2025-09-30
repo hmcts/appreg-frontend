@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, forwardRef } from '@angular/core';
+import { Component, EventEmitter, Input, Output, forwardRef } from '@angular/core';
 import {
   ControlValueAccessor,
   FormsModule,
@@ -36,6 +36,8 @@ export class TextInputComponent implements ControlValueAccessor {
     [key: string]: unknown;
   }[] = [];
 
+  @Output() typed = new EventEmitter<string>();
+
   value: string | null = null;
   disabled = false;
 
@@ -62,5 +64,6 @@ export class TextInputComponent implements ControlValueAccessor {
     const val = (event.target as HTMLInputElement).value;
     this.value = val;
     this.onChange(val);
+    this.typed.emit(val);
   }
 }

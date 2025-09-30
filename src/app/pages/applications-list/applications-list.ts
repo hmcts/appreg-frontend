@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit, TransferState } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { merge } from 'rxjs';
 
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
@@ -86,9 +87,9 @@ export class ApplicationsList implements OnInit {
       time: new FormControl<Duration | null>(null),
       description: new FormControl<string>(''),
       status: new FormControl<string>('choose'),
-      court: new FormControl<string>(''),
-      location: new FormControl<string>(''),
-      cja: new FormControl<string>(''),
+      court: new FormControl<string>('', { updateOn: 'change' }),
+      location: new FormControl<string>('', { updateOn: 'change' }),
+      cja: new FormControl<string>('', { updateOn: 'change' }),
     },
     { updateOn: 'submit' },
   );
@@ -118,6 +119,39 @@ export class ApplicationsList implements OnInit {
     this.loadApplicationsLists();
     this.loadCJAs();
     this.loadCourtLocations();
+
+    // Disable based fields
+    const court = this.form.controls.court;
+    const location = this.form.controls.location;
+    const cja = this.form.controls.cja;
+
+    const has = (v: string | null) => !!v && v.trim().length > 0;
+    const syncDisable = () => {
+      const hasCourt = has(court.value);
+      const hasLoc = has(location.value);
+      const hasCja = has(cja.value);
+
+      if (hasCourt) {
+        court.enable({ emitEvent: false });
+        location.disable({ emitEvent: false });
+        cja.disable({ emitEvent: false });
+      } else if (hasLoc || hasCja) {
+        court.disable({ emitEvent: false });
+        location.enable({ emitEvent: false });
+        cja.enable({ emitEvent: false });
+      } else {
+        court.enable({ emitEvent: false });
+        location.enable({ emitEvent: false });
+        cja.enable({ emitEvent: false });
+      }
+    };
+
+    merge(
+      court.valueChanges,
+      location.valueChanges,
+      cja.valueChanges,
+    ).subscribe(() => syncDisable());
+    syncDisable();
   }
 
   onSubmit(event: SubmitEvent): void {
