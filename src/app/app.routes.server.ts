@@ -1,9 +1,7 @@
 import { RenderMode, ServerRoute } from '@angular/ssr';
 
 export const serverRoutes: ServerRoute[] = [
-  { path: 'applications-list/:id',
-    renderMode: RenderMode.Server
-  },
+  { path: 'applications-list/:id', renderMode: RenderMode.Server },
   {
     path: '**',
     renderMode: RenderMode.Prerender,

@@ -11,7 +11,10 @@
 
   <ul class="govuk-tabs__list" role="tablist">
     <!-- Applications tab -->
-    <li class="govuk-tabs__list-item govuk-tabs__list-item--selected" role="presentation">
+    <li
+      class="govuk-tabs__list-item govuk-tabs__list-item--selected"
+      role="presentation"
+    >
       <a
         class="govuk-tabs__tab"
         href="#applications"
@@ -49,11 +52,11 @@
     <div class="app-header-row">
       <h2 class="govuk-heading-l">Applications</h2>
 
-      <div
-        class="govuk-button-group"
-      >
+      <div class="govuk-button-group">
         <button type="button" class="govuk-button">Create</button>
-        <button type="button" class="govuk-button govuk-button--secondary">Bulk upload</button>
+        <button type="button" class="govuk-button govuk-button--secondary">
+          Bulk upload
+        </button>
       </div>
     </div>
 
@@ -66,15 +69,8 @@
       <!-- actions slot -->
       <ng-template #actionsTemplate let-row>
         <div class="govuk-button-group">
-          <a
-            class="govuk-button govuk-button--secondary"
-          >
-            Open
-          </a>
-          <button
-            type="button"
-            class="govuk-button govuk-button--warning"
-          >
+          <a class="govuk-button govuk-button--secondary"> Open </a>
+          <button type="button" class="govuk-button govuk-button--warning">
             Delete
           </button>
         </div>
