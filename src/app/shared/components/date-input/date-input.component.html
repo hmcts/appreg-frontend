@@ -2,7 +2,6 @@
   .app-date-tight .govuk-date-input {
     display: flex;
     flex-wrap: nowrap;
-    column-gap: 8px;
   }
   /* reclaim gutter to gain width inside the quarter column */
   .app-date-tight.govuk-grid-column-one-quarter {
@@ -18,7 +17,7 @@
   <div
     class="govuk-form-group"
     [class.govuk-form-group--error]="
-      dateForm.invalid && (dateForm.touched || dateForm.dirty)
+      dateForm.invalid && submitted
     "
   >
     <fieldset
@@ -36,7 +35,7 @@
       <div [id]="idPrefix + '-hint'" class="govuk-hint">{{ hint }}</div>
 
       <!-- Group error -->
-      @if (dateForm.invalid && (dateForm.touched || dateForm.dirty)) {
+      @if (dateForm.invalid && submitted) {
         <p [id]="idPrefix + '-error'" class="govuk-error-message">
           <span class="govuk-visually-hidden">Error:</span>
           @if (dateForm.errors?.['requiredParts']) {

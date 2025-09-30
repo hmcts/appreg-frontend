@@ -33,23 +33,15 @@
 </div>
 
 <!-- Error Summary -->
-@if (createInvalid || anyInvalid) {
+@if (anyInvalid) {
   <div class="govuk-error-summary" data-module="govuk-error-summary">
     <div role="alert">
       <h2 class="govuk-error-summary__title">{{ errorHint }}</h2>
       <div class="govuk-error-summary__body">
         <ul class="govuk-list govuk-error-summary__list">
-          @if (createInvalid) {
-            @for (c of unpopField; track c) {
-              <li>{{ c }}</li>
-            }
-          }
-
-          @if (anyInvalid) {
             @for (c of offendingFields; track c) {
               <li>{{ c }}</li>
             }
-          }
         </ul>
       </div>
     </div>
@@ -67,6 +59,7 @@
       label="Date"
       hint="For example, 27 3 2007"
       idPrefix="date"
+      [submitted]="anyInvalid"
     >
     </app-date-input>
 
@@ -76,6 +69,7 @@
       label="Time"
       hint="Enter the time in 24-hour format, for example 08:30"
       idPrefix="time"
+      [submitted]="anyInvalid"
     >
     </app-duration-input>
 

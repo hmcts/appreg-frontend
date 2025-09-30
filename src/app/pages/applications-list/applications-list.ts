@@ -55,17 +55,17 @@ export class ApplicationsList implements OnInit {
     private readonly courtLocationApi: CourtLocationsApi,
   ) {}
 
+  // Loaded lists
   cja: CriminalJusticeAreaGetDto[] = [];
   courtLocations: CourtLocationGetSummaryDto[] = [];
   suggestionOptions: { value: string; label: string; [k: string]: unknown }[] =
     [];
 
-  // Create: Store unpopulated fields
-  unpopField: string[] = [];
-  createInvalid: boolean = false;
-
+  // Check for invalid inputs on submit
+  submitted = false;
   errorHint: string = ''; // Page hint when error occurs
-
+  offendingFields: FieldKey[] = [];
+  anyInvalid = false;
   @Input() listId?: string;
 
   // If the field is populated and invalid it will return true and stored here
@@ -79,19 +79,19 @@ export class ApplicationsList implements OnInit {
     cja: null,
   };
 
-  offendingFields: FieldKey[] = [];
-  anyInvalid = false;
-
   // Reactive form backing the template
-  form = new FormGroup({
-    date: new FormControl<string | null>(null),
-    time: new FormControl<Duration | null>(null),
-    description: new FormControl<string>(''),
-    status: new FormControl<string>('choose'),
-    court: new FormControl<string>(''),
-    location: new FormControl<string>(''),
-    cja: new FormControl<string>(''),
-  });
+  form = new FormGroup(
+    {
+      date: new FormControl<string | null>(null),
+      time: new FormControl<Duration | null>(null),
+      description: new FormControl<string>(''),
+      status: new FormControl<string>('choose'),
+      court: new FormControl<string>(''),
+      location: new FormControl<string>(''),
+      cja: new FormControl<string>(''),
+    },
+    { updateOn: 'submit' },
+  );
 
   currentPage = 1;
   totalPages = 5;
@@ -122,13 +122,16 @@ export class ApplicationsList implements OnInit {
 
   onSubmit(event: SubmitEvent): void {
     event.preventDefault();
+    this.submitted = true;
+
+    this.form.markAllAsTouched();
+    this.form.updateValueAndValidity({ onlySelf: false, emitEvent: false });
+
     const btn = event.submitter as HTMLButtonElement | null;
     const action = btn?.value ?? '';
 
     // Reset
-    this.unpopField = [];
     this.offendingFields = [];
-    this.createInvalid = false;
     this.anyInvalid = false;
     this.errorHint = '';
 
@@ -165,6 +168,8 @@ export class ApplicationsList implements OnInit {
       this.anyInvalid = true;
       this.errorHint =
         'Error - the following field/s are incorrectly formatted';
+      this.submitted = false;
+      return;
     }
 
     if (action === 'search') {

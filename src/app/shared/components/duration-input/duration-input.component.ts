@@ -112,7 +112,7 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
   }
 
   get showErrors(): boolean {
-    return !!this.computeErrors() && (this.touchedFlag || this.submitted);
+    return !!this.computeErrors() && this.submitted;
   }
   get errorText(): string {
     const e = this.computeErrors();
