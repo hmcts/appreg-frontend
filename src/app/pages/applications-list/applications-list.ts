@@ -196,7 +196,7 @@ export class ApplicationsList implements OnInit {
 
   get courtLocationOptions(): { value: string; label: string }[] {
     return this.courtLocations.map((c: CourtLocationGetSummaryDto) => ({
-      value: c.locationCode ?? '',
+      value: c.name ?? '',
       label: `${c.name ?? ''} (${c.locationCode ?? ''})`,
     }));
   }
