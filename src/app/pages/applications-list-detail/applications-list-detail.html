@@ -106,7 +106,7 @@
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
     />
 
-    <form #listForm="ngForm">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
       <div class="govuk-grid-row">
         <!-- Date -->
         <app-date-input
