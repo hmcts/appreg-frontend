@@ -91,7 +91,6 @@
 <!-- Sortable table component -->
 <app-sortable-table caption="Lists" [columns]="columns" [data]="rows">
   <ng-template #actionsTemplate let-row>
-    <!-- inside your <ng-template #actionsTemplate let-row> -->
     <div class="govuk-button-group">
       <a [routerLink]="['/applications-list', row.id]" class="govuk-button"
         >Open</a

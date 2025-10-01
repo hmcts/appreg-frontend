@@ -18,7 +18,7 @@ import { ServiceNavigationComponent } from './shared/components/service-navigati
 type GovUkInitAll = (opts?: { scope?: HTMLElement }) => void;
 type GovUkGlobal = { GOVUKFrontend?: { initAll?: GovUkInitAll } };
 
-/* ---------- MoJ Sortable Table helpers (no any, export-shape safe) ---------- */
+/* ---------- MoJ Sortable Table helpers ---------- */
 type MojCtor = new (
   el: HTMLElement,
   cfg?: Record<string, unknown>,
@@ -47,9 +47,9 @@ async function loadSortableCtor(): Promise<MojCtor | null> {
       return ctor;
     }
   } catch {
-    // ignore; we'll try a fallback or return null
+    // ignore;
   }
-  return null; // <- ensures all paths return
+  return null;
 }
 
 /* --------------------------------------------------------------------------- */
