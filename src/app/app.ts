@@ -18,6 +18,42 @@ import { ServiceNavigationComponent } from './shared/components/service-navigati
 type GovUkInitAll = (opts?: { scope?: HTMLElement }) => void;
 type GovUkGlobal = { GOVUKFrontend?: { initAll?: GovUkInitAll } };
 
+/* ---------- MoJ Sortable Table helpers (no any, export-shape safe) ---------- */
+type MojCtor = new (
+  el: HTMLElement,
+  cfg?: Record<string, unknown>,
+) => { init?: () => void };
+
+const sortableInitialised = new WeakSet<HTMLElement>();
+
+function pickSortableCtor(mod: unknown): MojCtor | null {
+  const m = mod as {
+    SortableTable?: unknown;
+    default?: { SortableTable?: unknown };
+  };
+  const candidate =
+    m && typeof m.SortableTable === 'function'
+      ? m.SortableTable
+      : m?.default?.SortableTable;
+
+  return typeof candidate === 'function' ? (candidate as MojCtor) : null;
+}
+
+async function loadSortableCtor(): Promise<MojCtor | null> {
+  try {
+    const mod = await import('@ministryofjustice/frontend');
+    const ctor = pickSortableCtor(mod);
+    if (ctor) {
+      return ctor;
+    }
+  } catch {
+    // ignore; we'll try a fallback or return null
+  }
+  return null; // <- ensures all paths return
+}
+
+/* --------------------------------------------------------------------------- */
+
 @Component({
   selector: 'app-root',
   imports: [
@@ -33,6 +69,9 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
 
   private navSub?: Subscription;
   private didGlobalInit = false;
+
+  // Observer to catch sortable tables that are inserted later
+  private mojObserver?: MutationObserver;
 
   constructor(
     @Inject(PLATFORM_ID) private readonly platformId: object,
@@ -57,10 +96,12 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
     // One full-page init (header/footer included)
     if (!this.didGlobalInit) {
       void this.initGovUkFrontend();
+      // Initialise any sortable tables currently in the DOM
+      this.initAllSortableTables();
       this.didGlobalInit = true;
     }
 
-    // Re-init only the dynamic area on each navigation
+    // Re-init only the dynamic area on each navigation (after view swaps)
     this.navSub = this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe(() => {
@@ -71,12 +112,15 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
           if (main) {
             void this.initGovUkFrontend(main);
           }
+          // Enhance sortable tables that belong to the new route content
+          this.initAllSortableTables(document);
         });
       });
   }
 
   ngOnDestroy(): void {
     this.navSub?.unsubscribe();
+    this.mojObserver?.disconnect();
   }
 
   /** Initialise GOV.UK Frontend, optionally scoped to avoid re-init errors */
@@ -103,5 +147,55 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
     if (typeof fn === 'function') {
       fn({ scope });
     }
+  }
+
+  /** Enhance all MoJ Sortable tables in the given scope and observe for new ones */
+  private initAllSortableTables(scope?: ParentNode): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    void loadSortableCtor().then((SortableTable) => {
+      if (!SortableTable) {
+        return;
+      }
+
+      const root = scope ?? document;
+
+      const enhance = (el: HTMLElement): void => {
+        if (sortableInitialised.has(el)) {
+          return;
+        }
+        const inst = new SortableTable(el);
+        inst.init?.();
+        sortableInitialised.add(el);
+      };
+
+      // Enhance what exists now
+      root
+        .querySelectorAll<HTMLElement>('[data-module="moj-sortable-table"]')
+        .forEach((el) => enhance(el));
+
+      // Observe for late additions (set up once)
+      if (this.mojObserver) {
+        return;
+      }
+      this.mojObserver = new MutationObserver((records) => {
+        for (const r of records) {
+          for (const n of Array.from(r.addedNodes)) {
+            if (!(n instanceof HTMLElement)) {
+              continue;
+            }
+            if (n.matches?.('[data-module="moj-sortable-table"]')) {
+              enhance(n);
+            }
+            n.querySelectorAll?.('[data-module="moj-sortable-table"]').forEach(
+              (el) => enhance(el as HTMLElement),
+            );
+          }
+        }
+      });
+      this.mojObserver.observe(root, { childList: true, subtree: true });
+    });
   }
 }

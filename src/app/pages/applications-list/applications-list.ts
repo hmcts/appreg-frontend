@@ -16,7 +16,7 @@ import {
 } from '../../shared/components/duration-input/duration-input.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
-import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
+import { SortableTableComponent, TableColumn } from '../../shared/components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 
 type ApplicationListRow = {
@@ -68,14 +68,14 @@ export class ApplicationsList implements OnInit {
   currentPage = 1;
   totalPages = 5;
 
-  columns = [
-    { header: 'Date', field: 'date', sortable: true },
-    { header: 'Time', field: 'time', sortable: true },
-    { header: 'Location', field: 'location', sortable: true },
-    { header: 'Description', field: 'description', sortable: true },
-    { header: 'Entries', field: 'entries', sortable: true, numeric: true },
-    { header: 'Status', field: 'status', sortable: true },
-    { header: 'Actions', field: 'actions' },
+  columns: TableColumn[] = [
+    { header: 'Date', field: 'date' },
+    { header: 'Time', field: 'time' },
+    { header: 'Location', field: 'location' },
+    { header: 'Description', field: 'description' },
+    { header: 'Entries', field: 'entries', numeric: true },
+    { header: 'Status', field: 'status' },
+    { header: 'Actions', field: 'actions', sortable: false },
   ];
 
   status = [

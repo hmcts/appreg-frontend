@@ -46,13 +46,13 @@ export class Applications {
   totalPages = 5;
 
   columns = [
-    { header: 'Date', field: 'date', sortable: true },
-    { header: 'Applicant', field: 'applicant', sortable: true },
-    { header: 'Respondent', field: 'respondent', sortable: true },
-    { header: 'Application title', field: 'title', sortable: true },
-    { header: 'Fee', field: 'fee', sortable: true, numeric: false },
-    { header: 'Resulted', field: 'resulted', sortable: true },
-    { header: 'Status', field: 'status', sortable: true },
+    { header: 'Date', field: 'date' },
+    { header: 'Applicant', field: 'applicant' },
+    { header: 'Respondent', field: 'respondent' },
+    { header: 'Application title', field: 'title' },
+    { header: 'Fee', field: 'fee' },
+    { header: 'Resulted', field: 'resulted' },
+    { header: 'Status', field: 'status' },
     { header: 'Actions', field: 'actions', sortable: false },
   ];
 
