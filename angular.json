@@ -18,13 +18,20 @@
           "builder": "@angular/build:application",
           "options": {
             "stylePreprocessorOptions": {
-              "includePaths": ["node_modules/govuk-frontend/dist"]
+              "includePaths": [
+                "./"
+              ]
             },
             "assets": [
               {
                 "glob": "**/*",
                 "input": "src/public",
                 "output": ""
+              },
+              {
+                "glob": "**/*",
+                "input": "./node_modules/@ministryofjustice/frontend/moj/assets/images",
+                "output": "./assets/images"
               },
               {
                 "glob": "**/*",
@@ -38,10 +45,14 @@
               }
             ],
             "browser": "src/main.ts",
-            "polyfills": ["zone.js"],
+            "polyfills": [
+              "zone.js"
+            ],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
-            "styles": ["src/styles.scss"],
+            "styles": [
+              "src/styles.scss"
+            ],
             "server": "src/main.server.ts",
             "outputMode": "server",
             "ssr": {

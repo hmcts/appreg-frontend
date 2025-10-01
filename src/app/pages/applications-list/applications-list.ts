@@ -1,5 +1,11 @@
-import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import {
+  Component,
+  HostListener,
+  Inject,
+  OnInit,
+  PLATFORM_ID,
+} from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
@@ -23,6 +29,10 @@ type ApplicationListRow = {
   status: 'Open' | 'Closed';
 };
 
+interface MojInitEl extends HTMLElement {
+  __mojInit?: boolean;
+}
+
 @Component({
   selector: 'app-applications-list',
   standalone: true,
@@ -42,6 +52,7 @@ type ApplicationListRow = {
 export class ApplicationsList implements OnInit {
   private _id: number | undefined;
   openMenuForId: number | null = null;
+  openPrintSelectForId: number | null = null;
 
   // Reactive form backing the template
   form = new FormGroup({
@@ -75,8 +86,30 @@ export class ApplicationsList implements OnInit {
 
   rows: ApplicationListRow[] = [];
 
+  constructor(@Inject(PLATFORM_ID) private platformId: object) {}
+
   ngOnInit(): void {
     this.loadApplicationsLists();
+  }
+
+  async ngAfterViewInit(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    await import('@ministryofjustice/frontend').then(({ ButtonMenu }) => {
+      document
+        .querySelectorAll<HTMLElement>('[data-module="moj-button-menu"]')
+        .forEach((el) => {
+          const flagged = el as MojInitEl;
+          if (flagged.__mojInit) {
+            return;
+          }
+
+          new ButtonMenu(flagged);
+          flagged.__mojInit = true;
+        });
+    });
   }
 
   onSubmit(event: SubmitEvent): void {
@@ -180,64 +213,25 @@ export class ApplicationsList implements OnInit {
 
   onResultSelected(): void {}
 
-  openPrintSelectForId: number | null = null;
-  private printModeById: Record<number, 'print' | 'print-continuous'> = {};
-
-  isPrintSelectOpen(id: number): boolean {
-    return this.openPrintSelectForId === id;
-  }
-
-  openPrintSelect(id: number, ev: MouseEvent): void {
-    ev.stopPropagation();
-    this.openPrintSelectForId = id;
-    // focus the select so user can ArrowDown / Enter immediately
-    queueMicrotask(() => {
-      document.querySelector<HTMLSelectElement>(`#print-mode-${id}`)?.focus();
-    });
-  }
-
-  // Allow opening with keyboard from the button
-  onPrintButtonKeydown(id: number, ev: KeyboardEvent): void {
-    if (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'ArrowDown') {
-      ev.preventDefault();
-      this.openPrintSelect(id, new MouseEvent('click'));
-    }
-  }
-
   // Close when clicking anywhere else
   @HostListener('document:click')
   onDocClick(): void {
     this.openPrintSelectForId = null;
   }
 
-  getPrintMode(id: number): 'print' | 'print-continuous' {
-    return this.printModeById[id] ?? 'print';
+  @HostListener('document:click')
+  closeMenus(): void {
+    this.openMenuForId = null;
   }
 
-  onPrintModeChange(ev: Event): void {
-    const select = ev.target as HTMLSelectElement | null;
-    if (!select) {
-      return;
-    }
-
-    // const mode = select.value as PrintMode;
-
-    // if (mode === 'print') {
-    //   this.onPrint();
-    // } else if (mode === 'print-continuous') {
-    //   this.onPrintContinuous();
-    // }
-
-    // Reset to placeholder so the visible text is always “Print mode ▾”
-    select.value = '';
-  }
-
-  onPrint(): void {
-    // TODO: implement your print flow (e.g. navigate or window.print())
+  onPrint(id: number): void {
+    // TODO: your print flow per row
     // window.print();
+    console.log('Print page for list', id);
   }
 
-  onPrintContinuous(): void {
-    // TODO: implement your continuous print flow
+  onPrintContinuous(id: number): void {
+    // TODO: your continuous print flow per row
+    console.log('Print continuous for list', id);
   }
 }

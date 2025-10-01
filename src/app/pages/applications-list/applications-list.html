@@ -99,29 +99,37 @@
         Delete
       </button>
 
-      <label class="govuk-visually-hidden" [for]="'print-mode-' + row.id">
-        Choose print mode
-      </label>
-
-      <select
-        class="govuk-button govuk-button--secondary print-select"
-        [id]="'print-mode-' + row.id"
-        [name]="'print-mode-' + row.id"
-        [value]="''"
-        (change)="onPrintModeChange($event)"
+      <!-- actions slot -->
+      <div
+        class="moj-button-menu"
+        data-module="moj-button-menu"
+        data-button-text="Actions"
+        data-button-classes="govuk-button--secondary"
       >
-        <option value="" disabled hidden>Print ▾</option>
-        <option value="print">Print page</option>
-        <option value="print-continuous">Print continuous</option>
-      </select>
+        <button
+          type="button"
+          class="govuk-button moj-button-menu__item govuk-button--secondary"
+          (click)="onPrint(row.id)"
+        >
+          Print page
+        </button>
 
-      <button
-        type="button"
-        class="govuk-button govuk-button--secondary"
-        (click)="onResultSelected()"
-      >
-        Result
-      </button>
+        <button
+          type="button"
+          class="govuk-button moj-button-menu__item govuk-button--secondary"
+          (click)="onPrintContinuous(row.id)"
+        >
+          Print continuous
+        </button>
+
+        <button
+          type="button"
+          class="govuk-button moj-button-menu__item govuk-button--secondary"
+          (click)="onResultSelected()"
+        >
+          Result
+        </button>
+      </div>
     </div>
   </ng-template>
 </app-sortable-table>

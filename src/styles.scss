@@ -1,5 +1,5 @@
-@use 'govuk/index' as govuk;
-@use 'govuk-frontend/dist/govuk/index' as *;
+@use 'govuk-frontend/dist/govuk/index' as govuk;
+@use '@ministryofjustice/frontend/moj/all' as moj;
 
 .govuk-width-container {
   max-width: 1100px;
@@ -64,10 +64,10 @@
 
 [aria-sort] button:focus {
   outline: none;
-  color: $govuk-focus-text-colour;
-  background-color: $govuk-focus-colour;
-  box-shadow: 0 -2px $govuk-focus-colour,
-  0 4px $govuk-focus-text-colour;
+  color: govuk.$govuk-focus-text-colour;
+  background-color: govuk.$govuk-focus-colour;
+  box-shadow: 0 -2px govuk.$govuk-focus-colour,
+  0 4px govuk.$govuk-focus-text-colour;
 }
 
 /* Layout for title + actions row */
@@ -84,12 +84,4 @@
   .app-header-row {
     align-items: flex-start;
   }
-}
-
-.print-select {
-  width: 7ch;
-}
-
-.print-select {
-  white-space: nowrap;
 }
