@@ -41,6 +41,7 @@ type ApplicationListRow = {
 })
 export class ApplicationsList implements OnInit {
   private _id: number | undefined;
+  openMenuForId: number | null = null;
 
   // Reactive form backing the template
   form = new FormGroup({
@@ -180,4 +181,58 @@ export class ApplicationsList implements OnInit {
   onPrint(): void {}
 
   onResultSelected(): void {}
+
+  isMenuOpen(id: number): boolean {
+    return this.openMenuForId === id;
+  }
+
+  toggleMenu(id: number, ev: MouseEvent): void {
+    ev.stopPropagation();
+    this.openMenuForId = this.openMenuForId === id ? null : id;
+  }
+
+  onToggleKeydown(id: number, ev: KeyboardEvent): void {
+    if (ev.key === 'ArrowDown' || ev.key === 'Enter' || ev.key === ' ') {
+      ev.preventDefault();
+      this.openMenuForId = id;
+      queueMicrotask(() => {
+        document
+          .querySelector<HTMLButtonElement>(
+            `#print-menu-${id} .menu-button__item`,
+          )
+          ?.focus();
+      });
+    }
+  }
+
+  onMenuKeydown(id: number, ev: KeyboardEvent): void {
+    const items = Array.from(
+      document.querySelectorAll<HTMLButtonElement>(
+        `#print-menu-${id} .menu-button__item`,
+      ),
+    );
+    const idx = items.indexOf(document.activeElement as HTMLButtonElement);
+    if (ev.key === 'Escape') {
+      this.openMenuForId = null;
+    } else if (ev.key === 'ArrowDown') {
+      ev.preventDefault();
+      items[(idx + 1) % items.length]?.focus();
+    } else if (ev.key === 'ArrowUp') {
+      ev.preventDefault();
+      items[(idx - 1 + items.length) % items.length]?.focus();
+    }
+  }
+
+  onMenuSelect(action: 'print' | 'print-continuous'): void {
+    this.openMenuForId = null;
+    if (action === 'print') {
+      this.onPrint();
+    } else {
+      this.onPrintContinuous();
+    }
+  }
+
+  onPrintContinuous(): void {
+    // implement your continuous print flow
+  }
 }

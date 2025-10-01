@@ -90,7 +90,6 @@
 
 <!-- Sortable table component -->
 <app-sortable-table caption="Lists" [columns]="columns" [data]="rows">
-  <!-- actions slot -->
   <ng-template #actionsTemplate let-row>
     <div class="govuk-button-group">
       <a
@@ -108,14 +107,45 @@
         Delete
       </button>
 
+
       <button
         type="button"
         class="govuk-button govuk-button--secondary"
-        (click)="onPrint()"
-        aria-label="Print list {{ row.id }}"
+        [attr.aria-expanded]="isMenuOpen(row.id)"
+        aria-haspopup="menu"
+        [attr.aria-controls]="'print-menu-' + row.id"
+        (click)="toggleMenu(row.id, $event)"
+        (keydown)="onToggleKeydown(row.id, $event)"
+        aria-label="Show print options for list {{ row.id }}"
       >
-        Print
+        Print ▾
       </button>
+
+      <!-- popup menu -->
+      <div
+        class="menu-button__menu"
+        role="menu"
+        [id]="'print-menu-' + row.id"
+        [hidden]="!isMenuOpen(row.id)"
+        (keydown)="onMenuKeydown(row.id, $event)"
+      >
+        <button
+          type="button"
+          role="menuitem"
+          class="menu-button__item"
+          (click)="onMenuSelect('print')"
+        >
+          Print
+        </button>
+        <button
+          type="button"
+          role="menuitem"
+          class="menu-button__item"
+          (click)="onMenuSelect('print-continuous')"
+        >
+          Print continuous
+        </button>
+      </div>
 
       <button
         type="button"
