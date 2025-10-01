@@ -93,9 +93,15 @@
   <ng-template #actionsTemplate let-row>
     <!-- inside your <ng-template #actionsTemplate let-row> -->
     <div class="govuk-button-group">
-      <a [routerLink]="['/applications-list', row.id]" class="govuk-button">Open</a>
+      <a [routerLink]="['/applications-list', row.id]" class="govuk-button"
+        >Open</a
+      >
 
-      <button type="button" class="govuk-button govuk-button--warning" (click)="onDelete(row.id)">
+      <button
+        type="button"
+        class="govuk-button govuk-button--warning"
+        (click)="onDelete(row.id)"
+      >
         Delete
       </button>
 
@@ -109,7 +115,7 @@
         <button
           type="button"
           class="govuk-button moj-button-menu__item govuk-button--secondary"
-          (click)="onPrint(row.id)"
+          (click)="onPrint()"
         >
           Print page
         </button>
@@ -117,7 +123,7 @@
         <button
           type="button"
           class="govuk-button moj-button-menu__item govuk-button--secondary"
-          (click)="onPrintContinuous(row.id)"
+          (click)="onPrintContinuous()"
         >
           Print continuous
         </button>
@@ -133,7 +139,6 @@
     </div>
   </ng-template>
 </app-sortable-table>
-
 
 <!-- Pager -->
 <app-pagination

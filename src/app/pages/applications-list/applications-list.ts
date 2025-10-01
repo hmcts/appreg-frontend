@@ -16,7 +16,10 @@ import {
 } from '../../shared/components/duration-input/duration-input.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
-import { SortableTableComponent, TableColumn } from '../../shared/components/sortable-table/sortable-table.component';
+import {
+  SortableTableComponent,
+  TableColumn,
+} from '../../shared/components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 
 type ApplicationListRow = {
@@ -224,14 +227,11 @@ export class ApplicationsList implements OnInit {
     this.openMenuForId = null;
   }
 
-  onPrint(id: number): void {
+  onPrint(): void {
     // TODO: your print flow per row
-    // window.print();
-    console.log('Print page for list', id);
   }
 
-  onPrintContinuous(id: number): void {
+  onPrintContinuous(): void {
     // TODO: your continuous print flow per row
-    console.log('Print continuous for list', id);
   }
 }

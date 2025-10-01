@@ -3,8 +3,13 @@
   data-module="moj-sortable-table"
   [attr.aria-describedby]="'sortable-' + caption"
 >
-  <caption class="govuk-table__caption govuk-table__caption--m" id="sortable-{{ caption }}">
-    {{ caption }}
+  <caption
+    class="govuk-table__caption govuk-table__caption--m"
+    id="sortable-{{ caption }}"
+  >
+    {{
+      caption
+    }}
   </caption>
 
   <thead class="govuk-table__head">
@@ -14,7 +19,9 @@
           scope="col"
           class="govuk-table__header"
           [class.govuk-table__header--numeric]="col.numeric"
-          [attr.aria-sort]="col.sortable !== false ? (col.defaultSort ?? 'none') : null"
+          [attr.aria-sort]="
+            col.sortable !== false ? (col.defaultSort ?? 'none') : null
+          "
         >
           {{ col.header }}
         </th>
@@ -31,7 +38,9 @@
               scope="row"
               class="govuk-table__header"
               [class.govuk-table__cell--numeric]="col.numeric"
-              [attr.data-sort-value]="col.sortable !== false ? getSortValue(row, col) : null"
+              [attr.data-sort-value]="
+                col.sortable !== false ? getSortValue(row, col) : null
+              "
             >
               {{ row[col.field] }}
             </th>
@@ -39,10 +48,17 @@
             <td
               class="govuk-table__cell"
               [class.govuk-table__cell--numeric]="col.numeric"
-              [attr.data-sort-value]="col.sortable !== false ? getSortValue(row, col) : null"
+              [attr.data-sort-value]="
+                col.sortable !== false ? getSortValue(row, col) : null
+              "
             >
               @if (col.field === 'actions') {
-                <ng-container *ngTemplateOutlet="actionsTpl ?? null; context: { $implicit: row }"></ng-container>
+                <ng-container
+                  *ngTemplateOutlet="
+                    actionsTpl ?? null;
+                    context: { $implicit: row }
+                  "
+                ></ng-container>
               } @else {
                 {{ row[col.field] }}
               }
@@ -52,5 +68,4 @@
       </tr>
     }
   </tbody>
-
 </table>
