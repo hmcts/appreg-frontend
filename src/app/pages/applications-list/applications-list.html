@@ -95,16 +95,70 @@
 
   <div class="govuk-grid-row">
     <!-- Court -->
-    <app-text-input
-      formControlName="court"
-      label="Court"
-      hint="Start typing to filter courts"
-      idPrefix="court"
-      [listId]="'court-list'"
-      [suggestions]="courtLocationOptions"
-    >
-      >
-    </app-text-input>
+    <div class="govuk-grid-column-one-quarter">
+      <div class="govuk-form-group">
+        <div class="govuk-label-wrapper">
+          <label class="govuk-label govuk-label--m" for="court"> Court </label>
+        </div>
+        <div id="court-hint" class="govuk-hint">
+          Start typing to search the list
+        </div>
+
+        <!-- Relative container for floating dropdown -->
+        <div style="position: relative">
+          <input
+            class="govuk-input govuk-input--width-20"
+            id="court"
+            name="court"
+            type="text"
+            [(ngModel)]="courthouseSearch"
+            (input)="onCourthouseInputChange()"
+            aria-describedby="court-hint"
+            autocomplete="off"
+          />
+
+          <!-- Floating autocomplete list -->
+          @if (filteredCourthouses.length && courthouseSearch) {
+            <ul
+              class="govuk-list"
+              style="
+                position: absolute;
+                z-index: 10;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                border: 1px solid #b1b4b6;
+                max-height: 200px;
+                overflow-y: auto;
+                margin-top: 2px;
+                padding: 0;
+                list-style: none;
+              "
+            >
+              @for (courthouse of filteredCourthouses; track courthouse) {
+                <li>
+                  <a
+                    href="#"
+                    (click)="
+                      selectCourthouse(courthouse); $event.preventDefault()
+                    "
+                    style="
+                      display: block;
+                      padding: 8px;
+                      text-decoration: none;
+                      color: #0b0c0c;
+                    "
+                  >
+                    {{ courthouse.name }}
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </div>
+    </div>
 
     <!-- Other location -->
     <app-text-input
@@ -116,16 +170,66 @@
     </app-text-input>
 
     <!-- CJA -->
-    <app-text-input
-      formControlName="cja"
-      label="CJA"
-      hint="Criminal justice area"
-      idPrefix="cja"
-      [listId]="'cja-list'"
-      [suggestions]="cjaOptions"
-    >
-      >
-    </app-text-input>
+    <div class="govuk-grid-column-one-quarter">
+      <div class="govuk-form-group">
+        <div class="govuk-label-wrapper">
+          <label class="govuk-label govuk-label--m" for="cja"> CJA </label>
+        </div>
+        <div id="cja-hint" class="govuk-hint">Criminal Justice Area</div>
+
+        <!-- Relative container for floating dropdown -->
+        <div style="position: relative">
+          <input
+            class="govuk-input govuk-input--width-20"
+            id="cja"
+            name="cja"
+            type="text"
+            [(ngModel)]="cjaSearch"
+            (input)="onCjaInputChange()"
+            aria-describedby="cja-hint"
+            autocomplete="off"
+          />
+
+          <!-- Floating autocomplete list -->
+          @if (filteredCja.length && cjaSearch) {
+            <ul
+              class="govuk-list"
+              style="
+                position: absolute;
+                z-index: 10;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                border: 1px solid #b1b4b6;
+                max-height: 200px;
+                overflow-y: auto;
+                margin-top: 2px;
+                padding: 0;
+                list-style: none;
+              "
+            >
+              @for (cja of filteredCja; track cja) {
+                <li>
+                  <a
+                    href="#"
+                    (click)="selectCja(cja); $event.preventDefault()"
+                    style="
+                      display: block;
+                      padding: 8px;
+                      text-decoration: none;
+                      color: #0b0c0c;
+                    "
+                  >
+                    {{ cja.description }}
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="govuk-button-group">

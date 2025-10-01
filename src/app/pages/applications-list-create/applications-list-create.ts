@@ -311,7 +311,7 @@ export class ApplicationsListCreate implements OnInit {
     this.cjaApi.getCriminalJusticeAreas().subscribe({
       next: (page) => {
         this.cja = page.content ?? [];
-        console.log(this.cja); // Sanity check
+        // console.log(this.cja); // Sanity check
       },
       error: () => {
         this.cja = [];
@@ -323,7 +323,7 @@ export class ApplicationsListCreate implements OnInit {
     this.courtLocationApi.getCourtLocations().subscribe({
       next: (page) => {
         this.courtLocations = page.content ?? [];
-        console.log(this.courtLocations); // Sanity check
+        // console.log(this.courtLocations); // Sanity check
       },
       error: () => {
         this.courtLocations = [];

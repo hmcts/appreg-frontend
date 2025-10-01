@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit, TransferState } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { merge } from 'rxjs';
 
@@ -42,6 +42,7 @@ type FieldKey =
     RouterLink,
     PaginationComponent,
     SortableTableComponent,
+    FormsModule
   ],
   templateUrl: './applications-list.html',
 })
@@ -57,9 +58,12 @@ export class ApplicationsList implements OnInit {
 
   // Loaded lists
   cja: CriminalJusticeAreaGetDto[] = [];
+  filteredCja: CriminalJusticeAreaGetDto[] = [];
+  cjaSearch = '';
+
   courtLocations: CourtLocationGetSummaryDto[] = [];
-  suggestionOptions: { value: string; label: string; [k: string]: unknown }[] =
-    [];
+  filteredCourthouses: CourtLocationGetSummaryDto[] = [];
+  courthouseSearch = '';
 
   // Check for invalid inputs on submit
   submitted = false;
@@ -151,6 +155,17 @@ export class ApplicationsList implements OnInit {
       cja.valueChanges,
     ).subscribe(() => syncDisable());
     syncDisable();
+
+    // Suggestions
+    const currentCourthouse = this.form.controls.court.value;
+    if (typeof currentCourthouse === 'string' && currentCourthouse.trim()) {
+      this.courthouseSearch = currentCourthouse;
+    }
+
+    const currentCja = this.form.controls.cja.value;
+    if (typeof currentCja === 'string' && currentCja.trim()) {
+      this.cjaSearch = currentCja;
+    }
   }
 
   onSubmit(event: SubmitEvent): void {
@@ -232,18 +247,62 @@ export class ApplicationsList implements OnInit {
     });
   }
 
-  get courtLocationOptions(): { value: string; label: string }[] {
-    return this.courtLocations.map((c: CourtLocationGetSummaryDto) => ({
-      value: c.name ?? '',
-      label: `${c.name ?? ''} (${c.locationCode ?? ''})`,
-    }));
+  onCourthouseInputChange(): void {
+    const q = this.courthouseSearch.trim().toLowerCase();
+
+    // keep reactive form in sync so submit payload includes 'court'
+    this.form.controls.court.setValue(this.courthouseSearch || '');
+
+    if (!q) {
+      this.filteredCourthouses = [];
+      return;
+    }
+
+    // filter by name or code; cap results to avoid long lists
+    this.filteredCourthouses = this.courtLocations
+      .filter(
+        (c) =>
+          (c.name ?? '').toLowerCase().includes(q) ||
+          (c.locationCode ?? '').toLowerCase().includes(q),
+      )
+      .slice(0, 20);
   }
 
-  get cjaOptions(): { value: string; label: string }[] {
-    return this.cja.map((c: CriminalJusticeAreaGetDto) => ({
-      value: c.code ?? '',
-      label: `${c.code ?? ''} (${c.description ?? ''})`,
-    }));
+  // called when user clicks a suggestion
+  selectCourthouse(c: CourtLocationGetSummaryDto): void {
+    const label = c.locationCode ?? '';
+    this.courthouseSearch = label;
+    this.form.controls.court.setValue(label);
+    this.filteredCourthouses = [];
+  }
+
+  onCjaInputChange(): void {
+    const q = this.cjaSearch.trim().toLowerCase();
+
+    // keep reactive form in sync so submit payload includes 'cja'
+    this.form.controls.cja.setValue(this.cjaSearch || '');
+
+    if (!q) {
+      this.filteredCja = [];
+      return;
+    }
+
+    // filter by name or code; cap results to avoid long lists
+    this.filteredCja = this.cja
+      .filter(
+        (c) =>
+          (c.code ?? '').toLowerCase().includes(q) ||
+          (c.description ?? '').toLowerCase().includes(q),
+      )
+      .slice(0, 20);
+  }
+
+  // called when user clicks a suggestion
+  selectCja(c: CriminalJusticeAreaGetDto): void {
+    const label = c.code ?? '';
+    this.cjaSearch = label;
+    this.form.controls.cja.setValue(label);
+    this.filteredCja = [];
   }
 
   onDelete(id: number): void {
