@@ -71,7 +71,7 @@ export class ApplicationsListDetail implements AfterViewInit {
     { header: 'Account number', field: 'accountNumber' },
     { header: 'Applicant', field: 'applicant' },
     { header: 'Respondent', field: 'respondent' },
-    { header: 'Post code', field: 'postCode', numeric: true },
+    { header: 'Post code', field: 'postCode' },
     { header: 'Title', field: 'title' },
     { header: 'Fee req', field: 'feeReq' },
     { header: 'Resulted', field: 'resulted' },
