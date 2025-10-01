@@ -91,67 +91,34 @@
 <!-- Sortable table component -->
 <app-sortable-table caption="Lists" [columns]="columns" [data]="rows">
   <ng-template #actionsTemplate let-row>
+    <!-- inside your <ng-template #actionsTemplate let-row> -->
     <div class="govuk-button-group">
-      <a
-        [routerLink]="['/applications-list', row.id]"
-        class="govuk-button"
-      >
-        Open
-      </a>
+      <a [routerLink]="['/applications-list', row.id]" class="govuk-button">Open</a>
 
-      <button
-        type="button"
-        class="govuk-button govuk-button--warning"
-        (click)="onDelete(row.id)"
-      >
+      <button type="button" class="govuk-button govuk-button--warning" (click)="onDelete(row.id)">
         Delete
       </button>
 
+      <label class="govuk-visually-hidden" [for]="'print-mode-' + row.id">
+        Choose print mode
+      </label>
 
-      <button
-        type="button"
-        class="govuk-button govuk-button--secondary"
-        [attr.aria-expanded]="isMenuOpen(row.id)"
-        aria-haspopup="menu"
-        [attr.aria-controls]="'print-menu-' + row.id"
-        (click)="toggleMenu(row.id, $event)"
-        (keydown)="onToggleKeydown(row.id, $event)"
-        aria-label="Show print options for list {{ row.id }}"
+      <select
+        class="govuk-button govuk-button--secondary print-select"
+        [id]="'print-mode-' + row.id"
+        [name]="'print-mode-' + row.id"
+        [value]="''"
+        (change)="onPrintModeChange($event)"
       >
-        Print ▾
-      </button>
-
-      <!-- popup menu -->
-      <div
-        class="menu-button__menu"
-        role="menu"
-        [id]="'print-menu-' + row.id"
-        [hidden]="!isMenuOpen(row.id)"
-        (keydown)="onMenuKeydown(row.id, $event)"
-      >
-        <button
-          type="button"
-          role="menuitem"
-          class="menu-button__item"
-          (click)="onMenuSelect('print')"
-        >
-          Print
-        </button>
-        <button
-          type="button"
-          role="menuitem"
-          class="menu-button__item"
-          (click)="onMenuSelect('print-continuous')"
-        >
-          Print continuous
-        </button>
-      </div>
+        <option value="" disabled hidden>Print ▾</option>
+        <option value="print">Print</option>
+        <option value="print-continuous">Print continuous</option>
+      </select>
 
       <button
         type="button"
         class="govuk-button govuk-button--secondary"
         (click)="onResultSelected()"
-        aria-label="Result selected for list {{ row.id }}"
       >
         Result
       </button>

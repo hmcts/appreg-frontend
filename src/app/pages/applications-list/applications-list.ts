@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
@@ -178,61 +178,66 @@ export class ApplicationsList implements OnInit {
     this.loadApplicationsLists(); // fetch page `page`
   }
 
-  onPrint(): void {}
-
   onResultSelected(): void {}
 
-  isMenuOpen(id: number): boolean {
-    return this.openMenuForId === id;
+  openPrintSelectForId: number | null = null;
+  private printModeById: Record<number, 'print' | 'print-continuous'> = {};
+
+  isPrintSelectOpen(id: number): boolean {
+    return this.openPrintSelectForId === id;
   }
 
-  toggleMenu(id: number, ev: MouseEvent): void {
+  openPrintSelect(id: number, ev: MouseEvent): void {
     ev.stopPropagation();
-    this.openMenuForId = this.openMenuForId === id ? null : id;
+    this.openPrintSelectForId = id;
+    // focus the select so user can ArrowDown / Enter immediately
+    queueMicrotask(() => {
+      document.querySelector<HTMLSelectElement>(`#print-mode-${id}`)?.focus();
+    });
   }
 
-  onToggleKeydown(id: number, ev: KeyboardEvent): void {
-    if (ev.key === 'ArrowDown' || ev.key === 'Enter' || ev.key === ' ') {
+  // Allow opening with keyboard from the button
+  onPrintButtonKeydown(id: number, ev: KeyboardEvent): void {
+    if (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'ArrowDown') {
       ev.preventDefault();
-      this.openMenuForId = id;
-      queueMicrotask(() => {
-        document
-          .querySelector<HTMLButtonElement>(
-            `#print-menu-${id} .menu-button__item`,
-          )
-          ?.focus();
-      });
+      this.openPrintSelect(id, new MouseEvent('click'));
     }
   }
 
-  onMenuKeydown(id: number, ev: KeyboardEvent): void {
-    const items = Array.from(
-      document.querySelectorAll<HTMLButtonElement>(
-        `#print-menu-${id} .menu-button__item`,
-      ),
-    );
-    const idx = items.indexOf(document.activeElement as HTMLButtonElement);
-    if (ev.key === 'Escape') {
-      this.openMenuForId = null;
-    } else if (ev.key === 'ArrowDown') {
-      ev.preventDefault();
-      items[(idx + 1) % items.length]?.focus();
-    } else if (ev.key === 'ArrowUp') {
-      ev.preventDefault();
-      items[(idx - 1 + items.length) % items.length]?.focus();
-    }
+  // Close when clicking anywhere else
+  @HostListener('document:click')
+  onDocClick(): void {
+    this.openPrintSelectForId = null;
   }
 
-  onMenuSelect(action: 'print' | 'print-continuous'): void {
-    this.openMenuForId = null;
-    if (action === 'print') {
-      this.onPrint();
-    } else {
-      this.onPrintContinuous();
+  getPrintMode(id: number): 'print' | 'print-continuous' {
+    return this.printModeById[id] ?? 'print';
+  }
+
+  onPrintModeChange(ev: Event): void {
+    const select = ev.target as HTMLSelectElement | null;
+    if (!select) {
+      return;
     }
+
+    // const mode = select.value as PrintMode;
+
+    // if (mode === 'print') {
+    //   this.onPrint();
+    // } else if (mode === 'print-continuous') {
+    //   this.onPrintContinuous();
+    // }
+
+    // Reset to placeholder so the visible text is always “Print mode ▾”
+    select.value = '';
+  }
+
+  onPrint(): void {
+    // TODO: implement your print flow (e.g. navigate or window.print())
+    // window.print();
   }
 
   onPrintContinuous(): void {
-    // implement your continuous print flow
+    // TODO: implement your continuous print flow
   }
 }

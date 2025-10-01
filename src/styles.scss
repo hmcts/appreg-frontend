@@ -66,9 +66,8 @@
   outline: none;
   color: $govuk-focus-text-colour;
   background-color: $govuk-focus-colour;
-  box-shadow:
-    0 -2px $govuk-focus-colour,
-    0 4px $govuk-focus-text-colour;
+  box-shadow: 0 -2px $govuk-focus-colour,
+  0 4px $govuk-focus-text-colour;
 }
 
 /* Layout for title + actions row */
@@ -85,4 +84,12 @@
   .app-header-row {
     align-items: flex-start;
   }
+}
+
+.print-select {
+  width: 7ch;
+}
+
+.print-select {
+  white-space: nowrap;
 }
