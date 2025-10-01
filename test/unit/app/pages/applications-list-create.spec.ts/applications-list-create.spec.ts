@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 
-import { ApplicationsList } from '../../../../../src/app/pages/applications-list/applications-list';
+import { ApplicationsListCreate } from '../../../../../src/app/pages/applications-list-create/applications-list-create';
 import {
   CourtLocationPage,
   CourtLocationsApi,
@@ -46,7 +46,7 @@ const activatedRouteStub = {
 
 beforeEach(async () => {
   await TestBed.configureTestingModule({
-    imports: [ApplicationsList],
+    imports: [ApplicationsListCreate],
     providers: [
       provideRouter([]),
       { provide: ActivatedRoute, useValue: activatedRouteStub },
@@ -62,6 +62,6 @@ beforeEach(async () => {
 });
 
 it('should create', () => {
-  const fixture = TestBed.createComponent(ApplicationsList);
+  const fixture = TestBed.createComponent(ApplicationsListCreate);
   expect(fixture.componentInstance).toBeTruthy();
 });

@@ -4,6 +4,12 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { merge } from 'rxjs';
 
+import {
+  CourtLocationGetSummaryDto,
+  CourtLocationsApi,
+  CriminalJusticeAreaGetDto,
+  CriminalJusticeAreasApi,
+} from '../../..//generated/openapi';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
   Duration,
@@ -13,13 +19,6 @@ import { PaginationComponent } from '../../shared/components/pagination/paginati
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
-
-import {
-  CourtLocationGetSummaryDto,
-  CourtLocationsApi,
-  CriminalJusticeAreaGetDto,
-  CriminalJusticeAreasApi,
-} from 'src/generated/openapi';
 
 type FieldKey =
   | 'date'

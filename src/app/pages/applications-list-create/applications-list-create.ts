@@ -2,7 +2,14 @@ import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit, TransferState } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { merge } from 'rxjs';
 
+import {
+  CourtLocationGetSummaryDto,
+  CourtLocationsApi,
+  CriminalJusticeAreaGetDto,
+  CriminalJusticeAreasApi,
+} from '../../..//generated/openapi';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
   Duration,
@@ -10,13 +17,6 @@ import {
 } from '../../shared/components/duration-input/duration-input.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
-
-import {
-  CourtLocationGetSummaryDto,
-  CourtLocationsApi,
-  CriminalJusticeAreaGetDto,
-  CriminalJusticeAreasApi,
-} from 'src/generated/openapi';
 
 type FieldKey =
   | 'date'
@@ -88,15 +88,18 @@ export class ApplicationsListCreate implements OnInit {
   anyInvalid = false;
 
   // Reactive form backing the template
-  form = new FormGroup({
-    date: new FormControl<string | null>(null),
-    time: new FormControl<Duration | null>(null),
-    description: new FormControl<string>(''),
-    status: new FormControl<string>('choose'),
-    court: new FormControl<string>(''),
-    location: new FormControl<string>(''),
-    cja: new FormControl<string>(''),
-  });
+  form = new FormGroup(
+    {
+      date: new FormControl<string | null>(null),
+      time: new FormControl<Duration | null>(null),
+      description: new FormControl<string>(''),
+      status: new FormControl<string>('choose'),
+      court: new FormControl<string>('', { updateOn: 'change' }),
+      location: new FormControl<string>('', { updateOn: 'change' }),
+      cja: new FormControl<string>('', { updateOn: 'change' }),
+    },
+    { updateOn: 'submit' },
+  );
 
   currentPage = 1;
   totalPages = 5;
@@ -115,6 +118,39 @@ export class ApplicationsListCreate implements OnInit {
     // TODO: use cached data
 
     this.loadLists();
+
+    // Disable based fields
+    const court = this.form.controls.court;
+    const location = this.form.controls.location;
+    const cja = this.form.controls.cja;
+
+    const has = (v: string | null) => !!v && v.trim().length > 0;
+    const syncDisable = () => {
+      const hasCourt = has(court.value);
+      const hasLoc = has(location.value);
+      const hasCja = has(cja.value);
+
+      if (hasCourt) {
+        court.enable({ emitEvent: false });
+        location.disable({ emitEvent: false });
+        cja.disable({ emitEvent: false });
+      } else if (hasLoc || hasCja) {
+        court.disable({ emitEvent: false });
+        location.enable({ emitEvent: false });
+        cja.enable({ emitEvent: false });
+      } else {
+        court.enable({ emitEvent: false });
+        location.enable({ emitEvent: false });
+        cja.enable({ emitEvent: false });
+      }
+    };
+
+    merge(
+      court.valueChanges,
+      location.valueChanges,
+      cja.valueChanges,
+    ).subscribe(() => syncDisable());
+    syncDisable();
   }
 
   onSubmit(event: SubmitEvent): void {
@@ -234,11 +270,6 @@ export class ApplicationsListCreate implements OnInit {
       };
 
       console.log(payload);
-
-      // Optional: drop undefined keys
-      // const cleaned = Object.fromEntries(
-      //   Object.entries(payload).filter(([, v]) => v !== undefined),
-      // );
 
       // TODO: send object
       // this.listsApi.create(cleaned as CreateListPayload).subscribe(/* ... */);
