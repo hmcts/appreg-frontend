@@ -13,6 +13,16 @@ import { SelectInputComponent } from '../../shared/components/select-input/selec
 import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 
+type ApplicationListRow = {
+  id: number;
+  date: string;
+  time: string;
+  location: string;
+  description: string;
+  entries: number;
+  status: 'Open' | 'Closed';
+};
+
 @Component({
   selector: 'app-applications-list',
   standalone: true,
@@ -62,6 +72,8 @@ export class ApplicationsList implements OnInit {
     { label: 'Closed', value: 'closed' },
   ];
 
+  rows: ApplicationListRow[] = [];
+
   ngOnInit(): void {
     this.loadApplicationsLists();
   }
@@ -79,7 +91,81 @@ export class ApplicationsList implements OnInit {
   }
 
   loadApplicationsLists(): void {
-    // TODO: fetch lists
+    // Hard-coded sample data for now
+    this.rows = [
+      {
+        id: 101,
+        date: '2025-09-29',
+        time: '09:30',
+        location: 'Birmingham',
+        description: 'Morning list',
+        entries: 12,
+        status: 'Open',
+      },
+      {
+        id: 102,
+        date: '2025-09-29',
+        time: '13:45',
+        location: 'Birmingham',
+        description: 'Afternoon list',
+        entries: 8,
+        status: 'Closed',
+      },
+      {
+        id: 103,
+        date: '2025-09-30',
+        time: '10:00',
+        location: 'Manchester',
+        description: 'Applications block',
+        entries: 16,
+        status: 'Open',
+      },
+      {
+        id: 104,
+        date: '2025-09-30',
+        time: '14:15',
+        location: 'Manchester',
+        description: 'Enforcement',
+        entries: 5,
+        status: 'Closed',
+      },
+      {
+        id: 105,
+        date: '2025-10-01',
+        time: '09:00',
+        location: 'Bristol',
+        description: 'Housing list',
+        entries: 20,
+        status: 'Open',
+      },
+      {
+        id: 106,
+        date: '2025-10-01',
+        time: '11:30',
+        location: 'Bristol',
+        description: 'Small claims',
+        entries: 9,
+        status: 'Open',
+      },
+      {
+        id: 107,
+        date: '2025-10-02',
+        time: '10:45',
+        location: 'Leeds',
+        description: 'Family applications',
+        entries: 14,
+        status: 'Closed',
+      },
+      {
+        id: 108,
+        date: '2025-10-02',
+        time: '15:00',
+        location: 'Leeds',
+        description: 'Costs review',
+        entries: 6,
+        status: 'Open',
+      },
+    ];
   }
 
   onDelete(id: number): void {
@@ -90,4 +176,8 @@ export class ApplicationsList implements OnInit {
     this.currentPage = page;
     this.loadApplicationsLists(); // fetch page `page`
   }
+
+  onPrint(): void {}
+
+  onResultSelected(): void {}
 }

@@ -89,16 +89,17 @@
 />
 
 <!-- Sortable table component -->
-<app-sortable-table caption="Lists" [columns]="columns">
+<app-sortable-table caption="Lists" [columns]="columns" [data]="rows">
   <!-- actions slot -->
   <ng-template #actionsTemplate let-row>
     <div class="govuk-button-group">
       <a
         [routerLink]="['/applications-list', row.id]"
-        class="govuk-button govuk-button--secondary"
+        class="govuk-button"
       >
         Open
       </a>
+
       <button
         type="button"
         class="govuk-button govuk-button--warning"
@@ -106,9 +107,28 @@
       >
         Delete
       </button>
+
+      <button
+        type="button"
+        class="govuk-button govuk-button--secondary"
+        (click)="onPrint()"
+        aria-label="Print list {{ row.id }}"
+      >
+        Print
+      </button>
+
+      <button
+        type="button"
+        class="govuk-button govuk-button--secondary"
+        (click)="onResultSelected()"
+        aria-label="Result selected for list {{ row.id }}"
+      >
+        Result
+      </button>
     </div>
   </ng-template>
 </app-sortable-table>
+
 
 <!-- Pager -->
 <app-pagination
