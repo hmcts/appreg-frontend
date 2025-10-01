@@ -6,92 +6,124 @@ const DATETIME_PATTERNS = {
   month: { label: 'Month' },
   year: { label: 'Year' },
   time: { label: 'Time' },
-  
+
   // Time component fields - multiple strategies
   hour: { label: 'HH', semantic: 'hour', suffix: 'HH' },
   minute: { label: 'MM', semantic: 'minute', suffix: 'MM' },
-  second: { label: 'SS', semantic: 'second', suffix: 'SS' }
+  second: { label: 'SS', semantic: 'second', suffix: 'SS' },
 } as const;
 
 export class DateTimeElement {
-  private static findInputByLabel(labelText: string, withinFieldLabel?: string) {
+  private static findInputByLabel(
+    labelText: string,
+    withinFieldLabel?: string,
+  ): Cypress.Chainable {
     if (withinFieldLabel) {
-      return cy.contains('label, legend', withinFieldLabel, { matchCase: false })
-        .parent() 
+      return cy
+        .contains('label, legend', withinFieldLabel, { matchCase: false })
+        .parent()
         .find('label')
         .contains(labelText, { matchCase: false })
-        .then($label => this.getInputFromLabel($label));
+        .then(($label) => this.getInputFromLabel($label));
     } else {
       // Global search
-      return cy.contains('label', labelText, { matchCase: false })
-        .then($label => this.getInputFromLabel($label));
+      return cy
+        .contains('label', labelText, { matchCase: false })
+        .then(($label) => this.getInputFromLabel($label));
     }
   }
 
-  private static getInputFromLabel($label: any) {
+  private static getInputFromLabel(
+    $label: JQuery<HTMLElement>,
+  ): Cypress.Chainable {
     const forId = $label.attr('for');
     if (forId) {
       return cy.get(`#${forId}`);
     }
     // Label wrapping input or sibling input
     const nestedInput = $label.find('input');
-    return nestedInput.length 
-      ? cy.wrap(nestedInput.first()) 
+    return nestedInput.length
+      ? cy.wrap(nestedInput.first())
       : cy.wrap($label).siblings('input').first();
   }
 
   /* ---- Date parts ---- */
-  static findDayInput(fieldLabel: string) {
-    return this.findInputByLabel(DATETIME_PATTERNS.day.label, fieldLabel).should('exist');
+  static findDayInput(fieldLabel: string): Cypress.Chainable {
+    return this.findInputByLabel(
+      DATETIME_PATTERNS.day.label,
+      fieldLabel,
+    ).should('exist');
   }
 
-  static findMonthInput(fieldLabel: string) {
-    return this.findInputByLabel(DATETIME_PATTERNS.month.label, fieldLabel).should('exist');
+  static findMonthInput(fieldLabel: string): Cypress.Chainable {
+    return this.findInputByLabel(
+      DATETIME_PATTERNS.month.label,
+      fieldLabel,
+    ).should('exist');
   }
 
-  static findYearInput(fieldLabel: string) {
-    return this.findInputByLabel(DATETIME_PATTERNS.year.label, fieldLabel).should('exist');
+  static findYearInput(fieldLabel: string): Cypress.Chainable {
+    return this.findInputByLabel(
+      DATETIME_PATTERNS.year.label,
+      fieldLabel,
+    ).should('exist');
   }
 
   /* ---- Time (single input) ---- */
-  static findTimeInput(fieldLabel?: string) {
-    return this.findInputByLabel(DATETIME_PATTERNS.time.label, fieldLabel).should('exist');
+  static findTimeInput(fieldLabel?: string): Cypress.Chainable {
+    return this.findInputByLabel(
+      DATETIME_PATTERNS.time.label,
+      fieldLabel,
+    ).should('exist');
   }
 
   /* ---- Time (HH/MM/SS split) ---- */
-  private static findTimeComponentInput(timeKey: 'hour' | 'minute' | 'second', fieldLabel?: string) {
+  private static findTimeComponentInput(
+    timeKey: 'hour' | 'minute' | 'second',
+    fieldLabel?: string,
+  ): Cypress.Chainable {
     const pattern = DATETIME_PATTERNS[timeKey];
-    
+
     if (fieldLabel) {
-      return cy.contains('label, legend', fieldLabel, { matchCase: false })
+      return cy
+        .contains('label, legend', fieldLabel, { matchCase: false })
         .parent()
-        .find(`input[id*="${pattern.semantic}"], input[name*="${pattern.semantic}"]`)
+        .find(
+          `input[id*="${pattern.semantic}"], input[name*="${pattern.semantic}"]`,
+        )
         .first()
-        .then($input => {
-          if ($input.length) return cy.wrap($input);
+        .then(($input) => {
+          if ($input.length) {
+            return cy.wrap($input);
+          }
           // Fallback to label-based search within field
           return this.findInputByLabel(pattern.label, fieldLabel);
         });
     } else {
-      return cy.get(`input[id*="${pattern.semantic}"], input[name*="${pattern.semantic}"]`)
+      return cy
+        .get(
+          `input[id*="${pattern.semantic}"], input[name*="${pattern.semantic}"]`,
+        )
         .first()
-        .then($input => {
-          if ($input.length) return cy.wrap($input);
+        .then(($input) => {
+          if ($input.length) {
+            return cy.wrap($input);
+          }
           // Fallback to label-based search globally
           return this.findInputByLabel(pattern.label);
         });
     }
   }
 
-  static findHourInput(fieldLabel: string) {
+  static findHourInput(fieldLabel: string): Cypress.Chainable {
     return this.findTimeComponentInput('hour', fieldLabel);
   }
 
-  static findMinuteInput(fieldLabel: string) {
+  static findMinuteInput(fieldLabel: string): Cypress.Chainable {
     return this.findTimeComponentInput('minute', fieldLabel);
   }
 
-  static findSecondInput(fieldLabel: string) {
+  static findSecondInput(fieldLabel: string): Cypress.Chainable {
     return this.findTimeComponentInput('second', fieldLabel);
   }
 

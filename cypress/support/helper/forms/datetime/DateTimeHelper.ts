@@ -10,20 +10,23 @@ export class DateTimeHelper {
   static setDateValue(fieldLabel: string, dateValue: string): void {
     try {
       const parsedDate = DateTimeUtil.parseDateValue(dateValue);
-      
+
       const dateParts = parsedDate.split('/');
       const day = dateParts[0];
       const month = dateParts[1];
       const year = dateParts[2];
-      
-      cy.log(`Setting date field "${fieldLabel}" to ${day}/${month}/${year} (from input: "${dateValue}")`);
-      
+
+      cy.log(
+        `Setting date field "${fieldLabel}" to ${day}/${month}/${year} (from input: "${dateValue}")`,
+      );
+
       this.setDayValue(fieldLabel, day);
       this.setMonthValue(fieldLabel, month);
       this.setYearValue(fieldLabel, year);
-      
     } catch (error) {
-      throw new Error(`Failed to set date field "${fieldLabel}" with value "${dateValue}": ${error.message}`);
+      throw new Error(
+        `Failed to set date field "${fieldLabel}" with value "${dateValue}": ${error.message}`,
+      );
     }
   }
 
@@ -66,8 +69,8 @@ export class DateTimeHelper {
       .should('be.enabled')
       .clear()
       .type(year)
-        .should('have.value', year); 
-    }
+      .should('have.value', year);
+  }
 
   // === TIME FIELD METHODS ===
 
@@ -79,18 +82,22 @@ export class DateTimeHelper {
   static setTimeValue(fieldLabel: string, timeValue: string): void {
     try {
       const parsedTime = DateTimeUtil.parseDateValue(timeValue);
-      
+
       // Validate the parsed time format
       const timeParts = parsedTime.split(':');
       if (timeParts.length < 2) {
-        throw new Error(`Invalid time format: ${parsedTime}. Expected HH:MM format.`);
+        throw new Error(
+          `Invalid time format: ${parsedTime}. Expected HH:MM format.`,
+        );
       }
-      
+
       const hours = timeParts[0].padStart(2, '0');
       const minutes = timeParts[1].padStart(2, '0');
-      
-      cy.log(`Setting time field "${fieldLabel}" to ${hours}:${minutes} (from input: "${timeValue}")`);
-      
+
+      cy.log(
+        `Setting time field "${fieldLabel}" to ${hours}:${minutes} (from input: "${timeValue}")`,
+      );
+
       // Try HH/MM inputs first, fallback to single input if not found
       try {
         // Check if separate HH/MM inputs exist
@@ -100,14 +107,14 @@ export class DateTimeHelper {
         // Both found - use separate methods
         this.setHourValue(fieldLabel, hours);
         this.setMinuteValue(fieldLabel, minutes);
-        
       } catch {
         // HH/MM inputs not found - use single time input
         this.setTimeInputValue(fieldLabel, parsedTime);
       }
-      
     } catch (error) {
-      throw new Error(`Failed to set time field "${fieldLabel}" with value "${timeValue}": ${error.message}`);
+      throw new Error(
+        `Failed to set time field "${fieldLabel}" with value "${timeValue}": ${error.message}`,
+      );
     }
   }
 
@@ -183,7 +190,7 @@ export class DateTimeHelper {
    */
   static verifyTimeFieldVisible(fieldLabel: string): void {
     cy.log(`Verifying time field "${fieldLabel}" is visible`);
-    
+
     // Check if separate HH/MM inputs exist, otherwise use single time input
     if (DateTimeElement.hasSeparateHourMinuteInputs(fieldLabel)) {
       // Both HH/MM inputs exist - verify them
@@ -201,7 +208,7 @@ export class DateTimeHelper {
    */
   static verifyTimeFieldNotVisible(fieldLabel: string): void {
     cy.log(`Verifying time field "${fieldLabel}" is not visible`);
-    
+
     // Check if separate HH/MM inputs exist, otherwise use single time input
     if (DateTimeElement.hasSeparateHourMinuteInputs(fieldLabel)) {
       // Both HH/MM inputs exist - verify they are not visible
