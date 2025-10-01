@@ -10,7 +10,10 @@ import {
 
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
-import { Duration, DurationInputComponent } from '../../shared/components/duration-input/duration-input.component';
+import {
+  Duration,
+  DurationInputComponent,
+} from '../../shared/components/duration-input/duration-input.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
