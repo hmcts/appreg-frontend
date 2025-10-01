@@ -41,19 +41,3 @@
     margin-top: 0;
   }
 }
-
-/* Layout for title + actions row */
-.app-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-/* Stack neatly on very small screens */
-@media (max-width: 40em) {
-  .app-header-row {
-    align-items: flex-start;
-  }
-}
