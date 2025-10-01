@@ -141,7 +141,7 @@ export class DateTimeUtil {
         return this.formatToday('iso');
       case 'display':
         return this.formatToday('display');
-      case 'displayzeropadded':
+      case 'displaypadded':
         return this.formatToday('padded');
         
       // Time keywords  

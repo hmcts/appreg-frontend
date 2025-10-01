@@ -17,4 +17,3 @@ Then('User Should See The Time Field {string}', (fieldLabel: string) => {
 Then('User Should Not See The Time Field {string}', (fieldLabel: string) => {
   DateTimeHelper.verifyTimeFieldNotVisible(fieldLabel);
 });
-

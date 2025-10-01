@@ -102,7 +102,12 @@ export class DateTimeElement {
    * @returns true if both hour and minute inputs exist, false otherwise
    */
   static hasSeparateHourMinuteInputs(fieldLabel: string): boolean {
-    return Cypress.$(`[data-cy="${fieldLabel}-hour"]`).length > 0 && 
-           Cypress.$(`[data-cy="${fieldLabel}-minute"]`).length > 0;
+    try {
+      this.findTimeComponentInput('hour', fieldLabel);
+      this.findTimeComponentInput('minute', fieldLabel);
+      return true;
+    } catch {
+      return false;
+    }
   }
 }

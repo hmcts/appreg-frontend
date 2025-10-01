@@ -66,7 +66,7 @@ export class DateTimeHelper {
       .should('be.enabled')
       .clear()
       .type(year)
-      .should('have.value', year); 
+        .should('have.value', year); 
     }
 
   // === TIME FIELD METHODS ===

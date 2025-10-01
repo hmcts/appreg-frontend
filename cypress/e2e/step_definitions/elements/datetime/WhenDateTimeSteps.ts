@@ -9,5 +9,3 @@ When('User Set Date Field {string} To {string}', (fieldLabel: string, dateValue:
 When('User Set Time Field {string} To {string}', (fieldLabel: string, timeValue: string) => {
   DateTimeHelper.setTimeValue(fieldLabel, timeValue);
 });
-
-
