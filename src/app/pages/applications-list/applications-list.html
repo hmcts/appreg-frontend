@@ -92,25 +92,25 @@
 <app-sortable-table caption="Lists" [columns]="columns" [data]="rows">
   <ng-template #actionsTemplate let-row>
     <div class="govuk-button-group">
-      <a [routerLink]="['/applications-list', row.id]" class="govuk-button"
-        >Open</a
-      >
-
-      <button
-        type="button"
-        class="govuk-button govuk-button--warning"
-        (click)="onDelete(row.id)"
-      >
-        Delete
-      </button>
 
       <!-- actions slot -->
       <div
         class="moj-button-menu"
         data-module="moj-button-menu"
-        data-button-text="Actions"
-        data-button-classes="govuk-button--secondary"
+        data-button-text="Select"
+        data-button-classes="govuk-button"
       >
+
+        <!-- Open button -->
+        <button
+          type="button"
+          class="govuk-button moj-button-menu__item govuk-button--secondary"
+          [routerLink]="['/applications-list', row.id]"
+        >
+          Open
+        </button>
+
+        <!-- Print page button -->
         <button
           type="button"
           class="govuk-button moj-button-menu__item govuk-button--secondary"
@@ -119,6 +119,7 @@
           Print page
         </button>
 
+        <!-- Print continuous button -->
         <button
           type="button"
           class="govuk-button moj-button-menu__item govuk-button--secondary"
@@ -127,6 +128,7 @@
           Print continuous
         </button>
 
+        <!-- Result button -->
         <button
           type="button"
           class="govuk-button moj-button-menu__item govuk-button--secondary"
@@ -134,6 +136,16 @@
         >
           Result
         </button>
+
+        <!-- Delete button -->
+        <button
+          type="button"
+          class="govuk-button moj-button-menu__item govuk-button--warning"
+          (click)="onDelete(row.id)"
+        >
+          Delete
+        </button>
+
       </div>
     </div>
   </ng-template>
