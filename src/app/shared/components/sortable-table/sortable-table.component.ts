@@ -96,12 +96,16 @@ export class SortableTableComponent implements AfterViewInit {
 
     void import('@ministryofjustice/frontend')
       .then((mod) => {
-        type SortableCtorT = new (el: HTMLElement) => { init?: () => void; destroy?: () => void };
+        type SortableCtorT = new (el: HTMLElement) => {
+          init?: () => void;
+          destroy?: () => void;
+        };
 
         // Support both export shapes (named vs default)
         const SortableCtor: SortableCtorT | undefined =
           (mod as { SortableTable?: SortableCtorT }).SortableTable ??
-          (mod as { default?: { SortableTable?: SortableCtorT } }).default?.SortableTable;
+          (mod as { default?: { SortableTable?: SortableCtorT } }).default
+            ?.SortableTable;
 
         if (!SortableCtor) {
           return;
