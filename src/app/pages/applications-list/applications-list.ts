@@ -89,30 +89,41 @@ export class ApplicationsList implements OnInit {
 
   rows: ApplicationListRow[] = [];
 
-  constructor(@Inject(PLATFORM_ID) private platformId: object) {}
+  constructor(@Inject(PLATFORM_ID) private readonly platformId: object) {}
 
   ngOnInit(): void {
     this.loadApplicationsLists();
   }
 
-  async ngAfterViewInit(): Promise<void> {
+  ngAfterViewInit(): void {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
 
-    await import('@ministryofjustice/frontend').then(({ ButtonMenu }) => {
-      document
-        .querySelectorAll<HTMLElement>('[data-module="moj-button-menu"]')
-        .forEach((el) => {
+    void import('@ministryofjustice/frontend')
+      .then(({ ButtonMenu }) => {
+        const nodes = document.querySelectorAll<HTMLElement>(
+          '[data-module="moj-button-menu"]',
+        );
+
+        for (const el of nodes) {
           const flagged = el as MojInitEl;
           if (flagged.__mojInit) {
-            return;
+            continue;
           }
 
-          new ButtonMenu(flagged);
+          // use the instance so 'no-new' doesn't complain
+          const instance = new ButtonMenu(flagged);
+          if (typeof (instance as { init?: () => void }).init === 'function') {
+            instance.init(); // some versions require explicit init
+          }
+
           flagged.__mojInit = true;
-        });
-    });
+        }
+      })
+      .catch(() => {
+        // no-op for non-browser/test environments
+      });
   }
 
   onSubmit(event: SubmitEvent): void {

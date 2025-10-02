@@ -172,9 +172,12 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
       };
 
       // Enhance what exists now
-      root
-        .querySelectorAll<HTMLElement>('[data-module="moj-sortable-table"]')
-        .forEach((el) => enhance(el));
+      const tables = root.querySelectorAll<HTMLElement>(
+        '[data-module="moj-sortable-table"]',
+      );
+      for (const el of tables) {
+        enhance(el);
+      }
 
       // Observe for late additions (set up once)
       if (this.mojObserver) {
@@ -189,9 +192,15 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
             if (n.matches?.('[data-module="moj-sortable-table"]')) {
               enhance(n);
             }
-            n.querySelectorAll?.('[data-module="moj-sortable-table"]').forEach(
-              (el) => enhance(el as HTMLElement),
-            );
+            const nodeList = n.querySelectorAll?.(
+              '[data-module="moj-sortable-table"]',
+            ) as NodeListOf<HTMLElement> | undefined;
+
+            if (nodeList) {
+              for (const el of nodeList) {
+                enhance(el);
+              }
+            }
           }
         }
       });

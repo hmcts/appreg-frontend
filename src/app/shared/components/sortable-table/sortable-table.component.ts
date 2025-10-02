@@ -6,7 +6,6 @@ import {
   ElementRef,
   Inject,
   Input,
-  OnChanges,
   PLATFORM_ID,
   TemplateRef,
   ViewChild,
@@ -32,7 +31,7 @@ export type TableColumn = {
   imports: [CommonModule],
   templateUrl: './sortable-table.component.html',
 })
-export class SortableTableComponent implements OnChanges, AfterViewInit {
+export class SortableTableComponent implements AfterViewInit {
   @ContentChild('actionsTemplate', { read: TemplateRef })
   actionsTpl?: TemplateRef<unknown>;
 
@@ -47,11 +46,9 @@ export class SortableTableComponent implements OnChanges, AfterViewInit {
   @ViewChild('mojTable', { static: true })
   tableRef!: ElementRef<HTMLTableElement>;
 
-  constructor(@Inject(PLATFORM_ID) private platformId: object) {}
+  private sortableInstance?: { init?: () => void; destroy?: () => void };
 
-  ngOnChanges(): void {
-    // No client-side sorting now; MoJ handles it via the module
-  }
+  constructor(@Inject(PLATFORM_ID) private readonly platformId: object) {}
 
   /** trackBy helper retained for performance */
   trackRow = (index: number, row: RowLike): unknown => {
@@ -97,17 +94,25 @@ export class SortableTableComponent implements OnChanges, AfterViewInit {
       return;
     }
 
-    void import('@ministryofjustice/frontend').then((mod) => {
-      // Support either export shape (named vs default)
-      const SortableCtor =
-        (mod as { SortableTable?: new (el: HTMLElement) => void })
-          .SortableTable ??
-        (mod as { default?: { SortableTable?: new (el: HTMLElement) => void } })
-          .default?.SortableTable;
+    void import('@ministryofjustice/frontend')
+      .then((mod) => {
+        type SortableCtorT = new (el: HTMLElement) => { init?: () => void; destroy?: () => void };
 
-      if (typeof SortableCtor === 'function') {
-        new SortableCtor(this.tableRef.nativeElement);
-      }
-    });
+        // Support both export shapes (named vs default)
+        const SortableCtor: SortableCtorT | undefined =
+          (mod as { SortableTable?: SortableCtorT }).SortableTable ??
+          (mod as { default?: { SortableTable?: SortableCtorT } }).default?.SortableTable;
+
+        if (!SortableCtor) {
+          return;
+        }
+
+        const instance = new SortableCtor(this.tableRef.nativeElement);
+        instance.init?.();
+        this.sortableInstance = instance;
+      })
+      .catch(() => {
+        // no-op for non-browser/test environments
+      });
   }
 }
