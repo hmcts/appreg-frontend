@@ -1,6 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit, TransferState } from '@angular/core';
-import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormControl,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { merge } from 'rxjs';
 
@@ -42,7 +47,7 @@ type FieldKey =
     RouterLink,
     PaginationComponent,
     SortableTableComponent,
-    FormsModule
+    FormsModule,
   ],
   templateUrl: './applications-list.html',
 })
