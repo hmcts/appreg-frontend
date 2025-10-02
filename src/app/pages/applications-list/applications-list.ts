@@ -125,7 +125,7 @@ export class ApplicationsList implements OnInit {
   ngOnInit(): void {
     // TODO: Use cache where possible
 
-    this.loadApplicationsLists();
+
     this.loadCJAs();
     this.loadCourtLocations();
 
@@ -342,6 +342,5 @@ export class ApplicationsList implements OnInit {
 
   onPageChange(page: number): void {
     this.currentPage = page;
-    this.loadApplicationsLists(); // fetch page `page`
   }
 }
