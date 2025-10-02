@@ -11,7 +11,6 @@ import {
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
-import { ApplicationListsApi } from '../../../generated/openapi';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
   Duration,
@@ -90,85 +89,24 @@ export class ApplicationsList implements OnInit {
   currentPage = 1;
   totalPages = 5;
 
-  tableRows: {
-    id: number;
-    date: string;
-    time: string;
-    location: string;
-    description: string;
-    entries: number | string;
-    status: string;
-  }[] = [];
+  columns = [
+    { header: 'Date', field: 'date', sortable: true },
+    { header: 'Time', field: 'time', sortable: true },
+    { header: 'Location', field: 'location', sortable: true },
+    { header: 'Description', field: 'description', sortable: true },
+    { header: 'Entries', field: 'entries', sortable: true, numeric: true },
+    { header: 'Status', field: 'status', sortable: true },
+    { header: 'Actions', field: 'actions' },
+  ];
 
-  constructor(private readonly listsApi: ApplicationListsApi) {}
+  status = [
+    { label: 'Choose', value: 'choose' },
+    { label: 'Open', value: 'open' },
+    { label: 'Closed', value: 'closed' },
+  ];
 
   ngOnInit(): void {
-    // TODO: Use cache where possible
 
-
-    this.loadCJAs();
-    this.loadCourtLocations();
-
-    // Disable based fields
-    const court = this.form.controls.court;
-    const location = this.form.controls.location;
-    const cja = this.form.controls.cja;
-
-    const has = (v: string | null) => !!v && v.trim().length > 0;
-    const syncDisable = () => {
-      const hasCourt = has(court.value);
-      const hasLoc = has(location.value);
-      const hasCja = has(cja.value);
-
-      if (hasCourt) {
-        court.enable({ emitEvent: false });
-        location.disable({ emitEvent: false });
-        cja.disable({ emitEvent: false });
-      } else if (hasLoc || hasCja) {
-        court.disable({ emitEvent: false });
-        location.enable({ emitEvent: false });
-        cja.enable({ emitEvent: false });
-      } else {
-        court.enable({ emitEvent: false });
-        location.enable({ emitEvent: false });
-        cja.enable({ emitEvent: false });
-      }
-    };
-
-    merge(
-      court.valueChanges,
-      location.valueChanges,
-      cja.valueChanges,
-    ).subscribe(() => syncDisable());
-    syncDisable();
-
-    // Suggestions
-    const currentCourthouse = this.form.controls.court.value;
-    if (typeof currentCourthouse === 'string' && currentCourthouse.trim()) {
-      this.courthouseSearch = currentCourthouse;
-    }
-
-    const currentCja = this.form.controls.cja.value;
-    if (typeof currentCja === 'string' && currentCja.trim()) {
-      this.cjaSearch = currentCja;
-    }
-
-    // 👇 Tiny SSR-friendly call to compute a “you have N lists” message
-    // Passing 'body' selects the overload that returns ApplicationListPage (typed).
-    this.listsApi.listApplicationLists({ page: 0, size: 1 }, 'body').subscribe({
-      next: (page: ApplicationListPage) => {
-        const total =
-          (page).totalElements ??
-          ((page).content?.length ?? 0);
-
-        this.loginMsg = `Signed in successfully. You have ${total} application list${total === 1 ? '' : 's'}.`;
-      },
-      error: () => {
-        // Non-fatal: still show the page if this probe fails for any reason
-        this.loginMsg = 'Signed in successfully. Not calling backend';
-      },
-    });
-    this.loadApplications();
   }
 
   onSubmit(event: SubmitEvent): void {
@@ -193,26 +131,5 @@ export class ApplicationsList implements OnInit {
 
   onPageChange(page: number): void {
     this.currentPage = page;
-  }
-
-  onResultSelected(): void {}
-
-  // Close when clicking anywhere else
-  @HostListener('document:click')
-  onDocClick(): void {
-    this.openPrintSelectForId = null;
-  }
-
-  @HostListener('document:click')
-  closeMenus(): void {
-    this.openMenuForId = null;
-  }
-
-  onPrint(): void {
-    // TODO: your print flow per row
-  }
-
-  onPrintContinuous(): void {
-    // TODO: your continuous print flow per row
   }
 }
