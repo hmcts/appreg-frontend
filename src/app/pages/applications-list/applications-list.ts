@@ -8,7 +8,6 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import nodejsLogging, { HmctsLogger } from '@hmcts/nodejs-logging';
 
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
@@ -36,14 +35,6 @@ type ApplicationListRow = {
 interface MojInitEl extends HTMLElement {
   __mojInit?: boolean;
 }
-
-// ---- Logger -------------------------
-const { Logger } = nodejsLogging as unknown as {
-  Logger: { getLogger(name: string): HmctsLogger };
-};
-const logger: HmctsLogger = Logger.getLogger(
-  'hmcts applications register - sso routes',
-);
 
 @Component({
   selector: 'app-applications-list',
@@ -131,7 +122,7 @@ export class ApplicationsList implements OnInit {
         }
       })
       .catch(() => {
-        logger.error('Could not load @ministryofjustice/frontend ButtonMenu');
+        // no-op for non-browser/test environments
       });
   }
 
@@ -148,7 +139,6 @@ export class ApplicationsList implements OnInit {
   }
 
   loadApplicationsLists(): void {
-    // TODO: fetch lists
     // Hard-coded sample data for now
     this.rows = [
       {

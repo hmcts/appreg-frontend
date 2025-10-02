@@ -10,7 +10,6 @@ import {
   TemplateRef,
   ViewChild,
 } from '@angular/core';
-import nodejsLogging, { HmctsLogger } from '@hmcts/nodejs-logging';
 
 type RowLike = Record<string, unknown>;
 
@@ -25,14 +24,6 @@ export type TableColumn = {
   ) => string | number | null | undefined;
   defaultSort?: 'ascending' | 'descending' | 'none';
 };
-
-// ---- Logger -------------------------
-const { Logger } = nodejsLogging as unknown as {
-  Logger: { getLogger(name: string): HmctsLogger };
-};
-const logger: HmctsLogger = Logger.getLogger(
-  'hmcts applications register - sso routes',
-);
 
 @Component({
   selector: 'app-sortable-table',
@@ -125,7 +116,7 @@ export class SortableTableComponent implements AfterViewInit {
         this.sortableInstance = instance;
       })
       .catch(() => {
-        logger.error('Could not load @ministryofjustice/frontend module');
+        // no-op for non-browser/test environments
       });
   }
 }
