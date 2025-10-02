@@ -76,9 +76,6 @@ interface MojInitEl extends HTMLElement {
 export class ApplicationsList implements OnInit {
   private _id: number | undefined;
 
-  // ✅ Message rendered at the top of the page
-  loginMsg: string | undefined;
-
   // Reactive form backing the template
   form = new FormGroup({
     date: new FormControl<string | null>(null),
@@ -172,22 +169,6 @@ export class ApplicationsList implements OnInit {
       },
     });
     this.loadApplications();
-
-    // 👇 Tiny SSR-friendly call to compute a “you have N lists” message
-    // Passing 'body' selects the overload that returns ApplicationListPage (typed).
-    this.listsApi.listApplicationLists({ page: 0, size: 1 }, 'body').subscribe({
-      next: (page: ApplicationListPage) => {
-        const total =
-          (page).totalElements ??
-          ((page).content?.length ?? 0);
-
-        this.loginMsg = `Signed in successfully. You have ${total} application list${total === 1 ? '' : 's'}.`;
-      },
-      error: () => {
-        // Non-fatal: still show the page if this probe fails for any reason
-        this.loginMsg = 'Signed in successfully. Not calling backend';
-      },
-    });
   }
 
   onSubmit(event: SubmitEvent): void {
