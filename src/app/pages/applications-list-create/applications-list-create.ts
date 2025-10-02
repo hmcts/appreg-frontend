@@ -10,6 +10,9 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { merge } from 'rxjs';
 
 import {
+  ApplicationListCreateDto,
+  ApplicationListStatus,
+  ApplicationListsApi,
   CourtLocationGetSummaryDto,
   CourtLocationsApi,
   CriminalJusticeAreaGetDto,
@@ -31,16 +34,6 @@ type FieldKey =
   | 'court'
   | 'location'
   | 'cja';
-
-type CreateListPayload = {
-  date: string | null;
-  time: string | null;
-  description: string;
-  status: string;
-  court?: string;
-  otherLocationDescription?: string;
-  cja?: string;
-};
 
 @Component({
   selector: 'app-applications-list',
@@ -65,6 +58,7 @@ export class ApplicationsListCreate implements OnInit {
     private readonly state: TransferState,
     private readonly cjaApi: CriminalJusticeAreasApi,
     private readonly courtLocationApi: CourtLocationsApi,
+    private readonly appLists: ApplicationListsApi,
   ) {}
 
   cja: CriminalJusticeAreaGetDto[] = [];
@@ -250,39 +244,60 @@ export class ApplicationsListCreate implements OnInit {
         this.form.getRawValue();
 
       // Format {hours: int, minutes: int} to string 'hh:mm:00
-      const fmtTime = (
-        t: { hours: number | null; minutes: number | null } | null | undefined,
-      ): string | null => {
+      const toTimeString = (
+        t: { hours: number | null; minutes: number | null } | null,
+      ): string => {
+        // Double check if time is not null
         if (!t || t.hours === null || t.minutes === null) {
-          return null;
+          throw new Error('time required');
         }
         const hh = String(t.hours).padStart(2, '0');
         const mm = String(t.minutes).padStart(2, '0');
         return `${hh}:${mm}:00`;
       };
 
+      // Ensures type based on spec
+      const toStatus = (s: unknown): ApplicationListStatus => {
+        switch (String(s).toUpperCase()) {
+          case 'OPEN':
+            return ApplicationListStatus.OPEN;
+          case 'CLOSED':
+            return ApplicationListStatus.CLOSED;
+          default:
+            throw new Error('Invalid status');
+        }
+      };
+
       const has = (x: unknown) =>
         x !== null && x !== undefined && x !== '' && x !== 'choose';
       const useCourt = has(court);
 
-      const payload: CreateListPayload = {
-        date: date ?? null,
-        time: fmtTime(time),
+      const payload: ApplicationListCreateDto = {
+        date: date!,
+        time: toTimeString(time),
         description: (description ?? '').trim(),
-        status: status?.toUpperCase() as string,
+        status: toStatus(status),
         ...(useCourt
-          ? { court: court as string }
+          ? { courtLocationCode: court as string }
           : {
               otherLocationDescription: location as string,
-              cja: cja as string,
+              cjaCode: cja as string,
             }),
       };
 
-      console.log(payload);
-
-      // TODO: send object
-
-      this.createDone = true;
+      this.appLists
+        .createApplicationList({ applicationListCreateDto: payload })
+        .subscribe({
+          next: () => {
+            this.createDone = true;
+          },
+          error: (err) => {
+            this.createDone = false;
+            this.createInvalid = true;
+            this.errorHint = 'An error has occurred: ' + err;
+            throw new Error('Error: ' + err);
+          },
+        });
     }
   }
 
@@ -290,8 +305,6 @@ export class ApplicationsListCreate implements OnInit {
     // TODO: fetch lists
     this.loadCourtLocations();
     this.loadCJAs();
-
-    // TODO: Render lists into UI
   }
 
   private loadCJAs(): void {
