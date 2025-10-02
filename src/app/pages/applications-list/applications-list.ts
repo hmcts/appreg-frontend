@@ -1,21 +1,14 @@
-import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, TransferState } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
-  FormControl,
-  FormGroup,
-  FormsModule,
-  ReactiveFormsModule,
-} from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { merge } from 'rxjs';
+  Component,
+  HostListener,
+  Inject,
+  OnInit,
+  PLATFORM_ID,
+} from '@angular/core';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 
-import {
-  ApplicationListsApi,
-  CourtLocationGetSummaryDto,
-  CourtLocationsApi,
-  CriminalJusticeAreaGetDto,
-  CriminalJusticeAreasApi,
-} from '../../..//generated/openapi';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
   Duration,
@@ -47,14 +40,19 @@ interface MojInitEl extends HTMLElement {
   __mojInit?: boolean;
 }
 
-type FieldKey =
-  | 'date'
-  | 'time'
-  | 'description'
-  | 'status'
-  | 'court'
-  | 'location'
-  | 'cja';
+type ApplicationListRow = {
+  id: number;
+  date: string;
+  time: string;
+  location: string;
+  description: string;
+  entries: number;
+  status: 'Open' | 'Closed';
+};
+
+interface MojInitEl extends HTMLElement {
+  __mojInit?: boolean;
+}
 
 @Component({
   selector: 'app-applications-list',
@@ -69,7 +67,6 @@ type FieldKey =
     RouterLink,
     PaginationComponent,
     SortableTableComponent,
-    FormsModule,
   ],
   templateUrl: './applications-list.html',
 })
@@ -113,30 +110,27 @@ export class ApplicationsList implements OnInit {
   openPrintSelectForId: number | null = null;
 
   // Reactive form backing the template
-  form = new FormGroup(
-    {
-      date: new FormControl<string | null>(null),
-      time: new FormControl<Duration | null>(null),
-      description: new FormControl<string>(''),
-      status: new FormControl<string>('choose'),
-      court: new FormControl<string>('', { updateOn: 'change' }),
-      location: new FormControl<string>('', { updateOn: 'change' }),
-      cja: new FormControl<string>('', { updateOn: 'change' }),
-    },
-    { updateOn: 'submit' },
-  );
+  form = new FormGroup({
+    date: new FormControl<string | null>(null),
+    time: new FormControl<Duration | null>(null),
+    description: new FormControl<string>(''),
+    status: new FormControl<string>('choose'),
+    court: new FormControl<string>(''),
+    location: new FormControl<string>(''),
+    cja: new FormControl<string>(''),
+  });
 
   currentPage = 1;
   totalPages = 5;
 
-  columns: TableColumn[] = [
-    { header: 'Date', field: 'date' },
-    { header: 'Time', field: 'time' },
-    { header: 'Location', field: 'location' },
-    { header: 'Description', field: 'description' },
-    { header: 'Entries', field: 'entries', numeric: true },
-    { header: 'Status', field: 'status' },
-    { header: 'Actions', field: 'actions', sortable: false },
+  columns = [
+    { header: 'Date', field: 'date', sortable: true },
+    { header: 'Time', field: 'time', sortable: true },
+    { header: 'Location', field: 'location', sortable: true },
+    { header: 'Description', field: 'description', sortable: true },
+    { header: 'Entries', field: 'entries', sortable: true, numeric: true },
+    { header: 'Status', field: 'status', sortable: true },
+    { header: 'Actions', field: 'actions' },
   ];
 
   status = [
@@ -144,10 +138,6 @@ export class ApplicationsList implements OnInit {
     { label: 'Open', value: 'open' },
     { label: 'Closed', value: 'closed' },
   ];
-
-  rows: ApplicationListRow[] = [];
-
-  constructor(@Inject(PLATFORM_ID) private readonly platformId: object) {}
 
   ngOnInit(): void {
     // TODO: Use cache where possible
@@ -216,6 +206,57 @@ export class ApplicationsList implements OnInit {
       },
     });
     this.loadApplications();
+  columns: TableColumn[] = [
+    { header: 'Date', field: 'date' },
+    { header: 'Time', field: 'time' },
+    { header: 'Location', field: 'location' },
+    { header: 'Description', field: 'description' },
+    { header: 'Entries', field: 'entries', numeric: true },
+    { header: 'Status', field: 'status' },
+    { header: 'Actions', field: 'actions', sortable: false },
+  ];
+
+  status = [
+    { label: 'Choose', value: 'choose' },
+    { label: 'Open', value: 'open' },
+    { label: 'Closed', value: 'closed' },
+  ];
+
+  rows: ApplicationListRow[] = [];
+
+  constructor(@Inject(PLATFORM_ID) private readonly platformId: object) {}
+
+  ngOnInit(): void {}
+
+  ngAfterViewInit(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    void import('@ministryofjustice/frontend')
+      .then(({ ButtonMenu }) => {
+        const nodes = document.querySelectorAll<HTMLElement>(
+          '[data-module="moj-button-menu"]',
+        );
+
+        for (const el of nodes) {
+          const flagged = el as MojInitEl;
+          if (flagged.__mojInit) {
+            continue;
+          }
+
+          // use the instance so 'no-new' doesn't complain
+          const instance = new ButtonMenu(flagged);
+          if (typeof (instance as { init?: () => void }).init === 'function') {
+            instance.init(); // some versions require explicit init
+          }
+
+          flagged.__mojInit = true;
+        }
+      })
+      .catch(() => {
+        // no-op for non-browser/test environments
+      });
   }
 
   ngAfterViewInit(): void {
@@ -251,139 +292,10 @@ export class ApplicationsList implements OnInit {
 
   onSubmit(event: SubmitEvent): void {
     event.preventDefault();
-    this.submitted = true;
-
-    this.form.markAllAsTouched();
-    this.form.updateValueAndValidity({ onlySelf: false, emitEvent: false });
-
     const btn = event.submitter as HTMLButtonElement | null;
-    const action = btn?.value ?? '';
-
-    // Reset
-    this.offendingFields = [];
-    this.anyInvalid = false;
-    this.errorHint = '';
-
-    const formValues = this.form.getRawValue();
-
-    this.form.patchValue({
-      date: formValues.date,
-      description: formValues.description,
-      status: formValues.status,
-      court: formValues.court,
-      location: formValues.location,
-      cja: formValues.cja,
-    });
-
-    // Is field valid if populated?
-    for (const k of Object.keys(this.invalidField) as FieldKey[]) {
-      const ctrl = this.form.controls[k];
-      const errs = ctrl.errors as Record<string, unknown> | null;
-      const key = `${k}Invalid`;
-
-      if (!errs) {
-        this.invalidField[k] = null;
-        continue;
-      }
-
-      this.invalidField[k] = key in errs || Object.keys(errs).length > 0;
-    }
-
-    this.offendingFields = (
-      Object.keys(this.invalidField) as FieldKey[]
-    ).filter((k) => this.invalidField[k] === true);
-
-    if (this.offendingFields.length) {
-      this.anyInvalid = true;
-      this.errorHint =
-        'Error - the following field/s are incorrectly formatted';
-      this.submitted = false;
-      return;
-    }
+    const action = btn?.value ?? 'search';
 
     if (action === 'search') {
-      // TODO: handle search using 'values'
-    }
-  }
-
-  loadApplicationsLists(): void {
-    // TODO: load application lists
-  }
-
-  private loadCJAs(): void {
-    this.cjaApi.getCriminalJusticeAreas().subscribe({
-      next: (page) => {
-        this.cja = page.content ?? [];
-        // console.log(this.cja); // Sanity check
-      },
-    });
-  }
-
-  private loadCourtLocations(): void {
-    this.courtLocationApi.getCourtLocations().subscribe({
-      next: (page) => {
-        this.courtLocations = page.content ?? [];
-        // console.log(this.courtLocations); // Sanity check
-      },
-    });
-  }
-
-  onCourthouseInputChange(): void {
-    const q = this.courthouseSearch.trim().toLowerCase();
-
-    // keep reactive form in sync so submit payload includes 'court'
-    this.form.controls.court.setValue(this.courthouseSearch || '');
-
-    if (!q) {
-      this.filteredCourthouses = [];
-      return;
-    }
-
-    // filter by name or code; cap results to avoid long lists
-    this.filteredCourthouses = this.courtLocations
-      .filter(
-        (c) =>
-          (c.name ?? '').toLowerCase().includes(q) ||
-          (c.locationCode ?? '').toLowerCase().includes(q),
-      )
-      .slice(0, 20);
-  }
-
-  // called when user clicks a suggestion
-  selectCourthouse(c: CourtLocationGetSummaryDto): void {
-    const label = c.locationCode ?? '';
-    this.courthouseSearch = label;
-    this.form.controls.court.setValue(label);
-    this.filteredCourthouses = [];
-  }
-
-  onCjaInputChange(): void {
-    const q = this.cjaSearch.trim().toLowerCase();
-
-    // keep reactive form in sync so submit payload includes 'cja'
-    this.form.controls.cja.setValue(this.cjaSearch || '');
-
-    if (!q) {
-      this.filteredCja = [];
-      return;
-    }
-
-    // filter by name or code; cap results to avoid long lists
-    this.filteredCja = this.cja
-      .filter(
-        (c) =>
-          (c.code ?? '').toLowerCase().includes(q) ||
-          (c.description ?? '').toLowerCase().includes(q),
-      )
-      .slice(0, 20);
-  }
-
-  // called when user clicks a suggestion
-  selectCja(c: CriminalJusticeAreaGetDto): void {
-    const label = c.code ?? '';
-    this.cjaSearch = label;
-    this.form.controls.cja.setValue(label);
-    this.filteredCja = [];
       // TODO: handle search using `values`
     } else if (action === 'create') {
       // TODO: handle create using `values`
