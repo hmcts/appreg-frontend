@@ -1,9 +1,4 @@
-import {
-  HttpClient,
-  HttpHeaders,
-  provideHttpClient,
-  withInterceptors,
-} from '@angular/common/http';
+import { HttpClient, HttpHeaders , provideHttpClient, withInterceptors } from '@angular/common/http';
 import {
   HttpTestingController,
   provideHttpClientTesting,
@@ -17,7 +12,8 @@ describe('serverCookieInterceptor', () => {
     let http: HttpClient;
     let httpMock: HttpTestingController;
 
-    const mockCookie = 'SID=abc.123; Path=/; Secure; HttpOnly; SameSite=Lax';
+    const mockCookie =
+      'SID=abc.123; Path=/; Secure; HttpOnly; SameSite=Lax';
     const mockExpressReq = {
       headers: {
         cookie: mockCookie,
@@ -91,3 +87,4 @@ describe('serverCookieInterceptor', () => {
     });
   });
 });
+
