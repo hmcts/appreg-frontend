@@ -34,11 +34,11 @@ type FieldKey =
 
 type CreateListPayload = {
   date: string | null;
-  time: Duration | null;
+  time: string | null;
   description: string;
   status: string;
   court?: string;
-  location?: string;
+  otherLocationDescription?: string;
   cja?: string;
 };
 
@@ -94,7 +94,6 @@ export class ApplicationsListCreate implements OnInit {
     location: null,
     cja: null,
   };
-
 
   // Reactive form backing the template
   form = new FormGroup(
@@ -249,18 +248,34 @@ export class ApplicationsListCreate implements OnInit {
     if (!this.createInvalid) {
       const { date, time, description, status, court, location, cja } =
         this.form.getRawValue();
+
+      // Format {hours: int, minutes: int} to string 'hh:mm:00
+      const fmtTime = (
+        t: { hours: number | null; minutes: number | null } | null | undefined,
+      ): string | null => {
+        if (!t || t.hours === null || t.minutes === null) {
+          return null;
+        }
+        const hh = String(t.hours).padStart(2, '0');
+        const mm = String(t.minutes).padStart(2, '0');
+        return `${hh}:${mm}:00`;
+      };
+
       const has = (x: unknown) =>
         x !== null && x !== undefined && x !== '' && x !== 'choose';
       const useCourt = has(court);
 
       const payload: CreateListPayload = {
-        date,
-        time,
+        date: date ?? null,
+        time: fmtTime(time),
         description: (description ?? '').trim(),
-        status: status as string,
+        status: status?.toUpperCase() as string,
         ...(useCourt
           ? { court: court as string }
-          : { location: location as string, cja: cja as string }),
+          : {
+              otherLocationDescription: location as string,
+              cja: cja as string,
+            }),
       };
 
       console.log(payload);
