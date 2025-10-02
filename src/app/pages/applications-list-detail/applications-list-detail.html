@@ -1,0 +1,176 @@
+<!-- Breadcrumbs -->
+<app-breadcrumbs
+  [items]="[{ label: 'Applications list', link: '/applications-list' }]"
+></app-breadcrumbs>
+
+<h1 class="govuk-heading-xl">Applications list</h1>
+
+<!-- Tabs -->
+<div class="govuk-tabs" data-module="govuk-tabs">
+  <h2 class="govuk-tabs__title">Contents</h2>
+
+  <ul class="govuk-tabs__list" role="tablist">
+    <!-- Applications tab -->
+    <li
+      class="govuk-tabs__list-item govuk-tabs__list-item--selected"
+      role="presentation"
+    >
+      <a
+        class="govuk-tabs__tab"
+        href="#applications"
+        id="tab_applications"
+        role="tab"
+        aria-controls="applications"
+        aria-selected="true"
+      >
+        Applications
+      </a>
+    </li>
+
+    <!-- List details tab -->
+    <li class="govuk-tabs__list-item" role="presentation">
+      <a
+        class="govuk-tabs__tab"
+        href="#list-details"
+        id="tab_list-details"
+        role="tab"
+        aria-controls="list-details"
+        aria-selected="false"
+      >
+        List details
+      </a>
+    </li>
+  </ul>
+
+  <!-- Applications panel -->
+  <div
+    class="govuk-tabs__panel"
+    id="applications"
+    role="tabpanel"
+    aria-labelledby="tab_applications"
+  >
+    <div class="app-header-row">
+      <h2 class="govuk-heading-l">Applications</h2>
+
+      <div class="govuk-button-group">
+        <button type="button" class="govuk-button">Create</button>
+        <button type="button" class="govuk-button govuk-button--secondary">
+          Bulk upload
+        </button>
+      </div>
+    </div>
+
+    <hr
+      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+    />
+
+    <!-- Sortable table component -->
+    <app-sortable-table caption="Lists" [columns]="columns">
+      <!-- actions slot -->
+      <ng-template #actionsTemplate let-row>
+        <div class="govuk-button-group">
+          <a class="govuk-button govuk-button--secondary"> Open </a>
+          <button type="button" class="govuk-button govuk-button--warning">
+            Delete
+          </button>
+        </div>
+      </ng-template>
+    </app-sortable-table>
+
+    <!-- Pager -->
+    <app-pagination
+      [currentPage]="currentPage"
+      [totalPages]="totalPages"
+      (pageChange)="onPageChange($event)"
+    ></app-pagination>
+  </div>
+
+  <!-- List details panel -->
+  <div
+    class="govuk-tabs__panel govuk-tabs__panel--hidden"
+    id="list-details"
+    role="tabpanel"
+    aria-labelledby="tab_list-details"
+  >
+    <h2 class="govuk-heading-l">List details</h2>
+
+    <hr
+      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+    />
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="govuk-grid-row">
+        <!-- Date -->
+        <app-date-input
+          formControlName="date"
+          label="Date"
+          hint="For example, 27 3 2007"
+          idPrefix="date"
+        ></app-date-input>
+
+        <!-- Time -->
+        <app-duration-input
+          formControlName="time"
+          label="Time"
+          hint="Enter the time in 24-hour format, for example 08:30"
+          idPrefix="time"
+        ></app-duration-input>
+
+        <!-- Description -->
+        <app-text-input
+          formControlName="description"
+          label="Description"
+          hint="A description of the application list"
+          idPrefix="description"
+        ></app-text-input>
+
+        <!-- Status -->
+        <app-select-input
+          formControlName="status"
+          label="Select status"
+          hint="The status of the application list"
+          idPrefix="status"
+          [options]="status"
+        ></app-select-input>
+      </div>
+
+      <div class="govuk-grid-row">
+        <!-- Court -->
+        <app-text-input
+          formControlName="court"
+          label="Court"
+          hint="A description of the court"
+          idPrefix="court"
+        ></app-text-input>
+
+        <!-- Other location -->
+        <app-text-input
+          formControlName="location"
+          label="Other location"
+          hint="Other location description"
+          idPrefix="location"
+        ></app-text-input>
+
+        <!-- CJA -->
+        <app-text-input
+          formControlName="cja"
+          label="CJA"
+          hint="Criminal justice area"
+          idPrefix="cja"
+        ></app-text-input>
+
+        <!-- Duration -->
+        <app-duration-input
+          name="duration"
+          label="Duration"
+          hint="Duration of the list"
+          idPrefix="duration"
+        ></app-duration-input>
+      </div>
+
+      <div class="govuk-button-group">
+        <button type="submit" class="govuk-button">Update</button>
+      </div>
+    </form>
+  </div>
+</div>
