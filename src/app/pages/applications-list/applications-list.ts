@@ -11,7 +11,7 @@ import {
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
-import { ApplicationListPage, ApplicationListsApi } from '../../../generated/openapi';
+import { ApplicationListsApi } from '../../../generated/openapi';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
   Duration,
