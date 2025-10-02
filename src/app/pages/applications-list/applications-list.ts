@@ -187,6 +187,7 @@ export class ApplicationsList implements OnInit {
         this.loginMsg = 'Signed in successfully. Not calling backend';
       },
     });
+    this.loadApplications();
   }
 
   onSubmit(event: SubmitEvent): void {
