@@ -3,7 +3,6 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
-import { ApplicationListsApi } from '../../../generated/openapi';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
   Duration,
@@ -63,10 +62,8 @@ export class ApplicationsList implements OnInit {
     { label: 'Closed', value: 'closed' },
   ];
 
-  constructor(private readonly listsApi: ApplicationListsApi) {}
-
   ngOnInit(): void {
-    this.loadApplicationsLists();
+
   }
 
   onSubmit(event: SubmitEvent): void {
@@ -91,6 +88,5 @@ export class ApplicationsList implements OnInit {
 
   onPageChange(page: number): void {
     this.currentPage = page;
-    this.loadApplicationsLists(); // fetch page `page`
   }
 }
