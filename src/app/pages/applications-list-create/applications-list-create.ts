@@ -95,8 +95,6 @@ export class ApplicationsListCreate implements OnInit {
     cja: null,
   };
 
-  offendingFields: FieldKey[] = [];
-  anyInvalid = false;
 
   // Reactive form backing the template
   form = new FormGroup(
@@ -182,9 +180,7 @@ export class ApplicationsListCreate implements OnInit {
 
     // Reset
     this.unpopField = [];
-    this.offendingFields = [];
     this.createInvalid = false;
-    this.anyInvalid = false;
     this.createDone = false;
     this.errorHint = '';
 
@@ -198,30 +194,6 @@ export class ApplicationsListCreate implements OnInit {
       location: formValues.location,
       cja: formValues.cja,
     });
-
-    // Is field valid if populated?
-    for (const k of Object.keys(this.invalidField) as FieldKey[]) {
-      const ctrl = this.form.controls[k];
-      const errs = ctrl.errors as Record<string, unknown> | null;
-      const key = `${k}Invalid`;
-
-      if (!errs) {
-        this.invalidField[k] = null;
-        continue;
-      }
-
-      this.invalidField[k] = key in errs || Object.keys(errs).length > 0;
-    }
-
-    this.offendingFields = (
-      Object.keys(this.invalidField) as FieldKey[]
-    ).filter((k) => this.invalidField[k] === true);
-
-    if (this.offendingFields.length) {
-      this.anyInvalid = true;
-      this.errorHint =
-        'Error - the following field/s are incorrectly formatted';
-    }
 
     // Prevent accidental submissions, button has to be clicked
     if (action === 'create') {

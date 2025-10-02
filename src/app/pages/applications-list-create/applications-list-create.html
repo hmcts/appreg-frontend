@@ -115,8 +115,7 @@
           Start typing to search the list
         </div>
 
-        <!-- Relative container for floating dropdown -->
-        <div style="position: relative">
+        <div class="app-autocomplete">
           <input
             class="govuk-input govuk-input--width-20"
             id="court"
@@ -128,37 +127,15 @@
             autocomplete="off"
           />
 
-          <!-- Floating autocomplete list -->
           @if (filteredCourthouses.length && courthouseSearch) {
-            <ul
-              class="govuk-list"
-              style="
-                position: absolute;
-                z-index: 10;
-                top: 100%;
-                left: 0;
-                right: 0;
-                background: white;
-                border: 1px solid #b1b4b6;
-                max-height: 200px;
-                overflow-y: auto;
-                margin-top: 2px;
-                padding: 0;
-                list-style: none;
-              "
-            >
+            <ul class="govuk-list app-autocomplete__menu">
               @for (courthouse of filteredCourthouses; track courthouse) {
                 <li>
                   <a
                     href="#"
+                    class="app-autocomplete__link"
                     (click)="
                       selectCourthouse(courthouse); $event.preventDefault()
-                    "
-                    style="
-                      display: block;
-                      padding: 8px;
-                      text-decoration: none;
-                      color: #0b0c0c;
                     "
                   >
                     {{ courthouse.name }}
@@ -188,8 +165,7 @@
         </div>
         <div id="cja-hint" class="govuk-hint">Criminal Justice Area</div>
 
-        <!-- Relative container for floating dropdown -->
-        <div style="position: relative">
+        <div class="app-autocomplete">
           <input
             class="govuk-input govuk-input--width-20"
             id="cja"
@@ -201,36 +177,14 @@
             autocomplete="off"
           />
 
-          <!-- Floating autocomplete list -->
           @if (filteredCja.length && cjaSearch) {
-            <ul
-              class="govuk-list"
-              style="
-                position: absolute;
-                z-index: 10;
-                top: 100%;
-                left: 0;
-                right: 0;
-                background: white;
-                border: 1px solid #b1b4b6;
-                max-height: 200px;
-                overflow-y: auto;
-                margin-top: 2px;
-                padding: 0;
-                list-style: none;
-              "
-            >
+            <ul class="govuk-list app-autocomplete__menu">
               @for (cja of filteredCja; track cja) {
                 <li>
                   <a
                     href="#"
+                    class="app-autocomplete__link"
                     (click)="selectCja(cja); $event.preventDefault()"
-                    style="
-                      display: block;
-                      padding: 8px;
-                      text-decoration: none;
-                      color: #0b0c0c;
-                    "
                   >
                     {{ cja.description }}
                   </a>
