@@ -9,6 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import nodejsLogging, { HmctsLogger } from '@hmcts/nodejs-logging';
 import { Subscription, filter } from 'rxjs';
 
 import { FooterComponent } from './shared/components/footer/footer.component';
@@ -17,6 +18,14 @@ import { ServiceNavigationComponent } from './shared/components/service-navigati
 
 type GovUkInitAll = (opts?: { scope?: HTMLElement }) => void;
 type GovUkGlobal = { GOVUKFrontend?: { initAll?: GovUkInitAll } };
+
+// ---- Logger -------------------------
+const { Logger } = nodejsLogging as unknown as {
+  Logger: { getLogger(name: string): HmctsLogger };
+};
+const logger: HmctsLogger = Logger.getLogger(
+  'hmcts applications register - sso routes',
+);
 
 /* ---------- MoJ Sortable Table helpers ---------- */
 type MojCtor = new (
@@ -41,18 +50,16 @@ function pickSortableCtor(mod: unknown): MojCtor | null {
 
 async function loadSortableCtor(): Promise<MojCtor | null> {
   try {
-    const mod = await import('@ministryofjustice/frontend');
-    const ctor = pickSortableCtor(mod);
-    if (ctor) {
-      return ctor;
-    }
-  } catch {
-    // ignore;
-  }
-  return null;
-}
+    // Keep the module as 'unknown' and let pickSortableCtor do the narrowing
+    const mod: unknown = await import('@ministryofjustice/frontend');
 
-/* --------------------------------------------------------------------------- */
+    const ctor: MojCtor | null = pickSortableCtor(mod);
+    return ctor ?? null; // explicit null fallback
+  } catch (err) {
+    logger?.error?.('Could not load @ministryofjustice/frontend module: ', err);
+    return null;
+  }
+}
 
 @Component({
   selector: 'app-root',

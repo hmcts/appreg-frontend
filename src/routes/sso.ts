@@ -5,6 +5,7 @@ import {
   ConfidentialClientApplication,
 } from '@azure/msal-node';
 import * as nodejsLogging from '@hmcts/nodejs-logging';
+import { HmctsLogger } from '@hmcts/nodejs-logging';
 import config from 'config';
 import cookieParser from 'cookie-parser';
 import express, { NextFunction, Request, Response } from 'express';
@@ -13,12 +14,6 @@ import session from 'express-session';
 import { v4 as uuid } from 'uuid';
 
 // ---- Logger (typed to avoid "unsafe" eslint rules) -------------------------
-type HmctsLogger = {
-  info(msg: string, ...meta: unknown[]): void;
-  warn(msg: string, ...meta: unknown[]): void;
-  error(msg: string | Error, ...meta: unknown[]): void;
-  debug?: (msg: string, ...meta: unknown[]) => void;
-};
 const { Logger } = nodejsLogging as unknown as {
   Logger: { getLogger(name: string): HmctsLogger };
 };
