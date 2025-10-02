@@ -33,9 +33,7 @@ export class DateTimeElement {
     }
   }
 
-  private static getInputFromLabel(
-    $label: JQuery<HTMLElement>,
-  ): Cypress.Chainable {
+  private static getInputFromLabel($label: JQuery): Cypress.Chainable {
     const forId = $label.attr('for');
     if (forId) {
       return cy.get(`#${forId}`);
