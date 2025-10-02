@@ -1,8 +1,12 @@
 import { Routes } from '@angular/router';
 
 import { sessionGuard } from './guards/session.guard';
+import { Applications } from './pages/applications/applications';
 import { ApplicationsList } from './pages/applications-list/applications-list';
+import { ApplicationsListDetail } from './pages/applications-list-detail/applications-list-detail';
 import { Login } from './pages/login/login';
+import { Reports } from './pages/reports/reports';
+import { StandardApplicants } from './pages/standard-applicants/standard-applicants';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -10,6 +14,26 @@ export const routes: Routes = [
   {
     path: 'applications-list',
     component: ApplicationsList,
+    canActivate: [sessionGuard],
+  },
+  {
+    path: 'applications-list/:id',
+    component: ApplicationsListDetail,
+    canActivate: [sessionGuard],
+  },
+  {
+    path: 'applications',
+    component: Applications,
+    canActivate: [sessionGuard],
+  },
+  {
+    path: 'standard-applicants',
+    component: StandardApplicants,
+    canActivate: [sessionGuard],
+  },
+  {
+    path: 'reports',
+    component: Reports,
     canActivate: [sessionGuard],
   },
   { path: '**', redirectTo: 'login' },

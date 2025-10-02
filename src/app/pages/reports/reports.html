@@ -1,0 +1,65 @@
+<h1 class="govuk-heading-xl">Reports</h1>
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
+
+<form class="govuk-form-group" [formGroup]="form">
+  <app-report-selector
+    [options]="reportOptions"
+    legend="Select the report you wish to download?"
+    formControlName="report"
+  >
+  </app-report-selector>
+</form>
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
+
+<!-- Report title -->
+@switch (form.get('report')?.value) {
+  <!-- Activity audit section -->
+  @case ('activity-audit') {
+    <app-activity-audit-section
+      [group]="activityAuditGroup"
+    ></app-activity-audit-section>
+  }
+  <!-- Fees section -->
+  @case ('fees') {
+    <app-fees-section [group]="feesGroup"></app-fees-section>
+  }
+  <!-- List maintenance section -->
+  @case ('list-maintenance') {
+    <app-list-maintenance-section
+      [group]="listMaintenanceGroup"
+    ></app-list-maintenance-section>
+  }
+  <!-- Search warrants section -->
+  @case ('search-warrants') {
+    <app-search-warrants-section
+      [group]="searchWarrantsGroup"
+    ></app-search-warrants-section>
+  }
+  <!-- Standard applicants section -->
+  @case ('workload') {
+    <app-workload-section [group]="workloadGroup"></app-workload-section>
+  }
+  <!-- Duration section -->
+  @case ('duration') {
+    <app-duration-section [group]="durationGroup"></app-duration-section>
+  }
+  <!-- Private prosecutors index section -->
+  @case ('private-prosecutors-index') {
+    <app-private-prosecutors-index-section
+      [group]="ppiGroup"
+    ></app-private-prosecutors-index-section>
+  }
+}
+
+<!-- Download button -->
+@if (form.get('report')?.value) {
+  <div class="govuk-button-group">
+    <button type="button" class="govuk-button">Download</button>
+  </div>
+}

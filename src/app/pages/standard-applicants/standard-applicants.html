@@ -1,0 +1,61 @@
+<h1 class="govuk-heading-xl">Standard applications</h1>
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
+
+<form [formGroup]="form" (ngSubmit)="onSubmit($event)">
+  <div class="govuk-grid-row">
+    <app-text-input
+      formControlName="code"
+      label="Code"
+      hint="Application code"
+      idPrefix="code"
+    >
+    </app-text-input>
+
+    <app-text-input
+      formControlName="name"
+      label="Applicant"
+      hint="Standard applicant name"
+      idPrefix="name"
+    >
+    </app-text-input>
+  </div>
+
+  <div class="govuk-button-group">
+    <button type="submit" class="govuk-button" value="search">Search</button>
+    <button type="button" class="govuk-button govuk-button--secondary">
+      Export
+    </button>
+  </div>
+</form>
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
+
+<!-- Sortable table component -->
+<app-sortable-table caption="Lists" [columns]="columns">
+  <!-- actions slot -->
+  <ng-template #actionsTemplate let-row>
+    <div class="govuk-button-group">
+      <a
+        [routerLink]="['/standard-applicants', row.id]"
+        class="govuk-button govuk-button--secondary"
+      >
+        View
+      </a>
+      <button type="button" class="govuk-button govuk-button--warning">
+        Download
+      </button>
+    </div>
+  </ng-template>
+</app-sortable-table>
+
+<!-- Pager -->
+<app-pagination
+  [currentPage]="currentPage"
+  [totalPages]="totalPages"
+  (pageChange)="onPageChange($event)"
+></app-pagination>
