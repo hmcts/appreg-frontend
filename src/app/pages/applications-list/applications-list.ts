@@ -1,13 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject, Input, OnInit, PLATFORM_ID, TransferState } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
-import {
-  Component,
-  HostListener,
-  Inject,
-  OnInit,
-  PLATFORM_ID,
-} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
@@ -18,43 +10,8 @@ import {
 } from '../../shared/components/duration-input/duration-input.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
-import {
-  SortableTableComponent,
-  TableColumn,
-} from '../../shared/components/sortable-table/sortable-table.component';
+import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
-
-type ApplicationListRow = {
-  id: number;
-  date: string;
-  time: string;
-  location: string;
-  description: string;
-  entries: number;
-  status: 'Open' | 'Closed';
-};
-
-interface MojInitEl extends HTMLElement {
-  __mojInit?: boolean;
-}
-
-interface MojInitEl extends HTMLElement {
-  __mojInit?: boolean;
-}
-
-type ApplicationListRow = {
-  id: number;
-  date: string;
-  time: string;
-  location: string;
-  description: string;
-  entries: number;
-  status: 'Open' | 'Closed';
-};
-
-interface MojInitEl extends HTMLElement {
-  __mojInit?: boolean;
-}
 
 @Component({
   selector: 'app-applications-list',
@@ -97,6 +54,14 @@ export class ApplicationsList implements OnInit {
     { header: 'Entries', field: 'entries', sortable: true, numeric: true },
     { header: 'Status', field: 'status', sortable: true },
     { header: 'Actions', field: 'actions' },
+  columns = [
+    { header: 'Date', field: 'date', sortable: true },
+    { header: 'Time', field: 'time', sortable: true },
+    { header: 'Location', field: 'location', sortable: true },
+    { header: 'Description', field: 'description', sortable: true },
+    { header: 'Entries', field: 'entries', sortable: true, numeric: true },
+    { header: 'Status', field: 'status', sortable: true },
+    { header: 'Actions', field: 'actions' },
   ];
 
   status = [
@@ -105,9 +70,7 @@ export class ApplicationsList implements OnInit {
     { label: 'Closed', value: 'closed' },
   ];
 
-  ngOnInit(): void {
-
-  }
+  ngOnInit(): void {}
 
   onSubmit(event: SubmitEvent): void {
     event.preventDefault();
@@ -121,6 +84,8 @@ export class ApplicationsList implements OnInit {
     }
   }
 
+  loadApplications(): void {
+    // TODO: fetch and map the current page of lists into `tableRows`
   loadApplications(): void {
     // TODO: fetch and map the current page of lists into `tableRows`
   }
