@@ -36,11 +36,14 @@ export class SearchBoxComponent {
   @Output() submitted = new EventEmitter<string>();
   @Output() valueChange = new EventEmitter<string>();
 
+  // Monotonic counter shared by all instances
+  private static nextId = 0;
+
   /** Internal form */
   readonly form: FormGroup<{ search: FormControl<string> }>;
 
   /** Unique id so multiple instances don’t collide */
-  private readonly uid = `search-${Math.random().toString(36).slice(2, 9)}`;
+  private readonly uid = `search-${++SearchBoxComponent.nextId}`;
   get computedId(): string {
     return this.inputId ?? this.uid;
   }
