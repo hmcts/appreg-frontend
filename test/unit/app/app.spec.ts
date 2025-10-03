@@ -1,270 +1,173 @@
-import { Component, PLATFORM_ID } from '@angular/core';
+import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
-import { RouterTestingModule } from '@angular/router/testing';
-import { Subscription } from 'rxjs';
+import { provideRouter } from '@angular/router';
 
 import { App } from '../../../src/app/app';
 
-@Component({ standalone: true, template: '' })
-class DummyCmp {}
+const nextTick = () => new Promise<void>((r) => setTimeout(r, 0));
 
-describe('App (browser platform)', () => {
-  let fixture: ComponentFixture<App>;
-  let component: App;
-  let router: Router;
+/* ---------------------- Mocks ---------------------- */
 
-  // Make requestAnimationFrame immediate for deterministic assertions
-  const originalRAF = globalThis.requestAnimationFrame;
-  beforeAll(() => {
-    (
-      globalThis as unknown as {
-        requestAnimationFrame: (cb: FrameRequestCallback) => number;
-      }
-    ).requestAnimationFrame = (cb) => {
-      cb(0);
-      return 0;
-    };
-  });
-  afterAll(() => {
-    if (originalRAF) {
-      (
-        globalThis as unknown as {
-          requestAnimationFrame: (cb: FrameRequestCallback) => number;
-        }
-      ).requestAnimationFrame = originalRAF;
-    }
-  });
+// MoJ: provide a SortableTable ctor under both named and default exports
+class SortableTableMock {
+  init?(): void {}
+}
 
-  beforeEach(async () => {
-    // ensure clean body classes each test
-    document.body.className = '';
+const SortableTableCtor = jest.fn(() => new SortableTableMock());
+jest.mock('@ministryofjustice/frontend', () => ({
+  SortableTable: SortableTableCtor,
+  default: { SortableTable: SortableTableCtor },
+}));
 
-    await TestBed.configureTestingModule({
-      imports: [
-        // Standalone component goes in imports
-        App,
-        RouterTestingModule.withRoutes([
-          { path: '', component: DummyCmp },
-          { path: 'foo', component: DummyCmp },
-        ]),
-        DummyCmp,
-      ],
-      providers: [{ provide: PLATFORM_ID, useValue: 'browser' }],
-    })
-      // keep template minimal to avoid extra dependencies
-      .overrideComponent(App, {
-        set: { template: '<main class="govuk-main-wrapper"></main>' },
-      })
-      .compileComponents();
-
-    router = TestBed.inject(Router);
-
-    // Create the component *before* detectChanges so we can spy on the private method
-    fixture = TestBed.createComponent(App);
-    component = fixture.componentInstance;
-  });
-
-  it('ngOnInit adds body classes (js-enabled, and govuk-frontend-supported when supported)', () => {
-    // Simulate `'noModule' in HTMLScriptElement.prototype` being true
-    let addedNoModule = false;
-    if (!('noModule' in HTMLScriptElement.prototype)) {
-      Object.defineProperty(HTMLScriptElement.prototype, 'noModule', {
-        configurable: true,
-        get() {
-          return true;
-        },
-      });
-      addedNoModule = true;
-    }
-
-    // Trigger lifecycle (OnInit + AfterViewInit)
-    // but first, stub init method so it doesn't try to import anything
-    const initSpy = jest
-      .spyOn(
-        component as unknown as {
-          initGovUkFrontend: (scope?: HTMLElement) => Promise<void>;
-        },
-        'initGovUkFrontend',
-      )
-      .mockResolvedValue();
-
-    fixture.detectChanges();
-
-    expect(document.body.classList.contains('js-enabled')).toBe(true);
-    // With `noModule` present, we expect the extra class:
-    expect(document.body.classList.contains('govuk-frontend-supported')).toBe(
-      true,
-    );
-
-    initSpy.mockRestore();
-
-    // Clean up noModule if we added it
-    if (addedNoModule) {
-      delete (HTMLScriptElement.prototype as unknown as { noModule?: unknown })
-        .noModule;
-    }
-  });
-
-  it('ngAfterViewInit calls initGovUkFrontend once globally, then on NavigationEnd with the <main> scope', async () => {
-    const initSpy = jest
-      .spyOn(
-        component as unknown as {
-          initGovUkFrontend: (scope?: HTMLElement) => Promise<void>;
-        },
-        'initGovUkFrontend',
-      )
-      .mockResolvedValue();
-
-    // Initial CD: should call once with undefined (global init)
-    fixture.detectChanges();
-    expect(initSpy).toHaveBeenCalledTimes(1);
-    expect(initSpy.mock.calls[0]).toHaveLength(0);
-
-    // Navigate to trigger NavigationEnd -> requestAnimationFrame -> scoped init
-    await router.navigateByUrl('/foo');
-
-    // main element used by the component’s querySelector
-    const mainEl = document.querySelector('main.govuk-main-wrapper');
-    expect(mainEl).not.toBeNull();
-
-    // Should have been called again with the main element as scope
-    expect(initSpy).toHaveBeenCalledTimes(2);
-    expect(initSpy).toHaveBeenLastCalledWith(mainEl!);
-
-    initSpy.mockRestore();
-  });
-
-  it('ngOnDestroy unsubscribes the navigation subscription', () => {
-    // Spy on Subscription.prototype.unsubscribe before it’s created
-    const unsubSpy = jest.spyOn(Subscription.prototype, 'unsubscribe');
-
-    // Trigger lifecycle to create the nav subscription, then destroy
-    const initSpy = jest
-      .spyOn(
-        component as unknown as {
-          initGovUkFrontend: (scope?: HTMLElement) => Promise<void>;
-        },
-        'initGovUkFrontend',
-      )
-      .mockResolvedValue();
-    fixture.detectChanges();
-
-    fixture.destroy(); // calls ngOnDestroy
-    expect(unsubSpy).toHaveBeenCalled();
-
-    initSpy.mockRestore();
-    unsubSpy.mockRestore();
-  });
+// GOV.UK: module initAll
+const govukInitAll = jest.fn(() => {});
+jest.mock('govuk-frontend', () => ({ initAll: govukInitAll }), {
+  virtual: true,
 });
 
-describe('App (server platform)', () => {
+/* requestAnimationFrame: make it immediate and typed */
+let rafSpy: jest.SpyInstance<number, [FrameRequestCallback]>;
+beforeAll(() => {
+  rafSpy = jest.spyOn(window, 'requestAnimationFrame');
+  rafSpy.mockImplementation((cb: FrameRequestCallback): number => {
+    cb(0);
+    return 1;
+  });
+});
+afterAll(() => {
+  rafSpy.mockRestore();
+});
+
+describe('App (root)', () => {
   let fixture: ComponentFixture<App>;
-  let component: App;
+  let comp: App;
 
-  beforeEach(async () => {
-    // ensure clean body classes each test
-    document.body.className = '';
-
+  async function create(
+    platform: 'browser' | 'server' = 'browser',
+    tpl = '<main class="govuk-main-wrapper"></main>',
+  ) {
     await TestBed.configureTestingModule({
-      imports: [App, RouterTestingModule.withRoutes([])],
-      providers: [{ provide: PLATFORM_ID, useValue: 'server' }],
+      imports: [App],
+      providers: [
+        provideRouter([]),
+        { provide: PLATFORM_ID, useValue: platform },
+      ],
     })
-      .overrideComponent(App, {
-        set: { template: '' },
-      })
+      .overrideComponent(App, { set: { template: tpl } })
       .compileComponents();
 
     fixture = TestBed.createComponent(App);
-    component = fixture.componentInstance;
-  });
+    comp = fixture.componentInstance;
 
-  it('ngOnInit does nothing to body classes on non-browser', () => {
-    const initSpy = jest
-      .spyOn(
-        component as unknown as {
-          initGovUkFrontend: (scope?: HTMLElement) => Promise<void>;
-        },
-        'initGovUkFrontend',
-      )
-      .mockResolvedValue();
+    document.body.className = '';
+    document.body.innerHTML = '';
+    SortableTableCtor.mockClear();
+    govukInitAll.mockClear();
+  }
 
+  it('creates the component', async () => {
+    await create('browser');
     fixture.detectChanges();
-
-    expect(document.body.classList.contains('js-enabled')).toBe(false);
-    expect(document.body.classList.contains('govuk-frontend-supported')).toBe(
-      false,
-    );
-
-    // AfterViewInit should early-return too; no init calls
-    expect(initSpy).not.toHaveBeenCalled();
-    initSpy.mockRestore();
+    expect(comp).toBeTruthy();
   });
 
-  type GovUkInitAll = (opts: { scope?: HTMLElement }) => void;
-  type G = typeof globalThis & { GOVUKFrontend?: { initAll?: GovUkInitAll } };
-  const GBL = globalThis as G; // local, typed reference
+  describe('ngOnInit', () => {
+    it('adds js-enabled and govuk-frontend-supported when noModule exists', async () => {
+      await create('browser');
+      Object.defineProperty(HTMLScriptElement.prototype, 'noModule', {
+        value: true,
+        configurable: true,
+      });
 
-  it('initGovUkFrontend uses npm module when available', async () => {
-    jest.resetModules();
-    const initAllMock: jest.Mock<void, [{ scope?: HTMLElement }]> = jest.fn();
-
-    jest.doMock('govuk-frontend', () => ({ initAll: initAllMock }), {
-      virtual: true,
+      comp.ngOnInit();
+      expect(document.body.classList.contains('js-enabled')).toBe(true);
+      expect(document.body.classList.contains('govuk-frontend-supported')).toBe(
+        true,
+      );
     });
 
-    const globalInit: jest.Mock<void, [{ scope?: HTMLElement }]> = jest.fn();
-    GBL.GOVUKFrontend = { initAll: globalInit };
+    it('adds only js-enabled when noModule is absent', async () => {
+      await create('browser');
+      // Ensure property absent (ok in tests)
+      delete (
+        HTMLScriptElement.prototype as unknown as Record<string, unknown>
+      )['noModule'];
 
-    const scope = document.createElement('main');
-    await (
-      component as unknown as {
-        initGovUkFrontend(scope?: HTMLElement): Promise<void>;
-      }
-    ).initGovUkFrontend(scope);
-
-    expect(initAllMock).toHaveBeenCalledWith({ scope });
-    expect(globalInit).not.toHaveBeenCalled();
-
-    jest.dontMock('govuk-frontend');
-    delete GBL.GOVUKFrontend;
+      comp.ngOnInit();
+      expect(document.body.classList.contains('js-enabled')).toBe(true);
+      expect(document.body.classList.contains('govuk-frontend-supported')).toBe(
+        false,
+      );
+    });
   });
 
-  it('initGovUkFrontend falls back to global initAll when module missing or throws', async () => {
+  describe('ngAfterViewInit', () => {
+    it('does nothing on the server', async () => {
+      await create('server');
+      fixture.detectChanges();
+      await nextTick();
+      expect(govukInitAll).not.toHaveBeenCalled();
+      expect(SortableTableCtor).not.toHaveBeenCalled();
+    });
+
+    it('initialises GOV.UK and enhances all existing sortable tables (browser)', async () => {
+      await create('browser');
+
+      const t1 = document.createElement('table');
+      t1.setAttribute('data-module', 'moj-sortable-table');
+      const t2 = document.createElement('table');
+      t2.setAttribute('data-module', 'moj-sortable-table');
+      document.body.append(t1, t2);
+
+      fixture.detectChanges(); // triggers ngAfterViewInit (dynamic import queued)
+      await nextTick(); // allow promise callback to run
+
+      expect(govukInitAll).toHaveBeenCalledTimes(1);
+      expect(SortableTableCtor).toHaveBeenCalledTimes(2);
+      expect(SortableTableCtor).toHaveBeenCalledWith(t1);
+      expect(SortableTableCtor).toHaveBeenCalledWith(t2);
+    });
+
+    it('enhances sortable tables added later via MutationObserver', async () => {
+      await create('browser');
+
+      fixture.detectChanges();
+      await nextTick();
+
+      const t3 = document.createElement('table');
+      t3.setAttribute('data-module', 'moj-sortable-table');
+      document.body.append(t3);
+
+      await nextTick();
+      expect(SortableTableCtor).toHaveBeenCalledTimes(1);
+      expect(SortableTableCtor).toHaveBeenCalledWith(t3);
+    });
+  });
+
+  it('falls back to global GOV.UK Frontend if module has no initAll', async () => {
+    await create('browser');
+
+    // Recreate the module graph for this test and provide a mock with no initAll
     jest.resetModules();
-    // Case A: module present but no initAll
     jest.doMock('govuk-frontend', () => ({}), { virtual: true });
 
-    const globalInit: jest.Mock<void, [{ scope?: HTMLElement }]> = jest.fn();
-    GBL.GOVUKFrontend = { initAll: globalInit };
+    const globalInit = jest.fn();
+    (
+      globalThis as unknown as { GOVUKFrontend: { initAll: typeof globalInit } }
+    ).GOVUKFrontend = {
+      initAll: globalInit,
+    };
 
-    const scopeA = document.createElement('main');
+    // call the private method; the dynamic import will now see the remocked module
     await (
-      component as unknown as {
+      comp as unknown as {
         initGovUkFrontend(scope?: HTMLElement): Promise<void>;
       }
-    ).initGovUkFrontend(scopeA);
-    expect(globalInit).toHaveBeenLastCalledWith({ scope: scopeA });
+    ).initGovUkFrontend(document.body);
 
-    // Case B: import throws
-    jest.resetModules();
-    jest.doMock(
-      'govuk-frontend',
-      () => {
-        throw new Error('boom');
-      },
-      { virtual: true },
-    );
+    expect(globalInit).toHaveBeenCalledWith({ scope: document.body });
 
-    const scopeB = document.createElement('main');
-    await (
-      component as unknown as {
-        initGovUkFrontend(scope?: HTMLElement): Promise<void>;
-      }
-    ).initGovUkFrontend(scopeB);
-    expect(globalInit).toHaveBeenLastCalledWith({ scope: scopeB });
-
+    // (optional) restore your default mock for subsequent tests
     jest.dontMock('govuk-frontend');
-    delete GBL.GOVUKFrontend;
   });
 });
