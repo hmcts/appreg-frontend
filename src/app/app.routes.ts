@@ -6,6 +6,7 @@ import { ApplicationsList } from './pages/applications-list/applications-list';
 import { ApplicationsListDetail } from './pages/applications-list-detail/applications-list-detail';
 import { Login } from './pages/login/login';
 import { Reports } from './pages/reports/reports';
+import { ResultSelected } from './pages/result-selected/result-selected';
 import { StandardApplicants } from './pages/standard-applicants/standard-applicants';
 
 export const routes: Routes = [
@@ -19,6 +20,11 @@ export const routes: Routes = [
   {
     path: 'applications-list/:id',
     component: ApplicationsListDetail,
+    canActivate: [sessionGuard],
+  },
+  {
+    path: 'result-selected/:id',
+    component: ResultSelected,
     canActivate: [sessionGuard],
   },
   {
