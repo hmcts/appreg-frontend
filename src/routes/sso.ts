@@ -36,6 +36,11 @@ const clientId = config.get<string>('secrets.appreg.azure-app-id-fe');
 const clientSecret = config.get<string>(
   'secrets.appreg.azure-client-secret-fe',
 );
+const tenantId = config.get<string>('secrets.appreg.azure-tenant-id-fe');
+const clientId = config.get<string>('secrets.appreg.azure-app-id-fe');
+const clientSecret = config.get<string>(
+  'secrets.appreg.azure-client-secret-fe',
+);
 const redirectUri = config.get<string>('auth.redirectUri');
 const scopes = config.get<string[]>('auth.scopes');
 const postLogoutRedirectUri = config.get<string>('auth.postLogoutRedirectUri');
