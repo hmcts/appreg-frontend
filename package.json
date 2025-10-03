@@ -59,7 +59,6 @@
     "@hmcts/properties-volume": "^1.2.0",
     "@ministryofjustice/frontend": "^5.2.1",
     "@nguniversal/express-engine": "^16.2.0",
-    "@types/helmet": "^4.0.0",
     "@types/lodash": "^4.14.197",
     "applicationinsights": "^2.7.0",
     "config": "^4.1.0",
