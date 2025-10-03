@@ -1,3 +1,5 @@
+import { CommonModule } from '@angular/common';
+import { Component, Inject, Input, OnInit, PLATFORM_ID, TransferState } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   Component,
@@ -78,6 +80,8 @@ export class ApplicationsList implements OnInit {
     private readonly state: TransferState,
     private readonly cjaApi: CriminalJusticeAreasApi,
     private readonly courtLocationApi: CourtLocationsApi,
+    private readonly listsApi: ApplicationListsApi,
+    @Inject(PLATFORM_ID) private readonly platformId: object
   ) {}
 
   // Loaded lists
@@ -123,14 +127,14 @@ export class ApplicationsList implements OnInit {
   currentPage = 1;
   totalPages = 5;
 
-  columns = [
-    { header: 'Date', field: 'date', sortable: true },
-    { header: 'Time', field: 'time', sortable: true },
-    { header: 'Location', field: 'location', sortable: true },
-    { header: 'Description', field: 'description', sortable: true },
-    { header: 'Entries', field: 'entries', sortable: true, numeric: true },
-    { header: 'Status', field: 'status', sortable: true },
-    { header: 'Actions', field: 'actions' },
+  columns: TableColumn[] = [
+    { header: 'Date', field: 'date' },
+    { header: 'Time', field: 'time' },
+    { header: 'Location', field: 'location' },
+    { header: 'Description', field: 'description' },
+    { header: 'Entries', field: 'entries', numeric: true },
+    { header: 'Status', field: 'status' },
+    { header: 'Actions', field: 'actions', sortable: false },
   ];
 
   status = [
@@ -138,6 +142,8 @@ export class ApplicationsList implements OnInit {
     { label: 'Open', value: 'open' },
     { label: 'Closed', value: 'closed' },
   ];
+
+  rows: ApplicationListRow[] = [];
 
   ngOnInit(): void {
     // TODO: Use cache where possible
@@ -378,7 +384,84 @@ export class ApplicationsList implements OnInit {
         status: 'Open',
       },
     ];
+  loadApplicationsLists(): void {
+    // Hard-coded sample data for now
+    this.rows = [
+      {
+        id: 101,
+        date: '2025-09-29',
+        time: '09:30',
+        location: 'Birmingham',
+        description: 'Morning list',
+        entries: 12,
+        status: 'Open',
+      },
+      {
+        id: 102,
+        date: '2025-09-29',
+        time: '13:45',
+        location: 'Birmingham',
+        description: 'Afternoon list',
+        entries: 8,
+        status: 'Closed',
+      },
+      {
+        id: 103,
+        date: '2025-09-30',
+        time: '10:00',
+        location: 'Manchester',
+        description: 'Applications block',
+        entries: 16,
+        status: 'Open',
+      },
+      {
+        id: 104,
+        date: '2025-09-30',
+        time: '14:15',
+        location: 'Manchester',
+        description: 'Enforcement',
+        entries: 5,
+        status: 'Closed',
+      },
+      {
+        id: 105,
+        date: '2025-10-01',
+        time: '09:00',
+        location: 'Bristol',
+        description: 'Housing list',
+        entries: 20,
+        status: 'Open',
+      },
+      {
+        id: 106,
+        date: '2025-10-01',
+        time: '11:30',
+        location: 'Bristol',
+        description: 'Small claims',
+        entries: 9,
+        status: 'Open',
+      },
+      {
+        id: 107,
+        date: '2025-10-02',
+        time: '10:45',
+        location: 'Leeds',
+        description: 'Family applications',
+        entries: 14,
+        status: 'Closed',
+      },
+      {
+        id: 108,
+        date: '2025-10-02',
+        time: '15:00',
+        location: 'Leeds',
+        description: 'Costs review',
+        entries: 6,
+        status: 'Open',
+      },
+    ]
   }
+}
 
   onDelete(id: number): void {
     this._id = id;
