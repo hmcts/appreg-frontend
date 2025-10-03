@@ -91,7 +91,9 @@ export class ApplicationsList implements OnInit {
 
   constructor(@Inject(PLATFORM_ID) private readonly platformId: object) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.loadApplicationsLists();
+  }
 
   ngAfterViewInit(): void {
     if (!isPlatformBrowser(this.platformId)) {
