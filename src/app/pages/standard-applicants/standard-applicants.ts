@@ -34,12 +34,12 @@ export class StandardApplicants {
   });
 
   columns = [
-    { header: 'Code', field: 'code', sortable: true, numeric: true },
-    { header: 'Name', field: 'name', sortable: true },
-    { header: 'Address line 1', field: 'address', sortable: true },
-    { header: 'Use from', field: 'useFrom', sortable: true },
-    { header: 'Use to', field: 'useTo', sortable: true },
-    { header: 'Actions', field: 'actions' },
+    { header: 'Code', field: 'code', numeric: true },
+    { header: 'Name', field: 'name' },
+    { header: 'Address line 1', field: 'address' },
+    { header: 'Use from', field: 'useFrom' },
+    { header: 'Use to', field: 'useTo' },
+    { header: 'Actions', field: 'actions', sortable: false },
   ];
 
   onSubmit(event: SubmitEvent): void {

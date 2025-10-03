@@ -67,15 +67,15 @@ export class ApplicationsListDetail implements AfterViewInit {
   });
 
   columns = [
-    { header: 'Sequence number', field: 'sequenceNumber', sortable: true },
-    { header: 'Account number', field: 'accountNumber', sortable: true },
-    { header: 'Applicant', field: 'applicant', sortable: true },
-    { header: 'Respondent', field: 'respondent', sortable: true },
-    { header: 'Post code', field: 'postCode', sortable: true, numeric: true },
-    { header: 'Title', field: 'title', sortable: true },
-    { header: 'Fee req', field: 'feeReq', sortable: true },
-    { header: 'Resulted', field: 'resulted', sortable: true },
-    { header: 'Actions', field: 'actions' },
+    { header: 'Sequence number', field: 'sequenceNumber' },
+    { header: 'Account number', field: 'accountNumber' },
+    { header: 'Applicant', field: 'applicant' },
+    { header: 'Respondent', field: 'respondent' },
+    { header: 'Post code', field: 'postCode' },
+    { header: 'Title', field: 'title' },
+    { header: 'Fee req', field: 'feeReq' },
+    { header: 'Resulted', field: 'resulted' },
+    { header: 'Actions', field: 'actions', sortable: false },
   ];
 
   ngAfterViewInit(): void {}
