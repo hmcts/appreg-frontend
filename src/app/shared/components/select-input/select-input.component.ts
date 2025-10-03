@@ -41,6 +41,8 @@ export class SelectInputComponent implements ControlValueAccessor {
   /** Disabled state (set via CVA) */
   disabled = false;
 
+  @Input() submitted = false;
+
   private onTouched: () => void = () => {};
   private onChange: (v: string | null) => void = () => {};
 
@@ -64,6 +66,14 @@ export class SelectInputComponent implements ControlValueAccessor {
     const val = (e.target as HTMLSelectElement).value;
     this.value = val;
     this.onChange(val);
+    this.onTouched();
+  }
+  handleChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value ?? '';
+    this.value = value;
+    this.onChange(value === '' || value === 'choose' ? null : value);
+  }
+  handleBlur(): void {
     this.onTouched();
   }
 }

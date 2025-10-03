@@ -1,5 +1,10 @@
 <div class="govuk-grid-column-one-quarter">
-  <div class="govuk-form-group">
+  <div
+    class="govuk-form-group"
+    [ngClass]="{
+      'govuk-form-group--error': submitted && !value?.toString()?.trim(),
+    }"
+  >
     @if (label) {
       <div class="govuk-label-wrapper">
         <label class="govuk-label govuk-label--m" [for]="idPrefix">
@@ -14,13 +19,29 @@
       </div>
     }
 
+    @if (submitted && !value?.toString()?.trim()) {
+      <p [id]="idPrefix + '-error'" class="govuk-error-message">
+        <span class="govuk-visually-hidden">Error:</span>
+        {{ label || 'This field' }} is required
+      </p>
+    }
+
     <input
       class="govuk-input"
-      [ngClass]="widthClass"
+      [ngClass]="[
+        widthClass,
+        submitted && !value?.toString()?.trim() ? 'govuk-input--error' : '',
+      ]"
       [id]="idPrefix"
       [name]="idPrefix"
       type="text"
-      [attr.aria-describedby]="hint ? idPrefix + '-hint' : null"
+      [attr.aria-describedby]="
+        (
+          (hint ? idPrefix + '-hint' : '') +
+          ' ' +
+          (submitted && !value?.toString()?.trim() ? idPrefix + '-error' : '')
+        ).trim()
+      "
       [value]="value"
       (input)="onInput($event)"
       [disabled]="disabled"
@@ -29,8 +50,8 @@
 
     @if (listId) {
       <datalist [id]="listId">
-        @for (s of suggestions; track s.value) {
-          <option [value]="s.value">{{ s.label || s.value }}</option>
+        @for (s of suggestions; track s?.value ?? s) {
+          <option [value]="s?.value ?? s">{{ s?.label ?? s }}</option>
         }
       </datalist>
     }

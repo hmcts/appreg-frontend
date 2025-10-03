@@ -41,6 +41,8 @@ export class TextInputComponent implements ControlValueAccessor {
     label?: string;
     [key: string]: unknown;
   }[] = [];
+  @Input() submitted = false;
+  @Input() suppressError = false;
 
   @Output() typed = new EventEmitter<string>();
 

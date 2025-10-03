@@ -35,12 +35,12 @@ export interface Duration {
   ],
 })
 export class DurationInputComponent implements ControlValueAccessor, Validator {
-  @Input() label = 'Duration';
-  @Input() hint = '';
-  @Input() idPrefix = 'duration';
+  @Input() idPrefix!: string;
+  @Input() label?: string;
+  @Input() hint?: string;
+  @Input() disabled = false;
   @Input() submitted = false;
-
-  disabled = false;
+  @Input() required = true;
 
   // single source of truth: numbers
   hours: number | null = null;
@@ -75,12 +75,25 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
     this.onValidatorChange = fn;
   }
 
+  private isBlank(v: unknown): boolean {
+    return v === null || v === undefined || v === '';
+  }
+
   private computeErrors(): ValidationErrors | null {
     const h = this.hours,
       m = this.minutes;
+
+    if (this.required && this.isBlank(h) && this.isBlank(m)) {
+      return { requiredParts: true };
+    }
+
+    if (this.required && (this.isBlank(h) || this.isBlank(m))) {
+      return { requiredParts: true };
+    }
+
     if (h === null && m === null) {
       return null;
-    } // optional when both empty
+    }
     if (h === null || m === null) {
       return { requiredParts: true };
     }
@@ -93,9 +106,14 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
     return null;
   }
 
-  get showErrors(): boolean {
-    return !!this.computeErrors() && this.submitted;
+  get displayErrors(): boolean {
+    return this.submitted && this.showErrors;
   }
+
+  get showErrors(): boolean {
+    return this.submitted && !!this.computeErrors();
+  }
+
   get errorText(): string {
     const e = this.computeErrors();
     if (!e) {

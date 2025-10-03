@@ -124,3 +124,14 @@
   text-decoration: underline;
   background: #f3f2f1;
 }
+
+.app-date-tight .govuk-date-input {
+  display: flex;
+  flex-wrap: nowrap;
+}
+.app-date-tight.govuk-grid-column-one-quarter {
+  padding-left: 10;
+}
+.app-date-tight .govuk-error-message {
+  margin-bottom: 8px;
+}

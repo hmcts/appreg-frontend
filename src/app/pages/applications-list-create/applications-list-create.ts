@@ -26,6 +26,7 @@ import {
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 
+type UnpopItem = string | { id: string; text: string };
 type FieldKey =
   | 'date'
   | 'time'
@@ -70,9 +71,10 @@ export class ApplicationsListCreate implements OnInit {
   courthouseSearch = '';
 
   // Create: Store unpopulated fields
-  unpopField: string[] = [];
+  unpopField: UnpopItem[] = [];
   createInvalid: boolean = false;
   createDone: boolean = false;
+  @Input() submitted = false;
 
   errorHint: string = ''; // Page hint when error occurs
 
@@ -170,6 +172,7 @@ export class ApplicationsListCreate implements OnInit {
     event.preventDefault();
     const btn = event.submitter as HTMLButtonElement | null;
     const action = btn?.value ?? '';
+    this.submitted = true;
 
     // Reset
     this.unpopField = [];
@@ -193,46 +196,46 @@ export class ApplicationsListCreate implements OnInit {
       const value = this.form.value as Record<FieldKey, unknown>;
       const has = (x: unknown) =>
         x !== null && x !== undefined && x !== '' && x !== 'choose'; // Conditions for unpopulated
+      const push = (id: string, text: string) =>
+        this.unpopField.push({ id, text });
       const court = has(value.court);
       const loc = has(value.location);
       const cja = has(value.cja);
 
-      let mutex = false; // Court XOR (Location & CJA)
-
       // Record unpopulated required fields
-      (['date', 'time', 'description', 'status'] as const).forEach((k) => {
-        if (!has(value[k])) {
-          this.unpopField.push(k);
-        }
-      });
-
-      if (court && (loc || cja)) {
-        mutex = true;
-        this.createInvalid = true;
+      if (!has(value.date)) {
+        push('date-day', 'Enter day, month and year');
+      }
+      if (!has(value.time)) {
+        push('time', 'Enter hours and minutes');
+      }
+      if (!has(value.description)) {
+        push('description', 'Description is required');
+      }
+      if (!has(value.status) || value.status === 'choose') {
+        push('status', 'Status is required');
       }
 
-      if (!court && !(loc && cja)) {
+      // Court XOR (Location & CJA):
+      if (!court) {
         if (!loc) {
-          this.unpopField.push('location');
+          push('location', 'Other location is required');
         }
         if (!cja) {
-          this.unpopField.push('cja');
+          push('cja', 'CJA is required');
+        }
+      }
+
+      if (!(loc || cja)) {
+        if (!court) {
+          push('court', 'Court is required');
         }
       }
 
       // show error hint if any required fields unpopuluated
       if (this.unpopField.length) {
         this.createInvalid = true; // Ensures the create was invalid
-        if (!mutex) {
-          this.errorHint = 'Please fill in all the required fields:';
-        } else {
-          this.errorHint =
-            'Please fill in all the required fields and provide either Court OR Location AND CJA, not both:';
-        }
-        return;
-      } else if (mutex) {
-        this.errorHint =
-          'Please provide either Court OR Location AND CJA, not both.';
+        this.errorHint = 'Error - please check your inputs:';
         return;
       }
 
@@ -271,6 +274,15 @@ export class ApplicationsListCreate implements OnInit {
       const has = (x: unknown) =>
         x !== null && x !== undefined && x !== '' && x !== 'choose';
       const useCourt = has(court);
+      const hasCourtAndLocOrCja = has(court) && (has(location) || has(cja));
+
+      if (hasCourtAndLocOrCja) {
+        // In case the user manages to input both court and location or cja
+        this.createInvalid = true;
+        this.errorHint =
+          'You can not have Court and Other Location or CJA filled in';
+        return;
+      }
 
       const payload: ApplicationListCreateDto = {
         date: date!,
@@ -295,7 +307,7 @@ export class ApplicationsListCreate implements OnInit {
             this.createDone = false;
             this.createInvalid = true;
             this.errorHint = 'An error has occurred: ' + err;
-            throw new Error('Error: ' + err);
+            return;
           },
         });
     }
@@ -387,6 +399,15 @@ export class ApplicationsListCreate implements OnInit {
     this.cjaSearch = label;
     this.form.controls.cja.setValue(label);
     this.filteredCja = [];
+  }
+
+  focusField(id: string, e: Event): void {
+    e.preventDefault();
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.focus({ preventScroll: true });
+    }
   }
 
   onDelete(id: number): void {

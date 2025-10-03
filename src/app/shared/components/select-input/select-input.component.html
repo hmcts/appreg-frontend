@@ -1,24 +1,54 @@
 <div class="govuk-grid-column-one-quarter">
-  <div class="govuk-form-group">
-    <label class="govuk-label govuk-label--m" for="status">
-      {{ label }}
-    </label>
+  <div
+    class="govuk-form-group"
+    [ngClass]="{
+      'govuk-form-group--error': submitted && (!value || value === 'choose'),
+    }"
+  >
+    @if (label) {
+      <div class="govuk-label-wrapper">
+        <label class="govuk-label govuk-label--m" [for]="idPrefix">
+          {{ label }}
+        </label>
+      </div>
+    }
 
-    <div id="status-hint" class="govuk-hint">
-      {{ hint }}
-    </div>
+    @if (hint) {
+      <div [id]="idPrefix + '-hint'" class="govuk-hint">
+        {{ hint }}
+      </div>
+    }
+
+    @if (submitted && (!value || value === 'choose')) {
+      <p [id]="idPrefix + '-error'" class="govuk-error-message">
+        <span class="govuk-visually-hidden">Error:</span>
+        {{ label || 'This field' }} is required
+      </p>
+    }
 
     <select
       class="govuk-select"
-      id="status"
-      name="status"
-      aria-describedby="status-hint"
-      (change)="onSelectChange($event)"
+      [ngClass]="
+        submitted && (!value || value === 'choose') ? 'govuk-select--error' : ''
+      "
+      [id]="idPrefix"
+      [name]="idPrefix"
+      [attr.aria-describedby]="
+        (
+          (hint ? idPrefix + '-hint' : '') +
+          ' ' +
+          (submitted && (!value || value === 'choose')
+            ? idPrefix + '-error'
+            : '')
+        ).trim()
+      "
+      [disabled]="disabled"
+      [value]="value"
+      (change)="handleChange($event)"
+      (blur)="handleBlur()"
     >
-      @for (opt of options; track opt.value) {
-        <option [value]="opt.value" [selected]="opt.value === value">
-          {{ opt.label }}
-        </option>
+      @for (o of options; track o.value) {
+        <option [value]="o.value">{{ o.label }}</option>
       }
     </select>
   </div>

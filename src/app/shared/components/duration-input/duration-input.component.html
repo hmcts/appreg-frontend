@@ -1,11 +1,11 @@
 <div class="govuk-grid-column-one-quarter">
-  <div class="govuk-form-group" [class.govuk-form-group--error]="showErrors">
+  <div class="govuk-form-group" [class.govuk-form-group--error]="displayErrors">
     <fieldset
       class="govuk-fieldset"
       role="group"
       [attr.aria-describedby]="
         (hint ? idPrefix + '-hint' : '') +
-        (showErrors ? ' ' + idPrefix + '-error' : '')
+        (displayErrors ? ' ' + idPrefix + '-error' : '')
       "
     >
       <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
@@ -18,7 +18,7 @@
         <div [id]="idPrefix + '-hint'" class="govuk-hint">{{ hint }}</div>
       }
 
-      @if (showErrors) {
+      @if (displayErrors) {
         <p [id]="idPrefix + '-error'" class="govuk-error-message">
           <span class="govuk-visually-hidden">Error:</span> {{ errorText }}
         </p>
@@ -28,15 +28,15 @@
         <!-- Hours -->
         <input
           class="govuk-input govuk-input--width-2"
-          [class.govuk-input--error]="showErrors"
+          [class.govuk-input--error]="displayErrors"
           [id]="idPrefix + '-hours'"
           [name]="idPrefix + '-hours'"
           type="text"
           spellcheck="false"
-          [attr.aria-invalid]="showErrors ? 'true' : null"
+          [attr.aria-invalid]="displayErrors ? 'true' : null"
           [attr.aria-describedby]="
             (hint ? idPrefix + '-hint' : '') +
-            (showErrors ? ' ' + idPrefix + '-error' : '')
+            (displayErrors ? ' ' + idPrefix + '-error' : '')
           "
           [value]="hours ?? ''"
           (input)="onHoursInput($event)"
@@ -54,15 +54,15 @@
         <!-- Minutes -->
         <input
           class="govuk-input govuk-input--width-2"
-          [class.govuk-input--error]="showErrors"
+          [class.govuk-input--error]="displayErrors"
           [id]="idPrefix + '-minutes'"
           [name]="idPrefix + '-minutes'"
           type="text"
           spellcheck="false"
-          [attr.aria-invalid]="showErrors ? 'true' : null"
+          [attr.aria-invalid]="displayErrors ? 'true' : null"
           [attr.aria-describedby]="
             (hint ? idPrefix + '-hint' : '') +
-            (showErrors ? ' ' + idPrefix + '-error' : '')
+            (displayErrors ? ' ' + idPrefix + '-error' : '')
           "
           [value]="minutes ?? ''"
           (input)="onMinutesInput($event)"

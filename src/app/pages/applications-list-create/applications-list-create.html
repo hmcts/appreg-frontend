@@ -3,30 +3,33 @@
 >
 <h1 class="govuk-heading-xl">Create new applications list</h1>
 
-<p class="govuk-body-l">
-  Please fill in all the required fields.<br /><br />
-  Ensure that you either provide either Court OR Location AND CJA, not both.
-</p>
-
-<!-- Error Summary -->
-@if (createInvalid) {
-  <div class="govuk-error-summary" data-module="govuk-error-summary">
-    <div role="alert">
-      <h2 class="govuk-error-summary__title">{{ errorHint }}</h2>
-      <div class="govuk-error-summary__body">
-        <ul class="govuk-list govuk-error-summary__list">
-          @if (createInvalid) {
-            @for (c of unpopField; track c) {
-              <li>{{ c }}</li>
-            }
-          }
-        </ul>
-      </div>
+@if (unpopField.length) {
+  <div
+    class="govuk-error-summary"
+    role="alert"
+    aria-labelledby="error-summary-title"
+  >
+    <h2 class="govuk-error-summary__title" id="error-summary-title">
+      {{ errorHint }}
+    </h2>
+    <div class="govuk-error-summary__body">
+      <ul class="govuk-list govuk-error-summary__list">
+        @for (field of unpopField; track field) {
+          <li>
+            <a
+              class="govuk-link"
+              href=""
+              (click)="focusField($any(field).id ?? field, $event)"
+            >
+              {{ $any(field).text ?? field }}
+            </a>
+          </li>
+        }
+      </ul>
     </div>
   </div>
 }
 
-<!-- TODO: only create if POST req is successful -->
 @if (createDone) {
   <div
     class="govuk-notification-banner govuk-notification-banner--success"
@@ -68,6 +71,7 @@
       label="Date"
       hint="For example, 27 3 2007"
       idPrefix="date"
+      [submitted]="createInvalid"
     >
     </app-date-input>
 
@@ -77,6 +81,8 @@
       label="Time"
       hint="Enter the time in 24-hour format, for example 08:30"
       idPrefix="time"
+      [submitted]="createInvalid"
+      [required]="true"
     >
     </app-duration-input>
 
@@ -86,6 +92,7 @@
       label="Description"
       hint="A description of the application list"
       idPrefix="description"
+      [submitted]="createInvalid"
     >
     </app-text-input>
 
@@ -95,6 +102,7 @@
       label="Select status"
       hint="The status of the application list"
       idPrefix="status"
+      [submitted]="createInvalid"
       [options]="[
         { value: 'choose', label: 'Choose status' },
         { value: 'open', label: 'Open' },
@@ -107,26 +115,64 @@
   <div class="govuk-grid-row">
     <!-- Court -->
     <div class="govuk-grid-column-one-quarter">
-      <div class="govuk-form-group">
+      <div
+        class="govuk-form-group"
+        [ngClass]="{
+          'govuk-form-group--error':
+            createInvalid &&
+            !courthouseSearch.trim() &&
+            !(
+              form.get('location')?.value?.toString()?.trim() ||
+              cjaSearch.trim()
+            ),
+        }"
+      >
         <div class="govuk-label-wrapper">
-          <label class="govuk-label govuk-label--m" for="court"> Court </label>
+          <label class="govuk-label govuk-label--m" for="court">Court</label>
         </div>
         <div id="court-hint" class="govuk-hint">
           Start typing to search the list
         </div>
 
+        @if (
+          createInvalid &&
+          !courthouseSearch.trim() &&
+          !(form.get('location')?.value?.toString()?.trim() || cjaSearch.trim())
+        ) {
+          <p id="court-error" class="govuk-error-message">
+            <span class="govuk-visually-hidden">Error:</span> Court is required
+          </p>
+        }
+
         <div class="app-autocomplete">
           <input
             class="govuk-input govuk-input--width-20"
+            [ngClass]="{
+              'govuk-input--error':
+                createInvalid &&
+                !courthouseSearch.trim() &&
+                !(
+                  form.get('location')?.value?.toString()?.trim() ||
+                  cjaSearch.trim()
+                ),
+            }"
             id="court"
             name="court"
             type="text"
             [(ngModel)]="courthouseSearch"
+            [ngModelOptions]="{ standalone: true }"
             (input)="onCourthouseInputChange()"
-            aria-describedby="court-hint"
+            [disabled]="
+              !!form.get('location')?.value || !!form.get('cja')?.value
+            "
+            [attr.aria-describedby]="
+              (
+                'court-hint ' +
+                (createInvalid && !courthouseSearch.trim() ? 'court-error' : '')
+              ).trim()
+            "
             autocomplete="off"
           />
-
           @if (filteredCourthouses.length && courthouseSearch) {
             <ul class="govuk-list app-autocomplete__menu">
               @for (courthouse of filteredCourthouses; track courthouse) {
@@ -154,29 +200,54 @@
       label="Other location"
       hint="Other location description"
       idPrefix="location"
+      [submitted]="createInvalid && !form.get('court')?.value"
+      [disabled]="!!form.get('court')?.value"
     >
+      >
     </app-text-input>
 
     <!-- CJA -->
     <div class="govuk-grid-column-one-quarter">
-      <div class="govuk-form-group">
+      <div
+        class="govuk-form-group"
+        [ngClass]="{
+          'govuk-form-group--error':
+            createInvalid && !form.get('court')?.value && !cjaSearch.trim(),
+        }"
+      >
         <div class="govuk-label-wrapper">
-          <label class="govuk-label govuk-label--m" for="cja"> CJA </label>
+          <label class="govuk-label govuk-label--m" for="cja">CJA</label>
         </div>
         <div id="cja-hint" class="govuk-hint">Criminal Justice Area</div>
+
+        @if (createInvalid && !form.get('court')?.value && !cjaSearch.trim()) {
+          <p id="cja-error" class="govuk-error-message">
+            <span class="govuk-visually-hidden">Error:</span> CJA is required
+          </p>
+        }
 
         <div class="app-autocomplete">
           <input
             class="govuk-input govuk-input--width-20"
+            [ngClass]="{
+              'govuk-input--error':
+                createInvalid && !form.get('court')?.value && !cjaSearch.trim(),
+            }"
             id="cja"
             name="cja"
             type="text"
             [(ngModel)]="cjaSearch"
+            [ngModelOptions]="{ standalone: true }"
             (input)="onCjaInputChange()"
-            aria-describedby="cja-hint"
+            [disabled]="!!form.get('court')?.value"
+            [attr.aria-describedby]="
+              (
+                'cja-hint ' +
+                (createInvalid && !cjaSearch.trim() ? 'cja-error' : '')
+              ).trim()
+            "
             autocomplete="off"
           />
-
           @if (filteredCja.length && cjaSearch) {
             <ul class="govuk-list app-autocomplete__menu">
               @for (cja of filteredCja; track cja) {
