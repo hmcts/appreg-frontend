@@ -24,46 +24,47 @@
         </p>
       }
 
-    <div class="govuk-input__wrapper">
-      <!-- Hours -->
-      <input
-        class="govuk-input govuk-input--width-2"
-        [id]="idPrefix + '-hours'"
-        [name]="idPrefix + '-hours'"
-        type="text"
-        spellcheck="false"
-        [attr.aria-describedby]="hint ? idPrefix + '-hint' : null"
-        [value]="hours ?? ''"
-        (input)="onHoursInput($event)"
-        (blur)="touch()"
-        [disabled]="disabled"
-      />
-      <div
-        class="govuk-input__suffix govuk-!-margin-right-3"
-        aria-hidden="true"
-      >
-        HH
-      </div>
+      <div class="govuk-input__wrapper">
+        <!-- Hours -->
+        <input
+          class="govuk-input govuk-input--width-2"
+          [id]="idPrefix + '-hours'"
+          [name]="idPrefix + '-hours'"
+          type="text"
+          spellcheck="false"
+          [attr.aria-describedby]="hint ? idPrefix + '-hint' : null"
+          [value]="hours ?? ''"
+          (input)="onHoursInput($event)"
+          (blur)="touch()"
+          [disabled]="disabled"
+        />
+        <div
+          class="govuk-input__suffix govuk-!-margin-right-3"
+          aria-hidden="true"
+        >
+          HH
+        </div>
 
-      <!-- Minutes -->
-      <input
-        class="govuk-input govuk-input--width-2"
-        [id]="idPrefix + '-minutes'"
-        [name]="idPrefix + '-minutes'"
-        type="text"
-        spellcheck="false"
-        [attr.aria-describedby]="hint ? idPrefix + '-hint' : null"
-        [value]="minutes ?? ''"
-        (input)="onMinutesInput($event)"
-        (blur)="touch()"
-        [disabled]="disabled"
-      />
-      <div
-        class="govuk-input__suffix govuk-!-margin-right-3"
-        aria-hidden="true"
-      >
-        MM
+        <!-- Minutes -->
+        <input
+          class="govuk-input govuk-input--width-2"
+          [id]="idPrefix + '-minutes'"
+          [name]="idPrefix + '-minutes'"
+          type="text"
+          spellcheck="false"
+          [attr.aria-describedby]="hint ? idPrefix + '-hint' : null"
+          [value]="minutes ?? ''"
+          (input)="onMinutesInput($event)"
+          (blur)="touch()"
+          [disabled]="disabled"
+        />
+        <div
+          class="govuk-input__suffix govuk-!-margin-right-3"
+          aria-hidden="true"
+        >
+          MM
+        </div>
       </div>
-    </div>
+    </fieldset>
   </div>
 </div>

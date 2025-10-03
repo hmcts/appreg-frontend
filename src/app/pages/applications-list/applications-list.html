@@ -32,22 +32,6 @@
   </a>
 </div>
 
-<!-- Error Summary -->
-@if (anyInvalid) {
-  <div class="govuk-error-summary" data-module="govuk-error-summary">
-    <div role="alert">
-      <h2 class="govuk-error-summary__title">{{ errorHint }}</h2>
-      <div class="govuk-error-summary__body">
-        <ul class="govuk-list govuk-error-summary__list">
-          @for (c of offendingFields; track c) {
-            <li>{{ c }}</li>
-          }
-        </ul>
-      </div>
-    </div>
-  </div>
-}
-
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
@@ -59,7 +43,6 @@
       label="Date"
       hint="For example, 27 3 2007"
       idPrefix="date"
-      [submitted]="anyInvalid"
     >
     </app-date-input>
 
@@ -69,7 +52,6 @@
       label="Time"
       hint="Enter the time in 24-hour format, for example 08:30"
       idPrefix="time"
-      [submitted]="anyInvalid"
     >
     </app-duration-input>
 
@@ -110,29 +92,9 @@
             id="court"
             name="court"
             type="text"
-            [(ngModel)]="courthouseSearch"
-            (input)="onCourthouseInputChange()"
             aria-describedby="court-hint"
             autocomplete="off"
           />
-
-          @if (filteredCourthouses.length && courthouseSearch) {
-            <ul class="govuk-list app-autocomplete__menu">
-              @for (courthouse of filteredCourthouses; track courthouse) {
-                <li>
-                  <a
-                    href="#"
-                    class="app-autocomplete__link"
-                    (click)="
-                      selectCourthouse(courthouse); $event.preventDefault()
-                    "
-                  >
-                    {{ courthouse.name }}
-                  </a>
-                </li>
-              }
-            </ul>
-          }
         </div>
       </div>
     </div>
@@ -160,27 +122,9 @@
             id="cja"
             name="cja"
             type="text"
-            [(ngModel)]="cjaSearch"
-            (input)="onCjaInputChange()"
             aria-describedby="cja-hint"
             autocomplete="off"
           />
-
-          @if (filteredCja.length && cjaSearch) {
-            <ul class="govuk-list app-autocomplete__menu">
-              @for (cja of filteredCja; track cja) {
-                <li>
-                  <a
-                    href="#"
-                    class="app-autocomplete__link"
-                    (click)="selectCja(cja); $event.preventDefault()"
-                  >
-                    {{ cja.description }}
-                  </a>
-                </li>
-              }
-            </ul>
-          }
         </div>
       </div>
     </div>
