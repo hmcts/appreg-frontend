@@ -13,21 +13,31 @@
   },
   "secrets": {
     "apps-reg": {
-      "app-CLIENT-ID": "dummyClientId",
-      "app-TENANT-ID": "dummyTenantId",
-      "app-CLIENT-SECRET": "dummyClientSecret",
-      "app-insights-connection-string": "dummyInstrumentationKey"
+      "azure-app-id-fe": "dummyClientId",
+      "azure-tenant-id-fe": "dummyTenantId",
+      "azure-client-secret-fe": "dummyClientSecret",
+      "app-insights-connection-string-fe": "dummyInstrumentationKey"
     }
   },
   "auth": {
     "redirectUri": "http://localhost:4000/sso/login-callback",
     "postLogoutRedirectUri": "http://localhost:4000/login",
-    "scopes": ["openid", "profile", "email", "offline_access"]
+    "scopes": [
+      "openid",
+      "profile",
+      "email",
+      "offline_access"
+    ]
+  },
+  "api": {
+    "baseUrl": "http://localhost:4550",
+    "scopes": [
+      "api://dummyTenantId/frontend"
+    ]
   },
   "session": {
     "cookieName": "appreg.sid",
     "secret": "change-me-in-env",
     "secure": false
   },
-  "api": { "baseUrl": "http://localhost:4550" }
 }
