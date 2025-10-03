@@ -91,9 +91,7 @@ export class ApplicationsList implements OnInit {
 
   constructor(@Inject(PLATFORM_ID) private readonly platformId: object) {}
 
-  ngOnInit(): void {
-    this.loadApplicationsLists();
-  }
+  ngOnInit(): void {}
 
   ngAfterViewInit(): void {
     if (!isPlatformBrowser(this.platformId)) {
@@ -222,7 +220,6 @@ export class ApplicationsList implements OnInit {
 
   onPageChange(page: number): void {
     this.currentPage = page;
-    this.loadApplicationsLists(); // fetch page `page`
   }
 
   onResultSelected(): void {}
