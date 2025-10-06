@@ -1,6 +1,7 @@
-<a [routerLink]="['/applications-list']" class="govuk-back-link"
-  >Back to Applications List</a
->
+<app-breadcrumbs
+  [items]="[{ label: 'Applications list', link: '/applications-list' }]"
+></app-breadcrumbs>
+
 <h1 class="govuk-heading-xl">Create new applications list</h1>
 
 @if (unpopField.length) {
@@ -114,24 +115,22 @@
 
   <div class="govuk-grid-row">
     <!-- Court -->
-    <div class="govuk-grid-column-one-quarter">
-      <app-suggestions
-        id="court"
-        label="Court"
-        hint="Start typing to search the list"
-        [(search)]="courthouseSearch"
-        (searchChange)="onCourthouseInputChange()"
-        [suggestions]="filteredCourthouses"
-        (selectItem)="selectCourthouse($event)"
-        [disabled]="!!form.get('location')?.value || !!form.get('cja')?.value"
-        [showError]="
-          createInvalid &&
-          !courthouseSearch.trim() &&
-          !(form.get('location')?.value?.toString()?.trim() || cjaSearch.trim())
-        "
-        errorText="Court is required"
-      />
-    </div>
+    <app-suggestions
+      id="court"
+      label="Court"
+      hint="Start typing to search the list"
+      [(search)]="courthouseSearch"
+      (searchChange)="onCourthouseInputChange()"
+      [suggestions]="filteredCourthouses"
+      (selectItem)="selectCourthouse($event)"
+      [disabled]="!!form.get('location')?.value || !!form.get('cja')?.value"
+      [showError]="
+        createInvalid &&
+        !courthouseSearch.trim() &&
+        !(form.get('location')?.value?.toString()?.trim() || cjaSearch.trim())
+      "
+      errorText="Court is required"
+    />
 
     <!-- Other location -->
     <app-text-input
@@ -146,27 +145,25 @@
     </app-text-input>
 
     <!-- CJA -->
-    <div class="govuk-grid-column-one-quarter">
-      <app-suggestions
-        id="cja"
-        label="CJA"
-        hint="Start typing to search the list"
-        [(search)]="cjaSearch"
-        (searchChange)="onCjaInputChange()"
-        [suggestions]="filteredCja"
-        (selectItem)="selectCja($event)"
-        [disabled]="!!courthouseSearch.trim() || !!form.get('location')?.value"
-        [showError]="
-          createInvalid &&
-          !cjaSearch.trim() &&
-          !(
-            courthouseSearch.trim() ||
-            form.get('location')?.value?.toString()?.trim()
-          )
-        "
-        errorText="CJA is required"
-      />
-    </div>
+    <app-suggestions
+      id="cja"
+      label="CJA"
+      hint="Start typing to search the list"
+      [(search)]="cjaSearch"
+      (searchChange)="onCjaInputChange()"
+      [suggestions]="filteredCja"
+      (selectItem)="selectCja($event)"
+      [disabled]="!!courthouseSearch.trim() || !!form.get('location')?.value"
+      [showError]="
+        createInvalid &&
+        !cjaSearch.trim() &&
+        !(
+          courthouseSearch.trim() ||
+          form.get('location')?.value?.toString()?.trim()
+        )
+      "
+      errorText="CJA is required"
+    />
   </div>
 
   <div class="govuk-button-group">

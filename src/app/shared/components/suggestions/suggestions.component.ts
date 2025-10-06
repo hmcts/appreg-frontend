@@ -24,6 +24,7 @@ export class SuggestionsComponent<T = unknown> {
   @Output() selectItem = new EventEmitter<T>();
   @Input() value = '';
   @Output() valueChange = new EventEmitter<string>();
+  @Input() widthClass = 'govuk-input--width-10';
 
   onInput(v: string): void {
     this.search = v;

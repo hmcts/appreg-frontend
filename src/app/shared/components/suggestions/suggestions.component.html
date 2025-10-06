@@ -1,50 +1,52 @@
-<div
-  class="govuk-form-group"
-  [ngClass]="{ 'govuk-form-group--error': showError }"
->
-  <div class="govuk-label-wrapper">
-    <label class="govuk-label govuk-label--m" [for]="id">{{ label }}</label>
-  </div>
+<div class="govuk-grid-column-one-quarter">
+  <div
+    class="govuk-form-group"
+    [ngClass]="{ 'govuk-form-group--error': showError }"
+  >
+    <div class="govuk-label-wrapper">
+      <label class="govuk-label govuk-label--m" [for]="id">{{ label }}</label>
+    </div>
 
-  @if (hint) {
-    <div [id]="id + '-hint'" class="govuk-hint">{{ hint }}</div>
-  }
-
-  @if (showError) {
-    <p [id]="id + '-error'" class="govuk-error-message">
-      <span class="govuk-visually-hidden">Error:</span> {{ errorText }}
-    </p>
-  }
-
-  <div class="app-autocomplete">
-    <input
-      class="govuk-input govuk-input--width-20"
-      [ngClass]="{ 'govuk-input--error': showError }"
-      [id]="id"
-      [name]="id"
-      type="text"
-      [disabled]="disabled"
-      [(ngModel)]="search"
-      (ngModelChange)="onInput($event)"
-      [attr.aria-describedby]="
-        (hint ? id + '-hint ' : '') + (showError ? id + '-error' : '')
-      "
-      autocomplete="off"
-    />
-    @if (open) {
-      <ul class="govuk-list app-autocomplete__menu">
-        @for (item of suggestions; track item) {
-          <li>
-            <a
-              href="#"
-              class="app-autocomplete__link"
-              (click)="choose(item, $event)"
-            >
-              {{ labelOf(item) }}
-            </a>
-          </li>
-        }
-      </ul>
+    @if (hint) {
+      <div [id]="id + '-hint'" class="govuk-hint">{{ hint }}</div>
     }
+
+    @if (showError) {
+      <p [id]="id + '-error'" class="govuk-error-message">
+        <span class="govuk-visually-hidden">Error:</span> {{ errorText }}
+      </p>
+    }
+
+    <div class="app-autocomplete">
+      <input
+        class="govuk-input"
+        [ngClass]="[widthClass, showError ? 'govuk-input--error' : '']"
+        [id]="id"
+        [name]="id"
+        type="text"
+        [disabled]="disabled"
+        [(ngModel)]="search"
+        (ngModelChange)="onInput($event)"
+        [attr.aria-describedby]="
+          (hint ? id + '-hint ' : '') + (showError ? id + '-error' : '')
+        "
+        autocomplete="off"
+      />
+      @if (open) {
+        <ul class="govuk-list app-autocomplete__menu">
+          @for (item of suggestions; track item) {
+            <li>
+              <a
+                href="#"
+                class="app-autocomplete__link"
+                (click)="choose(item, $event)"
+              >
+                {{ labelOf(item) }}
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    </div>
   </div>
 </div>

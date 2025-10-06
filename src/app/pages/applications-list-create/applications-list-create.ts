@@ -18,6 +18,7 @@ import {
   CriminalJusticeAreaGetDto,
   CriminalJusticeAreasApi,
 } from '../../..//generated/openapi';
+import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
   Duration,
@@ -50,6 +51,7 @@ type FieldKey =
     RouterLink,
     FormsModule,
     SuggestionsComponent,
+    BreadcrumbsComponent,
   ],
   templateUrl: './applications-list-create.html',
 })
