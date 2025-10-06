@@ -8,7 +8,14 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { merge } from 'rxjs';
 
+import {
+  CourtLocationGetSummaryDto,
+  CourtLocationsApi,
+  CriminalJusticeAreaGetDto,
+  CriminalJusticeAreasApi,
+} from '../../..//generated/openapi';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
   Duration,
@@ -20,6 +27,7 @@ import {
   SortableTableComponent,
   TableColumn,
 } from '../../shared/components/sortable-table/sortable-table.component';
+import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 
 type ApplicationListRow = {
@@ -49,6 +57,7 @@ interface MojInitEl extends HTMLElement {
     RouterLink,
     PaginationComponent,
     SortableTableComponent,
+    SuggestionsComponent,
   ],
   templateUrl: './applications-list.html',
 })
@@ -56,6 +65,15 @@ export class ApplicationsList implements OnInit {
   private _id: number | undefined;
   openMenuForId: number | null = null;
   openPrintSelectForId: number | null = null;
+
+  // CJA and Court locations store
+  cja: CriminalJusticeAreaGetDto[] = [];
+  filteredCja: CriminalJusticeAreaGetDto[] = [];
+  cjaSearch = '';
+
+  courtLocations: CourtLocationGetSummaryDto[] = [];
+  filteredCourthouses: CourtLocationGetSummaryDto[] = [];
+  courthouseSearch = '';
 
   // Reactive form backing the template
   form = new FormGroup({
@@ -89,10 +107,60 @@ export class ApplicationsList implements OnInit {
 
   rows: ApplicationListRow[] = [];
 
-  constructor(@Inject(PLATFORM_ID) private readonly platformId: object) {}
+  constructor(
+    @Inject(PLATFORM_ID) private readonly platformId: object,
+    private readonly cjaApi: CriminalJusticeAreasApi,
+    private readonly courtLocationApi: CourtLocationsApi,
+  ) {}
 
   ngOnInit(): void {
     this.loadApplicationsLists();
+    this.loadCJAs();
+    this.loadCourtLocations();
+
+    // Disable based fields
+    const court = this.form.controls.court;
+    const location = this.form.controls.location;
+    const cja = this.form.controls.cja;
+
+    const has = (v: string | null) => !!v && v.trim().length > 0;
+    const syncDisable = () => {
+      const hasCourt = has(court.value);
+      const hasLoc = has(location.value);
+      const hasCja = has(cja.value);
+
+      if (hasCourt) {
+        court.enable({ emitEvent: false });
+        location.disable({ emitEvent: false });
+        cja.disable({ emitEvent: false });
+      } else if (hasLoc || hasCja) {
+        court.disable({ emitEvent: false });
+        location.enable({ emitEvent: false });
+        cja.enable({ emitEvent: false });
+      } else {
+        court.enable({ emitEvent: false });
+        location.enable({ emitEvent: false });
+        cja.enable({ emitEvent: false });
+      }
+    };
+
+    merge(
+      court.valueChanges,
+      location.valueChanges,
+      cja.valueChanges,
+    ).subscribe(() => syncDisable());
+    syncDisable();
+
+    // Suggestions
+    const currentCourthouse = this.form.controls.court.value;
+    if (typeof currentCourthouse === 'string' && currentCourthouse.trim()) {
+      this.courthouseSearch = currentCourthouse;
+    }
+
+    const currentCja = this.form.controls.cja.value;
+    if (typeof currentCja === 'string' && currentCja.trim()) {
+      this.cjaSearch = currentCja;
+    }
   }
 
   ngAfterViewInit(): void {
@@ -214,6 +282,84 @@ export class ApplicationsList implements OnInit {
         status: 'Open',
       },
     ];
+  }
+
+  private loadCJAs(): void {
+    this.cjaApi.getCriminalJusticeAreas().subscribe({
+      next: (page) => {
+        this.cja = page.content ?? [];
+        // console.log(this.cja); // Sanity check
+      },
+      error: () => {
+        this.cja = [];
+      },
+    });
+  }
+
+  private loadCourtLocations(): void {
+    this.courtLocationApi.getCourtLocations().subscribe({
+      next: (page) => {
+        this.courtLocations = page.content ?? [];
+        // console.log(this.courtLocations); // Sanity check
+      },
+      error: () => {
+        this.courtLocations = [];
+      },
+    });
+  }
+
+  onCourthouseInputChange(): void {
+    const q = this.courthouseSearch.trim().toLowerCase();
+    this.form.controls.court.setValue(this.courthouseSearch || '');
+
+    if (!q) {
+      this.filteredCourthouses = [];
+      return;
+    }
+
+    // filter by name or code; cap results to avoid long lists
+    this.filteredCourthouses = this.courtLocations
+      .filter(
+        (c) =>
+          (c.name ?? '').toLowerCase().includes(q) ||
+          (c.locationCode ?? '').toLowerCase().includes(q),
+      )
+      .slice(0, 20);
+  }
+
+  // called when user clicks a suggestion
+  selectCourthouse(c: CourtLocationGetSummaryDto): void {
+    const label = c.locationCode ?? '';
+    this.courthouseSearch = label;
+    this.form.controls.court.setValue(label);
+    this.filteredCourthouses = [];
+  }
+
+  onCjaInputChange(): void {
+    const q = this.cjaSearch.trim().toLowerCase();
+    this.form.controls.cja.setValue(this.cjaSearch || '');
+
+    if (!q) {
+      this.filteredCja = [];
+      return;
+    }
+
+    // filter by name or code; cap results to avoid long lists
+    this.filteredCja = this.cja
+      .filter(
+        (c) =>
+          (c.code ?? '').toLowerCase().includes(q) ||
+          (c.description ?? '').toLowerCase().includes(q),
+      )
+      .slice(0, 20);
+  }
+
+  // called when user clicks a suggestion
+  selectCja(c: CriminalJusticeAreaGetDto): void {
+    const label = c.code ?? '';
+    this.cjaSearch = label;
+    this.form.controls.cja.setValue(label);
+    this.filteredCja = [];
   }
 
   onDelete(id: number): void {
