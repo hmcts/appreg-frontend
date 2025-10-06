@@ -1,4 +1,3 @@
-// test/unit/app/pages/applications-list-create.spec.ts/applications-list-create.spec.ts
 import { NO_ERRORS_SCHEMA, PLATFORM_ID, TransferState } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
