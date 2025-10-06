@@ -2,7 +2,7 @@ import { expect, test } from '@jest/globals';
 
 // mirror of policy for unit tests (pure function)
 function filterBranches(items, cfg) {
-  const rx = (p) => new RegExp('^' + p.replace('*', '.*') + '$');
+  const rx = (p) => new RegExp('^' + p.replace(/\*/g, '.*') + '$');
   const isProtected = (b) =>
     (cfg.protectedPatterns || []).some((p) => rx(p).test(b));
   const isDNDByName = (b) =>
