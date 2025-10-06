@@ -1,41 +1,9 @@
-<div
-  class="govuk-!-margin-bottom-4"
-  style="
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
-  "
->
-  <h1 class="govuk-heading-xl govuk-!-margin-bottom-0">Applications list</h1>
-
-  <a
-    [routerLink]="['/applications-list-create']"
-    role="button"
-    draggable="false"
-    class="govuk-button govuk-button--start govuk-!-margin-bottom-0"
-    data-module="govuk-button"
-  >
-    Create a new list
-    <svg
-      class="govuk-button__start-icon"
-      xmlns="http://www.w3.org/2000/svg"
-      width="17.5"
-      height="19"
-      viewBox="0 0 33 40"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path fill="currentColor" d="M0 0h13l20 20-20 20H0l20-20z" />
-    </svg>
-  </a>
-</div>
+<h1 class="govuk-heading-xl">Applications list</h1>
 
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
-<form [formGroup]="form" (ngSubmit)="onSubmit($event)" autocomplete="off">
+<form [formGroup]="form" (ngSubmit)="onSubmit($event)">
   <div class="govuk-grid-row">
     <!-- Date -->
     <app-date-input
@@ -77,27 +45,13 @@
 
   <div class="govuk-grid-row">
     <!-- Court -->
-    <div class="govuk-grid-column-one-quarter">
-      <div class="govuk-form-group">
-        <div class="govuk-label-wrapper">
-          <label class="govuk-label govuk-label--m" for="court"> Court </label>
-        </div>
-        <div id="court-hint" class="govuk-hint">
-          Start typing to search the list
-        </div>
-
-        <div class="app-autocomplete">
-          <input
-            class="govuk-input govuk-input--width-20"
-            id="court"
-            name="court"
-            type="text"
-            aria-describedby="court-hint"
-            autocomplete="off"
-          />
-        </div>
-      </div>
-    </div>
+    <app-text-input
+      formControlName="court"
+      label="Court"
+      hint="A description of the court"
+      idPrefix="court"
+    >
+    </app-text-input>
 
     <!-- Other location -->
     <app-text-input
@@ -109,29 +63,24 @@
     </app-text-input>
 
     <!-- CJA -->
-    <div class="govuk-grid-column-one-quarter">
-      <div class="govuk-form-group">
-        <div class="govuk-label-wrapper">
-          <label class="govuk-label govuk-label--m" for="cja"> CJA </label>
-        </div>
-        <div id="cja-hint" class="govuk-hint">Criminal Justice Area</div>
-
-        <div class="app-autocomplete">
-          <input
-            class="govuk-input govuk-input--width-20"
-            id="cja"
-            name="cja"
-            type="text"
-            aria-describedby="cja-hint"
-            autocomplete="off"
-          />
-        </div>
-      </div>
-    </div>
+    <app-text-input
+      formControlName="cja"
+      label="CJA"
+      hint="Criminal justice area"
+      idPrefix="cja"
+    >
+    </app-text-input>
   </div>
 
   <div class="govuk-button-group">
     <button type="submit" class="govuk-button" value="search">Search</button>
+    <button
+      type="submit"
+      class="govuk-button govuk-button--secondary"
+      value="create"
+    >
+      Create
+    </button>
   </div>
 </form>
 
@@ -140,13 +89,15 @@
 />
 
 <!-- Sortable table component -->
-<app-sortable-table caption="Lists" [columns]="columns">
-  <!-- actions slot -->
+<app-sortable-table caption="Lists" [columns]="columns" [data]="rows">
   <ng-template #actionsTemplate let-row>
     <div class="govuk-button-group">
-      <a
-        [routerLink]="['/applications-list', row.id]"
-        class="govuk-button govuk-button--secondary"
+      <!-- actions slot -->
+      <div
+        class="moj-button-menu"
+        data-module="moj-button-menu"
+        data-button-text="Select"
+        data-button-classes="govuk-button"
       >
         <!-- Open button -->
         <button
