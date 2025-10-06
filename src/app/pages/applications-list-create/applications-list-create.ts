@@ -314,7 +314,6 @@ export class ApplicationsListCreate implements OnInit {
   }
 
   loadLists(): void {
-    // TODO: fetch lists
     this.loadCourtLocations();
     this.loadCJAs();
   }
@@ -345,8 +344,6 @@ export class ApplicationsListCreate implements OnInit {
 
   onCourthouseInputChange(): void {
     const q = this.courthouseSearch.trim().toLowerCase();
-
-    // keep reactive form in sync so submit payload includes 'court'
     this.form.controls.court.setValue(this.courthouseSearch || '');
 
     if (!q) {
@@ -374,8 +371,6 @@ export class ApplicationsListCreate implements OnInit {
 
   onCjaInputChange(): void {
     const q = this.cjaSearch.trim().toLowerCase();
-
-    // keep reactive form in sync so submit payload includes 'cja'
     this.form.controls.cja.setValue(this.cjaSearch || '');
 
     if (!q) {
