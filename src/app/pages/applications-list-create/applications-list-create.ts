@@ -26,6 +26,8 @@ import {
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 
+import { SuggestionsComponent } from 'src/app/shared/components/suggestions/suggestions.component';
+
 type UnpopItem = string | { id: string; text: string };
 type FieldKey =
   | 'date'
@@ -48,6 +50,7 @@ type FieldKey =
     SelectInputComponent,
     RouterLink,
     FormsModule,
+    SuggestionsComponent,
   ],
   templateUrl: './applications-list-create.html',
 })
