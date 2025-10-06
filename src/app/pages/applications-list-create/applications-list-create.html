@@ -118,7 +118,7 @@
     <app-suggestions
       id="court"
       label="Court"
-      hint="Start typing to search the list"
+      hint="Start typing to search"
       [(search)]="courthouseSearch"
       (searchChange)="onCourthouseInputChange()"
       [suggestions]="filteredCourthouses"
@@ -148,18 +148,18 @@
     <app-suggestions
       id="cja"
       label="CJA"
-      hint="Start typing to search the list"
+      hint="Start typing to search"
       [(search)]="cjaSearch"
       (searchChange)="onCjaInputChange()"
       [suggestions]="filteredCja"
       (selectItem)="selectCja($event)"
-      [disabled]="!!courthouseSearch.trim() || !!form.get('location')?.value"
+      [disabled]="!!courthouseSearch.trim() || !!form.get('court')?.value"
       [showError]="
         createInvalid &&
         !cjaSearch.trim() &&
         !(
           courthouseSearch.trim() ||
-          form.get('location')?.value?.toString()?.trim()
+          form.get('court')?.value?.toString()?.trim()
         )
       "
       errorText="CJA is required"
