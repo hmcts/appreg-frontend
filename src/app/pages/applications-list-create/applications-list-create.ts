@@ -24,9 +24,9 @@ import {
   DurationInputComponent,
 } from '../../shared/components/duration-input/duration-input.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
+import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 
-import { SuggestionsComponent } from 'src/app/shared/components/suggestions/suggestions.component';
 
 type UnpopItem = string | { id: string; text: string };
 type FieldKey =
