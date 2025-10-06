@@ -26,7 +26,7 @@ export const routes: Routes = [
   {
     path: 'applications-list-create',
     component: ApplicationsListCreate,
-    canActivate: [sessionGuard]
+    canActivate: [sessionGuard],
   },
   {
     path: 'result-selected/:id',
