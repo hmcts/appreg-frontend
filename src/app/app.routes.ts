@@ -15,8 +15,11 @@ export const routes: Routes = [
   { path: 'login', component: Login },
   {
     path: 'applications-list',
-    component: ApplicationsList,
     canActivate: [sessionGuard],
+    children: [
+      { path: '', component: ApplicationsList },
+      { path: 'create', component: ApplicationsListCreate },
+    ],
   },
   {
     path: 'applications-list/:id',
@@ -41,11 +44,6 @@ export const routes: Routes = [
   {
     path: 'reports',
     component: Reports,
-    canActivate: [sessionGuard],
-  },
-  {
-    path: 'applications-list-create',
-    component: ApplicationsListCreate,
     canActivate: [sessionGuard],
   },
   { path: '**', redirectTo: 'login' },
