@@ -308,9 +308,10 @@ export class ApplicationsListCreate implements OnInit {
             this.createDone = true;
           },
           error: (err) => {
+            const msg = err instanceof Error ? err.message : String(err);
             this.createDone = false;
             this.createInvalid = true;
-            this.errorHint = 'An error has occurred: ' + err;
+            this.errorHint = 'An error has occurred: \n' + msg;
             return;
           },
         });

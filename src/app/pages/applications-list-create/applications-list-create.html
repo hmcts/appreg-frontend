@@ -4,7 +4,7 @@
 
 <h1 class="govuk-heading-xl">Create new applications list</h1>
 
-@if (unpopField.length) {
+@if (unpopField.length || createInvalid) {
   <div
     class="govuk-error-summary"
     role="alert"
