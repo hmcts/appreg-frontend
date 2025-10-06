@@ -27,7 +27,6 @@ import { SelectInputComponent } from '../../shared/components/select-input/selec
 import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 
-
 type UnpopItem = string | { id: string; text: string };
 type FieldKey =
   | 'date'
