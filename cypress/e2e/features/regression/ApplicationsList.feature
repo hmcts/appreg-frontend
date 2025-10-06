@@ -7,4 +7,5 @@ Feature: Applications List
     Then User Clicks On The Link "Applications list"
     Then User Should See The Date Field "Date"
     When User Set Date Field "Date" To "today"
-    When User Set Time Field "Time" To "10:00"
+    When User Set Time Field "Time" To "timenow"
+    Then User Enters "Test" Into The "Description" Textbox
