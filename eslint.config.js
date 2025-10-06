@@ -246,6 +246,41 @@ module.exports = defineConfig([
     },
   },
 
+  // GitHub Action scripts (modern ESM, Node 18+/20+)
+  {
+    files: ['.github/scripts/**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: {
+        ...globals.node,
+        fetch: 'readonly',
+      },
+    },
+    settings: {
+      'import/parsers': {
+        '@typescript-eslint/parser': ['.ts', '.tsx', '.d.ts'],
+      },
+      'import/resolver': {
+        node: { extensions: ['.js', '.mjs', '.cjs', '.ts', '.d.ts'] },
+        typescript: {
+          alwaysTryTypes: true,
+          project: ['./tsconfig.eslint.json'],
+        },
+      },
+    },
+    rules: {
+      'no-unused-vars': [
+        'error',
+        {
+          args: 'after-used',
+          caughtErrors: 'all',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+    },
+  },
+
   // Server entrypoints (allow console)
   {
     files: ['src/main.ts', 'src/server.ts'],

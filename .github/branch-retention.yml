@@ -1,0 +1,17 @@
+inactivityDays: 60
+graceDays: 7
+
+protectedPatterns:
+  - 'master'
+  - 'develop'
+  - 'release/*'
+
+doNotDelete:
+  label: 'do-not-delete'
+  namePatterns:
+    - 'do-not-delete/*'
+    - '*[do-not-delete]*'
+
+notify:
+  teamsWebhookSecret: 'TEAMS_WEBHOOK_URL'
+  githubIssueLabel: 'branch-cleanup'
