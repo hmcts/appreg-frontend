@@ -1,0 +1,278 @@
+<a [routerLink]="['/applications-list']" class="govuk-back-link"
+  >Back to Applications List</a
+>
+<h1 class="govuk-heading-xl">Create new applications list</h1>
+
+@if (unpopField.length) {
+  <div
+    class="govuk-error-summary"
+    role="alert"
+    aria-labelledby="error-summary-title"
+  >
+    <h2 class="govuk-error-summary__title" id="error-summary-title">
+      {{ errorHint }}
+    </h2>
+    <div class="govuk-error-summary__body">
+      <ul class="govuk-list govuk-error-summary__list">
+        @for (field of unpopField; track field) {
+          <li>
+            <a
+              class="govuk-link"
+              href=""
+              (click)="focusField($any(field).id ?? field, $event)"
+            >
+              {{ $any(field).text ?? field }}
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+  </div>
+}
+
+@if (createDone) {
+  <div
+    class="govuk-notification-banner govuk-notification-banner--success"
+    role="alert"
+    aria-labelledby="govuk-notification-banner-title"
+    data-module="govuk-notification-banner"
+  >
+    <div class="govuk-notification-banner__header">
+      <h2
+        class="govuk-notification-banner__title"
+        id="govuk-notification-banner-title"
+      >
+        Success
+      </h2>
+    </div>
+    <div class="govuk-notification-banner__content">
+      <h3 class="govuk-notification-banner__heading">
+        Applications list successfully created
+      </h3>
+      <p class="govuk-body">
+        <a
+          class="govuk-notification-banner__link"
+          [routerLink]="['/applications-list']"
+          >Click here to go back</a
+        >
+      </p>
+    </div>
+  </div>
+}
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
+<form [formGroup]="form" (ngSubmit)="onSubmit($event)" autocomplete="off">
+  <div class="govuk-grid-row">
+    <!-- Date -->
+    <app-date-input
+      formControlName="date"
+      label="Date"
+      hint="For example, 27 3 2007"
+      idPrefix="date"
+      [submitted]="createInvalid"
+    >
+    </app-date-input>
+
+    <!-- Time -->
+    <app-duration-input
+      formControlName="time"
+      label="Time"
+      hint="Enter the time in 24-hour format, for example 08:30"
+      idPrefix="time"
+      [submitted]="createInvalid"
+      [required]="true"
+    >
+    </app-duration-input>
+
+    <!-- Description -->
+    <app-text-input
+      formControlName="description"
+      label="Description"
+      hint="A description of the application list"
+      idPrefix="description"
+      [submitted]="createInvalid"
+    >
+    </app-text-input>
+
+    <!-- Status -->
+    <app-select-input
+      formControlName="status"
+      label="Select status"
+      hint="The status of the application list"
+      idPrefix="status"
+      [submitted]="createInvalid"
+      [options]="[
+        { value: 'choose', label: 'Choose status' },
+        { value: 'open', label: 'Open' },
+        { value: 'closed', label: 'Closed' },
+      ]"
+    >
+    </app-select-input>
+  </div>
+
+  <div class="govuk-grid-row">
+    <!-- Court -->
+    <div class="govuk-grid-column-one-quarter">
+      <div
+        class="govuk-form-group"
+        [ngClass]="{
+          'govuk-form-group--error':
+            createInvalid &&
+            !courthouseSearch.trim() &&
+            !(
+              form.get('location')?.value?.toString()?.trim() ||
+              cjaSearch.trim()
+            ),
+        }"
+      >
+        <div class="govuk-label-wrapper">
+          <label class="govuk-label govuk-label--m" for="court">Court</label>
+        </div>
+        <div id="court-hint" class="govuk-hint">
+          Start typing to search the list
+        </div>
+
+        @if (
+          createInvalid &&
+          !courthouseSearch.trim() &&
+          !(form.get('location')?.value?.toString()?.trim() || cjaSearch.trim())
+        ) {
+          <p id="court-error" class="govuk-error-message">
+            <span class="govuk-visually-hidden">Error:</span> Court is required
+          </p>
+        }
+
+        <div class="app-autocomplete">
+          <input
+            class="govuk-input govuk-input--width-20"
+            [ngClass]="{
+              'govuk-input--error':
+                createInvalid &&
+                !courthouseSearch.trim() &&
+                !(
+                  form.get('location')?.value?.toString()?.trim() ||
+                  cjaSearch.trim()
+                ),
+            }"
+            id="court"
+            name="court"
+            type="text"
+            [(ngModel)]="courthouseSearch"
+            [ngModelOptions]="{ standalone: true }"
+            (input)="onCourthouseInputChange()"
+            [disabled]="
+              !!form.get('location')?.value || !!form.get('cja')?.value
+            "
+            [attr.aria-describedby]="
+              (
+                'court-hint ' +
+                (createInvalid && !courthouseSearch.trim() ? 'court-error' : '')
+              ).trim()
+            "
+            autocomplete="off"
+          />
+          @if (filteredCourthouses.length && courthouseSearch) {
+            <ul class="govuk-list app-autocomplete__menu">
+              @for (courthouse of filteredCourthouses; track courthouse) {
+                <li>
+                  <a
+                    href="#"
+                    class="app-autocomplete__link"
+                    (click)="
+                      selectCourthouse(courthouse); $event.preventDefault()
+                    "
+                  >
+                    {{ courthouse.name }}
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Other location -->
+    <app-text-input
+      formControlName="location"
+      label="Other location"
+      hint="Other location description"
+      idPrefix="location"
+      [submitted]="createInvalid && !form.get('court')?.value"
+      [disabled]="!!form.get('court')?.value"
+    >
+      >
+    </app-text-input>
+
+    <!-- CJA -->
+    <div class="govuk-grid-column-one-quarter">
+      <div
+        class="govuk-form-group"
+        [ngClass]="{
+          'govuk-form-group--error':
+            createInvalid && !form.get('court')?.value && !cjaSearch.trim(),
+        }"
+      >
+        <div class="govuk-label-wrapper">
+          <label class="govuk-label govuk-label--m" for="cja">CJA</label>
+        </div>
+        <div id="cja-hint" class="govuk-hint">Criminal Justice Area</div>
+
+        @if (createInvalid && !form.get('court')?.value && !cjaSearch.trim()) {
+          <p id="cja-error" class="govuk-error-message">
+            <span class="govuk-visually-hidden">Error:</span> CJA is required
+          </p>
+        }
+
+        <div class="app-autocomplete">
+          <input
+            class="govuk-input govuk-input--width-20"
+            [ngClass]="{
+              'govuk-input--error':
+                createInvalid && !form.get('court')?.value && !cjaSearch.trim(),
+            }"
+            id="cja"
+            name="cja"
+            type="text"
+            [(ngModel)]="cjaSearch"
+            [ngModelOptions]="{ standalone: true }"
+            (input)="onCjaInputChange()"
+            [disabled]="!!form.get('court')?.value"
+            [attr.aria-describedby]="
+              (
+                'cja-hint ' +
+                (createInvalid && !cjaSearch.trim() ? 'cja-error' : '')
+              ).trim()
+            "
+            autocomplete="off"
+          />
+          @if (filteredCja.length && cjaSearch) {
+            <ul class="govuk-list app-autocomplete__menu">
+              @for (cja of filteredCja; track cja) {
+                <li>
+                  <a
+                    href="#"
+                    class="app-autocomplete__link"
+                    (click)="selectCja(cja); $event.preventDefault()"
+                  >
+                    {{ cja.description }}
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="govuk-button-group">
+    <button type="submit" class="govuk-button" value="create">Create</button>
+  </div>
+</form>
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>

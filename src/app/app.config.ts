@@ -17,7 +17,7 @@ import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
 
-import { BASE_PATH } from 'src/generated/openapi';
+import { BASE_PATH, provideApi } from 'src/generated/openapi';
 import { Configuration } from 'src/generated/openapi/configuration';
 
 export const credentialsInterceptor: HttpInterceptorFn = (req, next) => {
@@ -47,5 +47,6 @@ export const appConfig: ApplicationConfig = {
           withCredentials: true,
         }),
     },
+    provideApi(''),
   ],
 };

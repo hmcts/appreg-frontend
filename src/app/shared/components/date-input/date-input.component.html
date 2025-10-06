@@ -1,18 +1,57 @@
-<div class="govuk-grid-column-one-quarter">
-  <div class="govuk-form-group">
+<div class="govuk-grid-column-one-quarter app-date-tight">
+  <div
+    class="govuk-form-group"
+    [class.govuk-form-group--error]="
+      submitted &&
+      (dateForm.invalid ||
+        !dateForm.get('day')?.value ||
+        !dateForm.get('month')?.value ||
+        !dateForm.get('year')?.value)
+    "
+  >
     <fieldset
       class="govuk-fieldset"
       role="group"
-      [attr.aria-describedby]="idPrefix + '-hint'"
+      [attr.aria-describedby]="
+        idPrefix +
+        '-hint' +
+        (submitted &&
+        (dateForm.invalid ||
+          !dateForm.get('day')?.value ||
+          !dateForm.get('month')?.value ||
+          !dateForm.get('year')?.value)
+          ? ' ' + idPrefix + '-error'
+          : '')
+      "
       [formGroup]="dateForm"
     >
       <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
         <h1 class="govuk-fieldset__heading">{{ label }}</h1>
       </legend>
 
-      <div [id]="idPrefix + '-hint'" class="govuk-hint">
-        {{ hint }}
-      </div>
+      <div [id]="idPrefix + '-hint'" class="govuk-hint">{{ hint }}</div>
+
+      <!-- Group error -->
+      @if (
+        submitted &&
+        (dateForm.invalid ||
+          !dateForm.get('day')?.value ||
+          !dateForm.get('month')?.value ||
+          !dateForm.get('year')?.value)
+      ) {
+        <p [id]="idPrefix + '-error'" class="govuk-error-message">
+          <span class="govuk-visually-hidden">Error:</span>
+          @if (
+            !dateForm.get('day')?.value ||
+            !dateForm.get('month')?.value ||
+            !dateForm.get('year')?.value
+          ) {
+            Enter day, month and year
+          } @else if (dateForm.errors?.['invalidDate']) {
+            Enter a real date
+          }
+        </p>
+      }
 
       <div class="govuk-date-input" [id]="idPrefix">
         <!-- Day -->
@@ -21,15 +60,32 @@
             <label
               class="govuk-label govuk-date-input__label"
               [for]="idPrefix + '-day'"
+              >Day</label
             >
-              Day
-            </label>
             <input
               class="govuk-input govuk-date-input__input govuk-input--width-2"
+              [class.govuk-input--error]="
+                (dateForm.get('day')?.invalid &&
+                  (dateForm.get('day')?.touched ||
+                    dateForm.get('day')?.dirty)) ||
+                (submitted && !dateForm.get('day')?.value)
+              "
               [id]="idPrefix + '-day'"
               [name]="idPrefix + '-day'"
               type="text"
               inputmode="numeric"
+              pattern="[0-9]*"
+              maxlength="2"
+              autocomplete="off"
+              spellcheck="false"
+              [attr.aria-invalid]="
+                (dateForm.get('day')?.invalid &&
+                  (dateForm.get('day')?.touched ||
+                    dateForm.get('day')?.dirty)) ||
+                (submitted && !dateForm.get('day')?.value)
+                  ? 'true'
+                  : null
+              "
               formControlName="day"
             />
           </div>
@@ -41,15 +97,32 @@
             <label
               class="govuk-label govuk-date-input__label"
               [for]="idPrefix + '-month'"
+              >Month</label
             >
-              Month
-            </label>
             <input
               class="govuk-input govuk-date-input__input govuk-input--width-2"
+              [class.govuk-input--error]="
+                (dateForm.get('month')?.invalid &&
+                  (dateForm.get('month')?.touched ||
+                    dateForm.get('month')?.dirty)) ||
+                (submitted && !dateForm.get('month')?.value)
+              "
               [id]="idPrefix + '-month'"
               [name]="idPrefix + '-month'"
               type="text"
               inputmode="numeric"
+              pattern="[0-9]*"
+              maxlength="2"
+              autocomplete="off"
+              spellcheck="false"
+              [attr.aria-invalid]="
+                (dateForm.get('month')?.invalid &&
+                  (dateForm.get('month')?.touched ||
+                    dateForm.get('month')?.dirty)) ||
+                (submitted && !dateForm.get('month')?.value)
+                  ? 'true'
+                  : null
+              "
               formControlName="month"
             />
           </div>
@@ -61,15 +134,32 @@
             <label
               class="govuk-label govuk-date-input__label"
               [for]="idPrefix + '-year'"
+              >Year</label
             >
-              Year
-            </label>
             <input
-              class="govuk-input govuk-date-input__input govuk-input--width-3"
+              class="govuk-input govuk-date-input__input govuk-input--width-4"
+              [class.govuk-input--error]="
+                (dateForm.get('year')?.invalid &&
+                  (dateForm.get('year')?.touched ||
+                    dateForm.get('year')?.dirty)) ||
+                (submitted && !dateForm.get('year')?.value)
+              "
               [id]="idPrefix + '-year'"
               [name]="idPrefix + '-year'"
               type="text"
               inputmode="numeric"
+              pattern="[0-9]*"
+              maxlength="4"
+              autocomplete="off"
+              spellcheck="false"
+              [attr.aria-invalid]="
+                (dateForm.get('year')?.invalid &&
+                  (dateForm.get('year')?.touched ||
+                    dateForm.get('year')?.dirty)) ||
+                (submitted && !dateForm.get('year')?.value)
+                  ? 'true'
+                  : null
+              "
               formControlName="year"
             />
           </div>
