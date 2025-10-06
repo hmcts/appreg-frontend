@@ -1,0 +1,29 @@
+<!-- Breadcrumbs -->
+<app-breadcrumbs
+  [items]="[{ label: 'Applications list', link: '/applications-list' }]"
+></app-breadcrumbs>
+
+<h1 class="govuk-heading-xl">Result applications</h1>
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
+
+<!-- Table of applications to result -->
+<app-table
+  [caption]="'Applications to result'"
+  [columns]="columns"
+  [rows]="rows"
+>
+</app-table>
+
+<!-- Search box to filter result codes -->
+<app-search-box
+  [label]="'Search for a result code'"
+  [hint]="'Start typing to see results'"
+  buttonText="Save"
+  placeholder="e.g. APPC"
+  (valueChange)="onSearchChange()"
+  (submitted)="onSearchSubmit()"
+>
+</app-search-box>

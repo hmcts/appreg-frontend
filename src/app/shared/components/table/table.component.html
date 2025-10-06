@@ -1,0 +1,59 @@
+<table [class]="tableClass">
+  @if (caption) {
+    <caption [class]="captionClass">
+      {{
+        caption
+      }}
+    </caption>
+  }
+
+  @if (cols.length) {
+    <thead class="govuk-table__head">
+      <tr class="govuk-table__row">
+        @for (col of cols; track $index) {
+          <th
+            scope="col"
+            class="govuk-table__header"
+            [ngClass]="col.headerClass"
+          >
+            {{ col.header }}
+          </th>
+        }
+      </tr>
+    </thead>
+  }
+
+  <tbody class="govuk-table__body">
+    @for (row of rows; track $index; let r = $index) {
+      <tr class="govuk-table__row">
+        @for (col of cols; track $index; let c = $index) {
+          <td class="govuk-table__cell" [ngClass]="col.cellClass">
+            @if (!col.cellTemplate) {
+              {{ valueOf(row, col, r) }}
+            } @else {
+              <ng-container
+                *ngTemplateOutlet="
+                  col.cellTemplate;
+                  context: {
+                    $implicit: valueOf(row, col, r),
+                    row: row,
+                    col: col,
+                    rowIndex: r,
+                    colIndex: c,
+                  }
+                "
+              >
+              </ng-container>
+            }
+          </td>
+        }
+      </tr>
+    } @empty {
+      <tr class="govuk-table__row">
+        <td class="govuk-table__cell" [attr.colspan]="cols.length || 1">
+          <span class="govuk-visually-hidden">No data to show</span>
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>

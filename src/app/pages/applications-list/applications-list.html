@@ -148,15 +148,51 @@
         [routerLink]="['/applications-list', row.id]"
         class="govuk-button govuk-button--secondary"
       >
-        Open
-      </a>
-      <button
-        type="button"
-        class="govuk-button govuk-button--warning"
-        (click)="onDelete(row.id)"
-      >
-        Delete
-      </button>
+        <!-- Open button -->
+        <button
+          type="button"
+          class="govuk-button moj-button-menu__item govuk-button--secondary"
+          [routerLink]="['/applications-list', row.id]"
+        >
+          Open
+        </button>
+
+        <!-- Print page button -->
+        <button
+          type="button"
+          class="govuk-button moj-button-menu__item govuk-button--secondary"
+          (click)="onPrint()"
+        >
+          Print page
+        </button>
+
+        <!-- Print continuous button -->
+        <button
+          type="button"
+          class="govuk-button moj-button-menu__item govuk-button--secondary"
+          (click)="onPrintContinuous()"
+        >
+          Print continuous
+        </button>
+
+        <!-- Result button -->
+        <button
+          type="button"
+          class="govuk-button moj-button-menu__item govuk-button--secondary"
+          [routerLink]="['/result-selected', row.id]"
+        >
+          Result
+        </button>
+
+        <!-- Delete button -->
+        <button
+          type="button"
+          class="govuk-button moj-button-menu__item govuk-button--warning"
+          (click)="onDelete(row.id)"
+        >
+          Delete
+        </button>
+      </div>
     </div>
   </ng-template>
 </app-sortable-table>
