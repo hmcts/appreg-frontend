@@ -11,6 +11,8 @@ import { RouterLink } from '@angular/router';
 import { merge } from 'rxjs';
 
 import {
+  ApplicationListGetSummaryDto,
+  ApplicationListsApi,
   CourtLocationGetSummaryDto,
   CourtLocationsApi,
   CriminalJusticeAreaGetDto,
@@ -75,6 +77,9 @@ export class ApplicationsList implements OnInit {
   filteredCourthouses: CourtLocationGetSummaryDto[] = [];
   courthouseSearch = '';
 
+  // Filtered lists when searched
+  filteredLists: ApplicationListGetSummaryDto[] = [];
+
   // Reactive form backing the template
   form = new FormGroup({
     date: new FormControl<string | null>(null),
@@ -111,6 +116,7 @@ export class ApplicationsList implements OnInit {
     @Inject(PLATFORM_ID) private readonly platformId: object,
     private readonly cjaApi: CriminalJusticeAreasApi,
     private readonly courtLocationApi: CourtLocationsApi,
+    private readonly appList: ApplicationListsApi,
   ) {}
 
   ngOnInit(): void {
@@ -199,10 +205,34 @@ export class ApplicationsList implements OnInit {
     const btn = event.submitter as HTMLButtonElement | null;
     const action = btn?.value ?? 'search';
 
+    // Get form values
+    const query = {
+      date: this.form.value.date,
+      time: this.form.value.time,
+      description: this.form.value.description,
+      status: this.form.value.status,
+      court: this.form.value.court,
+      location: this.form.value.location,
+      cja: this.form.value.cja,
+    };
+
+    const hasAny =
+      query.date ||
+      query.time ||
+      query.description ||
+      query.status ||
+      query.court ||
+      query.location ||
+      query.cja;
+
     if (action === 'search') {
-      // TODO: handle search using `values`
-    } else if (action === 'create') {
-      // TODO: handle create using `values`
+      if (!hasAny) {
+        // No values found in form, run GET ALL
+        // TODO: run GET ALL
+      } else {
+        // Values found, run query with parameters
+        // TODO: run GET with params
+      }
     }
   }
 
