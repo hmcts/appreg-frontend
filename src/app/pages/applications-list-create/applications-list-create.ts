@@ -38,6 +38,14 @@ type FieldKey =
   | 'location'
   | 'cja';
 
+type CreateFormRaw = Pick<ApplicationListCreateDto, 'date' | 'description'> & {
+  time: { hours: number | null; minutes: number | null } | null;
+  status: string | ApplicationListStatus | null;
+  court: string | null;
+  location: string | null;
+  cja: string | null;
+};
+
 @Component({
   selector: 'app-applications-list',
   standalone: true,
@@ -59,7 +67,7 @@ export class ApplicationsListCreate implements OnInit {
   private _id: number | undefined;
 
   constructor(
-    private route: ActivatedRoute,
+    private readonly route: ActivatedRoute,
     private readonly state: TransferState,
     private readonly cjaApi: CriminalJusticeAreasApi,
     private readonly courtLocationApi: CourtLocationsApi,
@@ -174,148 +182,145 @@ export class ApplicationsListCreate implements OnInit {
 
   onSubmit(event: SubmitEvent): void {
     event.preventDefault();
-    const btn = event.submitter as HTMLButtonElement | null;
-    const action = btn?.value ?? '';
+    const action = (event.submitter as HTMLButtonElement | null)?.value ?? '';
     this.submitted = true;
 
-    // Reset
+    this.resetCreateState();
+
+    const raw = this.form.getRawValue() as CreateFormRaw;
+    this.form.patchValue({
+      date: raw.date,
+      description: raw.description,
+      status: raw.status,
+      court: raw.court,
+      location: raw.location,
+      cja: raw.cja,
+    });
+
+    if (action === 'create') {
+      const missing = this.collectMissing(raw);
+      if (missing.length) {
+        this.unpopField = missing;
+        this.createInvalid = true;
+        this.errorHint = 'Error - please check your inputs:';
+        return;
+      }
+      this.createInvalid = false;
+    }
+
+    if (this.createInvalid) {
+      return;
+    }
+
+    const conflict = this.validateCourtVsLocOrCja(raw);
+    if (conflict) {
+      this.createInvalid = true;
+      this.errorHint = conflict;
+      return;
+    }
+
+    const payload = this.buildPayload(raw);
+    this.appLists
+      .createApplicationList({ applicationListCreateDto: payload })
+      .subscribe({
+        next: () => {
+          this.createDone = true;
+        },
+        error: (err) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          this.createDone = false;
+          this.createInvalid = true;
+          this.errorHint = 'An error has occurred: \n' + msg;
+        },
+      });
+  }
+
+  private resetCreateState(): void {
     this.unpopField = [];
     this.createInvalid = false;
     this.createDone = false;
     this.errorHint = '';
+  }
 
-    const formValues = this.form.getRawValue();
+  private has(x: unknown): boolean {
+    return x !== null && x !== undefined && x !== '' && x !== 'choose';
+  }
 
-    this.form.patchValue({
-      date: formValues.date,
-      description: formValues.description,
-      status: formValues.status,
-      court: formValues.court,
-      location: formValues.location,
-      cja: formValues.cja,
-    });
-
-    // Prevent accidental submissions, button has to be clicked
-    if (action === 'create') {
-      const value = this.form.value as Record<FieldKey, unknown>;
-      const has = (x: unknown) =>
-        x !== null && x !== undefined && x !== '' && x !== 'choose'; // Conditions for unpopulated
-      const push = (id: string, text: string) =>
-        this.unpopField.push({ id, text });
-      const court = has(value.court);
-      const loc = has(value.location);
-      const cja = has(value.cja);
-
-      // Record unpopulated required fields
-      if (!has(value.date)) {
-        push('date-day', 'Enter day, month and year');
+  private collectMissing(v: CreateFormRaw): { id: string; text: string }[] {
+    const out: { id: string; text: string }[] = [];
+    const need = (ok: boolean, id: string, text: string) => {
+      if (!ok) {
+        out.push({ id, text });
       }
-      if (!has(value.time)) {
-        push('time', 'Enter hours and minutes');
-      }
-      if (!has(value.description)) {
-        push('description', 'Description is required');
-      }
-      if (!has(value.status) || value.status === 'choose') {
-        push('status', 'Status is required');
-      }
+    };
 
-      // Court XOR (Location & CJA):
-      if (!court) {
-        if (!loc) {
-          push('location', 'Other location is required');
-        }
-        if (!cja) {
-          push('cja', 'CJA is required');
-        }
-      }
+    need(this.has(v.date), 'date-day', 'Enter day, month and year');
+    need(this.has(v.time), 'time', 'Enter hours and minutes');
+    need(this.has(v.description), 'description', 'Description is required');
+    need(this.has(v.status), 'status', 'Status is required');
 
-      if (!(loc || cja)) {
-        if (!court) {
-          push('court', 'Court is required');
-        }
-      }
+    const court = this.has(v.court);
+    const loc = this.has(v.location);
+    const cja = this.has(v.cja);
 
-      // show error hint if any required fields unpopuluated
-      if (this.unpopField.length) {
-        this.createInvalid = true; // Ensures the create was invalid
-        this.errorHint = 'Error - please check your inputs:';
-        return;
-      }
+    if (!court) {
+      need(loc, 'location', 'Other location is required');
+      need(cja, 'cja', 'CJA is required');
+    }
+    if (!(loc || cja) && !court) {
+      out.push({ id: 'court', text: 'Court is required' });
+    }
+    return out;
+  }
 
-      this.createInvalid = false;
+  private validateCourtVsLocOrCja(v: CreateFormRaw): string | null {
+    const court = this.has(v.court);
+    const loc = this.has(v.location);
+    const cja = this.has(v.cja);
+    return court && (loc || cja)
+      ? 'You can not have Court and Other Location or CJA filled in'
+      : null;
+  }
+
+  private toTimeString = (
+    t: { hours: number | null; minutes: number | null } | null,
+  ): string => {
+    const hours = t?.hours;
+    const minutes = t?.minutes;
+    if (hours === null || minutes === null) {
+      throw new Error('time required');
     }
 
-    if (!this.createInvalid) {
-      const { date, time, description, status, court, location, cja } =
-        this.form.getRawValue();
+    const hh = String(hours).padStart(2, '0');
+    const mm = String(minutes).padStart(2, '0');
+    return `${hh}:${mm}:00`;
+  };
 
-      // Format {hours: int, minutes: int} to string 'hh:mm:00
-      const toTimeString = (
-        t: { hours: number | null; minutes: number | null } | null,
-      ): string => {
-        // Double check if time is not null
-        if (!t || t.hours === null || t.minutes === null) {
-          throw new Error('time required');
-        }
-        const hh = String(t.hours).padStart(2, '0');
-        const mm = String(t.minutes).padStart(2, '0');
-        return `${hh}:${mm}:00`;
-      };
-
-      // Ensures type based on spec
-      const toStatus = (s: unknown): ApplicationListStatus => {
-        switch (String(s).toUpperCase()) {
-          case 'OPEN':
-            return ApplicationListStatus.OPEN;
-          case 'CLOSED':
-            return ApplicationListStatus.CLOSED;
-          default:
-            throw new Error('Invalid status');
-        }
-      };
-
-      const has = (x: unknown) =>
-        x !== null && x !== undefined && x !== '' && x !== 'choose';
-      const useCourt = has(court);
-      const hasCourtAndLocOrCja = has(court) && (has(location) || has(cja));
-
-      if (hasCourtAndLocOrCja) {
-        // In case the user manages to input both court and location or cja
-        this.createInvalid = true;
-        this.errorHint =
-          'You can not have Court and Other Location or CJA filled in';
-        return;
-      }
-
-      const payload: ApplicationListCreateDto = {
-        date: date!,
-        time: toTimeString(time),
-        description: (description ?? '').trim(),
-        status: toStatus(status),
-        ...(useCourt
-          ? { courtLocationCode: court as string }
-          : {
-              otherLocationDescription: location as string,
-              cjaCode: cja as string,
-            }),
-      };
-
-      this.appLists
-        .createApplicationList({ applicationListCreateDto: payload })
-        .subscribe({
-          next: () => {
-            this.createDone = true;
-          },
-          error: (err) => {
-            const msg = err instanceof Error ? err.message : String(err);
-            this.createDone = false;
-            this.createInvalid = true;
-            this.errorHint = 'An error has occurred: \n' + msg;
-            return;
-          },
-        });
+  private toStatus(s: unknown): ApplicationListStatus {
+    switch (String(s).toUpperCase()) {
+      case 'OPEN':
+        return ApplicationListStatus.OPEN;
+      case 'CLOSED':
+        return ApplicationListStatus.CLOSED;
+      default:
+        throw new Error('Invalid status');
     }
+  }
+
+  private buildPayload(raw: CreateFormRaw): ApplicationListCreateDto {
+    const useCourt = this.has(raw.court);
+    return {
+      date: raw.date,
+      time: this.toTimeString(raw.time),
+      description: (raw.description ?? '').trim(),
+      status: this.toStatus(raw.status),
+      ...(useCourt
+        ? { courtLocationCode: raw.court as string }
+        : {
+            otherLocationDescription: raw.location as string,
+            cjaCode: raw.cja as string,
+          }),
+    };
   }
 
   loadLists(): void {
@@ -327,7 +332,6 @@ export class ApplicationsListCreate implements OnInit {
     this.cjaApi.getCriminalJusticeAreas().subscribe({
       next: (page) => {
         this.cja = page.content ?? [];
-        // console.log(this.cja); // Sanity check
       },
       error: () => {
         this.cja = [];
@@ -339,7 +343,6 @@ export class ApplicationsListCreate implements OnInit {
     this.courtLocationApi.getCourtLocations().subscribe({
       next: (page) => {
         this.courtLocations = page.content ?? [];
-        // console.log(this.courtLocations); // Sanity check
       },
       error: () => {
         this.courtLocations = [];

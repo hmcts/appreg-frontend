@@ -105,9 +105,9 @@ export class TableComponent<T = unknown> {
 
   private humanize(key: string): string {
     return key
-      .replace(/[_-]+/g, ' ')
-      .replace(/\s+/g, ' ')
+      .replaceAll(/[_-]+/g, ' ')
+      .replaceAll(/\s+/g, ' ')
       .trim()
-      .replace(/\w\S*/g, (w) => w[0].toUpperCase() + w.slice(1));
+      .replaceAll(/\w\S*/g, (w) => w[0].toUpperCase() + w.slice(1));
   }
 }

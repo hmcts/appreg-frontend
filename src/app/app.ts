@@ -149,6 +149,17 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  private readonly sortableSelector = '[data-module="moj-sortable-table"]';
+
+  private collectSortable(node: Node): HTMLElement[] {
+    if (!(node instanceof HTMLElement)) {
+      return [];
+    }
+    const direct = node.matches?.(this.sortableSelector) ? [node] : [];
+    const found = node.querySelectorAll?.(this.sortableSelector) ?? [];
+    return [...direct, ...(Array.from(found) as HTMLElement[])];
+  }
+
   /** Enhance all MoJ Sortable tables in the given scope and observe for new ones */
   private initAllSortableTables(scope?: ParentNode): void {
     if (!isPlatformBrowser(this.platformId)) {
@@ -184,25 +195,11 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
         return;
       }
       this.mojObserver = new MutationObserver((records) => {
-        for (const r of records) {
-          for (const n of Array.from(r.addedNodes)) {
-            if (!(n instanceof HTMLElement)) {
-              continue;
-            }
-            if (n.matches?.('[data-module="moj-sortable-table"]')) {
-              enhance(n);
-            }
-            const nodeList = n.querySelectorAll?.(
-              '[data-module="moj-sortable-table"]',
-            ) as NodeListOf<HTMLElement> | undefined;
-
-            if (nodeList) {
-              for (const el of nodeList) {
-                enhance(el);
-              }
-            }
-          }
-        }
+        records.forEach((r) =>
+          r.addedNodes.forEach((n) =>
+            this.collectSortable(n).forEach((el) => enhance(el)),
+          ),
+        );
       });
       this.mojObserver.observe(root, { childList: true, subtree: true });
     });
