@@ -26,7 +26,7 @@ const OUT_DIR = path.join('.github', 'scripts', 'out');
 })();
 
 async function loadConfig() {
-  const cfgPath = path.join('.github', 'branch-retention.yml');
+  const cfgPath = path.join('.github', 'branch-retention', 'branch-retention.yml');
   try {
     const yml = await fs.readFile(cfgPath, 'utf8');
     return YAML.parse(yml);
