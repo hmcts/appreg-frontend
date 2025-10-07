@@ -26,6 +26,8 @@
       label="Date"
       hint="For example, 27 3 2007"
       idPrefix="date"
+      [submitted]="submitted"
+      [isSearch]="isSearch"
     >
     </app-date-input>
 
@@ -35,6 +37,8 @@
       label="Time"
       hint="Enter the time in 24-hour format, for example 08:30"
       idPrefix="time"
+      [submitted]="submitted"
+      [required]="!isSearch"
     >
     </app-duration-input>
 
@@ -104,7 +108,7 @@
 />
 
 <!-- Sortable table component -->
-<app-sortable-table caption="Lists" [columns]="columns" [data]="rows">
+<app-sortable-table [caption]="caption" [columns]="columns" [data]="rows">
   <ng-template #actionsTemplate let-row>
     <div class="govuk-button-group">
       <!-- actions slot -->

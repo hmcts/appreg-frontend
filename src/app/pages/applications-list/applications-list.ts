@@ -80,6 +80,11 @@ export class ApplicationsList implements OnInit {
   // Filtered lists when searched
   filteredLists: ApplicationListGetSummaryDto[] = [];
 
+  // Flags
+  submitted: boolean = false;
+  isSearch: boolean = false;
+  caption: string = 'Lists';
+
   // Reactive form backing the template
   form = new FormGroup({
     date: new FormControl<string | null>(null),
@@ -205,6 +210,10 @@ export class ApplicationsList implements OnInit {
     const btn = event.submitter as HTMLButtonElement | null;
     const action = btn?.value ?? 'search';
 
+    // Reset flag
+    this.submitted = false;
+    this.isSearch = false;
+
     // Get form values
     const query = {
       date: this.form.value.date,
@@ -226,6 +235,8 @@ export class ApplicationsList implements OnInit {
       query.cja;
 
     if (action === 'search') {
+      this.submitted = true;
+      this.isSearch = true;
       if (!hasAny) {
         // No values found in form, run GET ALL
         // TODO: run GET ALL
@@ -234,6 +245,7 @@ export class ApplicationsList implements OnInit {
         // TODO: run GET with params
       }
     }
+    this.updateCaption();
   }
 
   loadApplicationsLists(): void {
@@ -390,6 +402,10 @@ export class ApplicationsList implements OnInit {
     this.cjaSearch = label;
     this.form.controls.cja.setValue(label);
     this.filteredCja = [];
+  }
+
+  updateCaption(): void {
+    this.caption = (this.rows?.length ?? 0) > 0 ? 'Lists' : 'No lists found';
   }
 
   onDelete(id: number): void {

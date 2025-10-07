@@ -43,6 +43,7 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
   @Input() hint = 'For example, 27 3 2007';
   @Input() idPrefix = 'date';
   @Input() submitted = false;
+  @Input() isSearch = false;
 
   readonly dateForm: DateForm;
 
