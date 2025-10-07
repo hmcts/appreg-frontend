@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 
 import { SelectInputComponent } from '../../../../../../src/app/shared/components/select-input/select-input.component';
 
@@ -6,90 +7,176 @@ describe('SelectInputComponent', () => {
   let fixture: ComponentFixture<SelectInputComponent>;
   let component: SelectInputComponent;
 
+  const baseOptions = [
+    { value: 'choose', label: 'Choose an option' },
+    { value: 'A', label: 'Option A' },
+    { value: 'B', label: 'Option B' },
+  ];
+
+  function getGroup() {
+    return fixture.debugElement.query(By.css('.govuk-form-group'));
+  }
+  function getSelect(): HTMLSelectElement {
+    return fixture.debugElement.query(By.css('select.govuk-select'))
+      .nativeElement as HTMLSelectElement;
+  }
+  function getError() {
+    return fixture.debugElement.query(By.css('.govuk-error-message'));
+  }
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SelectInputComponent], // standalone component
+      imports: [SelectInputComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(SelectInputComponent);
     component = fixture.componentInstance;
+    component.idPrefix = 'my-select';
+    component.options = [
+      { value: 'choose', label: 'Choose an option' },
+      { value: 'A', label: 'Option A' },
+      { value: 'B', label: 'Option B' },
+    ];
+    component.value = 'choose';
+    component.submitted = false;
+    component.disabled = false;
     fixture.detectChanges();
   });
 
-  it('creates with sensible defaults', () => {
-    expect(component).toBeTruthy();
-    expect(component.label).toBe('Select');
-    expect(component.hint).toBe('');
-    expect(component.idPrefix).toBe('select');
-    expect(component.options).toEqual([]);
-    expect(component.value).toBeNull();
-    expect(component.disabled).toBe(false);
+  it('renders label and hint when provided', () => {
+    component.label = 'Court';
+    component.hint = 'Select a court';
+    fixture.detectChanges();
+
+    const labelEl = fixture.debugElement.query(By.css('label.govuk-label'));
+    const hintEl = fixture.debugElement.query(By.css('#my-select-hint'));
+    expect(labelEl.nativeElement.textContent.trim()).toBe('Court');
+    expect(hintEl.nativeElement.textContent.trim()).toBe('Select a court');
   });
 
-  it('writeValue sets the current value without emitting changes', () => {
-    const onChange = jest.fn();
-    const onTouched = jest.fn();
-    component.registerOnChange(onChange);
-    component.registerOnTouched(onTouched);
+  it('shows required error with label text when submitted and value missing', () => {
+    component.label = 'Court';
+    component.value = '';
+    component.submitted = true;
+    fixture.detectChanges();
 
-    component.writeValue('open');
-    expect(component.value).toBe('open');
-    expect(onChange).not.toHaveBeenCalled();
-    expect(onTouched).not.toHaveBeenCalled();
+    const err = getError();
+    expect(err).toBeTruthy();
+    expect(err.nativeElement.textContent.replace(/\s+/g, ' ').trim()).toContain(
+      'Court is required',
+    );
 
-    component.writeValue(null);
-    expect(component.value).toBeNull();
-    expect(onChange).not.toHaveBeenCalled();
-    expect(onTouched).not.toHaveBeenCalled();
+    const group = getGroup();
+    expect(group.nativeElement.classList).toContain('govuk-form-group--error');
+    expect(getSelect().classList).toContain('govuk-select--error');
   });
 
-  it('setDisabledState toggles disabled flag', () => {
-    component.setDisabledState(true);
-    expect(component.disabled).toBe(true);
+  it('shows required error with fallback label when label is absent', () => {
+    component.label = '';
+    component.value = '';
+    component.submitted = true;
+    fixture.detectChanges();
 
-    component.setDisabledState(false);
-    expect(component.disabled).toBe(false);
+    const err = getError();
+    expect(err).toBeTruthy();
+    expect(err.nativeElement.textContent.replace(/\s+/g, ' ').trim()).toContain(
+      'This field is required',
+    );
   });
 
-  it('onSelectChange updates value and calls onChange + onTouched', () => {
-    const onChange = jest.fn();
-    const onTouched = jest.fn();
-    component.registerOnChange(onChange);
-    component.registerOnTouched(onTouched);
-
-    const evt = { target: { value: 'closed' } } as unknown as Event;
-    component.onSelectChange(evt);
-
-    expect(component.value).toBe('closed');
-    expect(onChange).toHaveBeenCalledWith('closed');
-    expect(onTouched).toHaveBeenCalled();
+  it('treats "choose" sentinel as invalid when submitted', () => {
+    component.label = 'Court';
+    component.value = 'choose';
+    component.submitted = true;
+    fixture.detectChanges();
+    expect(getError()).toBeTruthy();
   });
 
-  it('honors options provided by the parent (sanity check)', () => {
-    component.options = [
-      { value: 'choose', label: 'Choose status' },
-      { value: 'open', label: 'Open' },
-      { value: 'closed', label: 'Closed' },
-    ];
-    // No runtime transformation occurs in the class; this just asserts input is accepted
-    expect(component.options.map((o) => o.value)).toEqual([
-      'choose',
-      'open',
-      'closed',
-    ]);
+  it('hides error and error classes when value valid', () => {
+    component.submitted = true;
+    component.value = 'A';
+    fixture.detectChanges();
+
+    expect(getError()).toBeFalsy();
+    expect(getGroup().nativeElement.classList).not.toContain(
+      'govuk-form-group--error',
+    );
+    expect(getSelect().classList).not.toContain('govuk-select--error');
   });
 
-  it('subsequent selections keep emitting with latest value', () => {
-    const onChange = jest.fn();
-    component.registerOnChange(onChange);
+  it('computes aria-describedby correctly: hint only', () => {
+    component.hint = 'Pick one';
+    component.submitted = false;
+    component.value = 'A'; // valid
+    fixture.detectChanges();
 
-    component.onSelectChange({ target: { value: 'open' } } as unknown as Event);
-    component.onSelectChange({
-      target: { value: 'closed' },
-    } as unknown as Event);
+    const describedBy = getSelect().getAttribute('aria-describedby');
+    expect(describedBy).toBe('my-select-hint');
+  });
 
-    expect(onChange).toHaveBeenCalledWith('open');
-    expect(onChange).toHaveBeenCalledWith('closed');
-    expect(component.value).toBe('closed');
+  it('computes aria-describedby correctly: hint + error', () => {
+    component.hint = 'Pick one';
+    component.submitted = true;
+    component.value = 'choose'; // invalid
+    fixture.detectChanges();
+
+    const describedBy = getSelect().getAttribute('aria-describedby');
+    expect(describedBy).toBe('my-select-hint my-select-error');
+  });
+
+  it('computes aria-describedby correctly: error only (no hint)', () => {
+    component.hint = '';
+    component.submitted = true;
+    component.value = ''; // invalid
+    fixture.detectChanges();
+
+    const describedBy = getSelect().getAttribute('aria-describedby');
+    expect(describedBy).toBe('my-select-error');
+  });
+
+  it('forwards disabled and id/name attributes', () => {
+    component.disabled = true;
+    fixture.detectChanges();
+
+    const sel = getSelect();
+    expect(sel.disabled).toBe(true);
+    expect(sel.getAttribute('id')).toBe('my-select');
+    expect(sel.getAttribute('name')).toBe('my-select');
+  });
+
+  it('renders options and selected value', () => {
+    fixture.detectChanges();
+    const sel = getSelect();
+    const opts = Array.from(sel.querySelectorAll('option'));
+    expect(opts).toHaveLength(baseOptions.length);
+    expect(opts.map((o) => o.textContent?.trim())).toEqual(
+      baseOptions.map((o) => o.label),
+    );
+
+    component.value = 'B';
+    fixture.detectChanges();
+    expect(sel.value).toBe('B');
+  });
+
+  it('invokes change and blur handlers', () => {
+    const sel = getSelect();
+
+    type Handlers = {
+      handleChange: (e: Event) => void;
+      handleBlur: (e: Event) => void;
+    };
+    const changeSpy = jest.spyOn(
+      component as unknown as Handlers,
+      'handleChange',
+    );
+    const blurSpy = jest.spyOn(component as unknown as Handlers, 'handleBlur');
+
+    sel.value = 'A';
+    sel.dispatchEvent(new Event('change'));
+    sel.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+
+    expect(changeSpy).toHaveBeenCalledTimes(1);
+    expect(blurSpy).toHaveBeenCalledTimes(1);
   });
 });
