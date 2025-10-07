@@ -85,6 +85,10 @@ export class ApplicationsList implements OnInit {
   isSearch: boolean = false;
   caption: string = 'Lists';
 
+  // Error summary
+  errorHint = 'There is a problem';
+  searchErrors: { id: string; text: string }[] = [];
+
   // Reactive form backing the template
   form = new FormGroup({
     date: new FormControl<string | null>(null),
@@ -211,6 +215,7 @@ export class ApplicationsList implements OnInit {
     const action = btn?.value ?? 'search';
 
     // Reset flag
+    this.searchErrors = [];
     this.submitted = false;
     this.isSearch = false;
 
@@ -224,6 +229,12 @@ export class ApplicationsList implements OnInit {
       location: this.form.value.location,
       cja: this.form.value.cja,
     };
+
+    const dateCtrl = this.form.controls.date;
+    
+    if (dateCtrl.errors?.['dateInvalid']) {
+      this.searchErrors.push({ id: 'date', text: 'Enter a real date' });
+    }
 
     const hasAny =
       query.date ||
@@ -406,6 +417,15 @@ export class ApplicationsList implements OnInit {
 
   updateCaption(): void {
     this.caption = (this.rows?.length ?? 0) > 0 ? 'Lists' : 'No lists found';
+  }
+
+  focusField(id: string, e: Event): void {
+    e.preventDefault();
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.focus({ preventScroll: true });
+    }
   }
 
   onDelete(id: number): void {

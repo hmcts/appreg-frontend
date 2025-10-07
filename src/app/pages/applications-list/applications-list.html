@@ -15,6 +15,23 @@
   </div>
 </div>
 
+@if (submitted && searchErrors.length) {
+  <div class="govuk-error-summary" role="alert" aria-labelledby="error-summary-title">
+    <h2 class="govuk-error-summary__title" id="error-summary-title">
+      {{ errorHint }}
+    </h2>
+    <div class="govuk-error-summary__body">
+      <ul class="govuk-list govuk-error-summary__list">
+        @for (e of searchErrors; track e.id) {
+          <li>
+            <a class="govuk-link" href="" (click)="focusField(e.id, $event)">{{ e.text }}</a>
+          </li>
+        }
+      </ul>
+    </div>
+  </div>
+}
+
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
