@@ -18,7 +18,7 @@ const MODE = process.argv.includes('--mode')
   ? process.argv[process.argv.indexOf('--mode') + 1]
   : process.env.MODE || 'dry-run'; // dry-run | enforce | auto
 
-const OUT_DIR = path.join('.github', 'scripts', 'out');
+const OUT_DIR = path.join('.github', 'branch-retention', 'out');
 
 (async () => {
   await fs.mkdir(OUT_DIR, { recursive: true });
@@ -26,7 +26,11 @@ const OUT_DIR = path.join('.github', 'scripts', 'out');
 })();
 
 async function loadConfig() {
-  const cfgPath = path.join('.github', 'branch-retention', 'branch-retention.yml');
+  const cfgPath = path.join(
+    '.github',
+    'branch-retention',
+    'branch-retention.yml',
+  );
   try {
     const yml = await fs.readFile(cfgPath, 'utf8');
     return YAML.parse(yml);
@@ -113,13 +117,15 @@ async function prHasLabelForBranch(branch, label) {
   if (!label) {
     return false;
   }
-  const q = `repo:${owner}/${repo} is:pr head:${branch}`;
-  const { data } = await octokit.rest.search.issuesAndPullRequests({
-    q,
-    per_page: 20,
-  });
 
-  return data.items.some((pr) => {
+  const prs = await octokit.paginate(octokit.rest.pulls.list, {
+    owner,
+    repo,
+    state: 'all',
+    head: `${owner}:${branch}`,
+    per_page: 100,
+  });
+  return prs.some((pr) => {
     const labels = Array.isArray(pr.labels) ? pr.labels : [];
     return labels.some((l) =>
       typeof l === 'string' ? l === label : l && l.name === label,

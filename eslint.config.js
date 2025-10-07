@@ -248,7 +248,7 @@ module.exports = defineConfig([
 
   // GitHub Action scripts (modern ESM, Node 18+/20+)
   {
-    files: ['.github/scripts/**/*.mjs'],
+    files: ['.github/**/**/*.mjs'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
