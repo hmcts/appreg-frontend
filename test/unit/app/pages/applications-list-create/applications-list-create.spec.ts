@@ -15,7 +15,6 @@ import {
   CriminalJusticeAreasApi,
 } from '../../../../../src/generated/openapi';
 
-// Reuse these everywhere
 const COURTS: CourtLocationGetSummaryDto[] = [
   { name: 'Alpha Court', locationCode: 'A1' },
   { name: 'Beta Court', locationCode: 'B2' },
@@ -71,7 +70,7 @@ describe('ApplicationsListCreate', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ApplicationsListCreate], // standalone
+      imports: [ApplicationsListCreate],
       providers: [
         provideRouter([]),
         { provide: PLATFORM_ID, useValue: 'browser' },
@@ -106,7 +105,7 @@ describe('ApplicationsListCreate', () => {
   }
 
   it('creates and loads lists on init', () => {
-    fixture.detectChanges(); // triggers ngOnInit
+    fixture.detectChanges();
     expect(courtsMock.getCourtLocations).toHaveBeenCalledTimes(1);
     expect(cjaMock.getCriminalJusticeAreas).toHaveBeenCalledTimes(1);
     expect(component.courtLocations).toHaveLength(2);
@@ -335,7 +334,7 @@ describe('ApplicationsListCreate', () => {
     });
     const evt = {
       preventDefault: jest.fn(),
-      submitter: { value: 'search' } as HTMLButtonElement, // skips missing check
+      submitter: { value: 'search' } as HTMLButtonElement,
     } as unknown as SubmitEvent;
     expect(() => component.onSubmit(evt)).toThrow('time required');
   });
