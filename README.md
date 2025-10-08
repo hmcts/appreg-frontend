@@ -278,6 +278,7 @@ This repository includes an automated policy to keep old/inactive branches tidy.
 2. **Enforce:** re-checks eligibility and deletes branches that still qualify; then comments on and closes the Issue.
 
 ### How it works (high level)
+
 - A Node script scans via the GitHub API, excluding protected names and branches with open PRs or a “do-not-delete” marker.
 - **Run** creates an Issue labeled `branch-cleanup` + a marker label (default `dry-run`) containing a table and a machine-readable ```json block.
 - **Enforce** reads that Issue’s JSON (not the runner artifacts), applies the grace period and re-checks exclusions, then deletes eligible branches and posts a deletion summary.
@@ -290,6 +291,7 @@ This repository includes an automated policy to keep old/inactive branches tidy.
 - **Artifacts (optional, for download):** `.github/branch-retention/out/*.json`
 
 ### Configuring the policy
+
 Edit `.github/branch-retention/branch-retention.yml`:
 
 ```json
@@ -309,7 +311,8 @@ githubIssueLabel: 'branch-cleanup'
 ```
 
 ### Developer commands (local)
-```bash 
+
+```bash
 # Authenticate with GitHub CLI (if not already done):
 gh auth login
 
