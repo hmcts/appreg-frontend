@@ -96,27 +96,24 @@ module.exports = defineConfig({
               appConfig.get('secrets.appreg.testUsers.TEST_ADMIN1_EMAIL') ||
               'ar-test-4@hmcts.net',
             password:
-              appConfig.get(
-                'secrets.appreg.testUsers.TEST_ADMIN1_PASSWORD',
-              ) || '',
+              appConfig.get('secrets.appreg.testUsers.TEST_ADMIN1_PASSWORD') ||
+              '',
           },
           admin2: {
             email:
               appConfig.get('secrets.appreg.testUsers.TEST_ADMIN2_EMAIL') ||
               'ar-test-5@hmcts.net',
             password:
-              appConfig.get(
-                'secrets.appreg.testUsers.TEST_ADMIN2_PASSWORD',
-              ) || '',
+              appConfig.get('secrets.appreg.testUsers.TEST_ADMIN2_PASSWORD') ||
+              '',
           },
           admin3: {
             email:
               appConfig.get('secrets.appreg.testUsers.TEST_ADMIN3_EMAIL') ||
               'ar-test-6@hmcts.net',
             password:
-              appConfig.get(
-                'secrets.appreg.testUsers.TEST_ADMIN3_PASSWORD',
-              ) || '',
+              appConfig.get('secrets.appreg.testUsers.TEST_ADMIN3_PASSWORD') ||
+              '',
           },
         },
       };

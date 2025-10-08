@@ -4,7 +4,7 @@ export class DropdownElement {
       .contains(
         'select, [role="combobox"], [role="listbox"], .dropdown, .select, label',
         name,
-        { matchCase: false }
+        { matchCase: false },
       )
       .then(($element) => {
         // If we found a label, look for its associated dropdown
