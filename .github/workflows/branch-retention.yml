@@ -69,5 +69,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: branch-retention-run
-          path: .github/scripts/out/*.json
+          path: .github/branch-retention/out/*.json
           if-no-files-found: ignore

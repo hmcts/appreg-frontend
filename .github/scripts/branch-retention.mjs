@@ -18,7 +18,7 @@ const MODE = process.argv.includes('--mode')
   ? process.argv[process.argv.indexOf('--mode') + 1]
   : process.env.MODE || 'run'; // run | enforce | auto
 
-const OUT_DIR = path.join('.github', 'scripts', 'out');
+const OUT_DIR = path.join('.github', 'branch-retention', 'out');
 
 (async () => {
   await fs.mkdir(OUT_DIR, { recursive: true });
