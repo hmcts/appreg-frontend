@@ -125,7 +125,7 @@ export class DateTimeHelper {
    */
   static setHourValue(fieldLabel: string, hour: string): void {
     const expectedValue = hour.replace(/^0+/, '') || '0'; // Remove leading zeros, keep at least one digit
-    
+
     DateTimeElement.findHourInput(fieldLabel)
       .should('be.visible')
       .should('be.enabled')
@@ -141,7 +141,7 @@ export class DateTimeHelper {
    */
   static setMinuteValue(fieldLabel: string, minute: string): void {
     const expectedValue = minute.replace(/^0+/, '') || '0'; // Remove leading zeros, keep at least one digit
-    
+
     DateTimeElement.findMinuteInput(fieldLabel)
       .should('be.visible')
       .should('be.enabled')
@@ -157,7 +157,7 @@ export class DateTimeHelper {
    */
   static setSecondValue(fieldLabel: string, second: string): void {
     const expectedValue = second.replace(/^0+/, '') || '0'; // Remove leading zeros, keep at least one digit
-    
+
     DateTimeElement.findSecondInput(fieldLabel)
       .should('be.visible')
       .should('be.enabled')
