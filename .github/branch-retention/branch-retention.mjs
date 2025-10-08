@@ -313,7 +313,11 @@ function isoPlusDays(iso, days) {
 async function enforce(config) {
   const label =
     (config.notify && config.notify.githubIssueLabel) || 'branch-cleanup';
+  const markerLabels = Array.isArray(config.notify?.markerLabels)
+    ? config.notify.markerLabels
+    : ['dry-run', 'run', 'pending']; // accept any of these markers
 
+  // 1) Pull open issues with the primary label; filter marker in code (more reliable)
   const { data: issues } = await octokit.rest.issues.listForRepo({
     owner,
     repo,
@@ -321,6 +325,17 @@ async function enforce(config) {
     labels: label,
     per_page: 100,
   });
+
+  // Debug: show what we see
+  console.log(
+    'Open issues with label',
+    label,
+    issues.map((i) => ({
+      n: i.number,
+      title: i.title,
+      labels: (i.labels || []).map((l) => (typeof l === 'string' ? l : l.name)),
+    })),
+  );
 
   const now = new Date();
   issues.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -330,25 +345,26 @@ async function enforce(config) {
     const labelNames = (is.labels || []).map((l) =>
       typeof l === 'string' ? l : l.name,
     );
-
-    const hasBatchMarker =
-      labelNames.includes('dry-run') ||
-      labelNames.includes('run') ||
-      labelNames.includes('pending');
+    const hasBatchMarker = markerLabels.some((m) => labelNames.includes(m));
     if (!hasBatchMarker) {
       continue;
     }
+
     const payload = parseJsonBlockFromIssue(is.body || '');
     if (!payload || !payload.candidates) {
       continue;
     }
-    const notifiedAtLine = (is.body || '')
-      .split('\n')
-      .find((l) => l.startsWith('**Notified at:**'));
-    const notifiedAt = notifiedAtLine
-      ? notifiedAtLine.split('**Notified at:**')[1].trim()
-      : is.created_at;
-    const readyAt = new Date(isoPlusDays(notifiedAt, config.graceDays || 7));
+
+    // Robust "Notified at" parsing; fall back to issue creation time
+    const m = (is.body || '').match(/\*\*Notified at:\*\*\s*([0-9T:\.\-Z]+)/);
+    const notifiedAtISO = m ? m[1] : is.created_at;
+
+    // If graceDays <= 0, make it immediately eligible
+    const readyAt =
+      (config.graceDays || 0) <= 0
+        ? new Date(0)
+        : new Date(isoPlusDays(notifiedAtISO, config.graceDays));
+
     if (readyAt <= now) {
       target = { issue: is, payload, readyAt };
       break;
@@ -362,6 +378,7 @@ async function enforce(config) {
     return;
   }
 
+  // 2) Recompute current candidates, then intersect with original payload
   const current = await computeCandidates(config);
   const currentSet = new Set(current.candidates.map((c) => c.branch));
   const survivors = target.payload.candidates.filter((c) =>
@@ -379,15 +396,16 @@ async function enforce(config) {
         (config.doNotDelete && config.doNotDelete.label) || '',
       );
       const stillProtected = anyMatch(c.branch, config.protectedPatterns || []);
-      const namePatterns =
-        config.doNotDelete && Array.isArray(config.doNotDelete.namePatterns)
-          ? config.doNotDelete.namePatterns
-          : [];
+      const namePatterns = Array.isArray(config.doNotDelete?.namePatterns)
+        ? config.doNotDelete.namePatterns
+        : [];
       const byName = anyMatch(c.branch, namePatterns);
+
       if (stillOpenPR || stillHasPRLabel || stillProtected || byName) {
         skipped.push({ ...c, reason: 'recheck-exclusion' });
         continue;
       }
+
       await octokit.rest.git.deleteRef({
         owner,
         repo,
@@ -410,7 +428,7 @@ async function enforce(config) {
       ? deleted
           .map(
             (d) =>
-              `- \`${d.branch}\` @ \`${d.lastCommitSHA.slice(
+              `- \`${d.branch}\` @ \`${(d.lastCommitSHA || '').slice(
                 0,
                 7,
               )}\` by ${d.author} (deleted ${d.deletedAt})`,
@@ -440,6 +458,7 @@ async function enforce(config) {
     issue_number: target.issue.number,
     body,
   });
+
   await octokit.rest.issues.update({
     owner,
     repo,
@@ -471,7 +490,12 @@ async function main() {
   await fs.mkdir(OUT_DIR, { recursive: true });
   const config = await loadConfig();
   console.log('Policy loaded: .github/branch-retention/branch-retention.yml');
-  console.log('graceDays =', config.graceDays, 'inactivityDays =', config.inactivityDays);
+  console.log(
+    'graceDays =',
+    config.graceDays,
+    'inactivityDays =',
+    config.inactivityDays,
+  );
   if (MODE === 'dry-run') {
     return dryRun(config);
   }
