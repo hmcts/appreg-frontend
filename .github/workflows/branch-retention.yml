@@ -54,6 +54,9 @@ jobs:
             echo "mode=$INPUT_MODE" >> $GITHUB_OUTPUT
           fi
 
+      - name: Unit test policy
+        run: yarn branch:test
+
       - name: Run branch retention (${{ steps.mode.outputs.mode }})
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -69,5 +72,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: branch-retention-run
-          path: .github/branch-retention/out/*.json
+          path: .github/scripts/out/*.json
           if-no-files-found: ignore
