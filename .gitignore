@@ -43,6 +43,7 @@ Thumbs.db
 cypress/reports/
 cypress/screenshots/
 cypress/videos/
+cypress/downloads/
 
 # .yarn folder
 .yarn/*

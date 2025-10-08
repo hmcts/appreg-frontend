@@ -196,21 +196,28 @@ export class DateTimeUtil {
   }
 
   /**
-   * Format time as HH:mm:ss
+   * Format time as HH:mm:ss with padded values
    * @param date Date object to format
    * @returns Time string in HH:mm:ss format
    */
   static formatTime(date: Date): string {
-    return date.toTimeString().split(' ')[0];
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const seconds = date.getSeconds().toString().padStart(2, '0');
+    return `${hours}:${minutes}:${seconds}`;
   }
 
   // === CORE TIMESTAMP & TIME METHODS ===
 
   /**
-   * Get current time in HH:mm:ss format
+   * Get current time in HH:mm:ss format with padded seconds
    */
   static timeNow(): string {
-    return new Date().toTimeString().split(' ')[0];
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const seconds = now.getSeconds().toString().padStart(2, '0');
+    return `${hours}:${minutes}:${seconds}`;
   }
 
   // === DATE DISPLAY METHODS ===
