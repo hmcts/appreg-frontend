@@ -470,6 +470,8 @@ async function dryRun(config) {
 async function main() {
   await fs.mkdir(OUT_DIR, { recursive: true });
   const config = await loadConfig();
+  console.log('Policy loaded: .github/branch-retention/branch-retention.yml');
+  console.log('graceDays =', config.graceDays, 'inactivityDays =', config.inactivityDays);
   if (MODE === 'dry-run') {
     return dryRun(config);
   }
