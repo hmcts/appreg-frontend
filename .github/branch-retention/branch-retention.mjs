@@ -20,11 +20,6 @@ const MODE = process.argv.includes('--mode')
 
 const OUT_DIR = path.join('.github', 'branch-retention', 'out');
 
-(async () => {
-  await fs.mkdir(OUT_DIR, { recursive: true });
-  await main();
-})();
-
 async function loadConfig() {
   const cfgPath = path.join(
     '.github',
@@ -40,14 +35,12 @@ async function loadConfig() {
       inactivityDays: 60,
       graceDays: 7,
       protectedPatterns: ['master', 'develop', 'release/*'],
+      autoDeletePatterns: [],
       doNotDelete: {
         label: 'do-not-delete',
         namePatterns: ['do-not-delete/*', '*[do-not-delete]*'],
       },
-      notify: {
-        teamsWebhookSecret: 'TEAMS_WEBHOOK_URL',
-        githubIssueLabel: 'branch-cleanup',
-      },
+      notify: { githubIssueLabel: 'branch-cleanup' },
     };
   }
 }
@@ -136,26 +129,41 @@ async function prHasLabelForBranch(branch, label) {
 async function computeCandidates(config) {
   const { inactivityDays, protectedPatterns, doNotDelete } = config;
   const branches = await listBranches();
+  const autoDeletePatterns = Array.isArray(config.autoDeletePatterns)
+    ? config.autoDeletePatterns
+    : [];
 
   const candidates = [];
   const scanned = [];
 
-  const namePatterns =
-    doNotDelete && Array.isArray(doNotDelete.namePatterns)
-      ? doNotDelete.namePatterns
-      : [];
-  const dndLabel = doNotDelete && doNotDelete.label ? doNotDelete.label : '';
-
   for (const b of branches) {
     const name = b.name;
     const protectedByPattern = anyMatch(name, protectedPatterns || []);
-    const doNotDeleteByName = anyMatch(name, namePatterns);
+    const doNotDeleteByName = anyMatch(
+      name,
+      doNotDelete && Array.isArray(doNotDelete.namePatterns)
+        ? doNotDelete.namePatterns
+        : [],
+    );
+    const forcedByPattern = anyMatch(name, autoDeletePatterns);
 
     const commit = await getCommit(b.commit.sha);
     const inactive = daysAgo(commit.date) >= inactivityDays;
+    const eligibleByInactivity = inactive || forcedByPattern;
 
     const openPR = await hasOpenPRForBranch(name);
-    const doNotDeleteByLabel = await prHasLabelForBranch(name, dndLabel);
+    let doNotDeleteByLabel = false;
+
+    if (
+      eligibleByInactivity &&
+      !protectedByPattern &&
+      !doNotDeleteByName &&
+      !openPR
+    ) {
+      const dndLabel =
+        doNotDelete && doNotDelete.label ? doNotDelete.label : '';
+      doNotDeleteByLabel = await prHasLabelForBranch(name, dndLabel);
+    }
 
     const reasons = [];
     if (protectedByPattern) {
@@ -173,6 +181,12 @@ async function computeCandidates(config) {
     if (!inactive) {
       reasons.push('not-inactive');
     }
+    if (!eligibleByInactivity) {
+      reasons.push('not-inactive');
+    }
+    if (forcedByPattern) {
+      reasons.push('auto-delete-pattern');
+    }
 
     scanned.push({
       branch: name,
@@ -184,7 +198,7 @@ async function computeCandidates(config) {
     });
 
     if (
-      inactive &&
+      eligibleByInactivity &&
       !protectedByPattern &&
       !doNotDeleteByName &&
       !doNotDeleteByLabel &&
@@ -202,32 +216,78 @@ async function computeCandidates(config) {
   return { scanned, candidates };
 }
 
-async function postTeams(config, payload) {
-  const secretName =
-    (config.notify && config.notify.teamsWebhookSecret) || 'TEAMS_WEBHOOK_URL';
-  const webhook = process.env[secretName || 'TEAMS_WEBHOOK_URL'];
-  if (!webhook) {
-    return;
-  }
+function toMarkdownTable(rows) {
+  const header = `| Branch | Last Commit Date | Author | Last SHA | Inactive (days) |
+|---|---|---|---|---|`;
+  const lines = rows.map(
+    (r) =>
+      `| \`${r.branch}\` | ${r.lastCommitDate} | ${r.author} | \`${(
+        r.lastCommitSHA || ''
+      ).slice(0, 7)}\` | ${r.inactiveDays} |`,
+  );
+  return [header, ...lines].join('\n');
+}
 
-  await fetch(webhook, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      text: [
-        `Branch cleanup (dry-run): ${payload.candidates.length} candidate(s)`,
-        ...payload.candidates
-          .slice(0, 10)
-          .map(
-            (c) => `• ${c.branch} (${c.inactiveDays}d, ${c.lastCommitDate})`,
-          ),
-        payload.candidates.length > 10
-          ? `…and ${payload.candidates.length - 10} more`
-          : '',
-      ].join('\n'),
-      summary: 'Branch cleanup (dry run)',
-    }),
-  }).catch(() => {});
+async function ensureLabel(name, color = 'ededed', description = '') {
+  try {
+    const existing = await octokit.paginate(
+      octokit.rest.issues.listLabelsForRepo,
+      { owner, repo, per_page: 100 },
+    );
+    if (!existing.find((l) => l.name === name)) {
+      await octokit.rest.issues
+        .createLabel({ owner, repo, name, color, description })
+        .catch(() => {});
+    }
+  } catch {
+    /* noop */
+  }
+}
+
+async function findOrCreatePendingIssue(config, payload) {
+  const label =
+    (config.notify && config.notify.githubIssueLabel) || 'branch-cleanup';
+  const mentions = Array.isArray(config.notify && config.notify.mentions)
+    ? config.notify.mentions
+    : [];
+  const assignees = Array.isArray(config.notify && config.notify.assignees)
+    ? config.notify.assignees
+    : [];
+
+  await ensureLabel(label, '0e8a16', 'Branch cleanup batch');
+  await ensureLabel('dry-run', '5319e7', 'Awaiting grace period');
+  await ensureLabel('enforced', 'd93f0b', 'Deletion completed');
+
+  const title = `[Branch Cleanup] Candidates – ${new Date()
+    .toISOString()
+    .slice(0, 10)}`;
+  const body = [
+    '**Status:** _dry run – awaiting grace period_',
+    '',
+    `**Notified at:** ${new Date().toISOString()}`,
+    '',
+    mentions.length ? `**Pinging:** ${mentions.join(' ')}` : '',
+    '',
+    '### Candidates',
+    toMarkdownTable(payload.candidates),
+    '',
+    '### JSON (machine-readable)',
+    '```json',
+    JSON.stringify(payload, null, 2),
+    '```',
+    '',
+    '> This issue was created by a scheduled workflow. Do not edit the JSON block.',
+  ].join('\n');
+
+  const { data: created } = await octokit.rest.issues.create({
+    owner,
+    repo,
+    title,
+    body,
+    labels: [label, 'dry-run'],
+    assignees,
+  });
+  return created;
 }
 
 function parseJsonBlockFromIssue(body) {
@@ -390,10 +450,11 @@ async function dryRun(config) {
   );
 
   const payload = { candidates, generatedAt: new Date().toISOString() };
-  await postTeams(config, payload);
+  await findOrCreatePendingIssue(config, payload);
 }
 
 async function main() {
+  await fs.mkdir(OUT_DIR, { recursive: true });
   const config = await loadConfig();
   if (MODE === 'dry-run') {
     return dryRun(config);

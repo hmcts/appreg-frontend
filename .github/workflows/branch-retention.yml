@@ -60,10 +60,9 @@ jobs:
       - name: Run branch retention (${{ steps.mode.outputs.mode }})
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
         run: |
           if [ "${{ steps.mode.outputs.mode }}" = "dry-run" ]; then
-            yarn branch:dry-run
+            yarn branch:run
           else
             yarn branch:enforce
           fi
