@@ -2,3 +2,5 @@
 .pnp.*
 .yarn/
 cypress/reports/
+tools/
+src/generated
