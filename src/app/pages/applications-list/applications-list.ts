@@ -79,7 +79,6 @@ export class ApplicationsList implements OnInit, AfterViewInit {
   // Flags
   submitted: boolean = false;
   isSearch: boolean = false;
-  caption: string = 'Lists';
 
   // Error summary
   errorHint = 'There is a problem';
@@ -213,6 +212,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     this.searchErrors = [];
     this.submitted = false;
     this.isSearch = false;
+    this.rows = [];
 
     // Get form values
     const query = {
@@ -255,7 +255,6 @@ export class ApplicationsList implements OnInit, AfterViewInit {
         // TODO: run GET with params
       }
     }
-    this.updateCaption();
   }
 
   loadApplicationsLists(): void {
@@ -412,10 +411,6 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     this.cjaSearch = label;
     this.form.controls.cja.setValue(label);
     this.filteredCja = [];
-  }
-
-  updateCaption(): void {
-    this.caption = (this.rows?.length ?? 0) > 0 ? 'Lists' : 'No lists found';
   }
 
   focusField(id: string, e: Event): void {
