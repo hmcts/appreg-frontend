@@ -8,8 +8,8 @@ import {
   HttpTestingController,
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
+import { REQUEST } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { REQUEST } from '@nguniversal/express-engine/tokens';
 
 import { serverCookieInterceptor } from '../../../../src/app/interceptors/server-cookie.interceptor';
 describe('serverCookieInterceptor', () => {
