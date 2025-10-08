@@ -62,7 +62,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ "${{ steps.mode.outputs.mode }}" = "dry-run" ]; then
-            yarn branch:run
+            yarn branch:dry-run
           else
             yarn branch:enforce
           fi
@@ -72,5 +72,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: branch-retention-run
-          path: .github/scripts/out/*.json
+          path: .github/branch-retention/out/*.json
           if-no-files-found: ignore
