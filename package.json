@@ -29,7 +29,7 @@
     "prepare": "husky install",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run && node cypress/scripts/generate-cucumber-report.js",
-    "branch:run": "yarn node .github/branch-retention/branch-retention.mjs --mode dry-run",
+    "branch:run": "yarn node .github/branch-retention/branch-retention.mjs --mode run",
     "branch:enforce": "yarn node .github/branch-retention/branch-retention.mjs --mode enforce"
   },
   "prettier": {
