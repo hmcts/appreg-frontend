@@ -201,46 +201,46 @@ You can either run a provided script or install manually.
   yarn install && yarn build
   ```
 
-##### Cypress Frontend Automation Setup
+## Cypress Frontend Automation Setup
 
-## Folder Structure
+### Folder Structure
 
-cypress/
-e2e/
-features/
-smoke/
-smoke.feature
-step_definitions/
-elements/
-navigation/
-WhenNavigationSteps.ts
-fixtures/
-test-data.json
-support/
-e2e.js
+- cypress/
+- e2e/
+- features/
+- smoke/
+- smoke.feature
+- step_definitions/
+- elements/
+- navigation/
+- WhenNavigationSteps.ts
+- fixtures/
+- test-data.json
+- support/
+- e2e.js
 
-## Configuration Files
+### Configuration Files
 
 - cypress.config.js: Cypress configuration
 
-## Running Tests Locally
+### Running Tests Locally
 
 1. Install dependencies:
    yarn install
 
 2. Add users to development.json add your actual test credentials:
 
-   ### User credentials
+#### User credentials
 
-   TEST_USER1_EMAIL=<your-user1@hmcts.net>
-   TEST_USER1_PASSWORD=your-actual-password
+- TEST_USER1_EMAIL=<your-user1@hmcts.net>
+- TEST_USER1_PASSWORD=your-actual-password
 
-   ### Admin credentials
+#### Admin credentials
 
-   TEST_ADMIN1_EMAIL=<your-admin1@hmcts.net>
-   TEST_ADMIN1_PASSWORD=your-actual-admin-password
+- TEST_ADMIN1_EMAIL=<your-admin1@hmcts.net>
+- TEST_ADMIN1_PASSWORD=your-actual-admin-password
 
-   ### ... fill in all other credentials
+#### ... fill in all other credentials
 
 3. Run Cypress tests:
    yarn cypress open
@@ -252,7 +252,7 @@ e2e.js
    For smoke tests: yarn test:functional --cypress-args=\"--env TAGS=@smoke\"
    For any tags: yarn test:functional --cypress-args=\"--env TAGS=@yourtag\"
 
-## Sample Test
+### Sample Test
 
 A sample BDD feature file is provided at `cypress/e2e/features/smoke/smoke.feature` with step definitions in `cypress/e2e/step_definitions/elements/navigation/WhenNavigationSteps.ts`.
 
@@ -269,3 +269,53 @@ These are the scripts needed:
 - `yarn api:generate` - Generates files based on the OpenAPI spec and the config file at `tools/openapi/generator-config.yaml`
 - `yarn api:bundle` - Bundles the OpenAPI spec, schemas, responses into `tools/dist/openapi.bundled.yaml`
 - `yarn api:all` - Runs all API scripts (api:validate -> api:clear -> api:bundle -> api:generate)
+
+## Branch Retention (auto-cleanup)
+
+This repository includes an automated policy to keep old/inactive branches tidy. It runs in two stages:
+
+1. **Dry Run:** scans branches and opens a GitHub Issue with candidates, no deletions.
+2. **Enforce:** re-checks eligibility and deletes branches that still qualify; then comments on and closes the Issue.
+
+### How it works (high level)
+- A Node script scans via the GitHub API, excluding protected names and branches with open PRs or a “do-not-delete” marker.
+- **Run** creates an Issue labeled `branch-cleanup` + a marker label (default `dry-run`) containing a table and a machine-readable ```json block.
+- **Enforce** reads that Issue’s JSON (not the runner artifacts), applies the grace period and re-checks exclusions, then deletes eligible branches and posts a deletion summary.
+
+### Files & paths
+
+- **Policy (config):** `.github/branch-retention/branch-retention.yml`
+- **Script:** `.github/branch-retention/branch-retention.mjs`
+- **Workflow:** `.github/workflows/branch-retention.yml`
+- **Artifacts (optional, for download):** `.github/branch-retention/out/*.json`
+
+### Configuring the policy
+Edit `.github/branch-retention/branch-retention.yml`:
+
+```json
+# Example production-ish values (adjust to taste)
+inactivityDays: 60         # candidates must be inactive for >= this many days
+graceDays: 7               # wait this many days after “Run” before deletion
+protectedPatterns:
+  - 'master'
+  - 'develop'
+  - 'release/*'
+doNotDelete:
+label: 'do-not-delete'   # if an open PR has this label, branch is skipped
+namePatterns: ['do-not-delete/*', '*[do-not-delete]*']  # name-based skip
+notify:
+githubIssueLabel: 'branch-cleanup'
+# (optional) markerLabels: ['dry-run','run','pending']  # accepted markers
+```
+
+### Developer commands (local)
+```bash 
+# Authenticate with GitHub CLI (if not already done):
+gh auth login
+
+# Preview run (creates batch Issue):
+yarn branch:run
+
+# Enforce (deletes eligible branches for the latest batch):
+yarn branch:enforce
+```
