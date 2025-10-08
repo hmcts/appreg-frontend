@@ -61,7 +61,7 @@ jobs:
           if [ "${{ steps.mode.outputs.mode }}" = "dry-run" ]; then
             yarn branch:dry-run
           else
-            yarn branch:dry-run
+            yarn branch:enforce
           fi
 
       - name: Upload artifacts (scan, candidates, deleted)
