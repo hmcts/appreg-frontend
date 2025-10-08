@@ -250,9 +250,11 @@ export class ApplicationsList implements OnInit, AfterViewInit {
       if (!hasAny) {
         // No values found in form, run GET ALL
         // TODO: run GET ALL
+        console.log('Not implemented yet - GET ALL happens');
       } else {
         // Values found, run query with parameters
         // TODO: run GET with params
+        console.log('Not implemented yet - GET with params happens');
       }
     }
   }
