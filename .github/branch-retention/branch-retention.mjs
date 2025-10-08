@@ -16,7 +16,7 @@ const octokit = new Octokit({ auth: token });
 
 const MODE = process.argv.includes('--mode')
   ? process.argv[process.argv.indexOf('--mode') + 1]
-  : process.env.MODE || 'run'; // run | enforce | auto
+  : process.env.MODE || 'dry-run'; // dry-run | enforce | auto
 
 const OUT_DIR = path.join('.github', 'branch-retention', 'out');
 
@@ -255,7 +255,7 @@ async function findOrCreatePendingIssue(config, payload) {
     : [];
 
   await ensureLabel(label, '0e8a16', 'Branch cleanup batch');
-  await ensureLabel('run', '5319e7', 'Awaiting grace period');
+  await ensureLabel('dry-run', '5319e7', 'Awaiting grace period');
   await ensureLabel('enforced', 'd93f0b', 'Deletion completed');
 
   const title = `[Branch Cleanup] Candidates – ${new Date()
@@ -284,7 +284,7 @@ async function findOrCreatePendingIssue(config, payload) {
     repo,
     title,
     body,
-    labels: [label, 'run'],
+    labels: [label, 'dry-run'],
     assignees,
   });
   return created;
@@ -318,7 +318,7 @@ async function enforce(config) {
     owner,
     repo,
     state: 'open',
-    labels: `${label},run`,
+    labels: `${label},dry-run`,
     per_page: 50,
   });
 
@@ -456,7 +456,7 @@ async function dryRun(config) {
 async function main() {
   await fs.mkdir(OUT_DIR, { recursive: true });
   const config = await loadConfig();
-  if (MODE === 'run') {
+  if (MODE === 'dry-run') {
     return dryRun(config);
   }
   if (MODE === 'enforce') {
