@@ -146,8 +146,7 @@
   "resolutions": {
     "@azure/keyvault-secrets": "4.10.0",
     "@azure/keyvault-common": "2.0.0",
-    "test-exclude@*": "^7.0.1",
-    "babel-plugin-istanbul@*": "^7.0.1"
+    "glob": "^11.0.3"
   },
   "packageManager": "yarn@4.9.4"
 }
