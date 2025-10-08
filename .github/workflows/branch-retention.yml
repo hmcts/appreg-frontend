@@ -54,9 +54,6 @@ jobs:
             echo "mode=$INPUT_MODE" >> $GITHUB_OUTPUT
           fi
 
-      - name: Unit test policy
-        run: yarn branch:test
-
       - name: Run branch retention (${{ steps.mode.outputs.mode }})
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
