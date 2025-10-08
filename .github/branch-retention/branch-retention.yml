@@ -1,0 +1,21 @@
+inactivityDays: 0
+graceDays: 0
+
+protectedPatterns:
+  - 'master'
+  - 'develop'
+  - 'release/*'
+
+autoDeletePatterns:
+  - 'test/*'
+
+doNotDelete:
+  label: 'do-not-delete'
+  namePatterns:
+    - 'do-not-delete/*'
+    - '*[do-not-delete]*'
+
+notify:
+  githubIssueLabel: 'branch-cleanup'
+  mentions:
+    - '@hmcts/appreg'
