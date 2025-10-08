@@ -124,12 +124,14 @@ export class DateTimeHelper {
    * @param hour The hour value to set (0-23)
    */
   static setHourValue(fieldLabel: string, hour: string): void {
+    const expectedValue = hour.replace(/^0+/, '') || '0'; // Remove leading zeros, keep at least one digit
+
     DateTimeElement.findHourInput(fieldLabel)
       .should('be.visible')
       .should('be.enabled')
       .clear()
       .type(hour)
-      .should('have.value', hour);
+      .should('have.value', expectedValue);
   }
 
   /**
@@ -138,12 +140,30 @@ export class DateTimeHelper {
    * @param minute The minute value to set (0-59)
    */
   static setMinuteValue(fieldLabel: string, minute: string): void {
+    const expectedValue = minute.replace(/^0+/, '') || '0'; // Remove leading zeros, keep at least one digit
+
     DateTimeElement.findMinuteInput(fieldLabel)
       .should('be.visible')
       .should('be.enabled')
       .clear()
       .type(minute)
-      .should('have.value', minute);
+      .should('have.value', expectedValue);
+  }
+
+  /**
+   * Sets the second value for a time field with enhanced error handling
+   * @param fieldLabel The label/name of the time field group (for error context)
+   * @param second The second value to set (0-59)
+   */
+  static setSecondValue(fieldLabel: string, second: string): void {
+    const expectedValue = second.replace(/^0+/, '') || '0'; // Remove leading zeros, keep at least one digit
+
+    DateTimeElement.findSecondInput(fieldLabel)
+      .should('be.visible')
+      .should('be.enabled')
+      .clear()
+      .type(second)
+      .should('have.value', expectedValue);
   }
 
   /**
