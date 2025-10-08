@@ -250,11 +250,35 @@ export class ApplicationsList implements OnInit, AfterViewInit {
       if (!hasAny) {
         // No values found in form, run GET ALL
         // TODO: run GET ALL
-        console.log('Not implemented yet - GET ALL happens');
+
+        // This is placeholder code
+        this.rows = [
+          {
+            id: 101,
+            date: '2025-09-29',
+            time: '09:30',
+            location: 'Birmingham',
+            description: 'Morning list',
+            entries: 12,
+            status: 'Open',
+          },
+        ];
       } else {
         // Values found, run query with parameters
         // TODO: run GET with params
-        console.log('Not implemented yet - GET with params happens');
+
+        // Placeholder code
+        this.rows = [
+          {
+            id: 102,
+            date: '2025-09-30',
+            time: '09:31',
+            location: 'Place',
+            description: 'Morning list',
+            entries: 12,
+            status: 'Open',
+          },
+        ];
       }
     }
   }
