@@ -356,7 +356,7 @@ async function enforce(config) {
     }
 
     // Robust "Notified at" parsing; fall back to issue creation time
-    const m = (is.body || '').match(/\*\*Notified at:\*\*\s*([0-9T:\.\-Z]+)/);
+    const m = (is.body || '').match(/\*\*Notified at:\*\*\s*([0-9T:.\-Z]+)/);
     const notifiedAtISO = m ? m[1] : is.created_at;
 
     // If graceDays <= 0, make it immediately eligible
