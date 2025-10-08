@@ -7,7 +7,7 @@ protectedPatterns:
   - 'release/*'
 
 autoDeletePatterns:
-  - "test/*"
+  - 'test/*'
 
 doNotDelete:
   label: 'do-not-delete'
@@ -16,6 +16,6 @@ doNotDelete:
     - '*[do-not-delete]*'
 
 notify:
-  githubIssueLabel: "branch-cleanup"
+  githubIssueLabel: 'branch-cleanup'
   mentions:
-    - "@hmcts/appreg"
+    - '@hmcts/appreg'
