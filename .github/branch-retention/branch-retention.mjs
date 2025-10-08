@@ -326,17 +326,6 @@ async function enforce(config) {
     per_page: 100,
   });
 
-  // Debug: show what we see
-  console.log(
-    'Open issues with label',
-    label,
-    issues.map((i) => ({
-      n: i.number,
-      title: i.title,
-      labels: (i.labels || []).map((l) => (typeof l === 'string' ? l : l.name)),
-    })),
-  );
-
   const now = new Date();
   issues.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
@@ -372,9 +361,6 @@ async function enforce(config) {
   }
 
   if (!target) {
-    console.log(
-      'No eligible dry-run batch issue found (open, labeled, grace satisfied).',
-    );
     return;
   }
 
@@ -489,13 +475,6 @@ async function dryRun(config) {
 async function main() {
   await fs.mkdir(OUT_DIR, { recursive: true });
   const config = await loadConfig();
-  console.log('Policy loaded: .github/branch-retention/branch-retention.yml');
-  console.log(
-    'graceDays =',
-    config.graceDays,
-    'inactivityDays =',
-    config.inactivityDays,
-  );
   if (MODE === 'dry-run') {
     return dryRun(config);
   }
