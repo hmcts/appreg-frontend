@@ -16,6 +16,6 @@ Feature: Applications List Search
     Then User Enters "<CJA>" Into The "CJA" Textbox
     When User Clicks On The "Search" Button
     Examples:
-      | User   | Date     | Time    | Description | Status | Court   | OtherLocation  | CJA  |
-      | admin1 | today    | timenow | Test 1      | Open   | Court 1 | Other Location | CJA  |
-      | admin1 | tomorrow | timenow | Test 2      | Closed | Court 2 | Another Place  | CJA2 |
+      | User   | Date     | Time       | Description | Status | Court   | OtherLocation  | CJA  |
+      | admin1 | today    | timenow-2h | Test 1      | Open   | Court 1 | Other Location | CJA  |
+      | admin1 | tomorrow | timenow    | Test 2      | Closed | Court 2 | Another Place  | CJA2 |

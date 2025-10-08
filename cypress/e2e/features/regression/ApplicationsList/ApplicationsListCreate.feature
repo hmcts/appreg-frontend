@@ -6,6 +6,6 @@ Feature: Applications List Create
     Then User Signs In With Microsoft SSO As "<User>"
     Then User Navigates To The URL "/applications-list/create"
     Then User Clicks On The Link "Applications list"
-  Example:
-    | User          |
-    | user1|
+  Examples:
+    | User  |
+    | user1 |
