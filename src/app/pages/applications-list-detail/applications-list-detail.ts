@@ -78,12 +78,13 @@ export class ApplicationsListDetail implements AfterViewInit {
     { header: 'Actions', field: 'actions', sortable: false },
   ];
 
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void {
+    // Not implemented yet
+  }
 
   onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      return;
     }
   }
 

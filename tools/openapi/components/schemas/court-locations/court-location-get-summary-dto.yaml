@@ -1,5 +1,5 @@
 type: object
-description: Immutable DTO representing a detailed Court Location.
+description: Lightweight DTO for Court Locations, used in list/search views.
 required:
   - name
   - locationCode
