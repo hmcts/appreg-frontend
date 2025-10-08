@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'run or enforce'
+        description: 'dry-run or enforce'
         required: false
         default: 'auto'
   schedule:
@@ -44,9 +44,9 @@ jobs:
         run: |
           INPUT_MODE="${{ github.event.inputs.mode || 'auto' }}"
           if [ "$INPUT_MODE" = "auto" ]; then
-            # Monday = run, other days = enforce (script still checks grace window)
+            # Monday = dry-run, other days = enforce (script still checks grace window)
             if [ "$(date -u +%u)" = "1" ]; then
-              echo "mode=run" >> $GITHUB_OUTPUT
+              echo "mode=dry-run" >> $GITHUB_OUTPUT
             else
               echo "mode=enforce" >> $GITHUB_OUTPUT
             fi
@@ -61,7 +61,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ "${{ steps.mode.outputs.mode }}" = "run" ]; then
+          if [ "${{ steps.mode.outputs.mode }}" = "dry-run" ]; then
             yarn branch:run
           else
             yarn branch:enforce
@@ -72,5 +72,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: branch-retention-run
-          path: .github/branch-retention/out/*.json
+          path: .github/scripts/out/*.json
           if-no-files-found: ignore
