@@ -58,6 +58,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           if [ "${{ steps.mode.outputs.mode }}" = "dry-run" ]; then
             yarn branch:dry-run
           else
