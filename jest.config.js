@@ -1,5 +1,6 @@
 module.exports = {
   preset: 'jest-preset-angular',
+  coverageProvider: 'v8',
   roots: ['<rootDir>/test/unit'],
   testMatch: ['**/+(*.)+(spec|test).+(ts)'],
   setupFilesAfterEnv: ['<rootDir>/setup.jest.ts'],

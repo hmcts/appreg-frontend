@@ -1,0 +1,73 @@
+name: Branch Retention
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'dry-run or enforce'
+        required: false
+        default: 'auto'
+  schedule:
+    - cron: '0 7 * * *'
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: read
+  actions: read
+
+concurrency:
+  group: branch-retention
+  cancel-in-progress: false
+
+env:
+  TZ: 'UTC'
+
+jobs:
+  branch-retention:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: 'yarn'
+
+      - name: Install deps (root)
+        run: yarn install --immutable
+
+      - name: Determine mode
+        id: mode
+        run: |
+          INPUT_MODE="${{ github.event.inputs.mode || 'auto' }}"
+          if [ "$INPUT_MODE" = "auto" ]; then
+            # Monday = dry-run, other days = enforce (script still checks grace window)
+            if [ "$(date -u +%u)" = "1" ]; then
+              echo "mode=dry-run" >> $GITHUB_OUTPUT
+            else
+              echo "mode=enforce" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "mode=$INPUT_MODE" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run branch retention (${{ steps.mode.outputs.mode }})
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ steps.mode.outputs.mode }}" = "dry-run" ]; then
+            yarn branch:dry-run
+          else
+            yarn branch:enforce
+          fi
+
+      - name: Upload artifacts (scan, candidates, deleted)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: branch-retention-run
+          path: .github/branch-retention/out/*.json
+          if-no-files-found: ignore
