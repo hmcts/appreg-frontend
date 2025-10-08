@@ -91,17 +91,9 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
       return null;
     }
 
-    // if any part missing -> requiredParts
+    // any part missing → surface both errors
     if (day === '' || month === '' || year === '') {
-      return { requiredParts: true };
-    }
-
-    if (
-      !/^\d{1,2}$/.test(day) ||
-      !/^\d{1,2}$/.test(month) ||
-      !/^\d{4}$/.test(year)
-    ) {
-      return { dateInvalid: true };
+      return { requiredParts: true, dateInvalid: true };
     }
 
     const d = Number(day),

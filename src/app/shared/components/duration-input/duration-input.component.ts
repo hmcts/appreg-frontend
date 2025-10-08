@@ -91,14 +91,14 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
     }
 
     if (this.required && (this.isBlank(h) || this.isBlank(m))) {
-      return { requiredParts: true };
+      return { requiredParts: true, durationInvalid: true };
     }
 
     if (h === null && m === null) {
       return null;
     }
     if (h === null || m === null) {
-      return { requiredParts: true };
+      return { requiredParts: true, durationInvalid: true };
     }
     if (!Number.isInteger(h) || !Number.isInteger(m)) {
       return { durationInvalid: true };

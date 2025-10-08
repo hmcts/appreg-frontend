@@ -68,12 +68,26 @@
       ) {
         <p [id]="idPrefix + '-error'" class="govuk-error-message">
           <span class="govuk-visually-hidden">Error:</span>
-          @if (
-            !dateForm.get('day')?.value ||
-            !dateForm.get('month')?.value ||
-            !dateForm.get('year')?.value
-          ) {
-            Enter day, month and year
+          @let missDay = !dateForm.get('day')?.value;
+          @let missMonth = !dateForm.get('month')?.value;
+          @let missYear = !dateForm.get('year')?.value;
+
+          @if (missDay || missMonth || missYear) {
+            @if (missDay && missMonth && missYear) {
+              Enter day, month and year
+            } @else if (missDay && missMonth) {
+              Enter day and month
+            } @else if (missDay && missYear) {
+              Enter day and year
+            } @else if (missMonth && missYear) {
+              Enter month and year
+            } @else if (missDay) {
+              Enter day
+            } @else if (missMonth) {
+              Enter month
+            } @else if (missYear) {
+              Enter year
+            }
           } @else if (dateForm.errors?.['dateInvalid']) {
             Enter a real date
           }
