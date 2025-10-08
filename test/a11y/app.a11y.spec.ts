@@ -11,7 +11,7 @@ const DIST_DIR = 'dist/appreg-frontend/browser';
 const ROOT = pathToFileURL(path.resolve(DIST_DIR)).href.replace(/\/$/, '');
 
 function resolveFileUrl(p: string): string {
-  const rel = p === '/' ? '/index.html' : p.replace(/^\//, '/');
+  const rel = p === '/' ? '/index.html' : `/${p.replace(/^\/+/, '')}`;
   return `${ROOT}${rel}`;
 }
 

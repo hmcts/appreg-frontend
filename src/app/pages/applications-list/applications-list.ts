@@ -1,5 +1,6 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
+  AfterViewInit,
   Component,
   HostListener,
   Inject,
@@ -63,7 +64,7 @@ interface MojInitEl extends HTMLElement {
   ],
   templateUrl: './applications-list.html',
 })
-export class ApplicationsList implements OnInit {
+export class ApplicationsList implements OnInit, AfterViewInit {
   private _id: number | undefined;
   openMenuForId: number | null = null;
   openPrintSelectForId: number | null = null;
