@@ -318,8 +318,8 @@ async function enforce(config) {
     owner,
     repo,
     state: 'open',
-    labels: `${label},dry-run`,
-    per_page: 50,
+    labels: label,
+    per_page: 100,
   });
 
   const now = new Date();
@@ -327,6 +327,17 @@ async function enforce(config) {
 
   let target = null;
   for (const is of issues) {
+    const labelNames = (is.labels || []).map((l) =>
+      typeof l === 'string' ? l : l.name,
+    );
+
+    const hasBatchMarker =
+      labelNames.includes('dry-run') ||
+      labelNames.includes('run') ||
+      labelNames.includes('pending');
+    if (!hasBatchMarker) {
+      continue;
+    }
     const payload = parseJsonBlockFromIssue(is.body || '');
     if (!payload || !payload.candidates) {
       continue;
@@ -345,6 +356,9 @@ async function enforce(config) {
   }
 
   if (!target) {
+    console.log(
+      'No eligible dry-run batch issue found (open, labeled, grace satisfied).',
+    );
     return;
   }
 
