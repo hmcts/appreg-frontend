@@ -1,13 +1,10 @@
-inactivityDays: 0
-graceDays: 0
+inactivityDays: 60
+graceDays: 7
 
 protectedPatterns:
   - 'master'
   - 'develop'
   - 'release/*'
-
-autoDeletePatterns:
-  - 'test/*'
 
 doNotDelete:
   label: 'do-not-delete'
