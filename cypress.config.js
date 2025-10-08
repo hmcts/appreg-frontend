@@ -69,54 +69,51 @@ module.exports = defineConfig({
         SSO_USERS: {
           user1: {
             email:
-              appConfig.get('secrets.apps-reg.testUsers.TEST_USER1_EMAIL') ||
+              appConfig.get('secrets.appreg.testUsers.TEST_USER1_EMAIL') ||
               'ar-test-1@hmcts.net',
             password:
-              appConfig.get('secrets.apps-reg.testUsers.TEST_USER1_PASSWORD') ||
+              appConfig.get('secrets.appreg.testUsers.TEST_USER1_PASSWORD') ||
               '',
           },
           user2: {
             email:
-              appConfig.get('secrets.apps-reg.testUsers.TEST_USER2_EMAIL') ||
+              appConfig.get('secrets.appreg.testUsers.TEST_USER2_EMAIL') ||
               'ar-test-2@hmcts.net',
             password:
-              appConfig.get('secrets.apps-reg.testUsers.TEST_USER2_PASSWORD') ||
+              appConfig.get('secrets.appreg.testUsers.TEST_USER2_PASSWORD') ||
               '',
           },
           user3: {
             email:
-              appConfig.get('secrets.apps-reg.testUsers.TEST_USER3_EMAIL') ||
+              appConfig.get('secrets.appreg.testUsers.TEST_USER3_EMAIL') ||
               'ar-test-3@hmcts.net',
             password:
-              appConfig.get('secrets.apps-reg.testUsers.TEST_USER3_PASSWORD') ||
+              appConfig.get('secrets.appreg.testUsers.TEST_USER3_PASSWORD') ||
               '',
           },
           admin1: {
             email:
-              appConfig.get('secrets.apps-reg.testUsers.TEST_ADMIN1_EMAIL') ||
+              appConfig.get('secrets.appreg.testUsers.TEST_ADMIN1_EMAIL') ||
               'ar-test-4@hmcts.net',
             password:
-              appConfig.get(
-                'secrets.apps-reg.testUsers.TEST_ADMIN1_PASSWORD',
-              ) || '',
+              appConfig.get('secrets.appreg.testUsers.TEST_ADMIN1_PASSWORD') ||
+              '',
           },
           admin2: {
             email:
-              appConfig.get('secrets.apps-reg.testUsers.TEST_ADMIN2_EMAIL') ||
+              appConfig.get('secrets.appreg.testUsers.TEST_ADMIN2_EMAIL') ||
               'ar-test-5@hmcts.net',
             password:
-              appConfig.get(
-                'secrets.apps-reg.testUsers.TEST_ADMIN2_PASSWORD',
-              ) || '',
+              appConfig.get('secrets.appreg.testUsers.TEST_ADMIN2_PASSWORD') ||
+              '',
           },
           admin3: {
             email:
-              appConfig.get('secrets.apps-reg.testUsers.TEST_ADMIN3_EMAIL') ||
+              appConfig.get('secrets.appreg.testUsers.TEST_ADMIN3_EMAIL') ||
               'ar-test-6@hmcts.net',
             password:
-              appConfig.get(
-                'secrets.apps-reg.testUsers.TEST_ADMIN3_PASSWORD',
-              ) || '',
+              appConfig.get('secrets.appreg.testUsers.TEST_ADMIN3_PASSWORD') ||
+              '',
           },
         },
       };

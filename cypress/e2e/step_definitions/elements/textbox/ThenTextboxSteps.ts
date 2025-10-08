@@ -3,29 +3,29 @@ import { Then } from '@badeball/cypress-cucumber-preprocessor';
 import { TextboxHelper } from '../../../../support/helper/forms/textbox/TextboxHelper';
 
 Then(
-  'User enters {string} into the {string} textbox',
+  'User Enters {string} Into The {string} Textbox',
   (value: string, field: string) => {
     TextboxHelper.typeInTextbox(field, value);
     cy.screenshot(`TypedInTextbox-${field}-${value}`);
   },
 );
 
-Then('User clears the {string} textbox', (field: string) => {
+Then('User Clears The {string} Textbox', (field: string) => {
   TextboxHelper.clearTextbox(field);
   cy.screenshot(`ClearedTextbox-${field}`);
 });
 
 Then(
-  'User verifies the {string} textbox contains {string}',
+  'User Verifies The {string} Textbox Contains {string}',
   (field: string, value: string) => {
     TextboxHelper.getValueInTextbox(field).should('eq', value);
   },
 );
 
-Then('User verifies the {string} textbox is empty', (field: string) => {
+Then('User Verifies The {string} Textbox Is Empty', (field: string) => {
   TextboxHelper.getValueInTextbox(field).should('be.empty');
 });
 
-Then('User verifies the {string} textbox is not empty', (field: string) => {
+Then('User Verifies The {string} Textbox Is Not Empty', (field: string) => {
   TextboxHelper.getValueInTextbox(field).should('not.be.empty');
 });
