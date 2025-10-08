@@ -231,9 +231,13 @@ export class ApplicationsList implements OnInit {
     };
 
     const dateCtrl = this.form.controls.date;
-    
+    const timeCtrl = this.form.controls.time;
     if (dateCtrl.errors?.['dateInvalid']) {
       this.searchErrors.push({ id: 'date', text: 'Enter a real date' });
+    }
+
+    if (timeCtrl.errors?.['durationInvalid']) {
+      this.searchErrors.push({ id: 'time', text: 'Enter a real time' });
     }
 
     const hasAny =
