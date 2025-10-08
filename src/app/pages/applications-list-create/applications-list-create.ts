@@ -254,8 +254,8 @@ export class ApplicationsListCreate implements OnInit {
       }
     };
 
-    need(this.has(v.date), 'date', 'Enter day, month and year');
-    need(this.has(v.time), 'time', 'Enter hours and minutes');
+    need(this.has(v.date), 'date-day', 'Enter day, month and year');
+    need(this.has(v.time), 'time-hours', 'Enter hours and minutes');
     need(this.has(v.description), 'description', 'Description is required');
     need(this.has(v.status), 'status', 'Status is required');
 

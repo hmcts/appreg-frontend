@@ -12,8 +12,6 @@ import { RouterLink } from '@angular/router';
 import { merge } from 'rxjs';
 
 import {
-  ApplicationListGetSummaryDto,
-  ApplicationListsApi,
   CourtLocationGetSummaryDto,
   CourtLocationsApi,
   CriminalJusticeAreaGetDto,
@@ -78,9 +76,6 @@ export class ApplicationsList implements OnInit, AfterViewInit {
   filteredCourthouses: CourtLocationGetSummaryDto[] = [];
   courthouseSearch = '';
 
-  // Filtered lists when searched
-  filteredLists: ApplicationListGetSummaryDto[] = [];
-
   // Flags
   submitted: boolean = false;
   isSearch: boolean = false;
@@ -126,7 +121,6 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     @Inject(PLATFORM_ID) private readonly platformId: object,
     private readonly cjaApi: CriminalJusticeAreasApi,
     private readonly courtLocationApi: CourtLocationsApi,
-    private readonly appList: ApplicationListsApi,
   ) {}
 
   ngOnInit(): void {
@@ -234,11 +228,11 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     const dateCtrl = this.form.controls.date;
     const timeCtrl = this.form.controls.time;
     if (dateCtrl.errors?.['dateInvalid']) {
-      this.searchErrors.push({ id: 'date', text: 'Enter a real date' });
+      this.searchErrors.push({ id: 'date-day', text: 'Enter a real date' });
     }
 
     if (timeCtrl.errors?.['durationInvalid']) {
-      this.searchErrors.push({ id: 'time', text: 'Enter a real time' });
+      this.searchErrors.push({ id: 'time-hours', text: 'Enter a real time' });
     }
 
     const hasAny =
