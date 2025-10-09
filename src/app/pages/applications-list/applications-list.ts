@@ -12,10 +12,14 @@ import { RouterLink } from '@angular/router';
 import { merge } from 'rxjs';
 
 import {
+  ApplicationListGetSummaryDto,
+  ApplicationListStatus,
+  ApplicationListsApi,
   CourtLocationGetSummaryDto,
   CourtLocationsApi,
   CriminalJusticeAreaGetDto,
   CriminalJusticeAreasApi,
+  ListApplicationListsRequestParams,
 } from '../../..//generated/openapi';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
@@ -31,19 +35,12 @@ import {
 import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 
-type ApplicationListRow = {
-  id: number;
-  date: string;
-  time: string;
-  location: string;
-  description: string;
-  entries: number;
-  status: 'Open' | 'Closed';
-};
-
 interface MojInitEl extends HTMLElement {
   __mojInit?: boolean;
 }
+
+// Reuse the generated model for queries but remove ID
+export type ApplicationListGetQuery = Omit<ApplicationListGetSummaryDto, 'id'>;
 
 @Component({
   selector: 'app-applications-list',
@@ -114,16 +111,17 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     { label: 'Closed', value: 'closed' },
   ];
 
-  rows: ApplicationListRow[] = [];
+  rows: ApplicationListGetSummaryDto[] = [];
 
   constructor(
     @Inject(PLATFORM_ID) private readonly platformId: object,
     private readonly cjaApi: CriminalJusticeAreasApi,
     private readonly courtLocationApi: CourtLocationsApi,
+    private readonly applistApi: ApplicationListsApi,
   ) {}
 
   ngOnInit(): void {
-    this.loadApplicationsLists();
+    this.loadApplicationsLists(false); // Load all on init
     this.loadCJAs();
     this.loadCourtLocations();
 
@@ -214,17 +212,6 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     this.isSearch = false;
     this.rows = [];
 
-    // Get form values
-    const query = {
-      date: this.form.value.date,
-      time: this.form.value.time,
-      description: this.form.value.description,
-      status: this.form.value.status,
-      court: this.form.value.court,
-      location: this.form.value.location,
-      cja: this.form.value.cja,
-    };
-
     const dateCtrl = this.form.controls.date;
     const timeCtrl = this.form.controls.time;
     if (dateCtrl.errors?.['dateInvalid']) {
@@ -236,130 +223,93 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     }
 
     const hasAny =
-      query.date ||
-      query.time ||
-      query.description ||
-      query.status ||
-      query.court ||
-      query.location ||
-      query.cja;
+      this.has(this.form.value.date) ||
+      this.has(this.form.value.time) ||
+      this.has(this.form.value.description) ||
+      this.has(this.form.value.status) ||
+      this.has(this.form.value.court) ||
+      this.has(this.form.value.location) ||
+      this.has(this.form.value.cja);
 
     if (action === 'search') {
       this.submitted = true;
       this.isSearch = true;
-      if (!hasAny) {
-        // No values found in form, run GET ALL
-        // TODO: run GET ALL
 
-        // This is placeholder code
-        this.rows = [
-          {
-            id: 101,
-            date: '2025-09-29',
-            time: '09:30',
-            location: 'Birmingham',
-            description: 'Morning list',
-            entries: 12,
-            status: 'Open',
-          },
-        ];
-      } else {
-        // Values found, run query with parameters
-        // TODO: run GET with params
-
-        // Placeholder code
-        this.rows = [
-          {
-            id: 102,
-            date: '2025-09-30',
-            time: '09:31',
-            location: 'Place',
-            description: 'Morning list',
-            entries: 12,
-            status: 'Open',
-          },
-        ];
-      }
+      this.loadApplicationsLists(hasAny);
     }
   }
 
-  loadApplicationsLists(): void {
+  loadApplicationsLists(hasParams: boolean): void {
     // Hard-coded sample data for now
-    this.rows = [
-      {
-        id: 101,
-        date: '2025-09-29',
-        time: '09:30',
-        location: 'Birmingham',
-        description: 'Morning list',
-        entries: 12,
-        status: 'Open',
-      },
-      {
-        id: 102,
-        date: '2025-09-29',
-        time: '13:45',
-        location: 'Birmingham',
-        description: 'Afternoon list',
-        entries: 8,
-        status: 'Closed',
-      },
-      {
-        id: 103,
-        date: '2025-09-30',
-        time: '10:00',
-        location: 'Manchester',
-        description: 'Applications block',
-        entries: 16,
-        status: 'Open',
-      },
-      {
-        id: 104,
-        date: '2025-09-30',
-        time: '14:15',
-        location: 'Manchester',
-        description: 'Enforcement',
-        entries: 5,
-        status: 'Closed',
-      },
-      {
-        id: 105,
-        date: '2025-10-01',
-        time: '09:00',
-        location: 'Bristol',
-        description: 'Housing list',
-        entries: 20,
-        status: 'Open',
-      },
-      {
-        id: 106,
-        date: '2025-10-01',
-        time: '11:30',
-        location: 'Bristol',
-        description: 'Small claims',
-        entries: 9,
-        status: 'Open',
-      },
-      {
-        id: 107,
-        date: '2025-10-02',
-        time: '10:45',
-        location: 'Leeds',
-        description: 'Family applications',
-        entries: 14,
-        status: 'Closed',
-      },
-      {
-        id: 108,
-        date: '2025-10-02',
-        time: '15:00',
-        location: 'Leeds',
-        description: 'Costs review',
-        entries: 6,
-        status: 'Open',
-      },
-    ];
+
+    if (!hasParams) {
+      // GET ALL Applications lists
+      this.applistApi.listApplicationLists().subscribe({
+        next: (page) => {
+          this.rows = page.content ?? [];
+        },
+        error: () => {
+          this.rows = [];
+        },
+      });
+    } else {
+      const query = this.loadQuery();
+      console.log(query);
+      this.rows = [];
+    }
   }
+
+  private loadQuery(): ListApplicationListsRequestParams {
+    // Load Query and ensure it conforms to model
+    const { date, time, description, status, court, location, cja } =
+      this.form.getRawValue();
+
+    // ListApplicationListsRequestParams interface. DELETE WHEN DONE
+    /* dateFrom?: string;
+    dateTo?: string;
+    courtLocationCode?: string;
+    status?: ApplicationListStatus;
+    page?: number;
+    size?: number;
+    sort?: Array<string>; */
+
+    const query: ListApplicationListsRequestParams = {
+      dateFrom: date?.trim(),
+      time: this.toTimeString(time),
+      description: description?.trim(),
+      toStatus: this.toStatus(status),
+      court: court?.trim(),
+      location: location?.trim(),
+      cja: cja?.trim(),
+    };
+
+    return query;
+  }
+
+  private toStatus(s: unknown): ApplicationListStatus {
+    switch (String(s).toUpperCase()) {
+      case 'OPEN':
+        return ApplicationListStatus.OPEN;
+      case 'CLOSED':
+        return ApplicationListStatus.CLOSED;
+      default:
+        throw new Error('Invalid status');
+    }
+  }
+
+  private toTimeString = (
+    t: { hours: number | null; minutes: number | null } | null,
+  ): string => {
+    const hours = t?.hours;
+    const minutes = t?.minutes;
+    if (hours === null || minutes === null) {
+      throw new Error('time required');
+    }
+
+    const hh = String(hours).padStart(2, '0');
+    const mm = String(minutes).padStart(2, '0');
+    return `${hh}:${mm}:00`;
+  };
 
   private loadCJAs(): void {
     this.cjaApi.getCriminalJusticeAreas().subscribe({
@@ -446,6 +396,10 @@ export class ApplicationsList implements OnInit, AfterViewInit {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       el.focus({ preventScroll: true });
     }
+  }
+
+  private has(x: unknown): boolean {
+    return x !== null && x !== undefined && x !== '' && x !== 'choose';
   }
 
   onDelete(id: number): void {
