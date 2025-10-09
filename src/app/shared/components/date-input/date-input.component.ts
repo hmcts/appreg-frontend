@@ -43,6 +43,7 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
   @Input() hint = 'For example, 27 3 2007';
   @Input() idPrefix = 'date';
   @Input() submitted = false;
+  @Input() isSearch = false;
 
   readonly dateForm: DateForm;
 
@@ -90,29 +91,41 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
       return null;
     }
 
-    // if any part missing -> requiredParts
+    // any part missing → specific summary text + highlight
     if (day === '' || month === '' || year === '') {
-      return { requiredParts: true };
-    }
+      const missing: string[] = [];
+      if (day === '') {
+        missing.push('day');
+      }
+      if (month === '') {
+        missing.push('month');
+      }
+      if (year === '') {
+        missing.push('year');
+      }
 
-    if (
-      !/^\d{1,2}$/.test(day) ||
-      !/^\d{1,2}$/.test(month) ||
-      !/^\d{4}$/.test(year)
-    ) {
-      return { dateInvalid: true };
+      const msg =
+        missing.length === 1
+          ? `Enter ${missing[0]}`
+          : missing.length === 2
+            ? `Enter ${missing[0]} and ${missing[1]}`
+            : 'Enter day, month and year';
+
+      return { requiredParts: true, dateInvalid: true, dateErrorText: msg };
     }
 
     const d = Number(day),
       m = Number(month),
       y = Number(year);
-    if (m < 1 || m > 12 || d < 1) {
-      return { dateInvalid: true };
+    if (!Number.isInteger(d) || !Number.isInteger(m) || !Number.isInteger(y)) {
+      return { dateInvalid: true, dateErrorText: 'Enter a real date' };
     }
-
+    if (m < 1 || m > 12 || d < 1) {
+      return { dateInvalid: true, dateErrorText: 'Enter a real date' };
+    }
     const daysInMonth = new Date(y, m, 0).getDate();
     if (d > daysInMonth) {
-      return { dateInvalid: true };
+      return { dateInvalid: true, dateErrorText: 'Enter a real date' };
     }
 
     return null;

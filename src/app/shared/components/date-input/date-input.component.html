@@ -3,10 +3,19 @@
     class="govuk-form-group"
     [class.govuk-form-group--error]="
       submitted &&
-      (dateForm.invalid ||
-        !dateForm.get('day')?.value ||
-        !dateForm.get('month')?.value ||
-        !dateForm.get('year')?.value)
+      ((!isSearch &&
+        (dateForm.invalid ||
+          !dateForm.get('day')?.value ||
+          !dateForm.get('month')?.value ||
+          !dateForm.get('year')?.value)) ||
+        (isSearch &&
+          (dateForm.get('day')?.value ||
+            dateForm.get('month')?.value ||
+            dateForm.get('year')?.value) &&
+          (dateForm.invalid ||
+            !dateForm.get('day')?.value ||
+            !dateForm.get('month')?.value ||
+            !dateForm.get('year')?.value)))
     "
   >
     <fieldset
@@ -16,10 +25,19 @@
         idPrefix +
         '-hint' +
         (submitted &&
-        (dateForm.invalid ||
-          !dateForm.get('day')?.value ||
-          !dateForm.get('month')?.value ||
-          !dateForm.get('year')?.value)
+        ((!isSearch &&
+          (dateForm.invalid ||
+            !dateForm.get('day')?.value ||
+            !dateForm.get('month')?.value ||
+            !dateForm.get('year')?.value)) ||
+          (isSearch &&
+            (dateForm.get('day')?.value ||
+              dateForm.get('month')?.value ||
+              dateForm.get('year')?.value) &&
+            (dateForm.invalid ||
+              !dateForm.get('day')?.value ||
+              !dateForm.get('month')?.value ||
+              !dateForm.get('year')?.value)))
           ? ' ' + idPrefix + '-error'
           : '')
       "
@@ -34,20 +52,43 @@
       <!-- Group error -->
       @if (
         submitted &&
-        (dateForm.invalid ||
-          !dateForm.get('day')?.value ||
-          !dateForm.get('month')?.value ||
-          !dateForm.get('year')?.value)
+        ((!isSearch &&
+          (dateForm.invalid ||
+            !dateForm.get('day')?.value ||
+            !dateForm.get('month')?.value ||
+            !dateForm.get('year')?.value)) ||
+          (isSearch &&
+            (dateForm.get('day')?.value ||
+              dateForm.get('month')?.value ||
+              dateForm.get('year')?.value) &&
+            (dateForm.invalid ||
+              !dateForm.get('day')?.value ||
+              !dateForm.get('month')?.value ||
+              !dateForm.get('year')?.value)))
       ) {
         <p [id]="idPrefix + '-error'" class="govuk-error-message">
           <span class="govuk-visually-hidden">Error:</span>
-          @if (
-            !dateForm.get('day')?.value ||
-            !dateForm.get('month')?.value ||
-            !dateForm.get('year')?.value
-          ) {
-            Enter day, month and year
-          } @else if (dateForm.errors?.['invalidDate']) {
+          @let missDay = !dateForm.get('day')?.value;
+          @let missMonth = !dateForm.get('month')?.value;
+          @let missYear = !dateForm.get('year')?.value;
+
+          @if (missDay || missMonth || missYear) {
+            @if (missDay && missMonth && missYear) {
+              Enter day, month and year
+            } @else if (missDay && missMonth) {
+              Enter day and month
+            } @else if (missDay && missYear) {
+              Enter day and year
+            } @else if (missMonth && missYear) {
+              Enter month and year
+            } @else if (missDay) {
+              Enter day
+            } @else if (missMonth) {
+              Enter month
+            } @else if (missYear) {
+              Enter year
+            }
+          } @else if (dateForm.errors?.['dateInvalid']) {
             Enter a real date
           }
         </p>
@@ -68,7 +109,16 @@
                 (dateForm.get('day')?.invalid &&
                   (dateForm.get('day')?.touched ||
                     dateForm.get('day')?.dirty)) ||
-                (submitted && !dateForm.get('day')?.value)
+                (submitted &&
+                  ((!isSearch &&
+                    (!dateForm.get('day')?.value ||
+                      dateForm.errors?.['dateInvalid'])) ||
+                    (isSearch &&
+                      (dateForm.get('day')?.value ||
+                        dateForm.get('month')?.value ||
+                        dateForm.get('year')?.value) &&
+                      (!dateForm.get('day')?.value ||
+                        dateForm.errors?.['dateInvalid']))))
               "
               [id]="idPrefix + '-day'"
               [name]="idPrefix + '-day'"
@@ -105,7 +155,16 @@
                 (dateForm.get('month')?.invalid &&
                   (dateForm.get('month')?.touched ||
                     dateForm.get('month')?.dirty)) ||
-                (submitted && !dateForm.get('month')?.value)
+                (submitted &&
+                  ((!isSearch &&
+                    (!dateForm.get('month')?.value ||
+                      dateForm.errors?.['dateInvalid'])) ||
+                    (isSearch &&
+                      (dateForm.get('day')?.value ||
+                        dateForm.get('month')?.value ||
+                        dateForm.get('year')?.value) &&
+                      (!dateForm.get('month')?.value ||
+                        dateForm.errors?.['dateInvalid']))))
               "
               [id]="idPrefix + '-month'"
               [name]="idPrefix + '-month'"
@@ -142,7 +201,16 @@
                 (dateForm.get('year')?.invalid &&
                   (dateForm.get('year')?.touched ||
                     dateForm.get('year')?.dirty)) ||
-                (submitted && !dateForm.get('year')?.value)
+                (submitted &&
+                  ((!isSearch &&
+                    (!dateForm.get('year')?.value ||
+                      dateForm.errors?.['dateInvalid'])) ||
+                    (isSearch &&
+                      (dateForm.get('day')?.value ||
+                        dateForm.get('month')?.value ||
+                        dateForm.get('year')?.value) &&
+                      (!dateForm.get('year')?.value ||
+                        dateForm.errors?.['dateInvalid']))))
               "
               [id]="idPrefix + '-year'"
               [name]="idPrefix + '-year'"
