@@ -215,11 +215,17 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     const dateCtrl = this.form.controls.date;
     const timeCtrl = this.form.controls.time;
     if (dateCtrl.errors?.['dateInvalid']) {
-      this.searchErrors.push({ id: 'date-day', text: 'Enter a real date' });
+      this.searchErrors.push({
+        id: 'date-day',
+        text: dateCtrl.errors['dateErrorText'] as string,
+      });
     }
 
     if (timeCtrl.errors?.['durationInvalid']) {
-      this.searchErrors.push({ id: 'time-hours', text: 'Enter a real time' });
+      this.searchErrors.push({
+        id: 'time-hours',
+        text: timeCtrl.errors['durationErrorText'] as string,
+      });
     }
 
     const hasAny =
