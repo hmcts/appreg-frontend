@@ -9,7 +9,7 @@ export class NavigationHelper {
 
   static navigateToUrl(url: string): void {
     cy.log(`Navigating to ${url}`);
-    cy.visit(url); 
+    cy.visit(url);
   }
 
   static verifyPageTitle(expectedTitle: string): void {

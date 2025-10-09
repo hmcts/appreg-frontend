@@ -165,7 +165,12 @@ export class DateTimeUtil {
     // Handle context-dependent 'm' unit:
     // 'm' = months for date contexts, minutes for time contexts
     if (unit === 'm') {
-      const isTimeContext = ['timenow', 'time', 'timestamp', 'numerictimestamp'].includes(baseType.toLowerCase());
+      const isTimeContext = [
+        'timenow',
+        'time',
+        'timestamp',
+        'numerictimestamp',
+      ].includes(baseType.toLowerCase());
       effectiveUnit = isTimeContext ? 'min' : 'm'; // Use 'min' for minutes to avoid conflict
     }
 
@@ -372,7 +377,7 @@ export class DateTimeUtil {
 
   /**
    * Add time to current timestamp
-   * @param amount Number to add (can be negative) 
+   * @param amount Number to add (can be negative)
    * @param unit Time unit: 'd', 'w', 'm', 'y', 'h', 'min', 's'
    * @returns ISO timestamp string
    */

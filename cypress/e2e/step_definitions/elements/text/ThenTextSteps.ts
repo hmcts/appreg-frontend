@@ -7,6 +7,9 @@ Then('User See {string} On The Page', (expectedText: string) => {
   TextHelper.verifyTextPresence(PageElements.body, expectedText);
 });
 
-Then('User Sees Text {string} In {string}', (expectedText: string, containerLabel: string) => {
-  TextHelper.verifyTextInSection(containerLabel, expectedText);
-});
+Then(
+  'User Sees Text {string} In {string}',
+  (expectedText: string, containerLabel: string) => {
+    TextHelper.verifyTextInSection(containerLabel, expectedText);
+  },
+);
