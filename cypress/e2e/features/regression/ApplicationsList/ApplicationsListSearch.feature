@@ -1,6 +1,16 @@
 Feature: Applications List Search
 
   @regression
+  Scenario: Verify components on applications list search page
+    Given User Is On The Portal Page
+    Then User Signs In With Microsoft SSO As "user1"
+    Then User Clicks On The Link "Applications list"
+    Then User Sees Text "For example, 27 3 2007" In "Date"
+    Then User Should See The Date Field "Date"
+    Then User Should See The Time Field "Time"
+  
+
+  @regression
   Scenario Outline: Verify applications list is displayed
     Given User Is On The Portal Page
     Then User Signs In With Microsoft SSO As "<User>"
