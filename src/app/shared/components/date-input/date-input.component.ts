@@ -51,6 +51,13 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
   private onChange: (value: string | null) => void = () => {};
   private onValidatorChange: () => void = () => {};
 
+  private ctrl(name: 'day' | 'month' | 'year') {
+    return this.dateForm.get(name);
+  }
+  private val(name: 'day' | 'month' | 'year') {
+    return this.ctrl(name)?.value;
+  }
+
   constructor(private fb: NonNullableFormBuilder) {
     this.dateForm = this.fb.group(
       {
@@ -130,6 +137,51 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
 
     return null;
   };
+
+  hasAny(): boolean {
+    return !!(this.val('day') || this.val('month') || this.val('year'));
+  }
+
+  missing(name: 'day' | 'month' | 'year'): boolean {
+    return !this.val(name);
+  }
+
+  groupError(submitted: boolean): boolean {
+    if (!submitted) {
+      return false;
+    }
+    const miss =
+      this.missing('day') || this.missing('month') || this.missing('year');
+    if (!this.isSearch) {
+      return this.dateForm.invalid || miss;
+    }
+    return this.hasAny() && (this.dateForm.invalid || miss);
+  }
+
+  fieldError(name: 'day' | 'month' | 'year', submitted: boolean): boolean {
+    const c = this.ctrl(name);
+    const base = !!(c?.invalid && (c?.touched || c?.dirty));
+    const miss = this.missing(name);
+    const dateInvalid = !!this.dateForm.errors?.['dateInvalid'];
+    if (!submitted) {
+      return base;
+    }
+    if (!this.isSearch) {
+      return base || miss || dateInvalid;
+    }
+    return base || (this.hasAny() && (miss || dateInvalid));
+  }
+
+  ariaInvalid(
+    name: 'day' | 'month' | 'year',
+    submitted: boolean,
+  ): 'true' | null {
+    return (this.ctrl(name)?.invalid &&
+      (this.ctrl(name)?.touched || this.ctrl(name)?.dirty)) ||
+      (submitted && this.missing(name))
+      ? 'true'
+      : null;
+  }
 
   // ControlValueAccessor
   writeValue(value: string | null): void {
