@@ -6,14 +6,16 @@ nodejs:
   keyVaults:
     appreg:
       secrets:
-        - name: AppInsightsInstrumentationKey
-          alias: APP_INSIGHTS_INSTRUMENTATION_KEY
         - name: app-insights-connection-string
-          alias: app-insights-connection-string
+          alias: app-insights-connection-string-fe
         - name: azure-tenant-id
-          alias: azure-tenant-id
+          alias: azure-tenant-id-fe
         - name: azure-client-secret
-          alias: azure-client-secret
+          alias: azure-client-secret-fe
         - name: azure-app-id
-          alias: azure-app-id
+          alias: azure-app-id-fe
   environment:
+    ALLOW_CONFIG_MUTATIONS: true
+    NODE_ENV: 'production'
+    TESTVAR: 'testvalue'
+    LOG_LEVEL: 'DEBUG'
