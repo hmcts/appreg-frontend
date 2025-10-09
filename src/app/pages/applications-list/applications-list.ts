@@ -33,7 +33,6 @@ import {
   TableColumn,
 } from '../../shared/components/sortable-table/sortable-table.component';
 import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
-import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 
 interface MojInitEl extends HTMLElement {
@@ -57,7 +56,6 @@ export type ApplicationListGetQuery = Omit<ApplicationListGetSummaryDto, 'id'>;
     PaginationComponent,
     SortableTableComponent,
     SuggestionsComponent,
-    SuggestionsComponent,
   ],
   templateUrl: './applications-list.html',
 })
@@ -65,23 +63,6 @@ export class ApplicationsList implements OnInit, AfterViewInit {
   private _id: number | undefined;
   openMenuForId: number | null = null;
   openPrintSelectForId: number | null = null;
-
-  // CJA and Court locations store
-  cja: CriminalJusticeAreaGetDto[] = [];
-  filteredCja: CriminalJusticeAreaGetDto[] = [];
-  cjaSearch = '';
-
-  courtLocations: CourtLocationGetSummaryDto[] = [];
-  filteredCourthouses: CourtLocationGetSummaryDto[] = [];
-  courthouseSearch = '';
-
-  // Flags
-  submitted: boolean = false;
-  isSearch: boolean = false;
-
-  // Error summary
-  errorHint = 'There is a problem';
-  searchErrors: { id: string; text: string }[] = [];
 
   // CJA and Court locations store
   cja: CriminalJusticeAreaGetDto[] = [];
