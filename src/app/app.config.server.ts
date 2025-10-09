@@ -4,7 +4,7 @@ import { provideServerRendering, withRoutes } from '@angular/ssr';
 
 import { appConfig } from './app.config';
 import { serverRoutes } from './app.routes.server';
-import { serverCookieInterceptor } from './interceptors/server-cookie.interceptor';
+import { serverCookieInterceptor } from './shared/interceptors/server-cookie.interceptor';
 
 const serverConfig: ApplicationConfig = {
   providers: [

@@ -1,5 +1,61 @@
 <h1 class="govuk-heading-xl">Applications list</h1>
 
+<!-- SUCCESS BANNER -->
+<div
+  *ngIf="successBanner"
+  class="govuk-notification-banner govuk-notification-banner--success"
+  role="alert"
+  aria-labelledby="govuk-notification-banner-title"
+  data-module="govuk-notification-banner"
+  tabindex="-1"
+  #successBannerEl
+>
+  <div class="govuk-notification-banner__header">
+    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+      Success
+    </h2>
+  </div>
+  <div class="govuk-notification-banner__content">
+    <h3 class="govuk-notification-banner__heading">
+      {{ successBanner.heading }}
+    </h3>
+    <p *ngIf="successBanner.body || successBanner.link" class="govuk-body">
+      {{ successBanner.body }}
+      <a
+        *ngIf="successBanner.link"
+        class="govuk-notification-banner__link"
+        [href]="successBanner.link.href"
+      >
+        {{ successBanner.link.text }}
+      </a>
+    </p>
+  </div>
+</div>
+
+<!-- ERROR SUMMARY -->
+<div
+  *ngIf="errorSummary?.length"
+  class="govuk-error-summary"
+  data-module="govuk-error-summary"
+  role="alert"
+  aria-labelledby="error-summary-title"
+  tabindex="-1"
+  #errorSummaryEl
+>
+  <h2 class="govuk-error-summary__title" id="error-summary-title">
+    There is a problem
+  </h2>
+  <div class="govuk-error-summary__body">
+    <ul class="govuk-list govuk-error-summary__list">
+      <li *ngFor="let err of errorSummary">
+        <a *ngIf="err.href; else plain" [href]="err.href">{{ err.text }}</a>
+        <ng-template #plain>{{ err.text }}</ng-template>
+      </li>
+    </ul>
+  </div>
+</div>
+
+
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
@@ -139,7 +195,7 @@
         <button
           type="button"
           class="govuk-button moj-button-menu__item govuk-button--warning"
-          (click)="onDelete(row.id)"
+          (click)="onDelete(row)"
         >
           Delete
         </button>
