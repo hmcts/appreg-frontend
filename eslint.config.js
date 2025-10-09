@@ -35,7 +35,6 @@ module.exports = defineConfig([
     '.pnp.*',
     'cypress/reports/',
     'src/generated',
-    'tools/',
   ]),
 
   // Base (shared) – no type-aware parser configured here

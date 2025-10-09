@@ -87,55 +87,24 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
       m = this.minutes;
 
     if (this.required && this.isBlank(h) && this.isBlank(m)) {
-      return {
-        requiredParts: true,
-        durationErrorText: 'Enter hours and minutes',
-      };
+      return { requiredParts: true };
     }
 
     if (this.required && (this.isBlank(h) || this.isBlank(m))) {
-      const msg =
-        this.isBlank(h) && this.isBlank(m)
-          ? 'Enter hours and minutes'
-          : this.isBlank(h)
-            ? 'Enter hours'
-            : 'Enter minutes';
-      return {
-        requiredParts: true,
-        durationInvalid: true,
-        durationErrorText: msg,
-      };
+      return { requiredParts: true };
     }
 
     if (h === null && m === null) {
       return null;
     }
-
     if (h === null || m === null) {
-      const msg =
-        h === null && m === null
-          ? 'Enter hours and minutes'
-          : h === null
-            ? 'Enter hours'
-            : 'Enter minutes';
-      return {
-        requiredParts: true,
-        durationInvalid: true,
-        durationErrorText: msg,
-      };
+      return { requiredParts: true };
     }
-
     if (!Number.isInteger(h) || !Number.isInteger(m)) {
-      return {
-        durationInvalid: true,
-        durationErrorText: 'Enter a valid duration between 00:00 and 23:59',
-      };
+      return { durationInvalid: true };
     }
     if (h < 0 || h > 23 || m < 0 || m > 59) {
-      return {
-        durationInvalid: true,
-        durationErrorText: 'Enter a valid duration between 00:00 and 23:59',
-      };
+      return { durationInvalid: true };
     }
     return null;
   }
