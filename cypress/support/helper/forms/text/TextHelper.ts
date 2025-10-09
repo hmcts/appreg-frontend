@@ -1,3 +1,5 @@
+/// <reference types="cypress" />
+
 import { TextElement } from '../../../pageobjects/generic/text/TextElement';
 
 export class TextHelper {

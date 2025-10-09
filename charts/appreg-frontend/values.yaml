@@ -6,13 +6,13 @@ nodejs:
   keyVaults:
     appreg:
       secrets:
-        - name: app-insights-connection-string
+        - name: app-insights-connection-string-fe
           alias: app-insights-connection-string-fe
-        - name: azure-tenant-id
+        - name: azure-tenant-id-fe
           alias: azure-tenant-id-fe
-        - name: azure-client-secret
+        - name: azure-client-secret-fe
           alias: azure-client-secret-fe
-        - name: azure-app-id
+        - name: azure-app-id-fe
           alias: azure-app-id-fe
   environment:
     ALLOW_CONFIG_MUTATIONS: true
