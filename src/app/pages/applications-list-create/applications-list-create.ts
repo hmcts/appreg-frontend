@@ -7,7 +7,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { merge } from 'rxjs';
+import { Subscription } from 'rxjs';
 
 import {
   ApplicationListCreateDto,
@@ -27,6 +27,7 @@ import {
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
+import { attachLocationDisabler } from '../../shared/util/attach-location-disabler';
 
 type UnpopItem = string | { id: string; text: string };
 type FieldKey =
@@ -65,6 +66,7 @@ type CreateFormRaw = Pick<ApplicationListCreateDto, 'date' | 'description'> & {
 })
 export class ApplicationsListCreate implements OnInit {
   private _id: number | undefined;
+  private locationDisabler?: Subscription;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -136,48 +138,15 @@ export class ApplicationsListCreate implements OnInit {
     this.loadLists();
 
     // Disable based fields
-    const court = this.form.controls.court;
-    const location = this.form.controls.location;
-    const cja = this.form.controls.cja;
+    this.locationDisabler = attachLocationDisabler({
+      court: this.form.controls.court,
+      location: this.form.controls.location,
+      cja: this.form.controls.cja,
+    });
+  }
 
-    const has = (v: string | null) => !!v && v.trim().length > 0;
-    const syncDisable = () => {
-      const hasCourt = has(court.value);
-      const hasLoc = has(location.value);
-      const hasCja = has(cja.value);
-
-      if (hasCourt) {
-        court.enable({ emitEvent: false });
-        location.disable({ emitEvent: false });
-        cja.disable({ emitEvent: false });
-      } else if (hasLoc || hasCja) {
-        court.disable({ emitEvent: false });
-        location.enable({ emitEvent: false });
-        cja.enable({ emitEvent: false });
-      } else {
-        court.enable({ emitEvent: false });
-        location.enable({ emitEvent: false });
-        cja.enable({ emitEvent: false });
-      }
-    };
-
-    merge(
-      court.valueChanges,
-      location.valueChanges,
-      cja.valueChanges,
-    ).subscribe(() => syncDisable());
-    syncDisable();
-
-    // Suggestions
-    const currentCourthouse = this.form.controls.court.value;
-    if (typeof currentCourthouse === 'string' && currentCourthouse.trim()) {
-      this.courthouseSearch = currentCourthouse;
-    }
-
-    const currentCja = this.form.controls.cja.value;
-    if (typeof currentCja === 'string' && currentCja.trim()) {
-      this.cjaSearch = currentCja;
-    }
+  ngOnDestroy(): void {
+    this.locationDisabler?.unsubscribe();
   }
 
   onSubmit(event: SubmitEvent): void {

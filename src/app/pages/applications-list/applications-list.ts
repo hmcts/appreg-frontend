@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { merge } from 'rxjs';
+import { Subscription } from 'rxjs';
 
 import {
   CourtLocationGetSummaryDto,
@@ -30,6 +30,7 @@ import {
 } from '../../shared/components/sortable-table/sortable-table.component';
 import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
+import { attachLocationDisabler } from '../../shared/util/attach-location-disabler';
 
 type ApplicationListRow = {
   id: number;
@@ -64,6 +65,7 @@ interface MojInitEl extends HTMLElement {
 })
 export class ApplicationsList implements OnInit, AfterViewInit {
   private _id: number | undefined;
+  private locationDisabler?: Subscription;
   openMenuForId: number | null = null;
   openPrintSelectForId: number | null = null;
 
@@ -128,48 +130,15 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     this.loadCourtLocations();
 
     // Disable based fields
-    const court = this.form.controls.court;
-    const location = this.form.controls.location;
-    const cja = this.form.controls.cja;
+    this.locationDisabler = attachLocationDisabler({
+      court: this.form.controls.court,
+      location: this.form.controls.location,
+      cja: this.form.controls.cja,
+    });
+  }
 
-    const has = (v: string | null) => !!v && v.trim().length > 0;
-    const syncDisable = () => {
-      const hasCourt = has(court.value);
-      const hasLoc = has(location.value);
-      const hasCja = has(cja.value);
-
-      if (hasCourt) {
-        court.enable({ emitEvent: false });
-        location.disable({ emitEvent: false });
-        cja.disable({ emitEvent: false });
-      } else if (hasLoc || hasCja) {
-        court.disable({ emitEvent: false });
-        location.enable({ emitEvent: false });
-        cja.enable({ emitEvent: false });
-      } else {
-        court.enable({ emitEvent: false });
-        location.enable({ emitEvent: false });
-        cja.enable({ emitEvent: false });
-      }
-    };
-
-    merge(
-      court.valueChanges,
-      location.valueChanges,
-      cja.valueChanges,
-    ).subscribe(() => syncDisable());
-    syncDisable();
-
-    // Suggestions
-    const currentCourthouse = this.form.controls.court.value;
-    if (typeof currentCourthouse === 'string' && currentCourthouse.trim()) {
-      this.courthouseSearch = currentCourthouse;
-    }
-
-    const currentCja = this.form.controls.cja.value;
-    if (typeof currentCja === 'string' && currentCja.trim()) {
-      this.cjaSearch = currentCja;
-    }
+  ngOnDestroy(): void {
+    this.locationDisabler?.unsubscribe();
   }
 
   ngAfterViewInit(): void {
