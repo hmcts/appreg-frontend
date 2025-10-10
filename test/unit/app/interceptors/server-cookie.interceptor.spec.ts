@@ -12,6 +12,7 @@ import { REQUEST } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 import { serverCookieInterceptor } from '../../../../src/app/shared/interceptors/server-cookie.interceptor';
+
 describe('serverCookieInterceptor', () => {
   describe('when REQUEST has a cookie header', () => {
     let http: HttpClient;

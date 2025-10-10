@@ -90,8 +90,8 @@ export class ApplicationsListCreate implements OnInit {
 
   // Banner/Error state that drives the reusable components
   unpopField: UnpopItem[] = [];
-  createInvalid = false; // => <app-error-summary>
-  createDone = false; // => <app-success-banner>
+  createInvalid = false;
+  createDone = false;
   @Input() submitted = false;
 
   errorHint = ''; // Error summary heading text
@@ -246,14 +246,14 @@ export class ApplicationsListCreate implements OnInit {
       });
   }
 
-  // === NEW: map unpopulated fields to ErrorSummary items
+  // Map unpopulated fields to ErrorSummary items
   toErrorItems(list: UnpopItem[]): ErrorItem[] {
     return list.map((x) =>
       typeof x === 'string' ? { text: x } : { text: x.text, id: x.id },
     );
   }
 
-  // === NEW: handle click from ErrorSummary to focus a field
+  // Handle click from ErrorSummary to focus a field
   onCreateErrorClick(item: ErrorItem): void {
     const id = item.id ?? '';
     if (!id) {

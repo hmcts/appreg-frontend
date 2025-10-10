@@ -46,16 +46,14 @@ export class ErrorSummaryComponent implements AfterViewInit {
 
   onLinkClick(e: Event, err: ErrorItem): void {
     // If a consumer is listening OR a targetId is set, prevent default to handle smooth scroll/focus.
-    if (this.itemSelect.observers.length || this.targetId) {
+    if (this.itemSelect.observed || this.targetId) {
       e.preventDefault();
     }
 
-    // 1) Emit to parent first (lets forms implement field focusing)
-    if (this.itemSelect.observers.length) {
+    if (this.itemSelect.observed) {
       this.itemSelect.emit(err);
     }
 
-    // 2) If a target is specified, scroll/focus it (e.g. your sortable table section)
     if (this.targetId) {
       const el = document.getElementById(this.targetId);
       if (el) {

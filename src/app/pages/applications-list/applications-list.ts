@@ -150,10 +150,9 @@ export class ApplicationsList implements OnInit, AfterViewInit {
             continue;
           }
 
-          // use the instance so 'no-new' doesn't complain
           const instance = new ButtonMenu(flagged);
           if (typeof (instance as { init?: () => void }).init === 'function') {
-            instance.init(); // some versions require explicit init
+            instance.init();
           }
 
           flagged.__mojInit = true;
