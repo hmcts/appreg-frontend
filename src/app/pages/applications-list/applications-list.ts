@@ -16,7 +16,7 @@ import {
   CourtLocationsApi,
   CriminalJusticeAreaGetDto,
   CriminalJusticeAreasApi,
-} from '../../..//generated/openapi';
+} from '../../../generated/openapi';
 import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
