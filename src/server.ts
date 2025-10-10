@@ -60,9 +60,6 @@ await new PropertiesVolume().enableFor(app);
 new Helmet(developmentMode).enableFor(app);
 AppInsights.enable();
 
-const clientId = config.get<string>('secrets.appreg.azure-app-id-fe');
-console.log('clientId: ', clientId);
-
 // ---- helpers
 const logger: HmctsLogger = HmctsLoggerBridge.enable(
   'hmcts applications register - server',
