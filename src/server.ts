@@ -52,9 +52,6 @@ const CONNECTION_STRING = config.get<string>(
   'secrets.appreg.app-insights-connection-string-fe',
 );
 
-const clientId = config.get<string>('secrets.appreg.azure-app-id-fe');
-console.log('clientId: ', clientId);
-
 // API + scopes for resource access
 const apiBase: string = config.get<string>('api.baseUrl');
 const apiScopes: string[] = config.has('api.scopes')
@@ -65,6 +62,9 @@ const apiScopes: string[] = config.has('api.scopes')
 await new PropertiesVolume().enableFor(app);
 new Helmet(developmentMode).enableFor(app);
 AppInsights.enable(CONNECTION_STRING);
+
+const clientId = config.get<string>('secrets.appreg.azure-app-id-fe');
+console.log('clientId: ', clientId);
 
 // ---- helpers
 const logger: HmctsLogger = HmctsLoggerBridge.enable(
