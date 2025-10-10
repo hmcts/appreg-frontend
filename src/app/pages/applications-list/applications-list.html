@@ -1,6 +1,6 @@
 <h1 class="govuk-heading-xl">Applications list</h1>
 
-@if (deleteInvalid && errorSummary?.length) {
+@if (deleteInvalid && errorSummary.length) {
   <app-error-summary
     [title]="errorHint || 'There is a problem'"
     [items]="errorSummary"
