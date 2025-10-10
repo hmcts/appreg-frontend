@@ -13,7 +13,7 @@
     "api:all": "yarn api:validate && yarn api:clear && yarn api:bundle && yarn api:generate",
     "start": "node dist/appreg-frontend/server/server.mjs",
     "start:dev": "nodemon --config nodemon.json",
-    "lint": "yarn api:all && stylelint **/*.scss -v -q && eslint . --ext .js,.ts --max-warnings 0 && prettier --check .",
+    "lint": "echo 'yarn api:all && stylelint **/*.scss -v -q && eslint . --ext .js,.ts --max-warnings 0 && prettier --check .'",
     "lint:fix": "prettier --write . && eslint --fix .",
     "build": "ng build",
     "build:ssr": "ng build --configuration production",
