@@ -1,28 +1,35 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 
 import { ApplicationsList } from '../../../../../src/app/pages/applications-list/applications-list';
+import { ApplicationListsApi } from '../../../../../src/generated/openapi';
 
 jest.mock('@ministryofjustice/frontend', () => {
   class ButtonMenu {
     constructor() {}
+
+    init() {}
   }
 
-  class SortableTable {
-    constructor() {}
-  }
-
-  return { ButtonMenu, SortableTable };
+  return { ButtonMenu };
 });
 
 describe('ApplicationsListComponent', () => {
-  let component: ApplicationsList;
   let fixture: ComponentFixture<ApplicationsList>;
+  let component: ApplicationsList;
 
   beforeEach(async () => {
+    const appListsApiStub = {
+      deleteApplicationList: jest.fn().mockReturnValue(of({ status: 204 })),
+    };
+
     await TestBed.configureTestingModule({
       imports: [ApplicationsList],
-      providers: [provideRouter([])],
+      providers: [
+        provideRouter([]),
+        { provide: ApplicationListsApi, useValue: appListsApiStub },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ApplicationsList);

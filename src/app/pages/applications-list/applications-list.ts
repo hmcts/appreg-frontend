@@ -12,6 +12,7 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
+import { ApplicationListsApi } from '../../../generated/openapi';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
   Duration,
@@ -34,7 +35,6 @@ import {
   ROW_VERSION,
 } from '../../shared/context/concurrency-context';
 
-import { ApplicationListsApi } from 'src/generated/openapi/api/application-lists.service';
 
 type ApplicationListRow = {
   id: string;
