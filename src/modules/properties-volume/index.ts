@@ -13,8 +13,6 @@ export class PropertiesVolume {
         default: IConfig;
       };
 
-      console.log(config);
-
       const pvm = require('@hmcts/properties-volume') as typeof PV;
       const { get, set } = require('lodash') as {
         get: (typeof import('lodash'))['get'];
