@@ -6,7 +6,7 @@ import {
   FormsModule,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { merge } from 'rxjs';
 
 import {
@@ -24,7 +24,12 @@ import {
   Duration,
   DurationInputComponent,
 } from '../../shared/components/duration-input/duration-input.component';
+import {
+  ErrorItem,
+  ErrorSummaryComponent,
+} from '../../shared/components/error-summary/error-summary.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
+import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
 import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 
@@ -56,10 +61,11 @@ type CreateFormRaw = Pick<ApplicationListCreateDto, 'date' | 'description'> & {
     DurationInputComponent,
     TextInputComponent,
     SelectInputComponent,
-    RouterLink,
     FormsModule,
     SuggestionsComponent,
     BreadcrumbsComponent,
+    SuccessBannerComponent,
+    ErrorSummaryComponent,
   ],
   templateUrl: './applications-list-create.html',
 })
@@ -82,13 +88,13 @@ export class ApplicationsListCreate implements OnInit {
   filteredCourthouses: CourtLocationGetSummaryDto[] = [];
   courthouseSearch = '';
 
-  // Create: Store unpopulated fields
+  // Banner/Error state that drives the reusable components
   unpopField: UnpopItem[] = [];
-  createInvalid: boolean = false;
-  createDone: boolean = false;
+  createInvalid = false; // => <app-error-summary>
+  createDone = false; // => <app-success-banner>
   @Input() submitted = false;
 
-  errorHint: string = ''; // Page hint when error occurs
+  errorHint = ''; // Error summary heading text
 
   @Input() listId?: string;
 
@@ -233,6 +239,26 @@ export class ApplicationsListCreate implements OnInit {
           this.errorHint = 'An error has occurred: \n' + msg;
         },
       });
+  }
+
+  // === NEW: map unpopulated fields to ErrorSummary items
+  toErrorItems(list: UnpopItem[]): ErrorItem[] {
+    return list.map((x) =>
+      typeof x === 'string' ? { text: x } : { text: x.text, id: x.id },
+    );
+  }
+
+  // === NEW: handle click from ErrorSummary to focus a field
+  onCreateErrorClick(item: ErrorItem): void {
+    const id = item.id ?? '';
+    if (!id) {
+      return;
+    }
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.focus?.({ preventScroll: true });
+    }
   }
 
   private resetCreateState(): void {
@@ -402,15 +428,6 @@ export class ApplicationsListCreate implements OnInit {
     this.cjaSearch = label;
     this.form.controls.cja.setValue(label);
     this.filteredCja = [];
-  }
-
-  focusField(id: string, e: Event): void {
-    e.preventDefault();
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.focus({ preventScroll: true });
-    }
   }
 
   onDelete(id: number): void {

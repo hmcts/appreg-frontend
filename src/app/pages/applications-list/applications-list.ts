@@ -17,12 +17,17 @@ import {
   Duration,
   DurationInputComponent,
 } from '../../shared/components/duration-input/duration-input.component';
+import {
+  ErrorItem,
+  ErrorSummaryComponent,
+} from '../../shared/components/error-summary/error-summary.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import {
   SortableTableComponent,
   TableColumn,
 } from '../../shared/components/sortable-table/sortable-table.component';
+import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 import {
   IF_MATCH,
@@ -74,23 +79,23 @@ function getHttpStatus(err: unknown): number {
     RouterLink,
     PaginationComponent,
     SortableTableComponent,
+    SuccessBannerComponent,
+    ErrorSummaryComponent,
   ],
   templateUrl: './applications-list.html',
 })
 export class ApplicationsList implements OnInit, AfterViewInit {
-  private _id: string | undefined; // kept only if you still need it elsewhere
+  private _id: string | undefined;
   openMenuForId: string | null = null;
   openPrintSelectForId: string | null = null;
 
-  // ✅ NEW: UI state for success/inline error + delete-in-progress
-  banner: { type: 'success' | 'error' | null; text: string } = {
-    type: null,
-    text: '',
-  };
-  errorInline: string | null = null;
+  // Banner/Error state (consumed by reusable components)
+  deleteDone = false;
+  deleteInvalid = false;
+  errorHint = '';
+  errorSummary: ErrorItem[] = [];
   deletingId: string | null = null;
 
-  // Reactive form backing the template
   form = new FormGroup({
     date: new FormControl<string | null>(null),
     time: new FormControl<Duration | null>(null),
@@ -124,7 +129,6 @@ export class ApplicationsList implements OnInit, AfterViewInit {
 
   constructor(
     @Inject(PLATFORM_ID) private readonly platformId: object,
-    // ✅ NEW: inject the generated API
     private readonly appListsApi: ApplicationListsApi,
   ) {}
 
@@ -255,7 +259,9 @@ export class ApplicationsList implements OnInit, AfterViewInit {
 
   async onDelete(row: ApplicationListRow): Promise<void> {
     if (row.deletable === false) {
-      this.errorInline = 'This list cannot be deleted.';
+      this.deleteInvalid = true;
+      this.errorHint = 'There is a problem';
+      this.errorSummary = [{ text: 'This list cannot be deleted.' }];
       return;
     }
 
@@ -268,8 +274,10 @@ export class ApplicationsList implements OnInit, AfterViewInit {
       }
     }
 
-    this.errorInline = null;
-    this.banner = { type: null, text: '' };
+    this.deleteDone = false;
+    this.deleteInvalid = false;
+    this.errorHint = '';
+    this.errorSummary = [];
     this.deletingId = row.id;
 
     const context = new HttpContext()
@@ -288,38 +296,61 @@ export class ApplicationsList implements OnInit, AfterViewInit {
 
       if (resp.status === 200 || resp.status === 204) {
         this.rows = this.rows.filter((r) => r.id !== row.id);
-        this.banner = {
-          type: 'success',
-          text: 'Application List deleted successfully',
-        };
+        this.deleteDone = true;
       }
     } catch (err: unknown) {
       const status = getHttpStatus(err);
+      this.deleteInvalid = true;
+      this.errorHint = 'There is a problem';
+
       switch (status) {
         case 401:
-          this.errorInline =
-            'You are not signed in. Please sign in and try again.';
+          this.errorSummary = [
+            {
+              text: 'You are not signed in. Please sign in and try again.',
+              href: '/sign-in',
+            },
+          ];
           break;
         case 403:
-          this.errorInline = 'You do not have permission to delete this list.';
+          this.errorSummary = [
+            {
+              text: 'You do not have permission to delete this list.',
+              href: '/applications-list#sortable-table',
+            },
+          ];
           break;
         case 404:
-          this.errorInline =
-            'Application List not found. Return to the Lists view.';
+          this.errorSummary = [
+            {
+              text: 'Application List not found. Return to the Lists view.',
+              href: '/applications-list#sortable-table',
+            },
+          ];
           break;
         case 409:
-          this.errorInline =
-            'This list has entries or is in a non-deletable state.';
+          this.errorSummary = [
+            {
+              text: 'This list has entries or is in a non-deletable state.',
+              href: '/applications-list#sortable-table',
+            },
+          ];
           break;
         case 412:
-          this.errorInline =
-            'The list has changed. Refresh the page and try again.';
+          this.errorSummary = [
+            {
+              text: 'The list has changed. Refresh the page and try again.',
+              href: '/applications-list#sortable-table',
+            },
+          ];
           break;
         default:
-          this.banner = {
-            type: 'error',
-            text: 'Unable to delete list. Please try again later.',
-          };
+          this.errorSummary = [
+            {
+              text: 'Unable to delete list. Please try again later.',
+              href: '/applications-list#sortable-table',
+            },
+          ];
           break;
       }
     } finally {
@@ -333,7 +364,6 @@ export class ApplicationsList implements OnInit, AfterViewInit {
 
   onResultSelected(): void {}
 
-  // Close when clicking anywhere else
   @HostListener('document:click')
   onDocClick(): void {
     this.openPrintSelectForId = null;
@@ -344,11 +374,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     this.openMenuForId = null;
   }
 
-  onPrint(): void {
-    // TODO: your print flow per row
-  }
+  onPrint(): void {}
 
-  onPrintContinuous(): void {
-    // TODO: your continuous print flow per row
-  }
+  onPrintContinuous(): void {}
 }
