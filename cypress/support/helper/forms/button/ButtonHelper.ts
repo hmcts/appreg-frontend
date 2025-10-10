@@ -9,21 +9,15 @@ export class ButtonHelper {
     ButtonElement.findButton(buttonText).click();
   }
 
-  static isButtonVisible(
-    buttonText: string,
-  ): Cypress.Chainable {
+  static isButtonVisible(buttonText: string): Cypress.Chainable {
     return ButtonElement.findButton(buttonText).should('be.visible');
   }
 
-  static isButtonEnabled(
-    buttonText: string,
-  ): Cypress.Chainable {
+  static isButtonEnabled(buttonText: string): Cypress.Chainable {
     return ButtonElement.findButton(buttonText).should('not.be.disabled');
   }
 
-  static isButtonDisabled(
-    buttonText: string,
-  ): Cypress.Chainable {
+  static isButtonDisabled(buttonText: string): Cypress.Chainable {
     return ButtonElement.findButton(buttonText).should('be.disabled');
   }
 }
