@@ -12,7 +12,11 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
-import { ApplicationListsApi } from '../../../generated/openapi';
+import {
+  ApplicationListGetSummaryDto,
+  ApplicationListStatus,
+  ApplicationListsApi,
+} from '../../../generated/openapi';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
   Duration,
@@ -35,18 +39,18 @@ import {
   ROW_VERSION,
 } from '../../shared/context/concurrency-context';
 
-type ApplicationListRow = {
-  id: string;
-  date: string;
-  time: string;
-  location: string;
-  description: string;
-  entries: number;
-  status: 'Open' | 'Closed';
+type UiExtras = {
   deletable?: boolean;
   etag?: string | null;
   rowVersion?: string | null;
 };
+
+type ApplicationListRow = Omit<
+  ApplicationListGetSummaryDto,
+  'numberOfEntries'
+> & {
+  entries: ApplicationListGetSummaryDto['numberOfEntries'];
+} & UiExtras;
 
 interface MojInitEl extends HTMLElement {
   __mojInit?: boolean;
@@ -185,7 +189,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
         location: 'Birmingham',
         description: 'Morning list',
         entries: 12,
-        status: 'Open',
+        status: ApplicationListStatus.OPEN,
       },
       {
         id: '102',
@@ -194,7 +198,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
         location: 'Birmingham',
         description: 'Afternoon list',
         entries: 8,
-        status: 'Closed',
+        status: ApplicationListStatus.CLOSED,
       },
       {
         id: '103',
@@ -203,7 +207,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
         location: 'Manchester',
         description: 'Applications block',
         entries: 16,
-        status: 'Open',
+        status: ApplicationListStatus.OPEN,
       },
       {
         id: '104',
@@ -212,7 +216,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
         location: 'Manchester',
         description: 'Enforcement',
         entries: 5,
-        status: 'Closed',
+        status: ApplicationListStatus.CLOSED,
       },
       {
         id: '105',
@@ -221,7 +225,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
         location: 'Bristol',
         description: 'Housing list',
         entries: 20,
-        status: 'Open',
+        status: ApplicationListStatus.OPEN,
       },
       {
         id: '106',
@@ -230,7 +234,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
         location: 'Bristol',
         description: 'Small claims',
         entries: 9,
-        status: 'Open',
+        status: ApplicationListStatus.OPEN,
       },
       {
         id: '107',
@@ -239,7 +243,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
         location: 'Leeds',
         description: 'Family applications',
         entries: 14,
-        status: 'Closed',
+        status: ApplicationListStatus.CLOSED,
       },
       {
         id: '108',
@@ -248,7 +252,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
         location: 'Leeds',
         description: 'Costs review',
         entries: 6,
-        status: 'Open',
+        status: ApplicationListStatus.OPEN,
       },
     ];
   }
