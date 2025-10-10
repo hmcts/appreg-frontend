@@ -1,119 +1,119 @@
 <app-breadcrumbs
-        [items]="[{ label: 'Applications list', link: '/applications-list' }]"
+  [items]="[{ label: 'Applications list', link: '/applications-list' }]"
 ></app-breadcrumbs>
 
 <h1 class="govuk-heading-xl">Create new applications list</h1>
 
 @if (unpopField.length || createInvalid) {
-    <app-error-summary
-            [title]="errorHint || 'There is a problem'"
-            [items]="toErrorItems(unpopField)"
-            (itemSelect)="onCreateErrorClick($event)"
-    />
+  <app-error-summary
+    [title]="errorHint || 'There is a problem'"
+    [items]="toErrorItems(unpopField)"
+    (itemSelect)="onCreateErrorClick($event)"
+  />
 }
 
 @if (createDone) {
-    <app-success-banner
-            heading="Applications list successfully created"
-            [linkCommands]="['/applications-list']"
-            linkText="Click here to go back"
-    />
+  <app-success-banner
+    heading="Applications list successfully created"
+    [linkCommands]="['/applications-list']"
+    linkText="Click here to go back"
+  />
 }
 
 <hr
-        class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 <form [formGroup]="form" (ngSubmit)="onSubmit($event)" autocomplete="off">
-    <div class="govuk-grid-row">
-        <!-- Date -->
-        <app-date-input
-                formControlName="date"
-                label="Date"
-                hint="For example, 27 3 2007"
-                idPrefix="date"
-                [submitted]="createInvalid"
-        >
-        </app-date-input>
+  <div class="govuk-grid-row">
+    <!-- Date -->
+    <app-date-input
+      formControlName="date"
+      label="Date"
+      hint="For example, 27 3 2007"
+      idPrefix="date"
+      [submitted]="createInvalid"
+    >
+    </app-date-input>
 
-        <!-- Time -->
-        <app-duration-input
-                formControlName="time"
-                label="Time"
-                hint="Enter the time in 24-hour format, for example 08:30"
-                idPrefix="time"
-                [submitted]="createInvalid"
-                [required]="true"
-        >
-        </app-duration-input>
+    <!-- Time -->
+    <app-duration-input
+      formControlName="time"
+      label="Time"
+      hint="Enter the time in 24-hour format, for example 08:30"
+      idPrefix="time"
+      [submitted]="createInvalid"
+      [required]="true"
+    >
+    </app-duration-input>
 
-        <!-- Description -->
-        <app-text-input
-                formControlName="description"
-                label="Description"
-                hint="A description of the application list"
-                idPrefix="description"
-                [submitted]="createInvalid"
-        >
-        </app-text-input>
+    <!-- Description -->
+    <app-text-input
+      formControlName="description"
+      label="Description"
+      hint="A description of the application list"
+      idPrefix="description"
+      [submitted]="createInvalid"
+    >
+    </app-text-input>
 
-        <!-- Status -->
-        <app-select-input
-                formControlName="status"
-                label="Select status"
-                hint="The status of the application list"
-                idPrefix="status"
-                [submitted]="createInvalid"
-                [options]="[
+    <!-- Status -->
+    <app-select-input
+      formControlName="status"
+      label="Select status"
+      hint="The status of the application list"
+      idPrefix="status"
+      [submitted]="createInvalid"
+      [options]="[
         { value: 'choose', label: 'Choose status' },
         { value: 'open', label: 'Open' },
         { value: 'closed', label: 'Closed' },
       ]"
-        >
-        </app-select-input>
-    </div>
+    >
+    </app-select-input>
+  </div>
 
-    <div class="govuk-grid-row">
-        <!-- Court -->
-        <app-suggestions
-                id="court"
-                label="Court"
-                hint="Start typing to search"
-                [(search)]="courthouseSearch"
-                (searchChange)="onCourthouseInputChange()"
-                [suggestions]="filteredCourthouses"
-                (selectItem)="selectCourthouse($event)"
-                [disabled]="!!form.get('location')?.value || !!form.get('cja')?.value"
-                [showError]="
+  <div class="govuk-grid-row">
+    <!-- Court -->
+    <app-suggestions
+      id="court"
+      label="Court"
+      hint="Start typing to search"
+      [(search)]="courthouseSearch"
+      (searchChange)="onCourthouseInputChange()"
+      [suggestions]="filteredCourthouses"
+      (selectItem)="selectCourthouse($event)"
+      [disabled]="!!form.get('location')?.value || !!form.get('cja')?.value"
+      [showError]="
         createInvalid &&
         !courthouseSearch.trim() &&
         !(form.get('location')?.value?.toString()?.trim() || cjaSearch.trim())
       "
-                errorText="Court is required"
-        />
+      errorText="Court is required"
+    />
 
-        <!-- Other location -->
-        <app-text-input
-                formControlName="location"
-                label="Other location"
-                hint="Other location description"
-                idPrefix="location"
-                [submitted]="createInvalid && !form.get('court')?.value"
-                [disabled]="!!form.get('court')?.value"
-        >
-            >
-        </app-text-input>
+    <!-- Other location -->
+    <app-text-input
+      formControlName="location"
+      label="Other location"
+      hint="Other location description"
+      idPrefix="location"
+      [submitted]="createInvalid && !form.get('court')?.value"
+      [disabled]="!!form.get('court')?.value"
+    >
+      >
+    </app-text-input>
 
-        <!-- CJA -->
-        <app-suggestions
-                id="cja"
-                label="CJA"
-                hint="Start typing to search"
-                [(search)]="cjaSearch"
-                (searchChange)="onCjaInputChange()"
-                [suggestions]="filteredCja"
-                (selectItem)="selectCja($event)"
-                [disabled]="!!courthouseSearch.trim() || !!form.get('court')?.value"
-                [showError]="
+    <!-- CJA -->
+    <app-suggestions
+      id="cja"
+      label="CJA"
+      hint="Start typing to search"
+      [(search)]="cjaSearch"
+      (searchChange)="onCjaInputChange()"
+      [suggestions]="filteredCja"
+      (selectItem)="selectCja($event)"
+      [disabled]="!!courthouseSearch.trim() || !!form.get('court')?.value"
+      [showError]="
         createInvalid &&
         !cjaSearch.trim() &&
         !(
@@ -121,15 +121,15 @@
           form.get('court')?.value?.toString()?.trim()
         )
       "
-                errorText="CJA is required"
-        />
-    </div>
+      errorText="CJA is required"
+    />
+  </div>
 
-    <div class="govuk-button-group">
-        <button type="submit" class="govuk-button" value="create">Create</button>
-    </div>
+  <div class="govuk-button-group">
+    <button type="submit" class="govuk-button" value="create">Create</button>
+  </div>
 </form>
 
 <hr
-        class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />

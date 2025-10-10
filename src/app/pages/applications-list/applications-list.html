@@ -105,7 +105,12 @@
 />
 
 <!-- Sortable table component -->
-<app-sortable-table id="sortable-table" caption="Lists" [columns]="columns" [data]="rows">
+<app-sortable-table
+  id="sortable-table"
+  caption="Lists"
+  [columns]="columns"
+  [data]="rows"
+>
   <ng-template #actionsTemplate let-row>
     <div class="govuk-button-group">
       <!-- actions slot -->

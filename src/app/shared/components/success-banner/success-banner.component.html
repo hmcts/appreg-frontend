@@ -7,7 +7,10 @@
   #bannerEl
 >
   <div class="govuk-notification-banner__header">
-    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+    <h2
+      class="govuk-notification-banner__title"
+      id="govuk-notification-banner-title"
+    >
       Success
     </h2>
   </div>
@@ -21,10 +24,7 @@
           {{ body }}
         }
         @if (linkText && linkHref) {
-          <a
-            class="govuk-notification-banner__link"
-            [href]="linkHref"
-          >
+          <a class="govuk-notification-banner__link" [href]="linkHref">
             {{ linkText }}
           </a>
         }
