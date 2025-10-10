@@ -2,9 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Router, RouterLink, provideRouter } from '@angular/router';
 
-import {
-  SuccessBannerComponent
-} from '../../../../../../src/app/shared/components/success-banner/success-banner.component';
+import { SuccessBannerComponent } from '../../../../../../src/app/shared/components/success-banner/success-banner.component';
 
 describe('SuccessBannerComponent (external template)', () => {
   let fixture: ComponentFixture<SuccessBannerComponent>;
@@ -33,10 +31,10 @@ describe('SuccessBannerComponent (external template)', () => {
     fixture.detectChanges();
 
     const title = fixture.nativeElement.querySelector(
-      '.govuk-notification-banner__title'
+      '.govuk-notification-banner__title',
     )!;
     const heading = fixture.nativeElement.querySelector(
-      '.govuk-notification-banner__heading'
+      '.govuk-notification-banner__heading',
     )!;
 
     expect(title.textContent.trim()).toBe('Success');
@@ -48,22 +46,22 @@ describe('SuccessBannerComponent (external template)', () => {
     comp.body = 'You can return to the list.';
     comp.linkText = 'Click here to go back';
     comp.linkCommands = ['/applications-list']; // absolute for deterministic URL
-    comp.linkHref = undefined;                   // ensure routerLink path is used
+    comp.linkHref = undefined; // ensure routerLink path is used
     fixture.detectChanges();
 
     const router = TestBed.inject(Router);
     const heading = fixture.nativeElement.querySelector(
-      '.govuk-notification-banner__heading'
+      '.govuk-notification-banner__heading',
     )!;
     const bodyP = fixture.nativeElement.querySelector('.govuk-body')!;
     const linkDe = fixture.debugElement.query(
-      By.css('.govuk-notification-banner__link')
+      By.css('.govuk-notification-banner__link'),
     );
     const linkDir = linkDe.injector.get(RouterLink);
     const linkEl: HTMLAnchorElement = linkDe.nativeElement;
 
     expect(heading.textContent.trim()).toBe(
-      'Applications list successfully created'
+      'Applications list successfully created',
     );
     expect(bodyP.textContent).toContain('You can return to the list.');
     expect(linkEl.textContent.trim()).toBe('Click here to go back');
@@ -86,7 +84,7 @@ describe('SuccessBannerComponent (external template)', () => {
     fixture.detectChanges();
 
     const link = fixture.nativeElement.querySelector(
-      '.govuk-notification-banner__link'
+      '.govuk-notification-banner__link',
     ) as HTMLAnchorElement;
 
     expect(link.textContent.trim()).toBe('Open docs');
@@ -102,9 +100,11 @@ describe('SuccessBannerComponent (external template)', () => {
     fixture.detectChanges();
 
     // Access the private ViewChild via a typed cast
-    const el = (comp as unknown as {
-      bannerEl: { nativeElement: HTMLDivElement };
-    }).bannerEl.nativeElement;
+    const el = (
+      comp as unknown as {
+        bannerEl: { nativeElement: HTMLDivElement };
+      }
+    ).bannerEl.nativeElement;
     const focusSpy = jest.spyOn(el, 'focus');
 
     jest.runAllTimers();
@@ -118,9 +118,11 @@ describe('SuccessBannerComponent (external template)', () => {
     jest.useFakeTimers();
     fixture.detectChanges();
 
-    const el = (comp as unknown as {
-      bannerEl: { nativeElement: HTMLDivElement };
-    }).bannerEl.nativeElement;
+    const el = (
+      comp as unknown as {
+        bannerEl: { nativeElement: HTMLDivElement };
+      }
+    ).bannerEl.nativeElement;
     const focusSpy = jest.spyOn(el, 'focus');
 
     jest.runOnlyPendingTimers();

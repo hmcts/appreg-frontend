@@ -53,9 +53,11 @@ describe('ErrorSummaryComponent (external template)', () => {
     fixture.detectChanges(); // triggers ngAfterViewInit
 
     // Access the private ViewChild through a typed shape
-    const el = (comp as unknown as {
-      summaryEl: { nativeElement: HTMLDivElement };
-    }).summaryEl.nativeElement;
+    const el = (
+      comp as unknown as {
+        summaryEl: { nativeElement: HTMLDivElement };
+      }
+    ).summaryEl.nativeElement;
     const focusSpy = jest.spyOn(el, 'focus');
 
     jest.runAllTimers();

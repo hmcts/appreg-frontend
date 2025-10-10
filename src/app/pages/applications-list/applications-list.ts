@@ -35,7 +35,6 @@ import {
   ROW_VERSION,
 } from '../../shared/context/concurrency-context';
 
-
 type ApplicationListRow = {
   id: string;
   date: string;
