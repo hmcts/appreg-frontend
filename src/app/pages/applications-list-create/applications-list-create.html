@@ -7,7 +7,7 @@
 @if (unpopField.length || createInvalid) {
   <app-error-summary
     [title]="errorHint || 'There is a problem'"
-    [items]="toErrorItems(unpopField)"
+    [items]="unpopField"
     (itemSelect)="onCreateErrorClick($event)"
   />
 }

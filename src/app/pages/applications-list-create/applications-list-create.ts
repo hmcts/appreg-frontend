@@ -25,15 +25,14 @@ import {
   DurationInputComponent,
 } from '../../shared/components/duration-input/duration-input.component';
 import {
-  ErrorItem,
   ErrorSummaryComponent,
 } from '../../shared/components/error-summary/error-summary.component';
+import type { ErrorItem } from '../../shared/components/error-summary/error-summary.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
 import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 
-type UnpopItem = string | { id: string; text: string };
 type FieldKey =
   | 'date'
   | 'time'
@@ -89,12 +88,12 @@ export class ApplicationsListCreate implements OnInit {
   courthouseSearch = '';
 
   // Banner/Error state that drives the reusable components
-  unpopField: UnpopItem[] = [];
-  createInvalid = false;
-  createDone = false;
-  @Input() submitted = false;
+  unpopField: ErrorItem[] = [];
+  createInvalid: boolean = false;
+  createDone: boolean = false;
+  @Input() submitted: boolean = false;
 
-  errorHint = ''; // Error summary heading text
+  errorHint: string = ''; // Error summary heading text
 
   @Input() listId?: string;
 
@@ -244,13 +243,6 @@ export class ApplicationsListCreate implements OnInit {
           this.errorHint = 'An error has occurred: \n' + msg;
         },
       });
-  }
-
-  // Map unpopulated fields to ErrorSummary items
-  toErrorItems(list: UnpopItem[]): ErrorItem[] {
-    return list.map((x) =>
-      typeof x === 'string' ? { text: x } : { text: x.text, id: x.id },
-    );
   }
 
   // Handle click from ErrorSummary to focus a field
