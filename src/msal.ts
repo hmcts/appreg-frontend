@@ -12,8 +12,6 @@ const clientSecret = config.get<string>(
 );
 const redirectUri = config.get<string>('auth.redirectUri');
 
-console.log('clientId: ', clientId);
-
 export const cca = new ConfidentialClientApplication({
   auth: {
     clientId,
