@@ -48,9 +48,6 @@ app.use(cookieParser());
 // ----- Env
 const env = process.env['NODE_ENV'] || 'development';
 const developmentMode = env === 'development';
-const CONNECTION_STRING = config.get<string>(
-  'secrets.appreg.app-insights-connection-string-fe',
-);
 
 // API + scopes for resource access
 const apiBase: string = config.get<string>('api.baseUrl');
@@ -61,7 +58,7 @@ const apiScopes: string[] = config.has('api.scopes')
 // ----- Platform modules
 await new PropertiesVolume().enableFor(app);
 new Helmet(developmentMode).enableFor(app);
-AppInsights.enable(CONNECTION_STRING);
+AppInsights.enable();
 
 const clientId = config.get<string>('secrets.appreg.azure-app-id-fe');
 console.log('clientId: ', clientId);

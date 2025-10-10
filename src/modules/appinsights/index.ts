@@ -1,6 +1,11 @@
 import { createRequire } from 'node:module';
 
 import type { TelemetryClient } from 'applicationinsights';
+import config from 'config';
+
+const connectionString = config.get<string>(
+  'secrets.appreg.app-insights-connection-string-fe',
+);
 
 const require = createRequire(import.meta.url);
 const applicationinsights =
@@ -13,7 +18,7 @@ export class AppInsights {
   private static started = false;
 
   /** Initialise once (idempotent). Call BEFORE creating any HMCTS loggers. */
-  static enable(connectionString: string): void {
+  static enable(): void {
     if (this.started) {
       return;
     }
