@@ -140,7 +140,8 @@ export class ApplicationsListCreate implements OnInit {
   }[] = [];
 
   ngOnInit(): void {
-    // TODO: use cached data
+    this.courthouseSearch = String(this.form.controls.court.value ?? '');
+    this.cjaSearch = String(this.form.controls.cja.value ?? '');
 
     this.loadLists();
 

@@ -133,6 +133,9 @@ export class ApplicationsList implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.loadApplicationsLists();
+    this.courthouseSearch = String(this.form.controls.court.value ?? '');
+    this.cjaSearch = String(this.form.controls.cja.value ?? '');
+
     this.ref.courtLocations$.subscribe(
       (items) => (this.courtLocations = items),
     );
