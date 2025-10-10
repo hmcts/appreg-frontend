@@ -24,9 +24,7 @@ import {
   Duration,
   DurationInputComponent,
 } from '../../shared/components/duration-input/duration-input.component';
-import {
-  ErrorSummaryComponent,
-} from '../../shared/components/error-summary/error-summary.component';
+import { ErrorSummaryComponent } from '../../shared/components/error-summary/error-summary.component';
 import type { ErrorItem } from '../../shared/components/error-summary/error-summary.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
