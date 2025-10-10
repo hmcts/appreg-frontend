@@ -254,11 +254,31 @@ export class ApplicationsListCreate implements OnInit {
     if (!id) {
       return;
     }
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.focus?.({ preventScroll: true });
+    this.focusByIdOrFirstFocusable(id);
+  }
+
+  private focusByIdOrFirstFocusable(id: string): void {
+    const root = document.getElementById(id);
+    if (!root) {
+      return;
     }
+
+    // smooth scroll to the block
+    try {
+      root.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } catch {
+      root.scrollIntoView(true);
+    }
+
+    // pick the real focus target (input/select/textarea or any focusable)
+    const selector =
+      'input,select,textarea,[contenteditable="true"],[tabindex]:not([tabindex="-1"])';
+    const target: HTMLElement = root.matches(selector)
+      ? root
+      : (root.querySelector<HTMLElement>(selector) ?? root);
+
+    // focus after the scroll completes
+    setTimeout(() => target.focus?.({ preventScroll: true }), 50);
   }
 
   private resetCreateState(): void {
