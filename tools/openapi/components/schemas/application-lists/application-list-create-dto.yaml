@@ -7,6 +7,7 @@ required:
   - status
 
 properties:
+
   date:
     type: string
     format: date
@@ -25,17 +26,17 @@ properties:
   courtLocationCode:
     type: string
     description: Code that identifies the Court Location.
-    example: 'LOC123'
+    example: "LOC123"
 
   otherLocationDescription:
     type: string
     description: Free-text location if not using a standard court.
-    example: 'Temporary Courtroom at Town Hall'
+    example: "Temporary Courtroom at Town Hall"
 
   cjaCode:
     type: string
     description: Criminal Justice Area code.
-    example: 'CJA001'
+    example: "CJA001"
 
   durationHours:
     type: integer

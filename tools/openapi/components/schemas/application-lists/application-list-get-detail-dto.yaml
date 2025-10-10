@@ -9,29 +9,30 @@ required:
   - version
 
 properties:
+
   id:
     type: string
     format: uuid
     description: Unique identifier of the Application List.
-    example: '3fa85f64-5717-4562-b3fc-2c963f66afa6'
+    example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
 
   date:
     type: string
     format: date
     description: The calendar date on which the Application List is scheduled.
-    example: '2025-09-17'
+    example: "2025-09-17"
 
   time:
     type: string
     format: time
     description: The time of day at which the Application List is scheduled, seconds are optional.
-    example: '10:30:00, 10:30'
+    example: "10:30:00, 10:30"
     pattern: '^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$'
 
   description:
     type: string
     description: Human-readable description of the Application List (e.g. session title or purpose).
-    example: 'Morning session for traffic-related applications'
+    example: "Morning session for traffic-related applications"
 
   status:
     $ref: './application-list-status.yaml'
@@ -39,22 +40,22 @@ properties:
   courtCode:
     type: string
     description: Code that identifies the Court Location.
-    example: 'LOC123'
+    example: "LOC123"
 
   courtName:
     type: string
     description: Name that identifies the Court Location.
-    example: 'Bath Magistrates Court'
+    example: "Bath Magistrates Court"
 
   cjaCode:
     type: string
     description: Criminal Justice Area code.
-    example: 'CJA001'
+    example: "CJA001"
 
   otherLocationDescription:
     type: string
     description: Free-text location if not using a standard court.
-    example: 'Temporary Courtroom at Town Hall'
+    example: "Temporary Courtroom at Town Hall"
 
   durationHours:
     type: integer
