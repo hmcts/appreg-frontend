@@ -98,7 +98,6 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
       return null;
     }
 
-    // any part missing → specific summary text + highlight
     if (day === '' || month === '' || year === '') {
       const missing: string[] = [];
       if (day === '') {
