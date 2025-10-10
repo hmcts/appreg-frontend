@@ -26,8 +26,6 @@ export class AppInsights {
       .setSendLiveMetrics(true)
       .start();
 
-    console.log('applicationinsights: ', applicationinsights);
-
     this.started = true;
   }
 
@@ -38,7 +36,6 @@ export class AppInsights {
 
   /** Convenience: get the TelemetryClient. */
   static client(): TelemetryClient {
-    console.log('defaultClient: ', applicationinsights.defaultClient);
     return applicationinsights.defaultClient;
   }
 }
