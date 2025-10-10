@@ -88,8 +88,6 @@ export class ApplicationsList implements OnInit, AfterViewInit {
   private _id: string | undefined;
   openMenuForId: string | null = null;
   openPrintSelectForId: string | null = null;
-
-  // Banner/Error state (consumed by reusable components)
   deleteDone = false;
   deleteInvalid = false;
   errorHint = '';
