@@ -18,9 +18,26 @@
         <div [id]="idPrefix + '-hint'" class="govuk-hint">{{ hint }}</div>
       }
 
+      @let h = hours ?? '';
+      @let m = minutes ?? '';
+      @let missH = h === '';
+      @let missM = m === '';
+      @let anyEntered = h !== '' || m !== '';
+
       @if (displayErrors) {
         <p [id]="idPrefix + '-error'" class="govuk-error-message">
-          <span class="govuk-visually-hidden">Error:</span> {{ errorText }}
+          <span class="govuk-visually-hidden">Error:</span>
+          @if (anyEntered && (missH || missM)) {
+            @if (missH && missM) {
+              Enter hours and minutes
+            } @else if (missH) {
+              Enter hours
+            } @else if (missM) {
+              Enter minutes
+            }
+          } @else {
+            {{ errorText }}
+          }
         </p>
       }
 

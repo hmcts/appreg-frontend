@@ -9,7 +9,15 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { Subscription } from 'rxjs';
 
+import {
+  CourtLocationGetSummaryDto,
+  CourtLocationsApi,
+  CriminalJusticeAreaGetDto,
+  CriminalJusticeAreasApi,
+} from '../../..//generated/openapi';
+import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
   Duration,
@@ -21,7 +29,14 @@ import {
   SortableTableComponent,
   TableColumn,
 } from '../../shared/components/sortable-table/sortable-table.component';
+import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
+import { attachLocationDisabler } from '../../shared/util/attach-location-disabler';
+import {
+  cjaMatches,
+  courtMatches,
+  filterSuggestions,
+} from '../../shared/util/suggestions';
 
 type ApplicationListRow = {
   id: number;
@@ -50,13 +65,32 @@ interface MojInitEl extends HTMLElement {
     RouterLink,
     PaginationComponent,
     SortableTableComponent,
+    SuggestionsComponent,
   ],
   templateUrl: './applications-list.html',
 })
 export class ApplicationsList implements OnInit, AfterViewInit {
   private _id: number | undefined;
+  private locationDisabler?: Subscription;
   openMenuForId: number | null = null;
   openPrintSelectForId: number | null = null;
+
+  // CJA and Court locations store
+  cja: CriminalJusticeAreaGetDto[] = [];
+  filteredCja: CriminalJusticeAreaGetDto[] = [];
+  cjaSearch = '';
+
+  courtLocations: CourtLocationGetSummaryDto[] = [];
+  filteredCourthouses: CourtLocationGetSummaryDto[] = [];
+  courthouseSearch = '';
+
+  // Flags
+  submitted: boolean = false;
+  isSearch: boolean = false;
+
+  // Error summary
+  errorHint = 'There is a problem';
+  searchErrors: { id: string; text: string }[] = [];
 
   // Reactive form backing the template
   form = new FormGroup({
@@ -90,10 +124,30 @@ export class ApplicationsList implements OnInit, AfterViewInit {
 
   rows: ApplicationListRow[] = [];
 
-  constructor(@Inject(PLATFORM_ID) private readonly platformId: object) {}
+  constructor(
+    @Inject(PLATFORM_ID) private readonly platformId: object,
+    private readonly cjaApi: CriminalJusticeAreasApi,
+    private readonly courtLocationApi: CourtLocationsApi,
+    private readonly ref: ReferenceDataFacade,
+  ) {}
 
   ngOnInit(): void {
     this.loadApplicationsLists();
+    this.ref.courtLocations$.subscribe(
+      (items) => (this.courtLocations = items),
+    );
+    this.ref.cja$.subscribe((items) => (this.cja = items));
+
+    // Disable based fields
+    this.locationDisabler = attachLocationDisabler({
+      court: this.form.controls.court,
+      location: this.form.controls.location,
+      cja: this.form.controls.cja,
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.locationDisabler?.unsubscribe();
   }
 
   ngAfterViewInit(): void {
@@ -132,10 +186,84 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     const btn = event.submitter as HTMLButtonElement | null;
     const action = btn?.value ?? 'search';
 
+    // Reset flag
+    this.searchErrors = [];
+    this.submitted = false;
+    this.isSearch = false;
+    this.rows = [];
+
+    // Get form values
+    const query = {
+      date: this.form.value.date,
+      time: this.form.value.time,
+      description: this.form.value.description,
+      status: this.form.value.status,
+      court: this.form.value.court,
+      location: this.form.value.location,
+      cja: this.form.value.cja,
+    };
+
+    const dateCtrl = this.form.controls.date;
+    const timeCtrl = this.form.controls.time;
+    if (dateCtrl.errors?.['dateInvalid']) {
+      this.searchErrors.push({
+        id: 'date-day',
+        text: dateCtrl.errors['dateErrorText'] as string,
+      });
+    }
+
+    if (timeCtrl.errors?.['durationInvalid']) {
+      this.searchErrors.push({
+        id: 'time-hours',
+        text: timeCtrl.errors['durationErrorText'] as string,
+      });
+    }
+
+    const hasAny =
+      query.date ||
+      query.time ||
+      query.description ||
+      query.status ||
+      query.court ||
+      query.location ||
+      query.cja;
+
     if (action === 'search') {
-      // TODO: handle search using `values`
-    } else if (action === 'create') {
-      // TODO: handle create using `values`
+      this.submitted = true;
+      this.isSearch = true;
+      if (!hasAny) {
+        // No values found in form, run GET ALL
+        // TODO: run GET ALL
+
+        // This is placeholder code
+        this.rows = [
+          {
+            id: 101,
+            date: '2025-09-29',
+            time: '09:30',
+            location: 'Birmingham',
+            description: 'Morning list',
+            entries: 12,
+            status: 'Open',
+          },
+        ];
+      } else {
+        // Values found, run query with parameters
+        // TODO: run GET with params
+
+        // Placeholder code
+        this.rows = [
+          {
+            id: 102,
+            date: '2025-09-30',
+            time: '09:31',
+            location: 'Place',
+            description: 'Morning list',
+            entries: 12,
+            status: 'Open',
+          },
+        ];
+      }
     }
   }
 
@@ -215,6 +343,43 @@ export class ApplicationsList implements OnInit, AfterViewInit {
         status: 'Open',
       },
     ];
+  }
+
+  onCourthouseInputChange(): void {
+    this.form.controls.court.setValue(this.courthouseSearch || '');
+    this.filteredCourthouses = filterSuggestions(
+      this.courtLocations,
+      this.courthouseSearch,
+      courtMatches,
+    );
+  }
+
+  onCjaInputChange(): void {
+    this.form.controls.cja.setValue(this.cjaSearch || '');
+    this.filteredCja = filterSuggestions(this.cja, this.cjaSearch, cjaMatches);
+  }
+
+  selectCourthouse(c: { locationCode?: string }): void {
+    const label = c.locationCode ?? '';
+    this.courthouseSearch = label;
+    this.form.controls.court.setValue(label);
+    this.filteredCourthouses = [];
+  }
+
+  selectCja(c: { code?: string }): void {
+    const label = c.code ?? '';
+    this.cjaSearch = label;
+    this.form.controls.cja.setValue(label);
+    this.filteredCja = [];
+  }
+
+  focusField(id: string, e: Event): void {
+    e.preventDefault();
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.focus({ preventScroll: true });
+    }
   }
 
   onDelete(id: number): void {

@@ -7,7 +7,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { merge } from 'rxjs';
+import { Subscription } from 'rxjs';
 
 import {
   ApplicationListCreateDto,
@@ -17,7 +17,8 @@ import {
   CourtLocationsApi,
   CriminalJusticeAreaGetDto,
   CriminalJusticeAreasApi,
-} from '../../..//generated/openapi';
+} from '../../../generated/openapi';
+import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
@@ -27,6 +28,12 @@ import {
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
+import { attachLocationDisabler } from '../../shared/util/attach-location-disabler';
+import {
+  cjaMatches,
+  courtMatches,
+  filterSuggestions,
+} from '../../shared/util/suggestions';
 
 type UnpopItem = string | { id: string; text: string };
 type FieldKey =
@@ -65,6 +72,7 @@ type CreateFormRaw = Pick<ApplicationListCreateDto, 'date' | 'description'> & {
 })
 export class ApplicationsListCreate implements OnInit {
   private _id: number | undefined;
+  private locationDisabler?: Subscription;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -72,6 +80,7 @@ export class ApplicationsListCreate implements OnInit {
     private readonly cjaApi: CriminalJusticeAreasApi,
     private readonly courtLocationApi: CourtLocationsApi,
     private readonly appLists: ApplicationListsApi,
+    private readonly ref: ReferenceDataFacade,
   ) {}
 
   cja: CriminalJusticeAreaGetDto[] = [];
@@ -136,48 +145,15 @@ export class ApplicationsListCreate implements OnInit {
     this.loadLists();
 
     // Disable based fields
-    const court = this.form.controls.court;
-    const location = this.form.controls.location;
-    const cja = this.form.controls.cja;
+    this.locationDisabler = attachLocationDisabler({
+      court: this.form.controls.court,
+      location: this.form.controls.location,
+      cja: this.form.controls.cja,
+    });
+  }
 
-    const has = (v: string | null) => !!v && v.trim().length > 0;
-    const syncDisable = () => {
-      const hasCourt = has(court.value);
-      const hasLoc = has(location.value);
-      const hasCja = has(cja.value);
-
-      if (hasCourt) {
-        court.enable({ emitEvent: false });
-        location.disable({ emitEvent: false });
-        cja.disable({ emitEvent: false });
-      } else if (hasLoc || hasCja) {
-        court.disable({ emitEvent: false });
-        location.enable({ emitEvent: false });
-        cja.enable({ emitEvent: false });
-      } else {
-        court.enable({ emitEvent: false });
-        location.enable({ emitEvent: false });
-        cja.enable({ emitEvent: false });
-      }
-    };
-
-    merge(
-      court.valueChanges,
-      location.valueChanges,
-      cja.valueChanges,
-    ).subscribe(() => syncDisable());
-    syncDisable();
-
-    // Suggestions
-    const currentCourthouse = this.form.controls.court.value;
-    if (typeof currentCourthouse === 'string' && currentCourthouse.trim()) {
-      this.courthouseSearch = currentCourthouse;
-    }
-
-    const currentCja = this.form.controls.cja.value;
-    if (typeof currentCja === 'string' && currentCja.trim()) {
-      this.cjaSearch = currentCja;
-    }
+  ngOnDestroy(): void {
+    this.locationDisabler?.unsubscribe();
   }
 
   onSubmit(event: SubmitEvent): void {
@@ -254,8 +230,29 @@ export class ApplicationsListCreate implements OnInit {
       }
     };
 
-    need(this.has(v.date), 'date', 'Enter day, month and year');
-    need(this.has(v.time), 'time', 'Enter hours and minutes');
+    const dateCtrl = this.form.controls.date;
+    const timeCtrl = this.form.controls.time;
+
+    if (!dateCtrl.errors?.['dateInvalid']) {
+      need(this.has(v.date), 'date-day', 'Enter day, month and year');
+    } else {
+      need(
+        this.has(v.date),
+        'date-day',
+        dateCtrl.errors?.['dateErrorText'] as string,
+      );
+    }
+
+    if (!timeCtrl.errors?.['durationErrorText']) {
+      need(this.has(v.time), 'time-hours', 'Enter hours and minutes');
+    } else {
+      need(
+        false,
+        'time-hours',
+        timeCtrl.errors?.['durationErrorText'] as string,
+      );
+    }
+
     need(this.has(v.description), 'description', 'Description is required');
     need(this.has(v.status), 'status', 'Status is required');
 
@@ -324,80 +321,34 @@ export class ApplicationsListCreate implements OnInit {
   }
 
   loadLists(): void {
-    this.loadCourtLocations();
-    this.loadCJAs();
-  }
-
-  private loadCJAs(): void {
-    this.cjaApi.getCriminalJusticeAreas().subscribe({
-      next: (page) => {
-        this.cja = page.content ?? [];
-      },
-      error: () => {
-        this.cja = [];
-      },
-    });
-  }
-
-  private loadCourtLocations(): void {
-    this.courtLocationApi.getCourtLocations().subscribe({
-      next: (page) => {
-        this.courtLocations = page.content ?? [];
-      },
-      error: () => {
-        this.courtLocations = [];
-      },
-    });
+    this.ref.courtLocations$.subscribe(
+      (items) => (this.courtLocations = items),
+    );
+    this.ref.cja$.subscribe((items) => (this.cja = items));
   }
 
   onCourthouseInputChange(): void {
-    const q = this.courthouseSearch.trim().toLowerCase();
     this.form.controls.court.setValue(this.courthouseSearch || '');
-
-    if (!q) {
-      this.filteredCourthouses = [];
-      return;
-    }
-
-    // filter by name or code; cap results to avoid long lists
-    this.filteredCourthouses = this.courtLocations
-      .filter(
-        (c) =>
-          (c.name ?? '').toLowerCase().includes(q) ||
-          (c.locationCode ?? '').toLowerCase().includes(q),
-      )
-      .slice(0, 20);
+    this.filteredCourthouses = filterSuggestions(
+      this.courtLocations,
+      this.courthouseSearch,
+      courtMatches,
+    );
   }
 
-  // called when user clicks a suggestion
-  selectCourthouse(c: CourtLocationGetSummaryDto): void {
+  onCjaInputChange(): void {
+    this.form.controls.cja.setValue(this.cjaSearch || '');
+    this.filteredCja = filterSuggestions(this.cja, this.cjaSearch, cjaMatches);
+  }
+
+  selectCourthouse(c: { locationCode?: string }): void {
     const label = c.locationCode ?? '';
     this.courthouseSearch = label;
     this.form.controls.court.setValue(label);
     this.filteredCourthouses = [];
   }
 
-  onCjaInputChange(): void {
-    const q = this.cjaSearch.trim().toLowerCase();
-    this.form.controls.cja.setValue(this.cjaSearch || '');
-
-    if (!q) {
-      this.filteredCja = [];
-      return;
-    }
-
-    // filter by name or code; cap results to avoid long lists
-    this.filteredCja = this.cja
-      .filter(
-        (c) =>
-          (c.code ?? '').toLowerCase().includes(q) ||
-          (c.description ?? '').toLowerCase().includes(q),
-      )
-      .slice(0, 20);
-  }
-
-  // called when user clicks a suggestion
-  selectCja(c: CriminalJusticeAreaGetDto): void {
+  selectCja(c: { code?: string }): void {
     const label = c.code ?? '';
     this.cjaSearch = label;
     this.form.controls.cja.setValue(label);
