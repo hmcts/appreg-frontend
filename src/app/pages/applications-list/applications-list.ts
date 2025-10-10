@@ -17,6 +17,7 @@ import {
   CriminalJusticeAreaGetDto,
   CriminalJusticeAreasApi,
 } from '../../..//generated/openapi';
+import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
   Duration,
@@ -31,6 +32,11 @@ import {
 import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 import { attachLocationDisabler } from '../../shared/util/attach-location-disabler';
+import {
+  cjaMatches,
+  courtMatches,
+  filterSuggestions,
+} from '../../shared/util/suggestions';
 
 type ApplicationListRow = {
   id: number;
@@ -122,12 +128,15 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     @Inject(PLATFORM_ID) private readonly platformId: object,
     private readonly cjaApi: CriminalJusticeAreasApi,
     private readonly courtLocationApi: CourtLocationsApi,
+    private readonly ref: ReferenceDataFacade,
   ) {}
 
   ngOnInit(): void {
     this.loadApplicationsLists();
-    this.loadCJAs();
-    this.loadCourtLocations();
+    this.ref.courtLocations$.subscribe(
+      (items) => (this.courtLocations = items),
+    );
+    this.ref.cja$.subscribe((items) => (this.cja = items));
 
     // Disable based fields
     this.locationDisabler = attachLocationDisabler({
@@ -336,78 +345,28 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     ];
   }
 
-  private loadCJAs(): void {
-    this.cjaApi.getCriminalJusticeAreas().subscribe({
-      next: (page) => {
-        this.cja = page.content ?? [];
-        // console.log(this.cja); // Sanity check
-      },
-      error: () => {
-        this.cja = [];
-      },
-    });
-  }
-
-  private loadCourtLocations(): void {
-    this.courtLocationApi.getCourtLocations().subscribe({
-      next: (page) => {
-        this.courtLocations = page.content ?? [];
-        // console.log(this.courtLocations); // Sanity check
-      },
-      error: () => {
-        this.courtLocations = [];
-      },
-    });
-  }
-
   onCourthouseInputChange(): void {
-    const q = this.courthouseSearch.trim().toLowerCase();
     this.form.controls.court.setValue(this.courthouseSearch || '');
-
-    if (!q) {
-      this.filteredCourthouses = [];
-      return;
-    }
-
-    // filter by name or code; cap results to avoid long lists
-    this.filteredCourthouses = this.courtLocations
-      .filter(
-        (c) =>
-          (c.name ?? '').toLowerCase().includes(q) ||
-          (c.locationCode ?? '').toLowerCase().includes(q),
-      )
-      .slice(0, 20);
+    this.filteredCourthouses = filterSuggestions(
+      this.courtLocations,
+      this.courthouseSearch,
+      courtMatches,
+    );
   }
 
-  // called when user clicks a suggestion
-  selectCourthouse(c: CourtLocationGetSummaryDto): void {
+  onCjaInputChange(): void {
+    this.form.controls.cja.setValue(this.cjaSearch || '');
+    this.filteredCja = filterSuggestions(this.cja, this.cjaSearch, cjaMatches);
+  }
+
+  selectCourthouse(c: { locationCode?: string }): void {
     const label = c.locationCode ?? '';
     this.courthouseSearch = label;
     this.form.controls.court.setValue(label);
     this.filteredCourthouses = [];
   }
 
-  onCjaInputChange(): void {
-    const q = this.cjaSearch.trim().toLowerCase();
-    this.form.controls.cja.setValue(this.cjaSearch || '');
-
-    if (!q) {
-      this.filteredCja = [];
-      return;
-    }
-
-    // filter by name or code; cap results to avoid long lists
-    this.filteredCja = this.cja
-      .filter(
-        (c) =>
-          (c.code ?? '').toLowerCase().includes(q) ||
-          (c.description ?? '').toLowerCase().includes(q),
-      )
-      .slice(0, 20);
-  }
-
-  // called when user clicks a suggestion
-  selectCja(c: CriminalJusticeAreaGetDto): void {
+  selectCja(c: { code?: string }): void {
     const label = c.code ?? '';
     this.cjaSearch = label;
     this.form.controls.cja.setValue(label);
