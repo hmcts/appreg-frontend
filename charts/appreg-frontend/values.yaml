@@ -14,6 +14,8 @@ nodejs:
           alias: azure-client-secret-fe
         - name: azure-app-id
           alias: azure-app-id-fe
+        - name: AppInsightsInstrumentationKey
+          alias: APP_INSIGHTS_INSTRUMENTATION_KEY
   environment:
     ALLOW_CONFIG_MUTATIONS: true
     NODE_ENV: 'production'
