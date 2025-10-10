@@ -1,6 +1,11 @@
 {
   "extends": "stylelint-config-standard-scss",
-  "ignoreFiles": ["**/node_modules/**", ".yarn/**", "cypress/reports/**", "tools/**"],
+  "ignoreFiles": [
+    "**/node_modules/**",
+    ".yarn/**",
+    "cypress/reports/**",
+    "tools/**"
+  ],
   "rules": {
     "string-quotes": null,
     "selector-class-pattern": null
