@@ -5,60 +5,19 @@
 <h1 class="govuk-heading-xl">Create new applications list</h1>
 
 @if (unpopField.length || createInvalid) {
-  <div
-    class="govuk-error-summary"
-    role="alert"
-    aria-labelledby="error-summary-title"
-  >
-    <h2 class="govuk-error-summary__title" id="error-summary-title">
-      {{ errorHint }}
-    </h2>
-    <div class="govuk-error-summary__body">
-      <ul class="govuk-list govuk-error-summary__list">
-        @for (field of unpopField; track field) {
-          <li>
-            <a
-              class="govuk-link"
-              href=""
-              (click)="focusField($any(field).id ?? field, $event)"
-            >
-              {{ $any(field).text ?? field }}
-            </a>
-          </li>
-        }
-      </ul>
-    </div>
-  </div>
+  <app-error-summary
+    [title]="errorHint || 'There is a problem'"
+    [items]="unpopField"
+    (itemSelect)="onCreateErrorClick($event)"
+  />
 }
 
 @if (createDone) {
-  <div
-    class="govuk-notification-banner govuk-notification-banner--success"
-    role="alert"
-    aria-labelledby="govuk-notification-banner-title"
-    data-module="govuk-notification-banner"
-  >
-    <div class="govuk-notification-banner__header">
-      <h2
-        class="govuk-notification-banner__title"
-        id="govuk-notification-banner-title"
-      >
-        Success
-      </h2>
-    </div>
-    <div class="govuk-notification-banner__content">
-      <h3 class="govuk-notification-banner__heading">
-        Applications list successfully created
-      </h3>
-      <p class="govuk-body">
-        <a
-          class="govuk-notification-banner__link"
-          [routerLink]="['/applications-list']"
-          >Click here to go back</a
-        >
-      </p>
-    </div>
-  </div>
+  <app-success-banner
+    heading="Applications list successfully created"
+    [linkCommands]="['/applications-list']"
+    linkText="Click here to go back"
+  />
 }
 
 <hr
@@ -117,6 +76,7 @@
     <!-- Court -->
     <app-suggestions
       id="court"
+      tabindex="-1"
       label="Court"
       hint="Start typing to search"
       [(search)]="courthouseSearch"
@@ -147,6 +107,7 @@
     <!-- CJA -->
     <app-suggestions
       id="cja"
+      tabindex="-1"
       label="CJA"
       hint="Start typing to search"
       [(search)]="cjaSearch"
