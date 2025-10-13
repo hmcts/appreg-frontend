@@ -28,7 +28,7 @@
     "cichecks": "yarn api:all && yarn build && yarn lint && yarn test && yarn test:routes && yarn test:a11y",
     "prepare": "husky install",
     "cypress:open": "cypress open",
-    "cypress:run": "cypress run && node cypress/scripts/generate-cucumber-report.js",
+    "cypress:run": "cypress run; node cypress/scripts/generate-cucumber-report.js",
     "branch:dry-run": "yarn node .github/branch-retention/branch-retention.mjs --mode dry-run",
     "branch:enforce": "yarn node .github/branch-retention/branch-retention.mjs --mode enforce"
   },

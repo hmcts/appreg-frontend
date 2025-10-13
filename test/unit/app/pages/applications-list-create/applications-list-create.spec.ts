@@ -353,28 +353,37 @@ describe('ApplicationsListCreate', () => {
   });
 
   it('focusField scrolls and focuses when element exists and no-ops otherwise', () => {
-    type ScrollFocusEl = { scrollIntoView: () => void; focus: () => void };
-    const fakeEl: ScrollFocusEl = {
-      scrollIntoView: jest.fn(),
-      focus: jest.fn(),
-    };
+    jest.useFakeTimers();
 
-    const getById = jest
-      .spyOn(document, 'getElementById')
-      .mockReturnValue(fakeEl as unknown as HTMLElement);
+    // Arrange: create a REAL element so .matches/.querySelector exist
+    const el = document.createElement('div');
+    el.id = 'target-id';
+    el.tabIndex = -1;
+    document.body.appendChild(el);
 
-    const ev = { preventDefault: jest.fn() };
-    const prevent = jest.spyOn(ev, 'preventDefault');
+    const scrollSpy = jest.spyOn(Element.prototype, 'scrollIntoView');
+    const focusSpy = jest.spyOn(el, 'focus');
 
-    component.focusField('target-id', ev as unknown as Event);
-    expect(prevent).toHaveBeenCalledTimes(1);
-    expect(getById).toHaveBeenCalledWith('target-id');
-    expect(fakeEl.scrollIntoView).toHaveBeenCalledTimes(1);
-    expect(fakeEl.focus).toHaveBeenCalledTimes(1);
+    const preventDefault = jest.fn();
+    const ev = { preventDefault } as unknown as Event;
 
-    getById.mockReturnValueOnce(null);
-    component.focusField('missing-id', ev as unknown as Event);
+    component.focusField('target-id', ev);
+    jest.runOnlyPendingTimers();
 
-    getById.mockRestore();
+    // Assert: preventDefault called, scrolled and focused
+    expect(preventDefault).toHaveBeenCalledTimes(1);
+    expect(scrollSpy).toHaveBeenCalled();
+    expect(focusSpy).toHaveBeenCalled();
+
+    // Now test the "no element" branch: remove the element and try again
+    el.remove();
+    scrollSpy.mockClear();
+    focusSpy.mockClear();
+
+    component.focusField('target-id', ev);
+    jest.runOnlyPendingTimers();
+
+    expect(scrollSpy).not.toHaveBeenCalled();
+    expect(focusSpy).not.toHaveBeenCalled();
   });
 });
