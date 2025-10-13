@@ -49,6 +49,22 @@
   </div>
 }
 
+@if (deleteInvalid && errorSummary.length) {
+  <app-error-summary
+    [title]="errorHint || 'There is a problem'"
+    [items]="errorSummary"
+    targetId="sortable-table"
+  />
+}
+
+@if (deleteDone) {
+  <app-success-banner
+    heading="Application List deleted successfully"
+    [linkCommands]="['/applications-list']"
+    linkText="Click here to go back"
+  />
+}
+
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
@@ -143,7 +159,12 @@
 
 @if (rows.length) {
   <!-- Sortable table component -->
-  <app-sortable-table caption="Lists" [columns]="columns" [data]="rows">
+  <app-sortable-table
+  id="sortable-table"
+  caption="Lists"
+  [columns]="columns"
+  [data]="rows"
+>
     <ng-template #actionsTemplate let-row>
       <div class="govuk-button-group">
         <!-- actions slot -->
@@ -189,18 +210,18 @@
             Result
           </button>
 
-          <!-- Delete button -->
-          <button
-            type="button"
-            class="govuk-button moj-button-menu__item govuk-button--warning"
-            (click)="onDelete(row.id)"
-          >
-            Delete
-          </button>
-        </div>
+        <!-- Delete button -->
+        <button
+          type="button"
+          class="govuk-button moj-button-menu__item govuk-button--warning"
+          (click)="onDelete(row)"
+        >
+          Delete
+        </button>
       </div>
-    </ng-template>
-  </app-sortable-table>
+    </div>
+  </ng-template>
+</app-sortable-table>
 
   <!-- Pager -->
   <app-pagination

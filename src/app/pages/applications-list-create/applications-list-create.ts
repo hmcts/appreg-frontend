@@ -7,7 +7,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subscription, merge } from 'rxjs';
 
 import {
   ApplicationListCreateDto,
@@ -25,7 +25,10 @@ import {
   Duration,
   DurationInputComponent,
 } from '../../shared/components/duration-input/duration-input.component';
+import { ErrorSummaryComponent } from '../../shared/components/error-summary/error-summary.component';
+import type { ErrorItem } from '../../shared/components/error-summary/error-summary.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
+import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
 import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 import { attachLocationDisabler } from '../../shared/util/attach-location-disabler';
@@ -35,7 +38,6 @@ import {
   filterSuggestions,
 } from '../../shared/util/suggestions';
 
-type UnpopItem = string | { id: string; text: string };
 type FieldKey =
   | 'date'
   | 'time'
@@ -63,10 +65,11 @@ type CreateFormRaw = Pick<ApplicationListCreateDto, 'date' | 'description'> & {
     DurationInputComponent,
     TextInputComponent,
     SelectInputComponent,
-    RouterLink,
     FormsModule,
     SuggestionsComponent,
     BreadcrumbsComponent,
+    SuccessBannerComponent,
+    ErrorSummaryComponent,
   ],
   templateUrl: './applications-list-create.html',
 })
@@ -91,13 +94,13 @@ export class ApplicationsListCreate implements OnInit {
   filteredCourthouses: CourtLocationGetSummaryDto[] = [];
   courthouseSearch = '';
 
-  // Create: Store unpopulated fields
-  unpopField: UnpopItem[] = [];
+  // Banner/Error state that drives the reusable components
+  unpopField: ErrorItem[] = [];
   createInvalid: boolean = false;
   createDone: boolean = false;
-  @Input() submitted = false;
+  @Input() submitted: boolean = false;
 
-  errorHint: string = ''; // Page hint when error occurs
+  errorHint: string = ''; // Error summary heading text
 
   @Input() listId?: string;
 
@@ -157,6 +160,11 @@ export class ApplicationsListCreate implements OnInit {
     this.locationDisabler?.unsubscribe();
   }
 
+  public focusField(id: string, ev?: Event): void {
+    ev?.preventDefault();
+    this.focusByIdOrFirstFocusable(id);
+  }
+
   onSubmit(event: SubmitEvent): void {
     event.preventDefault();
     const action = (event.submitter as HTMLButtonElement | null)?.value ?? '';
@@ -210,6 +218,39 @@ export class ApplicationsListCreate implements OnInit {
           this.errorHint = 'An error has occurred: \n' + msg;
         },
       });
+  }
+
+  // Handle click from ErrorSummary to focus a field
+  onCreateErrorClick(item: ErrorItem): void {
+    const id = item.id ?? '';
+    if (!id) {
+      return;
+    }
+    this.focusByIdOrFirstFocusable(id);
+  }
+
+  private focusByIdOrFirstFocusable(id: string): void {
+    const root = document.getElementById(id);
+    if (!root) {
+      return;
+    }
+
+    // smooth scroll to the block
+    try {
+      root.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } catch {
+      root.scrollIntoView(true);
+    }
+
+    // pick the real focus target (input/select/textarea or any focusable)
+    const selector =
+      'input,select,textarea,[contenteditable="true"],[tabindex]:not([tabindex="-1"])';
+    const target: HTMLElement = root.matches(selector)
+      ? root
+      : (root.querySelector<HTMLElement>(selector) ?? root);
+
+    // focus after the scroll completes
+    setTimeout(() => target.focus?.({ preventScroll: true }), 50);
   }
 
   private resetCreateState(): void {
@@ -354,15 +395,6 @@ export class ApplicationsListCreate implements OnInit {
     this.cjaSearch = label;
     this.form.controls.cja.setValue(label);
     this.filteredCja = [];
-  }
-
-  focusField(id: string, e: Event): void {
-    e.preventDefault();
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.focus({ preventScroll: true });
-    }
   }
 
   onDelete(id: number): void {
