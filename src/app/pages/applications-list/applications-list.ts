@@ -117,8 +117,8 @@ export class ApplicationsList implements OnInit, AfterViewInit {
   // Flags
   submitted: boolean = false;
   isSearch: boolean = false;
-  deleteDone = false;
-  deleteInvalid = false;
+  deleteDone: boolean = false;
+  deleteInvalid: boolean = false;
 
   // Error summary
   errorHint = '';
