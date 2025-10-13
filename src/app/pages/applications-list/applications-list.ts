@@ -239,6 +239,8 @@ export class ApplicationsList implements OnInit, AfterViewInit {
       cja: this.form.value.cja,
     };
 
+    this.errorHint = 'An error has occurred...';
+
     const dateCtrl = this.form.controls.date;
     const timeCtrl = this.form.controls.time;
     if (dateCtrl.errors?.['dateInvalid']) {
