@@ -2,7 +2,9 @@ import {
   HttpContext,
   HttpErrorResponse,
   HttpResponse,
+  provideHttpClient,
 } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
@@ -13,7 +15,10 @@ import {
   IF_MATCH,
   ROW_VERSION,
 } from '../../../../../src/app/shared/context/concurrency-context';
-import { ApplicationListsApi } from '../../../../../src/generated/openapi';
+import {
+  ApplicationListStatus,
+  ApplicationListsApi,
+} from '../../../../../src/generated/openapi';
 
 describe('ApplicationsList – delete flow (server platform: no confirm)', () => {
   let fixture: ComponentFixture<ApplicationsList>;
@@ -33,6 +38,8 @@ describe('ApplicationsList – delete flow (server platform: no confirm)', () =>
         provideRouter([]),
         { provide: PLATFORM_ID, useValue: 'server' }, // skip confirm() path by default
         { provide: ApplicationListsApi, useValue: api },
+        provideHttpClient(),
+        provideHttpClientTesting(),
       ],
     }).compileComponents();
 
@@ -47,7 +54,7 @@ describe('ApplicationsList – delete flow (server platform: no confirm)', () =>
         location: 'X',
         description: 'Y',
         entries: 0,
-        status: 'Open',
+        status: ApplicationListStatus.OPEN,
         deletable: true,
         etag: 'W/"etag-val"',
         rowVersion: '42',
@@ -59,7 +66,7 @@ describe('ApplicationsList – delete flow (server platform: no confirm)', () =>
         location: '',
         description: '',
         entries: 0,
-        status: 'Open',
+        status: ApplicationListStatus.OPEN,
       },
     ];
   });
@@ -72,7 +79,7 @@ describe('ApplicationsList – delete flow (server platform: no confirm)', () =>
       location: '',
       description: '',
       entries: 0,
-      status: 'Open' as const,
+      status: ApplicationListStatus.OPEN,
       deletable: false,
     };
     await component.onDelete(row);
@@ -162,7 +169,7 @@ describe('ApplicationsList – delete flow (server platform: no confirm)', () =>
           location: '',
           description: '',
           entries: 0,
-          status: 'Open' as const,
+          status: ApplicationListStatus.OPEN,
           deletable: true,
         };
 
@@ -176,7 +183,7 @@ describe('ApplicationsList – delete flow (server platform: no confirm)', () =>
             location: '',
             description: '',
             entries: 0,
-            status: 'Open' as const,
+            status: ApplicationListStatus.OPEN,
           },
         ];
 
@@ -213,6 +220,8 @@ describe('ApplicationsList – delete flow (browser platform: confirm cancel)', 
         provideRouter([]),
         { provide: PLATFORM_ID, useValue: 'browser' }, // will hit window.confirm
         { provide: ApplicationListsApi, useValue: api },
+        provideHttpClient(),
+        provideHttpClientTesting(),
       ],
     }).compileComponents();
 
@@ -230,7 +239,7 @@ describe('ApplicationsList – delete flow (browser platform: confirm cancel)', 
         location: 'X',
         description: 'Y',
         entries: 0,
-        status: 'Open',
+        status: ApplicationListStatus.OPEN,
         deletable: true,
       },
     ];

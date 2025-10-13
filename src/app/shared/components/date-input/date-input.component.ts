@@ -43,12 +43,20 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
   @Input() hint = 'For example, 27 3 2007';
   @Input() idPrefix = 'date';
   @Input() submitted = false;
+  @Input() isSearch = false;
 
   readonly dateForm: DateForm;
 
   private onTouched: () => void = () => {};
   private onChange: (value: string | null) => void = () => {};
   private onValidatorChange: () => void = () => {};
+
+  private ctrl(name: 'day' | 'month' | 'year') {
+    return this.dateForm.get(name);
+  }
+  private val(name: 'day' | 'month' | 'year') {
+    return this.ctrl(name)?.value;
+  }
 
   constructor(private fb: NonNullableFormBuilder) {
     this.dateForm = this.fb.group(
@@ -90,33 +98,89 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
       return null;
     }
 
-    // if any part missing -> requiredParts
     if (day === '' || month === '' || year === '') {
-      return { requiredParts: true };
-    }
+      const missing: string[] = [];
+      if (day === '') {
+        missing.push('day');
+      }
+      if (month === '') {
+        missing.push('month');
+      }
+      if (year === '') {
+        missing.push('year');
+      }
 
-    if (
-      !/^\d{1,2}$/.test(day) ||
-      !/^\d{1,2}$/.test(month) ||
-      !/^\d{4}$/.test(year)
-    ) {
-      return { dateInvalid: true };
+      const msg =
+        missing.length === 1
+          ? `Enter ${missing[0]}`
+          : missing.length === 2
+            ? `Enter ${missing[0]} and ${missing[1]}`
+            : 'Enter day, month and year';
+
+      return { requiredParts: true, dateInvalid: true, dateErrorText: msg };
     }
 
     const d = Number(day),
       m = Number(month),
       y = Number(year);
-    if (m < 1 || m > 12 || d < 1) {
-      return { dateInvalid: true };
+    if (!Number.isInteger(d) || !Number.isInteger(m) || !Number.isInteger(y)) {
+      return { dateInvalid: true, dateErrorText: 'Enter a real date' };
     }
-
+    if (m < 1 || m > 12 || d < 1) {
+      return { dateInvalid: true, dateErrorText: 'Enter a real date' };
+    }
     const daysInMonth = new Date(y, m, 0).getDate();
     if (d > daysInMonth) {
-      return { dateInvalid: true };
+      return { dateInvalid: true, dateErrorText: 'Enter a real date' };
     }
 
     return null;
   };
+
+  hasAny(): boolean {
+    return !!(this.val('day') || this.val('month') || this.val('year'));
+  }
+
+  missing(name: 'day' | 'month' | 'year'): boolean {
+    return !this.val(name);
+  }
+
+  groupError(submitted: boolean): boolean {
+    if (!submitted) {
+      return false;
+    }
+    const miss =
+      this.missing('day') || this.missing('month') || this.missing('year');
+    if (!this.isSearch) {
+      return this.dateForm.invalid || miss;
+    }
+    return this.hasAny() && (this.dateForm.invalid || miss);
+  }
+
+  fieldError(name: 'day' | 'month' | 'year', submitted: boolean): boolean {
+    const c = this.ctrl(name);
+    const base = !!(c?.invalid && (c?.touched || c?.dirty));
+    const miss = this.missing(name);
+    const dateInvalid = !!this.dateForm.errors?.['dateInvalid'];
+    if (!submitted) {
+      return base;
+    }
+    if (!this.isSearch) {
+      return base || miss || dateInvalid;
+    }
+    return base || (this.hasAny() && (miss || dateInvalid));
+  }
+
+  ariaInvalid(
+    name: 'day' | 'month' | 'year',
+    submitted: boolean,
+  ): 'true' | null {
+    return (this.ctrl(name)?.invalid &&
+      (this.ctrl(name)?.touched || this.ctrl(name)?.dirty)) ||
+      (submitted && this.missing(name))
+      ? 'true'
+      : null;
+  }
 
   // ControlValueAccessor
   writeValue(value: string | null): void {
