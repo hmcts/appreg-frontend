@@ -19,7 +19,6 @@ import {
   CourtLocationGetSummaryDto,
   CourtLocationsApi,
   CriminalJusticeAreaGetDto,
-  CriminalJusticeAreasApi,
 } from '../../../generated/openapi';
 import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
@@ -161,7 +160,6 @@ export class ApplicationsList implements OnInit, AfterViewInit {
 
   constructor(
     @Inject(PLATFORM_ID) private readonly platformId: object,
-    private readonly cjaApi: CriminalJusticeAreasApi,
     private readonly courtLocationApi: CourtLocationsApi,
     private readonly ref: ReferenceDataFacade,
     private readonly appListsApi: ApplicationListsApi,
