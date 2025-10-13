@@ -1,9 +1,5 @@
 /**
- * DateTimeUtil - Comprehensive date/time utility for test automation
- *
- * =====================================================================
- * USAGE GUIDE - Available Date/Time Expressions for Feature Files:
- * =====================================================================
+ * DateTimeUtil - Date/time utility for test automation
  *
  * DATE KEYWORDS:
  * - "today"           → Today's date in DD/MM/YYYY format
@@ -42,22 +38,11 @@
  * UNITS SUPPORTED:
  * - d = days, w = weeks, m = months, y = years
  * - h = hours, m = minutes (in time context), s = seconds
- *
- * EXAMPLES IN FEATURE FILES:
- * ```gherkin
- * When User Set Date Field "Birth Date" To "today-25y"
- * When User Set Date Field "Appointment" To "today+2w"
- * When User Set Time Field "Meeting Time" To "timenow+1h"
- * When User Set Timestamp Field "Created" To "timestamp"
- * When User Set Timestamp Field "Modified" To "timestamp-1d"
- * ```
- * =====================================================================
  */
 export class DateTimeUtil {
-  // Prevent instantiation
   private constructor() {}
 
-  // Date Format Constants
+  // Format constants
   static readonly DTF_DD_MM_YYYY = 'DD/MM/YYYY';
   static readonly DTF_DD_MMM_YYYY = 'DD MMM YYYY';
   static readonly DTF_YYYY_MM_DD = 'YYYY-MM-DD';
@@ -81,7 +66,7 @@ export class DateTimeUtil {
       return this.substituteDateValue(dateValue);
     }
 
-    // Enhanced arithmetic parsing for dates, times, and timestamps
+    // Parse arithmetic expressions
     const arithmeticPattern =
       /(today|timenow|timestamp|numerictimestamp)([+-])(\d+)([dwmyhs])/i;
     const arithmeticMatch = input.match(arithmeticPattern);
@@ -94,7 +79,7 @@ export class DateTimeUtil {
 
       const modifier = operator === '+' ? amount : -amount;
 
-      // Use unified calculation method
+      // Calculate result
       return this.calculateArithmetic(baseKeyword, modifier, unit);
     }
 
@@ -175,9 +160,22 @@ export class DateTimeUtil {
     unit: string,
   ): string {
     const now = new Date();
+    let effectiveUnit = unit;
 
-    // Apply the arithmetic using unified addToDate method
-    const result = this.addToDate(now, modifier, unit);
+    // Handle context-dependent 'm' unit:
+    // 'm' = months for date contexts, minutes for time contexts
+    if (unit === 'm') {
+      const isTimeContext = [
+        'timenow',
+        'time',
+        'timestamp',
+        'numerictimestamp',
+      ].includes(baseType.toLowerCase());
+      effectiveUnit = isTimeContext ? 'min' : 'm'; // Use 'min' for minutes to avoid conflict
+    }
+
+    // Apply arithmetic
+    const result = this.addToDateTime(now, modifier, effectiveUnit);
 
     // Return appropriate format based on base type
     switch (baseType.toLowerCase()) {
@@ -207,10 +205,8 @@ export class DateTimeUtil {
     return `${hours}:${minutes}:${seconds}`;
   }
 
-  // === CORE TIMESTAMP & TIME METHODS ===
-
   /**
-   * Get current time in HH:mm:ss format with padded seconds
+   * Get current time in HH:mm:ss format
    */
   static timeNow(): string {
     const now = new Date();
@@ -220,10 +216,8 @@ export class DateTimeUtil {
     return `${hours}:${minutes}:${seconds}`;
   }
 
-  // === DATE DISPLAY METHODS ===
-
   /**
-   * Unified method to format today's date in different formats
+   * Format today's date in different formats
    * @param format The format type: 'display', 'iso', or 'padded'
    * @returns Formatted date string
    */
@@ -241,22 +235,18 @@ export class DateTimeUtil {
     }
   }
 
-  // === UNIFIED DATE ARITHMETIC ===
-
   /**
-   * Unified date arithmetic method - replaces datePlusDays, dateMinusDays, etc.
+   * Date arithmetic method
    * @param amount Amount to add (positive) or subtract (negative)
    * @param unit Time unit ('d', 'w', 'm', 'y')
    * @returns Date string in DD/MM/YYYY format
    */
   static dateArithmetic(amount: number, unit: string): string {
-    return this.formatDate(this.addToDate(new Date(), amount, unit));
+    return this.formatDate(this.addToDateTime(new Date(), amount, unit));
   }
 
-  // === FORMATTING METHODS ===
-
   /**
-   * Formats a Date object to DD/MM/YYYY string
+   * Format Date object to DD/MM/YYYY string
    * @param date The Date object to format
    * @returns Formatted date string
    */
@@ -269,7 +259,7 @@ export class DateTimeUtil {
   }
 
   /**
-   * Format date with custom pattern (simplified version of Java's formatWithCustomPattern)
+   * Format date with custom pattern
    * @param date The Date object
    * @param pattern The pattern string
    * @returns Formatted date string
@@ -292,10 +282,8 @@ export class DateTimeUtil {
       .replace('MMMM', longMonth);
   }
 
-  // === UNIFIED TIMESTAMP METHODS ===
-
   /**
-   * Unified timestamp creation and formatting
+   * Create and format timestamps
    * @param type Type of timestamp: 'iso', 'numeric', 'local', or custom date/time
    * @param date Optional date string
    * @param time Optional time string
@@ -327,45 +315,74 @@ export class DateTimeUtil {
   }
 
   /**
-   * Adds/subtracts time from a date
-   * @param date The base date
-   * @param amount The amount to add (positive) or subtract (negative)
-   * @param unit The time unit: 'd' (days), 'w' (weeks), 'm' (months), 'y' (years)
+   * Add/subtract time from date/time
+   * @param date Base date/time
+   * @param amount Amount to add (positive) or subtract (negative)
+   * @param unit Time unit: d, w, m, y, h, min, s
    * @returns New Date object
    */
-  static addToDate(date: Date, amount: number, unit: string): Date {
+  static addToDateTime(date: Date, amount: number, unit: string): Date {
     const newDate = new Date(date);
 
     switch (unit) {
-      case 'd': // days
+      case 'd':
         newDate.setDate(newDate.getDate() + amount);
         break;
-      case 'w': // weeks
+      case 'w':
         newDate.setDate(newDate.getDate() + amount * 7);
         break;
-      case 'm': // months
+      case 'm':
         newDate.setMonth(newDate.getMonth() + amount);
         break;
-      case 'y': // years
+      case 'y':
         newDate.setFullYear(newDate.getFullYear() + amount);
+        break;
+      case 'h':
+        newDate.setHours(newDate.getHours() + amount);
+        break;
+      case 'min':
+        newDate.setMinutes(newDate.getMinutes() + amount);
+        break;
+      case 's':
+        newDate.setSeconds(newDate.getSeconds() + amount);
         break;
       default:
         throw new Error(
-          `Unsupported time unit: ${unit}. Use 'd', 'w', 'm', or 'y'.`,
+          `Unsupported time unit: ${unit}. Use 'd', 'w', 'm', 'y' for dates or 'h', 'min', 's' for time.`,
         );
     }
 
     return newDate;
   }
 
-  // === UNIFIED CONVENIENCE METHODS ===
-
   /**
-   * Get date with offset (replaces getTodayDate, getTomorrowDate, getYesterdayDate)
+   * Get date with offset
    * @param offset Days offset from today (0=today, 1=tomorrow, -1=yesterday)
    * @returns Date string in DD/MM/YYYY format
    */
   static getDateWithOffset(offset: number = 0): string {
-    return this.formatDate(this.addToDate(new Date(), offset, 'd'));
+    return this.formatDate(this.addToDateTime(new Date(), offset, 'd'));
+  }
+
+  /**
+   * Add time to current time
+   * @param amount Number to add (can be negative)
+   * @param unit Time unit: 'h' (hours), 'min' (minutes), 's' (seconds)
+   * @returns Time string in HH:mm:ss format
+   */
+  static getTimeWithOffset(amount: number, unit: string): string {
+    const result = this.addToDateTime(new Date(), amount, unit);
+    return this.formatTime(result);
+  }
+
+  /**
+   * Add time to current timestamp
+   * @param amount Number to add (can be negative)
+   * @param unit Time unit: 'd', 'w', 'm', 'y', 'h', 'min', 's'
+   * @returns ISO timestamp string
+   */
+  static getTimestampWithOffset(amount: number, unit: string): string {
+    const result = this.addToDateTime(new Date(), amount, unit);
+    return result.toISOString();
   }
 }

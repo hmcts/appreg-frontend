@@ -1,3 +1,4 @@
+/// <reference types="cypress" />
 import { Given } from '@badeball/cypress-cucumber-preprocessor';
 
 import { NavigationHelper } from '../../../../support/helper/navigation/NavigationHelper';
