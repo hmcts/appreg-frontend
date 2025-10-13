@@ -1,3 +1,4 @@
+/// <reference types="cypress" />
 import { NavigationPage } from '../../pageobjects/pageelements/NavigationPage';
 
 export class NavigationHelper {

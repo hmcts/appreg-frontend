@@ -165,6 +165,11 @@ export class ApplicationsListCreate implements OnInit {
     this.focusByIdOrFirstFocusable(id);
   }
 
+  public focusField(id: string, ev?: Event): void {
+    ev?.preventDefault();
+    this.focusByIdOrFirstFocusable(id);
+  }
+
   onSubmit(event: SubmitEvent): void {
     event.preventDefault();
     const action = (event.submitter as HTMLButtonElement | null)?.value ?? '';
