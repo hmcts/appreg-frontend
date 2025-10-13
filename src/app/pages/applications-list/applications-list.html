@@ -160,11 +160,11 @@
 @if (rows.length) {
   <!-- Sortable table component -->
   <app-sortable-table
-  id="sortable-table"
-  caption="Lists"
-  [columns]="columns"
-  [data]="rows"
->
+    id="sortable-table"
+    caption="Lists"
+    [columns]="columns"
+    [data]="rows"
+  >
     <ng-template #actionsTemplate let-row>
       <div class="govuk-button-group">
         <!-- actions slot -->
@@ -210,18 +210,18 @@
             Result
           </button>
 
-        <!-- Delete button -->
-        <button
-          type="button"
-          class="govuk-button moj-button-menu__item govuk-button--warning"
-          (click)="onDelete(row)"
-        >
-          Delete
-        </button>
+          <!-- Delete button -->
+          <button
+            type="button"
+            class="govuk-button moj-button-menu__item govuk-button--warning"
+            (click)="onDelete(row)"
+          >
+            Delete
+          </button>
+        </div>
       </div>
-    </div>
-  </ng-template>
-</app-sortable-table>
+    </ng-template>
+  </app-sortable-table>
 
   <!-- Pager -->
   <app-pagination

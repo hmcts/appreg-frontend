@@ -13,7 +13,10 @@ import {
   IF_MATCH,
   ROW_VERSION,
 } from '../../../../../src/app/shared/context/concurrency-context';
-import { ApplicationListsApi, ApplicationListStatus } from '../../../../../src/generated/openapi';
+import {
+  ApplicationListStatus,
+  ApplicationListsApi,
+} from '../../../../../src/generated/openapi';
 
 describe('ApplicationsList – delete flow (server platform: no confirm)', () => {
   let fixture: ComponentFixture<ApplicationsList>;
@@ -176,7 +179,7 @@ describe('ApplicationsList – delete flow (server platform: no confirm)', () =>
             location: '',
             description: '',
             entries: 0,
-            status: ApplicationListStatus.OPEN
+            status: ApplicationListStatus.OPEN,
           },
         ];
 

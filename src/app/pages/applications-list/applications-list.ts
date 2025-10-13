@@ -37,19 +37,19 @@ import {
   SortableTableComponent,
   TableColumn,
 } from '../../shared/components/sortable-table/sortable-table.component';
-import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
+import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
+import {
+  IF_MATCH,
+  ROW_VERSION,
+} from '../../shared/context/concurrency-context';
 import { attachLocationDisabler } from '../../shared/util/attach-location-disabler';
 import {
   cjaMatches,
   courtMatches,
   filterSuggestions,
 } from '../../shared/util/suggestions';
-import {
-  IF_MATCH,
-  ROW_VERSION,
-} from '../../shared/context/concurrency-context';
 
 type UiExtras = {
   deletable?: boolean;
