@@ -123,6 +123,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
   isSearch: boolean = false;
   deleteDone: boolean = false;
   deleteInvalid: boolean = false;
+  isLoading: boolean = false;
 
   // Error summary
   errorHint = '';
@@ -271,6 +272,10 @@ export class ApplicationsList implements OnInit, AfterViewInit {
   }
 
   loadApplicationsLists(hasParams: boolean): void {
+    if (this.isLoading) {
+      return;
+    }
+
     const q: ApplicationListGetFilterDto = hasParams ? this.loadQuery() : {};
 
     const params: GetApplicationListsRequestParams = {
@@ -280,6 +285,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
       sort: ['date,desc', 'time,desc'],
     };
 
+    this.isLoading = true;
     this.appListsApi
       .getApplicationLists(params, undefined, undefined, {
         transferCache: false,
@@ -292,11 +298,13 @@ export class ApplicationsList implements OnInit, AfterViewInit {
           this.totalPages = page.totalPages ?? 0;
           const content = page.content ?? [];
           this.rows = content.map((x) => this.toRow(x));
+          this.isLoading = false;
         },
         error: (err) => {
           this.submitted = true;
           this.rows = [];
           this.totalPages = 0;
+          this.isLoading = false;
           const msg =
             err instanceof Error ? err.message : 'Unable to load lists';
           this.searchErrors = [{ id: 'search', text: msg }];
