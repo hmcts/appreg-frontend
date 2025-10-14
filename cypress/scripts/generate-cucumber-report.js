@@ -27,7 +27,7 @@ reporter.generate({
       { label: 'Cycle', value: 'Regression' },
       {
         label: 'Environment',
-        value: process.env.TEST_URL || 'https://appreg.staging.apps.hmcts.net',
+        value: process.env.TEST_URL || 'http://localhost:4000',
       },
       { label: 'Execution Start Time', value: new Date().toLocaleString() },
     ],
