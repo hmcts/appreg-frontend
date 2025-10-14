@@ -13,13 +13,16 @@ import { RouterLink } from '@angular/router';
 import { Subscription, firstValueFrom } from 'rxjs';
 
 import {
+  ApplicationListGetFilterDto,
   ApplicationListGetSummaryDto,
+  ApplicationListPage,
   ApplicationListStatus,
   ApplicationListsApi,
   CourtLocationGetSummaryDto,
   CourtLocationsApi,
   CriminalJusticeAreaGetDto,
-  ListApplicationListsRequestParams,
+  CriminalJusticeAreasApi,
+  GetApplicationListsRequestParams,
 } from '../../../generated/openapi';
 import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
@@ -81,9 +84,6 @@ function getHttpStatus(err: unknown): number {
   return 0;
 }
 
-// Reuse the generated model for queries but remove ID
-export type ApplicationListGetQuery = Omit<ApplicationListGetSummaryDto, 'id'>;
-
 @Component({
   selector: 'app-applications-list',
   standalone: true,
@@ -143,6 +143,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
 
   currentPage = 1;
   totalPages = 5;
+  pageSize = 25;
 
   columns: TableColumn[] = [
     { header: 'Date', field: 'date' },
@@ -160,17 +161,17 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     { label: 'Closed', value: 'closed' },
   ];
 
-  rows: ApplicationListGetSummaryDto[] = [];
+  rows: ApplicationListRow[] = [];
 
   constructor(
     @Inject(PLATFORM_ID) private readonly platformId: object,
     private readonly courtLocationApi: CourtLocationsApi,
+    private readonly cjaApi: CriminalJusticeAreasApi,
     private readonly ref: ReferenceDataFacade,
     private readonly appListsApi: ApplicationListsApi,
   ) {}
 
   ngOnInit(): void {
-    this.loadApplicationsLists(false);
     this.courthouseSearch = String(this.form.controls.court.value ?? '');
     this.cjaSearch = String(this.form.controls.cja.value ?? '');
 
@@ -262,56 +263,76 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     if (action === 'search') {
       this.submitted = true;
       this.isSearch = true;
-
+      this.currentPage = 1;
       this.loadApplicationsLists(hasAny);
     }
   }
 
   loadApplicationsLists(hasParams: boolean): void {
-    // Hard-coded sample data for now
+    const base: GetApplicationListsRequestParams = {
+      page: 0,
+      size: this.pageSize,
+      sort: ['date,desc', 'time,desc'],
+    };
 
-    if (!hasParams) {
-      // GET ALL Applications lists
-      this.applistApi.listApplicationLists().subscribe({
-        next: (page) => {
-          this.rows = page.content ?? [];
-        },
-        error: () => {
-          this.rows = [];
-        },
-      });
-    } else {
-      const query = this.loadQuery();
-      console.log(query);
-      this.rows = [];
-    }
+    const q: ApplicationListGetFilterDto = hasParams ? this.loadQuery() : {};
+
+    const params: GetApplicationListsRequestParams = {
+      filter: q,
+      page: base.page,
+      size: base.size,
+      sort: base.sort,
+    };
+
+    this.appListsApi.getApplicationLists(params).subscribe({
+      next: (page: ApplicationListPage) => {
+        this.totalPages = page.totalPages ?? 0;
+        const content: ApplicationListGetSummaryDto[] = page.content ?? [];
+        this.rows = content.map((x: ApplicationListGetSummaryDto) =>
+          this.toRow(x),
+        );
+      },
+      error: (err: unknown) => {
+        const msg = err instanceof Error ? err.message : 'Unable to load lists';
+        this.rows = [];
+        this.totalPages = 0;
+        this.submitted = true;
+        this.searchErrors = [{ id: 'search', text: msg }];
+      },
+    });
   }
 
-  private loadQuery(): ListApplicationListsRequestParams {
-    // Load Query and ensure it conforms to model
+  private loadQuery(): ApplicationListGetFilterDto {
+    // Loads queries and ensures it conforms to type
     const { date, time, description, status, court, location, cja } =
       this.form.getRawValue();
 
-    // ListApplicationListsRequestParams interface. DELETE WHEN DONE
-    /* dateFrom?: string;
-    dateTo?: string;
-    courtLocationCode?: string;
-    status?: ApplicationListStatus;
-    page?: number;
-    size?: number;
-    sort?: Array<string>; */
-
-    const query: ListApplicationListsRequestParams = {
-      dateFrom: date?.trim(),
+    const filter: ApplicationListGetFilterDto = {
+      date: date?.trim(),
       time: this.toTimeString(time),
       description: description?.trim(),
-      toStatus: this.toStatus(status),
-      court: court?.trim(),
-      location: location?.trim(),
-      cja: cja?.trim(),
+      status: this.toStatus(status),
+      courtLocationCode: court?.trim(),
+      otherLocationDescription: location?.trim(),
+      cjaCode: cja?.trim(),
     };
 
-    return query;
+    return filter;
+  }
+
+  private toRow(x: ApplicationListGetSummaryDto): ApplicationListRow {
+    return {
+      id: x.id,
+      date: x.date,
+      time: x.time ?? '',
+      location: x.location,
+      description: x.description,
+      entries: x.numberOfEntries,
+      status: x.status,
+      deletable: false,
+      etag: null,
+      rowVersion: null,
+    };
   }
 
   private toStatus(s: unknown): ApplicationListStatus {
@@ -325,19 +346,15 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     }
   }
 
-  private toTimeString = (
-    t: { hours: number | null; minutes: number | null } | null,
-  ): string => {
-    const hours = t?.hours;
-    const minutes = t?.minutes;
-    if (hours === null || minutes === null) {
-      throw new Error('time required');
+  private toTimeString(v: Duration | null | undefined): string | undefined {
+    if (!v) {
+      return undefined;
     }
-
+    const { hours, minutes } = v;
     const hh = String(hours).padStart(2, '0');
     const mm = String(minutes).padStart(2, '0');
-    return `${hh}:${mm}:00`;
-  };
+    return `${hh}:${mm}`;
+  }
 
   onCourthouseInputChange(): void {
     this.form.controls.court.setValue(this.courthouseSearch || '');

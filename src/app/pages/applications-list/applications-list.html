@@ -65,22 +65,6 @@
   />
 }
 
-@if (deleteInvalid && errorSummary.length) {
-  <app-error-summary
-    [title]="errorHint || 'There is a problem'"
-    [items]="errorSummary"
-    targetId="sortable-table"
-  />
-}
-
-@if (deleteDone) {
-  <app-success-banner
-    heading="Application List deleted successfully"
-    [linkCommands]="['/applications-list']"
-    linkText="Click here to go back"
-  />
-}
-
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
@@ -165,7 +149,9 @@
   </div>
 
   <div class="govuk-button-group">
-    <button type="submit" class="govuk-button" value="search">Search</button>
+    <button id="search" type="submit" class="govuk-button" value="search">
+      Search
+    </button>
   </div>
 </form>
 
