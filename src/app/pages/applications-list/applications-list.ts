@@ -10,12 +10,11 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { Subscription, firstValueFrom } from 'rxjs';
+import { Subject, Subscription, firstValueFrom, takeUntil } from 'rxjs';
 
 import {
   ApplicationListGetFilterDto,
   ApplicationListGetSummaryDto,
-  ApplicationListPage,
   ApplicationListStatus,
   ApplicationListsApi,
   CourtLocationGetSummaryDto,
@@ -106,6 +105,7 @@ function getHttpStatus(err: unknown): number {
 export class ApplicationsList implements OnInit, AfterViewInit {
   private _id: string | undefined;
   private locationDisabler?: Subscription;
+  private readonly destroy$ = new Subject<void>();
   openMenuForId: string | null = null;
   openPrintSelectForId: string | null = null;
 
@@ -190,6 +190,8 @@ export class ApplicationsList implements OnInit, AfterViewInit {
 
   ngOnDestroy(): void {
     this.locationDisabler?.unsubscribe();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   ngAfterViewInit(): void {
@@ -269,55 +271,70 @@ export class ApplicationsList implements OnInit, AfterViewInit {
   }
 
   loadApplicationsLists(hasParams: boolean): void {
-    const base: GetApplicationListsRequestParams = {
+    const q: ApplicationListGetFilterDto = hasParams ? this.loadQuery() : {};
+
+    const params: GetApplicationListsRequestParams = {
+      filter: q,
       page: 0,
       size: this.pageSize,
       sort: ['date,desc', 'time,desc'],
     };
 
-    const q: ApplicationListGetFilterDto = hasParams ? this.loadQuery() : {};
-
-    const params: GetApplicationListsRequestParams = {
-      filter: q,
-      page: base.page,
-      size: base.size,
-      sort: base.sort,
-    };
-
-    this.appListsApi.getApplicationLists(params).subscribe({
-      next: (page: ApplicationListPage) => {
-        this.totalPages = page.totalPages ?? 0;
-        const content: ApplicationListGetSummaryDto[] = page.content ?? [];
-        this.rows = content.map((x: ApplicationListGetSummaryDto) =>
-          this.toRow(x),
-        );
-      },
-      error: (err: unknown) => {
-        const msg = err instanceof Error ? err.message : 'Unable to load lists';
-        this.rows = [];
-        this.totalPages = 0;
-        this.submitted = true;
-        this.searchErrors = [{ id: 'search', text: msg }];
-      },
-    });
+    this.appListsApi
+      .getApplicationLists(params, undefined, undefined, {
+        transferCache: false,
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (page) => {
+          this.searchErrors = [];
+          this.submitted = true;
+          this.totalPages = page.totalPages ?? 0;
+          const content = page.content ?? [];
+          this.rows = content.map((x) => this.toRow(x));
+        },
+        error: (err) => {
+          this.submitted = true;
+          this.rows = [];
+          this.totalPages = 0;
+          const msg =
+            err instanceof Error ? err.message : 'Unable to load lists';
+          this.searchErrors = [{ id: 'search', text: msg }];
+        },
+      });
   }
 
   private loadQuery(): ApplicationListGetFilterDto {
-    // Loads queries and ensures it conforms to type
-    const { date, time, description, status, court, location, cja } =
-      this.form.getRawValue();
-
-    const filter: ApplicationListGetFilterDto = {
-      date: date?.trim(),
-      time: this.toTimeString(time),
-      description: description?.trim(),
-      status: this.toStatus(status),
-      courtLocationCode: court?.trim(),
-      otherLocationDescription: location?.trim(),
-      cjaCode: cja?.trim(),
+    const raw = this.form.getRawValue() as {
+      date?: string | null;
+      time?: Duration | null;
+      description?: string | null;
+      status?: string | null;
+      court?: string | null;
+      location?: string | null;
+      cja?: string | null;
     };
 
-    return filter;
+    const query: Partial<ApplicationListGetFilterDto> = {};
+
+    const set = <K extends keyof ApplicationListGetFilterDto>(
+      k: K,
+      v: ApplicationListGetFilterDto[K] | undefined,
+    ) => {
+      if (v !== undefined && v !== null && v !== '') {
+        query[k] = v;
+      }
+    };
+
+    set('date', raw.date || undefined);
+    set('time', this.toTimeString(raw.time));
+    set('description', raw.description || undefined);
+    set('status', this.toStatus(raw.status));
+    set('courtLocationCode', raw.court || undefined);
+    set('otherLocationDescription', raw.location || undefined);
+    set('cjaCode', raw.cja || undefined);
+
+    return query as ApplicationListGetFilterDto;
   }
 
   private toRow(x: ApplicationListGetSummaryDto): ApplicationListRow {
@@ -335,14 +352,21 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     };
   }
 
-  private toStatus(s: unknown): ApplicationListStatus {
-    switch (String(s).toUpperCase()) {
+  private toStatus(
+    s: string | null | undefined,
+  ): ApplicationListStatus | undefined {
+    const v = s?.trim();
+    if (!v || v.toLowerCase() === 'choose') {
+      return undefined;
+    }
+
+    switch (v.toUpperCase()) {
       case 'OPEN':
         return ApplicationListStatus.OPEN;
       case 'CLOSED':
         return ApplicationListStatus.CLOSED;
       default:
-        throw new Error('Invalid status');
+        return undefined;
     }
   }
 
