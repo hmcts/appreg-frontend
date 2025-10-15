@@ -1,0 +1,13 @@
+{
+  "secrets": {
+    "appreg": {
+      "azure-tenant-id-fe": "azure_tenant_id_fe",
+      "azure-app-id-fe": "azure_app_id_fe",
+      "azure-client-secret-fe": "azure_client_secret_fe",
+      "app-insights-connection-string-fe": "app_insights_connection_string_fe"
+    }
+  },
+  "appInsights": {
+    "instrumentationKey": "APP_INSIGHTS_INSTRUMENTATION_KEY"
+  }
+}
