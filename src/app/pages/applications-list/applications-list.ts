@@ -276,10 +276,8 @@ export class ApplicationsList implements OnInit, AfterViewInit {
       return;
     }
 
-    const q: ApplicationListGetFilterDto = hasParams ? this.loadQuery() : {};
-
     const params: GetApplicationListsRequestParams = {
-      filter: q,
+      ...(hasParams ? { filter: this.loadQuery() } : {}),
       page: 0,
       size: this.pageSize,
       sort: ['date,desc', 'time,desc'],
@@ -296,7 +294,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
           this.searchErrors = [];
           this.submitted = true;
           this.totalPages = page.totalPages ?? 0;
-          const content = page.content ?? [];
+          const content: ApplicationListGetSummaryDto[] = page.content ?? [];
           this.rows = content.map((x) => this.toRow(x));
           this.isLoading = false;
         },
@@ -349,7 +347,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     return {
       id: x.id,
       date: x.date,
-      time: x.time ?? '',
+      time: this.normaliseTime(x.time) ?? '',
       location: x.location,
       description: x.description,
       entries: x.numberOfEntries,
@@ -386,6 +384,15 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     const hh = String(hours).padStart(2, '0');
     const mm = String(minutes).padStart(2, '0');
     return `${hh}:${mm}`;
+  }
+
+  private normaliseTime(t: string | null | undefined): string {
+    if (!t) {
+      return '';
+    }
+    // accept "HH:mm", "HH:mm:ss", "HH:mm:ss.sssZ"
+    const m = t.match(/^(\d{2}):(\d{2})(?::(\d{2}))?/);
+    return m ? `${m[1]}:${m[2]}` : '';
   }
 
   onCourthouseInputChange(): void {

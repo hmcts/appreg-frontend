@@ -11,7 +11,7 @@
     "api:generate": "openapi-generator-cli generate -c tools/openapi/generator-config.yaml",
     "api:bundle": "redocly bundle tools/openapi/openapi.yaml -o tools/dist/openapi.bundled.yaml",
     "api:all": "yarn api:validate && yarn api:clear && yarn api:bundle && yarn api:generate",
-    "mock": "prism mock tools/dist/openapi.bundled.yaml -p 4550 -d",
+    "mock": "prism mock tools/dist/openapi.bundled.yaml -p 4550",
     "start": "node dist/appreg-frontend/server/server.mjs",
     "start:dev": "nodemon --config nodemon.json",
     "start:mock": "concurrently -k -n MOCK,APP \"npm:mock\" \"npm:start:dev\"",
