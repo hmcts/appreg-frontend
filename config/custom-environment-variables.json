@@ -8,18 +8,17 @@
     }
   },
   "auth": {
-    "redirectUri": "http://localhost:4000/sso/login-callback",
-    "postLogoutRedirectUri": "http://localhost:4000/login",
-    "scopes": ["openid", "profile", "email", "offline_access"]
+    "redirectUri": "AUTH_REDIRECT_URI",
+    "postLogoutRedirectUri": "AUTH_POST_LOGOUT_REDIRECT_URI",
+    "scopes": { "name": "AUTH_SCOPES", "format": "json" }
   },
   "api": {
-    "baseUrl": "http://localhost:4550",
-    "scopes": ["api://dummyTenantId/frontend"]
+    "baseUrl": "API_BASE_URL",
+    "scopes": { "name": "API_SCOPES", "format": "json" }
   },
   "session": {
-    "cookieName": "appreg.sid",
-    "secret": "change-me-in-env",
-    "secure": false
+    "cookieName": "SESSION_COOKIE_NAME",
+    "secret": "SESSION_SECRET",
+    "secure": { "name": "SESSION_SECURE", "format": "json" }
   }
 }
- 
