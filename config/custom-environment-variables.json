@@ -22,3 +22,4 @@
     "secure": { "name": "SESSION_SECURE", "format": "json" }
   }
 }
+ 
