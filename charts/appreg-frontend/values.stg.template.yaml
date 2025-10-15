@@ -2,3 +2,18 @@ nodejs:
   # Don't modify below here
   image: ${IMAGE_NAME}
   ingressHost: ${SERVICE_FQDN}
+  keyVaults:
+    appreg:
+      secrets:
+        - name: app-insights-connection-string
+          alias: app-insights-connection-string-fe
+        - name: azure-tenant-id
+          alias: azure-tenant-id-fe
+        - name: azure-client-secret
+          alias: azure-client-secret-fe
+        - name: azure-app-id
+          alias: azure-app-id-fe
+        - name: AppInsightsInstrumentationKey
+          alias: APP_INSIGHTS_INSTRUMENTATION_KEY
+  environment:
+    NODE_ENV: 'production'
