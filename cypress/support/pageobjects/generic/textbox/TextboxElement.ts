@@ -16,7 +16,6 @@ export class TextboxElement {
         if ($el.is('label')) {
           const forAttr = $el.attr('for');
           if (forAttr) {
-            // Generic approach: try to find the target element
             return cy.get(`#${forAttr}`).then(($target) => {
               // If target is already an input/textarea/select, use it directly
               if ($target.is('input, textarea, select')) {
