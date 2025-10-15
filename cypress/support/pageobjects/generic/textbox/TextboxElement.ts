@@ -16,8 +16,22 @@ export class TextboxElement {
         if ($el.is('label')) {
           const forAttr = $el.attr('for');
           if (forAttr) {
-            return cy.get(`#${forAttr}`);
+            // Generic approach: try to find the target element
+            return cy.get(`#${forAttr}`).then(($target) => {
+              // If target is already an input/textarea/select, use it directly
+              if ($target.is('input, textarea, select')) {
+                return cy.wrap($target);
+              }
+              // If target is a container (component), look for input inside
+              const inputInside = $target.find('input, textarea, select');
+              if (inputInside.length > 0) {
+                return cy.wrap(inputInside.first());
+              }
+              // Fallback: return the target as-is (might be a custom component)
+              return cy.wrap($target);
+            });
           }
+          // No 'for' attribute, look in parent container
           return cy.wrap($el).parent().find('input, textarea, select').first();
         }
         // If it's already an input/textarea/select, return it
