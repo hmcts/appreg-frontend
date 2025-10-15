@@ -1,4 +1,23 @@
 nodejs:
-  # Don't modify below here
   image: ${IMAGE_NAME}
   ingressHost: ${SERVICE_FQDN}
+  keyVaults:
+    appreg:
+      secrets:
+        - name: app-insights-connection-string
+          alias: app_insights_connection_string_fe
+        - name: azure-tenant-id
+          alias: azure_tenant_id_fe
+        - name: azure-client-secret
+          alias: azure_client_secret_fe
+        - name: azure-app-id
+          alias: azure_app_id_fe
+        - name: AppInsightsInstrumentationKey
+          alias: APP_INSIGHTS_INSTRUMENTATION_KEY
+  environment:
+    FRONTEND_HOSTNAME: 'https://${SERVICE_FQDN}'
+    FEATURES_SSO_ENABLED: 'true'
+    SESSION_SAME_SITE: 'none'
+    SESSION_DOMAIN: '.hmcts.net'
+    CSRF_SAME_SITE: 'lax'
+    NODE_ENV: 'production'
