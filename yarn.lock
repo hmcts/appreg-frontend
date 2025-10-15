@@ -6515,7 +6515,6 @@ __metadata:
     jest-environment-jsdom: "npm:^30"
     jest-preset-angular: "npm:^15.0.0"
     jsdom: "npm:^24"
-    json-schema-faker: "npm:^0.5.9"
     lodash: "npm:^4.17.21"
     minimatch: "npm:^10.0.3"
     mocha: "npm:^11.7.1"
@@ -6523,7 +6522,6 @@ __metadata:
     multiple-cucumber-html-reporter: "npm:^3.9.3"
     nodemon: "npm:^3.1.10"
     pa11y: "npm:^9.0.0"
-    postman-collection: "npm:^5.2.0"
     prettier: "npm:^3.6.2"
     rimraf: "npm:^6.0.1"
     rxjs: "npm:~7.8.0"
@@ -13112,18 +13110,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"json-schema-faker@npm:^0.5.9":
-  version: 0.5.9
-  resolution: "json-schema-faker@npm:0.5.9"
-  dependencies:
-    json-schema-ref-parser: "npm:^6.1.0"
-    jsonpath-plus: "npm:^10.3.0"
-  bin:
-    jsf: bin/gen.cjs
-  checksum: 10/a3353d76cc1838dd11eda55e62434e4fd8e0a49d2985382bc38eb99f655041513d244d0914849b858255e6a56f56ebddf69da21c1e505acd30e3724019dff483
-  languageName: node
-  linkType: hard
-
 "json-schema-ref-parser@npm:^6.1.0":
   version: 6.1.0
   resolution: "json-schema-ref-parser@npm:6.1.0"
@@ -13235,7 +13221,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsonpath-plus@npm:^10.1.0, jsonpath-plus@npm:^10.3.0":
+"jsonpath-plus@npm:^10.1.0":
   version: 10.3.0
   resolution: "jsonpath-plus@npm:10.3.0"
   dependencies:
@@ -14021,15 +14007,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mime-format@npm:2.0.2":
-  version: 2.0.2
-  resolution: "mime-format@npm:2.0.2"
-  dependencies:
-    charset: "npm:^1.0.0"
-  checksum: 10/8dfcb4310f0fad63b85455314972ad6660f40fa527056e45e633c5956189db44c9c73568d03cb2d68fb12e3fbe88f92ad92ab695e22121c7a37a299b3d4d38cc
-  languageName: node
-  linkType: hard
-
 "mime-types@npm:2.1.35, mime-types@npm:^2.1.12, mime-types@npm:~2.1.19, mime-types@npm:~2.1.24, mime-types@npm:~2.1.34":
   version: 2.1.35
   resolution: "mime-types@npm:2.1.35"
@@ -14066,7 +14043,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mime@npm:3.0.0, mime@npm:^3.0.0":
+"mime@npm:^3.0.0":
   version: 3.0.0
   resolution: "mime@npm:3.0.0"
   bin:
@@ -15854,40 +15831,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postman-collection@npm:^5.2.0":
-  version: 5.2.0
-  resolution: "postman-collection@npm:5.2.0"
-  dependencies:
-    "@faker-js/faker": "npm:5.5.3"
-    file-type: "npm:3.9.0"
-    http-reasons: "npm:0.1.0"
-    iconv-lite: "npm:0.6.3"
-    liquid-json: "npm:0.3.1"
-    lodash: "npm:4.17.21"
-    mime: "npm:3.0.0"
-    mime-format: "npm:2.0.2"
-    postman-url-encoder: "npm:3.0.8"
-    semver: "npm:7.7.1"
-    uuid: "npm:8.3.2"
-  checksum: 10/7b4feb1c09cd225ad6440488027b9c95329ee7ad3289f96e2d7454c779fc7d19e98157773889ecf72c1a41a695ab7b63ac8a83936a71a01ad09773fc4196ba92
-  languageName: node
-  linkType: hard
-
 "postman-url-encoder@npm:3.0.5":
   version: 3.0.5
   resolution: "postman-url-encoder@npm:3.0.5"
   dependencies:
     punycode: "npm:^2.1.1"
   checksum: 10/e4bb3698c9e19cccc33d249b0f45e93645cab043b7a56590f3a25f5c2daf3caa99fdae7801cc12d60e1ec6158ddd75a31c16834a3b4a03d5784f1768f8cfd026
-  languageName: node
-  linkType: hard
-
-"postman-url-encoder@npm:3.0.8":
-  version: 3.0.8
-  resolution: "postman-url-encoder@npm:3.0.8"
-  dependencies:
-    punycode: "npm:^2.3.1"
-  checksum: 10/9873c95137ef3f69081cfa466ca8ee8793385770a82889e15524592607f05782bcbf385a69afe31d5730de2886e8f0071728443baca0c5bbf32608dc8dda79b3
   languageName: node
   linkType: hard
 
@@ -17013,15 +16962,6 @@ __metadata:
   bin:
     semver: bin/semver.js
   checksum: 10/36b1fbe1a2b6f873559cd57b238f1094a053dbfd997ceeb8757d79d1d2089c56d1321b9f1069ce263dc64cfa922fa1d2ad566b39426fe1ac6c723c1487589e10
-  languageName: node
-  linkType: hard
-
-"semver@npm:7.7.1":
-  version: 7.7.1
-  resolution: "semver@npm:7.7.1"
-  bin:
-    semver: bin/semver.js
-  checksum: 10/4cfa1eb91ef3751e20fc52e47a935a0118d56d6f15a837ab814da0c150778ba2ca4f1a4d9068b33070ea4273629e615066664c2cfcd7c272caf7a8a0f6518b2c
   languageName: node
   linkType: hard
 
