@@ -13,7 +13,9 @@ try {
   const _ = require('lodash');
   pvm.addTo(config);
   const aik = _.get(config, 'secrets.rpe.AppInsightsInstrumentationKey');
-  if (aik) {_.set(config, 'appInsights.instrumentationKey', aik);}
+  if (aik) {
+    _.set(config, 'appInsights.instrumentationKey', aik);
+  }
 } catch (_err) {
   // ignore
   void _err;
