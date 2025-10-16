@@ -11,7 +11,6 @@ import {
 } from '@angular/ssr/node';
 import type { AccountInfo } from '@azure/msal-node';
 import type { HmctsLogger } from '@hmcts/nodejs-logging';
-import config from 'config';
 import cookieParser from 'cookie-parser';
 import express, {
   type NextFunction,
@@ -45,6 +44,9 @@ const angularApp = new AngularNodeAppEngine();
 app.set('trust proxy', 1);
 app.use(cookieParser());
 
+await new PropertiesVolume().enableFor(app);
+const { default: config } = await import('config');
+
 // ----- Env
 const env = process.env['NODE_ENV'] || 'development';
 const developmentMode = env === 'development';
@@ -56,7 +58,7 @@ const apiScopes: string[] = config.has('api.scopes')
   : [];
 
 // ----- Platform modules
-await new PropertiesVolume().enableFor(app);
+
 new Helmet(developmentMode).enableFor(app);
 AppInsights.enable();
 
