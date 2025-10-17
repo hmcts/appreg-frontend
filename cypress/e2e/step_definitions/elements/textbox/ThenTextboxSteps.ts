@@ -1,12 +1,14 @@
 import { Then } from '@badeball/cypress-cucumber-preprocessor';
 
 import { TextboxHelper } from '../../../../support/helper/forms/textbox/TextboxHelper';
+import { TestDataGenerator } from '../../../../support/utils/TestDataGenerator';
 
 Then(
   'User Enters {string} Into The {string} Textbox',
   (value: string, field: string) => {
-    TextboxHelper.typeInTextbox(field, value);
-    cy.screenshot(`TypedInTextbox-${field}-${value}`);
+    const substituteValue = TestDataGenerator.replaceRandomPlaceholders(value);
+    TextboxHelper.typeInTextbox(field, substituteValue);
+    cy.screenshot(`TypedInTextbox-${field}-${substituteValue}`);
   },
 );
 
@@ -18,7 +20,8 @@ Then('User Clears The {string} Textbox', (field: string) => {
 Then(
   'User Verifies The {string} Textbox Contains {string}',
   (field: string, value: string) => {
-    TextboxHelper.getValueInTextbox(field).should('eq', value);
+    const substituteValue = TestDataGenerator.replaceRandomPlaceholders(value);
+    TextboxHelper.getValueInTextbox(field).should('eq', substituteValue);
   },
 );
 
