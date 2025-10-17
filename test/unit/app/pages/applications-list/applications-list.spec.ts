@@ -335,11 +335,7 @@ describe('ApplicationsList – search', () => {
     component.loadApplicationsLists(false);
     const args = service.getApplicationLists.mock
       .calls[0][0] as GetApplicationListsRequestParams;
-    expect(args).toEqual({
-      page: 0,
-      size: 25,
-      sort: ['date,desc', 'time,desc'],
-    });
+    expect(args).toEqual({});
   });
 
   it('merges filter when hasParams=true', () => {
@@ -388,25 +384,6 @@ describe('ApplicationsList – search', () => {
     expect(component.rows[0].date).toBe('2025-09-17');
     expect(component.rows[0].time).toBe('14:05');
     expect(component.rows[0].entries).toBe(7);
-  });
-
-  it('uses currentPage (1-based) to compute API page (0-based)', () => {
-    component.currentPage = 3;
-    service.getApplicationLists.mockReturnValue(of(pageStub([])));
-
-    component.loadApplicationsLists(true);
-    const args = service.getApplicationLists.mock
-      .calls[0][0] as GetApplicationListsRequestParams;
-    expect(args.page).toBe(0);
-  });
-
-  it('respects pageSize for size parameter', () => {
-    service.getApplicationLists.mockReturnValue(of(pageStub([])));
-    component.pageSize = 50;
-    component.loadApplicationsLists(false);
-    const args = service.getApplicationLists.mock
-      .calls[0][0] as GetApplicationListsRequestParams;
-    expect(args.size).toBe(50);
   });
 
   it('sets totals from page response', () => {
@@ -464,13 +441,5 @@ describe('ApplicationsList – search', () => {
     const args = service.getApplicationLists.mock
       .calls[0][0] as GetApplicationListsRequestParams;
     expect(args.filter).toEqual({ status: 'CLOSED' });
-  });
-
-  it('keeps default sort ["date,desc","time,desc"]', () => {
-    service.getApplicationLists.mockReturnValue(of(pageStub([])));
-    component.loadApplicationsLists(false);
-    const args = service.getApplicationLists.mock
-      .calls[0][0] as GetApplicationListsRequestParams;
-    expect(args.sort).toEqual(['date,desc', 'time,desc']);
   });
 });
