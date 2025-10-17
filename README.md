@@ -270,6 +270,14 @@ These are the scripts needed:
 - `yarn api:bundle` - Bundles the OpenAPI spec, schemas, responses into `tools/dist/openapi.bundled.yaml`
 - `yarn api:all` - Runs all API scripts (api:validate -> api:clear -> api:bundle -> api:generate)
 
+### OpenAPI Mock service
+
+For frontend development, you can start a mock service that is built using `tools/dist/openapi.bundled.yaml`. The script to run is:
+
+`yarn mock`
+
+This starts a local mock that runs on <http://localhost:4550>
+
 ## Branch Retention (auto-cleanup)
 
 This repository includes an automated policy to keep old/inactive branches tidy. It runs in two stages:

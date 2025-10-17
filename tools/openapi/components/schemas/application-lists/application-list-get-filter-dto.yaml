@@ -38,4 +38,3 @@ properties:
   status:
     $ref: "./application-list-status.yaml"
 
-required: []
