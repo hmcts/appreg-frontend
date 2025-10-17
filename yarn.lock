@@ -2282,24 +2282,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@faker-js/faker@npm:5.5.3":
-  version: 5.5.3
-  resolution: "@faker-js/faker@npm:5.5.3"
-  checksum: 10/1a4fd61d1a9132f5776b447a2bc9c14d9b472611ddf22f7060adcf103c76d2af238e0bc132e633601b19a00b4f3a23643c4f2b7671ab9866ae9f91221d191788
-  languageName: node
-  linkType: hard
-
-"@faker-js/faker@npm:^6.0.0":
-  version: 6.3.1
-  resolution: "@faker-js/faker@npm:6.3.1"
-  checksum: 10/d6731c48f8fbe657c69ec8a1329f5dbb9e5a79f0b0e16fdf026a4cf0dbe14948ee9ed94fe801e6c845ed9bed214cab36901a7d52868f991b4efab8be64bbbbca
-  languageName: node
-  linkType: hard
-
-"@faker-js/faker@npm:^7.6.0":
-  version: 7.6.0
-  resolution: "@faker-js/faker@npm:7.6.0"
-  checksum: 10/9236ee7a7ab32fcd99fa8cbc046b65b0af4fe714b12e33a39d3e058bef77e53bb0f42fe3331ed578a6db581b22c31f12ed2ba587a4bdb58a9ba0bb5b19f99bc4
+"@faker-js/faker@npm:^10.0.0":
+  version: 10.1.0
+  resolution: "@faker-js/faker@npm:10.1.0"
+  checksum: 10/3332795debec5793dfaea79e740ed44bd7d94fb43cea8b1bd5d59af19f15c4a9533fa696cfebf024a9bba5d9d1a8a28cde40a92670c03cc11170a3025e551e65
   languageName: node
   linkType: hard
 
@@ -10665,13 +10651,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"format-util@npm:^1.0.3":
-  version: 1.0.5
-  resolution: "format-util@npm:1.0.5"
-  checksum: 10/0c8622e54ad899ca184ff0b4999e9ff9567965051bade140911209d60554c2ea4d43075763c1cf574d2f740966afe46469c9284357919505cdddf1a0b65ff85c
-  languageName: node
-  linkType: hard
-
 "formidable@npm:^3.5.4":
   version: 3.5.4
   resolution: "formidable@npm:3.5.4"
@@ -12891,7 +12870,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-yaml@npm:^3.12.1, js-yaml@npm:^3.13.1":
+"js-yaml@npm:^3.13.1":
   version: 3.14.1
   resolution: "js-yaml@npm:3.14.1"
   dependencies:
@@ -13098,26 +13077,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"json-schema-faker@npm:0.5.8":
-  version: 0.5.8
-  resolution: "json-schema-faker@npm:0.5.8"
+"json-schema-faker@npm:^0.5.9":
+  version: 0.5.9
+  resolution: "json-schema-faker@npm:0.5.9"
   dependencies:
     json-schema-ref-parser: "npm:^6.1.0"
-    jsonpath-plus: "npm:^10.1.0"
+    jsonpath-plus: "npm:^10.3.0"
   bin:
     jsf: bin/gen.cjs
-  checksum: 10/52047040e958b2c38b147ff39731a4c886e6afe2cbea8ec938708809070488700e6d5ddf9af040ddcea8f41ced9d38c56ed5830d774af9d158e797573c5131ee
+  checksum: 10/a3353d76cc1838dd11eda55e62434e4fd8e0a49d2985382bc38eb99f655041513d244d0914849b858255e6a56f56ebddf69da21c1e505acd30e3724019dff483
   languageName: node
   linkType: hard
 
-"json-schema-ref-parser@npm:^6.1.0":
-  version: 6.1.0
-  resolution: "json-schema-ref-parser@npm:6.1.0"
+"json-schema-ref-parser@npm:@apidevtools/json-schema-ref-parser@^14.2.0":
+  version: 14.2.1
+  resolution: "@apidevtools/json-schema-ref-parser@npm:14.2.1"
   dependencies:
-    call-me-maybe: "npm:^1.0.1"
-    js-yaml: "npm:^3.12.1"
-    ono: "npm:^4.0.11"
-  checksum: 10/f36dbb0d9780bf57d68846658bc0e8ac8a17c9095b41a836819a0cfd8550dbdee4b043a0bb535cbce3c683f1ee39b791c208dce15b143e58e34c8abcc747cb89
+    js-yaml: "npm:^4.1.0"
+  peerDependencies:
+    "@types/json-schema": ^7.0.15
+  checksum: 10/c3f6d97c0e885f9543b0654258ee16b2dd75463c8496499563c278089043317f89010e89eb51699c7fb38dfb83cc8592f0b0c4983b764b56789dc3329b25ebfd
   languageName: node
   linkType: hard
 
@@ -13221,7 +13200,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsonpath-plus@npm:^10.1.0":
+"jsonpath-plus@npm:^10.3.0":
   version: 10.3.0
   resolution: "jsonpath-plus@npm:10.3.0"
   dependencies:
@@ -13998,16 +13977,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mime-format@npm:2.0.1":
-  version: 2.0.1
-  resolution: "mime-format@npm:2.0.1"
+"mime-format@npm:2.0.2":
+  version: 2.0.2
+  resolution: "mime-format@npm:2.0.2"
   dependencies:
     charset: "npm:^1.0.0"
-  checksum: 10/0a7731d2a268f5076fdb401e60e908fdf2d842b39a67a11ba8bac682d6d968c2290a257226b86318afbaafb6317b33d1f4c4a934b585bf8f9c9543b0b291cf3e
+  checksum: 10/8dfcb4310f0fad63b85455314972ad6660f40fa527056e45e633c5956189db44c9c73568d03cb2d68fb12e3fbe88f92ad92ab695e22121c7a37a299b3d4d38cc
   languageName: node
   linkType: hard
 
-"mime-types@npm:2.1.35, mime-types@npm:^2.1.12, mime-types@npm:~2.1.19, mime-types@npm:~2.1.24, mime-types@npm:~2.1.34":
+"mime-types@npm:^2.1.12, mime-types@npm:~2.1.19, mime-types@npm:~2.1.24, mime-types@npm:~2.1.34":
   version: 2.1.35
   resolution: "mime-types@npm:2.1.35"
   dependencies:
@@ -14043,7 +14022,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mime@npm:^3.0.0":
+"mime@npm:3.0.0, mime@npm:^3.0.0":
   version: 3.0.0
   resolution: "mime@npm:3.0.0"
   bin:
@@ -15076,15 +15055,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ono@npm:^4.0.11":
-  version: 4.0.11
-  resolution: "ono@npm:4.0.11"
-  dependencies:
-    format-util: "npm:^1.0.3"
-  checksum: 10/f7ba5f597ae62f9b02bb0c00de3af786ebfb02459223e81d39f714a9404fade2065b830102a1d25c4fa216f17a407d6b721add197c710f8afce9e851cfb12984
-  languageName: node
-  linkType: hard
-
 "open@npm:^10.1.0":
   version: 10.2.0
   resolution: "open@npm:10.2.0"
@@ -15812,9 +15782,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postman-collection@npm:^4.1.3":
-  version: 4.5.0
-  resolution: "postman-collection@npm:4.5.0"
+"postman-collection@npm:^5.2.0":
+  version: 5.2.0
+  resolution: "postman-collection@npm:5.2.0"
   dependencies:
     "@faker-js/faker": "npm:5.5.3"
     file-type: "npm:3.9.0"
@@ -15822,21 +15792,21 @@ __metadata:
     iconv-lite: "npm:0.6.3"
     liquid-json: "npm:0.3.1"
     lodash: "npm:4.17.21"
-    mime-format: "npm:2.0.1"
-    mime-types: "npm:2.1.35"
-    postman-url-encoder: "npm:3.0.5"
-    semver: "npm:7.6.3"
+    mime: "npm:3.0.0"
+    mime-format: "npm:2.0.2"
+    postman-url-encoder: "npm:3.0.8"
+    semver: "npm:7.7.1"
     uuid: "npm:8.3.2"
-  checksum: 10/5d1d0a2a7e5450bb62130f511abb4aca02f1a46d9379cc921be39161368a65fb4ed6d40abadfc6510ce8d61d8080f16a815120e80f2bb29fa4b6b44d12f3f6b8
+  checksum: 10/7b4feb1c09cd225ad6440488027b9c95329ee7ad3289f96e2d7454c779fc7d19e98157773889ecf72c1a41a695ab7b63ac8a83936a71a01ad09773fc4196ba92
   languageName: node
   linkType: hard
 
-"postman-url-encoder@npm:3.0.5":
-  version: 3.0.5
-  resolution: "postman-url-encoder@npm:3.0.5"
+"postman-url-encoder@npm:3.0.8":
+  version: 3.0.8
+  resolution: "postman-url-encoder@npm:3.0.8"
   dependencies:
-    punycode: "npm:^2.1.1"
-  checksum: 10/e4bb3698c9e19cccc33d249b0f45e93645cab043b7a56590f3a25f5c2daf3caa99fdae7801cc12d60e1ec6158ddd75a31c16834a3b4a03d5784f1768f8cfd026
+    punycode: "npm:^2.3.1"
+  checksum: 10/9873c95137ef3f69081cfa466ca8ee8793385770a82889e15524592607f05782bcbf385a69afe31d5730de2886e8f0071728443baca0c5bbf32608dc8dda79b3
   languageName: node
   linkType: hard
 
@@ -16956,12 +16926,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:7.6.3":
-  version: 7.6.3
-  resolution: "semver@npm:7.6.3"
+"semver@npm:7.7.1":
+  version: 7.7.1
+  resolution: "semver@npm:7.7.1"
   bin:
     semver: bin/semver.js
-  checksum: 10/36b1fbe1a2b6f873559cd57b238f1094a053dbfd997ceeb8757d79d1d2089c56d1321b9f1069ce263dc64cfa922fa1d2ad566b39426fe1ac6c723c1487589e10
+  checksum: 10/4cfa1eb91ef3751e20fc52e47a935a0118d56d6f15a837ab814da0c150778ba2ca4f1a4d9068b33070ea4273629e615066664c2cfcd7c272caf7a8a0f6518b2c
   languageName: node
   linkType: hard
 
