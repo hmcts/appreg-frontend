@@ -278,9 +278,6 @@ export class ApplicationsList implements OnInit, AfterViewInit {
 
     const params: GetApplicationListsRequestParams = {
       ...(hasParams ? { filter: this.loadQuery() } : {}),
-      page: 0,
-      size: this.pageSize,
-      sort: ['date,desc', 'time,desc'],
     };
 
     this.isLoading = true;
