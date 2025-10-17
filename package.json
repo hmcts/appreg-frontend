@@ -11,7 +11,7 @@
     "api:generate": "openapi-generator-cli generate -c tools/openapi/generator-config.yaml",
     "api:bundle": "redocly bundle tools/openapi/openapi.yaml -o tools/dist/openapi.bundled.yaml",
     "api:all": "yarn api:validate && yarn api:clear && yarn api:bundle && yarn api:generate",
-    "start": "dist/appreg-frontend/server/server.mjs",
+    "start": "node dist/appreg-frontend/server/server.mjs",
     "start:dev": "nodemon --config nodemon.json",
     "lint": "yarn api:all && stylelint **/*.scss -v -q && eslint . --ext .js,.ts --max-warnings 0 && prettier --check .",
     "lint:fix": "prettier --write . && eslint --fix .",
