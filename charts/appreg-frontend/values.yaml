@@ -19,5 +19,6 @@ nodejs:
   environment:
     ALLOW_CONFIG_MUTATIONS: true
     NODE_ENV: 'production'
+    NODE_OPTIONS: '-r ./pv-preload.cjs'
     TESTVAR: 'testvalue'
     LOG_LEVEL: 'DEBUG'
