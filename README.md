@@ -274,7 +274,10 @@ These are the scripts needed:
 
 For frontend development, you can start a mock service that is built using `tools/dist/openapi.bundled.yaml`. The script to run is:
 
-`yarn mock`
+- `yarn mock` - Spins up a docker instance with [stoplight/prism docker image](https://hub.docker.com/r/stoplight/prism/)
+- `yarn mock:win` - Windows command for `yarn mock`
+- `yarn dev:mock` - Starts both `yarn start:dev` & `yarn mock`
+- `yarn dev:mock:win` - Starts both `yarn start:dev` & `yarn mock:win`
 
 This starts a local mock that runs on <http://localhost:4550>
 
