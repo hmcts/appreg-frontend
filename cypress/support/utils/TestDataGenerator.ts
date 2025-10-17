@@ -28,7 +28,7 @@ export class TestDataGenerator {
     if (!this.scenarioRandom) {
       this.initializeScenario();
     }
-    
+
     return text.replace(/{RANDOM}/g, this.scenarioRandom!);
   }
 
