@@ -9,7 +9,6 @@ Feature: Applications List Search
     Then User Should See The Date Field "Date"
     Then User Should See The Time Field "Time"
   
-
   @regression
   Scenario Outline: Verify applications list is displayed
     Given User Is On The Portal Page

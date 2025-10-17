@@ -6,6 +6,16 @@ Feature: Applications List Create
     Then User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Applications list"
     Then User Clicks On The Link "Create a new list"
-  Examples:
-    | User  |
-    | user1 |
+    Then User Should See The Date Field "Date"
+    When User Set Date Field "Date" To "<Date>"
+    Then User Should See The Time Field "Time"
+    When User Set Time Field "Time" To "<Time>"
+    Then User Enters "<Description>" Into The "Description" Textbox
+    Then User Selects "<Status>" In The "Select status" Dropdown
+    Then User Enters "<Court>" Into The "Court" Textbox
+    Then User Enters "<OtherLocation>" Into The "Other location" Textbox
+    Then User Enters "<CJA>" Into The "CJA" Textbox
+    When User Clicks On The "Create" Button
+    Examples:
+      | User  | Date  | Time       | Description   | Status | Court          | OtherLocation  | CJA |
+      | user1 | today | timenow-2h | Test_{RANDOM} | Open   | Court_{RANDOM} | Other Location_{RANDOM} | CJA |
