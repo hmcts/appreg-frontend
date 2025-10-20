@@ -477,7 +477,7 @@ describe('GET /sso/logout', () => {
     const res = await request(app).get('/sso/logout');
 
     expect(res.status).toBe(302);
-    const location = res.headers['location']; // TS4111-safe
+    const location = res.headers['location'];
     expect(location).toBe(expectedUrl);
 
     const spy = destroySpyRef();
