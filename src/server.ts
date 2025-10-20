@@ -68,7 +68,7 @@ const logger: HmctsLogger = HmctsLoggerBridge.enable(
 );
 
 const tenantId = config.get<string>('secrets.appreg.azure-tenant-id-fe');
-logger.info('redirectUri: ', tenantId);
+logger.info('tenantId: ', tenantId);
 
 // ----- Session (must be before auth/proxy/SSR so req.session is available everywhere)
 app.use(
