@@ -14,9 +14,7 @@ import {
   ApplicationListStatus,
   ApplicationListsApi,
   CourtLocationGetSummaryDto,
-  CourtLocationsApi,
   CriminalJusticeAreaGetDto,
-  CriminalJusticeAreasApi,
 } from '../../../generated/openapi';
 import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
@@ -33,10 +31,14 @@ import { SuggestionsComponent } from '../../shared/components/suggestions/sugges
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 import { attachLocationDisabler } from '../../shared/util/attach-location-disabler';
 import {
-  cjaMatches,
-  courtMatches,
-  filterSuggestions,
-} from '../../shared/util/suggestions';
+  onCjaInputChange,
+  onCourthouseInputChange,
+  selectCja as selectCjaHelper,
+  selectCourthouse as selectCourthouseHelper,
+} from '../../shared/util/court-cja-text-suggestions';
+import { has } from '../../shared/util/has';
+import { toTimeString } from '../../shared/util/time-helpers';
+import { toStatus } from '../../shared/util/to-status';
 
 type FieldKey =
   | 'date'
@@ -54,6 +56,33 @@ type CreateFormRaw = Pick<ApplicationListCreateDto, 'date' | 'description'> & {
   location: string | null;
   cja: string | null;
 };
+
+// Make shared helper functions stricter locally
+function assertString(v: string | undefined, msg: string): asserts v is string {
+  if (typeof v !== 'string') {
+    throw new Error(msg);
+  }
+}
+
+function assertStatus<T>(v: T | undefined, msg: string): asserts v is T {
+  if (v === undefined) {
+    throw new Error(msg);
+  }
+}
+
+function requireTime(t: Parameters<typeof toTimeString>[0]): string {
+  const v = toTimeString(t);
+  assertString(v, 'time is required');
+  return v;
+}
+
+function requireStatus(
+  s: Parameters<typeof toStatus>[0],
+): ApplicationListStatus {
+  const v = toStatus(s);
+  assertStatus<ApplicationListStatus>(v, 'status is required');
+  return v;
+}
 
 @Component({
   selector: 'app-applications-list',
@@ -80,8 +109,6 @@ export class ApplicationsListCreate implements OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly state: TransferState,
-    private readonly cjaApi: CriminalJusticeAreasApi,
-    private readonly courtLocationApi: CourtLocationsApi,
     private readonly appLists: ApplicationListsApi,
     private readonly ref: ReferenceDataFacade,
   ) {}
@@ -260,10 +287,6 @@ export class ApplicationsListCreate implements OnInit {
     this.errorHint = '';
   }
 
-  private has(x: unknown): boolean {
-    return x !== null && x !== undefined && x !== '' && x !== 'choose';
-  }
-
   private collectMissing(v: CreateFormRaw): { id: string; text: string }[] {
     const out: { id: string; text: string }[] = [];
     const need = (ok: boolean, id: string, text: string) => {
@@ -276,17 +299,17 @@ export class ApplicationsListCreate implements OnInit {
     const timeCtrl = this.form.controls.time;
 
     if (!dateCtrl.errors?.['dateInvalid']) {
-      need(this.has(v.date), 'date-day', 'Enter day, month and year');
+      need(has(v.date), 'date-day', 'Enter day, month and year');
     } else {
       need(
-        this.has(v.date),
+        has(v.date),
         'date-day',
         dateCtrl.errors?.['dateErrorText'] as string,
       );
     }
 
     if (!timeCtrl.errors?.['durationErrorText']) {
-      need(this.has(v.time), 'time-hours', 'Enter hours and minutes');
+      need(has(v.time), 'time-hours', 'Enter hours and minutes');
     } else {
       need(
         false,
@@ -295,12 +318,12 @@ export class ApplicationsListCreate implements OnInit {
       );
     }
 
-    need(this.has(v.description), 'description', 'Description is required');
-    need(this.has(v.status), 'status', 'Status is required');
+    need(has(v.description), 'description', 'Description is required');
+    need(has(v.status), 'status', 'Status is required');
 
-    const court = this.has(v.court);
-    const loc = this.has(v.location);
-    const cja = this.has(v.cja);
+    const court = has(v.court);
+    const loc = has(v.location);
+    const cja = has(v.cja);
 
     if (!court) {
       need(loc, 'location', 'Other location is required');
@@ -313,46 +336,21 @@ export class ApplicationsListCreate implements OnInit {
   }
 
   private validateCourtVsLocOrCja(v: CreateFormRaw): string | null {
-    const court = this.has(v.court);
-    const loc = this.has(v.location);
-    const cja = this.has(v.cja);
+    const court = has(v.court);
+    const loc = has(v.location);
+    const cja = has(v.cja);
     return court && (loc || cja)
       ? 'You can not have Court and Other Location or CJA filled in'
       : null;
   }
 
-  private toTimeString = (
-    t: { hours: number | null; minutes: number | null } | null,
-  ): string => {
-    const hours = t?.hours;
-    const minutes = t?.minutes;
-    if (hours === null || minutes === null) {
-      throw new Error('time required');
-    }
-
-    const hh = String(hours).padStart(2, '0');
-    const mm = String(minutes).padStart(2, '0');
-    return `${hh}:${mm}:00`;
-  };
-
-  private toStatus(s: unknown): ApplicationListStatus {
-    switch (String(s).toUpperCase()) {
-      case 'OPEN':
-        return ApplicationListStatus.OPEN;
-      case 'CLOSED':
-        return ApplicationListStatus.CLOSED;
-      default:
-        throw new Error('Invalid status');
-    }
-  }
-
   private buildPayload(raw: CreateFormRaw): ApplicationListCreateDto {
-    const useCourt = this.has(raw.court);
+    const useCourt = has(raw.court);
     return {
       date: raw.date,
-      time: this.toTimeString(raw.time),
+      time: requireTime(raw.time),
       description: (raw.description ?? '').trim(),
-      status: this.toStatus(raw.status),
+      status: requireStatus(raw.status),
       ...(useCourt
         ? { courtLocationCode: raw.court as string }
         : {
@@ -370,31 +368,32 @@ export class ApplicationsListCreate implements OnInit {
   }
 
   onCourthouseInputChange(): void {
-    this.form.controls.court.setValue(this.courthouseSearch || '');
-    this.filteredCourthouses = filterSuggestions(
-      this.courtLocations,
+    this.filteredCourthouses = onCourthouseInputChange(
+      this.form,
       this.courthouseSearch,
-      courtMatches,
+      this.courtLocations,
     );
   }
 
   onCjaInputChange(): void {
-    this.form.controls.cja.setValue(this.cjaSearch || '');
-    this.filteredCja = filterSuggestions(this.cja, this.cjaSearch, cjaMatches);
+    this.filteredCja = onCjaInputChange(this.form, this.cjaSearch, this.cja);
   }
 
-  selectCourthouse(c: { locationCode?: string }): void {
-    const label = c.locationCode ?? '';
-    this.courthouseSearch = label;
-    this.form.controls.court.setValue(label);
-    this.filteredCourthouses = [];
+  selectCourthouse(
+    c: { locationCode?: string } | CourtLocationGetSummaryDto,
+  ): void {
+    const { courthouseSearch, filteredCourthouses } = selectCourthouseHelper(
+      this.form,
+      c,
+    );
+    this.courthouseSearch = courthouseSearch;
+    this.filteredCourthouses = filteredCourthouses;
   }
 
-  selectCja(c: { code?: string }): void {
-    const label = c.code ?? '';
-    this.cjaSearch = label;
-    this.form.controls.cja.setValue(label);
-    this.filteredCja = [];
+  selectCja(c: { code?: string } | CriminalJusticeAreaGetDto): void {
+    const { cjaSearch, filteredCja } = selectCjaHelper(this.form, c);
+    this.cjaSearch = cjaSearch;
+    this.filteredCja = filteredCja;
   }
 
   onDelete(id: number): void {

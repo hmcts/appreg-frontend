@@ -20,10 +20,6 @@ onDelete():
   - DELETE list; 200/204 → remove row, mark done
   - Map 401/403/404/409/412/other to errorSummary
   - Always clear deletingId
-
-onUpdate():
-  TODO: Document this functionality
-
 */
 
 import { CommonModule, isPlatformBrowser } from '@angular/common';
@@ -44,9 +40,7 @@ import {
   ApplicationListGetSummaryDto,
   ApplicationListsApi,
   CourtLocationGetSummaryDto,
-  CourtLocationsApi,
   CriminalJusticeAreaGetDto,
-  CriminalJusticeAreasApi,
   GetApplicationListsRequestParams,
 } from '../../../generated/openapi';
 import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
@@ -74,15 +68,16 @@ import {
 } from '../../shared/context/concurrency-context';
 import { attachLocationDisabler } from '../../shared/util/attach-location-disabler';
 import {
-  cjaMatches,
-  courtMatches,
-  filterSuggestions,
-} from '../../shared/util/suggestions';
+  onCjaInputChange,
+  onCourthouseInputChange,
+  selectCja as selectCjaHelper,
+  selectCourthouse as selectCourthouseHelper,
+} from '../../shared/util/court-cja-text-suggestions';
+import { has } from '../../shared/util/has';
+import { normaliseTime } from '../../shared/util/time-helpers';
 
 import { getHttpStatus, statusSummary } from './util/delete-status';
-import { has } from './util/has';
 import { loadQuery } from './util/load-query';
-import { normaliseTime } from './util/time-helpers';
 
 type UiExtras = {
   deletable?: boolean;
@@ -184,8 +179,6 @@ export class ApplicationsList implements OnInit, AfterViewInit {
 
   constructor(
     @Inject(PLATFORM_ID) private readonly platformId: object,
-    private readonly courtLocationApi: CourtLocationsApi,
-    private readonly cjaApi: CriminalJusticeAreasApi,
     private readonly ref: ReferenceDataFacade,
     private readonly appListsApi: ApplicationListsApi,
   ) {}
@@ -319,11 +312,6 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     }
   }
 
-  onUpdate(row: ApplicationListRow): void {
-    // TODO: Update application list
-    console.log(row);
-  }
-
   onPageChange(page: number): void {
     this.currentPage = page;
   }
@@ -433,31 +421,32 @@ export class ApplicationsList implements OnInit, AfterViewInit {
   }
 
   onCourthouseInputChange(): void {
-    this.form.controls.court.setValue(this.courthouseSearch || '');
-    this.filteredCourthouses = filterSuggestions(
-      this.courtLocations,
+    this.filteredCourthouses = onCourthouseInputChange(
+      this.form,
       this.courthouseSearch,
-      courtMatches,
+      this.courtLocations,
     );
   }
 
   onCjaInputChange(): void {
-    this.form.controls.cja.setValue(this.cjaSearch || '');
-    this.filteredCja = filterSuggestions(this.cja, this.cjaSearch, cjaMatches);
+    this.filteredCja = onCjaInputChange(this.form, this.cjaSearch, this.cja);
   }
 
-  selectCourthouse(c: { locationCode?: string }): void {
-    const label = c.locationCode ?? '';
-    this.courthouseSearch = label;
-    this.form.controls.court.setValue(label);
-    this.filteredCourthouses = [];
+  selectCourthouse(
+    c: { locationCode?: string } | CourtLocationGetSummaryDto,
+  ): void {
+    const { courthouseSearch, filteredCourthouses } = selectCourthouseHelper(
+      this.form,
+      c,
+    );
+    this.courthouseSearch = courthouseSearch;
+    this.filteredCourthouses = filteredCourthouses;
   }
 
-  selectCja(c: { code?: string }): void {
-    const label = c.code ?? '';
-    this.cjaSearch = label;
-    this.form.controls.cja.setValue(label);
-    this.filteredCja = [];
+  selectCja(c: { code?: string } | CriminalJusticeAreaGetDto): void {
+    const { cjaSearch, filteredCja } = selectCjaHelper(this.form, c);
+    this.cjaSearch = cjaSearch;
+    this.filteredCja = filteredCja;
   }
 
   focusField(id: string, e: Event): void {

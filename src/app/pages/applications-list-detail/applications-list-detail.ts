@@ -1,5 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  Inject,
+  OnInit,
+  PLATFORM_ID,
+} from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -7,7 +13,13 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { Subscription } from 'rxjs';
 
+import {
+  CourtLocationGetSummaryDto,
+  CriminalJusticeAreaGetDto,
+} from '../../../generated/openapi';
+import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
@@ -17,7 +29,15 @@ import {
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
+import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
+import { attachLocationDisabler } from '../../shared/util/attach-location-disabler';
+import {
+  onCjaInputChange,
+  onCourthouseInputChange,
+  selectCja as selectCjaHelper,
+  selectCourthouse as selectCourthouseHelper,
+} from '../../shared/util/court-cja-text-suggestions';
 
 type DurationValue = { hours: string; minutes: string };
 
@@ -35,12 +55,14 @@ type DurationValue = { hours: string; minutes: string };
     SortableTableComponent,
     PaginationComponent,
     BreadcrumbsComponent,
+    SuggestionsComponent,
   ],
   templateUrl: './applications-list-detail.html',
 })
-export class ApplicationsListDetail implements AfterViewInit {
+export class ApplicationsListDetail implements AfterViewInit, OnInit {
   id!: number;
   currentFragment: string | null = null;
+  private locationDisabler?: Subscription;
 
   status = [
     { label: 'Choose', value: 'choose' },
@@ -78,6 +100,37 @@ export class ApplicationsListDetail implements AfterViewInit {
     { header: 'Actions', field: 'actions', sortable: false },
   ];
 
+  // CJA + Court location vars
+  cja: CriminalJusticeAreaGetDto[] = [];
+  filteredCja: CriminalJusticeAreaGetDto[] = [];
+  cjaSearch = '';
+
+  courtLocations: CourtLocationGetSummaryDto[] = [];
+  filteredCourthouses: CourtLocationGetSummaryDto[] = [];
+  courthouseSearch = '';
+
+  ngOnInit(): void {
+    this.courthouseSearch = String(this.form.controls.court.value ?? '');
+    this.cjaSearch = String(this.form.controls.cja.value ?? '');
+
+    this.ref.courtLocations$.subscribe(
+      (items) => (this.courtLocations = items),
+    );
+    this.ref.cja$.subscribe((items) => (this.cja = items));
+
+    // Disable based fields
+    this.locationDisabler = attachLocationDisabler({
+      court: this.form.controls.court,
+      location: this.form.controls.location,
+      cja: this.form.controls.cja,
+    });
+  }
+
+  constructor(
+    @Inject(PLATFORM_ID) private readonly platformId: object,
+    private readonly ref: ReferenceDataFacade,
+  ) {}
+
   ngAfterViewInit(): void {
     // Not implemented yet
   }
@@ -92,8 +145,41 @@ export class ApplicationsListDetail implements AfterViewInit {
     // TODO: fetch lists
   }
 
+  onUpdate(): void {
+    // TODO: Update application list
+  }
+
   onPageChange(page: number): void {
     this.currentPage = page;
     this.loadApplicationsLists(); // fetch page `page`
+  }
+
+  onCourthouseInputChange(): void {
+    this.filteredCourthouses = onCourthouseInputChange(
+      this.form,
+      this.courthouseSearch,
+      this.courtLocations,
+    );
+  }
+
+  onCjaInputChange(): void {
+    this.filteredCja = onCjaInputChange(this.form, this.cjaSearch, this.cja);
+  }
+
+  selectCourthouse(
+    c: { locationCode?: string } | CourtLocationGetSummaryDto,
+  ): void {
+    const { courthouseSearch, filteredCourthouses } = selectCourthouseHelper(
+      this.form,
+      c,
+    );
+    this.courthouseSearch = courthouseSearch;
+    this.filteredCourthouses = filteredCourthouses;
+  }
+
+  selectCja(c: { code?: string } | CriminalJusticeAreaGetDto): void {
+    const { cjaSearch, filteredCja } = selectCjaHelper(this.form, c);
+    this.cjaSearch = cjaSearch;
+    this.filteredCja = filteredCja;
   }
 }

@@ -7,7 +7,7 @@ Process: conforms time inputs into strings
 Outputs: string "HH:mm", "HH:mm:ss", "HH:mm:ss.sssZ"
 */
 
-import { Duration } from '../../../shared/components/duration-input/duration-input.component';
+import { Duration } from '../components/duration-input/duration-input.component';
 
 export function toTimeString(
   v: Duration | null | undefined,

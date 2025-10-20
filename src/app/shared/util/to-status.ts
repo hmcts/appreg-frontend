@@ -7,7 +7,7 @@ Process: Trims string and returns ApplicationListStatus type
 Output: ApplicationListStatus (OpenAPI generated model based on spec)
 */
 
-import { ApplicationListStatus } from '../../../../generated/openapi';
+import { ApplicationListStatus } from '../../../generated/openapi';
 
 export function toStatus(
   s: string | null | undefined,
