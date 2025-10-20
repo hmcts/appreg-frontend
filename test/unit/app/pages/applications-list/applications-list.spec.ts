@@ -16,9 +16,25 @@ import {
   ROW_VERSION,
 } from '../../../../../src/app/shared/context/concurrency-context';
 import {
+  ApplicationListGetFilterDto,
+  ApplicationListGetSummaryDto,
+  ApplicationListPage,
   ApplicationListStatus,
   ApplicationListsApi,
+  CourtLocationsApi,
+  CriminalJusticeAreasApi,
+  GetApplicationListsRequestParams,
 } from '../../../../../src/generated/openapi';
+
+const applicationsListsApiMock = { getApplicationLists: jest.fn() };
+
+// used by ReferenceDataFacade
+const courtLocationsApiMock = {
+  getCourtLocations: jest.fn().mockReturnValue(of({ content: [] })),
+};
+const cjaApiMock = {
+  getCriminalJusticeAreas: jest.fn().mockReturnValue(of({ content: [] })),
+};
 
 describe('ApplicationsList – delete flow (server platform: no confirm)', () => {
   let fixture: ComponentFixture<ApplicationsList>;
@@ -261,5 +277,169 @@ describe('ApplicationsList – delete flow (browser platform: confirm cancel)', 
     expect(component.errorSummary).toEqual([]);
     expect(component.rows).toHaveLength(1);
     expect(component.deletingId).toBeNull();
+  });
+});
+
+describe('ApplicationsList – search', () => {
+  let fixture: ComponentFixture<ApplicationsList>;
+  let component: ApplicationsList;
+  let service: { getApplicationLists: jest.Mock };
+
+  beforeEach(async () => {
+    applicationsListsApiMock.getApplicationLists.mockReset();
+    applicationsListsApiMock.getApplicationLists.mockReturnValue(
+      of({ content: [], totalPages: 0, totalElements: 0, number: 0, size: 25 }),
+    );
+
+    await TestBed.configureTestingModule({
+      imports: [ApplicationsList],
+      providers: [
+        provideRouter([]),
+        { provide: ApplicationListsApi, useValue: applicationsListsApiMock },
+        { provide: CourtLocationsApi, useValue: courtLocationsApiMock },
+        { provide: CriminalJusticeAreasApi, useValue: cjaApiMock },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(ApplicationsList);
+    component = fixture.componentInstance;
+    service = TestBed.inject(ApplicationListsApi) as unknown as {
+      getApplicationLists: jest.Mock;
+    };
+
+    component.pageSize = 25;
+    component.currentPage = 1;
+    fixture.detectChanges();
+  });
+
+  const pageStub = (
+    content: ReadonlyArray<Partial<ApplicationListGetSummaryDto>>,
+    extras?: Partial<ApplicationListPage>,
+    pageNumber = 0,
+    pageSize = 25,
+  ): ApplicationListPage => ({
+    pageNumber,
+    pageSize,
+    totalElements: 134,
+    totalPages: 6,
+    first: pageNumber === 0,
+    last: false,
+    elementsOnPage: content.length,
+    sort: {} as unknown as ApplicationListPage['sort'],
+    content: content as ApplicationListGetSummaryDto[],
+    ...extras,
+  });
+
+  it('requests first page without filter when hasParams=false', () => {
+    service.getApplicationLists.mockReturnValue(of(pageStub([])));
+    component.loadApplicationsLists(false);
+    const args = service.getApplicationLists.mock
+      .calls[0][0] as GetApplicationListsRequestParams;
+    expect(args).toEqual({});
+  });
+
+  it('merges filter when hasParams=true', () => {
+    jest
+      .spyOn(
+        component as unknown as {
+          loadQuery: () => ApplicationListGetFilterDto;
+        },
+        'loadQuery',
+      )
+      .mockReturnValue({
+        status: ApplicationListStatus.OPEN,
+        courtLocationCode: 'LOC1',
+      });
+
+    service.getApplicationLists.mockReturnValue(of(pageStub([])));
+
+    applicationsListsApiMock.getApplicationLists.mockClear();
+    component.loadApplicationsLists(true);
+    const args = service.getApplicationLists.mock
+      .calls[0][0] as GetApplicationListsRequestParams;
+    expect(args.filter).toEqual({
+      status: ApplicationListStatus.OPEN,
+      courtLocationCode: 'LOC1',
+    });
+  });
+
+  it('formats date as YYYY-MM-DD and trims time to HH:mm', () => {
+    service.getApplicationLists.mockReturnValue(
+      of(
+        pageStub([
+          {
+            id: 'x1',
+            date: '2025-09-17',
+            time: '14:05:33.000Z',
+            location: 'Court A',
+            description: 'Desc',
+            numberOfEntries: 7,
+            status: ApplicationListStatus.OPEN,
+          },
+        ]),
+      ),
+    );
+    component.loadApplicationsLists(false);
+    expect(component.rows).toHaveLength(1);
+    expect(component.rows[0].date).toBe('2025-09-17');
+    expect(component.rows[0].time).toBe('14:05');
+    expect(component.rows[0].entries).toBe(7);
+  });
+
+  it('sets totals from page response', () => {
+    service.getApplicationLists.mockReturnValue(
+      of(pageStub([], { totalElements: 10, totalPages: 2 })),
+    );
+    component.loadApplicationsLists(false);
+    expect(component.totalPages).toBe(2);
+  });
+
+  it('handles backend error: clears rows, zeros totals, sets submitted and searchErrors', () => {
+    service.getApplicationLists.mockReturnValue(
+      throwError(() => new Error('boom')),
+    );
+    component.rows = [
+      {
+        id: 'keep',
+        date: '2025-01-01',
+        time: '10:00',
+        location: '',
+        description: '',
+        entries: 0,
+        status: ApplicationListStatus.OPEN,
+      },
+    ];
+    component.totalPages = 3;
+    component.submitted = false;
+    component.searchErrors = [];
+    component.loadApplicationsLists(false);
+    expect(component.rows).toHaveLength(0);
+    expect(component.totalPages).toBe(0);
+    expect(component.submitted).toBe(true);
+    expect(component.searchErrors[0]).toEqual({ id: 'search', text: 'boom' });
+  });
+
+  it('omits filter entirely when hasParams=false', () => {
+    service.getApplicationLists.mockReturnValue(of(pageStub([])));
+    component.loadApplicationsLists(false);
+    const args = service.getApplicationLists.mock
+      .calls[0][0] as GetApplicationListsRequestParams;
+    expect('filter' in args).toBe(false);
+  });
+
+  it('includes filter object when hasParams=true even if partial', () => {
+    jest
+      .spyOn(
+        component as unknown as {
+          loadQuery: () => ApplicationListGetFilterDto;
+        },
+        'loadQuery',
+      )
+      .mockReturnValue({ status: ApplicationListStatus.CLOSED });
+    service.getApplicationLists.mockReturnValue(of(pageStub([])));
+    component.loadApplicationsLists(true);
+    const args = service.getApplicationLists.mock
+      .calls[0][0] as GetApplicationListsRequestParams;
+    expect(args.filter).toEqual({ status: 'CLOSED' });
   });
 });

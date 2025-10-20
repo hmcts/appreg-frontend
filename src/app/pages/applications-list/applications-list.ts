@@ -10,15 +10,18 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { Subscription, firstValueFrom } from 'rxjs';
+import { Subject, Subscription, firstValueFrom, takeUntil } from 'rxjs';
 
 import {
+  ApplicationListGetFilterDto,
   ApplicationListGetSummaryDto,
   ApplicationListStatus,
   ApplicationListsApi,
   CourtLocationGetSummaryDto,
   CourtLocationsApi,
   CriminalJusticeAreaGetDto,
+  CriminalJusticeAreasApi,
+  GetApplicationListsRequestParams,
 } from '../../../generated/openapi';
 import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
@@ -102,6 +105,7 @@ function getHttpStatus(err: unknown): number {
 export class ApplicationsList implements OnInit, AfterViewInit {
   private _id: string | undefined;
   private locationDisabler?: Subscription;
+  private readonly destroy$ = new Subject<void>();
   openMenuForId: string | null = null;
   openPrintSelectForId: string | null = null;
 
@@ -119,6 +123,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
   isSearch: boolean = false;
   deleteDone: boolean = false;
   deleteInvalid: boolean = false;
+  isLoading: boolean = false;
 
   // Error summary
   errorHint = '';
@@ -139,6 +144,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
 
   currentPage = 1;
   totalPages = 5;
+  pageSize = 25;
 
   columns: TableColumn[] = [
     { header: 'Date', field: 'date' },
@@ -161,12 +167,12 @@ export class ApplicationsList implements OnInit, AfterViewInit {
   constructor(
     @Inject(PLATFORM_ID) private readonly platformId: object,
     private readonly courtLocationApi: CourtLocationsApi,
+    private readonly cjaApi: CriminalJusticeAreasApi,
     private readonly ref: ReferenceDataFacade,
     private readonly appListsApi: ApplicationListsApi,
   ) {}
 
   ngOnInit(): void {
-    this.loadApplicationsLists();
     this.courthouseSearch = String(this.form.controls.court.value ?? '');
     this.cjaSearch = String(this.form.controls.cja.value ?? '');
 
@@ -185,6 +191,8 @@ export class ApplicationsList implements OnInit, AfterViewInit {
 
   ngOnDestroy(): void {
     this.locationDisabler?.unsubscribe();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   ngAfterViewInit(): void {
@@ -192,7 +200,189 @@ export class ApplicationsList implements OnInit, AfterViewInit {
       return;
     }
 
-    void import('@ministryofjustice/frontend')
+    void this.initMojMenus();
+  }
+
+  onSubmit(event: SubmitEvent): void {
+    event.preventDefault();
+    const btn = event.submitter as HTMLButtonElement | null;
+    const action = btn?.value ?? 'search';
+
+    // Reset flag
+    this.searchErrors = [];
+    this.submitted = false;
+    this.isSearch = false;
+    this.rows = [];
+
+    this.errorHint = 'An error has occurred...';
+
+    const dateCtrl = this.form.controls.date;
+    const timeCtrl = this.form.controls.time;
+    if (dateCtrl.errors?.['dateInvalid']) {
+      this.searchErrors.push({
+        id: 'date-day',
+        text: dateCtrl.errors['dateErrorText'] as string,
+      });
+    }
+
+    if (timeCtrl.errors?.['durationInvalid']) {
+      this.searchErrors.push({
+        id: 'time-hours',
+        text: timeCtrl.errors['durationErrorText'] as string,
+      });
+    }
+
+    const hasAny =
+      this.has(this.form.value.date) ||
+      this.has(this.form.value.time) ||
+      this.has(this.form.value.description) ||
+      this.has(this.form.value.status) ||
+      this.has(this.form.value.court) ||
+      this.has(this.form.value.location) ||
+      this.has(this.form.value.cja);
+
+    if (action === 'search') {
+      this.submitted = true;
+      this.isSearch = true;
+      this.currentPage = 1;
+      this.loadApplicationsLists(hasAny);
+    }
+  }
+
+  loadApplicationsLists(hasParams: boolean): void {
+    if (this.isLoading) {
+      return;
+    }
+
+    const params: GetApplicationListsRequestParams = {
+      ...(hasParams ? { filter: this.loadQuery() } : {}),
+    };
+
+    this.isLoading = true;
+    this.appListsApi
+      .getApplicationLists(params, undefined, undefined, {
+        transferCache: false,
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (page) => {
+          this.searchErrors = [];
+          this.submitted = true;
+          this.totalPages = page.totalPages ?? 0;
+          const content: ApplicationListGetSummaryDto[] = page.content ?? [];
+          this.rows = content.map((x) => this.toRow(x));
+          this.afterRowsRendered();
+          this.isLoading = false;
+        },
+        error: (err) => {
+          this.submitted = true;
+          this.rows = [];
+          this.totalPages = 0;
+          this.isLoading = false;
+          const msg =
+            err instanceof Error ? err.message : 'Unable to load lists';
+          this.searchErrors = [{ id: 'search', text: msg }];
+        },
+      });
+  }
+
+  private loadQuery(): ApplicationListGetFilterDto {
+    const raw = this.form.getRawValue() as {
+      date?: string | null;
+      time?: Duration | null;
+      description?: string | null;
+      status?: string | null;
+      court?: string | null;
+      location?: string | null;
+      cja?: string | null;
+    };
+
+    const query: Partial<ApplicationListGetFilterDto> = {};
+
+    const set = <K extends keyof ApplicationListGetFilterDto>(
+      k: K,
+      v: ApplicationListGetFilterDto[K] | undefined,
+    ) => {
+      if (v !== undefined && v !== null && v !== '') {
+        query[k] = v;
+      }
+    };
+
+    set('date', raw.date || undefined);
+    set('time', this.toTimeString(raw.time));
+    set('description', raw.description || undefined);
+    set('status', this.toStatus(raw.status));
+    set('courtLocationCode', raw.court || undefined);
+    set('otherLocationDescription', raw.location || undefined);
+    set('cjaCode', raw.cja || undefined);
+
+    return query as ApplicationListGetFilterDto;
+  }
+
+  private toRow(x: ApplicationListGetSummaryDto): ApplicationListRow {
+    return {
+      id: x.id,
+      date: x.date,
+      time: this.normaliseTime(x.time) ?? '',
+      location: x.location,
+      description: x.description,
+      entries: x.numberOfEntries,
+      status: x.status,
+      deletable: false,
+      etag: null,
+      rowVersion: null,
+    };
+  }
+
+  private toStatus(
+    s: string | null | undefined,
+  ): ApplicationListStatus | undefined {
+    const v = s?.trim();
+    if (!v || v.toLowerCase() === 'choose') {
+      return undefined;
+    }
+
+    switch (v.toUpperCase()) {
+      case 'OPEN':
+        return ApplicationListStatus.OPEN;
+      case 'CLOSED':
+        return ApplicationListStatus.CLOSED;
+      default:
+        return undefined;
+    }
+  }
+
+  private toTimeString(v: Duration | null | undefined): string | undefined {
+    if (!v) {
+      return undefined;
+    }
+    const { hours, minutes } = v;
+    const hh = String(hours).padStart(2, '0');
+    const mm = String(minutes).padStart(2, '0');
+    return `${hh}:${mm}`;
+  }
+
+  private normaliseTime(t: string | null | undefined): string {
+    if (!t) {
+      return '';
+    }
+    // accept "HH:mm", "HH:mm:ss", "HH:mm:ss.sssZ"
+    const m = t.match(/^(\d{2}):(\d{2})(?::(\d{2}))?/);
+    return m ? `${m[1]}:${m[2]}` : '';
+  }
+
+  private afterRowsRendered(): void {
+    setTimeout(() => {
+      void this.initMojMenus();
+    });
+  }
+
+  private async initMojMenus(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    void (await import('@ministryofjustice/frontend')
       .then(({ ButtonMenu }) => {
         const nodes = document.querySelectorAll<HTMLElement>(
           '[data-module="moj-button-menu"]',
@@ -214,173 +404,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
       })
       .catch(() => {
         // no-op for non-browser/test environments
-      });
-  }
-
-  onSubmit(event: SubmitEvent): void {
-    event.preventDefault();
-    const btn = event.submitter as HTMLButtonElement | null;
-    const action = btn?.value ?? 'search';
-
-    // Reset flag
-    this.searchErrors = [];
-    this.submitted = false;
-    this.isSearch = false;
-    this.rows = [];
-
-    // Get form values
-    const query = {
-      date: this.form.value.date,
-      time: this.form.value.time,
-      description: this.form.value.description,
-      status: this.form.value.status,
-      court: this.form.value.court,
-      location: this.form.value.location,
-      cja: this.form.value.cja,
-    };
-
-    this.errorHint = 'An error has occurred...';
-
-    const dateCtrl = this.form.controls.date;
-    const timeCtrl = this.form.controls.time;
-    if (dateCtrl.errors?.['dateInvalid']) {
-      this.searchErrors.push({
-        id: 'date-day',
-        text: dateCtrl.errors['dateErrorText'] as string,
-      });
-    }
-
-    if (timeCtrl.errors?.['durationInvalid']) {
-      this.searchErrors.push({
-        id: 'time-hours',
-        text: timeCtrl.errors['durationErrorText'] as string,
-      });
-    }
-
-    const hasAny =
-      query.date ||
-      query.time ||
-      query.description ||
-      query.status ||
-      query.court ||
-      query.location ||
-      query.cja;
-
-    if (action === 'search') {
-      this.submitted = true;
-      this.isSearch = true;
-      if (!hasAny) {
-        // No values found in form, run GET ALL
-        // TODO: run GET ALL
-
-        // This is placeholder code
-        this.rows = [
-          {
-            id: '101',
-            date: '2025-09-29',
-            time: '09:30',
-            location: 'Birmingham',
-            description: 'Morning list',
-            entries: 12,
-            status: ApplicationListStatus.OPEN,
-          },
-        ];
-      } else {
-        // Values found, run query with parameters
-        // TODO: run GET with params
-
-        // Placeholder code
-        this.rows = [
-          {
-            id: '102',
-            date: '2025-09-30',
-            time: '09:31',
-            location: 'Place',
-            description: 'Morning list',
-            entries: 12,
-            status: ApplicationListStatus.OPEN,
-          },
-        ];
-      }
-    }
-  }
-
-  loadApplicationsLists(): void {
-    // Hard-coded sample data for now (ids as strings to match API)
-    this.rows = [
-      {
-        id: '101',
-        date: '2025-09-29',
-        time: '09:30',
-        location: 'Birmingham',
-        description: 'Morning list',
-        entries: 12,
-        status: ApplicationListStatus.OPEN,
-      },
-      {
-        id: '102',
-        date: '2025-09-29',
-        time: '13:45',
-        location: 'Birmingham',
-        description: 'Afternoon list',
-        entries: 8,
-        status: ApplicationListStatus.CLOSED,
-      },
-      {
-        id: '103',
-        date: '2025-09-30',
-        time: '10:00',
-        location: 'Manchester',
-        description: 'Applications block',
-        entries: 16,
-        status: ApplicationListStatus.OPEN,
-      },
-      {
-        id: '104',
-        date: '2025-09-30',
-        time: '14:15',
-        location: 'Manchester',
-        description: 'Enforcement',
-        entries: 5,
-        status: ApplicationListStatus.CLOSED,
-      },
-      {
-        id: '105',
-        date: '2025-10-01',
-        time: '09:00',
-        location: 'Bristol',
-        description: 'Housing list',
-        entries: 20,
-        status: ApplicationListStatus.OPEN,
-      },
-      {
-        id: '106',
-        date: '2025-10-01',
-        time: '11:30',
-        location: 'Bristol',
-        description: 'Small claims',
-        entries: 9,
-        status: ApplicationListStatus.OPEN,
-      },
-      {
-        id: '107',
-        date: '2025-10-02',
-        time: '10:45',
-        location: 'Leeds',
-        description: 'Family applications',
-        entries: 14,
-        status: ApplicationListStatus.CLOSED,
-      },
-      {
-        id: '108',
-        date: '2025-10-02',
-        time: '15:00',
-        location: 'Leeds',
-        description: 'Costs review',
-        entries: 6,
-        status: ApplicationListStatus.OPEN,
-      },
-    ];
+      }));
   }
 
   onCourthouseInputChange(): void {
@@ -418,6 +442,10 @@ export class ApplicationsList implements OnInit, AfterViewInit {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       el.focus({ preventScroll: true });
     }
+  }
+
+  private has(x: unknown): boolean {
+    return x !== null && x !== undefined && x !== '' && x !== 'choose';
   }
 
   async onDelete(row: ApplicationListRow): Promise<void> {
