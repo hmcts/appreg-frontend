@@ -58,7 +58,6 @@ const apiScopes: string[] = config.has('api.scopes')
   : [];
 
 // ----- Platform modules
-
 new Helmet(developmentMode).enableFor(app);
 AppInsights.enable();
 
@@ -67,6 +66,9 @@ const logger: HmctsLogger = HmctsLoggerBridge.enable(
   'hmcts applications register - server',
   AppInsights.client(),
 );
+
+const tenantId = config.get<string>('secrets.appreg.azure-tenant-id-fe');
+logger.info('tenantId: ', tenantId);
 
 // ----- Session (must be before auth/proxy/SSR so req.session is available everywhere)
 app.use(
