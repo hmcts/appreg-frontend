@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { NextFunction } from 'express';
 import type { Express, Request, Response } from 'express';
 import session, { Session, SessionData } from 'express-session';
 import request from 'supertest';
@@ -79,6 +79,7 @@ describe('GET /sso/login', () => {
       class ConfidentialClientApplication {
         getAuthCodeUrl = getAuthCodeUrl;
       }
+
       return { ConfidentialClientApplication };
     });
 
@@ -192,10 +193,12 @@ describe('GET /sso/login-callback', () => {
     jest.doMock('@azure/msal-node', () => {
       class ConfidentialClientApplication {
         acquireTokenByCode = acquireTokenByCode;
+
         getTokenCache() {
           return { serialize };
         }
       }
+
       return { ConfidentialClientApplication };
     });
 
@@ -341,6 +344,166 @@ describe('GET /sso/login-callback', () => {
     expect(logger.error).toHaveBeenCalledTimes(1);
     expect(String(logger.error.mock.calls[0][1])).toMatch(
       /\/sso\/login-callback/,
+    );
+  });
+});
+
+describe('GET /sso/logout', () => {
+  const prepareApp = async (opts?: {
+    tenantId?: string;
+    postLogoutRedirectUri?: string;
+    asyncDestroy?: boolean; // ← new: make destroy callback async for this app
+  }) => {
+    jest.resetModules();
+
+    // Mock config + logger FIRST
+    jest.doMock('config', () => buildConfigMock(), { virtual: true });
+    const logger = { error: jest.fn(), info: jest.fn(), warn: jest.fn() };
+    jest.doMock(
+      '@hmcts/nodejs-logging',
+      () => ({ Logger: { getLogger: () => logger } }),
+      { virtual: true },
+    );
+
+    // Stub MSAL (not used in logout, but safe at import time)
+    jest.doMock('@azure/msal-node', () => {
+      class ConfidentialClientApplication {
+        getAuthCodeUrl() {
+          throw new Error('Not used in logout tests');
+        }
+        acquireTokenByCode() {
+          throw new Error('Not used in logout tests');
+        }
+        getTokenCache() {
+          return { serialize: () => 'SERIALIZED_CACHE' };
+        }
+      }
+      return { ConfidentialClientApplication };
+    });
+
+    const routes = (await import('../../src/routes/sso')) as RoutesModule;
+
+    const app: Express = express();
+    app.use(
+      session({
+        secret: 'test-secret',
+        resave: false,
+        saveUninitialized: true,
+        cookie: { secure: false },
+      }),
+    );
+
+    // 🔑 Install the destroy spy BEFORE routes so the route uses it
+    let destroySpy:
+      | jest.SpyInstance<
+          ReturnType<Session['destroy']>,
+          Parameters<Session['destroy']>
+        >
+      | undefined;
+
+    app.use((req: Request, _res: Response, next: NextFunction) => {
+      const s = req.session as Session;
+      type Destroy = typeof s.destroy;
+      type DestroyCb = Parameters<Destroy>[0];
+      type DestroyRet = ReturnType<Destroy>;
+
+      destroySpy = jest
+        .spyOn(s, 'destroy')
+        .mockImplementation((cb: DestroyCb): DestroyRet => {
+          if (opts?.asyncDestroy) {
+            setTimeout(() => cb?.(undefined), 0);
+          } else {
+            cb?.(undefined);
+          }
+          return s; // match express-session typings
+        });
+
+      next();
+    });
+
+    // Attach routes AFTER spy is in place
+    const tenantId = opts?.tenantId ?? 'my-tenant';
+    const postLogoutRedirectUri =
+      opts?.postLogoutRedirectUri ?? 'http://localhost/after-signout?x=1&y=two';
+
+    if (routes.setupSsoRoutes) {
+      routes.setupSsoRoutes(app, {
+        tenantId,
+        clientId: 'client-abc',
+        clientSecret: 'secret-xyz',
+        redirectUri: 'http://localhost/callback',
+        scopes: ['user.read'],
+        postLogoutRedirectUri,
+      });
+    } else if (routes.router) {
+      app.use(routes.router);
+    } else {
+      throw new Error(
+        'Expected module to export setupSsoRoutes(app, opts) or router',
+      );
+    }
+
+    // Proper 4-arg error handler
+    app.use((_req: Request, res: Response) => {
+      res.status(500).send('Internal error');
+    });
+
+    return {
+      app,
+      logger,
+      destroySpyRef: () => destroySpy,
+      tenantId,
+      postLogoutRedirectUri,
+    };
+  };
+
+  const buildExpectedLogoutUrl = (
+    tenantId: string,
+    postLogoutRedirectUri: string,
+  ): string =>
+    `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/logout` +
+    `?post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`;
+
+  type DestroySpy = jest.SpyInstance<
+    ReturnType<Session['destroy']>,
+    Parameters<Session['destroy']>
+  >;
+
+  const assertLogoutRedirect = async (
+    app: Express,
+    expectedUrl: string,
+    destroySpyRef: () => DestroySpy | undefined,
+  ): Promise<void> => {
+    const res = await request(app).get('/sso/logout');
+
+    expect(res.status).toBe(302);
+    const location = res.headers['location']; // TS4111-safe
+    expect(location).toBe(expectedUrl);
+
+    const spy = destroySpyRef();
+    expect(spy).toBeDefined();
+    expect(spy?.mock.calls.length).toBe(1);
+  };
+
+  test('destroys the session and redirects to Entra logout with post_logout_redirect_uri', async () => {
+    const { app, destroySpyRef, tenantId, postLogoutRedirectUri } =
+      await prepareApp();
+
+    await assertLogoutRedirect(
+      app,
+      buildExpectedLogoutUrl(tenantId, postLogoutRedirectUri),
+      destroySpyRef,
+    );
+  });
+
+  test('still redirects when destroy calls back asynchronously', async () => {
+    const { app, destroySpyRef, tenantId, postLogoutRedirectUri } =
+      await prepareApp({ asyncDestroy: true });
+
+    await assertLogoutRedirect(
+      app,
+      buildExpectedLogoutUrl(tenantId, postLogoutRedirectUri),
+      destroySpyRef,
     );
   });
 });
