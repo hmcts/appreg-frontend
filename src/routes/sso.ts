@@ -39,7 +39,8 @@ const redirectUri = config.get<string>('auth.redirectUri');
 const scopes = config.get<string[]>('auth.scopes');
 const postLogoutRedirectUri = config.get<string>('auth.postLogoutRedirectUri');
 
-// Optional: make window/max configurable; provide sensible defaults
+logger.info('tenantId: ', tenantId);
+
 const loginRateWindowMs =
   (config.has?.('rateLimit.login.windowMs') &&
     config.get<number>('rateLimit.login.windowMs')) ||
