@@ -1,6 +1,6 @@
 get:
   operationId: getCourtLocations
-  tags: [court-locations]
+  tags: [ court-locations ]
   summary: Get Court Locations (paginated, filterable)
   description: |
     Returns a paginated list of Court Locations.
@@ -22,8 +22,7 @@ get:
       description: Zero-based page index.
     - in: query
       name: size
-      schema:
-        { type: integer, format: int32, minimum: 1, default: 10, maximum: 100 }
+      schema: { type: integer, format: int32, minimum: 1, default: 10, maximum: 100}
       description: Page size.
     - in: query
       name: sort
@@ -35,9 +34,9 @@ get:
       schema:
         type: array
         items: { type: string }
-        example: ['name,asc', 'code,desc']
+        example: [ "name,asc", "code,desc" ]
   responses:
-    '200':
+    "200":
       description: Page of summarised Court Locations
       headers:
         Vary:
@@ -45,12 +44,9 @@ get:
           schema: { type: string, example: Accept }
       content:
         application/vnd.hmcts.appreg.v1+json:
-          schema:
-            {
-              $ref: '../../components/schemas/court-locations/court-location-page.yaml',
-            }
-    '400': { $ref: '../../components/responses/bad-request-error.yaml' }
-    '401': { $ref: '../../components/responses/unauthorized-error.yaml' }
-    '403': { $ref: '../../components/responses/forbidden-error.yaml' }
-    '406': { $ref: '../../components/responses/not-acceptable-error.yaml' }
-    '500': { $ref: '../../components/responses/internal-server-error.yaml' }
+          schema: { $ref: "../../components/schemas/court-locations/court-location-page.yaml" }
+    "400": { $ref: "../../components/responses/bad-request-error.yaml" }
+    "401": { $ref: "../../components/responses/unauthorized-error.yaml" }
+    "403": { $ref: "../../components/responses/forbidden-error.yaml" }
+    "406": { $ref: "../../components/responses/not-acceptable-error.yaml" }
+    "500": { $ref: "../../components/responses/internal-server-error.yaml" }
