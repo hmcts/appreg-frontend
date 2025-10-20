@@ -200,29 +200,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
       return;
     }
 
-    void import('@ministryofjustice/frontend')
-      .then(({ ButtonMenu }) => {
-        const nodes = document.querySelectorAll<HTMLElement>(
-          '[data-module="moj-button-menu"]',
-        );
-
-        for (const el of nodes) {
-          const flagged = el as MojInitEl;
-          if (flagged.__mojInit) {
-            continue;
-          }
-
-          const instance = new ButtonMenu(flagged);
-          if (typeof (instance as { init?: () => void }).init === 'function') {
-            instance.init();
-          }
-
-          flagged.__mojInit = true;
-        }
-      })
-      .catch(() => {
-        // no-op for non-browser/test environments
-      });
+    void this.initMojMenus();
   }
 
   onSubmit(event: SubmitEvent): void {
@@ -293,6 +271,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
           this.totalPages = page.totalPages ?? 0;
           const content: ApplicationListGetSummaryDto[] = page.content ?? [];
           this.rows = content.map((x) => this.toRow(x));
+          this.afterRowsRendered();
           this.isLoading = false;
         },
         error: (err) => {
@@ -390,6 +369,42 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     // accept "HH:mm", "HH:mm:ss", "HH:mm:ss.sssZ"
     const m = t.match(/^(\d{2}):(\d{2})(?::(\d{2}))?/);
     return m ? `${m[1]}:${m[2]}` : '';
+  }
+
+  private afterRowsRendered(): void {
+    setTimeout(() => {
+      void this.initMojMenus();
+    });
+  }
+
+  private async initMojMenus(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    void (await import('@ministryofjustice/frontend')
+      .then(({ ButtonMenu }) => {
+        const nodes = document.querySelectorAll<HTMLElement>(
+          '[data-module="moj-button-menu"]',
+        );
+
+        for (const el of nodes) {
+          const flagged = el as MojInitEl;
+          if (flagged.__mojInit) {
+            continue;
+          }
+
+          const instance = new ButtonMenu(flagged);
+          if (typeof (instance as { init?: () => void }).init === 'function') {
+            instance.init();
+          }
+
+          flagged.__mojInit = true;
+        }
+      })
+      .catch(() => {
+        // no-op for non-browser/test environments
+      }));
   }
 
   onCourthouseInputChange(): void {
