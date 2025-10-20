@@ -213,7 +213,7 @@ describe('GET /sso/login-callback', () => {
         secret: 'test-secret',
         resave: false,
         saveUninitialized: true,
-        cookie: { secure: false },
+        cookie: { secure: process.env['NODE_ENV'] === 'production' },
       }),
     );
 
@@ -391,7 +391,7 @@ describe('GET /sso/logout', () => {
         secret: 'test-secret',
         resave: false,
         saveUninitialized: true,
-        cookie: { secure: false },
+        cookie: { secure: process.env['NODE_ENV'] === 'production' },
       }),
     );
 
@@ -573,7 +573,7 @@ describe('GET /sso/me', () => {
         secret: 'test-secret',
         resave: false,
         saveUninitialized: true,
-        cookie: { secure: false },
+        cookie: { secure: process.env['NODE_ENV'] === 'production' },
       }),
     );
 
