@@ -44,6 +44,8 @@ const buildConfigMock = () => {
   return { has, get };
 };
 
+type Account = { name?: string; username?: string };
+
 describe('GET /sso/login', () => {
   const prepareApp = async (mode: 'ok' | 'fail' = 'ok') => {
     jest.resetModules();
@@ -505,5 +507,106 @@ describe('GET /sso/logout', () => {
       buildExpectedLogoutUrl(tenantId, postLogoutRedirectUri),
       destroySpyRef,
     );
+  });
+});
+
+describe('GET /sso/me', () => {
+  const prepareApp = async (opts?: { seedAccount?: Account }) => {
+    jest.resetModules();
+
+    // Mock config + logger FIRST
+    jest.doMock('config', () => {
+      const data: Record<string, unknown> = {
+        'session.cookieName': 'sid',
+        'session.secret': 'test-secret',
+        'session.secure': false,
+      };
+      const has = (k: string) => Object.prototype.hasOwnProperty.call(data, k);
+      const get = (k: string) => {
+        if (!has(k)) {
+          throw new Error(`Missing config key in test: ${k}`);
+        }
+        return data[k];
+      };
+      return { has, get };
+    }, { virtual: true });
+
+    const logger = { error: jest.fn(), info: jest.fn(), warn: jest.fn() };
+    jest.doMock('@hmcts/nodejs-logging', () => ({
+      Logger: { getLogger: () => logger },
+    }), { virtual: true });
+
+    // Stub MSAL to avoid surprises at import time (not used by /sso/me)
+    jest.doMock('@azure/msal-node', () => {
+      class ConfidentialClientApplication {
+        getAuthCodeUrl() { throw new Error('Not used in /sso/me tests'); }
+        acquireTokenByCode() { throw new Error('Not used in /sso/me tests'); }
+        getTokenCache() { return { serialize: () => 'SERIALIZED_CACHE' }; }
+      }
+      return { ConfidentialClientApplication };
+    }, { virtual: true });
+
+    const routes = (await import('../../src/routes/sso')) as RoutesModule;
+
+    const app: Express = express();
+    app.use(session({
+      secret: 'test-secret',
+      resave: false,
+      saveUninitialized: true,
+      cookie: { secure: false },
+    }));
+
+    // Optionally seed session.account for the authenticated test
+    if (opts?.seedAccount) {
+      app.use((req: Request, _res: Response, next: NextFunction) => {
+        (req.session as Session & { account?: Account }).account = opts.seedAccount;
+        next();
+      });
+    }
+
+    if (routes.setupSsoRoutes) {
+      routes.setupSsoRoutes(app, {
+        tenantId: 'tenant-123',
+        clientId: 'client-abc',
+        clientSecret: 'secret-xyz',
+        redirectUri: 'http://localhost/callback',
+        scopes: ['user.read'],
+        postLogoutRedirectUri: 'http://localhost/signed-out',
+      });
+    } else if (routes.router) {
+      app.use(routes.router);
+    } else {
+      throw new Error('Expected module to export setupSsoRoutes(app, opts) or router');
+    }
+
+    // Proper 4-arg error handler (not expected here, just consistent)
+    app.use((err: unknown, _req: Request, res: Response) => {
+      res.status(500).send('Internal error');
+    });
+
+    return { app, logger };
+  };
+
+  test('401 when no session account', async () => {
+    const { app } = await prepareApp();
+
+    const res = await request(app).get('/sso/me');
+
+    expect(res.status).toBe(401);
+    expect(res.body).toEqual({ authenticated: false });
+  });
+
+  test('200 with user details when session has account', async () => {
+    const account: Account = { name: 'Test User', username: 'test@example.com' };
+    const { app } = await prepareApp({ seedAccount: account });
+
+    const res = await request(app).get('/sso/me');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      authenticated: true,
+      name: 'Test User',
+      username: 'test@example.com',
+    });
   });
 });
