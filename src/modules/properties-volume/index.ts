@@ -1,10 +1,18 @@
 import { createRequire } from 'module';
 
+import nodejsLogging, { HmctsLogger } from '@hmcts/nodejs-logging';
 import type * as PV from '@hmcts/properties-volume';
-import type { IConfig } from 'config';
+import { IConfig } from 'config';
 import { Application } from 'express';
 
 const require = createRequire(import.meta.url);
+
+const { Logger } = nodejsLogging as unknown as {
+  Logger: { getLogger(name: string): HmctsLogger };
+};
+const logger: HmctsLogger = Logger.getLogger(
+  'hmcts applications register - sso routes',
+);
 
 export class PropertiesVolume {
   async enableFor(server: Application): Promise<void> {
@@ -12,6 +20,11 @@ export class PropertiesVolume {
       const { default: config } = (await import('config')) as {
         default: IConfig;
       };
+
+      logger.info(
+        'ppreg.azure-tenant-id-fe: ',
+        config.get(<string>'secrets.appreg.azure-tenant-id-fe'),
+      );
 
       const pvm = require('@hmcts/properties-volume') as typeof PV;
       const { get, set } = require('lodash') as {
