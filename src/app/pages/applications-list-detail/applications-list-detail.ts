@@ -109,6 +109,11 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
   filteredCourthouses: CourtLocationGetSummaryDto[] = [];
   courthouseSearch = '';
 
+  constructor(
+    @Inject(PLATFORM_ID) private readonly platformId: object,
+    private readonly ref: ReferenceDataFacade,
+  ) {}
+
   ngOnInit(): void {
     this.courthouseSearch = String(this.form.controls.court.value ?? '');
     this.cjaSearch = String(this.form.controls.cja.value ?? '');
@@ -125,11 +130,6 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
       cja: this.form.controls.cja,
     });
   }
-
-  constructor(
-    @Inject(PLATFORM_ID) private readonly platformId: object,
-    private readonly ref: ReferenceDataFacade,
-  ) {}
 
   ngAfterViewInit(): void {
     // Not implemented yet
