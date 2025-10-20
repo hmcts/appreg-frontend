@@ -1,3 +1,14 @@
+/* 
+Applications List – Create (/applications-list/create)
+
+Functionality:
+  - Submits form via POST to create a new application list
+  - buildPayload(): maps form fields → ApplicationListCreateDto
+    • Uses courtLocationCode or (otherLocationDescription + cjaCode)
+  - Handles API errors with errorSummary messages
+  - Uses text-suggestion helpers for court/CJA inputs
+*/
+
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit, TransferState } from '@angular/core';
 import {
