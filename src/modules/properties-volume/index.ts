@@ -14,7 +14,6 @@ const logger: HmctsLogger = Logger.getLogger(
   'hmcts applications register - sso routes',
 );
 
-
 export class PropertiesVolume {
   async enableFor(server: Application): Promise<void> {
     if (server.locals['ENV'] !== 'development') {
@@ -22,7 +21,10 @@ export class PropertiesVolume {
         default: IConfig;
       };
 
-      logger.info('ppreg.azure-tenant-id-fe: ', config.get(<string>('secrets.appreg.azure-tenant-id-fe')));
+      logger.info(
+        'ppreg.azure-tenant-id-fe: ',
+        config.get(<string>'secrets.appreg.azure-tenant-id-fe'),
+      );
 
       const pvm = require('@hmcts/properties-volume') as typeof PV;
       const { get, set } = require('lodash') as {
