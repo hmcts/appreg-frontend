@@ -90,8 +90,6 @@ export function setupSsoRoutes(
     overrides?.postLogoutRedirectUri ??
     config.get<string>('auth.postLogoutRedirectUri');
 
-  logger.info('SSO config resolved (tenantId present=%s)', Boolean(tenantId));
-
   // Build MSAL with the real tenant/credentials
   ccaInstance = new ConfidentialClientApplication({
     auth: {
