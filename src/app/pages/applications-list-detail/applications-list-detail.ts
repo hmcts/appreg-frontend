@@ -1,3 +1,9 @@
+/* 
+Applications List – Detail (/applications-list/{id})
+
+TODO finish this header
+*/
+
 import { CommonModule } from '@angular/common';
 import {
   AfterViewInit,
