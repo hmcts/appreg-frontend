@@ -1,6 +1,6 @@
 get:
   operationId: getCriminalJusticeAreas
-  tags: [criminal-justice-areas]
+  tags: [ criminal-justice-areas ]
   summary: Get Criminal Justice Areas (paginated, filterable)
   description: |
     Returns a paginated list of Criminal Justice Areas.
@@ -22,8 +22,7 @@ get:
       description: Zero-based page index.
     - in: query
       name: size
-      schema:
-        { type: integer, format: int32, minimum: 1, default: 10, maximum: 100 }
+      schema: { type: integer, format: int32, minimum: 1, default: 10, maximum: 100}
       description: Page size.
     - in: query
       name: sort
@@ -35,9 +34,9 @@ get:
       schema:
         type: array
         items: { type: string }
-        example: ['description,asc', 'code,desc']
+        example: [ "description,asc", "code,desc" ]
   responses:
-    '200':
+    "200":
       description: Page of Criminal Justice Areas
       headers:
         Vary:
@@ -45,12 +44,9 @@ get:
           schema: { type: string, example: Accept }
       content:
         application/vnd.hmcts.appreg.v1+json:
-          schema:
-            {
-              $ref: '../../components/schemas/criminal-justice-areas/criminal-justice-area-page.yaml',
-            }
-    '400': { $ref: '../../components/responses/bad-request-error.yaml' }
-    '401': { $ref: '../../components/responses/unauthorized-error.yaml' }
-    '403': { $ref: '../../components/responses/forbidden-error.yaml' }
-    '406': { $ref: '../../components/responses/not-acceptable-error.yaml' }
-    '500': { $ref: '../../components/responses/internal-server-error.yaml' }
+          schema: { $ref: "../../components/schemas/criminal-justice-areas/criminal-justice-area-page.yaml" }
+    "400": { $ref: "../../components/responses/bad-request-error.yaml" }
+    "401": { $ref: "../../components/responses/unauthorized-error.yaml" }
+    "403": { $ref: "../../components/responses/forbidden-error.yaml" }
+    "406": { $ref: "../../components/responses/not-acceptable-error.yaml" }
+    "500": { $ref: "../../components/responses/internal-server-error.yaml" }

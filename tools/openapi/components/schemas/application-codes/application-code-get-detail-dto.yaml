@@ -53,13 +53,13 @@ properties:
         format: int64
         minimum: 0
         description: Amount in pence.
-        example: 1299 # £12.99
+        example: 1299   # £12.99
       currency:
         type: string
         description: ISO 4217 currency code (always "GBP" for now).
         example: GBP
         default: GBP
-        enum: [GBP]
+        enum: [ GBP ]
   feeDescription:
     type: string
     nullable: true
@@ -78,13 +78,13 @@ properties:
         format: int64
         minimum: 0
         description: Amount in pence.
-        example: 1299 # £12.99
+        example: 1299   # £12.99
       currency:
         type: string
         description: ISO 4217 currency code (always "GBP" for now).
         example: GBP
         default: GBP
-        enum: [GBP]
+        enum: [ GBP ]
   startDate:
     type: string
     format: date

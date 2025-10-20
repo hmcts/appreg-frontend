@@ -1,28 +1,17 @@
 get:
-  operationId: listApplicationLists
-  tags: [application-lists]
+  operationId: getApplicationLists
+  tags: [ application-lists ]
   summary: Get Application Lists (paginated, filterable)
   description: Returns a paginated list of Application Lists.
   parameters:
     - in: query
-      name: dateFrom
-      schema: { type: string, format: date }
-      description: Earliest date of Application List (inclusive).
-    - in: query
-      name: dateTo
-      schema: { type: string, format: date }
-      description: Latest date of Application List (inclusive).
-    - in: query
-      name: courtLocationCode
-      schema: { type: string }
-      description: Filter by Court Location code.
-    - in: query
-      name: status
+      name: filter
+      description: Filter criteria for Application Lists.
+      required: false
+      style: form
+      explode: true
       schema:
-        {
-          $ref: '../../components/schemas/application-lists/application-list-status.yaml',
-        }
-      description: Filter by Application List status (OPEN/CLOSED).
+        $ref: "../../components/schemas/application-lists/application-list-get-filter-dto.yaml"
     - in: query
       name: page
       schema: { type: integer, minimum: 0, default: 0 }
@@ -36,9 +25,9 @@ get:
       schema:
         type: array
         items: { type: string }
-        example: ['date,asc', 'courtLocationCode,desc']
+        example: [ "date,desc", "status,asc" ]
   responses:
-    '200':
+    "200":
       description: Page of Application Lists
       headers:
         Vary:
@@ -48,28 +37,25 @@ get:
             example: Accept
       content:
         application/vnd.hmcts.appreg.v1+json:
-          schema:
-            {
-              $ref: '../../components/schemas/application-lists/application-list-page.yaml',
-            }
-    '400': { $ref: '../../components/responses/bad-request-error.yaml' }
-    '401': { $ref: '../../components/responses/unauthorized-error.yaml' }
-    '403': { $ref: '../../components/responses/forbidden-error.yaml' }
-    '406': { $ref: '../../components/responses/not-acceptable-error.yaml' }
-    '500': { $ref: '../../components/responses/internal-server-error.yaml' }
+          schema: { $ref: "../../components/schemas/application-lists/application-list-page.yaml" }
+    "400": { $ref: "../../components/responses/bad-request-error.yaml" }
+    "401": { $ref: "../../components/responses/unauthorized-error.yaml" }
+    "403": { $ref: "../../components/responses/forbidden-error.yaml" }
+    "406": { $ref: "../../components/responses/not-acceptable-error.yaml" }
+    "500": { $ref: "../../components/responses/internal-server-error.yaml" }
 
 post:
   operationId: createApplicationList
-  tags: [application-lists]
+  tags: [ application-lists ]
   summary: Create an Application List
   requestBody:
     required: true
     content:
       application/json:
         schema:
-          $ref: '../../components/schemas/application-lists/application-list-create-dto.yaml'
+          $ref: "../../components/schemas/application-lists/application-list-create-dto.yaml"
   responses:
-    '201':
+    "201":
       description: Application List created
       headers:
         Location:
@@ -83,8 +69,8 @@ post:
       content:
         application/vnd.hmcts.appreg.v1+json:
           schema:
-            $ref: '../../components/schemas/application-lists/application-list-get-detail-dto.yaml'
-    '400': { $ref: '../../components/responses/bad-request-error.yaml' }
-    '401': { $ref: '../../components/responses/unauthorized-error.yaml' }
-    '403': { $ref: '../../components/responses/forbidden-error.yaml' }
-    '500': { $ref: '../../components/responses/internal-server-error.yaml' }
+            $ref: "../../components/schemas/application-lists/application-list-get-detail-dto.yaml"
+    "400": { $ref: "../../components/responses/bad-request-error.yaml" }
+    "401": { $ref: "../../components/responses/unauthorized-error.yaml" }
+    "403": { $ref: "../../components/responses/forbidden-error.yaml" }
+    "500": { $ref: "../../components/responses/internal-server-error.yaml" }
