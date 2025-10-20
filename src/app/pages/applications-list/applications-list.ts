@@ -1,5 +1,33 @@
+/* 
+Applications List
+Main Component for page /applications-list
+
+Functionality:
+onSubmit():
+  - GET request to Spring API which returns applications lists based on given params
+  - If params are empty (user leaves fields empty or on default selected value) GET ALL is run
+  - Populates query based on fields that are  !null/!undefined/!defaultValue
+  Helper functions:
+    src/app/pages/applications-list/util/has.ts
+    src/app/pages/applications-list/util/to-status.ts
+    src/app/pages/applications-list/util/load-query.ts
+    src/app/pages/applications-list/util/time-helpers.ts
+
+onDelete():
+  - If not deletable, set errors and exit
+  - Confirm in browser; cancel exits
+  - Set deletingId; add ETag/rowVersion to HttpContext
+  - DELETE list; 200/204 → remove row, mark done
+  - Map 401/403/404/409/412/other to errorSummary
+  - Always clear deletingId
+
+onUpdate():
+  TODO: Document this functionality
+
+*/
+
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { HttpContext, HttpErrorResponse } from '@angular/common/http';
+import { HttpContext } from '@angular/common/http';
 import {
   AfterViewInit,
   Component,
@@ -13,9 +41,7 @@ import { RouterLink } from '@angular/router';
 import { Subject, Subscription, firstValueFrom, takeUntil } from 'rxjs';
 
 import {
-  ApplicationListGetFilterDto,
   ApplicationListGetSummaryDto,
-  ApplicationListStatus,
   ApplicationListsApi,
   CourtLocationGetSummaryDto,
   CourtLocationsApi,
@@ -53,6 +79,11 @@ import {
   filterSuggestions,
 } from '../../shared/util/suggestions';
 
+import { getHttpStatus, statusSummary } from './util/delete-status';
+import { has } from './util/has';
+import { loadQuery } from './util/load-query';
+import { normaliseTime } from './util/time-helpers';
+
 type UiExtras = {
   deletable?: boolean;
   etag?: string | null;
@@ -68,19 +99,6 @@ type ApplicationListRow = Omit<
 
 interface MojInitEl extends HTMLElement {
   __mojInit?: boolean;
-}
-
-function getHttpStatus(err: unknown): number {
-  if (err instanceof HttpErrorResponse) {
-    return err.status;
-  }
-  if (typeof err === 'object' && err !== null && 'status' in err) {
-    const s = (err as Record<string, unknown>)['status'];
-    if (typeof s === 'number') {
-      return s;
-    }
-  }
-  return 0;
 }
 
 @Component({
@@ -233,13 +251,13 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     }
 
     const hasAny =
-      this.has(this.form.value.date) ||
-      this.has(this.form.value.time) ||
-      this.has(this.form.value.description) ||
-      this.has(this.form.value.status) ||
-      this.has(this.form.value.court) ||
-      this.has(this.form.value.location) ||
-      this.has(this.form.value.cja);
+      has(this.form.value.date) ||
+      has(this.form.value.time) ||
+      has(this.form.value.description) ||
+      has(this.form.value.status) ||
+      has(this.form.value.court) ||
+      has(this.form.value.location) ||
+      has(this.form.value.cja);
 
     if (action === 'search') {
       this.submitted = true;
@@ -247,205 +265,6 @@ export class ApplicationsList implements OnInit, AfterViewInit {
       this.currentPage = 1;
       this.loadApplicationsLists(hasAny);
     }
-  }
-
-  loadApplicationsLists(hasParams: boolean): void {
-    if (this.isLoading) {
-      return;
-    }
-
-    const params: GetApplicationListsRequestParams = {
-      ...(hasParams ? { filter: this.loadQuery() } : {}),
-    };
-
-    this.isLoading = true;
-    this.appListsApi
-      .getApplicationLists(params, undefined, undefined, {
-        transferCache: false,
-      })
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (page) => {
-          this.searchErrors = [];
-          this.submitted = true;
-          this.totalPages = page.totalPages ?? 0;
-          const content: ApplicationListGetSummaryDto[] = page.content ?? [];
-          this.rows = content.map((x) => this.toRow(x));
-          this.afterRowsRendered();
-          this.isLoading = false;
-        },
-        error: (err) => {
-          this.submitted = true;
-          this.rows = [];
-          this.totalPages = 0;
-          this.isLoading = false;
-          const msg =
-            err instanceof Error ? err.message : 'Unable to load lists';
-          this.searchErrors = [{ id: 'search', text: msg }];
-        },
-      });
-  }
-
-  private loadQuery(): ApplicationListGetFilterDto {
-    const raw = this.form.getRawValue() as {
-      date?: string | null;
-      time?: Duration | null;
-      description?: string | null;
-      status?: string | null;
-      court?: string | null;
-      location?: string | null;
-      cja?: string | null;
-    };
-
-    const query: Partial<ApplicationListGetFilterDto> = {};
-
-    const set = <K extends keyof ApplicationListGetFilterDto>(
-      k: K,
-      v: ApplicationListGetFilterDto[K] | undefined,
-    ) => {
-      if (v !== undefined && v !== null && v !== '') {
-        query[k] = v;
-      }
-    };
-
-    set('date', raw.date || undefined);
-    set('time', this.toTimeString(raw.time));
-    set('description', raw.description || undefined);
-    set('status', this.toStatus(raw.status));
-    set('courtLocationCode', raw.court || undefined);
-    set('otherLocationDescription', raw.location || undefined);
-    set('cjaCode', raw.cja || undefined);
-
-    return query as ApplicationListGetFilterDto;
-  }
-
-  private toRow(x: ApplicationListGetSummaryDto): ApplicationListRow {
-    return {
-      id: x.id,
-      date: x.date,
-      time: this.normaliseTime(x.time) ?? '',
-      location: x.location,
-      description: x.description,
-      entries: x.numberOfEntries,
-      status: x.status,
-      deletable: false,
-      etag: null,
-      rowVersion: null,
-    };
-  }
-
-  private toStatus(
-    s: string | null | undefined,
-  ): ApplicationListStatus | undefined {
-    const v = s?.trim();
-    if (!v || v.toLowerCase() === 'choose') {
-      return undefined;
-    }
-
-    switch (v.toUpperCase()) {
-      case 'OPEN':
-        return ApplicationListStatus.OPEN;
-      case 'CLOSED':
-        return ApplicationListStatus.CLOSED;
-      default:
-        return undefined;
-    }
-  }
-
-  private toTimeString(v: Duration | null | undefined): string | undefined {
-    if (!v) {
-      return undefined;
-    }
-    const { hours, minutes } = v;
-    const hh = String(hours).padStart(2, '0');
-    const mm = String(minutes).padStart(2, '0');
-    return `${hh}:${mm}`;
-  }
-
-  private normaliseTime(t: string | null | undefined): string {
-    if (!t) {
-      return '';
-    }
-    // accept "HH:mm", "HH:mm:ss", "HH:mm:ss.sssZ"
-    const m = t.match(/^(\d{2}):(\d{2})(?::(\d{2}))?/);
-    return m ? `${m[1]}:${m[2]}` : '';
-  }
-
-  private afterRowsRendered(): void {
-    setTimeout(() => {
-      void this.initMojMenus();
-    });
-  }
-
-  private async initMojMenus(): Promise<void> {
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-
-    void (await import('@ministryofjustice/frontend')
-      .then(({ ButtonMenu }) => {
-        const nodes = document.querySelectorAll<HTMLElement>(
-          '[data-module="moj-button-menu"]',
-        );
-
-        for (const el of nodes) {
-          const flagged = el as MojInitEl;
-          if (flagged.__mojInit) {
-            continue;
-          }
-
-          const instance = new ButtonMenu(flagged);
-          if (typeof (instance as { init?: () => void }).init === 'function') {
-            instance.init();
-          }
-
-          flagged.__mojInit = true;
-        }
-      })
-      .catch(() => {
-        // no-op for non-browser/test environments
-      }));
-  }
-
-  onCourthouseInputChange(): void {
-    this.form.controls.court.setValue(this.courthouseSearch || '');
-    this.filteredCourthouses = filterSuggestions(
-      this.courtLocations,
-      this.courthouseSearch,
-      courtMatches,
-    );
-  }
-
-  onCjaInputChange(): void {
-    this.form.controls.cja.setValue(this.cjaSearch || '');
-    this.filteredCja = filterSuggestions(this.cja, this.cjaSearch, cjaMatches);
-  }
-
-  selectCourthouse(c: { locationCode?: string }): void {
-    const label = c.locationCode ?? '';
-    this.courthouseSearch = label;
-    this.form.controls.court.setValue(label);
-    this.filteredCourthouses = [];
-  }
-
-  selectCja(c: { code?: string }): void {
-    const label = c.code ?? '';
-    this.cjaSearch = label;
-    this.form.controls.cja.setValue(label);
-    this.filteredCja = [];
-  }
-
-  focusField(id: string, e: Event): void {
-    e.preventDefault();
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.focus({ preventScroll: true });
-    }
-  }
-
-  private has(x: unknown): boolean {
-    return x !== null && x !== undefined && x !== '' && x !== 'choose';
   }
 
   async onDelete(row: ApplicationListRow): Promise<void> {
@@ -494,59 +313,15 @@ export class ApplicationsList implements OnInit, AfterViewInit {
       this.deleteInvalid = true;
       this.errorHint = 'There is a problem';
 
-      switch (status) {
-        case 401:
-          this.errorSummary = [
-            {
-              text: 'You are not signed in. Please sign in and try again.',
-              href: '/sign-in',
-            },
-          ];
-          break;
-        case 403:
-          this.errorSummary = [
-            {
-              text: 'You do not have permission to delete this list.',
-              href: '/applications-list#sortable-table',
-            },
-          ];
-          break;
-        case 404:
-          this.errorSummary = [
-            {
-              text: 'Application List not found. Return to the Lists view.',
-              href: '/applications-list#sortable-table',
-            },
-          ];
-          break;
-        case 409:
-          this.errorSummary = [
-            {
-              text: 'This list has entries or is in a non-deletable state.',
-              href: '/applications-list#sortable-table',
-            },
-          ];
-          break;
-        case 412:
-          this.errorSummary = [
-            {
-              text: 'The list has changed. Refresh the page and try again.',
-              href: '/applications-list#sortable-table',
-            },
-          ];
-          break;
-        default:
-          this.errorSummary = [
-            {
-              text: 'Unable to delete list. Please try again later.',
-              href: '/applications-list#sortable-table',
-            },
-          ];
-          break;
-      }
+      this.errorSummary = statusSummary(status);
     } finally {
       this.deletingId = null;
     }
+  }
+
+  onUpdate(row: ApplicationListRow): void {
+    // TODO: Update application list
+    console.log(row);
   }
 
   onPageChange(page: number): void {
@@ -568,4 +343,129 @@ export class ApplicationsList implements OnInit, AfterViewInit {
   onPrint(): void {}
 
   onPrintContinuous(): void {}
+
+  private afterRowsRendered(): void {
+    setTimeout(() => {
+      void this.initMojMenus();
+    });
+  }
+
+  private async initMojMenus(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    void (await import('@ministryofjustice/frontend')
+      .then(({ ButtonMenu }) => {
+        const nodes = document.querySelectorAll<HTMLElement>(
+          '[data-module="moj-button-menu"]',
+        );
+
+        for (const el of nodes) {
+          const flagged = el as MojInitEl;
+          if (flagged.__mojInit) {
+            continue;
+          }
+
+          const instance = new ButtonMenu(flagged);
+          if (typeof (instance as { init?: () => void }).init === 'function') {
+            instance.init();
+          }
+
+          flagged.__mojInit = true;
+        }
+      })
+      .catch(() => {
+        // no-op for non-browser/test environments
+      }));
+  }
+
+  loadApplicationsLists(hasParams: boolean): void {
+    if (this.isLoading) {
+      return;
+    }
+
+    const params: GetApplicationListsRequestParams = {
+      ...(hasParams ? { filter: loadQuery(this.form) } : {}),
+    };
+
+    this.isLoading = true;
+    this.appListsApi
+      .getApplicationLists(params, undefined, undefined, {
+        transferCache: false,
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (page) => {
+          this.searchErrors = [];
+          this.submitted = true;
+          this.totalPages = page.totalPages ?? 0;
+          const content: ApplicationListGetSummaryDto[] = page.content ?? [];
+          this.rows = content.map((x) => this.toRow(x));
+          this.afterRowsRendered();
+          this.isLoading = false;
+        },
+        error: (err) => {
+          this.submitted = true;
+          this.rows = [];
+          this.totalPages = 0;
+          this.isLoading = false;
+          const msg =
+            err instanceof Error ? err.message : 'Unable to load lists';
+          this.searchErrors = [{ id: 'search', text: msg }];
+        },
+      });
+  }
+
+  private toRow(x: ApplicationListGetSummaryDto): ApplicationListRow {
+    return {
+      id: x.id,
+      date: x.date,
+      time: normaliseTime(x.time) ?? '',
+      location: x.location,
+      description: x.description,
+      entries: x.numberOfEntries,
+      status: x.status,
+      deletable: false,
+      etag: null,
+      rowVersion: null,
+    };
+  }
+
+  onCourthouseInputChange(): void {
+    this.form.controls.court.setValue(this.courthouseSearch || '');
+    this.filteredCourthouses = filterSuggestions(
+      this.courtLocations,
+      this.courthouseSearch,
+      courtMatches,
+    );
+  }
+
+  onCjaInputChange(): void {
+    this.form.controls.cja.setValue(this.cjaSearch || '');
+    this.filteredCja = filterSuggestions(this.cja, this.cjaSearch, cjaMatches);
+  }
+
+  selectCourthouse(c: { locationCode?: string }): void {
+    const label = c.locationCode ?? '';
+    this.courthouseSearch = label;
+    this.form.controls.court.setValue(label);
+    this.filteredCourthouses = [];
+  }
+
+  selectCja(c: { code?: string }): void {
+    const label = c.code ?? '';
+    this.cjaSearch = label;
+    this.form.controls.cja.setValue(label);
+    this.filteredCja = [];
+  }
+
+  focusField(id: string, e: Event): void {
+    e.preventDefault();
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.focus({ preventScroll: true });
+    }
+  }
 }
