@@ -1,17 +1,22 @@
 import {
   AccountInfo,
-  AuthorizationCodeRequest,
-  AuthorizationUrlRequest,
   ConfidentialClientApplication,
 } from '@azure/msal-node';
 import * as nodejsLogging from '@hmcts/nodejs-logging';
 import { HmctsLogger } from '@hmcts/nodejs-logging';
 import config from 'config';
-import cookieParser from 'cookie-parser';
-import express, { Express, NextFunction, Request, Response } from 'express';
+import express, {
+  Express,
+  NextFunction,
+  Request,
+  RequestHandler,
+  Response,
+} from 'express';
 import { type RateLimitRequestHandler, rateLimit } from 'express-rate-limit';
-import session from 'express-session';
+import type { ParamsDictionary } from 'express-serve-static-core';
 import { v4 as uuid } from 'uuid';
+
+import { buildAuthCodeRequest, buildAuthCodeUrlRequest } from '../msal';
 
 const { Logger } = nodejsLogging as unknown as {
   Logger: { getLogger(name: string): HmctsLogger };
@@ -30,7 +35,13 @@ declare module 'express-session' {
   }
 }
 
-// --- Public types/exports ----------------------------------------------------
+// For POST (form_post) bodies
+type LoginCallbackBody = {
+  code?: string;
+  state?: string;
+  session_state?: string;
+};
+
 export type SsoConfigOverrides = Partial<{
   tenantId: string;
   clientId: string;
@@ -41,8 +52,6 @@ export type SsoConfigOverrides = Partial<{
 }>;
 
 let ccaInstance: ConfidentialClientApplication | null = null;
-
-/** Optional accessor if other modules need the MSAL instance */
 export function getCca(): ConfidentialClientApplication {
   if (!ccaInstance) {
     throw new Error('SSO not initialised yet: call setupSsoRoutes(app) first.');
@@ -50,7 +59,6 @@ export function getCca(): ConfidentialClientApplication {
   return ccaInstance;
 }
 
-// --- Internal constants ------------------------------------------------------
 const loginRateWindowMs =
   (config.has?.('rateLimit.login.windowMs') &&
     config.get<number>('rateLimit.login.windowMs')) ||
@@ -69,12 +77,37 @@ const loginLimiter: RateLimitRequestHandler = rateLimit({
   statusCode: 429,
 });
 
-// --- Main API (similar to setupInfoRoute) ------------------------------------
+// --- Shared helper: finish the code grant -----------------------------------
+const finishAuthCodeGrant = async (
+  req: Request,
+  res: Response,
+  code: string,
+  state: string,
+): Promise<void> => {
+  if (state !== req.session.authState) {
+    res.status(400).send('Invalid auth response.');
+    return;
+  }
+
+  const tokenResponse = await getCca().acquireTokenByCode(
+    buildAuthCodeRequest(code),
+  );
+
+  if (!tokenResponse?.account) {
+    res.status(401).send('No account in token.');
+    return;
+  }
+
+  req.session.account = tokenResponse.account;
+  req.session.tokenCache = getCca().getTokenCache().serialize();
+  res.redirect('/applications-list');
+};
+
+// --- Main API ---------------------------------------------------------------
 export function setupSsoRoutes(
   app: Express,
   overrides?: SsoConfigOverrides,
 ): void {
-  // Resolve config NOW (post /mnt/secrets load), not at module import time
   const tenantId =
     overrides?.tenantId ??
     config.get<string>('secrets.appreg.azure-tenant-id-fe');
@@ -83,14 +116,10 @@ export function setupSsoRoutes(
   const clientSecret =
     overrides?.clientSecret ??
     config.get<string>('secrets.appreg.azure-client-secret-fe');
-  const redirectUri =
-    overrides?.redirectUri ?? config.get<string>('auth.redirectUri');
-  const scopes = overrides?.scopes ?? config.get<string[]>('auth.scopes');
   const postLogoutRedirectUri =
     overrides?.postLogoutRedirectUri ??
     config.get<string>('auth.postLogoutRedirectUri');
 
-  // Build MSAL with the real tenant/credentials
   ccaInstance = new ConfidentialClientApplication({
     auth: {
       clientId,
@@ -99,45 +128,9 @@ export function setupSsoRoutes(
     },
   });
 
-  // Scoped router that carries session/cookie middleware only for SSO endpoints
   const router = express.Router();
 
-  router.use(cookieParser());
-  router.use(
-    session({
-      name: config.get<string>('session.cookieName'),
-      secret: config.get<string>('session.secret'),
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        httpOnly: true,
-        sameSite: 'lax',
-        secure: config.get<boolean>('session.secure'),
-      },
-    }),
-  );
-
-  const buildAuthCodeUrlRequest = (
-    state: string,
-    nonce: string,
-  ): AuthorizationUrlRequest => ({
-    scopes,
-    redirectUri,
-    responseMode: 'query',
-    state,
-    nonce,
-    prompt: 'select_account',
-  });
-
-  const buildAuthCodeRequest = (code: string): AuthorizationCodeRequest => ({
-    code,
-    scopes,
-    redirectUri,
-  });
-
-  // ---- Routes ---------------------------------------------------------------
-
-  // GET /sso/login -> redirect user to Entra ID
+  // Login entrypoint
   router.get(
     '/sso/login',
     loginLimiter,
@@ -148,58 +141,49 @@ export function setupSsoRoutes(
         req.session.authState = state;
         req.session.nonce = nonce;
 
-        const url = getCca().getAuthCodeUrl(
+        const url = await getCca().getAuthCodeUrl(
           buildAuthCodeUrlRequest(state, nonce),
         );
-        res.redirect(await url);
-        return;
+        res.redirect(url);
       } catch (err) {
         logger.error(err as Error, 'Error during /sso/login');
         next(err);
-        return;
       }
     },
   );
 
-  // GET /sso/login-callback -> exchange code for tokens
-  router.get(
-    '/sso/login-callback',
-    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-      try {
-        const code =
-          typeof req.query['code'] === 'string' ? req.query['code'] : undefined;
-        const state =
-          typeof req.query['state'] === 'string'
-            ? req.query['state']
-            : undefined;
+  // Parse application/x-www-form-urlencoded for form_post callbacks
+  router.use(express.urlencoded({ extended: false }));
 
-        if (!code || !state || state !== req.session.authState) {
-          res.status(400).send('Invalid auth response.');
-          return;
-        }
+  // Unified callback: supports both GET (query) and POST (form_post)
+  const loginCallback: RequestHandler<ParamsDictionary, unknown, LoginCallbackBody> = async (
+    req,
+    res,
+    next,
+  ) => {
+    try {
+      const fromBody = req.method === 'POST';
+      const source: Partial<LoginCallbackBody> = fromBody
+        ? req.body
+        : (req.query as unknown as Partial<LoginCallbackBody>);
 
-        const tokenResponse = await getCca().acquireTokenByCode(
-          buildAuthCodeRequest(code),
-        );
+      const code  = typeof source.code  === 'string' ? source.code  : undefined;
+      const state = typeof source.state === 'string' ? source.state : undefined;
 
-        if (!tokenResponse?.account) {
-          res.status(401).send('No account in token.');
-          return;
-        }
-
-        req.session.account = tokenResponse.account;
-        req.session.tokenCache = getCca().getTokenCache().serialize();
-        res.redirect('/applications-list'); // adjust as needed
-        return;
-      } catch (err) {
-        logger.error(err as Error, 'Error during /sso/login-callback');
-        next(err);
+      if (!code || !state) {
+        res.status(400).send('Invalid auth response.');
         return;
       }
-    },
-  );
 
-  // GET /sso/logout -> clear session and call Entra logout
+      await finishAuthCodeGrant(req, res, code, state); // ✅ now matches
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  router.all('/sso/login-callback', loginCallback);
+
+  // Logout
   router.get('/sso/logout', (req: Request, res: Response): void => {
     const logoutUrl =
       `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/logout` +
@@ -210,7 +194,7 @@ export function setupSsoRoutes(
     });
   });
 
-  // GET /sso/me -> simple session probe
+  // Session probe
   router.get('/sso/me', (req: Request, res: Response): void => {
     if (req.session.account) {
       res.json({
@@ -223,6 +207,5 @@ export function setupSsoRoutes(
     res.status(401).json({ authenticated: false });
   });
 
-  // Mount once
   app.use(router);
 }
