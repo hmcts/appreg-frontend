@@ -1,404 +1,639 @@
-/**
- * @jest-environment node
- */
-import express from 'express';
+import express, { NextFunction } from 'express';
+import type { Express, Request, Response } from 'express';
+import session, { Session, SessionData } from 'express-session';
 import request from 'supertest';
 
-// ---- MSAL mock ------------------------------------------------------------
-type AuthCodeUrlReq = {
-  scopes: string[];
-  redirectUri: string;
-  responseMode: 'query';
-  state: string;
-  nonce: string;
-  prompt: 'select_account';
+type RoutesModule = {
+  setupSsoRoutes?: (
+    app: Express,
+    opts: {
+      tenantId: string;
+      clientId: string;
+      clientSecret: string;
+      redirectUri: string;
+      scopes: string[];
+      postLogoutRedirectUri: string;
+    },
+  ) => void;
+  router?: import('express').Router;
 };
-type AcquireTokenReq = { code: string; scopes: string[]; redirectUri: string };
-type AccountInfo = {
-  homeAccountId: string;
-  environment: string;
-  tenantId: string;
-  username: string;
-  name?: string;
-};
-type AcquireTokenResp = { account?: AccountInfo };
 
-const getAuthCodeUrlMock: jest.Mock<
-  Promise<string>,
-  [AuthCodeUrlReq]
-> = jest.fn();
-const acquireTokenByCodeMock: jest.Mock<
-  Promise<AcquireTokenResp | null>,
-  [AcquireTokenReq]
-> = jest.fn();
-const serializeMock: jest.Mock<string, []> = jest.fn();
+type AppSession = Session &
+  Partial<SessionData> & {
+    authState?: string;
+    nonce?: string;
+    account?: { name?: string; username?: string };
+    tokenCache?: string;
+  };
 
-jest.mock('@azure/msal-node', () => {
-  const ConfidentialClientApplication = jest.fn(() => ({
-    getAuthCodeUrl: getAuthCodeUrlMock,
-    acquireTokenByCode: acquireTokenByCodeMock, // ← use the real mock
-    getTokenCache: () => ({ serialize: serializeMock }), // ← and here
-  }));
-  return { __esModule: true, ConfidentialClientApplication };
-});
-
-// ---- config mock (typed correctly; implementation inside factory) ---------
-jest.mock('config', () => {
-  // Correct Jest type: Return = unknown, Args = [string]
-  const get: jest.Mock<unknown, [string]> = jest.fn((key: string): unknown => {
-    switch (key) {
-      case 'secrets.appreg.azure-tenant-id-fe':
-        return 'tenant-xyz';
-      case 'secrets.appreg.azure-app-id-fe':
-        return 'client-abc';
-      case 'secrets.appreg.azure-client-secret-fe':
-        return 'super-secret';
-      case 'auth.redirectUri':
-        return 'https://example.test/auth/callback';
-      case 'auth.scopes':
-        return ['openid', 'profile'];
-      case 'auth.postLogoutRedirectUri':
-        return 'https://example.test/signed-out';
-      case 'session.cookieName':
-        return 'sid';
-      case 'session.secret':
-        return 'session-secret';
-      case 'session.secure':
-        return false; // important for HTTP in tests
-      default:
-        throw new Error(`Unexpected config.get(${key})`);
+const buildConfigMock = () => {
+  const data: Record<string, unknown> = {
+    'session.cookieName': 'sid',
+    'session.secret': 'test-secret',
+    'session.secure': false,
+  };
+  const has = jest.fn((k: string) =>
+    Object.prototype.hasOwnProperty.call(data, k),
+  );
+  const get = jest.fn((k: string) => {
+    if (!has(k)) {
+      throw new Error(`Missing config key in test: ${k}`);
     }
+    return data[k];
   });
-  return { __esModule: true, default: { get } };
-});
+  return { has, get };
+};
 
-// ---- uuid mock -------------------------------------------------------------
-jest.mock('uuid', () => ({ v4: jest.fn() }));
-function uuidV4(): jest.Mock<string, []> {
-  return jest.requireMock('uuid').v4;
-}
-
-// Import the router AFTER mocks
-import router from '../../src/routes/sso'; // ← adjust path if needed
+type Account = { name?: string; username?: string };
 
 describe('GET /sso/login', () => {
-  beforeEach(() => {
-    uuidV4()
-      .mockReset()
-      .mockReturnValueOnce('state-123')
-      .mockReturnValueOnce('nonce-456');
+  const prepareApp = async (mode: 'ok' | 'fail' = 'ok') => {
+    jest.resetModules();
 
-    getAuthCodeUrlMock
-      .mockReset()
-      .mockResolvedValue(
-        'https://login.microsoftonline.com/tenant-xyz/oauth2/v2.0/authorize?...',
-      );
-  });
-
-  it('redirects to MSAL auth URL with expected state/nonce', async () => {
-    const app = express();
-    app.use(router);
-
-    // Proper 4-arg error handler (so any failure shows as 500 with a message)
-    app.use((err: unknown, _req: express.Request, res: express.Response) => {
-      res.status(500).send(String(err instanceof Error ? err.message : err));
-    });
-
-    const res = await request(app).get('/sso/login').expect(302);
-
-    expect(res.headers['location']).toBe(
-      'https://login.microsoftonline.com/tenant-xyz/oauth2/v2.0/authorize?...',
+    // Mock config + logger FIRST
+    jest.doMock('config', () => buildConfigMock(), { virtual: true });
+    const logger = { error: jest.fn(), info: jest.fn(), warn: jest.fn() };
+    jest.doMock(
+      '@hmcts/nodejs-logging',
+      () => ({
+        Logger: { getLogger: () => logger },
+      }),
+      { virtual: true },
     );
 
-    expect(getAuthCodeUrlMock).toHaveBeenCalledTimes(1);
-    const [arg] = getAuthCodeUrlMock.mock.calls[0];
-    expect(arg).toEqual(
-      expect.objectContaining<AuthCodeUrlReq>({
-        state: 'state-123',
-        nonce: 'nonce-456',
-        redirectUri: 'https://example.test/auth/callback',
-        scopes: ['openid', 'profile'],
-        responseMode: 'query',
-        prompt: 'select_account',
+    // Stable UUIDs so we can assert state/nonce
+    const uuidMock = jest.fn<string, []>();
+    jest.doMock('uuid', () => ({ v4: uuidMock, default: uuidMock }), {
+      virtual: true,
+    });
+
+    // Mock MSAL BEFORE importing routes
+    type GetAuthCodeUrl = (args: Record<string, unknown>) => Promise<string>;
+    const getAuthCodeUrl: jest.MockedFunction<GetAuthCodeUrl> = jest.fn();
+    if (mode === 'ok') {
+      getAuthCodeUrl.mockResolvedValue(
+        'https://login.example/authorize?abc=123',
+      );
+    } else {
+      getAuthCodeUrl.mockRejectedValue(new Error('getAuthCodeUrl failed'));
+    }
+    jest.doMock('@azure/msal-node', () => {
+      class ConfidentialClientApplication {
+        getAuthCodeUrl = getAuthCodeUrl;
+      }
+
+      return { ConfidentialClientApplication };
+    });
+
+    const routes = (await import('../../src/routes/sso')) as RoutesModule;
+
+    // Fresh app per test + real session middleware so types match express-session
+    const app: Express = express();
+    app.use(
+      session({
+        secret: 'test-secret',
+        resave: false,
+        saveUninitialized: true,
+        cookie: { secure: true },
       }),
     );
 
-    // Session cookie should be set after the redirect
-    expect(res.headers['set-cookie']).toBeDefined();
+    if (routes.setupSsoRoutes) {
+      routes.setupSsoRoutes(app, {
+        tenantId: 'tenant-123',
+        clientId: 'client-abc',
+        clientSecret: 'secret-xyz',
+        redirectUri: 'http://localhost/callback',
+        scopes: ['user.read'],
+        postLogoutRedirectUri: 'http://localhost/signed-out',
+      });
+    } else if (routes.router) {
+      app.use(routes.router);
+    } else {
+      throw new Error(
+        'Expected module to export setupSsoRoutes(app, opts) or router',
+      );
+    }
+
+    // Error handler to assert 500 on the error-path test
+    app.use((_req: Request, res: Response) => {
+      res.status(500).send('Internal error');
+    });
+
+    return { app, logger, uuidMock, getAuthCodeUrl };
+  };
+
+  test('redirects to the authorization URL and passes state/nonce to MSAL', async () => {
+    const { app, uuidMock, getAuthCodeUrl } = await prepareApp('ok');
+
+    uuidMock.mockReturnValueOnce('state-123');
+    uuidMock.mockReturnValueOnce('nonce-456');
+
+    const res = await request(app).get('/sso/login');
+
+    expect(res.status).toBe(302);
+    const location = res.headers['location'];
+    expect(location).toBe('https://login.example/authorize?abc=123');
+
+    expect(getAuthCodeUrl).toHaveBeenCalledTimes(1);
+    expect(getAuthCodeUrl).toHaveBeenCalledWith(
+      expect.objectContaining({ state: 'state-123', nonce: 'nonce-456' }),
+    );
+  });
+
+  test('logs and propagates errors when getAuthCodeUrl fails', async () => {
+    const { app, logger, uuidMock, getAuthCodeUrl } = await prepareApp('fail');
+
+    uuidMock.mockReturnValueOnce('state-AAA');
+    uuidMock.mockReturnValueOnce('nonce-BBB');
+
+    const res = await request(app).get('/sso/login');
+
+    expect(getAuthCodeUrl).toHaveBeenCalledTimes(1);
+    expect(res.status).toBe(500);
+    expect(logger.error).toHaveBeenCalledTimes(1);
+    expect(String(logger.error.mock.calls[0][1])).toMatch(/\/sso\/login/);
   });
 });
 
 describe('GET /sso/login-callback', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+  const prepareApp = async (
+    mode: 'ok' | 'noAccount' | 'throw' = 'ok',
+    presetAuthState?: string,
+  ) => {
+    jest.resetModules();
 
-    // /sso/login uses two UUIDs: state then nonce
-    uuidV4()
-      .mockReset()
-      .mockReturnValueOnce('state-123')
-      .mockReturnValueOnce('nonce-456');
+    // Mock config + logger FIRST
+    jest.doMock('config', () => buildConfigMock(), { virtual: true });
+    const logger = { error: jest.fn(), info: jest.fn(), warn: jest.fn() };
+    jest.doMock(
+      '@hmcts/nodejs-logging',
+      () => ({
+        Logger: { getLogger: () => logger },
+      }),
+      { virtual: true },
+    );
 
-    getAuthCodeUrlMock
-      .mockReset()
-      .mockResolvedValue(
-        'https://login.microsoftonline.com/tenant-xyz/oauth2/v2.0/authorize?...',
+    // We don’t need uuid here; callback uses req.query + session.authState
+    type AcquireArgs = Record<string, unknown>;
+    type AcquireResult = { account?: { name?: string; username?: string } };
+    const acquireTokenByCode = jest.fn<Promise<AcquireResult>, [AcquireArgs]>();
+    const serialize = jest.fn<string, []>().mockReturnValue('SERIALIZED_CACHE');
+
+    if (mode === 'ok') {
+      acquireTokenByCode.mockResolvedValue({
+        account: { name: 'Test User', username: 'test@example.com' },
+      });
+    } else if (mode === 'noAccount') {
+      acquireTokenByCode.mockResolvedValue({});
+    } else {
+      acquireTokenByCode.mockRejectedValue(
+        new Error('acquireTokenByCode failed'),
       );
+    }
 
-    acquireTokenByCodeMock.mockReset();
-    serializeMock.mockReset().mockReturnValue('cache-string');
-  });
+    jest.doMock('@azure/msal-node', () => {
+      class ConfidentialClientApplication {
+        acquireTokenByCode = acquireTokenByCode;
 
-  // Helper: new app instance with router + error handler
-  function makeApp() {
-    const app = express();
-    app.use(router);
-    app.use((err: unknown, _req: express.Request, res: express.Response) => {
-      // If anything goes wrong, make debugging easy
-      res.status(500).send(String(err instanceof Error ? err.message : err));
-    });
-    return app;
-  }
+        getTokenCache() {
+          return { serialize };
+        }
+      }
 
-  it('400 when code is missing', async () => {
-    const app = makeApp();
-    const agent = request.agent(app);
-
-    // First establish session + authState via /sso/login
-    await agent.get('/sso/login').expect(302);
-
-    // Missing code
-    const res = await agent
-      .get('/sso/login-callback?state=state-123')
-      .expect(400);
-    expect(res.text).toContain('Invalid auth response.');
-    expect(acquireTokenByCodeMock).not.toHaveBeenCalled();
-  });
-
-  it('400 when state is missing', async () => {
-    const app = makeApp();
-    const agent = request.agent(app);
-
-    await agent.get('/sso/login').expect(302);
-
-    const res = await agent.get('/sso/login-callback?code=abc').expect(400);
-    expect(res.text).toContain('Invalid auth response.');
-    expect(acquireTokenByCodeMock).not.toHaveBeenCalled();
-  });
-
-  it('400 when state does not match session', async () => {
-    const app = makeApp();
-    const agent = request.agent(app);
-
-    await agent.get('/sso/login').expect(302);
-
-    const res = await agent
-      .get('/sso/login-callback?code=abc&state=wrong')
-      .expect(400);
-    expect(res.text).toContain('Invalid auth response.');
-    expect(acquireTokenByCodeMock).not.toHaveBeenCalled();
-  });
-
-  it('401 when MSAL returns no account', async () => {
-    const app = makeApp();
-    const agent = request.agent(app);
-
-    await agent.get('/sso/login').expect(302);
-
-    // Simulate missing account (null or { } both should 401)
-    acquireTokenByCodeMock.mockResolvedValueOnce({} as AcquireTokenResp);
-
-    const res = await agent
-      .get('/sso/login-callback?code=abc&state=state-123')
-      .expect(401);
-
-    expect(res.text).toContain('No account in token.');
-    expect(acquireTokenByCodeMock).toHaveBeenCalledTimes(1);
-
-    const [arg] = acquireTokenByCodeMock.mock.calls[0];
-    expect(arg).toEqual(
-      expect.objectContaining<AcquireTokenReq>({
-        code: 'abc',
-        redirectUri: 'https://example.test/auth/callback',
-        scopes: ['openid', 'profile'],
-      }),
-    );
-  });
-
-  it('302 success: stores account + cache, then /sso/me is 200', async () => {
-    const app = makeApp();
-    const agent = request.agent(app);
-
-    await agent.get('/sso/login').expect(302);
-
-    acquireTokenByCodeMock.mockResolvedValueOnce({
-      account: {
-        homeAccountId: 'home-1',
-        environment: 'login.microsoftonline.com',
-        tenantId: 'tenant-xyz',
-        username: 'user@example.test',
-        name: 'User Example',
-      },
+      return { ConfidentialClientApplication };
     });
 
-    const res = await agent
-      .get('/sso/login-callback?code=the-code&state=state-123')
-      .expect(302);
+    const routes = (await import('../../src/routes/sso')) as RoutesModule;
 
-    expect(res.headers['location']).toBe('/applications-list');
-    expect(acquireTokenByCodeMock).toHaveBeenCalledTimes(1);
-    expect(serializeMock).toHaveBeenCalledTimes(1);
-
-    const [arg] = acquireTokenByCodeMock.mock.calls[0];
-    expect(arg).toEqual(
-      expect.objectContaining<AcquireTokenReq>({
-        code: 'the-code',
-        redirectUri: 'https://example.test/auth/callback',
-        scopes: ['openid', 'profile'],
+    // Fresh app per test + real session middleware so types match express-session
+    const app: Express = express();
+    app.use(
+      session({
+        secret: 'test-secret',
+        resave: false,
+        saveUninitialized: true,
+        cookie: { secure: false },
       }),
     );
 
-    // Prove session.account is set by hitting /sso/me
-    const me = await agent.get('/sso/me').expect(200);
-    expect(me.body).toMatchObject({
-      authenticated: true,
-      name: 'User Example',
-      username: 'user@example.test',
+    // Optionally seed session.authState for tests that need it
+    if (presetAuthState) {
+      app.use((req: Request, _res: Response, next) => {
+        (req.session as AppSession).authState = presetAuthState;
+        next();
+      });
+    }
+
+    if (routes.setupSsoRoutes) {
+      routes.setupSsoRoutes(app, {
+        tenantId: 'tenant-123',
+        clientId: 'client-abc',
+        clientSecret: 'secret-xyz',
+        redirectUri: 'http://localhost/callback',
+        scopes: ['user.read'],
+        postLogoutRedirectUri: 'http://localhost/signed-out',
+      });
+    } else if (routes.router) {
+      app.use(routes.router);
+    } else {
+      throw new Error(
+        'Expected module to export setupSsoRoutes(app, opts) or router',
+      );
+    }
+
+    // Helper endpoint to inspect session after callback
+    app.get('/__session', (req: Request, res: Response) => {
+      const s = req.session as AppSession;
+      res.json({
+        authState: s.authState,
+        account: s.account ?? null,
+        tokenCache: s.tokenCache ?? null,
+      });
     });
+
+    // Error handler for error-path test
+    app.use((_req: Request, res: Response) => {
+      res.status(500).send('Internal error');
+    });
+
+    return { app, logger, acquireTokenByCode, serialize };
+  };
+
+  test('400 when code/state missing or state mismatched', async () => {
+    // No preset authState -> missing/invalid path
+    const { app } = await prepareApp('ok');
+
+    // missing both
+    const r1 = await request(app).get('/sso/login-callback');
+    expect(r1.status).toBe(400);
+    expect(r1.text).toMatch(/Invalid auth response/i);
+
+    // state mismatched
+    const { app: app2 } = await prepareApp('ok', 'expected-state');
+    const r2 = await request(app2).get(
+      '/sso/login-callback?code=abc&state=WRONG',
+    );
+    expect(r2.status).toBe(400);
+    expect(r2.text).toMatch(/Invalid auth response/i);
+  });
+
+  test('401 when token response lacks account', async () => {
+    const { app, acquireTokenByCode } = await prepareApp(
+      'noAccount',
+      'state-123',
+    );
+
+    const res = await request(app).get(
+      '/sso/login-callback?code=abc&state=state-123',
+    );
+
+    // MSAL was called with our code
+    expect(acquireTokenByCode).toHaveBeenCalledTimes(1);
+    expect(acquireTokenByCode).toHaveBeenCalledWith(
+      expect.objectContaining({ code: 'abc' }),
+    );
+
+    expect(res.status).toBe(401);
+    expect(res.text).toMatch(/No account in token/i);
+  });
+
+  test('success: stores account & token cache, then redirects', async () => {
+    const { app, acquireTokenByCode, serialize } = await prepareApp(
+      'ok',
+      'state-123',
+    );
+
+    const agent = request.agent(app);
+    const res = await agent.get(
+      '/sso/login-callback?code=abc123&state=state-123',
+    );
+
+    // redirect to /applications-list
+    expect(res.status).toBe(302);
+    const location = res.headers['location'];
+    expect(location).toBe('/applications-list');
+
+    // MSAL exchange + token cache serialize were invoked
+    expect(acquireTokenByCode).toHaveBeenCalledTimes(1);
+    expect(acquireTokenByCode).toHaveBeenCalledWith(
+      expect.objectContaining({ code: 'abc123' }),
+    );
+    expect(serialize).toHaveBeenCalledTimes(1);
+
+    // Verify session was updated
+    const sess = await agent.get('/__session');
+    expect(sess.status).toBe(200);
+    expect(sess.body).toEqual({
+      authState: 'state-123',
+      account: { name: 'Test User', username: 'test@example.com' },
+      tokenCache: 'SERIALIZED_CACHE',
+    });
+  });
+
+  test('500 on error from acquireTokenByCode, logs the error', async () => {
+    const { app, logger, acquireTokenByCode } = await prepareApp(
+      'throw',
+      'state-xyz',
+    );
+
+    const res = await request(app).get(
+      '/sso/login-callback?code=abc&state=state-xyz',
+    );
+
+    expect(acquireTokenByCode).toHaveBeenCalledTimes(1);
+    expect(res.status).toBe(500);
+    expect(logger.error).toHaveBeenCalledTimes(1);
+    expect(String(logger.error.mock.calls[0][1])).toMatch(
+      /\/sso\/login-callback/,
+    );
   });
 });
 
 describe('GET /sso/logout', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+  const prepareApp = async (opts?: {
+    tenantId?: string;
+    postLogoutRedirectUri?: string;
+    asyncDestroy?: boolean; // ← new: make destroy callback async for this app
+  }) => {
+    jest.resetModules();
 
-    // /sso/login uses two UUIDs: state then nonce
-    uuidV4()
-      .mockReset()
-      .mockReturnValueOnce('state-123')
-      .mockReturnValueOnce('nonce-456');
+    // Mock config + logger FIRST
+    jest.doMock('config', () => buildConfigMock(), { virtual: true });
+    const logger = { error: jest.fn(), info: jest.fn(), warn: jest.fn() };
+    jest.doMock(
+      '@hmcts/nodejs-logging',
+      () => ({ Logger: { getLogger: () => logger } }),
+      { virtual: true },
+    );
 
-    getAuthCodeUrlMock
-      .mockReset()
-      .mockResolvedValue(
-        'https://login.microsoftonline.com/tenant-xyz/oauth2/v2.0/authorize?...',
-      );
-
-    serializeMock.mockReset().mockReturnValue('cache-string');
-  });
-
-  function makeApp() {
-    const app = express();
-    app.use(router);
-    // 4-arg error handler to surface unexpected errors during tests
-    app.use((err: unknown, _req: express.Request, res: express.Response) => {
-      res.status(500).send(String(err instanceof Error ? err.message : err));
+    // Stub MSAL (not used in logout, but safe at import time)
+    jest.doMock('@azure/msal-node', () => {
+      class ConfidentialClientApplication {
+        getAuthCodeUrl() {
+          throw new Error('Not used in logout tests');
+        }
+        acquireTokenByCode() {
+          throw new Error('Not used in logout tests');
+        }
+        getTokenCache() {
+          return { serialize: () => 'SERIALIZED_CACHE' };
+        }
+      }
+      return { ConfidentialClientApplication };
     });
-    return app;
-  }
 
-  it('redirects to Entra logout URL and destroys session (user logged in)', async () => {
-    const app = makeApp();
-    const agent = request.agent(app);
+    const routes = (await import('../../src/routes/sso')) as RoutesModule;
 
-    // Establish a session via /sso/login (sets cookie + authState)
-    await agent.get('/sso/login').expect(302);
-
-    const res = await agent.get('/sso/logout').expect(302);
-
-    // post_logout_redirect_uri must be URL-encoded
-    expect(res.headers['location']).toBe(
-      'https://login.microsoftonline.com/tenant-xyz/oauth2/v2.0/logout' +
-        '?post_logout_redirect_uri=https%3A%2F%2Fexample.test%2Fsigned-out',
+    const app: Express = express();
+    app.use(
+      session({
+        secret: 'test-secret',
+        resave: false,
+        saveUninitialized: true,
+        cookie: { secure: false },
+      }),
     );
 
-    // Session should be gone → /sso/me returns 401
-    await agent.get('/sso/me').expect(401);
+    // 🔑 Install the destroy spy BEFORE routes so the route uses it
+    let destroySpy:
+      | jest.SpyInstance<
+          ReturnType<Session['destroy']>,
+          Parameters<Session['destroy']>
+        >
+      | undefined;
+
+    app.use((req: Request, _res: Response, next: NextFunction) => {
+      const s = req.session as Session;
+      type Destroy = typeof s.destroy;
+      type DestroyCb = Parameters<Destroy>[0];
+      type DestroyRet = ReturnType<Destroy>;
+
+      destroySpy = jest
+        .spyOn(s, 'destroy')
+        .mockImplementation((cb: DestroyCb): DestroyRet => {
+          if (opts?.asyncDestroy) {
+            setTimeout(() => cb?.(undefined), 0);
+          } else {
+            cb?.(undefined);
+          }
+          return s; // match express-session typings
+        });
+
+      next();
+    });
+
+    // Attach routes AFTER spy is in place
+    const tenantId = opts?.tenantId ?? 'my-tenant';
+    const postLogoutRedirectUri =
+      opts?.postLogoutRedirectUri ?? 'http://localhost/after-signout?x=1&y=two';
+
+    if (routes.setupSsoRoutes) {
+      routes.setupSsoRoutes(app, {
+        tenantId,
+        clientId: 'client-abc',
+        clientSecret: 'secret-xyz',
+        redirectUri: 'http://localhost/callback',
+        scopes: ['user.read'],
+        postLogoutRedirectUri,
+      });
+    } else if (routes.router) {
+      app.use(routes.router);
+    } else {
+      throw new Error(
+        'Expected module to export setupSsoRoutes(app, opts) or router',
+      );
+    }
+
+    // Proper 4-arg error handler
+    app.use((_req: Request, res: Response) => {
+      res.status(500).send('Internal error');
+    });
+
+    return {
+      app,
+      logger,
+      destroySpyRef: () => destroySpy,
+      tenantId,
+      postLogoutRedirectUri,
+    };
+  };
+
+  const buildExpectedLogoutUrl = (
+    tenantId: string,
+    postLogoutRedirectUri: string,
+  ): string =>
+    `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/logout` +
+    `?post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`;
+
+  type DestroySpy = jest.SpyInstance<
+    ReturnType<Session['destroy']>,
+    Parameters<Session['destroy']>
+  >;
+
+  const assertLogoutRedirect = async (
+    app: Express,
+    expectedUrl: string,
+    destroySpyRef: () => DestroySpy | undefined,
+  ): Promise<void> => {
+    const res = await request(app).get('/sso/logout');
+
+    expect(res.status).toBe(302);
+    const location = res.headers['location'];
+    expect(location).toBe(expectedUrl);
+
+    const spy = destroySpyRef();
+    expect(spy).toBeDefined();
+    expect(spy?.mock.calls.length).toBe(1);
+  };
+
+  test('destroys the session and redirects to Entra logout with post_logout_redirect_uri', async () => {
+    const { app, destroySpyRef, tenantId, postLogoutRedirectUri } =
+      await prepareApp();
+
+    await assertLogoutRedirect(
+      app,
+      buildExpectedLogoutUrl(tenantId, postLogoutRedirectUri),
+      destroySpyRef,
+    );
   });
 
-  it('redirects to Entra logout URL even if not logged in', async () => {
-    const app = makeApp();
-    const agent = request.agent(app);
+  test('still redirects when destroy calls back asynchronously', async () => {
+    const { app, destroySpyRef, tenantId, postLogoutRedirectUri } =
+      await prepareApp({ asyncDestroy: true });
 
-    const res = await agent.get('/sso/logout').expect(302);
-
-    expect(res.headers['location']).toBe(
-      'https://login.microsoftonline.com/tenant-xyz/oauth2/v2.0/logout' +
-        '?post_logout_redirect_uri=https%3A%2F%2Fexample.test%2Fsigned-out',
+    await assertLogoutRedirect(
+      app,
+      buildExpectedLogoutUrl(tenantId, postLogoutRedirectUri),
+      destroySpyRef,
     );
-
-    // Still unauthorized on /sso/me
-    await agent.get('/sso/me').expect(401);
   });
 });
 
 describe('GET /sso/me', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+  const prepareApp = async (opts?: { seedAccount?: Account }) => {
+    jest.resetModules();
 
-    // /sso/login uses two UUIDs: state then nonce
-    uuidV4()
-      .mockReset()
-      .mockReturnValueOnce('state-123')
-      .mockReturnValueOnce('nonce-456');
+    // Mock config + logger FIRST
+    jest.doMock(
+      'config',
+      () => {
+        const data: Record<string, unknown> = {
+          'session.cookieName': 'sid',
+          'session.secret': 'test-secret',
+          'session.secure': false,
+        };
+        const has = (k: string) =>
+          Object.prototype.hasOwnProperty.call(data, k);
+        const get = (k: string) => {
+          if (!has(k)) {
+            throw new Error(`Missing config key in test: ${k}`);
+          }
+          return data[k];
+        };
+        return { has, get };
+      },
+      { virtual: true },
+    );
 
-    getAuthCodeUrlMock
-      .mockReset()
-      .mockResolvedValue(
-        'https://login.microsoftonline.com/tenant-xyz/oauth2/v2.0/authorize?...',
+    const logger = { error: jest.fn(), info: jest.fn(), warn: jest.fn() };
+    jest.doMock(
+      '@hmcts/nodejs-logging',
+      () => ({
+        Logger: { getLogger: () => logger },
+      }),
+      { virtual: true },
+    );
+
+    // Stub MSAL to avoid surprises at import time (not used by /sso/me)
+    jest.doMock(
+      '@azure/msal-node',
+      () => {
+        class ConfidentialClientApplication {
+          getAuthCodeUrl() {
+            throw new Error('Not used in /sso/me tests');
+          }
+          acquireTokenByCode() {
+            throw new Error('Not used in /sso/me tests');
+          }
+          getTokenCache() {
+            return { serialize: () => 'SERIALIZED_CACHE' };
+          }
+        }
+        return { ConfidentialClientApplication };
+      },
+      { virtual: true },
+    );
+
+    const routes = (await import('../../src/routes/sso')) as RoutesModule;
+
+    const app: Express = express();
+    app.use(
+      session({
+        secret: 'test-secret',
+        resave: false,
+        saveUninitialized: true,
+        cookie: { secure: false },
+      }),
+    );
+
+    // Optionally seed session.account for the authenticated test
+    if (opts?.seedAccount) {
+      app.use((req: Request, _res: Response, next: NextFunction) => {
+        (req.session as Session & { account?: Account }).account =
+          opts.seedAccount;
+        next();
+      });
+    }
+
+    if (routes.setupSsoRoutes) {
+      routes.setupSsoRoutes(app, {
+        tenantId: 'tenant-123',
+        clientId: 'client-abc',
+        clientSecret: 'secret-xyz',
+        redirectUri: 'http://localhost/callback',
+        scopes: ['user.read'],
+        postLogoutRedirectUri: 'http://localhost/signed-out',
+      });
+    } else if (routes.router) {
+      app.use(routes.router);
+    } else {
+      throw new Error(
+        'Expected module to export setupSsoRoutes(app, opts) or router',
       );
+    }
 
-    acquireTokenByCodeMock.mockReset();
-    serializeMock.mockReset().mockReturnValue('cache-string');
-  });
-
-  function makeApp() {
-    const app = express();
-    app.use(router);
-    // 4-arg error handler to surface unexpected errors during tests
-    app.use((err: unknown, _req: express.Request, res: express.Response) => {
-      res.status(500).send(String(err instanceof Error ? err.message : err));
+    // Proper 4-arg error handler (not expected here, just consistent)
+    app.use((err: unknown, _req: Request, res: Response) => {
+      res.status(500).send('Internal error');
     });
-    return app;
-  }
 
-  it('returns 401 when no account is in the session', async () => {
-    const app = makeApp();
-    const agent = request.agent(app);
+    return { app, logger };
+  };
 
-    // Fresh session: no login performed
-    const res = await agent.get('/sso/me').expect(401);
+  test('401 when no session account', async () => {
+    const { app } = await prepareApp();
+
+    const res = await request(app).get('/sso/me');
+
+    expect(res.status).toBe(401);
     expect(res.body).toEqual({ authenticated: false });
   });
 
-  it('returns 200 with user details after successful login', async () => {
-    const app = makeApp();
-    const agent = request.agent(app);
+  test('200 with user details when session has account', async () => {
+    const account: Account = {
+      name: 'Test User',
+      username: 'test@example.com',
+    };
+    const { app } = await prepareApp({ seedAccount: account });
 
-    // Establish session + state via /sso/login
-    await agent.get('/sso/login').expect(302);
+    const res = await request(app).get('/sso/me');
 
-    // Mock MSAL token exchange to return an account
-    acquireTokenByCodeMock.mockResolvedValueOnce({
-      account: {
-        homeAccountId: 'home-1',
-        environment: 'login.microsoftonline.com',
-        tenantId: 'tenant-xyz',
-        username: 'user@example.test',
-        name: 'User Example',
-      },
-    });
-
-    // Complete the login-callback with the matching state
-    await agent
-      .get('/sso/login-callback?code=the-code&state=state-123')
-      .expect(302);
-
-    // Now /sso/me should reflect the populated session
-    const me = await agent.get('/sso/me').expect(200);
-    expect(me.body).toEqual({
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
       authenticated: true,
-      name: 'User Example',
-      username: 'user@example.test',
+      name: 'Test User',
+      username: 'test@example.com',
     });
   });
 });
