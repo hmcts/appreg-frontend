@@ -94,7 +94,7 @@ describe('GET /sso/login', () => {
         secret: 'test-secret',
         resave: false,
         saveUninitialized: true,
-        cookie: { secure: false },
+        cookie: { secure: true },
       }),
     );
 
