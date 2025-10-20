@@ -28,9 +28,10 @@ import { AppInsights } from './modules/appinsights';
 import { Helmet } from './modules/helmet';
 import { HmctsLoggerBridge } from './modules/logger';
 import { PropertiesVolume } from './modules/properties-volume';
+import { cca } from './msal';
 import { setupHealthcheck } from './routes/health';
 import { setupInfoRoute } from './routes/info';
-import ssoRouter, { cca } from './routes/sso';
+import { setupSsoRoutes } from './routes/sso';
 
 // ----- Paths (ESM-safe)
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -92,7 +93,7 @@ app.use(
 // ----- Routes
 setupHealthcheck(app);
 setupInfoRoute(app);
-app.use(ssoRouter);
+setupSsoRoutes(app);
 
 // ----- Static
 app.use(
