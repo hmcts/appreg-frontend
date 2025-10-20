@@ -69,29 +69,21 @@ type CreateFormRaw = Pick<ApplicationListCreateDto, 'date' | 'description'> & {
 };
 
 // Make shared helper functions stricter locally
-function assertString(v: string | undefined, msg: string): asserts v is string {
-  if (typeof v !== 'string') {
-    throw new Error(msg);
-  }
-}
-
-function assertStatus<T>(v: T | undefined, msg: string): asserts v is T {
-  if (v === undefined) {
-    throw new Error(msg);
-  }
-}
-
 function requireTime(t: Parameters<typeof toTimeString>[0]): string {
   const v = toTimeString(t);
-  assertString(v, 'time is required');
-  return v;
+  if (!v) {
+    throw new Error('time required');
+  }
+  return v.length === 5 ? `${v}:00` : v;
 }
 
 function requireStatus(
   s: Parameters<typeof toStatus>[0],
 ): ApplicationListStatus {
   const v = toStatus(s);
-  assertStatus<ApplicationListStatus>(v, 'status is required');
+  if (v === undefined) {
+    throw new Error('Invalid status');
+  }
   return v;
 }
 
