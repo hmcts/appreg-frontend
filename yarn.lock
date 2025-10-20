@@ -3210,13 +3210,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ministryofjustice/frontend@npm:^6.0.0":
-  version: 6.0.0
-  resolution: "@ministryofjustice/frontend@npm:6.0.0"
+"@ministryofjustice/frontend@npm:^5.2.1":
+  version: 5.2.1
+  resolution: "@ministryofjustice/frontend@npm:5.2.1"
   peerDependencies:
-    govuk-frontend: ^5.11.2
+    govuk-frontend: ^5.8.0
     moment: 2.30.1
-  checksum: 10/64a04edeb9f525fd17c04f393d09150ca3b9ad9263b9b3335c1748f6b8682a6600ed0dbf99351197046f2ca1231c1191b0442dc901c0adbb4fe7ac9b79ea0061
+  checksum: 10/c16353880819525d412867e788869c79be7de9d4b82e5dfe949623bbdfe4cb49492b1fc882bd0049db3c4e2e17858e8aa1c0f4dc558efd7125b54a514dc0f4ed
   languageName: node
   linkType: hard
 
@@ -6167,7 +6167,7 @@ __metadata:
     "@hmcts/nodejs-logging": "npm:^4.0.4"
     "@hmcts/properties-volume": "npm:^1.2.0"
     "@jest/globals": "npm:^30.2.0"
-    "@ministryofjustice/frontend": "npm:^6.0.0"
+    "@ministryofjustice/frontend": "npm:^5.2.1"
     "@octokit/rest": "npm:^22.0.0"
     "@openapitools/openapi-generator-cli": "npm:^2.23.4"
     "@redocly/cli": "npm:^2.1.4"

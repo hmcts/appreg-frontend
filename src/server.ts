@@ -58,7 +58,6 @@ const apiScopes: string[] = config.has('api.scopes')
   : [];
 
 // ----- Platform modules
-
 new Helmet(developmentMode).enableFor(app);
 AppInsights.enable();
 
