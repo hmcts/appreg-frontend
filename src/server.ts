@@ -68,6 +68,9 @@ const logger: HmctsLogger = HmctsLoggerBridge.enable(
   AppInsights.client(),
 );
 
+// Trust proxy (for secure cookies behind ingress)
+app.set('trust proxy', true);
+
 // ----- Session (must be before auth/proxy/SSR so req.session is available everywhere)
 app.use(
   session({
