@@ -11,6 +11,7 @@ import {
 } from '@angular/ssr/node';
 import type { AccountInfo } from '@azure/msal-node';
 import type { HmctsLogger } from '@hmcts/nodejs-logging';
+import { RedisStore } from 'connect-redis';
 import cookieParser from 'cookie-parser';
 import express, {
   type NextFunction,
@@ -23,6 +24,7 @@ import {
   type Options as ProxyOptions,
   createProxyMiddleware,
 } from 'http-proxy-middleware';
+import { RedisClientType, createClient } from 'redis';
 
 import { AppInsights } from './modules/appinsights';
 import { Helmet } from './modules/helmet';
@@ -68,24 +70,101 @@ const logger: HmctsLogger = HmctsLoggerBridge.enable(
   AppInsights.client(),
 );
 
-// ----- Session (must be before auth/proxy/SSR so req.session is available everywhere)
-app.use(
-  session({
-    name: config.has('session.cookieName')
+// Helper: only connect to Redis when this file is the real entrypoint (not during prerender/build)
+const runningAsEntrypoint = (() => {
+  try {
+    const thisFile = new URL(import.meta.url).pathname;
+    const entry = process.argv[1]
+      ? new URL(`file://${process.argv[1]}`).pathname
+      : '';
+    return thisFile === entry;
+  } catch {
+    return false;
+  }
+})();
+
+const isProd = process.env['NODE_ENV'] === 'production';
+const useRedis = isProd && runningAsEntrypoint; // avoid connecting during CI/prerender
+
+let store: session.Store | undefined;
+
+if (useRedis) {
+  // --- Build an Azure Redis client from your access key (or connection string) ---
+  const redisAccessKey = config.get<string>('secrets.appreg.redis-access-key');
+
+  // You said you prefer the Azure connection-string style:
+  const conn = `appreg-stg.redis.cache.windows.net:6380,password=${redisAccessKey},ssl=True,abortConnect=False`;
+
+  const [hostPort, ...pairs] = conn.split(',');
+  const [host, portStr] = hostPort.split(':');
+  const map = Object.fromEntries(
+    pairs.map((kv) => {
+      const i = kv.indexOf('=');
+      return [kv.slice(0, i).trim().toLowerCase(), kv.slice(i + 1).trim()];
+    }),
+  );
+  const password = map['password'] ?? '';
+
+  const redisClient: RedisClientType = createClient({
+    socket: {
+      host,
+      port: Number(portStr || '6380'),
+      tls: true as const,
+      connectTimeout: 10_000,
+    },
+    password,
+  });
+
+  redisClient.on('error', (err) => logger.error('[redis] client error', err));
+  await redisClient.connect();
+
+  store = new RedisStore({ client: redisClient, prefix: 'appreg:sess:' });
+  logger.info('[session] Using RedisStore');
+} else {
+  logger.warn(
+    isProd
+      ? '[session] Skipping Redis during build/prerender (MemoryStore temporarily)'
+      : '[session] Using MemoryStore for local dev',
+  );
+}
+
+// --- Build session options based on env ---
+const prodCookie = {
+  httpOnly: true,
+  sameSite: 'lax' as const,
+  secure: config.has('session.secure')
+    ? config.get<boolean>('session.secure')
+    : true, // secure in prod
+  maxAge: 1000 * 60 * 60 * 8, // 8h
+  path: '/',
+};
+
+const devCookie = {
+  httpOnly: true,
+  sameSite: 'lax' as const,
+  secure: false, // local
+};
+
+const sessionOptions: session.SessionOptions = {
+  name: isProd
+    ? config.has('session.cookieName')
+      ? config.get<string>('session.cookieName')
+      : 'appreg.sid'
+    : config.has('session.cookieName')
       ? config.get<string>('session.cookieName')
       : 'sid',
-    secret: config.get<string>('session.secret'),
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: config.has('session.secure')
-        ? config.get<boolean>('session.secure')
-        : env === 'production',
-    },
-  }),
-);
+  secret: config.get<string>('session.secret'),
+  resave: false,
+  saveUninitialized: false,
+  cookie: isProd ? prodCookie : devCookie,
+  rolling: false,
+};
+
+if (store) {
+  sessionOptions.store = store;
+}
+
+app.use(session(sessionOptions));
 
 // ----- Routes
 setupHealthcheck(app);
