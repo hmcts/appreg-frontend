@@ -21,13 +21,15 @@ export const cca = new ConfidentialClientApplication({
   system: { loggerOptions: { piiLoggingEnabled: false } },
 });
 
+const isDev = (process.env['NODE_ENV'] || 'development') === 'development';
+
 export const buildAuthCodeUrlRequest = (
   state: string,
   nonce: string,
 ): AuthorizationUrlRequest => ({
   scopes: config.get<string[]>('auth.scopes'),
   redirectUri,
-  responseMode: 'query',
+  responseMode: isDev ? 'query' : 'form_post',
   state,
   nonce,
   prompt: 'select_account',
