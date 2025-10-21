@@ -31,6 +31,12 @@ const buildConfigMock = () => {
     'session.cookieName': 'sid',
     'session.secret': 'test-secret',
     'session.secure': false,
+    'secrets.appreg.azure-tenant-id-fe': 'tenant-123',
+    'secrets.appreg.azure-app-id-fe': 'client-abc',
+    'secrets.appreg.azure-client-secret-fe': 'secret-xyz',
+    'auth.redirectUri': 'http://localhost/callback',
+    'auth.scopes': ['user.read'],
+    'auth.postLogoutRedirectUri': 'http://localhost/signed-out',
   };
   const has = jest.fn((k: string) =>
     Object.prototype.hasOwnProperty.call(data, k),
@@ -513,28 +519,6 @@ describe('GET /sso/logout', () => {
 describe('GET /sso/me', () => {
   const prepareApp = async (opts?: { seedAccount?: Account }) => {
     jest.resetModules();
-
-    // Mock config + logger FIRST
-    jest.doMock(
-      'config',
-      () => {
-        const data: Record<string, unknown> = {
-          'session.cookieName': 'sid',
-          'session.secret': 'test-secret',
-          'session.secure': false,
-        };
-        const has = (k: string) =>
-          Object.prototype.hasOwnProperty.call(data, k);
-        const get = (k: string) => {
-          if (!has(k)) {
-            throw new Error(`Missing config key in test: ${k}`);
-          }
-          return data[k];
-        };
-        return { has, get };
-      },
-      { virtual: true },
-    );
 
     const logger = { error: jest.fn(), info: jest.fn(), warn: jest.fn() };
     jest.doMock(
