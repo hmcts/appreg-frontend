@@ -1,3 +1,11 @@
+/* 
+Main component for /application-list/:id
+
+Functionality:
+  onUpdate:
+    - TODO finish header
+*/
+
 import { CommonModule } from '@angular/common';
 import {
   AfterViewInit,
