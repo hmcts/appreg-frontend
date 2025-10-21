@@ -16,6 +16,8 @@ nodejs:
           alias: azure-app-id-fe
         - name: AppInsightsInstrumentationKey
           alias: APP_INSIGHTS_INSTRUMENTATION_KEY
+        - name: redis-access-key
+          alias: redis-access-key
   environment:
     ALLOW_CONFIG_MUTATIONS: true
     NODE_ENV: 'production'
