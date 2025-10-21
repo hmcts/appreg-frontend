@@ -11,6 +11,7 @@ import {
 } from '@angular/ssr/node';
 import type { AccountInfo } from '@azure/msal-node';
 import type { HmctsLogger } from '@hmcts/nodejs-logging';
+import { RedisStore } from 'connect-redis';
 import cookieParser from 'cookie-parser';
 import express, {
   type NextFunction,
@@ -23,6 +24,7 @@ import {
   type Options as ProxyOptions,
   createProxyMiddleware,
 } from 'http-proxy-middleware';
+import { createClient } from 'redis';
 
 import { AppInsights } from './modules/appinsights';
 import { Helmet } from './modules/helmet';
@@ -68,15 +70,27 @@ const logger: HmctsLogger = HmctsLoggerBridge.enable(
   AppInsights.client(),
 );
 
-// Trust proxy (for secure cookies behind ingress)
-app.set('trust proxy', true);
+// ----- Redis client -----
+const redisAccessKey = config.get<string>('secrets.appreg.redis-access-key');
+const redisUrl = `rediss://:${redisAccessKey}@appreg-stg.redis.cache.windows.net:6380`;
 
-// ----- Session (must be before auth/proxy/SSR so req.session is available everywhere)
+const redisClient = createClient({ url: redisUrl });
+redisClient.on('error', (err) => logger.error('[redis] client error', err));
+await redisClient.connect();
+
+// ----- Session store backed by Redis -----
+const redisStore = new RedisStore({
+  client: redisClient,
+  prefix: 'appreg:sess:',
+});
+
+// ----- Session -----
 app.use(
   session({
+    store: redisStore,
     name: config.has('session.cookieName')
       ? config.get<string>('session.cookieName')
-      : 'sid',
+      : 'appreg.sid',
     secret: config.get<string>('session.secret'),
     resave: false,
     saveUninitialized: false,
@@ -85,8 +99,11 @@ app.use(
       sameSite: 'lax',
       secure: config.has('session.secure')
         ? config.get<boolean>('session.secure')
-        : env === 'production',
+        : process.env['NODE_ENV'] === 'production',
+      maxAge: 1000 * 60 * 60 * 8,
+      path: '/',
     },
+    rolling: false,
   }),
 );
 
