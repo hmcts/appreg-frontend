@@ -316,7 +316,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     set('otherLocationDescription', raw.location || undefined);
     set('cjaCode', raw.cja || undefined);
 
-    return query;
+    return query as ApplicationListGetFilterDto;
   }
 
   private toRow(x: ApplicationListGetSummaryDto): ApplicationListRow {
