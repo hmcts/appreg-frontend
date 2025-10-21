@@ -205,7 +205,9 @@ export function setupSsoRoutes(
         req.session.account = tokenResponse.account;
         req.session.tokenCache = getCca().getTokenCache().serialize();
 
-        res.redirect('/applications-list'); // adjust as needed
+        req.session.save(() => {
+          res.redirect('/applications-list');
+        });
         return;
       } catch (err) {
         logger.error(err as Error, 'Error during /sso/login-callback');
