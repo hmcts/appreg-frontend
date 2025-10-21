@@ -43,10 +43,11 @@ const angularApp = new AngularNodeAppEngine();
 
 // Trust proxy (for secure cookies behind ingress)
 app.set('trust proxy', 1);
-app.use(cookieParser());
 
 await new PropertiesVolume().enableFor(app);
 const { default: config } = await import('config');
+
+app.use(cookieParser(config.get<string>('session.secret')));
 
 // ----- Env
 const env = process.env['NODE_ENV'] || 'development';
@@ -67,9 +68,6 @@ const logger: HmctsLogger = HmctsLoggerBridge.enable(
   'hmcts applications register - server',
   AppInsights.client(),
 );
-
-// Trust proxy (for secure cookies behind ingress)
-app.set('trust proxy', true);
 
 // ----- Session (must be before auth/proxy/SSR so req.session is available everywhere)
 app.use(
