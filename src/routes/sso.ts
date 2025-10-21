@@ -1,17 +1,12 @@
-import {
-  AccountInfo,
-  AuthorizationCodeRequest,
-  AuthorizationUrlRequest,
-  ConfidentialClientApplication,
-} from '@azure/msal-node';
+import { AccountInfo, ConfidentialClientApplication } from '@azure/msal-node';
 import * as nodejsLogging from '@hmcts/nodejs-logging';
 import { HmctsLogger } from '@hmcts/nodejs-logging';
 import config from 'config';
-import cookieParser from 'cookie-parser';
 import express, { Express, NextFunction, Request, Response } from 'express';
 import { type RateLimitRequestHandler, rateLimit } from 'express-rate-limit';
-import session from 'express-session';
 import { v4 as uuid } from 'uuid';
+
+import { buildAuthCodeRequest, buildAuthCodeUrlRequest } from '../msal';
 
 const { Logger } = nodejsLogging as unknown as {
   Logger: { getLogger(name: string): HmctsLogger };
@@ -83,9 +78,6 @@ export function setupSsoRoutes(
   const clientSecret =
     overrides?.clientSecret ??
     config.get<string>('secrets.appreg.azure-client-secret-fe');
-  const redirectUri =
-    overrides?.redirectUri ?? config.get<string>('auth.redirectUri');
-  const scopes = overrides?.scopes ?? config.get<string[]>('auth.scopes');
   const postLogoutRedirectUri =
     overrides?.postLogoutRedirectUri ??
     config.get<string>('auth.postLogoutRedirectUri');
@@ -101,39 +93,6 @@ export function setupSsoRoutes(
 
   // Scoped router that carries session/cookie middleware only for SSO endpoints
   const router = express.Router();
-
-  router.use(cookieParser());
-  router.use(
-    session({
-      name: config.get<string>('session.cookieName'),
-      secret: config.get<string>('session.secret'),
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        httpOnly: true,
-        sameSite: 'lax',
-        secure: config.get<boolean>('session.secure'),
-      },
-    }),
-  );
-
-  const buildAuthCodeUrlRequest = (
-    state: string,
-    nonce: string,
-  ): AuthorizationUrlRequest => ({
-    scopes,
-    redirectUri,
-    responseMode: 'query',
-    state,
-    nonce,
-    prompt: 'select_account',
-  });
-
-  const buildAuthCodeRequest = (code: string): AuthorizationCodeRequest => ({
-    code,
-    scopes,
-    redirectUri,
-  });
 
   // ---- Routes ---------------------------------------------------------------
 
