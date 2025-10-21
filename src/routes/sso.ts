@@ -1,8 +1,4 @@
-import {
-  AccountInfo,
-  AuthenticationResult,
-  ConfidentialClientApplication,
-} from '@azure/msal-node';
+import { AccountInfo, ConfidentialClientApplication } from '@azure/msal-node';
 import * as nodejsLogging from '@hmcts/nodejs-logging';
 import { HmctsLogger } from '@hmcts/nodejs-logging';
 import config from 'config';
@@ -68,29 +64,6 @@ const loginLimiter: RateLimitRequestHandler = rateLimit({
   statusCode: 429,
 });
 
-function getSignedOrPlainCookie(
-  req: Request,
-  name: string,
-): string | undefined {
-  const signed = (req as unknown as { signedCookies?: Record<string, unknown> })
-    .signedCookies;
-  const plain = (req as unknown as { cookies?: Record<string, unknown> })
-    .cookies;
-  const val = signed?.[name] ?? plain?.[name];
-  return typeof val === 'string' ? val : undefined;
-}
-
-function getIdTokenNonce(
-  ar: AuthenticationResult | null | undefined,
-): string | undefined {
-  const claims = ar?.idTokenClaims as unknown;
-  if (!claims || typeof claims !== 'object') {
-    return undefined;
-  }
-  const nonce = (claims as Record<string, unknown>)['nonce'];
-  return typeof nonce === 'string' ? nonce : undefined;
-}
-
 // --- Main API (similar to setupInfoRoute) ------------------------------------
 export function setupSsoRoutes(
   app: Express,
@@ -131,24 +104,8 @@ export function setupSsoRoutes(
       try {
         const state = uuid();
         const nonce = uuid();
-
-        // short-lived, signed, httpOnly cookies (double-submit cookie pattern)
-        res.cookie('sso_state', state, {
-          httpOnly: true,
-          sameSite: 'lax',
-          secure: true,
-          signed: true,
-          maxAge: 5 * 60_000,
-          path: '/sso',
-        });
-        res.cookie('sso_nonce', nonce, {
-          httpOnly: true,
-          sameSite: 'lax',
-          secure: true,
-          signed: true,
-          maxAge: 5 * 60_000,
-          path: '/sso',
-        });
+        req.session.authState = state;
+        req.session.nonce = nonce;
 
         const url = getCca().getAuthCodeUrl(
           buildAuthCodeUrlRequest(state, nonce),
@@ -175,9 +132,8 @@ export function setupSsoRoutes(
             ? req.query['state']
             : undefined;
 
-        const cookieState = getSignedOrPlainCookie(req, 'sso_state');
-        if (!code || !state || !cookieState || cookieState !== state) {
-          res.status(400).send('Invalid auth response (state).');
+        if (!code || !state || state !== req.session.authState) {
+          res.status(400).send('Invalid auth response.');
           return;
         }
 
@@ -186,25 +142,12 @@ export function setupSsoRoutes(
         );
 
         if (!tokenResponse?.account) {
-          res.status(401).send('Invalid auth response (no account).');
+          res.status(401).send('No account in token.');
           return;
         }
 
-        const cookieNonce = getSignedOrPlainCookie(req, 'sso_nonce');
-        const nonceClaim = getIdTokenNonce(tokenResponse);
-        if (!cookieNonce || !nonceClaim || cookieNonce !== nonceClaim) {
-          res.status(401).send('Invalid auth response (nonce).');
-          return;
-        }
-
-        // Clear one-time cookies
-        res.clearCookie('sso_state', { path: '/sso' });
-        res.clearCookie('sso_nonce', { path: '/sso' });
-
-        // Persist identity + MSAL cache in the session (unchanged)
         req.session.account = tokenResponse.account;
         req.session.tokenCache = getCca().getTokenCache().serialize();
-
         res.redirect('/applications-list'); // adjust as needed
         return;
       } catch (err) {
