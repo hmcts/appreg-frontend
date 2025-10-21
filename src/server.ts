@@ -69,7 +69,6 @@ const logger: HmctsLogger = HmctsLoggerBridge.enable(
 );
 
 // ----- Session (must be before auth/proxy/SSR so req.session is available everywhere)
-const isProdLike = process.env['NODE_ENV'] === 'production';
 app.use(
   session({
     name: config.has('session.cookieName')
@@ -80,8 +79,10 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      sameSite: isProdLike ? 'none' : 'lax',
-      secure: isProdLike,
+      sameSite: 'lax',
+      secure: config.has('session.secure')
+        ? config.get<boolean>('session.secure')
+        : env === 'production',
     },
   }),
 );
