@@ -223,10 +223,12 @@
 
         <!-- Duration: Optional field? -->
         <app-duration-input
-          name="duration"
+          formControlName="duration"
           label="Duration"
           hint="Duration of the list"
           idPrefix="duration"
+          [submitted]="updateInvalid"
+          [required]="true"
         ></app-duration-input>
       </div>
 
