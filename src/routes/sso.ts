@@ -1,7 +1,4 @@
-import {
-  AccountInfo,
-  ConfidentialClientApplication,
-} from '@azure/msal-node';
+import { AccountInfo, ConfidentialClientApplication } from '@azure/msal-node';
 import * as nodejsLogging from '@hmcts/nodejs-logging';
 import { HmctsLogger } from '@hmcts/nodejs-logging';
 import config from 'config';
@@ -156,18 +153,18 @@ export function setupSsoRoutes(
   router.use(express.urlencoded({ extended: false }));
 
   // Unified callback: supports both GET (query) and POST (form_post)
-  const loginCallback: RequestHandler<ParamsDictionary, unknown, LoginCallbackBody> = async (
-    req,
-    res,
-    next,
-  ) => {
+  const loginCallback: RequestHandler<
+    ParamsDictionary,
+    unknown,
+    LoginCallbackBody
+  > = async (req, res, next) => {
     try {
       const fromBody = req.method === 'POST';
       const source: Partial<LoginCallbackBody> = fromBody
         ? req.body
         : (req.query as unknown as Partial<LoginCallbackBody>);
 
-      const code  = typeof source.code  === 'string' ? source.code  : undefined;
+      const code = typeof source.code === 'string' ? source.code : undefined;
       const state = typeof source.state === 'string' ? source.state : undefined;
 
       if (!code || !state) {
