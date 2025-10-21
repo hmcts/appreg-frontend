@@ -16,6 +16,8 @@ import {
 import { Subscription } from 'rxjs';
 
 import {
+  ApplicationListStatus,
+  ApplicationListsApi,
   CourtLocationGetSummaryDto,
   CriminalJusticeAreaGetDto,
 } from '../../../generated/openapi';
@@ -100,6 +102,9 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
     { header: 'Actions', field: 'actions', sortable: false },
   ];
 
+  // Flags
+  updateDone: boolean = false;
+
   // CJA + Court location vars
   cja: CriminalJusticeAreaGetDto[] = [];
   filteredCja: CriminalJusticeAreaGetDto[] = [];
@@ -112,6 +117,7 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
   constructor(
     @Inject(PLATFORM_ID) private readonly platformId: object,
     private readonly ref: ReferenceDataFacade,
+    private readonly appListApi: ApplicationListsApi,
   ) {}
 
   ngOnInit(): void {
@@ -146,7 +152,30 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
   }
 
   onUpdate(): void {
-    // TODO: Update application list
+    const params = {
+      id: 'placeholder',
+      applicationListUpdateDto: {
+        date: '',
+        time: '',
+        description: '',
+        status: ApplicationListStatus.OPEN,
+        // courtLocation?: CourtLocationGetDetailDto;
+        otherLocationDescription: '',
+        // criminalJusticeArea?: CriminalJusticeAreaGetDto;
+        // durationHours?: number;
+        // durationMinutes?: number;
+        version: 1,
+      },
+    };
+
+    this.appListApi.updateApplicationList(params).subscribe({
+      next: () => {
+        this.updateDone = true;
+      },
+      error: (err) => {
+        console.log(err);
+      },
+    });
   }
 
   onPageChange(page: number): void {
