@@ -56,11 +56,11 @@ type Account = { name?: string; username?: string };
 jest.doMock('config', () => buildConfigMock(), { virtual: true });
 const logger = { error: jest.fn(), info: jest.fn(), warn: jest.fn() };
 jest.doMock(
-    '@hmcts/nodejs-logging',
-    () => ({
-      Logger: { getLogger: () => logger },
-    }),
-    { virtual: true },
+  '@hmcts/nodejs-logging',
+  () => ({
+    Logger: { getLogger: () => logger },
+  }),
+  { virtual: true },
 );
 
 describe('GET /sso/login', () => {
