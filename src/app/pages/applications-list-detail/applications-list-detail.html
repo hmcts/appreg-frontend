@@ -5,6 +5,23 @@
 
 <h1 class="govuk-heading-xl">Applications list</h1>
 
+@if (unpopField.length || updateInvalid) {
+  <app-error-summary
+    [title]="errorHint || 'There is a problem'"
+    [items]="unpopField"
+    
+  />
+  <!-- (itemSelect)="onCreateErrorClick($event)"   Implement this, idk how work-->
+}
+
+@if (updateDone) {
+  <app-success-banner
+    heading="Applications list successfully created"
+    [linkCommands]="['/applications-list']"
+    linkText="Click here to go back"
+  />
+}
+
 <!-- Tabs -->
 <div class="govuk-tabs" data-module="govuk-tabs">
   <h2 class="govuk-tabs__title">Contents</h2>
