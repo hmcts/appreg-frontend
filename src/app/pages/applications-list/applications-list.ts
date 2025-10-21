@@ -80,7 +80,6 @@ import { ApplicationListRow } from '../../shared/util/types/application-list-row
 import { getHttpStatus, statusSummary } from './util/delete-status';
 import { loadQuery } from './util/load-query';
 
-
 interface MojInitEl extends HTMLElement {
   __mojInit?: boolean;
 }

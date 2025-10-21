@@ -28,7 +28,10 @@ import {
   Duration,
   DurationInputComponent,
 } from '../../shared/components/duration-input/duration-input.component';
-import { ErrorItem, ErrorSummaryComponent } from '../../shared/components/error-summary/error-summary.component';
+import {
+  ErrorItem,
+  ErrorSummaryComponent,
+} from '../../shared/components/error-summary/error-summary.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
@@ -61,7 +64,7 @@ type DurationValue = { hours: string; minutes: string };
     BreadcrumbsComponent,
     SuggestionsComponent,
     ErrorSummaryComponent,
-    SuccessBannerComponent
+    SuccessBannerComponent,
   ],
   templateUrl: './applications-list-detail.html',
 })
