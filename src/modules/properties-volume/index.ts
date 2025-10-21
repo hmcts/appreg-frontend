@@ -1,5 +1,6 @@
 import { createRequire } from 'module';
 
+import nodejsLogging, { HmctsLogger } from '@hmcts/nodejs-logging';
 import type * as PV from '@hmcts/properties-volume';
 import { IConfig } from 'config';
 import { Application } from 'express';
