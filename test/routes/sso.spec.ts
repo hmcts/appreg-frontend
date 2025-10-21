@@ -52,20 +52,20 @@ const buildConfigMock = () => {
 
 type Account = { name?: string; username?: string };
 
+// Mock config + logger
+jest.doMock('config', () => buildConfigMock(), { virtual: true });
+const logger = { error: jest.fn(), info: jest.fn(), warn: jest.fn() };
+jest.doMock(
+    '@hmcts/nodejs-logging',
+    () => ({
+      Logger: { getLogger: () => logger },
+    }),
+    { virtual: true },
+);
+
 describe('GET /sso/login', () => {
   const prepareApp = async (mode: 'ok' | 'fail' = 'ok') => {
     jest.resetModules();
-
-    // Mock config + logger FIRST
-    jest.doMock('config', () => buildConfigMock(), { virtual: true });
-    const logger = { error: jest.fn(), info: jest.fn(), warn: jest.fn() };
-    jest.doMock(
-      '@hmcts/nodejs-logging',
-      () => ({
-        Logger: { getLogger: () => logger },
-      }),
-      { virtual: true },
-    );
 
     // Stable UUIDs so we can assert state/nonce
     const uuidMock = jest.fn<string, []>();
@@ -168,17 +168,6 @@ describe('GET /sso/login-callback', () => {
     presetAuthState?: string,
   ) => {
     jest.resetModules();
-
-    // Mock config + logger FIRST
-    jest.doMock('config', () => buildConfigMock(), { virtual: true });
-    const logger = { error: jest.fn(), info: jest.fn(), warn: jest.fn() };
-    jest.doMock(
-      '@hmcts/nodejs-logging',
-      () => ({
-        Logger: { getLogger: () => logger },
-      }),
-      { virtual: true },
-    );
 
     // We don’t need uuid here; callback uses req.query + session.authState
     type AcquireArgs = Record<string, unknown>;
@@ -364,15 +353,6 @@ describe('GET /sso/logout', () => {
   }) => {
     jest.resetModules();
 
-    // Mock config + logger FIRST
-    jest.doMock('config', () => buildConfigMock(), { virtual: true });
-    const logger = { error: jest.fn(), info: jest.fn(), warn: jest.fn() };
-    jest.doMock(
-      '@hmcts/nodejs-logging',
-      () => ({ Logger: { getLogger: () => logger } }),
-      { virtual: true },
-    );
-
     // Stub MSAL (not used in logout, but safe at import time)
     jest.doMock('@azure/msal-node', () => {
       class ConfidentialClientApplication {
@@ -519,15 +499,6 @@ describe('GET /sso/logout', () => {
 describe('GET /sso/me', () => {
   const prepareApp = async (opts?: { seedAccount?: Account }) => {
     jest.resetModules();
-
-    const logger = { error: jest.fn(), info: jest.fn(), warn: jest.fn() };
-    jest.doMock(
-      '@hmcts/nodejs-logging',
-      () => ({
-        Logger: { getLogger: () => logger },
-      }),
-      { virtual: true },
-    );
 
     // Stub MSAL to avoid surprises at import time (not used by /sso/me)
     jest.doMock(
