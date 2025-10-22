@@ -4,6 +4,8 @@ COPY --chown=hmcts:hmcts . .
 
 USER root
 
+RUN apk add --no-cache curl bash
+
 # Install the dependencies and build the app.
 RUN yarn install
 RUN yarn build:ssr
