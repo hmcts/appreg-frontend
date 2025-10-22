@@ -128,9 +128,7 @@ export function setupSsoRoutes(
         const code =
           typeof req.query['code'] === 'string' ? req.query['code'] : undefined;
         const state =
-          typeof req.query['state'] === 'string'
-            ? req.query['state']
-            : undefined;
+          typeof req.query['state'] === 'string' ? req.query['state'] : undefined;
 
         if (!code || !state || state !== req.session.authState) {
           res.status(400).send('Invalid auth response.');
@@ -146,8 +144,14 @@ export function setupSsoRoutes(
           return;
         }
 
+        // Persist account + MSAL cache into the session
         req.session.account = tokenResponse.account;
         req.session.tokenCache = getCca().getTokenCache().serialize();
+
+        await new Promise<void>((resolve, reject) =>
+          req.session.save((err) => (err ? reject(err) : resolve())),
+        );
+
         res.redirect('/applications-list'); // adjust as needed
         return;
       } catch (err) {

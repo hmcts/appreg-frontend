@@ -27,10 +27,9 @@ import { AppInsights } from './modules/appinsights';
 import { Helmet } from './modules/helmet';
 import { HmctsLoggerBridge } from './modules/logger';
 import { PropertiesVolume } from './modules/properties-volume';
-import { cca } from './msal';
 import { setupHealthcheck } from './routes/health';
 import { setupInfoRoute } from './routes/info';
-import { setupSsoRoutes } from './routes/sso';
+import { getCca, setupSsoRoutes } from './routes/sso';
 import { setupSession } from './session';
 
 // ----- Paths (ESM-safe)
@@ -161,8 +160,8 @@ async function acquireApiToken(req: ReqWithSession): Promise<string | null> {
 
   try {
     // Hydrate cache for this request
-    cca.getTokenCache().deserialize(cache);
-    const result = await cca.acquireTokenSilent({
+    getCca().getTokenCache().deserialize(cache);
+    const result = await getCca().acquireTokenSilent({
       account,
       scopes: apiScopes,
       // forceRefresh: true, // optionally enable if you suspect cache staleness
@@ -170,7 +169,7 @@ async function acquireApiToken(req: ReqWithSession): Promise<string | null> {
     if (result?.accessToken) {
       // Persist any cache updates (refresh tokens, expiry, etc.)
       if (sess) {
-        sess.tokenCache = cca.getTokenCache().serialize();
+        sess.tokenCache = getCca().getTokenCache().serialize();
       }
       logger.info(
         `[proxy] acquired token exp=${result.expiresOn?.toISOString?.() ?? 'n/a'}`,
