@@ -11,7 +11,6 @@ import {
 } from '@angular/ssr/node';
 import type { AccountInfo } from '@azure/msal-node';
 import type { HmctsLogger } from '@hmcts/nodejs-logging';
-import { RedisStore } from 'connect-redis';
 import cookieParser from 'cookie-parser';
 import express, {
   type NextFunction,
@@ -19,12 +18,10 @@ import express, {
   RequestHandler,
   type Response,
 } from 'express';
-import session from 'express-session';
 import {
   type Options as ProxyOptions,
   createProxyMiddleware,
 } from 'http-proxy-middleware';
-import { RedisClientType, createClient } from 'redis';
 
 import { AppInsights } from './modules/appinsights';
 import { Helmet } from './modules/helmet';
@@ -34,6 +31,7 @@ import { cca } from './msal';
 import { setupHealthcheck } from './routes/health';
 import { setupInfoRoute } from './routes/info';
 import { setupSsoRoutes } from './routes/sso';
+import { setupSession } from './session';
 
 // ----- Paths (ESM-safe)
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -72,81 +70,22 @@ const logger: HmctsLogger = HmctsLoggerBridge.enable(
 );
 
 // Redis config
-const useRedis = isProd;
+const cookieName =
+  config.has('session.cookieName')
+    ? config.get<string>('session.cookieName')
+    : (isProd ? 'appreg.sid' : 'sid');
 
-let store: session.Store | undefined;
-
-if (useRedis) {
-  const redisAccessKey = (
-    config.get<string>('secrets.appreg.redis-access-key') || ''
-  ).trim();
-  if (!redisAccessKey) {
-    throw new Error(
-      'Redis access key is missing (secrets.appreg.redis-access-key).',
-    );
-  }
-
-  const redisHost = 'appreg-stg.redis.cache.windows.net';
-
-  const redisUrl = `rediss://default:${encodeURIComponent(redisAccessKey)}@${redisHost}:6380`;
-
-  const redisClient: RedisClientType = createClient({
-    url: redisUrl,
-    socket: {
-      connectTimeout: 10_000,
-    },
-  });
-
-  redisClient.on('error', (err) => logger.error('[redis] client error', err));
-  await redisClient.connect();
-
-  store = new RedisStore({ client: redisClient, prefix: 'appreg:sess:' });
-  logger.info('[session] Using RedisStore');
-} else {
-  logger.warn(
-    isProd
-      ? '[session] Skipping Redis during build/prerender (MemoryStore temporarily)'
-      : '[session] Using MemoryStore for local dev',
-  );
-}
-
-// --- Build session options based on env ---
-const prodCookie = {
-  httpOnly: true,
-  sameSite: 'lax' as const,
-  secure: config.has('session.secure')
-    ? config.get<boolean>('session.secure')
-    : true,
-  maxAge: 1000 * 60 * 60 * 8, // 8h
-  path: '/',
-};
-
-const devCookie = {
-  httpOnly: true,
-  sameSite: 'lax' as const,
-  secure: false, // local
-};
-
-const sessionOptions: session.SessionOptions = {
-  name: isProd
-    ? config.has('session.cookieName')
-      ? config.get<string>('session.cookieName')
-      : 'appreg.sid'
-    : config.has('session.cookieName')
-      ? config.get<string>('session.cookieName')
-      : 'sid',
-  secret: config.get<string>('session.secret'),
-  resave: false,
-  saveUninitialized: false,
-  cookie: isProd ? prodCookie : devCookie,
-  rolling: false,
-};
-
-if (store) {
-  sessionOptions.store = store;
-}
-
-app.use(session(sessionOptions));
+app.use(
+  await setupSession({
+    isProd,
+    redisHost: 'appreg-stg.redis.cache.windows.net',
+    redisAccessKey: config.get<string>('secrets.appreg.redis-access-key'),
+    cookieName,
+    sessionSecret: config.get<string>('session.secret'),
+    prefix: 'appreg:sess:',
+    secureInProd: config.has('session.secure') ? config.get<boolean>('session.secure') : true,
+  }),
+);
 
 // ----- Routes
 setupHealthcheck(app);
