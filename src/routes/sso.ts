@@ -128,7 +128,9 @@ export function setupSsoRoutes(
         const code =
           typeof req.query['code'] === 'string' ? req.query['code'] : undefined;
         const state =
-          typeof req.query['state'] === 'string' ? req.query['state'] : undefined;
+          typeof req.query['state'] === 'string'
+            ? req.query['state']
+            : undefined;
 
         if (!code || !state || state !== req.session.authState) {
           res.status(400).send('Invalid auth response.');

@@ -9,14 +9,14 @@ const require = createRequire(import.meta.url);
 
 export class PropertiesVolume {
   async enableFor(server: Application): Promise<void> {
-
     if (process.env['NODE_ENV'] === 'development') {
       const { default: config } = (await import('config')) as {
         default: IConfig;
       };
 
       await addFromAzureVault(config, {
-        pathToHelmChart: 'charts/appreg-frontend/values.yaml', env: 'stg'
+        pathToHelmChart: 'charts/appreg-frontend/values.yaml',
+        env: 'stg',
       });
     }
 
