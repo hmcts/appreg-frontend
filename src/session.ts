@@ -1,12 +1,15 @@
 import type { HmctsLogger } from '@hmcts/nodejs-logging';
 import { RedisStore } from 'connect-redis';
 import type { RequestHandler } from 'express';
-import session, { MemoryStore, type SessionOptions, type Store } from 'express-session';
+import session, {
+  MemoryStore,
+  type SessionOptions,
+  type Store,
+} from 'express-session';
 import { type RedisClientType, createClient } from 'redis';
 
 import { AppInsights } from './modules/appinsights';
 import { HmctsLoggerBridge } from './modules/logger';
-
 
 export interface SetupSessionArgs {
   isProd: boolean;
@@ -26,20 +29,19 @@ export interface SetupSessionArgs {
  * - In dev or when isProd=false: MemoryStore, secure:false cookie
  */
 export async function setupSession({
-                                     isProd,
-                                     redisHost,
-                                     redisAccessKey,
-                                     cookieName,
-                                     sessionSecret,
-                                     prefix = 'appreg:sess:',
-                                     secureInProd = true,
-                                     maxAgeMs = 1000 * 60 * 60 * 8,
-                                     connectTimeoutMs = 10_000,
-                                   }: SetupSessionArgs): Promise<RequestHandler> {
-
+  isProd,
+  redisHost,
+  redisAccessKey,
+  cookieName,
+  sessionSecret,
+  prefix = 'appreg:sess:',
+  secureInProd = true,
+  maxAgeMs = 1000 * 60 * 60 * 8,
+  connectTimeoutMs = 10_000,
+}: SetupSessionArgs): Promise<RequestHandler> {
   const logger: HmctsLogger = HmctsLoggerBridge.enable(
-      'hmcts applications register - server',
-      AppInsights.client(),
+    'hmcts applications register - server',
+    AppInsights.client(),
   );
 
   let store: Store;
@@ -47,7 +49,9 @@ export async function setupSession({
   if (isProd) {
     const key = (redisAccessKey || '').trim();
     if (!key) {
-      throw new Error('Redis access key is missing (secrets.appreg.redis-access-key).');
+      throw new Error(
+        'Redis access key is missing (secrets.appreg.redis-access-key).',
+      );
     }
 
     const url = `rediss://default:${encodeURIComponent(key)}@${redisHost}:6380`;
@@ -55,7 +59,7 @@ export async function setupSession({
     const client: RedisClientType = createClient({
       url,
       socket: {
-        connectTimeout: connectTimeoutMs
+        connectTimeout: connectTimeoutMs,
       },
     });
 
