@@ -70,10 +70,11 @@ const logger: HmctsLogger = HmctsLoggerBridge.enable(
 );
 
 // Redis config
-const cookieName =
-  config.has('session.cookieName')
-    ? config.get<string>('session.cookieName')
-    : (isProd ? 'appreg.sid' : 'sid');
+const cookieName = config.has('session.cookieName')
+  ? config.get<string>('session.cookieName')
+  : isProd
+    ? 'appreg.sid'
+    : 'sid';
 
 app.use(
   await setupSession({
@@ -83,7 +84,9 @@ app.use(
     cookieName,
     sessionSecret: config.get<string>('session.secret'),
     prefix: 'appreg:sess:',
-    secureInProd: config.has('session.secure') ? config.get<boolean>('session.secure') : true,
+    secureInProd: config.has('session.secure')
+      ? config.get<boolean>('session.secure')
+      : true,
   }),
 );
 
