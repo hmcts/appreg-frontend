@@ -162,6 +162,7 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
   }
 
   onSubmit(): void {
+    // Submission is only on list-details -> Update
     if (this.form.invalid) {
       this.form.markAllAsTouched();
     }

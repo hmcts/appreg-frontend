@@ -75,7 +75,7 @@ import {
 } from '../../shared/util/court-cja-text-suggestions';
 import { has } from '../../shared/util/has';
 import { normaliseTime } from '../../shared/util/time-helpers';
-import { ApplicationListRow } from '../../shared/util/types/application-list-row';
+import { ApplicationListRow } from '../../shared/util/types/application-list/types';
 
 import { getHttpStatus, statusSummary } from './util/delete-status';
 import { loadQuery } from './util/load-query';

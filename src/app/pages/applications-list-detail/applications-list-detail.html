@@ -137,6 +137,7 @@
           idPrefix="time"
           [submitted]="updateInvalid"
           [required]="true"
+          mode="clock"
         >
         </app-duration-input>
 
@@ -221,14 +222,15 @@
           errorText="CJA is required"
         />
 
-        <!-- Duration: Optional field? -->
+        <!-- Duration: Optional field -->
         <app-duration-input
           formControlName="duration"
           label="Duration"
           hint="Duration of the list"
           idPrefix="duration"
           [submitted]="updateInvalid"
-          [required]="true"
+          [required]="false"
+          mode="duration"
         ></app-duration-input>
       </div>
 
