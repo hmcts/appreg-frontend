@@ -53,6 +53,7 @@ const { default: config } = await import('config');
 // ----- Env
 const env = process.env['NODE_ENV'] || 'development';
 const developmentMode = env === 'development';
+const isProd = process.env['NODE_ENV'] === 'production';
 
 // API + scopes for resource access
 const apiBase: string = config.get<string>('api.baseUrl');
@@ -70,49 +71,30 @@ const logger: HmctsLogger = HmctsLoggerBridge.enable(
   AppInsights.client(),
 );
 
-// Helper: only connect to Redis when this file is the real entrypoint (not during prerender/build)
-const runningAsEntrypoint = (() => {
-  try {
-    const thisFile = new URL(import.meta.url).pathname;
-    const entry = process.argv[1]
-      ? new URL(`file://${process.argv[1]}`).pathname
-      : '';
-    return thisFile === entry;
-  } catch {
-    return false;
-  }
-})();
-
-const isProd = process.env['NODE_ENV'] === 'production';
-const useRedis = isProd && runningAsEntrypoint; // avoid connecting during CI/prerender
+// Redis config
+const useRedis = isProd;
 
 let store: session.Store | undefined;
 
 if (useRedis) {
-  // --- Build an Azure Redis client from your access key (or connection string) ---
-  const redisAccessKey = config.get<string>('secrets.appreg.redis-access-key');
+  const redisAccessKey = (
+    config.get<string>('secrets.appreg.redis-access-key') || ''
+  ).trim();
+  if (!redisAccessKey) {
+    throw new Error(
+      'Redis access key is missing (secrets.appreg.redis-access-key).',
+    );
+  }
 
-  // You said you prefer the Azure connection-string style:
-  const conn = `appreg-stg.redis.cache.windows.net:6380,password=${redisAccessKey},ssl=True,abortConnect=False`;
+  const redisHost = 'appreg-stg.redis.cache.windows.net';
 
-  const [hostPort, ...pairs] = conn.split(',');
-  const [host, portStr] = hostPort.split(':');
-  const map = Object.fromEntries(
-    pairs.map((kv) => {
-      const i = kv.indexOf('=');
-      return [kv.slice(0, i).trim().toLowerCase(), kv.slice(i + 1).trim()];
-    }),
-  );
-  const password = map['password'] ?? '';
+  const redisUrl = `rediss://default:${encodeURIComponent(redisAccessKey)}@${redisHost}:6380`;
 
   const redisClient: RedisClientType = createClient({
+    url: redisUrl,
     socket: {
-      host,
-      port: Number(portStr || '6380'),
-      tls: true as const,
       connectTimeout: 10_000,
     },
-    password,
   });
 
   redisClient.on('error', (err) => logger.error('[redis] client error', err));
@@ -134,7 +116,7 @@ const prodCookie = {
   sameSite: 'lax' as const,
   secure: config.has('session.secure')
     ? config.get<boolean>('session.secure')
-    : true, // secure in prod
+    : true,
   maxAge: 1000 * 60 * 60 * 8, // 8h
   path: '/',
 };
