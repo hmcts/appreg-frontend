@@ -30,15 +30,17 @@ import { SuccessBannerComponent } from '../../shared/components/success-banner/s
 import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 import { attachLocationDisabler } from '../../shared/util/attach-location-disabler';
+import { collectMissing } from '../../shared/util/collect-missing';
 import {
   onCjaInputChange,
   onCourthouseInputChange,
   selectCja as selectCjaHelper,
   selectCourthouse as selectCourthouseHelper,
 } from '../../shared/util/court-cja-text-suggestions';
-import { has } from '../../shared/util/has';
-import { toTimeString } from '../../shared/util/time-helpers';
-import { toStatus } from '../../shared/util/to-status';
+
+import { buildNormalizedPayload } from 'src/app/shared/util/build-payload';
+import { FormRaw } from 'src/app/shared/util/types/application-list/types';
+import { validateCourtVsLocOrCja } from 'src/app/shared/util/validate-court-vs-loc-cja';
 
 type FieldKey =
   | 'date'
@@ -49,40 +51,14 @@ type FieldKey =
   | 'location'
   | 'cja';
 
-type CreateFormRaw = Pick<ApplicationListCreateDto, 'date' | 'description'> & {
-  time: { hours: number | null; minutes: number | null } | null;
-  status: string | ApplicationListStatus | null;
-  court: string | null;
-  location: string | null;
-  cja: string | null;
+type CreateFormRaw = Omit<
+  FormRaw<ApplicationListStatus>,
+  'date' | 'time' | 'status'
+> & {
+  date: string | null;
+  time: Duration | null;
+  status: string | null;
 };
-
-// Make shared helper functions stricter locally
-function assertString(v: string | undefined, msg: string): asserts v is string {
-  if (typeof v !== 'string') {
-    throw new Error(msg);
-  }
-}
-
-function assertStatus<T>(v: T | undefined, msg: string): asserts v is T {
-  if (v === undefined) {
-    throw new Error(msg);
-  }
-}
-
-function requireTime(t: Parameters<typeof toTimeString>[0]): string {
-  const v = toTimeString(t);
-  assertString(v, 'time is required');
-  return v;
-}
-
-function requireStatus(
-  s: Parameters<typeof toStatus>[0],
-): ApplicationListStatus {
-  const v = toStatus(s);
-  assertStatus<ApplicationListStatus>(v, 'status is required');
-  return v;
-}
 
 @Component({
   selector: 'app-applications-list',
@@ -201,7 +177,7 @@ export class ApplicationsListCreate implements OnInit {
 
     const raw = this.form.getRawValue() as CreateFormRaw;
     this.form.patchValue({
-      date: raw.date,
+      date: raw.date as string,
       description: raw.description,
       status: raw.status,
       court: raw.court,
@@ -210,7 +186,20 @@ export class ApplicationsListCreate implements OnInit {
     });
 
     if (action === 'create') {
-      const missing = this.collectMissing(raw);
+      const dateErrors = this.form.controls.date.errors as {
+        dateInvalid?: boolean;
+        dateErrorText?: string;
+      } | null;
+      const timeErrors = this.form.controls.time.errors as {
+        durationErrorText?: string;
+      } | null;
+
+      const missing = collectMissing(raw, {
+        dateInvalid: !!dateErrors?.dateInvalid,
+        dateErrorText: dateErrors?.dateErrorText ?? '',
+        durationErrorText: timeErrors?.durationErrorText ?? '',
+      });
+
       if (missing.length) {
         this.unpopField = missing;
         this.createInvalid = true;
@@ -224,7 +213,7 @@ export class ApplicationsListCreate implements OnInit {
       return;
     }
 
-    const conflict = this.validateCourtVsLocOrCja(raw);
+    const conflict = validateCourtVsLocOrCja(raw);
     if (conflict) {
       this.createInvalid = true;
       this.errorHint = conflict;
@@ -287,77 +276,8 @@ export class ApplicationsListCreate implements OnInit {
     this.errorHint = '';
   }
 
-  private collectMissing(v: CreateFormRaw): { id: string; text: string }[] {
-    const out: { id: string; text: string }[] = [];
-    const need = (ok: boolean, id: string, text: string) => {
-      if (!ok) {
-        out.push({ id, text });
-      }
-    };
-
-    const dateCtrl = this.form.controls.date;
-    const timeCtrl = this.form.controls.time;
-
-    if (!dateCtrl.errors?.['dateInvalid']) {
-      need(has(v.date), 'date-day', 'Enter day, month and year');
-    } else {
-      need(
-        has(v.date),
-        'date-day',
-        dateCtrl.errors?.['dateErrorText'] as string,
-      );
-    }
-
-    if (!timeCtrl.errors?.['durationErrorText']) {
-      need(has(v.time), 'time-hours', 'Enter hours and minutes');
-    } else {
-      need(
-        false,
-        'time-hours',
-        timeCtrl.errors?.['durationErrorText'] as string,
-      );
-    }
-
-    need(has(v.description), 'description', 'Description is required');
-    need(has(v.status), 'status', 'Status is required');
-
-    const court = has(v.court);
-    const loc = has(v.location);
-    const cja = has(v.cja);
-
-    if (!court) {
-      need(loc, 'location', 'Other location is required');
-      need(cja, 'cja', 'CJA is required');
-    }
-    if (!(loc || cja) && !court) {
-      out.push({ id: 'court', text: 'Court is required' });
-    }
-    return out;
-  }
-
-  private validateCourtVsLocOrCja(v: CreateFormRaw): string | null {
-    const court = has(v.court);
-    const loc = has(v.location);
-    const cja = has(v.cja);
-    return court && (loc || cja)
-      ? 'You can not have Court and Other Location or CJA filled in'
-      : null;
-  }
-
   private buildPayload(raw: CreateFormRaw): ApplicationListCreateDto {
-    const useCourt = has(raw.court);
-    return {
-      date: raw.date,
-      time: requireTime(raw.time),
-      description: (raw.description ?? '').trim(),
-      status: requireStatus(raw.status),
-      ...(useCourt
-        ? { courtLocationCode: raw.court as string }
-        : {
-            otherLocationDescription: raw.location as string,
-            cjaCode: raw.cja as string,
-          }),
-    };
+    return buildNormalizedPayload(raw) as ApplicationListCreateDto;
   }
 
   loadLists(): void {

@@ -6,7 +6,10 @@ import type { ApplicationListStatus } from '../../../generated/openapi';
 import { has } from './has';
 import { requireStatus } from './require-status';
 import { requireTime } from './require-time';
-import type { FormRaw, NormalizedPayload } from './types/application-list/types';
+import type {
+  FormRaw,
+  NormalizedPayload,
+} from './types/application-list/types';
 
 export function buildNormalizedPayload(
   raw: FormRaw<ApplicationListStatus>,
@@ -22,5 +25,9 @@ export function buildNormalizedPayload(
 
   return useCourt
     ? { ...base, courtLocationCode: raw.court as string }
-    : { ...base, otherLocationDescription: raw.location as string, cjaCode: raw.cja as string };
+    : {
+        ...base,
+        otherLocationDescription: raw.location as string,
+        cjaCode: raw.cja as string,
+      };
 }

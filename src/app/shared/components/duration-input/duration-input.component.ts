@@ -82,8 +82,8 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
   }
 
   private inRange(v: number, min: number, max: number) {
-  return v >= min && v <= max;
-}
+    return v >= min && v <= max;
+  }
 
   private isBlank(v: unknown): boolean {
     return v === null || v === undefined || v === '';
@@ -98,7 +98,7 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
 
     const minMins = 0,
       maxMins = 59;
-    
+
     if (this.mode === 'clock') {
       maxHours = 23;
       if (this.required && this.isBlank(h) && this.isBlank(m)) {
@@ -146,7 +146,10 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
           durationErrorText: 'Enter a valid duration between 00:00 and 23:59',
         };
       }
-      if (!this.inRange(h, minHours, maxHours) || !this.inRange(m, minMins, maxMins)) {
+      if (
+        !this.inRange(h, minHours, maxHours) ||
+        !this.inRange(m, minMins, maxMins)
+      ) {
         return {
           durationInvalid: true,
           durationErrorText: 'Enter a valid duration between 00:00 and 23:59',
