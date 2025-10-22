@@ -51,12 +51,13 @@ const { default: config } = await import('config');
 // ----- Env
 const env = process.env['NODE_ENV'] || 'development';
 const developmentMode = env === 'development';
-const isProd = process.env['NODE_ENV'] === 'production';
+const isProdOrDevelopment =
+  process.env['NODE_ENV'] === 'production' || developmentMode;
 
 // API + scopes for resource access
 const apiBase: string = config.get<string>('api.baseUrl');
-const apiScopes: string[] = config.has('api.scopes')
-  ? config.get<string[]>('api.scopes')
+const apiScopes: string[] = config.has('secrets.appreg.app-auth-scope-fe')
+  ? config.get<string[]>('secrets.appreg.app-auth-scope-fe')
   : [];
 
 // ----- Platform modules
@@ -72,17 +73,17 @@ const logger: HmctsLogger = HmctsLoggerBridge.enable(
 // Redis config
 const cookieName = config.has('session.cookieName')
   ? config.get<string>('session.cookieName')
-  : isProd
+  : isProdOrDevelopment
     ? 'appreg.sid'
     : 'sid';
 
 app.use(
   await setupSession({
-    isProd,
+    isProdOrDevelopment,
     redisHost: 'appreg-stg.redis.cache.windows.net',
     redisAccessKey: config.get<string>('secrets.appreg.redis-access-key'),
     cookieName,
-    sessionSecret: config.get<string>('session.secret'),
+    sessionSecret: config.get<string>('secrets.appreg.app-session-secret-fe'),
     prefix: 'appreg:sess:',
     secureInProd: config.has('session.secure')
       ? config.get<boolean>('session.secure')
@@ -150,7 +151,7 @@ async function acquireApiToken(req: ReqWithSession): Promise<string | null> {
   const cache = sess?.tokenCache;
 
   if (!account || !cache || apiScopes.length === 0) {
-    console.info(
+    logger.info(
       `[proxy] acquireApiToken: missing ${
         !account ? 'account' : !cache ? 'cache' : 'scopes'
       }`,
@@ -171,14 +172,14 @@ async function acquireApiToken(req: ReqWithSession): Promise<string | null> {
       if (sess) {
         sess.tokenCache = cca.getTokenCache().serialize();
       }
-      console.info(
+      logger.info(
         `[proxy] acquired token exp=${result.expiresOn?.toISOString?.() ?? 'n/a'}`,
       );
       return result.accessToken;
     }
-    console.warn('[proxy] acquireTokenSilent returned no accessToken');
+    logger.warn('[proxy] acquireTokenSilent returned no accessToken');
   } catch (e) {
-    console.warn('[proxy] acquireTokenSilent failed', e);
+    logger.warn('[proxy] acquireTokenSilent failed', e);
   }
   return null;
 }
@@ -194,8 +195,8 @@ const proxyOptions: ProxyOptions = {
       req: IncomingMessage & { apiAccessToken?: string | null },
     ) => {
       const token = req.apiAccessToken ?? null;
-      const urlShown = req.url ?? ''; // ✅ typed url from IncomingMessage
-      console.info(
+      const urlShown = req.url ?? '';
+      logger.info(
         `[proxy] forwarding ${urlShown} tokenPresent=${Boolean(token)}`,
       );
       if (token) {
@@ -232,13 +233,6 @@ app.use(async (req: Request, res: Response, next: NextFunction) => {
       return res.sendStatus(403);
     }
   }
-
-  // Debug: show session + scopes before attempting token acquisition
-  console.info(
-    `[proxy] path=${req.path} hasSession=${Boolean(
-      (req as ReqWithSession).session?.account,
-    )} scopes="${apiScopes.join(' ')}"`,
-  );
 
   // Stash a Bearer token (if available) for the proxy to inject
   (req as ReqWithToken).apiAccessToken = await acquireApiToken(

@@ -29,7 +29,7 @@ type AppSession = Session &
 const buildConfigMock = () => {
   const data: Record<string, unknown> = {
     'session.cookieName': 'sid',
-    'session.secret': 'test-secret',
+    'secrets.appreg.app-session-secret-fe': 'test-secret',
     'session.secure': false,
     'secrets.appreg.azure-tenant-id-fe': 'tenant-123',
     'secrets.appreg.azure-app-id-fe': 'client-abc',
