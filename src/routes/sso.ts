@@ -166,7 +166,7 @@ export function setupSsoRoutes(
           });
         });
 
-        res.redirect('/applications-list'); // adjust as needed
+        res.redirect('/applications-list');
         return;
       } catch (err) {
         logger.error(err as Error, 'Error during /sso/login-callback');

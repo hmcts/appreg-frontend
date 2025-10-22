@@ -69,7 +69,23 @@ const logger: HmctsLogger = HmctsLoggerBridge.enable(
 );
 
 // Redis config
-const useRedis = isProd || developmentMode;
+const runningAsEntrypoint = (() => {
+  try {
+    const thisFile = new URL(import.meta.url).pathname;
+    const entry = process.argv[1]
+      ? new URL(`file://${process.argv[1]}`).pathname
+      : '';
+    return thisFile === entry;
+  } catch {
+    return false;
+  }
+})();
+
+const hasRedisKey =
+  config.has('secrets.appreg.redis-access-key') &&
+  !!(config.get<string>('secrets.appreg.redis-access-key') || '').trim();
+
+const useRedis = isProd && runningAsEntrypoint && hasRedisKey;
 
 const cookieName = config.has('session.cookieName')
   ? config.get<string>('session.cookieName')
@@ -82,7 +98,9 @@ app.use(
     isProd,
     useRedis,
     redisHost: 'appreg-stg.redis.cache.windows.net',
-    redisAccessKey: config.get<string>('secrets.appreg.redis-access-key'),
+    redisAccessKey: useRedis
+      ? config.get<string>('secrets.appreg.redis-access-key')
+      : '',
     cookieName,
     sessionSecret: config.get<string>('secrets.appreg.app-session-secret-fe'),
     prefix: 'appreg:sess:',
