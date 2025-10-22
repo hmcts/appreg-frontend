@@ -1,3 +1,21 @@
+/* 
+suggestions.ts
+Text-suggestion utilities for Court and CJA fields.
+
+Exports:
+- filterSuggestions(list, search, matcher): returns ranked subset for autosuggest
+- courtMatches(item, search): match/pick fields for court entries
+- cjaMatches(item, search): match/pick fields for CJA entries
+
+Behavior:
+- Normalizes input (trim, case-insensitive)
+- Supports partial and prefix matches
+- Stable ordering for equal scores
+
+Input: data list, user search string, matcher fn
+Output: filtered list suitable for suggestion UIs
+*/
+
 export function filterSuggestions<T>(
   items: T[],
   query: string,

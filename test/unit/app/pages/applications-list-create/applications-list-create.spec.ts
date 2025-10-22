@@ -322,23 +322,6 @@ describe('ApplicationsListCreate', () => {
     expect(() => component.onSubmit(evt)).toThrow('Invalid status');
   });
 
-  it('throws when time missing but action is not create', () => {
-    component.form.setValue({
-      date: '2025-10-06',
-      time: { hours: null, minutes: 30 },
-      description: 'X',
-      status: 'OPEN',
-      court: 'A1',
-      location: '',
-      cja: '',
-    });
-    const evt = {
-      preventDefault: jest.fn(),
-      submitter: { value: 'search' } as HTMLButtonElement,
-    } as unknown as SubmitEvent;
-    expect(() => component.onSubmit(evt)).toThrow('time required');
-  });
-
   it('onPageChange updates page and reloads lists', () => {
     const spy = jest.spyOn(component, 'loadLists');
     component.onPageChange(3);

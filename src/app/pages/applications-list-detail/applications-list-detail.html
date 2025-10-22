@@ -139,12 +139,16 @@
 
       <div class="govuk-grid-row">
         <!-- Court -->
-        <app-text-input
-          formControlName="court"
+        <app-suggestions
+          id="court"
           label="Court"
-          hint="A description of the court"
-          idPrefix="court"
-        ></app-text-input>
+          hint="Start typing to search"
+          [(search)]="courthouseSearch"
+          (searchChange)="onCourthouseInputChange()"
+          [suggestions]="filteredCourthouses"
+          (selectItem)="selectCourthouse($event)"
+          [disabled]="!!form.get('location')?.value || !!form.get('cja')?.value"
+        />
 
         <!-- Other location -->
         <app-text-input
@@ -155,12 +159,16 @@
         ></app-text-input>
 
         <!-- CJA -->
-        <app-text-input
-          formControlName="cja"
+        <app-suggestions
+          id="cja"
           label="CJA"
-          hint="Criminal justice area"
-          idPrefix="cja"
-        ></app-text-input>
+          hint="Start typing to search"
+          [(search)]="cjaSearch"
+          (searchChange)="onCjaInputChange()"
+          [suggestions]="filteredCja"
+          (selectItem)="selectCja($event)"
+          [disabled]="!!courthouseSearch.trim() || !!form.get('court')?.value"
+        />
 
         <!-- Duration -->
         <app-duration-input
