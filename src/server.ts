@@ -54,9 +54,8 @@ const isProd = env === 'production';
 
 // API + scopes for resource access
 const apiBase: string = config.get<string>('api.baseUrl');
-const apiScopes: string[] = config.has('api.scopes')
-  ? config.get<string[]>('api.scopes')
-  : [];
+const clientId = config.get<string>('secrets.appreg.azure-app-id-fe');
+const apiScopes: string[] = clientId ? [`api://${clientId}/frontend`] : [];
 
 // ----- Platform modules
 new Helmet(developmentMode).enableFor(app);
