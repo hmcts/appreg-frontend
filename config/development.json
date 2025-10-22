@@ -27,7 +27,7 @@
     "scopes": ["openid", "profile", "email", "offline_access"]
   },
   "api": {
-    "baseUrl": "http://localhost:4550",
+    "baseUrl": "https://appreg-api.staging.platform.hmcts.net",
     "scopes": ["api://cd80c7ad-e5fa-43fa-9489-39d2345e7b47/frontend"]
   },
   "session": {
