@@ -56,10 +56,12 @@ import {
   selectCja as selectCjaHelper,
   selectCourthouse as selectCourthouseHelper,
 } from '../../shared/util/court-cja-text-suggestions';
-import { focusField, onCreateErrorClick as onCreateErrorClickFn } from '../../shared/util/error-click';
+import {
+  focusField,
+  onCreateErrorClick as onCreateErrorClickFn,
+} from '../../shared/util/error-click';
 import type { FormRaw } from '../../shared/util/types/application-list/types';
 import { validateCourtVsLocOrCja } from '../../shared/util/validate-court-vs-loc-cja';
-
 
 type DurationValue = { hours: string; minutes: string };
 

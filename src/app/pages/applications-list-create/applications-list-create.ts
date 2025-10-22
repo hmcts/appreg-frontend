@@ -48,7 +48,10 @@ import {
   selectCja as selectCjaHelper,
   selectCourthouse as selectCourthouseHelper,
 } from '../../shared/util/court-cja-text-suggestions';
-import { focusField, onCreateErrorClick as onCreateErrorClickFn } from '../../shared/util/error-click';
+import {
+  focusField,
+  onCreateErrorClick as onCreateErrorClickFn,
+} from '../../shared/util/error-click';
 
 import { buildNormalizedPayload } from 'src/app/shared/util/build-payload';
 import { FormRaw } from 'src/app/shared/util/types/application-list/types';
