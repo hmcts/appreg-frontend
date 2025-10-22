@@ -210,7 +210,6 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
       this.updateInvalid = true;
       this.errorHint = 'There is a problem...';
       this.buildErrorSummary();
-      console.log(this.unpopField);
       return;
     }
 
