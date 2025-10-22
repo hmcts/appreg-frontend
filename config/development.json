@@ -18,8 +18,7 @@
       "azure-client-secret-fe": "dummyClientSecret",
       "redis-access-key": "dummyRedisAccessKey",
       "app-insights-connection-string-fe": "dummyInstrumentationKey",
-      "app-session-secret-fe": "dummySessionSecret",
-      "app-auth-scope-fe": ["dummyAuthScope"]
+      "app-session-secret-fe": "dummySessionSecret"
     }
   },
   "auth": {
@@ -28,7 +27,8 @@
     "scopes": ["openid", "profile", "email", "offline_access"]
   },
   "api": {
-    "baseUrl": "http://localhost:4000"
+    "baseUrl": "http://localhost:4550",
+    "scopes": ["api://cd80c7ad-e5fa-43fa-9489-39d2345e7b47/frontend"]
   },
   "session": {
     "cookieName": "appreg.sid",

@@ -54,8 +54,8 @@ const isProd = env === 'production';
 
 // API + scopes for resource access
 const apiBase: string = config.get<string>('api.baseUrl');
-const apiScopes: string[] = config.has('secrets.appreg.app-auth-scope-fe')
-  ? config.get<string[]>('secrets.appreg.app-auth-scope-fe')
+const apiScopes: string[] = config.has('api.scopes')
+  ? config.get<string[]>('api.scopes')
   : [];
 
 // ----- Platform modules
