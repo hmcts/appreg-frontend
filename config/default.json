@@ -17,7 +17,9 @@
       "azure-tenant-id-fe": "dummyTenantId",
       "azure-client-secret-fe": "dummyClientSecret",
       "redis-access-key": "dummyRedisAccessKey",
-      "app-insights-connection-string-fe": "dummyInstrumentationKey"
+      "app-insights-connection-string-fe": "dummyInstrumentationKey",
+      "app-session-secret-fe": "dummySessionSecret",
+      "app-auth-scope-fe": ["dummyAuthScope"]
     }
   },
   "auth": {
@@ -26,12 +28,10 @@
     "scopes": ["openid", "profile", "email", "offline_access"]
   },
   "api": {
-    "baseUrl": "http://localhost:4550",
-    "scopes": ["api://dummyTenantId/frontend"]
+    "baseUrl": "https://appreg-api.staging.platform.hmcts.net"
   },
   "session": {
     "cookieName": "appreg.sid",
-    "secret": "change-me-in-env",
     "secure": false
   }
 }
