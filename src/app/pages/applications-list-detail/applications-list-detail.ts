@@ -25,6 +25,7 @@ import { Subscription } from 'rxjs';
 
 import {
   ApplicationListStatus,
+  ApplicationListUpdateDto,
   ApplicationListsApi,
   CourtLocationGetSummaryDto,
   CriminalJusticeAreaGetDto,
@@ -47,14 +48,29 @@ import { SuccessBannerComponent } from '../../shared/components/success-banner/s
 import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 import { attachLocationDisabler } from '../../shared/util/attach-location-disabler';
+import { buildNormalizedPayload } from '../../shared/util/build-payload';
+import { collectMissing } from '../../shared/util/collect-missing';
 import {
   onCjaInputChange,
   onCourthouseInputChange,
   selectCja as selectCjaHelper,
   selectCourthouse as selectCourthouseHelper,
 } from '../../shared/util/court-cja-text-suggestions';
+import { focusField, onCreateErrorClick as onCreateErrorClickFn } from '../../shared/util/error-click';
+import type { FormRaw } from '../../shared/util/types/application-list/types';
+import { validateCourtVsLocOrCja } from '../../shared/util/validate-court-vs-loc-cja';
+
 
 type DurationValue = { hours: string; minutes: string };
+
+type DetailFormRaw = Omit<
+  FormRaw<ApplicationListStatus>,
+  'date' | 'time' | 'status'
+> & {
+  date: string | null;
+  time: Duration | null;
+  status: string | null;
+};
 
 @Component({
   selector: 'app-application-detail',
@@ -80,6 +96,7 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
   id!: number;
   currentFragment: string | null = null;
   private locationDisabler?: Subscription;
+  private version = 0; // Used in update
 
   status = [
     { label: 'Choose', value: 'choose' },
@@ -124,6 +141,8 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
   // Error logging
   unpopField: ErrorItem[] = [];
   errorHint: string = '';
+  onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
+  focusField = focusField;
 
   // CJA + Court location vars
   cja: CriminalJusticeAreaGetDto[] = [];
@@ -173,30 +192,57 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
   }
 
   onUpdate(): void {
-    const params = {
-      id: 'placeholder',
-      applicationListUpdateDto: {
-        date: '',
-        time: '',
-        description: '',
-        status: ApplicationListStatus.OPEN,
-        // courtLocation?: CourtLocationGetDetailDto;
-        otherLocationDescription: '',
-        // criminalJusticeArea?: CriminalJusticeAreaGetDto;
-        // durationHours?: number;
-        // durationMinutes?: number;
-        version: 1,
-      },
-    };
+    this.updateInvalid = false;
+    this.unpopField = [];
 
-    this.appListApi.updateApplicationList(params).subscribe({
-      next: () => {
-        this.updateDone = true;
-      },
-      error: (err) => {
-        console.log(err);
-      },
-    });
+    const raw = this.form.getRawValue() as DetailFormRaw;
+
+    const conflict = validateCourtVsLocOrCja(raw);
+    if (conflict) {
+      this.updateInvalid = true;
+      this.errorHint = conflict;
+      return;
+    }
+
+    if (this.form.invalid) {
+      this.updateInvalid = true;
+      this.errorHint = 'There is a problem...';
+      this.buildErrorSummary();
+      console.log(this.unpopField);
+      return;
+    }
+
+    let payload: ApplicationListUpdateDto;
+    try {
+      const normalized = buildNormalizedPayload(raw);
+      payload = {
+        ...normalized,
+        version: this.version,
+      } as ApplicationListUpdateDto;
+
+      console.log(payload);
+
+      // this.appListApi
+      //   .updateApplicationList({
+      //     id: String(this.id),
+      //     applicationListUpdateDto: payload,
+      //   })
+      //   .subscribe({
+      //     next: () => {
+      //       this.updateDone = true;
+      //     },
+      //     error: (err) => {
+      //       const msg = err instanceof Error ? err.message : String(err);
+      //       this.updateInvalid = true;
+      //       this.errorHint = msg;
+      //     },
+      //   });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this.updateInvalid = true;
+      this.errorHint = msg;
+      return;
+    }
   }
 
   onPageChange(page: number): void {
@@ -231,5 +277,21 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
     const { cjaSearch, filteredCja } = selectCjaHelper(this.form, c);
     this.cjaSearch = cjaSearch;
     this.filteredCja = filteredCja;
+  }
+
+  private buildErrorSummary(): void {
+    const de = this.form.controls.date.errors as {
+      dateInvalid?: boolean;
+      dateErrorText?: string;
+    } | null;
+    const te = this.form.controls.time.errors as {
+      durationErrorText?: string;
+    } | null;
+
+    this.unpopField = collectMissing(this.form.getRawValue() as DetailFormRaw, {
+      dateInvalid: !!de?.dateInvalid,
+      dateErrorText: de?.dateErrorText ?? '',
+      durationErrorText: te?.durationErrorText ?? '',
+    });
   }
 }

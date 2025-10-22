@@ -37,6 +37,7 @@ import {
   selectCja as selectCjaHelper,
   selectCourthouse as selectCourthouseHelper,
 } from '../../shared/util/court-cja-text-suggestions';
+import { focusField, onCreateErrorClick as onCreateErrorClickFn } from '../../shared/util/error-click';
 
 import { buildNormalizedPayload } from 'src/app/shared/util/build-payload';
 import { FormRaw } from 'src/app/shared/util/types/application-list/types';
@@ -104,6 +105,8 @@ export class ApplicationsListCreate implements OnInit {
   @Input() submitted: boolean = false;
 
   errorHint: string = ''; // Error summary heading text
+  onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
+  focusField = focusField;
 
   @Input() listId?: string;
 
@@ -161,11 +164,6 @@ export class ApplicationsListCreate implements OnInit {
 
   ngOnDestroy(): void {
     this.locationDisabler?.unsubscribe();
-  }
-
-  public focusField(id: string, ev?: Event): void {
-    ev?.preventDefault();
-    this.focusByIdOrFirstFocusable(id);
   }
 
   onSubmit(event: SubmitEvent): void {
@@ -234,39 +232,6 @@ export class ApplicationsListCreate implements OnInit {
           this.errorHint = 'An error has occurred: \n' + msg;
         },
       });
-  }
-
-  // Handle click from ErrorSummary to focus a field
-  onCreateErrorClick(item: ErrorItem): void {
-    const id = item.id ?? '';
-    if (!id) {
-      return;
-    }
-    this.focusByIdOrFirstFocusable(id);
-  }
-
-  private focusByIdOrFirstFocusable(id: string): void {
-    const root = document.getElementById(id);
-    if (!root) {
-      return;
-    }
-
-    // smooth scroll to the block
-    try {
-      root.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    } catch {
-      root.scrollIntoView(true);
-    }
-
-    // pick the real focus target (input/select/textarea or any focusable)
-    const selector =
-      'input,select,textarea,[contenteditable="true"],[tabindex]:not([tabindex="-1"])';
-    const target: HTMLElement = root.matches(selector)
-      ? root
-      : (root.querySelector<HTMLElement>(selector) ?? root);
-
-    // focus after the scroll completes
-    setTimeout(() => target.focus?.({ preventScroll: true }), 50);
   }
 
   private resetCreateState(): void {
