@@ -5476,6 +5476,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/tmp@npm:^0.2.3":
+  version: 0.2.6
+  resolution: "@types/tmp@npm:0.2.6"
+  checksum: 10/e14a094c10569d3b56805552b21417860ef21060d969000d5d5b53604a78c2bdac216f064b03797d4b07a081e0141dd3ab22bc36923e75300eb1c023f7252cc7
+  languageName: node
+  linkType: hard
+
 "@types/tough-cookie@npm:*":
   version: 4.0.5
   resolution: "@types/tough-cookie@npm:4.0.5"
@@ -6247,7 +6254,7 @@ __metadata:
     connect-redis: "npm:^9.0.0"
     cookie-parser: "npm:^1.4.7"
     cross-fetch: "npm:^4.1.0"
-    cypress: "npm:15.2.0"
+    cypress: "npm:15.5.0"
     cypress-axe: "npm:^1.7.0"
     cypress-mochawesome-reporter: "npm:^4.0.2"
     cypress-multi-reporters: "npm:^2.0.5"
@@ -7230,13 +7237,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"check-more-types@npm:^2.24.0":
-  version: 2.24.0
-  resolution: "check-more-types@npm:2.24.0"
-  checksum: 10/67c5288443bd73a81638e1185f8c5410d0edf6458c086149ef1cda95c07535b5dd5c11c426dc3ee8f0de0f3244aa2d4f2ba1937aaa8a94995589cdcce0bbccb9
-  languageName: node
-  linkType: hard
-
 "check-types@npm:^11.2.3":
   version: 11.2.3
   resolution: "check-types@npm:11.2.3"
@@ -8043,21 +8043,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cypress@npm:15.2.0":
-  version: 15.2.0
-  resolution: "cypress@npm:15.2.0"
+"cypress@npm:15.5.0":
+  version: 15.5.0
+  resolution: "cypress@npm:15.5.0"
   dependencies:
     "@cypress/request": "npm:^3.0.9"
     "@cypress/xvfb": "npm:^1.2.4"
     "@types/sinonjs__fake-timers": "npm:8.1.1"
     "@types/sizzle": "npm:^2.3.2"
+    "@types/tmp": "npm:^0.2.3"
     arch: "npm:^2.2.0"
     blob-util: "npm:^2.0.2"
     bluebird: "npm:^3.7.2"
     buffer: "npm:^5.7.1"
     cachedir: "npm:^2.3.0"
     chalk: "npm:^4.1.0"
-    check-more-types: "npm:^2.24.0"
     ci-info: "npm:^4.1.0"
     cli-cursor: "npm:^3.1.0"
     cli-table3: "npm:0.6.1"
@@ -8074,7 +8074,6 @@ __metadata:
     fs-extra: "npm:^9.1.0"
     hasha: "npm:5.2.2"
     is-installed-globally: "npm:~0.4.0"
-    lazy-ass: "npm:^1.6.0"
     listr2: "npm:^3.8.3"
     lodash: "npm:^4.17.21"
     log-symbols: "npm:^4.0.0"
@@ -8093,7 +8092,7 @@ __metadata:
     yauzl: "npm:^2.10.0"
   bin:
     cypress: bin/cypress
-  checksum: 10/7284e568994f624050c61ce822087d6122e04571070b719b4f962f8e1174aa48f34bc809534a316cbaca6a6d6b12668b84d33492a3a8cf450135b909a8c5cc71
+  checksum: 10/fdfe965d36734cb301ee5573261a5a7766c7176f4d3eb0ecd24532c00aeff8983347d855bc7f3afa106558812602d306d70eb765a3181f03fe100ad5f7688bce
   languageName: node
   linkType: hard
 
@@ -12885,13 +12884,6 @@ __metadata:
   dependencies:
     seed-random: "npm:~2.2.0"
   checksum: 10/1bf533232cba7a9701791ef94df4e5afd4d561f8f94e54e83a598292746a3fa6f5bc7676e694718f1247addf80e43179eb46ad971508bb35dd7e3f47b523dc39
-  languageName: node
-  linkType: hard
-
-"lazy-ass@npm:^1.6.0":
-  version: 1.6.0
-  resolution: "lazy-ass@npm:1.6.0"
-  checksum: 10/3969ebef060b6f665fc78310ec769f7d2945db2d5af2b6663eda1bc9ec45c845deba9c4a3f75f124ce2c76fedf56514a063ee5c2affc8bc94963fbbddb442a88
   languageName: node
   linkType: hard
 
