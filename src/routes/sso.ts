@@ -150,9 +150,21 @@ export function setupSsoRoutes(
         req.session.account = tokenResponse.account;
         req.session.tokenCache = getCca().getTokenCache().serialize();
 
-        await new Promise<void>((resolve, reject) =>
-          req.session.save((err) => (err ? reject(err) : resolve())),
-        );
+        await new Promise<void>((resolve, reject) => {
+          req.session.save((err: unknown) => {
+            if (err) {
+              reject(
+                err instanceof Error
+                  ? err
+                  : new Error(
+                      typeof err === 'string' ? err : JSON.stringify(err),
+                    ),
+              );
+              return;
+            }
+            resolve();
+          });
+        });
 
         res.redirect('/applications-list'); // adjust as needed
         return;
