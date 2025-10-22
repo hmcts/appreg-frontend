@@ -11,6 +11,7 @@ import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { ApplicationsList } from '../../../../../src/app/pages/applications-list/applications-list';
+import * as LoadQuery from '../../../../../src/app/pages/applications-list/util/load-query';
 import {
   IF_MATCH,
   ROW_VERSION,
@@ -339,17 +340,10 @@ describe('ApplicationsList – search', () => {
   });
 
   it('merges filter when hasParams=true', () => {
-    jest
-      .spyOn(
-        component as unknown as {
-          loadQuery: () => ApplicationListGetFilterDto;
-        },
-        'loadQuery',
-      )
-      .mockReturnValue({
-        status: ApplicationListStatus.OPEN,
-        courtLocationCode: 'LOC1',
-      });
+    jest.spyOn(LoadQuery, 'loadQuery').mockReturnValue({
+      status: ApplicationListStatus.OPEN,
+      courtLocationCode: 'LOC1',
+    } as ApplicationListGetFilterDto);
 
     service.getApplicationLists.mockReturnValue(of(pageStub([])));
 
@@ -428,14 +422,10 @@ describe('ApplicationsList – search', () => {
   });
 
   it('includes filter object when hasParams=true even if partial', () => {
-    jest
-      .spyOn(
-        component as unknown as {
-          loadQuery: () => ApplicationListGetFilterDto;
-        },
-        'loadQuery',
-      )
-      .mockReturnValue({ status: ApplicationListStatus.CLOSED });
+    jest.spyOn(LoadQuery, 'loadQuery').mockReturnValue({
+      status: ApplicationListStatus.CLOSED,
+    } as ApplicationListGetFilterDto);
+
     service.getApplicationLists.mockReturnValue(of(pageStub([])));
     component.loadApplicationsLists(true);
     const args = service.getApplicationLists.mock

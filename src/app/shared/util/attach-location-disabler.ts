@@ -1,3 +1,20 @@
+/* 
+attach-location-disabler.ts
+Feature helper for Applications List forms.
+
+Purpose:
+- Toggle enabled/disabled state of location-related controls based on selection
+  (e.g., court vs CJA vs free-text “other location”).
+
+Behavior:
+- Disables mutually exclusive fields when one source is chosen
+- Optionally clears values when a field is disabled
+- Keeps form validity in sync after state changes
+
+Input: FormGroup and selected location mode
+Output: Updated control disabled state (and values if cleared)
+*/
+
 import { AbstractControl } from '@angular/forms';
 import { Subscription, merge } from 'rxjs';
 
