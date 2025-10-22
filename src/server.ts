@@ -11,7 +11,6 @@ import {
 } from '@angular/ssr/node';
 import type { AccountInfo } from '@azure/msal-node';
 import type { HmctsLogger } from '@hmcts/nodejs-logging';
-import { RedisStore } from 'connect-redis';
 import cookieParser from 'cookie-parser';
 import express, {
   type NextFunction,
@@ -19,21 +18,19 @@ import express, {
   RequestHandler,
   type Response,
 } from 'express';
-import session from 'express-session';
 import {
   type Options as ProxyOptions,
   createProxyMiddleware,
 } from 'http-proxy-middleware';
-import { RedisClientType, createClient } from 'redis';
 
 import { AppInsights } from './modules/appinsights';
 import { Helmet } from './modules/helmet';
 import { HmctsLoggerBridge } from './modules/logger';
 import { PropertiesVolume } from './modules/properties-volume';
-import { cca } from './msal';
 import { setupHealthcheck } from './routes/health';
 import { setupInfoRoute } from './routes/info';
-import { setupSsoRoutes } from './routes/sso';
+import { getCca, setupSsoRoutes } from './routes/sso';
+import { setupSession } from './session';
 
 // ----- Paths (ESM-safe)
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -53,13 +50,12 @@ const { default: config } = await import('config');
 // ----- Env
 const env = process.env['NODE_ENV'] || 'development';
 const developmentMode = env === 'development';
-const isProd = process.env['NODE_ENV'] === 'production';
+const isProd = env === 'production';
 
 // API + scopes for resource access
 const apiBase: string = config.get<string>('api.baseUrl');
-const apiScopes: string[] = config.has('api.scopes')
-  ? config.get<string[]>('api.scopes')
-  : [];
+const clientId = config.get<string>('secrets.appreg.azure-app-id-fe');
+const apiScopes: string[] = clientId ? [`api://${clientId}/frontend`] : [];
 
 // ----- Platform modules
 new Helmet(developmentMode).enableFor(app);
@@ -72,81 +68,46 @@ const logger: HmctsLogger = HmctsLoggerBridge.enable(
 );
 
 // Redis config
-const useRedis = isProd;
-
-let store: session.Store | undefined;
-
-if (useRedis) {
-  const redisAccessKey = (
-    config.get<string>('secrets.appreg.redis-access-key') || ''
-  ).trim();
-  if (!redisAccessKey) {
-    throw new Error(
-      'Redis access key is missing (secrets.appreg.redis-access-key).',
-    );
+const runningAsEntrypoint = (() => {
+  try {
+    const thisFile = new URL(import.meta.url).pathname;
+    const entry = process.argv[1]
+      ? new URL(`file://${process.argv[1]}`).pathname
+      : '';
+    return thisFile === entry;
+  } catch {
+    return false;
   }
+})();
 
-  const redisHost = 'appreg-stg.redis.cache.windows.net';
+const hasRedisKey =
+  config.has('secrets.appreg.redis-access-key') &&
+  !!(config.get<string>('secrets.appreg.redis-access-key') || '').trim();
 
-  const redisUrl = `rediss://default:${encodeURIComponent(redisAccessKey)}@${redisHost}:6380`;
+const useRedis = isProd && runningAsEntrypoint && hasRedisKey;
 
-  const redisClient: RedisClientType = createClient({
-    url: redisUrl,
-    socket: {
-      connectTimeout: 10_000,
-    },
-  });
+const cookieName = config.has('session.cookieName')
+  ? config.get<string>('session.cookieName')
+  : isProd
+    ? 'appreg.sid'
+    : 'sid';
 
-  redisClient.on('error', (err) => logger.error('[redis] client error', err));
-  await redisClient.connect();
-
-  store = new RedisStore({ client: redisClient, prefix: 'appreg:sess:' });
-  logger.info('[session] Using RedisStore');
-} else {
-  logger.warn(
-    isProd
-      ? '[session] Skipping Redis during build/prerender (MemoryStore temporarily)'
-      : '[session] Using MemoryStore for local dev',
-  );
-}
-
-// --- Build session options based on env ---
-const prodCookie = {
-  httpOnly: true,
-  sameSite: 'lax' as const,
-  secure: config.has('session.secure')
-    ? config.get<boolean>('session.secure')
-    : true,
-  maxAge: 1000 * 60 * 60 * 8, // 8h
-  path: '/',
-};
-
-const devCookie = {
-  httpOnly: true,
-  sameSite: 'lax' as const,
-  secure: false, // local
-};
-
-const sessionOptions: session.SessionOptions = {
-  name: isProd
-    ? config.has('session.cookieName')
-      ? config.get<string>('session.cookieName')
-      : 'appreg.sid'
-    : config.has('session.cookieName')
-      ? config.get<string>('session.cookieName')
-      : 'sid',
-  secret: config.get<string>('session.secret'),
-  resave: false,
-  saveUninitialized: false,
-  cookie: isProd ? prodCookie : devCookie,
-  rolling: false,
-};
-
-if (store) {
-  sessionOptions.store = store;
-}
-
-app.use(session(sessionOptions));
+app.use(
+  await setupSession({
+    isProd,
+    useRedis,
+    redisHost: 'appreg-stg.redis.cache.windows.net',
+    redisAccessKey: useRedis
+      ? config.get<string>('secrets.appreg.redis-access-key')
+      : '',
+    cookieName,
+    sessionSecret: config.get<string>('secrets.appreg.app-session-secret-fe'),
+    prefix: 'appreg:sess:',
+    secureInProd: config.has('session.secure')
+      ? config.get<boolean>('session.secure')
+      : true,
+  }),
+);
 
 // ----- Routes
 setupHealthcheck(app);
@@ -208,7 +169,7 @@ async function acquireApiToken(req: ReqWithSession): Promise<string | null> {
   const cache = sess?.tokenCache;
 
   if (!account || !cache || apiScopes.length === 0) {
-    console.info(
+    logger.info(
       `[proxy] acquireApiToken: missing ${
         !account ? 'account' : !cache ? 'cache' : 'scopes'
       }`,
@@ -218,8 +179,8 @@ async function acquireApiToken(req: ReqWithSession): Promise<string | null> {
 
   try {
     // Hydrate cache for this request
-    cca.getTokenCache().deserialize(cache);
-    const result = await cca.acquireTokenSilent({
+    getCca().getTokenCache().deserialize(cache);
+    const result = await getCca().acquireTokenSilent({
       account,
       scopes: apiScopes,
       // forceRefresh: true, // optionally enable if you suspect cache staleness
@@ -227,16 +188,16 @@ async function acquireApiToken(req: ReqWithSession): Promise<string | null> {
     if (result?.accessToken) {
       // Persist any cache updates (refresh tokens, expiry, etc.)
       if (sess) {
-        sess.tokenCache = cca.getTokenCache().serialize();
+        sess.tokenCache = getCca().getTokenCache().serialize();
       }
-      console.info(
+      logger.info(
         `[proxy] acquired token exp=${result.expiresOn?.toISOString?.() ?? 'n/a'}`,
       );
       return result.accessToken;
     }
-    console.warn('[proxy] acquireTokenSilent returned no accessToken');
+    logger.warn('[proxy] acquireTokenSilent returned no accessToken');
   } catch (e) {
-    console.warn('[proxy] acquireTokenSilent failed', e);
+    logger.warn('[proxy] acquireTokenSilent failed', e);
   }
   return null;
 }
@@ -252,8 +213,8 @@ const proxyOptions: ProxyOptions = {
       req: IncomingMessage & { apiAccessToken?: string | null },
     ) => {
       const token = req.apiAccessToken ?? null;
-      const urlShown = req.url ?? ''; // ✅ typed url from IncomingMessage
-      console.info(
+      const urlShown = req.url ?? '';
+      logger.info(
         `[proxy] forwarding ${urlShown} tokenPresent=${Boolean(token)}`,
       );
       if (token) {
@@ -290,13 +251,6 @@ app.use(async (req: Request, res: Response, next: NextFunction) => {
       return res.sendStatus(403);
     }
   }
-
-  // Debug: show session + scopes before attempting token acquisition
-  console.info(
-    `[proxy] path=${req.path} hasSession=${Boolean(
-      (req as ReqWithSession).session?.account,
-    )} scopes="${apiScopes.join(' ')}"`,
-  );
 
   // Stash a Bearer token (if available) for the proxy to inject
   (req as ReqWithToken).apiAccessToken = await acquireApiToken(

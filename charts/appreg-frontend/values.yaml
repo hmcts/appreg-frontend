@@ -14,8 +14,6 @@ nodejs:
           alias: azure-client-secret-fe
         - name: azure-app-id
           alias: azure-app-id-fe
-        - name: AppInsightsInstrumentationKey
-          alias: APP_INSIGHTS_INSTRUMENTATION_KEY
         - name: redis-access-key
           alias: redis-access-key
   environment:

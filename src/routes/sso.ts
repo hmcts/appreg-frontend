@@ -146,9 +146,27 @@ export function setupSsoRoutes(
           return;
         }
 
+        // Persist account + MSAL cache into the session
         req.session.account = tokenResponse.account;
         req.session.tokenCache = getCca().getTokenCache().serialize();
-        res.redirect('/applications-list'); // adjust as needed
+
+        await new Promise<void>((resolve, reject) => {
+          req.session.save((err: unknown) => {
+            if (err) {
+              reject(
+                err instanceof Error
+                  ? err
+                  : new Error(
+                      typeof err === 'string' ? err : JSON.stringify(err),
+                    ),
+              );
+              return;
+            }
+            resolve();
+          });
+        });
+
+        res.redirect('/applications-list');
         return;
       } catch (err) {
         logger.error(err as Error, 'Error during /sso/login-callback');
