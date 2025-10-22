@@ -12,7 +12,8 @@ import { AppInsights } from './modules/appinsights';
 import { HmctsLoggerBridge } from './modules/logger';
 
 export interface SetupSessionArgs {
-  isProdOrDevelopment: boolean;
+  isProd: boolean;
+  useRedis: boolean;
   redisHost: string;
   redisAccessKey: string;
   cookieName: string;
@@ -27,7 +28,8 @@ export interface SetupSessionArgs {
  * Creates an Express session middleware.
  */
 export async function setupSession({
-  isProdOrDevelopment,
+  isProd,
+  useRedis,
   redisHost,
   redisAccessKey,
   cookieName,
@@ -44,7 +46,7 @@ export async function setupSession({
 
   let store: Store;
 
-  if (isProdOrDevelopment) {
+  if (useRedis) {
     const key = (redisAccessKey || '').trim();
     if (!key) {
       throw new Error(
@@ -69,7 +71,7 @@ export async function setupSession({
   } else {
     store = new MemoryStore();
     logger.warn(
-      isProdOrDevelopment
+      isProd
         ? 'Using MemoryStore (Redis disabled for this run)'
         : 'Using MemoryStore for local dev',
     );
@@ -94,7 +96,7 @@ export async function setupSession({
     secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
-    cookie: isProdOrDevelopment ? prodCookie : devCookie,
+    cookie: isProd ? prodCookie : devCookie,
     rolling: false,
     store,
   };

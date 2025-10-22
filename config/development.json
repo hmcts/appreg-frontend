@@ -28,7 +28,7 @@
     "scopes": ["openid", "profile", "email", "offline_access"]
   },
   "api": {
-    "baseUrl": "https://appreg-api.staging.platform.hmcts.net"
+    "baseUrl": "http://localhost:4000"
   },
   "session": {
     "cookieName": "appreg.sid",

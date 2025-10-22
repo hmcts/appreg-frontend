@@ -50,8 +50,7 @@ const { default: config } = await import('config');
 // ----- Env
 const env = process.env['NODE_ENV'] || 'development';
 const developmentMode = env === 'development';
-const isProdOrDevelopment =
-  process.env['NODE_ENV'] === 'production' || developmentMode;
+const isProd = env === 'production';
 
 // API + scopes for resource access
 const apiBase: string = config.get<string>('api.baseUrl');
@@ -70,15 +69,18 @@ const logger: HmctsLogger = HmctsLoggerBridge.enable(
 );
 
 // Redis config
+const useRedis = isProd || developmentMode;
+
 const cookieName = config.has('session.cookieName')
   ? config.get<string>('session.cookieName')
-  : isProdOrDevelopment
+  : isProd
     ? 'appreg.sid'
     : 'sid';
 
 app.use(
   await setupSession({
-    isProdOrDevelopment,
+    isProd,
+    useRedis,
     redisHost: 'appreg-stg.redis.cache.windows.net',
     redisAccessKey: config.get<string>('secrets.appreg.redis-access-key'),
     cookieName,
