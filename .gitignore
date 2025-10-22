@@ -54,9 +54,6 @@ cypress/downloads/
 !.yarn/sdks
 !.yarn/versions
 
-# Configuration files
-/config/development.json
-
 # OpenAPI
 /src/generated
 /tools/dist/openapi.bundled.yaml

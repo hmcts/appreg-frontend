@@ -2,5 +2,9 @@
   "watch": ["src", "dist/appreg-frontend/server"],
   "ignore": ["dist"],
   "ext": "ts,js,html,scss",
-  "exec": "yarn build && node dist/appreg-frontend/server/server.mjs"
+  "exec": "yarn build && node dist/appreg-frontend/server/server.mjs",
+  "env": {
+    "NODE_ENV": "development",
+    "ALLOW_CONFIG_MUTATIONS": "true"
+  }
 }

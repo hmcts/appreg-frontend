@@ -1,0 +1,42 @@
+{
+  "useCSRFProtection": true,
+  "appInsights": {
+    "instrumentationKey": false
+  },
+  "security": {
+    "referrerPolicy": "same-origin",
+    "hsts": {
+      "maxAge": 31536000,
+      "includeSubDomains": true,
+      "preload": true
+    }
+  },
+  "secrets": {
+    "appreg": {
+      "azure-app-id-fe": "dummyClientId",
+      "azure-tenant-id-fe": "dummyTenantId",
+      "azure-client-secret-fe": "dummyClientSecret",
+      "redis-access-key": "dummyRedisAccessKey",
+      "app-insights-connection-string-fe": "dummyInstrumentationKey",
+      "app-session-secret-fe": "dummySessionSecret",
+      "app-auth-scope-fe": ["dummyAuthScope"]
+    }
+  },
+  "auth": {
+    "redirectUri": "http://localhost:4000/sso/login-callback",
+    "postLogoutRedirectUri": "http://localhost:4000/login",
+    "scopes": [
+      "openid",
+      "profile",
+      "email",
+      "offline_access"
+    ]
+  },
+  "api": {
+    "baseUrl": "https://appreg-api.staging.platform.hmcts.net"
+  },
+  "session": {
+    "cookieName": "appreg.sid",
+    "secure": false
+  }
+}
