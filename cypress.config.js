@@ -1,3 +1,4 @@
+
 const { defineConfig } = require('cypress');
 const createBundler = require('@bahmutov/cypress-esbuild-preprocessor');
 const {
@@ -6,8 +7,40 @@ const {
 const {
   createEsbuildPlugin,
 } = require('@badeball/cypress-cucumber-preprocessor/esbuild');
-const appConfig = require('config');
-
+async function loadAppConfig() {
+  const appConfig = require('config');
+  const nodeEnv = process.env.NODE_ENV || 'development';
+  
+  try {
+    if (nodeEnv === 'development') {
+      console.log('[cypress] Attempting to load Azure vault secrets for development');
+      const { addFromAzureVault } = require('@hmcts/properties-volume');
+      await addFromAzureVault(appConfig, {
+        pathToHelmChart: 'charts/appreg-frontend/values.yaml',
+        env: process.env.AKS_ENV || 'stg',
+      });
+      console.log('[cypress] Azure vault secrets loaded successfully');
+    } else {
+      console.log('[cypress] Loading mounted secrets via properties-volume');
+      const pv = require('@hmcts/properties-volume');
+      pv.addTo(appConfig);
+    }
+  } catch (err) {
+    if (nodeEnv === 'development') {
+      console.warn('[cypress] Azure vault not available, falling back to local development.json');
+    } else {
+      console.warn('[cypress] properties-volume not loaded:', err?.message || err);
+    }
+  }
+  return appConfig;
+}
+function appConfigGet(appConfig, path, fallback) {
+  try {
+    return appConfig.has(path) ? appConfig.get(path) : fallback;
+  } catch {
+    return fallback;
+  }
+}
 module.exports = defineConfig({
   typescript: {
     configFile: 'tsconfig.cypress.json',
@@ -27,20 +60,17 @@ module.exports = defineConfig({
     specPattern: 'cypress/e2e/**/*.feature',
     supportFile: 'cypress/support/e2e.ts',
     fixturesFolder: 'cypress/fixtures',
-
     // Base URL and Timeouts
     baseUrl: process.env.TEST_URL || 'http://localhost:4000',
     defaultCommandTimeout: 20000,
     pageLoadTimeout: 120000,
     requestTimeout: 20000,
     responseTimeout: 30000,
-
     // Browser and Security Settings
     chromeWebSecurity: false,
     experimentalModifyObstructiveThirdPartyCode: true,
     experimentalOriginDependencies: true,
     testIsolation: true,
-
     // Report and Media Settings
     video: false,
     screenshotOnRunFailure: true,
@@ -63,61 +93,44 @@ module.exports = defineConfig({
         },
       });
       require('cypress-mochawesome-reporter/plugin')(on);
-      // Set up test users using dynamic config loading
+
+      const appConfig = await loadAppConfig();
+
       config.env = {
         ...config.env,
         SSO_USERS: {
           user1: {
             email:
-              appConfig.get('secrets.appreg.testUsers.TEST_USER1_EMAIL') ||
-              'ar-test-1@hmcts.net',
-            password:
-              appConfig.get('secrets.appreg.testUsers.TEST_USER1_PASSWORD') ||
-              '',
+              appConfigGet(appConfig, 'secrets.appreg.TEST-USER1-EMAIL', 'ar-test-1@hmcts.net'),
+            password: appConfigGet(appConfig, 'secrets.appreg.TEST-USERS-PASSWORD', ''),
           },
           user2: {
             email:
-              appConfig.get('secrets.appreg.testUsers.TEST_USER2_EMAIL') ||
-              'ar-test-2@hmcts.net',
-            password:
-              appConfig.get('secrets.appreg.testUsers.TEST_USER2_PASSWORD') ||
-              '',
+              appConfigGet(appConfig, 'secrets.appreg.TEST-USER2-EMAIL', 'ar-test-2@hmcts.net'),
+            password: appConfigGet(appConfig, 'secrets.appreg.TEST-USERS-PASSWORD', ''),
           },
           user3: {
             email:
-              appConfig.get('secrets.appreg.testUsers.TEST_USER3_EMAIL') ||
-              'ar-test-3@hmcts.net',
-            password:
-              appConfig.get('secrets.appreg.testUsers.TEST_USER3_PASSWORD') ||
-              '',
+              appConfigGet(appConfig, 'secrets.appreg.TEST-USER3-EMAIL', 'ar-test-3@hmcts.net'),
+            password: appConfigGet(appConfig, 'secrets.appreg.TEST-USERS-PASSWORD', ''),
           },
           admin1: {
             email:
-              appConfig.get('secrets.appreg.testUsers.TEST_ADMIN1_EMAIL') ||
-              'ar-test-4@hmcts.net',
-            password:
-              appConfig.get('secrets.appreg.testUsers.TEST_ADMIN1_PASSWORD') ||
-              '',
+              appConfigGet(appConfig, 'secrets.appreg.TEST-ADMIN1-EMAIL', 'ar-test-4@hmcts.net'),
+            password: appConfigGet(appConfig, 'secrets.appreg.TEST-USERS-PASSWORD', ''),
           },
           admin2: {
             email:
-              appConfig.get('secrets.appreg.testUsers.TEST_ADMIN2_EMAIL') ||
-              'ar-test-5@hmcts.net',
-            password:
-              appConfig.get('secrets.appreg.testUsers.TEST_ADMIN2_PASSWORD') ||
-              '',
+              appConfigGet(appConfig, 'secrets.appreg.TEST-ADMIN2-EMAIL', 'ar-test-5@hmcts.net'),
+            password: appConfigGet(appConfig, 'secrets.appreg.TEST-USERS-PASSWORD', ''),
           },
           admin3: {
             email:
-              appConfig.get('secrets.appreg.testUsers.TEST_ADMIN3_EMAIL') ||
-              'ar-test-6@hmcts.net',
-            password:
-              appConfig.get('secrets.appreg.testUsers.TEST_ADMIN3_PASSWORD') ||
-              '',
+              appConfigGet(appConfig, 'secrets.appreg.TEST-ADMIN3-EMAIL', 'ar-test-6@hmcts.net'),
+            password: appConfigGet(appConfig, 'secrets.appreg.TEST-USERS-PASSWORD', ''),
           },
         },
       };
-
       await addCucumberPreprocessorPlugin(on, {
         ...config,
         cucumber: {
