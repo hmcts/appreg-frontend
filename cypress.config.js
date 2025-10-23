@@ -1,4 +1,3 @@
-
 const { defineConfig } = require('cypress');
 const createBundler = require('@bahmutov/cypress-esbuild-preprocessor');
 const {
@@ -7,29 +6,41 @@ const {
 const {
   createEsbuildPlugin,
 } = require('@badeball/cypress-cucumber-preprocessor/esbuild');
+
+// Use process.stdout.write for direct output (no ESLint warnings)
+const cypressLog = {
+  info: (message) => process.stdout.write(`[cypress-config] ${message}\n`),
+  warn: (message) =>
+    process.stderr.write(`[cypress-config] WARNING: ${message}\n`),
+};
+
 async function loadAppConfig() {
   const appConfig = require('config');
   const nodeEnv = process.env.NODE_ENV || 'development';
-  
+
   try {
     if (nodeEnv === 'development') {
-      console.log('[cypress] Attempting to load Azure vault secrets for development');
+      cypressLog.info('Attempting to load Azure vault secrets for development');
       const { addFromAzureVault } = require('@hmcts/properties-volume');
       await addFromAzureVault(appConfig, {
         pathToHelmChart: 'charts/appreg-frontend/values.yaml',
         env: process.env.AKS_ENV || 'stg',
       });
-      console.log('[cypress] Azure vault secrets loaded successfully');
+      cypressLog.info('Azure vault secrets loaded successfully');
     } else {
-      console.log('[cypress] Loading mounted secrets via properties-volume');
+      cypressLog.info('Loading mounted secrets via properties-volume');
       const pv = require('@hmcts/properties-volume');
       pv.addTo(appConfig);
     }
   } catch (err) {
     if (nodeEnv === 'development') {
-      console.warn('[cypress] Azure vault not available, falling back to local development.json');
+      cypressLog.warn(
+        'Azure vault not available, falling back to local development.json',
+      );
     } else {
-      console.warn('[cypress] properties-volume not loaded:', err?.message || err);
+      cypressLog.warn(
+        `properties-volume not loaded: ${err && err.message ? err.message : err}`,
+      );
     }
   }
   return appConfig;
@@ -100,34 +111,76 @@ module.exports = defineConfig({
         ...config.env,
         SSO_USERS: {
           user1: {
-            email:
-              appConfigGet(appConfig, 'secrets.appreg.TEST-USER1-EMAIL', 'ar-test-1@hmcts.net'),
-            password: appConfigGet(appConfig, 'secrets.appreg.TEST-USERS-PASSWORD', ''),
+            email: appConfigGet(
+              appConfig,
+              'secrets.appreg.TEST-USER1-EMAIL',
+              'ar-test-1@hmcts.net',
+            ),
+            password: appConfigGet(
+              appConfig,
+              'secrets.appreg.TEST-USERS-PASSWORD',
+              '',
+            ),
           },
           user2: {
-            email:
-              appConfigGet(appConfig, 'secrets.appreg.TEST-USER2-EMAIL', 'ar-test-2@hmcts.net'),
-            password: appConfigGet(appConfig, 'secrets.appreg.TEST-USERS-PASSWORD', ''),
+            email: appConfigGet(
+              appConfig,
+              'secrets.appreg.TEST-USER2-EMAIL',
+              'ar-test-2@hmcts.net',
+            ),
+            password: appConfigGet(
+              appConfig,
+              'secrets.appreg.TEST-USERS-PASSWORD',
+              '',
+            ),
           },
           user3: {
-            email:
-              appConfigGet(appConfig, 'secrets.appreg.TEST-USER3-EMAIL', 'ar-test-3@hmcts.net'),
-            password: appConfigGet(appConfig, 'secrets.appreg.TEST-USERS-PASSWORD', ''),
+            email: appConfigGet(
+              appConfig,
+              'secrets.appreg.TEST-USER3-EMAIL',
+              'ar-test-3@hmcts.net',
+            ),
+            password: appConfigGet(
+              appConfig,
+              'secrets.appreg.TEST-USERS-PASSWORD',
+              '',
+            ),
           },
           admin1: {
-            email:
-              appConfigGet(appConfig, 'secrets.appreg.TEST-ADMIN1-EMAIL', 'ar-test-4@hmcts.net'),
-            password: appConfigGet(appConfig, 'secrets.appreg.TEST-USERS-PASSWORD', ''),
+            email: appConfigGet(
+              appConfig,
+              'secrets.appreg.TEST-ADMIN1-EMAIL',
+              'ar-test-4@hmcts.net',
+            ),
+            password: appConfigGet(
+              appConfig,
+              'secrets.appreg.TEST-USERS-PASSWORD',
+              '',
+            ),
           },
           admin2: {
-            email:
-              appConfigGet(appConfig, 'secrets.appreg.TEST-ADMIN2-EMAIL', 'ar-test-5@hmcts.net'),
-            password: appConfigGet(appConfig, 'secrets.appreg.TEST-USERS-PASSWORD', ''),
+            email: appConfigGet(
+              appConfig,
+              'secrets.appreg.TEST-ADMIN2-EMAIL',
+              'ar-test-5@hmcts.net',
+            ),
+            password: appConfigGet(
+              appConfig,
+              'secrets.appreg.TEST-USERS-PASSWORD',
+              '',
+            ),
           },
           admin3: {
-            email:
-              appConfigGet(appConfig, 'secrets.appreg.TEST-ADMIN3-EMAIL', 'ar-test-6@hmcts.net'),
-            password: appConfigGet(appConfig, 'secrets.appreg.TEST-USERS-PASSWORD', ''),
+            email: appConfigGet(
+              appConfig,
+              'secrets.appreg.TEST-ADMIN3-EMAIL',
+              'ar-test-6@hmcts.net',
+            ),
+            password: appConfigGet(
+              appConfig,
+              'secrets.appreg.TEST-USERS-PASSWORD',
+              '',
+            ),
           },
         },
       };

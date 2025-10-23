@@ -143,7 +143,7 @@ export class AuthHelper {
 
   static verifySessionIsValid(): void {
     cy.log('Verifying session is valid with tokens stored in Redis');
-    
+
     // Verify session endpoint returns authenticated status
     cy.request({
       method: 'GET',
@@ -159,12 +159,13 @@ export class AuthHelper {
     });
 
     // Verify the secure session cookie is httpOnly and secure
-    cy.getCookie('appreg.sid').then((cookie) => {
-      expect(cookie).to.not.be.null;
-      if (cookie) {
-        expect(cookie.httpOnly).to.be.true;
-        cy.log('Session cookie is properly secured (httpOnly)');
-      }
-    });
+    cy.getCookie('appreg.sid')
+      .should('exist')
+      .then((cookie) => {
+        if (cookie) {
+          cy.wrap(cookie.httpOnly).should('be.true');
+          cy.log('Session cookie is properly secured (httpOnly)');
+        }
+      });
   }
 }
