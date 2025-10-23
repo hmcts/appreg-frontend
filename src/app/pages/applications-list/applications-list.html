@@ -180,6 +180,18 @@
             type="button"
             class="govuk-button moj-button-menu__item govuk-button--secondary"
             [routerLink]="['/applications-list', row.id]"
+            [state]="{
+              row: {
+                id: row.id,
+                date: row.date,
+                time: row.time,
+                description: row.description,
+                status: row.status,
+                court: row.courtLocationCode ?? '',
+                location: row.otherLocationDescription ?? '',
+                cja: row.cjaCode ?? '',
+              },
+            }"
           >
             Open
           </button>

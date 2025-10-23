@@ -378,6 +378,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
           this.totalPages = page.totalPages ?? 0;
           const content: ApplicationListGetSummaryDto[] = page.content ?? [];
           this.rows = content.map((x) => this.toRow(x));
+          console.log(this.rows);
           this.afterRowsRendered();
           this.isLoading = false;
         },

@@ -7,6 +7,7 @@ Functionality:
 */
 
 import { CommonModule } from '@angular/common';
+import { HttpContext } from '@angular/common/http';
 import {
   AfterViewInit,
   Component,
@@ -21,7 +22,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { Subscription, combineLatest, firstValueFrom } from 'rxjs';
 
 import {
   ApplicationListStatus,
@@ -47,6 +48,10 @@ import { SortableTableComponent } from '../../shared/components/sortable-table/s
 import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
 import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
+import {
+  IF_MATCH,
+  ROW_VERSION,
+} from '../../shared/context/concurrency-context';
 import { attachLocationDisabler } from '../../shared/util/attach-location-disabler';
 import { buildNormalizedPayload } from '../../shared/util/build-payload';
 import { collectMissing } from '../../shared/util/collect-missing';
@@ -74,6 +79,18 @@ type DetailFormRaw = Omit<
   status: string | null;
 };
 
+type Handoff = {
+  id: string;
+  date: string | null;
+  time: string | null;
+  description: string | null;
+  status: ApplicationListStatus;
+  court: string;
+  location: string;
+  cja: string;
+  etag: string | null;
+};
+
 @Component({
   selector: 'app-application-detail',
   standalone: true,
@@ -95,16 +112,11 @@ type DetailFormRaw = Omit<
   templateUrl: './applications-list-detail.html',
 })
 export class ApplicationsListDetail implements AfterViewInit, OnInit {
-  id!: number;
+  id!: string;
   currentFragment: string | null = null;
   private locationDisabler?: Subscription;
-  private version = 0; // Used in update
-
-  status = [
-    { label: 'Choose', value: 'choose' },
-    { label: 'Open', value: 'open' },
-    { label: 'Closed', value: 'closed' },
-  ];
+  private version: number = 0; // Used in update
+  private etag: string | null = null;
 
   currentPage = 1;
   totalPages = 5;
@@ -115,14 +127,18 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
     description: new FormControl<string>('', {
       validators: [(c) => Validators.required(c)],
     }),
-    status: new FormControl<string>('', {
-      validators: [(c) => Validators.required(c)],
-    }),
+    status: new FormControl<string>('choose', { nonNullable: true }),
     court: new FormControl<string>(''),
     location: new FormControl<string>(''),
     cja: new FormControl<string>(''),
     duration: new FormControl<DurationValue | null>(null),
   });
+
+  statusOptions = [
+    { value: 'choose', label: 'Choose status' },
+    { value: 'open', label: 'Open' },
+    { value: 'closed', label: 'Closed' },
+  ];
 
   columns = [
     { header: 'Sequence number', field: 'sequenceNumber' },
@@ -176,6 +192,24 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
       location: this.form.controls.location,
       cja: this.form.controls.cja,
     });
+
+    // Set application list row
+    const st = (history.state as { row?: Handoff }).row;
+
+    if (st) {
+      void this.prefillPlaceFieldsFromSummary(st.location ?? '');
+      this.id = st.id;
+      this.etag = st.etag;
+      this.form.patchValue({
+        date: st.date ?? null,
+        time: st.time
+          ? { hours: +st.time.slice(0, 2), minutes: +st.time.slice(3, 5) }
+          : null,
+        description: st.description ?? '',
+        status: st.status.trim().toLowerCase(),
+        duration: null,
+      });
+    }
   }
 
   ngAfterViewInit(): void {
@@ -206,10 +240,11 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
       return;
     }
 
-    if (this.form.invalid) {
+    this.buildErrorSummary();
+
+    if (this.unpopField.length) {
       this.updateInvalid = true;
       this.errorHint = 'There is a problem...';
-      this.buildErrorSummary();
       return;
     }
 
@@ -221,23 +256,37 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
         version: this.version,
       } as ApplicationListUpdateDto;
 
-      console.log(payload);
+      const context = new HttpContext()
+        .set(IF_MATCH, this.etag ?? null)
+        .set(ROW_VERSION, String(this.version));
 
-      // this.appListApi
-      //   .updateApplicationList({
-      //     id: String(this.id),
-      //     applicationListUpdateDto: payload,
-      //   })
-      //   .subscribe({
-      //     next: () => {
-      //       this.updateDone = true;
-      //     },
-      //     error: (err) => {
-      //       const msg = err instanceof Error ? err.message : String(err);
-      //       this.updateInvalid = true;
-      //       this.errorHint = msg;
-      //     },
-      //   });
+      this.appListApi
+        .updateApplicationList(
+          {
+            id: String(this.id),
+            applicationListUpdateDto: payload,
+          },
+          'response',
+          false,
+          { context },
+        )
+        .subscribe({
+          next: (res) => {
+            this.etag = res.headers.get('ETag') ?? this.etag;
+            this.updateDone = true;
+          },
+          error: (err) => {
+            if ((err as { status?: number }).status === 412) {
+              this.updateInvalid = true;
+              this.errorHint =
+                'This list was modified by someone else. Reload and try again.';
+              return;
+            }
+            const msg = err instanceof Error ? err.message : String(err);
+            this.updateInvalid = true;
+            this.errorHint = msg;
+          },
+        });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       this.updateInvalid = true;
@@ -294,5 +343,36 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
       dateErrorText: de?.dateErrorText ?? '',
       durationErrorText: te?.durationErrorText ?? '',
     });
+  }
+
+  private async prefillPlaceFieldsFromSummary(name: string): Promise<void> {
+    if (!name) {
+      return;
+    }
+
+    const [courts, cjas] = await firstValueFrom(
+      combineLatest([this.ref.courtLocations$, this.ref.cja$]),
+    );
+
+    // try court match by name/title
+    const court = courts.find((c) => c.name ?? c.locationCode ?? '' === name);
+    if (court) {
+      console.log('court hit');
+      this.form.patchValue({
+        court: court.locationCode,
+      });
+      return;
+    }
+
+    // try CJA match by name/description
+    const area = cjas.find((a) => a.code ?? a.description ?? '' === name);
+    if (area) {
+      console.log('cja hit');
+      this.form.patchValue({ cja: area.code });
+      return;
+    }
+
+    // fallback - set to null
+    this.form.patchValue({ location: '', court: '', cja: '' });
   }
 }
