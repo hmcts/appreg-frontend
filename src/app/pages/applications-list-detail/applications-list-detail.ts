@@ -242,6 +242,7 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
   onUpdate(): void {
     this.updateInvalid = false;
     this.unpopField = [];
+    this.updateDone = false;
 
     const raw = this.form.getRawValue() as DetailFormRaw;
 
@@ -291,8 +292,12 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
       payload = {
         ...normalized,
         version: this.version,
-        ...(isDurHours ? { durationHours } : {}),
-        ...(isDurMins ? { durationMinutes } : {}),
+        ...(isDurHours && Number.isInteger(durationHours)
+          ? { durationHours }
+          : {}),
+        ...(isDurMins && Number.isInteger(durationMinutes)
+          ? { durationMinutes }
+          : {}),
       } as ApplicationListUpdateDto;
 
       const context = new HttpContext()
@@ -374,12 +379,31 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
     const te = this.form.controls.time.errors as {
       durationErrorText?: string;
     } | null;
+    const durErr = this.form.controls.duration.errors as {
+      durationErrorText?: string;
+    } | null;
+    const dur = this.form.controls.duration.value as Duration | null;
 
     this.unpopField = collectMissing(this.form.getRawValue() as DetailFormRaw, {
       dateInvalid: !!de?.dateInvalid,
       dateErrorText: de?.dateErrorText ?? '',
       durationErrorText: te?.durationErrorText ?? '',
     });
+
+    if (durErr?.durationErrorText) {
+      if (dur?.hours !== null) {
+        this.unpopField.push({
+          id: 'duration-hours',
+          text: durErr.durationErrorText,
+        });
+      }
+      if (dur?.minutes !== null) {
+        this.unpopField.push({
+          id: 'duration-minutes',
+          text: durErr.durationErrorText,
+        });
+      }
+    }
   }
 
   private prefillPlaceFieldsFromSummary(name: string): void {
@@ -411,4 +435,13 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
     // fallback - set to null
     this.form.patchValue({ location: '', court: '', cja: '' });
   }
+
+  private toNum = (v: string | undefined): number | undefined => {
+    const s = v === null ? '' : String(v).trim();
+    if (s === '') {
+      return undefined;
+    }
+    const n = Number(s);
+    return Number.isFinite(n) ? n : undefined;
+  };
 }

@@ -93,7 +93,7 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
     const h = this.hours,
       m = this.minutes;
 
-    const minHours = 0;
+    const min = 0;
     let maxHours = 99;
 
     const minMins = 0,
@@ -147,7 +147,7 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
         };
       }
       if (
-        !this.inRange(h, minHours, maxHours) ||
+        !this.inRange(h, min, maxHours) ||
         !this.inRange(m, minMins, maxMins)
       ) {
         return {
@@ -159,11 +159,34 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
     }
 
     // For mode = duration
-    if (!this.isBlank(h) && !this.inRange(h!, minHours, maxHours)) {
-      return { durationInvalid: true };
+    if (!this.isBlank(h)) {
+      if (typeof h !== 'number' || !Number.isInteger(h)) {
+        return {
+          durationInvalid: true,
+          durationErrorText: 'Enter a whole number of hours',
+        };
+      }
+      if (!this.inRange(h, min, maxHours)) {
+        return {
+          durationInvalid: true,
+          durationErrorText: `Enter hours between ${min} and ${maxHours}`,
+        };
+      }
     }
-    if (!this.isBlank(m) && !this.inRange(m!, minHours, maxHours)) {
-      return { durationInvalid: true };
+
+    if (!this.isBlank(m)) {
+      if (typeof m !== 'number' || !Number.isInteger(m)) {
+        return {
+          durationInvalid: true,
+          durationErrorText: 'Enter a whole number of minutes',
+        };
+      }
+      if (!this.inRange(m, min, maxMins)) {
+        return {
+          durationInvalid: true,
+          durationErrorText: `Enter minutes between ${min} and ${maxMins}`,
+        };
+      }
     }
 
     return null;
