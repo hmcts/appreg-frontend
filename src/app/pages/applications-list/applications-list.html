@@ -27,26 +27,11 @@
 </div>
 
 @if (submitted && searchErrors.length) {
-  <div
-    class="govuk-error-summary"
-    role="alert"
-    aria-labelledby="error-summary-title"
-  >
-    <h2 class="govuk-error-summary__title" id="error-summary-title">
-      {{ errorHint }}
-    </h2>
-    <div class="govuk-error-summary__body">
-      <ul class="govuk-list govuk-error-summary__list">
-        @for (e of searchErrors; track e.id) {
-          <li>
-            <a class="govuk-link" href="" (click)="focusField(e.id, $event)">{{
-              e.text
-            }}</a>
-          </li>
-        }
-      </ul>
-    </div>
-  </div>
+  <app-error-summary
+    [title]="errorHint || 'There is a problem'"
+    [items]="searchErrors"
+    targetId="search"
+  />
 }
 
 @if (deleteInvalid && errorSummary.length) {
@@ -55,6 +40,16 @@
     [items]="errorSummary"
     targetId="sortable-table"
   />
+}
+
+@if (isSearch && !isLoading) {
+  <app-notification-banner
+    heading="No lists found"
+    body="Try different filters, or "
+    linkText="create a new list"
+    [linkCommands]="['/applications-list/create']"
+  >
+  </app-notification-banner>
 }
 
 @if (deleteDone) {
@@ -230,6 +225,4 @@
     [totalPages]="totalPages"
     (pageChange)="onPageChange($event)"
   ></app-pagination>
-} @else {
-  <p class="govuk-body-l">No lists found</p>
 }
