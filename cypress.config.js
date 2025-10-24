@@ -17,12 +17,15 @@ const cypressLog = {
 async function loadAppConfig() {
   const appConfig = require('config');
   const nodeEnv = process.env.NODE_ENV || 'development';
-  
+
   // Development uses staging vault secrets
-  const vaultEnv = process.env.AKS_ENV || (nodeEnv === 'development' ? 'stg' : nodeEnv);
+  const vaultEnv =
+    process.env.AKS_ENV || (nodeEnv === 'development' ? 'stg' : nodeEnv);
 
   try {
-    cypressLog.info(`Loading Azure vault secrets for ${nodeEnv} environment (using ${vaultEnv} vault)`);
+    cypressLog.info(
+      `Loading Azure vault secrets for ${nodeEnv} environment (using ${vaultEnv} vault)`,
+    );
     const { addFromAzureVault } = require('@hmcts/properties-volume');
     await addFromAzureVault(appConfig, {
       pathToHelmChart: 'charts/appreg-frontend/values.yaml',
@@ -31,7 +34,7 @@ async function loadAppConfig() {
     cypressLog.info('Azure vault secrets loaded successfully');
   } catch (err) {
     cypressLog.warn(
-      `Azure vault not available for ${nodeEnv} (${vaultEnv}): ${err && err.message ? err.message : err}. Falling back to local configuration.`
+      `Azure vault not available for ${nodeEnv} (${vaultEnv}): ${err && err.message ? err.message : err}. Falling back to local configuration.`,
     );
   }
 
@@ -104,27 +107,45 @@ module.exports = defineConfig({
         SSO_USERS: {
           user1: {
             email: appConfigGet(appConfig, 'secrets.appreg.TEST-USER1-EMAIL'),
-            password: appConfigGet(appConfig, 'secrets.appreg.TEST-USERS-PASSWORD'),
+            password: appConfigGet(
+              appConfig,
+              'secrets.appreg.TEST-USERS-PASSWORD',
+            ),
           },
           user2: {
             email: appConfigGet(appConfig, 'secrets.appreg.TEST-USER2-EMAIL'),
-            password: appConfigGet(appConfig, 'secrets.appreg.TEST-USERS-PASSWORD'),
+            password: appConfigGet(
+              appConfig,
+              'secrets.appreg.TEST-USERS-PASSWORD',
+            ),
           },
           user3: {
             email: appConfigGet(appConfig, 'secrets.appreg.TEST-USER3-EMAIL'),
-            password: appConfigGet(appConfig, 'secrets.appreg.TEST-USERS-PASSWORD'),
+            password: appConfigGet(
+              appConfig,
+              'secrets.appreg.TEST-USERS-PASSWORD',
+            ),
           },
           admin1: {
             email: appConfigGet(appConfig, 'secrets.appreg.TEST-ADMIN1-EMAIL'),
-            password: appConfigGet(appConfig, 'secrets.appreg.TEST-USERS-PASSWORD'),
+            password: appConfigGet(
+              appConfig,
+              'secrets.appreg.TEST-USERS-PASSWORD',
+            ),
           },
           admin2: {
             email: appConfigGet(appConfig, 'secrets.appreg.TEST-ADMIN2-EMAIL'),
-            password: appConfigGet(appConfig, 'secrets.appreg.TEST-USERS-PASSWORD'),
+            password: appConfigGet(
+              appConfig,
+              'secrets.appreg.TEST-USERS-PASSWORD',
+            ),
           },
           admin3: {
             email: appConfigGet(appConfig, 'secrets.appreg.TEST-ADMIN3-EMAIL'),
-            password: appConfigGet(appConfig, 'secrets.appreg.TEST-USERS-PASSWORD'),
+            password: appConfigGet(
+              appConfig,
+              'secrets.appreg.TEST-USERS-PASSWORD',
+            ),
           },
         },
       };
