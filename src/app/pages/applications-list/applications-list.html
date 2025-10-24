@@ -32,6 +32,15 @@
     [items]="searchErrors"
     targetId="search"
   />
+} @else {
+  @if (isSearch && !isLoading && !rows.length) {
+    <app-notification-banner
+      heading="No lists found"
+      body="Try different filters, or "
+      linkText="create a new list"
+      [linkCommands]="['/applications-list/create']">
+    </app-notification-banner>
+  }
 }
 
 @if (deleteInvalid && errorSummary.length) {
@@ -40,16 +49,6 @@
     [items]="errorSummary"
     targetId="sortable-table"
   />
-}
-
-@if (isSearch && !isLoading) {
-  <app-notification-banner
-    heading="No lists found"
-    body="Try different filters, or "
-    linkText="create a new list"
-    [linkCommands]="['/applications-list/create']"
-  >
-  </app-notification-banner>
 }
 
 @if (deleteDone) {

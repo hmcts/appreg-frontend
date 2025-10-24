@@ -227,7 +227,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     this.isSearch = false;
     this.rows = [];
 
-    this.errorHint = 'An error has occurred...';
+    this.errorHint = 'There is a problem';
 
     const dateCtrl = this.form.controls.date;
     const timeCtrl = this.form.controls.time;
