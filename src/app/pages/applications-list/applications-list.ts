@@ -1,4 +1,4 @@
-/* 
+/*
 Applications List
 Main Component for page /applications-list
 
@@ -53,6 +53,7 @@ import {
   ErrorItem,
   ErrorSummaryComponent,
 } from '../../shared/components/error-summary/error-summary.component';
+import { NotificationBannerComponent } from '../../shared/components/notification-banner/notification-banner.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import {
@@ -112,6 +113,7 @@ interface MojInitEl extends HTMLElement {
     SuccessBannerComponent,
     ErrorSummaryComponent,
     SuggestionsComponent,
+    NotificationBannerComponent,
   ],
   templateUrl: './applications-list.html',
 })
