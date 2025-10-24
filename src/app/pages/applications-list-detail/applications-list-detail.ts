@@ -95,9 +95,7 @@ type Handoff = {
   time: string | null;
   description: string | null;
   status: ApplicationListStatus;
-  court: string;
   location: string;
-  cja: string;
   etag: string | null;
   version: number;
 };
@@ -206,7 +204,6 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
 
     // Set application list row
     const st = (history.state as { row?: Handoff }).row;
-
     if (st) {
       this.prefillPlaceFieldsFromSummary(st.location);
       this.id = st.id;
@@ -397,34 +394,43 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
     }
   }
 
-  private prefillPlaceFieldsFromSummary(name: string): void {
-    if (!name) {
+  private prefillPlaceFieldsFromSummary(name: string | null | undefined): void {
+    if (!name?.trim()) {
+      return;
+    }
+    if (!this.courtLocations.length && !this.cja.length) {
       return;
     }
 
-    console.log(this.courtLocations, this.cja, name);
+    const raw = name.trim();
+    const label = raw.toLowerCase();
 
-    // Match court || cja
+    const area = this.cja.find(
+      (a) =>
+        a.code === raw ||
+        (a.description ?? a.code ?? '').toLowerCase() === label,
+    );
+    if (area) {
+      this.selectCja({ code: area.code });
+      this.form.patchValue({ court: '', location: '' });
+      return;
+    }
+
     const court = this.courtLocations.find(
-      (c) => c.name ?? c.locationCode ?? '' === name,
+      (c) =>
+        c.locationCode === raw ||
+        (c.name ?? c.locationCode ?? '').toLowerCase() === label,
     );
     if (court) {
-      console.log('court hit');
-      this.form.patchValue({
-        court: court.locationCode,
-      });
+      this.selectCourthouse({ locationCode: court.locationCode });
+      this.form.patchValue({ cja: '', location: '' });
       return;
     }
 
-    const area = this.cja.find((a) => a.code ?? a.description ?? '' === name);
-    if (area) {
-      console.log('cja hit');
-      this.form.patchValue({ cja: area.code });
-      return;
-    }
-
-    // fallback - set to null
-    this.form.patchValue({ location: '', court: '', cja: '' });
+    // Fallback: treat as "other location"
+    this.form.patchValue({ location: raw, court: '', cja: '' });
+    this.courthouseSearch = '';
+    this.cjaSearch = '';
   }
 
   private readonly toNum = (v: string | undefined): number | undefined => {
