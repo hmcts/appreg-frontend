@@ -1,4 +1,4 @@
-/* 
+/*
 Applications List
 Main Component for page /applications-list
 
@@ -78,6 +78,7 @@ import { normaliseTime } from '../../shared/util/time-helpers';
 
 import { getHttpStatus, statusSummary } from './util/delete-status';
 import { loadQuery } from './util/load-query';
+import { PdfService } from '../../core/services/pdf.service';
 
 type UiExtras = {
   deletable?: boolean;
@@ -181,6 +182,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     @Inject(PLATFORM_ID) private readonly platformId: object,
     private readonly ref: ReferenceDataFacade,
     private readonly appListsApi: ApplicationListsApi,
+    private readonly pdf: PdfService,
   ) {}
 
   ngOnInit(): void {
@@ -328,7 +330,54 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     this.openMenuForId = null;
   }
 
-  onPrint(): void {}
+  async onPrintPage(id: string): Promise<void> {
+    if (!id) {
+      return;
+    }
+
+    // Clear any prior print banners/errors
+    this.deleteInvalid = false;
+    this.errorHint = '';
+    this.errorSummary = [];
+
+    try {
+      const dto = await firstValueFrom(
+        this.appListsApi.getApplicationList({ id }, undefined, undefined, {
+          transferCache: false,
+        }),
+      );
+
+      // If no entries
+      type HasEntries = { entries?: unknown[] | null };
+      const entries = (dto as HasEntries).entries;
+      const hasEntries = Array.isArray(entries) && entries.length > 0;
+
+      if (!hasEntries) {
+        this.deleteInvalid = true;
+        this.errorHint = 'No entries available to print';
+        this.errorSummary = [{ text: 'No entries available to print' }];
+        return;
+      }
+
+      // Only generate on the client
+      if (isPlatformBrowser(this.platformId)) {
+        await this.pdf.generateApplicationListPdf(dto);
+      }
+    } catch (err: unknown) {
+      const status = getHttpStatus(err);
+      if (status === 404) {
+        this.deleteInvalid = true;
+        this.errorHint = 'Application List not found';
+        this.errorSummary = [{ text: 'Application List not found' }];
+      } else {
+        this.deleteInvalid = true;
+        this.errorHint = 'Unable to generate PDF. Please try again later';
+        this.errorSummary = [
+          { text: 'Unable to generate PDF. Please try again later' },
+        ];
+      }
+    }
+  }
 
   onPrintContinuous(): void {}
 
