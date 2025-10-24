@@ -6,7 +6,7 @@ Functionality:
     - TODO finish header
 */
 
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpContext } from '@angular/common/http';
 import {
   AfterViewInit,
@@ -22,7 +22,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Subscription, combineLatest, firstValueFrom } from 'rxjs';
+import { Subscription } from 'rxjs';
 
 import {
   ApplicationListStatus,
@@ -67,6 +67,7 @@ import {
 } from '../../shared/util/error-click';
 import type { FormRaw } from '../../shared/util/types/application-list/types';
 import { validateCourtVsLocOrCja } from '../../shared/util/validate-court-vs-loc-cja';
+import { getHttpStatus, getProblemText } from '../applications-list/util/delete-status';
 
 type DurationValue = { hours: string; minutes: string };
 
@@ -89,6 +90,7 @@ type Handoff = {
   location: string;
   cja: string;
   etag: string | null;
+  version: number;
 };
 
 @Component({
@@ -197,9 +199,10 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
     const st = (history.state as { row?: Handoff }).row;
 
     if (st) {
-      void this.prefillPlaceFieldsFromSummary(st.location ?? '');
+      this.prefillPlaceFieldsFromSummary(st.location);
       this.id = st.id;
       this.etag = st.etag;
+      this.version = st.version ?? this.version;
       this.form.patchValue({
         date: st.date ?? null,
         time: st.time
@@ -248,12 +251,37 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
       return;
     }
 
+    // Confirmation window
+    if (isPlatformBrowser(this.platformId)) {
+      const ok = window.confirm(
+        'Are you sure you want to update this Application List?',
+      );
+      if (!ok) {
+        return;
+      }
+    }
+
+    const toNum = (v: string | undefined): number | undefined => {
+      const s = v === null ? '' : String(v).trim();
+      if (s === '') {
+        return undefined;
+      }
+      const n = Number(s);
+      return Number.isFinite(n) ? n : undefined;
+    };
+
+    const dur = this.form.controls.duration.value;
+    const durationHours = toNum(dur?.hours);
+    const durationMinutes = toNum(dur?.minutes);
+
     let payload: ApplicationListUpdateDto;
     try {
       const normalized = buildNormalizedPayload(raw);
       payload = {
         ...normalized,
         version: this.version,
+        ...(durationHours !== undefined ? { durationHours } : {}),
+        ...(durationMinutes !== undefined ? { durationMinutes } : {}),
       } as ApplicationListUpdateDto;
 
       const context = new HttpContext()
@@ -276,15 +304,13 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
             this.updateDone = true;
           },
           error: (err) => {
-            if ((err as { status?: number }).status === 412) {
-              this.updateInvalid = true;
-              this.errorHint =
-                'This list was modified by someone else. Reload and try again.';
+            this.updateInvalid = true;
+            const errorStatus = getHttpStatus(err);
+            if (errorStatus === 412) {
+              this.errorHint = 'Resource changed. Reload and try again.';
               return;
             }
-            const msg = err instanceof Error ? err.message : String(err);
-            this.updateInvalid = true;
-            this.errorHint = msg;
+            this.errorHint = getProblemText(err);
           },
         });
     } catch (e) {
@@ -345,17 +371,17 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
     });
   }
 
-  private async prefillPlaceFieldsFromSummary(name: string): Promise<void> {
+  private prefillPlaceFieldsFromSummary(name: string): void {
     if (!name) {
       return;
     }
 
-    const [courts, cjas] = await firstValueFrom(
-      combineLatest([this.ref.courtLocations$, this.ref.cja$]),
-    );
+    console.log(this.courtLocations, this.cja, name);
 
-    // try court match by name/title
-    const court = courts.find((c) => c.name ?? c.locationCode ?? '' === name);
+    // Match court || cja
+    const court = this.courtLocations.find(
+      (c) => c.name ?? c.locationCode ?? '' === name,
+    );
     if (court) {
       console.log('court hit');
       this.form.patchValue({
@@ -364,8 +390,7 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
       return;
     }
 
-    // try CJA match by name/description
-    const area = cjas.find((a) => a.code ?? a.description ?? '' === name);
+    const area = this.cja.find((a) => a.code ?? a.description ?? '' === name);
     if (area) {
       console.log('cja hit');
       this.form.patchValue({ cja: area.code });

@@ -77,7 +77,7 @@ import { has } from '../../shared/util/has';
 import { normaliseTime } from '../../shared/util/time-helpers';
 import { ApplicationListRow } from '../../shared/util/types/application-list/types';
 
-import { getHttpStatus, statusSummary } from './util/delete-status';
+import { getHttpStatus, getProblemText, statusSummary } from './util/delete-status';
 import { loadQuery } from './util/load-query';
 
 interface MojInitEl extends HTMLElement {
@@ -383,12 +383,11 @@ export class ApplicationsList implements OnInit, AfterViewInit {
           this.isLoading = false;
         },
         error: (err) => {
+          const msg = getProblemText(err);
           this.submitted = true;
           this.rows = [];
           this.totalPages = 0;
           this.isLoading = false;
-          const msg =
-            err instanceof Error ? err.message : 'Unable to load lists';
           this.searchErrors = [{ id: 'search', text: msg }];
         },
       });
