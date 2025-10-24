@@ -15,10 +15,10 @@ import {
 } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 
-import { routes } from './app.routes';
+import { BASE_PATH, provideApi } from '../generated/openapi';
+import { Configuration } from '../generated/openapi/configuration';
 
-import { BASE_PATH, provideApi } from 'src/generated/openapi';
-import { Configuration } from 'src/generated/openapi/configuration';
+import { routes } from './app.routes';
 
 export const credentialsInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req.clone({ withCredentials: true }));

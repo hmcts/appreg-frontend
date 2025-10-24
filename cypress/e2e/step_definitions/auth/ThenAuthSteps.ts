@@ -20,3 +20,7 @@ Then('User Should Not See The Element {string}', (element: string) => {
 Then('User Should See The Element {string}', (element: string) => {
   AuthHelper.verifyElementVisible(element);
 });
+
+Then('User Verify The Session Is Valid', () => {
+  AuthHelper.verifySessionIsValid();
+});

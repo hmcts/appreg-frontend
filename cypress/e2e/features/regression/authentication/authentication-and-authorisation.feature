@@ -56,3 +56,12 @@ Feature: Authentication and Authorisation
     Given User Is On The Portal Page
     When User Tries To Sign In With Valid Email "ar-test-1@hmcts.net" And Invalid Password "any_password" And Expects Error "Your account or password is incorrect. If you don't remember your password, reset it now."
 
+  @regression @ARCPOC-425
+  Scenario: Complete authentication flow with session and token validation
+    Given User Navigates To The URL "/applications-list"
+    Then User Verify The Page URL Contains "/login"
+    When User Signs In With Microsoft SSO As "user1"
+    Then User Verify The Page URL Contains "/applications-list"
+    And User Verify The "appreg.sid" Cookie Should Exist
+    And User Verify The Session Is Valid
+

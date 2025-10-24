@@ -18,7 +18,14 @@
       "azure-client-secret-fe": "dummyClientSecret",
       "redis-access-key": "dummyRedisAccessKey",
       "app-insights-connection-string-fe": "dummyInstrumentationKey",
-      "app-session-secret-fe": "dummySessionSecret"
+      "app-session-secret-fe": "dummySessionSecret",
+      "TEST-USER1-EMAIL": "dummyTestUser1Email",
+      "TEST-USER2-EMAIL": "dummyTestUser2Email",
+      "TEST-USER3-EMAIL": "dummyTestUser3Email",
+      "TEST-ADMIN1-EMAIL": "dummyTestAdmin1Email",
+      "TEST-ADMIN2-EMAIL": "dummyTestAdmin2Email",
+      "TEST-ADMIN3-EMAIL": "dummyTestAdmin3Email",
+      "TEST-USERS-PASSWORD": "dummyTestUserPassword"
     }
   },
   "auth": {
