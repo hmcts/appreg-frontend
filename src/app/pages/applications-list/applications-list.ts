@@ -1,4 +1,4 @@
-/* 
+/*
 Applications List
 Main Component for page /applications-list
 
@@ -137,7 +137,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     date: new FormControl<string | null>(null),
     time: new FormControl<Duration | null>(null),
     description: new FormControl<string>(''),
-    status: new FormControl<string>('choose'),
+    status: new FormControl<string | null>(null),
     court: new FormControl<string>(''),
     location: new FormControl<string>(''),
     cja: new FormControl<string>(''),
@@ -158,7 +158,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
   ];
 
   status = [
-    { label: 'Choose', value: 'choose' },
+    { label: 'Choose', value: '' },
     { label: 'Open', value: 'open' },
     { label: 'Closed', value: 'closed' },
   ];

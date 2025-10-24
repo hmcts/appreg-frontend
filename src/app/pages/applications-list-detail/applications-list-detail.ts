@@ -1,4 +1,4 @@
-/* 
+/*
 Main component for /application-list/:id
 
 Functionality:
@@ -127,7 +127,7 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
     description: new FormControl<string>('', {
       validators: [(c) => Validators.required(c)],
     }),
-    status: new FormControl<string>('choose', { nonNullable: true }),
+    status: new FormControl<string | null>(null),
     court: new FormControl<string>(''),
     location: new FormControl<string>(''),
     cja: new FormControl<string>(''),
@@ -135,7 +135,7 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
   });
 
   statusOptions = [
-    { value: 'choose', label: 'Choose status' },
+    { value: '', label: 'Choose status' },
     { value: 'open', label: 'Open' },
     { value: 'closed', label: 'Closed' },
   ];

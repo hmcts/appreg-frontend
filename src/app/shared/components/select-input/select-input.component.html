@@ -2,7 +2,7 @@
   <div
     class="govuk-form-group"
     [ngClass]="{
-      'govuk-form-group--error': submitted && (!value || value === 'choose'),
+      'govuk-form-group--error': submitted && !value,
     }"
   >
     @if (label) {
@@ -19,7 +19,7 @@
       </div>
     }
 
-    @if (submitted && (!value || value === 'choose')) {
+    @if (submitted && !value) {
       <p [id]="idPrefix + '-error'" class="govuk-error-message">
         <span class="govuk-visually-hidden">Error:</span>
         {{ label || 'This field' }} is required
@@ -29,7 +29,7 @@
     <select
       class="govuk-select"
       [ngClass]="
-        submitted && (!value || value === 'choose') ? 'govuk-select--error' : ''
+        submitted && !value ? 'govuk-select--error' : ''
       "
       [id]="idPrefix"
       [name]="idPrefix"
@@ -37,18 +37,18 @@
         (
           (hint ? idPrefix + '-hint' : '') +
           ' ' +
-          (submitted && (!value || value === 'choose')
+          (submitted && !value
             ? idPrefix + '-error'
             : '')
         ).trim()
       "
       [disabled]="disabled"
-      [value]="value"
+      [value]="value ?? ''"
       (change)="handleChange($event)"
       (blur)="handleBlur()"
     >
       @for (o of options; track o.value) {
-        <option [value]="o.value">{{ o.label }}</option>
+        <option [value]="o.value" [selected]="o.value === (value ?? '')">{{ o.label }}</option>
       }
     </select>
   </div>
