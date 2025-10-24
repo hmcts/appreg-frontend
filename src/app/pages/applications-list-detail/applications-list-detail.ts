@@ -271,18 +271,9 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
       }
     }
 
-    const toNum = (v: string | undefined): number | undefined => {
-      const s = v === null ? '' : String(v).trim();
-      if (s === '') {
-        return undefined;
-      }
-      const n = Number(s);
-      return Number.isFinite(n) ? n : undefined;
-    };
-
     const dur = this.form.controls.duration.value;
-    const durationHours = toNum(dur?.hours);
-    const durationMinutes = toNum(dur?.minutes);
+    const durationHours = this.toNum(dur?.hours);
+    const durationMinutes = this.toNum(dur?.minutes);
     const isDurHours = durationHours !== undefined;
     const isDurMins = durationMinutes !== undefined;
 
@@ -436,7 +427,7 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
     this.form.patchValue({ location: '', court: '', cja: '' });
   }
 
-  private toNum = (v: string | undefined): number | undefined => {
+  private readonly toNum = (v: string | undefined): number | undefined => {
     const s = v === null ? '' : String(v).trim();
     if (s === '') {
       return undefined;
