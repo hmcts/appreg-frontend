@@ -17,32 +17,24 @@ const cypressLog = {
 async function loadAppConfig() {
   const appConfig = require('config');
   const nodeEnv = process.env.NODE_ENV || 'development';
+  
+  // Development uses staging vault secrets
+  const vaultEnv = process.env.AKS_ENV || (nodeEnv === 'development' ? 'stg' : nodeEnv);
 
   try {
-    if (nodeEnv === 'development') {
-      cypressLog.info('Attempting to load Azure vault secrets for development');
-      const { addFromAzureVault } = require('@hmcts/properties-volume');
-      await addFromAzureVault(appConfig, {
-        pathToHelmChart: 'charts/appreg-frontend/values.yaml',
-        env: process.env.AKS_ENV || 'stg',
-      });
-      cypressLog.info('Azure vault secrets loaded successfully');
-    } else {
-      cypressLog.info('Loading mounted secrets via properties-volume');
-      const pv = require('@hmcts/properties-volume');
-      pv.addTo(appConfig);
-    }
+    cypressLog.info(`Loading Azure vault secrets for ${nodeEnv} environment (using ${vaultEnv} vault)`);
+    const { addFromAzureVault } = require('@hmcts/properties-volume');
+    await addFromAzureVault(appConfig, {
+      pathToHelmChart: 'charts/appreg-frontend/values.yaml',
+      env: vaultEnv,
+    });
+    cypressLog.info('Azure vault secrets loaded successfully');
   } catch (err) {
-    if (nodeEnv === 'development') {
-      cypressLog.warn(
-        'Azure vault not available, falling back to local development.json',
-      );
-    } else {
-      cypressLog.warn(
-        `properties-volume not loaded: ${err && err.message ? err.message : err}`,
-      );
-    }
+    cypressLog.warn(
+      `Azure vault not available for ${nodeEnv} (${vaultEnv}): ${err && err.message ? err.message : err}. Falling back to local configuration.`
+    );
   }
+
   return appConfig;
 }
 function appConfigGet(appConfig, path, fallback) {
