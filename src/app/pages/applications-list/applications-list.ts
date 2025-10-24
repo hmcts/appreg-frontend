@@ -29,6 +29,7 @@ import {
   Component,
   HostListener,
   Inject,
+  OnDestroy,
   OnInit,
   PLATFORM_ID,
 } from '@angular/core';
@@ -77,7 +78,11 @@ import { has } from '../../shared/util/has';
 import { normaliseTime } from '../../shared/util/time-helpers';
 import { ApplicationListRow } from '../../shared/util/types/application-list/types';
 
-import { getHttpStatus, getProblemText, statusSummary } from './util/delete-status';
+import {
+  getHttpStatus,
+  getProblemText,
+  statusSummary,
+} from './util/delete-status';
 import { loadQuery } from './util/load-query';
 
 interface MojInitEl extends HTMLElement {
@@ -103,8 +108,8 @@ interface MojInitEl extends HTMLElement {
   ],
   templateUrl: './applications-list.html',
 })
-export class ApplicationsList implements OnInit, AfterViewInit {
-  private _id: string | undefined;
+export class ApplicationsList implements OnInit, AfterViewInit, OnDestroy {
+  private readonly _id: string | undefined;
   private locationDisabler?: Subscription;
   private readonly destroy$ = new Subject<void>();
   openMenuForId: string | null = null;
@@ -257,7 +262,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     }
 
     if (isPlatformBrowser(this.platformId)) {
-      const ok = window.confirm(
+      const ok = globalThis.confirm(
         'Are you sure you want to delete this Application List?',
       );
       if (!ok) {
@@ -378,7 +383,6 @@ export class ApplicationsList implements OnInit, AfterViewInit {
           this.totalPages = page.totalPages ?? 0;
           const content: ApplicationListGetSummaryDto[] = page.content ?? [];
           this.rows = content.map((x) => this.toRow(x));
-          console.log(this.rows);
           this.afterRowsRendered();
           this.isLoading = false;
         },

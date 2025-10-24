@@ -28,18 +28,14 @@
 
     <select
       class="govuk-select"
-      [ngClass]="
-        submitted && !value ? 'govuk-select--error' : ''
-      "
+      [ngClass]="submitted && !value ? 'govuk-select--error' : ''"
       [id]="idPrefix"
       [name]="idPrefix"
       [attr.aria-describedby]="
         (
           (hint ? idPrefix + '-hint' : '') +
           ' ' +
-          (submitted && !value
-            ? idPrefix + '-error'
-            : '')
+          (submitted && !value ? idPrefix + '-error' : '')
         ).trim()
       "
       [disabled]="disabled"
@@ -48,7 +44,9 @@
       (blur)="handleBlur()"
     >
       @for (o of options; track o.value) {
-        <option [value]="o.value" [selected]="o.value === (value ?? '')">{{ o.label }}</option>
+        <option [value]="o.value" [selected]="o.value === (value ?? '')">
+          {{ o.label }}
+        </option>
       }
     </select>
   </div>

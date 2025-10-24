@@ -2,8 +2,14 @@
 Main component for /application-list/:id
 
 Functionality:
+  On page load:
+    - Takes application list row from applications-list page and populates
+    list-detail page
   onUpdate:
-    - TODO finish header
+    - Input validation
+    - Window confirmation of update
+    - Create payload with If-match etag in header
+    - PUT request sent with payload and row ID
 */
 
 import { CommonModule, isPlatformBrowser } from '@angular/common';
@@ -67,7 +73,10 @@ import {
 } from '../../shared/util/error-click';
 import type { FormRaw } from '../../shared/util/types/application-list/types';
 import { validateCourtVsLocOrCja } from '../../shared/util/validate-court-vs-loc-cja';
-import { getHttpStatus, getProblemText } from '../applications-list/util/delete-status';
+import {
+  getHttpStatus,
+  getProblemText,
+} from '../applications-list/util/delete-status';
 
 type DurationValue = { hours: string; minutes: string };
 
@@ -253,7 +262,7 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
 
     // Confirmation window
     if (isPlatformBrowser(this.platformId)) {
-      const ok = window.confirm(
+      const ok = globalThis.confirm(
         'Are you sure you want to update this Application List?',
       );
       if (!ok) {
@@ -273,6 +282,8 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
     const dur = this.form.controls.duration.value;
     const durationHours = toNum(dur?.hours);
     const durationMinutes = toNum(dur?.minutes);
+    const isDurHours = durationHours !== undefined;
+    const isDurMins = durationMinutes !== undefined;
 
     let payload: ApplicationListUpdateDto;
     try {
@@ -280,8 +291,8 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
       payload = {
         ...normalized,
         version: this.version,
-        ...(durationHours !== undefined ? { durationHours } : {}),
-        ...(durationMinutes !== undefined ? { durationMinutes } : {}),
+        ...(isDurHours ? { durationHours } : {}),
+        ...(isDurMins ? { durationMinutes } : {}),
       } as ApplicationListUpdateDto;
 
       const context = new HttpContext()
