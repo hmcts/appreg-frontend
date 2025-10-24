@@ -111,76 +111,28 @@ module.exports = defineConfig({
         ...config.env,
         SSO_USERS: {
           user1: {
-            email: appConfigGet(
-              appConfig,
-              'secrets.appreg.TEST-USER1-EMAIL',
-              'ar-test-1@hmcts.net',
-            ),
-            password: appConfigGet(
-              appConfig,
-              'secrets.appreg.TEST-USERS-PASSWORD',
-              '',
-            ),
+            email: appConfigGet(appConfig, 'secrets.appreg.TEST-USER1-EMAIL'),
+            password: appConfigGet(appConfig, 'secrets.appreg.TEST-USERS-PASSWORD'),
           },
           user2: {
-            email: appConfigGet(
-              appConfig,
-              'secrets.appreg.TEST-USER2-EMAIL',
-              'ar-test-2@hmcts.net',
-            ),
-            password: appConfigGet(
-              appConfig,
-              'secrets.appreg.TEST-USERS-PASSWORD',
-              '',
-            ),
+            email: appConfigGet(appConfig, 'secrets.appreg.TEST-USER2-EMAIL'),
+            password: appConfigGet(appConfig, 'secrets.appreg.TEST-USERS-PASSWORD'),
           },
           user3: {
-            email: appConfigGet(
-              appConfig,
-              'secrets.appreg.TEST-USER3-EMAIL',
-              'ar-test-3@hmcts.net',
-            ),
-            password: appConfigGet(
-              appConfig,
-              'secrets.appreg.TEST-USERS-PASSWORD',
-              '',
-            ),
+            email: appConfigGet(appConfig, 'secrets.appreg.TEST-USER3-EMAIL'),
+            password: appConfigGet(appConfig, 'secrets.appreg.TEST-USERS-PASSWORD'),
           },
           admin1: {
-            email: appConfigGet(
-              appConfig,
-              'secrets.appreg.TEST-ADMIN1-EMAIL',
-              'ar-test-4@hmcts.net',
-            ),
-            password: appConfigGet(
-              appConfig,
-              'secrets.appreg.TEST-USERS-PASSWORD',
-              '',
-            ),
+            email: appConfigGet(appConfig, 'secrets.appreg.TEST-ADMIN1-EMAIL'),
+            password: appConfigGet(appConfig, 'secrets.appreg.TEST-USERS-PASSWORD'),
           },
           admin2: {
-            email: appConfigGet(
-              appConfig,
-              'secrets.appreg.TEST-ADMIN2-EMAIL',
-              'ar-test-5@hmcts.net',
-            ),
-            password: appConfigGet(
-              appConfig,
-              'secrets.appreg.TEST-USERS-PASSWORD',
-              '',
-            ),
+            email: appConfigGet(appConfig, 'secrets.appreg.TEST-ADMIN2-EMAIL'),
+            password: appConfigGet(appConfig, 'secrets.appreg.TEST-USERS-PASSWORD'),
           },
           admin3: {
-            email: appConfigGet(
-              appConfig,
-              'secrets.appreg.TEST-ADMIN3-EMAIL',
-              'ar-test-6@hmcts.net',
-            ),
-            password: appConfigGet(
-              appConfig,
-              'secrets.appreg.TEST-USERS-PASSWORD',
-              '',
-            ),
+            email: appConfigGet(appConfig, 'secrets.appreg.TEST-ADMIN3-EMAIL'),
+            password: appConfigGet(appConfig, 'secrets.appreg.TEST-USERS-PASSWORD'),
           },
         },
       };
