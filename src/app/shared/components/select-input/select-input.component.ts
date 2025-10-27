@@ -71,7 +71,7 @@ export class SelectInputComponent implements ControlValueAccessor {
   handleChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value ?? '';
     this.value = value;
-    this.onChange(value === '' || value === 'choose' ? null : value);
+    this.onChange(value === '' ? null : value);
   }
   handleBlur(): void {
     this.onTouched();

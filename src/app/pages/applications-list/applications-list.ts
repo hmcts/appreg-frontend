@@ -29,6 +29,7 @@ import {
   Component,
   HostListener,
   Inject,
+  OnDestroy,
   OnInit,
   PLATFORM_ID,
 } from '@angular/core';
@@ -76,22 +77,14 @@ import {
 } from '../../shared/util/court-cja-text-suggestions';
 import { has } from '../../shared/util/has';
 import { normaliseTime } from '../../shared/util/time-helpers';
+import { ApplicationListRow } from '../../shared/util/types/application-list/types';
 
-import { getHttpStatus, statusSummary } from './util/delete-status';
+import {
+  getHttpStatus,
+  getProblemText,
+  statusSummary,
+} from './util/delete-status';
 import { loadQuery } from './util/load-query';
-
-type UiExtras = {
-  deletable?: boolean;
-  etag?: string | null;
-  rowVersion?: string | null;
-};
-
-type ApplicationListRow = Omit<
-  ApplicationListGetSummaryDto,
-  'numberOfEntries'
-> & {
-  entries: ApplicationListGetSummaryDto['numberOfEntries'];
-} & UiExtras;
 
 interface MojInitEl extends HTMLElement {
   __mojInit?: boolean;
@@ -117,8 +110,8 @@ interface MojInitEl extends HTMLElement {
   ],
   templateUrl: './applications-list.html',
 })
-export class ApplicationsList implements OnInit, AfterViewInit {
-  private _id: string | undefined;
+export class ApplicationsList implements OnInit, AfterViewInit, OnDestroy {
+  private readonly _id: string | undefined;
   private locationDisabler?: Subscription;
   private readonly destroy$ = new Subject<void>();
   openMenuForId: string | null = null;
@@ -151,7 +144,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     date: new FormControl<string | null>(null),
     time: new FormControl<Duration | null>(null),
     description: new FormControl<string>(''),
-    status: new FormControl<string>('choose'),
+    status: new FormControl<string | null>(null),
     court: new FormControl<string>(''),
     location: new FormControl<string>(''),
     cja: new FormControl<string>(''),
@@ -172,7 +165,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
   ];
 
   status = [
-    { label: 'Choose', value: 'choose' },
+    { label: 'Choose', value: '' },
     { label: 'Open', value: 'open' },
     { label: 'Closed', value: 'closed' },
   ];
@@ -271,7 +264,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
     }
 
     if (isPlatformBrowser(this.platformId)) {
-      const ok = window.confirm(
+      const ok = globalThis.confirm(
         'Are you sure you want to delete this Application List?',
       );
       if (!ok) {
@@ -396,12 +389,11 @@ export class ApplicationsList implements OnInit, AfterViewInit {
           this.isLoading = false;
         },
         error: (err) => {
+          const msg = getProblemText(err);
           this.submitted = true;
           this.rows = [];
           this.totalPages = 0;
           this.isLoading = false;
-          const msg =
-            err instanceof Error ? err.message : 'Unable to load lists';
           this.searchErrors = [{ id: 'search', text: msg }];
         },
       });
