@@ -319,7 +319,7 @@ describe('ApplicationsListCreate', () => {
       preventDefault: jest.fn(),
       submitter: { value: 'create' } as HTMLButtonElement,
     } as unknown as SubmitEvent;
-    expect(() => component.onSubmit(evt)).toThrow('Invalid status');
+    expect(() => component.onSubmit(evt)).toThrow('status invalid');
   });
 
   it('onPageChange updates page and reloads lists', () => {
