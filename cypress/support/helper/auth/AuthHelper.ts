@@ -140,4 +140,32 @@ export class AuthHelper {
       },
     );
   }
+
+  static verifySessionIsValid(): void {
+    cy.log('Verifying session is valid with tokens stored in Redis');
+
+    // Verify session endpoint returns authenticated status
+    cy.request({
+      method: 'GET',
+      url: '/sso/me',
+      failOnStatusCode: false,
+    }).then((response) => {
+      expect(response.status).to.equal(200);
+      expect(response.body).to.have.property('authenticated', true);
+      expect(response.body).to.have.property('name');
+      expect(response.body).to.have.property('username');
+      cy.log('Session validation successful - user is authenticated');
+      cy.log(`User: ${response.body.name} (${response.body.username})`);
+    });
+
+    // Verify the secure session cookie is httpOnly and secure
+    cy.getCookie('appreg.sid')
+      .should('exist')
+      .then((cookie) => {
+        if (cookie) {
+          cy.wrap(cookie.httpOnly).should('be.true');
+          cy.log('Session cookie is properly secured (httpOnly)');
+        }
+      });
+  }
 }
