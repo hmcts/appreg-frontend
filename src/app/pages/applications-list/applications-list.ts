@@ -39,7 +39,6 @@ import { Subject, Subscription, firstValueFrom, takeUntil } from 'rxjs';
 
 import {
   ApplicationListGetSummaryDto,
-  ApplicationListStatus,
   ApplicationListsApi,
   CourtLocationGetSummaryDto,
   CriminalJusticeAreaGetDto,
@@ -192,46 +191,6 @@ export class ApplicationsList implements OnInit, AfterViewInit, OnDestroy {
       location: this.form.controls.location,
       cja: this.form.controls.cja,
     });
-
-    // Placeholder
-    this.rows = [
-      {
-        id: '11111111-1111-1111-1111-111111111111',
-        date: '2025-11-03',
-        time: '09:30',
-        location: 'Bath Magistrates Court',
-        description: 'Morning session',
-        entries: 12,
-        status: ApplicationListStatus.OPEN,
-        deletable: false,
-        etag: null,
-        rowVersion: null,
-      },
-      {
-        id: '22222222-2222-2222-2222-222222222222',
-        date: '2025-11-03',
-        time: '14:00',
-        location: 'Liverpool Crown Court Set 10',
-        description: 'Afternoon list',
-        entries: 8,
-        status: ApplicationListStatus.CLOSED,
-        deletable: true,
-        etag: '"W/"e0027a1f""',
-        rowVersion: '3',
-      },
-      {
-        id: '33333333-3333-3333-3333-333333333333',
-        date: '2025-12-01',
-        time: '10:15:00',
-        location: 'Bristol Magistrates Court',
-        description: 'Traffic applications',
-        entries: 0,
-        status: ApplicationListStatus.OPEN,
-        deletable: true,
-        etag: '"d41d8cd98f00b204e9800998ecf8427e"',
-        rowVersion: '1',
-      },
-    ];
   }
 
   ngOnDestroy(): void {
