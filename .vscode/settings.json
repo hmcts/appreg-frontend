@@ -1,7 +1,12 @@
 {
-  "cucumberautocomplete.steps": ["cypress/e2e/step_definitions/**/*.ts"],
+  "cucumberautocomplete.steps": [
+    "cypress/e2e/step_definitions/**/*.ts"
+  ],
   "cucumberautocomplete.syncfeatures": "cypress/e2e/features/**/*.feature",
   "cucumberautocomplete.strictGherkinCompletion": true,
+  "cucumberautocomplete.strictGherkinValidation": true,
+  "cucumberautocomplete.smartSnippets": true,
+  "cucumberautocomplete.stepsInvariants": true,
 
   "axe-linter.exclude": ["cypress/reports/**", "out-tsc/**", "node_modules/**"]
 }

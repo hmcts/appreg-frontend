@@ -24,3 +24,8 @@ Then('User Should See The Element {string}', (element: string) => {
 Then('User Verify The Session Is Valid', () => {
   AuthHelper.verifySessionIsValid();
 });
+
+Then('User Signs Out From The Application', () => {
+  AuthHelper.aadSignOut();
+  cy.screenshot('AADSignOut');
+});

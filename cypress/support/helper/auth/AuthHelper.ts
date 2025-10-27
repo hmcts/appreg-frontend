@@ -2,13 +2,15 @@
 import { ButtonHelper } from '../forms/button/ButtonHelper';
 import { LinkHelper } from '../forms/link/LinkHelper';
 import { NavigationHelper } from '../navigation/NavigationHelper';
+import { APP_URLS } from '../../constants/ProjectConstants';
+import { AUTH_CONSTANTS } from '../../constants/ProjectConstants';
 
 export class AuthHelper {
   static signInWithMicrosoftSSO(email: string, password: string): void {
     cy.session(
       email,
       () => {
-        cy.visit('/');
+        cy.visit(APP_URLS.HOME);
         ButtonHelper.clickButton('Sign in');
 
         cy.origin(
@@ -26,15 +28,23 @@ export class AuthHelper {
             cy.get('#idBtn_Back').should('be.visible').click();
           },
         );
+
+        // Wait for the redirect and ensure we're back in the app
+        cy.url().should('not.include', 'login.microsoftonline.com', { timeout: AUTH_CONSTANTS.EXTENDED_TIMEOUT });
+        cy.url().should('include', Cypress.config('baseUrl'));
+        
+        // Wait for session to be established
+        cy.wait(AUTH_CONSTANTS.SESSION_WAIT_TIME);
+        cy.getCookie(AUTH_CONSTANTS.SESSION_COOKIE_NAME, { timeout: AUTH_CONSTANTS.DEFAULT_TIMEOUT }).should('exist');
       },
       {
         validate() {
-          NavigationHelper.navigateToUrl('/applications-list');
-          NavigationHelper.verifySignOutLinkVisible();
+          cy.getCookie(AUTH_CONSTANTS.SESSION_COOKIE_NAME).should('exist');
         },
       },
     );
-    NavigationHelper.navigateToUrl('/applications-list');
+
+    NavigationHelper.navigateToUrl(APP_URLS.APPLICATIONS_LIST);
   }
 
   static aadSignOut(): void {
@@ -54,8 +64,8 @@ export class AuthHelper {
     });
 
     // Verify signed-out state in app
-    cy.visit('/');
-    cy.contains(/sign in|login/i, { timeout: 10000 }).should('be.visible');
+    cy.visit(APP_URLS.HOME);
+    cy.contains(/sign in|login/i, { timeout: AUTH_CONSTANTS.DEFAULT_TIMEOUT }).should('be.visible');
   }
 
   static verifyCookieExists(cookieName: string): void {
@@ -96,7 +106,7 @@ export class AuthHelper {
     invalidEmail: string,
     expectedError: string,
   ): void {
-    cy.visit('/');
+    cy.visit(APP_URLS.HOME);
     ButtonHelper.clickButton('Sign in');
     cy.url().should('include', 'login.microsoftonline.com');
     cy.origin(
@@ -117,7 +127,7 @@ export class AuthHelper {
     invalidPassword: string,
     expectedError: string,
   ): void {
-    cy.visit('/');
+    cy.visit(APP_URLS.HOME);
     ButtonHelper.clickButton('Sign in');
     cy.url().should('include', 'login.microsoftonline.com');
     cy.origin(
@@ -147,19 +157,19 @@ export class AuthHelper {
     // Verify session endpoint returns authenticated status
     cy.request({
       method: 'GET',
-      url: '/sso/me',
+      url: AUTH_CONSTANTS.SESSION_ENDPOINT,
       failOnStatusCode: false,
     }).then((response) => {
-      expect(response.status).to.equal(200);
-      expect(response.body).to.have.property('authenticated', true);
-      expect(response.body).to.have.property('name');
-      expect(response.body).to.have.property('username');
+      expect(response.status).to.equal(AUTH_CONSTANTS.HTTP_STATUS_OK);
+      expect(response.body).to.have.property(AUTH_CONSTANTS.AUTHENTICATED_PROPERTY, AUTH_CONSTANTS.AUTHENTICATED_VALUE);
+      expect(response.body).to.have.property(AUTH_CONSTANTS.NAME_PROPERTY);
+      expect(response.body).to.have.property(AUTH_CONSTANTS.USERNAME_PROPERTY);
       cy.log('Session validation successful - user is authenticated');
       cy.log(`User: ${response.body.name} (${response.body.username})`);
     });
 
     // Verify the secure session cookie is httpOnly and secure
-    cy.getCookie('appreg.sid')
+    cy.getCookie(AUTH_CONSTANTS.SESSION_COOKIE_NAME)
       .should('exist')
       .then((cookie) => {
         if (cookie) {

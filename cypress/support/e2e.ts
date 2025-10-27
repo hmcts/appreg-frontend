@@ -5,6 +5,11 @@ import 'cypress-mochawesome-reporter/register';
 import { TestDataGenerator } from './utils/TestDataGenerator';
 
 beforeEach(() => {
+  // Clear sessions and cookies for test independence
+  Cypress.session.clearAllSavedSessions();
+  cy.clearCookies();
+  cy.clearLocalStorage();
+  
   // Reset scenario data for each test
   TestDataGenerator.resetScenario();
   // Add any setup code needed before each test
@@ -17,7 +22,4 @@ afterEach(function () {
   }
 });
 
-after(() => {
-  void Cypress.session.clearAllSavedSessions();
-  void cy.clearCookies();
-});
+

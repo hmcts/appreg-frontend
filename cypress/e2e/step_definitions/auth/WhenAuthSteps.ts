@@ -1,4 +1,4 @@
-import { Then, When } from '@badeball/cypress-cucumber-preprocessor';
+import { When } from '@badeball/cypress-cucumber-preprocessor';
 
 import { AuthHelper } from '../../../support/helper/auth/AuthHelper';
 
@@ -19,11 +19,6 @@ When(
     cy.screenshot(`SSOLogin-${emailSSO}`);
   },
 );
-
-Then('User Signs Out From The Application', () => {
-  AuthHelper.aadSignOut();
-  cy.screenshot('AADSignOut');
-});
 
 When('User Clears Cookies And Storage', () => {
   AuthHelper.clearCookiesAndStorage();
