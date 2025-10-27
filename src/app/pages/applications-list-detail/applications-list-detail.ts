@@ -398,6 +398,8 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
     if (!name?.trim()) {
       return;
     }
+
+    // Prevent attempting to load form if CJA and court locations aren't loaded
     if (!this.courtLocations.length && !this.cja.length) {
       return;
     }

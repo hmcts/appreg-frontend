@@ -41,6 +41,7 @@ import { SuccessBannerComponent } from '../../shared/components/success-banner/s
 import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 import { attachLocationDisabler } from '../../shared/util/attach-location-disabler';
+import { buildNormalizedPayload } from '../../shared/util/build-payload';
 import { collectMissing } from '../../shared/util/collect-missing';
 import {
   onCjaInputChange,
@@ -52,10 +53,8 @@ import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '../../shared/util/error-click';
-
-import { buildNormalizedPayload } from 'src/app/shared/util/build-payload';
-import { FormRaw } from 'src/app/shared/util/types/application-list/types';
-import { validateCourtVsLocOrCja } from 'src/app/shared/util/validate-court-vs-loc-cja';
+import { FormRaw } from '../../shared/util/types/application-list/types';
+import { validateCourtVsLocOrCja } from '../../shared/util/validate-court-vs-loc-cja';
 
 type FieldKey =
   | 'date'
