@@ -227,6 +227,7 @@ export class ApplicationsList implements OnInit, AfterViewInit, OnDestroy {
         id: 'date-day',
         text: dateCtrl.errors['dateErrorText'] as string,
       });
+      return;
     }
 
     if (timeCtrl.errors?.['durationInvalid']) {
@@ -234,6 +235,7 @@ export class ApplicationsList implements OnInit, AfterViewInit, OnDestroy {
         id: 'time-hours',
         text: timeCtrl.errors['durationErrorText'] as string,
       });
+      return;
     }
 
     const hasAny =
