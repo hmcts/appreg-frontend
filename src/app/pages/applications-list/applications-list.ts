@@ -54,6 +54,7 @@ import {
   ErrorItem,
   ErrorSummaryComponent,
 } from '../../shared/components/error-summary/error-summary.component';
+import { NotificationBannerComponent } from '../../shared/components/notification-banner/notification-banner.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import {
@@ -105,6 +106,7 @@ interface MojInitEl extends HTMLElement {
     SuccessBannerComponent,
     ErrorSummaryComponent,
     SuggestionsComponent,
+    NotificationBannerComponent,
   ],
   templateUrl: './applications-list.html',
 })
@@ -218,7 +220,7 @@ export class ApplicationsList implements OnInit, AfterViewInit, OnDestroy {
     this.isSearch = false;
     this.rows = [];
 
-    this.errorHint = 'An error has occurred...';
+    this.errorHint = 'There is a problem';
 
     const dateCtrl = this.form.controls.date;
     const timeCtrl = this.form.controls.time;
