@@ -1,6 +1,7 @@
 import { When } from '@badeball/cypress-cucumber-preprocessor';
 
 import { AuthHelper } from '../../../support/helper/auth/AuthHelper';
+import { AuthErrorScenarios } from '../../../support/helper/auth/AuthErrorScenarios';
 
 When('User Signs In With Microsoft SSO As {string}', (userType: string) => {
   const ssoUsers = Cypress.env('SSO_USERS');
@@ -24,14 +25,10 @@ When('User Clears Cookies And Storage', () => {
   AuthHelper.clearCookiesAndStorage();
 });
 
-When('User Refreshes The Page', () => {
-  AuthHelper.pageRefresh();
-});
-
 When(
   'User Tries To Sign In With Invalid Email {string} And Expects Error {string}',
   (invalidEmail: string, expectedError: string) => {
-    AuthHelper.signInWithInvalidEmailAndVerifyError(
+    AuthErrorScenarios.signInWithInvalidEmailAndVerifyError(
       invalidEmail,
       expectedError,
     );
@@ -41,7 +38,7 @@ When(
 When(
   'User Tries To Sign In With Valid Email {string} And Invalid Password {string} And Expects Error {string}',
   (validEmail: string, invalidPassword: string, expectedError: string) => {
-    AuthHelper.signInWithValidEmailInvalidPasswordAndVerifyError(
+    AuthErrorScenarios.signInWithValidEmailInvalidPasswordAndVerifyError(
       validEmail,
       invalidPassword,
       expectedError,
