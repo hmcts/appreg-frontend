@@ -306,69 +306,69 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular-eslint/bundled-angular-compiler@npm:20.3.0":
-  version: 20.3.0
-  resolution: "@angular-eslint/bundled-angular-compiler@npm:20.3.0"
-  checksum: 10/b468eee358d54ec78a76f2d69d82b0959a01a4f6619c0892add1da5b0645ddd09f30c239da488213af2275091e54561eb3eb8ba5bd054d68bbd45039cc925e36
+"@angular-eslint/bundled-angular-compiler@npm:20.5.0":
+  version: 20.5.0
+  resolution: "@angular-eslint/bundled-angular-compiler@npm:20.5.0"
+  checksum: 10/bda3dfc167857475486758fed157e614344464907bb849eadc8afe56a849f6aca4b20860b4e7023a842d0d2d070420f14972eeb5f9f18f0176a768a7fb2f6929
   languageName: node
   linkType: hard
 
 "@angular-eslint/eslint-plugin-template@npm:^20.1.1":
-  version: 20.3.0
-  resolution: "@angular-eslint/eslint-plugin-template@npm:20.3.0"
+  version: 20.5.0
+  resolution: "@angular-eslint/eslint-plugin-template@npm:20.5.0"
   dependencies:
-    "@angular-eslint/bundled-angular-compiler": "npm:20.3.0"
-    "@angular-eslint/utils": "npm:20.3.0"
+    "@angular-eslint/bundled-angular-compiler": "npm:20.5.0"
+    "@angular-eslint/utils": "npm:20.5.0"
     aria-query: "npm:5.3.2"
     axobject-query: "npm:4.1.0"
   peerDependencies:
-    "@angular-eslint/template-parser": 20.3.0
+    "@angular-eslint/template-parser": 20.5.0
     "@typescript-eslint/types": ^7.11.0 || ^8.0.0
     "@typescript-eslint/utils": ^7.11.0 || ^8.0.0
     eslint: ^8.57.0 || ^9.0.0
     typescript: "*"
-  checksum: 10/49e6e5fb940c3b3640d5e93c9de37f36f6e4ce0bf55fa1307fcf47957738d4d3843e0eaa8408b36dd213561064ccdf06568a0f50080794d04f8f61c8bde81e6f
+  checksum: 10/92510579382b5116a542c205eed99a41d96d49c237b146268789419effcfa8b776833d2830a2d82de89f13e720cfcdeec8427b6ae4f1056dcb85991881946011
   languageName: node
   linkType: hard
 
 "@angular-eslint/eslint-plugin@npm:^20.1.1":
-  version: 20.3.0
-  resolution: "@angular-eslint/eslint-plugin@npm:20.3.0"
+  version: 20.5.0
+  resolution: "@angular-eslint/eslint-plugin@npm:20.5.0"
   dependencies:
-    "@angular-eslint/bundled-angular-compiler": "npm:20.3.0"
-    "@angular-eslint/utils": "npm:20.3.0"
+    "@angular-eslint/bundled-angular-compiler": "npm:20.5.0"
+    "@angular-eslint/utils": "npm:20.5.0"
     ts-api-utils: "npm:^2.1.0"
   peerDependencies:
     "@typescript-eslint/utils": ^7.11.0 || ^8.0.0
     eslint: ^8.57.0 || ^9.0.0
     typescript: "*"
-  checksum: 10/fc5f001007fbd3f975e3cd6337ac71974fb20d35efa341c9d9be4af03d722bcc4435b5507faed7a380463f59cb955c575a3411b8a8bef66e103ad570cf476bf3
+  checksum: 10/9a76ad9f4f32109ee428e952bdeebbd904c5515cfdd5437a69293ede12396cb636ec1b40d4bd206e8376f6fff5451de8b54e9d20c590edf5fef6228022099105
   languageName: node
   linkType: hard
 
 "@angular-eslint/template-parser@npm:^20.1.1":
-  version: 20.3.0
-  resolution: "@angular-eslint/template-parser@npm:20.3.0"
+  version: 20.5.0
+  resolution: "@angular-eslint/template-parser@npm:20.5.0"
   dependencies:
-    "@angular-eslint/bundled-angular-compiler": "npm:20.3.0"
+    "@angular-eslint/bundled-angular-compiler": "npm:20.5.0"
     eslint-scope: "npm:^8.0.2"
   peerDependencies:
     eslint: ^8.57.0 || ^9.0.0
     typescript: "*"
-  checksum: 10/665b7b6e44e5c4ab29902749162702f17b74caad9f02a76caaebfe90a5b9e40c7c758d0a202b2af4a29f48e878eed47105ab9b76f677d35b79880936299ed6f4
+  checksum: 10/0aa8c7b055c308abc7f09657e539ac07582c6610f04c5e8dfdeda66887e1c24c222f7b48cdbf2082eb656b94a66641219d673a324506b4cb3bfdcf6311799250
   languageName: node
   linkType: hard
 
-"@angular-eslint/utils@npm:20.3.0":
-  version: 20.3.0
-  resolution: "@angular-eslint/utils@npm:20.3.0"
+"@angular-eslint/utils@npm:20.5.0":
+  version: 20.5.0
+  resolution: "@angular-eslint/utils@npm:20.5.0"
   dependencies:
-    "@angular-eslint/bundled-angular-compiler": "npm:20.3.0"
+    "@angular-eslint/bundled-angular-compiler": "npm:20.5.0"
   peerDependencies:
     "@typescript-eslint/utils": ^7.11.0 || ^8.0.0
     eslint: ^8.57.0 || ^9.0.0
     typescript: "*"
-  checksum: 10/1cc8352805c41883beac0bf27aa867552196403286545d26aa1ba6a5b6d46693ac3aecd84dd00b13a2dae6ed3135b8709f1dae34dba54f68c96e9e5baae48195
+  checksum: 10/9c01be039d7fb2d8e4dc4b3cca3734c69658d1650c1021d32f5d947dbebace3c14a3caab251c61b83f92d96ba2fc324de88d8347d407890200f4f0bcb6d6a25c
   languageName: node
   linkType: hard
 
@@ -18475,9 +18475,9 @@ __metadata:
   linkType: hard
 
 "validator@npm:^13.6.0":
-  version: 13.15.15
-  resolution: "validator@npm:13.15.15"
-  checksum: 10/a43d9271c879468b1ad6dd5d2597b71719a185d2c7ceb3d68f3c9c8c17c25af0d90a53edfa7efaa6ac0d4425ba0345684b9c7d8111bde0d06d915a634a287018
+  version: 13.15.20
+  resolution: "validator@npm:13.15.20"
+  checksum: 10/498f9b201dda7b09207bbc13606e6f90595987eab9e3a60fc5b8d8d96141c9351192aea56d392c78640e2462770eedccf545cf13b2ef43e87d73a755ba485c5d
   languageName: node
   linkType: hard
 
