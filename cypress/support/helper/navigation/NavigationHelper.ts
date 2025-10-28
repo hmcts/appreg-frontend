@@ -1,6 +1,6 @@
 /// <reference types="cypress" />
-import { NavigationPage } from '../../pageobjects/pageelements/NavigationPage';
 import { APP_URLS } from '../../constants/ProjectConstants';
+import { NavigationPage } from '../../pageobjects/pageelements/NavigationPage';
 
 export class NavigationHelper {
   static navigateToPortalPage(): void {

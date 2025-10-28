@@ -1,9 +1,10 @@
 /// <reference types="cypress" />
+import { APP_URLS } from '../../constants/ProjectConstants';
 import { ButtonHelper } from '../forms/button/ButtonHelper';
 import { NavigationHelper } from '../navigation/NavigationHelper';
-import { APP_URLS } from '../../constants/ProjectConstants';
-import { SessionValidator } from './SessionValidator';
+
 import { MicrosoftAuthHelper } from './MicrosoftAuthHelper';
+import { SessionValidator } from './SessionValidator';
 
 export class AuthHelper {
   static signInWithMicrosoftSSO(email: string, password: string): void {
@@ -18,7 +19,7 @@ export class AuthHelper {
 
         // Validate redirect back to app
         MicrosoftAuthHelper.validateRedirectFromMicrosoft();
-        
+
         // Wait for session to be established
         SessionValidator.waitForSessionEstablishment();
       },
@@ -45,5 +46,4 @@ export class AuthHelper {
       win.sessionStorage.clear();
     });
   }
-
 }

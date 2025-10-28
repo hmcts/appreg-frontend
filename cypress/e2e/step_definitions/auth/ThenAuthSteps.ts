@@ -1,7 +1,7 @@
 import { Then } from '@badeball/cypress-cucumber-preprocessor';
 
-import { SessionValidator } from '../../../support/helper/auth/SessionValidator';
 import { MicrosoftAuthHelper } from '../../../support/helper/auth/MicrosoftAuthHelper';
+import { SessionValidator } from '../../../support/helper/auth/SessionValidator';
 
 Then('User Verify The {string} Cookie Should Exist', (cookieName: string) => {
   SessionValidator.verifyCookieExists(cookieName);

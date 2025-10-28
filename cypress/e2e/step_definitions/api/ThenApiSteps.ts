@@ -5,8 +5,6 @@ import { ApiHelper } from '../../../support/helper/api/ApiHelper';
 Then(
   'User Verify API Request Returns Status Code {string}',
   (expectedStatusCode: string) => {
-    ApiHelper.verifyApiResponseStatusCode(
-      parseInt(expectedStatusCode, 10),
-    );
+    ApiHelper.verifyApiResponseStatusCode(parseInt(expectedStatusCode, 10));
   },
 );

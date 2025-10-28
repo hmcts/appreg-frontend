@@ -1,9 +1,13 @@
 /// <reference types="cypress" />
+import {
+  APP_URLS,
+  AUTH_CONSTANTS,
+  TIMEOUT_CONSTANTS,
+  UI_CONSTANTS,
+} from '../../constants/ProjectConstants';
 import { LinkHelper } from '../forms/link/LinkHelper';
-import { APP_URLS, AUTH_CONSTANTS, TIMEOUT_CONSTANTS, UI_CONSTANTS } from '../../constants/ProjectConstants';
 
 export class MicrosoftAuthHelper {
- 
   static performLogin(email: string, password: string): void {
     cy.origin(
       'https://login.microsoftonline.com',
@@ -21,7 +25,6 @@ export class MicrosoftAuthHelper {
       },
     );
   }
-
 
   static performSignOut(): void {
     // Click the app's sign out link or button
@@ -41,7 +44,9 @@ export class MicrosoftAuthHelper {
 
     // Verify signed-out state in app
     cy.visit(APP_URLS.HOME);
-    cy.contains(/sign in|login/i, { timeout: TIMEOUT_CONSTANTS.DEFAULT_TIMEOUT }).should('be.visible');
+    cy.contains(/sign in|login/i, {
+      timeout: TIMEOUT_CONSTANTS.DEFAULT_TIMEOUT,
+    }).should('be.visible');
   }
 
   /**
@@ -49,8 +54,8 @@ export class MicrosoftAuthHelper {
    */
   static validateRedirectFromMicrosoft(): void {
     // Wait for the redirect and ensure we're back in the app
-    cy.url().should('not.include', AUTH_CONSTANTS.MICROSOFT_LOGIN_DOMAIN, { 
-      timeout: TIMEOUT_CONSTANTS.EXTENDED_TIMEOUT 
+    cy.url().should('not.include', AUTH_CONSTANTS.MICROSOFT_LOGIN_DOMAIN, {
+      timeout: TIMEOUT_CONSTANTS.EXTENDED_TIMEOUT,
     });
     cy.url().should('include', Cypress.config('baseUrl'));
   }

@@ -1,9 +1,12 @@
 /// <reference types="cypress" />
+import {
+  APP_URLS,
+  AUTH_CONSTANTS,
+  UI_CONSTANTS,
+} from '../../constants/ProjectConstants';
 import { ButtonHelper } from '../forms/button/ButtonHelper';
-import { APP_URLS, AUTH_CONSTANTS, UI_CONSTANTS } from '../../constants/ProjectConstants';
 
 export class AuthErrorScenarios {
-  
   static signInWithInvalidEmailAndVerifyError(
     invalidEmail: string,
     expectedError: string,
@@ -11,7 +14,7 @@ export class AuthErrorScenarios {
     cy.visit(APP_URLS.HOME);
     ButtonHelper.clickButton(UI_CONSTANTS.BUTTON_TEXT_SIGN_IN);
     cy.url().should('include', AUTH_CONSTANTS.MICROSOFT_LOGIN_DOMAIN);
-    
+
     cy.origin(
       'https://login.microsoftonline.com',
       { args: { invalidEmail, expectedError } },
@@ -24,7 +27,7 @@ export class AuthErrorScenarios {
       },
     );
   }
- 
+
   static signInWithValidEmailInvalidPasswordAndVerifyError(
     validEmail: string,
     invalidPassword: string,
@@ -33,7 +36,7 @@ export class AuthErrorScenarios {
     cy.visit(APP_URLS.HOME);
     ButtonHelper.clickButton(UI_CONSTANTS.BUTTON_TEXT_SIGN_IN);
     cy.url().should('include', AUTH_CONSTANTS.MICROSOFT_LOGIN_DOMAIN);
-    
+
     cy.origin(
       'https://login.microsoftonline.com',
       { args: { validEmail, invalidPassword, expectedError } },

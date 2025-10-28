@@ -1,7 +1,7 @@
 import { When } from '@badeball/cypress-cucumber-preprocessor';
 
-import { AuthHelper } from '../../../support/helper/auth/AuthHelper';
 import { AuthErrorScenarios } from '../../../support/helper/auth/AuthErrorScenarios';
+import { AuthHelper } from '../../../support/helper/auth/AuthHelper';
 
 When('User Signs In With Microsoft SSO As {string}', (userType: string) => {
   const ssoUsers = Cypress.env('SSO_USERS');
