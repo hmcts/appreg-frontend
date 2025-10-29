@@ -7,6 +7,7 @@
   "scripts": {
     "ng": "ng",
     "api:clear": "rimraf src/generated/openapi",
+    "api:fetch": "mvn -q -f tools/openapi/pom.xml -Dspec.version=0.0.1 validate",
     "api:validate": "openapi-generator-cli validate -i tools/openapi/openapi.yaml",
     "api:generate": "openapi-generator-cli generate -c tools/openapi/generator-config.yaml",
     "api:bundle": "redocly bundle tools/openapi/openapi.yaml -o tools/dist/openapi.bundled.yaml",
