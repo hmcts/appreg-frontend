@@ -390,7 +390,7 @@ describe('ApplicationsList – search', () => {
 
   it('handles backend error: clears rows, zeros totals, sets submitted and searchErrors', () => {
     service.getApplicationLists.mockReturnValue(
-      throwError(() => new Error('boom')),
+      throwError(() => new Error('Request failed')),
     );
     component.rows = [
       {
@@ -410,7 +410,10 @@ describe('ApplicationsList – search', () => {
     expect(component.rows).toHaveLength(0);
     expect(component.totalPages).toBe(0);
     expect(component.submitted).toBe(true);
-    expect(component.searchErrors[0]).toEqual({ id: 'search', text: 'boom' });
+    expect(component.searchErrors[0]).toEqual({
+      id: 'search',
+      text: 'Request failed',
+    });
   });
 
   it('omits filter entirely when hasParams=false', () => {
