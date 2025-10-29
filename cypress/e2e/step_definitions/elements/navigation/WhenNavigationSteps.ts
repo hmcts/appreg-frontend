@@ -1,5 +1,5 @@
 /// <reference types="cypress" />
-import { Given } from '@badeball/cypress-cucumber-preprocessor';
+import { Given, When } from '@badeball/cypress-cucumber-preprocessor';
 
 import { NavigationHelper } from '../../../../support/helper/navigation/NavigationHelper';
 
@@ -16,4 +16,8 @@ Given('User Navigates To The URL {string}', (url: string) => {
 Given('User Is On The {string} Page', (partialUrl: string) => {
   NavigationHelper.navigateToUrl(partialUrl);
   cy.screenshot(`NavigatedTo-${partialUrl}`);
+});
+
+When('User Refreshes The Page', () => {
+  NavigationHelper.pageRefresh();
 });
