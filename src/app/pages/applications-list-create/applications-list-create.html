@@ -64,11 +64,7 @@
       hint="The status of the application list"
       idPrefix="status"
       [submitted]="createInvalid"
-      [options]="[
-        { value: 'choose', label: 'Choose status' },
-        { value: 'open', label: 'Open' },
-        { value: 'closed', label: 'Closed' },
-      ]"
+      [options]="statusOptions"
     >
     </app-select-input>
   </div>
@@ -100,7 +96,6 @@
       hint="Other location description"
       idPrefix="location"
       [submitted]="createInvalid && !form.get('court')?.value"
-      [disabled]="!!form.get('court')?.value"
     >
       >
     </app-text-input>
