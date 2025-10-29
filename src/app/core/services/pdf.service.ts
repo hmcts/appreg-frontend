@@ -66,8 +66,6 @@ export class PdfService {
           (x): x is string => typeof x === 'string',
         );
       }
-
-      // jsPDF shouldn't return other shapes; treat as empty
       return [''];
     };
 
