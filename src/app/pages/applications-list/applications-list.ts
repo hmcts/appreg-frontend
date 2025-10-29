@@ -333,16 +333,18 @@ export class ApplicationsList implements OnInit, AfterViewInit {
   }
 
   async onPrintPage(id: string): Promise<void> {
-    if (!id) {return;}
+    if (!id) {
+      return;
+    }
 
     this.clearErrors();
 
     try {
-      const dto = (await firstValueFrom(
+      const dto = await firstValueFrom(
         this.appListsApi.printApplicationList({ id }, undefined, undefined, {
           transferCache: false,
         }),
-      ));
+      );
 
       const hasEntries = Array.isArray(dto.entries) && dto.entries.length > 0;
       if (!hasEntries) {
