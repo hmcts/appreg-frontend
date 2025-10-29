@@ -121,6 +121,12 @@ export class ApplicationsListCreate implements OnInit {
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
 
+  statusOptions = [
+    { value: '', label: 'Choose status' },
+    { value: 'open', label: 'Open' },
+    { value: 'closed', label: 'Closed' },
+  ];
+
   @Input() listId?: string;
 
   // If the field is populated and invalid it will return true and stored here
@@ -140,7 +146,7 @@ export class ApplicationsListCreate implements OnInit {
       date: new FormControl<string | null>(null),
       time: new FormControl<Duration | null>(null),
       description: new FormControl<string>(''),
-      status: new FormControl<string>('choose'),
+      status: new FormControl<string>(''),
       court: new FormControl<string>('', { updateOn: 'change' }),
       location: new FormControl<string>('', { updateOn: 'change' }),
       cja: new FormControl<string>('', { updateOn: 'change' }),
