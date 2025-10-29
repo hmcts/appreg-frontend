@@ -872,14 +872,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@azure/msal-common@npm:15.13.1":
+  version: 15.13.1
+  resolution: "@azure/msal-common@npm:15.13.1"
+  checksum: 10/463479c32ad2df420871d0170e2a9272d3bd02dae32d431e37f740dee53782160bc40037163b81833b498b99f7ba00d9a62446113e6267bdbd30dc17a3232971
+  languageName: node
+  linkType: hard
+
 "@azure/msal-node@npm:^3.5.0, @azure/msal-node@npm:^3.7.1":
-  version: 3.8.0
-  resolution: "@azure/msal-node@npm:3.8.0"
+  version: 3.8.1
+  resolution: "@azure/msal-node@npm:3.8.1"
   dependencies:
-    "@azure/msal-common": "npm:15.13.0"
+    "@azure/msal-common": "npm:15.13.1"
     jsonwebtoken: "npm:^9.0.0"
     uuid: "npm:^8.3.0"
-  checksum: 10/d37f45d9647c07c3032ecdb99f0edbcd83a070fe14ce23a7f42bfb5f281c70aff60cab4d70f5a254ba9fb44e00163468113b76f375975209f2823536948b567d
+  checksum: 10/952deebd85a1d7eb5c6affdc47f56e738dbd4be7ca086b12316776e62215f7ed0d2c804bac41744a3d51fff72871baa2b7f23817bc811aa3f7581aa7532ddea8
   languageName: node
   linkType: hard
 
@@ -5199,13 +5206,13 @@ __metadata:
   linkType: hard
 
 "@types/express@npm:*, @types/express@npm:^5.0.1":
-  version: 5.0.4
-  resolution: "@types/express@npm:5.0.4"
+  version: 5.0.5
+  resolution: "@types/express@npm:5.0.5"
   dependencies:
     "@types/body-parser": "npm:*"
     "@types/express-serve-static-core": "npm:^5.0.0"
-    "@types/serve-static": "npm:*"
-  checksum: 10/0a07540b8220d0ebeeaca3afad96b6541d815e36f204c9fac202dd4c59fc545ffabea46df2c02f44276c00adbfccb7bb7a98f877cea4aebb0f9f8d4502447fec
+    "@types/serve-static": "npm:^1"
+  checksum: 10/9e72410286fbc80bea8a57d1b374c25235f6019dabf8af67e5b72c2f9be548f36ccc09d048fc88172731450e80f06018f90c17e05beb5afc4dbdaf5f7200dbb3
   languageName: node
   linkType: hard
 
@@ -5417,14 +5424,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/serve-static@npm:*":
-  version: 1.15.9
-  resolution: "@types/serve-static@npm:1.15.9"
+"@types/serve-static@npm:^1":
+  version: 1.15.10
+  resolution: "@types/serve-static@npm:1.15.10"
   dependencies:
     "@types/http-errors": "npm:*"
     "@types/node": "npm:*"
     "@types/send": "npm:<1"
-  checksum: 10/5b7a24c1e5fb474ae539165451dae4e3e85e104d9935562de9c5f0c6b2557395aefe6fdbaf094178ea94d58fd9f26e9605a51ccaf101655fcda18971840c06ad
+  checksum: 10/d9be72487540b9598e7d77260d533f241eb2e5db5181bb885ef2d6bc4592dad1c9e8c0e27f465d59478b2faf90edd2d535e834f20fbd9dd3c0928d43dc486404
   languageName: node
   linkType: hard
 
