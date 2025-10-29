@@ -195,11 +195,11 @@ export class PdfService {
       hr(y);
       y += 24;
 
-      const heading = this.fallbackText(e.matter);
-      const code = this.fallbackText(e.code ?? '');
+      const heading = this.fallbackText(e.description || e.matter);
       writeLabelValue('Matter considered', heading);
-      writeLabelValue(code, this.fallbackText(e.description));
-      writeLabelValue('', this.fallbackText(e.result));
+      if (e.code && e.code.trim()) {
+        writeLabelValue(e.code, this.fallbackText(e.result));
+      }
 
       ensureSpace(36);
       hr(y);
