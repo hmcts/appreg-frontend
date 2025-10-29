@@ -204,7 +204,7 @@ export class PdfService {
 
     // -------- filename: include court name + date (YYYY-MM-DD) --------
     const courtPart = this.fileSafe(data.courtName) || 'court';
-    const datePart  = this.dateForFile(data.listDate);
+    const datePart = this.dateForFile(data.listDate);
     doc.save(`${courtPart}-${datePart}.pdf`);
   }
 
@@ -282,38 +282,79 @@ export class PdfService {
       return '';
     }
 
+    // Person preferred
     const person = this.asObj(root['person']);
     if (person) {
-      // prefer a preformatted full name
-      const full =
-        this.asStr(person['fullName']) ||
-        this.asStr(person['full-name']) ||
-        this.asStr(this.asObj(person['fullName'])?.['formatted']) ||
-        this.asStr(this.asObj(person['full-name'])?.['formatted']);
-      if (full.trim()) {
-        return full.trim();
-      }
-
-      // fall back to parts (support legacy & hyphenated keys)
       const name =
         this.asObj(person['name']) ?? this.asObj(person['full-name']) ?? {};
-      const parts = [
-        this.asStr(name['title']),
-        this.asStr(name['firstForename']) || this.asStr(name['forename']),
-        this.asStr(name['secondForename']) || this.asStr(name['middleNames']),
-        this.asStr(name['thirdForename']),
-        this.asStr(name['surname']),
-      ].filter(Boolean);
 
-      const combined = parts.join(' ').replace(/\s+/g, ' ').trim();
-      if (combined) {
-        return combined;
+      const parts = this.dedupeParts([
+        this.firstTitleToken(name?.['title']),
+        this.cleanPart(name?.['firstForename'] ?? name?.['forename']),
+        this.cleanPart(name?.['secondForename'] ?? name?.['middleNames']),
+        this.cleanPart(name?.['thirdForename']),
+        this.cleanPart(name?.['surname']),
+      ]).filter(Boolean);
+
+      const full = parts
+        .join(' ')
+        .replace(/[,\s]+$/g, '')
+        .trim();
+      if (full) {
+        return full;
       }
     }
 
+    // Organisation fallback
     const org = this.asObj(root['organisation']);
-    const orgName = this.asStr(org?.['name']);
-    return orgName.trim();
+    const orgName = this.cleanPart(org?.['name']);
+    return orgName;
+  }
+
+  /** Treat common placeholder tokens as empty; trim and collapse spaces. */
+  private cleanPart(v: unknown): string {
+    if (typeof v !== 'string') return '';
+    const t = v.trim();
+    if (!t) return '';
+    const lower = t.toLowerCase();
+    // Add/remove tokens as needed for your mocks
+    const placeholders = new Set([
+      'string',
+      'n/a',
+      'na',
+      'null',
+      'undefined',
+      '-',
+      '—',
+    ]);
+    if (placeholders.has(lower)) return '';
+    return t.replace(/\s+/g, ' ');
+  }
+
+  /** Titles like "Mr, Mrs" → pick first meaningful token ("Mr"). */
+  private firstTitleToken(s?: unknown): string {
+    const c = this.cleanPart(s);
+    if (!c) return '';
+    const first = c
+      .split(/[,/;]+/)
+      .map((x) => x.trim())
+      .find(Boolean);
+    return first ?? '';
+  }
+
+  /** De-duplicate consecutive tokens (case-insensitive). */
+  private dedupeParts(parts: string[]): string[] {
+    const out: string[] = [];
+    for (const p of parts) {
+      if (!p) continue;
+      if (
+        out.length === 0 ||
+        out[out.length - 1].toLowerCase() !== p.toLowerCase()
+      ) {
+        out.push(p);
+      }
+    }
+    return out;
   }
 
   // --- tiny guards ---
@@ -354,10 +395,10 @@ export class PdfService {
     const raw = (s ?? '').trim();
     if (!raw) return '';
     return raw
-      .replace(/\s+/g, ' ')           // collapse whitespace
-      .replace(/[^\w\s-]+/g, '')      // remove punctuation/symbols
+      .replace(/\s+/g, ' ') // collapse whitespace
+      .replace(/[^\w\s-]+/g, '') // remove punctuation/symbols
       .trim()
-      .replace(/\s+/g, '-')           // spaces -> hyphens
+      .replace(/\s+/g, '-') // spaces -> hyphens
       .toLowerCase();
   }
 
