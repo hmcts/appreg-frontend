@@ -1,3 +1,11 @@
+/* 
+Script to fetch and decompress jar file containing OpenAPI specs
+------------------------------------
+IMPORTANT:
+SPEC_VERSION must match version in azure artifacts
+------------------------------------
+*/
+
 'use strict';
 
 const { spawnSync } = require('node:child_process');
