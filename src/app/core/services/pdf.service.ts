@@ -25,53 +25,67 @@ export class PdfService {
   ): Promise<void> {
     const data = this.normalise(dto);
 
-    const [{ jsPDF }] = await Promise.all([import('jspdf')]);
+    const jsPDFMod = await import('jspdf');
+    const { jsPDF } = jsPDFMod;
+
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'pt',
       format: 'a4',
     });
 
-    // --- layout metrics (original layout retained) ---
-    const M = 56; // outer margin
+    // --- layout constants ---
+    const M = 56;
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
 
-    const LABEL_W = 140; // left column label width
-    const GAP_X = 20; // gap between label & value columns
+    const LABEL_W = 140;
+    const GAP_X = 20;
     const RIGHT_X = M + LABEL_W + GAP_X;
     const RIGHT_W = pageW - RIGHT_X - M;
 
-    const FOOTER_GUTTER = 64; // reserved space above footer labels
+    const FOOTER_GUTTER = 64;
     const BOTTOM = pageH - M - FOOTER_GUTTER;
 
-    // Header sizing (only changes here: bigger crest + larger body gap)
     const TITLE_FS = 18;
-    const CREST_W = 72; // bigger crest (was 48)
-    const CREST_H = 72; // bigger crest (was 48)
+    const CREST_W = 72;
+    const CREST_H = 72;
     const CREST_X = M;
-    const CREST_Y = M - 6; // keep your original slight vertical offset
-    const HEADER_BODY_GAP = 56; // larger gap before the first field
+    const CREST_Y = M - 6;
+    const HEADER_BODY_GAP = 56;
 
-    // --- optional crest ---
+    const splitToLines = (text: string, width: number): string[] => {
+      const raw: unknown = doc.splitTextToSize(text, width);
+
+      if (typeof raw === 'string') {
+        return [raw];
+      }
+
+      if (Array.isArray(raw)) {
+        return (raw as unknown[]).filter(
+          (x): x is string => typeof x === 'string',
+        );
+      }
+
+      // jsPDF shouldn't return other shapes; treat as empty
+      return [''];
+    };
+
     let crestDataUrl: string | null = null;
     if (opts?.crestUrl) {
       crestDataUrl = await this.tryLoadImageAsDataUrl(opts.crestUrl);
     }
 
-    // Track the measured top-of-page for content (replaces fixed TOP)
     let pageTop = 0;
     let y = 0;
 
-    // --- helpers (local to renderer) ---
-    const hr = (yy: number) => {
+    const hr = (yy: number): void => {
       doc.setLineWidth(0.7);
       doc.line(M, yy, pageW - M, yy);
     };
 
-    // Draw header; return content start Y (under rule + gap)
+    // Header renders crest + centred title and returns body start Y
     const drawHeader = (): number => {
-      // crest
       if (crestDataUrl) {
         try {
           doc.addImage(crestDataUrl, 'PNG', CREST_X, CREST_Y, CREST_W, CREST_H);
@@ -80,12 +94,11 @@ export class PdfService {
         }
       }
 
-      // court name centered and vertically aligned to crest box
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(TITLE_FS);
 
-      const title = this.fallbackText(data.courtName, 'Magistrates’ Court');
-      const titleLines = doc.splitTextToSize(title, pageW - 2 * M); // allow wrapping if needed
+      const title = this.fallbackText(data.courtName, 'Court Missing');
+      const titleLines = splitToLines(title, pageW - 2 * M);
       const lineH = TITLE_FS * 1.2;
       const blockH = Math.max(lineH, titleLines.length * lineH);
 
@@ -94,16 +107,15 @@ export class PdfService {
 
       doc.text(titleLines, pageW / 2, titleFirstBaselineY, { align: 'center' });
 
-      // rule under taller of crest or title
       const titleBottomBaseline =
         titleFirstBaselineY + (titleLines.length - 1) * lineH;
       const headerBottom = Math.max(CREST_Y + CREST_H, titleBottomBaseline) + 8;
 
       hr(headerBottom);
-      return headerBottom + HEADER_BODY_GAP; // bigger gap before data
+      return headerBottom + HEADER_BODY_GAP;
     };
 
-    const drawFooter = () => {
+    const drawFooter = (): void => {
       const baseY = pageH - M - 22;
 
       doc.setFont('helvetica', 'bold');
@@ -121,7 +133,7 @@ export class PdfService {
       doc.text(todayDMY, RIGHT_X, baseY);
     };
 
-    const ensureSpace = (needed: number) => {
+    const ensureSpace = (needed: number): void => {
       if (y + needed <= BOTTOM) {
         return;
       }
@@ -130,23 +142,23 @@ export class PdfService {
       y = pageTop;
     };
 
-    // Left label + right value (single right column) — original block
+    // Left label + right value; all text arrays are string[]
     const writeLabelValue = (
       labelText: string,
       valueText: string | undefined,
       optsLV?: { emphasize?: boolean; spacing?: number },
-    ) => {
+    ): void => {
       const spacing = optsLV?.spacing ?? 12;
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
-      const labelLines = doc.splitTextToSize(labelText, LABEL_W);
+      const labelLines = splitToLines(labelText, LABEL_W);
       const labelH = labelLines.length * 14;
 
       const valueToUse = valueText && valueText.trim() ? valueText : '—';
       doc.setFont('helvetica', optsLV?.emphasize ? 'bold' : 'normal');
       doc.setFontSize(12);
-      const valueLines = doc.splitTextToSize(valueToUse, RIGHT_W);
+      const valueLines = splitToLines(valueToUse, RIGHT_W);
       const valueH = valueLines.length * 16;
 
       ensureSpace(Math.max(labelH, valueH));
@@ -154,6 +166,7 @@ export class PdfService {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
       doc.text(labelLines, M, y);
+
       doc.setFont('helvetica', optsLV?.emphasize ? 'bold' : 'normal');
       doc.setFontSize(12);
       doc.text(valueLines, RIGHT_X, y);
@@ -161,7 +174,7 @@ export class PdfService {
       y += Math.max(labelH, valueH) + spacing;
     };
 
-    // ---------------- render (everything else unchanged) ----------------
+    // Render
     data.entries.forEach((e, i) => {
       if (i === 0) {
         pageTop = drawHeader();
@@ -169,9 +182,8 @@ export class PdfService {
         doc.addPage();
         pageTop = drawHeader();
       }
-      y = pageTop; // start body at measured top with larger gap
+      y = pageTop;
 
-      // 1) Application brought by / Respondent
       writeLabelValue(
         'Application\nbrought by',
         this.fallbackText(e.applicant),
@@ -179,42 +191,34 @@ export class PdfService {
       );
       writeLabelValue('Respondent', this.fallbackText(e.respondent));
 
-      // 2) Divider rule
       ensureSpace(36);
       hr(y);
       y += 24;
 
-      // 3) Matter considered: heading + code as a LABEL (original format)
       const heading = this.fallbackText(e.matter);
       const code = this.fallbackText(e.code ?? '');
       writeLabelValue('Matter considered', heading);
       writeLabelValue(code, this.fallbackText(e.description));
       writeLabelValue('', this.fallbackText(e.result));
 
-      // 4) Second divider rule
       ensureSpace(36);
       hr(y);
       y += 24;
 
-      // 5) Dated row
       writeLabelValue('This matter was dated before', e.date);
 
       drawFooter();
     });
 
-    // -------- filename: include court name + date (YYYY-MM-DD) --------
     const courtPart = this.fileSafe(data.courtName) || 'court';
     const datePart = this.dateForFile(data.listDate);
     doc.save(`${courtPart}-${datePart}.pdf`);
   }
 
-  // ------------------------- Mapping & utilities -------------------------
-
-  /** Map raw print DTO (nested structures) into flat strings the renderer expects. */
   private normalise(dto: unknown): PdfList {
     const root = this.asObj(dto) ?? {};
 
-    const id = String(root['id'] ?? '');
+    const id = this.asStrOrNum(root['id']);
 
     const listDate =
       this.asStr(root['date']) ||
@@ -244,20 +248,18 @@ export class PdfService {
         this.asStr(x['applicationWording']) ||
         this.asStr(x['applicationTitle']);
 
-      // Single-field "matter" kept for compatibility (prefer description then code)
       const matter = applicationDescription || applicationCode;
 
       const result = this.asArr(x['resultWordings'])
-        .map(this.asStr)
+        .map((v) => this.asStr(v))
         .filter(Boolean)
         .join(' ');
 
       const judge = this.asArr(x['officials'])
-        .map(this.asStr)
+        .map((v) => this.asStr(v))
         .filter(Boolean)
         .join(', ');
 
-      // Use list date for per-entry date
       const date = listDate;
 
       return {
@@ -275,14 +277,13 @@ export class PdfService {
     return { id, courtName, listDate, location, entries };
   }
 
-  /** Resolve a display name from person/organisation shapes in the print DTO. */
+  /** Person/organisation display name with placeholder cleanup. */
   private formatParty(p: unknown): string {
     const root = this.asObj(p);
     if (!root) {
       return '';
     }
 
-    // Person preferred
     const person = this.asObj(root['person']);
     if (person) {
       const name =
@@ -305,19 +306,20 @@ export class PdfService {
       }
     }
 
-    // Organisation fallback
     const org = this.asObj(root['organisation']);
-    const orgName = this.cleanPart(org?.['name']);
-    return orgName;
+    return this.cleanPart(org?.['name']);
   }
 
-  /** Treat common placeholder tokens as empty; trim and collapse spaces. */
+  /** Treat common placeholder tokens as empty; trim/collapse spaces. */
   private cleanPart(v: unknown): string {
-    if (typeof v !== 'string') return '';
+    if (typeof v !== 'string') {
+      return '';
+    }
     const t = v.trim();
-    if (!t) return '';
+    if (!t) {
+      return '';
+    }
     const lower = t.toLowerCase();
-    // Add/remove tokens as needed for your mocks
     const placeholders = new Set([
       'string',
       'n/a',
@@ -327,14 +329,18 @@ export class PdfService {
       '-',
       '—',
     ]);
-    if (placeholders.has(lower)) return '';
+    if (placeholders.has(lower)) {
+      return '';
+    }
     return t.replace(/\s+/g, ' ');
   }
 
-  /** Titles like "Mr, Mrs" → pick first meaningful token ("Mr"). */
+  /** Titles like "Mr, Mrs" → pick first meaningful token. */
   private firstTitleToken(s?: unknown): string {
     const c = this.cleanPart(s);
-    if (!c) return '';
+    if (!c) {
+      return '';
+    }
     const first = c
       .split(/[,/;]+/)
       .map((x) => x.trim())
@@ -346,7 +352,9 @@ export class PdfService {
   private dedupeParts(parts: string[]): string[] {
     const out: string[] = [];
     for (const p of parts) {
-      if (!p) continue;
+      if (!p) {
+        continue;
+      }
       if (
         out.length === 0 ||
         out[out.length - 1].toLowerCase() !== p.toLowerCase()
@@ -357,7 +365,6 @@ export class PdfService {
     return out;
   }
 
-  // --- tiny guards ---
   private asObj(v: unknown): Record<string, unknown> | null {
     return v && typeof v === 'object' ? (v as Record<string, unknown>) : null;
   }
@@ -370,6 +377,17 @@ export class PdfService {
     return typeof v === 'string' ? v : '';
   }
 
+  /** Coerce to string only if it's already string/number. */
+  private asStrOrNum(v: unknown): string {
+    if (typeof v === 'string') {
+      return v;
+    }
+    if (typeof v === 'number') {
+      return String(v);
+    }
+    return '';
+  }
+
   private fallbackText(v?: string, fallback = '—'): string {
     return v && v.trim().length ? v : fallback;
   }
@@ -380,7 +398,14 @@ export class PdfService {
       const blob = await res.blob();
       return await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
-        reader.onloadend = () => resolve(String(reader.result));
+        reader.onloadend = () => {
+          const result = reader.result;
+          if (typeof result === 'string') {
+            resolve(result);
+          } else {
+            reject(new Error('image read error'));
+          }
+        };
         reader.onerror = () => reject(new Error('image read error'));
         reader.readAsDataURL(blob);
       });
@@ -389,20 +414,21 @@ export class PdfService {
     }
   }
 
-  // --- filename helpers ---
-  /** Make a safe, compact filename part from free text. */
+  /** Filename-safe text. */
   private fileSafe(s?: string): string {
     const raw = (s ?? '').trim();
-    if (!raw) return '';
+    if (!raw) {
+      return '';
+    }
     return raw
-      .replace(/\s+/g, ' ') // collapse whitespace
-      .replace(/[^\w\s-]+/g, '') // remove punctuation/symbols
+      .replace(/\s+/g, ' ')
+      .replace(/[^\w\s-]+/g, '')
       .trim()
-      .replace(/\s+/g, '-') // spaces -> hyphens
+      .replace(/\s+/g, '-')
       .toLowerCase();
   }
 
-  /** Prefer ISO input (YYYY-MM-DD); else fall back to today's date in that format. */
+  /** Prefer ISO input; else use today's date (YYYY-MM-DD). */
   private dateForFile(isoMaybe?: string): string {
     if (isoMaybe && /^\d{4}-\d{2}-\d{2}$/.test(isoMaybe)) {
       return isoMaybe;
