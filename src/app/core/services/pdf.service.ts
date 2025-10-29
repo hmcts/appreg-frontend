@@ -47,11 +47,11 @@ export class PdfService {
 
     // Header sizing (only changes here: bigger crest + larger body gap)
     const TITLE_FS = 18;
-    const CREST_W = 72; // ⬅️ bigger crest (was 48)
-    const CREST_H = 72; // ⬅️ bigger crest (was 48)
+    const CREST_W = 72; // bigger crest (was 48)
+    const CREST_H = 72; // bigger crest (was 48)
     const CREST_X = M;
     const CREST_Y = M - 6; // keep your original slight vertical offset
-    const HEADER_BODY_GAP = 56; // ⬅️ larger gap before the first field
+    const HEADER_BODY_GAP = 56; // larger gap before the first field
 
     // --- optional crest ---
     let crestDataUrl: string | null = null;
@@ -100,7 +100,7 @@ export class PdfService {
       const headerBottom = Math.max(CREST_Y + CREST_H, titleBottomBaseline) + 8;
 
       hr(headerBottom);
-      return headerBottom + HEADER_BODY_GAP; // ⬅️ bigger gap before data
+      return headerBottom + HEADER_BODY_GAP; // bigger gap before data
     };
 
     const drawFooter = () => {
@@ -202,7 +202,10 @@ export class PdfService {
       drawFooter();
     });
 
-    doc.save(`application-list-${data.id}.pdf`);
+    // -------- filename: include court name + date (YYYY-MM-DD) --------
+    const courtPart = this.fileSafe(data.courtName) || 'court';
+    const datePart  = this.dateForFile(data.listDate);
+    doc.save(`${courtPart}-${datePart}.pdf`);
   }
 
   // ------------------------- Mapping & utilities -------------------------
@@ -343,5 +346,30 @@ export class PdfService {
     } catch {
       return null;
     }
+  }
+
+  // --- filename helpers ---
+  /** Make a safe, compact filename part from free text. */
+  private fileSafe(s?: string): string {
+    const raw = (s ?? '').trim();
+    if (!raw) return '';
+    return raw
+      .replace(/\s+/g, ' ')           // collapse whitespace
+      .replace(/[^\w\s-]+/g, '')      // remove punctuation/symbols
+      .trim()
+      .replace(/\s+/g, '-')           // spaces -> hyphens
+      .toLowerCase();
+  }
+
+  /** Prefer ISO input (YYYY-MM-DD); else fall back to today's date in that format. */
+  private dateForFile(isoMaybe?: string): string {
+    if (isoMaybe && /^\d{4}-\d{2}-\d{2}$/.test(isoMaybe)) {
+      return isoMaybe;
+    }
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
   }
 }
