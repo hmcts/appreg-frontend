@@ -5069,6 +5069,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/adm-zip@npm:^0":
+  version: 0.5.7
+  resolution: "@types/adm-zip@npm:0.5.7"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10/24e9842bd6838879c60fe833af267489d8bc6b582d5feac6179543bf7a0b01a749931a9c6f21a20b8454e83925937a63bae0190493fa269d33a35c6daf4df209
+  languageName: node
+  linkType: hard
+
 "@types/axe-core@npm:^3.0.6":
   version: 3.0.6
   resolution: "@types/axe-core@npm:3.0.6"
@@ -6065,6 +6074,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"adm-zip@npm:^0.5.16":
+  version: 0.5.16
+  resolution: "adm-zip@npm:0.5.16"
+  checksum: 10/e167d1b9e60cde37334efda828fa514680af9facbd4183952f36526390e5c7da9a90ca1e6880dfd3aba7b3517f1506c6178e0dc29cd630b26b98c795f97fc599
+  languageName: node
+  linkType: hard
+
 "agent-base@npm:6":
   version: 6.0.2
   resolution: "agent-base@npm:6.0.2"
@@ -6316,6 +6332,7 @@ __metadata:
     "@octokit/rest": "npm:^22.0.0"
     "@openapitools/openapi-generator-cli": "npm:^2.23.4"
     "@redocly/cli": "npm:^2.1.4"
+    "@types/adm-zip": "npm:^0"
     "@types/axe-core": "npm:^3.0.6"
     "@types/config": "npm:^3.3.5"
     "@types/cookie-parser": "npm:^1"
@@ -6331,6 +6348,7 @@ __metadata:
     "@types/supertest": "npm:^6.0.3"
     "@typescript-eslint/eslint-plugin": "npm:^8.39.0"
     "@typescript-eslint/parser": "npm:^8.39.0"
+    adm-zip: "npm:^0.5.16"
     applicationinsights: "npm:^2.7.0"
     axe-core: "npm:^4.10.3"
     concurrently: "npm:^9.2.1"
