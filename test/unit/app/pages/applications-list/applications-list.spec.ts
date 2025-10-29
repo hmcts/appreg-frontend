@@ -514,10 +514,14 @@ describe('ApplicationsList.onPrintPage', () => {
 
     // args: { id }, undefined, undefined, { transferCache: false }
     expect(api.printApplicationList).toHaveBeenCalledTimes(1);
-    expect(api.printApplicationList.mock.calls[0][0]).toEqual({ id: 'abc-123' });
+    expect(api.printApplicationList.mock.calls[0][0]).toEqual({
+      id: 'abc-123',
+    });
     expect(api.printApplicationList.mock.calls[0][1]).toBeUndefined();
     expect(api.printApplicationList.mock.calls[0][2]).toBeUndefined();
-    expect(api.printApplicationList.mock.calls[0][3]).toEqual({ transferCache: false });
+    expect(api.printApplicationList.mock.calls[0][3]).toEqual({
+      transferCache: false,
+    });
   });
 
   it('shows inline message when there are no entries', async () => {
@@ -528,7 +532,9 @@ describe('ApplicationsList.onPrintPage', () => {
 
     await comp.onPrintPage('abc-123');
 
-    expect(showInlineMock).toHaveBeenCalledWith('No entries available to print');
+    expect(showInlineMock).toHaveBeenCalledWith(
+      'No entries available to print',
+    );
     expect(pdf.generateApplicationListPdf).not.toHaveBeenCalled();
   });
 
