@@ -43,6 +43,7 @@ import {
   CriminalJusticeAreaGetDto,
   GetApplicationListsRequestParams,
 } from '../../../generated/openapi';
+import { PdfService } from '../../core/services/pdf.service';
 import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
@@ -78,7 +79,8 @@ import { normaliseTime } from '../../shared/util/time-helpers';
 
 import { getHttpStatus, statusSummary } from './util/delete-status';
 import { loadQuery } from './util/load-query';
-import { PdfService } from '../../core/services/pdf.service';
+
+/* -------------------------- Local type helpers -------------------------- */
 
 type UiExtras = {
   deletable?: boolean;
@@ -331,50 +333,34 @@ export class ApplicationsList implements OnInit, AfterViewInit {
   }
 
   async onPrintPage(id: string): Promise<void> {
-    if (!id) {
-      return;
-    }
+    if (!id) {return;}
 
-    // Clear any prior print banners/errors
-    this.deleteInvalid = false;
-    this.errorHint = '';
-    this.errorSummary = [];
+    this.clearErrors();
 
     try {
-      const dto = await firstValueFrom(
-        this.appListsApi.getApplicationList({ id }, undefined, undefined, {
+      const dto = (await firstValueFrom(
+        this.appListsApi.printApplicationList({ id }, undefined, undefined, {
           transferCache: false,
         }),
-      );
+      ));
 
-      // If no entries
-      type HasEntries = { entries?: unknown[] | null };
-      const entries = (dto as HasEntries).entries;
-      const hasEntries = Array.isArray(entries) && entries.length > 0;
-
+      const hasEntries = Array.isArray(dto.entries) && dto.entries.length > 0;
       if (!hasEntries) {
-        this.deleteInvalid = true;
-        this.errorHint = 'No entries available to print';
-        this.errorSummary = [{ text: 'No entries available to print' }];
+        this.showInline('No entries available to print');
         return;
       }
 
-      // Only generate on the client
       if (isPlatformBrowser(this.platformId)) {
-        await this.pdf.generateApplicationListPdf(dto);
+        await this.pdf.generateApplicationListPdf(dto, {
+          crestUrl: '/assets/govuk-crest.png',
+        });
       }
     } catch (err: unknown) {
       const status = getHttpStatus(err);
       if (status === 404) {
-        this.deleteInvalid = true;
-        this.errorHint = 'Application List not found';
-        this.errorSummary = [{ text: 'Application List not found' }];
+        this.showInline('Application List not found');
       } else {
-        this.deleteInvalid = true;
-        this.errorHint = 'Unable to generate PDF. Please try again later';
-        this.errorSummary = [
-          { text: 'Unable to generate PDF. Please try again later' },
-        ];
+        this.showInline('Unable to generate PDF. Please try again later');
       }
     }
   }
@@ -442,7 +428,7 @@ export class ApplicationsList implements OnInit, AfterViewInit {
           this.afterRowsRendered();
           this.isLoading = false;
         },
-        error: (err) => {
+        error: (err: unknown) => {
           this.submitted = true;
           this.rows = [];
           this.totalPages = 0;
@@ -505,5 +491,21 @@ export class ApplicationsList implements OnInit, AfterViewInit {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       el.focus({ preventScroll: true });
     }
+  }
+
+  /* ----------------------- Local UI helper methods ---------------------- */
+
+  /** Clear inline/banner error state in a typed, reusable way. */
+  private clearErrors(): void {
+    this.deleteInvalid = false;
+    this.errorHint = '';
+    this.errorSummary = [];
+  }
+
+  /** Show a single inline error message using the existing summary component. */
+  private showInline(message: string): void {
+    this.deleteInvalid = true;
+    this.errorHint = 'There is a problem';
+    this.errorSummary = [{ text: message }];
   }
 }
