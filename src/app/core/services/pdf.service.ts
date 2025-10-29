@@ -249,28 +249,38 @@ export class PdfService {
     const FOOTER_GUTTER = 40;
     const BOTTOM = pageH - M - FOOTER_GUTTER;
 
-    // Type ramp
+    // Type ramp & leading
     const TITLE_FS = 20;
     const LABEL_FS = 12;
     const VALUE_FS = 12;
+    const LABEL_LEADING = LABEL_FS + 2;
+    const VALUE_LEADING = VALUE_FS + 4;
 
-    // Text helpers
-    const lines = (text: string, width: number): string[] => {
-      const raw: unknown = doc.splitTextToSize(text, width);
+    // Helpers
+    const snap = (yy: number) => Math.round(yy);
+
+    const toLines = (text: string, width: number): string[] => {
+      const t = text.trim();
+      if (!t) {
+        return [];
+      }
+      const raw: unknown = doc.splitTextToSize(t, width);
       if (typeof raw === 'string') {
-        return [raw];
+        return raw.trim() ? [raw] : [];
       }
       if (Array.isArray(raw)) {
-        return (raw as unknown[]).filter(
-          (x): x is string => typeof x === 'string',
-        );
+        return (raw as unknown[])
+          .filter((x): x is string => typeof x === 'string')
+          .map((s) => s.trim())
+          .filter(Boolean);
       }
-      return [''];
+      return [];
     };
 
     const hr = (yy: number): void => {
+      const yLine = snap(yy);
       doc.setLineWidth(0.7);
-      doc.line(M, yy, pageW - M, yy);
+      doc.line(M, yLine, pageW - M, yLine);
     };
 
     let y = 0;
@@ -282,15 +292,16 @@ export class PdfService {
       // Title
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(TITLE_FS);
-      doc.text('Check List Report', M, M + TITLE_FS);
+      doc.text('Check List Report', M, snap(M + TITLE_FS));
 
       // Page number on the right
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(LABEL_FS + 1);
-      doc.text(`Page ${pageNo}`, pageW - M, M + TITLE_FS, { align: 'right' });
+      doc.text(`Page ${pageNo}`, pageW - M, snap(M + TITLE_FS), {
+        align: 'right',
+      });
 
-      // Space under header
-      y = M + TITLE_FS + 18;
+      y = snap(M + TITLE_FS + 18);
     };
 
     const ensureSpace = (needed: number): void => {
@@ -301,6 +312,24 @@ export class PdfService {
       drawHeader();
     };
 
+    const drawTextBlock = (
+      linesArr: string[],
+      x: number,
+      baseY: number,
+      fs: number,
+      leading: number,
+    ) => {
+      if (!linesArr.length) {
+        return 0;
+      }
+      doc.setFontSize(fs);
+      linesArr.forEach((ln, idx) => {
+        const yy = snap(baseY + idx * leading);
+        doc.text(ln, x, yy);
+      });
+      return linesArr.length * leading;
+    };
+
     const drawTwoColRow = (
       leftLabel: string,
       leftValue: string,
@@ -308,84 +337,105 @@ export class PdfService {
       rightValue: string,
       spacing = 14,
     ): void => {
-      // LEFT column
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(LABEL_FS);
-      const leftLabelLines = lines(leftLabel, IN_LABEL_W);
-      const leftLabelH = leftLabelLines.length * (LABEL_FS + 2);
+      const leftLabelLines = toLines(leftLabel, IN_LABEL_W);
+      const rightLabelLines = toLines(rightLabel, IN_LABEL_W);
 
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(VALUE_FS);
-      const leftValLines = lines(leftValue, COL_W - IN_LABEL_W - IN_GAP);
-      const leftValH = leftValLines.length * (VALUE_FS + 4);
+      const leftValLines = toLines(leftValue, COL_W - IN_LABEL_W - IN_GAP);
+      const rightValLines = toLines(rightValue, COL_W - IN_LABEL_W - IN_GAP);
 
-      // RIGHT column
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(LABEL_FS);
-      const rightLabelLines = lines(rightLabel, IN_LABEL_W);
-      const rightLabelH = rightLabelLines.length * (LABEL_FS + 2);
+      const leftH = Math.max(
+        leftLabelLines.length * LABEL_LEADING,
+        leftValLines.length * VALUE_LEADING,
+      );
+      const rightH = Math.max(
+        rightLabelLines.length * LABEL_LEADING,
+        rightValLines.length * VALUE_LEADING,
+      );
+      const blockH = Math.max(leftH, rightH);
 
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(VALUE_FS);
-      const rightValLines = lines(rightValue, COL_W - IN_LABEL_W - IN_GAP);
-      const rightValH = rightValLines.length * (VALUE_FS + 4);
-
-      const blockH = Math.max(leftLabelH, leftValH, rightLabelH, rightValH);
       ensureSpace(blockH);
 
-      // Render LEFT
+      const leftColumnTop = y;
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(LABEL_FS);
-      doc.text(leftLabelLines, COL1_X, y);
+      drawTextBlock(
+        leftLabelLines,
+        COL1_X,
+        leftColumnTop,
+        LABEL_FS,
+        LABEL_LEADING,
+      );
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(VALUE_FS);
-      doc.text(leftValLines, COL1_X + IN_LABEL_W + IN_GAP, y);
+      drawTextBlock(
+        leftValLines,
+        COL1_X + IN_LABEL_W + IN_GAP,
+        leftColumnTop,
+        VALUE_FS,
+        VALUE_LEADING,
+      );
 
-      // Render RIGHT
+      const rightColumnTop = y;
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(LABEL_FS);
-      doc.text(rightLabelLines, COL2_X, y);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(VALUE_FS);
-      doc.text(rightValLines, COL2_X + IN_LABEL_W + IN_GAP, y);
+      drawTextBlock(
+        rightLabelLines,
+        COL2_X,
+        rightColumnTop,
+        LABEL_FS,
+        LABEL_LEADING,
+      );
 
-      y += blockH + spacing;
+      doc.setFont('helvetica', 'normal');
+      drawTextBlock(
+        rightValLines,
+        COL2_X + IN_LABEL_W + IN_GAP,
+        rightColumnTop,
+        VALUE_FS,
+        VALUE_LEADING,
+      );
+
+      y = snap(y + blockH + spacing);
     };
 
     const drawFullRow = (label: string, value: string, spacing = 14): void => {
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(LABEL_FS);
-      const labLines = lines(label, IN_LABEL_W);
-      const labH = labLines.length * (LABEL_FS + 2);
-
+      const labLines = toLines(label, IN_LABEL_W);
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(VALUE_FS);
-      const valLines = lines(value, pageW - (COL1_X + IN_LABEL_W + IN_GAP) - M);
-      const valH = valLines.length * (VALUE_FS + 4);
+      const valLines = toLines(
+        value,
+        pageW - (COL1_X + IN_LABEL_W + IN_GAP) - M,
+      );
 
-      const blockH = Math.max(labH, valH);
+      const blockH = Math.max(
+        labLines.length * LABEL_LEADING,
+        valLines.length * VALUE_LEADING,
+      );
+
       ensureSpace(blockH);
 
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(LABEL_FS);
-      doc.text(labLines, COL1_X, y);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(VALUE_FS);
-      doc.text(valLines, COL1_X + IN_LABEL_W + IN_GAP, y);
+      drawTextBlock(labLines, COL1_X, y, LABEL_FS, LABEL_LEADING);
 
-      y += blockH + spacing;
+      doc.setFont('helvetica', 'normal');
+      drawTextBlock(
+        valLines,
+        COL1_X + IN_LABEL_W + IN_GAP,
+        y,
+        VALUE_FS,
+        VALUE_LEADING,
+      );
+
+      y = snap(y + blockH + spacing);
     };
 
-    // Helper to pull "duration" from the raw dto safely without changing your models.
     const extractDuration = (raw: unknown): string => {
       const root = this.asObj(raw) ?? {};
-      // support a few likely keys
-      const d =
+      return (
         this.asStr(root['duration']) ||
         this.asStr(root['listDuration']) ||
         this.asStr(root['hearingDuration']) ||
-        this.asStr(root['sessionDuration']);
-      return d;
+        this.asStr(root['sessionDuration'])
+      );
     };
 
     drawHeader();
@@ -404,7 +454,7 @@ export class PdfService {
       if (entryIndex > 0) {
         ensureSpace(20);
         hr(y);
-        y += 14;
+        y = snap(y + 14);
       }
 
       drawTwoColRow(leftLabels, leftValues, 'Location', location, 18);
@@ -412,6 +462,7 @@ export class PdfService {
       for (const e of data.entries) {
         entryIndex += 1;
 
+        // Applicant / Respondent
         const applicant = this.fallbackText(e.applicant);
         const respondent = this.fallbackText(e.respondent);
         drawTwoColRow(
@@ -426,8 +477,9 @@ export class PdfService {
         if (e.caseReference?.trim()) {
           leftBlockParts.push(`Case Reference: ${e.caseReference.trim()}`);
         }
-        if (e.applicationCode?.trim()) {
-          leftBlockParts.push(`Application Code: ${e.applicationCode.trim()}`);
+        const codeText = e.applicationCode;
+        if (typeof codeText === 'string' && codeText.trim()) {
+          leftBlockParts.push(`Application Code: ${codeText.trim()}`);
         }
         const leftBlock = leftBlockParts.join('\n');
 
@@ -437,21 +489,23 @@ export class PdfService {
             `Account Reference: ${e.accountReference.trim()}`,
           );
         }
-        if (e.applicationDescription?.trim()) {
-          rightBlockParts.push(
-            `Application Title: ${e.applicationDescription.trim()}`,
-          );
+        const descText = e.applicationDescription;
+        if (typeof descText === 'string' && descText.trim()) {
+          rightBlockParts.push(`Application Title: ${descText.trim()}`);
         }
         const rightBlock = rightBlockParts.join('\n');
 
         drawTwoColRow('Application', leftBlock || '—', '', rightBlock, 10);
 
+        // Result
         const result = this.fallbackText(e.result);
         drawFullRow('Result', result, 18);
 
+        // Notes
         const notes = this.fallbackText(e.notes);
         drawFullRow('Notes', notes, 22);
 
+        // Judges
         const judges = this.fallbackText(e.judge);
         drawFullRow('This matter was before', judges, 14);
       }
