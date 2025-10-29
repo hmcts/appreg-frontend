@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 
-import { JsPDFLike, PdfList } from '../../../types/pdf-types';
-import { asArr, asObj, asStr, asStrOrNum } from '../util/data-utils';
+import { JsPDFLike, PdfList } from '../../shared/util/types/pdf-service/pdf-types';
+import { asArr, asObj, asStr, asStrOrNum } from '../../shared/util/data-utils';
 import {
   drawHr,
   drawTextBlock,
   extractDuration as extractDurationFromDto,
   toLines,
-} from '../util/pdf-utils';
+} from '../../shared/util/pdf-utils';
 
 @Injectable({ providedIn: 'root' })
 export class PdfService {
