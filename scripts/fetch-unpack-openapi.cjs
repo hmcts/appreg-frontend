@@ -19,7 +19,7 @@ function envOr(k, d) {
   return Object.hasOwn(process.env, k) ? process.env[k] : d;
 }
 
-const SPEC_VERSION = envOr('SPEC_VERSION', '0.0.1');
+const SPEC_VERSION = envOr('SPEC_VERSION', '0.0.2');
 const POM = envOr('OPENAPI_POM', 'tools/openapi/pom.xml');
 const OUT_DIR = envOr('OUT_DIR', 'tools/openapi/vendor/openapi');
 const DEST_JAR = envOr('DEST_JAR', path.join(OUT_DIR, 'openapi.jar'));
