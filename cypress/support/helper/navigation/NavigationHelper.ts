@@ -1,10 +1,11 @@
 /// <reference types="cypress" />
+import { APP_URLS } from '../../constants/ProjectConstants';
 import { NavigationPage } from '../../pageobjects/pageelements/NavigationPage';
 
 export class NavigationHelper {
   static navigateToPortalPage(): void {
     cy.log('Navigating to portal page: ', Cypress.config('baseUrl'));
-    cy.visit('/');
+    cy.visit(APP_URLS.HOME);
   }
 
   static navigateToUrl(url: string): void {
@@ -30,5 +31,10 @@ export class NavigationHelper {
   static verifySignOutLinkVisible(): void {
     cy.log('Verifying Sign out link is visible');
     NavigationPage.signOutLink().should('be.visible');
+  }
+
+  static pageRefresh(): void {
+    cy.log('Refreshing the page');
+    cy.reload();
   }
 }

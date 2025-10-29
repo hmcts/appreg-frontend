@@ -1,83 +1,43 @@
 /// <reference types="cypress" />
+import { APP_URLS } from '../../constants/ProjectConstants';
 import { ButtonHelper } from '../forms/button/ButtonHelper';
-import { LinkHelper } from '../forms/link/LinkHelper';
 import { NavigationHelper } from '../navigation/NavigationHelper';
+
+import { MicrosoftAuthHelper } from './MicrosoftAuthHelper';
+import { SessionValidator } from './SessionValidator';
 
 export class AuthHelper {
   static signInWithMicrosoftSSO(email: string, password: string): void {
     cy.session(
       email,
       () => {
-        cy.visit('/');
+        cy.visit(APP_URLS.HOME);
         ButtonHelper.clickButton('Sign in');
 
-        cy.origin(
-          'https://login.microsoftonline.com',
-          { args: { email, password } },
-          ({ email: innerEmail, password: innerPassword }) => {
-            cy.get('input[name="loginfmt"]')
-              .should('be.visible')
-              .type(innerEmail, { log: false });
-            cy.get('input[type="submit"]').click();
-            cy.get('input[name="passwd"]')
-              .should('be.visible')
-              .type(innerPassword, { log: false });
-            cy.get('input[type="submit"]').should('be.visible').click();
-            cy.get('#idBtn_Back').should('be.visible').click();
-          },
-        );
+        // Perform Microsoft authentication
+        MicrosoftAuthHelper.performLogin(email, password);
+
+        // Validate redirect back to app
+        MicrosoftAuthHelper.validateRedirectFromMicrosoft();
+
+        // Wait for session to be established
+        SessionValidator.waitForSessionEstablishment();
       },
       {
         validate() {
-          NavigationHelper.navigateToUrl('/applications-list');
-          NavigationHelper.verifySignOutLinkVisible();
+          SessionValidator.validateSessionCookie();
         },
       },
     );
-    NavigationHelper.navigateToUrl('/applications-list');
+
+    NavigationHelper.navigateToUrl(APP_URLS.APPLICATIONS_LIST);
   }
 
   static aadSignOut(): void {
-    // Click the app's sign out link or button
-    LinkHelper.clickLink('Sign out');
-    cy.log('AAD logout initiated');
-
-    // If redirected to Microsoft account picker, click the user tile to fully sign out
-    cy.origin('https://login.microsoftonline.com', () => {
-      cy.get('body', { timeout: 10000 }).then(($body) => {
-        if ($body.find('.table-cell.tile-img > .tile-img').length) {
-          cy.get('.table-cell.tile-img > .tile-img')
-            .should('be.visible')
-            .click();
-        }
-      });
-    });
-
-    // Verify signed-out state in app
-    cy.visit('/');
-    cy.contains(/sign in|login/i, { timeout: 10000 }).should('be.visible');
+    MicrosoftAuthHelper.performSignOut();
   }
 
-  static verifyCookieExists(cookieName: string): void {
-    cy.log(`Verifying existence of cookie: ${cookieName}`);
-    cy.getCookie(cookieName).should('exist');
-  }
-
-  static verifyCookieNotExists(cookieName: string): void {
-    cy.log(`Verifying non-existence of cookie: ${cookieName}`);
-    cy.getCookie(cookieName).should('not.exist');
-  }
-
-  static verifyElementNotVisible(element: string): void {
-    cy.log(`Verifying element not visible: ${element}`);
-    cy.get(element).should('not.exist');
-  }
-
-  static verifyElementVisible(element: string): void {
-    cy.log(`Verifying element visible: ${element}`);
-    cy.get(element).should('exist');
-  }
-
+  // Auth-specific utility methods
   static clearCookiesAndStorage(): void {
     cy.log('Clearing cookies and storage');
     cy.clearCookies();
@@ -85,87 +45,5 @@ export class AuthHelper {
     cy.window().then((win) => {
       win.sessionStorage.clear();
     });
-  }
-
-  static pageRefresh(): void {
-    cy.log('Refreshing the page');
-    cy.reload();
-  }
-
-  static signInWithInvalidEmailAndVerifyError(
-    invalidEmail: string,
-    expectedError: string,
-  ): void {
-    cy.visit('/');
-    ButtonHelper.clickButton('Sign in');
-    cy.url().should('include', 'login.microsoftonline.com');
-    cy.origin(
-      'https://login.microsoftonline.com',
-      { args: { invalidEmail, expectedError } },
-      ({ invalidEmail: emailArg, expectedError: errorArg }) => {
-        cy.get('input[name="loginfmt"]')
-          .should('be.visible')
-          .type(emailArg, { log: false });
-        cy.get('input[type="submit"]').click();
-        cy.contains(errorArg, { timeout: 10000 }).should('be.visible');
-      },
-    );
-  }
-
-  static signInWithValidEmailInvalidPasswordAndVerifyError(
-    validEmail: string,
-    invalidPassword: string,
-    expectedError: string,
-  ): void {
-    cy.visit('/');
-    ButtonHelper.clickButton('Sign in');
-    cy.url().should('include', 'login.microsoftonline.com');
-    cy.origin(
-      'https://login.microsoftonline.com',
-      { args: { validEmail, invalidPassword, expectedError } },
-      ({
-        validEmail: emailArg,
-        invalidPassword: passArg,
-        expectedError: errorArg,
-      }) => {
-        cy.get('input[name="loginfmt"]')
-          .should('be.visible')
-          .type(emailArg, { log: false });
-        cy.get('input[type="submit"]').click();
-        cy.get('input[type="password"]', { timeout: 30000 })
-          .should('be.visible')
-          .type(passArg, { log: false });
-        cy.get('input[type="submit"]').click();
-        cy.contains(errorArg, { timeout: 10000 }).should('be.visible');
-      },
-    );
-  }
-
-  static verifySessionIsValid(): void {
-    cy.log('Verifying session is valid with tokens stored in Redis');
-
-    // Verify session endpoint returns authenticated status
-    cy.request({
-      method: 'GET',
-      url: '/sso/me',
-      failOnStatusCode: false,
-    }).then((response) => {
-      expect(response.status).to.equal(200);
-      expect(response.body).to.have.property('authenticated', true);
-      expect(response.body).to.have.property('name');
-      expect(response.body).to.have.property('username');
-      cy.log('Session validation successful - user is authenticated');
-      cy.log(`User: ${response.body.name} (${response.body.username})`);
-    });
-
-    // Verify the secure session cookie is httpOnly and secure
-    cy.getCookie('appreg.sid')
-      .should('exist')
-      .then((cookie) => {
-        if (cookie) {
-          cy.wrap(cookie.httpOnly).should('be.true');
-          cy.log('Session cookie is properly secured (httpOnly)');
-        }
-      });
   }
 }

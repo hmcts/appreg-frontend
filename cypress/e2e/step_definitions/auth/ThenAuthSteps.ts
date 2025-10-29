@@ -1,26 +1,24 @@
 import { Then } from '@badeball/cypress-cucumber-preprocessor';
 
-import { AuthHelper } from '../../../support/helper/auth/AuthHelper';
+import { MicrosoftAuthHelper } from '../../../support/helper/auth/MicrosoftAuthHelper';
+import { SessionValidator } from '../../../support/helper/auth/SessionValidator';
 
 Then('User Verify The {string} Cookie Should Exist', (cookieName: string) => {
-  AuthHelper.verifyCookieExists(cookieName);
+  SessionValidator.verifyCookieExists(cookieName);
 });
 
 Then(
   'User Verify The {string} Cookie Should Not Exist',
   (cookieName: string) => {
-    AuthHelper.verifyCookieNotExists(cookieName);
+    SessionValidator.verifyCookieNotExists(cookieName);
   },
 );
 
-Then('User Should Not See The Element {string}', (element: string) => {
-  AuthHelper.verifyElementNotVisible(element);
-});
-
-Then('User Should See The Element {string}', (element: string) => {
-  AuthHelper.verifyElementVisible(element);
-});
-
 Then('User Verify The Session Is Valid', () => {
-  AuthHelper.verifySessionIsValid();
+  SessionValidator.verifySessionIsValid();
+});
+
+Then('User Signs Out From The Application', () => {
+  MicrosoftAuthHelper.performSignOut();
+  cy.screenshot('AADSignOut');
 });
