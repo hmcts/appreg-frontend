@@ -1,49 +1,13 @@
 import { Injectable } from '@angular/core';
 
-type JsPDFLike = {
-  splitTextToSize: (text: string, width: number) => string | string[];
-  text: (
-    text: string | string[],
-    x: number,
-    y: number,
-    opts?: { align?: 'left' | 'right' | 'center' },
-  ) => void;
-  setFont: (family: string, style?: string) => void;
-  setFontSize: (size: number) => void;
-  setLineWidth: (w: number) => void;
-  line: (x1: number, y1: number, x2: number, y2: number) => void;
-  internal: { pageSize: { getWidth: () => number; getHeight: () => number } };
-  addPage: () => void;
-  addImage: (
-    dataUrl: string,
-    format: string,
-    x: number,
-    y: number,
-    w: number,
-    h: number,
-  ) => void;
-  save: (filename: string) => void;
-};
-
-interface PdfList {
-  id: string;
-  courtName?: string;
-  listDate?: string;
-  location?: string;
-  entries: {
-    applicant?: string;
-    respondent?: string;
-    applicationCode?: string;
-    applicationDescription?: string;
-    matter?: string;
-    result?: string;
-    judge?: string;
-    date?: string;
-    caseReference?: string;
-    accountReference?: string;
-    notes?: string;
-  }[];
-}
+import { JsPDFLike, PdfList } from '../../../types/pdf-types';
+import { asArr, asObj, asStr, asStrOrNum } from '../util/data-utils';
+import {
+  drawHr,
+  drawTextBlock,
+  extractDuration as extractDurationFromDto,
+  toLines,
+} from '../util/pdf-utils';
 
 @Injectable({ providedIn: 'root' })
 export class PdfService {
@@ -86,21 +50,6 @@ export class PdfService {
     const CREST_Y = M - 6;
     const HEADER_BODY_GAP = 56;
 
-    const splitToLines = (text: string, width: number): string[] => {
-      const raw: unknown = doc.splitTextToSize(text, width);
-
-      if (typeof raw === 'string') {
-        return [raw];
-      }
-
-      if (Array.isArray(raw)) {
-        return (raw as unknown[]).filter(
-          (x): x is string => typeof x === 'string',
-        );
-      }
-      return [''];
-    };
-
     // Preload the crest once and reuse in every header
     let crestDataUrl: string | null = null;
     if (opts?.crestUrl) {
@@ -110,7 +59,7 @@ export class PdfService {
     let pageTop = 0;
     let y = 0;
 
-    const hr = (yy: number): void => {
+    const hrLocal = (yy: number): void => {
       doc.setLineWidth(0.7);
       doc.line(M, yy, pageW - M, yy);
     };
@@ -129,7 +78,11 @@ export class PdfService {
       doc.setFontSize(TITLE_FS);
 
       const title = this.fallbackText(data.courtName, 'Court Missing');
-      const titleLines = splitToLines(title, pageW - 2 * M);
+      const titleLines = toLines(
+        doc as unknown as JsPDFLike,
+        title,
+        pageW - 2 * M,
+      );
       const lineH = TITLE_FS * 1.2;
       const blockH = Math.max(lineH, titleLines.length * lineH);
 
@@ -142,7 +95,7 @@ export class PdfService {
         titleFirstBaselineY + (titleLines.length - 1) * lineH;
       const headerBottom = Math.max(CREST_Y + CREST_H, titleBottomBaseline) + 8;
 
-      hr(headerBottom);
+      hrLocal(headerBottom);
       return headerBottom + HEADER_BODY_GAP;
     };
 
@@ -183,13 +136,21 @@ export class PdfService {
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
-      const labelLines = splitToLines(labelText, LABEL_W);
+      const labelLines = toLines(
+        doc as unknown as JsPDFLike,
+        labelText,
+        LABEL_W,
+      );
       const labelH = labelLines.length * 14;
 
       const valueToUse = valueText?.trim() ? valueText : '—';
       doc.setFont('helvetica', optsLV?.emphasize ? 'bold' : 'normal');
       doc.setFontSize(12);
-      const valueLines = splitToLines(valueToUse, RIGHT_W);
+      const valueLines = toLines(
+        doc as unknown as JsPDFLike,
+        valueToUse,
+        RIGHT_W,
+      );
       const valueH = valueLines.length * 16;
 
       ensureSpace(Math.max(labelH, valueH));
@@ -223,7 +184,7 @@ export class PdfService {
       writeLabelValue('Respondent', this.fallbackText(e.respondent));
 
       ensureSpace(36);
-      hr(y);
+      hrLocal(y);
       y += 24;
 
       const heading = this.fallbackText(e.applicationDescription || e.matter);
@@ -234,7 +195,7 @@ export class PdfService {
       }
 
       ensureSpace(36);
-      hr(y);
+      hrLocal(y);
       y += 24;
 
       writeLabelValue('This matter was dated before', e.date);
@@ -290,7 +251,7 @@ export class PdfService {
     let y = 0;
     let pageNo = 0;
 
-    const hr = (yy: number) => this.drawHr(doc, Math.round(yy), M, pageW);
+    const hr = (yy: number) => drawHr(doc, Math.round(yy), M, pageW);
 
     const drawHeader = (): void => {
       pageNo += 1;
@@ -325,16 +286,12 @@ export class PdfService {
       spacing = 14,
     ): void => {
       doc.setFont('helvetica', 'bold');
-      const leftLabelLines = this.toLines(doc, leftLabel, IN_LABEL_W);
-      const rightLabelLines = this.toLines(doc, rightLabel, IN_LABEL_W);
+      const leftLabelLines = toLines(doc, leftLabel, IN_LABEL_W);
+      const rightLabelLines = toLines(doc, rightLabel, IN_LABEL_W);
 
       doc.setFont('helvetica', 'normal');
-      const leftValLines = this.toLines(
-        doc,
-        leftValue,
-        COL_W - IN_LABEL_W - IN_GAP,
-      );
-      const rightValLines = this.toLines(
+      const leftValLines = toLines(doc, leftValue, COL_W - IN_LABEL_W - IN_GAP);
+      const rightValLines = toLines(
         doc,
         rightValue,
         COL_W - IN_LABEL_W - IN_GAP,
@@ -354,16 +311,9 @@ export class PdfService {
 
       // LEFT column
       doc.setFont('helvetica', 'bold');
-      this.drawTextBlock(
-        doc,
-        leftLabelLines,
-        COL1_X,
-        y,
-        LABEL_FS,
-        LABEL_LEADING,
-      );
+      drawTextBlock(doc, leftLabelLines, COL1_X, y, LABEL_FS, LABEL_LEADING);
       doc.setFont('helvetica', 'normal');
-      this.drawTextBlock(
+      drawTextBlock(
         doc,
         leftValLines,
         COL1_X + IN_LABEL_W + IN_GAP,
@@ -374,16 +324,9 @@ export class PdfService {
 
       // RIGHT column
       doc.setFont('helvetica', 'bold');
-      this.drawTextBlock(
-        doc,
-        rightLabelLines,
-        COL2_X,
-        y,
-        LABEL_FS,
-        LABEL_LEADING,
-      );
+      drawTextBlock(doc, rightLabelLines, COL2_X, y, LABEL_FS, LABEL_LEADING);
       doc.setFont('helvetica', 'normal');
-      this.drawTextBlock(
+      drawTextBlock(
         doc,
         rightValLines,
         COL2_X + IN_LABEL_W + IN_GAP,
@@ -397,9 +340,9 @@ export class PdfService {
 
     const drawFullRow = (label: string, value: string, spacing = 14): void => {
       doc.setFont('helvetica', 'bold');
-      const labLines = this.toLines(doc, label, IN_LABEL_W);
+      const labLines = toLines(doc, label, IN_LABEL_W);
       doc.setFont('helvetica', 'normal');
-      const valLines = this.toLines(
+      const valLines = toLines(
         doc,
         value,
         pageW - (COL1_X + IN_LABEL_W + IN_GAP) - M,
@@ -412,9 +355,9 @@ export class PdfService {
       ensureSpace(blockH);
 
       doc.setFont('helvetica', 'bold');
-      this.drawTextBlock(doc, labLines, COL1_X, y, LABEL_FS, LABEL_LEADING);
+      drawTextBlock(doc, labLines, COL1_X, y, LABEL_FS, LABEL_LEADING);
       doc.setFont('helvetica', 'normal');
-      this.drawTextBlock(
+      drawTextBlock(
         doc,
         valLines,
         COL1_X + IN_LABEL_W + IN_GAP,
@@ -426,8 +369,6 @@ export class PdfService {
       y = Math.round(y + blockH + spacing);
     };
 
-    const extractDuration = (raw: unknown): string => this.extractDuration(raw);
-
     drawHeader();
 
     let entryIndex = 0;
@@ -437,7 +378,7 @@ export class PdfService {
 
       // Top meta row (LEFT: Date & Time + Duration; RIGHT: Location)
       const dateTime = this.fallbackText(data.listDate || '', '—');
-      const duration = this.fallbackText(extractDuration(raw), '—');
+      const duration = this.fallbackText(extractDurationFromDto(raw), '—');
       const leftLabels = 'Date & Time\nDuration';
       const leftValues = `${dateTime}\n${duration}`;
       const location = this.fallbackText(data.courtName || data.location, '—');
@@ -512,125 +453,60 @@ export class PdfService {
     doc.save(`${courtPart}-continuous-${datePart}.pdf`);
   }
 
-  // -------------------- Shared helpers (extracted to remove duplication) --------------------
-
-  /** Consistent splitting; trims and filters empties. */
-  private toLines(doc: JsPDFLike, text: string, width: number): string[] {
-    const t = (text ?? '').trim();
-    if (!t) {
-      return [];
-    }
-    const raw: unknown = doc.splitTextToSize(t, width);
-    if (typeof raw === 'string') {
-      return raw.trim() ? [raw] : [];
-    }
-    if (Array.isArray(raw)) {
-      return (raw as unknown[])
-        .filter((x): x is string => typeof x === 'string')
-        .map((s) => s.trim())
-        .filter(Boolean);
-    }
-    return [];
-  }
-
-  /** Draw a vertical stack of lines with a given leading. Returns block height. */
-  private drawTextBlock(
-    doc: JsPDFLike,
-    linesArr: string[],
-    x: number,
-    baseY: number,
-    fs: number,
-    leading: number,
-  ): number {
-    if (!linesArr.length) {
-      return 0;
-    }
-    doc.setFontSize(fs);
-    linesArr.forEach((ln, idx) => {
-      const yy = Math.round(baseY + idx * leading);
-      doc.text(ln, x, yy);
-    });
-    return linesArr.length * leading;
-  }
-
-  /** Thin horizontal rule with standard line width. */
-  private drawHr(
-    doc: JsPDFLike,
-    y: number,
-    marginX: number,
-    pageW: number,
-  ): void {
-    doc.setLineWidth(0.7);
-    doc.line(marginX, y, pageW - marginX, y);
-  }
-
-  /** Duration extraction used by the continuous layout. */
-  private extractDuration(raw: unknown): string {
-    const root = this.asObj(raw) ?? {};
-    return (
-      this.asStr(root['duration']) ||
-      this.asStr(root['listDuration']) ||
-      this.asStr(root['hearingDuration']) ||
-      this.asStr(root['sessionDuration'])
-    );
-  }
-
   // -------------------- Mapping helpers --------------------
 
   private normalise(dto: unknown): PdfList {
-    const root = this.asObj(dto) ?? {};
+    const root = asObj(dto) ?? {};
 
-    const id = this.asStrOrNum(root['id']);
+    const id = asStrOrNum(root['id']);
 
     const listDate =
-      this.asStr(root['date']) ||
-      this.asStr(root['listDate']) ||
-      this.asStr(root['hearingDate']);
+      asStr(root['date']) ||
+      asStr(root['listDate']) ||
+      asStr(root['hearingDate']);
 
-    const courtName =
-      this.asStr(root['courtName']) || this.asStr(root['court']);
+    const courtName = asStr(root['courtName']) || asStr(root['court']);
 
     const location =
-      this.asStr(root['otherLocationDescription']) ||
-      this.asStr(root['location']) ||
-      this.asStr(root['courthouse']);
+      asStr(root['otherLocationDescription']) ||
+      asStr(root['location']) ||
+      asStr(root['courthouse']);
 
-    const srcEntries = this.asArr(root['entries']);
+    const srcEntries = asArr(root['entries']);
 
     const entries = srcEntries.map((raw) => {
-      const x = this.asObj(raw) ?? {};
+      const x = asObj(raw) ?? {};
 
       const applicant = this.formatParty(x['applicant']);
       const respondent = this.formatParty(x['respondent']);
 
       // Fallback to "code" if applicationCode is absent (bugfix).
-      const applicationCode =
-        this.asStr(x['applicationCode']) || this.asStr(x['code']);
+      const applicationCode = asStr(x['applicationCode']) || asStr(x['code']);
 
-      const applicationTitle = this.asStr(x['applicationTitle']);
-      const applicationWording = this.asStr(x['applicationWording']);
+      const applicationTitle = asStr(x['applicationTitle']);
+      const applicationWording = asStr(x['applicationWording']);
 
       const caseReference =
-        this.asStr(x['caseReference']) ||
-        this.asStr(x['caseRef']) ||
-        this.asStr(x['caseNumber']);
+        asStr(x['caseReference']) ||
+        asStr(x['caseRef']) ||
+        asStr(x['caseNumber']);
 
       const accountReference =
-        this.asStr(x['accountReference']) ||
-        this.asStr(x['accountRef']) ||
-        this.asStr(x['accountNumber']);
+        asStr(x['accountReference']) ||
+        asStr(x['accountRef']) ||
+        asStr(x['accountNumber']);
 
       const applicationDescription = applicationTitle || '';
       const matter = applicationWording || applicationCode;
-      const notes = this.asStr(x['notes']);
+      const notes = asStr(x['notes']);
 
-      const result = this.asArr(x['resultWordings'])
-        .map((v) => this.asStr(v))
+      const result = asArr(x['resultWordings'])
+        .map((v) => asStr(v))
         .filter(Boolean)
         .join(' ');
 
-      const judge = this.asArr(x['officials'])
-        .map((v) => this.asStr(v))
+      const judge = asArr(x['officials'])
+        .map((v) => asStr(v))
         .filter(Boolean)
         .join(', ');
 
@@ -656,15 +532,14 @@ export class PdfService {
 
   /** Person/organisation display name with placeholder cleanup. */
   private formatParty(p: unknown): string {
-    const root = this.asObj(p);
+    const root = asObj(p);
     if (!root) {
       return '';
     }
 
-    const person = this.asObj(root['person']);
+    const person = asObj(root['person']);
     if (person) {
-      const name =
-        this.asObj(person['name']) ?? this.asObj(person['full-name']) ?? {};
+      const name = asObj(person['name']) ?? asObj(person['full-name']) ?? {};
       // Assemble the usual suspects; trim out placeholder tokens.
       const parts = this.dedupeParts([
         this.firstTitleToken(name?.['title']),
@@ -680,7 +555,7 @@ export class PdfService {
       }
     }
 
-    const org = this.asObj(root['organisation']);
+    const org = asObj(root['organisation']);
     return this.cleanPart(org?.['name']);
   }
 
@@ -736,29 +611,6 @@ export class PdfService {
       }
     }
     return out;
-  }
-
-  private asObj(v: unknown): Record<string, unknown> | null {
-    return v && typeof v === 'object' ? (v as Record<string, unknown>) : null;
-  }
-
-  private asArr(v: unknown): unknown[] {
-    return Array.isArray(v) ? v : [];
-  }
-
-  private asStr(v: unknown): string {
-    return typeof v === 'string' ? v : '';
-  }
-
-  /** Coerce to string only if it's already string/number. */
-  private asStrOrNum(v: unknown): string {
-    if (typeof v === 'string') {
-      return v;
-    }
-    if (typeof v === 'number') {
-      return String(v);
-    }
-    return '';
   }
 
   private fallbackText(v?: string, fallback = '—'): string {
