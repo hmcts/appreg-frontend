@@ -32,9 +32,8 @@ export class PdfService {
       format: 'a4',
     });
 
-    // --- layout metrics tuned to legacy look ---
+    // --- layout metrics (original layout retained) ---
     const M = 56; // outer margin
-    const TOP = M + 64; // content start (below header rule)
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
 
@@ -46,34 +45,62 @@ export class PdfService {
     const FOOTER_GUTTER = 64; // reserved space above footer labels
     const BOTTOM = pageH - M - FOOTER_GUTTER;
 
+    // Header sizing (only changes here: bigger crest + larger body gap)
+    const TITLE_FS = 18;
+    const CREST_W = 72; // ⬅️ bigger crest (was 48)
+    const CREST_H = 72; // ⬅️ bigger crest (was 48)
+    const CREST_X = M;
+    const CREST_Y = M - 6; // keep your original slight vertical offset
+    const HEADER_BODY_GAP = 56; // ⬅️ larger gap before the first field
+
     // --- optional crest ---
     let crestDataUrl: string | null = null;
     if (opts?.crestUrl) {
       crestDataUrl = await this.tryLoadImageAsDataUrl(opts.crestUrl);
     }
 
+    // Track the measured top-of-page for content (replaces fixed TOP)
+    let pageTop = 0;
+    let y = 0;
+
     // --- helpers (local to renderer) ---
-    const hr = (y: number) => {
+    const hr = (yy: number) => {
       doc.setLineWidth(0.7);
-      doc.line(M, y, pageW - M, y);
+      doc.line(M, yy, pageW - M, yy);
     };
-    const drawHeader = () => {
+
+    // Draw header; return content start Y (under rule + gap)
+    const drawHeader = (): number => {
+      // crest
       if (crestDataUrl) {
         try {
-          doc.addImage(crestDataUrl, 'PNG', M, M - 6, 48, 48);
+          doc.addImage(crestDataUrl, 'PNG', CREST_X, CREST_Y, CREST_W, CREST_H);
         } catch {
           /* ignore */
         }
       }
+
+      // court name centered and vertically aligned to crest box
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(18);
-      doc.text(
-        this.fallbackText(data.courtName, 'Magistrates’ Court'),
-        pageW / 2,
-        M + 12,
-        { align: 'center' },
-      );
-      hr(M + 36);
+      doc.setFontSize(TITLE_FS);
+
+      const title = this.fallbackText(data.courtName, 'Magistrates’ Court');
+      const titleLines = doc.splitTextToSize(title, pageW - 2 * M); // allow wrapping if needed
+      const lineH = TITLE_FS * 1.2;
+      const blockH = Math.max(lineH, titleLines.length * lineH);
+
+      const crestMidY = CREST_Y + CREST_H / 2;
+      const titleFirstBaselineY = crestMidY - blockH / 2 + TITLE_FS * 0.85;
+
+      doc.text(titleLines, pageW / 2, titleFirstBaselineY, { align: 'center' });
+
+      // rule under taller of crest or title
+      const titleBottomBaseline =
+        titleFirstBaselineY + (titleLines.length - 1) * lineH;
+      const headerBottom = Math.max(CREST_Y + CREST_H, titleBottomBaseline) + 8;
+
+      hr(headerBottom);
+      return headerBottom + HEADER_BODY_GAP; // ⬅️ bigger gap before data
     };
 
     const drawFooter = () => {
@@ -94,18 +121,16 @@ export class PdfService {
       doc.text(todayDMY, RIGHT_X, baseY);
     };
 
-    let y = TOP;
-
     const ensureSpace = (needed: number) => {
       if (y + needed <= BOTTOM) {
         return;
       }
       doc.addPage();
-      drawHeader();
-      y = TOP;
+      pageTop = drawHeader();
+      y = pageTop;
     };
 
-    // Left label + right value (single right column)
+    // Left label + right value (single right column) — original block
     const writeLabelValue = (
       labelText: string,
       valueText: string | undefined,
@@ -136,14 +161,15 @@ export class PdfService {
       y += Math.max(labelH, valueH) + spacing;
     };
 
+    // ---------------- render (everything else unchanged) ----------------
     data.entries.forEach((e, i) => {
       if (i === 0) {
-        drawHeader();
+        pageTop = drawHeader();
       } else {
         doc.addPage();
-        drawHeader();
+        pageTop = drawHeader();
       }
-      y = TOP;
+      y = pageTop; // start body at measured top with larger gap
 
       // 1) Application brought by / Respondent
       writeLabelValue(
@@ -158,17 +184,19 @@ export class PdfService {
       hr(y);
       y += 24;
 
-      // 3) Matter considered: heading + code in SAME right column
+      // 3) Matter considered: heading + code as a LABEL (original format)
       const heading = this.fallbackText(e.matter);
       const code = this.fallbackText(e.code ?? '');
       writeLabelValue('Matter considered', heading);
       writeLabelValue(code, this.fallbackText(e.description));
       writeLabelValue('', this.fallbackText(e.result));
 
+      // 4) Second divider rule
       ensureSpace(36);
       hr(y);
       y += 24;
 
+      // 5) Dated row
       writeLabelValue('This matter was dated before', e.date);
 
       drawFooter();
