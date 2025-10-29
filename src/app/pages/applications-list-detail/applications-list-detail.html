@@ -5,6 +5,21 @@
 
 <h1 class="govuk-heading-xl">Applications list</h1>
 
+@if (unpopField.length || updateInvalid) {
+  <app-error-summary
+    [title]="errorHint || 'There is a problem'"
+    (itemSelect)="onCreateErrorClick($event)"
+    [items]="unpopField"
+  />
+}
+
+@if (updateDone) {
+  <app-success-banner
+    heading="Update complete"
+    linkText="List successfully updated"
+  />
+}
+
 <!-- Tabs -->
 <div class="govuk-tabs" data-module="govuk-tabs">
   <h2 class="govuk-tabs__title">Contents</h2>
@@ -101,7 +116,7 @@
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
     />
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <form [formGroup]="form" (ngSubmit)="onUpdate()" autocomplete="off">
       <div class="govuk-grid-row">
         <!-- Date -->
         <app-date-input
@@ -109,7 +124,9 @@
           label="Date"
           hint="For example, 27 3 2007"
           idPrefix="date"
-        ></app-date-input>
+          [submitted]="updateInvalid"
+        >
+        </app-date-input>
 
         <!-- Time -->
         <app-duration-input
@@ -117,7 +134,11 @@
           label="Time"
           hint="Enter the time in 24-hour format, for example 08:30"
           idPrefix="time"
-        ></app-duration-input>
+          [submitted]="updateInvalid"
+          [required]="true"
+          mode="clock"
+        >
+        </app-duration-input>
 
         <!-- Description -->
         <app-text-input
@@ -125,7 +146,9 @@
           label="Description"
           hint="A description of the application list"
           idPrefix="description"
-        ></app-text-input>
+          [submitted]="updateInvalid"
+        >
+        </app-text-input>
 
         <!-- Status -->
         <app-select-input
@@ -133,8 +156,10 @@
           label="Select status"
           hint="The status of the application list"
           idPrefix="status"
-          [options]="status"
-        ></app-select-input>
+          [submitted]="updateInvalid"
+          [options]="statusOptions"
+        >
+        </app-select-input>
       </div>
 
       <div class="govuk-grid-row">
@@ -148,6 +173,15 @@
           [suggestions]="filteredCourthouses"
           (selectItem)="selectCourthouse($event)"
           [disabled]="!!form.get('location')?.value || !!form.get('cja')?.value"
+          [showError]="
+            updateInvalid &&
+            !courthouseSearch.trim() &&
+            !(
+              form.get('location')?.value?.toString()?.trim() ||
+              cjaSearch.trim()
+            )
+          "
+          errorText="Court is required"
         />
 
         <!-- Other location -->
@@ -156,7 +190,11 @@
           label="Other location"
           hint="Other location description"
           idPrefix="location"
-        ></app-text-input>
+          [submitted]="updateInvalid && !form.get('court')?.value"
+          [disabled]="!!form.get('court')?.value"
+        >
+          >
+        </app-text-input>
 
         <!-- CJA -->
         <app-suggestions
@@ -168,14 +206,26 @@
           [suggestions]="filteredCja"
           (selectItem)="selectCja($event)"
           [disabled]="!!courthouseSearch.trim() || !!form.get('court')?.value"
+          [showError]="
+            updateInvalid &&
+            !cjaSearch.trim() &&
+            !(
+              courthouseSearch.trim() ||
+              form.get('court')?.value?.toString()?.trim()
+            )
+          "
+          errorText="CJA is required"
         />
 
-        <!-- Duration -->
+        <!-- Duration: Optional field -->
         <app-duration-input
-          name="duration"
+          formControlName="duration"
           label="Duration"
           hint="Duration of the list"
           idPrefix="duration"
+          [submitted]="updateInvalid"
+          [required]="false"
+          mode="duration"
         ></app-duration-input>
       </div>
 

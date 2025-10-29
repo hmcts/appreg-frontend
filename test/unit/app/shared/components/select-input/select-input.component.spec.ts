@@ -84,9 +84,13 @@ describe('SelectInputComponent', () => {
     );
   });
 
-  it('treats "choose" sentinel as invalid when submitted', () => {
-    component.label = 'Court';
-    component.value = 'choose';
+  it('treats empty sentinel as invalid when submitted', () => {
+    component.idPrefix = 'my-select';
+    component.options = [
+      { value: '', label: 'Choose…' },
+      { value: 'A', label: 'A' },
+    ];
+    component.value = '';
     component.submitted = true;
     fixture.detectChanges();
     expect(getError()).toBeTruthy();
@@ -115,13 +119,19 @@ describe('SelectInputComponent', () => {
   });
 
   it('computes aria-describedby correctly: hint + error', () => {
+    component.idPrefix = 'my-select';
     component.hint = 'Pick one';
+    component.options = [
+      { value: '', label: 'Choose…' },
+      { value: 'A', label: 'A' },
+    ];
+    component.value = ''; // keep invalid
     component.submitted = true;
-    component.value = 'choose'; // invalid
     fixture.detectChanges();
 
-    const describedBy = getSelect().getAttribute('aria-describedby');
-    expect(describedBy).toBe('my-select-hint my-select-error');
+    expect(getSelect().getAttribute('aria-describedby')).toBe(
+      'my-select-hint my-select-error',
+    );
   });
 
   it('computes aria-describedby correctly: error only (no hint)', () => {

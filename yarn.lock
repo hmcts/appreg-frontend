@@ -306,69 +306,69 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular-eslint/bundled-angular-compiler@npm:20.3.0":
-  version: 20.3.0
-  resolution: "@angular-eslint/bundled-angular-compiler@npm:20.3.0"
-  checksum: 10/b468eee358d54ec78a76f2d69d82b0959a01a4f6619c0892add1da5b0645ddd09f30c239da488213af2275091e54561eb3eb8ba5bd054d68bbd45039cc925e36
+"@angular-eslint/bundled-angular-compiler@npm:20.5.0":
+  version: 20.5.0
+  resolution: "@angular-eslint/bundled-angular-compiler@npm:20.5.0"
+  checksum: 10/bda3dfc167857475486758fed157e614344464907bb849eadc8afe56a849f6aca4b20860b4e7023a842d0d2d070420f14972eeb5f9f18f0176a768a7fb2f6929
   languageName: node
   linkType: hard
 
 "@angular-eslint/eslint-plugin-template@npm:^20.1.1":
-  version: 20.3.0
-  resolution: "@angular-eslint/eslint-plugin-template@npm:20.3.0"
+  version: 20.5.0
+  resolution: "@angular-eslint/eslint-plugin-template@npm:20.5.0"
   dependencies:
-    "@angular-eslint/bundled-angular-compiler": "npm:20.3.0"
-    "@angular-eslint/utils": "npm:20.3.0"
+    "@angular-eslint/bundled-angular-compiler": "npm:20.5.0"
+    "@angular-eslint/utils": "npm:20.5.0"
     aria-query: "npm:5.3.2"
     axobject-query: "npm:4.1.0"
   peerDependencies:
-    "@angular-eslint/template-parser": 20.3.0
+    "@angular-eslint/template-parser": 20.5.0
     "@typescript-eslint/types": ^7.11.0 || ^8.0.0
     "@typescript-eslint/utils": ^7.11.0 || ^8.0.0
     eslint: ^8.57.0 || ^9.0.0
     typescript: "*"
-  checksum: 10/49e6e5fb940c3b3640d5e93c9de37f36f6e4ce0bf55fa1307fcf47957738d4d3843e0eaa8408b36dd213561064ccdf06568a0f50080794d04f8f61c8bde81e6f
+  checksum: 10/92510579382b5116a542c205eed99a41d96d49c237b146268789419effcfa8b776833d2830a2d82de89f13e720cfcdeec8427b6ae4f1056dcb85991881946011
   languageName: node
   linkType: hard
 
 "@angular-eslint/eslint-plugin@npm:^20.1.1":
-  version: 20.3.0
-  resolution: "@angular-eslint/eslint-plugin@npm:20.3.0"
+  version: 20.5.0
+  resolution: "@angular-eslint/eslint-plugin@npm:20.5.0"
   dependencies:
-    "@angular-eslint/bundled-angular-compiler": "npm:20.3.0"
-    "@angular-eslint/utils": "npm:20.3.0"
+    "@angular-eslint/bundled-angular-compiler": "npm:20.5.0"
+    "@angular-eslint/utils": "npm:20.5.0"
     ts-api-utils: "npm:^2.1.0"
   peerDependencies:
     "@typescript-eslint/utils": ^7.11.0 || ^8.0.0
     eslint: ^8.57.0 || ^9.0.0
     typescript: "*"
-  checksum: 10/fc5f001007fbd3f975e3cd6337ac71974fb20d35efa341c9d9be4af03d722bcc4435b5507faed7a380463f59cb955c575a3411b8a8bef66e103ad570cf476bf3
+  checksum: 10/9a76ad9f4f32109ee428e952bdeebbd904c5515cfdd5437a69293ede12396cb636ec1b40d4bd206e8376f6fff5451de8b54e9d20c590edf5fef6228022099105
   languageName: node
   linkType: hard
 
 "@angular-eslint/template-parser@npm:^20.1.1":
-  version: 20.3.0
-  resolution: "@angular-eslint/template-parser@npm:20.3.0"
+  version: 20.5.0
+  resolution: "@angular-eslint/template-parser@npm:20.5.0"
   dependencies:
-    "@angular-eslint/bundled-angular-compiler": "npm:20.3.0"
+    "@angular-eslint/bundled-angular-compiler": "npm:20.5.0"
     eslint-scope: "npm:^8.0.2"
   peerDependencies:
     eslint: ^8.57.0 || ^9.0.0
     typescript: "*"
-  checksum: 10/665b7b6e44e5c4ab29902749162702f17b74caad9f02a76caaebfe90a5b9e40c7c758d0a202b2af4a29f48e878eed47105ab9b76f677d35b79880936299ed6f4
+  checksum: 10/0aa8c7b055c308abc7f09657e539ac07582c6610f04c5e8dfdeda66887e1c24c222f7b48cdbf2082eb656b94a66641219d673a324506b4cb3bfdcf6311799250
   languageName: node
   linkType: hard
 
-"@angular-eslint/utils@npm:20.3.0":
-  version: 20.3.0
-  resolution: "@angular-eslint/utils@npm:20.3.0"
+"@angular-eslint/utils@npm:20.5.0":
+  version: 20.5.0
+  resolution: "@angular-eslint/utils@npm:20.5.0"
   dependencies:
-    "@angular-eslint/bundled-angular-compiler": "npm:20.3.0"
+    "@angular-eslint/bundled-angular-compiler": "npm:20.5.0"
   peerDependencies:
     "@typescript-eslint/utils": ^7.11.0 || ^8.0.0
     eslint: ^8.57.0 || ^9.0.0
     typescript: "*"
-  checksum: 10/1cc8352805c41883beac0bf27aa867552196403286545d26aa1ba6a5b6d46693ac3aecd84dd00b13a2dae6ed3135b8709f1dae34dba54f68c96e9e5baae48195
+  checksum: 10/9c01be039d7fb2d8e4dc4b3cca3734c69658d1650c1021d32f5d947dbebace3c14a3caab251c61b83f92d96ba2fc324de88d8347d407890200f4f0bcb6d6a25c
   languageName: node
   linkType: hard
 
@@ -872,14 +872,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@azure/msal-common@npm:15.13.1":
+  version: 15.13.1
+  resolution: "@azure/msal-common@npm:15.13.1"
+  checksum: 10/463479c32ad2df420871d0170e2a9272d3bd02dae32d431e37f740dee53782160bc40037163b81833b498b99f7ba00d9a62446113e6267bdbd30dc17a3232971
+  languageName: node
+  linkType: hard
+
 "@azure/msal-node@npm:^3.5.0, @azure/msal-node@npm:^3.7.1":
-  version: 3.8.0
-  resolution: "@azure/msal-node@npm:3.8.0"
+  version: 3.8.1
+  resolution: "@azure/msal-node@npm:3.8.1"
   dependencies:
-    "@azure/msal-common": "npm:15.13.0"
+    "@azure/msal-common": "npm:15.13.1"
     jsonwebtoken: "npm:^9.0.0"
     uuid: "npm:^8.3.0"
-  checksum: 10/d37f45d9647c07c3032ecdb99f0edbcd83a070fe14ce23a7f42bfb5f281c70aff60cab4d70f5a254ba9fb44e00163468113b76f375975209f2823536948b567d
+  checksum: 10/952deebd85a1d7eb5c6affdc47f56e738dbd4be7ca086b12316776e62215f7ed0d2c804bac41744a3d51fff72871baa2b7f23817bc811aa3f7581aa7532ddea8
   languageName: node
   linkType: hard
 
@@ -1353,13 +1360,13 @@ __metadata:
   linkType: hard
 
 "@bahmutov/cypress-esbuild-preprocessor@npm:^2.2.5":
-  version: 2.2.6
-  resolution: "@bahmutov/cypress-esbuild-preprocessor@npm:2.2.6"
+  version: 2.2.7
+  resolution: "@bahmutov/cypress-esbuild-preprocessor@npm:2.2.7"
   dependencies:
     debug: "npm:4.4.3"
   peerDependencies:
     esbuild: ">=0.17.0"
-  checksum: 10/733218434dc6d8b0448f0d39cb7520c5d894482a4b891573416c834db0bdb99f631a1b88a6dacfac0f978f0db363399222c518abd5df07cba0ff033c8fac96e3
+  checksum: 10/a36074788cbbf9f1c4eaf3d00f9f30f44d9bd485193b69708de10afe8f8a5bce86e12c1aca1cf373c82957a217924e1f8f9df2326195ed2f959ebef6283fd3e5
   languageName: node
   linkType: hard
 
@@ -3829,8 +3836,8 @@ __metadata:
   linkType: hard
 
 "@openapitools/openapi-generator-cli@npm:^2.23.4":
-  version: 2.24.0
-  resolution: "@openapitools/openapi-generator-cli@npm:2.24.0"
+  version: 2.25.0
+  resolution: "@openapitools/openapi-generator-cli@npm:2.25.0"
   dependencies:
     "@nestjs/axios": "npm:4.0.1"
     "@nestjs/common": "npm:11.1.6"
@@ -3851,7 +3858,7 @@ __metadata:
     tslib: "npm:2.8.1"
   bin:
     openapi-generator-cli: main.js
-  checksum: 10/8ed80521926fe1ffd15f8e002f9e3b23f4327aedfd85c63e99decfbe515e4ef4a6e2e432afcc0e14c087a8a69a62d27c146faf2a6a59f025949bb1783a559e20
+  checksum: 10/6456debc95accaded1a85517634fc9cc61bd517ebe45d45f6a138de8d1fe11e100ec5a09c1e3607acb7469398625169fe52035550f8e32e61893cd9c537b402c
   languageName: node
   linkType: hard
 
@@ -4447,15 +4454,15 @@ __metadata:
   linkType: hard
 
 "@redocly/cli@npm:^2.1.4":
-  version: 2.7.0
-  resolution: "@redocly/cli@npm:2.7.0"
+  version: 2.8.0
+  resolution: "@redocly/cli@npm:2.8.0"
   dependencies:
     "@opentelemetry/exporter-trace-otlp-http": "npm:0.202.0"
     "@opentelemetry/resources": "npm:2.0.1"
     "@opentelemetry/sdk-trace-node": "npm:2.0.1"
     "@opentelemetry/semantic-conventions": "npm:1.34.0"
-    "@redocly/openapi-core": "npm:2.7.0"
-    "@redocly/respect-core": "npm:2.7.0"
+    "@redocly/openapi-core": "npm:2.8.0"
+    "@redocly/respect-core": "npm:2.8.0"
     abort-controller: "npm:^3.0.0"
     chokidar: "npm:^3.5.1"
     colorette: "npm:^1.2.0"
@@ -4479,7 +4486,7 @@ __metadata:
   bin:
     openapi: bin/cli.js
     redocly: bin/cli.js
-  checksum: 10/98cdc63659a0578b607924b279fd8b7dffaadd1bc2767bc1c54f92d1548ea67b42149cdd0c88e7842ced4b64a64fdd439c02d0b92c13de56458a8eb9861cb165
+  checksum: 10/20dd3d6b2fc8dddb2b011ab0d250f745332c748232d362009a9e3cbdad1db7ce511696beef88b1106904edc03228aab134cc53090681c444a95f48bc1b3bd8d4
   languageName: node
   linkType: hard
 
@@ -4499,9 +4506,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@redocly/openapi-core@npm:2.7.0":
-  version: 2.7.0
-  resolution: "@redocly/openapi-core@npm:2.7.0"
+"@redocly/openapi-core@npm:2.8.0":
+  version: 2.8.0
+  resolution: "@redocly/openapi-core@npm:2.8.0"
   dependencies:
     "@redocly/ajv": "npm:^8.11.2"
     "@redocly/config": "npm:^0.31.0"
@@ -4512,7 +4519,7 @@ __metadata:
     picomatch: "npm:^4.0.3"
     pluralize: "npm:^8.0.0"
     yaml-ast-parser: "npm:0.0.43"
-  checksum: 10/db4df118b17f1da8e153cab1aaf277c4034961925301c78a8cb93c63c0b30c57bcfbd380a07152c55c240838c3b1054cd121d4e037522fadd0a6d1f66f71a5e6
+  checksum: 10/1f81796bfc5acbb5aab52201ac44ea073a22d610a00f761a9524b6277f98f0ba40288b6b5f82cd4ad3710c7d77c030463dbe1c4118e78fa9642d7c61134dbf78
   languageName: node
   linkType: hard
 
@@ -4533,21 +4540,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@redocly/respect-core@npm:2.7.0":
-  version: 2.7.0
-  resolution: "@redocly/respect-core@npm:2.7.0"
+"@redocly/respect-core@npm:2.8.0":
+  version: 2.8.0
+  resolution: "@redocly/respect-core@npm:2.8.0"
   dependencies:
     "@faker-js/faker": "npm:^7.6.0"
     "@noble/hashes": "npm:^1.8.0"
     "@redocly/ajv": "npm:8.11.2"
-    "@redocly/openapi-core": "npm:2.7.0"
+    "@redocly/openapi-core": "npm:2.8.0"
     better-ajv-errors: "npm:^1.2.0"
     colorette: "npm:^2.0.20"
     json-pointer: "npm:^0.6.2"
     jsonpath-rfc9535: "npm:1.3.0"
     openapi-sampler: "npm:^1.6.1"
     outdent: "npm:^0.8.0"
-  checksum: 10/ca78946f08d4d93f1e47988e0047dfdeae34b1828f654fac4704105c53c5e4bb68a10fb2704b015399fd28f5d60fb15154dd5fe9be39b18c2343c6eb7b57c922
+  checksum: 10/ec014232d1224be5bce094f2b57c9db302c62e077086584c3a62a37868d35c58ec86056484f0f814c16c94166695eebf7df64a992ae76365b1e6e1580ed68568
   languageName: node
   linkType: hard
 
@@ -5146,11 +5153,11 @@ __metadata:
   linkType: hard
 
 "@types/cookie-parser@npm:^1":
-  version: 1.4.9
-  resolution: "@types/cookie-parser@npm:1.4.9"
+  version: 1.4.10
+  resolution: "@types/cookie-parser@npm:1.4.10"
   peerDependencies:
     "@types/express": "*"
-  checksum: 10/6192a4899b5412a4c3be0f47158321aef73a4cd7e7a4f7b2a37e2e1045f11a21209681cb1bc5335f250ee2a6ce64d8a3fefb851181a98e6415d3716ef9ed1f62
+  checksum: 10/1f37b5a4115dbfd4b7bbea2d874fbf9495eca8c3e8c87fa7e38c50f9fff66222377c911cfdc7a1ea08855e822919c5534ebbcc4bf25b596bc6f7270e403483d9
   languageName: node
   linkType: hard
 
@@ -5190,13 +5197,13 @@ __metadata:
   linkType: hard
 
 "@types/express@npm:*, @types/express@npm:^5.0.1":
-  version: 5.0.3
-  resolution: "@types/express@npm:5.0.3"
+  version: 5.0.4
+  resolution: "@types/express@npm:5.0.4"
   dependencies:
     "@types/body-parser": "npm:*"
     "@types/express-serve-static-core": "npm:^5.0.0"
     "@types/serve-static": "npm:*"
-  checksum: 10/bb6f10c14c8e3cce07f79ee172688aa9592852abd7577b663cd0c2054307f172c2b2b36468c918fed0d4ac359b99695807b384b3da6157dfa79acbac2226b59b
+  checksum: 10/0a07540b8220d0ebeeaca3afad96b6541d815e36f204c9fac202dd4c59fc545ffabea46df2c02f44276c00adbfccb7bb7a98f877cea4aebb0f9f8d4502447fec
   languageName: node
   linkType: hard
 
@@ -18653,9 +18660,9 @@ __metadata:
   linkType: hard
 
 "validator@npm:^13.6.0":
-  version: 13.15.15
-  resolution: "validator@npm:13.15.15"
-  checksum: 10/a43d9271c879468b1ad6dd5d2597b71719a185d2c7ceb3d68f3c9c8c17c25af0d90a53edfa7efaa6ac0d4425ba0345684b9c7d8111bde0d06d915a634a287018
+  version: 13.15.20
+  resolution: "validator@npm:13.15.20"
+  checksum: 10/498f9b201dda7b09207bbc13606e6f90595987eab9e3a60fc5b8d8d96141c9351192aea56d392c78640e2462770eedccf545cf13b2ef43e87d73a755ba485c5d
   languageName: node
   linkType: hard
 

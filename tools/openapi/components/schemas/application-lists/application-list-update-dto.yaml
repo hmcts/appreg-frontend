@@ -29,16 +29,21 @@ properties:
   status:
     $ref: './application-list-status.yaml'
 
-  courtLocation:
-    $ref: '../court-locations/court-location-get-detail-dto.yaml'
 
   otherLocationDescription:
     type: string
     description: Free-text location if not using a standard court.
     example: "Temporary Courtroom at Town Hall"
 
-  criminalJusticeArea:
-    $ref: '../criminal-justice-areas/criminal-justice-area-get-dto.yaml'
+  courtLocationCode:
+    type: string
+    description: Code that identifies the Court Location.
+    example: "LOC123"
+
+  cjaCode:
+    type: string
+    description: Criminal Justice Area code.
+    example: "CJA001"
 
   durationHours:
     type: integer

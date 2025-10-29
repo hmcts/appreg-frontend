@@ -26,6 +26,6 @@ export function normaliseTime(t: string | null | undefined): string {
     return '';
   }
 
-  const m = t.match(/^(\d{2}):(\d{2})(?::(\d{2}))?/);
+  const m = new RegExp(/^(\d{2}):(\d{2})(?::(\d{2}))?/).exec(t);
   return m ? `${m[1]}:${m[2]}` : '';
 }
