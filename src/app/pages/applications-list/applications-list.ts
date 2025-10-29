@@ -348,7 +348,7 @@ export class ApplicationsList implements OnInit, AfterViewInit, OnDestroy {
       }
 
       if (isPlatformBrowser(this.platformId)) {
-        await this.pdf.generateApplicationListPdf(dto, {
+        await this.pdf.generatePagedApplicationListPdf(dto, {
           crestUrl: '/assets/govuk-crest.png',
         });
       }
@@ -362,7 +362,60 @@ export class ApplicationsList implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  onPrintContinuous(): void {}
+  async onPrintContinuous(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    this.clearErrors();
+
+    const ids = this.rows
+      .map((r) => r.id)
+      .filter((x): x is string => Boolean(x));
+    if (!ids.length) {
+      this.showInline('No lists to print');
+      return;
+    }
+
+    const hasEntries = (x: unknown): x is { entries: unknown[] } => {
+      if (!x || typeof x !== 'object') {
+        return false;
+      }
+      const entries = (x as Record<string, unknown>)['entries'];
+      return Array.isArray(entries) && entries.length > 0;
+    };
+
+    try {
+      const settled = await Promise.allSettled(
+        ids.map((id) =>
+          firstValueFrom(
+            this.appListsApi.printApplicationList(
+              { id },
+              undefined,
+              undefined,
+              { transferCache: false },
+            ),
+          ),
+        ),
+      );
+
+      const dtos: unknown[] = [];
+      for (const res of settled) {
+        if (res.status === 'fulfilled' && hasEntries(res.value)) {
+          dtos.push(res.value);
+        }
+      }
+
+      if (!dtos.length) {
+        this.showInline('No entries available to print');
+        return;
+      }
+
+      await this.pdf.generateContinuousApplicationListsPdf(dtos);
+    } catch {
+      this.showInline('Unable to generate PDF. Please try again later');
+    }
+  }
 
   private afterRowsRendered(): void {
     setTimeout(() => {

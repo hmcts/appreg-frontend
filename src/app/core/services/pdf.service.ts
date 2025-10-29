@@ -8,18 +8,21 @@ interface PdfList {
   entries: {
     applicant?: string;
     respondent?: string;
-    code?: string;
-    description?: string;
+    applicationCode?: string;
+    applicationDescription?: string;
     matter?: string;
     result?: string;
     judge?: string;
     date?: string;
+    caseReference?: string;
+    accountReference?: string;
+    notes?: string;
   }[];
 }
 
 @Injectable({ providedIn: 'root' })
 export class PdfService {
-  async generateApplicationListPdf(
+  async generatePagedApplicationListPdf(
     dto: unknown,
     opts?: { crestUrl?: string },
   ): Promise<void> {
@@ -193,10 +196,11 @@ export class PdfService {
       hr(y);
       y += 24;
 
-      const heading = this.fallbackText(e.description || e.matter);
+      const heading = this.fallbackText(e.applicationDescription || e.matter);
       writeLabelValue('Matter considered', heading);
-      if (e.code?.trim()) {
-        writeLabelValue(e.code, this.fallbackText(e.result));
+
+      if (e.applicationCode?.trim()) {
+        writeLabelValue(e.applicationCode, this.fallbackText(e.result));
       }
 
       ensureSpace(36);
@@ -211,6 +215,255 @@ export class PdfService {
     const courtPart = this.fileSafe(data.courtName) || 'court';
     const datePart = this.dateForFile(data.listDate);
     doc.save(`${courtPart}-${datePart}.pdf`);
+  }
+
+  async generateContinuousApplicationListsPdf(dtos: unknown[]): Promise<void> {
+    const dataArr = dtos.map((d) => this.normalise(d));
+
+    const jsPDFMod = await import('jspdf');
+    const { jsPDF } = jsPDFMod;
+
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'pt',
+      format: 'a4',
+    });
+
+    // --- page metrics ---
+    const M = 40; // outer margin
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+
+    // 2-column grid
+    const COL_GAP = 28;
+    const GRID_W = pageW - 2 * M;
+    const COL_W = Math.floor((GRID_W - COL_GAP) / 2);
+    const COL1_X = M;
+    const COL2_X = M + COL_W + COL_GAP;
+
+    // Inside each column: label+value
+    const IN_LABEL_W = 120;
+    const IN_GAP = 10;
+
+    // Footer reserve
+    const FOOTER_GUTTER = 40;
+    const BOTTOM = pageH - M - FOOTER_GUTTER;
+
+    // Type ramp
+    const TITLE_FS = 20;
+    const LABEL_FS = 12;
+    const VALUE_FS = 12;
+
+    // Text helpers
+    const lines = (text: string, width: number): string[] => {
+      const raw: unknown = doc.splitTextToSize(text, width);
+      if (typeof raw === 'string') {
+        return [raw];
+      }
+      if (Array.isArray(raw)) {
+        return (raw as unknown[]).filter(
+          (x): x is string => typeof x === 'string',
+        );
+      }
+      return [''];
+    };
+
+    const hr = (yy: number): void => {
+      doc.setLineWidth(0.7);
+      doc.line(M, yy, pageW - M, yy);
+    };
+
+    let y = 0;
+    let pageNo = 0;
+
+    const drawHeader = (): void => {
+      pageNo += 1;
+
+      // Title
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(TITLE_FS);
+      doc.text('Check List Report', M, M + TITLE_FS);
+
+      // Page number on the right
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(LABEL_FS + 1);
+      doc.text(`Page ${pageNo}`, pageW - M, M + TITLE_FS, { align: 'right' });
+
+      // Space under header
+      y = M + TITLE_FS + 18;
+    };
+
+    const ensureSpace = (needed: number): void => {
+      if (y + needed <= BOTTOM) {
+        return;
+      }
+      doc.addPage();
+      drawHeader();
+    };
+
+    const drawTwoColRow = (
+      leftLabel: string,
+      leftValue: string,
+      rightLabel: string,
+      rightValue: string,
+      spacing = 14,
+    ): void => {
+      // LEFT column
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(LABEL_FS);
+      const leftLabelLines = lines(leftLabel, IN_LABEL_W);
+      const leftLabelH = leftLabelLines.length * (LABEL_FS + 2);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(VALUE_FS);
+      const leftValLines = lines(leftValue, COL_W - IN_LABEL_W - IN_GAP);
+      const leftValH = leftValLines.length * (VALUE_FS + 4);
+
+      // RIGHT column
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(LABEL_FS);
+      const rightLabelLines = lines(rightLabel, IN_LABEL_W);
+      const rightLabelH = rightLabelLines.length * (LABEL_FS + 2);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(VALUE_FS);
+      const rightValLines = lines(rightValue, COL_W - IN_LABEL_W - IN_GAP);
+      const rightValH = rightValLines.length * (VALUE_FS + 4);
+
+      const blockH = Math.max(leftLabelH, leftValH, rightLabelH, rightValH);
+      ensureSpace(blockH);
+
+      // Render LEFT
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(LABEL_FS);
+      doc.text(leftLabelLines, COL1_X, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(VALUE_FS);
+      doc.text(leftValLines, COL1_X + IN_LABEL_W + IN_GAP, y);
+
+      // Render RIGHT
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(LABEL_FS);
+      doc.text(rightLabelLines, COL2_X, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(VALUE_FS);
+      doc.text(rightValLines, COL2_X + IN_LABEL_W + IN_GAP, y);
+
+      y += blockH + spacing;
+    };
+
+    const drawFullRow = (label: string, value: string, spacing = 14): void => {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(LABEL_FS);
+      const labLines = lines(label, IN_LABEL_W);
+      const labH = labLines.length * (LABEL_FS + 2);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(VALUE_FS);
+      const valLines = lines(value, pageW - (COL1_X + IN_LABEL_W + IN_GAP) - M);
+      const valH = valLines.length * (VALUE_FS + 4);
+
+      const blockH = Math.max(labH, valH);
+      ensureSpace(blockH);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(LABEL_FS);
+      doc.text(labLines, COL1_X, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(VALUE_FS);
+      doc.text(valLines, COL1_X + IN_LABEL_W + IN_GAP, y);
+
+      y += blockH + spacing;
+    };
+
+    // Helper to pull "duration" from the raw dto safely without changing your models.
+    const extractDuration = (raw: unknown): string => {
+      const root = this.asObj(raw) ?? {};
+      // support a few likely keys
+      const d =
+        this.asStr(root['duration']) ||
+        this.asStr(root['listDuration']) ||
+        this.asStr(root['hearingDuration']) ||
+        this.asStr(root['sessionDuration']);
+      return d;
+    };
+
+    drawHeader();
+
+    let entryIndex = 0;
+    for (let li = 0; li < dataArr.length; li += 1) {
+      const data = dataArr[li];
+      const raw = dtos[li];
+
+      const dateTime = this.fallbackText(data.listDate || '', '—');
+      const duration = this.fallbackText(extractDuration(raw), '—');
+      const leftLabels = 'Date & Time\nDuration';
+      const leftValues = `${dateTime}\n${duration}`;
+      const location = this.fallbackText(data.courtName || data.location, '—');
+
+      if (entryIndex > 0) {
+        ensureSpace(20);
+        hr(y);
+        y += 14;
+      }
+
+      drawTwoColRow(leftLabels, leftValues, 'Location', location, 18);
+
+      for (const e of data.entries) {
+        entryIndex += 1;
+
+        const applicant = this.fallbackText(e.applicant);
+        const respondent = this.fallbackText(e.respondent);
+        drawTwoColRow(
+          `${entryIndex}. Applicant`,
+          applicant,
+          'Respondent',
+          respondent,
+          16,
+        );
+
+        const leftBlockParts: string[] = [];
+        if (e.caseReference?.trim()) {
+          leftBlockParts.push(`Case Reference: ${e.caseReference.trim()}`);
+        }
+        if (e.applicationCode?.trim()) {
+          leftBlockParts.push(`Application Code: ${e.applicationCode.trim()}`);
+        }
+        const leftBlock = leftBlockParts.join('\n');
+
+        const rightBlockParts: string[] = [];
+        if (e.accountReference?.trim()) {
+          rightBlockParts.push(
+            `Account Reference: ${e.accountReference.trim()}`,
+          );
+        }
+        if (e.applicationDescription?.trim()) {
+          rightBlockParts.push(
+            `Application Title: ${e.applicationDescription.trim()}`,
+          );
+        }
+        const rightBlock = rightBlockParts.join('\n');
+
+        drawTwoColRow('Application', leftBlock || '—', '', rightBlock, 10);
+
+        const result = this.fallbackText(e.result);
+        drawFullRow('Result', result, 18);
+
+        const notes = this.fallbackText(e.notes);
+        drawFullRow('Notes', notes, 22);
+
+        const judges = this.fallbackText(e.judge);
+        drawFullRow('This matter was before', judges, 14);
+      }
+    }
+
+    const uniqueCourts = Array.from(
+      new Set(dataArr.map((d) => this.fileSafe(d.courtName)).filter(Boolean)),
+    );
+    const courtPart =
+      uniqueCourts.length === 1 ? uniqueCourts[0] : 'applications';
+    const datePart = this.dateForFile();
+    doc.save(`${courtPart}-continuous-${datePart}.pdf`);
   }
 
   private normalise(dto: unknown): PdfList {
@@ -240,13 +493,25 @@ export class PdfService {
       const respondent = this.formatParty(x['respondent']);
 
       const applicationCode =
-        this.asStr(x['applicationCode']) || this.asStr(x['code']);
+        this.asStr(x['applicationCode']) || this.asStr(x['applicationCode']);
 
-      const applicationDescription =
-        this.asStr(x['applicationWording']) ||
-        this.asStr(x['applicationTitle']);
+      const applicationTitle = this.asStr(x['applicationTitle']);
+      const applicationWording = this.asStr(x['applicationWording']);
 
-      const matter = applicationDescription || applicationCode;
+      const caseReference =
+        this.asStr(x['caseReference']) ||
+        this.asStr(x['caseRef']) ||
+        this.asStr(x['caseNumber']);
+
+      const accountReference =
+        this.asStr(x['accountReference']) ||
+        this.asStr(x['accountRef']) ||
+        this.asStr(x['accountNumber']);
+
+      const applicationDescription = applicationTitle || '';
+
+      const matter = applicationWording || applicationCode;
+      const notes = this.asStr(x['notes']);
 
       const result = this.asArr(x['resultWordings'])
         .map((v) => this.asStr(v))
@@ -267,8 +532,11 @@ export class PdfService {
         result,
         judge,
         date,
-        code: applicationCode,
-        description: applicationDescription,
+        applicationCode,
+        applicationDescription,
+        caseReference,
+        accountReference,
+        notes,
       };
     });
 
