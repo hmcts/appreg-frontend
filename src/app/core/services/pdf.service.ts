@@ -153,7 +153,7 @@ export class PdfService {
       const labelLines = splitToLines(labelText, LABEL_W);
       const labelH = labelLines.length * 14;
 
-      const valueToUse = valueText && valueText.trim() ? valueText : '—';
+      const valueToUse = valueText?.trim() ? valueText : '—';
       doc.setFont('helvetica', optsLV?.emphasize ? 'bold' : 'normal');
       doc.setFontSize(12);
       const valueLines = splitToLines(valueToUse, RIGHT_W);
@@ -172,8 +172,8 @@ export class PdfService {
       y += Math.max(labelH, valueH) + spacing;
     };
 
-    // Render
-    data.entries.forEach((e, i) => {
+    // Render (use for…of instead of .forEach)
+    for (const [i, e] of data.entries.entries()) {
       if (i === 0) {
         pageTop = drawHeader();
       } else {
@@ -195,7 +195,7 @@ export class PdfService {
 
       const heading = this.fallbackText(e.description || e.matter);
       writeLabelValue('Matter considered', heading);
-      if (e.code && e.code.trim()) {
+      if (e.code?.trim()) {
         writeLabelValue(e.code, this.fallbackText(e.result));
       }
 
@@ -206,7 +206,7 @@ export class PdfService {
       writeLabelValue('This matter was dated before', e.date);
 
       drawFooter();
-    });
+    }
 
     const courtPart = this.fileSafe(data.courtName) || 'court';
     const datePart = this.dateForFile(data.listDate);
@@ -295,10 +295,7 @@ export class PdfService {
         this.cleanPart(name?.['surname']),
       ]).filter(Boolean);
 
-      const full = parts
-        .join(' ')
-        .replace(/[,\s]+$/g, '')
-        .trim();
+      const full = parts.join(' ').trim();
       if (full) {
         return full;
       }
@@ -330,7 +327,8 @@ export class PdfService {
     if (placeholders.has(lower)) {
       return '';
     }
-    return t.replace(/\s+/g, ' ');
+    // Collapse all internal whitespace to single spaces
+    return t.split(/\s+/).join(' ');
   }
 
   /** Titles like "Mr, Mrs" → pick first meaningful token. */
@@ -353,10 +351,8 @@ export class PdfService {
       if (!p) {
         continue;
       }
-      if (
-        out.length === 0 ||
-        out[out.length - 1].toLowerCase() !== p.toLowerCase()
-      ) {
+      const last = out.at(-1);
+      if (!last || last.toLowerCase() !== p.toLowerCase()) {
         out.push(p);
       }
     }
@@ -387,7 +383,7 @@ export class PdfService {
   }
 
   private fallbackText(v?: string, fallback = '—'): string {
-    return v && v.trim().length ? v : fallback;
+    return v?.trim().length ? v : fallback;
   }
 
   private async tryLoadImageAsDataUrl(url: string): Promise<string | null> {
@@ -419,10 +415,12 @@ export class PdfService {
       return '';
     }
     return raw
-      .replace(/\s+/g, ' ')
+      .split(/\s+/)
+      .join(' ')
       .replace(/[^\w\s-]+/g, '')
       .trim()
-      .replace(/\s+/g, '-')
+      .split(/\s+/)
+      .join('-')
       .toLowerCase();
   }
 
