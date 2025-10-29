@@ -1,5 +1,30 @@
 import { Injectable } from '@angular/core';
 
+type JsPDFLike = {
+  splitTextToSize: (text: string, width: number) => string | string[];
+  text: (
+    text: string | string[],
+    x: number,
+    y: number,
+    opts?: { align?: 'left' | 'right' | 'center' },
+  ) => void;
+  setFont: (family: string, style?: string) => void;
+  setFontSize: (size: number) => void;
+  setLineWidth: (w: number) => void;
+  line: (x1: number, y1: number, x2: number, y2: number) => void;
+  internal: { pageSize: { getWidth: () => number; getHeight: () => number } };
+  addPage: () => void;
+  addImage: (
+    dataUrl: string,
+    format: string,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+  ) => void;
+  save: (filename: string) => void;
+};
+
 interface PdfList {
   id: string;
   courtName?: string;
@@ -22,6 +47,10 @@ interface PdfList {
 
 @Injectable({ providedIn: 'root' })
 export class PdfService {
+  /**
+   * Single-entry, paged layout (portrait).
+   * Intentionally mirrors the continuous layout’s typography where sensible.
+   */
   async generatePagedApplicationListPdf(
     dto: unknown,
     opts?: { crestUrl?: string },
@@ -72,6 +101,7 @@ export class PdfService {
       return [''];
     };
 
+    // Preload the crest once and reuse in every header
     let crestDataUrl: string | null = null;
     if (opts?.crestUrl) {
       crestDataUrl = await this.tryLoadImageAsDataUrl(opts.crestUrl);
@@ -217,35 +247,36 @@ export class PdfService {
     doc.save(`${courtPart}-${datePart}.pdf`);
   }
 
+  /**
+   * Multi-entry, continuous layout (landscape).
+   * Uses a two-column grid; labels are short and values wrap.
+   */
   async generateContinuousApplicationListsPdf(dtos: unknown[]): Promise<void> {
     const dataArr = dtos.map((d) => this.normalise(d));
 
     const jsPDFMod = await import('jspdf');
     const { jsPDF } = jsPDFMod;
-
     const doc = new jsPDF({
       orientation: 'landscape',
       unit: 'pt',
       format: 'a4',
-    });
+    }) as unknown as JsPDFLike;
 
-    // --- page metrics ---
+    // --- page metrics (A4 landscape) ---
     const M = 40; // outer margin
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
 
-    // 2-column grid
+    // 2-column grid inside the content area
     const COL_GAP = 28;
     const GRID_W = pageW - 2 * M;
     const COL_W = Math.floor((GRID_W - COL_GAP) / 2);
     const COL1_X = M;
     const COL2_X = M + COL_W + COL_GAP;
 
-    // Inside each column: label+value
-    const IN_LABEL_W = 120;
+    const IN_LABEL_W = 120; // inner label width
     const IN_GAP = 10;
 
-    // Footer reserve
     const FOOTER_GUTTER = 40;
     const BOTTOM = pageH - M - FOOTER_GUTTER;
 
@@ -256,52 +287,26 @@ export class PdfService {
     const LABEL_LEADING = LABEL_FS + 2;
     const VALUE_LEADING = VALUE_FS + 4;
 
-    // Helpers
-    const snap = (yy: number) => Math.round(yy);
-
-    const toLines = (text: string, width: number): string[] => {
-      const t = text.trim();
-      if (!t) {
-        return [];
-      }
-      const raw: unknown = doc.splitTextToSize(t, width);
-      if (typeof raw === 'string') {
-        return raw.trim() ? [raw] : [];
-      }
-      if (Array.isArray(raw)) {
-        return (raw as unknown[])
-          .filter((x): x is string => typeof x === 'string')
-          .map((s) => s.trim())
-          .filter(Boolean);
-      }
-      return [];
-    };
-
-    const hr = (yy: number): void => {
-      const yLine = snap(yy);
-      doc.setLineWidth(0.7);
-      doc.line(M, yLine, pageW - M, yLine);
-    };
-
     let y = 0;
     let pageNo = 0;
+
+    const hr = (yy: number) => this.drawHr(doc, Math.round(yy), M, pageW);
 
     const drawHeader = (): void => {
       pageNo += 1;
 
-      // Title
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(TITLE_FS);
-      doc.text('Check List Report', M, snap(M + TITLE_FS));
+      doc.text('Check List Report', M, Math.round(M + TITLE_FS));
 
-      // Page number on the right
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(LABEL_FS + 1);
-      doc.text(`Page ${pageNo}`, pageW - M, snap(M + TITLE_FS), {
+      doc.text(`Page ${pageNo}`, pageW - M, Math.round(M + TITLE_FS), {
         align: 'right',
       });
 
-      y = snap(M + TITLE_FS + 18);
+      // A bit of air below the header so the first row isn’t cramped.
+      y = Math.round(M + TITLE_FS + 18);
     };
 
     const ensureSpace = (needed: number): void => {
@@ -312,24 +317,6 @@ export class PdfService {
       drawHeader();
     };
 
-    const drawTextBlock = (
-      linesArr: string[],
-      x: number,
-      baseY: number,
-      fs: number,
-      leading: number,
-    ) => {
-      if (!linesArr.length) {
-        return 0;
-      }
-      doc.setFontSize(fs);
-      linesArr.forEach((ln, idx) => {
-        const yy = snap(baseY + idx * leading);
-        doc.text(ln, x, yy);
-      });
-      return linesArr.length * leading;
-    };
-
     const drawTwoColRow = (
       leftLabel: string,
       leftValue: string,
@@ -338,12 +325,20 @@ export class PdfService {
       spacing = 14,
     ): void => {
       doc.setFont('helvetica', 'bold');
-      const leftLabelLines = toLines(leftLabel, IN_LABEL_W);
-      const rightLabelLines = toLines(rightLabel, IN_LABEL_W);
+      const leftLabelLines = this.toLines(doc, leftLabel, IN_LABEL_W);
+      const rightLabelLines = this.toLines(doc, rightLabel, IN_LABEL_W);
 
       doc.setFont('helvetica', 'normal');
-      const leftValLines = toLines(leftValue, COL_W - IN_LABEL_W - IN_GAP);
-      const rightValLines = toLines(rightValue, COL_W - IN_LABEL_W - IN_GAP);
+      const leftValLines = this.toLines(
+        doc,
+        leftValue,
+        COL_W - IN_LABEL_W - IN_GAP,
+      );
+      const rightValLines = this.toLines(
+        doc,
+        rightValue,
+        COL_W - IN_LABEL_W - IN_GAP,
+      );
 
       const leftH = Math.max(
         leftLabelLines.length * LABEL_LEADING,
@@ -357,51 +352,55 @@ export class PdfService {
 
       ensureSpace(blockH);
 
-      const leftColumnTop = y;
+      // LEFT column
       doc.setFont('helvetica', 'bold');
-      drawTextBlock(
+      this.drawTextBlock(
+        doc,
         leftLabelLines,
         COL1_X,
-        leftColumnTop,
+        y,
         LABEL_FS,
         LABEL_LEADING,
       );
       doc.setFont('helvetica', 'normal');
-      drawTextBlock(
+      this.drawTextBlock(
+        doc,
         leftValLines,
         COL1_X + IN_LABEL_W + IN_GAP,
-        leftColumnTop,
+        y,
         VALUE_FS,
         VALUE_LEADING,
       );
 
-      const rightColumnTop = y;
+      // RIGHT column
       doc.setFont('helvetica', 'bold');
-      drawTextBlock(
+      this.drawTextBlock(
+        doc,
         rightLabelLines,
         COL2_X,
-        rightColumnTop,
+        y,
         LABEL_FS,
         LABEL_LEADING,
       );
-
       doc.setFont('helvetica', 'normal');
-      drawTextBlock(
+      this.drawTextBlock(
+        doc,
         rightValLines,
         COL2_X + IN_LABEL_W + IN_GAP,
-        rightColumnTop,
+        y,
         VALUE_FS,
         VALUE_LEADING,
       );
 
-      y = snap(y + blockH + spacing);
+      y = Math.round(y + blockH + spacing);
     };
 
     const drawFullRow = (label: string, value: string, spacing = 14): void => {
       doc.setFont('helvetica', 'bold');
-      const labLines = toLines(label, IN_LABEL_W);
+      const labLines = this.toLines(doc, label, IN_LABEL_W);
       doc.setFont('helvetica', 'normal');
-      const valLines = toLines(
+      const valLines = this.toLines(
+        doc,
         value,
         pageW - (COL1_X + IN_LABEL_W + IN_GAP) - M,
       );
@@ -410,14 +409,13 @@ export class PdfService {
         labLines.length * LABEL_LEADING,
         valLines.length * VALUE_LEADING,
       );
-
       ensureSpace(blockH);
 
       doc.setFont('helvetica', 'bold');
-      drawTextBlock(labLines, COL1_X, y, LABEL_FS, LABEL_LEADING);
-
+      this.drawTextBlock(doc, labLines, COL1_X, y, LABEL_FS, LABEL_LEADING);
       doc.setFont('helvetica', 'normal');
-      drawTextBlock(
+      this.drawTextBlock(
+        doc,
         valLines,
         COL1_X + IN_LABEL_W + IN_GAP,
         y,
@@ -425,18 +423,10 @@ export class PdfService {
         VALUE_LEADING,
       );
 
-      y = snap(y + blockH + spacing);
+      y = Math.round(y + blockH + spacing);
     };
 
-    const extractDuration = (raw: unknown): string => {
-      const root = this.asObj(raw) ?? {};
-      return (
-        this.asStr(root['duration']) ||
-        this.asStr(root['listDuration']) ||
-        this.asStr(root['hearingDuration']) ||
-        this.asStr(root['sessionDuration'])
-      );
-    };
+    const extractDuration = (raw: unknown): string => this.extractDuration(raw);
 
     drawHeader();
 
@@ -445,6 +435,7 @@ export class PdfService {
       const data = dataArr[li];
       const raw = dtos[li];
 
+      // Top meta row (LEFT: Date & Time + Duration; RIGHT: Location)
       const dateTime = this.fallbackText(data.listDate || '', '—');
       const duration = this.fallbackText(extractDuration(raw), '—');
       const leftLabels = 'Date & Time\nDuration';
@@ -454,7 +445,7 @@ export class PdfService {
       if (entryIndex > 0) {
         ensureSpace(20);
         hr(y);
-        y = snap(y + 14);
+        y = Math.round(y + 14);
       }
 
       drawTwoColRow(leftLabels, leftValues, 'Location', location, 18);
@@ -473,13 +464,13 @@ export class PdfService {
           16,
         );
 
+        // Application (left/right blocks)
         const leftBlockParts: string[] = [];
         if (e.caseReference?.trim()) {
           leftBlockParts.push(`Case Reference: ${e.caseReference.trim()}`);
         }
-        const codeText = e.applicationCode;
-        if (typeof codeText === 'string' && codeText.trim()) {
-          leftBlockParts.push(`Application Code: ${codeText.trim()}`);
+        if (e.applicationCode?.trim()) {
+          leftBlockParts.push(`Application Code: ${e.applicationCode.trim()}`);
         }
         const leftBlock = leftBlockParts.join('\n');
 
@@ -489,9 +480,10 @@ export class PdfService {
             `Account Reference: ${e.accountReference.trim()}`,
           );
         }
-        const descText = e.applicationDescription;
-        if (typeof descText === 'string' && descText.trim()) {
-          rightBlockParts.push(`Application Title: ${descText.trim()}`);
+        if (e.applicationDescription?.trim()) {
+          rightBlockParts.push(
+            `Application Title: ${e.applicationDescription.trim()}`,
+          );
         }
         const rightBlock = rightBlockParts.join('\n');
 
@@ -520,6 +512,71 @@ export class PdfService {
     doc.save(`${courtPart}-continuous-${datePart}.pdf`);
   }
 
+  // -------------------- Shared helpers (extracted to remove duplication) --------------------
+
+  /** Consistent splitting; trims and filters empties. */
+  private toLines(doc: JsPDFLike, text: string, width: number): string[] {
+    const t = (text ?? '').trim();
+    if (!t) {
+      return [];
+    }
+    const raw: unknown = doc.splitTextToSize(t, width);
+    if (typeof raw === 'string') {
+      return raw.trim() ? [raw] : [];
+    }
+    if (Array.isArray(raw)) {
+      return (raw as unknown[])
+        .filter((x): x is string => typeof x === 'string')
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+    return [];
+  }
+
+  /** Draw a vertical stack of lines with a given leading. Returns block height. */
+  private drawTextBlock(
+    doc: JsPDFLike,
+    linesArr: string[],
+    x: number,
+    baseY: number,
+    fs: number,
+    leading: number,
+  ): number {
+    if (!linesArr.length) {
+      return 0;
+    }
+    doc.setFontSize(fs);
+    linesArr.forEach((ln, idx) => {
+      const yy = Math.round(baseY + idx * leading);
+      doc.text(ln, x, yy);
+    });
+    return linesArr.length * leading;
+  }
+
+  /** Thin horizontal rule with standard line width. */
+  private drawHr(
+    doc: JsPDFLike,
+    y: number,
+    marginX: number,
+    pageW: number,
+  ): void {
+    doc.setLineWidth(0.7);
+    doc.line(marginX, y, pageW - marginX, y);
+  }
+
+  /** Duration extraction used by the continuous layout. */
+  private extractDuration(raw: unknown): string {
+    const root = this.asObj(raw) ?? {};
+    return (
+      this.asStr(root['duration']) ||
+      this.asStr(root['listDuration']) ||
+      this.asStr(root['hearingDuration']) ||
+      this.asStr(root['sessionDuration'])
+    );
+  }
+
+  // -------------------- Mapping helpers --------------------
+
   private normalise(dto: unknown): PdfList {
     const root = this.asObj(dto) ?? {};
 
@@ -546,8 +603,9 @@ export class PdfService {
       const applicant = this.formatParty(x['applicant']);
       const respondent = this.formatParty(x['respondent']);
 
+      // Fallback to "code" if applicationCode is absent (bugfix).
       const applicationCode =
-        this.asStr(x['applicationCode']) || this.asStr(x['applicationCode']);
+        this.asStr(x['applicationCode']) || this.asStr(x['code']);
 
       const applicationTitle = this.asStr(x['applicationTitle']);
       const applicationWording = this.asStr(x['applicationWording']);
@@ -563,7 +621,6 @@ export class PdfService {
         this.asStr(x['accountNumber']);
 
       const applicationDescription = applicationTitle || '';
-
       const matter = applicationWording || applicationCode;
       const notes = this.asStr(x['notes']);
 
@@ -608,7 +665,7 @@ export class PdfService {
     if (person) {
       const name =
         this.asObj(person['name']) ?? this.asObj(person['full-name']) ?? {};
-
+      // Assemble the usual suspects; trim out placeholder tokens.
       const parts = this.dedupeParts([
         this.firstTitleToken(name?.['title']),
         this.cleanPart(name?.['firstForename'] ?? name?.['forename']),
@@ -649,7 +706,7 @@ export class PdfService {
     if (placeholders.has(lower)) {
       return '';
     }
-    // Collapse all internal whitespace to single spaces
+    // Collapse internal whitespace to single spaces; this reads better in PDF cells.
     return t.split(/\s+/).join(' ');
   }
 
