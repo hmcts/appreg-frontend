@@ -421,6 +421,10 @@ export class ApplicationsList implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  protected isOpen(row: ApplicationListRow): boolean {
+    return (row.status ?? '').toLowerCase() === 'open';
+  }
+
   private afterRowsRendered(): void {
     setTimeout(() => {
       void this.initMojMenus();
