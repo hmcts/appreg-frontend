@@ -1,7 +1,8 @@
-import express from 'express';
-import path from 'node:path';
-import history from 'connect-history-api-fallback';
 import type { Server } from 'node:http';
+import path from 'node:path';
+
+import history from 'connect-history-api-fallback';
+import express from 'express';
 
 const DIST_DIR = path.resolve('dist/appreg-frontend/browser');
 
