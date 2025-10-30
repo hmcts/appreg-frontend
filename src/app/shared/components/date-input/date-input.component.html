@@ -68,7 +68,7 @@
               maxlength="2"
               autocomplete="off"
               spellcheck="false"
-              [attr.aria-invalid]="ariaInvalid('day', submitted)"
+              [attr.aria-invalid]="submitted ? ariaInvalidAfterSubmit('day') : ariaInvalidLive('day')"
               formControlName="day"
             />
           </div>
@@ -93,7 +93,7 @@
               maxlength="2"
               autocomplete="off"
               spellcheck="false"
-              [attr.aria-invalid]="ariaInvalid('month', submitted)"
+              [attr.aria-invalid]="submitted ? ariaInvalidAfterSubmit('day') : ariaInvalidLive('day')"
               formControlName="month"
             />
           </div>
@@ -118,7 +118,7 @@
               maxlength="4"
               autocomplete="off"
               spellcheck="false"
-              [attr.aria-invalid]="ariaInvalid('year', submitted)"
+              [attr.aria-invalid]="submitted ? ariaInvalidAfterSubmit('day') : ariaInvalidLive('day')"
               formControlName="year"
             />
           </div>
