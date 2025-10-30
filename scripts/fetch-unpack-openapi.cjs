@@ -19,7 +19,7 @@ function envOr(k, d) {
   return Object.hasOwn(process.env, k) ? process.env[k] : d;
 }
 
-const SPEC_VERSION = envOr('SPEC_VERSION', '0.0.2');
+const SPEC_VERSION = envOr('SPEC_VERSION', '0.1.2');
 const POM = envOr('OPENAPI_POM', 'tools/openapi/pom.xml');
 const OUT_DIR = envOr('OUT_DIR', 'tools/openapi/vendor/openapi');
 const DEST_JAR = envOr('DEST_JAR', path.join(OUT_DIR, 'openapi.jar'));
@@ -29,6 +29,9 @@ async function ensureDir(p) {
 }
 
 function runMaven() {
+  /* 
+  Using tools/openapi/pom.xml, download openapi.jar
+  */
   const args = ['-q', '-f', POM, `-Dspec.version=${SPEC_VERSION}`, 'validate'];
   const res = spawnSync('mvn', args, { stdio: ['ignore', 'pipe', 'pipe'] });
   if (res.status !== 0) {
@@ -39,7 +42,10 @@ function runMaven() {
   process.stdout.write('[ok] Maven fetch completed\n');
 }
 
-function verifyAndUnpack() {
+async function verifyAndUnpack() {
+  /* 
+  Unpack downloaded Jar file
+  */
   if (!fs.existsSync(DEST_JAR)) {
     process.stderr.write(`[error] Expected jar not found: ${DEST_JAR}\n`);
     process.exit(1);
@@ -56,14 +62,33 @@ function verifyAndUnpack() {
   }
   zip.extractAllTo(OUT_DIR, true);
   process.stdout.write(`[ok] Spec ready: ${path.join(OUT_DIR, spec)}\n`);
+
+  // Delete jar + META-INF
+  try {
+    await fsp.rm(path.join(OUT_DIR, 'META-INF'), {
+      recursive: true,
+      force: true,
+    });
+  } catch (e) {
+    process.stderr.write(`[warn] Could not delete META-INF: ${e.message}\n`);
+  }
+
+  try {
+    await fsp.rm(DEST_JAR, { force: true });
+    process.stdout.write(`[ok] Removed jar: ${DEST_JAR}\n`);
+  } catch (e) {
+    process.stderr.write(`[warn] Could not delete jar: ${e.message}\n`);
+  }
 }
 
 (async () => {
+  // Ensure we clean up dir before download
+  await fsp.rm(OUT_DIR, { recursive: true, force: true });
   await ensureDir(OUT_DIR);
   process.stdout.write(`[info] Using POM: ${POM}\n`);
   process.stdout.write(`[info] SPEC_VERSION: ${SPEC_VERSION}\n`);
   runMaven();
-  verifyAndUnpack();
+  await verifyAndUnpack();
 })().catch((e) => {
   process.stderr.write(`[error] ${e.message}\n`);
   process.exit(1);

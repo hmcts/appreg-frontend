@@ -1,6 +1,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>helper</groupId><artifactId>openapi-pull</artifactId><version>1.0</version>
+  <groupId>helper</groupId>
+  <artifactId>openapi-pull</artifactId>
+  <version>1.0</version>
 
   <properties>
     <spec.version>0.0.1</spec.version>
@@ -10,7 +12,8 @@
   <repositories>
     <repository>
       <id>hmcts-feed</id>
-      <url>https://pkgs.dev.azure.com/hmcts/Artifacts/_packaging/0bf8a9df-48b4-4295-9732-56b9e38f612a/maven/v1</url>
+      <url>
+        https://pkgs.dev.azure.com/hmcts/Artifacts/_packaging/0bf8a9df-48b4-4295-9732-56b9e38f612a/maven/v1</url>
     </repository>
   </repositories>
 
@@ -24,7 +27,9 @@
           <execution>
             <id>fetch-openapi</id>
             <phase>validate</phase>
-            <goals><goal>copy</goal></goals>
+            <goals>
+              <goal>copy</goal>
+            </goals>
             <configuration>
               <artifactItems>
                 <artifactItem>
@@ -37,6 +42,8 @@
                   <destFileName>openapi.jar</destFileName>
                 </artifactItem>
               </artifactItems>
+              <overWriteReleases>true</overWriteReleases>
+              <overWriteSnapshots>true</overWriteSnapshots>
             </configuration>
           </execution>
         </executions>
