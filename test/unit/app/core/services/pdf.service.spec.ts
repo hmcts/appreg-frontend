@@ -34,7 +34,6 @@ jest.mock('jspdf', () => {
     addImage: jest.fn(),
     addPage: jest.fn(),
     save: jest.fn(),
-    // Split on newlines so "Application\nbrought by" becomes ["Application","brought by"]
     splitTextToSize: jest.fn((t: string | string[]) => {
       const s = Array.isArray(t) ? t.join('\n') : String(t);
       return s.split(/\r?\n/);
@@ -98,7 +97,7 @@ describe('PdfService.generateApplicationListPdf', () => {
     const svc = new PdfService();
     const { __instance } = getJsPDF();
 
-    await svc.generateApplicationListPdf({
+    await svc.generatePagedApplicationListPdf({
       courtName: 'Bath Magistrates Court',
       date: '2025-09-17',
       entries: [{}],
@@ -114,7 +113,7 @@ describe('PdfService.generateApplicationListPdf', () => {
     const svc = new PdfService();
     const { __instance } = getJsPDF();
 
-    await svc.generateApplicationListPdf({
+    await svc.generatePagedApplicationListPdf({
       entries: [{}],
     });
 
@@ -125,7 +124,7 @@ describe('PdfService.generateApplicationListPdf', () => {
     const svc = new PdfService();
     const { __instance } = getJsPDF();
 
-    await svc.generateApplicationListPdf({
+    await svc.generatePagedApplicationListPdf({
       courtName: 'X',
       date: '2025-09-17',
       entries: [{}, {}, {}],
@@ -137,7 +136,7 @@ describe('PdfService.generateApplicationListPdf', () => {
   it('renders header labels and footer date (produced on)', async () => {
     const svc = new PdfService();
 
-    await svc.generateApplicationListPdf({
+    await svc.generatePagedApplicationListPdf({
       courtName: 'Bath Magistrates Court',
       date: '2025-09-17',
       entries: [{}],
@@ -158,7 +157,7 @@ describe('PdfService.generateApplicationListPdf', () => {
   it('prints the application code row only when code is non-empty', async () => {
     const svc = new PdfService();
 
-    await svc.generateApplicationListPdf({
+    await svc.generatePagedApplicationListPdf({
       courtName: 'X',
       date: '2025-09-17',
       entries: [
@@ -185,7 +184,7 @@ describe('PdfService.generateApplicationListPdf', () => {
       )
       .mockResolvedValue('data:image/png;base64,AAA');
 
-    await svc.generateApplicationListPdf(
+    await svc.generatePagedApplicationListPdf(
       { courtName: 'X', date: '2025-09-17', entries: [{}] },
       { crestUrl: '/assets/govuk-crest.png' },
     );
@@ -199,7 +198,7 @@ describe('PdfService.generateApplicationListPdf', () => {
     const { __instance } = getJsPDF();
 
     // No crestUrl
-    await svc.generateApplicationListPdf({ entries: [{}] });
+    await svc.generatePagedApplicationListPdf({ entries: [{}] });
     expect(__instance.addImage).toHaveBeenCalledTimes(0);
 
     // crestUrl provided but loader returns null
@@ -212,10 +211,153 @@ describe('PdfService.generateApplicationListPdf', () => {
       )
       .mockResolvedValueOnce(null);
 
-    await svc.generateApplicationListPdf(
+    await svc.generatePagedApplicationListPdf(
       { entries: [{}] },
       { crestUrl: '/x.png' },
     );
     expect(__instance.addImage).toHaveBeenCalledTimes(0);
+  });
+});
+
+describe('PdfService.generateContinuousApplicationListsPdf', () => {
+  const makeRawDto = (
+    overrides: Partial<Record<string, unknown>> = {},
+    entryOverrides?: unknown[],
+  ) => ({
+    courtName: 'Bath Magistrates Court',
+    listDate: '2025-09-17',
+    duration: '45m',
+    entries: entryOverrides ?? [
+      {
+        applicant: {
+          person: { name: { forename: 'Alice', surname: 'Smith' } },
+        },
+        respondent: { organisation: { name: 'ACME Ltd' } },
+        applicationCode: 'AP01',
+        applicationTitle: 'Foo Title',
+        caseReference: 'REF-1',
+        accountReference: 'ACC-9',
+        resultWordings: ['Granted'],
+        officials: ['Judge Dredd'],
+        notes: 'No additional notes',
+      },
+    ],
+    ...overrides,
+  });
+
+  it('constructs a landscape jsPDF and renders header with page number', async () => {
+    const svc = new PdfService();
+    const { jsPDF } = getJsPDF();
+
+    await svc.generateContinuousApplicationListsPdf([makeRawDto()]);
+
+    expect(jsPDF).toHaveBeenCalledWith({
+      orientation: 'landscape',
+      unit: 'pt',
+      format: 'a4',
+    });
+    expect(textCallsContain('Check List Report')).toBe(true);
+    expect(textCallsContain('Page 1')).toBe(true);
+  });
+
+  it('names file "<court>-continuous-<YYYY-MM-DD>.pdf" when all lists share the same court', async () => {
+    const svc = new PdfService();
+    const { __instance } = getJsPDF();
+
+    await svc.generateContinuousApplicationListsPdf([
+      makeRawDto({ courtName: 'Bath Magistrates Court' }),
+      makeRawDto({ courtName: 'Bath Magistrates Court' }),
+    ]);
+
+    expect(__instance.save).toHaveBeenCalledTimes(1);
+    expect(__instance.save).toHaveBeenCalledWith(
+      'bath-magistrates-court-continuous-2025-09-17.pdf',
+    );
+  });
+
+  it('names file "applications-continuous-<YYYY-MM-DD>.pdf" when courts differ or are missing', async () => {
+    const svc = new PdfService();
+    const { __instance } = getJsPDF();
+
+    await svc.generateContinuousApplicationListsPdf([
+      makeRawDto({ courtName: 'Bath Magistrates Court' }),
+      makeRawDto({ courtName: 'Bristol Crown Court' }),
+      makeRawDto({ courtName: '' }),
+    ]);
+
+    expect(__instance.save).toHaveBeenCalledTimes(1);
+    expect(__instance.save).toHaveBeenCalledWith(
+      'applications-continuous-2025-09-17.pdf',
+    );
+  });
+
+  it('adds a new page and increments page number when content exceeds available space', async () => {
+    const svc = new PdfService();
+    const { __instance } = getJsPDF();
+
+    // Force a very short page height so ensureSpace() triggers
+    const originalGetHeight = __instance.internal.pageSize.getHeight;
+    __instance.internal.pageSize.getHeight = () => 180; // tiny to guarantee breaks
+
+    try {
+      // Make one DTO with an entry that has a very tall "Notes" block
+      const tallNotes = new Array(50).fill('line').join('\n');
+      await svc.generateContinuousApplicationListsPdf([
+        makeRawDto({}, [
+          {
+            applicant: { person: { name: { forename: 'A', surname: 'S' } } },
+            respondent: { organisation: { name: 'Org' } },
+            notes: tallNotes,
+          },
+        ]),
+      ]);
+
+      expect(__instance.addPage).toHaveBeenCalled(); // at least once
+      expect(textCallsContain('Page 2')).toBe(true);
+    } finally {
+      __instance.internal.pageSize.getHeight = originalGetHeight;
+    }
+  });
+
+  it('renders the top meta row and application blocks (labels + values)', async () => {
+    const svc = new PdfService();
+
+    await svc.generateContinuousApplicationListsPdf([
+      makeRawDto({}, [
+        {
+          applicant: { person: { name: { forename: 'Jane', surname: 'Roe' } } },
+          respondent: { organisation: { name: 'Widgets Ltd' } },
+          applicationCode: 'AP01',
+          applicationTitle: 'Interim Relief',
+          caseReference: 'CASE-42',
+          accountReference: 'ACC-9',
+          resultWordings: ['Refused'],
+          officials: ['HHJ Taylor'],
+          notes: 'Some note\nAnother line',
+        },
+      ]),
+    ]);
+
+    // Top meta row
+    expect(textCallsContain('Date & Time')).toBe(true);
+    expect(textCallsContain('Duration')).toBe(true);
+    expect(textCallsContain('Location')).toBe(true);
+
+    // Parties + sections
+    expect(textCallsContain('Applicant')).toBe(true);
+    expect(textCallsContain('Respondent')).toBe(true);
+    expect(textCallsContain('Application')).toBe(true);
+    expect(textCallsContain('Result')).toBe(true);
+    expect(textCallsContain('Notes')).toBe(true);
+    expect(textCallsContain('This matter was before')).toBe(true);
+
+    // Left/right application block contents
+    expect(textCallsContain('Case Reference: CASE-42')).toBe(true);
+    expect(textCallsContain('Application Code: AP01')).toBe(true);
+    expect(textCallsContain('Account Reference: ACC-9')).toBe(true);
+    expect(textCallsContain('Application Title: Interim Relief')).toBe(true);
+
+    // Judge name appears in the "This matter was before" row
+    expect(textCallsContain('HHJ Taylor')).toBe(true);
   });
 });
