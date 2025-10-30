@@ -344,29 +344,25 @@ export class ApplicationsList implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    void (await import('@ministryofjustice/frontend')
-      .then(({ ButtonMenu }) => {
-        const nodes = document.querySelectorAll<HTMLElement>(
-          '[data-module="moj-button-menu"]',
-        );
-
-        for (const el of nodes) {
-          const flagged = el as MojInitEl;
-          if (flagged.__mojInit) {
-            continue;
-          }
-
-          const instance = new ButtonMenu(flagged);
-          if (typeof (instance as { init?: () => void }).init === 'function') {
-            instance.init();
-          }
-
-          flagged.__mojInit = true;
+    try {
+      const { ButtonMenu } = await import('@ministryofjustice/frontend');
+      const nodes = document.querySelectorAll<HTMLElement>(
+        '[data-module="moj-button-menu"]',
+      );
+      for (const el of nodes) {
+        const flagged = el as MojInitEl;
+        if (flagged.__mojInit) {
+          continue;
         }
-      })
-      .catch(() => {
-        // no-op for non-browser/test environments
-      }));
+        const instance = new ButtonMenu(flagged);
+        if (typeof (instance as { init?: () => void }).init === 'function') {
+          instance.init();
+        }
+        flagged.__mojInit = true;
+      }
+    } catch {
+      // no-op for non-browser/test environments
+    }
   }
 
   loadApplicationsLists(hasParams: boolean): void {

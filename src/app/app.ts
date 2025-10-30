@@ -17,6 +17,7 @@ import { ServiceNavigationComponent } from './shared/components/service-navigati
 
 type GovUkInitAll = (opts?: { scope?: HTMLElement }) => void;
 type GovUkGlobal = { GOVUKFrontend?: { initAll?: GovUkInitAll } };
+type SortableCtor = new (el: HTMLElement) => { init?: () => void };
 
 /* ---------- MoJ Sortable Table helpers ---------- */
 type MojCtor = new (
@@ -161,47 +162,67 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /** Enhance all MoJ Sortable tables in the given scope and observe for new ones */
+  private sortableCtor?: SortableCtor;
+
+  /** Enhance all MoJ Sortable tables in the given scope and observe for new ones */
   private initAllSortableTables(scope?: ParentNode): void {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
+    void this.setupSortable(scope);
+  }
 
-    void loadSortableCtor().then((SortableTable) => {
-      if (!SortableTable) {
-        return;
+  private async setupSortable(scope?: ParentNode): Promise<void> {
+    const SortableTable = await loadSortableCtor();
+    if (!SortableTable) {
+      return;
+    }
+
+    this.sortableCtor = SortableTable;
+    const root: ParentNode = scope ?? document;
+
+    this.enhanceExisting(root);
+    this.ensureObserver(root);
+  }
+
+  private enhanceExisting(root: ParentNode): void {
+    const tables = root.querySelectorAll<HTMLElement>(
+      '[data-module="moj-sortable-table"]',
+    );
+    for (const el of tables) {
+      this.enhance(el);
+    }
+  }
+
+  private enhance(el: HTMLElement): void {
+    if (sortableInitialised.has(el) || !this.sortableCtor) {
+      return;
+    }
+    const inst = new this.sortableCtor(el);
+    inst.init?.();
+    sortableInitialised.add(el);
+  }
+
+  private ensureObserver(root: ParentNode): void {
+    if (this.mojObserver) {
+      return;
+    }
+
+    this.mojObserver = new MutationObserver(this.handleMutations.bind(this));
+    this.mojObserver.observe(root, { childList: true, subtree: true });
+  }
+
+  private handleMutations(records: MutationRecord[]): void {
+    for (const r of records) {
+      this.processAddedNodes(r.addedNodes);
+    }
+  }
+
+  private processAddedNodes(nodes: NodeList): void {
+    for (const n of nodes) {
+      for (const el of this.collectSortable(n)) {
+        this.enhance(el);
       }
-
-      const root = scope ?? document;
-
-      const enhance = (el: HTMLElement): void => {
-        if (sortableInitialised.has(el)) {
-          return;
-        }
-        const inst = new SortableTable(el);
-        inst.init?.();
-        sortableInitialised.add(el);
-      };
-
-      // Enhance what exists now
-      const tables = root.querySelectorAll<HTMLElement>(
-        '[data-module="moj-sortable-table"]',
-      );
-      for (const el of tables) {
-        enhance(el);
-      }
-
-      // Observe for late additions (set up once)
-      if (this.mojObserver) {
-        return;
-      }
-      this.mojObserver = new MutationObserver((records) => {
-        records.forEach((r) =>
-          r.addedNodes.forEach((n) =>
-            this.collectSortable(n).forEach((el) => enhance(el)),
-          ),
-        );
-      });
-      this.mojObserver.observe(root, { childList: true, subtree: true });
-    });
+    }
   }
 }

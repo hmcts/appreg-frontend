@@ -14,13 +14,7 @@ Functionality:
 
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpContext } from '@angular/common/http';
-import {
-  AfterViewInit,
-  Component,
-  Inject,
-  OnInit,
-  PLATFORM_ID,
-} from '@angular/core';
+import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -120,7 +114,7 @@ type Handoff = {
   ],
   templateUrl: './applications-list-detail.html',
 })
-export class ApplicationsListDetail implements AfterViewInit, OnInit {
+export class ApplicationsListDetail implements OnInit {
   id!: string;
   currentFragment: string | null = null;
   private locationDisabler?: Subscription;
@@ -219,10 +213,6 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
         duration: null,
       });
     }
-  }
-
-  ngAfterViewInit(): void {
-    // Not implemented yet
   }
 
   onSubmit(): void {

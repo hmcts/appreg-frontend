@@ -10,7 +10,13 @@ Functionality:
 */
 
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, TransferState } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnDestroy,
+  OnInit,
+  TransferState,
+} from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -92,7 +98,7 @@ type CreateFormRaw = Omit<
   ],
   templateUrl: './applications-list-create.html',
 })
-export class ApplicationsListCreate implements OnInit {
+export class ApplicationsListCreate implements OnInit, OnDestroy {
   private _id: number | undefined;
   private locationDisabler?: Subscription;
 
