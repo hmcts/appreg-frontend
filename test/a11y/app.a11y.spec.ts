@@ -1,27 +1,30 @@
-import { access } from 'node:fs/promises';
-import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
-
 import pa11y from 'pa11y';
+
+import { startStaticSpaServer } from './a11y.server';
 
 const hide = '.govuk-footer__licence-logo, .govuk-header__logotype-crown';
 
-const DIST_DIR = 'dist/appreg-frontend/browser';
+let baseUrl: string;
+let server: import('node:http').Server;
 
-const ROOT = pathToFileURL(path.resolve(DIST_DIR)).href.replace(/\/$/, '');
+beforeAll(async () => {
+  const started = await startStaticSpaServer();
+  baseUrl = started.baseUrl;
+  server = started.server;
+});
 
-function resolveFileUrl(p: string): string {
-  const rel = p === '/' ? '/index.html' : `/${p.replace(/^\/+/, '')}`;
-  return `${ROOT}${rel}`;
-}
-
-async function ensurePageLoads(p: string): Promise<void> {
-  const filePath = fileURLToPath(new URL(resolveFileUrl(p)));
-  await access(filePath);
-}
+afterAll(async () => {
+  await new Promise<void>((resolve, reject) =>
+    server.close((err) => (err ? reject(err) : resolve())),
+  );
+});
 
 function runPa11y(p: string) {
-  return pa11y(resolveFileUrl(p), { hideElements: hide });
+  return pa11y(`${baseUrl}${p}`, {
+    hideElements: hide,
+    timeout: 60000,
+    wait: 500,
+  });
 }
 
 function assertNoErrors(issues: Awaited<ReturnType<typeof pa11y>>['issues']) {
@@ -35,8 +38,7 @@ function assertNoErrors(issues: Awaited<ReturnType<typeof pa11y>>['issues']) {
 
 function testAccessibility(p: string): void {
   describe(`Page ${p}`, () => {
-    test('should have no accessibility errors', async () => {
-      await ensurePageLoads(p);
+    test('has no accessibility errors', async () => {
       const result = await runPa11y(p);
       expect(Array.isArray(result.issues)).toBe(true);
       assertNoErrors(result.issues);
@@ -47,4 +49,6 @@ function testAccessibility(p: string): void {
 describe('Accessibility', () => {
   testAccessibility('/login');
   testAccessibility('/applications-list');
+  testAccessibility('/applications-list/1');
+  testAccessibility('/applications-list/create');
 });
