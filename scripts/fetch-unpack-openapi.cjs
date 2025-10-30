@@ -89,7 +89,7 @@ async function resolveLatestFromPackagesApi() {
 }
 
 async function resolveLatestFromMavenMetadata() {
-  const groupSlashed = GROUP_PATH.replace(/\./g, '/');
+  const groupSlashed = GROUP_PATH.replaceAll('.', '/');
   const url = `https://pkgs.dev.azure.com/${ORG}/${PROJECT}/_packaging/${FEED_ID}/maven/v1/${groupSlashed}/${ARTIFACT_ID}/maven-metadata.xml`;
   const xml = (await httpGet(url, authHeaders())).toString('utf8');
 
@@ -108,8 +108,8 @@ async function resolveLatestFromMavenMetadata() {
 }
 
 function semverLikeDesc(a, b) {
-  const pa = a.split('.').map((n) => parseInt(n, 10));
-  const pb = b.split('.').map((n) => parseInt(n, 10));
+  const pa = a.split('.').map((n) => Number.parseInt(n, 10));
+  const pb = b.split('.').map((n) => Number.parseInt(n, 10));
   const len = Math.max(pa.length, pb.length);
   for (let i = 0; i < len; i++) {
     const ai = Number.isFinite(pa[i]) ? pa[i] : 0;
