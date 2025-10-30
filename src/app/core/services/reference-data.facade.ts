@@ -15,8 +15,8 @@ export class ReferenceDataFacade {
   readonly courtLocations$: Observable<CourtLocationGetSummaryDto[]>;
 
   constructor(
-    private cjaApi: CriminalJusticeAreasApi,
-    private courtApi: CourtLocationsApi,
+    private readonly cjaApi: CriminalJusticeAreasApi,
+    private readonly courtApi: CourtLocationsApi,
   ) {
     this.cja$ = this.cjaApi.getCriminalJusticeAreas().pipe(
       map((p) => p?.content ?? []),
