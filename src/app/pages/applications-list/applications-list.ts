@@ -217,7 +217,7 @@ export class ApplicationsList implements OnInit, AfterViewInit, OnDestroy {
     // Reset flag
     this.searchErrors = [];
     this.submitted = false;
-    this.isSearch = false;
+    this.isSearch = true;
     this.rows = [];
 
     this.errorHint = 'There is a problem';
@@ -229,7 +229,6 @@ export class ApplicationsList implements OnInit, AfterViewInit, OnDestroy {
         id: 'date-day',
         text: dateCtrl.errors['dateErrorText'] as string,
       });
-      return;
     }
 
     if (timeCtrl.errors?.['durationInvalid']) {
@@ -237,6 +236,11 @@ export class ApplicationsList implements OnInit, AfterViewInit, OnDestroy {
         id: 'time-hours',
         text: timeCtrl.errors['durationErrorText'] as string,
       });
+    }
+
+    // If any errors are found then return and do not run query
+    if (this.searchErrors.length) {
+      this.submitted = true;
       return;
     }
 

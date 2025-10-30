@@ -175,7 +175,7 @@ describe('ApplicationsListCreate', () => {
   it('selectCourthouse sets value and clears suggestions', () => {
     const c: CourtLocationGetSummaryDto = { name: 'X', locationCode: 'X1' };
     component.selectCourthouse(c);
-    expect(component.courthouseSearch).toBe('X1');
+    expect(component.courthouseSearch).toBe('X1 - X');
     expect(component.form.controls.court.value).toBe('X1');
     expect(component.filteredCourthouses).toHaveLength(0);
   });
@@ -192,7 +192,7 @@ describe('ApplicationsListCreate', () => {
       description: 'Ninth',
     };
     component.selectCja(pick);
-    expect(component.cjaSearch).toBe('C9');
+    expect(component.cjaSearch).toBe('C9 - Ninth');
     expect(component.form.controls.cja.value).toBe('C9');
     expect(component.filteredCja).toHaveLength(0);
   });

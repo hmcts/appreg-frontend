@@ -21,13 +21,36 @@ import {
 
 import { cjaMatches, courtMatches, filterSuggestions } from './suggestions';
 
+type WithLabelValue<T> = T & { label?: string; value?: string };
+
+const courtLabel = (c: { locationCode?: string; name?: string }) => {
+  const code = c.locationCode ?? '';
+  return c.name ? `${code} - ${c.name}` : code;
+};
+const cjaLabel = (a: { code?: string; description?: string }) => {
+  const code = a.code ?? '';
+  return a.description ? `${code} - ${a.description}` : code;
+};
+
 export function onCourthouseInputChange(
   form: FormGroup,
   courthouseSearch: string,
   courtLocations: CourtLocationGetSummaryDto[],
 ): CourtLocationGetSummaryDto[] {
   form.controls['court'].setValue(courthouseSearch || '');
-  return filterSuggestions(courtLocations, courthouseSearch, courtMatches);
+  const filtered = filterSuggestions(
+    courtLocations,
+    courthouseSearch,
+    courtMatches,
+  );
+  return filtered.map(
+    (c) =>
+      ({
+        ...c,
+        label: courtLabel(c),
+        value: c.locationCode,
+      }) as WithLabelValue<CourtLocationGetSummaryDto>,
+  );
 }
 
 export function onCjaInputChange(
@@ -36,26 +59,36 @@ export function onCjaInputChange(
   cja: CriminalJusticeAreaGetDto[],
 ): CriminalJusticeAreaGetDto[] {
   form.controls['cja'].setValue(cjaSearch || '');
-  return filterSuggestions(cja, cjaSearch, cjaMatches);
+  const filtered = filterSuggestions(cja, cjaSearch, cjaMatches);
+  return filtered.map(
+    (a) =>
+      ({
+        ...a,
+        label: cjaLabel(a),
+        value: a.code,
+      }) as WithLabelValue<CriminalJusticeAreaGetDto>,
+  );
 }
 
 export function selectCourthouse(
   form: FormGroup,
-  c: { locationCode?: string } | CourtLocationGetSummaryDto,
+  c: { locationCode?: string; name?: string } | CourtLocationGetSummaryDto,
 ): {
   courthouseSearch: string;
   filteredCourthouses: CourtLocationGetSummaryDto[];
 } {
-  const label = c.locationCode ?? '';
-  form.controls['court'].setValue(label);
+  const value = c.locationCode ?? '';
+  const label = courtLabel(c as { locationCode?: string; name?: string });
+  form.controls['court'].setValue(value);
   return { courthouseSearch: label, filteredCourthouses: [] };
 }
 
 export function selectCja(
   form: FormGroup,
-  c: { code?: string } | CriminalJusticeAreaGetDto,
+  c: { code?: string; description?: string } | CriminalJusticeAreaGetDto,
 ): { cjaSearch: string; filteredCja: CriminalJusticeAreaGetDto[] } {
-  const label = c.code ?? '';
-  form.controls['cja'].setValue(label);
+  const value = c.code ?? '';
+  const label = cjaLabel(c as { code?: string; description?: string });
+  form.controls['cja'].setValue(value);
   return { cjaSearch: label, filteredCja: [] };
 }
