@@ -29,8 +29,8 @@
     }
   },
   "auth": {
-    "redirectUri": "http://localhost:4000/sso/login-callback",
-    "postLogoutRedirectUri": "http://localhost:4000/login",
+    "redirectUri": "https://appreg.staging.apps.hmcts.net/sso/login-callback",
+    "postLogoutRedirectUri": "https://appreg.staging.apps.hmcts.net/login",
     "scopes": ["openid", "profile", "email", "offline_access"]
   },
   "api": {
