@@ -11,6 +11,7 @@ Feature: Applications Register Portal Access
     Then User Signs In With Microsoft SSO As "user1"
     And User See "Applications register" On The Page
 
+  @smoke
   Scenario Outline: Sign in and Sign out flow for "<role>"
     Given User Is On The Portal Page
     Then User Signs In With Microsoft SSO As "<role>"
