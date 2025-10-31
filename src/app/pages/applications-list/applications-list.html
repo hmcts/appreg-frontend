@@ -170,37 +170,39 @@
           data-button-text="Select"
           data-button-classes="govuk-button"
         >
-          <!-- Open button -->
-          <button
-            type="button"
-            class="govuk-button moj-button-menu__item govuk-button--secondary"
-            [routerLink]="['/applications-list', row.id]"
-            [state]="{
-              row: {
-                id: row.id,
-                date: row.date,
-                time: row.time,
-                description: row.description,
-                status: row.status,
-                location: row.location ?? '',
-                etag: row.etag,
-                version: row.version,
-              },
-            }"
-          >
-            Open
-          </button>
+          <!-- Open button (only when open) -->
+          @if (isOpen(row)) {
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+              [routerLink]="['/applications-list', row.id]"
+              [state]="{
+                row: {
+                  id: row.id,
+                  date: row.date,
+                  time: row.time,
+                  description: row.description,
+                  status: row.status,
+                  location: row.location ?? '',
+                  etag: row.etag,
+                  version: row.rowVersion,
+                },
+              }"
+            >
+              Open
+            </button>
+          }
 
-          <!-- Print page button -->
+          <!-- Print page button (always shown) -->
           <button
             type="button"
             class="govuk-button moj-button-menu__item govuk-button--secondary"
-            (click)="onPrint()"
+            (click)="onPrintPage(row.id)"
           >
             Print page
           </button>
 
-          <!-- Print continuous button -->
+          <!-- Print continuous button (always shown) -->
           <button
             type="button"
             class="govuk-button moj-button-menu__item govuk-button--secondary"
@@ -209,23 +211,27 @@
             Print continuous
           </button>
 
-          <!-- Result button -->
-          <button
-            type="button"
-            class="govuk-button moj-button-menu__item govuk-button--secondary"
-            [routerLink]="['/result-selected', row.id]"
-          >
-            Result
-          </button>
+          <!-- Result button (only when open) -->
+          @if (isOpen(row)) {
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+              [routerLink]="['/result-selected', row.id]"
+            >
+              Result
+            </button>
+          }
 
-          <!-- Delete button -->
-          <button
-            type="button"
-            class="govuk-button moj-button-menu__item govuk-button--warning"
-            (click)="onDelete(row)"
-          >
-            Delete
-          </button>
+          <!-- Delete button (only when open) -->
+          @if (isOpen(row)) {
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--warning"
+              (click)="onDelete(row)"
+            >
+              Delete
+            </button>
+          }
         </div>
       </div>
     </ng-template>
