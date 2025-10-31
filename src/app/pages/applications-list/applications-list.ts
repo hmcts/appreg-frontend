@@ -139,7 +139,7 @@ export class ApplicationsList
 
   currentPage = 1;
   totalPages = 5;
-  pageSize = 25;
+  pageSize = 10;
 
   columns: TableColumn[] = [
     { header: 'Date', field: 'date' },
@@ -221,14 +221,7 @@ export class ApplicationsList
       return;
     }
 
-    const hasAny =
-      has(this.form.value.date) ||
-      has(this.form.value.time) ||
-      has(this.form.value.description) ||
-      has(this.form.value.status) ||
-      has(this.form.value.court) ||
-      has(this.form.value.location) ||
-      has(this.form.value.cja);
+    const hasAny = this.hasAnyParams();
 
     if (action === 'search') {
       this.submitted = true;
@@ -292,6 +285,10 @@ export class ApplicationsList
 
   onPageChange(page: number): void {
     this.currentPage = page;
+
+    const hasAny = this.hasAnyParams();
+
+    this.loadApplicationsLists(hasAny);
   }
 
   onResultSelected(): void {}
@@ -436,6 +433,9 @@ export class ApplicationsList
     }
 
     const params: GetApplicationListsRequestParams = {
+      // If your API is 0-based (Spring Pageable), use currentPage - 1; if 1-based, use currentPage.
+      page: this.currentPage - 1,
+      size: this.pageSize,
       ...(hasParams ? { filter: loadQuery(this.form) } : {}),
     };
 
@@ -479,6 +479,18 @@ export class ApplicationsList
       etag: null,
       rowVersion: null,
     };
+  }
+
+  private hasAnyParams(): boolean {
+    return (
+      has(this.form.value.date) ||
+      has(this.form.value.time) ||
+      has(this.form.value.description) ||
+      has(this.form.value.status) ||
+      has(this.form.value.court) ||
+      has(this.form.value.location) ||
+      has(this.form.value.cja)
+    );
   }
 
   focusField(id: string, e: Event): void {
