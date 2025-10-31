@@ -1,6 +1,0 @@
-type: string
-description: Status of the Application List.
-enum:
-  - OPEN
-  - CLOSED
-example: OPEN

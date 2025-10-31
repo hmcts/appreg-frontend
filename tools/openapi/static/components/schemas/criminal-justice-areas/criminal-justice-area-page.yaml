@@ -1,8 +1,0 @@
-allOf:
-  - $ref: '../common/page.yaml'
-  - type: object
-    properties:
-      content:
-        type: array
-        items:
-          $ref: './criminal-justice-area-get-dto.yaml'
