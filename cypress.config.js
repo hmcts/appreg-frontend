@@ -59,9 +59,9 @@ module.exports = defineConfig({
       charts: true,
       reportPageTitle: 'AppregFrontend E2E Test Results',
       inlineAssets: true,
-      saveAllAttempts: false,
+      saveAllAttempts: true,
       html: true,
-      json: false,
+      json: true,
     },
     // Test Files Configuration
     specPattern: 'cypress/e2e/**/*.feature',

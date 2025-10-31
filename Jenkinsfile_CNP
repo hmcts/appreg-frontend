@@ -46,14 +46,13 @@ withPipeline(type, product, component) {
             sh 'yarn test:functional'
           } catch (Exception e) {
             echo "Tests failed: ${e.getMessage()}"
-            echo "Continuing to archive artifacts..."
             currentBuild.result = 'UNSTABLE'
           }
+          
           sh '''
-            echo "=== Checking what was created ==="
-            ls -la cypress/ || echo "No cypress directory"
-            ls -la cypress/reports/ || echo "No reports directory"
-            find cypress/reports -type f || echo "No files in reports"
+            echo "=== Checking generated reports ==="
+            ls -la cypress/reports/e2e/html/*.html || echo "No HTML reports"
+            ls -la cypress/reports/e2e/html/screenshots/ || echo "No screenshots"
           '''
         }
       }
