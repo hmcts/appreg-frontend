@@ -29,7 +29,7 @@ export class ErrorSummaryComponent implements AfterViewInit {
   /** If you want to run custom logic (e.g. focus a form field), listen to this */
   @Output() itemSelect = new EventEmitter<ErrorItem>();
 
-  @ViewChild('summaryEl') private summaryEl?: ElementRef<HTMLDivElement>;
+  @ViewChild('summaryEl') private readonly summaryEl?: ElementRef<HTMLDivElement>;
 
   ngAfterViewInit(): void {
     if (this.autoFocus) {
