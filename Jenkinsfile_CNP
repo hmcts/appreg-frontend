@@ -59,35 +59,16 @@ withPipeline(type, product, component) {
       }
       post {
         always {
-          script {
-            echo "Attempting to archive artifacts..."
-            try {
-              archiveArtifacts artifacts: 'cypress/reports/**/*.png', allowEmptyArchive: true
-              archiveArtifacts artifacts: 'cypress/reports/**/*.html', allowEmptyArchive: true
-              archiveArtifacts artifacts: 'cypress/reports/**/*.json', allowEmptyArchive: true
-              echo "Artifacts archived successfully"
-            } catch (Exception e) {
-              echo "Failed to archive artifacts: ${e.getMessage()}"
-            }
-          }
+          archiveArtifacts artifacts: 'cypress/reports/e2e/html/**/*', allowEmptyArchive: true
           
-          script {
-            if (fileExists('cypress/reports/e2e/html')) {
-              echo "HTML report directory exists, publishing..."
-              publishHTML([
-                allowMissing: true,
-                alwaysLinkToLastBuild: true,
-                keepAll: true,
-                reportDir: 'cypress/reports/e2e/html',
-                reportFiles: '*.html',
-                reportName: 'Test Report'
-              ])
-            } else {
-              echo "WARNING: cypress/reports/e2e/html directory does not exist!"
-              echo "Checking alternative locations..."
-              sh 'find . -name "*.html" -path "*/cypress/*" || echo "No HTML files found"'
-            }
-          }
+          publishHTML([
+            allowMissing: true,
+            alwaysLinkToLastBuild: true,
+            keepAll: true,
+            reportDir: 'cypress/reports/e2e/html',
+            reportFiles: 'mochawesome.html',
+            reportName: 'Test Report'
+          ])
         }
       }
     }
