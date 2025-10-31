@@ -39,18 +39,19 @@ const stringifyArgs = (args: unknown[]): string =>
  */
 export class HmctsLoggerBridge {
   private static readonly wrapped = new WeakSet<LoggerWithLevels>();
+  private static readonly LEVELS = ['debug', 'info', 'warn', 'error'] as const;
 
   static enable(name: string, client: TelemetryClient): HmctsLogger {
     const base = Logger.getLogger(name) as unknown as LoggerWithLevels;
 
     if (!this.wrapped.has(base)) {
-      (['debug', 'info', 'warn', 'error'] as const).forEach((level) => {
+      for (const level of this.LEVELS) {
         const original = base[level];
         if (!original) {
-          return;
+          continue;
         }
 
-        const wrapped = ((...args: unknown[]) => {
+        const wrapped: typeof original = ((...args: unknown[]) => {
           const err = args.find((a) => a instanceof Error);
           if (err) {
             client.trackException({ exception: err });
@@ -65,7 +66,7 @@ export class HmctsLoggerBridge {
         }) as typeof original;
 
         base[level] = wrapped;
-      });
+      }
 
       this.wrapped.add(base);
     }

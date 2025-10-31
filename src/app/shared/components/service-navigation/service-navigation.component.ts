@@ -50,9 +50,9 @@ export class ServiceNavigationComponent implements OnInit {
 
   onSignOutClicked(ev: Event): void {
     ev.preventDefault();
-    if (!window.confirm('Are you sure you want to sign out?')) {
+    if (!globalThis.confirm('Are you sure you want to sign out?')) {
       return;
     }
-    window.location.assign('/sso/logout');
+    globalThis.location.assign('/sso/logout');
   }
 }
