@@ -5,18 +5,21 @@ const path = require('path');
 
 // Generate Mochawesome HTML report
 const mochawesomeJsonDir = path.join(__dirname, '../../cypress/reports/.jsons');
-const mochawesomeOutput = path.join(__dirname, '../../cypress/reports/mochawesome.json');
+const mochawesomeOutput = path.join(
+  __dirname,
+  '../../cypress/reports/mochawesome.json',
+);
 const reportsDir = path.join(__dirname, '../../cypress/reports');
 
 if (fs.existsSync(mochawesomeJsonDir)) {
   try {
     execSync(
       `npx mochawesome-merge ${mochawesomeJsonDir}/*.json -o ${mochawesomeOutput}`,
-      { stdio: 'inherit' }
+      { stdio: 'inherit' },
     );
     execSync(
       `npx mochawesome-report-generator ${mochawesomeOutput} -o ${reportsDir}`,
-      { stdio: 'inherit' }
+      { stdio: 'inherit' },
     );
   } catch (error) {
     // Continue even if mochawesome generation fails
