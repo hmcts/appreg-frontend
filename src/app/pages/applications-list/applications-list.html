@@ -164,14 +164,14 @@
     <ng-template #actionsTemplate let-row>
       <div class="govuk-button-group">
         <!-- actions slot -->
-        <div
-          class="moj-button-menu"
-          data-module="moj-button-menu"
-          data-button-text="Select"
-          data-button-classes="govuk-button"
-        >
-          <!-- Open button (only when open) -->
-          @if (isOpen(row)) {
+        @if (isOpen(row)) {
+          <div
+            class="moj-button-menu"
+            data-module="moj-button-menu"
+            data-button-text="Select"
+            data-button-classes="govuk-button"
+          >
+            <!-- Open button (only when open) -->
             <button
               type="button"
               class="govuk-button moj-button-menu__item govuk-button--secondary"
@@ -191,28 +191,26 @@
             >
               Open
             </button>
-          }
 
-          <!-- Print page button (always shown) -->
-          <button
-            type="button"
-            class="govuk-button moj-button-menu__item govuk-button--secondary"
-            (click)="onPrintPage(row.id)"
-          >
-            Print page
-          </button>
+            <!-- Print page button (always shown) -->
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+              (click)="onPrintPage(row.id)"
+            >
+              Print page
+            </button>
 
-          <!-- Print continuous button (always shown) -->
-          <button
-            type="button"
-            class="govuk-button moj-button-menu__item govuk-button--secondary"
-            (click)="onPrintContinuous()"
-          >
-            Print continuous
-          </button>
+            <!-- Print continuous button (always shown) -->
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+              (click)="onPrintContinuous()"
+            >
+              Print continuous
+            </button>
 
-          <!-- Result button (only when open) -->
-          @if (isOpen(row)) {
+            <!-- Result button (only when open) -->
             <button
               type="button"
               class="govuk-button moj-button-menu__item govuk-button--secondary"
@@ -220,10 +218,8 @@
             >
               Result
             </button>
-          }
 
-          <!-- Delete button (only when open) -->
-          @if (isOpen(row)) {
+            <!-- Delete button (only when open) -->
             <button
               type="button"
               class="govuk-button moj-button-menu__item govuk-button--warning"
@@ -231,8 +227,33 @@
             >
               Delete
             </button>
-          }
-        </div>
+          </div>
+        } @else {
+          <div
+            class="moj-button-menu"
+            data-module="moj-button-menu"
+            data-button-text="Select"
+            data-button-classes="govuk-button"
+          >
+            <!-- Print page button (always shown) -->
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+              (click)="onPrintPage(row.id)"
+            >
+              Print page
+            </button>
+
+            <!-- Print continuous button (always shown) -->
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+              (click)="onPrintContinuous()"
+            >
+              Print continuous
+            </button>
+          </div>
+        }
       </div>
     </ng-template>
   </app-sortable-table>
