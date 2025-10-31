@@ -38,20 +38,26 @@ withPipeline(type, product, component) {
   loadVaultSecrets(secrets)
   enableSlackNotifications('#appreg-builds')
 
-  // Add smoke tests with screenshot capture
   after('functionalTest:aat') {
-    sh 'yarn test:functional'
-    
-    // Archive screenshots and reports
-    archiveArtifacts artifacts: 'cypress/reports/**/*', allowEmptyArchive: true
-    publishHTML([
-      allowMissing: true,
-      alwaysLinkToLastBuild: true,
-      keepAll: true,
-      reportDir: 'cypress/reports/cucumber-html',
-      reportFiles: 'index.html',
-      reportName: 'Test Report'
-    ])
+    stage('Functional Tests') {
+      steps {
+        sh 'yarn test:functional'
+      }
+      post {
+        always {
+          archiveArtifacts artifacts: 'cypress/reports/**/*', allowEmptyArchive: true
+          
+          publishHTML([
+            allowMissing: true,
+            alwaysLinkToLastBuild: true,
+            keepAll: true,
+            reportDir: 'cypress/reports/e2e/html',
+            reportFiles: '*.html',
+            reportName: 'Test Report'
+          ])
+        }
+      }
+    }
   }
 
   syncBranchesWithMaster(branchesToSync)

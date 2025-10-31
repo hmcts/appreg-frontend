@@ -78,10 +78,7 @@ module.exports = defineConfig({
     experimentalOriginDependencies: true,
     testIsolation: true,
     // Report and Media Settings
-    video: true,
-    videosFolder: 'cypress/reports/html/videos',
-    videoCompression: 32,
-    videoUploadOnPasses: false, // Only upload videos for failed tests in CI
+    video: false,
     screenshotOnRunFailure: true,
     screenshotsFolder: 'cypress/reports/html/screenshots',
     async setupNodeEvents(on, config) {
