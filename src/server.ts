@@ -67,11 +67,6 @@ const logger: HmctsLogger = HmctsLoggerBridge.enable(
   AppInsights.client(),
 );
 
-// Test redirect URIs
-const base = process.env['TEST_URL'] ?? 'http://localhost:4000';
-process.env['REDIRECT_URI'] = new URL('/sso/login-callback', base).toString();
-process.env['POST_LOGOUT_REDIRECT_URI'] = new URL('/login', base).toString();
-
 // Redis config
 const runningAsEntrypoint = (() => {
   try {

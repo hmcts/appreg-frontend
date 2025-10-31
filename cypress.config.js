@@ -68,8 +68,6 @@ module.exports = defineConfig({
     fixturesFolder: 'cypress/fixtures',
     // Base URL and Timeouts
     baseUrl: process.env.TEST_URL || 'http://localhost:4000',
-    redirectUri: process.env.REDIRECT_URI,
-    postLogoutRedirectUri: process.env.POST_LOGOUT_REDIRECT_URI,
     defaultCommandTimeout: 20000,
     pageLoadTimeout: 120000,
     requestTimeout: 20000,
