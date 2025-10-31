@@ -24,7 +24,15 @@ onDelete():
 
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpContext } from '@angular/common/http';
-import { AfterViewInit, Component, HostListener, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  HostListener,
+  Inject,
+  OnDestroy,
+  OnInit,
+  PLATFORM_ID,
+} from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Subject, firstValueFrom, takeUntil } from 'rxjs';
@@ -33,27 +41,43 @@ import {
   ApplicationListGetSummaryDto,
   ApplicationListStatus,
   ApplicationListsApi,
-  GetApplicationListsRequestParams
+  GetApplicationListsRequestParams,
 } from '../../../generated/openapi';
 import { PdfService } from '../../core/services/pdf.service';
 import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
-import { Duration, DurationInputComponent } from '../../shared/components/duration-input/duration-input.component';
-import { ErrorItem, ErrorSummaryComponent } from '../../shared/components/error-summary/error-summary.component';
+import {
+  Duration,
+  DurationInputComponent,
+} from '../../shared/components/duration-input/duration-input.component';
+import {
+  ErrorItem,
+  ErrorSummaryComponent,
+} from '../../shared/components/error-summary/error-summary.component';
 import { NotificationBannerComponent } from '../../shared/components/notification-banner/notification-banner.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
-import { SortableTableComponent, TableColumn } from '../../shared/components/sortable-table/sortable-table.component';
+import {
+  SortableTableComponent,
+  TableColumn,
+} from '../../shared/components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
 import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
-import { IF_MATCH, ROW_VERSION } from '../../shared/context/concurrency-context';
+import {
+  IF_MATCH,
+  ROW_VERSION,
+} from '../../shared/context/concurrency-context';
 import { has } from '../../shared/util/has';
 import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
 import { normaliseTime } from '../../shared/util/time-helpers';
 import { ApplicationListRow } from '../../shared/util/types/application-list/types';
 
-import { getHttpStatus, getProblemText, statusSummary } from './util/delete-status';
+import {
+  getHttpStatus,
+  getProblemText,
+  statusSummary,
+} from './util/delete-status';
 import { loadQuery } from './util/load-query';
 
 interface MojInitEl extends HTMLElement {
