@@ -13,30 +13,26 @@ const mochawesomeOutput = path.join(
 const reportsDir = path.join(__dirname, '../../cypress/reports');
 
 if (fs.existsSync(mochawesomeJsonDir)) {
-  try {
-    // Get all JSON files in the directory
-    const jsonFiles = fs
-      .readdirSync(mochawesomeJsonDir)
-      .filter((file) => file.endsWith('.json'))
-      .map((file) => path.join(mochawesomeJsonDir, file));
+  // Get all JSON files in the directory
+  const jsonFiles = fs
+    .readdirSync(mochawesomeJsonDir)
+    .filter((file) => file.endsWith('.json'))
+    .map((file) => path.join(mochawesomeJsonDir, file));
 
-    if (jsonFiles.length > 0) {
-      // Merge JSON files
-      execFileSync(
-        'yarn',
-        ['mochawesome-merge', ...jsonFiles, '-o', mochawesomeOutput],
-        { stdio: 'inherit' },
-      );
+  if (jsonFiles.length > 0) {
+    // Merge JSON files
+    execFileSync(
+      'yarn',
+      ['mochawesome-merge', ...jsonFiles, '-o', mochawesomeOutput],
+      { stdio: 'inherit' },
+    );
 
-      // Generate HTML report
-      execFileSync(
-        'yarn',
-        ['mochawesome-report-generator', mochawesomeOutput, '-o', reportsDir],
-        { stdio: 'inherit' },
-      );
-    }
-  } catch {
-    // Continue even if mochawesome generation fails
+    // Generate HTML report
+    execFileSync(
+      'yarn',
+      ['mochawesome-report-generator', mochawesomeOutput, '-o', reportsDir],
+      { stdio: 'inherit' },
+    );
   }
 }
 
