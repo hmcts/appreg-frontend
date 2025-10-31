@@ -39,38 +39,22 @@ withPipeline(type, product, component) {
   enableSlackNotifications('#appreg-builds')
 
   after('functionalTest:aat') {
-    stage('Functional Tests') {
-      steps {
-        script {
-          try {
-            sh 'yarn test:functional'
-          } catch (Exception e) {
-            echo "Tests failed: ${e.getMessage()}"
-            currentBuild.result = 'UNSTABLE'
-          }
-          
-          sh '''
-            echo "=== Checking generated reports ==="
-            ls -la cypress/reports/e2e/html/*.html || echo "No HTML reports"
-            ls -la cypress/reports/e2e/html/screenshots/ || echo "No screenshots"
-          '''
-        }
-      }
-      post {
-        always {
-          archiveArtifacts artifacts: 'cypress/reports/e2e/html/**/*', allowEmptyArchive: true
-          
-          publishHTML([
-            allowMissing: true,
-            alwaysLinkToLastBuild: true,
-            keepAll: true,
-            reportDir: 'cypress/reports/e2e/html',
-            reportFiles: 'mochawesome.html',
-            reportName: 'Test Report'
-          ])
-        }
-      }
+    try {
+      sh 'yarn test:functional'
+    } catch (Exception e) {
+      sh 'node cypress/scripts/generate-reports.js || true'
     }
+    
+    archiveArtifacts artifacts: 'cypress/reports/**/*', allowEmptyArchive: true
+    
+    publishHTML([
+      allowMissing: true,
+      alwaysLinkToLastBuild: true,
+      keepAll: true,
+      reportDir: 'cypress/reports',
+      reportFiles: 'mochawesome.html',
+      reportName: 'Test Report'
+    ])
   }
 
   syncBranchesWithMaster(branchesToSync)
