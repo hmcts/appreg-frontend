@@ -8,6 +8,10 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+export type BannerSegment =
+  | { kind: 'text'; text: string }
+  | { kind: 'link'; text: string; href?: string; commands?: string[] };
+
 @Component({
   selector: 'app-success-banner',
   standalone: true,
@@ -21,6 +25,7 @@ export class SuccessBannerComponent implements AfterViewInit {
   @Input() linkHref?: string;
   @Input() linkCommands?: string[];
   @Input() autoFocus = true;
+  @Input() segments: BannerSegment[] = [];
 
   @ViewChild('bannerEl') private readonly bannerEl?: ElementRef<HTMLDivElement>;
 
