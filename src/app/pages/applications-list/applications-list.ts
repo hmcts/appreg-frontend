@@ -35,13 +35,11 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { Subject, Subscription, firstValueFrom, takeUntil } from 'rxjs';
+import { Subject, firstValueFrom, takeUntil } from 'rxjs';
 
 import {
   ApplicationListGetSummaryDto,
   ApplicationListsApi,
-  CourtLocationGetSummaryDto,
-  CriminalJusticeAreaGetDto,
   GetApplicationListsRequestParams,
 } from '../../../generated/openapi';
 import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
@@ -68,14 +66,8 @@ import {
   IF_MATCH,
   ROW_VERSION,
 } from '../../shared/context/concurrency-context';
-import { attachLocationDisabler } from '../../shared/util/attach-location-disabler';
-import {
-  onCjaInputChange,
-  onCourthouseInputChange,
-  selectCja as selectCjaHelper,
-  selectCourthouse as selectCourthouseHelper,
-} from '../../shared/util/court-cja-text-suggestions';
 import { has } from '../../shared/util/has';
+import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
 import { normaliseTime } from '../../shared/util/time-helpers';
 import { ApplicationListRow } from '../../shared/util/types/application-list/types';
 
@@ -110,21 +102,14 @@ interface MojInitEl extends HTMLElement {
   ],
   templateUrl: './applications-list.html',
 })
-export class ApplicationsList implements OnInit, AfterViewInit, OnDestroy {
+export class ApplicationsList
+  extends PlaceFieldsBase
+  implements OnInit, AfterViewInit, OnDestroy
+{
   private readonly _id: string | undefined;
-  private locationDisabler?: Subscription;
   private readonly destroy$ = new Subject<void>();
   openMenuForId: string | null = null;
   openPrintSelectForId: string | null = null;
-
-  // CJA and Court locations store
-  cja: CriminalJusticeAreaGetDto[] = [];
-  filteredCja: CriminalJusticeAreaGetDto[] = [];
-  cjaSearch = '';
-
-  courtLocations: CourtLocationGetSummaryDto[] = [];
-  filteredCourthouses: CourtLocationGetSummaryDto[] = [];
-  courthouseSearch = '';
 
   // Flags
   submitted: boolean = false;
@@ -140,7 +125,7 @@ export class ApplicationsList implements OnInit, AfterViewInit, OnDestroy {
 
   deletingId: string | null = null;
 
-  form = new FormGroup({
+  override form = new FormGroup({
     date: new FormControl<string | null>(null),
     time: new FormControl<Duration | null>(null),
     description: new FormControl<string>(''),
@@ -174,29 +159,18 @@ export class ApplicationsList implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     @Inject(PLATFORM_ID) private readonly platformId: object,
-    private readonly ref: ReferenceDataFacade,
+    private readonly refFacade: ReferenceDataFacade,
     private readonly appListsApi: ApplicationListsApi,
-  ) {}
-
-  ngOnInit(): void {
-    this.courthouseSearch = String(this.form.controls.court.value ?? '');
-    this.cjaSearch = String(this.form.controls.cja.value ?? '');
-
-    this.ref.courtLocations$.subscribe(
-      (items) => (this.courtLocations = items),
-    );
-    this.ref.cja$.subscribe((items) => (this.cja = items));
-
-    // Disable based fields
-    this.locationDisabler = attachLocationDisabler({
-      court: this.form.controls.court,
-      location: this.form.controls.location,
-      cja: this.form.controls.cja,
-    });
+  ) {
+    super();
   }
 
-  ngOnDestroy(): void {
-    this.locationDisabler?.unsubscribe();
+  ngOnInit(): void {
+    this.initPlaceFields(this.form, this.refFacade);
+  }
+
+  override ngOnDestroy(): void {
+    super.ngOnDestroy();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -414,35 +388,6 @@ export class ApplicationsList implements OnInit, AfterViewInit, OnDestroy {
       etag: null,
       rowVersion: null,
     };
-  }
-
-  onCourthouseInputChange(): void {
-    this.filteredCourthouses = onCourthouseInputChange(
-      this.form,
-      this.courthouseSearch,
-      this.courtLocations,
-    );
-  }
-
-  onCjaInputChange(): void {
-    this.filteredCja = onCjaInputChange(this.form, this.cjaSearch, this.cja);
-  }
-
-  selectCourthouse(
-    c: { locationCode?: string } | CourtLocationGetSummaryDto,
-  ): void {
-    const { courthouseSearch, filteredCourthouses } = selectCourthouseHelper(
-      this.form,
-      c,
-    );
-    this.courthouseSearch = courthouseSearch;
-    this.filteredCourthouses = filteredCourthouses;
-  }
-
-  selectCja(c: { code?: string } | CriminalJusticeAreaGetDto): void {
-    const { cjaSearch, filteredCja } = selectCjaHelper(this.form, c);
-    this.cjaSearch = cjaSearch;
-    this.filteredCja = filteredCja;
   }
 
   focusField(id: string, e: Event): void {
