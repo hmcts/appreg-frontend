@@ -322,13 +322,6 @@ describe('ApplicationsListCreate', () => {
     expect(() => component.onSubmit(evt)).toThrow('status invalid');
   });
 
-  it('onPageChange updates page and reloads lists', () => {
-    const spy = jest.spyOn(component, 'loadLists');
-    component.onPageChange(3);
-    expect(component.currentPage).toBe(3);
-    expect(spy).toHaveBeenCalledTimes(1);
-  });
-
   it('onDelete stores id', () => {
     type WithId = { _id: number | undefined };
     component.onDelete(42);

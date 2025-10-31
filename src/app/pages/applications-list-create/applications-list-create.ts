@@ -10,7 +10,13 @@ Functionality:
 */
 
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, TransferState } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnDestroy,
+  OnInit,
+  TransferState,
+} from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -18,14 +24,11 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { Subscription } from 'rxjs';
 
 import {
   ApplicationListCreateDto,
   ApplicationListStatus,
   ApplicationListsApi,
-  CourtLocationGetSummaryDto,
-  CriminalJusticeAreaGetDto,
 } from '../../../generated/openapi';
 import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
@@ -40,19 +43,13 @@ import { SelectInputComponent } from '../../shared/components/select-input/selec
 import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
 import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
-import { attachLocationDisabler } from '../../shared/util/attach-location-disabler';
 import { buildNormalizedPayload } from '../../shared/util/build-payload';
 import { collectMissing } from '../../shared/util/collect-missing';
-import {
-  onCjaInputChange,
-  onCourthouseInputChange,
-  selectCja as selectCjaHelper,
-  selectCourthouse as selectCourthouseHelper,
-} from '../../shared/util/court-cja-text-suggestions';
 import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '../../shared/util/error-click';
+import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
 import { FormRaw } from '../../shared/util/types/application-list/types';
 import { validateCourtVsLocOrCja } from '../../shared/util/validate-court-vs-loc-cja';
 
@@ -92,24 +89,20 @@ type CreateFormRaw = Omit<
   ],
   templateUrl: './applications-list-create.html',
 })
-export class ApplicationsListCreate implements OnInit {
+export class ApplicationsListCreate
+  extends PlaceFieldsBase
+  implements OnInit, OnDestroy
+{
   private _id: number | undefined;
-  private locationDisabler?: Subscription;
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly state: TransferState,
     private readonly appLists: ApplicationListsApi,
-    private readonly ref: ReferenceDataFacade,
-  ) {}
-
-  cja: CriminalJusticeAreaGetDto[] = [];
-  filteredCja: CriminalJusticeAreaGetDto[] = [];
-  cjaSearch = '';
-
-  courtLocations: CourtLocationGetSummaryDto[] = [];
-  filteredCourthouses: CourtLocationGetSummaryDto[] = [];
-  courthouseSearch = '';
+    private readonly refField: ReferenceDataFacade,
+  ) {
+    super();
+  }
 
   // Banner/Error state that drives the reusable components
   unpopField: ErrorItem[] = [];
@@ -141,7 +134,7 @@ export class ApplicationsListCreate implements OnInit {
   };
 
   // Reactive form backing the template
-  form = new FormGroup(
+  override form = new FormGroup(
     {
       date: new FormControl<string | null>(null),
       time: new FormControl<Duration | null>(null),
@@ -168,21 +161,7 @@ export class ApplicationsListCreate implements OnInit {
   }[] = [];
 
   ngOnInit(): void {
-    this.courthouseSearch = String(this.form.controls.court.value ?? '');
-    this.cjaSearch = String(this.form.controls.cja.value ?? '');
-
-    this.loadLists();
-
-    // Disable based fields
-    this.locationDisabler = attachLocationDisabler({
-      court: this.form.controls.court,
-      location: this.form.controls.location,
-      cja: this.form.controls.cja,
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.locationDisabler?.unsubscribe();
+    this.initPlaceFields(this.form, this.refField);
   }
 
   onSubmit(event: SubmitEvent): void {
@@ -264,48 +243,11 @@ export class ApplicationsListCreate implements OnInit {
     return buildNormalizedPayload(raw) as ApplicationListCreateDto;
   }
 
-  loadLists(): void {
-    this.ref.courtLocations$.subscribe(
-      (items) => (this.courtLocations = items),
-    );
-    this.ref.cja$.subscribe((items) => (this.cja = items));
-  }
-
-  onCourthouseInputChange(): void {
-    this.filteredCourthouses = onCourthouseInputChange(
-      this.form,
-      this.courthouseSearch,
-      this.courtLocations,
-    );
-  }
-
-  onCjaInputChange(): void {
-    this.filteredCja = onCjaInputChange(this.form, this.cjaSearch, this.cja);
-  }
-
-  selectCourthouse(
-    c: { locationCode?: string } | CourtLocationGetSummaryDto,
-  ): void {
-    const { courthouseSearch, filteredCourthouses } = selectCourthouseHelper(
-      this.form,
-      c,
-    );
-    this.courthouseSearch = courthouseSearch;
-    this.filteredCourthouses = filteredCourthouses;
-  }
-
-  selectCja(c: { code?: string } | CriminalJusticeAreaGetDto): void {
-    const { cjaSearch, filteredCja } = selectCjaHelper(this.form, c);
-    this.cjaSearch = cjaSearch;
-    this.filteredCja = filteredCja;
-  }
-
   onDelete(id: number): void {
     this._id = id;
   }
 
   onPageChange(page: number): void {
     this.currentPage = page;
-    this.loadLists(); // fetch page `page`
   }
 }

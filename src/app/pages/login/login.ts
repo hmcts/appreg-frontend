@@ -7,6 +7,6 @@ import { Component } from '@angular/core';
 })
 export class Login {
   goLogin(): void {
-    window.location.href = '/sso/login';
+    globalThis.location.href = '/sso/login';
   }
 }
