@@ -42,6 +42,7 @@ import {
   ApplicationListsApi,
   GetApplicationListsRequestParams,
 } from '../../../generated/openapi';
+import { PdfService } from '../../core/services/pdf.service';
 import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
@@ -161,6 +162,7 @@ export class ApplicationsList
     @Inject(PLATFORM_ID) private readonly platformId: object,
     private readonly refFacade: ReferenceDataFacade,
     private readonly appListsApi: ApplicationListsApi,
+    private readonly pdf: PdfService,
   ) {
     super();
   }
@@ -303,9 +305,99 @@ export class ApplicationsList
     this.openMenuForId = null;
   }
 
-  onPrint(): void {}
+  async onPrintPage(id: string): Promise<void> {
+    if (!id) {
+      return;
+    }
 
-  onPrintContinuous(): void {}
+    this.clearErrors();
+
+    try {
+      const dto = await firstValueFrom(
+        this.appListsApi.printApplicationList({ id }, undefined, undefined, {
+          transferCache: false,
+        }),
+      );
+
+      const hasEntries = Array.isArray(dto.entries) && dto.entries.length > 0;
+      if (!hasEntries) {
+        this.showInline('No entries available to print');
+        return;
+      }
+
+      if (isPlatformBrowser(this.platformId)) {
+        await this.pdf.generatePagedApplicationListPdf(dto, {
+          crestUrl: '/assets/govuk-crest.png',
+        });
+      }
+    } catch (err: unknown) {
+      const status = getHttpStatus(err);
+      if (status === 404) {
+        this.showInline('Application List not found');
+      } else {
+        this.showInline('Unable to generate PDF. Please try again later');
+      }
+    }
+  }
+
+  async onPrintContinuous(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    this.clearErrors();
+
+    const ids = this.rows
+      .map((r) => r.id)
+      .filter((x): x is string => Boolean(x));
+    if (!ids.length) {
+      this.showInline('No lists to print');
+      return;
+    }
+
+    const hasEntries = (x: unknown): x is { entries: unknown[] } => {
+      if (!x || typeof x !== 'object') {
+        return false;
+      }
+      const entries = (x as Record<string, unknown>)['entries'];
+      return Array.isArray(entries) && entries.length > 0;
+    };
+
+    try {
+      const settled = await Promise.allSettled(
+        ids.map((id) =>
+          firstValueFrom(
+            this.appListsApi.printApplicationList(
+              { id },
+              undefined,
+              undefined,
+              { transferCache: false },
+            ),
+          ),
+        ),
+      );
+
+      const dtos: unknown[] = [];
+      for (const res of settled) {
+        if (res.status === 'fulfilled' && hasEntries(res.value)) {
+          dtos.push(res.value);
+        }
+      }
+
+      if (!dtos.length) {
+        this.showInline('No entries available to print');
+        return;
+      }
+
+      await this.pdf.generateContinuousApplicationListsPdf(dtos);
+    } catch {
+      this.showInline('Unable to generate PDF. Please try again later');
+    }
+  }
+
+  protected isOpen(row: ApplicationListRow): boolean {
+    return (row.status ?? '').toLowerCase() === 'open';
+  }
 
   private afterRowsRendered(): void {
     setTimeout(() => {
@@ -397,5 +489,21 @@ export class ApplicationsList
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       el.focus({ preventScroll: true });
     }
+  }
+
+  /* ----------------------- Local UI helper methods ---------------------- */
+
+  /** Clear inline/banner error state in a typed, reusable way. */
+  private clearErrors(): void {
+    this.deleteInvalid = false;
+    this.errorHint = '';
+    this.errorSummary = [];
+  }
+
+  /** Show a single inline error message using the existing summary component. */
+  private showInline(message: string): void {
+    this.deleteInvalid = true;
+    this.errorHint = 'There is a problem';
+    this.errorSummary = [{ text: message }];
   }
 }

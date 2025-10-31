@@ -8,8 +8,10 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 
+import { PdfService } from '../../../../../src/app/core/services/pdf.service';
+import { ReferenceDataFacade } from '../../../../../src/app/core/services/reference-data.facade';
 import { ApplicationsList } from '../../../../../src/app/pages/applications-list/applications-list';
 import * as LoadQuery from '../../../../../src/app/pages/applications-list/util/load-query';
 import {
@@ -18,24 +20,108 @@ import {
 } from '../../../../../src/app/shared/context/concurrency-context';
 import {
   ApplicationListGetFilterDto,
+  ApplicationListGetPrintDto,
   ApplicationListGetSummaryDto,
   ApplicationListPage,
   ApplicationListStatus,
   ApplicationListsApi,
+  CourtLocationGetSummaryDto,
   CourtLocationsApi,
+  CriminalJusticeAreaGetDto,
   CriminalJusticeAreasApi,
   GetApplicationListsRequestParams,
+  PrintApplicationListRequestParams,
 } from '../../../../../src/generated/openapi';
 
-const applicationsListsApiMock = { getApplicationLists: jest.fn() };
+const makePrintDto = (entries: unknown[] = []): ApplicationListGetPrintDto =>
+  <ApplicationListGetPrintDto>{
+    date: '2025-01-01',
+    time: '10:00',
+    entries,
+  };
 
-// used by ReferenceDataFacade
+const applicationsListsApiMock: jest.Mocked<
+  Pick<ApplicationListsApi, 'getApplicationLists' | 'printApplicationList'>
+> = {
+  getApplicationLists: jest.fn().mockReturnValue(of({ content: [] })),
+  printApplicationList: jest.fn(),
+};
+
+// used by ReferenceDataFacade (unchanged)
 const courtLocationsApiMock = {
   getCourtLocations: jest.fn().mockReturnValue(of({ content: [] })),
 };
 const cjaApiMock = {
   getCriminalJusticeAreas: jest.fn().mockReturnValue(of({ content: [] })),
 };
+
+class ReferenceDataFacadeStub
+  implements Pick<ReferenceDataFacade, 'courtLocations$' | 'cja$'>
+{
+  courtLocations$ = of([] as CourtLocationGetSummaryDto[]);
+  cja$ = of([] as CriminalJusticeAreaGetDto[]);
+}
+
+type PrintFn = (
+  requestParameters: PrintApplicationListRequestParams,
+  observe?: 'body',
+  reportProgress?: boolean,
+  options?: { transferCache?: boolean },
+) => Observable<ApplicationListGetPrintDto>;
+
+class PdfServiceStub
+  implements
+    Pick<
+      PdfService,
+      | 'generatePagedApplicationListPdf'
+      | 'generateContinuousApplicationListsPdf'
+    >
+{
+  generatePagedApplicationListPdf = jest.fn<
+    Promise<void>,
+    [unknown, { crestUrl?: string } | undefined]
+  >();
+
+  generateContinuousApplicationListsPdf = jest.fn<Promise<void>, [unknown[]]>();
+}
+
+/**
+ * Helper to build the component. Accepts:
+ *  - platformId: 'browser' | 'server'
+ *  - rows: optional seed for this.rows (useful for onPrintContinuous tests)
+ */
+function createInstance(
+  platformId: 'browser' | 'server' = 'browser',
+  rows: Array<{ id?: string | null }> = [],
+) {
+  const api: { printApplicationList: jest.MockedFunction<PrintFn> } = {
+    // jest.fn with correct param/return types
+    printApplicationList: jest.fn<
+      ReturnType<PrintFn>,
+      Parameters<PrintFn>
+    >() as never,
+  };
+
+  const pdf = new PdfServiceStub();
+
+  const comp = new ApplicationsList(
+    platformId as unknown as object,
+    new ReferenceDataFacadeStub() as unknown as ReferenceDataFacade,
+    api as unknown as ApplicationListsApi,
+    pdf as unknown as PdfService,
+  );
+
+  (comp as unknown as { rows: Array<{ id?: string | null }> }).rows = rows;
+
+  // expose spies with the names the tests use
+  const clearErrorsSpy = jest.fn();
+  const showInlineSpy = jest.fn();
+  (comp as unknown as { clearErrors: () => void }).clearErrors = clearErrorsSpy;
+  (comp as unknown as { showInline: (m: string) => void }).showInline =
+    showInlineSpy;
+
+  return { comp, api, pdf, clearErrorsSpy, showInlineSpy };
+}
 
 describe('ApplicationsList – delete flow (server platform: no confirm)', () => {
   let fixture: ComponentFixture<ApplicationsList>;
@@ -287,9 +373,25 @@ describe('ApplicationsList – search', () => {
   let service: { getApplicationLists: jest.Mock };
 
   beforeEach(async () => {
+    // Build a correctly-typed page body
+    const pageBody /* : ApplicationListPage */ = {
+      content: [],
+      totalPages: 0,
+      totalElements: 0,
+      number: 0,
+      size: 25,
+    } as unknown as ApplicationListPage;
+
     applicationsListsApiMock.getApplicationLists.mockReset();
+
+    // Return an HttpResponse<T>, which is assignable to HttpEvent<T>
     applicationsListsApiMock.getApplicationLists.mockReturnValue(
-      of({ content: [], totalPages: 0, totalElements: 0, number: 0, size: 25 }),
+      of(
+        new HttpResponse<ApplicationListPage>({
+          status: 200,
+          body: pageBody,
+        }),
+      ),
     );
 
     await TestBed.configureTestingModule({
@@ -304,6 +406,8 @@ describe('ApplicationsList – search', () => {
 
     fixture = TestBed.createComponent(ApplicationsList);
     component = fixture.componentInstance;
+
+    // Only needed if you still want a typed handle for direct assertions:
     service = TestBed.inject(ApplicationListsApi) as unknown as {
       getApplicationLists: jest.Mock;
     };
@@ -434,5 +538,244 @@ describe('ApplicationsList – search', () => {
     const args = service.getApplicationLists.mock
       .calls[0][0] as GetApplicationListsRequestParams;
     expect(args.filter).toEqual({ status: 'CLOSED' });
+  });
+});
+
+describe('ApplicationsList.onPrintPage', () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('returns early when id is falsy', async () => {
+    const { comp, api, pdf, clearErrorsSpy } = createInstance('browser');
+
+    await comp.onPrintPage('');
+
+    expect(clearErrorsSpy).not.toHaveBeenCalled();
+    expect(api.printApplicationList).not.toHaveBeenCalled();
+    expect(pdf.generatePagedApplicationListPdf).not.toHaveBeenCalled();
+  });
+
+  it('clears errors and calls API with transferCache: false', async () => {
+    const { comp, api, clearErrorsSpy } = createInstance('browser');
+
+    const dto = makePrintDto([]);
+    api.printApplicationList.mockReturnValue(of(dto));
+
+    await comp.onPrintPage('abc-123');
+
+    expect(clearErrorsSpy).toHaveBeenCalledTimes(1);
+
+    // args: { id }, undefined, undefined, { transferCache: false }
+    expect(api.printApplicationList).toHaveBeenCalledTimes(1);
+    expect(api.printApplicationList.mock.calls[0][0]).toEqual({
+      id: 'abc-123',
+    });
+    expect(api.printApplicationList.mock.calls[0][1]).toBeUndefined();
+    expect(api.printApplicationList.mock.calls[0][2]).toBeUndefined();
+    expect(api.printApplicationList.mock.calls[0][3]).toEqual({
+      transferCache: false,
+    });
+  });
+
+  it('shows inline message when there are no entries', async () => {
+    const { comp, api, pdf, showInlineSpy } = createInstance('browser');
+
+    const dto = makePrintDto([]);
+    api.printApplicationList.mockReturnValue(of(dto));
+
+    await comp.onPrintPage('abc-123');
+
+    expect(showInlineSpy).toHaveBeenCalledWith('No entries available to print');
+    expect(pdf.generatePagedApplicationListPdf).not.toHaveBeenCalled();
+  });
+
+  it('generates PDF on the browser when entries exist', async () => {
+    const { comp, api, pdf } = createInstance('browser');
+
+    // include at least one entry so the component proceeds to generate the PDF
+    const dto = makePrintDto([{}]);
+
+    // ensure the mock is typed like the real method’s return
+    api.printApplicationList.mockReturnValue(of(dto));
+
+    await comp.onPrintPage('abc-123');
+
+    expect(pdf.generatePagedApplicationListPdf).toHaveBeenCalledTimes(1);
+    expect(pdf.generatePagedApplicationListPdf).toHaveBeenCalledWith(dto, {
+      crestUrl: '/assets/govuk-crest.png',
+    });
+  });
+
+  it('does not generate PDF on the server platform', async () => {
+    const { comp, api, pdf } = createInstance('server');
+
+    const dto = makePrintDto([]);
+    api.printApplicationList.mockReturnValue(of(dto));
+
+    await comp.onPrintPage('abc-123');
+
+    expect(pdf.generatePagedApplicationListPdf).not.toHaveBeenCalled();
+  });
+
+  it('maps 404 to "Application List not found"', async () => {
+    const { comp, api, showInlineSpy } = createInstance('browser');
+
+    api.printApplicationList.mockReturnValue(
+      throwError(() => ({ status: 404 })),
+    );
+
+    await comp.onPrintPage('abc-123');
+
+    expect(showInlineSpy).toHaveBeenCalledWith('Application List not found');
+  });
+
+  it('maps non-404 errors to generic banner', async () => {
+    const { comp, api, showInlineSpy } = createInstance('browser');
+
+    api.printApplicationList.mockReturnValue(
+      throwError(() => ({ status: 500 })),
+    );
+
+    await comp.onPrintPage('abc-123');
+
+    expect(showInlineSpy).toHaveBeenCalledWith(
+      'Unable to generate PDF. Please try again later',
+    );
+  });
+});
+
+describe('ApplicationsList.onPrintContinuous', () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('returns early on non-browser platform', async () => {
+    const { comp, api, pdf, clearErrorsSpy, showInlineSpy } = createInstance(
+      'server',
+      [{ id: 'X' }],
+    );
+
+    await comp.onPrintContinuous();
+
+    expect(clearErrorsSpy).not.toHaveBeenCalled();
+    expect(api.printApplicationList).not.toHaveBeenCalled();
+    expect(pdf.generateContinuousApplicationListsPdf).not.toHaveBeenCalled();
+    expect(showInlineSpy).not.toHaveBeenCalled();
+  });
+
+  it('shows "No lists to print" when rows contain no valid ids', async () => {
+    const { comp, api, pdf, clearErrorsSpy, showInlineSpy } = createInstance(
+      'browser',
+      [{ id: '' }, {}, { id: null }],
+    );
+
+    await comp.onPrintContinuous();
+
+    expect(clearErrorsSpy).toHaveBeenCalledTimes(1);
+    expect(api.printApplicationList).not.toHaveBeenCalled();
+    expect(pdf.generateContinuousApplicationListsPdf).not.toHaveBeenCalled();
+    expect(showInlineSpy).toHaveBeenCalledWith('No lists to print');
+  });
+
+  it('shows "No entries available to print" when all fulfilled results have empty/missing entries', async () => {
+    const { comp, api, pdf, showInlineSpy } = createInstance('browser', [
+      { id: 'A' },
+      { id: 'B' },
+    ]);
+
+    api.printApplicationList.mockReturnValueOnce(of(makePrintDto([])));
+    api.printApplicationList.mockReturnValueOnce(
+      of({} as unknown as ApplicationListGetPrintDto),
+    );
+
+    await comp.onPrintContinuous();
+
+    expect(api.printApplicationList).toHaveBeenCalledTimes(2);
+    expect(api.printApplicationList).toHaveBeenNthCalledWith(
+      1,
+      { id: 'A' },
+      undefined,
+      undefined,
+      { transferCache: false },
+    );
+    expect(api.printApplicationList).toHaveBeenNthCalledWith(
+      2,
+      { id: 'B' },
+      undefined,
+      undefined,
+      { transferCache: false },
+    );
+
+    expect(pdf.generateContinuousApplicationListsPdf).not.toHaveBeenCalled();
+    expect(showInlineSpy).toHaveBeenCalledWith('No entries available to print');
+  });
+
+  it('ignores rejected/invalid results and prints when at least one DTO has entries', async () => {
+    const { comp, api, pdf, showInlineSpy } = createInstance('browser', [
+      { id: 'A' },
+      { id: 'B' },
+      { id: 'C' },
+    ]);
+
+    api.printApplicationList
+      .mockReturnValueOnce(of(makePrintDto([{ foo: 1 } as unknown])))
+      .mockImplementationOnce(() => throwError(() => new Error('boom')))
+      .mockReturnValueOnce(of(makePrintDto([])));
+
+    await comp.onPrintContinuous();
+
+    expect(api.printApplicationList).toHaveBeenCalledTimes(3);
+    // Still must pass transferCache: false for every call
+    for (const id of ['A', 'B', 'C']) {
+      expect(api.printApplicationList).toHaveBeenCalledWith(
+        { id },
+        undefined,
+        undefined,
+        { transferCache: false },
+      );
+    }
+
+    expect(pdf.generateContinuousApplicationListsPdf).toHaveBeenCalledTimes(1);
+    // The dtos array should contain only the valid fulfilled one(s)
+    const passedDtos =
+      pdf.generateContinuousApplicationListsPdf.mock.calls[0][0];
+    expect(passedDtos).toHaveLength(1);
+    expect(showInlineSpy).not.toHaveBeenCalled();
+  });
+
+  it('shows a generic error if PDF generation rejects', async () => {
+    const { comp, api, pdf, showInlineSpy } = createInstance('browser', [
+      { id: 'A' },
+    ]);
+
+    api.printApplicationList.mockReturnValue(
+      of(makePrintDto([{ x: 1 } as unknown])),
+    );
+    pdf.generateContinuousApplicationListsPdf.mockRejectedValueOnce(
+      new Error('pdf fail'),
+    );
+
+    await comp.onPrintContinuous();
+
+    expect(api.printApplicationList).toHaveBeenCalledTimes(1);
+    expect(pdf.generateContinuousApplicationListsPdf).toHaveBeenCalledTimes(1);
+    expect(showInlineSpy).toHaveBeenCalledWith(
+      'Unable to generate PDF. Please try again later',
+    );
+  });
+
+  it('clears errors at the start on browser platform', async () => {
+    const { comp, api, clearErrorsSpy } = createInstance('browser', [
+      { id: 'A' },
+    ]);
+
+    api.printApplicationList.mockReturnValue(
+      of(makePrintDto([{ z: 1 } as unknown])),
+    );
+
+    await comp.onPrintContinuous();
+
+    expect(clearErrorsSpy).toHaveBeenCalledTimes(1);
   });
 });
