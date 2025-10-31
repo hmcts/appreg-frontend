@@ -1,0 +1,53 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>helper</groupId>
+  <artifactId>openapi-pull</artifactId>
+  <version>1.0</version>
+
+  <properties>
+    <spec.version>0.0.1</spec.version>
+    <out.dir>${project.basedir}/../openapi/vendor/openapi</out.dir>
+  </properties>
+
+  <repositories>
+    <repository>
+      <id>hmcts-feed</id>
+      <url>
+        https://pkgs.dev.azure.com/hmcts/Artifacts/_packaging/0bf8a9df-48b4-4295-9732-56b9e38f612a/maven/v1</url>
+    </repository>
+  </repositories>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.6.1</version>
+        <executions>
+          <execution>
+            <id>fetch-openapi</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>uk.gov.hmcts.appregister</groupId>
+                  <artifactId>appreg-api</artifactId>
+                  <version>${spec.version}</version>
+                  <classifier>openapi</classifier>
+                  <type>jar</type>
+                  <outputDirectory>${out.dir}</outputDirectory>
+                  <destFileName>openapi.jar</destFileName>
+                </artifactItem>
+              </artifactItems>
+              <overWriteReleases>true</overWriteReleases>
+              <overWriteSnapshots>true</overWriteSnapshots>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
