@@ -5152,6 +5152,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/connect-history-api-fallback@npm:^1.5.4":
+  version: 1.5.4
+  resolution: "@types/connect-history-api-fallback@npm:1.5.4"
+  dependencies:
+    "@types/express-serve-static-core": "npm:*"
+    "@types/node": "npm:*"
+  checksum: 10/e1dee43b8570ffac02d2d47a2b4ba80d3ca0dd1840632dafb221da199e59dbe3778d3d7303c9e23c6b401f37c076935a5bc2aeae1c4e5feaefe1c371fe2073fd
+  languageName: node
+  linkType: hard
+
 "@types/connect@npm:*":
   version: 3.4.38
   resolution: "@types/connect@npm:3.4.38"
@@ -5184,7 +5194,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/express-serve-static-core@npm:^5.0.0":
+"@types/express-serve-static-core@npm:*, @types/express-serve-static-core@npm:^5.0.0":
   version: 5.1.0
   resolution: "@types/express-serve-static-core@npm:5.1.0"
   dependencies:
@@ -6342,6 +6352,7 @@ __metadata:
     "@types/adm-zip": "npm:^0"
     "@types/axe-core": "npm:^3.0.6"
     "@types/config": "npm:^3.3.5"
+    "@types/connect-history-api-fallback": "npm:^1.5.4"
     "@types/cookie-parser": "npm:^1"
     "@types/express": "npm:^5.0.1"
     "@types/express-session": "npm:^1"
@@ -6360,6 +6371,7 @@ __metadata:
     axe-core: "npm:^4.10.3"
     concurrently: "npm:^9.2.1"
     config: "npm:^4.1.0"
+    connect-history-api-fallback: "npm:^2.0.0"
     connect-redis: "npm:^9.0.0"
     cookie-parser: "npm:^1.4.7"
     cross-fetch: "npm:^4.1.0"
@@ -7789,6 +7801,13 @@ __metadata:
   dependencies:
     json5: "npm:^2.2.3"
   checksum: 10/46bbe8cf10c063b0971383f6d8472fca5790a9a296252a75503cefba018011b7b36b2f1d1289e9b027963caee80db3bf26790e803fb29f24f1118e257cdf1c3a
+  languageName: node
+  linkType: hard
+
+"connect-history-api-fallback@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "connect-history-api-fallback@npm:2.0.0"
+  checksum: 10/3b26bf4041fdb33deacdcb3af9ae11e9a0b413fb14c95844d74a460b55e407625b364955dcf965c654605cde9d24ad5dad423c489aa430825aab2035859aba0c
   languageName: node
   linkType: hard
 
