@@ -1,7 +1,8 @@
 const { execSync } = require('child_process');
-const reporter = require('multiple-cucumber-html-reporter');
 const fs = require('fs');
 const path = require('path');
+
+const reporter = require('multiple-cucumber-html-reporter');
 
 // Generate Mochawesome HTML report
 const mochawesomeJsonDir = path.join(__dirname, '../../cypress/reports/.jsons');
@@ -21,7 +22,7 @@ if (fs.existsSync(mochawesomeJsonDir)) {
       `npx mochawesome-report-generator ${mochawesomeOutput} -o ${reportsDir}`,
       { stdio: 'inherit' },
     );
-  } catch (error) {
+  } catch {
     // Continue even if mochawesome generation fails
   }
 }
