@@ -6,11 +6,6 @@ const {
 const {
   createEsbuildPlugin,
 } = require('@badeball/cypress-cucumber-preprocessor/esbuild');
-const { HmctsLoggerBridge } = require('./src/modules/logger');
-
-const logger = HmctsLoggerBridge.enable(
-  'hmcts applications register - cypress',
-);
 
 // Use process.stdout.write for direct output (no ESLint warnings)
 const cypressLog = {
@@ -23,7 +18,8 @@ async function loadAppConfig() {
   const appConfig = require('config');
   const nodeEnv = process.env.NODE_ENV || 'development';
 
-  logger.info(nodeEnv);
+  console.log('nodeEnv: ', nodeEnv);
+
   // Development uses staging vault secrets
   const vaultEnv =
     process.env.AKS_ENV || (nodeEnv === 'development' ? 'stg' : nodeEnv);
