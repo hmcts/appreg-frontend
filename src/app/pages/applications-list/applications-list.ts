@@ -347,9 +347,7 @@ export class ApplicationsList
 
     this.clearErrors();
 
-    const ids = this.rows
-      .map((r) => r.id)
-      .filter((x): x is string => Boolean(x));
+    const ids = this.rows.map((r) => r.id).filter(Boolean);
     if (!ids.length) {
       this.showInline('No lists to print');
       return;
