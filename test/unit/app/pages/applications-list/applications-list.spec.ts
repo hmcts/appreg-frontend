@@ -440,7 +440,7 @@ describe('ApplicationsList – search', () => {
     component.loadApplicationsLists(false);
     const args = service.getApplicationLists.mock
       .calls[0][0] as GetApplicationListsRequestParams;
-    expect(args).toEqual({ 'page': 0, 'size': 25 });
+    expect(args).toEqual({ page: 0, size: 25 });
   });
 
   it('merges filter when hasParams=true', () => {
