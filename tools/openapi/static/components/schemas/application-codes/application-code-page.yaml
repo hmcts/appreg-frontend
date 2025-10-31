@@ -1,8 +1,0 @@
-allOf:
-  - $ref: '../common/page.yaml'
-  - type: object
-    properties:
-      content:
-        type: array
-        items:
-          $ref: './application-code-get-summary-dto.yaml'
