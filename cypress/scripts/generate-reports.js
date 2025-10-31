@@ -35,7 +35,7 @@ if (fs.existsSync(mochawesomeJsonDir)) {
         { stdio: 'inherit' },
       );
     }
-  } catch (err) {
+  } catch (_err) {
     // Continue even if mochawesome generation fails
   }
 }
