@@ -26,7 +26,7 @@ export class NotificationBannerComponent implements AfterViewInit {
   @Input() linkCommands?: string[];
   @Input() autoFocus = false;
 
-  @ViewChild('bannerEl') private bannerEl?: ElementRef<HTMLDivElement>;
+  @ViewChild('bannerEl') private readonly bannerEl?: ElementRef<HTMLDivElement>;
 
   private static nextId = 0;
   titleId = `govuk-notification-banner-title-${NotificationBannerComponent.nextId++}`;

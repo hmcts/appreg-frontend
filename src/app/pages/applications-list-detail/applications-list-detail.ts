@@ -14,13 +14,7 @@ Functionality:
 
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpContext } from '@angular/common/http';
-import {
-  AfterViewInit,
-  Component,
-  Inject,
-  OnInit,
-  PLATFORM_ID,
-} from '@angular/core';
+import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -28,14 +22,11 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Subscription } from 'rxjs';
 
 import {
   ApplicationListStatus,
   ApplicationListUpdateDto,
   ApplicationListsApi,
-  CourtLocationGetSummaryDto,
-  CriminalJusticeAreaGetDto,
 } from '../../../generated/openapi';
 import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
@@ -58,19 +49,13 @@ import {
   IF_MATCH,
   ROW_VERSION,
 } from '../../shared/context/concurrency-context';
-import { attachLocationDisabler } from '../../shared/util/attach-location-disabler';
 import { buildNormalizedPayload } from '../../shared/util/build-payload';
 import { collectMissing } from '../../shared/util/collect-missing';
-import {
-  onCjaInputChange,
-  onCourthouseInputChange,
-  selectCja as selectCjaHelper,
-  selectCourthouse as selectCourthouseHelper,
-} from '../../shared/util/court-cja-text-suggestions';
 import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '../../shared/util/error-click';
+import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
 import type { FormRaw } from '../../shared/util/types/application-list/types';
 import { validateCourtVsLocOrCja } from '../../shared/util/validate-court-vs-loc-cja';
 import {
@@ -120,17 +105,16 @@ type Handoff = {
   ],
   templateUrl: './applications-list-detail.html',
 })
-export class ApplicationsListDetail implements AfterViewInit, OnInit {
+export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   id!: string;
   currentFragment: string | null = null;
-  private locationDisabler?: Subscription;
   private version: number = 0; // Used in update
   private etag: string | null = null;
 
   currentPage = 1;
   totalPages = 5;
 
-  form = new FormGroup({
+  override form = new FormGroup({
     date: new FormControl<string | null>(null),
     time: new FormControl<Duration | null>(null),
     description: new FormControl<string>('', {
@@ -171,36 +155,16 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
 
-  // CJA + Court location vars
-  cja: CriminalJusticeAreaGetDto[] = [];
-  filteredCja: CriminalJusticeAreaGetDto[] = [];
-  cjaSearch = '';
-
-  courtLocations: CourtLocationGetSummaryDto[] = [];
-  filteredCourthouses: CourtLocationGetSummaryDto[] = [];
-  courthouseSearch = '';
-
   constructor(
     @Inject(PLATFORM_ID) private readonly platformId: object,
-    private readonly ref: ReferenceDataFacade,
+    private readonly refField: ReferenceDataFacade,
     private readonly appListApi: ApplicationListsApi,
-  ) {}
+  ) {
+    super();
+  }
 
   ngOnInit(): void {
-    this.courthouseSearch = String(this.form.controls.court.value ?? '');
-    this.cjaSearch = String(this.form.controls.cja.value ?? '');
-
-    this.ref.courtLocations$.subscribe(
-      (items) => (this.courtLocations = items),
-    );
-    this.ref.cja$.subscribe((items) => (this.cja = items));
-
-    // Disable based fields
-    this.locationDisabler = attachLocationDisabler({
-      court: this.form.controls.court,
-      location: this.form.controls.location,
-      cja: this.form.controls.cja,
-    });
+    this.initPlaceFields(this.form, this.refField);
 
     // Set application list row
     const st = (history.state as { row?: Handoff }).row;
@@ -219,10 +183,6 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
         duration: null,
       });
     }
-  }
-
-  ngAfterViewInit(): void {
-    // Not implemented yet
   }
 
   onSubmit(): void {
@@ -328,35 +288,6 @@ export class ApplicationsListDetail implements AfterViewInit, OnInit {
   onPageChange(page: number): void {
     this.currentPage = page;
     this.loadApplicationsLists(); // fetch page `page`
-  }
-
-  onCourthouseInputChange(): void {
-    this.filteredCourthouses = onCourthouseInputChange(
-      this.form,
-      this.courthouseSearch,
-      this.courtLocations,
-    );
-  }
-
-  onCjaInputChange(): void {
-    this.filteredCja = onCjaInputChange(this.form, this.cjaSearch, this.cja);
-  }
-
-  selectCourthouse(
-    c: { locationCode?: string } | CourtLocationGetSummaryDto,
-  ): void {
-    const { courthouseSearch, filteredCourthouses } = selectCourthouseHelper(
-      this.form,
-      c,
-    );
-    this.courthouseSearch = courthouseSearch;
-    this.filteredCourthouses = filteredCourthouses;
-  }
-
-  selectCja(c: { code?: string } | CriminalJusticeAreaGetDto): void {
-    const { cjaSearch, filteredCja } = selectCjaHelper(this.form, c);
-    this.cjaSearch = cjaSearch;
-    this.filteredCja = filteredCja;
   }
 
   private buildErrorSummary(): void {

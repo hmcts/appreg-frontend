@@ -22,7 +22,7 @@ export class SuccessBannerComponent implements AfterViewInit {
   @Input() linkCommands?: string[];
   @Input() autoFocus = true;
 
-  @ViewChild('bannerEl') private bannerEl?: ElementRef<HTMLDivElement>;
+  @ViewChild('bannerEl') private readonly bannerEl?: ElementRef<HTMLDivElement>;
 
   ngAfterViewInit(): void {
     if (this.autoFocus) {

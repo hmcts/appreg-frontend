@@ -33,16 +33,16 @@ export function collectMissing(
     }
   };
 
-  if (!errs.dateInvalid) {
-    need(has(v.date), 'date-day', 'Enter day, month and year');
-  } else {
+  if (errs.dateInvalid) {
     need(has(v.date), 'date-day', errs.dateErrorText ?? 'Enter a valid date');
+  } else {
+    need(has(v.date), 'date-day', 'Enter day, month and year');
   }
 
-  if (!errs.durationErrorText) {
-    need(has(v.time), 'time-hours', 'Enter hours and minutes');
-  } else {
+  if (errs.durationErrorText) {
     need(false, 'time-hours', errs.durationErrorText);
+  } else {
+    need(has(v.time), 'time-hours', 'Enter hours and minutes');
   }
 
   need(has(v.description), 'description', 'Description is required');
