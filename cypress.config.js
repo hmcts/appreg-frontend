@@ -18,8 +18,6 @@ async function loadAppConfig() {
   const appConfig = require('config');
   const nodeEnv = process.env.NODE_ENV || 'development';
 
-  console.log('nodeEnv: ', nodeEnv);
-
   // Development uses staging vault secrets
   const vaultEnv =
     process.env.AKS_ENV || (nodeEnv === 'development' ? 'stg' : nodeEnv);
