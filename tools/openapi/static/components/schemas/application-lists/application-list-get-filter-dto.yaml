@@ -13,7 +13,6 @@ properties:
     format: time
     description: Single time of the Application List.
     example: "10:30"
-    pattern: '^(?:[01]\d|2[0-3]):[0-5]\d$'
 
   courtLocationCode:
     type: string
@@ -38,3 +37,4 @@ properties:
   status:
     $ref: "./application-list-status.yaml"
 
+required: []
