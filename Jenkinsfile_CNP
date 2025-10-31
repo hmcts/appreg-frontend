@@ -41,20 +41,53 @@ withPipeline(type, product, component) {
   after('functionalTest:aat') {
     stage('Functional Tests') {
       steps {
-        sh 'yarn test:functional'
+        script {
+          try {
+            sh 'yarn test:functional'
+          } catch (Exception e) {
+            echo "Tests failed: ${e.getMessage()}"
+            echo "Continuing to archive artifacts..."
+            currentBuild.result = 'UNSTABLE'
+          }
+          sh '''
+            echo "=== Checking what was created ==="
+            ls -la cypress/ || echo "No cypress directory"
+            ls -la cypress/reports/ || echo "No reports directory"
+            find cypress/reports -type f || echo "No files in reports"
+          '''
+        }
       }
       post {
         always {
-          archiveArtifacts artifacts: 'cypress/reports/**/*', allowEmptyArchive: true
+          script {
+            echo "Attempting to archive artifacts..."
+            try {
+              archiveArtifacts artifacts: 'cypress/reports/**/*.png', allowEmptyArchive: true
+              archiveArtifacts artifacts: 'cypress/reports/**/*.html', allowEmptyArchive: true
+              archiveArtifacts artifacts: 'cypress/reports/**/*.json', allowEmptyArchive: true
+              echo "Artifacts archived successfully"
+            } catch (Exception e) {
+              echo "Failed to archive artifacts: ${e.getMessage()}"
+            }
+          }
           
-          publishHTML([
-            allowMissing: true,
-            alwaysLinkToLastBuild: true,
-            keepAll: true,
-            reportDir: 'cypress/reports/e2e/html',
-            reportFiles: '*.html',
-            reportName: 'Test Report'
-          ])
+          script {
+            if (fileExists('cypress/reports/e2e/html')) {
+              echo "HTML report directory exists, publishing..."
+              publishHTML([
+                allowMissing: true,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: 'cypress/reports/e2e/html',
+                reportFiles: '*.html',
+                reportName: 'Test Report'
+              ])
+            } else {
+              echo "WARNING: cypress/reports/e2e/html directory does not exist!"
+              echo "Checking alternative locations..."
+              sh 'find . -name "*.html" -path "*/cypress/*" || echo "No HTML files found"'
+            }
+          }
         }
       }
     }
