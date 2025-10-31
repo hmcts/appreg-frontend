@@ -29,8 +29,8 @@
     }
   },
   "auth": {
-    "redirectUri": "https://appreg-frontend-pr-226.dev.platform.hmcts.net/sso/login-callback",
-    "postLogoutRedirectUri": "https://appreg-frontend-pr-226.dev.platform.hmcts.net/login",
+    "redirectUri": "https://appreg.staging.apps.hmcts.net/sso/login-callback",
+    "postLogoutRedirectUri": "https://appreg.staging.apps.hmcts.net/login",
     "scopes": ["openid", "profile", "email", "offline_access"]
   },
   "api": {
