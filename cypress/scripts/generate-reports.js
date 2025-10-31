@@ -23,14 +23,14 @@ if (fs.existsSync(mochawesomeJsonDir)) {
     if (jsonFiles.length > 0) {
       // Merge JSON files
       execFileSync(
-        'npx',
+        'yarn',
         ['mochawesome-merge', ...jsonFiles, '-o', mochawesomeOutput],
         { stdio: 'inherit' },
       );
 
       // Generate HTML report
       execFileSync(
-        'npx',
+        'yarn',
         ['mochawesome-report-generator', mochawesomeOutput, '-o', reportsDir],
         { stdio: 'inherit' },
       );
