@@ -15,6 +15,13 @@ def secrets = [
                 secret('POSTGRES-HOST', 'DB_HOST'),
                 secret('POSTGRES-PORT', 'DB_PORT'),
                 secret('POSTGRES-DATABASE', 'DB_NAME'),
+                secret('TEST-USER1-EMAIL', 'TEST_USER1_EMAIL'),
+                secret('TEST-USER2-EMAIL', 'TEST_USER2_EMAIL'),
+                secret('TEST-USER3-EMAIL', 'TEST_USER3_EMAIL'),
+                secret('TEST-ADMIN1-EMAIL', 'TEST_ADMIN1_EMAIL'),
+                secret('TEST-ADMIN2-EMAIL', 'TEST_ADMIN2_EMAIL'),
+                secret('TEST-ADMIN3-EMAIL', 'TEST_ADMIN3_EMAIL'),
+                secret('TEST-USERS-PASSWORD', 'TEST_USERS_PASSWORD'),
         ]
 ]
 
@@ -30,6 +37,22 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 withPipeline(type, product, component) {
   loadVaultSecrets(secrets)
   enableSlackNotifications('#appreg-builds')
+
+  // Add smoke tests with screenshot capture
+  after('functionalTest:aat') {
+    sh 'yarn test:functional'
+    
+    // Archive screenshots and reports
+    archiveArtifacts artifacts: 'cypress/reports/**/*', allowEmptyArchive: true
+    publishHTML([
+      allowMissing: true,
+      alwaysLinkToLastBuild: true,
+      keepAll: true,
+      reportDir: 'cypress/reports/cucumber-html',
+      reportFiles: 'index.html',
+      reportName: 'Test Report'
+    ])
+  }
 
   syncBranchesWithMaster(branchesToSync)
 }
