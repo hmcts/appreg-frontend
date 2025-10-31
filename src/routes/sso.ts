@@ -86,9 +86,6 @@ export function setupSsoRoutes(
   const clientSecret =
     overrides?.clientSecret ??
     config.get<string>('secrets.appreg.azure-client-secret-fe');
-  const postLogoutRedirectUri =
-    overrides?.postLogoutRedirectUri ??
-    config.get<string>('auth.postLogoutRedirectUri');
 
   // Build MSAL with the real tenant/credentials
   ccaInstance = new ConfidentialClientApplication({
@@ -171,7 +168,9 @@ export function setupSsoRoutes(
   });
 
   // GET /sso/logout -> clear session and call Entra logout
-  router.get('/sso/logout', (req: Request, res: Response): void => {
+  router.get('/sso/logout', (req, res) => {
+    const postLogoutRedirectUri = `${publicBase(req)}/login`;
+
     const logoutUrl =
       `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/logout` +
       `?post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`;
