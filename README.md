@@ -201,6 +201,91 @@ You can either run a provided script or install manually.
   yarn install && yarn build
   ```
 
+## Testing
+
+This section documents all test types, how to run them, and how to add new cases.  
+Tests live under `test/` and are split by purpose to keep suites fast and focused.
+
+### Scripts Overview
+
+| Script               | What it runs                                                                                                           | Config                     |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| `yarn test`          | Alias for unit tests locally. In CI (`CI=true`) this script no-ops (exits 0) because CI jobs invoke suites explicitly. | —                          |
+| `yarn test:unit`     | Jest unit tests under `test/unit`. Fast, isolated.                                                                     | `jest.config.js` (default) |
+| `yarn test:coverage` | Same as unit, with coverage output.                                                                                    | `jest.config.js`           |
+| `yarn test:routes`   | Route-render checks under `test/routes`.                                                                               | `jest.routes.config.js`    |
+| `yarn test:a11y`     | Accessibility tests with Pa11y under `test/a11y`. Spins up a temp HTTP server.                                         | `jest.a11y.config.js`      |
+| `yarn test:smoke`    | High-level smoke tests under `test/smoke`. Disables TLS verification for test envs that use self-signed certs.         | `jest.smoke.config.js`     |
+
+### Unit Tests
+
+- **Location:** `test/unit/`
+- **Purpose:** Validate functions, components, and services in isolation.
+- **Run:**
+  ```bash
+  yarn test:unit
+  ```
+- **With coverage:**
+- ```bash
+  yarn test:coverage
+  ```
+- **Tips:**
+  - Prefer pure tests without network or timers.
+
+  - Use jest.mock(...) for dependencies.
+
+  - Keep them fast (<100ms each).
+
+### Route Tests
+
+- **Location:** `test/routes/`
+- **Purpose:** Verifies that key application routes **function correctly** within the **Server-Side Rendering (SSR)** layer.
+- **Run:**
+
+```bash
+  yarn test:routes
+```
+
+### Accessibility Tests
+
+Accessibility checks run against the built app served via a temporary local server. This is required to support Angular’s client-side routing (e.g., /applications-list/:id).
+
+- **Location:** `test/a11y/`
+- **Key files:**
+  - `a11y.server.ts` – starts a static SPA server that:
+  - serves `dist/appreg-frontend/browser`
+  - falls back to index.html for unknown paths
+  - `a11y.spec.ts` – defines the list of routes and Pa11y expectations
+- **Run:**
+  ```bash
+  yarn build
+  yarn test:a11y
+  ```
+
+#### Add/Update Routes
+
+Edit `test/a11y/a11y.spec.ts` and append routes:
+
+```jest
+  describe('Accessibility', () => {
+    testAccessibility('/login');
+    testAccessibility('/applications-list');
+    testAccessibility('/applications-list/123'); // dynamic route example (use a stable test ID)
+  });
+```
+
+### Smoke Tests
+
+- **Location:** `test/smoke/`
+- **Purpose:** High-level end-to-end tests simulating user journeys.
+- **Run:**
+
+```bash
+  yarn test:smoke
+```
+
+- **Note:** `NODE_TLS_REJECT_UNAUTHORIZED=0` is set in the script to allow self-signed local certs; do not rely on this outside test environments.
+
 ## Cypress Frontend Automation Setup
 
 ### Folder Structure

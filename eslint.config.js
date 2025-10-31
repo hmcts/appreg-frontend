@@ -164,26 +164,21 @@ module.exports = defineConfig([
 
   // TESTS (type-aware), with their own single project + resolver scoped here
   {
-    files: [
-      '**/*.spec.ts',
-      '**/*.test.ts',
-      '**/*.routes.spec.ts',
-      '**/*.a11y.spec.ts',
-    ],
+    files: ['test/**/*.ts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
         project: './test/tsconfig.json',
         tsconfigRootDir: __dirname,
         noWarnOnMultipleProjects: true,
+        sourceType: 'module',
+        ecmaVersion: 'latest',
       },
-      globals: { ...globals.jest },
+      globals: { ...globals.node, ...globals.jest },
     },
     settings: {
       'import/resolver': {
-        typescript: {
-          project: ['./test/tsconfig.json'],
-        },
+        typescript: { project: ['./test/tsconfig.json'] },
       },
     },
     plugins: { '@typescript-eslint': fixupPluginRules(tsEslintPlugin) },
