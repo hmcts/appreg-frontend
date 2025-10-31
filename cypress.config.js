@@ -80,7 +80,7 @@ module.exports = defineConfig({
     // Report and Media Settings
     video: false,
     screenshotOnRunFailure: true,
-    screenshotsFolder: 'cypress/reports/html/screenshots',
+    screenshotsFolder: './cypress/reports/html/screenshots',
     async setupNodeEvents(on, config) {
       // Custom task to log accessibility violations
       on('task', {
