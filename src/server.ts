@@ -67,6 +67,8 @@ const logger: HmctsLogger = HmctsLoggerBridge.enable(
   AppInsights.client(),
 );
 
+logger.info('ENV', env);
+
 // Redis config
 const runningAsEntrypoint = (() => {
   try {
