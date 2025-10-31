@@ -1,8 +1,6 @@
 const { execSync } = require('child_process');
 const path = require('path');
 
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
 const rootDir = path.resolve(__dirname, '../..');
 let exitCode = 0;
 
