@@ -1,4 +1,4 @@
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
@@ -14,14 +14,27 @@ const reportsDir = path.join(__dirname, '../../cypress/reports');
 
 if (fs.existsSync(mochawesomeJsonDir)) {
   try {
-    execSync(
-      `npx mochawesome-merge ${mochawesomeJsonDir}/*.json -o ${mochawesomeOutput}`,
-      { stdio: 'inherit' },
-    );
-    execSync(
-      `npx mochawesome-report-generator ${mochawesomeOutput} -o ${reportsDir}`,
-      { stdio: 'inherit' },
-    );
+    // Get all JSON files in the directory
+    const jsonFiles = fs
+      .readdirSync(mochawesomeJsonDir)
+      .filter((file) => file.endsWith('.json'))
+      .map((file) => path.join(mochawesomeJsonDir, file));
+
+    if (jsonFiles.length > 0) {
+      // Merge JSON files
+      execFileSync(
+        'npx',
+        ['mochawesome-merge', ...jsonFiles, '-o', mochawesomeOutput],
+        { stdio: 'inherit' },
+      );
+
+      // Generate HTML report
+      execFileSync(
+        'npx',
+        ['mochawesome-report-generator', mochawesomeOutput, '-o', reportsDir],
+        { stdio: 'inherit' },
+      );
+    }
   } catch {
     // Continue even if mochawesome generation fails
   }
