@@ -18,7 +18,7 @@
     "start:dev": "nodemon --config nodemon.json",
     "dev:mock": "concurrently -k -s first -n MOCK,APP \"yarn mock\" \"yarn dlx wait-on tcp:4550 && yarn start:dev\"",
     "dev:mock:win": "concurrently -k -s first -n MOCK,APP \"yarn mock:win\" \"yarn dlx wait-on tcp:4550 && yarn start:dev\"",
-    "lint": "echo 'yarn api:all && stylelint **/*.scss -v -q && eslint . --ext .js,.ts --max-warnings 0 && prettier --check .'",
+    "lint": "yarn api:all && echo 'yarn api:all && stylelint **/*.scss -v -q && eslint . --ext .js,.ts --max-warnings 0 && prettier --check .'",
     "lint:fix": "prettier --write . && eslint --fix .",
     "build": "ng build",
     "build:ssr": "ng build --configuration production",
