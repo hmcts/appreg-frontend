@@ -57,6 +57,7 @@ cypress/downloads/
 # OpenAPI
 /src/generated
 /tools/dist/openapi.bundled.yaml
+/tools/openapi/vendor
 
 # Branch retention outputs
 .github/branch-retention/out/
