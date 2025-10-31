@@ -2,7 +2,7 @@ import { AccountInfo, ConfidentialClientApplication } from '@azure/msal-node';
 import * as nodejsLogging from '@hmcts/nodejs-logging';
 import { HmctsLogger } from '@hmcts/nodejs-logging';
 import config from 'config';
-import express, { Express, NextFunction, Request, Response } from 'express';
+import express, { Express, Request, Response } from 'express';
 import { type RateLimitRequestHandler, rateLimit } from 'express-rate-limit';
 import { v4 as uuid } from 'uuid';
 
@@ -43,6 +43,14 @@ export function getCca(): ConfidentialClientApplication {
     throw new Error('SSO not initialised yet: call setupSsoRoutes(app) first.');
   }
   return ccaInstance;
+}
+
+/** Build redirect URI based on current request */
+function publicBase(req: Request): string {
+  const proto =
+    (req.headers['x-forwarded-proto'] as string)?.split(',')[0] || req.protocol;
+  const host = (req.headers['x-forwarded-host'] as string) || req.get('host')!;
+  return `${proto}://${host}`;
 }
 
 // --- Internal constants ------------------------------------------------------
@@ -97,84 +105,70 @@ export function setupSsoRoutes(
   // ---- Routes ---------------------------------------------------------------
 
   // GET /sso/login -> redirect user to Entra ID
-  router.get(
-    '/sso/login',
-    loginLimiter,
-    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-      try {
-        const state = uuid();
-        const nonce = uuid();
-        req.session.authState = state;
-        req.session.nonce = nonce;
+  router.get('/sso/login', loginLimiter, async (req, res, next) => {
+    try {
+      const state = uuid();
+      const nonce = uuid();
+      req.session.authState = state;
+      req.session.nonce = nonce;
 
-        const url = getCca().getAuthCodeUrl(
-          buildAuthCodeUrlRequest(state, nonce),
-        );
-        res.redirect(await url);
-        return;
-      } catch (err) {
-        logger.error(err as Error, 'Error during /sso/login');
-        next(err);
-        return;
-      }
-    },
-  );
+      const redirectUri = `${publicBase(req)}/sso/login-callback`;
+      const authUrl = await getCca().getAuthCodeUrl(
+        buildAuthCodeUrlRequest(state, nonce, redirectUri),
+      );
+      res.redirect(authUrl);
+    } catch (err) {
+      logger.error(err as Error, 'Error during /sso/login');
+      next(err);
+    }
+  });
 
   // GET /sso/login-callback -> exchange code for tokens
-  router.get(
-    '/sso/login-callback',
-    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-      try {
-        const code =
-          typeof req.query['code'] === 'string' ? req.query['code'] : undefined;
-        const state =
-          typeof req.query['state'] === 'string'
-            ? req.query['state']
-            : undefined;
-
-        if (!code || !state || state !== req.session.authState) {
-          res.status(400).send('Invalid auth response.');
-          return;
-        }
-
-        const tokenResponse = await getCca().acquireTokenByCode(
-          buildAuthCodeRequest(code),
-        );
-
-        if (!tokenResponse?.account) {
-          res.status(401).send('No account in token.');
-          return;
-        }
-
-        // Persist account + MSAL cache into the session
-        req.session.account = tokenResponse.account;
-        req.session.tokenCache = getCca().getTokenCache().serialize();
-
-        await new Promise<void>((resolve, reject) => {
-          req.session.save((err: unknown) => {
-            if (err) {
-              reject(
-                err instanceof Error
-                  ? err
-                  : new Error(
-                      typeof err === 'string' ? err : JSON.stringify(err),
-                    ),
-              );
-              return;
-            }
-            resolve();
-          });
-        });
-
-        res.redirect('/applications-list');
-        return;
-      } catch (err) {
-        logger.error(err as Error, 'Error during /sso/login-callback');
-        next(err);
+  router.get('/sso/login-callback', async (req, res, next) => {
+    try {
+      const code =
+        typeof req.query['code'] === 'string' ? req.query['code'] : undefined;
+      const state =
+        typeof req.query['state'] === 'string' ? req.query['state'] : undefined;
+      if (!code || !state || state !== req.session.authState) {
+        res.status(400).send('Invalid auth response.');
         return;
       }
-    },
-  );
+
+      const redirectUri = `${publicBase(req)}/sso/login-callback`;
+      const tokenResponse = await getCca().acquireTokenByCode(
+        buildAuthCodeRequest(code, redirectUri),
+      );
+
+      if (!tokenResponse?.account) {
+        res.status(401).send('No account in token.');
+        return;
+      }
+
+      req.session.account = tokenResponse.account;
+      req.session.tokenCache = getCca().getTokenCache().serialize();
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err: unknown) => {
+          if (err) {
+            reject(
+              err instanceof Error
+                ? err
+                : new Error(
+                    typeof err === 'string' ? err : JSON.stringify(err),
+                  ),
+            );
+            return;
+          }
+          resolve();
+        });
+      });
+
+      res.redirect('/applications-list');
+    } catch (err) {
+      logger.error(err as Error, 'Error during /sso/login-callback');
+      next(err);
+    }
+  });
 
   // GET /sso/logout -> clear session and call Entra logout
   router.get('/sso/logout', (req: Request, res: Response): void => {
