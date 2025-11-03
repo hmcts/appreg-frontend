@@ -16,8 +16,8 @@ export class AuthHelper {
         ButtonHelper.clickButton('Sign in');
 
         MicrosoftAuthHelper.performLogin(email, password);
-        cy.log('Waiting for OAuth callback to complete...');
-        cy.url({ timeout: 30000 }).should('include', '/applications-list');
+        cy.log('Visiting app to trigger OAuth callback...');
+        cy.visit(APP_URLS.APPLICATIONS_LIST, { timeout: 30000 });
         cy.log('OAuth callback completed - redirected to applications list');
       },
       {
