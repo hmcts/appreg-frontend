@@ -16,6 +16,17 @@ export class AuthHelper {
         ButtonHelper.clickButton('Sign in');
 
         MicrosoftAuthHelper.performLogin(email, password);
+
+        // Wait for redirect back to app to complete
+        cy.log('Waiting for redirect back to application...');
+        cy.url({ timeout: 30000 }).should(
+          'not.include',
+          'login.microsoftonline.com',
+        );
+
+        // Give the app time to set up the session after redirect
+        cy.wait(2000);
+
         SessionValidator.waitForSessionEstablishment();
         cy.log('SSO login completed successfully');
       },
