@@ -41,20 +41,19 @@ withPipeline(type, product, component) {
   after('functionalTest:aat') {
     try {
       sh 'yarn test:functional'
-    } catch (Exception e) {
+    } finally {
       sh 'node cypress/scripts/generate-reports.js || true'
+      archiveArtifacts artifacts: 'cypress/reports/**/*', allowEmptyArchive: true
+      
+      publishHTML([
+        allowMissing: true,
+        alwaysLinkToLastBuild: true,
+        keepAll: true,
+        reportDir: 'cypress/reports',
+        reportFiles: 'mochawesome.html',
+        reportName: 'Cypress Test Report'
+      ])
     }
-    
-    archiveArtifacts artifacts: 'cypress/reports/**/*', allowEmptyArchive: true
-    
-    publishHTML([
-      allowMissing: true,
-      alwaysLinkToLastBuild: true,
-      keepAll: true,
-      reportDir: 'cypress/reports',
-      reportFiles: 'mochawesome.html',
-      reportName: 'Test Report'
-    ])
   }
 
   syncBranchesWithMaster(branchesToSync)
