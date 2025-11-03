@@ -85,6 +85,10 @@ type Handoff = {
   version: number;
 };
 
+interface MojInitEl extends HTMLElement {
+  __mojInit?: boolean;
+}
+
 @Component({
   selector: 'app-application-detail',
   standalone: true,
@@ -223,6 +227,13 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     }
   }
 
+  ngAfterViewInit(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    void this.initMojMenus();
+  }
+
   onSubmit(): void {
     // Submission is only on list-details -> Update
     if (this.form.invalid) {
@@ -325,6 +336,31 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   onPageChange(page: number): void {
     this.currentPage = page;
     this.loadApplicationsLists(); // fetch page `page`
+  }
+
+  private async initMojMenus(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    try {
+      const { ButtonMenu } = await import('@ministryofjustice/frontend');
+      const nodes = document.querySelectorAll<HTMLElement>(
+        '[data-module="moj-button-menu"]',
+      );
+      for (const el of nodes) {
+        const flagged = el as MojInitEl;
+        if (flagged.__mojInit) {
+          continue;
+        }
+        const instance = new ButtonMenu(flagged);
+        if (typeof (instance as { init?: () => void }).init === 'function') {
+          instance.init();
+        }
+        flagged.__mojInit = true;
+      }
+    } catch {
+      // no-op for non-browser/test envs
+    }
   }
 
   private buildErrorSummary(): void {
