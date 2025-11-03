@@ -27,8 +27,8 @@ export const routes: Routes = [
     canActivate: [sessionGuard],
     children: [
       { path: '', component: ApplicationsListDetail },
-      { path: 'create', component: ApplicationsListEntryCreate }
-    ]
+      { path: 'create', component: ApplicationsListEntryCreate },
+    ],
   },
   {
     path: 'result-selected/:id',

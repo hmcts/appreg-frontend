@@ -103,8 +103,8 @@ type Handoff = {
     SuggestionsComponent,
     ErrorSummaryComponent,
     SuccessBannerComponent,
-    RouterLink
-],
+    RouterLink,
+  ],
   templateUrl: './applications-list-detail.html',
 })
 export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
