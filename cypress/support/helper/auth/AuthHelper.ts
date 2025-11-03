@@ -17,16 +17,10 @@ export class AuthHelper {
 
         MicrosoftAuthHelper.performLogin(email, password);
 
-        // Wait for redirect back to app to complete
-        cy.log('Waiting for redirect back to application...');
-        cy.url({ timeout: 30000 }).should(
-          'not.include',
-          'login.microsoftonline.com',
-        );
+        cy.log('Authentication complete, returning to app...');
+        cy.visit(APP_URLS.HOME, { timeout: 30000 });
 
-        // Give the app time to set up the session after redirect
-        cy.wait(2000);
-
+        // Wait for session to be established
         SessionValidator.waitForSessionEstablishment();
         cy.log('SSO login completed successfully');
       },

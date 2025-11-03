@@ -26,9 +26,6 @@ export class MicrosoftAuthHelper {
 
         cy.log('Clicking "No" on Stay Signed In prompt...');
         cy.get('#idBtn_Back').should('be.visible').click();
-
-        // Wait for the redirect to complete
-        cy.wait(1000);
       },
     );
   }
