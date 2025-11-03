@@ -116,7 +116,8 @@ function createInstance(
   // expose spies with the names the tests use
   const clearNotificationsSpy = jest.fn();
   const showInlineSpy = jest.fn();
-  (comp as unknown as { clearNotifications: () => void }).clearNotifications = clearNotificationsSpy;
+  (comp as unknown as { clearNotifications: () => void }).clearNotifications =
+    clearNotificationsSpy;
   (comp as unknown as { showInline: (m: string) => void }).showInline =
     showInlineSpy;
 
@@ -651,10 +652,8 @@ describe('ApplicationsList.onPrintContinuous', () => {
   });
 
   it('returns early on non-browser platform', async () => {
-    const { comp, api, pdf, clearNotificationsSpy, showInlineSpy } = createInstance(
-      'server',
-      [{ id: 'X' }],
-    );
+    const { comp, api, pdf, clearNotificationsSpy, showInlineSpy } =
+      createInstance('server', [{ id: 'X' }]);
 
     await comp.onPrintContinuous();
 
@@ -665,10 +664,8 @@ describe('ApplicationsList.onPrintContinuous', () => {
   });
 
   it('shows "No lists to print" when rows contain no valid ids', async () => {
-    const { comp, api, pdf, clearNotificationsSpy, showInlineSpy } = createInstance(
-      'browser',
-      [{ id: '' }, {}, { id: null }],
-    );
+    const { comp, api, pdf, clearNotificationsSpy, showInlineSpy } =
+      createInstance('browser', [{ id: '' }, {}, { id: null }]);
 
     await comp.onPrintContinuous();
 
