@@ -16,16 +16,9 @@ export class AuthHelper {
         ButtonHelper.clickButton('Sign in');
 
         MicrosoftAuthHelper.performLogin(email, password);
-
-        cy.log('Waiting for OAuth redirect...');
-        cy.wait(5000);
-
-        cy.url({ timeout: 10000, log: true }).then((url) => {
-          cy.log(`Current URL after wait: ${url}`);
-        });
-
-        SessionValidator.waitForSessionEstablishment();
-        cy.log('SSO login completed successfully');
+        cy.log('Waiting for OAuth callback to complete...');
+        cy.url({ timeout: 30000 }).should('include', '/applications-list');
+        cy.log('OAuth callback completed - redirected to applications list');
       },
       {
         validate() {
