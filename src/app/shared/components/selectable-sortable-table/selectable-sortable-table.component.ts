@@ -7,6 +7,7 @@ import {
   EventEmitter,
   Inject,
   Input,
+  OnDestroy,
   Output,
   PLATFORM_ID,
   TemplateRef,
@@ -30,7 +31,9 @@ export type TableColumn = {
   imports: [CommonModule],
   templateUrl: './selectable-sortable-table.component.html',
 })
-export class SelectableSortableTableComponent implements AfterViewInit {
+export class SelectableSortableTableComponent
+  implements AfterViewInit, OnDestroy
+{
   @ContentChild('actionsTemplate', { read: TemplateRef })
   actionsTpl?: TemplateRef<unknown>;
 
@@ -50,49 +53,100 @@ export class SelectableSortableTableComponent implements AfterViewInit {
 
   @ViewChild('mojTable', { static: true })
   tableRef!: ElementRef<HTMLTableElement>;
-  private destroyFns: Array<() => void> = [];
+
+  private destroyFns: (() => void)[] = [];
 
   constructor(@Inject(PLATFORM_ID) private readonly platformId: object) {}
 
+  /** Narrow row value to a safe string id (avoid no-base-to-string) */
+  private coerceRowId(row: Row): string | null {
+    const v = row[this.idField];
+    if (typeof v === 'string') {
+      return v;
+    }
+    if (typeof v === 'number' || typeof v === 'boolean') {
+      return String(v);
+    }
+    return null;
+  }
+
   getSortValue(row: Row, col: TableColumn): string | null {
     const v = col.sortValue ? col.sortValue(row) : row[col.field];
-    if (v === null) return null;
-    if (typeof v === 'number') return String(v);
-    if (typeof v === 'string') return v;
-    if (v instanceof Date) return v.toISOString();
-    if (typeof v === 'boolean') return v ? '1' : '0';
+    if (v === null || v === undefined) {
+      return null;
+    }
+    if (typeof v === 'number') {
+      return String(v);
+    }
+    if (typeof v === 'string') {
+      return v;
+    }
+    if (v instanceof Date) {
+      return v.toISOString();
+    }
+    if (typeof v === 'boolean') {
+      return v ? '1' : '0';
+    }
     return null;
   }
 
   isSelected(row: Row): boolean {
-    const id = String(row[this.idField] ?? '');
-    return this.selectedIds.has(id);
+    const id = this.coerceRowId(row);
+    return id ? this.selectedIds.has(id) : false;
   }
 
   toggleOne(row: Row, checked: boolean): void {
-    const id = String(row[this.idField] ?? '');
-    if (!id) return;
+    const id = this.coerceRowId(row);
+    if (!id) {
+      return;
+    }
     const next = new Set(this.selectedIds);
-    checked ? next.add(id) : next.delete(id);
+    if (checked) {
+      next.add(id);
+    } else {
+      next.delete(id);
+    }
     this.selectedIds = next;
     this.selectedIdsChange.emit(next);
   }
 
   ngAfterViewInit(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    // Helper: safely pluck a constructor from either the module root or its default export
+    const getCtor = <T>(mdl: unknown, key: string): T | undefined => {
+      const root = (mdl ?? {}) as Record<string, unknown>;
+      const def = (root['default'] ?? {}) as Record<string, unknown>;
+      const candidate = root[key] ?? def[key];
+      return typeof candidate === 'function' ? (candidate as T) : undefined;
+    };
 
     void import('@ministryofjustice/frontend')
       .then((mod) => {
-        const SortableCtor =
-          (mod as any).SortableTable ?? (mod as any).default?.SortableTable;
-        const MultiSelectCtor =
-          (mod as any).MultiSelect ?? (mod as any).default?.MultiSelect;
+        // Works regardless of whether the lib exports on root or default
+        const SortableCtor = getCtor<
+          new (el: HTMLElement) => { init?: () => void; destroy?: () => void }
+        >(mod, 'SortableTable');
+        const MultiSelectCtor = getCtor<
+          new (
+            el: HTMLElement,
+            opts?: { idPrefix?: string },
+          ) => { init?: () => void; destroy?: () => void }
+        >(mod, 'MultiSelect');
 
         // initialise sorting
         if (SortableCtor) {
           const s = new SortableCtor(this.tableRef.nativeElement);
-          s.init?.();
-          this.destroyFns.push(() => s.destroy?.());
+          if (s.init) {
+            s.init();
+          }
+          this.destroyFns.push(() => {
+            if (s.destroy) {
+              s.destroy();
+            }
+          });
         }
 
         // initialise multi-select (select all, row highlighting)
@@ -100,33 +154,61 @@ export class SelectableSortableTableComponent implements AfterViewInit {
           const m = new MultiSelectCtor(this.tableRef.nativeElement, {
             idPrefix: this.idPrefix,
           });
-          m.init?.();
+          if (m.init) {
+            m.init();
+          }
+
           // Keep Angular selection state in sync if user clicks "Select all"
           const onChange = (e: Event) => {
             const target = e.target as HTMLInputElement | null;
             if (
               !target ||
               !target.classList.contains('govuk-checkboxes__input')
-            )
+            ) {
               return;
+            }
+
             // infer id from checkbox id attribute
             const idAttr = target.id || '';
             // only sync our row checkboxes (skip the header select-all control)
-            if (!idAttr.startsWith(this.idPrefix)) return;
+            if (!idAttr.startsWith(this.idPrefix)) {
+              return;
+            }
 
             const id = idAttr.replace(this.idPrefix, '');
             const next = new Set(this.selectedIds);
-            target.checked ? next.add(id) : next.delete(id);
+            if (target.checked) {
+              next.add(id);
+            } else {
+              next.delete(id);
+            }
             this.selectedIds = next;
             this.selectedIdsChange.emit(next);
           };
+
           this.tableRef.nativeElement.addEventListener('change', onChange);
-          this.destroyFns.push(() =>
-            this.tableRef.nativeElement.removeEventListener('change', onChange),
-          );
+          this.destroyFns.push(() => {
+            this.tableRef.nativeElement.removeEventListener('change', onChange);
+            if (m.destroy) {
+              m.destroy();
+            }
+          });
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        /* swallow module load errors; component stays functional without JS */
+      });
+  }
+
+  ngOnDestroy(): void {
+    // Drain and run cleanups
+    for (const fn of this.destroyFns.splice(0)) {
+      try {
+        fn();
+      } catch {
+        // ignore individual cleanup errors
+      }
+    }
   }
 
   get firstColField(): string {
@@ -134,6 +216,6 @@ export class SelectableSortableTableComponent implements AfterViewInit {
   }
 
   getRowId(row: Row): string {
-    return String(row[this.idField] ?? '');
+    return this.coerceRowId(row) ?? '';
   }
 }
