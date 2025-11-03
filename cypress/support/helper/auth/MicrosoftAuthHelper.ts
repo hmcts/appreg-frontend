@@ -17,16 +17,16 @@ export class MicrosoftAuthHelper {
           .should('be.visible')
           .type(innerEmail, { log: false });
         cy.get('input[type="submit"]').click();
-        
+
         cy.log('Entering password...');
         cy.get('input[name="passwd"]')
           .should('be.visible')
           .type(innerPassword, { log: false });
         cy.get('input[type="submit"]').should('be.visible').click();
-        
+
         cy.log('Clicking "No" on Stay Signed In prompt...');
         cy.get('#idBtn_Back').should('be.visible').click();
-        
+
         // Wait for the redirect to complete
         cy.wait(1000);
       },
