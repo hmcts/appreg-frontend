@@ -1,3 +1,15 @@
 <app-breadcrumbs [items]="[buildReturnLink()]"></app-breadcrumbs>
 
 <h1 class="govuk-heading-xl">Create new entry</h1>
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
+
+<div class="govuk-button-group">
+  <button type="submit" class="govuk-button" (click)="onSubmit($event)">Create</button>
+</div>
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
