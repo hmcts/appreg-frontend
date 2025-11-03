@@ -83,7 +83,14 @@
     />
 
     <!-- Sortable table component -->
-    <app-sortable-table caption="Lists" [columns]="columns">
+    <app-selectable-sortable-table
+      id="sortable-table"
+      caption="Lists"
+      [columns]="columns"
+      [data]="rows"
+      idField="id"
+      [(selectedIds)]="selectedIds"
+    >
       <!-- actions slot -->
       <ng-template #actionsTemplate let-row>
         <div class="govuk-button-group">
@@ -93,7 +100,7 @@
           </button>
         </div>
       </ng-template>
-    </app-sortable-table>
+    </app-selectable-sortable-table>
 
     <!-- Pager -->
     <app-pagination
