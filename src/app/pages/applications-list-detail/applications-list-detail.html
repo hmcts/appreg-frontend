@@ -66,7 +66,13 @@
       </div>
       <div class="moj-page-header-actions__actions">
         <div class="moj-button-group moj-button-group--inline">
-          <button type="button" class="govuk-button">Create</button>
+          <button
+            type="button"
+            class="govuk-button"
+            [routerLink]="['/applications-list', id, 'create']"
+          >
+            Create
+          </button>
           <button type="button" class="govuk-button govuk-button--secondary">
             Bulk upload
           </button>

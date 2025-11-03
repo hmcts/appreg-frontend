@@ -22,6 +22,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 
 import {
   ApplicationListStatus,
@@ -102,7 +103,8 @@ type Handoff = {
     SuggestionsComponent,
     ErrorSummaryComponent,
     SuccessBannerComponent,
-  ],
+    RouterLink
+],
   templateUrl: './applications-list-detail.html',
 })
 export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
