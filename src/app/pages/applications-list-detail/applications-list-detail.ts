@@ -41,7 +41,7 @@ import {
 } from '../../shared/components/error-summary/error-summary.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
-import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
+import { SelectableSortableTableComponent } from '../../shared/components/selectable-sortable-table/selectable-sortable-table.component';
 import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
 import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
@@ -96,12 +96,12 @@ type Handoff = {
     DateInputComponent,
     TextInputComponent,
     SelectInputComponent,
-    SortableTableComponent,
     PaginationComponent,
     BreadcrumbsComponent,
     SuggestionsComponent,
     ErrorSummaryComponent,
     SuccessBannerComponent,
+    SelectableSortableTableComponent,
   ],
   templateUrl: './applications-list-detail.html',
 })
@@ -113,6 +113,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   currentPage = 1;
   totalPages = 5;
+
+  selectedIds = new Set<string>();
 
   override form = new FormGroup({
     date: new FormControl<string | null>(null),
@@ -143,6 +145,42 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     { header: 'Fee req', field: 'feeReq' },
     { header: 'Resulted', field: 'resulted' },
     { header: 'Actions', field: 'actions', sortable: false },
+  ];
+
+  rows = [
+    {
+      id: 'list-0001',
+      sequenceNumber: 1,
+      accountNumber: '12345678',
+      applicant: 'Jane Smith',
+      respondent: 'John Smith',
+      postCode: 'SW1A 1AA',
+      title: 'Interim order',
+      feeReq: 'Yes',
+      resulted: 'No',
+    },
+    {
+      id: 'list-0002',
+      sequenceNumber: 2,
+      accountNumber: '87654321',
+      applicant: 'Acme Ltd',
+      respondent: 'Doe Holdings',
+      postCode: 'M1 2AB',
+      title: 'Variation',
+      feeReq: 'No',
+      resulted: 'Yes',
+    },
+    {
+      id: 'list-0003',
+      sequenceNumber: 3,
+      accountNumber: '11223344',
+      applicant: 'Robert Brown',
+      respondent: 'City Council',
+      postCode: 'B2 4QA',
+      title: 'Permission to appeal',
+      feeReq: 'Yes',
+      resulted: 'No',
+    },
   ];
 
   // Flags
