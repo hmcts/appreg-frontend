@@ -26,7 +26,7 @@ export class MicrosoftAuthHelper {
 
         cy.log('Clicking "No" on Stay Signed In prompt...');
         cy.get('#idBtn_Back').should('be.visible').click();
-        
+
         // Wait for Microsoft to initiate the redirect
         // The page will start redirecting away from Microsoft
         cy.log('Waiting for redirect to start...');
