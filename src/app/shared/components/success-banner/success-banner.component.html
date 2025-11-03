@@ -18,23 +18,53 @@
   <div class="govuk-notification-banner__content">
     <h3 class="govuk-notification-banner__heading">{{ heading }}</h3>
 
-    @if (body || linkText) {
+    @if (segments.length) {
+      <p class="govuk-body">
+        @for (seg of segments; track $index) {
+          @switch (seg.kind) {
+            @case ('text') {
+              <span>{{ seg.text }}</span>
+            }
+            @case ('link') {
+              @if (seg.href) {
+                <a class="govuk-notification-banner__link" [href]="seg.href">{{
+                  seg.text
+                }}</a>
+              } @else if (seg.commands) {
+                <a
+                  class="govuk-notification-banner__link"
+                  [routerLink]="seg.commands"
+                  >{{ seg.text }}</a
+                >
+              } @else {
+                <span>{{ seg.text }}</span>
+              }
+            }
+          }
+          @if (!$last) {
+            &nbsp;
+          }
+        }
+      </p>
+    } @else if (body || linkText) {
       <p class="govuk-body">
         @if (body) {
           {{ body }}
         }
         @if (linkText && linkHref) {
-          <a class="govuk-notification-banner__link" [href]="linkHref">
-            {{ linkText }}
-          </a>
+          <a class="govuk-notification-banner__link" [href]="linkHref">{{
+            linkText
+          }}</a>
         }
         @if (linkText && linkCommands) {
           <a
             class="govuk-notification-banner__link"
             [routerLink]="linkCommands"
+            >{{ linkText }}</a
           >
-            {{ linkText }}
-          </a>
+        }
+        @if (linkText && !linkHref && !linkCommands) {
+          <span>{{ linkText }}</span>
         }
       </p>
     }
