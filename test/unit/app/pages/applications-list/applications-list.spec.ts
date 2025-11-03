@@ -114,13 +114,13 @@ function createInstance(
   (comp as unknown as { rows: Array<{ id?: string | null }> }).rows = rows;
 
   // expose spies with the names the tests use
-  const clearErrorsSpy = jest.fn();
+  const clearNotificationsSpy = jest.fn();
   const showInlineSpy = jest.fn();
-  (comp as unknown as { clearErrors: () => void }).clearErrors = clearErrorsSpy;
+  (comp as unknown as { clearNotifications: () => void }).clearNotifications = clearNotificationsSpy;
   (comp as unknown as { showInline: (m: string) => void }).showInline =
     showInlineSpy;
 
-  return { comp, api, pdf, clearErrorsSpy, showInlineSpy };
+  return { comp, api, pdf, clearNotificationsSpy, showInlineSpy };
 }
 
 describe('ApplicationsList – delete flow (server platform: no confirm)', () => {
@@ -547,24 +547,24 @@ describe('ApplicationsList.onPrintPage', () => {
   });
 
   it('returns early when id is falsy', async () => {
-    const { comp, api, pdf, clearErrorsSpy } = createInstance('browser');
+    const { comp, api, pdf, clearNotificationsSpy } = createInstance('browser');
 
     await comp.onPrintPage('');
 
-    expect(clearErrorsSpy).not.toHaveBeenCalled();
+    expect(clearNotificationsSpy).not.toHaveBeenCalled();
     expect(api.printApplicationList).not.toHaveBeenCalled();
     expect(pdf.generatePagedApplicationListPdf).not.toHaveBeenCalled();
   });
 
   it('clears errors and calls API with transferCache: false', async () => {
-    const { comp, api, clearErrorsSpy } = createInstance('browser');
+    const { comp, api, clearNotificationsSpy } = createInstance('browser');
 
     const dto = makePrintDto([]);
     api.printApplicationList.mockReturnValue(of(dto));
 
     await comp.onPrintPage('abc-123');
 
-    expect(clearErrorsSpy).toHaveBeenCalledTimes(1);
+    expect(clearNotificationsSpy).toHaveBeenCalledTimes(1);
 
     // args: { id }, undefined, undefined, { transferCache: false }
     expect(api.printApplicationList).toHaveBeenCalledTimes(1);
@@ -651,28 +651,28 @@ describe('ApplicationsList.onPrintContinuous', () => {
   });
 
   it('returns early on non-browser platform', async () => {
-    const { comp, api, pdf, clearErrorsSpy, showInlineSpy } = createInstance(
+    const { comp, api, pdf, clearNotificationsSpy, showInlineSpy } = createInstance(
       'server',
       [{ id: 'X' }],
     );
 
     await comp.onPrintContinuous();
 
-    expect(clearErrorsSpy).not.toHaveBeenCalled();
+    expect(clearNotificationsSpy).not.toHaveBeenCalled();
     expect(api.printApplicationList).not.toHaveBeenCalled();
     expect(pdf.generateContinuousApplicationListsPdf).not.toHaveBeenCalled();
     expect(showInlineSpy).not.toHaveBeenCalled();
   });
 
   it('shows "No lists to print" when rows contain no valid ids', async () => {
-    const { comp, api, pdf, clearErrorsSpy, showInlineSpy } = createInstance(
+    const { comp, api, pdf, clearNotificationsSpy, showInlineSpy } = createInstance(
       'browser',
       [{ id: '' }, {}, { id: null }],
     );
 
     await comp.onPrintContinuous();
 
-    expect(clearErrorsSpy).toHaveBeenCalledTimes(1);
+    expect(clearNotificationsSpy).toHaveBeenCalledTimes(1);
     expect(api.printApplicationList).not.toHaveBeenCalled();
     expect(pdf.generateContinuousApplicationListsPdf).not.toHaveBeenCalled();
     expect(showInlineSpy).toHaveBeenCalledWith('No lists to print');
@@ -766,7 +766,7 @@ describe('ApplicationsList.onPrintContinuous', () => {
   });
 
   it('clears errors at the start on browser platform', async () => {
-    const { comp, api, clearErrorsSpy } = createInstance('browser', [
+    const { comp, api, clearNotificationsSpy } = createInstance('browser', [
       { id: 'A' },
     ]);
 
@@ -776,6 +776,6 @@ describe('ApplicationsList.onPrintContinuous', () => {
 
     await comp.onPrintContinuous();
 
-    expect(clearErrorsSpy).toHaveBeenCalledTimes(1);
+    expect(clearNotificationsSpy).toHaveBeenCalledTimes(1);
   });
 });
