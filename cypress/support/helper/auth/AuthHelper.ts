@@ -19,11 +19,11 @@ export class AuthHelper {
 
         cy.log('Waiting for OAuth redirect...');
         cy.wait(5000);
-        
+
         cy.url({ timeout: 10000, log: true }).then((url) => {
           cy.log(`Current URL after wait: ${url}`);
         });
-        
+
         SessionValidator.waitForSessionEstablishment();
         cy.log('SSO login completed successfully');
       },
