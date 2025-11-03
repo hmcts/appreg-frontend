@@ -232,6 +232,8 @@ export class ApplicationsList
   }
 
   async onDelete(row: ApplicationListRow): Promise<void> {
+    this.clearNotifications();
+
     if (row.deletable === false) {
       this.deleteInvalid = true;
       this.errorHint = 'There is a problem';
@@ -308,7 +310,7 @@ export class ApplicationsList
       return;
     }
 
-    this.clearErrors();
+    this.clearNotifications();
 
     try {
       const dto = await firstValueFrom(
@@ -343,7 +345,7 @@ export class ApplicationsList
       return;
     }
 
-    this.clearErrors();
+    this.clearNotifications();
 
     const ids = this.rows.map((r) => r.id).filter(Boolean);
     if (!ids.length) {
@@ -505,7 +507,8 @@ export class ApplicationsList
   /* ----------------------- Local UI helper methods ---------------------- */
 
   /** Clear inline/banner error state in a typed, reusable way. */
-  private clearErrors(): void {
+  private clearNotifications(): void {
+    this.deleteDone = false;
     this.deleteInvalid = false;
     this.errorHint = '';
     this.errorSummary = [];
