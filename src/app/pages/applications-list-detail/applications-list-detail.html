@@ -93,9 +93,25 @@
     >
       <!-- actions slot -->
       <ng-template #actionsTemplate let-row>
-        <div class="govuk-button-group">
-          <a class="govuk-button govuk-button--secondary"> Open </a>
-          <button type="button" class="govuk-button govuk-button--warning">
+        <div
+          class="moj-button-menu"
+          data-module="moj-button-menu"
+          data-button-text="Select"
+          data-button-classes="govuk-button"
+        >
+          <!-- Open button -->
+          <button
+            type="button"
+            class="govuk-button moj-button-menu__item govuk-button--secondary"
+          >
+            Open
+          </button>
+
+          <!-- Delete button -->
+          <button
+            type="button"
+            class="govuk-button moj-button-menu__item govuk-button--secondary"
+          >
             Delete
           </button>
         </div>
