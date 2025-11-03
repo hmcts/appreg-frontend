@@ -17,10 +17,8 @@ export class AuthHelper {
 
         MicrosoftAuthHelper.performLogin(email, password);
 
-        cy.log('Authentication complete, returning to app...');
-        cy.visit(APP_URLS.HOME, { timeout: 30000 });
-
-        // Wait for session to be established
+        cy.log('Waiting for OAuth callback and session setup...');
+        cy.wait(5000);
         SessionValidator.waitForSessionEstablishment();
         cy.log('SSO login completed successfully');
       },
@@ -39,7 +37,6 @@ export class AuthHelper {
     MicrosoftAuthHelper.performSignOut();
   }
 
-  // Auth-specific utility methods
   static clearCookiesAndStorage(): void {
     cy.log('Clearing cookies and storage');
     cy.clearCookies();
