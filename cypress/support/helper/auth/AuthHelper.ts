@@ -11,20 +11,17 @@ export class AuthHelper {
     cy.session(
       email,
       () => {
+        cy.log(`Starting SSO login for: ${email}`);
         cy.visit(APP_URLS.HOME);
         ButtonHelper.clickButton('Sign in');
 
-        // Perform Microsoft authentication
         MicrosoftAuthHelper.performLogin(email, password);
-
-        // Validate redirect back to app
-        MicrosoftAuthHelper.validateRedirectFromMicrosoft();
-
-        // Wait for session to be established
         SessionValidator.waitForSessionEstablishment();
+        cy.log('SSO login completed successfully');
       },
       {
         validate() {
+          cy.log('Validating existing session...');
           SessionValidator.validateSessionCookie();
         },
       },

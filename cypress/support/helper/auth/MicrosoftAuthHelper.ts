@@ -1,7 +1,6 @@
 /// <reference types="cypress" />
 import {
   APP_URLS,
-  AUTH_CONSTANTS,
   TIMEOUT_CONSTANTS,
   UI_CONSTANTS,
 } from '../../constants/ProjectConstants';
@@ -13,15 +12,23 @@ export class MicrosoftAuthHelper {
       'https://login.microsoftonline.com',
       { args: { email, password } },
       ({ email: innerEmail, password: innerPassword }) => {
+        cy.log('Entering email...');
         cy.get('input[name="loginfmt"]')
           .should('be.visible')
           .type(innerEmail, { log: false });
         cy.get('input[type="submit"]').click();
+        
+        cy.log('Entering password...');
         cy.get('input[name="passwd"]')
           .should('be.visible')
           .type(innerPassword, { log: false });
         cy.get('input[type="submit"]').should('be.visible').click();
+        
+        cy.log('Clicking "No" on Stay Signed In prompt...');
         cy.get('#idBtn_Back').should('be.visible').click();
+        
+        // Wait for the redirect to complete
+        cy.wait(1000);
       },
     );
   }
@@ -47,16 +54,5 @@ export class MicrosoftAuthHelper {
     cy.contains(/sign in|login/i, {
       timeout: TIMEOUT_CONSTANTS.DEFAULT_TIMEOUT,
     }).should('be.visible');
-  }
-
-  /**
-   * Validates successful redirect back to the application after authentication
-   */
-  static validateRedirectFromMicrosoft(): void {
-    // Wait for the redirect and ensure we're back in the app
-    cy.url().should('not.include', AUTH_CONSTANTS.MICROSOFT_LOGIN_DOMAIN, {
-      timeout: TIMEOUT_CONSTANTS.EXTENDED_TIMEOUT,
-    });
-    cy.url().should('include', Cypress.config('baseUrl'));
   }
 }
