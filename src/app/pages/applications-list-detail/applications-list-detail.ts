@@ -22,7 +22,6 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 
 import {
   ApplicationListStatus,
@@ -40,6 +39,7 @@ import {
   ErrorItem,
   ErrorSummaryComponent,
 } from '../../shared/components/error-summary/error-summary.component';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
@@ -103,7 +103,7 @@ type Handoff = {
     SuggestionsComponent,
     ErrorSummaryComponent,
     SuccessBannerComponent,
-    RouterLink,
+    PageHeaderComponent,
   ],
   templateUrl: './applications-list-detail.html',
 })

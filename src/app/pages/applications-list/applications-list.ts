@@ -55,6 +55,7 @@ import {
   ErrorSummaryComponent,
 } from '../../shared/components/error-summary/error-summary.component';
 import { NotificationBannerComponent } from '../../shared/components/notification-banner/notification-banner.component';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import {
@@ -101,6 +102,7 @@ interface MojInitEl extends HTMLElement {
     ErrorSummaryComponent,
     SuggestionsComponent,
     NotificationBannerComponent,
+    PageHeaderComponent,
   ],
   templateUrl: './applications-list.html',
 })
