@@ -25,7 +25,6 @@ onDelete():
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpContext } from '@angular/common/http';
 import {
-  AfterViewInit,
   Component,
   HostListener,
   Inject,
@@ -70,6 +69,7 @@ import {
   ROW_VERSION,
 } from '../../shared/context/concurrency-context';
 import { has } from '../../shared/util/has';
+import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
 import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
 import { normaliseTime } from '../../shared/util/time-helpers';
 import { ApplicationListRow } from '../../shared/util/types/application-list/types';
@@ -80,10 +80,6 @@ import {
   statusSummary,
 } from './util/delete-status';
 import { loadQuery } from './util/load-query';
-
-interface MojInitEl extends HTMLElement {
-  __mojInit?: boolean;
-}
 
 @Component({
   selector: 'app-applications-list',
@@ -102,13 +98,14 @@ interface MojInitEl extends HTMLElement {
     ErrorSummaryComponent,
     SuggestionsComponent,
     NotificationBannerComponent,
+    MojButtonMenuDirective,
     PageHeaderComponent,
   ],
   templateUrl: './applications-list.html',
 })
 export class ApplicationsList
   extends PlaceFieldsBase
-  implements OnInit, AfterViewInit, OnDestroy
+  implements OnInit, OnDestroy
 {
   private readonly _id: string | undefined;
   private readonly destroy$ = new Subject<void>();
@@ -116,11 +113,11 @@ export class ApplicationsList
   openPrintSelectForId: string | null = null;
 
   // Flags
-  submitted: boolean = false;
-  isSearch: boolean = false;
-  deleteDone: boolean = false;
-  deleteInvalid: boolean = false;
-  isLoading: boolean = false;
+  submitted = false;
+  isSearch = false;
+  deleteDone = false;
+  deleteInvalid = false;
+  isLoading = false;
 
   // Error summary
   errorHint = '';
@@ -178,14 +175,6 @@ export class ApplicationsList
     super.ngOnDestroy();
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  ngAfterViewInit(): void {
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-
-    void this.initMojMenus();
   }
 
   onSubmit(event: SubmitEvent): void {
@@ -280,7 +269,6 @@ export class ApplicationsList
       const status = getHttpStatus(err);
       this.deleteInvalid = true;
       this.errorHint = 'There is a problem';
-
       this.errorSummary = statusSummary(status);
     } finally {
       this.deletingId = null;
@@ -289,9 +277,7 @@ export class ApplicationsList
 
   onPageChange(page: number): void {
     this.currentPage = page;
-
     const hasAny = this.hasAnyParams();
-
     this.loadApplicationsLists(hasAny);
   }
 
@@ -300,10 +286,6 @@ export class ApplicationsList
   @HostListener('document:click')
   onDocClick(): void {
     this.openPrintSelectForId = null;
-  }
-
-  @HostListener('document:click')
-  closeMenus(): void {
     this.openMenuForId = null;
   }
 
@@ -404,46 +386,13 @@ export class ApplicationsList
     return row.status === ApplicationListStatus.OPEN;
   }
 
-  private afterRowsRendered(): void {
-    setTimeout(() => {
-      void this.initMojMenus();
-    });
-  }
-
-  private async initMojMenus(): Promise<void> {
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-
-    try {
-      const { ButtonMenu } = await import('@ministryofjustice/frontend');
-      const nodes = document.querySelectorAll<HTMLElement>(
-        '[data-module="moj-button-menu"]',
-      );
-      for (const el of nodes) {
-        const flagged = el as MojInitEl;
-        if (flagged.__mojInit) {
-          continue;
-        }
-        const instance = new ButtonMenu(flagged);
-        if (typeof (instance as { init?: () => void }).init === 'function') {
-          instance.init();
-        }
-        flagged.__mojInit = true;
-      }
-    } catch {
-      // no-op for non-browser/test environments
-    }
-  }
-
   loadApplicationsLists(hasParams: boolean): void {
     if (this.isLoading) {
       return;
     }
 
     const params: GetApplicationListsRequestParams = {
-      // If your API is 0-based (Spring Pageable), use currentPage - 1; if 1-based, use currentPage.
-      page: this.currentPage - 1,
+      page: this.currentPage - 1, // Spring Pageable is 0-based
       size: this.pageSize,
       ...(hasParams ? { filter: loadQuery(this.form) } : {}),
     };
@@ -461,7 +410,6 @@ export class ApplicationsList
           this.totalPages = page.totalPages ?? 0;
           const content: ApplicationListGetSummaryDto[] = page.content ?? [];
           this.rows = content.map((x) => this.toRow(x));
-          this.afterRowsRendered();
           this.isLoading = false;
         },
         error: (err) => {
@@ -513,7 +461,6 @@ export class ApplicationsList
 
   /* ----------------------- Local UI helper methods ---------------------- */
 
-  /** Clear inline/banner error state in a typed, reusable way. */
   private clearNotifications(): void {
     this.deleteDone = false;
     this.deleteInvalid = false;
@@ -521,7 +468,6 @@ export class ApplicationsList
     this.errorSummary = [];
   }
 
-  /** Show a single inline error message using the existing summary component. */
   private showInline(message: string): void {
     this.deleteInvalid = true;
     this.errorHint = 'There is a problem';
