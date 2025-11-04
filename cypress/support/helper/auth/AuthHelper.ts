@@ -14,7 +14,7 @@ export class AuthHelper {
         cy.log(`Starting SSO login for: ${email}`);
         cy.visit(APP_URLS.HOME);
         cy.screenshot('01-HomePage-Before-SignIn');
-        
+
         ButtonHelper.clickButton('Sign in');
         cy.screenshot('02-After-Clicking-SignIn-Button');
 
