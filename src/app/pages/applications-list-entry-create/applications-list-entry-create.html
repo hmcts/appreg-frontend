@@ -41,8 +41,21 @@
 @if (step === 'person') {
   <h2 class="govuk-heading-l">Applicant: Person</h2>
   <form [formGroup]="form" novalidate>
-    <!-- First/Last name -->
+    <!-- Title -->
+    <app-select-input
+      formControlName="title"
+      label="Select title"
+      idPrefix="title"
+      [submitted]="errorFound"
+      [options]="titleOptions"
+    >
+    </app-select-input>
 
+    <!-- First/Last name -->
+    <app-name-input
+      formControlName="name"
+      [showError]="errorFound"
+    ></app-name-input>
     <!-- Address -->
     <app-address-group
       formControlName="address"
@@ -91,7 +104,14 @@
 
   <form [formGroup]="form" novalidate>
     <!-- Organisation name -->
-
+    <app-text-input
+      formControlName="orgname"
+      label="Organisation name"
+      idPrefix="orgname"
+      [submitted]="errorFound"
+    >
+      >
+    </app-text-input>
 
     <!-- Address -->
     <app-address-group

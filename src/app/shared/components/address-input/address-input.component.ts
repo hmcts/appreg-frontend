@@ -198,7 +198,7 @@ export class AddressInputComponent
     const c = this.form.controls.town;
     return c.invalid && this.showError;
   }
-  
+
   get showPostcodeError(): boolean {
     const c = this.form.controls.postcode;
     return c.invalid && this.showError;

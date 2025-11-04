@@ -15,8 +15,14 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { AddressInputComponent } from '../../shared/components/address-input/address-input.component';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 import { EmailInputComponent } from '../../shared/components/email-input/email-input.component';
+import {
+  NameInputComponent,
+  NameValue,
+} from '../../shared/components/name-input/name-input.component';
 import { PhoneInputComponent } from '../../shared/components/phone-input/phone-input.component';
 import { RadioButtonComponent } from '../../shared/components/radio-button/radio-button.component';
+import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
+import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 
 type ApplicantStep = 'select' | 'person' | 'org' | 'standard';
 
@@ -30,7 +36,10 @@ type ApplicantStep = 'select' | 'person' | 'org' | 'standard';
     RouterModule,
     AddressInputComponent,
     PhoneInputComponent,
-    EmailInputComponent
+    EmailInputComponent,
+    TextInputComponent,
+    SelectInputComponent,
+    NameInputComponent,
   ],
   templateUrl: './applications-list-entry-create.html',
 })
@@ -48,8 +57,19 @@ export class ApplicationsListEntryCreate implements OnInit {
       nonNullable: false,
     }), // Organisation is set as default (same as old app)
     phone: new FormControl<string | null>(null),
-    email: new FormControl<string | null>(null)
+    email: new FormControl<string | null>(null),
+    orgname: new FormControl<string | null>(null),
+    title: new FormControl<string | null>(null),
+    name: new FormControl<NameValue | null>(null),
   });
+
+  titleOptions = [
+    { label: 'Mr', value: 'mr' },
+    { label: 'Mrs', value: 'mrs' },
+    { label: 'Miss', value: 'miss' },
+    { label: 'Ms', value: 'ms' },
+    { label: 'Dr', value: 'dr' },
+  ];
 
   applicantOptions = [
     { label: 'Person', value: 'person' },
@@ -79,10 +99,12 @@ export class ApplicationsListEntryCreate implements OnInit {
       'select'
     >;
     this.step = v; // 'person' | 'org' | 'standard'
+    this.errorFound = false;
   }
 
   onBack(): void {
     this.step = 'select';
+    this.errorFound = false;
   }
 
   buildReturnLink(): { label: string; link: string } {

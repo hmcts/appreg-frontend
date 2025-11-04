@@ -6,8 +6,13 @@
   </legend>
 
   <!-- Address line 1 -->
-  <div class="govuk-form-group" [class.govuk-form-group--error]="showLine1Error">
-    <label class="govuk-label" [for]="idPrefix + '-line-1'">Address line 1</label>
+  <div
+    class="govuk-form-group"
+    [class.govuk-form-group--error]="showLine1Error"
+  >
+    <label class="govuk-label" [for]="idPrefix + '-line-1'"
+      >Address line 1</label
+    >
 
     @if (showLine1Error) {
       <p [id]="line1ErrorId" class="govuk-error-message">
@@ -31,7 +36,9 @@
 
   <!-- Address line 2 (optional) -->
   <div class="govuk-form-group">
-    <label class="govuk-label" [for]="idPrefix + '-line-2'">Address line 2 (optional)</label>
+    <label class="govuk-label" [for]="idPrefix + '-line-2'"
+      >Address line 2 (optional)</label
+    >
     <input
       class="govuk-input"
       [id]="idPrefix + '-line-2'"
@@ -69,7 +76,9 @@
 
   <!-- County (optional) -->
   <div class="govuk-form-group">
-    <label class="govuk-label" [for]="idPrefix + '-county'">County (optional)</label>
+    <label class="govuk-label" [for]="idPrefix + '-county'"
+      >County (optional)</label
+    >
     <input
       class="govuk-input govuk-!-width-two-thirds"
       [id]="idPrefix + '-county'"
@@ -81,7 +90,10 @@
   </div>
 
   <!-- Postcode -->
-  <div class="govuk-form-group" [class.govuk-form-group--error]="showPostcodeError">
+  <div
+    class="govuk-form-group"
+    [class.govuk-form-group--error]="showPostcodeError"
+  >
     <label class="govuk-label" [for]="idPrefix + '-postcode'">Postcode</label>
 
     @if (showPostcodeError) {
