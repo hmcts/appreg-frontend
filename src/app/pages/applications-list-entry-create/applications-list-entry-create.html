@@ -37,9 +37,11 @@
   </form>
 }
 
+<!-- Applicant = Person -->
 @if (step === 'person') {
   <h2 class="govuk-heading-l">Applicant: Person</h2>
   <form [formGroup]="form" novalidate>
+    <!-- Address -->
     <app-address-group
       formControlName="address"
       idPrefix="home-address"
@@ -51,8 +53,14 @@
       [showError]="errorFound"
     >
     </app-address-group>
+
+    <!-- Phone -->
+    <app-phone-input
+      formControlName="phone"
+      [showError]="errorFound"
+    ></app-phone-input>
   </form>
-  
+
   <div class="govuk-button-group">
     <button
       type="button"
@@ -65,10 +73,12 @@
   </div>
 }
 
+<!-- Applicant = Organisation -->
 @if (step === 'org') {
   <h2 class="govuk-heading-l">Applicant: Organisation</h2>
 
   <form [formGroup]="form" novalidate>
+    <!-- Address -->
     <app-address-group
       formControlName="address"
       idPrefix="home-address"
@@ -80,6 +90,12 @@
       [showError]="errorFound"
     >
     </app-address-group>
+
+    <!-- Phone -->
+    <app-phone-input
+      formControlName="phone"
+      [showError]="errorFound"
+    ></app-phone-input>
   </form>
 
   <div class="govuk-button-group">
@@ -90,10 +106,11 @@
     >
       Back
     </button>
-    <button class="govuk-button" type="submit">Continue</button>
+    <button class="govuk-button" type="submit" (click)="onSubmit($event)">Continue</button>
   </div>
 }
 
+<!-- Applicant = Standard Applicant -->
 @if (step === 'standard') {
   <h2 class="govuk-heading-l">Applicant: Standard applicant</h2>
   <p class="govuk-body">

@@ -14,6 +14,7 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 
 import { AddressInputComponent } from '../../shared/components/address-input/address-input.component';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
+import { PhoneInputComponent } from '../../shared/components/phone-input/phone-input.component';
 import { RadioButtonComponent } from '../../shared/components/radio-button/radio-button.component';
 
 type ApplicantStep = 'select' | 'person' | 'org' | 'standard';
@@ -26,7 +27,8 @@ type ApplicantStep = 'select' | 'person' | 'org' | 'standard';
     RadioButtonComponent,
     ReactiveFormsModule,
     RouterModule,
-    AddressInputComponent
+    AddressInputComponent,
+    PhoneInputComponent
   ],
   templateUrl: './applications-list-entry-create.html',
 })
@@ -43,6 +45,7 @@ export class ApplicationsListEntryCreate implements OnInit {
     applicant: new FormControl<string | null>('org', {
       nonNullable: false,
     }), // Organisation is set as default (same as old app)
+    phone: new FormControl<string | null>('')
   });
 
   applicantOptions = [
@@ -57,6 +60,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   onSubmit(e: Event): void {
     e.preventDefault();
+    this.errorFound = true;
 
     // TODO: run post request
     // console.log('submit happened');

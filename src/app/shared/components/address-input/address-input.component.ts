@@ -191,17 +191,17 @@ export class AddressInputComponent
 
   get showLine1Error(): boolean {
     const c = this.form.controls.line1;
-    return c.invalid && (this.showError || c.touched || c.dirty);
+    return c.invalid && this.showError;
   }
 
   get showTownError(): boolean {
     const c = this.form.controls.town;
-    return c.invalid && (this.showError || c.touched || c.dirty);
+    return c.invalid && this.showError;
   }
   
   get showPostcodeError(): boolean {
     const c = this.form.controls.postcode;
-    return c.invalid && (this.showError || c.touched || c.dirty);
+    return c.invalid && this.showError;
   }
 
   get postcodeErrorText(): string {
