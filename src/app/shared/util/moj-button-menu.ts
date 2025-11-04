@@ -5,6 +5,7 @@ import {
   ElementRef,
   Inject,
   Injectable,
+  OnDestroy,
   PLATFORM_ID,
 } from '@angular/core';
 
@@ -72,7 +73,9 @@ export class MojButtonMenu {
   selector: '[appMojButtonMenu]',
   standalone: true,
 })
-export class MojButtonMenuDirective implements AfterViewInit {
+export class MojButtonMenuDirective implements AfterViewInit, OnDestroy {
+  private mo?: MutationObserver;
+
   constructor(
     private readonly el: ElementRef<HTMLElement>,
     private readonly menus: MojButtonMenu,
@@ -80,13 +83,21 @@ export class MojButtonMenuDirective implements AfterViewInit {
   ) {}
 
   ngAfterViewInit(): void {
-    if (!isPlatformBrowser(this.platformId)) {return;}
-
-    const host = this.el.nativeElement;
-    if (!host.hasAttribute('data-module')) {
-      host.setAttribute('data-module', 'moj-button-menu');
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
     }
 
-    void this.menus.initAll(host);
+    // initial scan
+    void this.menus.initAll(this.el.nativeElement);
+
+    // observe future inserts (e.g., first page render, pagination, sorts)
+    this.mo = new MutationObserver(() => {
+      void this.menus.initAll(this.el.nativeElement);
+    });
+    this.mo.observe(this.el.nativeElement, { childList: true, subtree: true });
+  }
+
+  ngOnDestroy(): void {
+    this.mo?.disconnect();
   }
 }
