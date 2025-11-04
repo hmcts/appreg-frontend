@@ -1,16 +1,12 @@
 const reporter = require('multiple-cucumber-html-reporter');
 
-// Note: Mochawesome reports are generated automatically by cypress-mochawesome-reporter plugin
-// No manual merge or generation needed
-
-// Generate Cucumber HTML report
 reporter.generate({
   jsonDir: 'cypress/reports/cucumber-json',
   reportPath: 'cypress/reports/cucumber-html',
   reportName: 'AppReg Frontend Cucumber Report',
   pageTitle: 'AppReg Test Results',
   displayDuration: true,
-  screenshotsDirectory: 'cypress/reports/screenshots',
+  screenshotsDirectory: './cypress/reports/html/screenshots',
   customStyle: 'cypress/scripts/custom.css',
   metadata: {
     browser: {
