@@ -1,0 +1,103 @@
+<fieldset class="govuk-fieldset">
+  <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
+    <h1 class="govuk-fieldset__heading">
+      {{ legend }}
+    </h1>
+  </legend>
+
+  <!-- Address line 1 -->
+  <div class="govuk-form-group @if(showLine1Error){ govuk-form-group--error }">
+    <label class="govuk-label" [for]="idPrefix + '-line-1'">Address line 1</label>
+
+    @if (showLine1Error && showError) {
+      <p [id]="line1ErrorId" class="govuk-error-message">
+        <span class="govuk-visually-hidden">Error:</span>
+        {{ errorTextLine1 }}
+      </p>
+    }
+
+    <input
+      class="govuk-input @if(showLine1Error){ govuk-input--error }"
+      [id]="idPrefix + '-line-1'"
+      [name]="idPrefix + '.line1'"
+      type="text"
+      autocomplete="address-line1"
+      [attr.aria-describedby]="showLine1Error ? line1ErrorId : null"
+      [formControl]="form.controls.line1"
+      (blur)="markTouched()"
+    />
+  </div>
+
+  <!-- Address line 2 (optional) -->
+  <div class="govuk-form-group">
+    <label class="govuk-label" [for]="idPrefix + '-line-2'">Address line 2 (optional)</label>
+    <input
+      class="govuk-input"
+      [id]="idPrefix + '-line-2'"
+      [name]="idPrefix + '.line2'"
+      type="text"
+      autocomplete="address-line2"
+      [formControl]="form.controls.line2"
+      (blur)="markTouched()"
+    />
+  </div>
+
+  <!-- Town or city -->
+  <div class="govuk-form-group @if(showTownError){ govuk-form-group--error }">
+    <label class="govuk-label" [for]="idPrefix + '-town'">Town or city</label>
+
+    @if (showTownError) {
+      <p [id]="townErrorId" class="govuk-error-message">
+        <span class="govuk-visually-hidden">Error:</span>
+        {{ errorTextTown }}
+      </p>
+    }
+
+    <input
+      class="govuk-input govuk-!-width-two-thirds @if(showTownError){ govuk-input--error }"
+      [id]="idPrefix + '-town'"
+      [name]="idPrefix + '.town'"
+      type="text"
+      autocomplete="address-level2"
+      [attr.aria-describedby]="showTownError ? townErrorId : null"
+      [formControl]="form.controls.town"
+      (blur)="markTouched()"
+    />
+  </div>
+
+  <!-- County (optional) -->
+  <div class="govuk-form-group">
+    <label class="govuk-label" [for]="idPrefix + '-county'">County (optional)</label>
+    <input
+      class="govuk-input govuk-!-width-two-thirds"
+      [id]="idPrefix + '-county'"
+      [name]="idPrefix + '.county'"
+      type="text"
+      [formControl]="form.controls.county"
+      (blur)="markTouched()"
+    />
+  </div>
+
+  <!-- Postcode -->
+  <div class="govuk-form-group @if(showPostcodeError){ govuk-form-group--error }">
+    <label class="govuk-label" [for]="idPrefix + '-postcode'">Postcode</label>
+
+    @if (showPostcodeError && showError) {
+      <p [id]="postcodeErrorId" class="govuk-error-message">
+        <span class="govuk-visually-hidden">Error:</span>
+        {{ postcodeErrorText }}
+      </p>
+    }
+
+    <input
+      class="govuk-input govuk-input--width-10 @if(showPostcodeError){ govuk-input--error }"
+      [id]="idPrefix + '-postcode'"
+      [name]="idPrefix + '.postcode'"
+      type="text"
+      autocomplete="postal-code"
+      [attr.aria-describedby]="showPostcodeError ? postcodeErrorId : null"
+      [formControl]="form.controls.postcode"
+      (blur)="markTouched()"
+    />
+  </div>
+</fieldset>

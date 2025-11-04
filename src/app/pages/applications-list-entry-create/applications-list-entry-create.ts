@@ -12,6 +12,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 
+import { AddressInputComponent } from '../../shared/components/address-input/address-input.component';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 import { RadioButtonComponent } from '../../shared/components/radio-button/radio-button.component';
 
@@ -25,6 +26,7 @@ type ApplicantStep = 'select' | 'person' | 'org' | 'standard';
     RadioButtonComponent,
     ReactiveFormsModule,
     RouterModule,
+    AddressInputComponent
   ],
   templateUrl: './applications-list-entry-create.html',
 })
@@ -33,6 +35,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   step: ApplicantStep = 'select';
 
   submitted: boolean = false;
+  errorFound: boolean = false;
 
   constructor(private readonly route: ActivatedRoute) {}
 
