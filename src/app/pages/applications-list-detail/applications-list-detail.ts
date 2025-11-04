@@ -257,7 +257,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       this.appListApi
         .updateApplicationList(
           {
-            id: String(this.id),
+            listId: String(this.id),
             applicationListUpdateDto: payload,
           },
           'response',
