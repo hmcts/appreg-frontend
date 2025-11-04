@@ -14,6 +14,7 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 
 import { AddressInputComponent } from '../../shared/components/address-input/address-input.component';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
+import { EmailInputComponent } from '../../shared/components/email-input/email-input.component';
 import { PhoneInputComponent } from '../../shared/components/phone-input/phone-input.component';
 import { RadioButtonComponent } from '../../shared/components/radio-button/radio-button.component';
 
@@ -28,7 +29,8 @@ type ApplicantStep = 'select' | 'person' | 'org' | 'standard';
     ReactiveFormsModule,
     RouterModule,
     AddressInputComponent,
-    PhoneInputComponent
+    PhoneInputComponent,
+    EmailInputComponent
   ],
   templateUrl: './applications-list-entry-create.html',
 })
@@ -45,7 +47,8 @@ export class ApplicationsListEntryCreate implements OnInit {
     applicant: new FormControl<string | null>('org', {
       nonNullable: false,
     }), // Organisation is set as default (same as old app)
-    phone: new FormControl<string | null>('')
+    phone: new FormControl<string | null>(null),
+    email: new FormControl<string | null>(null)
   });
 
   applicantOptions = [
