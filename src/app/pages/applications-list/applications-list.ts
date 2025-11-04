@@ -314,9 +314,14 @@ export class ApplicationsList
 
     try {
       const dto = await firstValueFrom(
-        this.appListsApi.printApplicationList({ listId: id }, undefined, undefined, {
-          transferCache: false,
-        }),
+        this.appListsApi.printApplicationList(
+          { listId: id },
+          undefined,
+          undefined,
+          {
+            transferCache: false,
+          },
+        ),
       );
 
       const hasEntries = Array.isArray(dto.entries) && dto.entries.length > 0;

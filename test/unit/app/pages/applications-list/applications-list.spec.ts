@@ -214,7 +214,7 @@ describe('ApplicationsList – delete flow (server platform: no confirm)', () =>
 
     expect(api.deleteApplicationList).toHaveBeenCalledTimes(1);
     expect(api.deleteApplicationList.mock.calls[0][0]).toEqual({
-      id: 'abc-123',
+      listId: 'abc-123',
     });
 
     // Concurrency tokens from context
@@ -330,7 +330,7 @@ describe('ApplicationsList – delete flow (browser platform: confirm cancel)', 
     }).compileComponents();
 
     // Important: stub confirm BEFORE component method runs
-    jest.spyOn(window, 'confirm').mockReturnValue(false);
+    jest.spyOn(globalThis, 'confirm').mockReturnValue(false);
 
     fixture = TestBed.createComponent(ApplicationsList);
     component = fixture.componentInstance;
@@ -350,13 +350,13 @@ describe('ApplicationsList – delete flow (browser platform: confirm cancel)', 
   });
 
   afterEach(() => {
-    (window.confirm as jest.Mock)?.mockRestore?.();
+    (globalThis.confirm as jest.Mock)?.mockRestore?.();
   });
 
   it('when user cancels confirmation, does NOT call API and leaves state unchanged', async () => {
     await component.onDelete(component.rows[0]);
 
-    expect(window.confirm).toHaveBeenCalled();
+    expect(globalThis.confirm).toHaveBeenCalled();
     expect(api.deleteApplicationList).not.toHaveBeenCalled();
 
     // no flags set, no removal, deletingId stays null
@@ -472,7 +472,7 @@ describe('ApplicationsList – search', () => {
             time: '14:05:33.000Z',
             location: 'Court A',
             description: 'Desc',
-            numberOfEntries: 7,
+            entriesCount: 7,
             status: ApplicationListStatus.OPEN,
           },
         ]),
@@ -570,7 +570,7 @@ describe('ApplicationsList.onPrintPage', () => {
     // args: { id }, undefined, undefined, { transferCache: false }
     expect(api.printApplicationList).toHaveBeenCalledTimes(1);
     expect(api.printApplicationList.mock.calls[0][0]).toEqual({
-      id: 'abc-123',
+      listId: 'abc-123',
     });
     expect(api.printApplicationList.mock.calls[0][1]).toBeUndefined();
     expect(api.printApplicationList.mock.calls[0][2]).toBeUndefined();
@@ -691,14 +691,14 @@ describe('ApplicationsList.onPrintContinuous', () => {
     expect(api.printApplicationList).toHaveBeenCalledTimes(2);
     expect(api.printApplicationList).toHaveBeenNthCalledWith(
       1,
-      { id: 'A' },
+      { listId: 'A' },
       undefined,
       undefined,
       { transferCache: false },
     );
     expect(api.printApplicationList).toHaveBeenNthCalledWith(
       2,
-      { id: 'B' },
+      { listId: 'B' },
       undefined,
       undefined,
       { transferCache: false },
@@ -726,7 +726,7 @@ describe('ApplicationsList.onPrintContinuous', () => {
     // Still must pass transferCache: false for every call
     for (const id of ['A', 'B', 'C']) {
       expect(api.printApplicationList).toHaveBeenCalledWith(
-        { id },
+        { listId: id },
         undefined,
         undefined,
         { transferCache: false },
