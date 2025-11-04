@@ -6,9 +6,82 @@
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 
-<div class="govuk-button-group">
-  <button type="submit" class="govuk-button" (click)="onSubmit($event)">Create</button>
-</div>
+@if (step === 'select') {
+  <form [formGroup]="form" novalidate>
+    <app-radio-group
+      legend="Select an applicant"
+      idPrefix="applicant"
+      [options]="applicantOptions"
+      errorText="Please select an applicant"
+      size="l"
+      formControlName="applicant"
+    >
+    </app-radio-group>
+
+    <div class="govuk-button-group">
+      <button
+        type="button"
+        class="govuk-button"
+        (click)="onNext()"
+        [disabled]="!form.get('applicant')?.value"
+      >
+        Next
+      </button>
+      <a
+        class="govuk-button govuk-button--secondary"
+        [routerLink]="['/applications-list', id]"
+      >
+        Cancel
+      </a>
+    </div>
+  </form>
+}
+
+@if (step === 'person') {
+  <h2 class="govuk-heading-l">Applicant: Person</h2>
+  <p class="govuk-body">You selected Person. Placeholder form goes here.</p>
+  <div class="govuk-button-group">
+    <button
+      type="button"
+      class="govuk-button govuk-button--secondary"
+      (click)="onBack()"
+    >
+      Back
+    </button>
+  </div>
+}
+
+@if (step === 'org') {
+  <h2 class="govuk-heading-l">Applicant: Organisation</h2>
+  <p class="govuk-body">
+    You selected Organisation. Placeholder form goes here.
+  </p>
+  <div class="govuk-button-group">
+    <button
+      type="button"
+      class="govuk-button govuk-button--secondary"
+      (click)="onBack()"
+    >
+      Back
+    </button>
+  </div>
+}
+
+@if (step === 'standard') {
+  <h2 class="govuk-heading-l">Applicant: Standard applicant</h2>
+  <p class="govuk-body">
+    You selected Standard applicant. Placeholder form goes here.
+  </p>
+  <div class="govuk-button-group">
+    <button
+      type="button"
+      class="govuk-button govuk-button--secondary"
+      (click)="onBack()"
+    >
+      Back
+    </button>
+  </div>
+}
 
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
