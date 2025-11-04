@@ -13,11 +13,15 @@ export class AuthHelper {
       () => {
         cy.log(`Starting SSO login for: ${email}`);
         cy.visit(APP_URLS.HOME);
+        cy.screenshot('01-HomePage-Before-SignIn');
+        
         ButtonHelper.clickButton('Sign in');
+        cy.screenshot('02-After-Clicking-SignIn-Button');
 
         MicrosoftAuthHelper.performLogin(email, password);
         cy.log('Visiting app to trigger OAuth callback...');
         cy.visit(APP_URLS.APPLICATIONS_LIST, { timeout: 30000 });
+        cy.screenshot('03-OAuth-Callback-Completed');
         cy.log('OAuth callback completed - redirected to applications list');
       },
       {
@@ -28,6 +32,7 @@ export class AuthHelper {
       },
     );
     NavigationHelper.navigateToUrl(APP_URLS.APPLICATIONS_LIST);
+    cy.screenshot('04-Final-ApplicationsList-Page');
   }
 
   static aadSignOut(): void {

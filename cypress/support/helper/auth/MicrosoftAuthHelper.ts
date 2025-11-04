@@ -16,16 +16,21 @@ export class MicrosoftAuthHelper {
         cy.get('input[name="loginfmt"]')
           .should('be.visible')
           .type(innerEmail, { log: false });
+        cy.screenshot('Microsoft-01-Email-Entered');
         cy.get('input[type="submit"]').click();
 
         cy.log('Entering password...');
         cy.get('input[name="passwd"]')
           .should('be.visible')
           .type(innerPassword, { log: false });
+        cy.screenshot('Microsoft-02-Password-Entered');
         cy.get('input[type="submit"]').should('be.visible').click();
 
         cy.log('Clicking "No" on Stay Signed In prompt...');
-        cy.get('#idBtn_Back').should('be.visible').click();
+        cy.get('#idBtn_Back').should('be.visible');
+        cy.screenshot('Microsoft-03-KMSI-Prompt');
+        cy.get('#idBtn_Back').click();
+        cy.screenshot('Microsoft-04-After-KMSI-Click');
       },
     );
   }
