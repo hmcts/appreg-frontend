@@ -8,10 +8,12 @@ Functionality:
   - Run POST query with payload
 */
 
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 
+import { ApplicationListEntriesApi } from '../../../generated/openapi';
 import { AddressInputComponent } from '../../shared/components/address-input/address-input.component';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 import { EmailInputComponent } from '../../shared/components/email-input/email-input.component';
@@ -23,6 +25,9 @@ import { PhoneInputComponent } from '../../shared/components/phone-input/phone-i
 import { RadioButtonComponent } from '../../shared/components/radio-button/radio-button.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
+
+import { appListEntryCreateParams } from './util/create_params';
+
 
 type ApplicantStep = 'select' | 'person' | 'org' | 'standard';
 
@@ -47,10 +52,15 @@ export class ApplicationsListEntryCreate implements OnInit {
   id: string = '';
   step: ApplicantStep = 'select';
 
+  createDone: boolean = false;
+
   submitted: boolean = false;
   errorFound: boolean = false;
 
-  constructor(private readonly route: ActivatedRoute) {}
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly appEntryApi: ApplicationListEntriesApi,
+  ) {}
 
   form = new FormGroup({
     applicant: new FormControl<string | null>('org', {
@@ -83,10 +93,28 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   onSubmit(e: Event): void {
     e.preventDefault();
-    this.errorFound = true;
+    // this.errorFound = true;
 
-    // TODO: run post request
+    if (this.errorFound) {
+      return;
+    }
+  
     // console.log('submit happened');
+
+    const body = { listId: this.id , ...appListEntryCreateParams() };
+
+    this.appEntryApi
+    .createApplicationListEntry({ listId: this.id , entryCreateDto: body })
+    .subscribe({
+      next: () => {
+        console.log('happy');
+        this.createDone = true;
+      },
+      error: (err: HttpErrorResponse) => {
+        console.log(err);
+        this.errorFound = true;
+      },
+    });
   }
 
   onNext(): void {
