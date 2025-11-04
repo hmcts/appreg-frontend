@@ -56,6 +56,7 @@
       formControlName="name"
       [showError]="errorFound"
     ></app-name-input>
+
     <!-- Address -->
     <app-address-group
       formControlName="address"
@@ -94,7 +95,9 @@
     >
       Back
     </button>
-    <button class="govuk-button" type="submit">Continue</button>
+    <button class="govuk-button" type="submit" (click)="onSubmit($event)">
+      Create
+    </button>
   </div>
 }
 
@@ -152,7 +155,7 @@
       Back
     </button>
     <button class="govuk-button" type="submit" (click)="onSubmit($event)">
-      Continue
+      Create
     </button>
   </div>
 }
