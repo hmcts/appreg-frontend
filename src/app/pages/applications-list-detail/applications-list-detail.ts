@@ -55,6 +55,7 @@ import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '../../shared/util/error-click';
+import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
 import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
 import type { FormRaw } from '../../shared/util/types/application-list/types';
 import { validateCourtVsLocOrCja } from '../../shared/util/validate-court-vs-loc-cja';
@@ -62,6 +63,7 @@ import {
   getHttpStatus,
   getProblemText,
 } from '../applications-list/util/delete-status';
+
 
 type DurationValue = { hours: string; minutes: string };
 
@@ -85,10 +87,6 @@ type Handoff = {
   version: number;
 };
 
-interface MojInitEl extends HTMLElement {
-  __mojInit?: boolean;
-}
-
 @Component({
   selector: 'app-application-detail',
   standalone: true,
@@ -106,13 +104,14 @@ interface MojInitEl extends HTMLElement {
     ErrorSummaryComponent,
     SuccessBannerComponent,
     SelectableSortableTableComponent,
+    MojButtonMenuDirective,
   ],
   templateUrl: './applications-list-detail.html',
 })
 export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   id!: string;
   currentFragment: string | null = null;
-  private version: number = 0; // Used in update
+  private version = 0;
   private etag: string | null = null;
 
   currentPage = 1;
@@ -188,12 +187,12 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   ];
 
   // Flags
-  updateDone: boolean = false;
-  updateInvalid: boolean = false;
+  updateDone = false;
+  updateInvalid = false;
 
   // Error logging
   unpopField: ErrorItem[] = [];
-  errorHint: string = '';
+  errorHint = '';
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
 
@@ -225,13 +224,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         duration: null,
       });
     }
-  }
-
-  ngAfterViewInit(): void {
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-    void this.initMojMenus();
   }
 
   onSubmit(): void {
@@ -335,32 +327,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   onPageChange(page: number): void {
     this.currentPage = page;
-    this.loadApplicationsLists(); // fetch page `page`
-  }
-
-  private async initMojMenus(): Promise<void> {
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-    try {
-      const { ButtonMenu } = await import('@ministryofjustice/frontend');
-      const nodes = document.querySelectorAll<HTMLElement>(
-        '[data-module="moj-button-menu"]',
-      );
-      for (const el of nodes) {
-        const flagged = el as MojInitEl;
-        if (flagged.__mojInit) {
-          continue;
-        }
-        const instance = new ButtonMenu(flagged);
-        if (typeof (instance as { init?: () => void }).init === 'function') {
-          instance.init();
-        }
-        flagged.__mojInit = true;
-      }
-    } catch {
-      // no-op for non-browser/test envs
-    }
+    this.loadApplicationsLists();
   }
 
   private buildErrorSummary(): void {
