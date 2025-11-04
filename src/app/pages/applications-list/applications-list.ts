@@ -252,7 +252,7 @@ export class ApplicationsList
     try {
       const resp = await firstValueFrom(
         this.appListsApi.deleteApplicationList(
-          { id: row.id },
+          { listId: row.id },
           'response',
           false,
           { context },
@@ -296,9 +296,14 @@ export class ApplicationsList
 
     try {
       const dto = await firstValueFrom(
-        this.appListsApi.printApplicationList({ id }, undefined, undefined, {
-          transferCache: false,
-        }),
+        this.appListsApi.printApplicationList(
+          { listId: id },
+          undefined,
+          undefined,
+          {
+            transferCache: false,
+          },
+        ),
       );
 
       const hasEntries = Array.isArray(dto.entries) && dto.entries.length > 0;
@@ -348,7 +353,7 @@ export class ApplicationsList
         ids.map((id) =>
           firstValueFrom(
             this.appListsApi.printApplicationList(
-              { id },
+              { listId: id },
               undefined,
               undefined,
               { transferCache: false },
@@ -423,7 +428,7 @@ export class ApplicationsList
       time: normaliseTime(x.time) ?? '',
       location: x.location,
       description: x.description,
-      entries: x.numberOfEntries,
+      entries: x.entriesCount,
       status: x.status,
       deletable: x.status === ApplicationListStatus.OPEN,
       etag: null,
