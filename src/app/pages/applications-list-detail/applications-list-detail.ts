@@ -14,7 +14,7 @@ Functionality:
 
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpContext } from '@angular/common/http';
-import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { Component, Inject, NgZone, OnInit, PLATFORM_ID } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -22,8 +22,11 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
+import { take } from 'rxjs';
 
 import {
+  ApplicationListEntrySummary,
   ApplicationListStatus,
   ApplicationListUpdateDto,
   ApplicationListsApi,
@@ -55,7 +58,10 @@ import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '../../shared/util/error-click';
-import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
+import {
+  MojButtonMenu,
+  MojButtonMenuDirective,
+} from '../../shared/util/moj-button-menu';
 import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
 import type { FormRaw } from '../../shared/util/types/application-list/types';
 import { validateCourtVsLocOrCja } from '../../shared/util/validate-court-vs-loc-cja';
@@ -63,9 +69,6 @@ import {
   getHttpStatus,
   getProblemText,
 } from '../applications-list/util/delete-status';
-
-
-type DurationValue = { hours: string; minutes: string };
 
 type DetailFormRaw = Omit<
   FormRaw<ApplicationListStatus>,
@@ -115,7 +118,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private etag: string | null = null;
 
   currentPage = 1;
-  totalPages = 5;
+  totalPages = 0;
+
+  pageSize = 10;
+  private isLoading = false;
 
   selectedIds = new Set<string>();
 
@@ -129,7 +135,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     court: new FormControl<string>(''),
     location: new FormControl<string>(''),
     cja: new FormControl<string>(''),
-    duration: new FormControl<DurationValue | null>(null),
+    duration: new FormControl<{ hours: string; minutes: string } | null>(null),
   });
 
   statusOptions = [
@@ -150,41 +156,17 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     { header: 'Actions', field: 'actions', sortable: false },
   ];
 
-  rows = [
-    {
-      id: 'list-0001',
-      sequenceNumber: 1,
-      accountNumber: '12345678',
-      applicant: 'Jane Smith',
-      respondent: 'John Smith',
-      postCode: 'SW1A 1AA',
-      title: 'Interim order',
-      feeReq: 'Yes',
-      resulted: 'No',
-    },
-    {
-      id: 'list-0002',
-      sequenceNumber: 2,
-      accountNumber: '87654321',
-      applicant: 'Acme Ltd',
-      respondent: 'Doe Holdings',
-      postCode: 'M1 2AB',
-      title: 'Variation',
-      feeReq: 'No',
-      resulted: 'Yes',
-    },
-    {
-      id: 'list-0003',
-      sequenceNumber: 3,
-      accountNumber: '11223344',
-      applicant: 'Robert Brown',
-      respondent: 'City Council',
-      postCode: 'B2 4QA',
-      title: 'Permission to appeal',
-      feeReq: 'Yes',
-      resulted: 'No',
-    },
-  ];
+  rows: {
+    id: string;
+    sequenceNumber: number;
+    accountNumber: string | null;
+    applicant: string | null;
+    respondent: string | null;
+    postCode: string | null;
+    title: string;
+    feeReq: string;
+    resulted: string;
+  }[] = [];
 
   // Flags
   updateDone = false;
@@ -200,6 +182,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     @Inject(PLATFORM_ID) private readonly platformId: object,
     private readonly refField: ReferenceDataFacade,
     private readonly appListApi: ApplicationListsApi,
+    private readonly route: ActivatedRoute,
+    private readonly ngZone: NgZone,
+    private readonly menus: MojButtonMenu,
   ) {
     super();
   }
@@ -207,11 +192,16 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refField);
 
-    // Set application list row
-    const st = (history.state as { row?: Handoff }).row;
+    // Only read history on the browser
+    const st = isPlatformBrowser(this.platformId)
+      ? (history.state as { row?: Handoff })?.row
+      : undefined;
+
+    // Always have an id (SSR/deep-link safe)
+    this.id = st?.id ?? this.route.snapshot.paramMap.get('id') ?? '';
+
     if (st) {
       this.prefillPlaceFieldsFromSummary(st.location);
-      this.id = st.id;
       this.etag = st.etag;
       this.version = st.version ?? this.version;
       this.form.patchValue({
@@ -224,6 +214,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         duration: null,
       });
     }
+
+    this.loadApplicationsLists();
   }
 
   onSubmit(): void {
@@ -234,7 +226,70 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   loadApplicationsLists(): void {
-    // TODO: fetch lists
+    if (!this.id) {
+      return;
+    }
+
+    this.appListApi
+      .getApplicationList(
+        {
+          listId: String(this.id),
+          page: this.currentPage - 1,
+          size: this.pageSize,
+        },
+        'response',
+        false,
+        { transferCache: false },
+      )
+      .subscribe({
+        next: (res) => {
+          const dto = res.body!;
+          this.etag = res.headers.get('ETag') ?? this.etag;
+          this.version = dto?.version ?? this.version;
+
+          const items = dto?.entriesSummary ?? [];
+          // map API items → table rows
+          this.rows = items.map((e) => ({
+            id: e.uuid,
+            sequenceNumber: e.sequenceNumber,
+            accountNumber: this.fmt(e.accountNumber),
+            applicant: this.fmt(e.applicant),
+            respondent: this.fmt(e.respondent),
+            postCode: this.fmt(e.postCode),
+            title: e.applicationTitle,
+            feeReq: e.feeRequired ? 'Yes' : 'No',
+            resulted: e.result ? 'Yes' : 'No',
+          }));
+
+          // compute total pages
+          const total = dto?.entriesCount ?? items.length;
+          this.totalPages = total
+            ? Math.max(1, Math.ceil(total / this.pageSize))
+            : 0;
+
+          // —— Select-all behaviour fix: keep selection in sync with visible rows
+          this.reconcileSelectionToVisible();
+
+          // Re-initialise MOJ button menus AFTER DOM has painted (SSR-safe)
+          if (isPlatformBrowser(this.platformId)) {
+            this.ngZone.runOutsideAngular(() => {
+              requestAnimationFrame(() => {
+                const root =
+                  document.getElementById('sortable-table') ?? document;
+                void this.menus.initAll(root);
+              });
+            });
+          }
+        },
+        error: (err) => {
+          this.updateInvalid = true;
+          this.errorHint = getProblemText(err);
+          this.rows = [];
+          this.totalPages = 0;
+          // Also clear selection if nothing is visible
+          this.selectedIds.clear();
+        },
+      });
   }
 
   onUpdate(): void {
@@ -327,7 +382,57 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   onPageChange(page: number): void {
     this.currentPage = page;
+
+    // —— Select-all behaviour fix option:
+    // Clear any previous selections when changing pages to avoid stale state.
+    // (If you prefer to persist across pages, remove this line and rely on reconcileSelectionToVisible)
+    this.selectedIds.clear();
+
     this.loadApplicationsLists();
+  }
+
+  // —— Select-all behaviour helpers ————————————————
+
+  /** Keep selection limited to IDs visible on the current page. */
+  private reconcileSelectionToVisible(): void {
+    const visible = new Set(this.rows.map((r) => r.id));
+    this.selectedIds = new Set(
+      [...this.selectedIds].filter((id) => visible.has(id)),
+    );
+  }
+
+  /** Convenience: returns the IDs currently visible in the table. */
+  private visibleIds(): string[] {
+    return this.rows.map((r) => r.id);
+  }
+
+  /** Toggle select-all for the current page (bind to your header checkbox if needed). */
+  onToggleSelectAll(checked: boolean): void {
+    const ids = this.visibleIds();
+    if (checked) {
+      ids.forEach((id) => this.selectedIds.add(id));
+    } else {
+      ids.forEach((id) => this.selectedIds.delete(id));
+    }
+  }
+
+  // ————————————————————————————————————————————————
+
+  private fmt = (v: string | null | undefined) =>
+    v && v.trim() !== '' ? v : '—';
+
+  private toRow(e: ApplicationListEntrySummary) {
+    return {
+      id: e.uuid,
+      sequenceNumber: e.sequenceNumber,
+      accountNumber: e.accountNumber,
+      applicant: e.applicant,
+      respondent: e.respondent,
+      postCode: e.postCode,
+      title: e.applicationTitle,
+      feeReq: e.feeRequired ? 'Yes' : 'No',
+      resulted: e.result ? 'Yes' : 'No',
+    };
   }
 
   private buildErrorSummary(): void {
