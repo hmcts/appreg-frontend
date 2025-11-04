@@ -1,15 +1,15 @@
 <fieldset class="govuk-fieldset">
-  <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
+  <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
     <h1 class="govuk-fieldset__heading">
       {{ legend }}
     </h1>
   </legend>
 
   <!-- Address line 1 -->
-  <div class="govuk-form-group @if(showLine1Error){ govuk-form-group--error }">
+  <div class="govuk-form-group" [class.govuk-form-group--error]="showLine1Error">
     <label class="govuk-label" [for]="idPrefix + '-line-1'">Address line 1</label>
 
-    @if (showLine1Error && showError) {
+    @if (showLine1Error) {
       <p [id]="line1ErrorId" class="govuk-error-message">
         <span class="govuk-visually-hidden">Error:</span>
         {{ errorTextLine1 }}
@@ -17,7 +17,8 @@
     }
 
     <input
-      class="govuk-input @if(showLine1Error){ govuk-input--error }"
+      class="govuk-input"
+      [class.govuk-input--error]="showLine1Error"
       [id]="idPrefix + '-line-1'"
       [name]="idPrefix + '.line1'"
       type="text"
@@ -43,7 +44,7 @@
   </div>
 
   <!-- Town or city -->
-  <div class="govuk-form-group @if(showTownError){ govuk-form-group--error }">
+  <div class="govuk-form-group" [class.govuk-form-group--error]="showTownError">
     <label class="govuk-label" [for]="idPrefix + '-town'">Town or city</label>
 
     @if (showTownError) {
@@ -54,7 +55,8 @@
     }
 
     <input
-      class="govuk-input govuk-!-width-two-thirds @if(showTownError){ govuk-input--error }"
+      class="govuk-input govuk-!-width-two-thirds"
+      [class.govuk-input--error]="showTownError"
       [id]="idPrefix + '-town'"
       [name]="idPrefix + '.town'"
       type="text"
@@ -79,10 +81,10 @@
   </div>
 
   <!-- Postcode -->
-  <div class="govuk-form-group @if(showPostcodeError){ govuk-form-group--error }">
+  <div class="govuk-form-group" [class.govuk-form-group--error]="showPostcodeError">
     <label class="govuk-label" [for]="idPrefix + '-postcode'">Postcode</label>
 
-    @if (showPostcodeError && showError) {
+    @if (showPostcodeError) {
       <p [id]="postcodeErrorId" class="govuk-error-message">
         <span class="govuk-visually-hidden">Error:</span>
         {{ postcodeErrorText }}
@@ -90,7 +92,8 @@
     }
 
     <input
-      class="govuk-input govuk-input--width-10 @if(showPostcodeError){ govuk-input--error }"
+      class="govuk-input govuk-input--width-10"
+      [class.govuk-input--error]="showPostcodeError"
       [id]="idPrefix + '-postcode'"
       [name]="idPrefix + '.postcode'"
       type="text"
