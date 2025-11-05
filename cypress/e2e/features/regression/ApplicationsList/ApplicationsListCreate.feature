@@ -3,7 +3,7 @@ Feature: Applications List Create
   @regression
   Scenario Outline: Verify applications list is displayed
     Given User Is On The Portal Page
-    Then User Signs In With Microsoft SSO As "<User>"
+    When User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Applications list"
     Then User Clicks On The Link "Create a new list"
     Then User Should See The Date Field "Date"
