@@ -42,18 +42,14 @@ withPipeline(type, product, component) {
     script {
       def testResult = sh(script: 'yarn test:functional', returnStatus: true)
       
-      // Always generate reports and publish artifacts regardless of test result
       sh 'node cypress/scripts/generate-reports.js || true'
       
-      // Archive all Cypress reports and artifacts
       archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/**/*'
       archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/screenshots/**/*.png'
       archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/junit/**/*.xml'
       
-      // Publish test results
       junit allowEmptyResults: true, testResults: 'cypress/reports/junit/**/*.xml'
       
-      // Publish HTML reports - these will appear in Jenkins left menu
       publishHTML([
         allowMissing: false,
         alwaysLinkToLastBuild: true,
@@ -74,7 +70,6 @@ withPipeline(type, product, component) {
         reportTitles: 'Mochawesome Test Report'
       ])
       
-      // Fail the pipeline if tests failed (non-zero exit code)
       if (testResult != 0) {
         error("Smoke tests failed with exit code ${testResult}")
       }
