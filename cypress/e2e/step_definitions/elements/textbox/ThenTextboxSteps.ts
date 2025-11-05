@@ -41,7 +41,7 @@ Then(
       TestDataGenerator.replaceRandomPlaceholders(textToType);
     const substituteOptionText =
       TestDataGenerator.replaceRandomPlaceholders(optionText);
-    
+
     if (substituteOptionText && substituteOptionText.trim() !== '') {
       TextboxHelper.selectAutocompleteOption(
         field,
