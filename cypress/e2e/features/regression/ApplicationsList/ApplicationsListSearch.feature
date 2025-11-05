@@ -37,11 +37,13 @@ Feature: Applications List Search
     Then User Enters "<CJA>" Into The "CJA" Textbox
     When User Clicks On The "Search" Button
     Then User See "<ValidationMessage>" On The Page
+    Then User Verifies CJA Field Has Value "<ValueInCJA>"
     
     Examples:
-      | User   | CJA        | ValidationMessage                  |
-      | admin1 | 1          |                                    |
-      | admin1 | abc123     | Criminal Justice Area not found.   |
+      | User   | CJA        | ValidationMessage                  |ValueInCJA|
+      | admin1 | 1          |                                    |01 - CJA Number 1 |
+      | admin1 | 10         |                                    |10 - CJA Number 10|
+      | admin1 | abc123     | Criminal Justice Area not found.   |                  |    
       
 
 
