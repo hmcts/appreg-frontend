@@ -1,6 +1,7 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ContentChild,
   ElementRef,
@@ -46,23 +47,25 @@ export class SelectableSortableTableComponent
   @Input() selectedIds: Set<string> = new Set<string>();
   @Output() selectedIdsChange = new EventEmitter<Set<string>>();
 
-  @Input() idPrefix = 'row-';
+  /** Keep stable across pagination so row checkbox ids are unique */
+  @Input() idPrefix = 'apps-';
 
   @ViewChild('mojTable', { static: true })
   tableRef!: ElementRef<HTMLTableElement>;
 
   private destroyFns: (() => void)[] = [];
-  private rowObserver?: MutationObserver;
-  private multiSelectInited = false;
 
-  constructor(@Inject(PLATFORM_ID) private readonly platformId: object) {}
+  constructor(
+    @Inject(PLATFORM_ID) private readonly platformId: object,
+    private readonly cdr: ChangeDetectorRef,
+  ) {}
 
   ngAfterViewInit(): void {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
 
-    // Safe helper for grabbing Ctors from either root or default export
+    // Helper to safely grab constructors from either root or default export
     const getCtor = <T>(mdl: unknown, key: string): T | undefined => {
       const root = (mdl ?? {}) as Record<string, unknown>;
       const def = (root['default'] ?? {}) as Record<string, unknown>;
@@ -70,14 +73,12 @@ export class SelectableSortableTableComponent
       return typeof candidate === 'function' ? (candidate as T) : undefined;
     };
 
-    // Always set up Sortable immediately (works with empty body)
+    // Initialise MOJ SortableTable (OK to keep with Fix B)
     void import('@ministryofjustice/frontend').then((mod) => {
       const SortableCtor = getCtor<
-        new (el: HTMLElement) => {
-          init?: () => void;
-          destroy?: () => void;
-        }
+        new (el: HTMLElement) => { init?: () => void; destroy?: () => void }
       >(mod, 'SortableTable');
+
       if (SortableCtor) {
         const s = new SortableCtor(this.tableRef.nativeElement);
         s.init?.();
@@ -85,107 +86,60 @@ export class SelectableSortableTableComponent
           try {
             s.destroy?.();
           } catch {
-            /* empty */
+            /* noop */
           }
         });
       }
     });
 
-    // Defer MultiSelect until a row checkbox actually exists
-    const ensureMultiSelect = async () => {
-      if (this.multiSelectInited) {
-        return;
-      }
-      const hasRowBox = !!this.tableRef.nativeElement.querySelector(
-        '.moj-multi-select__checkbox .govuk-checkboxes__input',
-      );
-      if (!hasRowBox) {
-        return;
-      }
-
-      const mod = await import('@ministryofjustice/frontend');
-      const root = (mod ?? {}) as Record<string, unknown>;
-      const def = (root['default'] ?? {}) as Record<string, unknown>;
-      const MultiSelectCtor = (root['MultiSelect'] ?? def['MultiSelect']) as
-        | (new (
-            el: HTMLElement,
-            opts?: { idPrefix?: string },
-          ) => { init?: () => void; destroy?: () => void })
-        | undefined;
-
-      if (!MultiSelectCtor) {
-        return;
-      }
-
-      const m = new MultiSelectCtor(this.tableRef.nativeElement, {
-        idPrefix: this.idPrefix,
-      });
-      m.init?.();
-      this.multiSelectInited = true;
-
-      // Keep App state in sync with DOM after MOJ toggles select-all/rows
-      const syncSelectedFromDOM = () => {
-        const boxes =
-          this.tableRef.nativeElement.querySelectorAll<HTMLInputElement>(
-            'tbody input.govuk-checkboxes__input',
-          );
-        const next = new Set<string>();
-        boxes.forEach((box) => {
-          if (box.checked) {
-            const idAttr = box.id || '';
-            if (idAttr.startsWith(this.idPrefix)) {
-              next.add(idAttr.slice(this.idPrefix.length));
-            }
-          }
-        });
-        const changed =
-          next.size !== this.selectedIds.size ||
-          [...next].some((id) => !this.selectedIds.has(id));
-        if (changed) {
-          this.selectedIds = next;
-          this.selectedIdsChange.emit(next);
-        }
-      };
-      const onAnyChange = () => queueMicrotask(syncSelectedFromDOM);
-      this.tableRef.nativeElement.addEventListener('change', onAnyChange);
-      this.tableRef.nativeElement.addEventListener('click', onAnyChange);
-
-      this.destroyFns.push(() => {
-        try {
-          this.tableRef.nativeElement.removeEventListener(
-            'change',
-            onAnyChange,
-          );
-          this.tableRef.nativeElement.removeEventListener('click', onAnyChange);
-          m.destroy?.();
-        } catch {
-          /* empty */
-        }
-      });
-    };
-
-    // Observe rows; as soon as a checkbox appears, init MultiSelect once
-    const tbody =
-      this.tableRef.nativeElement.tBodies[0] ?? this.tableRef.nativeElement;
-    this.rowObserver = new MutationObserver(() => {
-      void ensureMultiSelect();
-    });
-    this.rowObserver.observe(tbody, { childList: true, subtree: true });
-
-    // Try immediately too (covers SSR / fast API cases)
-    void ensureMultiSelect();
+    // IMPORTANT: No MultiSelect initialisation, no MutationObserver, no re-init.
   }
 
   ngOnDestroy(): void {
-    this.rowObserver?.disconnect();
     while (this.destroyFns.length) {
       const fn = this.destroyFns.pop();
       try {
         fn?.();
       } catch {
-        /* empty */
+        /* noop */
       }
     }
+  }
+
+  /** -------- Pure-Angular selection logic (Fix B) -------- */
+
+  /** Ids for the currently rendered (visible) rows */
+  get visibleIds(): string[] {
+    return (this.data ?? [])
+      .map((row) => this.getRowId(row))
+      .filter((id): id is string => !!id);
+  }
+
+  /** Are all visible rows selected? */
+  get allVisibleSelected(): boolean {
+    const ids = this.visibleIds;
+    return ids.length > 0 && ids.every((id) => this.selectedIds.has(id));
+  }
+
+  /** Are some (but not all) visible rows selected? */
+  get someVisibleSelected(): boolean {
+    const ids = this.visibleIds;
+    return ids.length > 0 && ids.some((id) => this.selectedIds.has(id));
+  }
+
+  /** Toggle selection for every row currently visible on this page */
+  toggleSelectAllVisible(checked: boolean): void {
+    const next = new Set(this.selectedIds); // replace Set instance
+    for (const id of this.visibleIds) {
+      if (checked) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
+    }
+    this.selectedIds = next;
+    this.selectedIdsChange.emit(next);
+    this.cdr.markForCheck();
   }
 
   /** Narrow row value to a safe string id */
@@ -207,7 +161,7 @@ export class SelectableSortableTableComponent
   }
 
   isSelected(row: Row): boolean {
-    const id = this.coerceRowId(row);
+    const id = this.getRowId(row);
     return !!id && this.selectedIds.has(id);
   }
 
@@ -232,14 +186,15 @@ export class SelectableSortableTableComponent
     }
     this.selectedIds = next;
     this.selectedIdsChange.emit(next);
+    this.cdr.markForCheck();
   }
 
+  /** Sorting helpers kept for SortableTable */
   private coerceSortValue(raw: unknown): string | number | null {
     if (raw === null) {
       return null;
     }
 
-    // primitives
     if (typeof raw === 'string') {
       return raw;
     }
@@ -252,8 +207,6 @@ export class SelectableSortableTableComponent
     if (typeof raw === 'bigint') {
       return raw.toString();
     }
-
-    // well-known objects
     if (raw instanceof Date) {
       return isNaN(raw.getTime()) ? null : raw.toISOString();
     }
@@ -266,7 +219,6 @@ export class SelectableSortableTableComponent
       const raw = col.sortValue
         ? col.sortValue(row)
         : (row as Record<string, unknown>)[col.field];
-
       return this.coerceSortValue(raw);
     } catch {
       return null;
