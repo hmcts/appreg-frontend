@@ -124,7 +124,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   selectedIds = new Set<string>();
 
-  isLoading = false;
+  isLoading = true;
 
   override form = new FormGroup({
     date: new FormControl<string | null>(null),
