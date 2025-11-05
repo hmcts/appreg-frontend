@@ -1,6 +1,7 @@
 /// <reference types="cypress" />
 
 import { TextElement } from '../../../pageobjects/generic/text/TextElement';
+import { StringUtils } from '../../../utils/StringUtils';
 
 export class TextHelper {
   /**
@@ -24,5 +25,26 @@ export class TextHelper {
       .within(() => {
         TextElement.getText('*').should('contain.text', expectedText);
       });
+  }
+
+  /**
+   * Verifies that a validation error message is displayed
+   * @param errorMessage The expected error message text
+   */
+  static verifyValidationError(errorMessage: string): void {
+    TextElement.getText('[role="alert"]')
+      .should('be.visible')
+      .invoke('text')
+      .then((actualText) => {
+        const normalizedActual = StringUtils.normalizeText(actualText);
+        expect(normalizedActual).to.include(errorMessage);
+      });
+  }
+
+  /**
+   * Verifies that no validation errors are displayed
+   */
+  static verifyNoValidationErrors(): void {
+    cy.get('[role="alert"]').should('not.exist');
   }
 }

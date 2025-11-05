@@ -13,3 +13,12 @@ Then(
     TextHelper.verifyTextInSection(containerLabel, expectedText);
   },
 );
+
+Then('User Sees Validation Error {string}', (errorMessage: string) => {
+  TextHelper.verifyValidationError(errorMessage);
+  cy.screenshot(`ValidationError-${errorMessage}`);
+});
+
+Then('User Does Not See Validation Errors', () => {
+  TextHelper.verifyNoValidationErrors();
+});
