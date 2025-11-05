@@ -187,13 +187,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refField);
-
-    // Only read history on the browser
     const st = isPlatformBrowser(this.platformId)
       ? (history.state as { row?: Handoff })?.row
       : undefined;
 
-    // Always have an id (SSR/deep-link safe)
     this.id = st?.id ?? this.route.snapshot.paramMap.get('id') ?? '';
 
     if (st) {
@@ -210,8 +207,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         duration: null,
       });
     }
-
-    this.loadApplicationsLists();
+    if (isPlatformBrowser(this.platformId)) {
+      this.loadApplicationsLists();
+    }
   }
 
   onSubmit(): void {
