@@ -23,10 +23,8 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { take } from 'rxjs';
 
 import {
-  ApplicationListEntrySummary,
   ApplicationListStatus,
   ApplicationListUpdateDto,
   ApplicationListsApi,
@@ -113,7 +111,6 @@ type Handoff = {
 })
 export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   id!: string;
-  currentFragment: string | null = null;
   private version = 0;
   private etag: string | null = null;
 
@@ -121,7 +118,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   totalPages = 0;
 
   pageSize = 10;
-  private isLoading = false;
 
   selectedIds = new Set<string>();
 
@@ -341,7 +337,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         ...(isDurMins && Number.isInteger(durationMinutes)
           ? { durationMinutes }
           : {}),
-      } as ApplicationListUpdateDto;
+      } as unknown as ApplicationListUpdateDto;
 
       const context = new HttpContext()
         .set(IF_MATCH, this.etag ?? null)
@@ -420,20 +416,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   private fmt = (v: string | null | undefined) =>
     v && v.trim() !== '' ? v : '—';
-
-  private toRow(e: ApplicationListEntrySummary) {
-    return {
-      id: e.uuid,
-      sequenceNumber: e.sequenceNumber,
-      accountNumber: e.accountNumber,
-      applicant: e.applicant,
-      respondent: e.respondent,
-      postCode: e.postCode,
-      title: e.applicationTitle,
-      feeReq: e.feeRequired ? 'Yes' : 'No',
-      resulted: e.result ? 'Yes' : 'No',
-    };
-  }
 
   private buildErrorSummary(): void {
     const de = this.form.controls.date.errors as {
