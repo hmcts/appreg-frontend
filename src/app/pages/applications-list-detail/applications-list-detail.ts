@@ -262,7 +262,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
           // compute total pages
           const total = dto?.entriesCount ?? items.length;
-          this.totalPages = total ? Math.max(1, Math.ceil(total / this.pageSize)) : 0;
+          this.totalPages = total > this.pageSize ? Math.ceil(total / this.pageSize) : 0;
 
           // success → clear any prior error banner
           this.updateInvalid = false;
