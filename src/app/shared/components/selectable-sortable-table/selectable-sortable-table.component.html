@@ -12,12 +12,28 @@
 
   <thead class="govuk-table__head">
   <tr class="govuk-table__row">
-    <!-- Select-all target cell (left blank for MOJ to inject) -->
-    <th
-      class="govuk-table__header moj-multi-select__select-all"
-      scope="col"
-      [id]="idPrefix + 'select-all'"
-    ></th>
+    <!-- Real select-all checkbox driven by Angular -->
+    <th class="govuk-table__header moj-multi-select__select-all" scope="col">
+      <div class="govuk-checkboxes govuk-checkboxes--small">
+        <div class="govuk-checkboxes__item moj-multi-select__checkbox">
+          <input
+            #selectAll
+            type="checkbox"
+            class="govuk-checkboxes__input"
+            [id]="idPrefix + 'select-all'"
+            [checked]="allVisibleSelected"
+            [indeterminate]="someVisibleSelected && !allVisibleSelected"
+            (change)="toggleSelectAllVisible(selectAll.checked)"
+          />
+          <label
+            class="govuk-label govuk-checkboxes__label"
+            [for]="idPrefix + 'select-all'"
+          >
+            <span class="govuk-visually-hidden">Select all</span>
+          </label>
+        </div>
+      </div>
+    </th>
 
     @for (col of columns; track col.field) {
       <th
@@ -39,13 +55,14 @@
         [class.govuk-table__row--selected]="isSelected(row)"
       >
         <td class="govuk-table__cell">
-          <!-- Correct GOV.UK checkbox structure -->
+          <!-- Row checkbox bound to Angular selection -->
           <div class="govuk-checkboxes govuk-checkboxes--small">
             <div class="govuk-checkboxes__item moj-multi-select__checkbox">
               <input
                 #cb
                 type="checkbox"
                 class="govuk-checkboxes__input"
+                name="rows[]"
                 [id]="idPrefix + getRowId(row)"
                 [checked]="isSelected(row)"
                 (change)="toggleOne(row, cb.checked)"
