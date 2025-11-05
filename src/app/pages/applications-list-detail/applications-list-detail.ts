@@ -23,6 +23,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { finalize } from 'rxjs';
 
 import {
   ApplicationListStatus,
@@ -41,6 +42,7 @@ import {
   ErrorSummaryComponent,
 } from '../../shared/components/error-summary/error-summary.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { NotificationBannerComponent } from '../../shared/components/notification-banner/notification-banner.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import { SelectableSortableTableComponent } from '../../shared/components/selectable-sortable-table/selectable-sortable-table.component';
@@ -108,6 +110,7 @@ type Handoff = {
     PageHeaderComponent,
     SelectableSortableTableComponent,
     MojButtonMenuDirective,
+    NotificationBannerComponent,
   ],
   templateUrl: './applications-list-detail.html',
 })
@@ -122,6 +125,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   pageSize = 10;
 
   selectedIds = new Set<string>();
+
+  isLoading = false;
 
   override form = new FormGroup({
     date: new FormControl<string | null>(null),
@@ -214,17 +219,14 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     }
   }
 
-  onSubmit(): void {
-    // Submission is only on list-details -> Update
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-    }
+  get noEntries(): boolean {
+    return !this.isLoading && !this.updateInvalid && (this.rows?.length ?? 0) === 0;
   }
 
   loadApplicationsLists(): void {
-    if (!this.id) {
-      return;
-    }
+    if (!this.id) {return;}
+
+    this.isLoading = true;
 
     this.appListApi
       .getApplicationList(
@@ -237,6 +239,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         false,
         { transferCache: false },
       )
+      .pipe(finalize(() => { this.isLoading = false; }))
       .subscribe({
         next: (res) => {
           const dto = res.body!;
@@ -259,19 +262,20 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
           // compute total pages
           const total = dto?.entriesCount ?? items.length;
-          this.totalPages = total
-            ? Math.max(1, Math.ceil(total / this.pageSize))
-            : 0;
+          this.totalPages = total ? Math.max(1, Math.ceil(total / this.pageSize)) : 0;
 
-          // —— Select-all behaviour fix: keep selection in sync with visible rows
+          // success → clear any prior error banner
+          this.updateInvalid = false;
+          this.errorHint = '';
+
+          // keep selection in sync with visible rows
           this.reconcileSelectionToVisible();
 
-          // Re-initialise MOJ button menus AFTER DOM has painted (SSR-safe)
+          // Re-init MOJ button menus AFTER DOM paint (browser-only)
           if (isPlatformBrowser(this.platformId)) {
             this.ngZone.runOutsideAngular(() => {
               requestAnimationFrame(() => {
-                const root =
-                  document.getElementById('sortable-table') ?? document;
+                const root = document.getElementById('sortable-table') ?? document;
                 void this.menus.initAll(root);
               });
             });
@@ -282,7 +286,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           this.errorHint = getProblemText(err);
           this.rows = [];
           this.totalPages = 0;
-          // Also clear selection if nothing is visible
           this.selectedIds.clear();
         },
       });
@@ -396,23 +399,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       [...this.selectedIds].filter((id) => visible.has(id)),
     );
   }
-
-  /** Convenience: returns the IDs currently visible in the table. */
-  private visibleIds(): string[] {
-    return this.rows.map((r) => r.id);
-  }
-
-  /** Toggle select-all for the current page (bind to your header checkbox if needed). */
-  onToggleSelectAll(checked: boolean): void {
-    const ids = this.visibleIds();
-    if (checked) {
-      ids.forEach((id) => this.selectedIds.add(id));
-    } else {
-      ids.forEach((id) => this.selectedIds.delete(id));
-    }
-  }
-
-  // ————————————————————————————————————————————————
 
   private fmt = (v: string | null | undefined) =>
     v && v.trim() !== '' ? v : '—';

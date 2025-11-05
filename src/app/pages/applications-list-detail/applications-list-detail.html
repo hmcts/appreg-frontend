@@ -31,6 +31,15 @@
   />
 }
 
+@if (noEntries && !isLoading) {
+  <app-notification-banner
+    heading="No lists entries found"
+    body="Try again, or "
+    linkText="create a new list entry"
+    [linkCommands]="['/applications-list', id, 'create']">
+  </app-notification-banner>
+}
+
 <!-- Tabs -->
 <div class="govuk-tabs" data-module="govuk-tabs">
   <h2 class="govuk-tabs__title">Contents</h2>
@@ -82,42 +91,44 @@
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
     />
 
-    <!-- Sortable table component -->
-    <app-selectable-sortable-table
-      id="sortable-table"
-      caption="Lists"
-      [columns]="columns"
-      [data]="rows"
-      idField="id"
-      [(selectedIds)]="selectedIds"
-      appMojButtonMenu
-    >
-      <!-- actions slot -->
-      <ng-template #actionsTemplate let-row>
-        <div
-          class="moj-button-menu"
-          data-module="moj-button-menu"
-          data-button-text="Select"
-          data-button-classes="govuk-button"
-        >
-          <!-- Open button -->
-          <button
-            type="button"
-            class="govuk-button moj-button-menu__item govuk-button--secondary"
+    @if (!noEntries && !isLoading) {
+      <!-- Sortable table component -->
+      <app-selectable-sortable-table
+        id="sortable-table"
+        caption="Lists"
+        [columns]="columns"
+        [data]="rows"
+        idField="id"
+        [(selectedIds)]="selectedIds"
+        appMojButtonMenu
+      >
+        <!-- actions slot -->
+        <ng-template #actionsTemplate let-row>
+          <div
+            class="moj-button-menu"
+            data-module="moj-button-menu"
+            data-button-text="Select"
+            data-button-classes="govuk-button"
           >
-            Open
-          </button>
+            <!-- Open button -->
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+            >
+              Open
+            </button>
 
-          <!-- Delete button -->
-          <button
-            type="button"
-            class="govuk-button moj-button-menu__item govuk-button--secondary"
-          >
-            Delete
-          </button>
-        </div>
-      </ng-template>
-    </app-selectable-sortable-table>
+            <!-- Delete button -->
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+            >
+              Delete
+            </button>
+          </div>
+        </ng-template>
+      </app-selectable-sortable-table>
+    }
 
     <!-- Pager -->
     <app-pagination
