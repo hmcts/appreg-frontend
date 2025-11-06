@@ -51,7 +51,6 @@ import { SuggestionsComponent } from '../../shared/components/suggestions/sugges
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 import {
   IF_MATCH,
-  ROW_VERSION,
 } from '../../shared/context/concurrency-context';
 import { buildNormalizedPayload } from '../../shared/util/build-payload';
 import { collectMissing } from '../../shared/util/collect-missing';
@@ -91,6 +90,8 @@ type Handoff = {
   version: number;
 };
 
+type DurationValue = { hours: string; minutes: string };
+
 @Component({
   selector: 'app-application-detail',
   standalone: true,
@@ -116,7 +117,6 @@ type Handoff = {
 })
 export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   id!: string;
-  private version = 0;
   private etag: string | null = null;
 
   currentPage = 1;
@@ -138,7 +138,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     court: new FormControl<string>(''),
     location: new FormControl<string>(''),
     cja: new FormControl<string>(''),
-    duration: new FormControl<{ hours: string; minutes: string } | null>(null),
+    duration: new FormControl<DurationValue | null>(null),
   });
 
   statusOptions = [
@@ -204,7 +204,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     if (st) {
       this.prefillPlaceFieldsFromSummary(st.location);
       this.etag = st.etag;
-      this.version = st.version ?? this.version;
       this.form.patchValue({
         date: st.date ?? null,
         time: st.time
@@ -253,7 +252,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         next: (res) => {
           const dto = res.body!;
           this.etag = res.headers.get('ETag') ?? this.etag;
-          this.version = dto?.version ?? this.version;
 
           const items = dto?.entriesSummary ?? [];
           // map API items → table rows
@@ -354,8 +352,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       } as ApplicationListUpdateDto;
 
       const context = new HttpContext()
-        .set(IF_MATCH, this.etag ?? null)
-        .set(ROW_VERSION, String(this.version));
+        .set(IF_MATCH, this.etag ?? null);
 
       this.appListApi
         .updateApplicationList(
