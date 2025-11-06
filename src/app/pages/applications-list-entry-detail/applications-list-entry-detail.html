@@ -3,32 +3,48 @@
     { label: 'Applications list', link: '/applications-list' },
     { label: 'Applications list details', link: '/applications-list/' + appListId }
   ]"
-></app-breadcrumbs>
+/>
 
 <h1 class="govuk-heading-xl">Applications list entry update</h1>
 
 <form [formGroup]="form">
-  <!-- Applicant content template -->
   <ng-template #applicantTpl>
-    <div class="govuk-form-group">
-      <h3 class="govuk-heading-m">Application entry type</h3>
-      <div class="govuk-grid-row">
-        <app-select-input
-          formControlName="entryType"
-          label="Select type"
-          hint="The type of applicant for this application"
-          idPrefix="application-entry-type"
-          [options]="entryTypeOptions"
-        ></app-select-input>
-      </div>
+    <h3 class="govuk-heading-m">Application entry type</h3>
+    <div class="govuk-grid-row">
+      <app-select-input
+        formControlName="entryType"
+        label="Select type"
+        hint="The type of applicant for this application"
+        idPrefix="application-entry-type"
+        [options]="entryTypeOptions"
+      ></app-select-input>
     </div>
 
     <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible"/>
 
-    <!-- PERSON -->
-    @if (form.get('entryType')?.value === 'Person') {
-      <div class="govuk-!-margin-top-4" formGroupName="person">
-        <h3 class="govuk-heading-m">Names</h3>
+    @switch (form.get('entryType')?.value) {
+      @case ('Person') {
+        <app-person-section
+          [group]="personGroup"
+          [titleOptions]="personTitleOptions">
+        </app-person-section>
+      }
+      @case ('Organisation') {
+        <app-organisation-section
+          [group]="organisationGroup">
+        </app-organisation-section>
+      }
+      @case ('Standard Applicant') {
+        <app-sortable-table
+          id="sortable-table"
+          caption="Lists"
+          [columns]="applicantColumns"
+          appMojButtonMenu
+        >
+        </app-sortable-table>
+      }
+    }
+  </ng-template>
 
         <div class="govuk-grid-row">
           <!-- Title -->
