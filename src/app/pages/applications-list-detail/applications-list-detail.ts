@@ -48,9 +48,7 @@ import { SelectableSortableTableComponent } from '../../shared/components/select
 import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
 import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
-import {
-  IF_MATCH,
-} from '../../shared/context/concurrency-context';
+import { IF_MATCH } from '../../shared/context/concurrency-context';
 import { buildNormalizedPayload } from '../../shared/util/build-payload';
 import { collectMissing } from '../../shared/util/collect-missing';
 import {
@@ -349,8 +347,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           : {}),
       } as ApplicationListUpdateDto;
 
-      const context = new HttpContext()
-        .set(IF_MATCH, this.etag ?? null);
+      const context = new HttpContext().set(IF_MATCH, this.etag ?? null);
 
       this.appListApi
         .updateApplicationList(
