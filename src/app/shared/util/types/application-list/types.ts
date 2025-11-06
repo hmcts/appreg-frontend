@@ -15,7 +15,7 @@ export type ApplicationListRow = Omit<
   ApplicationListGetSummaryDto,
   'numberOfEntries'
 > & {
-  entries: ApplicationListGetSummaryDto['numberOfEntries'];
+  entries: ApplicationListGetSummaryDto['entriesCount'];
 } & UiExtras;
 
 export interface FormRaw<S> {
