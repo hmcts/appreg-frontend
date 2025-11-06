@@ -53,7 +53,7 @@ export class SelectableSortableTableComponent
   @ViewChild('mojTable', { static: true })
   tableRef!: ElementRef<HTMLTableElement>;
 
-  private destroyFns: (() => void)[] = [];
+  private readonly destroyFns: (() => void)[] = [];
 
   constructor(
     @Inject(PLATFORM_ID) private readonly platformId: object,
