@@ -97,11 +97,11 @@ describe('SelectableSortableTableComponent (original template)', () => {
       await create();
       const d = new Date('2025-09-30T10:20:30.000Z');
 
-      expect(comp.getSortValue({ f: 42 } as Row, col())).toBe('42');
+      expect(comp.getSortValue({ f: 42 } as Row, col())).toBe(42);
       expect(comp.getSortValue({ f: 'hello' } as Row, col())).toBe('hello');
       expect(comp.getSortValue({ f: d } as Row, col())).toBe(d.toISOString());
-      expect(comp.getSortValue({ f: true } as Row, col())).toBe('1');
-      expect(comp.getSortValue({ f: false } as Row, col())).toBe('0');
+      expect(comp.getSortValue({ f: true } as Row, col())).toBe(1);
+      expect(comp.getSortValue({ f: false } as Row, col())).toBe(0);
       expect(comp.getSortValue({ f: null } as Row, col())).toBeNull();
       expect(comp.getSortValue({} as Row, col())).toBeNull();
     });
@@ -111,7 +111,7 @@ describe('SelectableSortableTableComponent (original template)', () => {
       const c = col({
         sortValue: (r: Row) => (r as Record<string, unknown>)['raw'] as number,
       });
-      expect(comp.getSortValue({ raw: 123 } as Row, c)).toBe('123');
+      expect(comp.getSortValue({ raw: 123 } as Row, c)).toBe(123);
     });
   });
 
@@ -139,22 +139,17 @@ describe('SelectableSortableTableComponent (original template)', () => {
       await fixture.whenStable();
       await new Promise<void>((r) => setTimeout(r, 0)); // allow dynamic import to resolve
 
-      // The original template renders a checkbox per row; it has the GOV.UK class
-      // and id based on idPrefix + row id.
-      const tableEl = fixture.debugElement.query(By.css('table'))
-        .nativeElement as HTMLTableElement;
-
-      const input = tableEl.querySelector('#row-abc') as HTMLInputElement;
+      // The real template renders a checkbox with idPrefix + row id (e.g. #row-abc)
+      const input = fixture.debugElement.query(By.css('#row-abc'))
+        .nativeElement as HTMLInputElement;
       expect(input).toBeTruthy();
 
-      // Ensure the class MoJ change-listener looks for is present
-      input.classList.add('govuk-checkboxes__input');
+      // Dispatch the change on the checkbox itself (Angular template handles it)
       input.checked = true;
+      input.dispatchEvent(new Event('change', { bubbles: true }));
 
-      // Dispatch a bubbling change event to the table
-      const ev = new Event('change', { bubbles: true });
-      Object.defineProperty(ev, 'target', { value: input, writable: false });
-      tableEl.dispatchEvent(ev);
+      fixture.detectChanges();
+      await fixture.whenStable();
 
       expect(comp.selectedIds.has('abc')).toBe(true);
     });
@@ -168,20 +163,19 @@ describe('SelectableSortableTableComponent (original template)', () => {
       expect(MultiSelectMock).not.toHaveBeenCalled();
     });
 
-    it('instantiates SortableTable and MultiSelect in the browser using the real template', async () => {
+    it('instantiates SortableTable (no MultiSelect) in the browser using the real template', async () => {
       await create('browser');
       fixture.detectChanges();
       await fixture.whenStable();
       await new Promise<void>((r) => setTimeout(r, 0)); // wait for dynamic import
 
-      // SortableTable is initialised with the <table #mojTable> element
+      // SortableTable is initialised with the <table> element
       const tableEl = fixture.debugElement.query(By.css('table'))
         .nativeElement as HTMLTableElement;
       expect(SortableTableMock).toHaveBeenCalledWith(tableEl);
 
-      // MultiSelect is initialised with the same element and idPrefix
-      const [, opts] = MultiSelectMock.mock.calls[0];
-      expect(opts).toEqual({ idPrefix: 'row-' });
+      // MultiSelect is no longer initialised in the refactored component
+      expect(MultiSelectMock).not.toHaveBeenCalled();
     });
   });
 });
