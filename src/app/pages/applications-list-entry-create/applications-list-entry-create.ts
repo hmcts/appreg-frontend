@@ -13,8 +13,9 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 
-import { ApplicationListEntriesApi } from '../../../generated/openapi';
+import { ApplicationCodeGetSummaryDto, ApplicationListEntriesApi } from '../../../generated/openapi';
 import { AddressInputComponent } from '../../shared/components/address-input/address-input.component';
+import { ApplicationCodeSearchComponent } from '../../shared/components/application-codes-search/application-codes-search.component';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 import { EmailInputComponent } from '../../shared/components/email-input/email-input.component';
 import {
@@ -27,7 +28,6 @@ import { SelectInputComponent } from '../../shared/components/select-input/selec
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 
 import { appListEntryCreateParams } from './util/create_params';
-
 
 type ApplicantStep = 'select' | 'person' | 'org' | 'standard';
 
@@ -45,6 +45,7 @@ type ApplicantStep = 'select' | 'person' | 'org' | 'standard';
     TextInputComponent,
     SelectInputComponent,
     NameInputComponent,
+    ApplicationCodeSearchComponent,
   ],
   templateUrl: './applications-list-entry-create.html',
 })
@@ -71,6 +72,7 @@ export class ApplicationsListEntryCreate implements OnInit {
     orgname: new FormControl<string | null>(null),
     title: new FormControl<string | null>(null),
     name: new FormControl<NameValue | null>(null),
+    applicationCode: new FormControl<string | null>(null)
   });
 
   titleOptions = [
@@ -98,23 +100,23 @@ export class ApplicationsListEntryCreate implements OnInit {
     if (this.errorFound) {
       return;
     }
-  
+
     // console.log('submit happened');
 
-    const body = { listId: this.id , ...appListEntryCreateParams() };
+    const body = { listId: this.id, ...appListEntryCreateParams() };
 
     this.appEntryApi
-    .createApplicationListEntry({ listId: this.id , entryCreateDto: body })
-    .subscribe({
-      next: () => {
-        console.log('happy');
-        this.createDone = true;
-      },
-      error: (err: HttpErrorResponse) => {
-        console.log(err);
-        this.errorFound = true;
-      },
-    });
+      .createApplicationListEntry({ listId: this.id, entryCreateDto: body })
+      .subscribe({
+        next: () => {
+          console.log('happy');
+          this.createDone = true;
+        },
+        error: (err: HttpErrorResponse) => {
+          console.log(err);
+          this.errorFound = true;
+        },
+      });
   }
 
   onNext(): void {
@@ -133,6 +135,10 @@ export class ApplicationsListEntryCreate implements OnInit {
   onBack(): void {
     this.step = 'select';
     this.errorFound = false;
+  }
+
+  onCodeSelected(row: ApplicationCodeGetSummaryDto): void {
+    this.form.patchValue({ applicationCode: row.applicationCode });
   }
 
   buildReturnLink(): { label: string; link: string } {

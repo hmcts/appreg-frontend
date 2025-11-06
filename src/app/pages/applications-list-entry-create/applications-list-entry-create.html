@@ -144,6 +144,12 @@
       errorTextInvalid="Enter an email in the format name@example.com"
     >
     </app-email-input>
+
+    <app-application-code-search
+      [auto]="true"
+      [minChars]="2"
+      (selectCode)="onCodeSelected($event)">
+    </app-application-code-search>
   </form>
 
   <div class="govuk-button-group">
