@@ -208,7 +208,7 @@ export class SelectableSortableTableComponent
       return raw.toString();
     }
     if (raw instanceof Date) {
-      return isNaN(raw.getTime()) ? null : raw.toISOString();
+      return Number.isNaN(raw.getTime()) ? null : raw.toISOString();
     }
 
     return null;
