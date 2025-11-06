@@ -24,7 +24,6 @@ interface ApplicationListItemDto {
 
 interface ApplicationListResponse {
   body: {
-    version: number;
     entriesCount: number;
     entriesSummary: ApplicationListItemDto[];
   };
@@ -70,7 +69,7 @@ describe('ApplicationsListDetail', () => {
       .mockReturnValue({ row });
 
     const defaultResponse: ApplicationListResponse = {
-      body: { version: 1, entriesCount: 0, entriesSummary: [] },
+      body: { entriesCount: 0, entriesSummary: [] },
       headers: { get: (h: string) => (h === 'ETag' ? '"etag-v1"' : null) },
     };
     apiStub.getApplicationList.mockReturnValue(of(defaultResponse));
@@ -225,7 +224,6 @@ describe('ApplicationsListDetail', () => {
 
       const successResponse: ApplicationListResponse = {
         body: {
-          version: 2,
           entriesCount: 1,
           entriesSummary: [
             {
@@ -271,7 +269,6 @@ describe('ApplicationsListDetail', () => {
         },
       ]);
 
-      expect((component as unknown as { version: number }).version).toBe(2);
       expect((component as unknown as { etag: string | null }).etag).toBe(
         '"etag-v2"',
       );
