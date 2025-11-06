@@ -7,22 +7,24 @@
 
 <h1 class="govuk-heading-xl">Applications list entry update</h1>
 
+<h2 class="govuk-heading-l">Summary of application list entry</h2>
+
 <form [formGroup]="form">
   <ng-template #applicantTpl>
     <h3 class="govuk-heading-m">Application entry type</h3>
     <div class="govuk-grid-row">
       <app-select-input
-        formControlName="entryType"
+        formControlName="applicantEntryType"
         label="Select type"
         hint="The type of applicant for this application"
         idPrefix="application-entry-type"
-        [options]="entryTypeOptions"
+        [options]="applicantEntryTypeOptions"
       ></app-select-input>
     </div>
 
     <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible"/>
 
-    @switch (form.get('entryType')?.value) {
+    @switch (form.get('applicantEntryType')?.value) {
       @case ('Person') {
         <app-person-section
           [group]="personGroup"
@@ -82,7 +84,7 @@
       <button type="button" class="govuk-button" (click)="onCodesSearch()">Search</button>
     </div>
 
-    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" />
+    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible"/>
 
     <app-sortable-table
       id="codes-table"
@@ -121,6 +123,32 @@
 
 
   <ng-template #respondentTpl>
+    <h3 class="govuk-heading-m">Application entry type</h3>
+    <div class="govuk-grid-row">
+      <app-select-input
+        formControlName="respondentEntryType"
+        label="Select type"
+        hint="The type of respondant for this application"
+        idPrefix="respondent-entry-type"
+        [options]="respondentEntryTypeOptions">
+      </app-select-input>
+    </div>
+
+    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible"/>
+
+    @switch (form.get('respondentEntryType')?.value) {
+      @case ('Person') {
+        <app-person-section
+          [group]="personGroup"
+          [titleOptions]="personTitleOptions">
+        </app-person-section>
+      }
+      @case ('Organisation') {
+        <app-organisation-section
+          [group]="organisationGroup">
+        </app-organisation-section>
+      }
+    }
   </ng-template>
 
   <ng-template #civilFeeTpl>
