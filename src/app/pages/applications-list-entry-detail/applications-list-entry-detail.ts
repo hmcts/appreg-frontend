@@ -6,7 +6,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 
 @Component({
-  selector: 'app-applications-list-entry-update',
+  selector: 'app-applications-list-entry-detail',
   standalone: true,
   imports: [
     CommonModule,
@@ -14,7 +14,7 @@ import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadc
     RouterModule,
     BreadcrumbsComponent,
   ],
-  templateUrl: './applications-list-entry-update.html',
+  templateUrl: './applications-list-entry-detail.html',
 })
 export class ApplicationsListEntryDetail implements OnInit {
   appListId!: string;
