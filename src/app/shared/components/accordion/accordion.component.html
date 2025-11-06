@@ -16,10 +16,9 @@
         </h2>
       </div>
 
-      <div
+      <section
         class="govuk-accordion__section-content"
         [id]="panelId(i)"
-        role="region"
         [attr.aria-labelledby]="headingId(i)"
         [hidden]="!item.expanded"
       >
@@ -30,7 +29,7 @@
             <p class="govuk-body">{{ item.content }}</p>
           }
         }
-      </div>
+      </section>
     </div>
   }
 </div>
