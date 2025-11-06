@@ -53,10 +53,15 @@ export class ApplicationsListEntryDetail implements OnInit {
     { header: 'Actions', field: 'actions' },
   ];
 
-  entryTypeOptions = [
+  applicantEntryTypeOptions = [
     { value: 'Person', label: 'Person' },
     { value: 'Organisation', label: 'Organisation' },
     { value: 'Standard Applicant', label: 'Standard Applicant' },
+  ];
+
+  respondentEntryTypeOptions = [
+    { value: 'Person', label: 'Person' },
+    { value: 'Organisation', label: 'Organisation' }
   ];
 
   personTitleOptions = [
@@ -90,7 +95,8 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     // NEW: build the form
     this.form = this.fb.group({
-      entryType: ['Organisation'],
+      applicantEntryType: ['Organisation'],
+      respondentEntryType: ['Organisation'],
       person: this.fb.group({
         title: [''],
         firstName: [''],
