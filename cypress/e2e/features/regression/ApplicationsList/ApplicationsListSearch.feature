@@ -1,15 +1,45 @@
 Feature: Applications List Search
 
-  @regression
+  @regression @ARCPOC-452
   Scenario: Verify components on applications list search page
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     Then User Clicks On The Link "Applications list"
-    Then User Sees Text "For example, 27 3 2007" In "Date"
+    Then User See "Applications List" On The Page
     Then User Should See The Date Field "Date"
+    Then User Sees Text "For example, 27 3 2007" In "Date" Field
     Then User Should See The Time Field "Time"
+    Then User Sees Text "Enter the time in 24-hour format, for example 08:30" In "Time" Field
+    Then User Should See The Textbox "Description"
+    Then User Sees Text "A description of the application list" In "Description" Field
+    Then User Should See The Dropdown "Select status"
+    Then User Sees Text "The status of the application list" In "Select status" Field
+    Then User Should See The Textbox "Court"
+    Then User Sees Text "Start typing to search" In "Court" Field
+    Then User Should See The Textbox "Other location"
+    Then User Sees Text "Other location description" In "Other location" Field
+    Then User Should See The Textbox "CJA"
+    Then User Sees Text "Start typing to search" In "CJA" Field
+    Then User Should See The Button "Search"
 
-  @regression
+  @regression @ARCPOC-452
+  Scenario: Verify Court field disables Other location and CJA when typing
+    Given User Is On The Portal Page
+    When User Signs In With Microsoft SSO As "user1"
+    Then User Clicks On The Link "Applications list"
+    Then User Enters "London" Into The "Court" Textbox
+    Then User Should See The Textbox "Other location" Is Disabled
+    Then User Should See The Textbox "CJA" Is Disabled
+
+  @regression @ARCPOC-452
+  Scenario: Verify CJA field disables Court when typing
+    Given User Is On The Portal Page
+    When User Signs In With Microsoft SSO As "user1"
+    Then User Clicks On The Link "Applications list"
+    Then User Enters "01" Into The "CJA" Textbox
+    Then User Should See The Textbox "Court" Is Disabled
+
+  @regression @ARCPOC-452
   Scenario Outline: Verify applications list is displayed
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"

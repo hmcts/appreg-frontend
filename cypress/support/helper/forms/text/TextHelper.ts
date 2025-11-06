@@ -19,11 +19,13 @@ export class TextHelper {
    * @param expectedText The expected text content within that section
    */
   static verifyTextInSection(sectionLabel: string, expectedText: string): void {
-    // Find the section container and verify text using existing TextElement method
-    cy.contains(sectionLabel)
-      .closest('fieldset, div, section, form, article')
-      .within(() => {
-        TextElement.getText('*').should('contain.text', expectedText);
+    cy.contains(sectionLabel, { matchCase: false })
+      .parent()
+      .parent()
+      .invoke('text')
+      .then((text) => {
+        const normalizedText = StringUtils.normalizeText(text);
+        expect(normalizedText).to.include(expectedText);
       });
   }
 

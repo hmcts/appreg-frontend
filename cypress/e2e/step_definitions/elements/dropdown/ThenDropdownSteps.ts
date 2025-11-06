@@ -3,6 +3,13 @@ import { DataTable, Then } from '@badeball/cypress-cucumber-preprocessor';
 import { DropdownHelper } from '../../../../support/helper/forms/dropdown/DropdownHelper';
 
 Then(
+  'User Should See The Dropdown {string}',
+  (dropdownLabel: string) => {
+    DropdownHelper.verifyDropdownIsVisible(dropdownLabel);
+  },
+);
+
+Then(
   'User Selects {string} In The {string} Dropdown',
   (optionText: string, dropdownLabel: string) => {
     DropdownHelper.selectDropdownOption(dropdownLabel, optionText);
