@@ -328,14 +328,18 @@ Edit `test/a11y/a11y.spec.ts` and append routes:
 #### ... fill in all other credentials
 
 3. Run Cypress tests:
-   yarn cypress open
 
-   or run all tests headlessly:
-   yarn cypress run
+#### Open Cypress UI:
 
-4. For all tests: yarn test:functional
-   For smoke tests: yarn test:functional --cypress-args=\"--env TAGS=@smoke\"
-   For any tags: yarn test:functional --cypress-args=\"--env TAGS=@yourtag\"
+yarn cypress:open
+
+#### Open Cypress UI with specific tag:
+
+CYPRESS_TAGS="@ARCPOC-660" yarn cypress:open
+
+#### Run all tests headlessly:
+
+yarn cypress:run
 
 ### Sample Test
 

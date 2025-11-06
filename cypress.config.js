@@ -149,12 +149,7 @@ module.exports = defineConfig({
           },
         },
       };
-      await addCucumberPreprocessorPlugin(on, {
-        ...config,
-        cucumber: {
-          stepDefinitions: 'cypress/e2e/step_definitions/**/*.ts',
-        },
-      });
+      await addCucumberPreprocessorPlugin(on, config);
       on(
         'file:preprocessor',
         createBundler({
