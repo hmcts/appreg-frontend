@@ -7,17 +7,286 @@
 
 <h1 class="govuk-heading-xl">Applications list entry update</h1>
 
+<!-- Applicant content template -->
+<ng-template #applicantTpl>
+  <div class="govuk-form-group">
+    <h3 class="govuk-heading-m">Application entry type</h3>
+    <label class="govuk-label govuk-label--s" for="title">
+      Select type
+    </label>
+    <div id="title-hint" class="govuk-hint">
+      The type of applicant for this application
+    </div>
+    <select
+      class="govuk-select"
+      id="application-entry-type"
+      name="applicationEntryType"
+      [formControl]="entryType"
+    >
+      <option value="Person">Person</option>
+      <option value="Organisation">Organisation</option>
+      <option value="Standard Applicant">Standard Applicant</option>
+    </select>
+  </div>
+
+  <!-- Render fields inline ONLY when 'Person' is selected -->
+  @if (entryType.value === 'Person') {
+    <div class="govuk-!-margin-top-4">
+      <h3 class="govuk-heading-m">Names</h3>
+      <div class="govuk-grid-row">
+        <!-- Title -->
+        <div class="govuk-grid-column-one-quarter">
+          <div class="govuk-form-group">
+            <label class="govuk-label govuk-label--s" for="title">
+              Select title
+            </label>
+            <div id="title-hint" class="govuk-hint">
+              The person’s title, for example Mr, Mrs, Dr
+            </div>
+            <select class="govuk-select" id="title" name="title" aria-describedby="title-hint">
+              <option value="">Select title</option>
+              <option value="Mr">Mr</option>
+              <option value="Mrs">Mrs</option>
+              <option value="Miss">Miss</option>
+              <option value="Dr">Dr</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- First name -->
+        <div class="govuk-grid-column-one-quarter">
+          <div class="govuk-form-group">
+            <label class="govuk-label govuk-label--s" for="first-name">First name</label>
+            <div id="first-name-hint" class="govuk-hint">
+              Enter the person’s first name or forenames
+            </div>
+            <input
+              class="govuk-input govuk-input--width-10"
+              id="first-name"
+              name="firstName"
+              type="text"
+              aria-describedby="first-name-hint"
+            >
+          </div>
+        </div>
+
+        <!-- Middle names -->
+        <div class="govuk-grid-column-one-quarter">
+          <div class="govuk-form-group">
+            <label class="govuk-label govuk-label--s" for="middle-names">Middle names</label>
+            <div id="middle-names-hint" class="govuk-hint">
+              Enter any middle names (leave blank if none)
+            </div>
+            <input
+              class="govuk-input govuk-input--width-10"
+              id="middle-names"
+              name="middleNames"
+              type="text"
+              aria-describedby="middle-names-hint"
+            >
+          </div>
+        </div>
+
+        <!-- Surname -->
+        <div class="govuk-grid-column-one-quarter">
+          <div class="govuk-form-group">
+            <label class="govuk-label govuk-label--s" for="surname">Surname</label>
+            <div id="surname-hint" class="govuk-hint">
+              Enter the person’s family name or last name
+            </div>
+            <input
+              class="govuk-input govuk-input--width-10"
+              id="surname"
+              name="surname"
+              type="text"
+              aria-describedby="surname-hint"
+            >
+          </div>
+        </div>
+      </div>
+
+      <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+      <h3 class="govuk-heading-m">Address</h3>
+
+      <div class="govuk-grid-row">
+        <!-- Address line 1 -->
+        <div class="govuk-grid-column-one-quarter">
+          <div class="govuk-form-group">
+            <label class="govuk-label govuk-label--s" for="person-address-line-1">Address line 1</label>
+            <div id="person-address-line-1-hint" class="govuk-hint">
+              Building and street
+            </div>
+            <input
+              class="govuk-input govuk-input--width-10"
+              id="person-address-line-1"
+              name="personAddressLine1"
+              type="text"
+              aria-describedby="person-address-line-1-hint"
+            >
+          </div>
+        </div>
+
+        <!-- Address line 2 -->
+        <div class="govuk-grid-column-one-quarter">
+          <div class="govuk-form-group">
+            <label class="govuk-label govuk-label--s" for="person-address-line-2">Address line 2</label>
+            <div id="person-address-line-2-hint" class="govuk-hint">
+              District or locality (optional)
+            </div>
+            <input
+              class="govuk-input govuk-input--width-10"
+              id="person-address-line-2"
+              name="personAddressLine2"
+              type="text"
+              aria-describedby="person-address-line-2-hint"
+            >
+          </div>
+        </div>
+
+        <!-- Address line 3 -->
+        <div class="govuk-grid-column-one-quarter">
+          <div class="govuk-form-group">
+            <label class="govuk-label govuk-label--s" for="person-address-line-3">Address line 3</label>
+            <div id="person-address-line-3-hint" class="govuk-hint">
+              Town or city
+            </div>
+            <input
+              class="govuk-input govuk-input--width-10"
+              id="person-address-line-3"
+              name="personAddressLine3"
+              type="text"
+              aria-describedby="person-address-line-3-hint"
+            >
+          </div>
+        </div>
+
+        <!-- Address line 4 -->
+        <div class="govuk-grid-column-one-quarter">
+          <div class="govuk-form-group">
+            <label class="govuk-label govuk-label--s" for="person-address-line-4">Address line 4</label>
+            <div id="person-address-line-4-hint" class="govuk-hint">
+              County or region
+            </div>
+            <input
+              class="govuk-input govuk-input--width-10"
+              id="person-address-line-4"
+              name="personAddressLine4"
+              type="text"
+              aria-describedby="person-address-line-4-hint"
+            >
+          </div>
+        </div>
+      </div>
+
+      <div class="govuk-grid-row">
+        <!-- Address line 5 -->
+        <div class="govuk-grid-column-one-quarter">
+          <div class="govuk-form-group">
+            <label class="govuk-label govuk-label--s" for="person-address-line-5">Address line 5</label>
+            <div id="person-address-line-5-hint" class="govuk-hint">
+              Post town, e.g. Manchester
+            </div>
+            <input
+              class="govuk-input govuk-input--width-10"
+              id="person-address-line-5"
+              name="personAddressLine5"
+              type="text"
+              aria-describedby="person-address-line-5-hint"
+            >
+          </div>
+        </div>
+
+        <!-- Postcode -->
+        <div class="govuk-grid-column-one-quarter">
+          <div class="govuk-form-group">
+            <label class="govuk-label govuk-label--s" for="person-postcode">Postcode</label>
+            <div id="person-postcode-hint" class="govuk-hint">
+              e.g. SW1A 2AA
+            </div>
+            <input
+              class="govuk-input govuk-input--width-10"
+              id="person-postcode"
+              name="personPostcode"
+              type="text"
+              aria-describedby="person-postcode-hint"
+            >
+          </div>
+        </div>
+      </div>
+
+      <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+      <h3 class="govuk-heading-m">Contact details</h3>
+
+      <div class="govuk-grid-row">
+        <!-- Phone number -->
+        <div class="govuk-grid-column-one-quarter">
+          <div class="govuk-form-group">
+            <label class="govuk-label govuk-label--s" for="person-phone-number">Phone number</label>
+            <div id="person-phone-number-hint" class="govuk-hint">
+              Enter the person's landline, e.g. 020 7946 0000
+            </div>
+            <input
+              class="govuk-input govuk-input--width-10"
+              id="person-phone-number"
+              name="phoneNumber"
+              type="tel"
+              aria-describedby="person-phone-number-hint"
+            >
+          </div>
+        </div>
+
+        <!-- Mobile number -->
+        <div class="govuk-grid-column-one-quarter">
+          <div class="govuk-form-group">
+            <label class="govuk-label govuk-label--s" for="person-mobile-number">Mobile number</label>
+            <div id="person-mobile-number-hint" class="govuk-hint">
+              Enter the person's UK mobile, e.g. 07123 456789
+            </div>
+            <input
+              class="govuk-input govuk-input--width-10"
+              id="person-mobile-number"
+              name="mobileNumber"
+              type="tel"
+              aria-describedby="person-mobile-number-hint"
+            >
+          </div>
+        </div>
+
+        <!-- Email person-address -->
+        <div class="govuk-grid-column-one-quarter">
+          <div class="govuk-form-group">
+            <label class="govuk-label govuk-label--s" for="person-email-address">Email address</label>
+            <div id="person-email-address-hint" class="govuk-hint">
+              e.g. name&#64;department.gov.uk
+            </div>
+            <input
+              class="govuk-input govuk-input--width-10"
+              id="person-email-address"
+              name="emailAddress"
+              type="email"
+              aria-describedby="person-email-address-hint"
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</ng-template>
+
+<!-- Accordion now uses the Applicant template -->
 <app-accordion
   [id]="'accordion-default'"
   [items]="[
-    { heading: 'Summary', content: 'This is the content for Writing well for the web.', expanded: false },
-    { heading: 'Applicant', content: 'This is the content for Writing well for specialists.', expanded: false  },
-    { heading: 'Codes', content: 'This is the content for Know your audience.', expanded: false  },
-    { heading: 'Wording', content: 'This is the content for How people read.', expanded: false  },
-    { heading: 'Respondent', content: 'This is the content for How people read.', expanded: false  },
-    { heading: 'Civil fee', content: 'This is the content for How people read.', expanded: false  },
-    { heading: 'Notes', content: 'This is the content for How people read.', expanded: false  },
-    { heading: 'Result wording', content: 'This is the content for How people read.', expanded: false  },
-    { heading: 'Officials', content: 'This is the content for How people read.', expanded: false  }
+    { heading: 'Applicant', tpl: applicantTpl, expanded: true },
+    { heading: 'Codes', content: 'This is the content for Know your audience.', expanded: false },
+    { heading: 'Wording', content: 'This is the content for How people read.', expanded: false },
+    { heading: 'Respondent', content: 'This is the content for How people read.', expanded: false },
+    { heading: 'Civil fee', content: 'This is the content for How people read.', expanded: false },
+    { heading: 'Notes', content: 'This is the content for How people read.', expanded: false },
+    { heading: 'Result wording', content: 'This is the content for How people read.', expanded: false },
+    { heading: 'Officials', content: 'This is the content for How people read.', expanded: false }
   ]"
 ></app-accordion>
