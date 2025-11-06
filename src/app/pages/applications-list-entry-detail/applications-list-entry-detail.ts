@@ -45,6 +45,14 @@ export class ApplicationsListEntryDetail implements OnInit {
     { header: 'Use to', field: 'useTo' },
   ];
 
+  codesColumns: TableColumn[] = [
+    { header: 'Code', field: 'code', numeric: true },
+    { header: 'Title', field: 'title' },
+    { header: 'Bulk', field: 'bulk' },
+    { header: 'Fee req', field: 'fee' },
+    { header: 'Actions', field: 'actions' },
+  ];
+
   entryTypeOptions = [
     { value: 'Person', label: 'Person' },
     { value: 'Organisation', label: 'Organisation' },
@@ -120,21 +128,11 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   }
 
-
-
   get personGroup(): FormGroup {
     return this.form.get('person') as FormGroup;
   }
 
   get organisationGroup(): FormGroup {
     return this.form.get('organisation') as FormGroup;
-  }
-
-  onAddCode(row: any): void {
-    // TODO: implement adding code logic
-  }
-
-  onAddWording(row: any): void {
-    // TODO: implement adding wording logic
   }
 }
