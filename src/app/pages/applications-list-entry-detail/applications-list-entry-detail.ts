@@ -65,6 +65,12 @@ export class ApplicationsListEntryDetail implements OnInit {
     { header: 'Payment Ref', field: 'paymentRef' },
   ];
 
+  resultWordingColumns = [
+    { header: 'Applicant(s)', field: 'applicants' },
+    { header: 'Respondent(s)', field: 'respondents' },
+    { header: 'Application title(s)', field: 'titles' },
+  ];
+
   applicantEntryTypeOptions = [
     { value: 'Person', label: 'Person' },
     { value: 'Organisation', label: 'Organisation' },
@@ -135,6 +141,21 @@ export class ApplicationsListEntryDetail implements OnInit {
         phoneNumber: [''],
         emailAddress: [''],
       }),
+      mags1Title: [''],
+      mags1FirstName: [''],
+      mags1Surname: [''],
+
+      mags2Title: [''],
+      mags2FirstName: [''],
+      mags2Surname: [''],
+
+      mags3Title: [''],
+      mags3FirstName: [''],
+      mags3Surname: [''],
+
+      officialTitle: [''],
+      officialFirstName: [''],
+      officialSurname: [''],
     });
   }
 
