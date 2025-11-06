@@ -5,6 +5,9 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import { AccordionComponent } from '../../shared/components/accordion/accordion.component';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
+import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
+import { OrganisationSectionComponent } from '../../shared/components/organisation-section/organisation-section.component';
+import { PersonSectionComponent } from '../../shared/components/person-section/person-section.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import { SortableTableComponent, TableColumn } from '../../shared/components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
@@ -19,10 +22,13 @@ import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
     RouterModule,
     BreadcrumbsComponent,
     AccordionComponent,
+    SelectInputComponent,
+    PersonSectionComponent,
+    OrganisationSectionComponent,
     MojButtonMenuDirective,
     SortableTableComponent,
-    SelectInputComponent,
     TextInputComponent,
+    DateInputComponent,
   ],
   templateUrl: './applications-list-entry-detail.html',
 })
@@ -31,7 +37,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   formSubmitted = false;
   form!: FormGroup;
 
-  columns: TableColumn[] = [
+  applicantColumns: TableColumn[] = [
     { header: 'Code', field: 'code', numeric: true },
     { header: 'Name', field: 'name' },
     { header: 'Address line 1', field: 'address' },
@@ -108,5 +114,27 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   onSubmit(): void {
     this.formSubmitted = true;
+  }
+
+  onCodesSearch(): void {
+
+  }
+
+
+
+  get personGroup(): FormGroup {
+    return this.form.get('person') as FormGroup;
+  }
+
+  get organisationGroup(): FormGroup {
+    return this.form.get('organisation') as FormGroup;
+  }
+
+  onAddCode(row: any): void {
+    // TODO: implement adding code logic
+  }
+
+  onAddWording(row: any): void {
+    // TODO: implement adding wording logic
   }
 }
