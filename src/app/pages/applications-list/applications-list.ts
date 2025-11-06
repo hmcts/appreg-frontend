@@ -281,8 +281,6 @@ export class ApplicationsList
     this.loadApplicationsLists(hasAny);
   }
 
-  onResultSelected(): void {}
-
   @HostListener('document:click')
   onDocClick(): void {
     this.openPrintSelectForId = null;
