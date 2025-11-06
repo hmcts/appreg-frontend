@@ -7,3 +7,12 @@
 
 <h1 class="govuk-heading-xl">Applications list entry update</h1>
 
+<app-accordion
+  [id]="'accordion-default'"
+  [items]="[
+    { heading: 'Writing well for the web',          content: 'This is the content for Writing well for the web.', expanded: false },
+    { heading: 'Writing well for specialists',      content: 'This is the content for Writing well for specialists.', expanded: false  },
+    { heading: 'Know your audience',                content: 'This is the content for Know your audience.', expanded: false  },
+    { heading: 'How people read',                   content: 'This is the content for How people read.', expanded: false  }
+  ]"
+></app-accordion>

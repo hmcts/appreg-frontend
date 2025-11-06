@@ -3,6 +3,7 @@ import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
+import { AccordionComponent } from '../../shared/components/accordion/accordion.component';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 
 @Component({
@@ -13,6 +14,7 @@ import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadc
     ReactiveFormsModule,
     RouterModule,
     BreadcrumbsComponent,
+    AccordionComponent,
   ],
   templateUrl: './applications-list-entry-detail.html',
 })
