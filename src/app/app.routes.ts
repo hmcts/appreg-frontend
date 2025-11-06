@@ -6,6 +6,7 @@ import { ApplicationsList } from './pages/applications-list/applications-list';
 import { ApplicationsListCreate } from './pages/applications-list-create/applications-list-create';
 import { ApplicationsListDetail } from './pages/applications-list-detail/applications-list-detail';
 import { ApplicationsListEntryCreate } from './pages/applications-list-entry-create/applications-list-entry-create';
+import { ApplicationsListEntryUpdate } from './pages/applications-list-entry-update/applications-list-entry-update';
 import { Login } from './pages/login/login';
 import { Reports } from './pages/reports/reports';
 import { ResultSelected } from './pages/result-selected/result-selected';
@@ -20,14 +21,8 @@ export const routes: Routes = [
     children: [
       { path: '', component: ApplicationsList },
       { path: 'create', component: ApplicationsListCreate },
-    ],
-  },
-  {
-    path: 'applications-list/:id',
-    canActivate: [sessionGuard],
-    children: [
-      { path: '', component: ApplicationsListDetail },
-      { path: 'create', component: ApplicationsListEntryCreate },
+      { path: ':id', component: ApplicationsListDetail },
+      { path: ':id/update', component: ApplicationsListEntryUpdate },
     ],
   },
   {
