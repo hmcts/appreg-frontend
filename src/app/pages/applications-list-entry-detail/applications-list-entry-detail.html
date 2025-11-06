@@ -159,6 +159,8 @@
       appMojButtonMenu>
     </app-sortable-table>
 
+    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible"/>
+
     <h2 class="govuk-heading-m">Update fee status</h2>
 
     <div class="govuk-grid-row">
@@ -179,16 +181,182 @@
         idPrefix="fee-status-date"
         [submitted]="formSubmitted">
       </app-date-input>
+
+      <!-- Payment reference -->
+      <app-text-input
+        formControlName="paymentRef"
+        label="Payment reference"
+        hint="Enter the unique reference assigned to this payment"
+        idPrefix="payment-ref">
+      </app-text-input>
     </div>
   </ng-template>
 
   <ng-template #notesTpl>
+    <div class="govuk-grid-row">
+      <!-- Case reference -->
+      <app-text-input
+        formControlName="caseReference"
+        label="Case reference"
+        hint="Enter the unique case reference, for example CR-2025-00123"
+        idPrefix="case-reference">
+      </app-text-input>
+
+      <!-- Account reference -->
+      <app-text-input
+        formControlName="accountReference"
+        label="Account reference"
+        hint="Enter the associated account reference, for example AC-987654"
+        idPrefix="account-reference">
+      </app-text-input>
+    </div>
+
+    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible"/>
+
+    <div class="govuk-grid-row">
+      <!-- Application details -->
+      <app-text-input
+        formControlName="applicationDetails"
+        label="Application details"
+        hint="Provide any additional information about the application (for example special requirements or notes). Do not include sensitive personal data."
+        idPrefix="application-details"
+      >
+      </app-text-input>
+    </div>
   </ng-template>
+
 
   <ng-template #resultWordingTpl>
+    <app-sortable-table
+      id="result-wording-table"
+      caption="Result wording"
+      [columns]="resultWordingColumns"
+      appMojButtonMenu>
+    </app-sortable-table>
+
+    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible"/>
+
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="resultCode"
+        label="Result code"
+        hint="Start typing to search for a result code"
+        idPrefix="result-code">
+      </app-text-input>
+    </div>
   </ng-template>
 
+
   <ng-template #officialsTpl>
+    <!-- Magistrate 1 -->
+    <h3 class="govuk-heading-m">Magistrate 1</h3>
+    <div class="govuk-grid-row">
+      <app-select-input
+        formControlName="mags1Title"
+        label="Select magistrate’s title"
+        hint="The magistrate’s formal title"
+        idPrefix="mags1-title"
+        [options]="personTitleOptions">
+      </app-select-input>
+
+      <app-text-input
+        formControlName="mags1FirstName"
+        label="Magistrate’s first name"
+        hint="Enter the magistrate’s given name"
+        idPrefix="mags1-first-name">
+      </app-text-input>
+
+      <app-text-input
+        formControlName="mags1Surname"
+        label="Magistrate’s surname"
+        hint="Enter the magistrate’s family name"
+        idPrefix="mags1-surname">
+      </app-text-input>
+    </div>
+
+    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible"/>
+
+    <!-- Magistrate 2 -->
+    <h3 class="govuk-heading-m">Magistrate 2</h3>
+    <div class="govuk-grid-row">
+      <app-select-input
+        formControlName="mags2Title"
+        label="Select magistrate’s title"
+        hint="The magistrate’s formal title"
+        idPrefix="mags2-title"
+        [options]="personTitleOptions">
+      </app-select-input>
+
+      <app-text-input
+        formControlName="mags2FirstName"
+        label="Magistrate’s first name"
+        hint="Enter the magistrate’s given name"
+        idPrefix="mags2-first-name">
+      </app-text-input>
+
+      <app-text-input
+        formControlName="mags2Surname"
+        label="Magistrate’s surname"
+        hint="Enter the magistrate’s family name"
+        idPrefix="mags2-surname">
+      </app-text-input>
+    </div>
+
+    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible"/>
+
+    <!-- Magistrate 3 -->
+    <h3 class="govuk-heading-m">Magistrate 3</h3>
+    <div class="govuk-grid-row">
+      <app-select-input
+        formControlName="mags3Title"
+        label="Select magistrate’s title"
+        hint="The magistrate’s formal title"
+        idPrefix="mags3-title"
+        [options]="personTitleOptions">
+      </app-select-input>
+
+      <app-text-input
+        formControlName="mags3FirstName"
+        label="Magistrate’s first name"
+        hint="Enter the magistrate’s given name"
+        idPrefix="mags3-first-name">
+      </app-text-input>
+
+      <app-text-input
+        formControlName="mags3Surname"
+        label="Magistrate’s surname"
+        hint="Enter the magistrate’s family name"
+        idPrefix="mags3-surname">
+      </app-text-input>
+    </div>
+
+    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible"/>
+
+    <h2 class="govuk-heading-m">Officials</h2>
+
+    <div class="govuk-grid-row">
+      <app-select-input
+        formControlName="officialTitle"
+        label="Select court official’s title"
+        hint="The official’s formal title"
+        idPrefix="official-title"
+        [options]="personTitleOptions">
+      </app-select-input>
+
+      <app-text-input
+        formControlName="officialFirstName"
+        label="Official’s first name"
+        hint="Enter the official’s given name"
+        idPrefix="official-first-name">
+      </app-text-input>
+
+      <app-text-input
+        formControlName="officialSurname"
+        label="Official’s surname"
+        hint="Enter the official’s family name"
+        idPrefix="official-surname">
+      </app-text-input>
+    </div>
   </ng-template>
 
   <app-accordion
