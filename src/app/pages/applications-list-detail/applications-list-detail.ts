@@ -239,7 +239,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       const normalized = buildNormalizedPayload(raw);
       payload = {
         ...normalized,
-        version: this.version,
         ...(isDurHours && Number.isInteger(durationHours)
           ? { durationHours }
           : {}),
