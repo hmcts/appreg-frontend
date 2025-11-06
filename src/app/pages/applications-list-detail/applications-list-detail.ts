@@ -172,12 +172,12 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }[] = [];
 
   // Flags
-  updateDone = false;
-  updateInvalid = false;
+  updateDone: boolean = false;
+  updateInvalid: boolean = false;
 
   // Error logging
   unpopField: ErrorItem[] = [];
-  errorHint = '';
+  errorHint: string = '';
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
 
@@ -351,7 +351,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         ...(isDurMins && Number.isInteger(durationMinutes)
           ? { durationMinutes }
           : {}),
-      } as unknown as ApplicationListUpdateDto;
+      } as ApplicationListUpdateDto;
 
       const context = new HttpContext()
         .set(IF_MATCH, this.etag ?? null)
