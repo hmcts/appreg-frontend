@@ -273,6 +273,193 @@
         </div>
       </div>
     </div>
+  } @else if (entryType.value === 'Organisation') {
+    <h3 class="govuk-heading-m">Name</h3>
+    <div class="govuk-grid-row">
+      <!-- Org Name -->
+      <div class="govuk-grid-column-one-half">
+        <div class="govuk-form-group">
+          <label class="govuk-label govuk-label--s" for="org-name">Organisation Name</label>
+          <div id="org-name-hint" class="govuk-hint">
+            The name of the organisation
+          </div>
+          <input
+            class="govuk-input govuk-input--width-40"
+            id="org-name"
+            name="orgName"
+            type="text"
+            aria-describedby="org-name-hint"
+          >
+        </div>
+      </div>
+    </div>
+
+    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+    <h3 class="govuk-heading-m">Address</h3>
+
+    <div class="govuk-grid-row">
+      <!-- Address line 1 -->
+      <div class="govuk-grid-column-one-quarter">
+        <div class="govuk-form-group">
+          <label class="govuk-label govuk-label--s" for="org-address-line-1">Address line 1</label>
+          <div id="org-address-line-1-hint" class="govuk-hint">
+            Building and street
+          </div>
+          <input
+            class="govuk-input govuk-input--width-10"
+            id="org-address-line-1"
+            name="orgAddressLine1"
+            type="text"
+            aria-describedby="org-address-line-1-hint"
+          >
+        </div>
+      </div>
+
+      <!-- Address line 2 -->
+      <div class="govuk-grid-column-one-quarter">
+        <div class="govuk-form-group">
+          <label class="govuk-label govuk-label--s" for="org-address-line-2">Address line 2</label>
+          <div id="org-address-line-2-hint" class="govuk-hint">
+            District or locality (optional)
+          </div>
+          <input
+            class="govuk-input govuk-input--width-10"
+            id="org-address-line-2"
+            name="orgAddressLine2"
+            type="text"
+            aria-describedby="org-address-line-2-hint"
+          >
+        </div>
+      </div>
+
+      <!-- Address line 3 -->
+      <div class="govuk-grid-column-one-quarter">
+        <div class="govuk-form-group">
+          <label class="govuk-label govuk-label--s" for="org-address-line-3">Address line 3</label>
+          <div id="org-address-line-3-hint" class="govuk-hint">
+            Town or city
+          </div>
+          <input
+            class="govuk-input govuk-input--width-10"
+            id="org-address-line-3"
+            name="orgAddressLine3"
+            type="text"
+            aria-describedby="org-address-line-3-hint"
+          >
+        </div>
+      </div>
+
+      <!-- Address line 4 -->
+      <div class="govuk-grid-column-one-quarter">
+        <div class="govuk-form-group">
+          <label class="govuk-label govuk-label--s" for="org-address-line-4">Address line 4</label>
+          <div id="org-address-line-4-hint" class="govuk-hint">
+            County or region
+          </div>
+          <input
+            class="govuk-input govuk-input--width-10"
+            id="org-address-line-4"
+            name="orgAddressLine4"
+            type="text"
+            aria-describedby="org-address-line-4-hint"
+          >
+        </div>
+      </div>
+    </div>
+
+    <div class="govuk-grid-row">
+      <!-- Address line 5 -->
+      <div class="govuk-grid-column-one-quarter">
+        <div class="govuk-form-group">
+          <label class="govuk-label govuk-label--s" for="org-address-line-5">Address line 5</label>
+          <div id="org-address-line-5-hint" class="govuk-hint">
+            Post town, e.g. Manchester
+          </div>
+          <input
+            class="govuk-input govuk-input--width-10"
+            id="org-address-line-5"
+            name="orgAddressLine5"
+            type="text"
+            aria-describedby="org-address-line-5-hint"
+          >
+        </div>
+      </div>
+
+      <!-- Postcode -->
+      <div class="govuk-grid-column-one-quarter">
+        <div class="govuk-form-group">
+          <label class="govuk-label govuk-label--s" for="org-postcode">Postcode</label>
+          <div id="org-postcode-hint" class="govuk-hint">
+            e.g. SW1A 2AA
+          </div>
+          <input
+            class="govuk-input govuk-input--width-10"
+            id="org-postcode"
+            name="orgPostcode"
+            type="text"
+            aria-describedby="org-postcode-hint"
+          >
+        </div>
+      </div>
+    </div>
+
+    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+    <h3 class="govuk-heading-m">Contact details</h3>
+
+    <div class="govuk-grid-row">
+      <!-- Phone number -->
+      <div class="govuk-grid-column-one-quarter">
+        <div class="govuk-form-group">
+          <label class="govuk-label govuk-label--s" for="org-phone-number">Phone number</label>
+          <div id="org-phone-number-hint" class="govuk-hint">
+            Enter the organisations landline, e.g. 020 7946 0000
+          </div>
+          <input
+            class="govuk-input govuk-input--width-10"
+            id="org-phone-number"
+            name="phoneNumber"
+            type="tel"
+            aria-describedby="org-phone-number-hint"
+          >
+        </div>
+      </div>
+
+      <!-- Mobile number -->
+      <div class="govuk-grid-column-one-quarter">
+        <div class="govuk-form-group">
+          <label class="govuk-label govuk-label--s" for="org-mobile-number">Mobile number</label>
+          <div id="org-mobile-number-hint" class="govuk-hint">
+            Enter the organisations UK mobile, e.g. 07123 456789
+          </div>
+          <input
+            class="govuk-input govuk-input--width-10"
+            id="org-mobile-number"
+            name="mobileNumber"
+            type="tel"
+            aria-describedby="org-mobile-number-hint"
+          >
+        </div>
+      </div>
+
+      <!-- Email person-address -->
+      <div class="govuk-grid-column-one-quarter">
+        <div class="govuk-form-group">
+          <label class="govuk-label govuk-label--s" for="org-email-address">Email address</label>
+          <div id="org-email-address-hint" class="govuk-hint">
+            e.g. name&#64;department.gov.uk
+          </div>
+          <input
+            class="govuk-input govuk-input--width-10"
+            id="org-email-address"
+            name="emailAddress"
+            type="email"
+            aria-describedby="org-email-address-hint"
+          >
+        </div>
+      </div>
+    </div>
   }
 </ng-template>
 
