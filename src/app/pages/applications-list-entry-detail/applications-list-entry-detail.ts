@@ -53,6 +53,18 @@ export class ApplicationsListEntryDetail implements OnInit {
     { header: 'Actions', field: 'actions' },
   ];
 
+  feeStatusOptions = [
+    { value: 'paid', label: 'Paid' },
+    { value: 'outstanding', label: 'Outstanding' },
+    { value: 'pending', label: 'Pending' },
+  ];
+
+  civilFeeColumns = [
+    { header: 'Fee Status', field: 'status' },
+    { header: 'Status Date', field: 'date' },
+    { header: 'Payment Ref', field: 'paymentRef' },
+  ];
+
   applicantEntryTypeOptions = [
     { value: 'Person', label: 'Person' },
     { value: 'Organisation', label: 'Organisation' },
