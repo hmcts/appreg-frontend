@@ -16,7 +16,7 @@ import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadc
   ],
   templateUrl: './applications-list-entry-update.html',
 })
-export class ApplicationsListEntryUpdate implements OnInit {
+export class ApplicationsListEntryDetail implements OnInit {
   appListId!: string;
   formSubmitted = false;
 
