@@ -3,10 +3,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
 import {
-  SelectableSortableTableComponent, TableColumn
+  SelectableSortableTableComponent,
+  TableColumn,
 } from '../../../../../../src/app/shared/components/selectable-sortable-table/selectable-sortable-table.component';
-
-
 
 type Row = Record<string, unknown>;
 
@@ -19,17 +18,21 @@ const makeInstance = (): MojInstance => ({
   destroy: jest.fn(),
 });
 
-const SortableTableMock: jest.Mock<MojInstance, [HTMLElement]> =
-  jest.fn((_el: HTMLElement) => {
+const SortableTableMock: jest.Mock<MojInstance, [HTMLElement]> = jest.fn(
+  (_el: HTMLElement) => {
     void _el;
     return makeInstance();
-  });
+  },
+);
 
-const MultiSelectMock: jest.Mock<MojInstance, [HTMLElement, { idPrefix?: string }?]> =
-  jest.fn((_el: HTMLElement, _opts?: { idPrefix?: string }) => {
-    void _el; void _opts;
-    return makeInstance();
-  });
+const MultiSelectMock: jest.Mock<
+  MojInstance,
+  [HTMLElement, { idPrefix?: string }?]
+> = jest.fn((_el: HTMLElement, _opts?: { idPrefix?: string }) => {
+  void _el;
+  void _opts;
+  return makeInstance();
+});
 
 // Mock module so the component's dynamic import resolves (supports root + default)
 jest.mock('@ministryofjustice/frontend', () => ({

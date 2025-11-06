@@ -8,7 +8,12 @@ import { TextInputComponent } from '../text-input/text-input.component';
 @Component({
   selector: 'app-person-section',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SelectInputComponent, TextInputComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    SelectInputComponent,
+    TextInputComponent,
+  ],
   templateUrl: './person-section.component.html',
 })
 export class PersonSectionComponent {
