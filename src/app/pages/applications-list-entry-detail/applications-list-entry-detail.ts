@@ -5,6 +5,8 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import { AccordionComponent } from '../../shared/components/accordion/accordion.component';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
+import { SortableTableComponent, TableColumn } from '../../shared/components/sortable-table/sortable-table.component';
+import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
 
 @Component({
   selector: 'app-applications-list-entry-detail',
@@ -15,6 +17,8 @@ import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadc
     RouterModule,
     BreadcrumbsComponent,
     AccordionComponent,
+    MojButtonMenuDirective,
+    SortableTableComponent,
   ],
   templateUrl: './applications-list-entry-detail.html',
 })
@@ -25,6 +29,14 @@ export class ApplicationsListEntryDetail implements OnInit {
     'Organisation',
   );
   personOpen = false;
+
+  columns: TableColumn[] = [
+    { header: 'Code', field: 'code', numeric: true  },
+    { header: 'Name', field: 'name' },
+    { header: 'Address line 1', field: 'address' },
+    { header: 'Use from', field: 'useFrom' },
+    { header: 'Use to', field: 'useTo' },
+  ];
 
   constructor(
     @Inject(PLATFORM_ID) private readonly platformId: object,
