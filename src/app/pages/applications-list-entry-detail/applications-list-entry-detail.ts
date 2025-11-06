@@ -75,22 +75,22 @@ export class ApplicationsListEntryDetail implements OnInit {
   ];
 
   applicantEntryTypeOptions = [
-    { value: 'Person', label: 'Person' },
-    { value: 'Organisation', label: 'Organisation' },
-    { value: 'Standard Applicant', label: 'Standard Applicant' },
+    { value: 'person', label: 'Person' },
+    { value: 'organisation', label: 'Organisation' },
+    { value: 'standardApplicant', label: 'Standard Applicant' },
   ];
 
   respondentEntryTypeOptions = [
-    { value: 'Person', label: 'Person' },
-    { value: 'Organisation', label: 'Organisation' },
+    { value: 'person', label: 'Person' },
+    { value: 'organisation', label: 'Organisation' },
   ];
 
   personTitleOptions = [
-    { value: 'Mr', label: 'Mr' },
-    { value: 'Mrs', label: 'Mrs' },
-    { value: 'Miss', label: 'Miss' },
-    { value: 'Dr', label: 'Dr' },
-    { value: 'Other', label: 'Other' },
+    { value: 'mr', label: 'Mr' },
+    { value: 'mrs', label: 'Mrs' },
+    { value: 'miss', label: 'Miss' },
+    { value: 'dr', label: 'Dr' },
+    { value: 'other', label: 'Other' },
   ];
 
   constructor(
