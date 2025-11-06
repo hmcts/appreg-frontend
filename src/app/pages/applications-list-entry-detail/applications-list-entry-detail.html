@@ -46,250 +46,106 @@
     }
   </ng-template>
 
-        <div class="govuk-grid-row">
-          <!-- Title -->
-          <app-select-input
-            formControlName="title"
-            label="Select title"
-            hint="The person’s title, for example Mr, Mrs, Dr"
-            idPrefix="person-title"
-            [options]="personTitleOptions"
-          />
-
-          <!-- First name -->
-          <app-text-input
-            formControlName="firstName"
-            label="First name"
-            hint="Enter the person’s first name or forenames"
-            idPrefix="person-first-name"
-          />
-
-          <!-- Middle names -->
-          <app-text-input
-            formControlName="middleNames"
-            label="Middle names"
-            hint="Enter any middle names (leave blank if none)"
-            idPrefix="person-middle-names"
-          />
-
-          <!-- Surname -->
-          <app-text-input
-            formControlName="surname"
-            label="Surname"
-            hint="Enter the person’s family name or last name"
-            idPrefix="person-surname"
-          />
-        </div>
-
-        <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible"/>
-
-        <h3 class="govuk-heading-m">Address</h3>
-
-        <div class="govuk-grid-row">
-          <!-- Address line 1 -->
-          <app-text-input
-            formControlName="addressLine1"
-            label="Address line 1"
-            hint="Building and street"
-            idPrefix="person-address-line-1"
-          />
-
-          <!-- Address line 2 -->
-          <app-text-input
-            formControlName="addressLine2"
-            label="Address line 2"
-            hint="District or locality (optional)"
-            idPrefix="person-address-line-2"
-          />
-
-          <!-- Address line 3 -->
-          <app-text-input
-            formControlName="addressLine3"
-            label="Address line 3"
-            hint="Town or city"
-            idPrefix="person-address-line-3"
-          />
-
-          <!-- Address line 4 -->
-          <app-text-input
-            formControlName="addressLine4"
-            label="Address line 4"
-            hint="County or region"
-            idPrefix="person-address-line-4"
-          />
-        </div>
-
-        <div class="govuk-grid-row">
-          <!-- Address line 5 -->
-          <app-text-input
-            formControlName="addressLine5"
-            label="Address line 5"
-            hint="Post town, e.g. Manchester"
-            idPrefix="person-address-line-5"
-          />
-
-          <!-- Postcode -->
-          <app-text-input
-            formControlName="postcode"
-            label="Postcode"
-            hint="e.g. SW1A 2AA"
-            idPrefix="person-postcode"
-          />
-        </div>
-
-        <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible"/>
-
-        <h3 class="govuk-heading-m">Contact details</h3>
-
-        <div class="govuk-grid-row">
-          <!-- Phone number -->
-          <app-text-input
-            formControlName="phoneNumber"
-            label="Phone number"
-            hint="Enter the person's landline, e.g. 020 7946 0000"
-            idPrefix="person-phone-number"
-          />
-
-          <!-- Mobile number -->
-          <app-text-input
-            formControlName="mobileNumber"
-            label="Mobile number"
-            hint="Enter the person's UK mobile, e.g. 07123 456789"
-            idPrefix="person-mobile-number"
-          />
-
-          <!-- Email address -->
-          <app-text-input
-            formControlName="emailAddress"
-            label="Email address"
-            hint="e.g. name@department.gov.uk"
-            idPrefix="person-email-address"
-          />
-        </div>
-      </div>
-    } @else if (form.get('entryType')?.value === 'Organisation') {
-      <div formGroupName="organisation">
-        <h3 class="govuk-heading-m">Name</h3>
-
-        <div class="govuk-grid-row">
-          <!-- Org Name -->
-          <app-text-input
-            formControlName="name"
-            label="Organisation Name"
-            hint="The name of the organisation"
-            idPrefix="org-name"
-          />
-        </div>
-
-        <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible"/>
-
-        <h3 class="govuk-heading-m">Address</h3>
-
-        <div class="govuk-grid-row">
-          <!-- Address line 1 -->
-          <app-text-input
-            formControlName="addressLine1"
-            label="Address line 1"
-            hint="Building and street"
-            idPrefix="org-address-line-1"
-          />
-
-          <!-- Address line 2 -->
-          <app-text-input
-            formControlName="addressLine2"
-            label="Address line 2"
-            hint="District or locality (optional)"
-            idPrefix="org-address-line-2"
-          />
-
-          <!-- Address line 3 -->
-          <app-text-input
-            formControlName="addressLine3"
-            label="Address line 3"
-            hint="Town or city"
-            idPrefix="org-address-line-3"
-          />
-
-          <!-- Address line 4 -->
-          <app-text-input
-            formControlName="addressLine4"
-            label="Address line 4"
-            hint="County or region"
-            idPrefix="org-address-line-4"
-          />
-        </div>
-
-        <div class="govuk-grid-row">
-          <!-- Address line 5 -->
-          <app-text-input
-            formControlName="addressLine5"
-            label="Address line 5"
-            hint="Post town, e.g. Manchester"
-            idPrefix="org-address-line-5"
-          />
-
-          <!-- Postcode -->
-          <app-text-input
-            formControlName="postcode"
-            label="Postcode"
-            hint="e.g. SW1A 2AA"
-            idPrefix="org-postcode"
-          />
-        </div>
-
-        <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible"/>
-
-        <h3 class="govuk-heading-m">Contact details</h3>
-
-        <div class="govuk-grid-row">
-          <!-- Phone number -->
-          <app-text-input
-            formControlName="phoneNumber"
-            label="Phone number"
-            hint="Enter the organisations landline, e.g. 020 7946 0000"
-            idPrefix="org-phone-number"
-          />
-
-          <!-- Mobile number (uses same control as provided in your TS right now) -->
-          <app-text-input
-            formControlName="phoneNumber"
-            label="Mobile number"
-            hint="Enter the organisations UK mobile, e.g. 07123 456789"
-            idPrefix="org-phone-number"
-          />
-
-          <!-- Email address -->
-          <app-text-input
-            formControlName="emailAddress"
-            label="Email address"
-            hint="e.g. name@department.gov.uk"
-            idPrefix="org-email-address"
-          />
-        </div>
-      </div>
-    } @else if (form.get('entryType')?.value === 'Standard Applicant') {
-      <app-sortable-table
-        id="sortable-table"
-        caption="Lists"
-        [columns]="columns"
-        appMojButtonMenu
+  <ng-template #codesTpl>
+    <div class="govuk-grid-row">
+      <!-- Lodgement date -->
+      <app-date-input
+        formControlName="lodgementDate"
+        label="Lodgement date"
+        hint="For example, 27 3 2007"
+        idPrefix="lodgement-date"
+        [submitted]="formSubmitted"
+        [isSearch]="true"
       >
-      </app-sortable-table>
-    }
+      </app-date-input>
+
+      <!-- Application code -->
+      <app-text-input
+        formControlName="applicationCode"
+        label="Application code"
+        hint="The code for the application e.g. APP-12345"
+        idPrefix="application-code"
+      >
+      </app-text-input>
+
+      <!-- Application title -->
+      <app-text-input
+        formControlName="applicationTitle"
+        label="Application title"
+        hint="Enter a concise title for this application"
+        idPrefix="application-title"
+      >
+      </app-text-input>
+    </div>
+
+    <div class="govuk-button-group">
+      <button type="button" class="govuk-button" (click)="onCodesSearch()">Search</button>
+    </div>
+
+    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" />
+
+    <app-sortable-table
+      id="codes-table"
+      caption="Codes"
+      [columns]="codesColumns"
+      appMojButtonMenu
+    >
+      <ng-template #actionsTemplate let-row>
+        <div class="govuk-button-group">
+          <button type="button" class="govuk-button">Add code</button>
+          <button type="button" class="govuk-button govuk-button--secondary">Add wording</button>
+        </div>
+      </ng-template>
+    </app-sortable-table>
   </ng-template>
 
-  <!-- Accordion now uses the Applicant template -->
+  <ng-template #wordingTpl>
+    <div class="govuk-grid-row">
+      <!-- Court name -->
+      <app-text-input
+        formControlName="courtName"
+        label="Court name"
+        hint="Enter the official name of the court"
+        idPrefix="court-name">
+      </app-text-input>
+
+      <!-- Organisation name -->
+      <app-text-input
+        formControlName="organisationName"
+        label="Organisation name"
+        hint="Enter the legal name of the organisation"
+        idPrefix="organisation-name">
+      </app-text-input>
+    </div>
+  </ng-template>
+
+
+  <ng-template #respondentTpl>
+  </ng-template>
+
+  <ng-template #civilFeeTpl>
+  </ng-template>
+
+  <ng-template #notesTpl>
+  </ng-template>
+
+  <ng-template #resultWordingTpl>
+  </ng-template>
+
+  <ng-template #officialsTpl>
+  </ng-template>
+
   <app-accordion
     [id]="'accordion-default'"
     [items]="[
       { heading: 'Applicant', tpl: applicantTpl, expanded: false },
-      { heading: 'Codes', content: 'This is the content for Know your audience.', expanded: false },
-      { heading: 'Wording', content: 'This is the content for How people read.', expanded: false },
-      { heading: 'Respondent', content: 'This is the content for How people read.', expanded: false },
-      { heading: 'Civil fee', content: 'This is the content for How people read.', expanded: false },
-      { heading: 'Notes', content: 'This is the content for How people read.', expanded: false },
-      { heading: 'Result wording', content: 'This is the content for How people read.', expanded: false },
-      { heading: 'Officials', content: 'This is the content for How people read.', expanded: false }
-    ]"
-  ></app-accordion>
+      { heading: 'Codes', tpl: codesTpl, expanded: false },
+      { heading: 'Wording', tpl: wordingTpl, expanded: false },
+      { heading: 'Respondent', tpl: respondentTpl, expanded: false },
+      { heading: 'Civil fee', tpl: civilFeeTpl, expanded: false },
+      { heading: 'Notes', tpl: notesTpl, expanded: false },
+      { heading: 'Result wording', tpl: resultWordingTpl, expanded: false },
+      { heading: 'Officials', tpl: officialsTpl, expanded: false }
+    ]">
+  </app-accordion>
 </form>
