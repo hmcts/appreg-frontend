@@ -1,6 +1,6 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import { AccordionComponent } from '../../shared/components/accordion/accordion.component';
@@ -30,9 +30,6 @@ export class ApplicationsListEntryDetail implements OnInit {
   appListId!: string;
   formSubmitted = false;
   form!: FormGroup;
-  entryType = new FormControl<'Person' | 'Organisation' | 'Standard Applicant'>(
-    'Organisation',
-  );
 
   columns: TableColumn[] = [
     { header: 'Code', field: 'code', numeric: true },
