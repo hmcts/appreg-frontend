@@ -124,7 +124,7 @@ export class SelectableSortableTableComponent
   /** Are some (but not all) visible rows selected? */
   get someVisibleSelected(): boolean {
     const ids = this.visibleIds;
-    return ids.length > 0 && ids.some((id) => this.selectedIds.has(id));
+    return ids.some((id) => this.selectedIds.has(id));
   }
 
   /** Toggle selection for every row currently visible on this page */
