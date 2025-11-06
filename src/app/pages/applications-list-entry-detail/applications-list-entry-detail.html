@@ -463,31 +463,13 @@
       </div>
     </div>
   } @else if (entryType.value === 'Standard Applicant') {
-    <table class="govuk-table">
-      <caption class="govuk-table__caption govuk-table__caption--m">Lists</caption>
-      <thead class="govuk-table__head">
-      <tr class="govuk-table__row">
-        <th scope="col" class="govuk-table__header">Code</th>
-        <th scope="col" class="govuk-table__header">Name</th>
-        <th scope="col" class="govuk-table__header">Address line 1</th>
-        <th scope="col" class="govuk-table__header">Use from</th>
-        <th scope="col" class="govuk-table__header">Use to</th>
-        <th scope="col" class="govuk-table__header">Actions</th>
-      </tr>
-      </thead>
-      <tbody class="govuk-table__body">
-      <tr class="govuk-table__row">
-        <th scope="row" class="govuk-table__header">C001</th>
-        <td class="govuk-table__cell">Acme Ltd</td>
-        <td class="govuk-table__cell">123 High Street</td>
-        <td class="govuk-table__cell">01/01/2025</td>
-        <td class="govuk-table__cell">31/12/2025</td>
-        <td class="govuk-table__cell">
-          <button type="button" class="govuk-button">Select</button>
-        </td>
-      </tr>
-      </tbody>
-    </table>
+    <app-sortable-table
+      id="sortable-table"
+      caption="Lists"
+      [columns]="columns"
+      appMojButtonMenu
+    >
+    </app-sortable-table>
   }
 </ng-template>
 
