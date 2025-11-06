@@ -4,6 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
 import { ApplicationsListDetail } from '../../../../../src/app/pages/applications-list-detail/applications-list-detail';
+import { provideRouter } from '@angular/router';
 
 describe('ApplicationsListDetail', () => {
   let fixture: ComponentFixture<ApplicationsListDetail>;
@@ -24,7 +25,11 @@ describe('ApplicationsListDetail', () => {
 
     await TestBed.configureTestingModule({
       imports: [ApplicationsListDetail],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ApplicationsListDetail);
