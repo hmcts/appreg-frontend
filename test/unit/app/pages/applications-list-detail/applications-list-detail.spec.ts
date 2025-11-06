@@ -39,7 +39,7 @@ type ApiStub = {
       { listId: string; page: number; size: number },
       'response',
       boolean,
-      { transferCache: boolean }
+      { transferCache: boolean },
     ]
   >;
 };
@@ -59,8 +59,15 @@ describe('ApplicationsListDetail', () => {
   };
 
   beforeEach(async () => {
-    const row = { id: 'id-1', location: 'LOC1', description: '', status: 'OPEN' as const };
-    stateSpy = jest.spyOn(globalThis.history, 'state', 'get').mockReturnValue({ row });
+    const row = {
+      id: 'id-1',
+      location: 'LOC1',
+      description: '',
+      status: 'OPEN' as const,
+    };
+    stateSpy = jest
+      .spyOn(globalThis.history, 'state', 'get')
+      .mockReturnValue({ row });
 
     const defaultResponse: ApplicationListResponse = {
       body: { version: 1, entriesCount: 0, entriesSummary: [] },
@@ -99,19 +106,25 @@ describe('ApplicationsListDetail', () => {
     expect(appsTab).toBeTruthy();
     expect(detailsTab).toBeTruthy();
     expect(appsTab.nativeElement.getAttribute('aria-selected')).toBe('true');
-    expect(detailsTab.nativeElement.getAttribute('aria-selected')).toBe('false');
+    expect(detailsTab.nativeElement.getAttribute('aria-selected')).toBe(
+      'false',
+    );
   });
 
   it('shows success banner when updateDone is true', () => {
     component.updateDone = true;
     fixture.detectChanges();
-    expect(fixture.debugElement.query(By.css('app-success-banner'))).toBeTruthy();
+    expect(
+      fixture.debugElement.query(By.css('app-success-banner')),
+    ).toBeTruthy();
   });
 
   it('shows error summary when unpopulated fields exist', () => {
     component.unpopField = [{ href: '#x', text: 'Error' }];
     fixture.detectChanges();
-    expect(fixture.debugElement.query(By.css('app-error-summary'))).toBeTruthy();
+    expect(
+      fixture.debugElement.query(By.css('app-error-summary')),
+    ).toBeTruthy();
   });
 
   it('submits form and calls onUpdate', () => {
@@ -134,7 +147,9 @@ describe('ApplicationsListDetail', () => {
   it('disables CJA suggestions when Court is chosen or courthouseSearch has text', () => {
     component.form.get('court')?.setValue('LOC123');
     fixture.detectChanges();
-    const suggestions = fixture.debugElement.queryAll(By.css('app-suggestions'));
+    const suggestions = fixture.debugElement.queryAll(
+      By.css('app-suggestions'),
+    );
     const cjaSug = suggestions[1];
     if (cjaSug?.componentInstance) {
       expect(cjaSug.componentInstance.disabled).toBe(true);
@@ -164,7 +179,9 @@ describe('ApplicationsListDetail', () => {
   });
 
   it('exposes pagination inputs and handles onPageChange', () => {
-    const spy = jest.spyOn(component, 'loadApplicationsLists').mockImplementation(() => {});
+    const spy = jest
+      .spyOn(component, 'loadApplicationsLists')
+      .mockImplementation(() => {});
     component.selectedIds = new Set(['id1', 'id2']);
 
     component.onPageChange(3);
@@ -255,7 +272,9 @@ describe('ApplicationsListDetail', () => {
       ]);
 
       expect((component as unknown as { version: number }).version).toBe(2);
-      expect((component as unknown as { etag: string | null }).etag).toBe('"etag-v2"');
+      expect((component as unknown as { etag: string | null }).etag).toBe(
+        '"etag-v2"',
+      );
       expect(component.totalPages).toBe(0);
 
       expect(component.updateInvalid).toBe(false);
