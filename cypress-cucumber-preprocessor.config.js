@@ -4,4 +4,6 @@ module.exports = {
     enabled: true,
     output: 'cypress/reports/cucumber-json/cucumber-report.json',
   },
+  filterSpecs: true,
+  omitFiltered: true,
 };

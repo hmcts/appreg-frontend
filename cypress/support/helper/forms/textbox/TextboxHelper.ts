@@ -55,4 +55,38 @@ export class TextboxHelper {
   static TextboxIsVisible(selector: string): Cypress.Chainable {
     return TextboxElement.findTextbox(selector).should('be.visible');
   }
+
+  /**
+   * Types text into an autocomplete textbox and selects an option from dropdown
+   * @param selector selector for the textbox
+   * @param text The text to type
+   * @param optionText The option text to select from the autocomplete dropdown
+   */
+  static selectAutocompleteOption(
+    selector: string,
+    text: string,
+    optionText: string,
+  ): void {
+    TextboxElement.findTextbox(selector)
+      .should('be.visible')
+      .should('be.enabled')
+      .clear()
+      .type(text);
+
+    cy.contains(optionText, { matchCase: false }).should('be.visible').click();
+  }
+
+  /**
+   * Verifies that the autocomplete textbox contains the expected value
+   * @param selector Smart selector for the textbox
+   * @param expectedValue The expected value in the textbox
+   */
+  static verifyValueInTextbox(
+    selector: string,
+    expectedValue: string,
+  ): Cypress.Chainable {
+    return TextboxElement.findTextbox(selector)
+      .invoke('val')
+      .should('eq', expectedValue);
+  }
 }
