@@ -111,14 +111,14 @@ export class ApplicationsList
   openPrintSelectForId: string | null = null;
 
   // Flags
-  submitted = false;
-  isSearch = false;
-  deleteDone = false;
-  deleteInvalid = false;
-  isLoading = false;
+  submitted: boolean = false;
+  isSearch: boolean = false;
+  deleteDone: boolean = false;
+  deleteInvalid: boolean = false;
+  isLoading: boolean = false;
 
   // Error summary
-  errorHint = '';
+  errorHint: string = '';
   searchErrors: { id: string; text: string }[] = [];
   errorSummary: ErrorItem[] = [];
 
@@ -388,7 +388,7 @@ export class ApplicationsList
     }
 
     const params: GetApplicationListsRequestParams = {
-      page: this.currentPage - 1, // Spring Pageable is 0-based
+      page: this.currentPage - 1,
       size: this.pageSize,
       ...(hasParams ? { filter: loadQuery(this.form) } : {}),
     };
