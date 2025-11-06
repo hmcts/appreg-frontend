@@ -9,7 +9,10 @@ import { DateInputComponent } from '../../shared/components/date-input/date-inpu
 import { OrganisationSectionComponent } from '../../shared/components/organisation-section/organisation-section.component';
 import { PersonSectionComponent } from '../../shared/components/person-section/person-section.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
-import { SortableTableComponent, TableColumn } from '../../shared/components/sortable-table/sortable-table.component';
+import {
+  SortableTableComponent,
+  TableColumn,
+} from '../../shared/components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
 
@@ -79,7 +82,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   respondentEntryTypeOptions = [
     { value: 'Person', label: 'Person' },
-    { value: 'Organisation', label: 'Organisation' }
+    { value: 'Organisation', label: 'Organisation' },
   ];
 
   personTitleOptions = [
@@ -163,9 +166,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.formSubmitted = true;
   }
 
-  onCodesSearch(): void {
-
-  }
+  onCodesSearch(): void {}
 
   get personGroup(): FormGroup {
     return this.form.get('person') as FormGroup;

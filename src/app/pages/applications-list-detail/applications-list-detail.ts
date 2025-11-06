@@ -20,7 +20,7 @@ import {
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
-  Validators
+  Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -28,48 +28,46 @@ import { finalize } from 'rxjs';
 import {
   ApplicationListStatus,
   ApplicationListUpdateDto,
-  ApplicationListsApi
+  ApplicationListsApi,
 } from '../../../generated/openapi';
 import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
   Duration,
-  DurationInputComponent
+  DurationInputComponent,
 } from '../../shared/components/duration-input/duration-input.component';
 import {
   ErrorItem,
-  ErrorSummaryComponent
+  ErrorSummaryComponent,
 } from '../../shared/components/error-summary/error-summary.component';
 import { NotificationBannerComponent } from '../../shared/components/notification-banner/notification-banner.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
-import {
-  SelectableSortableTableComponent
-} from '../../shared/components/selectable-sortable-table/selectable-sortable-table.component';
+import { SelectableSortableTableComponent } from '../../shared/components/selectable-sortable-table/selectable-sortable-table.component';
 import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
 import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 import {
   IF_MATCH,
-  ROW_VERSION
+  ROW_VERSION,
 } from '../../shared/context/concurrency-context';
 import { buildNormalizedPayload } from '../../shared/util/build-payload';
 import { collectMissing } from '../../shared/util/collect-missing';
 import {
   focusField,
-  onCreateErrorClick as onCreateErrorClickFn
+  onCreateErrorClick as onCreateErrorClickFn,
 } from '../../shared/util/error-click';
 import {
   MojButtonMenu,
-  MojButtonMenuDirective
+  MojButtonMenuDirective,
 } from '../../shared/util/moj-button-menu';
 import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
 import type { FormRaw } from '../../shared/util/types/application-list/types';
 import { validateCourtVsLocOrCja } from '../../shared/util/validate-court-vs-loc-cja';
 import {
   getHttpStatus,
-  getProblemText
+  getProblemText,
 } from '../applications-list/util/delete-status';
 
 type DetailFormRaw = Omit<
@@ -110,9 +108,9 @@ type Handoff = {
     SuccessBannerComponent,
     SelectableSortableTableComponent,
     MojButtonMenuDirective,
-    NotificationBannerComponent
+    NotificationBannerComponent,
   ],
-  templateUrl: './applications-list-detail.html'
+  templateUrl: './applications-list-detail.html',
 })
 export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   id!: string;
@@ -132,19 +130,19 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     date: new FormControl<string | null>(null),
     time: new FormControl<Duration | null>(null),
     description: new FormControl<string>('', {
-      validators: [(c) => Validators.required(c)]
+      validators: [(c) => Validators.required(c)],
     }),
     status: new FormControl<string | null>(null),
     court: new FormControl<string>(''),
     location: new FormControl<string>(''),
     cja: new FormControl<string>(''),
-    duration: new FormControl<{ hours: string; minutes: string } | null>(null)
+    duration: new FormControl<{ hours: string; minutes: string } | null>(null),
   });
 
   statusOptions = [
     { value: '', label: 'Choose status' },
     { value: 'open', label: 'Open' },
-    { value: 'closed', label: 'Closed' }
+    { value: 'closed', label: 'Closed' },
   ];
 
   columns = [
@@ -156,7 +154,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     { header: 'Title', field: 'title' },
     { header: 'Fee req', field: 'feeReq' },
     { header: 'Resulted', field: 'resulted' },
-    { header: 'Actions', field: 'actions', sortable: false }
+    { header: 'Actions', field: 'actions', sortable: false },
   ];
 
   rows: {
@@ -188,7 +186,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly ngZone: NgZone,
-    private readonly menus: MojButtonMenu
+    private readonly menus: MojButtonMenu,
   ) {
     super();
   }
@@ -212,7 +210,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           : null,
         description: st.description ?? '',
         status: st.status.trim().toLowerCase(),
-        duration: null
+        duration: null,
       });
     }
     if (isPlatformBrowser(this.platformId)) {
@@ -238,16 +236,16 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         {
           listId: String(this.id),
           page: this.currentPage - 1,
-          size: this.pageSize
+          size: this.pageSize,
         },
         'response',
         false,
-        { transferCache: false }
+        { transferCache: false },
       )
       .pipe(
         finalize(() => {
           this.isLoading = false;
-        })
+        }),
       )
       .subscribe({
         next: (res) => {
@@ -266,7 +264,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
             postCode: this.fmt(e.postCode),
             title: e.applicationTitle,
             feeReq: e.feeRequired ? 'Yes' : 'No',
-            resulted: e.result ? 'Yes' : 'No'
+            resulted: e.result ? 'Yes' : 'No',
           }));
 
           // compute total pages
@@ -298,7 +296,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           this.rows = [];
           this.totalPages = 0;
           this.selectedIds.clear();
-        }
+        },
       });
   }
 
@@ -327,7 +325,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     // Confirmation window
     if (isPlatformBrowser(this.platformId)) {
       const ok = globalThis.confirm(
-        'Are you sure you want to update this Application List?'
+        'Are you sure you want to update this Application List?',
       );
       if (!ok) {
         return;
@@ -350,7 +348,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           : {}),
         ...(isDurMins && Number.isInteger(durationMinutes)
           ? { durationMinutes }
-          : {})
+          : {}),
       } as unknown as ApplicationListUpdateDto;
 
       const context = new HttpContext()
@@ -361,11 +359,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         .updateApplicationList(
           {
             listId: String(this.id),
-            applicationListUpdateDto: payload
+            applicationListUpdateDto: payload,
           },
           'response',
           false,
-          { context }
+          { context },
         )
         .subscribe({
           next: (res) => {
@@ -380,7 +378,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
               return;
             }
             this.errorHint = getProblemText(err);
-          }
+          },
         });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -402,13 +400,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   async openUpdate(entryId: string): Promise<void> {
-    await this.router.navigate(
-      ['/applications-list', entryId, 'update'],
-      {
-        state: { appListId: this.id },
-        queryParams: { appListId: this.id }
-      }
-    );
+    await this.router.navigate(['/applications-list', entryId, 'update'], {
+      state: { appListId: this.id },
+      queryParams: { appListId: this.id },
+    });
   }
 
   // —— Select-all behaviour helpers ————————————————
@@ -417,7 +412,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private reconcileSelectionToVisible(): void {
     const visible = new Set(this.rows.map((r) => r.id));
     this.selectedIds = new Set(
-      [...this.selectedIds].filter((id) => visible.has(id))
+      [...this.selectedIds].filter((id) => visible.has(id)),
     );
   }
 
@@ -440,20 +435,20 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.unpopField = collectMissing(this.form.getRawValue() as DetailFormRaw, {
       dateInvalid: !!de?.dateInvalid,
       dateErrorText: de?.dateErrorText ?? '',
-      durationErrorText: te?.durationErrorText ?? ''
+      durationErrorText: te?.durationErrorText ?? '',
     });
 
     if (durErr?.durationErrorText) {
       if (dur?.hours !== null) {
         this.unpopField.push({
           id: 'duration-hours',
-          text: durErr.durationErrorText
+          text: durErr.durationErrorText,
         });
       }
       if (dur?.minutes !== null) {
         this.unpopField.push({
           id: 'duration-minutes',
-          text: durErr.durationErrorText
+          text: durErr.durationErrorText,
         });
       }
     }
@@ -475,7 +470,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     const area = this.cja.find(
       (a) =>
         a.code === raw ||
-        (a.description ?? a.code ?? '').toLowerCase() === label
+        (a.description ?? a.code ?? '').toLowerCase() === label,
     );
     if (area) {
       this.selectCja({ code: area.code });
@@ -486,7 +481,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     const court = this.courtLocations.find(
       (c) =>
         c.locationCode === raw ||
-        (c.name ?? c.locationCode ?? '').toLowerCase() === label
+        (c.name ?? c.locationCode ?? '').toLowerCase() === label,
     );
     if (court) {
       this.selectCourthouse({ locationCode: court.locationCode });
