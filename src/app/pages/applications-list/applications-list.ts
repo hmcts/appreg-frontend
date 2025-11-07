@@ -389,6 +389,15 @@ export class ApplicationsList
       return;
     }
 
+    if (!hasParams) {
+      this.errorHint = 'There is a problem';
+      this.searchErrors.push({
+        id: '',
+        text: 'Invalid Search Criteria. At least one field must be entered.',
+      });
+      return;
+    }
+
     const params: GetApplicationListsRequestParams = {
       page: this.currentPage - 1,
       size: this.pageSize,
