@@ -211,7 +211,6 @@ export class ApplicationsList
     }
 
     const hasAny = this.hasAnyParams();
-
     if (!hasAny) {
       this.errorHint = 'There is a problem';
       this.searchErrors.push({
