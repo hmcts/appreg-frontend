@@ -14,7 +14,7 @@
       [options]="applicantOptions"
       errorText="Please select an applicant"
       size="l"
-      formControlName="applicant"
+      formControlName="applicantType"
     >
     </app-radio-group>
 
@@ -23,7 +23,7 @@
         type="button"
         class="govuk-button"
         (click)="onNext()"
-        [disabled]="!form.get('applicant')?.value"
+        [disabled]="!form.get('applicantType')?.value"
       >
         Next
       </button>
@@ -37,150 +37,37 @@
   </form>
 }
 
-<!-- Applicant = Person -->
-@if (step === 'person') {
-  <h2 class="govuk-heading-l">Applicant: Person</h2>
-  <form [formGroup]="form" novalidate>
-    <!-- Title -->
-    <app-select-input
-      formControlName="title"
-      label="Select title"
-      idPrefix="title"
-      [submitted]="errorFound"
-      [options]="titleOptions"
-    >
-    </app-select-input>
-
-    <!-- First/Last name -->
-    <app-name-input
-      formControlName="name"
-      [showError]="errorFound"
-    ></app-name-input>
-
-    <!-- Address -->
-    <app-address-group
-      formControlName="address"
-      idPrefix="home-address"
-      [legend]="'What is your address?'"
-      [requiredLine1]="true"
-      [requiredTown]="true"
-      [requiredPostcode]="true"
-      [validateUkPostcode]="true"
-      [showError]="errorFound"
-    >
-    </app-address-group>
-
-    <!-- Phone -->
-    <app-phone-input
-      formControlName="phone"
-      [showError]="errorFound"
-    ></app-phone-input>
-
-    <!-- Email -->
-    <app-email-input
-      formControlName="email"
-      [showError]="errorFound"
-      label="Email address"
-      errorTextRequired="Enter an email address"
-      errorTextInvalid="Enter an email in the format name@example.com"
-    >
-    </app-email-input>
-  </form>
-
-  <div class="govuk-button-group">
-    <button
-      type="button"
-      class="govuk-button govuk-button--secondary"
-      (click)="onBack()"
-    >
-      Back
-    </button>
-    <button class="govuk-button" type="submit" (click)="onSubmit($event)">
-      Create
-    </button>
-  </div>
-}
-
-<!-- Applicant = Organisation -->
-@if (step === 'org') {
-  <h2 class="govuk-heading-l">Applicant: Organisation</h2>
-
-  <form [formGroup]="form" novalidate>
-    <!-- Organisation name -->
-    <app-text-input
-      formControlName="orgname"
-      label="Organisation name"
-      idPrefix="orgname"
-      [submitted]="errorFound"
-    >
-      >
-    </app-text-input>
-
-    <!-- Address -->
-    <app-address-group
-      formControlName="address"
-      idPrefix="home-address"
-      [legend]="'What is your address?'"
-      [requiredLine1]="true"
-      [requiredTown]="true"
-      [requiredPostcode]="true"
-      [validateUkPostcode]="true"
-      [showError]="errorFound"
-    >
-    </app-address-group>
-
-    <!-- Phone -->
-    <app-phone-input
-      formControlName="phone"
-      [showError]="errorFound"
-    ></app-phone-input>
-
-    <!-- Email -->
-    <app-email-input
-      formControlName="email"
-      [showError]="errorFound"
-      label="Email address"
-      errorTextRequired="Enter an email address"
-      errorTextInvalid="Enter an email in the format name@example.com"
-    >
-    </app-email-input>
-
-    <app-application-code-search
-      [auto]="true"
-      [minChars]="2"
-      (selectCode)="onCodeSelected($event)">
-    </app-application-code-search>
-  </form>
-
-  <div class="govuk-button-group">
-    <button
-      type="button"
-      class="govuk-button govuk-button--secondary"
-      (click)="onBack()"
-    >
-      Back
-    </button>
-    <button class="govuk-button" type="submit" (click)="onSubmit($event)">
-      Create
-    </button>
-  </div>
-}
-
-<!-- Applicant = Standard Applicant -->
-@if (step === 'standard') {
-  <h2 class="govuk-heading-l">Applicant: Standard applicant</h2>
-  <p class="govuk-body">
-    You selected Standard applicant. Placeholder form goes here.
-  </p>
-  <div class="govuk-button-group">
-    <button
-      type="button"
-      class="govuk-button govuk-button--secondary"
-      (click)="onBack()"
-    >
-      Back
-    </button>
-  </div>
+@if (step !== 'select') {
+  @switch (form.controls.applicantType.value) {
+    @case ('person') {
+      <!-- <app-applicant-person-form
+      formControlName="applicant"
+      [submitted]="submitted">
+    </app-applicant-person-form> -->
+    }
+    @case ('org') {
+      <!-- <app-applicant-organisation-form
+      formControlName="applicant"
+      [submitted]="submitted">
+    </app-applicant-organisation-form> -->
+    }
+    @case ('standard') {
+      <!-- placeholder for your standard-applicant picker -->
+      <h2 class="govuk-heading-l">Applicant: Standard applicant</h2>
+      <p class="govuk-body">
+        You selected Standard applicant. Placeholder form goes here.
+      </p>
+      <div class="govuk-button-group">
+        <button
+          type="button"
+          class="govuk-button govuk-button--secondary"
+          (click)="onBack()"
+        >
+          Back
+        </button>
+      </div>
+    }
+  }
 }
 
 <hr

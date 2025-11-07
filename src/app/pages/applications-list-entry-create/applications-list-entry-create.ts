@@ -13,21 +13,16 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 
-import { ApplicationCodeGetSummaryDto, ApplicationListEntriesApi } from '../../../generated/openapi';
-import { AddressInputComponent } from '../../shared/components/address-input/address-input.component';
-import { ApplicationCodeSearchComponent } from '../../shared/components/application-codes-search/application-codes-search.component';
-import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
-import { EmailInputComponent } from '../../shared/components/email-input/email-input.component';
 import {
-  NameInputComponent,
-  NameValue,
-} from '../../shared/components/name-input/name-input.component';
-import { PhoneInputComponent } from '../../shared/components/phone-input/phone-input.component';
+  Applicant,
+  ApplicationCodeGetSummaryDto,
+  ApplicationListEntriesApi,
+  EntryCreateDto,
+  FeeStatus,
+  Respondent,
+} from '../../../generated/openapi';
+import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 import { RadioButtonComponent } from '../../shared/components/radio-button/radio-button.component';
-import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
-import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
-
-import { appListEntryCreateParams } from './util/create_params';
 
 type ApplicantStep = 'select' | 'person' | 'org' | 'standard';
 
@@ -39,13 +34,6 @@ type ApplicantStep = 'select' | 'person' | 'org' | 'standard';
     RadioButtonComponent,
     ReactiveFormsModule,
     RouterModule,
-    AddressInputComponent,
-    PhoneInputComponent,
-    EmailInputComponent,
-    TextInputComponent,
-    SelectInputComponent,
-    NameInputComponent,
-    ApplicationCodeSearchComponent,
   ],
   templateUrl: './applications-list-entry-create.html',
 })
@@ -64,24 +52,22 @@ export class ApplicationsListEntryCreate implements OnInit {
   ) {}
 
   form = new FormGroup({
-    applicant: new FormControl<string | null>('org', {
-      nonNullable: false,
-    }), // Organisation is set as default (same as old app)
-    phone: new FormControl<string | null>(null),
-    email: new FormControl<string | null>(null),
-    orgname: new FormControl<string | null>(null),
-    title: new FormControl<string | null>(null),
-    name: new FormControl<NameValue | null>(null),
-    applicationCode: new FormControl<string | null>(null)
+    applicantType: new FormControl<'person' | 'org' | 'standard'>('org', {
+      nonNullable: true,
+    }),
+    applicant: new FormControl<Applicant | null>(null),
+    standardApplicantCode: new FormControl<string | null>(null),
+    applicationCode: new FormControl<string | null>(null),
+    respondent: new FormControl<Respondent | null>(null),
+    numberOfRespondents: new FormControl<number | null>(null),
+    wordingFields: new FormControl<string[] | null>(null),
+    feeStatuses: new FormControl<FeeStatus[] | null>(null),
+    hasOffsiteFee: new FormControl<boolean | null>(null),
+    caseReference: new FormControl<string | null>(null),
+    accountNumber: new FormControl<string | null>(null),
+    notes: new FormControl<string | null>(null),
+    lodgementDate: new FormControl<string | null>(null),
   });
-
-  titleOptions = [
-    { label: 'Mr', value: 'mr' },
-    { label: 'Mrs', value: 'mrs' },
-    { label: 'Miss', value: 'miss' },
-    { label: 'Ms', value: 'ms' },
-    { label: 'Dr', value: 'dr' },
-  ];
 
   applicantOptions = [
     { label: 'Person', value: 'person' },
@@ -101,15 +87,12 @@ export class ApplicationsListEntryCreate implements OnInit {
       return;
     }
 
-    // console.log('submit happened');
-
-    const body = { listId: this.id, ...appListEntryCreateParams() };
+    const body = { listId: this.id, ...this.buildEntryCreateDto() };
 
     this.appEntryApi
       .createApplicationListEntry({ listId: this.id, entryCreateDto: body })
       .subscribe({
         next: () => {
-          console.log('happy');
           this.createDone = true;
         },
         error: (err: HttpErrorResponse) => {
@@ -124,10 +107,7 @@ export class ApplicationsListEntryCreate implements OnInit {
     if (this.form.invalid) {
       return;
     }
-    const v = this.form.get('applicant')!.value as Exclude<
-      ApplicantStep,
-      'select'
-    >;
+    const v = this.form.get('applicantType')!.value;
     this.step = v; // 'person' | 'org' | 'standard'
     this.errorFound = false;
   }
@@ -143,5 +123,35 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   buildReturnLink(): { label: string; link: string } {
     return { label: 'Back to list', link: `/applications-list/${this.id}` };
+  }
+
+  private buildEntryCreateDto(): EntryCreateDto {
+    const v = this.form.value;
+
+    if (!v.applicationCode) {
+      // this is required
+      throw new Error('Application code required');
+    }
+
+    const dto: EntryCreateDto = {
+      applicationCode: v.applicationCode,
+      respondent: v.respondent || undefined,
+      numberOfRespondents: v.numberOfRespondents || undefined,
+      wordingFields: v.wordingFields || undefined,
+      feeStatuses: v.feeStatuses || undefined,
+      hasOffsiteFee: v.hasOffsiteFee || undefined, 
+      caseReference: v.caseReference || undefined,
+      accountNumber: v.accountNumber || undefined,
+      notes: v.notes || undefined,
+      lodgementDate: v.lodgementDate || undefined,
+    };
+
+    if (v.applicantType === 'standard') {
+      dto.standardApplicantCode = v.standardApplicantCode ?? undefined;
+    } else {
+      dto.applicant = v.applicant ?? undefined;
+    }
+
+    return dto;
   }
 }
