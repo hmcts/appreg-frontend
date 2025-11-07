@@ -48,6 +48,7 @@ Feature: Applications List Search
     Then User Clicks On The Link "Applications list"
     Then User Selects "<OptionText>" From The Textbox "CJA" Autocomplete By Typing "<SearchText>"
     Then User Verifies The "CJA" Textbox Has Selected Value "<ExpectedValue>"
+    Then User Verifies DropDown Error Message Is Displayed As " No results found "
     When User Clicks On The "Search" Button
     Then User Sees Validation Error "<ValidationMessage>"
     Examples:

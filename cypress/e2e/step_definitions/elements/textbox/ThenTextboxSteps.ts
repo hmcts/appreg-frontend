@@ -64,3 +64,13 @@ Then(
     TextboxHelper.verifyValueInTextbox(field, substituteValue);
   },
 );
+
+Then(
+  'User Verifies DropDown Error Message Is Displayed As {string}',
+  (expectedErrorMessage: string) => {
+    const substituteErrorMessage =
+      TestDataGenerator.replaceRandomPlaceholders(expectedErrorMessage);
+    TextboxHelper.verifyAutocompleteErrorMessage(substituteErrorMessage);
+  },
+);
+

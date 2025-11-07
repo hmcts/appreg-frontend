@@ -89,4 +89,16 @@ export class TextboxHelper {
       .invoke('val')
       .should('eq', expectedValue);
   }
+  /**
+   * Verifies that the autocomplete dropdown shows the expected error message
+   * @param expectedErrorMessage The expected error message in the dropdown
+   */
+  static verifyAutocompleteErrorMessage(
+    expectedErrorMessage: string,
+  ): Cypress.Chainable {
+    return cy
+      .get('.app-autocomplete__no-results') // Adjust the selector as per your application's DOM
+      .should('be.visible')
+      .and('have.text', expectedErrorMessage);
+  }
 }
