@@ -2,6 +2,22 @@
 
 <h1 class="govuk-heading-xl">Create new entry</h1>
 
+@if (unpopField.length || errorFound) {
+  <app-error-summary
+    [title]="errorHint || 'There is a problem'"
+    [items]="unpopField"
+    (itemSelect)="onCreateErrorClick($event)"
+  />
+}
+
+@if (createDone) {
+  <app-success-banner
+    heading="Applications list successfully created"
+    [linkCommands]="['/applications-list', ':id']"
+    linkText="Click here to go back"
+  />
+}
+
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />

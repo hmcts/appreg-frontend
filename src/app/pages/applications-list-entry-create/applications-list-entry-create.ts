@@ -22,7 +22,17 @@ import {
   Respondent,
 } from '../../../generated/openapi';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
+import {
+  ErrorItem,
+  ErrorSummaryComponent,
+} from '../../shared/components/error-summary/error-summary.component';
 import { RadioButtonComponent } from '../../shared/components/radio-button/radio-button.component';
+import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
+import {
+  focusField,
+  onCreateErrorClick as onCreateErrorClickFn,
+} from '../../shared/util/error-click';
+import { getProblemText } from '../applications-list/util/delete-status';
 
 type ApplicantStep = 'select' | 'person' | 'org' | 'standard';
 
@@ -34,6 +44,8 @@ type ApplicantStep = 'select' | 'person' | 'org' | 'standard';
     RadioButtonComponent,
     ReactiveFormsModule,
     RouterModule,
+    SuccessBannerComponent,
+    ErrorSummaryComponent,
   ],
   templateUrl: './applications-list-entry-create.html',
 })
@@ -42,9 +54,12 @@ export class ApplicationsListEntryCreate implements OnInit {
   step: ApplicantStep = 'select';
 
   createDone: boolean = false;
-
   submitted: boolean = false;
   errorFound: boolean = false;
+  errorHint: string = '';
+  unpopField: ErrorItem[] = [];
+  onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
+  focusField = focusField;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -85,6 +100,12 @@ export class ApplicationsListEntryCreate implements OnInit {
 
     if (!this.form.value.applicationCode) {
       this.errorFound = true;
+      this.errorHint = 'There is a problem';
+      this.unpopField.push({
+        text: 'Application code is required',
+        href: '',
+        id: '',
+      });
       return;
     }
 
@@ -96,8 +117,10 @@ export class ApplicationsListEntryCreate implements OnInit {
           this.createDone = true;
         },
         error: (err: HttpErrorResponse) => {
-          console.log(err);
+          const msg = getProblemText(err);
+          this.submitted = true;
           this.errorFound = true;
+          this.errorHint = msg;
         },
       });
   }
@@ -134,7 +157,7 @@ export class ApplicationsListEntryCreate implements OnInit {
       numberOfRespondents: v.numberOfRespondents || undefined,
       wordingFields: v.wordingFields || undefined,
       feeStatuses: v.feeStatuses || undefined,
-      hasOffsiteFee: v.hasOffsiteFee || undefined, 
+      hasOffsiteFee: v.hasOffsiteFee || undefined,
       caseReference: v.caseReference || undefined,
       accountNumber: v.accountNumber || undefined,
       notes: v.notes || undefined,
