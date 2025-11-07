@@ -436,12 +436,17 @@ describe('ApplicationsList – search', () => {
     ...extras,
   });
 
-  it('requests first page without filter when hasParams=false', () => {
-    service.getApplicationLists.mockReturnValue(of(pageStub([])));
+  it('when hasParams=false, does not call API and surfaces validation error', () => {
+    service.getApplicationLists.mockClear();
+    component.searchErrors = [];
+    component.errorHint = '';
     component.loadApplicationsLists(false);
-    const args = service.getApplicationLists.mock
-      .calls[0][0] as GetApplicationListsRequestParams;
-    expect(args).toEqual({ page: 0, size: 25 });
+    expect(service.getApplicationLists).not.toHaveBeenCalled();
+    expect(component.errorHint).toBe('There is a problem');
+    expect(component.searchErrors[0]).toEqual({
+      id: '',
+      text: 'Invalid Search Criteria. At least one field must be entered.',
+    });
   });
 
   it('merges filter when hasParams=true', () => {
@@ -478,7 +483,7 @@ describe('ApplicationsList – search', () => {
         ]),
       ),
     );
-    component.loadApplicationsLists(false);
+    component.loadApplicationsLists(true);
     expect(component.rows).toHaveLength(1);
     expect(component.rows[0].date).toBe('2025-09-17');
     expect(component.rows[0].time).toBe('14:05');
@@ -489,7 +494,8 @@ describe('ApplicationsList – search', () => {
     service.getApplicationLists.mockReturnValue(
       of(pageStub([], { totalElements: 10, totalPages: 2 })),
     );
-    component.loadApplicationsLists(false);
+
+    component.loadApplicationsLists(true);
     expect(component.totalPages).toBe(2);
   });
 
@@ -511,7 +517,7 @@ describe('ApplicationsList – search', () => {
     component.totalPages = 3;
     component.submitted = false;
     component.searchErrors = [];
-    component.loadApplicationsLists(false);
+    component.loadApplicationsLists(true);
     expect(component.rows).toHaveLength(0);
     expect(component.totalPages).toBe(0);
     expect(component.submitted).toBe(true);
@@ -521,12 +527,17 @@ describe('ApplicationsList – search', () => {
     });
   });
 
-  it('omits filter entirely when hasParams=false', () => {
-    service.getApplicationLists.mockReturnValue(of(pageStub([])));
+  it('when hasParams=false, does not call API and shows the same validation error', () => {
+    service.getApplicationLists.mockClear();
+    component.searchErrors = [];
+    component.errorHint = '';
     component.loadApplicationsLists(false);
-    const args = service.getApplicationLists.mock
-      .calls[0][0] as GetApplicationListsRequestParams;
-    expect('filter' in args).toBe(false);
+    expect(service.getApplicationLists).not.toHaveBeenCalled();
+    expect(component.errorHint).toBe('There is a problem');
+    expect(component.searchErrors[0]).toEqual({
+      id: '',
+      text: 'Invalid Search Criteria. At least one field must be entered.',
+    });
   });
 
   it('includes filter object when hasParams=true even if partial', () => {
