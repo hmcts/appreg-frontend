@@ -2,6 +2,7 @@
 import { Then } from '@badeball/cypress-cucumber-preprocessor';
 
 import { TextboxHelper } from '../../../../support/helper/forms/textbox/TextboxHelper';
+import { StringUtils } from '../../../../support/utils/StringUtils';
 import { TestDataGenerator } from '../../../../support/utils/TestDataGenerator';
 
 Then(
@@ -66,11 +67,20 @@ Then(
 );
 
 Then(
-  'User Verifies DropDown Error Message Is Displayed As {string}',
-  (expectedErrorMessage: string) => {
-    const substituteErrorMessage =
-      TestDataGenerator.replaceRandomPlaceholders(expectedErrorMessage);
-    TextboxHelper.verifyAutocompleteErrorMessage(substituteErrorMessage);
+  'User Verifies Error Message Is Displayed As {string} In The {string} Textbox',
+  (errorMessage: string, field: string) => {
+    const substituteErrorMessage = StringUtils.normalizeText(errorMessage);
+    TextboxHelper.verifyAutocompleteErrorMessage(field, substituteErrorMessage);
   },
 );
 
+Then(
+  'User Does Not See {string} Displayed For The {string} Textbox',
+  (errorMessage: string, field: string) => {
+    const substituteErrorMessage = StringUtils.normalizeText(errorMessage);
+    TextboxHelper.verifyAutocompleteErrorMessageNotDisplayed(
+      field,
+      substituteErrorMessage,
+    );
+  },
+);
