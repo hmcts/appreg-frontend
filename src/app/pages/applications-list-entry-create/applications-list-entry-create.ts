@@ -81,14 +81,14 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   onSubmit(e: Event): void {
     e.preventDefault();
-    // this.errorFound = true;
+    this.errorFound = false;
 
-    if (this.errorFound) {
+    if (!this.form.value.applicationCode) {
+      this.errorFound = true;
       return;
     }
 
     const body = { listId: this.id, ...this.buildEntryCreateDto() };
-
     this.appEntryApi
       .createApplicationListEntry({ listId: this.id, entryCreateDto: body })
       .subscribe({
@@ -128,13 +128,8 @@ export class ApplicationsListEntryCreate implements OnInit {
   private buildEntryCreateDto(): EntryCreateDto {
     const v = this.form.value;
 
-    if (!v.applicationCode) {
-      // this is required
-      throw new Error('Application code required');
-    }
-
     const dto: EntryCreateDto = {
-      applicationCode: v.applicationCode,
+      applicationCode: v.applicationCode!,
       respondent: v.respondent || undefined,
       numberOfRespondents: v.numberOfRespondents || undefined,
       wordingFields: v.wordingFields || undefined,
