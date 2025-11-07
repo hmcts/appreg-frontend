@@ -211,14 +211,6 @@ export class ApplicationsList
     }
 
     const hasAny = this.hasAnyParams();
-    if (!hasAny) {
-      this.errorHint = 'There is a problem';
-      this.searchErrors.push({
-        id: '',
-        text: 'Invalid Search Criteria. At least one field must be entered.',
-      });
-      return;
-    }
 
     if (action === 'search') {
       this.submitted = true;
@@ -392,6 +384,15 @@ export class ApplicationsList
 
   loadApplicationsLists(hasParams: boolean): void {
     if (this.isLoading) {
+      return;
+    }
+
+    if (!hasParams) {
+      this.errorHint = 'There is a problem';
+      this.searchErrors.push({
+        id: '',
+        text: 'Invalid Search Criteria. At least one field must be entered.',
+      });
       return;
     }
 
