@@ -61,7 +61,6 @@ export class ApplicationsListEntryDetail implements OnInit {
   formSubmitted = false;
   form!: FormGroup;
 
-  // Tables (unchanged)
   applicantColumns: TableColumn[] = [
     { header: 'Code', field: 'code', numeric: true },
     { header: 'Name', field: 'name' },
