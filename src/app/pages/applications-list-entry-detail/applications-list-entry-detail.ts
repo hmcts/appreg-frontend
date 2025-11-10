@@ -116,8 +116,8 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     // NEW: build the form
     this.form = this.fb.group({
-      applicantEntryType: ['Organisation'],
-      respondentEntryType: ['Organisation'],
+      applicantEntryType: ['person'],
+      respondentEntryType: ['person'],
       person: this.fb.group({
         title: [''],
         firstName: [''],
@@ -144,18 +144,29 @@ export class ApplicationsListEntryDetail implements OnInit {
         phoneNumber: [''],
         emailAddress: [''],
       }),
+
+      lodgementDate: [''],
+      applicationCode: [''],
+      applicationTitle: [''],
+      courtName: [''],
+      organisationName: [''],
+      feeStatus: [''],
+      feeStatusDate: [''],
+      paymentRef: [''],
+      caseReference: [''],
+      accountReference: [''],
+      applicationDetails: [''],
+      resultCode: [''],
+
       mags1Title: [''],
       mags1FirstName: [''],
       mags1Surname: [''],
-
       mags2Title: [''],
       mags2FirstName: [''],
       mags2Surname: [''],
-
       mags3Title: [''],
       mags3FirstName: [''],
       mags3Surname: [''],
-
       officialTitle: [''],
       officialFirstName: [''],
       officialSurname: [''],
