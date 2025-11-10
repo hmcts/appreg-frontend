@@ -19,7 +19,7 @@
     targetId="sortable-table"
     data-component="error-summary"
   ></app-error-summary>
-} <!-- @else { -->
+} @else {
   <form [formGroup]="form">
     <ng-template #applicantTpl>
       <h3 class="govuk-heading-m">Application entry type</h3>
@@ -442,4 +442,4 @@
     >
     </app-accordion>
   </form>
-<!-- } -->
+ }
