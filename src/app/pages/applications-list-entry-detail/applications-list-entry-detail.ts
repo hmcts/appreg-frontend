@@ -101,7 +101,6 @@ export class ApplicationsListEntryDetail implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // existing appListId resolution (unchanged)
     const nav = this.router.currentNavigation();
     const fromNav = nav?.extras?.state as { appListId?: string } | undefined;
     const fromHist = isPlatformBrowser(this.platformId)
@@ -114,7 +113,6 @@ export class ApplicationsListEntryDetail implements OnInit {
       this.route.snapshot.queryParamMap.get('appListId') ??
       '';
 
-    // NEW: build the form
     this.form = this.fb.group({
       applicantEntryType: ['person'],
       respondentEntryType: ['person'],
