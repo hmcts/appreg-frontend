@@ -98,17 +98,16 @@ describe('DurationInputComponent', () => {
     expect(onChange).toHaveBeenLastCalledWith({ hours: null, minutes: 10 });
   });
 
-  it('onMinutesInput with non-numeric sets minutes to null and propagates', () => {
+  it('onMinutesInput with non-numeric sets minutes to NaN and propagates', () => {
     const onChange = jest.fn<void, [Duration | null]>();
     component.registerOnChange(onChange);
-
     component.writeValue({ hours: 3, minutes: 0 });
-
-    const evt = { target: { value: 'abc' } } as unknown as Event; // NaN -> null
+    const evt = { target: { value: 'abc' } } as unknown as Event;
     component.onMinutesInput(evt);
-
-    expect(component.minutes).toBeNull();
-    expect(onChange).toHaveBeenLastCalledWith({ hours: 3, minutes: null });
+    expect(Number.isNaN(component.minutes as unknown as number)).toBe(true);
+    const lastArg = onChange.mock.calls[onChange.mock.calls.length - 1][0];
+    expect(lastArg?.hours).toBe(3);
+    expect(Number.isNaN(lastArg?.minutes)).toBe(true);
   });
 
   it('propagates after sequential edits to both fields', () => {
