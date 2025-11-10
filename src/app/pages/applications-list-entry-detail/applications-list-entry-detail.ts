@@ -470,41 +470,57 @@ export class ApplicationsListEntryDetail implements OnInit {
       email: 'person-email-address',
     };
 
-    const add = (id: string, msg: string) => {
-      this.personFieldErrors[id] = msg;
-      this.errorSummary.push({ text: msg, href: `#${id}` });
+    const add = (id: string, text: string, href: string) => {
+      this.personFieldErrors[id] = text;
+      this.errorSummary.push({ text, href });
     };
 
     // Required
     if (!get('firstName')) {
-      add(ids.firstName, 'Enter a first name');
+      add(ids.firstName, 'Enter a first name', '#person-first-name');
     }
     if (!get('surname')) {
-      add(ids.surname, 'Enter a surname');
+      add(ids.surname, 'Enter a surname', '#person-surname');
     }
     if (!get('addressLine1')) {
-      add(ids.address1, 'Enter address line 1');
+      add(ids.address1, 'Enter address line 1', '#person-address-line-1');
     }
 
     // Optional-but-validated
     const postcode = get('postcode');
     if (postcode && !this.isValidUkPostcode(postcode)) {
-      add(ids.postcode, 'Enter a real postcode, like SW1A 1AA');
+      add(
+        ids.postcode,
+        'Enter a real postcode, like SW1A 1AA',
+        '#person-postcode',
+      );
     }
 
     const phone = get('phoneNumber');
     if (phone && !this.isValidPhone(phone)) {
-      add(ids.phone, 'Enter a phone number in the correct format');
+      add(
+        ids.phone,
+        'Enter a phone number in the correct format',
+        '#person-phone-number',
+      );
     }
 
     const mobile = get('mobileNumber');
     if (mobile && !this.isValidPhone(mobile)) {
-      add(ids.mobile, 'Enter a mobile number in the correct format');
+      add(
+        ids.mobile,
+        'Enter a mobile number in the correct format',
+        '#person-mobile-number',
+      );
     }
 
     const email = get('emailAddress');
     if (email && !this.isValidEmail(email)) {
-      add(ids.email, 'Enter an email address in the correct format');
+      add(
+        ids.email,
+        'Enter an email address in the correct format',
+        '#person-email-address',
+      );
     }
 
     return this.errorSummary.length === 0;
