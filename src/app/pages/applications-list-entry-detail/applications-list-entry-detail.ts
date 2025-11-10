@@ -30,6 +30,12 @@ import {
   StandardApplicantGetSummaryDto,
   StandardApplicantsApi,
   UpdateApplicationListEntryRequestParams,
+  Applicant,
+  ContactDetails,
+  EntryGetDetailDto,
+  FullName,
+  Organisation,
+  Person,
 } from '../../../generated/openapi';
 import { AccordionComponent } from '../../shared/components/accordion/accordion.component';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
@@ -79,6 +85,14 @@ import { buildEntryDetailForm } from './util/entry-detail.form';
 import { mapHttpErrorToSummary } from './util/errors.util';
 import { getEntryId } from './util/routing.util';
 
+type ErrorSummaryItem = { text: string; href?: string };
+
+interface ProblemDetails {
+  title?: string;
+  detail?: string;
+  errors?: Record<string, string[] | string>;
+}
+
 @Component({
   selector: 'app-applications-list-entry-detail',
   standalone: true,
@@ -125,64 +139,20 @@ export class ApplicationsListEntryDetail implements OnInit {
   codesRows: CodeRow[] = [];
   codesLoading = false;
   codesHasSearched = false;
-  successBanner: {
-    heading: string;
-    body: string;
-    link?: { href: string; text: string };
-  } | null = null;
 
-  applicantColumns: TableColumn[] = [
-    { header: 'Code', field: 'code', numeric: true },
-    { header: 'Name', field: 'name' },
-    { header: 'Address line 1', field: 'address' },
-    { header: 'Use from', field: 'useFrom' },
-    { header: 'Use to', field: 'useTo' },
-  ];
+  // Success banner
+  successBanner: SuccessBanner | null = null;
 
-  codesColumns: TableColumn[] = [
-    { header: 'Code', field: 'code', numeric: true },
-    { header: 'Title', field: 'title' },
-    { header: 'Bulk', field: 'bulk' },
-    { header: 'Fee req', field: 'fee' },
-    { header: 'Actions', field: 'actions' },
-  ];
+  // View constants (from helpers)
+  applicantColumns: TableColumn[] = APPLICANT_COLUMNS;
+  codesColumns: TableColumn[] = CODES_COLUMNS;
+  civilFeeColumns: TableColumn[] = CIVIL_FEE_COLUMNS;
+  resultWordingColumns: TableColumn[] = RESULT_WORDING_COLUMNS;
 
-  feeStatusOptions = [
-    { value: 'paid', label: 'Paid' },
-    { value: 'outstanding', label: 'Outstanding' },
-    { value: 'pending', label: 'Pending' },
-  ];
-
-  civilFeeColumns = [
-    { header: 'Fee Status', field: 'status' },
-    { header: 'Status Date', field: 'date' },
-    { header: 'Payment Ref', field: 'paymentRef' },
-  ];
-
-  resultWordingColumns = [
-    { header: 'Applicant(s)', field: 'applicants' },
-    { header: 'Respondent(s)', field: 'respondents' },
-    { header: 'Application title(s)', field: 'titles' },
-  ];
-
-  applicantEntryTypeOptions = [
-    { value: 'person', label: 'Person' },
-    { value: 'organisation', label: 'Organisation' },
-    { value: 'standardApplicant', label: 'Standard Applicant' },
-  ];
-
-  respondentEntryTypeOptions = [
-    { value: 'person', label: 'Person' },
-    { value: 'organisation', label: 'Organisation' },
-  ];
-
-  personTitleOptions = [
-    { value: 'mr', label: 'Mr' },
-    { value: 'mrs', label: 'Mrs' },
-    { value: 'miss', label: 'Miss' },
-    { value: 'dr', label: 'Dr' },
-    { value: 'other', label: 'Other' },
-  ];
+  feeStatusOptions = FEE_STATUS_OPTIONS;
+  applicantEntryTypeOptions = APPLICANT_TYPE_OPTIONS;
+  respondentEntryTypeOptions = RESPONDENT_TYPE_OPTIONS;
+  personTitleOptions = PERSON_TITLE_OPTIONS;
 
   private readonly destroyRef = inject(DestroyRef);
 
@@ -306,6 +276,37 @@ export class ApplicationsListEntryDetail implements OnInit {
         error: (err) => this.applyMappedError(err),
       });
   }
+
+  // Error summary click → move focus/caret to target input
+  onErrorItemClick = (err: ErrorItem): void => {
+    const href = err?.href ?? '';
+    const id = href.startsWith('#') ? href.slice(1) : href;
+    if (!id || !isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    setTimeout(() => {
+      const el = document.getElementById(id) as
+        | (HTMLInputElement & {
+            setSelectionRange?: (s: number, e: number) => void;
+          })
+        | HTMLTextAreaElement
+        | null;
+      if (!el) {
+        return;
+      }
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.focus?.();
+      try {
+        const val = (el as HTMLInputElement).value ?? '';
+        if ('setSelectionRange' in el) {
+          el.setSelectionRange(val.length, val.length);
+        }
+      } catch {
+        /* no-op */
+      }
+    });
+  };
 
   // ——— Form accessors ———
   get personGroup(): FormGroup {
@@ -464,36 +465,6 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     this.formSubmitted = false;
     this.resetErrors();
-  }
-
-  onErrorItemClick(err: ErrorItem): void {
-    if (!err?.href) {
-      return;
-    }
-    const id = err.href.startsWith('#') ? err.href.slice(1) : err.href;
-
-    if (typeof window === 'undefined') {
-      return;
-    }
-    setTimeout(() => {
-      const el = document.getElementById(id) as
-        | HTMLInputElement
-        | HTMLTextAreaElement
-        | null;
-      if (!el) {
-        return;
-      }
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.focus?.();
-      if ('setSelectionRange' in el && typeof el.value === 'string') {
-        const end = el.value.length;
-        try {
-          el.setSelectionRange(end, end);
-        } catch {
-          /* empty */
-        }
-      }
-    });
   }
 
   onSaPageChange(p: number): void {
