@@ -32,17 +32,29 @@
         "
         autocomplete="off"
       />
-      @if (open) {
+      @if (open || (search.trim().length > 0 && suggestions.length === 0)) {
         <ul class="govuk-list app-autocomplete__menu">
-          @for (item of suggestions; track item) {
+          @if (suggestions.length > 0) {
+            @for (item of suggestions; track item) {
+              <li>
+                <a
+                  href="#"
+                  class="app-autocomplete__link"
+                  (click)="choose(item, $event)"
+                >
+                  {{ labelOf(item) }}
+                </a>
+              </li>
+            }
+          } @else if (search.trim().length > 0) {
             <li>
-              <a
-                href="#"
-                class="app-autocomplete__link"
-                (click)="choose(item, $event)"
+              <span
+                class="app-autocomplete__no-results"
+                aria-disabled="true"
+                tabindex="-1"
               >
-                {{ labelOf(item) }}
-              </a>
+                No results found
+              </span>
             </li>
           }
         </ul>
