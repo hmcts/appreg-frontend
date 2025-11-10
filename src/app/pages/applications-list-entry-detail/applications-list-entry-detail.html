@@ -42,8 +42,9 @@
           <app-person-section
             [group]="personGroup"
             [titleOptions]="personTitleOptions"
-          >
-          </app-person-section>
+            [submitted]="formSubmitted"
+            [errors]="personFieldErrors"
+          ></app-person-section>
         }
         @case ('organisation') {
           <app-organisation-section [group]="organisationGroup">

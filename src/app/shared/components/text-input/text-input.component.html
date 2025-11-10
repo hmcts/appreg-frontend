@@ -2,7 +2,8 @@
   <div
     class="govuk-form-group"
     [ngClass]="{
-      'govuk-form-group--error': submitted && !value?.toString()?.trim(),
+      'govuk-form-group--error':
+        !!error || (!suppressError && submitted && !value?.toString()?.trim())
     }"
   >
     @if (label) {
@@ -19,10 +20,10 @@
       </div>
     }
 
-    @if (submitted && !value?.toString()?.trim()) {
+    @if (error || (!suppressError && submitted && !value?.toString()?.trim())) {
       <p [id]="idPrefix + '-error'" class="govuk-error-message">
         <span class="govuk-visually-hidden">Error:</span>
-        {{ label || 'This field' }} is required
+        {{ error || (label || 'This field') + ' is required' }}
       </p>
     }
 
@@ -30,18 +31,19 @@
       class="govuk-input"
       [ngClass]="[
         widthClass,
-        submitted && !value?.toString()?.trim() ? 'govuk-input--error' : '',
+        (error || (!suppressError && submitted && !value?.toString()?.trim()))
+          ? 'govuk-input--error'
+          : ''
       ]"
       [id]="idPrefix"
       [name]="idPrefix"
       type="text"
-      [attr.aria-describedby]="
-        (
-          (hint ? idPrefix + '-hint' : '') +
-          ' ' +
-          (submitted && !value?.toString()?.trim() ? idPrefix + '-error' : '')
-        ).trim()
-      "
+      [attr.aria-describedby]="(
+          (hint ? idPrefix + '-hint' : '') + ' ' +
+          (error || (!suppressError && submitted && !value?.toString()?.trim())
+            ? idPrefix + '-error'
+            : '')
+        ).trim()"
       [value]="value"
       (input)="onInput($event)"
       [disabled]="disabled"

@@ -63,6 +63,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   formSubmitted = false;
   form!: FormGroup;
   selectedStandardApplicantCode: string | null = null;
+  personFieldErrors: Record<string, string> = {};
 
   applicantColumns: TableColumn[] = [
     { header: 'Code', field: 'code', numeric: true },
@@ -221,7 +222,9 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   get applicantType(): ApplicantType {
-    const v = this.form.get('applicantEntryType')?.value as ApplicantType | undefined;
+    const v = this.form.get('applicantEntryType')?.value as
+      | ApplicantType
+      | undefined;
     return v ?? 'person';
   }
 
@@ -242,7 +245,118 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   onUpdateApplicant(): void {
+    this.resetErrors();
+    this.formSubmitted = true;
 
+    if (this.applicantType === 'person') {
+      const ok = this.validatePersonSection();
+      if (!ok) {
+        this.hasFatalError = true;
+        this.errorHint = 'There is a problem';
+        this.focusErrorSummary();
+        return;
+      }
+    }
+
+    this.formSubmitted = false;
+    this.resetErrors();
+  }
+
+  private validatePersonSection(): boolean {
+    this.personFieldErrors = {};
+    this.errorSummary = [];
+
+    const p = this.personGroup.value as Record<string, unknown>;
+    const get = (k: string) => {
+      const v = p[k];
+      return typeof v === 'string' ? v.trim() : '';
+    };
+
+    // Establish stable IDs that match idPrefix in your person template
+    const ids = {
+      firstName: 'person-first-name',
+      surname: 'person-surname',
+      address1: 'person-address-line-1',
+      postcode: 'person-postcode',
+      phone: 'person-phone-number',
+      mobile: 'person-mobile-number',
+      email: 'person-email-address',
+    };
+
+    const add = (id: string, msg: string) => {
+      this.personFieldErrors[id] = msg;
+      this.errorSummary.push({ text: msg, href: `#${id}` });
+    };
+
+    // Required
+    if (!get('firstName')) {
+      add(ids.firstName, 'Enter a first name');
+    }
+    if (!get('surname')) {
+      add(ids.surname, 'Enter a surname');
+    }
+    if (!get('addressLine1')) {
+      add(ids.address1, 'Enter address line 1');
+    }
+
+    // Optional-but-validated
+    const postcode = get('postcode');
+    if (postcode && !this.isValidUkPostcode(postcode)) {
+      add(ids.postcode, 'Enter a real postcode, like SW1A 1AA');
+    }
+
+    const phone = get('phoneNumber');
+    if (phone && !this.isValidPhone(phone)) {
+      add(ids.phone, 'Enter a phone number in the correct format');
+    }
+
+    const mobile = get('mobileNumber');
+    if (mobile && !this.isValidPhone(mobile)) {
+      add(ids.mobile, 'Enter a mobile number in the correct format');
+    }
+
+    const email = get('emailAddress');
+    if (email && !this.isValidEmail(email)) {
+      add(
+        ids.email,
+        'Enter an email address in the correct format',
+      );
+    }
+
+    return this.errorSummary.length === 0;
+  }
+
+  private resetErrors(): void {
+    this.personFieldErrors = {};
+    this.errorSummary = [];
+    this.errorHint = null;
+    this.hasFatalError = false;
+  }
+
+  private isValidUkPostcode(s: string): boolean {
+    const re = /^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i; // GOV.UK-friendly, lenient
+    return re.test(s.trim());
+  }
+
+  private isValidPhone(s: string): boolean {
+    const digits = s.replace(/[^\d]/g, '');
+    return digits.length >= 10 && digits.length <= 15;
+  }
+
+  private isValidEmail(s: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+  }
+
+  private focusErrorSummary(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      setTimeout(() => {
+        const el = document.querySelector<HTMLElement>(
+          '[data-component="error-summary"]',
+        );
+        el?.focus?.();
+        el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+      });
+    }
   }
 
   // ——— Data loading & mapping ———
@@ -380,9 +494,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       }
     }
 
-    const makeItems = (
-      ...lines: (string | undefined)[]
-    ): ErrorSummaryItem[] =>
+    const makeItems = (...lines: (string | undefined)[]): ErrorSummaryItem[] =>
       lines
         .filter((t): t is string => !!t && t.trim().length > 0)
         .map((text) => ({ text }));

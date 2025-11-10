@@ -43,6 +43,7 @@ export class TextInputComponent implements ControlValueAccessor {
   }[] = [];
   @Input() submitted = false;
   @Input() suppressError = false;
+  @Input() error: string | null = null;
 
   @Output() typed = new EventEmitter<string>();
 

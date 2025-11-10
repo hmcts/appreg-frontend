@@ -19,4 +19,6 @@ import { TextInputComponent } from '../text-input/text-input.component';
 export class PersonSectionComponent {
   @Input({ required: true }) group!: FormGroup;
   @Input({ required: true }) titleOptions!: { value: string; label: string }[];
+  @Input() submitted = false;
+  @Input() errors: Record<string, string> = {};
 }
