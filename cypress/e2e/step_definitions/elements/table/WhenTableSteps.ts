@@ -1,4 +1,5 @@
 import { When } from '@badeball/cypress-cucumber-preprocessor';
+
 import { TableHelper } from '../../../../support/helper/table/TableHelper';
 
 /**

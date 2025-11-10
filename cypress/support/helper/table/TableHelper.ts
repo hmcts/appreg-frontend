@@ -165,6 +165,8 @@ export class TableHelper {
       if (found) {
         cy.log(`✓ Row found with: ${searchCriteria}`);
       }
+
+      return found;
     });
   }
 

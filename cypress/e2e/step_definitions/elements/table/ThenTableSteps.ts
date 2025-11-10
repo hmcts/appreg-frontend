@@ -1,4 +1,5 @@
-import { Then } from '@badeball/cypress-cucumber-preprocessor';
+import { DataTable, Then } from '@badeball/cypress-cucumber-preprocessor';
+
 import { TableHelper } from '../../../../support/helper/table/TableHelper';
 
 /**
@@ -21,7 +22,7 @@ Then('User Should See Table {string} Has Rows', (tableCaption: string) => {
  */
 Then(
   'User Should See Row In Table {string} With Values:',
-  (tableCaption: string, dataTable: any) => {
+  (tableCaption: string, dataTable: DataTable) => {
     const rows = dataTable.hashes();
 
     if (rows.length === 0) {
