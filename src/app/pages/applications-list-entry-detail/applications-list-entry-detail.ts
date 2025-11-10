@@ -87,6 +87,8 @@ import { getEntryId } from './util/routing.util';
 
 type ErrorSummaryItem = { text: string; href?: string };
 
+type ApplicantType = 'person' | 'organisation' | 'standardApplicant';
+
 interface ProblemDetails {
   title?: string;
   detail?: string;
