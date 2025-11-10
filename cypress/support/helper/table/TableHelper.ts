@@ -156,17 +156,15 @@ export class TableHelper {
 
     cy.log(`Searching for row in table "${caption}" with: ${searchCriteria}`);
 
-    cy.wrap(null).then(() => {
-      this.findRowWithValues(caption, columnValues, true).then((found) => {
-        expect(
-          found,
-          `Row should exist in table "${caption}" with values: ${searchCriteria}`,
-        ).to.be.true;
+    void this.findRowWithValues(caption, columnValues, true).then((found) => {
+      expect(
+        found,
+        `Row should exist in table "${caption}" with values: ${searchCriteria}`,
+      ).to.be.true;
 
-        if (found) {
-          cy.log(`✓ Row found with: ${searchCriteria}`);
-        }
-      });
+      if (found) {
+        cy.log(`✓ Row found with: ${searchCriteria}`);
+      }
     });
   }
 
