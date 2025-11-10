@@ -157,7 +157,7 @@ export class TableHelper {
     cy.log(`Searching for row in table "${caption}" with: ${searchCriteria}`);
 
     return this.findRowWithValues(caption, columnValues, true).then((found) => {
-      expect(
+      void expect(
         found,
         `Row should exist in table "${caption}" with values: ${searchCriteria}`,
       ).to.be.true;
