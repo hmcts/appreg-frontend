@@ -26,6 +26,8 @@ import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
 
 type ErrorSummaryItem = { text: string; href?: string };
 
+type ApplicantType = 'person' | 'organisation' | 'standardApplicant';
+
 interface ProblemDetails {
   title?: string;
   detail?: string;
@@ -60,6 +62,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   appListId!: string;
   formSubmitted = false;
   form!: FormGroup;
+  selectedStandardApplicantCode: string | null = null;
 
   applicantColumns: TableColumn[] = [
     { header: 'Code', field: 'code', numeric: true },
@@ -215,6 +218,31 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   get organisationGroup(): FormGroup {
     return this.form.get('organisation') as FormGroup;
+  }
+
+  get applicantType(): ApplicantType {
+    const v = this.form.get('applicantEntryType')?.value as ApplicantType | undefined;
+    return v ?? 'person';
+  }
+
+  get isUpdateDisabled(): boolean {
+    switch (this.applicantType) {
+      case 'person':
+        return !this.personGroup.valid;
+      case 'organisation':
+        return !this.organisationGroup.valid;
+      case 'standardApplicant':
+        return !this.selectedStandardApplicantCode;
+    }
+  }
+
+  onSaSelected(ev: { code: string } | string): void {
+    const code = typeof ev === 'string' ? ev : ev?.code;
+    this.selectedStandardApplicantCode = code ?? null;
+  }
+
+  onUpdateApplicant(): void {
+
   }
 
   // ——— Data loading & mapping ———

@@ -19,7 +19,7 @@
     targetId="sortable-table"
     data-component="error-summary"
   ></app-error-summary>
-} @else {
+} <!-- @else { -->
   <form [formGroup]="form">
     <ng-template #applicantTpl>
       <h3 class="govuk-heading-m">Application entry type</h3>
@@ -59,6 +59,21 @@
           </app-sortable-table>
         }
       }
+
+      <hr
+        class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+      />
+
+      <button
+        type="button"
+        class="govuk-button"
+        id="btn-update-applicant"
+        [attr.data-applicant-type]="applicantType"
+        [disabled]="isUpdateDisabled"
+        (click)="onUpdateApplicant()"
+      >
+        Update applicant
+      </button>
     </ng-template>
 
     <ng-template #codesTpl>
@@ -427,4 +442,4 @@
     >
     </app-accordion>
   </form>
-}
+<!-- } -->
