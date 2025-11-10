@@ -149,14 +149,14 @@ export class TableHelper {
   static verifyRowExists(
     caption: string,
     columnValues: Record<string, string>,
-  ): void {
+  ): Cypress.Chainable<boolean> {
     const searchCriteria = Object.entries(columnValues)
       .map(([col, val]) => `${col}="${val}"`)
       .join(', ');
 
     cy.log(`Searching for row in table "${caption}" with: ${searchCriteria}`);
 
-    void this.findRowWithValues(caption, columnValues, true).then((found) => {
+    return this.findRowWithValues(caption, columnValues, true).then((found) => {
       expect(
         found,
         `Row should exist in table "${caption}" with values: ${searchCriteria}`,
@@ -165,6 +165,8 @@ export class TableHelper {
       if (found) {
         cy.log(`✓ Row found with: ${searchCriteria}`);
       }
+
+      return found;
     });
   }
 
