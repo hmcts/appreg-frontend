@@ -173,7 +173,13 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
 
   // Events
   private emit(): void {
-    this.onChange({ hours: this.hours, minutes: this.minutes });
+    const h = this.hours;
+    const m = this.minutes;
+
+    const value: Duration | null =
+      h === null && m === null ? null : { hours: h, minutes: m };
+
+    this.onChange(value);
     this.onValidatorChange();
   }
   onHoursInput(e: Event): void {
