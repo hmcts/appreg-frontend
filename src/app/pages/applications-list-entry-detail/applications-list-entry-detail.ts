@@ -426,51 +426,27 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
   }
 
-  get standardApplicantData() {
-    const fmt = (iso?: string | null) =>
-      iso ? new Date(iso).toLocaleDateString('en-GB') : '—';
-    return this.saItems.map((sa) => ({
-      code: sa.code ?? '',
-      name: sa.name ?? '',
-      address: sa.addressLine1 ?? '',
-      useFrom: fmt(sa.startDate),
-      useTo: fmt(sa.endDate ?? null),
-    }));
+  onSaSelected(ev: { code: string } | string): void {
+    const code = typeof ev === 'string' ? ev : ev?.code;
+    this.selectedStandardApplicantCode = code ?? null;
   }
 
   onUpdateApplicant(): void {
     this.resetErrors();
     this.formSubmitted = true;
 
-    switch (this.applicantType) {
-      case 'person': {
-        const ok = this.validatePersonSection();
-        if (!ok) {
-          this.hasFatalError = true;
-          this.errorHint = 'There is a problem';
-          this.focusErrorSummary();
-          return;
-        }
-        break;
-      }
-      case 'organisation': {
-        const ok = this.validateOrganisationSection();
-        if (!ok) {
-          this.hasFatalError = true;
-          this.errorHint = 'There is a problem';
-          this.focusErrorSummary();
-          return;
-        }
-        break;
+    if (this.applicantType === 'person') {
+      const ok = this.validatePersonSection();
+      if (!ok) {
+        this.hasFatalError = true;
+        this.errorHint = 'There is a problem';
+        this.focusErrorSummary();
+        return;
       }
     }
 
     this.formSubmitted = false;
     this.resetErrors();
-  }
-
-  onSaPageChange(p: number): void {
-    this.loadStandardApplicants(p, this.saPageSize);
   }
 
   private validatePersonSection(): boolean {
@@ -494,193 +470,48 @@ export class ApplicationsListEntryDetail implements OnInit {
       email: 'person-email-address',
     };
 
-    const add = (id: string, text: string, href: string) => {
-      this.personFieldErrors[id] = text;
-      this.errorSummary.push({ text, href });
+    const add = (id: string, msg: string) => {
+      this.personFieldErrors[id] = msg;
+      this.errorSummary.push({ text: msg, href: `#${id}` });
     };
 
     // Required
     if (!get('firstName')) {
-      add(ids.firstName, 'Enter a first name', '#person-first-name');
+      add(ids.firstName, 'Enter a first name');
     }
     if (!get('surname')) {
-      add(ids.surname, 'Enter a surname', '#person-surname');
+      add(ids.surname, 'Enter a surname');
     }
     if (!get('addressLine1')) {
-      add(ids.address1, 'Enter address line 1', '#person-address-line-1');
+      add(ids.address1, 'Enter address line 1');
     }
 
     // Optional-but-validated
     const postcode = get('postcode');
     if (postcode && !this.isValidUkPostcode(postcode)) {
-      add(
-        ids.postcode,
-        'Enter a real postcode, like SW1A 1AA',
-        '#person-postcode',
-      );
+      add(ids.postcode, 'Enter a real postcode, like SW1A 1AA');
     }
 
     const phone = get('phoneNumber');
     if (phone && !this.isValidPhone(phone)) {
-      add(
-        ids.phone,
-        'Enter a phone number in the correct format',
-        '#person-phone-number',
-      );
+      add(ids.phone, 'Enter a phone number in the correct format');
     }
 
     const mobile = get('mobileNumber');
     if (mobile && !this.isValidPhone(mobile)) {
-      add(
-        ids.mobile,
-        'Enter a mobile number in the correct format',
-        '#person-mobile-number',
-      );
+      add(ids.mobile, 'Enter a mobile number in the correct format');
     }
 
     const email = get('emailAddress');
     if (email && !this.isValidEmail(email)) {
-      add(
-        ids.email,
-        'Enter an email address in the correct format',
-        '#person-email-address',
-      );
+      add(ids.email, 'Enter an email address in the correct format');
     }
 
     return this.errorSummary.length === 0;
-  }
-
-  private validateOrganisationSection(): boolean {
-    this.organisationFieldErrors = {};
-    this.errorSummary = [];
-
-    const o = this.organisationGroup.value as Record<string, unknown>;
-    const get = (k: string) => (typeof o[k] === 'string' ? o[k].trim() : '');
-
-    const ids = {
-      name: 'org-name',
-      address1: 'org-address-line-1',
-      postcode: 'org-postcode',
-      phone: 'org-phone-number',
-      mobile: 'org-mobile-number',
-      email: 'org-email-address',
-    };
-
-    const add = (id: string, text: string, href: string) => {
-      this.organisationFieldErrors[id] = text;
-      this.errorSummary.push({ text, href });
-    };
-
-    // Required
-    if (!get('name')) {
-      add(ids.name, 'Enter an organisation name', '#org-name');
-    }
-    if (!get('addressLine1')) {
-      add(ids.address1, 'Enter address line 1', '#org-address-line-1');
-    }
-
-    // Optional-but-validated
-    const postcode = get('postcode');
-    if (postcode && !this.isValidUkPostcode(postcode)) {
-      add(
-        ids.postcode,
-        'Enter a real postcode, like SW1A 1AA',
-        '#org-postcode',
-      );
-    }
-
-    const phone = get('phoneNumber');
-    if (phone && !this.isValidPhone(phone)) {
-      add(
-        ids.phone,
-        'Enter a phone number in the correct format',
-        '#org-phone-number',
-      );
-    }
-
-    const mobile = get('mobileNumber');
-    if (mobile && !this.isValidPhone(mobile)) {
-      add(
-        ids.mobile,
-        'Enter a mobile number in the correct format',
-        '#org-mobile-number',
-      );
-    }
-
-    const email = get('emailAddress');
-    if (email && !this.isValidEmail(email)) {
-      add(
-        ids.email,
-        'Enter an email address in the correct format',
-        '#org-email-address',
-      );
-    }
-
-    return this.errorSummary.length === 0;
-  }
-
-  private loadStandardApplicants(page = 0, size = this.saPageSize): void {
-    this.saLoading = true;
-    this.saApi
-      .getStandardApplicants({ page, size }, 'body', false, {
-        context: undefined,
-        transferCache: true,
-      })
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        finalize(() => {
-          this.saLoading = false;
-        }),
-      )
-      .subscribe({
-        next: (pg) => {
-          this.saItems = pg.content ?? [];
-          this.saTotal = pg.totalElements ?? 0;
-          const sizeOfPage = pg.pageSize ?? this.saPageSize;
-          this.saTotalPages =
-            sizeOfPage > 0
-              ? this.saTotal < sizeOfPage
-                ? 0
-                : Math.ceil(this.saTotal / sizeOfPage)
-              : 0;
-          if (this.selectedStandardApplicantCode) {
-            this.saSelectedIds = new Set([this.selectedStandardApplicantCode]);
-          }
-        },
-        error: () => {
-          this.saItems = [];
-        },
-      });
-  }
-
-  private onApplicantTypeChanged(): void {
-    this.formSubmitted = false;
-    this.resetErrors();
-
-    this.selectedStandardApplicantCode = null;
-
-    this.personGroup.reset(this.EMPTY_PERSON, { emitEvent: false });
-    this.organisationGroup.reset(this.EMPTY_ORG, { emitEvent: false });
-
-    this.markGroupClean(this.personGroup);
-    this.markGroupClean(this.organisationGroup);
-
-    if (this.applicantType === 'standardApplicant') {
-      this.loadStandardApplicants(0, this.saPageSize);
-    }
-  }
-
-  private markGroupClean(group: FormGroup): void {
-    Object.values(group.controls).forEach((ctrl) => {
-      ctrl.markAsPristine();
-      ctrl.markAsUntouched();
-      ctrl.updateValueAndValidity({ onlySelf: true, emitEvent: false });
-    });
   }
 
   private resetErrors(): void {
     this.personFieldErrors = {};
-    this.organisationFieldErrors = {};
     this.errorSummary = [];
     this.errorHint = null;
     this.hasFatalError = false;
