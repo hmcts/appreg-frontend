@@ -15,7 +15,10 @@ import {
 import { AccordionComponent } from '../../shared/components/accordion/accordion.component';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
-import { ErrorSummaryComponent } from '../../shared/components/error-summary/error-summary.component';
+import {
+  ErrorItem,
+  ErrorSummaryComponent,
+} from '../../shared/components/error-summary/error-summary.component';
 import { OrganisationSectionComponent } from '../../shared/components/organisation-section/organisation-section.component';
 import { PersonSectionComponent } from '../../shared/components/person-section/person-section.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
@@ -262,6 +265,36 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.resetErrors();
   }
 
+  onErrorItemClick(err: ErrorItem): void {
+    if (!err?.href) {
+      return;
+    }
+    const id = err.href.startsWith('#') ? err.href.slice(1) : err.href;
+
+    if (typeof window === 'undefined') {
+      return;
+    }
+    setTimeout(() => {
+      const el = document.getElementById(id) as
+        | HTMLInputElement
+        | HTMLTextAreaElement
+        | null;
+      if (!el) {
+        return;
+      }
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.focus?.();
+      if ('setSelectionRange' in el && typeof el.value === 'string') {
+        const end = el.value.length;
+        try {
+          el.setSelectionRange(end, end);
+        } catch {
+          /* empty */
+        }
+      }
+    });
+  }
+
   private validatePersonSection(): boolean {
     this.personFieldErrors = {};
     this.errorSummary = [];
@@ -283,36 +316,48 @@ export class ApplicationsListEntryDetail implements OnInit {
       email: 'person-email-address',
     };
 
-    const add = (id: string, msg: string) => {
-      this.personFieldErrors[id] = msg;
-      this.errorSummary.push({ text: msg, href: `#${id}` });
+    const add = (id: string, text: string, href: string) => {
+      this.personFieldErrors[id] = text;
+      this.errorSummary.push({ text, href });
     };
 
     // Required
     if (!get('firstName')) {
-      add(ids.firstName, 'Enter a first name');
+      add(ids.firstName, 'Enter a first name', '#person-first-name');
     }
     if (!get('surname')) {
-      add(ids.surname, 'Enter a surname');
+      add(ids.surname, 'Enter a surname', '#person-surname');
     }
     if (!get('addressLine1')) {
-      add(ids.address1, 'Enter address line 1');
+      add(ids.address1, 'Enter address line 1', '#person-address-line-1');
     }
 
     // Optional-but-validated
     const postcode = get('postcode');
     if (postcode && !this.isValidUkPostcode(postcode)) {
-      add(ids.postcode, 'Enter a real postcode, like SW1A 1AA');
+      add(
+        ids.postcode,
+        'Enter a real postcode, like SW1A 1AA',
+        '#person-postcode',
+      );
     }
 
     const phone = get('phoneNumber');
     if (phone && !this.isValidPhone(phone)) {
-      add(ids.phone, 'Enter a phone number in the correct format');
+      add(
+        ids.phone,
+        'Enter a phone number in the correct format',
+        '#person-phone-number',
+      );
     }
 
     const mobile = get('mobileNumber');
     if (mobile && !this.isValidPhone(mobile)) {
-      add(ids.mobile, 'Enter a mobile number in the correct format');
+      add(
+        ids.mobile,
+        'Enter a mobile number in the correct format',
+        '#person-mobile-number',
+      );
     }
 
     const email = get('emailAddress');
@@ -320,6 +365,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       add(
         ids.email,
         'Enter an email address in the correct format',
+        '#person-email-address',
       );
     }
 
