@@ -212,16 +212,12 @@ export class TableHelper {
     cy.log(`Searching for row in table "${caption}" with: ${searchCriteria}`);
 
     return this.findRowWithValues(caption, columnValues, true).then((found) => {
-      expect(
-        found,
-        `Row should exist in table "${caption}" with values: ${searchCriteria}`,
-      ).to.be.true;
-
-      if (found) {
-        cy.log(`✓ Row found with: ${searchCriteria}`);
-      }
-
-      return cy.wrap(found);
+      return cy.wrap(found).should('be.true', `Row should exist in table "${caption}" with values: ${searchCriteria}`).then(() => {
+        if (found) {
+          cy.log(`✓ Row found with: ${searchCriteria}`);
+        }
+        return found;
+      });
     });
   }
 
@@ -231,14 +227,12 @@ export class TableHelper {
    * @param headerText The header text to check
    */
   static verifyHeaderIsNotSortable(caption: string, headerText: string): void {
+    cy.log(`Verifying header "${headerText}" is NOT sortable`);
     TableElement.findTableByCaption(caption)
       .find('thead th')
       .contains(headerText)
       .closest('th')
-      .should('not.have.attr', 'aria-sort')
-      .then(() => {
-        cy.log(`✓ Header "${headerText}" is NOT sortable`);
-      });
+      .should('not.have.attr', 'aria-sort');
   }
 
   /**
@@ -258,11 +252,7 @@ export class TableHelper {
         .find('thead th')
         .contains(headerText)
         .closest('th')
-        .should('have.attr', 'aria-sort')
-        .then(($th) => {
-          const ariaSort = Cypress.$($th).attr('aria-sort');
-          cy.log(`✓ "${headerText}" is sortable (aria-sort="${ariaSort}")`);
-        });
+        .should('have.attr', 'aria-sort');
     }
   }
 
@@ -295,15 +285,11 @@ export class TableHelper {
     headerText: string,
     expectedSortOrder: 'none' | 'ascending' | 'descending',
   ): void {
+    cy.log(`Verifying header "${headerText}" has sort order: "${expectedSortOrder}"`);
     TableElement.findTableByCaption(caption)
       .find('thead th')
       .contains(headerText)
       .closest('th')
-      .should('have.attr', 'aria-sort', expectedSortOrder)
-      .then(() => {
-        cy.log(
-          `✓ Header "${headerText}" has sort order: "${expectedSortOrder}"`,
-        );
-      });
+      .should('have.attr', 'aria-sort', expectedSortOrder);
   }
 }
