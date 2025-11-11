@@ -122,6 +122,20 @@ export class ApplicationsListEntryDetail implements OnInit {
     { value: 'other', label: 'Other' },
   ];
 
+  private readonly EMPTY_PERSON = {
+    title: '', firstName: '', middleNames: '', surname: '',
+    addressLine1: '', addressLine2: '', addressLine3: '',
+    addressLine4: '', addressLine5: '', postcode: '',
+    phoneNumber: '', mobileNumber: '', emailAddress: ''
+  };
+
+  private readonly EMPTY_ORG = {
+    name: '', addressLine1: '', addressLine2: '', addressLine3: '',
+    addressLine4: '', addressLine5: '', postcode: '',
+    phoneNumber: '', mobileNumber: '', emailAddress: ''
+  };
+
+
   constructor(
     private readonly fb: FormBuilder,
     @Inject(PLATFORM_ID) private readonly platformId: object,
@@ -205,6 +219,10 @@ export class ApplicationsListEntryDetail implements OnInit {
       officialFirstName: [''],
       officialSurname: [''],
     });
+
+    this.form.get('applicantEntryType')!
+      .valueChanges
+      .subscribe(() => this.onApplicantTypeChanged());
 
     this.loadEntryAndPatchForm();
   }
@@ -455,8 +473,30 @@ export class ApplicationsListEntryDetail implements OnInit {
     return this.errorSummary.length === 0;
   }
 
+  private onApplicantTypeChanged(): void {
+    this.formSubmitted = false;
+    this.resetErrors();
+
+    this.selectedStandardApplicantCode = null;
+
+    this.personGroup.reset(this.EMPTY_PERSON, { emitEvent: false });
+    this.organisationGroup.reset(this.EMPTY_ORG, { emitEvent: false });
+
+    this.markGroupClean(this.personGroup);
+    this.markGroupClean(this.organisationGroup);
+  }
+
+  private markGroupClean(group: FormGroup): void {
+    Object.values(group.controls).forEach(ctrl => {
+      ctrl.markAsPristine();
+      ctrl.markAsUntouched();
+      ctrl.updateValueAndValidity({ onlySelf: true, emitEvent: false });
+    });
+  }
+
   private resetErrors(): void {
     this.personFieldErrors = {};
+    this.organisationFieldErrors = {};
     this.errorSummary = [];
     this.errorHint = null;
     this.hasFatalError = false;
@@ -516,33 +556,31 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   private hydrateFromDto(dto: EntryGetDetailDto): void {
-    // Prefer Standard Applicant if a code is present
     const sa = (dto.standardApplicantCode ?? '').toString().trim();
     if (sa) {
-      this.setApplicantType('standardApplicant');
-      // Clear any stale typed data (if navigating back from a different type)
-      this.personGroup.reset({});
-      this.organisationGroup.reset({});
+      this.setApplicantType('standardApplicant', { emit: false });
+      this.selectedStandardApplicantCode = sa;
+      this.personGroup.reset(this.EMPTY_PERSON, { emitEvent: false });
+      this.organisationGroup.reset(this.EMPTY_ORG, { emitEvent: false });
       return;
     }
 
     const a: Applicant | undefined = dto.applicant;
     if (a?.person) {
-      this.setApplicantType('person');
+      this.setApplicantType('person', { emit: false });
       this.patchPerson(a.person);
       return;
     }
     if (a?.organisation) {
-      this.setApplicantType('organisation');
+      this.setApplicantType('organisation', { emit: false });
       this.patchOrganisation(a.organisation);
       return;
     }
   }
 
-  private setApplicantType(
-    type: 'person' | 'organisation' | 'standardApplicant',
-  ): void {
-    this.form.patchValue({ applicantEntryType: type });
+  private setApplicantType(type: ApplicantType, opts?: { emit?: boolean }): void {
+    this.form.get('applicantEntryType')!
+      .setValue(type, { emitEvent: opts?.emit !== false });
   }
 
   private patchPerson(p: Person): void {
@@ -695,7 +733,6 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     this.hasFatalError = true;
 
-    // Move focus to the error summary for accessibility (no unnecessary assertions)
     if (isPlatformBrowser(this.platformId)) {
       setTimeout(() => {
         const el = document.querySelector<HTMLElement>(
