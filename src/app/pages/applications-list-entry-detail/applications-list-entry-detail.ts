@@ -551,7 +551,6 @@ export class ApplicationsListEntryDetail implements OnInit {
                 ? 0
                 : Math.ceil(this.saTotal / sizeOfPage)
               : 0;
-          console.log('saTotalPages', this.saTotalPages);
           if (this.selectedStandardApplicantCode) {
             this.saSelectedIds = new Set([this.selectedStandardApplicantCode]);
           }
