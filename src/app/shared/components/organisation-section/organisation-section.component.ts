@@ -12,4 +12,6 @@ import { TextInputComponent } from '../text-input/text-input.component';
 })
 export class OrganisationSectionComponent {
   @Input({ required: true }) group!: FormGroup;
+  @Input() submitted = false;
+  @Input() errors: Record<string, string> = {};
 }
