@@ -1,16 +1,85 @@
 #!groovy
 
 properties([
-// H allow predefined but random minute see https://en.wikipedia.org/wiki/Cron#Non-standard_characters
-pipelineTriggers([cron('H 07 * * 1-5')])
+  // Run at 7am on weekdays for nightly functional tests
+  pipelineTriggers([cron('H 07 * * 1-5')])
 ])
 
 @Library("Infrastructure")
 
-def type = "nodejs"
-def product = "rpe"
-def component = "appreg-frotend"
+def type = "angular"
+def product = "appreg"
+def component = "frontend"
+
+def secrets = [
+        'appreg-${env}': [
+                secret('POSTGRES-USER', 'DB_USER'),
+                secret('POSTGRES-PASS', 'DB_PASSWORD'),
+                secret('POSTGRES-HOST', 'DB_HOST'),
+                secret('POSTGRES-PORT', 'DB_PORT'),
+                secret('POSTGRES-DATABASE', 'DB_NAME'),
+                secret('TEST-USER1-EMAIL', 'TEST_USER1_EMAIL'),
+                secret('TEST-USER2-EMAIL', 'TEST_USER2_EMAIL'),
+                secret('TEST-USER3-EMAIL', 'TEST_USER3_EMAIL'),
+                secret('TEST-ADMIN1-EMAIL', 'TEST_ADMIN1_EMAIL'),
+                secret('TEST-ADMIN2-EMAIL', 'TEST_ADMIN2_EMAIL'),
+                secret('TEST-ADMIN3-EMAIL', 'TEST_ADMIN3_EMAIL'),
+                secret('TEST-USERS-PASSWORD', 'TEST_USERS_PASSWORD'),
+        ]
+]
+
+static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
+  [$class     : 'AzureKeyVaultSecret',
+   secretType : 'Secret',
+   name       : secretName,
+   version    : '',
+   envVariable: envVar
+  ]
+}
 
 withNightlyPipeline(type, product, component) {
+  loadVaultSecrets(secrets)
+  enableSlackNotifications('#appreg-builds')
 
+  before('functionalTest:aat') {
+    env.CYPRESS_TAGS = "smoke or regression"
+  }
+
+  afterAlways('functionalTest:aat') {
+    script {
+      def testResult = sh(script: 'yarn test:functional', returnStatus: true)
+      
+      sh 'node cypress/scripts/generate-reports.js || true'
+      
+      archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/**/*'
+      archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/screenshots/**/*.png'
+      archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/junit/**/*.xml'
+      
+      junit allowEmptyResults: true, testResults: 'cypress/reports/junit/**/*.xml'
+      
+      publishHTML([
+        allowMissing: true,
+        alwaysLinkToLastBuild: true,
+        keepAll: true,
+        reportDir: 'cypress/reports/cucumber-html',
+        reportFiles: 'index.html',
+        reportName: 'Cucumber Report',
+        reportTitles: 'Cucumber Test Report'
+      ])
+      
+      publishHTML([
+        allowMissing: true,
+        alwaysLinkToLastBuild: true,
+        keepAll: true,
+        reportDir: 'cypress/reports',
+        reportFiles: 'mochawesome.html',
+        reportName: 'Mochaware Report',
+        reportTitles: 'Mochawesome Test Report'
+      ])
+      
+      if (testResult != 0) {
+        error("Functional tests failed with exit code ${testResult}")
+      }
+    }
+  }
 }
