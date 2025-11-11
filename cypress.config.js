@@ -54,13 +54,11 @@ module.exports = defineConfig({
   e2e: {
     reporter: 'cypress-mochawesome-reporter',
     reporterOptions: {
-      reportFilename: '[datetime]-[name]-report',
-      reportDir: 'cypress/reports/e2e/html',
-      embeddedScreenshots: true,
-      charts: true,
+      reportDir: 'cypress/reports',
       reportPageTitle: 'AppregFrontend E2E Test Results',
+      embeddedScreenshots: true,
       inlineAssets: true,
-      saveAllAttempts: false,
+      autoOpen: false,
     },
     // Test Files Configuration
     specPattern: 'cypress/e2e/**/*.feature',
@@ -80,7 +78,7 @@ module.exports = defineConfig({
     // Report and Media Settings
     video: false,
     screenshotOnRunFailure: true,
-    screenshotsFolder: 'cypress/reports/html/screenshots',
+    screenshotsFolder: 'cypress/reports/screenshots',
     async setupNodeEvents(on, config) {
       // Custom task to log accessibility violations
       on('task', {

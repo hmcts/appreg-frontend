@@ -57,11 +57,11 @@ const apiBase: string = config.get<string>('api.baseUrl');
 const clientId = config.get<string>('secrets.appreg.azure-app-id-fe');
 const apiScopes: string[] = clientId ? [`api://${clientId}/frontend`] : [];
 
-// ----- Platform modules
+// Platform modules
 new Helmet(developmentMode).enableFor(app);
 AppInsights.enable();
 
-// ---- helpers
+// helpers
 const logger: HmctsLogger = HmctsLoggerBridge.enable(
   'hmcts applications register - server',
   AppInsights.client(),
