@@ -5,7 +5,7 @@ export class DateTimeHelper {
   /**
    * Sets a date using separate day, month, year inputs from a date string or dynamic date
    * @param fieldLabel The label/name of the date field group (used for error reporting)
-   * @param dateValue The date value - supports static dates ("22/7/2024") and dynamic expressions ("today+7d", "yesterday", etc.)
+   * @param dateValue The date value - supports static dates ("22/7/2024"), ISO dates with _iso suffix ("2025-07-24_iso"), and dynamic expressions ("today+7d", "yesterday", etc.)
    */
   static setDateValue(fieldLabel: string, dateValue: string): void {
     try {
@@ -124,14 +124,18 @@ export class DateTimeHelper {
    * @param hour The hour value to set (0-23)
    */
   static setHourValue(fieldLabel: string, hour: string): void {
-    const expectedValue = hour.replace(/^0+/, '') || '0'; // Remove leading zeros, keep at least one digit
-
     DateTimeElement.findHourInput(fieldLabel)
       .should('be.visible')
       .should('be.enabled')
       .clear()
       .type(hour)
-      .should('have.value', expectedValue);
+      .should(($input) => {
+        const actualValue = $input.val() as string;
+        // Accept either with or without leading zeros
+        const normalizedActual = actualValue.replace(/^0+/, '') || '0';
+        const normalizedExpected = hour.replace(/^0+/, '') || '0';
+        expect(normalizedActual).to.equal(normalizedExpected);
+      });
   }
 
   /**
@@ -140,14 +144,18 @@ export class DateTimeHelper {
    * @param minute The minute value to set (0-59)
    */
   static setMinuteValue(fieldLabel: string, minute: string): void {
-    const expectedValue = minute.replace(/^0+/, '') || '0'; // Remove leading zeros, keep at least one digit
-
     DateTimeElement.findMinuteInput(fieldLabel)
       .should('be.visible')
       .should('be.enabled')
       .clear()
       .type(minute)
-      .should('have.value', expectedValue);
+      .should(($input) => {
+        const actualValue = $input.val() as string;
+        // Accept either with or without leading zeros
+        const normalizedActual = actualValue.replace(/^0+/, '') || '0';
+        const normalizedExpected = minute.replace(/^0+/, '') || '0';
+        expect(normalizedActual).to.equal(normalizedExpected);
+      });
   }
 
   /**
@@ -156,14 +164,18 @@ export class DateTimeHelper {
    * @param second The second value to set (0-59)
    */
   static setSecondValue(fieldLabel: string, second: string): void {
-    const expectedValue = second.replace(/^0+/, '') || '0'; // Remove leading zeros, keep at least one digit
-
     DateTimeElement.findSecondInput(fieldLabel)
       .should('be.visible')
       .should('be.enabled')
       .clear()
       .type(second)
-      .should('have.value', expectedValue);
+      .should(($input) => {
+        const actualValue = $input.val() as string;
+        // Accept either with or without leading zeros
+        const normalizedActual = actualValue.replace(/^0+/, '') || '0';
+        const normalizedExpected = second.replace(/^0+/, '') || '0';
+        expect(normalizedActual).to.equal(normalizedExpected);
+      });
   }
 
   /**

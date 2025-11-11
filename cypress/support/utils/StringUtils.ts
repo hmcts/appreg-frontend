@@ -7,9 +7,6 @@ export class StringUtils {
    * @returns Normalized text with single spaces and trimmed
    */
   static normalizeText(text: string): string {
-    return text
-      .replace(/&nbsp;/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
+    return text.replaceAll('&nbsp;', ' ').replaceAll(/\s+/g, ' ').trim();
   }
 }
