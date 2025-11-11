@@ -1,4 +1,5 @@
 import { TextboxElement } from '../../../pageobjects/generic/textbox/TextboxElement';
+/// <reference types="cypress" />
 
 export class TextboxHelper {
   /**
@@ -73,7 +74,7 @@ export class TextboxHelper {
       .clear()
       .type(text);
 
-    cy.contains(optionText, { matchCase: false }).should('be.visible').click();
+        cy.contains(optionText, { matchCase: false }).should('be.visible').click();
   }
 
   /**
