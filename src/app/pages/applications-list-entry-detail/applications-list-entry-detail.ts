@@ -435,13 +435,26 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.resetErrors();
     this.formSubmitted = true;
 
-    if (this.applicantType === 'person') {
-      const ok = this.validatePersonSection();
-      if (!ok) {
-        this.hasFatalError = true;
-        this.errorHint = 'There is a problem';
-        this.focusErrorSummary();
-        return;
+    switch (this.applicantType) {
+      case 'person': {
+        const ok = this.validatePersonSection();
+        if (!ok) {
+          this.hasFatalError = true;
+          this.errorHint = 'There is a problem';
+          this.focusErrorSummary();
+          return;
+        }
+        break;
+      }
+      case 'organisation': {
+        const ok = this.validateOrganisationSection();
+        if (!ok) {
+          this.hasFatalError = true;
+          this.errorHint = 'There is a problem';
+          this.focusErrorSummary();
+          return;
+        }
+        break;
       }
     }
 
@@ -520,6 +533,75 @@ export class ApplicationsListEntryDetail implements OnInit {
         ids.email,
         'Enter an email address in the correct format',
         '#person-email-address',
+      );
+    }
+
+    return this.errorSummary.length === 0;
+  }
+
+  private validateOrganisationSection(): boolean {
+    this.organisationFieldErrors = {};
+    this.errorSummary = [];
+
+    const o = this.organisationGroup.value as Record<string, unknown>;
+    const get = (k: string) => (typeof o[k] === 'string' ? o[k].trim() : '');
+
+    const ids = {
+      name: 'org-name',
+      address1: 'org-address-line-1',
+      postcode: 'org-postcode',
+      phone: 'org-phone-number',
+      mobile: 'org-mobile-number',
+      email: 'org-email-address',
+    };
+
+    const add = (id: string, text: string, href: string) => {
+      this.organisationFieldErrors[id] = text;
+      this.errorSummary.push({ text, href });
+    };
+
+    // Required
+    if (!get('name')) {
+      add(ids.name, 'Enter an organisation name', '#org-name');
+    }
+    if (!get('addressLine1')) {
+      add(ids.address1, 'Enter address line 1', '#org-address-line-1');
+    }
+
+    // Optional-but-validated
+    const postcode = get('postcode');
+    if (postcode && !this.isValidUkPostcode(postcode)) {
+      add(
+        ids.postcode,
+        'Enter a real postcode, like SW1A 1AA',
+        '#org-postcode',
+      );
+    }
+
+    const phone = get('phoneNumber');
+    if (phone && !this.isValidPhone(phone)) {
+      add(
+        ids.phone,
+        'Enter a phone number in the correct format',
+        '#org-phone-number',
+      );
+    }
+
+    const mobile = get('mobileNumber');
+    if (mobile && !this.isValidPhone(mobile)) {
+      add(
+        ids.mobile,
+        'Enter a mobile number in the correct format',
+        '#org-mobile-number',
+      );
+    }
+
+    const email = get('emailAddress');
+    if (email && !this.isValidEmail(email)) {
+      add(
+        ids.email,
+        'Enter an email address in the correct format',
+        '#org-email-address',
       );
     }
 
