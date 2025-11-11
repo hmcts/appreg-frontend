@@ -36,6 +36,10 @@ Feature: Applications List Search
     Then User Clears The "Court" Textbox
     Then User Enters "01" Into The "CJA" Textbox
     Then User Should See The Textbox "Court" Is Disabled
+    # Clear CJA and verify Other location field disables Court when typing
+    Then User Clears The "CJA" Textbox
+    Then User Enters "Test Location" Into The "Other location" Textbox
+    Then User Should See The Textbox "Court" Is Disabled
 
   @regression @ARCPOC-452
   Scenario Outline: Verify applications list search validation
