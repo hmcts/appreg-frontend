@@ -212,12 +212,18 @@ export class TableHelper {
     cy.log(`Searching for row in table "${caption}" with: ${searchCriteria}`);
 
     return this.findRowWithValues(caption, columnValues, true).then((found) => {
-      return cy.wrap(found).should('be.true', `Row should exist in table "${caption}" with values: ${searchCriteria}`).then(() => {
-        if (found) {
-          cy.log(`✓ Row found with: ${searchCriteria}`);
-        }
-        return found;
-      });
+      return cy
+        .wrap(found)
+        .should(
+          'be.true',
+          `Row should exist in table "${caption}" with values: ${searchCriteria}`,
+        )
+        .then(() => {
+          if (found) {
+            cy.log(`✓ Row found with: ${searchCriteria}`);
+          }
+          return found;
+        });
     });
   }
 
@@ -285,7 +291,9 @@ export class TableHelper {
     headerText: string,
     expectedSortOrder: 'none' | 'ascending' | 'descending',
   ): void {
-    cy.log(`Verifying header "${headerText}" has sort order: "${expectedSortOrder}"`);
+    cy.log(
+      `Verifying header "${headerText}" has sort order: "${expectedSortOrder}"`,
+    );
     TableElement.findTableByCaption(caption)
       .find('thead th')
       .contains(headerText)
