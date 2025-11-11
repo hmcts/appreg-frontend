@@ -36,6 +36,8 @@ import {
   FullName,
   Organisation,
   Person,
+  StandardApplicantGetSummaryDto,
+  StandardApplicantsApi,
 } from '../../../generated/openapi';
 import { AccordionComponent } from '../../shared/components/accordion/accordion.component';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
@@ -116,6 +118,7 @@ interface ProblemDetails {
     PaginationComponent,
     NotificationBannerComponent,
     SuccessBannerComponent,
+    PaginationComponent,
   ],
   templateUrl: './applications-list-entry-detail.html',
 })
@@ -128,6 +131,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   form!: FormGroup;
   formSubmitted = false;
+
   selectedStandardApplicantCode: string | null = null;
   personFieldErrors: Record<string, string> = {};
   organisationFieldErrors: Record<string, string> = {};
@@ -159,18 +163,35 @@ export class ApplicationsListEntryDetail implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   private readonly EMPTY_PERSON = {
-    title: '', firstName: '', middleNames: '', surname: '',
-    addressLine1: '', addressLine2: '', addressLine3: '',
-    addressLine4: '', addressLine5: '', postcode: '',
-    phoneNumber: '', mobileNumber: '', emailAddress: ''
+    title: '',
+    firstName: '',
+    middleNames: '',
+    surname: '',
+    addressLine1: '',
+    addressLine2: '',
+    addressLine3: '',
+    addressLine4: '',
+    addressLine5: '',
+    postcode: '',
+    phoneNumber: '',
+    mobileNumber: '',
+    emailAddress: '',
   };
 
   private readonly EMPTY_ORG = {
-    name: '', addressLine1: '', addressLine2: '', addressLine3: '',
-    addressLine4: '', addressLine5: '', postcode: '',
-    phoneNumber: '', mobileNumber: '', emailAddress: ''
+    name: '',
+    addressLine1: '',
+    addressLine2: '',
+    addressLine3: '',
+    addressLine4: '',
+    addressLine5: '',
+    postcode: '',
+    phoneNumber: '',
+    mobileNumber: '',
+    emailAddress: '',
   };
 
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor(
     @Inject(PLATFORM_ID) private readonly platformId: object,
@@ -180,6 +201,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     private readonly saApi: StandardApplicantsApi,
     private readonly codesApi: ApplicationCodesApi,
     private readonly fb: NonNullableFormBuilder,
+    private readonly saApi: StandardApplicantsApi,
   ) {}
 
   ngOnInit(): void {
@@ -202,8 +224,9 @@ export class ApplicationsListEntryDetail implements OnInit {
     // Initial load for Codes section (lodgementDate + applicationCode/title)
     this.loadCodesSection();
 
-    this.form.get('applicantEntryType')!
-      .valueChanges
+    this.form
+      .get('applicantEntryType')!
+      .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.onApplicantTypeChanged());
 
     this.loadEntryAndPatchForm();
@@ -446,9 +469,16 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
   }
 
-  onSaSelected(ev: { code: string } | string): void {
-    const code = typeof ev === 'string' ? ev : ev?.code;
-    this.selectedStandardApplicantCode = code ?? null;
+  get standardApplicantData() {
+    const fmt = (iso?: string | null) =>
+      iso ? new Date(iso).toLocaleDateString('en-GB') : '—';
+    return this.saItems.map((sa) => ({
+      code: sa.code ?? '',
+      name: sa.name ?? '',
+      address: sa.addressLine1 ?? '',
+      useFrom: fmt(sa.startDate),
+      useTo: fmt(sa.endDate ?? null),
+    }));
   }
 
   onUpdateApplicant(): void {
@@ -480,6 +510,10 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     this.formSubmitted = false;
     this.resetErrors();
+  }
+
+  onSaPageChange(p: number): void {
+    this.loadStandardApplicants(p, this.saPageSize);
   }
 
   private validatePersonSection(): boolean {
@@ -628,6 +662,41 @@ export class ApplicationsListEntryDetail implements OnInit {
     return this.errorSummary.length === 0;
   }
 
+  private loadStandardApplicants(page = 0, size = this.saPageSize): void {
+    this.saLoading = true;
+    this.saApi
+      .getStandardApplicants({ page, size }, 'body', false, {
+        context: undefined,
+        transferCache: true,
+      })
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => {
+          this.saLoading = false;
+        }),
+      )
+      .subscribe({
+        next: (pg) => {
+          this.saItems = pg.content ?? [];
+          this.saTotal = pg.totalElements ?? 0;
+          const sizeOfPage = pg.pageSize ?? this.saPageSize;
+          this.saTotalPages =
+            sizeOfPage > 0
+              ? this.saTotal < sizeOfPage
+                ? 0
+                : Math.ceil(this.saTotal / sizeOfPage)
+              : 0;
+          console.log('saTotalPages', this.saTotalPages);
+          if (this.selectedStandardApplicantCode) {
+            this.saSelectedIds = new Set([this.selectedStandardApplicantCode]);
+          }
+        },
+        error: () => {
+          this.saItems = [];
+        },
+      });
+  }
+
   private onApplicantTypeChanged(): void {
     this.formSubmitted = false;
     this.resetErrors();
@@ -639,10 +708,14 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     this.markGroupClean(this.personGroup);
     this.markGroupClean(this.organisationGroup);
+
+    if (this.applicantType === 'standardApplicant') {
+      this.loadStandardApplicants(0, this.saPageSize);
+    }
   }
 
   private markGroupClean(group: FormGroup): void {
-    Object.values(group.controls).forEach(ctrl => {
+    Object.values(group.controls).forEach((ctrl) => {
       ctrl.markAsPristine();
       ctrl.markAsUntouched();
       ctrl.updateValueAndValidity({ onlySelf: true, emitEvent: false });
