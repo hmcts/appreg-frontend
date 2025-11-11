@@ -158,6 +158,20 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   private readonly destroyRef = inject(DestroyRef);
 
+  private readonly EMPTY_PERSON = {
+    title: '', firstName: '', middleNames: '', surname: '',
+    addressLine1: '', addressLine2: '', addressLine3: '',
+    addressLine4: '', addressLine5: '', postcode: '',
+    phoneNumber: '', mobileNumber: '', emailAddress: ''
+  };
+
+  private readonly EMPTY_ORG = {
+    name: '', addressLine1: '', addressLine2: '', addressLine3: '',
+    addressLine4: '', addressLine5: '', postcode: '',
+    phoneNumber: '', mobileNumber: '', emailAddress: ''
+  };
+
+
   constructor(
     @Inject(PLATFORM_ID) private readonly platformId: object,
     private readonly route: ActivatedRoute,
@@ -187,6 +201,12 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     // Initial load for Codes section (lodgementDate + applicationCode/title)
     this.loadCodesSection();
+
+    this.form.get('applicantEntryType')!
+      .valueChanges
+      .subscribe(() => this.onApplicantTypeChanged());
+
+    this.loadEntryAndPatchForm();
   }
 
   // ——— UI handlers ———
@@ -608,8 +628,30 @@ export class ApplicationsListEntryDetail implements OnInit {
     return this.errorSummary.length === 0;
   }
 
+  private onApplicantTypeChanged(): void {
+    this.formSubmitted = false;
+    this.resetErrors();
+
+    this.selectedStandardApplicantCode = null;
+
+    this.personGroup.reset(this.EMPTY_PERSON, { emitEvent: false });
+    this.organisationGroup.reset(this.EMPTY_ORG, { emitEvent: false });
+
+    this.markGroupClean(this.personGroup);
+    this.markGroupClean(this.organisationGroup);
+  }
+
+  private markGroupClean(group: FormGroup): void {
+    Object.values(group.controls).forEach(ctrl => {
+      ctrl.markAsPristine();
+      ctrl.markAsUntouched();
+      ctrl.updateValueAndValidity({ onlySelf: true, emitEvent: false });
+    });
+  }
+
   private resetErrors(): void {
     this.personFieldErrors = {};
+    this.organisationFieldErrors = {};
     this.errorSummary = [];
     this.errorHint = null;
     this.hasFatalError = false;
