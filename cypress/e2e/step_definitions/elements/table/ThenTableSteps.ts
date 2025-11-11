@@ -30,9 +30,9 @@ Then(
     }
 
     // Verify each row in the data table
-    rows.forEach((row: Record<string, string>) => {
+    for (const row of rows) {
       TableHelper.verifyRowExists(tableCaption, row);
-    });
+    }
   },
 );
 

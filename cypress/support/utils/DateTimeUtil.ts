@@ -80,7 +80,7 @@ export class DateTimeUtil {
     if (arithmeticMatch) {
       const baseKeyword = arithmeticMatch[1];
       const operator = arithmeticMatch[2];
-      const amount = parseInt(arithmeticMatch[3]);
+      const amount = Number.parseInt(arithmeticMatch[3]);
       const unit = arithmeticMatch[4].toLowerCase();
 
       const modifier = operator === '+' ? amount : -amount;
@@ -131,7 +131,7 @@ export class DateTimeUtil {
           const year = parts[0];
           const month = parts[1];
           const day = parts[2];
-          return `${parseInt(day)}/${parseInt(month)}/${year}`;
+          return `${Number.parseInt(day)}/${Number.parseInt(month)}/${year}`;
         }
       }
     }

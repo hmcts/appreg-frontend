@@ -34,111 +34,166 @@ export class TableHelper {
     columnValues: Record<string, string>,
     searchAllPages: boolean = true,
   ): Cypress.Chainable<boolean> {
-    return cy.then(() => {
-      const searchInCurrentPage = (): Cypress.Chainable<boolean> => {
-        return TableElement.getTableHeaders(caption).then(($headers) => {
-          // Build column index map
-          const columnIndexMap: Record<string, number> = {};
-          $headers.each((index: number, header: HTMLElement) => {
-            const headerText = Cypress.$(header).text().trim();
-            columnIndexMap[headerText] = index;
-          });
+    return cy.then(() =>
+      this.searchWithPagination(caption, columnValues, searchAllPages),
+    );
+  }
 
-          // Search for matching row
-          return TableElement.getTableRows(caption).then(($rows) => {
-            let found = false;
-
-            $rows.each((_rowIndex: number, row: HTMLElement) => {
-              const $row = Cypress.$(row);
-              let rowMatches = true;
-              const rowData: Record<string, string> = {};
-
-              // Check if all specified columns match
-              Object.entries(columnValues).forEach(
-                ([columnName, expectedValue]) => {
-                  const columnIndex = columnIndexMap[columnName];
-                  if (columnIndex === undefined) {
-                    throw new Error(
-                      `Column "${columnName}" not found in table "${caption}"`,
-                    );
-                  }
-
-                  const cellText = $row
-                    .find('td, th')
-                    .eq(columnIndex)
-                    .text()
-                    .trim();
-                  rowData[columnName] = cellText;
-
-                  // Try exact match first
-                  let isMatch = cellText === expectedValue;
-
-                  if (isMatch) {
-                    cy.log(
-                      `✓ Exact match in column "${columnName}": "${cellText}"`,
-                    );
-                  } else {
-                    // Try case-insensitive match as fallback
-                    const caseInsensitiveMatch =
-                      cellText.toLowerCase() === expectedValue.toLowerCase();
-                    if (caseInsensitiveMatch) {
-                      cy.log(
-                        `⚠ Case-insensitive match in column "${columnName}": expected "${expectedValue}", found "${cellText}"`,
-                      );
-                      isMatch = true;
-                    } else {
-                      cy.log(
-                        `✗ Mismatch in column "${columnName}": expected "${expectedValue}", found "${cellText}"`,
-                      );
-                      rowMatches = false;
-                    }
-                  }
-                },
-              );
-
-              if (rowMatches) {
-                found = true;
-                return false; // break the loop
-              }
-            });
-
-            return cy.wrap(found);
-          });
-        });
-      };
-
-      const searchWithPagination = (): Cypress.Chainable<boolean> => {
-        return searchInCurrentPage().then((found) => {
-          if (found) {
-            return cy.wrap(true);
-          }
-
-          // Check if next page button exists (try multiple common selectors)
-          return cy.get('body').then(($body) => {
-            let $nextButton = $body.find('a[rel="next"]');
-
-            if ($nextButton.length === 0) {
-              $nextButton = $body.find('a:contains("Next")');
-            }
-
-            if ($nextButton.length === 0) {
-              $nextButton = $body.find('button:contains("Next")');
-            }
-
-            if ($nextButton.length > 0 && searchAllPages) {
-              cy.log('Row not found on current page, checking next page...');
-              cy.wrap($nextButton.first()).click();
-              cy.wait(500); // Wait for page to load
-              return searchWithPagination(); // Recursive search
-            } else {
-              return cy.wrap(false);
-            }
-          });
-        });
-      };
-
-      return searchWithPagination();
+  /**
+   * Searches through pages recursively
+   * @private
+   */
+  private static searchWithPagination(
+    caption: string,
+    columnValues: Record<string, string>,
+    searchAllPages: boolean,
+  ): Cypress.Chainable<boolean> {
+    return this.searchInCurrentPage(caption, columnValues).then((found) => {
+      if (found) {
+        return cy.wrap(true);
+      }
+      return this.navigateToNextPage(caption, columnValues, searchAllPages);
     });
+  }
+
+  /**
+   * Searches for matching row in current page
+   * @private
+   */
+  private static searchInCurrentPage(
+    caption: string,
+    columnValues: Record<string, string>,
+  ): Cypress.Chainable<boolean> {
+    return TableElement.getTableHeaders(caption).then(($headers) => {
+      const columnIndexMap = this.buildColumnIndexMap($headers);
+      return this.searchRowsInTable(caption, columnValues, columnIndexMap);
+    });
+  }
+
+  /**
+   * Builds a map of column names to their indices
+   * @private
+   */
+  private static buildColumnIndexMap(
+    $headers: JQuery<HTMLElement>,
+  ): Record<string, number> {
+    const columnIndexMap: Record<string, number> = {};
+    $headers.each((index: number, header: HTMLElement) => {
+      const headerText = Cypress.$(header).text().trim();
+      columnIndexMap[headerText] = index;
+    });
+    return columnIndexMap;
+  }
+
+  /**
+   * Searches through table rows for a match
+   * @private
+   */
+  private static searchRowsInTable(
+    caption: string,
+    columnValues: Record<string, string>,
+    columnIndexMap: Record<string, number>,
+  ): Cypress.Chainable<boolean> {
+    return TableElement.getTableRows(caption).then(($rows) => {
+      let found = false;
+      $rows.each((_rowIndex: number, row: HTMLElement) => {
+        if (
+          this.rowMatchesValues(
+            Cypress.$(row),
+            columnValues,
+            columnIndexMap,
+            caption,
+          )
+        ) {
+          found = true;
+          return false; // break the loop
+        }
+      });
+      return cy.wrap(found);
+    });
+  }
+
+  /**
+   * Checks if a row matches the expected column values
+   * @private
+   */
+  private static rowMatchesValues(
+    $row: JQuery<HTMLElement>,
+    columnValues: Record<string, string>,
+    columnIndexMap: Record<string, number>,
+    caption: string,
+  ): boolean {
+    let rowMatches = true;
+
+    for (const [columnName, expectedValue] of Object.entries(columnValues)) {
+      const columnIndex = columnIndexMap[columnName];
+      if (columnIndex === undefined) {
+        throw new Error(
+          `Column "${columnName}" not found in table "${caption}"`,
+        );
+      }
+
+      const cellText = $row.find('td, th').eq(columnIndex).text().trim();
+      const isExactMatch = cellText === expectedValue;
+
+      if (isExactMatch) {
+        cy.log(`✓ Exact match in column "${columnName}": "${cellText}"`);
+      } else {
+        const caseInsensitiveMatch =
+          cellText.toLowerCase() === expectedValue.toLowerCase();
+        if (caseInsensitiveMatch) {
+          cy.log(
+            `⚠ Case-insensitive match in column "${columnName}": expected "${expectedValue}", found "${cellText}"`,
+          );
+        } else {
+          cy.log(
+            `✗ Mismatch in column "${columnName}": expected "${expectedValue}", found "${cellText}"`,
+          );
+          rowMatches = false;
+        }
+      }
+    }
+
+    return rowMatches;
+  }
+
+  /**
+   * Navigates to the next page if available
+   * @private
+   */
+  private static navigateToNextPage(
+    caption: string,
+    columnValues: Record<string, string>,
+    searchAllPages: boolean,
+  ): Cypress.Chainable<boolean> {
+    return cy.get('body').then(($body) => {
+      const $nextButton = this.findNextPageButton($body);
+
+      if ($nextButton.length > 0 && searchAllPages) {
+        cy.log('Row not found on current page, checking next page...');
+        cy.wrap($nextButton.first()).click();
+        cy.wait(500); // Wait for page to load
+        return this.searchWithPagination(caption, columnValues, searchAllPages);
+      }
+      return cy.wrap(false);
+    });
+  }
+
+  /**
+   * Finds the next page button using multiple selectors
+   * @private
+   */
+  private static findNextPageButton(
+    $body: JQuery<HTMLElement>,
+  ): JQuery<HTMLElement> {
+    let $nextButton = $body.find('a[rel="next"]');
+    if ($nextButton.length === 0) {
+      $nextButton = $body.find('a:contains("Next")');
+    }
+    if ($nextButton.length === 0) {
+      $nextButton = $body.find('button:contains("Next")');
+    }
+    return $nextButton;
   }
 
   /**
@@ -157,7 +212,7 @@ export class TableHelper {
     cy.log(`Searching for row in table "${caption}" with: ${searchCriteria}`);
 
     return this.findRowWithValues(caption, columnValues, true).then((found) => {
-      void expect(
+      expect(
         found,
         `Row should exist in table "${caption}" with values: ${searchCriteria}`,
       ).to.be.true;
@@ -198,7 +253,7 @@ export class TableHelper {
       `Verifying ${sortableHeaders.length} headers are sortable: ${sortableHeaders.join(', ')}`,
     );
 
-    sortableHeaders.forEach((headerText) => {
+    for (const headerText of sortableHeaders) {
       TableElement.findTableByCaption(caption)
         .find('thead th')
         .contains(headerText)
@@ -208,7 +263,7 @@ export class TableHelper {
           const ariaSort = Cypress.$($th).attr('aria-sort');
           cy.log(`✓ "${headerText}" is sortable (aria-sort="${ariaSort}")`);
         });
-    });
+    }
   }
 
   /**

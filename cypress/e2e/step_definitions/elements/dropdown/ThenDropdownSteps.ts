@@ -56,9 +56,9 @@ Then(
   'User Verifies {string} Dropdown Has Options {string}',
   (dropdownLabel: string, options: string) => {
     const optionList = options.split(',').map((opt) => opt.trim());
-    optionList.forEach((optionText) => {
+    for (const optionText of optionList) {
       DropdownHelper.verifyDropdownContainsOption(dropdownLabel, optionText);
-    });
+    }
   },
 );
 
@@ -66,12 +66,12 @@ Then(
   'User Verifies {string} Dropdown Does Not Have Options {string}',
   (dropdownLabel: string, options: string) => {
     const optionList = options.split(',').map((opt) => opt.trim());
-    optionList.forEach((optionText) => {
+    for (const optionText of optionList) {
       DropdownHelper.verifyDropdownDoesNotContainOption(
         dropdownLabel,
         optionText,
       );
-    });
+    }
   },
 );
 
@@ -79,9 +79,9 @@ Then(
   'User Verifies {string} Dropdown Has Options:',
   (dropdownLabel: string, dataTable: DataTable) => {
     const optionList = dataTable.raw().flat();
-    optionList.forEach((optionText) => {
+    for (const optionText of optionList) {
       DropdownHelper.verifyDropdownContainsOption(dropdownLabel, optionText);
-    });
+    }
   },
 );
 
@@ -89,11 +89,11 @@ Then(
   'User Verifies {string} Dropdown Does Not Have Options:',
   (dropdownLabel: string, dataTable: DataTable) => {
     const optionList = dataTable.raw().flat();
-    optionList.forEach((optionText) => {
+    for (const optionText of optionList) {
       DropdownHelper.verifyDropdownDoesNotContainOption(
         dropdownLabel,
         optionText,
       );
-    });
+    }
   },
 );
