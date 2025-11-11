@@ -41,11 +41,11 @@ withNightlyPipeline(type, product, component) {
   loadVaultSecrets(secrets)
   enableSlackNotifications('#appreg-builds')
 
-  before('functionalTest:aat') {
+  before('functionalTest:stg') {
     env.CYPRESS_TAGS = "smoke or regression"
   }
 
-  afterAlways('functionalTest:aat') {
+  afterAlways('functionalTest:stg') {
     script {
       def testResult = sh(script: 'yarn test:functional', returnStatus: true)
       
