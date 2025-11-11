@@ -53,13 +53,22 @@
         </app-organisation-section>
       }
       @case ('standardApplicant') {
-        <app-sortable-table
+        <app-selectable-sortable-table
           id="sortable-table"
-          caption="Lists"
+          caption="Standard applicants"
           [columns]="applicantColumns"
+          [data]="standardApplicantData"
+          idField="code"
+          [(selectedIds)]="saSelectedIds"
           appMojButtonMenu
-        >
-        </app-sortable-table>
+          >
+        </app-selectable-sortable-table>
+
+        <app-pagination
+          [currentPage]="saPageIndex"
+          [totalPages]="saTotalPages"
+          (pageChange)="onSaPageChange($event)">
+        </app-pagination>
       }
     }
 
