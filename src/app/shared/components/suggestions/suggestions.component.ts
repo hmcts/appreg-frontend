@@ -26,13 +26,26 @@ export class SuggestionsComponent<T = unknown> {
   @Output() valueChange = new EventEmitter<string>();
   @Input() widthClass = 'govuk-input--width-10';
 
+  private focused = false;
+  private justSelected = false;
+  private committedLabel: string | null = null;
+
   onInput(v: string): void {
     this.search = v;
     this.searchChange.emit(v);
+
+    this.justSelected = false;
+    if (!this.hasQuery || !this.isCommittedText) {
+      this.committedLabel = null;
+    }
   }
 
-  private isIndexable(x: unknown): x is Indexable {
-    return typeof x === 'object' && x !== null;
+  onFocus(): void {
+    this.focused = true;
+  }
+
+  onBlur(): void {
+    setTimeout(() => (this.focused = false), 0);
   }
 
   labelFor(item: T): string {
@@ -52,12 +65,17 @@ export class SuggestionsComponent<T = unknown> {
     return String(item as unknown);
   }
 
-  choose(item: T, ev: Event): void {
-    ev.preventDefault();
+  choose(item: T, e: Event): void {
+    e.preventDefault();
     this.selectItem.emit(item);
+    const label = this.labelOf(item);
+    this.search = label;
+    this.committedLabel = label;
+    this.suggestions = [];
+    this.justSelected = true; // suppress empty once
   }
 
-  labelOf(item: unknown): string {
+  labelOf(item: T): string {
     if (item === null) {
       return '';
     }
@@ -68,11 +86,40 @@ export class SuggestionsComponent<T = unknown> {
     return o.name ?? o.description ?? o.code ?? '';
   }
 
+  get noResultsVisible(): boolean {
+    return (
+      this.focused &&
+      this.hasQuery &&
+      (this.suggestions?.length ?? 0) === 0 &&
+      !this.isCommittedText &&
+      !this.justSelected &&
+      !this.disabled
+    );
+  }
+
   get open(): boolean {
     return (
       !this.disabled &&
       !!this.search?.trim() &&
       (this.suggestions?.length ?? 0) > 0
     );
+  }
+
+  get hasQuery(): boolean {
+    return !!this.search?.trim();
+  }
+  get isCommittedText(): boolean {
+    return (
+      !!this.committedLabel &&
+      this.norm(this.search) === this.norm(this.committedLabel)
+    );
+  }
+
+  private isIndexable(x: unknown): x is Indexable {
+    return typeof x === 'object' && x !== null;
+  }
+
+  private norm(s: string | null | undefined) {
+    return (s ?? '').trim().toLowerCase();
   }
 }

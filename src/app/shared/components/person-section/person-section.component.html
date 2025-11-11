@@ -1,0 +1,103 @@
+<div [formGroup]="group">
+  <h3 class="govuk-heading-m">Names</h3>
+
+  <div class="govuk-grid-row">
+    <app-select-input
+      formControlName="title"
+      label="Select title"
+      hint="The person’s title, for example Mr, Mrs, Dr"
+      idPrefix="person-title"
+      [options]="titleOptions"
+    >
+    </app-select-input>
+
+    <app-text-input
+      formControlName="firstName"
+      label="First name"
+      hint="Enter the person’s first name or forename"
+      idPrefix="person-first-name"
+    ></app-text-input>
+    <app-text-input
+      formControlName="middleNames"
+      label="Middle names"
+      hint="Enter any middle names (leave blank if none)"
+      idPrefix="person-middle-names"
+    ></app-text-input>
+    <app-text-input
+      formControlName="surname"
+      label="Surname"
+      hint="Enter the person’s last name or family name"
+      idPrefix="person-surname"
+    ></app-text-input>
+  </div>
+
+  <hr
+    class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+  />
+  <h3 class="govuk-heading-m">Address</h3>
+
+  <div class="govuk-grid-row">
+    <app-text-input
+      formControlName="addressLine1"
+      label="Address line 1"
+      hint="Building and street"
+      idPrefix="person-address-line-1"
+    ></app-text-input>
+    <app-text-input
+      formControlName="addressLine2"
+      label="Address line 2"
+      hint="District or locality (optional)"
+      idPrefix="person-address-line-2"
+    ></app-text-input>
+    <app-text-input
+      formControlName="addressLine3"
+      label="Address line 3"
+      hint="Town or city"
+      idPrefix="person-address-line-3"
+    ></app-text-input>
+    <app-text-input
+      formControlName="addressLine4"
+      label="Address line 4"
+      hint="County or region"
+      idPrefix="person-address-line-4"
+    ></app-text-input>
+    <app-text-input
+      formControlName="addressLine5"
+      label="Address line 5"
+      hint="Post town, e.g. Manchester"
+      idPrefix="person-address-line-5"
+    ></app-text-input>
+    <app-text-input
+      formControlName="postcode"
+      label="Postcode"
+      hint="e.g. SW1A 2AA"
+      idPrefix="person-postcode"
+    ></app-text-input>
+  </div>
+
+  <hr
+    class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+  />
+  <h3 class="govuk-heading-m">Contact details</h3>
+
+  <div class="govuk-grid-row">
+    <app-text-input
+      formControlName="phoneNumber"
+      label="Phone number"
+      hint="Enter the person's landline, e.g. 020 7946 0000"
+      idPrefix="person-phone-number"
+    ></app-text-input>
+    <app-text-input
+      formControlName="mobileNumber"
+      label="Mobile number"
+      hint="Enter the person's UK mobile, e.g. 07123 456789"
+      idPrefix="person-mobile-number"
+    ></app-text-input>
+    <app-text-input
+      formControlName="emailAddress"
+      label="Email address"
+      hint="e.g. name@department.gov.uk"
+      idPrefix="person-email-address"
+    ></app-text-input>
+  </div>
+</div>

@@ -83,8 +83,8 @@ module.exports = defineConfig({
       // Custom task to log accessibility violations
       on('task', {
         logA11yViolations(violations) {
-          const fs = require('fs');
-          const path = require('path');
+          const fs = require('node:fs');
+          const path = require('node:path');
           const logPath = path.join(
             __dirname,
             'cypress/reports/a11y-violations.log',
@@ -147,12 +147,7 @@ module.exports = defineConfig({
           },
         },
       };
-      await addCucumberPreprocessorPlugin(on, {
-        ...config,
-        cucumber: {
-          stepDefinitions: 'cypress/e2e/step_definitions/**/*.ts',
-        },
-      });
+      await addCucumberPreprocessorPlugin(on, config);
       on(
         'file:preprocessor',
         createBundler({

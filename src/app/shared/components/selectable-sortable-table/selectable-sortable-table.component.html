@@ -1,0 +1,122 @@
+<table
+  #mojTable
+  class="govuk-table"
+  [attr.aria-describedby]="'sortable-' + caption"
+>
+  <caption
+    class="govuk-table__caption govuk-table__caption--m"
+    id="sortable-{{ caption }}"
+  >
+    {{
+      caption
+    }}
+  </caption>
+
+  <thead class="govuk-table__head">
+    <tr class="govuk-table__row">
+      <!-- Real select-all checkbox driven by Angular -->
+      <th class="govuk-table__header moj-multi-select__select-all" scope="col">
+        <div class="govuk-checkboxes govuk-checkboxes--small">
+          <div class="govuk-checkboxes__item moj-multi-select__checkbox">
+            <input
+              #selectAll
+              type="checkbox"
+              class="govuk-checkboxes__input"
+              [id]="idPrefix + 'select-all'"
+              [checked]="allVisibleSelected"
+              [indeterminate]="someVisibleSelected && !allVisibleSelected"
+              (change)="toggleSelectAllVisible(selectAll.checked)"
+            />
+            <label
+              class="govuk-label govuk-checkboxes__label"
+              [for]="idPrefix + 'select-all'"
+            >
+              <span class="govuk-visually-hidden">Select all</span>
+            </label>
+          </div>
+        </div>
+      </th>
+
+      @for (col of columns; track col.field) {
+        <th
+          scope="col"
+          class="govuk-table__header"
+          [class.govuk-table__header--numeric]="col.numeric"
+          [attr.aria-sort]="
+            col.sortable !== false ? (col.defaultSort ?? 'none') : null
+          "
+        >
+          {{ col.header }}
+        </th>
+      }
+    </tr>
+  </thead>
+
+  <tbody class="govuk-table__body">
+    @for (row of data; track getRowId(row) || $index) {
+      <tr
+        class="govuk-table__row"
+        [class.govuk-table__row--selected]="isSelected(row)"
+      >
+        <td class="govuk-table__cell">
+          <!-- Row checkbox bound to Angular selection -->
+          <div class="govuk-checkboxes govuk-checkboxes--small">
+            <div class="govuk-checkboxes__item moj-multi-select__checkbox">
+              <input
+                #cb
+                type="checkbox"
+                class="govuk-checkboxes__input"
+                name="rows[]"
+                [id]="idPrefix + getRowId(row)"
+                [checked]="isSelected(row)"
+                (change)="toggleOne(row, cb.checked)"
+              />
+              <label
+                class="govuk-label govuk-checkboxes__label"
+                [for]="idPrefix + getRowId(row)"
+              >
+                <span class="govuk-visually-hidden">
+                  Select {{ row[firstColField] }}
+                </span>
+              </label>
+            </div>
+          </div>
+        </td>
+
+        @for (col of columns; track col.field; let ci = $index) {
+          @if (ci === 0) {
+            <th
+              scope="row"
+              class="govuk-table__header"
+              [class.govuk-table__cell--numeric]="col.numeric"
+              [attr.data-sort-value]="
+                col.sortable !== false ? getSortValue(row, col) : null
+              "
+            >
+              {{ row[col.field] }}
+            </th>
+          } @else {
+            <td
+              class="govuk-table__cell"
+              [class.govuk-table__cell--numeric]="col.numeric"
+              [attr.data-sort-value]="
+                col.sortable !== false ? getSortValue(row, col) : null
+              "
+            >
+              @if (col.field === 'actions') {
+                <ng-container
+                  *ngTemplateOutlet="
+                    actionsTpl ?? null;
+                    context: { $implicit: row }
+                  "
+                />
+              } @else {
+                {{ row[col.field] }}
+              }
+            </td>
+          }
+        }
+      </tr>
+    }
+  </tbody>
+</table>

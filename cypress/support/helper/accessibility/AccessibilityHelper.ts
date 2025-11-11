@@ -1,6 +1,6 @@
 /// <reference types="cypress" />
 import 'cypress-axe';
-import type { NodeResult, Result } from 'axe-core';
+import type { Result } from 'axe-core';
 
 export class AccessibilityHelper {
   static checkAccessibility(): void {
@@ -16,15 +16,15 @@ export class AccessibilityHelper {
             violation.impact === 'critical' || violation.impact === 'serious',
         );
 
-        violations.forEach((violation) => {
+        for (const violation of violations) {
           cy.log(
             `${violation.id} (${violation.impact}): ${violation.description}`,
           );
-          violation.nodes.forEach((node: NodeResult) => {
+          for (const node of violation.nodes) {
             cy.log(`Element: ${JSON.stringify(node.target)}`);
             cy.log(`Failure Summary: ${node.failureSummary}`);
-          });
-        });
+          }
+        }
 
         if (criticalViolations.length) {
           cy.then(() => {
@@ -44,9 +44,9 @@ export class AccessibilityHelper {
   }
 
   static checkAccessibilityOnPages(pages: { url: string }[]): void {
-    pages.forEach((row) => {
+    for (const row of pages) {
       cy.visit(row.url);
       AccessibilityHelper.checkAccessibility();
-    });
+    }
   }
 }

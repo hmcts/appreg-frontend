@@ -1,0 +1,35 @@
+<div class="govuk-accordion" [attr.data-module]="'govuk-accordion'" [id]="id">
+  @for (item of items; track $index; let i = $index) {
+    <div class="govuk-accordion__section">
+      <div class="govuk-accordion__section-header">
+        <h2 class="govuk-accordion__section-heading">
+          <button
+            type="button"
+            class="govuk-accordion__section-button"
+            [id]="headingId(i)"
+            [attr.aria-controls]="panelId(i)"
+            [attr.aria-expanded]="item.expanded ? 'true' : 'false'"
+            (click)="toggle(i)"
+          >
+            {{ item.heading }}
+          </button>
+        </h2>
+      </div>
+
+      <section
+        class="govuk-accordion__section-content"
+        [id]="panelId(i)"
+        [attr.aria-labelledby]="headingId(i)"
+        [hidden]="!item.expanded"
+      >
+        @if (item.tpl) {
+          <ng-container [ngTemplateOutlet]="item.tpl"></ng-container>
+        } @else {
+          @if (item.content) {
+            <p class="govuk-body">{{ item.content }}</p>
+          }
+        }
+      </section>
+    </div>
+  }
+</div>

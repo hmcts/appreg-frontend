@@ -49,6 +49,9 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
   hours: number | null = null;
   minutes: number | null = null;
 
+  hoursText = '';
+  minutesText = '';
+
   private onChange: (value: Duration | null) => void = () => {};
   private onTouched: () => void = () => {};
   private onValidatorChange: () => void = () => {};
@@ -120,6 +123,10 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
       return this.partsInvalidError(this.missingMsg(h === null, m === null));
     }
 
+    if (Number.isNaN(h) || Number.isNaN(m)) {
+      return this.invalidClock();
+    }
+
     // type and range
     if (!Number.isInteger(h) || !Number.isInteger(m)) {
       return this.invalidClock();
@@ -166,17 +173,25 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
 
   // Events
   private emit(): void {
-    this.onChange({ hours: this.hours, minutes: this.minutes });
+    const h = this.hours;
+    const m = this.minutes;
+
+    const value: Duration | null =
+      h === null && m === null ? null : { hours: h, minutes: m };
+
+    this.onChange(value);
     this.onValidatorChange();
   }
   onHoursInput(e: Event): void {
     const v = (e.target as HTMLInputElement).value.trim();
-    this.hours = /^\d+$/.test(v) ? Number.parseInt(v, 10) : null;
+    this.hoursText = v;
+    this.hours = this.parseClockPart(v);
     this.emit();
   }
   onMinutesInput(e: Event): void {
     const v = (e.target as HTMLInputElement).value.trim();
-    this.minutes = /^\d+$/.test(v) ? Number.parseInt(v, 10) : null;
+    this.minutesText = v;
+    this.minutes = this.parseClockPart(v);
     this.emit();
   }
   touch(): void {
@@ -245,5 +260,16 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
       }
     }
     return 'Enter a valid duration';
+  }
+
+  private parseClockPart(raw: string): number | null {
+    const t = (raw ?? '').trim();
+    if (t === '') {
+      return null;
+    }
+    if (/^\d+$/.test(t)) {
+      return Number.parseInt(t, 10);
+    }
+    return Number.NaN;
   }
 }

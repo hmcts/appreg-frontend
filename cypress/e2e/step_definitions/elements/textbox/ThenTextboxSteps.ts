@@ -1,7 +1,12 @@
+/// <reference types="cypress" />
 import { Then } from '@badeball/cypress-cucumber-preprocessor';
 
 import { TextboxHelper } from '../../../../support/helper/forms/textbox/TextboxHelper';
 import { TestDataGenerator } from '../../../../support/utils/TestDataGenerator';
+
+Then('User Should See The Textbox {string}', (field: string) => {
+  TextboxHelper.verifyTextboxIsVisible(field);
+});
 
 Then(
   'User Enters {string} Into The {string} Textbox',
@@ -18,10 +23,10 @@ Then('User Clears The {string} Textbox', (field: string) => {
 });
 
 Then(
-  'User Verifies The {string} Textbox Contains {string}',
+  'User Verifies The {string} Textbox Has Value {string}',
   (field: string, value: string) => {
     const substituteValue = TestDataGenerator.replaceRandomPlaceholders(value);
-    TextboxHelper.getValueInTextbox(field).should('eq', substituteValue);
+    TextboxHelper.verifyValueInTextbox(field, substituteValue);
   },
 );
 
@@ -31,4 +36,43 @@ Then('User Verifies The {string} Textbox Is Empty', (field: string) => {
 
 Then('User Verifies The {string} Textbox Is Not Empty', (field: string) => {
   TextboxHelper.getValueInTextbox(field).should('not.be.empty');
+});
+
+Then(
+  'User Selects {string} From The Textbox {string} Autocomplete By Typing {string}',
+  (optionText: string, field: string, textToType: string) => {
+    const substituteTextToType =
+      TestDataGenerator.replaceRandomPlaceholders(textToType);
+    const substituteOptionText =
+      TestDataGenerator.replaceRandomPlaceholders(optionText);
+
+    if (substituteOptionText && substituteOptionText.trim() !== '') {
+      TextboxHelper.selectAutocompleteOption(
+        field,
+        substituteTextToType,
+        substituteOptionText,
+      );
+      cy.screenshot(`SelectedAutocomplete-${field}-${substituteOptionText}`);
+    } else {
+      TextboxHelper.typeInTextbox(field, substituteTextToType);
+      cy.screenshot(`TypedInAutocomplete-${field}-${substituteTextToType}`);
+    }
+  },
+);
+
+Then(
+  'User Verifies The {string} Textbox Has Selected Value {string}',
+  (field: string, expectedValue: string) => {
+    const substituteValue =
+      TestDataGenerator.replaceRandomPlaceholders(expectedValue);
+    TextboxHelper.verifyValueInTextbox(field, substituteValue);
+  },
+);
+
+Then('User Should See The Textbox {string} Is Disabled', (field: string) => {
+  TextboxHelper.TextboxIsDisabled(field);
+});
+
+Then('User Should See The Textbox {string} Is Enabled', (field: string) => {
+  TextboxHelper.TextboxIsEnabled(field);
 });
