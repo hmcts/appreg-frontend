@@ -10,6 +10,10 @@ export class DropdownHelper {
     DropdownElement.findDropdown(dropdownLabel).select(optionText);
   }
 
+  static verifyDropdownIsVisible(dropdownLabel: string): void {
+    DropdownElement.findDropdown(dropdownLabel).should('be.visible');
+  }
+
   static verifyDropdownOptionSelected(
     dropdownLabel: string,
     optionText: string,

@@ -85,8 +85,8 @@ module.exports = defineConfig({
       // Custom task to log accessibility violations
       on('task', {
         logA11yViolations(violations) {
-          const fs = require('fs');
-          const path = require('path');
+          const fs = require('node:fs');
+          const path = require('node:path');
           const logPath = path.join(
             __dirname,
             'cypress/reports/a11y-violations.log',

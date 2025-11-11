@@ -52,7 +52,7 @@ export class TextboxHelper {
    * Checks if a textbox is visible
    * @param selector Smart selector for the textbox
    */
-  static TextboxIsVisible(selector: string): Cypress.Chainable {
+  static verifyTextboxIsVisible(selector: string): Cypress.Chainable {
     return TextboxElement.findTextbox(selector).should('be.visible');
   }
 
