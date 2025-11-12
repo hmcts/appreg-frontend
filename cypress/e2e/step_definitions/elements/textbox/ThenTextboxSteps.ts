@@ -4,6 +4,10 @@ import { Then } from '@badeball/cypress-cucumber-preprocessor';
 import { TextboxHelper } from '../../../../support/helper/forms/textbox/TextboxHelper';
 import { TestDataGenerator } from '../../../../support/utils/TestDataGenerator';
 
+Then('User Should See The Textbox {string}', (field: string) => {
+  TextboxHelper.verifyTextboxIsVisible(field);
+});
+
 Then(
   'User Enters {string} Into The {string} Textbox',
   (value: string, field: string) => {
@@ -64,3 +68,11 @@ Then(
     TextboxHelper.verifyValueInTextbox(field, substituteValue);
   },
 );
+
+Then('User Should See The Textbox {string} Is Disabled', (field: string) => {
+  TextboxHelper.TextboxIsDisabled(field);
+});
+
+Then('User Should See The Textbox {string} Is Enabled', (field: string) => {
+  TextboxHelper.TextboxIsEnabled(field);
+});

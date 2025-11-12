@@ -2,6 +2,10 @@ import { DataTable, Then } from '@badeball/cypress-cucumber-preprocessor';
 
 import { DropdownHelper } from '../../../../support/helper/forms/dropdown/DropdownHelper';
 
+Then('User Should See The Dropdown {string}', (dropdownLabel: string) => {
+  DropdownHelper.verifyDropdownIsVisible(dropdownLabel);
+});
+
 Then(
   'User Selects {string} In The {string} Dropdown',
   (optionText: string, dropdownLabel: string) => {
@@ -32,14 +36,14 @@ Then('User Verifies {string} Dropdown Is Enabled', (dropdownLabel: string) => {
 });
 
 Then(
-  'User Verifies {string} Dropdown Contains {string} Option',
+  'User Verifies {string} Dropdown Has Option {string}',
   (dropdownLabel: string, optionText: string) => {
     DropdownHelper.verifyDropdownContainsOption(dropdownLabel, optionText);
   },
 );
 
 Then(
-  'User Verifies {string} Dropdown Does Not Contain {string} Option',
+  'User Verifies {string} Dropdown Does Not Have Option {string}',
   (dropdownLabel: string, optionText: string) => {
     DropdownHelper.verifyDropdownDoesNotContainOption(
       dropdownLabel,
@@ -49,47 +53,47 @@ Then(
 );
 
 Then(
-  'User Verifies {string} Dropdown Contains {string} Options',
+  'User Verifies {string} Dropdown Has Options {string}',
   (dropdownLabel: string, options: string) => {
     const optionList = options.split(',').map((opt) => opt.trim());
-    optionList.forEach((optionText) => {
+    for (const optionText of optionList) {
       DropdownHelper.verifyDropdownContainsOption(dropdownLabel, optionText);
-    });
+    }
   },
 );
 
 Then(
-  'User Verifies {string} Dropdown Does Not Contain {string} Options',
+  'User Verifies {string} Dropdown Does Not Have Options {string}',
   (dropdownLabel: string, options: string) => {
     const optionList = options.split(',').map((opt) => opt.trim());
-    optionList.forEach((optionText) => {
+    for (const optionText of optionList) {
       DropdownHelper.verifyDropdownDoesNotContainOption(
         dropdownLabel,
         optionText,
       );
-    });
+    }
   },
 );
 
 Then(
-  'User Verifies {string} Dropdown Contains Options:',
+  'User Verifies {string} Dropdown Has Options:',
   (dropdownLabel: string, dataTable: DataTable) => {
     const optionList = dataTable.raw().flat();
-    optionList.forEach((optionText) => {
+    for (const optionText of optionList) {
       DropdownHelper.verifyDropdownContainsOption(dropdownLabel, optionText);
-    });
+    }
   },
 );
 
 Then(
-  'User Verifies {string} Dropdown Does Not Contain Options:',
+  'User Verifies {string} Dropdown Does Not Have Options:',
   (dropdownLabel: string, dataTable: DataTable) => {
     const optionList = dataTable.raw().flat();
-    optionList.forEach((optionText) => {
+    for (const optionText of optionList) {
       DropdownHelper.verifyDropdownDoesNotContainOption(
         dropdownLabel,
         optionText,
       );
-    });
+    }
   },
 );

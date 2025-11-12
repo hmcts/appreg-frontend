@@ -8,7 +8,7 @@ Then('User See {string} On The Page', (expectedText: string) => {
 });
 
 Then(
-  'User Sees Text {string} In {string}',
+  'User Sees Text {string} In {string} Field',
   (expectedText: string, containerLabel: string) => {
     TextHelper.verifyTextInSection(containerLabel, expectedText);
   },
@@ -22,3 +22,16 @@ Then('User Sees Validation Error {string}', (errorMessage: string) => {
 Then('User Does Not See Validation Errors', () => {
   TextHelper.verifyNoValidationErrors();
 });
+
+Then('User Sees Notification Banner {string}', (message: string) => {
+  TextHelper.verifyNotificationBanner(message);
+  cy.screenshot(`NotificationBanner-${message.substring(0, 30)}`);
+});
+
+Then(
+  'User Sees Field Error {string} For {string}',
+  (errorMessage: string, fieldLabel: string) => {
+    TextHelper.verifyFieldError(fieldLabel, errorMessage);
+    cy.screenshot(`FieldError-${fieldLabel}`);
+  },
+);

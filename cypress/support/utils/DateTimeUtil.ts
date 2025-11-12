@@ -6,8 +6,14 @@
  * - "tomorrow"        → Tomorrow's date in DD/MM/YYYY format
  * - "yesterday"       → Yesterday's date in DD/MM/YYYY format
  * - "todayiso"        → Today's date in YYYY-MM-DD format
+ * - "tomorrowiso"     → Tomorrow's date in YYYY-MM-DD format
+ * - "yesterdayiso"    → Yesterday's date in YYYY-MM-DD format
  * - "display"         → Today in DD MMM YYYY format (e.g., "30 Sep 2025")
  * - "displaypadded"   → Today in DD MMM YYYY format (padded)
+ *
+ * ISO DATE CONVERSION:
+ * - Any date with suffix "_iso" will be converted from YYYY-MM-DD to DD/MM/YYYY
+ * - Example: "2025-07-24_iso" → "24/07/2025"
  *
  * TIME KEYWORDS:
  * - "timenow"         → Current time in HH:mm:ss format
@@ -74,7 +80,7 @@ export class DateTimeUtil {
     if (arithmeticMatch) {
       const baseKeyword = arithmeticMatch[1];
       const operator = arithmeticMatch[2];
-      const amount = parseInt(arithmeticMatch[3]);
+      const amount = Number.parseInt(arithmeticMatch[3]);
       const unit = arithmeticMatch[4].toLowerCase();
 
       const modifier = operator === '+' ? amount : -amount;
@@ -116,6 +122,20 @@ export class DateTimeUtil {
       return this.formatDate(new Date());
     }
 
+    // Check for ISO date conversion suffix (e.g., "2025-07-24_iso")
+    if (pattern.endsWith('_iso')) {
+      const isoDate = pattern.replace('_iso', '').trim();
+      if (isoDate.includes('-')) {
+        const parts = isoDate.split('-');
+        if (parts.length === 3) {
+          const year = parts[0];
+          const month = parts[1];
+          const day = parts[2];
+          return `${Number.parseInt(day)}/${Number.parseInt(month)}/${year}`;
+        }
+      }
+    }
+
     switch (pattern.toLowerCase().trim()) {
       // Date keywords
       case 'today':
@@ -126,6 +146,10 @@ export class DateTimeUtil {
         return this.getDateWithOffset(-1);
       case 'todayiso':
         return this.formatToday('iso');
+      case 'tomorrowiso':
+        return this.getDateWithOffset(1, 'iso');
+      case 'yesterdayiso':
+        return this.getDateWithOffset(-1, 'iso');
       case 'display':
         return this.formatToday('display');
       case 'displaypadded':
@@ -358,10 +382,20 @@ export class DateTimeUtil {
   /**
    * Get date with offset
    * @param offset Days offset from today (0=today, 1=tomorrow, -1=yesterday)
-   * @returns Date string in DD/MM/YYYY format
+   * @param format Output format: 'default' for DD/MM/YYYY or 'iso' for YYYY-MM-DD
+   * @returns Date string in specified format
    */
-  static getDateWithOffset(offset: number = 0): string {
-    return this.formatDate(this.addToDateTime(new Date(), offset, 'd'));
+  static getDateWithOffset(
+    offset: number = 0,
+    format: 'default' | 'iso' = 'default',
+  ): string {
+    const date = this.addToDateTime(new Date(), offset, 'd');
+
+    if (format === 'iso') {
+      return date.toISOString().split('T')[0]; // YYYY-MM-DD
+    }
+
+    return this.formatDate(date);
   }
 
   /**
