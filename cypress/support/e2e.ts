@@ -5,7 +5,8 @@ import 'cypress-mochawesome-reporter/register';
 import { TestDataGenerator } from './utils/TestDataGenerator';
 
 beforeEach(() => {
-  Cypress.session.clearAllSavedSessions();
+  Cypress.session.clearAllSavedSessions().catch(() => {
+  });
   cy.clearCookies();
   cy.clearLocalStorage();
   cy.clearAllSessionStorage();
