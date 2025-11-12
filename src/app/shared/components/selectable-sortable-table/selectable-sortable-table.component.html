@@ -13,8 +13,9 @@
   </caption>
 
   <thead class="govuk-table__head">
-    <tr class="govuk-table__row">
-      <!-- Real select-all checkbox driven by Angular -->
+  <tr class="govuk-table__row">
+    @if (!singleSelect) {
+      <!-- Select-all header (multi-select only) -->
       <th class="govuk-table__header moj-multi-select__select-all" scope="col">
         <div class="govuk-checkboxes govuk-checkboxes--small">
           <div class="govuk-checkboxes__item moj-multi-select__checkbox">
@@ -27,29 +28,28 @@
               [indeterminate]="someVisibleSelected && !allVisibleSelected"
               (change)="toggleSelectAllVisible(selectAll.checked)"
             />
-            <label
-              class="govuk-label govuk-checkboxes__label"
-              [for]="idPrefix + 'select-all'"
-            >
+            <label class="govuk-label govuk-checkboxes__label" [for]="idPrefix + 'select-all'">
               <span class="govuk-visually-hidden">Select all</span>
             </label>
           </div>
         </div>
       </th>
+    } @else {
+      <!-- Empty header cell to keep columns aligned -->
+      <th class="govuk-table__header" scope="col"></th>
+    }
 
-      @for (col of columns; track col.field) {
-        <th
-          scope="col"
-          class="govuk-table__header"
-          [class.govuk-table__header--numeric]="col.numeric"
-          [attr.aria-sort]="
-            col.sortable !== false ? (col.defaultSort ?? 'none') : null
-          "
-        >
-          {{ col.header }}
-        </th>
-      }
-    </tr>
+    @for (col of columns; track col.field) {
+      <th
+        scope="col"
+        class="govuk-table__header"
+        [class.govuk-table__header--numeric]="col.numeric"
+        [attr.aria-sort]="col.sortable !== false ? (col.defaultSort ?? 'none') : null"
+      >
+        {{ col.header }}
+      </th>
+    }
+  </tr>
   </thead>
 
   <tbody class="govuk-table__body">
