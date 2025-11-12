@@ -208,19 +208,16 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
-    // Load the entry to obtain lodgementDate + applicationCode
     this.entriesApi
       .getApplicationListEntry(
         { listId: this.appListId, entryId },
         'body',
         false,
-        { transferCache: true }, // SSR friendly
+        { transferCache: true },
       )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (entry) => {
-          // entry has both fields we need
-          // Normalise date to YYYY-MM-DD (service typically returns ISO)
           const lodgementDate = (entry.lodgementDate ?? '').slice(0, 10);
           const applicationCode = entry.applicationCode ?? '';
 
@@ -229,7 +226,6 @@ export class ApplicationsListEntryDetail implements OnInit {
             applicationCode,
           });
 
-          // If both present, fetch Application Code details to get the title
           if (applicationCode && lodgementDate) {
             this.codesApi
               .getApplicationCodeByCodeAndDate(
@@ -246,14 +242,10 @@ export class ApplicationsListEntryDetail implements OnInit {
                   });
                 },
                 error: () => {
-                  // optional: leave applicationTitle blank on failure
                   this.form.patchValue({ applicationTitle: '' });
                 },
               });
           }
-        },
-        error: () => {
-          // optional: you can surface an error summary here if desired
         },
       });
   }
