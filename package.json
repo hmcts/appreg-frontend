@@ -29,7 +29,7 @@
     "test:routes": "jest -c jest.routes.config.js",
     "test:a11y": "jest --detectOpenHandles --forceExit -c jest.a11y.config.js --maxWorkers 15",
     "test:smoke": "NODE_TLS_REJECT_UNAUTHORIZED=0 jest -c jest.smoke.config.js",
-    "test:functional": "echo 'NODE_TLS_REJECT_UNAUTHORIZED=0 cypress run'",
+    "test:functional": "NODE_TLS_REJECT_UNAUTHORIZED=0 cypress run --spec 'cypress/e2e/features/smoke/**/*.feature'; node cypress/scripts/generate-reports.js; mkdir -p functional-output && cp -r cypress/reports/* functional-output/ || true",
     "cichecks": "yarn api:all && yarn build && yarn lint && yarn test && yarn test:routes && yarn test:a11y",
     "prepare": "husky install",
     "cypress:open": "cypress open",

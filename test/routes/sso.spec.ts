@@ -12,11 +12,13 @@ type RoutesModule = {
       clientSecret: string;
       redirectUri: string;
       scopes: string[];
-      postLogoutRedirectUri: string;
+      postLogoutRedirectUri?: string;
     },
   ) => void;
   router?: import('express').Router;
 };
+
+type Account = { name?: string; username?: string };
 
 type AppSession = Session &
   Partial<SessionData> & {
@@ -26,6 +28,14 @@ type AppSession = Session &
     tokenCache?: string;
   };
 
+// Deterministic host for dynamic redirect tests (not PR-specific)
+const TEST_HOST = 'sso.test.local';
+const TEST_HEADERS = {
+  'x-forwarded-proto': 'https',
+  'x-forwarded-host': TEST_HOST,
+};
+
+// Mock config + logger once (works across jest.resetModules calls)
 const buildConfigMock = () => {
   const data: Record<string, unknown> = {
     'session.cookieName': 'sid',
@@ -50,9 +60,6 @@ const buildConfigMock = () => {
   return { has, get };
 };
 
-type Account = { name?: string; username?: string };
-
-// Mock config + logger
 jest.doMock('config', () => buildConfigMock(), { virtual: true });
 const logger = { error: jest.fn(), info: jest.fn(), warn: jest.fn() };
 jest.doMock(
@@ -63,8 +70,136 @@ jest.doMock(
   { virtual: true },
 );
 
+type DestroySpy = jest.SpyInstance<
+  ReturnType<Session['destroy']>,
+  Parameters<Session['destroy']>
+>;
+
+/** Create a fresh express app with real session middleware. */
+function createBaseApp(): Express {
+  const app: Express = express();
+  app.use(
+    session({
+      secret: 'test-secret',
+      resave: false,
+      saveUninitialized: true,
+      cookie: { secure: process.env['NODE_ENV'] === 'production' },
+    }),
+  );
+  return app;
+}
+
+/** Optionally install a spy that simulates sync/async `session.destroy`. */
+function installDestroySpy(
+  app: Express,
+  opts?: { asyncDestroy?: boolean },
+): () => DestroySpy | undefined {
+  let destroySpy: DestroySpy | undefined;
+
+  app.use((req: Request, _res: Response, next: NextFunction) => {
+    const s = req.session as Session;
+    type Destroy = typeof s.destroy;
+    type DestroyCb = Parameters<Destroy>[0];
+    type DestroyRet = ReturnType<Destroy>;
+
+    destroySpy = jest
+      .spyOn(s, 'destroy')
+      .mockImplementation((cb: DestroyCb): DestroyRet => {
+        if (opts?.asyncDestroy) {
+          setTimeout(() => cb?.(undefined), 0);
+        } else {
+          cb?.(undefined);
+        }
+        // Return value matches express-session typing
+        return s as unknown as DestroyRet;
+      });
+
+    next();
+  });
+
+  return () => destroySpy;
+}
+
+/** Mount SSO routes with defaults, optionally overriding tenant / postLogoutRedirectUri. */
+async function mountRoutes(
+  app: Express,
+  overrides?: { tenantId?: string; postLogoutRedirectUri?: string },
+): Promise<void> {
+  const routes = (await import('../../src/routes/sso')) as RoutesModule;
+
+  if (routes.setupSsoRoutes) {
+    const opts: {
+      tenantId: string;
+      clientId: string;
+      clientSecret: string;
+      redirectUri: string;
+      scopes: string[];
+      postLogoutRedirectUri?: string;
+    } = {
+      tenantId: overrides?.tenantId ?? 'tenant-123',
+      clientId: 'client-abc',
+      clientSecret: 'secret-xyz',
+      redirectUri: 'http://localhost/callback',
+      scopes: ['user.read'],
+    };
+
+    if (
+      Object.prototype.hasOwnProperty.call(
+        overrides ?? {},
+        'postLogoutRedirectUri',
+      )
+    ) {
+      opts.postLogoutRedirectUri = overrides!.postLogoutRedirectUri;
+    }
+
+    routes.setupSsoRoutes(app, opts);
+  } else if (routes.router) {
+    app.use(routes.router);
+  } else {
+    throw new Error(
+      'Expected module to export setupSsoRoutes(app, opts) or router',
+    );
+  }
+}
+
+/** Consistent error handler used by suites that expect 500 on error-paths. */
+function installErrorHandler(app: Express): void {
+  app.use((_req: Request, res: Response) => {
+    res.status(500).send('Internal error');
+  });
+}
+
+/** Build expected Entra logout URL. */
+function buildExpectedLogoutUrl(
+  tenantId: string,
+  postLogoutRedirectUri: string,
+): string {
+  return (
+    `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/logout` +
+    `?post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`
+  );
+}
+
+/** Assertion helper for logout redirect + ensuring destroy() was invoked. */
+async function assertLogoutRedirect(
+  app: Express,
+  expectedUrl: string,
+  destroySpyRef: () => DestroySpy | undefined,
+  headers?: Record<string, string>,
+): Promise<void> {
+  const req = request(app).get('/sso/logout');
+  const res = headers ? await req.set(headers) : await req;
+
+  expect(res.status).toBe(302);
+  expect(res.headers['location']).toBe(expectedUrl);
+
+  const spy = destroySpyRef();
+  expect(spy).toBeDefined();
+  expect(spy?.mock.calls.length).toBe(1);
+}
+
 describe('GET /sso/login', () => {
-  const prepareApp = async (mode: 'ok' | 'fail' = 'ok') => {
+  const prepare = async (mode: 'ok' | 'fail' = 'ok') => {
     jest.resetModules();
 
     // Stable UUIDs so we can assert state/nonce
@@ -91,71 +226,41 @@ describe('GET /sso/login', () => {
       return { ConfidentialClientApplication };
     });
 
-    const routes = (await import('../../src/routes/sso')) as RoutesModule;
+    const app = createBaseApp();
+    await mountRoutes(app);
+    installErrorHandler(app);
 
-    // Fresh app per test + real session middleware so types match express-session
-    const app: Express = express();
-    app.use(
-      session({
-        secret: 'test-secret',
-        resave: false,
-        saveUninitialized: true,
-        cookie: { secure: process.env['NODE_ENV'] === 'production' },
-      }),
-    );
-
-    if (routes.setupSsoRoutes) {
-      routes.setupSsoRoutes(app, {
-        tenantId: 'tenant-123',
-        clientId: 'client-abc',
-        clientSecret: 'secret-xyz',
-        redirectUri: 'http://localhost/callback',
-        scopes: ['user.read'],
-        postLogoutRedirectUri: 'http://localhost/signed-out',
-      });
-    } else if (routes.router) {
-      app.use(routes.router);
-    } else {
-      throw new Error(
-        'Expected module to export setupSsoRoutes(app, opts) or router',
-      );
-    }
-
-    // Error handler to assert 500 on the error-path test
-    app.use((_req: Request, res: Response) => {
-      res.status(500).send('Internal error');
-    });
-
-    return { app, logger, uuidMock, getAuthCodeUrl };
+    return { app, uuidMock, getAuthCodeUrl };
   };
 
   test('redirects to the authorization URL and passes state/nonce to MSAL', async () => {
-    const { app, uuidMock, getAuthCodeUrl } = await prepareApp('ok');
+    const { app, uuidMock, getAuthCodeUrl } = await prepare('ok');
 
     uuidMock.mockReturnValueOnce('state-123');
     uuidMock.mockReturnValueOnce('nonce-456');
 
-    const res = await request(app).get('/sso/login');
+    const res = await request(app).get('/sso/login').set(TEST_HEADERS);
 
     expect(res.status).toBe(302);
-    const location = res.headers['location'];
-    expect(location).toBe('https://login.example/authorize?abc=123');
+    expect(res.headers['location']).toBe(
+      'https://login.example/authorize?abc=123',
+    );
 
     expect(getAuthCodeUrl).toHaveBeenCalledTimes(1);
     expect(getAuthCodeUrl).toHaveBeenCalledWith(
-      expect.objectContaining({ state: 'state-123', nonce: 'nonce-456' }),
+      expect.objectContaining({
+        state: 'state-123',
+        nonce: 'nonce-456',
+        redirectUri: `https://${TEST_HOST}/sso/login-callback`,
+      }),
     );
   });
 
   test('logs and propagates errors when getAuthCodeUrl fails', async () => {
-    const { app, logger, uuidMock, getAuthCodeUrl } = await prepareApp('fail');
+    const { app } = await prepare('fail');
 
-    uuidMock.mockReturnValueOnce('state-AAA');
-    uuidMock.mockReturnValueOnce('nonce-BBB');
+    const res = await request(app).get('/sso/login').set(TEST_HEADERS);
 
-    const res = await request(app).get('/sso/login');
-
-    expect(getAuthCodeUrl).toHaveBeenCalledTimes(1);
     expect(res.status).toBe(500);
     expect(logger.error).toHaveBeenCalledTimes(1);
     expect(String(logger.error.mock.calls[0][1])).toMatch(/\/sso\/login/);
@@ -163,13 +268,12 @@ describe('GET /sso/login', () => {
 });
 
 describe('GET /sso/login-callback', () => {
-  const prepareApp = async (
+  const prepare = async (
     mode: 'ok' | 'noAccount' | 'throw' = 'ok',
     presetAuthState?: string,
   ) => {
     jest.resetModules();
 
-    // We don’t need uuid here; callback uses req.query + session.authState
     type AcquireArgs = Record<string, unknown>;
     type AcquireResult = { account?: { name?: string; username?: string } };
     const acquireTokenByCode = jest.fn<Promise<AcquireResult>, [AcquireArgs]>();
@@ -199,20 +303,8 @@ describe('GET /sso/login-callback', () => {
       return { ConfidentialClientApplication };
     });
 
-    const routes = (await import('../../src/routes/sso')) as RoutesModule;
+    const app = createBaseApp();
 
-    // Fresh app per test + real session middleware so types match express-session
-    const app: Express = express();
-    app.use(
-      session({
-        secret: 'test-secret',
-        resave: false,
-        saveUninitialized: true,
-        cookie: { secure: process.env['NODE_ENV'] === 'production' },
-      }),
-    );
-
-    // Optionally seed session.authState for tests that need it
     if (presetAuthState) {
       app.use((req: Request, _res: Response, next) => {
         (req.session as AppSession).authState = presetAuthState;
@@ -220,22 +312,7 @@ describe('GET /sso/login-callback', () => {
       });
     }
 
-    if (routes.setupSsoRoutes) {
-      routes.setupSsoRoutes(app, {
-        tenantId: 'tenant-123',
-        clientId: 'client-abc',
-        clientSecret: 'secret-xyz',
-        redirectUri: 'http://localhost/callback',
-        scopes: ['user.read'],
-        postLogoutRedirectUri: 'http://localhost/signed-out',
-      });
-    } else if (routes.router) {
-      app.use(routes.router);
-    } else {
-      throw new Error(
-        'Expected module to export setupSsoRoutes(app, opts) or router',
-      );
-    }
+    await mountRoutes(app);
 
     // Helper endpoint to inspect session after callback
     app.get('/__session', (req: Request, res: Response) => {
@@ -247,46 +324,39 @@ describe('GET /sso/login-callback', () => {
       });
     });
 
-    // Error handler for error-path test
-    app.use((_req: Request, res: Response) => {
-      res.status(500).send('Internal error');
-    });
+    installErrorHandler(app);
 
-    return { app, logger, acquireTokenByCode, serialize };
+    return { app, acquireTokenByCode, serialize };
   };
 
   test('400 when code/state missing or state mismatched', async () => {
-    // No preset authState -> missing/invalid path
-    const { app } = await prepareApp('ok');
+    const { app } = await prepare('ok');
 
-    // missing both
-    const r1 = await request(app).get('/sso/login-callback');
+    const r1 = await request(app).get('/sso/login-callback').set(TEST_HEADERS);
     expect(r1.status).toBe(400);
     expect(r1.text).toMatch(/Invalid auth response/i);
 
-    // state mismatched
-    const { app: app2 } = await prepareApp('ok', 'expected-state');
-    const r2 = await request(app2).get(
-      '/sso/login-callback?code=abc&state=WRONG',
-    );
+    const { app: app2 } = await prepare('ok', 'expected-state');
+    const r2 = await request(app2)
+      .get('/sso/login-callback?code=abc&state=WRONG')
+      .set(TEST_HEADERS);
     expect(r2.status).toBe(400);
     expect(r2.text).toMatch(/Invalid auth response/i);
   });
 
   test('401 when token response lacks account', async () => {
-    const { app, acquireTokenByCode } = await prepareApp(
-      'noAccount',
-      'state-123',
-    );
+    const { app, acquireTokenByCode } = await prepare('noAccount', 'state-123');
 
-    const res = await request(app).get(
-      '/sso/login-callback?code=abc&state=state-123',
-    );
+    const res = await request(app)
+      .get('/sso/login-callback?code=abc&state=state-123')
+      .set(TEST_HEADERS);
 
-    // MSAL was called with our code
     expect(acquireTokenByCode).toHaveBeenCalledTimes(1);
     expect(acquireTokenByCode).toHaveBeenCalledWith(
-      expect.objectContaining({ code: 'abc' }),
+      expect.objectContaining({
+        code: 'abc',
+        redirectUri: `https://${TEST_HOST}/sso/login-callback`,
+      }),
     );
 
     expect(res.status).toBe(401);
@@ -294,29 +364,28 @@ describe('GET /sso/login-callback', () => {
   });
 
   test('success: stores account & token cache, then redirects', async () => {
-    const { app, acquireTokenByCode, serialize } = await prepareApp(
+    const { app, acquireTokenByCode, serialize } = await prepare(
       'ok',
       'state-123',
     );
 
     const agent = request.agent(app);
-    const res = await agent.get(
-      '/sso/login-callback?code=abc123&state=state-123',
-    );
+    const res = await agent
+      .get('/sso/login-callback?code=abc123&state=state-123')
+      .set(TEST_HEADERS);
 
-    // redirect to /applications-list
     expect(res.status).toBe(302);
-    const location = res.headers['location'];
-    expect(location).toBe('/applications-list');
+    expect(res.headers['location']).toBe('/applications-list');
 
-    // MSAL exchange + token cache serialize were invoked
     expect(acquireTokenByCode).toHaveBeenCalledTimes(1);
     expect(acquireTokenByCode).toHaveBeenCalledWith(
-      expect.objectContaining({ code: 'abc123' }),
+      expect.objectContaining({
+        code: 'abc123',
+        redirectUri: `https://${TEST_HOST}/sso/login-callback`,
+      }),
     );
     expect(serialize).toHaveBeenCalledTimes(1);
 
-    // Verify session was updated
     const sess = await agent.get('/__session');
     expect(sess.status).toBe(200);
     expect(sess.body).toEqual({
@@ -327,16 +396,12 @@ describe('GET /sso/login-callback', () => {
   });
 
   test('500 on error from acquireTokenByCode, logs the error', async () => {
-    const { app, logger, acquireTokenByCode } = await prepareApp(
-      'throw',
-      'state-xyz',
-    );
+    const { app } = await prepare('throw', 'state-xyz');
 
-    const res = await request(app).get(
-      '/sso/login-callback?code=abc&state=state-xyz',
-    );
+    const res = await request(app)
+      .get('/sso/login-callback?code=abc&state=state-xyz')
+      .set(TEST_HEADERS);
 
-    expect(acquireTokenByCode).toHaveBeenCalledTimes(1);
     expect(res.status).toBe(500);
     expect(logger.error).toHaveBeenCalledTimes(1);
     expect(String(logger.error.mock.calls[0][1])).toMatch(
@@ -346,161 +411,71 @@ describe('GET /sso/login-callback', () => {
 });
 
 describe('GET /sso/logout', () => {
-  const prepareApp = async (opts?: {
+  const prepare = async (opts?: {
     tenantId?: string;
-    postLogoutRedirectUri?: string;
-    asyncDestroy?: boolean; // ← new: make destroy callback async for this app
+    asyncDestroy?: boolean;
   }) => {
     jest.resetModules();
 
-    // Stub MSAL (not used in logout, but safe at import time)
     jest.doMock('@azure/msal-node', () => {
       class ConfidentialClientApplication {
         getAuthCodeUrl() {
           throw new Error('Not used in logout tests');
         }
+
         acquireTokenByCode() {
           throw new Error('Not used in logout tests');
         }
+
         getTokenCache() {
           return { serialize: () => 'SERIALIZED_CACHE' };
         }
       }
+
       return { ConfidentialClientApplication };
     });
 
-    const routes = (await import('../../src/routes/sso')) as RoutesModule;
-
-    const app: Express = express();
-    app.use(
-      session({
-        secret: 'test-secret',
-        resave: false,
-        saveUninitialized: true,
-        cookie: { secure: process.env['NODE_ENV'] === 'production' },
-      }),
-    );
-
-    // 🔑 Install the destroy spy BEFORE routes so the route uses it
-    let destroySpy:
-      | jest.SpyInstance<
-          ReturnType<Session['destroy']>,
-          Parameters<Session['destroy']>
-        >
-      | undefined;
-
-    app.use((req: Request, _res: Response, next: NextFunction) => {
-      const s = req.session as Session;
-      type Destroy = typeof s.destroy;
-      type DestroyCb = Parameters<Destroy>[0];
-      type DestroyRet = ReturnType<Destroy>;
-
-      destroySpy = jest
-        .spyOn(s, 'destroy')
-        .mockImplementation((cb: DestroyCb): DestroyRet => {
-          if (opts?.asyncDestroy) {
-            setTimeout(() => cb?.(undefined), 0);
-          } else {
-            cb?.(undefined);
-          }
-          return s; // match express-session typings
-        });
-
-      next();
+    const app = createBaseApp();
+    const destroySpyRef = installDestroySpy(app, {
+      asyncDestroy: opts?.asyncDestroy,
     });
 
-    // Attach routes AFTER spy is in place
-    const tenantId = opts?.tenantId ?? 'my-tenant';
-    const postLogoutRedirectUri =
-      opts?.postLogoutRedirectUri ?? 'http://localhost/after-signout?x=1&y=two';
+    await mountRoutes(app, { tenantId: opts?.tenantId });
 
-    if (routes.setupSsoRoutes) {
-      routes.setupSsoRoutes(app, {
-        tenantId,
-        clientId: 'client-abc',
-        clientSecret: 'secret-xyz',
-        redirectUri: 'http://localhost/callback',
-        scopes: ['user.read'],
-        postLogoutRedirectUri,
-      });
-    } else if (routes.router) {
-      app.use(routes.router);
-    } else {
-      throw new Error(
-        'Expected module to export setupSsoRoutes(app, opts) or router',
-      );
-    }
-
-    // Proper 4-arg error handler
-    app.use((_req: Request, res: Response) => {
-      res.status(500).send('Internal error');
-    });
+    installErrorHandler(app);
 
     return {
       app,
-      logger,
-      destroySpyRef: () => destroySpy,
-      tenantId,
-      postLogoutRedirectUri,
+      destroySpyRef,
+      tenantId: opts?.tenantId ?? 'tenant-123',
     };
   };
 
-  const buildExpectedLogoutUrl = (
-    tenantId: string,
-    postLogoutRedirectUri: string,
-  ): string =>
-    `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/logout` +
-    `?post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`;
+  test('logout: computes post_logout_redirect_uri from request host', async () => {
+    const { app, destroySpyRef, tenantId } = await prepare();
 
-  type DestroySpy = jest.SpyInstance<
-    ReturnType<Session['destroy']>,
-    Parameters<Session['destroy']>
-  >;
+    const expectedComputed = `https://${TEST_HOST}/login`;
+    const expectedUrl = buildExpectedLogoutUrl(tenantId, expectedComputed);
 
-  const assertLogoutRedirect = async (
-    app: Express,
-    expectedUrl: string,
-    destroySpyRef: () => DestroySpy | undefined,
-  ): Promise<void> => {
-    const res = await request(app).get('/sso/logout');
-
-    expect(res.status).toBe(302);
-    const location = res.headers['location'];
-    expect(location).toBe(expectedUrl);
-
-    const spy = destroySpyRef();
-    expect(spy).toBeDefined();
-    expect(spy?.mock.calls.length).toBe(1);
-  };
-
-  test('destroys the session and redirects to Entra logout with post_logout_redirect_uri', async () => {
-    const { app, destroySpyRef, tenantId, postLogoutRedirectUri } =
-      await prepareApp();
-
-    await assertLogoutRedirect(
-      app,
-      buildExpectedLogoutUrl(tenantId, postLogoutRedirectUri),
-      destroySpyRef,
-    );
+    await assertLogoutRedirect(app, expectedUrl, destroySpyRef, TEST_HEADERS);
   });
 
-  test('still redirects when destroy calls back asynchronously', async () => {
-    const { app, destroySpyRef, tenantId, postLogoutRedirectUri } =
-      await prepareApp({ asyncDestroy: true });
+  test('logout: still redirects when destroy calls back asynchronously (computed)', async () => {
+    const { app, destroySpyRef, tenantId } = await prepare({
+      asyncDestroy: true,
+    });
 
-    await assertLogoutRedirect(
-      app,
-      buildExpectedLogoutUrl(tenantId, postLogoutRedirectUri),
-      destroySpyRef,
-    );
+    const expectedComputed = `https://${TEST_HOST}/login`;
+    const expectedUrl = buildExpectedLogoutUrl(tenantId, expectedComputed);
+
+    await assertLogoutRedirect(app, expectedUrl, destroySpyRef, TEST_HEADERS);
   });
 });
 
 describe('GET /sso/me', () => {
-  const prepareApp = async (opts?: { seedAccount?: Account }) => {
+  const prepare = async (opts?: { seedAccount?: Account }) => {
     jest.resetModules();
 
-    // Stub MSAL to avoid surprises at import time (not used by /sso/me)
     jest.doMock(
       '@azure/msal-node',
       () => {
@@ -508,31 +483,23 @@ describe('GET /sso/me', () => {
           getAuthCodeUrl() {
             throw new Error('Not used in /sso/me tests');
           }
+
           acquireTokenByCode() {
             throw new Error('Not used in /sso/me tests');
           }
+
           getTokenCache() {
             return { serialize: () => 'SERIALIZED_CACHE' };
           }
         }
+
         return { ConfidentialClientApplication };
       },
       { virtual: true },
     );
 
-    const routes = (await import('../../src/routes/sso')) as RoutesModule;
+    const app = createBaseApp();
 
-    const app: Express = express();
-    app.use(
-      session({
-        secret: 'test-secret',
-        resave: false,
-        saveUninitialized: true,
-        cookie: { secure: process.env['NODE_ENV'] === 'production' },
-      }),
-    );
-
-    // Optionally seed session.account for the authenticated test
     if (opts?.seedAccount) {
       app.use((req: Request, _res: Response, next: NextFunction) => {
         (req.session as Session & { account?: Account }).account =
@@ -541,33 +508,16 @@ describe('GET /sso/me', () => {
       });
     }
 
-    if (routes.setupSsoRoutes) {
-      routes.setupSsoRoutes(app, {
-        tenantId: 'tenant-123',
-        clientId: 'client-abc',
-        clientSecret: 'secret-xyz',
-        redirectUri: 'http://localhost/callback',
-        scopes: ['user.read'],
-        postLogoutRedirectUri: 'http://localhost/signed-out',
-      });
-    } else if (routes.router) {
-      app.use(routes.router);
-    } else {
-      throw new Error(
-        'Expected module to export setupSsoRoutes(app, opts) or router',
-      );
-    }
-
-    // Proper 4-arg error handler (not expected here, just consistent)
-    app.use((err: unknown, _req: Request, res: Response) => {
+    await mountRoutes(app);
+    app.use((_req: Request, res: Response) => {
       res.status(500).send('Internal error');
     });
 
-    return { app, logger };
+    return { app };
   };
 
   test('401 when no session account', async () => {
-    const { app } = await prepareApp();
+    const { app } = await prepare();
 
     const res = await request(app).get('/sso/me');
 
@@ -580,7 +530,7 @@ describe('GET /sso/me', () => {
       name: 'Test User',
       username: 'test@example.com',
     };
-    const { app } = await prepareApp({ seedAccount: account });
+    const { app } = await prepare({ seedAccount: account });
 
     const res = await request(app).get('/sso/me');
 

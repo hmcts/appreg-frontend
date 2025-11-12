@@ -6,7 +6,7 @@ reporter.generate({
   reportName: 'AppReg Frontend Cucumber Report',
   pageTitle: 'AppReg Test Results',
   displayDuration: true,
-  screenshotsDirectory: 'cypress/reports/html/screenshots',
+  screenshotsDirectory: './cypress/reports/html/screenshots',
   customStyle: 'cypress/scripts/custom.css',
   metadata: {
     browser: {
