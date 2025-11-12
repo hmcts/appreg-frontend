@@ -18,6 +18,7 @@ import {
 import { AccordionComponent } from '../../shared/components/accordion/accordion.component';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
+import { ErrorItem, ErrorSummaryComponent } from '../../shared/components/error-summary/error-summary.component';
 import { OrganisationSectionComponent } from '../../shared/components/organisation-section/organisation-section.component';
 import { PersonSectionComponent } from '../../shared/components/person-section/person-section.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
@@ -27,6 +28,8 @@ import {
 } from '../../shared/components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
+
+type CodeRow = { code: string; title: string; bulk: string; fee: string };
 
 @Component({
   selector: 'app-applications-list-entry-detail',
@@ -44,6 +47,7 @@ import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
     SortableTableComponent,
     TextInputComponent,
     DateInputComponent,
+    ErrorSummaryComponent,
   ],
   templateUrl: './applications-list-entry-detail.html',
 })
@@ -51,6 +55,11 @@ export class ApplicationsListEntryDetail implements OnInit {
   appListId!: string;
   formSubmitted = false;
   form!: FormGroup;
+  codesRows: CodeRow[] = [];
+  codesLoading = false;
+  errorHint: string | null = null;
+  errorSummary: { text: string; href?: string }[] = [];
+  hasFatalError = false;
 
   applicantColumns: TableColumn[] = [
     { header: 'Code', field: 'code', numeric: true },
@@ -188,7 +197,39 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.formSubmitted = true;
   }
 
-  onCodesSearch(): void {}
+  onCodesSearch(): void {
+    this.hasFatalError = false;
+    this.errorHint = null;
+    this.errorSummary = [];
+
+    const code = (this.form.get('applicationCode')?.value ?? '').trim();
+    const title = (this.form.get('applicationTitle')?.value ?? '').trim();
+
+    this.codesLoading = true;
+    this.codesApi
+      .getApplicationCodes(
+        {
+          code: code || undefined,
+          title: title || undefined,
+          page: 0,
+          size: 10,
+        },
+        'body',
+        false,
+        { transferCache: true },
+      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (page) => {
+          this.codesRows = this.mapCodeRows(page);
+          this.codesLoading = false;
+        },
+        error: (err) => {
+          this.codesLoading = false;
+          this.handleCodesError(err);
+        },
+      });
+  }
 
   get personGroup(): FormGroup {
     return this.form.get('person') as FormGroup;
@@ -196,6 +237,120 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   get organisationGroup(): FormGroup {
     return this.form.get('organisation') as FormGroup;
+  }
+
+  onErrorItemClick = (err: ErrorItem): void => {
+    const href = err?.href ?? '';
+    const id = href.startsWith('#') ? href.slice(1) : href;
+    if (!id || !isPlatformBrowser(this.platformId)) {return;}
+
+    setTimeout(() => {
+      const el = document.getElementById(id) as
+        | (HTMLInputElement & { setSelectionRange?: (s: number, e: number) => void })
+        | HTMLTextAreaElement
+        | null;
+
+      if (!el) {return;}
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.focus?.();
+
+      try {
+        const val = (el as HTMLInputElement).value;
+        if ('setSelectionRange' in el) {
+          el.setSelectionRange(val.length, val.length);
+        }
+      } catch { /* no-op */ }
+    });
+  };
+
+  private handleCodesError(err: unknown): void {
+    let status = 0;
+    let statusText: string | undefined;
+    let problemTitle: string | undefined;
+    let problemDetail: string | undefined;
+
+    if (typeof err === 'object' && err !== null) {
+      const rec = err as Record<string, any>;
+      if (typeof rec['status'] === 'number') {
+        status = rec['status'];
+      }
+      if (typeof rec['statusText'] === 'string') {
+        statusText = rec['statusText'];
+      }
+      const e = rec['error'];
+      if (e && typeof e === 'object') {
+        if (typeof e['title'] === 'string') {
+          problemTitle = e['title'];
+        }
+        if (typeof e['detail'] === 'string') {
+          problemDetail = e['detail'];
+        }
+      }
+    }
+
+    const items = (...lines: (string | undefined)[]) =>
+      lines
+        .filter((t): t is string => !!t && t.trim().length > 0)
+        .map((text) => ({ text }));
+
+    switch (status) {
+      case 400:
+        this.errorHint = problemTitle || 'Bad request';
+        this.errorSummary = items(
+          problemDetail || 'We could not process your search.',
+        );
+        break;
+      case 401:
+        this.errorHint = problemTitle || 'You need to sign in';
+        this.errorSummary = items(
+          problemDetail ||
+            'Your session may have expired. Sign in and try again.',
+        );
+        break;
+      case 403:
+        this.errorHint =
+          problemTitle || 'You do not have permission to search codes';
+        this.errorSummary = items(
+          problemDetail || 'Ask an administrator to grant you access.',
+        );
+        break;
+      case 404:
+        this.errorHint = problemTitle || 'No codes found';
+        this.errorSummary = items(
+          problemDetail || 'Try adjusting your search terms.',
+        );
+        break;
+      default:
+        if (status === 0 || status >= 500) {
+          this.errorHint = problemTitle || 'A server error occurred';
+          this.errorSummary = items(
+            problemDetail ||
+              'Something went wrong on our side. Try again in a few moments.',
+          );
+        } else {
+          this.errorHint = problemTitle || 'There is a problem';
+          this.errorSummary = items(
+            problemDetail ||
+              statusText ||
+              'An unexpected error occurred. Try again.',
+          );
+        }
+        break;
+    }
+
+    this.hasFatalError = true;
+  }
+
+  private mapCodeRows(
+    page: import('../../../generated/openapi').ApplicationCodePage,
+  ): CodeRow[] {
+    const items = page?.content ?? [];
+    return items.map((i) => ({
+      code: i.applicationCode ?? '',
+      title: i.title ?? '',
+      bulk: i.bulkRespondentAllowed ? 'Yes' : 'No',
+      fee: i.feeReference ?? '—',
+    }));
   }
 
   private loadCodesSection(): void {
