@@ -1,8 +1,20 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  Inject,
+  OnInit,
+  PLATFORM_ID,
+  inject,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
+import {
+  ApplicationCodesApi,
+  ApplicationListEntriesApi,
+} from '../../../generated/openapi';
 import { AccordionComponent } from '../../shared/components/accordion/accordion.component';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
@@ -93,11 +105,15 @@ export class ApplicationsListEntryDetail implements OnInit {
     { value: 'other', label: 'Other' },
   ];
 
+  private readonly destroyRef = inject(DestroyRef);
+
   constructor(
     private readonly fb: FormBuilder,
     @Inject(PLATFORM_ID) private readonly platformId: object,
     private readonly route: ActivatedRoute,
     private readonly router: Router,
+    private readonly entriesApi: ApplicationListEntriesApi,
+    private readonly codesApi: ApplicationCodesApi,
   ) {}
 
   ngOnInit(): void {
@@ -116,6 +132,10 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     // NEW: build the form
     this.form = this.fb.group({
+      lodgementDate: [''],
+      applicationCode: [''],
+      applicationTitle: [''],
+
       applicantEntryType: ['Organisation'],
       respondentEntryType: ['Organisation'],
       person: this.fb.group({
@@ -160,6 +180,8 @@ export class ApplicationsListEntryDetail implements OnInit {
       officialFirstName: [''],
       officialSurname: [''],
     });
+
+    this.loadCodesSection();
   }
 
   onSubmit(): void {
@@ -174,5 +196,65 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   get organisationGroup(): FormGroup {
     return this.form.get('organisation') as FormGroup;
+  }
+
+  private loadCodesSection(): void {
+    const entryId =
+      this.route.snapshot.paramMap.get('entryId') ||
+      this.route.snapshot.paramMap.get('id') ||
+      this.route.snapshot.queryParamMap.get('entryId');
+
+    if (!this.appListId || !entryId) {
+      return;
+    }
+
+    // Load the entry to obtain lodgementDate + applicationCode
+    this.entriesApi
+      .getApplicationListEntry(
+        { listId: this.appListId, entryId },
+        'body',
+        false,
+        { transferCache: true }, // SSR friendly
+      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (entry) => {
+          // entry has both fields we need
+          // Normalise date to YYYY-MM-DD (service typically returns ISO)
+          const lodgementDate = (entry.lodgementDate ?? '').slice(0, 10);
+          const applicationCode = entry.applicationCode ?? '';
+
+          this.form.patchValue({
+            lodgementDate,
+            applicationCode,
+          });
+
+          // If both present, fetch Application Code details to get the title
+          if (applicationCode && lodgementDate) {
+            this.codesApi
+              .getApplicationCodeByCodeAndDate(
+                { code: applicationCode, date: lodgementDate },
+                'body',
+                false,
+                { transferCache: true },
+              )
+              .pipe(takeUntilDestroyed(this.destroyRef))
+              .subscribe({
+                next: (codeDto) => {
+                  this.form.patchValue({
+                    applicationTitle: codeDto.title ?? '',
+                  });
+                },
+                error: () => {
+                  // optional: leave applicationTitle blank on failure
+                  this.form.patchValue({ applicationTitle: '' });
+                },
+              });
+          }
+        },
+        error: () => {
+          // optional: you can surface an error summary here if desired
+        },
+      });
   }
 }
