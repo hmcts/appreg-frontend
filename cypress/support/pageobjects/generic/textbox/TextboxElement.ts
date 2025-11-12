@@ -1,3 +1,4 @@
+/// <reference types="cypress" />
 export class TextboxElement {
   /**
    * Finds a textbox element by label text, placeholder, or accessible name
