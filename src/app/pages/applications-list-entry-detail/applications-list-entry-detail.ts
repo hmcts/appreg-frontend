@@ -31,6 +31,7 @@ import {
   ErrorItem,
   ErrorSummaryComponent,
 } from '../../shared/components/error-summary/error-summary.component';
+import { NotificationBannerComponent } from '../../shared/components/notification-banner/notification-banner.component';
 import { OrganisationSectionComponent } from '../../shared/components/organisation-section/organisation-section.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { PersonSectionComponent } from '../../shared/components/person-section/person-section.component';
@@ -74,6 +75,7 @@ type CodeRow = { code: string; title: string; bulk: string; fee: string };
     DateInputComponent,
     ErrorSummaryComponent,
     PaginationComponent,
+    NotificationBannerComponent,
   ],
   templateUrl: './applications-list-entry-detail.html',
 })
@@ -97,6 +99,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   saSelectedIds: Set<string> = new Set<string>();
   codesRows: CodeRow[] = [];
   codesLoading = false;
+  codesHasSearched = false;
 
   applicantColumns: TableColumn[] = [
     { header: 'Code', field: 'code', numeric: true },
@@ -285,6 +288,8 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   onCodesSearch(): void {
+    this.codesHasSearched = true;
+    this.codesRows = [];
     this.hasFatalError = false;
     this.errorHint = null;
     this.errorSummary = [];
@@ -330,15 +335,21 @@ export class ApplicationsListEntryDetail implements OnInit {
   onErrorItemClick = (err: ErrorItem): void => {
     const href = err?.href ?? '';
     const id = href.startsWith('#') ? href.slice(1) : href;
-    if (!id || !isPlatformBrowser(this.platformId)) {return;}
+    if (!id || !isPlatformBrowser(this.platformId)) {
+      return;
+    }
 
     setTimeout(() => {
       const el = document.getElementById(id) as
-        | (HTMLInputElement & { setSelectionRange?: (s: number, e: number) => void })
+        | (HTMLInputElement & {
+            setSelectionRange?: (s: number, e: number) => void;
+          })
         | HTMLTextAreaElement
         | null;
 
-      if (!el) {return;}
+      if (!el) {
+        return;
+      }
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       el.focus?.();
 
@@ -347,7 +358,9 @@ export class ApplicationsListEntryDetail implements OnInit {
         if ('setSelectionRange' in el) {
           el.setSelectionRange(val.length, val.length);
         }
-      } catch { /* no-op */ }
+      } catch {
+        /* no-op */
+      }
     });
   };
 
