@@ -204,7 +204,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     // Build the full form shape used by the templates
     this.form = this.fb.group({
-      lodgementDate: [''],
+      lodgementDate: [{ value: '', disabled: true }],
       applicationCode: [''],
       applicationTitle: [''],
 
