@@ -105,19 +105,29 @@
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
     />
 
-    <app-sortable-table
-      id="codes-table"
-      caption="Codes"
-      [columns]="codesColumns"
-      [data]="codesRows"
-      appMojButtonMenu
-    >
-      <ng-template #actionsTemplate let-row>
-        <div class="govuk-button-group">
-          <button type="button" class="govuk-button">Add code</button>
-        </div>
-      </ng-template>
-    </app-sortable-table>
+    @if (codesHasSearched) {
+      @if (!codesLoading && codesRows.length === 0) {
+        <app-notification-banner
+          heading="No codes found"
+          body="Try different filters, or retry the search."
+        >
+        </app-notification-banner>
+      } @else {
+        <app-sortable-table
+          id="codes-table"
+          caption="Codes"
+          [columns]="codesColumns"
+          [data]="codesRows"
+          appMojButtonMenu
+        >
+          <ng-template #actionsTemplate let-row>
+            <div class="govuk-button-group">
+              <button type="button" class="govuk-button">Add code</button>
+            </div>
+          </ng-template>
+        </app-sortable-table>
+      }
+    }
   </ng-template>
 
   <ng-template #wordingTpl>

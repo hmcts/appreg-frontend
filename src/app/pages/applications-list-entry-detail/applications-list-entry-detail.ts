@@ -28,6 +28,7 @@ import {
 } from '../../shared/components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
+import { NotificationBannerComponent } from '../../shared/components/notification-banner/notification-banner.component';
 
 type CodeRow = { code: string; title: string; bulk: string; fee: string };
 
@@ -48,6 +49,7 @@ type CodeRow = { code: string; title: string; bulk: string; fee: string };
     TextInputComponent,
     DateInputComponent,
     ErrorSummaryComponent,
+    NotificationBannerComponent,
   ],
   templateUrl: './applications-list-entry-detail.html',
 })
@@ -57,6 +59,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   form!: FormGroup;
   codesRows: CodeRow[] = [];
   codesLoading = false;
+  codesHasSearched = false;
   errorHint: string | null = null;
   errorSummary: { text: string; href?: string }[] = [];
   hasFatalError = false;
@@ -198,6 +201,8 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   onCodesSearch(): void {
+    this.codesHasSearched = true;
+    this.codesRows = [];
     this.hasFatalError = false;
     this.errorHint = null;
     this.errorSummary = [];
@@ -242,15 +247,21 @@ export class ApplicationsListEntryDetail implements OnInit {
   onErrorItemClick = (err: ErrorItem): void => {
     const href = err?.href ?? '';
     const id = href.startsWith('#') ? href.slice(1) : href;
-    if (!id || !isPlatformBrowser(this.platformId)) {return;}
+    if (!id || !isPlatformBrowser(this.platformId)) {
+      return;
+    }
 
     setTimeout(() => {
       const el = document.getElementById(id) as
-        | (HTMLInputElement & { setSelectionRange?: (s: number, e: number) => void })
+        | (HTMLInputElement & {
+            setSelectionRange?: (s: number, e: number) => void;
+          })
         | HTMLTextAreaElement
         | null;
 
-      if (!el) {return;}
+      if (!el) {
+        return;
+      }
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       el.focus?.();
 
@@ -259,7 +270,9 @@ export class ApplicationsListEntryDetail implements OnInit {
         if ('setSelectionRange' in el) {
           el.setSelectionRange(val.length, val.length);
         }
-      } catch { /* no-op */ }
+      } catch {
+        /* no-op */
+      }
     });
   };
 
