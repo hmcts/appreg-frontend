@@ -10,11 +10,12 @@ Functionality:
 
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, TemplateRef, forwardRef } from '@angular/core';
+import { Component, OnInit, TemplateRef } from '@angular/core';
 import {
+  ControlContainer,
   FormControl,
   FormGroup,
-  NG_VALUE_ACCESSOR,
+  FormGroupDirective,
   ReactiveFormsModule,
 } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
@@ -76,12 +77,8 @@ type ApplicantStep = 'select' | 'person' | 'org' | 'standard';
     PersonSectionComponent,
     OrganisationSectionComponent,
   ],
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => PersonSectionComponent), // or Organisation
-      multi: true,
-    },
+  viewProviders: [
+    { provide: ControlContainer, useExisting: FormGroupDirective },
   ],
   templateUrl: './applications-list-entry-create.html',
 })
@@ -124,6 +121,30 @@ export class ApplicationsListEntryCreate implements OnInit {
     accountNumber: new FormControl<string | null>(null),
     notes: new FormControl<string | null>(null),
     lodgementDate: new FormControl<string | null>(null),
+    respondentEntryType: new FormControl<'person' | 'organisation'>(
+      'organisation',
+      { nonNullable: true },
+    ),
+    courtName: new FormControl<string | null>(null),
+    organisationName: new FormControl<string | null>(null),
+    feeStatus: new FormControl<string | null>(null),
+    feeStatusDate: new FormControl<string | null>(null),
+    paymentRef: new FormControl<string | null>(null),
+    accountReference: new FormControl<string | null>(null),
+    applicationDetails: new FormControl<string | null>(null),
+    resultCode: new FormControl<string | null>(null),
+    mags1Title: new FormControl<string | null>(null),
+    mags1FirstName: new FormControl<string | null>(null),
+    mags1Surname: new FormControl<string | null>(null),
+    mags2Title: new FormControl<string | null>(null),
+    mags2FirstName: new FormControl<string | null>(null),
+    mags2Surname: new FormControl<string | null>(null),
+    mags3Title: new FormControl<string | null>(null),
+    mags3FirstName: new FormControl<string | null>(null),
+    mags3Surname: new FormControl<string | null>(null),
+    officialTitle: new FormControl<string | null>(null),
+    officialFirstName: new FormControl<string | null>(null),
+    officialSurname: new FormControl<string | null>(null),
   });
 
   personForm = new FormGroup({
@@ -151,6 +172,7 @@ export class ApplicationsListEntryCreate implements OnInit {
     addressLine5: new FormControl<string>(''),
     postcode: new FormControl<string>(''),
     phoneNumber: new FormControl<string>(''),
+    mobileNumber: new FormControl<string>(''), // <-- ADD to match template
     emailAddress: new FormControl<string>(''),
   });
 
@@ -208,23 +230,101 @@ export class ApplicationsListEntryCreate implements OnInit {
 
     const dto: EntryCreateDto = {
       applicationCode: v.applicationCode!,
-      respondent: v.respondent || undefined,
-      numberOfRespondents: v.numberOfRespondents || undefined,
-      wordingFields: v.wordingFields || undefined,
-      feeStatuses: v.feeStatuses || undefined,
-      hasOffsiteFee: v.hasOffsiteFee || undefined,
-      caseReference: v.caseReference || undefined,
-      accountNumber: v.accountNumber || undefined,
-      notes: v.notes || undefined,
+      numberOfRespondents: v.numberOfRespondents ?? undefined,
+      wordingFields: v.wordingFields ?? undefined,
+      feeStatuses: v.feeStatuses ?? undefined,
+      hasOffsiteFee:
+        typeof v.hasOffsiteFee === 'boolean' ? v.hasOffsiteFee : undefined,
+      caseReference: v.caseReference?.trim() || undefined,
+      accountNumber: v.accountNumber?.trim() || undefined,
+      notes: v.notes?.trim() || undefined,
       lodgementDate: v.lodgementDate || undefined,
     };
 
+    // applicant
     if (v.applicantType === 'standard') {
-      dto.standardApplicantCode = v.standardApplicantCode ?? undefined;
+      dto.standardApplicantCode = v.standardApplicantCode?.trim() || undefined;
     } else {
       dto.applicant = v.applicant ?? undefined;
     }
 
+    // respondent (from sub-forms)
+    const respondent = this.buildRespondent();
+    if (respondent) {
+      dto.respondent = respondent;
+    }
+
     return dto;
+  }
+
+  private buildRespondent(): Respondent | undefined {
+    const type = this.form.controls.respondentEntryType.value;
+
+    if (type === 'person') {
+      const p = this.personForm.value;
+      const hasName = p.firstName?.trim() || p.surname?.trim();
+      const hasAddr = p.addressLine1?.trim();
+
+      if (
+        !hasName &&
+        !hasAddr &&
+        !p.emailAddress?.trim() &&
+        !p.phoneNumber?.trim() &&
+        !p.mobileNumber?.trim()
+      ) {
+        return undefined;
+      }
+
+      return {
+        person: {
+          name: {
+            title: p.title || null,
+            firstForename: p.firstName || null,
+            secondForename: p.middleNames || null,
+            surname: p.surname || null,
+          },
+          contactDetails: {
+            addressLine1: p.addressLine1 || '',
+            addressLine2: p.addressLine2 || undefined,
+            addressLine3: p.addressLine3 || undefined,
+            addressLine4: p.addressLine4 || undefined,
+            addressLine5: p.addressLine5 || undefined,
+            postcode: p.postcode || undefined,
+            phone: p.phoneNumber || undefined,
+            mobile: p.mobileNumber || undefined,
+            email: p.emailAddress || undefined,
+          },
+        },
+      } as Respondent;
+    }
+
+    const o = this.organisationForm.value;
+    const hasOrg = o.name?.trim();
+    const hasOrgAddr = o.addressLine1?.trim();
+
+    if (
+      !hasOrg &&
+      !hasOrgAddr &&
+      !o.emailAddress?.trim() &&
+      !o.phoneNumber?.trim()
+    ) {
+      return undefined;
+    }
+
+    return {
+      organisation: {
+        name: o.name || '',
+        contactDetails: {
+          addressLine1: o.addressLine1 || '',
+          addressLine2: o.addressLine2 || undefined,
+          addressLine3: o.addressLine3 || undefined,
+          addressLine4: o.addressLine4 || undefined,
+          addressLine5: o.addressLine5 || undefined,
+          postcode: o.postcode || undefined,
+          phone: o.phoneNumber || undefined,
+          email: o.emailAddress || undefined,
+        },
+      },
+    } as Respondent;
   }
 }

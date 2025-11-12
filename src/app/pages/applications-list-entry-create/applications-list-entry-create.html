@@ -137,7 +137,7 @@
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
     />
 
-    <!-- @switch (form.get('respondentEntryType')?.value) {
+    @switch (form.controls.respondentEntryType.value) {
       @case ('person') {
         <app-person-section
           [group]="personForm"
@@ -151,11 +151,12 @@
         >
         </app-person-section>
       }
-      @case ('org') {
-        <app-organisation-section [group]="organisationForm">
-        </app-organisation-section>
+      @case ('organisation') {
+        <app-organisation-section
+          [group]="organisationForm"
+        ></app-organisation-section>
       }
-    } -->
+    }
   </ng-template>
 
   <ng-template #civilFeeTpl>
@@ -436,7 +437,7 @@
   <app-accordion
     [id]="'accordion-default'"
     [items]="[
-      { heading: 'Applicant', tpl: applicantTpl, expanded: false },
+      { heading: 'Applicant', tpl: applicantTpl, expanded: true },
       { heading: 'Codes', tpl: codesTpl, expanded: false },
       { heading: 'Wording', tpl: wordingTpl, expanded: false },
       { heading: 'Respondent', tpl: respondentTpl, expanded: false },
