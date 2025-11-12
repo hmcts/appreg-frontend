@@ -20,7 +20,7 @@
     data-component="error-summary"
     (itemSelect)="onErrorItemClick($event)"
   ></app-error-summary>
-} <!-- @else { -->
+}
 <form [formGroup]="form">
   <ng-template #applicantTpl>
     <h3 class="govuk-heading-m">Application entry type</h3>
@@ -135,14 +135,12 @@
       id="codes-table"
       caption="Codes"
       [columns]="codesColumns"
+      [data]="codesRows"
       appMojButtonMenu
     >
       <ng-template #actionsTemplate let-row>
         <div class="govuk-button-group">
           <button type="button" class="govuk-button">Add code</button>
-          <button type="button" class="govuk-button govuk-button--secondary">
-            Add wording
-          </button>
         </div>
       </ng-template>
     </app-sortable-table>
