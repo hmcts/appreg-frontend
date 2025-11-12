@@ -14,11 +14,17 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {
   ApplicationCodesApi,
   ApplicationListEntriesApi,
+  EntryUpdateDto,
+  UpdateApplicationListEntryRequestParams,
 } from '../../../generated/openapi';
 import { AccordionComponent } from '../../shared/components/accordion/accordion.component';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
-import { ErrorItem, ErrorSummaryComponent } from '../../shared/components/error-summary/error-summary.component';
+import {
+  ErrorItem,
+  ErrorSummaryComponent,
+} from '../../shared/components/error-summary/error-summary.component';
+import { NotificationBannerComponent } from '../../shared/components/notification-banner/notification-banner.component';
 import { OrganisationSectionComponent } from '../../shared/components/organisation-section/organisation-section.component';
 import { PersonSectionComponent } from '../../shared/components/person-section/person-section.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
@@ -26,9 +32,9 @@ import {
   SortableTableComponent,
   TableColumn,
 } from '../../shared/components/sortable-table/sortable-table.component';
+import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
-import { NotificationBannerComponent } from '../../shared/components/notification-banner/notification-banner.component';
 
 type CodeRow = { code: string; title: string; bulk: string; fee: string };
 
@@ -50,6 +56,7 @@ type CodeRow = { code: string; title: string; bulk: string; fee: string };
     DateInputComponent,
     ErrorSummaryComponent,
     NotificationBannerComponent,
+    SuccessBannerComponent,
   ],
   templateUrl: './applications-list-entry-detail.html',
 })
@@ -63,6 +70,11 @@ export class ApplicationsListEntryDetail implements OnInit {
   errorHint: string | null = null;
   errorSummary: { text: string; href?: string }[] = [];
   hasFatalError = false;
+  successBanner: {
+    heading: string;
+    body: string;
+    link?: { href: string; text: string };
+  } | null = null;
 
   applicantColumns: TableColumn[] = [
     { header: 'Code', field: 'code', numeric: true },
@@ -118,6 +130,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   ];
 
   private readonly destroyRef = inject(DestroyRef);
+  private readonly wordingRefRe = /\{\s*TEXT\s*\|\s*Reference\s*\|\s*\d+\s*}/i;
 
   constructor(
     private readonly fb: FormBuilder,
@@ -236,6 +249,48 @@ export class ApplicationsListEntryDetail implements OnInit {
       });
   }
 
+  onAddCode(row: CodeRow): void {
+    this.successBanner = null;
+    this.hasFatalError = false;
+    this.errorHint = null;
+    this.errorSummary = [];
+
+    const entryId = this.getEntryId();
+    if (!this.appListId || !entryId) return;
+
+    const code = (row?.code ?? '').trim();
+    if (!code) return;
+
+    const raw = this.form.getRawValue();
+    const lodgementDate = (raw.lodgementDate ?? '').toString().slice(0, 10);
+
+    if (!lodgementDate) {
+      this.hasFatalError = true;
+      this.errorHint = 'There is a problem';
+      this.errorSummary = [{ text: 'Lodgement date is missing. Load the entry before adding a code.' }];
+      return;
+    }
+
+    const entryUpdateDto: EntryUpdateDto = {
+      lodgementDate,
+      applicationCode: code,
+    };
+
+    const params = {
+      listId: this.appListId,
+      entryId,
+      entryUpdateDto,
+    } satisfies UpdateApplicationListEntryRequestParams;
+
+    this.entriesApi
+      .updateApplicationListEntry(params, 'body', false, { transferCache: false })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.afterCodeUpdatedSuccessfully(code),
+        error: (err) => this.handleCodesError(err),
+      });
+  }
+
   get personGroup(): FormGroup {
     return this.form.get('person') as FormGroup;
   }
@@ -275,6 +330,80 @@ export class ApplicationsListEntryDetail implements OnInit {
       }
     });
   };
+
+  private afterCodeUpdatedSuccessfully(code: string): void {
+    // Reflect the change immediately in the form
+    this.form.patchValue({ applicationCode: code });
+
+    // We need the lodgement date for the code detail call
+    const lodgementDate = (this.form.getRawValue().lodgementDate ?? '')
+      .toString()
+      .slice(0, 10);
+
+    // Fetch the code detail so we can get `title` and check its wording/template
+    this.codesApi
+      .getApplicationCodeByCodeAndDate(
+        { code, date: lodgementDate },
+        'body',
+        false,
+        { transferCache: true },
+      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (detail) => {
+          const title = detail?.title ?? '';
+          const wording: string =
+            (detail as any)?.wording ?? (detail as any)?.defaultWording ?? '';
+
+          this.form.patchValue({ applicationTitle: title });
+
+          const needsWording = this.wordingRefRe.test(wording);
+
+          // Build success banner
+          if (needsWording) {
+            this.successBanner = {
+              heading: 'Application code added',
+              body: 'This code requires additional wording. Please complete the "Wording" section.',
+              link: { href: '#wording-section', text: 'Go to wording section' },
+            };
+
+            this.focusSuccessBanner();
+          } else {
+            this.successBanner = {
+              heading: 'Application code added',
+              body: 'The application list entry was updated successfully.',
+            };
+            this.focusSuccessBanner();
+          }
+        },
+        error: () => {
+          this.successBanner = {
+            heading: 'Application code added',
+            body: 'The application list entry was updated successfully.',
+          };
+          this.focusSuccessBanner();
+        },
+      });
+  }
+
+  private focusSuccessBanner(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    setTimeout(() => {
+      const el = document.querySelector<HTMLElement>('app-success-banner');
+      el?.focus?.();
+      el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  private getEntryId(): string | null {
+    return (
+      this.route.snapshot.paramMap.get('entryId') ||
+      this.route.snapshot.paramMap.get('id') ||
+      this.route.snapshot.queryParamMap.get('entryId')
+    );
+  }
 
   private handleCodesError(err: unknown): void {
     let status = 0;

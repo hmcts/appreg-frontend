@@ -22,6 +22,20 @@
   ></app-error-summary>
 }
 
+@if (successBanner) {
+  <app-success-banner
+    [heading]="successBanner.heading"
+    [body]="successBanner.body"
+  ></app-success-banner>
+
+  <!-- If your banner body doesn't support HTML links, render a link just under it -->
+  @if (successBanner.link) {
+    <p class="govuk-body govuk-!-margin-bottom-0">
+      <a [href]="successBanner.link.href">{{ successBanner.link.text }}</a>
+    </p>
+  }
+}
+
 <form [formGroup]="form">
   <ng-template #applicantTpl>
     <h3 class="govuk-heading-m">Application entry type</h3>
@@ -122,7 +136,9 @@
         >
           <ng-template #actionsTemplate let-row>
             <div class="govuk-button-group">
-              <button type="button" class="govuk-button">Add code</button>
+              <button type="button" class="govuk-button" (click)="onAddCode(row)">
+                Add code
+              </button>
             </div>
           </ng-template>
         </app-sortable-table>
@@ -131,6 +147,7 @@
   </ng-template>
 
   <ng-template #wordingTpl>
+    <span id="wording-section"></span>
     <div class="govuk-grid-row">
       <!-- Court name -->
       <app-text-input
