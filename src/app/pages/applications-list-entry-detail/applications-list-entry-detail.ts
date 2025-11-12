@@ -14,6 +14,7 @@ import { finalize } from 'rxjs';
 
 import {
   Applicant,
+  ApplicationCodesApi,
   ApplicationListEntriesApi,
   ContactDetails,
   EntryGetDetailDto,
@@ -184,6 +185,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     private readonly router: Router,
     private readonly entriesApi: ApplicationListEntriesApi,
     private readonly saApi: StandardApplicantsApi,
+    private readonly codesApi: ApplicationCodesApi,
   ) {}
 
   ngOnInit(): void {
@@ -202,6 +204,10 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     // Build the full form shape used by the templates
     this.form = this.fb.group({
+      lodgementDate: [''],
+      applicationCode: [''],
+      applicationTitle: [''],
+
       applicantEntryType: ['person'],
       respondentEntryType: ['person'],
 
@@ -235,9 +241,6 @@ export class ApplicationsListEntryDetail implements OnInit {
       }),
 
       // (other unrelated fields left as-is)
-      lodgementDate: [''],
-      applicationCode: [''],
-      applicationTitle: [''],
       courtName: [''],
       organisationName: [''],
       feeStatus: [''],
@@ -268,6 +271,8 @@ export class ApplicationsListEntryDetail implements OnInit {
       .subscribe(() => this.onApplicantTypeChanged());
 
     this.loadEntryAndPatchForm();
+
+    this.loadCodesSection();
   }
 
   // ——— UI handlers ———
@@ -284,6 +289,66 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   get organisationGroup(): FormGroup {
     return this.form.get('organisation') as FormGroup;
+  }
+
+  private loadCodesSection(): void {
+    const entryId =
+      this.route.snapshot.paramMap.get('entryId') ||
+      this.route.snapshot.paramMap.get('id') ||
+      this.route.snapshot.queryParamMap.get('entryId');
+
+    if (!this.appListId || !entryId) {
+      return;
+    }
+
+    // Load the entry to obtain lodgementDate + applicationCode
+    this.entriesApi
+      .getApplicationListEntry(
+        { listId: this.appListId, entryId },
+        'body',
+        false,
+        { transferCache: true }, // SSR friendly
+      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (entry) => {
+          // entry has both fields we need
+          // Normalise date to YYYY-MM-DD (service typically returns ISO)
+          const lodgementDate = (entry.lodgementDate ?? '').slice(0, 10);
+          const applicationCode = entry.applicationCode ?? '';
+
+          this.form.patchValue({
+            lodgementDate,
+            applicationCode,
+          });
+
+          // If both present, fetch Application Code details to get the title
+          if (applicationCode && lodgementDate) {
+            this.codesApi
+              .getApplicationCodeByCodeAndDate(
+                { code: applicationCode, date: lodgementDate },
+                'body',
+                false,
+                { transferCache: true },
+              )
+              .pipe(takeUntilDestroyed(this.destroyRef))
+              .subscribe({
+                next: (codeDto) => {
+                  this.form.patchValue({
+                    applicationTitle: codeDto.title ?? '',
+                  });
+                },
+                error: () => {
+                  // optional: leave applicationTitle blank on failure
+                  this.form.patchValue({ applicationTitle: '' });
+                },
+              });
+          }
+        },
+        error: () => {
+          // optional: you can surface an error summary here if desired
+        },
+      });
   }
 
   get applicantType(): ApplicantType {
