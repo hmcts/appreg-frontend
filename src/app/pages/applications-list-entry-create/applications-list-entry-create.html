@@ -22,70 +22,440 @@
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 
-@if (step === 'select') {
-  <form [formGroup]="form" novalidate>
+<form [formGroup]="form" novalidate>
+  <!-- Applicant details (based on chosen type) -->
+  <ng-template #applicantTpl>
     <app-radio-group
       legend="Select an applicant"
       idPrefix="applicant"
       [options]="applicantOptions"
       errorText="Please select an applicant"
-      size="l"
+      size="m"
       formControlName="applicantType"
     >
     </app-radio-group>
 
-    <div class="govuk-button-group">
-      <button
-        type="button"
-        class="govuk-button"
-        (click)="onNext()"
-        [disabled]="!form.get('applicantType')?.value"
-      >
-        Next
-      </button>
-      <a
-        class="govuk-button govuk-button--secondary"
-        [routerLink]="['/applications-list', id]"
-      >
-        Cancel
-      </a>
-    </div>
-  </form>
-}
-
-@if (step !== 'select') {
-  @switch (form.controls.applicantType.value) {
-    @case ('person') {
-      <!-- <app-applicant-person-form
-      formControlName="applicant"
-      [submitted]="submitted">
-    </app-applicant-person-form> -->
-    }
-    @case ('org') {
-      <!-- <app-applicant-organisation-form
-      formControlName="applicant"
-      [submitted]="submitted">
-    </app-applicant-organisation-form> -->
-    }
-    @case ('standard') {
-      <!-- placeholder for your standard-applicant picker -->
-      <h2 class="govuk-heading-l">Applicant: Standard applicant</h2>
-      <p class="govuk-body">
-        You selected Standard applicant. Placeholder form goes here.
-      </p>
-      <div class="govuk-button-group">
-        <button
-          type="button"
-          class="govuk-button govuk-button--secondary"
-          (click)="onBack()"
+    @switch (form.get('applicantType')?.value) {
+      @case ('person') {
+        <app-person-section
+          [titleOptions]="[
+            { value: 'mr', label: 'Mr' },
+            { value: 'mrs', label: 'Mrs' },
+            { value: 'miss', label: 'Miss' },
+            { value: 'dr', label: 'Dr' },
+            { value: 'other', label: 'Other' },
+          ]"
+          [group]="personForm"
         >
-          Back
-        </button>
-      </div>
-    }
-  }
-}
+        </app-person-section>
+      }
 
-<hr
-  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
-/>
+      @case ('org') {
+        <app-organisation-section [group]="organisationForm">
+        </app-organisation-section>
+      }
+
+      @case ('standard') {
+        <app-sortable-table
+          id="sortable-table"
+          caption="Lists"
+          [columns]="[
+            { header: 'Code', field: 'code', numeric: true },
+            { header: 'Name', field: 'name' },
+            { header: 'Address line 1', field: 'address' },
+            { header: 'Use from', field: 'useFrom' },
+            { header: 'Use to', field: 'useTo' },
+          ]"
+          appMojButtonMenu
+        >
+        </app-sortable-table>
+      }
+    }
+  </ng-template>
+
+  <ng-template #codesTpl>
+    <div class="govuk-grid-row">
+      <!-- Lodgement date -->
+      <app-date-input
+        formControlName="lodgementDate"
+        label="Lodgement date"
+        hint="For example, 27 3 2007"
+        idPrefix="lodgement-date"
+        [submitted]="submitted"
+        [isSearch]="true"
+      >
+      </app-date-input>
+
+      <!-- Application code -->
+      <app-application-code-search 
+      [auto]="false"
+      (selectCode)="onCodeSelected($event)">
+      </app-application-code-search>
+    </div>
+  </ng-template>
+
+  <ng-template #wordingTpl>
+    <div class="govuk-grid-row">
+      <!-- Court name -->
+      <app-text-input
+        formControlName="courtName"
+        label="Court name"
+        hint="Enter the official name of the court"
+        idPrefix="court-name"
+      >
+      </app-text-input>
+
+      <!-- Organisation name -->
+      <app-text-input
+        formControlName="organisationName"
+        label="Organisation name"
+        hint="Enter the legal name of the organisation"
+        idPrefix="organisation-name"
+      >
+      </app-text-input>
+    </div>
+  </ng-template>
+
+  <ng-template #respondentTpl>
+    <h3 class="govuk-heading-m">Application entry type</h3>
+    <div class="govuk-grid-row">
+      <app-select-input
+        formControlName="respondentEntryType"
+        label="Select type"
+        hint="The type of respondant for this application"
+        idPrefix="respondent-entry-type"
+        [options]="[
+          { value: 'person', label: 'Person' },
+          { value: 'organisation', label: 'Organisation' },
+        ]"
+      >
+      </app-select-input>
+    </div>
+
+    <hr
+      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+    />
+
+    <!-- @switch (form.get('respondentEntryType')?.value) {
+      @case ('person') {
+        <app-person-section
+          [group]="personForm"
+          [titleOptions]="[
+            { value: 'mr', label: 'Mr' },
+            { value: 'mrs', label: 'Mrs' },
+            { value: 'miss', label: 'Miss' },
+            { value: 'dr', label: 'Dr' },
+            { value: 'other', label: 'Other' },
+          ]"
+        >
+        </app-person-section>
+      }
+      @case ('org') {
+        <app-organisation-section [group]="organisationForm">
+        </app-organisation-section>
+      }
+    } -->
+  </ng-template>
+
+  <ng-template #civilFeeTpl>
+    <app-sortable-table
+      id="civil-fee-table"
+      caption="Fee Reference: CO9.2 — Amount: £75.00"
+      [columns]="[
+        { header: 'Fee Status', field: 'status' },
+        { header: 'Status Date', field: 'date' },
+        { header: 'Payment Ref', field: 'paymentRef' },
+      ]"
+      appMojButtonMenu
+    >
+    </app-sortable-table>
+
+    <hr
+      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+    />
+
+    <h2 class="govuk-heading-m">Update fee status</h2>
+
+    <div class="govuk-grid-row">
+      <!-- Fee status -->
+      <app-select-input
+        formControlName="feeStatus"
+        label="Fee status"
+        hint="Select the status of the fee to be paid"
+        idPrefix="fee-status"
+        [options]="[
+          { value: 'paid', label: 'Paid' },
+          { value: 'outstanding', label: 'Outstanding' },
+          { value: 'pending', label: 'Pending' },
+        ]"
+      >
+      </app-select-input>
+
+      <!-- Status date -->
+      <app-date-input
+        formControlName="feeStatusDate"
+        label="Status date"
+        hint="For example, 15 5 2025"
+        idPrefix="fee-status-date"
+        [submitted]="submitted"
+      >
+      </app-date-input>
+
+      <!-- Payment reference -->
+      <app-text-input
+        formControlName="paymentRef"
+        label="Payment reference"
+        hint="Enter the unique reference assigned to this payment"
+        idPrefix="payment-ref"
+      >
+      </app-text-input>
+    </div>
+  </ng-template>
+
+  <ng-template #notesTpl>
+    <div class="govuk-grid-row">
+      <!-- Case reference -->
+      <app-text-input
+        formControlName="caseReference"
+        label="Case reference"
+        hint="Enter the unique case reference, for example CR-2025-00123"
+        idPrefix="case-reference"
+      >
+      </app-text-input>
+
+      <!-- Account reference -->
+      <app-text-input
+        formControlName="accountReference"
+        label="Account reference"
+        hint="Enter the associated account reference, for example AC-987654"
+        idPrefix="account-reference"
+      >
+      </app-text-input>
+    </div>
+
+    <hr
+      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+    />
+
+    <div class="govuk-grid-row">
+      <!-- Application details -->
+      <app-text-input
+        formControlName="applicationDetails"
+        label="Application details"
+        hint="Provide any additional information about the application (for example special requirements or notes). Do not include sensitive personal data."
+        idPrefix="application-details"
+      >
+      </app-text-input>
+    </div>
+  </ng-template>
+
+  <ng-template #resultWordingTpl>
+    <app-sortable-table
+      id="result-wording-table"
+      caption="Result wording"
+      [columns]="[
+        { header: 'Applicant(s)', field: 'applicants' },
+        { header: 'Respondent(s)', field: 'respondents' },
+        { header: 'Application title(s)', field: 'titles' },
+      ]"
+      appMojButtonMenu
+    >
+    </app-sortable-table>
+
+    <hr
+      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+    />
+
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="resultCode"
+        label="Result code"
+        hint="Start typing to search for a result code"
+        idPrefix="result-code"
+      >
+      </app-text-input>
+    </div>
+  </ng-template>
+
+  <ng-template #officialsTpl>
+    <!-- Magistrate 1 -->
+    <h3 class="govuk-heading-m">Magistrate 1</h3>
+    <div class="govuk-grid-row">
+      <app-select-input
+        formControlName="mags1Title"
+        label="Select magistrate’s title"
+        hint="The magistrate’s formal title"
+        idPrefix="mags1-title"
+        [options]="[
+          { value: 'mr', label: 'Mr' },
+          { value: 'mrs', label: 'Mrs' },
+          { value: 'miss', label: 'Miss' },
+          { value: 'dr', label: 'Dr' },
+          { value: 'other', label: 'Other' },
+        ]"
+      >
+      </app-select-input>
+
+      <app-text-input
+        formControlName="mags1FirstName"
+        label="Magistrate’s first name"
+        hint="Enter the magistrate’s given name"
+        idPrefix="mags1-first-name"
+      >
+      </app-text-input>
+
+      <app-text-input
+        formControlName="mags1Surname"
+        label="Magistrate’s surname"
+        hint="Enter the magistrate’s family name"
+        idPrefix="mags1-surname"
+      >
+      </app-text-input>
+    </div>
+
+    <hr
+      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+    />
+
+    <!-- Magistrate 2 -->
+    <h3 class="govuk-heading-m">Magistrate 2</h3>
+    <div class="govuk-grid-row">
+      <app-select-input
+        formControlName="mags2Title"
+        label="Select magistrate’s title"
+        hint="The magistrate’s formal title"
+        idPrefix="mags2-title"
+        [options]="[
+          { value: 'mr', label: 'Mr' },
+          { value: 'mrs', label: 'Mrs' },
+          { value: 'miss', label: 'Miss' },
+          { value: 'dr', label: 'Dr' },
+          { value: 'other', label: 'Other' },
+        ]"
+      >
+      </app-select-input>
+
+      <app-text-input
+        formControlName="mags2FirstName"
+        label="Magistrate’s first name"
+        hint="Enter the magistrate’s given name"
+        idPrefix="mags2-first-name"
+      >
+      </app-text-input>
+
+      <app-text-input
+        formControlName="mags2Surname"
+        label="Magistrate’s surname"
+        hint="Enter the magistrate’s family name"
+        idPrefix="mags2-surname"
+      >
+      </app-text-input>
+    </div>
+
+    <hr
+      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+    />
+
+    <!-- Magistrate 3 -->
+    <h3 class="govuk-heading-m">Magistrate 3</h3>
+    <div class="govuk-grid-row">
+      <app-select-input
+        formControlName="mags3Title"
+        label="Select magistrate’s title"
+        hint="The magistrate’s formal title"
+        idPrefix="mags3-title"
+        [options]="[
+          { value: 'mr', label: 'Mr' },
+          { value: 'mrs', label: 'Mrs' },
+          { value: 'miss', label: 'Miss' },
+          { value: 'dr', label: 'Dr' },
+          { value: 'other', label: 'Other' },
+        ]"
+      >
+      </app-select-input>
+
+      <app-text-input
+        formControlName="mags3FirstName"
+        label="Magistrate’s first name"
+        hint="Enter the magistrate’s given name"
+        idPrefix="mags3-first-name"
+      >
+      </app-text-input>
+
+      <app-text-input
+        formControlName="mags3Surname"
+        label="Magistrate’s surname"
+        hint="Enter the magistrate’s family name"
+        idPrefix="mags3-surname"
+      >
+      </app-text-input>
+    </div>
+
+    <hr
+      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+    />
+
+    <h2 class="govuk-heading-m">Officials</h2>
+
+    <div class="govuk-grid-row">
+      <app-select-input
+        formControlName="officialTitle"
+        label="Select court official’s title"
+        hint="The official’s formal title"
+        idPrefix="official-title"
+        [options]="[
+          { value: 'mr', label: 'Mr' },
+          { value: 'mrs', label: 'Mrs' },
+          { value: 'miss', label: 'Miss' },
+          { value: 'dr', label: 'Dr' },
+          { value: 'other', label: 'Other' },
+        ]"
+      >
+      </app-select-input>
+
+      <app-text-input
+        formControlName="officialFirstName"
+        label="Official’s first name"
+        hint="Enter the official’s given name"
+        idPrefix="official-first-name"
+      >
+      </app-text-input>
+
+      <app-text-input
+        formControlName="officialSurname"
+        label="Official’s surname"
+        hint="Enter the official’s family name"
+        idPrefix="official-surname"
+      >
+      </app-text-input>
+    </div>
+  </ng-template>
+
+  <!-- Accordion -->
+  <app-accordion
+    [id]="'accordion-default'"
+    [items]="[
+      { heading: 'Applicant', tpl: applicantTpl, expanded: false },
+      { heading: 'Codes', tpl: codesTpl, expanded: false },
+      { heading: 'Wording', tpl: wordingTpl, expanded: false },
+      { heading: 'Respondent', tpl: respondentTpl, expanded: false },
+      { heading: 'Civil fee', tpl: civilFeeTpl, expanded: false },
+      { heading: 'Notes', tpl: notesTpl, expanded: false },
+      { heading: 'Result wording', tpl: resultWordingTpl, expanded: false },
+      { heading: 'Officials', tpl: officialsTpl, expanded: false },
+    ]"
+  >
+  </app-accordion>
+
+  <div class="govuk-button-group">
+    <button type="submit" class="govuk-button" (click)="onSubmit($event)">
+      Create entry
+    </button>
+    <a
+      class="govuk-button govuk-button--secondary"
+      [routerLink]="['/applications-list', id]"
+    >
+      Cancel
+    </a>
+  </div>
+</form>

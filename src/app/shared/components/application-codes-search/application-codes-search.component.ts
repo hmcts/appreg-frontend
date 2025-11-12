@@ -74,15 +74,16 @@ export class ApplicationCodeSearchComponent implements OnInit, OnDestroy {
     this.sub = trigger$
       .pipe(
         switchMap(() => {
-          let p = this.buildParams();
-
-          if (!p) {
+          const params = this.buildParams();
+          if (!params && this.auto) {
             this.results = [];
             this.errored = false;
+            this.loading = false;
             this.cdr.markForCheck();
-            p = {}; // If params empty run GET ALL
+            return of<ApplicationCodeGetSummaryDto[]>([]);
           }
 
+          const p: GetApplicationCodesRequestParams = params ?? {};
           this.loading = true;
           this.errored = false;
           this.cdr.markForCheck();
@@ -90,11 +91,7 @@ export class ApplicationCodeSearchComponent implements OnInit, OnDestroy {
           return this.api
             .getApplicationCodes(p, 'body', false, { transferCache: false })
             .pipe(
-              map((page) => {
-                const list = page?.content ?? [];
-                console.log(list); // TODO: REMOVE LATER
-                return list;
-              }),
+              map((page) => page?.content ?? []),
               catchError(() => {
                 this.errored = true;
                 return of<ApplicationCodeGetSummaryDto[]>([]);

@@ -8,9 +8,20 @@ Functionality:
   - Run POST query with payload
 */
 
+import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import {
+  Component,
+  OnInit,
+  TemplateRef,
+  forwardRef,
+} from '@angular/core';
+import {
+  FormControl,
+  FormGroup,
+  NG_VALUE_ACCESSOR,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 
 import {
@@ -21,17 +32,28 @@ import {
   FeeStatus,
   Respondent,
 } from '../../../generated/openapi';
+import { AccordionComponent } from '../../shared/components/accordion/accordion.component';
+import { ApplicationCodeSearchComponent } from '../../shared/components/application-codes-search/application-codes-search.component';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
+import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import {
   ErrorItem,
   ErrorSummaryComponent,
 } from '../../shared/components/error-summary/error-summary.component';
+import { OrganisationSectionComponent } from '../../shared/components/organisation-section/organisation-section.component';
+import { PersonSectionComponent } from '../../shared/components/person-section/person-section.component';
 import { RadioButtonComponent } from '../../shared/components/radio-button/radio-button.component';
+import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
+import {
+  SortableTableComponent,
+} from '../../shared/components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
+import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '../../shared/util/error-click';
+import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
 import { getProblemText } from '../applications-list/util/delete-status';
 
 type ApplicantStep = 'select' | 'person' | 'org' | 'standard';
@@ -40,12 +62,33 @@ type ApplicantStep = 'select' | 'person' | 'org' | 'standard';
   selector: 'app-applications-list-entry-create',
   standalone: true,
   imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterModule,
+    BreadcrumbsComponent,
+    AccordionComponent,
+    SelectInputComponent,
     BreadcrumbsComponent,
     RadioButtonComponent,
     ReactiveFormsModule,
     RouterModule,
     SuccessBannerComponent,
     ErrorSummaryComponent,
+    SortableTableComponent,
+    AccordionComponent,
+    MojButtonMenuDirective,
+    ApplicationCodeSearchComponent,
+    TextInputComponent,
+    DateInputComponent,
+    PersonSectionComponent,
+    OrganisationSectionComponent,
+  ],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => PersonSectionComponent), // or Organisation
+      multi: true,
+    },
   ],
   templateUrl: './applications-list-entry-create.html',
 })
@@ -60,6 +103,12 @@ export class ApplicationsListEntryCreate implements OnInit {
   unpopField: ErrorItem[] = [];
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
+
+  accordionItems: {
+    heading: string;
+    tpl: TemplateRef<unknown>;
+    expanded?: boolean;
+  }[] = [];
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -82,6 +131,34 @@ export class ApplicationsListEntryCreate implements OnInit {
     accountNumber: new FormControl<string | null>(null),
     notes: new FormControl<string | null>(null),
     lodgementDate: new FormControl<string | null>(null),
+  });
+
+  personForm = new FormGroup({
+    title: new FormControl<string>(''),
+    firstName: new FormControl<string>('', { nonNullable: true }),
+    middleNames: new FormControl<string>('', { nonNullable: true }),
+    surname: new FormControl<string>(''),
+    addressLine1: new FormControl<string>('', { nonNullable: true }),
+    addressLine2: new FormControl<string>(''),
+    addressLine3: new FormControl<string>(''),
+    addressLine4: new FormControl<string>(''),
+    addressLine5: new FormControl<string>(''),
+    postcode: new FormControl<string>(''),
+    phoneNumber: new FormControl<string>(''),
+    mobileNumber: new FormControl<string>(''),
+    emailAddress: new FormControl<string>(''),
+  });
+
+  organisationForm = new FormGroup({
+    name: new FormControl<string>('', { nonNullable: true }),
+    addressLine1: new FormControl<string>('', { nonNullable: true }),
+    addressLine2: new FormControl<string>(''),
+    addressLine3: new FormControl<string>(''),
+    addressLine4: new FormControl<string>(''),
+    addressLine5: new FormControl<string>(''),
+    postcode: new FormControl<string>(''),
+    phoneNumber: new FormControl<string>(''),
+    emailAddress: new FormControl<string>(''),
   });
 
   applicantOptions = [
@@ -123,21 +200,6 @@ export class ApplicationsListEntryCreate implements OnInit {
           this.errorHint = msg;
         },
       });
-  }
-
-  onNext(): void {
-    this.submitted = true;
-    if (this.form.invalid) {
-      return;
-    }
-    const v = this.form.get('applicantType')!.value;
-    this.step = v; // 'person' | 'org' | 'standard'
-    this.errorFound = false;
-  }
-
-  onBack(): void {
-    this.step = 'select';
-    this.errorFound = false;
   }
 
   onCodeSelected(row: ApplicationCodeGetSummaryDto): void {
