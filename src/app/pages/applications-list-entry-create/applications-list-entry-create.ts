@@ -172,7 +172,7 @@ export class ApplicationsListEntryCreate implements OnInit {
     addressLine5: new FormControl<string>(''),
     postcode: new FormControl<string>(''),
     phoneNumber: new FormControl<string>(''),
-    mobileNumber: new FormControl<string>(''), // <-- ADD to match template
+    mobileNumber: new FormControl<string>(''),
     emailAddress: new FormControl<string>(''),
   });
 
@@ -188,31 +188,90 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   onSubmit(e: Event): void {
     e.preventDefault();
-    this.errorFound = false;
 
-    if (!this.form.value.applicationCode) {
+    // reset errors
+    this.submitted = true;
+    this.errorFound = false;
+    this.errorHint = '';
+    this.unpopField = [];
+
+    const v = this.form.value;
+
+    // Input validation
+    const appCode = this.toOptionalTrimmed(v.applicationCode);
+    if (!appCode) {
       this.errorFound = true;
-      this.errorHint = 'There is a problem';
+      this.errorHint = 'Application code is required';
       this.unpopField.push({
-        text: 'Application code is required',
+        text: 'Enter an application code',
         href: '',
         id: '',
       });
       return;
     }
 
-    const body = { listId: this.id, ...this.buildEntryCreateDto() };
+    const type = v.applicantType;
+    const hasStandard = !!this.toOptionalTrimmed(v.standardApplicantCode);
+    const hasApplicant = this.hasApplicantData();
+
+    if (hasStandard && hasApplicant) {
+      this.errorFound = true;
+      this.errorHint =
+        'Choose either Standard applicant or Applicant details, not both';
+      this.unpopField.push({
+        text: 'Remove one of: Standard applicant code or Applicant details',
+        href: '',
+        id: '',
+      });
+      return;
+    }
+
+    if (!hasStandard && !hasApplicant) {
+      this.errorFound = true;
+      this.errorHint =
+        'Provide a Standard applicant code or enter Applicant details';
+      this.unpopField.push({
+        text: 'Add a Standard applicant code or Applicant details',
+        href: '',
+        id: '',
+      });
+      return;
+    }
+
+    if (type === 'standard' && !hasStandard) {
+      this.errorFound = true;
+      this.errorHint =
+        'Standard applicant code is required when Standard applicant is selected';
+      this.unpopField.push({
+        text: 'Enter Standard applicant code',
+        href: '',
+        id: '',
+      });
+      return;
+    }
+    if (type !== 'standard' && hasStandard) {
+      this.errorFound = true;
+      this.errorHint =
+        'Remove Standard applicant code when using Person or Organisation';
+      this.unpopField.push({
+        text: 'Remove Standard applicant code',
+        href: '',
+        id: '',
+      });
+      return;
+    }
+
+    const entryCreateDto = this.buildEntryCreateDto();
+
     this.appEntryApi
-      .createApplicationListEntry({ listId: this.id, entryCreateDto: body })
+      .createApplicationListEntry({ listId: this.id, entryCreateDto })
       .subscribe({
         next: () => {
           this.createDone = true;
         },
         error: (err: HttpErrorResponse) => {
-          const msg = getProblemText(err);
-          this.submitted = true;
           this.errorFound = true;
-          this.errorHint = msg;
+          this.errorHint = getProblemText(err);
         },
       });
   }
@@ -227,104 +286,199 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   private buildEntryCreateDto(): EntryCreateDto {
     const v = this.form.value;
+    const applicationCode = this.toOptionalTrimmed(v.applicationCode)!;
 
     const dto: EntryCreateDto = {
-      applicationCode: v.applicationCode!,
+      applicationCode,
+      respondent: v.respondent ?? undefined,
       numberOfRespondents: v.numberOfRespondents ?? undefined,
-      wordingFields: v.wordingFields ?? undefined,
+      wordingFields: this.buildWordingFields() ?? undefined,
       feeStatuses: v.feeStatuses ?? undefined,
-      hasOffsiteFee:
-        typeof v.hasOffsiteFee === 'boolean' ? v.hasOffsiteFee : undefined,
-      caseReference: v.caseReference?.trim() || undefined,
-      accountNumber: v.accountNumber?.trim() || undefined,
-      notes: v.notes?.trim() || undefined,
-      lodgementDate: v.lodgementDate || undefined,
+      hasOffsiteFee: v.hasOffsiteFee ?? undefined,
+      caseReference: this.toOptionalTrimmed(v.caseReference),
+      accountNumber: this.toOptionalTrimmed(v.accountNumber),
+      notes: this.toOptionalTrimmed(v.notes),
+      lodgementDate: this.toOptionalTrimmed(v.lodgementDate),
     };
 
-    // applicant
     if (v.applicantType === 'standard') {
-      dto.standardApplicantCode = v.standardApplicantCode?.trim() || undefined;
+      dto.standardApplicantCode = this.toOptionalTrimmed(
+        v.standardApplicantCode,
+      );
     } else {
-      dto.applicant = v.applicant ?? undefined;
-    }
-
-    // respondent (from sub-forms)
-    const respondent = this.buildRespondent();
-    if (respondent) {
-      dto.respondent = respondent;
+      dto.applicant = this.buildApplicant();
     }
 
     return dto;
   }
 
-  private buildRespondent(): Respondent | undefined {
-    const type = this.form.controls.respondentEntryType.value;
+  private buildApplicant(): Applicant {
+    const type = this.form.value.applicantType;
 
     if (type === 'person') {
-      const p = this.personForm.value;
-      const hasName = p.firstName?.trim() || p.surname?.trim();
-      const hasAddr = p.addressLine1?.trim();
-
-      if (
-        !hasName &&
-        !hasAddr &&
-        !p.emailAddress?.trim() &&
-        !p.phoneNumber?.trim() &&
-        !p.mobileNumber?.trim()
-      ) {
-        return undefined;
-      }
-
-      return {
+      const pf = this.personForm.value;
+      // Shape below should match your generated Applicant.Person shape
+      const applicant: Applicant = {
         person: {
           name: {
-            title: p.title || null,
-            firstForename: p.firstName || null,
-            secondForename: p.middleNames || null,
-            surname: p.surname || null,
+            title: this.toOptionalTrimmed(pf.title),
+            firstForename: this.toOptionalTrimmed(pf.firstName) ?? '',
+            secondForename: this.toOptionalTrimmed(pf.middleNames),
+            surname: this.toOptionalTrimmed(pf.surname) ?? '',
           },
           contactDetails: {
-            addressLine1: p.addressLine1 || '',
-            addressLine2: p.addressLine2 || undefined,
-            addressLine3: p.addressLine3 || undefined,
-            addressLine4: p.addressLine4 || undefined,
-            addressLine5: p.addressLine5 || undefined,
-            postcode: p.postcode || undefined,
-            phone: p.phoneNumber || undefined,
-            mobile: p.mobileNumber || undefined,
-            email: p.emailAddress || undefined,
+            addressLine1: this.toOptionalTrimmed(pf.addressLine1) ?? '',
+            addressLine2: this.toOptionalTrimmed(pf.addressLine2),
+            addressLine3: this.toOptionalTrimmed(pf.addressLine3),
+            addressLine4: this.toOptionalTrimmed(pf.addressLine4),
+            addressLine5: this.toOptionalTrimmed(pf.addressLine5),
+            postcode: this.toOptionalTrimmed(pf.postcode),
+            phone: this.toOptionalTrimmed(pf.phoneNumber),
+            mobile: this.toOptionalTrimmed(pf.mobileNumber),
+            email: this.toOptionalTrimmed(pf.emailAddress),
           },
         },
-      } as Respondent;
+      } as Applicant;
+
+      return applicant;
     }
 
-    const o = this.organisationForm.value;
-    const hasOrg = o.name?.trim();
-    const hasOrgAddr = o.addressLine1?.trim();
+    // org
+    const of = this.organisationForm.value;
+    const applicant: Applicant = {
+      organisation: {
+        name: this.toOptionalTrimmed(of.name) ?? '',
+        contactDetails: {
+          addressLine1: this.toOptionalTrimmed(of.addressLine1) ?? '',
+          addressLine2: this.toOptionalTrimmed(of.addressLine2),
+          addressLine3: this.toOptionalTrimmed(of.addressLine3),
+          addressLine4: this.toOptionalTrimmed(of.addressLine4),
+          addressLine5: this.toOptionalTrimmed(of.addressLine5),
+          postcode: this.toOptionalTrimmed(of.postcode),
+          phone: this.toOptionalTrimmed(of.phoneNumber),
+          email: this.toOptionalTrimmed(of.emailAddress),
+        },
+      },
+    } as Applicant;
 
-    if (
-      !hasOrg &&
-      !hasOrgAddr &&
-      !o.emailAddress?.trim() &&
-      !o.phoneNumber?.trim()
-    ) {
+    return applicant;
+  }
+
+  private buildRespondent(): Respondent | undefined {
+    const t = this.form.value.respondentEntryType;
+    if (!t) {
       return undefined;
     }
 
-    return {
+    if (t === 'person') {
+      const pf = this.personForm.value;
+      const respondent: Respondent = {
+        person: {
+          name: {
+            title: this.toOptionalTrimmed(pf.title),
+            firstForename: this.toOptionalTrimmed(pf.firstName) ?? '',
+            secondForename: this.toOptionalTrimmed(pf.middleNames),
+            surname: this.toOptionalTrimmed(pf.surname) ?? '',
+          },
+          contactDetails: {
+            addressLine1: this.toOptionalTrimmed(pf.addressLine1) ?? '',
+            addressLine2: this.toOptionalTrimmed(pf.addressLine2),
+            addressLine3: this.toOptionalTrimmed(pf.addressLine3),
+            addressLine4: this.toOptionalTrimmed(pf.addressLine4),
+            addressLine5: this.toOptionalTrimmed(pf.addressLine5),
+            postcode: this.toOptionalTrimmed(pf.postcode),
+            phone: this.toOptionalTrimmed(pf.phoneNumber),
+            mobile: this.toOptionalTrimmed(pf.mobileNumber),
+            email: this.toOptionalTrimmed(pf.emailAddress),
+          },
+        },
+      } as Respondent;
+      return respondent;
+    }
+
+    const of = this.organisationForm.value;
+    const respondent: Respondent = {
       organisation: {
-        name: o.name || '',
+        name: this.toOptionalTrimmed(of.name) ?? '',
         contactDetails: {
-          addressLine1: o.addressLine1 || '',
-          addressLine2: o.addressLine2 || undefined,
-          addressLine3: o.addressLine3 || undefined,
-          addressLine4: o.addressLine4 || undefined,
-          addressLine5: o.addressLine5 || undefined,
-          postcode: o.postcode || undefined,
-          phone: o.phoneNumber || undefined,
-          email: o.emailAddress || undefined,
+          addressLine1: this.toOptionalTrimmed(of.addressLine1) ?? '',
+          addressLine2: this.toOptionalTrimmed(of.addressLine2),
+          addressLine3: this.toOptionalTrimmed(of.addressLine3),
+          addressLine4: this.toOptionalTrimmed(of.addressLine4),
+          addressLine5: this.toOptionalTrimmed(of.addressLine5),
+          postcode: this.toOptionalTrimmed(of.postcode),
+          phone: this.toOptionalTrimmed(of.phoneNumber),
+          email: this.toOptionalTrimmed(of.emailAddress),
         },
       },
     } as Respondent;
+    return respondent;
+  }
+
+  private buildFeeStatuses(): FeeStatus[] | undefined {
+    const paymentStatus = this.toOptionalTrimmed(this.form.value.feeStatus);
+    const statusDate = this.toOptionalTrimmed(this.form.value.feeStatusDate);
+    const paymentRef = this.toOptionalTrimmed(this.form.value.paymentRef);
+
+    if (!paymentStatus && !statusDate && !paymentRef) {
+      return undefined;
+    }
+
+    const item = {
+      paymentStatus,
+      statusDate,
+      paymentReference: paymentRef,
+    } as FeeStatus;
+
+    return [item];
+  }
+
+  private buildWordingFields(): string[] | undefined {
+    const courtName = this.toOptionalTrimmed(this.form.value.courtName);
+    const orgName = this.toOptionalTrimmed(this.form.value.organisationName);
+    return this.compactStrings([courtName, orgName]);
+  }
+
+  // Helpers
+  toOptionalTrimmed = (
+    input: string | null | undefined,
+  ): string | undefined => {
+    const s = input?.trim();
+    return s || undefined;
+  };
+
+  toOptional = <T>(value: T | null | undefined): T | undefined =>
+    value ?? undefined;
+
+  compactStrings = (
+    values: (string | null | undefined)[],
+  ): string[] | undefined => {
+    const out = values.map((v) => v?.trim()).filter((v): v is string => !!v);
+    return out.length ? out : undefined;
+  };
+
+  private hasApplicantData(): boolean {
+    const type = this.form.value.applicantType;
+    if (type === 'person') {
+      const g = this.personForm.value;
+      return !!(
+        this.toOptionalTrimmed(g.firstName) ||
+        this.toOptionalTrimmed(g.surname) ||
+        this.toOptionalTrimmed(g.addressLine1) ||
+        this.toOptionalTrimmed(g.emailAddress) ||
+        this.toOptionalTrimmed(g.phoneNumber) ||
+        this.toOptionalTrimmed(g.mobileNumber)
+      );
+    }
+    if (type === 'org') {
+      const g = this.organisationForm.value;
+      return !!(
+        this.toOptionalTrimmed(g.name) ||
+        this.toOptionalTrimmed(g.addressLine1) ||
+        this.toOptionalTrimmed(g.emailAddress) ||
+        this.toOptionalTrimmed(g.phoneNumber)
+      );
+    }
+    return false;
   }
 }
