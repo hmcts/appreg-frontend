@@ -132,7 +132,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     // NEW: build the form
     this.form = this.fb.group({
-      lodgementDate: [''],
+      lodgementDate: [{ value: '', disabled: true }],
       applicationCode: [''],
       applicationTitle: [''],
 
