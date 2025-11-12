@@ -10,12 +10,7 @@ Functionality:
 
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  Component,
-  OnInit,
-  TemplateRef,
-  forwardRef,
-} from '@angular/core';
+import { Component, OnInit, TemplateRef, forwardRef } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -44,9 +39,7 @@ import { OrganisationSectionComponent } from '../../shared/components/organisati
 import { PersonSectionComponent } from '../../shared/components/person-section/person-section.component';
 import { RadioButtonComponent } from '../../shared/components/radio-button/radio-button.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
-import {
-  SortableTableComponent,
-} from '../../shared/components/sortable-table/sortable-table.component';
+import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 import {

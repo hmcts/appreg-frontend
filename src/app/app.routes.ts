@@ -23,7 +23,7 @@ export const routes: Routes = [
       { path: 'create', component: ApplicationsListCreate },
       { path: ':id', component: ApplicationsListDetail },
       { path: ':id/update', component: ApplicationsListEntryDetail },
-      { path: ':id/create', component: ApplicationsListEntryCreate }
+      { path: ':id/create', component: ApplicationsListEntryCreate },
     ],
   },
   {
