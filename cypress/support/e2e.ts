@@ -5,7 +5,7 @@ import 'cypress-mochawesome-reporter/register';
 import { TestDataGenerator } from './utils/TestDataGenerator';
 
 beforeEach(() => {
-  void Cypress.session.clearAllSavedSessions();
+  Cypress.session.clearAllSavedSessions().catch(() => {});
   cy.clearCookies();
   cy.clearLocalStorage();
   cy.clearAllSessionStorage();
@@ -16,6 +16,6 @@ beforeEach(() => {
 
 afterEach(function () {
   if (this.currentTest && this.currentTest.state === 'passed') {
-    void cy.screenshot(`success-${this.currentTest.title}`);
+    cy.screenshot(`success-${this.currentTest.title}`);
   }
 });
