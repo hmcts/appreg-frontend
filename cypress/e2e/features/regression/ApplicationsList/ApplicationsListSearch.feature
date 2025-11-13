@@ -149,3 +149,31 @@ Feature: Applications List Search
     Examples:
       | User  | SearchDate | Status | NotificationMessage                                          |
       | user1 | 01/01/2099 | Closed | Important No lists found Try different filters, or create a new list|
+
+@regression @ARCPOC-691
+  Scenario Outline: Verify Court field validation with valid input
+    Given User Is On The Portal Page
+    When User Signs In With Microsoft SSO As "<User>"
+    Then User Clicks On The Link "Applications list"
+    Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
+    Then User Verifies The "Court" Textbox Has Selected Value "<ExpectedValue>"
+    When User Clicks On The "Search" Button
+    Then User Does Not See Validation Errors
+    Examples:
+      | User   | SearchText | OptionText                     | ExpectedValue                               |
+      | admin1 | Cardiff    | Cardiff Crown Court Set 4      | CCC033 - Cardiff Crown Court Set 4          |
+ 
+@regression @ARCPOC-691
+  Scenario Outline: Verify Court field validation with invalid input
+    Given User Is On The Portal Page
+    When User Signs In With Microsoft SSO As "<User>"
+    Then User Clicks On The Link "Applications list"
+    Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
+    Then User Verifies The "Court" Textbox Has Selected Value "<ExpectedValue>"
+   #  Then User Verifies "<TextboxErrorMessage>" Is Shown For The "Court" Textbox
+    When User Clicks On The "Search" Button
+    Then User Sees Notification Banner "<NotificationMessage>"
+    Examples:
+      | User   | SearchText | NotificationMessage                                             | OptionText | ExpectedValue |
+      | admin1 | London     | No lists found Try different filters, or create a new list      |            | London        |    
+ 
