@@ -33,15 +33,19 @@
 <form [formGroup]="form" novalidate>
   <!-- Applicant details (based on chosen type) -->
   <ng-template #applicantTpl>
-    <app-radio-group
-      legend="Select an applicant"
-      idPrefix="applicant"
-      [options]="applicantOptions"
-      errorText="Please select an applicant"
-      size="m"
-      formControlName="applicantType"
-    >
-    </app-radio-group>
+    <div class="govuk-grid-row">
+      <app-select-input
+        formControlName="applicantType"
+        label="Select an applicant"
+        hint="The type of applicant for this application"
+        idPrefix="applicant"
+        [options]="[
+          { value: 'person', label: 'Person' },
+          { value: 'org', label: 'Organisation' },
+          { value: 'standard', label: 'Standard Applicant' },
+        ]"
+      ></app-select-input>
+    </div>
 
     @switch (form.get('applicantType')?.value) {
       @case ('person') {
@@ -93,8 +97,14 @@
         [isSearch]="true"
       >
       </app-date-input>
+    </div>
 
-      <!-- Application code -->
+    <hr
+      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+    />
+
+    <!-- Application code -->
+    <div class="govuk-grid-row">
       <app-application-code-search
         [auto]="false"
         (selectCode)="onCodeSelected($event)"

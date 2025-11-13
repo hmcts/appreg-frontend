@@ -10,7 +10,7 @@ Functionality:
 
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {
   ControlContainer,
   FormControl,
@@ -38,7 +38,6 @@ import {
 } from '../../shared/components/error-summary/error-summary.component';
 import { OrganisationSectionComponent } from '../../shared/components/organisation-section/organisation-section.component';
 import { PersonSectionComponent } from '../../shared/components/person-section/person-section.component';
-import { RadioButtonComponent } from '../../shared/components/radio-button/radio-button.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
@@ -63,7 +62,6 @@ type ApplicantStep = 'select' | 'person' | 'org' | 'standard';
     AccordionComponent,
     SelectInputComponent,
     BreadcrumbsComponent,
-    RadioButtonComponent,
     ReactiveFormsModule,
     RouterModule,
     SuccessBannerComponent,
@@ -411,9 +409,6 @@ export class ApplicationsListEntryCreate implements OnInit {
     const s = input?.trim();
     return s || undefined;
   };
-
-  toOptional = <T>(value: T | null | undefined): T | undefined =>
-    value ?? undefined;
 
   compactStrings = (
     values: (string | null | undefined)[],
