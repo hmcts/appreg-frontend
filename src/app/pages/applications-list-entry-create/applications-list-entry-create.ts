@@ -271,22 +271,25 @@ export class ApplicationsListEntryCreate implements OnInit {
     return dto;
   }
 
-  private buildApplicant(): Applicant {
+  private buildApplicant(): Applicant | undefined {
     const type = this.form.value.applicantType;
 
     if (type === 'person') {
       const pf = this.personForm.value;
-      // Shape below should match your generated Applicant.Person shape
-      const applicant: Applicant = {
+      if (!this.hasRequiredPerson(pf)) {
+        return undefined;
+      }
+
+      return {
         person: {
           name: {
             title: this.toOptionalTrimmed(pf.title),
-            firstForename: this.toOptionalTrimmed(pf.firstName) ?? '',
+            firstForename: pf.firstName!.trim(),
             secondForename: this.toOptionalTrimmed(pf.middleNames),
-            surname: this.toOptionalTrimmed(pf.surname) ?? '',
+            surname: pf.surname!.trim(),
           },
           contactDetails: {
-            addressLine1: this.toOptionalTrimmed(pf.addressLine1) ?? '',
+            addressLine1: pf.addressLine1!.trim(),
             addressLine2: this.toOptionalTrimmed(pf.addressLine2),
             addressLine3: this.toOptionalTrimmed(pf.addressLine3),
             addressLine4: this.toOptionalTrimmed(pf.addressLine4),
@@ -297,30 +300,33 @@ export class ApplicationsListEntryCreate implements OnInit {
             email: this.toOptionalTrimmed(pf.emailAddress),
           },
         },
-      } as Applicant;
-
-      return applicant;
+      };
     }
 
-    // org
-    const of = this.organisationForm.value;
-    const applicant: Applicant = {
-      organisation: {
-        name: this.toOptionalTrimmed(of.name) ?? '',
-        contactDetails: {
-          addressLine1: this.toOptionalTrimmed(of.addressLine1) ?? '',
-          addressLine2: this.toOptionalTrimmed(of.addressLine2),
-          addressLine3: this.toOptionalTrimmed(of.addressLine3),
-          addressLine4: this.toOptionalTrimmed(of.addressLine4),
-          addressLine5: this.toOptionalTrimmed(of.addressLine5),
-          postcode: this.toOptionalTrimmed(of.postcode),
-          phone: this.toOptionalTrimmed(of.phoneNumber),
-          email: this.toOptionalTrimmed(of.emailAddress),
-        },
-      },
-    } as Applicant;
+    if (type === 'org') {
+      const of = this.organisationForm.value;
+      if (!this.hasRequiredOrg(of)) {
+        return undefined;
+      }
 
-    return applicant;
+      return {
+        organisation: {
+          name: of.name!.trim(),
+          contactDetails: {
+            addressLine1: of.addressLine1!.trim(),
+            addressLine2: this.toOptionalTrimmed(of.addressLine2),
+            addressLine3: this.toOptionalTrimmed(of.addressLine3),
+            addressLine4: this.toOptionalTrimmed(of.addressLine4),
+            addressLine5: this.toOptionalTrimmed(of.addressLine5),
+            postcode: this.toOptionalTrimmed(of.postcode),
+            phone: this.toOptionalTrimmed(of.phoneNumber),
+            email: this.toOptionalTrimmed(of.emailAddress),
+          },
+        },
+      };
+    }
+
+    return undefined;
   }
 
   private buildRespondent(): Respondent | undefined {
@@ -331,16 +337,20 @@ export class ApplicationsListEntryCreate implements OnInit {
 
     if (t === 'person') {
       const pf = this.personForm.value;
-      const respondent: Respondent = {
+      if (!this.hasRequiredPerson(pf)) {
+        return undefined;
+      }
+
+      return {
         person: {
           name: {
             title: this.toOptionalTrimmed(pf.title),
-            firstForename: this.toOptionalTrimmed(pf.firstName) ?? '',
+            firstForename: pf.firstName!.trim(),
             secondForename: this.toOptionalTrimmed(pf.middleNames),
-            surname: this.toOptionalTrimmed(pf.surname) ?? '',
+            surname: pf.surname!.trim(),
           },
           contactDetails: {
-            addressLine1: this.toOptionalTrimmed(pf.addressLine1) ?? '',
+            addressLine1: pf.addressLine1!.trim(),
             addressLine2: this.toOptionalTrimmed(pf.addressLine2),
             addressLine3: this.toOptionalTrimmed(pf.addressLine3),
             addressLine4: this.toOptionalTrimmed(pf.addressLine4),
@@ -351,27 +361,33 @@ export class ApplicationsListEntryCreate implements OnInit {
             email: this.toOptionalTrimmed(pf.emailAddress),
           },
         },
-      } as Respondent;
-      return respondent;
+      };
     }
 
-    const of = this.organisationForm.value;
-    const respondent: Respondent = {
-      organisation: {
-        name: this.toOptionalTrimmed(of.name) ?? '',
-        contactDetails: {
-          addressLine1: this.toOptionalTrimmed(of.addressLine1) ?? '',
-          addressLine2: this.toOptionalTrimmed(of.addressLine2),
-          addressLine3: this.toOptionalTrimmed(of.addressLine3),
-          addressLine4: this.toOptionalTrimmed(of.addressLine4),
-          addressLine5: this.toOptionalTrimmed(of.addressLine5),
-          postcode: this.toOptionalTrimmed(of.postcode),
-          phone: this.toOptionalTrimmed(of.phoneNumber),
-          email: this.toOptionalTrimmed(of.emailAddress),
+    if (t === 'organisation') {
+      const of = this.organisationForm.value;
+      if (!this.hasRequiredOrg(of)) {
+        return undefined;
+      }
+
+      return {
+        organisation: {
+          name: of.name!.trim(),
+          contactDetails: {
+            addressLine1: of.addressLine1!.trim(),
+            addressLine2: this.toOptionalTrimmed(of.addressLine2),
+            addressLine3: this.toOptionalTrimmed(of.addressLine3),
+            addressLine4: this.toOptionalTrimmed(of.addressLine4),
+            addressLine5: this.toOptionalTrimmed(of.addressLine5),
+            postcode: this.toOptionalTrimmed(of.postcode),
+            phone: this.toOptionalTrimmed(of.phoneNumber),
+            email: this.toOptionalTrimmed(of.emailAddress),
+          },
         },
-      },
-    } as Respondent;
-    return respondent;
+      };
+    }
+
+    return undefined;
   }
 
   private buildFeeStatuses(): FeeStatus[] | undefined {
@@ -416,28 +432,17 @@ export class ApplicationsListEntryCreate implements OnInit {
     return out.length ? out : undefined;
   };
 
-  private hasApplicantData(): boolean {
-    const type = this.form.value.applicantType;
-    if (type === 'person') {
-      const g = this.personForm.value;
-      return !!(
-        this.toOptionalTrimmed(g.firstName) ||
-        this.toOptionalTrimmed(g.surname) ||
-        this.toOptionalTrimmed(g.addressLine1) ||
-        this.toOptionalTrimmed(g.emailAddress) ||
-        this.toOptionalTrimmed(g.phoneNumber) ||
-        this.toOptionalTrimmed(g.mobileNumber)
-      );
-    }
-    if (type === 'org') {
-      const g = this.organisationForm.value;
-      return !!(
-        this.toOptionalTrimmed(g.name) ||
-        this.toOptionalTrimmed(g.addressLine1) ||
-        this.toOptionalTrimmed(g.emailAddress) ||
-        this.toOptionalTrimmed(g.phoneNumber)
-      );
-    }
-    return false;
+  private hasRequiredPerson(pf: typeof this.personForm.value): boolean {
+    return !!(
+      this.toOptionalTrimmed(pf.firstName) &&
+      this.toOptionalTrimmed(pf.surname) &&
+      this.toOptionalTrimmed(pf.addressLine1)
+    );
+  }
+
+  private hasRequiredOrg(of: typeof this.organisationForm.value): boolean {
+    return !!(
+      this.toOptionalTrimmed(of.name) && this.toOptionalTrimmed(of.addressLine1)
+    );
   }
 }
