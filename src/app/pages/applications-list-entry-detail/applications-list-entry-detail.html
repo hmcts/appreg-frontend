@@ -63,8 +63,11 @@
         ></app-person-section>
       }
       @case ('organisation') {
-        <app-organisation-section [group]="organisationGroup" [submitted]="formSubmitted"
-                                  [errors]="organisationFieldErrors">
+        <app-organisation-section
+          [group]="organisationGroup"
+          [submitted]="formSubmitted"
+          [errors]="organisationFieldErrors"
+        >
         </app-organisation-section>
       }
       @case ('standardApplicant') {
@@ -77,13 +80,14 @@
           [(selectedIds)]="saSelectedIds"
           [singleSelect]="true"
           appMojButtonMenu
-          >
+        >
         </app-selectable-sortable-table>
 
         <app-pagination
           [currentPage]="saPageIndex"
           [totalPages]="saTotalPages"
-          (pageChange)="onSaPageChange($event)">
+          (pageChange)="onSaPageChange($event)"
+        >
         </app-pagination>
       }
     }
@@ -163,7 +167,11 @@
         >
           <ng-template #actionsTemplate let-row>
             <div class="govuk-button-group">
-              <button type="button" class="govuk-button" (click)="onAddCode(row)">
+              <button
+                type="button"
+                class="govuk-button"
+                (click)="onAddCode(row)"
+              >
                 Add code
               </button>
             </div>
