@@ -30,10 +30,11 @@
     "test:a11y": "jest --detectOpenHandles --forceExit -c jest.a11y.config.js --maxWorkers 15",
     "test:smoke": "NODE_TLS_REJECT_UNAUTHORIZED=0 jest -c jest.smoke.config.js",
     "test:functional": "NODE_TLS_REJECT_UNAUTHORIZED=0 cypress run --spec 'cypress/e2e/features/smoke/**/*.feature'; node cypress/scripts/generate-reports.js; mkdir -p functional-output && cp -r cypress/reports/* functional-output/ || true",
+    "test:nightly": "NODE_TLS_REJECT_UNAUTHORIZED=0 cypress run; node cypress/scripts/generate-reports.js; mkdir -p functional-output && cp -r cypress/reports/* functional-output/ || true",
     "cichecks": "yarn api:all && yarn build && yarn lint && yarn test && yarn test:routes && yarn test:a11y",
     "prepare": "husky install",
     "cypress:open": "cypress open",
-    "cypress:run": "cypress run; node cypress/scripts/generate-cucumber-report.js",
+    "cypress:run": "cypress run; node cypress/scripts/generate-reports.js",
     "branch:dry-run": "yarn node .github/branch-retention/branch-retention.mjs --mode dry-run",
     "branch:enforce": "yarn node .github/branch-retention/branch-retention.mjs --mode enforce"
   },
