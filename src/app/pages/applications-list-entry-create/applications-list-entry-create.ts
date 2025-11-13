@@ -239,10 +239,6 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.form.patchValue({ applicationCode: row.applicationCode });
   }
 
-  buildReturnLink(): { label: string; link: string } {
-    return { label: 'Back to list', link: `/applications-list/${this.id}` };
-  }
-
   private buildEntryCreateDto(): EntryCreateDto {
     const v = this.form.value;
     const applicationCode = this.toOptionalTrimmed(v.applicationCode)!;

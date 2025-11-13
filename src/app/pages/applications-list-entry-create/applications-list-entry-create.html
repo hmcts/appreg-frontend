@@ -1,4 +1,12 @@
-<app-breadcrumbs [items]="[buildReturnLink()]"></app-breadcrumbs>
+<app-breadcrumbs
+  [items]="[
+    { label: 'Applications list', link: '/applications-list' },
+    {
+      label: 'Applications list details',
+      link: '/applications-list/' + id,
+    },
+  ]"
+/>
 
 <h1 class="govuk-heading-xl">Create new entry</h1>
 
