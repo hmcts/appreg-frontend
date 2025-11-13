@@ -12,6 +12,30 @@
 
 <h2 class="govuk-heading-l">Summary of application list entry</h2>
 
+@if (hasFatalError) {
+  <app-error-summary
+    [title]="errorHint || 'There is a problem'"
+    [items]="errorSummary"
+    targetId="codes-table"
+    data-component="error-summary"
+    (itemSelect)="onErrorItemClick($event)"
+  ></app-error-summary>
+}
+
+@if (successBanner) {
+  <app-success-banner
+    [heading]="successBanner.heading"
+    [body]="successBanner.body"
+  ></app-success-banner>
+
+  <!-- If your banner body doesn't support HTML links, render a link just under it -->
+  @if (successBanner.link) {
+    <p class="govuk-body govuk-!-margin-bottom-0">
+      <a [href]="successBanner.link.href">{{ successBanner.link.text }}</a>
+    </p>
+  }
+}
+
 <form [formGroup]="form">
   <ng-template #applicantTpl>
     <h3 class="govuk-heading-m">Application entry type</h3>
@@ -30,18 +54,18 @@
     />
 
     @switch (form.get('applicantEntryType')?.value) {
-      @case ('Person') {
+      @case ('person') {
         <app-person-section
           [group]="personGroup"
           [titleOptions]="personTitleOptions"
         >
         </app-person-section>
       }
-      @case ('Organisation') {
+      @case ('organisation') {
         <app-organisation-section [group]="organisationGroup">
         </app-organisation-section>
       }
-      @case ('Standard Applicant') {
+      @case ('standardApplicant') {
         <app-sortable-table
           id="sortable-table"
           caption="Lists"
@@ -95,24 +119,39 @@
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
     />
 
-    <app-sortable-table
-      id="codes-table"
-      caption="Codes"
-      [columns]="codesColumns"
-      appMojButtonMenu
-    >
-      <ng-template #actionsTemplate let-row>
-        <div class="govuk-button-group">
-          <button type="button" class="govuk-button">Add code</button>
-          <button type="button" class="govuk-button govuk-button--secondary">
-            Add wording
-          </button>
-        </div>
-      </ng-template>
-    </app-sortable-table>
+    @if (codesHasSearched) {
+      @if (!codesLoading && codesRows.length === 0) {
+        <app-notification-banner
+          heading="No codes found"
+          body="Try different filters, or retry the search."
+        >
+        </app-notification-banner>
+      } @else {
+        <app-sortable-table
+          id="codes-table"
+          caption="Codes"
+          [columns]="codesColumns"
+          [data]="codesRows"
+          appMojButtonMenu
+        >
+          <ng-template #actionsTemplate let-row>
+            <div class="govuk-button-group">
+              <button
+                type="button"
+                class="govuk-button"
+                (click)="onAddCode(row)"
+              >
+                Add code
+              </button>
+            </div>
+          </ng-template>
+        </app-sortable-table>
+      }
+    }
   </ng-template>
 
   <ng-template #wordingTpl>
+    <span id="wording-section"></span>
     <div class="govuk-grid-row">
       <!-- Court name -->
       <app-text-input
