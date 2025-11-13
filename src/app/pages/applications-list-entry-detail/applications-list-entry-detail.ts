@@ -8,7 +8,7 @@ import {
   inject,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormGroup, NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import {
@@ -118,7 +118,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     private readonly router: Router,
     private readonly entriesApi: ApplicationListEntriesApi,
     private readonly codesApi: ApplicationCodesApi,
-    private readonly fb: FormBuilder,
+    private readonly fb: NonNullableFormBuilder,
   ) {}
 
   ngOnInit(): void {
