@@ -1,33 +1,33 @@
 #!groovy
 
 properties([
-  // Run at 7am on weekdays for nightly functional tests
-  pipelineTriggers([cron('H 07 * * 1-5')])
+  pipelineTriggers([cron('H 07 * * 1-5')]),
+  copyArtifactPermission('*'),
+  parameters([
+    booleanParam(name: 'Smoke', defaultValue: true, description: 'Run smoke tests'),
+    booleanParam(name: 'Regression', defaultValue: true, description: 'Run regression tests'),
+  ])
 ])
-
-@Library("Infrastructure")
-
-def type = "angular"
-def product = "appreg"
-def component = "frontend"
-
+@Library('Infrastructure')
+def type = 'angular'
+def product = 'appreg'
+def component = 'frontend'
 def secrets = [
-        'appreg-${env}': [
-                secret('POSTGRES-USER', 'DB_USER'),
-                secret('POSTGRES-PASS', 'DB_PASSWORD'),
-                secret('POSTGRES-HOST', 'DB_HOST'),
-                secret('POSTGRES-PORT', 'DB_PORT'),
-                secret('POSTGRES-DATABASE', 'DB_NAME'),
-                secret('TEST-USER1-EMAIL', 'TEST_USER1_EMAIL'),
-                secret('TEST-USER2-EMAIL', 'TEST_USER2_EMAIL'),
-                secret('TEST-USER3-EMAIL', 'TEST_USER3_EMAIL'),
-                secret('TEST-ADMIN1-EMAIL', 'TEST_ADMIN1_EMAIL'),
-                secret('TEST-ADMIN2-EMAIL', 'TEST_ADMIN2_EMAIL'),
-                secret('TEST-ADMIN3-EMAIL', 'TEST_ADMIN3_EMAIL'),
-                secret('TEST-USERS-PASSWORD', 'TEST_USERS_PASSWORD'),
-        ]
+  'appreg-${env}': [
+    secret('POSTGRES-USER', 'DB_USER'),
+    secret('POSTGRES-PASS', 'DB_PASSWORD'),
+    secret('POSTGRES-HOST', 'DB_HOST'),
+    secret('POSTGRES-PORT', 'DB_PORT'),
+    secret('POSTGRES-DATABASE', 'DB_NAME'),
+    secret('TEST-USER1-EMAIL', 'TEST_USER1_EMAIL'),
+    secret('TEST-USER2-EMAIL', 'TEST_USER2_EMAIL'),
+    secret('TEST-USER3-EMAIL', 'TEST_USER3_EMAIL'),
+    secret('TEST-ADMIN1-EMAIL', 'TEST_ADMIN1_EMAIL'),
+    secret('TEST-ADMIN2-EMAIL', 'TEST_ADMIN2_EMAIL'),
+    secret('TEST-ADMIN3-EMAIL', 'TEST_ADMIN3_EMAIL'),
+    secret('TEST-USERS-PASSWORD', 'TEST_USERS_PASSWORD'),
+  ]
 ]
-
 static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
   [$class     : 'AzureKeyVaultSecret',
    secretType : 'Secret',
@@ -36,49 +36,85 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
    envVariable: envVar
   ]
 }
+def yarnBuilder = new uk.gov.hmcts.contino.YarnBuilder(this)
 
 withNightlyPipeline(type, product, component) {
   loadVaultSecrets(secrets)
   enableSlackNotifications('#appreg-builds')
+  
+  env.TEST_URL = 'https://appreg.staging.apps.hmcts.net/'
 
-  before('functionalTest:stg') {
-    env.CYPRESS_TAGS = "smoke or regression"
-  }
+  afterAlways('DependencyCheckNightly') {
+    echo 'Smoke: ' + params.Smoke
+    echo 'Regression: ' + params.Regression
 
-  afterAlways('functionalTest:stg') {
-    script {
-      def testResult = sh(script: 'yarn test:functional', returnStatus: true)
-      
-      sh 'node cypress/scripts/generate-reports.js || true'
-      
-      archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/**/*'
-      archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/screenshots/**/*.png'
-      archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/junit/**/*.xml'
-      
-      junit allowEmptyResults: true, testResults: 'cypress/reports/junit/**/*.xml'
-      
-      publishHTML([
-        allowMissing: true,
-        alwaysLinkToLastBuild: true,
-        keepAll: true,
-        reportDir: 'cypress/reports/cucumber-html',
-        reportFiles: 'index.html',
-        reportName: 'Cucumber Report',
-        reportTitles: 'Cucumber Test Report'
-      ])
-      
-      publishHTML([
-        allowMissing: true,
-        alwaysLinkToLastBuild: true,
-        keepAll: true,
-        reportDir: 'cypress/reports',
-        reportFiles: 'mochawesome.html',
-        reportName: 'Mochaware Report',
-        reportTitles: 'Mochawesome Test Report'
-      ])
-      
-      if (testResult != 0) {
-        error("Functional tests failed with exit code ${testResult}")
+    if (params.Smoke) {
+      stage('Smoke Tests') {
+        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE', message: 'Smoke tests failed') {
+          try {
+            env.CYPRESS_TAGS = '@smoke'
+            yarnBuilder.yarn('test:nightly')
+          } finally {
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/**/*'
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/screenshots/**/*.png'
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/junit/**/*.xml'
+            
+            junit allowEmptyResults: true, testResults: 'cypress/reports/junit/**/*.xml'
+            
+            publishHTML target: [
+              allowMissing         : true,
+              alwaysLinkToLastBuild: true,
+              keepAll              : true,
+              reportDir            : 'cypress/reports/cucumber-html',
+              reportFiles          : 'index.html',
+              reportName           : 'Cucumber Smoke Test Report'
+            ]
+            
+            publishHTML target: [
+              allowMissing         : true,
+              alwaysLinkToLastBuild: true,
+              keepAll              : true,
+              reportDir            : 'cypress/reports',
+              reportFiles          : 'mochawesome.html',
+              reportName           : 'Mochawesome Smoke Report'
+            ]
+          }
+        }
+      }
+    }
+
+    if (params.Regression) {
+      stage('Regression Tests') {
+        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Regression tests failed') {
+          try {
+            env.CYPRESS_TAGS = '@regression'
+            yarnBuilder.yarn('test:nightly')
+          } finally {
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/**/*'
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/screenshots/**/*.png'
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/junit/**/*.xml'
+            
+            junit allowEmptyResults: true, testResults: 'cypress/reports/junit/**/*.xml'
+            
+            publishHTML target: [
+              allowMissing         : true,
+              alwaysLinkToLastBuild: true,
+              keepAll              : true,
+              reportDir            : 'cypress/reports/cucumber-html',
+              reportFiles          : 'index.html',
+              reportName           : 'Cucumber Regression Test Report'
+            ]
+            
+            publishHTML target: [
+              allowMissing         : true,
+              alwaysLinkToLastBuild: true,
+              keepAll              : true,
+              reportDir            : 'cypress/reports',
+              reportFiles          : 'mochawesome.html',
+              reportName           : 'Mochawesome Regression Report'
+            ]
+          }
+        }
       }
     }
   }
