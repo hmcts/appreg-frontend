@@ -163,18 +163,21 @@ export class ApplicationsListEntryCreate implements OnInit {
     emailAddress: new FormControl<string>(''),
   });
 
-  organisationForm = new FormGroup({
-    name: new FormControl<string>('', { nonNullable: true }),
-    addressLine1: new FormControl<string>('', { nonNullable: true }),
-    addressLine2: new FormControl<string>(''),
-    addressLine3: new FormControl<string>(''),
-    addressLine4: new FormControl<string>(''),
-    addressLine5: new FormControl<string>(''),
-    postcode: new FormControl<string>(''),
-    phoneNumber: new FormControl<string>(''),
-    mobileNumber: new FormControl<string>(''),
-    emailAddress: new FormControl<string>(''),
-  });
+  organisationForm = new FormGroup(
+    {
+      name: new FormControl<string>('', { nonNullable: true }),
+      addressLine1: new FormControl<string>('', { nonNullable: true }),
+      addressLine2: new FormControl<string>(''),
+      addressLine3: new FormControl<string>(''),
+      addressLine4: new FormControl<string>(''),
+      addressLine5: new FormControl<string>(''),
+      postcode: new FormControl<string>(''),
+      phoneNumber: new FormControl<string>(''),
+      mobileNumber: new FormControl<string>(''),
+      emailAddress: new FormControl<string>(''),
+    },
+    { updateOn: 'submit' },
+  );
 
   applicantOptions = [
     { label: 'Person', value: 'person' },
@@ -204,60 +207,15 @@ export class ApplicationsListEntryCreate implements OnInit {
       this.errorHint = 'Application code is required';
       this.unpopField.push({
         text: 'Enter an application code',
-        href: '',
-        id: '',
+        href: '#app-code-code',
+        id: 'app-code-code',
       });
       return;
     }
 
-    const type = v.applicantType;
-    const hasStandard = !!this.toOptionalTrimmed(v.standardApplicantCode);
-    const hasApplicant = this.hasApplicantData();
-
-    if (hasStandard && hasApplicant) {
+    if (this.unpopField.length > 0) {
       this.errorFound = true;
-      this.errorHint =
-        'Choose either Standard applicant or Applicant details, not both';
-      this.unpopField.push({
-        text: 'Remove one of: Standard applicant code or Applicant details',
-        href: '',
-        id: '',
-      });
-      return;
-    }
-
-    if (!hasStandard && !hasApplicant) {
-      this.errorFound = true;
-      this.errorHint =
-        'Provide a Standard applicant code or enter Applicant details';
-      this.unpopField.push({
-        text: 'Add a Standard applicant code or Applicant details',
-        href: '',
-        id: '',
-      });
-      return;
-    }
-
-    if (type === 'standard' && !hasStandard) {
-      this.errorFound = true;
-      this.errorHint =
-        'Standard applicant code is required when Standard applicant is selected';
-      this.unpopField.push({
-        text: 'Enter Standard applicant code',
-        href: '',
-        id: '',
-      });
-      return;
-    }
-    if (type !== 'standard' && hasStandard) {
-      this.errorFound = true;
-      this.errorHint =
-        'Remove Standard applicant code when using Person or Organisation';
-      this.unpopField.push({
-        text: 'Remove Standard applicant code',
-        href: '',
-        id: '',
-      });
+      this.errorHint = 'There is a problem';
       return;
     }
 
@@ -274,6 +232,7 @@ export class ApplicationsListEntryCreate implements OnInit {
           this.errorHint = getProblemText(err);
         },
       });
+    this.submitted = false;
   }
 
   onCodeSelected(row: ApplicationCodeGetSummaryDto): void {
@@ -290,10 +249,10 @@ export class ApplicationsListEntryCreate implements OnInit {
 
     const dto: EntryCreateDto = {
       applicationCode,
-      respondent: v.respondent ?? undefined,
+      respondent: this.buildRespondent() ?? undefined,
       numberOfRespondents: v.numberOfRespondents ?? undefined,
       wordingFields: this.buildWordingFields() ?? undefined,
-      feeStatuses: v.feeStatuses ?? undefined,
+      feeStatuses: this.buildFeeStatuses() ?? undefined,
       hasOffsiteFee: v.hasOffsiteFee ?? undefined,
       caseReference: this.toOptionalTrimmed(v.caseReference),
       accountNumber: this.toOptionalTrimmed(v.accountNumber),
