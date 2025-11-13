@@ -6,7 +6,7 @@ import { ApplicationsListEntryCreate } from '../../../../../src/app/pages/applic
 import { ApplicationListEntriesApi } from '../../../../../src/generated/openapi';
 
 function roundTrip<T extends object>(o: T): T {
-  return structuredClone(o);
+  return JSON.parse(JSON.stringify(o)); // This line shows Sonarqube issue but structuredClone() will fail the test
 }
 
 describe('ApplicationsListEntryCreate (payload + helpers)', () => {
