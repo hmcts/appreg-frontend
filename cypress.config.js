@@ -70,6 +70,11 @@ module.exports = defineConfig({
     pageLoadTimeout: 120000,
     requestTimeout: 20000,
     responseTimeout: 30000,
+    // Retry Configuration
+    retries: {
+      runMode: 1,
+      openMode: 0,
+    },
     // Browser and Security Settings
     chromeWebSecurity: false,
     experimentalModifyObstructiveThirdPartyCode: true,
