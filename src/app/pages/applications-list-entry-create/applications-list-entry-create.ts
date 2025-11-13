@@ -94,12 +94,6 @@ export class ApplicationsListEntryCreate implements OnInit {
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
 
-  accordionItems: {
-    heading: string;
-    tpl: TemplateRef<unknown>;
-    expanded?: boolean;
-  }[] = [];
-
   constructor(
     private readonly route: ActivatedRoute,
     private readonly appEntryApi: ApplicationListEntriesApi,
