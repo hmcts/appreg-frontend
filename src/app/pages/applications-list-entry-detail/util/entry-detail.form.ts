@@ -8,7 +8,9 @@ export function buildEntryDetailForm(fb: NonNullableFormBuilder): FormGroup {
     applicationTitle: fb.control(''),
 
     // Entry type selectors (lowercase to match @switch cases in template)
-    applicantEntryType: fb.control<'person' | 'organisation' | 'standardApplicant'>('organisation'),
+    applicantEntryType: fb.control<
+      'person' | 'organisation' | 'standardApplicant'
+    >('organisation'),
     respondentEntryType: fb.control<'person' | 'organisation'>('organisation'),
 
     // Wording section
