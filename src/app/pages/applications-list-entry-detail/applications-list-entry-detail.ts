@@ -50,6 +50,13 @@ import {
 import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
+import {
+  fetchCodeDetail$,
+  titleFromDetail,
+  wordingFromDetail,
+} from '../../shared/util/codes.detail';
+import { CodeRow } from '../../shared/util/codes.mappers';
+import { fetchCodeRows$ } from '../../shared/util/codes.search';
 import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
 
 import {
@@ -57,7 +64,6 @@ import {
   computeSuccessBanner,
   focusSuccessBanner,
 } from './util/banners.util';
-import { CodeRow, mapCodeRows } from './util/codes.mappers';
 import {
   APPLICANT_COLUMNS,
   APPLICANT_TYPE_OPTIONS,
@@ -225,22 +231,20 @@ export class ApplicationsListEntryDetail implements OnInit {
     const title = this.readText('applicationTitle').trim();
 
     this.codesLoading = true;
-    this.codesApi
-      .getApplicationCodes(
-        {
-          code: code || undefined,
-          title: title || undefined,
-          page: 0,
-          size: 10,
-        },
-        'body',
-        false,
-        { transferCache: true },
-      )
+    fetchCodeRows$(
+      this.codesApi,
+      {
+        code: code || undefined,
+        title: title || undefined,
+        page: 0,
+        size: 10,
+      },
+      true,
+    )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (page: ApplicationCodePage) => {
-          this.codesRows = mapCodeRows(page);
+        next: (rows) => {
+          this.codesRows = rows;
           this.codesLoading = false;
         },
         error: (err) => {
@@ -255,13 +259,20 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.clearErrors();
 
     const entryId = this.getEntryId();
-    if (!this.appListId || !entryId) {return;}
+    if (!this.appListId || !entryId) {
+      return;
+    }
 
     const code = (row?.code ?? '').trim();
-    if (!code) {return;}
+    if (!code) {
+      return;
+    }
 
-    const raw = this.form.getRawValue();
-    const lodgementDate = (raw.lodgementDate ?? '').toString().slice(0, 10);
+    const raw = this.form.getRawValue() as { lodgementDate?: unknown };
+    const lodgementDate =
+      typeof raw.lodgementDate === 'string'
+        ? raw.lodgementDate.slice(0, 10)
+        : String(raw.lodgementDate).slice(0, 10);
 
     if (!lodgementDate) {
       this.hasFatalError = true;
@@ -326,28 +337,14 @@ export class ApplicationsListEntryDetail implements OnInit {
     // Reflect code immediately
     this.form.patchValue({ applicationCode: code });
 
-    // Fetch code detail to get title + check wording placeholder
-    this.codesApi
-      .getApplicationCodeByCodeAndDate(
-        { code, date: lodgementDate },
-        'body',
-        false,
-        { transferCache: true },
-      )
+    // Use helper to fetch code detail and keep the component clean
+    fetchCodeDetail$(this.codesApi, code, lodgementDate, true)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (detail) => {
-          const title = typeof detail?.title === 'string' ? detail.title : '';
-          this.form.patchValue({ applicationTitle: title });
+          this.form.patchValue({ applicationTitle: titleFromDetail(detail) });
 
-          // Safely probe wording field(s)
-          const rec = detail as unknown as Record<string, unknown>;
-          const wording =
-            (typeof rec['wording'] === 'string' && rec['wording']) ||
-            (typeof rec['defaultWording'] === 'string' &&
-              rec['defaultWording']) ||
-            '';
-
+          const wording = wordingFromDetail(detail);
           this.successBanner = computeSuccessBanner(wording, WORDING_REF_REGEX);
           focusSuccessBanner(this.platformId);
         },

@@ -1,4 +1,4 @@
-import { ApplicationCodePage } from '../../../../generated/openapi';
+import { ApplicationCodePage } from '../../../generated/openapi';
 
 export type CodeRow = {
   code: string;

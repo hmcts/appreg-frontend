@@ -40,8 +40,8 @@ export function mapHttpErrorToSummary(err: unknown): {
       .map((text) => ({ text }));
 
   // Default values
-  let errorHint = 'There is a problem';
-  let errorSummary: ErrorSummaryItem[] = [];
+  let errorHint;
+  let errorSummary: ErrorSummaryItem[];
 
   switch (status) {
     case 400:
