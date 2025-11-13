@@ -54,18 +54,18 @@
     />
 
     @switch (form.get('applicantEntryType')?.value) {
-      @case ('Person') {
+      @case ('person') {
         <app-person-section
           [group]="personGroup"
           [titleOptions]="personTitleOptions"
         >
         </app-person-section>
       }
-      @case ('Organisation') {
+      @case ('organisation') {
         <app-organisation-section [group]="organisationGroup">
         </app-organisation-section>
       }
-      @case ('Standard Applicant') {
+      @case ('standardApplicant') {
         <app-sortable-table
           id="sortable-table"
           caption="Lists"
