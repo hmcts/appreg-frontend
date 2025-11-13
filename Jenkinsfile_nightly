@@ -103,4 +103,5 @@ withNightlyPipeline(type, product, component) {
         }
       }
     }
-  }}
+  }
+}
