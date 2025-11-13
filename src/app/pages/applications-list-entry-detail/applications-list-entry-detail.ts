@@ -12,6 +12,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import {
+  ApplicationCodePage,
   ApplicationCodesApi,
   ApplicationListEntriesApi,
   EntryUpdateDto,
@@ -36,7 +37,26 @@ import { SuccessBannerComponent } from '../../shared/components/success-banner/s
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
 
-type CodeRow = { code: string; title: string; bulk: string; fee: string };
+import {
+  SuccessBanner,
+  computeSuccessBanner,
+  focusSuccessBanner,
+} from './util/banners.util';
+import { CodeRow, mapCodeRows } from './util/codes.mappers';
+import {
+  APPLICANT_COLUMNS,
+  APPLICANT_TYPE_OPTIONS,
+  CIVIL_FEE_COLUMNS,
+  CODES_COLUMNS,
+  FEE_STATUS_OPTIONS,
+  PERSON_TITLE_OPTIONS,
+  RESPONDENT_TYPE_OPTIONS,
+  RESULT_WORDING_COLUMNS,
+  WORDING_REF_REGEX,
+} from './util/entry-detail.constants';
+import { buildEntryDetailForm } from './util/entry-detail.form';
+import { mapHttpErrorToSummary } from './util/errors.util';
+import { getEntryId } from './util/routing.util';
 
 @Component({
   selector: 'app-applications-list-entry-detail',
@@ -62,87 +82,47 @@ type CodeRow = { code: string; title: string; bulk: string; fee: string };
 })
 export class ApplicationsListEntryDetail implements OnInit {
   appListId!: string;
-  formSubmitted = false;
+
   form!: FormGroup;
+  formSubmitted = false;
+
+  // Codes table state
   codesRows: CodeRow[] = [];
   codesLoading = false;
   codesHasSearched = false;
+
+  // Error summary state
   errorHint: string | null = null;
   errorSummary: { text: string; href?: string }[] = [];
   hasFatalError = false;
-  successBanner: {
-    heading: string;
-    body: string;
-    link?: { href: string; text: string };
-  } | null = null;
 
-  applicantColumns: TableColumn[] = [
-    { header: 'Code', field: 'code', numeric: true },
-    { header: 'Name', field: 'name' },
-    { header: 'Address line 1', field: 'address' },
-    { header: 'Use from', field: 'useFrom' },
-    { header: 'Use to', field: 'useTo' },
-  ];
+  // Success banner
+  successBanner: SuccessBanner | null = null;
 
-  codesColumns: TableColumn[] = [
-    { header: 'Code', field: 'code', numeric: true },
-    { header: 'Title', field: 'title' },
-    { header: 'Bulk', field: 'bulk' },
-    { header: 'Fee req', field: 'fee' },
-    { header: 'Actions', field: 'actions' },
-  ];
+  // View constants (from helpers)
+  applicantColumns: TableColumn[] = APPLICANT_COLUMNS;
+  codesColumns: TableColumn[] = CODES_COLUMNS;
+  civilFeeColumns: TableColumn[] = CIVIL_FEE_COLUMNS;
+  resultWordingColumns: TableColumn[] = RESULT_WORDING_COLUMNS;
 
-  feeStatusOptions = [
-    { value: 'paid', label: 'Paid' },
-    { value: 'outstanding', label: 'Outstanding' },
-    { value: 'pending', label: 'Pending' },
-  ];
-
-  civilFeeColumns = [
-    { header: 'Fee Status', field: 'status' },
-    { header: 'Status Date', field: 'date' },
-    { header: 'Payment Ref', field: 'paymentRef' },
-  ];
-
-  resultWordingColumns = [
-    { header: 'Applicant(s)', field: 'applicants' },
-    { header: 'Respondent(s)', field: 'respondents' },
-    { header: 'Application title(s)', field: 'titles' },
-  ];
-
-  applicantEntryTypeOptions = [
-    { value: 'person', label: 'Person' },
-    { value: 'organisation', label: 'Organisation' },
-    { value: 'standardApplicant', label: 'Standard Applicant' },
-  ];
-
-  respondentEntryTypeOptions = [
-    { value: 'person', label: 'Person' },
-    { value: 'organisation', label: 'Organisation' },
-  ];
-
-  personTitleOptions = [
-    { value: 'mr', label: 'Mr' },
-    { value: 'mrs', label: 'Mrs' },
-    { value: 'miss', label: 'Miss' },
-    { value: 'dr', label: 'Dr' },
-    { value: 'other', label: 'Other' },
-  ];
+  feeStatusOptions = FEE_STATUS_OPTIONS;
+  applicantEntryTypeOptions = APPLICANT_TYPE_OPTIONS;
+  respondentEntryTypeOptions = RESPONDENT_TYPE_OPTIONS;
+  personTitleOptions = PERSON_TITLE_OPTIONS;
 
   private readonly destroyRef = inject(DestroyRef);
-  private readonly wordingRefRe = /\{\s*TEXT\s*\|\s*Reference\s*\|\s*\d+\s*}/i;
 
   constructor(
-    private readonly fb: FormBuilder,
     @Inject(PLATFORM_ID) private readonly platformId: object,
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly entriesApi: ApplicationListEntriesApi,
     private readonly codesApi: ApplicationCodesApi,
+    private readonly fb: FormBuilder,
   ) {}
 
   ngOnInit(): void {
-    // existing appListId resolution (unchanged)
+    // Resolve Applications List ID
     const nav = this.router.currentNavigation();
     const fromNav = nav?.extras?.state as { appListId?: string } | undefined;
     const fromHist = isPlatformBrowser(this.platformId)
@@ -155,60 +135,14 @@ export class ApplicationsListEntryDetail implements OnInit {
       this.route.snapshot.queryParamMap.get('appListId') ??
       '';
 
-    // NEW: build the form
-    this.form = this.fb.group({
-      lodgementDate: [{ value: '', disabled: true }],
-      applicationCode: [''],
-      applicationTitle: [''],
+    // Build form via helper
+    this.form = buildEntryDetailForm(this.fb);
 
-      applicantEntryType: ['Organisation'],
-      respondentEntryType: ['Organisation'],
-      person: this.fb.group({
-        title: [''],
-        firstName: [''],
-        middleNames: [''],
-        surname: [''],
-        addressLine1: [''],
-        addressLine2: [''],
-        addressLine3: [''],
-        addressLine4: [''],
-        addressLine5: [''],
-        postcode: [''],
-        phoneNumber: [''],
-        mobileNumber: [''],
-        emailAddress: [''],
-      }),
-      organisation: this.fb.group({
-        name: [''],
-        addressLine1: [''],
-        addressLine2: [''],
-        addressLine3: [''],
-        addressLine4: [''],
-        addressLine5: [''],
-        postcode: [''],
-        phoneNumber: [''],
-        emailAddress: [''],
-      }),
-      mags1Title: [''],
-      mags1FirstName: [''],
-      mags1Surname: [''],
-
-      mags2Title: [''],
-      mags2FirstName: [''],
-      mags2Surname: [''],
-
-      mags3Title: [''],
-      mags3FirstName: [''],
-      mags3Surname: [''],
-
-      officialTitle: [''],
-      officialFirstName: [''],
-      officialSurname: [''],
-    });
-
+    // Initial load for Codes section (lodgementDate + applicationCode/title)
     this.loadCodesSection();
   }
 
+  // ── UI handlers ─────────────────────────────────────────────────────────────
   onSubmit(): void {
     this.formSubmitted = true;
   }
@@ -216,12 +150,10 @@ export class ApplicationsListEntryDetail implements OnInit {
   onCodesSearch(): void {
     this.codesHasSearched = true;
     this.codesRows = [];
-    this.hasFatalError = false;
-    this.errorHint = null;
-    this.errorSummary = [];
+    this.clearErrors();
 
-    const code = (this.form.get('applicationCode')?.value ?? '').trim();
-    const title = (this.form.get('applicationTitle')?.value ?? '').trim();
+    const code = this.readText('applicationCode').trim();
+    const title = this.readText('applicationTitle').trim();
 
     this.codesLoading = true;
     this.codesApi
@@ -238,36 +170,46 @@ export class ApplicationsListEntryDetail implements OnInit {
       )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (page) => {
-          this.codesRows = this.mapCodeRows(page);
+        next: (page: ApplicationCodePage) => {
+          this.codesRows = mapCodeRows(page);
           this.codesLoading = false;
         },
         error: (err) => {
           this.codesLoading = false;
-          this.handleCodesError(err);
+          this.applyMappedError(err);
         },
       });
   }
 
   onAddCode(row: CodeRow): void {
     this.successBanner = null;
-    this.hasFatalError = false;
-    this.errorHint = null;
-    this.errorSummary = [];
+    this.clearErrors();
 
-    const entryId = this.getEntryId();
-    if (!this.appListId || !entryId) return;
+    const entryId = getEntryId(this.route);
+    if (!this.appListId || !entryId) {
+      return;
+    }
 
     const code = (row?.code ?? '').trim();
-    if (!code) return;
+    if (!code) {
+      return;
+    }
 
-    const raw = this.form.getRawValue();
-    const lodgementDate = (raw.lodgementDate ?? '').toString().slice(0, 10);
+    // Disabled controls are omitted from value; use getRawValue()
+    const raw = this.form.getRawValue() as { lodgementDate?: unknown };
+    const lodgementDate =
+      typeof raw.lodgementDate === 'string'
+        ? raw.lodgementDate.slice(0, 10)
+        : String(raw.lodgementDate).slice(0, 10);
 
     if (!lodgementDate) {
       this.hasFatalError = true;
       this.errorHint = 'There is a problem';
-      this.errorSummary = [{ text: 'Lodgement date is missing. Load the entry before adding a code.' }];
+      this.errorSummary = [
+        {
+          text: 'Lodgement date is missing. Load the entry before adding a code.',
+        },
+      ];
       return;
     }
 
@@ -276,29 +218,24 @@ export class ApplicationsListEntryDetail implements OnInit {
       applicationCode: code,
     };
 
-    const params = {
+    const params: UpdateApplicationListEntryRequestParams = {
       listId: this.appListId,
       entryId,
       entryUpdateDto,
-    } satisfies UpdateApplicationListEntryRequestParams;
+    };
 
     this.entriesApi
-      .updateApplicationListEntry(params, 'body', false, { transferCache: false })
+      .updateApplicationListEntry(params, 'body', false, {
+        transferCache: false,
+      })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => this.afterCodeUpdatedSuccessfully(code),
-        error: (err) => this.handleCodesError(err),
+        next: () => this.afterCodeUpdatedSuccessfully(code, lodgementDate),
+        error: (err) => this.applyMappedError(err),
       });
   }
 
-  get personGroup(): FormGroup {
-    return this.form.get('person') as FormGroup;
-  }
-
-  get organisationGroup(): FormGroup {
-    return this.form.get('organisation') as FormGroup;
-  }
-
+  // Error summary click → move focus/caret to target input
   onErrorItemClick = (err: ErrorItem): void => {
     const href = err?.href ?? '';
     const id = href.startsWith('#') ? href.slice(1) : href;
@@ -313,15 +250,13 @@ export class ApplicationsListEntryDetail implements OnInit {
           })
         | HTMLTextAreaElement
         | null;
-
       if (!el) {
         return;
       }
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       el.focus?.();
-
       try {
-        const val = (el as HTMLInputElement).value;
+        const val = (el as HTMLInputElement).value ?? '';
         if ('setSelectionRange' in el) {
           el.setSelectionRange(val.length, val.length);
         }
@@ -331,16 +266,36 @@ export class ApplicationsListEntryDetail implements OnInit {
     });
   };
 
-  private afterCodeUpdatedSuccessfully(code: string): void {
-    // Reflect the change immediately in the form
+  get personGroup(): FormGroup {
+    return this.form.get('person') as FormGroup;
+  }
+
+  get organisationGroup(): FormGroup {
+    return this.form.get('organisation') as FormGroup;
+  }
+
+  // ── Private helpers ─────────────────────────────────────────────────────────
+  private clearErrors(): void {
+    this.hasFatalError = false;
+    this.errorHint = null;
+    this.errorSummary = [];
+  }
+
+  private applyMappedError(err: unknown): void {
+    const mapped = mapHttpErrorToSummary(err);
+    this.hasFatalError = mapped.hasFatalError;
+    this.errorHint = mapped.errorHint;
+    this.errorSummary = mapped.errorSummary;
+  }
+
+  private afterCodeUpdatedSuccessfully(
+    code: string,
+    lodgementDate: string,
+  ): void {
+    // Reflect code immediately
     this.form.patchValue({ applicationCode: code });
 
-    // We need the lodgement date for the code detail call
-    const lodgementDate = (this.form.getRawValue().lodgementDate ?? '')
-      .toString()
-      .slice(0, 10);
-
-    // Fetch the code detail so we can get `title` and check its wording/template
+    // Fetch code detail to get title + check wording placeholder
     this.codesApi
       .getApplicationCodeByCodeAndDate(
         { code, date: lodgementDate },
@@ -351,156 +306,35 @@ export class ApplicationsListEntryDetail implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (detail) => {
-          const title = detail?.title ?? '';
-          const wording: string =
-            (detail as any)?.wording ?? (detail as any)?.defaultWording ?? '';
-
+          const title = typeof detail?.title === 'string' ? detail.title : '';
           this.form.patchValue({ applicationTitle: title });
 
-          const needsWording = this.wordingRefRe.test(wording);
+          // Safely probe wording field(s)
+          const rec = detail as unknown as Record<string, unknown>;
+          const wording =
+            (typeof rec['wording'] === 'string' && rec['wording']) ||
+            (typeof rec['defaultWording'] === 'string' &&
+              rec['defaultWording']) ||
+            '';
 
-          // Build success banner
-          if (needsWording) {
-            this.successBanner = {
-              heading: 'Application code added',
-              body: 'This code requires additional wording. Please complete the "Wording" section.',
-              link: { href: '#wording-section', text: 'Go to wording section' },
-            };
-
-            this.focusSuccessBanner();
-          } else {
-            this.successBanner = {
-              heading: 'Application code added',
-              body: 'The application list entry was updated successfully.',
-            };
-            this.focusSuccessBanner();
-          }
+          this.successBanner = computeSuccessBanner(wording, WORDING_REF_REGEX);
+          focusSuccessBanner(this.platformId);
         },
         error: () => {
-          this.successBanner = {
-            heading: 'Application code added',
-            body: 'The application list entry was updated successfully.',
-          };
-          this.focusSuccessBanner();
+          // Still show a generic success banner if the detail lookup fails
+          this.successBanner = computeSuccessBanner('', WORDING_REF_REGEX);
+          focusSuccessBanner(this.platformId);
         },
       });
   }
 
-  private focusSuccessBanner(): void {
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-    setTimeout(() => {
-      const el = document.querySelector<HTMLElement>('app-success-banner');
-      el?.focus?.();
-      el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
-    });
-  }
-
-  private getEntryId(): string | null {
-    return (
-      this.route.snapshot.paramMap.get('entryId') ||
-      this.route.snapshot.paramMap.get('id') ||
-      this.route.snapshot.queryParamMap.get('entryId')
-    );
-  }
-
-  private handleCodesError(err: unknown): void {
-    let status = 0;
-    let statusText: string | undefined;
-    let problemTitle: string | undefined;
-    let problemDetail: string | undefined;
-
-    if (typeof err === 'object' && err !== null) {
-      const rec = err as Record<string, any>;
-      if (typeof rec['status'] === 'number') {
-        status = rec['status'];
-      }
-      if (typeof rec['statusText'] === 'string') {
-        statusText = rec['statusText'];
-      }
-      const e = rec['error'];
-      if (e && typeof e === 'object') {
-        if (typeof e['title'] === 'string') {
-          problemTitle = e['title'];
-        }
-        if (typeof e['detail'] === 'string') {
-          problemDetail = e['detail'];
-        }
-      }
-    }
-
-    const items = (...lines: (string | undefined)[]) =>
-      lines
-        .filter((t): t is string => !!t && t.trim().length > 0)
-        .map((text) => ({ text }));
-
-    switch (status) {
-      case 400:
-        this.errorHint = problemTitle || 'Bad request';
-        this.errorSummary = items(
-          problemDetail || 'We could not process your search.',
-        );
-        break;
-      case 401:
-        this.errorHint = problemTitle || 'You need to sign in';
-        this.errorSummary = items(
-          problemDetail ||
-            'Your session may have expired. Sign in and try again.',
-        );
-        break;
-      case 403:
-        this.errorHint =
-          problemTitle || 'You do not have permission to search codes';
-        this.errorSummary = items(
-          problemDetail || 'Ask an administrator to grant you access.',
-        );
-        break;
-      case 404:
-        this.errorHint = problemTitle || 'No codes found';
-        this.errorSummary = items(
-          problemDetail || 'Try adjusting your search terms.',
-        );
-        break;
-      default:
-        if (status === 0 || status >= 500) {
-          this.errorHint = problemTitle || 'A server error occurred';
-          this.errorSummary = items(
-            problemDetail ||
-              'Something went wrong on our side. Try again in a few moments.',
-          );
-        } else {
-          this.errorHint = problemTitle || 'There is a problem';
-          this.errorSummary = items(
-            problemDetail ||
-              statusText ||
-              'An unexpected error occurred. Try again.',
-          );
-        }
-        break;
-    }
-
-    this.hasFatalError = true;
-  }
-
-  private mapCodeRows(
-    page: import('../../../generated/openapi').ApplicationCodePage,
-  ): CodeRow[] {
-    const items = page?.content ?? [];
-    return items.map((i) => ({
-      code: i.applicationCode ?? '',
-      title: i.title ?? '',
-      bulk: i.bulkRespondentAllowed ? 'Yes' : 'No',
-      fee: i.feeReference ?? '—',
-    }));
+  private readText(path: string): string {
+    const v: unknown = this.form.get(path)?.value;
+    return typeof v === 'string' ? v : '';
   }
 
   private loadCodesSection(): void {
-    const entryId =
-      this.route.snapshot.paramMap.get('entryId') ||
-      this.route.snapshot.paramMap.get('id') ||
-      this.route.snapshot.queryParamMap.get('entryId');
-
+    const entryId = getEntryId(this.route);
     if (!this.appListId || !entryId) {
       return;
     }
@@ -515,13 +349,10 @@ export class ApplicationsListEntryDetail implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (entry) => {
-          const lodgementDate = (entry.lodgementDate ?? '').slice(0, 10);
-          const applicationCode = entry.applicationCode ?? '';
+          const lodgementDate = entry.lodgementDate.slice(0, 10);
+          const applicationCode = entry.applicationCode;
 
-          this.form.patchValue({
-            lodgementDate,
-            applicationCode,
-          });
+          this.form.patchValue({ lodgementDate, applicationCode });
 
           if (applicationCode && lodgementDate) {
             this.codesApi
@@ -534,9 +365,8 @@ export class ApplicationsListEntryDetail implements OnInit {
               .pipe(takeUntilDestroyed(this.destroyRef))
               .subscribe({
                 next: (codeDto) => {
-                  this.form.patchValue({
-                    applicationTitle: codeDto.title ?? '',
-                  });
+                  const title = codeDto.title;
+                  this.form.patchValue({ applicationTitle: title });
                 },
                 error: () => {
                   this.form.patchValue({ applicationTitle: '' });
