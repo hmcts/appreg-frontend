@@ -26,11 +26,7 @@ export class MicrosoftAuthHelper {
         cy.screenshot('Microsoft-02-Password-Entered');
         cy.get('input[type="submit"]').should('be.visible').click();
 
-        cy.log('Clicking "No" on Stay Signed In prompt...');
-        cy.get('#idBtn_Back').should('be.visible');
-        cy.screenshot('Microsoft-03-KMSI-Prompt');
-        cy.get('#idBtn_Back').click();
-        cy.screenshot('Microsoft-04-After-KMSI-Click');
+        cy.get('#idBtn_Back').should('be.visible').click();
       },
     );
   }
