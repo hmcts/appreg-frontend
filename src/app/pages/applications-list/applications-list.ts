@@ -54,6 +54,7 @@ import {
   ErrorSummaryComponent,
 } from '../../shared/components/error-summary/error-summary.component';
 import { NotificationBannerComponent } from '../../shared/components/notification-banner/notification-banner.component';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import {
@@ -98,6 +99,7 @@ import { loadQuery } from './util/load-query';
     SuggestionsComponent,
     NotificationBannerComponent,
     MojButtonMenuDirective,
+    PageHeaderComponent,
   ],
   templateUrl: './applications-list.html',
 })
