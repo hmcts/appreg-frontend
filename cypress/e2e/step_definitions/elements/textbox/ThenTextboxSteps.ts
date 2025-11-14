@@ -76,3 +76,27 @@ Then('User Should See The Textbox {string} Is Disabled', (field: string) => {
 Then('User Should See The Textbox {string} Is Enabled', (field: string) => {
   TextboxHelper.TextboxIsEnabled(field);
 });
+
+Then(
+  'User Verifies {string} Is Shown For The {string} Textbox',
+  (errorMessage: string, field: string) => {
+    const substituteErrorMessage =
+      TestDataGenerator.replaceRandomPlaceholders(errorMessage);
+    TextboxHelper.verifyAutocompleteNoResultsVisible(
+      field,
+      substituteErrorMessage,
+    );
+  },
+);
+
+Then(
+  'User Verifies {string} Is Not Shown For The {string} Textbox',
+  (errorMessage: string, field: string) => {
+    const substituteErrorMessage =
+      TestDataGenerator.replaceRandomPlaceholders(errorMessage);
+    TextboxHelper.verifyAutocompleteNoResultsNotVisible(
+      field,
+      substituteErrorMessage,
+    );
+  },
+);
