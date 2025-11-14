@@ -45,11 +45,10 @@ withNightlyPipeline(type, product, component) {
   env.TEST_URL = 'https://appreg.staging.apps.hmcts.net/login'
 
   afterAlways('DependencyCheckNightly') {
-
     echo "Checking connectivity to ${env.TEST_URL}"
 
     def response = sh(
-      script: "set +e; curl -s -o /dev/null -w '%{http_code}' --max-time 10 ${env.TEST_URL} || echo 000",
+      script: "set +e; curl -s -o /dev/null -w '%{http_code}' --max-time 10 ${env.TEST_URL} || true",
       returnStdout: true
     ).trim()
 
