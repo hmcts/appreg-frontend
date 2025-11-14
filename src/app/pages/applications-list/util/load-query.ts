@@ -44,5 +44,5 @@ export function loadQuery(form: FormGroup): ApplicationListGetFilterDto {
   set('otherLocationDescription', raw.location || undefined);
   set('cjaCode', raw.cja || undefined);
 
-  return query as ApplicationListGetFilterDto;
+  return query;
 }
