@@ -409,7 +409,9 @@ describe('ApplicationsList – search', () => {
     component = fixture.componentInstance;
 
     // Only needed if you still want a typed handle for direct assertions:
-    service = TestBed.inject(ApplicationListsApi);
+        service = TestBed.inject(ApplicationListsApi) as unknown as {
+      getApplicationLists: jest.Mock;
+    };
 
     component.pageSize = 25;
     component.currentPage = 1;
