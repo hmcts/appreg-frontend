@@ -79,24 +79,20 @@ Then('User Should See The Textbox {string} Is Enabled', (field: string) => {
 
 Then(
   'User Verifies {string} Is Shown For The {string} Textbox',
-  (errorMessage: string, field: string) => {
-    const substituteErrorMessage =
-      TestDataGenerator.replaceRandomPlaceholders(errorMessage);
+  (info: string, field: string) => {
     TextboxHelper.verifyAutocompleteNoResultsVisible(
       field,
-      substituteErrorMessage,
+      info,
     );
   },
 );
 
 Then(
   'User Verifies {string} Is Not Shown For The {string} Textbox',
-  (errorMessage: string, field: string) => {
-    const substituteErrorMessage =
-      TestDataGenerator.replaceRandomPlaceholders(errorMessage);
+  (info: string, field: string) => {
     TextboxHelper.verifyAutocompleteNoResultsNotVisible(
       field,
-      substituteErrorMessage,
+      info,
     );
   },
 );

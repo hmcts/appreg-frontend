@@ -100,12 +100,12 @@ export class TextboxHelper {
    */
   static verifyAutocompleteNoResultsVisible(
     _selector: string,
-    expectedErrorMessage: string,
+    info: string,
   ): Cypress.Chainable {
     return cy
       .get('.app-autocomplete__menu')
       .should('be.visible')
-      .contains('.app-autocomplete__menu', expectedErrorMessage, {
+      .contains('.app-autocomplete__menu', info, {
         matchCase: false,
       })
       .should('be.visible');
@@ -116,14 +116,14 @@ export class TextboxHelper {
    */
   static verifyAutocompleteNoResultsNotVisible(
     selector: string,
-    expectedErrorMessage: string,
+    info: string,
   ): Cypress.Chainable {
     return TextboxElement.findTextbox(selector).then(($el) => {
       // If the menu is present and visible, assert it does NOT contain the message.
       if ($el.find('.app-autocomplete__menu:visible').length) {
         return cy
           .get('.app-autocomplete__menu:visible')
-          .should('not.contain.text', expectedErrorMessage);
+          .should('not.contain.text', info);
       }
       // Menu not present or not visible -> treat as not visible
       return cy.wrap(null);
