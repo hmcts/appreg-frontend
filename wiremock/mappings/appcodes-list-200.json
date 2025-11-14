@@ -1,0 +1,27 @@
+{
+  "priority": 5,
+  "request": {
+    "method": "GET",
+    "urlPath": "/application-codes",
+    "headers": {
+      "Accept": {
+        "contains": "application/vnd.hmcts.appreg.v1+json"
+      },
+      "Authorization": {
+        "matches": "Bearer .+"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/vnd.hmcts.appreg.v1+json",
+      "Vary": "Accept"
+    },
+    "transformers": [
+      "response-template"
+    ],
+    "fixedDelayMilliseconds": 150,
+    "body": "{\n  \"page\": {{#if request.query.page}}{{request.query.page.[0]}}{{else}}0{{/if}},\n  \"size\": {{#if request.query.size}}{{request.query.size.[0]}}{{else}}10{{/if}},\n  \"sort\": {{#if request.query.sort}}[{{#each request.query.sort}}{{#unless @first}}, {{/unless}}\"{{this}}\"{{/each}}]{{else}}[\"title,asc\"]{{/if}},\n  \"totalElements\": 2,\n  \"totalPages\": 1,\n  \"content\": [\n    {\n      \"applicationCode\": \"APP-CHANGE-NAME\",\n      \"title\": \"Change of Name\",\n      \"wording\": \"Application for recording a change of name.\",\n      \"isFeeDue\": true,\n      \"requiresRespondent\": false,\n      \"bulkRespondentAllowed\": false,\n      \"feeReference\": \"FEE001\",\n      \"feeAmount\": { \"value\": 1299, \"currency\": \"GBP\" },\n      \"feeDescription\": \"Application fee\",\n      \"offsiteFeeAmount\": null\n    },\n    {\n      \"applicationCode\": \"APP-DIVORCE\",\n      \"title\": \"Divorce Petition\",\n      \"wording\": \"Application to begin divorce proceedings.\",\n      \"isFeeDue\": true,\n      \"requiresRespondent\": true,\n      \"bulkRespondentAllowed\": false,\n      \"feeReference\": \"FEE002\",\n      \"feeAmount\": { \"value\": 55000, \"currency\": \"GBP\" },\n      \"feeDescription\": \"Statutory fee\",\n      \"offsiteFeeAmount\": null\n    }\n  ]\n}"
+  }
+}
