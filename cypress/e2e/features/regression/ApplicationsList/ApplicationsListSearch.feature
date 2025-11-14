@@ -87,13 +87,13 @@ Feature: Applications List Search
     Then User Clicks On The Link "Applications list"
     Then User Selects "<OptionText>" From The Textbox "CJA" Autocomplete By Typing "<SearchText>"
     Then User Verifies The "CJA" Textbox Has Selected Value "<ExpectedValue>"
-    Then User Verifies "<TextboxErrorMessage>" Is Not Shown For The "CJA" Textbox
+    Then User Verifies "<Info>" Is Not Shown For The "CJA" Textbox
     When User Clicks On The "Search" Button
     Then User Does Not See Validation Errors
     Examples:
-      | User   | SearchText | OptionText   | ExpectedValue     | TextboxErrorMessage  |
+      | User   | SearchText | OptionText   | ExpectedValue     | Info                 |
       | admin1 | 1          | CJA Number 1 | 01 - CJA Number 1 | No results found     |        
-      | admin1 | 5          | CJA Number 5 | 05 - CJA Number 5 | No results found    |
+      | admin1 | 5          | CJA Number 5 | 05 - CJA Number 5 | No results found     |
 
   @regression @ARCPOC-660
   Scenario Outline: Verify CJA field validation with invalid input
@@ -102,11 +102,11 @@ Feature: Applications List Search
     Then User Clicks On The Link "Applications list"
     Then User Selects "<OptionText>" From The Textbox "CJA" Autocomplete By Typing "<SearchText>"
     Then User Verifies The "CJA" Textbox Has Selected Value "<ExpectedValue>"
-    Then User Verifies "<TextboxErrorMessage>" Is Shown For The "CJA" Textbox
+    Then User Verifies "<Info>" Is Shown For The "CJA" Textbox
     When User Clicks On The "Search" Button
     Then User Sees Validation Error "<ValidationMessage>"
     Examples:
-      | User   | SearchText | ValidationMessage                                  | OptionText | ExpectedValue | TextboxErrorMessage  |
+      | User   | SearchText | ValidationMessage                                  | OptionText | ExpectedValue | Info                 |
       | admin1 | abc123     | There is a problem Criminal Justice Area not found |            | abc123        | No results found     |
 
   @regression @ARCPOC-452
