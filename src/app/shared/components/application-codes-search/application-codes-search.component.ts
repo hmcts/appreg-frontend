@@ -162,4 +162,6 @@ export class ApplicationCodeSearchComponent implements OnInit, OnDestroy {
     }
     return params;
   }
+
+  // TODO: We need to emit an event for when table is moved
 }

@@ -31,6 +31,7 @@
   @if (loading) {
     <p class="govuk-body">Searching…</p>
   } @else if (errored) {
+    <!-- TODO: refactor here (move and make it look nicer) -->
     <div
       class="govuk-error-summary"
       aria-labelledby="app-code-error-title"
@@ -55,6 +56,7 @@
       </app-notification-banner>
     }
 
+    <!-- TODO: refactor here -->
     @if (results.length > 0) {
       <table class="govuk-table">
         <thead class="govuk-table__head">
