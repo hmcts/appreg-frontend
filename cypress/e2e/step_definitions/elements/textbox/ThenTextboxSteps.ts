@@ -80,19 +80,13 @@ Then('User Should See The Textbox {string} Is Enabled', (field: string) => {
 Then(
   'User Verifies {string} Is Shown For The {string} Textbox',
   (info: string, field: string) => {
-    TextboxHelper.verifyAutocompleteNoResultsVisible(
-      field,
-      info,
-    );
+    TextboxHelper.verifyAutocompleteNoResultsVisible(field, info);
   },
 );
 
 Then(
   'User Verifies {string} Is Not Shown For The {string} Textbox',
   (info: string, field: string) => {
-    TextboxHelper.verifyAutocompleteNoResultsNotVisible(
-      field,
-      info,
-    );
+    TextboxHelper.verifyAutocompleteNoResultsNotVisible(field, info);
   },
 );
