@@ -1,0 +1,16 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "GET",
+    "urlPath": "/application-codes",
+    "headers": {
+      "Authorization": { "absent": true }
+    }
+  },
+  "response": {
+    "status": 401,
+    "headers": { "Content-Type": "application/problem+json" },
+    "transformers": ["response-template"],
+    "bodyFileName": "errors/unauthorized.json"
+  }
+}

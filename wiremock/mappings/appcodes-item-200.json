@@ -1,0 +1,24 @@
+{
+  "priority": 5,
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/application-codes/[^/]+",
+    "headers": {
+      "Accept": { "contains": "application/vnd.hmcts.appreg.v1+json" },
+      "Authorization": { "matches": "Bearer .+" }
+    },
+    "queryParameters": {
+      "date": { "matches": "^\\d{4}-\\d{2}-\\d{2}$" }
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/vnd.hmcts.appreg.v1+json",
+      "Vary": "Accept"
+    },
+    "transformers": ["response-template"],
+    "fixedDelayMilliseconds": 150,
+    "body": "{\n  \"applicationCode\": \"{{request.pathSegments.[1]}}\",\n  \"title\": \"Example Application\",\n  \"wording\": \"Full wording for {{request.pathSegments.[1]}} effective on {{request.query.date.[0]}}.\",\n  \"isFeeDue\": true,\n  \"requiresRespondent\": true,\n  \"bulkRespondentAllowed\": false,\n  \"feeReference\": \"FEE-EXAMPLE\",\n  \"feeAmount\": { \"value\": 1999, \"currency\": \"GBP\" },\n  \"feeDescription\": \"Example fee\",\n  \"offsiteFeeAmount\": null,\n  \"startDate\": \"2020-01-01\",\n  \"endDate\": null\n}"
+  }
+}

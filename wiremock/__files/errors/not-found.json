@@ -3,6 +3,6 @@
   "title": "Not Found",
   "status": 404,
   "detail": "{{#if request.pathSegments.[1]}}Application code '{{request.pathSegments.[1]}}' was not found.{{else}}The requested resource was not found.{{/if}}",
-  "timestamp": "{{now format='yyyy-MM-dd''T''HH:mm:ssXXX'}}",
+  "timestamp": "{{now format=\"yyyy-MM-dd'T'HH:mm:ssXXX\"}}",
   "traceId": "{{randomValue length=12 type='ALPHANUMERIC'}}"
 }

@@ -1,0 +1,13 @@
+{
+  "priority": 50,
+  "request": {
+    "method": "GET",
+    "urlPath": "/application-codes",
+    "headers": { "X-Debug-Failure": { "equalTo": "true" } }
+  },
+  "response": {
+    "status": 500,
+    "headers": { "Content-Type": "application/problem+json" },
+    "bodyFileName": "errors/internal-server-error.json"
+  }
+}

@@ -4,6 +4,6 @@
   "status": 406,
   "detail": "Missing or unsupported Accept header. Expected 'application/vnd.hmcts.appreg.v1+json', received '{{#if request.headers.Accept}}{{request.headers.Accept.[0]}}{{else}}(none){{/if}}'.",
   "expected": "application/vnd.hmcts.appreg.v1+json",
-  "timestamp": "{{now format='yyyy-MM-dd''T''HH:mm:ssXXX'}}",
+  "timestamp": "{{now format=\"yyyy-MM-dd'T'HH:mm:ssXXX\"}}",
   "traceId": "{{randomValue length=12 type='ALPHANUMERIC'}}"
 }

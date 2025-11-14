@@ -4,6 +4,6 @@
   "status": 403,
   "detail": "You do not have permission to access this resource.",
   "path": "{{request.path}}",
-  "timestamp": "{{now format='yyyy-MM-dd''T''HH:mm:ssXXX'}}",
+  "timestamp": "{{now format=\"yyyy-MM-dd'T'HH:mm:ssXXX\"}}",
   "traceId": "{{randomValue length=12 type='ALPHANUMERIC'}}"
 }
