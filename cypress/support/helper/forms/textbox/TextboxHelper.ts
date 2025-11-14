@@ -115,12 +115,12 @@ export class TextboxHelper {
    * Verifies that the "No results found" message is not visible (menu hidden or message absent)
    */
   static verifyAutocompleteNoResultsNotVisible(
-    _selector: string,
+    selector: string,
     expectedErrorMessage: string,
   ): Cypress.Chainable {
-    return cy.get('body').then(($body) => {
+    return TextboxElement.findTextbox(selector).then(($el) => {
       // If the menu is present and visible, assert it does NOT contain the message.
-      if ($body.find('.app-autocomplete__menu:visible').length) {
+      if ($el.find('.app-autocomplete__menu:visible').length) {
         return cy
           .get('.app-autocomplete__menu:visible')
           .should('not.contain.text', expectedErrorMessage);
