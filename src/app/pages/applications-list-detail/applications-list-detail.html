@@ -3,7 +3,18 @@
   [items]="[{ label: 'Applications list', link: '/applications-list' }]"
 ></app-breadcrumbs>
 
-<h1 class="govuk-heading-xl">Applications list</h1>
+<app-page-header
+  title="Applications List"
+  [actions]="[
+    {
+      label: 'Create application',
+      routerLink: ['create'],
+      startIcon: true,
+      variant: 'primary',
+    },
+  ]"
+>
+</app-page-header>
 
 @if (unpopField.length || updateInvalid) {
   <app-error-summary
@@ -70,19 +81,12 @@
     role="tabpanel"
     aria-labelledby="tab_applications"
   >
-    <div class="moj-page-header-actions">
-      <div class="moj-page-header-actions__title">
-        <h1 class="govuk-heading-l">Applications</h1>
-      </div>
-      <div class="moj-page-header-actions__actions">
-        <div class="moj-button-group moj-button-group--inline">
-          <button type="button" class="govuk-button">Create</button>
-          <button type="button" class="govuk-button govuk-button--secondary">
-            Bulk upload
-          </button>
-        </div>
-      </div>
-    </div>
+    <app-page-header
+      title="Applications"
+      size="l"
+      [actions]="[{ label: 'Bulk upload', variant: 'secondary' }]"
+    >
+    </app-page-header>
 
     <hr
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
