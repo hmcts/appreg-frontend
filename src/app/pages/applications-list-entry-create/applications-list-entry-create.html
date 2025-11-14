@@ -98,19 +98,12 @@
       >
       </app-date-input>
     </div>
-
-    <hr
-      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
-    />
-
     <!-- Application code -->
-    <div class="govuk-grid-row">
-      <app-application-code-search
-        [auto]="false"
-        (selectCode)="onCodeSelected($event)"
-      >
-      </app-application-code-search>
-    </div>
+    <app-application-code-search
+      [auto]="false"
+      (selectCode)="onCodeSelected($event)"
+    >
+    </app-application-code-search>
   </ng-template>
 
   <ng-template #wordingTpl>

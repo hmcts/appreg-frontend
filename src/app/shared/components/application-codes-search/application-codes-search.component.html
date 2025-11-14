@@ -1,36 +1,18 @@
 <fieldset class="govuk-fieldset">
-  <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
-    <h2 class="govuk-fieldset__heading">{{ legend }}</h2>
-  </legend>
+  <div class="govuk-grid-row" [formGroup]="form">
+    <app-text-input
+      formControlName="code"
+      label="Code"
+      [hint]="codePlaceholder"
+      idPrefix="app-code-code"
+    ></app-text-input>
 
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-one-half">
-      <div class="govuk-form-group">
-        <label class="govuk-label" for="app-code-code">Code</label>
-        <input
-          class="govuk-input"
-          id="app-code-code"
-          type="text"
-          [attr.placeholder]="codePlaceholder"
-          [formControl]="form.controls.code"
-          autocomplete="off"
-        />
-      </div>
-    </div>
-
-    <div class="govuk-grid-column-one-half">
-      <div class="govuk-form-group">
-        <label class="govuk-label" for="app-code-title">Title</label>
-        <input
-          class="govuk-input"
-          id="app-code-title"
-          type="text"
-          [attr.placeholder]="titlePlaceholder"
-          [formControl]="form.controls.title"
-          autocomplete="off"
-        />
-      </div>
-    </div>
+    <app-text-input
+      formControlName="title"
+      label="Title"
+      [hint]="titlePlaceholder"
+      idPrefix="app-code-title"
+    ></app-text-input>
   </div>
 
   <div class="govuk-button-group">
@@ -63,8 +45,14 @@
       </div>
     </div>
   } @else {
-    @if (results.length === 0 && (form.value.code || form.value.title)) {
-      <p class="govuk-body">No application codes found.</p>
+    @if (
+      results.length === 0 && submitted && (form.value.code || form.value.title)
+    ) {
+      <app-notification-banner
+        heading="No application codes found"
+        body="Try different filters"
+      >
+      </app-notification-banner>
     }
 
     @if (results.length > 0) {

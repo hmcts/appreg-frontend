@@ -24,11 +24,18 @@ import {
   ApplicationCodesApi,
   GetApplicationCodesRequestParams,
 } from '../../../../generated/openapi';
+import { NotificationBannerComponent } from '../notification-banner/notification-banner.component';
+import { TextInputComponent } from '../text-input/text-input.component';
 
 @Component({
   selector: 'app-application-code-search',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    NotificationBannerComponent,
+    TextInputComponent,
+  ],
   templateUrl: './application-codes-search.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -38,12 +45,14 @@ export class ApplicationCodeSearchComponent implements OnInit, OnDestroy {
   @Input() auto = true; // True = query whilst typing, false = action button only
   @Input() legend = 'Find an application code';
   @Input() codePlaceholder = 'Enter code (e.g. APP01)';
-  @Input() titlePlaceholder = 'Enter title (partial match)';
+  @Input() titlePlaceholder = 'Enter application code title';
 
   // Emit row
   @Output() selectCode = new EventEmitter<ApplicationCodeGetSummaryDto>();
   // Emit latest result set after each search
   @Output() resultsChange = new EventEmitter<ApplicationCodeGetSummaryDto[]>();
+
+  submitted: boolean = false;
 
   form = new FormGroup({
     code: new FormControl<string | null>(null),
@@ -63,6 +72,7 @@ export class ApplicationCodeSearchComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.submitted = false;
     const fv$ = this.form.valueChanges.pipe(
       debounceTime(this.debounceMs),
       distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
@@ -104,6 +114,7 @@ export class ApplicationCodeSearchComponent implements OnInit, OnDestroy {
         this.results = rows;
         this.resultsChange.emit(rows);
         this.cdr.markForCheck();
+        this.submitted = true;
       });
   }
 
@@ -114,10 +125,12 @@ export class ApplicationCodeSearchComponent implements OnInit, OnDestroy {
   // When we manually click search we want to run the query
   search(): void {
     this.runSearch$.next();
+    this.submitted = true;
   }
 
   choose(row: ApplicationCodeGetSummaryDto): void {
     this.selectCode.emit(row);
+    this.submitted = false;
   }
 
   clear(): void {
@@ -125,6 +138,7 @@ export class ApplicationCodeSearchComponent implements OnInit, OnDestroy {
     this.results = [];
     this.errored = false;
     this.cdr.markForCheck();
+    this.submitted = false;
   }
 
   private buildParams(): GetApplicationCodesRequestParams | null {
