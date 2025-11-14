@@ -1,30 +1,15 @@
-<div class="moj-page-header-actions">
-  <div class="moj-page-header-actions__title">
-    <h1 class="govuk-heading-xl">Applications List</h1>
-  </div>
-  <div class="moj-page-header-actions__actions">
-    <div class="moj-button-group moj-button-group--inline">
-      <a
-        class="govuk-button govuk-button--start"
-        data-module="govuk-button"
-        [routerLink]="['/applications-list/create']"
-      >
-        Create a new list
-        <svg
-          class="govuk-button__start-icon"
-          xmlns="http://www.w3.org/2000/svg"
-          width="17.5"
-          height="19"
-          viewBox="0 0 33 40"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <path fill="currentColor" d="M0 0h13l20 20-20 20H0l20-20z" />
-        </svg>
-      </a>
-    </div>
-  </div>
-</div>
+<app-page-header
+  title="Applications List"
+  [actions]="[
+    {
+      label: 'Create application',
+      routerLink: ['create'],
+      startIcon: true,
+      variant: 'primary',
+    },
+  ]"
+>
+</app-page-header>
 
 @if (submitted && searchErrors.length) {
   <app-error-summary
