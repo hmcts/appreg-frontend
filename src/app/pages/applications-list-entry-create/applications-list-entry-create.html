@@ -97,13 +97,14 @@
         [isSearch]="true"
       >
       </app-date-input>
+
+      <!-- Application code -->
+      <app-application-code-search
+        [auto]="false"
+        (selectCode)="onCodeSelected($event)"
+      >
+      </app-application-code-search>
     </div>
-    <!-- Application code -->
-    <app-application-code-search
-      [auto]="false"
-      (selectCode)="onCodeSelected($event)"
-    >
-    </app-application-code-search>
   </ng-template>
 
   <ng-template #wordingTpl>
