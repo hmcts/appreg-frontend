@@ -4,15 +4,9 @@
     "method": "PUT",
     "urlPathPattern": "/application-lists/[0-9a-f-]{36}",
     "headers": {
-      "Accept": {
-        "contains": "application/vnd.hmcts.appreg.v1+json"
-      },
-      "Content-Type": {
-        "matches": "(application/vnd\\.hmcts\\.appreg\\.v1\\+json|application/json|application/.+\\+json)"
-      },
-      "Authorization": {
-        "matches": "Bearer .+"
-      }
+      "Accept": { "contains": "application/vnd.hmcts.appreg.v1+json" },
+      "Content-Type": { "matches": "(application/vnd\\.hmcts\\.appreg\\.v1\\+json|application/json|application/.+\\+json)" },
+      "Authorization": { "matches": "Bearer .+" }
     }
   },
   "response": {
@@ -22,9 +16,7 @@
       "Vary": "Accept",
       "X-Stub": "applists-put-200"
     },
-    "transformers": [
-      "response-template"
-    ],
-    "body": "{\n  \"id\": \"{{request.pathSegments.[1]}}\",\n  \"date\": \"{{jsonPath request.body '$.date'}}\",\n  \"time\": \"{{jsonPath request.body '$.time'}}\",\n  \"description\": \"{{jsonPath request.body '$.description'}}\",\n  \"status\": \"{{jsonPath request.body '$.status'}}\",\n  \n  \"courtLocationCode\": \"{{jsonPath request.body '$.courtLocationCode'}}\",\n  \"courtCode\": \"{{#if (jsonPath request.body '$.courtCode')}}{{jsonPath request.body '$.courtCode'}}{{else}}{{jsonPath request.body '$.courtLocationCode'}}{{/if}}\",\n  \"courtName\": \"{{jsonPath request.body '$.courtName'}}\",\n  \"criminalJusticeAreaCode\": \"{{jsonPath request.body '$.criminalJusticeAreaCode'}}\",\n  \n  \"durations\": {{#if (jsonPath request.body '$.durations')}}{{jsonPath request.body '$.durations'}}{{else}}null{{/if}},\n  \"entriesCount\": 7,\n  \"entriesSummary\": [ { \"sequenceNumber\": 1, \"result\": \"Adjourned\" } ],\n  \"version\": {{#if (jsonPath request.body '$.version')}}{{jsonPath request.body '$.version'}}{{else}}1{{/if}}\n}\n"
+    "transformers": ["response-template"],
+    "body": "{\n  \"id\": \"{{request.pathSegments.[1]}}\",\n  \"date\": \"{{jsonPath request.body '$.date'}}\",\n  \"time\": \"{{jsonPath request.body '$.time'}}\",\n  \"description\": \"{{jsonPath request.body '$.description'}}\",\n  \"status\": \"{{jsonPath request.body '$.status'}}\",\n\n  \"courtCode\": \"{{#if (jsonPath request.body '$.courtCode')}}{{jsonPath request.body '$.courtCode'}}{{else}}{{#if (jsonPath request.body '$.courtLocationCode')}}{{jsonPath request.body '$.courtLocationCode'}}{{else}}MCJC072{{/if}}{{/if}}\",\n  \"courtName\": \"{{#if (jsonPath request.body '$.courtName')}}{{jsonPath request.body '$.courtName'}}{{else}}Manchester Civil Justice Centre Set 8{{/if}}\",\n  \"cjaCode\": {{#if (jsonPath request.body '$.cjaCode')}}\"{{jsonPath request.body '$.cjaCode'}}\"{{else}}null{{/if}},\n  \"otherLocationDescription\": {{#if (jsonPath request.body '$.otherLocationDescription')}}\"{{jsonPath request.body '$.otherLocationDescription'}}\"{{else}}null{{/if}},\n\n  \"durationHours\": {{#if (jsonPath request.body '$.durationHours')}}{{jsonPath request.body '$.durationHours'}}{{else}}6{{/if}},\n  \"durationMinutes\": {{#if (jsonPath request.body '$.durationMinutes')}}{{jsonPath request.body '$.durationMinutes'}}{{else}}3{{/if}},\n\n  \"version\": {{#if (jsonPath request.body '$.version')}}{{jsonPath request.body '$.version'}}{{else}}1{{/if}},\n  \"entriesCount\": 1,\n  \"entriesSummary\": [\n    {\n      \"uuid\": \"{{randomValue type='UUID'}}\",\n      \"sequenceNumber\": 1,\n      \"accountNumber\": \"ACC000146\",\n      \"applicant\": null,\n      \"respondent\": \"Legal Aid Board\",\n      \"postCode\": \"BA15 1LA\",\n      \"applicationTitle\": \"Appeal to Crown Court\",\n      \"feeRequired\": false,\n      \"result\": null\n    }\n  ]\n}\n"
   }
 }
