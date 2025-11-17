@@ -42,11 +42,11 @@ withNightlyPipeline(type, product, component) {
   loadVaultSecrets(secrets)
   enableSlackNotifications('#appreg-builds')
   
-  env.TEST_URL = 'https://appreg.staging.apps.hmcts.net/login'
+  env.TEST_URL = 'https://appreg.staging.apps.hmcts.net/'
 
   afterAlways('DependencyCheckNightly') {
     stage('Connectivity Test') {
-      def baseUrl = env.TEST_URL.replace('/login', '')
+      def baseUrl = env.TEST_URL
       echo "Testing connectivity to: ${baseUrl}"
       
       try {
