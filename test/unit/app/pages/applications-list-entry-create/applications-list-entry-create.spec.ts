@@ -3,6 +3,10 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 
 import { ApplicationsListEntryCreate } from '../../../../../src/app/pages/applications-list-entry-create/applications-list-entry-create';
+import {
+  compactStrings,
+  toOptionalTrimmed,
+} from '../../../../../src/app/pages/applications-list-entry-create/util/helpers';
 import { ApplicationListEntriesApi } from '../../../../../src/generated/openapi';
 
 function roundTrip<T extends object>(o: T): T {
@@ -148,16 +152,10 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
   });
 
   it('helpers: toOptionalTrimmed and compactStrings', () => {
-    expect(component.toOptionalTrimmed('  x  ')).toBe('x');
-    expect(component.toOptionalTrimmed('   ')).toBeUndefined();
+    expect(toOptionalTrimmed('  x  ')).toBe('x');
+    expect(toOptionalTrimmed('   ')).toBeUndefined();
 
-    const compact = component.compactStrings([
-      '  a',
-      ' ',
-      null,
-      undefined,
-      'b  ',
-    ]);
+    const compact = compactStrings(['  a', ' ', null, undefined, 'b  ']);
     expect(compact).toEqual(['a', 'b']);
   });
 });
