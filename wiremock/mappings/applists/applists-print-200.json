@@ -1,0 +1,21 @@
+{
+  "priority": 5,
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/application-lists/[0-9a-f-]{36}/print",
+    "headers": {
+      "Accept": { "contains": "application/vnd.hmcts.appreg.v1+json" },
+      "Authorization": { "matches": "Bearer .+" }
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/vnd.hmcts.appreg.v1+json",
+      "Vary": "Accept",
+      "X-Stub": "applists-print-200"
+    },
+    "transformers": ["response-template"],
+    "body": "{\n  \"date\": \"2025-11-17\",\n  \"time\": \"10:00\",\n  \"courtName\": \"Manchester Magistrates’ Court\",\n  \"cja\": \"44 – Greater Manchester\",\n  \"duration\": \"2h 00m\",\n  \"entries\": [\n    { \"sequenceNumber\": 1, \"applicant\": \"CPS\", \"respondent\": \"John Smith\", \"result\": \"Adjourned\" },\n    { \"sequenceNumber\": 2, \"applicant\": \"CPS\", \"respondent\": \"Jane Doe\", \"result\": \"Heard\" }\n  ]\n}\n"
+  }
+}

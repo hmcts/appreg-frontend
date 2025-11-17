@@ -1,0 +1,23 @@
+{
+  "priority": 5,
+  "request": {
+    "method": "PUT",
+    "urlPathPattern": "/application-lists/[0-9a-f-]{36}",
+    "headers": {
+      "Accept": { "contains": "application/vnd.hmcts.appreg.v1+json" },
+      "Content-Type": { "contains": "application/vnd.hmcts.appreg.v1+json" },
+      "Authorization": { "matches": "Bearer .+" }
+    },
+    "bodyPatterns": [{ "matchesJsonPath": "$.version" }]
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/vnd.hmcts.appreg.v1+json",
+      "Vary": "Accept",
+      "X-Stub": "applists-put-200"
+    },
+    "transformers": ["response-template"],
+    "body": "{\n  \"id\": \"{{request.pathSegments.[1]}}\",\n  \"date\": \"{{jsonPath request.body '$.date'}}\",\n  \"time\": \"{{jsonPath request.body '$.time'}}\",\n  \"description\": \"{{jsonPath request.body '$.description'}}\",\n  \"status\": \"{{jsonPath request.body '$.status'}}\",\n  \"courtCode\": \"{{jsonPath request.body '$.courtCode'}}\",\n  \"courtName\": \"{{jsonPath request.body '$.courtName'}}\",\n  \"criminalJusticeAreaCode\": \"{{jsonPath request.body '$.criminalJusticeAreaCode'}}\",\n  \"durations\": {{#if (jsonPath request.body '$.durations')}}{{jsonPath request.body '$.durations'}}{{else}}null{{/if}},\n  \"entriesCount\": 7,\n  \"entriesSummary\": [ { \"sequenceNumber\": 1, \"result\": \"Adjourned\" } ],\n  \"version\": {{jsonPath request.body '$.version'}}\n}\n"
+  }
+}

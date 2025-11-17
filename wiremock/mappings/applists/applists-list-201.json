@@ -1,0 +1,29 @@
+{
+  "priority": 5,
+  "request": {
+    "method": "POST",
+    "urlPath": "/application-lists",
+    "headers": {
+      "Accept": { "contains": "application/vnd.hmcts.appreg.v1+json" },
+      "Content-Type": { "contains": "application/vnd.hmcts.appreg.v1+json" },
+      "Authorization": { "matches": "Bearer .+" }
+    },
+    "bodyPatterns": [
+      { "matchesJsonPath": "$.date" },
+      { "matchesJsonPath": "$.time" },
+      { "matchesJsonPath": "$.description" },
+      { "matchesJsonPath": "$.status" }
+    ]
+  },
+  "response": {
+    "status": 201,
+    "headers": {
+      "Content-Type": "application/vnd.hmcts.appreg.v1+json",
+      "Vary": "Accept",
+      "Location": "/application-lists/{{xeger \"[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\"}}",
+      "X-Stub": "applists-create-201"
+    },
+    "transformers": ["response-template"],
+    "body": "{\n  \"id\": \"{{xeger \\\"[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\\\"}}\",\n  \"date\": \"{{jsonPath request.body '$.date'}}\",\n  \"time\": \"{{jsonPath request.body '$.time'}}\",\n  \"description\": \"{{jsonPath request.body '$.description'}}\",\n  \"status\": \"{{jsonPath request.body '$.status'}}\",\n  \"courtCode\": \"{{jsonPath request.body '$.courtCode'}}\",\n  \"courtName\": \"{{jsonPath request.body '$.courtName'}}\",\n  \"criminalJusticeAreaCode\": \"{{jsonPath request.body '$.criminalJusticeAreaCode'}}\",\n  \"durations\": {{#if (jsonPath request.body '$.durations')}}{{jsonPath request.body '$.durations'}}{{else}}null{{/if}},\n  \"entriesCount\": 0,\n  \"entriesSummary\": [],\n  \"version\": 1\n}\n"
+  }
+}

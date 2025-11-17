@@ -1,0 +1,14 @@
+{
+  "priority": 4,
+  "request": {
+    "method": "PUT",
+    "urlPathPattern": "/application-lists/[0-9a-f-]{36}",
+    "headers": { "X-Debug-Conflict": { "equalTo": "true" } }
+  },
+  "response": {
+    "status": 409,
+    "headers": { "Content-Type": "application/problem+json", "X-Stub": "applists-put-409" },
+    "transformers": ["response-template"],
+    "body": "{\n  \"type\": \"about:blank\",\n  \"title\": \"Conflict\",\n  \"status\": 409,\n  \"detail\": \"Version conflict. Resource was modified by another request.\",\n  \"path\": \"{{request.path}}\",\n  \"timestamp\": \"{{now format=\\\"yyyy-MM-dd'T'HH:mm:ssXXX\\\"}}\",\n  \"traceId\": \"{{randomValue length=12 type='ALPHANUMERIC'}}\"\n}\n"
+  }
+}
