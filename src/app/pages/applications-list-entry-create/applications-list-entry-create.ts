@@ -50,7 +50,7 @@ import {
 import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
 import { getProblemText } from '../applications-list/util/delete-status';
 
-import { ApplicantStep, CreateBody, toOpt } from './util/types';
+import { ApplicantStep } from './util/types';
 
 @Component({
   selector: 'app-applications-list-entry-create',
@@ -156,21 +156,18 @@ export class ApplicationsListEntryCreate implements OnInit {
     emailAddress: new FormControl<string>(''),
   });
 
-  organisationForm = new FormGroup(
-    {
-      name: new FormControl<string>('', { nonNullable: true }),
-      addressLine1: new FormControl<string>('', { nonNullable: true }),
-      addressLine2: new FormControl<string>(''),
-      addressLine3: new FormControl<string>(''),
-      addressLine4: new FormControl<string>(''),
-      addressLine5: new FormControl<string>(''),
-      postcode: new FormControl<string>(''),
-      phoneNumber: new FormControl<string>(''),
-      mobileNumber: new FormControl<string>(''),
-      emailAddress: new FormControl<string>(''),
-    },
-    { updateOn: 'submit' },
-  );
+  organisationForm = new FormGroup({
+    name: new FormControl<string>('', { nonNullable: true }),
+    addressLine1: new FormControl<string>('', { nonNullable: true }),
+    addressLine2: new FormControl<string>(''),
+    addressLine3: new FormControl<string>(''),
+    addressLine4: new FormControl<string>(''),
+    addressLine5: new FormControl<string>(''),
+    postcode: new FormControl<string>(''),
+    phoneNumber: new FormControl<string>(''),
+    mobileNumber: new FormControl<string>(''),
+    emailAddress: new FormControl<string>(''),
+  });
 
   applicantOptions = [
     { label: 'Person', value: 'person' },
@@ -255,9 +252,6 @@ export class ApplicationsListEntryCreate implements OnInit {
     } else {
       dto.applicant = this.buildApplicant() ?? undefined;
     }
-    
-    console.log(v);
-    console.log(dto);
 
     this.pruneNullish(dto);
     return dto as EntryCreateDto;
@@ -314,7 +308,6 @@ export class ApplicationsListEntryCreate implements OnInit {
 
     if (t === 'person') {
       const pf = this.personForm.value;
-      console.log(pf);
       if (!this.hasRequiredPerson(pf)) {
         return undefined;
       }
@@ -337,7 +330,6 @@ export class ApplicationsListEntryCreate implements OnInit {
 
     if (t === 'organisation') {
       const of = this.organisationForm.value;
-      console.log(of);
       if (!this.hasRequiredOrg(of)) {
         return undefined;
       }
@@ -375,152 +367,6 @@ export class ApplicationsListEntryCreate implements OnInit {
     const courtName = this.toOptionalTrimmed(this.form.value.courtName);
     const orgName = this.toOptionalTrimmed(this.form.value.organisationName);
     return this.compactStrings([courtName, orgName]);
-  }
-
-  private buildApplicantFromForms(
-    form: { applicantType?: 'person' | 'org' | 'standard' | null },
-    personForm: {
-      title?: string | null;
-      firstName?: string | null;
-      middleNames?: string | null;
-      surname?: string | null;
-      addressLine1?: string | null;
-      addressLine2?: string | null;
-      addressLine3?: string | null;
-      addressLine4?: string | null;
-      addressLine5?: string | null;
-      postcode?: string | null;
-      phoneNumber?: string | null;
-      mobileNumber?: string | null;
-      emailAddress?: string | null;
-    },
-    orgForm: {
-      name?: string | null;
-      addressLine1?: string | null;
-      addressLine2?: string | null;
-      addressLine3?: string | null;
-      addressLine4?: string | null;
-      addressLine5?: string | null;
-      postcode?: string | null;
-      phoneNumber?: string | null;
-      emailAddress?: string | null;
-    },
-  ): Applicant | undefined {
-    if (form.applicantType === 'person') {
-      const cd = this.makeContactDetails(personForm);
-      const first = toOpt(personForm.firstName);
-      const sur = toOpt(personForm.surname);
-      if (!cd || !first || !sur) {
-        return undefined;
-      }
-
-      return {
-        person: {
-          name: {
-            title: toOpt(personForm.title),
-            firstForename: first,
-            secondForename: toOpt(personForm.middleNames),
-            surname: sur,
-          },
-          contactDetails: cd,
-        },
-      };
-    }
-
-    if (form.applicantType === 'org') {
-      const cd = this.makeContactDetails(orgForm);
-      const name = toOpt(orgForm.name);
-      if (!cd || !name) {
-        return undefined;
-      }
-
-      return {
-        organisation: {
-          name,
-          contactDetails: cd,
-        },
-      };
-    }
-
-    return undefined;
-  }
-
-  private buildRespondentFromForms(
-    form: { respondentEntryType?: 'person' | 'organisation' | null },
-    personForm: Parameters<typeof this.buildApplicantFromForms>[1],
-    orgForm: Parameters<typeof this.buildApplicantFromForms>[2],
-  ): Respondent | undefined {
-    if (form.respondentEntryType === 'person') {
-      const cd = this.makeContactDetails(personForm);
-      const first = toOpt(personForm.firstName);
-      const sur = toOpt(personForm.surname);
-      if (!cd || !first || !sur) {
-        return undefined;
-      }
-
-      return {
-        person: {
-          name: {
-            title: toOpt(personForm.title),
-            firstForename: first,
-            secondForename: toOpt(personForm.middleNames),
-            surname: sur,
-          },
-          contactDetails: cd,
-        },
-      };
-    }
-
-    if (form.respondentEntryType === 'organisation') {
-      const cd = this.makeContactDetails(orgForm);
-      const name = toOpt(orgForm.name);
-      if (!cd || !name) {
-        return undefined;
-      }
-
-      return {
-        organisation: {
-          name,
-          contactDetails: cd,
-        },
-      };
-    }
-
-    return undefined;
-  }
-
-  private buildCreateBody(
-    rootForm: { applicationCode?: string | null },
-    personForm: Parameters<typeof this.buildApplicantFromForms>[1],
-    orgForm: Parameters<typeof this.buildApplicantFromForms>[2],
-  ): CreateBody {
-    const applicant = this.buildApplicantFromForms(
-      rootForm as unknown as Parameters<typeof this.buildApplicantFromForms>[0],
-      personForm,
-      orgForm,
-    );
-    const respondent = this.buildRespondentFromForms(
-      rootForm as unknown as Parameters<
-        typeof this.buildRespondentFromForms
-      >[0],
-      personForm,
-      orgForm,
-    );
-
-    const body: Record<string, unknown> = {
-      applicationCode: rootForm.applicationCode?.trim(),
-    };
-
-    if (applicant) {
-      body['applicant'] = applicant;
-    }
-    if (respondent) {
-      body['respondent'] = respondent;
-    }
-
-    this.pruneNullish(body);
-
-    return body as unknown as CreateBody;
   }
 
   // Helpers
