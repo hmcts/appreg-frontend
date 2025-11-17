@@ -169,6 +169,8 @@ export class TableHelper {
     return cy.get('body').then(($body) => {
       const $nextButton = this.findNextPageButton($body);
 
+      cy.screenshot(`table-page-${caption}`);
+
       if ($nextButton.length > 0 && searchAllPages) {
         cy.log('Row not found on current page, checking next page...');
         cy.wrap($nextButton.first()).click();
