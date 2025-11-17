@@ -49,7 +49,15 @@ import {
 import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
 import { getProblemText } from '../applications-list/util/delete-status';
 
-type ApplicantStep = 'select' | 'person' | 'org' | 'standard';
+import {
+  compactStrings,
+  hasRequiredOrg,
+  hasRequiredPerson,
+  makeContactDetails,
+  pruneNullish,
+  toOptionalTrimmed,
+} from './util/helpers';
+import { ApplicantStep } from './util/types';
 
 @Component({
   selector: 'app-applications-list-entry-create',
@@ -155,21 +163,18 @@ export class ApplicationsListEntryCreate implements OnInit {
     emailAddress: new FormControl<string>(''),
   });
 
-  organisationForm = new FormGroup(
-    {
-      name: new FormControl<string>('', { nonNullable: true }),
-      addressLine1: new FormControl<string>('', { nonNullable: true }),
-      addressLine2: new FormControl<string>(''),
-      addressLine3: new FormControl<string>(''),
-      addressLine4: new FormControl<string>(''),
-      addressLine5: new FormControl<string>(''),
-      postcode: new FormControl<string>(''),
-      phoneNumber: new FormControl<string>(''),
-      mobileNumber: new FormControl<string>(''),
-      emailAddress: new FormControl<string>(''),
-    },
-    { updateOn: 'submit' },
-  );
+  organisationForm = new FormGroup({
+    name: new FormControl<string>('', { nonNullable: true }),
+    addressLine1: new FormControl<string>('', { nonNullable: true }),
+    addressLine2: new FormControl<string>(''),
+    addressLine3: new FormControl<string>(''),
+    addressLine4: new FormControl<string>(''),
+    addressLine5: new FormControl<string>(''),
+    postcode: new FormControl<string>(''),
+    phoneNumber: new FormControl<string>(''),
+    mobileNumber: new FormControl<string>(''),
+    emailAddress: new FormControl<string>(''),
+  });
 
   applicantOptions = [
     { label: 'Person', value: 'person' },
@@ -193,7 +198,7 @@ export class ApplicationsListEntryCreate implements OnInit {
     const v = this.form.value;
 
     // Input validation
-    const appCode = this.toOptionalTrimmed(v.applicationCode);
+    const appCode = toOptionalTrimmed(v.applicationCode);
     if (!appCode) {
       this.errorFound = true;
       this.errorHint = 'Application code is required';
@@ -233,30 +238,28 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   private buildEntryCreateDto(): EntryCreateDto {
     const v = this.form.value;
-    const applicationCode = this.toOptionalTrimmed(v.applicationCode)!;
 
-    const dto: EntryCreateDto = {
-      applicationCode,
+    const dto: Partial<EntryCreateDto> = {
+      applicationCode: toOptionalTrimmed(v.applicationCode)!,
       respondent: this.buildRespondent() ?? undefined,
       numberOfRespondents: v.numberOfRespondents ?? undefined,
       wordingFields: this.buildWordingFields() ?? undefined,
       feeStatuses: this.buildFeeStatuses() ?? undefined,
       hasOffsiteFee: v.hasOffsiteFee ?? undefined,
-      caseReference: this.toOptionalTrimmed(v.caseReference),
-      accountNumber: this.toOptionalTrimmed(v.accountNumber),
-      notes: this.toOptionalTrimmed(v.notes),
-      lodgementDate: this.toOptionalTrimmed(v.lodgementDate),
+      caseReference: toOptionalTrimmed(v.caseReference),
+      accountNumber: toOptionalTrimmed(v.accountNumber),
+      notes: toOptionalTrimmed(v.notes),
+      lodgementDate: toOptionalTrimmed(v.lodgementDate),
     };
 
     if (v.applicantType === 'standard') {
-      dto.standardApplicantCode = this.toOptionalTrimmed(
-        v.standardApplicantCode,
-      );
+      dto.standardApplicantCode = toOptionalTrimmed(v.standardApplicantCode);
     } else {
-      dto.applicant = this.buildApplicant();
+      dto.applicant = this.buildApplicant() ?? undefined;
     }
 
-    return dto;
+    pruneNullish(dto);
+    return dto as EntryCreateDto;
   }
 
   private buildApplicant(): Applicant | undefined {
@@ -264,52 +267,37 @@ export class ApplicationsListEntryCreate implements OnInit {
 
     if (type === 'person') {
       const pf = this.personForm.value;
-      if (!this.hasRequiredPerson(pf)) {
+      if (!hasRequiredPerson(pf)) {
         return undefined;
       }
+
+      const first = pf.firstName!.trim();
+      const sur = pf.surname!.trim();
 
       return {
         person: {
           name: {
-            title: this.toOptionalTrimmed(pf.title),
-            firstForename: pf.firstName!.trim(),
-            secondForename: this.toOptionalTrimmed(pf.middleNames),
-            surname: pf.surname!.trim(),
+            title: toOptionalTrimmed(pf.title),
+            firstForename: first,
+            secondForename: toOptionalTrimmed(pf.middleNames),
+            surname: sur,
           },
-          contactDetails: {
-            addressLine1: pf.addressLine1!.trim(),
-            addressLine2: this.toOptionalTrimmed(pf.addressLine2),
-            addressLine3: this.toOptionalTrimmed(pf.addressLine3),
-            addressLine4: this.toOptionalTrimmed(pf.addressLine4),
-            addressLine5: this.toOptionalTrimmed(pf.addressLine5),
-            postcode: this.toOptionalTrimmed(pf.postcode),
-            phone: this.toOptionalTrimmed(pf.phoneNumber),
-            mobile: this.toOptionalTrimmed(pf.mobileNumber),
-            email: this.toOptionalTrimmed(pf.emailAddress),
-          },
+          contactDetails: makeContactDetails(pf),
         },
       };
     }
 
     if (type === 'org') {
       const of = this.organisationForm.value;
-      if (!this.hasRequiredOrg(of)) {
+
+      if (!hasRequiredOrg(of)) {
         return undefined;
       }
 
       return {
         organisation: {
           name: of.name!.trim(),
-          contactDetails: {
-            addressLine1: of.addressLine1!.trim(),
-            addressLine2: this.toOptionalTrimmed(of.addressLine2),
-            addressLine3: this.toOptionalTrimmed(of.addressLine3),
-            addressLine4: this.toOptionalTrimmed(of.addressLine4),
-            addressLine5: this.toOptionalTrimmed(of.addressLine5),
-            postcode: this.toOptionalTrimmed(of.postcode),
-            phone: this.toOptionalTrimmed(of.phoneNumber),
-            email: this.toOptionalTrimmed(of.emailAddress),
-          },
+          contactDetails: makeContactDetails(of),
         },
       };
     }
@@ -325,52 +313,36 @@ export class ApplicationsListEntryCreate implements OnInit {
 
     if (t === 'person') {
       const pf = this.personForm.value;
-      if (!this.hasRequiredPerson(pf)) {
+      if (!hasRequiredPerson(pf)) {
         return undefined;
       }
+
+      const first = pf.firstName!.trim();
+      const sur = pf.surname!.trim();
 
       return {
         person: {
           name: {
-            title: this.toOptionalTrimmed(pf.title),
-            firstForename: pf.firstName!.trim(),
-            secondForename: this.toOptionalTrimmed(pf.middleNames),
-            surname: pf.surname!.trim(),
+            title: toOptionalTrimmed(pf.title),
+            firstForename: first,
+            secondForename: toOptionalTrimmed(pf.middleNames),
+            surname: sur,
           },
-          contactDetails: {
-            addressLine1: pf.addressLine1!.trim(),
-            addressLine2: this.toOptionalTrimmed(pf.addressLine2),
-            addressLine3: this.toOptionalTrimmed(pf.addressLine3),
-            addressLine4: this.toOptionalTrimmed(pf.addressLine4),
-            addressLine5: this.toOptionalTrimmed(pf.addressLine5),
-            postcode: this.toOptionalTrimmed(pf.postcode),
-            phone: this.toOptionalTrimmed(pf.phoneNumber),
-            mobile: this.toOptionalTrimmed(pf.mobileNumber),
-            email: this.toOptionalTrimmed(pf.emailAddress),
-          },
+          contactDetails: makeContactDetails(pf),
         },
       };
     }
 
     if (t === 'organisation') {
       const of = this.organisationForm.value;
-      if (!this.hasRequiredOrg(of)) {
+      if (!hasRequiredOrg(of)) {
         return undefined;
       }
 
       return {
         organisation: {
           name: of.name!.trim(),
-          contactDetails: {
-            addressLine1: of.addressLine1!.trim(),
-            addressLine2: this.toOptionalTrimmed(of.addressLine2),
-            addressLine3: this.toOptionalTrimmed(of.addressLine3),
-            addressLine4: this.toOptionalTrimmed(of.addressLine4),
-            addressLine5: this.toOptionalTrimmed(of.addressLine5),
-            postcode: this.toOptionalTrimmed(of.postcode),
-            phone: this.toOptionalTrimmed(of.phoneNumber),
-            email: this.toOptionalTrimmed(of.emailAddress),
-          },
+          contactDetails: makeContactDetails(of),
         },
       };
     }
@@ -379,9 +351,9 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private buildFeeStatuses(): FeeStatus[] | undefined {
-    const paymentStatus = this.toOptionalTrimmed(this.form.value.feeStatus);
-    const statusDate = this.toOptionalTrimmed(this.form.value.feeStatusDate);
-    const paymentRef = this.toOptionalTrimmed(this.form.value.paymentRef);
+    const paymentStatus = toOptionalTrimmed(this.form.value.feeStatus);
+    const statusDate = toOptionalTrimmed(this.form.value.feeStatusDate);
+    const paymentRef = toOptionalTrimmed(this.form.value.paymentRef);
 
     if (!paymentStatus && !statusDate && !paymentRef) {
       return undefined;
@@ -397,37 +369,8 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private buildWordingFields(): string[] | undefined {
-    const courtName = this.toOptionalTrimmed(this.form.value.courtName);
-    const orgName = this.toOptionalTrimmed(this.form.value.organisationName);
-    return this.compactStrings([courtName, orgName]);
-  }
-
-  // Helpers
-  toOptionalTrimmed = (
-    input: string | null | undefined,
-  ): string | undefined => {
-    const s = input?.trim();
-    return s || undefined;
-  };
-
-  compactStrings = (
-    values: (string | null | undefined)[],
-  ): string[] | undefined => {
-    const out = values.map((v) => v?.trim()).filter((v): v is string => !!v);
-    return out.length ? out : undefined;
-  };
-
-  private hasRequiredPerson(pf: typeof this.personForm.value): boolean {
-    return !!(
-      this.toOptionalTrimmed(pf.firstName) &&
-      this.toOptionalTrimmed(pf.surname) &&
-      this.toOptionalTrimmed(pf.addressLine1)
-    );
-  }
-
-  private hasRequiredOrg(of: typeof this.organisationForm.value): boolean {
-    return !!(
-      this.toOptionalTrimmed(of.name) && this.toOptionalTrimmed(of.addressLine1)
-    );
+    const courtName = toOptionalTrimmed(this.form.value.courtName);
+    const orgName = toOptionalTrimmed(this.form.value.organisationName);
+    return compactStrings([courtName, orgName]);
   }
 }
