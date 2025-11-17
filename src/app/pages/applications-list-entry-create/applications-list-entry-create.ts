@@ -24,6 +24,7 @@ import {
   Applicant,
   ApplicationCodeGetSummaryDto,
   ApplicationListEntriesApi,
+  ContactDetails,
   EntryCreateDto,
   FeeStatus,
   Respondent,
@@ -49,7 +50,7 @@ import {
 import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
 import { getProblemText } from '../applications-list/util/delete-status';
 
-type ApplicantStep = 'select' | 'person' | 'org' | 'standard';
+import { ApplicantStep, CreateBody, toOpt } from './util/types';
 
 @Component({
   selector: 'app-applications-list-entry-create',
@@ -233,10 +234,9 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   private buildEntryCreateDto(): EntryCreateDto {
     const v = this.form.value;
-    const applicationCode = this.toOptionalTrimmed(v.applicationCode)!;
 
-    const dto: EntryCreateDto = {
-      applicationCode,
+    const dto: Partial<EntryCreateDto> = {
+      applicationCode: this.toOptionalTrimmed(v.applicationCode)!,
       respondent: this.buildRespondent() ?? undefined,
       numberOfRespondents: v.numberOfRespondents ?? undefined,
       wordingFields: this.buildWordingFields() ?? undefined,
@@ -253,10 +253,14 @@ export class ApplicationsListEntryCreate implements OnInit {
         v.standardApplicantCode,
       );
     } else {
-      dto.applicant = this.buildApplicant();
+      dto.applicant = this.buildApplicant() ?? undefined;
     }
+    
+    console.log(v);
+    console.log(dto);
 
-    return dto;
+    this.pruneNullish(dto);
+    return dto as EntryCreateDto;
   }
 
   private buildApplicant(): Applicant | undefined {
@@ -268,31 +272,25 @@ export class ApplicationsListEntryCreate implements OnInit {
         return undefined;
       }
 
+      const first = pf.firstName!.trim();
+      const sur = pf.surname!.trim();
+
       return {
         person: {
           name: {
             title: this.toOptionalTrimmed(pf.title),
-            firstForename: pf.firstName!.trim(),
+            firstForename: first,
             secondForename: this.toOptionalTrimmed(pf.middleNames),
-            surname: pf.surname!.trim(),
+            surname: sur,
           },
-          contactDetails: {
-            addressLine1: pf.addressLine1!.trim(),
-            addressLine2: this.toOptionalTrimmed(pf.addressLine2),
-            addressLine3: this.toOptionalTrimmed(pf.addressLine3),
-            addressLine4: this.toOptionalTrimmed(pf.addressLine4),
-            addressLine5: this.toOptionalTrimmed(pf.addressLine5),
-            postcode: this.toOptionalTrimmed(pf.postcode),
-            phone: this.toOptionalTrimmed(pf.phoneNumber),
-            mobile: this.toOptionalTrimmed(pf.mobileNumber),
-            email: this.toOptionalTrimmed(pf.emailAddress),
-          },
+          contactDetails: this.makeContactDetails(pf),
         },
       };
     }
 
     if (type === 'org') {
       const of = this.organisationForm.value;
+
       if (!this.hasRequiredOrg(of)) {
         return undefined;
       }
@@ -300,16 +298,7 @@ export class ApplicationsListEntryCreate implements OnInit {
       return {
         organisation: {
           name: of.name!.trim(),
-          contactDetails: {
-            addressLine1: of.addressLine1!.trim(),
-            addressLine2: this.toOptionalTrimmed(of.addressLine2),
-            addressLine3: this.toOptionalTrimmed(of.addressLine3),
-            addressLine4: this.toOptionalTrimmed(of.addressLine4),
-            addressLine5: this.toOptionalTrimmed(of.addressLine5),
-            postcode: this.toOptionalTrimmed(of.postcode),
-            phone: this.toOptionalTrimmed(of.phoneNumber),
-            email: this.toOptionalTrimmed(of.emailAddress),
-          },
+          contactDetails: this.makeContactDetails(of),
         },
       };
     }
@@ -325,35 +314,30 @@ export class ApplicationsListEntryCreate implements OnInit {
 
     if (t === 'person') {
       const pf = this.personForm.value;
+      console.log(pf);
       if (!this.hasRequiredPerson(pf)) {
         return undefined;
       }
+
+      const first = pf.firstName!.trim();
+      const sur = pf.surname!.trim();
 
       return {
         person: {
           name: {
             title: this.toOptionalTrimmed(pf.title),
-            firstForename: pf.firstName!.trim(),
+            firstForename: first,
             secondForename: this.toOptionalTrimmed(pf.middleNames),
-            surname: pf.surname!.trim(),
+            surname: sur,
           },
-          contactDetails: {
-            addressLine1: pf.addressLine1!.trim(),
-            addressLine2: this.toOptionalTrimmed(pf.addressLine2),
-            addressLine3: this.toOptionalTrimmed(pf.addressLine3),
-            addressLine4: this.toOptionalTrimmed(pf.addressLine4),
-            addressLine5: this.toOptionalTrimmed(pf.addressLine5),
-            postcode: this.toOptionalTrimmed(pf.postcode),
-            phone: this.toOptionalTrimmed(pf.phoneNumber),
-            mobile: this.toOptionalTrimmed(pf.mobileNumber),
-            email: this.toOptionalTrimmed(pf.emailAddress),
-          },
+          contactDetails: this.makeContactDetails(pf),
         },
       };
     }
 
     if (t === 'organisation') {
       const of = this.organisationForm.value;
+      console.log(of);
       if (!this.hasRequiredOrg(of)) {
         return undefined;
       }
@@ -361,16 +345,7 @@ export class ApplicationsListEntryCreate implements OnInit {
       return {
         organisation: {
           name: of.name!.trim(),
-          contactDetails: {
-            addressLine1: of.addressLine1!.trim(),
-            addressLine2: this.toOptionalTrimmed(of.addressLine2),
-            addressLine3: this.toOptionalTrimmed(of.addressLine3),
-            addressLine4: this.toOptionalTrimmed(of.addressLine4),
-            addressLine5: this.toOptionalTrimmed(of.addressLine5),
-            postcode: this.toOptionalTrimmed(of.postcode),
-            phone: this.toOptionalTrimmed(of.phoneNumber),
-            email: this.toOptionalTrimmed(of.emailAddress),
-          },
+          contactDetails: this.makeContactDetails(of),
         },
       };
     }
@@ -402,6 +377,152 @@ export class ApplicationsListEntryCreate implements OnInit {
     return this.compactStrings([courtName, orgName]);
   }
 
+  private buildApplicantFromForms(
+    form: { applicantType?: 'person' | 'org' | 'standard' | null },
+    personForm: {
+      title?: string | null;
+      firstName?: string | null;
+      middleNames?: string | null;
+      surname?: string | null;
+      addressLine1?: string | null;
+      addressLine2?: string | null;
+      addressLine3?: string | null;
+      addressLine4?: string | null;
+      addressLine5?: string | null;
+      postcode?: string | null;
+      phoneNumber?: string | null;
+      mobileNumber?: string | null;
+      emailAddress?: string | null;
+    },
+    orgForm: {
+      name?: string | null;
+      addressLine1?: string | null;
+      addressLine2?: string | null;
+      addressLine3?: string | null;
+      addressLine4?: string | null;
+      addressLine5?: string | null;
+      postcode?: string | null;
+      phoneNumber?: string | null;
+      emailAddress?: string | null;
+    },
+  ): Applicant | undefined {
+    if (form.applicantType === 'person') {
+      const cd = this.makeContactDetails(personForm);
+      const first = toOpt(personForm.firstName);
+      const sur = toOpt(personForm.surname);
+      if (!cd || !first || !sur) {
+        return undefined;
+      }
+
+      return {
+        person: {
+          name: {
+            title: toOpt(personForm.title),
+            firstForename: first,
+            secondForename: toOpt(personForm.middleNames),
+            surname: sur,
+          },
+          contactDetails: cd,
+        },
+      };
+    }
+
+    if (form.applicantType === 'org') {
+      const cd = this.makeContactDetails(orgForm);
+      const name = toOpt(orgForm.name);
+      if (!cd || !name) {
+        return undefined;
+      }
+
+      return {
+        organisation: {
+          name,
+          contactDetails: cd,
+        },
+      };
+    }
+
+    return undefined;
+  }
+
+  private buildRespondentFromForms(
+    form: { respondentEntryType?: 'person' | 'organisation' | null },
+    personForm: Parameters<typeof this.buildApplicantFromForms>[1],
+    orgForm: Parameters<typeof this.buildApplicantFromForms>[2],
+  ): Respondent | undefined {
+    if (form.respondentEntryType === 'person') {
+      const cd = this.makeContactDetails(personForm);
+      const first = toOpt(personForm.firstName);
+      const sur = toOpt(personForm.surname);
+      if (!cd || !first || !sur) {
+        return undefined;
+      }
+
+      return {
+        person: {
+          name: {
+            title: toOpt(personForm.title),
+            firstForename: first,
+            secondForename: toOpt(personForm.middleNames),
+            surname: sur,
+          },
+          contactDetails: cd,
+        },
+      };
+    }
+
+    if (form.respondentEntryType === 'organisation') {
+      const cd = this.makeContactDetails(orgForm);
+      const name = toOpt(orgForm.name);
+      if (!cd || !name) {
+        return undefined;
+      }
+
+      return {
+        organisation: {
+          name,
+          contactDetails: cd,
+        },
+      };
+    }
+
+    return undefined;
+  }
+
+  private buildCreateBody(
+    rootForm: { applicationCode?: string | null },
+    personForm: Parameters<typeof this.buildApplicantFromForms>[1],
+    orgForm: Parameters<typeof this.buildApplicantFromForms>[2],
+  ): CreateBody {
+    const applicant = this.buildApplicantFromForms(
+      rootForm as unknown as Parameters<typeof this.buildApplicantFromForms>[0],
+      personForm,
+      orgForm,
+    );
+    const respondent = this.buildRespondentFromForms(
+      rootForm as unknown as Parameters<
+        typeof this.buildRespondentFromForms
+      >[0],
+      personForm,
+      orgForm,
+    );
+
+    const body: Record<string, unknown> = {
+      applicationCode: rootForm.applicationCode?.trim(),
+    };
+
+    if (applicant) {
+      body['applicant'] = applicant;
+    }
+    if (respondent) {
+      body['respondent'] = respondent;
+    }
+
+    this.pruneNullish(body);
+
+    return body as unknown as CreateBody;
+  }
+
   // Helpers
   toOptionalTrimmed = (
     input: string | null | undefined,
@@ -417,17 +538,59 @@ export class ApplicationsListEntryCreate implements OnInit {
     return out.length ? out : undefined;
   };
 
-  private hasRequiredPerson(pf: typeof this.personForm.value): boolean {
-    return !!(
-      this.toOptionalTrimmed(pf.firstName) &&
-      this.toOptionalTrimmed(pf.surname) &&
-      this.toOptionalTrimmed(pf.addressLine1)
-    );
+  private hasRequiredPerson(p: {
+    firstName?: string | null;
+    surname?: string | null;
+    addressLine1?: string | null;
+  }): boolean {
+    const first = this.toOptionalTrimmed(p.firstName);
+    const sur = this.toOptionalTrimmed(p.surname);
+    return !!first && !!sur;
   }
 
-  private hasRequiredOrg(of: typeof this.organisationForm.value): boolean {
-    return !!(
-      this.toOptionalTrimmed(of.name) && this.toOptionalTrimmed(of.addressLine1)
-    );
+  private hasRequiredOrg(o: {
+    name?: string | null;
+    addressLine1?: string | null;
+  }): boolean {
+    const name = this.toOptionalTrimmed(o.name);
+    const addr = this.toOptionalTrimmed(o.addressLine1);
+    return !!name && !!addr;
+  }
+
+  private pruneNullish<T extends object>(o: T): T {
+    const rec = o as Record<string, unknown>;
+    for (const [k, v] of Object.entries(rec)) {
+      if (v === null) {
+        delete rec[k];
+      }
+    }
+    return o;
+  }
+
+  private makeContactDetails(src: {
+    addressLine1?: string | null;
+    addressLine2?: string | null;
+    addressLine3?: string | null;
+    addressLine4?: string | null;
+    addressLine5?: string | null;
+    postcode?: string | null;
+    phoneNumber?: string | null;
+    mobileNumber?: string | null;
+    emailAddress?: string | null;
+  }): ContactDetails {
+    const cd: Partial<ContactDetails> = {
+      addressLine1: this.toOptionalTrimmed(src.addressLine1)!,
+      addressLine2: this.toOptionalTrimmed(src.addressLine2),
+      addressLine3: this.toOptionalTrimmed(src.addressLine3),
+      addressLine4: this.toOptionalTrimmed(src.addressLine4),
+      addressLine5: this.toOptionalTrimmed(src.addressLine5),
+      postcode: this.toOptionalTrimmed(src.postcode),
+      phone: this.toOptionalTrimmed(src.phoneNumber),
+      mobile: this.toOptionalTrimmed(src.mobileNumber),
+      email: this.toOptionalTrimmed(src.emailAddress),
+    };
+
+    this.pruneNullish(cd);
+    return cd as ContactDetails;
   }
 }
