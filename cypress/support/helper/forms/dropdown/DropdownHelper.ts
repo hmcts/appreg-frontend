@@ -6,8 +6,21 @@ export class DropdownHelper {
    * @param dropdownLabel The label of the dropdown
    * @param optionText The visible text of the option to select
    */
-  static selectDropdownOption(dropdownLabel: string, optionText: string): void {
-    DropdownElement.findDropdown(dropdownLabel).select(optionText);
+    static selectDropdownOption(name: string, option: string): Cypress.Chainable<JQuery<HTMLElement>> {
+    return DropdownElement.findDropdown(name).then(($dropdown) => {
+      if ($dropdown.is('select')) {
+        cy.wrap($dropdown).select(option);
+        cy.wrap($dropdown).invoke('val').should((val) => {
+          expect(String(val).toLowerCase()).to.eq(option.toLowerCase());
+        });
+      } else {
+        // For custom dropdowns, click to open and select the option
+        cy.wrap($dropdown).click();
+        cy.contains('.dropdown [role="option"], .select [role="option"], .dropdown__option, .select__option', option, { matchCase: false })
+          .click();
+        cy.wrap($dropdown).should('contain.text', option);
+      }
+    });
   }
 
   static verifyDropdownIsVisible(dropdownLabel: string): void {
