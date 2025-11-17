@@ -1,0 +1,21 @@
+{
+  "priority": 5,
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/application-lists/[0-9a-f-]{36}",
+    "headers": {
+      "Accept": { "contains": "application/vnd.hmcts.appreg.v1+json" },
+      "Authorization": { "matches": "Bearer .+" }
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/vnd.hmcts.appreg.v1+json",
+      "Vary": "Accept",
+      "X-Stub": "applists-detail-200"
+    },
+    "transformers": ["response-template"],
+    "body": "{\n  \"id\": \"{{request.pathSegments.[1]}}\",\n  \"date\": \"2025-11-17\",\n  \"time\": \"10:00\",\n  \"description\": \"Public applications list AM\",\n  \"status\": \"OPEN\",\n  \"courtCode\": \"MNC\",\n  \"courtName\": \"Manchester Magistrates’ Court\",\n  \"criminalJusticeAreaCode\": \"44\",\n  \"durations\": { \"hearingMinutes\": 120 },\n  \"entriesCount\": 7,\n  \"entriesSummary\": [\n    { \"sequenceNumber\": 1, \"result\": \"Adjourned\" },\n    { \"sequenceNumber\": 2, \"result\": \"Heard\" }\n  ],\n  \"version\": 3\n}\n"
+  }
+}

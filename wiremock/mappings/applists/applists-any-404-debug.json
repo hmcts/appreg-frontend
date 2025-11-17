@@ -1,0 +1,14 @@
+{
+  "priority": 3,
+  "request": {
+    "method": "ANY",
+    "urlPathPattern": "/application-lists(/[0-9a-f-]{36}(/print)?)?",
+    "headers": { "X-Debug-Not-Found": { "equalTo": "true" } }
+  },
+  "response": {
+    "status": 404,
+    "headers": { "Content-Type": "application/problem+json" },
+    "transformers": ["response-template"],
+    "body": "{\n  \"type\": \"about:blank\",\n  \"title\": \"Not Found\",\n  \"status\": 404,\n  \"detail\": \"Resource not found.\",\n  \"path\": \"{{request.path}}\",\n  \"timestamp\": \"{{now format=\\\"yyyy-MM-dd'T'HH:mm:ssXXX\\\"}}\",\n  \"traceId\": \"{{randomValue length=12 type='ALPHANUMERIC'}}\"\n}\n"
+  }
+}
