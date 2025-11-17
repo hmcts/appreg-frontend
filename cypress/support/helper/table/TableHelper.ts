@@ -220,7 +220,9 @@ export class TableHelper {
         )
         .then(() => {
           if (found) {
-            cy.log(`✓ Row found with: ${searchCriteria}`);
+            return cy
+              .log(`✓ Row found with: ${searchCriteria}`)
+              .then(() => found);
           }
           return found;
         });
