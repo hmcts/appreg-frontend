@@ -93,7 +93,7 @@ Feature: Applications List Search
     Examples:
       | User   | SearchText | OptionText   | ExpectedValue     | Info                 |
       | admin1 | 1          | CJA Number 1 | 01 - CJA Number 1 | No results found     |        
-    #  | admin1 | 5          | CJA Number 5 | 05 - CJA Number 5 | No results found     |
+      | admin1 | 5          | CJA Number 5 | 05 - CJA Number 5 | No results found     |
 
   @regression @ARCPOC-660
   Scenario Outline: Verify CJA field validation with invalid input
@@ -159,11 +159,12 @@ Feature: Applications List Search
     Then User Clicks On The Link "Applications list"
     Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
     Then User Verifies The "Court" Textbox Has Selected Value "<ExpectedValue>"
+    Then User Verifies "<Info>" Is Not Visible Under The "Court" Textbox
     When User Clicks On The "Search" Button
     Then User Does Not See Validation Errors
     Examples:
-      | User   | SearchText | OptionText                     | ExpectedValue                               |
-      | admin1 | Cardiff    | Cardiff Crown Court Set 4      | CCC033 - Cardiff Crown Court Set 4          |
+      | User   | SearchText | OptionText                     | ExpectedValue                               | Info                 | 
+      | admin1 | Cardiff    | Cardiff Crown Court Set 4      | CCC033 - Cardiff Crown Court Set 4          | No results found     |
  
 @regression @ARCPOC-691
   Scenario Outline: Verify Court field validation with invalid input
@@ -171,11 +172,11 @@ Feature: Applications List Search
     When User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Applications list"
     Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
-    Then User Verifies The "Court" Textbox Has Selected Value "<ExpectedValue>"
-   #  Then User Verifies "<TextboxErrorMessage>" Is Shown For The "Court" Textbox
+  # Then User Verifies The "Court" Textbox Has Selected Value "<ExpectedValue>"
+    Then User Verifies "<Info>" Is Visible Under The "Court" Textbox
     When User Clicks On The "Search" Button
     Then User Sees Notification Banner "<NotificationMessage>"
     Examples:
-      | User   | SearchText | NotificationMessage                                             | OptionText | ExpectedValue |
-      | admin1 | London     | No lists found Try different filters, or create a new list      |            | London        |    
+      | User   | SearchText | NotificationMessage                                             | OptionText | ExpectedValue |  Info                 |
+      | admin1 | London     | No lists found Try different filters, or create a new list      |            | London        |  No results found     |    
  
