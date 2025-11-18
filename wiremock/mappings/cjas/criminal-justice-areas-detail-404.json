@@ -1,0 +1,26 @@
+{
+  "name": "CJA – GET detail – 404 (debug toggle)",
+  "priority": 4,
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/(?i)criminal-justice-areas/[^/]+",
+    "headers": {
+      "Authorization": {
+        "matches": "Bearer .+"
+      },
+      "X-Debug-Not-Found": {
+        "equalTo": "true"
+      }
+    }
+  },
+  "response": {
+    "status": 404,
+    "headers": {
+      "Content-Type": "application/problem+json"
+    },
+    "transformers": [
+      "response-template"
+    ],
+    "body": "{\n  \"type\": \"about:blank\",\n  \"title\": \"Not Found\",\n  \"status\": 404,\n  \"detail\": \"Criminal Justice Area '{{request.pathSegments.[1]}}' was not found.\",\n  \"path\": \"{{request.path}}\",\n  \"timestamp\": \"{{now format=\\\"yyyy-MM-dd'T'HH:mm:ssXXX\\\"}}\",\n  \"traceId\": \"{{randomValue length=12 type='ALPHANUMERIC'}}\"\n}\n"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "CJA – 406 Not Acceptable",
+  "priority": 3,
+  "request": {
+    "method": "ANY",
+    "urlPathPattern": "/(?i)criminal-justice-areas(/.*)?",
+    "headers": {
+      "Accept": {
+        "doesNotContain": "application/vnd.hmcts.appreg.v1+json"
+      }
+    }
+  },
+  "response": {
+    "status": 406,
+    "headers": {
+      "Content-Type": "application/problem+json"
+    },
+    "transformers": [
+      "response-template"
+    ],
+    "body": "{\n  \"type\": \"about:blank\",\n  \"title\": \"Not Acceptable\",\n  \"status\": 406,\n  \"detail\": \"Set Accept: application/vnd.hmcts.appreg.v1+json.\",\n  \"path\": \"{{request.path}}\",\n  \"timestamp\": \"{{now format=\\\"yyyy-MM-dd'T'HH:mm:ssXXX\\\"}}\",\n  \"traceId\": \"{{randomValue length=12 type='ALPHANUMERIC'}}\"\n}\n"
+  }
+}
