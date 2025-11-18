@@ -170,13 +170,13 @@
     "@azure/keyvault-secrets": "4.10.0",
     "@azure/keyvault-common": "2.0.0",
     "@cucumber/messages": "^30.0.0",
+    "glob": "^11.1.0",
     "postman-collection": "^5.2.0",
     "json-schema-faker": "^0.5.9",
     "json-schema-ref-parser": "npm:@apidevtools/json-schema-ref-parser@^14.2.0",
     "@faker-js/faker": "^10.0.0",
     "tar": "^7.5.2",
-    "js-yaml": "^4.1.1",
-    "glob": "^11.1.0"
+    "js-yaml": "^4.1.1"
   },
   "packageManager": "yarn@4.10.3"
 }
