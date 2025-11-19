@@ -69,3 +69,13 @@ Then(
     TableHelper.verifyHeaderSortOrder(tableCaption, headerText, sortOrder);
   },
 );
+
+/**
+ * Verifies that the table has columns with the specified values
+ */
+Then(
+  'User Should See Table {string} Column {string} Has Value {string}',
+  (tableCaption: string, columnName: string, expectedValue: string) => {
+    TableHelper.verifyAllRowsHaveValue(tableCaption, columnName, expectedValue);
+  },
+);
