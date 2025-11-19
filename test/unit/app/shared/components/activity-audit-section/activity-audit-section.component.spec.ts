@@ -63,7 +63,7 @@ describe('ActivityAuditSectionComponent (with template)', () => {
     const dateInputs = fixture.debugElement.queryAll(By.css('app-date-input'));
     const textInputs = fixture.debugElement.queryAll(By.css('app-text-input'));
 
-    expect(dateInputs.length).toBe(2);
-    expect(textInputs.length).toBe(2);
+    expect(dateInputs).toHaveLength(2);
+    expect(textInputs).toHaveLength(2);
   });
 });

@@ -56,7 +56,7 @@ describe('OrganisationSectionComponent', () => {
 
   it('renders all expected app-text-input components', () => {
     const textInputs = fixture.debugElement.queryAll(By.css('app-text-input'));
-    expect(textInputs.length).toBe(10);
+    expect(textInputs).toHaveLength(10);
   });
 
   it('has a text input bound to the "name" control', () => {
