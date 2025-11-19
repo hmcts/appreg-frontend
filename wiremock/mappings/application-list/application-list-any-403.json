@@ -1,0 +1,14 @@
+{
+  "priority": 2,
+  "request": {
+    "method": "ANY",
+    "urlPathPattern": "/application-lists.*",
+    "headers": { "Authorization": { "matches": "Bearer\\s+forbidden.*" } }
+  },
+  "response": {
+    "status": 403,
+    "headers": { "Content-Type": "application/problem+json" },
+    "transformers": ["response-template"],
+    "bodyFileName": "errors/forbidden.json"
+  }
+}
