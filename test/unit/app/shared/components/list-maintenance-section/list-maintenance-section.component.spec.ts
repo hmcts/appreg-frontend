@@ -55,7 +55,7 @@ describe('ListMaintenanceSectionComponent', () => {
     const gridRows = fixture.debugElement.queryAll(
       By.css('div.govuk-grid-row'),
     );
-    expect(gridRows.length).toBe(2);
+    expect(gridRows).toHaveLength(2);
 
     const firstRowFormGroup = gridRows[0].injector.get(FormGroupDirective);
     const secondRowFormGroup = gridRows[1].injector.get(FormGroupDirective);
@@ -66,12 +66,12 @@ describe('ListMaintenanceSectionComponent', () => {
 
   it('renders two app-date-input components', () => {
     const dateInputs = fixture.debugElement.queryAll(By.css('app-date-input'));
-    expect(dateInputs.length).toBe(2);
+    expect(dateInputs).toHaveLength(2);
   });
 
   it('renders four app-text-input components', () => {
     const textInputs = fixture.debugElement.queryAll(By.css('app-text-input'));
-    expect(textInputs.length).toBe(4);
+    expect(textInputs).toHaveLength(4);
   });
 
   it('has a text input bound to the "description" control', () => {

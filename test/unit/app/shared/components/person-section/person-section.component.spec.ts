@@ -66,12 +66,12 @@ describe('PersonSectionComponent', () => {
     const selectInputs = fixture.debugElement.queryAll(
       By.css('app-select-input'),
     );
-    expect(selectInputs.length).toBe(1);
+    expect(selectInputs).toHaveLength(1);
   });
 
   it('renders all expected app-text-input components', () => {
     const textInputs = fixture.debugElement.queryAll(By.css('app-text-input'));
-    expect(textInputs.length).toBe(12);
+    expect(textInputs).toHaveLength(12);
   });
 
   it('has a text input bound to the "firstName" control', () => {

@@ -66,12 +66,12 @@ describe('PrivateProsecutorsIndexSectionComponent', () => {
 
   it('renders two app-date-input components', () => {
     const dateInputs = fixture.debugElement.queryAll(By.css('app-date-input'));
-    expect(dateInputs.length).toBe(2);
+    expect(dateInputs).toHaveLength(2);
   });
 
   it('renders all expected app-text-input components', () => {
     const textInputs = fixture.debugElement.queryAll(By.css('app-text-input'));
-    expect(textInputs.length).toBe(9);
+    expect(textInputs).toHaveLength(9);
   });
 
   it('wires specific formControlName bindings (e.g. court)', () => {
