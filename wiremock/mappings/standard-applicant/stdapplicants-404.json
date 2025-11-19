@@ -21,6 +21,6 @@
     "transformers": [
       "response-template"
     ],
-    "body": "{\n  \"type\": \"about:blank\",\n  \"title\": \"Not Found\",\n  \"status\": 404,\n  \"detail\": \"Standard Applicant '{{request.pathSegments.[1]}}' was not found.\",\n  \"path\": \"{{request.path}}\",\n  \"timestamp\": \"{{now format=\\\"yyyy-MM-dd'T'HH:mm:ssXXX\\\"}}\",\n  \"traceId\": \"{{randomValue length=12 type='ALPHANUMERIC'}}\"\n}\n"
+    "bodyFileName": "errors/not-found.json"
   }
 }
