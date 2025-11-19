@@ -1,0 +1,23 @@
+{
+  "name": "Result Codes – 401 Unauthorized",
+  "priority": 2,
+  "request": {
+    "method": "ANY",
+    "urlPathPattern": "/(?i)result-codes(/.*)?",
+    "headers": {
+      "Authorization": {
+        "absent": true
+      }
+    }
+  },
+  "response": {
+    "status": 401,
+    "headers": {
+      "Content-Type": "application/problem+json"
+    },
+    "transformers": [
+      "response-template"
+    ],
+    "body": "{\n  \"type\": \"about:blank\",\n  \"title\": \"Unauthorized\",\n  \"status\": 401,\n  \"detail\": \"Missing or invalid Authorization header.\",\n  \"path\": \"{{request.path}}\",\n  \"timestamp\": \"{{now format=\\\"yyyy-MM-dd'T'HH:mm:ssXXX\\\"}}\",\n  \"traceId\": \"{{randomValue length=12 type='ALPHANUMERIC'}}\"\n}\n"
+  }
+}
