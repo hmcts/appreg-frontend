@@ -15,6 +15,6 @@
     "headers": {
       "Content-Type": "text/plain"
     },
-    "body": "Forced failure for testing"
+    "bodyFileName": "errors/internal-server-error.json"
   }
 }

@@ -23,6 +23,6 @@
     "transformers": [
       "response-template"
     ],
-    "body": "{\n  \"type\": \"about:blank\",\n  \"title\": \"Bad Request\",\n  \"status\": 400,\n  \"detail\": \"Required query parameter 'date' is missing or invalid. Expected format 'yyyy-MM-dd'.\",\n  \"path\": \"{{request.path}}\",\n  \"timestamp\": \"{{now format=\\\"yyyy-MM-dd'T'HH:mm:ssXXX\\\"}}\",\n  \"traceId\": \"{{randomValue length=12 type='ALPHANUMERIC'}}\"\n}\n"
+    "bodyFileName": "errors/bad-request.json"
   }
 }
