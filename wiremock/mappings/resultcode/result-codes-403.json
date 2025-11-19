@@ -1,0 +1,23 @@
+{
+  "name": "Result Codes – 403 Forbidden",
+  "priority": 2,
+  "request": {
+    "method": "ANY",
+    "urlPathPattern": "/(?i)result-codes(/.*)?",
+    "headers": {
+      "Authorization": {
+        "matches": "Bearer forbidden.*"
+      }
+    }
+  },
+  "response": {
+    "status": 403,
+    "headers": {
+      "Content-Type": "application/problem+json"
+    },
+    "transformers": [
+      "response-template"
+    ],
+    "body": "{\n  \"type\": \"about:blank\",\n  \"title\": \"Forbidden\",\n  \"status\": 403,\n  \"detail\": \"Access denied.\",\n  \"path\": \"{{request.path}}\",\n  \"timestamp\": \"{{now format=\\\"yyyy-MM-dd'T'HH:mm:ssXXX\\\"}}\",\n  \"traceId\": \"{{randomValue length=12 type='ALPHANUMERIC'}}\"\n}\n"
+  }
+}
