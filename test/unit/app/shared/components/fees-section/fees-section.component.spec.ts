@@ -1,0 +1,91 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {
+  FormControl,
+  FormGroup,
+  FormGroupDirective,
+  ReactiveFormsModule,
+} from '@angular/forms';
+import { By } from '@angular/platform-browser';
+
+import { FeesSectionComponent } from '../../../../../../src/app/shared/components/fees-section/fees-section.component';
+
+describe('FeesSectionComponent', () => {
+  let component: FeesSectionComponent;
+  let fixture: ComponentFixture<FeesSectionComponent>;
+  let group: FormGroup;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [ReactiveFormsModule, FeesSectionComponent],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(FeesSectionComponent);
+    component = fixture.componentInstance;
+
+    group = new FormGroup({
+      dateFrom: new FormControl(null),
+      dateTo: new FormControl(null),
+      applicantCode: new FormControl(''),
+      surnameOrOrg: new FormControl(''),
+      court: new FormControl(''),
+      otherLocation: new FormControl(''),
+      cja: new FormControl(''),
+    });
+
+    component.group = group;
+
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should expose the provided FormGroup via the "group" input', () => {
+    expect(component.group).toBe(group);
+  });
+
+  it('renders the "Fees" heading', () => {
+    const el: HTMLElement = fixture.nativeElement;
+    const heading = el.querySelector('h1.govuk-heading-l');
+    expect(heading).toBeTruthy();
+    expect(heading?.textContent?.trim()).toBe('Fees');
+  });
+
+  it('binds the provided FormGroup to both grid rows via [formGroup]', () => {
+    const gridRows = fixture.debugElement.queryAll(
+      By.css('div.govuk-grid-row'),
+    );
+    expect(gridRows).toHaveLength(2);
+
+    const firstRowFormGroup = gridRows[0].injector.get(FormGroupDirective);
+    const secondRowFormGroup = gridRows[1].injector.get(FormGroupDirective);
+
+    expect(firstRowFormGroup.form).toBe(group);
+    expect(secondRowFormGroup.form).toBe(group);
+  });
+
+  it('renders two app-date-input components', () => {
+    const dateInputs = fixture.debugElement.queryAll(By.css('app-date-input'));
+    expect(dateInputs).toHaveLength(2);
+  });
+
+  it('renders five app-text-input components', () => {
+    const textInputs = fixture.debugElement.queryAll(By.css('app-text-input'));
+    expect(textInputs).toHaveLength(5);
+  });
+
+  it('has a text input bound to the "applicantCode" control', () => {
+    const applicantCodeInput = fixture.debugElement.query(
+      By.css('app-text-input[formControlName="applicantCode"]'),
+    );
+    expect(applicantCodeInput).toBeTruthy();
+  });
+
+  it('has a text input bound to the "cja" control', () => {
+    const cjaInput = fixture.debugElement.query(
+      By.css('app-text-input[formControlName="cja"]'),
+    );
+    expect(cjaInput).toBeTruthy();
+  });
+});
