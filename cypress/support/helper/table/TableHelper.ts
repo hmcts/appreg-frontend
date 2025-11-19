@@ -304,4 +304,53 @@ export class TableHelper {
       .closest('th')
       .should('have.attr', 'aria-sort', expectedSortOrder);
   }
+  /**
+   * Verify all rows have a specific value in a given column
+   */
+  static verifyAllRowsHaveValue(
+    tableCaption: string,
+    columnName: string,
+    expectedValue: string,
+  ): Cypress.Chainable<void> {
+    function checkRows(columnIndex: number): Cypress.Chainable<void> {
+      return TableElement.getTableRows(tableCaption).then(($rows) => {
+        $rows.each((_rowIndex: number, row: HTMLElement) => {
+          const cellText = Cypress.$(row)
+            .find('td, th')
+            .eq(columnIndex)
+            .text()
+            .trim();
+          expect(cellText.toLowerCase()).to.equal(expectedValue.toLowerCase());
+        });
+      });
+    }
+
+    function goToNextPageIfExists(): Cypress.Chainable<void> {
+      return cy.get('body').then(($body) => {
+        const $nextButton = TableHelper.findNextPageButton($body);
+        if ($nextButton.length > 0) {
+          return cy
+            .wrap($nextButton.first())
+            .click()
+            .then(() => cy.wait(500))
+            .then(() => checkPage());
+        }
+        return cy.then(() => {});
+      });
+    }
+
+    function checkPage(): Cypress.Chainable<void> {
+      return TableElement.getTableHeaders(tableCaption).then(($headers) => {
+        const columnIndexMap = TableHelper.buildColumnIndexMap($headers);
+        const columnIndex = columnIndexMap[columnName];
+        if (columnIndex === undefined) {
+          throw new Error(
+            `Column "${columnName}" not found in table "${tableCaption}"`,
+          );
+        }
+        return checkRows(columnIndex).then(() => goToNextPageIfExists());
+      });
+    }
+    return checkPage();
+  }
 }

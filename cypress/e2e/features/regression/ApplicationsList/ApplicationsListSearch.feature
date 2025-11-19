@@ -80,6 +80,20 @@ Feature: Applications List Search
       | User  | TableName | SearchDate | DisplayDate | Time  | Court                     | Description                   | Entries | Status |
       | user1 | Lists     | 19/05/2025 | 2025-05-19  | 09:00 | Cardiff Crown Court Set 4 | Cancelled hearing for Probate | 2       | CLOSED |
 
+ @regression @ARCPOC-452
+Scenario Outline: Filter by status only
+  Given User Is On The Portal Page
+  When User Signs In With Microsoft SSO As "<User>"
+  Then User Clicks On The Link "Applications list"
+  Then User Selects "<Status>" In The "Select status" Dropdown
+  When User Clicks On The "Search" Button
+  Then User Should See The Table "Lists"
+  Then User Should See Table "Lists" Has Rows
+  Then User Should See Table "<TableName>" Column "Status" Has Value "<Status>"
+Examples:
+  | User  | Status | TableName |
+  | user1 | Open   | Lists     |
+
   @regression @ARCPOC-660
   Scenario Outline: Verify CJA field validation with valid input
     Given User Is On The Portal Page
