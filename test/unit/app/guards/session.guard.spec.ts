@@ -1,7 +1,6 @@
 import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { Router, UrlTree } from '@angular/router';
-import { RouterTestingModule } from '@angular/router/testing';
+import { Router, UrlTree, provideRouter } from '@angular/router';
 
 import { SessionService } from '../../../../src/app/core/services/session.service';
 import { sessionGuard } from '../../../../src/app/guards/session.guard';
@@ -16,8 +15,8 @@ describe('sessionGuard (browser platform)', () => {
     refreshMock = jest.fn<Promise<boolean>, []>();
 
     TestBed.configureTestingModule({
-      imports: [RouterTestingModule],
       providers: [
+        provideRouter([]),
         { provide: PLATFORM_ID, useValue: 'browser' },
         {
           provide: SessionService,
@@ -36,7 +35,6 @@ describe('sessionGuard (browser platform)', () => {
   it('allows activation when session.refresh() resolves true', async () => {
     refreshMock.mockResolvedValue(true);
 
-    // get proper snapshots to satisfy CanActivateFn signature
     const state = router.routerState.snapshot;
     const route = state.root;
 
@@ -79,8 +77,8 @@ describe('sessionGuard (server platform)', () => {
     refreshMock = jest.fn<Promise<boolean>, []>();
 
     TestBed.configureTestingModule({
-      imports: [RouterTestingModule],
       providers: [
+        provideRouter([]),
         { provide: PLATFORM_ID, useValue: 'server' },
         {
           provide: SessionService,
