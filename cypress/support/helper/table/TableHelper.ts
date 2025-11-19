@@ -335,7 +335,7 @@ export class TableHelper {
             .then(() => cy.wait(500))
             .then(() => checkPage());
         }
-        return cy.then(() => { });
+        return cy.then(() => {});
       });
     }
 
