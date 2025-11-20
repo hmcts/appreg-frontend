@@ -16,7 +16,7 @@
 
     <!-- Applicant Org -->
     <app-text-input
-      formControlName="description"
+      formControlName="applicantOrg"
       label="Applicant Org"
       hint="Enter the applicants organisation"
       idPrefix="description"
@@ -25,7 +25,7 @@
 
     <!-- Respondent Org -->
     <app-text-input
-      formControlName="description"
+      formControlName="respondentOrg"
       label="Respondent Org"
       hint="Enter the respondents organisation"
       idPrefix="description"
@@ -48,7 +48,7 @@
   <div class="govuk-grid-row">
     <!-- Applicant last name -->
     <app-text-input
-      formControlName="description"
+      formControlName="applicantSurname"
       label="Applicant surname"
       hint="The applicants last name"
       idPrefix="description"
@@ -57,7 +57,7 @@
 
     <!-- Respondent surname -->
     <app-text-input
-      formControlName="description"
+      formControlName="respondentSurname"
       label="Respondent surname"
       hint="The respondent last name"
       idPrefix="description"
@@ -66,16 +66,16 @@
 
     <!-- Location Description -->
     <app-text-input
-      formControlName="description"
+      formControlName="location"
       label="List other location"
       hint="Other location description"
       idPrefix="description"
     >
     </app-text-input>
 
-    <!-- Location Standard -->
+    <!-- Applicant code -->
     <app-text-input
-      formControlName="description"
+      formControlName="standardApplicantCode"
       label="Applicant code"
       hint="The standard applicant code"
       idPrefix="description"
@@ -86,7 +86,7 @@
   <div class="govuk-grid-row">
     <!-- Postcode -->
     <app-text-input
-      formControlName="description"
+      formControlName="respondentPostcode"
       label="Post code"
       hint="Respondents post code"
       idPrefix="description"
@@ -117,7 +117,7 @@
 
     <!-- Account reference -->
     <app-text-input
-      formControlName="description"
+      formControlName="accountReference"
       label="Account reference"
       hint="The account reference code"
       idPrefix="description"
@@ -126,7 +126,9 @@
   </div>
 
   <div class="govuk-button-group">
-    <button type="button" class="govuk-button">Search</button>
+    <button id="search" type="submit" class="govuk-button" value="search">
+      Search
+    </button>
   </div>
 </form>
 
