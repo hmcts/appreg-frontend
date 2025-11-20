@@ -13,7 +13,6 @@ export class DropdownHelper {
     return DropdownElement.findDropdown(name).then(($dropdown) => {
       if ($dropdown.is('select')) {
         cy.wrap($dropdown).select(option);
-        // Assertion removed as requested
       } else {
         // For custom dropdowns, click to open and select the option
         cy.wrap($dropdown).click();
