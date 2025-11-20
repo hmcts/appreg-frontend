@@ -33,17 +33,20 @@
     </app-text-input>
 
     <!-- Court -->
-    <app-text-input
-      formControlName="description"
+    <app-suggestions
+      id="court"
       label="Court"
       hint="Enter a description of the court"
-      idPrefix="description"
-    >
-    </app-text-input>
+      [(search)]="courthouseSearch"
+      (searchChange)="onCourthouseInputChange()"
+      [suggestions]="filteredCourthouses"
+      (selectItem)="selectCourthouse($event)"
+      [disabled]="!!form.get('location')?.value || !!form.get('cja')?.value"
+    />
   </div>
 
   <div class="govuk-grid-row">
-    <!-- Court -->
+    <!-- Applicant last name -->
     <app-text-input
       formControlName="description"
       label="Applicant surname"
@@ -81,7 +84,7 @@
   </div>
 
   <div class="govuk-grid-row">
-    <!-- Court -->
+    <!-- Postcode -->
     <app-text-input
       formControlName="description"
       label="Post code"
@@ -91,13 +94,16 @@
     </app-text-input>
 
     <!-- CJA -->
-    <app-text-input
-      formControlName="description"
+    <app-suggestions
+      id="cja"
       label="CJA"
-      hint="Criminal justice area"
-      idPrefix="description"
-    >
-    </app-text-input>
+      hint="Start typing to search"
+      [(search)]="cjaSearch"
+      (searchChange)="onCjaInputChange()"
+      [suggestions]="filteredCja"
+      (selectItem)="selectCja($event)"
+      [disabled]="!!courthouseSearch.trim() || !!form.get('court')?.value"
+    />
 
     <!-- Status -->
     <app-select-input

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -6,13 +6,18 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { Subject } from 'rxjs';
 
+import { ApplicationListEntriesApi } from '../../../generated/openapi';
+import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
 import { Duration } from '../../shared/components/duration-input/duration-input.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
+import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
+import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
 
 @Component({
   selector: 'app-applications',
@@ -26,11 +31,14 @@ import { TextInputComponent } from '../../shared/components/text-input/text-inpu
     TextInputComponent,
     PaginationComponent,
     SelectInputComponent,
+    SuggestionsComponent
   ],
   templateUrl: './applications.html',
 })
-export class Applications {
-  form = new FormGroup({
+export class Applications extends PlaceFieldsBase implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
+
+  override form = new FormGroup({
     date: new FormControl<string | null>(null),
     time: new FormControl<Duration | null>(null),
     applicantOrg: new FormControl<string>(''),
@@ -61,6 +69,23 @@ export class Applications {
     { label: 'Open', value: 'open' },
     { label: 'Closed', value: 'closed' },
   ];
+
+  constructor(
+    private readonly refFacade: ReferenceDataFacade,
+    private readonly appListApi: ApplicationListEntriesApi,
+  ) {
+    super();
+  }
+
+  ngOnInit(): void {
+    this.initPlaceFields(this.form, this.refFacade);
+  }
+
+  override ngOnDestroy(): void {
+    super.ngOnDestroy();
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   onSubmit(event: SubmitEvent): void {
     event.preventDefault();
