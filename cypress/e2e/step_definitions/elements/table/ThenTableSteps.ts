@@ -71,6 +71,42 @@ Then(
 );
 
 /**
+ * Verifies that the table is sorted by the specified column in the given order
+ */
+Then(
+  'User Should See Table {string} Column {string} Is Sorted {string}',
+  (
+    tableCaption: string,
+    columnName: string,
+    sortOrder: 'ascending' | 'descending',
+  ) => {
+    TableHelper.getAllColumnValuesAcrossPages(tableCaption, columnName).then(
+      (values) => {
+        const sorted = [...values].sort((a, b) => a.localeCompare(b));
+        if (sortOrder === 'descending') {
+          sorted.reverse();
+        }
+        cy.log(`Actual values: ${JSON.stringify(values)}`);
+        cy.log(`Expected sorted: ${JSON.stringify(sorted)}`);
+        let mismatchFound = false;
+        for (let idx = 0; idx < values.length; idx++) {
+          if (values[idx] !== sorted[idx]) {
+            cy.log(
+              `Mismatch at index ${idx}: actual="${values[idx]}", expected="${sorted[idx]}"`,
+            );
+            mismatchFound = true;
+          }
+        }
+        if (!mismatchFound) {
+          cy.log('No mismatches found, arrays are equal.');
+        }
+        expect(values).to.deep.equal(sorted);
+      },
+    );
+  },
+);
+
+/**
  * Verifies that the table has columns with the specified values
  */
 Then(

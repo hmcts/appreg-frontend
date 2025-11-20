@@ -72,6 +72,26 @@ export class DateTimeHelper {
       .should('have.value', year);
   }
 
+  static clearDateField(fieldLabel: string): void {
+    DateTimeElement.findDayInput(fieldLabel)
+      .should('be.visible')
+      .should('be.enabled')
+      .clear()
+      .should('have.value', '');
+
+    DateTimeElement.findMonthInput(fieldLabel)
+      .should('be.visible')
+      .should('be.enabled')
+      .clear()
+      .should('have.value', '');
+
+    DateTimeElement.findYearInput(fieldLabel)
+      .should('be.visible')
+      .should('be.enabled')
+      .clear()
+      .should('have.value', '');
+  }
+
   // === TIME FIELD METHODS ===
 
   /**
@@ -190,6 +210,31 @@ export class DateTimeHelper {
       .clear()
       .type(time)
       .should('have.value', time);
+  }
+
+  static clearTimeField(fieldLabel: string): void {
+    // Check if separate HH/MM inputs exist, otherwise use single time input
+    if (DateTimeElement.hasSeparateHourMinuteInputs(fieldLabel)) {
+      // Clear both HH and MM inputs
+      DateTimeElement.findHourInput(fieldLabel)
+        .should('be.visible')
+        .should('be.enabled')
+        .clear()
+        .should('have.value', '');
+
+      DateTimeElement.findMinuteInput(fieldLabel)
+        .should('be.visible')
+        .should('be.enabled')
+        .clear()
+        .should('have.value', '');
+    } else {
+      // Clear single time input
+      DateTimeElement.findTimeInput(fieldLabel)
+        .should('be.visible')
+        .should('be.enabled')
+        .clear()
+        .should('have.value', '');
+    }
   }
 
   // === FIELD VISIBILITY VERIFICATION ===
