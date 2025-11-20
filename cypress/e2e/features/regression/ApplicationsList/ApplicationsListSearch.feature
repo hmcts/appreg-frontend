@@ -80,8 +80,8 @@ Feature: Applications List Search
       | User  | TableName | SearchDate | DisplayDate | Time  | Court                     | Description                   | Entries | Status |
       | user1 | Lists     | 19/05/2025 | 2025-05-19  | 09:00 | Cardiff Crown Court Set 4 | Cancelled hearing for Probate | 2       | CLOSED |
 
- @regression @ARCPOC-452
-Scenario Outline: Filter by status only
+ @regression @ARCPOC-452 @PJ
+Scenario Outline: Filter by status, Time and verify applications list table results
   Given User Is On The Portal Page
   When User Signs In With Microsoft SSO As "<User>"
   Then User Clicks On The Link "Applications list"
@@ -90,9 +90,15 @@ Scenario Outline: Filter by status only
   Then User Should See The Table "Lists"
   Then User Should See Table "Lists" Has Rows
   Then User Should See Table "<TableName>" Column "Status" Has Value "<Status>"
+  Then User Selects "Choose" In The "Select status" Dropdown
+  When User Set Time Field "Time" To "<Time>"
+  When User Clicks On The "Search" Button
+  Then User Should See The Table "Lists"
+  Then User Should See Table "Lists" Has Rows
+  Then User Should See Table "<TableName>" Column "Time" Has Value "<Time>"
 Examples:
-  | User  | Status | TableName |
-  | user1 | Open   | Lists     |
+  | User  | Status | TableName | Time  |
+  | user1 | Open   | Lists     | 14:00 |
 
   @regression @ARCPOC-660
   Scenario Outline: Verify CJA field validation with valid input
@@ -129,7 +135,6 @@ Examples:
     When User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Applications list"
     # Search to get table with data
-    When User Set Date Field "Date" To "<SearchDate>"
     Then User Selects "<Status>" In The "Select status" Dropdown
     When User Clicks On The "Search" Button
     Then User Should See The Table "<TableName>"
@@ -144,6 +149,7 @@ Examples:
     When User Clicks On Table Header "<Column>" In Table "<TableName>"
     Then User Should See Table "<TableName>" Header "<Column>" Has Sort Order "ascending"
     Then User Should See Table "<TableName>" Has Rows
+    Then User Should See Table "<TableName>" Column "<Column>" Is Sorted "ascending"
     When User Clicks On Table Header "<Column>" In Table "<TableName>"
     Then User Should See Table "<TableName>" Header "<Column>" Has Sort Order "descending"
     Then User Should See Table "<TableName>" Has Rows
