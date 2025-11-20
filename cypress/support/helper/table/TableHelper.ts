@@ -17,7 +17,9 @@ export class TableHelper {
     return cy.get('body').then(($body) => {
       const $nextButton = TableHelper.findNextPageButton($body);
       if ($nextButton.length > 0) {
-        return cy.wrap($nextButton.first()).click()
+        return cy
+          .wrap($nextButton.first())
+          .click()
           .then(() => cy.wait(500))
           .then(() => true);
       }
@@ -31,19 +33,24 @@ export class TableHelper {
    * @param tableCaption The caption text of the table
    * @param columnName The column name to extract values from
    */
-  static getAllColumnValuesAcrossPages(tableCaption: string, columnName: string): Cypress.Chainable<string[]> {
+  static getAllColumnValuesAcrossPages(
+    tableCaption: string,
+    columnName: string,
+  ): Cypress.Chainable<string[]> {
     let allValues: string[] = [];
 
     function collectPage(): Cypress.Chainable<string[]> {
-      return TableHelper.getColumnValues(tableCaption, columnName).then((values) => {
-        allValues = allValues.concat(values);
-        return TableHelper.goToNextPageIfExists().then((hasNext) => {
-          if (hasNext) {
-            return collectPage();
-          }
-          return cy.wrap(allValues);
-        });
-      });
+      return TableHelper.getColumnValues(tableCaption, columnName).then(
+        (values) => {
+          allValues = allValues.concat(values);
+          return TableHelper.goToNextPageIfExists().then((hasNext) => {
+            if (hasNext) {
+              return collectPage();
+            }
+            return cy.wrap(allValues);
+          });
+        },
+      );
     }
 
     return collectPage();
@@ -53,12 +60,17 @@ export class TableHelper {
    * @param tableCaption The caption text of the table
    * @param columnName The column name to extract values from
    */
-  static getColumnValues(tableCaption: string, columnName: string): Cypress.Chainable<string[]> {
+  static getColumnValues(
+    tableCaption: string,
+    columnName: string,
+  ): Cypress.Chainable<string[]> {
     return TableElement.getTableHeaders(tableCaption).then(($headers) => {
       const columnIndexMap = TableHelper.buildColumnIndexMap($headers);
       const columnIndex = columnIndexMap[columnName];
       if (columnIndex === undefined) {
-        throw new Error(`Column "${columnName}" not found in table "${tableCaption}"`);
+        throw new Error(
+          `Column "${columnName}" not found in table "${tableCaption}"`,
+        );
       }
       return TableElement.getTableRows(tableCaption).then(($rows) => {
         const values: string[] = [];
@@ -396,6 +408,7 @@ export class TableHelper {
     }
 
     function checkPage(): Cypress.Chainable<void> {
+      // @ts-expect-error Compile-time suppression
       return TableElement.getTableHeaders(tableCaption)
         .then(($headers) => {
           const columnIndexMap = TableHelper.buildColumnIndexMap($headers);
