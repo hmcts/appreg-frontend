@@ -34,7 +34,7 @@ yarn-error.log
 /libpeerconnection.log
 testem.log
 /typings
-/config/development.json
+config/development.json
 
 # System files
 .DS_Store
@@ -63,3 +63,4 @@ functional-output/
 
 # Branch retention outputs
 .github/branch-retention/out/
+
