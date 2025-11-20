@@ -153,6 +153,7 @@ Examples:
     When User Clicks On Table Header "<Column>" In Table "<TableName>"
     Then User Should See Table "<TableName>" Header "<Column>" Has Sort Order "descending"
     Then User Should See Table "<TableName>" Has Rows
+    Then User Should See Table "<TableName>" Column "<Column>" Is Sorted "descending"
     Examples:
       | User  | TableName | SearchDate | Status | Column |
       | user1 | Lists     | 19/05/2025 | Closed | Date   |
