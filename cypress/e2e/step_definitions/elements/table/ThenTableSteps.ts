@@ -75,26 +75,34 @@ Then(
  */
 Then(
   'User Should See Table {string} Column {string} Is Sorted {string}',
-  (tableCaption: string, columnName: string, sortOrder: 'ascending' | 'descending') => {
-    TableHelper.getAllColumnValuesAcrossPages(tableCaption, columnName).then((values) => {
-      const sorted = [...values].sort((a, b) => a.localeCompare(b));
-      if (sortOrder === 'descending') {
-        sorted.reverse();
-      }
-      cy.log(`Actual values: ${JSON.stringify(values)}`);
-      cy.log(`Expected sorted: ${JSON.stringify(sorted)}`);
-      let mismatchFound = false;
-      for (let idx = 0; idx < values.length; idx++) {
-        if (values[idx] !== sorted[idx]) {
-          cy.log(`Mismatch at index ${idx}: actual="${values[idx]}", expected="${sorted[idx]}"`);
-          mismatchFound = true;
+  (
+    tableCaption: string,
+    columnName: string,
+    sortOrder: 'ascending' | 'descending',
+  ) => {
+    TableHelper.getAllColumnValuesAcrossPages(tableCaption, columnName).then(
+      (values) => {
+        const sorted = [...values].sort((a, b) => a.localeCompare(b));
+        if (sortOrder === 'descending') {
+          sorted.reverse();
         }
-      }
-      if (!mismatchFound) {
-        cy.log('No mismatches found, arrays are equal.');
-      }
-      expect(values).to.deep.equal(sorted);
-    });
+        cy.log(`Actual values: ${JSON.stringify(values)}`);
+        cy.log(`Expected sorted: ${JSON.stringify(sorted)}`);
+        let mismatchFound = false;
+        for (let idx = 0; idx < values.length; idx++) {
+          if (values[idx] !== sorted[idx]) {
+            cy.log(
+              `Mismatch at index ${idx}: actual="${values[idx]}", expected="${sorted[idx]}"`,
+            );
+            mismatchFound = true;
+          }
+        }
+        if (!mismatchFound) {
+          cy.log('No mismatches found, arrays are equal.');
+        }
+        expect(values).to.deep.equal(sorted);
+      },
+    );
   },
 );
 
