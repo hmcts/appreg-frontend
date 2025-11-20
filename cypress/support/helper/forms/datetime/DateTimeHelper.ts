@@ -92,7 +92,6 @@ export class DateTimeHelper {
       .should('have.value', '');
   }
 
-
   // === TIME FIELD METHODS ===
 
   /**
@@ -213,7 +212,7 @@ export class DateTimeHelper {
       .should('have.value', time);
   }
 
-    static clearTimeField(fieldLabel: string): void {
+  static clearTimeField(fieldLabel: string): void {
     // Check if separate HH/MM inputs exist, otherwise use single time input
     if (DateTimeElement.hasSeparateHourMinuteInputs(fieldLabel)) {
       // Clear both HH and MM inputs

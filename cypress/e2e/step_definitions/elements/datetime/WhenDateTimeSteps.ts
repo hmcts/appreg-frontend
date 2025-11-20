@@ -16,16 +16,10 @@ When(
   },
 );
 
-When(
-  'User Clears The Time Field {string}',
-  (fieldLabel: string) => {
-    DateTimeHelper.clearTimeField(fieldLabel);
-  },
-);
+When('User Clears The Time Field {string}', (fieldLabel: string) => {
+  DateTimeHelper.clearTimeField(fieldLabel);
+});
 
-When(
-  'User Clears The Date Field {string}',
-  (fieldLabel: string) => {
-    DateTimeHelper.clearDateField(fieldLabel);
-  },
-);
+When('User Clears The Date Field {string}', (fieldLabel: string) => {
+  DateTimeHelper.clearDateField(fieldLabel);
+});
