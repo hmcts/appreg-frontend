@@ -36,13 +36,13 @@ export function loadQuery(form: FormGroup): ApplicationListGetFilterDto {
     }
   };
 
-  set('date', raw.date || undefined);
+  set('date', raw.date?.trim() || undefined);
   set('time', toTimeString(raw.time));
-  set('description', raw.description || undefined);
+  set('description', raw.description?.trim() || undefined);
   set('status', toStatus(raw.status));
-  set('courtLocationCode', raw.court || undefined);
-  set('otherLocationDescription', raw.location || undefined);
-  set('cjaCode', raw.cja || undefined);
+  set('courtLocationCode', raw.court?.trim() || undefined);
+  set('otherLocationDescription', raw.location?.trim() || undefined);
+  set('cjaCode', raw.cja?.trim() || undefined);
 
   return query as ApplicationListGetFilterDto;
 }
