@@ -143,7 +143,11 @@ export class ApplicationsList
   columns: TableColumn[] = [
     { header: 'Date', field: 'date' },
     { header: 'Time', field: 'time' },
-    { header: 'Location', field: 'location' },
+    {
+      header: 'Location',
+      field: 'location',
+      sortValue: (row) => this.buildTrailingNumericSortKey(row['location']),
+    },
     { header: 'Description', field: 'description' },
     { header: 'Entries', field: 'entries', numeric: true },
     { header: 'Status', field: 'status' },
@@ -479,5 +483,32 @@ export class ApplicationsList
     this.deleteInvalid = true;
     this.errorHint = 'There is a problem';
     this.errorSummary = [{ text: message }];
+  }
+
+  private buildTrailingNumericSortKey(value: unknown): string {
+    if (value === null) {
+      return '';
+    }
+
+    let s: string;
+
+    if (typeof value === 'string') {
+      s = value.trim().toLowerCase();
+    } else if (typeof value === 'number') {
+      s = String(value);
+    } else if (typeof value === 'boolean') {
+      s = value ? 'true' : 'false';
+    } else {
+      return '';
+    }
+
+    const match = new RegExp(/^(.*?)(\d+)\s*$/).exec(s);
+    if (!match) {
+      return s;
+    }
+
+    const [, prefix, numStr] = match;
+    const padded = numStr.padStart(4, '0');
+    return `${prefix}${padded}`;
   }
 }
