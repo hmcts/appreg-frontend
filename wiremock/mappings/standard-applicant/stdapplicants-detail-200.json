@@ -25,9 +25,7 @@
       "Vary": "Accept",
       "X-Stub": "stdapplicants-detail-200"
     },
-    "transformers": [
-      "response-template"
-    ],
+    "transformers": ["response-template"],
     "body": "{\n  \"code\": \"{{upper request.pathSegments.[1]}}\",\n  \"fullName\": {\n    \"title\": \"Mr\",\n    \"firstName\": \"Alex\",\n    \"middleNames\": null,\n    \"lastName\": \"Taylor\"\n  },\n  \"contactDetails\": {\n    \"addressLine1\": \"1 Crown Sq\",\n    \"addressLine2\": \"\",\n    \"addressLine3\": \"Manchester\",\n    \"postCode\": \"M1 1AA\",\n    \"email\": \"alex.taylor@example.test\",\n    \"phoneNumber\": \"+44 161 000 0000\"\n  },\n  \"startDate\": \"2020-01-01\",\n  \"endDate\": null\n}\n"
   }
 }

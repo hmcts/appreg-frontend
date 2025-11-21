@@ -25,9 +25,7 @@
       "Vary": "Accept",
       "X-Stub": "result-codes-detail-200"
     },
-    "transformers": [
-      "response-template"
-    ],
+    "transformers": ["response-template"],
     "body": "{\n  \"resultCode\": \"{{upper request.pathSegments.[1]}}\",\n  \"title\": \"Result {{upper request.pathSegments.[1]}}\",\n  \"wording\": \"Result '{{upper request.pathSegments.[1]}}' applied on {{request.query.date.[0]}}.\",\n  \"startDate\": \"2010-01-01\",\n  \"endDate\": null\n}\n"
   }
 }
