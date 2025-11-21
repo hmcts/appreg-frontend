@@ -1,0 +1,34 @@
+{
+  "name": "Entries – PUT update – 200",
+  "priority": 5,
+  "request": {
+    "method": "PUT",
+    "urlPathPattern": "/application-lists/[0-9a-f-]{36}/entries/[0-9a-f-]{36}",
+    "headers": {
+      "Authorization": {
+        "matches": "Bearer .+"
+      },
+      "Content-Type": {
+        "matches": "(application/vnd\\.hmcts\\.appreg\\.v1\\+json|application/json|application/.+\\+json)"
+      }
+    },
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": "$.applicationCode"
+      },
+      {
+        "matchesJsonPath": "$.lodgementDate"
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/vnd.hmcts.appreg.v1+json",
+      "Vary": "Accept",
+      "X-Stub": "entries-update-200"
+    },
+    "transformers": ["response-template"],
+    "body": "{\n  \"id\": \"{{request.pathSegments.[3]}}\",\n  \"listId\": \"{{request.pathSegments.[1]}}\",\n  \"standardApplicantCode\": \"{{jsonPath request.body '$.standardApplicantCode'}}\",\n  \"applicationCode\": \"{{jsonPath request.body '$.applicationCode'}}\",\n  \"applicant\": {{#if (jsonPath request.body '$.applicant')}}{{{jsonPath request.body '$.applicant'}}}{{else}}null{{/if}},\n  \"respondent\": {{#if (jsonPath request.body '$.respondent')}}{{{jsonPath request.body '$.respondent'}}}{{else}}null{{/if}},\n  \"numberOfRespondents\": {{#if (jsonPath request.body '$.numberOfRespondents')}}{{jsonPath request.body '$.numberOfRespondents'}}{{else}}0{{/if}},\n  \"wordingFields\": {{#if (jsonPath request.body '$.wordingFields')}}{{{jsonPath request.body '$.wordingFields'}}}{{else}}[]{{/if}},\n  \"feeStatuses\": {{#if (jsonPath request.body '$.feeStatuses')}}{{{jsonPath request.body '$.feeStatuses'}}}{{else}}[]{{/if}},\n  \"hasOffsiteFee\": {{#if (jsonPath request.body '$.hasOffsiteFee')}}{{jsonPath request.body '$.hasOffsiteFee'}}{{else}}false{{/if}},\n  \"caseReference\": {{#if (jsonPath request.body '$.caseReference')}}\"{{jsonPath request.body '$.caseReference'}}\"{{else}}null{{/if}},\n  \"accountNumber\": {{#if (jsonPath request.body '$.accountNumber')}}\"{{jsonPath request.body '$.accountNumber'}}\"{{else}}null{{/if}},\n  \"notes\": {{#if (jsonPath request.body '$.notes')}}\"{{jsonPath request.body '$.notes'}}\"{{else}}null{{/if}},\n  \"lodgementDate\": \"{{jsonPath request.body '$.lodgementDate'}}\",\n  \"officials\": {{#if (jsonPath request.body '$.officials')}}{{{jsonPath request.body '$.officials'}}}{{else}}[]{{/if}}\n}\n"
+  }
+}

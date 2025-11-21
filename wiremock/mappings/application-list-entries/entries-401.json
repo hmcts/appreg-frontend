@@ -1,0 +1,15 @@
+{
+  "name": "Entries – 401 Unauthorized",
+  "priority": 2,
+  "request": {
+    "method": "ANY",
+    "urlPathPattern": "/application-lists/[0-9a-f-]{36}/entries(/.*)?",
+    "headers": { "Authorization": { "absent": true } }
+  },
+  "response": {
+    "status": 401,
+    "headers": { "Content-Type": "application/problem+json" },
+    "transformers": ["response-template"],
+    "bodyFileName": "errors/unauthorized.json"
+  }
+}

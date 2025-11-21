@@ -1,0 +1,23 @@
+{
+  "name": "Entries – 400 Missing lodgementDate (PUT)",
+  "priority": 4,
+  "request": {
+    "method": "PUT",
+    "urlPathPattern": "/application-lists/[0-9a-f-]{36}/entries/[0-9a-f-]{36}",
+    "headers": { "Authorization": { "matches": "Bearer .+" } },
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": {
+          "expression": "$.lodgementDate",
+          "absent": true
+        }
+      }
+    ]
+  },
+  "response": {
+    "status": 400,
+    "headers": { "Content-Type": "application/problem+json" },
+    "transformers": ["response-template"],
+    "bodyFileName": "errors/bad-request.json"
+  }
+}
