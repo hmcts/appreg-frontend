@@ -1,0 +1,31 @@
+{
+  "name": "Entries – 400 Missing applicationCode (POST/PUT)",
+  "priority": 4,
+  "request": {
+    "method": "ANY",
+    "urlPathPattern": "/application-lists/[0-9a-f-]{36}/entries(/[0-9a-f-]{36})?",
+    "headers": {
+      "Authorization": {
+        "matches": "Bearer .+"
+      }
+    },
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": {
+          "expression": "$.applicationCode",
+          "absent": true
+        }
+      }
+    ]
+  },
+  "response": {
+    "status": 400,
+    "headers": {
+      "Content-Type": "application/problem+json"
+    },
+    "transformers": [
+      "response-template"
+    ],
+    "bodyFileName": "errors/bad-request.json"
+  }
+}

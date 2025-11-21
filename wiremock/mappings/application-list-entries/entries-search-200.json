@@ -1,0 +1,26 @@
+{
+  "name": "Entries – GET search – 200",
+  "priority": 5,
+  "request": {
+    "method": "GET",
+    "urlPath": "/entries",
+    "headers": {
+      "Accept": {
+        "contains": "application/vnd.hmcts.appreg.v1+json"
+      },
+      "Authorization": {
+        "matches": "Bearer .+"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/vnd.hmcts.appreg.v1+json",
+      "Vary": "Accept",
+      "X-Stub": "entries-search-200"
+    },
+    "transformers": ["response-template"],
+    "body": "{\n  \"page\": {{#if request.query.page}}{{request.query.page.[0]}}{{else}}0{{/if}},\n  \"size\": {{#if request.query.size}}{{request.query.size.[0]}}{{else}}10{{/if}},\n  \"totalElements\": 50,\n  \"totalPages\": 5,\n  \"sort\": {{#if request.query.sort}}[{{#each request.query.sort}}{{#unless @first}}, {{/unless}}\"{{this}}\"{{/each}}]{{else}}[\"status,asc\"]{{/if}},\n  \"content\": [\n    { \"id\": \"{{randomValue type='UUID'}}\", \"applicantName\": \"Alex Taylor\", \"respondentName\": \"—\", \"applicationTitle\": \"Statutory declaration\", \"isFeeRequired\": false, \"isResulted\": false, \"status\": \"OPEN\" }\n  ]\n}\n"
+  }
+}

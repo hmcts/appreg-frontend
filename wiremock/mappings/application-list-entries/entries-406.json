@@ -1,0 +1,15 @@
+{
+  "name": "Entries – 406 Not Acceptable",
+  "priority": 3,
+  "request": {
+    "method": "ANY",
+    "urlPathPattern": "/application-lists/[0-9a-f-]{36}/entries(/.*)?",
+    "headers": { "Accept": { "doesNotContain": "application/vnd.hmcts.appreg.v1+json" } }
+  },
+  "response": {
+    "status": 406,
+    "headers": { "Content-Type": "application/problem+json" },
+    "transformers": ["response-template"],
+    "bodyFileName": "errors/not-acceptable.json"
+  }
+}
