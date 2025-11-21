@@ -502,13 +502,29 @@ export class ApplicationsList
       return '';
     }
 
-    const match = /(\d+)\s*$/.exec(s);
-    if (!match) {
+    if (s === '') {
+      return '';
+    }
+
+    let i = s.length - 1;
+    while (i >= 0) {
+      const code = s.codePointAt(i);
+      if (code === undefined) {
+        break;
+      }
+
+      if (code < 48 || code > 57) {
+        break;
+      }
+      i--;
+    }
+
+    if (i === s.length - 1) {
       return s;
     }
 
-    const numStr = match[1];
-    const prefix = s.slice(0, match.index);
+    const prefix = s.slice(0, i + 1);
+    const numStr = s.slice(i + 1);
     const padded = numStr.padStart(4, '0');
 
     return `${prefix}${padded}`;
