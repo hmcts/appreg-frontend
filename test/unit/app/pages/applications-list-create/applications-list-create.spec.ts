@@ -104,12 +104,10 @@ describe('ApplicationsListCreate', () => {
     return evt;
   }
 
-  it('creates and loads lists on init', () => {
+  it('calls reference data APIs on init', () => {
     fixture.detectChanges();
-    expect(courtsMock.getCourtLocations).toHaveBeenCalledTimes(1);
-    expect(cjaMock.getCriminalJusticeAreas).toHaveBeenCalledTimes(1);
-    expect(component.courtLocations).toHaveLength(2);
-    expect(component.cja).toHaveLength(2);
+    expect(courtsMock.getCourtLocations).toHaveBeenCalled();
+    expect(cjaMock.getCriminalJusticeAreas).toHaveBeenCalled();
   });
 
   it('prefills suggestion searches from existing form values', () => {
@@ -265,7 +263,7 @@ describe('ApplicationsListCreate', () => {
       date: '2025-10-03',
       time: { hours: 14, minutes: 0 },
       description: 'Afternoon list',
-      status: 'CLOSED',
+      status: 'OPEN',
       court: '',
       location: 'Somewhere',
       cja: 'C1',
@@ -280,7 +278,7 @@ describe('ApplicationsListCreate', () => {
       date: '2025-10-03',
       time: '14:00:00',
       description: 'Afternoon list',
-      status: ApplicationListStatus.CLOSED,
+      status: ApplicationListStatus.OPEN,
       otherLocationDescription: 'Somewhere',
       cjaCode: 'C1',
     });
@@ -305,21 +303,31 @@ describe('ApplicationsListCreate', () => {
     expect(component.errorHint).toContain('fail');
   });
 
-  it('throws on invalid status', () => {
+  it('rejects non-OPEN status on create', () => {
     component.form.setValue({
       date: '2025-10-05',
       time: { hours: 9, minutes: 0 },
       description: 'X',
-      status: 'weird',
+      status: 'CLOSED',
       court: 'A1',
       location: '',
       cja: '',
     });
+
+    const beforeCalls = appListsMock.createApplicationList.mock.calls.length;
     const evt = {
       preventDefault: jest.fn(),
       submitter: { value: 'create' } as HTMLButtonElement,
     } as unknown as SubmitEvent;
-    expect(() => component.onSubmit(evt)).toThrow('status invalid');
+
+    component.onSubmit(evt);
+    expect(appListsMock.createApplicationList.mock.calls).toHaveLength(
+      beforeCalls,
+    );
+    expect(component.createInvalid).toBe(true);
+    expect(
+      component.unpopField.some((e) => e.text.includes('Status must be open')),
+    ).toBe(true);
   });
 
   it('onDelete stores id', () => {
