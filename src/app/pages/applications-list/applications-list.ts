@@ -502,13 +502,15 @@ export class ApplicationsList
       return '';
     }
 
-    const match = new RegExp(/^(.*?)(\d+)\s*$/).exec(s);
+    const match = /(\d+)\s*$/.exec(s);
     if (!match) {
       return s;
     }
 
-    const [, prefix, numStr] = match;
+    const numStr = match[1];
+    const prefix = s.slice(0, match.index);
     const padded = numStr.padStart(4, '0');
+
     return `${prefix}${padded}`;
   }
 }
