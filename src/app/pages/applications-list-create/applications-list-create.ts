@@ -202,6 +202,19 @@ export class ApplicationsListCreate
         this.errorHint = 'Error - please check your inputs:';
         return;
       }
+
+      if (this.form.value.status?.trim().toLowerCase() !== 'open') {
+        this.createInvalid = true;
+        this.unpopField.push({
+          text: 'Status must be open when creating a list',
+          href: '#status',
+          id: 'status',
+        });
+        this.errorHint = 'Error - please check your inputs:';
+        return;
+      }
+
+      // Passed validation
       this.createInvalid = false;
     }
 
