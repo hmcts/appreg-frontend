@@ -23,9 +23,7 @@
     "headers": {
       "Content-Type": "application/problem+json"
     },
-    "transformers": [
-      "response-template"
-    ],
+    "transformers": ["response-template"],
     "bodyFileName": "errors/not-found.json"
   }
 }

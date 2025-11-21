@@ -5,7 +5,9 @@
     "urlPath": "/application-lists",
     "headers": {
       "Authorization": { "matches": "Bearer .+" },
-      "Content-Type": { "matches": "(application/vnd\\.hmcts\\.appreg\\.v1\\+json|application/json|application/.+\\+json)" }
+      "Content-Type": {
+        "matches": "(application/vnd\\.hmcts\\.appreg\\.v1\\+json|application/json|application/.+\\+json)"
+      }
     },
     "bodyPatterns": [
       { "matchesJsonPath": "$.date" },

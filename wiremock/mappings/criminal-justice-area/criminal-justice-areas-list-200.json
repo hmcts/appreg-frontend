@@ -20,9 +20,7 @@
       "Vary": "Accept",
       "X-Stub": "cja-list-200"
     },
-    "transformers": [
-      "response-template"
-    ],
+    "transformers": ["response-template"],
     "body": "{\n  \"page\": {{#if request.query.page}}{{request.query.page.[0]}}{{else}}0{{/if}},\n  \"size\": {{#if request.query.size}}{{request.query.size.[0]}}{{else}}10{{/if}},\n  \"totalElements\": 23,\n  \"totalPages\": 3,\n  \"sort\": {{#if request.query.sort}}[{{#each request.query.sort}}{{#unless @first}}, {{/unless}}\"{{this}}\"{{/each}}]{{else}}[\"description,asc\"]{{/if}},\n  \"content\": [\n    { \"code\": {{#if request.query.code}}\"{{request.query.code.[0]}}\"{{else}}\"CJA01\"{{/if}}, \"description\": {{#if request.query.description}}\"{{request.query.description.[0]}}\"{{else}}\"Greater Manchester\"{{/if}} },\n    { \"code\": \"CJA02\", \"description\": \"Merseyside\" },\n    { \"code\": \"CJA03\", \"description\": \"West Yorkshire\" },\n    { \"code\": \"CJA04\", \"description\": \"South Yorkshire\" },\n    { \"code\": \"CJA05\", \"description\": \"West Midlands\" },\n    { \"code\": \"CJA06\", \"description\": \"Nottinghamshire\" },\n    { \"code\": \"CJA07\", \"description\": \"Leicestershire\" },\n    { \"code\": \"CJA08\", \"description\": \"Lancashire\" },\n    { \"code\": \"CJA09\", \"description\": \"Cheshire\" },\n    { \"code\": \"CJA10\", \"description\": \"Cumbria\" }\n  ]\n}\n"
   }
 }

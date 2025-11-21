@@ -14,7 +14,7 @@
     "status": 500,
     "headers": {
       "Content-Type": "text/plain"
-    }
-  },
-  "bodyFileName": "errors/internal-server-error.json"
+    },
+    "bodyFileName": "errors/internal-server-error.json"
+  }
 }
