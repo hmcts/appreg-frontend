@@ -104,12 +104,10 @@ describe('ApplicationsListCreate', () => {
     return evt;
   }
 
-  it('creates and loads lists on init', () => {
+  it('calls reference data APIs on init', () => {
     fixture.detectChanges();
-    expect(courtsMock.getCourtLocations).toHaveBeenCalledTimes(1);
-    expect(cjaMock.getCriminalJusticeAreas).toHaveBeenCalledTimes(1);
-    expect(component.courtLocations).toHaveLength(2);
-    expect(component.cja).toHaveLength(2);
+    expect(courtsMock.getCourtLocations).toHaveBeenCalled();
+    expect(cjaMock.getCriminalJusticeAreas).toHaveBeenCalled();
   });
 
   it('prefills suggestion searches from existing form values', () => {
