@@ -201,6 +201,41 @@ You can either run a provided script or install manually.
   yarn install && yarn build
   ```
 
+## WireMock Service
+### Purpose
+- Mock the Applications Register API for local/dev use.
+- Matches the OpenAPI (vendor media types, paging, templating).
+- Includes debug headers to force error paths.
+
+### Run (Docker)
+```bash
+docker compose up -d wiremock
+```
+
+### Project layout
+```bash
+wiremock/
+  mappings/    # JSON stubs
+  __files/     # shared bodies (errors, PDFs, CSVs)
+```
+
+### Headers to send
+- ```Accept: application/vnd.hmcts.appreg.v1+json```
+- ```Authorization: Bearer testtoken```
+
+### Debug toggles
+- ```X-Debug-Failure: true → 500```
+- ```X-Debug-Not-Found: true → 404```
+- ```X-Debug-Conflict: true → 409```
+
+### Common gotchas
+- Use ```"transformers": ["response-template"]``` in mappings.
+- Put ```bodyFileName``` inside ```response```.
+- For “missing field” checks use:
+```bash
+{ "matchesJsonPath": { "expression": "$.field", "absent": true } }
+```
+
 ## Testing
 
 This section documents all test types, how to run them, and how to add new cases.  
