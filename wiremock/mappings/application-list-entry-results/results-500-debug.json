@@ -10,6 +10,6 @@
     "status": 500,
     "headers": { "Content-Type": "application/problem+json" },
     "transformers": ["response-template"],
-    "body": "{ \"type\":\"about:blank\",\"title\":\"Internal Server Error\",\"status\":500,\"detail\":\"Forced failure for testing.\",\"path\":\"{{request.path}}\",\"timestamp\":\"{{now format='yyyy-MM-dd'T'HH:mm:ssXXX'}}\",\"traceId\":\"{{randomValue length=12 type='ALPHANUMERIC'}}\" }"
+    "bodyFileName": "errors/internal-server-error.json"
   }
 }
