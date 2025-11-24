@@ -25,9 +25,7 @@
       "Vary": "Accept",
       "X-Stub": "results-update-200"
     },
-    "transformers": [
-      "response-template"
-    ],
+    "transformers": ["response-template"],
     "body": "{\n  \"id\": \"{{request.pathSegments.[5]}}\",\n  \"entryId\": \"{{request.pathSegments.[3]}}\",\n  \"resultCode\": \"{{jsonPath request.body '$.resultCode'}}\",\n  \"wordingFields\": {{#if (jsonPath request.body '$.wordingFields')}}{{{jsonPath request.body '$.wordingFields'}}}{{else}}[]{{/if}}\n}\n"
   }
 }

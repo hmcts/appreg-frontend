@@ -4,7 +4,9 @@
   "request": {
     "method": "ANY",
     "urlPathPattern": "/application-lists/[0-9a-f-]{36}/entries(/.*)?",
-    "headers": { "Accept": { "doesNotContain": "application/vnd.hmcts.appreg.v1+json" } }
+    "headers": {
+      "Accept": { "doesNotContain": "application/vnd.hmcts.appreg.v1+json" }
+    }
   },
   "response": {
     "status": 406,

@@ -20,9 +20,7 @@
       "Vary": "Accept",
       "X-Stub": "reports-list-200"
     },
-    "transformers": [
-      "response-template"
-    ],
+    "transformers": ["response-template"],
     "body": "{\n  \"page\": {{#if request.query.page}}{{request.query.page.[0]}}{{else}}0{{/if}},\n  \"size\": {{#if request.query.size}}{{request.query.size.[0]}}{{else}}10{{/if}},\n  \"totalElements\": 23,\n  \"totalPages\": 3,\n  \"sort\": {{#if request.query.sort}}[{{#each request.query.sort}}{{#unless @first}}, {{/unless}}\"{{this}}\"{{/each}}]{{else}}[\"requestedAt,desc\"]{{/if}},\n  \"content\": [\n    { \"id\": \"{{randomValue type='UUID'}}\", \"reportType\": \"APPLICATIONS_BY_DAY\",   \"requestedAt\": \"{{now offset='-PT2H' format='yyyy-MM-dd'T'HH:mm:ssXXX'}}\", \"status\": \"COMPLETED\" },\n    { \"id\": \"{{randomValue type='UUID'}}\", \"reportType\": \"FEES_COLLECTED_CSV\",   \"requestedAt\": \"{{now offset='-P1D'  format='yyyy-MM-dd'T'HH:mm:ssXXX'}}\", \"status\": \"FAILED\" },\n    { \"id\": \"{{randomValue type='UUID'}}\", \"reportType\": \"LISTS_SUMMARY\",        \"requestedAt\": \"{{now offset='-P2D'  format='yyyy-MM-dd'T'HH:mm:ssXXX'}}\", \"status\": \"PENDING\" }\n  ]\n}\n"
   }
 }

@@ -7,10 +7,17 @@
     "headers": { "Authorization": { "matches": "Bearer .+" } },
     "bodyPatterns": [
       { "matchesJsonPath": { "expression": "$.entryIds", "absent": true } },
-      { "or": [
-        { "matchesJsonPath": { "expression": "$.result", "absent": true } },
-        { "matchesJsonPath": { "expression": "$.result.resultCode", "absent": true } }
-      ]}
+      {
+        "or": [
+          { "matchesJsonPath": { "expression": "$.result", "absent": true } },
+          {
+            "matchesJsonPath": {
+              "expression": "$.result.resultCode",
+              "absent": true
+            }
+          }
+        ]
+      }
     ]
   },
   "response": {
