@@ -1,0 +1,22 @@
+{
+  "name": "Reports – 400 Missing required fields (POST)",
+  "priority": 4,
+  "request": {
+    "method": "POST",
+    "urlPath": "/reports",
+    "headers": { "Authorization": { "matches": "Bearer .+" } },
+    "bodyPatterns": [
+      { "matchesJsonPath": { "expression": "$.reportType", "absent": true } },
+      { "or": [
+        { "matchesJsonPath": { "expression": "$.fromDate", "absent": true } },
+        { "matchesJsonPath": { "expression": "$.toDate", "absent": true } }
+      ]}
+    ]
+  },
+  "response": {
+    "status": 400,
+    "headers": { "Content-Type": "application/problem+json" },
+    "transformers": ["response-template"],
+    "bodyFileName": "errors/bad-request.json"
+  }
+}
