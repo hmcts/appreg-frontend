@@ -194,9 +194,12 @@ Feature: Applications List Search
     When User Clicks On The "Search" Button
     # Verify notification banner is displayed for empty state
     Then User Sees Notification Banner "<NotificationMessage>"
+    Then User Clicks On The Link "<LinkText>"
+    Then User See "<CreatePageText>" On The Page
+    Then User Verify The Page URL Contains "/applications-list/create"
     Examples:
-      | User  | SearchDate | Status | NotificationMessage                                                  |
-      | user1 | 01/01/2099 | Closed | Important No lists found Try different filters, or create a new list |
+      | User  | SearchDate | Status | NotificationMessage                                                  | LinkText          | CreatePageText                |
+      | user1 | 01/01/2099 | Closed | Important No lists found Try different filters, or create a new list | create a new list | Create new applications list  |
 
   @regression @ARCPOC-691
   Scenario Outline: Verify Court field validation with valid input
