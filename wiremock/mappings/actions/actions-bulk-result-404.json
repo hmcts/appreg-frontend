@@ -1,0 +1,18 @@
+{
+  "name": "Actions – Bulk Result – 404 (debug toggle)",
+  "priority": 3,
+  "request": {
+    "method": "POST",
+    "urlPathPattern": "/application-lists/[0-9a-f-]{36}/actions/bulk-result",
+    "headers": {
+      "Authorization": { "matches": "Bearer .+" },
+      "X-Debug-Not-Found": { "equalTo": "true" }
+    }
+  },
+  "response": {
+    "status": 404,
+    "headers": { "Content-Type": "application/problem+json" },
+    "transformers": ["response-template"],
+    "body": "{ \"type\":\"about:blank\",\"title\":\"Not Found\",\"status\":404,\"detail\":\"One or more entry IDs were not found for list '{{request.pathSegments.[1]}}'.\",\"path\":\"{{request.path}}\",\"timestamp\":\"{{now format='yyyy-MM-dd'T'HH:mm:ssXXX'}}\",\"traceId\":\"{{randomValue length=12 type='ALPHANUMERIC'}}\" }"
+  }
+}
