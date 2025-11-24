@@ -13,6 +13,6 @@
   "response": {
     "status": 400,
     "headers": { "Content-Type": "application/problem+json" },
-    "body": "{ \"type\":\"about:blank\",\"title\":\"Bad Request\",\"status\":400,\"detail\":\"Missing required fields: targetListId/entryIds.\",\"path\":\"{{request.path}}\" }"
+    "bodyFileName": "errors/bad-request.json"
   }
 }
