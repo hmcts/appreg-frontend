@@ -1,0 +1,15 @@
+{
+  "name": "Entry Results – 401 Unauthorized",
+  "priority": 3,
+  "request": {
+    "method": "ANY",
+    "urlPathPattern": "/application-lists/[0-9a-f-]{36}/entries/[0-9a-f-]{36}/results(/.*)?",
+    "headers": { "Authorization": { "absent": true } }
+  },
+  "response": {
+    "status": 401,
+    "headers": { "Content-Type": "application/problem+json" },
+    "transformers": ["response-template"],
+    "body": "{ \"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401,\"detail\":\"Missing or invalid Authorization header.\",\"path\":\"{{request.path}}\",\"timestamp\":\"{{now format='yyyy-MM-dd'T'HH:mm:ssXXX'}}\",\"traceId\":\"{{randomValue length=12 type='ALPHANUMERIC'}}\" }"
+  }
+}
