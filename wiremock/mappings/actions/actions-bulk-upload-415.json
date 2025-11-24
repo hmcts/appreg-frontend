@@ -1,0 +1,17 @@
+{
+  "name": "Actions – Bulk Upload – 415 wrong media type",
+  "priority": 4,
+  "request": {
+    "method": "POST",
+    "urlPathPattern": "/application-lists/[0-9a-f-]{36}/actions/bulk-upload",
+    "headers": {
+      "Authorization": { "matches": "Bearer .+" },
+      "Content-Type": { "doesNotMatch": "multipart/form-data;.*" }
+    }
+  },
+  "response": {
+    "status": 415,
+    "headers": { "Content-Type": "application/problem+json" },
+    "body": "{ \"type\":\"about:blank\",\"title\":\"Unsupported Media Type\",\"status\":415,\"detail\":\"Use multipart/form-data to upload CSV.\",\"path\":\"{{request.path}}\" }"
+  }
+}

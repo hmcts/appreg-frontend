@@ -1,0 +1,14 @@
+{
+  "name": "Actions – 401 Unauthorized",
+  "priority": 2,
+  "request": {
+    "method": "ANY",
+    "urlPathPattern": "/application-lists/[0-9a-f-]{36}/actions(/.*)?",
+    "headers": { "Authorization": { "absent": true } }
+  },
+  "response": {
+    "status": 401,
+    "headers": { "Content-Type": "application/problem+json" },
+    "body": "{ \"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401,\"detail\":\"Missing or invalid Authorization header.\",\"path\":\"{{request.path}}\" }"
+  }
+}

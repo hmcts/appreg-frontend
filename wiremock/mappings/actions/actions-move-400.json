@@ -1,0 +1,18 @@
+{
+  "name": "Actions – Move – 400 missing fields",
+  "priority": 4,
+  "request": {
+    "method": "POST",
+    "urlPathPattern": "/application-lists/[0-9a-f-]{36}/actions/move-entries",
+    "headers": { "Authorization": { "matches": "Bearer .+" } },
+    "bodyPatterns": [
+      { "matchesJsonPath": { "expression": "$.targetListId", "absent": true } },
+      { "matchesJsonPath": { "expression": "$.entryIds", "absent": true } }
+    ]
+  },
+  "response": {
+    "status": 400,
+    "headers": { "Content-Type": "application/problem+json" },
+    "body": "{ \"type\":\"about:blank\",\"title\":\"Bad Request\",\"status\":400,\"detail\":\"Missing required fields: targetListId/entryIds.\",\"path\":\"{{request.path}}\" }"
+  }
+}

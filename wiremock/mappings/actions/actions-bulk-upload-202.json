@@ -1,0 +1,23 @@
+{
+  "name": "Actions – Bulk Upload CSV – 202",
+  "priority": 5,
+  "request": {
+    "method": "POST",
+    "urlPathPattern": "/application-lists/[0-9a-f-]{36}/actions/bulk-upload",
+    "headers": {
+      "Authorization": { "matches": "Bearer .+" },
+      "Content-Type": { "matches": "multipart/form-data;.*" }
+    }
+  },
+  "response": {
+    "status": 202,
+    "headers": {
+      "Content-Type": "application/vnd.hmcts.appreg.v1+json",
+      "Vary": "Accept",
+      "Location": "/jobs/{{randomValue type='UUID'}}",
+      "X-Stub": "actions-bulk-upload-202"
+    },
+    "transformers": ["response-template"],
+    "body": "{\n  \"id\": \"{{randomValue type='UUID'}}\",\n  \"type\": \"BULK_UPLOAD_ENTRIES\",\n  \"status\": \"RECEIVED\"\n}\n"
+  }
+}

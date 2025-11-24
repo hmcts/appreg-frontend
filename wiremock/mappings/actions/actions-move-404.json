@@ -1,0 +1,17 @@
+{
+  "name": "Actions – Move – 404 (debug toggle)",
+  "priority": 3,
+  "request": {
+    "method": "POST",
+    "urlPathPattern": "/application-lists/[0-9a-f-]{36}/actions/move-entries",
+    "headers": {
+      "Authorization": { "matches": "Bearer .+" },
+      "X-Debug-Not-Found": { "equalTo": "true" }
+    }
+  },
+  "response": {
+    "status": 404,
+    "headers": { "Content-Type": "application/problem+json" },
+    "body": "{ \"type\":\"about:blank\",\"title\":\"Not Found\",\"status\":404,\"detail\":\"List(s) or entries not found.\",\"path\":\"{{request.path}}\" }"
+  }
+}

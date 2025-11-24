@@ -1,0 +1,23 @@
+{
+  "name": "Actions – Move – 409 (debug toggle)",
+  "priority": 3,
+  "request": {
+    "method": "POST",
+    "urlPathPattern": "/application-lists/[0-9a-f-]{36}/actions/move-entries",
+    "headers": {
+      "Authorization": {
+        "matches": "Bearer .+"
+      },
+      "X-Debug-Conflict": {
+        "equalTo": "true"
+      }
+    }
+  },
+  "response": {
+    "status": 409,
+    "headers": {
+      "Content-Type": "application/problem+json"
+    },
+    "body": "{ \"type\":\"about:blank\",\"title\":\"Conflict\",\"status\":409,\"detail\":\"Move aborted due to a conflicting entry state.\",\"path\":\"{{request.path}}\" }"
+  }
+}
