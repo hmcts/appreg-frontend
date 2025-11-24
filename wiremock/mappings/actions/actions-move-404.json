@@ -12,6 +12,6 @@
   "response": {
     "status": 404,
     "headers": { "Content-Type": "application/problem+json" },
-    "body": "{ \"type\":\"about:blank\",\"title\":\"Not Found\",\"status\":404,\"detail\":\"List(s) or entries not found.\",\"path\":\"{{request.path}}\" }"
+    "bodyFileName": "errors/not-found.json"
   }
 }

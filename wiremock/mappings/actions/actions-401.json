@@ -9,6 +9,6 @@
   "response": {
     "status": 401,
     "headers": { "Content-Type": "application/problem+json" },
-    "body": "{ \"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401,\"detail\":\"Missing or invalid Authorization header.\",\"path\":\"{{request.path}}\" }"
+    "bodyFileName": "errors/unauthorized.json"
   }
 }

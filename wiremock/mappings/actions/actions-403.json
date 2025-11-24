@@ -9,6 +9,6 @@
   "response": {
     "status": 403,
     "headers": { "Content-Type": "application/problem+json" },
-    "body": "{ \"type\":\"about:blank\",\"title\":\"Forbidden\",\"status\":403,\"detail\":\"Access denied.\",\"path\":\"{{request.path}}\" }"
+    "bodyFileName": "errors/forbidden.json"
   }
 }
