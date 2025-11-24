@@ -130,7 +130,7 @@
     "@typescript-eslint/parser": "^8.39.0",
     "adm-zip": "^0.5.16",
     "axe-core": "^4.10.3",
-    "cypress": "15.5.0",
+    "cypress": "15.7.0",
     "cypress-axe": "^1.7.0",
     "cypress-mochawesome-reporter": "^4.0.2",
     "cypress-multi-reporters": "^2.0.5",
