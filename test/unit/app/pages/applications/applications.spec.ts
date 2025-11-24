@@ -3,7 +3,10 @@ import { of, throwError } from 'rxjs';
 
 import { ReferenceDataFacade } from '../../../../../src/app/core/services/reference-data.facade';
 import { Applications } from '../../../../../src/app/pages/applications/applications';
-import { ApplicationListEntriesApi, EntryGetFilterDto } from '../../../../../src/generated/openapi';
+import {
+  ApplicationListEntriesApi,
+  EntryGetFilterDto,
+} from '../../../../../src/generated/openapi';
 
 interface HasLoadQuery {
   loadQuery(): EntryGetFilterDto;
@@ -197,7 +200,7 @@ describe('ApplicationsComponent', () => {
       component.loadApplications();
 
       expect(getEntriesMock).toHaveBeenCalledTimes(1);
-      const [params,, , options] = getEntriesMock.mock.calls[0];
+      const [params, , , options] = getEntriesMock.mock.calls[0];
 
       expect(params.page).toBe(component.currentPage - 1);
       expect(params.size).toBe(component.pageSize);
@@ -231,7 +234,7 @@ describe('ApplicationsComponent', () => {
       component.loadApplications();
 
       expect(getEntriesMock).toHaveBeenCalledTimes(1);
-      const [params,, , options] = getEntriesMock.mock.calls[0];
+      const [params, , , options] = getEntriesMock.mock.calls[0];
 
       expect(params.page).toBe(component.currentPage - 1);
       expect(params.size).toBe(component.pageSize);
@@ -256,9 +259,7 @@ describe('ApplicationsComponent', () => {
       component.form.patchValue({ applicantOrg: 'Org Ltd' });
 
       getEntriesMock.mockClear();
-      getEntriesMock.mockReturnValueOnce(
-        throwError(() => new Error('boom')),
-      );
+      getEntriesMock.mockReturnValueOnce(throwError(() => new Error('boom')));
 
       component.searchErrors = [];
       component.errorHint = '';
