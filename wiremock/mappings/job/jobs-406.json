@@ -18,6 +18,6 @@
     "transformers": [
       "response-template"
     ],
-    "body": "{\n  \"type\": \"about:blank\",\n  \"title\": \"Not Acceptable\",\n  \"status\": 406,\n  \"detail\": \"Set Accept: application/vnd.hmcts.appreg.v1+json.\",\n  \"instance\": \"{{request.path}}\",\n  \"correlationId\": \"{{randomValue length=16 type='ALPHANUMERIC'}}\"\n}\n"
+    "bodyFileName": "errors/not-acceptable.json"
   }
 }

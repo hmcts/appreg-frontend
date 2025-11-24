@@ -10,6 +10,6 @@
     "status": 403,
     "headers": { "Content-Type": "application/problem+json" },
     "transformers": ["response-template"],
-    "body": "{\n  \"type\": \"about:blank\",\n  \"title\": \"Forbidden\",\n  \"status\": 403,\n  \"detail\": \"Access denied.\",\n  \"instance\": \"{{request.path}}\",\n  \"correlationId\": \"{{randomValue length=16 type='ALPHANUMERIC'}}\"\n}\n"
+    "bodyFileName": "errors/forbidden.json"
   }
 }
