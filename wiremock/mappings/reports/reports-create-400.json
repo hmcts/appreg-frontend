@@ -7,10 +7,12 @@
     "headers": { "Authorization": { "matches": "Bearer .+" } },
     "bodyPatterns": [
       { "matchesJsonPath": { "expression": "$.reportType", "absent": true } },
-      { "or": [
-        { "matchesJsonPath": { "expression": "$.fromDate", "absent": true } },
-        { "matchesJsonPath": { "expression": "$.toDate", "absent": true } }
-      ]}
+      {
+        "or": [
+          { "matchesJsonPath": { "expression": "$.fromDate", "absent": true } },
+          { "matchesJsonPath": { "expression": "$.toDate", "absent": true } }
+        ]
+      }
     ]
   },
   "response": {

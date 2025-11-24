@@ -32,9 +32,7 @@
       "Location": "/reports/{{randomValue type='UUID'}}",
       "X-Stub": "reports-create-202"
     },
-    "transformers": [
-      "response-template"
-    ],
+    "transformers": ["response-template"],
     "body": "{\n  \"id\": \"{{randomValue type='UUID'}}\",\n  \"reportType\": \"{{jsonPath request.body '$.reportType'}}\",\n  \"parameters\": {\n    \"fromDate\": \"{{jsonPath request.body '$.fromDate'}}\",\n    \"toDate\": \"{{jsonPath request.body '$.toDate'}}\"\n  },\n  \"requestedAt\": \"{{now format='yyyy-MM-dd'T'HH:mm:ssXXX'}}\",\n  \"status\": \"PENDING\"\n}\n"
   }
 }

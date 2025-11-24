@@ -26,9 +26,7 @@
       "Location": "/application-lists/{{request.pathSegments.[1]}}/entries/{{request.pathSegments.[3]}}/results/{{randomValue type='UUID'}}",
       "X-Stub": "results-create-201"
     },
-    "transformers": [
-      "response-template"
-    ],
+    "transformers": ["response-template"],
     "body": "{\n  \"id\": \"{{randomValue type='UUID'}}\",\n  \"entryId\": \"{{request.pathSegments.[3]}}\",\n  \"resultCode\": \"{{jsonPath request.body '$.resultCode'}}\",\n  \"wordingFields\": {{#if (jsonPath request.body '$.wordingFields')}}{{{jsonPath request.body '$.wordingFields'}}}{{else}}[]{{/if}}\n}\n"
   }
 }

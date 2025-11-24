@@ -20,9 +20,7 @@
       "Vary": "Accept",
       "X-Stub": "jobs-detail-200"
     },
-    "transformers": [
-      "response-template"
-    ],
+    "transformers": ["response-template"],
     "body": "{\n  \"id\": \"{{request.pathSegments.[1]}}\",\n  \"type\": {{#if request.query.type}}\"{{upper request.query.type.[0]}}\"{{else}}\"FEES_REPORT\"{{/if}},\n  \"status\": {{#if request.headers.X-Debug-Status}}\"{{upper request.headers.X-Debug-Status.[0]}}\"{{else}}\"COMPLETED\"{{/if}}\n}\n"
   }
 }
