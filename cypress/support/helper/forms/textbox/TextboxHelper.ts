@@ -94,4 +94,31 @@ export class TextboxHelper {
       .invoke('val')
       .should('eq', expectedValue);
   }
+
+  /**
+   * Verifies that the "No results found" message is visible in the autocomplete menu
+   */
+  static verifyInfoVisible(selector: string, info: string): Cypress.Chainable {
+    return TextboxElement.findTextbox(selector).then(() => {
+      return cy
+        .get('.app-autocomplete__menu:visible')
+        .should('contain.text', info);
+    });
+  }
+  /**
+   * Verifies that the "No results found" message is not visible (menu hidden or message absent)
+   */
+  static verifyInfoNotVisible(
+    selector: string,
+    info: string,
+  ): Cypress.Chainable {
+    return TextboxElement.findTextbox(selector).then(($el) => {
+      if ($el.find('.app-autocomplete__menu').length === 0) {
+        cy.log(info, 'is not visible');
+        return cy.get('.app-autocomplete__menu').should('not.exist');
+      } else {
+        return cy.get('.app-autocomplete__menu').should('contain.text', info);
+      }
+    });
+  }
 }

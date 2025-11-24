@@ -54,6 +54,7 @@ import {
   ErrorSummaryComponent,
 } from '../../shared/components/error-summary/error-summary.component';
 import { NotificationBannerComponent } from '../../shared/components/notification-banner/notification-banner.component';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import {
@@ -98,6 +99,7 @@ import { loadQuery } from './util/load-query';
     SuggestionsComponent,
     NotificationBannerComponent,
     MojButtonMenuDirective,
+    PageHeaderComponent,
   ],
   templateUrl: './applications-list.html',
 })
@@ -141,7 +143,11 @@ export class ApplicationsList
   columns: TableColumn[] = [
     { header: 'Date', field: 'date' },
     { header: 'Time', field: 'time' },
-    { header: 'Location', field: 'location' },
+    {
+      header: 'Location',
+      field: 'location',
+      sortValue: (row) => this.buildTrailingNumericSortKey(row['location']),
+    },
     { header: 'Description', field: 'description' },
     { header: 'Entries', field: 'entries', numeric: true },
     { header: 'Status', field: 'status' },
@@ -477,5 +483,50 @@ export class ApplicationsList
     this.deleteInvalid = true;
     this.errorHint = 'There is a problem';
     this.errorSummary = [{ text: message }];
+  }
+
+  private buildTrailingNumericSortKey(value: unknown): string {
+    if (value === null) {
+      return '';
+    }
+
+    let s: string;
+
+    if (typeof value === 'string') {
+      s = value.trim().toLowerCase();
+    } else if (typeof value === 'number') {
+      s = String(value);
+    } else if (typeof value === 'boolean') {
+      s = value ? 'true' : 'false';
+    } else {
+      return '';
+    }
+
+    if (s === '') {
+      return '';
+    }
+
+    let i = s.length - 1;
+    while (i >= 0) {
+      const code = s.codePointAt(i);
+      if (code === undefined) {
+        break;
+      }
+
+      if (code < 48 || code > 57) {
+        break;
+      }
+      i--;
+    }
+
+    if (i === s.length - 1) {
+      return s;
+    }
+
+    const prefix = s.slice(0, i + 1);
+    const numStr = s.slice(i + 1);
+    const padded = numStr.padStart(4, '0');
+
+    return `${prefix}${padded}`;
   }
 }

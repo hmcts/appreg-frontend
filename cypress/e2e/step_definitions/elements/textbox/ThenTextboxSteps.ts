@@ -76,3 +76,17 @@ Then('User Should See The Textbox {string} Is Disabled', (field: string) => {
 Then('User Should See The Textbox {string} Is Enabled', (field: string) => {
   TextboxHelper.TextboxIsEnabled(field);
 });
+
+Then(
+  'User Verifies {string} Is Visible Under The {string} Textbox',
+  (info: string, field: string) => {
+    TextboxHelper.verifyInfoVisible(field, info);
+  },
+);
+
+Then(
+  'User Verifies {string} Is Not Visible Under The {string} Textbox',
+  (info: string, field: string) => {
+    TextboxHelper.verifyInfoNotVisible(field, info);
+  },
+);

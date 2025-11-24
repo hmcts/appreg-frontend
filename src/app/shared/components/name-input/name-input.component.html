@@ -1,0 +1,56 @@
+<fieldset class="govuk-fieldset">
+  <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
+    <h1 class="govuk-fieldset__heading">{{ legend }}</h1>
+  </legend>
+
+  <!-- First name -->
+  <div
+    class="govuk-form-group"
+    [class.govuk-form-group--error]="showFirstError"
+  >
+    <label class="govuk-label" [attr.for]="firstId">{{ firstLabel }}</label>
+
+    @if (showFirstError) {
+      <p class="govuk-error-message" [id]="firstErrId">
+        <span class="govuk-visually-hidden">Error:</span> {{ errorTextFirst }}
+      </p>
+    }
+
+    <input
+      class="govuk-input"
+      [class.govuk-input--error]="showFirstError"
+      [attr.id]="firstId"
+      [attr.name]="idPrefix + '.firstName'"
+      type="text"
+      spellcheck="false"
+      [attr.aria-describedby]="showFirstError ? firstErrId : null"
+      [formControl]="form.controls.firstName"
+      (blur)="markTouched()"
+      autocomplete="given-name"
+    />
+  </div>
+
+  <!-- Last name -->
+  <div class="govuk-form-group" [class.govuk-form-group--error]="showLastError">
+    <label class="govuk-label" [attr.for]="lastId">{{ lastLabel }}</label>
+
+    @if (showLastError) {
+      <p class="govuk-error-message" [id]="lastErrId">
+        <span class="govuk-visually-hidden">Error:</span> {{ errorTextLast }}
+      </p>
+    }
+
+    <input
+      class="govuk-input"
+      [class.govuk-input--error]="showLastError"
+      [attr.id]="lastId"
+      [attr.name]="idPrefix + '.lastName'"
+      type="text"
+      spellcheck="false"
+      [attr.aria-describedby]="showLastError ? lastErrId : null"
+      [formControl]="form.controls.lastName"
+      (blur)="markTouched()"
+      autocomplete="family-name"
+    />
+  </div>
+</fieldset>
