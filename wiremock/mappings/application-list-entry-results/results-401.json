@@ -10,6 +10,6 @@
     "status": 401,
     "headers": { "Content-Type": "application/problem+json" },
     "transformers": ["response-template"],
-    "body": "{ \"type\":\"about:blank\",\"title\":\"Unauthorized\",\"status\":401,\"detail\":\"Missing or invalid Authorization header.\",\"path\":\"{{request.path}}\",\"timestamp\":\"{{now format='yyyy-MM-dd'T'HH:mm:ssXXX'}}\",\"traceId\":\"{{randomValue length=12 type='ALPHANUMERIC'}}\" }"
+    "bodyFileName": "errors/unauthorized.json"
   }
 }
