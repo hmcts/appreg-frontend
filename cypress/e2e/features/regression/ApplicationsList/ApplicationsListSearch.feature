@@ -192,5 +192,5 @@ Examples:
     Then User Sees Notification Banner "<NotificationMessage>"
     Examples:
       | User   | SearchText | NotificationMessage                                             | OptionText | ExpectedValue |  Info                 |
-      | admin1 | London     | No lists found Try different filters, or create a new list      |            | London        |  No results found     |    
+      | admin1 | London     | No lists found Try different filters, or create a new list      |            | London        |  No results found     | 
  
