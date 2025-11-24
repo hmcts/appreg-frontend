@@ -1,5 +1,23 @@
 <h1 class="govuk-heading-xl">Applications</h1>
 
+@if (submitted && searchErrors.length) {
+  <app-error-summary
+    [title]="errorHint || 'There is a problem'"
+    [items]="searchErrors"
+    targetId="search"
+  />
+} @else {
+  @if (isSearch && !isLoading && !rows.length) {
+    <app-notification-banner
+      heading="No lists found"
+      body="Try different filters, or "
+      linkText="create a new list"
+      [linkCommands]="['/applications-list/create']"
+    >
+    </app-notification-banner>
+  }
+}
+
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
@@ -11,6 +29,8 @@
       label="Date"
       hint="For example, 27 3 2007"
       idPrefix="date"
+      [submitted]="submitted"
+      [isSearch]="isSearch"
     >
     </app-date-input>
 
@@ -126,7 +146,13 @@
   </div>
 
   <div class="govuk-button-group">
-    <button id="search" type="submit" class="govuk-button" value="search">
+    <button
+      id="search"
+      type="submit"
+      class="govuk-button"
+      value="search"
+      [disabled]="searchDisabled"
+    >
       Search
     </button>
   </div>
@@ -136,21 +162,25 @@
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 
-<!-- Sortable table component -->
-<app-sortable-table [caption]="'Lists'" [columns]="columns">
-  <ng-template #actionsTemplate let-row>
-    <div class="govuk-button-group">
-      <a class="govuk-button" [routerLink]="['/applications', row.id]">Open</a>
-      <button type="button" class="govuk-button govuk-button--secondary">
-        Update
-      </button>
-    </div>
-  </ng-template>
-</app-sortable-table>
+@if (rows.length) {
+  <!-- Sortable table component -->
+  <app-sortable-table [caption]="'Lists'" [columns]="columns">
+    <ng-template #actionsTemplate let-row>
+      <div class="govuk-button-group">
+        <a class="govuk-button" [routerLink]="['/applications', row.id]"
+          >Open</a
+        >
+        <button type="button" class="govuk-button govuk-button--secondary">
+          Update
+        </button>
+      </div>
+    </ng-template>
+  </app-sortable-table>
 
-<!-- Pager -->
-<app-pagination
-  [currentPage]="currentPage"
-  [totalPages]="totalPages"
-  (pageChange)="onPageChange($event)"
-></app-pagination>
+  <!-- Pager -->
+  <app-pagination
+    [currentPage]="currentPage"
+    [totalPages]="totalPages"
+    (pageChange)="onPageChange($event)"
+  ></app-pagination>
+}

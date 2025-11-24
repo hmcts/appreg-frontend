@@ -16,7 +16,11 @@ import {
 } from '../../../generated/openapi';
 import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
-import { ErrorItem } from '../../shared/components/error-summary/error-summary.component';
+import {
+  ErrorItem,
+  ErrorSummaryComponent,
+} from '../../shared/components/error-summary/error-summary.component';
+import { NotificationBannerComponent } from '../../shared/components/notification-banner/notification-banner.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
@@ -39,6 +43,8 @@ import { toStatus } from '../../shared/util/to-status';
     PaginationComponent,
     SelectInputComponent,
     SuggestionsComponent,
+    ErrorSummaryComponent,
+    NotificationBannerComponent,
   ],
   templateUrl: './applications.html',
 })
@@ -116,7 +122,7 @@ export class Applications extends PlaceFieldsBase implements OnInit, OnDestroy {
 
     // Reset flag
     this.searchErrors = [];
-    this.submitted = false;
+    this.submitted = true;
     this.isSearch = true;
     this.rows = [];
 
@@ -131,16 +137,15 @@ export class Applications extends PlaceFieldsBase implements OnInit, OnDestroy {
       return;
     }
 
-    this.errorHint = '';
-    this.searchErrors = [];
-
-    if (!this.hasAnyParams()) {
-      // We do not want to allow empty filters
-      this.errorHint = 'There is a problem';
+    const dateCtrl = this.form.controls.date;
+    if (dateCtrl.errors?.['dateInvalid']) {
       this.searchErrors.push({
-        id: '',
-        text: 'Invalid Search Criteria. At least one field must be entered.',
+        id: 'date-day',
+        text: dateCtrl.errors['dateErrorText'] as string,
       });
+    }
+
+    if (this.searchErrors.length) {
       return;
     }
 
@@ -250,5 +255,9 @@ export class Applications extends PlaceFieldsBase implements OnInit, OnDestroy {
     }
 
     return filter;
+  }
+
+  get searchDisabled(): boolean {
+    return !this.hasAnyParams();
   }
 }
