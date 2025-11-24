@@ -1,0 +1,20 @@
+{
+  "name": "Entry Results – DELETE – 204",
+  "priority": 5,
+  "request": {
+    "method": "DELETE",
+    "urlPathPattern": "/application-lists/[0-9a-f-]{36}/entries/[0-9a-f-]{36}/results/[0-9a-f-]{36}",
+    "headers": {
+      "Authorization": {
+        "matches": "Bearer .+"
+      }
+    }
+  },
+  "response": {
+    "status": 204,
+    "headers": {
+      "Vary": "Accept",
+      "X-Stub": "results-delete-204"
+    }
+  }
+}

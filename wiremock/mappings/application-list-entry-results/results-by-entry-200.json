@@ -1,0 +1,28 @@
+{
+  "name": "Entry Results – GET page – 200",
+  "priority": 5,
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/application-lists/[0-9a-f-]{36}/entries/[0-9a-f-]{36}/results",
+    "headers": {
+      "Accept": {
+        "contains": "application/vnd.hmcts.appreg.v1+json"
+      },
+      "Authorization": {
+        "matches": "Bearer .+"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/vnd.hmcts.appreg.v1+json",
+      "Vary": "Accept",
+      "X-Stub": "results-by-entry-200"
+    },
+    "transformers": [
+      "response-template"
+    ],
+    "body": "{\n  \"page\": {{#if request.query.page}}{{request.query.page.[0]}}{{else}}0{{/if}},\n  \"size\": {{#if request.query.size}}{{request.query.size.[0]}}{{else}}10{{/if}},\n  \"totalElements\": 2,\n  \"totalPages\": 1,\n  \"content\": [\n    {\n      \"id\": \"{{randomValue type='UUID'}}\",\n      \"entryId\": \"{{request.pathSegments.[3]}}\",\n      \"resultCode\": \"ADJ\",\n      \"wordingFields\": [\"25 October 2025\", \"London\"]\n    },\n    {\n      \"id\": \"{{randomValue type='UUID'}}\",\n      \"entryId\": \"{{request.pathSegments.[3]}}\",\n      \"resultCode\": \"HRD\",\n      \"wordingFields\": []\n    }\n  ]\n}\n"
+  }
+}
