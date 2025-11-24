@@ -226,5 +226,6 @@ Feature: Applications List Search
     When User Clicks On The "Search" Button
     Then User Sees Notification Banner "<NotificationMessage>"
     Examples:
-      | User   | SearchText | NotificationMessage                                        | OptionText | ExpectedValue | Info             |
-      | admin1 | London     | No lists found Try different filters, or create a new list |            | London        | No results found |
+      | User   | SearchText | NotificationMessage                                             | OptionText | ExpectedValue |  Info                 |
+      | admin1 | London     | No lists found Try different filters, or create a new list      |            | London        |  No results found     |    
+ 
