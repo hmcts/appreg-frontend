@@ -5,12 +5,8 @@
     "method": "GET",
     "urlPath": "/court-locations",
     "headers": {
-      "Accept": {
-        "contains": "application/vnd.hmcts.appreg.v1+json"
-      },
-      "Authorization": {
-        "matches": "Bearer .+"
-      }
+      "Accept": { "contains": "application/vnd.hmcts.appreg.v1+json" },
+      "Authorization": { "matches": "Bearer .+" }
     }
   },
   "response": {
@@ -21,6 +17,7 @@
       "X-Stub": "courtlocs-list-200"
     },
     "transformers": ["response-template"],
-    "body": "{\n  \"page\": {{#if request.query.page}}{{request.query.page.[0]}}{{else}}0{{/if}},\n  \"size\": {{#if request.query.size}}{{request.query.size.[0]}}{{else}}10{{/if}},\n  \"totalElements\": 23,\n  \"totalPages\": 3,\n  \"sort\": {{#if request.query.sort}}[{{#each request.query.sort}}{{#unless @first}}, {{/unless}}\"{{this}}\"{{/each}}]{{else}}[\"name,asc\"]{{/if}},\n  \"content\": [\n    { \"name\": \"Manchester Civil Justice Centre Set 8\", \"locationCode\": \"MCJC072\" },\n    { \"name\": \"Manchester Magistrates’ Court\",         \"locationCode\": \"MNC\"     },\n    { \"name\": \"Bristol Magistrates’ Court\",            \"locationCode\": \"BRS\"     },\n    { \"name\": \"Leeds Combined Court Centre\",           \"locationCode\": \"LDS\"     },\n    { \"name\": \"Liverpool Crown Court\",                 \"locationCode\": \"LIV\"     },\n    { \"name\": \"Nottingham Magistrates’ Court\",         \"locationCode\": \"NTM\"     },\n    { \"name\": \"Sheffield Magistrates’ Court\",          \"locationCode\": \"SHF\"     },\n    { \"name\": \"Birmingham Magistrates’ Court\",         \"locationCode\": \"BHM\"     },\n    { \"name\": \"Cardiff Magistrates’ Court\",            \"locationCode\": \"CDF\"     },\n    { \"name\": \"Newcastle Crown Court\",                 \"locationCode\": \"NCL\"     }\n  ]\n}\n"
+    "fixedDelayMilliseconds": 100,
+    "body": "{\n  \"pageNumber\": {{#if request.query.page}}{{#if (matches request.query.page.[0] '^[0-9]+$')}}{{request.query.page.[0]}}{{else}}0{{/if}}{{else}}0{{/if}},\n  \"pageSize\": {{#if request.query.size}}{{#if (matches request.query.size.[0] '^[0-9]+$')}}{{request.query.size.[0]}}{{else}}100{{/if}}{{else}}{{#if request.query.pageSize}}{{#if (matches request.query.pageSize.[0] '^[0-9]+$')}}{{request.query.pageSize.[0]}}{{else}}100{{/if}}{{else}}100{{/if}}{{/if}},\n  \"totalElements\": 10,\n  \"totalPages\": 1,\n  \"sort\": { \"orders\": [ { \"property\": \"name\", \"direction\": \"asc\" } ] },\n  \"first\": true,\n  \"last\": true,\n  \"elementsOnPage\": 10,\n  \"content\": [\n    { \"name\": \"Manchester Civil Justice Centre Set 8\", \"locationCode\": \"MCJC072\" },\n    { \"name\": \"Manchester Magistrates’ Court\",         \"locationCode\": \"MNC\"     },\n    { \"name\": \"Bristol Magistrates’ Court\",            \"locationCode\": \"BRS\"     },\n    { \"name\": \"Leeds Combined Court Centre\",           \"locationCode\": \"LDS\"     },\n    { \"name\": \"Liverpool Crown Court\",                 \"locationCode\": \"LIV\"     },\n    { \"name\": \"Nottingham Magistrates’ Court\",         \"locationCode\": \"NTM\"     },\n    { \"name\": \"Sheffield Magistrates’ Court\",          \"locationCode\": \"SHF\"     },\n    { \"name\": \"Birmingham Magistrates’ Court\",         \"locationCode\": \"BHM\"     },\n    { \"name\": \"Cardiff Magistrates’ Court\",            \"locationCode\": \"CDF\"     },\n    { \"name\": \"Newcastle Crown Court\",                 \"locationCode\": \"NCL\"     }\n  ]\n}\n"
   }
 }
