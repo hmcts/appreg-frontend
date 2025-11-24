@@ -1,0 +1,23 @@
+{
+  "name": "Jobs – 500 (debug toggle)",
+  "priority": 0,
+  "request": {
+    "method": "ANY",
+    "urlPathPattern": "/jobs(/.*)?",
+    "headers": {
+      "X-Debug-Failure": {
+        "equalTo": "true"
+      }
+    }
+  },
+  "response": {
+    "status": 500,
+    "headers": {
+      "Content-Type": "application/problem+json"
+    },
+    "transformers": [
+      "response-template"
+    ],
+    "body": "{\n  \"type\": \"about:blank\",\n  \"title\": \"Internal Server Error\",\n  \"status\": 500,\n  \"detail\": \"Forced failure for testing.\",\n  \"instance\": \"{{request.path}}\",\n  \"correlationId\": \"{{randomValue length=16 type='ALPHANUMERIC'}}\"\n}\n"
+  }
+}

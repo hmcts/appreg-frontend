@@ -1,0 +1,23 @@
+{
+  "name": "Jobs – 406 Not Acceptable",
+  "priority": 3,
+  "request": {
+    "method": "ANY",
+    "urlPathPattern": "/jobs(/.*)?",
+    "headers": {
+      "Accept": {
+        "doesNotContain": "application/vnd.hmcts.appreg.v1+json"
+      }
+    }
+  },
+  "response": {
+    "status": 406,
+    "headers": {
+      "Content-Type": "application/problem+json"
+    },
+    "transformers": [
+      "response-template"
+    ],
+    "body": "{\n  \"type\": \"about:blank\",\n  \"title\": \"Not Acceptable\",\n  \"status\": 406,\n  \"detail\": \"Set Accept: application/vnd.hmcts.appreg.v1+json.\",\n  \"instance\": \"{{request.path}}\",\n  \"correlationId\": \"{{randomValue length=16 type='ALPHANUMERIC'}}\"\n}\n"
+  }
+}
