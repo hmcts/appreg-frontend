@@ -1,0 +1,26 @@
+{
+  "name": "Jobs – GET status – 404 (debug toggle)",
+  "priority": 4,
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/jobs/[0-9a-f-]{36}",
+    "headers": {
+      "Authorization": {
+        "matches": "Bearer .+"
+      },
+      "X-Debug-Not-Found": {
+        "equalTo": "true"
+      }
+    }
+  },
+  "response": {
+    "status": 404,
+    "headers": {
+      "Content-Type": "application/problem+json"
+    },
+    "transformers": [
+      "response-template"
+    ],
+    "body": "{\n  \"type\": \"about:blank\",\n  \"title\": \"Not Found\",\n  \"status\": 404,\n  \"detail\": \"Job '{{request.pathSegments.[1]}}' was not found.\",\n  \"instance\": \"{{request.path}}\",\n  \"correlationId\": \"{{randomValue length=16 type='ALPHANUMERIC'}}\"\n}\n"
+  }
+}

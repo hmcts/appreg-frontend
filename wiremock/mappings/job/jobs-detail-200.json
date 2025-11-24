@@ -1,0 +1,28 @@
+{
+  "name": "Jobs – GET status – 200",
+  "priority": 5,
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/jobs/[0-9a-f-]{36}",
+    "headers": {
+      "Accept": {
+        "contains": "application/vnd.hmcts.appreg.v1+json"
+      },
+      "Authorization": {
+        "matches": "Bearer .+"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/vnd.hmcts.appreg.v1+json",
+      "Vary": "Accept",
+      "X-Stub": "jobs-detail-200"
+    },
+    "transformers": [
+      "response-template"
+    ],
+    "body": "{\n  \"id\": \"{{request.pathSegments.[1]}}\",\n  \"type\": {{#if request.query.type}}\"{{upper request.query.type.[0]}}\"{{else}}\"FEES_REPORT\"{{/if}},\n  \"status\": {{#if request.headers.X-Debug-Status}}\"{{upper request.headers.X-Debug-Status.[0]}}\"{{else}}\"COMPLETED\"{{/if}}\n}\n"
+  }
+}

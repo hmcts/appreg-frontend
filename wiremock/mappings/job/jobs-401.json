@@ -1,0 +1,23 @@
+{
+  "name": "Jobs – 401 Unauthorized",
+  "priority": 3,
+  "request": {
+    "method": "ANY",
+    "urlPathPattern": "/jobs(/.*)?",
+    "headers": {
+      "Authorization": {
+        "absent": true
+      }
+    }
+  },
+  "response": {
+    "status": 401,
+    "headers": {
+      "Content-Type": "application/problem+json"
+    },
+    "transformers": [
+      "response-template"
+    ],
+    "body": "{\n  \"type\": \"about:blank\",\n  \"title\": \"Unauthorized\",\n  \"status\": 401,\n  \"detail\": \"Missing or invalid Authorization header.\",\n  \"instance\": \"{{request.path}}\",\n  \"correlationId\": \"{{randomValue length=16 type='ALPHANUMERIC'}}\"\n}\n"
+  }
+}
