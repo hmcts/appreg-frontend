@@ -12,6 +12,8 @@
     "api:generate": "openapi-generator-cli generate -c tools/openapi/generator-config.yaml",
     "api:bundle": "redocly bundle tools/openapi/vendor/openapi/openapi.yaml -o tools/dist/openapi.bundled.yaml",
     "api:all": "yarn api:clear && yarn api:fetch-unpack && yarn api:validate && yarn api:bundle && yarn api:generate",
+    "mock:gen": "node scripts/gen-wiremock-mappings.cjs",
+    "mock:sync": "yarn api:fetch-unpack && yarn mock:gen",
     "start": "node dist/appreg-frontend/server/server.mjs",
     "start:dev": "nodemon --config nodemon.json",
     "start:mock": "docker compose up -d wiremock",
@@ -92,7 +94,6 @@
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "uuid": "^11.1.0",
-    "yaml": "^2.8.1",
     "zone.js": "0.16"
   },
   "devDependencies": {
@@ -126,6 +127,7 @@
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
     "adm-zip": "^0.5.16",
+    "ajv": "^8.17.1",
     "axe-core": "^4.10.3",
     "cypress": "15.5.0",
     "cypress-axe": "^1.7.0",
@@ -147,6 +149,7 @@
     "jest-environment-jsdom": "^30",
     "jest-preset-angular": "^15.0.0",
     "jsdom": "^24",
+    "json-schema-faker": "^0.5.9",
     "junit-report-merger": "^8.0.0",
     "mocha": "^11.7.1",
     "mocha-junit-reporter": "^2.2.1",
@@ -161,7 +164,8 @@
     "stylelint-scss": "^6.12.1",
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.1",
-    "typescript": "~5.9.0"
+    "typescript": "~5.9.0",
+    "yaml": "^2.8.1"
   },
   "resolutions": {
     "@azure/keyvault-secrets": "4.10.0",
