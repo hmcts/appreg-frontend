@@ -244,6 +244,31 @@ wiremock/
 { "matchesJsonPath": { "expression": "$.field", "absent": true } }
 ```
 
+### Regenerating WireMock stubs when the OpenAPI spec changes
+#### WireMock Cloud / Studio (GUI import)
+- **What it does:** Import an OpenAPI (Swagger) spec and it ***auto-generates stubs;*** you can then export those to JSON for OSS WireMock. Great for quick, spec-driven mocks.
+- **Docs:** [WireMock OpenAPI docs](https://docs.wiremock.io/openAPI/openapi)
+- **Typical flow:** Import spec → review/edit stubs in Studio → Export as WireMock JSON → drop into your OSS `mappings/`.
+
+### WireMock OpenAPI (OSS) / Extensions
+- **What it is:** Run WireMock with an ***OpenAPI extension to generate/validate*** stubs from a spec at startup or validate traffic against the spec (handy in CI). These are add-on jars you load with `--extensions`.
+- **Docs/refs:** [WireMock OpenAPI (OSS) / Extensions](https://wiremock.org/docs/stubbing/)
+- **Use when:** You want spec conformance checks or on-the-fly stub generation without a GUI.
+
+### OpenAPI Generator (CLI) → WireMock mappings
+- **Idea:** Use ***OpenAPI Generator*** with ***custom Mustache templates*** to emit WireMock mapping JSON (there isn’t an official `wiremock` generator).
+- **How:** Create a template set that renders `request`/`response` mapping files from the spec, then:
+
+```bash
+openapi-generator-cli generate \
+-i openapi.yaml \
+-g handlebars 
+-t ./templates/wiremock \
+-o ./mappings
+```
+
+- See templating/customization guides for details [here](https://openapi-generator.tech/docs/templating).
+
 ## Testing
 
 This section documents all test types, how to run them, and how to add new cases.  
