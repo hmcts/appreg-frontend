@@ -1,5 +1,7 @@
 /// <reference types="cypress" />
 
+/// <reference types="cypress" />
+
 import { When } from '@badeball/cypress-cucumber-preprocessor';
 
 import { ButtonHelper } from '../../../../support/helper/forms/button/ButtonHelper';
