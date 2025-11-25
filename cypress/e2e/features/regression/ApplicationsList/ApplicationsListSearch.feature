@@ -228,3 +228,52 @@ Feature: Applications List Search
     Examples:
       | User   | SearchText | NotificationMessage                                        | OptionText | ExpectedValue | Info             |
       | admin1 | London     | No lists found Try different filters, or create a new list |            | London        | No results found |
+
+  @regression @ARCPOC-417
+Scenario Outline: Verify application list Open with only a single page of results is returned
+    Given User Is On The Portal Page
+    When User Signs In With Microsoft SSO As "<User>"
+    Then User Clicks On The Link "Applications list"
+    When User Set Date Field "Date" To "<SearchDate>"
+    Then User Selects "<Status>" In The "Select status" Dropdown
+    When User Clicks On The "Search" Button
+    Then User Should See The Table "<TableName>"
+    Then User Should See Table "<TableName>" Has Sortable Headers "Date, Time, Location, Description, Entries, Status"
+    Then User Should See Table "<TableName>" Header "Actions" Is Not Sortable
+    Then User Should See Table "<TableName>" Has Rows
+    Then User Should See Row In Table "<TableName>" With Values:
+      | Date          | Time   | Location | Description   | Entries   | Status   |
+      | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+
+    When User clicks On The "<Select>" Button In The Row With Description "<Description>" DisplayDate "<DisplayDate>" Time "<Time>" Court "<Court>" Entries "<Entries>" Status "<Status>"
+    Then User Should See The Button "<ButtonName>"
+    When User Clicks On The "<ButtonName>" Button
+    Then User Should See The Link "List details"
+    
+    Examples:
+      | User  | TableName | SearchDate | DisplayDate | Time  | Court                                  | Description                      | Entries | Status | Select  | ButtonName |
+      | user1 | Lists     | 01/1/2001  | 2001-01-01  | 10:10 | Leeds Combined Court Centre Set 3      | test                             | 0       | Open   | Select  | Open       |
+
+@regression @ARCPOC-417
+Scenario Outline: Verify application list Open with multiple pages of results is returned
+    Given User Is On The Portal Page
+    When User Signs In With Microsoft SSO As "<User>"
+    Then User Clicks On The Link "Applications list"
+    Then User Selects "<Status>" In The "Select status" Dropdown
+    When User Clicks On The "Search" Button
+    Then User Should See The Table "<TableName>"
+    Then User Should See Table "<TableName>" Has Sortable Headers "Date, Time, Location, Description, Entries, Status"
+    Then User Should See Table "<TableName>" Header "Actions" Is Not Sortable
+    Then User Should See Table "<TableName>" Has Rows
+    Then User Should See Row In Table "<TableName>" With Values:
+      | Date          | Time   | Location | Description   | Entries   | Status   |
+      | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+
+    When User clicks On The "<Select>" Button In The Row With Description "<Description>" DisplayDate "<DisplayDate>" Time "<Time>" Court "<Court>" Entries "<Entries>" Status "<Status>"
+    Then User Should See The Button "<ButtonName>"
+    When User Clicks On The "<ButtonName>" Button
+    Then User Should See The Link "List details"
+    
+    Examples:
+      | User  | TableName | DisplayDate | Time  | Court                                  | Description                      | Entries | Status | Select  | ButtonName |
+      | user1 | Lists     | 2001-01-01  | 10:10 | Leeds Combined Court Centre Set 3      | test                             | 0       | Open   | Select  | Open       |
