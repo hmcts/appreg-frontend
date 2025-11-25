@@ -243,4 +243,3 @@ Scenario Outline: Verify application list Open with multiple pages of results is
     Examples:
       | User  | TableName | DisplayDate | Time  | Court                                  | Description                      | Entries | Status | Select  | ButtonName |
       | user1 | Lists     | 2001-01-01  | 10:10 | Leeds Combined Court Centre Set 3      | test                             | 0       | Open   | Select  | Open       |
-
