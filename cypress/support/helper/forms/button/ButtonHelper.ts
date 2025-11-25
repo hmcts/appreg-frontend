@@ -1,5 +1,7 @@
-import { ButtonElement } from '../../../pageobjects/generic/button/ButtonElement';
 import Cypress from 'cypress';
+
+import { ButtonElement } from '../../../pageobjects/generic/button/ButtonElement';
+
 
 export class ButtonHelper {
   /**
