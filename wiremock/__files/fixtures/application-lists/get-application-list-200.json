@@ -1,0 +1,127 @@
+{
+  "id": "6fa99ec2-24d0-43c9-9ba0-65da707df59d",
+  "date": "2025-11-17",
+  "time": "10:00:00",
+  "description": "Public applications list AM",
+  "status": "OPEN",
+  "courtCode": "MNC",
+  "courtName": "Manchester Magistrates’ Court",
+  "cjaCode": "44",
+  "otherLocationDescription": null,
+  "durationHours": 2,
+  "durationMinutes": 0,
+  "version": 3,
+  "entriesCount": 10,
+  "entriesSummary": [
+    {
+      "uuid": "11111111-1111-1111-1111-111111111111",
+      "sequenceNumber": 1,
+      "accountNumber": "ACC001",
+      "applicant": "CPS",
+      "respondent": "John Smith",
+      "postCode": "M1 1AA",
+      "applicationTitle": "Issue of liability order warrant",
+      "feeRequired": false,
+      "result": "Adjourned"
+    },
+    {
+      "uuid": "22222222-2222-2222-2222-222222222222",
+      "sequenceNumber": 2,
+      "accountNumber": null,
+      "applicant": "CPS",
+      "respondent": "Jane Doe",
+      "postCode": "M2 2BB",
+      "applicationTitle": "Issue of warrant of arrest",
+      "feeRequired": true,
+      "result": "Heard"
+    },
+    {
+      "uuid": "33333333-3333-3333-3333-333333333333",
+      "sequenceNumber": 3,
+      "accountNumber": "ACC003",
+      "applicant": "LA",
+      "respondent": "Michael Green",
+      "postCode": "M3 3CC",
+      "applicationTitle": "Change of name",
+      "feeRequired": false,
+      "result": null
+    },
+    {
+      "uuid": "44444444-4444-4444-4444-444444444444",
+      "sequenceNumber": 4,
+      "accountNumber": null,
+      "applicant": "CPS",
+      "respondent": "Amelia Brown",
+      "postCode": "M4 4DD",
+      "applicationTitle": "Issue of summons",
+      "feeRequired": false,
+      "result": "Adjourned"
+    },
+    {
+      "uuid": "55555555-5555-5555-5555-555555555555",
+      "sequenceNumber": 5,
+      "accountNumber": "ACC005",
+      "applicant": "HMRC",
+      "respondent": "Peter White",
+      "postCode": "M5 5EE",
+      "applicationTitle": "Statutory declaration",
+      "feeRequired": false,
+      "result": "Heard"
+    },
+    {
+      "uuid": "66666666-6666-6666-6666-666666666666",
+      "sequenceNumber": 6,
+      "accountNumber": null,
+      "applicant": "LA",
+      "respondent": "Emily Clark",
+      "postCode": "M6 6FF",
+      "applicationTitle": "Liability order",
+      "feeRequired": true,
+      "result": null
+    },
+    {
+      "uuid": "77777777-7777-7777-7777-777777777777",
+      "sequenceNumber": 7,
+      "accountNumber": "ACC007",
+      "applicant": "CPS",
+      "respondent": "David Lee",
+      "postCode": "M7 7GG",
+      "applicationTitle": "Arrest warrant",
+      "feeRequired": false,
+      "result": "Dismissed"
+    },
+    {
+      "uuid": "88888888-8888-8888-8888-888888888888",
+      "sequenceNumber": 8,
+      "accountNumber": null,
+      "applicant": "CPS",
+      "respondent": "Olivia Taylor",
+      "postCode": "M8 8HH",
+      "applicationTitle": "Committal to prison",
+      "feeRequired": false,
+      "result": "Heard"
+    },
+    {
+      "uuid": "99999999-9999-9999-9999-999999999999",
+      "sequenceNumber": 9,
+      "accountNumber": "ACC009",
+      "applicant": "LA",
+      "respondent": "Noah Wilson",
+      "postCode": "M9 9JJ",
+      "applicationTitle": "Council tax enforcement",
+      "feeRequired": false,
+      "result": "Adjourned"
+    },
+    {
+      "uuid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      "sequenceNumber": 10,
+      "accountNumber": null,
+      "applicant": "HMRC",
+      "respondent": "Sophia Martin",
+      "postCode": "M10 0KK",
+      "applicationTitle": "Non-domestic rates",
+      "feeRequired": true,
+      "result": null
+    }
+  ]
+}
