@@ -1,0 +1,15 @@
+{
+  "id": "11111111-2222-3333-4444-555555555555",
+  "date": "2025-11-17",
+  "time": "10:00:00",
+  "description": "Public applications list AM",
+  "status": "OPEN",
+  "courtLocationCode": "MCJC072",
+  "courtCode": "MCJC072",
+  "courtName": "Manchester Civil Justice Centre Set 8",
+  "criminalJusticeAreaCode": "CJA01",
+  "durations": null,
+  "entriesCount": 0,
+  "entriesSummary": [],
+  "version": 1
+}
