@@ -188,7 +188,6 @@ export class ApplicationsListEntryDetail implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly entriesApi: ApplicationListEntriesApi,
-    private readonly saApi: StandardApplicantsApi,
     private readonly codesApi: ApplicationCodesApi,
     private readonly fb: NonNullableFormBuilder,
     private readonly saApi: StandardApplicantsApi,
@@ -794,7 +793,6 @@ export class ApplicationsListEntryDetail implements OnInit {
     if (a?.organisation) {
       this.setApplicantType('organisation', { emit: false });
       this.patchOrganisation(a.organisation);
-      return;
     }
   }
 
