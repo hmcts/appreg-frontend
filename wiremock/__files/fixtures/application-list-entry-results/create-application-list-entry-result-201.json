@@ -1,0 +1,9 @@
+{
+  "id": "4a3a2b1c-9d4e-4f7a-8c31-7b2f2c1a5e90",
+  "entryId": "5ebf20ff-72aa-4b96-be8b-572101fe2b1c",
+  "resultCode": "HEARD",
+  "wordingFields": [
+    { "key": "hearingOutcome", "value": "Adjourned to next session" },
+    { "key": "notes", "value": "Judge requested additional documents" }
+  ]
+}

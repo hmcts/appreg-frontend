@@ -1,0 +1,20 @@
+{
+  "page": 0,
+  "size": 10,
+  "totalElements": 2,
+  "totalPages": 1,
+  "content": [
+    {
+      "id": "a1111111-2222-3333-4444-555555555555",
+      "entryId": "5ebf20ff-72aa-4b96-be8b-572101fe2b1c",
+      "resultCode": "ADJ",
+      "wordingFields": ["25 October 2025", "London"]
+    },
+    {
+      "id": "b2222222-3333-4444-5555-666666666666",
+      "entryId": "5ebf20ff-72aa-4b96-be8b-572101fe2b1c",
+      "resultCode": "HRD",
+      "wordingFields": []
+    }
+  ]
+}
