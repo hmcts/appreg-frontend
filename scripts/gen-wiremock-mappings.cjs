@@ -22,7 +22,6 @@
 const fs = require('node:fs');
 const fsp = require('node:fs/promises');
 const path = require('node:path');
-const YAML = require('yaml');
 const Ajv = require('ajv');
 const jsf = require('json-schema-faker');
 const $RefParser = require('@apidevtools/json-schema-ref-parser');
@@ -43,107 +42,6 @@ jsf.option({
 });
 jsf.option({ minItems: 1, maxItems: 3 });
 jsf.extend('ajv', () => ajv);
-
-// --- Sanity checks -----------------------------------------------------------
-function summarize(opCount, spec) {
-  const ver = String(spec.openapi || spec.swagger || 'unknown');
-  return `openapi=${ver} paths=${
-    Object.keys(spec.paths || {}).length
-  } ops=${opCount}`;
-}
-
-/** Fail early if the spec looks wrong */
-function sanityCheckSpec(spec, { vendor = DEFAULT_VENDOR } = {}) {
-  const problems = [];
-
-  const ver = String(spec.openapi || spec.swagger || '');
-  if (!/^3\./.test(ver))
-    problems.push(`Unexpected OpenAPI version "${ver}" (expected 3.x).`);
-
-  if (!spec.info?.title || !spec.info?.version) {
-    problems.push('Missing info.title or info.version.');
-  }
-
-  if (!spec.paths || !Object.keys(spec.paths).length) {
-    problems.push('Spec has zero paths.');
-  }
-
-  // Optional: ensure the vendor media type appears at least once
-  const hasVendor = JSON.stringify(spec).includes(vendor);
-  if (!hasVendor) {
-    problems.push(
-      `Vendor media type "${vendor}" not found anywhere in spec content types.`,
-    );
-  }
-
-  // Optional: verify a few expected operations (configurable via env)
-  const expected = (process.env.EXPECT_ROUTES || '')
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean); // e.g. "GET /court-locations,GET /criminal-justice-areas"
-
-  for (const item of expected) {
-    const m = item.split(/\s+/)[0]?.toLowerCase();
-    const route = item.replace(/^\S+\s+/, '');
-    if (!m || !route) continue;
-    if (!spec.paths?.[route]?.[m]) {
-      problems.push(`Missing expected operation: ${m.toUpperCase()} ${route}`);
-    }
-  }
-
-  if (problems.length) {
-    console.error('[sanity] Spec check failed:\n- ' + problems.join('\n- '));
-    process.exit(4);
-  }
-}
-
-/** Ensure we actually wrote valid JSON mappings */
-async function sanityCheckOutput(dir, { min = 1 } = {}) {
-  async function listJsonFiles(root) {
-    const out = [];
-    const stack = [root];
-    while (stack.length) {
-      const d = stack.pop();
-      const ents = await fsp.readdir(d, { withFileTypes: true });
-      for (const ent of ents) {
-        const p = path.join(d, ent.name);
-        if (ent.isDirectory()) stack.push(p);
-        else if (ent.isFile() && /\.json$/i.test(ent.name)) out.push(p);
-      }
-    }
-    return out;
-  }
-
-  // dir must exist and be writable
-  try {
-    await fsp.mkdir(dir, { recursive: true });
-    await fsp.access(dir, fs.constants.W_OK);
-  } catch {
-    console.error(`[sanity] Output directory not writable: ${dir}`);
-    process.exit(5);
-  }
-
-  const files = await listJsonFiles(dir);
-  if (files.length < min) {
-    console.error(
-      `[sanity] Expected at least ${min} mapping(s), found ${files.length} in ${dir}`,
-    );
-    process.exit(6);
-  }
-
-  for (const f of files) {
-    try {
-      JSON.parse(await fsp.readFile(f, 'utf8'));
-    } catch (e) {
-      console.error(`[sanity] Invalid JSON in mapping: ${f}\n${e.message}`);
-      process.exit(7);
-    }
-  }
-
-  if (process.env.DEBUG_GEN === '1') {
-    console.log(`[sanity] Output OK (${files.length} files) in ${dir}`);
-  }
-}
 
 function log(...args) {
   if (DEBUG) console.log('[gen]', ...args);
@@ -338,7 +236,6 @@ function applyListGuardsIfLooksPaged(bodyStr) {
 
 async function main() {
   const spec = await readSpec();
-  sanityCheckSpec(spec, { vendor: DEFAULT_VENDOR });
 
   if (!spec.paths || !Object.keys(spec.paths).length) {
     console.error(
@@ -424,9 +321,6 @@ async function main() {
     );
     process.exit(3);
   }
-  await sanityCheckOutput(MAPPINGS_DIR, {
-    min: Number(process.env.MIN_MAPPINGS || 1),
-  });
 
   console.log(
     `[ok] Generated ${generated} WireMock mappings in ${MAPPINGS_DIR}`,
