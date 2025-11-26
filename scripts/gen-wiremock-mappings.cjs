@@ -117,7 +117,9 @@ async function readSpecWithDeref() {
   const root = await readFileAsObject(rootPath);
 
   async function deref(node, baseDir) {
-    if (!node || typeof node !== 'object') {return node;}
+    if (!node || typeof node !== 'object') {
+      return node;
+    }
     if (Array.isArray(node)) {
       return Promise.all(node.map((it) => deref(it, baseDir)));
     }
@@ -176,7 +178,9 @@ function pathToUrlMatcher(p) {
   if (/\{[^}]+}/.test(p)) {
     const re = p.replace(/\{([^}]+)}/g, (_, name) => {
       const n = String(name).toLowerCase();
-      if (n.includes('id') || n.includes('uuid')) {return '[0-9a-f-]{36}';}
+      if (n.includes('id') || n.includes('uuid')) {
+        return '[0-9a-f-]{36}';
+      }
       return '[^/]+';
     });
     return { kind: 'urlPathPattern', value: `^${re}$` };
@@ -186,15 +190,23 @@ function pathToUrlMatcher(p) {
 
 // ---------- Content helpers ----------
 function pick2xxResponse(responses) {
-  if (!responses) {return null;}
+  if (!responses) {
+    return null;
+  }
   const pref = ['200', '201', '204'];
-  for (const c of pref) {if (responses[c]) {return [c, responses[c]];}}
+  for (const c of pref) {
+    if (responses[c]) {
+      return [c, responses[c]];
+    }
+  }
   const any2xx = Object.keys(responses).find((c) => /^2\d\d$/.test(c));
   return any2xx ? [any2xx, responses[any2xx]] : null;
 }
 
 function pickJsonMedia(content) {
-  if (!content) {return null;}
+  if (!content) {
+    return null;
+  }
   const keys = Object.keys(content);
   const key =
     keys.find((k) => /\+json$/i.test(k)) ||
@@ -204,7 +216,9 @@ function pickJsonMedia(content) {
 }
 
 function bodyJsonString(objOrTemplate) {
-  if (typeof objOrTemplate === 'string') {return objOrTemplate;}
+  if (typeof objOrTemplate === 'string') {
+    return objOrTemplate;
+  }
   return JSON.stringify(objOrTemplate, null, 2) + '\n';
 }
 
@@ -223,30 +237,40 @@ function houseRuleHeadersForRequest(hasBody) {
 }
 
 function houseRuleResponseHeaders(statusCode) {
-  if (String(statusCode) === '204') {return { Vary: 'Accept' };}
+  if (String(statusCode) === '204') {
+    return { Vary: 'Accept' };
+  }
   return { 'Content-Type': DEFAULT_VENDOR, Vary: 'Accept' };
 }
 
 function buildQueryParameters(parameters = []) {
   const qp = {};
   for (const p of parameters) {
-    if (p.in !== 'query') {continue;}
+    if (p.in !== 'query') {
+      continue;
+    }
     const schema = p.schema || {};
     let matcher = '.*';
-    if (schema.type === 'integer' || schema.type === 'number')
-      {matcher = '^[0-9]+$';}
-    if (schema.format === 'date') {matcher = '^\\d{4}-\\d{2}-\\d{2}$';}
+    if (schema.type === 'integer' || schema.type === 'number') {
+      matcher = '^[0-9]+$';
+    }
+    if (schema.format === 'date') {
+      matcher = '^\\d{4}-\\d{2}-\\d{2}$';
+    }
     qp[p.name] = p.required ? { matches: matcher } : { matches: '.*' };
   }
   return Object.keys(qp).length ? qp : undefined;
 }
 
 async function exampleFromSchemaOrGenerate(media) {
-  if (media.example) {return media.example;}
+  if (media.example) {
+    return media.example;
+  }
   if (media.examples) {
     const firstKey = Object.keys(media.examples)[0];
-    if (firstKey && media.examples[firstKey].value)
-      {return media.examples[firstKey].value;}
+    if (firstKey && media.examples[firstKey].value) {
+      return media.examples[firstKey].value;
+    }
   }
   if (media.schema) {
     try {
@@ -262,19 +286,19 @@ function applyListGuardsIfLooksPaged(bodyStr) {
   let s = bodyStr;
   const guardPage =
     '{{#if request.query.page}}' +
-    '{{#if (matches request.query.page.[0] \'^[0-9]+$\')}}' +
+    "{{#if (matches request.query.page.[0] '^[0-9]+$')}}" +
     '{{request.query.page.[0]}}' +
     '{{else}}0{{/if}}' +
     '{{else}}0{{/if}}';
   const guardSizePrefSize =
     '{{#if request.query.size}}' +
-    '{{#if (matches request.query.size.[0] \'^[0-9]+$\')}}' +
+    "{{#if (matches request.query.size.[0] '^[0-9]+$')}}" +
     '{{request.query.size.[0]}}' +
     '{{else}}100{{/if}}' +
     '{{else}}100{{/if}}';
   const guardPageSizeOrSize =
     '{{#if request.query.pageSize}}' +
-    '{{#if (matches request.query.pageSize.[0] \'^[0-9]+$\')}}' +
+    "{{#if (matches request.query.pageSize.[0] '^[0-9]+$')}}" +
     '{{request.query.pageSize.[0]}}' +
     '{{else}}100{{/if}}' +
     `{{else}}${guardSizePrefSize}{{/if}}`;
@@ -292,18 +316,26 @@ function mkBaseRequest(method, url, hasBody, opParams = []) {
     headers: houseRuleHeadersForRequest(hasBody),
   };
   const qp = buildQueryParameters(opParams || []);
-  if (qp) {req.queryParameters = qp;}
+  if (qp) {
+    req.queryParameters = qp;
+  }
   const bp = hasBody ? undefined : undefined; // (we only add bodyPatterns for success if needed)
-  if (bp) {req.bodyPatterns = bp;}
+  if (bp) {
+    req.bodyPatterns = bp;
+  }
   return req;
 }
 
 // ---------- Optional “guard” emitters (OFF by default) ----------
 async function emit400InvalidQuery(op, dir, m, url, seenPerOp) {
   const key = `${m} ${url.value} 400-guard-query`;
-  if (seenPerOp.has(key)) {return;}
+  if (seenPerOp.has(key)) {
+    return;
+  }
   const qp = buildQueryParameters(op.parameters || []);
-  if (!qp) {return;}
+  if (!qp) {
+    return;
+  }
   // This guard intentionally left out to avoid dupe 400s if spec already lists 400.
   // Only emit if EMIT_GUARD_STUBS.
   const mapping = {
@@ -334,7 +366,9 @@ async function emit400InvalidQuery(op, dir, m, url, seenPerOp) {
 
 async function emit401MissingAuth(op, dir, m, url, seenPerOp) {
   const key = `${m} ${url.value} 401-guard-auth`;
-  if (seenPerOp.has(key)) {return;}
+  if (seenPerOp.has(key)) {
+    return;
+  }
   const mapping = {
     name: `${op.operationId || `${m} ${url.value}`} – 401 (missing auth)`,
     priority: 2,
@@ -363,7 +397,9 @@ async function emit401MissingAuth(op, dir, m, url, seenPerOp) {
 
 async function emit403ForbiddenDebug(op, dir, m, url, seenPerOp) {
   const key = `${m} ${url.value} 403-guard-debug`;
-  if (seenPerOp.has(key)) {return;}
+  if (seenPerOp.has(key)) {
+    return;
+  }
   const baseReq = mkBaseRequest(m, url, !!op.requestBody, op.parameters || []);
   const req = {
     ...baseReq,
@@ -396,7 +432,9 @@ async function emit403ForbiddenDebug(op, dir, m, url, seenPerOp) {
 
 async function emit406WrongAccept(op, dir, m, url, seenPerOp) {
   const key = `${m} ${url.value} 406-guard-accept`;
-  if (seenPerOp.has(key)) {return;}
+  if (seenPerOp.has(key)) {
+    return;
+  }
   const mapping = {
     name: `${op.operationId || `${m} ${url.value}`} – 406 (wrong accept)`,
     priority: 2,
@@ -425,8 +463,12 @@ async function emit406WrongAccept(op, dir, m, url, seenPerOp) {
 
 async function emit400MissingBodyFields(op, dir, m, url, seenPerOp) {
   const key = `${m} ${url.value} 400-guard-body`;
-  if (seenPerOp.has(key)) {return;}
-  if (!op.requestBody) {return;}
+  if (seenPerOp.has(key)) {
+    return;
+  }
+  if (!op.requestBody) {
+    return;
+  }
   const mapping = {
     name: `${
       op.operationId || `${m} ${url.value}`
@@ -469,16 +511,21 @@ async function main() {
 
   // Soft sanity: vendor presence (don’t fail if absent)
   const mediaKeys = new Set();
-  for (const [ops] of Object.entries(spec.paths)) {
+  for (const [, ops] of Object.entries(spec.paths)) {
     for (const [, op] of Object.entries(ops)) {
-      const resp = op?.responses || {};
+      const resp = (op && op.responses) || {};
       for (const r of Object.values(resp)) {
-        if (r?.content) Object.keys(r.content).forEach((k) => mediaKeys.add(k));
+        if (r && r.content) {
+          Object.keys(r.content).forEach((k) => mediaKeys.add(k));
+        }
       }
-      const rb = op?.requestBody?.content || null;
-      if (rb) Object.keys(rb).forEach((k) => mediaKeys.add(k));
+      const rb = op && op.requestBody && op.requestBody.content;
+      if (rb) {
+        Object.keys(rb).forEach((k) => mediaKeys.add(k));
+      }
     }
   }
+
   if (
     ![...mediaKeys].some(
       (k) => k.toLowerCase() === DEFAULT_VENDOR.toLowerCase(),
@@ -500,7 +547,9 @@ async function main() {
   for (const [p, ops] of Object.entries(spec.paths)) {
     for (const [method, op] of Object.entries(ops)) {
       const m = method.toUpperCase();
-      if (!['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].includes(m)) {continue;}
+      if (!['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].includes(m)) {
+        continue;
+      }
 
       const group = toGroup(op || {});
       const url = pathToUrlMatcher(p);
@@ -519,24 +568,33 @@ async function main() {
       );
 
       if (EMIT_GUARD_STUBS) {
-        if (!specErrorCodes.has(400))
-          {await emit400InvalidQuery(op, dir, m, url, seenPerOp);}
-        if (!specErrorCodes.has(400) && hasBody)
-          {await emit400MissingBodyFields(op, dir, m, url, seenPerOp);}
-        if (!specErrorCodes.has(401))
-          {await emit401MissingAuth(op, dir, m, url, seenPerOp);}
-        if (!specErrorCodes.has(403))
-          {await emit403ForbiddenDebug(op, dir, m, url, seenPerOp);}
-        if (!specErrorCodes.has(406))
-          {await emit406WrongAccept(op, dir, m, url, seenPerOp);}
+        if (!specErrorCodes.has(400)) {
+          await emit400InvalidQuery(op, dir, m, url, seenPerOp);
+        }
+        if (!specErrorCodes.has(400) && hasBody) {
+          await emit400MissingBodyFields(op, dir, m, url, seenPerOp);
+        }
+        if (!specErrorCodes.has(401)) {
+          await emit401MissingAuth(op, dir, m, url, seenPerOp);
+        }
+        if (!specErrorCodes.has(403)) {
+          await emit403ForbiddenDebug(op, dir, m, url, seenPerOp);
+        }
+        if (!specErrorCodes.has(406)) {
+          await emit406WrongAccept(op, dir, m, url, seenPerOp);
+        }
       }
 
       // Spec-declared error mappings (one per status per endpoint)
       for (const [codeStr] of Object.entries(op.responses || {})) {
-        if (!/^[45]\d\d$/.test(String(codeStr))) {continue;}
+        if (!/^[45]\d\d$/.test(String(codeStr))) {
+          continue;
+        }
         const code = Number(codeStr);
         const bodyFileName = ERROR_FILE_BY_STATUS[code];
-        if (!bodyFileName) {continue;} // skip codes we don’t have a reusable file for
+        if (!bodyFileName) {
+          continue;
+        } // skip codes we don’t have a reusable file for
 
         // Global de-dupe across the whole run
         const errKey = `${m} ${url.kind}:${url.value} ${code}`;
