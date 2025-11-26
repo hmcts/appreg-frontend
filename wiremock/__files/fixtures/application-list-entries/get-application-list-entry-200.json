@@ -1,0 +1,17 @@
+{
+  "id": "{{request.pathSegments.[3]}}",
+  "listId": "{{request.pathSegments.[1]}}",
+  "standardApplicantCode": "APP001",
+  "applicationCode": "APP99001",
+  "applicant": { "type": "ORGANISATION", "organisationName": "CPS" },
+  "respondent": { "type": "PERSON", "title": "Mr", "firstName": "Alex", "lastName": "Taylor" },
+  "numberOfRespondents": 1,
+  "wordingFields": ["25 October 2025", "London"],
+  "feeStatuses": [],
+  "hasOffsiteFee": false,
+  "caseReference": "CASE-001",
+  "accountNumber": "ACC-001",
+  "notes": "Example entry",
+  "lodgementDate": "2025-12-01",
+  "officials": []
+}

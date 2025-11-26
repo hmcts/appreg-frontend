@@ -1,0 +1,78 @@
+{
+  "id": "5ebf20ff-72aa-4b96-be8b-572101fe2b1c",
+  "listId": "6fa99ec2-24d0-43c9-9ba0-65da707df59d",
+  "standardApplicantCode": "CPS",
+  "applicationCode": "APP-SEARCH-WARRANT",
+  "applicant": {
+    "type": "organisation",
+    "organisation": {
+      "name": "Crown Prosecution Service",
+      "address": {
+        "addressLine1": "1 Justice Street",
+        "addressLine2": null,
+        "addressTown": "Manchester",
+        "addressCounty": null,
+        "postcode": "M1 1AA"
+      },
+      "contactDetails": {
+        "email": "prosecutions@cps.gov.uk",
+        "telephone": "0161 555 0100"
+      }
+    }
+  },
+  "respondent": {
+    "type": "person",
+    "person": {
+      "fullName": {
+        "title": "Mr",
+        "forenames": "John",
+        "surname": "Smith"
+      },
+      "dateOfBirth": "1983-05-19",
+      "contactDetails": {
+        "email": null,
+        "telephone": null
+      },
+      "address": {
+        "addressLine1": "12 Example Road",
+        "addressLine2": null,
+        "addressTown": "Manchester",
+        "addressCounty": null,
+        "postcode": "M2 2BB"
+      }
+    }
+  },
+  "numberOfRespondents": 1,
+  "wordingFields": [
+    {
+      "name": "premises",
+      "value": "Flat 2, 40 Deansgate"
+    },
+    {
+      "name": "offence",
+      "value": "Theft Act 1968"
+    }
+  ],
+  "feeStatuses": [
+    {
+      "code": "PAID",
+      "description": "Fee paid",
+      "amount": 21.00
+    }
+  ],
+  "hasOffsiteFee": false,
+  "caseReference": "CRN-2025-000123",
+  "accountNumber": "ACC000146",
+  "notes": "Updated by fixture.",
+  "lodgementDate": "2025-06-27",
+  "officials": [
+    {
+      "type": "MAGISTRATE",
+      "name": "J. Williams"
+    },
+    {
+      "type": "LEGAL_ADVISER",
+      "name": "S. Patel"
+    }
+  ]
+}

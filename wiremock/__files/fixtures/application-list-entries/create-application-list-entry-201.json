@@ -1,0 +1,17 @@
+{
+  "id": "11111111-2222-3333-4444-555555555555",
+  "listId": "9b8b4b6e-9d1a-4a6a-9a36-111111111111",
+  "standardApplicantCode": "STD-APPL",
+  "applicationCode": "APP001",
+  "applicant": { "type": "organisation", "name": "CPS" },
+  "respondent": { "type": "person", "fullName": "John Smith", "postCode": "M1 1AA" },
+  "numberOfRespondents": 1,
+  "wordingFields": [],
+  "feeStatuses": [],
+  "hasOffsiteFee": false,
+  "caseReference": null,
+  "accountNumber": null,
+  "notes": null,
+  "lodgementDate": "2025-01-01",
+  "officials": []
+}
