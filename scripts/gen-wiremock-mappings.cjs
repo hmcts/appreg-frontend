@@ -2,38 +2,48 @@
 'use strict';
 
 /**
- * Generate WireMock mappings from an OpenAPI spec.
+ * Generate WireMock mappings from an OpenAPI spec, including error stubs.
  *
- * - Looks for SPEC_PATH (env) or tools/openapi/vendor/openapi/openapi.(yaml|yml|json)
- * - If not found, falls back to the first *.yaml|*.yml|*.json in that folder
- * - Emits files under ./mappings/<firstTag|misc>/
- * - Adds Accept/Authorization/Content-Type guards
- * - Adds pagination guards (page / size / pageNumber / pageSize) so NaN/missing becomes 0/100
+ * - Finds SPEC_PATH (env) or falls back to tools/openapi/vendor/openapi/openapi.(yaml|yml|json)
+ * - Emits files under MAPPINGS_DIR/<firstTag|misc>/
+ * - Success stubs: priority 5
+ * - Error stubs:   priority 2  (win before success)
+ *   • 400 invalid query values (number/date/enum)
+ *   • 400 missing required body fields
+ *   • 406 wrong Accept
+ *   • 401 missing/invalid Authorization
+ *   • 403 forbidden (debug token pattern)
+ *   • 404/409/500 debug toggles (X-Debug-Not-Found / -Conflict / -Error)
+ * - Paged list bodies get guards so page/size NaN → sensible defaults
  *
- * Env:
- *   SPEC_PATH=tools/openapi/vendor/openapi/openapi.yaml  # optional explicit override
- *   SPEC_DIR=tools/openapi/vendor/openapi                # folder to search if SPEC_PATH is not set
- *   MAPPINGS_DIR=mappings                                # output dir (default: mappings)
- *   VENDOR_ACCEPT=application/vnd.hmcts.appreg.v1+json   # default response + Accept matcher
- *   STUB_DELAY_MS=100                                    # optional fixed delay
- *   DEBUG_GEN=1                                          # extra logging
+ * Env (all optional — you can hardcode below if preferred):
+ *   SPEC_PATH=tools/openapi/vendor/openapi/openapi.yaml
+ *   SPEC_DIR=tools/openapi/vendor/openapi
+ *   MAPPINGS_DIR=wiremock/mappings
+ *   VENDOR_ACCEPT=application/vnd.hmcts.appreg.v1+json   # Accept + response Content-Type
+ *   STUB_DELAY_MS=0
+ *   DEBUG_GEN=0
  */
 
 const fs = require('node:fs');
 const fsp = require('node:fs/promises');
 const path = require('node:path');
+const YAML = require('yaml');
 const Ajv = require('ajv');
 const jsf = require('json-schema-faker');
-const $RefParser = require('@apidevtools/json-schema-ref-parser');
+const { promisify } = require('node:util');
 
-const SPEC_PATH = 'tools/openapi/vendor/openapi/openapi.yaml';
-const SPEC_DIR = 'tools/openapi/vendor/openapi';
-const MAPPINGS_DIR = 'wiremock/mappings';
-const DEFAULT_VENDOR = 'application/vnd.hmcts.appreg.v1+json';
-const STUB_DELAY_MS = Number.parseInt('0', 10);
-const DEBUG = false;
+// ---------- Config (env with sensible fallbacks)
+const SPEC_PATH =
+  process.env.SPEC_PATH || 'tools/openapi/vendor/openapi/openapi.yaml';
+const SPEC_DIR = process.env.SPEC_DIR || 'tools/openapi/vendor/openapi';
+const MAPPINGS_DIR = process.env.MAPPINGS_DIR || 'wiremock/mappings';
+const DEFAULT_VENDOR =
+  process.env.VENDOR_ACCEPT || 'application/vnd.hmcts.appreg.v1+json';
+const STUB_DELAY_MS = Number.parseInt(process.env.STUB_DELAY_MS || '0', 10);
+const DEBUG = /^(1|true|yes)$/i.test(process.env.DEBUG_GEN || '0');
 
-// JSON Schema Faker setup
+// ---------- JSON Schema Faker setup
 const ajv = new Ajv({ strict: false, allowUnionTypes: true });
 jsf.option({
   alwaysFakeOptionals: true,
@@ -43,6 +53,7 @@ jsf.option({
 jsf.option({ minItems: 1, maxItems: 3 });
 jsf.extend('ajv', () => ajv);
 
+// ---------- Utils
 function log(...args) {
   if (DEBUG) console.log('[gen]', ...args);
 }
@@ -62,33 +73,59 @@ async function findSpecPath() {
     if (!(await fileExists(p))) throw new Error(`SPEC_PATH not found: ${p}`);
     return p;
   }
-
   const dir = path.resolve(SPEC_DIR);
   const entries = await fsp.readdir(dir);
-  // prefer openapi.*
   let chosen = entries.find((f) => /^openapi\.(ya?ml|json)$/i.test(f));
-  if (!chosen) {
-    // fallback: first .yaml/.yml/.json
-    chosen = entries.find((f) => /\.(ya?ml|json)$/i.test(f));
-  }
+  if (!chosen) chosen = entries.find((f) => /\.(ya?ml|json)$/i.test(f));
   if (!chosen) throw new Error(`No spec files found in ${dir}`);
   return path.join(dir, chosen);
 }
 
-async function readSpec() {
-  const p = await findSpecPath();
-  const abs = path.resolve(p);
-  try {
-    const deref = await $RefParser.dereference(abs, {
-      dereference: { circular: 'ignore' },
-    });
-    if (!deref || typeof deref !== 'object') {
-      throw new Error('Parsed spec empty');
-    }
-    return deref;
-  } catch (e) {
-    throw new Error(`Failed to load/deref spec (${abs}): ${e.message}`);
+async function readSpecWithDeref() {
+  const specPath = await findSpecPath();
+  const raw = await fsp.readFile(specPath, 'utf8');
+  const baseDir = path.dirname(specPath);
+  const spec = /\.ya?ml$/i.test(specPath) ? YAML.parse(raw) : JSON.parse(raw);
+  return await derefExternalRefs(spec, baseDir);
+}
+
+async function derefExternalRefs(node, baseDir, seen = new Map()) {
+  if (!node || typeof node !== 'object') return node;
+
+  // If this node is *just* a $ref, and it's a file path (not a '#/...' pointer)
+  if (
+    node.$ref &&
+    typeof node.$ref === 'string' &&
+    !node.$ref.startsWith('#')
+  ) {
+    const refPath = path.resolve(baseDir, node.$ref);
+    if (seen.has(refPath)) return seen.get(refPath); // avoid cycles
+
+    const raw = await fsp.readFile(refPath, 'utf8');
+    const parsed = refPath.endsWith('.json')
+      ? JSON.parse(raw)
+      : YAML.parse(raw);
+    // Remember before diving deeper (break self-cycles)
+    seen.set(refPath, parsed);
+    return await derefExternalRefs(
+      parsed,
+      path.dirname(refPath),
+      seen,
+    );
   }
+
+  // Otherwise walk children
+  if (Array.isArray(node)) {
+    const arr = [];
+    for (const v of node) arr.push(await derefExternalRefs(v, baseDir, seen));
+    return arr;
+  }
+
+  const out = {};
+  for (const [k, v] of Object.entries(node)) {
+    out[k] = await derefExternalRefs(v, baseDir, seen);
+  }
+  return out;
 }
 
 function toGroup(op) {
@@ -124,7 +161,7 @@ function pick2xxResponse(responses) {
 function pickJsonMedia(content) {
   if (!content) return null;
   const keys = Object.keys(content);
-  let key =
+  const key =
     keys.find((k) => /\+json$/i.test(k)) ||
     keys.find((k) => /^application\/json$/i.test(k)) ||
     keys.find((k) => /\/json$/i.test(k) || /json/i.test(k));
@@ -140,18 +177,23 @@ function ensureDir(p) {
   return fsp.mkdir(p, { recursive: true });
 }
 
-function houseRuleHeadersForRequest(hasBody) {
-  const headers = {
-    Accept: { contains: DEFAULT_VENDOR },
-    Authorization: { matches: 'Bearer .+' },
+function vendorAcceptMatcher() {
+  return { contains: DEFAULT_VENDOR };
+}
+
+function authRequiredMatcher() {
+  return { matches: 'Bearer .+' };
+}
+
+function contentTypeJsonMatcher() {
+  return {
+    matches:
+      '(application/vnd\\.hmcts\\.appreg\\.v\\d+\\+json|application/json|application/.+\\+json)',
   };
-  if (hasBody) {
-    headers['Content-Type'] = {
-      matches:
-        '(application/vnd\\.hmcts\\.appreg\\.v[0-9]+\\+json|application/json|application/.+\\+json)',
-    };
-  }
-  return headers;
+}
+
+function mkProblemHeaders() {
+  return { 'Content-Type': 'application/problem+json' };
 }
 
 function houseRuleResponseHeaders(statusCode) {
@@ -159,18 +201,25 @@ function houseRuleResponseHeaders(statusCode) {
   return { 'Content-Type': DEFAULT_VENDOR, Vary: 'Accept' };
 }
 
-function buildQueryParameters(parameters = []) {
-  const qp = {};
-  for (const p of parameters) {
-    if (p.in !== 'query') continue;
-    const schema = p.schema || {};
-    let matcher = '.+';
-    if (schema.type === 'integer' || schema.type === 'number')
-      matcher = '^[0-9]+$';
-    if (schema.format === 'date') matcher = '^\\d{4}-\\d{2}-\\d{2}$';
-    qp[p.name] = p.required ? { matches: matcher } : { matches: '.*' };
-  }
-  return Object.keys(qp).length ? qp : undefined;
+function mkBaseRequest(m, url, hasBody) {
+  const req = {
+    method: m,
+    [url.kind]: url.value,
+    headers: {
+      Accept: vendorAcceptMatcher(),
+      Authorization: authRequiredMatcher(),
+    },
+  };
+  if (hasBody) req.headers['Content-Type'] = contentTypeJsonMatcher();
+  return req;
+}
+
+function writeStubFile(dir, name, mapping) {
+  return fsp.writeFile(
+    path.join(dir, name),
+    JSON.stringify(mapping, null, 2) + '\n',
+    'utf8',
+  );
 }
 
 function buildBodyPatterns(requestBody) {
@@ -202,6 +251,7 @@ async function exampleFromSchemaOrGenerate(media) {
   return {};
 }
 
+// Replace simple numeric/date paging fields with guarded templating so NaN -> defaults
 function applyListGuardsIfLooksPaged(bodyStr) {
   let s = bodyStr;
 
@@ -234,8 +284,219 @@ function applyListGuardsIfLooksPaged(bodyStr) {
   return s;
 }
 
+// ---------- Error stub builders
+
+function invalidRegexForParam(p) {
+  const sch = p.schema || {};
+  if (sch.type === 'integer' || sch.type === 'number') return '^(?![0-9]+$).*';
+  if (sch.format === 'date') return '^(?!\\d{4}-\\d{2}-\\d{2}$).*';
+  if (sch.type === 'string' && Array.isArray(sch.enum) && sch.enum.length) {
+    const safe = sch.enum
+      .map((v) => String(v).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+      .join('|');
+    return `^(?!(${safe})$).*`; // not in enum
+  }
+  return null;
+}
+
+async function emit400InvalidQuery(op, groupDir, m, url) {
+  const params = (op.parameters || []).filter((p) => p.in === 'query');
+  const invalidables = params
+    .map((p) => ({ p, re: invalidRegexForParam(p) }))
+    .filter((x) => x.re);
+
+  const tasks = invalidables.map(({ p, re }) => {
+    const req = mkBaseRequest(m, url, !!op.requestBody);
+    req.queryParameters = { [p.name]: { matches: re } };
+
+    const body =
+      `{ "type":"about:blank","title":"Bad Request","status":400,` +
+      `"detail":"Query parameter '${p.name}' is invalid.","path":"{{request.path}}","timestamp":"{{now format='yyyy-MM-dd'T'HH:mm:ssXXX'}}","traceId":"{{randomValue length=12 type='ALPHANUMERIC'}}" }`;
+    const mapping = {
+      name: `${op.operationId || `${m} ${url.value}`} – 400 invalid ${p.name}`,
+      priority: 2,
+      request: req,
+      response: {
+        status: 400,
+        headers: mkProblemHeaders(),
+        transformers: ['response-template'],
+        body,
+      },
+    };
+    const fname = `${(
+      op.operationId || `${m}_${slugPath(url.value)}`
+    ).toLowerCase()}-400-${p.name}.json`;
+    return writeStubFile(groupDir, fname, mapping);
+  });
+
+  await Promise.all(tasks);
+}
+
+function requiredBodyFields(op) {
+  const content = op.requestBody?.content || null;
+  if (!content) return [];
+  const [, media] = pickJsonMedia(content) || [];
+  const schema = media?.schema || {};
+  return Array.isArray(schema.required) ? schema.required : [];
+}
+
+async function emit400MissingBodyFields(op, groupDir, m, url) {
+  const fields = requiredBodyFields(op);
+  const tasks = fields.map((field) => {
+    const req = mkBaseRequest(m, url, true);
+    req.bodyPatterns = [{ not: { matchesJsonPath: `$.${field}` } }];
+
+    const body =
+      `{ "type":"about:blank","title":"Bad Request","status":400,` +
+      `"detail":"Missing required field: ${field}","path":"{{request.path}}","timestamp":"{{now format='yyyy-MM-dd'T'HH:mm:ssXXX'}}","traceId":"{{randomValue length=12 type='ALPHANUMERIC'}}" }`;
+    const mapping = {
+      name: `${op.operationId || `${m} ${url.value}`} – 400 missing ${field}`,
+      priority: 2,
+      request: req,
+      response: {
+        status: 400,
+        headers: mkProblemHeaders(),
+        transformers: ['response-template'],
+        body,
+      },
+    };
+    const fname = `${(
+      op.operationId || `${m}_${slugPath(url.value)}`
+    ).toLowerCase()}-400-missing-${field}.json`;
+    return writeStubFile(groupDir, fname, mapping);
+  });
+
+  await Promise.all(tasks);
+}
+
+async function emit406WrongAccept(op, groupDir, m, url) {
+  const req = {
+    method: m,
+    [url.kind]: url.value,
+    headers: { Accept: { doesNotContain: DEFAULT_VENDOR } },
+  };
+  const body =
+    `{ "type":"about:blank","title":"Not Acceptable","status":406,` +
+    `"detail":"Set Accept: ${DEFAULT_VENDOR}.","path":"{{request.path}}","timestamp":"{{now format='yyyy-MM-dd'T'HH:mm:ssXXX'}}","traceId":"{{randomValue length=12 type='ALPHANUMERIC'}}" }`;
+  const mapping = {
+    name: `${op.operationId || `${m} ${url.value}`} – 406`,
+    priority: 2,
+    request: req,
+    response: {
+      status: 406,
+      headers: mkProblemHeaders(),
+      transformers: ['response-template'],
+      body,
+    },
+  };
+  const fname = `${(
+    op.operationId || `${m}_${slugPath(url.value)}`
+  ).toLowerCase()}-406.json`;
+  await writeStubFile(groupDir, fname, mapping);
+}
+
+async function emit401MissingAuth(op, groupDir, m, url) {
+  const req = {
+    method: m,
+    [url.kind]: url.value,
+    headers: { Authorization: { absent: true } },
+  };
+  const body =
+    `{ "type":"about:blank","title":"Unauthorized","status":401,` +
+    `"detail":"Missing or invalid Authorization header.","path":"{{request.path}}","timestamp":"{{now format='yyyy-MM-dd'T'HH:mm:ssXXX'}}","traceId":"{{randomValue length=12 type='ALPHANUMERIC'}}" }`;
+  const mapping = {
+    name: `${op.operationId || `${m} ${url.value}`} – 401`,
+    priority: 2,
+    request: req,
+    response: {
+      status: 401,
+      headers: mkProblemHeaders(),
+      transformers: ['response-template'],
+      body,
+    },
+  };
+  const fname = `${(
+    op.operationId || `${m}_${slugPath(url.value)}`
+  ).toLowerCase()}-401.json`;
+  await writeStubFile(groupDir, fname, mapping);
+}
+
+async function emit403ForbiddenDebug(op, groupDir, m, url) {
+  const req = {
+    method: m,
+    [url.kind]: url.value,
+    headers: { Authorization: { matches: 'Bearer forbidden.*' } },
+  };
+  const body =
+    `{ "type":"about:blank","title":"Forbidden","status":403,` +
+    `"detail":"Access denied.","path":"{{request.path}}","timestamp":"{{now format='yyyy-MM-dd'T'HH:mm:ssXXX'}}","traceId":"{{randomValue length=12 type='ALPHANUMERIC'}}" }`;
+  const mapping = {
+    name: `${op.operationId || `${m} ${url.value}`} – 403`,
+    priority: 2,
+    request: req,
+    response: {
+      status: 403,
+      headers: mkProblemHeaders(),
+      transformers: ['response-template'],
+      body,
+    },
+  };
+  const fname = `${(
+    op.operationId || `${m}_${slugPath(url.value)}`
+  ).toLowerCase()}-403.json`;
+  await writeStubFile(groupDir, fname, mapping);
+}
+
+async function emitDebugToggles(op, groupDir, m, url) {
+  const base = mkBaseRequest(m, url, !!op.requestBody);
+
+  const make = (hdrName, status, title, detail) => {
+    const req = JSON.parse(JSON.stringify(base));
+    req.headers[hdrName] = { equalTo: 'true' };
+    const mapping = {
+      name: `${op.operationId || `${m} ${url.value}`} – ${status} debug`,
+      priority: 2,
+      request: req,
+      response: {
+        status,
+        headers: mkProblemHeaders(),
+        transformers: ['response-template'],
+        body:
+          `{ "type":"about:blank","title":"${title}","status":${status},` +
+          `"detail":"${detail}","path":"{{request.path}}","timestamp":"{{now format='yyyy-MM-dd'T'HH:mm:ssXXX'}}","traceId":"{{randomValue length=12 type='ALPHANUMERIC'}}" }`,
+      },
+    };
+    const fname = `${(
+      op.operationId || `${m}_${slugPath(url.value)}`
+    ).toLowerCase()}-${status}-debug.json`;
+    return writeStubFile(groupDir, fname, mapping);
+  };
+
+  await Promise.all([
+    make(
+      'X-Debug-Not-Found',
+      404,
+      'Not Found',
+      'Simulated not found (debug toggle).',
+    ),
+    make(
+      'X-Debug-Conflict',
+      409,
+      'Conflict',
+      'Simulated conflict (debug toggle).',
+    ),
+    make(
+      'X-Debug-Error',
+      500,
+      'Internal Server Error',
+      'Simulated server error (debug toggle).',
+    ),
+  ]);
+}
+
+// ---------- Main
 async function main() {
-  const spec = await readSpec();
+  const spec = await readSpecWithDeref();
 
   if (!spec.paths || !Object.keys(spec.paths).length) {
     console.error(
@@ -243,11 +504,34 @@ async function main() {
     );
     process.exit(2);
   }
-  log('paths:', Object.keys(spec.paths).length);
+
+  // Soft sanity: warn if DEFAULT_VENDOR isn’t present in any content types (don’t fail)
+  const mediaKeys = new Set();
+  for (const [p, ops] of Object.entries(spec.paths)) {
+    for (const [, op] of Object.entries(ops)) {
+      const resp = op?.responses || {};
+      for (const r of Object.values(resp)) {
+        if (r?.content) Object.keys(r.content).forEach((k) => mediaKeys.add(k));
+      }
+      const rb = op?.requestBody?.content || null;
+      if (rb) Object.keys(rb).forEach((k) => mediaKeys.add(k));
+    }
+  }
+  if (
+    ![...mediaKeys].some(
+      (k) => k.toLowerCase() === DEFAULT_VENDOR.toLowerCase(),
+    )
+  ) {
+    console.warn(
+      '[sanity] Vendor media type not found in spec content types. Using it anyway for Accept/response.',
+    );
+  }
 
   await ensureDir(MAPPINGS_DIR);
 
   let generated = 0;
+  let generatedErrors = 0;
+
   for (const [p, ops] of Object.entries(spec.paths)) {
     for (const [method, op] of Object.entries(ops)) {
       const m = method.toUpperCase();
@@ -256,18 +540,28 @@ async function main() {
       const group = toGroup(op || {});
       const url = pathToUrlMatcher(p);
       const hasBody = !!op.requestBody;
-      const headers = houseRuleHeadersForRequest(hasBody);
-      const queryParameters = buildQueryParameters(op.parameters || []);
-      const bodyPatterns = buildBodyPatterns(op.requestBody);
+      const dir = path.join(MAPPINGS_DIR, group);
+      await ensureDir(dir);
 
+      // ---- Error stubs (priority 2)
+      await emit400InvalidQuery(op, dir, m, url);
+      if (hasBody) await emit400MissingBodyFields(op, dir, m, url);
+      await emit406WrongAccept(op, dir, m, url);
+      await emit401MissingAuth(op, dir, m, url);
+      await emit403ForbiddenDebug(op, dir, m, url);
+      await emitDebugToggles(op, dir, m, url);
+
+      // Count roughly (not exact file count, but close enough for summary)
+      generatedErrors += 1;
+
+      // ---- Success (2xx) stub (priority 5)
       const picked = pick2xxResponse(op.responses);
       if (!picked) {
         log(`skip ${m} ${p} (no 2xx response)`);
         continue;
       }
       const [statusCode, resp] = picked;
-
-      const responseHeaders = houseRuleResponseHeaders(statusCode);
+      const headers = houseRuleResponseHeaders(statusCode);
 
       let responseBodyStr = '';
       if (String(statusCode) !== '204') {
@@ -277,28 +571,19 @@ async function main() {
         responseBodyStr = applyListGuardsIfLooksPaged(bodyJsonString(example));
       }
 
-      const name = (op.operationId || `${m} ${p}`).replace(/\s+/g, ' ');
-      const mapping = {
-        name,
+      const successMapping = {
+        name: (op.operationId || `${m} ${p}`).replace(/\s+/g, ' '),
         priority: 5,
-        request: {
-          method: m,
-          [url.kind]: url.value,
-          headers,
-        },
+        request: mkBaseRequest(m, url, hasBody),
         response: {
           status: Number(statusCode),
-          headers: responseHeaders,
+          headers,
           transformers: ['response-template'],
           ...(STUB_DELAY_MS ? { fixedDelayMilliseconds: STUB_DELAY_MS } : {}),
           ...(String(statusCode) === '204' ? {} : { body: responseBodyStr }),
         },
       };
-      if (queryParameters) mapping.request.queryParameters = queryParameters;
-      if (bodyPatterns) mapping.request.bodyPatterns = bodyPatterns;
 
-      const dir = path.join(MAPPINGS_DIR, group);
-      await ensureDir(dir);
       const file = path.join(
         dir,
         `${(
@@ -307,7 +592,7 @@ async function main() {
       );
       await fsp.writeFile(
         file,
-        JSON.stringify(mapping, null, 2) + '\n',
+        JSON.stringify(successMapping, null, 2) + '\n',
         'utf8',
       );
       generated++;
@@ -323,7 +608,7 @@ async function main() {
   }
 
   console.log(
-    `[ok] Generated ${generated} WireMock mappings in ${MAPPINGS_DIR}`,
+    `[ok] Generated ${generated} success mappings (+ error guards per op) into ${MAPPINGS_DIR}`,
   );
 }
 
