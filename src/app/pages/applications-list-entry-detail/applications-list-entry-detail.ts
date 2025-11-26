@@ -30,14 +30,6 @@ import {
   StandardApplicantGetSummaryDto,
   StandardApplicantsApi,
   UpdateApplicationListEntryRequestParams,
-  Applicant,
-  ContactDetails,
-  EntryGetDetailDto,
-  FullName,
-  Organisation,
-  Person,
-  StandardApplicantGetSummaryDto,
-  StandardApplicantsApi,
 } from '../../../generated/openapi';
 import { AccordionComponent } from '../../shared/components/accordion/accordion.component';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
@@ -190,8 +182,6 @@ export class ApplicationsListEntryDetail implements OnInit {
     mobileNumber: '',
     emailAddress: '',
   };
-
-  private readonly destroyRef = inject(DestroyRef);
 
   constructor(
     @Inject(PLATFORM_ID) private readonly platformId: object,
