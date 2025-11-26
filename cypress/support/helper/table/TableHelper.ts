@@ -1,3 +1,4 @@
+/// <reference types="cypress" />
 import { TableElement } from '../../pageobjects/generic/table/TableElement';
 
 /**
@@ -49,7 +50,7 @@ export class TableHelper {
             }
             return cy.wrap(allValues);
           });
-        },
+        }
       );
     }
 
@@ -129,12 +130,18 @@ export class TableHelper {
     caption: string,
     columnValues: Record<string, string>,
     searchAllPages: boolean,
+    onMatch?: (row: JQuery<HTMLElement>) => Cypress.Chainable<void>,
   ): Cypress.Chainable<boolean> {
-    return this.searchInCurrentPage(caption, columnValues).then((found) => {
+    return this.searchInCurrentPage(caption, columnValues, onMatch).then((found) => {
       if (found) {
         return cy.wrap(true);
       }
-      return this.navigateToNextPage(caption, columnValues, searchAllPages);
+      return this.navigateToNextPage(
+        caption,
+        columnValues,
+        searchAllPages,
+        onMatch,
+      );
     });
   }
 
@@ -145,10 +152,16 @@ export class TableHelper {
   private static searchInCurrentPage(
     caption: string,
     columnValues: Record<string, string>,
+    onMatch?: (row: JQuery<HTMLElement>) => Cypress.Chainable<void>,
   ): Cypress.Chainable<boolean> {
     return TableElement.getTableHeaders(caption).then(($headers) => {
       const columnIndexMap = this.buildColumnIndexMap($headers);
-      return this.searchRowsInTable(caption, columnValues, columnIndexMap);
+      return this.searchRowsInTable(
+        caption,
+        columnValues,
+        columnIndexMap,
+        onMatch,
+      );
     });
   }
 
@@ -175,9 +188,11 @@ export class TableHelper {
     caption: string,
     columnValues: Record<string, string>,
     columnIndexMap: Record<string, number>,
+    onMatch?: (row: JQuery<HTMLElement>) => Cypress.Chainable<void>,
   ): Cypress.Chainable<boolean> {
     return TableElement.getTableRows(caption).then(($rows) => {
-      let found = false;
+      let matchedRow: JQuery<HTMLElement> | null = null;
+
       $rows.each((_rowIndex: number, row: HTMLElement) => {
         if (
           this.rowMatchesValues(
@@ -187,11 +202,19 @@ export class TableHelper {
             caption,
           )
         ) {
-          found = true;
+          matchedRow = Cypress.$(row);
           return false; // break the loop
         }
       });
-      return cy.wrap(found);
+
+      if (matchedRow && onMatch) {
+        return cy
+          .wrap(null)
+          .then(() => onMatch(matchedRow as JQuery<HTMLElement>))
+          .then(() => true);
+      }
+
+      return cy.wrap(Boolean(matchedRow));
     });
   }
 
@@ -247,6 +270,7 @@ export class TableHelper {
     caption: string,
     columnValues: Record<string, string>,
     searchAllPages: boolean,
+    onMatch?: (row: JQuery<HTMLElement>) => Cypress.Chainable<void>,
   ): Cypress.Chainable<boolean> {
     return cy.get('body').then(($body) => {
       const $nextButton = this.findNextPageButton($body);
@@ -257,7 +281,12 @@ export class TableHelper {
         cy.log('Row not found on current page, checking next page...');
         cy.wrap($nextButton.first()).click();
         cy.wait(500); // Wait for page to load
-        return this.searchWithPagination(caption, columnValues, searchAllPages);
+        return this.searchWithPagination(
+          caption,
+          columnValues,
+          searchAllPages,
+          onMatch,
+        );
       }
       return cy.wrap(false);
     });
@@ -429,5 +458,38 @@ export class TableHelper {
         });
     }
     return checkPage();
+  }
+
+  /**
+   * Selects an option from a menu button within a specific table row identified by column values
+   * @param tableCaption The caption text of the table
+   * @param columnValues Object with column names and expected values to identify the row
+   * @param menuButtonText The menu button text to click
+   */
+static clickMenuButtonInTableRow(
+    tableCaption: string,
+    columnValues: Record<string, string>,
+    menuButtonText: string,
+    selectButtonText: string,
+  ): Cypress.Chainable<void> {
+    let clicked = false;
+    return (TableHelper.searchWithPagination(
+      tableCaption,
+      columnValues,
+      true,
+      (row) => {
+        clicked = true;
+        TableElement.clickButtonInRow(row, selectButtonText);
+        TableElement.clickMenuButtonInRow(row, menuButtonText);
+        return cy.then(() => {}) as Cypress.Chainable<void>;
+      },
+    ).then((found) => {
+      if (found && clicked) {
+        return;
+      }
+      throw new Error(
+        `Row with specified values not found in table "${tableCaption}" to select menu button "${menuButtonText}"`,
+      );
+    }) as unknown) as Cypress.Chainable<void>;
   }
 }

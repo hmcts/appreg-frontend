@@ -22,11 +22,4 @@ export class ButtonHelper {
   static isButtonDisabled(buttonText: string): Cypress.Chainable {
     return ButtonElement.findButton(buttonText).should('be.disabled');
   }
-
-  static clickButtonInTableRow(
-    buttonText: string,
-    rowData: { [key: string]: string },
-  ): void {
-    ButtonElement.findButtonInTableRow(buttonText, rowData).click();
-  }
 }
