@@ -262,7 +262,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.successBanner = null;
     this.clearErrors();
 
-    const entryId = this.getEntryId();
+    const entryId = getEntryId(this.route);
     if (!this.appListId || !entryId) {
       return;
     }
