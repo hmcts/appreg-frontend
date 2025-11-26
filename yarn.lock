@@ -635,6 +635,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@apidevtools/json-schema-ref-parser@npm:^15.1.2":
+  version: 15.1.2
+  resolution: "@apidevtools/json-schema-ref-parser@npm:15.1.2"
+  dependencies:
+    js-yaml: "npm:^4.1.1"
+  peerDependencies:
+    "@types/json-schema": ^7.0.15
+  checksum: 10/e40a963217b9dfc75e252c9ecc370b159703e71611323b41c0085d18f61ba9e9dbe8a8135f25a44a92766b6fa8b967bc34193b7289bf7b95562bc50b80a71fe2
+  languageName: node
+  linkType: hard
+
 "@asamuzakjp/css-color@npm:^3.2.0":
   version: 3.2.0
   resolution: "@asamuzakjp/css-color@npm:3.2.0"
@@ -6362,6 +6373,7 @@ __metadata:
     "@angular/platform-server": "npm:^20.3.0"
     "@angular/router": "npm:^20.3.0"
     "@angular/ssr": "npm:^20.3.1"
+    "@apidevtools/json-schema-ref-parser": "npm:^15.1.2"
     "@azure/msal-node": "npm:^3.7.1"
     "@badeball/cypress-cucumber-preprocessor": "npm:^23.0.0"
     "@bahmutov/cypress-esbuild-preprocessor": "npm:^2.2.5"
