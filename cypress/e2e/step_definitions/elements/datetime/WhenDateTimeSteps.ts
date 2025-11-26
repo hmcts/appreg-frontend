@@ -5,14 +5,18 @@ import { DateTimeHelper } from '../../../../support/helper/forms/datetime/DateTi
 When(
   'User Set Date Field {string} To {string}',
   (fieldLabel: string, dateValue: string) => {
-    DateTimeHelper.setDateValue(fieldLabel, dateValue);
+    if (dateValue && dateValue.trim() !== '' && dateValue !== '*SKIP*') {
+      DateTimeHelper.setDateValue(fieldLabel, dateValue);
+    }
   },
 );
 
 When(
   'User Set Time Field {string} To {string}',
   (fieldLabel: string, timeValue: string) => {
-    DateTimeHelper.setTimeValue(fieldLabel, timeValue);
+    if (timeValue && timeValue.trim() !== '' && timeValue !== '*SKIP*') {
+      DateTimeHelper.setTimeValue(fieldLabel, timeValue);
+    }
   },
 );
 
