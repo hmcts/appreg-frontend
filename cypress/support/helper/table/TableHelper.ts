@@ -456,7 +456,7 @@ export class TableHelper {
           if (hasNext) {
             return checkPage();
           }
-          return cy.then(() => { });
+          return cy.then(() => {});
         });
     }
     return checkPage();
@@ -496,7 +496,7 @@ export class TableHelper {
             TableHelper.clickButton(menuButton);
           },
         );
-        return cy.then(() => { }) as Cypress.Chainable<void>;
+        return cy.then(() => {}) as Cypress.Chainable<void>;
       },
     ).then((found) => {
       if (found && clicked) {
@@ -534,7 +534,7 @@ export class TableHelper {
         });
         cy.screenshot('menu-buttons-verified');
         verified = true;
-        return cy.then(() => { }) as Cypress.Chainable<void>;
+        return cy.then(() => {}) as Cypress.Chainable<void>;
       },
     ).then((found) => {
       if (found && verified) {
