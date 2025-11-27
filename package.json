@@ -28,12 +28,16 @@
     "test:coverage": "jest --coverage",
     "test:routes": "jest -c jest.routes.config.js",
     "test:a11y": "jest --detectOpenHandles --forceExit -c jest.a11y.config.js --maxWorkers 15",
-    "test:smoke": "NODE_TLS_REJECT_UNAUTHORIZED=0 jest -c jest.smoke.config.js",
-    "test:functional": "NODE_TLS_REJECT_UNAUTHORIZED=0 cypress run --spec 'cypress/e2e/features/smoke/**/*.feature'; node cypress/scripts/generate-reports.js; mkdir -p functional-output && cp -r cypress/reports/* functional-output/ || true",
+    "test:smoke": "jest -c jest.smoke.config.js",
+    "test:functional": "cypress run --spec 'cypress/e2e/features/smoke/**/*.feature'; node cypress/scripts/generate-reports.js; mkdir -p functional-output && cp -r cypress/reports/* functional-output/ || true",
+    "test:nightly": "cypress run --browser chrome || CODE=$? ; node cypress/scripts/generate-reports.js ; mkdir -p functional-output && cp -r cypress/reports/* functional-output/ ; exit ${CODE:-0}",
+    "test:nightly:smoke": "CYPRESS_TAGS=@smoke cypress run --browser chrome || CODE=$? ; node cypress/scripts/generate-reports.js ; mkdir -p functional-output/smoke && cp -r cypress/reports/* functional-output/smoke/ ; exit ${CODE:-0}",
+    "test:nightly:regression": "CYPRESS_TAGS=@regression cypress run --browser chrome || CODE=$? ; node cypress/scripts/generate-reports.js ; mkdir -p functional-output/regression && cp -r cypress/reports/* functional-output/regression/ ; exit ${CODE:-0}",
+    "test:nightly:combine": "mkdir -p functional-output/combined && jrm functional-output/combined/test-result.xml \"functional-output/smoke/junit/*.xml\" \"functional-output/regression/junit/*.xml\"",
     "cichecks": "yarn api:all && yarn build && yarn lint && yarn test && yarn test:routes && yarn test:a11y",
     "prepare": "husky install",
     "cypress:open": "cypress open",
-    "cypress:run": "cypress run; node cypress/scripts/generate-cucumber-report.js",
+    "cypress:run": "cypress run; node cypress/scripts/generate-reports.js",
     "branch:dry-run": "yarn node .github/branch-retention/branch-retention.mjs --mode dry-run",
     "branch:enforce": "yarn node .github/branch-retention/branch-retention.mjs --mode enforce"
   },
@@ -92,7 +96,7 @@
     "tslib": "^2.3.0",
     "uuid": "^11.1.0",
     "yaml": "^2.8.1",
-    "zone.js": "0.15"
+    "zone.js": "0.16"
   },
   "devDependencies": {
     "@angular-builders/jest": "^20.0.0",
@@ -126,11 +130,12 @@
     "@typescript-eslint/parser": "^8.39.0",
     "adm-zip": "^0.5.16",
     "axe-core": "^4.10.3",
-    "cypress": "15.5.0",
+    "cypress": "15.7.0",
     "cypress-axe": "^1.7.0",
     "cypress-mochawesome-reporter": "^4.0.2",
     "cypress-multi-reporters": "^2.0.5",
-    "esbuild": "^0.25.9",
+    "cypress-parallel": "^0.15.0",
+    "esbuild": "^0.27.0",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.4",
@@ -145,8 +150,12 @@
     "jest-environment-jsdom": "^30",
     "jest-preset-angular": "^15.0.0",
     "jsdom": "^24",
+    "junit-report-merger": "^8.0.0",
     "mocha": "^11.7.1",
     "mocha-junit-reporter": "^2.2.1",
+    "mochawesome": "^7.1.3",
+    "mochawesome-merge": "^5.0.0",
+    "mochawesome-report-generator": "^6.2.0",
     "multiple-cucumber-html-reporter": "^3.9.3",
     "nodemon": "^3.1.10",
     "prettier": "^3.6.2",
@@ -160,12 +169,14 @@
   "resolutions": {
     "@azure/keyvault-secrets": "4.10.0",
     "@azure/keyvault-common": "2.0.0",
+    "@cucumber/messages": "^30.0.0",
     "glob": "^11.0.3",
     "postman-collection": "^5.2.0",
     "json-schema-faker": "^0.5.9",
     "json-schema-ref-parser": "npm:@apidevtools/json-schema-ref-parser@^14.2.0",
     "@faker-js/faker": "^10.0.0",
-    "tar": "7.5.2"
+    "tar": "^7.5.2",
+    "js-yaml": "^4.1.1"
   },
   "packageManager": "yarn@4.10.3"
 }

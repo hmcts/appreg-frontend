@@ -47,6 +47,8 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
   @Input() submitted = false;
   @Input() isSearch = false;
 
+  disabled = false;
+
   readonly dateForm: DateForm;
 
   private onTouched: () => void = () => {};
@@ -131,6 +133,9 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
   }
 
   fieldError(name: DateField, submitted: boolean): boolean {
+    if (this.disabled) {
+      return false;
+    }
     const c = this.ctrl(name);
     const base = !!(c?.invalid && (c?.touched || c?.dirty));
     const miss = this.missing(name);
@@ -192,10 +197,11 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
   }
 
   setDisabledState(isDisabled: boolean): void {
+    this.disabled = isDisabled;
     if (isDisabled) {
-      this.dateForm.disable();
+      this.dateForm.disable({ emitEvent: false });
     } else {
-      this.dateForm.enable();
+      this.dateForm.enable({ emitEvent: false });
     }
   }
 
@@ -227,6 +233,7 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
         return 'Enter day, month and year';
     }
   }
+
   private findMissing(day: string, month: string, year: string): string[] {
     const out: string[] = [];
     if (day === '') {
@@ -240,6 +247,7 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
     }
     return out;
   }
+
   private isRealDate(d: number, m: number, y: number): boolean {
     if (!Number.isInteger(d) || !Number.isInteger(m) || !Number.isInteger(y)) {
       return false;
@@ -250,6 +258,7 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
     const daysInMonth = new Date(y, m, 0).getDate();
     return d <= daysInMonth;
   }
+
   private dateError(msg = 'Enter a real date'): ValidationErrors {
     return { dateInvalid: true, dateErrorText: msg };
   }

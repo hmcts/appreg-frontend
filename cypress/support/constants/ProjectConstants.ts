@@ -13,8 +13,8 @@ export const AUTH_CONSTANTS = {
 // Timeouts
 export const TIMEOUT_CONSTANTS = {
   DEFAULT_TIMEOUT: 10000,
-  EXTENDED_TIMEOUT: 30000,
-  LONG_TIMEOUT: 60000,
+  EXTENDED_TIMEOUT: 15000,
+  LONG_TIMEOUT: 30000,
 } as const;
 
 // HTTP Status Codes

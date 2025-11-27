@@ -1,3 +1,5 @@
+import Cypress from 'cypress';
+
 import { ButtonElement } from '../../../pageobjects/generic/button/ButtonElement';
 
 export class ButtonHelper {
@@ -19,5 +21,12 @@ export class ButtonHelper {
 
   static isButtonDisabled(buttonText: string): Cypress.Chainable {
     return ButtonElement.findButton(buttonText).should('be.disabled');
+  }
+
+  static clickButtonInTableRow(
+    buttonText: string,
+    rowData: { [key: string]: string },
+  ): void {
+    ButtonElement.findButtonInTableRow(buttonText, rowData).click();
   }
 }

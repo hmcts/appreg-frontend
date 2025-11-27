@@ -69,16 +69,61 @@ Feature: Applications List Search
     Then User Clicks On The Link "Applications list"
     When User Set Date Field "Date" To "<SearchDate>"
     When User Clicks On The "Search" Button
+    # Table and header validation
     Then User Should See The Table "<TableName>"
     Then User Should See Table "<TableName>" Has Sortable Headers "Date, Time, Location, Description, Entries, Status"
     Then User Should See Table "<TableName>" Header "Actions" Is Not Sortable
     Then User Should See Table "<TableName>" Has Rows
+    # Row value validation
     Then User Should See Row In Table "<TableName>" With Values:
       | Date          | Time   | Location | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
     Examples:
       | User  | TableName | SearchDate | DisplayDate | Time  | Court                     | Description                   | Entries | Status |
       | user1 | Lists     | 19/05/2025 | 2025-05-19  | 09:00 | Cardiff Crown Court Set 4 | Cancelled hearing for Probate | 2       | CLOSED |
+
+  @regression @ARCPOC-452
+  Scenario Outline: Filter and verify applications list table results
+    Given User Is On The Portal Page
+    When User Signs In With Microsoft SSO As "<User>"
+    Then User Clicks On The Link "Applications list"
+    # Filter by status
+    Then User Selects "<Status>" In The "Select status" Dropdown
+    When User Clicks On The "Search" Button
+    Then User Should See The Table "Lists"
+    Then User Should See Table "Lists" Has Rows
+    Then User Should See Table "<TableName>" Column "Status" Has Value "<Status>"
+    # Reset status filter and filter by time, then verify table updates
+    Then User Selects "Choose" In The "Select status" Dropdown
+    When User Set Time Field "Time" To "<Time>"
+    When User Clicks On The "Search" Button
+    Then User Should See The Table "Lists"
+    Then User Should See Table "Lists" Has Rows
+    Then User Should See Table "<TableName>" Column "Time" Has Value "<Time>"
+    # Clear time filter and filter by date, then verify table updates
+    When User Clears The Time Field "Time"
+    When User Set Date Field "Date" To "<SearchDate>"
+    When User Clicks On The "Search" Button
+    Then User Should See The Table "Lists"
+    Then User Should See Table "Lists" Has Rows
+    Then User Should See Table "<TableName>" Column "Date" Has Value "<DisplayDate>"
+    # Clear date filter and filter by description, then verify table updates
+    When User Clears The Date Field "Date"
+    Then User Enters "<Description>" Into The "Description" Textbox
+    When User Clicks On The "Search" Button
+    Then User Should See The Table "Lists"
+    Then User Should See Table "Lists" Has Rows
+    Then User Should See Table "<TableName>" Column "Description" Has Value "<Description>"
+    # Clear description filter and filter by court, then verify table updates
+    Then User Clears The "Description" Textbox
+    Then User Selects "<OptionTextCourt>" From The Textbox "Court" Autocomplete By Typing "<SearchTextCourt>"
+    When User Clicks On The "Search" Button
+    Then User Should See The Table "Lists"
+    Then User Should See Table "Lists" Has Rows
+    Then User Should See Table "<TableName>" Column "Location" Has Value "<OptionTextCourt>"
+    Examples:
+      | User  | Status | TableName | Time  | SearchDate | DisplayDate | Description | SearchTextCourt | OptionTextCourt           | SearchTextCJA | OptionTextCJA |
+      | user1 | Open   | Lists     | 14:00 | 19/05/2025 | 2025-05-19  | No show     | Cardiff         | Cardiff Crown Court Set 4 | 1             | CJA Number 1  |
 
   @regression @ARCPOC-660
   Scenario Outline: Verify CJA field validation with valid input
@@ -87,12 +132,13 @@ Feature: Applications List Search
     Then User Clicks On The Link "Applications list"
     Then User Selects "<OptionText>" From The Textbox "CJA" Autocomplete By Typing "<SearchText>"
     Then User Verifies The "CJA" Textbox Has Selected Value "<ExpectedValue>"
+    Then User Verifies "<Info>" Is Not Visible Under The "CJA" Textbox
     When User Clicks On The "Search" Button
     Then User Does Not See Validation Errors
     Examples:
-      | User   | SearchText | OptionText   | ExpectedValue     |
-      | admin1 | 1          | CJA Number 1 | 01 - CJA Number 1 |
-      | admin1 | 5          | CJA Number 5 | 05 - CJA Number 5 |
+      | User   | SearchText | OptionText   | ExpectedValue     | Info             |
+      | admin1 | 1          | CJA Number 1 | 01 - CJA Number 1 | No results found |
+      | admin1 | 5          | CJA Number 5 | 05 - CJA Number 5 | No results found |
 
   @regression @ARCPOC-660
   Scenario Outline: Verify CJA field validation with invalid input
@@ -100,12 +146,13 @@ Feature: Applications List Search
     When User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Applications list"
     Then User Selects "<OptionText>" From The Textbox "CJA" Autocomplete By Typing "<SearchText>"
-    Then User Verifies The "CJA" Textbox Has Selected Value "<ExpectedValue>"
+    # Then User Verifies The "CJA" Textbox Has Selected Value "<ExpectedValue>"
+    Then User Verifies "<Info>" Is Visible Under The "CJA" Textbox
     When User Clicks On The "Search" Button
     Then User Sees Validation Error "<ValidationMessage>"
     Examples:
-      | User   | SearchText | ValidationMessage                                  | OptionText | ExpectedValue |
-      | admin1 | abc123     | There is a problem Criminal Justice Area not found |            | abc123        |
+      | User   | SearchText | ValidationMessage                                  | OptionText | ExpectedValue | Info             |
+      | admin1 | abc123     | There is a problem Criminal Justice Area not found |            | abc123        | No results found |
 
   @regression @ARCPOC-452
   Scenario Outline: Verify applications list table sorting functionality
@@ -113,7 +160,6 @@ Feature: Applications List Search
     When User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Applications list"
     # Search to get table with data
-    When User Set Date Field "Date" To "<SearchDate>"
     Then User Selects "<Status>" In The "Select status" Dropdown
     When User Clicks On The "Search" Button
     Then User Should See The Table "<TableName>"
@@ -128,9 +174,11 @@ Feature: Applications List Search
     When User Clicks On Table Header "<Column>" In Table "<TableName>"
     Then User Should See Table "<TableName>" Header "<Column>" Has Sort Order "ascending"
     Then User Should See Table "<TableName>" Has Rows
+    Then User Should See Table "<TableName>" Column "<Column>" Is Sorted "ascending"
     When User Clicks On Table Header "<Column>" In Table "<TableName>"
     Then User Should See Table "<TableName>" Header "<Column>" Has Sort Order "descending"
     Then User Should See Table "<TableName>" Has Rows
+    Then User Should See Table "<TableName>" Column "<Column>" Is Sorted "descending"
     Examples:
       | User  | TableName | SearchDate | Status | Column |
       | user1 | Lists     | 19/05/2025 | Closed | Date   |
@@ -146,6 +194,86 @@ Feature: Applications List Search
     When User Clicks On The "Search" Button
     # Verify notification banner is displayed for empty state
     Then User Sees Notification Banner "<NotificationMessage>"
+    Then User Clicks On The Link "<LinkText>"
+    Then User See "<CreatePageText>" On The Page
+    Then User Verify The Page URL Contains "/applications-list/create"
     Examples:
-      | User  | SearchDate | Status | NotificationMessage                                          |
-      | user1 | 01/01/2099 | Closed | Important No lists found Try different filters, or create a new list|
+      | User  | SearchDate | Status | NotificationMessage                                                  | LinkText          | CreatePageText                |
+      | user1 | 01/01/2099 | Closed | Important No lists found Try different filters, or create a new list | create a new list | Create new applications list  |
+
+  @regression @ARCPOC-691
+  Scenario Outline: Verify Court field validation with valid input
+    Given User Is On The Portal Page
+    When User Signs In With Microsoft SSO As "<User>"
+    Then User Clicks On The Link "Applications list"
+    Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
+    Then User Verifies The "Court" Textbox Has Selected Value "<ExpectedValue>"
+    Then User Verifies "<Info>" Is Not Visible Under The "Court" Textbox
+    When User Clicks On The "Search" Button
+    Then User Does Not See Validation Errors
+    Examples:
+      | User   | SearchText | OptionText                | ExpectedValue                      | Info             |
+      | admin1 | Cardiff    | Cardiff Crown Court Set 4 | CCC033 - Cardiff Crown Court Set 4 | No results found |
+
+  @regression @ARCPOC-691
+  Scenario Outline: Verify Court field validation with invalid input
+    Given User Is On The Portal Page
+    When User Signs In With Microsoft SSO As "<User>"
+    Then User Clicks On The Link "Applications list"
+    Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
+    # Then User Verifies The "Court" Textbox Has Selected Value "<ExpectedValue>"
+    Then User Verifies "<Info>" Is Visible Under The "Court" Textbox
+    When User Clicks On The "Search" Button
+    Then User Sees Notification Banner "<NotificationMessage>"
+    Examples:
+      | User   | SearchText | NotificationMessage                                        | OptionText | ExpectedValue | Info             |
+      | admin1 | London     | No lists found Try different filters, or create a new list |            | London        | No results found |
+
+  @regression @ARCPOC-417
+Scenario Outline: Verify application list Open with only a single page of results is returned
+    Given User Is On The Portal Page
+    When User Signs In With Microsoft SSO As "<User>"
+    Then User Clicks On The Link "Applications list"
+    When User Set Date Field "Date" To "<SearchDate>"
+    Then User Selects "<Status>" In The "Select status" Dropdown
+    When User Clicks On The "Search" Button
+    Then User Should See The Table "<TableName>"
+    Then User Should See Table "<TableName>" Has Sortable Headers "Date, Time, Location, Description, Entries, Status"
+    Then User Should See Table "<TableName>" Header "Actions" Is Not Sortable
+    Then User Should See Table "<TableName>" Has Rows
+    Then User Should See Row In Table "<TableName>" With Values:
+      | Date          | Time   | Location | Description   | Entries   | Status   |
+      | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+
+    When User clicks On The "<Select>" Button In The Row With Description "<Description>" DisplayDate "<DisplayDate>" Time "<Time>" Court "<Court>" Entries "<Entries>" Status "<Status>"
+    Then User Should See The Button "<ButtonName>"
+    When User Clicks On The "<ButtonName>" Button
+    Then User Should See The Link "List details"
+    
+    Examples:
+      | User  | TableName | SearchDate | DisplayDate | Time  | Court                                  | Description                      | Entries | Status | Select  | ButtonName |
+      | user1 | Lists     | 01/1/2001  | 2001-01-01  | 10:10 | Leeds Combined Court Centre Set 3      | test                             | 0       | Open   | Select  | Open       |
+
+@regression @ARCPOC-417
+Scenario Outline: Verify application list Open with multiple pages of results is returned
+    Given User Is On The Portal Page
+    When User Signs In With Microsoft SSO As "<User>"
+    Then User Clicks On The Link "Applications list"
+    Then User Selects "<Status>" In The "Select status" Dropdown
+    When User Clicks On The "Search" Button
+    Then User Should See The Table "<TableName>"
+    Then User Should See Table "<TableName>" Has Sortable Headers "Date, Time, Location, Description, Entries, Status"
+    Then User Should See Table "<TableName>" Header "Actions" Is Not Sortable
+    Then User Should See Table "<TableName>" Has Rows
+    Then User Should See Row In Table "<TableName>" With Values:
+      | Date          | Time   | Location | Description   | Entries   | Status   |
+      | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+
+    When User clicks On The "<Select>" Button In The Row With Description "<Description>" DisplayDate "<DisplayDate>" Time "<Time>" Court "<Court>" Entries "<Entries>" Status "<Status>"
+    Then User Should See The Button "<ButtonName>"
+    When User Clicks On The "<ButtonName>" Button
+    Then User Should See The Link "List details"
+    
+    Examples:
+      | User  | TableName | DisplayDate | Time  | Court                                  | Description                      | Entries | Status | Select  | ButtonName |
+      | user1 | Lists     | 2001-01-01  | 10:10 | Leeds Combined Court Centre Set 3      | test                             | 0       | Open   | Select  | Open       |

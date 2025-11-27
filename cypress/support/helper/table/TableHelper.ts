@@ -5,6 +5,88 @@ import { TableElement } from '../../pageobjects/generic/table/TableElement';
  */
 export class TableHelper {
   /**
+   * Recursively collects all cell values for a given column across all paginated pages
+   * @param tableCaption The caption text of the table
+   * @param columnName The column name to extract values from
+   */
+  /**
+   * Navigates to the next page if available (for value collection)
+   * @private
+   */
+  private static goToNextPageIfExists(): Cypress.Chainable<boolean> {
+    return cy.get('body').then(($body) => {
+      const $nextButton = TableHelper.findNextPageButton($body);
+      if ($nextButton.length > 0) {
+        return cy
+          .wrap($nextButton.first())
+          .click()
+          .then(() => cy.wait(500))
+          .then(() => true);
+      }
+      // Always return Cypress.Chainable<boolean>
+      return cy.wrap(false);
+    });
+  }
+
+  /**
+   * Recursively collects all cell values for a given column across all paginated pages
+   * @param tableCaption The caption text of the table
+   * @param columnName The column name to extract values from
+   */
+  static getAllColumnValuesAcrossPages(
+    tableCaption: string,
+    columnName: string,
+  ): Cypress.Chainable<string[]> {
+    let allValues: string[] = [];
+
+    function collectPage(): Cypress.Chainable<string[]> {
+      return TableHelper.getColumnValues(tableCaption, columnName).then(
+        (values) => {
+          allValues = allValues.concat(values);
+          return TableHelper.goToNextPageIfExists().then((hasNext) => {
+            if (hasNext) {
+              return collectPage();
+            }
+            return cy.wrap(allValues);
+          });
+        },
+      );
+    }
+
+    return collectPage();
+  }
+  /**
+   * Returns all cell values for a given column in a table
+   * @param tableCaption The caption text of the table
+   * @param columnName The column name to extract values from
+   */
+  static getColumnValues(
+    tableCaption: string,
+    columnName: string,
+  ): Cypress.Chainable<string[]> {
+    return TableElement.getTableHeaders(tableCaption).then(($headers) => {
+      const columnIndexMap = TableHelper.buildColumnIndexMap($headers);
+      const columnIndex = columnIndexMap[columnName];
+      if (columnIndex === undefined) {
+        throw new Error(
+          `Column "${columnName}" not found in table "${tableCaption}"`,
+        );
+      }
+      return TableElement.getTableRows(tableCaption).then(($rows) => {
+        const values: string[] = [];
+        $rows.each((_rowIndex: number, row: HTMLElement) => {
+          const cellText = Cypress.$(row)
+            .find('td, th')
+            .eq(columnIndex)
+            .text()
+            .trim();
+          values.push(cellText);
+        });
+        return values;
+      });
+    });
+  }
+  /**
    * Verifies that a table is visible
    * @param caption The caption text of the table
    */
@@ -169,6 +251,8 @@ export class TableHelper {
     return cy.get('body').then(($body) => {
       const $nextButton = this.findNextPageButton($body);
 
+      cy.screenshot(`table-page-${caption}`);
+
       if ($nextButton.length > 0 && searchAllPages) {
         cy.log('Row not found on current page, checking next page...');
         cy.wrap($nextButton.first()).click();
@@ -220,7 +304,9 @@ export class TableHelper {
         )
         .then(() => {
           if (found) {
-            cy.log(`✓ Row found with: ${searchCriteria}`);
+            return cy
+              .log(`✓ Row found with: ${searchCriteria}`)
+              .then(() => found);
           }
           return found;
         });
@@ -299,5 +385,49 @@ export class TableHelper {
       .contains(headerText)
       .closest('th')
       .should('have.attr', 'aria-sort', expectedSortOrder);
+  }
+  /**
+   * Verify all rows have a specific value in a given column
+   */
+  static verifyAllRowsHaveValue(
+    tableCaption: string,
+    columnName: string,
+    expectedValue: string,
+  ): Cypress.Chainable<void> {
+    function checkRows(columnIndex: number): Cypress.Chainable<void> {
+      return TableElement.getTableRows(tableCaption).then(($rows) => {
+        $rows.each((_rowIndex: number, row: HTMLElement) => {
+          const cellText = Cypress.$(row)
+            .find('td, th')
+            .eq(columnIndex)
+            .text()
+            .trim();
+          expect(cellText.toLowerCase()).to.equal(expectedValue.toLowerCase());
+        });
+      });
+    }
+
+    function checkPage(): Cypress.Chainable<void> {
+      // @ts-expect-error Compile-time suppression
+      return TableElement.getTableHeaders(tableCaption)
+        .then(($headers) => {
+          const columnIndexMap = TableHelper.buildColumnIndexMap($headers);
+          const columnIndex = columnIndexMap[columnName];
+          if (columnIndex === undefined) {
+            throw new Error(
+              `Column "${columnName}" not found in table "${tableCaption}"`,
+            );
+          }
+          return checkRows(columnIndex);
+        })
+        .then(() => TableHelper.goToNextPageIfExists())
+        .then((hasNext) => {
+          if (hasNext) {
+            return checkPage();
+          }
+          return cy.then(() => {});
+        });
+    }
+    return checkPage();
   }
 }

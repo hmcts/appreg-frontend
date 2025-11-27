@@ -36,6 +36,7 @@ module.exports = defineConfig([
     'cypress/reports/',
     'src/generated',
     'tools/',
+    'functional-output/',
   ]),
 
   // Base (shared) – no type-aware parser configured here

@@ -1,5 +1,23 @@
 <h1 class="govuk-heading-xl">Applications</h1>
 
+@if (submitted && searchErrors.length) {
+  <app-error-summary
+    [title]="errorHint || 'There is a problem'"
+    [items]="searchErrors"
+    targetId="search"
+  />
+} @else {
+  @if (isSearch && !isLoading && !rows.length) {
+    <app-notification-banner
+      heading="No lists found"
+      body="Try different filters, or "
+      linkText="create a new list"
+      [linkCommands]="['/applications-list/create']"
+    >
+    </app-notification-banner>
+  }
+}
+
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
@@ -11,12 +29,14 @@
       label="Date"
       hint="For example, 27 3 2007"
       idPrefix="date"
+      [submitted]="submitted"
+      [isSearch]="isSearch"
     >
     </app-date-input>
 
     <!-- Applicant Org -->
     <app-text-input
-      formControlName="description"
+      formControlName="applicantOrg"
       label="Applicant Org"
       hint="Enter the applicants organisation"
       idPrefix="description"
@@ -25,7 +45,7 @@
 
     <!-- Respondent Org -->
     <app-text-input
-      formControlName="description"
+      formControlName="respondentOrg"
       label="Respondent Org"
       hint="Enter the respondents organisation"
       idPrefix="description"
@@ -33,19 +53,22 @@
     </app-text-input>
 
     <!-- Court -->
-    <app-text-input
-      formControlName="description"
+    <app-suggestions
+      id="court"
       label="Court"
       hint="Enter a description of the court"
-      idPrefix="description"
-    >
-    </app-text-input>
+      [(search)]="courthouseSearch"
+      (searchChange)="onCourthouseInputChange()"
+      [suggestions]="filteredCourthouses"
+      (selectItem)="selectCourthouse($event)"
+      [disabled]="!!form.get('location')?.value || !!form.get('cja')?.value"
+    />
   </div>
 
   <div class="govuk-grid-row">
-    <!-- Court -->
+    <!-- Applicant last name -->
     <app-text-input
-      formControlName="description"
+      formControlName="applicantSurname"
       label="Applicant surname"
       hint="The applicants last name"
       idPrefix="description"
@@ -54,7 +77,7 @@
 
     <!-- Respondent surname -->
     <app-text-input
-      formControlName="description"
+      formControlName="respondentSurname"
       label="Respondent surname"
       hint="The respondent last name"
       idPrefix="description"
@@ -63,16 +86,16 @@
 
     <!-- Location Description -->
     <app-text-input
-      formControlName="description"
+      formControlName="location"
       label="List other location"
       hint="Other location description"
       idPrefix="description"
     >
     </app-text-input>
 
-    <!-- Location Standard -->
+    <!-- Applicant code -->
     <app-text-input
-      formControlName="description"
+      formControlName="standardApplicantCode"
       label="Applicant code"
       hint="The standard applicant code"
       idPrefix="description"
@@ -81,9 +104,9 @@
   </div>
 
   <div class="govuk-grid-row">
-    <!-- Court -->
+    <!-- Postcode -->
     <app-text-input
-      formControlName="description"
+      formControlName="respondentPostcode"
       label="Post code"
       hint="Respondents post code"
       idPrefix="description"
@@ -91,13 +114,16 @@
     </app-text-input>
 
     <!-- CJA -->
-    <app-text-input
-      formControlName="description"
+    <app-suggestions
+      id="cja"
       label="CJA"
-      hint="Criminal justice area"
-      idPrefix="description"
-    >
-    </app-text-input>
+      hint="Start typing to search"
+      [(search)]="cjaSearch"
+      (searchChange)="onCjaInputChange()"
+      [suggestions]="filteredCja"
+      (selectItem)="selectCja($event)"
+      [disabled]="!!courthouseSearch.trim() || !!form.get('court')?.value"
+    />
 
     <!-- Status -->
     <app-select-input
@@ -111,7 +137,7 @@
 
     <!-- Account reference -->
     <app-text-input
-      formControlName="description"
+      formControlName="accountReference"
       label="Account reference"
       hint="The account reference code"
       idPrefix="description"
@@ -120,7 +146,15 @@
   </div>
 
   <div class="govuk-button-group">
-    <button type="button" class="govuk-button">Search</button>
+    <button
+      id="search"
+      type="submit"
+      class="govuk-button"
+      value="search"
+      [disabled]="searchDisabled"
+    >
+      Search
+    </button>
   </div>
 </form>
 
@@ -128,21 +162,25 @@
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 
-<!-- Sortable table component -->
-<app-sortable-table [caption]="'Lists'" [columns]="columns">
-  <ng-template #actionsTemplate let-row>
-    <div class="govuk-button-group">
-      <a class="govuk-button" [routerLink]="['/applications', row.id]">Open</a>
-      <button type="button" class="govuk-button govuk-button--secondary">
-        Update
-      </button>
-    </div>
-  </ng-template>
-</app-sortable-table>
+@if (rows.length) {
+  <!-- Sortable table component -->
+  <app-sortable-table [caption]="'Lists'" [columns]="columns">
+    <ng-template #actionsTemplate let-row>
+      <div class="govuk-button-group">
+        <a class="govuk-button" [routerLink]="['/applications', row.id]"
+          >Open</a
+        >
+        <button type="button" class="govuk-button govuk-button--secondary">
+          Update
+        </button>
+      </div>
+    </ng-template>
+  </app-sortable-table>
 
-<!-- Pager -->
-<app-pagination
-  [currentPage]="currentPage"
-  [totalPages]="totalPages"
-  (pageChange)="onPageChange($event)"
-></app-pagination>
+  <!-- Pager -->
+  <app-pagination
+    [currentPage]="currentPage"
+    [totalPages]="totalPages"
+    (pageChange)="onPageChange($event)"
+  ></app-pagination>
+}

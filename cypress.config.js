@@ -48,17 +48,18 @@ function appConfigGet(appConfig, path, fallback) {
   }
 }
 module.exports = defineConfig({
+  viewportWidth: 2560,
+  viewportHeight: 2560,
+  experimentalModifyObstructiveThirdPartyCode: true,
+  chromeWebSecurity: false,
   typescript: {
     configFile: 'tsconfig.cypress.json',
   },
   e2e: {
-    reporter: 'cypress-mochawesome-reporter',
+    reporter: 'junit',
     reporterOptions: {
-      reportDir: 'cypress/reports',
-      reportPageTitle: 'AppregFrontend E2E Test Results',
-      embeddedScreenshots: true,
-      inlineAssets: true,
-      autoOpen: false,
+      mochaFile: 'cypress/reports/junit/test-output-[hash].xml',
+      toConsole: false,
     },
     // Test Files Configuration
     specPattern: 'cypress/e2e/**/*.feature',
@@ -70,9 +71,12 @@ module.exports = defineConfig({
     pageLoadTimeout: 120000,
     requestTimeout: 20000,
     responseTimeout: 30000,
+    // Retry Configuration
+    retries: {
+      runMode: 1,
+      openMode: 0,
+    },
     // Browser and Security Settings
-    chromeWebSecurity: false,
-    experimentalModifyObstructiveThirdPartyCode: true,
     experimentalOriginDependencies: true,
     testIsolation: true,
     // Report and Media Settings
@@ -96,7 +100,6 @@ module.exports = defineConfig({
           return null;
         },
       });
-      require('cypress-mochawesome-reporter/plugin')(on);
 
       const appConfig = await loadAppConfig();
 
