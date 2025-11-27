@@ -82,7 +82,7 @@ Feature: Applications List Search
       | User  | TableName | SearchDate | DisplayDate | Time  | Court                     | Description                   | Entries | Status |
       | user1 | Lists     | 19/05/2025 | 2025-05-19  | 09:00 | Cardiff Crown Court Set 4 | Cancelled hearing for Probate | 2       | CLOSED |
 
-  @regression @ARCPOC-214 @ARCPOC-452
+  @regression @ARCPOC-214 @ARCPOC-452 @PJ
   Scenario Outline: Filter and verify applications list table results
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -103,6 +103,7 @@ Feature: Applications List Search
     # Then User Should See Table "<TableName>" Column "Time" Has Value "<Time>"
     # Clear time filter and filter by date, then verify table updates
     When User Clears The Time Field "Time"
+    Then User Selects "Choose" In The "Select status" Dropdown
     When User Set Date Field "Date" To "<SearchDate>"
     When User Clicks On The "Search" Button
     Then User Should See The Table "Lists"
