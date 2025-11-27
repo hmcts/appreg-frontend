@@ -22,13 +22,14 @@ You can either run a provided script or install manually.
 
 1. Clone the Git repo
 2. Run the `appreg-env-setup.sh` script in your terminal (ensure you are in the root directory of the repo)
-   - This script runs through the steps of the manual installation
-   - If the script fails, attempt installation manually
-   - If you get `permission denied` errors, run:
 
-   ```bash
-   sudo chmod +x appreg-env-setup.sh
-   ```
+- This script runs through the steps of the manual installation
+- If the script fails, attempt installation manually
+- If you get `permission denied` errors, run:
+
+```bash
+sudo chmod +x appreg-env-setup.sh
+```
 
 ### Manual Installation
 
@@ -145,13 +146,14 @@ You can either run a provided script or install manually.
 
 1. Clone Git repo
 2. Install Node.js version 20.19.4:
-   - **Option 1 (simpler):** Install from [Node.js site](https://nodejs.org/en/download)
-   - **Option 2:** Install `nvm-windows` from [nvm-windows Github](https://github.com/coreybutler/nvm-windows?tab=readme-ov-file)
 
-   ```powershell
-   nvm install 20.19.4
-   nvm use 20.19.4
-   ```
+- **Option 1 (simpler):** Install from [Node.js site](https://nodejs.org/en/download)
+- **Option 2:** Install `nvm-windows` from [nvm-windows Github](https://github.com/coreybutler/nvm-windows?tab=readme-ov-file)
+
+```powershell
+nvm install 20.19.4
+nvm use 20.19.4
+```
 
 3. Verify installation:
 
@@ -203,75 +205,141 @@ You can either run a provided script or install manually.
 
 ## WireMock Service
 
-### Purpose
+This mock service simulates the AppReg API so you can run the UI and SSR server without a live backend.
+It ships with hand-crafted fixtures and generated mappings, plus easy ways to force specific error codes for each endpoint.
 
-- Mock the Applications Register API for local/dev use.
-- Matches the OpenAPI (vendor media types, paging, templating).
-- Includes debug headers to force error paths.
-
-### Run (Docker)
+### Start & stop the container
 
 ```bash
-docker compose up -d wiremock
+yarn start:mock
 ```
-
-### Project layout
 
 ```bash
-wiremock/
-  mappings/    # JSON stubs
-  __files/     # shared bodies (errors, PDFs, CSVs)
+yarn stop:mock
 ```
 
-### Headers to send
+- **Start:** `yarn start:mock` (exposes WireMock at http://localhost:4550)
+- **Stop:** `yarn stop:mock`
 
-- `Accept: application/vnd.hmcts.appreg.v1+json`
-- `Authorization: Bearer testtoken`
+### Where fixtures live
 
-### Debug toggles
+Curated JSON & CSV fixtures used by mappings are under:
 
-- `X-Debug-Failure: true → 500`
-- `X-Debug-Not-Found: true → 404`
-- `X-Debug-Conflict: true → 409`
+```
+wiremock/__files/fixtures/**        # JSON bodies per endpoint/status
+wiremock/__files/reports/sample.csv # CSV used by report download endpoint
+wiremock/__files/errors/**
+```
 
-### Common gotchas
+Fixture files are named:
 
-- Use `"transformers": ["response-template"]` in mappings.
-- Put `bodyFileName` inside `response`.
-- For “missing field” checks use:
+```
+wiremock/__files/fixtures/<group>/<kebab(operationId)>-<status>.json
+```
+
+Mappings will automatically use these when available. Feel free to update or add new ones as needed.
+
+### Scripts that generate stuff
+
+#### Generate error bodies (shared JSON payloads for 4xx/5xx)
 
 ```bash
-{ "matchesJsonPath": { "expression": "$.field", "absent": true } }
+yarn mock:gen:errors
+# -> runs: node scripts/gen-error-bodies.cjs
+# Writes wiremock/__files/errors/*.json (hard-coded JSON, no templating)
 ```
 
-### Regenerating WireMock stubs when the OpenAPI spec changes
-
-#### WireMock Cloud / Studio (GUI import)
-
-- **What it does:** Import an OpenAPI (Swagger) spec and it **_auto-generates stubs;_** you can then export those to JSON for OSS WireMock. Great for quick, spec-driven mocks.
-- **Docs:** [WireMock OpenAPI docs](https://docs.wiremock.io/openAPI/openapi)
-- **Typical flow:** Import spec → review/edit stubs in Studio → Export as WireMock JSON → drop into your OSS `mappings/`.
-
-### WireMock OpenAPI (OSS) / Extensions
-
-- **What it is:** Run WireMock with an **_OpenAPI extension to generate/validate_** stubs from a spec at startup or validate traffic against the spec (handy in CI). These are add-on jars you load with `--extensions`.
-- **Docs/refs:** [WireMock OpenAPI (OSS) / Extensions](https://wiremock.org/docs/stubbing/)
-- **Use when:** You want spec conformance checks or on-the-fly stub generation without a GUI.
-
-### OpenAPI Generator (CLI) → WireMock mappings
-
-- **Idea:** Use **_OpenAPI Generator_** with **_custom Mustache templates_** to emit WireMock mapping JSON (there isn’t an official `wiremock` generator).
-- **How:** Create a template set that renders `request`/`response` mapping files from the spec, then:
+#### Generate endpoint mappings (success + error scenarios)
 
 ```bash
-openapi-generator-cli generate \
--i openapi.yaml \
--g handlebars
--t ./templates/wiremock \
--o ./mappings
+yarn mock:gen
+# -> runs: node scripts/gen-wiremock-mappings.cjs
+# Reads the OpenAPI spec, creates one 2xx mapping per endpoint,
+# and one mapping per error code (401/403/404/… as defined).
+# If a curated fixture exists, it’s used via "bodyFileName".
+# Error mappings are emitted as WireMock "scenarios" for forcing errors.
 ```
 
-- See templating/customization guides for details [here](https://openapi-generator.tech/docs/templating).
+#### Keep everything in sync (pull spec, build errors, then mappings)
+
+```bash
+yarn mock:sync
+# -> runs: yarn api:fetch-unpack && yarn mock:gen:errors && yarn mock:gen
+```
+
+### How the generator scripts work
+
+- **OpenAPI ingest:** `gen-wiremock-mappings.cjs` reads `tools/openapi/vendor/openapi/openapi.yaml` (and local `$refs`).
+- **Grouping:** Each operation is grouped by its first OpenAPI tag (e.g., `court-locations`).
+- **One success mapping per endpoint:**
+  - Prefers the curated fixture at `wiremock/__files/fixtures/<group>/<opId-kebab>-<2xx>.json`.
+  - Otherwise, generates a JSON body from the response schema.
+  - Special-case: if the OpenAPI `content-type` is `text/csv`, it serves `wiremock/__files/reports/sample.csv`.
+- **Error mappings:**
+  - For each 4xx/5xx listed in the spec, a mapping is emitted with a scenario named after the operationId (or a readable fallback) and a `requiredScenarioState` like `FORCE_401`, `FORCE_403`, `FORCE_500`, etc.
+  - Body payloads are reused from `wiremock/__files/errors/*.json`.
+
+### Increase (mocked) load times
+
+Two options:
+
+1. Global delay at generation time
+
+Set `STUB_DELAY_MS` before running `yarn mock:gen`:
+
+```bash
+STUB_DELAY_MS=250 yarn mock:gen
+```
+
+This adds `fixedDelayMilliseconds: 250` to all generated mappings.
+
+2. Per-mapping tweak
+
+Manually add `"fixedDelayMilliseconds"`: <ms> to any mapping JSON under `wiremock/mappings/**`.
+
+### Forcing errors with scenarios
+
+Every endpoint’s error mappings are part of a WireMock scenario. To make a specific endpoint return (say) HTTP 500, set the scenario state to `FORCE_500`.
+
+#### Example (GET /court-locations):
+
+```bash
+Put scenario into a 500 state
+curl -i -X PUT http://localhost:4550/__admin/scenarios/getCourtLocations/state \
+-H 'Content-Type: application/json' \
+-d '{"state":"FORCE_500"}'
+```
+
+Verify it took:
+
+```bash
+curl -s http://localhost:4550/__admin/scenarios \
+| jq '.scenarios[] | select(.id=="getCourtLocations" or .name=="getCourtLocations") | {id, name, state, possibleStates}'
+```
+
+Now any request that matches that mapping (correct method, path, and headers) will return 500 until you reset the scenario.
+
+### Resetting to normal
+
+- **Reset a single scenario to Started:**
+
+```bash
+curl -i -X PUT http://localhost:4550/__admin/scenarios/<ScenarioName>/state \
+  -H 'Content-Type: application/json' \
+  -d '{"state":"Started"}'
+```
+
+- **Reset all scenarios:**
+
+```bash
+curl -i -X POST http://localhost:4550/__admin/scenarios/reset
+```
+
+- **Full reset:**
+
+```bash
+curl -i -X POST http://localhost:4550/__admin/reset
+```
 
 ## Testing
 
@@ -460,16 +528,13 @@ Edit `.github/branch-retention/branch-retention.yml`:
 # Example production-ish values (adjust to taste)
 inactivityDays: 60         # candidates must be inactive for >= this many days
 graceDays: 7               # wait this many days after “Run” before deletion
-protectedPatterns:
-  - 'master'
-  - 'develop'
-  - 'release/*'
-doNotDelete:
-label: 'do-not-delete'   # if an open PR has this label, branch is skipped
+protectedPatterns: - 'master'
+- 'develop'
+- 'release/*'
+doNotDelete: label: 'do-not-delete'   # if an open PR has this label, branch is skipped
 namePatterns: ['do-not-delete/*', '*[do-not-delete]*']  # name-based skip
-notify:
-githubIssueLabel: 'branch-cleanup'
-# (optional) markerLabels: ['dry-run','run','pending']  # accepted markers
+notify: githubIssueLabel: 'branch-cleanup'
+# (optional) markerLabels: ['dry-run', 'run', 'pending']  # accepted markers
 ```
 
 ### Developer commands (local)
