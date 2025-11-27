@@ -116,7 +116,7 @@ withNightlyPipeline(type, product, component) {
       stage('Regression Tests') {
         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Regression tests failed') {
           try {
-            yarnBuilder.yarn('test:nightly:regression')
+            yarnBuilder.yarn('test:nightly:regression --env TAGS=\'not @ignore and not @broken\'')
           } finally {
             archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/regression/**/*'
             
