@@ -247,5 +247,22 @@ Feature: Applications List Search
     Then User Should See The Link "List details"
     Examples:
       | User  | TableName | DisplayDate | Time  | Court                             | Description | Entries | Status | ButtonName | SearchDate | SelectButtonText |
-      | user1 | Lists     | 2001-01-01  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | *SKIP*     | Select          |
-      | user1 | Lists     | 2001-01-01  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | 01/1/2001  | Select          |
+      | user1 | Lists     | 2001-01-01  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | *SKIP*     | Select           |
+      | user1 | Lists     | 2001-01-01  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | 01/1/2001  | Select           |
+
+  @regression @ARCPOC-214 @ARCPOC-417 @PJ
+  Scenario Outline: Verify application list row menu options
+    Given User Is On The Portal Page
+    When User Signs In With Microsoft SSO As "<User>"
+    Then User Clicks On The Link "Applications list"
+    Then User Selects "<Status>" In The "Select status" Dropdown
+    When User Clicks On The "Search" Button
+    Then User Should See The Table "<TableName>"
+    Then User Should See Table "<TableName>" Has Rows
+    When User Clicks "<SelectButtonText>" In Row Of Table "<TableName>" And Verify Menu Options "<MenuOptions>"
+      | Date          | Time   | Location | Description   | Entries   | Status   |
+      | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+    Examples:
+      | User  | TableName | DisplayDate | Time  | Court                                 | Description                                    | Entries | Status | SelectButtonText | MenuOptions                                 |
+      | user1 | Lists     | 2025-06-27  | 14:00 | Manchester Civil Justice Centre Set 8 | Afternoon list for Civil Court                 | 1       | Open   | Select           | Open, Print page,  Print continuous, Delete |
+      | user1 | Lists     | 2025-11-26  | 16:45 | Royal Courts of Justice Set 1         | Applications to review at the Test Courthouse. | 0       | Closed | Select           | Print page,  Print continuous               |
