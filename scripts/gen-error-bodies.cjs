@@ -61,22 +61,16 @@ const MAP = {
 };
 
 function tmplBody({ title, status }) {
-  // WireMock response-template placeholders work inside body files too
-  return (
-    JSON.stringify(
-      {
-        type: 'about:blank',
-        title,
-        status,
-        detail: "{{request.query.detail default=''}}",
-        path: '{{request.path}}',
-        timestamp: '{{now format="yyyy-MM-dd\'T\'HH:mm:ssXXX"}}',
-        traceId: "{{randomValue length=12 type='ALPHANUMERIC'}}",
-      },
-      null,
-      2,
-    ) + '\n'
-  );
+  const payload = {
+    type: 'about:blank',
+    title,
+    status,
+    detail: 'A mock error occurred.',
+    path: '/mocked',
+    timestamp: new Date().toISOString(),
+    traceId: 'TRACE-STATIC-0001',
+  };
+  return JSON.stringify(payload, null, 2) + '\n';
 }
 
 (async () => {
