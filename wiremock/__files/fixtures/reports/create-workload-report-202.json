@@ -1,0 +1,5 @@
+{
+  "id": "{{randomValue type='UUID'}}",
+  "type": "WORKLOAD_REPORT",
+  "status": "ACCEPTED"
+}
