@@ -1,0 +1,6 @@
+{
+  "id": "{{randomValue type='UUID'}}",
+  "type": "DURATION_REPORT",
+  "status": "ACCEPTED",
+  "submittedAt": "{{now format='yyyy-MM-dd'T'HH:mm:ssXXX'}}"
+}

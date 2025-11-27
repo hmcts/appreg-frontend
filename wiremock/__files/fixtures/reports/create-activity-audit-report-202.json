@@ -1,0 +1,5 @@
+{
+  "id": "{{randomValue type='UUID'}}",
+  "type": "ACTIVITY_AUDIT_REPORT",
+  "status": "ACCEPTED"
+}
