@@ -4,7 +4,8 @@
     "**/node_modules/**",
     ".yarn/**",
     "cypress/reports/**",
-    "tools/**"
+    "tools/**",
+    "functional-output/**"
   ],
   "rules": {
     "string-quotes": null,

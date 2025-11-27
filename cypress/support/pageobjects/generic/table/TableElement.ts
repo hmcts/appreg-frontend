@@ -24,4 +24,31 @@ export class TableElement {
   static getTableRows(tableCaption: string): Cypress.Chainable {
     return this.findTableByCaption(tableCaption).find('tbody tr');
   }
+  static getButtonInRow(
+    row: JQuery<HTMLElement>,
+    buttonText: string,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy
+      .wrap(row)
+      .find('td')
+      .last()
+      .find('button')
+      .filter((_, el) => Cypress.$(el).text().trim() === buttonText)
+      .first();
+  }
+
+  static getMenuButtonInRow(
+    row: JQuery<HTMLElement>,
+    menuButtonText: string,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy
+      .wrap(row)
+      .find('td')
+      .last()
+      .find('ul[role="list"], ul[role="menu"], .dropdown-menu, .actions-menu')
+      .should('be.visible')
+      .find('button, a')
+      .filter((_, el) => Cypress.$(el).text().trim() === menuButtonText)
+      .first();
+  }
 }

@@ -4,3 +4,4 @@
 cypress/reports/
 tools/
 src/generated
+functional-output/

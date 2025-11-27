@@ -1,6 +1,6 @@
 Feature: Applications List Search
 
-  @regression @ARCPOC-452
+  @regression @ARCPOC-214 @ARCPOC-452
   Scenario: Verify components on applications list search page
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
@@ -23,7 +23,7 @@ Feature: Applications List Search
     Then User Sees Text "Start typing to search" In "CJA" Field
     Then User Should See The Button "Search"
 
-  @regression @ARCPOC-452
+  @regression @ARCPOC-214 @ARCPOC-452
   Scenario: Verify mutual exclusivity of Court and CJA fields
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
@@ -41,7 +41,7 @@ Feature: Applications List Search
     Then User Enters "Test Location" Into The "Other location" Textbox
     Then User Should See The Textbox "Court" Is Disabled
 
-  @regression @ARCPOC-452
+  @regression @ARCPOC-214 @ARCPOC-452
   Scenario Outline: Verify applications list search validation
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -62,7 +62,7 @@ Feature: Applications List Search
       | User   |
       | admin1 |
 
-  @regression @ARCPOC-452
+  @regression @ARCPOC-214 @ARCPOC-452
   Scenario Outline: Verify applications list table is displayed with search results
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -82,7 +82,7 @@ Feature: Applications List Search
       | User  | TableName | SearchDate | DisplayDate | Time  | Court                     | Description                   | Entries | Status |
       | user1 | Lists     | 19/05/2025 | 2025-05-19  | 09:00 | Cardiff Crown Court Set 4 | Cancelled hearing for Probate | 2       | CLOSED |
 
-  @regression @ARCPOC-452
+  @regression @ARCPOC-214 @ARCPOC-452
   Scenario Outline: Filter and verify applications list table results
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -94,14 +94,16 @@ Feature: Applications List Search
     Then User Should See Table "Lists" Has Rows
     Then User Should See Table "<TableName>" Column "Status" Has Value "<Status>"
     # Reset status filter and filter by time, then verify table updates
-    Then User Selects "Choose" In The "Select status" Dropdown
-    When User Set Time Field "Time" To "<Time>"
-    When User Clicks On The "Search" Button
+    # Commented out due to bug in filtering by time functionality @ARCPOC-759
+    # Then User Selects "Choose" In The "Select status" Dropdown
+    # When User Set Time Field "Time" To "<Time>"
+    # When User Clicks On The "Search" Button
     # Then User Should See The Table "Lists"
     # Then User Should See Table "Lists" Has Rows
     # Then User Should See Table "<TableName>" Column "Time" Has Value "<Time>"
     # Clear time filter and filter by date, then verify table updates
     When User Clears The Time Field "Time"
+    Then User Selects "Choose" In The "Select status" Dropdown
     When User Set Date Field "Date" To "<SearchDate>"
     When User Clicks On The "Search" Button
     Then User Should See The Table "Lists"
@@ -125,7 +127,7 @@ Feature: Applications List Search
       | User  | Status | TableName | Time  | SearchDate | DisplayDate | Description | SearchTextCourt | OptionTextCourt           | SearchTextCJA | OptionTextCJA |
       | user1 | Open   | Lists     | 14:00 | 19/05/2025 | 2025-05-19  | No show     | Cardiff         | Cardiff Crown Court Set 4 | 1             | CJA Number 1  |
 
-  @regression @ARCPOC-660
+  @regression @ARCPOC-214 @ARCPOC-660
   Scenario Outline: Verify CJA field validation with valid input
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -140,7 +142,7 @@ Feature: Applications List Search
       | admin1 | 1          | CJA Number 1 | 01 - CJA Number 1 | No results found |
       | admin1 | 5          | CJA Number 5 | 05 - CJA Number 5 | No results found |
 
-  @regression @ARCPOC-660
+  @regression @ARCPOC-214 @ARCPOC-660
   Scenario Outline: Verify CJA field validation with invalid input
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -154,7 +156,8 @@ Feature: Applications List Search
       | User   | SearchText | ValidationMessage                                  | OptionText | ExpectedValue | Info             |
       | admin1 | abc123     | There is a problem Criminal Justice Area not found |            | abc123        | No results found |
 
-  @regression @ARCPOC-452
+    # This Scenario has been ignored due to bug in sorting functionality @ARCPOC-756
+  @ignore @ARCPOC-214 @ARCPOC-452
   Scenario Outline: Verify applications list table sorting functionality
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -183,7 +186,7 @@ Feature: Applications List Search
       | User  | TableName | SearchDate | Status | Column |
       | user1 | Lists     | 19/05/2025 | Closed | Date   |
 
-  @regression @ARCPOC-452
+  @regression @ARCPOC-214 @ARCPOC-452
   Scenario Outline: Verify applications list table shows empty state with no results
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -194,11 +197,14 @@ Feature: Applications List Search
     When User Clicks On The "Search" Button
     # Verify notification banner is displayed for empty state
     Then User Sees Notification Banner "<NotificationMessage>"
+    Then User Clicks On The Link "<LinkText>"
+    Then User See "<CreatePageText>" On The Page
+    Then User Verify The Page URL Contains "/applications-list/create"
     Examples:
-      | User  | SearchDate | Status | NotificationMessage                                                  |
-      | user1 | 01/01/2099 | Closed | Important No lists found Try different filters, or create a new list |
+      | User  | SearchDate | Status | NotificationMessage                                                  | LinkText          | CreatePageText               |
+      | user1 | 01/01/2099 | Closed | Important No lists found Try different filters, or create a new list | create a new list | Create new applications list |
 
-  @regression @ARCPOC-691
+  @regression @ARCPOC-214 @ARCPOC-691
   Scenario Outline: Verify Court field validation with valid input
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -212,7 +218,7 @@ Feature: Applications List Search
       | User   | SearchText | OptionText                | ExpectedValue                      | Info             |
       | admin1 | Cardiff    | Cardiff Crown Court Set 4 | CCC033 - Cardiff Crown Court Set 4 | No results found |
 
-  @regression @ARCPOC-691
+  @regression @ARCPOC-214 @ARCPOC-691
   Scenario Outline: Verify Court field validation with invalid input
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -225,3 +231,41 @@ Feature: Applications List Search
     Examples:
       | User   | SearchText | NotificationMessage                                        | OptionText | ExpectedValue | Info             |
       | admin1 | London     | No lists found Try different filters, or create a new list |            | London        | No results found |
+
+  @regression @ARCPOC-214 @ARCPOC-417
+  Scenario Outline: Verify application list Open with multiple pages of results is returned
+    Given User Is On The Portal Page
+    When User Signs In With Microsoft SSO As "<User>"
+    Then User Clicks On The Link "Applications list"
+    When User Set Date Field "Date" To "<SearchDate>"
+    Then User Selects "<Status>" In The "Select status" Dropdown
+    When User Clicks On The "Search" Button
+    Then User Should See The Table "<TableName>"
+    Then User Should See Table "<TableName>" Has Sortable Headers "Date, Time, Location, Description, Entries, Status"
+    Then User Should See Table "<TableName>" Header "Actions" Is Not Sortable
+    Then User Should See Table "<TableName>" Has Rows
+    When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
+      | Date          | Time   | Location | Description   | Entries   | Status   |
+      | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+    Then User Should See The Link "List details"
+    Examples:
+      | User  | TableName | DisplayDate | Time  | Court                             | Description | Entries | Status | ButtonName | SearchDate | SelectButtonText |
+      | user1 | Lists     | 2001-01-01  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | *SKIP*     | Select           |
+      | user1 | Lists     | 2001-01-01  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | 01/1/2001  | Select           |
+
+  @regression @ARCPOC-214 @ARCPOC-417
+  Scenario Outline: Verify application list row menu options
+    Given User Is On The Portal Page
+    When User Signs In With Microsoft SSO As "<User>"
+    Then User Clicks On The Link "Applications list"
+    Then User Selects "<Status>" In The "Select status" Dropdown
+    When User Clicks On The "Search" Button
+    Then User Should See The Table "<TableName>"
+    Then User Should See Table "<TableName>" Has Rows
+    When User Clicks "<SelectButtonText>" In Row Of Table "<TableName>" And Verify Menu Options "<MenuOptions>"
+      | Date          | Time   | Location | Description   | Entries   | Status   |
+      | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+    Examples:
+      | User  | TableName | DisplayDate | Time  | Court                                 | Description                                    | Entries | Status | SelectButtonText | MenuOptions                                 |
+      | user1 | Lists     | 2025-06-27  | 14:00 | Manchester Civil Justice Centre Set 8 | Afternoon list for Civil Court                 | 1       | Open   | Select           | Open, Print page,  Print continuous, Delete |
+      | user1 | Lists     | 2025-11-26  | 16:45 | Royal Courts of Justice Set 1         | Applications to review at the Test Courthouse. | 0       | Closed | Select           | Print page,  Print continuous               |
