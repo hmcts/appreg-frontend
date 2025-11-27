@@ -1,0 +1,109 @@
+{
+  "page": 0,
+  "size": 10,
+  "totalElements": 23,
+  "totalPages": 3,
+  "sort": ["date,desc"],
+  "content": [
+    {
+      "id": "9b8b4b6e-9d1a-4a6a-9a36-111111111111",
+      "date": "2025-11-17",
+      "time": "09:00",
+      "location": "Manchester Magistrates’ Court",
+      "description": "Public applications list (Early)",
+      "entriesCount": 6,
+      "status": "OPEN",
+      "entriesSummary": [{ "sequenceNumber": 1, "result": "Adjourned" }]
+    },
+    {
+      "id": "9b8b4b6e-9d1a-4a6a-9a36-222222222222",
+      "date": "2025-11-17",
+      "time": "10:00",
+      "location": "Manchester Magistrates’ Court",
+      "description": "Public applications list AM",
+      "entriesCount": 7,
+      "status": "OPEN",
+      "entriesSummary": [{ "sequenceNumber": 2, "result": "Heard" }]
+    },
+    {
+      "id": "9b8b4b6e-9d1a-4a6a-9a36-333333333333",
+      "date": "2025-11-17",
+      "time": "11:00",
+      "location": "Liverpool Magistrates’ Court",
+      "description": "Applications list (Late AM)",
+      "entriesCount": 4,
+      "status": "OPEN",
+      "entriesSummary": []
+    },
+    {
+      "id": "9b8b4b6e-9d1a-4a6a-9a36-444444444444",
+      "date": "2025-11-17",
+      "time": "12:00",
+      "location": "Leeds Magistrates’ Court",
+      "description": "Applications list (Midday)",
+      "entriesCount": 3,
+      "status": "OPEN",
+      "entriesSummary": []
+    },
+    {
+      "id": "9b8b4b6e-9d1a-4a6a-9a36-555555555555",
+      "date": "2025-11-17",
+      "time": "13:00",
+      "location": "Birmingham Magistrates’ Court",
+      "description": "Applications list (Early PM)",
+      "entriesCount": 5,
+      "status": "CLOSED",
+      "entriesSummary": []
+    },
+    {
+      "id": "9b8b4b6e-9d1a-4a6a-9a36-666666666666",
+      "date": "2025-11-17",
+      "time": "14:00",
+      "location": "Manchester Magistrates’ Court",
+      "description": "Public applications list PM",
+      "entriesCount": 5,
+      "status": "CLOSED",
+      "entriesSummary": []
+    },
+    {
+      "id": "9b8b4b6e-9d1a-4a6a-9a36-777777777777",
+      "date": "2025-11-17",
+      "time": "15:00",
+      "location": "Bristol Magistrates’ Court",
+      "description": "Applications list (Mid PM)",
+      "entriesCount": 2,
+      "status": "OPEN",
+      "entriesSummary": []
+    },
+    {
+      "id": "9b8b4b6e-9d1a-4a6a-9a36-888888888888",
+      "date": "2025-11-17",
+      "time": "16:00",
+      "location": "Nottingham Magistrates’ Court",
+      "description": "Applications list (Late PM)",
+      "entriesCount": 8,
+      "status": "OPEN",
+      "entriesSummary": [{ "sequenceNumber": 1, "result": "Heard" }]
+    },
+    {
+      "id": "9b8b4b6e-9d1a-4a6a-9a36-999999999999",
+      "date": "2025-11-17",
+      "time": "17:00",
+      "location": "Sheffield Magistrates’ Court",
+      "description": "Applications list (Evening)",
+      "entriesCount": 1,
+      "status": "OPEN",
+      "entriesSummary": []
+    },
+    {
+      "id": "9b8b4b6e-9d1a-4a6a-9a36-aaaaaaaaaaaa",
+      "date": "2025-11-17",
+      "time": "18:00",
+      "location": "Newcastle Magistrates’ Court",
+      "description": "Applications list (Late)",
+      "entriesCount": 3,
+      "status": "CLOSED",
+      "entriesSummary": []
+    }
+  ]
+}

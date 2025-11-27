@@ -1,0 +1,10 @@
+{
+  "applicationCode": "MS99004",
+  "title": "Statutory Declaration - Lost documents",
+  "wording": "Attends to make a statutory declaration in relation to loss of original document, namely {TEXT|Specify Document Lost|100}",
+  "isFeeDue": false,
+  "requiresRespondent": false,
+  "bulkRespondentAllowed": false,
+  "startDate": "2020-01-01",
+  "endDate": null
+}

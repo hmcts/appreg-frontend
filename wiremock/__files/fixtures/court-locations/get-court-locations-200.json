@@ -1,0 +1,59 @@
+{
+  "pageNumber": 0,
+  "pageSize": 100,
+  "totalElements": 10,
+  "totalPages": 1,
+  "sort": {
+    "orders": [
+      {
+        "property": "name",
+        "direction": "asc"
+      }
+    ]
+  },
+  "first": true,
+  "last": true,
+  "elementsOnPage": 10,
+  "content": [
+    {
+      "name": "Manchester Civil Justice Centre Set 8",
+      "locationCode": "MCJC072"
+    },
+    {
+      "name": "Manchester Magistrates’ Court",
+      "locationCode": "MNC"
+    },
+    {
+      "name": "Bristol Magistrates’ Court",
+      "locationCode": "BRS"
+    },
+    {
+      "name": "Leeds Combined Court Centre",
+      "locationCode": "LDS"
+    },
+    {
+      "name": "Liverpool Crown Court",
+      "locationCode": "LIV"
+    },
+    {
+      "name": "Nottingham Magistrates’ Court",
+      "locationCode": "NTM"
+    },
+    {
+      "name": "Sheffield Magistrates’ Court",
+      "locationCode": "SHF"
+    },
+    {
+      "name": "Birmingham Magistrates’ Court",
+      "locationCode": "BHM"
+    },
+    {
+      "name": "Cardiff Magistrates’ Court",
+      "locationCode": "CDF"
+    },
+    {
+      "name": "Newcastle Crown Court",
+      "locationCode": "NCL"
+    }
+  ]
+}

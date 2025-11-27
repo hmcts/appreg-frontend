@@ -1,0 +1,59 @@
+{
+  "pageNumber": 0,
+  "pageSize": 100,
+  "totalElements": 10,
+  "totalPages": 1,
+  "sort": {
+    "orders": [
+      {
+        "property": "description",
+        "direction": "asc"
+      }
+    ]
+  },
+  "first": true,
+  "last": true,
+  "elementsOnPage": 10,
+  "content": [
+    {
+      "code": "CJA01",
+      "description": "Greater Manchester"
+    },
+    {
+      "code": "CJA02",
+      "description": "Merseyside"
+    },
+    {
+      "code": "CJA03",
+      "description": "West Yorkshire"
+    },
+    {
+      "code": "CJA04",
+      "description": "South Yorkshire"
+    },
+    {
+      "code": "CJA05",
+      "description": "West Midlands"
+    },
+    {
+      "code": "CJA06",
+      "description": "Nottinghamshire"
+    },
+    {
+      "code": "CJA07",
+      "description": "Leicestershire"
+    },
+    {
+      "code": "CJA08",
+      "description": "Lancashire"
+    },
+    {
+      "code": "CJA09",
+      "description": "Cheshire"
+    },
+    {
+      "code": "CJA10",
+      "description": "Cumbria"
+    }
+  ]
+}

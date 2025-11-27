@@ -11,3 +11,14 @@ services:
     ports:
       - '4000:4000'
     restart: unless-stopped
+
+  wiremock:
+    image: wiremock/wiremock:latest
+    container_name: appreg-wiremock
+    command: ['--verbose', '--global-response-templating']
+    ports:
+      - '4550:8080'
+    volumes:
+      - ./wiremock/mappings:/home/wiremock/mappings:ro
+      - ./wiremock/__files:/home/wiremock/__files:ro
+    restart: unless-stopped

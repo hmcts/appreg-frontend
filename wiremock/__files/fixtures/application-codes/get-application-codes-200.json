@@ -1,0 +1,99 @@
+{
+  "pageNumber": 0,
+  "pageSize": 10,
+  "totalElements": 43,
+  "totalPages": 5,
+  "sort": {
+    "orders": [
+      {
+        "property": "code",
+        "direction": "desc"
+      }
+    ]
+  },
+  "first": true,
+  "last": false,
+  "elementsOnPage": 10,
+  "content": [
+    {
+      "applicationCode": "MS99004",
+      "title": "Statutory Decalration -Lost documents",
+      "wording": "Attends to make a statutory declaration in relation to loss of original document, namely {TEXT|Specify Document Lost|100}",
+      "isFeeDue": false,
+      "requiresRespondent": false,
+      "bulkRespondentAllowed": false
+    },
+    {
+      "applicationCode": "MS99003",
+      "title": "Statutory Decalration - Local Authority Car Park",
+      "wording": "Attends to make a statutory declaration in relation to car park penalty issued on {TEXT|Date|10} for vehicle {TEXT|Vehicle Reg|10}",
+      "isFeeDue": false,
+      "requiresRespondent": false,
+      "bulkRespondentAllowed": false
+    },
+    {
+      "applicationCode": "MS99002",
+      "title": "Change of name",
+      "wording": "Attends to make a statutory declaration that henceforth the applicant will be known as {TEXT|New Name|100}",
+      "isFeeDue": false,
+      "requiresRespondent": false,
+      "bulkRespondentAllowed": false
+    },
+    {
+      "applicationCode": "MS99001",
+      "title": "Special Constable's Attestation",
+      "wording": "Attends to swear oath of the office of Special Constable",
+      "isFeeDue": false,
+      "requiresRespondent": false,
+      "bulkRespondentAllowed": false
+    },
+    {
+      "applicationCode": "CT99010",
+      "title": "Issue of liability order warrant in commitment proceedings - child support",
+      "wording": "Attends to swear a complaint for the issue of an arrest warrant for the debtor to answer an application for committal to prison in relation to unpaid child support (reference {TEXT|Reference|100})",
+      "isFeeDue": false,
+      "requiresRespondent": true,
+      "bulkRespondentAllowed": false
+    },
+    {
+      "applicationCode": "CT99009",
+      "title": "Issue of liability order summons - child support",
+      "wording": "Attends to swear a complaint for the issue of a summons for the debtor to answer an application for a liability order in relation to unpaid child support (reference {TEXT|Reference|100})",
+      "isFeeDue": false,
+      "requiresRespondent": true,
+      "bulkRespondentAllowed": false
+    },
+    {
+      "applicationCode": "CT99008",
+      "title": "Issue of warrant of arrest in commitment proceedings - non-domestic rate",
+      "wording": "Attends to swear a complaint for the issue of an arrest warrant for the debtor to answer an application for commitment to prison in relation to unpaid non-domestic rate (reference {TEXT|Reference|100})",
+      "isFeeDue": false,
+      "requiresRespondent": true,
+      "bulkRespondentAllowed": false
+    },
+    {
+      "applicationCode": "CT99007",
+      "title": "Issue of warrant of arrest in commitment proceedings - non-domestic rate (bulk)",
+      "wording": "Attends to swear a complaint for the issue of warrants of arrest for the debtors to answer an application for commitment to prison in relation to unpaid non-domestic rate (number of cases {TEXT|Number|4})",
+      "isFeeDue": false,
+      "requiresRespondent": false,
+      "bulkRespondentAllowed": true
+    },
+    {
+      "applicationCode": "CT99006",
+      "title": "Issue of warrant of arrest in commitment proceedings - council tax",
+      "wording": "Attends to swear a complaint for the issue of an arrest warrant for the debtor to answer an application for committal to prison in relation to unpaid council tax (reference {TEXT|Reference|100})",
+      "isFeeDue": false,
+      "requiresRespondent": true,
+      "bulkRespondentAllowed": false
+    },
+    {
+      "applicationCode": "CT99005",
+      "title": "Issue of warrant of arrest in commitment proceedings - council tax (bulk)",
+      "wording": "Attends to swear a complaint for the issue of warrants of arrest for the debtors to answer an application for committal to prison (number of cases {TEXT|Number|4})",
+      "isFeeDue": false,
+      "requiresRespondent": false,
+      "bulkRespondentAllowed": true
+    }
+  ]
+}

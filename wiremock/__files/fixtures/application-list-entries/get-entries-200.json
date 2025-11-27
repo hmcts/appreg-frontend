@@ -1,0 +1,102 @@
+{
+  "pageNumber": 0,
+  "pageSize": 100,
+  "totalElements": 25,
+  "totalPages": 1,
+  "sort": { "orders": [{ "property": "status", "direction": "asc" }] },
+  "first": true,
+  "last": true,
+  "elementsOnPage": 10,
+  "content": [
+    {
+      "id": "0c7d9e2a-6d0a-42b8-b6a8-9a2a3b6a0101",
+      "applicantName": "CPS",
+      "respondentName": "John Smith",
+      "applicationTitle": "Issue of liability order warrant",
+      "isFeeRequired": false,
+      "isResulted": false,
+      "status": "OPEN"
+    },
+    {
+      "id": "1b2f5b11-9a7a-4c8e-b1f1-6b2f5b110102",
+      "applicantName": "CPS",
+      "respondentName": "Jane Doe",
+      "applicationTitle": "Issue of warrant of arrest",
+      "isFeeRequired": true,
+      "isResulted": true,
+      "status": "CLOSED"
+    },
+    {
+      "id": "2c3e6c22-8b8b-4f9f-a2f2-7c3e6c220103",
+      "applicantName": "HMRC",
+      "respondentName": "Acme Trading Ltd",
+      "applicationTitle": "Statutory declaration",
+      "isFeeRequired": false,
+      "isResulted": false,
+      "status": "OPEN"
+    },
+    {
+      "id": "3d4d7d33-7c9c-4a0f-b3f3-8d4d7d330104",
+      "applicantName": "Local Authority",
+      "respondentName": "Michael Brown",
+      "applicationTitle": "Approval of summons",
+      "isFeeRequired": false,
+      "isResulted": true,
+      "status": "CLOSED"
+    },
+    {
+      "id": "4e5c8e44-6dad-4010-b4f4-9e5c8e440105",
+      "applicantName": "DVLA",
+      "respondentName": "Sarah Wilson",
+      "applicationTitle": "Endorsement of driving record",
+      "isFeeRequired": true,
+      "isResulted": false,
+      "status": "OPEN"
+    },
+    {
+      "id": "5f6b9f55-5ebe-4121-b5f5-af6b9f550106",
+      "applicantName": "CPS",
+      "respondentName": "Daniel Green",
+      "applicationTitle": "Breach of order",
+      "isFeeRequired": false,
+      "isResulted": false,
+      "status": "OPEN"
+    },
+    {
+      "id": "607aa066-4fcf-4232-b606-b07aa0660107",
+      "applicantName": "Trading Standards",
+      "respondentName": "Corner Shop Ltd",
+      "applicationTitle": "Seizure application",
+      "isFeeRequired": true,
+      "isResulted": true,
+      "status": "CLOSED"
+    },
+    {
+      "id": "718bb177-3ad0-4343-b717-c18bb1770108",
+      "applicantName": "Police",
+      "respondentName": "Unknown",
+      "applicationTitle": "Search warrant",
+      "isFeeRequired": false,
+      "isResulted": false,
+      "status": "OPEN"
+    },
+    {
+      "id": "829cc288-2be1-4454-b828-d29cc2880109",
+      "applicantName": "Environment Agency",
+      "respondentName": "Green Fields Farm",
+      "applicationTitle": "Enforcement notice",
+      "isFeeRequired": false,
+      "isResulted": true,
+      "status": "CLOSED"
+    },
+    {
+      "id": "93add399-1cf2-4565-b939-e3add3990110",
+      "applicantName": "Local Authority",
+      "respondentName": "Blue Estates",
+      "applicationTitle": "Noise abatement",
+      "isFeeRequired": false,
+      "isResulted": false,
+      "status": "OPEN"
+    }
+  ]
+}

@@ -13,7 +13,7 @@ export const CODES_COLUMNS: TableColumn[] = [
   { header: 'Title', field: 'title' },
   { header: 'Bulk', field: 'bulk' },
   { header: 'Fee req', field: 'fee' },
-  { header: 'Actions', field: 'actions' },
+  { header: 'Actions', field: 'actions', sortable: false },
 ];
 
 export const FEE_STATUS_OPTIONS = [

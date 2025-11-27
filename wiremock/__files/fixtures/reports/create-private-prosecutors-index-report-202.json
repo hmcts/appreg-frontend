@@ -1,0 +1,6 @@
+{
+  "id": "{{randomValue type='UUID'}}",
+  "type": "PRIVATE_PROSECUTORS_INDEX",
+  "status": "ACCEPTED",
+  "submittedAt": "{{now format='yyyy-MM-dd'T'HH:mm:ssXXX'}}"
+}

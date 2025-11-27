@@ -1,0 +1,99 @@
+{
+  "page": 0,
+  "size": 10,
+  "totalElements": 23,
+  "totalPages": 3,
+  "sort": ["status,asc"],
+  "content": [
+    {
+      "id": "1f7c8d77-1b26-4f7e-8d8f-111111111111",
+      "applicantName": "John Smith",
+      "respondentName": "Jane Smith",
+      "applicationTitle": "Appeal to Crown Court",
+      "isFeeRequired": false,
+      "isResulted": false,
+      "status": "OPEN"
+    },
+    {
+      "id": "2f7c8d77-1b26-4f7e-8d8f-222222222222",
+      "applicantName": "CPS",
+      "respondentName": "N/A",
+      "applicationTitle": "Warrant of arrest",
+      "isFeeRequired": true,
+      "isResulted": true,
+      "status": "CLOSED"
+    },
+    {
+      "id": "3f7c8d77-1b26-4f7e-8d8f-333333333333",
+      "applicantName": "Legal Aid Board",
+      "respondentName": "Thomas Lee",
+      "applicationTitle": "Appeal to Crown Court",
+      "isFeeRequired": false,
+      "isResulted": false,
+      "status": "OPEN"
+    },
+    {
+      "id": "4f7c8d77-1b26-4f7e-8d8f-444444444444",
+      "applicantName": "CPS",
+      "respondentName": "N/A",
+      "applicationTitle": "Issue of liability order warrant",
+      "isFeeRequired": true,
+      "isResulted": true,
+      "status": "CLOSED"
+    },
+    {
+      "id": "5f7c8d77-1b26-4f7e-8d8f-555555555555",
+      "applicantName": "Greater Manchester Police",
+      "respondentName": "Alex Green",
+      "applicationTitle": "Search warrant",
+      "isFeeRequired": false,
+      "isResulted": false,
+      "status": "OPEN"
+    },
+    {
+      "id": "6f7c8d77-1b26-4f7e-8d8f-666666666666",
+      "applicantName": "CPS",
+      "respondentName": "N/A",
+      "applicationTitle": "Warrant of arrest",
+      "isFeeRequired": true,
+      "isResulted": true,
+      "status": "CLOSED"
+    },
+    {
+      "id": "7f7c8d77-1b26-4f7e-8d8f-777777777777",
+      "applicantName": "Legal Aid Board",
+      "respondentName": "Deborah Mills",
+      "applicationTitle": "Appeal to Crown Court",
+      "isFeeRequired": false,
+      "isResulted": false,
+      "status": "OPEN"
+    },
+    {
+      "id": "8f7c8d77-1b26-4f7e-8d8f-888888888888",
+      "applicantName": "CPS",
+      "respondentName": "N/A",
+      "applicationTitle": "Issue of warrant of arrest",
+      "isFeeRequired": true,
+      "isResulted": true,
+      "status": "CLOSED"
+    },
+    {
+      "id": "9f7c8d77-1b26-4f7e-8d8f-999999999999",
+      "applicantName": "John Smith",
+      "respondentName": "Jane Smith",
+      "applicationTitle": "Appeal to Crown Court",
+      "isFeeRequired": false,
+      "isResulted": false,
+      "status": "OPEN"
+    },
+    {
+      "id": "af7c8d77-1b26-4f7e-8d8f-aaaaaaaaaaaa",
+      "applicantName": "CPS",
+      "respondentName": "N/A",
+      "applicationTitle": "Warrant of arrest",
+      "isFeeRequired": true,
+      "isResulted": true,
+      "status": "CLOSED"
+    }
+  ]
+}
