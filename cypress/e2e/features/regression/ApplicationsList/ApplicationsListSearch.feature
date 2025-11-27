@@ -82,7 +82,7 @@ Feature: Applications List Search
       | User  | TableName | SearchDate | DisplayDate | Time  | Court                     | Description                   | Entries | Status |
       | user1 | Lists     | 19/05/2025 | 2025-05-19  | 09:00 | Cardiff Crown Court Set 4 | Cancelled hearing for Probate | 2       | CLOSED |
 
-  @regression @ARCPOC-214 @ARCPOC-452 @PJ
+  @regression @ARCPOC-214 @ARCPOC-452
   Scenario Outline: Filter and verify applications list table results
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
