@@ -1,8 +1,0 @@
-{
-  "type": "about:blank",
-  "title": "Unauthorized",
-  "status": 401,
-  "detail": "Missing or invalid Authorization header",
-  "timestamp": "{{now format=\"yyyy-MM-dd'T'HH:mm:ssXXX\"}}",
-  "traceId": "{{randomValue length=12 type='ALPHANUMERIC'}}"
-}
