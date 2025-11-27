@@ -82,6 +82,14 @@ type ErrorSummaryItem = { text: string; href?: string };
 
 type ApplicantType = 'person' | 'organisation' | 'standardApplicant';
 
+type StandardApplicantRow = {
+  code: StandardApplicantGetSummaryDto['code'];
+  name: string;
+  address: string;
+  useFrom: string; // formatted date
+  useTo: string; // formatted date
+};
+
 interface ProblemDetails {
   title?: string;
   detail?: string;
@@ -457,16 +465,43 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
   }
 
-  get standardApplicantData() {
+  get standardApplicantData(): StandardApplicantRow[] {
     const fmt = (iso?: string | null) =>
       iso ? new Date(iso).toLocaleDateString('en-GB') : '—';
-    return this.saItems.map((sa) => ({
-      code: sa.code ?? '',
-      name: sa.name ?? '',
-      address: sa.addressLine1 ?? '',
-      useFrom: fmt(sa.startDate),
-      useTo: fmt(sa.endDate ?? null),
-    }));
+
+    return this.saItems.map((sa) => {
+      const applicant = sa.applicant;
+      const person = applicant?.person;
+      const organisation = applicant?.organisation;
+
+      // Build a display name
+      const personName = person?.name
+        ? [
+            person.name.title,
+            person.name.firstForename,
+            person.name.secondForename,
+            person.name.thirdForename,
+            person.name.surname,
+          ]
+            .filter(Boolean)
+            .join(' ')
+        : '';
+
+      const name = organisation?.name ?? personName ?? '';
+
+      const addressLine1 =
+        person?.contactDetails?.addressLine1 ??
+        organisation?.contactDetails?.addressLine1 ??
+        '';
+
+      return {
+        code: sa.code ?? '',
+        name,
+        address: addressLine1,
+        useFrom: fmt(sa.startDate),
+        useTo: fmt(sa.endDate ?? null),
+      };
+    });
   }
 
   onUpdateApplicant(): void {
