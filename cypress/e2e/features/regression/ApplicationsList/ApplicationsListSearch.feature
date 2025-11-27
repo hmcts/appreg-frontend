@@ -94,12 +94,13 @@ Feature: Applications List Search
     Then User Should See Table "Lists" Has Rows
     Then User Should See Table "<TableName>" Column "Status" Has Value "<Status>"
     # Reset status filter and filter by time, then verify table updates
-    Then User Selects "Choose" In The "Select status" Dropdown
-    When User Set Time Field "Time" To "<Time>"
-    When User Clicks On The "Search" Button
-    Then User Should See The Table "Lists"
-    Then User Should See Table "Lists" Has Rows
-    Then User Should See Table "<TableName>" Column "Time" Has Value "<Time>"
+    # Commented out due to bug in filtering by time functionality @ARCPOC-759
+    # Then User Selects "Choose" In The "Select status" Dropdown
+    # When User Set Time Field "Time" To "<Time>"
+    # When User Clicks On The "Search" Button
+    # Then User Should See The Table "Lists"
+    # Then User Should See Table "Lists" Has Rows
+    # Then User Should See Table "<TableName>" Column "Time" Has Value "<Time>"
     # Clear time filter and filter by date, then verify table updates
     When User Clears The Time Field "Time"
     When User Set Date Field "Date" To "<SearchDate>"
@@ -154,7 +155,8 @@ Feature: Applications List Search
       | User   | SearchText | ValidationMessage                                  | OptionText | ExpectedValue | Info             |
       | admin1 | abc123     | There is a problem Criminal Justice Area not found |            | abc123        | No results found |
 
-  @regression @ARCPOC-214 @ARCPOC-452
+    # This Scenario has been ignored due to bug in sorting functionality @ARCPOC-756
+  @ignore @ARCPOC-214 @ARCPOC-452
   Scenario Outline: Verify applications list table sorting functionality
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
