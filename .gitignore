@@ -62,3 +62,7 @@ functional-output/
 
 # Branch retention outputs
 .github/branch-retention/out/
+
+# Wiremock generated files
+/wiremock/__files/errors
+/wiremock/mappings
