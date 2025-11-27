@@ -4,11 +4,12 @@
 /**
  * Generate WireMock mappings from an OpenAPI spec — without duplicates.
  *
- * - One success (2xx) mapping per endpoint.
- * - One error mapping per status code (4xx/5xx) per endpoint, reusing __files/errors via bodyFileName.
+ * - One success (2xx) mapping per endpoint (bound to Scenario state "Started").
+ * - One error mapping per status code (4xx/5xx) per endpoint, reusing __files/errors via bodyFileName,
+ *   each gated by a WireMock Scenario state "FORCE_<status>".
  * - Guard stubs (header/content/pagination) are OFF by default to avoid duplicates; enable with EMIT_GUARD_STUBS=1.
- * - NEW: If a fixture exists under wiremock/__files/fixtures/<group>/<kebab(operationId)>-<status>.json,
- *        use it as response via bodyFileName.
+ * - If a fixture exists under wiremock/__files/fixtures/<group>/<kebab(operationId)>-<status>.json,
+ *   use it as response via bodyFileName.
  */
 
 const fs = require('node:fs');
@@ -48,7 +49,9 @@ const ERROR_FILE_BY_STATUS = Object.freeze({
 });
 
 function log(...args) {
-  if (DEBUG) console.log('[gen]', ...args);
+  if (DEBUG) {
+    console.log('[gen]', ...args);
+  }
 }
 
 // ---------- FS helpers ----------
@@ -56,7 +59,8 @@ async function fileExists(p) {
   try {
     await fsp.access(p, fs.constants.R_OK);
     return true;
-  } catch {
+    // eslint-disable-next-line no-unused-vars
+  } catch (_e) {
     return false;
   }
 }
@@ -85,7 +89,9 @@ async function findSpecPath() {
   let chosen =
     entries.find((f) => /^openapi\.(ya?ml|json)$/i.test(f)) ||
     entries.find((f) => /\.(ya?ml|json)$/i.test(f));
-  if (!chosen) throw new Error(`No spec files found in ${dir}`);
+  if (!chosen) {
+    throw new Error(`No spec files found in ${dir}`);
+  }
   return path.join(dir, chosen);
 }
 
@@ -105,9 +111,12 @@ async function readSpecWithDeref() {
   const root = await readFileAsObject(rootPath);
 
   async function deref(node, baseDir) {
-    if (!node || typeof node !== 'object') return node;
-    if (Array.isArray(node))
+    if (!node || typeof node !== 'object') {
+      return node;
+    }
+    if (Array.isArray(node)) {
       return Promise.all(node.map((it) => deref(it, baseDir)));
+    }
     if (node.$ref && typeof node.$ref === 'string') {
       const ref = node.$ref;
       if (ref.startsWith('./')) {
@@ -152,7 +161,9 @@ function toGroup(op) {
 }
 
 function toKebab(s) {
-  if (!s) return '';
+  if (!s) {
+    return '';
+  }
   return String(s)
     .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
     .replace(/[^a-zA-Z0-9]+/g, '-')
@@ -168,7 +179,9 @@ function pathToUrlMatcher(p) {
   if (/\{[^}]+}/.test(p)) {
     const re = p.replace(/\{([^}]+)}/g, (_, name) => {
       const n = String(name).toLowerCase();
-      if (n.includes('id') || n.includes('uuid')) return '[0-9a-f-]{36}';
+      if (n.includes('id') || n.includes('uuid')) {
+        return '[0-9a-f-]{36}';
+      }
       return '[^/]+';
     });
     return { kind: 'urlPathPattern', value: `^${re}$` };
@@ -178,15 +191,23 @@ function pathToUrlMatcher(p) {
 
 // ---------- Content helpers ----------
 function pick2xxResponse(responses) {
-  if (!responses) return null;
+  if (!responses) {
+    return null;
+  }
   const pref = ['200', '201', '204'];
-  for (const c of pref) if (responses[c]) return [c, responses[c]];
+  for (const c of pref) {
+    if (responses[c]) {
+      return [c, responses[c]];
+    }
+  }
   const any2xx = Object.keys(responses).find((c) => /^2\d\d$/.test(c));
   return any2xx ? [any2xx, responses[any2xx]] : null;
 }
 
 function pickJsonMedia(content) {
-  if (!content) return null;
+  if (!content) {
+    return null;
+  }
   const keys = Object.keys(content);
   const key =
     keys.find((k) => /\+json$/i.test(k)) ||
@@ -196,7 +217,9 @@ function pickJsonMedia(content) {
 }
 
 function bodyJsonString(objOrTemplate) {
-  if (typeof objOrTemplate === 'string') return objOrTemplate;
+  if (typeof objOrTemplate === 'string') {
+    return objOrTemplate;
+  }
   return JSON.stringify(objOrTemplate, null, 2) + '\n';
 }
 
@@ -215,32 +238,46 @@ function houseRuleHeadersForRequest(hasBody) {
 }
 
 function houseRuleResponseHeaders(statusCode) {
-  if (String(statusCode) === '204') return { Vary: 'Accept' };
+  if (String(statusCode) === '204') {
+    return { Vary: 'Accept' };
+  }
   return { 'Content-Type': DEFAULT_VENDOR, Vary: 'Accept' };
 }
 
 function buildQueryParameters(parameters = []) {
   const qp = {};
   for (const p of parameters) {
-    if (p.in !== 'query') continue;
+    if (p.in !== 'query' || !p.required) {
+      continue;
+    }
     const schema = p.schema || {};
     let matcher = '.*';
-    if (schema.type === 'integer' || schema.type === 'number')
+    if (schema.type === 'integer' || schema.type === 'number') {
       matcher = '^[0-9]+$';
-    if (schema.format === 'date') matcher = '^\\d{4}-\\d{2}-\\d{2}$';
-    qp[p.name] = p.required ? { matches: matcher } : { matches: '.*' };
+    }
+    if (schema.format === 'date') {
+      matcher = '^\\d{4}-\\d{2}-\\d{2}$';
+    }
+    qp[p.name] = { matches: matcher };
   }
   return Object.keys(qp).length ? qp : undefined;
 }
 
 async function exampleFromSchemaOrGenerate(media) {
-  if (media?.example) return media.example;
-  if (media?.examples) {
-    const firstKey = Object.keys(media.examples)[0];
-    if (firstKey && media.examples[firstKey]?.value)
-      return media.examples[firstKey].value;
+  if (media && media.example) {
+    return media.example;
   }
-  if (media?.schema) {
+  if (media && media.examples) {
+    const firstKey = Object.keys(media.examples)[0];
+    if (
+      firstKey &&
+      media.examples[firstKey] &&
+      media.examples[firstKey].value
+    ) {
+      return media.examples[firstKey].value;
+    }
+  }
+  if (media && media.schema) {
     try {
       return await jsf.resolve(media.schema);
     } catch (e) {
@@ -284,13 +321,17 @@ function mkBaseRequest(method, url, hasBody, opParams = []) {
     headers: houseRuleHeadersForRequest(hasBody),
   };
   const qp = buildQueryParameters(opParams || []);
-  if (qp) req.queryParameters = qp;
+  if (qp) {
+    req.queryParameters = qp;
+  }
   return req;
 }
 
-// ---------- Fixture resolver (NEW) ----------
+// ---------- Fixture resolver ----------
 async function resolveFixture(group, opId, statusCode) {
-  if (!opId) return null;
+  if (!opId) {
+    return null;
+  }
   const kebab = toKebab(opId);
   const rel = path.posix.join(
     FIXTURE_ROOT,
@@ -298,16 +339,31 @@ async function resolveFixture(group, opId, statusCode) {
     `${kebab}-${statusCode}.json`,
   );
   const abs = path.join(WM_FILES_DIR, rel);
-  if (await fileExists(abs)) return { rel, abs };
+  if (await fileExists(abs)) {
+    return { rel, abs };
+  }
   return null;
+}
+
+// ---------- Scenario helpers ----------
+function scenarioNameFor(opId, method, pathStr) {
+  return (opId || `${method} ${pathStr}`).replace(/\s+/g, ' ');
+}
+
+function scenarioStateFor(code) {
+  return `FORCE_${code}`;
 }
 
 // ---------- Optional “guard” emitters (OFF by default) ----------
 async function emit400InvalidQuery(op, dir, m, url, seenPerOp) {
   const key = `${m} ${url.value} 400-guard-query`;
-  if (seenPerOp.has(key)) return;
+  if (seenPerOp.has(key)) {
+    return;
+  }
   const qp = buildQueryParameters(op.parameters || []);
-  if (!qp) return;
+  if (!qp) {
+    return;
+  }
   const mapping = {
     name: `${op.operationId || `${m} ${url.value}`} – 400 (invalid query)`,
     priority: 2,
@@ -336,7 +392,9 @@ async function emit400InvalidQuery(op, dir, m, url, seenPerOp) {
 
 async function emit401MissingAuth(op, dir, m, url, seenPerOp) {
   const key = `${m} ${url.value} 401-guard-auth`;
-  if (seenPerOp.has(key)) return;
+  if (seenPerOp.has(key)) {
+    return;
+  }
   const mapping = {
     name: `${op.operationId || `${m} ${url.value}`} – 401 (missing auth)`,
     priority: 2,
@@ -365,7 +423,9 @@ async function emit401MissingAuth(op, dir, m, url, seenPerOp) {
 
 async function emit403ForbiddenDebug(op, dir, m, url, seenPerOp) {
   const key = `${m} ${url.value} 403-guard-debug`;
-  if (seenPerOp.has(key)) return;
+  if (seenPerOp.has(key)) {
+    return;
+  }
   const baseReq = mkBaseRequest(m, url, !!op.requestBody, op.parameters || []);
   const req = {
     ...baseReq,
@@ -398,7 +458,9 @@ async function emit403ForbiddenDebug(op, dir, m, url, seenPerOp) {
 
 async function emit406WrongAccept(op, dir, m, url, seenPerOp) {
   const key = `${m} ${url.value} 406-guard-accept`;
-  if (seenPerOp.has(key)) return;
+  if (seenPerOp.has(key)) {
+    return;
+  }
   const mapping = {
     name: `${op.operationId || `${m} ${url.value}`} – 406 (wrong accept)`,
     priority: 2,
@@ -427,8 +489,12 @@ async function emit406WrongAccept(op, dir, m, url, seenPerOp) {
 
 async function emit400MissingBodyFields(op, dir, m, url, seenPerOp) {
   const key = `${m} ${url.value} 400-guard-body`;
-  if (seenPerOp.has(key)) return;
-  if (!op.requestBody) return;
+  if (seenPerOp.has(key)) {
+    return;
+  }
+  if (!op.requestBody) {
+    return;
+  }
   const mapping = {
     name: `${
       op.operationId || `${m} ${url.value}`
@@ -473,11 +539,14 @@ async function main() {
     for (const [, op] of Object.entries(ops)) {
       const resp = (op && op.responses) || {};
       for (const r of Object.values(resp)) {
-        if (r && r.content)
+        if (r && r.content) {
           Object.keys(r.content).forEach((k) => mediaKeys.add(k));
+        }
       }
       const rb = op && op.requestBody && op.requestBody.content;
-      if (rb) Object.keys(rb).forEach((k) => mediaKeys.add(k));
+      if (rb) {
+        Object.keys(rb).forEach((k) => mediaKeys.add(k));
+      }
     }
   }
   if (
@@ -499,7 +568,9 @@ async function main() {
   for (const [p, ops] of Object.entries(spec.paths)) {
     for (const [method, op] of Object.entries(ops)) {
       const m = method.toUpperCase();
-      if (!['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].includes(m)) continue;
+      if (!['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].includes(m)) {
+        continue;
+      }
 
       const group = toGroup(op || {});
       const url = pathToUrlMatcher(p);
@@ -515,24 +586,33 @@ async function main() {
       );
 
       if (EMIT_GUARD_STUBS) {
-        if (!specErrorCodes.has(400))
+        if (!specErrorCodes.has(400)) {
           await emit400InvalidQuery(op, dir, m, url, seenPerOp);
-        if (!specErrorCodes.has(400) && hasBody)
+        }
+        if (!specErrorCodes.has(400) && hasBody) {
           await emit400MissingBodyFields(op, dir, m, url, seenPerOp);
-        if (!specErrorCodes.has(401))
+        }
+        if (!specErrorCodes.has(401)) {
           await emit401MissingAuth(op, dir, m, url, seenPerOp);
-        if (!specErrorCodes.has(403))
+        }
+        if (!specErrorCodes.has(403)) {
           await emit403ForbiddenDebug(op, dir, m, url, seenPerOp);
-        if (!specErrorCodes.has(406))
+        }
+        if (!specErrorCodes.has(406)) {
           await emit406WrongAccept(op, dir, m, url, seenPerOp);
+        }
       }
 
-      // Spec-declared error mappings (one per status per endpoint)
+      // Spec-declared error mappings (one per status per endpoint) — SCENARIO-BASED
       for (const [codeStr] of Object.entries(op.responses || {})) {
-        if (!/^[45]\d\d$/.test(String(codeStr))) continue;
+        if (!/^[45]\d\d$/.test(String(codeStr))) {
+          continue;
+        }
         const code = Number(codeStr);
         const bodyFileName = ERROR_FILE_BY_STATUS[code];
-        if (!bodyFileName) continue;
+        if (!bodyFileName) {
+          continue;
+        }
 
         const errKey = `${m} ${url.kind}:${url.value} ${code}`;
         if (emittedErrorKeys.has(errKey)) {
@@ -541,21 +621,19 @@ async function main() {
         }
 
         const baseReq = mkBaseRequest(m, url, hasBody, op.parameters || []);
-        const errReq = {
-          ...baseReq,
-          queryParameters: {
-            ...(baseReq.queryParameters || {}),
-            [`X-Debug-${code}`]: { equalTo: 'true' },
-          },
-        };
 
         const errMapping = {
           name: `${(op.operationId || `${m} ${p}`).replace(
             /\s+/g,
             ' ',
           )} – ${code}`,
+
+          // Scenario wiring
+          scenarioName: scenarioNameFor(op.operationId, m, p),
+          requiredScenarioState: scenarioStateFor(code),
+
           priority: 3,
-          request: errReq,
+          request: baseReq,
           response: {
             status: code,
             headers: { 'Content-Type': 'application/problem+json' },
@@ -577,7 +655,7 @@ async function main() {
         log('wrote error', errFile);
       }
 
-      // Success (2xx) mapping — exactly one per endpoint
+      // Success (2xx) mapping — exactly one per endpoint (Scenario state: Started)
       const picked = pick2xxResponse(op.responses);
       if (!picked) {
         log(`skip ${m} ${p} (no 2xx response)`);
@@ -586,7 +664,7 @@ async function main() {
       const [statusCode, resp] = picked;
       const headers = houseRuleResponseHeaders(statusCode);
 
-      // NEW: Prefer curated fixture if present
+      // Prefer curated fixture if present
       let successResponse = {};
       const maybeFixture = await resolveFixture(
         group,
@@ -630,6 +708,11 @@ async function main() {
 
       const successMapping = {
         name: (op.operationId || `${m} ${p}`).replace(/\s+/g, ' '),
+
+        // Scenario wiring: happy path = default state
+        scenarioName: scenarioNameFor(op.operationId, m, p),
+        requiredScenarioState: 'Started',
+
         priority: 5,
         request: mkBaseRequest(m, url, hasBody, op.parameters || []),
         response: successResponse,
