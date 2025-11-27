@@ -14,6 +14,6 @@
     { "resultCode": "CNV", "title": "Convicted" },
     { "resultCode": "ACL", "title": "Absolute Discharge" },
     { "resultCode": "CST", "title": "Case Stood Down" },
-    { "resultCode": "NA",  "title": "No Appearance" }
+    { "resultCode": "NA", "title": "No Appearance" }
   ]
 }

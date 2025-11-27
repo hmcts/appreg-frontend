@@ -3,9 +3,7 @@
   "size": 10,
   "totalElements": 23,
   "totalPages": 3,
-  "sort": [
-    "name,asc"
-  ],
+  "sort": ["name,asc"],
   "content": [
     {
       "code": "SA001",

@@ -3,7 +3,7 @@
   "pageSize": 100,
   "totalElements": 25,
   "totalPages": 1,
-  "sort": { "orders": [ { "property": "status", "direction": "asc" } ] },
+  "sort": { "orders": [{ "property": "status", "direction": "asc" }] },
   "first": true,
   "last": true,
   "elementsOnPage": 10,

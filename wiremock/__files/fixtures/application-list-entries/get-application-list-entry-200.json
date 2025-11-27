@@ -4,7 +4,12 @@
   "standardApplicantCode": "APP001",
   "applicationCode": "APP99001",
   "applicant": { "type": "ORGANISATION", "organisationName": "CPS" },
-  "respondent": { "type": "PERSON", "title": "Mr", "firstName": "Alex", "lastName": "Taylor" },
+  "respondent": {
+    "type": "PERSON",
+    "title": "Mr",
+    "firstName": "Alex",
+    "lastName": "Taylor"
+  },
   "numberOfRespondents": 1,
   "wordingFields": ["25 October 2025", "London"],
   "feeStatuses": [],

@@ -18,6 +18,7 @@
     "start": "node dist/appreg-frontend/server/server.mjs",
     "start:dev": "nodemon --config nodemon.json",
     "start:mock": "docker compose up -d wiremock",
+    "stop:mock": "docker compose down wiremock",
     "lint": "yarn api:all && stylelint **/*.scss -v -q && eslint . --ext .js,.ts --max-warnings 0 && prettier --check .",
     "lint:fix": "prettier --write . && eslint --fix .",
     "build": "ng build",
