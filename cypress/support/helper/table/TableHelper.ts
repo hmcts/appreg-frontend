@@ -50,7 +50,7 @@ export class TableHelper {
             }
             return cy.wrap(allValues);
           });
-        }
+        },
       );
     }
 
@@ -132,17 +132,19 @@ export class TableHelper {
     searchAllPages: boolean,
     onMatch?: (row: JQuery<HTMLElement>) => Cypress.Chainable<void>,
   ): Cypress.Chainable<boolean> {
-    return this.searchInCurrentPage(caption, columnValues, onMatch).then((found) => {
-      if (found) {
-        return cy.wrap(true);
-      }
-      return this.navigateToNextPage(
-        caption,
-        columnValues,
-        searchAllPages,
-        onMatch,
-      );
-    });
+    return this.searchInCurrentPage(caption, columnValues, onMatch).then(
+      (found) => {
+        if (found) {
+          return cy.wrap(true);
+        }
+        return this.navigateToNextPage(
+          caption,
+          columnValues,
+          searchAllPages,
+          onMatch,
+        );
+      },
+    );
   }
 
   /**
@@ -454,13 +456,13 @@ export class TableHelper {
           if (hasNext) {
             return checkPage();
           }
-          return cy.then(() => {});
+          return cy.then(() => { });
         });
     }
     return checkPage();
   }
 
-   /**
+  /**
    * Clicks a button element (Cypress-wrapped)
    */
   static clickButton(button: JQuery<HTMLElement>): void {
@@ -473,14 +475,14 @@ export class TableHelper {
    * @param columnValues Object with column names and expected values to identify the row
    * @param menuButtonText The menu button text to click
    */
-static clickMenuButtonInTableRow(
+  static clickMenuButtonInTableRow(
     tableCaption: string,
     columnValues: Record<string, string>,
     menuButtonText: string,
     selectButtonText: string,
   ): Cypress.Chainable<void> {
     let clicked = false;
-    return (TableHelper.searchWithPagination(
+    return TableHelper.searchWithPagination(
       tableCaption,
       columnValues,
       true,
@@ -489,10 +491,12 @@ static clickMenuButtonInTableRow(
         TableElement.getButtonInRow(row, selectButtonText).then((button) => {
           TableHelper.clickButton(button);
         });
-        TableElement.getMenuButtonInRow(row, menuButtonText).then((menuButton) => {
-          TableHelper.clickButton(menuButton);
-        });
-        return cy.then(() => {}) as Cypress.Chainable<void>;
+        TableElement.getMenuButtonInRow(row, menuButtonText).then(
+          (menuButton) => {
+            TableHelper.clickButton(menuButton);
+          },
+        );
+        return cy.then(() => { }) as Cypress.Chainable<void>;
       },
     ).then((found) => {
       if (found && clicked) {
@@ -501,9 +505,9 @@ static clickMenuButtonInTableRow(
       throw new Error(
         `Row with specified values not found in table "${tableCaption}" to select menu button "${menuButtonText}"`,
       );
-    }) as unknown) as Cypress.Chainable<void>;
+    }) as unknown as Cypress.Chainable<void>;
   }
-/**
+  /**
    * Finds a row by values (with pagination), clicks a button, and asserts menu options
    */
   static verifyButtonsInTableRow(
@@ -513,7 +517,7 @@ static clickMenuButtonInTableRow(
     expectedMenuOptions: string[],
   ): Cypress.Chainable<void> {
     let verified = false;
-    return (TableHelper.searchWithPagination(
+    return TableHelper.searchWithPagination(
       tableCaption,
       columnValues,
       true,
@@ -521,14 +525,16 @@ static clickMenuButtonInTableRow(
         TableElement.getButtonInRow(row, selectButtonText).then((button) => {
           TableHelper.clickButton(button);
         });
-  cy.log(`Expected Menu Options (helper): ${expectedMenuOptions.join(', ')}`);
+        cy.log(
+          `Expected Menu Options (helper): ${expectedMenuOptions.join(', ')}`,
+        );
         expectedMenuOptions.forEach((btnText) => {
           cy.log(`Verifying menu button: ${btnText}`);
           TableElement.getMenuButtonInRow(row, btnText).should('be.visible');
         });
         cy.screenshot('menu-buttons-verified');
         verified = true;
-        return cy.then(() => {}) as Cypress.Chainable<void>;
+        return cy.then(() => { }) as Cypress.Chainable<void>;
       },
     ).then((found) => {
       if (found && verified) {
@@ -537,6 +543,6 @@ static clickMenuButtonInTableRow(
       throw new Error(
         `Row with specified values not found in table "${tableCaption}" to verify menu options: ${expectedMenuOptions.join(', ')}`,
       );
-    }) as unknown) as Cypress.Chainable<void>;
+    }) as unknown as Cypress.Chainable<void>;
   }
 }
