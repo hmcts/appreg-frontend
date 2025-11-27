@@ -101,13 +101,9 @@ function tmplBody({ title, status }) {
     const outPath = path.join(OUT_DIR, MAP[f].out);
     await fs.writeFile(outPath, tmplBody({ title, status }), 'utf8');
     written++;
-    console.log(`[ok] wrote ${outPath}`);
   }
 
   if (!written) {
-    console.warn(
-      '[warn] No error bodies were generated. Check RESP_DIR path or MAP keys.',
-    );
     process.exitCode = 2;
   }
 })();
