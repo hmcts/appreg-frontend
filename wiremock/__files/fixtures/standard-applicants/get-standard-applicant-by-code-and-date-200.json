@@ -1,0 +1,19 @@
+{
+  "code": "{{upper request.pathSegments.[1]}}",
+  "fullName": {
+    "title": "Mr",
+    "firstName": "Alex",
+    "middleNames": null,
+    "lastName": "Taylor"
+  },
+  "contactDetails": {
+    "addressLine1": "1 Crown Sq",
+    "addressLine2": "",
+    "addressLine3": "Manchester",
+    "postCode": "M1 1AA",
+    "email": "alex.taylor@example.test",
+    "phoneNumber": "+44 161 000 0000"
+  },
+  "startDate": "2020-01-01",
+  "endDate": null
+}
