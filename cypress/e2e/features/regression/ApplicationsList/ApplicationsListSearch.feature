@@ -250,7 +250,7 @@ Feature: Applications List Search
       | user1 | Lists     | 2001-01-01  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | *SKIP*     | Select           |
       | user1 | Lists     | 2001-01-01  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | 01/1/2001  | Select           |
 
-  @regression @ARCPOC-214 @ARCPOC-417 @PJ
+  @regression @ARCPOC-214 @ARCPOC-417
   Scenario Outline: Verify application list row menu options
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
