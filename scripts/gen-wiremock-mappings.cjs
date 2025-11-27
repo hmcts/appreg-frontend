@@ -26,9 +26,6 @@ const SPEC_DIR = 'tools/openapi/vendor/openapi';
 const MAPPINGS_DIR = 'wiremock/mappings';
 const DEFAULT_VENDOR = 'application/vnd.hmcts.appreg.v1+json';
 const STUB_DELAY_MS = Number.parseInt(process.env.STUB_DELAY_MS || '0', 10);
-const DEBUG = ['1', 'true', 'yes'].includes(
-  String(process.env.DEBUG_GEN || '').toLowerCase(),
-);
 const EMIT_GUARD_STUBS = ['1', 'true', 'yes'].includes(
   String(process.env.EMIT_GUARD_STUBS || '').toLowerCase(),
 );
@@ -47,12 +44,6 @@ const ERROR_FILE_BY_STATUS = Object.freeze({
   415: 'errors/unsupported-media-type.json',
   500: 'errors/internal-server-error.json',
 });
-
-function log(...args) {
-  if (DEBUG) {
-    console.log('[gen]', ...args);
-  }
-}
 
 // ---------- FS helpers ----------
 async function fileExists(p) {
@@ -280,8 +271,9 @@ async function exampleFromSchemaOrGenerate(media) {
   if (media && media.schema) {
     try {
       return await jsf.resolve(media.schema);
-    } catch (e) {
-      log('jsf failed; falling back to {}', e.message);
+      // eslint-disable-next-line no-unused-vars
+    } catch (_e) {
+      // ignore
     }
   }
   return {};
@@ -527,9 +519,6 @@ async function emit400MissingBodyFields(op, dir, m, url, seenPerOp) {
 async function main() {
   const spec = await readSpecWithDeref();
   if (!spec.paths || !Object.keys(spec.paths).length) {
-    console.error(
-      '[error] Spec has no paths. Check you fetched the right file.',
-    );
     process.exit(2);
   }
 
@@ -554,15 +543,11 @@ async function main() {
       (k) => k.toLowerCase() === DEFAULT_VENDOR.toLowerCase(),
     )
   ) {
-    console.warn(
-      '[sanity] Vendor media type not found in spec content types. Using it anyway for Accept/response.',
-    );
+    // ignore
   }
 
   await ensureDir(MAPPINGS_DIR);
 
-  let generated = 0;
-  let generatedErrors = 0;
   const emittedErrorKeys = new Set();
 
   for (const [p, ops] of Object.entries(spec.paths)) {
@@ -616,7 +601,6 @@ async function main() {
 
         const errKey = `${m} ${url.kind}:${url.value} ${code}`;
         if (emittedErrorKeys.has(errKey)) {
-          log('skip duplicate error mapping:', errKey);
           continue;
         }
 
@@ -650,15 +634,12 @@ async function main() {
           ).toLowerCase()}-${code}.json`,
         );
         await safeWriteJson(errFile, errMapping);
-        generatedErrors++;
         emittedErrorKeys.add(errKey);
-        log('wrote error', errFile);
       }
 
       // Success (2xx) mapping — exactly one per endpoint (Scenario state: Started)
       const picked = pick2xxResponse(op.responses);
       if (!picked) {
-        log(`skip ${m} ${p} (no 2xx response)`);
         continue;
       }
       const [statusCode, resp] = picked;
@@ -680,12 +661,6 @@ async function main() {
           ...(STUB_DELAY_MS ? { fixedDelayMilliseconds: STUB_DELAY_MS } : {}),
           bodyFileName: maybeFixture.rel,
         };
-        log(
-          'using fixture',
-          maybeFixture.rel,
-          'for',
-          op.operationId || `${m} ${p}`,
-        );
       } else {
         // Fallback: example/schema-based body
         let responseBodyStr = '';
@@ -725,24 +700,10 @@ async function main() {
         ).toLowerCase()}-${statusCode}.json`,
       );
       await safeWriteJson(file, successMapping);
-      generated++;
-      log('wrote success', file);
     }
   }
-
-  if (!generated) {
-    console.error(
-      '[warn] No mappings were generated. Likely causes: wrong spec file, no 2xx responses, or all methods unsupported.',
-    );
-    process.exit(3);
-  }
-
-  console.log(
-    `[ok] Generated ${generated} success mappings and ${generatedErrors} error mappings in ${MAPPINGS_DIR}`,
-  );
 }
 
-main().catch((e) => {
-  console.error('[error]', e);
+main().catch(() => {
   process.exit(1);
 });
