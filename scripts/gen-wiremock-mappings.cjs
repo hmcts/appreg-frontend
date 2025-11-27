@@ -31,6 +31,8 @@ const EMIT_GUARD_STUBS = ['1', 'true', 'yes'].includes(
 );
 const WM_FILES_DIR = 'wiremock/__files';
 const FIXTURE_ROOT = 'fixtures';
+const REPORT_CSV_DEFAULT = 'reports/sample.csv';
+const REPORT_CSV_FILENAME = 'report.csv';
 
 // Map status ➜ shared error body file under __files/errors
 const ERROR_FILE_BY_STATUS = Object.freeze({
@@ -643,26 +645,46 @@ async function main() {
         continue;
       }
       const [statusCode, resp] = picked;
-      const headers = houseRuleResponseHeaders(statusCode);
 
-      // Prefer curated fixture if present
+      // Detect media type for the 2xx response
+      const mediaKey =
+        resp && resp.content ? Object.keys(resp.content)[0] : null;
+      const isCsv =
+        !!mediaKey && String(mediaKey).toLowerCase().includes('text/csv');
+
+      // Default headers vary by media
+      const headers = isCsv
+        ? {
+            'Content-Type': 'text/csv',
+            'Content-Disposition': `attachment; filename="${REPORT_CSV_FILENAME}"`,
+            Vary: 'Accept',
+          }
+        : houseRuleResponseHeaders(statusCode);
+
+      // Prefer curated fixture if present (JSON only)
       let successResponse = {};
-      const maybeFixture = await resolveFixture(
-        group,
-        op.operationId,
-        statusCode,
-      );
-      if (maybeFixture && String(statusCode) !== '204') {
-        // Use fixture file relative to __files/
+      const maybeFixture =
+        !isCsv && (await resolveFixture(group, op.operationId, statusCode));
+
+      if (isCsv) {
+        // CSV download: serve the shared sample.csv
+        successResponse = {
+          status: Number(statusCode),
+          headers,
+          ...(STUB_DELAY_MS ? { fixedDelayMilliseconds: STUB_DELAY_MS } : {}),
+          bodyFileName: REPORT_CSV_DEFAULT, // e.g. "reports/sample.csv"
+        };
+      } else if (maybeFixture && String(statusCode) !== '204') {
+        // JSON fixture
         successResponse = {
           status: Number(statusCode),
           headers,
           transformers: ['response-template'],
           ...(STUB_DELAY_MS ? { fixedDelayMilliseconds: STUB_DELAY_MS } : {}),
-          bodyFileName: maybeFixture.rel,
+          bodyFileName: maybeFixture.rel, // fixtures/<group>/<op>-200.json
         };
       } else {
-        // Fallback: example/schema-based body
+        // Fallback: example/schema-based JSON body
         let responseBodyStr = '';
         if (String(statusCode) !== '204') {
           const json = pickJsonMedia(resp.content || {}) || [];
@@ -695,9 +717,7 @@ async function main() {
 
       const file = path.join(
         dir,
-        `${(
-          op.operationId || `${m}_${slugPath(p)}`
-        ).toLowerCase()}-${statusCode}.json`,
+        `${(op.operationId || `${m}_${slugPath(p)}`).toLowerCase()}-${statusCode}.json`,
       );
       await safeWriteJson(file, successMapping);
     }
