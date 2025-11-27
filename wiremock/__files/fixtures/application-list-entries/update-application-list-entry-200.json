@@ -57,7 +57,7 @@
     {
       "code": "PAID",
       "description": "Fee paid",
-      "amount": 21.00
+      "amount": 21.0
     }
   ],
   "hasOffsiteFee": false,

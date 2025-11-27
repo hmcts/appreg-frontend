@@ -5,8 +5,23 @@
   "cja": "44 – Greater Manchester",
   "duration": "2h 00m",
   "entries": [
-    { "sequenceNumber": 1, "applicant": "CPS", "respondent": "John Smith", "result": "Adjourned" },
-    { "sequenceNumber": 2, "applicant": "CPS", "respondent": "Jane Doe", "result": "Heard" },
-    { "sequenceNumber": 3, "applicant": "LA",  "respondent": "Michael Green", "result": "—" }
+    {
+      "sequenceNumber": 1,
+      "applicant": "CPS",
+      "respondent": "John Smith",
+      "result": "Adjourned"
+    },
+    {
+      "sequenceNumber": 2,
+      "applicant": "CPS",
+      "respondent": "Jane Doe",
+      "result": "Heard"
+    },
+    {
+      "sequenceNumber": 3,
+      "applicant": "LA",
+      "respondent": "Michael Green",
+      "result": "—"
+    }
   ]
 }

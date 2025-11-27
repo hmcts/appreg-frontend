@@ -4,7 +4,11 @@
   "standardApplicantCode": "STD-APPL",
   "applicationCode": "APP001",
   "applicant": { "type": "organisation", "name": "CPS" },
-  "respondent": { "type": "person", "fullName": "John Smith", "postCode": "M1 1AA" },
+  "respondent": {
+    "type": "person",
+    "fullName": "John Smith",
+    "postCode": "M1 1AA"
+  },
   "numberOfRespondents": 1,
   "wordingFields": [],
   "feeStatuses": [],
