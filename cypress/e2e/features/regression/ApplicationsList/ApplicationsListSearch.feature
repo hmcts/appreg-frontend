@@ -103,6 +103,7 @@ Feature: Applications List Search
     # Then User Should See Table "<TableName>" Column "Time" Has Value "<Time>"
     # Clear time filter and filter by date, then verify table updates
     When User Clears The Time Field "Time"
+    Then User Selects "Choose" In The "Select status" Dropdown
     When User Set Date Field "Date" To "<SearchDate>"
     When User Clicks On The "Search" Button
     Then User Should See The Table "Lists"
