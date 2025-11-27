@@ -180,7 +180,8 @@
     "json-schema-ref-parser": "npm:@apidevtools/json-schema-ref-parser@^14.2.0",
     "@faker-js/faker": "^10.0.0",
     "tar": "^7.5.2",
-    "js-yaml": "^4.1.1"
+    "js-yaml": "^4.1.1",
+    "body-parser": "2.2.1"
   },
   "packageManager": "yarn@4.10.3"
 }
