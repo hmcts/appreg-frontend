@@ -24,24 +24,23 @@
   static getTableRows(tableCaption: string): Cypress.Chainable {
     return this.findTableByCaption(tableCaption).find('tbody tr');
   }
-  static clickButtonInRow(row: JQuery<HTMLElement>, buttonText: string): void {
-    cy.wrap(row)
+  static getButtonInRow(row: JQuery<HTMLElement>, buttonText: string): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy.wrap(row)
       .find('td')
       .last()
-      .within(() => {
-        cy.contains('button', buttonText).click();
-      });
+      .find('button')
+      .filter((_, el) => Cypress.$(el).text().trim() === buttonText)
+      .first();
   }
 
-  static clickMenuButtonInRow(row: JQuery<HTMLElement>, menuButtonText: string): void {
-    cy.wrap(row)
+  static getMenuButtonInRow(row: JQuery<HTMLElement>, menuButtonText: string): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy.wrap(row)
       .find('td')
       .last()
-      .within(() => {
-        cy.get('ul[role="list"], ul[role="menu"], .dropdown-menu, .actions-menu').should('be.visible')
-          .contains('button, a', menuButtonText)
-          .should('be.visible')
-          .click();
-      });
+      .find('ul[role="list"], ul[role="menu"], .dropdown-menu, .actions-menu')
+      .should('be.visible')
+      .find('button, a')
+      .filter((_, el) => Cypress.$(el).text().trim() === menuButtonText)
+      .first();
   }
 }
