@@ -528,9 +528,11 @@ export class TableHelper {
         cy.log(
           `Expected Menu Options (helper): ${expectedMenuOptions.join(', ')}`,
         );
-        expectedMenuOptions.forEach((btnText) => {
-          cy.log(`Verifying menu button: ${btnText}`);
-          TableElement.getMenuButtonInRow(row, btnText).should('be.visible');
+        cy.then(() => {
+          for (const btnText of expectedMenuOptions) {
+            cy.log(`Verifying menu button: ${btnText}`);
+            TableElement.getMenuButtonInRow(row, btnText).should('be.visible');
+          }
         });
         cy.screenshot('menu-buttons-verified');
         verified = true;
