@@ -1,0 +1,7 @@
+{
+  "resultCode": "{{upper request.pathSegments.[1]}}",
+  "title": "Result {{upper request.pathSegments.[1]}}",
+  "wording": "Result '{{upper request.pathSegments.[1]}}' applied {{#if request.query.date}}on {{request.query.date.[0]}}{{else}}today{{/if}}.",
+  "startDate": "2010-01-01",
+  "endDate": null
+}
