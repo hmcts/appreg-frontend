@@ -1,8 +1,0 @@
-{
-  "type": "about:blank",
-  "title": "Internal Server Error",
-  "status": 500,
-  "detail": "An unexpected error occurred while processing your request.",
-  "timestamp": "{{now format=\"yyyy-MM-dd'T'HH:mm:ssXXX\"}}",
-  "traceId": "{{randomValue length=12 type='ALPHANUMERIC'}}"
-}

@@ -1,9 +1,0 @@
-{
-  "type": "about:blank",
-  "title": "Bad Request",
-  "status": 400,
-  "detail": "{{#if request.query.date}}One or more request parameters are invalid.{{else}}Required query parameter 'date' is missing or invalid. Expected format 'yyyy-MM-dd'.{{/if}}",
-  "path": "{{request.path}}",
-  "timestamp": "{{now format=\"yyyy-MM-dd'T'HH:mm:ssXXX\"}}",
-  "traceId": "{{randomValue length=12 type='ALPHANUMERIC'}}"
-}
