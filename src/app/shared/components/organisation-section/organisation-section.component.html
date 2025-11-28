@@ -1,103 +1,109 @@
 <div [formGroup]="group">
-    <h3 class="govuk-heading-m">Name</h3>
+  <h3 class="govuk-heading-m">Name</h3>
 
-    <div class="govuk-grid-row">
-        <app-text-input
-                formControlName="name"
-                label="Organisation Name"
-                hint="The name of the organisation"
-                idPrefix="org-name"
-                [submitted]="submitted"
-                [suppressError]="false"
-                [error]="errors['org-name']">
-        </app-text-input>
-    </div>
+  <div class="govuk-grid-row">
+    <app-text-input
+      formControlName="name"
+      label="Organisation Name"
+      hint="The name of the organisation"
+      idPrefix="org-name"
+      [submitted]="submitted"
+      [suppressError]="false"
+      [error]="errors['org-name']"
+    >
+    </app-text-input>
+  </div>
 
-    <hr
-            class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
-    />
-    <h3 class="govuk-heading-m">Address</h3>
+  <hr
+    class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+  />
+  <h3 class="govuk-heading-m">Address</h3>
 
-    <div class="govuk-grid-row">
-        <app-text-input
-                formControlName="addressLine1"
-                label="Address line 1"
-                hint="Building and street"
-                idPrefix="org-address-line-1"
-                [submitted]="submitted"
-                [suppressError]="false"
-                [error]="errors['org-address-line-1']">
-        </app-text-input>
-        <app-text-input
-                formControlName="addressLine2"
-                label="Address line 2"
-                hint="District or locality (optional)"
-                idPrefix="org-address-line-2"
-        ></app-text-input>
-        <app-text-input
-                formControlName="addressLine3"
-                label="Address line 3"
-                hint="Town or city"
-                idPrefix="org-address-line-3"
-        ></app-text-input>
-        <app-text-input
-                formControlName="addressLine4"
-                label="Address line 4"
-                hint="County or region"
-                idPrefix="org-address-line-4"
-        ></app-text-input>
-    </div>
+  <div class="govuk-grid-row">
+    <app-text-input
+      formControlName="addressLine1"
+      label="Address line 1"
+      hint="Building and street"
+      idPrefix="org-address-line-1"
+      [submitted]="submitted"
+      [suppressError]="false"
+      [error]="errors['org-address-line-1']"
+    >
+    </app-text-input>
+    <app-text-input
+      formControlName="addressLine2"
+      label="Address line 2"
+      hint="District or locality (optional)"
+      idPrefix="org-address-line-2"
+    ></app-text-input>
+    <app-text-input
+      formControlName="addressLine3"
+      label="Address line 3"
+      hint="Town or city"
+      idPrefix="org-address-line-3"
+    ></app-text-input>
+    <app-text-input
+      formControlName="addressLine4"
+      label="Address line 4"
+      hint="County or region"
+      idPrefix="org-address-line-4"
+    ></app-text-input>
+  </div>
 
-    <div class="govuk-grid-row">
-        <app-text-input
-                formControlName="addressLine5"
-                label="Address line 5"
-                hint="Post town, e.g. Manchester"
-                idPrefix="org-address-line-5"
-        ></app-text-input>
-        <app-text-input
-                formControlName="postcode"
-                label="Postcode"
-                hint="e.g. SW1A 2AA"
-                idPrefix="org-postcode"
-                [submitted]="submitted"
-                [suppressError]="true"
-                [error]="errors['org-postcode']">
-        </app-text-input>
-    </div>
+  <div class="govuk-grid-row">
+    <app-text-input
+      formControlName="addressLine5"
+      label="Address line 5"
+      hint="Post town, e.g. Manchester"
+      idPrefix="org-address-line-5"
+    ></app-text-input>
+    <app-text-input
+      formControlName="postcode"
+      label="Postcode"
+      hint="e.g. SW1A 2AA"
+      idPrefix="org-postcode"
+      [submitted]="submitted"
+      [suppressError]="true"
+      [error]="errors['org-postcode']"
+    >
+    </app-text-input>
+  </div>
 
-    <hr
-            class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
-    />
-    <h3 class="govuk-heading-m">Contact details</h3>
+  <hr
+    class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+  />
+  <h3 class="govuk-heading-m">Contact details</h3>
 
-    <div class="govuk-grid-row">
-        <app-text-input
-                formControlName="phoneNumber"
-                label="Phone number"
-                hint="Enter the organisation's landline, e.g. 020 7946 0000"
-                idPrefix="org-phone-number"
-                [submitted]="submitted"
-                [suppressError]="true"
-                [error]="errors['org-phone-number']">
-        </app-text-input>
-        <app-text-input
-                formControlName="mobileNumber"
-                label="Mobile number"
-                hint="Enter the organisation's UK mobile, e.g. 07123 456789"
-                idPrefix="org-mobile-number"
-                [submitted]="submitted"
-                [suppressError]="true"
-                [error]="errors['org-mobile-number']">
-        </app-text-input>
-        <app-text-input
-                formControlName="emailAddress"
-                label="Email address"
-                hint="e.g. name@department.gov.uk"
-                idPrefix="org-email-address"
-                [submitted]="submitted"
-                [suppressError]="true"
-                [error]="errors['org-email-address']">
-        </app-text-input>
-    </div>
+  <div class="govuk-grid-row">
+    <app-text-input
+      formControlName="phoneNumber"
+      label="Phone number"
+      hint="Enter the organisation's landline, e.g. 020 7946 0000"
+      idPrefix="org-phone-number"
+      [submitted]="submitted"
+      [suppressError]="true"
+      [error]="errors['org-phone-number']"
+    >
+    </app-text-input>
+    <app-text-input
+      formControlName="mobileNumber"
+      label="Mobile number"
+      hint="Enter the organisation's UK mobile, e.g. 07123 456789"
+      idPrefix="org-mobile-number"
+      [submitted]="submitted"
+      [suppressError]="true"
+      [error]="errors['org-mobile-number']"
+    >
+    </app-text-input>
+    <app-text-input
+      formControlName="emailAddress"
+      label="Email address"
+      hint="e.g. name@department.gov.uk"
+      idPrefix="org-email-address"
+      [submitted]="submitted"
+      [suppressError]="true"
+      [error]="errors['org-email-address']"
+    >
+    </app-text-input>
+  </div>
 </div>

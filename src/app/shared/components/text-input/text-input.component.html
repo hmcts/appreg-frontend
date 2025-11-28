@@ -3,7 +3,7 @@
     class="govuk-form-group"
     [ngClass]="{
       'govuk-form-group--error':
-        !!error || (!suppressError && submitted && !value?.toString()?.trim())
+        !!error || (!suppressError && submitted && !value?.toString()?.trim()),
     }"
   >
     @if (label) {
@@ -31,19 +31,22 @@
       class="govuk-input"
       [ngClass]="[
         widthClass,
-        (error || (!suppressError && submitted && !value?.toString()?.trim()))
+        error || (!suppressError && submitted && !value?.toString()?.trim())
           ? 'govuk-input--error'
-          : ''
+          : '',
       ]"
       [id]="idPrefix"
       [name]="idPrefix"
       type="text"
-      [attr.aria-describedby]="(
-          (hint ? idPrefix + '-hint' : '') + ' ' +
+      [attr.aria-describedby]="
+        (
+          (hint ? idPrefix + '-hint' : '') +
+          ' ' +
           (error || (!suppressError && submitted && !value?.toString()?.trim())
             ? idPrefix + '-error'
             : '')
-        ).trim()"
+        ).trim()
+      "
       [value]="value"
       (input)="onInput($event)"
       [disabled]="disabled"

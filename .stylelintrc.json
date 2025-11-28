@@ -5,7 +5,8 @@
     ".yarn/**",
     "cypress/reports/**",
     "tools/**",
-    "functional-output/**"
+    "functional-output/**",
+    "wiremock/**"
   ],
   "rules": {
     "string-quotes": null,

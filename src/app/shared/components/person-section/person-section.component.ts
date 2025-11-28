@@ -2,6 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
+import {
+  ValidationResult,
+  validateOptionalContactFields,
+} from '../../util/validation';
 import { SelectInputComponent } from '../select-input/select-input.component';
 import { TextInputComponent } from '../text-input/text-input.component';
 
@@ -21,4 +25,57 @@ export class PersonSectionComponent {
   @Input({ required: true }) titleOptions!: { value: string; label: string }[];
   @Input() submitted = false;
   @Input() errors: Record<string, string> = {};
+
+  /**
+   * Run validations for the person section and return:
+   * - fieldErrors: map of input id → error message
+   * - summaryItems: array usable by app-error-summary
+   * - valid: boolean
+   *
+   */
+  validate(): ValidationResult {
+    const fieldErrors: Record<string, string> = {};
+    const summaryItems: { text: string; href: string }[] = [];
+
+    const p = this.group.value as Record<string, unknown>;
+    const get = (k: string) => {
+      const v = p[k];
+      return typeof v === 'string' ? v.trim() : '';
+    };
+
+    const ids = {
+      firstName: 'person-first-name',
+      surname: 'person-surname',
+      address1: 'person-address-line-1',
+      postcode: 'person-postcode',
+      phone: 'person-phone-number',
+      mobile: 'person-mobile-number',
+      email: 'person-email-address',
+    };
+
+    const add = (id: string, text: string, href: string) => {
+      fieldErrors[id] = text;
+      summaryItems.push({ text, href });
+    };
+
+    // Required
+    if (!get('firstName')) {
+      add(ids.firstName, 'Enter a first name', '#person-first-name');
+    }
+    if (!get('surname')) {
+      add(ids.surname, 'Enter a surname', '#person-surname');
+    }
+    if (!get('addressLine1')) {
+      add(ids.address1, 'Enter address line 1', '#person-address-line-1');
+    }
+
+    // Optional-but-validated
+    validateOptionalContactFields(get, ids, add);
+
+    return {
+      fieldErrors,
+      summaryItems,
+      valid: summaryItems.length === 0,
+    };
+  }
 }

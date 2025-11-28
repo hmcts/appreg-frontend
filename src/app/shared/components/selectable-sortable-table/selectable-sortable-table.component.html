@@ -13,43 +13,51 @@
   </caption>
 
   <thead class="govuk-table__head">
-  <tr class="govuk-table__row">
-    @if (!singleSelect) {
-      <!-- Select-all header (multi-select only) -->
-      <th class="govuk-table__header moj-multi-select__select-all" scope="col">
-        <div class="govuk-checkboxes govuk-checkboxes--small">
-          <div class="govuk-checkboxes__item moj-multi-select__checkbox">
-            <input
-              #selectAll
-              type="checkbox"
-              class="govuk-checkboxes__input"
-              [id]="idPrefix + 'select-all'"
-              [checked]="allVisibleSelected"
-              [indeterminate]="someVisibleSelected && !allVisibleSelected"
-              (change)="toggleSelectAllVisible(selectAll.checked)"
-            />
-            <label class="govuk-label govuk-checkboxes__label" [for]="idPrefix + 'select-all'">
-              <span class="govuk-visually-hidden">Select all</span>
-            </label>
+    <tr class="govuk-table__row">
+      @if (!singleSelect) {
+        <!-- Select-all header (multi-select only) -->
+        <th
+          class="govuk-table__header moj-multi-select__select-all"
+          scope="col"
+        >
+          <div class="govuk-checkboxes govuk-checkboxes--small">
+            <div class="govuk-checkboxes__item moj-multi-select__checkbox">
+              <input
+                #selectAll
+                type="checkbox"
+                class="govuk-checkboxes__input"
+                [id]="idPrefix + 'select-all'"
+                [checked]="allVisibleSelected"
+                [indeterminate]="someVisibleSelected && !allVisibleSelected"
+                (change)="toggleSelectAllVisible(selectAll.checked)"
+              />
+              <label
+                class="govuk-label govuk-checkboxes__label"
+                [for]="idPrefix + 'select-all'"
+              >
+                <span class="govuk-visually-hidden">Select all</span>
+              </label>
+            </div>
           </div>
-        </div>
-      </th>
-    } @else {
-      <!-- Empty header cell to keep columns aligned -->
-      <th class="govuk-table__header" scope="col"></th>
-    }
+        </th>
+      } @else {
+        <!-- Empty header cell to keep columns aligned -->
+        <th class="govuk-table__header" scope="col"></th>
+      }
 
-    @for (col of columns; track col.field) {
-      <th
-        scope="col"
-        class="govuk-table__header"
-        [class.govuk-table__header--numeric]="col.numeric"
-        [attr.aria-sort]="col.sortable !== false ? (col.defaultSort ?? 'none') : null"
-      >
-        {{ col.header }}
-      </th>
-    }
-  </tr>
+      @for (col of columns; track col.field) {
+        <th
+          scope="col"
+          class="govuk-table__header"
+          [class.govuk-table__header--numeric]="col.numeric"
+          [attr.aria-sort]="
+            col.sortable !== false ? (col.defaultSort ?? 'none') : null
+          "
+        >
+          {{ col.header }}
+        </th>
+      }
+    </tr>
   </thead>
 
   <tbody class="govuk-table__body">

@@ -7,7 +7,8 @@
       label="Select title"
       hint="The person’s title, for example Mr, Mrs, Dr"
       idPrefix="person-title"
-      [options]="titleOptions">
+      [options]="titleOptions"
+    >
     </app-select-input>
 
     <app-text-input
@@ -17,13 +18,15 @@
       hint="Enter the person’s first name or forename"
       [submitted]="submitted"
       [suppressError]="false"
-      [error]="errors['person-first-name']"/>
+      [error]="errors['person-first-name']"
+    />
 
     <app-text-input
       formControlName="middleNames"
       label="Middle names"
       hint="Enter any middle names (leave blank if none)"
-      idPrefix="person-middle-names">
+      idPrefix="person-middle-names"
+    >
     </app-text-input>
 
     <app-text-input
@@ -33,10 +36,13 @@
       hint="Enter the person’s last name or family name"
       [submitted]="submitted"
       [suppressError]="false"
-      [error]="errors['person-surname']"/>
+      [error]="errors['person-surname']"
+    />
   </div>
 
-  <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible"/>
+  <hr
+    class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+  />
   <h3 class="govuk-heading-m">Address</h3>
 
   <div class="govuk-grid-row">
@@ -47,19 +53,35 @@
       hint="Building and street"
       [submitted]="submitted"
       [suppressError]="false"
-      [error]="errors['person-address-line-1']"/>
+      [error]="errors['person-address-line-1']"
+    />
 
-    <app-text-input formControlName="addressLine2" label="Address line 2" hint="District or locality (optional)"
-                    idPrefix="person-address-line-2"></app-text-input>
-    <app-text-input formControlName="addressLine3" label="Address line 3" hint="Town or city"
-                    idPrefix="person-address-line-3"></app-text-input>
-    <app-text-input formControlName="addressLine4" label="Address line 4" hint="County or region"
-                    idPrefix="person-address-line-4"></app-text-input>
+    <app-text-input
+      formControlName="addressLine2"
+      label="Address line 2"
+      hint="District or locality (optional)"
+      idPrefix="person-address-line-2"
+    ></app-text-input>
+    <app-text-input
+      formControlName="addressLine3"
+      label="Address line 3"
+      hint="Town or city"
+      idPrefix="person-address-line-3"
+    ></app-text-input>
+    <app-text-input
+      formControlName="addressLine4"
+      label="Address line 4"
+      hint="County or region"
+      idPrefix="person-address-line-4"
+    ></app-text-input>
   </div>
   <div class="govuk-grid-row">
-
-    <app-text-input formControlName="addressLine5" label="Address line 5" hint="Post town, e.g. Manchester"
-                    idPrefix="person-address-line-5"></app-text-input>
+    <app-text-input
+      formControlName="addressLine5"
+      label="Address line 5"
+      hint="Post town, e.g. Manchester"
+      idPrefix="person-address-line-5"
+    ></app-text-input>
 
     <app-text-input
       formControlName="postcode"
@@ -68,10 +90,13 @@
       hint="e.g. SW1A 2AA"
       [submitted]="submitted"
       [suppressError]="true"
-      [error]="errors['person-postcode']"/>
+      [error]="errors['person-postcode']"
+    />
   </div>
 
-  <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible"/>
+  <hr
+    class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+  />
   <h3 class="govuk-heading-m">Contact details</h3>
 
   <div class="govuk-grid-row">
@@ -82,7 +107,8 @@
       hint="Enter the person's landline, e.g. 020 7946 0000"
       [submitted]="submitted"
       [suppressError]="true"
-      [error]="errors['person-phone-number']"/>
+      [error]="errors['person-phone-number']"
+    />
 
     <app-text-input
       formControlName="mobileNumber"
@@ -91,7 +117,8 @@
       hint="Enter the person's UK mobile, e.g. 07123 456789"
       [submitted]="submitted"
       [suppressError]="true"
-      [error]="errors['person-mobile-number']"/>
+      [error]="errors['person-mobile-number']"
+    />
 
     <app-text-input
       formControlName="emailAddress"
@@ -100,6 +127,7 @@
       hint="e.g. name@department.gov.uk"
       [submitted]="submitted"
       [suppressError]="true"
-      [error]="errors['person-email-address']"/>
+      [error]="errors['person-email-address']"
+    />
   </div>
 </div>

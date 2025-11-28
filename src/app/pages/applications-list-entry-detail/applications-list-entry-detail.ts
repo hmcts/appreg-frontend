@@ -5,6 +5,7 @@ import {
   Inject,
   OnInit,
   PLATFORM_ID,
+  ViewChild,
   inject,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -24,6 +25,7 @@ import {
   EntryGetDetailDto,
   EntryUpdateDto,
   FullName,
+  Official,
   Organisation,
   Person,
   StandardApplicantGetSummaryDto,
@@ -57,6 +59,7 @@ import {
 import { CodeRow } from '../../shared/util/codes.mappers';
 import { fetchCodeRows$ } from '../../shared/util/codes.search';
 import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
+import { ValidationResult } from '../../shared/util/validation';
 
 import {
   SuccessBanner,
@@ -121,6 +124,11 @@ interface ProblemDetails {
   templateUrl: './applications-list-entry-detail.html',
 })
 export class ApplicationsListEntryDetail implements OnInit {
+  @ViewChild(PersonSectionComponent)
+  private readonly personSection?: PersonSectionComponent;
+  @ViewChild(OrganisationSectionComponent)
+  private readonly organisationSection?: OrganisationSectionComponent;
+
   // Error summary state
   errorHint: string | null = null;
   errorSummary: { text: string; href?: string }[] = [];
@@ -139,6 +147,8 @@ export class ApplicationsListEntryDetail implements OnInit {
   saTotalPages = 0;
   saItems: StandardApplicantGetSummaryDto[] = [];
   saSelectedIds: Set<string> = new Set<string>();
+
+  private entryDetail: EntryGetDetailDto | null = null;
 
   private readonly EMPTY_PERSON = {
     title: '',
@@ -279,27 +289,21 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
-    const raw = this.form.getRawValue() as { lodgementDate?: unknown };
-    const lodgementDate =
-      typeof raw.lodgementDate === 'string'
-        ? raw.lodgementDate.slice(0, 10)
-        : String(raw.lodgementDate).slice(0, 10);
-
-    if (!lodgementDate) {
+    if (!this.entryDetail) {
       this.hasFatalError = true;
       this.errorHint = 'There is a problem';
       this.errorSummary = [
         {
-          text: 'Lodgement date is missing. Load the entry before adding a code.',
+          text: 'Entry is not loaded. Load the entry before adding a code.',
         },
       ];
       return;
     }
 
-    const entryUpdateDto: EntryUpdateDto = {
-      lodgementDate,
-      applicationCode: code,
-    };
+    const entryUpdateDto = this.buildEntryUpdateDtoWithChange(
+      'applicationCode',
+      code,
+    );
 
     const params: UpdateApplicationListEntryRequestParams = {
       listId: this.appListId,
@@ -313,7 +317,11 @@ export class ApplicationsListEntryDetail implements OnInit {
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => this.afterCodeUpdatedSuccessfully(code, lodgementDate),
+        next: () =>
+          this.afterCodeUpdatedSuccessfully(
+            entryUpdateDto.applicationCode,
+            entryUpdateDto.lodgementDate,
+          ),
         error: (err) => this.applyMappedError(err),
       });
   }
@@ -462,6 +470,8 @@ export class ApplicationsListEntryDetail implements OnInit {
         return !this.organisationGroup.valid;
       case 'standardApplicant':
         return !this.selectedStandardApplicantCode;
+      default:
+        return false;
     }
   }
 
@@ -507,7 +517,6 @@ export class ApplicationsListEntryDetail implements OnInit {
   onUpdateApplicant(): void {
     this.resetErrors();
     this.formSubmitted = true;
-
     switch (this.applicantType) {
       case 'person': {
         const ok = this.validatePersonSection();
@@ -540,149 +549,33 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   private validatePersonSection(): boolean {
+    // Clear any existing person errors, but keep other summary items if needed
     this.personFieldErrors = {};
-    this.errorSummary = [];
 
-    const p = this.personGroup.value as Record<string, unknown>;
-    const get = (k: string) => {
-      const v = p[k];
-      return typeof v === 'string' ? v.trim() : '';
-    };
-
-    // Establish stable IDs that match idPrefix in your person template
-    const ids = {
-      firstName: 'person-first-name',
-      surname: 'person-surname',
-      address1: 'person-address-line-1',
-      postcode: 'person-postcode',
-      phone: 'person-phone-number',
-      mobile: 'person-mobile-number',
-      email: 'person-email-address',
-    };
-
-    const add = (id: string, text: string, href: string) => {
-      this.personFieldErrors[id] = text;
-      this.errorSummary.push({ text, href });
-    };
-
-    // Required
-    if (!get('firstName')) {
-      add(ids.firstName, 'Enter a first name', '#person-first-name');
-    }
-    if (!get('surname')) {
-      add(ids.surname, 'Enter a surname', '#person-surname');
-    }
-    if (!get('addressLine1')) {
-      add(ids.address1, 'Enter address line 1', '#person-address-line-1');
+    // If the person section isn’t currently rendered, treat as valid
+    if (!this.personSection) {
+      return true;
     }
 
-    // Optional-but-validated
-    const postcode = get('postcode');
-    if (postcode && !this.isValidUkPostcode(postcode)) {
-      add(
-        ids.postcode,
-        'Enter a real postcode, like SW1A 1AA',
-        '#person-postcode',
-      );
-    }
+    const result: ValidationResult = this.personSection.validate();
+    this.personFieldErrors = result.fieldErrors;
+    this.errorSummary = [...this.errorSummary, ...result.summaryItems];
 
-    const phone = get('phoneNumber');
-    if (phone && !this.isValidPhone(phone)) {
-      add(
-        ids.phone,
-        'Enter a phone number in the correct format',
-        '#person-phone-number',
-      );
-    }
-
-    const mobile = get('mobileNumber');
-    if (mobile && !this.isValidPhone(mobile)) {
-      add(
-        ids.mobile,
-        'Enter a mobile number in the correct format',
-        '#person-mobile-number',
-      );
-    }
-
-    const email = get('emailAddress');
-    if (email && !this.isValidEmail(email)) {
-      add(
-        ids.email,
-        'Enter an email address in the correct format',
-        '#person-email-address',
-      );
-    }
-
-    return this.errorSummary.length === 0;
+    return result.valid;
   }
 
   private validateOrganisationSection(): boolean {
     this.organisationFieldErrors = {};
-    this.errorSummary = [];
 
-    const o = this.organisationGroup.value as Record<string, unknown>;
-    const get = (k: string) => (typeof o[k] === 'string' ? o[k].trim() : '');
-
-    const ids = {
-      name: 'org-name',
-      address1: 'org-address-line-1',
-      postcode: 'org-postcode',
-      phone: 'org-phone-number',
-      mobile: 'org-mobile-number',
-      email: 'org-email-address',
-    };
-
-    const add = (id: string, text: string, href: string) => {
-      this.organisationFieldErrors[id] = text;
-      this.errorSummary.push({ text, href });
-    };
-
-    // Required
-    if (!get('name')) {
-      add(ids.name, 'Enter an organisation name', '#org-name');
-    }
-    if (!get('addressLine1')) {
-      add(ids.address1, 'Enter address line 1', '#org-address-line-1');
+    if (!this.organisationSection) {
+      return true;
     }
 
-    // Optional-but-validated
-    const postcode = get('postcode');
-    if (postcode && !this.isValidUkPostcode(postcode)) {
-      add(
-        ids.postcode,
-        'Enter a real postcode, like SW1A 1AA',
-        '#org-postcode',
-      );
-    }
+    const result: ValidationResult = this.organisationSection.validate();
+    this.organisationFieldErrors = result.fieldErrors;
+    this.errorSummary = [...this.errorSummary, ...result.summaryItems];
 
-    const phone = get('phoneNumber');
-    if (phone && !this.isValidPhone(phone)) {
-      add(
-        ids.phone,
-        'Enter a phone number in the correct format',
-        '#org-phone-number',
-      );
-    }
-
-    const mobile = get('mobileNumber');
-    if (mobile && !this.isValidPhone(mobile)) {
-      add(
-        ids.mobile,
-        'Enter a mobile number in the correct format',
-        '#org-mobile-number',
-      );
-    }
-
-    const email = get('emailAddress');
-    if (email && !this.isValidEmail(email)) {
-      add(
-        ids.email,
-        'Enter an email address in the correct format',
-        '#org-email-address',
-      );
-    }
-
-    return this.errorSummary.length === 0;
+    return result.valid;
   }
 
   private loadStandardApplicants(page = 0, size = this.saPageSize): void {
@@ -752,20 +645,6 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.hasFatalError = false;
   }
 
-  private isValidUkPostcode(s: string): boolean {
-    const re = /^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i; // GOV.UK-friendly, lenient
-    return re.test(s.trim());
-  }
-
-  private isValidPhone(s: string): boolean {
-    const digits = s.replace(/[^\d]/g, '');
-    return digits.length >= 10 && digits.length <= 15;
-  }
-
-  private isValidEmail(s: string): boolean {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
-  }
-
   private focusErrorSummary(): void {
     if (isPlatformBrowser(this.platformId)) {
       setTimeout(() => {
@@ -801,16 +680,68 @@ export class ApplicationsListEntryDetail implements OnInit {
       )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (dto) => this.hydrateFromDto(dto),
+        next: (dto) => {
+          // Snapshot of entry and update form
+          this.entryDetail = dto;
+          this.hydrateFromDto(dto);
+        },
         error: (err) => this.handleFatalLoadError(err),
       });
   }
 
   private hydrateFromDto(dto: EntryGetDetailDto): void {
-    const sa = (dto.standardApplicantCode ?? '').toString().trim();
-    if (sa) {
+    // Base scalar fields that are actually present on EntryGetDetailDto
+    this.form.patchValue(
+      {
+        // Codes section
+        lodgementDate: dto.lodgementDate ?? '',
+        applicationCode: dto.applicationCode ?? '',
+        // applicationTitle is not on EntryGetDetailDto – leave as-is
+        // or clear if you prefer a known state:
+        // applicationTitle: '',
+
+        // Wording section – EntryGetDetailDto only gives you wordingFields: string[]
+        // Without a defined positional mapping you should not guess.
+        courtName: '',
+        organisationName: '',
+
+        // Civil fee section – EntryGetDetailDto exposes feeStatuses[] + hasOffsiteFee.
+        // If you don’t have a defined rule for “current” status yet, keep these blank.
+        feeStatus: '',
+        feeStatusDate: '',
+        paymentRef: '',
+
+        // Notes section
+        caseReference: dto.caseReference ?? '',
+        accountReference: dto.accountNumber ?? '',
+        applicationDetails: dto.notes ?? '',
+
+        // Result wording section – result is a separate resource, so clear this here.
+        resultCode: '',
+
+        // Officials – not part of EntryGetDetailDto; clear UI fields for now.
+        mags1Title: '',
+        mags1FirstName: '',
+        mags1Surname: '',
+        mags2Title: '',
+        mags2FirstName: '',
+        mags2Surname: '',
+        mags3Title: '',
+        mags3FirstName: '',
+        mags3Surname: '',
+        officialTitle: '',
+        officialFirstName: '',
+        officialSurname: '',
+      },
+      { emitEvent: false },
+    );
+
+    // —— Applicant section (Standard Applicant vs Person vs Organisation) ——
+
+    const saCode = (dto.standardApplicantCode ?? '').toString().trim();
+    if (saCode) {
       this.setApplicantType('standardApplicant', { emit: false });
-      this.selectedStandardApplicantCode = sa;
+      this.selectedStandardApplicantCode = saCode;
       this.personGroup.reset(this.EMPTY_PERSON, { emitEvent: false });
       this.organisationGroup.reset(this.EMPTY_ORG, { emitEvent: false });
       this.loadStandardApplicants(0, this.saPageSize);
@@ -818,16 +749,28 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
 
     const a: Applicant | undefined = dto.applicant;
+
     if (a?.person) {
       this.setApplicantType('person', { emit: false });
+      this.selectedStandardApplicantCode = null;
+      this.organisationGroup.reset(this.EMPTY_ORG, { emitEvent: false });
       this.patchPerson(a.person);
       return;
     }
+
     if (a?.organisation) {
       this.setApplicantType('organisation', { emit: false });
+      this.selectedStandardApplicantCode = null;
+      this.personGroup.reset(this.EMPTY_PERSON, { emitEvent: false });
       this.patchOrganisation(a.organisation);
       return;
     }
+
+    // No applicant of any type – default to an empty organisation
+    this.setApplicantType('organisation', { emit: false });
+    this.selectedStandardApplicantCode = null;
+    this.personGroup.reset(this.EMPTY_PERSON, { emitEvent: false });
+    this.organisationGroup.reset(this.EMPTY_ORG, { emitEvent: false });
   }
 
   private setApplicantType(
@@ -998,5 +941,39 @@ export class ApplicationsListEntryDetail implements OnInit {
         el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
       });
     }
+  }
+
+  // Function to create an update payload with all existing values + changed values
+  private buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
+    key: K,
+    value: EntryUpdateDto[K],
+  ): EntryUpdateDto {
+    if (!this.entryDetail) {
+      throw new Error('entryDetail is not loaded');
+    }
+
+    const detail = this.entryDetail;
+
+    const base: EntryUpdateDto = {
+      // full copy of current server state
+      standardApplicantCode: detail.standardApplicantCode,
+      applicationCode: detail.applicationCode,
+      applicant: detail.applicant,
+      respondent: detail.respondent,
+      numberOfRespondents: detail.numberOfRespondents,
+      wordingFields: detail.wordingFields,
+      feeStatuses: detail.feeStatuses,
+      hasOffsiteFee: detail.hasOffsiteFee,
+      caseReference: detail.caseReference,
+      accountNumber: detail.accountNumber,
+      notes: detail.notes,
+      lodgementDate: detail.lodgementDate,
+      ...(detail as { officials?: Official[] }),
+    };
+
+    return {
+      ...base,
+      [key]: value,
+    };
   }
 }
