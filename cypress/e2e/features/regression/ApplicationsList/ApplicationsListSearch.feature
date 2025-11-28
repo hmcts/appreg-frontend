@@ -232,7 +232,7 @@ Feature: Applications List Search
       | User   | SearchText | NotificationMessage                                        | OptionText | ExpectedValue | Info             |
       | admin1 | London     | No lists found Try different filters, or create a new list |            | London        | No results found |
 
-  @regression @ARCPOC-214 @ARCPOC-417
+  @regression @ARCPOC-214 @ARCPOC-417 @PJ
   Scenario Outline: Verify application list Open with multiple pages of results is returned
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -253,7 +253,7 @@ Feature: Applications List Search
       | user1 | Lists     | 2001-01-01  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | *SKIP*     | Select           |
       | user1 | Lists     | 2001-01-01  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | 01/1/2001  | Select           |
 
-  @regression @ARCPOC-214 @ARCPOC-417
+  @regression @ARCPOC-214 @ARCPOC-417 @PJ
   Scenario Outline: Verify application list row menu options
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
