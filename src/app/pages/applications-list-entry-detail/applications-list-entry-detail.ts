@@ -60,13 +60,14 @@ import {
 import { CodeRow } from '../../shared/util/codes.mappers';
 import { fetchCodeRows$ } from '../../shared/util/codes.search';
 import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
+import {
+  ApplicantType,
+  StandardApplicantRow,
+  SuccessBanner,
+} from '../../shared/util/types/applications-list-entry/types';
 import { ValidationResult } from '../../shared/util/validation';
 
-import {
-  SuccessBanner,
-  computeSuccessBanner,
-  focusSuccessBanner,
-} from './util/banners.util';
+import { computeSuccessBanner, focusSuccessBanner } from './util/banners.util';
 import {
   APPLICANT_COLUMNS,
   APPLICANT_TYPE_OPTIONS,
@@ -81,16 +82,6 @@ import {
 import { buildEntryDetailForm } from './util/entry-detail.form';
 import { mapHttpErrorToSummary } from './util/errors.util';
 import { getEntryId } from './util/routing.util';
-
-type ApplicantType = 'person' | 'organisation' | 'standardApplicant';
-
-type StandardApplicantRow = {
-  code: StandardApplicantGetSummaryDto['code'];
-  name: string;
-  address: string;
-  useFrom: string; // formatted date
-  useTo: string; // formatted date
-};
 
 @Component({
   selector: 'app-applications-list-entry-detail',
@@ -464,7 +455,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       case 'standardApplicant':
         return !this.selectedStandardApplicantCode;
       default:
-        return false;
+        return true;
     }
   }
 
@@ -629,14 +620,14 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   private markGroupClean(group: FormGroup): void {
-  const controls = Object.values(group.controls);
+    const controls = Object.values(group.controls);
 
-  for (const ctrl of controls) {
-    ctrl.markAsPristine();
-    ctrl.markAsUntouched();
-    ctrl.updateValueAndValidity({ onlySelf: true, emitEvent: false });
+    for (const ctrl of controls) {
+      ctrl.markAsPristine();
+      ctrl.markAsUntouched();
+      ctrl.updateValueAndValidity({ onlySelf: true, emitEvent: false });
+    }
   }
-}
 
   private resetErrors(): void {
     this.personFieldErrors = {};

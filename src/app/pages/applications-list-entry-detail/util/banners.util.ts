@@ -1,10 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
 
-export type SuccessBanner = {
-  heading: string;
-  body: string;
-  link?: { href: string; text: string };
-};
+import { SuccessBanner } from '../../../shared/util/types/applications-list-entry/types';
 
 export function computeSuccessBanner(
   wording: string,
