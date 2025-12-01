@@ -29,6 +29,7 @@ import {
   Organisation,
   Person,
   StandardApplicantGetSummaryDto,
+  StandardApplicantPage,
   StandardApplicantsApi,
   UpdateApplicationListEntryRequestParams,
 } from '../../../generated/openapi';
@@ -81,8 +82,6 @@ import { buildEntryDetailForm } from './util/entry-detail.form';
 import { mapHttpErrorToSummary } from './util/errors.util';
 import { getEntryId } from './util/routing.util';
 
-type ErrorSummaryItem = { text: string; href?: string };
-
 type ApplicantType = 'person' | 'organisation' | 'standardApplicant';
 
 type StandardApplicantRow = {
@@ -92,12 +91,6 @@ type StandardApplicantRow = {
   useFrom: string; // formatted date
   useTo: string; // formatted date
 };
-
-interface ProblemDetails {
-  title?: string;
-  detail?: string;
-  errors?: Record<string, string[] | string>;
-}
 
 @Component({
   selector: 'app-applications-list-entry-detail',
@@ -544,8 +537,9 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.resetErrors();
   }
 
-  onSaPageChange(p: number): void {
-    this.loadStandardApplicants(p, this.saPageSize);
+  onSaPageChange(pageIndex: number): void {
+    this.saPageIndex = pageIndex;
+    this.loadStandardApplicants(pageIndex, this.saPageSize);
   }
 
   private validatePersonSection(): boolean {
@@ -592,22 +586,27 @@ export class ApplicationsListEntryDetail implements OnInit {
         }),
       )
       .subscribe({
-        next: (pg) => {
+        next: (pg: StandardApplicantPage) => {
           this.saItems = pg.content ?? [];
           this.saTotal = pg.totalElements ?? 0;
-          const sizeOfPage = pg.pageSize ?? this.saPageSize;
-          this.saTotalPages =
-            sizeOfPage > 0
-              ? this.saTotal < sizeOfPage
-                ? 0
-                : Math.ceil(this.saTotal / sizeOfPage)
-              : 0;
+
+          const pageSize = pg.pageSize ?? size;
+
+          let totalPages = 0;
+          if (pageSize > 0 && this.saTotal >= pageSize) {
+            totalPages = Math.ceil(this.saTotal / pageSize);
+          }
+          this.saTotalPages = totalPages;
+
           if (this.selectedStandardApplicantCode) {
             this.saSelectedIds = new Set([this.selectedStandardApplicantCode]);
           }
         },
         error: () => {
           this.saItems = [];
+          this.saTotal = 0;
+          this.saTotalPages = 0;
+          this.saSelectedIds = new Set<string>();
         },
       });
   }
@@ -630,12 +629,14 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   private markGroupClean(group: FormGroup): void {
-    Object.values(group.controls).forEach((ctrl) => {
-      ctrl.markAsPristine();
-      ctrl.markAsUntouched();
-      ctrl.updateValueAndValidity({ onlySelf: true, emitEvent: false });
-    });
+  const controls = Object.values(group.controls);
+
+  for (const ctrl of controls) {
+    ctrl.markAsPristine();
+    ctrl.markAsUntouched();
+    ctrl.updateValueAndValidity({ onlySelf: true, emitEvent: false });
   }
+}
 
   private resetErrors(): void {
     this.personFieldErrors = {};
@@ -821,126 +822,13 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   private handleFatalLoadError(err: unknown): void {
-    // Narrow the outer error
-    let status = 0;
-    let statusText: string | undefined;
-    let problem: ProblemDetails | undefined;
+    const { errorHint, errorSummary } = mapHttpErrorToSummary(err);
 
-    if (typeof err === 'object' && err !== null) {
-      const maybeStatus = (err as { status?: unknown }).status;
-      if (typeof maybeStatus === 'number') {
-        status = maybeStatus;
-      }
-
-      const maybeStatusText = (err as { statusText?: unknown }).statusText;
-      if (typeof maybeStatusText === 'string') {
-        statusText = maybeStatusText;
-      }
-
-      const maybeError = (err as { error?: unknown }).error;
-      if (typeof maybeError === 'object' && maybeError !== null) {
-        const rec = maybeError as Record<string, unknown>;
-        const title =
-          typeof rec['title'] === 'string' ? rec['title'] : undefined;
-        const detail =
-          typeof rec['detail'] === 'string' ? rec['detail'] : undefined;
-
-        let errors: ProblemDetails['errors'];
-        if (typeof rec['errors'] === 'object' && rec['errors'] !== null) {
-          const raw = rec['errors'] as Record<string, unknown>;
-          // Coerce values to string[] | string without using `any`
-          errors = Object.fromEntries(
-            Object.entries(raw).map(([k, v]) => [
-              k,
-              Array.isArray(v) ? v.map((x) => String(x)) : String(v),
-            ]),
-          );
-        }
-        problem = { title, detail, errors };
-      }
-    }
-
-    const makeItems = (...lines: (string | undefined)[]): ErrorSummaryItem[] =>
-      lines
-        .filter((t): t is string => !!t && t.trim().length > 0)
-        .map((text) => ({ text }));
-
-    switch (status) {
-      case 400: {
-        // Bad request
-        this.errorHint = problem?.title || 'Bad request';
-        // If you want to surface field errors, you can flatten problem.errors here.
-        this.errorSummary =
-          problem?.errors && Object.keys(problem.errors).length > 0
-            ? Object.entries(problem.errors).flatMap(([msgs]) =>
-                (Array.isArray(msgs) ? msgs : [msgs]).map((m) => ({
-                  text: String(m),
-                })),
-              )
-            : makeItems(
-                problem?.detail || 'We could not process your request.',
-              );
-        break;
-      }
-      case 401: {
-        // Unauthenticated
-        this.errorHint = problem?.title || 'You need to sign in';
-        this.errorSummary = makeItems(
-          problem?.detail ||
-            'Your session may have expired. Sign in and try again.',
-        );
-        break;
-      }
-      case 403: {
-        // Forbidden
-        this.errorHint =
-          problem?.title || 'You do not have permission to view this entry';
-        this.errorSummary = makeItems(
-          problem?.detail || 'Ask an administrator to grant you access.',
-        );
-        break;
-      }
-      case 404: {
-        // Not found
-        this.errorHint = problem?.title || 'Entry not found';
-        this.errorSummary = makeItems(
-          problem?.detail ||
-            'We could not find this Application List Entry. It may have been removed or you may not have access.',
-        );
-        break;
-      }
-      default: {
-        // Treat network errors (0) and 5xx as server errors
-        if (status === 0 || status >= 500) {
-          this.errorHint = problem?.title || 'A server error occurred';
-          this.errorSummary = makeItems(
-            problem?.detail ||
-              'Something went wrong on our side. Try again in a few moments.',
-          );
-        } else {
-          // Unexpected status – generic fallback
-          this.errorHint = problem?.title || 'There is a problem';
-          this.errorSummary = makeItems(
-            problem?.detail ||
-              statusText ||
-              'An unexpected error occurred. Try again.',
-          );
-        }
-        break;
-      }
-    }
-
+    this.errorHint = errorHint;
+    this.errorSummary = errorSummary;
     this.hasFatalError = true;
 
-    if (isPlatformBrowser(this.platformId)) {
-      setTimeout(() => {
-        const el = document.querySelector<HTMLElement>(
-          '[data-component="error-summary"]',
-        );
-        el?.focus?.();
-        el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
-      });
-    }
+    this.focusErrorSummary();
   }
 
   // Function to create an update payload with all existing values + changed values
