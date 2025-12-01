@@ -199,7 +199,7 @@ export class ApplicationsListCreate
       if (missing.length) {
         this.unpopField = missing;
         this.createInvalid = true;
-        this.errorHint = 'Error - please check your inputs:';
+        this.errorHint = 'There is a problem';
         return;
       }
 
@@ -210,7 +210,7 @@ export class ApplicationsListCreate
           href: '#status',
           id: 'status',
         });
-        this.errorHint = 'Error - please check your inputs:';
+        this.errorHint = 'There is a problem';
         return;
       }
 
@@ -240,7 +240,7 @@ export class ApplicationsListCreate
           const msg = err instanceof Error ? err.message : String(err);
           this.createDone = false;
           this.createInvalid = true;
-          this.errorHint = 'An error has occurred: \n' + msg;
+          this.errorHint = 'There is a problem: \n' + msg;
         },
       });
   }
