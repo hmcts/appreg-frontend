@@ -341,6 +341,41 @@ export class ApplicationsListEntryDetail implements OnInit {
     });
   };
 
+  onUpdateApplicant(): void {
+    this.resetErrors();
+    this.formSubmitted = true;
+    switch (this.applicantType) {
+      case 'person': {
+        const ok = this.validatePersonSection();
+        if (!ok) {
+          this.hasFatalError = true;
+          this.errorHint = 'There is a problem';
+          this.focusErrorSummary();
+          return;
+        }
+        break;
+      }
+      case 'organisation': {
+        const ok = this.validateOrganisationSection();
+        if (!ok) {
+          this.hasFatalError = true;
+          this.errorHint = 'There is a problem';
+          this.focusErrorSummary();
+          return;
+        }
+        break;
+      }
+    }
+
+    this.formSubmitted = false;
+    this.resetErrors();
+  }
+
+  onSaPageChange(pageIndex: number): void {
+    this.saPageIndex = pageIndex;
+    this.loadStandardApplicants(pageIndex, this.saPageSize);
+  }
+
   // ——— Form accessors ———
   get personGroup(): FormGroup {
     return this.form.get('person') as FormGroup;
@@ -348,6 +383,65 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   get organisationGroup(): FormGroup {
     return this.form.get('organisation') as FormGroup;
+  }
+
+  get applicantType(): ApplicantType {
+    const v = this.form.get('applicantEntryType')?.value as
+      | ApplicantType
+      | undefined;
+    return v ?? 'person';
+  }
+
+  get isUpdateDisabled(): boolean {
+    switch (this.applicantType) {
+      case 'person':
+        return !this.personGroup.valid;
+      case 'organisation':
+        return !this.organisationGroup.valid;
+      case 'standardApplicant':
+        return !this.selectedStandardApplicantCode;
+      default:
+        return true;
+    }
+  }
+
+  get standardApplicantData(): StandardApplicantRow[] {
+    const fmt = (iso?: string | null) =>
+      iso ? new Date(iso).toLocaleDateString('en-GB') : '—';
+
+    return this.saItems.map((sa) => {
+      const applicant = sa.applicant;
+      const person = applicant?.person;
+      const organisation = applicant?.organisation;
+
+      // Build a display name
+      const personName = person?.name
+        ? [
+            person.name.title,
+            person.name.firstForename,
+            person.name.secondForename,
+            person.name.thirdForename,
+            person.name.surname,
+          ]
+            .filter(Boolean)
+            .join(' ')
+        : '';
+
+      const name = organisation?.name ?? personName ?? '';
+
+      const addressLine1 =
+        person?.contactDetails?.addressLine1 ??
+        organisation?.contactDetails?.addressLine1 ??
+        '';
+
+      return {
+        code: sa.code ?? '',
+        name,
+        address: addressLine1,
+        useFrom: fmt(sa.startDate),
+        useTo: fmt(sa.endDate ?? null),
+      };
+    });
   }
 
   // ── Private helpers ─────────────────────────────────────────────────────────
@@ -437,100 +531,6 @@ export class ApplicationsListEntryDetail implements OnInit {
           }
         },
       });
-  }
-
-  get applicantType(): ApplicantType {
-    const v = this.form.get('applicantEntryType')?.value as
-      | ApplicantType
-      | undefined;
-    return v ?? 'person';
-  }
-
-  get isUpdateDisabled(): boolean {
-    switch (this.applicantType) {
-      case 'person':
-        return !this.personGroup.valid;
-      case 'organisation':
-        return !this.organisationGroup.valid;
-      case 'standardApplicant':
-        return !this.selectedStandardApplicantCode;
-      default:
-        return true;
-    }
-  }
-
-  get standardApplicantData(): StandardApplicantRow[] {
-    const fmt = (iso?: string | null) =>
-      iso ? new Date(iso).toLocaleDateString('en-GB') : '—';
-
-    return this.saItems.map((sa) => {
-      const applicant = sa.applicant;
-      const person = applicant?.person;
-      const organisation = applicant?.organisation;
-
-      // Build a display name
-      const personName = person?.name
-        ? [
-            person.name.title,
-            person.name.firstForename,
-            person.name.secondForename,
-            person.name.thirdForename,
-            person.name.surname,
-          ]
-            .filter(Boolean)
-            .join(' ')
-        : '';
-
-      const name = organisation?.name ?? personName ?? '';
-
-      const addressLine1 =
-        person?.contactDetails?.addressLine1 ??
-        organisation?.contactDetails?.addressLine1 ??
-        '';
-
-      return {
-        code: sa.code ?? '',
-        name,
-        address: addressLine1,
-        useFrom: fmt(sa.startDate),
-        useTo: fmt(sa.endDate ?? null),
-      };
-    });
-  }
-
-  onUpdateApplicant(): void {
-    this.resetErrors();
-    this.formSubmitted = true;
-    switch (this.applicantType) {
-      case 'person': {
-        const ok = this.validatePersonSection();
-        if (!ok) {
-          this.hasFatalError = true;
-          this.errorHint = 'There is a problem';
-          this.focusErrorSummary();
-          return;
-        }
-        break;
-      }
-      case 'organisation': {
-        const ok = this.validateOrganisationSection();
-        if (!ok) {
-          this.hasFatalError = true;
-          this.errorHint = 'There is a problem';
-          this.focusErrorSummary();
-          return;
-        }
-        break;
-      }
-    }
-
-    this.formSubmitted = false;
-    this.resetErrors();
-  }
-
-  onSaPageChange(pageIndex: number): void {
-    this.saPageIndex = pageIndex;
-    this.loadStandardApplicants(pageIndex, this.saPageSize);
   }
 
   private validatePersonSection(): boolean {
