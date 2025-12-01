@@ -62,6 +62,8 @@ import { fetchCodeRows$ } from '../../shared/util/codes.search';
 import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
 import {
   ApplicantType,
+  OrganisationFormRaw,
+  PersonFormRaw,
   StandardApplicantRow,
   SuccessBanner,
 } from '../../shared/util/types/applications-list-entry/types';
@@ -79,7 +81,11 @@ import {
   RESULT_WORDING_COLUMNS,
   WORDING_REF_REGEX,
 } from './util/entry-detail.constants';
-import { buildEntryDetailForm } from './util/entry-detail.form';
+import {
+  buildEntryDetailForm,
+  buildOrganisationApplicantFromRaw,
+  buildPersonApplicantFromRaw,
+} from './util/entry-detail.form';
 import { mapHttpErrorToSummary } from './util/errors.util';
 import { getEntryId } from './util/routing.util';
 
@@ -820,6 +826,16 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.hasFatalError = true;
 
     this.focusErrorSummary();
+  }
+
+  private buildPersonApplicantFromForm(): Applicant {
+    const raw = this.personGroup.getRawValue() as PersonFormRaw;
+    return buildPersonApplicantFromRaw(raw);
+  }
+
+  private buildOrganisationApplicantFromForm(): Applicant {
+    const raw = this.organisationGroup.getRawValue() as OrganisationFormRaw;
+    return buildOrganisationApplicantFromRaw(raw);
   }
 
   // Function to create an update payload with all existing values + changed values

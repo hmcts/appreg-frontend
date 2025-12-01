@@ -29,3 +29,26 @@ export interface ProblemDetails {
   detail?: string;
   errors?: Record<string, string[] | string>;
 }
+
+export type ContactFormRaw = {
+  addressLine1: string;
+  addressLine2: string;
+  addressLine3: string;
+  addressLine4: string;
+  addressLine5: string;
+  postcode: string;
+  phoneNumber: string;
+  mobileNumber: string;
+  emailAddress: string;
+};
+
+export type PersonFormRaw = ContactFormRaw & {
+  title: string;
+  firstName: string;
+  middleNames: string;
+  surname: string;
+};
+
+export type OrganisationFormRaw = ContactFormRaw & {
+  name: string;
+};
