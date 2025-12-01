@@ -1,6 +1,6 @@
 /// <reference types="cypress" />
 
-export class ApiHelper {
+export class ApiGetHelper {
   private static lastResponse: Cypress.Response<unknown> | null = null;
 
   static makeGetRequest(endpoint: string, token?: string): void {
@@ -16,7 +16,7 @@ export class ApiHelper {
       };
     }
     cy.request(options).then((response) => {
-      ApiHelper.lastResponse = response;
+      ApiGetHelper.lastResponse = response;
       cy.log(`GET API Request to ${endpoint} returned status: ${response.status}`);
       if (response.status !== 200) {
         cy.log(`GET API Response body: ${JSON.stringify(response.body)}`);
