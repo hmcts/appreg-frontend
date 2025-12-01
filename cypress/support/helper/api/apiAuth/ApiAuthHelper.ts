@@ -16,7 +16,7 @@ export class ApiAuthHelper {
       },
     }).then((response) => {
       expect(response.status).to.eq(200);
-      Cypress.env('authToken', response.body.access_token);
+      cy.wrap(response.body.access_token).as('authToken');
       cy.log(`[ApiAuthHelper] Generated access token: ${response.body.access_token}`);
     }) as unknown) as Cypress.Chainable<void>;
   }
