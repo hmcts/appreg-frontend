@@ -208,7 +208,7 @@ describe('ApplicationsListCreate', () => {
     submit('create');
     expect(component.createInvalid).toBe(true);
     expect(component.unpopField.length).toBeGreaterThan(0);
-    expect(component.errorHint).toBe('Error - please check your inputs:');
+    expect(component.errorHint).toBe('There is a problem');
     expect(appListsMock.createApplicationList).not.toHaveBeenCalled();
   });
 
