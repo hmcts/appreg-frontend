@@ -55,6 +55,7 @@ Feature: Applications List Create
     When User Set Date Field "Date" To "<ValidDate>"
     When User Clicks On The "Create" Button
     Then User Sees Validation Error "Error - please check your inputs: Enter hours and minutes Description is required Status is required Other location is required CJA is required Court is required"
+    Then User Clicks On The Link "Applications list"
 
 
     Examples:
