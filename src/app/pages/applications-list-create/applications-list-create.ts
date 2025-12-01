@@ -49,6 +49,7 @@ import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '../../shared/util/error-click';
+import { getProblemText } from '../../shared/util/http-error-to-text';
 import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
 import { FormRaw } from '../../shared/util/types/application-list/types';
 import { validateCourtVsLocOrCja } from '../../shared/util/validate-court-vs-loc-cja';
@@ -237,10 +238,17 @@ export class ApplicationsListCreate
           this.createDone = true;
         },
         error: (err) => {
-          const msg = err instanceof Error ? err.message : String(err);
-          this.createDone = false;
+          const msg = getProblemText(err);
+          this.submitted = true;
           this.createInvalid = true;
-          this.errorHint = 'There is a problem: \n' + msg;
+          this.errorHint = 'There is a problem';
+          this.unpopField = [
+            {
+              text: msg,
+              href: '#create',
+              id: 'create',
+            },
+          ];
         },
       });
   }
