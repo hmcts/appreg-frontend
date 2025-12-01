@@ -147,9 +147,12 @@ module.exports = defineConfig({
           },
         },
         CLIENT_ID: appConfigGet(appConfig, 'secrets.appreg.azure-app-id-fe'),
-        CLIENT_SECRET: appConfigGet(appConfig, 'secrets.appreg.azure-client-secret-fe'),
+        CLIENT_SECRET: appConfigGet(
+          appConfig,
+          'secrets.appreg.azure-client-secret-fe',
+        ),
         TENANT_ID: appConfigGet(appConfig, 'secrets.appreg.azure-tenant-id-fe'),
-        SCOPE: appConfigGet(appConfig, 'auth.scopes', []).join(' '),
+        SCOPE: `api://${appConfigGet(appConfig, 'secrets.appreg.azure-app-id-fe')}/frontend`,
         API_BASE_URL: appConfigGet(appConfig, 'api.baseUrl'),
         SESSION_COOKIE_NAME: appConfigGet(appConfig, 'session.cookieName'),
       };

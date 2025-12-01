@@ -77,11 +77,12 @@ Feature: Authentication and Authorisation
     Then User Verify The Page URL Contains "/applications-list"
     Then User Verify The "appreg.sid" Cookie Should Exist
     Then User Verify The Session Is Valid
-    When User Makes GET API Request To "/sso/me"
-    Then User Verify API Request Returns Status Code "200"
+    When User Makes GET API Request To "/sso/me" Using Frontend URL
+    Then User Verify Response Status Code Should Be "200"
 
-  @regression @ARCPOC-294 @ARCPOC-425
+  @regression @ARCPOC-294 @ARCPOC-425 @PJ
   Scenario: API request without session returns unauthorized  
     Given User Is On The Portal Page
-    When User Makes GET API Request To "/sso/me"
-    Then User Verify API Request Returns Status Code "401"
+    When User Makes GET API Request To "/sso/me" Using Frontend URL
+    Then User Verify Response Status Code Should Be "401"
+    Then User Verify The "appreg.sid" Cookie Should Not Exist

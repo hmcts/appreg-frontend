@@ -1,3 +1,5 @@
+import { DateTimeUtil } from './DateTimeUtil';
+
 /**
  * Utility class for generating unique test data with scenario-level consistency
  */
@@ -50,4 +52,69 @@ export class TestDataGenerator {
     const random = Math.floor(Math.random() * 1000);
     return `${timestamp}${random}`;
   }
+
+  /**
+   * Generates a random string of given length
+   * @param length Length of the string
+   * @returns Random alphanumeric string
+   */
+  static getRandomString(length: number = 8): string {
+    const chars =
+      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
+
+  /**
+   * Generates a random email address
+   * @returns Random email string
+   */
+  static getRandomEmail(): string {
+    const user = this.getRandomString(6);
+    const domain = this.getRandomString(5);
+    return `${user}@${domain}.com`;
+  }
+}
+
+/**
+ * Processes a datatable row, replacing date/time keywords and random placeholders.
+ * @param row Object representing a datatable row (key-value pairs)
+ * @returns New object with generated values
+ */
+export function processDatatableRow(
+  row: Record<string, string>,
+): Record<string, string> {
+  const result: Record<string, string> = {};
+
+  for (const [key, value] of Object.entries(row)) {
+    let processedValue = value;
+
+    // Replace date/time keywords
+    processedValue = DateTimeUtil.parseDateValue(processedValue);
+
+    // Replace {RANDOM} placeholders
+    processedValue =
+      TestDataGenerator.replaceRandomPlaceholders(processedValue);
+
+    // Optionally, handle other random keywords
+    if (processedValue === 'randomnumber') {
+      processedValue = TestDataGenerator.getRandomNumber();
+    }
+    if (processedValue === 'uniqueid') {
+      processedValue = TestDataGenerator.getUniqueId();
+    }
+    if (processedValue === 'randomstring') {
+      processedValue = TestDataGenerator.getRandomString();
+    }
+    if (processedValue === 'randomemail') {
+      processedValue = TestDataGenerator.getRandomEmail();
+    }
+
+    result[key] = processedValue;
+  }
+
+  return result;
 }
