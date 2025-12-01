@@ -46,6 +46,7 @@
       (input)="onInput($event)"
       [disabled]="disabled"
       [attr.list]="listId || null"
+      [attr.maxlength]="charLimit || null"
     />
 
     @if (listId) {
