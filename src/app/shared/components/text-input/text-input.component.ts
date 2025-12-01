@@ -43,6 +43,7 @@ export class TextInputComponent implements ControlValueAccessor {
   }[] = [];
   @Input() submitted = false;
   @Input() suppressError = false;
+  @Input() charLimit: number = 200;
   @Input() error: string | null = null;
 
   @Output() typed = new EventEmitter<string>();
@@ -70,7 +71,14 @@ export class TextInputComponent implements ControlValueAccessor {
   }
 
   onInput(event: Event): void {
-    const val = (event.target as HTMLInputElement).value;
+    const target = event.target as HTMLInputElement;
+    let val = target.value ?? '';
+
+    if (this.charLimit && val.length > this.charLimit) {
+      val = val.slice(0, this.charLimit);
+      target.value = val;
+    }
+
     this.value = val;
     this.onChange(val);
     this.typed.emit(val);
