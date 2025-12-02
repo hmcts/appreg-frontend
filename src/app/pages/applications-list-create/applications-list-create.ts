@@ -111,7 +111,7 @@ export class ApplicationsListCreate
   createDone: boolean = false;
   @Input() submitted: boolean = false;
 
-  errorHint: string = ''; // Error summary heading text
+  errorHint: string = 'There is a problem'; // Error summary heading text
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
 
@@ -200,7 +200,6 @@ export class ApplicationsListCreate
       if (missing.length) {
         this.unpopField = missing;
         this.createInvalid = true;
-        this.errorHint = 'There is a problem';
         return;
       }
 
@@ -211,7 +210,6 @@ export class ApplicationsListCreate
           href: '#status',
           id: 'status',
         });
-        this.errorHint = 'There is a problem';
         return;
       }
 
@@ -241,7 +239,6 @@ export class ApplicationsListCreate
           const msg = getProblemText(err);
           this.submitted = true;
           this.createInvalid = true;
-          this.errorHint = 'There is a problem';
           this.unpopField = [
             {
               text: msg,
@@ -257,7 +254,7 @@ export class ApplicationsListCreate
     this.unpopField = [];
     this.createInvalid = false;
     this.createDone = false;
-    this.errorHint = '';
+    this.errorHint = 'There is a problem';
   }
 
   private buildPayload(raw: CreateFormRaw): ApplicationListCreateDto {
