@@ -57,16 +57,16 @@ import {
   onCreateErrorClick as onCreateErrorClickFn,
 } from '../../shared/util/error-click';
 import {
+  getHttpStatus,
+  getProblemText,
+} from '../../shared/util/http-error-to-text';
+import {
   MojButtonMenu,
   MojButtonMenuDirective,
 } from '../../shared/util/moj-button-menu';
 import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
 import type { FormRaw } from '../../shared/util/types/application-list/types';
 import { validateCourtVsLocOrCja } from '../../shared/util/validate-court-vs-loc-cja';
-import {
-  getHttpStatus,
-  getProblemText,
-} from '../applications-list/util/delete-status';
 
 type DetailFormRaw = Omit<
   FormRaw<ApplicationListStatus>,
