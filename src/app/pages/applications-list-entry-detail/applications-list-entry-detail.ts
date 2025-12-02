@@ -21,7 +21,6 @@ import {
   Applicant,
   ApplicationCodesApi,
   ApplicationListEntriesApi,
-  ContactDetails,
   EntryGetDetailDto,
   EntryUpdateDto,
   FullName,
@@ -85,6 +84,7 @@ import {
   buildEntryDetailForm,
   buildOrganisationApplicantFromRaw,
   buildPersonApplicantFromRaw,
+  contactDetailsToFormPatch,
 } from './util/entry-detail.form';
 import { mapHttpErrorToSummary } from './util/errors.util';
 import { getEntryId } from './util/routing.util';
@@ -120,8 +120,8 @@ export class ApplicationsListEntryDetail implements OnInit {
   private readonly organisationSection?: OrganisationSectionComponent;
 
   // Error summary state
-  errorHint: string | null = null;
-  errorSummary: { text: string; href?: string }[] = [];
+  errorHint: string | null = 'There is a problem';
+  errorSummary: ErrorItem[] = [];
   hasFatalError = false;
   appListId!: string;
 
@@ -136,7 +136,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   saTotal = 0;
   saTotalPages = 0;
   saItems: StandardApplicantGetSummaryDto[] = [];
-  saSelectedIds: Set<string> = new Set<string>();
+  _saSelectedIds: Set<string> = new Set<string>();
 
   private entryDetail: EntryGetDetailDto | null = null;
 
@@ -236,7 +236,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   onCodesSearch(): void {
     this.codesHasSearched = true;
     this.codesRows = [];
-    this.clearErrors();
+    this.resetErrors();
 
     const code = this.readText('applicationCode').trim();
     const title = this.readText('applicationTitle').trim();
@@ -267,7 +267,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   onAddCode(row: CodeRow): void {
     this.successBanner = null;
-    this.clearErrors();
+    this.resetErrors();
 
     const entryId = getEntryId(this.route);
     if (!this.appListId || !entryId) {
@@ -281,7 +281,6 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     if (!this.entryDetail) {
       this.hasFatalError = true;
-      this.errorHint = 'There is a problem';
       this.errorSummary = [
         {
           text: 'Entry is not loaded. Load the entry before adding a code.',
@@ -350,6 +349,8 @@ export class ApplicationsListEntryDetail implements OnInit {
   onUpdateApplicant(): void {
     this.resetErrors();
     this.formSubmitted = true;
+
+    // Client-side validation
     switch (this.applicantType) {
       case 'person': {
         const ok = this.validatePersonSection();
@@ -361,6 +362,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         }
         break;
       }
+
       case 'organisation': {
         const ok = this.validateOrganisationSection();
         if (!ok) {
@@ -371,10 +373,119 @@ export class ApplicationsListEntryDetail implements OnInit {
         }
         break;
       }
+
+      case 'standardApplicant': {
+        const code = this.selectedStandardApplicantCode?.trim();
+        if (!code) {
+          this.hasFatalError = true;
+          this.errorHint = 'There is a problem';
+          this.errorSummary = [
+            {
+              text: 'Select a standard applicant',
+              href: '#sortable-table',
+            },
+          ];
+          this.focusErrorSummary();
+          return;
+        }
+        break;
+      }
+
+      default: {
+        this.hasFatalError = true;
+        this.errorHint = 'There is a problem';
+        this.errorSummary = [
+          { text: 'Select an applicant type', href: '#application-entry-type' },
+        ];
+        this.focusErrorSummary();
+        return;
+      }
     }
 
-    this.formSubmitted = false;
-    this.resetErrors();
+    // Ensure we have listId, entryId and a loaded server snapshot
+    const entryId = getEntryId(this.route);
+    if (!this.appListId || !entryId || !this.entryDetail) {
+      this.hasFatalError = true;
+      this.errorHint = 'There is a problem';
+      this.errorSummary = [
+        {
+          text: 'Entry is not loaded. Reload the page and try again.',
+        },
+      ];
+      this.focusErrorSummary();
+      return;
+    }
+
+    let entryUpdateDto: EntryUpdateDto;
+
+    switch (this.applicantType) {
+      case 'standardApplicant': {
+        const code = this.selectedStandardApplicantCode?.trim() || undefined;
+        entryUpdateDto = this.buildEntryUpdateDtoWithChange(
+          'standardApplicantCode',
+          code,
+        );
+        // Mutually exclusive with person/org
+        entryUpdateDto.applicant = undefined;
+        break;
+      }
+
+      case 'person': {
+        const applicant = this.buildPersonApplicantFromForm();
+        entryUpdateDto = this.buildEntryUpdateDtoWithChange(
+          'applicant',
+          applicant,
+        );
+        // Mutually exclusive with standard applicant
+        entryUpdateDto.standardApplicantCode = undefined;
+        break;
+      }
+
+      case 'organisation': {
+        const applicant = this.buildOrganisationApplicantFromForm();
+        entryUpdateDto = this.buildEntryUpdateDtoWithChange(
+          'applicant',
+          applicant,
+        );
+        entryUpdateDto.standardApplicantCode = undefined;
+        break;
+      }
+    }
+
+    const params: UpdateApplicationListEntryRequestParams = {
+      listId: this.appListId,
+      entryId,
+      entryUpdateDto,
+    };
+
+    this.entriesApi
+      .updateApplicationListEntry(params, 'body', false, {
+        context: undefined,
+        transferCache: false,
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.formSubmitted = false;
+          this.hasFatalError = false;
+
+          this.successBanner = {
+            heading: 'Applicant updated',
+            body: 'The applicant has been updated for this application list entry.',
+          };
+
+          if (this.applicantType === 'person') {
+            this.markGroupClean(this.personGroup);
+          } else if (this.applicantType === 'organisation') {
+            this.markGroupClean(this.organisationGroup);
+          }
+        },
+        error: (err) => {
+          this.formSubmitted = false;
+          this.applyMappedError(err);
+          this.focusErrorSummary();
+        },
+      });
   }
 
   onSaPageChange(pageIndex: number): void {
@@ -450,13 +561,17 @@ export class ApplicationsListEntryDetail implements OnInit {
     });
   }
 
-  // ── Private helpers ─────────────────────────────────────────────────────────
-  private clearErrors(): void {
-    this.hasFatalError = false;
-    this.errorHint = null;
-    this.errorSummary = [];
+  get saSelectedIds(): Set<string> {
+    return this._saSelectedIds;
   }
 
+  set saSelectedIds(ids: Set<string>) {
+    this._saSelectedIds = ids;
+    const iter = ids.values().next();
+    this.selectedStandardApplicantCode = iter.done ? null : iter.value;
+  }
+
+  // ── Private helpers ─────────────────────────────────────────────────────────
   private applyMappedError(err: unknown): void {
     const mapped = mapHttpErrorToSummary(err);
     this.hasFatalError = mapped.hasFatalError;
@@ -639,7 +754,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.personFieldErrors = {};
     this.organisationFieldErrors = {};
     this.errorSummary = [];
-    this.errorHint = null;
+    this.errorHint = 'There is a problem';
     this.hasFatalError = false;
   }
 
@@ -688,36 +803,19 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   private hydrateFromDto(dto: EntryGetDetailDto): void {
-    // Base scalar fields that are actually present on EntryGetDetailDto
     this.form.patchValue(
       {
-        // Codes section
         lodgementDate: dto.lodgementDate ?? '',
         applicationCode: dto.applicationCode ?? '',
-        // applicationTitle is not on EntryGetDetailDto – leave as-is
-        // or clear if you prefer a known state:
-        // applicationTitle: '',
-
-        // Wording section – EntryGetDetailDto only gives you wordingFields: string[]
-        // Without a defined positional mapping you should not guess.
         courtName: '',
         organisationName: '',
-
-        // Civil fee section – EntryGetDetailDto exposes feeStatuses[] + hasOffsiteFee.
-        // If you don’t have a defined rule for “current” status yet, keep these blank.
         feeStatus: '',
         feeStatusDate: '',
         paymentRef: '',
-
-        // Notes section
         caseReference: dto.caseReference ?? '',
         accountReference: dto.accountNumber ?? '',
         applicationDetails: dto.notes ?? '',
-
-        // Result wording section – result is a separate resource, so clear this here.
         resultCode: '',
-
-        // Officials – not part of EntryGetDetailDto; clear UI fields for now.
         mags1Title: '',
         mags1FirstName: '',
         mags1Surname: '',
@@ -734,8 +832,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       { emitEvent: false },
     );
 
-    // —— Applicant section (Standard Applicant vs Person vs Organisation) ——
-
+    // Applicants
     const saCode = (dto.standardApplicantCode ?? '').toString().trim();
     if (saCode) {
       this.setApplicantType('standardApplicant', { emit: false });
@@ -764,7 +861,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
-    // No applicant of any type – default to an empty organisation
+    // default to an empty organisation
     this.setApplicantType('organisation', { emit: false });
     this.selectedStandardApplicantCode = null;
     this.personGroup.reset(this.EMPTY_PERSON, { emitEvent: false });
@@ -782,7 +879,8 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   private patchPerson(p: Person): void {
     const name: FullName = p.name;
-    const cd: ContactDetails = p.contactDetails;
+    const cdPatch = contactDetailsToFormPatch(p.contactDetails);
+
     this.personGroup.patchValue({
       title: name.title ?? '',
       firstName: name.firstForename ?? '',
@@ -790,31 +888,16 @@ export class ApplicationsListEntryDetail implements OnInit {
         .filter(Boolean)
         .join(' '),
       surname: name.surname ?? '',
-      addressLine1: cd.addressLine1 ?? '',
-      addressLine2: cd.addressLine2 ?? '',
-      addressLine3: cd.addressLine3 ?? '',
-      addressLine4: cd.addressLine4 ?? '',
-      addressLine5: cd.addressLine5 ?? '',
-      postcode: cd.postcode ?? '',
-      phoneNumber: cd.phone ?? '',
-      mobileNumber: cd.mobile ?? '',
-      emailAddress: cd.email ?? '',
+      ...cdPatch,
     });
   }
 
   private patchOrganisation(o: Organisation): void {
-    const cd: ContactDetails = o.contactDetails;
+    const cdPatch = contactDetailsToFormPatch(o.contactDetails);
+
     this.organisationGroup.patchValue({
       name: o.name ?? '',
-      addressLine1: cd.addressLine1 ?? '',
-      addressLine2: cd.addressLine2 ?? '',
-      addressLine3: cd.addressLine3 ?? '',
-      addressLine4: cd.addressLine4 ?? '',
-      addressLine5: cd.addressLine5 ?? '',
-      postcode: cd.postcode ?? '',
-      phoneNumber: cd.phone ?? '',
-      mobileNumber: cd.mobile ?? '',
-      emailAddress: cd.email ?? '',
+      ...cdPatch,
     });
   }
 

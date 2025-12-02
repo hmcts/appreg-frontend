@@ -108,6 +108,20 @@ export function buildContactDetailsFromRaw(v: ContactFormRaw): ContactDetails {
   };
 }
 
+export function contactDetailsToFormPatch(cd: ContactDetails): ContactFormRaw {
+  return {
+    addressLine1: cd.addressLine1 ?? '',
+    addressLine2: cd.addressLine2 ?? '',
+    addressLine3: cd.addressLine3 ?? '',
+    addressLine4: cd.addressLine4 ?? '',
+    addressLine5: cd.addressLine5 ?? '',
+    postcode: cd.postcode ?? '',
+    phoneNumber: cd.phone ?? '',
+    mobileNumber: cd.mobile ?? '',
+    emailAddress: cd.email ?? '',
+  };
+}
+
 export function buildPersonApplicantFromRaw(raw: PersonFormRaw): Applicant {
   const name: FullName = {
     title: trimToUndefined(raw.title),
