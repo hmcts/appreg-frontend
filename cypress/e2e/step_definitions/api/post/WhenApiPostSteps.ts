@@ -13,9 +13,9 @@ When(
       const keys = rows[0];
       const values = rows[1];
       const rowObj: Record<string, string> = {};
-      keys.forEach((key, idx) => {
-        rowObj[key] = values[idx];
-      });
+      for (let idx = 0; idx < keys.length; idx++) {
+        rowObj[keys[idx]] = values[idx];
+      }
       processedRow = processDatatableRow(rowObj);
     }
     ApiPostHelper.postWithProcessedRow(endpoint, processedRow);
