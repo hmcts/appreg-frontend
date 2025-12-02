@@ -302,7 +302,7 @@ describe('ApplicationsListCreate', () => {
     submit('create');
     expect(component.createDone).toBe(false);
     expect(component.createInvalid).toBe(true);
-    expect(component.errorHint).toContain('fail');
+    expect(component.errorHint).toContain('There is a problem');
   });
 
   it('rejects non-OPEN status on create', () => {

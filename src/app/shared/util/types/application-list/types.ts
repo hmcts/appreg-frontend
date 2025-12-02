@@ -37,3 +37,6 @@ export type NormalizedPayload<S> = {
   | { courtLocationCode: string }
   | { otherLocationDescription: string; cjaCode: string }
 );
+
+export type SummaryItem = { text: string; href: string };
+export type ProblemDetails = { detail?: unknown; title?: unknown };
