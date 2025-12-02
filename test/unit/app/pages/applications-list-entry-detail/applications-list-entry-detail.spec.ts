@@ -26,39 +26,48 @@ import {
   EntryGetDetailDto,
   EntryUpdateDto,
   GetApplicationCodesRequestParams,
+  StandardApplicantsApi,
   UpdateApplicationListEntryRequestParams,
 } from '../../../../../src/generated/openapi';
 
-// ---------- Strong function types for our mocks (not the overloaded API types) ----------
 type GetCodesFn = (
   params: GetApplicationCodesRequestParams,
   observe?: 'body',
   reportProgress?: boolean,
-  options?: { transferCache?: boolean },
+  options?: { transferCache?: boolean; context?: unknown },
 ) => Observable<ApplicationCodePage>;
 
 type GetEntryFn = (
   params: { listId: string; entryId: string },
   observe?: 'body',
   reportProgress?: boolean,
-  options?: { transferCache?: boolean },
+  options?: { transferCache?: boolean; context?: unknown },
 ) => Observable<EntryGetDetailDto>;
 
 type UpdateEntryFn = (
   params: UpdateApplicationListEntryRequestParams,
   observe?: 'body',
   reportProgress?: boolean,
-  options?: { transferCache?: boolean },
+  options?: { transferCache?: boolean; context?: unknown },
 ) => Observable<unknown>;
 
 type GetCodeDetailFn = (
   params: { code: string; date: string },
   observe?: 'body',
   reportProgress?: boolean,
-  options?: { transferCache?: boolean },
+  options?: { transferCache?: boolean; context?: unknown },
 ) => Observable<ApplicationCodeGetDetailDto>;
 
-// Minimal, valid page builder (matches your generator; no unknown props like `number`/`size`)
+type GetStandardApplicantsFn = jest.Mock<
+  unknown,
+  [
+    params: unknown,
+    ('body' | undefined)?,
+    (boolean | undefined)?,
+    { transferCache?: boolean; context?: unknown }?,
+  ]
+>;
+
 function makePage(
   content: ReadonlyArray<Partial<ApplicationCodeGetSummaryDto>>,
   extras: Partial<
@@ -77,7 +86,6 @@ function makePage(
     title: c.title ?? '',
     bulkRespondentAllowed: Boolean(c.bulkRespondentAllowed),
     feeReference: c.feeReference,
-    // required fields in your model – provide defaults
     wording: c.wording ?? '',
     isFeeDue: c.isFeeDue ?? false,
     requiresRespondent: c.requiresRespondent ?? false,
@@ -105,14 +113,12 @@ function makePage(
 describe('ApplicationsListEntryDetail', () => {
   let fixture: ComponentFixture<ApplicationsListEntryDetail>;
   let component: ApplicationsListEntryDetail;
-
-  // ---- Jest mock variables (typed), assigned in beforeEach without generics on jest.fn() ----
   let mockGetApplicationCodes: jest.MockedFunction<GetCodesFn>;
   let mockGetApplicationCodeByCodeAndDate: jest.MockedFunction<GetCodeDetailFn>;
   let mockGetApplicationListEntry: jest.MockedFunction<GetEntryFn>;
   let mockUpdateApplicationListEntry: jest.MockedFunction<UpdateEntryFn>;
+  let mockGetStandardApplicants: GetStandardApplicantsFn;
 
-  // ActivatedRoute stub using convertToParamMap (no `any`)
   const routeStub: ActivatedRoute = {
     snapshot: {
       paramMap: convertToParamMap({ entryId: 'EN-1', id: 'EN-1' }),
@@ -122,14 +128,12 @@ describe('ApplicationsListEntryDetail', () => {
 
   beforeEach(async () => {
     jest.resetAllMocks();
-
-    // assign mocks
     mockGetApplicationCodes = jest.fn();
     mockGetApplicationCodeByCodeAndDate = jest.fn();
     mockGetApplicationListEntry = jest.fn();
     mockUpdateApplicationListEntry = jest.fn();
+    mockGetStandardApplicants = jest.fn();
 
-    // Default startup behaviour
     mockGetApplicationListEntry.mockReturnValue(
       of({
         lodgementDate: '2025-11-01',
@@ -149,8 +153,10 @@ describe('ApplicationsListEntryDetail', () => {
         endDate: null,
       } as ApplicationCodeGetDetailDto),
     );
-
-    // Provide to DI via a single safe cast to the generated service types
+    mockUpdateApplicationListEntry.mockReturnValue(of({}));
+    const standardApplicantsApiMock = {
+      getStandardApplicants: mockGetStandardApplicants,
+    } as unknown as StandardApplicantsApi;
     const codesApiMock = {
       getApplicationCodes: mockGetApplicationCodes,
       getApplicationCodeByCodeAndDate: mockGetApplicationCodeByCodeAndDate,
@@ -162,12 +168,13 @@ describe('ApplicationsListEntryDetail', () => {
     } as unknown as ApplicationListEntriesApi;
 
     await TestBed.configureTestingModule({
-      imports: [ApplicationsListEntryDetail], // standalone component
+      imports: [ApplicationsListEntryDetail],
       providers: [
         provideRouter([]),
         { provide: PLATFORM_ID, useValue: 'browser' },
         { provide: ApplicationCodesApi, useValue: codesApiMock },
         { provide: ApplicationListEntriesApi, useValue: entriesApiMock },
+        { provide: StandardApplicantsApi, useValue: standardApplicantsApiMock },
         { provide: ActivatedRoute, useValue: routeStub },
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -176,7 +183,7 @@ describe('ApplicationsListEntryDetail', () => {
 
     fixture = TestBed.createComponent(ApplicationsListEntryDetail);
     component = fixture.componentInstance;
-    fixture.detectChanges(); // ngOnInit → loadCodesSection
+    fixture.detectChanges();
   });
 
   it('hydrates codes section on init: patches lodgementDate, applicationCode, and resolves applicationTitle', () => {
@@ -191,13 +198,13 @@ describe('ApplicationsListEntryDetail', () => {
       { listId: 'AL-1', entryId: 'EN-1' },
       'body',
       false,
-      { transferCache: true },
+      expect.objectContaining({ transferCache: true }),
     );
     expect(mockGetApplicationCodeByCodeAndDate).toHaveBeenCalledWith(
       { code: 'APP-100', date: '2025-11-01' },
       'body',
       false,
-      { transferCache: true },
+      expect.objectContaining({ transferCache: true }),
     );
   });
 
@@ -232,7 +239,7 @@ describe('ApplicationsListEntryDetail', () => {
       { code: 'APP-9', title: 'Something', page: 0, size: 10 },
       'body',
       false,
-      { transferCache: true },
+      expect.objectContaining({ transferCache: true }),
     );
 
     expect(component['codesRows']).toEqual([
@@ -241,7 +248,7 @@ describe('ApplicationsListEntryDetail', () => {
     ]);
   });
 
-  it('onCodesSearch maps errors (401) to error summary and sets hasFatalError', () => {
+  it('onCodesSearch maps errors (401) to error summary via error util', () => {
     mockGetApplicationCodes.mockReturnValueOnce(
       throwError(
         () =>
@@ -255,25 +262,23 @@ describe('ApplicationsListEntryDetail', () => {
     component.onCodesSearch();
 
     expect(component['hasFatalError']).toBe(true);
-    expect(component['errorHint']).toBe('You need to sign in');
-    expect(component['errorSummary'][0].text).toContain('sign in');
+    expect(component['errorHint']).toBe('Auth');
+    expect(component['errorSummary'][0].text).toContain('Please sign in');
   });
 
-  it('onAddCode requires lodgementDate and shows an error if missing', () => {
+  it('onAddCode uses loaded lodgementDate even if the control is blank', () => {
     component['form'].patchValue({ lodgementDate: '' });
-
     component.onAddCode({ code: 'APP-1', title: '', bulk: 'No', fee: '—' });
-
-    expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
-    expect(component['hasFatalError']).toBe(true);
-    expect(component['errorSummary'][0].text).toMatch(
-      /Lodgement date is missing/i,
-    );
+    expect(mockUpdateApplicationListEntry).toHaveBeenCalledTimes(1);
+    const [params] = mockUpdateApplicationListEntry.mock.calls[0];
+    expect(params.listId).toBe('AL-1');
+    expect(params.entryId).toBe('EN-1');
+    expect(params.entryUpdateDto.lodgementDate).toBe('2025-11-01');
+    expect(component['hasFatalError']).toBe(false);
   });
 
   it('onAddCode updates entry and shows success banner; wording placeholder → link to wording section', () => {
     component['form'].patchValue({ lodgementDate: '2025-11-01' });
-
     mockUpdateApplicationListEntry.mockReturnValue(of({}));
 
     mockGetApplicationCodeByCodeAndDate.mockReturnValue(
@@ -303,7 +308,7 @@ describe('ApplicationsListEntryDetail', () => {
       },
       'body',
       false,
-      { transferCache: false },
+      expect.objectContaining({ transferCache: false }),
     );
 
     expect(component['successBanner']?.heading).toBe('Application code added');
@@ -318,7 +323,7 @@ describe('ApplicationsListEntryDetail', () => {
   });
 
   it('onErrorItemClick focuses target input and moves caret', fakeAsync(() => {
-    fixture.detectChanges(); // render template (input exists in DOM)
+    fixture.detectChanges();
 
     const input = document.querySelector<HTMLInputElement>('#application-code');
     expect(input).toBeTruthy();
@@ -327,14 +332,65 @@ describe('ApplicationsListEntryDetail', () => {
       text: 'Application code',
       href: '#application-code',
     });
-    tick(); // flush the setTimeout(0) used in the handler
+    tick();
 
     expect(document.activeElement).toBe(input);
-
-    // Optional: caret at end (value may be empty so 0)
     const len = (input!.value ?? '').length;
-    // JSDOM exposes selectionStart/End for inputs
     expect(input!.selectionStart).toBe(len);
     expect(input!.selectionEnd).toBe(len);
   }));
+
+  it('keeps selectedStandardApplicantCode in sync with saSelectedIds (single select table)', () => {
+    const set = new Set<string>(['SA-123']);
+    component['saSelectedIds'] = set;
+
+    expect(component['selectedStandardApplicantCode']).toBe('SA-123');
+
+    component['saSelectedIds'] = new Set<string>();
+    expect(component['selectedStandardApplicantCode']).toBeNull();
+  });
+
+  it('onUpdateApplicant (standardApplicant) builds PUT using snapshot and clears applicant', () => {
+    mockUpdateApplicationListEntry.mockReturnValue(of({}));
+    component['form'].get('applicantEntryType')?.setValue('standardApplicant');
+
+    component['selectedStandardApplicantCode'] = 'SA-999';
+
+    component.onUpdateApplicant();
+
+    expect(mockUpdateApplicationListEntry).toHaveBeenCalledTimes(1);
+    const [params, observe, reportProgress, options] =
+      mockUpdateApplicationListEntry.mock.calls[0];
+
+    expect(params.listId).toBe('AL-1');
+    expect(params.entryId).toBe('EN-1');
+    expect(observe).toBe('body');
+    expect(reportProgress).toBe(false);
+    expect(options).toEqual(expect.objectContaining({ transferCache: false }));
+
+    expect(params.entryUpdateDto).toMatchObject({
+      lodgementDate: '2025-11-01',
+      applicationCode: 'APP-100',
+      standardApplicantCode: 'SA-999',
+      applicant: undefined,
+    } as EntryUpdateDto);
+
+    expect(component['successBanner']?.heading).toBe('Applicant updated');
+  });
+
+  it('onUpdateApplicant (standardApplicant) validates that a row is selected', () => {
+    mockUpdateApplicationListEntry.mockReturnValue(of({}));
+
+    component['form'].get('applicantEntryType')?.setValue('standardApplicant');
+    component['selectedStandardApplicantCode'] = null;
+
+    component.onUpdateApplicant();
+
+    expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
+    expect(component['hasFatalError']).toBe(true);
+    expect(component['errorHint']).toBe('There is a problem');
+    expect(component['errorSummary'][0].text).toMatch(
+      /Select a standard applicant/i,
+    );
+  });
 });
