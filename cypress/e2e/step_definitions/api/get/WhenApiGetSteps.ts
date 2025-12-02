@@ -11,7 +11,9 @@ When('User Makes GET API Request To {string}', (endpoint: string) => {
 });
 
 When(
-  'User Makes GET API Request To {string} Using Frontend URL', (endpoint: string) => {
+  'User Makes GET API Request To {string} Using Frontend URL',
+  (endpoint: string) => {
     cy.log(`API GET Request full URL: ${endpoint}`);
     ApiGetHelper.makeGetRequest(endpoint);
-  });
+  },
+);
