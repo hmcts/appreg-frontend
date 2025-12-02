@@ -46,8 +46,8 @@ import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '../../shared/util/error-click';
+import { getProblemText } from '../../shared/util/http-error-to-text';
 import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
-import { getProblemText } from '../applications-list/util/delete-status';
 
 import {
   compactStrings,

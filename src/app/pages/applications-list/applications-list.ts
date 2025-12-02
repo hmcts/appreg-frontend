@@ -69,16 +69,16 @@ import {
   ROW_VERSION,
 } from '../../shared/context/concurrency-context';
 import { has } from '../../shared/util/has';
+import {
+  getHttpStatus,
+  getProblemText,
+} from '../../shared/util/http-error-to-text';
 import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
 import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
 import { normaliseTime } from '../../shared/util/time-helpers';
 import { ApplicationListRow } from '../../shared/util/types/application-list/types';
 
-import {
-  getHttpStatus,
-  getProblemText,
-  statusSummary,
-} from './util/delete-status';
+import { statusSummary } from './util/delete-status';
 import { loadQuery } from './util/load-query';
 
 @Component({

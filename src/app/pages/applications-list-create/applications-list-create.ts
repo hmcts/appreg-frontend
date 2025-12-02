@@ -49,6 +49,7 @@ import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '../../shared/util/error-click';
+import { getProblemText } from '../../shared/util/http-error-to-text';
 import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
 import { FormRaw } from '../../shared/util/types/application-list/types';
 import { validateCourtVsLocOrCja } from '../../shared/util/validate-court-vs-loc-cja';
@@ -110,7 +111,7 @@ export class ApplicationsListCreate
   createDone: boolean = false;
   @Input() submitted: boolean = false;
 
-  errorHint: string = ''; // Error summary heading text
+  errorHint: string = 'There is a problem'; // Error summary heading text
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
 
@@ -199,7 +200,6 @@ export class ApplicationsListCreate
       if (missing.length) {
         this.unpopField = missing;
         this.createInvalid = true;
-        this.errorHint = 'There is a problem';
         return;
       }
 
@@ -210,7 +210,6 @@ export class ApplicationsListCreate
           href: '#status',
           id: 'status',
         });
-        this.errorHint = 'There is a problem';
         return;
       }
 
@@ -237,10 +236,16 @@ export class ApplicationsListCreate
           this.createDone = true;
         },
         error: (err) => {
-          const msg = err instanceof Error ? err.message : String(err);
-          this.createDone = false;
+          const msg = getProblemText(err);
+          this.submitted = true;
           this.createInvalid = true;
-          this.errorHint = 'There is a problem: \n' + msg;
+          this.unpopField = [
+            {
+              text: msg,
+              href: '#create',
+              id: 'create',
+            },
+          ];
         },
       });
   }
@@ -249,7 +254,7 @@ export class ApplicationsListCreate
     this.unpopField = [];
     this.createInvalid = false;
     this.createDone = false;
-    this.errorHint = '';
+    this.errorHint = 'There is a problem';
   }
 
   private buildPayload(raw: CreateFormRaw): ApplicationListCreateDto {
