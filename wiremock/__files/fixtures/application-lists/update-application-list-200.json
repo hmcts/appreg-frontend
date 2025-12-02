@@ -1,0 +1,31 @@
+{
+  "id": "9b8b4b6e-9d1a-4a6a-9a36-aaaaaaaa0001",
+  "date": "2025-11-17",
+  "time": "10:00",
+  "description": "Public applications list AM (updated)",
+  "status": "OPEN",
+
+  "courtCode": "MCJC072",
+  "courtName": "Manchester Civil Justice Centre Set 8",
+  "cjaCode": null,
+  "otherLocationDescription": null,
+
+  "durationHours": 2,
+  "durationMinutes": 0,
+
+  "version": 2,
+  "entriesCount": 1,
+  "entriesSummary": [
+    {
+      "uuid": "11111111-2222-3333-4444-555555555555",
+      "sequenceNumber": 1,
+      "accountNumber": "ACC000146",
+      "applicant": null,
+      "respondent": "Legal Aid Board",
+      "postCode": "BA15 1LA",
+      "applicationTitle": "Appeal to Crown Court",
+      "feeRequired": false,
+      "result": null
+    }
+  ]
+}

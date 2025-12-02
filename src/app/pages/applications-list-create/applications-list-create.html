@@ -54,6 +54,7 @@
       hint="A description of the application list"
       idPrefix="description"
       [submitted]="createInvalid"
+      [charLimit]="200"
     >
     </app-text-input>
 
@@ -96,6 +97,7 @@
       hint="Other location description"
       idPrefix="location"
       [submitted]="createInvalid && !form.get('court')?.value"
+      [charLimit]="200"
     >
       >
     </app-text-input>

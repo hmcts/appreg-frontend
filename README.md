@@ -11,6 +11,9 @@ This README contains a setup guide for setting up your dev environment (Copied f
 - Git installed
 - Access to repos in GitHub (see GitHub page)
 - Code editor/IDE of choice installed (Eclipse, VS Code, IntelliJ, etc.)
+- OpenJDK 21 (for this setup example we used Adoptium Temurin as our source but most JDKs should work)
+- Azure CLI
+- Certificate store in NPM (for ZScaler to work with yarn install)
 
 ---
 
@@ -22,13 +25,14 @@ You can either run a provided script or install manually.
 
 1. Clone the Git repo
 2. Run the `appreg-env-setup.sh` script in your terminal (ensure you are in the root directory of the repo)
-   - This script runs through the steps of the manual installation
-   - If the script fails, attempt installation manually
-   - If you get `permission denied` errors, run:
 
-   ```bash
-   sudo chmod +x appreg-env-setup.sh
-   ```
+- This script runs through the steps of the manual installation
+- If the script fails, attempt installation manually
+- If you get `permission denied` errors, run:
+
+```bash
+sudo chmod +x appreg-env-setup.sh
+```
 
 ### Manual Installation
 
@@ -145,13 +149,14 @@ You can either run a provided script or install manually.
 
 1. Clone Git repo
 2. Install Node.js version 20.19.4:
-   - **Option 1 (simpler):** Install from [Node.js site](https://nodejs.org/en/download)
-   - **Option 2:** Install `nvm-windows` from [nvm-windows Github](https://github.com/coreybutler/nvm-windows?tab=readme-ov-file)
 
-   ```powershell
-   nvm install 20.19.4
-   nvm use 20.19.4
-   ```
+- **Option 1 (simpler):** Install from [Node.js site](https://nodejs.org/en/download)
+- **Option 2:** Install `nvm-windows` from [nvm-windows Github](https://github.com/coreybutler/nvm-windows?tab=readme-ov-file)
+
+```powershell
+nvm install 20.19.4
+nvm use 20.19.4
+```
 
 3. Verify installation:
 
@@ -200,6 +205,144 @@ You can either run a provided script or install manually.
   yarn cache clear
   yarn install && yarn build
   ```
+
+## WireMock Service
+
+This mock service simulates the AppReg API so you can run the UI and SSR server without a live backend.
+It ships with hand-crafted fixtures and generated mappings, plus easy ways to force specific error codes for each endpoint.
+
+### Start & stop the container
+
+```bash
+yarn start:mock
+```
+
+```bash
+yarn stop:mock
+```
+
+- **Start:** `yarn start:mock` (exposes WireMock at http://localhost:4550)
+- **Stop:** `yarn stop:mock`
+
+### Where fixtures live
+
+Curated JSON & CSV fixtures used by mappings are under:
+
+```
+wiremock/__files/fixtures/**        # JSON bodies per endpoint/status
+wiremock/__files/reports/sample.csv # CSV used by report download endpoint
+wiremock/__files/errors/**
+```
+
+Fixture files are named:
+
+```
+wiremock/__files/fixtures/<group>/<kebab(operationId)>-<status>.json
+```
+
+Mappings will automatically use these when available. Feel free to update or add new ones as needed.
+
+### Scripts that generate stuff
+
+#### Generate error bodies (shared JSON payloads for 4xx/5xx)
+
+```bash
+yarn mock:gen:errors
+# -> runs: node scripts/gen-error-bodies.cjs
+# Writes wiremock/__files/errors/*.json (hard-coded JSON, no templating)
+```
+
+#### Generate endpoint mappings (success + error scenarios)
+
+```bash
+yarn mock:gen
+# -> runs: node scripts/gen-wiremock-mappings.cjs
+# Reads the OpenAPI spec, creates one 2xx mapping per endpoint,
+# and one mapping per error code (401/403/404/… as defined).
+# If a curated fixture exists, it’s used via "bodyFileName".
+# Error mappings are emitted as WireMock "scenarios" for forcing errors.
+```
+
+#### Keep everything in sync (pull spec, build errors, then mappings)
+
+```bash
+yarn mock:sync
+# -> runs: yarn api:fetch-unpack && yarn mock:gen:errors && yarn mock:gen
+```
+
+### How the generator scripts work
+
+- **OpenAPI ingest:** `gen-wiremock-mappings.cjs` reads `tools/openapi/vendor/openapi/openapi.yaml` (and local `$refs`).
+- **Grouping:** Each operation is grouped by its first OpenAPI tag (e.g., `court-locations`).
+- **One success mapping per endpoint:**
+  - Prefers the curated fixture at `wiremock/__files/fixtures/<group>/<opId-kebab>-<2xx>.json`.
+  - Otherwise, generates a JSON body from the response schema.
+  - Special-case: if the OpenAPI `content-type` is `text/csv`, it serves `wiremock/__files/reports/sample.csv`.
+- **Error mappings:**
+  - For each 4xx/5xx listed in the spec, a mapping is emitted with a scenario named after the operationId (or a readable fallback) and a `requiredScenarioState` like `FORCE_401`, `FORCE_403`, `FORCE_500`, etc.
+  - Body payloads are reused from `wiremock/__files/errors/*.json`.
+
+### Increase (mocked) load times
+
+Two options:
+
+1. Global delay at generation time
+
+Set `STUB_DELAY_MS` before running `yarn mock:gen`:
+
+```bash
+STUB_DELAY_MS=250 yarn mock:gen
+```
+
+This adds `fixedDelayMilliseconds: 250` to all generated mappings.
+
+2. Per-mapping tweak
+
+Manually add `"fixedDelayMilliseconds"`: <ms> to any mapping JSON under `wiremock/mappings/**`.
+
+### Forcing errors with scenarios
+
+Every endpoint’s error mappings are part of a WireMock scenario. To make a specific endpoint return (say) HTTP 500, set the scenario state to `FORCE_500`.
+
+#### Example (GET /court-locations):
+
+```bash
+Put scenario into a 500 state
+curl -i -X PUT http://localhost:4550/__admin/scenarios/getCourtLocations/state \
+-H 'Content-Type: application/json' \
+-d '{"state":"FORCE_500"}'
+```
+
+Verify it took:
+
+```bash
+curl -s http://localhost:4550/__admin/scenarios \
+| jq '.scenarios[] | select(.id=="getCourtLocations" or .name=="getCourtLocations") | {id, name, state, possibleStates}'
+```
+
+Now any request that matches that mapping (correct method, path, and headers) will return 500 until you reset the scenario.
+
+### Resetting to normal
+
+- **Reset a single scenario to Started:**
+
+```bash
+curl -i -X PUT http://localhost:4550/__admin/scenarios/<ScenarioName>/state \
+  -H 'Content-Type: application/json' \
+  -d '{"state":"Started"}'
+```
+
+- **Reset all scenarios:**
+
+```bash
+curl -i -X POST http://localhost:4550/__admin/scenarios/reset
+```
+
+- **Full reset:**
+
+```bash
+curl -i -X POST http://localhost:4550/__admin/reset
+```
 
 ## Testing
 
@@ -360,17 +503,6 @@ These are the scripts needed:
 - `yarn api:bundle` - Bundles the OpenAPI spec, schemas, responses into `tools/dist/openapi.bundled.yaml`
 - `yarn api:all` - Runs all API scripts (api:validate -> api:clear -> api:bundle -> api:generate)
 
-### OpenAPI Mock service
-
-For frontend development, you can start a mock service that is built using `tools/dist/openapi.bundled.yaml`. The script to run is:
-
-- `yarn mock` - Spins up a docker instance with [stoplight/prism docker image](https://hub.docker.com/r/stoplight/prism/)
-- `yarn mock:win` - Windows command for `yarn mock`
-- `yarn dev:mock` - Starts both `yarn start:dev` & `yarn mock`
-- `yarn dev:mock:win` - Starts both `yarn start:dev` & `yarn mock:win`
-
-This starts a local mock that runs on <http://localhost:4550>
-
 ## Branch Retention (auto-cleanup)
 
 This repository includes an automated policy to keep old/inactive branches tidy. It runs in two stages:
@@ -399,16 +531,13 @@ Edit `.github/branch-retention/branch-retention.yml`:
 # Example production-ish values (adjust to taste)
 inactivityDays: 60         # candidates must be inactive for >= this many days
 graceDays: 7               # wait this many days after “Run” before deletion
-protectedPatterns:
-  - 'master'
-  - 'develop'
-  - 'release/*'
-doNotDelete:
-label: 'do-not-delete'   # if an open PR has this label, branch is skipped
+protectedPatterns: - 'master'
+- 'develop'
+- 'release/*'
+doNotDelete: label: 'do-not-delete'   # if an open PR has this label, branch is skipped
 namePatterns: ['do-not-delete/*', '*[do-not-delete]*']  # name-based skip
-notify:
-githubIssueLabel: 'branch-cleanup'
-# (optional) markerLabels: ['dry-run','run','pending']  # accepted markers
+notify: githubIssueLabel: 'branch-cleanup'
+# (optional) markerLabels: ['dry-run', 'run', 'pending']  # accepted markers
 ```
 
 ### Developer commands (local)

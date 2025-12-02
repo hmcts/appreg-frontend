@@ -55,7 +55,7 @@ export class TextHelper {
    * @param message The expected message text (heading and/or body)
    */
   static verifyNotificationBanner(message: string): void {
-    TextElement.getText('[role="region"]')
+    TextElement.getText('[role="region"], [role="alert"]')
       .should('be.visible')
       .invoke('text')
       .then((actualText) => {

@@ -83,4 +83,23 @@ describe('TextInputComponent', () => {
     expect(cmp.idPrefix).toBe('full-name');
     expect(cmp.widthClass).toBe('govuk-input--width-20');
   });
+
+  it('enforces charLimit and truncates emitted value', () => {
+    const onChange = jest.fn<void, [string | null]>();
+    component.registerOnChange(onChange);
+    const typedSpy = jest.spyOn(component.typed, 'emit');
+
+    component.charLimit = 5;
+    fixture.detectChanges();
+
+    const input: HTMLInputElement =
+      fixture.nativeElement.querySelector('input');
+    input.value = '0123456789';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(component.value).toBe('01234');
+    expect(onChange).toHaveBeenLastCalledWith('01234');
+    expect(typedSpy).toHaveBeenLastCalledWith('01234');
+  });
 });

@@ -1,0 +1,19 @@
+{
+  "page": 0,
+  "size": 10,
+  "totalElements": 43,
+  "totalPages": 5,
+  "sort": ["title,asc"],
+  "content": [
+    { "resultCode": "ADJ", "title": "Adjourned" },
+    { "resultCode": "HRD", "title": "Heard" },
+    { "resultCode": "WTH", "title": "Withdrawn" },
+    { "resultCode": "DIS", "title": "Dismissed" },
+    { "resultCode": "GTL", "title": "Leave Granted" },
+    { "resultCode": "REF", "title": "Refused" },
+    { "resultCode": "CNV", "title": "Convicted" },
+    { "resultCode": "ACL", "title": "Absolute Discharge" },
+    { "resultCode": "CST", "title": "Case Stood Down" },
+    { "resultCode": "NA", "title": "No Appearance" }
+  ]
+}

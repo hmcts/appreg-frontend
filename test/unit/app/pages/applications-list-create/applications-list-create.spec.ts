@@ -1,10 +1,12 @@
 import { NO_ERRORS_SCHEMA, PLATFORM_ID, TransferState } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { jest } from '@jest/globals';
 import { of, throwError } from 'rxjs';
 
 import { ApplicationsListCreate } from '../../../../../src/app/pages/applications-list-create/applications-list-create';
+import { TextInputComponent } from '../../../../../src/app/shared/components/text-input/text-input.component';
 import {
   ApplicationListCreateDto,
   ApplicationListStatus,
@@ -208,7 +210,7 @@ describe('ApplicationsListCreate', () => {
     submit('create');
     expect(component.createInvalid).toBe(true);
     expect(component.unpopField.length).toBeGreaterThan(0);
-    expect(component.errorHint).toBe('Error - please check your inputs:');
+    expect(component.errorHint).toBe('There is a problem');
     expect(appListsMock.createApplicationList).not.toHaveBeenCalled();
   });
 
@@ -369,5 +371,21 @@ describe('ApplicationsListCreate', () => {
 
     expect(scrollSpy).not.toHaveBeenCalled();
     expect(focusSpy).not.toHaveBeenCalled();
+  });
+
+  it('uses a 200 character limit on its text input(s)', () => {
+    fixture.detectChanges();
+
+    const textInputs = fixture.debugElement.queryAll(
+      By.directive(TextInputComponent),
+    );
+
+    expect(textInputs.length).toBeGreaterThan(0);
+
+    const with200Limit = textInputs.filter(
+      (de) => de.componentInstance.charLimit === 200,
+    );
+
+    expect(with200Limit.length).toBeGreaterThan(0);
   });
 });
