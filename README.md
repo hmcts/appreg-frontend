@@ -11,9 +11,6 @@ This README contains a setup guide for setting up your dev environment (Copied f
 - Git installed
 - Access to repos in GitHub (see GitHub page)
 - Code editor/IDE of choice installed (Eclipse, VS Code, IntelliJ, etc.)
-- OpenJDK 21 (for this setup example we used Adoptium Temurin as our source but most JDKs should work)
-- Azure CLI
-- Certificate store in NPM (for ZScaler to work with yarn install)
 
 ---
 
