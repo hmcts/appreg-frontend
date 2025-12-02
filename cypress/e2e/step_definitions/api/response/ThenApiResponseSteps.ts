@@ -3,7 +3,7 @@ import { DataTable, Then } from '@badeball/cypress-cucumber-preprocessor';
 Then(
   'User Verify Response Status Code Should Be {string}',
   (expectedStatusCode: string) => {
-    const expectedStatus = parseInt(expectedStatusCode, 10);
+    const expectedStatus = Number.parseInt(expectedStatusCode, 10);
     cy.log(`Verifying that the response status code is: ${expectedStatus}`);
     cy.get('@lastApiResponse').then((response) => {
       const apiResponse = response as unknown as Cypress.Response<unknown>;
@@ -22,7 +22,7 @@ Then('User Verify Response Body Should Have:', (dataTable: DataTable) => {
       throw new Error('No API response found to verify.');
     }
     const body = apiResponse.body as Record<string, unknown>;
-    dataTable.raw().forEach(([header, value]) => {
+    for (const [header, value] of dataTable.raw()) {
       let expected: unknown;
       try {
         expected = JSON.parse(value);
@@ -35,11 +35,11 @@ Then('User Verify Response Body Should Have:', (dataTable: DataTable) => {
       );
       if (Array.isArray(expected)) {
         if (Array.isArray(actual)) {
-          expected.forEach((item) => {
+          for (const item of expected) {
             expect(actual).to.deep.include(item);
-          });
+          }
         } else {
-          throw new Error(
+          throw new TypeError(
             `Expected an array for property ${header}, but got ${typeof actual}`,
           );
         }
@@ -48,6 +48,6 @@ Then('User Verify Response Body Should Have:', (dataTable: DataTable) => {
       } else {
         expect(body).to.have.property(header, expected);
       }
-    });
+    }
   });
 });
