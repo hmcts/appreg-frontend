@@ -25,8 +25,31 @@ export function isValidPhone(s: string): boolean {
   return digits.length >= 10 && digits.length <= 15;
 }
 
-export function isValidEmail(s: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+export function isValidEmail(input: string): boolean {
+  const value = input.trim();
+  if (!value) {
+    return false;
+  }
+
+  if (value.includes(' ')) {
+    return false;
+  }
+
+  const atIndex = value.indexOf('@');
+  if (atIndex <= 0 || atIndex === value.length - 1) {
+    return false;
+  }
+
+  if (value.includes('@', atIndex + 1)) {
+    return false;
+  }
+
+  const dotIndex = value.indexOf('.', atIndex + 1);
+  if (dotIndex <= atIndex + 1 || dotIndex === value.length - 1) {
+    return false;
+  }
+
+  return true;
 }
 
 export function validateOptionalContactFields(
