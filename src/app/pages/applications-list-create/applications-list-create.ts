@@ -39,7 +39,6 @@ import {
 } from '../../shared/components/duration-input/duration-input.component';
 import { ErrorSummaryComponent } from '../../shared/components/error-summary/error-summary.component';
 import type { ErrorItem } from '../../shared/components/error-summary/error-summary.component';
-import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
 import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
 import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
@@ -81,7 +80,6 @@ type CreateFormRaw = Omit<
     DateInputComponent,
     DurationInputComponent,
     TextInputComponent,
-    SelectInputComponent,
     FormsModule,
     SuggestionsComponent,
     BreadcrumbsComponent,
@@ -140,7 +138,7 @@ export class ApplicationsListCreate
       date: new FormControl<string | null>(null),
       time: new FormControl<Duration | null>(null),
       description: new FormControl<string>(''),
-      status: new FormControl<string>(''),
+      status: new FormControl<string>('open'),
       court: new FormControl<string>('', { updateOn: 'change' }),
       location: new FormControl<string>('', { updateOn: 'change' }),
       cja: new FormControl<string>('', { updateOn: 'change' }),
@@ -173,14 +171,6 @@ export class ApplicationsListCreate
     this.resetCreateState();
 
     const raw = this.form.getRawValue() as CreateFormRaw;
-    this.form.patchValue({
-      date: raw.date as string,
-      description: raw.description,
-      status: raw.status,
-      court: raw.court,
-      location: raw.location,
-      cja: raw.cja,
-    });
 
     if (action === 'create') {
       const dateErrors = this.form.controls.date.errors as {
@@ -200,16 +190,6 @@ export class ApplicationsListCreate
       if (missing.length) {
         this.unpopField = missing;
         this.createInvalid = true;
-        return;
-      }
-
-      if (this.form.value.status?.trim().toLowerCase() !== 'open') {
-        this.createInvalid = true;
-        this.unpopField.push({
-          text: 'Status must be open when creating a list',
-          href: '#status',
-          id: 'status',
-        });
         return;
       }
 
