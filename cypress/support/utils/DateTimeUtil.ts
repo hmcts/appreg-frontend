@@ -17,6 +17,7 @@
  *
  * TIME KEYWORDS:
  * - "timenow"         → Current time in HH:mm:ss format
+ * - "timenowhhmm"     → Current time in HH:mm format
  * - "timestamp"       → Current GMT timestamp (ISO format)
  * - "numerictimestamp"→ Current numeric timestamp (milliseconds)
  * - "localtimestamp"  → Current local timestamp
@@ -74,7 +75,7 @@ export class DateTimeUtil {
 
     // Parse arithmetic expressions
     const arithmeticPattern =
-      /(today|timenow|timestamp|numerictimestamp)([+-])(\d+)([dwmyhs])/i;
+      /(today|todayiso|timenow|timenowhhmm|timestamp|numerictimestamp)([+-])(\d+)([dwmyhs])/i;
     const arithmeticMatch = input.match(arithmeticPattern);
 
     if (arithmeticMatch) {
@@ -158,6 +159,8 @@ export class DateTimeUtil {
       // Time keywords
       case 'timenow':
         return this.timeNow();
+      case 'timenowhhmm':
+        return this.timeNowHHMM();
       case 'timestamp':
         return this.createTimestamp('iso');
       case 'numerictimestamp':
@@ -206,15 +209,25 @@ export class DateTimeUtil {
       case 'timenow':
       case 'time':
         return this.formatTime(result);
+      case 'timenowhhmm':
+        return this.timeNowHHMMFromDate(result);
       case 'timestamp':
         return result.toISOString();
       case 'numerictimestamp':
         return result.getTime().toString();
+      case 'todayiso':
+        return result.toISOString().split('T')[0];
       case 'today':
       case 'date':
       default:
         return this.formatDate(result);
     }
+  }
+
+  static timeNowHHMMFromDate(date: Date): string {
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
   }
 
   /**
@@ -238,6 +251,16 @@ export class DateTimeUtil {
     const minutes = now.getMinutes().toString().padStart(2, '0');
     const seconds = now.getSeconds().toString().padStart(2, '0');
     return `${hours}:${minutes}:${seconds}`;
+  }
+
+  /**
+   * Get current time in HH:mm format
+   */
+  static timeNowHHMM(): string {
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
   }
 
   /**

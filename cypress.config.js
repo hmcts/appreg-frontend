@@ -48,18 +48,17 @@ function appConfigGet(appConfig, path, fallback) {
   }
 }
 module.exports = defineConfig({
-  viewportWidth: 2560,
-  viewportHeight: 2560,
-  experimentalModifyObstructiveThirdPartyCode: true,
-  chromeWebSecurity: false,
   typescript: {
     configFile: 'tsconfig.cypress.json',
   },
   e2e: {
-    reporter: 'junit',
+    reporter: 'cypress-mochawesome-reporter',
     reporterOptions: {
-      mochaFile: 'cypress/reports/junit/test-output-[hash].xml',
-      toConsole: false,
+      reportDir: 'cypress/reports',
+      reportPageTitle: 'AppregFrontend E2E Test Results',
+      embeddedScreenshots: true,
+      inlineAssets: true,
+      autoOpen: false,
     },
     // Test Files Configuration
     specPattern: 'cypress/e2e/**/*.feature',
@@ -71,12 +70,9 @@ module.exports = defineConfig({
     pageLoadTimeout: 120000,
     requestTimeout: 20000,
     responseTimeout: 30000,
-    // Retry Configuration
-    retries: {
-      runMode: 1,
-      openMode: 0,
-    },
     // Browser and Security Settings
+    chromeWebSecurity: false,
+    experimentalModifyObstructiveThirdPartyCode: true,
     experimentalOriginDependencies: true,
     testIsolation: true,
     // Report and Media Settings
@@ -100,6 +96,7 @@ module.exports = defineConfig({
           return null;
         },
       });
+      require('cypress-mochawesome-reporter/plugin')(on);
 
       const appConfig = await loadAppConfig();
 
@@ -149,6 +146,15 @@ module.exports = defineConfig({
             ),
           },
         },
+        CLIENT_ID: appConfigGet(appConfig, 'secrets.appreg.azure-app-id-fe'),
+        CLIENT_SECRET: appConfigGet(
+          appConfig,
+          'secrets.appreg.azure-client-secret-fe',
+        ),
+        TENANT_ID: appConfigGet(appConfig, 'secrets.appreg.azure-tenant-id-fe'),
+        SCOPE: `api://${appConfigGet(appConfig, 'secrets.appreg.azure-app-id-fe')}/frontend`,
+        API_BASE_URL: appConfigGet(appConfig, 'api.baseUrl'),
+        SESSION_COOKIE_NAME: appConfigGet(appConfig, 'session.cookieName'),
       };
       await addCucumberPreprocessorPlugin(on, config);
       on(
