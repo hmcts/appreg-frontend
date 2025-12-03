@@ -8,6 +8,10 @@ export class LinkElement {
   static findBreadcrumbLink(
     breadcrumbLinkText: string,
   ): Cypress.Chainable<JQuery<HTMLElement>> {
-    return cy.get('nav.govuk-breadcrumbs').contains('a', breadcrumbLinkText);
+    return cy
+      .get(
+        'nav[aria-label="breadcrumb"], nav[aria-label="Breadcrumb"], nav[role="navigation"], .breadcrumb, nav.breadcrumbs',
+      )
+      .contains('a', breadcrumbLinkText);
   }
 }
