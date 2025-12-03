@@ -9,7 +9,7 @@ const tsEslintPlugin = require('@typescript-eslint/eslint-plugin');
 
 const importPlugin = require('eslint-plugin-import');
 const jestPlugin = require('eslint-plugin-jest');
-const nodePlugin = require('eslint-plugin-node');
+const nodePlugin = require('eslint-plugin-n');
 const cypressPlugin = require('eslint-plugin-cypress');
 
 const compat = new FlatCompat({
@@ -155,10 +155,10 @@ module.exports = defineConfig([
   {
     files: ['**/*.config.js', '**/jest.routes.config.js', 'cypress.config.js'],
     plugins: { node: fixupPluginRules(nodePlugin) },
-    extends: fixupConfigRules(compat.extends('plugin:node/recommended')),
+    extends: fixupConfigRules(compat.extends('plugin:n/recommended')),
     rules: {
-      'node/no-unpublished-require': 'off',
-      'node/no-missing-require': 'off',
+      'n/no-unpublished-require': 'off',
+      'n/no-missing-require': 'off',
       'import/order': 'off',
       quotes: 'off',
     },
@@ -232,9 +232,9 @@ module.exports = defineConfig([
       },
     },
     rules: {
-      'node/no-unpublished-import': 'off',
-      'node/no-unpublished-require': 'off',
-      'node/no-missing-import': 'off',
+      'n/no-unpublished-import': 'off',
+      'n/no-unpublished-require': 'off',
+      'n/no-missing-import': 'off',
       'no-undef': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
