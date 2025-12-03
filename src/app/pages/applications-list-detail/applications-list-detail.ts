@@ -26,6 +26,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import {
+  ApplicationListGetDetailDto,
   ApplicationListStatus,
   ApplicationListUpdateDto,
   ApplicationListsApi,
@@ -65,6 +66,7 @@ import {
   MojButtonMenuDirective,
 } from '../../shared/util/moj-button-menu';
 import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
+import { parseTimeToDuration } from '../../shared/util/time-helpers';
 import type { FormRaw } from '../../shared/util/types/application-list/types';
 import { validateCourtVsLocOrCja } from '../../shared/util/validate-court-vs-loc-cja';
 
@@ -87,8 +89,6 @@ type Handoff = {
   etag: string | null;
   version: number;
 };
-
-type DurationValue = { hours: string; minutes: string };
 
 @Component({
   selector: 'app-application-detail',
@@ -125,6 +125,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   selectedIds = new Set<string>();
 
   isLoading = true;
+  private hasPrefilledFromApi = false;
 
   override form = new FormGroup({
     date: new FormControl<string | null>(null),
@@ -136,7 +137,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     court: new FormControl<string>(''),
     location: new FormControl<string>(''),
     cja: new FormControl<string>(''),
-    duration: new FormControl<DurationValue | null>(null),
+    duration: new FormControl<Duration | null>(null),
   });
 
   statusOptions = [
@@ -193,25 +194,13 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refField);
+
     const st = isPlatformBrowser(this.platformId)
       ? (history.state as { row?: Handoff })?.row
       : undefined;
 
     this.id = st?.id ?? this.route.snapshot.paramMap.get('id') ?? '';
 
-    if (st) {
-      this.prefillPlaceFieldsFromSummary(st.location);
-      this.etag = st.etag;
-      this.form.patchValue({
-        date: st.date ?? null,
-        time: st.time
-          ? { hours: +st.time.slice(0, 2), minutes: +st.time.slice(3, 5) }
-          : null,
-        description: st.description ?? '',
-        status: st.status.trim().toLowerCase(),
-        duration: null,
-      });
-    }
     if (isPlatformBrowser(this.platformId)) {
       this.loadApplicationsLists();
     }
@@ -250,6 +239,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         next: (res) => {
           const dto = res.body!;
           this.etag = res.headers.get('ETag') ?? this.etag;
+
+          if (!this.hasPrefilledFromApi) {
+            this.prefillFromApi(dto);
+            this.hasPrefilledFromApi = true;
+          }
 
           const items = dto?.entriesSummary ?? [];
           // map API items → table rows
@@ -426,7 +420,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     const durErr = this.form.controls.duration.errors as {
       durationErrorText?: string;
     } | null;
-    const dur = this.form.controls.duration.value as Duration | null;
+    const dur = this.form.controls.duration.value;
 
     this.unpopField = collectMissing(this.form.getRawValue() as DetailFormRaw, {
       dateInvalid: !!de?.dateInvalid,
@@ -450,71 +444,56 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     }
   }
 
-  private prefillPlaceFieldsFromSummary(name: string | null | undefined): void {
-    if (!name?.trim()) {
-      return;
+  private readonly toNum = (
+    v: string | number | null | undefined,
+  ): number | undefined => {
+    if (v === null || v === undefined) {
+      return undefined;
     }
 
-    // Prevent attempting to load form if CJA and court locations aren't loaded
-    if (!this.courtLocations.length && !this.cja.length) {
-      return;
+    if (typeof v === 'number') {
+      return Number.isFinite(v) ? v : undefined;
     }
 
-    const raw = name.trim();
-    const label = raw.toLowerCase();
-
-    const area = this.cja.find((a) => {
-      const code = (a.code ?? '').trim();
-      const desc = (a.description ?? a.code ?? '').trim();
-      const display = desc ? `${code} - ${desc}` : code;
-
-      const candidates = [
-        code.toLowerCase(),
-        desc.toLowerCase(),
-        display.toLowerCase(),
-      ];
-
-      return candidates.includes(label);
-    });
-
-    if (area) {
-      this.selectCja(area);
-      this.form.patchValue({ court: '', location: '' });
-      return;
-    }
-
-    const court = this.courtLocations.find((c) => {
-      const code = (c.locationCode ?? '').trim();
-      const nameVal = (c.name ?? c.locationCode ?? '').trim();
-      const display = nameVal ? `${code} - ${nameVal}` : code;
-
-      const candidates = [
-        code.toLowerCase(),
-        nameVal.toLowerCase(),
-        display.toLowerCase(),
-      ];
-
-      return candidates.includes(label);
-    });
-
-    if (court) {
-      this.selectCourthouse(court);
-      this.form.patchValue({ cja: '', location: '' });
-      return;
-    }
-
-    // Fallback: treat as "other location"
-    this.form.patchValue({ location: raw, court: '', cja: '' });
-    this.courthouseSearch = '';
-    this.cjaSearch = '';
-  }
-
-  private readonly toNum = (v: string | undefined): number | undefined => {
-    const s = v === null ? '' : String(v).trim();
+    const s = v.trim();
     if (s === '') {
       return undefined;
     }
+
     const n = Number(s);
     return Number.isFinite(n) ? n : undefined;
   };
+
+  private prefillFromApi(dto: ApplicationListGetDetailDto): void {
+    this.form.patchValue({
+      date: dto.date ?? null,
+      time: parseTimeToDuration(dto.time),
+      description: dto.description ?? '',
+      status: dto.status?.toLowerCase() ?? null,
+      duration:
+        dto.durationHours !== null || dto.durationMinutes !== null
+          ? // Duration is returned differently to time sadly so we have to assign like this
+            {
+              hours: dto.durationHours ?? null,
+              minutes: dto.durationMinutes ?? null,
+            }
+          : null,
+    });
+
+    if (dto.courtCode) {
+      this.selectCourthouse({
+        locationCode: dto.courtCode,
+        name: dto.courtName ?? undefined,
+      });
+    } else if (dto.cjaCode) {
+      const area = this.cja.find((a) => a.code === dto.cjaCode) ?? {
+        code: dto.cjaCode,
+      };
+      this.selectCja(area);
+
+      this.form.patchValue({
+        location: dto.otherLocationDescription,
+      });
+    }
+  }
 }

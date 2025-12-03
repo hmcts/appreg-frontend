@@ -60,7 +60,13 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
   writeValue(value: Duration | null): void {
     this.hours = value?.hours ?? null;
     this.minutes = value?.minutes ?? null;
-    // no emit on writeValue
+
+    this.hoursText =
+      this.hours === null || Number.isNaN(this.hours) ? '' : String(this.hours);
+    this.minutesText =
+      this.minutes === null || Number.isNaN(this.minutes)
+        ? ''
+        : String(this.minutes);
   }
   registerOnChange(fn: (value: Duration | null) => void): void {
     this.onChange = fn;

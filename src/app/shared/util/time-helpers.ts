@@ -49,3 +49,25 @@ export function normaliseTime(t: string | null | undefined): string {
   const m = new RegExp(/^(\d{2}):(\d{2})(?::(\d{2}))?/).exec(t);
   return m ? `${m[1]}:${m[2]}` : '';
 }
+
+export function parseTimeToDuration(
+  time: string | null | undefined,
+): Duration | null {
+  if (!time) {
+    return null;
+  }
+
+  const parts = time.trim().split(':');
+  if (parts.length < 2) {
+    return null;
+  }
+
+  const hours = Number(parts[0]);
+  const minutes = Number(parts[1]);
+
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) {
+    return null;
+  }
+
+  return { hours, minutes };
+}
