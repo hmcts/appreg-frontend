@@ -42,7 +42,7 @@ Feature: Applications List Create
       | User  | Date  | Time       | Description   | Status | Court          | OtherLocation           | NotificationMessage                            | OptionText     | SearchText |
       | user1 | today | timenow-2h | Test_{RANDOM} | Open   | Court_{RANDOM} | Other Location_{RANDOM} | Success Applications list created successfully | CJA Number 319 | 319        |
 
-  @regression @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @bARCPOC-792
+  @regression @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @ARCPOC-792
   Scenario Outline: Verify validation messages on creating applications list with No Input
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
