@@ -412,7 +412,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     );
   }
 
-  private fmt = (v: string | null | undefined) =>
+  private readonly fmt = (v: string | null | undefined) =>
     v && v.trim() !== '' ? v : '—';
 
   private buildErrorSummary(): void {
@@ -463,24 +463,42 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     const raw = name.trim();
     const label = raw.toLowerCase();
 
-    const area = this.cja.find(
-      (a) =>
-        a.code === raw ||
-        (a.description ?? a.code ?? '').toLowerCase() === label,
-    );
+    const area = this.cja.find((a) => {
+      const code = (a.code ?? '').trim();
+      const desc = (a.description ?? a.code ?? '').trim();
+      const display = desc ? `${code} - ${desc}` : code;
+
+      const candidates = [
+        code.toLowerCase(),
+        desc.toLowerCase(),
+        display.toLowerCase(),
+      ];
+
+      return candidates.includes(label);
+    });
+
     if (area) {
-      this.selectCja({ code: area.code });
+      this.selectCja(area);
       this.form.patchValue({ court: '', location: '' });
       return;
     }
 
-    const court = this.courtLocations.find(
-      (c) =>
-        c.locationCode === raw ||
-        (c.name ?? c.locationCode ?? '').toLowerCase() === label,
-    );
+    const court = this.courtLocations.find((c) => {
+      const code = (c.locationCode ?? '').trim();
+      const nameVal = (c.name ?? c.locationCode ?? '').trim();
+      const display = nameVal ? `${code} - ${nameVal}` : code;
+
+      const candidates = [
+        code.toLowerCase(),
+        nameVal.toLowerCase(),
+        display.toLowerCase(),
+      ];
+
+      return candidates.includes(label);
+    });
+
     if (court) {
-      this.selectCourthouse({ locationCode: court.locationCode });
+      this.selectCourthouse(court);
       this.form.patchValue({ cja: '', location: '' });
       return;
     }
