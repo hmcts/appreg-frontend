@@ -14,7 +14,7 @@
 
 @if (createDone) {
   <app-success-banner
-    heading="Applications list successfully created"
+    heading="Applications list created successfully"
     [linkCommands]="['/applications-list']"
     linkText="Click here to go back"
   />
@@ -58,25 +58,12 @@
     >
     </app-text-input>
 
-    <!-- Status -->
-    <app-select-input
-      formControlName="status"
-      label="Select status"
-      hint="The status of the application list"
-      idPrefix="status"
-      [submitted]="createInvalid"
-      [options]="statusOptions"
-    >
-    </app-select-input>
-  </div>
-
-  <div class="govuk-grid-row">
     <!-- Court -->
     <app-suggestions
       id="court"
       tabindex="-1"
       label="Court"
-      hint="Start typing to search"
+      hint="Start typing to search for court houses"
       [(search)]="courthouseSearch"
       (searchChange)="onCourthouseInputChange()"
       [suggestions]="filteredCourthouses"
@@ -89,7 +76,9 @@
       "
       errorText="Court is required"
     />
+  </div>
 
+  <div class="govuk-grid-row">
     <!-- Other location -->
     <app-text-input
       formControlName="location"
