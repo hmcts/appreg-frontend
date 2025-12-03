@@ -66,11 +66,13 @@ export class DateTimeUtil {
       return this.formatDate(new Date());
     }
 
-    const input = dateValue.toLowerCase().trim();
+    const trimmed = dateValue.trim();
+    const input = trimmed.toLowerCase();
 
-    // Handle basic keywords without arithmetic
-    if (!input.includes('+') && !input.includes('-')) {
-      return this.substituteDateValue(dateValue);
+    // Run substitutions first so suffixes like "_iso" are handled even if they contain "-"
+    const substituted = this.substituteDateValue(trimmed);
+    if (substituted !== trimmed) {
+      return substituted;
     }
 
     // Parse arithmetic expressions
@@ -91,7 +93,7 @@ export class DateTimeUtil {
     }
 
     // If no pattern matches, treat as static date or return as-is
-    const result = dateValue;
+    const result = trimmed;
 
     // Validate date format if it looks like a date (contains /)
     if (result.includes('/') && !this.isValidDateFormat(result)) {
@@ -123,21 +125,24 @@ export class DateTimeUtil {
       return this.formatDate(new Date());
     }
 
+    const trimmedPattern = pattern.trim();
+    const lowerPattern = trimmedPattern.toLowerCase();
+
     // Check for ISO date conversion suffix (e.g., "2025-07-24_iso")
-    if (pattern.endsWith('_iso')) {
-      const isoDate = pattern.replace('_iso', '').trim();
+    if (lowerPattern.endsWith('_iso')) {
+      const isoDate = trimmedPattern.slice(0, -4);
       if (isoDate.includes('-')) {
         const parts = isoDate.split('-');
         if (parts.length === 3) {
           const year = parts[0];
           const month = parts[1];
           const day = parts[2];
-          return `${Number.parseInt(day)}/${Number.parseInt(month)}/${year}`;
+          return `${Number.parseInt(day, 10)}/${Number.parseInt(month, 10)}/${year}`;
         }
       }
     }
 
-    switch (pattern.toLowerCase().trim()) {
+    switch (lowerPattern) {
       // Date keywords
       case 'today':
         return this.formatDate(new Date());
@@ -298,8 +303,8 @@ export class DateTimeUtil {
    * @returns Formatted date string
    */
   static formatDate(date: Date): string {
-    const day = date.getDate();
-    const month = date.getMonth() + 1; // Month is 0-indexed
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Month is 0-indexed
     const year = date.getFullYear();
 
     return `${day}/${month}/${year}`;
@@ -319,14 +324,14 @@ export class DateTimeUtil {
     const longMonth = date.toLocaleDateString('en', { month: 'long' });
 
     return pattern
-      .replace('YYYY', year)
-      .replace('YY', year.slice(-2))
-      .replace('MM', month)
-      .replace('M', (date.getMonth() + 1).toString())
-      .replace('DD', day)
-      .replace('D', date.getDate().toString())
-      .replace('MMM', shortMonth)
-      .replace('MMMM', longMonth);
+      .replace(/YYYY/g, year)
+      .replace(/YY/g, year.slice(-2))
+      .replace(/MMMM/g, longMonth)
+      .replace(/MMM/g, shortMonth)
+      .replace(/MM/g, month)
+      .replace(/M/g, (date.getMonth() + 1).toString())
+      .replace(/DD/g, day)
+      .replace(/D/g, date.getDate().toString());
   }
 
   /**
