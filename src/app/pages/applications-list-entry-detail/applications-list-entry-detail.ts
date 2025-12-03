@@ -348,6 +348,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   onUpdateApplicant(): void {
     this.resetErrors();
+    this.successBanner = null;
     this.formSubmitted = true;
 
     // Client-side validation
