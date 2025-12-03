@@ -105,3 +105,10 @@
 .app-date-tight .govuk-error-message {
   margin-bottom: 8px;
 }
+
+.app-sortable-table__cell--wrap {
+  max-width: 24ch;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
