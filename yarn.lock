@@ -1371,13 +1371,13 @@ __metadata:
   linkType: hard
 
 "@bahmutov/cypress-esbuild-preprocessor@npm:^2.2.5":
-  version: 2.2.7
-  resolution: "@bahmutov/cypress-esbuild-preprocessor@npm:2.2.7"
+  version: 2.2.8
+  resolution: "@bahmutov/cypress-esbuild-preprocessor@npm:2.2.8"
   dependencies:
     debug: "npm:4.4.3"
   peerDependencies:
     esbuild: ">=0.17.0"
-  checksum: 10/a36074788cbbf9f1c4eaf3d00f9f30f44d9bd485193b69708de10afe8f8a5bce86e12c1aca1cf373c82957a217924e1f8f9df2326195ed2f959ebef6283fd3e5
+  checksum: 10/ea04114022eea6f03c8ec960c80baee91138ff98b1374d0a778801b03d5662f29034f0ce195b1ecdb78d13ff86948a322d59e6a3d77d94fdfbfe09ea41065fec
   languageName: node
   linkType: hard
 
