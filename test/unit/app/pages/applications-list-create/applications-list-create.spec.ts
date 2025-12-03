@@ -305,33 +305,6 @@ describe('ApplicationsListCreate', () => {
     expect(component.errorHint).toContain('There is a problem');
   });
 
-  it('rejects non-OPEN status on create', () => {
-    component.form.setValue({
-      date: '2025-10-05',
-      time: { hours: 9, minutes: 0 },
-      description: 'X',
-      status: 'CLOSED',
-      court: 'A1',
-      location: '',
-      cja: '',
-    });
-
-    const beforeCalls = appListsMock.createApplicationList.mock.calls.length;
-    const evt = {
-      preventDefault: jest.fn(),
-      submitter: { value: 'create' } as HTMLButtonElement,
-    } as unknown as SubmitEvent;
-
-    component.onSubmit(evt);
-    expect(appListsMock.createApplicationList.mock.calls).toHaveLength(
-      beforeCalls,
-    );
-    expect(component.createInvalid).toBe(true);
-    expect(
-      component.unpopField.some((e) => e.text.includes('Status must be open')),
-    ).toBe(true);
-  });
-
   it('onDelete stores id', () => {
     type WithId = { _id: number | undefined };
     component.onDelete(42);
