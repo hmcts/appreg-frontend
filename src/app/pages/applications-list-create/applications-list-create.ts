@@ -49,9 +49,9 @@ import {
   onCreateErrorClick as onCreateErrorClickFn,
 } from '../../shared/util/error-click';
 import { getProblemText } from '../../shared/util/http-error-to-text';
+import { validateCourtVsLocOrCja } from '../../shared/util/location-suggestion-helpers';
 import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
 import { FormRaw } from '../../shared/util/types/application-list/types';
-import { validateCourtVsLocOrCja } from '../../shared/util/validate-court-vs-loc-cja';
 
 type FieldKey =
   | 'date'

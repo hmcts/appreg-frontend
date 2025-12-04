@@ -39,12 +39,12 @@ import {
 import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 import {
+  CodeRow,
   fetchCodeDetail$,
+  fetchCodeRows$,
   titleFromDetail,
   wordingFromDetail,
-} from '../../shared/util/codes.detail';
-import { CodeRow } from '../../shared/util/codes.mappers';
-import { fetchCodeRows$ } from '../../shared/util/codes.search';
+} from '../../shared/util/application-code-helpers';
 import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
 
 import {
