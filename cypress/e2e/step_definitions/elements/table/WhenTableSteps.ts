@@ -9,7 +9,7 @@ When(
   'User Clicks On Table Header {string} In Table {string}',
   (headerText: string, tableCaption: string) => {
     TableHelper.clickTableHeader(tableCaption, headerText);
-  cy.screenshot(`clicked-header-${headerText}`);
+    cy.screenshot(`clicked-header-${headerText}`);
   },
 );
 
@@ -32,7 +32,7 @@ When(
       menuButtonText,
       selectButtonText,
     );
-  cy.screenshot(`clicked-menu-${selectButtonText}-in-row`);
+    cy.screenshot(`clicked-menu-${selectButtonText}-in-row`);
   },
 );
 
@@ -60,6 +60,6 @@ When(
       selectButtonText,
       expectedMenuOptions,
     );
-  cy.screenshot(`verify-menu-options-${selectButtonText}-in-row`);
+    cy.screenshot(`verify-menu-options-${selectButtonText}-in-row`);
   },
 );
