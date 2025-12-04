@@ -6,6 +6,11 @@ Process: Checks if given value is empty or is kept as default
 Output: Boolean
 */
 
-export function has(x: unknown): boolean {
-  return x !== null && x !== undefined && x !== '' && x !== 'choose';
+export function has(value: unknown): boolean {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed.length > 0 && trimmed !== 'choose';
+  }
+
+  return value !== null && value !== undefined;
 }

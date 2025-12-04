@@ -1,4 +1,13 @@
 /* 
+attachLocationDisabler
+Feature helper for Applications List forms.
+
+Purpose:
+- Toggle enabled/disabled state of location-related controls based on selection
+  (e.g., court vs CJA vs free-text “other location”).
+
+----------------
+
 Court and CJA Text Suggestions Helpers
 Used by applications-list, applications-list-create, application-list-detail .
 
@@ -10,18 +19,66 @@ Functionality:
 
 Input: FormGroup, current search string, and available data lists
 Output: Updated filtered lists and selected values
+
+-----------------
+Ensures court location && (location || cja) is followed
+Else return informative string to display
 */
 
-import { FormGroup } from '@angular/forms';
+import { AbstractControl, FormGroup } from '@angular/forms';
+import { Subscription, merge } from 'rxjs';
 
 import {
   CourtLocationGetSummaryDto,
   CriminalJusticeAreaGetDto,
 } from '../../../generated/openapi';
 
-import { cjaMatches, courtMatches, filterSuggestions } from './suggestions';
+import { has } from './has';
+import type { FormRaw } from './types/application-list/types';
+
+export interface LocationControls {
+  court: AbstractControl;
+  location: AbstractControl;
+  cja: AbstractControl;
+}
 
 type WithLabelValue<T> = T & { label?: string; value?: string };
+
+/** Wires mutually exclusive enable/disable for court vs location+cja. */
+export function attachLocationDisabler({
+  court,
+  location,
+  cja,
+}: LocationControls): Subscription {
+  const sync = () => {
+    const hasCourt = has(court.value);
+    const hasLoc = has(location.value);
+    const hasCja = has(cja.value);
+
+    if (hasCourt) {
+      court.enable({ emitEvent: false });
+      location.disable({ emitEvent: false });
+      cja.disable({ emitEvent: false });
+    } else if (hasLoc || hasCja) {
+      court.disable({ emitEvent: false });
+      location.enable({ emitEvent: false });
+      cja.enable({ emitEvent: false });
+    } else {
+      court.enable({ emitEvent: false });
+      location.enable({ emitEvent: false });
+      cja.enable({ emitEvent: false });
+    }
+  };
+
+  const sub = merge(
+    court.valueChanges,
+    location.valueChanges,
+    cja.valueChanges,
+  ).subscribe(sync);
+
+  sync();
+  return sub;
+}
 
 const courtLabel = (c: { locationCode?: string; name?: string }) => {
   const code = c.locationCode ?? '';
@@ -92,3 +149,41 @@ export function selectCja(
   form.controls['cja'].setValue(value);
   return { cjaSearch: label, filteredCja: [] };
 }
+
+export const validateCourtVsLocOrCja = (
+  v: Pick<FormRaw<unknown>, 'court' | 'location' | 'cja'>,
+): string | null => {
+  const court = has(v.court);
+  const loc = has(v.location);
+  const cja = has(v.cja);
+  return court && (loc || cja)
+    ? 'You can not have Court and Other Location or CJA filled in'
+    : null;
+};
+
+function filterSuggestions<T>(
+  items: T[],
+  query: string,
+  matches: (item: T, q: string) => boolean,
+  limit = 20,
+): T[] {
+  const q = (query ?? '').trim().toLowerCase();
+  if (!q) {
+    return [];
+  }
+  return (items ?? []).filter((i) => matches(i, q)).slice(0, limit);
+}
+
+const courtMatches = (
+  c: { name?: string; locationCode?: string },
+  q: string,
+): boolean =>
+  (c.name ?? '').toLowerCase().includes(q) ||
+  (c.locationCode ?? '').toLowerCase().includes(q);
+
+const cjaMatches = (
+  x: { code?: string; description?: string },
+  q: string,
+): boolean =>
+  (x.code ?? '').toLowerCase().includes(q) ||
+  (x.description ?? '').toLowerCase().includes(q);

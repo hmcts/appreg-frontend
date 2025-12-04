@@ -66,9 +66,9 @@ import {
   MojButtonMenuDirective,
 } from '../../shared/util/moj-button-menu';
 import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
+import { validateCourtVsLocOrCja } from '../../shared/util/location-suggestion-helpers';
 import { parseTimeToDuration } from '../../shared/util/time-helpers';
 import type { FormRaw } from '../../shared/util/types/application-list/types';
-import { validateCourtVsLocOrCja } from '../../shared/util/validate-court-vs-loc-cja';
 
 type DetailFormRaw = Omit<
   FormRaw<ApplicationListStatus>,

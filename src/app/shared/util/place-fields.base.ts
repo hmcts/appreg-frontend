@@ -7,13 +7,13 @@ import {
   CriminalJusticeAreaGetDto,
 } from '../../../generated/openapi';
 
-import { attachLocationDisabler } from './attach-location-disabler';
 import {
+  attachLocationDisabler,
   onCjaInputChange as filterCja,
   onCourthouseInputChange as filterCourts,
   selectCja,
   selectCourthouse,
-} from './court-cja-text-suggestions';
+} from './location-suggestion-helpers';
 
 export interface PlaceRefFacade {
   courtLocations$: Observable<CourtLocationGetSummaryDto[]>;
