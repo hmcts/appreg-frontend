@@ -20,8 +20,8 @@ Feature: Applications List Create
       | User  | Date  | Time       | Description   | Status | Court          | OtherLocation           | CJA |
       | user1 | today | timenow-2h | Test_{RANDOM} | Open   | Court_{RANDOM} | Other Location_{RANDOM} | CJA |
 
-  @regression @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794
-  Scenario Outline: Create applications list successfully and verify success message
+  @regression @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @OLCJA
+  Scenario Outline: Create applications list successfully and verify success message Using Other location and CJA Autocomplete
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Create application"
@@ -38,9 +38,40 @@ Feature: Applications List Create
     Then User Sees Notification Banner "<NotificationMessage>"
     Then User Clicks On The Link "Click here to go back"
     Then User Should See The Link "Create application"
+    When User Set Date Field "Date" To "<Date>"
+    Then User Selects "Choose" In The "Select status" Dropdown
+    When User Clicks On The "Search" Button
+    Then User Should See The Table "Lists"
+    Then User Should See Table "Lists" Has Rows
+    Then User Should See Row In Table "<TableName>" With Values:
+      | Date          | Time   | Location        | Description   | Entries   | Status   |
+      | <DisplayDate> | <Time> | <OtherLocation> | <Description> | <Entries> | <Status> |
+
     Examples:
-      | User  | Date  | Time       | Description   | Status | Court          | OtherLocation           | NotificationMessage                            | OptionText     | SearchText |
-      | user1 | today | timenow-2h | Test_{RANDOM} | Open   | Court_{RANDOM} | Other Location_{RANDOM} | Success Applications list created successfully | CJA Number 319 | 319        |
+      | User  | Date  | Time       | Description   | Status | OtherLocation           | NotificationMessage                            | OptionText     | SearchText | TableName | DisplayDate | Entries |
+      | user1 | today | timenow-2h | Test_{RANDOM} | Open   | Other Location_{RANDOM} | Success Applications list created successfully | CJA Number 319 | 319        | Lists     | todayiso    | 0       |
+
+
+  @regression @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794
+  Scenario Outline: Create applications list successfully and verify success message Using Court Autocomplete
+    Given User Is On The Portal Page
+    When User Signs In With Microsoft SSO As "<User>"
+    Then User Clicks On The Link "Create application"
+    Then User Clicks On The Breadcrumb Link 'Applications list'
+    Then User Clicks On The Link "Create application"
+    Then User Should See The Date Field "Date"
+    When User Set Date Field "Date" To "<Date>"
+    Then User Should See The Time Field "Time"
+    When User Set Time Field "Time" To "<Time>"
+    Then User Enters "<Description>" Into The "Description" Textbox
+    Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
+    When User Clicks On The "Create" Button
+    Then User Sees Notification Banner "<NotificationMessage>"
+    Then User Clicks On The Link "Click here to go back"
+    Then User Should See The Link "Create application"
+    Examples:
+      | User  | Date  | Time       | Description   | Status | Court          | NotificationMessage                            | SearchText | OptionText                    |
+      | user1 | today | timenow-2h | Test_{RANDOM} | Open   | Court_{RANDOM} | Success Applications list created successfully | royal      | Royal Courts of Justice Set 1 |
 
   @regression @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @ARCPOC-792
   Scenario Outline: Verify validation messages on creating applications list with No Input
@@ -81,7 +112,7 @@ Feature: Applications List Create
     Then User Sees Notification Banner "There is a problem Criminal Justice Area not found"
     Then User Clears The "CJA" Textbox
     Then User Selects "<ValidCJA>" From The Textbox "CJA" Autocomplete By Typing "<SearchText>"
-    When User Clicks On The "Create" Button 
+    When User Clicks On The "Create" Button
     Then User Sees Notification Banner "<NotificationMessage>"
     Then User Clicks On The Link "Click here to go back"
     Then User Should See The Link "Create application"

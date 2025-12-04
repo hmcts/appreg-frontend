@@ -1,5 +1,7 @@
 /// <reference types="cypress" />
 import { TableElement } from '../../pageobjects/generic/table/TableElement';
+import { DateTimeUtil } from '../../utils/DateTimeUtil';
+import { TestDataGenerator } from '../../utils/TestDataGenerator';
 
 /**
  * Helper class for table interactions and verifications
@@ -168,6 +170,16 @@ export class TableHelper {
   }
 
   /**
+   * Parses a value to replace {RANDOM} placeholders and date/time keywords
+   * @private
+   */
+  private static parseValue(value: string): string {
+    let parsed = DateTimeUtil.parseDateValue(value);
+    parsed = TestDataGenerator.replaceRandomPlaceholders(parsed);
+    return parsed;
+  }
+
+  /**
    * Builds a map of column names to their indices
    * @private
    */
@@ -240,21 +252,23 @@ export class TableHelper {
         );
       }
 
+      const parsedExpectedValue = this.parseValue(expectedValue);
+
       const cellText = $row.find('td, th').eq(columnIndex).text().trim();
-      const isExactMatch = cellText === expectedValue;
+      const isExactMatch = cellText === parsedExpectedValue;
 
       if (isExactMatch) {
         cy.log(`✓ Exact match in column "${columnName}": "${cellText}"`);
       } else {
         const caseInsensitiveMatch =
-          cellText.toLowerCase() === expectedValue.toLowerCase();
+          cellText.toLowerCase() === parsedExpectedValue.toLowerCase();
         if (caseInsensitiveMatch) {
           cy.log(
-            `⚠ Case-insensitive match in column "${columnName}": expected "${expectedValue}", found "${cellText}"`,
+            `⚠ Case-insensitive match in column "${columnName}": expected "${parsedExpectedValue}", found "${cellText}"`,
           );
         } else {
           cy.log(
-            `✗ Mismatch in column "${columnName}": expected "${expectedValue}", found "${cellText}"`,
+            `✗ Mismatch in column "${columnName}": expected "${parsedExpectedValue}" (from "${expectedValue}"), found "${cellText}"`,
           );
           rowMatches = false;
         }
@@ -425,7 +439,14 @@ export class TableHelper {
     columnName: string,
     expectedValue: string,
   ): Cypress.Chainable<void> {
-    function checkRows(columnIndex: number): Cypress.Chainable<void> {
+    // Parse the expected value to handle {RANDOM} and date/time keywords
+    const parsedExpectedValue = this.parseValue(expectedValue);
+    
+    cy.log(
+      `Verifying all rows in column "${columnName}" have value: "${parsedExpectedValue}" (from input: "${expectedValue}")`,
+    );
+
+    function checkRows(columnIndex: number, parsedValue: string): Cypress.Chainable<void> {
       return TableElement.getTableRows(tableCaption).then(($rows) => {
         $rows.each((_rowIndex: number, row: HTMLElement) => {
           const cellText = Cypress.$(row)
@@ -433,7 +454,7 @@ export class TableHelper {
             .eq(columnIndex)
             .text()
             .trim();
-          expect(cellText.toLowerCase()).to.equal(expectedValue.toLowerCase());
+          expect(cellText.toLowerCase()).to.equal(parsedValue.toLowerCase());
         });
       });
     }
@@ -449,7 +470,7 @@ export class TableHelper {
               `Column "${columnName}" not found in table "${tableCaption}"`,
             );
           }
-          return checkRows(columnIndex);
+          return checkRows(columnIndex, parsedExpectedValue);
         })
         .then(() => TableHelper.goToNextPageIfExists())
         .then((hasNext) => {
