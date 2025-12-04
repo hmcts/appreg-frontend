@@ -80,7 +80,7 @@ Feature: Authentication and Authorisation
     When User Makes GET API Request To "/sso/me" Using Frontend URL
     Then User Verify Response Status Code Should Be "200"
 
-  @regression @ARCPOC-294 @ARCPOC-425 @PJ
+  @regression @ARCPOC-294 @ARCPOC-425
   Scenario: API request without session returns unauthorized  
     Given User Is On The Portal Page
     When User Makes GET API Request To "/sso/me" Using Frontend URL
