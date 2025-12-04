@@ -83,12 +83,15 @@ module.exports = defineConfig({
     video: false,
     screenshotOnRunFailure: true,
     screenshotsFolder: 'cypress/reports/screenshots',
+    // Downloads Configuration
+    downloadsFolder: 'cypress/downloads',
     async setupNodeEvents(on, config) {
+      const fs = require('node:fs');
+      const path = require('node:path');
+
       // Custom task to log accessibility violations
       on('task', {
         logA11yViolations(violations) {
-          const fs = require('node:fs');
-          const path = require('node:path');
           const logPath = path.join(
             __dirname,
             'cypress/reports/a11y-violations.log',
@@ -98,6 +101,41 @@ module.exports = defineConfig({
             JSON.stringify(violations, null, 2) + '\n',
           );
           return null;
+        },
+        // PDF helper tasks
+        clearDownloadsFolder(downloadsPath) {
+          if (fs.existsSync(downloadsPath)) {
+            const files = fs.readdirSync(downloadsPath);
+            files.forEach((file) => {
+              if (file.endsWith('.pdf')) {
+                fs.unlinkSync(path.join(downloadsPath, file));
+              }
+            });
+          }
+          return null;
+        },
+        listPdfFiles(downloadsPath) {
+          if (!fs.existsSync(downloadsPath)) {
+            return [];
+          }
+          const files = fs.readdirSync(downloadsPath);
+          return files.filter((file) => file.endsWith('.pdf'));
+        },
+        async parsePdfContent(filePath) {
+          const pdfParse = require('pdf-parse');
+          
+          if (!fs.existsSync(filePath)) {
+            throw new Error(`PDF file not found: ${filePath}`);
+          }
+          
+          const dataBuffer = fs.readFileSync(filePath);
+          const pdfData = await pdfParse(dataBuffer);
+          
+          return {
+            text: pdfData.text,
+            numPages: pdfData.numpages,
+            info: pdfData.info,
+          };
         },
       });
       require('cypress-mochawesome-reporter/plugin')(on);

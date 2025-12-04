@@ -1,4 +1,4 @@
-Feature: Applications List Search
+Feature: API Tests
 
     @api @regression
     Scenario Outline: Verifying api
