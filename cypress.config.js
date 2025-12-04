@@ -15,12 +15,16 @@ const cypressLog = {
 };
 
 async function loadAppConfig() {
+  // Set NODE_ENV to 'test' if not already set, so config library loads test.json
+  if (!process.env.NODE_ENV) {
+    process.env.NODE_ENV = 'test';
+  }
+  
   const appConfig = require('config');
-  const nodeEnv = process.env.NODE_ENV || 'development';
+  const nodeEnv = process.env.NODE_ENV || 'test';
 
-  // Development uses staging vault secrets
-  const vaultEnv =
-    process.env.AKS_ENV || (nodeEnv === 'development' ? 'stg' : nodeEnv);
+  // Test uses staging vault secrets
+  const vaultEnv = (nodeEnv === 'test' ? 'stg' : nodeEnv);
 
   try {
     cypressLog.info(
