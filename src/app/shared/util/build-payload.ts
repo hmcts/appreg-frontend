@@ -3,8 +3,8 @@
 */
 import type { ApplicationListStatus } from '../../../generated/openapi';
 
+import { requireStatus } from './application-status-helpers';
 import { has } from './has';
-import { requireStatus } from './require-status';
 import { requireTime } from './require-time';
 import type {
   FormRaw,

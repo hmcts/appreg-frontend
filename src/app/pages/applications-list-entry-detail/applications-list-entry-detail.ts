@@ -38,7 +38,13 @@ import {
 } from '../../shared/components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
-import { CodeRow, fetchCodeDetail$, fetchCodeRows$, titleFromDetail, wordingFromDetail } from '../../shared/util/application-code-helpers';
+import {
+  CodeRow,
+  fetchCodeDetail$,
+  fetchCodeRows$,
+  titleFromDetail,
+  wordingFromDetail,
+} from '../../shared/util/application-code-helpers';
 import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
 
 import {
