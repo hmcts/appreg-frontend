@@ -1,25 +1,4 @@
 Feature: Applications List Create
-
-  @ARCPOC
-  Scenario Outline: Verify applications list is displayed
-    Given User Is On The Portal Page
-    When User Signs In With Microsoft SSO As "<User>"
-    Then User Clicks On The Link "Applications list"
-    Then User Clicks On The Link "Create a new list"
-    Then User Should See The Date Field "Date"
-    When User Set Date Field "Date" To "<Date>"
-    Then User Should See The Time Field "Time"
-    When User Set Time Field "Time" To "<Time>"
-    Then User Enters "<Description>" Into The "Description" Textbox
-    Then User Selects "<Status>" In The "Select status" Dropdown
-    Then User Enters "<Court>" Into The "Court" Textbox
-    Then User Enters "<OtherLocation>" Into The "Other location" Textbox
-    Then User Enters "<CJA>" Into The "CJA" Textbox
-    When User Clicks On The "Create" Button
-    Examples:
-      | User  | Date  | Time       | Description   | Status | Court          | OtherLocation           | CJA |
-      | user1 | today | timenow-2h | Test_{RANDOM} | Open   | Court_{RANDOM} | Other Location_{RANDOM} | CJA |
-
   @regression @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @OLCJA
   Scenario Outline: Create applications list successfully and verify success message Using Other location and CJA Autocomplete
     Given User Is On The Portal Page
@@ -44,12 +23,11 @@ Feature: Applications List Create
     Then User Should See The Table "Lists"
     Then User Should See Table "Lists" Has Rows
     Then User Should See Row In Table "<TableName>" With Values:
-      | Date          | Time   | Location        | Description   | Entries   | Status   |
-      | <DisplayDate> | <Time> | <OtherLocation> | <Description> | <Entries> | <Status> |
-
+      | Date          | Time   | Location     | Description   | Entries   | Status   |
+      | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
     Examples:
-      | User  | Date  | Time       | Description   | Status | OtherLocation           | NotificationMessage                            | OptionText     | SearchText | TableName | DisplayDate | Entries |
-      | user1 | today | timenow-2h | Test_{RANDOM} | Open   | Other Location_{RANDOM} | Success Applications list created successfully | CJA Number 319 | 319        | Lists     | todayiso    | 0       |
+      | User  | Date  | Time           | Description   | Status | OtherLocation           | NotificationMessage                            | OptionText     | SearchText | TableName | DisplayDate | Entries |
+      | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Other Location_{RANDOM} | Success Applications list created successfully | CJA Number 319 | 319        | Lists     | todayiso    | 0       |
 
 
   @regression @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794

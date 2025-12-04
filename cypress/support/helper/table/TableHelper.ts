@@ -1,6 +1,5 @@
 /// <reference types="cypress" />
 import { TableElement } from '../../pageobjects/generic/table/TableElement';
-import { DateTimeUtil } from '../../utils/DateTimeUtil';
 import { TestDataGenerator } from '../../utils/TestDataGenerator';
 
 /**
@@ -170,16 +169,6 @@ export class TableHelper {
   }
 
   /**
-   * Parses a value to replace {RANDOM} placeholders and date/time keywords
-   * @private
-   */
-  private static parseValue(value: string): string {
-    let parsed = DateTimeUtil.parseDateValue(value);
-    parsed = TestDataGenerator.replaceRandomPlaceholders(parsed);
-    return parsed;
-  }
-
-  /**
    * Builds a map of column names to their indices
    * @private
    */
@@ -252,7 +241,7 @@ export class TableHelper {
         );
       }
 
-      const parsedExpectedValue = this.parseValue(expectedValue);
+      const parsedExpectedValue = TestDataGenerator.parseValue(expectedValue);
 
       const cellText = $row.find('td, th').eq(columnIndex).text().trim();
       const isExactMatch = cellText === parsedExpectedValue;
@@ -440,7 +429,7 @@ export class TableHelper {
     expectedValue: string,
   ): Cypress.Chainable<void> {
     // Parse the expected value to handle {RANDOM} and date/time keywords
-    const parsedExpectedValue = this.parseValue(expectedValue);
+    const parsedExpectedValue = TestDataGenerator.parseValue(expectedValue);
     
     cy.log(
       `Verifying all rows in column "${columnName}" have value: "${parsedExpectedValue}" (from input: "${expectedValue}")`,

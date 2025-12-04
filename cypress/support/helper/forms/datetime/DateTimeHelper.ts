@@ -1,5 +1,5 @@
 import { DateTimeElement } from '../../../pageobjects/generic/datetime/DateTimeElement';
-import { DateTimeUtil } from '../../../utils/DateTimeUtil';
+import { TestDataGenerator } from '../../../utils/TestDataGenerator';
 
 export class DateTimeHelper {
   /**
@@ -9,7 +9,7 @@ export class DateTimeHelper {
    */
   static setDateValue(fieldLabel: string, dateValue: string): void {
     try {
-      const parsedDate = DateTimeUtil.parseDateValue(dateValue);
+      const parsedDate = TestDataGenerator.parseValue(dateValue);
 
       const dateParts = parsedDate.split('/');
       const day = dateParts[0];
@@ -101,9 +101,8 @@ export class DateTimeHelper {
    */
   static setTimeValue(fieldLabel: string, timeValue: string): void {
     try {
-      const parsedTime = DateTimeUtil.parseDateValue(timeValue);
+      const parsedTime = TestDataGenerator.parseValue(timeValue);
 
-      // Validate the parsed time format
       const timeParts = parsedTime.split(':');
       if (timeParts.length < 2) {
         throw new Error(
