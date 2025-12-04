@@ -1,3 +1,25 @@
+/*
+Main component for /applications-list/:listId/entries/:entryId
+
+Functionality:
+  On load:
+    - Reads list and entry IDs from the route/query params
+    - Fetches the entry details and initial application code metadata
+    - Builds and hydrates the entry detail form (codes, applicant, respondent, wording, fees, notes, officials)
+
+  Application code section:
+    - Searches application codes and maps results into the sortable table
+    - Updates the entry with the selected application code via full PUT and refreshes wording metadata
+
+  Applicant section:
+    - Supports Standard Applicant, Person and Organisation applicant types
+    - Validates applicant fields per type and updates only the applicant-related part of the entry using a full PUT
+
+  Error and UX handling:
+    - Maps HTTP errors into GOV.UK-style error summary and hint state
+    - Manages success banners and scroll/focus behaviour for validation and server errors
+*/
+
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   Component,
