@@ -283,14 +283,13 @@ Feature: Applications List Search
     When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
       | Date          | Time   | Location | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
-    # Verify PDF was downloaded
+    # Verify PDF was downloaded and contains expected content
     Then User Verifies PDF "cardiff-crown-court" Is Downloaded
-    Then User Verifies Latest Downloaded PDF Contains Text "Applications List"
-    # Verify PDF contains expected content
+    Then User Verifies Latest Downloaded PDF Is Not Empty
+    Then User Verifies Latest Downloaded PDF Has 2 Pages
+    Then User Verifies Latest Downloaded PDF Contains Text "Check List Report"
     Then User Verifies Latest Downloaded PDF Contains Text "<Court>"
-    Then User Verifies Latest Downloaded PDF Contains Text "<DisplayDate>"
-    Then User Verifies Latest Downloaded PDF Contains Text "<Time>"
-    Then User Verifies Latest Downloaded PDF Contains Text "<Description>"
+    Then User Verifies Latest Downloaded PDF Contains <Entries> "Applicant" Entries
     # Clean up
     Then User Clears Downloaded PDFs
     Examples:

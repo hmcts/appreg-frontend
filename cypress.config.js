@@ -6,6 +6,7 @@ const {
 const {
   createEsbuildPlugin,
 } = require('@badeball/cypress-cucumber-preprocessor/esbuild');
+const { PDFParse } = require('pdf-parse');
 
 // Use process.stdout.write for direct output (no ESLint warnings)
 const cypressLog = {
@@ -122,19 +123,18 @@ module.exports = defineConfig({
           return files.filter((file) => file.endsWith('.pdf'));
         },
         async parsePdfContent(filePath) {
-          const pdfParse = require('pdf-parse');
-          
           if (!fs.existsSync(filePath)) {
             throw new Error(`PDF file not found: ${filePath}`);
           }
           
           const dataBuffer = fs.readFileSync(filePath);
-          const pdfData = await pdfParse(dataBuffer);
+          const parser = new PDFParse({ data: dataBuffer });
+          const pdfData = await parser.getText();
           
           return {
             text: pdfData.text,
-            numPages: pdfData.numpages,
-            info: pdfData.info,
+            numPages: pdfData.total,
+            info: pdfData,
           };
         },
       });
