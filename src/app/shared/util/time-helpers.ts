@@ -71,3 +71,14 @@ export function parseTimeToDuration(
 
   return { hours, minutes };
 }
+
+/*  
+Hardened function that throws error if its null/undefined for time
+*/
+export function requireTime(t: Parameters<typeof toTimeString>[0]): string {
+  const v = toTimeString(t);
+  if (!v) {
+    throw new Error('time required');
+  }
+  return v.length === 5 ? `${v}:00` : v;
+}
