@@ -42,7 +42,10 @@ Then(
       cy.log(`Verifying PDF has ${expectedCount} "${entryType}" entries`);
 
       PdfDownloadHelper.getPdfText(latestPdf).then((text) => {
-        const escapedEntryType = entryType.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const escapedEntryType = entryType.replace(
+          /[.*+?^${}()|[\]\\]/g,
+          '\\$&',
+        );
         const pattern = new RegExp(`\\d+\\.\\s+${escapedEntryType}`, 'g');
         const matches = text.match(pattern);
         const actualCount = matches ? matches.length : 0;
@@ -84,5 +87,3 @@ Then(
     });
   },
 );
-
-

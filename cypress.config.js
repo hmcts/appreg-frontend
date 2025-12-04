@@ -126,11 +126,11 @@ module.exports = defineConfig({
           if (!fs.existsSync(filePath)) {
             throw new Error(`PDF file not found: ${filePath}`);
           }
-          
+
           const dataBuffer = fs.readFileSync(filePath);
           const parser = new PDFParse({ data: dataBuffer });
           const pdfData = await parser.getText();
-          
+
           return {
             text: pdfData.text,
             numPages: pdfData.total,

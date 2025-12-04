@@ -93,5 +93,3 @@ export class PdfDownloadHelper {
     return this.parsePdfContent(filename).then((pdfData) => pdfData.text);
   }
 }
-
-
