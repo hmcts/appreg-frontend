@@ -11,8 +11,8 @@ import { FormGroup } from '@angular/forms';
 
 import { ApplicationListGetFilterDto } from '../../../../generated/openapi';
 import { Duration } from '../../../shared/components/duration-input/duration-input.component';
+import { toStatus } from '../../../shared/util/application-status-helpers';
 import { toTimeString } from '../../../shared/util/time-helpers';
-import { toStatus } from '../../../shared/util/to-status';
 
 export function loadQuery(form: FormGroup): ApplicationListGetFilterDto {
   const raw = form.getRawValue() as {

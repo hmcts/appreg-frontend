@@ -26,9 +26,9 @@ import { SelectInputComponent } from '../../shared/components/select-input/selec
 import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
 import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
+import { toStatus } from '../../shared/util/application-status-helpers';
 import { has } from '../../shared/util/has';
 import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
-import { toStatus } from '../../shared/util/to-status';
 
 @Component({
   selector: 'app-applications',

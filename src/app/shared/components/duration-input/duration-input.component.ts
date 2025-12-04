@@ -60,7 +60,13 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
   writeValue(value: Duration | null): void {
     this.hours = value?.hours ?? null;
     this.minutes = value?.minutes ?? null;
-    // no emit on writeValue
+
+    this.hoursText =
+      this.hours === null || Number.isNaN(this.hours) ? '' : String(this.hours);
+    this.minutesText =
+      this.minutes === null || Number.isNaN(this.minutes)
+        ? ''
+        : String(this.minutes);
   }
   registerOnChange(fn: (value: Duration | null) => void): void {
     this.onChange = fn;
@@ -144,31 +150,48 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
     h: number | null,
     m: number | null,
   ): ValidationErrors | null {
+    const errors: ValidationErrors = {};
+
+    // Hours validation
     if (!this.isBlank(h)) {
-      const hh = h as number; // narrowed for TS
-      if (!Number.isInteger(hh)) {
-        return this.invalid('Enter a whole number of hours');
-      }
-      if (!this.inRange(hh, this.HOURS_MIN, this.HOURS_MAX_DURATION)) {
-        return this.invalid(
-          `Enter hours between ${this.HOURS_MIN} and ${this.HOURS_MAX_DURATION}`,
-        );
+      const hh = h as number;
+      if (
+        !Number.isInteger(hh) ||
+        !this.inRange(hh, this.HOURS_MIN, this.HOURS_MAX_DURATION)
+      ) {
+        errors['hoursErrorText'] =
+          `Enter hours between ${this.HOURS_MIN} and ${this.HOURS_MAX_DURATION}`;
       }
     }
 
+    // Minutes validation
     if (!this.isBlank(m)) {
-      const mm = m as number; // narrowed for TS
-      if (!Number.isInteger(mm)) {
-        return this.invalid('Enter a whole number of minutes');
-      }
-      if (!this.inRange(mm, this.MINS_MIN, this.MINS_MAX)) {
-        return this.invalid(
-          `Enter minutes between ${this.MINS_MIN} and ${this.MINS_MAX}`,
-        );
+      const mm = m as number;
+      if (
+        !Number.isInteger(mm) ||
+        !this.inRange(mm, this.MINS_MIN, this.MINS_MAX)
+      ) {
+        errors['minutesErrorText'] =
+          `Enter minutes between ${this.MINS_MIN} and ${this.MINS_MAX}`;
       }
     }
 
-    return null;
+    // No errors
+    if (Object.keys(errors).length === 0) {
+      return null;
+    }
+
+    const firstMessage =
+      (errors['hoursErrorText'] as string | undefined) ??
+      (errors['minutesErrorText'] as string | undefined);
+
+    if (firstMessage) {
+      errors['durationErrorText'] = firstMessage;
+    }
+
+    errors['durationInvalid'] = true;
+
+    return errors;
   }
 
   // Events
@@ -267,9 +290,11 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
     if (t === '') {
       return null;
     }
-    if (/^\d+$/.test(t)) {
-      return Number.parseInt(t, 10);
+
+    if (!/^\d{1,2}$/.test(t)) {
+      return Number.NaN;
     }
-    return Number.NaN;
+
+    return Number.parseInt(t, 10);
   }
 }
