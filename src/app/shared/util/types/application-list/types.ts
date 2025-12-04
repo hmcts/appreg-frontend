@@ -40,3 +40,18 @@ export type NormalizedPayload<S> = {
 
 export type SummaryItem = { text: string; href: string };
 export type ProblemDetails = { detail?: unknown; title?: unknown };
+
+export type DateControlErrors = {
+  dateInvalid?: boolean;
+  dateErrorText?: string;
+} | null;
+
+export type TimeControlErrors = {
+  durationErrorText?: string;
+} | null;
+
+export type DurationControlErrors = {
+  durationErrorText?: string;
+  hoursErrorText?: string;
+  minutesErrorText?: string;
+} | null;

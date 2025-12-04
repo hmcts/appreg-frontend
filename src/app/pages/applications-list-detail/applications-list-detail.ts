@@ -68,7 +68,12 @@ import {
 } from '../../shared/util/moj-button-menu';
 import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
 import { parseTimeToDuration } from '../../shared/util/time-helpers';
-import type { FormRaw } from '../../shared/util/types/application-list/types';
+import type {
+  DateControlErrors,
+  DurationControlErrors,
+  FormRaw,
+  TimeControlErrors,
+} from '../../shared/util/types/application-list/types';
 
 type DetailFormRaw = Omit<
   FormRaw<ApplicationListStatus>,
@@ -250,10 +255,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           this.rows = items.map((e) => ({
             id: e.uuid,
             sequenceNumber: e.sequenceNumber,
-            accountNumber: this.fmt(e.accountNumber),
-            applicant: this.fmt(e.applicant),
-            respondent: this.fmt(e.respondent),
-            postCode: this.fmt(e.postCode),
+            accountNumber: this.formatDisplayText(e.accountNumber),
+            applicant: this.formatDisplayText(e.applicant),
+            respondent: this.formatDisplayText(e.respondent),
+            postCode: this.formatDisplayText(e.postCode),
             title: e.applicationTitle,
             feeReq: e.feeRequired ? 'Yes' : 'No',
             resulted: e.result ? 'Yes' : 'No',
@@ -406,39 +411,54 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     );
   }
 
-  private readonly fmt = (v: string | null | undefined) =>
-    v && v.trim() !== '' ? v : '—';
+  private readonly formatDisplayText = (
+    v: string | null | undefined,
+  ): string => {
+    if (v === null || v === undefined) {
+      return '—';
+    }
+
+    const trimmed = v.trim();
+
+    if (trimmed === '') {
+      return '—';
+    }
+
+    return v;
+  };
 
   private buildErrorSummary(): void {
-    const de = this.form.controls.date.errors as {
-      dateInvalid?: boolean;
-      dateErrorText?: string;
-    } | null;
-    const te = this.form.controls.time.errors as {
-      durationErrorText?: string;
-    } | null;
-    const durErr = this.form.controls.duration.errors as {
-      durationErrorText?: string;
-    } | null;
-    const dur = this.form.controls.duration.value;
+    const { date, time, duration } = this.form.controls;
+    const dateErrors = date.errors as DateControlErrors;
+    const timeErrors = time.errors as TimeControlErrors;
+    const durationErrors = duration.errors as DurationControlErrors;
+    const durationValue = duration.value;
 
     this.unpopField = collectMissing(this.form.getRawValue() as DetailFormRaw, {
-      dateInvalid: !!de?.dateInvalid,
-      dateErrorText: de?.dateErrorText ?? '',
-      durationErrorText: te?.durationErrorText ?? '',
+      dateInvalid: !!dateErrors?.dateInvalid,
+      dateErrorText: dateErrors?.dateErrorText ?? '',
+      durationErrorText: timeErrors?.durationErrorText ?? '',
     });
 
-    if (durErr?.durationErrorText) {
-      if (dur?.hours !== null) {
+    if (durationErrors && durationValue) {
+      const { hours, minutes } = durationValue;
+      const hoursInvalid = hours === null || Number.isNaN(hours);
+      const minutesInvalid = minutes === null || Number.isNaN(minutes);
+
+      const hoursText = durationErrors.hoursErrorText;
+      const minutesText = durationErrors.minutesErrorText;
+
+      if (hoursInvalid && hoursText) {
         this.unpopField.push({
           id: 'duration-hours',
-          text: durErr.durationErrorText,
+          text: hoursText,
         });
       }
-      if (dur?.minutes !== null) {
+
+      if (minutesInvalid && minutesText) {
         this.unpopField.push({
           id: 'duration-minutes',
-          text: durErr.durationErrorText,
+          text: minutesText,
         });
       }
     }
