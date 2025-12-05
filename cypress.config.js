@@ -7,6 +7,7 @@ const {
   createEsbuildPlugin,
 } = require('@badeball/cypress-cucumber-preprocessor/esbuild');
 const { PDFParse } = require('pdf-parse');
+const mochawesomeReporter = require('cypress-mochawesome-reporter/plugin');
 
 // Use process.stdout.write for direct output (no ESLint warnings)
 const cypressLog = {
@@ -107,11 +108,11 @@ module.exports = defineConfig({
         clearDownloadsFolder(downloadsPath) {
           if (fs.existsSync(downloadsPath)) {
             const files = fs.readdirSync(downloadsPath);
-            files.forEach((file) => {
+            for (const file of files) {
               if (file.endsWith('.pdf')) {
                 fs.unlinkSync(path.join(downloadsPath, file));
               }
-            });
+            }
           }
           return null;
         },
@@ -138,7 +139,7 @@ module.exports = defineConfig({
           };
         },
       });
-      require('cypress-mochawesome-reporter/plugin')(on);
+      mochawesomeReporter(on);
 
       const appConfig = await loadAppConfig();
 

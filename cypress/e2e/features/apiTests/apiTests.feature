@@ -36,7 +36,7 @@ Feature: API Tests
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
             | date     | time           | status | description                             | durationHours | durationMinutes | otherLocationDescription         | cjaCode |
-            | todayiso | timenowhhmm-2h | OPEN   | Applications to review at Test_{RANDOM} | 2             | 22              | Temporary Courtroom at Town Hall | 01  |
+            | todayiso | timenowhhmm-2h | OPEN   | Applications to review at Test_{RANDOM} | 2             | 22              | Temporary Courtroom at Town Hall | 01      |
         Then User Verify Response Status Code Should Be "201"
         Examples:
             | User  |
