@@ -24,4 +24,3 @@ async function check(): Promise<void> {
 }
 
 void check();
-
