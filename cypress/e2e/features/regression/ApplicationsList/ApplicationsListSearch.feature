@@ -294,7 +294,7 @@ Feature: Applications List Search
       | user1 | Lists     | today      | todayiso    | timenowhhmm-2h | RCJ001            | Royal Courts of Justice Set 1     | Test_{RANDOM} for Applications to review | 0       | OPEN   | Select           | Print continuous |
       | user1 | Lists     | today      | todayiso    | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Test_{RANDOM} for Leeds applications     | 0       | OPEN   | Select           | Print page       |
 
-  @regression @ARCPOC-214 @ARCPOC-453 @PJ
+  @regression @ARCPOC-214 @ARCPOC-453
   Scenario Outline: Verify PDF download for continuous print
     Given User Has No Downloaded PDFs
     Given User Is On The Portal Page
