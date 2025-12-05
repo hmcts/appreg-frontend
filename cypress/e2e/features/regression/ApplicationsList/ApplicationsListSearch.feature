@@ -223,7 +223,6 @@ Feature: Applications List Search
     When User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Applications list"
     Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
-    # Then User Verifies The "Court" Textbox Has Selected Value "<ExpectedValue>"
     Then User Verifies "<Info>" Is Visible Under The "Court" Textbox
     When User Clicks On The "Search" Button
     Then User Sees Notification Banner "<NotificationMessage>"
@@ -269,6 +268,32 @@ Feature: Applications List Search
       | user1 | Lists     | 2025-06-27  | 14:00 | Manchester Civil Justice Centre Set 8 | Afternoon list for Civil Court                 | 1       | Open   | Select           | Open, Print page,  Print continuous, Delete |
       | user1 | Lists     | 2025-11-26  | 16:45 | Royal Courts of Justice Set 1         | Applications to review at the Test Courthouse. | 0       | Closed | Select           | Print page,  Print continuous               |
 
+  @regression @ARCPOC-214 @ARCPOC-453
+  Scenario Outline: Verify PDF download for 0 entries
+    Given User Authenticates Via API As "<User>"
+    When User Makes POST API Request To "/application-lists" With Body:
+      | date          | time   | status   | description   | courtLocationCode   |
+      | <DisplayDate> | <Time> | <Status> | <Description> | <courtLocationCode> |
+    Then User Verify Response Status Code Should Be "201"
+    Given User Has No Downloaded PDFs
+    Given User Is On The Portal Page
+    When User Signs In With Microsoft SSO As "<User>"
+    Then User Clicks On The Link "Applications list"
+    When User Set Date Field "Date" To "<SearchDate>"
+    Then User Enters "<Description>" Into The "Description" Textbox
+    When User Clicks On The "Search" Button
+    Then User Should See The Table "<TableName>"
+    Then User Should See Table "<TableName>" Has Rows
+    # Click Print continuous to download PDF
+    When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
+      | Date          | Time   | Location | Description   | Entries   | Status   |
+      | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+    Then User Sees Notification Banner "There is a problem No entries available to print"
+    Examples:
+      | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                              | Entries | Status | SelectButtonText | ButtonName       |
+      | user1 | Lists     | today      | todayiso    | timenowhhmm-2h | RCJ001            | Royal Courts of Justice Set 1     | Test_{RANDOM} for Applications to review | 0       | OPEN   | Select           | Print continuous |
+      | user1 | Lists     | today      | todayiso    | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Test_{RANDOM} for Leeds applications     | 0       | OPEN   | Select           | Print page       |
+
   @regression @ARCPOC-214 @ARCPOC-453 @PJ
   Scenario Outline: Verify PDF download for continuous print
     Given User Has No Downloaded PDFs
@@ -279,7 +304,6 @@ Feature: Applications List Search
     When User Clicks On The "Search" Button
     Then User Should See The Table "<TableName>"
     Then User Should See Table "<TableName>" Has Rows
-    # Click Print continuous to download PDF
     When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
       | Date          | Time   | Location | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
@@ -288,9 +312,19 @@ Feature: Applications List Search
     Then User Verifies Latest Downloaded PDF Is Not Empty
     Then User Verifies Latest Downloaded PDF Has 2 Pages
     Then User Verifies Latest Downloaded PDF Contains Text "Check List Report"
-    Then User Verifies Latest Downloaded PDF Contains Text "<Court>"
+    #  Time is not added due to bug ARCPOC-803
     Then User Verifies Latest Downloaded PDF Contains <Entries> "Applicant" Entries
-    # Clean up
+    Then User Verifies Latest Downloaded PDF Contains The Following Values:
+      | Date & Time       | <DisplayDate>         |
+      | Duration          | 6 Hours 3 Minutes     |
+      | Location          | <Court>               |
+      | Applicant         | Ms Olivia Harris      |
+      | Respondent        | Mrs Sarah Johnson     |
+      | Case Reference    | CASE033-01            |
+      | Application Code  | AP99002               |
+      | Account Reference | ACC000087             |
+      | Application Title | Appeal by Case Stated |
+      | Applicant         | Mr William Scott      |
     Then User Clears Downloaded PDFs
     Examples:
       | User  | TableName | SearchDate | DisplayDate | Time  | Court                     | Description                   | Entries | Status | SelectButtonText | ButtonName       |
