@@ -46,7 +46,10 @@ Then(
           /[.*+?^${}()|[\]\\]/g,
           String.raw`\$&`,
         );
-        const pattern = new RegExp(String.raw`\d+\.\s+${escapedEntryType}`, 'g');
+        const pattern = new RegExp(
+          String.raw`\d+\.\s+${escapedEntryType}`,
+          'g',
+        );
         const matches = text.match(pattern);
         const actualCount = matches ? matches.length : 0;
 
