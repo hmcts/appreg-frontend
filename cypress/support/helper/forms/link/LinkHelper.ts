@@ -12,4 +12,8 @@ export class LinkHelper {
   static verifyLinkNotVisible(linkText: string): void {
     LinkElement.findLink(linkText).should('not.exist');
   }
+
+  static clickBreadcrumbLink(breadcrumbLinkText: string): void {
+    LinkElement.findBreadcrumbLink(breadcrumbLinkText).click();
+  }
 }
