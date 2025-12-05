@@ -73,7 +73,10 @@ import {
 import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
-import { createEmptyOrganisation, createEmptyPerson } from '../../shared/util/applicant-helpers';
+import {
+  createEmptyOrganisation,
+  createEmptyPerson,
+} from '../../shared/util/applicant-helpers';
 import {
   CodeRow,
   fetchCodeDetail$,
@@ -350,8 +353,8 @@ export class ApplicationsListEntryDetail implements OnInit {
     // Client-side validation
     switch (this.applicantType) {
       case 'person': {
-        const ok = this.validatePersonSection();
-        if (!ok) {
+        const isPersonValid = this.validatePersonSection();
+        if (!isPersonValid) {
           this.hasFatalError = true;
           this.errorHint = 'There is a problem';
           this.focusErrorSummary();
@@ -361,8 +364,8 @@ export class ApplicationsListEntryDetail implements OnInit {
       }
 
       case 'organisation': {
-        const ok = this.validateOrganisationSection();
-        if (!ok) {
+        const isOrgValid = this.validateOrganisationSection();
+        if (!isOrgValid) {
           this.hasFatalError = true;
           this.errorHint = 'There is a problem';
           this.focusErrorSummary();
@@ -835,7 +838,9 @@ export class ApplicationsListEntryDetail implements OnInit {
       this.setApplicantType('standardApplicant', { emit: false });
       this.selectedStandardApplicantCode = saCode;
       this.personGroup.reset(this.emptyPerson, { emitEvent: false });
-      this.organisationGroup.reset(this.emptyOrganisation, { emitEvent: false });
+      this.organisationGroup.reset(this.emptyOrganisation, {
+        emitEvent: false,
+      });
       this.loadStandardApplicants(0, this.saPageSize);
       return;
     }
@@ -845,7 +850,9 @@ export class ApplicationsListEntryDetail implements OnInit {
     if (a?.person) {
       this.setApplicantType('person', { emit: false });
       this.selectedStandardApplicantCode = null;
-      this.organisationGroup.reset(this.emptyOrganisation, { emitEvent: false });
+      this.organisationGroup.reset(this.emptyOrganisation, {
+        emitEvent: false,
+      });
       this.patchPerson(a.person);
       return;
     }

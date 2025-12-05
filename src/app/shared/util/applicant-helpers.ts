@@ -1,4 +1,9 @@
-import { ContactDetails, FullName, Organisation, Person } from '../../../generated/openapi';
+import {
+  ContactDetails,
+  FullName,
+  Organisation,
+  Person,
+} from '../../../generated/openapi';
 
 const EMPTY_CONTACT_DETAILS: ContactDetails = {
   addressLine1: '',
