@@ -3,7 +3,10 @@ import { FormGroup, NonNullableFormBuilder } from '@angular/forms';
 import {
   Applicant,
   ContactDetails,
+  EntryGetDetailDto,
+  EntryUpdateDto,
   FullName,
+  Official,
   Organisation,
   Person,
 } from '../../../../generated/openapi';
@@ -147,4 +150,85 @@ export function buildOrganisationApplicantFromRaw(
   };
 
   return { organisation };
+}
+
+export function personToFormPatch(
+  person: Person | null | undefined,
+): Record<string, unknown> {
+  if (!person) {
+    return {};
+  }
+
+  const name = person.name;
+  const contactDetails = person.contactDetails;
+
+  const middleNamesParts: string[] = [];
+
+  if (name?.secondForename) {
+    middleNamesParts.push(name.secondForename);
+  }
+
+  if (name?.thirdForename) {
+    middleNamesParts.push(name.thirdForename);
+  }
+
+  const middleNames = middleNamesParts.join(' ');
+
+  return {
+    // Adjust these keys to match your actual form control names
+    title: name?.title ?? '',
+    firstName: name?.firstForename ?? '',
+    middleNames,
+    surname: name?.surname ?? '',
+    // Reuse your existing contactDetails → form mapping helper
+    ...contactDetailsToFormPatch(contactDetails),
+  };
+}
+
+export function organisationToFormPatch(
+  organisation: Organisation | null | undefined,
+): Record<string, unknown> {
+  if (!organisation) {
+    return {};
+  }
+
+  const contactDetails = organisation.contactDetails;
+
+  return {
+    // Adjust this key to your form’s org name control
+    name: organisation.name ?? '',
+    ...contactDetailsToFormPatch(contactDetails),
+  };
+}
+
+export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
+  detail: EntryGetDetailDto | null | undefined,
+  key: K,
+  value: EntryUpdateDto[K],
+): EntryUpdateDto {
+  if (!detail) {
+    throw new Error('entryDetail is not loaded');
+  }
+
+  const base: EntryUpdateDto = {
+    // full copy of current server state
+    standardApplicantCode: detail.standardApplicantCode,
+    applicationCode: detail.applicationCode,
+    applicant: detail.applicant,
+    respondent: detail.respondent,
+    numberOfRespondents: detail.numberOfRespondents,
+    wordingFields: detail.wordingFields,
+    feeStatuses: detail.feeStatuses,
+    hasOffsiteFee: detail.hasOffsiteFee,
+    caseReference: detail.caseReference,
+    accountNumber: detail.accountNumber,
+    notes: detail.notes,
+    lodgementDate: detail.lodgementDate,
+    ...(detail as { officials?: Official[] }),
+  };
+
+  return {
+    ...base,
+    [key]: value,
+  };
 }

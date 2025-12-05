@@ -1,3 +1,7 @@
+/* 
+Helper functions for Applicants
+*/
+
 import {
   ContactDetails,
   FullName,

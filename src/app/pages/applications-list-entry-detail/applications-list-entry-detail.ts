@@ -45,8 +45,6 @@ import {
   ApplicationListEntriesApi,
   EntryGetDetailDto,
   EntryUpdateDto,
-  FullName,
-  Official,
   Organisation,
   Person,
   StandardApplicantGetSummaryDto,
@@ -84,7 +82,10 @@ import {
   titleFromDetail,
   wordingFromDetail,
 } from '../../shared/util/application-code-helpers';
+import { focusErrorSummary } from '../../shared/util/error-click';
+import { markFormGroupClean, readText } from '../../shared/util/form-helpers';
 import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
+import { buildStandardApplicantRows } from '../../shared/util/standard-applicant-helpers';
 import {
   ApplicantType,
   OrganisationFormRaw,
@@ -108,9 +109,11 @@ import {
 } from './util/entry-detail.constants';
 import {
   buildEntryDetailForm,
+  buildEntryUpdateDtoWithChange,
   buildOrganisationApplicantFromRaw,
   buildPersonApplicantFromRaw,
-  contactDetailsToFormPatch,
+  organisationToFormPatch,
+  personToFormPatch,
 } from './util/entry-detail.form';
 import { mapHttpErrorToSummary } from './util/errors.util';
 import { getEntryId } from './util/routing.util';
@@ -237,8 +240,8 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.codesRows = [];
     this.resetErrors();
 
-    const code = this.readText('applicationCode').trim();
-    const title = this.readText('applicationTitle').trim();
+    const code = readText(this.form, 'applicationCode').trim();
+    const title = readText(this.form, 'applicationTitle').trim();
 
     this.codesLoading = true;
     fetchCodeRows$(
@@ -288,7 +291,8 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
-    const entryUpdateDto = this.buildEntryUpdateDtoWithChange(
+    const entryUpdateDto = buildEntryUpdateDtoWithChange(
+      this.entryDetail,
       'applicationCode',
       code,
     );
@@ -357,7 +361,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         if (!isPersonValid) {
           this.hasFatalError = true;
           this.errorHint = 'There is a problem';
-          this.focusErrorSummary();
+          focusErrorSummary(this.platformId);
           return;
         }
         break;
@@ -368,7 +372,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         if (!isOrgValid) {
           this.hasFatalError = true;
           this.errorHint = 'There is a problem';
-          this.focusErrorSummary();
+          focusErrorSummary(this.platformId);
           return;
         }
         break;
@@ -385,7 +389,7 @@ export class ApplicationsListEntryDetail implements OnInit {
               href: '#sortable-table',
             },
           ];
-          this.focusErrorSummary();
+          focusErrorSummary(this.platformId);
           return;
         }
         break;
@@ -397,7 +401,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         this.errorSummary = [
           { text: 'Select an applicant type', href: '#application-entry-type' },
         ];
-        this.focusErrorSummary();
+        focusErrorSummary(this.platformId);
         return;
       }
     }
@@ -412,7 +416,7 @@ export class ApplicationsListEntryDetail implements OnInit {
           text: 'Entry is not loaded. Reload the page and try again.',
         },
       ];
-      this.focusErrorSummary();
+      focusErrorSummary(this.platformId);
       return;
     }
 
@@ -421,7 +425,8 @@ export class ApplicationsListEntryDetail implements OnInit {
     switch (this.applicantType) {
       case 'standardApplicant': {
         const code = this.selectedStandardApplicantCode?.trim() || undefined;
-        entryUpdateDto = this.buildEntryUpdateDtoWithChange(
+        entryUpdateDto = buildEntryUpdateDtoWithChange(
+          this.entryDetail,
           'standardApplicantCode',
           code,
         );
@@ -432,7 +437,8 @@ export class ApplicationsListEntryDetail implements OnInit {
 
       case 'person': {
         const applicant = this.buildPersonApplicantFromForm();
-        entryUpdateDto = this.buildEntryUpdateDtoWithChange(
+        entryUpdateDto = buildEntryUpdateDtoWithChange(
+          this.entryDetail,
           'applicant',
           applicant,
         );
@@ -443,7 +449,8 @@ export class ApplicationsListEntryDetail implements OnInit {
 
       case 'organisation': {
         const applicant = this.buildOrganisationApplicantFromForm();
-        entryUpdateDto = this.buildEntryUpdateDtoWithChange(
+        entryUpdateDto = buildEntryUpdateDtoWithChange(
+          this.entryDetail,
           'applicant',
           applicant,
         );
@@ -475,15 +482,15 @@ export class ApplicationsListEntryDetail implements OnInit {
           };
 
           if (this.applicantType === 'person') {
-            this.markFormGroupClean(this.personGroup);
+            markFormGroupClean(this.personGroup);
           } else if (this.applicantType === 'organisation') {
-            this.markFormGroupClean(this.organisationGroup);
+            markFormGroupClean(this.organisationGroup);
           }
         },
         error: (err) => {
           this.formSubmitted = false;
           this.applyMappedError(err);
-          this.focusErrorSummary();
+          focusErrorSummary(this.platformId);
         },
       });
   }
@@ -523,42 +530,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   get standardApplicantData(): StandardApplicantRow[] {
-    const fmt = (iso?: string | null) =>
-      iso ? new Date(iso).toLocaleDateString('en-GB') : '—';
-
-    return this.saItems.map((sa) => {
-      const applicant = sa.applicant;
-      const person = applicant?.person;
-      const organisation = applicant?.organisation;
-
-      // Build a display name
-      const personName = person?.name
-        ? [
-            person.name.title,
-            person.name.firstForename,
-            person.name.secondForename,
-            person.name.thirdForename,
-            person.name.surname,
-          ]
-            .filter(Boolean)
-            .join(' ')
-        : '';
-
-      const name = organisation?.name ?? personName ?? '';
-
-      const addressLine1 =
-        person?.contactDetails?.addressLine1 ??
-        organisation?.contactDetails?.addressLine1 ??
-        '';
-
-      return {
-        code: sa.code ?? '',
-        name,
-        address: addressLine1,
-        useFrom: fmt(sa.startDate),
-        useTo: fmt(sa.endDate ?? null),
-      };
-    });
+    return buildStandardApplicantRows(this.saItems);
   }
 
   get saSelectedIds(): Set<string> {
@@ -603,11 +575,6 @@ export class ApplicationsListEntryDetail implements OnInit {
           focusSuccessBanner(this.platformId);
         },
       });
-  }
-
-  private readText(path: string): string {
-    const v: unknown = this.form.get(path)?.value;
-    return typeof v === 'string' ? v : '';
   }
 
   private loadCodesSection(): void {
@@ -732,21 +699,11 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.personGroup.reset(this.emptyPerson, { emitEvent: false });
     this.organisationGroup.reset(this.emptyOrganisation, { emitEvent: false });
 
-    this.markFormGroupClean(this.personGroup);
-    this.markFormGroupClean(this.organisationGroup);
+    markFormGroupClean(this.personGroup);
+    markFormGroupClean(this.organisationGroup);
 
     if (this.applicantType === 'standardApplicant') {
       this.loadStandardApplicants(0, this.saPageSize);
-    }
-  }
-
-  private markFormGroupClean(group: FormGroup): void {
-    const controls = Object.values(group.controls);
-
-    for (const ctrl of controls) {
-      ctrl.markAsPristine();
-      ctrl.markAsUntouched();
-      ctrl.updateValueAndValidity({ onlySelf: true, emitEvent: false });
     }
   }
 
@@ -756,18 +713,6 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.errorSummary = [];
     this.errorHint = 'There is a problem';
     this.hasFatalError = false;
-  }
-
-  private focusErrorSummary(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      setTimeout(() => {
-        const el = document.querySelector<HTMLElement>(
-          '[data-component="error-summary"]',
-        );
-        el?.focus?.();
-        el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
-      });
-    }
   }
 
   // ——— Data loading & mapping ———
@@ -853,7 +798,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       this.organisationGroup.reset(this.emptyOrganisation, {
         emitEvent: false,
       });
-      this.patchPerson(a.person);
+      this.form.patchValue(personToFormPatch(a.person));
       return;
     }
 
@@ -861,7 +806,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       this.setApplicantType('organisation', { emit: false });
       this.selectedStandardApplicantCode = null;
       this.personGroup.reset(this.emptyPerson, { emitEvent: false });
-      this.patchOrganisation(a.organisation);
+      this.form.patchValue(organisationToFormPatch(a.organisation));
       return;
     }
 
@@ -881,30 +826,6 @@ export class ApplicationsListEntryDetail implements OnInit {
       .setValue(type, { emitEvent: opts?.emit !== false });
   }
 
-  private patchPerson(p: Person): void {
-    const name: FullName = p.name;
-    const cdPatch = contactDetailsToFormPatch(p.contactDetails);
-
-    this.personGroup.patchValue({
-      title: name.title ?? '',
-      firstName: name.firstForename ?? '',
-      middleNames: [name.secondForename, name.thirdForename]
-        .filter(Boolean)
-        .join(' '),
-      surname: name.surname ?? '',
-      ...cdPatch,
-    });
-  }
-
-  private patchOrganisation(o: Organisation): void {
-    const cdPatch = contactDetailsToFormPatch(o.contactDetails);
-
-    this.organisationGroup.patchValue({
-      name: o.name ?? '',
-      ...cdPatch,
-    });
-  }
-
   private handleFatalLoadError(err: unknown): void {
     const { errorHint, errorSummary } = mapHttpErrorToSummary(err);
 
@@ -912,7 +833,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.errorSummary = errorSummary;
     this.hasFatalError = true;
 
-    this.focusErrorSummary();
+    focusErrorSummary(this.platformId);
   }
 
   private buildPersonApplicantFromForm(): Applicant {
@@ -923,39 +844,5 @@ export class ApplicationsListEntryDetail implements OnInit {
   private buildOrganisationApplicantFromForm(): Applicant {
     const raw = this.organisationGroup.getRawValue() as OrganisationFormRaw;
     return buildOrganisationApplicantFromRaw(raw);
-  }
-
-  // Function to create an update payload with all existing values + changed values
-  private buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
-    key: K,
-    value: EntryUpdateDto[K],
-  ): EntryUpdateDto {
-    if (!this.entryDetail) {
-      throw new Error('entryDetail is not loaded');
-    }
-
-    const detail = this.entryDetail;
-
-    const base: EntryUpdateDto = {
-      // full copy of current server state
-      standardApplicantCode: detail.standardApplicantCode,
-      applicationCode: detail.applicationCode,
-      applicant: detail.applicant,
-      respondent: detail.respondent,
-      numberOfRespondents: detail.numberOfRespondents,
-      wordingFields: detail.wordingFields,
-      feeStatuses: detail.feeStatuses,
-      hasOffsiteFee: detail.hasOffsiteFee,
-      caseReference: detail.caseReference,
-      accountNumber: detail.accountNumber,
-      notes: detail.notes,
-      lodgementDate: detail.lodgementDate,
-      ...(detail as { officials?: Official[] }),
-    };
-
-    return {
-      ...base,
-      [key]: value,
-    };
   }
 }
