@@ -1,5 +1,5 @@
 Feature: Applications List Create
-  @regression @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @OLCJA
+  @regression @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794
   Scenario Outline: Create applications list successfully and verify success message Using Other location and CJA Autocomplete
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -25,13 +25,12 @@ Feature: Applications List Create
     Then User Should See Row In Table "<TableName>" With Values:
       | Date          | Time   | Location     | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
-
     Examples:
       | User  | Date  | Time           | Description   | Status | OtherLocation           | NotificationMessage                            | OptionText     | SearchText | TableName | DisplayDate | Entries |  SelectButtonText | ButtonName |
       | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Other Location_{RANDOM} | Success Applications list created successfully | CJA Number 319 | 319        | Lists     | todayiso    | 0       | Select           | Open       |
 
 
-  @regression @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @court
+  @regression @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794
   Scenario Outline: Create applications list successfully and verify success message Using Court Autocomplete
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
