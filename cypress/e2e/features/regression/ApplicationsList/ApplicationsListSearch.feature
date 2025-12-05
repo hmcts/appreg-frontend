@@ -155,7 +155,7 @@ Feature: Applications List Search
       | User   | SearchText | ValidationMessage                                  | OptionText | ExpectedValue | Info             |
       | admin1 | abc123     | There is a problem Criminal Justice Area not found |            | abc123        | No results found |
 
-    # This Scenario has been ignored due to bug in sorting functionality @ARCPOC-756
+  # This Scenario has been ignored due to bug in sorting functionality @ARCPOC-756
   @ignore @ARCPOC-214 @ARCPOC-452
   Scenario Outline: Verify applications list table sorting functionality
     Given User Is On The Portal Page
@@ -268,3 +268,32 @@ Feature: Applications List Search
       | User  | TableName | DisplayDate | Time  | Court                                 | Description                                    | Entries | Status | SelectButtonText | MenuOptions                                 |
       | user1 | Lists     | 2025-06-27  | 14:00 | Manchester Civil Justice Centre Set 8 | Afternoon list for Civil Court                 | 1       | Open   | Select           | Open, Print page,  Print continuous, Delete |
       | user1 | Lists     | 2025-11-26  | 16:45 | Royal Courts of Justice Set 1         | Applications to review at the Test Courthouse. | 0       | Closed | Select           | Print page,  Print continuous               |
+
+  @regression @ARCPOC-214 @ARCPOC-453 @PJ
+  Scenario Outline: Verify PDF download for continuous print
+    Given User Has No Downloaded PDFs
+    Given User Is On The Portal Page
+    When User Signs In With Microsoft SSO As "<User>"
+    Then User Clicks On The Link "Applications list"
+    When User Set Date Field "Date" To "<SearchDate>"
+    When User Clicks On The "Search" Button
+    Then User Should See The Table "<TableName>"
+    Then User Should See Table "<TableName>" Has Rows
+    # Click Print continuous to download PDF
+    When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
+      | Date          | Time   | Location | Description   | Entries   | Status   |
+      | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+    # Verify PDF was downloaded and contains expected content
+    Then User Verifies PDF "cardiff-crown-court" Is Downloaded
+    Then User Verifies Latest Downloaded PDF Is Not Empty
+    Then User Verifies Latest Downloaded PDF Has 2 Pages
+    Then User Verifies Latest Downloaded PDF Contains Text "Check List Report"
+    Then User Verifies Latest Downloaded PDF Contains Text "<Court>"
+    Then User Verifies Latest Downloaded PDF Contains <Entries> "Applicant" Entries
+    # Clean up
+    Then User Clears Downloaded PDFs
+    Examples:
+      | User  | TableName | SearchDate | DisplayDate | Time  | Court                     | Description                   | Entries | Status | SelectButtonText | ButtonName       |
+      | user1 | Lists     | 19/05/2025 | 2025-05-19  | 09:00 | Cardiff Crown Court Set 4 | Cancelled hearing for Probate | 2       | CLOSED | Select           | Print continuous |
+
+

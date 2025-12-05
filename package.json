@@ -161,6 +161,7 @@
     "mochawesome-report-generator": "^6.2.0",
     "multiple-cucumber-html-reporter": "^3.9.3",
     "nodemon": "^3.1.10",
+    "pdf-parse": "^2.4.5",
     "prettier": "^3.6.2",
     "stylelint": "^16.23.1",
     "stylelint-config-standard-scss": "^15.0.1",
