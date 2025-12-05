@@ -73,6 +73,7 @@ import {
 import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
+import { createEmptyOrganisation, createEmptyPerson } from '../../shared/util/applicant-helpers';
 import {
   CodeRow,
   fetchCodeDetail$,
@@ -160,37 +161,10 @@ export class ApplicationsListEntryDetail implements OnInit {
   saItems: StandardApplicantGetSummaryDto[] = [];
   _saSelectedIds: Set<string> = new Set<string>();
 
+  emptyPerson: Person = createEmptyPerson();
+  emptyOrganisation: Organisation = createEmptyOrganisation();
+
   private entryDetail: EntryGetDetailDto | null = null;
-
-  private readonly EMPTY_PERSON = {
-    title: '',
-    firstName: '',
-    middleNames: '',
-    surname: '',
-    addressLine1: '',
-    addressLine2: '',
-    addressLine3: '',
-    addressLine4: '',
-    addressLine5: '',
-    postcode: '',
-    phoneNumber: '',
-    mobileNumber: '',
-    emailAddress: '',
-  };
-
-  private readonly EMPTY_ORG = {
-    name: '',
-    addressLine1: '',
-    addressLine2: '',
-    addressLine3: '',
-    addressLine4: '',
-    addressLine5: '',
-    postcode: '',
-    phoneNumber: '',
-    mobileNumber: '',
-    emailAddress: '',
-  };
-
   private readonly destroyRef = inject(DestroyRef);
 
   // Codes table state
@@ -498,9 +472,9 @@ export class ApplicationsListEntryDetail implements OnInit {
           };
 
           if (this.applicantType === 'person') {
-            this.markGroupClean(this.personGroup);
+            this.markFormGroupClean(this.personGroup);
           } else if (this.applicantType === 'organisation') {
-            this.markGroupClean(this.organisationGroup);
+            this.markFormGroupClean(this.organisationGroup);
           }
         },
         error: (err) => {
@@ -752,18 +726,18 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     this.selectedStandardApplicantCode = null;
 
-    this.personGroup.reset(this.EMPTY_PERSON, { emitEvent: false });
-    this.organisationGroup.reset(this.EMPTY_ORG, { emitEvent: false });
+    this.personGroup.reset(this.emptyPerson, { emitEvent: false });
+    this.organisationGroup.reset(this.emptyOrganisation, { emitEvent: false });
 
-    this.markGroupClean(this.personGroup);
-    this.markGroupClean(this.organisationGroup);
+    this.markFormGroupClean(this.personGroup);
+    this.markFormGroupClean(this.organisationGroup);
 
     if (this.applicantType === 'standardApplicant') {
       this.loadStandardApplicants(0, this.saPageSize);
     }
   }
 
-  private markGroupClean(group: FormGroup): void {
+  private markFormGroupClean(group: FormGroup): void {
     const controls = Object.values(group.controls);
 
     for (const ctrl of controls) {
@@ -860,8 +834,8 @@ export class ApplicationsListEntryDetail implements OnInit {
     if (saCode) {
       this.setApplicantType('standardApplicant', { emit: false });
       this.selectedStandardApplicantCode = saCode;
-      this.personGroup.reset(this.EMPTY_PERSON, { emitEvent: false });
-      this.organisationGroup.reset(this.EMPTY_ORG, { emitEvent: false });
+      this.personGroup.reset(this.emptyPerson, { emitEvent: false });
+      this.organisationGroup.reset(this.emptyOrganisation, { emitEvent: false });
       this.loadStandardApplicants(0, this.saPageSize);
       return;
     }
@@ -871,7 +845,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     if (a?.person) {
       this.setApplicantType('person', { emit: false });
       this.selectedStandardApplicantCode = null;
-      this.organisationGroup.reset(this.EMPTY_ORG, { emitEvent: false });
+      this.organisationGroup.reset(this.emptyOrganisation, { emitEvent: false });
       this.patchPerson(a.person);
       return;
     }
@@ -879,7 +853,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     if (a?.organisation) {
       this.setApplicantType('organisation', { emit: false });
       this.selectedStandardApplicantCode = null;
-      this.personGroup.reset(this.EMPTY_PERSON, { emitEvent: false });
+      this.personGroup.reset(this.emptyPerson, { emitEvent: false });
       this.patchOrganisation(a.organisation);
       return;
     }
@@ -887,8 +861,8 @@ export class ApplicationsListEntryDetail implements OnInit {
     // default to an empty organisation
     this.setApplicantType('organisation', { emit: false });
     this.selectedStandardApplicantCode = null;
-    this.personGroup.reset(this.EMPTY_PERSON, { emitEvent: false });
-    this.organisationGroup.reset(this.EMPTY_ORG, { emitEvent: false });
+    this.personGroup.reset(this.emptyPerson, { emitEvent: false });
+    this.organisationGroup.reset(this.emptyOrganisation, { emitEvent: false });
   }
 
   private setApplicantType(
