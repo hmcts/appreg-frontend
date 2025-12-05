@@ -26,6 +26,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import {
+  ApplicationListGetDetailDto,
   ApplicationListStatus,
   ApplicationListUpdateDto,
   ApplicationListsApi,
@@ -60,13 +61,19 @@ import {
   getHttpStatus,
   getProblemText,
 } from '../../shared/util/http-error-to-text';
+import { validateCourtVsLocOrCja } from '../../shared/util/location-suggestion-helpers';
 import {
   MojButtonMenu,
   MojButtonMenuDirective,
 } from '../../shared/util/moj-button-menu';
 import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
-import type { FormRaw } from '../../shared/util/types/application-list/types';
-import { validateCourtVsLocOrCja } from '../../shared/util/validate-court-vs-loc-cja';
+import { parseTimeToDuration } from '../../shared/util/time-helpers';
+import type {
+  DateControlErrors,
+  DurationControlErrors,
+  FormRaw,
+  TimeControlErrors,
+} from '../../shared/util/types/application-list/types';
 
 type DetailFormRaw = Omit<
   FormRaw<ApplicationListStatus>,
@@ -87,8 +94,6 @@ type Handoff = {
   etag: string | null;
   version: number;
 };
-
-type DurationValue = { hours: string; minutes: string };
 
 @Component({
   selector: 'app-application-detail',
@@ -125,6 +130,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   selectedIds = new Set<string>();
 
   isLoading = true;
+  private hasPrefilledFromApi = false;
 
   override form = new FormGroup({
     date: new FormControl<string | null>(null),
@@ -136,7 +142,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     court: new FormControl<string>(''),
     location: new FormControl<string>(''),
     cja: new FormControl<string>(''),
-    duration: new FormControl<DurationValue | null>(null),
+    duration: new FormControl<Duration | null>(null),
   });
 
   statusOptions = [
@@ -193,25 +199,13 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refField);
+
     const st = isPlatformBrowser(this.platformId)
       ? (history.state as { row?: Handoff })?.row
       : undefined;
 
     this.id = st?.id ?? this.route.snapshot.paramMap.get('id') ?? '';
 
-    if (st) {
-      this.prefillPlaceFieldsFromSummary(st.location);
-      this.etag = st.etag;
-      this.form.patchValue({
-        date: st.date ?? null,
-        time: st.time
-          ? { hours: +st.time.slice(0, 2), minutes: +st.time.slice(3, 5) }
-          : null,
-        description: st.description ?? '',
-        status: st.status.trim().toLowerCase(),
-        duration: null,
-      });
-    }
     if (isPlatformBrowser(this.platformId)) {
       this.loadApplicationsLists();
     }
@@ -251,15 +245,20 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           const dto = res.body!;
           this.etag = res.headers.get('ETag') ?? this.etag;
 
+          if (!this.hasPrefilledFromApi) {
+            this.prefillFromApi(dto);
+            this.hasPrefilledFromApi = true;
+          }
+
           const items = dto?.entriesSummary ?? [];
           // map API items → table rows
           this.rows = items.map((e) => ({
             id: e.uuid,
             sequenceNumber: e.sequenceNumber,
-            accountNumber: this.fmt(e.accountNumber),
-            applicant: this.fmt(e.applicant),
-            respondent: this.fmt(e.respondent),
-            postCode: this.fmt(e.postCode),
+            accountNumber: this.formatDisplayText(e.accountNumber),
+            applicant: this.formatDisplayText(e.applicant),
+            respondent: this.formatDisplayText(e.respondent),
+            postCode: this.formatDisplayText(e.postCode),
             title: e.applicationTitle,
             feeReq: e.feeRequired ? 'Yes' : 'No',
             resulted: e.result ? 'Yes' : 'No',
@@ -412,91 +411,109 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     );
   }
 
-  private fmt = (v: string | null | undefined) =>
-    v && v.trim() !== '' ? v : '—';
+  private readonly formatDisplayText = (
+    v: string | null | undefined,
+  ): string => {
+    if (v === null || v === undefined) {
+      return '—';
+    }
+
+    const trimmed = v.trim();
+
+    if (trimmed === '') {
+      return '—';
+    }
+
+    return v;
+  };
 
   private buildErrorSummary(): void {
-    const de = this.form.controls.date.errors as {
-      dateInvalid?: boolean;
-      dateErrorText?: string;
-    } | null;
-    const te = this.form.controls.time.errors as {
-      durationErrorText?: string;
-    } | null;
-    const durErr = this.form.controls.duration.errors as {
-      durationErrorText?: string;
-    } | null;
-    const dur = this.form.controls.duration.value as Duration | null;
+    const { date, time, duration } = this.form.controls;
+    const dateErrors = date.errors as DateControlErrors;
+    const timeErrors = time.errors as TimeControlErrors;
+    const durationErrors = duration.errors as DurationControlErrors;
+    const durationValue = duration.value;
 
     this.unpopField = collectMissing(this.form.getRawValue() as DetailFormRaw, {
-      dateInvalid: !!de?.dateInvalid,
-      dateErrorText: de?.dateErrorText ?? '',
-      durationErrorText: te?.durationErrorText ?? '',
+      dateInvalid: !!dateErrors?.dateInvalid,
+      dateErrorText: dateErrors?.dateErrorText ?? '',
+      durationErrorText: timeErrors?.durationErrorText ?? '',
     });
 
-    if (durErr?.durationErrorText) {
-      if (dur?.hours !== null) {
+    if (durationErrors && durationValue) {
+      const { hours, minutes } = durationValue;
+      const hoursInvalid = hours === null || Number.isNaN(hours);
+      const minutesInvalid = minutes === null || Number.isNaN(minutes);
+
+      const hoursText = durationErrors.hoursErrorText;
+      const minutesText = durationErrors.minutesErrorText;
+
+      if (hoursInvalid && hoursText) {
         this.unpopField.push({
           id: 'duration-hours',
-          text: durErr.durationErrorText,
+          text: hoursText,
         });
       }
-      if (dur?.minutes !== null) {
+
+      if (minutesInvalid && minutesText) {
         this.unpopField.push({
           id: 'duration-minutes',
-          text: durErr.durationErrorText,
+          text: minutesText,
         });
       }
     }
   }
 
-  private prefillPlaceFieldsFromSummary(name: string | null | undefined): void {
-    if (!name?.trim()) {
-      return;
+  private readonly toNum = (
+    v: string | number | null | undefined,
+  ): number | undefined => {
+    if (v === null || v === undefined) {
+      return undefined;
     }
 
-    // Prevent attempting to load form if CJA and court locations aren't loaded
-    if (!this.courtLocations.length && !this.cja.length) {
-      return;
+    if (typeof v === 'number') {
+      return Number.isFinite(v) ? v : undefined;
     }
 
-    const raw = name.trim();
-    const label = raw.toLowerCase();
-
-    const area = this.cja.find(
-      (a) =>
-        a.code === raw ||
-        (a.description ?? a.code ?? '').toLowerCase() === label,
-    );
-    if (area) {
-      this.selectCja({ code: area.code });
-      this.form.patchValue({ court: '', location: '' });
-      return;
-    }
-
-    const court = this.courtLocations.find(
-      (c) =>
-        c.locationCode === raw ||
-        (c.name ?? c.locationCode ?? '').toLowerCase() === label,
-    );
-    if (court) {
-      this.selectCourthouse({ locationCode: court.locationCode });
-      this.form.patchValue({ cja: '', location: '' });
-      return;
-    }
-
-    // Fallback: treat as "other location"
-    this.form.patchValue({ location: raw, court: '', cja: '' });
-    this.courthouseSearch = '';
-    this.cjaSearch = '';
-  }
-
-  private readonly toNum = (v: string | undefined): number | undefined => {
-    const s = v === null ? '' : String(v).trim();
+    const s = v.trim();
     if (s === '') {
       return undefined;
     }
+
     const n = Number(s);
     return Number.isFinite(n) ? n : undefined;
   };
+
+  private prefillFromApi(dto: ApplicationListGetDetailDto): void {
+    this.form.patchValue({
+      date: dto.date ?? null,
+      time: parseTimeToDuration(dto.time),
+      description: dto.description ?? '',
+      status: dto.status?.toLowerCase() ?? null,
+      duration:
+        dto.durationHours !== null || dto.durationMinutes !== null
+          ? // Duration is returned differently to time sadly so we have to assign like this
+            {
+              hours: dto.durationHours ?? null,
+              minutes: dto.durationMinutes ?? null,
+            }
+          : null,
+    });
+
+    if (dto.courtCode) {
+      this.selectCourthouse({
+        locationCode: dto.courtCode,
+        name: dto.courtName ?? undefined,
+      });
+    } else if (dto.cjaCode) {
+      const area = this.cja.find((a) => a.code === dto.cjaCode) ?? {
+        code: dto.cjaCode,
+      };
+      this.selectCja(area);
+
+      this.form.patchValue({
+        location: dto.otherLocationDescription,
+      });
+    }
+  }
 }
