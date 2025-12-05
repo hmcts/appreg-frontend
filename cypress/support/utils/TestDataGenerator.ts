@@ -88,13 +88,13 @@ export class TestDataGenerator {
     if (!value) {
       return value;
     }
-    
+
     // First, replace date/time keywords
     let parsed = DateTimeUtil.parseDateValue(value);
-    
+
     // Then, replace {RANDOM} placeholders
     parsed = this.replaceRandomPlaceholders(parsed);
-    
+
     return parsed;
   }
 }
