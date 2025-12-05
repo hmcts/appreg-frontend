@@ -77,6 +77,26 @@ export class TestDataGenerator {
     const domain = this.getRandomString(5);
     return `${user}@${domain}.com`;
   }
+
+  /**
+   * Parses a value by replacing {RANDOM} placeholders and date/time keywords
+   * This is the centralized method used by all helpers and step definitions
+   * @param value The value to parse (can contain {RANDOM}, "today", "today+7d", etc.)
+   * @returns Parsed value with replacements applied
+   */
+  static parseValue(value: string): string {
+    if (!value) {
+      return value;
+    }
+
+    // First, replace date/time keywords
+    let parsed = DateTimeUtil.parseDateValue(value);
+
+    // Then, replace {RANDOM} placeholders
+    parsed = this.replaceRandomPlaceholders(parsed);
+
+    return parsed;
+  }
 }
 
 /**
@@ -92,12 +112,8 @@ export function processDatatableRow(
   for (const [key, value] of Object.entries(row)) {
     let processedValue = value;
 
-    // Replace date/time keywords
-    processedValue = DateTimeUtil.parseDateValue(processedValue);
-
-    // Replace {RANDOM} placeholders
-    processedValue =
-      TestDataGenerator.replaceRandomPlaceholders(processedValue);
+    // Use the centralized parseValue method for date/time and {RANDOM} replacements
+    processedValue = TestDataGenerator.parseValue(processedValue);
 
     // Optionally, handle other random keywords
     if (processedValue === 'randomnumber') {

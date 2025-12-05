@@ -13,3 +13,10 @@ Then('User Should Not See The Link {string}', (linkText: string) => {
 Then('User Clicks On The Link {string}', (linkText: string) => {
   LinkHelper.clickLink(linkText);
 });
+
+Then(
+  'User Clicks On The Breadcrumb Link {string}',
+  (breadcrumbLinkText: string) => {
+    LinkHelper.clickBreadcrumbLink(breadcrumbLinkText);
+  },
+);
