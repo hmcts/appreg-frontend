@@ -25,12 +25,13 @@ Feature: Applications List Create
     Then User Should See Row In Table "<TableName>" With Values:
       | Date          | Time   | Location     | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
+
     Examples:
-      | User  | Date  | Time           | Description   | Status | OtherLocation           | NotificationMessage                            | OptionText     | SearchText | TableName | DisplayDate | Entries |
-      | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Other Location_{RANDOM} | Success Applications list created successfully | CJA Number 319 | 319        | Lists     | todayiso    | 0       |
+      | User  | Date  | Time           | Description   | Status | OtherLocation           | NotificationMessage                            | OptionText     | SearchText | TableName | DisplayDate | Entries |  SelectButtonText | ButtonName |
+      | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Other Location_{RANDOM} | Success Applications list created successfully | CJA Number 319 | 319        | Lists     | todayiso    | 0       | Select           | Open       |
 
 
-  @regression @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794
+  @regression @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @court
   Scenario Outline: Create applications list successfully and verify success message Using Court Autocomplete
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -47,9 +48,21 @@ Feature: Applications List Create
     Then User Sees Notification Banner "<NotificationMessage>"
     Then User Clicks On The Link "Click here to go back"
     Then User Should See The Link "Create application"
+    When User Set Date Field "Date" To "<Date>"
+    Then User Selects "Choose" In The "Select status" Dropdown
+    When User Clicks On The "Search" Button
+    Then User Should See The Table "Lists"
+    Then User Should See Table "Lists" Has Rows
+    Then User Should See Row In Table "<TableName>" With Values:
+      | Date          | Time   | Location     | Description   | Entries   | Status   |
+     | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
+   #  When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
+    #   | Date          | Time   | Location | Description   | Entries   | Status   |
+    #   | <DisplayDate> | <Time> | <OptionText>  | <Description> | <Entries> | <Status> |
+    # Then User Should See The Link "List details"
     Examples:
-      | User  | Date  | Time       | Description   | Status | Court          | NotificationMessage                            | SearchText | OptionText                    |
-      | user1 | today | timenow-2h | Test_{RANDOM} | Open   | Court_{RANDOM} | Success Applications list created successfully | royal      | Royal Courts of Justice Set 1 |
+      | User  | Date  | Time           | Description   | Status | NotificationMessage                            | SearchText | OptionText                    | TableName | DisplayDate | Entries | SelectButtonText | ButtonName |
+      | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Success Applications list created successfully | royal      | Royal Courts of Justice Set 1 | Lists     | todayiso    | 0       | Select           | Open       |
 
   @regression @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @ARCPOC-792
   Scenario Outline: Verify validation messages on creating applications list with No Input
