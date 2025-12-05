@@ -430,12 +430,15 @@ export class TableHelper {
   ): Cypress.Chainable<void> {
     // Parse the expected value to handle {RANDOM} and date/time keywords
     const parsedExpectedValue = TestDataGenerator.parseValue(expectedValue);
-    
+
     cy.log(
       `Verifying all rows in column "${columnName}" have value: "${parsedExpectedValue}" (from input: "${expectedValue}")`,
     );
 
-    function checkRows(columnIndex: number, parsedValue: string): Cypress.Chainable<void> {
+    function checkRows(
+      columnIndex: number,
+      parsedValue: string,
+    ): Cypress.Chainable<void> {
       return TableElement.getTableRows(tableCaption).then(($rows) => {
         $rows.each((_rowIndex: number, row: HTMLElement) => {
           const cellText = Cypress.$(row)
