@@ -6,6 +6,8 @@ const {
 const {
   createEsbuildPlugin,
 } = require('@badeball/cypress-cucumber-preprocessor/esbuild');
+const { PDFParse } = require('pdf-parse');
+const mochawesomeReporter = require('cypress-mochawesome-reporter/plugin');
 
 // Use process.stdout.write for direct output (no ESLint warnings)
 const cypressLog = {
@@ -83,12 +85,15 @@ module.exports = defineConfig({
     video: false,
     screenshotOnRunFailure: true,
     screenshotsFolder: 'cypress/reports/screenshots',
+    // Downloads Configuration
+    downloadsFolder: 'cypress/downloads',
     async setupNodeEvents(on, config) {
+      const fs = require('node:fs');
+      const path = require('node:path');
+
       // Custom task to log accessibility violations
       on('task', {
         logA11yViolations(violations) {
-          const fs = require('node:fs');
-          const path = require('node:path');
           const logPath = path.join(
             __dirname,
             'cypress/reports/a11y-violations.log',
@@ -99,8 +104,42 @@ module.exports = defineConfig({
           );
           return null;
         },
+        // PDF helper tasks
+        clearDownloadsFolder(downloadsPath) {
+          if (fs.existsSync(downloadsPath)) {
+            const files = fs.readdirSync(downloadsPath);
+            for (const file of files) {
+              if (file.endsWith('.pdf')) {
+                fs.unlinkSync(path.join(downloadsPath, file));
+              }
+            }
+          }
+          return null;
+        },
+        listPdfFiles(downloadsPath) {
+          if (!fs.existsSync(downloadsPath)) {
+            return [];
+          }
+          const files = fs.readdirSync(downloadsPath);
+          return files.filter((file) => file.endsWith('.pdf'));
+        },
+        async parsePdfContent(filePath) {
+          if (!fs.existsSync(filePath)) {
+            throw new Error(`PDF file not found: ${filePath}`);
+          }
+
+          const dataBuffer = fs.readFileSync(filePath);
+          const parser = new PDFParse({ data: dataBuffer });
+          const pdfData = await parser.getText();
+
+          return {
+            text: pdfData.text,
+            numPages: pdfData.total,
+            info: pdfData,
+          };
+        },
       });
-      require('cypress-mochawesome-reporter/plugin')(on);
+      mochawesomeReporter(on);
 
       const appConfig = await loadAppConfig();
 
