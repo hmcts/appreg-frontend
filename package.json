@@ -34,7 +34,6 @@
     "test:nightly": "cypress run --browser chrome || CODE=$? ; node cypress/scripts/generate-reports.js ; mkdir -p functional-output && cp -r cypress/reports/* functional-output/ ; exit ${CODE:-0}",
     "test:nightly:smoke": "CYPRESS_TAGS=@smoke cypress run --browser chrome || CODE=$? ; node cypress/scripts/generate-reports.js ; mkdir -p functional-output/smoke && cp -r cypress/reports/* functional-output/smoke/ ; exit ${CODE:-0}",
     "test:nightly:regression": "CYPRESS_TAGS=@regression cypress run --browser chrome || CODE=$? ; node cypress/scripts/generate-reports.js ; mkdir -p functional-output/regression && cp -r cypress/reports/* functional-output/regression/ ; exit ${CODE:-0}",
-    "test:nightly:combine": "mkdir -p functional-output/combined && jrm functional-output/combined/test-result.xml \"functional-output/smoke/junit/*.xml\" \"functional-output/regression/junit/*.xml\"",
     "cichecks": "yarn api:all && yarn build && yarn lint && yarn test && yarn test:routes && yarn test:a11y",
     "prepare": "husky install",
     "cypress:open": "cypress open",
