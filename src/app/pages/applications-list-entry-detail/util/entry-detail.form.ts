@@ -175,12 +175,10 @@ export function personToFormPatch(
   const middleNames = middleNamesParts.join(' ');
 
   return {
-    // Adjust these keys to match your actual form control names
     title: name?.title ?? '',
     firstName: name?.firstForename ?? '',
     middleNames,
     surname: name?.surname ?? '',
-    // Reuse your existing contactDetails → form mapping helper
     ...contactDetailsToFormPatch(contactDetails),
   };
 }
@@ -195,7 +193,6 @@ export function organisationToFormPatch(
   const contactDetails = organisation.contactDetails;
 
   return {
-    // Adjust this key to your form’s org name control
     name: organisation.name ?? '',
     ...contactDetailsToFormPatch(contactDetails),
   };
