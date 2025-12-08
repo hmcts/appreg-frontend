@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { sessionGuard } from './guards/session.guard';
 import { Applications } from './pages/applications/applications';
 import { ApplicationsList } from './pages/applications-list/applications-list';
+import { ApplicationsListBulkUpload } from './pages/applications-list-bulk-upload/applications-list-bulk-upload';
 import { ApplicationsListCreate } from './pages/applications-list-create/applications-list-create';
 import { ApplicationsListDetail } from './pages/applications-list-detail/applications-list-detail';
 import { ApplicationsListEntryCreate } from './pages/applications-list-entry-create/applications-list-entry-create';
@@ -24,6 +25,7 @@ export const routes: Routes = [
       { path: ':id', component: ApplicationsListDetail },
       { path: ':id/update', component: ApplicationsListEntryDetail },
       { path: ':id/create', component: ApplicationsListEntryCreate },
+      { path: ':id/bulk-upload', component: ApplicationsListBulkUpload },
     ],
   },
   {

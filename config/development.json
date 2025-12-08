@@ -29,10 +29,16 @@
     }
   },
   "auth": {
-    "scopes": ["openid", "profile", "email", "offline_access"]
+    "scopes": [
+      "openid",
+      "profile",
+      "email",
+      "offline_access"
+    ]
   },
   "api": {
     "baseUrl": "http://localhost:4550"
+    // "baseUrl": "https://appreg-api.staging.platform.hmcts.net"
   },
   "session": {
     "cookieName": "appreg.sid",
