@@ -14,6 +14,7 @@ import {
   StandardApplicantGetSummaryDto,
   StandardApplicantsApi,
 } from '../../../../generated/openapi';
+import { formatDate } from '../../util/standard-applicant-helpers';
 import { StandardApplicantRow } from '../../util/types/applications-list-entry/types';
 import { PaginationComponent } from '../pagination/pagination.component';
 import { SelectableSortableTableComponent } from '../selectable-sortable-table/selectable-sortable-table.component';
@@ -38,7 +39,7 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
   readonly columns: TableColumn[] = [
     { header: 'Code', field: 'code', sortable: true },
     { header: 'Name', field: 'name', sortable: true },
-    { header: 'Address', field: 'address', sortable: false },
+    { header: 'Address', field: 'address', sortable: true },
     { header: 'Use from', field: 'useFrom', sortable: true },
     { header: 'Use to', field: 'useTo', sortable: true },
   ];
@@ -121,9 +122,8 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
   private mapToRow(sa: StandardApplicantGetSummaryDto): StandardApplicantRow {
     const code = sa.code ?? '';
 
-    const applicant = sa.applicant;
-    const person = applicant?.person;
-    const organisation = applicant?.organisation;
+    const person = sa.applicant?.person;
+    const organisation = sa.applicant?.organisation;
 
     const personName = person?.name
       ? [
@@ -137,22 +137,19 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
           .join(' ')
       : '';
 
-    const name = organisation?.name ?? personName ?? '';
+    const name = organisation?.name ?? personName;
 
-    const addressLine1 =
-      person?.contactDetails?.addressLine1 ??
+    const address =
       organisation?.contactDetails?.addressLine1 ??
+      person?.contactDetails?.addressLine1 ??
       '';
-
-    const fmt = (iso?: string | null) =>
-      iso ? new Date(iso).toLocaleDateString('en-GB') : '—';
 
     return {
       code,
       name,
-      address: addressLine1,
-      useFrom: fmt(sa.startDate),
-      useTo: fmt(sa.endDate ?? null),
+      address,
+      useFrom: formatDate(sa.startDate),
+      useTo: formatDate(sa.endDate),
     };
   }
 }
