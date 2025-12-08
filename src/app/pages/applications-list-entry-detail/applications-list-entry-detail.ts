@@ -37,7 +37,6 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { finalize } from 'rxjs';
 
 import {
   Applicant,
@@ -47,8 +46,6 @@ import {
   EntryUpdateDto,
   Organisation,
   Person,
-  StandardApplicantGetSummaryDto,
-  StandardApplicantPage,
   StandardApplicantsApi,
   UpdateApplicationListEntryRequestParams,
 } from '../../../generated/openapi';
@@ -61,14 +58,11 @@ import {
 } from '../../shared/components/error-summary/error-summary.component';
 import { NotificationBannerComponent } from '../../shared/components/notification-banner/notification-banner.component';
 import { OrganisationSectionComponent } from '../../shared/components/organisation-section/organisation-section.component';
-import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { PersonSectionComponent } from '../../shared/components/person-section/person-section.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
-import {
-  SelectableSortableTableComponent,
-  TableColumn,
-} from '../../shared/components/selectable-sortable-table/selectable-sortable-table.component';
+import { TableColumn } from '../../shared/components/selectable-sortable-table/selectable-sortable-table.component';
 import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
+import { StandardApplicantSelectComponent } from '../../shared/components/standard-applicant-select/standard-applicant-select.component';
 import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 import {
@@ -85,12 +79,10 @@ import {
 import { focusErrorSummary } from '../../shared/util/error-click';
 import { markFormGroupClean, readText } from '../../shared/util/form-helpers';
 import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
-import { buildStandardApplicantRows } from '../../shared/util/standard-applicant-helpers';
 import {
   ApplicantType,
   OrganisationFormRaw,
   PersonFormRaw,
-  StandardApplicantRow,
   SuccessBanner,
 } from '../../shared/util/types/applications-list-entry/types';
 import { ValidationResult } from '../../shared/util/validation';
@@ -131,14 +123,13 @@ import { getEntryId } from './util/routing.util';
     PersonSectionComponent,
     OrganisationSectionComponent,
     MojButtonMenuDirective,
-    SelectableSortableTableComponent,
     SortableTableComponent,
     TextInputComponent,
     DateInputComponent,
     ErrorSummaryComponent,
     NotificationBannerComponent,
     SuccessBannerComponent,
-    PaginationComponent,
+    StandardApplicantSelectComponent,
   ],
   templateUrl: './applications-list-entry-detail.html',
 })
@@ -159,13 +150,6 @@ export class ApplicationsListEntryDetail implements OnInit {
   selectedStandardApplicantCode: string | null = null;
   personFieldErrors: Record<string, string> = {};
   organisationFieldErrors: Record<string, string> = {};
-  saLoading = false;
-  saPageIndex = 0;
-  saPageSize = 10;
-  saTotal = 0;
-  saTotalPages = 0;
-  saItems: StandardApplicantGetSummaryDto[] = [];
-  _saSelectedIds: Set<string> = new Set<string>();
 
   emptyPerson: Person = createEmptyPerson();
   emptyOrganisation: Organisation = createEmptyOrganisation();
@@ -495,11 +479,6 @@ export class ApplicationsListEntryDetail implements OnInit {
       });
   }
 
-  onSaPageChange(pageIndex: number): void {
-    this.saPageIndex = pageIndex;
-    this.loadStandardApplicants(pageIndex, this.saPageSize);
-  }
-
   // ——— Form accessors ———
   get personGroup(): FormGroup {
     return this.form.get('person') as FormGroup;
@@ -527,20 +506,6 @@ export class ApplicationsListEntryDetail implements OnInit {
       default:
         return true;
     }
-  }
-
-  get standardApplicantData(): StandardApplicantRow[] {
-    return buildStandardApplicantRows(this.saItems);
-  }
-
-  get saSelectedIds(): Set<string> {
-    return this._saSelectedIds;
-  }
-
-  set saSelectedIds(ids: Set<string>) {
-    this._saSelectedIds = ids;
-    const iter = ids.values().next();
-    this.selectedStandardApplicantCode = iter.done ? null : iter.value;
   }
 
   // ── Private helpers ─────────────────────────────────────────────────────────
@@ -651,45 +616,6 @@ export class ApplicationsListEntryDetail implements OnInit {
     return result.valid;
   }
 
-  private loadStandardApplicants(page = 0, size = this.saPageSize): void {
-    this.saLoading = true;
-    this.saApi
-      .getStandardApplicants({ page, size }, 'body', false, {
-        context: undefined,
-        transferCache: true,
-      })
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        finalize(() => {
-          this.saLoading = false;
-        }),
-      )
-      .subscribe({
-        next: (pg: StandardApplicantPage) => {
-          this.saItems = pg.content ?? [];
-          this.saTotal = pg.totalElements ?? 0;
-
-          const pageSize = pg.pageSize ?? size;
-
-          let totalPages = 0;
-          if (pageSize > 0 && this.saTotal >= pageSize) {
-            totalPages = Math.ceil(this.saTotal / pageSize);
-          }
-          this.saTotalPages = totalPages;
-
-          if (this.selectedStandardApplicantCode) {
-            this.saSelectedIds = new Set([this.selectedStandardApplicantCode]);
-          }
-        },
-        error: () => {
-          this.saItems = [];
-          this.saTotal = 0;
-          this.saTotalPages = 0;
-          this.saSelectedIds = new Set<string>();
-        },
-      });
-  }
-
   private onApplicantTypeChanged(): void {
     this.formSubmitted = false;
     this.resetErrors();
@@ -701,10 +627,6 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     markFormGroupClean(this.personGroup);
     markFormGroupClean(this.organisationGroup);
-
-    if (this.applicantType === 'standardApplicant') {
-      this.loadStandardApplicants(0, this.saPageSize);
-    }
   }
 
   private resetErrors(): void {
@@ -786,7 +708,6 @@ export class ApplicationsListEntryDetail implements OnInit {
       this.organisationGroup.reset(this.emptyOrganisation, {
         emitEvent: false,
       });
-      this.loadStandardApplicants(0, this.saPageSize);
       return;
     }
 

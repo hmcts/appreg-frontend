@@ -1,0 +1,19 @@
+<app-selectable-sortable-table
+  id="standard-applicant-table"
+  caption="Standard applicants"
+  [columns]="columns"
+  [data]="rows"
+  idField="code"
+  [singleSelect]="true"
+  [selectedIds]="selectedIds"
+  (selectedIdsChange)="onSelectedIdsChange($event)"
+  appMojButtonMenu
+>
+</app-selectable-sortable-table>
+
+<app-pagination
+  [currentPage]="pageIndex"
+  [totalPages]="totalPages"
+  (pageChange)="onPageChange($event)"
+>
+</app-pagination>

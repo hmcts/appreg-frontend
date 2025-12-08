@@ -340,16 +340,6 @@ describe('ApplicationsListEntryDetail', () => {
     expect(input!.selectionEnd).toBe(len);
   }));
 
-  it('keeps selectedStandardApplicantCode in sync with saSelectedIds (single select table)', () => {
-    const set = new Set<string>(['SA-123']);
-    component['saSelectedIds'] = set;
-
-    expect(component['selectedStandardApplicantCode']).toBe('SA-123');
-
-    component['saSelectedIds'] = new Set<string>();
-    expect(component['selectedStandardApplicantCode']).toBeNull();
-  });
-
   it('onUpdateApplicant (standardApplicant) builds PUT using snapshot and clears applicant', () => {
     mockUpdateApplicationListEntry.mockReturnValue(of({}));
     component['form'].get('applicantEntryType')?.setValue('standardApplicant');
