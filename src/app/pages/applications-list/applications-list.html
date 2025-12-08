@@ -13,7 +13,7 @@
 
 @if (submitted && searchErrors.length) {
   <app-error-summary
-    [title]="errorHint || 'There is a problem'"
+    [title]="'There is a problem'"
     [items]="searchErrors"
     targetId="search"
   />
@@ -31,7 +31,7 @@
 
 @if (deleteInvalid && errorSummary.length) {
   <app-error-summary
-    [title]="errorHint || 'There is a problem'"
+    [title]="'There is a problem'"
     [items]="errorSummary"
     targetId="sortable-table"
   />
