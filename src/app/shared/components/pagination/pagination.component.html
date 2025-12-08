@@ -30,21 +30,30 @@
 
   <!-- Page numbers -->
   <ul class="govuk-pagination__list">
-    @for (p of pageList; track p) {
-      <li
-        class="govuk-pagination__item"
-        [class.govuk-pagination__item--current]="p === currentPage"
-      >
-        <a
-          class="govuk-link govuk-pagination__link"
-          href="#"
-          [attr.aria-label]="'Page ' + p"
-          [attr.aria-current]="p === currentPage ? 'page' : null"
-          (click)="goTo(p); $event.preventDefault()"
+    @for (item of pageList; track item) {
+      @if (item === '…') {
+        <li
+          class="govuk-pagination__item govuk-pagination__item--ellipses"
+          aria-hidden="true"
         >
-          {{ p }}
-        </a>
-      </li>
+          &hellip;
+        </li>
+      } @else {
+        <li
+          class="govuk-pagination__item"
+          [class.govuk-pagination__item--current]="item === currentPage"
+        >
+          <a
+            class="govuk-link govuk-pagination__link"
+            href="#"
+            [attr.aria-label]="'Page ' + item"
+            [attr.aria-current]="item === currentPage ? 'page' : null"
+            (click)="onPageClick(item, $event)"
+          >
+            {{ item }}
+          </a>
+        </li>
+      }
     }
   </ul>
 

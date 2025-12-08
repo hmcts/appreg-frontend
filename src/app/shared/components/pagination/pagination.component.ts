@@ -1,28 +1,62 @@
-import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+
+type PageItem = number | '…';
 
 @Component({
   selector: 'app-pagination',
-  standalone: true,
-  imports: [CommonModule],
   templateUrl: './pagination.component.html',
 })
 export class PaginationComponent {
-  /** Zero‑based or one‑based? We’ll assume 1-based pages. */
-  @Input() currentPage = 1;
+  @Input() currentPage = 1; // 1-based
   @Input() totalPages = 1;
 
-  /** If you want a custom list of pages (e.g. [1,2,3,4,5]), pass it in; otherwise we generate [1..totalPages] */
-  @Input() pages: number[] | null = null;
-
-  /** Emitted when the user clicks a new page */
   @Output() pageChange = new EventEmitter<number>();
 
-  get pageList(): number[] {
-    if (this.pages?.length) {
-      return this.pages;
+  get pageList(): PageItem[] {
+    const total = this.totalPages || 0;
+    const current = this.currentPage || 1;
+
+    if (total <= 0) {
+      return [];
     }
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+
+    // Show all when number is small
+    if (total <= 10) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+
+    const first = 1;
+    const last = total;
+    const windowSize = 5; // pages either side of current
+    const items: PageItem[] = [];
+
+    const windowStart = Math.max(first + 1, current - windowSize);
+    const windowEnd = Math.min(last - 1, current + windowSize);
+
+    items.push(first);
+
+    if (windowStart > first + 1) {
+      items.push('…');
+    }
+
+    for (let p = windowStart; p <= windowEnd; p++) {
+      items.push(p);
+    }
+
+    if (windowEnd < last - 1) {
+      items.push('…');
+    }
+
+    items.push(last); // always show last
+
+    return items;
+  }
+
+  onPageClick(item: PageItem, event: MouseEvent): void {
+    event.preventDefault();
+    if (typeof item === 'number') {
+      this.goTo(item);
+    }
   }
 
   goTo(page: number): void {
