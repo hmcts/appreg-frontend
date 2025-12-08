@@ -64,7 +64,7 @@
     "@angular/platform-server": "^20.3.0",
     "@angular/router": "^20.3.0",
     "@angular/ssr": "^20.3.1",
-    "@azure/msal-node": "^3.7.1",
+    "@azure/msal-node": "^3.8.4",
     "@hmcts/info-provider": "^1.2.3",
     "@hmcts/nodejs-healthcheck": "^1.8.6",
     "@hmcts/nodejs-logging": "^4.0.4",
@@ -182,8 +182,7 @@
     "@faker-js/faker": "^10.0.0",
     "tar": "^7.5.2",
     "js-yaml": "^4.1.1",
-    "body-parser": "2.2.1",
-    "jsonwebtoken": "^9.0.3"
+    "body-parser": "2.2.1"
   },
   "packageManager": "yarn@4.10.3"
 }
