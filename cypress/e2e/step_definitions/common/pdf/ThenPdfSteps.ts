@@ -2,6 +2,7 @@
 import { Then } from '@badeball/cypress-cucumber-preprocessor';
 
 import { PdfDownloadHelper } from '../../../../support/helper/pdf/PdfDownloadHelper';
+import { StringUtils } from '../../../../support/utils/StringUtils';
 
 Then('User Clears Downloaded PDFs', () => {
   PdfDownloadHelper.clearDownloadsFolder();
@@ -106,13 +107,21 @@ Then(
       cy.log(`Verifying PDF contains ${rows.length} values`);
 
       PdfDownloadHelper.getPdfText(latestPdf).then((text) => {
+        const normalizedText = StringUtils.normalizeText(text);
+
         for (const [key, value] of rows) {
           cy.log(`Checking: ${key} = "${value}"`);
 
-          expect(text).to.include(key, `PDF should contain key: "${key}"`);
+          const normalizedKey = StringUtils.normalizeText(key);
+          const normalizedValue = StringUtils.normalizeText(value);
 
-          expect(text).to.include(
-            value,
+          expect(normalizedText).to.include(
+            normalizedKey,
+            `PDF should contain key: "${key}"`,
+          );
+
+          expect(normalizedText).to.include(
+            normalizedValue,
             `PDF should contain value: "${value}"`,
           );
         }
