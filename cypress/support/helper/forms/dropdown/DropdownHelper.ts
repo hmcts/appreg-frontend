@@ -1,3 +1,4 @@
+/// <reference types="cypress" />
 import { DropdownElement } from '../../../pageobjects/generic/dropdown/DropdownElement';
 
 export class DropdownHelper {
