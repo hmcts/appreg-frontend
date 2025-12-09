@@ -2,6 +2,7 @@
 import { Then } from '@badeball/cypress-cucumber-preprocessor';
 
 import { PdfDownloadHelper } from '../../../../support/helper/pdf/PdfDownloadHelper';
+import { StringUtils } from '../../../../support/utils/StringUtils';
 
 Then('User Clears Downloaded PDFs', () => {
   PdfDownloadHelper.clearDownloadsFolder();
@@ -87,6 +88,44 @@ Then(
       const latestPdf = files[files.length - 1];
       cy.log(`Verifying PDF has ${expectedPages} page(s)`);
       PdfDownloadHelper.verifyPdfPageCount(latestPdf, expectedPages);
+    });
+  },
+);
+
+Then(
+  'User Verifies Latest Downloaded PDF Contains The Following Values:',
+  (dataTable: { rawTable: string[][] }) => {
+    PdfDownloadHelper.listPdfFiles().then((files) => {
+      expect(
+        files.length,
+        `Expected at least 1 PDF file in downloads folder, but found ${files.length}`,
+      ).to.be.greaterThan(0);
+
+      const latestPdf = files[files.length - 1];
+      const rows = dataTable.rawTable;
+
+      cy.log(`Verifying PDF contains ${rows.length} values`);
+
+      PdfDownloadHelper.getPdfText(latestPdf).then((text) => {
+        const normalizedText = StringUtils.normalizeText(text);
+
+        for (const [key, value] of rows) {
+          cy.log(`Checking: ${key} = "${value}"`);
+
+          const normalizedKey = StringUtils.normalizeText(key);
+          const normalizedValue = StringUtils.normalizeText(value);
+
+          expect(normalizedText).to.include(
+            normalizedKey,
+            `PDF should contain key: "${key}"`,
+          );
+
+          expect(normalizedText).to.include(
+            normalizedValue,
+            `PDF should contain value: "${value}"`,
+          );
+        }
+      });
     });
   },
 );

@@ -134,22 +134,5 @@ withNightlyPipeline(type, product, component) {
         }
       }
     }
-
-    // Combine reports from smoke and regression if both ran
-    if (params.Smoke || params.Regression) {
-      stage('Combine Reports') {
-        try {
-          yarnBuilder.yarn('test:nightly:combine')
-          
-          // Archive combined report
-          archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/combined/**/*'
-          
-          // Publish combined JUnit results
-          junit allowEmptyResults: true, testResults: 'functional-output/combined/test-result.xml'
-        } catch (Exception e) {
-          echo "Warning: Failed to combine reports: ${e.message}"
-        }
-      }
-    }
   }
 }
