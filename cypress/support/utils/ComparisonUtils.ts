@@ -20,14 +20,19 @@ export class ComparisonUtils {
     actual: string,
     expected: string,
     toleranceMinutes: number = 2,
-  ): { matches: boolean; matchType: 'exact' | 'time-tolerance' | 'case-insensitive' | 'none' } {
+  ): {
+    matches: boolean;
+    matchType: 'exact' | 'time-tolerance' | 'case-insensitive' | 'none';
+  } {
     // Exact match
     if (actual === expected) {
       return { matches: true, matchType: 'exact' };
     }
 
     // Time tolerance match
-    if (DateTimeUtil.isTimeWithinTolerance(actual, expected, toleranceMinutes)) {
+    if (
+      DateTimeUtil.isTimeWithinTolerance(actual, expected, toleranceMinutes)
+    ) {
       return { matches: true, matchType: 'time-tolerance' };
     }
 
@@ -52,6 +57,7 @@ export class ComparisonUtils {
     expected: string,
     toleranceMinutes: number = 2,
   ): boolean {
-    return this.matchesWithTolerance(actual, expected, toleranceMinutes).matches;
+    return this.matchesWithTolerance(actual, expected, toleranceMinutes)
+      .matches;
   }
 }

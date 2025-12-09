@@ -245,7 +245,7 @@ export class TableHelper {
       const parsedExpectedValue = TestDataGenerator.parseValue(expectedValue);
 
       const cellText = $row.find('td, th').eq(columnIndex).text().trim();
-      
+
       // Use ComparisonUtils to check for matches with tolerance
       const matchResult = ComparisonUtils.matchesWithTolerance(
         cellText,
