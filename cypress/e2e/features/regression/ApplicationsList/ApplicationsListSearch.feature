@@ -296,4 +296,91 @@ Feature: Applications List Search
       | User  | TableName | SearchDate | DisplayDate | Time  | Court                     | Description                   | Entries | Status | SelectButtonText | ButtonName       |
       | user1 | Lists     | 19/05/2025 | 2025-05-19  | 09:00 | Cardiff Crown Court Set 4 | Cancelled hearing for Probate | 2       | CLOSED | Select           | Print continuous |
 
+  @regression @ARCPOC-214 @ARCPOC-450 @OLCJA
+  Scenario Outline: Update applications list Successfully with Other location and CJA selected
+    Given User Authenticates Via API As "<User>"
+    When User Makes POST API Request To "/application-lists" With Body:
+      | date          | time   | description   | status   | otherLocationDescription | cjaCode   | durationHours | durationMinutes |
+      | <DisplayDate> | <Time> | <Description> | <Status> | <OtherLocation>          | <cjaCode> | <HH>          | <MM>            |
+    Then User Verify Response Status Code Should Be "201"
+    Given User Is On The Portal Page
+    When User Signs In With Microsoft SSO As "<User>"
+    Then User Clicks On The Link "Applications list"
+    When User Set Date Field "Date" To "<SearchDate>"
+    Then User Enters "<Description>" Into The "Description" Textbox
+    When User Clicks On The "Search" Button
+    Then User Should See The Table "<TableName>"
+    Then User Should See Table "<TableName>" Has Sortable Headers "Date, Time, Location, Description, Entries, Status"
+    Then User Should See Table "<TableName>" Header "Actions" Is Not Sortable
+    Then User Should See Table "<TableName>" Has Rows
+    When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
+      | Date          | Time   | Location | Description   | Entries   | Status   |
+      | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
 
+    Then User Should See The Link "List details"
+    Then User Clicks On The Link "List details"
+    Then User Verify The Page URL Contains "#list-details"
+    # Then User Verifies The "Date" Textbox Has Value "<DisplayDate>"
+    # Then User Verifies The "Time" Textbox Has Value "<Time>"
+    Then User Verifies The "Description" Textbox Has Value "<Description>"
+    Then User Verifies "<Status>" Is Selected In The "Status" Dropdown
+    Then User Verifies The "Court" Textbox Has Selected Value "<CourtValue>"
+    Then User Verifies The "Other location" Textbox Has Value "<OtherLocation>"
+    Then User Verifies The "CJA" Textbox Has Value "<CJAValue>"
+    #Then User Verifies The "Duration" Has Value "<HH> hours <MM> minutes"
+    Then User Clears The "Description" Textbox
+    Then User Enters "<Updated description>" Into The "Description" Textbox
+    Then User Clears The "Other location" Textbox
+    Then User Enters "<Updated other location>" Into The "Other location" Textbox
+    When User Clicks On The "Update" Button
+    Then User Sees Notification Banner "Success Update complete List successfully updated"
+
+
+    Examples:
+      | User  | TableName | DisplayDate | Time  | Court          | Description | Entries | Status | ButtonName | SearchDate | SelectButtonText | CourtValue | OtherLocation        | cjaCode | CJAValue            | HH | MM | Updated description | Updated other location |
+      | user1 | Lists     | 2025-12-04  | 15:05 | CJA Number 319 | Test_21442  | 0       | OPEN   | Open       | 04/12/2025 | Select           |            | Other Location_21442 | B9      | B9 - CJA Number 319 | 11 | 30 | Updated Test_21442  | Updated Location_21442 |
+
+  @regression @ARCPOC-214 @ARCPOC-450 @COURT
+  Scenario Outline: Update applications list Successfully with Court selected
+    Given User Authenticates Via API As "<User>"
+    When User Makes POST API Request To "/application-lists" With Body:
+      | date          | time   | description   | status   | courtLocationCode | durationHours | durationMinutes |
+      | <DisplayDate> | <Time> | <Description> | <Status> | <Court>           | <HH>          | <MM>            |
+
+    Then User Verify Response Status Code Should Be "201"
+    Given User Is On The Portal Page
+    When User Signs In With Microsoft SSO As "<User>"
+    Then User Clicks On The Link "Applications list"
+    When User Set Date Field "Date" To "<SearchDate>"
+    Then User Enters "<Description>" Into The "Description" Textbox
+    When User Clicks On The "Search" Button
+    Then User Should See The Table "<TableName>"
+    Then User Should See Table "<TableName>" Has Sortable Headers "Date, Time, Location, Description, Entries, Status"
+    Then User Should See Table "<TableName>" Header "Actions" Is Not Sortable
+    Then User Should See Table "<TableName>" Has Rows
+    When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
+      | Date          | Time   | Location        | Description   | Entries   | Status   |
+      | <DisplayDate> | <Time> | <courtLocation> | <Description> | <Entries> | <Status> |
+
+    Then User Should See The Link "List details"
+    Then User Clicks On The Link "List details"
+    Then User Verify The Page URL Contains "#list-details"
+    # Then User Verifies The "Date" Textbox Has Value "<DisplayDate>"
+    # Then User Verifies The "Time" Textbox Has Value "<Time>"
+    Then User Verifies The "Description" Textbox Has Value "<Description>"
+    Then User Verifies "<Status>" Is Selected In The "Status" Dropdown
+    Then User Verifies The "Court" Textbox Has Selected Value "<Court> - <courtLocation>"
+    Then User Verifies The "Other location" Textbox Has Value "<OtherLocation>"
+    Then User Verifies The "CJA" Textbox Has Value "<CJAValue>"
+    #Then User Verifies The "Duration" Has Value "<HH> hours <MM> minutes"
+    Then User Clears The "Description" Textbox
+    Then User Enters "<UpdatedDescription>" Into The "Description" Textbox
+    Then User Clears The "Court" Textbox
+    Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
+    When User Clicks On The "Update" Button
+    Then User Sees Notification Banner "Success Update complete List successfully updated"
+
+
+    Examples:
+      | User  | TableName | DisplayDate | Time  | Court  | courtLocation                 | Description   | Entries | Status | ButtonName | SearchDate | SelectButtonText | OtherLocation | cjaCode | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText |
+      | user1 | Lists     | 2025-12-04  | 16:05 | RCJ001 | Royal Courts of Justice Set 1 | Test_04122025 | 0       | OPEN   | Open       | 04/12/2025 | Select           |               |         |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     |

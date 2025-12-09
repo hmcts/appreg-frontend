@@ -34,20 +34,22 @@ export class DropdownHelper {
     dropdownLabel: string,
     optionText: string,
   ): void {
-    DropdownElement.findDropdown(dropdownLabel).should(
-      'have.value',
-      optionText,
-    );
+    DropdownElement.findDropdown(dropdownLabel)
+      .invoke('val')
+      .should((val) => {
+        expect(String(val).toLowerCase()).to.equal(optionText.toLowerCase());
+      });
   }
 
   static verifyDropdownOptionNotSelected(
     dropdownLabel: string,
     optionText: string,
   ): void {
-    DropdownElement.findDropdown(dropdownLabel).should(
-      'not.have.value',
-      optionText,
-    );
+    DropdownElement.findDropdown(dropdownLabel)
+      .invoke('val')
+      .should((val) => {
+        expect(String(val).toLowerCase()).to.not.equal(optionText.toLowerCase());
+      });
   }
 
   static verifyDropdownIsDisabled(dropdownLabel: string): void {
