@@ -48,7 +48,9 @@ export class DropdownHelper {
     DropdownElement.findDropdown(dropdownLabel)
       .invoke('val')
       .should((val) => {
-        expect(String(val).toLowerCase()).to.not.equal(optionText.toLowerCase());
+        expect(String(val).toLowerCase()).to.not.equal(
+          optionText.toLowerCase(),
+        );
       });
   }
 
