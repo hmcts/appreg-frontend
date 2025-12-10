@@ -4919,15 +4919,15 @@ __metadata:
   linkType: hard
 
 "@redocly/cli@npm:^2.1.4":
-  version: 2.12.3
-  resolution: "@redocly/cli@npm:2.12.3"
+  version: 2.12.5
+  resolution: "@redocly/cli@npm:2.12.5"
   dependencies:
     "@opentelemetry/exporter-trace-otlp-http": "npm:0.202.0"
     "@opentelemetry/resources": "npm:2.0.1"
     "@opentelemetry/sdk-trace-node": "npm:2.0.1"
     "@opentelemetry/semantic-conventions": "npm:1.34.0"
-    "@redocly/openapi-core": "npm:2.12.3"
-    "@redocly/respect-core": "npm:2.12.3"
+    "@redocly/openapi-core": "npm:2.12.5"
+    "@redocly/respect-core": "npm:2.12.5"
     abort-controller: "npm:^3.0.0"
     chokidar: "npm:^3.5.1"
     colorette: "npm:^1.2.0"
@@ -4939,8 +4939,8 @@ __metadata:
     https-proxy-agent: "npm:^7.0.5"
     mobx: "npm:^6.0.4"
     pluralize: "npm:^8.0.0"
-    react: "npm:^17.0.0 || ^18.2.0 || ^19.0.0"
-    react-dom: "npm:^17.0.0 || ^18.2.0 || ^19.0.0"
+    react: "npm:^17.0.0 || ^18.2.0 || ^19.2.1"
+    react-dom: "npm:^17.0.0 || ^18.2.0 || ^19.2.1"
     redoc: "npm:2.5.1"
     semver: "npm:^7.5.2"
     set-cookie-parser: "npm:^2.3.5"
@@ -4952,7 +4952,7 @@ __metadata:
   bin:
     openapi: bin/cli.js
     redocly: bin/cli.js
-  checksum: 10/031f683e7d9f878e007f1f005977f5647396ad02c102e1499e5f6c2e1fb8011cf9fad89a0ab2397b7116331ac84514057e2e5ae24abc618bc8a3cbeb034215c4
+  checksum: 10/cf06f69ff4b24fa3e282117519b18aba1ddd9d931d316fc355aece3232299185e946a5c678c08f59674f494c8aa17f5764c50f436a0940f27ff911a50e4ddd1e
   languageName: node
   linkType: hard
 
@@ -4963,21 +4963,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@redocly/config@npm:^0.40.0":
-  version: 0.40.0
-  resolution: "@redocly/config@npm:0.40.0"
+"@redocly/config@npm:^0.41.0":
+  version: 0.41.0
+  resolution: "@redocly/config@npm:0.41.0"
   dependencies:
     json-schema-to-ts: "npm:2.7.2"
-  checksum: 10/ee9ec429b12becca7fa8726e8ca6619da71335329d6dc6b650d334ccb33c76cdb9a830118bc431376083796902624d97b369fc79735e54ec1306574d5ae06833
+  checksum: 10/ee0a9a551aad5fdfd8a956f538038841f581ec09d53d730ed8b0687bd5549ee5968e0e8e56f0490552d873f49049cb01579659b0950ee1d8b0709dcfa95cb344
   languageName: node
   linkType: hard
 
-"@redocly/openapi-core@npm:2.12.3":
-  version: 2.12.3
-  resolution: "@redocly/openapi-core@npm:2.12.3"
+"@redocly/openapi-core@npm:2.12.5":
+  version: 2.12.5
+  resolution: "@redocly/openapi-core@npm:2.12.5"
   dependencies:
     "@redocly/ajv": "npm:^8.17.1"
-    "@redocly/config": "npm:^0.40.0"
+    "@redocly/config": "npm:^0.41.0"
     ajv-formats: "npm:^3.0.1"
     colorette: "npm:^1.2.0"
     js-levenshtein: "npm:^1.1.6"
@@ -4985,7 +4985,7 @@ __metadata:
     picomatch: "npm:^4.0.3"
     pluralize: "npm:^8.0.0"
     yaml-ast-parser: "npm:0.0.43"
-  checksum: 10/30f2860f186755dccd77237a1eb0897503c17f5babb034b92fb7050458eb9d47367d4faf70a8803568ec9495809e980d039c42f523bc504bd6fdce37ad7da197
+  checksum: 10/9a040b5ada7fe76c486ab0284bb655e994111014560a616e0afe572e10e6adb96f4e70334c579b5233a221b9dadbf801028bb761c098190f3b5c8f214015e621
   languageName: node
   linkType: hard
 
@@ -5006,21 +5006,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@redocly/respect-core@npm:2.12.3":
-  version: 2.12.3
-  resolution: "@redocly/respect-core@npm:2.12.3"
+"@redocly/respect-core@npm:2.12.5":
+  version: 2.12.5
+  resolution: "@redocly/respect-core@npm:2.12.5"
   dependencies:
     "@faker-js/faker": "npm:^7.6.0"
     "@noble/hashes": "npm:^1.8.0"
     "@redocly/ajv": "npm:8.17.1"
-    "@redocly/openapi-core": "npm:2.12.3"
+    "@redocly/openapi-core": "npm:2.12.5"
     better-ajv-errors: "npm:^1.2.0"
     colorette: "npm:^2.0.20"
     json-pointer: "npm:^0.6.2"
     jsonpath-rfc9535: "npm:1.3.0"
     openapi-sampler: "npm:^1.6.1"
     outdent: "npm:^0.8.0"
-  checksum: 10/1a376804a6c1eadd2efeb79f302a229fa46aa3b10ebe108af06b3468e23f6b73a148b2beb3d2fc8e150275867480c252e5fa60c6fced61e98df0aca004a40afb
+  checksum: 10/68eedce37c6b54b0937554bf84c6d7870324b3dfd4ede5288c0780387edbde120c7b4eab3d1dd03168b9819df37eefcf6f2e5472fb870db98e1dbdd089f7f0dc
   languageName: node
   linkType: hard
 
@@ -6802,7 +6802,7 @@ __metadata:
     ajv: "npm:^8.17.1"
     applicationinsights: "npm:^2.7.0"
     axe-core: "npm:^4.10.3"
-    concurrently: "npm:^9.2.1"
+    concurrently: "npm:^9.0.0"
     config: "npm:^4.1.0"
     connect-history-api-fallback: "npm:^2.0.0"
     connect-redis: "npm:^9.0.0"
@@ -6859,6 +6859,7 @@ __metadata:
     stylelint-scss: "npm:^6.12.1"
     supertest: "npm:^7.1.4"
     ts-jest: "npm:^29.4.1"
+    ts-node: "npm:^10.9.2"
     tslib: "npm:^2.3.0"
     typescript: "npm:~5.9.0"
     uuid: "npm:^11.1.0"
@@ -8263,7 +8264,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"concurrently@npm:9.2.1, concurrently@npm:^9.2.1":
+"concurrently@npm:9.2.1, concurrently@npm:^9.0.0":
   version: 9.2.1
   resolution: "concurrently@npm:9.2.1"
   dependencies:
@@ -16332,14 +16333,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:^17.0.0 || ^18.2.0 || ^19.0.0":
-  version: 19.2.0
-  resolution: "react-dom@npm:19.2.0"
+"react-dom@npm:^17.0.0 || ^18.2.0 || ^19.2.1":
+  version: 19.2.1
+  resolution: "react-dom@npm:19.2.1"
   dependencies:
     scheduler: "npm:^0.27.0"
   peerDependencies:
-    react: ^19.2.0
-  checksum: 10/3dbba071b9b1e7a19eae55f05c100f6b44f88c0aee72397d719ae338248ca66ed5028e6964c1c14870cc3e1abcecc91b22baba6dc2072f819dea81a9fd72f2fd
+    react: ^19.2.1
+  checksum: 10/cceea7104bd3ad52e2f6377f47c4b346244c1263917fd95745e31647ff8ab23b16f719c2bfc8bcf2a6c802ecb9c9e81f08b09e3447e1f49bc27368283ed299ba
   languageName: node
   linkType: hard
 
@@ -16369,10 +16370,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:^17.0.0 || ^18.2.0 || ^19.0.0":
-  version: 19.2.0
-  resolution: "react@npm:19.2.0"
-  checksum: 10/e13bcdb8e994c3cfa922743cb75ca8deb60531bf02f584d2d8dab940a8132ce8a2e6ef16f8ed7f372b4072e7a7eeff589b2812dabbedfa73e6e46201dac8a9d0
+"react@npm:^17.0.0 || ^18.2.0 || ^19.2.1":
+  version: 19.2.1
+  resolution: "react@npm:19.2.1"
+  checksum: 10/7c7ab0f40b98e87e1466bea8c28564c5f3c384506cbda93d24788d32b40bf6059c991687c7e90a396b11f09223a779a81b1188af9acd839aaa0a672987c13107
   languageName: node
   linkType: hard
 
@@ -18577,7 +18578,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-node@npm:^10.0.0":
+"ts-node@npm:^10.0.0, ts-node@npm:^10.9.2":
   version: 10.9.2
   resolution: "ts-node@npm:10.9.2"
   dependencies:

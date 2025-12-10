@@ -1,5 +1,6 @@
 /// <reference types="cypress" />
 import { TableElement } from '../../pageobjects/generic/table/TableElement';
+import { ComparisonUtils } from '../../utils/ComparisonUtils';
 import { TestDataGenerator } from '../../utils/TestDataGenerator';
 
 /**
@@ -244,23 +245,35 @@ export class TableHelper {
       const parsedExpectedValue = TestDataGenerator.parseValue(expectedValue);
 
       const cellText = $row.find('td, th').eq(columnIndex).text().trim();
-      const isExactMatch = cellText === parsedExpectedValue;
 
-      if (isExactMatch) {
-        cy.log(`✓ Exact match in column "${columnName}": "${cellText}"`);
-      } else {
-        const caseInsensitiveMatch =
-          cellText.toLowerCase() === parsedExpectedValue.toLowerCase();
-        if (caseInsensitiveMatch) {
-          cy.log(
-            `⚠ Case-insensitive match in column "${columnName}": expected "${parsedExpectedValue}", found "${cellText}"`,
-          );
-        } else {
-          cy.log(
-            `✗ Mismatch in column "${columnName}": expected "${parsedExpectedValue}" (from "${expectedValue}"), found "${cellText}"`,
-          );
-          rowMatches = false;
+      // Use ComparisonUtils to check for matches with tolerance
+      const matchResult = ComparisonUtils.matchesWithTolerance(
+        cellText,
+        parsedExpectedValue,
+        2,
+      );
+
+      if (matchResult.matches) {
+        switch (matchResult.matchType) {
+          case 'exact':
+            cy.log(`✓ Exact match in column "${columnName}": "${cellText}"`);
+            break;
+          case 'time-tolerance':
+            cy.log(
+              `✓ Time match within tolerance in column "${columnName}": expected "${parsedExpectedValue}", found "${cellText}"`,
+            );
+            break;
+          case 'case-insensitive':
+            cy.log(
+              `⚠ Case-insensitive match in column "${columnName}": expected "${parsedExpectedValue}", found "${cellText}"`,
+            );
+            break;
         }
+      } else {
+        cy.log(
+          `✗ Mismatch in column "${columnName}": expected "${parsedExpectedValue}" (from "${expectedValue}"), found "${cellText}"`,
+        );
+        rowMatches = false;
       }
     }
 

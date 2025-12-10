@@ -9,5 +9,5 @@ import { PdfDownloadHelper } from '../../../../support/helper/pdf/PdfDownloadHel
  */
 Given('User Has No Downloaded PDFs', () => {
   PdfDownloadHelper.clearDownloadsFolder();
-  cy.log('✅ Downloads folder cleared');
+  cy.log('Downloads folder cleared');
 });
