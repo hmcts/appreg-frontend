@@ -173,6 +173,26 @@ nvm use 20.19.4
 
 ---
 
+### Quick start guide
+
+Once yarn/node has been installed, run below to generate openapi files
+
+```powershell
+yarn api:all
+```
+
+Run below to run code using Wiremock/Stub
+
+```powershell
+yarn dev:stub
+```
+
+Run below to run code using Staging connectivity (VPN required)
+
+```powershell
+yarn dev:stg
+```
+
 ### Troubleshooting (Windows)
 
 #### Node
