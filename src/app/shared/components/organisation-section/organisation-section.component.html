@@ -10,8 +10,7 @@
       [submitted]="submitted"
       [suppressError]="false"
       [error]="errors['org-name']"
-    >
-    </app-text-input>
+    />
   </div>
 
   <hr
@@ -28,26 +27,25 @@
       [submitted]="submitted"
       [suppressError]="false"
       [error]="errors['org-address-line-1']"
-    >
-    </app-text-input>
+    />
     <app-text-input
       formControlName="addressLine2"
       label="Address line 2"
       hint="District or locality (optional)"
       idPrefix="org-address-line-2"
-    ></app-text-input>
+    />
     <app-text-input
       formControlName="addressLine3"
       label="Address line 3"
       hint="Town or city"
       idPrefix="org-address-line-3"
-    ></app-text-input>
+    />
     <app-text-input
       formControlName="addressLine4"
       label="Address line 4"
       hint="County or region"
       idPrefix="org-address-line-4"
-    ></app-text-input>
+    />
   </div>
 
   <div class="govuk-grid-row">
@@ -56,7 +54,7 @@
       label="Address line 5"
       hint="Post town, e.g. Manchester"
       idPrefix="org-address-line-5"
-    ></app-text-input>
+    />
     <app-text-input
       formControlName="postcode"
       label="Postcode"
@@ -65,8 +63,7 @@
       [submitted]="submitted"
       [suppressError]="true"
       [error]="errors['org-postcode']"
-    >
-    </app-text-input>
+    />
   </div>
 
   <hr
@@ -83,8 +80,7 @@
       [submitted]="submitted"
       [suppressError]="true"
       [error]="errors['org-phone-number']"
-    >
-    </app-text-input>
+    />
     <app-text-input
       formControlName="mobileNumber"
       label="Mobile number"
@@ -93,17 +89,16 @@
       [submitted]="submitted"
       [suppressError]="true"
       [error]="errors['org-mobile-number']"
-    >
-    </app-text-input>
+    />
     <app-text-input
       formControlName="emailAddress"
       label="Email address"
       hint="e.g. name@department.gov.uk"
       idPrefix="org-email-address"
+      inputType="email"
       [submitted]="submitted"
       [suppressError]="true"
       [error]="errors['org-email-address']"
-    >
-    </app-text-input>
+    />
   </div>
 </div>

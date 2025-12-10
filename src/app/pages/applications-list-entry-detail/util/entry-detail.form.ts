@@ -1,4 +1,4 @@
-import { FormGroup, NonNullableFormBuilder } from '@angular/forms';
+import { FormGroup, NonNullableFormBuilder, Validators } from '@angular/forms';
 
 import {
   Applicant,
@@ -64,7 +64,7 @@ export function buildEntryDetailForm(fb: NonNullableFormBuilder): FormGroup {
       postcode: fb.control(''),
       phoneNumber: fb.control(''),
       mobileNumber: fb.control(''),
-      emailAddress: fb.control(''),
+      emailAddress: fb.control('', [(control) => Validators.email(control)]),
     }),
 
     // Organisation sub-group
@@ -78,7 +78,7 @@ export function buildEntryDetailForm(fb: NonNullableFormBuilder): FormGroup {
       postcode: fb.control(''),
       phoneNumber: fb.control(''),
       mobileNumber: fb.control(''),
-      emailAddress: fb.control(''),
+      emailAddress: fb.control('', [(control) => Validators.email(control)]),
     }),
 
     // Officials section

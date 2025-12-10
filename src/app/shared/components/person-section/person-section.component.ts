@@ -70,7 +70,12 @@ export class PersonSectionComponent {
     }
 
     // Optional-but-validated
-    validateOptionalContactFields(get, ids, add);
+    validateOptionalContactFields(
+      get,
+      (name) => this.group.get(name)?.errors ?? null,
+      ids,
+      add,
+    );
 
     return {
       fieldErrors,

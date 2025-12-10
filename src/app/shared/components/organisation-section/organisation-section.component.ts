@@ -61,7 +61,12 @@ export class OrganisationSectionComponent {
     }
 
     // Optional-but-validated
-    validateOptionalContactFields(get, ids, add);
+    validateOptionalContactFields(
+      get,
+      (name) => this.group.get(name)?.errors ?? null,
+      ids,
+      add,
+    );
 
     return {
       fieldErrors: this.organisationFieldErrors,

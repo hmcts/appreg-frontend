@@ -45,6 +45,7 @@ export class TextInputComponent implements ControlValueAccessor {
   @Input() suppressError = false;
   @Input() charLimit: number = 200;
   @Input() error: string | null = null;
+  @Input() inputType: 'email' | 'text' = 'text';
 
   @Output() typed = new EventEmitter<string>();
 

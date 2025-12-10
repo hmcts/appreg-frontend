@@ -344,7 +344,6 @@ export class ApplicationsListEntryDetail implements OnInit {
         const isPersonValid = this.validatePersonSection();
         if (!isPersonValid) {
           this.hasFatalError = true;
-          this.errorHint = 'There is a problem';
           focusErrorSummary(this.platformId);
           return;
         }
@@ -355,7 +354,6 @@ export class ApplicationsListEntryDetail implements OnInit {
         const isOrgValid = this.validateOrganisationSection();
         if (!isOrgValid) {
           this.hasFatalError = true;
-          this.errorHint = 'There is a problem';
           focusErrorSummary(this.platformId);
           return;
         }
@@ -366,7 +364,6 @@ export class ApplicationsListEntryDetail implements OnInit {
         const code = this.selectedStandardApplicantCode?.trim();
         if (!code) {
           this.hasFatalError = true;
-          this.errorHint = 'There is a problem';
           this.errorSummary = [
             {
               text: 'Select a standard applicant',
@@ -381,7 +378,6 @@ export class ApplicationsListEntryDetail implements OnInit {
 
       default: {
         this.hasFatalError = true;
-        this.errorHint = 'There is a problem';
         this.errorSummary = [
           { text: 'Select an applicant type', href: '#application-entry-type' },
         ];
@@ -394,7 +390,6 @@ export class ApplicationsListEntryDetail implements OnInit {
     const entryId = getEntryId(this.route);
     if (!this.appListId || !entryId || !this.entryDetail) {
       this.hasFatalError = true;
-      this.errorHint = 'There is a problem';
       this.errorSummary = [
         {
           text: 'Entry is not loaded. Reload the page and try again.',
@@ -496,13 +491,17 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   get isUpdateDisabled(): boolean {
+    // No updates if details haven't been loaded
+    if (!this.entryDetail) {
+      return true;
+    }
+
     switch (this.applicantType) {
-      case 'person':
-        return !this.personGroup.valid;
-      case 'organisation':
-        return !this.organisationGroup.valid;
       case 'standardApplicant':
         return !this.selectedStandardApplicantCode;
+      case 'person':
+      case 'organisation':
+        return false;
       default:
         return true;
     }

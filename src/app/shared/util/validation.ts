@@ -2,6 +2,8 @@
 Common field validators
 */
 
+import { ValidationErrors } from '@angular/forms';
+
 export interface ContactFieldIds {
   postcode: string;
   phone: string;
@@ -25,35 +27,9 @@ export function isValidPhone(s: string): boolean {
   return digits.length >= 10 && digits.length <= 15;
 }
 
-export function isValidEmail(input: string): boolean {
-  const value = input.trim();
-  if (!value) {
-    return false;
-  }
-
-  if (value.includes(' ')) {
-    return false;
-  }
-
-  const atIndex = value.indexOf('@');
-  if (atIndex <= 0 || atIndex === value.length - 1) {
-    return false;
-  }
-
-  if (value.includes('@', atIndex + 1)) {
-    return false;
-  }
-
-  const dotIndex = value.indexOf('.', atIndex + 1);
-  if (dotIndex <= atIndex + 1 || dotIndex === value.length - 1) {
-    return false;
-  }
-
-  return true;
-}
-
 export function validateOptionalContactFields(
   get: (name: string) => string,
+  getErrors: (name: string) => ValidationErrors | null | undefined,
   ids: ContactFieldIds,
   add: (id: string, text: string, href: string) => void,
 ): void {
@@ -84,11 +60,13 @@ export function validateOptionalContactFields(
     );
   }
 
+  // We use Angular's built in validation here
   const email = get('emailAddress');
-  if (email && !isValidEmail(email)) {
+  const emailErrors = getErrors('emailAddress');
+  if (email && emailErrors?.['email']) {
     add(
       ids.email,
-      'Enter an email address in the correct format',
+      'Enter an email address in the correct format, like name@example.com',
       `#${ids.email}`,
     );
   }
