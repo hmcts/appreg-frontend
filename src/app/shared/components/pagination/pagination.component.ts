@@ -20,36 +20,26 @@ export class PaginationComponent {
       return [];
     }
 
-    // Show all when number is small
-    if (total <= 10) {
+    // For a small number of pages, just show them all.
+    if (total <= 7) {
       return Array.from({ length: total }, (_, i) => i + 1);
     }
 
     const first = 1;
     const last = total;
-    const windowSize = 5; // pages either side of current
-    const items: PageItem[] = [];
 
-    const windowStart = Math.max(first + 1, current - windowSize);
-    const windowEnd = Math.min(last - 1, current + windowSize);
-
-    items.push(first);
-
-    if (windowStart > first + 1) {
-      items.push('…');
+    // 1st case: first couple pages, ellipsis and then final number
+    if (current <= 4) {
+      return [1, 2, 3, 4, 5, '…', last];
     }
 
-    for (let p = windowStart; p <= windowEnd; p++) {
-      items.push(p);
+    // 2nd case: first page, ellipsis and then final numbers
+    if (current >= total - 3) {
+      return [first, '…', last - 4, last - 3, last - 2, last - 1, last];
     }
 
-    if (windowEnd < last - 1) {
-      items.push('…');
-    }
-
-    items.push(last); // always show last
-
-    return items;
+    // 3rd case: ellipsis on either end
+    return [first, '…', current - 1, current, current + 1, '…', last];
   }
 
   onPageClick(item: PageItem, event: MouseEvent): void {
