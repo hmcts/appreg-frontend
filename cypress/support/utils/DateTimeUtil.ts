@@ -447,4 +447,38 @@ export class DateTimeUtil {
     const result = this.addToDateTime(new Date(), amount, unit);
     return result.toISOString();
   }
+
+  /**
+   * Checks if two time strings (HH:mm format) are within a tolerance in minutes
+   * @param actualTime The actual time found (e.g., "11:58")
+   * @param expectedTime The expected time (e.g., "11:59")
+   * @param toleranceMinutes Tolerance in minutes (default: 2)
+   * @returns True if times are within tolerance, false otherwise
+   */
+  static isTimeWithinTolerance(
+    actualTime: string,
+    expectedTime: string,
+    toleranceMinutes: number = 2,
+  ): boolean {
+    // Check if both strings match HH:mm format
+    const timeRegex = /^(\d{1,2}):(\d{2})$/;
+    const actualMatch = actualTime.match(timeRegex);
+    const expectedMatch = expectedTime.match(timeRegex);
+
+    if (!actualMatch || !expectedMatch) {
+      return false; // Not time strings in HH:mm format
+    }
+
+    // Parse times into minutes since midnight
+    const actualMinutes =
+      parseInt(actualMatch[1], 10) * 60 + parseInt(actualMatch[2], 10);
+    const expectedMinutes =
+      parseInt(expectedMatch[1], 10) * 60 + parseInt(expectedMatch[2], 10);
+
+    // Calculate difference
+    const diff = Math.abs(actualMinutes - expectedMinutes);
+
+    // Check if within tolerance
+    return diff <= toleranceMinutes;
+  }
 }
