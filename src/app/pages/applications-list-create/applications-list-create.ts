@@ -51,7 +51,7 @@ import {
 import { getProblemText } from '../../shared/util/http-error-to-text';
 import { validateCourtVsLocOrCja } from '../../shared/util/location-suggestion-helpers';
 import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
-import { FormRaw } from '../../shared/util/types/application-list/types';
+import { FormRaw } from '../../shared/util/types/shared-types';
 
 type FieldKey =
   | 'date'

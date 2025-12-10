@@ -1,4 +1,5 @@
 import { StandardApplicantGetSummaryDto } from '../../../../../generated/openapi';
+import { ErrorSummaryItem } from '../shared-types';
 
 export type ApplicantType = 'person' | 'organisation' | 'standardApplicant';
 
@@ -9,14 +10,6 @@ export type StandardApplicantRow = {
   useFrom: string; // formatted date
   useTo: string; // formatted date
 };
-
-export type SuccessBanner = {
-  heading: string;
-  body: string;
-  link?: { href: string; text: string };
-};
-
-export type ErrorSummaryItem = { text: string; href?: string };
 
 export interface HttpErrorSummary {
   hasFatalError: boolean;
@@ -52,3 +45,18 @@ export type PersonFormRaw = ContactFormRaw & {
 export type OrganisationFormRaw = ContactFormRaw & {
   name: string;
 };
+
+export type DateControlErrors = {
+  dateInvalid?: boolean;
+  dateErrorText?: string;
+} | null;
+
+export type TimeControlErrors = {
+  durationErrorText?: string;
+} | null;
+
+export type DurationControlErrors = {
+  durationErrorText?: string;
+  hoursErrorText?: string;
+  minutesErrorText?: string;
+} | null;

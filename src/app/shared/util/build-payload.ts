@@ -6,10 +6,8 @@ import type { ApplicationListStatus } from '../../../generated/openapi';
 import { requireStatus } from './application-status-helpers';
 import { has } from './has';
 import { requireTime } from './time-helpers';
-import type {
-  FormRaw,
-  NormalizedPayload,
-} from './types/application-list/types';
+import type { NormalizedPayload } from './types/application-list/types';
+import { FormRaw } from './types/shared-types';
 
 export function buildNormalizedPayload(
   raw: FormRaw<ApplicationListStatus>,

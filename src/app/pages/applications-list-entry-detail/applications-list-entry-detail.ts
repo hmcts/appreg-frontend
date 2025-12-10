@@ -83,8 +83,8 @@ import {
   ApplicantType,
   OrganisationFormRaw,
   PersonFormRaw,
-  SuccessBanner,
 } from '../../shared/util/types/applications-list-entry/types';
+import { SuccessBanner } from '../../shared/util/types/shared-types';
 import { ValidationResult } from '../../shared/util/validation';
 
 import { computeSuccessBanner, focusSuccessBanner } from './util/banners.util';

@@ -68,12 +68,12 @@ import {
 } from '../../shared/util/moj-button-menu';
 import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
 import { parseTimeToDuration } from '../../shared/util/time-helpers';
-import type {
+import {
   DateControlErrors,
   DurationControlErrors,
-  FormRaw,
   TimeControlErrors,
-} from '../../shared/util/types/application-list/types';
+} from '../../shared/util/types/applications-list-entry/types';
+import { FormRaw } from '../../shared/util/types/shared-types';
 
 type DetailFormRaw = Omit<
   FormRaw<ApplicationListStatus>,

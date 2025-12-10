@@ -34,7 +34,7 @@ import {
 } from '../../../generated/openapi';
 
 import { has } from './has';
-import type { FormRaw } from './types/application-list/types';
+import { FormRaw } from './types/shared-types';
 
 export interface LocationControls {
   court: AbstractControl;
