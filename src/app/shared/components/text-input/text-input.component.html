@@ -2,8 +2,7 @@
   <div
     class="govuk-form-group"
     [ngClass]="{
-      'govuk-form-group--error':
-        !!error || (!suppressError && submitted && !value?.toString()?.trim()),
+      'govuk-form-group--error': errorState,
     }"
   >
     @if (label) {
@@ -20,7 +19,7 @@
       </div>
     }
 
-    @if (error || (!suppressError && submitted && !value?.toString()?.trim())) {
+    @if (errorState) {
       <p [id]="idPrefix + '-error'" class="govuk-error-message">
         <span class="govuk-visually-hidden">Error:</span>
         {{ error || (label || 'This field') + ' is required' }}
@@ -29,12 +28,7 @@
 
     <input
       class="govuk-input"
-      [ngClass]="[
-        widthClass,
-        error || (!suppressError && submitted && !value?.toString()?.trim())
-          ? 'govuk-input--error'
-          : '',
-      ]"
+      [ngClass]="[widthClass, errorState ? 'govuk-input--error' : '']"
       [id]="idPrefix"
       [name]="idPrefix"
       type="text"
@@ -42,9 +36,7 @@
         (
           (hint ? idPrefix + '-hint' : '') +
           ' ' +
-          (error || (!suppressError && submitted && !value?.toString()?.trim())
-            ? idPrefix + '-error'
-            : '')
+          (errorState ? idPrefix + '-error' : '')
         ).trim()
       "
       [value]="value"
