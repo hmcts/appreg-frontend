@@ -4,9 +4,16 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
-import { ActionsApi, BulkUploadApplicationListEntriesRequestParams, JobStatus } from '../../../generated/openapi';
+import {
+  ActionsApi,
+  BulkUploadApplicationListEntriesRequestParams,
+  JobStatus,
+} from '../../../generated/openapi';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
-import { ErrorItem, ErrorSummaryComponent } from '../../shared/components/error-summary/error-summary.component';
+import {
+  ErrorItem,
+  ErrorSummaryComponent,
+} from '../../shared/components/error-summary/error-summary.component';
 import { LoadingSpinner } from '../../shared/components/loading-spinner/loading-spinner';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
@@ -15,7 +22,14 @@ import { JobAcknowledgement } from './../../../generated/openapi/model/job-ackno
 
 @Component({
   selector: 'app-applications-list-bulk-upload',
-  imports: [FormsModule, BreadcrumbsComponent, PageHeaderComponent, ErrorSummaryComponent, LoadingSpinner, SuccessBannerComponent],
+  imports: [
+    FormsModule,
+    BreadcrumbsComponent,
+    PageHeaderComponent,
+    ErrorSummaryComponent,
+    LoadingSpinner,
+    SuccessBannerComponent,
+  ],
   templateUrl: './applications-list-bulk-upload.html',
   styleUrl: './applications-list-bulk-upload.scss',
 })
@@ -60,7 +74,7 @@ export class ApplicationsListBulkUpload implements OnInit {
       'text/csv',
       'application/csv',
       'application/vnd.ms-excel',
-      ''
+      '',
     ]);
     const isCsvMime = allowedMimes.has(file.type);
 
@@ -80,14 +94,15 @@ export class ApplicationsListBulkUpload implements OnInit {
     this.isUploadInProgress = true;
     const params: BulkUploadApplicationListEntriesRequestParams = {
       listId: this.listId,
-      file: this.file
+      file: this.file,
     };
 
-    this.actionsApiService.bulkUploadApplicationListEntries(params, 'body', true)
+    this.actionsApiService
+      .bulkUploadApplicationListEntries(params, 'body', true)
       .pipe(
         finalize(() => {
           this.isUploadInProgress = false;
-        })
+        }),
       )
       .subscribe({
         next: (jobAcknowledgement: JobAcknowledgement) => {
@@ -102,4 +117,4 @@ export class ApplicationsListBulkUpload implements OnInit {
         },
       });
   }
-} 
+}

@@ -17,7 +17,8 @@ describe('LoadingSpinner', () => {
   });
 
   it('shows with default text and size', () => {
-    const text = fixture.debugElement.query(By.css('.govuk-heading-m')).nativeElement.textContent;
+    const text = fixture.debugElement.query(By.css('.govuk-heading-m'))
+      .nativeElement.textContent;
     const smallLoadingSpinner = fixture.debugElement.query(By.css('.small'));
     expect(smallLoadingSpinner).toBeNull();
     expect(text).toBe('Loading...');
@@ -29,7 +30,8 @@ describe('LoadingSpinner', () => {
 
     fixture.detectChanges();
 
-    const text = fixture.debugElement.query(By.css('.govuk-heading-m')).nativeElement.textContent;
+    const text = fixture.debugElement.query(By.css('.govuk-heading-m'))
+      .nativeElement.textContent;
     expect(text).toBe(loadingText);
   });
 

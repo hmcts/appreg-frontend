@@ -223,8 +223,8 @@ function houseRuleHeadersForRequest(hasBody, op /* optional */) {
     Authorization: { matches: 'Bearer .+' },
   };
   if (!hasBody) {
-    return headers
-  };
+    return headers;
+  }
 
   const content = (op && op.requestBody && op.requestBody.content) || {};
   const types = Object.keys(content).map((k) => k.toLowerCase());
@@ -232,7 +232,9 @@ function houseRuleHeadersForRequest(hasBody, op /* optional */) {
   if (types.includes('multipart/form-data')) {
     // Allow any multipart with or without explicit boundary
     headers['Content-Type'] = { matches: '^multipart/form-data(?:;.*)?$' };
-  } else if (types.some((k) => k.endsWith('+json') || k === 'application/json')) {
+  } else if (
+    types.some((k) => k.endsWith('+json') || k === 'application/json')
+  ) {
     headers['Content-Type'] = {
       matches:
         '(application/vnd\\.hmcts\\.appreg\\.v[0-9]+\\+json|application/json|application/.+\\+json)',
@@ -436,7 +438,13 @@ async function emit403ForbiddenDebug(op, dir, m, url, seenPerOp) {
   if (seenPerOp.has(key)) {
     return;
   }
-  const baseReq = mkBaseRequest(m, url, !!op.requestBody, op.parameters || [], op);
+  const baseReq = mkBaseRequest(
+    m,
+    url,
+    !!op.requestBody,
+    op.parameters || [],
+    op,
+  );
   const req = {
     ...baseReq,
     queryParameters: {
@@ -506,8 +514,9 @@ async function emit400MissingBodyFields(op, dir, m, url, seenPerOp) {
     return;
   }
   const mapping = {
-    name: `${op.operationId || `${m} ${url.value}`
-      } – 400 (missing body fields)`,
+    name: `${
+      op.operationId || `${m} ${url.value}`
+    } – 400 (missing body fields)`,
     priority: 2,
     request: {
       method: m,
@@ -670,10 +679,10 @@ async function main() {
       // Default headers vary by media
       const headers = isCsv
         ? {
-          'Content-Type': 'text/csv',
-          'Content-Disposition': `attachment; filename="${REPORT_CSV_FILENAME}"`,
-          Vary: 'Accept',
-        }
+            'Content-Type': 'text/csv',
+            'Content-Disposition': `attachment; filename="${REPORT_CSV_FILENAME}"`,
+            Vary: 'Accept',
+          }
         : houseRuleResponseHeaders(statusCode);
 
       // Prefer curated fixture if present (JSON only)
