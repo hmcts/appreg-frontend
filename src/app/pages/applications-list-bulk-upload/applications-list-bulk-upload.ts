@@ -1,28 +1,52 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { finalize } from 'rxjs';
 
-import { ActionsApi } from '../../../generated/openapi';
+import { ActionsApi, BulkUploadApplicationListEntriesRequestParams, JobStatus } from '../../../generated/openapi';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
-import { ErrorSummaryComponent } from '../../shared/components/error-summary/error-summary.component';
+import { ErrorItem, ErrorSummaryComponent } from '../../shared/components/error-summary/error-summary.component';
+import { LoadingSpinner } from '../../shared/components/loading-spinner/loading-spinner';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
+
+import { JobAcknowledgement } from './../../../generated/openapi/model/job-acknowledgement';
 
 @Component({
   selector: 'app-applications-list-bulk-upload',
-  imports: [FormsModule, BreadcrumbsComponent, PageHeaderComponent, ErrorSummaryComponent],
+  imports: [FormsModule, BreadcrumbsComponent, PageHeaderComponent, ErrorSummaryComponent, LoadingSpinner, SuccessBannerComponent],
   templateUrl: './applications-list-bulk-upload.html',
   styleUrl: './applications-list-bulk-upload.scss',
 })
-export class ApplicationsListBulkUpload {
+export class ApplicationsListBulkUpload implements OnInit {
   isValidCSV: boolean | null = null;
+  errorSummary: ErrorItem[] = [];
   errorHint: string = 'There is a problem';
+  file!: File;
+  isUploadInProgress = false;
+  fileUploadStatus!: 'success' | 'error';
+  jobAcknowledgement!: JobAcknowledgement;
+  listId!: string;
   private readonly actionsApiService = inject(ActionsApi);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+
+  ngOnInit(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+    // invalid listId then navigate to 404 page
+    if (!id) {
+      this.router.navigate(['../'], { relativeTo: this.route });
+    } else {
+      this.listId = id;
+    }
+  }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
 
     if (!input.files || input.files.length === 0) {
-      console.log('No file selected');
+      // no file selected
       return;
     }
 
@@ -35,7 +59,7 @@ export class ApplicationsListBulkUpload {
     const allowedMimes = new Set([
       'text/csv',
       'application/csv',
-      'application/vnd.ms-excel', // common on Windows
+      'application/vnd.ms-excel',
       ''
     ]);
     const isCsvMime = allowedMimes.has(file.type);
@@ -47,23 +71,35 @@ export class ApplicationsListBulkUpload {
 
     this.isValidCSV = true;
 
-    const formData = new FormData();
     if (file) {
-      formData.append('file', file);
+      this.file = file;
     }
   }
 
   onSubmit(): void {
-    // Send formData in the POST request when implemented, for now use wiremock
-    this.actionsApiService.bulkUploadApplicationListEntries({ listId: '9b8b4b6e-9d1a-4a6a-9a36-111111111111' })
+    this.isUploadInProgress = true;
+    const params: BulkUploadApplicationListEntriesRequestParams = {
+      listId: this.listId,
+      file: this.file
+    };
+
+    this.actionsApiService.bulkUploadApplicationListEntries(params, 'body', true)
+      .pipe(
+        finalize(() => {
+          this.isUploadInProgress = false;
+        })
+      )
       .subscribe({
-        next: (acknowledgement) => {
-          console.log('Bulk upload job started with ID:', acknowledgement);
+        next: (jobAcknowledgement: JobAcknowledgement) => {
+          this.jobAcknowledgement = jobAcknowledgement;
+          if (this.jobAcknowledgement.status === JobStatus.RECEIVED) {
+            this.fileUploadStatus = 'success';
+          }
         },
         error: (err: HttpErrorResponse) => {
-          console.log(err);
+          this.fileUploadStatus = 'error';
+          this.errorSummary = [{ text: `${err.message}` }];
         },
       });
   }
-
 } 

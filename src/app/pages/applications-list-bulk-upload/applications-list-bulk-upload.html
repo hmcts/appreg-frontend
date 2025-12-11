@@ -2,13 +2,21 @@
   { label: 'Applications list', link: '/applications-list' },
   {
     label: 'Applications list details',
-    link: '/applications-list/',
+    link: '/applications-list/' + listId,
   },
 ]" />
 <app-page-header title="Bulk Upload Applications" />
 
+@if (fileUploadStatus === 'success') {
+<app-success-banner heading="Bulk upload complete" linkText="Applications successfully uploaded" />
+}
+
+@if (fileUploadStatus === 'error') {
+<app-error-summary [title]="errorHint" [items]="errorSummary" />
+}
+
 @if (isValidCSV === false ) {
-<app-error-summary [title]="errorHint || 'There is a problem'" [items]="[{ text: 'Please upload a valid CSV file.' }]"
+<app-error-summary [title]="errorHint" [items]="[{ text: 'Please upload a valid CSV file.' }]"
   targetId="file-upload-1" />
 }
 
@@ -18,6 +26,7 @@
   <li>the filename must end in <strong>.csv</strong></li>
 </ul>
 
+@if(!isUploadInProgress) {
 <div class="govuk-form-group">
   <form (ngSubmit)="onSubmit()">
     <label class="govuk-label" for="file-upload-1">
@@ -32,3 +41,6 @@
     </div>
   </form>
 </div>
+} @else {
+<app-loading-spinner [text]="'Uploading file, please wait...'" />
+}
