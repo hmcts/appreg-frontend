@@ -7,6 +7,7 @@ import {
   OnInit,
   Output,
   SimpleChanges,
+  inject,
 } from '@angular/core';
 import { finalize } from 'rxjs/operators';
 
@@ -34,6 +35,8 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
   @Input() selectedCode: string | null = null;
   @Output() selectedCodeChange = new EventEmitter<string | null>();
 
+  private readonly saApi = inject(StandardApplicantsApi);
+
   rows: StandardApplicantRow[] = [];
 
   readonly columns: TableColumn[] = [
@@ -52,8 +55,6 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
 
   // Selection for the table
   selectedIds: Set<string> = new Set<string>();
-
-  constructor(private readonly saApi: StandardApplicantsApi) {}
 
   ngOnInit(): void {
     this.syncSelectedIdsFromCode();
