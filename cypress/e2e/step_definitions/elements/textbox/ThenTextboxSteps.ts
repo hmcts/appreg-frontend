@@ -90,3 +90,16 @@ Then(
     TextboxHelper.verifyInfoNotVisible(field, info);
   },
 );
+
+Then(
+  'User Verifies The Duration Has Values {string} in {string} AND {string} in {string}',
+  (hhValue: string, hhField: string, mmValue: string, mmField: string) => {
+    const substituteHHValue =
+      TestDataGenerator.replaceRandomPlaceholders(hhValue);
+    const substituteMMValue =
+      TestDataGenerator.replaceRandomPlaceholders(mmValue);
+
+    TextboxHelper.verifyValueInTextbox(hhField, substituteHHValue);
+    TextboxHelper.verifyValueInTextbox(mmField, substituteMMValue);
+  },
+);

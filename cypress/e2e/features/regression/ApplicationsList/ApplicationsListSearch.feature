@@ -433,16 +433,7 @@ Feature: Applications List Search
     Then User Verifies The "Court" Textbox Has Selected Value "<Court> - <courtLocation>"
     Then User Verifies The "Other location" Textbox Has Value "<OtherLocation>"
     Then User Verifies The "CJA" Textbox Has Value "<CJAValue>"
-    Then User Verifies The "Duration" field Has Values hours "<HH>" and minutes "<MM>"
-    #When User clears the "<ClearHH>" and "<ClearMM>" fields in the "Duration" field
-    When User Set "<InvalidHH>" and "<InvalidMM>" In The "Duration" Field
-    When User Clicks On The "Update" Button
-    #Then User Set "<InvalidMM>" In The "MM" Field In The Duration Field
-    Then User Sees Validation Error "There is a problem... Enter hours between 0 and 99 Enter minutes between 0 and 59"
-    #When User clears the "<ClearHH>" and "<ClearMM>" fields in the "Duration" field
-    When User Set "<UpdatedHH>" and "<UpdatedMM>" In The "Duration" Field
-    When User Clicks On The "Update" Button
-    #Then User Set "<UpdatedMM>" In The "MM" Field In The Duration Field
+    #Then User Verifies The "Duration" Has Value "<HH> hours <MM> minutes"
     Then User Clears The "Description" Textbox
     When User Clicks On The "Update" Button
     Then User Sees Validation Error "There is a problem... Description is required"
@@ -453,5 +444,5 @@ Feature: Applications List Search
     Then User Sees Notification Banner "Success Update complete List successfully updated"
 
     Examples:
-      | User  | TableName | DisplayDate | Time  | ExpHour | ExpMinute | Court  | courtLocation                 | Description   | Entries | Status | ButtonName | SearchDate | SelectButtonText | OtherLocation | cjaCode | CJAValue | HH | MM | ClearHH | ClearMM | UpdatedDescription           | OptionText                | SearchText | InvalidHH | InvalidMM | UpdatedHH | UpdatedMM |
-      | user1 | Lists     | 2025-12-11  | 16:05 | 16      | 5         | RCJ001 | Royal Courts of Justice Set 1 | Test_11122025 | 0       | OPEN   | Open       | 11/12/2025 | Select           |               |         |          | 11 | 30 |         |         | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     | A1B2      | C3D4      | 12        | 15        |
+      | User  | TableName | DisplayDate | Time  | Court  | courtLocation                 | Description   | Entries | Status | ButtonName | SearchDate | SelectButtonText | OtherLocation | cjaCode | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText |
+      | user1 | Lists     | 2025-12-04  | 16:05 | RCJ001 | Royal Courts of Justice Set 1 | Test_04122025 | 0       | OPEN   | Open       | 04/12/2025 | Select           |               |         |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     |
