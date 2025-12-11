@@ -44,7 +44,9 @@ if (fs.existsSync('runner-results')) {
     '✓ Parallel execution detected. Skipping cucumber HTML report generation.',
   );
   // eslint-disable-next-line no-console
-  console.log('  JUnit XML reports are available in functional-output/*/junit/');
+  console.log(
+    '  JUnit XML reports are available in functional-output/*/junit/',
+  );
   process.exit(0);
 }
 

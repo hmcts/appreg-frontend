@@ -7,8 +7,11 @@ const browser = process.argv[2]; // 'chrome', 'edge', or undefined
 
 // Configuration
 // Output directory based on browser parameter
-const OUTPUT_DIR = browser 
-  ? path.join(__dirname, `../../functional-output/${browser}/regression/cucumber-html`)
+const OUTPUT_DIR = browser
+  ? path.join(
+      __dirname,
+      `../../functional-output/${browser}/regression/cucumber-html`,
+    )
   : path.join(__dirname, '../../functional-output/regression/cucumber-html');
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'detailed-test-report.html');
 
@@ -18,20 +21,35 @@ const OUTPUT_FILE = path.join(OUTPUT_DIR, 'detailed-test-report.html');
 function readCucumberJsonFiles() {
   // Search for cucumber-json directories based on browser parameter
   let cucumberDirs;
-  
+
   if (browser === 'chrome') {
     // Chrome-specific report: Only read from Chrome directories
     cucumberDirs = [
-      path.join(__dirname, '../../functional-output/chrome/regression/cucumber-json'),
-      path.join(__dirname, '../../functional-output/chrome/smoke/cucumber-json'),
-      path.join(__dirname, '../../functional-output/chrome/apiTests/cucumber-json'),
+      path.join(
+        __dirname,
+        '../../functional-output/chrome/regression/cucumber-json',
+      ),
+      path.join(
+        __dirname,
+        '../../functional-output/chrome/smoke/cucumber-json',
+      ),
+      path.join(
+        __dirname,
+        '../../functional-output/chrome/apiTests/cucumber-json',
+      ),
     ];
   } else if (browser === 'edge') {
     // Edge-specific report: Only read from Edge directories
     cucumberDirs = [
-      path.join(__dirname, '../../functional-output/edge/regression/cucumber-json'),
+      path.join(
+        __dirname,
+        '../../functional-output/edge/regression/cucumber-json',
+      ),
       path.join(__dirname, '../../functional-output/edge/smoke/cucumber-json'),
-      path.join(__dirname, '../../functional-output/edge/apiTests/cucumber-json'),
+      path.join(
+        __dirname,
+        '../../functional-output/edge/apiTests/cucumber-json',
+      ),
     ];
   } else {
     // Combined report - read from all directories
@@ -39,26 +57,41 @@ function readCucumberJsonFiles() {
       path.join(__dirname, '../../functional-output/regression/cucumber-json'),
       path.join(__dirname, '../../functional-output/smoke/cucumber-json'),
       path.join(__dirname, '../../functional-output/merged/cucumber-json'),
-      path.join(__dirname, '../../functional-output/chrome/regression/cucumber-json'),
-      path.join(__dirname, '../../functional-output/chrome/smoke/cucumber-json'),
-      path.join(__dirname, '../../functional-output/chrome/apiTests/cucumber-json'),
-      path.join(__dirname, '../../functional-output/edge/regression/cucumber-json'),
+      path.join(
+        __dirname,
+        '../../functional-output/chrome/regression/cucumber-json',
+      ),
+      path.join(
+        __dirname,
+        '../../functional-output/chrome/smoke/cucumber-json',
+      ),
+      path.join(
+        __dirname,
+        '../../functional-output/chrome/apiTests/cucumber-json',
+      ),
+      path.join(
+        __dirname,
+        '../../functional-output/edge/regression/cucumber-json',
+      ),
       path.join(__dirname, '../../functional-output/edge/smoke/cucumber-json'),
-      path.join(__dirname, '../../functional-output/edge/apiTests/cucumber-json'),
+      path.join(
+        __dirname,
+        '../../functional-output/edge/apiTests/cucumber-json',
+      ),
       path.join(__dirname, '../../functional-output/apiTests/cucumber-json'),
     ];
   }
-  
+
   const allFeatures = [];
-  
-  cucumberDirs.forEach(dirPath => {
+
+  cucumberDirs.forEach((dirPath) => {
     if (!fs.existsSync(dirPath)) {
       console.log(`Directory not found (skipping): ${dirPath}`);
       return;
     }
-    
+
     console.log(`\nReading Cucumber JSON files from: ${dirPath}`);
-    
+
     // Detect browser from path (for combined report)
     let browserSource = 'Unknown';
     if (dirPath.includes('/chrome/')) {
@@ -69,27 +102,29 @@ function readCucumberJsonFiles() {
       // For legacy paths in combined report, mark as "Mixed"
       browserSource = 'Mixed';
     }
-    
-    const files = fs.readdirSync(dirPath)
-      .filter(file => file.endsWith('.json'));
-    
+
+    const files = fs
+      .readdirSync(dirPath)
+      .filter((file) => file.endsWith('.json'));
+
     console.log(`Found ${files.length} JSON files`);
-    
-    files.forEach(file => {
+
+    files.forEach((file) => {
       const filePath = path.join(dirPath, file);
       try {
         const content = fs.readFileSync(filePath, 'utf8');
         const data = JSON.parse(content);
         // Handle both array and object formats
         const features = Array.isArray(data) ? data : [data];
-        
+
         // Add browser metadata to each feature for combined reports
-        features.forEach(feature => {
-          if (!browser) { // Only add browser info for combined reports
+        features.forEach((feature) => {
+          if (!browser) {
+            // Only add browser info for combined reports
             feature._browserSource = browserSource;
           }
         });
-        
+
         allFeatures.push(...features);
         console.log(`  Parsed ${file}: ${features.length} features`);
       } catch (error) {
@@ -97,8 +132,10 @@ function readCucumberJsonFiles() {
       }
     });
   });
-  
-  console.log(`\nTotal features loaded from all directories: ${allFeatures.length}`);
+
+  console.log(
+    `\nTotal features loaded from all directories: ${allFeatures.length}`,
+  );
   return allFeatures;
 }
 
@@ -113,25 +150,25 @@ function processFeatures(features) {
     skipped: 0,
     totalDuration: 0,
   };
-  
+
   const testsByFeature = new Map();
   const processedScenarios = new Set(); // Track scenarios to avoid duplicates
-  
-  features.forEach(feature => {
+
+  features.forEach((feature) => {
     const featureName = feature.name;
-    
+
     // Skip features without elements
     if (!feature.elements || !Array.isArray(feature.elements)) {
       return;
     }
-    
+
     if (!testsByFeature.has(featureName)) {
       testsByFeature.set(featureName, []);
     }
-    
-    feature.elements.forEach(scenario => {
+
+    feature.elements.forEach((scenario) => {
       const scenarioName = scenario.name;
-      
+
       // Skip duplicate scenarios (same feature + scenario name)
       const scenarioKey = `${featureName}::${scenarioName}`;
       if (processedScenarios.has(scenarioKey)) {
@@ -139,44 +176,51 @@ function processFeatures(features) {
         return;
       }
       processedScenarios.add(scenarioKey);
-      
+
       // Process steps
-      const steps = scenario.steps.map(step => {
+      const steps = scenario.steps.map((step) => {
         const status = step.result ? step.result.status : 'skipped';
         const duration = step.result ? step.result.duration : 0;
-        const errorMessage = step.result && step.result.error_message ? 
-          step.result.error_message : null;
-        
+        const errorMessage =
+          step.result && step.result.error_message
+            ? step.result.error_message
+            : null;
+
         // Extract screenshots from embeddings
-        const screenshots = step.embeddings ? step.embeddings
-          .filter(emb => emb.mime_type === 'image/png')
-          .map(emb => ({
-            data: emb.data,
-            mimeType: emb.mime_type
-          })) : [];
-        
+        const screenshots = step.embeddings
+          ? step.embeddings
+              .filter((emb) => emb.mime_type === 'image/png')
+              .map((emb) => ({
+                data: emb.data,
+                mimeType: emb.mime_type,
+              }))
+          : [];
+
         return {
           keyword: step.keyword,
           name: step.name,
           status,
           duration: duration / 1000000, // Convert nanoseconds to milliseconds
           errorMessage,
-          screenshots
+          screenshots,
         };
       });
-      
+
       // Calculate scenario status and duration
-      const failedSteps = steps.filter(s => s.status === 'failed');
-      const skippedSteps = steps.filter(s => s.status === 'skipped');
+      const failedSteps = steps.filter((s) => s.status === 'failed');
+      const skippedSteps = steps.filter((s) => s.status === 'skipped');
       let scenarioStatus = 'passed';
       if (failedSteps.length > 0) {
         scenarioStatus = 'failed';
       } else if (skippedSteps.length > 0) {
         scenarioStatus = 'skipped';
       }
-      
-      const scenarioDuration = steps.reduce((sum, step) => sum + step.duration, 0);
-      
+
+      const scenarioDuration = steps.reduce(
+        (sum, step) => sum + step.duration,
+        0,
+      );
+
       // Update stats
       stats.total++;
       if (scenarioStatus === 'passed') {
@@ -189,24 +233,24 @@ function processFeatures(features) {
         stats.skipped++;
       }
       stats.totalDuration += scenarioDuration;
-      
+
       testsByFeature.get(featureName).push({
         name: scenarioName,
         status: scenarioStatus,
         duration: scenarioDuration,
         steps,
-        browser: feature._browserSource || null // Add browser source for combined reports
+        browser: feature._browserSource || null, // Add browser source for combined reports
       });
     });
   });
-  
+
   console.log('\nTest Statistics:');
   console.log(`Total: ${stats.total}`);
   console.log(`Passed: ${stats.passed}`);
   console.log(`Failed: ${stats.failed}`);
   console.log(`Skipped: ${stats.skipped}`);
   console.log(`Pass Rate: ${((stats.passed / stats.total) * 100).toFixed(2)}%`);
-  
+
   return { stats, testsByFeature };
 }
 
@@ -216,11 +260,13 @@ function processFeatures(features) {
 function generateHTML(stats, testsByFeature) {
   const passRate = ((stats.passed / stats.total) * 100).toFixed(2);
   const avgDuration = (stats.totalDuration / stats.total).toFixed(0);
-  
+
   // Add browser info to title if browser-specific report
-  const browserInfo = browser ? ` - ${browser.charAt(0).toUpperCase() + browser.slice(1)}` : '';
+  const browserInfo = browser
+    ? ` - ${browser.charAt(0).toUpperCase() + browser.slice(1)}`
+    : '';
   const reportTitle = `Application Register${browserInfo}`;
-  
+
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -737,7 +783,7 @@ function generateHTML(stats, testsByFeature) {
   </script>
 </body>
 </html>`;
-  
+
   return html;
 }
 
@@ -746,12 +792,12 @@ function generateHTML(stats, testsByFeature) {
  */
 function generateFeaturesHTML(testsByFeature) {
   let html = '';
-  
+
   for (const [featureName, scenarios] of testsByFeature) {
-    const passed = scenarios.filter(s => s.status === 'passed').length;
-    const failed = scenarios.filter(s => s.status === 'failed').length;
-    const skipped = scenarios.filter(s => s.status === 'skipped').length;
-    
+    const passed = scenarios.filter((s) => s.status === 'passed').length;
+    const failed = scenarios.filter((s) => s.status === 'failed').length;
+    const skipped = scenarios.filter((s) => s.status === 'skipped').length;
+
     html += `
       <div class="feature">
         <div class="feature-header">
@@ -769,7 +815,7 @@ function generateFeaturesHTML(testsByFeature) {
         </div>
       </div>`;
   }
-  
+
   return html;
 }
 
@@ -777,12 +823,15 @@ function generateFeaturesHTML(testsByFeature) {
  * Generate HTML for scenarios
  */
 function generateScenariosHTML(scenarios) {
-  return scenarios.map(scenario => {
-    // Add browser badge for combined reports
-    const browserBadge = scenario.browser && !browser ? 
-      `<span class="browser-badge" style="background: ${scenario.browser === 'Chrome' ? '#4285f4' : '#0078d4'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px;">🌐 ${scenario.browser}</span>` : '';
-    
-    return `
+  return scenarios
+    .map((scenario) => {
+      // Add browser badge for combined reports
+      const browserBadge =
+        scenario.browser && !browser
+          ? `<span class="browser-badge" style="background: ${scenario.browser === 'Chrome' ? '#4285f4' : '#0078d4'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px;">🌐 ${scenario.browser}</span>`
+          : '';
+
+      return `
     <div class="scenario">
       <div class="scenario-header">
         <div class="scenario-title">
@@ -800,30 +849,36 @@ function generateScenariosHTML(scenarios) {
       </div>
     </div>
   `;
-  }).join('');
+    })
+    .join('');
 }
 
 /**
  * Generate HTML for steps
  */
 function generateStepsHTML(steps) {
-  return steps.map(step => {
-    let screenshotsHTML = '';
-    if (step.screenshots && step.screenshots.length > 0) {
-      screenshotsHTML = step.screenshots.map(screenshot => `
+  return steps
+    .map((step) => {
+      let screenshotsHTML = '';
+      if (step.screenshots && step.screenshots.length > 0) {
+        screenshotsHTML = step.screenshots
+          .map(
+            (screenshot) => `
         <div class="step-screenshot">
           <img src="data:${screenshot.mimeType};base64,${screenshot.data}" alt="Screenshot" />
           <div class="screenshot-label">📸 Screenshot</div>
         </div>
-      `).join('');
-    }
-    
-    let errorHTML = '';
-    if (step.errorMessage) {
-      errorHTML = `<div class="step-error">${step.errorMessage}</div>`;
-    }
-    
-    return `
+      `,
+          )
+          .join('');
+      }
+
+      let errorHTML = '';
+      if (step.errorMessage) {
+        errorHTML = `<div class="step-error">${step.errorMessage}</div>`;
+      }
+
+      return `
       <div class="step ${step.status}">
         <div class="step-text">
           <span class="step-keyword">${step.keyword}</span>
@@ -834,7 +889,8 @@ function generateStepsHTML(steps) {
         ${screenshotsHTML}
       </div>
     `;
-  }).join('');
+    })
+    .join('');
 }
 
 /**
@@ -842,29 +898,29 @@ function generateStepsHTML(steps) {
  */
 function main() {
   console.log('\n=== Generating Detailed Cucumber HTML Report ===\n');
-  
+
   // Read Cucumber JSON files
   const features = readCucumberJsonFiles();
-  
+
   if (features.length === 0) {
     console.error('No features found in Cucumber JSON files');
     process.exit(1);
   }
-  
+
   // Process features
   const { stats, testsByFeature } = processFeatures(features);
-  
+
   // Generate HTML
   const html = generateHTML(stats, testsByFeature);
-  
+
   // Ensure output directory exists
   if (!fs.existsSync(OUTPUT_DIR)) {
     fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   }
-  
+
   // Write HTML file
   fs.writeFileSync(OUTPUT_FILE, html);
-  
+
   console.log('\n✅ Report generated successfully!');
   console.log(`📄 Report location: ${OUTPUT_FILE}`);
   console.log('\n=== Report Generation Complete ===\n');

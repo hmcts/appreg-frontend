@@ -16,14 +16,16 @@ export class DropdownHelper {
         // For native select elements
         cy.wrap($dropdown)
           .find('option')
-          .filter((_i, el) => 
-            Cypress.$(el).text().trim().toLowerCase() === option.toLowerCase()
+          .filter(
+            (_i, el) =>
+              Cypress.$(el).text().trim().toLowerCase() ===
+              option.toLowerCase(),
           )
           .then(($option) => {
             if ($option.length > 0) {
               cy.wrap($dropdown).select($option.val() as string);
             } else {
-              cy.wrap($dropdown).select(option); 
+              cy.wrap($dropdown).select(option);
             }
           });
       } else {
