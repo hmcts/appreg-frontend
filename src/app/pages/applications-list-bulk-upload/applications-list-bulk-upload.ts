@@ -49,9 +49,7 @@ export class ApplicationsListBulkUpload implements OnInit {
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     // invalid listId then navigate to 404 page
-    if (!id) {
-      this.router.navigate(['../'], { relativeTo: this.route });
-    } else {
+    if (id) {
       this.listId = id;
     }
   }
