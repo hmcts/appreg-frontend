@@ -38,11 +38,65 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 }
 def yarnBuilder = new uk.gov.hmcts.contino.YarnBuilder(this)
 
+def performArtifactOperations() {
+  sh 'mkdir -p cypress/parallel/weights/pipeline'
+
+  sh '''
+    echo "Listing all artifacts before copy artifacts:"
+    ls -l1a cypress/parallel/weights/
+    ls -l1a cypress/parallel/weights/pipeline/
+    '''
+
+  script {
+    def projectName = 'HMCTS_Nightly/appreg-frontend/master'
+    try {
+      copyArtifacts projectName: projectName, selector: lastSuccessful(), filter: '**/cypress/parallel/weights/pipeline/*'
+    } catch (Exception e) {
+      echo "Error copying artifacts: ${e}"
+    }
+
+    sh '''
+    echo "Listing all artifacts after copy artifacts:"
+    ls -l1a cypress/parallel/weights/
+    ls -l1a cypress/parallel/weights/pipeline/
+    '''
+  }
+
+  try {
+    sh '''
+        if [ -f cypress/parallel/weights/pipeline/smoke-parallel-weights.json ]; then
+            mv cypress/parallel/weights/pipeline/smoke-parallel-weights.json cypress/parallel/weights/smoke-parallel-weights.json
+            echo "Moved smoke-parallel-weights.json"
+        else
+            echo "smoke-parallel-weights.json not found, skipping move"
+        fi
+        if [ -f cypress/parallel/weights/pipeline/regression-parallel-weights.json ]; then
+            mv cypress/parallel/weights/pipeline/regression-parallel-weights.json cypress/parallel/weights/regression-parallel-weights.json
+            echo "Moved regression-parallel-weights.json"
+        else
+            echo "regression-parallel-weights.json not found, skipping move"
+        fi
+        '''
+  } catch (Exception e) {
+    echo "Artifacts not found or copy failed: ${e}"
+  }
+
+  sh '''
+    echo "Listing all copied artifacts:"
+    ls -l1a cypress/parallel/weights/
+    ls -l1a cypress/parallel/weights/pipeline/
+    '''
+}
+
 withNightlyPipeline(type, product, component) {
   loadVaultSecrets(secrets)
   enableSlackNotifications('#appreg-builds')
   
   env.TEST_URL = 'https://appreg.staging.apps.hmcts.net/'
+
+  afterSuccess('checkout') {
+    performArtifactOperations()
+  }
 
   afterAlways('DependencyCheckNightly') {
     stage('Connectivity Test') {
@@ -90,46 +144,133 @@ withNightlyPipeline(type, product, component) {
     echo 'Regression: ' + params.Regression
 
     if (params.Smoke) {
-      stage('Smoke Tests') {
-        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE', message: 'Smoke tests failed') {
+      stage('Smoke Tests - Chrome') {
+        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE', message: 'Smoke tests (Chrome) failed') {
           try {
-            yarnBuilder.yarn('test:nightly:smoke')
+            yarnBuilder.yarn('test:nightly:smoke:parallel:chrome')
           } finally {
-            archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/smoke/**/*'
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/smoke/**/*'
+            junit allowEmptyResults: true, testResults: 'functional-output/chrome/smoke/junit/**/*.xml'
+          }
+        }
+      }
+      
+      stage('Smoke Tests - Edge') {
+        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE', message: 'Smoke tests (Edge) failed') {
+          try {
+            yarnBuilder.yarn('test:nightly:smoke:parallel:edge')
+          } finally {
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/edge/smoke/**/*'
+            junit allowEmptyResults: true, testResults: 'functional-output/edge/smoke/junit/**/*.xml'
             
-            junit allowEmptyResults: true, testResults: 'functional-output/smoke/junit/**/*.xml'
-            
-            publishHTML target: [
-              allowMissing         : true,
-              alwaysLinkToLastBuild: true,
-              keepAll              : true,
-              reportDir            : 'functional-output/smoke/cucumber-html',
-              reportFiles          : 'index.html',
-              reportName           : 'Cucumber Smoke Test Report'
-            ]
+            // Archive weight files for next build
+            script {
+              sh 'mkdir -p cypress/parallel/weights/pipeline'
+              sh 'cp -f cypress/parallel/weights/smoke-parallel-weights.json cypress/parallel/weights/pipeline/ || echo "No smoke weights to copy"'
+              archiveArtifacts artifacts: 'cypress/parallel/weights/pipeline/smoke-parallel-weights.json', allowEmptyArchive: true
+            }
           }
         }
       }
     }
 
     if (params.Regression) {
-      stage('Regression Tests') {
-        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Regression tests failed') {
+      stage('Regression Tests - Chrome') {
+        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Regression tests (Chrome) failed') {
           try {
-            yarnBuilder.yarn('test:nightly:regression --env TAGS=\'not @ignore and not @broken\'')
+            yarnBuilder.yarn('test:nightly:regression:parallel:chrome --env TAGS=\'not @ignore and not @broken\'')
           } finally {
-            archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/regression/**/*'
-            
-            junit allowEmptyResults: true, testResults: 'functional-output/regression/junit/**/*.xml'
-            
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/regression/**/*'
+            junit allowEmptyResults: true, testResults: 'functional-output/chrome/regression/junit/**/*.xml'
+          }
+        }
+      }
+      
+      stage('Regression Tests - Edge') {
+        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Regression tests (Edge) failed') {
+          try {
+            yarnBuilder.yarn('test:nightly:regression:parallel:edge --env TAGS=\'not @ignore and not @broken\'')
+          } finally {
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/edge/regression/**/*'
+            junit allowEmptyResults: true, testResults: 'functional-output/edge/regression/junit/**/*.xml'
+          }
+        }
+      }
+      
+      stage('API Tests') {
+        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'API tests failed') {
+          try {
+            // Run apiTests separately for both browsers to ensure complete feature coverage
+            yarnBuilder.yarn('test:nightly:regression:apiTests')
+          } finally {
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/apiTests/**/*,functional-output/edge/apiTests/**/*'
+          }
+        }
+      }
+      
+      stage('Generate Chrome Report') {
+        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Chrome report generation failed') {
+          try {
+            // Generate Chrome-only HTML report
+            yarnBuilder.yarn('test:nightly:regression:html:cucumber:chrome')
+          } finally {
+            // Publish the Chrome HTML report
+            publishHTML target: [
+              allowMissing         : true,
+              alwaysLinkToLastBuild: true,
+              keepAll              : true,
+              reportDir            : 'functional-output/chrome/regression/cucumber-html',
+              reportFiles          : 'detailed-test-report.html',
+              reportName           : 'Application Register - Chrome Test Report'
+            ]
+          }
+        }
+      }
+      
+      stage('Generate Edge Report') {
+        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Edge report generation failed') {
+          try {
+            // Generate Edge-only HTML report
+            yarnBuilder.yarn('test:nightly:regression:html:cucumber:edge')
+          } finally {
+            // Publish the Edge HTML report
+            publishHTML target: [
+              allowMissing         : true,
+              alwaysLinkToLastBuild: true,
+              keepAll              : true,
+              reportDir            : 'functional-output/edge/regression/cucumber-html',
+              reportFiles          : 'detailed-test-report.html',
+              reportName           : 'Application Register - Edge Test Report'
+            ]
+          }
+        }
+      }
+      
+      stage('Generate Combined Report') {
+        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Combined report generation failed') {
+          try {
+            // Generate combined HTML report from both Chrome and Edge results
+            yarnBuilder.yarn('test:nightly:regression:html:cucumber')
+          } finally {
+            // Publish the combined HTML report
             publishHTML target: [
               allowMissing         : true,
               alwaysLinkToLastBuild: true,
               keepAll              : true,
               reportDir            : 'functional-output/regression/cucumber-html',
-              reportFiles          : 'index.html',
-              reportName           : 'Cucumber Regression Test Report'
+              reportFiles          : 'detailed-test-report.html',
+              reportName           : 'Application Register - Combined Report (Chrome + Edge)'
             ]
+            
+            // Archive all outputs
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/regression/**/*'
+            
+            // Archive weight files for next build
+            script {
+              sh 'mkdir -p cypress/parallel/weights/pipeline'
+              sh 'cp -f cypress/parallel/weights/regression-parallel-weights.json cypress/parallel/weights/pipeline/ || echo "No regression weights to copy"'
+              archiveArtifacts artifacts: 'cypress/parallel/weights/pipeline/regression-parallel-weights.json', allowEmptyArchive: true
+            }
           }
         }
       }
