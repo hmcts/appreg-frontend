@@ -29,12 +29,23 @@ When('User Clears The Date Field {string}', (fieldLabel: string) => {
 });
 
 When(
-  'User clears the {string} and {string} fields in the {string} field', 
-  (hoursFieldLabel: string, minutesFieldLabel: string, durationFieldLabel: string) => {
-    DateTimeHelper.clearDurationFieldsByLabel(durationFieldLabel, hoursFieldLabel, minutesFieldLabel);
+  'User clears the {string} and {string} fields in the {string} field',
+  (
+    hoursFieldLabel: string,
+    minutesFieldLabel: string,
+    durationFieldLabel: string,
+  ) => {
+    DateTimeHelper.clearDurationFieldsByLabel(
+      durationFieldLabel,
+      hoursFieldLabel,
+      minutesFieldLabel,
+    );
   },
 );
 
-When('User Set {string} and {string} In The {string} Field', (hours: string, minutes: string, fieldLabel: string) => {
-  DateTimeHelper.setDurationFieldValuesByLabel(fieldLabel, hours, minutes);
-});
+When(
+  'User Set {string} and {string} In The {string} Field',
+  (hours: string, minutes: string, fieldLabel: string) => {
+    DateTimeHelper.setDurationFieldValuesByLabel(fieldLabel, hours, minutes);
+  },
+);
