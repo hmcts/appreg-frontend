@@ -295,4 +295,101 @@ export class DateTimeHelper {
       DateTimeElement.findTimeInput(fieldLabel).should('not.be.visible');
     }
   }
-}
+
+  static verifyTimeFieldValue(fieldLabel: string, timeValue: string): void {
+    const timeParts = timeValue.split(':');
+    if (timeParts.length < 2) {
+      throw new Error(
+        `Invalid time format: ${timeValue}. Expected HH:MM format.`,
+      );
+    }
+
+    const expectedHours = timeParts[0].padStart(2, '0');
+    const expectedMinutes = timeParts[1].padStart(2, '0');
+
+    // Check if separate HH/MM inputs exist, otherwise use single time input
+    if (DateTimeElement.hasSeparateHourMinuteInputs(fieldLabel)) {
+      // Verify HH input
+      DateTimeElement.findHourInput(fieldLabel).should(($input) => {
+        const actualValue = $input.val() as string;
+        const normalizedActual = actualValue.replace(/^0+/, '') || '0';
+        const normalizedExpected = expectedHours.replace(/^0+/, '') || '0';
+        expect(normalizedActual).to.equal(normalizedExpected);
+      });
+
+      // Verify MM input
+      DateTimeElement.findMinuteInput(fieldLabel).should(($input) => {
+        const actualValue = $input.val() as string;
+        const normalizedActual = actualValue.replace(/^0+/, '') || '0';
+        const normalizedExpected = expectedMinutes.replace(/^0+/, '') || '0';
+        expect(normalizedActual).to.equal(normalizedExpected);
+      });
+    } else {
+      // Verify single time input
+      const expectedTime = `${expectedHours}:${expectedMinutes}`;
+      DateTimeElement.findTimeInput(fieldLabel)
+        .should('have.value', expectedTime);
+    }
+  }
+
+  static verifyDurationFieldValuesByLabel(
+    fieldLabel: string,
+    hours: string,
+    minutes: string,
+  ): void {
+    cy.log(
+      `Verifying duration field "${fieldLabel}" has hours: "${hours}" and minutes: "${minutes}"`,
+    );
+
+    DateTimeElement.findDurationHourInput(fieldLabel)
+      .should('be.visible')
+      .should('have.value', hours);
+
+    DateTimeElement.findDurationMinuteInput(fieldLabel)
+      .should('be.visible')
+      .should('have.value', minutes);
+  } 
+  static clearDurationFieldsByLabel(
+    hoursFieldLabel: string,
+    minutesFieldLabel: string,
+    durationFieldLabel: string,
+  ): void {
+    cy.log(`Clearing duration fields in "${durationFieldLabel}"`);
+
+    DateTimeElement.findDurationHourInput(hoursFieldLabel)
+      .should('be.visible')
+      .should('be.enabled')
+      .clear()
+      .should('have.value', '');
+
+    DateTimeElement.findDurationMinuteInput(minutesFieldLabel)
+      .should('be.visible')
+      .should('be.enabled')
+      .clear()
+      .should('have.value', '');
+  }
+
+  static setDurationFieldValuesByLabel(
+    fieldLabel: string,
+    hours: string,
+    minutes: string,
+  ): void {
+    cy.log(
+      `Setting duration field "${fieldLabel}" to hours: "${hours}" and minutes: "${minutes}"`,
+    );
+
+    DateTimeElement.findDurationHourInput(fieldLabel)
+      .should('be.visible')
+      .should('be.enabled')
+      .clear()
+      .type(hours)
+      .should('have.value', hours);
+
+    DateTimeElement.findDurationMinuteInput(fieldLabel)
+      .should('be.visible')
+      .should('be.enabled')
+      .clear()
+      .type(minutes)
+      .should('have.value', minutes);
+  } 
+} 
