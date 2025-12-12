@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
-import { LoadingSpinner } from './loading-spinner';
+import { LoadingSpinner } from '../../../../../../src/app/shared/components/loading-spinner/loading-spinner';
 
 describe('LoadingSpinner', () => {
   let component: LoadingSpinner;
