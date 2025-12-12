@@ -39,14 +39,7 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 def yarnBuilder = new uk.gov.hmcts.contino.YarnBuilder(this)
 
 def performArtifactOperations() {
-  sh 'mkdir -p cypress/parallel/weights/pipeline'
-
-  sh '''
-    echo "Listing all artifacts before copy artifacts:"
-    ls -l1a cypress/parallel/weights/
-    ls -l1a cypress/parallel/weights/pipeline/
-    '''
-
+  // Copy weight artifacts from previous successful build
   script {
     def projectName = 'HMCTS_Nightly/appreg-frontend/master'
     try {
@@ -54,38 +47,10 @@ def performArtifactOperations() {
     } catch (Exception e) {
       echo "Error copying artifacts: ${e}"
     }
-
-    sh '''
-    echo "Listing all artifacts after copy artifacts:"
-    ls -l1a cypress/parallel/weights/
-    ls -l1a cypress/parallel/weights/pipeline/
-    '''
   }
 
-  try {
-    sh '''
-        if [ -f cypress/parallel/weights/pipeline/smoke-parallel-weights.json ]; then
-            mv cypress/parallel/weights/pipeline/smoke-parallel-weights.json cypress/parallel/weights/smoke-parallel-weights.json
-            echo "Moved smoke-parallel-weights.json"
-        else
-            echo "smoke-parallel-weights.json not found, skipping move"
-        fi
-        if [ -f cypress/parallel/weights/pipeline/regression-parallel-weights.json ]; then
-            mv cypress/parallel/weights/pipeline/regression-parallel-weights.json cypress/parallel/weights/regression-parallel-weights.json
-            echo "Moved regression-parallel-weights.json"
-        else
-            echo "regression-parallel-weights.json not found, skipping move"
-        fi
-        '''
-  } catch (Exception e) {
-    echo "Artifacts not found or copy failed: ${e}"
-  }
-
-  sh '''
-    echo "Listing all copied artifacts:"
-    ls -l1a cypress/parallel/weights/
-    ls -l1a cypress/parallel/weights/pipeline/
-    '''
+  // Execute shell script to move and validate weight files
+  sh './cypress/scripts/parallel/copy-weight-artifacts.sh'
 }
 
 withNightlyPipeline(type, product, component) {
@@ -100,43 +65,8 @@ withNightlyPipeline(type, product, component) {
 
   afterAlways('DependencyCheckNightly') {
     stage('Connectivity Test') {
-      def baseUrl = env.TEST_URL
-      echo "Testing connectivity to: ${baseUrl}"
-      
-      try {
-        // DNS Resolution
-        sh """
-          echo "DNS Resolution:"
-          nslookup appreg.staging.apps.hmcts.net | grep -A1 'Name:' || echo "DNS lookup failed"
-        """
-        
-        // SSL Certificate Check
-        sh """
-          echo "SSL Certificate:"
-          echo | openssl s_client -servername appreg.staging.apps.hmcts.net -connect appreg.staging.apps.hmcts.net:443 2>/dev/null | openssl x509 -noout -dates 2>/dev/null || echo "SSL check failed"
-        """
-        
-        // Health Endpoint Check
-        def healthResponse = sh(
-          script: "curl -s -o /dev/null -w '%{http_code}' --max-time 10 ${baseUrl}/health",
-          returnStdout: true
-        ).trim()
-        echo "Health endpoint (/health): HTTP ${healthResponse}"
-        
-        // Root URL Check (accepts both 200 and 401 as valid responses)
-        def rootResponse = sh(
-          script: "curl -s -o /dev/null -w '%{http_code}' --max-time 10 ${baseUrl}/",
-          returnStdout: true
-        ).trim()
-        echo "Root URL (/): HTTP ${rootResponse}"
-        
-        if (healthResponse == '200' || rootResponse in ['200', '401']) {
-          echo "✓ Connectivity test passed"
-        } else {
-          error "Connectivity test failed - Health: ${healthResponse}, Root: ${rootResponse}"
-        }
-      } catch (Exception e) {
-        echo "⚠ Connectivity test encountered issues: ${e.message}"
+      catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE', message: 'Connectivity test issues') {
+        sh "./cypress/scripts/connectivity/test-connectivity.sh ${env.TEST_URL}"
       }
     }
     
@@ -164,11 +94,8 @@ withNightlyPipeline(type, product, component) {
             junit allowEmptyResults: true, testResults: 'functional-output/edge/smoke/junit/**/*.xml'
             
             // Archive weight files for next build
-            script {
-              sh 'mkdir -p cypress/parallel/weights/pipeline'
-              sh 'cp -f cypress/parallel/weights/smoke-parallel-weights.json cypress/parallel/weights/pipeline/ || echo "No smoke weights to copy"'
-              archiveArtifacts artifacts: 'cypress/parallel/weights/pipeline/smoke-parallel-weights.json', allowEmptyArchive: true
-            }
+            sh './cypress/scripts/parallel/archive-weight-files.sh smoke'
+            archiveArtifacts artifacts: 'cypress/parallel/weights/pipeline/smoke-parallel-weights.json', allowEmptyArchive: true
           }
         }
       }
@@ -266,11 +193,8 @@ withNightlyPipeline(type, product, component) {
             archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/regression/**/*'
             
             // Archive weight files for next build
-            script {
-              sh 'mkdir -p cypress/parallel/weights/pipeline'
-              sh 'cp -f cypress/parallel/weights/regression-parallel-weights.json cypress/parallel/weights/pipeline/ || echo "No regression weights to copy"'
-              archiveArtifacts artifacts: 'cypress/parallel/weights/pipeline/regression-parallel-weights.json', allowEmptyArchive: true
-            }
+            sh './cypress/scripts/parallel/archive-weight-files.sh regression'
+            archiveArtifacts artifacts: 'cypress/parallel/weights/pipeline/regression-parallel-weights.json', allowEmptyArchive: true
           }
         }
       }

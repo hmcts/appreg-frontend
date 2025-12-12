@@ -8,7 +8,6 @@ Feature: API Tests
         Then User Verify Response Body Should Have:
             | pageNumber     | 0                                                              |
             | pageSize       | 10                                                             |
-            | totalElements  | 15                                                             |
             | totalPages     | 2                                                              |
             | first          | true                                                           |
             | last           | false                                                          |

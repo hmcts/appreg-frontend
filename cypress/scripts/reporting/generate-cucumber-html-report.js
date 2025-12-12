@@ -1,6 +1,7 @@
-/* eslint-disable no-console */
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
+
+const logger = require('./logger');
 
 // Get browser from command line argument (chrome, edge, or undefined for combined)
 const browser = process.argv[2]; // 'chrome', 'edge', or undefined
@@ -16,15 +17,79 @@ const OUTPUT_DIR = browser
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'detailed-test-report.html');
 
 /**
- * Read and parse all Cucumber JSON files from multiple directories
+ * Get browser source from directory path
  */
-function readCucumberJsonFiles() {
-  // Search for cucumber-json directories based on browser parameter
-  let cucumberDirs;
+function getBrowserSource(dirPath) {
+  if (dirPath.includes('/chrome/')) {
+    return 'Chrome';
+  }
+  if (dirPath.includes('/edge/')) {
+    return 'Edge';
+  }
+  if (!browser) {
+    return 'Mixed';
+  }
+  return 'Unknown';
+}
 
+/**
+ * Parse a single JSON file and extract features
+ */
+function parseJsonFile(file, dirPath, browserSource) {
+  const filePath = path.join(dirPath, file);
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const data = JSON.parse(content);
+    const features = Array.isArray(data) ? data : [data];
+
+    // Add browser metadata to each feature for combined reports
+    if (!browser) {
+      features.forEach((feature) => {
+        feature._browserSource = browserSource;
+      });
+    }
+
+    logger.info(`  Parsed ${file}: ${features.length} features`);
+    return features;
+  } catch (error) {
+    logger.error(`  Error parsing ${file}:`, error.message);
+    return [];
+  }
+}
+
+/**
+ * Read JSON files from a single directory
+ */
+function readJsonFilesFromDirectory(dirPath) {
+  if (!fs.existsSync(dirPath)) {
+    logger.info(`Directory not found (skipping): ${dirPath}`);
+    return [];
+  }
+
+  logger.info(`\nReading Cucumber JSON files from: ${dirPath}`);
+
+  const browserSource = getBrowserSource(dirPath);
+  const files = fs
+    .readdirSync(dirPath)
+    .filter((file) => file.endsWith('.json'));
+
+  logger.info(`Found ${files.length} JSON files`);
+
+  const allFeatures = [];
+  files.forEach((file) => {
+    const features = parseJsonFile(file, dirPath, browserSource);
+    allFeatures.push(...features);
+  });
+
+  return allFeatures;
+}
+
+/**
+ * Get list of cucumber directories based on browser parameter
+ */
+function getCucumberDirectories() {
   if (browser === 'chrome') {
-    // Chrome-specific report: Only read from Chrome directories
-    cucumberDirs = [
+    return [
       path.join(
         __dirname,
         '../../functional-output/chrome/regression/cucumber-json',
@@ -37,106 +102,199 @@ function readCucumberJsonFiles() {
         __dirname,
         '../../functional-output/chrome/apiTests/cucumber-json',
       ),
-    ];
-  } else if (browser === 'edge') {
-    // Edge-specific report: Only read from Edge directories
-    cucumberDirs = [
-      path.join(
-        __dirname,
-        '../../functional-output/edge/regression/cucumber-json',
-      ),
-      path.join(__dirname, '../../functional-output/edge/smoke/cucumber-json'),
-      path.join(
-        __dirname,
-        '../../functional-output/edge/apiTests/cucumber-json',
-      ),
-    ];
-  } else {
-    // Combined report - read from all directories
-    cucumberDirs = [
-      path.join(__dirname, '../../functional-output/regression/cucumber-json'),
-      path.join(__dirname, '../../functional-output/smoke/cucumber-json'),
-      path.join(__dirname, '../../functional-output/merged/cucumber-json'),
-      path.join(
-        __dirname,
-        '../../functional-output/chrome/regression/cucumber-json',
-      ),
-      path.join(
-        __dirname,
-        '../../functional-output/chrome/smoke/cucumber-json',
-      ),
-      path.join(
-        __dirname,
-        '../../functional-output/chrome/apiTests/cucumber-json',
-      ),
-      path.join(
-        __dirname,
-        '../../functional-output/edge/regression/cucumber-json',
-      ),
-      path.join(__dirname, '../../functional-output/edge/smoke/cucumber-json'),
-      path.join(
-        __dirname,
-        '../../functional-output/edge/apiTests/cucumber-json',
-      ),
-      path.join(__dirname, '../../functional-output/apiTests/cucumber-json'),
     ];
   }
 
+  if (browser === 'edge') {
+    return [
+      path.join(
+        __dirname,
+        '../../functional-output/edge/regression/cucumber-json',
+      ),
+      path.join(__dirname, '../../functional-output/edge/smoke/cucumber-json'),
+      path.join(
+        __dirname,
+        '../../functional-output/edge/apiTests/cucumber-json',
+      ),
+    ];
+  }
+
+  // Combined report - read from all directories
+  return [
+    path.join(__dirname, '../../functional-output/regression/cucumber-json'),
+    path.join(__dirname, '../../functional-output/smoke/cucumber-json'),
+    path.join(__dirname, '../../functional-output/merged/cucumber-json'),
+    path.join(
+      __dirname,
+      '../../functional-output/chrome/regression/cucumber-json',
+    ),
+    path.join(
+      __dirname,
+      '../../functional-output/chrome/smoke/cucumber-json',
+    ),
+    path.join(
+      __dirname,
+      '../../functional-output/chrome/apiTests/cucumber-json',
+    ),
+    path.join(
+      __dirname,
+      '../../functional-output/edge/regression/cucumber-json',
+    ),
+    path.join(__dirname, '../../functional-output/edge/smoke/cucumber-json'),
+    path.join(
+      __dirname,
+      '../../functional-output/edge/apiTests/cucumber-json',
+    ),
+    path.join(__dirname, '../../functional-output/apiTests/cucumber-json'),
+  ];
+}
+
+/**
+ * Read and parse all Cucumber JSON files from multiple directories
+ */
+function readCucumberJsonFiles() {
+  const cucumberDirs = getCucumberDirectories();
   const allFeatures = [];
 
   cucumberDirs.forEach((dirPath) => {
-    if (!fs.existsSync(dirPath)) {
-      console.log(`Directory not found (skipping): ${dirPath}`);
-      return;
-    }
-
-    console.log(`\nReading Cucumber JSON files from: ${dirPath}`);
-
-    // Detect browser from path (for combined report)
-    let browserSource = 'Unknown';
-    if (dirPath.includes('/chrome/')) {
-      browserSource = 'Chrome';
-    } else if (dirPath.includes('/edge/')) {
-      browserSource = 'Edge';
-    } else if (!browser) {
-      // For legacy paths in combined report, mark as "Mixed"
-      browserSource = 'Mixed';
-    }
-
-    const files = fs
-      .readdirSync(dirPath)
-      .filter((file) => file.endsWith('.json'));
-
-    console.log(`Found ${files.length} JSON files`);
-
-    files.forEach((file) => {
-      const filePath = path.join(dirPath, file);
-      try {
-        const content = fs.readFileSync(filePath, 'utf8');
-        const data = JSON.parse(content);
-        // Handle both array and object formats
-        const features = Array.isArray(data) ? data : [data];
-
-        // Add browser metadata to each feature for combined reports
-        features.forEach((feature) => {
-          if (!browser) {
-            // Only add browser info for combined reports
-            feature._browserSource = browserSource;
-          }
-        });
-
-        allFeatures.push(...features);
-        console.log(`  Parsed ${file}: ${features.length} features`);
-      } catch (error) {
-        console.error(`  Error parsing ${file}:`, error.message);
-      }
-    });
+    const features = readJsonFilesFromDirectory(dirPath);
+    allFeatures.push(...features);
   });
 
-  console.log(
+  logger.info(
     `\nTotal features loaded from all directories: ${allFeatures.length}`,
   );
   return allFeatures;
+}
+
+/**
+ * Process a single step and extract data
+ */
+function processStep(step) {
+  const status = step.result ? step.result.status : 'skipped';
+  const duration = step.result ? step.result.duration : 0;
+  const durationInMs = duration / 1000000; // Convert nanoseconds to milliseconds
+  const errorMessage =
+    step.result && step.result.error_message ? step.result.error_message : null;
+
+  // Extract screenshots from embeddings
+  const screenshots = step.embeddings
+    ? step.embeddings
+        .filter((emb) => emb.mime_type === 'image/png')
+        .map((emb) => ({
+          data: emb.data,
+          mimeType: emb.mime_type,
+        }))
+    : [];
+
+  return {
+    keyword: step.keyword,
+    name: step.name,
+    status,
+    duration: durationInMs,
+    errorMessage,
+    screenshots,
+  };
+}
+
+/**
+ * Calculate scenario status based on steps
+ */
+function calculateScenarioStatus(steps) {
+  const failedSteps = steps.filter((s) => s.status === 'failed');
+  const skippedSteps = steps.filter((s) => s.status === 'skipped');
+
+  if (failedSteps.length > 0) {
+    return 'failed';
+  }
+  if (skippedSteps.length > 0) {
+    return 'skipped';
+  }
+  return 'passed';
+}
+
+/**
+ * Update statistics with scenario results
+ */
+function updateStats(stats, scenarioStatus, scenarioDuration) {
+  stats.total++;
+  if (scenarioStatus === 'passed') {
+    stats.passed++;
+  }
+  if (scenarioStatus === 'failed') {
+    stats.failed++;
+  }
+  if (scenarioStatus === 'skipped') {
+    stats.skipped++;
+  }
+  stats.totalDuration += scenarioDuration;
+}
+
+/**
+ * Process a single scenario
+ */
+function processScenario(scenario, feature, processedScenarios, stats, testsByFeature) {
+  const featureName = feature.name;
+  const scenarioName = scenario.name;
+
+  // Skip duplicate scenarios (same feature + scenario name)
+  const scenarioKey = `${featureName}::${scenarioName}`;
+  if (processedScenarios.has(scenarioKey)) {
+    logger.info(`  Skipping duplicate: ${scenarioKey}`);
+    return;
+  }
+  processedScenarios.add(scenarioKey);
+
+  // Process steps
+  const steps = scenario.steps.map(processStep);
+
+  // Calculate scenario status and duration
+  const scenarioStatus = calculateScenarioStatus(steps);
+  const scenarioDuration = steps.reduce((sum, step) => sum + step.duration, 0);
+
+  // Update stats
+  updateStats(stats, scenarioStatus, scenarioDuration);
+
+  // Add scenario to feature
+  testsByFeature.get(featureName).push({
+    name: scenarioName,
+    status: scenarioStatus,
+    duration: scenarioDuration,
+    steps,
+    browser: feature._browserSource || null,
+  });
+}
+
+/**
+ * Process a single feature
+ */
+function processFeature(feature, processedScenarios, stats, testsByFeature) {
+  const featureName = feature.name;
+
+  // Skip features without elements
+  if (!feature.elements || !Array.isArray(feature.elements)) {
+    return;
+  }
+
+  if (!testsByFeature.has(featureName)) {
+    testsByFeature.set(featureName, []);
+  }
+
+  feature.elements.forEach((scenario) => {
+    processScenario(scenario, feature, processedScenarios, stats, testsByFeature);
+  });
+}
+
+/**
+ * Log statistics
+ */
+function logStatistics(stats) {
+  logger.info('\nTest Statistics:');
+  logger.info(`Total: ${stats.total}`);
+  logger.info(`Passed: ${stats.passed}`);
+  logger.info(`Failed: ${stats.failed}`);
+  logger.info(`Skipped: ${stats.skipped}`);
+  logger.info(`Pass Rate: ${((stats.passed / stats.total) * 100).toFixed(2)}%`);
 }
 
 /**
@@ -152,104 +310,13 @@ function processFeatures(features) {
   };
 
   const testsByFeature = new Map();
-  const processedScenarios = new Set(); // Track scenarios to avoid duplicates
+  const processedScenarios = new Set();
 
   features.forEach((feature) => {
-    const featureName = feature.name;
-
-    // Skip features without elements
-    if (!feature.elements || !Array.isArray(feature.elements)) {
-      return;
-    }
-
-    if (!testsByFeature.has(featureName)) {
-      testsByFeature.set(featureName, []);
-    }
-
-    feature.elements.forEach((scenario) => {
-      const scenarioName = scenario.name;
-
-      // Skip duplicate scenarios (same feature + scenario name)
-      const scenarioKey = `${featureName}::${scenarioName}`;
-      if (processedScenarios.has(scenarioKey)) {
-        console.log(`  Skipping duplicate: ${scenarioKey}`);
-        return;
-      }
-      processedScenarios.add(scenarioKey);
-
-      // Process steps
-      const steps = scenario.steps.map((step) => {
-        const status = step.result ? step.result.status : 'skipped';
-        const duration = step.result ? step.result.duration : 0;
-        const errorMessage =
-          step.result && step.result.error_message
-            ? step.result.error_message
-            : null;
-
-        // Extract screenshots from embeddings
-        const screenshots = step.embeddings
-          ? step.embeddings
-              .filter((emb) => emb.mime_type === 'image/png')
-              .map((emb) => ({
-                data: emb.data,
-                mimeType: emb.mime_type,
-              }))
-          : [];
-
-        return {
-          keyword: step.keyword,
-          name: step.name,
-          status,
-          duration: duration / 1000000, // Convert nanoseconds to milliseconds
-          errorMessage,
-          screenshots,
-        };
-      });
-
-      // Calculate scenario status and duration
-      const failedSteps = steps.filter((s) => s.status === 'failed');
-      const skippedSteps = steps.filter((s) => s.status === 'skipped');
-      let scenarioStatus = 'passed';
-      if (failedSteps.length > 0) {
-        scenarioStatus = 'failed';
-      } else if (skippedSteps.length > 0) {
-        scenarioStatus = 'skipped';
-      }
-
-      const scenarioDuration = steps.reduce(
-        (sum, step) => sum + step.duration,
-        0,
-      );
-
-      // Update stats
-      stats.total++;
-      if (scenarioStatus === 'passed') {
-        stats.passed++;
-      }
-      if (scenarioStatus === 'failed') {
-        stats.failed++;
-      }
-      if (scenarioStatus === 'skipped') {
-        stats.skipped++;
-      }
-      stats.totalDuration += scenarioDuration;
-
-      testsByFeature.get(featureName).push({
-        name: scenarioName,
-        status: scenarioStatus,
-        duration: scenarioDuration,
-        steps,
-        browser: feature._browserSource || null, // Add browser source for combined reports
-      });
-    });
+    processFeature(feature, processedScenarios, stats, testsByFeature);
   });
 
-  console.log('\nTest Statistics:');
-  console.log(`Total: ${stats.total}`);
-  console.log(`Passed: ${stats.passed}`);
-  console.log(`Failed: ${stats.failed}`);
-  console.log(`Skipped: ${stats.skipped}`);
-  console.log(`Pass Rate: ${((stats.passed / stats.total) * 100).toFixed(2)}%`);
+  logStatistics(stats);
 
   return { stats, testsByFeature };
 }
@@ -897,13 +964,13 @@ function generateStepsHTML(steps) {
  * Main execution
  */
 function main() {
-  console.log('\n=== Generating Detailed Cucumber HTML Report ===\n');
+  logger.info('\n=== Generating Detailed Cucumber HTML Report ===\n');
 
   // Read Cucumber JSON files
   const features = readCucumberJsonFiles();
 
   if (features.length === 0) {
-    console.error('No features found in Cucumber JSON files');
+    logger.error('No features found in Cucumber JSON files');
     process.exit(1);
   }
 
@@ -921,9 +988,9 @@ function main() {
   // Write HTML file
   fs.writeFileSync(OUTPUT_FILE, html);
 
-  console.log('\n✅ Report generated successfully!');
-  console.log(`📄 Report location: ${OUTPUT_FILE}`);
-  console.log('\n=== Report Generation Complete ===\n');
+  logger.info('\n✅ Report generated successfully!');
+  logger.info(`📄 Report location: ${OUTPUT_FILE}`);
+  logger.info('\n=== Report Generation Complete ===\n');
 }
 
 // Run the script

@@ -2,6 +2,8 @@ const fs = require('fs');
 
 const reporter = require('multiple-cucumber-html-reporter');
 
+const logger = require('./logger');
+
 // Function to check if JSON files are valid cucumber format
 function hasValidCucumberJson(dir) {
   if (!fs.existsSync(dir)) {
@@ -25,9 +27,8 @@ function hasValidCucumberJson(dir) {
       ) {
         return true;
       }
-      // eslint-disable-next-line no-unused-vars
-    } catch (err) {
-      // Skip invalid JSON files
+    } catch (error) {
+      logger.warn(`Skipping invalid JSON file: ${file} - ${error.message}`);
     }
   }
   return false;
@@ -39,12 +40,10 @@ let jsonDir = 'cypress/reports/cucumber-json';
 // Skip HTML report generation for parallel runs (JUnit XML is sufficient)
 // Parallel runs create merged/large JSON files that can cause issues
 if (fs.existsSync('runner-results')) {
-  // eslint-disable-next-line no-console
-  console.log(
+  logger.info(
     '✓ Parallel execution detected. Skipping cucumber HTML report generation.',
   );
-  // eslint-disable-next-line no-console
-  console.log(
+  logger.info(
     '  JUnit XML reports are available in functional-output/*/junit/',
   );
   process.exit(0);
@@ -52,20 +51,16 @@ if (fs.existsSync('runner-results')) {
 
 // Check for valid cucumber JSON in different directories
 if (hasValidCucumberJson('.jsons')) {
-  // eslint-disable-next-line no-console
-  console.log('Using .jsons directory for report generation');
+  logger.info('Using .jsons directory for report generation');
   jsonDir = '.jsons';
 } else if (hasValidCucumberJson('cypress/reports/cucumber-json')) {
-  // eslint-disable-next-line no-console
-  console.log('Using default cypress/reports/cucumber-json directory');
+  logger.info('Using default cypress/reports/cucumber-json directory');
   jsonDir = 'cypress/reports/cucumber-json';
 } else {
-  // eslint-disable-next-line no-console
-  console.warn(
+  logger.warn(
     'No valid cucumber JSON files found. Skipping HTML report generation.',
   );
-  // eslint-disable-next-line no-console
-  console.log('Note: JUnit XML reports are still available for Jenkins.');
+  logger.info('Note: JUnit XML reports are still available for Jenkins.');
   process.exit(0);
 }
 
@@ -77,7 +72,7 @@ try {
     pageTitle: 'AppReg Test Results',
     displayDuration: true,
     screenshotsDirectory: './cypress/reports/html/screenshots',
-    customStyle: 'cypress/scripts/custom.css',
+    customStyle: 'cypress/scripts/styles/custom.css',
     metadata: {
       browser: {
         name: 'chrome',
@@ -103,13 +98,10 @@ try {
       ],
     },
   });
-  // eslint-disable-next-line no-console
-  console.log('✓ Cucumber HTML report generated successfully');
+  logger.info('✓ Cucumber HTML report generated successfully');
 } catch (error) {
-  // eslint-disable-next-line no-console
-  console.error('Error generating cucumber HTML report:', error.message);
-  // eslint-disable-next-line no-console
-  console.log('Note: JUnit XML reports are still available for Jenkins.');
+  logger.error('Error generating cucumber HTML report:', error.message);
+  logger.info('Note: JUnit XML reports are still available for Jenkins.');
   // Don't fail the build if report generation fails
   process.exit(0);
 }
