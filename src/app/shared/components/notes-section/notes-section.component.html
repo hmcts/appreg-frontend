@@ -1,0 +1,48 @@
+<div class="govuk-grid-row" [formGroup]="form()">
+  <!-- Case reference -->
+  <app-text-input
+    formControlName="caseReference"
+    label="Case reference"
+    hint="Enter the unique case reference, for example CR-2025-00123"
+    idPrefix="case-reference"
+  />
+
+  <!-- Account reference -->
+  <app-text-input
+    formControlName="accountReference"
+    label="Account reference"
+    hint="Enter the associated account reference, for example AC-987654"
+    idPrefix="account-reference"
+  />
+</div>
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <!-- Application details -->
+    <label class="govuk-label govuk-label--m" for="application-details">
+      Application details
+    </label>
+    <div id="application-details-hint" class="govuk-hint">
+      Provide any additional information about the application (for example
+      special requirements or notes). Do not include sensitive personal data.
+    </div>
+
+    <app-govuk-textarea
+      [control]="form().controls.notes"
+      [id]="'application-details'"
+      [name]="'applicationDetails'"
+      [ariaDescribedBy]="'application-details-hint'"
+      [rows]="5"
+      [maxCharacterLimit]="4000"
+      [characterCountEnabled]="true"
+      [isInvalid]="
+        form().controls.notes.invalid &&
+        (form().controls.notes.dirty || form().controls.notes.touched)
+      "
+    />
+  </div>
+</div>

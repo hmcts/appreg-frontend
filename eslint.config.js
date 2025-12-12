@@ -107,6 +107,18 @@ module.exports = defineConfig([
       ],
       'jest/prefer-to-have-length': 'error',
       'jest/valid-expect': 'off',
+      'import/no-unresolved': [
+        'error',
+        {
+          ignore: [
+            '^@components/',
+            '^@services/',
+            '^@page-types/',
+            '^@util/',
+            '^@openapi',
+          ],
+        },
+      ],
     },
   },
 
@@ -276,6 +288,15 @@ module.exports = defineConfig([
           caughtErrorsIgnorePattern: '^_',
         },
       ],
+    },
+  },
+
+  // Generated files (allow any)
+  {
+    files: ['src/generated/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
     },
   },
 

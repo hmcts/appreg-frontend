@@ -227,40 +227,7 @@
   </ng-template>
 
   <ng-template #notesTpl>
-    <div class="govuk-grid-row">
-      <!-- Case reference -->
-      <app-text-input
-        formControlName="caseReference"
-        label="Case reference"
-        hint="Enter the unique case reference, for example CR-2025-00123"
-        idPrefix="case-reference"
-      >
-      </app-text-input>
-
-      <!-- Account reference -->
-      <app-text-input
-        formControlName="accountReference"
-        label="Account reference"
-        hint="Enter the associated account reference, for example AC-987654"
-        idPrefix="account-reference"
-      >
-      </app-text-input>
-    </div>
-
-    <hr
-      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
-    />
-
-    <div class="govuk-grid-row">
-      <!-- Application details -->
-      <app-text-input
-        formControlName="applicationDetails"
-        label="Application details"
-        hint="Provide any additional information about the application (for example special requirements or notes). Do not include sensitive personal data."
-        idPrefix="application-details"
-      >
-      </app-text-input>
-    </div>
+    <app-notes-section [form]="form.controls.applicationNotes" />
   </ng-template>
 
   <ng-template #resultWordingTpl>

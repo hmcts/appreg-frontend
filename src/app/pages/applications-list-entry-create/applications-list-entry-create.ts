@@ -10,16 +10,38 @@ Functionality:
 
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import {
   ControlContainer,
   FormControl,
   FormGroup,
   FormGroupDirective,
   ReactiveFormsModule,
+  Validators,
 } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 
+import { buildEntryCreateDto } from './util/entry-create-mapper';
+import { toOptionalTrimmed } from './util/helpers';
+
+import { AccordionComponent } from '@components/accordion/accordion.component';
+import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
+import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
+import { DateInputComponent } from '@components/date-input/date-input.component';
+import {
+  ErrorItem,
+  ErrorSummaryComponent,
+} from '@components/error-summary/error-summary.component';
+import {
+  ApplicationNotesForm,
+  NotesSectionComponent,
+} from '@components/notes-section/notes-section.component';
+import { OrganisationSectionComponent } from '@components/organisation-section/organisation-section.component';
+import { PersonSectionComponent } from '@components/person-section/person-section.component';
+import { SelectInputComponent } from '@components/select-input/select-input.component';
+import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
+import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
+import { TextInputComponent } from '@components/text-input/text-input.component';
 import {
   Applicant,
   ApplicationCodeGetSummaryDto,
@@ -27,37 +49,23 @@ import {
   EntryCreateDto,
   FeeStatus,
   Respondent,
-} from '../../../generated/openapi';
-import { AccordionComponent } from '../../shared/components/accordion/accordion.component';
-import { ApplicationCodeSearchComponent } from '../../shared/components/application-codes-search/application-codes-search.component';
-import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
-import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
+} from '@openapi';
+import { ApplicantStep } from '@page-types/applications-list-entry-create';
 import {
-  ErrorItem,
-  ErrorSummaryComponent,
-} from '../../shared/components/error-summary/error-summary.component';
-import { OrganisationSectionComponent } from '../../shared/components/organisation-section/organisation-section.component';
-import { PersonSectionComponent } from '../../shared/components/person-section/person-section.component';
-import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
-import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
-import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
-import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
+  ApplicantType,
+  ApplicationsListEntryCreateForm,
+  OrganisationForm,
+  PersonForm,
+  RespondentEntryType,
+} from '@shared-types/applications-list-entry-create/application-list-entry-create-form';
 import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
-} from '../../shared/util/error-click';
-import { getProblemText } from '../../shared/util/http-error-to-text';
-import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
+} from '@util/error-click';
+import { getProblemText } from '@util/http-error-to-text';
+import { MojButtonMenuDirective } from '@util/moj-button-menu';
 
-import {
-  compactStrings,
-  hasRequiredOrg,
-  hasRequiredPerson,
-  makeContactDetails,
-  pruneNullish,
-  toOptionalTrimmed,
-} from './util/helpers';
-import { ApplicantStep } from './util/types';
+const ALPHANUMERIC_REGEX = '^[A-Za-z0-9-]*$';
 
 @Component({
   selector: 'app-applications-list-entry-create',
@@ -82,6 +90,7 @@ import { ApplicantStep } from './util/types';
     DateInputComponent,
     PersonSectionComponent,
     OrganisationSectionComponent,
+    NotesSectionComponent,
   ],
   viewProviders: [
     { provide: ControlContainer, useExisting: FormGroupDirective },
@@ -89,6 +98,9 @@ import { ApplicantStep } from './util/types';
   templateUrl: './applications-list-entry-create.html',
 })
 export class ApplicationsListEntryCreate implements OnInit {
+  route = inject(ActivatedRoute);
+  appEntryApi = inject(ApplicationListEntriesApi);
+
   id: string = '';
   step: ApplicantStep = 'select';
 
@@ -100,15 +112,8 @@ export class ApplicationsListEntryCreate implements OnInit {
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
 
-  constructor(
-    private readonly route: ActivatedRoute,
-    private readonly appEntryApi: ApplicationListEntriesApi,
-  ) {}
-
-  form = new FormGroup({
-    applicantType: new FormControl<'person' | 'org' | 'standard'>('org', {
-      nonNullable: true,
-    }),
+  form: ApplicationsListEntryCreateForm = new FormGroup({
+    applicantType: new FormControl<ApplicantType>('org', { nonNullable: true }),
     applicant: new FormControl<Applicant | null>(null),
     standardApplicantCode: new FormControl<string | null>(null),
     applicationCode: new FormControl<string | null>(null),
@@ -117,13 +122,29 @@ export class ApplicationsListEntryCreate implements OnInit {
     wordingFields: new FormControl<string[] | null>(null),
     feeStatuses: new FormControl<FeeStatus[] | null>(null),
     hasOffsiteFee: new FormControl<boolean | null>(null),
-    caseReference: new FormControl<string | null>(null),
-    accountNumber: new FormControl<string | null>(null),
-    notes: new FormControl<string | null>(null),
+    applicationNotes: new FormGroup({
+      notes: new FormControl<string | null>(null, {
+        validators: [Validators.maxLength(4000)],
+      }),
+      caseReference: new FormControl<string | null>(null, {
+        validators: [
+          Validators.maxLength(15),
+          Validators.pattern(ALPHANUMERIC_REGEX),
+        ],
+      }),
+      accountReference: new FormControl<string | null>(null, {
+        validators: [
+          Validators.maxLength(20),
+          Validators.pattern(ALPHANUMERIC_REGEX),
+        ],
+      }),
+    }) as ApplicationNotesForm,
     lodgementDate: new FormControl<string | null>(null),
-    respondentEntryType: new FormControl<'person' | 'organisation'>(
+    respondentEntryType: new FormControl<RespondentEntryType | null>(
       'organisation',
-      { nonNullable: true },
+      {
+        nonNullable: true,
+      },
     ),
     courtName: new FormControl<string | null>(null),
     organisationName: new FormControl<string | null>(null),
@@ -147,33 +168,33 @@ export class ApplicationsListEntryCreate implements OnInit {
     officialSurname: new FormControl<string | null>(null),
   });
 
-  personForm = new FormGroup({
-    title: new FormControl<string>(''),
+  personForm: PersonForm = new FormGroup({
+    title: new FormControl<string | null>(null),
     firstName: new FormControl<string>('', { nonNullable: true }),
     middleNames: new FormControl<string>('', { nonNullable: true }),
-    surname: new FormControl<string>(''),
+    surname: new FormControl<string | null>(null),
     addressLine1: new FormControl<string>('', { nonNullable: true }),
-    addressLine2: new FormControl<string>(''),
-    addressLine3: new FormControl<string>(''),
-    addressLine4: new FormControl<string>(''),
-    addressLine5: new FormControl<string>(''),
-    postcode: new FormControl<string>(''),
-    phoneNumber: new FormControl<string>(''),
-    mobileNumber: new FormControl<string>(''),
-    emailAddress: new FormControl<string>(''),
+    addressLine2: new FormControl<string>('', { nonNullable: true }),
+    addressLine3: new FormControl<string>('', { nonNullable: true }),
+    addressLine4: new FormControl<string>('', { nonNullable: true }),
+    addressLine5: new FormControl<string>('', { nonNullable: true }),
+    postcode: new FormControl<string | null>(null),
+    phoneNumber: new FormControl<string | null>(null),
+    mobileNumber: new FormControl<string | null>(null),
+    emailAddress: new FormControl<string | null>(null),
   });
 
-  organisationForm = new FormGroup({
+  organisationForm: OrganisationForm = new FormGroup({
     name: new FormControl<string>('', { nonNullable: true }),
     addressLine1: new FormControl<string>('', { nonNullable: true }),
-    addressLine2: new FormControl<string>(''),
-    addressLine3: new FormControl<string>(''),
-    addressLine4: new FormControl<string>(''),
-    addressLine5: new FormControl<string>(''),
-    postcode: new FormControl<string>(''),
-    phoneNumber: new FormControl<string>(''),
-    mobileNumber: new FormControl<string>(''),
-    emailAddress: new FormControl<string>(''),
+    addressLine2: new FormControl<string>('', { nonNullable: true }),
+    addressLine3: new FormControl<string>('', { nonNullable: true }),
+    addressLine4: new FormControl<string>('', { nonNullable: true }),
+    addressLine5: new FormControl<string>('', { nonNullable: true }),
+    postcode: new FormControl<string | null>(null),
+    phoneNumber: new FormControl<string | null>(null),
+    mobileNumber: new FormControl<string | null>(null),
+    emailAddress: new FormControl<string | null>(null),
   });
 
   applicantOptions = [
@@ -237,140 +258,148 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private buildEntryCreateDto(): EntryCreateDto {
-    const v = this.form.value;
-
-    const dto: Partial<EntryCreateDto> = {
-      applicationCode: toOptionalTrimmed(v.applicationCode)!,
-      respondent: this.buildRespondent() ?? undefined,
-      numberOfRespondents: v.numberOfRespondents ?? undefined,
-      wordingFields: this.buildWordingFields() ?? undefined,
-      feeStatuses: this.buildFeeStatuses() ?? undefined,
-      hasOffsiteFee: v.hasOffsiteFee ?? undefined,
-      caseReference: toOptionalTrimmed(v.caseReference),
-      accountNumber: toOptionalTrimmed(v.accountNumber),
-      notes: toOptionalTrimmed(v.notes),
-      lodgementDate: toOptionalTrimmed(v.lodgementDate),
-    };
-
-    if (v.applicantType === 'standard') {
-      dto.standardApplicantCode = toOptionalTrimmed(v.standardApplicantCode);
-    } else {
-      dto.applicant = this.buildApplicant() ?? undefined;
-    }
-
-    pruneNullish(dto);
-    return dto as EntryCreateDto;
+    return buildEntryCreateDto(
+      this.form.getRawValue(),
+      this.personForm.getRawValue(),
+      this.organisationForm.getRawValue(),
+    );
   }
 
-  private buildApplicant(): Applicant | undefined {
-    const type = this.form.value.applicantType;
+  // private buildEntryCreateDto(): EntryCreateDto {
+  //   const v = this.form.getRawValue();
 
-    if (type === 'person') {
-      const pf = this.personForm.value;
-      if (!hasRequiredPerson(pf)) {
-        return undefined;
-      }
+  //   const dto: Partial<EntryCreateDto> = {
+  //     applicationCode: toOptionalTrimmed(v.applicationCode)!,
+  //     respondent: this.buildRespondent() ?? undefined,
+  //     numberOfRespondents: v.numberOfRespondents ?? undefined,
+  //     wordingFields: this.buildWordingFields() ?? undefined,
+  //     feeStatuses: this.buildFeeStatuses() ?? undefined,
+  //     hasOffsiteFee: v.hasOffsiteFee ?? undefined,
+  //     caseReference: toOptionalTrimmed(v.applicationNotes.caseReference),
+  //     accountNumber: toOptionalTrimmed(v.applicationNotes.accountReference),
+  //     notes: toOptionalTrimmed(v.applicationNotes.notes),
+  //     lodgementDate: toOptionalTrimmed(v.lodgementDate),
+  //   };
 
-      const first = pf.firstName!.trim();
-      const sur = pf.surname!.trim();
+  //   if (v.applicantType === 'standard') {
+  //     dto.standardApplicantCode = toOptionalTrimmed(v.standardApplicantCode);
+  //   } else {
+  //     dto.applicant = this.buildApplicant() ?? undefined;
+  //   }
 
-      return {
-        person: {
-          name: {
-            title: toOptionalTrimmed(pf.title),
-            firstForename: first,
-            secondForename: toOptionalTrimmed(pf.middleNames),
-            surname: sur,
-          },
-          contactDetails: makeContactDetails(pf),
-        },
-      };
-    }
+  //   pruneNullish(dto);
+  //   return dto as EntryCreateDto;
+  // }
 
-    if (type === 'org') {
-      const of = this.organisationForm.value;
+  // private buildApplicant(): Applicant | undefined {
+  //   const type = this.form.getRawValue().applicantType;
 
-      if (!hasRequiredOrg(of)) {
-        return undefined;
-      }
+  //   if (type === 'person') {
+  //     const pf = this.personForm.getRawValue();
+  //     if (!hasRequiredPerson(pf)) {
+  //       return undefined;
+  //     }
 
-      return {
-        organisation: {
-          name: of.name!.trim(),
-          contactDetails: makeContactDetails(of),
-        },
-      };
-    }
+  //     const first = pf.firstName.trim();
+  //     const sur = pf.surname?.trim() || '';
 
-    return undefined;
-  }
+  //     return {
+  //       person: {
+  //         name: {
+  //           title: toOptionalTrimmed(pf.title),
+  //           firstForename: first,
+  //           secondForename: toOptionalTrimmed(pf.middleNames),
+  //           surname: sur,
+  //         },
+  //         contactDetails: makeContactDetails(pf),
+  //       },
+  //     };
+  //   }
 
-  private buildRespondent(): Respondent | undefined {
-    const t = this.form.value.respondentEntryType;
-    if (!t) {
-      return undefined;
-    }
+  //   if (type === 'org') {
+  //     const of = this.organisationForm.value;
 
-    if (t === 'person') {
-      const pf = this.personForm.value;
-      if (!hasRequiredPerson(pf)) {
-        return undefined;
-      }
+  //     if (!hasRequiredOrg(of)) {
+  //       return undefined;
+  //     }
 
-      const first = pf.firstName!.trim();
-      const sur = pf.surname!.trim();
+  //     return {
+  //       organisation: {
+  //         name: of.name!.trim(),
+  //         contactDetails: makeContactDetails(of),
+  //       },
+  //     };
+  //   }
 
-      return {
-        person: {
-          name: {
-            title: toOptionalTrimmed(pf.title),
-            firstForename: first,
-            secondForename: toOptionalTrimmed(pf.middleNames),
-            surname: sur,
-          },
-          contactDetails: makeContactDetails(pf),
-        },
-      };
-    }
+  //   return undefined;
+  // }
 
-    if (t === 'organisation') {
-      const of = this.organisationForm.value;
-      if (!hasRequiredOrg(of)) {
-        return undefined;
-      }
+  // private buildRespondent(): Respondent | undefined {
+  //   const t = this.form.value.respondentEntryType;
+  //   if (!t) {
+  //     return undefined;
+  //   }
 
-      return {
-        organisation: {
-          name: of.name!.trim(),
-          contactDetails: makeContactDetails(of),
-        },
-      };
-    }
+  //   if (t === 'person') {
+  //     const pf = this.personForm.value;
+  //     if (!hasRequiredPerson(pf)) {
+  //       return undefined;
+  //     }
 
-    return undefined;
-  }
+  //     const first = pf.firstName!.trim();
+  //     const sur = pf.surname!.trim();
 
-  private buildFeeStatuses(): FeeStatus[] | undefined {
-    const paymentStatus = toOptionalTrimmed(this.form.value.feeStatus);
-    const statusDate = toOptionalTrimmed(this.form.value.feeStatusDate);
-    const paymentRef = toOptionalTrimmed(this.form.value.paymentRef);
+  //     return {
+  //       person: {
+  //         name: {
+  //           title: toOptionalTrimmed(pf.title),
+  //           firstForename: first,
+  //           secondForename: toOptionalTrimmed(pf.middleNames),
+  //           surname: sur,
+  //         },
+  //         contactDetails: makeContactDetails(pf),
+  //       },
+  //     };
+  //   }
 
-    if (!paymentStatus && !statusDate && !paymentRef) {
-      return undefined;
-    }
+  //   if (t === 'organisation') {
+  //     const of = this.organisationForm.value;
+  //     if (!hasRequiredOrg(of)) {
+  //       return undefined;
+  //     }
 
-    const item = {
-      paymentStatus,
-      statusDate,
-      paymentReference: paymentRef,
-    } as FeeStatus;
+  //     return {
+  //       organisation: {
+  //         name: of.name!.trim(),
+  //         contactDetails: makeContactDetails(of),
+  //       },
+  //     };
+  //   }
 
-    return [item];
-  }
+  //   return undefined;
+  // }
 
-  private buildWordingFields(): string[] | undefined {
-    const courtName = toOptionalTrimmed(this.form.value.courtName);
-    const orgName = toOptionalTrimmed(this.form.value.organisationName);
-    return compactStrings([courtName, orgName]);
-  }
+  // private buildFeeStatuses(): FeeStatus[] | undefined {
+  //   const paymentStatus = toOptionalTrimmed(this.form.value.feeStatus);
+  //   const statusDate = toOptionalTrimmed(this.form.value.feeStatusDate);
+  //   const paymentRef = toOptionalTrimmed(this.form.value.paymentRef);
+
+  //   if (!paymentStatus && !statusDate && !paymentRef) {
+  //     return undefined;
+  //   }
+
+  //   const item = {
+  //     paymentStatus,
+  //     statusDate,
+  //     paymentReference: paymentRef,
+  //   } as FeeStatus;
+
+  //   return [item];
+  // }
+
+  // private buildWordingFields(): string[] | undefined {
+  //   const courtName = toOptionalTrimmed(this.form.value.courtName);
+  //   const orgName = toOptionalTrimmed(this.form.value.organisationName);
+  //   return compactStrings([courtName, orgName]);
+  // }
 }

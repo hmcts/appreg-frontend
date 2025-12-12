@@ -13,7 +13,18 @@
     "target": "ES2022",
     "module": "preserve",
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": "./",
+    "paths": {
+      "@components/*": [
+        "src/app/shared/components/*",
+        "src/app/core/components/*"
+      ],
+      "@util/*": ["src/app/shared/util/*"],
+      "@openapi": ["src/generated/openapi"],
+      "@page-types/*": ["src/app/pages/*/util/types"],
+      "@shared-types/*": ["src/app/shared/models/*"]
+    }
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
