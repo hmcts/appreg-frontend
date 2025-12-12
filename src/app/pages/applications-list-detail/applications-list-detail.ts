@@ -31,6 +31,7 @@ import {
   ApplicationListUpdateDto,
   ApplicationListsApi,
 } from '../../../generated/openapi';
+import { FormRaw } from '../../core/models/forms/forms.types';
 import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
@@ -68,12 +69,11 @@ import {
 } from '../../shared/util/moj-button-menu';
 import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
 import { parseTimeToDuration } from '../../shared/util/time-helpers';
-import type {
+import {
   DateControlErrors,
   DurationControlErrors,
-  FormRaw,
   TimeControlErrors,
-} from '../../shared/util/types/application-list/types';
+} from '../../shared/util/types/applications-list-entry/types';
 
 type DetailFormRaw = Omit<
   FormRaw<ApplicationListStatus>,

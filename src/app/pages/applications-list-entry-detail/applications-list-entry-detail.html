@@ -19,14 +19,14 @@
     targetId="codes-table"
     data-component="error-summary"
     (itemSelect)="onErrorItemClick($event)"
-  ></app-error-summary>
+  />
 }
 
 @if (successBanner) {
   <app-success-banner
     [heading]="successBanner.heading"
     [body]="successBanner.body"
-  ></app-success-banner>
+  />
 
   <!-- If your banner body doesn't support HTML links, render a link just under it -->
   @if (successBanner.link) {
@@ -58,23 +58,39 @@
         <app-person-section
           [group]="personGroup"
           [titleOptions]="personTitleOptions"
-        >
-        </app-person-section>
+          [submitted]="formSubmitted"
+          [errors]="personFieldErrors"
+        />
       }
       @case ('organisation') {
-        <app-organisation-section [group]="organisationGroup">
-        </app-organisation-section>
+        <app-organisation-section
+          [group]="organisationGroup"
+          [submitted]="formSubmitted"
+          [errors]="organisationFieldErrors"
+        />
       }
       @case ('standardApplicant') {
-        <app-sortable-table
-          id="sortable-table"
-          caption="Lists"
-          [columns]="applicantColumns"
-          appMojButtonMenu
-        >
-        </app-sortable-table>
+        <app-standard-applicant-select
+          [selectedCode]="selectedStandardApplicantCode"
+          (selectedCodeChange)="selectedStandardApplicantCode = $event"
+        />
       }
     }
+
+    <hr
+      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+    />
+
+    <button
+      type="button"
+      class="govuk-button"
+      id="btn-update-applicant"
+      [attr.data-applicant-type]="applicantType"
+      [disabled]="isUpdateDisabled"
+      (click)="onUpdateApplicant()"
+    >
+      Update applicant
+    </button>
   </ng-template>
 
   <ng-template #codesTpl>
@@ -87,8 +103,7 @@
         idPrefix="lodgement-date"
         [submitted]="formSubmitted"
         [isSearch]="true"
-      >
-      </app-date-input>
+      />
 
       <!-- Application code -->
       <app-text-input
@@ -96,8 +111,7 @@
         label="Application code"
         hint="The code for the application e.g. APP-12345"
         idPrefix="application-code"
-      >
-      </app-text-input>
+      />
 
       <!-- Application title -->
       <app-text-input
@@ -105,8 +119,7 @@
         label="Application title"
         hint="Enter a concise title for this application"
         idPrefix="application-title"
-      >
-      </app-text-input>
+      />
     </div>
 
     <div class="govuk-button-group">
@@ -124,8 +137,7 @@
         <app-notification-banner
           heading="No codes found"
           body="Try different filters, or retry the search."
-        >
-        </app-notification-banner>
+        />
       } @else {
         <app-sortable-table
           id="codes-table"
@@ -159,8 +171,7 @@
         label="Court name"
         hint="Enter the official name of the court"
         idPrefix="court-name"
-      >
-      </app-text-input>
+      />
 
       <!-- Organisation name -->
       <app-text-input
@@ -168,8 +179,7 @@
         label="Organisation name"
         hint="Enter the legal name of the organisation"
         idPrefix="organisation-name"
-      >
-      </app-text-input>
+      />
     </div>
   </ng-template>
 
@@ -182,8 +192,7 @@
         hint="The type of respondant for this application"
         idPrefix="respondent-entry-type"
         [options]="respondentEntryTypeOptions"
-      >
-      </app-select-input>
+      />
     </div>
 
     <hr
@@ -191,16 +200,16 @@
     />
 
     @switch (form.get('respondentEntryType')?.value) {
-      @case ('Person') {
+      @case ('person') {
         <app-person-section
           [group]="personGroup"
           [titleOptions]="personTitleOptions"
-        >
-        </app-person-section>
+          [submitted]="formSubmitted"
+          [errors]="personFieldErrors"
+        />
       }
-      @case ('Organisation') {
-        <app-organisation-section [group]="organisationGroup">
-        </app-organisation-section>
+      @case ('organisation') {
+        <app-organisation-section [group]="organisationGroup" />
       }
     }
   </ng-template>
@@ -211,8 +220,7 @@
       caption="Fee Reference: CO9.2 — Amount: £75.00"
       [columns]="civilFeeColumns"
       appMojButtonMenu
-    >
-    </app-sortable-table>
+    />
 
     <hr
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
@@ -228,8 +236,7 @@
         hint="Select the status of the fee to be paid"
         idPrefix="fee-status"
         [options]="feeStatusOptions"
-      >
-      </app-select-input>
+      />
 
       <!-- Status date -->
       <app-date-input
@@ -238,8 +245,7 @@
         hint="For example, 15 5 2025"
         idPrefix="fee-status-date"
         [submitted]="formSubmitted"
-      >
-      </app-date-input>
+      />
 
       <!-- Payment reference -->
       <app-text-input
@@ -247,8 +253,7 @@
         label="Payment reference"
         hint="Enter the unique reference assigned to this payment"
         idPrefix="payment-ref"
-      >
-      </app-text-input>
+      />
     </div>
   </ng-template>
 
@@ -260,8 +265,7 @@
         label="Case reference"
         hint="Enter the unique case reference, for example CR-2025-00123"
         idPrefix="case-reference"
-      >
-      </app-text-input>
+      />
 
       <!-- Account reference -->
       <app-text-input
@@ -269,8 +273,7 @@
         label="Account reference"
         hint="Enter the associated account reference, for example AC-987654"
         idPrefix="account-reference"
-      >
-      </app-text-input>
+      />
     </div>
 
     <hr
@@ -284,8 +287,7 @@
         label="Application details"
         hint="Provide any additional information about the application (for example special requirements or notes). Do not include sensitive personal data."
         idPrefix="application-details"
-      >
-      </app-text-input>
+      />
     </div>
   </ng-template>
 
@@ -295,8 +297,7 @@
       caption="Result wording"
       [columns]="resultWordingColumns"
       appMojButtonMenu
-    >
-    </app-sortable-table>
+    />
 
     <hr
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
@@ -308,8 +309,7 @@
         label="Result code"
         hint="Start typing to search for a result code"
         idPrefix="result-code"
-      >
-      </app-text-input>
+      />
     </div>
   </ng-template>
 
@@ -323,24 +323,21 @@
         hint="The magistrate’s formal title"
         idPrefix="mags1-title"
         [options]="personTitleOptions"
-      >
-      </app-select-input>
+      />
 
       <app-text-input
         formControlName="mags1FirstName"
         label="Magistrate’s first name"
         hint="Enter the magistrate’s given name"
         idPrefix="mags1-first-name"
-      >
-      </app-text-input>
+      />
 
       <app-text-input
         formControlName="mags1Surname"
         label="Magistrate’s surname"
         hint="Enter the magistrate’s family name"
         idPrefix="mags1-surname"
-      >
-      </app-text-input>
+      />
     </div>
 
     <hr
@@ -356,24 +353,21 @@
         hint="The magistrate’s formal title"
         idPrefix="mags2-title"
         [options]="personTitleOptions"
-      >
-      </app-select-input>
+      />
 
       <app-text-input
         formControlName="mags2FirstName"
         label="Magistrate’s first name"
         hint="Enter the magistrate’s given name"
         idPrefix="mags2-first-name"
-      >
-      </app-text-input>
+      />
 
       <app-text-input
         formControlName="mags2Surname"
         label="Magistrate’s surname"
         hint="Enter the magistrate’s family name"
         idPrefix="mags2-surname"
-      >
-      </app-text-input>
+      />
     </div>
 
     <hr
@@ -389,24 +383,21 @@
         hint="The magistrate’s formal title"
         idPrefix="mags3-title"
         [options]="personTitleOptions"
-      >
-      </app-select-input>
+      />
 
       <app-text-input
         formControlName="mags3FirstName"
         label="Magistrate’s first name"
         hint="Enter the magistrate’s given name"
         idPrefix="mags3-first-name"
-      >
-      </app-text-input>
+      />
 
       <app-text-input
         formControlName="mags3Surname"
         label="Magistrate’s surname"
         hint="Enter the magistrate’s family name"
         idPrefix="mags3-surname"
-      >
-      </app-text-input>
+      />
     </div>
 
     <hr
@@ -422,24 +413,21 @@
         hint="The official’s formal title"
         idPrefix="official-title"
         [options]="personTitleOptions"
-      >
-      </app-select-input>
+      />
 
       <app-text-input
         formControlName="officialFirstName"
         label="Official’s first name"
         hint="Enter the official’s given name"
         idPrefix="official-first-name"
-      >
-      </app-text-input>
+      />
 
       <app-text-input
         formControlName="officialSurname"
         label="Official’s surname"
         hint="Enter the official’s family name"
         idPrefix="official-surname"
-      >
-      </app-text-input>
+      />
     </div>
   </ng-template>
 
@@ -455,6 +443,5 @@
       { heading: 'Result wording', tpl: resultWordingTpl, expanded: false },
       { heading: 'Officials', tpl: officialsTpl, expanded: false },
     ]"
-  >
-  </app-accordion>
+  />
 </form>

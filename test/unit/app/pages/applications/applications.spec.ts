@@ -145,7 +145,7 @@ describe('ApplicationsComponent', () => {
       expect(filter).toEqual(
         expect.objectContaining({
           date: '2025-01-02',
-          courtName: 'Some Court',
+          courtCode: 'Some Court',
           otherLocationDescription: 'Other site',
           cjaCode: 'CJA01',
           applicantOrganisation: 'Org Ltd',
