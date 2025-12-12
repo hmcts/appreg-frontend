@@ -6,5 +6,9 @@
   "cucumberautocomplete.smartSnippets": true,
   "cucumberautocomplete.stepsInvariants": true,
 
-  "axe-linter.exclude": ["cypress/reports/**", "out-tsc/**", "node_modules/**"]
+  "axe-linter.exclude": [
+    "cypress/reports/**",
+    "out-tsc/**",
+    "node_modules/**"
+  ]
 }

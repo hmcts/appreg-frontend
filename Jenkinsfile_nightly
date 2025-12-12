@@ -38,30 +38,11 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 }
 def yarnBuilder = new uk.gov.hmcts.contino.YarnBuilder(this)
 
-def performArtifactOperations() {
-  // Copy weight artifacts from previous successful build
-  script {
-    def projectName = 'HMCTS_Nightly/appreg-frontend/master'
-    try {
-      copyArtifacts projectName: projectName, selector: lastSuccessful(), filter: '**/cypress/parallel/weights/pipeline/*'
-    } catch (Exception e) {
-      echo "Error copying artifacts: ${e}"
-    }
-  }
-
-  // Execute shell script to move and validate weight files
-  sh './cypress/scripts/parallel/copy-weight-artifacts.sh'
-}
-
 withNightlyPipeline(type, product, component) {
   loadVaultSecrets(secrets)
   enableSlackNotifications('#appreg-builds')
   
   env.TEST_URL = 'https://appreg.staging.apps.hmcts.net/'
-
-  afterSuccess('checkout') {
-    performArtifactOperations()
-  }
 
   afterAlways('DependencyCheckNightly') {
     stage('Connectivity Test') {
@@ -74,103 +55,97 @@ withNightlyPipeline(type, product, component) {
     echo 'Regression: ' + params.Regression
 
     if (params.Smoke) {
-      stage('Smoke Tests - Chrome') {
-        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE', message: 'Smoke tests (Chrome) failed') {
-          try {
-            yarnBuilder.yarn('test:nightly:smoke:parallel:chrome')
-          } finally {
-            archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/smoke/**/*'
-            junit allowEmptyResults: true, testResults: 'functional-output/chrome/smoke/junit/**/*.xml'
+      stage('Smoke Tests - Chrome & Edge') {
+        parallel(
+          'Chrome': {
+            catchError(buildResult: 'FAILURE', stageResult: 'FAILURE', message: 'Smoke tests (Chrome) failed') {
+              try {
+                yarnBuilder.yarn('test:nightly:smoke:chrome')
+              } finally {
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/smoke/**/*'
+                junit allowEmptyResults: true, testResults: 'functional-output/chrome/smoke/junit/**/*.xml'
+              }
+            }
+          },
+          'Edge': {
+            catchError(buildResult: 'FAILURE', stageResult: 'FAILURE', message: 'Smoke tests (Edge) failed') {
+              try {
+                yarnBuilder.yarn('test:nightly:smoke:edge')
+              } finally {
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/edge/smoke/**/*'
+                junit allowEmptyResults: true, testResults: 'functional-output/edge/smoke/junit/**/*.xml'
+              }
+            }
           }
-        }
-      }
-      
-      stage('Smoke Tests - Edge') {
-        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE', message: 'Smoke tests (Edge) failed') {
-          try {
-            yarnBuilder.yarn('test:nightly:smoke:parallel:edge')
-          } finally {
-            archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/edge/smoke/**/*'
-            junit allowEmptyResults: true, testResults: 'functional-output/edge/smoke/junit/**/*.xml'
-            
-            // Archive weight files for next build
-            sh './cypress/scripts/parallel/archive-weight-files.sh smoke'
-            archiveArtifacts artifacts: 'cypress/parallel/weights/pipeline/smoke-parallel-weights.json', allowEmptyArchive: true
-          }
-        }
+        )
       }
     }
 
     if (params.Regression) {
-      stage('Regression Tests - Chrome') {
-        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Regression tests (Chrome) failed') {
-          try {
-            yarnBuilder.yarn('test:nightly:regression:parallel:chrome --env TAGS=\'not @ignore and not @broken\'')
-          } finally {
-            archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/regression/**/*'
-            junit allowEmptyResults: true, testResults: 'functional-output/chrome/regression/junit/**/*.xml'
+      stage('Regression Tests - Chrome & Edge') {
+        parallel(
+          'Chrome': {
+            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Regression tests (Chrome) failed') {
+              try {
+                yarnBuilder.yarn('test:nightly:regression:chrome --env TAGS=\'not @ignore and not @broken\'')
+              } finally {
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/regression/**/*'
+                junit allowEmptyResults: true, testResults: 'functional-output/chrome/regression/junit/**/*.xml'
+              }
+            }
+          },
+          'Edge': {
+            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Regression tests (Edge) failed') {
+              try {
+                yarnBuilder.yarn('test:nightly:regression:edge --env TAGS=\'not @ignore and not @broken\'')
+              } finally {
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/edge/regression/**/*'
+                junit allowEmptyResults: true, testResults: 'functional-output/edge/regression/junit/**/*.xml'
+              }
+            }
           }
-        }
+        )
       }
       
-      stage('Regression Tests - Edge') {
-        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Regression tests (Edge) failed') {
-          try {
-            yarnBuilder.yarn('test:nightly:regression:parallel:edge --env TAGS=\'not @ignore and not @broken\'')
-          } finally {
-            archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/edge/regression/**/*'
-            junit allowEmptyResults: true, testResults: 'functional-output/edge/regression/junit/**/*.xml'
+      stage('Generate Browser Reports') {
+        parallel(
+          'Chrome Report': {
+            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Chrome report generation failed') {
+              try {
+                // Generate Chrome-only HTML report
+                yarnBuilder.yarn('test:nightly:regression:html:cucumber:chrome')
+              } finally {
+                // Publish the Chrome HTML report
+                publishHTML target: [
+                  allowMissing         : true,
+                  alwaysLinkToLastBuild: true,
+                  keepAll              : true,
+                  reportDir            : 'functional-output/chrome/regression/cucumber-html',
+                  reportFiles          : 'detailed-test-report.html',
+                  reportName           : 'Application Register - Chrome Test Report'
+                ]
+              }
+            }
+          },
+          'Edge Report': {
+            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Edge report generation failed') {
+              try {
+                // Generate Edge-only HTML report
+                yarnBuilder.yarn('test:nightly:regression:html:cucumber:edge')
+              } finally {
+                // Publish the Edge HTML report
+                publishHTML target: [
+                  allowMissing         : true,
+                  alwaysLinkToLastBuild: true,
+                  keepAll              : true,
+                  reportDir            : 'functional-output/edge/regression/cucumber-html',
+                  reportFiles          : 'detailed-test-report.html',
+                  reportName           : 'Application Register - Edge Test Report'
+                ]
+              }
+            }
           }
-        }
-      }
-      
-      stage('API Tests') {
-        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'API tests failed') {
-          try {
-            // Run apiTests separately for both browsers to ensure complete feature coverage
-            yarnBuilder.yarn('test:nightly:regression:apiTests')
-          } finally {
-            archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/apiTests/**/*,functional-output/edge/apiTests/**/*'
-          }
-        }
-      }
-      
-      stage('Generate Chrome Report') {
-        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Chrome report generation failed') {
-          try {
-            // Generate Chrome-only HTML report
-            yarnBuilder.yarn('test:nightly:regression:html:cucumber:chrome')
-          } finally {
-            // Publish the Chrome HTML report
-            publishHTML target: [
-              allowMissing         : true,
-              alwaysLinkToLastBuild: true,
-              keepAll              : true,
-              reportDir            : 'functional-output/chrome/regression/cucumber-html',
-              reportFiles          : 'detailed-test-report.html',
-              reportName           : 'Application Register - Chrome Test Report'
-            ]
-          }
-        }
-      }
-      
-      stage('Generate Edge Report') {
-        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Edge report generation failed') {
-          try {
-            // Generate Edge-only HTML report
-            yarnBuilder.yarn('test:nightly:regression:html:cucumber:edge')
-          } finally {
-            // Publish the Edge HTML report
-            publishHTML target: [
-              allowMissing         : true,
-              alwaysLinkToLastBuild: true,
-              keepAll              : true,
-              reportDir            : 'functional-output/edge/regression/cucumber-html',
-              reportFiles          : 'detailed-test-report.html',
-              reportName           : 'Application Register - Edge Test Report'
-            ]
-          }
-        }
+        )
       }
       
       stage('Generate Combined Report') {
@@ -191,10 +166,6 @@ withNightlyPipeline(type, product, component) {
             
             // Archive all outputs
             archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/regression/**/*'
-            
-            // Archive weight files for next build
-            sh './cypress/scripts/parallel/archive-weight-files.sh regression'
-            archiveArtifacts artifacts: 'cypress/parallel/weights/pipeline/regression-parallel-weights.json', allowEmptyArchive: true
           }
         }
       }

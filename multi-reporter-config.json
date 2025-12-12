@@ -1,3 +1,10 @@
 {
-  "reporterEnabled": "cypress-parallel/json-stream.reporter.js, cypress-parallel/simple-spec.reporter.js"
+  "reporterEnabled": "mochawesome",
+  "mochawesomeReporterOptions": {
+    "reportDir": "cypress/reports/mochawesome",
+    "overwrite": false,
+    "html": false,
+    "json": true,
+    "quiet": true
+  }
 }

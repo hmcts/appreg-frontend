@@ -6,15 +6,19 @@ const logger = require('./logger');
 
 // Get browser from command line argument (chrome, edge, or undefined for combined)
 const browser = process.argv[2]; // 'chrome', 'edge', or undefined
+const runId =
+  process.env.RUN_ID || process.env.BUILD_TAG || process.env.BUILD_NUMBER;
+
+const OUTPUT_ROOT = path.join(__dirname, '../../../functional-output');
+const RUN_SCOPED_ROOT = runId
+  ? path.join(__dirname, '../../../functional-output', runId)
+  : null;
 
 // Configuration
 // Output directory based on browser parameter
 const OUTPUT_DIR = browser
-  ? path.join(
-      __dirname,
-      `../../../functional-output/${browser}/regression/cucumber-html`,
-    )
-  : path.join(__dirname, '../../../functional-output/regression/cucumber-html');
+  ? path.join(OUTPUT_ROOT, `${browser}/regression/cucumber-html`)
+  : path.join(OUTPUT_ROOT, 'regression/cucumber-html');
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'detailed-test-report.html');
 
 /**
@@ -86,62 +90,61 @@ function readJsonFilesFromDirectory(dirPath) {
 }
 
 /**
+ * Helper to build paths with optional run-scoped root, then legacy root fallback
+ */
+function buildPaths(segmentGroups) {
+  const paths = [];
+
+  if (RUN_SCOPED_ROOT) {
+    segmentGroups.forEach((segments) =>
+      paths.push(path.join(RUN_SCOPED_ROOT, ...segments)),
+    );
+  }
+
+  segmentGroups.forEach((segments) =>
+    paths.push(path.join(OUTPUT_ROOT, ...segments)),
+  );
+
+  return paths;
+}
+
+/**
  * Get list of cucumber directories based on browser parameter
  */
 function getCucumberDirectories() {
   if (browser === 'chrome') {
-    return [
-      path.join(
-        __dirname,
-        '../../../functional-output/chrome/regression/cucumber-json',
-      ),
-      path.join(
-        __dirname,
-        '../../../functional-output/chrome/smoke/cucumber-json',
-      ),
-      path.join(
-        __dirname,
-        '../../../functional-output/chrome/apiTests/cucumber-json',
-      ),
-    ];
+    return buildPaths([
+      ['chrome', 'regression', 'cucumber-json'],
+      ['chrome', 'smoke', 'cucumber-json'],
+      ['chrome', 'apiTests', 'cucumber-json'],
+      ['chrome', 'regression', 'merged'],
+    ]);
   }
 
   if (browser === 'edge') {
-    return [
-      path.join(
-        __dirname,
-        '../../../functional-output/edge/regression/cucumber-json',
-      ),
-      path.join(__dirname, '../../../functional-output/edge/smoke/cucumber-json'),
-      path.join(
-        __dirname,
-        '../../../functional-output/edge/apiTests/cucumber-json',
-      ),
-    ];
+    return buildPaths([
+      ['edge', 'regression', 'cucumber-json'],
+      ['edge', 'smoke', 'cucumber-json'],
+      ['edge', 'apiTests', 'cucumber-json'],
+      ['edge', 'regression', 'merged'],
+    ]);
   }
 
   // Combined report - read from all directories
-  return [
-    path.join(__dirname, '../../../functional-output/regression/cucumber-json'),
-    path.join(__dirname, '../../../functional-output/smoke/cucumber-json'),
-    path.join(__dirname, '../../../functional-output/merged/cucumber-json'),
-    path.join(
-      __dirname,
-      '../../../functional-output/chrome/regression/cucumber-json',
-    ),
-    path.join(__dirname, '../../../functional-output/chrome/smoke/cucumber-json'),
-    path.join(
-      __dirname,
-      '../../../functional-output/chrome/apiTests/cucumber-json',
-    ),
-    path.join(
-      __dirname,
-      '../../../functional-output/edge/regression/cucumber-json',
-    ),
-    path.join(__dirname, '../../../functional-output/edge/smoke/cucumber-json'),
-    path.join(__dirname, '../../../functional-output/edge/apiTests/cucumber-json'),
-    path.join(__dirname, '../../../functional-output/apiTests/cucumber-json'),
-  ];
+  return buildPaths([
+    ['regression', 'cucumber-json'],
+    ['smoke', 'cucumber-json'],
+    ['merged', 'cucumber-json'],
+    ['chrome', 'regression', 'cucumber-json'],
+    ['chrome', 'smoke', 'cucumber-json'],
+    ['chrome', 'apiTests', 'cucumber-json'],
+    ['chrome', 'regression', 'merged'],
+    ['edge', 'regression', 'cucumber-json'],
+    ['edge', 'smoke', 'cucumber-json'],
+    ['edge', 'apiTests', 'cucumber-json'],
+    ['edge', 'regression', 'merged'],
+    ['apiTests', 'cucumber-json'],
+  ]);
 }
 
 /**

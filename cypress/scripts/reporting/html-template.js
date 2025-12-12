@@ -116,6 +116,16 @@ function generateHTML(stats, testsByFeature, browser) {
   const passRate = ((stats.passed / stats.total) * 100).toFixed(2);
   const avgDuration = (stats.totalDuration / stats.total).toFixed(0);
 
+  // Determine pass rate color based on thresholds
+  let passRateColor;
+  if (passRate >= 90) {
+    passRateColor = '#28a745';
+  } else if (passRate >= 70) {
+    passRateColor = '#ffc107';
+  } else {
+    passRateColor = '#dc3545';
+  }
+
   // Add browser info to title if browser-specific report
   const browserInfo = browser
     ? ` - ${browser.charAt(0).toUpperCase() + browser.slice(1)}`
@@ -514,7 +524,7 @@ function generateHTML(stats, testsByFeature, browser) {
       </div>
       <div class="stat-card">
         <div class="label">Pass Rate</div>
-        <div class="value" style="color: ${passRate >= 90 ? '#28a745' : passRate >= 70 ? '#ffc107' : '#dc3545'}">${passRate}%</div>
+        <div class="value" style="color: ${passRateColor}">${passRate}%</div>
       </div>
       <div class="stat-card">
         <div class="label">Avg Duration</div>
