@@ -24,7 +24,6 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   Component,
   DestroyRef,
-  Inject,
   OnInit,
   PLATFORM_ID,
   ViewChild,
@@ -46,7 +45,6 @@ import {
   EntryUpdateDto,
   Organisation,
   Person,
-  StandardApplicantsApi,
   UpdateApplicationListEntryRequestParams,
 } from '../../../generated/openapi';
 import { SuccessBanner } from '../../core/models/banner/banner.types';
@@ -134,6 +132,14 @@ import { getEntryId } from './util/routing.util';
   templateUrl: './applications-list-entry-detail.html',
 })
 export class ApplicationsListEntryDetail implements OnInit {
+  // APIs
+  private readonly route = inject(ActivatedRoute);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly router = inject(Router);
+  private readonly entriesApi = inject(ApplicationListEntriesApi);
+  private readonly codesApi = inject(ApplicationCodesApi);
+  private readonly fb = inject(NonNullableFormBuilder);
+
   @ViewChild(PersonSectionComponent)
   private readonly personSection?: PersonSectionComponent;
   @ViewChild(OrganisationSectionComponent)
@@ -175,16 +181,6 @@ export class ApplicationsListEntryDetail implements OnInit {
   applicantEntryTypeOptions = APPLICANT_TYPE_OPTIONS;
   respondentEntryTypeOptions = RESPONDENT_TYPE_OPTIONS;
   personTitleOptions = PERSON_TITLE_OPTIONS;
-
-  constructor(
-    @Inject(PLATFORM_ID) private readonly platformId: object,
-    private readonly route: ActivatedRoute,
-    private readonly router: Router,
-    private readonly entriesApi: ApplicationListEntriesApi,
-    private readonly codesApi: ApplicationCodesApi,
-    private readonly fb: NonNullableFormBuilder,
-    private readonly saApi: StandardApplicantsApi,
-  ) {}
 
   ngOnInit(): void {
     // Resolve Applications List ID

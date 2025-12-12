@@ -32,10 +32,10 @@ import { TableColumn } from '../sortable-table/sortable-table.component';
   templateUrl: './standard-applicant-select.component.html',
 })
 export class StandardApplicantSelectComponent implements OnInit, OnChanges {
+  private readonly saApi = inject(StandardApplicantsApi);
+
   @Input() selectedCode: string | null = null;
   @Output() selectedCodeChange = new EventEmitter<string | null>();
-
-  private readonly saApi = inject(StandardApplicantsApi);
 
   rows: StandardApplicantRow[] = [];
 
