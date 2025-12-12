@@ -1,4 +1,24 @@
-import { FormGroup, NonNullableFormBuilder } from '@angular/forms';
+import { FormGroup, NonNullableFormBuilder, Validators } from '@angular/forms';
+
+import {
+  Applicant,
+  ContactDetails,
+  EntryGetDetailDto,
+  EntryUpdateDto,
+  FullName,
+  Official,
+  Organisation,
+  Person,
+} from '../../../../generated/openapi';
+import {
+  trimToString,
+  trimToUndefined,
+} from '../../../shared/util/string-helpers';
+import {
+  ContactFormRaw,
+  OrganisationFormRaw,
+  PersonFormRaw,
+} from '../../../shared/util/types/applications-list-entry/types';
 
 export function buildEntryDetailForm(fb: NonNullableFormBuilder): FormGroup {
   return fb.group({
@@ -44,7 +64,7 @@ export function buildEntryDetailForm(fb: NonNullableFormBuilder): FormGroup {
       postcode: fb.control(''),
       phoneNumber: fb.control(''),
       mobileNumber: fb.control(''),
-      emailAddress: fb.control(''),
+      emailAddress: fb.control('', [(control) => Validators.email(control)]),
     }),
 
     // Organisation sub-group
@@ -58,7 +78,7 @@ export function buildEntryDetailForm(fb: NonNullableFormBuilder): FormGroup {
       postcode: fb.control(''),
       phoneNumber: fb.control(''),
       mobileNumber: fb.control(''),
-      emailAddress: fb.control(''),
+      emailAddress: fb.control('', [(control) => Validators.email(control)]),
     }),
 
     // Officials section
@@ -75,4 +95,137 @@ export function buildEntryDetailForm(fb: NonNullableFormBuilder): FormGroup {
     officialFirstName: fb.control(''),
     officialSurname: fb.control(''),
   });
+}
+
+export function buildContactDetailsFromRaw(v: ContactFormRaw): ContactDetails {
+  return {
+    addressLine1: trimToString(v.addressLine1),
+    addressLine2: trimToUndefined(v.addressLine2),
+    addressLine3: trimToUndefined(v.addressLine3),
+    addressLine4: trimToUndefined(v.addressLine4),
+    addressLine5: trimToUndefined(v.addressLine5),
+    postcode: trimToUndefined(v.postcode),
+    phone: trimToUndefined(v.phoneNumber),
+    mobile: trimToUndefined(v.mobileNumber),
+    email: trimToUndefined(v.emailAddress),
+  };
+}
+
+export function contactDetailsToFormPatch(cd: ContactDetails): ContactFormRaw {
+  return {
+    addressLine1: cd.addressLine1 ?? '',
+    addressLine2: cd.addressLine2 ?? '',
+    addressLine3: cd.addressLine3 ?? '',
+    addressLine4: cd.addressLine4 ?? '',
+    addressLine5: cd.addressLine5 ?? '',
+    postcode: cd.postcode ?? '',
+    phoneNumber: cd.phone ?? '',
+    mobileNumber: cd.mobile ?? '',
+    emailAddress: cd.email ?? '',
+  };
+}
+
+export function buildPersonApplicantFromRaw(raw: PersonFormRaw): Applicant {
+  const name: FullName = {
+    title: trimToUndefined(raw.title),
+    firstForename: trimToString(raw.firstName),
+    secondForename: trimToUndefined(raw.middleNames),
+    surname: trimToString(raw.surname),
+  };
+
+  const person: Person = {
+    name,
+    contactDetails: buildContactDetailsFromRaw(raw),
+  };
+
+  return { person };
+}
+
+export function buildOrganisationApplicantFromRaw(
+  raw: OrganisationFormRaw,
+): Applicant {
+  const organisation: Organisation = {
+    name: trimToString(raw.name),
+    contactDetails: buildContactDetailsFromRaw(raw),
+  };
+
+  return { organisation };
+}
+
+export function personToFormPatch(
+  person: Person | null | undefined,
+): Record<string, unknown> {
+  if (!person) {
+    return {};
+  }
+
+  const name = person.name;
+  const contactDetails = person.contactDetails;
+
+  const middleNamesParts: string[] = [];
+
+  if (name?.secondForename) {
+    middleNamesParts.push(name.secondForename);
+  }
+
+  if (name?.thirdForename) {
+    middleNamesParts.push(name.thirdForename);
+  }
+
+  const middleNames = middleNamesParts.join(' ');
+
+  return {
+    title: name?.title ?? '',
+    firstName: name?.firstForename ?? '',
+    middleNames,
+    surname: name?.surname ?? '',
+    ...contactDetailsToFormPatch(contactDetails),
+  };
+}
+
+export function organisationToFormPatch(
+  organisation: Organisation | null | undefined,
+): Record<string, unknown> {
+  if (!organisation) {
+    return {};
+  }
+
+  const contactDetails = organisation.contactDetails;
+
+  return {
+    name: organisation.name ?? '',
+    ...contactDetailsToFormPatch(contactDetails),
+  };
+}
+
+export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
+  detail: EntryGetDetailDto | null | undefined,
+  key: K,
+  value: EntryUpdateDto[K],
+): EntryUpdateDto {
+  if (!detail) {
+    throw new Error('entryDetail is not loaded');
+  }
+
+  const base: EntryUpdateDto = {
+    // full copy of current server state
+    standardApplicantCode: detail.standardApplicantCode,
+    applicationCode: detail.applicationCode,
+    applicant: detail.applicant,
+    respondent: detail.respondent,
+    numberOfRespondents: detail.numberOfRespondents,
+    wordingFields: detail.wordingFields,
+    feeStatuses: detail.feeStatuses,
+    hasOffsiteFee: detail.hasOffsiteFee,
+    caseReference: detail.caseReference,
+    accountNumber: detail.accountNumber,
+    notes: detail.notes,
+    lodgementDate: detail.lodgementDate,
+    ...(detail as { officials?: Official[] }),
+  };
+
+  return {
+    ...base,
+    [key]: value,
+  };
 }

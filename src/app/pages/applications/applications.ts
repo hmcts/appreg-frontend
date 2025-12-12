@@ -211,7 +211,7 @@ export class Applications extends PlaceFieldsBase implements OnInit, OnDestroy {
     }
 
     if (v.court?.trim()) {
-      filter.courtName = v.court.trim();
+      filter.courtCode = v.court.trim();
     }
 
     if (v.location?.trim()) {
