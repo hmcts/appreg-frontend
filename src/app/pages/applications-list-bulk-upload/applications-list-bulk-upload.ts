@@ -39,7 +39,7 @@ export class ApplicationsListBulkUpload implements OnInit {
   errorHint: string = 'There is a problem';
   file!: File;
   isUploadInProgress = false;
-  fileUploadStatus!: 'success' | 'error';
+  fileUploadStatus!: 'success' | 'error' | null;
   jobAcknowledgement!: JobAcknowledgement;
   listId!: string;
   private readonly actionsApiService = inject(ActionsApi);
@@ -55,6 +55,7 @@ export class ApplicationsListBulkUpload implements OnInit {
   }
 
   onFileSelected(event: Event): void {
+    this.fileUploadStatus = null;
     const input = event.target as HTMLInputElement;
 
     if (!input.files || input.files.length === 0) {

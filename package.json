@@ -29,6 +29,7 @@
     "verify-stg-access": "ts-node -P ./tsconfig.json scripts/verify-stg-access.ts",
     "watch": "ng build --watch --configuration development",
     "test": "npx if-env CI=true && exit 0 || yarn test:unit",
+    "test:watch": "jest --watch",
     "test:unit": "jest",
     "test:coverage": "jest --coverage",
     "test:routes": "jest -c jest.routes.config.js",
