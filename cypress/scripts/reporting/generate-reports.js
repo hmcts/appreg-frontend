@@ -55,7 +55,6 @@ if (hasValidCucumberJson('.jsons')) {
   jsonDir = '.jsons';
 } else if (hasValidCucumberJson('cypress/reports/cucumber-json')) {
   logger.info('Using default cypress/reports/cucumber-json directory');
-  jsonDir = 'cypress/reports/cucumber-json';
 } else {
   logger.warn(
     'No valid cucumber JSON files found. Skipping HTML report generation.',
