@@ -128,10 +128,7 @@ function getCucumberDirectories() {
       __dirname,
       '../../functional-output/chrome/regression/cucumber-json',
     ),
-    path.join(
-      __dirname,
-      '../../functional-output/chrome/smoke/cucumber-json',
-    ),
+    path.join(__dirname, '../../functional-output/chrome/smoke/cucumber-json'),
     path.join(
       __dirname,
       '../../functional-output/chrome/apiTests/cucumber-json',
@@ -141,10 +138,7 @@ function getCucumberDirectories() {
       '../../functional-output/edge/regression/cucumber-json',
     ),
     path.join(__dirname, '../../functional-output/edge/smoke/cucumber-json'),
-    path.join(
-      __dirname,
-      '../../functional-output/edge/apiTests/cucumber-json',
-    ),
+    path.join(__dirname, '../../functional-output/edge/apiTests/cucumber-json'),
     path.join(__dirname, '../../functional-output/apiTests/cucumber-json'),
   ];
 }
@@ -233,7 +227,13 @@ function updateStats(stats, scenarioStatus, scenarioDuration) {
 /**
  * Process a single scenario
  */
-function processScenario(scenario, feature, processedScenarios, stats, testsByFeature) {
+function processScenario(
+  scenario,
+  feature,
+  processedScenarios,
+  stats,
+  testsByFeature,
+) {
   const featureName = feature.name;
   const scenarioName = scenario.name;
 
@@ -281,7 +281,13 @@ function processFeature(feature, processedScenarios, stats, testsByFeature) {
   }
 
   feature.elements.forEach((scenario) => {
-    processScenario(scenario, feature, processedScenarios, stats, testsByFeature);
+    processScenario(
+      scenario,
+      feature,
+      processedScenarios,
+      stats,
+      testsByFeature,
+    );
   });
 }
 
