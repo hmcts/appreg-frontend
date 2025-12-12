@@ -1,3 +1,7 @@
+/* 
+Helper functions for Application Codes
+*/
+
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 

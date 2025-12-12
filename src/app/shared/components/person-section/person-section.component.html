@@ -8,27 +8,34 @@
       hint="The person’s title, for example Mr, Mrs, Dr"
       idPrefix="person-title"
       [options]="titleOptions"
-    >
-    </app-select-input>
+    />
 
     <app-text-input
       formControlName="firstName"
+      idPrefix="person-first-name"
       label="First name"
       hint="Enter the person’s first name or forename"
-      idPrefix="person-first-name"
-    ></app-text-input>
+      [submitted]="submitted"
+      [suppressError]="false"
+      [error]="errors['person-first-name']"
+    />
+
     <app-text-input
       formControlName="middleNames"
       label="Middle names"
       hint="Enter any middle names (leave blank if none)"
       idPrefix="person-middle-names"
-    ></app-text-input>
+    />
+
     <app-text-input
       formControlName="surname"
+      idPrefix="person-surname"
       label="Surname"
       hint="Enter the person’s last name or family name"
-      idPrefix="person-surname"
-    ></app-text-input>
+      [submitted]="submitted"
+      [suppressError]="false"
+      [error]="errors['person-surname']"
+    />
   </div>
 
   <hr
@@ -39,40 +46,50 @@
   <div class="govuk-grid-row">
     <app-text-input
       formControlName="addressLine1"
+      idPrefix="person-address-line-1"
       label="Address line 1"
       hint="Building and street"
-      idPrefix="person-address-line-1"
-    ></app-text-input>
+      [submitted]="submitted"
+      [suppressError]="false"
+      [error]="errors['person-address-line-1']"
+    />
+
     <app-text-input
       formControlName="addressLine2"
       label="Address line 2"
       hint="District or locality (optional)"
       idPrefix="person-address-line-2"
-    ></app-text-input>
+    />
     <app-text-input
       formControlName="addressLine3"
       label="Address line 3"
       hint="Town or city"
       idPrefix="person-address-line-3"
-    ></app-text-input>
+    />
     <app-text-input
       formControlName="addressLine4"
       label="Address line 4"
       hint="County or region"
       idPrefix="person-address-line-4"
-    ></app-text-input>
+    />
+  </div>
+  <div class="govuk-grid-row">
     <app-text-input
       formControlName="addressLine5"
       label="Address line 5"
       hint="Post town, e.g. Manchester"
       idPrefix="person-address-line-5"
-    ></app-text-input>
+    />
+
     <app-text-input
       formControlName="postcode"
+      idPrefix="person-postcode"
       label="Postcode"
       hint="e.g. SW1A 2AA"
-      idPrefix="person-postcode"
-    ></app-text-input>
+      [submitted]="submitted"
+      [suppressError]="true"
+      [error]="errors['person-postcode']"
+    />
   </div>
 
   <hr
@@ -83,21 +100,35 @@
   <div class="govuk-grid-row">
     <app-text-input
       formControlName="phoneNumber"
+      idPrefix="person-phone-number"
       label="Phone number"
       hint="Enter the person's landline, e.g. 020 7946 0000"
-      idPrefix="person-phone-number"
-    ></app-text-input>
+      inputType="tel"
+      [submitted]="submitted"
+      [suppressError]="true"
+      [error]="errors['person-phone-number']"
+    />
+
     <app-text-input
       formControlName="mobileNumber"
+      idPrefix="person-mobile-number"
       label="Mobile number"
       hint="Enter the person's UK mobile, e.g. 07123 456789"
-      idPrefix="person-mobile-number"
-    ></app-text-input>
+      inputType="tel"
+      [submitted]="submitted"
+      [suppressError]="true"
+      [error]="errors['person-mobile-number']"
+    />
+
     <app-text-input
       formControlName="emailAddress"
+      idPrefix="person-email-address"
       label="Email address"
       hint="e.g. name@department.gov.uk"
-      idPrefix="person-email-address"
-    ></app-text-input>
+      inputType="email"
+      [submitted]="submitted"
+      [suppressError]="true"
+      [error]="errors['person-email-address']"
+    />
   </div>
 </div>
