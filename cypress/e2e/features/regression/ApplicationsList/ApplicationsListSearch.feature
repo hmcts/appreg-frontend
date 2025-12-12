@@ -382,8 +382,7 @@ Feature: Applications List Search
     Then User Should See The Link "List details"
     Then User Clicks On The Link "List details"
     Then User Verify The Page URL Contains "#list-details"
-    # Then User Verifies The "Date" Textbox Has Value "<DisplayDate>"
-    # Then User Verifies The "Time" Textbox Has Value "<Time>"
+    Then User Verifies The Time field "Time" Has Value "<Time>"
     Then User Verifies The "Description" Textbox Has Value "<Description>"
     Then User Verifies "<Status>" Is Selected In The "Status" Dropdown
     Then User Verifies The "Court" Textbox Has Selected Value "<CourtValue>"
@@ -426,7 +425,6 @@ Feature: Applications List Search
     Then User Should See The Link "List details"
     Then User Clicks On The Link "List details"
     Then User Verify The Page URL Contains "#list-details"
-    # Then User Verifies The "Date" Textbox Has Value "<DisplayDate>"
     Then User Verifies The Time field "Time" Has Value "<Time>"
     Then User Verifies The "Description" Textbox Has Value "<Description>"
     Then User Verifies "<Status>" Is Selected In The "Status" Dropdown
