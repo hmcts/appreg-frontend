@@ -4,7 +4,7 @@ Common field validators
 
 import { ValidationErrors } from '@angular/forms';
 
-import { ErrorSummaryItem } from '../../core/models/error/types';
+import { ErrorSummaryItem } from '../../core/models/error/error.types';
 import {
   emailIncorrectFormatMsg,
   phoneIncorrectFormatMsg,

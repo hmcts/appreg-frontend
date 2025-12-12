@@ -49,7 +49,7 @@ import {
   StandardApplicantsApi,
   UpdateApplicationListEntryRequestParams,
 } from '../../../generated/openapi';
-import { SuccessBanner } from '../../core/models/shared-types';
+import { SuccessBanner } from '../../core/models/banner/banner.types';
 import { AccordionComponent } from '../../shared/components/accordion/accordion.component';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';

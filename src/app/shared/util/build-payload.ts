@@ -2,7 +2,7 @@
    Used in applications-list-create & applications-list-detail
 */
 import type { ApplicationListStatus } from '../../../generated/openapi';
-import { FormRaw } from '../../core/models/shared-types';
+import { FormRaw } from '../../core/models/forms/forms.types';
 
 import { requireStatus } from './application-status-helpers';
 import { has } from './has';

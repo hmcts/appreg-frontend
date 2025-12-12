@@ -2,7 +2,7 @@ import {
   ErrorSummaryItem,
   HttpErrorSummary,
   ProblemDetails,
-} from '../../../core/models/error/types';
+} from '../../../core/models/error/error.types';
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;

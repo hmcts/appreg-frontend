@@ -32,7 +32,7 @@ import {
   CourtLocationGetSummaryDto,
   CriminalJusticeAreaGetDto,
 } from '../../../generated/openapi';
-import { FormRaw } from '../../core/models/shared-types';
+import { FormRaw } from '../../core/models/forms/forms.types';
 
 import { has } from './has';
 

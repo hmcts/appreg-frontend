@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
-import { ErrorSummaryItem } from '../../../core/models/error/types';
+import { ErrorSummaryItem } from '../../../core/models/error/error.types';
 import {
   addressLine1Missing,
   firstNameMissing,

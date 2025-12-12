@@ -30,7 +30,7 @@ import {
   ApplicationListStatus,
   ApplicationListsApi,
 } from '../../../generated/openapi';
-import { FormRaw } from '../../core/models/shared-types';
+import { FormRaw } from '../../core/models/forms/forms.types';
 import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
