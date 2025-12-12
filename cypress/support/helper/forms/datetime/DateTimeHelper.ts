@@ -333,7 +333,10 @@ export class DateTimeHelper {
       DateTimeElement.findMinuteInput(fieldLabel).should(($input) => {
         const actualValue = ($input.val() as string) || '0';
         const actualMinuteNum = parseInt(actualValue, 10) || 0;
-        const normalizedActualMinute = normalizeHourMinute(0, actualMinuteNum).mm;
+        const normalizedActualMinute = normalizeHourMinute(
+          0,
+          actualMinuteNum,
+        ).mm;
         expect(normalizedActualMinute).to.equal(expectedNums.mm);
       });
     } else {
