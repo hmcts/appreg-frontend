@@ -1,4 +1,5 @@
 import { DateTimeElement } from '../../../pageobjects/generic/datetime/DateTimeElement';
+import { DateTimeUtil } from '../../../utils/DateTimeUtil';
 import { TestDataGenerator } from '../../../utils/TestDataGenerator';
 
 export class DateTimeHelper {
@@ -278,16 +279,12 @@ export class DateTimeHelper {
     }
   }
 
-  /**
-   * Verifies that time field is not visible - handles both single and separate HH/MM inputs
-   * @param fieldLabel The label/name of the time field
-   */
   static verifyTimeFieldNotVisible(fieldLabel: string): void {
     cy.log(`Verifying time field "${fieldLabel}" is not visible`);
 
     // Check if separate HH/MM inputs exist, otherwise use single time input
     if (DateTimeElement.hasSeparateHourMinuteInputs(fieldLabel)) {
-      // Both HH/MM inputs exist - verify they are not visible
+      // Both HH/MM inputs exist - verify them
       DateTimeElement.findHourInput(fieldLabel).should('not.be.visible');
       DateTimeElement.findMinuteInput(fieldLabel).should('not.be.visible');
     } else {
@@ -307,26 +304,41 @@ export class DateTimeHelper {
     const expectedHours = timeParts[0].padStart(2, '0');
     const expectedMinutes = timeParts[1].padStart(2, '0');
 
+    // Helper to produce normalized HH and MM using DateTimeUtil
+    const normalizeHourMinute = (hours: number, minutes: number) => {
+      const d = new Date();
+      d.setHours(hours, minutes, 0, 0);
+      const hhmmss = DateTimeUtil.formatTime(d); // "HH:mm:ss"
+      const [hh, mm] = hhmmss.split(':');
+      return { hh, mm };
+    };
+
+    // Expected normalized values
+    const expectedNums = normalizeHourMinute(
+      parseInt(expectedHours, 10) || 0,
+      parseInt(expectedMinutes, 10) || 0,
+    );
+
     // Check if separate HH/MM inputs exist, otherwise use single time input
     if (DateTimeElement.hasSeparateHourMinuteInputs(fieldLabel)) {
       // Verify HH input
       DateTimeElement.findHourInput(fieldLabel).should(($input) => {
-        const actualValue = $input.val() as string;
-        const normalizedActual = actualValue.replace(/^0+/, '') || '0';
-        const normalizedExpected = expectedHours.replace(/^0+/, '') || '0';
-        expect(normalizedActual).to.equal(normalizedExpected);
+        const actualValue = ($input.val() as string) || '0';
+        const actualHourNum = parseInt(actualValue, 10) || 0;
+        const normalizedActualHour = normalizeHourMinute(actualHourNum, 0).hh;
+        expect(normalizedActualHour).to.equal(expectedNums.hh);
       });
 
       // Verify MM input
       DateTimeElement.findMinuteInput(fieldLabel).should(($input) => {
-        const actualValue = $input.val() as string;
-        const normalizedActual = actualValue.replace(/^0+/, '') || '0';
-        const normalizedExpected = expectedMinutes.replace(/^0+/, '') || '0';
-        expect(normalizedActual).to.equal(normalizedExpected);
+        const actualValue = ($input.val() as string) || '0';
+        const actualMinuteNum = parseInt(actualValue, 10) || 0;
+        const normalizedActualMinute = normalizeHourMinute(0, actualMinuteNum).mm;
+        expect(normalizedActualMinute).to.equal(expectedNums.mm);
       });
     } else {
       // Verify single time input
-      const expectedTime = `${expectedHours}:${expectedMinutes}`;
+      const expectedTime = `${expectedNums.hh}:${expectedNums.mm}`;
       DateTimeElement.findTimeInput(fieldLabel).should(
         'have.value',
         expectedTime,
