@@ -44,6 +44,8 @@ export class TextInputComponent implements ControlValueAccessor {
   @Input() submitted = false;
   @Input() suppressError = false;
   @Input() charLimit: number = 200;
+  @Input() error: string | null = null;
+  @Input() inputType: 'email' | 'text' | 'tel' = 'text';
 
   @Output() typed = new EventEmitter<string>();
 
@@ -81,5 +83,27 @@ export class TextInputComponent implements ControlValueAccessor {
     this.value = val;
     this.onChange(val);
     this.typed.emit(val);
+  }
+
+  get errorState(): boolean {
+    const v: unknown = this.value;
+
+    let isEmpty = false;
+
+    if (v === null || v === undefined) {
+      isEmpty = true;
+    } else if (typeof v === 'string') {
+      isEmpty = v.trim().length === 0;
+    } // If non string we keep false
+
+    if (this.error) {
+      return true;
+    }
+
+    if (this.suppressError) {
+      return false;
+    }
+
+    return this.submitted && isEmpty;
   }
 }

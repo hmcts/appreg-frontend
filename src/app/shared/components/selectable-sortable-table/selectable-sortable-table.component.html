@@ -14,28 +14,36 @@
 
   <thead class="govuk-table__head">
     <tr class="govuk-table__row">
-      <!-- Real select-all checkbox driven by Angular -->
-      <th class="govuk-table__header moj-multi-select__select-all" scope="col">
-        <div class="govuk-checkboxes govuk-checkboxes--small">
-          <div class="govuk-checkboxes__item moj-multi-select__checkbox">
-            <input
-              #selectAll
-              type="checkbox"
-              class="govuk-checkboxes__input"
-              [id]="idPrefix + 'select-all'"
-              [checked]="allVisibleSelected"
-              [indeterminate]="someVisibleSelected && !allVisibleSelected"
-              (change)="toggleSelectAllVisible(selectAll.checked)"
-            />
-            <label
-              class="govuk-label govuk-checkboxes__label"
-              [for]="idPrefix + 'select-all'"
-            >
-              <span class="govuk-visually-hidden">Select all</span>
-            </label>
+      @if (!singleSelect) {
+        <!-- Select-all header (multi-select only) -->
+        <th
+          class="govuk-table__header moj-multi-select__select-all"
+          scope="col"
+        >
+          <div class="govuk-checkboxes govuk-checkboxes--small">
+            <div class="govuk-checkboxes__item moj-multi-select__checkbox">
+              <input
+                #selectAll
+                type="checkbox"
+                class="govuk-checkboxes__input"
+                [id]="idPrefix + 'select-all'"
+                [checked]="allVisibleSelected"
+                [indeterminate]="someVisibleSelected && !allVisibleSelected"
+                (change)="toggleSelectAllVisible(selectAll.checked)"
+              />
+              <label
+                class="govuk-label govuk-checkboxes__label"
+                [for]="idPrefix + 'select-all'"
+              >
+                <span class="govuk-visually-hidden">Select all</span>
+              </label>
+            </div>
           </div>
-        </div>
-      </th>
+        </th>
+      } @else {
+        <!-- Empty header cell to keep columns aligned -->
+        <th class="govuk-table__header" scope="col"></th>
+      }
 
       @for (col of columns; track col.field) {
         <th
