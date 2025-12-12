@@ -1,4 +1,5 @@
 import { DateTimeElement } from '../../../pageobjects/generic/datetime/DateTimeElement';
+import { DateTimeUtil } from '../../../utils/DateTimeUtil';
 import { TestDataGenerator } from '../../../utils/TestDataGenerator';
 
 export class DateTimeHelper {
@@ -278,21 +279,134 @@ export class DateTimeHelper {
     }
   }
 
-  /**
-   * Verifies that time field is not visible - handles both single and separate HH/MM inputs
-   * @param fieldLabel The label/name of the time field
-   */
   static verifyTimeFieldNotVisible(fieldLabel: string): void {
     cy.log(`Verifying time field "${fieldLabel}" is not visible`);
 
     // Check if separate HH/MM inputs exist, otherwise use single time input
     if (DateTimeElement.hasSeparateHourMinuteInputs(fieldLabel)) {
-      // Both HH/MM inputs exist - verify they are not visible
+      // Both HH/MM inputs exist - verify them
       DateTimeElement.findHourInput(fieldLabel).should('not.be.visible');
       DateTimeElement.findMinuteInput(fieldLabel).should('not.be.visible');
     } else {
       // Use single time input
       DateTimeElement.findTimeInput(fieldLabel).should('not.be.visible');
     }
+  }
+
+  static verifyTimeFieldValue(fieldLabel: string, timeValue: string): void {
+    const timeParts = timeValue.split(':');
+    if (timeParts.length < 2) {
+      throw new Error(
+        `Invalid time format: ${timeValue}. Expected HH:MM format.`,
+      );
+    }
+
+    const expectedHours = timeParts[0].padStart(2, '0');
+    const expectedMinutes = timeParts[1].padStart(2, '0');
+
+    // Helper to produce normalized HH and MM using DateTimeUtil
+    const normalizeHourMinute = (hours: number, minutes: number) => {
+      const d = new Date();
+      d.setHours(hours, minutes, 0, 0);
+      const hhmmss = DateTimeUtil.formatTime(d); // "HH:mm:ss"
+      const [hh, mm] = hhmmss.split(':');
+      return { hh, mm };
+    };
+
+    // Expected normalized values
+    const expectedNums = normalizeHourMinute(
+      parseInt(expectedHours, 10) || 0,
+      parseInt(expectedMinutes, 10) || 0,
+    );
+
+    // Check if separate HH/MM inputs exist, otherwise use single time input
+    if (DateTimeElement.hasSeparateHourMinuteInputs(fieldLabel)) {
+      // Verify HH input
+      DateTimeElement.findHourInput(fieldLabel).should(($input) => {
+        const actualValue = ($input.val() as string) || '0';
+        const actualHourNum = parseInt(actualValue, 10) || 0;
+        const normalizedActualHour = normalizeHourMinute(actualHourNum, 0).hh;
+        expect(normalizedActualHour).to.equal(expectedNums.hh);
+      });
+
+      // Verify MM input
+      DateTimeElement.findMinuteInput(fieldLabel).should(($input) => {
+        const actualValue = ($input.val() as string) || '0';
+        const actualMinuteNum = parseInt(actualValue, 10) || 0;
+        const normalizedActualMinute = normalizeHourMinute(
+          0,
+          actualMinuteNum,
+        ).mm;
+        expect(normalizedActualMinute).to.equal(expectedNums.mm);
+      });
+    } else {
+      // Verify single time input
+      const expectedTime = `${expectedNums.hh}:${expectedNums.mm}`;
+      DateTimeElement.findTimeInput(fieldLabel).should(
+        'have.value',
+        expectedTime,
+      );
+    }
+  }
+
+  static verifyDurationFieldValuesByLabel(
+    fieldLabel: string,
+    hours: string,
+    minutes: string,
+  ): void {
+    cy.log(
+      `Verifying duration field "${fieldLabel}" has hours: "${hours}" and minutes: "${minutes}"`,
+    );
+
+    DateTimeElement.findDurationHourInput(fieldLabel)
+      .should('be.visible')
+      .should('have.value', hours);
+
+    DateTimeElement.findDurationMinuteInput(fieldLabel)
+      .should('be.visible')
+      .should('have.value', minutes);
+  }
+  static clearDurationFieldsByLabel(
+    hoursFieldLabel: string,
+    minutesFieldLabel: string,
+    durationFieldLabel: string,
+  ): void {
+    cy.log(`Clearing duration fields in "${durationFieldLabel}"`);
+
+    DateTimeElement.findDurationHourInput(hoursFieldLabel)
+      .should('be.visible')
+      .should('be.enabled')
+      .clear()
+      .should('have.value', '');
+
+    DateTimeElement.findDurationMinuteInput(minutesFieldLabel)
+      .should('be.visible')
+      .should('be.enabled')
+      .clear()
+      .should('have.value', '');
+  }
+
+  static setDurationFieldValuesByLabel(
+    fieldLabel: string,
+    hours: string,
+    minutes: string,
+  ): void {
+    cy.log(
+      `Setting duration field "${fieldLabel}" to hours: "${hours}" and minutes: "${minutes}"`,
+    );
+
+    DateTimeElement.findDurationHourInput(fieldLabel)
+      .should('be.visible')
+      .should('be.enabled')
+      .clear()
+      .type(hours)
+      .should('have.value', hours);
+
+    DateTimeElement.findDurationMinuteInput(fieldLabel)
+      .should('be.visible')
+      .should('be.enabled')
+      .clear()
+      .type(minutes)
+      .should('have.value', minutes);
   }
 }
