@@ -1,4 +1,4 @@
-/* 
+/*
 Applications List – Create (/applications-list/create)
 
 Functionality:
@@ -30,6 +30,7 @@ import {
   ApplicationListStatus,
   ApplicationListsApi,
 } from '../../../generated/openapi';
+import { FormRaw } from '../../core/models/shared-types';
 import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
@@ -51,7 +52,6 @@ import {
 import { getProblemText } from '../../shared/util/http-error-to-text';
 import { validateCourtVsLocOrCja } from '../../shared/util/location-suggestion-helpers';
 import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
-import { FormRaw } from '../../shared/util/types/shared-types';
 
 type FieldKey =
   | 'date'

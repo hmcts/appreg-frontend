@@ -1,8 +1,14 @@
-/* 
+/*
 Common field validators
 */
 
 import { ValidationErrors } from '@angular/forms';
+
+import { ErrorSummaryItem } from '../../core/models/error/types';
+import {
+  emailIncorrectFormatMsg,
+  phoneIncorrectFormatMsg,
+} from '../constants/err-msgs';
 
 export interface ContactFieldIds {
   postcode: string;
@@ -13,7 +19,7 @@ export interface ContactFieldIds {
 
 export interface ValidationResult {
   fieldErrors: Record<string, string>;
-  summaryItems: { text: string; href: string }[];
+  summaryItems: ErrorSummaryItem[];
   valid: boolean;
 }
 
@@ -44,30 +50,18 @@ export function validateOptionalContactFields(
 
   const phone = get('phoneNumber');
   if (phone && !isValidPhone(phone)) {
-    add(
-      ids.phone,
-      'Enter a phone number in the correct format',
-      `#${ids.phone}`,
-    );
+    add(ids.phone, phoneIncorrectFormatMsg, `#${ids.phone}`);
   }
 
   const mobile = get('mobileNumber');
   if (mobile && !isValidPhone(mobile)) {
-    add(
-      ids.mobile,
-      'Enter a mobile number in the correct format',
-      `#${ids.mobile}`,
-    );
+    add(ids.mobile, phoneIncorrectFormatMsg, `#${ids.mobile}`);
   }
 
   // We use Angular's built in validation here
   const email = get('emailAddress');
   const emailErrors = getErrors('emailAddress');
   if (email && emailErrors?.['email']) {
-    add(
-      ids.email,
-      'Enter an email address in the correct format, like name@example.com',
-      `#${ids.email}`,
-    );
+    add(ids.email, emailIncorrectFormatMsg, `#${ids.email}`);
   }
 }

@@ -1,5 +1,4 @@
 import { StandardApplicantGetSummaryDto } from '../../../../../generated/openapi';
-import { ErrorSummaryItem } from '../shared-types';
 
 export type ApplicantType = 'person' | 'organisation' | 'standardApplicant';
 
@@ -10,18 +9,6 @@ export type StandardApplicantRow = {
   useFrom: string; // formatted date
   useTo: string; // formatted date
 };
-
-export interface HttpErrorSummary {
-  hasFatalError: boolean;
-  errorHint: string;
-  errorSummary: ErrorSummaryItem[];
-}
-
-export interface ProblemDetails {
-  title?: string;
-  detail?: string;
-  errors?: Record<string, string[] | string>;
-}
 
 export type ContactFormRaw = {
   addressLine1: string;

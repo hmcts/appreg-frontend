@@ -1,8 +1,8 @@
 import {
+  ErrorSummaryItem,
   HttpErrorSummary,
   ProblemDetails,
-} from '../../../shared/util/types/applications-list-entry/types';
-import { ErrorSummaryItem } from '../../../shared/util/types/shared-types';
+} from '../../../core/models/error/types';
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;

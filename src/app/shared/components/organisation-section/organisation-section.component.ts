@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
+import { addressLine1Missing, orgNameMissing } from '../../constants/err-msgs';
 import {
   ValidationResult,
   validateOptionalContactFields,
@@ -54,10 +55,10 @@ export class OrganisationSectionComponent {
 
     // Required
     if (!get('name')) {
-      add(ids.name, 'Enter an organisation name', '#org-name');
+      add(ids.name, orgNameMissing, '#org-name');
     }
     if (!get('addressLine1')) {
-      add(ids.address1, 'Enter address line 1', '#org-address-line-1');
+      add(ids.address1, addressLine1Missing, '#org-address-line-1');
     }
 
     // Optional-but-validated

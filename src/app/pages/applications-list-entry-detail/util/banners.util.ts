@@ -1,6 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
 
-import { SuccessBanner } from '../../../shared/util/types/shared-types';
+import { SuccessBanner } from '../../../core/models/shared-types';
 
 export function computeSuccessBanner(
   wording: string,

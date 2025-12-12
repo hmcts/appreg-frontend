@@ -1,4 +1,4 @@
-/* 
+/*
 attachLocationDisabler
 Feature helper for Applications List forms.
 
@@ -32,9 +32,9 @@ import {
   CourtLocationGetSummaryDto,
   CriminalJusticeAreaGetDto,
 } from '../../../generated/openapi';
+import { FormRaw } from '../../core/models/shared-types';
 
 import { has } from './has';
-import { FormRaw } from './types/shared-types';
 
 export interface LocationControls {
   court: AbstractControl;

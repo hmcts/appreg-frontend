@@ -2,6 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
+import { ErrorSummaryItem } from '../../../core/models/error/types';
+import {
+  addressLine1Missing,
+  firstNameMissing,
+  lastNameMissing,
+} from '../../constants/err-msgs';
 import {
   ValidationResult,
   validateOptionalContactFields,
@@ -35,7 +41,7 @@ export class PersonSectionComponent {
    */
   validate(): ValidationResult {
     const fieldErrors: Record<string, string> = {};
-    const summaryItems: { text: string; href: string }[] = [];
+    const summaryItems: ErrorSummaryItem[] = [];
 
     const p = this.group.value as Record<string, unknown>;
     const get = (k: string) => {
@@ -60,13 +66,13 @@ export class PersonSectionComponent {
 
     // Required
     if (!get('firstName')) {
-      add(ids.firstName, 'Enter a first name', '#person-first-name');
+      add(ids.firstName, firstNameMissing, '#person-first-name');
     }
     if (!get('surname')) {
-      add(ids.surname, 'Enter a surname', '#person-surname');
+      add(ids.surname, lastNameMissing, '#person-surname');
     }
     if (!get('addressLine1')) {
-      add(ids.address1, 'Enter address line 1', '#person-address-line-1');
+      add(ids.address1, addressLine1Missing, '#person-address-line-1');
     }
 
     // Optional-but-validated

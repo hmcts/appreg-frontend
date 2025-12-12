@@ -31,6 +31,7 @@ import {
   ApplicationListUpdateDto,
   ApplicationListsApi,
 } from '../../../generated/openapi';
+import { FormRaw } from '../../core/models/shared-types';
 import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
@@ -73,7 +74,6 @@ import {
   DurationControlErrors,
   TimeControlErrors,
 } from '../../shared/util/types/applications-list-entry/types';
-import { FormRaw } from '../../shared/util/types/shared-types';
 
 type DetailFormRaw = Omit<
   FormRaw<ApplicationListStatus>,

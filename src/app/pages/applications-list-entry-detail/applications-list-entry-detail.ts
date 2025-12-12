@@ -49,6 +49,7 @@ import {
   StandardApplicantsApi,
   UpdateApplicationListEntryRequestParams,
 } from '../../../generated/openapi';
+import { SuccessBanner } from '../../core/models/shared-types';
 import { AccordionComponent } from '../../shared/components/accordion/accordion.component';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
@@ -84,7 +85,6 @@ import {
   OrganisationFormRaw,
   PersonFormRaw,
 } from '../../shared/util/types/applications-list-entry/types';
-import { SuccessBanner } from '../../shared/util/types/shared-types';
 import { ValidationResult } from '../../shared/util/validation';
 
 import { computeSuccessBanner, focusSuccessBanner } from './util/banners.util';

@@ -1,16 +1,14 @@
-/* 
+/*
 Shared types throughout this app
 */
 
-import { Duration } from '../../components/duration-input/duration-input.component';
+import { Duration } from '../../shared/components/duration-input/duration-input.component';
 
 export type SuccessBanner = {
   heading: string;
   body: string;
   link?: { href: string; text: string };
 };
-
-export type ErrorSummaryItem = { text: string; href?: string };
 
 export interface FormRaw<S> {
   date: unknown;
@@ -21,5 +19,3 @@ export interface FormRaw<S> {
   location: string | null;
   cja: string | null;
 }
-
-export type ProblemDetails = { detail?: unknown; title?: unknown };
