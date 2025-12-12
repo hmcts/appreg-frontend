@@ -388,7 +388,7 @@ Feature: Applications List Search
     Then User Verifies The "Court" Textbox Has Selected Value "<CourtValue>"
     Then User Verifies The "Other location" Textbox Has Value "<OtherLocation>"
     Then User Verifies The "CJA" Textbox Has Value "<CJAValue>"
-    #Then User Verifies The "Duration" Has Value "<HH> hours <MM> minutes"
+    Then User Verifies The "Duration" field Has Values hours "<HH>" and minutes "<MM>"
     Then User Clears The "Description" Textbox
     Then User Enters "<Updated description>" Into The "Description" Textbox
     Then User Clears The "Other location" Textbox
