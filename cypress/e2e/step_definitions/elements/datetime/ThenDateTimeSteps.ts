@@ -18,10 +18,16 @@ Then('User Should Not See The Time Field {string}', (fieldLabel: string) => {
   DateTimeHelper.verifyTimeFieldNotVisible(fieldLabel);
 });
 
-Then('User Verifies The Time field {string} Has Value {string}', (fieldLabel: string, expectedValue: string) => {
-  DateTimeHelper.verifyTimeFieldValue(fieldLabel, expectedValue);
-});
+Then(
+  'User Verifies The Time field {string} Has Value {string}',
+  (fieldLabel: string, expectedValue: string) => {
+    DateTimeHelper.verifyTimeFieldValue(fieldLabel, expectedValue);
+  },
+);
 
-Then('User Verifies The {string} field Has Values hours {string} and minutes {string}', (fieldLabel: string, hours: string, minutes: string) => {
-  DateTimeHelper.verifyDurationFieldValuesByLabel(fieldLabel, hours, minutes);
-}); 
+Then(
+  'User Verifies The {string} field Has Values hours {string} and minutes {string}',
+  (fieldLabel: string, hours: string, minutes: string) => {
+    DateTimeHelper.verifyDurationFieldValuesByLabel(fieldLabel, hours, minutes);
+  },
+);

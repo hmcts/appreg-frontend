@@ -327,8 +327,10 @@ export class DateTimeHelper {
     } else {
       // Verify single time input
       const expectedTime = `${expectedHours}:${expectedMinutes}`;
-      DateTimeElement.findTimeInput(fieldLabel)
-        .should('have.value', expectedTime);
+      DateTimeElement.findTimeInput(fieldLabel).should(
+        'have.value',
+        expectedTime,
+      );
     }
   }
 
@@ -348,7 +350,7 @@ export class DateTimeHelper {
     DateTimeElement.findDurationMinuteInput(fieldLabel)
       .should('be.visible')
       .should('have.value', minutes);
-  } 
+  }
   static clearDurationFieldsByLabel(
     hoursFieldLabel: string,
     minutesFieldLabel: string,
@@ -391,5 +393,5 @@ export class DateTimeHelper {
       .clear()
       .type(minutes)
       .should('have.value', minutes);
-  } 
-} 
+  }
+}

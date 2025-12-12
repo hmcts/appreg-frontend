@@ -148,12 +148,11 @@ export class DateTimeElement {
   static findDurationMinuteInput(fieldLabel: string): Cypress.Chainable {
     return this.findMinuteInput(fieldLabel);
   }
-   
 
   static findDurationInputByLabel(fieldLabel: string): Cypress.Chainable[] {
     return [
       this.findDurationHourInput(fieldLabel),
-      this.findDurationMinuteInput(fieldLabel)
+      this.findDurationMinuteInput(fieldLabel),
     ];
   }
 }
