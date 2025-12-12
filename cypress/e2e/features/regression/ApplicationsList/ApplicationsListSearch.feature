@@ -358,7 +358,7 @@ Feature: Applications List Search
       | User  | TableName | SearchDate | DisplayDate | Time           | cjaCode | OptionText     | otherLocationDescription                          | Description             | Entries | Status | SelectButtonText | ButtonName | Duration          | PDFName      | Pages |
       | user1 | Lists     | today      | todayiso    | timenowhhmm-1h | A8      | CJA Number 308 | This is a location description for CJA Number 318 | ENFORCEMENT LIST - TEST | 0       | OPEN   | Select           | Print page | 2 Hours 0 Minutes | cja-number-1 | 2     |
 
-  @regression @ARCPOC-214 @ARCPOC-450
+  @regression @ARCPOC-214 @ARCPOC-450 @ARCPOC-799
   Scenario Outline: Update applications list Successfully with Other location and CJA selected
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Body:
@@ -433,7 +433,12 @@ Feature: Applications List Search
     Then User Verifies The "Court" Textbox Has Selected Value "<Court> - <courtLocation>"
     Then User Verifies The "Other location" Textbox Has Value "<OtherLocation>"
     Then User Verifies The "CJA" Textbox Has Value "<CJAValue>"
-    #Then User Verifies The "Duration" Has Value "<HH> hours <MM> minutes"
+    Then User Verifies The "Duration" field Has Values hours "<HH>" and minutes "<MM>"
+    #When User clears the "<ClearHH>" and "<ClearMM>" fields in the "Duration" field
+    When User Set "<InvalidHH>" and "<InvalidMM>" In The "Duration" Field
+    When User Clicks On The "Update" Button
+    Then User Sees Validation Error "There is a problem... Enter hours between 0 and 99 Enter minutes between 0 and 59"
+    When User Set "<UpdatedHH>" and "<UpdatedMM>" In The "Duration" Field
     Then User Clears The "Description" Textbox
     When User Clicks On The "Update" Button
     Then User Sees Validation Error "There is a problem... Description is required"
@@ -444,5 +449,5 @@ Feature: Applications List Search
     Then User Sees Notification Banner "Success Update complete List successfully updated"
 
     Examples:
-      | User  | TableName | DisplayDate | Time  | Court  | courtLocation                 | Description   | Entries | Status | ButtonName | SearchDate | SelectButtonText | OtherLocation | cjaCode | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText |
-      | user1 | Lists     | 2025-12-04  | 16:05 | RCJ001 | Royal Courts of Justice Set 1 | Test_04122025 | 0       | OPEN   | Open       | 04/12/2025 | Select           |               |         |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     |
+      | User  | TableName | DisplayDate | Time  | Court  | courtLocation                 | Description   | Entries | Status | ButtonName | SearchDate | SelectButtonText | OtherLocation | cjaCode | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText | InvalidHH | InvalidMM | UpdatedHH | UpdatedMM |
+      | user1 | Lists     | 2025-12-11  | 16:05 | RCJ001 | Royal Courts of Justice Set 1 | Test_11122025 | 0       | OPEN   | Open       | 11/12/2025 | Select           |               |         |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     | A1B2      | C3D4      | 12        | 45        |
