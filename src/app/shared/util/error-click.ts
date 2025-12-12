@@ -2,6 +2,8 @@
 Error summary - clickable error hints
 */
 
+import { isPlatformBrowser } from '@angular/common';
+
 import { ErrorItem } from '../components/error-summary/error-summary.component';
 
 function focusByIdOrFirstFocusable(id: string): void {
@@ -39,4 +41,19 @@ export function onCreateErrorClick(item: ErrorItem): void {
 export function focusField(id: string, ev?: Event): void {
   ev?.preventDefault();
   focusByIdOrFirstFocusable(id);
+}
+
+export function focusErrorSummary(platformId: object): void {
+  if (!isPlatformBrowser(platformId)) {
+    return;
+  }
+
+  setTimeout(() => {
+    const el = document.querySelector<HTMLElement>(
+      '[data-component="error-summary"]',
+    );
+
+    el?.focus?.();
+    el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+  }, 0);
 }

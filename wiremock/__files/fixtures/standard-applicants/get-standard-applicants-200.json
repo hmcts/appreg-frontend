@@ -1,77 +1,145 @@
 {
-  "page": 0,
-  "size": 10,
+  "pageNumber": 0,
+  "pageSize": 10,
   "totalElements": 23,
   "totalPages": 3,
-  "sort": ["name,asc"],
+  "elementsOnPage": 10,
+  "sort": {
+    "orders": [
+      {
+        "property": "name",
+        "direction": "asc"
+      }
+    ]
+  },
   "content": [
     {
       "code": "SA001",
-      "name": "Citizen Advice Manchester",
-      "addressLine1": "1 Crown Sq",
+      "applicant": {
+        "organisation": {
+          "name": "Citizen Advice Manchester",
+          "contactDetails": {
+            "addressLine1": "1 Crown Sq"
+          }
+        }
+      },
       "startDate": "2020-01-01",
-      "endDate": null
+      "endDate": "2025-03-03"
     },
     {
       "code": "SA002",
-      "name": "Legal Aid Board",
-      "addressLine1": "2 Market St",
+      "applicant": {
+        "organisation": {
+          "name": "Legal Aid Board",
+          "contactDetails": {
+            "addressLine1": "2 Market St"
+          }
+        }
+      },
       "startDate": "2019-05-10",
       "endDate": null
     },
     {
       "code": "SA003",
-      "name": "Greater Manchester Police",
-      "addressLine1": "3 Chapel Rd",
+      "applicant": {
+        "organisation": {
+          "name": "Greater Manchester Police",
+          "contactDetails": {
+            "addressLine1": "3 Chapel Rd"
+          }
+        }
+      },
       "startDate": "2018-02-20",
       "endDate": null
     },
     {
       "code": "SA004",
-      "name": "Manchester City Council",
-      "addressLine1": "4 King St",
+      "applicant": {
+        "organisation": {
+          "name": "Manchester City Council",
+          "contactDetails": {
+            "addressLine1": "4 King St"
+          }
+        }
+      },
       "startDate": "2017-07-15",
       "endDate": null
     },
     {
       "code": "SA005",
-      "name": "Crown Prosecution Service",
-      "addressLine1": "5 Queen St",
+      "applicant": {
+        "organisation": {
+          "name": "Crown Prosecution Service",
+          "contactDetails": {
+            "addressLine1": "5 Queen St"
+          }
+        }
+      },
       "startDate": "2021-09-01",
       "endDate": null
     },
     {
       "code": "SA006",
-      "name": "DVLA",
-      "addressLine1": "6 Station Rd",
+      "applicant": {
+        "organisation": {
+          "name": "DVLA",
+          "contactDetails": {
+            "addressLine1": "6 Station Rd"
+          }
+        }
+      },
       "startDate": "2022-01-12",
       "endDate": null
     },
     {
       "code": "SA007",
-      "name": "HMRC",
-      "addressLine1": "7 Bridge St",
+      "applicant": {
+        "organisation": {
+          "name": "HMRC",
+          "contactDetails": {
+            "addressLine1": "7 Bridge St"
+          }
+        }
+      },
       "startDate": "2020-06-01",
       "endDate": null
     },
     {
       "code": "SA008",
-      "name": "Environment Agency",
-      "addressLine1": "8 Park Ave",
+      "applicant": {
+        "organisation": {
+          "name": "Environment Agency",
+          "contactDetails": {
+            "addressLine1": "8 Park Ave"
+          }
+        }
+      },
       "startDate": "2016-04-04",
       "endDate": null
     },
     {
       "code": "SA009",
-      "name": "Home Office",
-      "addressLine1": "9 Mill Ln",
+      "applicant": {
+        "organisation": {
+          "name": "Home Office",
+          "contactDetails": {
+            "addressLine1": "9 Mill Ln"
+          }
+        }
+      },
       "startDate": "2015-03-03",
       "endDate": null
     },
     {
       "code": "SA010",
-      "name": "NHS Trust",
-      "addressLine1": "10 Dale St",
+      "applicant": {
+        "organisation": {
+          "name": "NHS Trust",
+          "contactDetails": {
+            "addressLine1": "10 Dale St"
+          }
+        }
+      },
       "startDate": "2014-01-01",
       "endDate": null
     }

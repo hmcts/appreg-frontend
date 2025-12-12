@@ -50,6 +50,8 @@ export class SelectableSortableTableComponent
   /** Keep stable across pagination so row checkbox ids are unique */
   @Input() idPrefix = 'apps-';
 
+  @Input() singleSelect = false;
+
   @ViewChild('mojTable', { static: true })
   tableRef!: ElementRef<HTMLTableElement>;
 
@@ -128,8 +130,12 @@ export class SelectableSortableTableComponent
   }
 
   /** Toggle selection for every row currently visible on this page */
+
   toggleSelectAllVisible(checked: boolean): void {
-    const next = new Set(this.selectedIds); // replace Set instance
+    if (this.singleSelect) {
+      return;
+    }
+    const next = new Set(this.selectedIds);
     for (const id of this.visibleIds) {
       if (checked) {
         next.add(id);
@@ -178,12 +184,22 @@ export class SelectableSortableTableComponent
     if (!id) {
       return;
     }
-    const next = new Set(this.selectedIds);
-    if (checked) {
-      next.add(id);
+
+    let next: Set<string>;
+    if (this.singleSelect) {
+      next = new Set<string>();
+      if (checked) {
+        next.add(id);
+      }
     } else {
-      next.delete(id);
+      next = new Set(this.selectedIds);
+      if (checked) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
     }
+
     this.selectedIds = next;
     this.selectedIdsChange.emit(next);
     this.cdr.markForCheck();

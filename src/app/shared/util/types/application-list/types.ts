@@ -3,7 +3,6 @@ Reused types in /application-list/**  pages
 */
 
 import { ApplicationListGetSummaryDto } from '../../../../../generated/openapi';
-import { Duration } from '../../../components/duration-input/duration-input.component';
 
 type UiExtras = {
   deletable?: boolean;
@@ -18,16 +17,6 @@ export type ApplicationListRow = Omit<
   entries: ApplicationListGetSummaryDto['entriesCount'];
 } & UiExtras;
 
-export interface FormRaw<S> {
-  date: unknown;
-  description: string | null;
-  time: Duration | null;
-  status: S | string | null;
-  court: string | null;
-  location: string | null;
-  cja: string | null;
-}
-
 export type NormalizedPayload<S> = {
   date: unknown;
   time: string;
@@ -39,19 +28,3 @@ export type NormalizedPayload<S> = {
 );
 
 export type SummaryItem = { text: string; href: string };
-export type ProblemDetails = { detail?: unknown; title?: unknown };
-
-export type DateControlErrors = {
-  dateInvalid?: boolean;
-  dateErrorText?: string;
-} | null;
-
-export type TimeControlErrors = {
-  durationErrorText?: string;
-} | null;
-
-export type DurationControlErrors = {
-  durationErrorText?: string;
-  hoursErrorText?: string;
-  minutesErrorText?: string;
-} | null;
