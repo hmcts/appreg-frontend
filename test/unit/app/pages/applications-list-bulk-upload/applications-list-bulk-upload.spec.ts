@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ApplicationsListBulkUpload } from './applications-list-bulk-upload';
+import { ApplicationsListBulkUpload } from '../../../../../src/app/pages/applications-list-bulk-upload/applications-list-bulk-upload';
 
 describe('ApplicationsListBulkUpload', () => {
   let component: ApplicationsListBulkUpload;
