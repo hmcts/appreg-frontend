@@ -9,6 +9,7 @@ type PageItem = number | '…';
 export class PaginationComponent {
   @Input() currentPage = 1; // 1-based
   @Input() totalPages = 1;
+  @Input() paginationLimit = 7; // Configurable pagination limit
 
   @Output() pageChange = new EventEmitter<number>();
 
@@ -21,7 +22,7 @@ export class PaginationComponent {
     }
 
     // For a small number of pages, just show them all.
-    if (total <= 7) {
+    if (total <= this.paginationLimit) {
       return Array.from({ length: total }, (_, i) => i + 1);
     }
 
