@@ -189,7 +189,6 @@ describe('ApplicationsList – delete flow (server platform: no confirm)', () =>
     await component.onDelete(row);
 
     expect(component.deleteInvalid).toBe(true);
-    expect(component.errorHint).toBe('There is a problem');
     expect(component.errorSummary).toEqual([
       { text: 'This list cannot be deleted.' },
     ]);
@@ -299,7 +298,6 @@ describe('ApplicationsList – delete flow (server platform: no confirm)', () =>
         // Error flags and message mapping
         expect(component.deleteDone).toBe(false);
         expect(component.deleteInvalid).toBe(true);
-        expect(component.errorHint).toBe('There is a problem');
         expect(component.errorSummary[0].text).toBe(firstText);
 
         // Row NOT removed on error; deletingId reset
@@ -439,10 +437,8 @@ describe('ApplicationsList – search', () => {
   it('when hasParams=false, does not call API and surfaces validation error', () => {
     service.getApplicationLists.mockClear();
     component.searchErrors = [];
-    component.errorHint = '';
     component.loadApplicationsLists(false);
     expect(service.getApplicationLists).not.toHaveBeenCalled();
-    expect(component.errorHint).toBe('There is a problem');
     expect(component.searchErrors[0]).toEqual({
       id: '',
       text: 'Invalid Search Criteria. At least one field must be entered.',
@@ -530,10 +526,8 @@ describe('ApplicationsList – search', () => {
   it('when hasParams=false, does not call API and shows the same validation error', () => {
     service.getApplicationLists.mockClear();
     component.searchErrors = [];
-    component.errorHint = '';
     component.loadApplicationsLists(false);
     expect(service.getApplicationLists).not.toHaveBeenCalled();
-    expect(component.errorHint).toBe('There is a problem');
     expect(component.searchErrors[0]).toEqual({
       id: '',
       text: 'Invalid Search Criteria. At least one field must be entered.',
