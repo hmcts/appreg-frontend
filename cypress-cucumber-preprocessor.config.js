@@ -2,7 +2,7 @@ module.exports = {
   stepDefinitions: 'cypress/e2e/step_definitions/**/*.ts',
   messages: {
     enabled: true,
-    output:'cypress/reports/cucumber-messages',
+    output: 'cypress/reports/cucumber-messages',
   },
   json: {
     enabled: true,

@@ -51,7 +51,8 @@ function generateScenariosHTML(scenarios, browser) {
       // Add browser badge for combined reports
       let browserBadge = '';
       if (scenario.browser && !browser) {
-        const browserColor = scenario.browser === 'Chrome' ? '#4285f4' : '#0078d4';
+        const browserColor =
+          scenario.browser === 'Chrome' ? '#4285f4' : '#0078d4';
         browserBadge = `<span class="browser-badge" style="background: ${browserColor}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px;">🌐 ${scenario.browser}</span>`;
       }
 
