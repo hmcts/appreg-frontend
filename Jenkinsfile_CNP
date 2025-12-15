@@ -43,59 +43,77 @@ withPipeline(type, product, component) {
     before('functionalTest:dev') {
         echo "Setting up redirect URI for preview environment"
 
-        if (env.TEST_URL) {
-            echo "Whitelisting redirect URI for PR: ${env.TEST_URL}"
-
-            def az = new uk.gov.hmcts.contino.azure.Az(this, env.SUBSCRIPTION_NAME)
-
-            // Fetch current URIs
-            def currentUrisJson = az.az(
-                "rest --method GET --url 'https://graph.microsoft.com/v1.0/applications/20e4de40-7aee-45b1-895b-cb77546763dc' --query 'web.redirectUris' -o json"
-            )
-
-            try {
-                echo "DEBUG: about to call Graph GET for 20e4de40-7aee-45b1-895b-cb77546763dc"
-                currentUrisJson = az.az(
-                    "rest --method GET --url 'https://graph.microsoft.com/v1.0/applications/20e4de40-7aee-45b1-895b-cb77546763dc' --query 'web.redirectUris' -o json"
-                )
-                echo "DEBUG: Graph GET success, length=${currentUrisJson?.size() ?: 0}"
-            } catch (Throwable t) {
-                echo "*** ERROR: Graph GET failed: ${t.class.name}: ${t.message}"
-                // show a little stack trace
-                t.stackTrace.take(10).each { st -> echo "  at ${st}" }
-                throw t
-            }
-
-            // Append if missing (jq logic kept minimal)
-            def rc = sh(
-                script: """
-                    set -e
-                    CURRENT='\$(echo '${currentUrisJson}')'
-                    if echo "\$CURRENT" | jq -e --arg url "${env.TEST_URL}" 'any(.==\$url)' > /dev/null; then
-                      echo "URL already present in redirectUris, no update needed."
-                    else
-                      UPDATED=\$(echo "\$CURRENT" | jq --arg url "${env.TEST_URL}" '. + [\$url]')
-                      echo "Updating redirectUris -> \$UPDATED"
-                      env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${env.SUBSCRIPTION_NAME} az rest \\
-                        --method PATCH \\
-                        --url 'https://graph.microsoft.com/v1.0/applications/20e4de40-7aee-45b1-895b-cb77546763dc' \\
-                        --headers 'Content-Type=application/json' \\
-                        --body "{\\"web\\":{\\"redirectUris\\":\$UPDATED}}" || echo "AZ REST FAILED WITH \$?"
-                      echo "Redirect URI added to redirectUris."
-                    fi
-                """,
-                returnStatus: true
-            )
-
-            echo "DEBUG: redirect URI update shell exited with code ${rc}"
-
-            // If you want the build to hard-fail when this update fails, swap the echo for error():
-            if (rc != 0) {
-                echo "WARN: redirect URI update failed with exit code ${rc} (pipeline will continue)"
-                // error("Failed to update redirect URI, exit code ${rc}")
-            }
-        } else {
+        if (!env.TEST_URL) {
             error("TEST_URL missing from environment")
+        }
+
+        def appObjectId = '20e4de40-7aee-45b1-895b-cb77546763dc'
+        echo "Whitelisting redirect URI for PR: ${env.TEST_URL}"
+        echo "DEBUG: appObjectId=${appObjectId}"
+        echo "DEBUG: SUBSCRIPTION_NAME=${env.SUBSCRIPTION_NAME}"
+
+        def az = new uk.gov.hmcts.contino.azure.Az(this, env.SUBSCRIPTION_NAME)
+
+        def currentUrisJson
+        try {
+            echo "DEBUG: calling Graph GET for current redirectUris"
+            currentUrisJson = az.az(
+                "rest --method GET --url 'https://graph.microsoft.com/v1.0/applications/${appObjectId}' --query 'web.redirectUris' -o json"
+            )
+            echo "DEBUG: Graph GET returned length=${currentUrisJson?.size() ?: 0}"
+            echo "DEBUG: Graph GET preview=${currentUrisJson?.take(300) ?: 'null'}"
+        } catch (Throwable t) {
+            echo "*** ERROR: Graph GET failed: ${t.class.name}: ${t.message}"
+            throw t
+        }
+
+        def rc = sh(
+            script: """
+                set -euo pipefail
+                set -x
+
+                CURRENT='$(echo '${currentUrisJson}')'
+
+                # If Graph returned null, treat as empty array
+                if [ "\$CURRENT" = "null" ] || [ -z "\$CURRENT" ]; then
+                  echo "DEBUG: CURRENT redirectUris is null/empty, defaulting to []"
+                  CURRENT="[]"
+                fi
+
+                echo "DEBUG: CURRENT redirectUris = \$CURRENT"
+
+                if echo "\$CURRENT" | jq -e --arg url "${env.TEST_URL}" 'any(.==\$url)' > /dev/null; then
+                  echo "DEBUG: URL already present in redirectUris, no update needed."
+                  exit 0
+                fi
+
+                UPDATED=\$(echo "\$CURRENT" | jq --arg url "${env.TEST_URL}" '. + [\$url]')
+                echo "DEBUG: UPDATED redirectUris = \$UPDATED"
+
+                BODY=\$(jq -cn --argjson uris "\$UPDATED" '{web:{redirectUris:$uris}}')
+                echo "DEBUG: PATCH body = \$BODY"
+
+                echo "DEBUG: Performing Graph PATCH..."
+                env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${env.SUBSCRIPTION_NAME} az rest \\
+                  --method PATCH \\
+                  --url 'https://graph.microsoft.com/v1.0/applications/${appObjectId}' \\
+                  --headers 'Content-Type=application/json' \\
+                  --body "\$BODY" \\
+                  -o json
+
+                echo "DEBUG: PATCH completed, verifying..."
+                env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${env.SUBSCRIPTION_NAME} az rest \\
+                  --method GET \\
+                  --url 'https://graph.microsoft.com/v1.0/applications/${appObjectId}' \\
+                  --query 'web.redirectUris' -o json
+            """,
+            returnStatus: true
+        )
+
+        echo "DEBUG: redirect URI update shell exited with code ${rc}"
+
+        if (rc != 0) {
+            error("Redirect URI update failed (exit code ${rc})")
         }
     }
 
