@@ -1,7 +1,5 @@
 #!groovy
 
-echo '*** DEBUG: Jenkinsfile_CNP version 2025-12-15-1 ***'
-
 @Library("Infrastructure")
 
 def type = "angular"
@@ -40,6 +38,10 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 withPipeline(type, product, component) {
     loadVaultSecrets(secrets)
     enableSlackNotifications('#appreg-builds')
+
+    before('Build') {
+      echo '*** DEBUG: before(build) hook hit ***'
+    }
 
     before('smoketest:preview') {
         if (env.TEST_URL) {
