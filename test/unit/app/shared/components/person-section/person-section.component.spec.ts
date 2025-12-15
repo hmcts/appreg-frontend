@@ -290,8 +290,11 @@ describe('PersonSectionComponent', () => {
       });
 
       const res = component.validate();
+      const mock = validateOptionalContactFields as jest.Mock;
+      const [getFn] = mock.mock.calls[0] as [(k: string) => string];
 
       expect(res.valid).toBe(false);
+      expect(getFn('addressLine1')).toBe('10 Road');
       // addressLine1 is present after trim, so only firstName + surname should error
       expect(res.fieldErrors).toEqual({
         'person-first-name': firstNameMissing,

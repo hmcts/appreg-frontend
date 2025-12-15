@@ -1,5 +1,10 @@
 import type { FormGroup } from '@angular/forms';
 
+import { loadQuery } from '../../../../../../src/app/pages/applications-list/util/load-query';
+import { toStatus } from '../../../../../../src/app/shared/util/application-status-helpers';
+import { toTimeString } from '../../../../../../src/app/shared/util/time-helpers';
+import { ApplicationListStatus } from '../../../../../../src/generated/openapi';
+
 jest.mock('../../../../../../src/generated/openapi', () => ({}));
 jest.mock(
   '../../../../../../src/app/shared/components/duration-input/duration-input.component',
@@ -16,11 +21,6 @@ jest.mock(
 jest.mock('../../../../../../src/app/shared/util/time-helpers', () => ({
   toTimeString: jest.fn(),
 }));
-
-import { loadQuery } from '../../../../../../src/app/pages/applications-list/util/load-query';
-import { toStatus } from '../../../../../../src/app/shared/util/application-status-helpers';
-import { toTimeString } from '../../../../../../src/app/shared/util/time-helpers';
-import { ApplicationListStatus } from '../../../../../../src/generated/openapi';
 
 const mockedToStatus = toStatus as jest.MockedFunction<typeof toStatus>;
 const mockedToTimeString = toTimeString as jest.MockedFunction<
