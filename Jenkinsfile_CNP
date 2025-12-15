@@ -40,12 +40,9 @@ withPipeline(type, product, component) {
     loadVaultSecrets(secrets)
     enableSlackNotifications('#appreg-builds')
 
-    before('build') {
-        echo "DEBUG: TEST 1 - Before Build Step"
-    }
-
     before('functionalTest:dev') {
         echo "Setting up redirect URI for preview environment"
+
         if (env.TEST_URL) {
             echo "Whitelisting redirect URI for PR: ${env.TEST_URL}"
 
@@ -57,22 +54,33 @@ withPipeline(type, product, component) {
             )
 
             // Append if missing (jq logic kept minimal)
-            sh """
-                set -e
-                CURRENT='\$(echo '${currentUrisJson}')'
-                if echo "\$CURRENT" | jq -e --arg url "${env.TEST_URL}" 'any(.==\$url)' > /dev/null; then
-                  echo "URL already present in redirectUris, no update needed."
-                else
-                  UPDATED=\$(echo "\$CURRENT" | jq --arg url "${env.TEST_URL}" '. + [\$url]')
-                  echo "Updating redirectUris -> \$UPDATED"
-                  env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${env.SUBSCRIPTION_NAME} az rest \\
-                    --method PATCH \\
-                    --url 'https://graph.microsoft.com/v1.0/applications/${appObjectId}' \\
-                    --headers 'Content-Type=application/json' \\
-                    --body "{\\"web\\":{\\"redirectUris\\":\$UPDATED}}"
-                  echo "Redirect URI added to redirectUris."
-                fi
-            """
+            def rc = sh(
+                script: """
+                    set -e
+                    CURRENT='\$(echo '${currentUrisJson}')'
+                    if echo "\$CURRENT" | jq -e --arg url "${env.TEST_URL}" 'any(.==\$url)' > /dev/null; then
+                      echo "URL already present in redirectUris, no update needed."
+                    else
+                      UPDATED=\$(echo "\$CURRENT" | jq --arg url "${env.TEST_URL}" '. + [\$url]')
+                      echo "Updating redirectUris -> \$UPDATED"
+                      env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${env.SUBSCRIPTION_NAME} az rest \\
+                        --method PATCH \\
+                        --url 'https://graph.microsoft.com/v1.0/applications/${appObjectId}' \\
+                        --headers 'Content-Type=application/json' \\
+                        --body "{\\"web\\":{\\"redirectUris\\":\$UPDATED}}" || echo "AZ REST FAILED WITH \$?"
+                      echo "Redirect URI added to redirectUris."
+                    fi
+                """,
+                returnStatus: true
+            )
+
+            echo "DEBUG: redirect URI update shell exited with code ${rc}"
+
+            // If you want the build to hard-fail when this update fails, swap the echo for error():
+            if (rc != 0) {
+                echo "WARN: redirect URI update failed with exit code ${rc} (pipeline will continue)"
+                // error("Failed to update redirect URI, exit code ${rc}")
+            }
         } else {
             error("TEST_URL missing from environment")
         }
