@@ -144,7 +144,6 @@ export class DateTimeHelper {
    * @param hour The hour value to set (0-23)
    */
   static setHourValue(fieldLabel: string, hour: string): void {
-
     if (!hour || hour.toLowerCase() === '*skip*') {
       // Intentionally skip hour entry
       return;
@@ -170,7 +169,6 @@ export class DateTimeHelper {
    * @param minute The minute value to set (0-59)
    */
   static setMinuteValue(fieldLabel: string, minute: string): void {
-
     if (!minute || minute.toLowerCase() === '*skip*') {
       // Intentionally skip minute entry
       return;
@@ -350,10 +348,7 @@ export class DateTimeHelper {
     });
 
     // Verify Year
-    DateTimeElement.findYearInput(fieldLabel).should(
-      'have.value',
-      expYear,
-    );
+    DateTimeElement.findYearInput(fieldLabel).should('have.value', expYear);
   }
 
   static verifyTimeFieldValue(fieldLabel: string, timeValue: string): void {

@@ -17,7 +17,8 @@ export class DropdownHelper {
           .find('option')
           .then(($options) => {
             const match = [...$options].find(
-              (o) => o.textContent?.trim().toLowerCase() === option.toLowerCase(),
+              (o) =>
+                o.textContent?.trim().toLowerCase() === option.toLowerCase(),
             );
 
             if (!match) {
@@ -26,8 +27,7 @@ export class DropdownHelper {
 
             cy.wrap($dropdown).select(match.value);
           });
-      }
-      else {
+      } else {
         // For custom dropdowns, click to open and select the option
         cy.wrap($dropdown).click();
         cy.contains(
