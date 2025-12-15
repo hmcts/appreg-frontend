@@ -1,5 +1,7 @@
 #!groovy
 
+echo '*** DEBUG: Jenkinsfile_CNP version 2025-12-15-1 ***'
+
 @Library("Infrastructure")
 
 def type = "angular"
