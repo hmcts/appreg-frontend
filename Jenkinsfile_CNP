@@ -40,6 +40,29 @@ withPipeline(type, product, component) {
   loadVaultSecrets(secrets)
   enableSlackNotifications('#appreg-builds')
 
+  after('functionalTest:preview') {
+    script {
+      catchError(buildResult: 'FAILURE', stageResult: 'FAILURE', message: 'Functional tests (Chrome) failed') {
+        try {
+          yarnBuilder.yarn('test:functional')
+        } finally {
+          archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/smoke/**/*'
+          junit allowEmptyResults: true, testResults: 'functional-output/chrome/smoke/junit/**/*.xml'
+          
+          publishHTML([
+            allowMissing: true,
+            alwaysLinkToLastBuild: true,
+            keepAll: true,
+            reportDir: 'functional-output/chrome/smoke/mochawesome',
+            reportFiles: 'mochawesome.html',
+            reportName: 'Application Register Report',
+            reportTitles: 'Application Register Test Report'
+          ])
+        }
+      }
+    }
+  }
+
   after('functionalTest:aat') {
     script {
       catchError(buildResult: 'FAILURE', stageResult: 'FAILURE', message: 'Functional tests (Chrome) failed') {
