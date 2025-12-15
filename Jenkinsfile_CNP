@@ -36,12 +36,16 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 }
 
 withPipeline(type, product, component) {
+    echo '*** DEBUG: Jenkinsfile loaded ***'
+
     loadVaultSecrets(secrets)
     enableSlackNotifications('#appreg-builds')
 
-    before('Build') {
-      echo '*** DEBUG: before(build) hook hit ***'
-    }
+    before('Build') { echo '*** DEBUG: before(Build) fired ***' }
+    before('build') { echo '*** DEBUG: before(build) fired ***' }
+
+    after('Build')  { echo '*** DEBUG: after(Build) fired ***' }
+    after('build')  { echo '*** DEBUG: after(build) fired ***' }
 
     before('smoketest:preview') {
         if (env.TEST_URL) {
