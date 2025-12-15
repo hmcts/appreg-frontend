@@ -44,7 +44,7 @@ withPipeline(type, product, component) {
     script {
       catchError(buildResult: 'FAILURE', stageResult: 'FAILURE', message: 'Functional tests (Chrome) failed') {
         try {
-          yarnBuilder.yarn('test:nightly:smoke:chrome')
+          yarnBuilder.yarn('test:functional')
         } finally {
           archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/smoke/**/*'
           junit allowEmptyResults: true, testResults: 'functional-output/chrome/smoke/junit/**/*.xml'
