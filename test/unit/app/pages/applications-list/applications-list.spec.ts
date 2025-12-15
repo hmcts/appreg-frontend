@@ -55,9 +55,10 @@ const cjaApiMock = {
   getCriminalJusticeAreas: jest.fn().mockReturnValue(of({ content: [] })),
 };
 
-class ReferenceDataFacadeStub
-  implements Pick<ReferenceDataFacade, 'courtLocations$' | 'cja$'>
-{
+class ReferenceDataFacadeStub implements Pick<
+  ReferenceDataFacade,
+  'courtLocations$' | 'cja$'
+> {
   courtLocations$ = of([] as CourtLocationGetSummaryDto[]);
   cja$ = of([] as CriminalJusticeAreaGetDto[]);
 }
@@ -69,14 +70,10 @@ type PrintFn = (
   options?: { transferCache?: boolean },
 ) => Observable<ApplicationListGetPrintDto>;
 
-class PdfServiceStub
-  implements
-    Pick<
-      PdfService,
-      | 'generatePagedApplicationListPdf'
-      | 'generateContinuousApplicationListsPdf'
-    >
-{
+class PdfServiceStub implements Pick<
+  PdfService,
+  'generatePagedApplicationListPdf' | 'generateContinuousApplicationListsPdf'
+> {
   generatePagedApplicationListPdf = jest.fn<
     Promise<void>,
     [unknown, { crestUrl?: string } | undefined]
