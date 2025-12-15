@@ -19,6 +19,13 @@ Then('User Should Not See The Time Field {string}', (fieldLabel: string) => {
 });
 
 Then(
+  'User Verifies The Date field {string} Has Value {string}',
+  (fieldLabel: string, expectedValue: string) => {
+    DateTimeHelper.verifyDateFieldValue(fieldLabel, expectedValue);
+  },
+);
+
+Then(
   'User Verifies The Time field {string} Has Value {string}',
   (fieldLabel: string, expectedValue: string) => {
     DateTimeHelper.verifyTimeFieldValue(fieldLabel, expectedValue);

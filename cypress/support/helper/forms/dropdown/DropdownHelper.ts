@@ -12,8 +12,22 @@ export class DropdownHelper {
   ): Cypress.Chainable<JQuery<HTMLElement>> {
     return DropdownElement.findDropdown(name).then(($dropdown) => {
       if ($dropdown.is('select')) {
-        cy.wrap($dropdown).select(option);
-      } else {
+        //cy.wrap($dropdown).select(option);
+        cy.wrap($dropdown)
+          .find('option')
+          .then(($options) => {
+            const match = [...$options].find(
+              (o) => o.textContent?.trim().toLowerCase() === option.toLowerCase(),
+            );
+
+            if (!match) {
+              throw new Error(`Option "${option}" not found in select`);
+            }
+
+            cy.wrap($dropdown).select(match.value);
+          });
+      }
+      else {
         // For custom dropdowns, click to open and select the option
         cy.wrap($dropdown).click();
         cy.contains(
