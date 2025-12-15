@@ -16,6 +16,20 @@ type TextInputLike = {
   inputType?: string;
 };
 
+function setGroup(
+  component: OrganisationSectionComponent,
+  values: Record<string, string | undefined>,
+): void {
+  component.group = new FormGroup({
+    name: new FormControl(values['name']),
+    addressLine1: new FormControl(values['addressLine1']),
+    postcode: new FormControl(values['postcode']),
+    phone: new FormControl(values['phone']),
+    mobile: new FormControl(values['mobile']),
+    email: new FormControl(values['email']),
+  });
+}
+
 jest.mock('../../../../../../src/app/shared/util/validation', () => ({
   validateOptionalContactFields: jest.fn(),
 }));
@@ -184,23 +198,12 @@ describe('OrganisationSectionComponent', () => {
       (validateOptionalContactFields as jest.Mock).mockReset();
     });
 
-    function setGroup(values: Record<string, string | undefined>): void {
-      component.group = new FormGroup({
-        name: new FormControl(values['name']),
-        addressLine1: new FormControl(values['addressLine1']),
-        postcode: new FormControl(values['postcode']),
-        phone: new FormControl(values['phone']),
-        mobile: new FormControl(values['mobile']),
-        email: new FormControl(values['email']),
-      });
-    }
-
     it('resets state and returns valid when required fields are present', () => {
       // Resets
       component.organisationFieldErrors = { 'org-name': 'old' };
       component.errorSummary = [{ text: 'old', href: '#old' }];
 
-      setGroup({ name: 'Org', addressLine1: 'Line 1' });
+      setGroup(component, { name: 'Org', addressLine1: 'Line 1' });
 
       const res = component.validate();
 
@@ -212,7 +215,7 @@ describe('OrganisationSectionComponent', () => {
     });
 
     it('adds required errors for missing name and addressLine1 (including hrefs) and sets valid false', () => {
-      setGroup({ name: '', addressLine1: undefined });
+      setGroup(component, { name: '', addressLine1: undefined });
 
       const res = component.validate();
 
@@ -232,7 +235,7 @@ describe('OrganisationSectionComponent', () => {
     });
 
     it('trims values: whitespace-only required fields are treated as missing', () => {
-      setGroup({ name: '   ', addressLine1: '\n\t ' });
+      setGroup(component, { name: '   ', addressLine1: '\n\t ' });
 
       const res = component.validate();
 
@@ -244,7 +247,7 @@ describe('OrganisationSectionComponent', () => {
     });
 
     it('calls validateOptionalContactFields with a get() that trims and an errors accessor for controls', () => {
-      setGroup({
+      setGroup(component, {
         name: ' Org ',
         addressLine1: ' Addr ',
         phone: ' 07123 ',

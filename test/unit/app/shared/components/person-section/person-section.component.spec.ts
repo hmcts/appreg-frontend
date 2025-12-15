@@ -3,6 +3,12 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 
 import { PersonSectionComponent } from '../../../../../../src/app/shared/components/person-section/person-section.component';
+import {
+  addressLine1Missing,
+  firstNameMissing,
+  lastNameMissing,
+} from '../../../../../../src/app/shared/constants/err-msgs';
+import { validateOptionalContactFields } from '../../../../../../src/app/shared/util/validation';
 
 type TextInputLike = {
   submitted?: boolean;
@@ -14,6 +20,25 @@ type TextInputLike = {
 type SelectInputLike = {
   options?: { value: string; label: string }[];
 };
+
+jest.mock('../../../../../../src/app/shared/util/validation', () => ({
+  validateOptionalContactFields: jest.fn(),
+}));
+
+function setGroup(
+  component: PersonSectionComponent,
+  values: Partial<Record<string, string | undefined>>,
+): void {
+  component.group = new FormGroup({
+    firstName: new FormControl(values['firstName']),
+    surname: new FormControl(values['surname']),
+    addressLine1: new FormControl(values['addressLine1']),
+    postcode: new FormControl(values['postcode']),
+    phone: new FormControl(values['phone']),
+    mobile: new FormControl(values['mobile']),
+    email: new FormControl(values['email']),
+  });
+}
 
 describe('PersonSectionComponent', () => {
   let component: PersonSectionComponent;
@@ -208,5 +233,123 @@ describe('PersonSectionComponent', () => {
     const selectCmp = selectDebug.componentInstance as SelectInputLike;
 
     expect(selectCmp.options).toEqual(component.titleOptions);
+  });
+
+  describe('PersonSectionComponent validate()', () => {
+    beforeEach(() => {
+      (validateOptionalContactFields as jest.Mock).mockReset();
+    });
+
+    it('returns valid true with no errors when required fields are present', () => {
+      setGroup(component, {
+        firstName: 'Jane',
+        surname: 'Doe',
+        addressLine1: '1 Street',
+      });
+
+      const res = component.validate();
+
+      expect(res).toEqual({
+        fieldErrors: {},
+        summaryItems: [],
+        valid: true,
+      });
+
+      expect(validateOptionalContactFields).toHaveBeenCalledTimes(1);
+    });
+
+    it('adds required errors for missing firstName/surname/addressLine1 (and sets valid false)', () => {
+      setGroup(component, {
+        firstName: '',
+        surname: undefined,
+        addressLine1: '   ',
+      });
+
+      const res = component.validate();
+
+      expect(res.valid).toBe(false);
+
+      expect(res.fieldErrors).toEqual({
+        'person-first-name': firstNameMissing,
+        'person-surname': lastNameMissing,
+        'person-address-line-1': addressLine1Missing,
+      });
+
+      expect(res.summaryItems).toEqual([
+        { text: firstNameMissing, href: '#person-first-name' },
+        { text: lastNameMissing, href: '#person-surname' },
+        { text: addressLine1Missing, href: '#person-address-line-1' },
+      ]);
+    });
+
+    it('trims strings before validating required fields', () => {
+      setGroup(component, {
+        firstName: '   ',
+        surname: '\n\t ',
+        addressLine1: '  10 Road  ',
+      });
+
+      const res = component.validate();
+
+      expect(res.valid).toBe(false);
+      // addressLine1 is present after trim, so only firstName + surname should error
+      expect(res.fieldErrors).toEqual({
+        'person-first-name': firstNameMissing,
+        'person-surname': lastNameMissing,
+      });
+    });
+
+    it('calls validateOptionalContactFields with get(), errors accessor, ids, and add() that updates outputs', () => {
+      setGroup(component, {
+        firstName: '  Jane ',
+        surname: '  Doe ',
+        addressLine1: '  1 Street ',
+        phone: ' 07123 ',
+      });
+
+      component.group.get('phone')?.setErrors({ phoneInvalid: true });
+
+      const res = component.validate();
+
+      const mock = validateOptionalContactFields as jest.Mock;
+
+      const [getFn, errorsFn, ids, addFn] = mock.mock.calls[0] as [
+        (k: string) => string,
+        (name: string) => unknown,
+        Record<string, string>,
+        (id: string, text: string, href: string) => void,
+      ];
+
+      // getFn trims + non-string -> ''
+      expect(getFn('firstName')).toBe('Jane');
+      expect(getFn('surname')).toBe('Doe');
+      expect(getFn('missingKey')).toBe('');
+
+      // errorsFn returns control errors or null
+      expect(errorsFn('phone')).toEqual({ phoneInvalid: true });
+      expect(errorsFn('postcode')).toBeNull();
+
+      // ids mapping passed through
+      expect(ids).toMatchObject({
+        firstName: 'person-first-name',
+        surname: 'person-surname',
+        address1: 'person-address-line-1',
+        postcode: 'person-postcode',
+        phone: 'person-phone-number',
+        mobile: 'person-mobile-number',
+        email: 'person-email-address',
+      });
+
+      // addFn should update the same objects returned in res
+      addFn('person-phone-number', 'Bad phone', '#person-phone-number');
+
+      expect(res.fieldErrors).toMatchObject({
+        'person-phone-number': 'Bad phone',
+      });
+      expect(res.summaryItems).toContainEqual({
+        text: 'Bad phone',
+        href: '#person-phone-number',
+      });
+    });
   });
 });
