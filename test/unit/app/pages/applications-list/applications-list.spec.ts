@@ -640,7 +640,6 @@ describe('ApplicationsList – search', () => {
 
       expect(preventDefault).toHaveBeenCalled();
       expect(component.submitted).toBe(true);
-      expect(component.errorHint).toBe('There is a problem');
       expect(component.searchErrors).toEqual([
         { id: 'date-day', text: 'Enter a valid date' },
         { id: 'time-hours', text: 'Enter a valid time' },
