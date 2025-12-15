@@ -19,7 +19,7 @@ Feature: API Tests
             | user1 |
 
 
-    @api @regression
+    @api @regression @ARCPOC-214 @ARCPOC-772
     Scenario Outline: Create Application List via API
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -30,7 +30,7 @@ Feature: API Tests
             | User  |
             | user1 |
 
-    @api @regression
+    @api @regression @ARCPOC-214 @ARCPOC-772
     Scenario Outline: Create Application List via API
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:

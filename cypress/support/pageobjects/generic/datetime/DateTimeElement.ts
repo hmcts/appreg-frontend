@@ -140,4 +140,19 @@ export class DateTimeElement {
       return false;
     }
   }
+
+  static findDurationHourInput(fieldLabel: string): Cypress.Chainable {
+    return this.findHourInput(fieldLabel);
+  }
+
+  static findDurationMinuteInput(fieldLabel: string): Cypress.Chainable {
+    return this.findMinuteInput(fieldLabel);
+  }
+
+  static findDurationInputByLabel(fieldLabel: string): Cypress.Chainable[] {
+    return [
+      this.findDurationHourInput(fieldLabel),
+      this.findDurationMinuteInput(fieldLabel),
+    ];
+  }
 }
