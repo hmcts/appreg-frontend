@@ -41,26 +41,6 @@ withPipeline(type, product, component) {
     enableSlackNotifications('#appreg-builds')
 
     before('build') {
-        echo "DEBUG: TEST 1 - Before Build Step"
-    }
-
-    before('functionalTest:preview') {
-        echo "DEBUG: TEST 2 - Before Functional Test Preview Step"
-    }
-
-    before('functionalTest:aat') {
-        echo "DEBUG: TEST 3 - Before Functional Test AAT Step"
-    }
-
-    before('functionalTest:demo') {
-        echo "DEBUG: TEST 4 - Before Functional Test Demo Step"
-    }
-
-    before('functionalTest:perftest') {
-        echo "DEBUG: TEST 5 - Before Functional Test PerfTest Step"
-    }
-
-    before('functionalTest:preview') {
         echo "Setting up redirect URI for preview environment"
         if (env.TEST_URL) {
             echo "Whitelisting redirect URI for PR: ${env.TEST_URL}"
