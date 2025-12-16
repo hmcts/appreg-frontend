@@ -40,26 +40,21 @@ withPipeline(type, product, component) {
     loadVaultSecrets(secrets)
     enableSlackNotifications('#appreg-builds')
 
-    before('functionalTest:dev') {
-      echo "Setting up redirect URI for preview environment"
+    def appObjectId = '20e4de40-7aee-45b1-895b-cb77546763dc'
 
-      if (!env.TEST_URL) {
-        error("TEST_URL missing from environment")
-      }
-
-      def appObjectId = '20e4de40-7aee-45b1-895b-cb77546763dc'
-      echo "Whitelisting redirect URI for PR: ${env.TEST_URL}"
-
+    def manageRedirectUri = { String url, String mode ->
       def az = new uk.gov.hmcts.contino.azure.Az(this, env.SUBSCRIPTION_NAME)
 
-      // Fetch current redirect URIs (may be "null")
       def currentUrisJson = az.az(
         "rest --method GET --url 'https://graph.microsoft.com/v1.0/applications/${appObjectId}' --query 'web.redirectUris' -o json"
       )
 
-      def rc
-      withEnv(["CURRENT_URIS_JSON=${currentUrisJson}"]) {
-        rc = sh(
+      withEnv([
+        "CURRENT_URIS_JSON=${currentUrisJson}",
+        "TARGET_URL=${url}",
+        "MODE=${mode}"
+      ]) {
+        return sh(
           script: """
             bash -lc '
               set -euo pipefail
@@ -69,10 +64,31 @@ withPipeline(type, product, component) {
                 current="[]"
               fi
 
-              # If already present, do nothing (idempotent)
-              echo "\$current" | jq -e --arg url "${env.TEST_URL}" "any(. == \\$url)" >/dev/null && exit 0
+              contains() {
+                echo "\$current" | jq -e --arg url "\$TARGET_URL" "any(. == \\$url)" >/dev/null
+              }
 
-              updated=\$(echo "\$current" | jq --arg url "${env.TEST_URL}" ". + [\\$url]")
+              case "\$MODE" in
+                add)
+                  if contains; then
+                    echo "NO_CHANGE"
+                    exit 0
+                  fi
+                  updated=\$(echo "\$current" | jq --arg url "\$TARGET_URL" "(. + [\\$url]) | unique")
+                  ;;
+                remove)
+                  if ! contains; then
+                    echo "NO_CHANGE"
+                    exit 0
+                  fi
+                  updated=\$(echo "\$current" | jq --arg url "\$TARGET_URL" "map(select(. != \\$url))")
+                  ;;
+                *)
+                  echo "Invalid MODE: \$MODE" >&2
+                  exit 2
+                  ;;
+              esac
+
               body=\$(jq -cn --argjson uris "\$updated" "{web:{redirectUris:\\$uris}}")
 
               env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${env.SUBSCRIPTION_NAME} az rest \\
@@ -81,14 +97,35 @@ withPipeline(type, product, component) {
                 --headers "Content-Type=application/json" \\
                 --body "\$body" \\
                 -o none
+
+              echo "CHANGED"
             '
           """,
-          returnStatus: true
-        )
+          returnStdout: true
+        ).trim()
+      }
+    }
+
+    before('functionalTest:dev') {
+      echo "Setting up redirect URI for preview environment"
+
+      if (!env.TEST_URL) {
+        error("TEST_URL missing from environment")
       }
 
-      if (rc != 0) {
-        error("Redirect URI update failed (exit code ${rc})")
+      echo "Whitelisting redirect URI for PR: ${env.TEST_URL}"
+      def out = manageRedirectUri(env.TEST_URL, 'add')
+
+      // Only remove later if we actually added it in this run
+      env.REDIRECT_URI_ADDED = out.contains('CHANGED') ? 'true' : 'false'
+    }
+
+    afterAlways('functionalTest:dev') {
+      // Only cleanup if the pipeline is still successful at this point
+      def result = (currentBuild.currentResult ?: 'SUCCESS')
+      if (result == 'SUCCESS' && env.REDIRECT_URI_ADDED == 'true') {
+        echo "Removing redirect URI for PR: ${env.TEST_URL}"
+        manageRedirectUri(env.TEST_URL, 'remove')
       }
     }
 
