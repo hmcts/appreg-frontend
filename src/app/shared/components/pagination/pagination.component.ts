@@ -1,28 +1,53 @@
-import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+
+type PageItem = number | '…';
 
 @Component({
   selector: 'app-pagination',
-  standalone: true,
-  imports: [CommonModule],
   templateUrl: './pagination.component.html',
 })
 export class PaginationComponent {
-  /** Zero‑based or one‑based? We’ll assume 1-based pages. */
-  @Input() currentPage = 1;
+  @Input() currentPage = 1; // 1-based
   @Input() totalPages = 1;
+  @Input() paginationLimit = 7; // Configurable pagination limit
 
-  /** If you want a custom list of pages (e.g. [1,2,3,4,5]), pass it in; otherwise we generate [1..totalPages] */
-  @Input() pages: number[] | null = null;
-
-  /** Emitted when the user clicks a new page */
   @Output() pageChange = new EventEmitter<number>();
 
-  get pageList(): number[] {
-    if (this.pages?.length) {
-      return this.pages;
+  get pageList(): PageItem[] {
+    const total = this.totalPages || 0;
+    const current = this.currentPage || 1;
+
+    if (total <= 0) {
+      return [];
     }
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+
+    // For a small number of pages, just show them all.
+    if (total <= this.paginationLimit) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+
+    const first = 1;
+    const last = total;
+
+    // 1st case: first couple pages, ellipsis and then final number
+    if (current <= 4) {
+      return [1, 2, 3, 4, 5, '…', last];
+    }
+
+    // 2nd case: first page, ellipsis and then final numbers
+    if (current >= total - 3) {
+      return [first, '…', last - 4, last - 3, last - 2, last - 1, last];
+    }
+
+    // 3rd case: ellipsis on either end
+    return [first, '…', current - 1, current, current + 1, '…', last];
+  }
+
+  onPageClick(item: PageItem, event: MouseEvent): void {
+    event.preventDefault();
+    if (typeof item === 'number') {
+      this.goTo(item);
+    }
   }
 
   goTo(page: number): void {

@@ -120,7 +120,6 @@ export class ApplicationsList
   isLoading: boolean = false;
 
   // Error summary
-  errorHint: string = '';
   searchErrors: { id: string; text: string }[] = [];
   errorSummary: ErrorItem[] = [];
 
@@ -187,12 +186,9 @@ export class ApplicationsList
     const action = btn?.value ?? 'search';
 
     // Reset flag
-    this.searchErrors = [];
-    this.submitted = false;
+    this.clearNotifications();
     this.isSearch = true;
     this.rows = [];
-
-    this.errorHint = 'There is a problem';
 
     const dateCtrl = this.form.controls.date;
     const timeCtrl = this.form.controls.time;
@@ -231,7 +227,6 @@ export class ApplicationsList
 
     if (row.deletable === false) {
       this.deleteInvalid = true;
-      this.errorHint = 'There is a problem';
       this.errorSummary = [{ text: 'This list cannot be deleted.' }];
       return;
     }
@@ -247,7 +242,6 @@ export class ApplicationsList
 
     this.deleteDone = false;
     this.deleteInvalid = false;
-    this.errorHint = '';
     this.errorSummary = [];
     this.deletingId = row.id;
 
@@ -272,7 +266,6 @@ export class ApplicationsList
     } catch (err: unknown) {
       const status = getHttpStatus(err);
       this.deleteInvalid = true;
-      this.errorHint = 'There is a problem';
       this.errorSummary = statusSummary(status);
     } finally {
       this.deletingId = null;
@@ -394,7 +387,6 @@ export class ApplicationsList
     }
 
     if (!hasParams) {
-      this.errorHint = 'There is a problem';
       this.searchErrors.push({
         id: '',
         text: 'Invalid Search Criteria. At least one field must be entered.',
@@ -475,13 +467,13 @@ export class ApplicationsList
   private clearNotifications(): void {
     this.deleteDone = false;
     this.deleteInvalid = false;
-    this.errorHint = '';
     this.errorSummary = [];
+    this.searchErrors = [];
+    this.submitted = false;
   }
 
   private showInline(message: string): void {
     this.deleteInvalid = true;
-    this.errorHint = 'There is a problem';
     this.errorSummary = [{ text: message }];
   }
 

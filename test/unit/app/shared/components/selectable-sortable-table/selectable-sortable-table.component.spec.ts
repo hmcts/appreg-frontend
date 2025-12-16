@@ -34,12 +34,31 @@ const MultiSelectMock: jest.Mock<
   return makeInstance();
 });
 
-// Mock module so the component's dynamic import resolves (supports root + default)
-jest.mock('@ministryofjustice/frontend', () => ({
+type MojDefault = {
+  SortableTable?: typeof SortableTableMock;
+  MultiSelect?: typeof MultiSelectMock;
+};
+
+type MojModule = {
+  __esModule: true;
+  SortableTable?: typeof SortableTableMock;
+  MultiSelect?: typeof MultiSelectMock;
+  default: MojDefault;
+};
+
+const mojDefault: MojDefault = {
   SortableTable: SortableTableMock,
   MultiSelect: MultiSelectMock,
-  default: { SortableTable: SortableTableMock, MultiSelect: MultiSelectMock },
-}));
+};
+
+const mojModule: MojModule = {
+  __esModule: true,
+  SortableTable: SortableTableMock,
+  MultiSelect: MultiSelectMock,
+  default: mojDefault,
+};
+
+jest.mock('@ministryofjustice/frontend', () => mojModule);
 
 /* ------------------------------------------------------------------------------------- */
 
@@ -73,7 +92,13 @@ describe('SelectableSortableTableComponent (original template)', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    document.body.innerHTML = ''; // isolate DOM between tests
+    document.body.innerHTML = '';
+
+    mojModule.SortableTable = SortableTableMock;
+    mojModule.MultiSelect = MultiSelectMock;
+
+    mojModule.default.SortableTable = SortableTableMock;
+    mojModule.default.MultiSelect = MultiSelectMock;
   });
 
   it('creates with the real template', async () => {
@@ -176,6 +201,223 @@ describe('SelectableSortableTableComponent (original template)', () => {
 
       // MultiSelect is no longer initialised in the refactored component
       expect(MultiSelectMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getRowId / visibleIds / selection computed flags', () => {
+    it('coerces row ids (string, number, date, boolean) and filters empty ids from visibleIds', async () => {
+      await create('browser');
+
+      const d = new Date('2025-09-30T10:20:30.000Z');
+      comp.idField = 'id';
+      comp.data = [
+        { id: 's' },
+        { id: 12 },
+        { id: d },
+        { id: true },
+        { id: false },
+        {}, // -> ''
+      ] as Row[];
+
+      expect(comp.getRowId({ id: 'x' } as Row)).toBe('x');
+      expect(comp.getRowId({ id: 12 } as Row)).toBe('12');
+      expect(comp.getRowId({ id: d } as Row)).toBe(d.toISOString());
+      expect(comp.getRowId({ id: true } as Row)).toBe('1');
+      expect(comp.getRowId({ id: false } as Row)).toBe('0');
+      expect(comp.getRowId({} as Row)).toBe('');
+
+      // visibleIds should drop ''
+      expect(comp.visibleIds).toEqual(['s', '12', d.toISOString(), '1', '0']);
+    });
+
+    it('computes allVisibleSelected / someVisibleSelected', async () => {
+      await create('browser');
+      comp.idField = 'id';
+      comp.data = [{ id: 'a' }, { id: 'b' }] as Row[];
+
+      comp.selectedIds = new Set<string>();
+      expect(comp.allVisibleSelected).toBe(false);
+      expect(comp.someVisibleSelected).toBe(false);
+
+      comp.selectedIds = new Set<string>(['a']);
+      expect(comp.allVisibleSelected).toBe(false);
+      expect(comp.someVisibleSelected).toBe(true);
+
+      comp.selectedIds = new Set<string>(['a', 'b']);
+      expect(comp.allVisibleSelected).toBe(true);
+      expect(comp.someVisibleSelected).toBe(true);
+    });
+
+    it('isSelected returns false for empty id and true when selected', async () => {
+      await create('browser');
+      comp.idField = 'id';
+      comp.selectedIds = new Set<string>(['a']);
+
+      expect(comp.isSelected({} as Row)).toBe(false);
+      expect(comp.isSelected({ id: 'a' } as Row)).toBe(true);
+      expect(comp.isSelected({ id: 'b' } as Row)).toBe(false);
+    });
+
+    it('firstColField returns empty string when no columns', async () => {
+      await create('browser');
+      comp.columns = [];
+      expect(comp.firstColField).toBe('');
+
+      comp.columns = [{ header: 'H', field: 'f' }];
+      expect(comp.firstColField).toBe('f');
+    });
+  });
+
+  describe('toggleSelectAllVisible', () => {
+    it('does nothing when singleSelect is true', async () => {
+      await create('browser');
+      comp.singleSelect = true;
+      comp.idField = 'id';
+      comp.data = [{ id: 'a' }, { id: 'b' }] as Row[];
+      comp.selectedIds = new Set<string>(['a']);
+
+      const emitSpy = jest.spyOn(comp.selectedIdsChange, 'emit');
+      comp.toggleSelectAllVisible(true);
+
+      expect(Array.from(comp.selectedIds)).toEqual(['a']);
+      expect(emitSpy).not.toHaveBeenCalled();
+    });
+
+    it('selects and deselects all visible ids when singleSelect is false', async () => {
+      await create('browser');
+      comp.singleSelect = false;
+      comp.idField = 'id';
+      comp.data = [{ id: 'a' }, { id: 'b' }] as Row[];
+      comp.selectedIds = new Set<string>(['x']);
+
+      const emitted: Set<string>[] = [];
+      comp.selectedIdsChange.subscribe((s) => emitted.push(new Set(s)));
+
+      comp.toggleSelectAllVisible(true);
+      expect(new Set(comp.selectedIds)).toEqual(new Set(['x', 'a', 'b']));
+      expect(new Set(emitted[0])).toEqual(new Set(['x', 'a', 'b']));
+
+      comp.toggleSelectAllVisible(false);
+      expect(new Set(comp.selectedIds)).toEqual(new Set(['x']));
+      expect(new Set(emitted[1])).toEqual(new Set(['x']));
+    });
+  });
+
+  describe('toggleOne additional branches', () => {
+    it('returns early when row id is empty (no emit)', async () => {
+      await create('browser');
+      comp.idField = 'id';
+
+      const emitSpy = jest.spyOn(comp.selectedIdsChange, 'emit');
+      comp.toggleOne({} as Row, true);
+
+      expect(emitSpy).not.toHaveBeenCalled();
+    });
+
+    it('singleSelect clears existing selection and keeps only the clicked row when checked', async () => {
+      await create('browser');
+      comp.idField = 'id';
+      comp.singleSelect = true;
+      comp.selectedIds = new Set<string>(['x']);
+
+      const emitted: Set<string>[] = [];
+      comp.selectedIdsChange.subscribe((s) => emitted.push(new Set(s)));
+
+      comp.toggleOne({ id: 'a' } as Row, true);
+      expect(new Set(comp.selectedIds)).toEqual(new Set(['a']));
+      expect(new Set(emitted[0])).toEqual(new Set(['a']));
+
+      comp.toggleOne({ id: 'a' } as Row, false);
+      expect(new Set(comp.selectedIds)).toEqual(new Set());
+      expect(new Set(emitted[1])).toEqual(new Set());
+    });
+  });
+
+  describe('getSortValue additional branches', () => {
+    const col = (overrides: Partial<TableColumn> = {}): TableColumn => ({
+      header: 'H',
+      field: 'f',
+      ...overrides,
+    });
+
+    it('coerces bigint, invalid date, and non-finite number', async () => {
+      await create();
+
+      expect(comp.getSortValue({ f: 10n } as Row, col())).toBe('10');
+
+      const invalid = new Date('not-a-date');
+      expect(comp.getSortValue({ f: invalid } as Row, col())).toBeNull();
+
+      expect(
+        comp.getSortValue({ f: Number.POSITIVE_INFINITY } as Row, col()),
+      ).toBeNull();
+    });
+
+    it('returns null when col.sortValue throws', async () => {
+      await create();
+
+      const c = col({
+        sortValue: () => {
+          throw new Error('boom');
+        },
+      });
+
+      expect(comp.getSortValue({ f: 'x' } as Row, c)).toBeNull();
+    });
+  });
+
+  describe('ngAfterViewInit getCtor default/undefined + ngOnDestroy swallow', () => {
+    it('uses default export constructor when root export is missing', async () => {
+      mojModule.SortableTable = undefined;
+      mojModule.default.SortableTable = SortableTableMock;
+
+      await create('browser');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await new Promise<void>((r) => setTimeout(r, 0));
+
+      const tableEl = fixture.debugElement.query(By.css('table'))
+        .nativeElement as HTMLTableElement;
+
+      expect(SortableTableMock).toHaveBeenCalledWith(tableEl);
+    });
+
+    it('does nothing when constructor is missing from both root and default', async () => {
+      mojModule.SortableTable = undefined;
+      delete mojModule.default.SortableTable;
+
+      await create('browser');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await new Promise<void>((r) => setTimeout(r, 0));
+
+      expect(SortableTableMock).not.toHaveBeenCalled();
+    });
+
+    it('ngOnDestroy swallows destroy errors and also swallows errors from queued destroy fns', async () => {
+      // SortableTable.destroy throw to hit the try/catch inside the queued destroy fn
+      SortableTableMock.mockImplementationOnce((_el: HTMLElement) => {
+        void _el;
+        return {
+          init: jest.fn(),
+          destroy: jest.fn(() => {
+            throw new Error('x');
+          }),
+        };
+      });
+
+      await create('browser');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await new Promise<void>((r) => setTimeout(r, 0));
+
+      // push a failing destroy fn to hit ngOnDestroy catch
+      type PrivateApi = { destroyFns: Array<() => void> };
+      (comp as unknown as PrivateApi).destroyFns.push(() => {
+        throw new Error('y');
+      });
+
+      expect(() => comp.ngOnDestroy()).not.toThrow();
     });
   });
 });
