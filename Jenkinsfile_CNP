@@ -61,7 +61,6 @@ withPipeline(type, product, component) {
         echo "DEBUG: Graph GET returned length=${currentUrisJson?.size() ?: 0}"
         echo "DEBUG: Graph GET preview=${currentUrisJson?.take(300) ?: 'null'}"
 
-        // Pass JSON safely to bash via env var (no file dependency)
         def rc
         withEnv(["CURRENT_URIS_JSON=${currentUrisJson}"]) {
             rc = sh(
@@ -70,27 +69,47 @@ withPipeline(type, product, component) {
                     set -euo pipefail
                     set -x
 
-                    CURRENT="\$CURRENT_URIS_JSON"
+                    BASE_URL="${env.TEST_URL%/}"
+                    LOGIN_CB="\${BASE_URL}/sso/login-callback"
+                    LOGOUT_CB="\${BASE_URL}/sso/logout-callback"
 
+                    echo "DEBUG: BASE_URL=\$BASE_URL"
+                    echo "DEBUG: LOGIN_CB=\$LOGIN_CB"
+                    echo "DEBUG: LOGOUT_CB=\$LOGOUT_CB"
+
+                    CURRENT="\$CURRENT_URIS_JSON"
                     if [ "\$CURRENT" = "null" ] || [ -z "\$CURRENT" ]; then
                       echo "DEBUG: CURRENT is null/empty, defaulting to []"
                       CURRENT="[]"
                     fi
 
-                    echo "DEBUG: CURRENT redirectUris = \$CURRENT"
+                    # Add missing callback URLs (one by one)
+                    UPDATED="\$CURRENT"
 
-                    if echo "\$CURRENT" | jq -e --arg url "${env.TEST_URL}" '"'"'any(. == \$url)'"'"' > /dev/null; then
-                      echo "DEBUG: URL already present, no update needed."
+                    if echo "\$UPDATED" | jq -e --arg url "\$LOGIN_CB" '"'"'any(. == \$url)'"'"' > /dev/null; then
+                      echo "DEBUG: login-callback already present"
+                    else
+                      UPDATED=\$(echo "\$UPDATED" | jq --arg url "\$LOGIN_CB" '"'"'. + [\$url]'"'"')
+                      echo "DEBUG: added login-callback"
+                    fi
+
+                    if echo "\$UPDATED" | jq -e --arg url "\$LOGOUT_CB" '"'"'any(. == \$url)'"'"' > /dev/null; then
+                      echo "DEBUG: logout-callback already present"
+                    else
+                      UPDATED=\$(echo "\$UPDATED" | jq --arg url "\$LOGOUT_CB" '"'"'. + [\$url]'"'"')
+                      echo "DEBUG: added logout-callback"
+                    fi
+
+                    # If nothing changed, skip PATCH
+                    if [ "\$UPDATED" = "\$CURRENT" ]; then
+                      echo "DEBUG: No changes required; skipping PATCH."
                       exit 0
                     fi
 
-                    UPDATED=\$(echo "\$CURRENT" | jq --arg url "${env.TEST_URL}" '"'"'. + [\$url]'"'"')
                     echo "DEBUG: UPDATED redirectUris = \$UPDATED"
-
                     BODY=\$(jq -cn --argjson uris "\$UPDATED" '"'"'{web:{redirectUris:\$uris}}'"'"')
                     echo "DEBUG: PATCH body = \$BODY"
 
-                    echo "DEBUG: Performing Graph PATCH..."
                     env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${env.SUBSCRIPTION_NAME} az rest \\
                       --method PATCH \\
                       --url "https://graph.microsoft.com/v1.0/applications/${appObjectId}" \\
@@ -114,6 +133,7 @@ withPipeline(type, product, component) {
             error("Redirect URI update failed (exit code ${rc})")
         }
     }
+
 
     after('functionalTest:aat') {
         script {
