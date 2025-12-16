@@ -324,18 +324,16 @@ export class ApplicationsList
     }
   }
 
-  async onPrintContinuous(): Promise<void> {
+  async onPrintContinuous(id: string): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
 
-    this.clearNotifications();
-
-    const ids = this.rows.map((r) => r.id).filter(Boolean);
-    if (!ids.length) {
-      this.showInline('No lists to print');
+    if (!id) {
       return;
     }
+
+    this.clearNotifications();
 
     const hasEntries = (x: unknown): x is { entries: unknown[] } => {
       if (!x || typeof x !== 'object') {
@@ -346,32 +344,21 @@ export class ApplicationsList
     };
 
     try {
-      const settled = await Promise.allSettled(
-        ids.map((id) =>
-          firstValueFrom(
-            this.appListsApi.printApplicationList(
-              { listId: id },
-              undefined,
-              undefined,
-              { transferCache: false },
-            ),
-          ),
+      const dto = await firstValueFrom(
+        this.appListsApi.printApplicationList(
+          { listId: id },
+          undefined,
+          undefined,
+          { transferCache: false },
         ),
       );
 
-      const dtos: unknown[] = [];
-      for (const res of settled) {
-        if (res.status === 'fulfilled' && hasEntries(res.value)) {
-          dtos.push(res.value);
-        }
-      }
-
-      if (!dtos.length) {
+      if (!hasEntries(dto)) {
         this.showInline('No entries available to print');
         return;
       }
 
-      await this.pdf.generateContinuousApplicationListsPdf(dtos);
+      await this.pdf.generateContinuousApplicationListsPdf([dto]);
     } catch {
       this.showInline('Unable to generate PDF. Please try again later');
     }
