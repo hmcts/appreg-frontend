@@ -113,10 +113,6 @@ withPipeline(type, product, component) {
           returnStatus: true
         )
       }
-
-      if (rc != 0) {
-        error("Redirect URI update failed (exit code ${rc})")
-      }
     }
 
 
