@@ -65,7 +65,10 @@
               "canvg",
               "core-js",
               "raf",
-              "rgbcolor"
+              "rgbcolor",
+              "html2canvas",
+              "fflate",
+              "dompurify"
             ]
           },
           "configurations": {
