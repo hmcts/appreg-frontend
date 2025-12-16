@@ -65,7 +65,7 @@ withPipeline(type, product, component) {
               fi
 
               contains() {
-                echo "\$current" | jq -e --arg url "\$TARGET_URL" "any(. == \\$url)" >/dev/null
+                echo "\$current" | jq -e --arg url "\$TARGET_URL" '"'"'any(. == $url)'"'"' >/dev/null
               }
 
               case "\$MODE" in
@@ -74,14 +74,14 @@ withPipeline(type, product, component) {
                     echo "NO_CHANGE"
                     exit 0
                   fi
-                  updated=\$(echo "\$current" | jq --arg url "\$TARGET_URL" "(. + [\\$url]) | unique")
+                  updated=\$(echo "\$current" | jq --arg url "\$TARGET_URL" '"'"'. + [$url] | unique'"'"')
                   ;;
                 remove)
                   if ! contains; then
                     echo "NO_CHANGE"
                     exit 0
                   fi
-                  updated=\$(echo "\$current" | jq --arg url "\$TARGET_URL" "map(select(. != \\$url))")
+                  updated=\$(echo "\$current" | jq --arg url "\$TARGET_URL" '"'"'map(select(. != $url))'"'"')
                   ;;
                 *)
                   echo "Invalid MODE: \$MODE" >&2
@@ -89,7 +89,7 @@ withPipeline(type, product, component) {
                   ;;
               esac
 
-              body=\$(jq -cn --argjson uris "\$updated" "{web:{redirectUris:\\$uris}}")
+              body=\$(jq -cn --argjson uris "\$updated" '"'"'{web:{redirectUris:$uris}}'"'"')
 
               env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${env.SUBSCRIPTION_NAME} az rest \\
                 --method PATCH \\
@@ -115,13 +115,11 @@ withPipeline(type, product, component) {
 
       echo "Whitelisting redirect URI for PR: ${env.TEST_URL}"
       def out = manageRedirectUri(env.TEST_URL, 'add')
-
-      // Only remove later if we actually added it in this run
       env.REDIRECT_URI_ADDED = out.contains('CHANGED') ? 'true' : 'false'
     }
 
     afterAlways('functionalTest:dev') {
-      // Only cleanup if the pipeline is still successful at this point
+      // If you ONLY want to remove after success, keep the SUCCESS check:
       def result = (currentBuild.currentResult ?: 'SUCCESS')
       if (result == 'SUCCESS' && env.REDIRECT_URI_ADDED == 'true') {
         echo "Removing redirect URI for PR: ${env.TEST_URL}"
