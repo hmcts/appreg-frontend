@@ -54,9 +54,10 @@ withPipeline(type, product, component) {
 
       def rc
       withEnv([
-        "APP_OBJECT_ID=${appObjectId}",
-        "AZ_SUBSCRIPTION_NAME=${env.SUBSCRIPTION_NAME}",
-        "TEST_URL=${env.TEST_URL}"
+          "APP_OBJECT_ID=${appObjectId}",
+          "AZ_SUBSCRIPTION_NAME=${env.SUBSCRIPTION_NAME}",
+          "TEST_URL=${env.TEST_URL}",
+          "TERM=xterm"
       ]) {
         rc = sh(
           script: '''
@@ -108,9 +109,7 @@ withPipeline(type, product, component) {
                 --url "https://graph.microsoft.com/v1.0/applications/${APP_OBJECT_ID}" \
                 --query "web.redirectUris" -o json
             '
-            rc=$?
-            exit $rc
-          ''',
+        ''',
           returnStatus: true
         )
       }
@@ -119,6 +118,7 @@ withPipeline(type, product, component) {
         error("Redirect URI update failed (exit code ${rc})")
       }
     }
+
 
     afterAlways('functionalTest:dev') {
           if (!env.TEST_URL) {
