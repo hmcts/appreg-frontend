@@ -40,96 +40,6 @@ withPipeline(type, product, component) {
     loadVaultSecrets(secrets)
     enableSlackNotifications('#appreg-builds')
 
-    def appObjectId = '20e4de40-7aee-45b1-895b-cb77546763dc'
-
-    def manageRedirectUri = { String url, String mode ->
-      echo "manageRedirectUri: mode=${mode}, url=${url}, subscription=${env.SUBSCRIPTION_NAME}"
-
-      def az = new uk.gov.hmcts.contino.azure.Az(this, env.SUBSCRIPTION_NAME)
-
-      def currentUrisJson = az.az(
-        "rest --method GET --url 'https://graph.microsoft.com/v1.0/applications/${appObjectId}' --query 'web.redirectUris' -o json"
-      )
-
-      echo "manageRedirectUri: Graph GET returned length=${currentUrisJson?.size() ?: 0}"
-      echo "manageRedirectUri: Graph GET preview=${currentUrisJson?.take(200) ?: 'null'}"
-
-      // Make env-safe (no newlines/quotes issues)
-      def currentUrisB64 = currentUrisJson?.bytes?.encodeBase64()?.toString() ?: ""
-
-      withEnv([
-        "CURRENT_URIS_B64=${currentUrisB64}",
-        "TARGET_URL=${url}",
-        "MODE=${mode}"
-      ]) {
-        def out = sh(
-          script: """
-            bash -lc '
-              set -euo pipefail
-              set -x
-
-              echo "DEBUG: MODE=\$MODE" >&2
-              echo "DEBUG: TARGET_URL=\$TARGET_URL" >&2
-              echo "DEBUG: CURRENT_URIS_B64 length=\${#CURRENT_URIS_B64}" >&2
-
-              if [ -z "\${CURRENT_URIS_B64:-}" ]; then
-                echo "ERROR: CURRENT_URIS_B64 is empty" >&2
-                exit 4
-              fi
-
-              current="\$(printf "%s" "\$CURRENT_URIS_B64" | base64 -d)"
-              echo "DEBUG: decoded current length=\${#current}" >&2
-              echo "DEBUG: decoded current preview=\${current:0:200}" >&2
-
-              # Validate JSON
-              echo "\$current" | jq -e . >/dev/null
-
-              contains() {
-                echo "\$current" | jq -e --arg url "\$TARGET_URL" '"'"'any(. == $url)'"'"' >/dev/null
-              }
-
-              case "\$MODE" in
-                add)
-                  if contains; then
-                    echo "NO_CHANGE"
-                    exit 0
-                  fi
-                  updated=\$(echo "\$current" | jq --arg url "\$TARGET_URL" '"'"'. + [$url] | unique'"'"')
-                  ;;
-                remove)
-                  if ! contains; then
-                    echo "NO_CHANGE"
-                    exit 0
-                  fi
-                  updated=\$(echo "\$current" | jq --arg url "\$TARGET_URL" '"'"'map(select(. != $url))'"'"')
-                  ;;
-                *)
-                  echo "Invalid MODE: \$MODE" >&2
-                  exit 2
-                  ;;
-              esac
-
-              body=\$(jq -cn --argjson uris "\$updated" '"'"'{web:{redirectUris:$uris}}'"'"')
-              echo "DEBUG: PATCH body preview=\$(echo "\$body" | head -c 200)" >&2
-
-              env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${env.SUBSCRIPTION_NAME} az rest \\
-                --method PATCH \\
-                --url "https://graph.microsoft.com/v1.0/applications/${appObjectId}" \\
-                --headers "Content-Type=application/json" \\
-                --body "\$body" \\
-                -o none
-
-              echo "CHANGED"
-            '
-          """,
-          returnStdout: true
-        ).trim()
-
-        echo "manageRedirectUri: result=${out}"
-        return out
-      }
-    }
-
     before('functionalTest:dev') {
       echo "Setting up redirect URI for preview environment"
 
@@ -137,17 +47,118 @@ withPipeline(type, product, component) {
         error("TEST_URL missing from environment")
       }
 
-      echo "Whitelisting redirect URI for PR: ${env.TEST_URL}"
-      def out = manageRedirectUri(env.TEST_URL, 'add')
-      env.REDIRECT_URI_ADDED = out.contains('CHANGED') ? 'true' : 'false'
+      def appObjectId = '20e4de40-7aee-45b1-895b-cb77546763dc'
+      def az = new uk.gov.hmcts.contino.azure.Az(this, env.SUBSCRIPTION_NAME)
+
+      def redirectUris = [
+        "${env.TEST_URL}/sso/login-callback",
+        "${env.TEST_URL}/sso/logout-callback"
+      ]
+
+      // Get once
+      def currentUrisJson = az.az(
+        "rest --method GET --url 'https://graph.microsoft.com/v1.0/applications/${appObjectId}' --query 'web.redirectUris' -o json"
+      )
+
+      // Add each URI if missing
+      redirectUris.each { uri ->
+        echo "Whitelisting redirect URI: ${uri}"
+
+        def rc
+        withEnv(["CURRENT_URIS_JSON=${currentUrisJson}"]) {
+          rc = sh(
+            script: """
+              bash -lc '
+                set -euo pipefail
+                set -x
+
+                CURRENT="\$CURRENT_URIS_JSON"
+                if [ "\$CURRENT" = "null" ] || [ -z "\$CURRENT" ]; then
+                  CURRENT="[]"
+                fi
+
+                if echo "\$CURRENT" | jq -e --arg url "${uri}" '"'"'any(. == $url)'"'"' > /dev/null; then
+                  exit 0
+                fi
+
+                UPDATED=\$(echo "\$CURRENT" | jq --arg url "${uri}" '"'"'. + [$url]'"'"')
+                BODY=\$(jq -cn --argjson uris "\$UPDATED" '"'"'{web:{redirectUris:$uris}}'"'"')
+
+                env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${env.SUBSCRIPTION_NAME} az rest \\
+                  --method PATCH \\
+                  --url "https://graph.microsoft.com/v1.0/applications/${appObjectId}" \\
+                  --headers "Content-Type=application/json" \\
+                  --body "\$BODY" \\
+                  -o none
+              '
+            """,
+            returnStatus: true
+          )
+        }
+
+        if (rc != 0) {
+          error("Redirect URI add failed for ${uri} (exit code ${rc})")
+        }
+      }
     }
 
     afterAlways('functionalTest:dev') {
-      // If you ONLY want to remove after success, keep the SUCCESS check:
-      def result = (currentBuild.currentResult ?: 'SUCCESS')
-      if (result == 'SUCCESS' && env.REDIRECT_URI_ADDED == 'true') {
-        echo "Removing redirect URI for PR: ${env.TEST_URL}"
-        manageRedirectUri(env.TEST_URL, 'remove')
+      if (!env.TEST_URL) {
+        echo "Skipping redirect URI cleanup: TEST_URL missing"
+        return
+      }
+
+      def appObjectId = '20e4de40-7aee-45b1-895b-cb77546763dc'
+      def az = new uk.gov.hmcts.contino.azure.Az(this, env.SUBSCRIPTION_NAME)
+
+      def redirectUris = [
+        "${env.TEST_URL}/sso/login-callback",
+        "${env.TEST_URL}/sso/logout-callback"
+      ]
+
+      def currentUrisJson = az.az(
+        "rest --method GET --url 'https://graph.microsoft.com/v1.0/applications/${appObjectId}' --query 'web.redirectUris' -o json"
+      )
+
+      redirectUris.each { uri ->
+        echo "Removing redirect URI: ${uri}"
+
+        def rc
+        withEnv(["CURRENT_URIS_JSON=${currentUrisJson}"]) {
+          rc = sh(
+            script: """
+              bash -lc '
+                set -euo pipefail
+                set -x
+
+                CURRENT="\$CURRENT_URIS_JSON"
+                if [ "\$CURRENT" = "null" ] || [ -z "\$CURRENT" ]; then
+                  CURRENT="[]"
+                fi
+
+                # If not present, nothing to do
+                if ! echo "\$CURRENT" | jq -e --arg url "${uri}" '"'"'any(. == $url)'"'"' > /dev/null; then
+                  exit 0
+                fi
+
+                UPDATED=\$(echo "\$CURRENT" | jq --arg url "${uri}" '"'"'map(select(. != $url))'"'"')
+                BODY=\$(jq -cn --argjson uris "\$UPDATED" '"'"'{web:{redirectUris:$uris}}'"'"')
+
+                env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${env.SUBSCRIPTION_NAME} az rest \\
+                  --method PATCH \\
+                  --url "https://graph.microsoft.com/v1.0/applications/${appObjectId}" \\
+                  --headers "Content-Type=application/json" \\
+                  --body "\$BODY" \\
+                  -o none
+              '
+            """,
+            returnStatus: true
+          )
+        }
+
+        if (rc != 0) {
+          error("Redirect URI removal failed for ${uri} (exit code ${rc})")
+        }
       }
     }
 
