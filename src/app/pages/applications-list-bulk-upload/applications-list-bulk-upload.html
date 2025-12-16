@@ -39,7 +39,7 @@
 </ul>
 
 @if (!isUploadInProgress) {
-  <div class="govuk-form-group">
+  <div class="govuk-form-group remove-bot-margin">
     <form (ngSubmit)="onSubmit()">
       <label class="govuk-label" for="file-upload-1"> Upload a file </label>
       <div class="govuk-drop-zone" data-module="govuk-file-upload">
@@ -65,3 +65,12 @@
 } @else {
   <app-loading-spinner [text]="'Uploading file, please wait...'" />
 }
+<div class="govuk-form-group">
+  <button
+    class="govuk-button float-right"
+    [disabled]="true"
+    data-module="govuk-button"
+  >
+    Add Fee Details
+  </button>
+</div>
