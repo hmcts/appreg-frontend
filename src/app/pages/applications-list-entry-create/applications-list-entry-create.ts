@@ -20,7 +20,6 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { ErrorMessageMap, buildFormErrorSummary } from '@util/error-summary';
 
 import { buildEntryCreateDto } from './util/entry-create-mapper';
 import { toOptionalTrimmed } from './util/helpers';
@@ -64,6 +63,7 @@ import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '@util/error-click';
+import { ErrorMessageMap, buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 

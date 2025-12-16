@@ -21,6 +21,21 @@ module.exports = {
     '\\.(jpg|jpeg|png|gif|svg)$': '<rootDir>/__mocks__/file-mock.js',
     '^@app/(.*)$': '<rootDir>/src/app/$1',
     '^@env/(.*)$': '<rootDir>/src/environments/$1',
+    '^@components/(.*)$': [
+      '<rootDir>/src/app/shared/components/$1',
+      '<rootDir>/src/app/core/components/$1',
+      '<rootDir>/src/app/pages/$1',
+    ],
+    '^@util/(.*)$': [
+      '<rootDir>/src/app/shared/util/$1',
+      '<rootDir>/src/app/core/util/$1',
+    ],
+    '^@openapi$': '<rootDir>/src/generated/openapi',
+    '^@page-types/(.*)$': '<rootDir>/src/app/pages/$1/util/types',
+    '^@shared-types/(.*)$': '<rootDir>/src/app/shared/models/$1',
+
+    '^@entry-create-util/(.*)$':
+      '<rootDir>/src/app/pages/applications-list-entry-create/util/$1',
   },
 
   transformIgnorePatterns: ['node_modules/(?!.*\\.mjs$)'],

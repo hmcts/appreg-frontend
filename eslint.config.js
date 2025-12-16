@@ -210,6 +210,7 @@ module.exports = defineConfig([
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',
       'no-undef': 'off',
+      'import/no-unresolved': 'off',
     },
   },
 

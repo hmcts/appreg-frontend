@@ -10,7 +10,6 @@
           "style": "scss",
           "standalone": true,
           "type": "component"
-
         }
       },
       "root": "",
