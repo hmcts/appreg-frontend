@@ -52,79 +52,74 @@ withPipeline(type, product, component) {
         echo "DEBUG: appObjectId=${appObjectId}"
         echo "DEBUG: SUBSCRIPTION_NAME=${env.SUBSCRIPTION_NAME}"
 
-        def az = new uk.gov.hmcts.contino.azure.Az(this, env.SUBSCRIPTION_NAME)
-
-        def currentUrisJson = az.az(
-            "rest --method GET --url 'https://graph.microsoft.com/v1.0/applications/${appObjectId}' --query 'web.redirectUris' -o json"
-        )
-
-        echo "DEBUG: Graph GET returned length=${currentUrisJson?.size() ?: 0}"
-        echo "DEBUG: Graph GET preview=${currentUrisJson?.take(300) ?: 'null'}"
-
         def rc
-        withEnv(["CURRENT_URIS_JSON=${currentUrisJson}"]) {
+        withEnv([
+            "APP_OBJECT_ID=${appObjectId}",
+            "AZ_SUBSCRIPTION_NAME=${env.SUBSCRIPTION_NAME}",
+            "TEST_URL=${env.TEST_URL}"
+        ]) {
             rc = sh(
-                script: """
-                  bash -lc '
-                    set -euo pipefail
-                    set -x
+                script: '''
+                    bash -lc '
+                      set -euo pipefail
+                      set -x
 
-                    # NOTE: these are *bash* expansions, so we must keep them literal for Groovy by escaping the $
-                    BASE_URL="\\\${TEST_URL%/}"
-                    LOGIN_CB="\\\${BASE_URL}/sso/login-callback"
-                    LOGOUT_CB="\\\${BASE_URL}/sso/logout-callback"
+                      BASE_URL="${TEST_URL%/}"
+                      LOGIN_CB="${BASE_URL}/sso/login-callback"
+                      LOGOUT_CB="${BASE_URL}/sso/logout-callback"
 
-                    echo "DEBUG: BASE_URL=\\\$BASE_URL"
-                    echo "DEBUG: LOGIN_CB=\\\$LOGIN_CB"
-                    echo "DEBUG: LOGOUT_CB=\\\$LOGOUT_CB"
+                      echo "DEBUG: BASE_URL=$BASE_URL"
+                      echo "DEBUG: LOGIN_CB=$LOGIN_CB"
+                      echo "DEBUG: LOGOUT_CB=$LOGOUT_CB"
 
-                    CURRENT="\\\$CURRENT_URIS_JSON"
-                    if [ "\\\$CURRENT" = "null" ] || [ -z "\\\$CURRENT" ]; then
-                      echo "DEBUG: CURRENT is null/empty, defaulting to []"
-                      CURRENT="[]"
-                    fi
+                      CURRENT="$(env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${AZ_SUBSCRIPTION_NAME} az rest \
+                        --method GET \
+                        --url "https://graph.microsoft.com/v1.0/applications/${APP_OBJECT_ID}" \
+                        --query "web.redirectUris" -o json)"
 
-                    # Add missing callback URLs (one by one)
-                    UPDATED="\\\$CURRENT"
+                      if [ "$CURRENT" = "null" ] || [ -z "$CURRENT" ]; then
+                        echo "DEBUG: CURRENT is null/empty, defaulting to []"
+                        CURRENT="[]"
+                      fi
 
-                    if echo "\\\$UPDATED" | jq -e --arg url "\\\$LOGIN_CB" '"'"'any(. == \\$url)'"'"' > /dev/null; then
-                      echo "DEBUG: login-callback already present"
-                    else
-                      UPDATED=\\\$(echo "\\\$UPDATED" | jq --arg url "\\\$LOGIN_CB" '"'"'. + [\\$url]'"'"')
-                      echo "DEBUG: added login-callback"
-                    fi
+                      UPDATED="$CURRENT"
 
-                    if echo "\\\$UPDATED" | jq -e --arg url "\\\$LOGOUT_CB" '"'"'any(. == \\$url)'"'"' > /dev/null; then
-                      echo "DEBUG: logout-callback already present"
-                    else
-                      UPDATED=\\\$(echo "\\\$UPDATED" | jq --arg url "\\\$LOGOUT_CB" '"'"'. + [\\$url]'"'"')
-                      echo "DEBUG: added logout-callback"
-                    fi
+                      if echo "$UPDATED" | jq -e --arg url "$LOGIN_CB" '"'"'any(. == $url)'"'"' > /dev/null; then
+                        echo "DEBUG: login-callback already present"
+                      else
+                        UPDATED=$(echo "$UPDATED" | jq --arg url "$LOGIN_CB" '"'"'. + [$url]'"'"')
+                        echo "DEBUG: added login-callback"
+                      fi
 
-                    # If nothing changed, skip PATCH
-                    if [ "\\\$UPDATED" = "\\\$CURRENT" ]; then
-                      echo "DEBUG: No changes required; skipping PATCH."
-                      exit 0
-                    fi
+                      if echo "$UPDATED" | jq -e --arg url "$LOGOUT_CB" '"'"'any(. == $url)'"'"' > /dev/null; then
+                        echo "DEBUG: logout-callback already present"
+                      else
+                        UPDATED=$(echo "$UPDATED" | jq --arg url "$LOGOUT_CB" '"'"'. + [$url]'"'"')
+                        echo "DEBUG: added logout-callback"
+                      fi
 
-                    echo "DEBUG: UPDATED redirectUris = \\\$UPDATED"
-                    BODY=\\\$(jq -cn --argjson uris "\\\$UPDATED" '"'"'{web:{redirectUris:\\$uris}}'"'"')
-                    echo "DEBUG: PATCH body = \\\$BODY"
+                      if [ "$UPDATED" = "$CURRENT" ]; then
+                        echo "DEBUG: No changes required; skipping PATCH."
+                        exit 0
+                      fi
 
-                    env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${env.SUBSCRIPTION_NAME} az rest \\
-                      --method PATCH \\
-                      --url "https://graph.microsoft.com/v1.0/applications/${appObjectId}" \\
-                      --headers "Content-Type=application/json" \\
-                      --body "\\\$BODY" \\
-                      -o json
+                      BODY=$(jq -cn --argjson uris "$UPDATED" '"'"'{web:{redirectUris:$uris}}'"'"')
+                      echo "DEBUG: PATCH body = $BODY"
 
-                    echo "DEBUG: PATCH completed, verifying..."
-                    env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${env.SUBSCRIPTION_NAME} az rest \\
-                      --method GET \\
-                      --url "https://graph.microsoft.com/v1.0/applications/${appObjectId}" \\
-                      --query "web.redirectUris" -o json
-                  '
-                """,
+                      env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${AZ_SUBSCRIPTION_NAME} az rest \
+                        --method PATCH \
+                        --url "https://graph.microsoft.com/v1.0/applications/${APP_OBJECT_ID}" \
+                        --headers "Content-Type=application/json" \
+                        --body "$BODY" \
+                        -o json
+
+                      echo "DEBUG: PATCH completed, verifying..."
+                      env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${AZ_SUBSCRIPTION_NAME} az rest \
+                        --method GET \
+                        --url "https://graph.microsoft.com/v1.0/applications/${APP_OBJECT_ID}" \
+                        --query "web.redirectUris" -o json
+                    '
+                ''',
                 returnStatus: true
             )
         }
@@ -134,6 +129,7 @@ withPipeline(type, product, component) {
             error("Redirect URI update failed (exit code ${rc})")
         }
     }
+
 
     after('functionalTest:aat') {
         script {
