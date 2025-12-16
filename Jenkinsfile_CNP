@@ -118,6 +118,64 @@ withPipeline(type, product, component) {
       }
     }
 
+    afterAlways('functionalTest:dev') {
+          if (!env.TEST_URL) {
+            echo "Skipping redirect URI cleanup: TEST_URL missing"
+            return
+          }
+
+          def appObjectId = '20e4de40-7aee-45b1-895b-cb77546763dc'
+
+          def rc
+          withEnv([
+            "APP_OBJECT_ID=${appObjectId}",
+            "AZ_SUBSCRIPTION_NAME=${env.SUBSCRIPTION_NAME}",
+            "TEST_URL=${env.TEST_URL}"
+          ]) {
+            rc = sh(
+              script: '''
+                bash -lc '
+                  set -euo pipefail
+                  BASE_URL="${TEST_URL%/}"
+                  LOGIN_CB="${BASE_URL}/sso/login-callback"
+                  LOGOUT_CB="${BASE_URL}/sso/logout-callback"
+                  CURRENT="$(env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${AZ_SUBSCRIPTION_NAME} az rest \
+                    --method GET \
+                    --url "https://graph.microsoft.com/v1.0/applications/${APP_OBJECT_ID}" \
+                    --query "web.redirectUris" -o json)"
+                  if [ "$CURRENT" = "null" ] || [ -z "$CURRENT" ]; then
+                    CURRENT="[]"
+                  fi
+                  UPDATED="$CURRENT"
+                  # Remove if present (idempotent)
+                  if echo "$UPDATED" | jq -e --arg url "$LOGIN_CB" '"'"'any(. == $url)'"'"' > /dev/null; then
+                    UPDATED=$(echo "$UPDATED" | jq --arg url "$LOGIN_CB" '"'"'map(select(. != $url))'"'"')
+                  fi
+                  if echo "$UPDATED" | jq -e --arg url "$LOGOUT_CB" '"'"'any(. == $url)'"'"' > /dev/null; then
+                    UPDATED=$(echo "$UPDATED" | jq --arg url "$LOGOUT_CB" '"'"'map(select(. != $url))'"'"')
+                  fi
+                  # If nothing changed, skip PATCH
+                  if [ "$UPDATED" = "$CURRENT" ]; then
+                    exit 0
+                  fi
+                  BODY=$(jq -cn --argjson uris "$UPDATED" '"'"'{web:{redirectUris:$uris}}'"'"')
+                  env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${AZ_SUBSCRIPTION_NAME} az rest \
+                    --method PATCH \
+                    --url "https://graph.microsoft.com/v1.0/applications/${APP_OBJECT_ID}" \
+                    --headers "Content-Type=application/json" \
+                    --body "$BODY" \
+                    -o none
+                '
+              ''',
+              returnStatus: true
+            )
+          }
+
+          if (rc != 0) {
+            error("Redirect URI cleanup failed (exit code ${rc})")
+          }
+        }
+
     after('functionalTest:aat') {
         script {
             def testResult = sh(script: 'yarn test:functional', returnStatus: true)
