@@ -62,6 +62,10 @@ module.exports = defineConfig({
     reporterOptions: {
       configFile: 'multi-reporter-config.json',
     },
+    retries: {
+      runMode: 2,
+      openMode: 0,
+    },
     // Test Files Configuration
     specPattern: 'cypress/e2e/**/*.feature',
     supportFile: 'cypress/support/e2e.ts',

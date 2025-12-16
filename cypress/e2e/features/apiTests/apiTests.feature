@@ -20,7 +20,7 @@ Feature: API Tests
 
 
     @api @regression @ARCPOC-214 @ARCPOC-772
-    Scenario Outline: Create Application List via API
+    Scenario Outline: Create Application List using courtLocationCode via API
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
             | date     | time           | status | description                                                  | courtLocationCode | durationHours | durationMinutes |
@@ -31,7 +31,7 @@ Feature: API Tests
             | user1 |
 
     @api @regression @ARCPOC-214 @ARCPOC-772
-    Scenario Outline: Create Application List via API
+    Scenario Outline: Create Application List using otherLocationDescription and cjaCode via API
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
             | date     | time           | status | description                             | durationHours | durationMinutes | otherLocationDescription         | cjaCode |

@@ -378,7 +378,6 @@ Feature: Applications List Search
     When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
       | Date          | Time   | Location | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
-
     Then User Should See The Link "List details"
     Then User Clicks On The Link "List details"
     Then User Verify The Page URL Contains "#list-details"
@@ -406,7 +405,6 @@ Feature: Applications List Search
     When User Makes POST API Request To "/application-lists" With Body:
       | date          | time   | description   | status   | courtLocationCode | durationHours | durationMinutes |
       | <DisplayDate> | <Time> | <Description> | <Status> | <Court>           | <HH>          | <MM>            |
-
     Then User Verify Response Status Code Should Be "201"
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -421,7 +419,6 @@ Feature: Applications List Search
     When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
       | Date          | Time   | Location        | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <courtLocation> | <Description> | <Entries> | <Status> |
-
     Then User Should See The Link "List details"
     Then User Clicks On The Link "List details"
     Then User Verify The Page URL Contains "#list-details"
@@ -446,12 +443,11 @@ Feature: Applications List Search
       | user1 | Lists     | 2025-12-11  | 16:05 | RCJ001 | Royal Courts of Justice Set 1 | Test_11122025 | 0       | OPEN   | Open       | 11/12/2025 | Select           |               |         |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     | A1B2      | C3D4      | 12        | 45        |
 
   @ignore @regression @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-802
-  Scenario Outline: Update applications list Successfully with Court selected
+  Scenario Outline: Update applications list Successfully with Court selected and field validations
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Body:
       | date          | time   | description   | status   | courtLocationCode | durationHours | durationMinutes |
       | <DisplayDate> | <Time> | <Description> | <Status> | <Court>           | <HH>          | <MM>            |
-
     Then User Verify Response Status Code Should Be "201"
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -466,7 +462,6 @@ Feature: Applications List Search
     When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
       | Date          | Time   | Location        | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <courtLocation> | <Description> | <Entries> | <Status> |
-
     Then User Should See The Link "List details"
     Then User Clicks On The Link "List details"
     Then User Verify The Page URL Contains "#list-details"
@@ -515,18 +510,16 @@ Feature: Applications List Search
     Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
     When User Clicks On The "Update" Button
     Then User Sees Notification Banner "Success Update complete List successfully updated"
-
     Examples:
       | User  | TableName | DisplayDate | Time  | InvalidTime1 | InvalidTime2 | InvalidTime3 | UpdatedTime | Court  | courtLocation                 | Description   | Entries | InvalidStatus | Status | ButtonName | InvalidSearchDate | SearchDate | UpdatedSearchDate | SelectButtonText | OtherLocation | cjaCode | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText | InvalidHH | InvalidMM | UpdatedHH | UpdatedMM |
       | user1 | Lists     | 2025-12-11  | 16:05 | 44:*SKIP*    | *SKIP*:00    | 46:70        | 16:30       | RCJ001 | Royal Courts of Justice Set 1 | Test_11122025 | 0       | Choose status | OPEN   | Open       | 32/13/2025        | 11/12/2025 | 12/12/2025        | Select           |               |         |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     | A1B2      | C3D4      | 12        | 45        |
 
   @ignore @regression @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-802 @ARCPOC-852
-  Scenario Outline: Update applications list Successfully with Court selected
+  Scenario Outline: Update applications list Successfully with Court selected and field validations for Other location and CJA
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Body:
       | date          | time   | description   | status   | courtLocationCode | durationHours | durationMinutes |
       | <DisplayDate> | <Time> | <Description> | <Status> | <Court>           | <HH>          | <MM>            |
-
     Then User Verify Response Status Code Should Be "201"
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -541,7 +534,6 @@ Feature: Applications List Search
     When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
       | Date          | Time   | Location        | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <courtLocation> | <Description> | <Entries> | <Status> |
-
     Then User Should See The Link "List details"
     Then User Clicks On The Link "List details"
     Then User Verify The Page URL Contains "#list-details"
@@ -598,7 +590,6 @@ Feature: Applications List Search
     When User Set "<UpdatedHH>" and "<UpdatedMM>" In The "Duration" Field
     When User Clicks On The "Update" Button
     Then User Sees Notification Banner "Success Update complete List successfully updated"
-
     Examples:
       | User  | TableName | DisplayDate | Time  | InvalidTime1 | InvalidTime2 | InvalidTime3 | UpdatedTime | Court  | courtLocation                 | Description   | Entries | InvalidStatus | Status | ButtonName | InvalidSearchDate | SearchDate | UpdatedSearchDate | SelectButtonText | OtherLocation | cjaCode | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText | InvalidHH | InvalidMM | UpdatedHH | UpdatedMM | InvalidCJAValue | InvalidCourtValue |
       | user1 | Lists     | 2025-12-11  | 16:05 | 44:*SKIP*    | *SKIP*:33    | 46:70        | 16:30       | RCJ001 | Royal Courts of Justice Set 1 | Test_11122025 | 0       | Choose status | OPEN   | Open       | 32/13/2025        | 11/12/2025 | 12/12/2025        | Select           |               |         |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     | A1B2      | C3D4      | 12        | 45        | InvalidCJA      | InvalidCourt      |

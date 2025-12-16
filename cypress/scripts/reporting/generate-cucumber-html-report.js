@@ -4,8 +4,9 @@ const path = require('node:path');
 const { generateHTML } = require('./html-template');
 const logger = require('./logger');
 
-// Get browser from command line argument (chrome, edge, or undefined for combined)
+// Get browser and optional scope from command line arguments
 const browser = process.argv[2]; // 'chrome', 'edge', or undefined
+const scope = process.argv[3] || 'regression'; // 'regression', 'smoke', etc.
 const runId =
   process.env.RUN_ID || process.env.BUILD_TAG || process.env.BUILD_NUMBER;
 
@@ -17,8 +18,13 @@ const RUN_SCOPED_ROOT = runId
 // Configuration
 // Output directory based on browser parameter
 const OUTPUT_DIR = browser
-  ? path.join(OUTPUT_ROOT, `${browser}/regression/cucumber-html`)
-  : path.join(OUTPUT_ROOT, 'regression/cucumber-html');
+  ? path.join(
+      OUTPUT_ROOT,
+      `${browser}`,
+      scope === 'smoke' ? 'smoke' : 'regression',
+      'cucumber-html',
+    )
+  : path.join(OUTPUT_ROOT, 'regression', 'cucumber-html');
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'detailed-test-report.html');
 
 /**
@@ -113,6 +119,9 @@ function buildPaths(segmentGroups) {
  */
 function getCucumberDirectories() {
   if (browser === 'chrome') {
+    if (scope === 'smoke') {
+      return buildPaths([['chrome', 'smoke', 'cucumber-json']]);
+    }
     return buildPaths([
       ['chrome', 'regression', 'cucumber-json'],
       ['chrome', 'smoke', 'cucumber-json'],
@@ -122,6 +131,9 @@ function getCucumberDirectories() {
   }
 
   if (browser === 'edge') {
+    if (scope === 'smoke') {
+      return buildPaths([['edge', 'smoke', 'cucumber-json']]);
+    }
     return buildPaths([
       ['edge', 'regression', 'cucumber-json'],
       ['edge', 'smoke', 'cucumber-json'],
@@ -231,23 +243,9 @@ function updateStats(stats, scenarioStatus, scenarioDuration) {
 /**
  * Process a single scenario
  */
-function processScenario(
-  scenario,
-  feature,
-  processedScenarios,
-  stats,
-  testsByFeature,
-) {
+function processScenario(scenario, feature, stats, testsByFeature) {
   const featureName = feature.name;
   const scenarioName = scenario.name;
-
-  // Skip duplicate scenarios (same feature + scenario name)
-  const scenarioKey = `${featureName}::${scenarioName}`;
-  if (processedScenarios.has(scenarioKey)) {
-    logger.info(`  Skipping duplicate: ${scenarioKey}`);
-    return;
-  }
-  processedScenarios.add(scenarioKey);
 
   // Process steps
   const steps = scenario.steps.map(processStep);
@@ -272,7 +270,7 @@ function processScenario(
 /**
  * Process a single feature
  */
-function processFeature(feature, processedScenarios, stats, testsByFeature) {
+function processFeature(feature, stats, testsByFeature) {
   const featureName = feature.name;
 
   // Skip features without elements
@@ -285,13 +283,7 @@ function processFeature(feature, processedScenarios, stats, testsByFeature) {
   }
 
   feature.elements.forEach((scenario) => {
-    processScenario(
-      scenario,
-      feature,
-      processedScenarios,
-      stats,
-      testsByFeature,
-    );
+    processScenario(scenario, feature, stats, testsByFeature);
   });
 }
 
@@ -320,10 +312,9 @@ function processFeatures(features) {
   };
 
   const testsByFeature = new Map();
-  const processedScenarios = new Set();
 
   features.forEach((feature) => {
-    processFeature(feature, processedScenarios, stats, testsByFeature);
+    processFeature(feature, stats, testsByFeature);
   });
 
   logStatistics(stats);
