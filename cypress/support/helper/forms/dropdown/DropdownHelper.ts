@@ -13,20 +13,20 @@ export class DropdownHelper {
   ): Cypress.Chainable<JQuery<HTMLElement>> {
     return DropdownElement.findDropdown(name).then(($dropdown) => {
       if ($dropdown.is('select')) {
-        // For native select elements
+        //cy.wrap($dropdown).select(option);
         cy.wrap($dropdown)
           .find('option')
-          .filter(
-            (_i, el) =>
-              Cypress.$(el).text().trim().toLowerCase() ===
-              option.toLowerCase(),
-          )
-          .then(($option) => {
-            if ($option.length > 0) {
-              cy.wrap($dropdown).select($option.val() as string);
-            } else {
-              cy.wrap($dropdown).select(option);
+          .then(($options) => {
+            const match = [...$options].find(
+              (o) =>
+                o.textContent?.trim().toLowerCase() === option.toLowerCase(),
+            );
+
+            if (!match) {
+              throw new Error(`Option "${option}" not found in select`);
             }
+
+            cy.wrap($dropdown).select(match.value);
           });
       } else {
         // For custom dropdowns
