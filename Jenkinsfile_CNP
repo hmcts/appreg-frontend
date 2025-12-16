@@ -49,94 +49,66 @@ withPipeline(type, product, component) {
 
       def appObjectId = '20e4de40-7aee-45b1-895b-cb77546763dc'
       echo "Whitelisting redirect URI for PR: ${env.TEST_URL}"
+      echo "DEBUG: appObjectId=${appObjectId}"
+      echo "DEBUG: SUBSCRIPTION_NAME=${env.SUBSCRIPTION_NAME}"
 
       def rc
       withEnv([
-        "APP_OBJECT_ID=${appObjectId}",
-        "AZ_SUBSCRIPTION_NAME=${env.SUBSCRIPTION_NAME}",
-        "TEST_URL=${env.TEST_URL}"
+          "APP_OBJECT_ID=${appObjectId}",
+          "AZ_SUBSCRIPTION_NAME=${env.SUBSCRIPTION_NAME}",
+          "TEST_URL=${env.TEST_URL}"
       ]) {
         rc = sh(
-          script: """
+          script: '''
             bash -lc '
               set -euo pipefail
-
-              # --- Debug context (safe / minimal) ---
-              echo "INFO: subscription=\${AZ_SUBSCRIPTION_NAME}"
-              echo "INFO: appObjectId=\${APP_OBJECT_ID}"
-              echo "INFO: testUrl=\${TEST_URL}"
-
-              BASE_URL="\${TEST_URL%/}"
-              LOGIN_CB="\${BASE_URL}/sso/login-callback"
-              LOGOUT_CB="\${BASE_URL}/sso/logout-callback"
-
-              echo "INFO: baseUrl=\${BASE_URL}"
-              echo "INFO: loginCb=\${LOGIN_CB}"
-              echo "INFO: logoutCb=\${LOGOUT_CB}"
-
-              # --- GET current redirect URIs ---
-              echo "INFO: fetching current redirectUris from Graph..."
-              CURRENT="\$(env AZURE_CONFIG_DIR=/opt/jenkins/.azure-\${AZ_SUBSCRIPTION_NAME} az rest \\
-                --method GET \\
-                --url "https://graph.microsoft.com/v1.0/applications/\${APP_OBJECT_ID}" \\
+              set -x
+              BASE_URL="${TEST_URL%/}"
+              LOGIN_CB="${BASE_URL}/sso/login-callback"
+              LOGOUT_CB="${BASE_URL}/sso/logout-callback"
+              echo "DEBUG: BASE_URL=$BASE_URL"
+              echo "DEBUG: LOGIN_CB=$LOGIN_CB"
+              echo "DEBUG: LOGOUT_CB=$LOGOUT_CB"
+              CURRENT="$(env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${AZ_SUBSCRIPTION_NAME} az rest \
+                --method GET \
+                --url "https://graph.microsoft.com/v1.0/applications/${APP_OBJECT_ID}" \
                 --query "web.redirectUris" -o json)"
-
-              echo "INFO: current payload length=\${#CURRENT}"
-              echo "INFO: current payload preview=\${CURRENT:0:250}"
-
-              if [ "\$CURRENT" = "null" ] || [ -z "\$CURRENT" ]; then
-                echo "WARN: current redirectUris empty/null; defaulting to []"
+              if [ "$CURRENT" = "null" ] || [ -z "$CURRENT" ]; then
+                echo "DEBUG: CURRENT is null/empty, defaulting to []"
                 CURRENT="[]"
               fi
-
-              # Validate JSON early so jq failures are obvious
-              if ! echo "\$CURRENT" | jq -e . >/dev/null 2>&1; then
-                echo "ERROR: current redirectUris is not valid JSON" >&2
-                echo "\$CURRENT" | head -c 1000 >&2 || true
-                exit 3
-              fi
-
-              UPDATED="\$CURRENT"
-              changed=0
-
-              echo "INFO: checking login callback presence..."
-              if echo "\$UPDATED" | jq -e --arg url "\$LOGIN_CB" '"'"'any(. == $url)'"'"' >/dev/null; then
-                echo "INFO: login callback already present"
+              UPDATED="$CURRENT"
+              if echo "$UPDATED" | jq -e --arg url "$LOGIN_CB" '"'"'any(. == $url)'"'"' > /dev/null; then
+                echo "DEBUG: login-callback already present"
               else
-                echo "INFO: adding login callback"
-                UPDATED=\$(echo "\$UPDATED" | jq --arg url "\$LOGIN_CB" '"'"'. + [$url]'"'"')
-                changed=1
+                UPDATED=$(echo "$UPDATED" | jq --arg url "$LOGIN_CB" '"'"'. + [$url]'"'"')
+                echo "DEBUG: added login-callback"
               fi
-
-              echo "INFO: checking logout callback presence..."
-              if echo "\$UPDATED" | jq -e --arg url "\$LOGOUT_CB" '"'"'any(. == $url)'"'"' >/dev/null; then
-                echo "INFO: logout callback already present"
+              if echo "$UPDATED" | jq -e --arg url "$LOGOUT_CB" '"'"'any(. == $url)'"'"' > /dev/null; then
+                echo "DEBUG: logout-callback already present"
               else
-                echo "INFO: adding logout callback"
-                UPDATED=\$(echo "\$UPDATED" | jq --arg url "\$LOGOUT_CB" '"'"'. + [$url]'"'"')
-                changed=1
+                UPDATED=$(echo "$UPDATED" | jq --arg url "$LOGOUT_CB" '"'"'. + [$url]'"'"')
+                echo "DEBUG: added logout-callback"
               fi
-
-              if [ "\$changed" -eq 0 ]; then
-                echo "INFO: no changes required; skipping PATCH"
+              if [ "$UPDATED" = "$CURRENT" ]; then
+                echo "DEBUG: No changes required; skipping PATCH."
                 exit 0
               fi
-
-              # Build body + preview
-              BODY=\$(jq -cn --argjson uris "\$UPDATED" '"'"'{web:{redirectUris:$uris}}'"'"')
-              echo "INFO: patch body preview=\$(echo "\$BODY" | head -c 250)"
-
-              echo "INFO: performing Graph PATCH..."
-              env AZURE_CONFIG_DIR=/opt/jenkins/.azure-\${AZ_SUBSCRIPTION_NAME} az rest \\
-                --method PATCH \\
-                --url "https://graph.microsoft.com/v1.0/applications/\${APP_OBJECT_ID}" \\
-                --headers "Content-Type=application/json" \\
-                --body "\$BODY" \\
-                -o none
-
-              echo "INFO: patch completed"
+              BODY=$(jq -cn --argjson uris "$UPDATED" '"'"'{web:{redirectUris:$uris}}'"'"')
+              echo "DEBUG: PATCH body = $BODY"
+              env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${AZ_SUBSCRIPTION_NAME} az rest \
+                --method PATCH \
+                --url "https://graph.microsoft.com/v1.0/applications/${APP_OBJECT_ID}" \
+                --headers "Content-Type=application/json" \
+                --body "$BODY" \
+                -o json
+              echo "DEBUG: PATCH completed, verifying..."
+              env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${AZ_SUBSCRIPTION_NAME} az rest \
+                --method GET \
+                --url "https://graph.microsoft.com/v1.0/applications/${APP_OBJECT_ID}" \
+                --query "web.redirectUris" -o json
             '
-          """,
+        ''',
           returnStatus: true
         )
       }
