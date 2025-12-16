@@ -58,13 +58,9 @@ module.exports = defineConfig({
     configFile: 'tsconfig.cypress.json',
   },
   e2e: {
-    reporter: 'cypress-mochawesome-reporter',
+    reporter: 'cypress-multi-reporters',
     reporterOptions: {
-      reportDir: 'cypress/reports',
-      reportPageTitle: 'AppregFrontend E2E Test Results',
-      embeddedScreenshots: true,
-      inlineAssets: true,
-      autoOpen: false,
+      configFile: 'multi-reporter-config.json',
     },
     // Test Files Configuration
     specPattern: 'cypress/e2e/**/*.feature',

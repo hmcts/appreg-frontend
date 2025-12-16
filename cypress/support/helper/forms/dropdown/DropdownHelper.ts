@@ -1,3 +1,4 @@
+/// <reference types="cypress" />
 import { DropdownElement } from '../../../pageobjects/generic/dropdown/DropdownElement';
 
 export class DropdownHelper {
@@ -12,9 +13,23 @@ export class DropdownHelper {
   ): Cypress.Chainable<JQuery<HTMLElement>> {
     return DropdownElement.findDropdown(name).then(($dropdown) => {
       if ($dropdown.is('select')) {
-        cy.wrap($dropdown).select(option);
+        // For native select elements
+        cy.wrap($dropdown)
+          .find('option')
+          .filter(
+            (_i, el) =>
+              Cypress.$(el).text().trim().toLowerCase() ===
+              option.toLowerCase(),
+          )
+          .then(($option) => {
+            if ($option.length > 0) {
+              cy.wrap($dropdown).select($option.val() as string);
+            } else {
+              cy.wrap($dropdown).select(option);
+            }
+          });
       } else {
-        // For custom dropdowns, click to open and select the option
+        // For custom dropdowns
         cy.wrap($dropdown).click();
         cy.contains(
           '.dropdown [role="option"], .select [role="option"], .dropdown__option, .select__option',
