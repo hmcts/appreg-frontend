@@ -68,46 +68,47 @@ withPipeline(type, product, component) {
         }
 
         def rc = sh(
-            script: """
-                set -euo pipefail
-                set -x
+          script: """
+            bash -lc '
+              set -euo pipefail
+              set -x
 
-                CURRENT="\$(echo '${currentUrisJson}')"
+              CURRENT=\$(cat redirectUris.json)
 
-                # If Graph returned null, treat as empty array
-                if [ "\$CURRENT" = "null" ] || [ -z "\$CURRENT" ]; then
-                  echo "DEBUG: CURRENT redirectUris is null/empty, defaulting to []"
-                  CURRENT="[]"
-                fi
+              if [ "\$CURRENT" = "null" ] || [ -z "\$CURRENT" ]; then
+                echo "DEBUG: CURRENT is null/empty, defaulting to []"
+                CURRENT="[]"
+              fi
 
-                echo "DEBUG: CURRENT redirectUris = \$CURRENT"
+              echo "DEBUG: CURRENT redirectUris = \$CURRENT"
 
-                if echo "\$CURRENT" | jq -e --arg url "${env.TEST_URL}" 'any(.==\$url)' > /dev/null; then
-                  echo "DEBUG: URL already present in redirectUris, no update needed."
-                  exit 0
-                fi
+              if echo "\$CURRENT" | jq -e --arg url "${env.TEST_URL}" '"'"'any(. == \$url)'"'"' > /dev/null; then
+                echo "DEBUG: URL already present, no update needed."
+                exit 0
+              fi
 
-                UPDATED=\$(echo "\$CURRENT" | jq --arg url "${env.TEST_URL}" '. + [\$url]')
-                echo "DEBUG: UPDATED redirectUris = \$UPDATED"
+              UPDATED=\$(echo "\$CURRENT" | jq --arg url "${env.TEST_URL}" '"'"'. + [\$url]'"'"')
+              echo "DEBUG: UPDATED redirectUris = \$UPDATED"
 
-                BODY=\$(jq -cn --argjson uris "\$UPDATED" '{web:{redirectUris:$uris}}')
-                echo "DEBUG: PATCH body = \$BODY"
+              BODY=\$(jq -cn --argjson uris "\$UPDATED" '"'"'{web:{redirectUris:\$uris}}'"'"')
+              echo "DEBUG: PATCH body = \$BODY"
 
-                echo "DEBUG: Performing Graph PATCH..."
-                env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${env.SUBSCRIPTION_NAME} az rest \\
-                  --method PATCH \\
-                  --url 'https://graph.microsoft.com/v1.0/applications/${appObjectId}' \\
-                  --headers 'Content-Type=application/json' \\
-                  --body "\$BODY" \\
-                  -o json
+              echo "DEBUG: Performing Graph PATCH..."
+              env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${env.SUBSCRIPTION_NAME} az rest \\
+                --method PATCH \\
+                --url "https://graph.microsoft.com/v1.0/applications/${appObjectId}" \\
+                --headers "Content-Type=application/json" \\
+                --body "\$BODY" \\
+                -o json
 
-                echo "DEBUG: PATCH completed, verifying..."
-                env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${env.SUBSCRIPTION_NAME} az rest \\
-                  --method GET \\
-                  --url 'https://graph.microsoft.com/v1.0/applications/${appObjectId}' \\
-                  --query 'web.redirectUris' -o json
-            """,
-            returnStatus: true
+              echo "DEBUG: PATCH completed, verifying..."
+              env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${env.SUBSCRIPTION_NAME} az rest \\
+                --method GET \\
+                --url "https://graph.microsoft.com/v1.0/applications/${appObjectId}" \\
+                --query "web.redirectUris" -o json
+            '
+          """,
+          returnStatus: true
         )
 
         echo "DEBUG: redirect URI update shell exited with code ${rc}"
