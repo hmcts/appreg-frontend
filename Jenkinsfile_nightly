@@ -80,7 +80,7 @@ withNightlyPipeline(type, product, component) {
       stage('Regression Tests') {
         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Regression tests failed') {
           try {
-            yarnBuilder.yarn('test:nightly:regression:chrome --env TAGS=\'not @ignore and not @broken\'')
+            yarnBuilder.yarn('test:nightly:regression:chrome')
           } finally {
             yarnBuilder.yarn('test:nightly:regression:html:cucumber:chrome')
             archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/regression/**/*'
