@@ -61,41 +61,80 @@ withPipeline(type, product, component) {
             bash -lc '
               set -euo pipefail
 
+              # --- Debug context (safe / minimal) ---
+              echo "INFO: subscription=\${AZ_SUBSCRIPTION_NAME}"
+              echo "INFO: appObjectId=\${APP_OBJECT_ID}"
+              echo "INFO: testUrl=\${TEST_URL}"
+
               BASE_URL="\${TEST_URL%/}"
               LOGIN_CB="\${BASE_URL}/sso/login-callback"
               LOGOUT_CB="\${BASE_URL}/sso/logout-callback"
 
+              echo "INFO: baseUrl=\${BASE_URL}"
+              echo "INFO: loginCb=\${LOGIN_CB}"
+              echo "INFO: logoutCb=\${LOGOUT_CB}"
+
+              # --- GET current redirect URIs ---
+              echo "INFO: fetching current redirectUris from Graph..."
               CURRENT="\$(env AZURE_CONFIG_DIR=/opt/jenkins/.azure-\${AZ_SUBSCRIPTION_NAME} az rest \\
                 --method GET \\
                 --url "https://graph.microsoft.com/v1.0/applications/\${APP_OBJECT_ID}" \\
                 --query "web.redirectUris" -o json)"
 
+              echo "INFO: current payload length=\${#CURRENT}"
+              echo "INFO: current payload preview=\${CURRENT:0:250}"
+
               if [ "\$CURRENT" = "null" ] || [ -z "\$CURRENT" ]; then
+                echo "WARN: current redirectUris empty/null; defaulting to []"
                 CURRENT="[]"
               fi
 
+              # Validate JSON early so jq failures are obvious
+              if ! echo "\$CURRENT" | jq -e . >/dev/null 2>&1; then
+                echo "ERROR: current redirectUris is not valid JSON" >&2
+                echo "\$CURRENT" | head -c 1000 >&2 || true
+                exit 3
+              fi
+
               UPDATED="\$CURRENT"
+              changed=0
 
-              if ! echo "\$UPDATED" | jq -e --arg url "\$LOGIN_CB" '"'"'any(. == $url)'"'"' > /dev/null; then
+              echo "INFO: checking login callback presence..."
+              if echo "\$UPDATED" | jq -e --arg url "\$LOGIN_CB" '"'"'any(. == $url)'"'"' >/dev/null; then
+                echo "INFO: login callback already present"
+              else
+                echo "INFO: adding login callback"
                 UPDATED=\$(echo "\$UPDATED" | jq --arg url "\$LOGIN_CB" '"'"'. + [$url]'"'"')
+                changed=1
               fi
 
-              if ! echo "\$UPDATED" | jq -e --arg url "\$LOGOUT_CB" '"'"'any(. == $url)'"'"' > /dev/null; then
+              echo "INFO: checking logout callback presence..."
+              if echo "\$UPDATED" | jq -e --arg url "\$LOGOUT_CB" '"'"'any(. == $url)'"'"' >/dev/null; then
+                echo "INFO: logout callback already present"
+              else
+                echo "INFO: adding logout callback"
                 UPDATED=\$(echo "\$UPDATED" | jq --arg url "\$LOGOUT_CB" '"'"'. + [$url]'"'"')
+                changed=1
               fi
 
-              if [ "\$UPDATED" = "\$CURRENT" ]; then
+              if [ "\$changed" -eq 0 ]; then
+                echo "INFO: no changes required; skipping PATCH"
                 exit 0
               fi
 
+              # Build body + preview
               BODY=\$(jq -cn --argjson uris "\$UPDATED" '"'"'{web:{redirectUris:$uris}}'"'"')
+              echo "INFO: patch body preview=\$(echo "\$BODY" | head -c 250)"
 
+              echo "INFO: performing Graph PATCH..."
               env AZURE_CONFIG_DIR=/opt/jenkins/.azure-\${AZ_SUBSCRIPTION_NAME} az rest \\
                 --method PATCH \\
                 --url "https://graph.microsoft.com/v1.0/applications/\${APP_OBJECT_ID}" \\
                 --headers "Content-Type=application/json" \\
                 --body "\$BODY" \\
                 -o none
+
+              echo "INFO: patch completed"
             '
           """,
           returnStatus: true
