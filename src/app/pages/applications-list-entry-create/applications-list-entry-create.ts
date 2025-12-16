@@ -20,6 +20,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ErrorMessageMap, buildFormErrorSummary } from '@util/error-summary';
 
 import { buildEntryCreateDto } from './util/entry-create-mapper';
 import { toOptionalTrimmed } from './util/helpers';
@@ -34,6 +35,7 @@ import {
 } from '@components/error-summary/error-summary.component';
 import {
   ApplicationNotesForm,
+  NOTES_FIELD_MESSAGES,
   NotesSectionComponent,
 } from '@components/notes-section/notes-section.component';
 import { OrganisationSectionComponent } from '@components/organisation-section/organisation-section.component';
@@ -65,7 +67,24 @@ import {
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 
-const ALPHANUMERIC_REGEX = '^[A-Za-z0-9-]*$';
+const ALPHANUMERIC_REGEX = '^[A-Za-z0-9]*$';
+
+type BuildFormErrorSummaryFn = (
+  form: FormGroup,
+  messages: ErrorMessageMap,
+  options?: { nested?: { path: string; prefixId?: string }[] },
+) => ErrorItem[];
+
+const bf = buildFormErrorSummary as unknown as BuildFormErrorSummaryFn;
+
+export const ENTRY_ERROR_MESSAGES = {
+  applicationCode: {
+    required: 'Enter an application code',
+  },
+  ...NOTES_FIELD_MESSAGES,
+} as const;
+
+type ChildErrorSource = 'notes' | 'fee' | 'respondent';
 
 @Component({
   selector: 'app-applications-list-entry-create',
@@ -109,6 +128,16 @@ export class ApplicationsListEntryCreate implements OnInit {
   errorFound: boolean = false;
   errorHint: string = '';
   unpopField: ErrorItem[] = [];
+
+  summaryErrors: ErrorItem[] = [];
+
+  private parentErrors: ErrorItem[] = [];
+  private childErrors: Record<ChildErrorSource, ErrorItem[]> = {
+    notes: [],
+    fee: [],
+    respondent: [],
+  };
+
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
 
@@ -216,24 +245,25 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.errorHint = '';
     this.unpopField = [];
 
-    const v = this.form.value;
+    //Run Angular validation
+    this.form.markAllAsTouched();
 
-    // Input validation
+    const v = this.form.value;
     const appCode = toOptionalTrimmed(v.applicationCode);
+
+    // Custom rule: application code required
     if (!appCode) {
-      this.errorFound = true;
-      this.errorHint = 'Application code is required';
-      this.unpopField.push({
-        text: 'Enter an application code',
-        href: '#app-code-code',
-        id: 'app-code-code',
+      this.form.controls.applicationCode.setErrors({
+        ...(this.form.controls.applicationCode.errors ?? {}),
+        required: true,
       });
-      return;
     }
 
-    if (this.unpopField.length > 0) {
-      this.errorFound = true;
-      this.errorHint = 'There is a problem';
+    // Build error summary from control errors + child errors
+    this.updateAllErrors();
+
+    if (this.errorFound) {
+      // Don't submit if we’ve got validation errors
       return;
     }
 
@@ -253,6 +283,25 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.submitted = false;
   }
 
+  private buildErrorSummary(): ErrorItem[] {
+    return bf(this.form, ENTRY_ERROR_MESSAGES, {
+      nested: [{ path: 'applicationNotes', prefixId: 'applicationNotes' }],
+    });
+  }
+
+  private updateAllErrors(): void {
+    this.parentErrors = this.buildErrorSummary();
+    const allChildErrors = Object.values(this.childErrors).flat();
+
+    this.summaryErrors = [...this.parentErrors, ...allChildErrors];
+    this.errorFound = this.summaryErrors.length > 0;
+  }
+
+  onChildErrors(source: ChildErrorSource, errors: ErrorItem[]): void {
+    this.childErrors[source] = errors ?? [];
+    this.updateAllErrors();
+  }
+
   onCodeSelected(row: ApplicationCodeGetSummaryDto): void {
     this.form.patchValue({ applicationCode: row.applicationCode });
   }
@@ -264,142 +313,4 @@ export class ApplicationsListEntryCreate implements OnInit {
       this.organisationForm.getRawValue(),
     );
   }
-
-  // private buildEntryCreateDto(): EntryCreateDto {
-  //   const v = this.form.getRawValue();
-
-  //   const dto: Partial<EntryCreateDto> = {
-  //     applicationCode: toOptionalTrimmed(v.applicationCode)!,
-  //     respondent: this.buildRespondent() ?? undefined,
-  //     numberOfRespondents: v.numberOfRespondents ?? undefined,
-  //     wordingFields: this.buildWordingFields() ?? undefined,
-  //     feeStatuses: this.buildFeeStatuses() ?? undefined,
-  //     hasOffsiteFee: v.hasOffsiteFee ?? undefined,
-  //     caseReference: toOptionalTrimmed(v.applicationNotes.caseReference),
-  //     accountNumber: toOptionalTrimmed(v.applicationNotes.accountReference),
-  //     notes: toOptionalTrimmed(v.applicationNotes.notes),
-  //     lodgementDate: toOptionalTrimmed(v.lodgementDate),
-  //   };
-
-  //   if (v.applicantType === 'standard') {
-  //     dto.standardApplicantCode = toOptionalTrimmed(v.standardApplicantCode);
-  //   } else {
-  //     dto.applicant = this.buildApplicant() ?? undefined;
-  //   }
-
-  //   pruneNullish(dto);
-  //   return dto as EntryCreateDto;
-  // }
-
-  // private buildApplicant(): Applicant | undefined {
-  //   const type = this.form.getRawValue().applicantType;
-
-  //   if (type === 'person') {
-  //     const pf = this.personForm.getRawValue();
-  //     if (!hasRequiredPerson(pf)) {
-  //       return undefined;
-  //     }
-
-  //     const first = pf.firstName.trim();
-  //     const sur = pf.surname?.trim() || '';
-
-  //     return {
-  //       person: {
-  //         name: {
-  //           title: toOptionalTrimmed(pf.title),
-  //           firstForename: first,
-  //           secondForename: toOptionalTrimmed(pf.middleNames),
-  //           surname: sur,
-  //         },
-  //         contactDetails: makeContactDetails(pf),
-  //       },
-  //     };
-  //   }
-
-  //   if (type === 'org') {
-  //     const of = this.organisationForm.value;
-
-  //     if (!hasRequiredOrg(of)) {
-  //       return undefined;
-  //     }
-
-  //     return {
-  //       organisation: {
-  //         name: of.name!.trim(),
-  //         contactDetails: makeContactDetails(of),
-  //       },
-  //     };
-  //   }
-
-  //   return undefined;
-  // }
-
-  // private buildRespondent(): Respondent | undefined {
-  //   const t = this.form.value.respondentEntryType;
-  //   if (!t) {
-  //     return undefined;
-  //   }
-
-  //   if (t === 'person') {
-  //     const pf = this.personForm.value;
-  //     if (!hasRequiredPerson(pf)) {
-  //       return undefined;
-  //     }
-
-  //     const first = pf.firstName!.trim();
-  //     const sur = pf.surname!.trim();
-
-  //     return {
-  //       person: {
-  //         name: {
-  //           title: toOptionalTrimmed(pf.title),
-  //           firstForename: first,
-  //           secondForename: toOptionalTrimmed(pf.middleNames),
-  //           surname: sur,
-  //         },
-  //         contactDetails: makeContactDetails(pf),
-  //       },
-  //     };
-  //   }
-
-  //   if (t === 'organisation') {
-  //     const of = this.organisationForm.value;
-  //     if (!hasRequiredOrg(of)) {
-  //       return undefined;
-  //     }
-
-  //     return {
-  //       organisation: {
-  //         name: of.name!.trim(),
-  //         contactDetails: makeContactDetails(of),
-  //       },
-  //     };
-  //   }
-
-  //   return undefined;
-  // }
-
-  // private buildFeeStatuses(): FeeStatus[] | undefined {
-  //   const paymentStatus = toOptionalTrimmed(this.form.value.feeStatus);
-  //   const statusDate = toOptionalTrimmed(this.form.value.feeStatusDate);
-  //   const paymentRef = toOptionalTrimmed(this.form.value.paymentRef);
-
-  //   if (!paymentStatus && !statusDate && !paymentRef) {
-  //     return undefined;
-  //   }
-
-  //   const item = {
-  //     paymentStatus,
-  //     statusDate,
-  //     paymentReference: paymentRef,
-  //   } as FeeStatus;
-
-  //   return [item];
-  // }
-
-  // private buildWordingFields(): string[] | undefined {
-  //   const courtName = toOptionalTrimmed(this.form.value.courtName);
-  //   const orgName = toOptionalTrimmed(this.form.value.organisationName);
-  //   return compactStrings([courtName, orgName]);
-  // }
 }

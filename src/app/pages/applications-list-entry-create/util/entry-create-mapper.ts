@@ -29,12 +29,8 @@ export function buildEntryCreateDto(
     wordingFields: buildWordingFields(formValue),
     feeStatuses: buildFeeStatuses(formValue),
     hasOffsiteFee: formValue.hasOffsiteFee ?? undefined,
-    caseReference: toOptionalTrimmed(formValue.applicationNotes.caseReference),
-    accountNumber: toOptionalTrimmed(
-      formValue.applicationNotes.accountReference,
-    ),
-    notes: toOptionalTrimmed(formValue.applicationNotes.notes),
     lodgementDate: toOptionalTrimmed(formValue.lodgementDate),
+    ...buildNotesFields(formValue),
   };
 
   if (formValue.applicantType === 'standard') {
@@ -171,4 +167,18 @@ function buildWordingFields(
   const courtName = toOptionalTrimmed(formValue.courtName);
   const orgName = toOptionalTrimmed(formValue.organisationName);
   return compactStrings([courtName, orgName]);
+}
+
+function buildNotesFields(formValue: ApplicationsListEntryCreateFormValue) {
+  const notes = {
+    caseReference: toOptionalTrimmed(formValue.applicationNotes.caseReference),
+    accountNumber: toOptionalTrimmed(
+      formValue.applicationNotes.accountReference,
+    ),
+    notes: toOptionalTrimmed(formValue.applicationNotes.notes),
+  };
+
+  const allEmpty = !notes.caseReference && !notes.accountNumber && !notes.notes;
+
+  return allEmpty ? {} : notes;
 }

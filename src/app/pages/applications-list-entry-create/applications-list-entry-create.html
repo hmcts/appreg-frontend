@@ -10,10 +10,10 @@
 
 <h1 class="govuk-heading-xl">Create new entry</h1>
 
-@if (unpopField.length || errorFound) {
+@if (summaryErrors.length || errorFound) {
   <app-error-summary
     [title]="errorHint || 'There is a problem'"
-    [items]="unpopField"
+    [items]="summaryErrors"
     (itemSelect)="onCreateErrorClick($event)"
   />
 }
@@ -227,7 +227,10 @@
   </ng-template>
 
   <ng-template #notesTpl>
-    <app-notes-section [form]="form.controls.applicationNotes" />
+    <app-notes-section
+      [form]="form.controls.applicationNotes"
+      (notesErrors)="onChildErrors('notes', $event)"
+    />
   </ng-template>
 
   <ng-template #resultWordingTpl>

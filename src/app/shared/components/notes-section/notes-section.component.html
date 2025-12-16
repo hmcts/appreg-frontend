@@ -1,19 +1,90 @@
 <div class="govuk-grid-row" [formGroup]="form()">
-  <!-- Case reference -->
-  <app-text-input
-    formControlName="caseReference"
-    label="Case reference"
-    hint="Enter the unique case reference, for example CR-2025-00123"
-    idPrefix="case-reference"
-  />
+  <div class="govuk-grid-column-one-quarter">
+    <div
+      class="govuk-form-group"
+      [class.govuk-form-group--error]="isControlInvalid('caseReference')"
+    >
+      <label class="govuk-label govuk-label--m" for="caseReference"
+        >Case reference</label
+      >
+
+      <div id="case-reference-hint" class="govuk-hint">
+        Enter the unique case reference, for example CR-2025-00123
+      </div>
+
+      <!-- Case reference -->
+      @if (isControlInvalid('caseReference')) {
+        <p class="govuk-error-message fullName-error">
+          <span class="govuk-visually-hidden">Error:</span>
+          {{ getControlErrorMessages('caseReference')[0] }}
+        </p>
+      }
+      <input
+        class="govuk-input govuk-input--width-10"
+        [class.govuk-input--error]="isControlInvalid('caseReference')"
+        id="caseReference"
+        name="caseReference"
+        type="text"
+        formControlName="caseReference"
+        aria-describedby="
+        case-reference-hint
+        {{ isControlInvalid('caseReference') ? ' caseReference-error' : '' }}
+      "
+      />
+    </div>
+  </div>
+
+  <!-- <app-text-input
+      formControlName="caseReference"
+      label="Case reference"
+      hint="Enter the unique case reference, for example CR-2025-00123"
+      idPrefix="case-reference"
+    /> -->
 
   <!-- Account reference -->
-  <app-text-input
+  <div class="govuk-grid-column-one-quarter">
+    <div
+      class="govuk-form-group"
+      [class.govuk-form-group--error]="isControlInvalid('accountReference')"
+    >
+      <label class="govuk-label govuk-label--m" for="accountReference"
+        >Account reference</label
+      >
+
+      <div id="account-reference-hint" class="govuk-hint">
+        Enter the associated account reference, for example AC-987654
+      </div>
+
+      <!-- Case reference -->
+      @if (isControlInvalid('accountReference')) {
+        <p class="govuk-error-message fullName-error">
+          <span class="govuk-visually-hidden">Error:</span>
+          {{ getControlErrorMessages('accountReference')[0] }}
+        </p>
+      }
+      <input
+        class="govuk-input govuk-input--width-10"
+        [class.govuk-input--error]="isControlInvalid('accountReference')"
+        id="accountReference"
+        name="accountReference"
+        type="text"
+        formControlName="accountReference"
+        aria-describedby="
+        account-reference-hint
+        {{
+          isControlInvalid('accountReference') ? ' accountReference-error' : ''
+        }}
+      "
+      />
+    </div>
+  </div>
+
+  <!-- <app-text-input
     formControlName="accountReference"
     label="Account reference"
     hint="Enter the associated account reference, for example AC-987654"
     idPrefix="account-reference"
-  />
+  /> -->
 </div>
 
 <hr

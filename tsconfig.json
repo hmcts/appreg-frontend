@@ -20,7 +20,7 @@
         "src/app/shared/components/*",
         "src/app/core/components/*"
       ],
-      "@util/*": ["src/app/shared/util/*"],
+      "@util/*": ["src/app/shared/util/*", "src/app/core/util/*"],
       "@openapi": ["src/generated/openapi"],
       "@page-types/*": ["src/app/pages/*/util/types"],
       "@shared-types/*": ["src/app/shared/models/*"]
