@@ -360,7 +360,7 @@ export class ApplicationsList
 
       await this.pdf.generateContinuousApplicationListsPdf([dto]);
     } catch {
-      this.showInline('Unable to generate PDF. Please try again later');
+      this.showInline('Unable to generate PDF.');
     }
   }
 

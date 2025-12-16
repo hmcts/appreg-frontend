@@ -793,9 +793,9 @@ describe('ApplicationsList.onPrintContinuous', () => {
 
   it('returns early on non-browser platform', async () => {
     const { comp, api, pdf, clearNotificationsSpy, showInlineSpy } =
-      createInstance('server', [{ id: 'X' }]);
+      createInstance('server');
 
-    await comp.onPrintContinuous();
+    await comp.onPrintContinuous('abc-123');
 
     expect(clearNotificationsSpy).not.toHaveBeenCalled();
     expect(api.printApplicationList).not.toHaveBeenCalled();
@@ -803,116 +803,77 @@ describe('ApplicationsList.onPrintContinuous', () => {
     expect(showInlineSpy).not.toHaveBeenCalled();
   });
 
-  it('shows "No lists to print" when rows contain no valid ids', async () => {
+  it('returns early when id is falsy', async () => {
     const { comp, api, pdf, clearNotificationsSpy, showInlineSpy } =
-      createInstance('browser', [{ id: '' }, {}, { id: null }]);
+      createInstance('browser');
 
-    await comp.onPrintContinuous();
+    await comp.onPrintContinuous('');
 
-    expect(clearNotificationsSpy).toHaveBeenCalledTimes(1);
+    expect(clearNotificationsSpy).not.toHaveBeenCalled();
     expect(api.printApplicationList).not.toHaveBeenCalled();
     expect(pdf.generateContinuousApplicationListsPdf).not.toHaveBeenCalled();
-    expect(showInlineSpy).toHaveBeenCalledWith('No lists to print');
-  });
-
-  it('shows "No entries available to print" when all fulfilled results have empty/missing entries', async () => {
-    const { comp, api, pdf, showInlineSpy } = createInstance('browser', [
-      { id: 'A' },
-      { id: 'B' },
-    ]);
-
-    api.printApplicationList.mockReturnValueOnce(of(makePrintDto([])));
-    api.printApplicationList.mockReturnValueOnce(
-      of({} as unknown as ApplicationListGetPrintDto),
-    );
-
-    await comp.onPrintContinuous();
-
-    expect(api.printApplicationList).toHaveBeenCalledTimes(2);
-    expect(api.printApplicationList).toHaveBeenNthCalledWith(
-      1,
-      { listId: 'A' },
-      undefined,
-      undefined,
-      { transferCache: false },
-    );
-    expect(api.printApplicationList).toHaveBeenNthCalledWith(
-      2,
-      { listId: 'B' },
-      undefined,
-      undefined,
-      { transferCache: false },
-    );
-
-    expect(pdf.generateContinuousApplicationListsPdf).not.toHaveBeenCalled();
-    expect(showInlineSpy).toHaveBeenCalledWith('No entries available to print');
-  });
-
-  it('ignores rejected/invalid results and prints when at least one DTO has entries', async () => {
-    const { comp, api, pdf, showInlineSpy } = createInstance('browser', [
-      { id: 'A' },
-      { id: 'B' },
-      { id: 'C' },
-    ]);
-
-    api.printApplicationList
-      .mockReturnValueOnce(of(makePrintDto([{ foo: 1 } as unknown])))
-      .mockImplementationOnce(() => throwError(() => new Error('boom')))
-      .mockReturnValueOnce(of(makePrintDto([])));
-
-    await comp.onPrintContinuous();
-
-    expect(api.printApplicationList).toHaveBeenCalledTimes(3);
-    // Still must pass transferCache: false for every call
-    for (const id of ['A', 'B', 'C']) {
-      expect(api.printApplicationList).toHaveBeenCalledWith(
-        { listId: id },
-        undefined,
-        undefined,
-        { transferCache: false },
-      );
-    }
-
-    expect(pdf.generateContinuousApplicationListsPdf).toHaveBeenCalledTimes(1);
-    // The dtos array should contain only the valid fulfilled one(s)
-    const passedDtos =
-      pdf.generateContinuousApplicationListsPdf.mock.calls[0][0];
-    expect(passedDtos).toHaveLength(1);
     expect(showInlineSpy).not.toHaveBeenCalled();
   });
 
-  it('shows a generic error if PDF generation rejects', async () => {
-    const { comp, api, pdf, showInlineSpy } = createInstance('browser', [
-      { id: 'A' },
-    ]);
+  it('clears errors and calls API with transferCache: false', async () => {
+    const { comp, api, clearNotificationsSpy } = createInstance('browser');
 
-    api.printApplicationList.mockReturnValue(
-      of(makePrintDto([{ x: 1 } as unknown])),
-    );
+    const dto = makePrintDto([{ a: 1 } as unknown]);
+    api.printApplicationList.mockReturnValue(of(dto));
+
+    await comp.onPrintContinuous('abc-123');
+
+    expect(clearNotificationsSpy).toHaveBeenCalledTimes(1);
+
+    expect(api.printApplicationList).toHaveBeenCalledTimes(1);
+    expect(api.printApplicationList.mock.calls[0][0]).toEqual({
+      listId: 'abc-123',
+    });
+    expect(api.printApplicationList.mock.calls[0][1]).toBeUndefined();
+    expect(api.printApplicationList.mock.calls[0][2]).toBeUndefined();
+    expect(api.printApplicationList.mock.calls[0][3]).toEqual({
+      transferCache: false,
+    });
+  });
+
+  it('shows inline message when there are no entries', async () => {
+    const { comp, api, pdf, showInlineSpy } = createInstance('browser');
+
+    api.printApplicationList.mockReturnValue(of(makePrintDto([])));
+
+    await comp.onPrintContinuous('abc-123');
+
+    expect(showInlineSpy).toHaveBeenCalledWith('No entries available to print');
+    expect(pdf.generateContinuousApplicationListsPdf).not.toHaveBeenCalled();
+  });
+
+  it('generates PDF on the browser when entries exist', async () => {
+    const { comp, api, pdf } = createInstance('browser');
+
+    const dto = makePrintDto([{}]);
+    api.printApplicationList.mockReturnValue(of(dto));
+
+    await comp.onPrintContinuous('abc-123');
+
+    expect(pdf.generateContinuousApplicationListsPdf).toHaveBeenCalledTimes(1);
+    expect(pdf.generateContinuousApplicationListsPdf).toHaveBeenCalledWith([
+      dto,
+    ]);
+  });
+
+  it('shows a generic error if PDF generation rejects', async () => {
+    const { comp, api, pdf, showInlineSpy } = createInstance('browser');
+
+    const dto = makePrintDto([{ x: 1 } as unknown]);
+    api.printApplicationList.mockReturnValue(of(dto));
     pdf.generateContinuousApplicationListsPdf.mockRejectedValueOnce(
       new Error('pdf fail'),
     );
 
-    await comp.onPrintContinuous();
+    await comp.onPrintContinuous('abc-123');
 
     expect(api.printApplicationList).toHaveBeenCalledTimes(1);
     expect(pdf.generateContinuousApplicationListsPdf).toHaveBeenCalledTimes(1);
-    expect(showInlineSpy).toHaveBeenCalledWith(
-      'Unable to generate PDF. Please try again later',
-    );
-  });
-
-  it('clears errors at the start on browser platform', async () => {
-    const { comp, api, clearNotificationsSpy } = createInstance('browser', [
-      { id: 'A' },
-    ]);
-
-    api.printApplicationList.mockReturnValue(
-      of(makePrintDto([{ z: 1 } as unknown])),
-    );
-
-    await comp.onPrintContinuous();
-
-    expect(clearNotificationsSpy).toHaveBeenCalledTimes(1);
+    expect(showInlineSpy).toHaveBeenCalledWith('Unable to generate PDF.');
   });
 });
