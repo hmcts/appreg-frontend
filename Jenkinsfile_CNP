@@ -48,57 +48,47 @@ withPipeline(type, product, component) {
       }
 
       def appObjectId = '20e4de40-7aee-45b1-895b-cb77546763dc'
+      echo "Whitelisting redirect URI for PR: ${env.TEST_URL}"
+
       def az = new uk.gov.hmcts.contino.azure.Az(this, env.SUBSCRIPTION_NAME)
 
-      def redirectUris = [
-        "${env.TEST_URL}/sso/login-callback",
-        "${env.TEST_URL}/sso/logout-callback"
-      ]
-
-      // Get once
+      // Fetch current redirect URIs (may be "null")
       def currentUrisJson = az.az(
         "rest --method GET --url 'https://graph.microsoft.com/v1.0/applications/${appObjectId}' --query 'web.redirectUris' -o json"
       )
 
-      // Add each URI if missing
-      redirectUris.each { uri ->
-        echo "Whitelisting redirect URI: ${uri}"
+      def rc
+      withEnv(["CURRENT_URIS_JSON=${currentUrisJson}"]) {
+        rc = sh(
+          script: """
+            bash -lc '
+              set -euo pipefail
 
-        def rc
-        withEnv(["CURRENT_URIS_JSON=${currentUrisJson}"]) {
-          rc = sh(
-            script: """
-              bash -lc '
-                set -euo pipefail
-                set -x
+              current="\${CURRENT_URIS_JSON:-null}"
+              if [ "\$current" = "null" ] || [ -z "\$current" ]; then
+                current="[]"
+              fi
 
-                CURRENT="\$CURRENT_URIS_JSON"
-                if [ "\$CURRENT" = "null" ] || [ -z "\$CURRENT" ]; then
-                  CURRENT="[]"
-                fi
+              # If already present, do nothing (idempotent)
+              echo "\$current" | jq -e --arg url "${env.TEST_URL}" "any(. == \\$url)" >/dev/null && exit 0
 
-                if echo "\$CURRENT" | jq -e --arg url "${uri}" '"'"'any(. == $url)'"'"' > /dev/null; then
-                  exit 0
-                fi
+              updated=\$(echo "\$current" | jq --arg url "${env.TEST_URL}" ". + [\\$url]")
+              body=\$(jq -cn --argjson uris "\$updated" "{web:{redirectUris:\\$uris}}")
 
-                UPDATED=\$(echo "\$CURRENT" | jq --arg url "${uri}" '"'"'. + [$url]'"'"')
-                BODY=\$(jq -cn --argjson uris "\$UPDATED" '"'"'{web:{redirectUris:$uris}}'"'"')
+              env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${env.SUBSCRIPTION_NAME} az rest \\
+                --method PATCH \\
+                --url "https://graph.microsoft.com/v1.0/applications/${appObjectId}" \\
+                --headers "Content-Type=application/json" \\
+                --body "\$body" \\
+                -o none
+            '
+          """,
+          returnStatus: true
+        )
+      }
 
-                env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${env.SUBSCRIPTION_NAME} az rest \\
-                  --method PATCH \\
-                  --url "https://graph.microsoft.com/v1.0/applications/${appObjectId}" \\
-                  --headers "Content-Type=application/json" \\
-                  --body "\$BODY" \\
-                  -o none
-              '
-            """,
-            returnStatus: true
-          )
-        }
-
-        if (rc != 0) {
-          error("Redirect URI add failed for ${uri} (exit code ${rc})")
-        }
+      if (rc != 0) {
+        error("Redirect URI update failed (exit code ${rc})")
       }
     }
 
