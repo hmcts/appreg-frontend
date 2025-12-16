@@ -43,54 +43,82 @@ withPipeline(type, product, component) {
     def appObjectId = '20e4de40-7aee-45b1-895b-cb77546763dc'
 
     def manageRedirectUri = { String url, String mode ->
+      echo "manageRedirectUri: mode=${mode}, url=${url}, subscription=${env.SUBSCRIPTION_NAME}"
+
       def az = new uk.gov.hmcts.contino.azure.Az(this, env.SUBSCRIPTION_NAME)
 
       def currentUrisJson = az.az(
         "rest --method GET --url 'https://graph.microsoft.com/v1.0/applications/${appObjectId}' --query 'web.redirectUris' -o json"
       )
 
+      echo "manageRedirectUri: Graph GET returned length=${currentUrisJson?.size() ?: 0}"
+      echo "manageRedirectUri: Graph GET preview=${currentUrisJson?.take(300) ?: 'null'}"
+
       withEnv([
         "CURRENT_URIS_JSON=${currentUrisJson}",
         "TARGET_URL=${url}",
         "MODE=${mode}"
       ]) {
-        return sh(
+        def out = sh(
           script: """
             bash -lc '
               set -euo pipefail
+              set -x
+
+              echo "DEBUG: MODE=\$MODE"
+              echo "DEBUG: TARGET_URL=\$TARGET_URL"
 
               current="\${CURRENT_URIS_JSON:-null}"
+              echo "DEBUG: CURRENT_URIS_JSON raw length=\${#current}"
+              echo "DEBUG: CURRENT_URIS_JSON preview=\${current:0:300}"
+
               if [ "\$current" = "null" ] || [ -z "\$current" ]; then
+                echo "DEBUG: CURRENT is null/empty -> using []"
                 current="[]"
               fi
 
-              contains() {
-                echo "\$current" | jq -e --arg url "\$TARGET_URL" '"'"'any(. == $url)'"'"' >/dev/null
-              }
+              echo "DEBUG: Validating JSON with jq..."
+              if ! echo "\$current" | jq -e . >/dev/null 2>&1; then
+                echo "ERROR: CURRENT is not valid JSON!" >&2
+                echo "\$current" | head -c 1000 >&2 || true
+                exit 3
+              fi
+
+              echo "DEBUG: CURRENT redirectUris (pretty, first 50 lines):"
+              echo "\$current" | jq . | sed -n "1,50p"
+
+              echo "DEBUG: Checking whether URL already present..."
+              if echo "\$current" | jq -e --arg url "\$TARGET_URL" '"'"'any(. == $url)'"'"' >/dev/null; then
+                echo "DEBUG: URL already present -> NO_CHANGE"
+                echo "NO_CHANGE"
+                exit 0
+              else
+                echo "DEBUG: URL not present"
+              fi
 
               case "\$MODE" in
                 add)
-                  if contains; then
-                    echo "NO_CHANGE"
-                    exit 0
-                  fi
+                  echo "DEBUG: Adding URL..."
                   updated=\$(echo "\$current" | jq --arg url "\$TARGET_URL" '"'"'. + [$url] | unique'"'"')
                   ;;
                 remove)
-                  if ! contains; then
-                    echo "NO_CHANGE"
-                    exit 0
-                  fi
+                  echo "DEBUG: Removing URL..."
                   updated=\$(echo "\$current" | jq --arg url "\$TARGET_URL" '"'"'map(select(. != $url))'"'"')
                   ;;
                 *)
-                  echo "Invalid MODE: \$MODE" >&2
+                  echo "ERROR: Invalid MODE: \$MODE" >&2
                   exit 2
                   ;;
               esac
 
-              body=\$(jq -cn --argjson uris "\$updated" '"'"'{web:{redirectUris:$uris}}'"'"')
+              echo "DEBUG: UPDATED preview:"
+              echo "\$updated" | jq . | sed -n "1,50p"
 
+              body=\$(jq -cn --argjson uris "\$updated" '"'"'{web:{redirectUris:$uris}}'"'"')
+              echo "DEBUG: PATCH body preview:"
+              echo "\$body" | jq . | sed -n "1,80p"
+
+              echo "DEBUG: Performing Graph PATCH..."
               env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${env.SUBSCRIPTION_NAME} az rest \\
                 --method PATCH \\
                 --url "https://graph.microsoft.com/v1.0/applications/${appObjectId}" \\
@@ -98,11 +126,15 @@ withPipeline(type, product, component) {
                 --body "\$body" \\
                 -o none
 
+              echo "DEBUG: PATCH completed"
               echo "CHANGED"
             '
           """,
           returnStdout: true
         ).trim()
+
+        echo "manageRedirectUri: shell output => ${out}"
+        return out
       }
     }
 
