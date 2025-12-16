@@ -1,3 +1,4 @@
+/// <reference types="cypress" />
 import { DropdownElement } from '../../../pageobjects/generic/dropdown/DropdownElement';
 
 export class DropdownHelper {
@@ -28,7 +29,7 @@ export class DropdownHelper {
             cy.wrap($dropdown).select(match.value);
           });
       } else {
-        // For custom dropdowns, click to open and select the option
+        // For custom dropdowns
         cy.wrap($dropdown).click();
         cy.contains(
           '.dropdown [role="option"], .select [role="option"], .dropdown__option, .select__option',

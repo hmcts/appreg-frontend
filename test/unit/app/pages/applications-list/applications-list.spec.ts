@@ -55,9 +55,10 @@ const cjaApiMock = {
   getCriminalJusticeAreas: jest.fn().mockReturnValue(of({ content: [] })),
 };
 
-class ReferenceDataFacadeStub
-  implements Pick<ReferenceDataFacade, 'courtLocations$' | 'cja$'>
-{
+class ReferenceDataFacadeStub implements Pick<
+  ReferenceDataFacade,
+  'courtLocations$' | 'cja$'
+> {
   courtLocations$ = of([] as CourtLocationGetSummaryDto[]);
   cja$ = of([] as CriminalJusticeAreaGetDto[]);
 }
@@ -69,14 +70,10 @@ type PrintFn = (
   options?: { transferCache?: boolean },
 ) => Observable<ApplicationListGetPrintDto>;
 
-class PdfServiceStub
-  implements
-    Pick<
-      PdfService,
-      | 'generatePagedApplicationListPdf'
-      | 'generateContinuousApplicationListsPdf'
-    >
-{
+class PdfServiceStub implements Pick<
+  PdfService,
+  'generatePagedApplicationListPdf' | 'generateContinuousApplicationListsPdf'
+> {
   generatePagedApplicationListPdf = jest.fn<
     Promise<void>,
     [unknown, { crestUrl?: string } | undefined]
@@ -122,6 +119,24 @@ function createInstance(
     showInlineSpy;
 
   return { comp, api, pdf, clearNotificationsSpy, showInlineSpy };
+}
+
+function submitEvent(value: string | null = 'search'): {
+  e: SubmitEvent;
+  preventDefault: jest.Mock;
+} {
+  const preventDefault = jest.fn();
+  const btn =
+    value === null
+      ? null
+      : Object.assign(document.createElement('button'), { value });
+
+  const e = {
+    preventDefault,
+    submitter: btn,
+  } as unknown as SubmitEvent;
+
+  return { e, preventDefault };
 }
 
 describe('ApplicationsList – delete flow (server platform: no confirm)', () => {
@@ -189,7 +204,6 @@ describe('ApplicationsList – delete flow (server platform: no confirm)', () =>
     await component.onDelete(row);
 
     expect(component.deleteInvalid).toBe(true);
-    expect(component.errorHint).toBe('There is a problem');
     expect(component.errorSummary).toEqual([
       { text: 'This list cannot be deleted.' },
     ]);
@@ -299,7 +313,6 @@ describe('ApplicationsList – delete flow (server platform: no confirm)', () =>
         // Error flags and message mapping
         expect(component.deleteDone).toBe(false);
         expect(component.deleteInvalid).toBe(true);
-        expect(component.errorHint).toBe('There is a problem');
         expect(component.errorSummary[0].text).toBe(firstText);
 
         // Row NOT removed on error; deletingId reset
@@ -439,10 +452,8 @@ describe('ApplicationsList – search', () => {
   it('when hasParams=false, does not call API and surfaces validation error', () => {
     service.getApplicationLists.mockClear();
     component.searchErrors = [];
-    component.errorHint = '';
     component.loadApplicationsLists(false);
     expect(service.getApplicationLists).not.toHaveBeenCalled();
-    expect(component.errorHint).toBe('There is a problem');
     expect(component.searchErrors[0]).toEqual({
       id: '',
       text: 'Invalid Search Criteria. At least one field must be entered.',
@@ -530,10 +541,8 @@ describe('ApplicationsList – search', () => {
   it('when hasParams=false, does not call API and shows the same validation error', () => {
     service.getApplicationLists.mockClear();
     component.searchErrors = [];
-    component.errorHint = '';
     component.loadApplicationsLists(false);
     expect(service.getApplicationLists).not.toHaveBeenCalled();
-    expect(component.errorHint).toBe('There is a problem');
     expect(component.searchErrors[0]).toEqual({
       id: '',
       text: 'Invalid Search Criteria. At least one field must be entered.',
@@ -550,6 +559,126 @@ describe('ApplicationsList – search', () => {
     const args = service.getApplicationLists.mock
       .calls[0][0] as GetApplicationListsRequestParams;
     expect(args.filter).toEqual({ status: 'CLOSED' });
+  });
+
+  describe('buildTrailingNumericSortKey', () => {
+    type PrivateApi = {
+      buildTrailingNumericSortKey(value: unknown): string;
+    };
+
+    const sortKey = (v: unknown) =>
+      (component as unknown as PrivateApi).buildTrailingNumericSortKey(v);
+
+    it('returns empty string for null, empty string, and unsupported types', () => {
+      expect(sortKey(null)).toBe('');
+      expect(sortKey('   ')).toBe('');
+      expect(sortKey(undefined)).toBe('');
+      expect(sortKey({})).toBe('');
+      expect(sortKey([])).toBe('');
+    });
+
+    it('normalises strings and pads trailing numeric suffix', () => {
+      expect(sortKey(' ABC 12 ')).toBe('abc 0012');
+      expect(sortKey('abc')).toBe('abc');
+      expect(sortKey('abc12d')).toBe('abc12d'); // not trailing digits
+      expect(sortKey('abc12345')).toBe('abc12345'); // longer than 4
+      expect(sortKey('  7  ')).toBe('0007'); // prefix empty
+    });
+
+    it('handles numbers and booleans', () => {
+      expect(sortKey(12)).toBe('0012');
+      expect(sortKey(0)).toBe('0000');
+      expect(sortKey(true)).toBe('true');
+      expect(sortKey(false)).toBe('false');
+    });
+  });
+
+  describe('hasAnyParams', () => {
+    type PrivateApi = {
+      hasAnyParams(): boolean;
+    };
+
+    const hasAny = () => (component as unknown as PrivateApi).hasAnyParams();
+
+    it('returns false when all fields are empty/default', () => {
+      component.form.controls.date.setValue(null);
+      component.form.controls.time.setValue(null);
+      component.form.controls.description.setValue('');
+      component.form.controls.status.setValue(null);
+      component.form.controls.court.setValue('');
+      component.form.controls.location.setValue('');
+      component.form.controls.cja.setValue('');
+
+      expect(hasAny()).toBe(false);
+    });
+
+    it('returns true when any field has a value', () => {
+      component.form.controls.date.setValue('2025-12-15');
+      expect(hasAny()).toBe(true);
+    });
+  });
+
+  describe('onSubmit', () => {
+    it('collects date/time validation errors and does not run search', () => {
+      const spy = jest.spyOn(component, 'loadApplicationsLists');
+
+      component.form.controls.date.setErrors({
+        dateInvalid: true,
+        dateErrorText: 'Enter a valid date',
+      });
+
+      component.form.controls.time.setErrors({
+        durationInvalid: true,
+        durationErrorText: 'Enter a valid time',
+      });
+
+      const { e, preventDefault } = submitEvent('search');
+      component.onSubmit(e);
+
+      expect(preventDefault).toHaveBeenCalled();
+      expect(component.submitted).toBe(true);
+      expect(component.searchErrors).toEqual([
+        { id: 'date-day', text: 'Enter a valid date' },
+        { id: 'time-hours', text: 'Enter a valid time' },
+      ]);
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('calls loadApplicationsLists(hasAnyParams) for search action when no validation errors', () => {
+      const spy = jest
+        .spyOn(component, 'loadApplicationsLists')
+        .mockImplementation(() => undefined);
+
+      component.form.controls.date.setValue('2025-12-15');
+      component.form.controls.date.setErrors(null);
+      component.form.controls.time.setErrors(null);
+
+      component.currentPage = 3;
+
+      const { e, preventDefault } = submitEvent('search');
+      component.onSubmit(e);
+
+      expect(preventDefault).toHaveBeenCalled();
+      expect(component.submitted).toBe(true);
+      expect(component.isSearch).toBe(true);
+      expect(component.currentPage).toBe(1);
+      expect(spy).toHaveBeenCalledWith(true);
+    });
+
+    it('defaults action to "search" when submitter is missing', () => {
+      const spy = jest
+        .spyOn(component, 'loadApplicationsLists')
+        .mockImplementation(() => undefined);
+
+      component.form.controls.date.setValue('2025-12-15');
+      component.form.controls.date.setErrors(null);
+      component.form.controls.time.setErrors(null);
+
+      const { e } = submitEvent(null);
+      component.onSubmit(e);
+
+      expect(spy).toHaveBeenCalledWith(true);
+    });
   });
 });
 
