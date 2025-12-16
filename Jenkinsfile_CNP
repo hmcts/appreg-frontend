@@ -76,12 +76,12 @@ withPipeline(type, product, component) {
 
               UPDATED="$CURRENT"
 
-              if ! echo "$UPDATED" | jq -e --arg url "$LOGIN_CB '"'"'any(. == $url)'"'"' > /dev/null; then
-                UPDATED=$(echo "$UPDATED" | jq --arg url "$LOGIN_CB" '"'"'. + [$url]'"'"')
+              if ! echo "$UPDATED" | jq -e --arg url "$LOGIN_CB" 'any(. == $url)' > /dev/null; then
+                UPDATED=$(echo "$UPDATED" | jq --arg url "$LOGIN_CB" '. + [$url]')
               fi
 
-              if ! echo "$UPDATED" | jq -e --arg url "$LOGOUT_CB" '"'"'any(. == $url)'"'"' > /dev/null; then
-                UPDATED=$(echo "$UPDATED" | jq --arg url "$LOGOUT_CB" '"'"'. + [$url]'"'"')
+              if ! echo "$UPDATED" | jq -e --arg url "$LOGOUT_CB" 'any(. == $url)' > /dev/null; then
+                UPDATED=$(echo "$UPDATED" | jq --arg url "$LOGOUT_CB" '. + [$url]')
               fi
 
               if [ "$UPDATED" = "$CURRENT" ]; then
