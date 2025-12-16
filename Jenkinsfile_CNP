@@ -57,47 +57,47 @@ withPipeline(type, product, component) {
         "TEST_URL=${env.TEST_URL}"
       ]) {
         rc = sh(
-          script: '''
+          script: """
             bash -lc '
               set -euo pipefail
 
-              BASE_URL="${TEST_URL%/}"
-              LOGIN_CB="${BASE_URL}/sso/login-callback"
-              LOGOUT_CB="${BASE_URL}/sso/logout-callback"
+              BASE_URL="\${TEST_URL%/}"
+              LOGIN_CB="\${BASE_URL}/sso/login-callback"
+              LOGOUT_CB="\${BASE_URL}/sso/logout-callback"
 
-              CURRENT="$(env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${AZ_SUBSCRIPTION_NAME} az rest \
-                --method GET \
-                --url "https://graph.microsoft.com/v1.0/applications/${APP_OBJECT_ID}" \
+              CURRENT="\$(env AZURE_CONFIG_DIR=/opt/jenkins/.azure-\${AZ_SUBSCRIPTION_NAME} az rest \\
+                --method GET \\
+                --url "https://graph.microsoft.com/v1.0/applications/\${APP_OBJECT_ID}" \\
                 --query "web.redirectUris" -o json)"
 
-              if [ "$CURRENT" = "null" ] || [ -z "$CURRENT" ]; then
+              if [ "\$CURRENT" = "null" ] || [ -z "\$CURRENT" ]; then
                 CURRENT="[]"
               fi
 
-              UPDATED="$CURRENT"
+              UPDATED="\$CURRENT"
 
-              if ! echo "$UPDATED" | jq -e --arg url "$LOGIN_CB" 'any(. == $url)' > /dev/null; then
-                UPDATED=$(echo "$UPDATED" | jq --arg url "$LOGIN_CB" '. + [$url]')
+              if ! echo "\$UPDATED" | jq -e --arg url "\$LOGIN_CB" '"'"'any(. == $url)'"'"' > /dev/null; then
+                UPDATED=\$(echo "\$UPDATED" | jq --arg url "\$LOGIN_CB" '"'"'. + [$url]'"'"')
               fi
 
-              if ! echo "$UPDATED" | jq -e --arg url "$LOGOUT_CB" 'any(. == $url)' > /dev/null; then
-                UPDATED=$(echo "$UPDATED" | jq --arg url "$LOGOUT_CB" '. + [$url]')
+              if ! echo "\$UPDATED" | jq -e --arg url "\$LOGOUT_CB" '"'"'any(. == $url)'"'"' > /dev/null; then
+                UPDATED=\$(echo "\$UPDATED" | jq --arg url "\$LOGOUT_CB" '"'"'. + [$url]'"'"')
               fi
 
-              if [ "$UPDATED" = "$CURRENT" ]; then
+              if [ "\$UPDATED" = "\$CURRENT" ]; then
                 exit 0
               fi
 
-              BODY=$(jq -cn --argjson uris "$UPDATED" '"'"'{web:{redirectUris:$uris}}'"'"')
+              BODY=\$(jq -cn --argjson uris "\$UPDATED" '"'"'{web:{redirectUris:$uris}}'"'"')
 
-              env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${AZ_SUBSCRIPTION_NAME} az rest \
-                --method PATCH \
-                --url "https://graph.microsoft.com/v1.0/applications/${APP_OBJECT_ID}" \
-                --headers "Content-Type=application/json" \
-                --body "$BODY" \
+              env AZURE_CONFIG_DIR=/opt/jenkins/.azure-\${AZ_SUBSCRIPTION_NAME} az rest \\
+                --method PATCH \\
+                --url "https://graph.microsoft.com/v1.0/applications/\${APP_OBJECT_ID}" \\
+                --headers "Content-Type=application/json" \\
+                --body "\$BODY" \\
                 -o none
             '
-          ''',
+          """,
           returnStatus: true
         )
       }
