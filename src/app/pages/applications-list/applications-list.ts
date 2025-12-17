@@ -27,10 +27,10 @@ import { HttpContext } from '@angular/common/http';
 import {
   Component,
   HostListener,
-  Inject,
   OnDestroy,
   OnInit,
   PLATFORM_ID,
+  inject,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -107,7 +107,12 @@ export class ApplicationsList
   extends PlaceFieldsBase
   implements OnInit, OnDestroy
 {
-  private readonly _id: string | undefined;
+  // APIs
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly appListsApi = inject(ApplicationListsApi);
+  private readonly refFacade = inject(ReferenceDataFacade);
+  private readonly pdf = inject(PdfService);
+
   private readonly destroy$ = new Subject<void>();
   openMenuForId: string | null = null;
   openPrintSelectForId: string | null = null;
@@ -161,12 +166,7 @@ export class ApplicationsList
 
   rows: ApplicationListRow[] = [];
 
-  constructor(
-    @Inject(PLATFORM_ID) private readonly platformId: object,
-    private readonly refFacade: ReferenceDataFacade,
-    private readonly appListsApi: ApplicationListsApi,
-    private readonly pdf: PdfService,
-  ) {
+  constructor() {
     super();
   }
 
