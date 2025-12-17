@@ -5,10 +5,14 @@ import {
   provideHttpClient,
 } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { PLATFORM_ID } from '@angular/core';
+import {
+  EnvironmentInjector,
+  PLATFORM_ID,
+  runInInjectionContext,
+} from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { Observable, of, throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { PdfService } from '../../../../../src/app/core/services/pdf.service';
 import { ReferenceDataFacade } from '../../../../../src/app/core/services/reference-data.facade';
@@ -30,7 +34,6 @@ import {
   CriminalJusticeAreaGetDto,
   CriminalJusticeAreasApi,
   GetApplicationListsRequestParams,
-  PrintApplicationListRequestParams,
 } from '../../../../../src/generated/openapi';
 
 const makePrintDto = (entries: unknown[] = []): ApplicationListGetPrintDto =>
@@ -63,13 +66,6 @@ class ReferenceDataFacadeStub implements Pick<
   cja$ = of([] as CriminalJusticeAreaGetDto[]);
 }
 
-type PrintFn = (
-  requestParameters: PrintApplicationListRequestParams,
-  observe?: 'body',
-  reportProgress?: boolean,
-  options?: { transferCache?: boolean },
-) => Observable<ApplicationListGetPrintDto>;
-
 class PdfServiceStub implements Pick<
   PdfService,
   'generatePagedApplicationListPdf' | 'generateContinuousApplicationListsPdf'
@@ -91,26 +87,28 @@ function createInstance(
   platformId: 'browser' | 'server' = 'browser',
   rows: Array<{ id?: string | null }> = [],
 ) {
-  const api: { printApplicationList: jest.MockedFunction<PrintFn> } = {
-    // jest.fn with correct param/return types
-    printApplicationList: jest.fn<
-      ReturnType<PrintFn>,
-      Parameters<PrintFn>
-    >() as never,
+  const api: { printApplicationList: jest.Mock } = {
+    printApplicationList: jest.fn(),
   };
 
   const pdf = new PdfServiceStub();
+  const refFacade = new ReferenceDataFacadeStub();
 
-  const comp = new ApplicationsList(
-    platformId as unknown as object,
-    new ReferenceDataFacadeStub() as unknown as ReferenceDataFacade,
-    api as unknown as ApplicationListsApi,
-    pdf as unknown as PdfService,
-  );
+  TestBed.resetTestingModule();
+  TestBed.configureTestingModule({
+    providers: [
+      { provide: PLATFORM_ID, useValue: platformId },
+      { provide: ApplicationListsApi, useValue: api },
+      { provide: ReferenceDataFacade, useValue: refFacade },
+      { provide: PdfService, useValue: pdf },
+    ],
+  });
+
+  const injector = TestBed.inject(EnvironmentInjector);
+  const comp = runInInjectionContext(injector, () => new ApplicationsList());
 
   (comp as unknown as { rows: Array<{ id?: string | null }> }).rows = rows;
 
-  // expose spies with the names the tests use
   const clearNotificationsSpy = jest.fn();
   const showInlineSpy = jest.fn();
   (comp as unknown as { clearNotifications: () => void }).clearNotifications =
