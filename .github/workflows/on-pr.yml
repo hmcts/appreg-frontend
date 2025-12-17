@@ -17,28 +17,23 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
-          if [ -z "${{ secrets.AZURE_CLIENT_ID }}" ]; then
-            echo "Missing secret: AZURE_CLIENT_ID"
-            exit 1
-          fi
-
-          if [ -z "${{ secrets.AZURE_CLIENT_SECRET }}" ]; then
-            echo "Missing secret: AZURE_CLIENT_SECRET"
-            exit 1
-          fi
-
-          if [ -z "${{ secrets.AZURE_TENANT_ID }}" ]; then
-            echo "Missing secret: AZURE_TENANT_ID"
-            exit 1
-          fi
+          [ -n "${{ secrets.AZURE_CLIENT_ID }}" ] || (echo "Missing secret: AZURE_CLIENT_ID" && exit 1)
+          [ -n "${{ secrets.AZURE_CLIENT_SECRET }}" ] || (echo "Missing secret: AZURE_CLIENT_SECRET" && exit 1)
+          [ -n "${{ secrets.AZURE_TENANT_ID }}" ] || (echo "Missing secret: AZURE_TENANT_ID" && exit 1)
 
       - name: Azure CLI login (client secret)
         uses: azure/CLI@v2
+        env:
+          AZURE_CONFIG_DIR: ${{ runner.temp }}/.azure
+          HOME: ${{ runner.temp }}
         with:
           azcliversion: latest
           inlineScript: |
             set -euo pipefail
+
+            mkdir -p "${AZURE_CONFIG_DIR}"
+
+            az cloud set -n AzureCloud
 
             az login --service-principal \
               --username "${{ secrets.AZURE_CLIENT_ID }}" \
@@ -50,8 +45,11 @@ jobs:
 
       - name: Ensure redirect URIs exist for this PR
         env:
+          AZURE_CONFIG_DIR: ${{ runner.temp }}/.azure
+          HOME: ${{ runner.temp }}
           PR_NUMBER: ${{ github.event.number }}
           OBJECT_ID: "20e4de40-7aee-45b1-895b-cb77546763dc"
+        shell: bash
         run: |
           set -euo pipefail
 
