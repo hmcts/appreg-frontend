@@ -1,193 +1,42 @@
 #!groovy
 
-@Library('Infrastructure')
+@Library("Infrastructure")
 
-def type = 'angular'
-def product = 'appreg'
-def component = 'frontend'
+def type = "angular"
+def product = "appreg"
+def component = "frontend"
 
 def branchesToSync = ['demo', 'ithc']
 
 def secrets = [
-  "appreg-\${env}": [
-    secret('POSTGRES-USER', 'DB_USER'),
-    secret('POSTGRES-PASS', 'DB_PASSWORD'),
-    secret('POSTGRES-HOST', 'DB_HOST'),
-    secret('POSTGRES-PORT', 'DB_PORT'),
-    secret('POSTGRES-DATABASE', 'DB_NAME'),
-    secret('TEST-USER1-EMAIL', 'TEST_USER1_EMAIL'),
-    secret('TEST-USER2-EMAIL', 'TEST_USER2_EMAIL'),
-    secret('TEST-USER3-EMAIL', 'TEST_USER3_EMAIL'),
-    secret('TEST-ADMIN1-EMAIL', 'TEST_ADMIN1_EMAIL'),
-    secret('TEST-ADMIN2-EMAIL', 'TEST_ADMIN2_EMAIL'),
-    secret('TEST-ADMIN3-EMAIL', 'TEST_ADMIN3_EMAIL'),
-    secret('TEST-USERS-PASSWORD', 'TEST_USERS_PASSWORD'),
-    secret('OBJECT-ID', 'OBJECT_ID'),
-  ],
+        'appreg-${env}': [
+                secret('POSTGRES-USER', 'DB_USER'),
+                secret('POSTGRES-PASS', 'DB_PASSWORD'),
+                secret('POSTGRES-HOST', 'DB_HOST'),
+                secret('POSTGRES-PORT', 'DB_PORT'),
+                secret('POSTGRES-DATABASE', 'DB_NAME'),
+                secret('TEST-USER1-EMAIL', 'TEST_USER1_EMAIL'),
+                secret('TEST-USER2-EMAIL', 'TEST_USER2_EMAIL'),
+                secret('TEST-USER3-EMAIL', 'TEST_USER3_EMAIL'),
+                secret('TEST-ADMIN1-EMAIL', 'TEST_ADMIN1_EMAIL'),
+                secret('TEST-ADMIN2-EMAIL', 'TEST_ADMIN2_EMAIL'),
+                secret('TEST-ADMIN3-EMAIL', 'TEST_ADMIN3_EMAIL'),
+                secret('TEST-USERS-PASSWORD', 'TEST_USERS_PASSWORD'),
+        ]
 ]
 
 static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
-  [
-    $class: 'AzureKeyVaultSecret',
-    secretType: 'Secret',
-    name: secretName,
-    version: '',
-    envVariable: envVar,
-  ]
+    [$class     : 'AzureKeyVaultSecret',
+     secretType : 'Secret',
+     name       : secretName,
+     version    : '',
+     envVariable: envVar
+    ]
 }
 
 withPipeline(type, product, component) {
   loadVaultSecrets(secrets)
   enableSlackNotifications('#appreg-builds')
-
-  before('functionalTest:dev') {
-    if (!env.TEST_URL) {
-      error('TEST_URL missing from environment')
-    }
-
-    def appObjectId = OBJECT_ID
-
-    def out
-    withEnv([
-      "APP_OBJECT_ID=${appObjectId}",
-      "AZ_SUBSCRIPTION_NAME=${env.SUBSCRIPTION_NAME}",
-      "TEST_URL=${env.TEST_URL}",
-      "TERM=xterm",
-    ]) {
-      out = sh(
-        script: '''
-          bash -lc '
-            set -euo pipefail
-
-            BASE_URL="${TEST_URL%/}"
-            LOGIN_CB="${BASE_URL}/sso/login-callback"
-            LOGOUT_CB="${BASE_URL}/sso/logout-callback"
-
-            CURRENT="$(env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${AZ_SUBSCRIPTION_NAME} az rest \
-              --method GET \
-              --url "https://graph.microsoft.com/v1.0/applications/${APP_OBJECT_ID}" \
-              --query "web.redirectUris" -o json)"
-
-            if [ "$CURRENT" = "null" ] || [ -z "$CURRENT" ]; then
-              CURRENT="[]"
-            fi
-
-            if ! echo "$CURRENT" | jq -e . >/dev/null 2>&1; then
-              echo "$CURRENT" | head -c 1000 >&2 || true
-              exit 3
-            fi
-
-            UPDATED="$CURRENT"
-
-            if ! echo "$UPDATED" | jq -e --arg url "$LOGIN_CB" '"'"'any(. == $url)'"'"' > /dev/null; then
-              UPDATED=$(echo "$UPDATED" | jq --arg url "$LOGIN_CB" '"'"'. + [$url]'"'"')
-            fi
-
-            if ! echo "$UPDATED" | jq -e --arg url "$LOGOUT_CB" '"'"'any(. == $url)'"'"' > /dev/null; then
-              UPDATED=$(echo "$UPDATED" | jq --arg url "$LOGOUT_CB" '"'"'. + [$url]'"'"')
-            fi
-
-            if [ "$UPDATED" = "$CURRENT" ]; then
-              echo "NO_CHANGES"
-              exit 0
-            fi
-
-            BODY=$(jq -cn --argjson uris "$UPDATED" '"'"'{web:{redirectUris:$uris}}'"'"')
-
-            env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${AZ_SUBSCRIPTION_NAME} az rest \
-              --method PATCH \
-              --url "https://graph.microsoft.com/v1.0/applications/${APP_OBJECT_ID}" \
-              --headers "Content-Type=application/json" \
-              --body "$BODY" \
-              -o none
-
-            echo "CHANGED"
-          '
-        ''',
-        returnStdout: true
-      ).trim()
-    }
-
-    if (!(out.contains('NO_CHANGES') || out.contains('CHANGED'))) {
-      error('Redirect URI update failed (unexpected output)')
-    }
-  }
-
-  afterAlways('functionalTest:dev') {
-    if (!env.TEST_URL) {
-      return
-    }
-
-    def appObjectId = OBJECT_ID
-
-    def out
-    withEnv([
-      "APP_OBJECT_ID=${appObjectId}",
-      "AZ_SUBSCRIPTION_NAME=${env.SUBSCRIPTION_NAME}",
-      "TEST_URL=${env.TEST_URL}",
-      "TERM=xterm",
-    ]) {
-      out = sh(
-        script: '''
-          bash -lc '
-            set -euo pipefail
-
-            BASE_URL="${TEST_URL%/}"
-            LOGIN_CB="${BASE_URL}/sso/login-callback"
-            LOGOUT_CB="${BASE_URL}/sso/logout-callback"
-
-            CURRENT="$(env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${AZ_SUBSCRIPTION_NAME} az rest \
-              --method GET \
-              --url "https://graph.microsoft.com/v1.0/applications/${APP_OBJECT_ID}" \
-              --query "web.redirectUris" -o json)"
-
-            if [ "$CURRENT" = "null" ] || [ -z "$CURRENT" ]; then
-              CURRENT="[]"
-            fi
-
-            if ! echo "$CURRENT" | jq -e . >/dev/null 2>&1; then
-              echo "$CURRENT" | head -c 1000 >&2 || true
-              exit 3
-            fi
-
-            UPDATED="$CURRENT"
-            removed=0
-
-            if echo "$UPDATED" | jq -e --arg url "$LOGIN_CB" '"'"'any(. == $url)'"'"' > /dev/null; then
-              UPDATED=$(echo "$UPDATED" | jq --arg url "$LOGIN_CB" '"'"'map(select(. != $url))'"'"')
-              removed=1
-            fi
-
-            if echo "$UPDATED" | jq -e --arg url "$LOGOUT_CB" '"'"'any(. == $url)'"'"' > /dev/null; then
-              UPDATED=$(echo "$UPDATED" | jq --arg url "$LOGOUT_CB" '"'"'map(select(. != $url))'"'"')
-              removed=1
-            fi
-
-            if [ "$removed" -eq 0 ]; then
-              echo "NO_CHANGES"
-              exit 0
-            fi
-
-            BODY=$(jq -cn --argjson uris "$UPDATED" '"'"'{web:{redirectUris:$uris}}'"'"')
-
-            env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${AZ_SUBSCRIPTION_NAME} az rest \
-              --method PATCH \
-              --url "https://graph.microsoft.com/v1.0/applications/${APP_OBJECT_ID}" \
-              --headers "Content-Type=application/json" \
-              --body "$BODY" \
-              -o none
-
-            echo "CHANGED"
-          '
-        ''',
-        returnStdout: true
-      ).trim()
-    }
-
-    if (!(out.contains('NO_CHANGES') || out.contains('CHANGED'))) {
-      error('Redirect URI cleanup failed (unexpected output)')
-    }
-  }
 
   after('functionalTest:aat') {
     script {
@@ -208,7 +57,7 @@ withPipeline(type, product, component) {
         reportDir: 'cypress/reports/cucumber-html',
         reportFiles: 'index.html',
         reportName: 'Cucumber Report',
-        reportTitles: 'Cucumber Test Report',
+        reportTitles: 'Cucumber Test Report'
       ])
 
       publishHTML([
@@ -218,7 +67,7 @@ withPipeline(type, product, component) {
         reportDir: 'cypress/reports',
         reportFiles: 'mochawesome.html',
         reportName: 'Mochaware Report',
-        reportTitles: 'Mochawesome Test Report',
+        reportTitles: 'Mochawesome Test Report'
       ])
 
       if (testResult != 0) {
