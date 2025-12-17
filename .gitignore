@@ -45,6 +45,7 @@ cypress/screenshots/
 cypress/videos/
 cypress/downloads/
 functional-output/
+runner-results/
 
 # .yarn folder
 .yarn/*

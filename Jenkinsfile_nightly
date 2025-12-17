@@ -46,43 +46,8 @@ withNightlyPipeline(type, product, component) {
 
   afterAlways('DependencyCheckNightly') {
     stage('Connectivity Test') {
-      def baseUrl = env.TEST_URL
-      echo "Testing connectivity to: ${baseUrl}"
-      
-      try {
-        // DNS Resolution
-        sh """
-          echo "DNS Resolution:"
-          nslookup appreg.staging.apps.hmcts.net | grep -A1 'Name:' || echo "DNS lookup failed"
-        """
-        
-        // SSL Certificate Check
-        sh """
-          echo "SSL Certificate:"
-          echo | openssl s_client -servername appreg.staging.apps.hmcts.net -connect appreg.staging.apps.hmcts.net:443 2>/dev/null | openssl x509 -noout -dates 2>/dev/null || echo "SSL check failed"
-        """
-        
-        // Health Endpoint Check
-        def healthResponse = sh(
-          script: "curl -s -o /dev/null -w '%{http_code}' --max-time 10 ${baseUrl}/health",
-          returnStdout: true
-        ).trim()
-        echo "Health endpoint (/health): HTTP ${healthResponse}"
-        
-        // Root URL Check (accepts both 200 and 401 as valid responses)
-        def rootResponse = sh(
-          script: "curl -s -o /dev/null -w '%{http_code}' --max-time 10 ${baseUrl}/",
-          returnStdout: true
-        ).trim()
-        echo "Root URL (/): HTTP ${rootResponse}"
-        
-        if (healthResponse == '200' || rootResponse in ['200', '401']) {
-          echo "✓ Connectivity test passed"
-        } else {
-          error "Connectivity test failed - Health: ${healthResponse}, Root: ${rootResponse}"
-        }
-      } catch (Exception e) {
-        echo "⚠ Connectivity test encountered issues: ${e.message}"
+      catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE', message: 'Connectivity test issues') {
+        sh "./cypress/scripts/connectivity/test-connectivity.sh ${env.TEST_URL}"
       }
     }
     
@@ -93,18 +58,17 @@ withNightlyPipeline(type, product, component) {
       stage('Smoke Tests') {
         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE', message: 'Smoke tests failed') {
           try {
-            yarnBuilder.yarn('test:nightly:smoke')
+            yarnBuilder.yarn('test:nightly:smoke:chrome')
           } finally {
-            archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/smoke/**/*'
-            
-            junit allowEmptyResults: true, testResults: 'functional-output/smoke/junit/**/*.xml'
-            
+            yarnBuilder.yarn('test:nightly:smoke:html:cucumber:chrome')
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/smoke/**/*'
+            junit allowEmptyResults: true, testResults: 'functional-output/chrome/smoke/junit/**/*.xml'
             publishHTML target: [
               allowMissing         : true,
               alwaysLinkToLastBuild: true,
               keepAll              : true,
-              reportDir            : 'functional-output/smoke/cucumber-html',
-              reportFiles          : 'index.html',
+              reportDir            : 'functional-output/chrome/smoke/cucumber-html',
+              reportFiles          : 'detailed-test-report.html',
               reportName           : 'Cucumber Smoke Test Report'
             ]
           }
@@ -116,20 +80,41 @@ withNightlyPipeline(type, product, component) {
       stage('Regression Tests') {
         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Regression tests failed') {
           try {
-            yarnBuilder.yarn('test:nightly:regression --env TAGS=\'not @ignore and not @broken\'')
+            yarnBuilder.yarn('test:nightly:regression:chrome')
           } finally {
-            archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/regression/**/*'
-            
-            junit allowEmptyResults: true, testResults: 'functional-output/regression/junit/**/*.xml'
-            
+            yarnBuilder.yarn('test:nightly:regression:html:cucumber:chrome')
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/regression/**/*'
+            junit allowEmptyResults: true, testResults: 'functional-output/chrome/regression/junit/**/*.xml'
+            publishHTML target: [
+              allowMissing         : true,
+              alwaysLinkToLastBuild: true,
+              keepAll              : true,
+              reportDir            : 'functional-output/chrome/regression/cucumber-html',
+              reportFiles          : 'detailed-test-report.html',
+              reportName           : 'Cucumber Regression Test Report'
+            ]
+          }
+        }
+      }
+      
+      stage('Generate Combined Report') {
+        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Combined report generation failed') {
+          try {
+            // Generate combined HTML report from available browser results (currently Chrome only)
+            yarnBuilder.yarn('test:nightly:regression:html:cucumber')
+          } finally {
+            // Publish the combined HTML report
             publishHTML target: [
               allowMissing         : true,
               alwaysLinkToLastBuild: true,
               keepAll              : true,
               reportDir            : 'functional-output/regression/cucumber-html',
-              reportFiles          : 'index.html',
-              reportName           : 'Cucumber Regression Test Report'
+              reportFiles          : 'detailed-test-report.html',
+              reportName           : 'Application Register - Combined Report'
             ]
+            
+            // Archive all outputs
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/regression/**/*'
           }
         }
       }

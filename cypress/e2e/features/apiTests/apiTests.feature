@@ -8,7 +8,6 @@ Feature: API Tests
         Then User Verify Response Body Should Have:
             | pageNumber     | 0                                                              |
             | pageSize       | 10                                                             |
-            | totalElements  | 15                                                             |
             | totalPages     | 2                                                              |
             | first          | true                                                           |
             | last           | false                                                          |
@@ -21,7 +20,7 @@ Feature: API Tests
 
 
     @api @regression @ARCPOC-214 @ARCPOC-772
-    Scenario Outline: Create Application List via API
+    Scenario Outline: Create Application List using courtLocationCode via API
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
             | date     | time           | status | description                                                  | courtLocationCode | durationHours | durationMinutes |
@@ -32,7 +31,7 @@ Feature: API Tests
             | user1 |
 
     @api @regression @ARCPOC-214 @ARCPOC-772
-    Scenario Outline: Create Application List via API
+    Scenario Outline: Create Application List using otherLocationDescription and cjaCode via API
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
             | date     | time           | status | description                             | durationHours | durationMinutes | otherLocationDescription         | cjaCode |

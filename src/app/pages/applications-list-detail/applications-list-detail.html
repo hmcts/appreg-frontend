@@ -84,7 +84,13 @@
     <app-page-header
       title="Applications"
       size="l"
-      [actions]="[{ label: 'Bulk upload', variant: 'secondary' }]"
+      [actions]="[
+        {
+          label: 'Bulk upload',
+          variant: 'secondary',
+          routerLink: ['bulk-upload'],
+        },
+      ]"
     >
     </app-page-header>
 

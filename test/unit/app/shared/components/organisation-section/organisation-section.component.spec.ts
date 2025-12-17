@@ -3,6 +3,11 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 
 import { OrganisationSectionComponent } from '../../../../../../src/app/shared/components/organisation-section/organisation-section.component';
+import {
+  addressLine1Missing,
+  orgNameMissing,
+} from '../../../../../../src/app/shared/constants/err-msgs';
+import { validateOptionalContactFields } from '../../../../../../src/app/shared/util/validation';
 
 type TextInputLike = {
   submitted?: boolean;
@@ -10,6 +15,24 @@ type TextInputLike = {
   error?: string;
   inputType?: string;
 };
+
+function setGroup(
+  component: OrganisationSectionComponent,
+  values: Record<string, string | undefined>,
+): void {
+  component.group = new FormGroup({
+    name: new FormControl(values['name']),
+    addressLine1: new FormControl(values['addressLine1']),
+    postcode: new FormControl(values['postcode']),
+    phone: new FormControl(values['phone']),
+    mobile: new FormControl(values['mobile']),
+    email: new FormControl(values['email']),
+  });
+}
+
+jest.mock('../../../../../../src/app/shared/util/validation', () => ({
+  validateOptionalContactFields: jest.fn(),
+}));
 
 describe('OrganisationSectionComponent', () => {
   let component: OrganisationSectionComponent;
@@ -168,5 +191,109 @@ describe('OrganisationSectionComponent', () => {
     expect(phoneCmp.inputType).toBe('tel');
     expect(mobileCmp.inputType).toBe('tel');
     expect(emailCmp.inputType).toBe('email');
+  });
+
+  describe('OrganisationSectionComponent validate()', () => {
+    beforeEach(() => {
+      (validateOptionalContactFields as jest.Mock).mockReset();
+    });
+
+    it('resets state and returns valid when required fields are present', () => {
+      // Resets
+      component.organisationFieldErrors = { 'org-name': 'old' };
+      component.errorSummary = [{ text: 'old', href: '#old' }];
+
+      setGroup(component, { name: 'Org', addressLine1: 'Line 1' });
+
+      const res = component.validate();
+
+      expect(component.organisationFieldErrors).toEqual({});
+      expect(component.errorSummary).toEqual([]);
+      expect(res).toEqual({ fieldErrors: {}, summaryItems: [], valid: true });
+
+      expect(validateOptionalContactFields).toHaveBeenCalledTimes(1);
+    });
+
+    it('adds required errors for missing name and addressLine1 (including hrefs) and sets valid false', () => {
+      setGroup(component, { name: '', addressLine1: undefined });
+
+      const res = component.validate();
+
+      expect(res.valid).toBe(false);
+
+      // field error map
+      expect(res.fieldErrors).toMatchObject({
+        'org-name': orgNameMissing,
+        'org-address-line-1': addressLine1Missing,
+      });
+
+      // summary items in the order added by validate()
+      expect(res.summaryItems).toEqual([
+        { text: orgNameMissing, href: '#org-name' },
+        { text: addressLine1Missing, href: '#org-address-line-1' },
+      ]);
+    });
+
+    it('trims values: whitespace-only required fields are treated as missing', () => {
+      setGroup(component, { name: '   ', addressLine1: '\n\t ' });
+
+      const res = component.validate();
+
+      expect(res.valid).toBe(false);
+      expect(res.summaryItems.map((x) => x.href)).toEqual([
+        '#org-name',
+        '#org-address-line-1',
+      ]);
+    });
+
+    it('calls validateOptionalContactFields with a get() that trims and an errors accessor for controls', () => {
+      setGroup(component, {
+        name: ' Org ',
+        addressLine1: ' Addr ',
+        phone: ' 07123 ',
+      });
+
+      component.group.get('phone')?.setErrors({ phoneInvalid: true });
+
+      component.validate();
+
+      const mock = validateOptionalContactFields as jest.Mock;
+      const [getFn, errorsFn, ids, addFn] = mock.mock.calls[0] as [
+        (k: string) => string,
+        (name: string) => unknown,
+        Record<string, string>,
+        (id: string, text: string, href: string) => void,
+      ];
+
+      // trims, undefined -> ''
+      expect(getFn('name')).toBe('Org');
+      expect(getFn('addressLine1')).toBe('Addr');
+      expect(getFn('missingKey')).toBe('');
+
+      // returns errors or null
+      expect(errorsFn('phone')).toEqual({ phoneInvalid: true });
+      expect(errorsFn('postcode')).toBeNull();
+
+      // ids object includes the expected element ids
+      expect(ids).toMatchObject({
+        name: 'org-name',
+        address1: 'org-address-line-1',
+        postcode: 'org-postcode',
+        phone: 'org-phone-number',
+        mobile: 'org-mobile-number',
+        email: 'org-email-address',
+      });
+
+      // addFn should push into organisationFieldErrors and errorSummary when invoked
+      addFn('org-phone-number', 'Bad phone', '#org-phone-number');
+
+      expect(component.organisationFieldErrors).toMatchObject({
+        'org-phone-number': 'Bad phone',
+      });
+      expect(component.errorSummary).toContainEqual({
+        text: 'Bad phone',
+        href: '#org-phone-number',
+      });
+    });
   });
 });

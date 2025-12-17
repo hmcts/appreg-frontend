@@ -144,6 +144,11 @@ export class DateTimeHelper {
    * @param hour The hour value to set (0-23)
    */
   static setHourValue(fieldLabel: string, hour: string): void {
+    if (!hour || hour.toLowerCase() === '*skip*') {
+      // Intentionally skip hour entry
+      return;
+    }
+
     DateTimeElement.findHourInput(fieldLabel)
       .should('be.visible')
       .should('be.enabled')
@@ -164,6 +169,10 @@ export class DateTimeHelper {
    * @param minute The minute value to set (0-59)
    */
   static setMinuteValue(fieldLabel: string, minute: string): void {
+    if (!minute || minute.toLowerCase() === '*skip*') {
+      // Intentionally skip minute entry
+      return;
+    }
     DateTimeElement.findMinuteInput(fieldLabel)
       .should('be.visible')
       .should('be.enabled')
@@ -291,6 +300,55 @@ export class DateTimeHelper {
       // Use single time input
       DateTimeElement.findTimeInput(fieldLabel).should('not.be.visible');
     }
+  }
+
+  static verifyDateFieldValue(fieldLabel: string, dateValue: string): void {
+    // Resolve dynamic keywords like today, today+1d, *_iso, etc.
+    const resolvedDate = DateTimeUtil.parseDateValue(dateValue);
+
+    // Validate final format (DD/MM/YYYY)
+    if (!resolvedDate.includes('/')) {
+      throw new Error(
+        `Invalid date format: ${resolvedDate}. Expected DD/MM/YYYY format.`,
+      );
+    }
+
+    // Build Date object from resolved date
+    const [dayStr, monthStr, yearStr] = resolvedDate.split('/');
+    const expectedDate = new Date(
+      parseInt(yearStr, 10),
+      parseInt(monthStr, 10) - 1,
+      parseInt(dayStr, 10),
+    );
+
+    // Normalised expected values using DateTimeUtil
+    const formattedExpected = DateTimeUtil.formatDate(expectedDate);
+    const [expDay, expMonth, expYear] = formattedExpected.split('/');
+
+    // Verify Day
+    DateTimeElement.findDayInput(fieldLabel).should(($input) => {
+      const actualValue = ($input.val() as string) || '0';
+      const actualNum = parseInt(actualValue, 10) || 0;
+
+      const normalizedActual = actualNum.toString();
+      const normalizedExpected = parseInt(expDay, 10).toString();
+
+      expect(normalizedActual).to.equal(normalizedExpected);
+    });
+
+    // Verify Month
+    DateTimeElement.findMonthInput(fieldLabel).should(($input) => {
+      const actualValue = ($input.val() as string) || '0';
+      const actualNum = parseInt(actualValue, 10) || 0;
+
+      const normalizedActual = actualNum.toString();
+      const normalizedExpected = parseInt(expMonth, 10).toString();
+
+      expect(normalizedActual).to.equal(normalizedExpected);
+    });
+
+    // Verify Year
+    DateTimeElement.findYearInput(fieldLabel).should('have.value', expYear);
   }
 
   static verifyTimeFieldValue(fieldLabel: string, timeValue: string): void {
