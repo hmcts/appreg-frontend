@@ -36,6 +36,7 @@ module.exports = {
 
     '^@entry-create-util/(.*)$':
       '<rootDir>/src/app/pages/applications-list-entry-create/util/$1',
+    '^@constants/(.*)$': '<rootDir>/src/app/shared/constants/$1',
   },
 
   transformIgnorePatterns: ['node_modules/(?!.*\\.mjs$)'],

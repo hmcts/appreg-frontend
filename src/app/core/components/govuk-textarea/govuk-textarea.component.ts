@@ -5,7 +5,6 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
   selector: 'app-govuk-textarea',
   imports: [ReactiveFormsModule],
   templateUrl: './govuk-textarea.component.html',
-  styleUrl: './govuk-textarea.component.scss',
 })
 export class GovukTextareaComponent {
   control = input.required<FormControl<string | null>>();

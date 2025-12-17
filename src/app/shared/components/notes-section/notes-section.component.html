@@ -14,7 +14,7 @@
 
       <!-- Case reference -->
       @if (isControlInvalid('caseReference')) {
-        <p class="govuk-error-message fullName-error">
+        <p id="case-reference-error" class="govuk-error-message">
           <span class="govuk-visually-hidden">Error:</span>
           {{ getControlErrorMessages('caseReference')[0] }}
         </p>
@@ -26,20 +26,13 @@
         name="caseReference"
         type="text"
         formControlName="caseReference"
-        aria-describedby="
-        case-reference-hint
-        {{ isControlInvalid('caseReference') ? ' caseReference-error' : '' }}
-      "
+        [attr.aria-describedby]="
+          'case-reference-hint' +
+          (isControlInvalid('caseReference') ? ' case-reference-error' : '')
+        "
       />
     </div>
   </div>
-
-  <!-- <app-text-input
-      formControlName="caseReference"
-      label="Case reference"
-      hint="Enter the unique case reference, for example CR-2025-00123"
-      idPrefix="case-reference"
-    /> -->
 
   <!-- Account reference -->
   <div class="govuk-grid-column-one-quarter">
@@ -57,7 +50,7 @@
 
       <!-- Case reference -->
       @if (isControlInvalid('accountReference')) {
-        <p class="govuk-error-message fullName-error">
+        <p id="account-reference-error" class="govuk-error-message">
           <span class="govuk-visually-hidden">Error:</span>
           {{ getControlErrorMessages('accountReference')[0] }}
         </p>
@@ -69,22 +62,15 @@
         name="accountReference"
         type="text"
         formControlName="accountReference"
-        aria-describedby="
-        account-reference-hint
-        {{
-          isControlInvalid('accountReference') ? ' accountReference-error' : ''
-        }}
-      "
+        [attr.aria-describedby]="
+          'account-reference-hint' +
+          (isControlInvalid('accountReference')
+            ? ' account-reference-error'
+            : '')
+        "
       />
     </div>
   </div>
-
-  <!-- <app-text-input
-    formControlName="accountReference"
-    label="Account reference"
-    hint="Enter the associated account reference, for example AC-987654"
-    idPrefix="account-reference"
-  /> -->
 </div>
 
 <hr

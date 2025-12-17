@@ -33,7 +33,6 @@ export const NOTES_FIELD_MESSAGES: NotesErrorMap = {
   selector: 'app-notes-section',
   imports: [GovukTextareaComponent, ReactiveFormsModule],
   templateUrl: './notes-section.component.html',
-  styleUrl: './notes-section.component.scss',
 })
 export class NotesSectionComponent {
   form = input.required<ApplicationNotesForm>();

@@ -43,6 +43,7 @@ import { SelectInputComponent } from '@components/select-input/select-input.comp
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { ALPHANUMERIC_REGEX } from '@constants/regex';
 import {
   Applicant,
   ApplicationCodeGetSummaryDto,
@@ -66,8 +67,6 @@ import {
 import { ErrorMessageMap, buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
-
-const ALPHANUMERIC_REGEX = '^[A-Za-z0-9]*$';
 
 type BuildFormErrorSummaryFn = (
   form: FormGroup,
@@ -127,7 +126,6 @@ export class ApplicationsListEntryCreate implements OnInit {
   submitted: boolean = false;
   errorFound: boolean = false;
   errorHint: string = '';
-  unpopField: ErrorItem[] = [];
 
   summaryErrors: ErrorItem[] = [];
 
@@ -236,14 +234,29 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.id = this.route.snapshot.paramMap.get('id')!;
   }
 
-  onSubmit(e: Event): void {
-    e.preventDefault();
-
-    // reset errors
+  private resetFlags(): void {
     this.submitted = true;
     this.errorFound = false;
     this.errorHint = '';
-    this.unpopField = [];
+    this.createDone = false;
+
+    this.clearErrors();
+  }
+
+  private clearErrors(): void {
+    this.summaryErrors = [];
+    this.parentErrors = [];
+    this.childErrors = {
+      notes: [],
+      fee: [],
+      respondent: [],
+    };
+  }
+
+  onSubmit(e: Event): void {
+    e.preventDefault();
+
+    this.resetFlags();
 
     //Run Angular validation
     this.form.markAllAsTouched();
@@ -253,10 +266,9 @@ export class ApplicationsListEntryCreate implements OnInit {
 
     // Custom rule: application code required
     if (!appCode) {
-      this.form.controls.applicationCode.setErrors({
-        ...(this.form.controls.applicationCode.errors ?? {}),
-        required: true,
-      });
+      const control = this.form.controls.applicationCode;
+      const newErrors = Object.assign({}, control.errors, { required: true });
+      control.setErrors(newErrors);
     }
 
     // Build error summary from control errors + child errors

@@ -70,6 +70,8 @@ module.exports = defineConfig([
       'import/resolver': {
         typescript: {
           project: ['./tsconfig.eslint.json'],
+          alwaysTryTypes: true,
+          extensions: ['.ts', '.tsx', '.d.ts', '.js', '.jsx'],
         },
       },
     },
@@ -107,18 +109,6 @@ module.exports = defineConfig([
       ],
       'jest/prefer-to-have-length': 'error',
       'jest/valid-expect': 'off',
-      'import/no-unresolved': [
-        'error',
-        {
-          ignore: [
-            '^@components/',
-            '^@services/',
-            '^@page-types/',
-            '^@util/',
-            '^@openapi',
-          ],
-        },
-      ],
     },
   },
 
@@ -291,16 +281,6 @@ module.exports = defineConfig([
       ],
     },
   },
-
-  // Generated files (allow any)
-  {
-    files: ['src/generated/**/*.ts'],
-    rules: {
-      '@typescript-eslint/no-unsafe-assignment': 'off',
-      '@typescript-eslint/no-unsafe-call': 'off',
-    },
-  },
-
   // Server entrypoints (allow console)
   {
     files: ['src/main.ts', 'src/server.ts'],
