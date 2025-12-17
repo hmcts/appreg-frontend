@@ -9,12 +9,12 @@ import {
   BulkUploadApplicationListEntriesRequestParams,
   JobStatus,
 } from '../../../generated/openapi';
+import { LoadingSpinner } from '../../core/components/loading-spinner/loading-spinner';
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 import {
   ErrorItem,
   ErrorSummaryComponent,
 } from '../../shared/components/error-summary/error-summary.component';
-import { LoadingSpinner } from '../../shared/components/loading-spinner/loading-spinner';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
 
