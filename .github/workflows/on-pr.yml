@@ -10,8 +10,29 @@ permissions:
 jobs:
   set-appreg-redirect-uris:
     runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name == github.repository
 
     steps:
+      - name: Validate Azure secrets are present
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -z "${{ secrets.AZURE_CLIENT_ID }}" ]; then
+            echo "Missing secret: AZURE_CLIENT_ID"
+            exit 1
+          fi
+
+          if [ -z "${{ secrets.AZURE_CLIENT_SECRET }}" ]; then
+            echo "Missing secret: AZURE_CLIENT_SECRET"
+            exit 1
+          fi
+
+          if [ -z "${{ secrets.AZURE_TENANT_ID }}" ]; then
+            echo "Missing secret: AZURE_TENANT_ID"
+            exit 1
+          fi
+
       - name: Azure CLI login (client secret)
         uses: azure/CLI@v2
         with:
