@@ -1,76 +1,68 @@
-name: PR Tasks - appreg redirect URIs
+- name: Azure CLI login (client secret)
+  uses: azure/CLI@v2
+  env:
+    AZURE_CONFIG_DIR: /tmp/.azure
+  with:
+    azcliversion: latest
+    inlineScript: |
+      set -euo pipefail
+      az login --service-principal \
+        --username "${{ secrets.AZURE_CLIENT_ID }}" \
+        --password "${{ secrets.AZURE_CLIENT_SECRET }}" \
+        --tenant "${{ secrets.AZURE_TENANT_ID }}" \
+        --allow-no-subscriptions
+      az account show
 
-on:
-  pull_request:
-    types: [opened, reopened, synchronize]
+- name: Ensure redirect URIs exist for this PR
+  uses: azure/CLI@v2
+  env:
+    AZURE_CONFIG_DIR: /tmp/.azure
+    PR_NUMBER: ${{ github.event.number }}
+    OBJECT_ID: "20e4de40-7aee-45b1-895b-cb77546763dc"
+  with:
+    azcliversion: latest
+    inlineScript: |
+      set -euo pipefail
+      baseUrl="https://appreg-frontend-pr-${PR_NUMBER}.dev.platform.hmcts.net"
+      loginCb="${baseUrl}/sso/login-callback"
+      logoutCb="${baseUrl}/sso/logout-callback"
 
-permissions:
-  contents: read
+      current="$(az rest \
+        --method GET \
+        --url "https://graph.microsoft.com/v1.0/applications/${OBJECT_ID}" \
+        --query "web.redirectUris" -o json)"
 
-jobs:
-  set-appreg-redirect-uris:
-    runs-on: ubuntu-latest
+      if [ "${current}" = "null" ] || [ -z "${current}" ]; then
+        current="[]"
+      fi
 
-    steps:
-      - name: Azure CLI login (client secret)
-        run: |
-          set -euo pipefail
+      echo "${current}" | jq -e . >/dev/null 2>&1
 
-          az login --service-principal \
-            --username "${{ secrets.AZURE_CLIENT_ID }}" \
-            --password "${{ secrets.AZURE_CLIENT_SECRET }}" \
-            --tenant "${{ secrets.AZURE_TENANT_ID }}" \
-            --allow-no-subscriptions
+      updated="${current}"
+      changed=0
 
-          az account show
+      if ! echo "${updated}" | jq -e --arg url "${loginCb}" 'any(. == $url)' >/dev/null; then
+        updated="$(echo "${updated}" | jq --arg url "${loginCb}" '. + [$url]')"
+        changed=1
+      fi
 
-      - name: Ensure redirect URIs exist for this PR
-        env:
-          PR_NUMBER: ${{ github.event.number }}
-          OBJECT_ID: "20e4de40-7aee-45b1-895b-cb77546763dc"
-        run: |
-          set -euo pipefail
+      if ! echo "${updated}" | jq -e --arg url "${logoutCb}" 'any(. == $url)' >/dev/null; then
+        updated="$(echo "${updated}" | jq --arg url "${logoutCb}" '. + [$url]')"
+        changed=1
+      fi
 
-          baseUrl="https://appreg-frontend-pr-${PR_NUMBER}.dev.platform.hmcts.net"
-          loginCb="${baseUrl}/sso/login-callback"
-          logoutCb="${baseUrl}/sso/logout-callback"
+      if [ "${changed}" -eq 0 ]; then
+        echo "NO_CHANGES"
+        exit 0
+      fi
 
-          current="$(az rest \
-            --method GET \
-            --url "https://graph.microsoft.com/v1.0/applications/${OBJECT_ID}" \
-            --query "web.redirectUris" -o json)"
+      body="$(jq -cn --argjson uris "${updated}" '{web:{redirectUris:$uris}}')"
 
-          if [ "${current}" = "null" ] || [ -z "${current}" ]; then
-            current="[]"
-          fi
+      az rest \
+        --method PATCH \
+        --url "https://graph.microsoft.com/v1.0/applications/${OBJECT_ID}" \
+        --headers "Content-Type=application/json" \
+        --body "${body}" \
+        -o none
 
-          echo "${current}" | jq -e . >/dev/null 2>&1
-
-          updated="${current}"
-          changed=0
-
-          if ! echo "${updated}" | jq -e --arg url "${loginCb}" 'any(. == $url)' >/dev/null; then
-            updated="$(echo "${updated}" | jq --arg url "${loginCb}" '. + [$url]')"
-            changed=1
-          fi
-
-          if ! echo "${updated}" | jq -e --arg url "${logoutCb}" 'any(. == $url)' >/dev/null; then
-            updated="$(echo "${updated}" | jq --arg url "${logoutCb}" '. + [$url]')"
-            changed=1
-          fi
-
-          if [ "${changed}" -eq 0 ]; then
-            echo "NO_CHANGES"
-            exit 0
-          fi
-
-          body="$(jq -cn --argjson uris "${updated}" '{web:{redirectUris:$uris}}')"
-
-          az rest \
-            --method PATCH \
-            --url "https://graph.microsoft.com/v1.0/applications/${OBJECT_ID}" \
-            --headers "Content-Type=application/json" \
-            --body "${body}" \
-            -o none
-
-          echo "CHANGED"
+      echo "CHANGED"
