@@ -166,10 +166,6 @@ export class ApplicationsList
 
   rows: ApplicationListRow[] = [];
 
-  constructor() {
-    super();
-  }
-
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refFacade);
   }
