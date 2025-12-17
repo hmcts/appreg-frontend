@@ -5,7 +5,6 @@ on:
     types: [opened, reopened, synchronize]
 
 permissions:
-  id-token: write
   contents: read
 
 jobs:
@@ -13,13 +12,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Azure login
-        uses: azure/login@v2
+      - name: Azure CLI login (client secret)
+        uses: azure/CLI@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          allow-no-subscriptions: true
+          azcliversion: latest
+          inlineScript: |
+            set -euo pipefail
+
+            az login --service-principal \
+              --username "${{ secrets.AZURE_CLIENT_ID }}" \
+              --password "${{ secrets.AZURE_CLIENT_SECRET }}" \
+              --tenant "${{ secrets.AZURE_TENANT_ID }}" \
+              --allow-no-subscriptions
+
+            az account show
 
       - name: Ensure redirect URIs exist for this PR
         env:
