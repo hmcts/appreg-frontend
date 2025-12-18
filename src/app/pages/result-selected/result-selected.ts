@@ -9,6 +9,8 @@ import {
   TableComponent,
 } from '../../shared/components/table/table.component';
 
+import { WarningBannerComponent } from '@components/warning-banner/warning-banner.component';
+
 type Row = {
   sequenceNumber: string;
   applicant: string;
@@ -25,12 +27,14 @@ type Row = {
     BreadcrumbsComponent,
     TableComponent,
     SearchBoxComponent,
+    WarningBannerComponent,
   ],
   templateUrl: './result-selected.html',
 })
 export class ResultSelected implements OnInit {
   private route = inject(ActivatedRoute);
   listId!: string;
+  mixedResultedAndUnresultedApplications!: boolean;
 
   columns: ColumnDef<Row>[] = [
     { header: 'Sequence number', accessor: 'sequenceNumber' },
@@ -57,6 +61,10 @@ export class ResultSelected implements OnInit {
     this.rows =
       (history.state as { resultingApplications?: Row[] })
         .resultingApplications ?? [];
+
+    this.mixedResultedAndUnresultedApplications =
+      (history.state as { mixedResultedAndUnresultedApplications?: boolean })
+        .mixedResultedAndUnresultedApplications ?? false;
   }
 
   onSearchChange(): void {

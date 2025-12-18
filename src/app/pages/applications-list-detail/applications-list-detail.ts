@@ -318,6 +318,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     const unResultedApplications: selectedRow[] = selectedRows.filter(
       (r) => r.resulted === 'No',
     );
+    let mixedResultedAndUnresultedApplications!: boolean;
     this.unpopField = [];
 
     if (this.selectedRows.length === 0) {
@@ -344,11 +345,15 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       title: r.title,
     }));
 
-    console.log(resultingApplications);
+    if (resultedApplications.length > 0 && unResultedApplications.length > 0) {
+      mixedResultedAndUnresultedApplications = true;
+    } else {
+      mixedResultedAndUnresultedApplications = false;
+    }
 
     this.router.navigate(['result-selected'], {
       relativeTo: this.route,
-      state: { resultingApplications },
+      state: { resultingApplications, mixedResultedAndUnresultedApplications },
     });
   }
 
