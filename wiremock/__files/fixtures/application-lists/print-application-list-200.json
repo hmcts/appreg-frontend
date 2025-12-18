@@ -1,27 +1,143 @@
 {
   "date": "2025-11-17",
-  "time": "10:00",
+  "time": "10:00:00",
   "courtName": "Manchester Magistrates’ Court",
-  "cja": "44 – Greater Manchester",
-  "duration": "2h 00m",
+  "cja": "44 - Greater Manchester",
+  "otherLocationDescription": null,
+  "duration": "2h 0m",
   "entries": [
     {
-      "sequenceNumber": 1,
-      "applicant": "CPS",
-      "respondent": "John Smith",
-      "result": "Adjourned"
+      "applicant": {
+        "person": {
+          "name": {
+            "title": null,
+            "surname": null,
+            "firstForename": null,
+            "secondForename": null,
+            "thirdForename": null
+          },
+          "contactDetails": null
+        },
+        "organisation": {
+          "name": "CPS",
+          "contactDetails": null
+        }
+      },
+      "respondent": {
+        "person": {
+          "name": {
+            "title": null,
+            "surname": "Smith",
+            "firstForename": "John",
+            "secondForename": null,
+            "thirdForename": null
+          },
+          "contactDetails": null
+        },
+        "dateOfBirth": null,
+        "organisation": {
+          "name": null,
+          "contactDetails": null
+        }
+      },
+      "applicationCode": "AP00001",
+      "applicationTitle": "Application entry 1",
+      "applicationWording": "Application entry for sequence 1",
+      "resultWordings": [
+        "Adjourned"
+      ],
+      "officials": [],
+      "caseReference": "CASE2025-11-17-01",
+      "accountReference": "ACC000001",
+      "notes": null
     },
     {
-      "sequenceNumber": 2,
-      "applicant": "CPS",
-      "respondent": "Jane Doe",
-      "result": "Heard"
+      "applicant": {
+        "person": {
+          "name": {
+            "title": null,
+            "surname": null,
+            "firstForename": null,
+            "secondForename": null,
+            "thirdForename": null
+          },
+          "contactDetails": null
+        },
+        "organisation": {
+          "name": "CPS",
+          "contactDetails": null
+        }
+      },
+      "respondent": {
+        "person": {
+          "name": {
+            "title": null,
+            "surname": "Doe",
+            "firstForename": "Jane",
+            "secondForename": null,
+            "thirdForename": null
+          },
+          "contactDetails": null
+        },
+        "dateOfBirth": null,
+        "organisation": {
+          "name": null,
+          "contactDetails": null
+        }
+      },
+      "applicationCode": "AP00002",
+      "applicationTitle": "Application entry 2",
+      "applicationWording": "Application entry for sequence 2",
+      "resultWordings": [
+        "Heard"
+      ],
+      "officials": [],
+      "caseReference": "CASE2025-11-17-02",
+      "accountReference": "ACC000002",
+      "notes": null
     },
     {
-      "sequenceNumber": 3,
-      "applicant": "LA",
-      "respondent": "Michael Green",
-      "result": "—"
+      "applicant": {
+        "person": {
+          "name": {
+            "title": null,
+            "surname": null,
+            "firstForename": null,
+            "secondForename": null,
+            "thirdForename": null
+          },
+          "contactDetails": null
+        },
+        "organisation": {
+          "name": "LA",
+          "contactDetails": null
+        }
+      },
+      "respondent": {
+        "person": {
+          "name": {
+            "title": null,
+            "surname": "Green",
+            "firstForename": "Michael",
+            "secondForename": null,
+            "thirdForename": null
+          },
+          "contactDetails": null
+        },
+        "dateOfBirth": null,
+        "organisation": {
+          "name": null,
+          "contactDetails": null
+        }
+      },
+      "applicationCode": "AP00003",
+      "applicationTitle": "Application entry 3",
+      "applicationWording": "Application entry for sequence 3",
+      "resultWordings": [],
+      "officials": [],
+      "caseReference": "CASE2025-11-17-03",
+      "accountReference": "ACC000003",
+      "notes": null
     }
   ]
 }
