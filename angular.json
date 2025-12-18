@@ -7,7 +7,9 @@
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
-          "style": "scss"
+          "style": "scss",
+          "standalone": true,
+          "type": "component"
         }
       },
       "root": "",
@@ -63,7 +65,10 @@
               "canvg",
               "core-js",
               "raf",
-              "rgbcolor"
+              "rgbcolor",
+              "html2canvas",
+              "fflate",
+              "dompurify"
             ]
           },
           "configurations": {

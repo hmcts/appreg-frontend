@@ -1,29 +1,44 @@
 <!-- Breadcrumbs -->
-<app-breadcrumbs [items]="[{ label: 'Applications list', link: '/applications-list' }]"></app-breadcrumbs>
+<app-breadcrumbs
+  [items]="[{ label: 'Applications list', link: '/applications-list' }]"
+></app-breadcrumbs>
 
-<app-page-header title="Applications List" [actions]="[
+<app-page-header
+  title="Applications List"
+  [actions]="[
     {
       label: 'Create application',
       routerLink: ['create'],
       startIcon: true,
       variant: 'primary',
     },
-  ]">
+  ]"
+>
 </app-page-header>
 
 @if (unpopField.length || updateInvalid) {
-<app-error-summary [title]="errorHint || 'There is a problem'" (itemSelect)="onCreateErrorClick($event)"
-  [items]="unpopField" />
+  <app-error-summary
+    [title]="errorHint || 'There is a problem'"
+    (itemSelect)="onCreateErrorClick($event)"
+    [items]="unpopField"
+  />
 }
 
 @if (updateDone) {
-<app-success-banner heading="Update complete" linkText="List successfully updated" />
+  <app-success-banner
+    heading="Update complete"
+    linkText="List successfully updated"
+  />
 }
 
 @if (noEntries && !isLoading) {
-<app-notification-banner heading="No lists entries found" body="Try again, or " linkText="create a new list entry"
-  [linkCommands]="['/applications-list', id, 'create']">
-</app-notification-banner>
+  <app-notification-banner
+    heading="No lists entries found"
+    body="Try again, or "
+    linkText="create a new list entry"
+    [linkCommands]="['/applications-list', id, 'create']"
+  >
+  </app-notification-banner>
 }
 
 <!-- Tabs -->
@@ -33,93 +48,177 @@
   <ul class="govuk-tabs__list">
     <!-- Applications tab -->
     <li class="govuk-tabs__list-item govuk-tabs__list-item--selected">
-      <a class="govuk-tabs__tab" href="#applications" id="tab_applications" aria-controls="applications"
-        aria-selected="true">
+      <a
+        class="govuk-tabs__tab"
+        href="#applications"
+        id="tab_applications"
+        aria-controls="applications"
+        aria-selected="true"
+      >
         Applications
       </a>
     </li>
 
     <!-- List details tab -->
     <li class="govuk-tabs__list-item">
-      <a class="govuk-tabs__tab" href="#list-details" id="tab_list-details" role="tab" aria-controls="list-details"
-        aria-selected="false">
+      <a
+        class="govuk-tabs__tab"
+        href="#list-details"
+        id="tab_list-details"
+        role="tab"
+        aria-controls="list-details"
+        aria-selected="false"
+      >
         List details
       </a>
     </li>
   </ul>
 
   <!-- Applications panel -->
-  <div class="govuk-tabs__panel" id="applications" role="tabpanel" aria-labelledby="tab_applications">
-    <app-page-header title="Applications" size="l" [actions]="[{ label: 'Bulk upload', variant: 'secondary' }]">
+  <div
+    class="govuk-tabs__panel"
+    id="applications"
+    role="tabpanel"
+    aria-labelledby="tab_applications"
+  >
+    <app-page-header
+      title="Applications"
+      size="l"
+      [actions]="[
+        {
+          label: 'Bulk upload',
+          variant: 'secondary',
+          routerLink: ['bulk-upload'],
+        },
+      ]"
+    >
     </app-page-header>
 
-    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" />
+    <hr
+      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+    />
 
     @if (!noEntries && !isLoading) {
-    <!-- Sortable table component -->
-    <app-selectable-sortable-table id="sortable-table" caption="Lists" [columns]="columns" [data]="rows" idField="id"
-      [actionsButtonText]="'Result selected'" (actionsButtonClick)="onResultButtonClick()"
-      (selectedRowsChange)="onSelectedRowsChange($event)" [(selectedIds)]="selectedIds" appMojButtonMenu>
-      <!-- actions slot -->
-      <ng-template #actionsTemplate let-row>
-        <div class="moj-button-menu" data-module="moj-button-menu" data-button-text="Select"
-          data-button-classes="govuk-button">
-          <!-- Open button -->
-          <button type="button" class="govuk-button moj-button-menu__item govuk-button--secondary"
-            (click)="openUpdate(row.id)">
-            Open
-          </button>
+      <!-- Sortable table component -->
+      <app-selectable-sortable-table
+        id="sortable-table"
+        caption="Lists"
+        [columns]="columns"
+        [data]="rows"
+        idField="id"
+        [actionsButtonText]="'Result selected'"
+        (actionsButtonClick)="onResultButtonClick()"
+        (selectedRowsChange)="onSelectedRowsChange($event)"
+        [(selectedIds)]="selectedIds"
+        appMojButtonMenu
+      >
+        <!-- actions slot -->
+        <ng-template #actionsTemplate let-row>
+          <div
+            class="moj-button-menu"
+            data-module="moj-button-menu"
+            data-button-text="Select"
+            data-button-classes="govuk-button"
+          >
+            <!-- Open button -->
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+              (click)="openUpdate(row.id)"
+            >
+              Open
+            </button>
 
-          <!-- Delete button -->
-          <button type="button" class="govuk-button moj-button-menu__item govuk-button--secondary">
-            Delete
-          </button>
-        </div>
-      </ng-template>
-    </app-selectable-sortable-table>
+            <!-- Delete button -->
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+            >
+              Delete
+            </button>
+          </div>
+        </ng-template>
+      </app-selectable-sortable-table>
     }
 
     <!-- Pager -->
-    <app-pagination [currentPage]="currentPage" [totalPages]="totalPages"
-      (pageChange)="onPageChange($event)"></app-pagination>
+    <app-pagination
+      [currentPage]="currentPage"
+      [totalPages]="totalPages"
+      (pageChange)="onPageChange($event)"
+    ></app-pagination>
   </div>
 
   <!-- List details panel -->
-  <div class="govuk-tabs__panel govuk-tabs__panel--hidden" id="list-details" role="tabpanel"
-    aria-labelledby="tab_list-details">
+  <div
+    class="govuk-tabs__panel govuk-tabs__panel--hidden"
+    id="list-details"
+    role="tabpanel"
+    aria-labelledby="tab_list-details"
+  >
     <h2 class="govuk-heading-l">List details</h2>
 
-    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible" />
+    <hr
+      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+    />
 
     <form [formGroup]="form" (ngSubmit)="onUpdate()" autocomplete="off">
       <div class="govuk-grid-row">
         <!-- Date -->
-        <app-date-input formControlName="date" label="Date" hint="For example, 27 3 2007" idPrefix="date"
-          [submitted]="updateInvalid">
+        <app-date-input
+          formControlName="date"
+          label="Date"
+          hint="For example, 27 3 2007"
+          idPrefix="date"
+          [submitted]="updateInvalid"
+        >
         </app-date-input>
 
         <!-- Time -->
-        <app-duration-input formControlName="time" label="Time"
-          hint="Enter the time in 24-hour format, for example 08:30" idPrefix="time" [submitted]="updateInvalid"
-          [required]="true" mode="clock">
+        <app-duration-input
+          formControlName="time"
+          label="Time"
+          hint="Enter the time in 24-hour format, for example 08:30"
+          idPrefix="time"
+          [submitted]="updateInvalid"
+          [required]="true"
+          mode="clock"
+        >
         </app-duration-input>
 
         <!-- Description -->
-        <app-text-input formControlName="description" label="Description" hint="A description of the application list"
-          idPrefix="description" [submitted]="updateInvalid">
+        <app-text-input
+          formControlName="description"
+          label="Description"
+          hint="A description of the application list"
+          idPrefix="description"
+          [submitted]="updateInvalid"
+        >
         </app-text-input>
 
         <!-- Status -->
-        <app-select-input formControlName="status" label="Select status" hint="The status of the application list"
-          idPrefix="status" [submitted]="updateInvalid" [options]="statusOptions">
+        <app-select-input
+          formControlName="status"
+          label="Select status"
+          hint="The status of the application list"
+          idPrefix="status"
+          [submitted]="updateInvalid"
+          [options]="statusOptions"
+        >
         </app-select-input>
       </div>
 
       <div class="govuk-grid-row">
         <!-- Court -->
-        <app-suggestions id="court" label="Court" hint="Start typing to search" [(search)]="courthouseSearch"
-          (searchChange)="onCourthouseInputChange()" [suggestions]="filteredCourthouses"
-          (selectItem)="selectCourthouse($event)" [disabled]="!!form.get('location')?.value || !!form.get('cja')?.value"
+        <app-suggestions
+          id="court"
+          label="Court"
+          hint="Start typing to search"
+          [(search)]="courthouseSearch"
+          (searchChange)="onCourthouseInputChange()"
+          [suggestions]="filteredCourthouses"
+          (selectItem)="selectCourthouse($event)"
+          [disabled]="!!form.get('location')?.value || !!form.get('cja')?.value"
           [showError]="
             updateInvalid &&
             !courthouseSearch.trim() &&
@@ -127,29 +226,52 @@
               form.get('location')?.value?.toString()?.trim() ||
               cjaSearch.trim()
             )
-          " errorText="Court is required" />
+          "
+          errorText="Court is required"
+        />
 
         <!-- Other location -->
-        <app-text-input formControlName="location" label="Other location" hint="Other location description"
-          idPrefix="location" [submitted]="updateInvalid && !form.get('court')?.value">
+        <app-text-input
+          formControlName="location"
+          label="Other location"
+          hint="Other location description"
+          idPrefix="location"
+          [submitted]="updateInvalid && !form.get('court')?.value"
+        >
           >
         </app-text-input>
 
         <!-- CJA -->
-        <app-suggestions id="cja" label="CJA" hint="Start typing to search" [(search)]="cjaSearch"
-          (searchChange)="onCjaInputChange()" [suggestions]="filteredCja" (selectItem)="selectCja($event)"
-          [disabled]="!!courthouseSearch.trim() || !!form.get('court')?.value" [showError]="
+        <app-suggestions
+          id="cja"
+          label="CJA"
+          hint="Start typing to search"
+          [(search)]="cjaSearch"
+          (searchChange)="onCjaInputChange()"
+          [suggestions]="filteredCja"
+          (selectItem)="selectCja($event)"
+          [disabled]="!!courthouseSearch.trim() || !!form.get('court')?.value"
+          [showError]="
             updateInvalid &&
             !cjaSearch.trim() &&
             !(
               courthouseSearch.trim() ||
               form.get('court')?.value?.toString()?.trim()
             )
-          " errorText="CJA is required" />
+          "
+          errorText="CJA is required"
+        />
 
         <!-- Duration: Optional field -->
-        <app-duration-input formControlName="duration" label="Duration" hint="Duration of the list" idPrefix="duration"
-          [submitted]="updateInvalid" [required]="false" mode="duration"></app-duration-input>
+        <app-duration-input
+          formControlName="duration"
+          label="Duration"
+          hint="Duration of the list"
+          idPrefix="duration"
+          [submitted]="updateInvalid"
+          [required]="false"
+          mode="duration"
+        ></app-duration-input>
       </div>
 
       <div class="govuk-button-group">
