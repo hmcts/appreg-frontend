@@ -1,0 +1,76 @@
+<app-breadcrumbs
+  [items]="[
+    { label: 'Applications list', link: '/applications-list' },
+    {
+      label: 'Applications list details',
+      link: '/applications-list/' + listId,
+    },
+  ]"
+/>
+<app-page-header title="Bulk Upload Applications" />
+
+@if (fileUploadStatus === 'success') {
+  <app-success-banner
+    heading="Bulk upload complete"
+    linkText="Applications successfully uploaded"
+  />
+}
+
+@if (fileUploadStatus === 'error') {
+  <app-error-summary [title]="errorHint" [items]="errorSummary" />
+}
+
+@if (isValidCSV === false) {
+  <app-error-summary
+    [title]="errorHint"
+    [items]="[{ text: 'Please upload a valid CSV file.' }]"
+    targetId="file-upload-1"
+  />
+}
+
+<p class="govuk-body">
+  <strong>Select the bulk applications file you wish to upload.</strong>
+</p>
+<ul class="govuk-list govuk-list--bullet">
+  <li>
+    the file <strong>must</strong> match the current template for bulk uploads.
+  </li>
+  <li>the filename must end in <strong>.csv</strong></li>
+</ul>
+
+@if (!isUploadInProgress) {
+  <div class="govuk-form-group remove-bot-margin">
+    <form (ngSubmit)="onSubmit()">
+      <label class="govuk-label" for="file-upload-1"> Upload a file </label>
+      <div class="govuk-drop-zone" data-module="govuk-file-upload">
+        <input
+          accept=".csv,text/csv"
+          (change)="onFileSelected($event)"
+          class="govuk-file-upload"
+          id="file-upload-1"
+          name="fileUpload1"
+          type="file"
+        />
+        <button
+          type="submit"
+          class="govuk-button float-right"
+          [disabled]="!isValidCSV"
+          data-module="govuk-button"
+        >
+          Upload file
+        </button>
+      </div>
+    </form>
+  </div>
+} @else {
+  <app-loading-spinner [text]="'Uploading file, please wait...'" />
+}
+<div class="govuk-form-group">
+  <button
+    class="govuk-button float-right"
+    [disabled]="true"
+    data-module="govuk-button"
+  >
+    Add Fee Details
+  </button>
+</div>

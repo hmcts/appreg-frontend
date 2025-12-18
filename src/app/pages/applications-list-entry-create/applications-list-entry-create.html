@@ -10,10 +10,10 @@
 
 <h1 class="govuk-heading-xl">Create new entry</h1>
 
-@if (unpopField.length || errorFound) {
+@if (summaryErrors.length || errorFound) {
   <app-error-summary
     [title]="errorHint || 'There is a problem'"
-    [items]="unpopField"
+    [items]="summaryErrors"
     (itemSelect)="onCreateErrorClick($event)"
   />
 }
@@ -227,40 +227,10 @@
   </ng-template>
 
   <ng-template #notesTpl>
-    <div class="govuk-grid-row">
-      <!-- Case reference -->
-      <app-text-input
-        formControlName="caseReference"
-        label="Case reference"
-        hint="Enter the unique case reference, for example CR-2025-00123"
-        idPrefix="case-reference"
-      >
-      </app-text-input>
-
-      <!-- Account reference -->
-      <app-text-input
-        formControlName="accountReference"
-        label="Account reference"
-        hint="Enter the associated account reference, for example AC-987654"
-        idPrefix="account-reference"
-      >
-      </app-text-input>
-    </div>
-
-    <hr
-      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+    <app-notes-section
+      [form]="form.controls.applicationNotes"
+      (notesErrors)="onChildErrors('notes', $event)"
     />
-
-    <div class="govuk-grid-row">
-      <!-- Application details -->
-      <app-text-input
-        formControlName="applicationDetails"
-        label="Application details"
-        hint="Provide any additional information about the application (for example special requirements or notes). Do not include sensitive personal data."
-        idPrefix="application-details"
-      >
-      </app-text-input>
-    </div>
   </ng-template>
 
   <ng-template #resultWordingTpl>

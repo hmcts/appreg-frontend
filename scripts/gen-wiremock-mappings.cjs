@@ -216,17 +216,34 @@ function bodyJsonString(objOrTemplate) {
   return JSON.stringify(objOrTemplate, null, 2) + '\n';
 }
 
-function houseRuleHeadersForRequest(hasBody) {
+// UPDATED: accept optional `op` and detect multipart from requestBody content
+function houseRuleHeadersForRequest(hasBody, op /* optional */) {
   const headers = {
     Accept: { contains: DEFAULT_VENDOR },
     Authorization: { matches: 'Bearer .+' },
   };
-  if (hasBody) {
+  if (!hasBody) {
+    return headers;
+  }
+
+  const content = (op && op.requestBody && op.requestBody.content) || {};
+  const types = Object.keys(content).map((k) => k.toLowerCase());
+
+  if (types.includes('multipart/form-data')) {
+    // Allow any multipart with or without explicit boundary
+    headers['Content-Type'] = { matches: '^multipart/form-data(?:;.*)?$' };
+  } else if (
+    types.some((k) => k.endsWith('+json') || k === 'application/json')
+  ) {
     headers['Content-Type'] = {
       matches:
         '(application/vnd\\.hmcts\\.appreg\\.v[0-9]+\\+json|application/json|application/.+\\+json)',
     };
+  } else {
+    // Fallback: leave Content-Type unconstrained if we can't confidently guess
+    // (do nothing)
   }
+
   return headers;
 }
 
@@ -308,11 +325,12 @@ function applyListGuardsIfLooksPaged(bodyStr) {
   return s;
 }
 
-function mkBaseRequest(method, url, hasBody, opParams = []) {
+// UPDATED: accept optional `op` and pass it to header builder
+function mkBaseRequest(method, url, hasBody, opParams = [], op /* optional */) {
   const req = {
     method,
     [url.kind]: url.value,
-    headers: houseRuleHeadersForRequest(hasBody),
+    headers: houseRuleHeadersForRequest(hasBody, op),
   };
   const qp = buildQueryParameters(opParams || []);
   if (qp) {
@@ -364,7 +382,7 @@ async function emit400InvalidQuery(op, dir, m, url, seenPerOp) {
     request: {
       method: m,
       [url.kind]: url.value,
-      headers: houseRuleHeadersForRequest(!!op.requestBody),
+      headers: houseRuleHeadersForRequest(!!op.requestBody, op),
     },
     response: {
       status: 400,
@@ -420,7 +438,13 @@ async function emit403ForbiddenDebug(op, dir, m, url, seenPerOp) {
   if (seenPerOp.has(key)) {
     return;
   }
-  const baseReq = mkBaseRequest(m, url, !!op.requestBody, op.parameters || []);
+  const baseReq = mkBaseRequest(
+    m,
+    url,
+    !!op.requestBody,
+    op.parameters || [],
+    op,
+  );
   const req = {
     ...baseReq,
     queryParameters: {
@@ -497,7 +521,7 @@ async function emit400MissingBodyFields(op, dir, m, url, seenPerOp) {
     request: {
       method: m,
       [url.kind]: url.value,
-      headers: houseRuleHeadersForRequest(true),
+      headers: houseRuleHeadersForRequest(true, op),
     },
     response: {
       status: 400,
@@ -606,7 +630,7 @@ async function main() {
           continue;
         }
 
-        const baseReq = mkBaseRequest(m, url, hasBody, op.parameters || []);
+        const baseReq = mkBaseRequest(m, url, hasBody, op.parameters || [], op);
 
         const errMapping = {
           name: `${(op.operationId || `${m} ${p}`).replace(
@@ -711,7 +735,7 @@ async function main() {
         requiredScenarioState: 'Started',
 
         priority: 5,
-        request: mkBaseRequest(m, url, hasBody, op.parameters || []),
+        request: mkBaseRequest(m, url, hasBody, op.parameters || [], op),
         response: successResponse,
       };
 
