@@ -70,6 +70,8 @@ module.exports = defineConfig([
       'import/resolver': {
         typescript: {
           project: ['./tsconfig.eslint.json'],
+          alwaysTryTypes: true,
+          extensions: ['.ts', '.tsx', '.d.ts', '.js', '.jsx'],
         },
       },
     },
@@ -198,6 +200,7 @@ module.exports = defineConfig([
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',
       'no-undef': 'off',
+      'import/no-unresolved': 'off',
     },
   },
 
@@ -278,7 +281,6 @@ module.exports = defineConfig([
       ],
     },
   },
-
   // Server entrypoints (allow console)
   {
     files: ['src/main.ts', 'src/server.ts'],

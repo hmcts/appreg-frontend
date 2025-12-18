@@ -2,15 +2,14 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 
-import { ApplicationsListEntryCreate } from '../../../../../src/app/pages/applications-list-entry-create/applications-list-entry-create';
-import {
-  compactStrings,
-  toOptionalTrimmed,
-} from '../../../../../src/app/pages/applications-list-entry-create/util/helpers';
-import { ApplicationListEntriesApi } from '../../../../../src/generated/openapi';
+import { ApplicationsListEntryCreate } from '@components/applications-list-entry-create/applications-list-entry-create';
+import { compactStrings, toOptionalTrimmed } from '@entry-create-util/helpers';
+import { ApplicationListEntriesApi } from '@openapi';
 
 function roundTrip<T extends object>(o: T): T {
-  return JSON.parse(JSON.stringify(o)); // This line shows Sonarqube issue but structuredClone() will fail the test
+  // NOTE: Sonar complains, but structuredClone() will fail for some environments,
+  // so we keep JSON round-trip here.
+  return JSON.parse(JSON.stringify(o));
 }
 
 describe('ApplicationsListEntryCreate (payload + helpers)', () => {
@@ -143,12 +142,48 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     const fs = (payload as Record<'feeStatuses', unknown>).feeStatuses as
       | Array<Record<string, unknown>>
       | undefined;
+
     expect(Array.isArray(fs)).toBe(true);
     expect(fs?.length).toBe(1);
     const first = fs?.[0] as Record<string, unknown>;
     expect(first['paymentStatus']).toBe('Paid');
     expect(first['statusDate']).toBe('2025-01-15');
     expect(first['paymentReference']).toBe('ABC123');
+  });
+
+  it('payload: omits notes / caseReference / accountNumber when applicationNotes are empty', () => {
+    component.form.patchValue({
+      applicationCode: 'N001',
+      applicationNotes: {
+        notes: null,
+        caseReference: null,
+        accountReference: null,
+      },
+    });
+
+    const payload = roundTrip(build() as Record<string, unknown>);
+
+    expect('notes' in payload).toBe(false);
+    expect('caseReference' in payload).toBe(false);
+    expect('accountNumber' in payload).toBe(false);
+  });
+
+  it('payload: includes flattened notes fields when any applicationNotes value is populated', () => {
+    component.form.patchValue({
+      applicationCode: 'N002',
+      applicationNotes: {
+        notes: '  some notes  ',
+        caseReference: '  CR-123  ',
+        accountReference: '  AC-999  ',
+      },
+    });
+
+    const payload = roundTrip(build() as Record<string, unknown>);
+
+    // Notes are flattened with trimming
+    expect(payload['notes']).toBe('some notes');
+    expect(payload['caseReference']).toBe('CR-123');
+    expect(payload['accountNumber']).toBe('AC-999');
   });
 
   it('helpers: toOptionalTrimmed and compactStrings', () => {
