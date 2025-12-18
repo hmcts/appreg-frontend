@@ -44,7 +44,6 @@ export class ApplicationsListBulkUpload implements OnInit {
   listId!: string;
   private readonly actionsApiService = inject(ActionsApi);
   private route = inject(ActivatedRoute);
-  private router = inject(Router);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');

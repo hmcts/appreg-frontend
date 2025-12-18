@@ -1,6 +1,12 @@
 <!-- Breadcrumbs -->
 <app-breadcrumbs
-  [items]="[{ label: 'Applications list', link: '/applications-list' }]"
+  [items]="[
+    { label: 'Applications list', link: '/applications-list' },
+    {
+      label: 'Applications list details',
+      link: '/applications-list/' + listId,
+    },
+  ]"
 ></app-breadcrumbs>
 
 <h1 class="govuk-heading-xl">Result applications</h1>

@@ -47,7 +47,10 @@ import { NotificationBannerComponent } from '../../shared/components/notificatio
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
-import { Row, SelectableSortableTableComponent } from '../../shared/components/selectable-sortable-table/selectable-sortable-table.component';
+import {
+  Row,
+  SelectableSortableTableComponent,
+} from '../../shared/components/selectable-sortable-table/selectable-sortable-table.component';
 import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
 import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
@@ -102,7 +105,7 @@ type selectedRow = {
   title: string;
   feeReq: 'Yes' | 'No';
   resulted: 'Yes' | 'No';
-}
+};
 
 @Component({
   selector: 'app-application-detail',
@@ -309,8 +312,12 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   onResultButtonClick(): void {
     const selectedRows = this.selectedRows as selectedRow[];
-    const resultedApplications: selectedRow[] = selectedRows.filter(r => r.resulted === 'Yes');
-    const unResultedApplications: selectedRow[] = selectedRows.filter(r => r.resulted === 'No');
+    const resultedApplications: selectedRow[] = selectedRows.filter(
+      (r) => r.resulted === 'Yes',
+    );
+    const unResultedApplications: selectedRow[] = selectedRows.filter(
+      (r) => r.resulted === 'No',
+    );
     this.unpopField = [];
 
     if (this.selectedRows.length === 0) {
@@ -330,7 +337,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    const resultingApplications = unResultedApplications.map(r => ({
+    const resultingApplications = unResultedApplications.map((r) => ({
+      sequenceNumber: r.sequenceNumber,
       applicant: r.applicant,
       respondent: r.respondent,
       title: r.title,
@@ -559,10 +567,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       duration:
         dto.durationHours !== null || dto.durationMinutes !== null
           ? // Duration is returned differently to time sadly so we have to assign like this
-          {
-            hours: dto.durationHours ?? null,
-            minutes: dto.durationMinutes ?? null,
-          }
+            {
+              hours: dto.durationHours ?? null,
+              minutes: dto.durationMinutes ?? null,
+            }
           : null,
     });
 
