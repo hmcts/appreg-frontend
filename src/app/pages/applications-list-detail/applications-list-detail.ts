@@ -13,7 +13,7 @@ Functionality:
 */
 
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { HttpContext } from '@angular/common/http';
+import { HttpContext, HttpErrorResponse } from '@angular/common/http';
 import { Component, Inject, NgZone, OnInit, PLATFORM_ID } from '@angular/core';
 import {
   FormControl,
@@ -58,10 +58,7 @@ import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '../../shared/util/error-click';
-import {
-  getHttpStatus,
-  getProblemText,
-} from '../../shared/util/http-error-to-text';
+import { getProblemText } from '../../shared/util/http-error-to-text';
 import { validateCourtVsLocOrCja } from '../../shared/util/location-suggestion-helpers';
 import {
   MojButtonMenu,
@@ -308,6 +305,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     if (conflict) {
       this.updateInvalid = true;
       this.errorHint = conflict;
+
       return;
     }
 
@@ -316,6 +314,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     if (this.unpopField.length) {
       this.updateInvalid = true;
       this.errorHint = 'There is a problem...';
+
       return;
     }
 
@@ -365,14 +364,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
             this.etag = res.headers.get('ETag') ?? this.etag;
             this.updateDone = true;
           },
-          error: (err) => {
+          error: (err: HttpErrorResponse) => {
             this.updateInvalid = true;
-            const errorStatus = getHttpStatus(err);
-            if (errorStatus === 412) {
-              this.errorHint = 'Resource changed. Reload and try again.';
-              return;
-            }
-            this.errorHint = getProblemText(err);
+            this.setHttpError(err);
           },
         });
     } catch (e) {
@@ -380,6 +374,24 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       this.updateInvalid = true;
       this.errorHint = msg;
       return;
+    }
+  }
+
+  // TO DO: Temporary function for bug fix ARCPOC-852, this component needs to be refactored to use cleaner error handling for the different scenarios
+  // e.g. generic object to hold error state & messages, id's. Utilise generic error-summary functions for form errors
+  private setHttpError(err: HttpErrorResponse): void {
+    switch (err.status) {
+      case 412:
+        this.unpopField.push({
+          text: 'Resource changed. Reload and try again.',
+        });
+        break;
+      case 404:
+        this.unpopField.push({ id: 'court', text: getProblemText(err) });
+        break;
+      default:
+        this.unpopField.push({ text: getProblemText(err) });
+        break;
     }
   }
 
