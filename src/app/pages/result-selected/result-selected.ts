@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
@@ -22,14 +22,19 @@ type Row = { applicants: string; respondents: string; title: string };
   ],
   templateUrl: './result-selected.html',
 })
-export class ResultSelected {
+export class ResultSelected implements OnInit {
   columns: ColumnDef<Row>[] = [
-    { header: 'Applicants', accessor: 'applicants' },
-    { header: 'Respondents', accessor: 'respondents' },
-    { header: 'Application Title', accessor: 'title' },
+    { header: 'Applicant(s)', accessor: 'applicants' },
+    { header: 'Respondent(s)', accessor: 'respondents' },
+    { header: 'Application Title(s)', accessor: 'title' },
   ];
 
   rows: Row[] = [{ applicants: 'All', respondents: 'All', title: 'All' }];
+
+  ngOnInit(): void {
+    const records = history.state.resultingApplications;
+    console.log('Records in ResultSelected:', records);
+  }
 
   onSearchChange(): void {
     // TODO: handle search input changes

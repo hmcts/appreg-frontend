@@ -15,7 +15,7 @@ import {
   ViewChild,
 } from '@angular/core';
 
-type Row = Record<string, unknown>;
+export type Row = Record<string, unknown>;
 
 export interface TableColumn {
   header: string;
@@ -31,10 +31,10 @@ export interface TableColumn {
   standalone: true,
   imports: [CommonModule],
   templateUrl: './selectable-sortable-table.component.html',
+  styleUrl: './selectable-sortable-table.component.scss',
 })
 export class SelectableSortableTableComponent
-  implements AfterViewInit, OnDestroy
-{
+  implements AfterViewInit, OnDestroy {
   @ContentChild('actionsTemplate', { read: TemplateRef })
   actionsTpl?: TemplateRef<unknown>;
 
@@ -42,10 +42,15 @@ export class SelectableSortableTableComponent
   @Input() columns: TableColumn[] = [];
   @Input() data: Row[] = [];
 
+  @Input() actionsButtonText!: string;
+  @Output() actionsButtonClick = new EventEmitter<void>();
+
   @Input({ required: true }) idField!: string;
 
   @Input() selectedIds: Set<string> = new Set<string>();
   @Output() selectedIdsChange = new EventEmitter<Set<string>>();
+
+  @Output() selectedRowsChange = new EventEmitter<Row[]>();
 
   /** Keep stable across pagination so row checkbox ids are unique */
   @Input() idPrefix = 'apps-';
@@ -60,7 +65,7 @@ export class SelectableSortableTableComponent
   constructor(
     @Inject(PLATFORM_ID) private readonly platformId: object,
     private readonly cdr: ChangeDetectorRef,
-  ) {}
+  ) { }
 
   ngAfterViewInit(): void {
     if (!isPlatformBrowser(this.platformId)) {
@@ -145,6 +150,9 @@ export class SelectableSortableTableComponent
     }
     this.selectedIds = next;
     this.selectedIdsChange.emit(next);
+
+    this.selectedRowsChange.emit(this.getSelectedRows());
+
     this.cdr.markForCheck();
   }
 
@@ -202,6 +210,9 @@ export class SelectableSortableTableComponent
 
     this.selectedIds = next;
     this.selectedIdsChange.emit(next);
+
+    this.selectedRowsChange.emit(this.getSelectedRows());
+
     this.cdr.markForCheck();
   }
 
@@ -239,5 +250,12 @@ export class SelectableSortableTableComponent
     } catch {
       return null;
     }
+  }
+
+  private getSelectedRows(): Row[] {
+    const ids = Array.from(this.selectedIds);
+    return ids
+      .map((id) => (this.data ?? []).find((r) => this.getRowId(r) === id))
+      .filter((r): r is Row => !!r);
   }
 }

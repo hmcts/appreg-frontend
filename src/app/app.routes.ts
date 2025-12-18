@@ -24,12 +24,8 @@ export const routes: Routes = [
       { path: ':id', component: ApplicationsListDetail },
       { path: ':id/update', component: ApplicationsListEntryDetail },
       { path: ':id/create', component: ApplicationsListEntryCreate },
+      { path: ':id/result-selected', component: ResultSelected },
     ],
-  },
-  {
-    path: 'result-selected/:id',
-    component: ResultSelected,
-    canActivate: [sessionGuard],
   },
   {
     path: 'applications',

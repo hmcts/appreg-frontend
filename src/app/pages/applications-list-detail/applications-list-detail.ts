@@ -47,7 +47,7 @@ import { NotificationBannerComponent } from '../../shared/components/notificatio
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
-import { SelectableSortableTableComponent } from '../../shared/components/selectable-sortable-table/selectable-sortable-table.component';
+import { Row, SelectableSortableTableComponent } from '../../shared/components/selectable-sortable-table/selectable-sortable-table.component';
 import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
 import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
 import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
@@ -95,6 +95,18 @@ type Handoff = {
   version: number;
 };
 
+type selectedRow = {
+  id: string;
+  sequenceNumber: number;
+  accountNumber: string | null;
+  applicant: string | null;
+  respondent: string | null;
+  postCode: string | null;
+  title: string;
+  feeReq: 'Yes' | 'No';
+  resulted: 'Yes' | 'No';
+}
+
 @Component({
   selector: 'app-application-detail',
   standalone: true,
@@ -128,6 +140,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   pageSize = 10;
 
   selectedIds = new Set<string>();
+  selectedRows: Row[] = [];
 
   isLoading = true;
   private hasPrefilledFromApi = false;
@@ -295,6 +308,47 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           this.selectedIds.clear();
         },
       });
+  }
+
+  onResultButtonClick(): void {
+    const selectedRows = this.selectedRows as selectedRow[];
+    const resultedApplications: selectedRow[] = selectedRows.filter(r => r.resulted === 'Yes');
+    const unResultedApplications: selectedRow[] = selectedRows.filter(r => r.resulted === 'No');
+    this.unpopField = [];
+
+    if (this.selectedRows.length === 0) {
+      this.unpopField.push({
+        text: 'No applications selected. Please select at least one application to result.',
+      });
+      return;
+    }
+
+    if (unResultedApplications.length === 0) {
+      const message =
+        resultedApplications.length === 1
+          ? 'This application has already been resulted.'
+          : 'These applications have already been resulted.';
+
+      this.unpopField.push({ text: message });
+      return;
+    }
+
+    const resultingApplications = unResultedApplications.map(r => ({
+      applicant: r.applicant,
+      respondent: r.respondent,
+      title: r.title,
+    }));
+
+    console.log(resultingApplications);
+
+    this.router.navigate(['result-selected'], {
+      relativeTo: this.route,
+      state: { resultingApplications },
+    });
+  }
+
+  onSelectedRowsChange(rows: Row[]): void {
+    this.selectedRows = rows;
   }
 
   onUpdate(): void {
@@ -493,10 +547,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       duration:
         dto.durationHours !== null || dto.durationMinutes !== null
           ? // Duration is returned differently to time sadly so we have to assign like this
-            {
-              hours: dto.durationHours ?? null,
-              minutes: dto.durationMinutes ?? null,
-            }
+          {
+            hours: dto.durationHours ?? null,
+            minutes: dto.durationMinutes ?? null,
+          }
           : null,
     });
 
