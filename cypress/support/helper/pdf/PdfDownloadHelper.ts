@@ -12,6 +12,22 @@ export class PdfDownloadHelper {
     return cy.task('listPdfFiles', downloadsPath);
   }
 
+  static getLatestPdfOrFail(): Cypress.Chainable<string> {
+    return this.listPdfFiles().then((files) => {
+      if (!files.length) {
+        throw new Error(
+          `Expected at least 1 PDF file in downloads folder (${this.DOWNLOADS_FOLDER}), but found none`,
+        );
+      }
+      const latestPdf = files[files.length - 1];
+      Cypress.log({
+        name: 'getLatestPdfOrFail',
+        message: `Latest PDF detected: "${latestPdf}"`,
+      });
+      return latestPdf;
+    });
+  }
+
   static findPdfByName(partialName: string): Cypress.Chainable<string> {
     return this.listPdfFiles().then((files) => {
       const matchedFile = files.find((file) => file.includes(partialName));
@@ -26,21 +42,6 @@ export class PdfDownloadHelper {
       });
       return matchedFile;
     });
-  }
-
-  static verifyFileNotEmpty(filename: string, minSize: number = 1000): void {
-    cy.readFile(`${this.DOWNLOADS_FOLDER}/${filename}`, 'binary').should(
-      (content) => {
-        Cypress.log({
-          name: 'verifyFileNotEmpty',
-          message: `PDF size: ${content.length} bytes (min: ${minSize})`,
-        });
-        expect(content.length).to.be.greaterThan(
-          minSize,
-          `PDF file ${filename} should be larger than ${minSize} bytes`,
-        );
-      },
-    );
   }
 
   static clearDownloadsFolder(): Cypress.Chainable<null> {
@@ -61,32 +62,6 @@ export class PdfDownloadHelper {
       message: `Parsing PDF: ${filename}`,
     });
     return cy.task('parsePdfContent', filePath);
-  }
-
-  static verifyPdfContainsText(filename: string, expectedText: string): void {
-    this.parsePdfContent(filename).then((pdfData) => {
-      Cypress.log({
-        name: 'verifyPdfContainsText',
-        message: `✓ PDF contains: "${expectedText}"`,
-      });
-      expect(pdfData.text).to.include(
-        expectedText,
-        `PDF should contain text: "${expectedText}"`,
-      );
-    });
-  }
-
-  static verifyPdfPageCount(filename: string, expectedPages: number): void {
-    this.parsePdfContent(filename).then((pdfData) => {
-      Cypress.log({
-        name: 'verifyPdfPageCount',
-        message: `✓ PDF has ${pdfData.numPages} page(s)`,
-      });
-      expect(pdfData.numPages).to.equal(
-        expectedPages,
-        `PDF should have ${expectedPages} pages, but has ${pdfData.numPages}`,
-      );
-    });
   }
 
   static getPdfText(filename: string): Cypress.Chainable<string> {

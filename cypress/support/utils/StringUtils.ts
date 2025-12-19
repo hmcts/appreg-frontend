@@ -9,4 +9,17 @@ export class StringUtils {
   static normalizeText(text: string): string {
     return text.replaceAll('&nbsp;', ' ').replaceAll(/\s+/g, ' ').trim();
   }
+
+  /**
+   * Builds a regex that matches numbered entries like "1. Applicant"
+   * @param entryType Entry label to match
+   */
+  static buildNumberedEntryPattern(entryType: string): RegExp {
+    const normalizedEntryType = this.normalizeText(entryType);
+    const escapedEntryType = normalizedEntryType.replaceAll(
+      /[.*+?^${}()|[\]\\]/g,
+      String.raw`\$&`,
+    );
+    return new RegExp(String.raw`\d+\.\s+${escapedEntryType}`, 'g');
+  }
 }

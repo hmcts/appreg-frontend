@@ -268,7 +268,7 @@ Feature: Applications List Search
       | user1 | Lists     | 2025-06-27  | 14:00 | Manchester Civil Justice Centre Set 8 | Afternoon list for Civil Court                 | 1       | Open   | Select           | Open, Print page,  Print continuous, Delete |
       | user1 | Lists     | 2025-11-26  | 16:45 | Royal Courts of Justice Set 1         | Applications to review at the Test Courthouse. | 0       | Closed | Select           | Print page,  Print continuous               |
 
-  @regression @ARCPOC-214 @ARCPOC-453 @ARCPOC-799 @ARCPOC-802
+  @regression @ARCPOC-214 @ARCPOC-453 @ARCPOC-799 @ARCPOC-802 @ARCPOC-449
   Scenario Outline: Verify PDF download for 0 entries
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Body:
@@ -298,8 +298,8 @@ Feature: Applications List Search
       | user1 | Lists     | today      | todayiso    | timenowhhmm-2h | RCJ001            | Royal Courts of Justice Set 1     | Test_{RANDOM} for Applications to review | 0       | OPEN   | Select           | Print continuous |
       | user1 | Lists     | today      | todayiso    | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Test_{RANDOM} for Leeds applications     | 0       | OPEN   | Select           | Print page       |
 
-  @regression @ARCPOC-214 @ARCPOC-453
-  Scenario Outline: Verify PDF download for print continuous with entries for Court
+  @regression @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @PJ
+  Scenario Outline: Verify PDF download for print continuous and print page with entries for Court
     Given User Has No Downloaded PDFs
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -308,7 +308,7 @@ Feature: Applications List Search
     When User Clicks On The "Search" Button
     Then User Should See The Table "<TableName>"
     Then User Should See Table "<TableName>" Has Rows
-    When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
+    When User Clicks "<SelectButtonText>" Then "Print continuous" From Menu In Row Of Table "<TableName>" With:
       | Date          | Time   | Location | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
     # Verify PDF was downloaded and contains expected content
@@ -332,11 +332,33 @@ Feature: Applications List Search
       | Case Reference    | CASE101-02                                                 |
       | Application Code  | CT99001                                                    |
     Then User Clears Downloaded PDFs
+    When User Clicks "<SelectButtonText>" Then "Print page" From Menu In Row Of Table "<TableName>" With:
+      | Date          | Time   | Location | Description   | Entries   | Status   |
+      | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+    # Verify PDF was downloaded and contains expected content
+    Then User Verifies PDF "<PDFName>" Is Downloaded
+    Then User Verifies Latest Downloaded PDF Is Not Empty
+    Then User Verifies Latest Downloaded PDF Has <Pages> Pages
+    Then User Verifies Latest Downloaded PDF Contains Text "<Court>"
+    Then User Verifies Latest Downloaded PDF Contains The Following Values:
+      | Application brought by       | Miss Sophia King                                           |
+      | Respondent                   | -                                                          |
+      | Matter considered            | Request for Certificate of Refusal to State a Case (Civil) |
+      | AP99004                      | -                                                          |
+      | This matter was dated before | <DisplayDate>                                              |
+      | Produced on:                 | today                                                      |
+      | Application brought by       | Mr James Lee                                               |
+      | Respondent                   | Mr John Turner                                             |
+      | Matter considered            | Issue of liability order summons -council tax (bulk)       |
+      | CT99001                      | -                                                          |
+      | This matter was dated before | <DisplayDate>                                              |
+      | Produced on:                 | <Date>                                                     |
+    Then User Clears Downloaded PDFs
     Examples:
-      | User  | TableName | SearchDate | DisplayDate | Time  | Court                         | Description             | Entries | Status | SelectButtonText | ButtonName       | Duration          | PDFName                       | Pages |
-      | user1 | Lists     | 16/11/2025 | 2025-11-16  | 13:26 | Royal Courts of Justice Set 1 | ENFORCEMENT LIST - TEST | 2       | Open   | Select           | Print continuous | 2 Hours 0 Minutes | royal-courts-of-justice-set-1 | 2     |
+      | User  | TableName | SearchDate | DisplayDate | Time  | Court                         | Description             | Entries | Status | SelectButtonText | ButtonName | Duration          | PDFName                       | Pages | Date  |
+      | user1 | Lists     | 16/11/2025 | 2025-11-16  | 13:26 | Royal Courts of Justice Set 1 | ENFORCEMENT LIST - TEST | 2       | Open   | Select           |            | 2 Hours 0 Minutes | royal-courts-of-justice-set-1 | 2     | today |
 
-  @regression @ARCPOC-214 @ARCPOC-453
+  @regression @ARCPOC-214 @ARCPOC-453 @ARCPOC-449
   Scenario Outline: Verify PDF download for print page with entries for CJA
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Body:
@@ -359,8 +381,8 @@ Feature: Applications List Search
     Then User Sees Notification Banner "There is a problem No entries available to print"
     Then User Clears Downloaded PDFs
     Examples:
-      | User  | TableName | SearchDate | DisplayDate | Time           | cjaCode | OptionText     | otherLocationDescription                          | Description             | Entries | Status | SelectButtonText | ButtonName | Duration          | PDFName      | Pages |
-      | user1 | Lists     | today      | todayiso    | timenowhhmm-1h | A8      | CJA Number 308 | This is a location description for CJA Number 318 | ENFORCEMENT LIST - TEST | 0       | OPEN   | Select           | Print page | 2 Hours 0 Minutes | cja-number-1 | 2     |
+      | User  | TableName | SearchDate | DisplayDate | Time           | cjaCode | OptionText     | otherLocationDescription                          | Description             | Entries | Status | SelectButtonText | ButtonName | Duration          | PDFName      |
+      | user1 | Lists     | today      | todayiso    | timenowhhmm-1h | A8      | CJA Number 308 | This is a location description for CJA Number 318 | ENFORCEMENT LIST - TEST | 0       | OPEN   | Select           | Print page | 2 Hours 0 Minutes | cja-number-1 |
 
   @regression @ARCPOC-214 @ARCPOC-450 @ARCPOC-799
   Scenario Outline: Update applications list Successfully with Other location and CJA selected
