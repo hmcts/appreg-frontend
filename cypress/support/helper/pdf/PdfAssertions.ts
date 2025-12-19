@@ -125,30 +125,30 @@ export class PdfAssertions {
       name: 'verifyLatestPdfContainsValues',
       message: `Checking latest PDF contains ${rows.length} key/value pair(s)`,
     });
-    return PdfDownloadHelper.getLatestPdfOrFail().then((latestPdf) =>
-      PdfDownloadHelper.getPdfText(latestPdf).then((text): void => {
-        const normalizedText = StringUtils.normalizeText(text);
+    return PdfDownloadHelper.getLatestPdfOrFail().then(
+      (latestPdf) =>
+        PdfDownloadHelper.getPdfText(latestPdf).then((text): void => {
+          const normalizedText = StringUtils.normalizeText(text);
 
-        for (const [key, value] of rows) {
-          const processedRow = processDatatableRow({ key, value });
-          const processedKey = processedRow.key;
-          const processedValue = processedRow.value;
+          for (const [key, value] of rows) {
+            const processedRow = processDatatableRow({ key, value });
+            const processedKey = processedRow.key;
+            const processedValue = processedRow.value;
 
-          const normalizedKey = StringUtils.normalizeText(processedKey);
-          const normalizedValue = StringUtils.normalizeText(processedValue);
+            const normalizedKey = StringUtils.normalizeText(processedKey);
+            const normalizedValue = StringUtils.normalizeText(processedValue);
 
-          expect(normalizedText).to.include(
-            normalizedKey,
-            `PDF should contain key: "${processedKey}"`,
-          );
+            expect(normalizedText).to.include(
+              normalizedKey,
+              `PDF should contain key: "${processedKey}"`,
+            );
 
-          expect(normalizedText).to.include(
-            normalizedValue,
-            `PDF should contain value: "${processedValue}"`,
-          );
-        }
-      }) as unknown as Cypress.Chainable<void>,
+            expect(normalizedText).to.include(
+              normalizedValue,
+              `PDF should contain value: "${processedValue}"`,
+            );
+          }
+        }) as unknown as Cypress.Chainable<void>,
     ) as unknown as Cypress.Chainable<void>;
   }
-
 }
