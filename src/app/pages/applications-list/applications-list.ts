@@ -27,10 +27,10 @@ import { HttpContext } from '@angular/common/http';
 import {
   Component,
   HostListener,
-  Inject,
   OnDestroy,
   OnInit,
   PLATFORM_ID,
+  inject,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -107,7 +107,12 @@ export class ApplicationsList
   extends PlaceFieldsBase
   implements OnInit, OnDestroy
 {
-  private readonly _id: string | undefined;
+  // APIs
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly appListsApi = inject(ApplicationListsApi);
+  private readonly refFacade = inject(ReferenceDataFacade);
+  private readonly pdf = inject(PdfService);
+
   private readonly destroy$ = new Subject<void>();
   openMenuForId: string | null = null;
   openPrintSelectForId: string | null = null;
@@ -160,15 +165,6 @@ export class ApplicationsList
   ];
 
   rows: ApplicationListRow[] = [];
-
-  constructor(
-    @Inject(PLATFORM_ID) private readonly platformId: object,
-    private readonly refFacade: ReferenceDataFacade,
-    private readonly appListsApi: ApplicationListsApi,
-    private readonly pdf: PdfService,
-  ) {
-    super();
-  }
 
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refFacade);
@@ -324,18 +320,16 @@ export class ApplicationsList
     }
   }
 
-  async onPrintContinuous(): Promise<void> {
+  async onPrintContinuous(id: string): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
 
-    this.clearNotifications();
-
-    const ids = this.rows.map((r) => r.id).filter(Boolean);
-    if (!ids.length) {
-      this.showInline('No lists to print');
+    if (!id) {
       return;
     }
+
+    this.clearNotifications();
 
     const hasEntries = (x: unknown): x is { entries: unknown[] } => {
       if (!x || typeof x !== 'object') {
@@ -346,34 +340,23 @@ export class ApplicationsList
     };
 
     try {
-      const settled = await Promise.allSettled(
-        ids.map((id) =>
-          firstValueFrom(
-            this.appListsApi.printApplicationList(
-              { listId: id },
-              undefined,
-              undefined,
-              { transferCache: false },
-            ),
-          ),
+      const dto = await firstValueFrom(
+        this.appListsApi.printApplicationList(
+          { listId: id },
+          undefined,
+          undefined,
+          { transferCache: false },
         ),
       );
 
-      const dtos: unknown[] = [];
-      for (const res of settled) {
-        if (res.status === 'fulfilled' && hasEntries(res.value)) {
-          dtos.push(res.value);
-        }
-      }
-
-      if (!dtos.length) {
+      if (!hasEntries(dto)) {
         this.showInline('No entries available to print');
         return;
       }
 
-      await this.pdf.generateContinuousApplicationListsPdf(dtos);
+      await this.pdf.generateContinuousApplicationListsPdf([dto]);
     } catch {
-      this.showInline('Unable to generate PDF. Please try again later');
+      this.showInline('Unable to generate PDF.');
     }
   }
 
