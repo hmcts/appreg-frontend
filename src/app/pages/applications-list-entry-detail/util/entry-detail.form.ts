@@ -1,100 +1,170 @@
-import { FormGroup, NonNullableFormBuilder, Validators } from '@angular/forms';
+import { NonNullableFormBuilder, Validators } from '@angular/forms';
 
+import { buildEntryCreateDto } from '@components/applications-list-entry-create/util/entry-create-mapper';
+import { ApplicationNotesForm } from '@components/notes-section/notes-section.component';
+import { ALPHANUMERIC_REGEX } from '@constants/regex';
 import {
   Applicant,
   ContactDetails,
   EntryGetDetailDto,
   EntryUpdateDto,
+  FeeStatus,
   FullName,
   Official,
   Organisation,
   Person,
-} from '../../../../generated/openapi';
+  Respondent,
+} from '@openapi';
 import {
-  trimToString,
-  trimToUndefined,
-} from '../../../shared/util/string-helpers';
+  ApplicantType,
+  ApplicationsListEntryForm,
+  ApplicationsListEntryFormValue,
+  OrganisationForm,
+  OrganisationFormValue,
+  PersonForm,
+  PersonFormValue,
+  RespondentEntryType,
+} from '@shared-types/applications-list-entry-create/application-list-entry-create-form';
+import { trimToString, trimToUndefined } from '@util/string-helpers';
 import {
   ContactFormRaw,
   OrganisationFormRaw,
   PersonFormRaw,
-} from '../../../shared/util/types/applications-list-entry/types';
+} from '@util/types/applications-list-entry/types';
+import { standardApplicantCodeConditionalRequired } from '@validators/standard-applicant-code.validator';
 
-export function buildEntryDetailForm(fb: NonNullableFormBuilder): FormGroup {
+export function buildStandardApplicationForm(
+  fb: NonNullableFormBuilder,
+): ApplicationsListEntryForm {
   return fb.group({
-    // Codes section
-    lodgementDate: fb.control({ value: '', disabled: true }),
-    applicationCode: fb.control(''),
-    applicationTitle: fb.control(''),
+    applicationTitle: fb.control<string | null>(null),
+    applicantType: fb.control<ApplicantType>('org'),
+    applicant: fb.control<Applicant | null>(null),
+    standardApplicantCode: fb.control<string | null>(null, [
+      standardApplicantCodeConditionalRequired,
+    ]),
+    applicationCode: fb.control<string | null>(null, []),
+    respondent: fb.control<Respondent | null>(null),
+    numberOfRespondents: fb.control<number | null>(null),
+    wordingFields: fb.control<string[] | null>(null),
+    feeStatuses: fb.control<FeeStatus[] | null>(null),
+    hasOffsiteFee: fb.control<boolean | null>(null),
 
-    // Entry type selectors (lowercase to match @switch cases in template)
-    applicantEntryType: fb.control<
-      'person' | 'organisation' | 'standardApplicant'
-    >('organisation'),
-    respondentEntryType: fb.control<'person' | 'organisation'>('organisation'),
+    applicationNotes: fb.group({
+      notes: fb.control<string | null>(null, {
+        validators: [Validators.maxLength(4000)],
+      }),
+      caseReference: fb.control<string | null>(null, {
+        validators: [
+          Validators.maxLength(15),
+          Validators.pattern(ALPHANUMERIC_REGEX),
+        ],
+      }),
+      accountReference: fb.control<string | null>(null, {
+        validators: [
+          Validators.maxLength(20),
+          Validators.pattern(ALPHANUMERIC_REGEX),
+        ],
+      }),
+    }) as ApplicationNotesForm,
 
-    // Wording section
-    courtName: fb.control(''),
-    organisationName: fb.control(''),
+    lodgementDate: fb.control<string | null>(null),
+    respondentEntryType: fb.control<RespondentEntryType | null>('organisation'),
 
-    // Civil fee section
-    feeStatus: fb.control(''),
-    feeStatusDate: fb.control(''),
-    paymentRef: fb.control(''),
+    courtName: fb.control<string | null>(null),
+    organisationName: fb.control<string | null>(null),
+    feeStatus: fb.control<string | null>(null),
+    feeStatusDate: fb.control<string | null>(null),
+    paymentRef: fb.control<string | null>(null),
+    accountReference: fb.control<string | null>(null),
+    applicationDetails: fb.control<string | null>(null),
+    resultCode: fb.control<string | null>(null),
 
-    // Notes section
-    caseReference: fb.control(''),
-    accountReference: fb.control(''),
-    applicationDetails: fb.control(''),
+    mags1Title: fb.control<string | null>(null),
+    mags1FirstName: fb.control<string | null>(null),
+    mags1Surname: fb.control<string | null>(null),
+    mags2Title: fb.control<string | null>(null),
+    mags2FirstName: fb.control<string | null>(null),
+    mags2Surname: fb.control<string | null>(null),
+    mags3Title: fb.control<string | null>(null),
+    mags3FirstName: fb.control<string | null>(null),
+    mags3Surname: fb.control<string | null>(null),
+    officialTitle: fb.control<string | null>(null),
+    officialFirstName: fb.control<string | null>(null),
+    officialSurname: fb.control<string | null>(null),
+  }) as ApplicationsListEntryForm;
+}
 
-    // Result wording section
-    resultCode: fb.control(''),
+export function buildPersonForm(fb: NonNullableFormBuilder): PersonForm {
+  return fb.group({
+    title: fb.control<string | null>(null),
+    firstName: fb.control<string>('', { validators: [] }),
+    middleNames: fb.control<string>('', { validators: [] }),
+    surname: fb.control<string | null>(null),
+    addressLine1: fb.control<string>('', { validators: [] }),
+    addressLine2: fb.control<string>('', { validators: [] }),
+    addressLine3: fb.control<string>('', { validators: [] }),
+    addressLine4: fb.control<string>('', { validators: [] }),
+    addressLine5: fb.control<string>('', { validators: [] }),
+    postcode: fb.control<string | null>(null),
+    phoneNumber: fb.control<string | null>(null),
+    mobileNumber: fb.control<string | null>(null),
+    emailAddress: fb.control<string | null>(null),
+  }) as PersonForm;
+}
 
-    // Person sub-group
-    person: fb.group({
-      title: fb.control(''),
-      firstName: fb.control(''),
-      middleNames: fb.control(''),
-      surname: fb.control(''),
-      addressLine1: fb.control(''),
-      addressLine2: fb.control(''),
-      addressLine3: fb.control(''),
-      addressLine4: fb.control(''),
-      addressLine5: fb.control(''),
-      postcode: fb.control(''),
-      phoneNumber: fb.control(''),
-      mobileNumber: fb.control(''),
-      emailAddress: fb.control('', [(control) => Validators.email(control)]),
-    }),
+export function buildOrganisationForm(
+  fb: NonNullableFormBuilder,
+): OrganisationForm {
+  return fb.group({
+    name: fb.control<string>('', { validators: [] }),
+    addressLine1: fb.control<string>('', { validators: [] }),
+    addressLine2: fb.control<string>('', { validators: [] }),
+    addressLine3: fb.control<string>('', { validators: [] }),
+    addressLine4: fb.control<string>('', { validators: [] }),
+    addressLine5: fb.control<string>('', { validators: [] }),
+    postcode: fb.control<string | null>(null),
+    phoneNumber: fb.control<string | null>(null),
+    mobileNumber: fb.control<string | null>(null),
+    emailAddress: fb.control<string | null>(null),
+  }) as OrganisationForm;
+}
 
-    // Organisation sub-group
-    organisation: fb.group({
-      name: fb.control(''),
-      addressLine1: fb.control(''),
-      addressLine2: fb.control(''),
-      addressLine3: fb.control(''),
-      addressLine4: fb.control(''),
-      addressLine5: fb.control(''),
-      postcode: fb.control(''),
-      phoneNumber: fb.control(''),
-      mobileNumber: fb.control(''),
-      emailAddress: fb.control('', [(control) => Validators.email(control)]),
-    }),
+export function buildEntryUpdateDtoFromForm(
+  detail: EntryGetDetailDto,
+  formValue: ApplicationsListEntryFormValue,
+  personForm: PersonFormValue,
+  organisationForm: OrganisationFormValue,
+): EntryUpdateDto {
+  // Full snapshot of current server state
+  const base: EntryUpdateDto = {
+    standardApplicantCode: detail.standardApplicantCode,
+    applicationCode: detail.applicationCode,
+    applicant: detail.applicant,
+    respondent: detail.respondent,
+    numberOfRespondents: detail.numberOfRespondents,
+    wordingFields: detail.wordingFields,
+    feeStatuses: detail.feeStatuses,
+    hasOffsiteFee: detail.hasOffsiteFee,
+    caseReference: detail.caseReference,
+    accountNumber: detail.accountNumber,
+    notes: detail.notes,
+    lodgementDate: detail.lodgementDate,
+    ...(detail as { officials?: Official[] }),
+  };
 
-    // Officials section
-    mags1Title: fb.control(''),
-    mags1FirstName: fb.control(''),
-    mags1Surname: fb.control(''),
-    mags2Title: fb.control(''),
-    mags2FirstName: fb.control(''),
-    mags2Surname: fb.control(''),
-    mags3Title: fb.control(''),
-    mags3FirstName: fb.control(''),
-    mags3Surname: fb.control(''),
-    officialTitle: fb.control(''),
-    officialFirstName: fb.control(''),
-    officialSurname: fb.control(''),
-  });
+  // Reuse existing mapper to build a “patch”
+  const patch = buildEntryCreateDto(
+    formValue,
+    personForm,
+    organisationForm,
+  ) as unknown as Partial<EntryUpdateDto>;
+
+  // Merge server snapshot with patch from form
+  return {
+    ...base,
+    ...patch,
+  };
 }
 
 export function buildContactDetailsFromRaw(v: ContactFormRaw): ContactDetails {

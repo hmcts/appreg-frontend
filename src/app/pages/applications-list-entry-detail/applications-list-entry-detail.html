@@ -12,13 +12,13 @@
 
 <h2 class="govuk-heading-l">Summary of application list entry</h2>
 
-@if (hasFatalError) {
+@if (errorFound) {
   <app-error-summary
     [title]="errorHint || 'There is a problem'"
-    [items]="errorSummary"
+    [items]="summaryErrors"
     targetId="codes-table"
     data-component="error-summary"
-    (itemSelect)="onErrorItemClick($event)"
+    (itemSelect)="onCreateErrorClick($event)"
   />
 }
 
@@ -41,7 +41,7 @@
     <h3 class="govuk-heading-m">Application entry type</h3>
     <div class="govuk-grid-row">
       <app-select-input
-        formControlName="applicantEntryType"
+        formControlName="applicantType"
         label="Select type"
         hint="The type of applicant for this application"
         idPrefix="application-entry-type"
@@ -53,7 +53,7 @@
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
     />
 
-    @switch (form.get('applicantEntryType')?.value) {
+    @switch (applicantType) {
       @case ('person') {
         <app-person-section
           [group]="personGroup"
@@ -62,17 +62,17 @@
           [errors]="personFieldErrors"
         />
       }
-      @case ('organisation') {
+      @case ('org') {
         <app-organisation-section
           [group]="organisationGroup"
           [submitted]="formSubmitted"
           [errors]="organisationFieldErrors"
         />
       }
-      @case ('standardApplicant') {
+      @case ('standard') {
         <app-standard-applicant-select
           [selectedCode]="selectedStandardApplicantCode"
-          (selectedCodeChange)="selectedStandardApplicantCode = $event"
+          (selectedCodeChange)="onStandardApplicantCodeChanged($event)"
         />
       }
     }
@@ -258,37 +258,10 @@
   </ng-template>
 
   <ng-template #notesTpl>
-    <div class="govuk-grid-row">
-      <!-- Case reference -->
-      <app-text-input
-        formControlName="caseReference"
-        label="Case reference"
-        hint="Enter the unique case reference, for example CR-2025-00123"
-        idPrefix="case-reference"
-      />
-
-      <!-- Account reference -->
-      <app-text-input
-        formControlName="accountReference"
-        label="Account reference"
-        hint="Enter the associated account reference, for example AC-987654"
-        idPrefix="account-reference"
-      />
-    </div>
-
-    <hr
-      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+    <app-notes-section
+      [form]="applicationNotesForm"
+      (notesErrors)="onChildErrors('notes', $event)"
     />
-
-    <div class="govuk-grid-row">
-      <!-- Application details -->
-      <app-text-input
-        formControlName="applicationDetails"
-        label="Application details"
-        hint="Provide any additional information about the application (for example special requirements or notes). Do not include sensitive personal data."
-        idPrefix="application-details"
-      />
-    </div>
   </ng-template>
 
   <ng-template #resultWordingTpl>
@@ -444,4 +417,16 @@
       { heading: 'Officials', tpl: officialsTpl, expanded: false },
     ]"
   />
+
+  <div class="govuk-button-group">
+    <button type="submit" class="govuk-button" (click)="onUpdateApplicant()">
+      Update applicant
+    </button>
+    <a
+      class="govuk-button govuk-button--secondary"
+      [routerLink]="['/applications-list', appListId]"
+    >
+      Cancel
+    </a>
+  </div>
 </form>

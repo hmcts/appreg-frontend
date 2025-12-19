@@ -1,0 +1,281 @@
+import { Injectable, inject } from '@angular/core';
+import { NonNullableFormBuilder } from '@angular/forms';
+
+import { buildEntryCreateDto } from '@components/applications-list-entry-create/util/entry-create-mapper';
+import {
+  buildEntryUpdateDtoFromForm,
+  buildOrganisationForm,
+  buildPersonForm,
+  buildStandardApplicationForm,
+  organisationToFormPatch,
+  personToFormPatch,
+} from '@components/applications-list-entry-detail/util/entry-detail.form';
+import {
+  Applicant,
+  EntryCreateDto,
+  EntryGetDetailDto,
+  EntryUpdateDto,
+  Organisation,
+  Person,
+} from '@openapi';
+import {
+  ApplicantType,
+  ApplicationsListEntryForm,
+  ApplicationsListEntryFormValue,
+  OrganisationForm,
+  OrganisationFormValue,
+  PersonForm,
+  PersonFormValue,
+} from '@shared-types/applications-list-entry-create/application-list-entry-create-form';
+import {
+  createEmptyOrganisation,
+  createEmptyPerson,
+} from '@util/applicant-helpers';
+import { markFormGroupClean } from '@util/form-helpers';
+
+export type ApplicationListEntryForms = {
+  form: ApplicationsListEntryForm;
+  personForm: PersonForm;
+  organisationForm: OrganisationForm;
+};
+
+export type HydrateOptions = {
+  /** Default false: avoid triggering applicantType valueChanges etc. */
+  emitEvent?: boolean;
+};
+
+export type HydrateResult = {
+  applicantType: ApplicantType;
+  selectedStandardApplicantCode: string | null;
+};
+
+@Injectable({ providedIn: 'root' })
+export class ApplicationListEntryFormService {
+  private readonly fb = inject(NonNullableFormBuilder);
+
+  private readonly emptyPerson: Person = createEmptyPerson();
+  private readonly emptyOrganisation: Organisation = createEmptyOrganisation();
+
+  createForms(): ApplicationListEntryForms {
+    return {
+      form: buildStandardApplicationForm(this.fb),
+      personForm: buildPersonForm(this.fb),
+      organisationForm: buildOrganisationForm(this.fb),
+    };
+  }
+
+  /**
+   * Hydrate main + subforms from server DTO.
+   * Also normalises applicantType/standardApplicantCode/subform resets.
+   */
+  hydrateFromDto(
+    dto: EntryGetDetailDto,
+    forms: ApplicationListEntryForms,
+    opts: HydrateOptions = {},
+  ): HydrateResult {
+    const emitEvent = opts.emitEvent === true;
+
+    // Patch the shared fields that the create/update mappers care about
+    forms.form.patchValue(
+      {
+        lodgementDate: dto.lodgementDate ?? null,
+        applicationCode: dto.applicationCode ?? null,
+
+        respondent: dto.respondent ?? null,
+        numberOfRespondents: dto.numberOfRespondents ?? null,
+        wordingFields: dto.wordingFields ?? null,
+        feeStatuses: dto.feeStatuses ?? null,
+        hasOffsiteFee: dto.hasOffsiteFee ?? null,
+
+        applicationNotes: {
+          notes: dto.notes ?? null,
+          caseReference: dto.caseReference ?? null,
+          accountReference: dto.accountNumber ?? null,
+        },
+      },
+      { emitEvent },
+    );
+
+    this.patchIfPresent(forms.form, 'applicationTitle', null, emitEvent);
+
+    // Prefer standard applicant if present
+    const standardCode = (dto.standardApplicantCode ?? '').toString().trim();
+    if (standardCode) {
+      this.setApplicantType(forms, 'standard', { emitEvent });
+      this.setStandardApplicantCode(forms, standardCode, { emitEvent });
+
+      // reset subforms
+      forms.personForm.reset();
+      forms.organisationForm.reset();
+
+      markFormGroupClean(forms.personForm);
+      markFormGroupClean(forms.organisationForm);
+
+      return {
+        applicantType: 'standard',
+        selectedStandardApplicantCode: standardCode,
+      };
+    }
+
+    const applicant: Applicant | undefined = dto.applicant;
+
+    if (applicant?.person) {
+      this.setApplicantType(forms, 'person', { emitEvent });
+      this.setStandardApplicantCode(forms, null, { emitEvent });
+
+      forms.organisationForm.reset(this.emptyOrganisation, { emitEvent });
+      forms.personForm.patchValue(personToFormPatch(applicant.person), {
+        emitEvent,
+      });
+
+      markFormGroupClean(forms.personForm);
+      markFormGroupClean(forms.organisationForm);
+
+      return { applicantType: 'person', selectedStandardApplicantCode: null };
+    }
+
+    if (applicant?.organisation) {
+      this.setApplicantType(forms, 'org', { emitEvent });
+      this.setStandardApplicantCode(forms, null, { emitEvent });
+
+      forms.personForm.reset();
+      forms.organisationForm.patchValue(
+        organisationToFormPatch(applicant.organisation),
+        { emitEvent },
+      );
+
+      markFormGroupClean(forms.personForm);
+      markFormGroupClean(forms.organisationForm);
+
+      return { applicantType: 'org', selectedStandardApplicantCode: null };
+    }
+
+    // Default to org, empty
+    this.setApplicantType(forms, 'org', { emitEvent });
+    this.setStandardApplicantCode(forms, null, { emitEvent });
+
+    forms.personForm.reset();
+    forms.organisationForm.reset();
+
+    markFormGroupClean(forms.personForm);
+    markFormGroupClean(forms.organisationForm);
+
+    return { applicantType: 'org', selectedStandardApplicantCode: null };
+  }
+
+  /**
+   * Called from the applicantType valueChanges subscription (UI-driven switch).
+   * Keeps component tiny and behaviour consistent.
+   */
+  onApplicantTypeChanged(
+    forms: ApplicationListEntryForms,
+    type: ApplicantType,
+  ): void {
+    // Clear standard applicant code unless "standard"
+    if (type !== 'standard') {
+      this.setStandardApplicantCode(forms, null, { emitEvent: false });
+    }
+
+    forms.personForm.reset();
+    forms.organisationForm.reset();
+
+    markFormGroupClean(forms.personForm);
+    markFormGroupClean(forms.organisationForm);
+    forms.form.controls.standardApplicantCode.updateValueAndValidity({
+      emitEvent: false,
+    });
+  }
+
+  setApplicantType(
+    forms: ApplicationListEntryForms,
+    type: ApplicantType,
+    opts?: { emitEvent?: boolean },
+  ): void {
+    forms.form.controls.applicantType.setValue(type, {
+      emitEvent: opts?.emitEvent !== false,
+    });
+  }
+
+  setStandardApplicantCode(
+    forms: ApplicationListEntryForms,
+    code: string | null,
+    opts?: { emitEvent?: boolean },
+  ): void {
+    const trimmed = code?.trim() || null;
+    forms.form.controls.standardApplicantCode.setValue(trimmed, {
+      emitEvent: opts?.emitEvent !== false,
+    });
+  }
+
+  /**
+   * Build update DTO from forms; optionally syncs UI-held selected standard code.
+   */
+  buildUpdateDto(
+    detail: EntryGetDetailDto,
+    forms: ApplicationListEntryForms,
+    selectedStandardApplicantCode?: string | null,
+  ): EntryUpdateDto {
+    if (typeof selectedStandardApplicantCode !== 'undefined') {
+      this.setStandardApplicantCode(forms, selectedStandardApplicantCode, {
+        emitEvent: false,
+      });
+    }
+
+    const formValue: ApplicationsListEntryFormValue = forms.form.getRawValue();
+    const personValue: PersonFormValue = forms.personForm.getRawValue();
+    const organisationValue: OrganisationFormValue =
+      forms.organisationForm.getRawValue();
+
+    return buildEntryUpdateDtoFromForm(
+      detail,
+      formValue,
+      personValue,
+      organisationValue,
+    );
+  }
+
+  buildCreateDto(
+    forms: ApplicationListEntryForms,
+    selectedStandardApplicantCode?: string | null,
+  ): EntryCreateDto {
+    if (typeof selectedStandardApplicantCode !== 'undefined') {
+      this.setStandardApplicantCode(forms, selectedStandardApplicantCode, {
+        emitEvent: false,
+      });
+    }
+
+    return buildEntryCreateDto(
+      forms.form.getRawValue(),
+      forms.personForm.getRawValue(),
+      forms.organisationForm.getRawValue(),
+    );
+  }
+
+  private patchIfPresent<K extends string>(
+    form: ApplicationsListEntryForm,
+    key: K,
+    value: unknown,
+    emitEvent: boolean,
+  ): void {
+    const ctrl = (form.controls as Record<string, unknown>)[key] as
+      | { setValue: (v: unknown, o?: { emitEvent?: boolean }) => void }
+      | undefined;
+
+    ctrl?.setValue(value, { emitEvent });
+  }
+
+  syncApplicantTypeState(
+    forms: ApplicationListEntryForms,
+    type: ApplicantType,
+  ): void {
+    const codeCtrl = forms.form.controls.standardApplicantCode;
+
+    if (type === 'standard') {
+      codeCtrl.enable({ emitEvent: false });
+    } else {
+      codeCtrl.disable({ emitEvent: false });
+    }
+
+    codeCtrl.updateValueAndValidity({ emitEvent: false });
+  }
+}

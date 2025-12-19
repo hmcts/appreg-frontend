@@ -2,7 +2,14 @@ import { AbstractControl, FormGroup } from '@angular/forms';
 
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 
-export type ErrorMessageMap = Record<string, Record<string, string>>;
+export type ErrorMessage =
+  | string
+  | {
+      text: string;
+      href?: string;
+    };
+
+export type ErrorMessageMap = Record<string, Record<string, ErrorMessage>>;
 
 export type BuildFormErrorSummaryFn = (
   form: FormGroup,
@@ -10,7 +17,6 @@ export type BuildFormErrorSummaryFn = (
   options?: { nested?: { path: string; prefixId?: string }[] },
 ) => ErrorItem[];
 
-// Implementation kept private
 function buildFormErrorSummaryImpl(
   form: FormGroup,
   messages: ErrorMessageMap,
@@ -21,13 +27,11 @@ function buildFormErrorSummaryImpl(
   const controls = form.controls;
   const controlNames = Object.keys(controls);
 
-  // Handle top-level controls
   for (const name of controlNames) {
     const control = controls[name];
     addControlErrors(errors, control, name, messages, name);
   }
 
-  // Handle nested form groups, e.g. applicationNotes.notes
   options?.nested?.forEach(({ path }) => {
     const group = form.get(path);
     if (!(group instanceof FormGroup)) {
@@ -39,15 +43,13 @@ function buildFormErrorSummaryImpl(
 
     nestedNames.forEach((childName) => {
       const ctrl = nestedControls[childName];
-      const id = childName;
-      addControlErrors(errors, ctrl, childName, messages, id);
+      addControlErrors(errors, ctrl, childName, messages, childName);
     });
   });
 
   return errors;
 }
 
-// The exported, typed runtime value — consumers can call it without casts
 export const buildFormErrorSummary: BuildFormErrorSummaryFn =
   buildFormErrorSummaryImpl;
 
@@ -68,11 +70,21 @@ function addControlErrors(
   }
 
   const map = messages[controlName] ?? {};
+
   for (const key of Object.keys(rawErrors)) {
-    const message = map[key];
-    if (!message) {
+    const entry = map[key];
+    if (!entry) {
       continue;
     }
-    bucket.push({ id, text: message });
+
+    if (typeof entry === 'string') {
+      bucket.push({ id, text: entry });
+    } else {
+      bucket.push({
+        id,
+        text: entry.text,
+        href: entry.href,
+      });
+    }
   }
 }

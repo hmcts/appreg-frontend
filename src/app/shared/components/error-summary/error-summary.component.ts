@@ -27,6 +27,7 @@ export class ErrorSummaryComponent implements AfterViewInit {
   /** Auto-focus the summary on render (recommended for a11y) */
   @Input() autoFocus = true;
   /** If you want to run custom logic (e.g. focus a form field), listen to this */
+  //TO DO: We should be able to simplify this by using fragment in the template, just ensure targetId matches component IDs
   @Output() itemSelect = new EventEmitter<ErrorItem>();
 
   @ViewChild('summaryEl')
@@ -46,8 +47,18 @@ export class ErrorSummaryComponent implements AfterViewInit {
   }
 
   onLinkClick(e: Event, err: ErrorItem): void {
-    // If a consumer is listening OR a targetId is set, prevent default to handle smooth scroll/focus.
-    if (this.itemSelect.observed || this.targetId) {
+    const href = this.linkHrefFor(err);
+
+    // Resolve the actual element id from href like "#standard-applicant"
+    const idFromHref =
+      href.startsWith('#') && href.length > 1 ? href.slice(1) : undefined;
+
+    // Prefer per-item href target, else fall back to targetId
+    const targetId = idFromHref ?? this.targetId;
+
+    const shouldHandleScroll = !!targetId || this.itemSelect.observed;
+
+    if (shouldHandleScroll) {
       e.preventDefault();
     }
 
@@ -55,16 +66,27 @@ export class ErrorSummaryComponent implements AfterViewInit {
       this.itemSelect.emit(err);
     }
 
-    if (this.targetId) {
-      const el = document.getElementById(this.targetId);
-      if (el) {
-        try {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } catch {
-          el.scrollIntoView(true);
-        }
-        setTimeout(() => el.focus?.({ preventScroll: true }), 50);
-      }
+    if (!targetId) {
+      return;
     }
+
+    const el = document.getElementById(targetId);
+    if (!el) {
+      return;
+    }
+
+    // Ensure focusable for a11y
+    if (!el.hasAttribute('tabindex')) {
+      el.setAttribute('tabindex', '-1');
+    }
+
+    try {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch {
+      el.scrollIntoView(true);
+    }
+
+    // Focus after scroll
+    setTimeout(() => el.focus?.({ preventScroll: true }), 50);
   }
 }

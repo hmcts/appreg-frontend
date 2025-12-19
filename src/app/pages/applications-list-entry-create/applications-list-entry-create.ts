@@ -55,7 +55,7 @@ import {
 import { ApplicantStep } from '@page-types/applications-list-entry-create';
 import {
   ApplicantType,
-  ApplicationsListEntryCreateForm,
+  ApplicationsListEntryForm,
   OrganisationForm,
   PersonForm,
   RespondentEntryType,
@@ -139,7 +139,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
 
-  form: ApplicationsListEntryCreateForm = new FormGroup({
+  form: ApplicationsListEntryForm = new FormGroup({
     applicantType: new FormControl<ApplicantType>('org', { nonNullable: true }),
     applicant: new FormControl<Applicant | null>(null),
     standardApplicantCode: new FormControl<string | null>(null),
@@ -223,12 +223,6 @@ export class ApplicationsListEntryCreate implements OnInit {
     mobileNumber: new FormControl<string | null>(null),
     emailAddress: new FormControl<string | null>(null),
   });
-
-  applicantOptions = [
-    { label: 'Person', value: 'person' },
-    { label: 'Organisation', value: 'org' },
-    { label: 'Standard Applicant', value: 'standard' },
-  ];
 
   ngOnInit(): void {
     this.id = this.route.snapshot.paramMap.get('id')!;
