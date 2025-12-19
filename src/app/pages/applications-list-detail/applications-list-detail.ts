@@ -351,7 +351,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       mixedResultedAndUnresultedApplications = false;
     }
 
-    this.router.navigate(['result-selected'], {
+    void this.router.navigate(['result-selected'], {
       relativeTo: this.route,
       state: { resultingApplications, mixedResultedAndUnresultedApplications },
     });
