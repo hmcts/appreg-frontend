@@ -7,6 +7,7 @@ import {
   extractDuration as extractDurationFromDto,
   toLines,
 } from '../../shared/util/pdf-utils';
+import { normaliseTime } from '../../shared/util/time-helpers';
 import {
   JsPDFLike,
   PdfList,
@@ -380,7 +381,9 @@ export class PdfService {
       const raw = dtos[li];
 
       // Top meta row (LEFT: Date & Time + Duration; RIGHT: Location)
-      const dateTime = this.fallbackText(data.listDate || '', '—');
+      const normalisedTime = normaliseTime(data.listTime ?? '');
+
+      const dateTime = this.fallbackText(data.listDate + ' ' + normalisedTime); // YYYY-MM-DD HH:MM
       const duration = this.fallbackText(extractDurationFromDto(raw), '—');
       const leftLabels = 'Date & Time\nDuration';
       const leftValues = `${dateTime}\n${duration}`;
@@ -468,6 +471,8 @@ export class PdfService {
       asStr(root['listDate']) ||
       asStr(root['hearingDate']);
 
+    const listTime = asStr(root['time']) || asStr(root['listTime']);
+
     const courtName = asStr(root['courtName']) || asStr(root['court']);
 
     const location =
@@ -530,7 +535,7 @@ export class PdfService {
       };
     });
 
-    return { id, courtName, listDate, location, entries };
+    return { id, courtName, listDate, listTime, location, entries };
   }
 
   /** Person/organisation display name with placeholder cleanup. */

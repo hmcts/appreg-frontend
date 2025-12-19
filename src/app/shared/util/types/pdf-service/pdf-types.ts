@@ -38,6 +38,7 @@ export interface PdfList {
   id: string;
   courtName?: string;
   listDate?: string;
+  listTime?: string;
   location?: string;
   entries: {
     applicant?: string;
