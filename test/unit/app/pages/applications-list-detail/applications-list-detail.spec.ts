@@ -22,6 +22,8 @@ interface ApplicationListItemDto {
   result: boolean;
 }
 
+export type Row = Record<string, unknown>;
+
 interface ApplicationListResponse {
   body: {
     entriesCount: number;
@@ -312,5 +314,169 @@ describe('ApplicationsListDetail', () => {
       ['/applications-list', 'entry-123', 'update'],
       { state: { appListId: 'list-9' }, queryParams: { appListId: 'list-9' } },
     );
+  });
+
+  it('onSelectedRowsChange: updates selectedRows', () => {
+    const rows = [
+      { id: 'id-1', location: 'LOC1', description: '', status: 'OPEN' },
+    ];
+    component.onSelectedRowsChange(rows);
+    expect(component.selectedRows).toEqual(rows);
+  });
+
+  describe('onResultButtonClick', () => {
+    it('pushes message and does not navigate when no applications selected', () => {
+      const router = TestBed.inject(Router);
+      const navSpy = jest.spyOn(router, 'navigate');
+
+      component.selectedRows = [] as Row[];
+
+      component.onResultButtonClick();
+
+      expect(component.unpopField).toHaveLength(1);
+      expect(component.unpopField[0].text).toEqual(
+        'No applications selected. Please select at least one application to result.',
+      );
+      expect(navSpy).not.toHaveBeenCalled();
+    });
+
+    it('pushes "already been resulted" message and does not navigate when all selected are resulted', () => {
+      const router = TestBed.inject(Router);
+      const navSpy = jest.spyOn(router, 'navigate');
+
+      component.selectedRows = [
+        {
+          sequenceNumber: 1,
+          applicant: 'A',
+          respondent: 'R',
+          title: 'T1',
+          resulted: 'Yes',
+        },
+        {
+          sequenceNumber: 2,
+          applicant: 'B',
+          respondent: 'S',
+          title: 'T2',
+          resulted: 'Yes',
+        },
+      ] as Row[];
+
+      component.onResultButtonClick();
+
+      expect(component.unpopField).toHaveLength(1);
+      expect(component.unpopField[0].text).toEqual(
+        'These applications have already been resulted.',
+      );
+      expect(navSpy).not.toHaveBeenCalled();
+    });
+
+    it('pushes "has already been resulted" message and does not navigate when all selected are resulted', () => {
+      const router = TestBed.inject(Router);
+      const navSpy = jest.spyOn(router, 'navigate');
+
+      component.selectedRows = [
+        {
+          sequenceNumber: 1,
+          applicant: 'A',
+          respondent: 'R',
+          title: 'T1',
+          resulted: 'Yes',
+        },
+      ] as Row[];
+
+      component.onResultButtonClick();
+
+      expect(component.unpopField).toHaveLength(1);
+      expect(component.unpopField[0].text).toEqual(
+        'This application has already been resulted.',
+      );
+      expect(navSpy).not.toHaveBeenCalled();
+    });
+
+    it('navigates with mixedResultedAndUnresultedApplications = true for mixed selection', () => {
+      const router = TestBed.inject(Router);
+      const navSpy = jest.spyOn(router, 'navigate');
+
+      component.selectedRows = [
+        {
+          sequenceNumber: 1,
+          applicant: 'A',
+          respondent: 'R',
+          title: 'T1',
+          resulted: 'Yes',
+        },
+        {
+          sequenceNumber: 2,
+          applicant: 'B',
+          respondent: 'S',
+          title: 'T2',
+          resulted: 'No',
+        },
+      ] as Row[];
+
+      component.onResultButtonClick();
+
+      expect(navSpy).toHaveBeenCalledTimes(1);
+
+      const expectedResultingApplications = [
+        {
+          sequenceNumber: 2,
+          applicant: 'B',
+          respondent: 'S',
+          title: 'T2',
+        },
+      ];
+
+      expect(navSpy).toHaveBeenCalledWith(
+        ['result-selected'],
+        expect.objectContaining({
+          state: {
+            resultingApplications: expectedResultingApplications,
+            mixedResultedAndUnresultedApplications: true,
+          },
+        }),
+      );
+    });
+
+    it('navigates with mixedResultedAndUnresultedApplications = false when all unresulted', () => {
+      const router = TestBed.inject(Router);
+      const navSpy = jest.spyOn(router, 'navigate');
+
+      component.selectedRows = [
+        {
+          sequenceNumber: 10,
+          applicant: 'X',
+          respondent: 'Y',
+          title: 'Alpha',
+          resulted: 'No',
+        },
+        {
+          sequenceNumber: 11,
+          applicant: 'Z',
+          respondent: 'W',
+          title: 'Beta',
+          resulted: 'No',
+        },
+      ] as Row[];
+
+      component.onResultButtonClick();
+
+      expect(navSpy).toHaveBeenCalledTimes(1);
+
+      const expectedResultingApplications = [
+        { sequenceNumber: 10, applicant: 'X', respondent: 'Y', title: 'Alpha' },
+        { sequenceNumber: 11, applicant: 'Z', respondent: 'W', title: 'Beta' },
+      ];
+
+      expect(navSpy).toHaveBeenCalledWith(
+        ['result-selected'],
+        expect.objectContaining({
+          state: {
+            resultingApplications: expectedResultingApplications,
+            mixedResultedAndUnresultedApplications: false,
+          },
+        }),
+      );
+    });
   });
 });

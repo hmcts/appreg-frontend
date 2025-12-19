@@ -60,11 +60,10 @@ export class ResultSelected implements OnInit {
     }
     this.rows =
       (history.state as { resultingApplications?: Row[] })
-        .resultingApplications ?? [];
-
+        ?.resultingApplications ?? [];
     this.mixedResultedAndUnresultedApplications =
       (history.state as { mixedResultedAndUnresultedApplications?: boolean })
-        .mixedResultedAndUnresultedApplications ?? false;
+        ?.mixedResultedAndUnresultedApplications ?? false;
   }
 
   onSearchChange(): void {

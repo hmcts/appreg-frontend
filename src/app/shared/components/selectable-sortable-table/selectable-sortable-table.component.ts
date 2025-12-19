@@ -34,7 +34,8 @@ export interface TableColumn {
   styleUrl: './selectable-sortable-table.component.scss',
 })
 export class SelectableSortableTableComponent
-  implements AfterViewInit, OnDestroy {
+  implements AfterViewInit, OnDestroy
+{
   @ContentChild('actionsTemplate', { read: TemplateRef })
   actionsTpl?: TemplateRef<unknown>;
 
@@ -65,7 +66,7 @@ export class SelectableSortableTableComponent
   constructor(
     @Inject(PLATFORM_ID) private readonly platformId: object,
     private readonly cdr: ChangeDetectorRef,
-  ) { }
+  ) {}
 
   ngAfterViewInit(): void {
     if (!isPlatformBrowser(this.platformId)) {
@@ -252,7 +253,7 @@ export class SelectableSortableTableComponent
     }
   }
 
-  private getSelectedRows(): Row[] {
+  getSelectedRows(): Row[] {
     const ids = Array.from(this.selectedIds);
     return ids
       .map((id) => (this.data ?? []).find((r) => this.getRowId(r) === id))

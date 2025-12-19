@@ -147,15 +147,22 @@ describe('SelectableSortableTableComponent (original template)', () => {
 
       const emitted: Set<string>[] = [];
       comp.selectedIdsChange.subscribe((s) => emitted.push(new Set(s)));
+      const rowsSpy = jest.spyOn(comp.selectedRowsChange, 'emit');
 
       comp.selectedIds = new Set(['x']);
       comp.toggleOne({ id: 'abc' } as Row, true);
       expect(Array.from(comp.selectedIds)).toEqual(['x', 'abc']);
       expect(Array.from(emitted[0])).toEqual(['x', 'abc']);
+      expect(rowsSpy).toHaveBeenCalledTimes(1);
+      expect(rowsSpy).toHaveBeenCalledWith([
+        { id: 'abc', name: 'Everest', elevation: 8848 },
+      ]);
 
       comp.toggleOne({ id: 'abc' } as Row, false);
       expect(Array.from(comp.selectedIds)).toEqual(['x']);
       expect(Array.from(emitted[1])).toEqual(['x']);
+      expect(rowsSpy).toHaveBeenCalledTimes(2);
+      expect(rowsSpy.mock.calls[1][0]).toEqual([]);
     });
 
     it('listens to DOM change events (checkbox → selection sync)', async () => {
@@ -290,6 +297,8 @@ describe('SelectableSortableTableComponent (original template)', () => {
       comp.data = [{ id: 'a' }, { id: 'b' }] as Row[];
       comp.selectedIds = new Set<string>(['x']);
 
+      const rowsSpy = jest.spyOn(comp.selectedRowsChange, 'emit');
+
       const emitted: Set<string>[] = [];
       comp.selectedIdsChange.subscribe((s) => emitted.push(new Set(s)));
 
@@ -297,9 +306,14 @@ describe('SelectableSortableTableComponent (original template)', () => {
       expect(new Set(comp.selectedIds)).toEqual(new Set(['x', 'a', 'b']));
       expect(new Set(emitted[0])).toEqual(new Set(['x', 'a', 'b']));
 
+      expect(rowsSpy).toHaveBeenCalledWith(
+        expect.arrayContaining([{ id: 'a' }, { id: 'b' }]),
+      );
+
       comp.toggleSelectAllVisible(false);
       expect(new Set(comp.selectedIds)).toEqual(new Set(['x']));
       expect(new Set(emitted[1])).toEqual(new Set(['x']));
+      expect(rowsSpy.mock.calls[1][0]).toEqual([]);
     });
   });
 
@@ -418,6 +432,25 @@ describe('SelectableSortableTableComponent (original template)', () => {
       });
 
       expect(() => comp.ngOnDestroy()).not.toThrow();
+    });
+  });
+
+  describe('getSelectedRows()', () => {
+    it('returns the currently selected rows', () => {
+      // selectedIds order: 'b' then 'a'
+      comp['selectedIds'] = new Set(['b', 'a']);
+      comp['data'] = [
+        { id: 'a', label: 'A' },
+        { id: 'b', label: 'B' },
+        { id: 'c', label: 'C' },
+      ];
+
+      const result = comp.getSelectedRows() as Row[];
+
+      expect(result).toEqual([
+        { id: 'b', label: 'B' },
+        { id: 'a', label: 'A' },
+      ]);
     });
   });
 });
