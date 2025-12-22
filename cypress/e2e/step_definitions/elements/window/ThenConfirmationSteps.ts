@@ -10,10 +10,16 @@ When('User Cancels The Confirmation Dialog', () => {
   ConfirmationHelper.dismissNextConfirm();
 });
 
-When('User Accepts The Confirmation Dialog With Message {string}', (message: string) => {
-  ConfirmationHelper.acceptNextConfirm(message);
-});
+When(
+  'User Accepts The Confirmation Dialog With Message {string}',
+  (message: string) => {
+    ConfirmationHelper.acceptNextConfirm(message);
+  },
+);
 
-When('User Cancels The Confirmation Dialog With Message {string}', (message: string) => {
-  ConfirmationHelper.dismissNextConfirm(message);
-});
+When(
+  'User Cancels The Confirmation Dialog With Message {string}',
+  (message: string) => {
+    ConfirmationHelper.dismissNextConfirm(message);
+  },
+);
