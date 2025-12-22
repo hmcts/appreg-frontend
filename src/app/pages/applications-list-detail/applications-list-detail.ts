@@ -313,8 +313,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
     if (this.unpopField.length) {
       this.updateInvalid = true;
-      this.errorHint = 'There is a problem...';
-
+      this.errorHint = 'There is a problem';
       return;
     }
 
