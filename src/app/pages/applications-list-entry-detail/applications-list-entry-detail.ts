@@ -10,6 +10,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { map } from 'rxjs';
 
 import { computeSuccessBanner, focusSuccessBanner } from './util/banners.util';
 import {
@@ -83,14 +84,6 @@ import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { ValidationResult } from '@util/validation';
 
 type ChildErrorSource = 'notes' | 'fee' | 'respondent';
-
-// type BuildFormErrorSummaryFn = (
-//   form: FormGroup,
-//   messages: ErrorMessageMap,
-//   options?: { nested?: { path: string; prefixId?: string }[] },
-// ) => ErrorItem[];
-
-// const bf = buildFormErrorSummary as unknown as BuildFormErrorSummaryFn;
 
 //Form validation messages should be set here
 const UPDATE_ENTRY_ERROR_MESSAGES = {
@@ -574,11 +567,11 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   private bindApplicantTypeChanges(): void {
     this.form.controls.applicantType.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((type) => {
-        // Defensive fallback (typed control should always have a value)
-        const t = type ?? 'person';
-
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        map((type): ApplicantType => type ?? 'person'),
+      )
+      .subscribe((t) => {
         this.formSubmitted = false;
         this.resetErrors();
 

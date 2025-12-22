@@ -215,7 +215,7 @@ export class ApplicationListEntryFormService {
     forms: ApplicationListEntryForms,
     selectedStandardApplicantCode?: string | null,
   ): EntryUpdateDto {
-    if (typeof selectedStandardApplicantCode !== 'undefined') {
+    if (selectedStandardApplicantCode !== undefined) {
       this.setStandardApplicantCode(forms, selectedStandardApplicantCode, {
         emitEvent: false,
       });
@@ -238,7 +238,7 @@ export class ApplicationListEntryFormService {
     forms: ApplicationListEntryForms,
     selectedStandardApplicantCode?: string | null,
   ): EntryCreateDto {
-    if (typeof selectedStandardApplicantCode !== 'undefined') {
+    if (selectedStandardApplicantCode !== undefined) {
       this.setStandardApplicantCode(forms, selectedStandardApplicantCode, {
         emitEvent: false,
       });
