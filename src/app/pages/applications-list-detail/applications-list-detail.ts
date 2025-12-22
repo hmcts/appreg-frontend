@@ -127,6 +127,7 @@ type selectedRow = {
     NotificationBannerComponent,
   ],
   templateUrl: './applications-list-detail.html',
+  styleUrls: ['./applications-list-detail.scss'],
 })
 export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   id!: string;

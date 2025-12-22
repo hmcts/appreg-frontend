@@ -51,7 +51,6 @@ export class ResultSelected implements OnInit {
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
-    // invalid listId then navigate to 404 page
     if (id) {
       this.listId = id;
     }

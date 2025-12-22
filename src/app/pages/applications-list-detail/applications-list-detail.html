@@ -106,12 +106,30 @@
         [columns]="columns"
         [data]="rows"
         idField="id"
-        [actionsButtonText]="'Result selected'"
-        (actionsButtonClick)="onResultButtonClick()"
         (selectedRowsChange)="onSelectedRowsChange($event)"
         [(selectedIds)]="selectedIds"
         appMojButtonMenu
       >
+        <caption
+          class="govuk-table__caption govuk-table__caption--m"
+          id="sortable-Lists"
+        >
+          <span class="table-caption__text"> Lists </span>
+
+          <span
+            class="table-caption__actions"
+            role="group"
+            aria-label="Table actions"
+          >
+            <button
+              type="button"
+              class="govuk-button govuk-button--primary govuk-button--small float-right"
+              (click)="onResultButtonClick()"
+            >
+              Result selected
+            </button>
+          </span>
+        </caption>
         <!-- actions slot -->
         <ng-template #actionsTemplate let-row>
           <div
