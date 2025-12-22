@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import { asArr, asObj, asStr, asStrOrNum } from '../../shared/util/data-utils';
+import { asArr, asObj, asStrOrNum } from '../../shared/util/data-utils';
 import {
   drawHr,
   drawTextBlock,
@@ -12,6 +12,8 @@ import {
   JsPDFLike,
   PdfList,
 } from '../../shared/util/types/pdf-service/pdf-types';
+
+import { trimToString } from '@util/string-helpers';
 
 @Injectable({ providedIn: 'root' })
 export class PdfService {
@@ -260,18 +262,19 @@ export class PdfService {
     const drawHeader = (): void => {
       pageNo += 1;
 
+      const HEADER_BOTTOM_PAD = 25;
+
+      const headerY = Math.round(M + TITLE_FS);
+
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(TITLE_FS);
-      doc.text('Check List Report', M, Math.round(M + TITLE_FS));
+      doc.text('Check List Report', M, headerY);
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(LABEL_FS + 1);
-      doc.text(`Page ${pageNo}`, pageW - M, Math.round(M + TITLE_FS), {
-        align: 'right',
-      });
+      doc.text(`Page ${pageNo}`, pageW - M, headerY, { align: 'right' });
 
-      // A bit of air below the header so the first row isn’t cramped.
-      y = Math.round(M + TITLE_FS + 18);
+      y = Math.round(headerY + HEADER_BOTTOM_PAD);
     };
 
     const ensureSpace = (needed: number): void => {
@@ -288,6 +291,7 @@ export class PdfService {
       rightLabel: string,
       rightValue: string,
       spacing = 14,
+      padY = 0, // inner vertical padding
     ): void => {
       doc.setFont('helvetica', 'bold');
       const leftLabelLines = toLines(doc, leftLabel, IN_LABEL_W);
@@ -309,32 +313,36 @@ export class PdfService {
         rightLabelLines.length * LABEL_LEADING,
         rightValLines.length * VALUE_LEADING,
       );
-      const blockH = Math.max(leftH, rightH);
+
+      const contentH = Math.max(leftH, rightH);
+      const blockH = contentH + padY * 2;
 
       ensureSpace(blockH);
 
+      const yy = Math.round(y + padY);
+
       // LEFT column
       doc.setFont('helvetica', 'bold');
-      drawTextBlock(doc, leftLabelLines, COL1_X, y, LABEL_FS, LABEL_LEADING);
+      drawTextBlock(doc, leftLabelLines, COL1_X, yy, LABEL_FS, LABEL_LEADING);
       doc.setFont('helvetica', 'normal');
       drawTextBlock(
         doc,
         leftValLines,
         COL1_X + IN_LABEL_W + IN_GAP,
-        y,
+        yy,
         VALUE_FS,
         VALUE_LEADING,
       );
 
       // RIGHT column
       doc.setFont('helvetica', 'bold');
-      drawTextBlock(doc, rightLabelLines, COL2_X, y, LABEL_FS, LABEL_LEADING);
+      drawTextBlock(doc, rightLabelLines, COL2_X, yy, LABEL_FS, LABEL_LEADING);
       doc.setFont('helvetica', 'normal');
       drawTextBlock(
         doc,
         rightValLines,
         COL2_X + IN_LABEL_W + IN_GAP,
-        y,
+        yy,
         VALUE_FS,
         VALUE_LEADING,
       );
@@ -395,7 +403,7 @@ export class PdfService {
         y = Math.round(y + 14);
       }
 
-      drawTwoColRow(leftLabels, leftValues, 'Location', location, 18);
+      drawTwoColRow(leftLabels, leftValues, 'Location', location, 18, 6);
 
       for (const e of data.entries) {
         entryIndex += 1;
@@ -467,18 +475,20 @@ export class PdfService {
     const id = asStrOrNum(root['id']);
 
     const listDate =
-      asStr(root['date']) ||
-      asStr(root['listDate']) ||
-      asStr(root['hearingDate']);
+      trimToString(root['date']) ||
+      trimToString(root['listDate']) ||
+      trimToString(root['hearingDate']);
 
-    const listTime = asStr(root['time']) || asStr(root['listTime']);
+    const listTime =
+      trimToString(root['time']) || trimToString(root['listTime']);
 
-    const courtName = asStr(root['courtName']) || asStr(root['court']);
+    const courtName =
+      trimToString(root['courtName']) || trimToString(root['court']);
 
     const location =
-      asStr(root['otherLocationDescription']) ||
-      asStr(root['location']) ||
-      asStr(root['courthouse']);
+      trimToString(root['otherLocationDescription']) ||
+      trimToString(root['location']) ||
+      trimToString(root['courthouse']);
 
     const srcEntries = asArr(root['entries']);
 
@@ -489,32 +499,33 @@ export class PdfService {
       const respondent = this.formatParty(x['respondent']);
 
       // Fallback to "code" if applicationCode is absent (bugfix).
-      const applicationCode = asStr(x['applicationCode']) || asStr(x['code']);
+      const applicationCode =
+        trimToString(x['applicationCode']) || trimToString(x['code']);
 
-      const applicationTitle = asStr(x['applicationTitle']);
-      const applicationWording = asStr(x['applicationWording']);
+      const applicationTitle = trimToString(x['applicationTitle']);
+      const applicationWording = trimToString(x['applicationWording']);
 
       const caseReference =
-        asStr(x['caseReference']) ||
-        asStr(x['caseRef']) ||
-        asStr(x['caseNumber']);
+        trimToString(x['caseReference']) ||
+        trimToString(x['caseRef']) ||
+        trimToString(x['caseNumber']);
 
       const accountReference =
-        asStr(x['accountReference']) ||
-        asStr(x['accountRef']) ||
-        asStr(x['accountNumber']);
+        trimToString(x['accountReference']) ||
+        trimToString(x['accountRef']) ||
+        trimToString(x['accountNumber']);
 
       const applicationDescription = applicationTitle || '';
       const matter = applicationWording || applicationCode;
-      const notes = asStr(x['notes']);
+      const notes = trimToString(x['notes']);
 
       const result = asArr(x['resultWordings'])
-        .map((v) => asStr(v))
+        .map((v) => trimToString(v))
         .filter(Boolean)
         .join(' ');
 
       const judge = asArr(x['officials'])
-        .map((v) => asStr(v))
+        .map((v) => trimToString(v))
         .filter(Boolean)
         .join(', ');
 
@@ -546,6 +557,15 @@ export class PdfService {
     }
 
     const person = asObj(root['person']);
+    const org = asObj(root['organisation']);
+    const dob = this.cleanPart(root['dateOfBirth']);
+
+    const contactDetails =
+      (org ? org['contactDetails'] : undefined) ??
+      (person ? person['contactDetails'] : undefined);
+
+    const address = this.formatContactDetails(contactDetails, dob);
+
     if (person) {
       const name = asObj(person['name']) ?? asObj(person['full-name']) ?? {};
       // Assemble the usual suspects; trim out placeholder tokens.
@@ -559,12 +579,86 @@ export class PdfService {
 
       const full = parts.join(' ').trim();
       if (full) {
-        return full;
+        return address ? `${full}\n${address}` : full;
       }
     }
 
-    const org = asObj(root['organisation']);
-    return this.cleanPart(org?.['name']);
+    const orgName = this.cleanPart(org?.['name']);
+    if (orgName) {
+      return address ? `${orgName}\n${address}` : orgName;
+    }
+
+    return address;
+  }
+
+  private formatContactDetails(cd: unknown, dob?: string): string {
+    const cdObj = asObj(cd);
+    const addrObj = cdObj ? (asObj(cdObj['address']) ?? cdObj) : null;
+
+    const addressParts: string[] = addrObj
+      ? [
+          this.cleanPart(
+            addrObj['addressLine1'] ?? addrObj['line1'] ?? addrObj['address1'],
+          ),
+          this.cleanPart(
+            addrObj['addressLine2'] ?? addrObj['line2'] ?? addrObj['address2'],
+          ),
+          this.cleanPart(
+            addrObj['addressLine3'] ?? addrObj['line3'] ?? addrObj['address3'],
+          ),
+          this.cleanPart(
+            addrObj['town'] ?? addrObj['townOrCity'] ?? addrObj['city'],
+          ),
+          this.cleanPart(addrObj['county']),
+          this.cleanPart(addrObj['postcode'] ?? addrObj['postCode']),
+        ].filter((s) => s.length > 0)
+      : [];
+
+    const addressLine = addressParts.join(', ');
+
+    const email = cdObj
+      ? this.cleanPart(
+          cdObj['emailAddress'] ?? cdObj['email'] ?? cdObj['email_address'],
+        )
+      : '';
+    const phone = cdObj
+      ? this.cleanPart(
+          cdObj['phoneNumber'] ??
+            cdObj['telephoneNumber'] ??
+            cdObj['phone'] ??
+            cdObj['telephone'],
+        )
+      : '';
+    const mobile = cdObj
+      ? this.cleanPart(
+          cdObj['mobileNumber'] ??
+            cdObj['mobilePhoneNumber'] ??
+            cdObj['mobile'],
+        )
+      : '';
+
+    const contactLines: string[] = [];
+
+    if (dob) {
+      contactLines.push(`Date Of Birth: ${dob}`);
+    }
+    if (email) {
+      contactLines.push(`Email: ${email}`);
+    }
+    if (phone) {
+      contactLines.push(`Phone: ${phone}`);
+    }
+    if (mobile) {
+      contactLines.push(`Mobile: ${mobile}`);
+    }
+
+    if (!addressLine) {
+      return contactLines.join('\n');
+    }
+
+    return contactLines.length > 0
+      ? `${addressLine}\n${contactLines.join('\n')}`
+      : addressLine;
   }
 
   /** Treat common placeholder tokens as empty; trim/collapse spaces. */
@@ -656,7 +750,7 @@ export class PdfService {
     return raw
       .split(/\s+/)
       .join(' ')
-      .replace(/[^\w\s-]+/g, '')
+      .replaceAll(/[^\w\s-]+/g, '')
       .trim()
       .split(/\s+/)
       .join('-')

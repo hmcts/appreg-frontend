@@ -16,11 +16,35 @@
             "secondForename": null,
             "thirdForename": null
           },
-          "contactDetails": null
+          "contactDetails": {
+            "address": {
+              "addressLine1": "CPS North West Area",
+              "addressLine2": "2nd Floor, City Tower",
+              "addressLine3": "Piccadilly Plaza",
+              "townOrCity": "Manchester",
+              "county": "Greater Manchester",
+              "postcode": "M1 4BT",
+              "country": "United Kingdom"
+            },
+            "email": "northwest.cps@example.gov.uk",
+            "phone": "0161 000 0001"
+          }
         },
         "organisation": {
           "name": "CPS",
-          "contactDetails": null
+          "contactDetails": {
+            "address": {
+              "addressLine1": "Crown Prosecution Service",
+              "addressLine2": "North West Area Office",
+              "addressLine3": "1 St Peter's Square",
+              "townOrCity": "Manchester",
+              "county": "Greater Manchester",
+              "postcode": "M2 3AE",
+              "country": "United Kingdom"
+            },
+            "email": "cps.nw.office@example.gov.uk",
+            "phone": "0161 000 0101"
+          }
         }
       },
       "respondent": {
@@ -43,9 +67,7 @@
       "applicationCode": "AP00001",
       "applicationTitle": "Application entry 1",
       "applicationWording": "Application entry for sequence 1",
-      "resultWordings": [
-        "Adjourned"
-      ],
+      "resultWordings": ["Adjourned"],
       "officials": [],
       "caseReference": "CASE2025-11-17-01",
       "accountReference": "ACC000001",
@@ -77,9 +99,21 @@
             "secondForename": null,
             "thirdForename": null
           },
-          "contactDetails": null
+          "contactDetails": {
+            "address": {
+              "addressLine1": "22 Deansgate",
+              "addressLine2": "Apartment 12",
+              "addressLine3": null,
+              "townOrCity": "Manchester",
+              "county": "Greater Manchester",
+              "postcode": "M3 2FW",
+              "country": "United Kingdom"
+            },
+            "email": "jane.doe@example.com",
+            "phone": "07700 900202"
+          }
         },
-        "dateOfBirth": null,
+        "dateOfBirth": "1111-11-17",
         "organisation": {
           "name": null,
           "contactDetails": null
@@ -88,9 +122,7 @@
       "applicationCode": "AP00002",
       "applicationTitle": "Application entry 2",
       "applicationWording": "Application entry for sequence 2",
-      "resultWordings": [
-        "Heard"
-      ],
+      "resultWordings": ["Heard"],
       "officials": [],
       "caseReference": "CASE2025-11-17-02",
       "accountReference": "ACC000002",

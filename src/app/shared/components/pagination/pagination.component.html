@@ -30,7 +30,7 @@
 
   <!-- Page numbers -->
   <ul class="govuk-pagination__list">
-    @for (item of pageList; track item) {
+    @for (item of pageList; track item === '…' ? 'ellipsis-' + $index : item) {
       @if (item === '…') {
         <li
           class="govuk-pagination__item govuk-pagination__item--ellipses"
