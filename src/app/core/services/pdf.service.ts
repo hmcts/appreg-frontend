@@ -1,19 +1,15 @@
 import { Injectable } from '@angular/core';
 
-import { asArr, asObj, asStrOrNum } from '../../shared/util/data-utils';
+import { asArr, asObj, asStrOrNum } from '@util/data-utils';
 import {
   drawHr,
   drawTextBlock,
   extractDuration as extractDurationFromDto,
   toLines,
-} from '../../shared/util/pdf-utils';
-import { normaliseTime } from '../../shared/util/time-helpers';
-import {
-  JsPDFLike,
-  PdfList,
-} from '../../shared/util/types/pdf-service/pdf-types';
-
+} from '@util/pdf-utils';
 import { trimToString } from '@util/string-helpers';
+import { normaliseTime } from '@util/time-helpers';
+import { JsPDFLike, PdfList } from '@util/types/pdf-service/pdf-types';
 
 @Injectable({ providedIn: 'root' })
 export class PdfService {
@@ -219,6 +215,7 @@ export class PdfService {
    * Uses a two-column grid; labels are short and values wrap.
    */
   async generateContinuousApplicationListsPdf(dtos: unknown[]): Promise<void> {
+    // TODO: Move font + layout consts out to a shared space.
     const dataArr = dtos.map((d) => this.normalise(d));
 
     const jsPDFMod = await import('jspdf');
