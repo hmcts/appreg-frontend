@@ -8,7 +8,7 @@ import {
   inject,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import { computeSuccessBanner, focusSuccessBanner } from './util/banners.util';
@@ -77,31 +77,33 @@ import {
   focusErrorSummary,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '@util/error-click';
-import { ErrorMessageMap, buildFormErrorSummary } from '@util/error-summary';
+import { buildFormErrorSummary } from '@util/error-summary';
 import { markFormGroupClean, readText } from '@util/form-helpers';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { ValidationResult } from '@util/validation';
 
 type ChildErrorSource = 'notes' | 'fee' | 'respondent';
 
-type BuildFormErrorSummaryFn = (
-  form: FormGroup,
-  messages: ErrorMessageMap,
-  options?: { nested?: { path: string; prefixId?: string }[] },
-) => ErrorItem[];
+// type BuildFormErrorSummaryFn = (
+//   form: FormGroup,
+//   messages: ErrorMessageMap,
+//   options?: { nested?: { path: string; prefixId?: string }[] },
+// ) => ErrorItem[];
 
-const bf = buildFormErrorSummary as unknown as BuildFormErrorSummaryFn;
+// const bf = buildFormErrorSummary as unknown as BuildFormErrorSummaryFn;
 
 //Form validation messages should be set here
 const UPDATE_ENTRY_ERROR_MESSAGES = {
   standardApplicantCode: {
-    required: {
-      text: 'Select a standard applicant',
-      href: '#standard-applicant',
-    },
+    required: 'Select a standard applicant',
   },
   ...ENTRY_ERROR_MESSAGES,
 };
+
+export const ERROR_HREFS = {
+  standardApplicantCode: '#standard-applicant',
+} as const;
+
 @Component({
   selector: 'app-applications-list-entry-detail',
   standalone: true,
@@ -305,8 +307,9 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   private buildErrorSummary(): ErrorItem[] {
-    return bf(this.form, UPDATE_ENTRY_ERROR_MESSAGES, {
+    return buildFormErrorSummary(this.form, UPDATE_ENTRY_ERROR_MESSAGES, {
       nested: [{ path: 'applicationNotes', prefixId: 'applicationNotes' }],
+      hrefs: ERROR_HREFS,
     });
   }
 
@@ -374,15 +377,6 @@ export class ApplicationsListEntryDetail implements OnInit {
       //Standard application code validation now handled in Angular form custom validator
       // (standardApplicantCodeConditionalRequired)
       //The above validation blocks should also follow this pattern
-
-      default: {
-        this.errorFound = true;
-        this.summaryErrors = [
-          { text: 'Select an applicant type', href: '#applicant-type' },
-        ];
-        focusErrorSummary(this.platformId);
-        return;
-      }
     }
 
     // Ensure we have listId, entryId and a loaded server snapshot
