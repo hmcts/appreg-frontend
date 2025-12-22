@@ -326,21 +326,6 @@ describe('ApplicationsListDetail', () => {
   });
 
   describe('onResultButtonClick', () => {
-    it('pushes message and does not navigate when no applications selected', () => {
-      const router = TestBed.inject(Router);
-      const navSpy = jest.spyOn(router, 'navigate');
-
-      component.selectedRows = [] as Row[];
-
-      component.onResultButtonClick();
-
-      expect(component.unpopField).toHaveLength(1);
-      expect(component.unpopField[0].text).toEqual(
-        'No applications selected. Please select at least one application to result.',
-      );
-      expect(navSpy).not.toHaveBeenCalled();
-    });
-
     it('pushes "already been resulted" message and does not navigate when all selected are resulted', () => {
       const router = TestBed.inject(Router);
       const navSpy = jest.spyOn(router, 'navigate');

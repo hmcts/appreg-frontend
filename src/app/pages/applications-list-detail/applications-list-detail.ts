@@ -175,6 +175,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     { header: 'Actions', field: 'actions', sortable: false },
   ];
 
+  RESULT_ERROR_MESSAGES = {
+    singleResulted: 'This application has already been resulted.',
+    allResulted: 'These applications have already been resulted.',
+  };
+
   rows: {
     id: string;
     sequenceNumber: number;
@@ -320,18 +325,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     let mixedResultedAndUnresultedApplications!: boolean;
     this.unpopField = [];
 
-    if (this.selectedRows.length === 0) {
-      this.unpopField.push({
-        text: 'No applications selected. Please select at least one application to result.',
-      });
-      return;
-    }
-
     if (unResultedApplications.length === 0) {
       const message =
         resultedApplications.length === 1
-          ? 'This application has already been resulted.'
-          : 'These applications have already been resulted.';
+          ? this.RESULT_ERROR_MESSAGES.singleResulted
+          : this.RESULT_ERROR_MESSAGES.allResulted;
 
       this.unpopField.push({ text: message });
       return;

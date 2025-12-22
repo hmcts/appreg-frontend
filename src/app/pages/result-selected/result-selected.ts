@@ -2,9 +2,8 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
-import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
-import { SearchBoxComponent } from '../../shared/components/search-box/search-box.component';
-
+import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
+import { SearchBoxComponent } from '@components/search-box/search-box.component';
 import { ColumnDef, TableComponent } from '@components/table/table.component';
 import { WarningBannerComponent } from '@components/warning-banner/warning-banner.component';
 
