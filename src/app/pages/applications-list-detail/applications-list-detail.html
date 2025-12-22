@@ -124,6 +124,7 @@
             <button
               type="button"
               class="govuk-button govuk-button--primary govuk-button--small float-right"
+              [disabled]="selectedRows.length === 0"
               (click)="onResultButtonClick()"
             >
               Result selected
