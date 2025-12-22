@@ -1,9 +1,10 @@
-import { buildEntryCreateDto } from '@entry-create-util/entry-create-mapper';
 import {
   ApplicationsListEntryCreateFormValue,
   OrganisationFormValue,
   PersonFormValue,
 } from '@shared-types/applications-list-entry-create/application-list-entry-create-form';
+
+import { buildEntryCreateDto } from '@entry-create-util/entry-create-mapper';
 
 function roundTrip<T extends object>(o: T): T {
   // Strip class prototypes etc so we can do clean object assertions

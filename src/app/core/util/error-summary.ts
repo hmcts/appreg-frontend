@@ -1,53 +1,49 @@
 import { AbstractControl, FormGroup } from '@angular/forms';
 
 import { ErrorItem } from '@components/error-summary/error-summary.component';
+import {
+  BuildFormErrorSummaryFn,
+  BuildFormErrorSummaryOptions,
+} from '@core-types/error/form-error-messages.type';
 
 export type ErrorMessageMap = Record<string, Record<string, string>>;
+export type ErrorHrefsMap = Record<string, string>;
 
-export type BuildFormErrorSummaryFn = (
-  form: FormGroup,
-  messages: ErrorMessageMap,
-  options?: { nested?: { path: string; prefixId?: string }[] },
-) => ErrorItem[];
-
-// Implementation kept private
 function buildFormErrorSummaryImpl(
   form: FormGroup,
   messages: ErrorMessageMap,
-  options?: { nested?: { path: string; prefixId?: string }[] },
+  options?: BuildFormErrorSummaryOptions,
 ): ErrorItem[] {
   const errors: ErrorItem[] = [];
+  const hrefs = options?.hrefs ?? {};
 
-  const controls = form.controls;
-  const controlNames = Object.keys(controls);
-
-  // Handle top-level controls
-  for (const name of controlNames) {
-    const control = controls[name];
-    addControlErrors(errors, control, name, messages, name);
+  // Top-level controls
+  for (const name of Object.keys(form.controls)) {
+    addControlErrors(errors, form.controls[name], name, messages, hrefs, name);
   }
 
-  // Handle nested form groups, e.g. applicationNotes.notes
+  // Nested groups (e.g. applicationNotes.*)
   options?.nested?.forEach(({ path }) => {
     const group = form.get(path);
     if (!(group instanceof FormGroup)) {
       return;
     }
 
-    const nestedControls = group.controls;
-    const nestedNames = Object.keys(nestedControls);
-
-    nestedNames.forEach((childName) => {
-      const ctrl = nestedControls[childName];
-      const id = childName;
-      addControlErrors(errors, ctrl, childName, messages, id);
-    });
+    for (const childName of Object.keys(group.controls)) {
+      addControlErrors(
+        errors,
+        group.controls[childName],
+        childName,
+        messages,
+        hrefs,
+        childName,
+      );
+    }
   });
 
   return errors;
 }
 
-// The exported, typed runtime value — consumers can call it without casts
 export const buildFormErrorSummary: BuildFormErrorSummaryFn =
   buildFormErrorSummaryImpl;
 
@@ -56,23 +52,27 @@ function addControlErrors(
   control: AbstractControl | null,
   controlName: string,
   messages: ErrorMessageMap,
+  hrefs: ErrorHrefsMap,
   id: string,
 ): void {
-  if (!control) {
+  if (!control?.errors) {
     return;
   }
 
-  const rawErrors = control.errors as Record<string, unknown> | null;
-  if (!rawErrors) {
-    return;
-  }
-
+  const rawErrors = control.errors as Record<string, unknown>;
   const map = messages[controlName] ?? {};
+  const href = hrefs[controlName];
+
   for (const key of Object.keys(rawErrors)) {
-    const message = map[key];
-    if (!message) {
+    const text = map[key];
+    if (!text) {
       continue;
     }
-    bucket.push({ id, text: message });
+
+    bucket.push({
+      id,
+      text,
+      href, // optional; undefined if none
+    });
   }
 }

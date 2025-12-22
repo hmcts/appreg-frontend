@@ -36,8 +36,8 @@ export const CIVIL_FEE_COLUMNS: TableColumn[] = [
 
 export const APPLICANT_TYPE_OPTIONS = [
   { value: 'person', label: 'Person' },
-  { value: 'organisation', label: 'Organisation' },
-  { value: 'standardApplicant', label: 'Standard Applicant' },
+  { value: 'org', label: 'Organisation' },
+  { value: 'standard', label: 'Standard Applicant' },
 ];
 
 export const RESPONDENT_TYPE_OPTIONS = [
