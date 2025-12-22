@@ -343,7 +343,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
 
     // Client-side validation per type
-    // TO DO:
+    // TODO:
     //This could be refactored, we should use Angular form validation if possible
     switch (this.applicantType) {
       case 'person': {
@@ -366,7 +366,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         break;
       }
 
-      //TO DO:
+      //TODO:
       //Standard application code validation now handled in Angular form custom validator
       // (standardApplicantCodeConditionalRequired)
       //The above validation blocks should also follow this pattern

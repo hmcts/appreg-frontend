@@ -156,7 +156,7 @@ export class ApplicationsListEntryCreate implements OnInit {
     const v = this.form.value;
     const appCode = toOptionalTrimmed(v.applicationCode);
 
-    //TO DO: This could probably be handled via Angular form validation
+    //TODO: This could probably be handled via Angular form validation
     // Custom rule: application code required
     if (!appCode) {
       const control = this.form.controls.applicationCode;

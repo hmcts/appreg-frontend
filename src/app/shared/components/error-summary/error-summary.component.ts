@@ -27,7 +27,7 @@ export class ErrorSummaryComponent implements AfterViewInit {
   /** Auto-focus the summary on render (recommended for a11y) */
   @Input() autoFocus = true;
   /** If you want to run custom logic (e.g. focus a form field), listen to this */
-  //TO DO: We should be able to simplify this by using fragment in the template, just ensure targetId matches component IDs
+  //TODO: We should be able to simplify this by using fragment in the template, just ensure targetId matches component IDs
   @Output() itemSelect = new EventEmitter<ErrorItem>();
 
   @ViewChild('summaryEl')
