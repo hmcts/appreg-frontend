@@ -4,11 +4,8 @@ import { ActivatedRoute } from '@angular/router';
 
 import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
 import { SearchBoxComponent } from '../../shared/components/search-box/search-box.component';
-import {
-  ColumnDef,
-  TableComponent,
-} from '../../shared/components/table/table.component';
 
+import { ColumnDef, TableComponent } from '@components/table/table.component';
 import { WarningBannerComponent } from '@components/warning-banner/warning-banner.component';
 
 type Row = {

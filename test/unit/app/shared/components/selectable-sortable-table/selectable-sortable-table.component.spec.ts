@@ -2,10 +2,8 @@ import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
-import {
-  SelectableSortableTableComponent,
-  TableColumn,
-} from '../../../../../../src/app/shared/components/selectable-sortable-table/selectable-sortable-table.component';
+import { SelectableSortableTableComponent } from '@components/selectable-sortable-table/selectable-sortable-table.component';
+import { TableColumn } from '@components/sortable-table/sortable-table.component';
 
 type Row = Record<string, unknown>;
 

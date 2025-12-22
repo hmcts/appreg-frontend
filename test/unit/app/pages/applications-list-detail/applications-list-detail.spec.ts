@@ -6,8 +6,9 @@ import { Router, provideRouter } from '@angular/router';
 import { Observable, of } from 'rxjs';
 
 import { ApplicationsListDetail } from '../../../../../src/app/pages/applications-list-detail/applications-list-detail';
-import { MojButtonMenu } from '../../../../../src/app/shared/util/moj-button-menu';
 import { ApplicationListsApi } from '../../../../../src/generated/openapi';
+
+import { MojButtonMenu } from '@util/moj-button-menu';
 
 /** Minimal typed shape of the API response our component uses */
 interface ApplicationListItemDto {

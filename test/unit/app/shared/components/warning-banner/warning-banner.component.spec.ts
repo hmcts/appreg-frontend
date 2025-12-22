@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { WarningBannerComponent } from '../../../../../../src/app/shared/components/warning-banner/warning-banner.component';
+import { WarningBannerComponent } from '@components/warning-banner/warning-banner.component';
 
 describe('WarningBannerComponent', () => {
   let component: WarningBannerComponent;

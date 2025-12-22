@@ -1,10 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import {
-  ActivatedRoute,
-  Navigation,
-  Router,
-  convertToParamMap,
-} from '@angular/router';
+import { ActivatedRoute, convertToParamMap } from '@angular/router';
 
 import { ResultSelected } from './../../../../../src/app/pages/result-selected/result-selected';
 
