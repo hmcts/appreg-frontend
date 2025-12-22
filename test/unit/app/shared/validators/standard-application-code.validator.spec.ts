@@ -1,8 +1,8 @@
 // standard-applicant-code.validator.spec.ts
 
 import { FormControl, FormGroup } from '@angular/forms';
-
 import { ApplicantType } from '@shared-types/applications-list-entry-create/application-list-entry-create-form';
+
 import { standardApplicantCodeConditionalRequired } from '@validators/standard-applicant-code.validator';
 
 describe('standardApplicantCodeConditionalRequired', () => {
