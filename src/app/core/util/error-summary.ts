@@ -1,20 +1,13 @@
 import { AbstractControl, FormGroup } from '@angular/forms';
 
 import { ErrorItem } from '@components/error-summary/error-summary.component';
+import {
+  BuildFormErrorSummaryFn,
+  BuildFormErrorSummaryOptions,
+} from '@core-types/error/form-error-messages.type';
 
 export type ErrorMessageMap = Record<string, Record<string, string>>;
 export type ErrorHrefsMap = Record<string, string>;
-
-export type BuildFormErrorSummaryOptions = {
-  nested?: { path: string; prefixId?: string }[];
-  hrefs?: ErrorHrefsMap;
-};
-
-export type BuildFormErrorSummaryFn = (
-  form: FormGroup,
-  messages: ErrorMessageMap,
-  options?: BuildFormErrorSummaryOptions,
-) => ErrorItem[];
 
 function buildFormErrorSummaryImpl(
   form: FormGroup,

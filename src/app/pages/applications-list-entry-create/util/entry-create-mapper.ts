@@ -12,7 +12,7 @@ import {
   ApplicationsListEntryFormValue,
   OrganisationFormValue,
   PersonFormValue,
-} from '@shared-types/applications-list-entry-create/application-list-entry-create-form';
+} from '@shared-types/applications-list-entry-create/application-list-entry-form';
 
 /**
  * Top-level builder: turns form values into an EntryCreateDto.

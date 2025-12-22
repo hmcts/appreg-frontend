@@ -24,7 +24,7 @@ import {
   PersonForm,
   PersonFormValue,
   RespondentEntryType,
-} from '@shared-types/applications-list-entry-create/application-list-entry-create-form';
+} from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import { trimToString, trimToUndefined } from '@util/string-helpers';
 import {
   ContactFormRaw,

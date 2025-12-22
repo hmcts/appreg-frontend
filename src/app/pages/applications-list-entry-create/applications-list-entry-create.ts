@@ -213,12 +213,4 @@ export class ApplicationsListEntryCreate implements OnInit {
   onCodeSelected(row: ApplicationCodeGetSummaryDto): void {
     this.form.patchValue({ applicationCode: row.applicationCode });
   }
-
-  // private buildEntryCreateDto(): EntryCreateDto {
-  //   return buildEntryCreateDto(
-  //     this.form.getRawValue(),
-  //     this.personForm.getRawValue(),
-  //     this.organisationForm.getRawValue(),
-  //   );
-  // }
 }

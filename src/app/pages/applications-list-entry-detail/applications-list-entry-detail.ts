@@ -1,3 +1,22 @@
+/*
+  Main component for /applications-list/:listId/entries/:entryId
+  Functionality:
+    On load:
+      - Reads list and entry IDs from the route/query params
+      - Fetches the entry details and initial application code metadata
+      - Builds and hydrates the entry detail form (codes, applicant, respondent, wording, fees, notes, officials)
+    Application code section:
+      - Searches application codes and maps results into the sortable table
+      - Updates the entry with the selected application code via full PUT and refreshes wording metadata
+    Applicant section:
+      - Supports Standard Applicant, Person and Organisation applicant types
+      - Validates applicant fields per type and updates only the applicant-related part of the entry using a full PUT
+      - Validation should be mostly handled via Angular form validation, with some custom validation logic for complex rules
+    Error and UX handling:
+      - Maps HTTP errors into GOV.UK-style error summary and hint state
+      - Manages success banners and scroll/focus behaviour for validation and server errors
+      - TODO: Eventually use generic components/services for banners & scroll/focus behavior
+*/
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   Component,
@@ -57,16 +76,14 @@ import {
   EntryUpdateDto,
   UpdateApplicationListEntryRequestParams,
 } from '@openapi';
-import {
-  ApplicationListEntryFormService,
-  ApplicationListEntryForms,
-} from '@services/application-list-entry-form.service';
+import { ApplicationListEntryFormService } from '@services/application-list-entry-form.service';
 import {
   ApplicantType,
+  ApplicationListEntryForms,
   ApplicationsListEntryForm,
   OrganisationForm,
   PersonForm,
-} from '@shared-types/applications-list-entry-create/application-list-entry-create-form';
+} from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import {
   CodeRow,
   fetchCodeDetail$,

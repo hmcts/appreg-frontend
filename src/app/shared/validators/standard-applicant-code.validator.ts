@@ -1,6 +1,6 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
-import { ApplicantType } from '@shared-types/applications-list-entry-create/application-list-entry-create-form';
+import { ApplicantType } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 
 export const standardApplicantCodeConditionalRequired: ValidatorFn = (
   control: AbstractControl,

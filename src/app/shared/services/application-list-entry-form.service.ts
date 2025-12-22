@@ -20,31 +20,24 @@ import {
 } from '@openapi';
 import {
   ApplicantType,
+  ApplicationListEntryForms,
   ApplicationsListEntryForm,
   ApplicationsListEntryFormValue,
-  OrganisationForm,
   OrganisationFormValue,
-  PersonForm,
   PersonFormValue,
-} from '@shared-types/applications-list-entry-create/application-list-entry-create-form';
+} from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import {
   createEmptyOrganisation,
   createEmptyPerson,
 } from '@util/applicant-helpers';
 import { markFormGroupClean } from '@util/form-helpers';
 
-export type ApplicationListEntryForms = {
-  form: ApplicationsListEntryForm;
-  personForm: PersonForm;
-  organisationForm: OrganisationForm;
-};
-
-export type HydrateOptions = {
+type HydrateOptions = {
   /** Default false: avoid triggering applicantType valueChanges etc. */
   emitEvent?: boolean;
 };
 
-export type HydrateResult = {
+type HydrateResult = {
   applicantType: ApplicantType;
   selectedStandardApplicantCode: string | null;
 };
