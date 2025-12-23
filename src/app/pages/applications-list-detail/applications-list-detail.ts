@@ -25,7 +25,6 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
-import { FormRaw } from '../../core/models/forms/forms.types';
 import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
 import { IF_MATCH } from '../../shared/context/concurrency-context';
 
@@ -50,6 +49,7 @@ import {
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { FormRaw } from '@core-types/forms/forms.types';
 import {
   ApplicationListGetDetailDto,
   ApplicationListStatus,

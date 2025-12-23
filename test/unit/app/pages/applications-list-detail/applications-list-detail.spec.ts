@@ -5,9 +5,8 @@ import { By } from '@angular/platform-browser';
 import { Router, provideRouter } from '@angular/router';
 import { Observable, of } from 'rxjs';
 
-import { ApplicationsListDetail } from '../../../../../src/app/pages/applications-list-detail/applications-list-detail';
-import { ApplicationListsApi } from '../../../../../src/generated/openapi';
-
+import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail';
+import { ApplicationListsApi } from '@openapi';
 import { MojButtonMenu } from '@util/moj-button-menu';
 
 /** Minimal typed shape of the API response our component uses */

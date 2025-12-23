@@ -1,8 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 
-import { ResultSelected } from './../../../../../src/app/pages/result-selected/result-selected';
-
+import { ResultSelected } from '@components/result-selected/result-selected';
 import { Row } from '@components/selectable-sortable-table/selectable-sortable-table.component';
 
 describe('ResultSelectedComponent', () => {
