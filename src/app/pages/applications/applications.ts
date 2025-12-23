@@ -9,26 +9,29 @@ import { RouterLink } from '@angular/router';
 import { Subject } from 'rxjs';
 
 import {
-  ApplicationListEntriesApi,
-  EntryGetFilterDto,
-  EntryGetSummaryDto,
-  GetEntriesRequestParams,
-} from '../../../generated/openapi';
-import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
-import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
+  hasAnyApplicationsEntrySearchParams,
+  loadApplicationsEntrySearchQuery,
+} from './util/query-helper';
+
+import { DateInputComponent } from '@components/date-input/date-input.component';
 import {
   ErrorItem,
   ErrorSummaryComponent,
-} from '../../shared/components/error-summary/error-summary.component';
-import { NotificationBannerComponent } from '../../shared/components/notification-banner/notification-banner.component';
-import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
-import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
-import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
-import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
-import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
-import { toStatus } from '../../shared/util/application-status-helpers';
-import { has } from '../../shared/util/has';
-import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
+} from '@components/error-summary/error-summary.component';
+import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
+import { PaginationComponent } from '@components/pagination/pagination.component';
+import { SelectInputComponent } from '@components/select-input/select-input.component';
+import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
+import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
+import { TextInputComponent } from '@components/text-input/text-input.component';
+import {
+  ApplicationListEntriesApi,
+  EntryGetSummaryDto,
+  GetEntriesRequestParams,
+} from '@openapi';
+import { ReferenceDataFacade } from '@services/reference-data.facade';
+import { ApplicationsSearchFormValue } from '@shared-types/applications/applications-form';
+import { PlaceFieldsBase } from '@util/place-fields.base';
 
 @Component({
   selector: 'app-applications',
@@ -115,11 +118,7 @@ export class Applications extends PlaceFieldsBase implements OnInit, OnDestroy {
     const btn = event.submitter as HTMLButtonElement | null;
     const action = btn?.value ?? 'search';
 
-    // Reset flag
-    this.searchErrors = [];
-    this.submitted = true;
-    this.isSearch = true;
-    this.rows = [];
+    this.resetFlags();
 
     if (action === 'search') {
       this.loadApplications();
@@ -147,7 +146,9 @@ export class Applications extends PlaceFieldsBase implements OnInit, OnDestroy {
     const params: GetEntriesRequestParams = {
       page: this.currentPage - 1,
       size: this.pageSize,
-      filter: this.loadQuery(),
+      filter: loadApplicationsEntrySearchQuery(
+        this.form.getRawValue() as ApplicationsSearchFormValue,
+      ),
     };
 
     this.isLoading = true;
@@ -175,83 +176,16 @@ export class Applications extends PlaceFieldsBase implements OnInit, OnDestroy {
     this.loadApplications(); // fetch page `page`
   }
 
-  // Helpers
-
-  private hasAnyParams(): boolean {
-    const v = this.form.getRawValue();
-
-    return (
-      has(v.date) ||
-      has(v.applicantOrg) ||
-      has(v.respondentOrg) ||
-      has(v.applicantSurname) ||
-      has(v.respondentSurname) ||
-      has(v.location) ||
-      has(v.standardApplicantCode) ||
-      has(v.respondentPostcode) ||
-      has(v.accountReference) ||
-      has(v.court) ||
-      has(v.cja) ||
-      has(v.status)
+  get searchDisabled(): boolean {
+    return !hasAnyApplicationsEntrySearchParams(
+      this.form.getRawValue() as ApplicationsSearchFormValue,
     );
   }
 
-  private loadQuery(): EntryGetFilterDto {
-    const v = this.form.getRawValue();
-    const filter: EntryGetFilterDto = {};
-
-    if (v.date?.trim()) {
-      filter.date = v.date.trim();
-    }
-
-    if (v.court?.trim()) {
-      filter.courtCode = v.court.trim();
-    }
-
-    if (v.location?.trim()) {
-      filter.otherLocationDescription = v.location.trim();
-    }
-
-    if (v.cja?.trim()) {
-      filter.cjaCode = v.cja.trim();
-    }
-
-    if (v.applicantOrg?.trim()) {
-      filter.applicantOrganisation = v.applicantOrg.trim();
-    }
-
-    if (v.applicantSurname?.trim()) {
-      filter.applicantSurname = v.applicantSurname.trim();
-    }
-
-    if (v.respondentOrg?.trim()) {
-      filter.respondentOrganisation = v.respondentOrg.trim();
-    }
-
-    if (v.respondentSurname?.trim()) {
-      filter.respondentSurname = v.respondentSurname.trim();
-    }
-
-    if (v.respondentPostcode?.trim()) {
-      filter.respondentPostcode = v.respondentPostcode.trim();
-    }
-
-    if (v.standardApplicantCode?.trim()) {
-      filter.standardApplicantCode = v.standardApplicantCode.trim();
-    }
-
-    if (v.accountReference?.trim()) {
-      filter.accountReference = v.accountReference.trim();
-    }
-
-    if (v.status) {
-      filter.status = toStatus(v.status);
-    }
-
-    return filter;
-  }
-
-  get searchDisabled(): boolean {
-    return !this.hasAnyParams();
+  private resetFlags() {
+    this.searchErrors = [];
+    this.submitted = true;
+    this.isSearch = true;
+    this.rows = [];
   }
 }
