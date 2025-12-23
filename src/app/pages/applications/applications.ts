@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -49,6 +49,9 @@ import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
   templateUrl: './applications.html',
 })
 export class Applications extends PlaceFieldsBase implements OnInit, OnDestroy {
+  private readonly refFacade = inject(ReferenceDataFacade);
+  private readonly appListApi = inject(ApplicationListEntriesApi);
+
   private readonly destroy$ = new Subject<void>();
 
   isLoading: boolean = false;
@@ -97,13 +100,6 @@ export class Applications extends PlaceFieldsBase implements OnInit, OnDestroy {
     { label: 'Open', value: 'open' },
     { label: 'Closed', value: 'closed' },
   ];
-
-  constructor(
-    private readonly refFacade: ReferenceDataFacade,
-    private readonly appListApi: ApplicationListEntriesApi,
-  ) {
-    super();
-  }
 
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refFacade);
