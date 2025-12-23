@@ -12,6 +12,7 @@ import {
   hasAnyApplicationsEntrySearchParams,
   loadApplicationsEntrySearchQuery,
 } from './util/query-helper';
+import { mapEntrySummaryDtoToApplicationRow } from './util/row-helpers';
 
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import {
@@ -30,7 +31,8 @@ import {
   GetEntriesRequestParams,
 } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
-import { ApplicationsSearchFormValue } from '@shared-types/applications/applications-form';
+import { ApplicationRow, ApplicationsSearchFormValue } from '@shared-types/applications/applications-form';
+import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 
 @Component({
@@ -48,6 +50,7 @@ import { PlaceFieldsBase } from '@util/place-fields.base';
     SuggestionsComponent,
     ErrorSummaryComponent,
     NotificationBannerComponent,
+    MojButtonMenuDirective
   ],
   templateUrl: './applications.html',
 })
@@ -66,6 +69,7 @@ export class Applications extends PlaceFieldsBase implements OnInit, OnDestroy {
   errorSummary: ErrorItem[] = [];
 
   rows: EntryGetSummaryDto[] = [];
+  tableRows: ApplicationRow[] = [];
 
   override form = new FormGroup({
     date: new FormControl<string | null>(null),
@@ -158,6 +162,7 @@ export class Applications extends PlaceFieldsBase implements OnInit, OnDestroy {
       .subscribe({
         next: (page) => {
           this.rows = page?.content ?? [];
+          this.tableRows = this.rows.map((r) => mapEntrySummaryDtoToApplicationRow(r));
           this.totalPages = page?.totalPages ?? 1;
           this.isLoading = false;
         },

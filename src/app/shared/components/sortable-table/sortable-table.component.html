@@ -19,7 +19,6 @@
           scope="col"
           class="govuk-table__header"
           [class.govuk-table__header--numeric]="col.numeric"
-          [class.app-sortable-table__cell--wrap]="!col.numeric"
           [attr.aria-sort]="
             col.sortable !== false ? (col.defaultSort ?? 'none') : null
           "
@@ -39,7 +38,7 @@
               scope="row"
               class="govuk-table__header"
               [class.govuk-table__cell--numeric]="col.numeric"
-              [class.app-sortable-table__cell--wrap]="!col.numeric"
+              [class.app-sortable-table__cell--wrap]="!col.numeric && col.field !== 'actions'"
               [attr.data-sort-value]="
                 col.sortable !== false ? getSortValue(row, col) : null
               "
@@ -50,7 +49,7 @@
             <td
               class="govuk-table__cell"
               [class.govuk-table__cell--numeric]="col.numeric"
-              [class.app-sortable-table__cell--wrap]="!col.numeric"
+              [class.app-sortable-table__cell--wrap]="!col.numeric && col.field !== 'actions'" 
               [attr.data-sort-value]="
                 col.sortable !== false ? getSortValue(row, col) : null
               "

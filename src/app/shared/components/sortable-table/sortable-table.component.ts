@@ -11,7 +11,7 @@ import {
   ViewChild,
 } from '@angular/core';
 
-type RowLike = Record<string, unknown>;
+export type RowLike = Record<string, unknown>;
 
 /** The column contract for this table */
 export type TableColumn = {
