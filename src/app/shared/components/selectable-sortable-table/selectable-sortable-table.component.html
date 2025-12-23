@@ -3,14 +3,7 @@
   class="govuk-table"
   [attr.aria-describedby]="'sortable-' + caption"
 >
-  <caption
-    class="govuk-table__caption govuk-table__caption--m"
-    id="sortable-{{ caption }}"
-  >
-    {{
-      caption
-    }}
-  </caption>
+  <ng-content select="caption"></ng-content>
 
   <thead class="govuk-table__head">
     <tr class="govuk-table__row">

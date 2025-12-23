@@ -25,52 +25,53 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
+import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
+import { IF_MATCH } from '../../shared/context/concurrency-context';
+
+import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
+import { DateInputComponent } from '@components/date-input/date-input.component';
+import {
+  Duration,
+  DurationInputComponent,
+} from '@components/duration-input/duration-input.component';
+import {
+  ErrorItem,
+  ErrorSummaryComponent,
+} from '@components/error-summary/error-summary.component';
+import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
+import { PageHeaderComponent } from '@components/page-header/page-header.component';
+import { PaginationComponent } from '@components/pagination/pagination.component';
+import { SelectInputComponent } from '@components/select-input/select-input.component';
+import {
+  Row,
+  SelectableSortableTableComponent,
+} from '@components/selectable-sortable-table/selectable-sortable-table.component';
+import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
+import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
+import { TextInputComponent } from '@components/text-input/text-input.component';
+import { FormRaw } from '@core-types/forms/forms.types';
 import {
   ApplicationListGetDetailDto,
   ApplicationListStatus,
   ApplicationListUpdateDto,
   ApplicationListsApi,
-} from '../../../generated/openapi';
-import { FormRaw } from '../../core/models/forms/forms.types';
-import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
-import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
-import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
-import {
-  Duration,
-  DurationInputComponent,
-} from '../../shared/components/duration-input/duration-input.component';
-import {
-  ErrorItem,
-  ErrorSummaryComponent,
-} from '../../shared/components/error-summary/error-summary.component';
-import { NotificationBannerComponent } from '../../shared/components/notification-banner/notification-banner.component';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
-import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
-import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
-import { SelectableSortableTableComponent } from '../../shared/components/selectable-sortable-table/selectable-sortable-table.component';
-import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
-import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
-import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
-import { IF_MATCH } from '../../shared/context/concurrency-context';
-import { buildNormalizedPayload } from '../../shared/util/build-payload';
-import { collectMissing } from '../../shared/util/collect-missing';
+} from '@openapi';
+import { buildNormalizedPayload } from '@util/build-payload';
+import { collectMissing } from '@util/collect-missing';
 import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
-} from '../../shared/util/error-click';
-import { getProblemText } from '../../shared/util/http-error-to-text';
-import { validateCourtVsLocOrCja } from '../../shared/util/location-suggestion-helpers';
-import {
-  MojButtonMenu,
-  MojButtonMenuDirective,
-} from '../../shared/util/moj-button-menu';
-import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
-import { parseTimeToDuration } from '../../shared/util/time-helpers';
+} from '@util/error-click';
+import { getProblemText } from '@util/http-error-to-text';
+import { validateCourtVsLocOrCja } from '@util/location-suggestion-helpers';
+import { MojButtonMenu, MojButtonMenuDirective } from '@util/moj-button-menu';
+import { PlaceFieldsBase } from '@util/place-fields.base';
+import { parseTimeToDuration } from '@util/time-helpers';
 import {
   DateControlErrors,
   DurationControlErrors,
   TimeControlErrors,
-} from '../../shared/util/types/applications-list-entry/types';
+} from '@util/types/applications-list-entry/types';
 
 type DetailFormRaw = Omit<
   FormRaw<ApplicationListStatus>,
@@ -90,6 +91,18 @@ type Handoff = {
   location: string;
   etag: string | null;
   version: number;
+};
+
+type selectedRow = {
+  id: string;
+  sequenceNumber: number;
+  accountNumber: string | null;
+  applicant: string | null;
+  respondent: string | null;
+  postCode: string | null;
+  title: string;
+  feeReq: 'Yes' | 'No';
+  resulted: 'Yes' | 'No';
 };
 
 @Component({
@@ -114,6 +127,7 @@ type Handoff = {
     NotificationBannerComponent,
   ],
   templateUrl: './applications-list-detail.html',
+  styleUrls: ['./applications-list-detail.scss'],
 })
 export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   id!: string;
@@ -125,6 +139,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   pageSize = 10;
 
   selectedIds = new Set<string>();
+  selectedRows: Row[] = [];
 
   isLoading = true;
   private hasPrefilledFromApi = false;
@@ -159,6 +174,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     { header: 'Resulted', field: 'resulted' },
     { header: 'Actions', field: 'actions', sortable: false },
   ];
+
+  RESULT_ERROR_MESSAGES = {
+    singleResulted: 'This application has already been resulted.',
+    allResulted: 'These applications have already been resulted.',
+  };
 
   rows: {
     id: string;
@@ -292,6 +312,50 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           this.selectedIds.clear();
         },
       });
+  }
+
+  onResultButtonClick(): void {
+    const selectedRows = this.selectedRows as selectedRow[];
+    const resultedApplications: selectedRow[] = selectedRows.filter(
+      (r) => r.resulted === 'Yes',
+    );
+    const unResultedApplications: selectedRow[] = selectedRows.filter(
+      (r) => r.resulted === 'No',
+    );
+    let mixedResultedAndUnresultedApplications!: boolean;
+    this.unpopField = [];
+
+    if (unResultedApplications.length === 0) {
+      const message =
+        resultedApplications.length === 1
+          ? this.RESULT_ERROR_MESSAGES.singleResulted
+          : this.RESULT_ERROR_MESSAGES.allResulted;
+
+      this.unpopField.push({ text: message });
+      return;
+    }
+
+    const resultingApplications = unResultedApplications.map((r) => ({
+      sequenceNumber: r.sequenceNumber,
+      applicant: r.applicant,
+      respondent: r.respondent,
+      title: r.title,
+    }));
+
+    if (resultedApplications.length > 0 && unResultedApplications.length > 0) {
+      mixedResultedAndUnresultedApplications = true;
+    } else {
+      mixedResultedAndUnresultedApplications = false;
+    }
+
+    void this.router.navigate(['result-selected'], {
+      relativeTo: this.route,
+      state: { resultingApplications, mixedResultedAndUnresultedApplications },
+    });
+  }
+
+  onSelectedRowsChange(rows: Row[]): void {
+    this.selectedRows = rows;
   }
 
   onUpdate(): void {

@@ -1,13 +1,23 @@
 <!-- Breadcrumbs -->
 <app-breadcrumbs
-  [items]="[{ label: 'Applications list', link: '/applications-list' }]"
+  [items]="[
+    { label: 'Applications list', link: '/applications-list' },
+    {
+      label: 'Applications list details',
+      link: '/applications-list/' + listId,
+    },
+  ]"
 ></app-breadcrumbs>
 
 <h1 class="govuk-heading-xl">Result applications</h1>
 
-<hr
-  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
-/>
+@if (mixedResultedAndUnresultedApplications) {
+  <app-warning-banner
+    [message]="
+      'Resulted applications are hidden. Only applications without a result (No) are selected for processing.'
+    "
+  />
+}
 
 <!-- Table of applications to result -->
 <app-table
