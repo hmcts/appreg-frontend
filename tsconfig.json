@@ -28,7 +28,7 @@
       "@constants/*": ["./src/app/shared/constants/*"],
       "@entry-create-util/*": [
         "./src/app/pages/applications-list-entry-create/util/*"
-      ],
+      ]
     }
   },
   "angularCompilerOptions": {
