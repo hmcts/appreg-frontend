@@ -31,7 +31,10 @@ import {
   GetEntriesRequestParams,
 } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
-import { ApplicationRow, ApplicationsSearchFormValue } from '@shared-types/applications/applications-form';
+import {
+  ApplicationRow,
+  ApplicationsSearchFormValue,
+} from '@shared-types/applications/applications-form';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 
@@ -50,7 +53,7 @@ import { PlaceFieldsBase } from '@util/place-fields.base';
     SuggestionsComponent,
     ErrorSummaryComponent,
     NotificationBannerComponent,
-    MojButtonMenuDirective
+    MojButtonMenuDirective,
   ],
   templateUrl: './applications.html',
 })
@@ -162,7 +165,9 @@ export class Applications extends PlaceFieldsBase implements OnInit, OnDestroy {
       .subscribe({
         next: (page) => {
           this.rows = page?.content ?? [];
-          this.tableRows = this.rows.map((r) => mapEntrySummaryDtoToApplicationRow(r));
+          this.tableRows = this.rows.map((r) =>
+            mapEntrySummaryDtoToApplicationRow(r),
+          );
           this.totalPages = page?.totalPages ?? 1;
           this.isLoading = false;
         },

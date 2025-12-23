@@ -45,14 +45,18 @@ function getPersonName(o: Record<string, unknown>): string {
   const first = pickFirstString(nameObj, ['forename', 'firstForename']);
   const last = pickFirstString(nameObj, ['surname']);
 
-  return `${first} ${last}`.trim();
+  // Ensures exactly one space between parts, and no trailing/leading whitespace.
+  return [first, last].filter(Boolean).join(' ');
 }
 
 function pickFirstString(o: Record<string, unknown>, keys: string[]): string {
   for (const k of keys) {
     const v = o[k];
-    if (typeof v === 'string' && v.trim()) {
-      return v;
+    if (typeof v === 'string') {
+      const t = v.trim();
+      if (t) {
+        return t;
+      }
     }
   }
   return '';

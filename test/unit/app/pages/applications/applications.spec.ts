@@ -1,16 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
-import { ReferenceDataFacade } from '../../../../../src/app/core/services/reference-data.facade';
 import { Applications } from '../../../../../src/app/pages/applications/applications';
-import {
-  ApplicationListEntriesApi,
-  EntryGetFilterDto,
-} from '../../../../../src/generated/openapi';
 
-interface HasLoadQuery {
-  loadQuery(): EntryGetFilterDto;
-}
+import { ApplicationListEntriesApi } from '@openapi';
+import { ReferenceDataFacade } from '@services/reference-data.facade';
 
 describe('ApplicationsComponent', () => {
   let component: Applications;
@@ -122,8 +116,8 @@ describe('ApplicationsComponent', () => {
     });
   });
 
-  describe('loadQuery', () => {
-    it('maps and trims form values into EntryGetFilterDto', () => {
+  describe('query mapping', () => {
+    it('maps and trims form values into the API filter', () => {
       component.form.patchValue({
         date: ' 2025-01-02 ',
         court: '  Some Court  ',
@@ -138,11 +132,15 @@ describe('ApplicationsComponent', () => {
         accountReference: '  ACC-999 ',
         status: 'PENDING',
       });
+      getEntriesMock.mockClear();
+      component.searchErrors = [];
+      component.loadApplications();
 
-      const filter = (component as unknown as HasLoadQuery).loadQuery();
+      expect(getEntriesMock).toHaveBeenCalledTimes(1);
+      const [params] = getEntriesMock.mock.calls[0];
 
       // Do NOT assert on status; implementation doesn’t set it
-      expect(filter).toEqual(
+      expect(params.filter).toEqual(
         expect.objectContaining({
           date: '2025-01-02',
           courtCode: 'Some Court',
@@ -159,11 +157,26 @@ describe('ApplicationsComponent', () => {
       );
 
       // empty/whitespace fields should not appear
+      getEntriesMock.mockClear();
       component.form.reset({
         date: '   ',
+        applicantOrg: '',
+        respondentOrg: '',
+        applicantSurname: '',
+        respondentSurname: '',
+        location: '',
+        standardApplicantCode: '',
+        respondentPostcode: '',
+        accountReference: '',
+        court: '',
+        cja: '',
+        status: null,
       });
-      const emptyFilter = (component as unknown as HasLoadQuery).loadQuery();
-      expect(emptyFilter.date).toBeUndefined();
+      component.searchErrors = [];
+      component.loadApplications();
+
+      const [params2] = getEntriesMock.mock.calls[0];
+      expect(params2.filter.date).toBeUndefined();
     });
   });
 
@@ -195,7 +208,6 @@ describe('ApplicationsComponent', () => {
         status: null,
       });
       component.searchErrors = [];
-      component.errorHint = '';
 
       component.loadApplications();
 
@@ -210,8 +222,6 @@ describe('ApplicationsComponent', () => {
           transferCache: false,
         }),
       );
-
-      expect(component.errorHint).toBe('');
     });
 
     it('calls API with correct params and updates rows and pagination on success', () => {
@@ -262,14 +272,12 @@ describe('ApplicationsComponent', () => {
       getEntriesMock.mockReturnValueOnce(throwError(() => new Error('boom')));
 
       component.searchErrors = [];
-      component.errorHint = '';
       component.isLoading = false;
 
       component.loadApplications();
 
       expect(getEntriesMock).toHaveBeenCalledTimes(1);
       expect(component.isLoading).toBe(false);
-      expect(component.errorHint).toBe('There is a problem');
       expect(component.searchErrors).toHaveLength(1);
       expect(component.searchErrors[0].text).toContain(
         'There was a problem retrieving the applications',
