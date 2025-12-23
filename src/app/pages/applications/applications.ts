@@ -59,7 +59,6 @@ export class Applications extends PlaceFieldsBase implements OnInit, OnDestroy {
   isSearch: boolean = false;
 
   // Error summary
-  errorHint: string = 'There is a problem';
   searchErrors: { id: string; text: string }[] = [];
   errorSummary: ErrorItem[] = [];
 
@@ -162,7 +161,6 @@ export class Applications extends PlaceFieldsBase implements OnInit, OnDestroy {
           this.isLoading = false;
         },
         error: () => {
-          this.errorHint = 'There is a problem';
           this.searchErrors.push({
             id: '',
             text: 'There was a problem retrieving the applications. Try again.',

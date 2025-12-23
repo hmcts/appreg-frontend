@@ -2,7 +2,7 @@
 
 @if (submitted && searchErrors.length) {
   <app-error-summary
-    [title]="errorHint || 'There is a problem'"
+    [title]="'There is a problem'"
     [items]="searchErrors"
     targetId="search"
   />
