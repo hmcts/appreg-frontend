@@ -377,8 +377,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
     if (this.unpopField.length) {
       this.updateInvalid = true;
-      this.errorHint = 'There is a problem...';
-
+      this.errorHint = 'There is a problem';
       return;
     }
 
@@ -441,7 +440,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     }
   }
 
-  // TO DO: Temporary function for bug fix ARCPOC-852, this component needs to be refactored to use cleaner error handling for the different scenarios
+  // TODO: Temporary function for bug fix ARCPOC-852, this component needs to be refactored to use cleaner error handling for the different scenarios
   // e.g. generic object to hold error state & messages, id's. Utilise generic error-summary functions for form errors
   private setHttpError(err: HttpErrorResponse): void {
     switch (err.status) {

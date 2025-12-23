@@ -36,6 +36,11 @@ module.exports = {
     '^@entry-create-util/(.*)$':
       '<rootDir>/src/app/pages/applications-list-entry-create/util/$1',
     '^@constants/(.*)$': '<rootDir>/src/app/shared/constants/$1',
+    '^@services/(.*)$': [
+      '<rootDir>/src/app/shared/services/$1',
+      '<rootDir>/src/app/core/services/$1',
+    ],
+    '^@validators/(.*)$': '<rootDir>/src/app/shared/validators/$1',
   },
 
   transformIgnorePatterns: ['node_modules/(?!.*\\.mjs$)'],

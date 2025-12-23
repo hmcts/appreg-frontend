@@ -6,10 +6,6 @@ export function asArr(v: unknown): unknown[] {
   return Array.isArray(v) ? v : [];
 }
 
-export function asStr(v: unknown): string {
-  return typeof v === 'string' ? v : '';
-}
-
 /**
  * Coerce to string only if the input is already a string or number.
  * Useful when IDs can arrive as either "123" or 123.
