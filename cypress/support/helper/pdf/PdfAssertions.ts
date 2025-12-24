@@ -123,30 +123,45 @@ export class PdfAssertions {
   ): Cypress.Chainable<void> {
     Cypress.log({
       name: 'verifyLatestPdfContainsValues',
-      message: `Checking latest PDF contains ${rows.length} key/value pair(s)`,
+      message: `Checking latest PDF contains ${rows.length} value row(s)`,
     });
     return PdfDownloadHelper.getLatestPdfOrFail().then(
       (latestPdf) =>
         PdfDownloadHelper.getPdfText(latestPdf).then((text): void => {
           const normalizedText = StringUtils.normalizeText(text);
 
-          for (const [key, value] of rows) {
-            const processedRow = processDatatableRow({ key, value });
-            const processedKey = processedRow.key;
-            const processedValue = processedRow.value;
+          for (const row of rows) {
+            const [keyCell, valueCell] = row;
+            const hasValue = typeof valueCell === 'string';
 
-            const normalizedKey = StringUtils.normalizeText(processedKey);
-            const normalizedValue = StringUtils.normalizeText(processedValue);
+            if (hasValue) {
+              const processedRow = processDatatableRow({
+                key: keyCell,
+                value: valueCell,
+              });
+              const processedKey = processedRow.key;
+              const processedValue = processedRow.value;
 
-            expect(normalizedText).to.include(
-              normalizedKey,
-              `PDF should contain key: "${processedKey}"`,
-            );
+              const normalizedKey = StringUtils.normalizeText(processedKey);
+              const normalizedValue = StringUtils.normalizeText(processedValue);
 
-            expect(normalizedText).to.include(
-              normalizedValue,
-              `PDF should contain value: "${processedValue}"`,
-            );
+              expect(normalizedText).to.include(
+                normalizedKey,
+                `PDF should contain key: "${processedKey}"`,
+              );
+
+              expect(normalizedText).to.include(
+                normalizedValue,
+                `PDF should contain value: "${processedValue}"`,
+              );
+            } else {
+              const processed = TestDataGenerator.parseValue(keyCell);
+              const normalized = StringUtils.normalizeText(processed);
+              expect(normalizedText).to.include(
+                normalized,
+                `PDF should contain value: "${processed}"`,
+              );
+            }
           }
         }) as unknown as Cypress.Chainable<void>,
     ) as unknown as Cypress.Chainable<void>;
