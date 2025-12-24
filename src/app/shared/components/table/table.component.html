@@ -27,25 +27,51 @@
     @for (row of rows; track $index; let r = $index) {
       <tr class="govuk-table__row">
         @for (col of cols; track $index; let c = $index) {
-          <td class="govuk-table__cell" [ngClass]="col.cellClass">
-            @if (!col.cellTemplate) {
-              {{ valueOf(row, col, r) }}
-            } @else {
-              <ng-container
-                *ngTemplateOutlet="
-                  col.cellTemplate;
-                  context: {
-                    $implicit: valueOf(row, col, r),
-                    row: row,
-                    col: col,
-                    rowIndex: r,
-                    colIndex: c,
-                  }
-                "
-              >
-              </ng-container>
-            }
-          </td>
+          @if (c === 0) {
+            <th
+              scope="row"
+              class="govuk-table__header"
+              [ngClass]="col.cellClass"
+            >
+              @if (!col.cellTemplate) {
+                {{ valueOf(row, col, r) }}
+              } @else {
+                <ng-container
+                  *ngTemplateOutlet="
+                    col.cellTemplate;
+                    context: {
+                      $implicit: valueOf(row, col, r),
+                      row: row,
+                      col: col,
+                      rowIndex: r,
+                      colIndex: c,
+                    }
+                  "
+                >
+                </ng-container>
+              }
+            </th>
+          } @else {
+            <td class="govuk-table__cell" [ngClass]="col.cellClass">
+              @if (!col.cellTemplate) {
+                {{ valueOf(row, col, r) }}
+              } @else {
+                <ng-container
+                  *ngTemplateOutlet="
+                    col.cellTemplate;
+                    context: {
+                      $implicit: valueOf(row, col, r),
+                      row: row,
+                      col: col,
+                      rowIndex: r,
+                      colIndex: c,
+                    }
+                  "
+                >
+                </ng-container>
+              }
+            </td>
+          }
         }
       </tr>
     } @empty {

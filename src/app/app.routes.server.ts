@@ -6,7 +6,7 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'applications-list/:id/create', renderMode: RenderMode.Server },
   { path: 'applications-list/:id/bulk-upload', renderMode: RenderMode.Server },
   {
-    path: 'result-selected/:id',
+    path: 'applications-list/:id/result-selected',
     renderMode: RenderMode.Server,
   },
   {

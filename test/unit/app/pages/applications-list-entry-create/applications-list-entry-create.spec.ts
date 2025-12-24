@@ -1,9 +1,14 @@
+import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 
 import { ApplicationsListEntryCreate } from '@components/applications-list-entry-create/applications-list-entry-create';
-import { compactStrings, toOptionalTrimmed } from '@entry-create-util/helpers';
+import { buildEntryCreateDto } from '@components/applications-list-entry-create/util/entry-create-mapper';
+import {
+  compactStrings,
+  toOptionalTrimmed,
+} from '@components/applications-list-entry-create/util/helpers';
 import { ApplicationListEntriesApi } from '@openapi';
 
 function roundTrip<T extends object>(o: T): T {
@@ -17,8 +22,11 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
   let component: ApplicationsListEntryCreate;
 
   function build(): unknown {
-    const obj = component as unknown as { buildEntryCreateDto: () => unknown };
-    return obj.buildEntryCreateDto();
+    return buildEntryCreateDto(
+      component.form.getRawValue(),
+      component.personForm.getRawValue(),
+      component.organisationForm.getRawValue(),
+    );
   }
 
   beforeEach(async () => {
@@ -26,6 +34,7 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
       imports: [ApplicationsListEntryCreate],
       providers: [
         provideRouter([]),
+        provideHttpClient(),
         provideHttpClientTesting(),
         {
           provide: ApplicationListEntriesApi,
@@ -42,6 +51,9 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
 
     fixture = TestBed.createComponent(ApplicationsListEntryCreate);
     component = fixture.componentInstance;
+
+    // If the component ever moves initialisation into ngOnInit, this keeps the spec stable.
+    fixture.detectChanges();
   });
 
   it('payload: omits applicant/respondent when empty', () => {
@@ -55,9 +67,7 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     expect(dto && typeof dto === 'object').toBe(true);
 
     const payload = roundTrip(dto as Record<string, unknown>);
-    expect(
-      (payload as Record<'applicationCode', unknown>).applicationCode,
-    ).toBe('A001');
+    expect(payload['applicationCode']).toBe('A001');
     expect('applicant' in payload).toBe(false);
     expect('respondent' in payload).toBe(false);
   });
@@ -77,8 +87,7 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     const payload = roundTrip(build() as Record<string, unknown>);
     expect('applicant' in payload).toBe(true);
 
-    const applicant = (payload as Record<'applicant', unknown>)
-      .applicant as Record<string, unknown>;
+    const applicant = payload['applicant'] as Record<string, unknown>;
     expect('organisation' in applicant).toBe(true);
 
     const org = applicant['organisation'] as Record<string, unknown>;
@@ -130,6 +139,19 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     expect('respondent' in payload).toBe(true);
   });
 
+  it('payload: uses standardApplicantCode and omits applicant when applicantType is standard', () => {
+    component.form.patchValue({
+      applicationCode: 'S001',
+      applicantType: 'standard',
+      standardApplicantCode: '  SA-999  ',
+    });
+
+    const payload = roundTrip(build() as Record<string, unknown>);
+    expect(payload['applicationCode']).toBe('S001');
+    expect(payload['standardApplicantCode']).toBe('SA-999');
+    expect('applicant' in payload).toBe(false);
+  });
+
   it('payload: exposes feeStatuses when fee controls are set', () => {
     component.form.patchValue({
       applicationCode: 'F001',
@@ -139,16 +161,15 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     });
 
     const payload = roundTrip(build() as Record<string, unknown>);
-    const fs = (payload as Record<'feeStatuses', unknown>).feeStatuses as
+    const fs = payload['feeStatuses'] as
       | Array<Record<string, unknown>>
       | undefined;
 
     expect(Array.isArray(fs)).toBe(true);
     expect(fs?.length).toBe(1);
-    const first = fs?.[0] as Record<string, unknown>;
-    expect(first['paymentStatus']).toBe('Paid');
-    expect(first['statusDate']).toBe('2025-01-15');
-    expect(first['paymentReference']).toBe('ABC123');
+    expect(fs?.[0]?.['paymentStatus']).toBe('Paid');
+    expect(fs?.[0]?.['statusDate']).toBe('2025-01-15');
+    expect(fs?.[0]?.['paymentReference']).toBe('ABC123');
   });
 
   it('payload: omits notes / caseReference / accountNumber when applicationNotes are empty', () => {
@@ -162,7 +183,6 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     });
 
     const payload = roundTrip(build() as Record<string, unknown>);
-
     expect('notes' in payload).toBe(false);
     expect('caseReference' in payload).toBe(false);
     expect('accountNumber' in payload).toBe(false);
@@ -179,8 +199,6 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     });
 
     const payload = roundTrip(build() as Record<string, unknown>);
-
-    // Notes are flattened with trimming
     expect(payload['notes']).toBe('some notes');
     expect(payload['caseReference']).toBe('CR-123');
     expect(payload['accountNumber']).toBe('AC-999');

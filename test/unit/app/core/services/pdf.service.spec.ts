@@ -360,4 +360,107 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
     // Judge name appears in the "This matter was before" row
     expect(textCallsContain('HHJ Taylor')).toBe(true);
   });
+
+  describe('party/address formatting helpers', () => {
+    type PrivateFns = {
+      formatParty: (p: unknown) => string;
+      formatContactDetails: (cd: unknown) => string;
+    };
+
+    const priv = (s: PdfService): PrivateFns => s as unknown as PrivateFns;
+
+    it('formatContactDetails: joins nested address parts with commas', () => {
+      const svc = new PdfService();
+
+      const cd = {
+        address: {
+          addressLine1: '10 Downing Street',
+          addressLine2: 'Westminster',
+          town: 'London',
+          postcode: 'SW1A 2AA',
+        },
+      };
+
+      expect(priv(svc).formatContactDetails(cd)).toBe(
+        '10 Downing Street, Westminster, London, SW1A 2AA',
+      );
+    });
+
+    it('formatContactDetails: supports flattened address fields and alternative keys', () => {
+      const svc = new PdfService();
+
+      const cd = {
+        addressLine1: '1 Main Road',
+        townOrCity: 'Manchester',
+        postCode: 'M1 1AA',
+      };
+
+      expect(priv(svc).formatContactDetails(cd)).toBe(
+        '1 Main Road, Manchester, M1 1AA',
+      );
+    });
+
+    it('formatParty: appends address on a new line for a person party', () => {
+      const svc = new PdfService();
+
+      const party = {
+        person: {
+          name: {
+            title: 'Mr',
+            firstForename: 'John',
+            surname: 'Smith',
+          },
+          contactDetails: {
+            address: {
+              addressLine1: '5 Example Street',
+              town: 'Leeds',
+              postcode: 'LS1 1AA',
+            },
+          },
+        },
+      };
+
+      expect(priv(svc).formatParty(party)).toBe(
+        'Mr John Smith\n5 Example Street, Leeds, LS1 1AA',
+      );
+    });
+
+    it('formatParty: appends address on a new line for an organisation party', () => {
+      const svc = new PdfService();
+
+      const party = {
+        organisation: {
+          name: 'CPS',
+          contactDetails: {
+            address: {
+              addressLine1: '2 Crown Square',
+              city: 'Bristol',
+              postcode: 'BS1 4AA',
+            },
+          },
+        },
+      };
+
+      expect(priv(svc).formatParty(party)).toBe(
+        'CPS\n2 Crown Square, Bristol, BS1 4AA',
+      );
+    });
+
+    it('formatParty: returns address-only when no person/org name is available', () => {
+      const svc = new PdfService();
+
+      const party = {
+        organisation: {
+          name: '   ',
+          contactDetails: {
+            address: {
+              addressLine1: '100 High Street',
+            },
+          },
+        },
+      };
+
+      expect(priv(svc).formatParty(party)).toBe('100 High Street');
+    });
+  });
 });

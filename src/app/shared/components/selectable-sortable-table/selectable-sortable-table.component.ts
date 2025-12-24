@@ -15,7 +15,7 @@ import {
   ViewChild,
 } from '@angular/core';
 
-type Row = Record<string, unknown>;
+export type Row = Record<string, unknown>;
 
 export interface TableColumn {
   header: string;
@@ -46,6 +46,8 @@ export class SelectableSortableTableComponent
 
   @Input() selectedIds: Set<string> = new Set<string>();
   @Output() selectedIdsChange = new EventEmitter<Set<string>>();
+
+  @Output() selectedRowsChange = new EventEmitter<Row[]>();
 
   /** Keep stable across pagination so row checkbox ids are unique */
   @Input() idPrefix = 'apps-';
@@ -145,6 +147,9 @@ export class SelectableSortableTableComponent
     }
     this.selectedIds = next;
     this.selectedIdsChange.emit(next);
+
+    this.selectedRowsChange.emit(this.getSelectedRows());
+
     this.cdr.markForCheck();
   }
 
@@ -202,6 +207,9 @@ export class SelectableSortableTableComponent
 
     this.selectedIds = next;
     this.selectedIdsChange.emit(next);
+
+    this.selectedRowsChange.emit(this.getSelectedRows());
+
     this.cdr.markForCheck();
   }
 
@@ -239,5 +247,12 @@ export class SelectableSortableTableComponent
     } catch {
       return null;
     }
+  }
+
+  getSelectedRows(): Row[] {
+    const ids = Array.from(this.selectedIds);
+    return ids
+      .map((id) => (this.data ?? []).find((r) => this.getRowId(r) === id))
+      .filter((r): r is Row => !!r);
   }
 }

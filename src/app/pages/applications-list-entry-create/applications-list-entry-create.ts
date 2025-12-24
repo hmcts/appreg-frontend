@@ -13,15 +13,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject } from '@angular/core';
 import {
   ControlContainer,
-  FormControl,
-  FormGroup,
   FormGroupDirective,
   ReactiveFormsModule,
-  Validators,
 } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 
-import { buildEntryCreateDto } from './util/entry-create-mapper';
 import { toOptionalTrimmed } from './util/helpers';
 
 import { AccordionComponent } from '@components/accordion/accordion.component';
@@ -33,7 +29,6 @@ import {
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
 import {
-  ApplicationNotesForm,
   NOTES_FIELD_MESSAGES,
   NotesSectionComponent,
 } from '@components/notes-section/notes-section.component';
@@ -43,38 +38,19 @@ import { SelectInputComponent } from '@components/select-input/select-input.comp
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
-import { ALPHANUMERIC_REGEX } from '@constants/regex';
 import {
-  Applicant,
   ApplicationCodeGetSummaryDto,
   ApplicationListEntriesApi,
-  EntryCreateDto,
-  FeeStatus,
-  Respondent,
 } from '@openapi';
 import { ApplicantStep } from '@page-types/applications-list-entry-create';
-import {
-  ApplicantType,
-  ApplicationsListEntryCreateForm,
-  OrganisationForm,
-  PersonForm,
-  RespondentEntryType,
-} from '@shared-types/applications-list-entry-create/application-list-entry-create-form';
+import { ApplicationListEntryFormService } from '@services/application-list-entry-form.service';
 import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '@util/error-click';
-import { ErrorMessageMap, buildFormErrorSummary } from '@util/error-summary';
+import { buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
-
-type BuildFormErrorSummaryFn = (
-  form: FormGroup,
-  messages: ErrorMessageMap,
-  options?: { nested?: { path: string; prefixId?: string }[] },
-) => ErrorItem[];
-
-const bf = buildFormErrorSummary as unknown as BuildFormErrorSummaryFn;
 
 export const ENTRY_ERROR_MESSAGES = {
   applicationCode: {
@@ -118,6 +94,7 @@ type ChildErrorSource = 'notes' | 'fee' | 'respondent';
 export class ApplicationsListEntryCreate implements OnInit {
   route = inject(ActivatedRoute);
   appEntryApi = inject(ApplicationListEntriesApi);
+  formSvc = inject(ApplicationListEntryFormService);
 
   id: string = '';
   step: ApplicantStep = 'select';
@@ -139,96 +116,10 @@ export class ApplicationsListEntryCreate implements OnInit {
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
 
-  form: ApplicationsListEntryCreateForm = new FormGroup({
-    applicantType: new FormControl<ApplicantType>('org', { nonNullable: true }),
-    applicant: new FormControl<Applicant | null>(null),
-    standardApplicantCode: new FormControl<string | null>(null),
-    applicationCode: new FormControl<string | null>(null),
-    respondent: new FormControl<Respondent | null>(null),
-    numberOfRespondents: new FormControl<number | null>(null),
-    wordingFields: new FormControl<string[] | null>(null),
-    feeStatuses: new FormControl<FeeStatus[] | null>(null),
-    hasOffsiteFee: new FormControl<boolean | null>(null),
-    applicationNotes: new FormGroup({
-      notes: new FormControl<string | null>(null, {
-        validators: [Validators.maxLength(4000)],
-      }),
-      caseReference: new FormControl<string | null>(null, {
-        validators: [
-          Validators.maxLength(15),
-          Validators.pattern(ALPHANUMERIC_REGEX),
-        ],
-      }),
-      accountReference: new FormControl<string | null>(null, {
-        validators: [
-          Validators.maxLength(20),
-          Validators.pattern(ALPHANUMERIC_REGEX),
-        ],
-      }),
-    }) as ApplicationNotesForm,
-    lodgementDate: new FormControl<string | null>(null),
-    respondentEntryType: new FormControl<RespondentEntryType | null>(
-      'organisation',
-      {
-        nonNullable: true,
-      },
-    ),
-    courtName: new FormControl<string | null>(null),
-    organisationName: new FormControl<string | null>(null),
-    feeStatus: new FormControl<string | null>(null),
-    feeStatusDate: new FormControl<string | null>(null),
-    paymentRef: new FormControl<string | null>(null),
-    accountReference: new FormControl<string | null>(null),
-    applicationDetails: new FormControl<string | null>(null),
-    resultCode: new FormControl<string | null>(null),
-    mags1Title: new FormControl<string | null>(null),
-    mags1FirstName: new FormControl<string | null>(null),
-    mags1Surname: new FormControl<string | null>(null),
-    mags2Title: new FormControl<string | null>(null),
-    mags2FirstName: new FormControl<string | null>(null),
-    mags2Surname: new FormControl<string | null>(null),
-    mags3Title: new FormControl<string | null>(null),
-    mags3FirstName: new FormControl<string | null>(null),
-    mags3Surname: new FormControl<string | null>(null),
-    officialTitle: new FormControl<string | null>(null),
-    officialFirstName: new FormControl<string | null>(null),
-    officialSurname: new FormControl<string | null>(null),
-  });
-
-  personForm: PersonForm = new FormGroup({
-    title: new FormControl<string | null>(null),
-    firstName: new FormControl<string>('', { nonNullable: true }),
-    middleNames: new FormControl<string>('', { nonNullable: true }),
-    surname: new FormControl<string | null>(null),
-    addressLine1: new FormControl<string>('', { nonNullable: true }),
-    addressLine2: new FormControl<string>('', { nonNullable: true }),
-    addressLine3: new FormControl<string>('', { nonNullable: true }),
-    addressLine4: new FormControl<string>('', { nonNullable: true }),
-    addressLine5: new FormControl<string>('', { nonNullable: true }),
-    postcode: new FormControl<string | null>(null),
-    phoneNumber: new FormControl<string | null>(null),
-    mobileNumber: new FormControl<string | null>(null),
-    emailAddress: new FormControl<string | null>(null),
-  });
-
-  organisationForm: OrganisationForm = new FormGroup({
-    name: new FormControl<string>('', { nonNullable: true }),
-    addressLine1: new FormControl<string>('', { nonNullable: true }),
-    addressLine2: new FormControl<string>('', { nonNullable: true }),
-    addressLine3: new FormControl<string>('', { nonNullable: true }),
-    addressLine4: new FormControl<string>('', { nonNullable: true }),
-    addressLine5: new FormControl<string>('', { nonNullable: true }),
-    postcode: new FormControl<string | null>(null),
-    phoneNumber: new FormControl<string | null>(null),
-    mobileNumber: new FormControl<string | null>(null),
-    emailAddress: new FormControl<string | null>(null),
-  });
-
-  applicantOptions = [
-    { label: 'Person', value: 'person' },
-    { label: 'Organisation', value: 'org' },
-    { label: 'Standard Applicant', value: 'standard' },
-  ];
+  forms = this.formSvc.createForms();
+  form = this.forms.form;
+  personForm = this.forms.personForm;
+  organisationForm = this.forms.organisationForm;
 
   ngOnInit(): void {
     this.id = this.route.snapshot.paramMap.get('id')!;
@@ -260,10 +151,12 @@ export class ApplicationsListEntryCreate implements OnInit {
 
     //Run Angular validation
     this.form.markAllAsTouched();
+    this.form.updateValueAndValidity({ emitEvent: false });
 
     const v = this.form.value;
     const appCode = toOptionalTrimmed(v.applicationCode);
 
+    //TODO: This could probably be handled via Angular form validation
     // Custom rule: application code required
     if (!appCode) {
       const control = this.form.controls.applicationCode;
@@ -279,7 +172,10 @@ export class ApplicationsListEntryCreate implements OnInit {
       return;
     }
 
-    const entryCreateDto = this.buildEntryCreateDto();
+    const entryCreateDto = this.formSvc.buildCreateDto(
+      this.forms,
+      this.form.value.standardApplicantCode,
+    );
 
     this.appEntryApi
       .createApplicationListEntry({ listId: this.id, entryCreateDto })
@@ -296,7 +192,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private buildErrorSummary(): ErrorItem[] {
-    return bf(this.form, ENTRY_ERROR_MESSAGES, {
+    return buildFormErrorSummary(this.form, ENTRY_ERROR_MESSAGES, {
       nested: [{ path: 'applicationNotes', prefixId: 'applicationNotes' }],
     });
   }
@@ -316,13 +212,5 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   onCodeSelected(row: ApplicationCodeGetSummaryDto): void {
     this.form.patchValue({ applicationCode: row.applicationCode });
-  }
-
-  private buildEntryCreateDto(): EntryCreateDto {
-    return buildEntryCreateDto(
-      this.form.getRawValue(),
-      this.personForm.getRawValue(),
-      this.organisationForm.getRawValue(),
-    );
   }
 }

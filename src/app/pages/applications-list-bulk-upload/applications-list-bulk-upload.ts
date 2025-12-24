@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import {
@@ -44,7 +44,6 @@ export class ApplicationsListBulkUpload implements OnInit {
   listId!: string;
   private readonly actionsApiService = inject(ActionsApi);
   private route = inject(ActivatedRoute);
-  private router = inject(Router);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');

@@ -9,16 +9,16 @@ import {
 
 import { Applicant, EntryCreateDto, FeeStatus, Respondent } from '@openapi';
 import {
-  ApplicationsListEntryCreateFormValue,
+  ApplicationsListEntryFormValue,
   OrganisationFormValue,
   PersonFormValue,
-} from '@shared-types/applications-list-entry-create/application-list-entry-create-form';
+} from '@shared-types/applications-list-entry-create/application-list-entry-form';
 
 /**
  * Top-level builder: turns form values into an EntryCreateDto.
  */
 export function buildEntryCreateDto(
-  formValue: ApplicationsListEntryCreateFormValue,
+  formValue: ApplicationsListEntryFormValue,
   personForm: PersonFormValue,
   organisationForm: OrganisationFormValue,
 ): EntryCreateDto {
@@ -46,7 +46,7 @@ export function buildEntryCreateDto(
 }
 
 function buildApplicant(
-  formValue: ApplicationsListEntryCreateFormValue,
+  formValue: ApplicationsListEntryFormValue,
   personForm: PersonFormValue,
   organisationForm: OrganisationFormValue,
 ): Applicant | undefined {
@@ -93,7 +93,7 @@ function buildApplicant(
 }
 
 function buildRespondent(
-  formValue: ApplicationsListEntryCreateFormValue,
+  formValue: ApplicationsListEntryFormValue,
   personForm: PersonFormValue,
   organisationForm: OrganisationFormValue,
 ): Respondent | undefined {
@@ -142,7 +142,7 @@ function buildRespondent(
 }
 
 function buildFeeStatuses(
-  formValue: ApplicationsListEntryCreateFormValue,
+  formValue: ApplicationsListEntryFormValue,
 ): FeeStatus[] | undefined {
   const paymentStatus = toOptionalTrimmed(formValue.feeStatus);
   const statusDate = toOptionalTrimmed(formValue.feeStatusDate);
@@ -162,14 +162,14 @@ function buildFeeStatuses(
 }
 
 function buildWordingFields(
-  formValue: ApplicationsListEntryCreateFormValue,
+  formValue: ApplicationsListEntryFormValue,
 ): string[] | undefined {
   const courtName = toOptionalTrimmed(formValue.courtName);
   const orgName = toOptionalTrimmed(formValue.organisationName);
   return compactStrings([courtName, orgName]);
 }
 
-function buildNotesFields(formValue: ApplicationsListEntryCreateFormValue) {
+function buildNotesFields(formValue: ApplicationsListEntryFormValue) {
   const notes = {
     caseReference: toOptionalTrimmed(formValue.applicationNotes.caseReference),
     accountNumber: toOptionalTrimmed(

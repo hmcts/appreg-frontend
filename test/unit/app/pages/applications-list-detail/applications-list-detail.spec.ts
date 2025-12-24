@@ -5,9 +5,9 @@ import { By } from '@angular/platform-browser';
 import { Router, provideRouter } from '@angular/router';
 import { Observable, of } from 'rxjs';
 
-import { ApplicationsListDetail } from '../../../../../src/app/pages/applications-list-detail/applications-list-detail';
-import { MojButtonMenu } from '../../../../../src/app/shared/util/moj-button-menu';
-import { ApplicationListsApi } from '../../../../../src/generated/openapi';
+import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail';
+import { ApplicationListsApi } from '@openapi';
+import { MojButtonMenu } from '@util/moj-button-menu';
 
 /** Minimal typed shape of the API response our component uses */
 interface ApplicationListItemDto {
@@ -21,6 +21,8 @@ interface ApplicationListItemDto {
   feeRequired: boolean;
   result: boolean;
 }
+
+export type Row = Record<string, unknown>;
 
 interface ApplicationListResponse {
   body: {
@@ -312,5 +314,154 @@ describe('ApplicationsListDetail', () => {
       ['/applications-list', 'entry-123', 'update'],
       { state: { appListId: 'list-9' }, queryParams: { appListId: 'list-9' } },
     );
+  });
+
+  it('onSelectedRowsChange: updates selectedRows', () => {
+    const rows = [
+      { id: 'id-1', location: 'LOC1', description: '', status: 'OPEN' },
+    ];
+    component.onSelectedRowsChange(rows);
+    expect(component.selectedRows).toEqual(rows);
+  });
+
+  describe('onResultButtonClick', () => {
+    it('pushes "already been resulted" message and does not navigate when all selected are resulted', () => {
+      const router = TestBed.inject(Router);
+      const navSpy = jest.spyOn(router, 'navigate');
+
+      component.selectedRows = [
+        {
+          sequenceNumber: 1,
+          applicant: 'A',
+          respondent: 'R',
+          title: 'T1',
+          resulted: 'Yes',
+        },
+        {
+          sequenceNumber: 2,
+          applicant: 'B',
+          respondent: 'S',
+          title: 'T2',
+          resulted: 'Yes',
+        },
+      ] as Row[];
+
+      component.onResultButtonClick();
+
+      expect(component.unpopField).toHaveLength(1);
+      expect(component.unpopField[0].text).toEqual(
+        'These applications have already been resulted.',
+      );
+      expect(navSpy).not.toHaveBeenCalled();
+    });
+
+    it('pushes "has already been resulted" message and does not navigate when all selected are resulted', () => {
+      const router = TestBed.inject(Router);
+      const navSpy = jest.spyOn(router, 'navigate');
+
+      component.selectedRows = [
+        {
+          sequenceNumber: 1,
+          applicant: 'A',
+          respondent: 'R',
+          title: 'T1',
+          resulted: 'Yes',
+        },
+      ] as Row[];
+
+      component.onResultButtonClick();
+
+      expect(component.unpopField).toHaveLength(1);
+      expect(component.unpopField[0].text).toEqual(
+        'This application has already been resulted.',
+      );
+      expect(navSpy).not.toHaveBeenCalled();
+    });
+
+    it('navigates with mixedResultedAndUnresultedApplications = true for mixed selection', () => {
+      const router = TestBed.inject(Router);
+      const navSpy = jest.spyOn(router, 'navigate');
+
+      component.selectedRows = [
+        {
+          sequenceNumber: 1,
+          applicant: 'A',
+          respondent: 'R',
+          title: 'T1',
+          resulted: 'Yes',
+        },
+        {
+          sequenceNumber: 2,
+          applicant: 'B',
+          respondent: 'S',
+          title: 'T2',
+          resulted: 'No',
+        },
+      ] as Row[];
+
+      component.onResultButtonClick();
+
+      expect(navSpy).toHaveBeenCalledTimes(1);
+
+      const expectedResultingApplications = [
+        {
+          sequenceNumber: 2,
+          applicant: 'B',
+          respondent: 'S',
+          title: 'T2',
+        },
+      ];
+
+      expect(navSpy).toHaveBeenCalledWith(
+        ['result-selected'],
+        expect.objectContaining({
+          state: {
+            resultingApplications: expectedResultingApplications,
+            mixedResultedAndUnresultedApplications: true,
+          },
+        }),
+      );
+    });
+
+    it('navigates with mixedResultedAndUnresultedApplications = false when all unresulted', () => {
+      const router = TestBed.inject(Router);
+      const navSpy = jest.spyOn(router, 'navigate');
+
+      component.selectedRows = [
+        {
+          sequenceNumber: 10,
+          applicant: 'X',
+          respondent: 'Y',
+          title: 'Alpha',
+          resulted: 'No',
+        },
+        {
+          sequenceNumber: 11,
+          applicant: 'Z',
+          respondent: 'W',
+          title: 'Beta',
+          resulted: 'No',
+        },
+      ] as Row[];
+
+      component.onResultButtonClick();
+
+      expect(navSpy).toHaveBeenCalledTimes(1);
+
+      const expectedResultingApplications = [
+        { sequenceNumber: 10, applicant: 'X', respondent: 'Y', title: 'Alpha' },
+        { sequenceNumber: 11, applicant: 'Z', respondent: 'W', title: 'Beta' },
+      ];
+
+      expect(navSpy).toHaveBeenCalledWith(
+        ['result-selected'],
+        expect.objectContaining({
+          state: {
+            resultingApplications: expectedResultingApplications,
+            mixedResultedAndUnresultedApplications: false,
+          },
+        }),
+      );
+    });
   });
 });

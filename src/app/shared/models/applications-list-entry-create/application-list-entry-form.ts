@@ -6,7 +6,14 @@ import { Applicant, FeeStatus, Respondent } from '@openapi';
 export type ApplicantType = 'person' | 'org' | 'standard';
 export type RespondentEntryType = 'person' | 'organisation';
 
-export type ApplicationsListEntryCreateForm = FormGroup<{
+export type ApplicationListEntryForms = {
+  form: ApplicationsListEntryForm;
+  personForm: PersonForm;
+  organisationForm: OrganisationForm;
+};
+
+export type ApplicationsListEntryForm = FormGroup<{
+  applicationTitle?: FormControl<string | null>;
   applicantType: FormControl<ApplicantType>;
   applicant: FormControl<Applicant | null>;
   standardApplicantCode: FormControl<string | null>;
@@ -70,8 +77,8 @@ export type OrganisationForm = FormGroup<{
   emailAddress: FormControl<string | null>;
 }>;
 
-export type ApplicationsListEntryCreateFormValue = ReturnType<
-  ApplicationsListEntryCreateForm['getRawValue']
+export type ApplicationsListEntryFormValue = ReturnType<
+  ApplicationsListEntryForm['getRawValue']
 >;
 
 export type PersonFormValue = ReturnType<PersonForm['getRawValue']>;

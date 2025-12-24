@@ -1,7 +1,8 @@
 // PDF-focused helpers that don't depend on Angular.
 // These accept a very small "doc" surface so we can unit test them with mocks.
 
-import { asObj, asStr } from './data-utils';
+import { asObj } from './data-utils';
+import { trimToString } from './string-helpers';
 
 /**
  * Minimal interface we need from jsPDF. This keeps utils decoupled from the concrete library.
@@ -86,9 +87,9 @@ export function drawHr(
 export function extractDuration(raw: unknown): string {
   const root = asObj(raw) ?? {};
   return (
-    asStr(root['duration']) ||
-    asStr(root['listDuration']) ||
-    asStr(root['hearingDuration']) ||
-    asStr(root['sessionDuration'])
+    trimToString(root['duration']) ||
+    trimToString(root['listDuration']) ||
+    trimToString(root['hearingDuration']) ||
+    trimToString(root['sessionDuration'])
   );
 }

@@ -33,10 +33,14 @@ module.exports = {
     '^@openapi$': '<rootDir>/src/generated/openapi',
     '^@page-types/(.*)$': '<rootDir>/src/app/pages/$1/util/types',
     '^@shared-types/(.*)$': '<rootDir>/src/app/shared/models/$1',
-
     '^@entry-create-util/(.*)$':
       '<rootDir>/src/app/pages/applications-list-entry-create/util/$1',
     '^@constants/(.*)$': '<rootDir>/src/app/shared/constants/$1',
+    '^@services/(.*)$': [
+      '<rootDir>/src/app/shared/services/$1',
+      '<rootDir>/src/app/core/services/$1',
+    ],
+    '^@validators/(.*)$': '<rootDir>/src/app/shared/validators/$1',
   },
 
   transformIgnorePatterns: ['node_modules/(?!.*\\.mjs$)'],
