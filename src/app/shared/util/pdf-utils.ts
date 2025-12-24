@@ -84,12 +84,49 @@ export function drawHr(
  * Pull a human-readable duration from a raw DTO without coupling the caller
  * to any single property name. Returns '' for "not found".
  */
-export function extractDuration(raw: unknown): string {
-  const root = asObj(raw) ?? {};
-  return (
-    trimToString(root['duration']) ||
-    trimToString(root['listDuration']) ||
-    trimToString(root['hearingDuration']) ||
-    trimToString(root['sessionDuration'])
-  );
+export function extractDuration(raw: unknown): string | undefined {
+  const payload = asObj(raw) ?? {};
+
+  const durationText =
+    trimToString(payload['duration']) ||
+    trimToString(payload['listDuration']) ||
+    trimToString(payload['hearingDuration']) ||
+    trimToString(payload['sessionDuration']) ||
+    '';
+
+  return stripZeroHoursPrefix(durationText);
+}
+
+function stripZeroHoursPrefix(durationText: string): string | undefined {
+  const trimmedText = durationText.trim();
+  if (!trimmedText) {
+    return;
+  }
+
+  const numberMatcher = /\d+/g;
+
+  const firstNumberMatch = numberMatcher.exec(trimmedText);
+  if (!firstNumberMatch) {
+    return trimmedText;
+  }
+
+  const secondNumberMatch = numberMatcher.exec(trimmedText);
+  if (!secondNumberMatch) {
+    return trimmedText;
+  } // hours present so leave
+
+  const firstValue = Number(firstNumberMatch[0]);
+  const secondValue = Number(secondNumberMatch[0]);
+
+  // "0h 0m", no duration
+  if (firstValue === 0 && secondValue === 0) {
+    return;
+  }
+
+  // "0h 5m", drop the "0h" portion
+  if (firstValue === 0 && secondValue !== 0) {
+    return trimmedText.slice(secondNumberMatch.index).trim();
+  }
+
+  return trimmedText;
 }

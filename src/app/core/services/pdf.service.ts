@@ -394,7 +394,10 @@ export class PdfService {
       const duration = this.fallbackText(extractDurationFromDto(raw), '—');
       const leftLabels = 'Date & Time\nDuration';
       const leftValues = `${dateTime}\n${duration}`;
-      const location = this.fallbackText(data.courtName || data.location, '—');
+      const location = this.fallbackText(
+        data.courtName || `${data.location}\n${data.cja}`,
+        '-',
+      );
 
       if (entryIndex > 0) {
         ensureSpace(20);
@@ -410,9 +413,13 @@ export class PdfService {
         // Applicant / Respondent
         const applicant = this.fallbackText(e.applicant);
         const respondent = this.fallbackText(e.respondent);
+        const caseReferenceLine = e.caseReference?.trim()
+          ? `\nCase Reference: ${e.caseReference.trim()}`
+          : '';
+
         drawTwoColRow(
           `${entryIndex}. Applicant`,
-          applicant,
+          `${applicant}${caseReferenceLine}`,
           'Respondent',
           respondent,
           16,
@@ -420,9 +427,6 @@ export class PdfService {
 
         // Application (left/right blocks)
         const leftBlockParts: string[] = [];
-        if (e.caseReference?.trim()) {
-          leftBlockParts.push(`Case Reference: ${e.caseReference.trim()}`);
-        }
         if (e.applicationCode?.trim()) {
           leftBlockParts.push(`Application Code: ${e.applicationCode.trim()}`);
         }
@@ -482,12 +486,15 @@ export class PdfService {
       trimToString(root['time']) || trimToString(root['listTime']);
 
     const courtName =
-      trimToString(root['courtName']) || trimToString(root['court']);
+      trimToString(root['courtName']) ||
+      trimToString(root['court']) ||
+      trimToString(root['courthouse']);
 
     const location =
       trimToString(root['otherLocationDescription']) ||
-      trimToString(root['location']) ||
-      trimToString(root['courthouse']);
+      trimToString(root['location']);
+
+    const cja = trimToString(root['cja']);
 
     const srcEntries = asArr(root['entries']);
 
@@ -524,9 +531,38 @@ export class PdfService {
         .join(' ');
 
       const judge = asArr(x['officials'])
-        .map((v) => trimToString(v))
+        .map((v) => {
+          const asText = trimToString(v);
+          if (asText) {
+            return asText;
+          }
+
+          const obj = asObj(v);
+          if (!obj) {
+            return '';
+          }
+
+          // One-line per object
+          return Object.values(obj)
+            .map((val) => {
+              if (val === null) {
+                return '';
+              }
+              if (typeof val === 'string') {
+                return val.trim();
+              }
+              if (typeof val === 'number' || typeof val === 'boolean') {
+                return String(val);
+              }
+              return JSON.stringify(val);
+            })
+            .filter(Boolean)
+            .join(' ')
+            .replaceAll(/\s+/g, ' ')
+            .trim();
+        })
         .filter(Boolean)
-        .join(', ');
+        .join('\n'); // one object per line
 
       const date = listDate;
 
@@ -545,7 +581,7 @@ export class PdfService {
       };
     });
 
-    return { id, courtName, listDate, listTime, location, entries };
+    return { id, courtName, listDate, listTime, location, cja, entries };
   }
 
   /** Person/organisation display name with placeholder cleanup. */

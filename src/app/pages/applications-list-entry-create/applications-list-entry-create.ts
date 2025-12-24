@@ -1,4 +1,4 @@
-/* 
+/*
 Applications List Entry – Create (/applications-list/:id/create)
 
 Functionality:
@@ -160,7 +160,7 @@ export class ApplicationsListEntryCreate implements OnInit {
     // Custom rule: application code required
     if (!appCode) {
       const control = this.form.controls.applicationCode;
-      const newErrors = Object.assign({}, control.errors, { required: true });
+      const newErrors = { ...control.errors, required: true };
       control.setErrors(newErrors);
     }
 

@@ -11,7 +11,7 @@ module.exports = {
       'jest-preset-angular',
       {
         tsconfig: '<rootDir>/tsconfig.spec.json',
-        stringifyContentPathRegex: '\\.html$',
+        stringifyContentPathRegex: String.raw`\.html$`,
       },
     ],
   },
@@ -43,7 +43,7 @@ module.exports = {
     '^@validators/(.*)$': '<rootDir>/src/app/shared/validators/$1',
   },
 
-  transformIgnorePatterns: ['node_modules/(?!.*\\.mjs$)'],
+  transformIgnorePatterns: [String.raw`node_modules/(?!.*\.mjs$)`],
   coverageDirectory: '<rootDir>/coverage',
   coverageReporters: ['html', 'lcov', 'text'],
 };
