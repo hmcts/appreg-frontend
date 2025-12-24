@@ -1,5 +1,5 @@
-import type { IncomingMessage } from 'http';
 import crypto from 'node:crypto';
+import type { IncomingMessage } from 'node:http';
 import { Socket } from 'node:net';
 
 import type { AccountInfo } from '@azure/msal-node';
@@ -178,11 +178,9 @@ async function bootstrap(): Promise<void> {
         error: (m, ...meta) => console.error(m, ...meta),
       };
 
-  const cookieName = config.has('session.cookieName')
-    ? config.get<string>('session.cookieName')
-    : isProd
-      ? 'appreg.sid'
-      : 'sid';
+  const defaultCookieName = isProd ? 'appreg.sid' : 'sid';
+  const cookieName =
+    config.get<string | undefined>('session.cookieName') ?? defaultCookieName;
 
   app.use(
     await setupSession({
@@ -360,6 +358,7 @@ async function bootstrap(): Promise<void> {
   });
 }
 
+// NOSONAR - top-level await not used to keep compatibility with dev runner / bundling tools
 bootstrap().catch((e: unknown) => {
   console.error(toErrorMeta(e));
   process.exit(1);
