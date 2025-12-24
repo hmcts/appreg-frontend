@@ -40,6 +40,7 @@ export interface PdfList {
   listDate?: string;
   listTime?: string;
   location?: string;
+  cja?: string,
   entries: {
     applicant?: string;
     respondent?: string;

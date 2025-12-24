@@ -394,7 +394,7 @@ export class PdfService {
       const duration = this.fallbackText(extractDurationFromDto(raw), '—');
       const leftLabels = 'Date & Time\nDuration';
       const leftValues = `${dateTime}\n${duration}`;
-      const location = this.fallbackText(data.courtName || data.location, '—');
+      const location = this.fallbackText(data.courtName || `${data.location}\n${data.cja}`);
 
       if (entryIndex > 0) {
         ensureSpace(20);
@@ -482,12 +482,14 @@ export class PdfService {
       trimToString(root['time']) || trimToString(root['listTime']);
 
     const courtName =
-      trimToString(root['courtName']) || trimToString(root['court']);
+      trimToString(root['courtName']) || trimToString(root['court']) ||
+      trimToString(root['courthouse']);
 
     const location =
       trimToString(root['otherLocationDescription']) ||
-      trimToString(root['location']) ||
-      trimToString(root['courthouse']);
+      trimToString(root['location']);
+
+    const cja = trimToString(root['cja']);
 
     const srcEntries = asArr(root['entries']);
 
@@ -545,7 +547,7 @@ export class PdfService {
       };
     });
 
-    return { id, courtName, listDate, listTime, location, entries };
+    return { id, courtName, listDate, listTime, location, cja, entries };
   }
 
   /** Person/organisation display name with placeholder cleanup. */
