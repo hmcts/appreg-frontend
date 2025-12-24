@@ -179,8 +179,11 @@ async function bootstrap(): Promise<void> {
       };
 
   const defaultCookieName = isProd ? 'appreg.sid' : 'sid';
-  const cookieName =
-    config.get<string | undefined>('session.cookieName') ?? defaultCookieName;
+
+  let cookieName = defaultCookieName;
+  if (config.has('session.cookieName')) {
+    cookieName = config.get<string>('session.cookieName');
+  }
 
   app.use(
     await setupSession({
