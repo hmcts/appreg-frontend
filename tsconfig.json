@@ -23,7 +23,6 @@
       "@util/*": ["./src/app/shared/util/*", "./src/app/core/util/*"],
       "@openapi": ["./src/generated/openapi"],
       "@page-types/*": ["./src/app/pages/*/util/types"],
-      "@core-types/*": ["./src/app/core/models/*"],
       "@shared-types/*": ["./src/app/shared/models/*"],
       "@constants/*": ["./src/app/shared/constants/*"],
       "@entry-create-util/*": [
