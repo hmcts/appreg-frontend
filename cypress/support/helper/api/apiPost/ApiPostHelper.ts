@@ -5,7 +5,7 @@ export class ApiPostHelper {
   private static resolveEndpointPlaceholders(
     endpoint: string,
   ): Cypress.Chainable<string> {
-    const placeholderRegex = /:([a-zA-Z0-9_]+)|\{\{([a-zA-Z0-9_]+)\}\}/g;
+    const placeholderRegex = /:(\w+)|\{\{(\w+)\}\}/g;
     const placeholderNames = new Set<string>();
 
     let match: RegExpExecArray | null;
@@ -22,12 +22,12 @@ export class ApiPostHelper {
         cy.get(`@${aliasName}`).then((aliasValue) => {
           const stringValue = `${aliasValue as unknown as string}`;
           const withColonPlaceholdersReplaced = currentEndpoint.replace(
-            new RegExp(`:${aliasName}\\b`, 'g'),
+            new RegExp(String.raw`:${aliasName}\b`, 'g'),
             stringValue,
           );
           const withAllPlaceholdersReplaced =
             withColonPlaceholdersReplaced.replace(
-              new RegExp(`\\{\\{${aliasName}\\}\\}`, 'g'),
+              new RegExp(String.raw`\{\{${aliasName}\}\}`, 'g'),
               stringValue,
             );
           return withAllPlaceholdersReplaced;

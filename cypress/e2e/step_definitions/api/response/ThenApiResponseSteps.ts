@@ -32,7 +32,7 @@ Then(
         if (
           current &&
           typeof current === 'object' &&
-          Object.prototype.hasOwnProperty.call(current, segment)
+          Object.hasOwn(current, segment)
         ) {
           current = (current as Record<string, unknown>)[segment];
         } else {
