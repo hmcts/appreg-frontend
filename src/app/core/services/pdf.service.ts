@@ -394,7 +394,7 @@ export class PdfService {
       const duration = this.fallbackText(extractDurationFromDto(raw), '—');
       const leftLabels = 'Date & Time\nDuration';
       const leftValues = `${dateTime}\n${duration}`;
-      const location = this.fallbackText(data.courtName || `${data.location}\n${data.cja}`);
+      const location = this.fallbackText(data.courtName || `${data.location}\n${data.cja}`, '-');
 
       if (entryIndex > 0) {
         ensureSpace(20);
