@@ -531,9 +531,38 @@ export class PdfService {
         .join(' ');
 
       const judge = asArr(x['officials'])
-        .map((v) => trimToString(v))
+        .map((v) => {
+          const asText = trimToString(v);
+          if (asText) {
+            return asText;
+          }
+
+          const obj = asObj(v);
+          if (!obj) {
+            return '';
+          }
+
+          // One-line per object
+          return Object.values(obj)
+            .map((val) => {
+              if (val === null) {
+                return '';
+              }
+              if (typeof val === 'string') {
+                return val.trim();
+              }
+              if (typeof val === 'number' || typeof val === 'boolean') {
+                return String(val);
+              }
+              return JSON.stringify(val);
+            })
+            .filter(Boolean)
+            .join(' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+        })
         .filter(Boolean)
-        .join(', ');
+        .join('\n'); // one object per line
 
       const date = listDate;
 
