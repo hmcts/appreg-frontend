@@ -42,7 +42,7 @@ function pickSortableCtor(mod: unknown): MojCtor | null {
 
 async function loadSortableCtor(): Promise<MojCtor | null> {
   try {
-    const mod = await import('@ministryofjustice/frontend');
+    const mod: unknown = await import('@ministryofjustice/frontend');
     const ctor = pickSortableCtor(mod);
     if (ctor) {
       return ctor;

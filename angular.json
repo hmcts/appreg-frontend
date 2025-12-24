@@ -57,7 +57,7 @@
             "server": "src/main.server.ts",
             "outputMode": "server",
             "ssr": {
-              "entry": "src/server.ts"
+              "entry": "server/server.ts"
             },
             "allowedCommonJsDependencies": [
               "jspdf",
@@ -96,10 +96,64 @@
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "namedChunks": true
             }
           },
           "defaultConfiguration": "production"
+        },
+        "build-spa": {
+          "defaultConfiguration": "development",
+          "builder": "@angular/build:application",
+          "options": {
+            "stylePreprocessorOptions": {
+              "includePaths": ["./"]
+            },
+            "assets": [
+              { "glob": "**/*", "input": "src/public", "output": "" },
+              { "glob": "**/*", "input": "src/assets", "output": "assets" },
+              {
+                "glob": "**/*",
+                "input": "node_modules/@ministryofjustice/frontend/moj/assets/images",
+                "output": "assets/images"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/govuk-frontend/dist/govuk/assets",
+                "output": "assets"
+              },
+              {
+                "glob": "govuk-frontend.min.js",
+                "input": "node_modules/govuk-frontend/dist/govuk",
+                "output": "javascripts"
+              }
+            ],
+            "browser": "src/main.ts",
+            "polyfills": ["zone.js"],
+            "tsConfig": "tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "styles": ["src/styles.scss"],
+            "outputMode": "static",
+            "allowedCommonJsDependencies": [
+              "jspdf",
+              "@babel/runtime",
+              "canvg",
+              "core-js",
+              "raf",
+              "rgbcolor",
+              "html2canvas",
+              "fflate",
+              "dompurify"
+            ]
+          },
+          "configurations": {
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true
+            }
+          }
         },
         "serve": {
           "builder": "@angular/build:dev-server",
@@ -108,7 +162,7 @@
               "buildTarget": "appreg-frontend:build:production"
             },
             "development": {
-              "buildTarget": "appreg-frontend:build:development"
+              "buildTarget": "appreg-frontend:build-spa:development"
             }
           },
           "defaultConfiguration": "development"

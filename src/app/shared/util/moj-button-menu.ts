@@ -31,8 +31,8 @@ export class MojButtonMenu {
     }
 
     try {
-      const mod = await import('@ministryofjustice/frontend');
-      const root = mod as unknown as Record<string, unknown>;
+      const mod: unknown = await import('@ministryofjustice/frontend');
+      const root = mod as Record<string, unknown>;
       const def = (root['default'] ?? {}) as Record<string, unknown>;
       const candidate = root['ButtonMenu'] ?? def['ButtonMenu'];
 

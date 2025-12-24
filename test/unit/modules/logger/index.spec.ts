@@ -1,7 +1,7 @@
 import { Logger } from '@hmcts/nodejs-logging';
 import type { TelemetryClient } from 'applicationinsights';
 
-import { HmctsLoggerBridge } from '../../../../src/modules/logger';
+import { HmctsLoggerBridge } from '../../../../server/modules/logger';
 
 // Mock @hmcts/nodejs-logging
 jest.mock('@hmcts/nodejs-logging', () => {

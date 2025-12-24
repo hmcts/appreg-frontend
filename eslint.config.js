@@ -281,9 +281,23 @@ module.exports = defineConfig([
       ],
     },
   },
+  // SERVER (type-aware, but relax unsafe-* noise from config/HMCTS libs)
+  {
+    files: ['server/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      'no-console': 'off',
+    },
+  },
+
   // Server entrypoints (allow console)
   {
-    files: ['src/main.ts', 'src/server.ts'],
+    files: ['src/main.ts', 'server/server.ts'],
     rules: { 'no-console': 'off' },
   },
 ]);

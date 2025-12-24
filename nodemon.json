@@ -1,10 +1,17 @@
 {
-  "watch": ["src", "dist/appreg-frontend/server"],
-  "ignore": ["dist"],
-  "ext": "ts,js,html,scss",
-  "exec": "yarn build && node dist/appreg-frontend/server/server.mjs",
+  "watch": ["server/**/*.ts", "src/types"],
+  "ignore": [
+    "src/app/**",
+    "src/assets/**",
+    "src/generated/**",
+    "dist/**",
+    ".angular/**"
+  ],
+  "ext": "ts,mts,js,mjs,json",
+  "exec": "tsx server/dev-server.ts",
   "env": {
     "NODE_ENV": "development",
-    "ALLOW_CONFIG_MUTATIONS": "true"
+    "ALLOW_CONFIG_MUTATIONS": "true",
+    "NG_DEV_SERVER": "http://localhost:4200"
   }
 }
