@@ -63,7 +63,9 @@ export class ApiPostHelper {
     ApiPostHelper.resolveEndpointPlaceholders(endpoint).then(
       (resolvedEndpoint) => {
         const baseUrl = Cypress.env('API_BASE_URL');
-        const url = baseUrl ? `${baseUrl}${resolvedEndpoint}` : resolvedEndpoint;
+        const url = baseUrl
+          ? `${baseUrl}${resolvedEndpoint}`
+          : resolvedEndpoint;
         cy.get('@authToken').then((token) => {
           cy.request({
             method: 'POST',
