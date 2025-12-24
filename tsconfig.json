@@ -24,6 +24,7 @@
       "@openapi": ["./src/generated/openapi"],
       "@page-types/*": ["./src/app/pages/*/util/types"],
       "@shared-types/*": ["./src/app/shared/models/*"],
+      "@core-types/*": ["./src/app/core/models/*"],
       "@constants/*": ["./src/app/shared/constants/*"],
       "@entry-create-util/*": [
         "./src/app/pages/applications-list-entry-create/util/*"
