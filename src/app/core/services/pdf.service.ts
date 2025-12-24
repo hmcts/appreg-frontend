@@ -558,7 +558,7 @@ export class PdfService {
             })
             .filter(Boolean)
             .join(' ')
-            .replace(/\s+/g, ' ')
+            .replaceAll(/\s+/g, ' ')
             .trim();
         })
         .filter(Boolean)
