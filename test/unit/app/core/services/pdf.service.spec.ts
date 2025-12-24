@@ -43,6 +43,40 @@ jest.mock('jspdf', () => {
   return { jsPDF, __instance: instance };
 });
 
+function findTextCallContaining(
+  textCalls: unknown[][],
+  substring: string,
+): unknown[] | undefined {
+  for (const call of textCalls) {
+    const textArg = call[0];
+    if (textArgContains(textArg, substring)) {
+      return call;
+    }
+  }
+  return undefined;
+}
+
+function textArgContains(textArg: unknown, substring: string): boolean {
+  if (typeof textArg === 'string') {
+    return textArg.includes(substring);
+  }
+
+  if (Array.isArray(textArg)) {
+    return arrayContainsSubstring(textArg, substring);
+  }
+
+  return false;
+}
+
+function arrayContainsSubstring(values: unknown[], substring: string): boolean {
+  for (const v of values) {
+    if (typeof v === 'string' && v.includes(substring)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 // Utility to access the mocked jsPDF instance safely
 const getJsPDF = (): JsPDFModuleMock =>
   jest.requireMock('jspdf') as unknown as JsPDFModuleMock;
@@ -238,7 +272,14 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
         caseReference: 'REF-1',
         accountReference: 'ACC-9',
         resultWordings: ['Granted'],
-        officials: ['Judge Dredd'],
+        officials: [
+          {
+            title: 'Mr',
+            surname: 'testsurofficial',
+            forename: 'testforeofficial',
+            type: 'MAGISTRATE',
+          },
+        ],
         notes: 'No additional notes',
       },
     ],
@@ -332,7 +373,14 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
           caseReference: 'CASE-42',
           accountReference: 'ACC-9',
           resultWordings: ['Refused'],
-          officials: ['HHJ Taylor'],
+          officials: [
+            {
+              title: 'Mr',
+              surname: 'Taylor',
+              forename: 'Hugh',
+              type: 'MAGISTRATE',
+            },
+          ],
           notes: 'Some note\nAnother line',
         },
       ]),
@@ -358,7 +406,66 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
     expect(textCallsContain('Application Title: Interim Relief')).toBe(true);
 
     // Judge name appears in the "This matter was before" row
-    expect(textCallsContain('HHJ Taylor')).toBe(true);
+    expect(textCallsContain('Taylor')).toBe(true);
+    expect(textCallsContain('Hugh')).toBe(true);
+    expect(textCallsContain('MAGISTRATE')).toBe(true);
+  });
+
+  it('renders multiple officials on separate lines (one per object)', async () => {
+    const svc = new PdfService();
+    const { __instance } = getJsPDF();
+
+    await svc.generateContinuousApplicationListsPdf([
+      makeRawDto({}, [
+        {
+          applicant: { person: { name: { forename: 'Jane', surname: 'Roe' } } },
+          respondent: { organisation: { name: 'Widgets Ltd' } },
+          officials: [
+            {
+              title: 'Mr',
+              surname: 'Alpha',
+              forename: 'A',
+              type: 'MAGISTRATE',
+            },
+            { title: 'Ms', surname: 'Beta', forename: 'B', type: 'JUDGE' },
+          ],
+        },
+      ]),
+    ]);
+
+    const calls = __instance.text.mock.calls as unknown[][];
+
+    const alphaCall = findTextCallContaining(calls, 'Alpha');
+    const betaCall = findTextCallContaining(calls, 'Beta');
+
+    expect(alphaCall).toBeTruthy();
+    expect(betaCall).toBeTruthy();
+
+    // If they were rendered in separate doc. text calls, the Y coordinates should differ.
+    if (alphaCall !== betaCall) {
+      const alphaY = alphaCall?.[2] as number | undefined;
+      const betaY = betaCall?.[2] as number | undefined;
+      expect(alphaY).toBeDefined();
+      expect(betaY).toBeDefined();
+      expect(alphaY).not.toBe(betaY);
+      return;
+    }
+
+    // Otherwise, they were rendered via a single doc.text call with an array of lines.
+    const [arg] = alphaCall ?? [];
+    expect(Array.isArray(arg)).toBe(true);
+
+    const lines = arg as unknown[];
+    const alphaIdx = lines.findIndex(
+      (s) => typeof s === 'string' && s.includes('Alpha'),
+    );
+    const betaIdx = lines.findIndex(
+      (s) => typeof s === 'string' && s.includes('Beta'),
+    );
+
+    expect(alphaIdx).toBeGreaterThanOrEqual(0);
+    expect(betaIdx).toBeGreaterThanOrEqual(0);
+    expect(alphaIdx).not.toBe(betaIdx);
   });
 
   describe('party/address formatting helpers', () => {
