@@ -394,7 +394,10 @@ export class PdfService {
       const duration = this.fallbackText(extractDurationFromDto(raw), '—');
       const leftLabels = 'Date & Time\nDuration';
       const leftValues = `${dateTime}\n${duration}`;
-      const location = this.fallbackText(data.courtName || `${data.location}\n${data.cja}`, '-');
+      const location = this.fallbackText(
+        data.courtName || `${data.location}\n${data.cja}`,
+        '-',
+      );
 
       if (entryIndex > 0) {
         ensureSpace(20);
@@ -410,9 +413,13 @@ export class PdfService {
         // Applicant / Respondent
         const applicant = this.fallbackText(e.applicant);
         const respondent = this.fallbackText(e.respondent);
+        const caseReferenceLine = e.caseReference?.trim()
+          ? `\nCase Reference: ${e.caseReference.trim()}`
+          : '';
+
         drawTwoColRow(
           `${entryIndex}. Applicant`,
-          applicant,
+          `${applicant}${caseReferenceLine}`,
           'Respondent',
           respondent,
           16,
@@ -420,9 +427,6 @@ export class PdfService {
 
         // Application (left/right blocks)
         const leftBlockParts: string[] = [];
-        if (e.caseReference?.trim()) {
-          leftBlockParts.push(`Case Reference: ${e.caseReference.trim()}`);
-        }
         if (e.applicationCode?.trim()) {
           leftBlockParts.push(`Application Code: ${e.applicationCode.trim()}`);
         }
@@ -482,7 +486,8 @@ export class PdfService {
       trimToString(root['time']) || trimToString(root['listTime']);
 
     const courtName =
-      trimToString(root['courtName']) || trimToString(root['court']) ||
+      trimToString(root['courtName']) ||
+      trimToString(root['court']) ||
       trimToString(root['courthouse']);
 
     const location =
