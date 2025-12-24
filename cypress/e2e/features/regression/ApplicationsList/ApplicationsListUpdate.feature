@@ -110,36 +110,36 @@ Feature: Applications List Update
         Then User Verifies The "Duration" field Has Values hours "<HH>" and minutes "<MM>"
         When User Clears The Date Field "Date"
         When User Clicks On The "Update" Button
-        Then User Sees Validation Error "There is a problem... Enter day, month and year"
+        Then User Sees Validation Error "There is a problem Enter day, month and year"
         When User Set Date Field "Date" To "<InvalidSearchDate>"
         When User Clicks On The "Update" Button
-        Then User Sees Validation Error "There is a problem... Enter a real date"
+        Then User Sees Validation Error "There is a problem Enter a real date"
         When User Set Date Field "Date" To "<UpdatedSearchDate>"
         When User Clears The Time Field "Time"
         When User Clicks On The "Update" Button
-        Then User Sees Validation Error "There is a problem... Enter hours and minutes"
+        Then User Sees Validation Error "There is a problem Enter hours and minutes"
         When User Set Time Field "Time" To "<InvalidTime1>"
         When User Clicks On The "Update" Button
-        Then User Sees Validation Error "There is a problem... Enter minutes"
+        Then User Sees Validation Error "There is a problem Enter minutes"
         When User Clears The Time Field "Time"
         When User Set Time Field "Time" To "<InvalidTime2>"
         When User Clicks On The "Update" Button
-        Then User Sees Validation Error "There is a problem... Enter hours"
+        Then User Sees Validation Error "There is a problem Enter hours"
         When User Set Time Field "Time" To "<InvalidTime3>"
         When User Clicks On The "Update" Button
-        Then User Sees Validation Error "There is a problem... Enter a valid duration between 00:00 and 23:59"
+        Then User Sees Validation Error "There is a problem Enter a valid duration between 00:00 and 23:59"
         When User Set Time Field "Time" To "<UpdatedTime>"
         Then User Clears The "Description" Textbox
         When User Clicks On The "Update" Button
-        Then User Sees Validation Error "There is a problem... Description is required"
+        Then User Sees Validation Error "There is a problem Description is required"
         Then User Enters "<UpdatedDescription>" Into The "Description" Textbox
         Then User Selects "<InvalidStatus>" In The "Status" Dropdown
         When User Clicks On The "Update" Button
-        Then User Sees Validation Error "There is a problem... Status is required"
+        Then User Sees Validation Error "There is a problem Status is required"
         Then User Selects "<Status>" In The "Status" Dropdown
         When User Set "<InvalidHH>" and "<InvalidMM>" In The "Duration" Field
         When User Clicks On The "Update" Button
-        Then User Sees Validation Error "There is a problem... Enter hours between 0 and 99 Enter minutes between 0 and 59"
+        Then User Sees Validation Error "There is a problem Enter hours between 0 and 99 Enter minutes between 0 and 59"
         When User Set "<UpdatedHH>" and "<UpdatedMM>" In The "Duration" Field
         Then User Clears The "Court" Textbox
         Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
@@ -183,32 +183,32 @@ Feature: Applications List Update
         Then User Selects "<InvalidStatus>" In The "Status" Dropdown
         Then User Clears The "Court" Textbox
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "There is a problem... Enter day, month and year Enter hours and minutes Description is required Status is required Other location is required CJA is required Court is required"
+        Then User Sees Notification Banner "There is a problem Enter day, month and year Enter hours and minutes Description is required Status is required Other location is required CJA is required Court is required"
         When User Set Date Field "Date" To "<InvalidSearchDate>"
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "There is a problem... Enter a real date Enter hours and minutes Description is required Status is required Other location is required CJA is required Court is required"
+        Then User Sees Notification Banner "There is a problem Enter a real date Enter hours and minutes Description is required Status is required Other location is required CJA is required Court is required"
         When User Set Date Field "Date" To "<UpdatedSearchDate>"
         When User Set Time Field "Time" To "<InvalidTime1>"
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "There is a problem... Enter minutes Description is required Status is required Other location is required CJA is required Court is required"
+        Then User Sees Notification Banner "There is a problem Enter minutes Description is required Status is required Other location is required CJA is required Court is required"
         When User Clears The Time Field "Time"
         When User Set Time Field "Time" To "<InvalidTime2>"
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "There is a problem... Enter hours Description is required Status is required Other location is required CJA is required Court is required"
+        Then User Sees Notification Banner "There is a problem Enter hours Description is required Status is required Other location is required CJA is required Court is required"
         When User Clears The Time Field "Time"
         When User Set Time Field "Time" To "<InvalidTime3>"
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "There is a problem... Enter a valid duration between 00:00 and 23:59 Description is required Status is required Other location is required CJA is required Court is required"
+        Then User Sees Notification Banner "There is a problem Enter a valid duration between 00:00 and 23:59 Description is required Status is required Other location is required CJA is required Court is required"
         When User Set Time Field "Time" To "<UpdatedTime>"
         Then User Enters "<UpdatedDescription>" Into The "Description" Textbox
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "There is a problem... Status is required Other location is required CJA is required Court is required"
+        Then User Sees Notification Banner "There is a problem Status is required Other location is required CJA is required Court is required"
         Then User Selects "<Status>" In The "Status" Dropdown
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "There is a problem... Other location is required CJA is required Court is required"
+        Then User Sees Notification Banner "There is a problem Other location is required CJA is required Court is required"
         Then User Enters "<UpdatedOtherLocation>" Into The "Other location" Textbox
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "There is a problem... CJA is required"
+        Then User Sees Notification Banner "There is a problem CJA is required"
         Then User Enters "<InvalidCJAValue>" Into The "CJA" Textbox
         When User Clicks On The "Update" Button
         # Then User Sees Notification Banner "Criminal Justice Area not found"

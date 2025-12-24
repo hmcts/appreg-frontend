@@ -21,3 +21,10 @@ When(
     ApiPostHelper.postWithProcessedRow(endpoint, processedRow);
   },
 );
+
+When(
+  'User Makes POST API Request To {string} With Json Body',
+  (endpoint: string, jsonBody: string) => {
+    ApiPostHelper.postWithJsonBody(endpoint, jsonBody);
+  },
+);

@@ -30,8 +30,156 @@ Feature: Applications List Search and Print PDF Download
             | user1 | Lists     | today      | todayiso    | timenowhhmm-2h | RCJ001            | Royal Courts of Justice Set 1     | Test_{RANDOM} for Applications to review | 0       | OPEN   | Select           | Print continuous |
             | user1 | Lists     | today      | todayiso    | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Test_{RANDOM} for Leeds applications     | 0       | OPEN   | Select           | Print page       |
 
-    @regression @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @PJ
+    @regression @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-803
     Scenario Outline: Verify PDF download for print continuous and print page with entries for Court
+        Given User Authenticates Via API As "<User>"
+        When User Makes POST API Request To "/application-lists" With Body:
+            | date          | time   | status   | description   | durationHours   | durationMinutes   | courtLocationCode   |
+            | <DisplayDate> | <Time> | <Status> | <Description> | <durationHours> | <durationMinutes> | <courtLocationCode> |
+        Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "listId"
+        When User Makes POST API Request To "/application-lists/:listId/entries" With Json Body
+            """
+            {
+                "standardApplicantCode": null,
+                "applicationCode": "CT99002",
+                "applicant": {
+                    "person": {
+                        "name": {
+                            "title": "Mr",
+                            "surname": "Taylor {RANDOM}",
+                            "firstForename": "Henry",
+                            "secondForename": "James",
+                            "thirdForename": ""
+                        },
+                        "contactDetails": {
+                            "addressLine1": "{RANDOM} King Street",
+                            "addressLine2": "Westminster",
+                            "addressLine3": "London",
+                            "addressLine4": "Greater London",
+                            "addressLine5": "United Kingdom",
+                            "postcode": "SW1A 1AA",
+                            "phone": "0203{RANDOM}",
+                            "mobile": "07123{RANDOM}",
+                            "email": "applicant{RANDOM}@example.com"
+                        }
+                    },
+                    "organisation": null
+                },
+                "respondent": {
+                    "person": {
+                        "name": {
+                            "title": "Ms",
+                            "surname": "Clark {RANDOM}",
+                            "firstForename": "Emily",
+                            "secondForename": "Rose",
+                            "thirdForename": ""
+                        },
+                        "contactDetails": {
+                            "addressLine1": "{RANDOM} Market Road",
+                            "addressLine2": "Bristol",
+                            "addressLine3": "Avon",
+                            "addressLine4": "United Kingdom",
+                            "addressLine5": "",
+                            "postcode": "BS1 5AA",
+                            "phone": "0117{RANDOM}",
+                            "mobile": "07984{RANDOM}",
+                            "email": "respondent{RANDOM}@example.com"
+                        }
+                    },
+                    "dateOfBirth": "todayiso-25y",
+                    "organisation": null
+                },
+                "numberOfRespondents": null,
+                "wordingFields": [
+                    "test wording {RANDOM}"
+                ],
+                "feeStatuses": [],
+                "hasOffsiteFee": true,
+                "caseReference": "CASE-{RANDOM}",
+                "accountNumber": "ACC-{RANDOM}",
+                "notes": "Case noted with ref {RANDOM}",
+                "lodgementDate": "todayiso",
+                "officials": [
+                    {
+                        "title": "Mr",
+                        "surname": "Turner {RANDOM}",
+                        "forename": "Graham",
+                        "type": "MAGISTRATE"
+                    },
+                    {
+                        "title": "Ms",
+                        "surname": "Hayes {RANDOM}",
+                        "forename": "Laura",
+                        "type": "MAGISTRATE"
+                    },
+                    {
+                        "title": "Mr",
+                        "surname": "Miller {RANDOM}",
+                        "forename": "Peter",
+                        "type": "CLERK"
+                    },
+                    {
+                        "title": "Ms",
+                        "surname": "Patel {RANDOM}",
+                        "forename": "Anita",
+                        "type": "MAGISTRATE"
+                    }
+                ]
+            }
+            """
+        Then User Verify Response Status Code Should Be "201"
+        When User Makes POST API Request To "/application-lists/:listId/entries" With Json Body
+            """
+            {
+                "standardApplicantCode": null,
+                "applicationCode": "AD99002",
+                "applicant": {
+                    "person": {
+                        "name": {
+                            "title": "Mr",
+                            "surname": "Smith {RANDOM}",
+                            "firstForename": "John",
+                            "secondForename": "A",
+                            "thirdForename": "B"
+                        },
+                        "contactDetails": {
+                            "addressLine1": "{RANDOM} High Street",
+                            "addressLine2": "Westminster",
+                            "addressLine3": "London",
+                            "addressLine4": "Greater London",
+                            "addressLine5": "United Kingdom",
+                            "postcode": "SW1A 2AA",
+                            "phone": "0207{RANDOM}",
+                            "mobile": "07123{RANDOM}",
+                            "email": "john.smith{RANDOM}@example.com"
+                        }
+                    }
+                },
+                "wordingFields": [],
+                "feeStatuses": [
+                    {
+                        "paymentReference": "PAY-{RANDOM}",
+                        "paymentStatus": "PAID",
+                        "statusDate": "todayiso+1d"
+                    }
+                ],
+                "hasOffsiteFee": false,
+                "caseReference": "CASE-{RANDOM}",
+                "accountNumber": "ACC-{RANDOM}",
+                "notes": "Application discussion ref {RANDOM}",
+                "lodgementDate": "todayiso",
+                "officials": [
+                    {
+                        "title": "Mr",
+                        "surname": "Smith{RANDOM}",
+                        "forename": "John",
+                        "type": "MAGISTRATE"
+                    }
+                ]
+            }
+            """
+        Then User Verify Response Status Code Should Be "201"
         Given User Has No Downloaded PDFs
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
@@ -48,21 +196,28 @@ Feature: Applications List Search and Print PDF Download
         Then User Verifies Latest Downloaded PDF Is Not Empty
         Then User Verifies Latest Downloaded PDF Has <Pages> Pages
         Then User Verifies Latest Downloaded PDF Contains Text "Check List Report"
-        #  Time is not added due to bug ARCPOC-803
         Then User Verifies Latest Downloaded PDF Contains <Entries> "Applicant" Entries
-        Then User Verifies Latest Downloaded PDF Contains The Following Values:
-            | Date & Time       | <DisplayDate>                                              |
-            | Duration          | <Duration>                                                 |
-            | Location          | <Court>                                                    |
-            | Applicant         | Miss Sophia King                                           |
-            | Case Reference    | CASE101-01                                                 |
-            | Application Code  | AP99004                                                    |
-            | Account Reference | ACC000189                                                  |
-            | Application Title | Request for Certificate of Refusal to State a Case (Civil) |
-            | Applicant         | Mr James Lee                                               |
-            | Respondent        | Mr John Turner                                             |
-            | Case Reference    | CASE101-02                                                 |
-            | Application Code  | CT99001                                                    |
+            | Date & Time            | <DisplayDate> <Time>                            |
+            | Duration               | <durationHours> Hours <durationMinutes> Minutes |
+            | Location               | <Court>                                         |
+            | Applicant              | Mr Henry James Taylor {RANDOM}                  |
+            | Respondent             | Ms Emily Rose Clark {RANDOM}                    |
+            | Case Reference         | CASE-{RANDOM}                                   |
+            | Application Code       | CT99002                                         |
+            | Account Reference      | ACC-{RANDOM}                                    |
+            | Application Title      | Issue of liability order summons - council tax  |
+            | Result                 | -                                               |
+            | Notes                  | Case noted with ref 37453                       |
+            | This matter was before | -                                               |
+            | Applicant              | Mr John A B Smith {RANDOM}                      |
+            | Respondent             | -                                               |
+            | Case Reference         | CASE-{RANDOM}                                   |
+            | Application Code       | AD99002                                         |
+            | Account Reference      | ACC-{RANDOM}                                    |
+            | Application Title      | Copy documents (electronic)                     |
+            | Result                 | -                                               |
+            | Notes                  | Application discussion ref 37453                |
+            | This matter was before | -                                               |
         Then User Clears Downloaded PDFs
         When User Clicks "<SelectButtonText>" Then "Print page" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
@@ -73,29 +228,79 @@ Feature: Applications List Search and Print PDF Download
         Then User Verifies Latest Downloaded PDF Has <Pages> Pages
         Then User Verifies Latest Downloaded PDF Contains Text "<Court>"
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
-            | Application brought by       | Miss Sophia King                                           |
-            | Respondent                   | -                                                          |
-            | Matter considered            | Request for Certificate of Refusal to State a Case (Civil) |
-            | AP99004                      | -                                                          |
-            | This matter was dated before | <DisplayDate>                                              |
-            | Produced on:                 | today                                                      |
-            | Application brought by       | Mr James Lee                                               |
-            | Respondent                   | Mr John Turner                                             |
-            | Matter considered            | Issue of liability order summons -council tax (bulk)       |
-            | CT99001                      | -                                                          |
-            | This matter was dated before | <DisplayDate>                                              |
-            | Produced on:                 | <Date>                                                     |
+            | Application brought by       | Mr Henry James Taylor {RANDOM}                 |
+            | Respondent                   | Ms Emily Rose Clark {RANDOM}                   |
+            | Matter considered            | Issue of liability order summons - council tax |
+            | CT99002                      | -                                              |
+            | This matter was dated before | <DisplayDate>                                  |
+            | Produced on:                 | <SearchDate>                                   |
+            | Application brought by       | Mr John A B Smith {RANDOM}                     |
+            | Respondent                   | -                                              |
+            | Matter considered            | Copy documents (electronic)                    |
+            | AD99002                      | -                                              |
+            | This matter was dated before | <DisplayDate>                                  |
+        Then User Verifies Latest Downloaded PDF Contains The Following Values:
+            | <Court> |
         Then User Clears Downloaded PDFs
         Examples:
-            | User  | TableName | SearchDate | DisplayDate | Time  | Court                         | Description             | Entries | Status | SelectButtonText | ButtonName | Duration          | PDFName                       | Pages | Date  |
-            | user1 | Lists     | 16/11/2025 | 2025-11-16  | 13:26 | Royal Courts of Justice Set 1 | ENFORCEMENT LIST - TEST | 2       | Open   | Select           |            | 2 Hours 0 Minutes | royal-courts-of-justice-set-1 | 2     | today |
+            | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFName                           | Pages |
+            | user1 | Lists     | today      | todayiso    | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 2             | 22              | 2       | OPEN   | Select           | leeds-combined-court-centre-set-3 | 2     |
 
-    @regression @ARCPOC-214 @ARCPOC-453 @ARCPOC-449
+    @regression @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @PJ
     Scenario Outline: Verify PDF download for print page with entries for CJA
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
             | date          | time   | status   | description   | cjaCode   | otherLocationDescription   |
             | <DisplayDate> | <Time> | <Status> | <Description> | <cjaCode> | <otherLocationDescription> |
+        Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "listId"
+        When User Makes POST API Request To "/application-lists/:listId/entries" With Json Body
+            """
+            {
+                "standardApplicantCode": "APP032",
+                "applicationCode": "AD99003",
+                "numberOfRespondents": null,
+                "wordingFields": [],
+                "feeStatuses": [
+                    {
+                        "paymentReference": "PAY-{RANDOM}",
+                        "paymentStatus": "PAID",
+                        "statusDate": "2025-12-01"
+                    }
+                ],
+                "hasOffsiteFee": false,
+                "caseReference": "CASE-{RANDOM}",
+                "accountNumber": "ACC-{RANDOM}",
+                "notes": "Case noted with ref {RANDOM}",
+                "lodgementDate": "todayiso",
+                "officials": [
+                    {
+                        "title": "Mr",
+                        "surname": "Turner {RANDOM}",
+                        "forename": "Graham",
+                        "type": "MAGISTRATE"
+                    },
+                    {
+                        "title": "Ms",
+                        "surname": "Hayes {RANDOM}",
+                        "forename": "Laura",
+                        "type": "MAGISTRATE"
+                    },
+                    {
+                        "title": "Mr",
+                        "surname": "Miller {RANDOM}",
+                        "forename": "Peter",
+                        "type": "CLERK"
+                    },
+                    {
+                        "title": "Ms",
+                        "surname": "Patel {RANDOM}",
+                        "forename": "Anita",
+                        "type": "MAGISTRATE"
+                    }
+                ]
+            }
+            """
         Then User Verify Response Status Code Should Be "201"
         Given User Has No Downloaded PDFs
         Given User Is On The Portal Page
@@ -106,12 +311,45 @@ Feature: Applications List Search and Print PDF Download
         When User Clicks On The "Search" Button
         Then User Should See The Table "<TableName>"
         Then User Should See Table "<TableName>" Has Rows
-        When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
+        When User Clicks "<SelectButtonText>" Then "Print continuous" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location     | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
-        # Verify PDF was downloaded and contains expected content
-        Then User Sees Notification Banner "There is a problem No entries available to print"
         Then User Clears Downloaded PDFs
+        Then User Verifies PDF "<PDFName>" Is Downloaded
+        Then User Verifies Latest Downloaded PDF Is Not Empty
+        Then User Verifies Latest Downloaded PDF Has <Pages> Pages
+        Then User Verifies Latest Downloaded PDF Contains Text "Check List Report"
+        Then User Verifies Latest Downloaded PDF Contains <Entries> "Applicant" Entries
+            | Date & Time            | <DisplayDate> <Time>            |
+            | Duration               | 0 Hours 0 Minutes               |
+            | Location               | otherLocationDescription        |
+            | Applicant              |                                 |
+            | Respondent             | -                               |
+            | Case Reference         | CASE-{RANDOM}                   |
+            | Application Code       | AD99003                         |
+            | Account Reference      | ACC-{RANDOM}                    |
+            | Application Title      | Extract from the Court Register |
+            | Result                 | -                               |
+            | Notes                  | Case noted with ref {RANDOM}    |
+            | This matter was before | _                               |
+        Then User Clears Downloaded PDFs
+        When User Clicks "<SelectButtonText>" Then "Print page" From Menu In Row Of Table "<TableName>" With:
+            | Date          | Time   | Location | Description   | Entries   | Status   |
+            | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+        # Verify PDF was downloaded and contains expected content
+        Then User Verifies PDF "<PDFName>" Is Downloaded
+        Then User Verifies Latest Downloaded PDF Is Not Empty
+        Then User Verifies Latest Downloaded PDF Has <Pages> Pages
+        Then User Verifies Latest Downloaded PDF Contains Text "<Court>"
+        Then User Verifies Latest Downloaded PDF Contains The Following Values:
+            | Application brought by       | Sunrise Manufacturing Co 456 Industrial Estate, B1 2CD |
+            | Respondent                   | -                                                      |
+            | Matter considered            | Extract from the Court Register                        |
+            | AD99003                      | -                                                      |
+            | This matter was dated before | <DisplayDate>                                          |
+            | Produced on:                 | <SearchDate>                                           |
+        Then User Verifies Latest Downloaded PDF Contains The Following Values:
+            | <Court> |
         Examples:
-            | User  | TableName | SearchDate | DisplayDate | Time           | cjaCode | OptionText     | otherLocationDescription                          | Description             | Entries | Status | SelectButtonText | ButtonName | Duration          | PDFName      |
-            | user1 | Lists     | today      | todayiso    | timenowhhmm-1h | A8      | CJA Number 308 | This is a location description for CJA Number 318 | ENFORCEMENT LIST - TEST | 0       | OPEN   | Select           | Print page | 2 Hours 0 Minutes | cja-number-1 |
+            | User  | TableName | SearchDate | DisplayDate | Time           | cjaCode | OptionText     | otherLocationDescription                | Description               | Entries | Status | SelectButtonText | PDFName  | Pages |
+            | user1 | Lists     | today      | todayiso    | timenowhhmm-1h | A8      | CJA Number 308 | This is a location description {RANDOM} | ENFORCEMENT LIST-{RANDOM} | 1       | OPEN   | Select           | todayiso | 1     |
