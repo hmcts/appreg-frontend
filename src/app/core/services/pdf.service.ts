@@ -81,7 +81,10 @@ export class PdfService {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(TITLE_FS);
 
-      const title = this.fallbackText(data.courtName, 'Court Missing');
+      const title = this.fallbackText(
+        data.courtName || `${data.location}\n${data.cja}`,
+        'Court Missing',
+      );
       const titleLines = toLines(
         doc as unknown as JsPDFLike,
         title,
