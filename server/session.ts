@@ -8,8 +8,8 @@ import session, {
 } from 'express-session';
 import { type RedisClientType, createClient } from 'redis';
 
-import { AppInsights } from './modules/appinsights';
-import { HmctsLoggerBridge } from './modules/logger';
+import { AppInsights } from '../server/modules/appinsights';
+import { HmctsLoggerBridge } from '../server/modules/logger';
 
 export interface SetupSessionArgs {
   isProd: boolean;

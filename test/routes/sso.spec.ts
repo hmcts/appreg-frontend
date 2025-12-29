@@ -1,5 +1,5 @@
-import express, { NextFunction } from 'express';
 import type { Express, Request, Response } from 'express';
+import express, { NextFunction } from 'express';
 import session, { Session, SessionData } from 'express-session';
 import request from 'supertest';
 
@@ -125,7 +125,7 @@ async function mountRoutes(
   app: Express,
   overrides?: { tenantId?: string; postLogoutRedirectUri?: string },
 ): Promise<void> {
-  const routes = (await import('../../src/routes/sso')) as RoutesModule;
+  const routes = (await import('../../server/routes/sso')) as RoutesModule;
 
   if (routes.setupSsoRoutes) {
     const opts: {

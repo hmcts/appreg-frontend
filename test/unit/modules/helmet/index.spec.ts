@@ -1,7 +1,7 @@
 import express from 'express';
 import helmet from 'helmet';
 
-import { Helmet as HelmetModule } from '../../../../src/modules/helmet/index';
+import { Helmet as HelmetModule } from '../../../../server/modules/helmet/index';
 
 // Tell TypeScript that helmet is a mocked function.
 jest.mock('helmet');
