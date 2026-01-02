@@ -179,11 +179,12 @@
               Print page
             </button>
 
-            <!-- Print continuous button (always shown) -->
+            <!-- Print continuous button (always shown)
+             Print cont with false bool param to change PDF title -->
             <button
               type="button"
               class="govuk-button moj-button-menu__item govuk-button--secondary"
-              (click)="onPrintContinuous(row.id)"
+              (click)="onPrintContinuous(row.id, false)"
             >
               Print continuous
             </button>
@@ -213,11 +214,12 @@
               Print page
             </button>
 
-            <!-- Print continuous button (always shown) -->
+            <!-- Print continuous button (always shown)
+             Print cont with true bool param to change PDF title -->
             <button
               type="button"
               class="govuk-button moj-button-menu__item govuk-button--secondary"
-              (click)="onPrintContinuous(row.id)"
+              (click)="onPrintContinuous(row.id, true)"
             >
               Print continuous
             </button>

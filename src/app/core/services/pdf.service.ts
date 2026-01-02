@@ -219,7 +219,10 @@ export class PdfService {
    * Multi-entry, continuous layout (landscape).
    * Uses a two-column grid; labels are short and values wrap.
    */
-  async generateContinuousApplicationListsPdf(dtos: unknown[]): Promise<void> {
+  async generateContinuousApplicationListsPdf(
+    dtos: unknown[],
+    isClosed: boolean,
+  ): Promise<void> {
     // TODO: Move font + layout consts out to a shared space.
     const dataArr = dtos.map((d) => this.normalise(d));
 
@@ -259,6 +262,9 @@ export class PdfService {
     let y = 0;
     let pageNo = 0;
 
+    const pageHeaderTitle =
+      isClosed === true ? 'Applications Register Report' : 'Check List Report';
+
     const hr = (yy: number) => drawHr(doc, Math.round(yy), M, pageW);
 
     const drawHeader = (): void => {
@@ -270,7 +276,7 @@ export class PdfService {
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(TITLE_FS);
-      doc.text('Check List Report', M, headerY);
+      doc.text(pageHeaderTitle, M, headerY);
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(LABEL_FS + 1);

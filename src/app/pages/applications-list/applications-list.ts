@@ -320,7 +320,7 @@ export class ApplicationsList
     }
   }
 
-  async onPrintContinuous(id: string): Promise<void> {
+  async onPrintContinuous(id: string, isClosed: boolean): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
@@ -354,7 +354,7 @@ export class ApplicationsList
         return;
       }
 
-      await this.pdf.generateContinuousApplicationListsPdf([dto]);
+      await this.pdf.generateContinuousApplicationListsPdf([dto], isClosed);
     } catch {
       this.showInline('Unable to generate PDF.');
     }
