@@ -601,34 +601,6 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
   }
 
-  // private validatePersonSection(): boolean {
-  //   this.personFieldErrors = {};
-
-  //   if (!this.personSection) {
-  //     return true;
-  //   }
-
-  //   const result: ValidationResult = this.personSection.validate();
-  //   this.personFieldErrors = result.fieldErrors;
-  //   this.summaryErrors = [...this.summaryErrors, ...result.summaryItems];
-
-  //   return result.valid;
-  // }
-
-  // private validateOrganisationSection(): boolean {
-  //   this.organisationFieldErrors = {};
-
-  //   if (!this.organisationSection) {
-  //     return true;
-  //   }
-
-  //   const result: ValidationResult = this.organisationSection.validate();
-  //   this.organisationFieldErrors = result.fieldErrors;
-  //   this.summaryErrors = [...this.summaryErrors, ...result.summaryItems];
-
-  //   return result.valid;
-  // }
-
   private bindApplicantTypeChanges(): void {
     this.form.controls.applicantType.valueChanges
       .pipe(
