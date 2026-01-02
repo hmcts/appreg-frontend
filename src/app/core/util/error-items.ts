@@ -11,8 +11,7 @@ export function buildErrorTextByDomId(
 
   for (const e of items) {
     const href = typeof e.href === 'string' ? e.href : undefined;
-    const domId =
-      href && href.startsWith('#') ? href.slice(1) : (e.id ?? undefined);
+    const domId = href?.startsWith('#') ? href.slice(1) : (e.id ?? undefined);
 
     if (!domId) {
       continue;

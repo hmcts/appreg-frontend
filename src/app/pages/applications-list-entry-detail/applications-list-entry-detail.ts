@@ -170,8 +170,6 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   formSubmitted = false;
   selectedStandardApplicantCode: string | null = null;
-  applicantPersonErrors: ErrorItem[] = [];
-  organisationFieldErrors: Record<string, string> = {};
 
   private entryDetail: EntryGetDetailDto | null = null;
 
@@ -622,9 +620,6 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   private resetErrors(): void {
-    // this.personFieldErrors = {};
-    this.organisationFieldErrors = {};
-
     this.errorHint = 'There is a problem';
     this.summaryErrors = [];
     this.errorFound = false;

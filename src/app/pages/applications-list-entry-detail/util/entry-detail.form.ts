@@ -354,28 +354,39 @@ export function getRespondentEntryType(
     return null;
   }
 
-  // Prefer explicit type if it's valid AND matches the payload
-  const t =
-    r.type === 'person' || r.type === 'organisation'
-      ? (r.type as RespondentEntryType)
-      : null;
+  const hasPerson = !!r.person;
+  const hasOrg = !!r.organisation;
 
-  if (t === 'person') {
-    return r.person ? 'person' : r.organisation ? 'organisation' : 'person';
-  }
-  if (t === 'organisation') {
-    return r.organisation
-      ? 'organisation'
-      : r.person
-        ? 'person'
-        : 'organisation';
-  }
+  const isExplicitPerson = r.type === 'person';
+  const isExplicitOrg = r.type === 'organisation';
 
-  // Fallback: infer from presence
-  if (r.person) {
+  // If explicit type is present, prefer it when it matches payload.
+  // If it doesn't match, return the other if present, otherwise fall back to explicit.
+  if (isExplicitPerson) {
+    if (hasPerson) {
+      return 'person';
+    }
+    if (hasOrg) {
+      return 'organisation';
+    }
     return 'person';
   }
-  if (r.organisation) {
+
+  if (isExplicitOrg) {
+    if (hasOrg) {
+      return 'organisation';
+    }
+    if (hasPerson) {
+      return 'person';
+    }
+    return 'organisation';
+  }
+
+  // No explicit type: infer from presence
+  if (hasPerson) {
+    return 'person';
+  }
+  if (hasOrg) {
     return 'organisation';
   }
 

@@ -12,6 +12,7 @@ import {
   ApplicationsListEntryFormValue,
   OrganisationFormValue,
   PersonFormValue,
+  RespondentEntryType,
 } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 
 /**
@@ -107,13 +108,13 @@ function buildRespondent(
   personForm: PersonFormValue,
   organisationForm: OrganisationFormValue,
 ): Respondent | undefined {
-  const t =
-    formValue.respondentEntryType ??
-    (hasRequiredPerson(personForm)
-      ? 'person'
-      : hasRequiredOrg(organisationForm)
-        ? 'organisation'
-        : null);
+  const inferredType: RespondentEntryType | null = hasRequiredPerson(personForm)
+    ? 'person'
+    : hasRequiredOrg(organisationForm)
+      ? 'organisation'
+      : null;
+
+  const t = formValue.respondentEntryType ?? inferredType;
 
   if (!t) {
     return undefined;
