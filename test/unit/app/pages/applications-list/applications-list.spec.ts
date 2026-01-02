@@ -793,7 +793,7 @@ describe('ApplicationsList.onPrintContinuous', () => {
     const { comp, api, pdf, clearNotificationsSpy, showInlineSpy } =
       createInstance('server');
 
-    await comp.onPrintContinuous('abc-123');
+    await comp.onPrintContinuous('abc-123', false);
 
     expect(clearNotificationsSpy).not.toHaveBeenCalled();
     expect(api.printApplicationList).not.toHaveBeenCalled();
@@ -805,7 +805,7 @@ describe('ApplicationsList.onPrintContinuous', () => {
     const { comp, api, pdf, clearNotificationsSpy, showInlineSpy } =
       createInstance('browser');
 
-    await comp.onPrintContinuous('');
+    await comp.onPrintContinuous('', false);
 
     expect(clearNotificationsSpy).not.toHaveBeenCalled();
     expect(api.printApplicationList).not.toHaveBeenCalled();
@@ -819,7 +819,7 @@ describe('ApplicationsList.onPrintContinuous', () => {
     const dto = makePrintDto([{ a: 1 } as unknown]);
     api.printApplicationList.mockReturnValue(of(dto));
 
-    await comp.onPrintContinuous('abc-123');
+    await comp.onPrintContinuous('abc-123', false);
 
     expect(clearNotificationsSpy).toHaveBeenCalledTimes(1);
 
@@ -839,7 +839,7 @@ describe('ApplicationsList.onPrintContinuous', () => {
 
     api.printApplicationList.mockReturnValue(of(makePrintDto([])));
 
-    await comp.onPrintContinuous('abc-123');
+    await comp.onPrintContinuous('abc-123', false);
 
     expect(showInlineSpy).toHaveBeenCalledWith('No entries available to print');
     expect(pdf.generateContinuousApplicationListsPdf).not.toHaveBeenCalled();
@@ -851,12 +851,13 @@ describe('ApplicationsList.onPrintContinuous', () => {
     const dto = makePrintDto([{}]);
     api.printApplicationList.mockReturnValue(of(dto));
 
-    await comp.onPrintContinuous('abc-123');
+    await comp.onPrintContinuous('abc-123', false);
 
     expect(pdf.generateContinuousApplicationListsPdf).toHaveBeenCalledTimes(1);
-    expect(pdf.generateContinuousApplicationListsPdf).toHaveBeenCalledWith([
-      dto,
-    ]);
+    expect(pdf.generateContinuousApplicationListsPdf).toHaveBeenCalledWith(
+      [dto],
+      false,
+    );
   });
 
   it('shows a generic error if PDF generation rejects', async () => {
@@ -868,7 +869,7 @@ describe('ApplicationsList.onPrintContinuous', () => {
       new Error('pdf fail'),
     );
 
-    await comp.onPrintContinuous('abc-123');
+    await comp.onPrintContinuous('abc-123', false);
 
     expect(api.printApplicationList).toHaveBeenCalledTimes(1);
     expect(pdf.generateContinuousApplicationListsPdf).toHaveBeenCalledTimes(1);
