@@ -48,7 +48,6 @@ import { mapHttpErrorToSummary } from './util/errors.util';
 import { getEntryId } from './util/routing.util';
 
 import { AccordionComponent } from '@components/accordion/accordion.component';
-import { ENTRY_ERROR_MESSAGES } from '@components/applications-list-entry-create/applications-list-entry-create';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import {
@@ -62,12 +61,20 @@ import {
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { OrganisationSectionComponent } from '@components/organisation-section/organisation-section.component';
 import { PersonSectionComponent } from '@components/person-section/person-section.component';
+import { RespondentSectionComponent } from '@components/respondent-section/respondent-section.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
 import { TableColumn } from '@components/selectable-sortable-table/selectable-sortable-table.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { StandardApplicantSelectComponent } from '@components/standard-applicant-select/standard-applicant-select.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
+import {
+  APPLICANT_ORG_ERROR_HREFS,
+  APPLICANT_PERSON_ERROR_HREFS,
+  RESPONDENT_ORG_ERROR_HREFS,
+  RESPONDENT_PERSON_ERROR_HREFS,
+} from '@constants/application-list-entry/respondent/error-hrefs';
 import { SuccessBanner } from '@core-types/banner/banner.types';
 import {
   ApplicationCodesApi,
@@ -98,20 +105,14 @@ import {
 import { buildFormErrorSummary } from '@util/error-summary';
 import { markFormGroupClean, readText } from '@util/form-helpers';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
-import { ValidationResult } from '@util/validation';
 
-type ChildErrorSource = 'notes' | 'fee' | 'respondent';
+type ChildErrorSource = 'notes' | 'fee' | 'respondent' | 'applicant';
 
-//Form validation messages should be set here
-const UPDATE_ENTRY_ERROR_MESSAGES = {
-  standardApplicantCode: {
-    required: 'Select a standard applicant',
-  },
-  ...ENTRY_ERROR_MESSAGES,
-};
+const UPDATE_ENTRY_ERROR_MESSAGES = ENTRY_ERROR_MESSAGES;
 
 export const ERROR_HREFS = {
   standardApplicantCode: '#standard-applicant',
+  ...RESPONDENT_PERSON_ERROR_HREFS,
 } as const;
 
 @Component({
@@ -135,6 +136,7 @@ export const ERROR_HREFS = {
     SuccessBannerComponent,
     StandardApplicantSelectComponent,
     NotesSectionComponent,
+    RespondentSectionComponent,
   ],
   templateUrl: './applications-list-entry-detail.html',
 })
@@ -160,7 +162,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   appListId!: string;
 
-  private forms!: ApplicationListEntryForms;
+  forms!: ApplicationListEntryForms;
 
   form!: ApplicationsListEntryForm;
   personForm!: PersonForm;
@@ -168,7 +170,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   formSubmitted = false;
   selectedStandardApplicantCode: string | null = null;
-  personFieldErrors: Record<string, string> = {};
+  applicantPersonErrors: ErrorItem[] = [];
   organisationFieldErrors: Record<string, string> = {};
 
   private entryDetail: EntryGetDetailDto | null = null;
@@ -191,6 +193,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     notes: [],
     fee: [],
     respondent: [],
+    applicant: [],
   };
 
   // View constants (from helpers)
@@ -222,6 +225,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     // Build forms via helpers
     this.forms = this.formSvc.createForms();
     this.form = this.forms.form;
+
     this.personForm = this.forms.personForm;
     this.organisationForm = this.forms.organisationForm;
 
@@ -323,7 +327,80 @@ export class ApplicationsListEntryDetail implements OnInit {
     });
   }
 
+  get respondentErrorItems(): ErrorItem[] {
+    return this.childErrors.respondent;
+  }
+
+  get applicantErrorItems(): ErrorItem[] {
+    return this.childErrors.applicant;
+  }
+
+  private updateApplicantErrors(): void {
+    if (this.applicantType === 'person') {
+      this.personGroup.markAllAsTouched();
+      this.personGroup.updateValueAndValidity({ emitEvent: false });
+
+      this.childErrors.applicant = buildFormErrorSummary(
+        this.personGroup,
+        UPDATE_ENTRY_ERROR_MESSAGES,
+        { hrefs: APPLICANT_PERSON_ERROR_HREFS },
+      );
+      return;
+    }
+
+    if (this.applicantType === 'org') {
+      this.organisationGroup.markAllAsTouched();
+      this.organisationGroup.updateValueAndValidity({ emitEvent: false });
+
+      this.childErrors.applicant = buildFormErrorSummary(
+        this.organisationGroup,
+        UPDATE_ENTRY_ERROR_MESSAGES,
+        { hrefs: APPLICANT_ORG_ERROR_HREFS },
+      );
+      return;
+    }
+
+    this.childErrors.applicant = [];
+  }
+
+  private updateRespondentErrors(): void {
+    const t = this.form.controls.respondentEntryType.value;
+
+    if (t === 'person') {
+      this.forms.respondentPersonForm.markAllAsTouched();
+      this.forms.respondentPersonForm.updateValueAndValidity({
+        emitEvent: false,
+      });
+
+      this.childErrors.respondent = buildFormErrorSummary(
+        this.forms.respondentPersonForm,
+        UPDATE_ENTRY_ERROR_MESSAGES,
+        { hrefs: RESPONDENT_PERSON_ERROR_HREFS },
+      );
+      return;
+    }
+
+    if (t === 'organisation') {
+      this.forms.respondentOrganisationForm.markAllAsTouched();
+      this.forms.respondentOrganisationForm.updateValueAndValidity({
+        emitEvent: false,
+      });
+
+      this.childErrors.respondent = buildFormErrorSummary(
+        this.forms.respondentOrganisationForm,
+        UPDATE_ENTRY_ERROR_MESSAGES,
+        { hrefs: RESPONDENT_ORG_ERROR_HREFS },
+      );
+      return;
+    }
+
+    this.childErrors.respondent = [];
+  }
+
   private updateAllErrors(): void {
+    this.updateApplicantErrors();
+    this.updateRespondentErrors();
+
     this.parentErrors = this.buildErrorSummary();
     const allChildErrors = Object.values(this.childErrors).flat();
 
@@ -357,36 +434,6 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     if (this.errorFound) {
       return;
-    }
-
-    // Client-side validation per type
-    // TODO:
-    //This could be refactored, we should use Angular form validation if possible
-    switch (this.applicantType) {
-      case 'person': {
-        const isPersonValid = this.validatePersonSection();
-        if (!isPersonValid) {
-          this.errorFound = true;
-          focusErrorSummary(this.platformId);
-          return;
-        }
-        break;
-      }
-
-      case 'org': {
-        const isOrgValid = this.validateOrganisationSection();
-        if (!isOrgValid) {
-          this.errorFound = true;
-          focusErrorSummary(this.platformId);
-          return;
-        }
-        break;
-      }
-
-      //TODO:
-      //Standard application code validation now handled in Angular form custom validator
-      // (standardApplicantCodeConditionalRequired)
-      //The above validation blocks should also follow this pattern
     }
 
     // Ensure we have listId, entryId and a loaded server snapshot
@@ -554,33 +601,33 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
   }
 
-  private validatePersonSection(): boolean {
-    this.personFieldErrors = {};
+  // private validatePersonSection(): boolean {
+  //   this.personFieldErrors = {};
 
-    if (!this.personSection) {
-      return true;
-    }
+  //   if (!this.personSection) {
+  //     return true;
+  //   }
 
-    const result: ValidationResult = this.personSection.validate();
-    this.personFieldErrors = result.fieldErrors;
-    this.summaryErrors = [...this.summaryErrors, ...result.summaryItems];
+  //   const result: ValidationResult = this.personSection.validate();
+  //   this.personFieldErrors = result.fieldErrors;
+  //   this.summaryErrors = [...this.summaryErrors, ...result.summaryItems];
 
-    return result.valid;
-  }
+  //   return result.valid;
+  // }
 
-  private validateOrganisationSection(): boolean {
-    this.organisationFieldErrors = {};
+  // private validateOrganisationSection(): boolean {
+  //   this.organisationFieldErrors = {};
 
-    if (!this.organisationSection) {
-      return true;
-    }
+  //   if (!this.organisationSection) {
+  //     return true;
+  //   }
 
-    const result: ValidationResult = this.organisationSection.validate();
-    this.organisationFieldErrors = result.fieldErrors;
-    this.summaryErrors = [...this.summaryErrors, ...result.summaryItems];
+  //   const result: ValidationResult = this.organisationSection.validate();
+  //   this.organisationFieldErrors = result.fieldErrors;
+  //   this.summaryErrors = [...this.summaryErrors, ...result.summaryItems];
 
-    return result.valid;
-  }
+  //   return result.valid;
+  // }
 
   private bindApplicantTypeChanges(): void {
     this.form.controls.applicantType.valueChanges
@@ -603,7 +650,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   private resetErrors(): void {
-    this.personFieldErrors = {};
+    // this.personFieldErrors = {};
     this.organisationFieldErrors = {};
 
     this.errorHint = 'There is a problem';
@@ -615,6 +662,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       notes: [],
       fee: [],
       respondent: [],
+      applicant: [],
     };
   }
 

@@ -24,14 +24,30 @@ describe('error focus utils', () => {
   });
 
   describe('onCreateErrorClick', () => {
-    it('returns early when item.id is missing/empty', () => {
+    it('returns early when item.id/href is missing/empty', () => {
       const spy = jest.spyOn(document, 'getElementById');
 
       onCreateErrorClick({} as TestErrorItem);
       onCreateErrorClick({ id: '' } as TestErrorItem);
       onCreateErrorClick({ id: null } as unknown as TestErrorItem);
+      onCreateErrorClick({ href: '' } as unknown as TestErrorItem);
+      onCreateErrorClick({ href: '#' } as unknown as TestErrorItem);
 
       expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('focuses when href contains a hash', () => {
+      document.body.innerHTML = '<input id="x" />';
+      const el = document.getElementById('x') as HTMLElement;
+
+      const scrollSpy = jest.spyOn(el, 'scrollIntoView');
+      const focusSpy = jest.spyOn(el, 'focus');
+
+      onCreateErrorClick({ href: '#x' } as unknown as TestErrorItem);
+
+      expect(scrollSpy).toHaveBeenCalled();
+      jest.advanceTimersByTime(50);
+      expect(focusSpy).toHaveBeenCalledWith({ preventScroll: true });
     });
 
     it('focuses by id when id is provided (smooth scroll path)', () => {

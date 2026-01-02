@@ -1,0 +1,35 @@
+<h3 class="govuk-heading-m">Application entry type</h3>
+
+<div class="govuk-grid-row" [formGroup]="form()">
+  <app-select-input
+    formControlName="respondentEntryType"
+    label="Select type"
+    hint="The type of respondant for this application"
+    idPrefix="respondent-entry-type"
+    [options]="selectOptions()"
+  />
+</div>
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
+
+@switch (form().controls.respondentEntryType.value) {
+  @case ('person') {
+    <app-person-section
+      scopeId="respondent"
+      [group]="personGroup()"
+      [titleOptions]="personTitleOptions()"
+      [submitted]="submitted()"
+      [errors]="errorItems()"
+    />
+  }
+  @case ('organisation') {
+    <app-organisation-section
+      scopeId="respondent"
+      [group]="organisationGroup()"
+      [submitted]="submitted()"
+      [errors]="errorItems()"
+    />
+  }
+}

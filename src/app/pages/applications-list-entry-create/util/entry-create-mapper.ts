@@ -19,12 +19,18 @@ import {
  */
 export function buildEntryCreateDto(
   formValue: ApplicationsListEntryFormValue,
-  personForm: PersonFormValue,
-  organisationForm: OrganisationFormValue,
+  applicantPersonForm: PersonFormValue,
+  applicantOrganisationForm: OrganisationFormValue,
+  respondentPersonForm: PersonFormValue,
+  respondentOrganisationForm: OrganisationFormValue,
 ): EntryCreateDto {
   const dto: Partial<EntryCreateDto> = {
     applicationCode: toOptionalTrimmed(formValue.applicationCode)!,
-    respondent: buildRespondent(formValue, personForm, organisationForm),
+    respondent: buildRespondent(
+      formValue,
+      respondentPersonForm,
+      respondentOrganisationForm,
+    ),
     numberOfRespondents: formValue.numberOfRespondents ?? undefined,
     wordingFields: buildWordingFields(formValue),
     feeStatuses: buildFeeStatuses(formValue),
@@ -38,7 +44,11 @@ export function buildEntryCreateDto(
       formValue.standardApplicantCode,
     );
   } else {
-    dto.applicant = buildApplicant(formValue, personForm, organisationForm);
+    dto.applicant = buildApplicant(
+      formValue,
+      applicantPersonForm,
+      applicantOrganisationForm,
+    );
   }
 
   pruneNullish(dto);
@@ -97,7 +107,14 @@ function buildRespondent(
   personForm: PersonFormValue,
   organisationForm: OrganisationFormValue,
 ): Respondent | undefined {
-  const t = formValue.respondentEntryType;
+  const t =
+    formValue.respondentEntryType ??
+    (hasRequiredPerson(personForm)
+      ? 'person'
+      : hasRequiredOrg(organisationForm)
+        ? 'organisation'
+        : null);
+
   if (!t) {
     return undefined;
   }

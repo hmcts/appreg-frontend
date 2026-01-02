@@ -2,40 +2,18 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 
-import { OrganisationSectionComponent } from '../../../../../../src/app/shared/components/organisation-section/organisation-section.component';
-import {
-  addressLine1Missing,
-  orgNameMissing,
-} from '../../../../../../src/app/shared/constants/err-msgs';
-import { validateOptionalContactFields } from '../../../../../../src/app/shared/util/validation';
+import type { ErrorItem } from '@components/error-summary/error-summary.component';
+import { OrganisationSectionComponent } from '@components/organisation-section/organisation-section.component';
 
 type TextInputLike = {
   submitted?: boolean;
   suppressError?: boolean;
-  error?: string;
+  error?: string | null;
   inputType?: string;
+  idPrefix?: string;
 };
 
-function setGroup(
-  component: OrganisationSectionComponent,
-  values: Record<string, string | undefined>,
-): void {
-  component.group = new FormGroup({
-    name: new FormControl(values['name']),
-    addressLine1: new FormControl(values['addressLine1']),
-    postcode: new FormControl(values['postcode']),
-    phone: new FormControl(values['phone']),
-    mobile: new FormControl(values['mobile']),
-    email: new FormControl(values['email']),
-  });
-}
-
-jest.mock('../../../../../../src/app/shared/util/validation', () => ({
-  validateOptionalContactFields: jest.fn(),
-}));
-
-describe('OrganisationSectionComponent', () => {
-  let component: OrganisationSectionComponent;
+describe('OrganisationSectionComponent (signals)', () => {
   let fixture: ComponentFixture<OrganisationSectionComponent>;
   let group: FormGroup;
 
@@ -45,7 +23,6 @@ describe('OrganisationSectionComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(OrganisationSectionComponent);
-    component = fixture.componentInstance;
 
     group = new FormGroup({
       name: new FormControl(''),
@@ -60,17 +37,19 @@ describe('OrganisationSectionComponent', () => {
       emailAddress: new FormControl(''),
     });
 
-    component.group = group;
+    // REQUIRED signal inputs
+    fixture.componentRef.setInput('group', group);
+    fixture.componentRef.setInput('scopeId', 'respondent');
+
+    // OPTIONAL signal inputs
+    fixture.componentRef.setInput('submitted', false);
+    fixture.componentRef.setInput('errors', []);
 
     fixture.detectChanges();
   });
 
   it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-
-  it('should expose the provided FormGroup via the "group" input', () => {
-    expect(component.group).toBe(group);
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
   it('renders the section headings', () => {
@@ -110,44 +89,70 @@ describe('OrganisationSectionComponent', () => {
     expect(emailInput).toBeTruthy();
   });
 
-  it('passes submitted, suppressError and error inputs down to relevant text inputs', () => {
-    component.submitted = true;
-    component.errors = {
-      'org-name': 'Enter organisation name',
-      'org-address-line-1': 'Enter address line 1',
-      'org-postcode': 'Enter postcode',
-      'org-phone-number': 'Enter phone number',
-      'org-mobile-number': 'Enter mobile number',
-      'org-email-address': 'Enter email address',
-    };
+  it('passes submitted + error text down to relevant text inputs (via ErrorItem[] + errorFor)', () => {
+    fixture.componentRef.setInput('submitted', true);
+
+    const errors: ErrorItem[] = [
+      {
+        href: '#respondent-org-name',
+        id: 'name',
+        text: 'Enter organisation name',
+      },
+      {
+        href: '#respondent-org-address-line-1',
+        id: 'addressLine1',
+        text: 'Enter address line 1',
+      },
+      {
+        href: '#respondent-org-postcode',
+        id: 'postcode',
+        text: 'Enter postcode',
+      },
+      {
+        href: '#respondent-org-phone-number',
+        id: 'phoneNumber',
+        text: 'Enter phone number',
+      },
+      {
+        href: '#respondent-org-mobile-number',
+        id: 'mobileNumber',
+        text: 'Enter mobile number',
+      },
+      {
+        href: '#respondent-org-email-address',
+        id: 'emailAddress',
+        text: 'Enter email address',
+      },
+    ];
+
+    fixture.componentRef.setInput('errors', errors);
     fixture.detectChanges();
 
-    const nameDebug = fixture.debugElement.query(
+    const nameCmp = fixture.debugElement.query(
       By.css('app-text-input[formControlName="name"]'),
-    );
-    const addr1Debug = fixture.debugElement.query(
+    ).componentInstance as TextInputLike;
+
+    const addr1Cmp = fixture.debugElement.query(
       By.css('app-text-input[formControlName="addressLine1"]'),
-    );
-    const postcodeDebug = fixture.debugElement.query(
+    ).componentInstance as TextInputLike;
+
+    const postcodeCmp = fixture.debugElement.query(
       By.css('app-text-input[formControlName="postcode"]'),
-    );
-    const phoneDebug = fixture.debugElement.query(
+    ).componentInstance as TextInputLike;
+
+    const phoneCmp = fixture.debugElement.query(
       By.css('app-text-input[formControlName="phoneNumber"]'),
-    );
-    const mobileDebug = fixture.debugElement.query(
+    ).componentInstance as TextInputLike;
+
+    const mobileCmp = fixture.debugElement.query(
       By.css('app-text-input[formControlName="mobileNumber"]'),
-    );
-    const emailDebug = fixture.debugElement.query(
+    ).componentInstance as TextInputLike;
+
+    const emailCmp = fixture.debugElement.query(
       By.css('app-text-input[formControlName="emailAddress"]'),
-    );
+    ).componentInstance as TextInputLike;
 
-    const nameCmp = nameDebug.componentInstance as TextInputLike;
-    const addr1Cmp = addr1Debug.componentInstance as TextInputLike;
-    const postcodeCmp = postcodeDebug.componentInstance as TextInputLike;
-    const phoneCmp = phoneDebug.componentInstance as TextInputLike;
-    const mobileCmp = mobileDebug.componentInstance as TextInputLike;
-    const emailCmp = emailDebug.componentInstance as TextInputLike;
-
+    // Name/address required fields: suppressError = false
     expect(nameCmp.submitted).toBe(true);
     expect(nameCmp.error).toBe('Enter organisation name');
     expect(nameCmp.suppressError).toBe(false);
@@ -156,10 +161,12 @@ describe('OrganisationSectionComponent', () => {
     expect(addr1Cmp.error).toBe('Enter address line 1');
     expect(addr1Cmp.suppressError).toBe(false);
 
+    // postcode: suppressError = true
     expect(postcodeCmp.submitted).toBe(true);
     expect(postcodeCmp.error).toBe('Enter postcode');
     expect(postcodeCmp.suppressError).toBe(true);
 
+    // contact fields: suppressError = true
     expect(phoneCmp.submitted).toBe(true);
     expect(phoneCmp.error).toBe('Enter phone number');
     expect(phoneCmp.suppressError).toBe(true);
@@ -174,126 +181,29 @@ describe('OrganisationSectionComponent', () => {
   });
 
   it('configures inputType correctly for phone, mobile and email inputs', () => {
-    const phoneDebug = fixture.debugElement.query(
+    const phoneCmp = fixture.debugElement.query(
       By.css('app-text-input[formControlName="phoneNumber"]'),
-    );
-    const mobileDebug = fixture.debugElement.query(
-      By.css('app-text-input[formControlName="mobileNumber"]'),
-    );
-    const emailDebug = fixture.debugElement.query(
-      By.css('app-text-input[formControlName="emailAddress"]'),
-    );
+    ).componentInstance as TextInputLike;
 
-    const phoneCmp = phoneDebug.componentInstance as TextInputLike;
-    const mobileCmp = mobileDebug.componentInstance as TextInputLike;
-    const emailCmp = emailDebug.componentInstance as TextInputLike;
+    const mobileCmp = fixture.debugElement.query(
+      By.css('app-text-input[formControlName="mobileNumber"]'),
+    ).componentInstance as TextInputLike;
+
+    const emailCmp = fixture.debugElement.query(
+      By.css('app-text-input[formControlName="emailAddress"]'),
+    ).componentInstance as TextInputLike;
 
     expect(phoneCmp.inputType).toBe('tel');
     expect(mobileCmp.inputType).toBe('tel');
     expect(emailCmp.inputType).toBe('email');
   });
 
-  describe('OrganisationSectionComponent validate()', () => {
-    beforeEach(() => {
-      (validateOptionalContactFields as jest.Mock).mockReset();
-    });
+  it('builds idPrefix values using scopeId', () => {
+    const nameCmp = fixture.debugElement.query(
+      By.css('app-text-input[formControlName="name"]'),
+    ).componentInstance as TextInputLike;
 
-    it('resets state and returns valid when required fields are present', () => {
-      // Resets
-      component.organisationFieldErrors = { 'org-name': 'old' };
-      component.errorSummary = [{ text: 'old', href: '#old' }];
-
-      setGroup(component, { name: 'Org', addressLine1: 'Line 1' });
-
-      const res = component.validate();
-
-      expect(component.organisationFieldErrors).toEqual({});
-      expect(component.errorSummary).toEqual([]);
-      expect(res).toEqual({ fieldErrors: {}, summaryItems: [], valid: true });
-
-      expect(validateOptionalContactFields).toHaveBeenCalledTimes(1);
-    });
-
-    it('adds required errors for missing name and addressLine1 (including hrefs) and sets valid false', () => {
-      setGroup(component, { name: '', addressLine1: undefined });
-
-      const res = component.validate();
-
-      expect(res.valid).toBe(false);
-
-      // field error map
-      expect(res.fieldErrors).toMatchObject({
-        'org-name': orgNameMissing,
-        'org-address-line-1': addressLine1Missing,
-      });
-
-      // summary items in the order added by validate()
-      expect(res.summaryItems).toEqual([
-        { text: orgNameMissing, href: '#org-name' },
-        { text: addressLine1Missing, href: '#org-address-line-1' },
-      ]);
-    });
-
-    it('trims values: whitespace-only required fields are treated as missing', () => {
-      setGroup(component, { name: '   ', addressLine1: '\n\t ' });
-
-      const res = component.validate();
-
-      expect(res.valid).toBe(false);
-      expect(res.summaryItems.map((x) => x.href)).toEqual([
-        '#org-name',
-        '#org-address-line-1',
-      ]);
-    });
-
-    it('calls validateOptionalContactFields with a get() that trims and an errors accessor for controls', () => {
-      setGroup(component, {
-        name: ' Org ',
-        addressLine1: ' Addr ',
-        phone: ' 07123 ',
-      });
-
-      component.group.get('phone')?.setErrors({ phoneInvalid: true });
-
-      component.validate();
-
-      const mock = validateOptionalContactFields as jest.Mock;
-      const [getFn, errorsFn, ids, addFn] = mock.mock.calls[0] as [
-        (k: string) => string,
-        (name: string) => unknown,
-        Record<string, string>,
-        (id: string, text: string, href: string) => void,
-      ];
-
-      // trims, undefined -> ''
-      expect(getFn('name')).toBe('Org');
-      expect(getFn('addressLine1')).toBe('Addr');
-      expect(getFn('missingKey')).toBe('');
-
-      // returns errors or null
-      expect(errorsFn('phone')).toEqual({ phoneInvalid: true });
-      expect(errorsFn('postcode')).toBeNull();
-
-      // ids object includes the expected element ids
-      expect(ids).toMatchObject({
-        name: 'org-name',
-        address1: 'org-address-line-1',
-        postcode: 'org-postcode',
-        phone: 'org-phone-number',
-        mobile: 'org-mobile-number',
-        email: 'org-email-address',
-      });
-
-      // addFn should push into organisationFieldErrors and errorSummary when invoked
-      addFn('org-phone-number', 'Bad phone', '#org-phone-number');
-
-      expect(component.organisationFieldErrors).toMatchObject({
-        'org-phone-number': 'Bad phone',
-      });
-      expect(component.errorSummary).toContainEqual({
-        text: 'Bad phone',
-        href: '#org-phone-number',
-      });
-    });
+    // assumes template uses: [idPrefix]="scopeId() + '-org-name'"
+    expect(nameCmp.idPrefix).toBe('respondent-org-name');
   });
 });

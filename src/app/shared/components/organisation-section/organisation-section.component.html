@@ -1,4 +1,4 @@
-<div [formGroup]="group">
+<div [formGroup]="group()">
   <h3 class="govuk-heading-m">Name</h3>
 
   <div class="govuk-grid-row">
@@ -6,10 +6,10 @@
       formControlName="name"
       label="Organisation Name"
       hint="The name of the organisation"
-      idPrefix="org-name"
-      [submitted]="submitted"
+      [idPrefix]="scopeId() + '-org-name'"
+      [submitted]="submitted()"
       [suppressError]="false"
-      [error]="errors['org-name']"
+      [error]="errorFor(scopeId() + '-org-name')"
     />
   </div>
 
@@ -23,28 +23,31 @@
       formControlName="addressLine1"
       label="Address line 1"
       hint="Building and street"
-      idPrefix="org-address-line-1"
-      [submitted]="submitted"
+      [idPrefix]="scopeId() + '-org-address-line-1'"
+      [submitted]="submitted()"
       [suppressError]="false"
-      [error]="errors['org-address-line-1']"
+      [error]="errorFor(scopeId() + '-org-address-line-1')"
     />
     <app-text-input
       formControlName="addressLine2"
       label="Address line 2"
       hint="District or locality (optional)"
-      idPrefix="org-address-line-2"
+      [idPrefix]="scopeId() + '-org-address-line-2'"
+      [error]="errorFor(scopeId() + '-org-address-line-2')"
     />
     <app-text-input
       formControlName="addressLine3"
       label="Address line 3"
       hint="Town or city"
-      idPrefix="org-address-line-3"
+      [idPrefix]="scopeId() + '-org-address-line-3'"
+      [error]="errorFor(scopeId() + '-org-address-line-3')"
     />
     <app-text-input
       formControlName="addressLine4"
       label="Address line 4"
       hint="County or region"
-      idPrefix="org-address-line-4"
+      [idPrefix]="scopeId() + '-org-address-line-4'"
+      [error]="errorFor(scopeId() + '-org-address-line-4')"
     />
   </div>
 
@@ -53,16 +56,17 @@
       formControlName="addressLine5"
       label="Address line 5"
       hint="Post town, e.g. Manchester"
-      idPrefix="org-address-line-5"
+      [idPrefix]="scopeId() + '-org-address-line-5'"
+      [error]="errorFor(scopeId() + '-org-address-line-5')"
     />
     <app-text-input
       formControlName="postcode"
       label="Postcode"
       hint="e.g. SW1A 2AA"
-      idPrefix="org-postcode"
-      [submitted]="submitted"
+      [idPrefix]="scopeId() + '-org-postcode'"
+      [submitted]="submitted()"
       [suppressError]="true"
-      [error]="errors['org-postcode']"
+      [error]="errorFor(scopeId() + '-org-postcode')"
     />
   </div>
 
@@ -76,31 +80,31 @@
       formControlName="phoneNumber"
       label="Phone number"
       hint="Enter the organisation's landline, e.g. 020 7946 0000"
-      idPrefix="org-phone-number"
+      [idPrefix]="scopeId() + '-org-phone-number'"
       inputType="tel"
-      [submitted]="submitted"
+      [submitted]="submitted()"
       [suppressError]="true"
-      [error]="errors['org-phone-number']"
+      [error]="errorFor(scopeId() + '-org-phone-number')"
     />
     <app-text-input
       formControlName="mobileNumber"
       label="Mobile number"
       hint="Enter the organisation's UK mobile, e.g. 07123 456789"
-      idPrefix="org-mobile-number"
+      [idPrefix]="scopeId() + '-org-mobile-number'"
       inputType="tel"
-      [submitted]="submitted"
+      [submitted]="submitted()"
       [suppressError]="true"
-      [error]="errors['org-mobile-number']"
+      [error]="errorFor(scopeId() + '-org-mobile-number')"
     />
     <app-text-input
       formControlName="emailAddress"
       label="Email address"
       hint="e.g. name@department.gov.uk"
-      idPrefix="org-email-address"
+      [idPrefix]="scopeId() + '-org-email-address'"
       inputType="email"
-      [submitted]="submitted"
+      [submitted]="submitted()"
       [suppressError]="true"
-      [error]="errors['org-email-address']"
+      [error]="errorFor(scopeId() + '-org-email-address')"
     />
   </div>
 </div>

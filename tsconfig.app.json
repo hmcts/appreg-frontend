@@ -8,7 +8,8 @@
     "server/**/*.ts",
     "src/**/*.ts",
     "test/unit/app/core/services/components/govuk-textarea/govuk-textarea.component.spec.ts",
-    "server/msal.ts"
+    "server/msal.ts",
+    "test/unit/app/shared/components/respondent-section/respondent-section.component.spec.ts"
   ],
   "exclude": ["src/**/*.spec.ts", "test"]
 }

@@ -5,10 +5,25 @@
   "applicationCode": "APP99001",
   "applicant": { "type": "ORGANISATION", "organisationName": "CPS" },
   "respondent": {
-    "type": "PERSON",
-    "title": "Mr",
-    "firstName": "Alex",
-    "lastName": "Taylor"
+    "type": "person",
+    "person": {
+      "name": {
+        "title": "Dr",
+        "firstForename": "Alex",
+        "surname": "Taylor"
+      },
+      "contactDetails": {
+        "addressLine1": "",
+        "addressLine2": "",
+        "addressLine3": "",
+        "addressLine4": "",
+        "addressLine5": "",
+        "postcode": "",
+        "phone": "",
+        "mobile": "",
+        "email": ""
+      }
+    }
   },
   "numberOfRespondents": 1,
   "wordingFields": ["25 October 2025", "London"],
