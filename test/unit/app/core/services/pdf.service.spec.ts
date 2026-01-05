@@ -382,6 +382,7 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
             respondent: { organisation: { name: 'Widgets Ltd' } },
             applicationCode: 'AP01',
             applicationTitle: 'Interim Relief',
+            applicationWording: 'Test wording',
             caseReference: 'CASE-42',
             accountReference: 'ACC-9',
             resultWordings: ['Refused'],
@@ -416,6 +417,7 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
     // Left/right application block contents
     expect(textCallsContain('Case Reference: CASE-42')).toBe(true);
     expect(textCallsContain('Application Code: AP01')).toBe(true);
+    expect(textCallsContain('Test wording')).toBe(true);
     expect(textCallsContain('Account Reference: ACC-9')).toBe(true);
     expect(textCallsContain('Application Title: Interim Relief')).toBe(true);
 

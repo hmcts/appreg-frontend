@@ -439,6 +439,9 @@ export class PdfService {
         if (e.applicationCode?.trim()) {
           leftBlockParts.push(`Application Code: ${e.applicationCode.trim()}`);
         }
+        if (e.matter?.trim()) {
+          leftBlockParts.push(e.matter.trim());
+        }
         const leftBlock = leftBlockParts.join('\n');
 
         const rightBlockParts: string[] = [];
