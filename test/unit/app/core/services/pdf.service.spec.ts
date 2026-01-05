@@ -290,7 +290,7 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
     const svc = new PdfService();
     const { jsPDF } = getJsPDF();
 
-    await svc.generateContinuousApplicationListsPdf([makeRawDto()]);
+    await svc.generateContinuousApplicationListsPdf([makeRawDto()], false);
 
     expect(jsPDF).toHaveBeenCalledWith({
       orientation: 'landscape',
@@ -305,10 +305,13 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
     const svc = new PdfService();
     const { __instance } = getJsPDF();
 
-    await svc.generateContinuousApplicationListsPdf([
-      makeRawDto({ courtName: 'Bath Magistrates Court' }),
-      makeRawDto({ courtName: 'Bath Magistrates Court' }),
-    ]);
+    await svc.generateContinuousApplicationListsPdf(
+      [
+        makeRawDto({ courtName: 'Bath Magistrates Court' }),
+        makeRawDto({ courtName: 'Bath Magistrates Court' }),
+      ],
+      false,
+    );
 
     expect(__instance.save).toHaveBeenCalledTimes(1);
     expect(__instance.save).toHaveBeenCalledWith(
@@ -320,11 +323,14 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
     const svc = new PdfService();
     const { __instance } = getJsPDF();
 
-    await svc.generateContinuousApplicationListsPdf([
-      makeRawDto({ courtName: 'Bath Magistrates Court' }),
-      makeRawDto({ courtName: 'Bristol Crown Court' }),
-      makeRawDto({ courtName: '' }),
-    ]);
+    await svc.generateContinuousApplicationListsPdf(
+      [
+        makeRawDto({ courtName: 'Bath Magistrates Court' }),
+        makeRawDto({ courtName: 'Bristol Crown Court' }),
+        makeRawDto({ courtName: '' }),
+      ],
+      false,
+    );
 
     expect(__instance.save).toHaveBeenCalledTimes(1);
     expect(__instance.save).toHaveBeenCalledWith(
@@ -343,15 +349,18 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
     try {
       // Make one DTO with an entry that has a very tall "Notes" block
       const tallNotes = new Array(50).fill('line').join('\n');
-      await svc.generateContinuousApplicationListsPdf([
-        makeRawDto({}, [
-          {
-            applicant: { person: { name: { forename: 'A', surname: 'S' } } },
-            respondent: { organisation: { name: 'Org' } },
-            notes: tallNotes,
-          },
-        ]),
-      ]);
+      await svc.generateContinuousApplicationListsPdf(
+        [
+          makeRawDto({}, [
+            {
+              applicant: { person: { name: { forename: 'A', surname: 'S' } } },
+              respondent: { organisation: { name: 'Org' } },
+              notes: tallNotes,
+            },
+          ]),
+        ],
+        false,
+      );
 
       expect(__instance.addPage).toHaveBeenCalled(); // at least once
       expect(textCallsContain('Page 2')).toBe(true);
@@ -363,28 +372,33 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
   it('renders the top meta row and application blocks (labels + values)', async () => {
     const svc = new PdfService();
 
-    await svc.generateContinuousApplicationListsPdf([
-      makeRawDto({}, [
-        {
-          applicant: { person: { name: { forename: 'Jane', surname: 'Roe' } } },
-          respondent: { organisation: { name: 'Widgets Ltd' } },
-          applicationCode: 'AP01',
-          applicationTitle: 'Interim Relief',
-          caseReference: 'CASE-42',
-          accountReference: 'ACC-9',
-          resultWordings: ['Refused'],
-          officials: [
-            {
-              title: 'Mr',
-              surname: 'Taylor',
-              forename: 'Hugh',
-              type: 'MAGISTRATE',
+    await svc.generateContinuousApplicationListsPdf(
+      [
+        makeRawDto({}, [
+          {
+            applicant: {
+              person: { name: { forename: 'Jane', surname: 'Roe' } },
             },
-          ],
-          notes: 'Some note\nAnother line',
-        },
-      ]),
-    ]);
+            respondent: { organisation: { name: 'Widgets Ltd' } },
+            applicationCode: 'AP01',
+            applicationTitle: 'Interim Relief',
+            caseReference: 'CASE-42',
+            accountReference: 'ACC-9',
+            resultWordings: ['Refused'],
+            officials: [
+              {
+                title: 'Mr',
+                surname: 'Taylor',
+                forename: 'Hugh',
+                type: 'MAGISTRATE',
+              },
+            ],
+            notes: 'Some note\nAnother line',
+          },
+        ]),
+      ],
+      false,
+    );
 
     // Top meta row
     expect(textCallsContain('Date & Time')).toBe(true);
@@ -411,27 +425,52 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
     expect(textCallsContain('MAGISTRATE')).toBe(true);
   });
 
+  it('uses "Applications Register Report" as the header title when isClosed is true', async () => {
+    const svc = new PdfService();
+    const { __instance } = getJsPDF();
+
+    await svc.generateContinuousApplicationListsPdf([makeRawDto()], true);
+
+    // Title should be rendered via doc.text(title, M, headerY)
+    const titleCall = __instance.text.mock.calls.find(
+      (c) => c[0] === 'Applications Register Report',
+    );
+
+    expect(titleCall).toBeTruthy();
+    // M = 40, TITLE_FS = 20 => headerY = 60
+    expect(titleCall?.[1]).toBe(40);
+    expect(titleCall?.[2]).toBe(60);
+
+    // Ensure the non-closed title was not used
+    expect(textCallsContain('Check List Report')).toBe(false);
+  });
+
   it('renders multiple officials on separate lines (one per object)', async () => {
     const svc = new PdfService();
     const { __instance } = getJsPDF();
 
-    await svc.generateContinuousApplicationListsPdf([
-      makeRawDto({}, [
-        {
-          applicant: { person: { name: { forename: 'Jane', surname: 'Roe' } } },
-          respondent: { organisation: { name: 'Widgets Ltd' } },
-          officials: [
-            {
-              title: 'Mr',
-              surname: 'Alpha',
-              forename: 'A',
-              type: 'MAGISTRATE',
+    await svc.generateContinuousApplicationListsPdf(
+      [
+        makeRawDto({}, [
+          {
+            applicant: {
+              person: { name: { forename: 'Jane', surname: 'Roe' } },
             },
-            { title: 'Ms', surname: 'Beta', forename: 'B', type: 'JUDGE' },
-          ],
-        },
-      ]),
-    ]);
+            respondent: { organisation: { name: 'Widgets Ltd' } },
+            officials: [
+              {
+                title: 'Mr',
+                surname: 'Alpha',
+                forename: 'A',
+                type: 'MAGISTRATE',
+              },
+              { title: 'Ms', surname: 'Beta', forename: 'B', type: 'JUDGE' },
+            ],
+          },
+        ]),
+      ],
+      false,
+    );
 
     const calls = __instance.text.mock.calls as unknown[][];
 
