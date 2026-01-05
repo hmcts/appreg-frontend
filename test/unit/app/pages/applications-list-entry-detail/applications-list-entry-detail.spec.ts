@@ -365,4 +365,39 @@ describe('ApplicationsListEntryDetail', () => {
       ),
     ).toBe(true);
   });
+
+  it('onUpdateApplicant blocks submit when respondent organisation is invalid', () => {
+    const formSvc = TestBed.inject(ApplicationListEntryFormService);
+    jest.spyOn(formSvc, 'buildUpdateDto').mockReturnValue({} as EntryUpdateDto);
+
+    // Respondent defaults to organisation and is empty -> invalid
+    component['form'].patchValue({ respondentEntryType: 'organisation' });
+    const orgForm = component['forms'].respondentOrganisationForm;
+    const base = orgForm.getRawValue();
+
+    orgForm.reset(
+      {
+        ...base,
+        name: '',
+        addressLine1: '',
+      },
+      { emitEvent: false },
+    );
+
+    orgForm.markAllAsTouched();
+    orgForm.updateValueAndValidity({ emitEvent: false });
+
+    component['form'].controls.applicantType.setValue('standard');
+    component.onStandardApplicantCodeChanged('SA-999');
+
+    component.onUpdateApplicant();
+
+    expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
+    expect(component['errorFound']).toBe(true);
+
+    // optional: assert at least one respondent org error is present
+    expect(
+      component['summaryErrors'].some((e) => /organisation name/i.test(e.text)),
+    ).toBe(true);
+  });
 });

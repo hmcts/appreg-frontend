@@ -58,12 +58,16 @@
             { value: 'other', label: 'Other' },
           ]"
           [group]="personForm"
+          scopeId="applicant"
         >
         </app-person-section>
       }
 
       @case ('org') {
-        <app-organisation-section [group]="organisationForm">
+        <app-organisation-section
+          [group]="organisationForm"
+          scopeId="applicant"
+        >
         </app-organisation-section>
       }
 
@@ -160,12 +164,14 @@
             { value: 'dr', label: 'Dr' },
             { value: 'other', label: 'Other' },
           ]"
+          scopeId="respondent"
         >
         </app-person-section>
       }
       @case ('organisation') {
         <app-organisation-section
           [group]="organisationForm"
+          scopeId="respondent"
         ></app-organisation-section>
       }
     }

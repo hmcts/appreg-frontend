@@ -12,6 +12,8 @@ export interface FormErrorMessages {
 export type BuildFormErrorSummaryOptions = {
   nested?: { path: string; prefixId?: string }[];
   hrefs?: ErrorHrefsMap;
+  // external groups not nested under the root form
+  groups?: { group: FormGroup; prefixId?: string }[];
 };
 
 export type BuildFormErrorSummaryFn = (

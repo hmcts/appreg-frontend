@@ -43,7 +43,7 @@ export const APPLICANT_TYPE_OPTIONS = [
 export const RESPONDENT_TYPE_OPTIONS = [
   { value: 'person', label: 'Person' },
   { value: 'organisation', label: 'Organisation' },
-];
+] as const;
 
 export const PERSON_TITLE_OPTIONS = [
   { value: 'mr', label: 'Mr' },

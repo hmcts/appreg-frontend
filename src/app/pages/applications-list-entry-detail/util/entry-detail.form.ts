@@ -1,4 +1,10 @@
-import { NonNullableFormBuilder, Validators } from '@angular/forms';
+import {
+  NonNullableFormBuilder,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
+
+import { PERSON_TITLE_OPTIONS } from './entry-detail.constants';
 
 import { buildEntryCreateDto } from '@components/applications-list-entry-create/util/entry-create-mapper';
 import { ApplicationNotesForm } from '@components/notes-section/notes-section.component';
@@ -25,13 +31,25 @@ import {
   PersonFormValue,
   RespondentEntryType,
 } from '@shared-types/applications-list-entry-create/application-list-entry-form';
-import { trimToString, trimToUndefined } from '@util/string-helpers';
+import {
+  mapOptionValueToTitle,
+  mapTitleToOptionValue,
+  trimToString,
+  trimToUndefined,
+} from '@util/string-helpers';
 import {
   ContactFormRaw,
   OrganisationFormRaw,
   PersonFormRaw,
 } from '@util/types/applications-list-entry/types';
+import { optional } from '@validators/optional-validator';
 import { standardApplicantCodeConditionalRequired } from '@validators/standard-applicant-code.validator';
+import { ukMobile, ukPhone, ukPostcode } from '@validators/uk-format-validator';
+
+//Assuming 60 max char length for names/addresses
+const MAX_60 = Validators.maxLength(60);
+const REQUIRED: ValidatorFn = (c) => Validators.required(c);
+const EMAIL: ValidatorFn = (c) => Validators.email(c);
 
 export function buildStandardApplicationForm(
   fb: NonNullableFormBuilder,
@@ -44,6 +62,7 @@ export function buildStandardApplicationForm(
       standardApplicantCodeConditionalRequired,
     ]),
     applicationCode: fb.control<string | null>(null, []),
+    respondentEntryType: fb.control<RespondentEntryType | null>('organisation'),
     respondent: fb.control<Respondent | null>(null),
     numberOfRespondents: fb.control<number | null>(null),
     wordingFields: fb.control<string[] | null>(null),
@@ -69,8 +88,6 @@ export function buildStandardApplicationForm(
     }) as ApplicationNotesForm,
 
     lodgementDate: fb.control<string | null>(null),
-    respondentEntryType: fb.control<RespondentEntryType | null>('organisation'),
-
     courtName: fb.control<string | null>(null),
     organisationName: fb.control<string | null>(null),
     feeStatus: fb.control<string | null>(null),
@@ -98,18 +115,30 @@ export function buildStandardApplicationForm(
 export function buildPersonForm(fb: NonNullableFormBuilder): PersonForm {
   return fb.group({
     title: fb.control<string | null>(null),
-    firstName: fb.control<string>('', { validators: [] }),
-    middleNames: fb.control<string>('', { validators: [] }),
-    surname: fb.control<string | null>(null),
-    addressLine1: fb.control<string>('', { validators: [] }),
-    addressLine2: fb.control<string>('', { validators: [] }),
-    addressLine3: fb.control<string>('', { validators: [] }),
-    addressLine4: fb.control<string>('', { validators: [] }),
-    addressLine5: fb.control<string>('', { validators: [] }),
-    postcode: fb.control<string | null>(null),
-    phoneNumber: fb.control<string | null>(null),
-    mobileNumber: fb.control<string | null>(null),
-    emailAddress: fb.control<string | null>(null),
+    firstName: fb.control<string>('', {
+      validators: [REQUIRED, MAX_60],
+    }),
+    middleNames: fb.control<string>('', { validators: [MAX_60] }),
+    surname: fb.control<string | null>(null, {
+      validators: [REQUIRED, MAX_60],
+    }),
+    addressLine1: fb.control<string>('', { validators: [REQUIRED, MAX_60] }),
+    addressLine2: fb.control<string>('', { validators: [MAX_60] }),
+    addressLine3: fb.control<string>('', { validators: [MAX_60] }),
+    addressLine4: fb.control<string>('', { validators: [MAX_60] }),
+    addressLine5: fb.control<string>('', { validators: [MAX_60] }),
+    postcode: fb.control<string | null>(null, {
+      validators: [optional(ukPostcode), MAX_60],
+    }),
+    phoneNumber: fb.control<string | null>(null, {
+      validators: [optional(ukPhone), MAX_60],
+    }),
+    mobileNumber: fb.control<string | null>(null, {
+      validators: [optional(ukMobile), MAX_60],
+    }),
+    emailAddress: fb.control<string | null>(null, {
+      validators: [EMAIL, MAX_60],
+    }),
   }) as PersonForm;
 }
 
@@ -117,24 +146,34 @@ export function buildOrganisationForm(
   fb: NonNullableFormBuilder,
 ): OrganisationForm {
   return fb.group({
-    name: fb.control<string>('', { validators: [] }),
-    addressLine1: fb.control<string>('', { validators: [] }),
-    addressLine2: fb.control<string>('', { validators: [] }),
-    addressLine3: fb.control<string>('', { validators: [] }),
-    addressLine4: fb.control<string>('', { validators: [] }),
-    addressLine5: fb.control<string>('', { validators: [] }),
-    postcode: fb.control<string | null>(null),
-    phoneNumber: fb.control<string | null>(null),
-    mobileNumber: fb.control<string | null>(null),
-    emailAddress: fb.control<string | null>(null),
+    name: fb.control<string>('', { validators: [REQUIRED, MAX_60] }),
+    addressLine1: fb.control<string>('', { validators: [REQUIRED, MAX_60] }),
+    addressLine2: fb.control<string>('', { validators: [MAX_60] }),
+    addressLine3: fb.control<string>('', { validators: [MAX_60] }),
+    addressLine4: fb.control<string>('', { validators: [MAX_60] }),
+    addressLine5: fb.control<string>('', { validators: [MAX_60] }),
+    postcode: fb.control<string | null>(null, {
+      validators: [optional(ukPostcode), MAX_60],
+    }),
+    phoneNumber: fb.control<string | null>(null, {
+      validators: [optional(ukPhone), MAX_60],
+    }),
+    mobileNumber: fb.control<string | null>(null, {
+      validators: [optional(ukMobile), MAX_60],
+    }),
+    emailAddress: fb.control<string | null>(null, {
+      validators: [EMAIL, MAX_60],
+    }),
   }) as OrganisationForm;
 }
 
 export function buildEntryUpdateDtoFromForm(
   detail: EntryGetDetailDto,
   formValue: ApplicationsListEntryFormValue,
-  personForm: PersonFormValue,
-  organisationForm: OrganisationFormValue,
+  applicantPersonValue: PersonFormValue,
+  applicantOrgValue: OrganisationFormValue,
+  respondentPersonValue: PersonFormValue,
+  respondentOrgValue: OrganisationFormValue,
 ): EntryUpdateDto {
   // Full snapshot of current server state
   const base: EntryUpdateDto = {
@@ -156,8 +195,10 @@ export function buildEntryUpdateDtoFromForm(
   // Reuse existing mapper to build a “patch”
   const patch = buildEntryCreateDto(
     formValue,
-    personForm,
-    organisationForm,
+    applicantPersonValue,
+    applicantOrgValue,
+    respondentPersonValue,
+    respondentOrgValue,
   ) as unknown as Partial<EntryUpdateDto>;
 
   // Merge server snapshot with patch from form
@@ -197,7 +238,7 @@ export function contactDetailsToFormPatch(cd: ContactDetails): ContactFormRaw {
 
 export function buildPersonApplicantFromRaw(raw: PersonFormRaw): Applicant {
   const name: FullName = {
-    title: trimToUndefined(raw.title),
+    title: mapOptionValueToTitle(raw.title, PERSON_TITLE_OPTIONS),
     firstForename: trimToString(raw.firstName),
     secondForename: trimToUndefined(raw.middleNames),
     surname: trimToString(raw.surname),
@@ -245,7 +286,7 @@ export function personToFormPatch(
   const middleNames = middleNamesParts.join(' ');
 
   return {
-    title: name?.title ?? '',
+    title: mapTitleToOptionValue(name?.title, PERSON_TITLE_OPTIONS),
     firstName: name?.firstForename ?? '',
     middleNames,
     surname: name?.surname ?? '',
@@ -298,4 +339,56 @@ export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
     ...base,
     [key]: value,
   };
+}
+
+//  TODO: temp backend/mock shape whilst type is not finalised
+type RespondentWithType = Respondent & {
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+  type?: RespondentEntryType | string | null;
+};
+
+export function getRespondentEntryType(
+  r: RespondentWithType | null | undefined,
+): RespondentEntryType | null {
+  if (!r) {
+    return null;
+  }
+
+  const hasPerson = !!r.person;
+  const hasOrg = !!r.organisation;
+
+  const isExplicitPerson = r.type === 'person';
+  const isExplicitOrg = r.type === 'organisation';
+
+  // If explicit type is present, prefer it when it matches payload.
+  // If it doesn't match, return the other if present, otherwise fall back to explicit.
+  if (isExplicitPerson) {
+    if (hasPerson) {
+      return 'person';
+    }
+    if (hasOrg) {
+      return 'organisation';
+    }
+    return 'person';
+  }
+
+  if (isExplicitOrg) {
+    if (hasOrg) {
+      return 'organisation';
+    }
+    if (hasPerson) {
+      return 'person';
+    }
+    return 'organisation';
+  }
+
+  // No explicit type: infer from presence
+  if (hasPerson) {
+    return 'person';
+  }
+  if (hasOrg) {
+    return 'organisation';
+  }
+
+  return null;
 }

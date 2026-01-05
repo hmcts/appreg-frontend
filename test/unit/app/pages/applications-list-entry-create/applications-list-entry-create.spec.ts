@@ -26,6 +26,8 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
       component.form.getRawValue(),
       component.personForm.getRawValue(),
       component.organisationForm.getRawValue(),
+      component.forms.respondentPersonForm.getRawValue(),
+      component.forms.respondentOrganisationForm.getRawValue(),
     );
   }
 
@@ -104,8 +106,8 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
       respondentEntryType: 'organisation',
     });
     component.personForm.reset();
-    component.organisationForm.reset();
-    component.organisationForm.patchValue({
+    component.forms.respondentOrganisationForm.reset();
+    component.forms.respondentOrganisationForm.patchValue({
       name: '   ',
       addressLine1: '   ',
     });
@@ -121,6 +123,7 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
       respondentEntryType: 'organisation',
     });
 
+    // applicant
     component.personForm.patchValue({
       title: 'Mr',
       firstName: ' John ',
@@ -129,7 +132,8 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
       addressLine1: '  1 Road  ',
     });
 
-    component.organisationForm.patchValue({
+    // respondent (organisation)
+    component.forms.respondentOrganisationForm.patchValue({
       name: ' Org ',
       addressLine1: ' Addr ',
     });

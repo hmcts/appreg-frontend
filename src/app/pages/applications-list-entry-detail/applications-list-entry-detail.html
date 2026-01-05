@@ -56,17 +56,19 @@
     @switch (applicantType) {
       @case ('person') {
         <app-person-section
+          scopeId="applicant"
           [group]="personGroup"
           [titleOptions]="personTitleOptions"
           [submitted]="formSubmitted"
-          [errors]="personFieldErrors"
+          [errors]="applicantErrorItems"
         />
       }
       @case ('org') {
         <app-organisation-section
+          scopeId="applicant"
           [group]="organisationGroup"
           [submitted]="formSubmitted"
-          [errors]="organisationFieldErrors"
+          [errors]="applicantErrorItems"
         />
       }
       @case ('standard') {
@@ -184,34 +186,15 @@
   </ng-template>
 
   <ng-template #respondentTpl>
-    <h3 class="govuk-heading-m">Application entry type</h3>
-    <div class="govuk-grid-row">
-      <app-select-input
-        formControlName="respondentEntryType"
-        label="Select type"
-        hint="The type of respondant for this application"
-        idPrefix="respondent-entry-type"
-        [options]="respondentEntryTypeOptions"
-      />
-    </div>
-
-    <hr
-      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+    <app-respondent-section
+      [form]="form"
+      [personGroup]="forms.respondentPersonForm"
+      [organisationGroup]="forms.respondentOrganisationForm"
+      [respondentEntryTypeOptions]="respondentEntryTypeOptions"
+      [personTitleOptions]="personTitleOptions"
+      [submitted]="formSubmitted"
+      [errorItems]="respondentErrorItems"
     />
-
-    @switch (form.get('respondentEntryType')?.value) {
-      @case ('person') {
-        <app-person-section
-          [group]="personGroup"
-          [titleOptions]="personTitleOptions"
-          [submitted]="formSubmitted"
-          [errors]="personFieldErrors"
-        />
-      }
-      @case ('organisation') {
-        <app-organisation-section [group]="organisationGroup" />
-      }
-    }
   </ng-template>
 
   <ng-template #civilFeeTpl>

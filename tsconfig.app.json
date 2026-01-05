@@ -4,11 +4,6 @@
     "outDir": "./out-tsc/app",
     "types": ["node"]
   },
-  "include": [
-    "server/**/*.ts",
-    "src/**/*.ts",
-    "test/unit/app/core/services/components/govuk-textarea/govuk-textarea.component.spec.ts",
-    "server/msal.ts"
-  ],
+  "include": ["server/**/*.ts", "src/**/*.ts", "server/msal.ts"],
   "exclude": ["src/**/*.spec.ts", "test"]
 }

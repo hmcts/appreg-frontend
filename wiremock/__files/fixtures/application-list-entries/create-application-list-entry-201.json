@@ -5,9 +5,14 @@
   "applicationCode": "APP001",
   "applicant": { "type": "organisation", "name": "CPS" },
   "respondent": {
-    "type": "person",
-    "fullName": "John Smith",
-    "postCode": "M1 1AA"
+    "type": "organisation",
+    "organisation": {
+      "name": "Acme Ltd",
+      "contactDetails": {
+        "addressLine1": "",
+        "postcode": ""
+      }
+    }
   },
   "numberOfRespondents": 1,
   "wordingFields": [],

@@ -3,32 +3,13 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { GovukTextareaComponent } from '@components/govuk-textarea/govuk-textarea.component';
+import { NOTES_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
 
 export type ApplicationNotesForm = FormGroup<{
   notes: FormControl<string | null>;
   caseReference: FormControl<string | null>;
   accountReference: FormControl<string | null>;
 }>;
-
-type NotesControlName = keyof ApplicationNotesForm['controls'];
-
-type NotesErrorMap = Readonly<
-  Record<NotesControlName, Readonly<Record<string, string>>>
->;
-
-export const NOTES_FIELD_MESSAGES: NotesErrorMap = {
-  accountReference: {
-    maxlength: 'Account reference must be less than or equal to 20 characters',
-    pattern: 'Account reference must only contain letters and numbers',
-  },
-  caseReference: {
-    maxlength: 'Case reference must be less than or equal to 15 characters',
-    pattern: 'Case reference must only contain letters and numbers',
-  },
-  notes: {
-    maxlength: 'Notes must be less than or equal to 4000 characters',
-  },
-} as const;
 @Component({
   selector: 'app-notes-section',
   imports: [GovukTextareaComponent, ReactiveFormsModule],
@@ -39,6 +20,8 @@ export class NotesSectionComponent {
   // signal output
   notesErrors = output<ErrorItem[]>();
 
+  NOTES_FIELD_MESSAGES = NOTES_ERROR_MESSAGES;
+
   getControlErrorMessages(
     controlName: keyof ApplicationNotesForm['controls'],
   ): string[] {
@@ -48,7 +31,7 @@ export class NotesSectionComponent {
       return [];
     }
 
-    const map = NOTES_FIELD_MESSAGES[controlName] ?? {};
+    const map = this.NOTES_FIELD_MESSAGES[controlName] ?? {};
     return Object.keys(errors)
       .map((errorKey) => map[errorKey])
       .filter((msg): msg is string => !!msg);
