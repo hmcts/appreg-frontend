@@ -1,4 +1,4 @@
-Feature: Applications List Search and Print PDF Download
+Feature: Application List Row Actions
 
     @regression @ARCPOC-214 @ARCPOC-453 @ARCPOC-799 @ARCPOC-802 @ARCPOC-449
     Scenario Outline: Verify PDF download for 0 entries
@@ -229,17 +229,20 @@ Feature: Applications List Search and Print PDF Download
         Then User Verifies Latest Downloaded PDF Has <Pages> Pages
         Then User Verifies Latest Downloaded PDF Contains Text "<Court>"
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
-            | Application brought by       | Mr Henry James Taylor {RANDOM}                 |
-            | Respondent                   | Ms Emily Rose Clark {RANDOM}                   |
-            | Matter considered            | Issue of liability order summons - council tax |
-            | CT99002                      | -                                              |
-            | This matter was dated before | <DisplayDate>                                  |
-            | Produced on:                 | <SearchDate>                                   |
-            | Application brought by       | Mr John A B Smith {RANDOM}                     |
-            | Respondent                   | -                                              |
-            | Matter considered            | Copy documents (electronic)                    |
-            | AD99002                      | -                                              |
-            | This matter was dated before | <DisplayDate>                                  |
+            | Application brought by | Mr Henry James Taylor {RANDOM}                                                                                                                                                            |
+            | Respondent             | Ms Emily Rose Clark {RANDOM}                                                                                                                                                              |
+            | Matter considered      | Issue of liability order summons - council tax                                                                                                                                            |
+            | CT99002                | Attends to swear a complaint for the issue of a summons for the debtor to answer an application for a liability order in relation to unpaid council tax (reference test wording {RANDOM}) |
+            | This matter was before | Mr Turner {RANDOM} Graham MAGISTRATE Ms Hayes {RANDOM} Laura MAGISTRATE Mr Miller {RANDOM} Peter CLERK Ms Patel {RANDOM} Anita MAGISTRATE                                                 |
+            | Dated                  | <DisplayDate>                                                                                                                                                                             |
+            | Produced on            | <SearchDate>                                                                                                                                                                              |
+            | Application brought by | Mr John A B Smith {RANDOM}                                                                                                                                                                |
+            | Respondent             | -                                                                                                                                                                                         |
+            | Matter considered      | Copy documents (electronic)                                                                                                                                                               |
+            | AD99002                | Request for copy documents on computer disc or in electronic form                                                                                                                         |
+            | This matter was before | Mr Smith {RANDOM} John MAGISTRATE                                                                                                                                                         |
+            | Dated                  | <DisplayDate>                                                                                                                                                                             |
+            | Produced on:           | <SearchDate>                                                                                                                                                                              |
         Then User Clears Downloaded PDFs
         Examples:
             | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                            | PDFNamePage                       | Pages |
@@ -257,7 +260,7 @@ Feature: Applications List Search and Print PDF Download
             """
             {
                 "standardApplicantCode": "APP032",
-                "applicationCode": "    ",
+                "applicationCode": "AD99003",
                 "numberOfRespondents": null,
                 "wordingFields": [],
                 "feeStatuses": [
@@ -342,12 +345,13 @@ Feature: Applications List Search and Print PDF Download
         Then User Verifies Latest Downloaded PDF Contains Text "<otherLocationDescription>"
         Then User Verifies Latest Downloaded PDF Contains Text "<cjaCode> - <OptionText>"
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
-            | Application brought by       | Sunrise Manufacturing Co 456 Industrial Estate, B1 2CD Email: info@example.com Phone: 01234567891 |
-            | Respondent                   | -                                                                                                 |
-            | Matter considered            | Extract from the Court Register                                                                   |
-            | AD99003                      | -                                                                                                 |
-            | This matter was dated before | <DisplayDate>                                                                                     |
-            | Produced on:                 | <SearchDate>                                                                                      |
+            | Application brought by | Sunrise Manufacturing Co 456 Industrial Estate, B1 2CD Email: info@example.com Phone: 01234567891                                         |
+            | Respondent             | -                                                                                                                                         |
+            | Matter considered      | Extract from the Court Register                                                                                                           |
+            | AD99003                | Certified extract from the court register                                                                                                 |
+            | This matter was before | Mr Turner {RANDOM} Graham MAGISTRATE Ms Hayes {RANDOM} Laura MAGISTRATE Mr Miller {RANDOM} Peter CLERK Ms Patel {RANDOM} Anita MAGISTRATE |
+            | Dated                  | <DisplayDate>                                                                                                                             |
+            | Produced on:           | <SearchDate>                                                                                                                              |
         Examples:
             | User  | TableName | SearchDate | DisplayDate | Time           | cjaCode | OptionText     | otherLocationDescription                | Description               | Entries | Status | SelectButtonText | PDFNameContinuous       | Pages | PDFNamePage |
             | user1 | Lists     | today      | todayiso    | timenowhhmm-1h | A8      | CJA Number 308 | This is a location description {RANDOM} | ENFORCEMENT LIST-{RANDOM} | 1       | OPEN   | Select           | applications-continuous | 1     | court       |
