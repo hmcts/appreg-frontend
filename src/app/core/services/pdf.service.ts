@@ -185,7 +185,7 @@ export class PdfService {
 
       writeLabelValue(
         'Application\nbrought by',
-        this.fallbackText(e.applicant),
+        `${this.fallbackText(e.applicant)}\n${e.accountReference}`,
         { spacing: 8 },
       );
       writeLabelValue('Respondent', this.fallbackText(e.respondent));
@@ -194,18 +194,23 @@ export class PdfService {
       hrLocal(y);
       y += 24;
 
-      const heading = this.fallbackText(e.applicationDescription || e.matter);
+      const heading = this.fallbackText(e.applicationDescription);
       writeLabelValue('Matter considered', heading);
 
-      if (e.applicationCode?.trim()) {
-        writeLabelValue(e.applicationCode, this.fallbackText(e.result));
-      }
+      writeLabelValue(
+        this.fallbackText(e.applicationCode),
+        `${this.fallbackText(e.matter)}\n`,
+      );
+      writeLabelValue('', this.fallbackText(e.result));
 
       ensureSpace(36);
       hrLocal(y);
       y += 24;
 
-      writeLabelValue('This matter was dated before', e.date);
+      const judges = this.fallbackText(e.judge);
+      writeLabelValue('This matter was before', judges);
+
+      writeLabelValue('Dated', e.date);
 
       drawFooter();
     }
