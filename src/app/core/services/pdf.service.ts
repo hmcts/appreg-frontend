@@ -185,7 +185,7 @@ export class PdfService {
 
       writeLabelValue(
         'Application\nbrought by',
-        this.fallbackText(e.applicant),
+        `${this.fallbackText(e.applicant)}\n${e.accountReference}`,
         { spacing: 8 },
       );
       writeLabelValue('Respondent', this.fallbackText(e.respondent));
@@ -194,18 +194,23 @@ export class PdfService {
       hrLocal(y);
       y += 24;
 
-      const heading = this.fallbackText(e.applicationDescription || e.matter);
+      const heading = this.fallbackText(e.applicationDescription);
       writeLabelValue('Matter considered', heading);
 
-      if (e.applicationCode?.trim()) {
-        writeLabelValue(e.applicationCode, this.fallbackText(e.result));
-      }
+      writeLabelValue(
+        this.fallbackText(e.applicationCode),
+        `${this.fallbackText(e.matter)}\n`,
+      );
+      writeLabelValue('', this.fallbackText(e.result));
 
       ensureSpace(36);
       hrLocal(y);
       y += 24;
 
-      writeLabelValue('This matter was dated before', e.date);
+      const judges = this.fallbackText(e.judge);
+      writeLabelValue('This matter was before', judges);
+
+      writeLabelValue('Dated', e.date);
 
       drawFooter();
     }
@@ -359,14 +364,45 @@ export class PdfService {
     };
 
     const drawFullRow = (label: string, value: string, spacing = 14): void => {
+      const valueW = pageW - (COL1_X + IN_LABEL_W + IN_GAP) - M;
+
+      const toLinesPreserveBlanks = (text: string): string[] => {
+        const s = (text ?? '').replaceAll('\r\n', '\n');
+        if (!s.trim()) {
+          return [];
+        }
+
+        const out: string[] = [];
+
+        for (const rawLine of s.split('\n')) {
+          // Preserve an explicit blank line as vertical space
+          if (rawLine.trim() === '') {
+            out.push(' ');
+            continue;
+          }
+
+          const wrapped: unknown = doc.splitTextToSize(rawLine, valueW);
+
+          if (typeof wrapped === 'string') {
+            out.push(wrapped);
+          } else if (Array.isArray(wrapped)) {
+            out.push(
+              ...(wrapped as unknown[])
+                .filter((x): x is string => typeof x === 'string')
+                // keep end spacing irrelevant
+                .map((x) => x.trimEnd()),
+            );
+          }
+        }
+
+        return out;
+      };
+
       doc.setFont('helvetica', 'bold');
       const labLines = toLines(doc, label, IN_LABEL_W);
+
       doc.setFont('helvetica', 'normal');
-      const valLines = toLines(
-        doc,
-        value,
-        pageW - (COL1_X + IN_LABEL_W + IN_GAP) - M,
-      );
+      const valLines = toLinesPreserveBlanks(value);
 
       const blockH = Math.max(
         labLines.length * LABEL_LEADING,
@@ -376,6 +412,7 @@ export class PdfService {
 
       doc.setFont('helvetica', 'bold');
       drawTextBlock(doc, labLines, COL1_X, y, LABEL_FS, LABEL_LEADING);
+
       doc.setFont('helvetica', 'normal');
       drawTextBlock(
         doc,
@@ -422,13 +459,10 @@ export class PdfService {
         // Applicant / Respondent
         const applicant = this.fallbackText(e.applicant);
         const respondent = this.fallbackText(e.respondent);
-        const caseReferenceLine = e.caseReference?.trim()
-          ? `\nCase Reference: ${e.caseReference.trim()}`
-          : '';
 
         drawTwoColRow(
           `${entryIndex}. Applicant`,
-          `${applicant}${caseReferenceLine}`,
+          `${applicant}`,
           'Respondent',
           respondent,
           16,
@@ -439,14 +473,12 @@ export class PdfService {
         if (e.applicationCode?.trim()) {
           leftBlockParts.push(`Application Code: ${e.applicationCode.trim()}`);
         }
+        if (e.matter?.trim()) {
+          leftBlockParts.push(e.matter.trim());
+        }
         const leftBlock = leftBlockParts.join('\n');
 
         const rightBlockParts: string[] = [];
-        if (e.accountReference?.trim()) {
-          rightBlockParts.push(
-            `Account Reference: ${e.accountReference.trim()}`,
-          );
-        }
         if (e.applicationDescription?.trim()) {
           rightBlockParts.push(
             `Application Title: ${e.applicationDescription.trim()}`,
@@ -461,8 +493,23 @@ export class PdfService {
         drawFullRow('Result', result, 18);
 
         // Notes
-        const notes = this.fallbackText(e.notes);
-        drawFullRow('Notes', notes, 22);
+        const notes = this.fallbackText(e.notes).trim();
+
+        const refLines = [
+          e.accountReference?.trim()
+            ? `Account Reference: ${e.accountReference.trim()}`
+            : null,
+          e.caseReference?.trim()
+            ? `Case Reference: ${e.caseReference.trim()}`
+            : null,
+        ].filter((line): line is string => !!line);
+
+        const value = [
+          notes,
+          ...(refLines.length ? ['', ...refLines] : []),
+        ].join('\n');
+
+        drawFullRow('Notes', value, 22);
 
         // Judges
         const judges = this.fallbackText(e.judge);
