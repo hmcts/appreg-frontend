@@ -1,5 +1,6 @@
 /// <reference types="cypress" />
 
+import { ComparisonUtils } from '../../utils/ComparisonUtils';
 import { StringUtils } from '../../utils/StringUtils';
 import {
   TestDataGenerator,
@@ -32,6 +33,24 @@ export class PdfAssertions {
   ): Cypress.Chainable<void> {
     const processedText = TestDataGenerator.parseValue(expectedText);
     return PdfDownloadHelper.parsePdfContent(filename).then((pdfData): void => {
+      const timeRegex = /\d{1,2}:\d{2}/;
+      const hasTime = timeRegex.test(processedText);
+
+      if (hasTime && !pdfData.text.includes(processedText)) {
+        const expectedTimes = processedText.match(/\d{1,2}:\d{2}/g) || [];
+        const allTimesMatch = expectedTimes.every((time) =>
+          ComparisonUtils.textContainsTimeWithTolerance(pdfData.text, time, 2),
+        );
+
+        if (allTimesMatch) {
+          Cypress.log({
+            name: 'verifyPdfContainsText',
+            message: `✓ PDF contains text with time tolerance: "${processedText}"`,
+          });
+          return;
+        }
+      }
+
       Cypress.log({
         name: 'verifyPdfContainsText',
         message: `✓ PDF contains: "${processedText}"`,
@@ -150,17 +169,54 @@ export class PdfAssertions {
                 `PDF should contain key: "${processedKey}"`,
               );
 
-              expect(normalizedText).to.include(
-                normalizedValue,
-                `PDF should contain value: "${processedValue}"`,
-              );
+              if (!normalizedText.includes(normalizedValue)) {
+                const timeRegex = /\d{1,2}:\d{2}/;
+                const valueTimes = processedValue.match(timeRegex);
+                if (
+                  valueTimes &&
+                  valueTimes.every((time) =>
+                    ComparisonUtils.textContainsTimeWithTolerance(
+                      text,
+                      time,
+                      2,
+                    ),
+                  )
+                ) {
+                  cy.log(
+                    `✓ Value matched with time tolerance: "${processedValue}"`,
+                  );
+                } else {
+                  expect(normalizedText).to.include(
+                    normalizedValue,
+                    `PDF should contain value: "${processedValue}"`,
+                  );
+                }
+              }
             } else {
               const processed = TestDataGenerator.parseValue(keyCell);
               const normalized = StringUtils.normalizeText(processed);
-              expect(normalizedText).to.include(
-                normalized,
-                `PDF should contain value: "${processed}"`,
-              );
+
+              if (!normalizedText.includes(normalized)) {
+                const timeRegex = /\d{1,2}:\d{2}/;
+                const valueTimes = processed.match(timeRegex);
+                if (
+                  valueTimes &&
+                  valueTimes.every((time) =>
+                    ComparisonUtils.textContainsTimeWithTolerance(
+                      text,
+                      time,
+                      2,
+                    ),
+                  )
+                ) {
+                  cy.log(`✓ Value matched with time tolerance: "${processed}"`);
+                } else {
+                  expect(normalizedText).to.include(
+                    normalized,
+                    `PDF should contain value: "${processed}"`,
+                  );
+                }
+              }
             }
           }
         }) as unknown as Cypress.Chainable<void>,

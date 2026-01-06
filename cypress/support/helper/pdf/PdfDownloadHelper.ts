@@ -1,5 +1,7 @@
 /// <reference types="cypress" />
 
+import { TestDataGenerator } from '../../utils/TestDataGenerator';
+
 export class PdfDownloadHelper {
   private static readonly DOWNLOADS_FOLDER = 'cypress/downloads';
 
@@ -29,16 +31,18 @@ export class PdfDownloadHelper {
   }
 
   static findPdfByName(partialName: string): Cypress.Chainable<string> {
+    const processedName = TestDataGenerator.parseValue(partialName);
+
     return this.listPdfFiles().then((files) => {
-      const matchedFile = files.find((file) => file.includes(partialName));
+      const matchedFile = files.find((file) => file.includes(processedName));
       if (!matchedFile) {
         throw new Error(
-          `No PDF found with name containing "${partialName}". Found files: ${files.join(', ')}`,
+          `No PDF found with name containing "${processedName}". Found files: ${files.join(', ')}`,
         );
       }
       Cypress.log({
         name: 'findPdfByName',
-        message: `Found PDF: "${matchedFile}"`,
+        message: `Found PDF: "${matchedFile}" (searched for: "${processedName}")`,
       });
       return matchedFile;
     });
