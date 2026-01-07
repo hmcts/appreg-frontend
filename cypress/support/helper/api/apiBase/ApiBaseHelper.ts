@@ -26,7 +26,7 @@ export class ApiBaseHelper {
       chain = chain.then((currentEndpoint) =>
         cy.get(`@${aliasName}`).then((aliasValue) => {
           const stringValue = `${aliasValue as unknown as string}`;
-          const withColonPlaceholdersReplaced = currentEndpoint.replace(
+          const withColonPlaceholdersReplaced = currentEndpoint.replaceAll(
             new RegExp(String.raw`:${aliasName}\b`, 'g'),
             stringValue,
           );
