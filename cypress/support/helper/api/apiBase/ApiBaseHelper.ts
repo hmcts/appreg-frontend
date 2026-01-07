@@ -31,7 +31,7 @@ export class ApiBaseHelper {
             stringValue,
           );
           const withAllPlaceholdersReplaced =
-            withColonPlaceholdersReplaced.replace(
+            withColonPlaceholdersReplaced.replaceAll(
               new RegExp(String.raw`\{\{${aliasName}\}\}`, 'g'),
               stringValue,
             );
