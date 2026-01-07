@@ -29,6 +29,7 @@ import {
   OrganisationFormValue,
   PersonForm,
   PersonFormValue,
+  PersonOrgSharedControls,
   RespondentEntryType,
 } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import {
@@ -112,6 +113,30 @@ export function buildStandardApplicationForm(
   }) as ApplicationsListEntryForm;
 }
 
+export function buildPersonOrgSharedControls(
+  fb: NonNullableFormBuilder,
+): PersonOrgSharedControls {
+  return {
+    addressLine1: fb.control<string>('', { validators: [REQUIRED, MAX_60] }),
+    addressLine2: fb.control<string>('', { validators: [MAX_60] }),
+    addressLine3: fb.control<string>('', { validators: [MAX_60] }),
+    addressLine4: fb.control<string>('', { validators: [MAX_60] }),
+    addressLine5: fb.control<string>('', { validators: [MAX_60] }),
+    postcode: fb.control<string | null>(null, {
+      validators: [optional(ukPostcode), MAX_60],
+    }),
+    phoneNumber: fb.control<string | null>(null, {
+      validators: [optional(ukPhone), MAX_60],
+    }),
+    mobileNumber: fb.control<string | null>(null, {
+      validators: [optional(ukMobile), MAX_60],
+    }),
+    emailAddress: fb.control<string | null>(null, {
+      validators: [EMAIL, MAX_60],
+    }),
+  };
+}
+
 export function buildPersonForm(fb: NonNullableFormBuilder): PersonForm {
   return fb.group({
     title: fb.control<string | null>(null),
@@ -122,23 +147,7 @@ export function buildPersonForm(fb: NonNullableFormBuilder): PersonForm {
     surname: fb.control<string | null>(null, {
       validators: [REQUIRED, MAX_60],
     }),
-    addressLine1: fb.control<string>('', { validators: [REQUIRED, MAX_60] }),
-    addressLine2: fb.control<string>('', { validators: [MAX_60] }),
-    addressLine3: fb.control<string>('', { validators: [MAX_60] }),
-    addressLine4: fb.control<string>('', { validators: [MAX_60] }),
-    addressLine5: fb.control<string>('', { validators: [MAX_60] }),
-    postcode: fb.control<string | null>(null, {
-      validators: [optional(ukPostcode), MAX_60],
-    }),
-    phoneNumber: fb.control<string | null>(null, {
-      validators: [optional(ukPhone), MAX_60],
-    }),
-    mobileNumber: fb.control<string | null>(null, {
-      validators: [optional(ukMobile), MAX_60],
-    }),
-    emailAddress: fb.control<string | null>(null, {
-      validators: [EMAIL, MAX_60],
-    }),
+    ...buildPersonOrgSharedControls(fb),
   }) as PersonForm;
 }
 
@@ -147,23 +156,7 @@ export function buildOrganisationForm(
 ): OrganisationForm {
   return fb.group({
     name: fb.control<string>('', { validators: [REQUIRED, MAX_60] }),
-    addressLine1: fb.control<string>('', { validators: [REQUIRED, MAX_60] }),
-    addressLine2: fb.control<string>('', { validators: [MAX_60] }),
-    addressLine3: fb.control<string>('', { validators: [MAX_60] }),
-    addressLine4: fb.control<string>('', { validators: [MAX_60] }),
-    addressLine5: fb.control<string>('', { validators: [MAX_60] }),
-    postcode: fb.control<string | null>(null, {
-      validators: [optional(ukPostcode), MAX_60],
-    }),
-    phoneNumber: fb.control<string | null>(null, {
-      validators: [optional(ukPhone), MAX_60],
-    }),
-    mobileNumber: fb.control<string | null>(null, {
-      validators: [optional(ukMobile), MAX_60],
-    }),
-    emailAddress: fb.control<string | null>(null, {
-      validators: [EMAIL, MAX_60],
-    }),
+    ...buildPersonOrgSharedControls(fb),
   }) as OrganisationForm;
 }
 
