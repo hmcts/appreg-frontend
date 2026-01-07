@@ -10,6 +10,8 @@ export type ApplicationListEntryForms = {
   form: ApplicationsListEntryForm;
   personForm: PersonForm;
   organisationForm: OrganisationForm;
+  respondentPersonForm: PersonForm;
+  respondentOrganisationForm: OrganisationForm;
 };
 
 export type ApplicationsListEntryForm = FormGroup<{

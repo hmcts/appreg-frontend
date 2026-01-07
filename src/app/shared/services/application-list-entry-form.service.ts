@@ -7,6 +7,7 @@ import {
   buildOrganisationForm,
   buildPersonForm,
   buildStandardApplicationForm,
+  getRespondentEntryType,
   organisationToFormPatch,
   personToFormPatch,
 } from '@components/applications-list-entry-detail/util/entry-detail.form';
@@ -23,8 +24,6 @@ import {
   ApplicationListEntryForms,
   ApplicationsListEntryForm,
   ApplicationsListEntryFormValue,
-  OrganisationFormValue,
-  PersonFormValue,
 } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import {
   createEmptyOrganisation,
@@ -54,6 +53,8 @@ export class ApplicationListEntryFormService {
       form: buildStandardApplicationForm(this.fb),
       personForm: buildPersonForm(this.fb),
       organisationForm: buildOrganisationForm(this.fb),
+      respondentPersonForm: buildPersonForm(this.fb),
+      respondentOrganisationForm: buildOrganisationForm(this.fb),
     };
   }
 
@@ -73,13 +74,11 @@ export class ApplicationListEntryFormService {
       {
         lodgementDate: dto.lodgementDate ?? null,
         applicationCode: dto.applicationCode ?? null,
-
         respondent: dto.respondent ?? null,
         numberOfRespondents: dto.numberOfRespondents ?? null,
         wordingFields: dto.wordingFields ?? null,
         feeStatuses: dto.feeStatuses ?? null,
         hasOffsiteFee: dto.hasOffsiteFee ?? null,
-
         applicationNotes: {
           notes: dto.notes ?? null,
           caseReference: dto.caseReference ?? null,
@@ -88,6 +87,8 @@ export class ApplicationListEntryFormService {
       },
       { emitEvent },
     );
+
+    this.hydrateRespondentFromDto(dto, forms, emitEvent);
 
     this.patchIfPresent(forms.form, 'applicationTitle', null, emitEvent);
 
@@ -215,15 +216,20 @@ export class ApplicationListEntryFormService {
     }
 
     const formValue: ApplicationsListEntryFormValue = forms.form.getRawValue();
-    const personValue: PersonFormValue = forms.personForm.getRawValue();
-    const organisationValue: OrganisationFormValue =
-      forms.organisationForm.getRawValue();
+
+    const applicantPersonValue = forms.personForm.getRawValue();
+    const applicantOrgValue = forms.organisationForm.getRawValue();
+
+    const respondentPersonValue = forms.respondentPersonForm.getRawValue();
+    const respondentOrgValue = forms.respondentOrganisationForm.getRawValue();
 
     return buildEntryUpdateDtoFromForm(
       detail,
       formValue,
-      personValue,
-      organisationValue,
+      applicantPersonValue,
+      applicantOrgValue,
+      respondentPersonValue,
+      respondentOrgValue,
     );
   }
 
@@ -241,6 +247,8 @@ export class ApplicationListEntryFormService {
       forms.form.getRawValue(),
       forms.personForm.getRawValue(),
       forms.organisationForm.getRawValue(),
+      forms.respondentPersonForm.getRawValue(),
+      forms.respondentOrganisationForm.getRawValue(),
     );
   }
 
@@ -270,5 +278,35 @@ export class ApplicationListEntryFormService {
     }
 
     codeCtrl.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private hydrateRespondentFromDto(
+    dto: EntryGetDetailDto,
+    forms: ApplicationListEntryForms,
+    emitEvent: boolean,
+  ): void {
+    const r = dto.respondent;
+
+    forms.form.controls.respondent.setValue(r ?? null, { emitEvent });
+    forms.form.controls.respondentEntryType.setValue(
+      getRespondentEntryType(r),
+      { emitEvent },
+    );
+
+    if (r?.person) {
+      forms.respondentPersonForm.reset(undefined, { emitEvent });
+      forms.respondentPersonForm.patchValue(personToFormPatch(r.person), {
+        emitEvent,
+      });
+    } else if (r?.organisation) {
+      forms.respondentOrganisationForm.reset(undefined, { emitEvent });
+      forms.respondentOrganisationForm.patchValue(
+        organisationToFormPatch(r.organisation),
+        { emitEvent },
+      );
+    }
+
+    markFormGroupClean(forms.respondentPersonForm);
+    markFormGroupClean(forms.respondentOrganisationForm);
   }
 }

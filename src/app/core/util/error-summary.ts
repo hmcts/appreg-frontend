@@ -41,6 +41,21 @@ function buildFormErrorSummaryImpl(
     }
   });
 
+  // External groups not under root form
+  options?.groups?.forEach(({ group, prefixId }) => {
+    for (const childName of Object.keys(group.controls)) {
+      const id = prefixId ? `${prefixId}.${childName}` : childName;
+      addControlErrors(
+        errors,
+        group.controls[childName],
+        childName,
+        messages,
+        hrefs,
+        id,
+      );
+    }
+  });
+
   return errors;
 }
 

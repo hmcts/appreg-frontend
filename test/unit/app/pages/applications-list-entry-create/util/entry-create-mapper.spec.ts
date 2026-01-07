@@ -1,20 +1,18 @@
+import { buildEntryCreateDto } from '@entry-create-util/entry-create-mapper';
 import {
-  ApplicationsListEntryCreateFormValue,
+  ApplicationsListEntryFormValue,
   OrganisationFormValue,
   PersonFormValue,
-} from '@shared-types/applications-list-entry-create/application-list-entry-create-form';
-
-import { buildEntryCreateDto } from '@entry-create-util/entry-create-mapper';
+} from '@shared-types/applications-list-entry-create/application-list-entry-form';
 
 function roundTrip<T extends object>(o: T): T {
-  // Strip class prototypes etc so we can do clean object assertions
   return JSON.parse(JSON.stringify(o)) as T;
 }
 
 function makeBaseFormValue(
-  overrides: Partial<ApplicationsListEntryCreateFormValue> = {},
-): ApplicationsListEntryCreateFormValue {
-  const base: ApplicationsListEntryCreateFormValue = {
+  overrides: Partial<ApplicationsListEntryFormValue> = {},
+): ApplicationsListEntryFormValue {
+  const base: ApplicationsListEntryFormValue = {
     applicantType: 'org',
     applicant: null,
     standardApplicantCode: null,
@@ -98,8 +96,16 @@ describe('buildEntryCreateDto', () => {
 
     const person = makeBlankPerson();
     const organisation = makeBlankOrganisation();
+    const respondentPerson = makeBlankPerson();
+    const respondentOrganisation = makeBlankOrganisation();
 
-    const dto = buildEntryCreateDto(formValue, person, organisation);
+    const dto = buildEntryCreateDto(
+      formValue,
+      person,
+      organisation,
+      respondentPerson,
+      respondentOrganisation,
+    );
     const payload = roundTrip(dto as unknown as Record<string, unknown>);
 
     expect(payload['applicationCode']).toBe('A001');
@@ -119,10 +125,19 @@ describe('buildEntryCreateDto', () => {
       ...makeBlankOrganisation(),
       name: '  ACME LTD  ',
       addressLine1: '  10 Downing St  ',
-      emailAddress: '   ', // should be pruned by helpers/pruneNullish
+      emailAddress: '   ',
     };
 
-    const dto = buildEntryCreateDto(formValue, person, organisation);
+    const respondentPerson = makeBlankPerson();
+    const respondentOrganisation = makeBlankOrganisation();
+
+    const dto = buildEntryCreateDto(
+      formValue,
+      person,
+      organisation,
+      respondentPerson,
+      respondentOrganisation,
+    );
     const payload = roundTrip(dto as unknown as Record<string, unknown>);
 
     expect('applicant' in payload).toBe(true);
@@ -135,8 +150,35 @@ describe('buildEntryCreateDto', () => {
 
     const contact = org['contactDetails'] as Record<string, unknown>;
     expect(contact['addressLine1']).toBe('10 Downing St');
-    // email field should not be present if only whitespace was provided
     expect('email' in contact).toBe(false);
+  });
+
+  it('omits respondent when only whitespace strings are provided', () => {
+    const formValue = makeBaseFormValue({
+      applicationCode: 'X001',
+      respondentEntryType: 'organisation',
+    });
+
+    const person = makeBlankPerson();
+    const organisation = makeBlankOrganisation();
+
+    const respondentPerson = makeBlankPerson();
+    const respondentOrganisation: OrganisationFormValue = {
+      ...makeBlankOrganisation(),
+      name: '   ',
+      addressLine1: '   ',
+    };
+
+    const dto = buildEntryCreateDto(
+      formValue,
+      person,
+      organisation,
+      respondentPerson,
+      respondentOrganisation,
+    );
+    const payload = roundTrip(dto as unknown as Record<string, unknown>);
+
+    expect('respondent' in payload).toBe(false);
   });
 
   it('keeps both applicant and respondent when both are populated', () => {
@@ -146,6 +188,7 @@ describe('buildEntryCreateDto', () => {
       applicationCode: 'Z999',
     });
 
+    // applicant person
     const person: PersonFormValue = {
       ...makeBlankPerson(),
       title: 'Mr',
@@ -154,13 +197,23 @@ describe('buildEntryCreateDto', () => {
       addressLine1: '  1 Road  ',
     };
 
-    const organisation: OrganisationFormValue = {
+    const organisation = makeBlankOrganisation(); // applicant org unused here
+
+    // respondent organisation (IMPORTANT: populate respondent org form, not applicant org form)
+    const respondentPerson = makeBlankPerson();
+    const respondentOrganisation: OrganisationFormValue = {
       ...makeBlankOrganisation(),
       name: ' Org ',
       addressLine1: ' Addr ',
     };
 
-    const dto = buildEntryCreateDto(formValue, person, organisation);
+    const dto = buildEntryCreateDto(
+      formValue,
+      person,
+      organisation,
+      respondentPerson,
+      respondentOrganisation,
+    );
     const payload = roundTrip(dto as unknown as Record<string, unknown>);
 
     expect('applicant' in payload).toBe(true);
@@ -183,8 +236,16 @@ describe('buildEntryCreateDto', () => {
 
     const person = makeBlankPerson();
     const organisation = makeBlankOrganisation();
+    const respondentPerson = makeBlankPerson();
+    const respondentOrganisation = makeBlankOrganisation();
 
-    const dto = buildEntryCreateDto(formValue, person, organisation);
+    const dto = buildEntryCreateDto(
+      formValue,
+      person,
+      organisation,
+      respondentPerson,
+      respondentOrganisation,
+    );
     const payload = roundTrip(dto as unknown as Record<string, unknown>);
 
     const fs = payload['feeStatuses'] as
@@ -208,8 +269,16 @@ describe('buildEntryCreateDto', () => {
 
     const person = makeBlankPerson();
     const organisation = makeBlankOrganisation();
+    const respondentPerson = makeBlankPerson();
+    const respondentOrganisation = makeBlankOrganisation();
 
-    const dto = buildEntryCreateDto(formValue, person, organisation);
+    const dto = buildEntryCreateDto(
+      formValue,
+      person,
+      organisation,
+      respondentPerson,
+      respondentOrganisation,
+    );
     const payload = roundTrip(dto as unknown as Record<string, unknown>);
 
     expect('feeStatuses' in payload).toBe(false);
@@ -223,8 +292,16 @@ describe('buildEntryCreateDto', () => {
 
     const person = makeBlankPerson();
     const organisation = makeBlankOrganisation();
+    const respondentPerson = makeBlankPerson();
+    const respondentOrganisation = makeBlankOrganisation();
 
-    const dto = buildEntryCreateDto(formValue, person, organisation);
+    const dto = buildEntryCreateDto(
+      formValue,
+      person,
+      organisation,
+      respondentPerson,
+      respondentOrganisation,
+    );
     const payload = roundTrip(dto as unknown as Record<string, unknown>);
 
     expect(payload['wordingFields']).toEqual(['Court A', 'Org B']);
@@ -238,8 +315,16 @@ describe('buildEntryCreateDto', () => {
 
     const person = makeBlankPerson();
     const organisation = makeBlankOrganisation();
+    const respondentPerson = makeBlankPerson();
+    const respondentOrganisation = makeBlankOrganisation();
 
-    const dto = buildEntryCreateDto(formValue, person, organisation);
+    const dto = buildEntryCreateDto(
+      formValue,
+      person,
+      organisation,
+      respondentPerson,
+      respondentOrganisation,
+    );
     const payload = roundTrip(dto as unknown as Record<string, unknown>);
 
     expect('wordingFields' in payload).toBe(false);
@@ -256,8 +341,16 @@ describe('buildEntryCreateDto', () => {
 
     const person = makeBlankPerson();
     const organisation = makeBlankOrganisation();
+    const respondentPerson = makeBlankPerson();
+    const respondentOrganisation = makeBlankOrganisation();
 
-    const dto = buildEntryCreateDto(formValue, person, organisation);
+    const dto = buildEntryCreateDto(
+      formValue,
+      person,
+      organisation,
+      respondentPerson,
+      respondentOrganisation,
+    );
     const payload = roundTrip(dto as unknown as Record<string, unknown>);
 
     expect('notes' in payload).toBe(false);
@@ -276,8 +369,16 @@ describe('buildEntryCreateDto', () => {
 
     const person = makeBlankPerson();
     const organisation = makeBlankOrganisation();
+    const respondentPerson = makeBlankPerson();
+    const respondentOrganisation = makeBlankOrganisation();
 
-    const dto = buildEntryCreateDto(formValue, person, organisation);
+    const dto = buildEntryCreateDto(
+      formValue,
+      person,
+      organisation,
+      respondentPerson,
+      respondentOrganisation,
+    );
     const payload = roundTrip(dto as unknown as Record<string, unknown>);
 
     expect(payload['notes']).toBe('Some note');
@@ -293,8 +394,16 @@ describe('buildEntryCreateDto', () => {
 
     const person = makeBlankPerson();
     const organisation = makeBlankOrganisation();
+    const respondentPerson = makeBlankPerson();
+    const respondentOrganisation = makeBlankOrganisation();
 
-    const dto = buildEntryCreateDto(formValue, person, organisation);
+    const dto = buildEntryCreateDto(
+      formValue,
+      person,
+      organisation,
+      respondentPerson,
+      respondentOrganisation,
+    );
     const payload = roundTrip(dto as unknown as Record<string, unknown>);
 
     expect(payload['standardApplicantCode']).toBe('STD-123');

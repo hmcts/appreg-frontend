@@ -6,7 +6,6 @@ import { By } from '@angular/platform-browser';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import {
   ApplicationNotesForm,
-  NOTES_FIELD_MESSAGES,
   NotesSectionComponent,
 } from '@components/notes-section/notes-section.component';
 
@@ -63,9 +62,11 @@ describe('NotesSectionComponent', () => {
       const messages = component.getControlErrorMessages('caseReference');
 
       expect(messages).toContain(
-        NOTES_FIELD_MESSAGES.caseReference['maxlength'],
+        component.NOTES_FIELD_MESSAGES.caseReference['maxlength'],
       );
-      expect(messages).toContain(NOTES_FIELD_MESSAGES.caseReference['pattern']);
+      expect(messages).toContain(
+        component.NOTES_FIELD_MESSAGES.caseReference['pattern'],
+      );
       expect(messages).toHaveLength(2);
     });
 
@@ -135,15 +136,15 @@ describe('NotesSectionComponent', () => {
         expect.arrayContaining<ErrorItem>([
           {
             id: 'notes',
-            text: NOTES_FIELD_MESSAGES.notes['maxlength'],
+            text: component.NOTES_FIELD_MESSAGES.notes['maxlength'],
           },
           {
             id: 'caseReference',
-            text: NOTES_FIELD_MESSAGES.caseReference['pattern'],
+            text: component.NOTES_FIELD_MESSAGES.caseReference['pattern'],
           },
           {
             id: 'accountReference',
-            text: NOTES_FIELD_MESSAGES.accountReference['maxlength'],
+            text: component.NOTES_FIELD_MESSAGES.accountReference['maxlength'],
           },
         ]),
       );

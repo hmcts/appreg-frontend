@@ -28,16 +28,14 @@ import {
   ErrorItem,
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
-import {
-  NOTES_FIELD_MESSAGES,
-  NotesSectionComponent,
-} from '@components/notes-section/notes-section.component';
+import { NotesSectionComponent } from '@components/notes-section/notes-section.component';
 import { OrganisationSectionComponent } from '@components/organisation-section/organisation-section.component';
 import { PersonSectionComponent } from '@components/person-section/person-section.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
 import {
   ApplicationCodeGetSummaryDto,
   ApplicationListEntriesApi,
@@ -52,14 +50,7 @@ import { buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 
-export const ENTRY_ERROR_MESSAGES = {
-  applicationCode: {
-    required: 'Enter an application code',
-  },
-  ...NOTES_FIELD_MESSAGES,
-} as const;
-
-type ChildErrorSource = 'notes' | 'fee' | 'respondent';
+type ChildErrorSource = 'notes' | 'fee' | 'respondent' | 'applicant';
 
 @Component({
   selector: 'app-applications-list-entry-create',
@@ -111,6 +102,7 @@ export class ApplicationsListEntryCreate implements OnInit {
     notes: [],
     fee: [],
     respondent: [],
+    applicant: [],
   };
 
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
@@ -141,6 +133,7 @@ export class ApplicationsListEntryCreate implements OnInit {
       notes: [],
       fee: [],
       respondent: [],
+      applicant: [],
     };
   }
 
