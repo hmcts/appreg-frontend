@@ -60,4 +60,24 @@ export class ComparisonUtils {
     return this.matchesWithTolerance(actual, expected, toleranceMinutes)
       .matches;
   }
+
+  /**
+   * Checks if text contains a time value that matches the expected time within tolerance
+   * @param text The text to search in (e.g., PDF text)
+   * @param expectedTime The expected time in HH:mm format
+   * @param toleranceMinutes Time tolerance in minutes (default: 2)
+   * @returns True if any time in text matches expected time within tolerance
+   */
+  static textContainsTimeWithTolerance(
+    text: string,
+    expectedTime: string,
+    toleranceMinutes: number = 2,
+  ): boolean {
+    const timeRegex = /\d{1,2}:\d{2}/g;
+    const timesInText = text.match(timeRegex) || [];
+
+    return timesInText.some((time) =>
+      DateTimeUtil.isTimeWithinTolerance(time, expectedTime, toleranceMinutes),
+    );
+  }
 }
