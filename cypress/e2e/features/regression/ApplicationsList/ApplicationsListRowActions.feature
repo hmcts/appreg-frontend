@@ -242,11 +242,11 @@ Feature: Application List Row Actions
             | AD99002                | Request for copy documents on computer disc or in electronic form                                                                                                                         |
             | This matter was before | Mr Smith {RANDOM} John MAGISTRATE                                                                                                                                                         |
             | Dated                  | <DisplayDate>                                                                                                                                                                             |
-            | Produced on:           | <SearchDate>                                                                                                                                                                              |
+            | Produced on            | <SearchDate>                                                                                                                                                                              |
         Then User Clears Downloaded PDFs
         Examples:
-            | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                            | PDFNamePage                       | Pages |
-            | user1 | Lists     | today      | todayiso    | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 2             | 22              | 2       | OPEN   | Select           | leeds-combined-court-centre-set-3-continuous | leeds-combined-court-centre-set-3 | 2     |
+            | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
+            | user1 | Lists     | today      | todayiso    | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 2             | 22              | 2       | OPEN   | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 2     |
 
     @regression @ARCPOC-214 @ARCPOC-453 @ARCPOC-449
     Scenario Outline: Verify PDF download for print page with entries for CJA
@@ -351,10 +351,10 @@ Feature: Application List Row Actions
             | AD99003                | Certified extract from the court register                                                                                                 |
             | This matter was before | Mr Turner {RANDOM} Graham MAGISTRATE Ms Hayes {RANDOM} Laura MAGISTRATE Mr Miller {RANDOM} Peter CLERK Ms Patel {RANDOM} Anita MAGISTRATE |
             | Dated                  | <DisplayDate>                                                                                                                             |
-            | Produced on:           | <SearchDate>                                                                                                                              |
+            | Produced on            | <SearchDate>                                                                                                                              |
         Examples:
-            | User  | TableName | SearchDate | DisplayDate | Time           | cjaCode | OptionText     | otherLocationDescription                | Description               | Entries | Status | SelectButtonText | PDFNameContinuous       | Pages | PDFNamePage |
-            | user1 | Lists     | today      | todayiso    | timenowhhmm-1h | A8      | CJA Number 308 | This is a location description {RANDOM} | ENFORCEMENT LIST-{RANDOM} | 1       | OPEN   | Select           | applications-continuous | 1     | court       |
+            | User  | TableName | SearchDate | DisplayDate | Time           | cjaCode | OptionText     | otherLocationDescription                | Description               | Entries | Status | SelectButtonText | PDFNameContinuous                  | PDFNamePage                        | Pages |
+            | user1 | Lists     | today      | todayiso    | timenowhhmm-1h | A8      | CJA Number 308 | This is a location description {RANDOM} | ENFORCEMENT LIST-{RANDOM} | 1       | OPEN   | Select           | cja-number-308-todayiso-print-cont | cja-number-308-todayiso-print-page | 1     |
 
 
     @regression @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-803 @PJ
@@ -474,8 +474,8 @@ Feature: Application List Row Actions
             | MS99006                | Application for the condemnation of food, namely test food {RANDOM}                                                                                        |
             | This matter was before | Ms Patel {RANDOM} Anita MAGISTRATE                                                                                                                         |
             | Dated                  | <DisplayDate>                                                                                                                                              |
-            | Produced on:           | <SearchDate>                                                                                                                                               |
+            | Produced on            | <SearchDate>                                                                                                                                               |
         Then User Clears Downloaded PDFs
         Examples:
-            | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                            | PDFNamePage                       | Pages |
-            | user1 | Lists     | today      | todayiso    | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 0             | 5               | 1       | CLOSED | Select           | leeds-combined-court-centre-set-3-continuous | leeds-combined-court-centre-set-3 | 1     |
+            | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
+            | user1 | Lists     | today      | todayiso    | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 0             | 5               | 1       | CLOSED | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 1     |
