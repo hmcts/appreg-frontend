@@ -50,11 +50,7 @@ export type ApplicationsListEntryForm = FormGroup<{
   officialSurname: FormControl<string | null>;
 }>;
 
-export type PersonForm = FormGroup<{
-  title: FormControl<string | null>;
-  firstName: FormControl<string>;
-  middleNames: FormControl<string>;
-  surname: FormControl<string | null>;
+export type PersonOrgSharedControls = {
   addressLine1: FormControl<string>;
   addressLine2: FormControl<string>;
   addressLine3: FormControl<string>;
@@ -64,20 +60,22 @@ export type PersonForm = FormGroup<{
   phoneNumber: FormControl<string | null>;
   mobileNumber: FormControl<string | null>;
   emailAddress: FormControl<string | null>;
-}>;
+};
 
-export type OrganisationForm = FormGroup<{
-  name: FormControl<string>;
-  addressLine1: FormControl<string>;
-  addressLine2: FormControl<string>;
-  addressLine3: FormControl<string>;
-  addressLine4: FormControl<string>;
-  addressLine5: FormControl<string>;
-  postcode: FormControl<string | null>;
-  phoneNumber: FormControl<string | null>;
-  mobileNumber: FormControl<string | null>;
-  emailAddress: FormControl<string | null>;
-}>;
+export type PersonForm = FormGroup<
+  {
+    title: FormControl<string | null>;
+    firstName: FormControl<string>;
+    middleNames: FormControl<string>;
+    surname: FormControl<string | null>;
+  } & PersonOrgSharedControls
+>;
+
+export type OrganisationForm = FormGroup<
+  {
+    name: FormControl<string>;
+  } & PersonOrgSharedControls
+>;
 
 export type ApplicationsListEntryFormValue = ReturnType<
   ApplicationsListEntryForm['getRawValue']

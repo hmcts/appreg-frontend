@@ -127,7 +127,7 @@ const anyTextCallMatches = (re: RegExp): boolean => {
 };
 
 describe('PdfService.generateApplicationListPdf', () => {
-  it('names the file as "<court-name>-<YYYY-MM-DD>.pdf" (fileSafe + exact date)', async () => {
+  it('names the file as "<court-name>-<YYYY-MM-DD>-print-page.pdf" (fileSafe + exact date)', async () => {
     const svc = new PdfService();
     const { __instance } = getJsPDF();
 
@@ -139,11 +139,28 @@ describe('PdfService.generateApplicationListPdf', () => {
 
     expect(__instance.save).toHaveBeenCalledTimes(1);
     expect(__instance.save.mock.calls[0][0]).toBe(
-      'bath-magistrates-court-2025-09-17.pdf',
+      'bath-magistrates-court-2025-09-17-print-page.pdf',
     );
   });
 
-  it('falls back to "court-<today>.pdf" when courtName/date are missing', async () => {
+  it('names the file as "<cja-name>-<YYYY-MM-DD>-print-page.pdf" when courtName is missing (strips code prefix)', async () => {
+    const svc = new PdfService();
+    const { __instance } = getJsPDF();
+
+    await svc.generatePagedApplicationListPdf({
+      courtName: '',
+      cja: '01 - CJA Number 1',
+      date: '2025-09-17',
+      entries: [{}],
+    });
+
+    expect(__instance.save).toHaveBeenCalledTimes(1);
+    expect(__instance.save.mock.calls[0][0]).toBe(
+      'cja-number-1-2025-09-17-print-page.pdf',
+    );
+  });
+
+  it('falls back to "court-<today>-print-page.pdf" when courtName/date are missing', async () => {
     const svc = new PdfService();
     const { __instance } = getJsPDF();
 
@@ -151,7 +168,9 @@ describe('PdfService.generateApplicationListPdf', () => {
       entries: [{}],
     });
 
-    expect(__instance.save).toHaveBeenCalledWith('court-2025-09-17.pdf');
+    expect(__instance.save).toHaveBeenCalledWith(
+      'court-2025-09-17-print-page.pdf',
+    );
   });
 
   it('creates one page per entry (addPage called for each additional entry)', async () => {
@@ -184,7 +203,7 @@ describe('PdfService.generateApplicationListPdf', () => {
     expect(textCallsContain('brought by')).toBe(true);
 
     // Footer label and date (DD/MM/YYYY)
-    expect(textCallsContain('Produced on:')).toBe(true);
+    expect(textCallsContain('Produced on')).toBe(true);
     expect(anyTextCallMatches(/\b\d{2}\/\d{2}\/\d{4}\b/)).toBe(true);
   });
 
@@ -301,7 +320,7 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
     expect(textCallsContain('Page 1')).toBe(true);
   });
 
-  it('names file "<court>-continuous-<YYYY-MM-DD>.pdf" when all lists share the same court', async () => {
+  it('names file "<court>-<YYYY-MM-DD>-print-cont.pdf" when all lists share the same court', async () => {
     const svc = new PdfService();
     const { __instance } = getJsPDF();
 
@@ -315,11 +334,29 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
 
     expect(__instance.save).toHaveBeenCalledTimes(1);
     expect(__instance.save).toHaveBeenCalledWith(
-      'bath-magistrates-court-continuous-2025-09-17.pdf',
+      'bath-magistrates-court-2025-09-17-print-cont.pdf',
     );
   });
 
-  it('names file "applications-continuous-<YYYY-MM-DD>.pdf" when courts differ or are missing', async () => {
+  it('names file "<cja>-<YYYY-MM-DD>-print-cont.pdf" when all lists share the same CJA and courtName is missing (strips code prefix)', async () => {
+    const svc = new PdfService();
+    const { __instance } = getJsPDF();
+
+    await svc.generateContinuousApplicationListsPdf(
+      [
+        makeRawDto({ courtName: '', cja: '01 - CJA Number 1' }),
+        makeRawDto({ courtName: '', cja: '01 - CJA Number 1' }),
+      ],
+      false,
+    );
+
+    expect(__instance.save).toHaveBeenCalledTimes(1);
+    expect(__instance.save).toHaveBeenCalledWith(
+      'cja-number-1-2025-09-17-print-cont.pdf',
+    );
+  });
+
+  it('names file "applications-<YYYY-MM-DD>-print-cont.pdf" when courts differ or are missing', async () => {
     const svc = new PdfService();
     const { __instance } = getJsPDF();
 
@@ -334,7 +371,7 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
 
     expect(__instance.save).toHaveBeenCalledTimes(1);
     expect(__instance.save).toHaveBeenCalledWith(
-      'applications-continuous-2025-09-17.pdf',
+      'applications-2025-09-17-print-cont.pdf',
     );
   });
 
@@ -507,6 +544,95 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
     expect(alphaIdx).toBeGreaterThanOrEqual(0);
     expect(betaIdx).toBeGreaterThanOrEqual(0);
     expect(alphaIdx).not.toBe(betaIdx);
+  });
+
+  describe('cja name formatter', () => {
+    type PrivateFns = {
+      cjaName: (raw?: string) => string;
+    };
+
+    const priv = (s: PdfService): PrivateFns => s as unknown as PrivateFns;
+
+    it('cjaName: strips leading numeric code + dash and returns the CJA name', () => {
+      const svc = new PdfService();
+
+      expect(priv(svc).cjaName('01 - CJA Number 1')).toBe('CJA Number 1');
+    });
+
+    it('cjaName: handles en-dash/em-dash variants', () => {
+      const svc = new PdfService();
+
+      expect(priv(svc).cjaName('01 – CJA Number 1')).toBe('CJA Number 1');
+      expect(priv(svc).cjaName('01 — CJA Number 1')).toBe('CJA Number 1');
+    });
+
+    it('cjaName: strips alphanumeric prefixes like A4/123A', () => {
+      const svc = new PdfService();
+
+      expect(priv(svc).cjaName('A4 - Greater Manchester')).toBe(
+        'Greater Manchester',
+      );
+      expect(priv(svc).cjaName('123A - Name')).toBe('Name');
+    });
+
+    it('cjaName: keeps hyphenated names that are not alphanumeric prefixes', () => {
+      const svc = new PdfService();
+
+      expect(priv(svc).cjaName('South-West London')).toBe('South-West London');
+      expect(priv(svc).cjaName('West - Midlands')).toBe('West - Midlands');
+    });
+
+    it('cjaName: trims whitespace around numeric prefix', () => {
+      const svc = new PdfService();
+
+      expect(priv(svc).cjaName('  123  -  Name  ')).toBe('Name');
+    });
+
+    it('cjaName: returns empty string for blank/whitespace input', () => {
+      const svc = new PdfService();
+
+      expect(priv(svc).cjaName(undefined)).toBe('');
+      expect(priv(svc).cjaName('   \n\t ')).toBe('');
+    });
+
+    it('cjaName: returns original string when no dash is present', () => {
+      const svc = new PdfService();
+
+      expect(priv(svc).cjaName('CJA Number 1')).toBe('CJA Number 1');
+    });
+
+    it('generatePagedApplicationListPdf: uses CJA name (stripped) when courtName is missing', async () => {
+      const svc = new PdfService();
+      const { __instance } = getJsPDF();
+
+      await svc.generatePagedApplicationListPdf({
+        courtName: '',
+        cja: '01 - CJA Number 1',
+        date: '2025-09-17',
+        entries: [{}],
+      });
+
+      expect(__instance.save).toHaveBeenCalledWith(
+        'cja-number-1-2025-09-17-print-page.pdf',
+      );
+    });
+
+    it('generateContinuousApplicationListsPdf: uses CJA name (stripped) when courtName is missing and CJA is consistent', async () => {
+      const svc = new PdfService();
+      const { __instance } = getJsPDF();
+
+      await svc.generateContinuousApplicationListsPdf(
+        [
+          makeRawDto({ courtName: '', cja: '01 - CJA Number 1' }),
+          makeRawDto({ courtName: '', cja: '01 - CJA Number 1' }),
+        ],
+        false,
+      );
+
+      expect(__instance.save).toHaveBeenCalledWith(
+        'cja-number-1-2025-09-17-print-cont.pdf',
+      );
+    });
   });
 
   describe('party/address formatting helpers', () => {

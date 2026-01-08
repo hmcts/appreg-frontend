@@ -6,32 +6,7 @@ type NotesErrorMap = Readonly<
   Record<NotesControlName, Readonly<Record<string, string>>>
 >;
 
-export const NOTES_ERROR_MESSAGES: NotesErrorMap = {
-  accountReference: {
-    maxlength: 'Account reference must be less than or equal to 20 characters',
-    pattern: 'Account reference must only contain letters and numbers',
-  },
-  caseReference: {
-    maxlength: 'Case reference must be less than or equal to 15 characters',
-    pattern: 'Case reference must only contain letters and numbers',
-  },
-  notes: {
-    maxlength: 'Notes must be less than or equal to 4000 characters',
-  },
-} as const;
-
-export const PERSON_FIELD_MESSAGES = {
-  firstName: {
-    required: 'Enter a first name',
-    maxlength: 'First name must be less than or equal to 60 characters',
-  },
-  middleNames: {
-    maxlength: 'Middle names must be less than or equal to 60 characters',
-  },
-  surname: {
-    required: 'Enter a last name',
-    maxlength: 'Last name must be less than or equal to 60 characters',
-  },
+const person_org_shared_messages = {
   addressLine1: {
     required: 'Enter address line 1',
     maxlength: 'Address line 1 must be less than or equal to 60 characters',
@@ -66,44 +41,41 @@ export const PERSON_FIELD_MESSAGES = {
   },
 } as const;
 
+export const NOTES_ERROR_MESSAGES: NotesErrorMap = {
+  accountReference: {
+    maxlength: 'Account reference must be less than or equal to 20 characters',
+    pattern: 'Account reference must only contain letters and numbers',
+  },
+  caseReference: {
+    maxlength: 'Case reference must be less than or equal to 15 characters',
+    pattern: 'Case reference must only contain letters and numbers',
+  },
+  notes: {
+    maxlength: 'Notes must be less than or equal to 4000 characters',
+  },
+} as const;
+
+export const PERSON_FIELD_MESSAGES = {
+  firstName: {
+    required: 'Enter a first name',
+    maxlength: 'First name must be less than or equal to 60 characters',
+  },
+  middleNames: {
+    maxlength: 'Middle names must be less than or equal to 60 characters',
+  },
+  surname: {
+    required: 'Enter a last name',
+    maxlength: 'Last name must be less than or equal to 60 characters',
+  },
+  ...person_org_shared_messages,
+} as const;
+
 export const ORG_FIELD_MESSAGES = {
   name: {
     required: 'Enter organisation name',
     maxlength: 'Organisation name must be less than or equal to 60 characters',
   },
-  addressLine1: {
-    required: 'Enter address line 1',
-    maxlength: 'Address line 1 must be less than or equal to 60 characters',
-  },
-  addressLine2: {
-    maxlength: 'Address line 2 must be less than or equal to 60 characters',
-  },
-  addressLine3: {
-    maxlength: 'Address line 3 must be less than or equal to 60 characters',
-  },
-  addressLine4: {
-    maxlength: 'Address line 4 must be less than or equal to 60 characters',
-  },
-  addressLine5: {
-    maxlength: 'Address line 5 must be less than or equal to 60 characters',
-  },
-
-  postcode: {
-    maxlength: 'Postcode must be less than or equal to 60 characters',
-    postcode: 'Enter a valid UK postcode',
-  },
-  phoneNumber: {
-    maxlength: 'Phone number must be less than or equal to 60 characters',
-    phone: 'Enter a valid UK phone number',
-  },
-  mobileNumber: {
-    maxlength: 'Mobile number must be less than or equal to 60 characters',
-    mobile: 'Enter a valid UK mobile number',
-  },
-  emailAddress: {
-    maxlength: 'Email address must be less than or equal to 60 characters',
-    email: 'Enter a valid email address',
-  },
+  ...person_org_shared_messages,
 } as const;
 
 export const ENTRY_ERROR_MESSAGES = {
