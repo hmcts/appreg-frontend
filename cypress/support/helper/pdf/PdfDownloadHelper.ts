@@ -34,7 +34,9 @@ export class PdfDownloadHelper {
     const processedName = TestDataGenerator.parseValue(partialName);
 
     return this.listPdfFiles().then((files) => {
-      const matchedFile = files.find((file) => file.includes(processedName));
+      const matchedFile = [...files]
+        .reverse()
+        .find((file) => file.includes(processedName));
       if (!matchedFile) {
         throw new Error(
           `No PDF found with name containing "${processedName}". Found files: ${files.join(', ')}`,
