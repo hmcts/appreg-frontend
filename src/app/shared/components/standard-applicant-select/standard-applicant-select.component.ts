@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, formatDate } from '@angular/common';
 import {
   Component,
   EventEmitter,
@@ -15,11 +15,11 @@ import {
   StandardApplicantGetSummaryDto,
   StandardApplicantsApi,
 } from '../../../../generated/openapi';
-import { formatDate } from '../../util/standard-applicant-helpers';
-import { StandardApplicantRow } from '../../util/types/applications-list-entry/types';
-import { PaginationComponent } from '../pagination/pagination.component';
-import { SelectableSortableTableComponent } from '../selectable-sortable-table/selectable-sortable-table.component';
-import { TableColumn } from '../sortable-table/sortable-table.component';
+
+import { PaginationComponent } from '@components/pagination/pagination.component';
+import { SelectableSortableTableComponent } from '@components/selectable-sortable-table/selectable-sortable-table.component';
+import { TableColumn } from '@components/sortable-table/sortable-table.component';
+import { StandardApplicantRow } from '@util/types/applications-list-entry/types';
 
 @Component({
   selector: 'app-standard-applicant-select',

@@ -1,4 +1,4 @@
-import { TableColumn } from '../../../shared/components/sortable-table/sortable-table.component';
+import { TableColumn } from '@components/sortable-table/sortable-table.component';
 
 export const APPLICANT_COLUMNS: TableColumn[] = [
   { header: 'Code', field: 'code', numeric: true },

@@ -9,16 +9,17 @@ import {
   BulkUploadApplicationListEntriesRequestParams,
   JobStatus,
 } from '../../../generated/openapi';
-import { LoadingSpinner } from '../../core/components/loading-spinner/loading-spinner';
-import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
+
+import { JobAcknowledgement } from './../../../generated/openapi/model/job-acknowledgement';
+
+import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import {
   ErrorItem,
   ErrorSummaryComponent,
-} from '../../shared/components/error-summary/error-summary.component';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
-import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
-
-import { JobAcknowledgement } from './../../../generated/openapi/model/job-acknowledgement';
+} from '@components/error-summary/error-summary.component';
+import { LoadingSpinner } from '@components/loading-spinner/loading-spinner';
+import { PageHeaderComponent } from '@components/page-header/page-header.component';
+import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 
 @Component({
   selector: 'app-applications-list-bulk-upload',

@@ -4,11 +4,12 @@ Common field validators
 
 import { ValidationErrors } from '@angular/forms';
 
-import { ErrorSummaryItem } from '../../core/models/error/error.types';
 import {
   emailIncorrectFormatMsg,
   phoneIncorrectFormatMsg,
 } from '../constants/err-msgs';
+
+import { ErrorSummaryItem } from '@core-types/error/error.types';
 
 export interface ContactFieldIds {
   postcode: string;

@@ -14,21 +14,22 @@ import {
   EntryGetSummaryDto,
   GetEntriesRequestParams,
 } from '../../../generated/openapi';
-import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
-import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
+
+import { DateInputComponent } from '@components/date-input/date-input.component';
 import {
   ErrorItem,
   ErrorSummaryComponent,
-} from '../../shared/components/error-summary/error-summary.component';
-import { NotificationBannerComponent } from '../../shared/components/notification-banner/notification-banner.component';
-import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
-import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
-import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
-import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
-import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
-import { toStatus } from '../../shared/util/application-status-helpers';
-import { has } from '../../shared/util/has';
-import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
+} from '@components/error-summary/error-summary.component';
+import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
+import { PaginationComponent } from '@components/pagination/pagination.component';
+import { SelectInputComponent } from '@components/select-input/select-input.component';
+import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
+import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
+import { TextInputComponent } from '@components/text-input/text-input.component';
+import { ReferenceDataFacade } from '@services/reference-data.facade';
+import { toStatus } from '@util/application-status-helpers';
+import { has } from '@util/has';
+import { PlaceFieldsBase } from '@util/place-fields.base';
 
 @Component({
   selector: 'app-applications',

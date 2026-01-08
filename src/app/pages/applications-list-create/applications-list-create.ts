@@ -30,28 +30,31 @@ import {
   ApplicationListStatus,
   ApplicationListsApi,
 } from '../../../generated/openapi';
-import { FormRaw } from '../../core/models/forms/forms.types';
-import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
-import { BreadcrumbsComponent } from '../../shared/components/breadcrumbs/breadcrumbs.component';
-import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
-import {
-  Duration,
-  DurationInputComponent,
-} from '../../shared/components/duration-input/duration-input.component';
-import { ErrorSummaryComponent } from '../../shared/components/error-summary/error-summary.component';
-import type { ErrorItem } from '../../shared/components/error-summary/error-summary.component';
-import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
-import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
-import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
-import { buildNormalizedPayload } from '../../shared/util/build-payload';
-import { collectMissing } from '../../shared/util/collect-missing';
 import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '../../shared/util/error-click';
-import { getProblemText } from '../../shared/util/http-error-to-text';
-import { validateCourtVsLocOrCja } from '../../shared/util/location-suggestion-helpers';
-import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
+
+import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
+import { DateInputComponent } from '@components/date-input/date-input.component';
+import {
+  Duration,
+  DurationInputComponent,
+} from '@components/duration-input/duration-input.component';
+import {
+  ErrorItem,
+  ErrorSummaryComponent,
+} from '@components/error-summary/error-summary.component';
+import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
+import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
+import { TextInputComponent } from '@components/text-input/text-input.component';
+import { FormRaw } from '@core-types/forms/forms.types';
+import { ReferenceDataFacade } from '@services/reference-data.facade';
+import { buildNormalizedPayload } from '@util/build-payload';
+import { collectMissing } from '@util/collect-missing';
+import { getProblemText } from '@util/http-error-to-text';
+import { validateCourtVsLocOrCja } from '@util/location-suggestion-helpers';
+import { PlaceFieldsBase } from '@util/place-fields.base';
 
 type FieldKey =
   | 'date'

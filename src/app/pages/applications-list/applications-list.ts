@@ -42,44 +42,42 @@ import {
   ApplicationListsApi,
   GetApplicationListsRequestParams,
 } from '../../../generated/openapi';
-import { PdfService } from '../../core/services/pdf.service';
-import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
-import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
-import {
-  Duration,
-  DurationInputComponent,
-} from '../../shared/components/duration-input/duration-input.component';
-import {
-  ErrorItem,
-  ErrorSummaryComponent,
-} from '../../shared/components/error-summary/error-summary.component';
-import { NotificationBannerComponent } from '../../shared/components/notification-banner/notification-banner.component';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
-import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
-import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
-import {
-  SortableTableComponent,
-  TableColumn,
-} from '../../shared/components/sortable-table/sortable-table.component';
-import { SuccessBannerComponent } from '../../shared/components/success-banner/success-banner.component';
-import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
-import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
 import {
   IF_MATCH,
   ROW_VERSION,
 } from '../../shared/context/concurrency-context';
-import { has } from '../../shared/util/has';
-import {
-  getHttpStatus,
-  getProblemText,
-} from '../../shared/util/http-error-to-text';
-import { MojButtonMenuDirective } from '../../shared/util/moj-button-menu';
-import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
-import { normaliseTime } from '../../shared/util/time-helpers';
-import { ApplicationListRow } from '../../shared/util/types/application-list/types';
 
 import { statusSummary } from './util/delete-status';
 import { loadQuery } from './util/load-query';
+
+import { DateInputComponent } from '@components/date-input/date-input.component';
+import {
+  Duration,
+  DurationInputComponent,
+} from '@components/duration-input/duration-input.component';
+import {
+  ErrorItem,
+  ErrorSummaryComponent,
+} from '@components/error-summary/error-summary.component';
+import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
+import { PageHeaderComponent } from '@components/page-header/page-header.component';
+import { PaginationComponent } from '@components/pagination/pagination.component';
+import { SelectInputComponent } from '@components/select-input/select-input.component';
+import {
+  SortableTableComponent,
+  TableColumn,
+} from '@components/sortable-table/sortable-table.component';
+import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
+import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
+import { TextInputComponent } from '@components/text-input/text-input.component';
+import { PdfService } from '@services/pdf.service';
+import { ReferenceDataFacade } from '@services/reference-data.facade';
+import { has } from '@util/has';
+import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
+import { MojButtonMenuDirective } from '@util/moj-button-menu';
+import { PlaceFieldsBase } from '@util/place-fields.base';
+import { normaliseTime } from '@util/time-helpers';
+import { ApplicationListRow } from '@util/types/application-list/types';
 
 @Component({
   selector: 'app-applications-list',

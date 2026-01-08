@@ -25,7 +25,6 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
-import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
 import { IF_MATCH } from '../../shared/context/concurrency-context';
 
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
@@ -56,6 +55,7 @@ import {
   ApplicationListUpdateDto,
   ApplicationListsApi,
 } from '@openapi';
+import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { buildNormalizedPayload } from '@util/build-payload';
 import { collectMissing } from '@util/collect-missing';
 import {
