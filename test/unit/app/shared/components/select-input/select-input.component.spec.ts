@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
-import { SelectInputComponent } from '../../../../../../src/app/shared/components/select-input/select-input.component';
+import { SelectInputComponent } from '@components/select-input/select-input.component';
 
 describe('SelectInputComponent', () => {
   let fixture: ComponentFixture<SelectInputComponent>;

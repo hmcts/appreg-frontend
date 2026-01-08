@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
-import { AccordionComponent } from '../../../../../../src/app/shared/components/accordion/accordion.component';
+import { AccordionComponent } from '@components/accordion/accordion.component';
 
 describe('AccordionComponent', () => {
   let component: AccordionComponent;

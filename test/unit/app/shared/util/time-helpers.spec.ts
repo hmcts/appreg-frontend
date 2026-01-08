@@ -3,7 +3,7 @@ import {
   parseTimeToDuration,
   requireTime,
   toTimeString,
-} from '../../../../../src/app/shared/util/time-helpers';
+} from '@util/time-helpers';
 
 type TimeInput = Parameters<typeof toTimeString>[0];
 

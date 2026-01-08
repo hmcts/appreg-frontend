@@ -1,24 +1,19 @@
 import type { FormGroup } from '@angular/forms';
 
-import { loadQuery } from '../../../../../../src/app/pages/applications-list/util/load-query';
-import { toStatus } from '../../../../../../src/app/shared/util/application-status-helpers';
-import { toTimeString } from '../../../../../../src/app/shared/util/time-helpers';
 import { ApplicationListStatus } from '../../../../../../src/generated/openapi';
 
+import { loadQuery } from '@components/applications-list/util/load-query';
+import { toStatus } from '@util/application-status-helpers';
+import { toTimeString } from '@util/time-helpers';
+
 jest.mock('../../../../../../src/generated/openapi', () => ({}));
-jest.mock(
-  '../../../../../../src/app/shared/components/duration-input/duration-input.component',
-  () => ({}),
-);
+jest.mock('@components/duration-input/duration-input.component', () => ({}));
 
-jest.mock(
-  '../../../../../../src/app/shared/util/application-status-helpers',
-  () => ({
-    toStatus: jest.fn(),
-  }),
-);
+jest.mock('@util/application-status-helpers', () => ({
+  toStatus: jest.fn(),
+}));
 
-jest.mock('../../../../../../src/app/shared/util/time-helpers', () => ({
+jest.mock('@util/time-helpers', () => ({
   toTimeString: jest.fn(),
 }));
 

@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { jest } from '@jest/globals';
 
-import { SuggestionsComponent } from '../../../../../../src/app/shared/components/suggestions/suggestions.component';
+import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 
 type Item = { name?: string; description?: string; code?: string };
 const toItem = (v: unknown) => v as Item;

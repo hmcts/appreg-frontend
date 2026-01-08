@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { TextInputComponent } from '../../../../../../src/app/shared/components/text-input/text-input.component';
+import { TextInputComponent } from '@components/text-input/text-input.component';
 
 describe('TextInputComponent', () => {
   let fixture: ComponentFixture<TextInputComponent>;

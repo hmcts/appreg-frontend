@@ -14,10 +14,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
-import { PdfService } from '../../../../../src/app/core/services/pdf.service';
-import { ReferenceDataFacade } from '../../../../../src/app/core/services/reference-data.facade';
-import { ApplicationsList } from '../../../../../src/app/pages/applications-list/applications-list';
-import * as LoadQuery from '../../../../../src/app/pages/applications-list/util/load-query';
 import {
   IF_MATCH,
   ROW_VERSION,
@@ -35,6 +31,11 @@ import {
   CriminalJusticeAreasApi,
   GetApplicationListsRequestParams,
 } from '../../../../../src/generated/openapi';
+
+import { ApplicationsList } from '@components/applications-list/applications-list';
+import * as LoadQuery from '@components/applications-list/util/load-query';
+import { PdfService } from '@services/pdf.service';
+import { ReferenceDataFacade } from '@services/reference-data.facade';
 
 const makePrintDto = (entries: unknown[] = []): ApplicationListGetPrintDto =>
   <ApplicationListGetPrintDto>{

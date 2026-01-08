@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 
-import { ReportSelectorComponent } from '../../../../../../src/app/shared/components/report-option/report-selector.component';
+import { ReportSelectorComponent } from '@components/report-option/report-selector.component';
 
 describe('ReportSelectorComponent', () => {
   let component: ReportSelectorComponent;

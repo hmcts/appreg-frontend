@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { RadioButtonComponent } from '../../../../../../src/app/shared/components/radio-button/radio-button.component';
+import { RadioButtonComponent } from '@components/radio-button/radio-button.component';
 
 function isCva(x: unknown): x is { writeValue: (v: string | null) => void } {
   return (
