@@ -125,12 +125,13 @@ Then(
   (tableCaption: string, dataTable: DataTable) => {
     const rows = dataTable.hashes();
 
-  if (rows.length === 0) {
-    throw new Error('DataTable must have at least one row of data');
-  }
+    if (rows.length === 0) {
+      throw new Error('DataTable must have at least one row of data');
+    }
 
-  // Verify each row in the data table
-  for (const row of rows) {
-    TableHelper.hasNoRowWithValues(tableCaption, row);
-  }
-});
+    // Verify each row in the data table
+    for (const row of rows) {
+      TableHelper.hasNoRowWithValues(tableCaption, row);
+    }
+  },
+);

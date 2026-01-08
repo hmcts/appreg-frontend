@@ -587,23 +587,25 @@ export class TableHelper {
       `Verifying NO row exists in table "${caption}" with: ${searchCriteria}`,
     );
 
-    return TableHelper.findRowWithValues(caption, columnValues, true).then((found) => {
-      return cy
-        .wrap(found)
-        .should(
-          'be.false',
-          `Row should NOT exist in table "${caption}" with values: ${searchCriteria}`,
-        )
-        .then(() => {
-          if (!found) {
-            return cy
-              .log(`✓ No row found with: ${searchCriteria}`)
-              .then(() => {});
-          }
-          throw new Error(
-            `✗ Unexpected row found in table "${caption}" with values: ${searchCriteria}`,
-          );
-        });
-    });
+    return TableHelper.findRowWithValues(caption, columnValues, true).then(
+      (found) => {
+        return cy
+          .wrap(found)
+          .should(
+            'be.false',
+            `Row should NOT exist in table "${caption}" with values: ${searchCriteria}`,
+          )
+          .then(() => {
+            if (!found) {
+              return cy
+                .log(`✓ No row found with: ${searchCriteria}`)
+                .then(() => {});
+            }
+            throw new Error(
+              `✗ Unexpected row found in table "${caption}" with values: ${searchCriteria}`,
+            );
+          });
+      },
+    );
   }
 }
