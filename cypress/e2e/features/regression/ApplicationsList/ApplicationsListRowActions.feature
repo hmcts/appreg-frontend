@@ -479,3 +479,33 @@ Feature: Application List Row Actions
         Examples:
             | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                            | PDFNamePage                       | Pages |
             | user1 | Lists     | today      | todayiso    | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 0             | 5               | 1       | CLOSED | Select           | leeds-combined-court-centre-set-3-continuous | leeds-combined-court-centre-set-3 | 1     |
+
+    @regression @ARCPOC-214 @ARCPOC-575
+    Scenario Outline: Verify application list is deleted successfully for applications list NO entries
+        Given User Authenticates Via API As "<User>"
+        When User Makes POST API Request To "/application-lists" With Body:
+            | date          | time   | status   | description   | courtLocationCode   |
+            | <DisplayDate> | <Time> | <Status> | <Description> | <courtLocationCode> |
+        Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "listId"
+        Given User Is On The Portal Page
+        When User Signs In With Microsoft SSO As "<User>"
+        Then User Clicks On The Link "Applications list"
+        When User Set Date Field "Date" To "<SearchDate>"
+        When User Clicks On The "Search" Button
+        Then User Should See The Table "<TableName>"
+        Then User Should See Table "<TableName>" Has Rows
+        When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
+            | Date          | Time   | Location | Description   | Entries | Status   |
+            | <DisplayDate> | <Time> | <Court>  | <Description> | 0       | <Status> |
+        # When User Confirms The Deletion
+        Then User Sees Notification Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
+        When User Set Date Field "Date" To "<SearchDate>"
+        When User Clicks On The "Search" Button
+        Then User Should See The Table "<TableName>"
+        Then User Should Not See Row In Table "<TableName>" With Values:
+            | Date          | Time   | Location | Description   | Entries | Status   |
+            | <DisplayDate> | <Time> | <Court>  | <Description> | 0       | <Status> |
+        Examples:
+            | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                             | Status | SelectButtonText |
+            | user1 | Lists     | today      | todayiso    | timenowhhmm-3h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | OPEN   | Select           |

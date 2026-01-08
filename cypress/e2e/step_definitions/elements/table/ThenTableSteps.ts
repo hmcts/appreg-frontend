@@ -115,3 +115,22 @@ Then(
     TableHelper.verifyAllRowsHaveValue(tableCaption, columnName, expectedValue);
   },
 );
+
+/**
+ * Verifies that a row does NOT exist in the table with the specified column values
+ * Searches across all pages if pagination exists
+ */
+Then(
+  'User Should Not See Row In Table {string} With Values:',
+  (tableCaption: string, dataTable: DataTable) => {
+    const rows = dataTable.hashes();
+
+  if (rows.length === 0) {
+    throw new Error('DataTable must have at least one row of data');
+  }
+
+  // Verify each row in the data table
+  for (const row of rows) {
+    TableHelper.hasNoRowWithValues(tableCaption, row);
+  }
+});

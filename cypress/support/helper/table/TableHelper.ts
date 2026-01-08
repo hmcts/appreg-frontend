@@ -573,4 +573,37 @@ export class TableHelper {
       );
     }) as unknown as Cypress.Chainable<void>;
   }
+
+  /** Verifies that no row exists in the table with the specified values */
+  static hasNoRowWithValues(
+    caption: string,
+    columnValues: Record<string, string>,
+  ): Cypress.Chainable<void> {
+    const searchCriteria = Object.entries(columnValues)
+      .map(([col, val]) => `${col}="${val}"`)
+      .join(', ');
+
+    cy.log(
+      `Verifying NO row exists in table "${caption}" with: ${searchCriteria}`,
+    );
+
+    return TableHelper.findRowWithValues(caption, columnValues, true).then((found) => {
+      return cy
+        .wrap(found)
+        .should(
+          'be.false',
+          `Row should NOT exist in table "${caption}" with values: ${searchCriteria}`,
+        )
+        .then(() => {
+          if (!found) {
+            return cy
+              .log(`✓ No row found with: ${searchCriteria}`)
+              .then(() => {});
+          }
+          throw new Error(
+            `✗ Unexpected row found in table "${caption}" with values: ${searchCriteria}`,
+          );
+        });
+    });
+  }
 }
