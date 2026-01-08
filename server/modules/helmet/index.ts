@@ -4,7 +4,6 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import * as express from 'express';
 import helmet from 'helmet';
 
-const googleAnalyticsDomain = '*.google-analytics.com';
 const self = "'self'";
 // Helmet expects (IncomingMessage, ServerResponse) so read nonce from res.locals
 const nonceDirective = (_req: IncomingMessage, res: ServerResponse): string =>
@@ -26,7 +25,7 @@ export class Helmet {
       next();
     });
 
-    const scriptSrc = [self, googleAnalyticsDomain, nonceDirective];
+    const scriptSrc = [self, nonceDirective];
 
     if (this.developmentMode) {
       scriptSrc.push("'unsafe-eval'", "'unsafe-inline'");
@@ -39,7 +38,7 @@ export class Helmet {
             connectSrc: ["'self'", 'http://localhost:4550'],
             defaultSrc: ["'self'", 'http://localhost:4550'],
             fontSrc: [self, 'data:'],
-            imgSrc: [self, googleAnalyticsDomain],
+            imgSrc: [self],
             objectSrc: [self],
             scriptSrc,
             styleSrc: [self, "'unsafe-inline'"],
