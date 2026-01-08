@@ -566,11 +566,39 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
       expect(priv(svc).cjaName('01 — CJA Number 1')).toBe('CJA Number 1');
     });
 
+    it('cjaName: strips alphanumeric prefixes like A4/123A', () => {
+      const svc = new PdfService();
+
+      expect(priv(svc).cjaName('A4 - Greater Manchester')).toBe(
+        'Greater Manchester',
+      );
+      expect(priv(svc).cjaName('123A - Name')).toBe('Name');
+    });
+
+    it('cjaName: keeps hyphenated names that are not alphanumeric prefixes', () => {
+      const svc = new PdfService();
+
+      expect(priv(svc).cjaName('South-West London')).toBe('South-West London');
+      expect(priv(svc).cjaName('West - Midlands')).toBe('West - Midlands');
+    });
+
+    it('cjaName: trims whitespace around numeric prefix', () => {
+      const svc = new PdfService();
+
+      expect(priv(svc).cjaName('  123  -  Name  ')).toBe('Name');
+    });
+
     it('cjaName: returns empty string for blank/whitespace input', () => {
       const svc = new PdfService();
 
       expect(priv(svc).cjaName(undefined)).toBe('');
       expect(priv(svc).cjaName('   \n\t ')).toBe('');
+    });
+
+    it('cjaName: returns original string when no dash is present', () => {
+      const svc = new PdfService();
+
+      expect(priv(svc).cjaName('CJA Number 1')).toBe('CJA Number 1');
     });
 
     it('generatePagedApplicationListPdf: uses CJA name (stripped) when courtName is missing', async () => {

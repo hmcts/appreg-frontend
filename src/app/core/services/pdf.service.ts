@@ -219,7 +219,7 @@ export class PdfService {
       this.fileSafe(data.courtName) ||
       this.fileSafe(this.cjaName(data.cja)) ||
       'court';
-    const datePart = this.dateForFile(data.listDate);
+    const datePart = this.dateForFile();
     doc.save(`${courtPart}-${datePart}-print-page.pdf`);
   }
 
@@ -872,11 +872,21 @@ export class PdfService {
   }
 
   private cjaName(raw?: string): string {
-    const s = (raw ?? '').trim();
-    if (!s) {
+    const cjaString = (raw ?? '').trim();
+    if (!cjaString) {
       return '';
     }
-    // "01 - CJA Number 1" -> "CJA Number 1"
-    return s.replace(/^\d+\s*[-–—]\s*/u, '').trim();
+
+    // Remove CJA code "A4 - Name"
+    if (cjaString.length > 300) {
+      // Constrain string length
+      return cjaString;
+    }
+
+    const match =
+      /^\s{0,10}[A-Za-z]?\d{1,6}[A-Za-z]?\s{0,5}[-–—]\s{0,5}(.{1,200})$/u.exec(
+        cjaString,
+      );
+    return match ? match[1].trim() : cjaString;
   }
 }
