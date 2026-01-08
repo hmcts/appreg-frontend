@@ -219,7 +219,7 @@ export class PdfService {
       this.fileSafe(data.courtName) ||
       this.fileSafe(this.cjaName(data.cja)) ||
       'court';
-    const datePart = this.dateForFile(data.listDate);
+    const datePart = this.dateForFile();
     doc.save(`${courtPart}-${datePart}-print-page.pdf`);
   }
 
@@ -872,12 +872,13 @@ export class PdfService {
   }
 
   private cjaName(raw?: string): string {
-    const s = (raw ?? '').trim();
-    if (!s) {
+    const cjaString = (raw ?? '').trim();
+    if (!cjaString) {
       return '';
     }
 
-    // Remove CJA code, regex removes everything before first '-'
-    return s.replace(/^[^-–—]*\s*[-–—]\s*/u, '').trim();
+    // Remove a leading numeric code like "123 - Name", but keep genuine hyphenated names.
+    const match = new RegExp(/^\s*\d+\s*[-–—]\s*(.+)$/u).exec(cjaString);
+    return match ? match[1].trim() : cjaString;
   }
 }

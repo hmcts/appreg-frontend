@@ -566,11 +566,38 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
       expect(priv(svc).cjaName('01 — CJA Number 1')).toBe('CJA Number 1');
     });
 
+    it('cjaName: preserves hyphenated names without numeric prefix', () => {
+      const svc = new PdfService();
+
+      expect(priv(svc).cjaName('South-West London')).toBe('South-West London');
+      expect(priv(svc).cjaName('West - Midlands')).toBe('West - Midlands');
+      expect(priv(svc).cjaName('North-East')).toBe('North-East');
+    });
+
+    it('cjaName: does not strip non-numeric prefixes', () => {
+      const svc = new PdfService();
+
+      expect(priv(svc).cjaName('AB - Name')).toBe('AB - Name');
+      expect(priv(svc).cjaName('123A - Name')).toBe('123A - Name');
+    });
+
+    it('cjaName: trims whitespace around numeric prefix', () => {
+      const svc = new PdfService();
+
+      expect(priv(svc).cjaName('  123  -  Name  ')).toBe('Name');
+    });
+
     it('cjaName: returns empty string for blank/whitespace input', () => {
       const svc = new PdfService();
 
       expect(priv(svc).cjaName(undefined)).toBe('');
       expect(priv(svc).cjaName('   \n\t ')).toBe('');
+    });
+
+    it('cjaName: returns original string when no dash is present', () => {
+      const svc = new PdfService();
+
+      expect(priv(svc).cjaName('CJA Number 1')).toBe('CJA Number 1');
     });
 
     it('generatePagedApplicationListPdf: uses CJA name (stripped) when courtName is missing', async () => {
