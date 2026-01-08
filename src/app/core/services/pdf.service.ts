@@ -877,8 +877,9 @@ export class PdfService {
       return '';
     }
 
-    // Remove leading CJA code like "A4 - Name" or "123A - Name", but keep name-like prefixes.
+    // Remove CJA code "A4 - Name"
     if (cjaString.length > 300) {
+      // Constrain string length
       return cjaString;
     }
 
