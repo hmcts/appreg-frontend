@@ -42,9 +42,9 @@ describe('Helmet Module', () => {
     expect(scriptSrc).toContain("'self'");
     expect(scriptSrc).toContain('*.google-analytics.com');
     // scriptSrc includes nonce
-    expect(scriptSrc.some((entry: unknown) => typeof entry === 'function')).toBe(
-      true,
-    );
+    expect(
+      scriptSrc.some((entry: unknown) => typeof entry === 'function'),
+    ).toBe(true);
     expect(scriptSrc).toContain("'unsafe-eval'");
     expect(scriptSrc).toContain("'unsafe-inline'");
 
