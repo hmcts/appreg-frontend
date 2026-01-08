@@ -111,7 +111,7 @@ export class PdfService {
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
-      doc.text('Produced on:', M, baseY);
+      doc.text('Produced on', M, baseY);
 
       const today = new Date();
       const todayDMY =
@@ -215,9 +215,12 @@ export class PdfService {
       drawFooter();
     }
 
-    const courtPart = this.fileSafe(data.courtName) || 'court';
-    const datePart = this.dateForFile(data.listDate);
-    doc.save(`${courtPart}-${datePart}.pdf`);
+    const courtPart =
+      this.fileSafe(data.courtName) ||
+      this.fileSafe(this.cjaName(data.cja)) ||
+      'court';
+    const datePart = this.dateForFile();
+    doc.save(`${courtPart}-${datePart}-print-page.pdf`);
   }
 
   /**
@@ -517,13 +520,21 @@ export class PdfService {
       }
     }
 
-    const uniqueCourts = Array.from(
-      new Set(dataArr.map((d) => this.fileSafe(d.courtName)).filter(Boolean)),
+    const uniquePlaces = Array.from(
+      new Set(
+        dataArr
+          .map(
+            (d) =>
+              this.fileSafe(d.courtName) || this.fileSafe(this.cjaName(d.cja)),
+          )
+          .filter(Boolean),
+      ),
     );
+
     const courtPart =
-      uniqueCourts.length === 1 ? uniqueCourts[0] : 'applications';
+      uniquePlaces.length === 1 ? uniquePlaces[0] : 'applications';
     const datePart = this.dateForFile();
-    doc.save(`${courtPart}-continuous-${datePart}.pdf`);
+    doc.save(`${courtPart}-${datePart}-print-cont.pdf`);
   }
 
   // -------------------- Mapping helpers --------------------
@@ -858,5 +869,24 @@ export class PdfService {
     const m = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${y}-${m}-${day}`;
+  }
+
+  private cjaName(raw?: string): string {
+    const cjaString = (raw ?? '').trim();
+    if (!cjaString) {
+      return '';
+    }
+
+    // Remove CJA code "A4 - Name"
+    if (cjaString.length > 300) {
+      // Constrain string length
+      return cjaString;
+    }
+
+    const match =
+      /^\s{0,10}[A-Za-z]?\d{1,6}[A-Za-z]?\s{0,5}[-–—]\s{0,5}(.{1,200})$/u.exec(
+        cjaString,
+      );
+    return match ? match[1].trim() : cjaString;
   }
 }
