@@ -131,6 +131,20 @@ function cookiesOf(req: Request): Cookies {
   return c && typeof c === 'object' && !Array.isArray(c) ? (c as Cookies) : {};
 }
 
+// Add CSP nonce to all script tags in SSR/prerendered HTML
+function injectNonceIntoScripts(
+  html: string,
+  nonce: string | undefined,
+): string {
+  if (!nonce) {
+    return html;
+  }
+  return html.replaceAll(
+    /<script\b(?![^>]*\bnonce=)/g,
+    `<script nonce="${nonce}" `, // We add a space here to maintain valid HTML
+  );
+}
+
 app.use((req: Request, res: Response, next: NextFunction) => {
   if (
     req.method === 'GET' ||
@@ -262,11 +276,42 @@ app.use(async (req: Request, res: Response, next: NextFunction) => {
 
 // ----- SSR handler
 app.use((req, res, next) => {
+  // Pass nonce into Angular SSR so hydration/event-replay scripts get it
+  const requestContext = { cspNonce: res.locals['cspNonce'] };
+
   angularApp
-    .handle(req)
-    .then((response) =>
-      response ? writeResponseToNodeResponse(response, res) : next(),
-    )
+    .handle(req, requestContext)
+    .then(async (response) => {
+      if (!response) {
+        return next();
+      }
+
+      const contentType = response.headers.get('content-type') ?? '';
+      if (!contentType.includes('text/html')) {
+        return writeResponseToNodeResponse(response, res);
+      }
+
+      const html = await response.text();
+      const withNonce = injectNonceIntoScripts(html, requestContext.cspNonce);
+      res.status(response.status);
+      const headers = response.headers;
+      const setCookies =
+        typeof (headers as { getSetCookie?: () => string[] }).getSetCookie ===
+        'function'
+          ? (headers as { getSetCookie: () => string[] }).getSetCookie()
+          : [];
+      if (setCookies.length > 0) {
+        res.setHeader('set-cookie', setCookies);
+      }
+      headers.forEach((value, key) => {
+        const lowerKey = key.toLowerCase();
+        if (lowerKey !== 'content-length' && lowerKey !== 'set-cookie') {
+          res.setHeader(key, value);
+        }
+      });
+      res.setHeader('content-length', Buffer.byteLength(withNonce).toString());
+      res.send(withNonce);
+    })
     .catch(next);
 });
 
