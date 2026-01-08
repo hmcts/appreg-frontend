@@ -92,6 +92,11 @@ export class DateTimeUtil {
       return this.calculateArithmetic(baseKeyword, modifier, unit);
     }
 
+    const inlineReplacement = this.replaceInlineKeywords(trimmed);
+    if (inlineReplacement !== trimmed) {
+      return inlineReplacement;
+    }
+
     // If no pattern matches, treat as static date or return as-is
     const result = trimmed;
 
@@ -177,6 +182,44 @@ export class DateTimeUtil {
       default:
         return pattern;
     }
+  }
+
+  private static replaceInlineKeywords(value: string): string {
+    const replacements: { key: string; getValue: () => string }[] = [
+      { key: 'todayiso', getValue: () => this.formatToday('iso') },
+      { key: 'tomorrowiso', getValue: () => this.getDateWithOffset(1, 'iso') },
+      {
+        key: 'yesterdayiso',
+        getValue: () => this.getDateWithOffset(-1, 'iso'),
+      },
+      { key: 'today', getValue: () => this.formatDate(new Date()) },
+      { key: 'tomorrow', getValue: () => this.getDateWithOffset(1) },
+      { key: 'yesterday', getValue: () => this.getDateWithOffset(-1) },
+      { key: 'displaypadded', getValue: () => this.formatToday('padded') },
+      { key: 'display', getValue: () => this.formatToday('display') },
+      { key: 'timenowhhmm', getValue: () => this.timeNowHHMM() },
+      { key: 'timenow', getValue: () => this.timeNow() },
+      { key: 'timestamp', getValue: () => this.createTimestamp('iso') },
+      {
+        key: 'numerictimestamp',
+        getValue: () => this.createTimestamp('numeric'),
+      },
+      { key: 'localtimestamp', getValue: () => this.createTimestamp('local') },
+    ];
+
+    let result = value;
+    let replaced = false;
+
+    for (const { key, getValue } of replacements) {
+      const regex = new RegExp(key, 'gi');
+      if (regex.test(result)) {
+        const replacementValue = getValue();
+        result = result.replace(regex, replacementValue);
+        replaced = true;
+      }
+    }
+
+    return replaced ? result : value;
   }
 
   /**
