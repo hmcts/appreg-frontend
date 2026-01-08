@@ -1,17 +1,18 @@
 import { Routes } from '@angular/router';
 
 import { sessionGuard } from './guards/session.guard';
-import { Applications } from './pages/applications/applications';
-import { ApplicationsList } from './pages/applications-list/applications-list';
-import { ApplicationsListBulkUpload } from './pages/applications-list-bulk-upload/applications-list-bulk-upload';
-import { ApplicationsListCreate } from './pages/applications-list-create/applications-list-create';
-import { ApplicationsListDetail } from './pages/applications-list-detail/applications-list-detail';
-import { ApplicationsListEntryCreate } from './pages/applications-list-entry-create/applications-list-entry-create';
-import { ApplicationsListEntryDetail } from './pages/applications-list-entry-detail/applications-list-entry-detail';
-import { Login } from './pages/login/login';
-import { Reports } from './pages/reports/reports';
-import { ResultSelected } from './pages/result-selected/result-selected';
-import { StandardApplicants } from './pages/standard-applicants/standard-applicants';
+
+import { Applications } from '@components/applications/applications';
+import { ApplicationsList } from '@components/applications-list/applications-list';
+import { ApplicationsListBulkUpload } from '@components/applications-list-bulk-upload/applications-list-bulk-upload';
+import { ApplicationsListCreate } from '@components/applications-list-create/applications-list-create';
+import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail';
+import { ApplicationsListEntryCreate } from '@components/applications-list-entry-create/applications-list-entry-create';
+import { ApplicationsListEntryDetail } from '@components/applications-list-entry-detail/applications-list-entry-detail';
+import { Login } from '@components/login/login';
+import { Reports } from '@components/reports/reports';
+import { ResultSelected } from '@components/result-selected/result-selected';
+import { StandardApplicants } from '@components/standard-applicants/standard-applicants';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },

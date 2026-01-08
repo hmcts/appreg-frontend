@@ -7,7 +7,7 @@ Process: conforms time inputs into strings
 Outputs: string "HH:mm", "HH:mm:ss", "HH:mm:ss.sssZ"
 */
 
-import { Duration } from '../components/duration-input/duration-input.component';
+import { Duration } from '@components/duration-input/duration-input.component';
 
 const HH_MM = /^([01]\d|2[0-3]):[0-5]\d$/;
 

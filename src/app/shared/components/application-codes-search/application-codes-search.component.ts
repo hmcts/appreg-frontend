@@ -24,8 +24,9 @@ import {
   ApplicationCodesApi,
   GetApplicationCodesRequestParams,
 } from '../../../../generated/openapi';
-import { NotificationBannerComponent } from '../notification-banner/notification-banner.component';
-import { TextInputComponent } from '../text-input/text-input.component';
+
+import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
+import { TextInputComponent } from '@components/text-input/text-input.component';
 
 @Component({
   selector: 'app-application-code-search',

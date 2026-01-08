@@ -2,9 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
-import { TextInputComponent } from '../text-input/text-input.component';
-
 import { ErrorItem } from '@components/error-summary/error-summary.component';
+import { TextInputComponent } from '@components/text-input/text-input.component';
 import { buildErrorTextByDomId, errorTextForDomId } from '@util/error-items';
 
 @Component({

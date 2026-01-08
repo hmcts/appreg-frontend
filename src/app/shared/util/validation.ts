@@ -7,8 +7,7 @@ import { ValidationErrors } from '@angular/forms';
 import {
   emailIncorrectFormatMsg,
   phoneIncorrectFormatMsg,
-} from '../constants/err-msgs';
-
+} from '@constants/err-msgs';
 import { ErrorSummaryItem } from '@core-types/error/error.types';
 
 export interface ContactFieldIds {

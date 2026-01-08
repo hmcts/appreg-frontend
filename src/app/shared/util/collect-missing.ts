@@ -4,9 +4,9 @@ Collect missing required fields
 Used in applications-list-create & applications-list-detail
 */
 
-import { Duration } from '../components/duration-input/duration-input.component';
-
 import { has } from './has';
+
+import { Duration } from '@components/duration-input/duration-input.component';
 
 export type MissingItem = { id: string; text: string };
 
