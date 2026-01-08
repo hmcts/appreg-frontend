@@ -36,11 +36,10 @@ describe('Helmet Module', () => {
       'scriptSrc',
     );
 
-    // The scriptSrc array should include self, googleAnalyticsDomain and nonce
+    // The scriptSrc array should include self and nonce
     // Development mode should include "'unsafe-eval'" and "'unsafe-inline'"
     const scriptSrc = helmetConfig.contentSecurityPolicy.directives.scriptSrc;
     expect(scriptSrc).toContain("'self'");
-    expect(scriptSrc).toContain('*.google-analytics.com');
     // scriptSrc includes nonce
     expect(
       scriptSrc.some((entry: unknown) => typeof entry === 'function'),
