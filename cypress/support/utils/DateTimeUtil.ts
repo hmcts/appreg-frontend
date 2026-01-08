@@ -188,7 +188,10 @@ export class DateTimeUtil {
     const replacements: { key: string; getValue: () => string }[] = [
       { key: 'todayiso', getValue: () => this.formatToday('iso') },
       { key: 'tomorrowiso', getValue: () => this.getDateWithOffset(1, 'iso') },
-      { key: 'yesterdayiso', getValue: () => this.getDateWithOffset(-1, 'iso') },
+      {
+        key: 'yesterdayiso',
+        getValue: () => this.getDateWithOffset(-1, 'iso'),
+      },
       { key: 'today', getValue: () => this.formatDate(new Date()) },
       { key: 'tomorrow', getValue: () => this.getDateWithOffset(1) },
       { key: 'yesterday', getValue: () => this.getDateWithOffset(-1) },
@@ -197,7 +200,10 @@ export class DateTimeUtil {
       { key: 'timenowhhmm', getValue: () => this.timeNowHHMM() },
       { key: 'timenow', getValue: () => this.timeNow() },
       { key: 'timestamp', getValue: () => this.createTimestamp('iso') },
-      { key: 'numerictimestamp', getValue: () => this.createTimestamp('numeric') },
+      {
+        key: 'numerictimestamp',
+        getValue: () => this.createTimestamp('numeric'),
+      },
       { key: 'localtimestamp', getValue: () => this.createTimestamp('local') },
     ];
 
