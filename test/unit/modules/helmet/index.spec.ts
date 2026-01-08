@@ -36,21 +36,17 @@ describe('Helmet Module', () => {
       'scriptSrc',
     );
 
-    // The scriptSrc array should include self, googleAnalyticsDomain and sha hash.
-    // In development mode, it should also include "'unsafe-eval'".
+    // The scriptSrc array should include self, googleAnalyticsDomain and nonce
+    // Development mode should include "'unsafe-eval'" and "'unsafe-inline'"
     const scriptSrc = helmetConfig.contentSecurityPolicy.directives.scriptSrc;
     expect(scriptSrc).toContain("'self'");
     expect(scriptSrc).toContain('*.google-analytics.com');
-    expect(scriptSrc).toContain(
-      "'sha256-+6WnXIl4mbFTCARd8N3COQmT3bJJmo32N8q8ZSQAIcU='",
-    );
-    expect(scriptSrc).toContain(
-      "'sha256-VM2mZqyEQZoLzoTrp5EigFvzQ0+f1wSeBuoOn95WHCg='",
-    );
-    expect(scriptSrc).toContain(
-      "'sha256-8sGKvDKC8crv9OBcqEMvqrNDWlm1/80h7NJpJzqOnLI='",
+    // scriptSrc includes nonce
+    expect(scriptSrc.some((entry: unknown) => typeof entry === 'function')).toBe(
+      true,
     );
     expect(scriptSrc).toContain("'unsafe-eval'");
+    expect(scriptSrc).toContain("'unsafe-inline'");
 
     // Verify that app.use was called with the dummy middleware.
     // Here we assume that enableFor calls app.use(helmet(...))
@@ -70,7 +66,8 @@ describe('Helmet Module', () => {
     const helmetConfig = (helmet as unknown as jest.Mock).mock.calls[0][0];
     const scriptSrc = helmetConfig.contentSecurityPolicy.directives.scriptSrc;
 
-    // In non-development mode, "'unsafe-eval'" should not be present.
+    // In non-development mode exclude "'unsafe-eval'" and "'unsafe-inline'"
     expect(scriptSrc).not.toContain("'unsafe-eval'");
+    expect(scriptSrc).not.toContain("'unsafe-inline'");
   });
 });
