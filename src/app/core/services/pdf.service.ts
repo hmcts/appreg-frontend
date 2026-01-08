@@ -876,7 +876,8 @@ export class PdfService {
     if (!s) {
       return '';
     }
-    // "01 - CJA Number 1" -> "CJA Number 1"
-    return s.replace(/^\d+\s*[-–—]\s*/u, '').trim();
+
+    // Remove CJA code, regex removes everything before first '-'
+    return s.replace(/^[^-–—]*\s*[-–—]\s*/u, '').trim();
   }
 }
