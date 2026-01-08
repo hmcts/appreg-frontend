@@ -82,3 +82,11 @@ export function requireTime(t: Parameters<typeof toTimeString>[0]): string {
   }
   return v.length === 5 ? `${v}:00` : v;
 }
+
+export function todayIsoDate(): string {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}

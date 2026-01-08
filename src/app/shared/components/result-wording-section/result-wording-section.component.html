@@ -1,0 +1,53 @@
+<app-sortable-table
+  id="results-applicant-table"
+  caption="You are resulting the following application(s)"
+  [columns]="applicantRespondentColumns"
+  [data]="resultApplicantContext()"
+  appMojButtonMenu
+/>
+
+<div class="govuk-grid-row">
+  <app-suggestions
+    id="result-code"
+    label="Result code"
+    hint="Start typing to search for a result code"
+    [(search)]="resultCodeSearch"
+    [suggestions]="filteredResultCodes"
+    [getItemLabel]="resultCodeLabel"
+    (selectItem)="selectResultCode($event)"
+    [widthClass]="'govuk-!-width-one-half'"
+    [containerWidthClass]="'govuk-grid-column-one-half'"
+  />
+</div>
+
+<app-sortable-table
+  id="results-table"
+  caption="Results"
+  [columns]="existingResultsColumns"
+  [data]="tableRows"
+  idField="id"
+>
+  <ng-template #actionsTemplate let-row>
+    <div class="govuk-button-group">
+      <button
+        type="button"
+        class="govuk-button govuk-button--warning"
+        (click)="onRemoveClicked(row)"
+      >
+        Remove
+      </button>
+    </div>
+  </ng-template>
+  />
+</app-sortable-table>
+
+<div class="govuk-button-group">
+  <button
+    type="button"
+    class="govuk-button"
+    (click)="onSaveResult()"
+    [disabled]="!canApply"
+  >
+    Apply result
+  </button>
+</div>

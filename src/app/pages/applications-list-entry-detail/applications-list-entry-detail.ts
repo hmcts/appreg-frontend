@@ -17,7 +17,7 @@
       - Manages success banners and scroll/focus behaviour for validation and server errors
       - TODO: Eventually use generic components/services for banners & scroll/focus behavior
 */
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import {
   Component,
   DestroyRef,
@@ -40,7 +40,6 @@ import {
   FEE_STATUS_OPTIONS,
   PERSON_TITLE_OPTIONS,
   RESPONDENT_TYPE_OPTIONS,
-  RESULT_WORDING_COLUMNS,
   WORDING_REF_REGEX,
 } from './util/entry-detail.constants';
 import { buildEntryUpdateDtoWithChange } from './util/entry-detail.form';
@@ -48,6 +47,10 @@ import { mapHttpErrorToSummary } from './util/errors.util';
 import { getEntryId } from './util/routing.util';
 
 import { AccordionComponent } from '@components/accordion/accordion.component';
+import {
+  ApplicantContext,
+  readNavState,
+} from '@components/applications-list/util/routing-state-util';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import {
@@ -62,6 +65,7 @@ import { NotificationBannerComponent } from '@components/notification-banner/not
 import { OrganisationSectionComponent } from '@components/organisation-section/organisation-section.component';
 import { PersonSectionComponent } from '@components/person-section/person-section.component';
 import { RespondentSectionComponent } from '@components/respondent-section/respondent-section.component';
+import { ResultWordingSectionComponent } from '@components/result-wording-section/result-wording-section.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
 import { TableColumn } from '@components/selectable-sortable-table/selectable-sortable-table.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
@@ -79,11 +83,14 @@ import { SuccessBanner } from '@core-types/banner/banner.types';
 import {
   ApplicationCodesApi,
   ApplicationListEntriesApi,
+  ApplicationListEntryResultsApi,
   EntryGetDetailDto,
   EntryUpdateDto,
+  ResultCodesApi,
   UpdateApplicationListEntryRequestParams,
 } from '@openapi';
 import { ApplicationListEntryFormService } from '@services/application-list-entry-form.service';
+import { ApplicationListEntryResultsFacade } from '@services/application-list-entry-results.facade';
 import {
   ApplicantType,
   ApplicationListEntryForms,
@@ -91,6 +98,7 @@ import {
   OrganisationForm,
   PersonForm,
 } from '@shared-types/applications-list-entry-create/application-list-entry-form';
+import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import {
   CodeRow,
   fetchCodeDetail$,
@@ -118,6 +126,7 @@ export const ERROR_HREFS = {
 @Component({
   selector: 'app-applications-list-entry-detail',
   standalone: true,
+  providers: [ApplicationListEntryResultsFacade],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -137,6 +146,7 @@ export const ERROR_HREFS = {
     StandardApplicantSelectComponent,
     NotesSectionComponent,
     RespondentSectionComponent,
+    ResultWordingSectionComponent,
   ],
   templateUrl: './applications-list-entry-detail.html',
 })
@@ -149,7 +159,15 @@ export class ApplicationsListEntryDetail implements OnInit {
   private readonly router = inject(Router);
   private readonly entriesApi = inject(ApplicationListEntriesApi);
   private readonly codesApi = inject(ApplicationCodesApi);
+  private readonly resultCodesApi = inject(ResultCodesApi);
+  private readonly entryResultsApi = inject(ApplicationListEntryResultsApi);
   private readonly formSvc = inject(ApplicationListEntryFormService);
+  private readonly location = inject(Location);
+
+  //Utilising facade for entry results to keep component clean
+  readonly resultsFacade = inject(ApplicationListEntryResultsFacade);
+
+  onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
 
   // TODO: Avoid ViewChild-driven imperative validation.
   // Prefer Angular validators on the underlying FormGroups (personForm / organisationForm),
@@ -198,27 +216,41 @@ export class ApplicationsListEntryDetail implements OnInit {
   applicantColumns: TableColumn[] = APPLICANT_COLUMNS;
   codesColumns: TableColumn[] = CODES_COLUMNS;
   civilFeeColumns: TableColumn[] = CIVIL_FEE_COLUMNS;
-  resultWordingColumns: TableColumn[] = RESULT_WORDING_COLUMNS;
 
   feeStatusOptions = FEE_STATUS_OPTIONS;
   applicantEntryTypeOptions = APPLICANT_TYPE_OPTIONS;
   respondentEntryTypeOptions = RESPONDENT_TYPE_OPTIONS;
   personTitleOptions = PERSON_TITLE_OPTIONS;
 
-  onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
+  // Result wording data
+  resultApplicantContext: ApplicantContext[] = [];
 
   ngOnInit(): void {
-    const nav = this.router.currentNavigation();
-    const fromNav = nav?.extras?.state as { appListId?: string } | undefined;
-    const fromHist = isPlatformBrowser(this.platformId)
-      ? (history.state as { appListId?: string } | undefined)
-      : undefined;
+    const state = readNavState(this.location, this.platformId);
 
-    this.appListId =
-      fromNav?.appListId ??
-      fromHist?.appListId ??
+    const listId =
+      this.route.snapshot.paramMap.get('listId') ??
+      state?.appListId ??
       this.route.snapshot.queryParamMap.get('appListId') ??
       '';
+
+    const entryId =
+      this.route.snapshot.paramMap.get('entryId') ??
+      this.route.snapshot.paramMap.get('id') ??
+      this.route.snapshot.queryParamMap.get('entryId') ??
+      '';
+
+    // If route is incomplete, go back to the application list page
+    if (!listId || !entryId) {
+      void this.router.navigate(['../'], { relativeTo: this.route });
+      return;
+    }
+
+    this.appListId = listId;
+
+    if (state?.resultApplicantContext) {
+      this.resultApplicantContext = [state.resultApplicantContext];
+    }
 
     // Build forms via helpers
     this.forms = this.formSvc.createForms();
@@ -230,7 +262,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     // Watch applicantType changes
     this.bindApplicantTypeChanges();
 
-    this.loadEntryAndPatchForm();
+    this.loadEntryAndPatchForm(listId, entryId);
   }
 
   // ── UI handlers ─────────────────────────────────────────────────────────────
@@ -634,44 +666,87 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   // ——— Data loading & mapping ———
-  private loadEntryAndPatchForm(): void {
-    const entryId =
-      this.route.snapshot.paramMap.get('entryId') ||
-      this.route.snapshot.paramMap.get('id') ||
-      this.route.snapshot.queryParamMap.get('entryId');
-
-    if (!this.appListId || !entryId) {
+  //Also loads entry result
+  private loadEntryAndPatchForm(listId: string, entryId: string): void {
+    if (!listId || !entryId) {
       return;
     }
 
     this.entriesApi
-      .getApplicationListEntry(
-        { listId: this.appListId, entryId },
-        'body',
-        false,
-        {
-          context: undefined,
-          transferCache: true,
-        },
-      )
+      .getApplicationListEntry({ listId, entryId }, 'body', false, {
+        context: undefined,
+        transferCache: true,
+      })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (dto) => {
-          this.entryDetail = dto;
-          const result = this.formSvc.hydrateFromDto(dto, this.forms, {
+        next: (entry) => {
+          this.entryDetail = entry;
+
+          const hydrate = this.formSvc.hydrateFromDto(entry, this.forms, {
             emitEvent: false,
           });
 
           this.selectedStandardApplicantCode =
-            result.selectedStandardApplicantCode;
+            hydrate.selectedStandardApplicantCode;
 
           const type = this.form.controls.applicantType.value ?? 'person';
           this.formSvc.syncApplicantTypeState(this.forms, type);
 
-          this.loadCodesSectionFromEntry(dto);
+          this.resultsFacade.loadEntryResults(listId, entryId);
+          this.loadCodesSectionFromEntry(entry);
         },
         error: (err) => this.handleFatalLoadError(err),
       });
+  }
+
+  onApplyResultPending(row: PendingResultRow): void {
+    const entryId = getEntryId(this.route);
+    const listId = this.appListId;
+
+    if (!listId || !entryId) {
+      return;
+    }
+
+    this.resultsFacade.applyPendingResult(
+      listId,
+      entryId,
+      row,
+      () => {
+        this.successBanner = {
+          heading: 'Result applied',
+          body: 'The result has been updated for this application list entry.',
+        };
+        focusSuccessBanner(this.platformId);
+      },
+      (err) => this.applyMappedError(err),
+    );
+  }
+
+  onRemoveResult(resultId: string): void {
+    const entryId = getEntryId(this.route);
+    const listId = this.appListId;
+
+    if (!listId || !entryId || !resultId) {
+      return;
+    }
+
+    this.resultsFacade.removeResult(
+      listId,
+      entryId,
+      resultId,
+      () => {
+        this.successBanner = {
+          heading: 'Result removed',
+          body: 'The result has been removed from this application list entry.',
+        };
+        focusSuccessBanner(this.platformId);
+      },
+      (err) => this.applyMappedError(err),
+    );
+  }
+
+  onPendingChange(rows: PendingResultRow[]): void {
+    this.resultsFacade.setPending(rows);
   }
 
   private handleFatalLoadError(err: unknown): void {

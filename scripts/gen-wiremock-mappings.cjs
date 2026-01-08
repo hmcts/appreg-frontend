@@ -93,6 +93,13 @@ async function readFileAsObject(p) {
   return /\.ya?ml$/i.test(p) ? YAML.parse(raw) : JSON.parse(raw);
 }
 
+function headersFor204Request() {
+  return {
+    Authorization: { matches: 'Bearer .+' },
+    // no Accept constraint for 204
+  };
+}
+
 /**
  * Very lightweight deref for local relative $ref files (common in this repo).
  * It resolves $ref: './something.yaml' nodes by loading and returning that file’s content.
@@ -219,7 +226,7 @@ function bodyJsonString(objOrTemplate) {
 // UPDATED: accept optional `op` and detect multipart from requestBody content
 function houseRuleHeadersForRequest(hasBody, op /* optional */) {
   const headers = {
-    Accept: { contains: DEFAULT_VENDOR },
+    Accept: { matches: '.*' },
     Authorization: { matches: 'Bearer .+' },
   };
   if (!hasBody) {
@@ -727,15 +734,21 @@ async function main() {
         };
       }
 
+      const is204 = String(statusCode) === '204';
+
       const successMapping = {
         name: (op.operationId || `${m} ${p}`).replace(/\s+/g, ' '),
-
         // Scenario wiring: happy path = default state
         scenarioName: scenarioNameFor(op.operationId, m, p),
         requiredScenarioState: 'Started',
-
         priority: 5,
-        request: mkBaseRequest(m, url, hasBody, op.parameters || [], op),
+        request: is204
+          ? {
+              method: m,
+              [url.kind]: url.value,
+              headers: headersFor204Request(),
+            }
+          : mkBaseRequest(m, url, hasBody, op.parameters || [], op),
         response: successResponse,
       };
 
