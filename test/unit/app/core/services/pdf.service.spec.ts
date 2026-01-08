@@ -566,19 +566,20 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
       expect(priv(svc).cjaName('01 — CJA Number 1')).toBe('CJA Number 1');
     });
 
-    it('cjaName: preserves hyphenated names without numeric prefix', () => {
+    it('cjaName: strips alphanumeric prefixes like A4/123A', () => {
+      const svc = new PdfService();
+
+      expect(priv(svc).cjaName('A4 - Greater Manchester')).toBe(
+        'Greater Manchester',
+      );
+      expect(priv(svc).cjaName('123A - Name')).toBe('Name');
+    });
+
+    it('cjaName: keeps hyphenated names that are not alphanumeric prefixes', () => {
       const svc = new PdfService();
 
       expect(priv(svc).cjaName('South-West London')).toBe('South-West London');
       expect(priv(svc).cjaName('West - Midlands')).toBe('West - Midlands');
-      expect(priv(svc).cjaName('North-East')).toBe('North-East');
-    });
-
-    it('cjaName: does not strip non-numeric prefixes', () => {
-      const svc = new PdfService();
-
-      expect(priv(svc).cjaName('AB - Name')).toBe('AB - Name');
-      expect(priv(svc).cjaName('123A - Name')).toBe('123A - Name');
     });
 
     it('cjaName: trims whitespace around numeric prefix', () => {

@@ -877,8 +877,15 @@ export class PdfService {
       return '';
     }
 
-    // Remove a leading numeric code like "123 - Name", but keep genuine hyphenated names.
-    const match = new RegExp(/^\s*\d+\s*[-–—]\s*(.+)$/u).exec(cjaString);
+    // Remove leading CJA code like "A4 - Name" or "123A - Name", but keep name-like prefixes.
+    if (cjaString.length > 300) {
+      return cjaString;
+    }
+
+    const match =
+      /^\s{0,10}[A-Za-z]?\d{1,6}[A-Za-z]?\s{0,5}[-–—]\s{0,5}(.{1,200})$/u.exec(
+        cjaString,
+      );
     return match ? match[1].trim() : cjaString;
   }
 }
