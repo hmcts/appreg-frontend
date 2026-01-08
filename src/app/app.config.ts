@@ -9,10 +9,6 @@ import {
   provideBrowserGlobalErrorListeners,
   provideZoneChangeDetection,
 } from '@angular/core';
-import {
-  provideClientHydration,
-  withEventReplay,
-} from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 
 import { BASE_PATH, provideApi } from '../generated/openapi';
@@ -29,7 +25,6 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideClientHydration(withEventReplay()),
     provideHttpClient(
       withXsrfConfiguration({
         cookieName: 'XSRF-TOKEN',

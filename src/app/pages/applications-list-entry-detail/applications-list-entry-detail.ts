@@ -23,7 +23,6 @@ import {
   DestroyRef,
   OnInit,
   PLATFORM_ID,
-  ViewChild,
   inject,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -168,15 +167,6 @@ export class ApplicationsListEntryDetail implements OnInit {
   readonly resultsFacade = inject(ApplicationListEntryResultsFacade);
 
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
-
-  // TODO: Avoid ViewChild-driven imperative validation.
-  // Prefer Angular validators on the underlying FormGroups (personForm / organisationForm),
-  // and surface errors via the existing buildFormErrorSummary / childErrors pattern.
-  // This will make the sections reusable and remove component-to-component coupling.
-  @ViewChild(PersonSectionComponent)
-  private readonly personSection?: PersonSectionComponent;
-  @ViewChild(OrganisationSectionComponent)
-  private readonly organisationSection?: OrganisationSectionComponent;
 
   appListId!: string;
 

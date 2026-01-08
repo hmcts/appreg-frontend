@@ -469,7 +469,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.loadApplicationsLists();
   }
 
-  async openUpdate(row: selectedRow): Promise<void> {
+  async openUpdate(row: Partial<selectedRow>): Promise<void> {
     await this.router.navigate(['/applications-list', row.id, 'update'], {
       state: {
         appListId: this.id,
