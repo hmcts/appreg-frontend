@@ -1,4 +1,4 @@
-import { CommonModule, formatDate } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {
   Component,
   EventEmitter,
@@ -19,6 +19,7 @@ import {
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import { SelectableSortableTableComponent } from '@components/selectable-sortable-table/selectable-sortable-table.component';
 import { TableColumn } from '@components/sortable-table/sortable-table.component';
+import { formatDate } from '@util/standard-applicant-helpers';
 import { StandardApplicantRow } from '@util/types/applications-list-entry/types';
 
 @Component({
