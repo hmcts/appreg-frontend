@@ -479,3 +479,123 @@ Feature: Application List Row Actions
         Examples:
             | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
             | user1 | Lists     | today      | todayiso    | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 0             | 5               | 1       | CLOSED | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 1     |
+
+    @regression @ARCPOC-214 @ARCPOC-575
+    Scenario Outline: Verify application list is deleted successfully for applications list NO entries
+        Given User Authenticates Via API As "<User>"
+        When User Makes POST API Request To "/application-lists" With Body:
+            | date          | time   | status   | description   | courtLocationCode   |
+            | <DisplayDate> | <Time> | <Status> | <Description> | <courtLocationCode> |
+        Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "listId"
+        Given User Is On The Portal Page
+        When User Signs In With Microsoft SSO As "<User>"
+        Then User Clicks On The Link "Applications list"
+        When User Set Date Field "Date" To "<SearchDate>"
+        When User Clicks On The "Search" Button
+        Then User Should See The Table "<TableName>"
+        Then User Should See Table "<TableName>" Has Rows
+        When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
+            | Date          | Time   | Location | Description   | Entries | Status   |
+            | <DisplayDate> | <Time> | <Court>  | <Description> | 0       | <Status> |
+        # When User Confirms The Deletion
+        Then User Sees Notification Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
+        When User Set Date Field "Date" To "<SearchDate>"
+        When User Clicks On The "Search" Button
+        Then User Should See The Table "<TableName>"
+        Then User Should Not See Row In Table "<TableName>" With Values:
+            | Date          | Time   | Location | Description   | Entries | Status   |
+            | <DisplayDate> | <Time> | <Court>  | <Description> | 0       | <Status> |
+        Examples:
+            | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                             | Status | SelectButtonText |
+            | user1 | Lists     | today      | todayiso    | timenowhhmm-3h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | OPEN   | Select           |
+
+    @regression @ARCPOC-214 @ARCPOC-575 @ALE
+    Scenario Outline: Verify application list is deleted successfully for applications list 1 entry
+        Given User Authenticates Via API As "<User>"
+        When User Makes POST API Request To "/application-lists" With Body:
+            | date          | time   | status   | description   | courtLocationCode   |
+            | <DisplayDate> | <Time> | <Status> | <Description> | <courtLocationCode> |
+        Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "listId"
+        When User Makes POST API Request To "/application-lists/:listId/entries" With Json Body
+            """
+            {
+                "standardApplicantCode": null,
+                "applicationCode": "MS99006",
+                "applicant": {
+                    "person": null,
+                    "organisation": {
+                        "name": "Demo Manufacturing LTD",
+                        "contactDetails": {
+                            "addressLine1": "{RANDOM} Downing Street",
+                            "addressLine2": "Westminster",
+                            "addressLine3": "London",
+                            "addressLine4": "Greater London",
+                            "addressLine5": "United Kingdom",
+                            "postcode": "SW1A 2AA",
+                            "phone": "01225 123456",
+                            "mobile": "07123456789",
+                            "email": "john-test@gmail.com"
+                        }
+                    }
+                },
+                "respondent": {
+                    "person": null,
+                    "organisation": {
+                        "name": "Sample Services Inc",
+                        "contactDetails": {
+                            "addressLine1": "{RANDOM} Fleet Street",
+                            "addressLine2": "London",
+                            "addressLine3": "",
+                            "addressLine4": "",
+                            "addressLine5": "United Kingdom",
+                            "postcode": "EC4Y 1AA",
+                            "phone": "01132 654321",
+                            "mobile": "07987654321",
+                            "email": "sampleservices@gmail.com"
+                        }
+                    }
+                },
+                "numberOfRespondents": null,
+                "wordingFields": [
+                    "test food {RANDOM}"
+                ],
+                "feeStatuses": [],
+                "hasOffsiteFee": true,
+                "caseReference": "CASE-{RANDOM}",
+                "accountNumber": "ACC-{RANDOM}",
+                "notes": "Case noted with ref {RANDOM}",
+                "lodgementDate": "todayiso",
+                "officials": [
+                    {
+                        "title": "Ms",
+                        "surname": "Patel {RANDOM}",
+                        "forename": "Anita",
+                        "type": "MAGISTRATE"
+                    }
+                ]
+            }
+            """
+        Then User Verify Response Status Code Should Be "201"
+        Given User Is On The Portal Page
+        When User Signs In With Microsoft SSO As "<User>"
+        Then User Clicks On The Link "Applications list"
+        When User Set Date Field "Date" To "<SearchDate>"
+        When User Clicks On The "Search" Button
+        Then User Should See The Table "<TableName>"
+        Then User Should See Table "<TableName>" Has Rows
+        When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
+            | Date          | Time   | Location | Description   | Entries | Status   |
+            | <DisplayDate> | <Time> | <Court>  | <Description> | 1       | <Status> |
+        # When User Confirms The Deletion
+        Then User Sees Notification Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
+        When User Set Date Field "Date" To "<SearchDate>"
+        When User Clicks On The "Search" Button
+        Then User Should See The Table "<TableName>"
+        Then User Should Not See Row In Table "<TableName>" With Values:
+            | Date          | Time   | Location | Description   | Entries | Status   |
+            | <DisplayDate> | <Time> | <Court>  | <Description> | 1       | <Status> |
+        Examples:
+            | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                             | Status | SelectButtonText |
+            | user1 | Lists     | today      | todayiso    | timenowhhmm-3h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | OPEN   | Select           |
