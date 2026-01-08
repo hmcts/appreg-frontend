@@ -14,9 +14,9 @@ import { serverCookieInterceptor } from './shared/interceptors/server-cookie.int
 
 // Read nonce from SSR request context for Angular nonce token
 function resolveCspNonce(): string | null {
-  const context = inject(REQUEST_CONTEXT, { optional: true }) as
-    | { cspNonce?: unknown }
-    | null;
+  const context = inject(REQUEST_CONTEXT, { optional: true }) as {
+    cspNonce?: unknown;
+  } | null;
   return typeof context?.cspNonce === 'string' ? context.cspNonce : null;
 }
 
