@@ -9,10 +9,10 @@ export class StringUtils {
   static normalizeText(text: string): string {
     return text
       .replaceAll('&nbsp;', ' ')
-      .replace(/[–—]/g, '-')
-      .replace(/[“”]/g, '"')
-      .replace(/[‘’]/g, "'")
-      .replace(/\s+/g, ' ')
+      .replaceAll(/[–—]/g, '-')
+      .replaceAll(/[“”]/g, '"')
+      .replaceAll(/[‘’]/g, "'")
+      .replaceAll(/\s+/g, ' ')
       .trim();
   }
 
