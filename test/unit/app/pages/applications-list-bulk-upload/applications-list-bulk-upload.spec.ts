@@ -4,14 +4,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
 
-import {
-  ActionsApi,
-  JobAcknowledgement,
-  JobStatus,
-  JobType,
-} from '../../../../../src/generated/openapi';
-
 import { ApplicationsListBulkUpload } from '@components/applications-list-bulk-upload/applications-list-bulk-upload';
+import { ActionsApi, JobAcknowledgement, JobStatus, JobType } from '@openapi';
 
 describe('ApplicationsListBulkUpload', () => {
   let component: ApplicationsListBulkUpload;

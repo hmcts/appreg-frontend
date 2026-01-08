@@ -28,14 +28,13 @@ Else return informative string to display
 import { AbstractControl, FormGroup } from '@angular/forms';
 import { Subscription, merge } from 'rxjs';
 
-import {
-  CourtLocationGetSummaryDto,
-  CriminalJusticeAreaGetDto,
-} from '../../../generated/openapi';
-
 import { has } from './has';
 
 import { FormRaw } from '@core-types/forms/forms.types';
+import {
+  CourtLocationGetSummaryDto,
+  CriminalJusticeAreaGetDto,
+} from '@openapi';
 
 export interface LocationControls {
   court: AbstractControl;

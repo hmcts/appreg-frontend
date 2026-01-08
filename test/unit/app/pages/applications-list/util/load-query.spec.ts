@@ -1,12 +1,11 @@
 import type { FormGroup } from '@angular/forms';
 
-import { ApplicationListStatus } from '../../../../../../src/generated/openapi';
-
 import { loadQuery } from '@components/applications-list/util/load-query';
+import { ApplicationListStatus } from '@openapi';
 import { toStatus } from '@util/application-status-helpers';
 import { toTimeString } from '@util/time-helpers';
 
-jest.mock('../../../../../../src/generated/openapi', () => ({}));
+jest.mock('@openapi', () => ({}));
 jest.mock('@components/duration-input/duration-input.component', () => ({}));
 
 jest.mock('@util/application-status-helpers', () => ({

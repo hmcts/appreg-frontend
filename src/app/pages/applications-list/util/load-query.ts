@@ -9,9 +9,8 @@ Output: ApplicationListGetFilterDto (OpenAPI generated model based on spec)
 
 import { FormGroup } from '@angular/forms';
 
-import { ApplicationListGetFilterDto } from '../../../../generated/openapi';
-
 import { Duration } from '@components/duration-input/duration-input.component';
+import { ApplicationListGetFilterDto } from '@openapi';
 import { toStatus } from '@util/application-status-helpers';
 import { toTimeString } from '@util/time-helpers';
 

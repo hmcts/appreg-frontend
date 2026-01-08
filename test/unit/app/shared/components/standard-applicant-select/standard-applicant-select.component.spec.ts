@@ -1,12 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
+import { StandardApplicantSelectComponent } from '@components/standard-applicant-select/standard-applicant-select.component';
 import {
   StandardApplicantGetSummaryDto,
   StandardApplicantsApi,
-} from '../../../../../../src/generated/openapi';
-
-import { StandardApplicantSelectComponent } from '@components/standard-applicant-select/standard-applicant-select.component';
+} from '@openapi';
 
 // Simple mocked typed
 type GetStandardApplicantsFn = jest.Mock<

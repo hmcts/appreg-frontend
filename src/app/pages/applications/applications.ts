@@ -8,13 +8,6 @@ import {
 import { RouterLink } from '@angular/router';
 import { Subject } from 'rxjs';
 
-import {
-  ApplicationListEntriesApi,
-  EntryGetFilterDto,
-  EntryGetSummaryDto,
-  GetEntriesRequestParams,
-} from '../../../generated/openapi';
-
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import {
   ErrorItem,
@@ -26,6 +19,12 @@ import { SelectInputComponent } from '@components/select-input/select-input.comp
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import {
+  ApplicationListEntriesApi,
+  EntryGetFilterDto,
+  EntryGetSummaryDto,
+  GetEntriesRequestParams,
+} from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { toStatus } from '@util/application-status-helpers';
 import { has } from '@util/has';

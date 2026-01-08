@@ -1,12 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
-import {
-  ApplicationListEntriesApi,
-  EntryGetFilterDto,
-} from '../../../../../src/generated/openapi';
-
 import { Applications } from '@components/applications/applications';
+import { ApplicationListEntriesApi, EntryGetFilterDto } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 
 interface HasLoadQuery {

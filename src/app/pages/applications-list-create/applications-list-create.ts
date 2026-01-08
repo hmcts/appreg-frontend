@@ -26,11 +26,6 @@ import {
 import { ActivatedRoute } from '@angular/router';
 
 import {
-  ApplicationListCreateDto,
-  ApplicationListStatus,
-  ApplicationListsApi,
-} from '../../../generated/openapi';
-import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '../../shared/util/error-click';
@@ -49,6 +44,11 @@ import { SuccessBannerComponent } from '@components/success-banner/success-banne
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { FormRaw } from '@core-types/forms/forms.types';
+import {
+  ApplicationListCreateDto,
+  ApplicationListStatus,
+  ApplicationListsApi,
+} from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { buildNormalizedPayload } from '@util/build-payload';
 import { collectMissing } from '@util/collect-missing';

@@ -5,6 +5,8 @@ import { ActivatedRoute, provideRouter } from '@angular/router';
 import { jest } from '@jest/globals';
 import { of, throwError } from 'rxjs';
 
+import { ApplicationsListCreate } from '@components/applications-list-create/applications-list-create';
+import { TextInputComponent } from '@components/text-input/text-input.component';
 import {
   ApplicationListCreateDto,
   ApplicationListStatus,
@@ -13,10 +15,7 @@ import {
   CourtLocationsApi,
   CriminalJusticeAreaGetDto,
   CriminalJusticeAreasApi,
-} from '../../../../../src/generated/openapi';
-
-import { ApplicationsListCreate } from '@components/applications-list-create/applications-list-create';
-import { TextInputComponent } from '@components/text-input/text-input.component';
+} from '@openapi';
 
 const COURTS: CourtLocationGetSummaryDto[] = [
   { name: 'Alpha Court', locationCode: 'A1' },

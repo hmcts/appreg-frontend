@@ -37,12 +37,6 @@ import { RouterLink } from '@angular/router';
 import { Subject, firstValueFrom, takeUntil } from 'rxjs';
 
 import {
-  ApplicationListGetSummaryDto,
-  ApplicationListStatus,
-  ApplicationListsApi,
-  GetApplicationListsRequestParams,
-} from '../../../generated/openapi';
-import {
   IF_MATCH,
   ROW_VERSION,
 } from '../../shared/context/concurrency-context';
@@ -70,6 +64,12 @@ import {
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import {
+  ApplicationListGetSummaryDto,
+  ApplicationListStatus,
+  ApplicationListsApi,
+  GetApplicationListsRequestParams,
+} from '@openapi';
 import { PdfService } from '@services/pdf.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { has } from '@util/has';

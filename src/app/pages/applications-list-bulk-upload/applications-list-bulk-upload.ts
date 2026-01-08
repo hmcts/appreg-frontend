@@ -4,14 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { finalize } from 'rxjs';
 
-import {
-  ActionsApi,
-  BulkUploadApplicationListEntriesRequestParams,
-  JobStatus,
-} from '../../../generated/openapi';
-
-import { JobAcknowledgement } from './../../../generated/openapi/model/job-acknowledgement';
-
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import {
   ErrorItem,
@@ -20,6 +12,12 @@ import {
 import { LoadingSpinner } from '@components/loading-spinner/loading-spinner';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
+import {
+  ActionsApi,
+  BulkUploadApplicationListEntriesRequestParams,
+  JobAcknowledgement,
+  JobStatus,
+} from '@openapi';
 
 @Component({
   selector: 'app-applications-list-bulk-upload',

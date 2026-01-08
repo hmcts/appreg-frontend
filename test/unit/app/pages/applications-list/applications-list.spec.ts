@@ -18,6 +18,9 @@ import {
   IF_MATCH,
   ROW_VERSION,
 } from '../../../../../src/app/shared/context/concurrency-context';
+
+import { ApplicationsList } from '@components/applications-list/applications-list';
+import * as LoadQuery from '@components/applications-list/util/load-query';
 import {
   ApplicationListGetFilterDto,
   ApplicationListGetPrintDto,
@@ -30,10 +33,7 @@ import {
   CriminalJusticeAreaGetDto,
   CriminalJusticeAreasApi,
   GetApplicationListsRequestParams,
-} from '../../../../../src/generated/openapi';
-
-import { ApplicationsList } from '@components/applications-list/applications-list';
-import * as LoadQuery from '@components/applications-list/util/load-query';
+} from '@openapi';
 import { PdfService } from '@services/pdf.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 

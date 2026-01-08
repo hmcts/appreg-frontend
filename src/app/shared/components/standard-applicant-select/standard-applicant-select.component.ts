@@ -11,14 +11,13 @@ import {
 } from '@angular/core';
 import { finalize } from 'rxjs/operators';
 
-import {
-  StandardApplicantGetSummaryDto,
-  StandardApplicantsApi,
-} from '../../../../generated/openapi';
-
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import { SelectableSortableTableComponent } from '@components/selectable-sortable-table/selectable-sortable-table.component';
 import { TableColumn } from '@components/sortable-table/sortable-table.component';
+import {
+  StandardApplicantGetSummaryDto,
+  StandardApplicantsApi,
+} from '@openapi';
 import { formatDate } from '@util/standard-applicant-helpers';
 import { StandardApplicantRow } from '@util/types/applications-list-entry/types';
 
