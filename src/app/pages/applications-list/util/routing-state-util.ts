@@ -11,51 +11,65 @@ export type EntryDetailNavState = {
   resultApplicantContext?: ApplicantContext;
 };
 
-function isNavState(x: unknown): x is EntryDetailNavState {
-  if (typeof x !== 'object' || x === null) {
+type Indexable = Record<string, unknown>;
+
+function isRecord(x: unknown): x is Indexable {
+  return typeof x === 'object' && x !== null;
+}
+
+function isNullableString(x: unknown): boolean {
+  return x === undefined || x === null || typeof x === 'string';
+}
+
+function hasStringProp(o: Indexable, key: string): boolean {
+  return typeof o[key] === 'string';
+}
+
+function isApplicantContext(x: unknown): boolean {
+  if (!isRecord(x)) {
     return false;
   }
-  const o = x as Record<string, unknown>;
+  return (
+    typeof x['applicant'] === 'string' &&
+    typeof x['respondent'] === 'string' &&
+    typeof x['title'] === 'string'
+  );
+}
+
+function isRow(x: unknown): boolean {
+  if (!isRecord(x)) {
+    return false;
+  }
+  if (!hasStringProp(x, 'id')) {
+    return false;
+  }
+
+  // resultApplicantContext optional
+  const ctx = x['resultApplicantContext'];
+  if (ctx === undefined || ctx === null) {
+    return true;
+  }
+
+  return isApplicantContext(ctx);
+}
+
+export function isNavState(x: unknown): x is EntryDetailNavState {
+  if (!isRecord(x)) {
+    return false;
+  }
 
   // appListId optional
-  if (
-    'appListId' in o &&
-    o['appListId'] !== null &&
-    typeof o['appListId'] !== 'string'
-  ) {
+  if (!isNullableString(x['appListId'])) {
     return false;
   }
 
   // row optional
-  if ('row' in o && o['row'] !== null) {
-    const row = o['row'];
-    if (typeof row !== 'object' || row === null) {
-      return false;
-    }
-    const r = row as Record<string, unknown>;
-    if (typeof r['id'] !== 'string') {
-      return false;
-    }
-
-    if ('resultApplicantContext' in r && r['resultApplicantContext'] !== null) {
-      const ctx = r['resultApplicantContext'];
-      if (typeof ctx !== 'object' || ctx === null) {
-        return false;
-      }
-      const c = ctx as Record<string, unknown>;
-      if (typeof c['applicant'] !== 'string') {
-        return false;
-      }
-      if (typeof c['respondent'] !== 'string') {
-        return false;
-      }
-      if (typeof c['title'] !== 'string') {
-        return false;
-      }
-    }
+  const row = x['row'];
+  if (row === undefined || row === null) {
+    return true;
   }
 
-  return true;
+  return isRow(row);
 }
 
 export function readNavState(

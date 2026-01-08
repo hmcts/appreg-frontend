@@ -12,6 +12,7 @@ import {
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { ResultCodeGetSummaryDto, ResultGetDto } from '@openapi';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
+import { makeTempId } from '@util/data-utils';
 import { ResultRow, toExistingRows } from '@util/result-code-helpers';
 
 @Component({
@@ -102,7 +103,7 @@ export class ResultWordingSectionComponent {
 
     const row: PendingResultRow = {
       kind: 'pending',
-      tempId: `tmp_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+      tempId: makeTempId(),
       resultCode: code,
       display: `${item.resultCode} - ${item.title}`,
       wordingFields: [],
@@ -155,7 +156,7 @@ export class ResultWordingSectionComponent {
   private norm(s: string): string {
     return s
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, ' ')
+      .replaceAll(/[^a-z0-9]+/g, ' ')
       .trim();
   }
 

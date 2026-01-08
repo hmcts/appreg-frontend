@@ -19,3 +19,23 @@ export function asStrOrNum(v: unknown): string {
   }
   return '';
 }
+
+export function makeTempId(prefix = 'tmp'): string {
+  const c = globalThis.crypto;
+  if (c && 'randomUUID' in c && typeof c.randomUUID === 'function') {
+    return `${prefix}_${c.randomUUID()}`;
+  }
+
+  // Fallback: use getRandomValues (still cryptographically strong)
+  if (c && 'getRandomValues' in c && typeof c.getRandomValues === 'function') {
+    const bytes = new Uint8Array(16);
+    c.getRandomValues(bytes);
+    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join(
+      '',
+    );
+    return `${prefix}_${Date.now()}_${hex}`;
+  }
+
+  // Last resort (should be rare): no crypto available
+  return `${prefix}_${Date.now()}_${Math.floor(Date.now() * 1000)}`;
+}

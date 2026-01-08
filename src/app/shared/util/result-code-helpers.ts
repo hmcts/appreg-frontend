@@ -68,6 +68,11 @@ export function mapPreviousResults(
 
 export type ResultRow = ExistingResultRow | PendingResultRow;
 
+function wordingFromFields(fields: string[] | null | undefined): string {
+  const safe = fields ?? [];
+  return safe.length > 0 ? safe.join(', ') : '-';
+}
+
 export function toExistingRows(
   results: ResultGetDto[],
   codes: ResultCodeGetSummaryDto[],
@@ -80,9 +85,4 @@ export function toExistingRows(
     wordingFields: r.wordingFields ?? [],
     wording: wordingFromFields(r.wordingFields),
   }));
-
-  function wordingFromFields(fields: string[] | null | undefined): string {
-    const safe = fields ?? [];
-    return safe.length > 0 ? safe.join(', ') : '-';
-  }
 }
