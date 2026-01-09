@@ -2,7 +2,6 @@ import * as express from 'express';
 import helmet from 'helmet';
 
 const self = "'self'";
-// Helmet expects (IncomingMessage, ServerResponse) so read nonce from res.locals
 
 /**
  * Module that enables helmet in the application
@@ -14,6 +13,8 @@ export class Helmet {
   }
 
   public enableFor(app: express.Express): void {
+    // This is strict as we don't run any inline scripts.
+    // If any are added in the future, it will need a hash added here.
     const scriptSrc = [self];
 
     if (this.developmentMode) {
