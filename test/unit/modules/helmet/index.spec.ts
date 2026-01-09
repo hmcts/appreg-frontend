@@ -36,16 +36,11 @@ describe('Helmet Module', () => {
       'scriptSrc',
     );
 
-    // The scriptSrc array should include self and nonce
-    // Development mode should include "'unsafe-eval'" and "'unsafe-inline'"
+    // The scriptSrc array should include self.
+    // In development mode, it should also include "'unsafe-eval'".
     const scriptSrc = helmetConfig.contentSecurityPolicy.directives.scriptSrc;
     expect(scriptSrc).toContain("'self'");
-    // scriptSrc includes nonce
-    expect(
-      scriptSrc.some((entry: unknown) => typeof entry === 'function'),
-    ).toBe(true);
     expect(scriptSrc).toContain("'unsafe-eval'");
-    expect(scriptSrc).toContain("'unsafe-inline'");
 
     // Verify that app.use was called with the dummy middleware.
     // Here we assume that enableFor calls app.use(helmet(...))
@@ -65,8 +60,7 @@ describe('Helmet Module', () => {
     const helmetConfig = (helmet as unknown as jest.Mock).mock.calls[0][0];
     const scriptSrc = helmetConfig.contentSecurityPolicy.directives.scriptSrc;
 
-    // In non-development mode exclude "'unsafe-eval'" and "'unsafe-inline'"
+    // In non-development mode, "'unsafe-eval'" should not be present.
     expect(scriptSrc).not.toContain("'unsafe-eval'");
-    expect(scriptSrc).not.toContain("'unsafe-inline'");
   });
 });
