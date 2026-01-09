@@ -13,7 +13,7 @@ This README contains a setup guide for setting up your dev environment (Copied f
 - Code editor/IDE of choice installed (Eclipse, VS Code, IntelliJ, etc.)
 - OpenJDK 21 (for this setup example we used Adoptium Temurin as our source but most JDKs should work)
 - Azure CLI
-- Certificate store in NPM (for ZScaler to work with yarn install)
+- Certificate store in NPM (for ZScaler to work with yarn install). See https://intranet.ent.cgi.com/browse/cio/global/Documents/CGI-SASE_Wave1-FAQ_EN.pdf Section 21.
 
 ---
 
