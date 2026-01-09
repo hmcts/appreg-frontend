@@ -25,11 +25,6 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
-import {
-  focusField,
-  onCreateErrorClick as onCreateErrorClickFn,
-} from '../../shared/util/error-click';
-
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import {
@@ -52,6 +47,10 @@ import {
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { buildNormalizedPayload } from '@util/build-payload';
 import { collectMissing } from '@util/collect-missing';
+import {
+  focusField,
+  onCreateErrorClick as onCreateErrorClickFn,
+} from '@util/error-click';
 import { getProblemText } from '@util/http-error-to-text';
 import { validateCourtVsLocOrCja } from '@util/location-suggestion-helpers';
 import { PlaceFieldsBase } from '@util/place-fields.base';

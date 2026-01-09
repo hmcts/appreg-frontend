@@ -36,11 +36,6 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Subject, firstValueFrom, takeUntil } from 'rxjs';
 
-import {
-  IF_MATCH,
-  ROW_VERSION,
-} from '../../shared/context/concurrency-context';
-
 import { statusSummary } from './util/delete-status';
 import { loadQuery } from './util/load-query';
 
@@ -64,6 +59,7 @@ import {
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { IF_MATCH, ROW_VERSION } from '@context/concurrency-context';
 import {
   ApplicationListGetSummaryDto,
   ApplicationListStatus,

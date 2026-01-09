@@ -14,13 +14,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
-import {
-  IF_MATCH,
-  ROW_VERSION,
-} from '../../../../../src/app/shared/context/concurrency-context';
-
 import { ApplicationsList } from '@components/applications-list/applications-list';
 import * as LoadQuery from '@components/applications-list/util/load-query';
+import { IF_MATCH, ROW_VERSION } from '@context/concurrency-context';
 import {
   ApplicationListGetFilterDto,
   ApplicationListGetPrintDto,

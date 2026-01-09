@@ -1,7 +1,5 @@
 import { Routes } from '@angular/router';
 
-import { sessionGuard } from './guards/session.guard';
-
 import { Applications } from '@components/applications/applications';
 import { ApplicationsList } from '@components/applications-list/applications-list';
 import { ApplicationsListBulkUpload } from '@components/applications-list-bulk-upload/applications-list-bulk-upload';
@@ -13,6 +11,7 @@ import { Login } from '@components/login/login';
 import { Reports } from '@components/reports/reports';
 import { ResultSelected } from '@components/result-selected/result-selected';
 import { StandardApplicants } from '@components/standard-applicants/standard-applicants';
+import { sessionGuard } from '@guards/session.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },

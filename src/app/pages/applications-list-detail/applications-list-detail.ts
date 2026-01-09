@@ -25,8 +25,6 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
-import { IF_MATCH } from '../../shared/context/concurrency-context';
-
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import {
@@ -48,6 +46,7 @@ import {
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { IF_MATCH } from '@context/concurrency-context';
 import { FormRaw } from '@core-types/forms/forms.types';
 import {
   ApplicationListGetDetailDto,
