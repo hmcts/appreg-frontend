@@ -308,11 +308,27 @@ describe('ApplicationsListDetail', () => {
     const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
 
     component.id = 'list-9';
-    await component.openUpdate('entry-123');
+
+    await component.openUpdate({
+      id: 'entry-123',
+      applicant: 'Alice',
+      respondent: 'Bob',
+      title: 'Case XYZ',
+    });
 
     expect(navSpy).toHaveBeenCalledWith(
       ['/applications-list', 'entry-123', 'update'],
-      { state: { appListId: 'list-9' }, queryParams: { appListId: 'list-9' } },
+      {
+        state: {
+          appListId: 'list-9',
+          resultApplicantContext: {
+            applicant: 'Alice',
+            respondent: 'Bob',
+            title: 'Case XYZ',
+          },
+        },
+        queryParams: { appListId: 'list-9' },
+      },
     );
   });
 

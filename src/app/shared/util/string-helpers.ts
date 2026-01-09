@@ -7,6 +7,10 @@ export function trimToUndefined(v: unknown): string | undefined {
   return s === '' ? undefined : s;
 }
 
+export function isNullableString(x: unknown): x is string | null | undefined {
+  return x === undefined || x === null || typeof x === 'string';
+}
+
 //Below could exist in a title-util or input-utils in future
 export type TitleOption = { value: string; label: string };
 

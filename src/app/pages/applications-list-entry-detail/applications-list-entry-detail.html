@@ -248,25 +248,16 @@
   </ng-template>
 
   <ng-template #resultWordingTpl>
-    <app-sortable-table
-      id="result-wording-table"
-      caption="Result wording"
-      [columns]="resultWordingColumns"
-      appMojButtonMenu
-    />
-
-    <hr
-      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
-    />
-
-    <div class="govuk-grid-row">
-      <app-text-input
-        formControlName="resultCode"
-        label="Result code"
-        hint="Start typing to search for a result code"
-        idPrefix="result-code"
-      />
-    </div>
+    <app-result-wording-section
+      [resultApplicantContext]="resultApplicantContext"
+      [resultCodesList]="resultsFacade.resultCodesSignal()"
+      [existingResults]="resultsFacade.entryResults()"
+      [clearPendingToken]="resultsFacade.clearPendingToken()"
+      [wordingByCode]="resultsFacade.resultCodeWordingByCode()"
+      (pendingChange)="onPendingChange($event)"
+      (applyPending)="onApplyResultPending($event)"
+      (removeExisting)="onRemoveResult($event)"
+    ></app-result-wording-section>
   </ng-template>
 
   <ng-template #officialsTpl>
