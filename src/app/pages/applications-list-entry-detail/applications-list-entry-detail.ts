@@ -658,10 +658,6 @@ export class ApplicationsListEntryDetail implements OnInit {
   // ——— Data loading & mapping ———
   //Also loads entry result
   private loadEntryAndPatchForm(listId: string, entryId: string): void {
-    if (!listId || !entryId) {
-      return;
-    }
-
     this.entriesApi
       .getApplicationListEntry({ listId, entryId }, 'body', false, {
         context: undefined,

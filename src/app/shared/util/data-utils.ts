@@ -6,6 +6,23 @@ export function asArr(v: unknown): unknown[] {
   return Array.isArray(v) ? v : [];
 }
 
+export type Indexable = Record<string, unknown>;
+
+export function isRecord(x: unknown): x is Indexable {
+  return typeof x === 'object' && x !== null;
+}
+
+export function asString(v: unknown): string | null {
+  return typeof v === 'string' ? v : null;
+}
+
+export function hasStringProp<K extends string>(
+  o: Indexable,
+  key: K,
+): o is Indexable & Record<K, string> {
+  return typeof o[key] === 'string';
+}
+
 /**
  * Coerce to string only if the input is already a string or number.
  * Useful when IDs can arrive as either "123" or 123.

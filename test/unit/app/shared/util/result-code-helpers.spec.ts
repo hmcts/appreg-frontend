@@ -62,9 +62,10 @@ describe('result-code helpers', () => {
       expect(sig()).toEqual(page.content);
     });
 
+    const boomError = new Error('boom');
     it('returns [] when API errors', () => {
       const getResultCodesMock = jest.fn(
-        () => throwError(() => new Error('boom')) as unknown,
+        () => throwError(() => boomError) as unknown,
       );
 
       const codesApi = {
@@ -122,9 +123,10 @@ describe('result-code helpers', () => {
       expect(out).toEqual(page.content);
     });
 
+    const boomError = new Error('boom');
     it('returns [] when API errors', async () => {
       const getEntryResultsMock = jest.fn(
-        () => throwError(() => new Error('boom')) as unknown,
+        () => throwError(() => boomError) as unknown,
       );
 
       const entryResultsApi = {

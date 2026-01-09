@@ -184,8 +184,7 @@ describe('ResultWordingSectionComponent', () => {
 
     expect(component.canApply).toBe(false);
 
-    const lastArg =
-      pendingEmitSpy.mock.calls[pendingEmitSpy.mock.calls.length - 1][0];
+    const lastArg = pendingEmitSpy.mock.calls.at(-1)![0];
     expect(lastArg).toEqual([] as PendingResultRow[]);
   });
 

@@ -1,5 +1,8 @@
 import { Location, isPlatformBrowser } from '@angular/common';
 
+import { hasStringProp, isRecord } from '@util/data-utils';
+import { isNullableString } from '@util/string-helpers';
+
 export type ApplicantContext = {
   applicant: string;
   respondent: string;
@@ -10,20 +13,6 @@ export type EntryDetailNavState = {
   appListId?: string;
   resultApplicantContext?: ApplicantContext;
 };
-
-type Indexable = Record<string, unknown>;
-
-function isRecord(x: unknown): x is Indexable {
-  return typeof x === 'object' && x !== null;
-}
-
-function isNullableString(x: unknown): boolean {
-  return x === undefined || x === null || typeof x === 'string';
-}
-
-function hasStringProp(o: Indexable, key: string): boolean {
-  return typeof o[key] === 'string';
-}
 
 function isApplicantContext(x: unknown): boolean {
   if (!isRecord(x)) {

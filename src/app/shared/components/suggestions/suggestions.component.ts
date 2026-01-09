@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-type Indexable = Record<string, unknown>;
+import { asString, hasStringProp, isRecord } from '@util/data-utils';
 
 @Component({
   selector: 'app-suggestions',
@@ -50,7 +50,7 @@ export class SuggestionsComponent<T = unknown> implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     const sc = changes['search'];
-    const next = this.asString(sc?.currentValue);
+    const next = asString(sc?.currentValue);
 
     if (next === null) {
       return;
@@ -72,10 +72,6 @@ export class SuggestionsComponent<T = unknown> implements OnChanges {
     }
   }
 
-  private asString(v: unknown): string | null {
-    return typeof v === 'string' ? v : null;
-  }
-
   onFocus(): void {
     this.focused = true;
   }
@@ -88,14 +84,12 @@ export class SuggestionsComponent<T = unknown> implements OnChanges {
     if (this.getItemLabel) {
       return this.getItemLabel(item);
     }
-    if (this.isIndexable(item)) {
-      const name = item['name'];
-      if (typeof name === 'string') {
-        return name;
+    if (isRecord(item)) {
+      if (hasStringProp(item, 'name')) {
+        return item.name;
       }
-      const desc = item['description'];
-      if (typeof desc === 'string') {
-        return desc;
+      if (hasStringProp(item, 'description')) {
+        return item.description;
       }
     }
     return String(item as unknown);
@@ -152,10 +146,6 @@ export class SuggestionsComponent<T = unknown> implements OnChanges {
       !!this.committedLabel &&
       this.norm(this.search) === this.norm(this.committedLabel)
     );
-  }
-
-  private isIndexable(x: unknown): x is Indexable {
-    return typeof x === 'object' && x !== null;
   }
 
   private norm(s: string | null | undefined) {
