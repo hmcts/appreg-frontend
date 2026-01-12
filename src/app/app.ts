@@ -1,3 +1,8 @@
+/**
+ * TODO: arcpoc-816
+ * root nav subscription. low priority, but easy takeUntilDestroyed/effect cleanup.
+ */
+
 import { isPlatformBrowser } from '@angular/common';
 import {
   AfterViewInit,

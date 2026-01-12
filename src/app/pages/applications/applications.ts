@@ -1,3 +1,22 @@
+/* TODO: arcpoc-816
+prio 2
+Refactor scattered flags, manual subscribe, repeated error handling
+*/
+
+/*
+Applications
+Main component for page /applications
+
+Functionality:
+onSubmit():
+  - GET request to Spring API which returns application entries based on given params
+  - If params are empty (user leaves fields empty or on default selected value) GET ALL is run
+  - Populates query based on fields that are !null/!undefined/!defaultValue
+  Helper functions:
+    @util/has
+    @util/application-status-helpers
+*/
+
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import {
   FormControl,
