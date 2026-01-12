@@ -7,7 +7,7 @@ import {
 } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 
-import { ActivityAuditSectionComponent } from '../../../../../../src/app/shared/components/activity-audit-section/activity-audit-section.component';
+import { ActivityAuditSectionComponent } from '@components/activity-audit-section/activity-audit-section.component';
 
 describe('ActivityAuditSectionComponent (with template)', () => {
   let component: ActivityAuditSectionComponent;

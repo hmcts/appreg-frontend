@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import {
   Duration,
   DurationInputComponent,
-} from '../../../../../../src/app/shared/components/duration-input/duration-input.component';
+} from '@components/duration-input/duration-input.component';
 
 describe('DurationInputComponent', () => {
   let fixture: ComponentFixture<DurationInputComponent>;

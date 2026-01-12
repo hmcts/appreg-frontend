@@ -11,7 +11,7 @@ import {
   ApplicationCodesApi,
   GetApplicationCodeByCodeAndDateRequestParams,
   GetApplicationCodesRequestParams,
-} from '../../../generated/openapi';
+} from '@openapi';
 
 /** Fetch a single code detail for a code + lodgement date. */
 export function fetchCodeDetail$(

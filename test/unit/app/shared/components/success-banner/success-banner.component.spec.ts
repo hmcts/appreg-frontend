@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Router, RouterLink, provideRouter } from '@angular/router';
 
-import { SuccessBannerComponent } from '../../../../../../src/app/shared/components/success-banner/success-banner.component';
+import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 
 describe('SuccessBannerComponent (external template)', () => {
   let fixture: ComponentFixture<SuccessBannerComponent>;

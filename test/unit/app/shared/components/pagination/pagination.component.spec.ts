@@ -3,7 +3,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
-import { PaginationComponent } from '../../../../../../src/app/shared/components/pagination/pagination.component';
+import { PaginationComponent } from '@components/pagination/pagination.component';
 
 describe('PaginationComponent', () => {
   let fixture: ComponentFixture<PaginationComponent>;

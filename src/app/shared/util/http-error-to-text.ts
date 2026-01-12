@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
-import { ProblemDetails } from '../../core/models/error/error.types';
+import { ProblemDetails } from '@core-types/error/error.types';
 
 export function getHttpStatus(err: unknown): number {
   if (err instanceof HttpErrorResponse) {

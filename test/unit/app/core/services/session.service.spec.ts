@@ -1,7 +1,7 @@
 import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
-import { SessionService } from '../../../../../src/app/core/services/session.service';
+import { SessionService } from '@services/session.service';
 
 type FetchFn = (
   input: RequestInfo | URL,

@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import {
   ErrorItem,
   ErrorSummaryComponent,
-} from '../../../../../../src/app/shared/components/error-summary/error-summary.component';
+} from '@components/error-summary/error-summary.component';
 
 describe('ErrorSummaryComponent (external template)', () => {
   let fixture: ComponentFixture<ErrorSummaryComponent>;

@@ -2,11 +2,8 @@ import { ChangeDetectorRef } from '@angular/core';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
-import { ApplicationCodeSearchComponent } from '../../../../../../src/app/shared/components/application-codes-search/application-codes-search.component';
-import {
-  ApplicationCodeGetSummaryDto,
-  ApplicationCodesApi,
-} from '../../../../../../src/generated/openapi';
+import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
+import { ApplicationCodeGetSummaryDto, ApplicationCodesApi } from '@openapi';
 
 function makeDto(
   overrides: Partial<ApplicationCodeGetSummaryDto> = {},

@@ -3,7 +3,7 @@ import {
   mapTitleToOptionValue,
   trimToString,
   trimToUndefined,
-} from '../../../../../src/app/shared/util/string-helpers';
+} from '@util/string-helpers';
 
 describe('trimToString', () => {
   it('returns the trimmed string when given a string with surrounding spaces', () => {

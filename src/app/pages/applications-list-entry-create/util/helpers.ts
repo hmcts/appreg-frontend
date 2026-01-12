@@ -1,4 +1,4 @@
-import { ContactDetails } from '../../../../generated/openapi';
+import { ContactDetails } from '@openapi';
 
 // Helpers
 export const toOptionalTrimmed = (
