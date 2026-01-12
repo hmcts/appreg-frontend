@@ -3,17 +3,17 @@ import { FormGroup } from '@angular/forms';
 import { Observable, Subscription } from 'rxjs';
 
 import {
-  CourtLocationGetSummaryDto,
-  CriminalJusticeAreaGetDto,
-} from '../../../generated/openapi';
-
-import {
   attachLocationDisabler,
   onCjaInputChange as filterCja,
   onCourthouseInputChange as filterCourts,
   selectCja,
   selectCourthouse,
 } from './location-suggestion-helpers';
+
+import {
+  CourtLocationGetSummaryDto,
+  CriminalJusticeAreaGetDto,
+} from '@openapi';
 
 export interface PlaceRefFacade {
   courtLocations$: Observable<CourtLocationGetSummaryDto[]>;

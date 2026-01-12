@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { FooterComponent } from '../../../../../../src/app/shared/components/footer/footer.component';
+import { FooterComponent } from '@components/footer/footer.component';
 
 describe('FooterComponent', () => {
   let component: FooterComponent;

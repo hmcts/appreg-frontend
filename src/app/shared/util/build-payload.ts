@@ -1,13 +1,14 @@
 /* Build payload
    Used in applications-list-create & applications-list-detail
 */
-import type { ApplicationListStatus } from '../../../generated/openapi';
-import { FormRaw } from '../../core/models/forms/forms.types';
 
 import { requireStatus } from './application-status-helpers';
 import { has } from './has';
 import { requireTime } from './time-helpers';
 import type { NormalizedPayload } from './types/application-list/types';
+
+import { FormRaw } from '@core-types/forms/forms.types';
+import type { ApplicationListStatus } from '@openapi';
 
 export function buildNormalizedPayload(
   raw: FormRaw<ApplicationListStatus>,

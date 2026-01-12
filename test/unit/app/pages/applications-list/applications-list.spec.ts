@@ -14,14 +14,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
-import { PdfService } from '../../../../../src/app/core/services/pdf.service';
-import { ReferenceDataFacade } from '../../../../../src/app/core/services/reference-data.facade';
-import { ApplicationsList } from '../../../../../src/app/pages/applications-list/applications-list';
-import * as LoadQuery from '../../../../../src/app/pages/applications-list/util/load-query';
-import {
-  IF_MATCH,
-  ROW_VERSION,
-} from '../../../../../src/app/shared/context/concurrency-context';
+import { ApplicationsList } from '@components/applications-list/applications-list';
+import * as LoadQuery from '@components/applications-list/util/load-query';
+import { IF_MATCH, ROW_VERSION } from '@context/concurrency-context';
 import {
   ApplicationListGetFilterDto,
   ApplicationListGetPrintDto,
@@ -34,7 +29,9 @@ import {
   CriminalJusticeAreaGetDto,
   CriminalJusticeAreasApi,
   GetApplicationListsRequestParams,
-} from '../../../../../src/generated/openapi';
+} from '@openapi';
+import { PdfService } from '@services/pdf.service';
+import { ReferenceDataFacade } from '@services/reference-data.facade';
 
 const makePrintDto = (entries: unknown[] = []): ApplicationListGetPrintDto =>
   <ApplicationListGetPrintDto>{

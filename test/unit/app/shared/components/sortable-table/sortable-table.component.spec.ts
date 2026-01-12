@@ -5,7 +5,7 @@ import { By } from '@angular/platform-browser';
 import {
   SortableTableComponent,
   TableColumn,
-} from '../../../../../../src/app/shared/components/sortable-table/sortable-table.component';
+} from '@components/sortable-table/sortable-table.component';
 
 // --- Mock the MoJ frontend module so dynamic import resolves safely ---
 const SortableTableMock = jest.fn(function (this) {

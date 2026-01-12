@@ -2,10 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
-import { SelectInputComponent } from '../select-input/select-input.component';
-import { TextInputComponent } from '../text-input/text-input.component';
-
 import { ErrorItem } from '@components/error-summary/error-summary.component';
+import { SelectInputComponent } from '@components/select-input/select-input.component';
+import { TextInputComponent } from '@components/text-input/text-input.component';
 import { buildErrorTextByDomId, errorTextForDomId } from '@util/error-items';
 
 @Component({

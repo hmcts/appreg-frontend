@@ -1,4 +1,4 @@
-import { Duration } from '../../../shared/components/duration-input/duration-input.component';
+import { Duration } from '@components/duration-input/duration-input.component';
 
 export interface FormRaw<S> {
   date: unknown;

@@ -1,8 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
-import { Applications } from '../../../../../src/app/pages/applications/applications';
-
+import { Applications } from '@components/applications/applications';
 import { ApplicationListEntriesApi } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 

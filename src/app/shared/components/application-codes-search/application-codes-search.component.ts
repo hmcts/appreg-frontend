@@ -19,13 +19,13 @@ import {
   switchMap,
 } from 'rxjs/operators';
 
+import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
+import { TextInputComponent } from '@components/text-input/text-input.component';
 import {
   ApplicationCodeGetSummaryDto,
   ApplicationCodesApi,
   GetApplicationCodesRequestParams,
-} from '../../../../generated/openapi';
-import { NotificationBannerComponent } from '../notification-banner/notification-banner.component';
-import { TextInputComponent } from '../text-input/text-input.component';
+} from '@openapi';
 
 @Component({
   selector: 'app-application-code-search',

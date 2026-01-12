@@ -7,9 +7,9 @@ import {
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
-import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
-import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
-import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
+import { PaginationComponent } from '@components/pagination/pagination.component';
+import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
+import { TextInputComponent } from '@components/text-input/text-input.component';
 
 @Component({
   selector: 'app-standard-applicants',

@@ -9,6 +9,13 @@ import { RouterLink } from '@angular/router';
 import { Subject } from 'rxjs';
 
 import {
+  ApplicationListEntriesApi,
+  EntryGetSummaryDto,
+  GetEntriesRequestParams,
+} from '../../../generated/openapi';
+import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
+
+import {
   hasAnyApplicationsEntrySearchParams,
   loadApplicationsEntrySearchQuery,
 } from './util/query-helper';
@@ -25,12 +32,6 @@ import { SelectInputComponent } from '@components/select-input/select-input.comp
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
-import {
-  ApplicationListEntriesApi,
-  EntryGetSummaryDto,
-  GetEntriesRequestParams,
-} from '@openapi';
-import { ReferenceDataFacade } from '@services/reference-data.facade';
 import {
   ApplicationRow,
   ApplicationsSearchFormValue,

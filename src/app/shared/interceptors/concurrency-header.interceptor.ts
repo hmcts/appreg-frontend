@@ -1,6 +1,6 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 
-import { IF_MATCH, ROW_VERSION } from '../context/concurrency-context';
+import { IF_MATCH, ROW_VERSION } from '@context/concurrency-context';
 
 export const concurrencyHeaderInterceptor: HttpInterceptorFn = (req, next) => {
   const etag = req.context.get(IF_MATCH);
