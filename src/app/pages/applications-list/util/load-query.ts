@@ -9,10 +9,10 @@ Output: ApplicationListGetFilterDto (OpenAPI generated model based on spec)
 
 import { FormGroup } from '@angular/forms';
 
-import { ApplicationListGetFilterDto } from '../../../../generated/openapi';
-import { Duration } from '../../../shared/components/duration-input/duration-input.component';
-import { toStatus } from '../../../shared/util/application-status-helpers';
-import { toTimeString } from '../../../shared/util/time-helpers';
+import { Duration } from '@components/duration-input/duration-input.component';
+import { ApplicationListGetFilterDto } from '@openapi';
+import { toStatus } from '@util/application-status-helpers';
+import { toTimeString } from '@util/time-helpers';
 
 export function loadQuery(form: FormGroup): ApplicationListGetFilterDto {
   const raw = form.getRawValue() as {

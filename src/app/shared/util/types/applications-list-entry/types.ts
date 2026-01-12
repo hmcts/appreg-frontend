@@ -1,4 +1,4 @@
-import { StandardApplicantGetSummaryDto } from '../../../../../generated/openapi';
+import { StandardApplicantGetSummaryDto } from '@openapi';
 
 export type ApplicantType = 'person' | 'organisation' | 'standardApplicant';
 

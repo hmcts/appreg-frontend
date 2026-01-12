@@ -1,6 +1,6 @@
 import { FormBuilder, NonNullableFormBuilder } from '@angular/forms';
 
-import { SearchBoxComponent } from '../../../../../../src/app/shared/components/search-box/search-box.component';
+import { SearchBoxComponent } from '@components/search-box/search-box.component';
 
 describe('SearchBoxComponent (class tests)', () => {
   let fb: NonNullableFormBuilder;

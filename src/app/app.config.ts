@@ -11,10 +11,9 @@ import {
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
-import { BASE_PATH, provideApi } from '../generated/openapi';
-import { Configuration } from '../generated/openapi/configuration';
-
 import { routes } from './app.routes';
+
+import { BASE_PATH, Configuration, provideApi } from '@openapi';
 
 export const credentialsInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req.clone({ withCredentials: true }));

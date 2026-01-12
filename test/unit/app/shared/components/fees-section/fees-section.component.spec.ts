@@ -7,7 +7,7 @@ import {
 } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 
-import { FeesSectionComponent } from '../../../../../../src/app/shared/components/fees-section/fees-section.component';
+import { FeesSectionComponent } from '@components/fees-section/fees-section.component';
 
 describe('FeesSectionComponent', () => {
   let component: FeesSectionComponent;

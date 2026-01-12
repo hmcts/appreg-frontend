@@ -2,8 +2,9 @@ import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, UrlTree, provideRouter } from '@angular/router';
 
-import { SessionService } from '../../../../src/app/core/services/session.service';
 import { sessionGuard } from '../../../../src/app/guards/session.guard';
+
+import { SessionService } from '@services/session.service';
 
 type RefreshMock = jest.Mock<Promise<boolean>, []>;
 

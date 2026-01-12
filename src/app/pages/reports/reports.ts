@@ -2,17 +2,17 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
-import { ActivityAuditSectionComponent } from '../../shared/components/activity-audit-section/activity-audit-section.component';
-import { DurationSectionComponent } from '../../shared/components/duration-section/duration-section.component';
-import { FeesSectionComponent } from '../../shared/components/fees-section/fees-section.component';
-import { ListMaintenanceSectionComponent } from '../../shared/components/list-maintenance-section/list-maintenance-section.component';
-import { PrivateProsecutorsIndexSectionComponent } from '../../shared/components/private-prosecutors-index-section/private-prosecutors-index-section.component';
+import { ActivityAuditSectionComponent } from '@components/activity-audit-section/activity-audit-section.component';
+import { DurationSectionComponent } from '@components/duration-section/duration-section.component';
+import { FeesSectionComponent } from '@components/fees-section/fees-section.component';
+import { ListMaintenanceSectionComponent } from '@components/list-maintenance-section/list-maintenance-section.component';
+import { PrivateProsecutorsIndexSectionComponent } from '@components/private-prosecutors-index-section/private-prosecutors-index-section.component';
 import {
   ReportOption,
   ReportSelectorComponent,
-} from '../../shared/components/report-option/report-selector.component';
-import { SearchWarrantsSectionComponent } from '../../shared/components/search-warrants-section/search-warrants-section.component';
-import { WorkloadSectionComponent } from '../../shared/components/workload-section/workload-section.component';
+} from '@components/report-option/report-selector.component';
+import { SearchWarrantsSectionComponent } from '@components/search-warrants-section/search-warrants-section.component';
+import { WorkloadSectionComponent } from '@components/workload-section/workload-section.component';
 
 @Component({
   selector: 'app-reports',

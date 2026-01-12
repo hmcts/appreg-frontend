@@ -7,7 +7,7 @@ import {
 } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 
-import { PrivateProsecutorsIndexSectionComponent } from '../../../../../../src/app/shared/components/private-prosecutors-index-section/private-prosecutors-index-section.component';
+import { PrivateProsecutorsIndexSectionComponent } from '@components/private-prosecutors-index-section/private-prosecutors-index-section.component';
 
 describe('PrivateProsecutorsIndexSectionComponent', () => {
   let component: PrivateProsecutorsIndexSectionComponent;
