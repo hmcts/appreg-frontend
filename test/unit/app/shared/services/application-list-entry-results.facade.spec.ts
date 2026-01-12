@@ -78,6 +78,7 @@ describe('ApplicationListEntryResultsFacade', () => {
         'getEntryResults$',
       );
 
+      facade.loadEntryResults('', '');
       facade.loadEntryResults('', 'E-1');
       facade.loadEntryResults('L-1', '');
 
@@ -117,6 +118,7 @@ describe('ApplicationListEntryResultsFacade', () => {
       const loadSpy = jest.spyOn(facade, 'loadEntryResults');
       const row = { resultCode: 'RC1' } as PendingResultRow;
 
+      facade.applyPendingResult('', '', { resultCode: '' } as PendingResultRow);
       facade.applyPendingResult('', 'E-1', row);
       facade.applyPendingResult('L-1', '', row);
       facade.applyPendingResult('L-1', 'E-1', {
@@ -156,6 +158,7 @@ describe('ApplicationListEntryResultsFacade', () => {
     it('does nothing when inputs are missing', () => {
       const loadSpy = jest.spyOn(facade, 'loadEntryResults');
 
+      facade.removeResult('', '', '');
       facade.removeResult('', 'E-1', 'R-1');
       facade.removeResult('L-1', '', 'R-1');
       facade.removeResult('L-1', 'E-1', '');

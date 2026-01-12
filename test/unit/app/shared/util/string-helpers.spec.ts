@@ -84,6 +84,7 @@ describe('mapTitleToOptionValue', () => {
     expect(mapTitleToOptionValue('Mr', options)).toBe('mr');
     expect(mapTitleToOptionValue('  MRS  ', options)).toBe('mrs');
     expect(mapTitleToOptionValue('Mr.', options)).toBe('mr');
+    expect(mapTitleToOptionValue('Other', options)).toBe('other');
   });
 
   it('returns empty string for empty or whitespace input', () => {
