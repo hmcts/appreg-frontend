@@ -1,3 +1,12 @@
+/**
+ * TODO: arcpoc-816
+ * base class with subscription management
+ * should move to takeUntilDestroyed/signals for reuse
+ */
+
+// TODO: add header comment
+// TODO: move file to improve project structure
+
 import { Directive, OnDestroy } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { Observable, Subscription } from 'rxjs';

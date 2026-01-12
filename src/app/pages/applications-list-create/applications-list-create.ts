@@ -1,3 +1,9 @@
+/**
+ * TODO: arcpoc-816
+ * prio 4
+ * Refactor create list flow with scattered error state and manual subscribe.
+ */
+
 /*
 Applications List – Create (/applications-list/create)
 

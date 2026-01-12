@@ -1,3 +1,11 @@
+/**
+ * TODO: arcpoc-816
+ * prio 5
+ * refactor manual state + subscribe.
+ */
+
+// TODO: add header comment
+
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';

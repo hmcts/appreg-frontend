@@ -1,3 +1,11 @@
+/**
+ * TODO: arcpoc-816
+ * refactor manual subscription + local flags
+ * is a good reusable signal pattern candidate to derive from
+ */
+
+// TODO: add header comment
+
 import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,

@@ -1,3 +1,9 @@
+/**
+ * TODO: arcpoc-816
+ * prio 3
+ * Refactor large detail view with paging/selection, multiple flags, subscribe without takeUntil.
+ */
+
 /*
 Main component for /application-list/:id
 
