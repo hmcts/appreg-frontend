@@ -197,6 +197,7 @@ describe('SuggestionsComponent', () => {
 
   it('onBlur marks focused false asynchronously', () => {
     component.onFocus();
+    jest.useFakeTimers();
     expect(component.noResultsVisible).toBe(false);
 
     component.search = 'abc';

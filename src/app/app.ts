@@ -15,7 +15,7 @@ import { FooterComponent } from './shared/components/footer/footer.component';
 import { HeaderComponent } from './shared/components/header/header.component';
 import { ServiceNavigationComponent } from './shared/components/service-navigation/service-navigation.component';
 
-type GovUkInitAll = (opts?: { scope?: HTMLElement }) => void;
+type GovUkInitAll = (opts?: { scope?: Element | Document | null }) => void;
 type GovUkGlobal = { GOVUKFrontend?: { initAll?: GovUkInitAll } };
 type SortableCtor = new (el: HTMLElement) => { init?: () => void };
 
@@ -124,6 +124,31 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
     this.mojObserver?.disconnect();
   }
 
+  // ARCPOC-860: temporarily remove data-module on already-initialised elements
+  // so initAll skips them, then restore attributes after init completes
+  private suppressInitialisedGovUkModules(
+    root: Element | Document,
+  ): () => void {
+    const removed: { el: HTMLElement; moduleName: string }[] = [];
+    const nodes = root.querySelectorAll<HTMLElement>('[data-module]');
+    for (const el of nodes) {
+      const moduleName = el.dataset['module'];
+      if (!moduleName) {
+        continue;
+      }
+      if (el.hasAttribute(`data-${moduleName}-init`)) {
+        removed.push({ el, moduleName });
+        delete el.dataset['module'];
+      }
+    }
+
+    return () => {
+      for (const { el, moduleName } of removed) {
+        el.dataset['module'] = moduleName;
+      }
+    };
+  }
+
   /** Initialise GOV.UK Frontend, optionally scoped to avoid re-init errors */
   private async initGovUkFrontend(scope?: HTMLElement): Promise<void> {
     // Try npm module first
@@ -135,7 +160,13 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
           : undefined;
 
       if (initAll) {
-        initAll({ scope });
+        const root: Element | Document = scope ?? document;
+        const restore = this.suppressInitialisedGovUkModules(root);
+        try {
+          initAll({ scope: root });
+        } finally {
+          restore();
+        }
         return;
       }
     } catch {
@@ -146,7 +177,13 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
     const g = globalThis as typeof globalThis & GovUkGlobal;
     const fn = g.GOVUKFrontend?.initAll;
     if (typeof fn === 'function') {
-      fn({ scope });
+      const root: Element | Document = scope ?? document;
+      const restore = this.suppressInitialisedGovUkModules(root);
+      try {
+        fn({ scope: root });
+      } finally {
+        restore();
+      }
     }
   }
 
