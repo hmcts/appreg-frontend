@@ -3,7 +3,8 @@ import {
   parseTimeToDuration,
   requireTime,
   toTimeString,
-} from '../../../../../src/app/shared/util/time-helpers';
+  todayIsoDate,
+} from '@util/time-helpers';
 
 type TimeInput = Parameters<typeof toTimeString>[0];
 
@@ -109,5 +110,19 @@ describe('requireTime', () => {
   it('throws an error for null or undefined input', () => {
     expect(() => requireTime(null as TimeInput)).toThrow();
     expect(() => requireTime(undefined as TimeInput)).toThrow();
+  });
+});
+
+describe('todayIsoDate', () => {
+  it('returns the local date in YYYY-MM-DD format', () => {
+    const fixed = new Date(2024, 1, 3, 9, 15, 0);
+    jest.useFakeTimers();
+    jest.setSystemTime(fixed);
+
+    try {
+      expect(todayIsoDate()).toBe('2024-02-03');
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });
