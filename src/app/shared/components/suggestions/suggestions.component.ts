@@ -1,8 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-type Indexable = Record<string, unknown>;
+import { asString, hasStringProp, isRecord } from '@util/data-utils';
 
 @Component({
   selector: 'app-suggestions',
@@ -10,7 +17,7 @@ type Indexable = Record<string, unknown>;
   imports: [CommonModule, FormsModule],
   templateUrl: './suggestions.component.html',
 })
-export class SuggestionsComponent<T = unknown> {
+export class SuggestionsComponent<T = unknown> implements OnChanges {
   @Input() id = '';
   @Input() label = '';
   @Input() hint = '';
@@ -25,6 +32,7 @@ export class SuggestionsComponent<T = unknown> {
   @Input() value = '';
   @Output() valueChange = new EventEmitter<string>();
   @Input() widthClass = 'govuk-input--width-10';
+  @Input() containerWidthClass = 'govuk-grid-column-one-quarter';
 
   private focused = false;
   private justSelected = false;
@@ -40,6 +48,30 @@ export class SuggestionsComponent<T = unknown> {
     }
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    const sc = changes['search'];
+    const next = asString(sc?.currentValue);
+
+    if (next === null) {
+      return;
+    }
+
+    const trimmed = next.trim();
+    // If parent sets a value programmatically (e.g. hydrate), treat it as committed
+    // so we don't show "No results found" when suggestions is empty.
+    if (!this.focused && trimmed) {
+      this.committedLabel = next;
+      this.justSelected = true;
+      return;
+    }
+
+    // If search cleared externally, clear committed state
+    if (!trimmed) {
+      this.committedLabel = null;
+      this.justSelected = false;
+    }
+  }
+
   onFocus(): void {
     this.focused = true;
   }
@@ -52,27 +84,27 @@ export class SuggestionsComponent<T = unknown> {
     if (this.getItemLabel) {
       return this.getItemLabel(item);
     }
-    if (this.isIndexable(item)) {
-      const name = item['name'];
-      if (typeof name === 'string') {
-        return name;
+    if (isRecord(item)) {
+      if (hasStringProp(item, 'name')) {
+        return item.name;
       }
-      const desc = item['description'];
-      if (typeof desc === 'string') {
-        return desc;
+      if (hasStringProp(item, 'description')) {
+        return item.description;
       }
     }
     return String(item as unknown);
   }
 
-  choose(item: T, e: Event): void {
+  choose(item: T, e: MouseEvent): void {
     e.preventDefault();
     this.selectItem.emit(item);
-    const label = this.labelOf(item);
+
+    const label = this.labelFor(item);
     this.search = label;
     this.committedLabel = label;
+
     this.suggestions = [];
-    this.justSelected = true; // suppress empty once
+    this.justSelected = true;
   }
 
   labelOf(item: T): string {
@@ -101,6 +133,7 @@ export class SuggestionsComponent<T = unknown> {
     return (
       !this.disabled &&
       !!this.search?.trim() &&
+      !this.isCommittedText &&
       (this.suggestions?.length ?? 0) > 0
     );
   }
@@ -113,10 +146,6 @@ export class SuggestionsComponent<T = unknown> {
       !!this.committedLabel &&
       this.norm(this.search) === this.norm(this.committedLabel)
     );
-  }
-
-  private isIndexable(x: unknown): x is Indexable {
-    return typeof x === 'object' && x !== null;
   }
 
   private norm(s: string | null | undefined) {

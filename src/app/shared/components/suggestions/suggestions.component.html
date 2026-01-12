@@ -1,4 +1,4 @@
-<div class="govuk-grid-column-one-quarter">
+<div [class]="containerWidthClass">
   <div
     class="govuk-form-group"
     [ngClass]="{ 'govuk-form-group--error': showError }"
@@ -41,11 +41,11 @@
             @for (item of suggestions; track item) {
               <li>
                 <a
-                  href="#"
+                  href="javascript:void(0)"
                   class="app-autocomplete__link"
                   (mousedown)="choose(item, $event)"
                 >
-                  {{ labelOf(item) }}
+                  {{ labelFor(item) }}
                 </a>
               </li>
             }

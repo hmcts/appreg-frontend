@@ -468,9 +468,16 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.loadApplicationsLists();
   }
 
-  async openUpdate(entryId: string): Promise<void> {
-    await this.router.navigate(['/applications-list', entryId, 'update'], {
-      state: { appListId: this.id },
+  async openUpdate(row: Partial<selectedRow>): Promise<void> {
+    await this.router.navigate(['/applications-list', row.id, 'update'], {
+      state: {
+        appListId: this.id,
+        resultApplicantContext: {
+          applicant: row.applicant,
+          respondent: row.respondent,
+          title: row.title,
+        },
+      },
       queryParams: { appListId: this.id },
     });
   }

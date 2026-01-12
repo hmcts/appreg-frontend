@@ -1,5 +1,5 @@
-import type { ClientRequest, IncomingMessage } from 'http';
 import crypto from 'node:crypto';
+import type { ClientRequest, IncomingMessage } from 'node:http';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 

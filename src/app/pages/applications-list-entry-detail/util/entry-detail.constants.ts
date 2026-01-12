@@ -23,9 +23,15 @@ export const FEE_STATUS_OPTIONS = [
 ];
 
 export const RESULT_WORDING_COLUMNS = [
-  { header: 'Applicant(s)', field: 'applicants' },
-  { header: 'Respondent(s)', field: 'respondents' },
-  { header: 'Application title(s)', field: 'titles' },
+  { header: 'Applicant(s)', field: 'applicant' },
+  { header: 'Respondent(s)', field: 'respondent' },
+  { header: 'Application title(s)', field: 'title' },
+];
+
+export const EXISTING_RESULTS_WORDING_COLUMNS = [
+  { header: 'Result', field: 'display' },
+  { header: 'Wording', field: 'wording' },
+  { header: 'Actions', field: 'actions', sortable: false },
 ];
 
 export const CIVIL_FEE_COLUMNS: TableColumn[] = [

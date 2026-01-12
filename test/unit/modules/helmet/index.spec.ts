@@ -36,20 +36,10 @@ describe('Helmet Module', () => {
       'scriptSrc',
     );
 
-    // The scriptSrc array should include self, googleAnalyticsDomain and sha hash.
+    // The scriptSrc array should include self.
     // In development mode, it should also include "'unsafe-eval'".
     const scriptSrc = helmetConfig.contentSecurityPolicy.directives.scriptSrc;
     expect(scriptSrc).toContain("'self'");
-    expect(scriptSrc).toContain('*.google-analytics.com');
-    expect(scriptSrc).toContain(
-      "'sha256-+6WnXIl4mbFTCARd8N3COQmT3bJJmo32N8q8ZSQAIcU='",
-    );
-    expect(scriptSrc).toContain(
-      "'sha256-VM2mZqyEQZoLzoTrp5EigFvzQ0+f1wSeBuoOn95WHCg='",
-    );
-    expect(scriptSrc).toContain(
-      "'sha256-8sGKvDKC8crv9OBcqEMvqrNDWlm1/80h7NJpJzqOnLI='",
-    );
     expect(scriptSrc).toContain("'unsafe-eval'");
 
     // Verify that app.use was called with the dummy middleware.

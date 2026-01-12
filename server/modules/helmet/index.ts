@@ -1,7 +1,6 @@
 import * as express from 'express';
 import helmet from 'helmet';
 
-const googleAnalyticsDomain = '*.google-analytics.com';
 const self = "'self'";
 
 /**
@@ -14,14 +13,9 @@ export class Helmet {
   }
 
   public enableFor(app: express.Express): void {
-    // include default helmet functions
-    const scriptSrc = [
-      self,
-      googleAnalyticsDomain,
-      "'sha256-+6WnXIl4mbFTCARd8N3COQmT3bJJmo32N8q8ZSQAIcU='",
-      "'sha256-VM2mZqyEQZoLzoTrp5EigFvzQ0+f1wSeBuoOn95WHCg='",
-      "'sha256-8sGKvDKC8crv9OBcqEMvqrNDWlm1/80h7NJpJzqOnLI='",
-    ];
+    // This is strict as we don't run any inline scripts.
+    // If any are added in the future, it will need a hash added here.
+    const scriptSrc = [self];
 
     if (this.developmentMode) {
       // Uncaught EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval'
@@ -38,7 +32,7 @@ export class Helmet {
             connectSrc: ["'self'", 'http://localhost:4550'],
             defaultSrc: ["'self'", 'http://localhost:4550'],
             fontSrc: [self, 'data:'],
-            imgSrc: [self, googleAnalyticsDomain],
+            imgSrc: [self],
             objectSrc: [self],
             scriptSrc,
             styleSrc: [self, "'unsafe-inline'"],

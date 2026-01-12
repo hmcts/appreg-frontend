@@ -106,7 +106,11 @@ describe('ApplicationsListEntryDetail', () => {
 
   const routeStub: ActivatedRoute = {
     snapshot: {
-      paramMap: convertToParamMap({ entryId: 'EN-1', id: 'EN-1' }),
+      paramMap: convertToParamMap({
+        listId: 'AL-1',
+        entryId: 'EN-1',
+        id: 'EN-1',
+      }),
       queryParamMap: convertToParamMap({ entryId: 'EN-1', appListId: 'AL-1' }),
     },
   } as ActivatedRoute;

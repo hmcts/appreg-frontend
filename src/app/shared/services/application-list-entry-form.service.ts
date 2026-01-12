@@ -34,6 +34,8 @@ import { markFormGroupClean } from '@util/form-helpers';
 type HydrateOptions = {
   /** Default false: avoid triggering applicantType valueChanges etc. */
   emitEvent?: boolean;
+  /// Optional patches to apply to main form after hydration
+  patches?: Partial<{ [K in keyof ApplicationsListEntryForm]: unknown }>;
 };
 
 type HydrateResult = {

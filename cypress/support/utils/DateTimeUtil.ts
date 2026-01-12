@@ -367,14 +367,14 @@ export class DateTimeUtil {
     const longMonth = date.toLocaleDateString('en', { month: 'long' });
 
     return pattern
-      .replace(/YYYY/g, year)
-      .replace(/YY/g, year.slice(-2))
-      .replace(/MMMM/g, longMonth)
-      .replace(/MMM/g, shortMonth)
-      .replace(/MM/g, month)
-      .replace(/M/g, (date.getMonth() + 1).toString())
-      .replace(/DD/g, day)
-      .replace(/D/g, date.getDate().toString());
+      .replaceAll('YYYY', year)
+      .replaceAll('YY', year.slice(-2))
+      .replaceAll('MMMM', longMonth)
+      .replaceAll('MMM', shortMonth)
+      .replaceAll('MM', month)
+      .replaceAll('M', (date.getMonth() + 1).toString())
+      .replaceAll('DD', day)
+      .replaceAll('D', date.getDate().toString());
   }
 
   /**
@@ -514,9 +514,11 @@ export class DateTimeUtil {
 
     // Parse times into minutes since midnight
     const actualMinutes =
-      parseInt(actualMatch[1], 10) * 60 + parseInt(actualMatch[2], 10);
+      Number.parseInt(actualMatch[1], 10) * 60 +
+      Number.parseInt(actualMatch[2], 10);
     const expectedMinutes =
-      parseInt(expectedMatch[1], 10) * 60 + parseInt(expectedMatch[2], 10);
+      Number.parseInt(expectedMatch[1], 10) * 60 +
+      Number.parseInt(expectedMatch[2], 10);
 
     // Calculate difference
     const diff = Math.abs(actualMinutes - expectedMinutes);
