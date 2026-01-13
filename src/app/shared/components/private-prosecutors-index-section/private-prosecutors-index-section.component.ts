@@ -2,8 +2,8 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
-import { DateInputComponent } from '../date-input/date-input.component';
-import { TextInputComponent } from '../text-input/text-input.component';
+import { DateInputComponent } from '@components/date-input/date-input.component';
+import { TextInputComponent } from '@components/text-input/text-input.component';
 
 @Component({
   selector: 'app-private-prosecutors-index-section',

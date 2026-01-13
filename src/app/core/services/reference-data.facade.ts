@@ -7,7 +7,7 @@ import {
   CourtLocationsApi,
   CriminalJusticeAreaGetDto,
   CriminalJusticeAreasApi,
-} from '../../../generated/openapi';
+} from '@openapi';
 
 @Injectable({ providedIn: 'root' })
 export class ReferenceDataFacade {

@@ -2,7 +2,7 @@ import { NgClass } from '@angular/common';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterLink, provideRouter } from '@angular/router';
 
-import { PageHeaderComponent } from '../../../../../../src/app/shared/components/page-header/page-header.component';
+import { PageHeaderComponent } from '@components/page-header/page-header.component';
 
 type ActionLike = Readonly<{
   id?: string;

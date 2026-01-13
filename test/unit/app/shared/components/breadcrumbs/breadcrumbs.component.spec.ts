@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 
-import { BreadcrumbsComponent } from '../../../../../../src/app/shared/components/breadcrumbs/breadcrumbs.component';
+import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 
 describe('BreadcrumbsComponent', () => {
   let component: BreadcrumbsComponent;

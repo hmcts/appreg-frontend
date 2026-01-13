@@ -1,7 +1,7 @@
 import {
   buildStandardApplicantRows,
   formatDate,
-} from '../../../../../src/app/shared/util/standard-applicant-helpers';
+} from '@util/standard-applicant-helpers';
 
 describe('formatDate', () => {
   it('returns formatted date in en-GB format for a valid ISO date', () => {

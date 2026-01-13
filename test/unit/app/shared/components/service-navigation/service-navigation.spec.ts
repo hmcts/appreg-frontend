@@ -3,8 +3,8 @@ import { Component, PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 
-import { SessionService } from '../../../../../../src/app/core/services/session.service';
-import { ServiceNavigationComponent } from '../../../../../../src/app/shared/components/service-navigation/service-navigation.component';
+import { ServiceNavigationComponent } from '@components/service-navigation/service-navigation.component';
+import { SessionService } from '@services/session.service';
 
 @Component({ standalone: true, template: '' })
 class DummyComponent {}

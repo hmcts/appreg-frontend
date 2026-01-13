@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { DateInputComponent } from '../../../../../../src/app/shared/components/date-input/date-input.component';
+import { DateInputComponent } from '@components/date-input/date-input.component';
 
 describe('DateInputComponent', () => {
   let fixture: ComponentFixture<DateInputComponent>;

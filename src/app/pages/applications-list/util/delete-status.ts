@@ -6,7 +6,7 @@ Process: If an error occurs, get the status code and return informative text and
 Output: SummaryItem
 */
 
-import { SummaryItem } from '../../../shared/util/types/application-list/types';
+import { SummaryItem } from '@util/types/application-list/types';
 
 const TABLE: Record<number, SummaryItem[]> = {
   401: [

@@ -2,7 +2,7 @@
 Reused types in /application-list/**  pages
 */
 
-import { ApplicationListGetSummaryDto } from '../../../../../generated/openapi';
+import { ApplicationListGetSummaryDto } from '@openapi';
 
 type UiExtras = {
   deletable?: boolean;

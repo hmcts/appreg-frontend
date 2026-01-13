@@ -1,7 +1,4 @@
-import {
-  ColumnDef,
-  TableComponent,
-} from '../../../../../../src/app/shared/components/table/table.component';
+import { ColumnDef, TableComponent } from '@components/table/table.component';
 
 type Row = {
   applicants: string;

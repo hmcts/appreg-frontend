@@ -1,3 +1,9 @@
+/**
+ * TODO: arcpoc-816
+ * prio 3
+ * Refactor large detail view with paging/selection, multiple flags, subscribe without takeUntil.
+ */
+
 /*
 Main component for /application-list/:id
 
@@ -25,9 +31,6 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
-import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
-import { IF_MATCH } from '../../shared/context/concurrency-context';
-
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import {
@@ -49,6 +52,7 @@ import {
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { IF_MATCH } from '@context/concurrency-context';
 import { FormRaw } from '@core-types/forms/forms.types';
 import {
   ApplicationListGetDetailDto,
@@ -56,6 +60,7 @@ import {
   ApplicationListUpdateDto,
   ApplicationListsApi,
 } from '@openapi';
+import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { buildNormalizedPayload } from '@util/build-payload';
 import { collectMissing } from '@util/collect-missing';
 import {

@@ -1,13 +1,13 @@
 import {
   emailIncorrectFormatMsg,
   phoneIncorrectFormatMsg,
-} from '../../../../../src/app/shared/constants/err-msgs';
+} from '@constants/err-msgs';
 import {
   type ContactFieldIds,
   isValidPhone,
   isValidUkPostcode,
   validateOptionalContactFields,
-} from '../../../../../src/app/shared/util/validation';
+} from '@util/validation';
 
 type ValidationErrors = { [key: string]: unknown };
 

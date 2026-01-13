@@ -1,3 +1,8 @@
+/**
+ * TODO: arcpoc-816
+ * root nav subscription. low priority, but easy takeUntilDestroyed/effect cleanup.
+ */
+
 import { isPlatformBrowser } from '@angular/common';
 import {
   AfterViewInit,
@@ -11,9 +16,9 @@ import {
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 
-import { FooterComponent } from './shared/components/footer/footer.component';
-import { HeaderComponent } from './shared/components/header/header.component';
-import { ServiceNavigationComponent } from './shared/components/service-navigation/service-navigation.component';
+import { FooterComponent } from '@components/footer/footer.component';
+import { HeaderComponent } from '@components/header/header.component';
+import { ServiceNavigationComponent } from '@components/service-navigation/service-navigation.component';
 
 type GovUkInitAll = (opts?: { scope?: Element | Document | null }) => void;
 type GovUkGlobal = { GOVUKFrontend?: { initAll?: GovUkInitAll } };

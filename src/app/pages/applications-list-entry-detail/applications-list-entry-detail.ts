@@ -1,3 +1,10 @@
+/**
+ * TODO: arcpoc-816
+ * prio 4
+ * Refactor complex multi-section form; many flags/errors and side effects even though it uses takeUntilDestroyed.
+ * lower prio but will be affected by migration
+ */
+
 /*
   Main component for /applications-list/:listId/entries/:entryId
   Functionality:
