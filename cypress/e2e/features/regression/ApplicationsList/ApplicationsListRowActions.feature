@@ -481,7 +481,7 @@ Feature: Application List Row Actions
             | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
             | user1 | Lists     | today      | todayiso    | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 0             | 5               | 1       | CLOSED | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 1     |
 
-    @regression @ARCPOC-214 @ARCPOC-575 @PJ
+    @regression @ARCPOC-214 @ARCPOC-575
     Scenario Outline: Verify application list is deleted successfully for applications list NO entries
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -493,7 +493,7 @@ Feature: Application List Row Actions
         When User Signs In With Microsoft SSO As "<User>"
         Then User Clicks On The Link "Applications list"
         When User Set Date Field "Date" To "<SearchDate>"
-        Then User Enters <Description> Into The "Description" Textbox
+        Then User Enters "<Description>" Into The "Description" Textbox
         When User Clicks On The "Search" Button
         Then User Should See Table "<TableName>" Has Rows
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
@@ -501,6 +501,7 @@ Feature: Application List Row Actions
             | <DisplayDate> | <Time> | <Court>  | <Description> | 0       | <Status> |
         # When User Confirms The Deletion
         Then User Sees Notification Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
+        Then User Clears The "Description" Textbox
         When User Set Date Field "Date" To "<SearchDate>"
         When User Clicks On The "Search" Button
         Then User Should See The Table "<TableName>"
@@ -511,7 +512,7 @@ Feature: Application List Row Actions
             | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                             | Status | SelectButtonText |
             | user1 | Lists     | today      | todayiso    | timenowhhmm-3h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | OPEN   | Select           |
 
-    @regression @ARCPOC-214 @ARCPOC-575
+    @regression @ARCPOC-214 @ARCPOC-575 @PJ
     Scenario Outline: Verify application list is deleted successfully for applications list 1 entry
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -583,6 +584,7 @@ Feature: Application List Row Actions
         When User Signs In With Microsoft SSO As "<User>"
         Then User Clicks On The Link "Applications list"
         When User Set Date Field "Date" To "<SearchDate>"
+        Then User Selects "<Court>" From The Textbox "Court" Autocomplete By Typing "<courtLocationCode>"
         When User Clicks On The "Search" Button
         Then User Should See The Table "<TableName>"
         Then User Should See Table "<TableName>" Has Rows
