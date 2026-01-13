@@ -17,6 +17,6 @@ module.exports = {
     enabled: true,
     output: process.env.CUCUMBER_JSON_OUTPUT || DEFAULT_CUCUMBER_JSON_OUTPUT,
   },
-  filterSpecs: false,
+  filterSpecs: true,
   omitFiltered: true,
 };
