@@ -45,7 +45,8 @@ export class TableNavigation {
       }
       // Re-query to prevent element detachment
       return cy.get('body').then(($freshBody) => {
-        const $freshButton = TableElement.getEnabledNextPaginationButton($freshBody);
+        const $freshButton =
+          TableElement.getEnabledNextPaginationButton($freshBody);
         return cy
           .wrap($freshButton.first())
           .click({ force: true })

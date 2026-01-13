@@ -88,7 +88,9 @@ function findGlobalCucumberJsonFiles(dirPath) {
   });
 
   if (jsonFiles.length > 0) {
-    logger.info(`Found ${jsonFiles.length} JSON files in global cucumber-json directory: ${dirPath}`);
+    logger.info(
+      `Found ${jsonFiles.length} JSON files in global cucumber-json directory: ${dirPath}`,
+    );
   }
 
   return jsonFiles;

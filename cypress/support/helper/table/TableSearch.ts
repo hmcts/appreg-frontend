@@ -31,7 +31,11 @@ export class TableSearch {
     columnValues: Record<string, string>,
     searchAllPages: boolean = true,
   ): Cypress.Chainable<boolean> {
-    return TableSearch.searchWithPagination(caption, columnValues, searchAllPages);
+    return TableSearch.searchWithPagination(
+      caption,
+      columnValues,
+      searchAllPages,
+    );
   }
 
   /**
@@ -222,7 +226,7 @@ export class TableSearch {
       `Verifying NO row exists in table "${caption}" with: ${searchCriteria}`,
     );
 
-    return (TableSearch.findRowWithValues(caption, columnValues, true).then(
+    return TableSearch.findRowWithValues(caption, columnValues, true).then(
       (found) => {
         if (!found) {
           cy.log(`✓ No row found with: ${searchCriteria}`);
@@ -232,6 +236,6 @@ export class TableSearch {
           `✗ Unexpected row found in table "${caption}" with values: ${searchCriteria}`,
         );
       },
-    )) as unknown as Cypress.Chainable<void>;
+    ) as unknown as Cypress.Chainable<void>;
   }
 }

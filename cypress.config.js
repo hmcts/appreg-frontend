@@ -143,7 +143,9 @@ module.exports = defineConfig({
       const appConfig = await loadAppConfig();
 
       const tags =
-        process.env.TAGS || process.env.CYPRESS_TAGS || (config.env && config.env.TAGS);
+        process.env.TAGS ||
+        process.env.CYPRESS_TAGS ||
+        (config.env && config.env.TAGS);
 
       config.env = {
         ...config.env,
@@ -202,7 +204,7 @@ module.exports = defineConfig({
         SESSION_COOKIE_NAME: appConfigGet(appConfig, 'session.cookieName'),
         ...(tags ? { TAGS: tags } : {}),
       };
-      
+
       on(
         'file:preprocessor',
         createBundler({

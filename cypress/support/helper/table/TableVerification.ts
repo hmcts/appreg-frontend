@@ -121,7 +121,8 @@ export class TableVerification {
         tableCaption,
         columnIndex,
         parsedExpectedValue,
-      ).then(() => TableNavigation.goToNextPageIfExists())
+      )
+        .then(() => TableNavigation.goToNextPageIfExists())
         .then((hasNext) => {
           if (hasNext) {
             return checkPage(columnIndex);

@@ -8,10 +8,14 @@ import { TableSearch } from './TableSearch';
  */
 export class TableInteraction {
   /**
-   * Clicks a button element 
+   * Clicks a button element
    */
   static clickButton(button: JQuery<HTMLElement>): void {
-    cy.wrap(button).scrollIntoView().should('be.visible').and('not.be.disabled').click();
+    cy.wrap(button)
+      .scrollIntoView()
+      .should('be.visible')
+      .and('not.be.disabled')
+      .click();
   }
 
   /**
@@ -81,9 +85,7 @@ export class TableInteraction {
             TableInteraction.clickButton(button);
           })
           .then(() => {
-            cy.log(
-              `Expected Menu Options: ${expectedMenuOptions.join(', ')}`,
-            );
+            cy.log(`Expected Menu Options: ${expectedMenuOptions.join(', ')}`);
           })
           .then(() => {
             for (const btnText of expectedMenuOptions) {

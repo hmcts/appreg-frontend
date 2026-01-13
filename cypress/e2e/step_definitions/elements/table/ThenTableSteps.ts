@@ -68,7 +68,11 @@ Then(
     headerText: string,
     sortOrder: 'none' | 'ascending' | 'descending',
   ) => {
-    TableVerification.verifyHeaderSortOrder(tableCaption, headerText, sortOrder);
+    TableVerification.verifyHeaderSortOrder(
+      tableCaption,
+      headerText,
+      sortOrder,
+    );
   },
 );
 
@@ -114,7 +118,11 @@ Then(
 Then(
   'User Should See Table {string} Column {string} Has Value {string}',
   (tableCaption: string, columnName: string, expectedValue: string) => {
-    TableVerification.verifyAllRowsHaveValue(tableCaption, columnName, expectedValue);
+    TableVerification.verifyAllRowsHaveValue(
+      tableCaption,
+      columnName,
+      expectedValue,
+    );
   },
 );
 
@@ -124,7 +132,11 @@ Then(
 Then(
   'User Should See Table {string} Column {string} First Page Has Value {string}',
   (tableCaption: string, columnName: string, expectedValue: string) => {
-    TableVerification.verifyFirstPageRowsHaveValue(tableCaption, columnName, expectedValue);
+    TableVerification.verifyFirstPageRowsHaveValue(
+      tableCaption,
+      columnName,
+      expectedValue,
+    );
   },
 );
 
@@ -134,7 +146,11 @@ Then(
 Then(
   'User Should See Table {string} Column {string} First And Last Page Has Value {string}',
   (tableCaption: string, columnName: string, expectedValue: string) => {
-    TableVerification.verifyFirstAndLastPageRowsHaveValue(tableCaption, columnName, expectedValue);
+    TableVerification.verifyFirstAndLastPageRowsHaveValue(
+      tableCaption,
+      columnName,
+      expectedValue,
+    );
   },
 );
 
