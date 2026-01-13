@@ -1,6 +1,8 @@
 import { DataTable, Then } from '@badeball/cypress-cucumber-preprocessor';
 
 import { TableHelper } from '../../../../support/helper/table/TableHelper';
+import { TableSearch } from '../../../../support/helper/table/TableSearch';
+import { TableVerification } from '../../../../support/helper/table/TableVerification';
 
 /**
  * Verifies that a table with the given caption is visible
@@ -31,7 +33,7 @@ Then(
 
     // Verify each row in the data table
     for (const row of rows) {
-      TableHelper.verifyRowExists(tableCaption, row);
+      TableSearch.verifyRowExists(tableCaption, row);
     }
   },
 );
@@ -42,7 +44,7 @@ Then(
 Then(
   'User Should See Table {string} Header {string} Is Not Sortable',
   (tableCaption: string, headerText: string) => {
-    TableHelper.verifyHeaderIsNotSortable(tableCaption, headerText);
+    TableVerification.verifyHeaderIsNotSortable(tableCaption, headerText);
   },
 );
 
@@ -52,7 +54,7 @@ Then(
 Then(
   'User Should See Table {string} Has Sortable Headers {string}',
   (tableCaption: string, headers: string) => {
-    TableHelper.verifySortableHeaders(tableCaption, headers);
+    TableVerification.verifySortableHeaders(tableCaption, headers);
   },
 );
 
@@ -66,7 +68,11 @@ Then(
     headerText: string,
     sortOrder: 'none' | 'ascending' | 'descending',
   ) => {
-    TableHelper.verifyHeaderSortOrder(tableCaption, headerText, sortOrder);
+    TableVerification.verifyHeaderSortOrder(
+      tableCaption,
+      headerText,
+      sortOrder,
+    );
   },
 );
 
@@ -107,17 +113,49 @@ Then(
 );
 
 /**
- * Verifies that the table has columns with the specified values
+ * Verifies that the table has columns with the specified values (checks all pages)
  */
 Then(
   'User Should See Table {string} Column {string} Has Value {string}',
   (tableCaption: string, columnName: string, expectedValue: string) => {
-    TableHelper.verifyAllRowsHaveValue(tableCaption, columnName, expectedValue);
+    TableVerification.verifyAllRowsHaveValue(
+      tableCaption,
+      columnName,
+      expectedValue,
+    );
   },
 );
 
 /**
- * Verifies that the table has columns with any of the specified values (comma-separated)
+ * Verifies that the table has columns with the specified values on first page only
+ */
+Then(
+  'User Should See Table {string} Column {string} First Page Has Value {string}',
+  (tableCaption: string, columnName: string, expectedValue: string) => {
+    TableVerification.verifyFirstPageRowsHaveValue(
+      tableCaption,
+      columnName,
+      expectedValue,
+    );
+  },
+);
+
+/**
+ * Verifies that the table has columns with the specified values on first and last pages
+ */
+Then(
+  'User Should See Table {string} Column {string} First And Last Page Has Value {string}',
+  (tableCaption: string, columnName: string, expectedValue: string) => {
+    TableVerification.verifyFirstAndLastPageRowsHaveValue(
+      tableCaption,
+      columnName,
+      expectedValue,
+    );
+  },
+);
+
+/**
+ * Verifies that the table doesnt have columns with any of the specified values
  */
 Then(
   'User Should Not See Row In Table {string} With Values:',
@@ -130,7 +168,7 @@ Then(
 
     // Verify each row in the data table
     for (const row of rows) {
-      TableHelper.hasNoRowWithValues(tableCaption, row);
+      TableSearch.hasNoRowWithValues(tableCaption, row);
     }
   },
 );

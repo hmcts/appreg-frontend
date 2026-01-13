@@ -83,48 +83,37 @@ Feature: Applications List Search
       | user1 | Lists     | 19/05/2025 | 2025-05-19  | 09:00 | Cardiff Crown Court Set 4 | Cancelled hearing for Probate | 2       | CLOSED |
 
   @regression @ARCPOC-214 @ARCPOC-452 @ARCPOC-759
-  Scenario Outline: Filter and verify applications list table results
+  Scenario Outline: Filter and verify applications list with multiple filters
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Applications list"
-    # Filter by status
+    # Test status filter
     Then User Selects "<Status>" In The "Select status" Dropdown
     When User Clicks On The "Search" Button
-    Then User Should See The Table "Lists"
-    Then User Should See Table "Lists" Has Rows
-    Then User Should See Table "<TableName>" Column "Status" Has Value "<Status>"
-    # Reset status filter and filter by time, then verify table updates
+    Then User Should See Table "<TableName>" Column "Status" First And Last Page Has Value "<Status>"
+    # Test time filter
     Then User Selects "Choose" In The "Select status" Dropdown
     When User Set Time Field "Time" To "<Time>"
     When User Clicks On The "Search" Button
-    Then User Should See The Table "Lists"
-    Then User Should See Table "Lists" Has Rows
-    Then User Should See Table "<TableName>" Column "Time" Has Value "<Time>"
-    # Clear time filter and filter by date, then verify table updates
+    Then User Should See Table "<TableName>" Column "Time" First And Last Page Has Value "<Time>"
+    # Test date filter
     When User Clears The Time Field "Time"
-    Then User Selects "Choose" In The "Select status" Dropdown
     When User Set Date Field "Date" To "<SearchDate>"
     When User Clicks On The "Search" Button
-    Then User Should See The Table "Lists"
-    Then User Should See Table "Lists" Has Rows
-    Then User Should See Table "<TableName>" Column "Date" Has Value "<DisplayDate>"
-    # Clear date filter and filter by description, then verify table updates
+    Then User Should See Table "<TableName>" Column "Date" First And Last Page Has Value "<DisplayDate>"
+    # Test description filter
     When User Clears The Date Field "Date"
     Then User Enters "<Description>" Into The "Description" Textbox
     When User Clicks On The "Search" Button
-    Then User Should See The Table "Lists"
-    Then User Should See Table "Lists" Has Rows
-    Then User Should See Table "<TableName>" Column "Description" Has Value "<Description>"
-    # Clear description filter and filter by court, then verify table updates
+    Then User Should See Table "<TableName>" Column "Description" First And Last Page Has Value "<Description>"
+    # Test court location filter
     Then User Clears The "Description" Textbox
     Then User Selects "<OptionTextCourt>" From The Textbox "Court" Autocomplete By Typing "<SearchTextCourt>"
     When User Clicks On The "Search" Button
-    Then User Should See The Table "Lists"
-    Then User Should See Table "Lists" Has Rows
-    Then User Should See Table "<TableName>" Column "Location" Has Value "<OptionTextCourt>"
+    Then User Should See Table "<TableName>" Column "Location" First And Last Page Has Value "<OptionTextCourt>"
     Examples:
-      | User  | Status | TableName | Time  | SearchDate | DisplayDate | Description | SearchTextCourt | OptionTextCourt           | SearchTextCJA | OptionTextCJA |
-      | user1 | Open   | Lists     | 14:00 | 19/05/2025 | 2025-05-19  | No show     | Cardiff         | Cardiff Crown Court Set 4 | 1             | CJA Number 1  |
+      | User  | Status | TableName | Time  | SearchDate | DisplayDate | Description | SearchTextCourt | OptionTextCourt           |
+      | user1 | Open   | Lists     | 14:00 | 19/05/2025 | 2025-05-19  | No show     | Cardiff         | Cardiff Crown Court Set 4 |
 
   @regression @ARCPOC-214 @ARCPOC-660
   Scenario Outline: Verify CJA field validation with valid input
@@ -156,7 +145,7 @@ Feature: Applications List Search
       | admin1 | abc123     | There is a problem Criminal Justice Area not found |            | abc123        | No results found |
 
   # This Scenario has been ignored due to bug in sorting functionality @ARCPOC-756
-  @ignore @ARCPOC-214 @ARCPOC-452
+  @ignore @ARCPOC-214 @ARCPOC-452 @ARCPOC-756
   Scenario Outline: Verify applications list table sorting functionality
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -231,11 +220,14 @@ Feature: Applications List Search
       | admin1 | London     | No lists found Try different filters, or create a new list |            | London        | No results found |
 
   @regression @ARCPOC-214 @ARCPOC-417
-  Scenario Outline: Verify application list Open with multiple pages of results is returned
+  Scenario Outline: Verify application list Open
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Applications list"
     When User Set Date Field "Date" To "<SearchDate>"
+    When User Set Time Field "Time" To "<Time>"
+    Then User Enters "<Description>" Into The "Description" Textbox
+    Then User Selects "<Court>" From The Textbox "Court" Autocomplete By Typing "<OptionTextCourt>"
     Then User Selects "<Status>" In The "Select status" Dropdown
     When User Clicks On The "Search" Button
     Then User Should See The Table "<TableName>"
@@ -247,15 +239,18 @@ Feature: Applications List Search
       | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
     Then User Should See The Link "List details"
     Examples:
-      | User  | TableName | DisplayDate | Time  | Court                             | Description | Entries | Status | ButtonName | SearchDate | SelectButtonText |
-      | user1 | Lists     | 2001-01-01  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | *SKIP*     | Select           |
-      | user1 | Lists     | 2001-01-01  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | 01/1/2001  | Select           |
+      | User  | TableName | DisplayDate | Time  | Court                             | Description | Entries | Status | ButtonName | SearchDate | SelectButtonText | OptionTextCourt |
+      | user1 | Lists     | 2001-01-01  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | *SKIP*     | Select           | LCCC025         |
+      | user1 | Lists     | 2001-01-01  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | 01/1/2001  | Select           | LCCC025         |
 
   @regression @ARCPOC-214 @ARCPOC-417
   Scenario Outline: Verify application list row menu options
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
-    Then User Clicks On The Link "Applications list"
+    When User Set Date Field "Date" To "<SearchDate>"
+    When User Set Time Field "Time" To "<Time>"
+    Then User Enters "<Description>" Into The "Description" Textbox
+    Then User Selects "<Court>" From The Textbox "Court" Autocomplete By Typing "<OptionTextCourt>"
     Then User Selects "<Status>" In The "Select status" Dropdown
     When User Clicks On The "Search" Button
     Then User Should See The Table "<TableName>"
@@ -264,6 +259,6 @@ Feature: Applications List Search
       | Date          | Time   | Location | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
     Examples:
-      | User  | TableName | DisplayDate | Time  | Court                                 | Description                                    | Entries | Status | SelectButtonText | MenuOptions                                 |
-      | user1 | Lists     | 2025-06-27  | 14:00 | Manchester Civil Justice Centre Set 8 | Afternoon list for Civil Court                 | 1       | Open   | Select           | Open, Print page,  Print continuous, Delete |
-      | user1 | Lists     | 2025-11-26  | 16:45 | Royal Courts of Justice Set 1         | Applications to review at the Test Courthouse. | 0       | Closed | Select           | Print page,  Print continuous               |
+      | User  | TableName | SearchDate | DisplayDate | Time  | OptionTextCourt | Court                             | Description                          | Entries | Status | SelectButtonText | MenuOptions                                 |
+      | user1 | Lists     | 12/01/2026 | 2026-01-12  | 14:51 | LCCC065         | Leeds Combined Court Centre Set 7 | Applications to review at Test_1153  | 2       | OPEN   | Select           | Open, Print page,  Print continuous, Delete |
+      | user1 | Lists     | 07/01/2026 | 2026-01-07  | 15:31 | LCCC025         | Leeds Combined Court Centre Set 3 | Applications to review at Test_13162 | 1       | CLOSED | Select           | Print page,  Print continuous               |

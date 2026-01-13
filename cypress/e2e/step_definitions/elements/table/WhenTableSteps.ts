@@ -1,6 +1,6 @@
 import { When } from '@badeball/cypress-cucumber-preprocessor';
 
-import { TableHelper } from '../../../../support/helper/table/TableHelper';
+import { TableInteraction } from '../../../../support/helper/table/TableInteraction';
 
 /**
  * Clicks on a table header to trigger sorting
@@ -8,7 +8,7 @@ import { TableHelper } from '../../../../support/helper/table/TableHelper';
 When(
   'User Clicks On Table Header {string} In Table {string}',
   (headerText: string, tableCaption: string) => {
-    TableHelper.clickTableHeader(tableCaption, headerText);
+    TableInteraction.clickTableHeader(tableCaption, headerText);
     cy.screenshot(`clicked-header-${headerText}`);
   },
 );
@@ -26,7 +26,7 @@ When(
       throw new Error('DataTable must have at least one row of data');
     }
     const rowData = rows[0];
-    TableHelper.clickMenuButtonInTableRow(
+    TableInteraction.clickMenuButtonInTableRow(
       tableCaption,
       rowData,
       menuButtonText,
@@ -54,7 +54,7 @@ When(
       ? menuOptions.split(',').map((opt: string) => opt.trim())
       : [];
     cy.log(`Expected Menu Options (step): ${expectedMenuOptions.join(', ')}`);
-    TableHelper.verifyButtonsInTableRow(
+    TableInteraction.verifyButtonsInTableRow(
       tableCaption,
       rowData,
       selectButtonText,
