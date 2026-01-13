@@ -54,93 +54,49 @@ withNightlyPipeline(type, product, component) {
     echo 'Smoke: ' + params.Smoke
     echo 'Regression: ' + params.Regression
 
+    if (params.Smoke || params.Regression) {
+      yarnBuilder.yarn('cypress:clean:reports')
+    }
+
     if (params.Smoke) {
       stage('Smoke Tests') {
-        // Clean reports once before running both browsers in parallel
-        yarnBuilder.yarn('cypress:clean:reports')
-        parallel(
-          'Smoke - Chrome': {
-            catchError(buildResult: 'FAILURE', stageResult: 'FAILURE', message: 'Smoke tests failed') {
-              try {
-                yarnBuilder.yarn('test:parallel:smoke:chrome')
-              } finally {
-                archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/smoke/**/*'
-                junit allowEmptyResults: true, testResults: 'functional-output/chrome/smoke/junit/**/*.xml'
-                publishHTML target: [
-                  allowMissing         : true,
-                  alwaysLinkToLastBuild: true,
-                  keepAll              : true,
-                  reportDir            : 'functional-output/chrome/smoke/cucumber-html',
-                  reportFiles          : 'detailed-test-report.html',
-                  reportName           : 'Cucumber Smoke Test Report'
-                ]
-              }
-            }
-          },
-          'Smoke - Edge': {
-            catchError(buildResult: 'FAILURE', stageResult: 'FAILURE', message: 'Smoke tests failed (Edge)') {
-              try {
-                yarnBuilder.yarn('test:parallel:smoke:edge')
-              } finally {
-                archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/edge/smoke/**/*'
-                junit allowEmptyResults: true, testResults: 'functional-output/edge/smoke/junit/**/*.xml'
-                publishHTML target: [
-                  allowMissing         : true,
-                  alwaysLinkToLastBuild: true,
-                  keepAll              : true,
-                  reportDir            : 'functional-output/edge/smoke/cucumber-html',
-                  reportFiles          : 'detailed-test-report.html',
-                  reportName           : 'Cucumber Smoke Test Report (Edge)'
-                ]
-              }
-            }
+        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE', message: 'Smoke tests failed') {
+          try {
+            yarnBuilder.yarn('test:parallel:smoke:chrome')
+          } finally {
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/smoke/**/*'
+            junit allowEmptyResults: true, testResults: 'functional-output/chrome/smoke/junit/**/*.xml'
+            publishHTML target: [
+              allowMissing         : true,
+              alwaysLinkToLastBuild: true,
+              keepAll              : true,
+              reportDir            : 'functional-output/chrome/smoke/cucumber-html',
+              reportFiles          : 'detailed-test-report.html',
+              reportName           : 'Cucumber Smoke Test Report'
+            ]
           }
-        )
+        }
       }
     }
 
     if (params.Regression) {
       stage('Regression Tests') {
-        // Clean reports once before running both browsers in parallel
-        yarnBuilder.yarn('cypress:clean:reports')
-        parallel(
-          'Regression - Chrome': {
-            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Regression tests failed') {
-              try {
-                yarnBuilder.yarn('test:parallel:regression:chrome')
-              } finally {
-                archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/regression/**/*'
-                junit allowEmptyResults: true, testResults: 'functional-output/chrome/regression/junit/**/*.xml'
-                publishHTML target: [
-                  allowMissing         : true,
-                  alwaysLinkToLastBuild: true,
-                  keepAll              : true,
-                  reportDir            : 'functional-output/chrome/regression/cucumber-html',
-                  reportFiles          : 'detailed-test-report.html',
-                  reportName           : 'Cucumber Regression Test Report'
-                ]
-              }
-            }
-          },
-          'Regression - Edge': {
-            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Regression tests failed (Edge)') {
-              try {
-                yarnBuilder.yarn('test:parallel:regression:edge')
-              } finally {
-                archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/edge/regression/**/*'
-                junit allowEmptyResults: true, testResults: 'functional-output/edge/regression/junit/**/*.xml'
-                publishHTML target: [
-                  allowMissing         : true,
-                  alwaysLinkToLastBuild: true,
-                  keepAll              : true,
-                  reportDir            : 'functional-output/edge/regression/cucumber-html',
-                  reportFiles          : 'detailed-test-report.html',
-                  reportName           : 'Cucumber Regression Test Report (Edge)'
-                ]
-              }
-            }
+        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Regression tests failed') {
+          try {
+            yarnBuilder.yarn('test:parallel:regression:chrome')
+          } finally {
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/regression/**/*'
+            junit allowEmptyResults: true, testResults: 'functional-output/chrome/regression/junit/**/*.xml'
+            publishHTML target: [
+              allowMissing         : true,
+              alwaysLinkToLastBuild: true,
+              keepAll              : true,
+              reportDir            : 'functional-output/chrome/regression/cucumber-html',
+              reportFiles          : 'detailed-test-report.html',
+              reportName           : 'Cucumber Regression Test Report'
+            ]
           }
-        )
+        }
       }
     }
   }
