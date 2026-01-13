@@ -17,7 +17,6 @@ module.exports = {
     enabled: true,
     output: process.env.CUCUMBER_JSON_OUTPUT || DEFAULT_CUCUMBER_JSON_OUTPUT,
   },
-  // Keep specs even if tag filter removes all scenarios to avoid "no spec files" errors in parallel splits
   filterSpecs: false,
-  omitFiltered: false,
+  omitFiltered: true,
 };
