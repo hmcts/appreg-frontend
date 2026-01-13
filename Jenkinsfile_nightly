@@ -54,9 +54,12 @@ withNightlyPipeline(type, product, component) {
     echo 'Smoke: ' + params.Smoke
     echo 'Regression: ' + params.Regression
 
+    if (params.Smoke || params.Regression) {
+      yarnBuilder.yarn('cypress:clean:reports')
+    }
+
     if (params.Smoke) {
       stage('Smoke Tests') {
-        yarnBuilder.yarn('cypress:clean:reports')
         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE', message: 'Smoke tests failed') {
           try {
             yarnBuilder.yarn('test:parallel:smoke:chrome')
@@ -78,7 +81,6 @@ withNightlyPipeline(type, product, component) {
 
     if (params.Regression) {
       stage('Regression Tests') {
-        yarnBuilder.yarn('cypress:clean:reports')
         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Regression tests failed') {
           try {
             yarnBuilder.yarn('test:parallel:regression:chrome')
