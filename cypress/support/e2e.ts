@@ -1,7 +1,6 @@
 /// <reference types="cypress" />
 
 import './commands';
-import 'cypress-mochawesome-reporter/register';
 import { TestDataGenerator } from './utils/TestDataGenerator';
 
 beforeEach(() => {
@@ -14,6 +13,7 @@ beforeEach(() => {
   cy.viewport(1280, 720); // Set a default viewport size
 });
 
+// Capture screenshots for passed tests (keep failure screenshots via Cypress defaults)
 afterEach(function () {
   if (this.currentTest && this.currentTest.state === 'passed') {
     cy.screenshot(`success-${this.currentTest.title}`);

@@ -18,13 +18,8 @@ const RUN_SCOPED_ROOT = runId
 // Configuration
 // Output directory based on browser parameter
 const OUTPUT_DIR = browser
-  ? path.join(
-      OUTPUT_ROOT,
-      `${browser}`,
-      scope === 'smoke' ? 'smoke' : 'regression',
-      'cucumber-html',
-    )
-  : path.join(OUTPUT_ROOT, 'regression', 'cucumber-html');
+  ? path.join(OUTPUT_ROOT, `${browser}`, scope, 'cucumber-html')
+  : path.join(OUTPUT_ROOT, scope, 'cucumber-html');
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'detailed-test-report.html');
 
 /**
@@ -118,45 +113,13 @@ function buildPaths(segmentGroups) {
  * Get list of cucumber directories based on browser parameter
  */
 function getCucumberDirectories() {
-  if (browser === 'chrome') {
-    if (scope === 'smoke') {
-      return buildPaths([['chrome', 'smoke', 'cucumber-json']]);
-    }
-    return buildPaths([
-      ['chrome', 'regression', 'cucumber-json'],
-      ['chrome', 'smoke', 'cucumber-json'],
-      ['chrome', 'apiTests', 'cucumber-json'],
-      ['chrome', 'regression', 'merged'],
-    ]);
+  // With a browser specified, honor the provided scope directly.
+  if (browser === 'chrome' || browser === 'edge') {
+    return buildPaths([[browser, scope, 'cucumber-json']]);
   }
 
-  if (browser === 'edge') {
-    if (scope === 'smoke') {
-      return buildPaths([['edge', 'smoke', 'cucumber-json']]);
-    }
-    return buildPaths([
-      ['edge', 'regression', 'cucumber-json'],
-      ['edge', 'smoke', 'cucumber-json'],
-      ['edge', 'apiTests', 'cucumber-json'],
-      ['edge', 'regression', 'merged'],
-    ]);
-  }
-
-  // Combined report - read from all directories
-  return buildPaths([
-    ['regression', 'cucumber-json'],
-    ['smoke', 'cucumber-json'],
-    ['merged', 'cucumber-json'],
-    ['chrome', 'regression', 'cucumber-json'],
-    ['chrome', 'smoke', 'cucumber-json'],
-    ['chrome', 'apiTests', 'cucumber-json'],
-    ['chrome', 'regression', 'merged'],
-    ['edge', 'regression', 'cucumber-json'],
-    ['edge', 'smoke', 'cucumber-json'],
-    ['edge', 'apiTests', 'cucumber-json'],
-    ['edge', 'regression', 'merged'],
-    ['apiTests', 'cucumber-json'],
-  ]);
+  // Combined report fallback
+  return buildPaths([[scope, 'cucumber-json']]);
 }
 
 /**
@@ -327,12 +290,22 @@ function processFeatures(features) {
  */
 function main() {
   logger.info('\n=== Generating Detailed Cucumber HTML Report ===\n');
+  logger.info(`Browser: ${browser || 'combined'}`);
+  logger.info(`Scope: ${scope}`);
+  logger.info(`Run ID: ${runId || 'N/A'}`);
 
   // Read Cucumber JSON files
   const features = readCucumberJsonFiles();
 
   if (features.length === 0) {
     logger.error('No features found in Cucumber JSON files');
+    logger.info(
+      '\nPossible reasons:\n' +
+        '  1. Tests have not been run yet\n' +
+        '  2. All tests failed before generating reports\n' +
+        '  3. Cucumber JSON output directory is incorrect\n' +
+        '  4. For parallel runs, make sure to merge reports first using merge-parallel-reports.js\n',
+    );
     process.exit(1);
   }
 
@@ -340,7 +313,7 @@ function main() {
   const { stats, testsByFeature } = processFeatures(features);
 
   // Generate HTML
-  const html = generateHTML(stats, testsByFeature);
+  const html = generateHTML(stats, testsByFeature, browser);
 
   // Ensure output directory exists
   if (!fs.existsSync(OUTPUT_DIR)) {
