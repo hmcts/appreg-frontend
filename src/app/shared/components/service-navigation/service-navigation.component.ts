@@ -15,7 +15,7 @@ import {
 } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
-import { SessionService } from '../../../core/services/session.service';
+import { SessionService } from '@services/session.service';
 
 @Component({
   selector: 'app-service-navigation',

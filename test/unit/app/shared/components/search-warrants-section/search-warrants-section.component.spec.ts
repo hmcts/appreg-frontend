@@ -7,7 +7,7 @@ import {
 } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 
-import { SearchWarrantsSectionComponent } from '../../../../../../src/app/shared/components/search-warrants-section/search-warrants-section.component';
+import { SearchWarrantsSectionComponent } from '@components/search-warrants-section/search-warrants-section.component';
 
 describe('SearchWarrantsSectionComponent', () => {
   let component: SearchWarrantsSectionComponent;

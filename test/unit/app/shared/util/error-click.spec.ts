@@ -4,7 +4,7 @@ import {
   focusErrorSummary,
   focusField,
   onCreateErrorClick,
-} from '../../../../../src/app/shared/util/error-click';
+} from '@util/error-click';
 
 jest.mock('@angular/common', () => ({
   isPlatformBrowser: jest.fn(),

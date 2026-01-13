@@ -2,8 +2,9 @@
 Helper functions for Standard Applicants
 */
 
-import { StandardApplicantGetSummaryDto } from '../../../generated/openapi';
-import { StandardApplicantRow } from '../util/types/applications-list-entry/types';
+import { StandardApplicantRow } from './types/applications-list-entry/types';
+
+import { StandardApplicantGetSummaryDto } from '@openapi';
 
 export function formatDate(iso?: string | null): string {
   return iso ? new Date(iso).toLocaleDateString('en-GB') : '—';

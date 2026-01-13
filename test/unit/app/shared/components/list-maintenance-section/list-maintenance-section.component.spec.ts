@@ -7,7 +7,7 @@ import {
 } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 
-import { ListMaintenanceSectionComponent } from '../../../../../../src/app/shared/components/list-maintenance-section/list-maintenance-section.component';
+import { ListMaintenanceSectionComponent } from '@components/list-maintenance-section/list-maintenance-section.component';
 
 describe('ListMaintenanceSectionComponent', () => {
   let component: ListMaintenanceSectionComponent;

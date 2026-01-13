@@ -32,7 +32,7 @@ export function mapTitleToOptionValue(
     return '';
   }
 
-  const normalised = raw.toLowerCase().replace(/\./g, '');
+  const normalised = raw.toLowerCase().replaceAll('.', '');
 
   const allowed = new Set(options.map((o) => o.value));
   if (allowed.has(normalised)) {

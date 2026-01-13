@@ -33,6 +33,7 @@ module.exports = {
     '^@openapi$': '<rootDir>/src/generated/openapi',
     '^@page-types/(.*)$': '<rootDir>/src/app/pages/$1/util/types',
     '^@shared-types/(.*)$': '<rootDir>/src/app/shared/models/$1',
+    '^@core-types/(.*)$': '<rootDir>/src/app/core/models/$1',
     '^@entry-create-util/(.*)$':
       '<rootDir>/src/app/pages/applications-list-entry-create/util/$1',
     '^@constants/(.*)$': '<rootDir>/src/app/shared/constants/$1',
@@ -40,7 +41,9 @@ module.exports = {
       '<rootDir>/src/app/shared/services/$1',
       '<rootDir>/src/app/core/services/$1',
     ],
+    '^@context/(.*)$': '<rootDir>/src/app/shared/context/$1',
     '^@validators/(.*)$': '<rootDir>/src/app/shared/validators/$1',
+    '^@interceptors/(.*)$': '<rootDir>/src/app/shared/interceptors/$1',
   },
 
   transformIgnorePatterns: [String.raw`node_modules/(?!.*\.mjs$)`],

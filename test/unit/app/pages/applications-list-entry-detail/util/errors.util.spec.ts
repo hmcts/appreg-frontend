@@ -1,8 +1,8 @@
-import { HttpErrorSummary } from '../../../../../../src/app/core/models/error/error.types';
 import {
   extractHttpProblem,
   mapHttpErrorToSummary,
-} from '../../../../../../src/app/pages/applications-list-entry-detail/util/errors.util';
+} from '@components/applications-list-entry-detail/util/errors.util';
+import { HttpErrorSummary } from '@core-types/error/error.types';
 
 describe('http-error-mapper', () => {
   describe('extractHttpProblem', () => {

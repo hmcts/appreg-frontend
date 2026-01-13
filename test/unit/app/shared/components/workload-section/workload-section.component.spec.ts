@@ -7,7 +7,7 @@ import {
 } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 
-import { WorkloadSectionComponent } from '../../../../../../src/app/shared/components/workload-section/workload-section.component';
+import { WorkloadSectionComponent } from '@components/workload-section/workload-section.component';
 
 describe('WorkloadSectionComponent', () => {
   let component: WorkloadSectionComponent;

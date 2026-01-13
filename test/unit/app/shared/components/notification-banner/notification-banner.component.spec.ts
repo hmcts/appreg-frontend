@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
-import { NotificationBannerComponent } from '../../../../../../src/app/shared/components/notification-banner/notification-banner.component';
+import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 
 describe('NotificationBannerComponent (external template)', () => {
   let fixture: ComponentFixture<NotificationBannerComponent>;

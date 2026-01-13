@@ -1,3 +1,22 @@
+/* TODO: arcpoc-816
+prio 2
+Refactor scattered flags, manual subscribe, repeated error handling
+*/
+
+/*
+Applications
+Main component for page /applications
+
+Functionality:
+onSubmit():
+  - GET request to Spring API which returns application entries based on given params
+  - If params are empty (user leaves fields empty or on default selected value) GET ALL is run
+  - Populates query based on fields that are !null/!undefined/!defaultValue
+  Helper functions:
+    @util/has
+    @util/application-status-helpers
+*/
+
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import {
   FormControl,
@@ -8,27 +27,27 @@ import {
 import { RouterLink } from '@angular/router';
 import { Subject } from 'rxjs';
 
+import { DateInputComponent } from '@components/date-input/date-input.component';
+import {
+  ErrorItem,
+  ErrorSummaryComponent,
+} from '@components/error-summary/error-summary.component';
+import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
+import { PaginationComponent } from '@components/pagination/pagination.component';
+import { SelectInputComponent } from '@components/select-input/select-input.component';
+import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
+import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
+import { TextInputComponent } from '@components/text-input/text-input.component';
 import {
   ApplicationListEntriesApi,
   EntryGetFilterDto,
   EntryGetSummaryDto,
   GetEntriesRequestParams,
-} from '../../../generated/openapi';
-import { ReferenceDataFacade } from '../../core/services/reference-data.facade';
-import { DateInputComponent } from '../../shared/components/date-input/date-input.component';
-import {
-  ErrorItem,
-  ErrorSummaryComponent,
-} from '../../shared/components/error-summary/error-summary.component';
-import { NotificationBannerComponent } from '../../shared/components/notification-banner/notification-banner.component';
-import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
-import { SelectInputComponent } from '../../shared/components/select-input/select-input.component';
-import { SortableTableComponent } from '../../shared/components/sortable-table/sortable-table.component';
-import { SuggestionsComponent } from '../../shared/components/suggestions/suggestions.component';
-import { TextInputComponent } from '../../shared/components/text-input/text-input.component';
-import { toStatus } from '../../shared/util/application-status-helpers';
-import { has } from '../../shared/util/has';
-import { PlaceFieldsBase } from '../../shared/util/place-fields.base';
+} from '@openapi';
+import { ReferenceDataFacade } from '@services/reference-data.facade';
+import { toStatus } from '@util/application-status-helpers';
+import { has } from '@util/has';
+import { PlaceFieldsBase } from '@util/place-fields.base';
 
 @Component({
   selector: 'app-applications',

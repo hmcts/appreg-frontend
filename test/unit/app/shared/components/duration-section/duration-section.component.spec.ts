@@ -7,7 +7,7 @@ import {
 } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 
-import { DurationSectionComponent } from '../../../../../../src/app/shared/components/duration-section/duration-section.component';
+import { DurationSectionComponent } from '@components/duration-section/duration-section.component';
 
 describe('DurationSectionComponent', () => {
   let component: DurationSectionComponent;

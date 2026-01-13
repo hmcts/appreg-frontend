@@ -1,4 +1,4 @@
-import { PdfService } from '../../../../../src/app/core/services/pdf.service';
+import { PdfService } from '@services/pdf.service';
 
 type JsPDFInstance = {
   internal: { pageSize: { getWidth: () => number; getHeight: () => number } };

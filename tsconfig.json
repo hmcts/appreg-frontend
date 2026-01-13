@@ -33,7 +33,10 @@
         "./src/app/shared/services/*",
         "./src/app/core/services/*"
       ],
-      "@validators/*": ["./src/app/shared/validators/*"]
+      "@guards/*": ["./src/app/guards/*"],
+      "@context/*": ["./src/app/shared/context/*"],
+      "@validators/*": ["./src/app/shared/validators/*"],
+      "@interceptors/*": ["./src/app/shared/interceptors/*"]
     }
   },
   "angularCompilerOptions": {
