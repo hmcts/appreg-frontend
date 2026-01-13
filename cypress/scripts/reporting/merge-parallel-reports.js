@@ -43,29 +43,29 @@ function findCucumberJsonFiles(baseDir) {
   // Search for cucumber JSON files in each thread directory
   threadDirs.forEach((threadDir) => {
     const threadPath = path.join(baseDir, threadDir);
-    const cucumberJsonPath = path.join(
-      threadPath,
-      'cucumber-json',
-      'cucumber-report.json',
-    );
+    const candidateDirs = [
+      path.join(threadPath, 'cucumber-json'),
+      path.join(threadPath, 'reports', 'cucumber-json'),
+    ];
 
-    if (fs.existsSync(cucumberJsonPath)) {
-      jsonFiles.push(cucumberJsonPath);
-      logger.info(`  Found: ${cucumberJsonPath}`);
-    } else {
-      // Also check in reports subdirectory (alternative structure)
-      const altPath = path.join(
-        threadPath,
-        'reports',
-        'cucumber-json',
-        'cucumber-report.json',
-      );
-      if (fs.existsSync(altPath)) {
-        jsonFiles.push(altPath);
-        logger.info(`  Found: ${altPath}`);
-      } else {
-        logger.warn(`  No cucumber JSON found in: ${threadPath}`);
+    let foundInThread = false;
+    candidateDirs.forEach((dir) => {
+      if (!fs.existsSync(dir)) {
+        return;
       }
+      const files = fs
+        .readdirSync(dir)
+        .filter((file) => file.endsWith('.json'));
+      files.forEach((file) => {
+        const fullPath = path.join(dir, file);
+        jsonFiles.push(fullPath);
+        foundInThread = true;
+        logger.info(`  Found: ${fullPath}`);
+      });
+    });
+
+    if (!foundInThread) {
+      logger.warn(`  No cucumber JSON found in: ${threadPath}`);
     }
   });
 
