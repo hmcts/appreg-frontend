@@ -5,16 +5,13 @@ import {
   provideHttpClient,
 } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import {
-  EnvironmentInjector,
-  PLATFORM_ID,
-  runInInjectionContext,
-} from '@angular/core';
+import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { ApplicationsList } from '@components/applications-list/applications-list';
+import { ApplicationsListState } from '@components/applications-list/util/applications-list.state';
 import * as LoadQuery from '@components/applications-list/util/load-query';
 import { IF_MATCH, ROW_VERSION } from '@context/concurrency-context';
 import {
@@ -32,6 +29,7 @@ import {
 } from '@openapi';
 import { PdfService } from '@services/pdf.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
+import { ApplicationListRow } from '@util/types/application-list/types';
 
 const makePrintDto = (entries: unknown[] = []): ApplicationListGetPrintDto =>
   <ApplicationListGetPrintDto>{
@@ -75,6 +73,28 @@ class PdfServiceStub implements Pick<
   generateContinuousApplicationListsPdf = jest.fn<Promise<void>, [unknown[]]>();
 }
 
+const getState = (component: ApplicationsList) => component.vm();
+const patchState = (
+  component: ApplicationsList,
+  patch: Partial<ApplicationsListState>,
+) =>
+  (
+    component as unknown as {
+      signalState: { patch: (p: Partial<ApplicationsListState>) => void };
+    }
+  ).signalState.patch(patch);
+const flushSignalEffects = async (
+  fixture?: ComponentFixture<ApplicationsList>,
+): Promise<void> => {
+  if (fixture) {
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    return;
+  }
+  await Promise.resolve();
+};
+
 /**
  * Helper to build the component. Accepts:
  *  - platformId: 'browser' | 'server'
@@ -82,7 +102,7 @@ class PdfServiceStub implements Pick<
  */
 function createInstance(
   platformId: 'browser' | 'server' = 'browser',
-  rows: Array<{ id?: string | null }> = [],
+  rows: ApplicationListRow[] = [],
 ) {
   const api: { printApplicationList: jest.Mock } = {
     printApplicationList: jest.fn(),
@@ -93,7 +113,9 @@ function createInstance(
 
   TestBed.resetTestingModule();
   TestBed.configureTestingModule({
+    imports: [ApplicationsList],
     providers: [
+      provideRouter([]),
       { provide: PLATFORM_ID, useValue: platformId },
       { provide: ApplicationListsApi, useValue: api },
       { provide: ReferenceDataFacade, useValue: refFacade },
@@ -101,10 +123,11 @@ function createInstance(
     ],
   });
 
-  const injector = TestBed.inject(EnvironmentInjector);
-  const comp = runInInjectionContext(injector, () => new ApplicationsList());
+  const fixture = TestBed.createComponent(ApplicationsList);
+  const comp = fixture.componentInstance;
+  fixture.detectChanges();
 
-  (comp as unknown as { rows: Array<{ id?: string | null }> }).rows = rows;
+  patchState(comp, { rows });
 
   const clearNotificationsSpy = jest.fn();
   const showInlineSpy = jest.fn();
@@ -113,7 +136,7 @@ function createInstance(
   (comp as unknown as { showInline: (m: string) => void }).showInline =
     showInlineSpy;
 
-  return { comp, api, pdf, clearNotificationsSpy, showInlineSpy };
+  return { comp, api, pdf, clearNotificationsSpy, showInlineSpy, fixture };
 }
 
 function submitEvent(value: string | null = 'search'): {
@@ -160,29 +183,31 @@ describe('ApplicationsList – delete flow (server platform: no confirm)', () =>
     fixture = TestBed.createComponent(ApplicationsList);
     component = fixture.componentInstance;
     // avoid ngOnInit’s demo data; set our own rows
-    component.rows = [
-      {
-        id: 'abc-123',
-        date: '2025-10-01',
-        time: '09:30',
-        location: 'X',
-        description: 'Y',
-        entries: 0,
-        status: ApplicationListStatus.OPEN,
-        deletable: true,
-        etag: 'W/"etag-val"',
-        rowVersion: '42',
-      },
-      {
-        id: 'keep-me',
-        date: '',
-        time: '',
-        location: '',
-        description: '',
-        entries: 0,
-        status: ApplicationListStatus.OPEN,
-      },
-    ];
+    patchState(component, {
+      rows: [
+        {
+          id: 'abc-123',
+          date: '2025-10-01',
+          time: '09:30',
+          location: 'X',
+          description: 'Y',
+          entries: 0,
+          status: ApplicationListStatus.OPEN,
+          deletable: true,
+          etag: 'W/"etag-val"',
+          rowVersion: '42',
+        },
+        {
+          id: 'keep-me',
+          date: '',
+          time: '',
+          location: '',
+          description: '',
+          entries: 0,
+          status: ApplicationListStatus.OPEN,
+        },
+      ],
+    });
   });
 
   it('guards when row.deletable === false: sets error and does NOT call API', async () => {
@@ -196,18 +221,19 @@ describe('ApplicationsList – delete flow (server platform: no confirm)', () =>
       status: ApplicationListStatus.OPEN,
       deletable: false,
     };
-    await component.onDelete(row);
+    component.onDelete(row);
+    await flushSignalEffects(fixture);
 
-    expect(component.deleteInvalid).toBe(true);
-    expect(component.errorSummary).toEqual([
+    expect(getState(component).deleteInvalid).toBe(true);
+    expect(getState(component).errorSummary).toEqual([
       { text: 'This list cannot be deleted.' },
     ]);
     expect(api.deleteApplicationList).not.toHaveBeenCalled();
-    expect(component.deletingId).toBeNull();
+    expect(getState(component).deletingId).toBeNull();
   });
 
   it('on success (204) removes row and sets deleteDone=true; passes ETag/RowVersion via HttpContext', async () => {
-    const row = component.rows[0]; // abc-123
+    const row = getState(component).rows[0]; // abc-123
 
     // capture call args to inspect HttpContext values
     let capturedOptions: { context?: HttpContext } | undefined;
@@ -219,7 +245,8 @@ describe('ApplicationsList – delete flow (server platform: no confirm)', () =>
       },
     );
 
-    await component.onDelete(row);
+    component.onDelete(row);
+    await flushSignalEffects(fixture);
 
     expect(api.deleteApplicationList).toHaveBeenCalledTimes(1);
     expect(api.deleteApplicationList.mock.calls[0][0]).toEqual({
@@ -231,13 +258,15 @@ describe('ApplicationsList – delete flow (server platform: no confirm)', () =>
     expect(capturedOptions?.context?.get(ROW_VERSION)).toBe('42');
 
     // Row removed, banner flag set, deletingId reset
-    expect(component.rows.find((r) => r.id === 'abc-123')).toBeUndefined();
-    expect(component.rows).toHaveLength(1);
-    expect(component.rows[0].id).toBe('keep-me');
-    expect(component.deleteDone).toBe(true);
-    expect(component.deleteInvalid).toBe(false);
-    expect(component.errorSummary).toEqual([]);
-    expect(component.deletingId).toBeNull();
+    expect(
+      getState(component).rows.find((r) => r.id === 'abc-123'),
+    ).toBeUndefined();
+    expect(getState(component).rows).toHaveLength(1);
+    expect(getState(component).rows[0].id).toBe('keep-me');
+    expect(getState(component).deleteDone).toBe(true);
+    expect(getState(component).deleteInvalid).toBe(false);
+    expect(getState(component).errorSummary).toEqual([]);
+    expect(getState(component).deletingId).toBeNull();
   });
 
   describe('error mapping -> inline error summary', () => {
@@ -287,32 +316,35 @@ describe('ApplicationsList – delete flow (server platform: no confirm)', () =>
         };
 
         // keep a couple of rows to confirm list remains intact on error
-        component.rows = [
-          { ...row },
-          {
-            id: 'keep-me',
-            date: '',
-            time: '',
-            location: '',
-            description: '',
-            entries: 0,
-            status: ApplicationListStatus.OPEN,
-          },
-        ];
+        patchState(component, {
+          rows: [
+            { ...row },
+            {
+              id: 'keep-me',
+              date: '',
+              time: '',
+              location: '',
+              description: '',
+              entries: 0,
+              status: ApplicationListStatus.OPEN,
+            },
+          ],
+        });
 
-        await component.onDelete(row);
+        component.onDelete(row);
+        await flushSignalEffects(fixture);
 
         // API was called
         expect(api.deleteApplicationList).toHaveBeenCalled();
 
         // Error flags and message mapping
-        expect(component.deleteDone).toBe(false);
-        expect(component.deleteInvalid).toBe(true);
-        expect(component.errorSummary[0].text).toBe(firstText);
+        expect(getState(component).deleteDone).toBe(false);
+        expect(getState(component).deleteInvalid).toBe(true);
+        expect(getState(component).errorSummary[0].text).toBe(firstText);
 
         // Row NOT removed on error; deletingId reset
-        expect(component.rows).toHaveLength(2);
-        expect(component.deletingId).toBeNull();
+        expect(getState(component).rows).toHaveLength(2);
+        expect(getState(component).deletingId).toBeNull();
       },
     );
   });
@@ -343,36 +375,38 @@ describe('ApplicationsList – delete flow (browser platform: confirm cancel)', 
     fixture = TestBed.createComponent(ApplicationsList);
     component = fixture.componentInstance;
 
-    component.rows = [
-      {
-        id: 'abc-123',
-        date: '2025-10-01',
-        time: '09:30',
-        location: 'X',
-        description: 'Y',
-        entries: 0,
-        status: ApplicationListStatus.OPEN,
-        deletable: true,
-      },
-    ];
+    patchState(component, {
+      rows: [
+        {
+          id: 'abc-123',
+          date: '2025-10-01',
+          time: '09:30',
+          location: 'X',
+          description: 'Y',
+          entries: 0,
+          status: ApplicationListStatus.OPEN,
+          deletable: true,
+        },
+      ],
+    });
   });
 
   afterEach(() => {
     (globalThis.confirm as jest.Mock)?.mockRestore?.();
   });
 
-  it('when user cancels confirmation, does NOT call API and leaves state unchanged', async () => {
-    await component.onDelete(component.rows[0]);
+  it('when user cancels confirmation, does NOT call API and leaves state unchanged', () => {
+    component.onDelete(getState(component).rows[0]);
 
     expect(globalThis.confirm).toHaveBeenCalled();
     expect(api.deleteApplicationList).not.toHaveBeenCalled();
 
     // no flags set, no removal, deletingId stays null
-    expect(component.deleteDone).toBe(false);
-    expect(component.deleteInvalid).toBe(false);
-    expect(component.errorSummary).toEqual([]);
-    expect(component.rows).toHaveLength(1);
-    expect(component.deletingId).toBeNull();
+    expect(getState(component).deleteDone).toBe(false);
+    expect(getState(component).deleteInvalid).toBe(false);
+    expect(getState(component).errorSummary).toEqual([]);
+    expect(getState(component).rows).toHaveLength(1);
+    expect(getState(component).deletingId).toBeNull();
   });
 });
 
@@ -421,8 +455,7 @@ describe('ApplicationsList – search', () => {
       getApplicationLists: jest.Mock;
     };
 
-    component.pageSize = 25;
-    component.currentPage = 1;
+    patchState(component, { pageSize: 25, currentPage: 1 });
     fixture.detectChanges();
   });
 
@@ -446,16 +479,16 @@ describe('ApplicationsList – search', () => {
 
   it('when hasParams=false, does not call API and surfaces validation error', () => {
     service.getApplicationLists.mockClear();
-    component.searchErrors = [];
+    patchState(component, { searchErrors: [] });
     component.loadApplicationsLists(false);
     expect(service.getApplicationLists).not.toHaveBeenCalled();
-    expect(component.searchErrors[0]).toEqual({
+    expect(getState(component).searchErrors[0]).toEqual({
       id: '',
       text: 'Invalid Search Criteria. At least one field must be entered.',
     });
   });
 
-  it('merges filter when hasParams=true', () => {
+  it('merges filter when hasParams=true', async () => {
     jest.spyOn(LoadQuery, 'loadQuery').mockReturnValue({
       status: ApplicationListStatus.OPEN,
       courtLocationCode: 'LOC1',
@@ -465,6 +498,7 @@ describe('ApplicationsList – search', () => {
 
     applicationsListsApiMock.getApplicationLists.mockClear();
     component.loadApplicationsLists(true);
+    await flushSignalEffects(fixture);
     const args = service.getApplicationLists.mock
       .calls[0][0] as GetApplicationListsRequestParams;
     expect(args.filter).toEqual({
@@ -473,7 +507,7 @@ describe('ApplicationsList – search', () => {
     });
   });
 
-  it('formats date as YYYY-MM-DD and trims time to HH:mm', () => {
+  it('formats date as YYYY-MM-DD and trims time to HH:mm', async () => {
     service.getApplicationLists.mockReturnValue(
       of(
         pageStub([
@@ -490,44 +524,49 @@ describe('ApplicationsList – search', () => {
       ),
     );
     component.loadApplicationsLists(true);
-    expect(component.rows).toHaveLength(1);
-    expect(component.rows[0].date).toBe('2025-09-17');
-    expect(component.rows[0].time).toBe('14:05');
-    expect(component.rows[0].entries).toBe(7);
+    await flushSignalEffects(fixture);
+    expect(getState(component).rows).toHaveLength(1);
+    expect(getState(component).rows[0].date).toBe('2025-09-17');
+    expect(getState(component).rows[0].time).toBe('14:05');
+    expect(getState(component).rows[0].entries).toBe(7);
   });
 
-  it('sets totals from page response', () => {
+  it('sets totals from page response', async () => {
     service.getApplicationLists.mockReturnValue(
       of(pageStub([], { totalElements: 10, totalPages: 2 })),
     );
 
     component.loadApplicationsLists(true);
-    expect(component.totalPages).toBe(2);
+    await flushSignalEffects(fixture);
+    expect(getState(component).totalPages).toBe(2);
   });
 
-  it('handles backend error: clears rows, zeros totals, sets submitted and searchErrors', () => {
+  it('handles backend error: clears rows, zeros totals, sets submitted and searchErrors', async () => {
     service.getApplicationLists.mockReturnValue(
       throwError(() => new Error('Request failed')),
     );
-    component.rows = [
-      {
-        id: 'keep',
-        date: '2025-01-01',
-        time: '10:00',
-        location: '',
-        description: '',
-        entries: 0,
-        status: ApplicationListStatus.OPEN,
-      },
-    ];
-    component.totalPages = 3;
-    component.submitted = false;
-    component.searchErrors = [];
+    patchState(component, {
+      rows: [
+        {
+          id: 'keep',
+          date: '2025-01-01',
+          time: '10:00',
+          location: '',
+          description: '',
+          entries: 0,
+          status: ApplicationListStatus.OPEN,
+        },
+      ],
+      totalPages: 3,
+      submitted: false,
+      searchErrors: [],
+    });
     component.loadApplicationsLists(true);
-    expect(component.rows).toHaveLength(0);
-    expect(component.totalPages).toBe(0);
-    expect(component.submitted).toBe(true);
-    expect(component.searchErrors[0]).toEqual({
+    await flushSignalEffects(fixture);
+    expect(getState(component).rows).toHaveLength(0);
+    expect(getState(component).totalPages).toBe(0);
+    expect(getState(component).submitted).toBe(true);
+    expect(getState(component).searchErrors[0]).toEqual({
       id: 'search',
       text: 'Request failed',
     });
@@ -535,22 +574,23 @@ describe('ApplicationsList – search', () => {
 
   it('when hasParams=false, does not call API and shows the same validation error', () => {
     service.getApplicationLists.mockClear();
-    component.searchErrors = [];
+    patchState(component, { searchErrors: [] });
     component.loadApplicationsLists(false);
     expect(service.getApplicationLists).not.toHaveBeenCalled();
-    expect(component.searchErrors[0]).toEqual({
+    expect(getState(component).searchErrors[0]).toEqual({
       id: '',
       text: 'Invalid Search Criteria. At least one field must be entered.',
     });
   });
 
-  it('includes filter object when hasParams=true even if partial', () => {
+  it('includes filter object when hasParams=true even if partial', async () => {
     jest.spyOn(LoadQuery, 'loadQuery').mockReturnValue({
       status: ApplicationListStatus.CLOSED,
     } as ApplicationListGetFilterDto);
 
     service.getApplicationLists.mockReturnValue(of(pageStub([])));
     component.loadApplicationsLists(true);
+    await flushSignalEffects(fixture);
     const args = service.getApplicationLists.mock
       .calls[0][0] as GetApplicationListsRequestParams;
     expect(args.filter).toEqual({ status: 'CLOSED' });
@@ -606,8 +646,8 @@ describe('ApplicationsList – search', () => {
       component.onSubmit(e);
 
       expect(preventDefault).toHaveBeenCalled();
-      expect(component.submitted).toBe(true);
-      expect(component.searchErrors).toEqual([
+      expect(getState(component).submitted).toBe(true);
+      expect(getState(component).searchErrors).toEqual([
         { id: 'date-day', text: 'Enter a valid date' },
         { id: 'time-hours', text: 'Enter a valid time' },
       ]);
@@ -623,15 +663,15 @@ describe('ApplicationsList – search', () => {
       component.form.controls.date.setErrors(null);
       component.form.controls.time.setErrors(null);
 
-      component.currentPage = 3;
+      patchState(component, { currentPage: 3 });
 
       const { e, preventDefault } = submitEvent('search');
       component.onSubmit(e);
 
       expect(preventDefault).toHaveBeenCalled();
-      expect(component.submitted).toBe(true);
-      expect(component.isSearch).toBe(true);
-      expect(component.currentPage).toBe(1);
+      expect(getState(component).submitted).toBe(true);
+      expect(getState(component).isSearch).toBe(true);
+      expect(getState(component).currentPage).toBe(1);
       expect(spy).toHaveBeenCalledWith(true);
     });
 
@@ -657,10 +697,10 @@ describe('ApplicationsList.onPrintPage', () => {
     jest.resetAllMocks();
   });
 
-  it('returns early when id is falsy', async () => {
+  it('returns early when id is falsy', () => {
     const { comp, api, pdf, clearNotificationsSpy } = createInstance('browser');
 
-    await comp.onPrintPage('');
+    comp.onPrintPage('');
 
     expect(clearNotificationsSpy).not.toHaveBeenCalled();
     expect(api.printApplicationList).not.toHaveBeenCalled();
@@ -668,12 +708,14 @@ describe('ApplicationsList.onPrintPage', () => {
   });
 
   it('clears errors and calls API with transferCache: false', async () => {
-    const { comp, api, clearNotificationsSpy } = createInstance('browser');
+    const { comp, api, clearNotificationsSpy, fixture } =
+      createInstance('browser');
 
     const dto = makePrintDto([]);
     api.printApplicationList.mockReturnValue(of(dto));
 
-    await comp.onPrintPage('abc-123');
+    comp.onPrintPage('abc-123');
+    await flushSignalEffects(fixture);
 
     expect(clearNotificationsSpy).toHaveBeenCalledTimes(1);
 
@@ -690,19 +732,21 @@ describe('ApplicationsList.onPrintPage', () => {
   });
 
   it('shows inline message when there are no entries', async () => {
-    const { comp, api, pdf, showInlineSpy } = createInstance('browser');
+    const { comp, api, pdf, showInlineSpy, fixture } =
+      createInstance('browser');
 
     const dto = makePrintDto([]);
     api.printApplicationList.mockReturnValue(of(dto));
 
-    await comp.onPrintPage('abc-123');
+    comp.onPrintPage('abc-123');
+    await flushSignalEffects(fixture);
 
     expect(showInlineSpy).toHaveBeenCalledWith('No entries available to print');
     expect(pdf.generatePagedApplicationListPdf).not.toHaveBeenCalled();
   });
 
   it('generates PDF on the browser when entries exist', async () => {
-    const { comp, api, pdf } = createInstance('browser');
+    const { comp, api, pdf, fixture } = createInstance('browser');
 
     // include at least one entry so the component proceeds to generate the PDF
     const dto = makePrintDto([{}]);
@@ -710,7 +754,8 @@ describe('ApplicationsList.onPrintPage', () => {
     // ensure the mock is typed like the real method’s return
     api.printApplicationList.mockReturnValue(of(dto));
 
-    await comp.onPrintPage('abc-123');
+    comp.onPrintPage('abc-123');
+    await flushSignalEffects(fixture);
 
     expect(pdf.generatePagedApplicationListPdf).toHaveBeenCalledTimes(1);
     expect(pdf.generatePagedApplicationListPdf).toHaveBeenCalledWith(dto, {
@@ -719,36 +764,39 @@ describe('ApplicationsList.onPrintPage', () => {
   });
 
   it('does not generate PDF on the server platform', async () => {
-    const { comp, api, pdf } = createInstance('server');
+    const { comp, api, pdf, fixture } = createInstance('server');
 
     const dto = makePrintDto([]);
     api.printApplicationList.mockReturnValue(of(dto));
 
-    await comp.onPrintPage('abc-123');
+    comp.onPrintPage('abc-123');
+    await flushSignalEffects(fixture);
 
     expect(pdf.generatePagedApplicationListPdf).not.toHaveBeenCalled();
   });
 
   it('maps 404 to "Application List not found"', async () => {
-    const { comp, api, showInlineSpy } = createInstance('browser');
+    const { comp, api, showInlineSpy, fixture } = createInstance('browser');
 
     api.printApplicationList.mockReturnValue(
       throwError(() => ({ status: 404 })),
     );
 
-    await comp.onPrintPage('abc-123');
+    comp.onPrintPage('abc-123');
+    await flushSignalEffects(fixture);
 
     expect(showInlineSpy).toHaveBeenCalledWith('Application List not found');
   });
 
   it('maps non-404 errors to generic banner', async () => {
-    const { comp, api, showInlineSpy } = createInstance('browser');
+    const { comp, api, showInlineSpy, fixture } = createInstance('browser');
 
     api.printApplicationList.mockReturnValue(
       throwError(() => ({ status: 500 })),
     );
 
-    await comp.onPrintPage('abc-123');
+    comp.onPrintPage('abc-123');
+    await flushSignalEffects(fixture);
 
     expect(showInlineSpy).toHaveBeenCalledWith(
       'Unable to generate PDF. Please try again later',
@@ -762,10 +810,11 @@ describe('ApplicationsList.onPrintContinuous', () => {
   });
 
   it('returns early on non-browser platform', async () => {
-    const { comp, api, pdf, clearNotificationsSpy, showInlineSpy } =
+    const { comp, api, pdf, clearNotificationsSpy, showInlineSpy, fixture } =
       createInstance('server');
 
-    await comp.onPrintContinuous('abc-123', false);
+    comp.onPrintContinuous('abc-123', false);
+    await flushSignalEffects(fixture);
 
     expect(clearNotificationsSpy).not.toHaveBeenCalled();
     expect(api.printApplicationList).not.toHaveBeenCalled();
@@ -773,11 +822,11 @@ describe('ApplicationsList.onPrintContinuous', () => {
     expect(showInlineSpy).not.toHaveBeenCalled();
   });
 
-  it('returns early when id is falsy', async () => {
+  it('returns early when id is falsy', () => {
     const { comp, api, pdf, clearNotificationsSpy, showInlineSpy } =
       createInstance('browser');
 
-    await comp.onPrintContinuous('', false);
+    comp.onPrintContinuous('', false);
 
     expect(clearNotificationsSpy).not.toHaveBeenCalled();
     expect(api.printApplicationList).not.toHaveBeenCalled();
@@ -786,12 +835,14 @@ describe('ApplicationsList.onPrintContinuous', () => {
   });
 
   it('clears errors and calls API with transferCache: false', async () => {
-    const { comp, api, clearNotificationsSpy } = createInstance('browser');
+    const { comp, api, clearNotificationsSpy, fixture } =
+      createInstance('browser');
 
     const dto = makePrintDto([{ a: 1 } as unknown]);
     api.printApplicationList.mockReturnValue(of(dto));
 
-    await comp.onPrintContinuous('abc-123', false);
+    comp.onPrintContinuous('abc-123', false);
+    await flushSignalEffects(fixture);
 
     expect(clearNotificationsSpy).toHaveBeenCalledTimes(1);
 
@@ -807,23 +858,26 @@ describe('ApplicationsList.onPrintContinuous', () => {
   });
 
   it('shows inline message when there are no entries', async () => {
-    const { comp, api, pdf, showInlineSpy } = createInstance('browser');
+    const { comp, api, pdf, showInlineSpy, fixture } =
+      createInstance('browser');
 
     api.printApplicationList.mockReturnValue(of(makePrintDto([])));
 
-    await comp.onPrintContinuous('abc-123', false);
+    comp.onPrintContinuous('abc-123', false);
+    await flushSignalEffects(fixture);
 
     expect(showInlineSpy).toHaveBeenCalledWith('No entries available to print');
     expect(pdf.generateContinuousApplicationListsPdf).not.toHaveBeenCalled();
   });
 
   it('generates PDF on the browser when entries exist', async () => {
-    const { comp, api, pdf } = createInstance('browser');
+    const { comp, api, pdf, fixture } = createInstance('browser');
 
     const dto = makePrintDto([{}]);
     api.printApplicationList.mockReturnValue(of(dto));
 
-    await comp.onPrintContinuous('abc-123', false);
+    comp.onPrintContinuous('abc-123', false);
+    await flushSignalEffects(fixture);
 
     expect(pdf.generateContinuousApplicationListsPdf).toHaveBeenCalledTimes(1);
     expect(pdf.generateContinuousApplicationListsPdf).toHaveBeenCalledWith(
@@ -833,7 +887,8 @@ describe('ApplicationsList.onPrintContinuous', () => {
   });
 
   it('shows a generic error if PDF generation rejects', async () => {
-    const { comp, api, pdf, showInlineSpy } = createInstance('browser');
+    const { comp, api, pdf, showInlineSpy, fixture } =
+      createInstance('browser');
 
     const dto = makePrintDto([{ x: 1 } as unknown]);
     api.printApplicationList.mockReturnValue(of(dto));
@@ -841,7 +896,8 @@ describe('ApplicationsList.onPrintContinuous', () => {
       new Error('pdf fail'),
     );
 
-    await comp.onPrintContinuous('abc-123', false);
+    comp.onPrintContinuous('abc-123', false);
+    await flushSignalEffects(fixture);
 
     expect(api.printApplicationList).toHaveBeenCalledTimes(1);
     expect(pdf.generateContinuousApplicationListsPdf).toHaveBeenCalledTimes(1);
