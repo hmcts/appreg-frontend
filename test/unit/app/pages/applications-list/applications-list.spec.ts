@@ -588,31 +588,6 @@ describe('ApplicationsList – search', () => {
     });
   });
 
-  describe('hasAnyParams', () => {
-    type PrivateApi = {
-      hasAnyParams(): boolean;
-    };
-
-    const hasAny = () => (component as unknown as PrivateApi).hasAnyParams();
-
-    it('returns false when all fields are empty/default', () => {
-      component.form.controls.date.setValue(null);
-      component.form.controls.time.setValue(null);
-      component.form.controls.description.setValue('');
-      component.form.controls.status.setValue(null);
-      component.form.controls.court.setValue('');
-      component.form.controls.location.setValue('');
-      component.form.controls.cja.setValue('');
-
-      expect(hasAny()).toBe(false);
-    });
-
-    it('returns true when any field has a value', () => {
-      component.form.controls.date.setValue('2025-12-15');
-      expect(hasAny()).toBe(true);
-    });
-  });
-
   describe('onSubmit', () => {
     it('collects date/time validation errors and does not run search', () => {
       const spy = jest.spyOn(component, 'loadApplicationsLists');

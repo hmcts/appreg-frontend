@@ -49,6 +49,7 @@ import { Subject, firstValueFrom, takeUntil } from 'rxjs';
 
 import { statusSummary } from './util/delete-status';
 import { loadQuery } from './util/load-query';
+import { hasAnyParams, toRow } from './util/routing-state-util';
 
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import {
@@ -79,11 +80,9 @@ import {
 } from '@openapi';
 import { PdfService } from '@services/pdf.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
-import { has } from '@util/has';
 import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
-import { normaliseTime } from '@util/time-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
 
 @Component({
@@ -213,7 +212,7 @@ export class ApplicationsList
       return;
     }
 
-    const hasAny = this.hasAnyParams();
+    const hasAny = hasAnyParams(this.form);
 
     if (action === 'search') {
       this.submitted = true;
@@ -275,7 +274,7 @@ export class ApplicationsList
 
   onPageChange(page: number): void {
     this.currentPage = page;
-    const hasAny = this.hasAnyParams();
+    const hasAny = hasAnyParams(this.form);
     this.loadApplicationsLists(hasAny);
   }
 
@@ -400,7 +399,7 @@ export class ApplicationsList
           this.submitted = true;
           this.totalPages = page.totalPages ?? 0;
           const content: ApplicationListGetSummaryDto[] = page.content ?? [];
-          this.rows = content.map((x) => this.toRow(x));
+          this.rows = content.map((x) => toRow(x));
           this.isLoading = false;
         },
         error: (err) => {
@@ -412,33 +411,6 @@ export class ApplicationsList
           this.searchErrors = [{ id: 'search', text: msg }];
         },
       });
-  }
-
-  private toRow(x: ApplicationListGetSummaryDto): ApplicationListRow {
-    return {
-      id: x.id,
-      date: x.date,
-      time: normaliseTime(x.time) ?? '',
-      location: x.location,
-      description: x.description,
-      entries: x.entriesCount,
-      status: x.status,
-      deletable: x.status === ApplicationListStatus.OPEN,
-      etag: null,
-      rowVersion: null,
-    };
-  }
-
-  private hasAnyParams(): boolean {
-    return (
-      has(this.form.value.date) ||
-      has(this.form.value.time) ||
-      has(this.form.value.description) ||
-      has(this.form.value.status) ||
-      has(this.form.value.court) ||
-      has(this.form.value.location) ||
-      has(this.form.value.cja)
-    );
   }
 
   focusField(id: string, e: Event): void {
@@ -465,6 +437,7 @@ export class ApplicationsList
     this.errorSummary = [{ text: message }];
   }
 
+  // TODO: remove for ARCPOC 783 when we sort via backend
   private buildTrailingNumericSortKey(value: unknown): string {
     if (value === null) {
       return '';
