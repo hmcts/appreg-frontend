@@ -18,7 +18,7 @@ export const createSignalState = <T extends object>(
   return { state, vm, patch };
 };
 
-export interface LoadEffectOptions<TParams, TResponse> {
+interface LoadEffectOptions<TParams, TResponse> {
   // Signal getter used to trigger the effect when params change
   request: () => TParams | null;
   load: (params: TParams) => Observable<TResponse>;
