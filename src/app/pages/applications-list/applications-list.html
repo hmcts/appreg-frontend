@@ -130,12 +130,14 @@
     <button id="search" type="submit" class="govuk-button" value="search">
       Search
     </button>
-    <a
-      class="govuk-link"
-      href="#"
-      (click)="clearSearch(); $event.preventDefault()"
-      >Clear search</a
+    <button
+      class="govuk-button govuk-button--secondary"
+      type="button"
+      data-module="govuk-button"
+      (click)="clearSearch()"
     >
+      Clear search
+    </button>
   </div>
 </form>
 
