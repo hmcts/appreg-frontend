@@ -11,7 +11,11 @@ import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { ApplicationsList } from '@components/applications-list/applications-list';
-import { ApplicationsListState } from '@components/applications-list/util/applications-list.state';
+import { APPLICATIONS_LIST_COLUMNS } from '@components/applications-list/util/applications-list.constants';
+import {
+  ApplicationsListState,
+  clearNotificationsPatch,
+} from '@components/applications-list/util/applications-list.state';
 import * as LoadQuery from '@components/applications-list/util/load-query';
 import { IF_MATCH, ROW_VERSION } from '@context/concurrency-context';
 import {
@@ -129,14 +133,18 @@ function createInstance(
 
   patchState(comp, { rows });
 
-  const clearNotificationsSpy = jest.fn();
   const showInlineSpy = jest.fn();
-  (comp as unknown as { clearNotifications: () => void }).clearNotifications =
-    clearNotificationsSpy;
   (comp as unknown as { showInline: (m: string) => void }).showInline =
     showInlineSpy;
 
-  return { comp, api, pdf, clearNotificationsSpy, showInlineSpy, fixture };
+  const signalState = (
+    comp as unknown as {
+      signalState: { patch: (p: Partial<ApplicationsListState>) => void };
+    }
+  ).signalState;
+  const patchSpy = jest.spyOn(signalState, 'patch');
+
+  return { comp, api, pdf, patchSpy, showInlineSpy, fixture };
 }
 
 function submitEvent(value: string | null = 'search'): {
@@ -597,12 +605,15 @@ describe('ApplicationsList – search', () => {
   });
 
   describe('buildTrailingNumericSortKey', () => {
-    type PrivateApi = {
-      buildTrailingNumericSortKey(value: unknown): string;
+    const sortKey = (v: unknown) => {
+      const column = APPLICATIONS_LIST_COLUMNS.find(
+        (item) => item.field === 'location',
+      );
+      if (!column?.sortValue) {
+        throw new Error('Location column sortValue is missing');
+      }
+      return column.sortValue({ location: v } as Record<string, unknown>);
     };
-
-    const sortKey = (v: unknown) =>
-      (component as unknown as PrivateApi).buildTrailingNumericSortKey(v);
 
     it('returns empty string for null, empty string, and unsupported types', () => {
       expect(sortKey(null)).toBe('');
@@ -698,18 +709,19 @@ describe('ApplicationsList.onPrintPage', () => {
   });
 
   it('returns early when id is falsy', () => {
-    const { comp, api, pdf, clearNotificationsSpy } = createInstance('browser');
+    const { comp, api, pdf, patchSpy } = createInstance('browser');
+    patchSpy.mockClear();
 
     comp.onPrintPage('');
 
-    expect(clearNotificationsSpy).not.toHaveBeenCalled();
+    expect(patchSpy).not.toHaveBeenCalled();
     expect(api.printApplicationList).not.toHaveBeenCalled();
     expect(pdf.generatePagedApplicationListPdf).not.toHaveBeenCalled();
   });
 
   it('clears errors and calls API with transferCache: false', async () => {
-    const { comp, api, clearNotificationsSpy, fixture } =
-      createInstance('browser');
+    const { comp, api, patchSpy, fixture } = createInstance('browser');
+    patchSpy.mockClear();
 
     const dto = makePrintDto([]);
     api.printApplicationList.mockReturnValue(of(dto));
@@ -717,7 +729,8 @@ describe('ApplicationsList.onPrintPage', () => {
     comp.onPrintPage('abc-123');
     await flushSignalEffects(fixture);
 
-    expect(clearNotificationsSpy).toHaveBeenCalledTimes(1);
+    expect(patchSpy).toHaveBeenCalledTimes(1);
+    expect(patchSpy).toHaveBeenCalledWith(clearNotificationsPatch());
 
     // args: { id }, undefined, undefined, { transferCache: false }
     expect(api.printApplicationList).toHaveBeenCalledTimes(1);
@@ -810,33 +823,35 @@ describe('ApplicationsList.onPrintContinuous', () => {
   });
 
   it('returns early on non-browser platform', async () => {
-    const { comp, api, pdf, clearNotificationsSpy, showInlineSpy, fixture } =
+    const { comp, api, pdf, patchSpy, showInlineSpy, fixture } =
       createInstance('server');
+    patchSpy.mockClear();
 
     comp.onPrintContinuous('abc-123', false);
     await flushSignalEffects(fixture);
 
-    expect(clearNotificationsSpy).not.toHaveBeenCalled();
+    expect(patchSpy).not.toHaveBeenCalled();
     expect(api.printApplicationList).not.toHaveBeenCalled();
     expect(pdf.generateContinuousApplicationListsPdf).not.toHaveBeenCalled();
     expect(showInlineSpy).not.toHaveBeenCalled();
   });
 
   it('returns early when id is falsy', () => {
-    const { comp, api, pdf, clearNotificationsSpy, showInlineSpy } =
+    const { comp, api, pdf, patchSpy, showInlineSpy } =
       createInstance('browser');
+    patchSpy.mockClear();
 
     comp.onPrintContinuous('', false);
 
-    expect(clearNotificationsSpy).not.toHaveBeenCalled();
+    expect(patchSpy).not.toHaveBeenCalled();
     expect(api.printApplicationList).not.toHaveBeenCalled();
     expect(pdf.generateContinuousApplicationListsPdf).not.toHaveBeenCalled();
     expect(showInlineSpy).not.toHaveBeenCalled();
   });
 
   it('clears errors and calls API with transferCache: false', async () => {
-    const { comp, api, clearNotificationsSpy, fixture } =
-      createInstance('browser');
+    const { comp, api, patchSpy, fixture } = createInstance('browser');
+    patchSpy.mockClear();
 
     const dto = makePrintDto([{ a: 1 } as unknown]);
     api.printApplicationList.mockReturnValue(of(dto));
@@ -844,7 +859,8 @@ describe('ApplicationsList.onPrintContinuous', () => {
     comp.onPrintContinuous('abc-123', false);
     await flushSignalEffects(fixture);
 
-    expect(clearNotificationsSpy).toHaveBeenCalledTimes(1);
+    expect(patchSpy).toHaveBeenCalledTimes(1);
+    expect(patchSpy).toHaveBeenCalledWith(clearNotificationsPatch());
 
     expect(api.printApplicationList).toHaveBeenCalledTimes(1);
     expect(api.printApplicationList.mock.calls[0][0]).toEqual({

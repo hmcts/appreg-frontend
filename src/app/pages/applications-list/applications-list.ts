@@ -32,10 +32,14 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { map } from 'rxjs/operators';
 
+import {
+  APPLICATIONS_LIST_CHOOSE_STATUS,
+  APPLICATIONS_LIST_COLUMNS,
+} from './util/applications-list.constants';
 import {
   ApplicationsListState,
   clearNotificationsPatch,
@@ -46,10 +50,7 @@ import { loadQuery } from './util/load-query';
 import { hasAnyParams, toRow } from './util/routing-state-util';
 
 import { DateInputComponent } from '@components/date-input/date-input.component';
-import {
-  Duration,
-  DurationInputComponent,
-} from '@components/duration-input/duration-input.component';
+import { DurationInputComponent } from '@components/duration-input/duration-input.component';
 import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
@@ -69,6 +70,7 @@ import {
   ApplicationListsApi,
   GetApplicationListsRequestParams,
 } from '@openapi';
+import { ApplicationsListFormService } from '@services/applications-list-form.service';
 import { PdfService } from '@services/pdf.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
@@ -105,6 +107,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   private readonly appListsApi = inject(ApplicationListsApi);
   private readonly refFacade = inject(ReferenceDataFacade);
   private readonly pdf = inject(PdfService);
+  private readonly formSvc = inject(ApplicationsListFormService);
 
   openMenuForId: string | null = null;
   openPrintSelectForId: string | null = null;
@@ -116,15 +119,8 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   private readonly state = this.signalState.state;
   readonly vm = this.signalState.vm;
 
-  override form = new FormGroup({
-    date: new FormControl<string | null>(null),
-    time: new FormControl<Duration | null>(null),
-    description: new FormControl<string>(''),
-    status: new FormControl<string | null>(null),
-    court: new FormControl<string>(''),
-    location: new FormControl<string>(''),
-    cja: new FormControl<string>(''),
-  });
+  // Create form
+  override form = this.formSvc.createSearchForm();
 
   // API signals
   private readonly loadRequest =
@@ -136,30 +132,15 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     isClosed: boolean;
   } | null>(null);
 
-  columns: TableColumn[] = [
-    { header: 'Date', field: 'date' },
-    { header: 'Time', field: 'time' },
-    {
-      header: 'Location',
-      field: 'location',
-      sortValue: (row) => this.buildTrailingNumericSortKey(row['location']),
-    },
-    { header: 'Description', field: 'description' },
-    { header: 'Entries', field: 'entries', numeric: true },
-    { header: 'Status', field: 'status' },
-    { header: 'Actions', field: 'actions', sortable: false },
-  ];
-
-  status = [
-    { label: 'Choose', value: '' },
-    { label: 'Open', value: 'open' },
-    { label: 'Closed', value: 'closed' },
-  ];
+  columns: TableColumn[] = APPLICATIONS_LIST_COLUMNS;
+  status = APPLICATIONS_LIST_CHOOSE_STATUS;
 
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refFacade);
   }
 
+  // Registers signal-driven effects that watch request signals and run API calls,
+  // then update state on success/error
   private setupEffects(): void {
     // TODO: Refactor error handling
     // Applications list search
@@ -329,14 +310,21 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
 
     // If any errors are found then return and do not run query
     if (validationErrors.length) {
-      this.signalState.patch({ submitted: true, searchErrors: validationErrors });
+      this.signalState.patch({
+        submitted: true,
+        searchErrors: validationErrors,
+      });
       return;
     }
 
     const hasAny = hasAnyParams(this.form);
 
     if (action === 'search') {
-      this.signalState.patch({ submitted: true, isSearch: true, currentPage: 1 });
+      this.signalState.patch({
+        submitted: true,
+        isSearch: true,
+        currentPage: 1,
+      });
       this.loadApplicationsLists(hasAny);
     }
   }
@@ -462,51 +450,5 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       deleteInvalid: true,
       errorSummary: [{ text: message }],
     });
-  }
-
-  // TODO: remove for ARCPOC 783 when we sort via backend
-  private buildTrailingNumericSortKey(value: unknown): string {
-    if (value === null) {
-      return '';
-    }
-
-    let s: string;
-
-    if (typeof value === 'string') {
-      s = value.trim().toLowerCase();
-    } else if (typeof value === 'number') {
-      s = String(value);
-    } else if (typeof value === 'boolean') {
-      s = value ? 'true' : 'false';
-    } else {
-      return '';
-    }
-
-    if (s === '') {
-      return '';
-    }
-
-    let i = s.length - 1;
-    while (i >= 0) {
-      const code = s.codePointAt(i);
-      if (code === undefined) {
-        break;
-      }
-
-      if (code < 48 || code > 57) {
-        break;
-      }
-      i--;
-    }
-
-    if (i === s.length - 1) {
-      return s;
-    }
-
-    const prefix = s.slice(0, i + 1);
-    const numStr = s.slice(i + 1);
-    const padded = numStr.padStart(4, '0');
-
-    return `${prefix}${padded}`;
   }
 }
