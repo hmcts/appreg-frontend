@@ -1,5 +1,5 @@
 import { signal } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
@@ -14,7 +14,7 @@ describe('signal-state-helpers', () => {
     expect(vm()).toEqual({ a: 1, b: 3 });
   });
 
-  it('setupLoadEffect triggers onSuccess when request is set', () => {
+  it('setupLoadEffect triggers onSuccess when request is set', fakeAsync(() => {
     TestBed.configureTestingModule({});
 
     const request = signal<number | null>(null);
@@ -27,14 +27,14 @@ describe('signal-state-helpers', () => {
     });
 
     request.set(123);
-    TestBed.tick();
+    tick();
 
     expect(load).toHaveBeenCalledWith(123);
     expect(onSuccess).toHaveBeenCalledWith('ok');
     expect(onError).not.toHaveBeenCalled();
-  });
+  }));
 
-  it('setupLoadEffect triggers onError when load fails', () => {
+  it('setupLoadEffect triggers onError when load fails', fakeAsync(() => {
     TestBed.configureTestingModule({});
 
     const request = signal<string | null>(null);
@@ -47,10 +47,10 @@ describe('signal-state-helpers', () => {
     });
 
     request.set('abc');
-    TestBed.tick();
+    tick();
 
     expect(load).toHaveBeenCalledWith('abc');
     expect(onSuccess).not.toHaveBeenCalled();
     expect(onError).toHaveBeenCalledTimes(1);
-  });
+  }));
 });
