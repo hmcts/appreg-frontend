@@ -1,6 +1,7 @@
 import { setupZoneTestEnv } from 'jest-preset-angular/setup-env/zone';
 setupZoneTestEnv();
 
+// Mock govuk and moj frontend bundles so tests can run without dom errors
 jest.mock('govuk-frontend', () => ({ initAll: jest.fn() }), { virtual: true });
 jest.mock('govuk-frontend/dist/govuk/all.bundle', () => ({}), {
   virtual: true,
