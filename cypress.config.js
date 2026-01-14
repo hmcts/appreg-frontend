@@ -59,7 +59,7 @@ module.exports = defineConfig({
   e2e: {
     reporter: 'spec',
     retries: {
-      runMode: 2,
+      runMode: 0,
       openMode: 0,
     },
     // Test Files Configuration
