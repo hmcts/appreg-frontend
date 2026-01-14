@@ -1,3 +1,9 @@
+/**
+ * TODO: arcpoc-816
+ * helper wires subscriptions directly
+ * can be signal-friendly or use takeUntilDestroyed.
+ */
+
 /*
 attachLocationDisabler
 Feature helper for Applications List forms.

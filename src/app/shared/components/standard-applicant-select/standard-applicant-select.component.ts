@@ -1,3 +1,10 @@
+/**
+ * TODO: arcpoc-816
+ * refactor paging state + manual subscribe
+ */
+
+// TODO: add header comment
+
 import { CommonModule } from '@angular/common';
 import {
   Component,

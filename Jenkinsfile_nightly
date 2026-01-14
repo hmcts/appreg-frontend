@@ -54,13 +54,16 @@ withNightlyPipeline(type, product, component) {
     echo 'Smoke: ' + params.Smoke
     echo 'Regression: ' + params.Regression
 
+    if (params.Smoke || params.Regression) {
+      yarnBuilder.yarn('cypress:clean:reports')
+    }
+
     if (params.Smoke) {
       stage('Smoke Tests') {
         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE', message: 'Smoke tests failed') {
           try {
-            yarnBuilder.yarn('test:nightly:smoke:chrome')
+            yarnBuilder.yarn('test:parallel:smoke:chrome')
           } finally {
-            yarnBuilder.yarn('test:nightly:smoke:html:cucumber:chrome')
             archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/smoke/**/*'
             junit allowEmptyResults: true, testResults: 'functional-output/chrome/smoke/junit/**/*.xml'
             publishHTML target: [
@@ -80,9 +83,8 @@ withNightlyPipeline(type, product, component) {
       stage('Regression Tests') {
         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Regression tests failed') {
           try {
-            yarnBuilder.yarn('test:nightly:regression:chrome')
+            yarnBuilder.yarn('test:parallel:regression:chrome')
           } finally {
-            yarnBuilder.yarn('test:nightly:regression:html:cucumber:chrome')
             archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/regression/**/*'
             junit allowEmptyResults: true, testResults: 'functional-output/chrome/regression/junit/**/*.xml'
             publishHTML target: [
@@ -93,28 +95,6 @@ withNightlyPipeline(type, product, component) {
               reportFiles          : 'detailed-test-report.html',
               reportName           : 'Cucumber Regression Test Report'
             ]
-          }
-        }
-      }
-      
-      stage('Generate Combined Report') {
-        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Combined report generation failed') {
-          try {
-            // Generate combined HTML report from available browser results (currently Chrome only)
-            yarnBuilder.yarn('test:nightly:regression:html:cucumber')
-          } finally {
-            // Publish the combined HTML report
-            publishHTML target: [
-              allowMissing         : true,
-              alwaysLinkToLastBuild: true,
-              keepAll              : true,
-              reportDir            : 'functional-output/regression/cucumber-html',
-              reportFiles          : 'detailed-test-report.html',
-              reportName           : 'Application Register - Combined Report'
-            ]
-            
-            // Archive all outputs
-            archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/regression/**/*'
           }
         }
       }

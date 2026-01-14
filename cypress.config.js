@@ -7,7 +7,6 @@ const {
   createEsbuildPlugin,
 } = require('@badeball/cypress-cucumber-preprocessor/esbuild');
 const { PDFParse } = require('pdf-parse');
-const mochawesomeReporter = require('cypress-mochawesome-reporter/plugin');
 
 // Use process.stdout.write for direct output (no ESLint warnings)
 const cypressLog = {
@@ -58,12 +57,9 @@ module.exports = defineConfig({
     configFile: 'tsconfig.cypress.json',
   },
   e2e: {
-    reporter: 'cypress-multi-reporters',
-    reporterOptions: {
-      configFile: 'multi-reporter-config.json',
-    },
+    reporter: 'spec',
     retries: {
-      runMode: 2,
+      runMode: 0,
       openMode: 0,
     },
     // Test Files Configuration
@@ -76,6 +72,7 @@ module.exports = defineConfig({
     pageLoadTimeout: 120000,
     requestTimeout: 20000,
     responseTimeout: 30000,
+    taskTimeout: 300000,
     // Browser and Security Settings
     chromeWebSecurity: false,
     experimentalModifyObstructiveThirdPartyCode: true,
@@ -85,11 +82,14 @@ module.exports = defineConfig({
     video: false,
     screenshotOnRunFailure: true,
     screenshotsFolder: 'cypress/reports/screenshots',
+    trashAssetsBeforeRuns: false,
     // Downloads Configuration
     downloadsFolder: 'cypress/downloads',
     async setupNodeEvents(on, config) {
       const fs = require('node:fs');
       const path = require('node:path');
+
+      await addCucumberPreprocessorPlugin(on, config);
 
       // Custom task to log accessibility violations
       on('task', {
@@ -139,9 +139,13 @@ module.exports = defineConfig({
           };
         },
       });
-      mochawesomeReporter(on);
 
       const appConfig = await loadAppConfig();
+
+      const tags =
+        process.env.TAGS ||
+        process.env.CYPRESS_TAGS ||
+        (config.env && config.env.TAGS);
 
       config.env = {
         ...config.env,
@@ -198,8 +202,9 @@ module.exports = defineConfig({
         SCOPE: `api://${appConfigGet(appConfig, 'secrets.appreg.azure-app-id-fe')}/frontend`,
         API_BASE_URL: appConfigGet(appConfig, 'api.baseUrl'),
         SESSION_COOKIE_NAME: appConfigGet(appConfig, 'session.cookieName'),
+        ...(tags ? { TAGS: tags } : {}),
       };
-      await addCucumberPreprocessorPlugin(on, config);
+
       on(
         'file:preprocessor',
         createBundler({

@@ -1,0 +1,20 @@
+{
+  "cypress/e2e/features/regression/ApplicationsList/ApplicationsListSearch.feature": {
+    "weight": 8
+  },
+  "cypress/e2e/features/regression/authentication/authentication-and-authorisation.feature": {
+    "weight": 7
+  },
+  "cypress/e2e/features/regression/ApplicationsList/ApplicationsListRowActions.feature": {
+    "weight": 6
+  },
+  "cypress/e2e/features/apiTests/apiTests.feature": {
+    "weight": 5
+  },
+  "cypress/e2e/features/regression/ApplicationsList/ApplicationsListUpdate.feature": {
+    "weight": 4
+  },
+  "cypress/e2e/features/regression/ApplicationsList/ApplicationsListCreate.feature": {
+    "weight": 3
+  }
+}

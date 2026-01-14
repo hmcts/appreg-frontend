@@ -1,4 +1,15 @@
 /*
+TODO: ARCPOC-816 prio 1, we want to refactor this file to migrate to
+signal based state. Core list/search/delete flow with many flags (submitted, isSearch etc), manual subscribe + takeUntil.
+
+We want to start with this file which can serve as a template for other files
+
+move flags/rows/paging/errors into a single state signal
+replace load subscriptions with signal-driven effect
+swap template bindings to vm().
+*/
+
+/*
 Applications List
 Main Component for page /applications-list
 
