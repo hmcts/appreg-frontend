@@ -294,8 +294,10 @@ export class ApplicationsListEntryDetail implements OnInit {
   onAddFeeDetails(payload: AddFeeDetailsPayload): void {
     this.resetErrors();
 
+    void payload; //bypass linting for now
+
     //TO BE DONE WHEN BACKEND IS READY
-    console.log('Add fee details payload:', payload); //remove me
+    // console.log('Add fee details payload:', payload); //remove me
   }
 
   // Used to update payment reference for current fee status from /change-payment-reference

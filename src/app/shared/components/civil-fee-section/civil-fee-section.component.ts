@@ -1,5 +1,10 @@
 import { Component, inject, input, output, signal } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { FeeStatus } from '../../../../generated/openapi/model/models';
@@ -79,13 +84,18 @@ export class CivilFeeSectionComponent {
     this.submitted.set(true);
     const f = this.feeForm().controls;
 
-    f.feeStatus.markAsTouched();
-    f.feeStatusDate.markAsTouched();
-    f.paymentRef.markAsTouched();
+    //Lazy attach validators so they don't show on parent update
+    f.feeStatus.setValidators([(c) => Validators.required(c)]);
+    f.feeStatusDate.setValidators([(c) => Validators.required(c)]);
+    f.paymentRef.setValidators([(c) => Validators.maxLength(15)(c)]);
 
     f.feeStatus.updateValueAndValidity({ emitEvent: false });
     f.feeStatusDate.updateValueAndValidity({ emitEvent: false });
     f.paymentRef.updateValueAndValidity({ emitEvent: false });
+
+    f.feeStatus.markAsTouched();
+    f.feeStatusDate.markAsTouched();
+    f.paymentRef.markAsTouched();
 
     this.emitCivilFeeErrors();
 

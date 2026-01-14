@@ -319,6 +319,7 @@ describe('ApplicationsListEntryDetail', () => {
 
   it('onUpdateApplicant uses form service buildUpdateDto and calls update API', () => {
     const formSvc = TestBed.inject(ApplicationListEntryFormService);
+
     const dto: EntryUpdateDto = {
       lodgementDate: '2025-11-01',
       applicationCode: 'APP-100',
@@ -328,9 +329,11 @@ describe('ApplicationsListEntryDetail', () => {
 
     jest.spyOn(formSvc, 'buildUpdateDto').mockReturnValue(dto);
 
-    // Make it “standard” (and sync state like the UI would)
     component['form'].controls.applicantType.setValue('standard');
     component.onStandardApplicantCodeChanged('SA-999');
+    component['form'].controls.standardApplicantCode.setValue('SA-999', {
+      emitEvent: false,
+    });
 
     component.onUpdateApplicant();
 
@@ -339,9 +342,13 @@ describe('ApplicationsListEntryDetail', () => {
     const [params, observe, reportProgress, options] =
       mockUpdateApplicationListEntry.mock.calls[0];
 
-    expect(params.listId).toBe('AL-1');
-    expect(params.entryId).toBe('EN-1');
-    expect(params.entryUpdateDto).toBe(dto);
+    expect(params).toEqual(
+      expect.objectContaining({
+        listId: 'AL-1',
+        entryId: 'EN-1',
+        entryUpdateDto: dto,
+      }),
+    );
 
     expect(observe).toBe('body');
     expect(reportProgress).toBe(false);

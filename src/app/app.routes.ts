@@ -7,13 +7,12 @@ import { ApplicationsListCreate } from '@components/applications-list-create/app
 import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail';
 import { ApplicationsListEntryCreate } from '@components/applications-list-entry-create/applications-list-entry-create';
 import { ApplicationsListEntryDetail } from '@components/applications-list-entry-detail/applications-list-entry-detail';
+import { PaymentReferenceEditComponent } from '@components/civil-fee-section/payment-reference-edit/payment-reference-edit.component';
 import { Login } from '@components/login/login';
 import { Reports } from '@components/reports/reports';
 import { ResultSelected } from '@components/result-selected/result-selected';
 import { StandardApplicants } from '@components/standard-applicants/standard-applicants';
 import { sessionGuard } from '@guards/session.guard';
-
-import { PaymentReferenceEditComponent } from '@components/civil-fee-section/payment-reference-edit/payment-reference-edit.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },

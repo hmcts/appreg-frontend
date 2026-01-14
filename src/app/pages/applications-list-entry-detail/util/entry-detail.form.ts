@@ -70,13 +70,13 @@ export function buildStandardApplicationForm(
     feeStatuses: fb.control<FeeStatus[] | null>(null),
     hasOffsiteFee: fb.control<boolean | null>(null),
     feeStatus: fb.control<string | null>(null, {
-      validators: [REQUIRED],
+      validators: [],
     }),
     feeStatusDate: fb.control<string | null>(null, {
-      validators: [REQUIRED],
+      validators: [],
     }),
     paymentRef: fb.control<string | null>(null, {
-      validators: [Validators.maxLength(15)],
+      validators: [],
     }),
     applicationNotes: fb.group({
       notes: fb.control<string | null>(null, {
