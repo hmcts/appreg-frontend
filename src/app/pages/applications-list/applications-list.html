@@ -97,11 +97,11 @@
       id="court"
       label="Court"
       hint="Start typing to search"
+      formControlName="court"
       [(search)]="courthouseSearch"
       (searchChange)="onCourthouseInputChange()"
       [suggestions]="filteredCourthouses"
       (selectItem)="selectCourthouse($event)"
-      [disabled]="!!form.get('location')?.value || !!form.get('cja')?.value"
     />
 
     <!-- Other location -->
@@ -118,11 +118,11 @@
       id="cja"
       label="CJA"
       hint="Start typing to search"
+      formControlName="cja"
       [(search)]="cjaSearch"
       (searchChange)="onCjaInputChange()"
       [suggestions]="filteredCja"
       (selectItem)="selectCja($event)"
-      [disabled]="!!courthouseSearch.trim() || !!form.get('court')?.value"
     />
   </div>
 
@@ -130,6 +130,12 @@
     <button id="search" type="submit" class="govuk-button" value="search">
       Search
     </button>
+    <a
+      class="govuk-link"
+      href="#"
+      (click)="clearSearch(); $event.preventDefault()"
+      >Clear search</a
+    >
   </div>
 </form>
 

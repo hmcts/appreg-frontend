@@ -164,6 +164,10 @@ export class ApplicationsList
     this.initPlaceFields(this.form, this.refFacade);
   }
 
+  clearSearch(): void {
+    this.form.reset();
+  }
+
   override ngOnDestroy(): void {
     super.ngOnDestroy();
     this.destroy$.next();
