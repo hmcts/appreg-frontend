@@ -55,9 +55,14 @@ import { getEntryId } from './util/routing.util';
 import { AccordionComponent } from '@components/accordion/accordion.component';
 import {
   ApplicantContext,
+  PaymentRefReturn,
   readNavState,
 } from '@components/applications-list/util/routing-state-util';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
+import {
+  CivilFeeForm,
+  CivilFeeSectionComponent,
+} from '@components/civil-fee-section/civil-fee-section.component';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import {
   ErrorItem,
@@ -89,10 +94,9 @@ import { SuccessBanner } from '@core-types/banner/banner.types';
 import {
   ApplicationCodesApi,
   ApplicationListEntriesApi,
-  ApplicationListEntryResultsApi,
   EntryGetDetailDto,
   EntryUpdateDto,
-  ResultCodesApi,
+  FeeStatus,
   UpdateApplicationListEntryRequestParams,
 } from '@openapi';
 import { ApplicationListEntryFormService } from '@services/application-list-entry-form.service';
@@ -104,6 +108,10 @@ import {
   OrganisationForm,
   PersonForm,
 } from '@shared-types/applications-list-entry-create/application-list-entry-form';
+import {
+  AddFeeDetailsPayload,
+  CivilFeeMeta,
+} from '@shared-types/civil-fee/civil-fee';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import {
   CodeRow,
@@ -112,6 +120,7 @@ import {
   titleFromDetail,
   wordingFromDetail,
 } from '@util/application-code-helpers';
+import { applyPaymentReferenceUpdateToFeeStatuses } from '@util/civil-fee-utils';
 import {
   focusErrorSummary,
   onCreateErrorClick as onCreateErrorClickFn,
@@ -120,7 +129,12 @@ import { buildFormErrorSummary } from '@util/error-summary';
 import { markFormGroupClean, readText } from '@util/form-helpers';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 
-type ChildErrorSource = 'notes' | 'fee' | 'respondent' | 'applicant';
+type ChildErrorSource =
+  | 'notes'
+  | 'fee'
+  | 'respondent'
+  | 'applicant'
+  | 'civilFee';
 
 const UPDATE_ENTRY_ERROR_MESSAGES = ENTRY_ERROR_MESSAGES;
 
@@ -153,6 +167,7 @@ export const ERROR_HREFS = {
     NotesSectionComponent,
     RespondentSectionComponent,
     ResultWordingSectionComponent,
+    CivilFeeSectionComponent,
   ],
   templateUrl: './applications-list-entry-detail.html',
 })
@@ -165,8 +180,6 @@ export class ApplicationsListEntryDetail implements OnInit {
   private readonly router = inject(Router);
   private readonly entriesApi = inject(ApplicationListEntriesApi);
   private readonly codesApi = inject(ApplicationCodesApi);
-  private readonly resultCodesApi = inject(ResultCodesApi);
-  private readonly entryResultsApi = inject(ApplicationListEntryResultsApi);
   private readonly formSvc = inject(ApplicationListEntryFormService);
   private readonly location = inject(Location);
 
@@ -207,6 +220,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     fee: [],
     respondent: [],
     applicant: [],
+    civilFee: [],
   };
 
   // View constants (from helpers)
@@ -222,8 +236,13 @@ export class ApplicationsListEntryDetail implements OnInit {
   // Result wording data
   resultApplicantContext: ApplicantContext[] = [];
 
+  //Civil fee
+  feeMeta: CivilFeeMeta | null = null;
+  civilFeeForm!: CivilFeeForm;
+
   ngOnInit(): void {
     const state = readNavState(this.location, this.platformId);
+    this.createForms();
 
     const listId =
       this.route.snapshot.paramMap.get('listId') ??
@@ -249,6 +268,19 @@ export class ApplicationsListEntryDetail implements OnInit {
       this.resultApplicantContext = [state.resultApplicantContext];
     }
 
+    //Civil fee feeStatus payment ref edit handling
+    const pr = state?.paymentRefReturn ?? null;
+    if (pr) {
+      this.clearPaymentRefReturnOnly();
+    }
+
+    // Watch applicantType changes
+    this.bindApplicantTypeChanges();
+
+    this.loadEntryAndPatchForm(listId, entryId, pr);
+  }
+
+  private createForms(): void {
     // Build forms via helpers
     this.forms = this.formSvc.createForms();
     this.form = this.forms.form;
@@ -256,14 +288,82 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.personForm = this.forms.personForm;
     this.organisationForm = this.forms.organisationForm;
 
-    // Watch applicantType changes
-    this.bindApplicantTypeChanges();
+    this.civilFeeForm = this.formSvc.createCivilFeeForm(this.forms);
+  }
 
-    this.loadEntryAndPatchForm(listId, entryId);
+  onAddFeeDetails(payload: AddFeeDetailsPayload): void {
+    this.resetErrors();
+
+    //TO BE DONE WHEN BACKEND IS READY
+    console.log('Add fee details payload:', payload); //remove me
+  }
+
+  // Used to update payment reference for current fee status from /change-payment-reference
+  private applyPaymentRefReturn(updatedRowId: string, newRef: string): void {
+    const current = this.form.controls.feeStatuses.value ?? [];
+    const { next, changed } = applyPaymentReferenceUpdateToFeeStatuses(
+      current,
+      updatedRowId,
+      newRef.trim(),
+    );
+
+    if (!changed) {
+      return;
+    }
+
+    this.form.controls.feeStatuses.setValue(next);
+    this.form.controls.feeStatuses.markAsDirty();
+
+    void this.persistFeeStatuses(next);
+  }
+
+  private clearPaymentRefReturnOnly(): void {
+    const current = (history.state ?? {}) as Record<string, unknown>;
+    const { paymentRefReturn, ...rest } = current;
+    history.replaceState(rest, '');
+  }
+
+  private persistFeeStatuses(feeStatuses: FeeStatus[]): void {
+    const entryId = getEntryId(this.route);
+    if (!this.appListId || !entryId || !this.entryDetail) {
+      return;
+    }
+
+    const entryUpdateDto = buildEntryUpdateDtoWithChange(
+      this.entryDetail,
+      'feeStatuses',
+      feeStatuses,
+    );
+
+    const params: UpdateApplicationListEntryRequestParams = {
+      listId: this.appListId,
+      entryId,
+      entryUpdateDto,
+    };
+
+    this.entriesApi
+      .updateApplicationListEntry(params, 'body', false, {
+        transferCache: false,
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.entryDetail = { ...this.entryDetail!, ...entryUpdateDto };
+
+          this.form.controls.feeStatuses.markAsPristine();
+
+          this.successBanner = {
+            heading: 'Payment reference updated',
+            body: 'The payment reference has been updated.',
+          };
+        },
+        error: (err) => {
+          this.applyMappedError(err);
+        },
+      });
   }
 
   // ── UI handlers ─────────────────────────────────────────────────────────────
-
   onCodesSearch(): void {
     this.codesHasSearched = true;
     this.codesRows = [];
@@ -431,12 +531,21 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.parentErrors = this.buildErrorSummary();
     const allChildErrors = Object.values(this.childErrors).flat();
 
-    this.summaryErrors = [...this.parentErrors, ...allChildErrors];
+    this.summaryErrors = [...this.getUniqueErrors(allChildErrors)];
     this.errorFound = this.summaryErrors.length > 0;
 
     if (this.errorFound) {
       focusErrorSummary(this.platformId);
     }
+  }
+
+  private getUniqueErrors(allChildErrors: ErrorItem[]): ErrorItem[] {
+    const uniq = new Map<string, ErrorItem>();
+    [...this.parentErrors, ...allChildErrors].forEach((e) => {
+      const key = `${e.id ?? ''}|${e.text}`;
+      uniq.set(key, e);
+    });
+    return [...uniq.values()];
   }
 
   onChildErrors(source: ChildErrorSource, errors: ErrorItem[]): void {
@@ -541,6 +650,65 @@ export class ApplicationsListEntryDetail implements OnInit {
     });
   }
 
+  onOffsiteFeeChanged(nextValue: boolean): void {
+    const prev = this.form.controls.hasOffsiteFee.value === true;
+
+    if (prev === nextValue) {
+      return;
+    }
+
+    this.persistHasOffsiteFee(nextValue, prev);
+  }
+
+  private persistHasOffsiteFee(nextValue: boolean, prevValue: boolean): void {
+    const entryId = getEntryId(this.route);
+
+    if (!this.appListId || !entryId || !this.entryDetail) {
+      return;
+    }
+
+    const entryUpdateDto = buildEntryUpdateDtoWithChange(
+      this.entryDetail,
+      'hasOffsiteFee',
+      nextValue,
+    );
+
+    const params: UpdateApplicationListEntryRequestParams = {
+      listId: this.appListId,
+      entryId,
+      entryUpdateDto,
+    };
+
+    this.entriesApi
+      .updateApplicationListEntry(params, 'body', false, {
+        transferCache: false,
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.entryDetail = { ...this.entryDetail!, ...entryUpdateDto };
+          this.form.controls.hasOffsiteFee.markAsPristine();
+
+          this.successBanner = {
+            heading: 'Off site fee updated',
+            body: nextValue
+              ? 'Off site fee has been applied to the entry.'
+              : 'Off site fee has been removed from the entry.',
+          };
+          focusSuccessBanner(this.platformId);
+        },
+        error: (err) => {
+          // rollback UI state
+          this.form.controls.hasOffsiteFee.setValue(prevValue, {
+            emitEvent: false,
+          });
+          this.form.controls.hasOffsiteFee.markAsPristine();
+
+          this.applyMappedError(err);
+        },
+      });
+  }
+
   // ——— Form accessors ———
   get personGroup(): PersonForm {
     return this.personForm;
@@ -621,8 +789,14 @@ export class ApplicationsListEntryDetail implements OnInit {
         )
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
-          next: (codeDto) =>
-            this.form.patchValue({ applicationTitle: codeDto.title }),
+          next: (codeDto) => {
+            this.form.patchValue({ applicationTitle: codeDto.title });
+            this.feeMeta = {
+              feeReference: codeDto.feeReference ?? null,
+              feeAmount: codeDto.feeAmount ?? null,
+              offsiteFeeAmount: codeDto.offsiteFeeAmount ?? null,
+            };
+          },
           error: () => this.form.patchValue({ applicationTitle: '' }),
         });
     }
@@ -659,12 +833,17 @@ export class ApplicationsListEntryDetail implements OnInit {
       fee: [],
       respondent: [],
       applicant: [],
+      civilFee: [],
     };
   }
 
   // ——— Data loading & mapping ———
   //Also loads entry result
-  private loadEntryAndPatchForm(listId: string, entryId: string): void {
+  private loadEntryAndPatchForm(
+    listId: string,
+    entryId: string,
+    paymentRefReturn: PaymentRefReturn | null,
+  ): void {
     this.entriesApi
       .getApplicationListEntry({ listId, entryId }, 'body', false, {
         context: undefined,
@@ -684,6 +863,13 @@ export class ApplicationsListEntryDetail implements OnInit {
 
           const type = this.form.controls.applicantType.value ?? 'person';
           this.formSvc.syncApplicantTypeState(this.forms, type);
+
+          if (paymentRefReturn) {
+            this.applyPaymentRefReturn(
+              paymentRefReturn.updatedRowId,
+              paymentRefReturn.newPaymentReference,
+            );
+          }
 
           this.resultsFacade.loadEntryResults(listId, entryId);
           this.loadCodesSectionFromEntry(entry);

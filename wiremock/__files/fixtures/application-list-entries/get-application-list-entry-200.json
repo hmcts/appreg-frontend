@@ -27,8 +27,19 @@
   },
   "numberOfRespondents": 1,
   "wordingFields": ["25 October 2025", "London"],
-  "feeStatuses": [],
-  "hasOffsiteFee": false,
+  "feeStatuses": [
+    {
+      "paymentReference": "PAY-654321",
+      "paymentStatus": "UNDERTAKEN",
+      "statusDate": "2025-10-24"
+    },
+    {
+      "paymentReference": "PAY-123456",
+      "paymentStatus": "PAID",
+      "statusDate": "2025-10-25"
+    }
+  ],
+  "hasOffsiteFee": true,
   "caseReference": "CASE-001",
   "accountNumber": "ACC-001",
   "notes": "Example entry",

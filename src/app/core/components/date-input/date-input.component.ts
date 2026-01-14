@@ -52,6 +52,7 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
   @Input() idPrefix = 'date';
   @Input() submitted = false;
   @Input() isSearch = false;
+  @Input() disallowFutureDates = false;
 
   disabled = false;
 
@@ -121,6 +122,20 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
       y = Number(year);
     if (!this.isRealDate(d, m, y)) {
       return this.dateError();
+    }
+
+    if (this.disallowFutureDates) {
+      const valueDate = new Date(y, m - 1, d);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (valueDate.getTime() > today.getTime()) {
+        return {
+          dateInFuture: true,
+          dateInvalid: true,
+          dateErrorText: 'Date must not be in the future',
+        };
+      }
     }
 
     return null;

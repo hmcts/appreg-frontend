@@ -35,9 +35,9 @@ export const EXISTING_RESULTS_WORDING_COLUMNS = [
 ];
 
 export const CIVIL_FEE_COLUMNS: TableColumn[] = [
-  { header: 'Fee Status', field: 'status' },
-  { header: 'Status Date', field: 'date' },
-  { header: 'Payment Ref', field: 'paymentRef' },
+  { header: 'Fee Status', field: 'paymentStatus' },
+  { header: 'Status Date', field: 'statusDate' },
+  { header: 'Payment Ref', field: 'paymentReference' },
 ];
 
 export const APPLICANT_TYPE_OPTIONS = [

@@ -1,0 +1,92 @@
+<div [formGroup]="feeForm()">
+  <div class="govuk-form-group">
+    <div
+      class="govuk-checkboxes govuk-checkboxes--small"
+      data-module="govuk-checkboxes"
+    >
+      <div class="govuk-checkboxes__item">
+        <input
+          class="govuk-checkboxes__input"
+          id="offSiteFee"
+          type="checkbox"
+          formControlName="hasOffsiteFee"
+          (click)="onOffsiteFeeChange()"
+        />
+
+        <label class="govuk-label govuk-checkboxes__label" for="offSiteFee">
+          Off site fee applies
+        </label>
+        <div class="govuk-hint govuk-checkboxes__hint">
+          Selecting this will automatically apply the off site fee to the entry
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section id="civil-fee-section">
+    <h2 class="govuk-heading-s">{{ feeHeadingText() }}</h2>
+
+    <app-sortable-table
+      id="civil-fee-table"
+      caption="Current fee statuses table"
+      [hiddenCaption]="true"
+      [columns]="civilFeeColumnsWithChangeLink()"
+      [data]="feeStatusRows()"
+      appMojButtonMenu
+    >
+      <ng-template #actionsTemplate let-row>
+        @if (row['paymentReference']) {
+          <a
+            class="govuk-link"
+            href="javascript:void(0)"
+            (click)="onChangePaymentReference(row)"
+          >
+            Change
+            <span class="govuk-visually-hidden">
+              payment reference {{ row['paymentReference'] }}
+            </span>
+          </a>
+        }
+      </ng-template>
+    </app-sortable-table>
+  </section>
+
+  <h2 class="govuk-heading-m">Update fee status</h2>
+
+  <div class="govuk-grid-row">
+    <!-- Fee status -->
+    <app-select-input
+      formControlName="feeStatus"
+      label="Fee status"
+      hint="Select the status of the fee to be paid"
+      id="feeStatus"
+      [options]="feeStatusOptionsWithPlaceholder()"
+      [submitted]="submitted()"
+    />
+
+    <!-- Status date -->
+    <app-date-input
+      formControlName="feeStatusDate"
+      label="Status date"
+      hint="For example, 15 5 2025"
+      id="feeStatusDate"
+      [submitted]="submitted()"
+      [disallowFutureDates]="true"
+    />
+
+    <!-- Payment reference -->
+    <app-text-input
+      formControlName="paymentRef"
+      label="Payment reference"
+      hint="Enter the unique reference assigned to this payment"
+      id="paymentRef"
+      [error]="getControlErrorMessages('paymentRef')[0]"
+    />
+  </div>
+
+  <div class="govuk-button-group">
+    <button type="button" class="govuk-button" (click)="onAddFeeDetailsClick()">
+      Add fee details
+    </button>
+  </div>
+</div>

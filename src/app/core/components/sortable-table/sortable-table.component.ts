@@ -11,7 +11,7 @@ import {
   ViewChild,
 } from '@angular/core';
 
-type RowLike = Record<string, unknown>;
+export type RowLike = Record<string, unknown>;
 
 /** The column contract for this table */
 export type TableColumn = {
@@ -36,6 +36,7 @@ export class SortableTableComponent implements AfterViewInit {
   actionsTpl?: TemplateRef<unknown>;
 
   @Input() caption = '';
+  @Input() hiddenCaption = false;
   @Input() columns: TableColumn[] = [];
   @Input() data: RowLike[] = [];
 

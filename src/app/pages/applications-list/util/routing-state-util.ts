@@ -14,9 +14,15 @@ export type ApplicantContext = {
   title: string;
 };
 
+export type PaymentRefReturn = {
+  updatedRowId: string;
+  newPaymentReference: string;
+};
+
 export type EntryDetailNavState = {
   appListId?: string;
   resultApplicantContext?: ApplicantContext;
+  paymentRefReturn?: PaymentRefReturn;
 };
 
 function isApplicantContext(x: unknown): boolean {

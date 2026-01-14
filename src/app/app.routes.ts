@@ -13,6 +13,8 @@ import { ResultSelected } from '@components/result-selected/result-selected';
 import { StandardApplicants } from '@components/standard-applicants/standard-applicants';
 import { sessionGuard } from '@guards/session.guard';
 
+import { PaymentReferenceEditComponent } from '@components/civil-fee-section/payment-reference-edit/payment-reference-edit.component';
+
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: Login },
@@ -24,6 +26,10 @@ export const routes: Routes = [
       { path: 'create', component: ApplicationsListCreate },
       { path: ':id', component: ApplicationsListDetail },
       { path: ':id/update', component: ApplicationsListEntryDetail },
+      {
+        path: ':id/update/change-payment-reference',
+        component: PaymentReferenceEditComponent,
+      },
       { path: ':id/create', component: ApplicationsListEntryCreate },
       { path: ':id/bulk-upload', component: ApplicationsListBulkUpload },
       { path: ':id/result-selected', component: ResultSelected },
