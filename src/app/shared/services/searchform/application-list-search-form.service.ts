@@ -25,7 +25,7 @@ export const DEFAULT_STATE: SearchFormValue = {
 @Injectable({
   providedIn: 'root',
 })
-export class SearchformService {
+export class ApplicationListSearchFormService {
   private readonly _state = signal<SearchFormValue>(DEFAULT_STATE);
 
   readonly state = this._state.asReadonly();

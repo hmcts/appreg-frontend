@@ -80,10 +80,10 @@ import {
 import { PdfService } from '@services/pdf.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import {
+  ApplicationListSearchFormService,
   DEFAULT_STATE,
   SearchFormValue,
-  SearchformService,
-} from '@services/searchform/searchform.service';
+} from '@services/searchform/application-list-search-form.service';
 import { has } from '@util/has';
 import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
@@ -122,7 +122,7 @@ export class ApplicationsList
   private readonly appListsApi = inject(ApplicationListsApi);
   private readonly refFacade = inject(ReferenceDataFacade);
   private readonly pdf = inject(PdfService);
-  private readonly searchForm = inject(SearchformService);
+  private readonly searchForm = inject(ApplicationListSearchFormService);
 
   private readonly destroy$ = new Subject<void>();
   openMenuForId: string | null = null;

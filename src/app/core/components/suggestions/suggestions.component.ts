@@ -92,11 +92,6 @@ export class SuggestionsComponent<T = unknown>
     }
   }
 
-  onBlurInput(): void {
-    this.onTouched();
-    setTimeout(() => (this.focused = false), 0);
-  }
-
   ngOnChanges(changes: SimpleChanges): void {
     const sc = changes['search'];
     const next = asString(sc?.currentValue);

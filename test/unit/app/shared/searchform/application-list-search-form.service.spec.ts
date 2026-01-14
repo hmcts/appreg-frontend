@@ -1,17 +1,16 @@
 import { TestBed } from '@angular/core/testing';
-
 import {
+  ApplicationListSearchFormService,
   DEFAULT_STATE,
   SearchFormValue,
-  SearchformService,
-} from '@services/searchform/searchform.service';
+} from '@services/searchform/application-list-search-form.service';
 
-describe('Searchform', () => {
-  let service: SearchformService;
+describe('ApplicationListSearchFormService', () => {
+  let service: ApplicationListSearchFormService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(SearchformService);
+    service = TestBed.inject(ApplicationListSearchFormService);
   });
 
   it('should be created', () => {
