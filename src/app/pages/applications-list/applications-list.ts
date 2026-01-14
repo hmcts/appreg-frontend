@@ -7,11 +7,6 @@ onSubmit():
   - GET request to Spring API which returns applications lists based on given params
   - If params are empty (user leaves fields empty or on default selected value) GET ALL is run
   - Populates query based on fields that are  !null/!undefined/!defaultValue
-  Helper functions:
-    src/app/pages/applications-list/util/has.ts
-    src/app/pages/applications-list/util/to-status.ts
-    src/app/pages/applications-list/util/load-query.ts
-    src/app/pages/applications-list/util/time-helpers.ts
 
 onDelete():
   - If not deletable, set errors and exit
@@ -20,6 +15,14 @@ onDelete():
   - DELETE list; 200/204 → remove row, mark done
   - Map 401/403/404/409/412/other to errorSummary
   - Always clear deletingId
+
+onPrintPage():
+  - Fetch list by id and generate a paged PDF in the browser
+  - If list is empty/missing or PDF fails, show inline message
+
+onPrintContinuous():
+  - Fetch list by id and generate a continuous PDF in the browser (uses isClosed)
+  - If list is empty or PDF fails, show inline message
 */
 
 import { CommonModule, isPlatformBrowser } from '@angular/common';
