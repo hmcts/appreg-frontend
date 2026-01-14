@@ -162,6 +162,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
           rows: content.map((x) => toRow(x)),
           isLoading: false,
         });
+        this.loadRequest.set(null); // Clears request signal 
       },
       onError: (err) => {
         const msg = getProblemText(err);
@@ -172,6 +173,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
           isLoading: false,
           searchErrors: [{ id: 'search', text: msg }],
         });
+        this.loadRequest.set(null);
       },
     });
 
