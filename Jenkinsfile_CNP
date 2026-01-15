@@ -195,9 +195,10 @@ withPipeline(type, product, component) {
     script {
       def testResult = sh(script: 'yarn test:functional', returnStatus: true)
 
-      sh 'node cypress/scripts/generate-reports.js || true'
+      sh 'node cypress/scripts/reporting/generate-cucumber-html-report.js chrome smoke || true'
 
       archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/**/*'
+      archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/videos/**/*.mp4'
       archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/screenshots/**/*.png'
       archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/junit/**/*.xml'
 

@@ -57,7 +57,6 @@ module.exports = defineConfig({
     configFile: 'tsconfig.cypress.json',
   },
   e2e: {
-    reporter: 'spec',
     retries: {
       runMode: 0,
       openMode: 0,
@@ -79,6 +78,23 @@ module.exports = defineConfig({
     experimentalOriginDependencies: true,
     testIsolation: true,
     // Report and Media Settings
+    reporter: 'cypress-multi-reporters',
+    reporterOptions: {
+      reporterEnabled: 'cypress-mochawesome-reporter, mocha-junit-reporter',
+      mochaJunitReporterReporterOptions: {
+        mochaFile: 'cypress/reports/junit/results-[hash].xml',
+        toConsole: false,
+      },
+      cypressMochawesomeReporterReporterOptions: {
+        reportDir: 'cypress/reports/mochawesome',
+        charts: true,
+        reportPageTitle: 'Application Register E2E Test Results',
+        embeddedScreenshots: true,
+        inlineAssets: true,
+        html: true,
+        json: true,
+      },
+    },
     video: true,
     videosFolder: 'cypress/reports/videos',
     videoCompression: 32,
@@ -92,6 +108,7 @@ module.exports = defineConfig({
       const path = require('node:path');
 
       await addCucumberPreprocessorPlugin(on, config);
+      require('cypress-mochawesome-reporter/plugin')(on);
 
       // Custom task to log accessibility violations
       on('task', {

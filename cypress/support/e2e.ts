@@ -1,5 +1,6 @@
 /// <reference types="cypress" />
 
+import 'cypress-mochawesome-reporter/register';
 import './commands';
 import { TestDataGenerator } from './utils/TestDataGenerator';
 
