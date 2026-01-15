@@ -145,7 +145,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   // Registers signal-driven effects that watch request signals and run API calls,
   // then update state on success/error
   private setupEffects(): void {
-    // TODO: Refactor error handling
+    // TODO: Use global error handling after ARCPOC-822 is done
     // Applications list search
     setupLoadEffect({
       request: this.loadRequest,
@@ -162,7 +162,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
           rows: content.map((x) => toRow(x)),
           isLoading: false,
         });
-        this.loadRequest.set(null); // Clears request signal 
+        this.loadRequest.set(null); // Clears request signal
       },
       onError: (err) => {
         const msg = getProblemText(err);
