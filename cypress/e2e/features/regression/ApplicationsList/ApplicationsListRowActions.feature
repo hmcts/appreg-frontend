@@ -10,12 +10,9 @@ Feature: Application List Row Actions
         Given User Has No Downloaded PDFs
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
-        Then User Clicks On The Link "Applications list"
-        When User Set Date Field "Date" To "<SearchDate>"
-        Then User Enters "<Description>" Into The "Description" Textbox
-        When User Clicks On The "Search" Button
-        Then User Should See The Table "<TableName>"
-        Then User Should See Table "<TableName>" Has Rows
+        When User Searches Application List With:
+            | Date         | Time | Description   | CourtSearch | Court | Status   | Other location | CJA | CJASearch |
+            | <SearchDate> |      | <Description> |             |       | <Status> |                |     |           |
         # Click Print continuous to download PDF
         When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
@@ -183,12 +180,9 @@ Feature: Application List Row Actions
         Given User Has No Downloaded PDFs
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
-        Then User Clicks On The Link "Applications list"
-        When User Set Date Field "Date" To "<SearchDate>"
-        Then User Enters "<Description>" Into The "Description" Textbox
-        When User Clicks On The "Search" Button
-        Then User Should See The Table "<TableName>"
-        Then User Should See Table "<TableName>" Has Rows
+        When User Searches Application List With:
+            | Date         | Time | Description | CourtSearch   | Court | Status | Other location | CJA | CJASearch |
+            | <SearchDate> |      |             | <Description> |       |        |                |     |           |
         When User Clicks "<SelectButtonText>" Then "Print continuous" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
@@ -308,12 +302,9 @@ Feature: Application List Row Actions
         Given User Has No Downloaded PDFs
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
-        Then User Clicks On The Link "Applications list"
-        When User Set Date Field "Date" To "<SearchDate>"
-        Then User Selects "<OptionText>" From The Textbox "CJA" Autocomplete By Typing "<cjaCode>"
-        When User Clicks On The "Search" Button
-        Then User Should See The Table "<TableName>"
-        Then User Should See Table "<TableName>" Has Rows
+        When User Searches Application List With:
+            | Date         | Time | Description | CourtSearch | Court | Status   | Other location | CJA          | CJASearch |
+            | <SearchDate> |      |             |             |       | <Status> |                | <OptionText> | <cjaCode> |
         When User Clicks "<SelectButtonText>" Then "Print continuous" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location     | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
@@ -432,11 +423,9 @@ Feature: Application List Row Actions
         Given User Has No Downloaded PDFs
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
-        Then User Clicks On The Link "Applications list"
-        When User Set Date Field "Date" To "<SearchDate>"
-        When User Clicks On The "Search" Button
-        Then User Should See The Table "<TableName>"
-        Then User Should See Table "<TableName>" Has Rows
+        When User Searches Application List With:
+            | Date         | Time | Description | CourtSearch | Court | Status | Other location | CJA | CJASearch |
+            | <SearchDate> |      |             |             |       |        |                |     |           |
         When User Clicks "<SelectButtonText>" Then "Print continuous" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
@@ -491,11 +480,9 @@ Feature: Application List Row Actions
         Then User Stores Response Body Property "id" As "listId"
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
-        Then User Clicks On The Link "Applications list"
-        When User Set Date Field "Date" To "<SearchDate>"
-        Then User Enters "<Description>" Into The "Description" Textbox
-        When User Clicks On The "Search" Button
-        Then User Should See Table "<TableName>" Has Rows
+        When User Searches Application List With:
+            | Date         | Time | Description   | CourtSearch | Court | Status | Other location | CJA | CJASearch |
+            | <SearchDate> |      | <Description> |             |       |        |                |     |           |
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | 0       | <Status> |
@@ -512,7 +499,7 @@ Feature: Application List Row Actions
             | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                             | Status | SelectButtonText |
             | user1 | Lists     | today      | todayiso    | timenowhhmm-3h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | OPEN   | Select           |
 
-    @regression @ARCPOC-214 @ARCPOC-575 @PJ
+    @regression @ARCPOC-214 @ARCPOC-575
     Scenario Outline: Verify application list is deleted successfully for applications list 1 entry
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -582,12 +569,9 @@ Feature: Application List Row Actions
         Then User Verify Response Status Code Should Be "201"
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
-        Then User Clicks On The Link "Applications list"
-        When User Set Date Field "Date" To "<SearchDate>"
-        Then User Selects "<Court>" From The Textbox "Court" Autocomplete By Typing "<courtLocationCode>"
-        When User Clicks On The "Search" Button
-        Then User Should See The Table "<TableName>"
-        Then User Should See Table "<TableName>" Has Rows
+        When User Searches Application List With:
+            | Date         | Time | Description | CourtSearch         | Court   | Status | Other location | CJA | CJASearch |
+            | <SearchDate> |      |             | <courtLocationCode> | <Court> |        |                |     |           |
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | 1       | <Status> |
@@ -595,7 +579,6 @@ Feature: Application List Row Actions
         Then User Sees Notification Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
         When User Set Date Field "Date" To "<SearchDate>"
         When User Clicks On The "Search" Button
-        Then User Should See The Table "<TableName>"
         Then User Should Not See Row In Table "<TableName>" With Values:
             | Date          | Time   | Location | Description   | Entries | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | 1       | <Status> |
