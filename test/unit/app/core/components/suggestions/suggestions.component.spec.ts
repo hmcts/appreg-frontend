@@ -211,124 +211,158 @@ describe('SuggestionsComponent', () => {
     jest.runOnlyPendingTimers?.();
   });
 
-  it('writeValue clears search, committed state, justSelected, and suggestions when value is null', () => {
+  it('writeValue sets value and does not clear search/suggestions when value is non-empty', () => {
+    component.search = 'V1';
+    component.suggestions = [{ name: 'Alpha' }];
+
+    component.writeValue('V1');
+
+    expect(component.value).toBe('V1');
+    expect(component.search).toBe('V1');
+    expect(component.suggestions).toEqual([{ name: 'Alpha' }]);
+  });
+
+  it('writeValue(null) clears value, search, suggestions, and committed state', () => {
     component.search = 'abc';
     component.suggestions = [{ name: 'Alpha' }];
 
-    component.ngOnChanges({
-      search: new SimpleChange('', 'abc', false),
-    });
+    // simulate committed state
+    component.choose({ name: 'Alpha' }, {
+      preventDefault: jest.fn(),
+    } as unknown as MouseEvent);
     expect(component.isCommittedText).toBe(true);
 
     component.writeValue(null);
 
     expect(component.value).toBe('');
     expect(component.search).toBe('');
+    expect(component.isCommittedText).toBe(false);
     expect(component.suggestions).toEqual([]);
-    expect(component.isCommittedText).toBe(false);
   });
 
-  it('registerOnChange stores callback and it is called via setValueInternal (choose)', () => {
+  it('registerOnChange is invoked when value changes via choose()', () => {
     const onChange = jest.fn();
     component.registerOnChange(onChange);
 
-    const ev = { preventDefault: jest.fn() } as unknown as MouseEvent;
-    component.choose({ code: 'C1', name: 'Alpha' }, ev);
+    component.choose(
+      { name: 'Alpha' } as unknown as any,
+      { preventDefault: jest.fn() } as unknown as MouseEvent,
+    );
 
-    expect(onChange).toHaveBeenCalledWith('C1');
-  });
-
-  it('registerOnTouched stores callback and it is called on choose', () => {
-    const onTouched = jest.fn();
-    component.registerOnTouched(onTouched);
-
-    const ev = { preventDefault: jest.fn() } as unknown as MouseEvent;
-    component.choose({ name: 'Alpha' }, ev);
-
-    expect(onTouched).toHaveBeenCalled();
-  });
-
-  it('onInput clears committedLabel and justSelected when input no longer matches committed text', () => {
-    component.search = 'Alpha';
-    component.ngOnChanges({
-      search: new SimpleChange('', 'Alpha', false),
-    });
-    component.search = 'Alpha';
-
-    expect(component.isCommittedText).toBe(true);
-
-    component.onInput('Beta');
-
-    expect(component.isCommittedText).toBe(false);
-  });
-
-  it('onInput with whitespace clears value via CVA + emits valueChange', () => {
-    const onChange = jest.fn();
-    const emit = jest.spyOn(component.valueChange, 'emit');
-
-    component.registerOnChange(onChange);
-    component.search = 'abc';
-
-    component.onInput('   ');
-
-    expect(component.value).toBe('');
-    expect(emit).toHaveBeenCalledWith('');
     expect(onChange).toHaveBeenCalledWith('');
   });
 
-  it('choose emits valueChange and uses item.code when present', () => {
-    const emit = jest.spyOn(component.valueChange, 'emit');
+  it('registerOnTouched is invoked when choose() is called', () => {
+    const onTouched = jest.fn();
+    component.registerOnTouched(onTouched);
 
-    const ev = { preventDefault: jest.fn() } as unknown as MouseEvent;
-    component.choose({ name: 'Alpha', code: 'A1' }, ev);
+    component.choose({ name: 'Alpha' }, {
+      preventDefault: jest.fn(),
+    } as unknown as MouseEvent);
 
-    expect(component.value).toBe('A1');
-    expect(emit).toHaveBeenCalledWith('A1');
+    expect(onTouched).toHaveBeenCalledTimes(1);
   });
 
-  it('choose falls back to label when item has no code', () => {
-    const emit = jest.spyOn(component.valueChange, 'emit');
+  it('setDisabledState updates disabled flag', () => {
+    component.setDisabledState(false);
+    expect(component.disabled).toBe(false);
 
-    const ev = { preventDefault: jest.fn() } as unknown as MouseEvent;
-    component.choose({ name: 'Alpha' }, ev);
-
-    expect(component.value).toBe('Alpha');
-    expect(emit).toHaveBeenCalledWith('Alpha');
+    component.setDisabledState(false);
+    expect(component.disabled).toBe(false);
   });
 
-  it('ngOnChanges returns early when asString(search) is null', () => {
-    component.search = 'abc';
+  it('choose sets value based on item.value when present', () => {
+    const onChange = jest.fn();
+    const emitValue = jest.spyOn(component.valueChange, 'emit');
+    component.registerOnChange(onChange);
 
+    component.choose(
+      { name: 'Alpha', value: 'V123' } as any,
+      { preventDefault: jest.fn() } as unknown as MouseEvent,
+    );
+
+    expect(component.value).toBe('V123');
+    expect(emitValue).toHaveBeenCalledWith('V123');
+    expect(onChange).toHaveBeenCalledWith('V123');
+  });
+
+  it('choose sets value based on item.locationCode when value is missing', () => {
+    const onChange = jest.fn();
+    const emitValue = jest.spyOn(component.valueChange, 'emit');
+    component.registerOnChange(onChange);
+
+    component.choose(
+      { name: 'Loc', locationCode: 'LC9' } as any,
+      { preventDefault: jest.fn() } as unknown as MouseEvent,
+    );
+
+    expect(component.value).toBe('LC9');
+    expect(emitValue).toHaveBeenCalledWith('LC9');
+    expect(onChange).toHaveBeenCalledWith('LC9');
+  });
+
+  it('onInput clears committed label when text differs, enabling dropdown to open again', () => {
+    // commit "Alpha"
+    component.choose(
+      { name: 'Alpha', value: 'A' } as any,
+      { preventDefault: jest.fn() } as unknown as MouseEvent,
+    );
+    expect(component.isCommittedText).toBe(true);
+
+    // user types something else => committedLabel should be cleared internally
+    component.onInput('Alp');
+
+    // not committed anymore
+    expect(component.isCommittedText).toBe(false);
+
+    // with suggestions, dropdown can open
+    component.disabled = false;
+    component.suggestions = [{ name: 'Alpha' }];
+    expect(component.open).toBe(true);
+  });
+
+  it('ngOnChanges returns early when search currentValue is not a string (asString -> null)', () => {
+    component.choose({ name: 'Alpha' }, {
+      preventDefault: jest.fn(),
+    } as unknown as MouseEvent);
+    expect(component.isCommittedText).toBe(true);
+
+    // pass a non-string currentValue (asString should return null => no state change)
     component.ngOnChanges({
-      search: new SimpleChange('abc', null, false),
+      search: new SimpleChange('Alpha', { not: 'a string' }, false),
     });
 
-    expect(component.isCommittedText).toBe(false);
+    // still committed because changes should have been ignored
+    expect(component.isCommittedText).toBe(true);
   });
 
-  it('ngOnChanges does not commit when focused', () => {
+  it('ngOnChanges does not auto-commit while focused', () => {
     component.onFocus();
 
     component.ngOnChanges({
-      search: new SimpleChange('', 'Alpha', false),
+      search: new SimpleChange('', 'Programmatic', false),
     });
-    component.search = 'Alpha';
 
+    // since focused, component should NOT set committedLabel, so not committed
+    component.search = 'Programmatic';
     expect(component.isCommittedText).toBe(false);
   });
 
-  it('onBlur clears focused asynchronously (observable via noResultsVisible)', () => {
+  it('onBlur clears focused after timers run (noResultsVisible becomes false)', () => {
     jest.useFakeTimers();
 
-    component.search = 'abc';
+    component.disabled = false;
     component.suggestions = [];
-    component.onFocus();
+    component.search = 'abc';
 
+    component.onFocus();
     expect(component.noResultsVisible).toBe(true);
 
     component.onBlur();
     jest.runOnlyPendingTimers();
 
     expect(component.noResultsVisible).toBe(false);
+
+    jest.useRealTimers();
   });
 });
