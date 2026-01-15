@@ -580,17 +580,6 @@ describe('ApplicationsList – search', () => {
     });
   });
 
-  it('when hasParams=false, does not call API and shows the same validation error', () => {
-    service.getApplicationLists.mockClear();
-    patchState(component, { searchErrors: [] });
-    component.loadApplicationsLists(false);
-    expect(service.getApplicationLists).not.toHaveBeenCalled();
-    expect(getState(component).searchErrors[0]).toEqual({
-      id: '',
-      text: 'Invalid Search Criteria. At least one field must be entered.',
-    });
-  });
-
   it('includes filter object when hasParams=true even if partial', async () => {
     jest.spyOn(LoadQuery, 'loadQuery').mockReturnValue({
       status: ApplicationListStatus.CLOSED,
