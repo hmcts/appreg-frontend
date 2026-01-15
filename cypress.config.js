@@ -79,7 +79,9 @@ module.exports = defineConfig({
     experimentalOriginDependencies: true,
     testIsolation: true,
     // Report and Media Settings
-    video: false,
+    video: true,
+    videosFolder: 'cypress/reports/videos',
+    videoCompression: 32,
     screenshotOnRunFailure: true,
     screenshotsFolder: 'cypress/reports/screenshots',
     trashAssetsBeforeRuns: false,
