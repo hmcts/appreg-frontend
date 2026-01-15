@@ -25,7 +25,8 @@ export class DateTimeHelper {
       this.setMonthValue(fieldLabel, month);
       this.setYearValue(fieldLabel, year);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       throw new Error(
         `Failed to set date field "${fieldLabel}" with value "${dateValue}": ${errorMessage}`,
       );
@@ -133,7 +134,8 @@ export class DateTimeHelper {
         this.setTimeInputValue(fieldLabel, parsedTime);
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       throw new Error(
         `Failed to set time field "${fieldLabel}" with value "${timeValue}": ${errorMessage}`,
       );
