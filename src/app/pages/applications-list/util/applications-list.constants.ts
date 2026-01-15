@@ -20,6 +20,15 @@ export const APPLICATIONS_LIST_CHOOSE_STATUS = [
   { label: 'Closed', value: 'closed' },
 ];
 
+export const APPLICATIONS_LIST_ERROR_MESSAGES = {
+  noEntriesToPrint: 'No entries available to print',
+  pdfGenerateRetry: 'Unable to generate PDF. Please try again later',
+  pdfGenerateGeneric: 'Unable to generate PDF.',
+  listNotFound: 'Application List not found',
+  invalidSearchCriteria:
+    'Invalid Search Criteria. At least one field must be entered.',
+} as const;
+
 // TODO: remove when we migrate to server sorting
 function buildTrailingNumericSortKey(value: unknown): string {
   if (value === null) {

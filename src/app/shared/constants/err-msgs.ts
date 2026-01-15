@@ -7,4 +7,3 @@ export const phoneIncorrectFormatMsg =
 
 export const emailIncorrectFormatMsg =
   'Enter an email address in the correct format, like name@example.com';
-

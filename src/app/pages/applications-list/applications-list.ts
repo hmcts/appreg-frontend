@@ -42,6 +42,7 @@ import { map } from 'rxjs/operators';
 import {
   APPLICATIONS_LIST_CHOOSE_STATUS,
   APPLICATIONS_LIST_COLUMNS,
+  APPLICATIONS_LIST_ERROR_MESSAGES,
 } from './util/applications-list.constants';
 import {
   ApplicationsListState,
@@ -224,7 +225,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       onSuccess: async (dto) => {
         this.printPageRequest.set(null);
         if (!this.hasEntries(dto)) {
-          this.showInline('No entries available to print');
+          this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint);
           return;
         }
 
@@ -235,16 +236,16 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
             });
           }
         } catch {
-          this.showInline('Unable to generate PDF. Please try again later');
+          this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry);
         }
       },
       onError: (err) => {
         this.printPageRequest.set(null);
         const status = getHttpStatus(err);
         if (status === 404) {
-          this.showInline('Application List not found');
+          this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.listNotFound);
         } else {
-          this.showInline('Unable to generate PDF. Please try again later');
+          this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry);
         }
       },
     });
@@ -261,7 +262,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       onSuccess: async ({ dto, isClosed }) => {
         this.printContinuousRequest.set(null);
         if (!this.hasEntries(dto)) {
-          this.showInline('No entries available to print');
+          this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint);
           return;
         }
 
@@ -273,12 +274,12 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
             );
           }
         } catch {
-          this.showInline('Unable to generate PDF.');
+          this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric);
         }
       },
       onError: () => {
         this.printContinuousRequest.set(null);
-        this.showInline('Unable to generate PDF.');
+        this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric);
       },
     });
   }
@@ -414,7 +415,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
           ...this.state().searchErrors,
           {
             id: '',
-            text: 'Invalid Search Criteria. At least one field must be entered.',
+            text: APPLICATIONS_LIST_ERROR_MESSAGES.invalidSearchCriteria,
           },
         ],
       });
