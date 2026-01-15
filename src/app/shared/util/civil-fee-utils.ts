@@ -59,8 +59,7 @@ export function buildCivilFeeHeading(
   const feeAmount = formatGbp(meta.feeAmount);
 
   const parts: string[] = [];
-  parts.push(`Fee Reference: ${feeRef || '—'}`);
-  parts.push(`Amount: ${feeAmount}`);
+  parts.push(`Fee Reference: ${feeRef || '—'}`, `Amount: ${feeAmount}`);
 
   if (hasOffsiteFee) {
     const offsiteAmount = formatGbpOrDash(meta.offsiteFeeAmount);
@@ -69,8 +68,10 @@ export function buildCivilFeeHeading(
         ? formatGbpOrDash(addMoney(meta.feeAmount, meta.offsiteFeeAmount))
         : '—';
 
-    parts.push(`Off Site Fee Amount: ${offsiteAmount}`);
-    parts.push(`Total Fee Amount: ${total}`);
+    parts.push(
+      `Off Site Fee Amount: ${offsiteAmount}`,
+      `Total Fee Amount: ${total}`,
+    );
   }
 
   return parts.join(' \u2003 '); // em space

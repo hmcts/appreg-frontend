@@ -11,6 +11,7 @@
           type="checkbox"
           formControlName="hasOffsiteFee"
           (click)="onOffsiteFeeChange()"
+          (keydown.enter)="onOffsiteFeeChange($event)"
         />
 
         <label class="govuk-label govuk-checkboxes__label" for="offSiteFee">

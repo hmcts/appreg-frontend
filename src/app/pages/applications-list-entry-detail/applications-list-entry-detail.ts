@@ -239,6 +239,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   //Civil fee
   feeMeta: CivilFeeMeta | null = null;
   civilFeeForm!: CivilFeeForm;
+  private persistedHasOffsiteFee = false;
 
   ngOnInit(): void {
     const state = readNavState(this.location, this.platformId);
@@ -316,7 +317,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.form.controls.feeStatuses.setValue(next);
     this.form.controls.feeStatuses.markAsDirty();
 
-    void this.persistFeeStatuses(next);
+    this.persistFeeStatuses(next);
   }
 
   private clearPaymentRefReturnOnly(): void {
@@ -653,7 +654,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   onOffsiteFeeChanged(nextValue: boolean): void {
-    const prev = this.form.controls.hasOffsiteFee.value === true;
+    const prev = this.persistedHasOffsiteFee;
 
     if (prev === nextValue) {
       return;
@@ -689,6 +690,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       .subscribe({
         next: () => {
           this.entryDetail = { ...this.entryDetail!, ...entryUpdateDto };
+          this.persistedHasOffsiteFee = nextValue;
           this.form.controls.hasOffsiteFee.markAsPristine();
 
           this.successBanner = {
@@ -855,6 +857,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       .subscribe({
         next: (entry) => {
           this.entryDetail = entry;
+          this.persistedHasOffsiteFee = entry.hasOffsiteFee === true;
 
           const hydrate = this.formSvc.hydrateFromDto(entry, this.forms, {
             emitEvent: false,

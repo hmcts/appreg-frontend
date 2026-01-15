@@ -75,9 +75,20 @@ export class CivilFeeSectionComponent {
   offSiteFee = (): boolean =>
     this.feeForm().controls.hasOffsiteFee.value === true;
 
-  onOffsiteFeeChange(): void {
-    const current = this.feeForm().controls.hasOffsiteFee.value === true;
-    this.offsiteFeeChanged.emit(!current);
+  onOffsiteFeeChange(event?: Event): void {
+    const ctrl = this.feeForm().controls.hasOffsiteFee;
+    const current = ctrl.value === true;
+    const next = !current;
+
+    // Keyboard: prevent native toggle so it doesn't double-fire / race
+    if (event instanceof KeyboardEvent) {
+      event.preventDefault();
+
+      // Because we prevented the browser toggle, update the control ourselves
+      ctrl.setValue(next, { emitEvent: false });
+    }
+
+    this.offsiteFeeChanged.emit(next);
   }
 
   onAddFeeDetailsClick(): void {
