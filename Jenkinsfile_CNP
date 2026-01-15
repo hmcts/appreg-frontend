@@ -230,5 +230,26 @@ withPipeline(type, product, component) {
     }
   }
 
+  // Always archive Cypress media for dev functional runs so videos/screenshots remain visible
+  after('functionalTest:dev') {
+    script {
+      def testResult = sh(script: 'yarn test:functional', returnStatus: true)
+
+      sh 'node cypress/scripts/reporting/generate-cucumber-html-report.js chrome smoke || true'
+
+      archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/videos/**/*.mp4'
+      archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/screenshots/**/*.png'
+      archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/mochawesome/**/*'
+      archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/junit/**/*.xml'
+      archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/**/*'
+
+      junit allowEmptyResults: true, testResults: 'cypress/reports/junit/**/*.xml'
+
+      if (testResult != 0) {
+        error("Functional tests failed with exit code ${testResult}")
+      }
+    }
+  }
+
   syncBranchesWithMaster(branchesToSync)
 }
