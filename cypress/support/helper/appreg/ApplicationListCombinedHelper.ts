@@ -46,13 +46,19 @@ export class ApplicationListCombinedHelper {
           break;
         }
 
+        case 'CJASearch':
+          // Skip - handled by CJA case
+          break;
+
         case 'Other location':
           TextboxHelper.typeInTextbox('Other location', value);
           break;
 
-        case 'CJA':
-          TextboxHelper.selectAutocompleteOption('CJA', value, value);
+        case 'CJA': {
+          const cjaSearchText = processedCriteria.CJASearch || value;
+          TextboxHelper.selectAutocompleteOption('CJA', cjaSearchText, value);
           break;
+        }
 
         case 'Status':
           if (value !== 'Choose') {

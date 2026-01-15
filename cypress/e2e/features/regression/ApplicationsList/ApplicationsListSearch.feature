@@ -172,8 +172,8 @@ Feature: Applications List Search
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     When User Searches Application List With:
-      | Date         | Time | Description | CourtSearch | Court | Status   | Other location | CJA |
-      | <SearchDate> |      |             |             |       | <Status> |                |     |
+      | Date         | Time | Description | CourtSearch | Court | Status   | Other location | CJA | CJASearch |
+      | <SearchDate> |      |             |             |       | <Status> |                |     |           |
     # Verify notification banner is displayed for empty state
     Then User Sees Notification Banner "<NotificationMessage>"
     Then User Clicks On The Link "<LinkText>"
@@ -213,8 +213,8 @@ Feature: Applications List Search
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     When User Searches Application List With:
-      | Date         | Time   | Description   | CourtSearch       | Court   | Status   | Other location | CJA |
-      | <SearchDate> | <Time> | <Description> | <OptionTextCourt> | <Court> | <Status> |                |     |
+      | Date         | Time   | Description   | CourtSearch       | Court   | Status   | Other location | CJA | CJASearch |
+      | <SearchDate> | <Time> | <Description> | <OptionTextCourt> | <Court> | <Status> |                |     |           |
     Then User Should See Table "<TableName>" Has Sortable Headers "Date, Time, Location, Description, Entries, Status"
     Then User Should See Table "<TableName>" Header "Actions" Is Not Sortable
     When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
@@ -231,8 +231,8 @@ Feature: Applications List Search
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     When User Searches Application List With:
-      | Date         | Time   | Description   | CourtSearch       | Court   | Status   | Other location | CJA |
-      | <SearchDate> | <Time> | <Description> | <OptionTextCourt> | <Court> | <Status> |                |     |
+      | Date         | Time   | Description   | CourtSearch       | Court   | Status   | Other location | CJA | CJASearch |
+      | <SearchDate> | <Time> | <Description> | <OptionTextCourt> | <Court> | <Status> |                |     |           |
     When User Clicks "<SelectButtonText>" In Row Of Table "<TableName>" And Verify Menu Options "<MenuOptions>"
       | Date          | Time   | Location | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
