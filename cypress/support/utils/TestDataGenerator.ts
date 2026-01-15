@@ -89,6 +89,11 @@ export class TestDataGenerator {
       return value;
     }
 
+    // Allow callers to opt out of processing via sentinel
+    if (value.trim() === '*SKIP*') {
+      return '';
+    }
+
     // First, replace date/time keywords
     let parsed = DateTimeUtil.parseDateValue(value);
 
@@ -110,6 +115,11 @@ export function processDatatableRow(
   const result: Record<string, string> = {};
 
   for (const [key, value] of Object.entries(row)) {
+    // Explicitly drop skip sentinel entries
+    if (value && value.trim() === '*SKIP*') {
+      continue;
+    }
+
     let processedValue = value;
 
     // Use the centralized parseValue method for date/time and {RANDOM} replacements
