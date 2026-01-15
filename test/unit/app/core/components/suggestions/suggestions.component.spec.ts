@@ -3,7 +3,13 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 
-type Item = { name?: string; description?: string; code?: string };
+type Item = {
+  name?: string;
+  description?: string;
+  code?: string;
+  value?: string;
+  locationCode?: string;
+};
 
 describe('SuggestionsComponent', () => {
   let fixture: ComponentFixture<SuggestionsComponent<Item>>;
@@ -244,10 +250,9 @@ describe('SuggestionsComponent', () => {
     const onChange = jest.fn();
     component.registerOnChange(onChange);
 
-    component.choose(
-      { name: 'Alpha' } as unknown as any,
-      { preventDefault: jest.fn() } as unknown as MouseEvent,
-    );
+    component.choose({ name: 'Alpha' }, {
+      preventDefault: jest.fn(),
+    } as unknown as MouseEvent);
 
     expect(onChange).toHaveBeenCalledWith('');
   });
@@ -276,10 +281,9 @@ describe('SuggestionsComponent', () => {
     const emitValue = jest.spyOn(component.valueChange, 'emit');
     component.registerOnChange(onChange);
 
-    component.choose(
-      { name: 'Alpha', value: 'V123' } as any,
-      { preventDefault: jest.fn() } as unknown as MouseEvent,
-    );
+    component.choose({ name: 'Alpha', value: 'V123' }, {
+      preventDefault: jest.fn(),
+    } as unknown as MouseEvent);
 
     expect(component.value).toBe('V123');
     expect(emitValue).toHaveBeenCalledWith('V123');
@@ -291,10 +295,9 @@ describe('SuggestionsComponent', () => {
     const emitValue = jest.spyOn(component.valueChange, 'emit');
     component.registerOnChange(onChange);
 
-    component.choose(
-      { name: 'Loc', locationCode: 'LC9' } as any,
-      { preventDefault: jest.fn() } as unknown as MouseEvent,
-    );
+    component.choose({ name: 'Loc', locationCode: 'LC9' }, {
+      preventDefault: jest.fn(),
+    } as unknown as MouseEvent);
 
     expect(component.value).toBe('LC9');
     expect(emitValue).toHaveBeenCalledWith('LC9');
@@ -303,10 +306,9 @@ describe('SuggestionsComponent', () => {
 
   it('onInput clears committed label when text differs, enabling dropdown to open again', () => {
     // commit "Alpha"
-    component.choose(
-      { name: 'Alpha', value: 'A' } as any,
-      { preventDefault: jest.fn() } as unknown as MouseEvent,
-    );
+    component.choose({ name: 'Alpha', value: 'A' }, {
+      preventDefault: jest.fn(),
+    } as unknown as MouseEvent);
     expect(component.isCommittedText).toBe(true);
 
     // user types something else => committedLabel should be cleared internally
