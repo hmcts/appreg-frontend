@@ -39,12 +39,16 @@ export class SuggestionsComponent<T = unknown>
   @Input() showError = false;
   @Input() errorText = 'This field is required';
   @Input({ required: true }) suggestions: T[] = [];
+
   @Input() search = '';
   @Output() searchChange = new EventEmitter<string>();
+
   @Input() getItemLabel: ((item: T) => string) | null = null;
   @Output() selectItem = new EventEmitter<T>();
+
   @Input() value = '';
   @Output() valueChange = new EventEmitter<string>();
+
   @Input() widthClass = 'govuk-input--width-10';
   @Input() containerWidthClass = 'govuk-grid-column-one-quarter';
 
