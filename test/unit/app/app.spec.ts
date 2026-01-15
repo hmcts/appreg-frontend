@@ -7,23 +7,10 @@ import { App } from '../../../src/app/app';
 const nextTick = () => new Promise<void>((r) => setTimeout(r, 0));
 
 /* ---------------------- Mocks ---------------------- */
-
-// MoJ: provide a SortableTable ctor under both named and default exports
-class SortableTableMock {
-  init?(): void {}
-}
-
-const SortableTableCtor = jest.fn(() => new SortableTableMock());
-jest.mock('@ministryofjustice/frontend', () => ({
-  SortableTable: SortableTableCtor,
-  default: { SortableTable: SortableTableCtor },
-}));
-
-// GOV.UK: module initAll
-const govukInitAll = jest.fn(() => {});
-jest.mock('govuk-frontend', () => ({ initAll: govukInitAll }), {
-  virtual: true,
-});
+const { SortableTable: mojFrontendCtor } = jest.requireMock(
+  '@ministryofjustice/frontend',
+);
+const { initAll: govukInitAll } = jest.requireMock('govuk-frontend');
 
 /* requestAnimationFrame: make it immediate and typed */
 let rafSpy: jest.SpyInstance<number, [FrameRequestCallback]>;
@@ -61,7 +48,7 @@ describe('App (root)', () => {
 
     document.body.className = '';
     document.body.innerHTML = '';
-    SortableTableCtor.mockClear();
+    mojFrontendCtor.mockClear();
     govukInitAll.mockClear();
   }
 
@@ -107,7 +94,7 @@ describe('App (root)', () => {
       fixture.detectChanges();
       await nextTick();
       expect(govukInitAll).not.toHaveBeenCalled();
-      expect(SortableTableCtor).not.toHaveBeenCalled();
+      expect(mojFrontendCtor).not.toHaveBeenCalled();
     });
 
     it('initialises GOV.UK and enhances all existing sortable tables (browser)', async () => {
@@ -123,9 +110,9 @@ describe('App (root)', () => {
       await nextTick(); // allow promise callback to run
 
       expect(govukInitAll).toHaveBeenCalledTimes(1);
-      expect(SortableTableCtor).toHaveBeenCalledTimes(2);
-      expect(SortableTableCtor).toHaveBeenCalledWith(t1);
-      expect(SortableTableCtor).toHaveBeenCalledWith(t2);
+      expect(mojFrontendCtor).toHaveBeenCalledTimes(2);
+      expect(mojFrontendCtor).toHaveBeenCalledWith(t1);
+      expect(mojFrontendCtor).toHaveBeenCalledWith(t2);
     });
 
     it('enhances sortable tables added later via MutationObserver', async () => {
@@ -139,8 +126,8 @@ describe('App (root)', () => {
       document.body.append(t3);
 
       await nextTick();
-      expect(SortableTableCtor).toHaveBeenCalledTimes(1);
-      expect(SortableTableCtor).toHaveBeenCalledWith(t3);
+      expect(mojFrontendCtor).toHaveBeenCalledTimes(1);
+      expect(mojFrontendCtor).toHaveBeenCalledWith(t3);
     });
   });
 
