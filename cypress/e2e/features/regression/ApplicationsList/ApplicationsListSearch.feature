@@ -66,14 +66,11 @@ Feature: Applications List Search
   Scenario Outline: Verify applications list table is displayed with search results
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
-    Then User Clicks On The Link "Applications list"
     When User Set Date Field "Date" To "<SearchDate>"
     When User Clicks On The "Search" Button
     # Table and header validation
-    Then User Should See The Table "<TableName>"
     Then User Should See Table "<TableName>" Has Sortable Headers "Date, Time, Location, Description, Entries, Status"
     Then User Should See Table "<TableName>" Header "Actions" Is Not Sortable
-    Then User Should See Table "<TableName>" Has Rows
     # Row value validation
     Then User Should See Row In Table "<TableName>" With Values:
       | Date          | Time   | Location | Description   | Entries   | Status   |
@@ -86,7 +83,6 @@ Feature: Applications List Search
   Scenario Outline: Filter and verify applications list with multiple filters
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
-    Then User Clicks On The Link "Applications list"
     # Test status filter
     Then User Selects "<Status>" In The "Select status" Dropdown
     When User Clicks On The "Search" Button
@@ -119,7 +115,6 @@ Feature: Applications List Search
   Scenario Outline: Verify CJA field validation with valid input
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
-    Then User Clicks On The Link "Applications list"
     Then User Selects "<OptionText>" From The Textbox "CJA" Autocomplete By Typing "<SearchText>"
     Then User Verifies The "CJA" Textbox Has Selected Value "<ExpectedValue>"
     Then User Verifies "<Info>" Is Not Visible Under The "CJA" Textbox
@@ -134,7 +129,6 @@ Feature: Applications List Search
   Scenario Outline: Verify CJA field validation with invalid input
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
-    Then User Clicks On The Link "Applications list"
     Then User Selects "<OptionText>" From The Textbox "CJA" Autocomplete By Typing "<SearchText>"
     # Then User Verifies The "CJA" Textbox Has Selected Value "<ExpectedValue>"
     Then User Verifies "<Info>" Is Visible Under The "CJA" Textbox
@@ -149,7 +143,6 @@ Feature: Applications List Search
   Scenario Outline: Verify applications list table sorting functionality
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
-    Then User Clicks On The Link "Applications list"
     # Search to get table with data
     Then User Selects "<Status>" In The "Select status" Dropdown
     When User Clicks On The "Search" Button
@@ -178,11 +171,9 @@ Feature: Applications List Search
   Scenario Outline: Verify applications list table shows empty state with no results
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
-    Then User Clicks On The Link "Applications list"
-    # Perform search with filters that return no results
-    When User Set Date Field "Date" To "<SearchDate>"
-    Then User Selects "<Status>" In The "Select status" Dropdown
-    When User Clicks On The "Search" Button
+    When User Searches Application List With:
+      | Date         | Time | Description | CourtSearch | Court | Status   | Other location | CJA | CJASearch |
+      | <SearchDate> |      |             |             |       | <Status> |                |     |           |
     # Verify notification banner is displayed for empty state
     Then User Sees Notification Banner "<NotificationMessage>"
     Then User Clicks On The Link "<LinkText>"
@@ -196,7 +187,6 @@ Feature: Applications List Search
   Scenario Outline: Verify Court field validation with valid input
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
-    Then User Clicks On The Link "Applications list"
     Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
     Then User Verifies The "Court" Textbox Has Selected Value "<ExpectedValue>"
     Then User Verifies "<Info>" Is Not Visible Under The "Court" Textbox
@@ -210,7 +200,6 @@ Feature: Applications List Search
   Scenario Outline: Verify Court field validation with invalid input
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
-    Then User Clicks On The Link "Applications list"
     Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
     Then User Verifies "<Info>" Is Visible Under The "Court" Textbox
     When User Clicks On The "Search" Button
@@ -223,17 +212,11 @@ Feature: Applications List Search
   Scenario Outline: Verify application list Open
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
-    Then User Clicks On The Link "Applications list"
-    When User Set Date Field "Date" To "<SearchDate>"
-    When User Set Time Field "Time" To "<Time>"
-    Then User Enters "<Description>" Into The "Description" Textbox
-    Then User Selects "<Court>" From The Textbox "Court" Autocomplete By Typing "<OptionTextCourt>"
-    Then User Selects "<Status>" In The "Select status" Dropdown
-    When User Clicks On The "Search" Button
-    Then User Should See The Table "<TableName>"
+    When User Searches Application List With:
+      | Date         | Time   | Description   | CourtSearch       | Court   | Status   | Other location | CJA | CJASearch |
+      | <SearchDate> | <Time> | <Description> | <OptionTextCourt> | <Court> | <Status> |                |     |           |
     Then User Should See Table "<TableName>" Has Sortable Headers "Date, Time, Location, Description, Entries, Status"
     Then User Should See Table "<TableName>" Header "Actions" Is Not Sortable
-    Then User Should See Table "<TableName>" Has Rows
     When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
       | Date          | Time   | Location | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
@@ -247,14 +230,9 @@ Feature: Applications List Search
   Scenario Outline: Verify application list row menu options
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
-    When User Set Date Field "Date" To "<SearchDate>"
-    When User Set Time Field "Time" To "<Time>"
-    Then User Enters "<Description>" Into The "Description" Textbox
-    Then User Selects "<Court>" From The Textbox "Court" Autocomplete By Typing "<OptionTextCourt>"
-    Then User Selects "<Status>" In The "Select status" Dropdown
-    When User Clicks On The "Search" Button
-    Then User Should See The Table "<TableName>"
-    Then User Should See Table "<TableName>" Has Rows
+    When User Searches Application List With:
+      | Date         | Time   | Description   | CourtSearch       | Court   | Status   | Other location | CJA | CJASearch |
+      | <SearchDate> | <Time> | <Description> | <OptionTextCourt> | <Court> | <Status> |                |     |           |
     When User Clicks "<SelectButtonText>" In Row Of Table "<TableName>" And Verify Menu Options "<MenuOptions>"
       | Date          | Time   | Location | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
