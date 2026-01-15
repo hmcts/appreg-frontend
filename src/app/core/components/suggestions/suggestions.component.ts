@@ -141,7 +141,6 @@ export class SuggestionsComponent<T = unknown>
     return String(item as unknown);
   }
 
-  // NEW: derive the value that should be stored in the form (default: item.code or label)
   private valueFor(item: T): string {
     if (item === null || item === undefined) {
       return '';
@@ -151,15 +150,18 @@ export class SuggestionsComponent<T = unknown>
     }
 
     if (isRecord(item)) {
-      // common case: store code if present
-      const code = item['code'];
-      if (typeof code === 'string') {
-        return code;
+      const v = item['value'];
+      if (typeof v === 'string') {
+        return v;
+      }
+
+      const lc = item['locationCode'];
+      if (typeof lc === 'string') {
+        return lc;
       }
     }
 
-    // fallback: store label
-    return this.labelFor(item);
+    return '';
   }
 
   choose(item: T, e: MouseEvent): void {
@@ -188,8 +190,8 @@ export class SuggestionsComponent<T = unknown>
 
   private setValueInternal(v: string): void {
     this.value = v;
-    this.valueChange.emit(v); // keep legacy API
-    this.onChange(v); // <-- this is the key CVA link
+    this.valueChange.emit(v);
+    this.onChange(v);
   }
 
   labelOf(item: T): string {
