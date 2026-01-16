@@ -50,15 +50,40 @@ export abstract class PlaceFieldsBase implements OnDestroy {
     this.form = form;
     this.ref = ref;
 
-    this.courthouseSearch = String(this.form.controls['court'].value ?? '');
-    this.cjaSearch = String(this.form.controls['cja'].value ?? '');
+    this.courthouseSearch = '';
+    this.cjaSearch = '';
 
     this.subs.add(
-      this.ref.courtLocations$.subscribe(
-        (items) => (this.courtLocations = items),
-      ),
+      this.ref.courtLocations$.subscribe((items) => {
+        this.courtLocations = items;
+
+        const code = String(this.form.controls['court'].value ?? '').trim();
+        if (!code) {
+          return;
+        }
+
+        const match = items.find((x) => x.locationCode === code);
+        if (match) {
+          this.courthouseSearch = `${match.locationCode} - ${match.name}`;
+        }
+      }),
     );
-    this.subs.add(this.ref.cja$.subscribe((items) => (this.cja = items)));
+
+    this.subs.add(
+      this.ref.cja$.subscribe((items) => {
+        this.cja = items;
+
+        const code = String(this.form.controls['cja'].value ?? '').trim();
+        if (!code) {
+          return;
+        }
+
+        const match = items.find((x) => x.code === code);
+        if (match) {
+          this.cjaSearch = `${match.code} - ${match.description}`;
+        }
+      }),
+    );
 
     this.locationDisabler = attachLocationDisabler({
       court: this.form.controls['court'],
