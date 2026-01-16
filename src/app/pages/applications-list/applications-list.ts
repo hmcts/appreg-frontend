@@ -29,6 +29,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpContext } from '@angular/common/http';
 import {
   Component,
+  EnvironmentInjector,
   HostListener,
   OnInit,
   PLATFORM_ID,
@@ -129,6 +130,9 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   private readonly state = this.signalState.state;
   readonly vm = this.signalState.vm;
 
+  // allows you to initialise effect in ngOnInit()
+  private readonly envInjector = inject(EnvironmentInjector);
+
   // Create form
   override form = this.formSvc.createSearchForm();
 
@@ -148,6 +152,9 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   ngOnInit(): void {
     this.restoreFormValues();
     this.initPlaceFields(this.form, this.refFacade);
+
+    // Initialise effects
+    this.setupEffects();
   }
 
   restoreFormValues(): void {
@@ -164,144 +171,155 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   private setupEffects(): void {
     // TODO: Use global error handling after ARCPOC-822 is done
     // Applications list search
-    setupLoadEffect({
-      request: this.loadRequest,
-      load: (params) =>
-        this.appListsApi.getApplicationLists(params, undefined, undefined, {
-          transferCache: true,
-        }),
-      onSuccess: (page) => {
-        const content: ApplicationListGetSummaryDto[] = page.content ?? [];
-        this.signalState.patch({
-          searchErrors: [],
-          submitted: true,
-          totalPages: page.totalPages ?? 0,
-          rows: content.map((x) => toRow(x)),
-          isLoading: false,
-        });
-        this.loadRequest.set(null); // Clears request signal
+    setupLoadEffect(
+      {
+        request: this.loadRequest,
+        load: (params) =>
+          this.appListsApi.getApplicationLists(params, undefined, undefined, {
+            transferCache: true,
+          }),
+        onSuccess: (page) => {
+          const content: ApplicationListGetSummaryDto[] = page.content ?? [];
+          this.signalState.patch({
+            searchErrors: [],
+            submitted: true,
+            totalPages: page.totalPages ?? 0,
+            rows: content.map((x) => toRow(x)),
+            isLoading: false,
+          });
+          this.loadRequest.set(null); // Clears request signal
+        },
+        onError: (err) => {
+          const msg = getProblemText(err);
+          this.signalState.patch({
+            submitted: true,
+            rows: [],
+            totalPages: 0,
+            isLoading: false,
+            searchErrors: [{ id: 'search', text: msg }],
+          });
+          this.loadRequest.set(null);
+        },
       },
-      onError: (err) => {
-        const msg = getProblemText(err);
-        this.signalState.patch({
-          submitted: true,
-          rows: [],
-          totalPages: 0,
-          isLoading: false,
-          searchErrors: [{ id: 'search', text: msg }],
-        });
-        this.loadRequest.set(null);
-      },
-    });
+      this.envInjector,
+    );
 
     // Applications list delete
-    setupLoadEffect({
-      request: this.deleteRequest,
-      load: (row) =>
-        this.appListsApi
-          .deleteApplicationList({ listId: row.id }, 'response', false, {
-            context: new HttpContext()
-              .set(IF_MATCH, row.etag ?? null)
-              .set(ROW_VERSION, row.rowVersion ?? null),
-          })
-          .pipe(map((resp) => ({ row, resp }))),
-      onSuccess: ({ row, resp }) => {
-        if (resp.status === 200 || resp.status === 204) {
-          this.signalState.patch({
-            rows: this.state().rows.filter((r) => r.id !== row.id),
-            deleteDone: true,
-          });
-        }
-        this.signalState.patch({ deletingId: null });
-        this.deleteRequest.set(null);
-      },
-      onError: (err) => {
-        const status = getHttpStatus(err);
-        this.signalState.patch({
-          deleteInvalid: true,
-          errorSummary: statusSummary(status),
-          deletingId: null,
-        });
-        this.deleteRequest.set(null);
-      },
-    });
-
-    // Applications list print page
-    setupLoadEffect({
-      request: this.printPageRequest,
-      load: (id) =>
-        this.appListsApi.printApplicationList(
-          { listId: id },
-          undefined,
-          undefined,
-          {
-            transferCache: false,
-          },
-        ),
-      onSuccess: async (dto) => {
-        this.printPageRequest.set(null);
-        if (!this.hasEntries(dto)) {
-          this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint);
-          return;
-        }
-
-        try {
-          if (isPlatformBrowser(this.platformId)) {
-            await this.pdf.generatePagedApplicationListPdf(dto, {
-              crestUrl: '/assets/govuk-crest.png',
+    setupLoadEffect(
+      {
+        request: this.deleteRequest,
+        load: (row) =>
+          this.appListsApi
+            .deleteApplicationList({ listId: row.id }, 'response', false, {
+              context: new HttpContext()
+                .set(IF_MATCH, row.etag ?? null)
+                .set(ROW_VERSION, row.rowVersion ?? null),
+            })
+            .pipe(map((resp) => ({ row, resp }))),
+        onSuccess: ({ row, resp }) => {
+          if (resp.status === 200 || resp.status === 204) {
+            this.signalState.patch({
+              rows: this.state().rows.filter((r) => r.id !== row.id),
+              deleteDone: true,
             });
           }
-        } catch {
-          this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry);
-        }
+          this.signalState.patch({ deletingId: null });
+          this.deleteRequest.set(null);
+        },
+        onError: (err) => {
+          const status = getHttpStatus(err);
+          this.signalState.patch({
+            deleteInvalid: true,
+            errorSummary: statusSummary(status),
+            deletingId: null,
+          });
+          this.deleteRequest.set(null);
+        },
       },
-      onError: (err) => {
-        this.printPageRequest.set(null);
-        const status = getHttpStatus(err);
-        if (status === 404) {
-          this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.listNotFound);
-        } else {
-          this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry);
-        }
+      this.envInjector,
+    );
+
+    // Applications list print page
+    setupLoadEffect(
+      {
+        request: this.printPageRequest,
+        load: (id) =>
+          this.appListsApi.printApplicationList(
+            { listId: id },
+            undefined,
+            undefined,
+            {
+              transferCache: false,
+            },
+          ),
+        onSuccess: async (dto) => {
+          this.printPageRequest.set(null);
+          if (!this.hasEntries(dto)) {
+            this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint);
+            return;
+          }
+
+          try {
+            if (isPlatformBrowser(this.platformId)) {
+              await this.pdf.generatePagedApplicationListPdf(dto, {
+                crestUrl: '/assets/govuk-crest.png',
+              });
+            }
+          } catch {
+            this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry);
+          }
+        },
+        onError: (err) => {
+          this.printPageRequest.set(null);
+          const status = getHttpStatus(err);
+          if (status === 404) {
+            this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.listNotFound);
+          } else {
+            this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry);
+          }
+        },
       },
-    });
+      this.envInjector,
+    );
 
     // Applications list print cont
-    setupLoadEffect({
-      request: this.printContinuousRequest,
-      load: (req) =>
-        this.appListsApi
-          .printApplicationList({ listId: req.id }, undefined, undefined, {
-            transferCache: false,
-          })
-          .pipe(map((dto) => ({ dto, isClosed: req.isClosed }))),
-      onSuccess: async ({ dto, isClosed }) => {
-        this.printContinuousRequest.set(null);
-        if (!this.hasEntries(dto)) {
-          this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint);
-          return;
-        }
+    setupLoadEffect(
+      {
+        request: this.printContinuousRequest,
+        load: (req) =>
+          this.appListsApi
+            .printApplicationList({ listId: req.id }, undefined, undefined, {
+              transferCache: false,
+            })
+            .pipe(map((dto) => ({ dto, isClosed: req.isClosed }))),
+        onSuccess: async ({ dto, isClosed }) => {
+          this.printContinuousRequest.set(null);
+          if (!this.hasEntries(dto)) {
+            this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint);
+            return;
+          }
 
-        try {
-          if (isPlatformBrowser(this.platformId)) {
-            await this.pdf.generateContinuousApplicationListsPdf(
-              [dto],
-              isClosed,
+          try {
+            if (isPlatformBrowser(this.platformId)) {
+              await this.pdf.generateContinuousApplicationListsPdf(
+                [dto],
+                isClosed,
+              );
+            }
+          } catch {
+            this.showInline(
+              APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric,
             );
           }
-        } catch {
+        },
+        onError: () => {
+          this.printContinuousRequest.set(null);
           this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric);
-        }
+        },
       },
-      onError: () => {
-        this.printContinuousRequest.set(null);
-        this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric);
-      },
-    });
+      this.envInjector,
+    );
   }
-
-  // Initialise effects
-  private readonly effects = this.setupEffects();
 
   onSubmit(event: SubmitEvent): void {
     event.preventDefault();

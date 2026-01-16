@@ -1,4 +1,10 @@
-import { type WritableSignal, computed, effect, signal } from '@angular/core';
+import {
+  EnvironmentInjector,
+  type WritableSignal,
+  computed,
+  effect,
+  signal,
+} from '@angular/core';
 import { Observable } from 'rxjs';
 
 // Small helper for consistent signal-backed view models.
@@ -29,28 +35,32 @@ interface LoadEffectOptions<TParams, TResponse> {
 // Signal driven request helper
 export const setupLoadEffect = <TParams, TResponse>(
   options: LoadEffectOptions<TParams, TResponse>,
+  injector: EnvironmentInjector,
 ): void => {
-  effect((onCleanup) => {
-    const params = options.request();
-    if (!params) {
-      return;
-    }
+  effect(
+    (onCleanup) => {
+      const params = options.request();
+      if (!params) {
+        return;
+      }
 
-    const sub = options.load(params).subscribe({
-      next: (response) => {
-        const result = options.onSuccess(response);
-        if (result && typeof result.then === 'function') {
-          result.catch(() => undefined);
-        }
-      },
-      error: (err) => {
-        const result = options.onError(err);
-        if (result && typeof result.then === 'function') {
-          result.catch(() => undefined);
-        }
-      },
-    });
+      const sub = options.load(params).subscribe({
+        next: (response) => {
+          const result = options.onSuccess(response);
+          if (result && typeof result.then === 'function') {
+            result.catch(() => undefined);
+          }
+        },
+        error: (err) => {
+          const result = options.onError(err);
+          if (result && typeof result.then === 'function') {
+            result.catch(() => undefined);
+          }
+        },
+      });
 
-    onCleanup(() => sub.unsubscribe());
-  });
+      onCleanup(() => sub.unsubscribe());
+    },
+    { injector },
+  );
 };
