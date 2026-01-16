@@ -12,12 +12,19 @@ export class MicrosoftAuthHelper {
       'https://login.microsoftonline.com',
       { args: { email, password } },
       ({ email: innerEmail, password: innerPassword }) => {
-        const emailSel = 'input[name="loginfmt"], input[name="signInName"], input[name="logonIdentifier"], #email, input[type="email"]';
-        const passSel = 'input[name="passwd"], input[name="password"], #password, input[type="password"]';
+        const emailSel =
+          'input[name="loginfmt"], input[name="signInName"], input[name="logonIdentifier"], #email, input[type="email"]';
+        const passSel =
+          'input[name="passwd"], input[name="password"], #password, input[type="password"]';
 
         // Helper to get visible, enabled element
         const getVisible = (sel: string) =>
-          cy.get(sel, { timeout: 30000 }).filter(':visible').first().should('be.enabled').scrollIntoView();
+          cy
+            .get(sel, { timeout: 30000 })
+            .filter(':visible')
+            .first()
+            .should('be.enabled')
+            .scrollIntoView();
 
         // Helper to type with retry and verification
         const typeExact = (sel: string, value: string, label: string) =>
@@ -32,8 +39,14 @@ export class MicrosoftAuthHelper {
                   const got = (v || '').toString().length;
                   const want = value.length;
                   if (got !== want) {
-                    if (delay >= 60) {throw new Error(`Failed to type full ${label}: got ${got}/${want}`);}
-                    cy.log(`Retry typing ${label}: got ${got}/${want}, retry slower`);
+                    if (delay >= 60) {
+                      throw new Error(
+                        `Failed to type full ${label}: got ${got}/${want}`,
+                      );
+                    }
+                    cy.log(
+                      `Retry typing ${label}: got ${got}/${want}, retry slower`,
+                    );
                     tryType(60);
                   }
                 });
@@ -48,7 +61,12 @@ export class MicrosoftAuthHelper {
               .find('button, input[type="submit"]')
               .filter((_, el) => {
                 const element = el as HTMLElement;
-                const text = element.innerText || ('value' in element ? (element as HTMLInputElement).value : '') || '';
+                const text =
+                  element.innerText ||
+                  ('value' in element
+                    ? (element as HTMLInputElement).value
+                    : '') ||
+                  '';
                 return /^(sign in|continue|next|yes)$/i.test(text.trim());
               })
               .first();
@@ -90,7 +108,10 @@ export class MicrosoftAuthHelper {
           const text = $body.text();
           if (/Stay signed in\?/i.test(text)) {
             cy.log('Handling "Stay signed in?" prompt...');
-            cy.get('#idBtn_Back, button:contains("No")').first().should('be.visible').click({ force: true });
+            cy.get('#idBtn_Back, button:contains("No")')
+              .first()
+              .should('be.visible')
+              .click({ force: true });
             cy.screenshot('Microsoft-03-Stay-Signed-In-Handled');
           }
         });
