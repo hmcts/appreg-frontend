@@ -27,11 +27,13 @@ export class AuthHelper {
       {
         validate() {
           cy.log('Validating existing session...');
-          SessionValidator.validateSessionCookie();
+          SessionValidator.verifySessionIsValid();
         },
       },
     );
+    cy.screenshot('03-2-Session-Validated');
     NavigationHelper.navigateToUrl(APP_URLS.APPLICATIONS_LIST);
+    SessionValidator.verifySessionIsValid();
     cy.screenshot('04-Final-ApplicationsList-Page');
   }
 
