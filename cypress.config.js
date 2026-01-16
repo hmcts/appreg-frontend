@@ -98,7 +98,6 @@ module.exports = defineConfig({
     },
     video: true,
     videosFolder: 'cypress/reports/videos',
-    videoCompression: 15,
     screenshotOnRunFailure: true,
     screenshotsFolder: 'cypress/reports/screenshots',
     trashAssetsBeforeRuns: true,
