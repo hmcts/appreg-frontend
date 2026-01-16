@@ -21,7 +21,7 @@ onPrintPage():
   - If list is empty/missing or PDF fails, show inline message
 
 onPrintContinuous():
-  - Fetch list by id and generate a continuous PDF in the browser (uses isClosed)
+  - Fetch list by id and generate a continuous PDF in the browser (uses isClosed which changes the title)
   - If list is empty or PDF fails, show inline message
 */
 
