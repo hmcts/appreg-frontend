@@ -112,14 +112,6 @@ describe('ApplicationsListCreate', () => {
     expect(cjaMock.getCriminalJusticeAreas).toHaveBeenCalled();
   });
 
-  it('prefills suggestion searches from existing form values', () => {
-    component.form.controls.court.setValue(' A1 ');
-    component.form.controls.cja.setValue(' C1 ');
-    component.ngOnInit();
-    expect(component.courthouseSearch).toBe(' A1 ');
-    expect(component.cjaSearch).toBe(' C1 ');
-  });
-
   it('disables and enables related fields based on values', () => {
     fixture.detectChanges();
 

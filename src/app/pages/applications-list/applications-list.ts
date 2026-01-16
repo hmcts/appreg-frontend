@@ -79,6 +79,11 @@ import {
 } from '@openapi';
 import { PdfService } from '@services/pdf.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
+import {
+  ApplicationListSearchFormService,
+  DEFAULT_STATE,
+  SearchFormValue,
+} from '@services/searchform/application-list-search-form.service';
 import { has } from '@util/has';
 import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
@@ -117,6 +122,7 @@ export class ApplicationsList
   private readonly appListsApi = inject(ApplicationListsApi);
   private readonly refFacade = inject(ReferenceDataFacade);
   private readonly pdf = inject(PdfService);
+  private readonly searchForm = inject(ApplicationListSearchFormService);
 
   private readonly destroy$ = new Subject<void>();
   openMenuForId: string | null = null;
@@ -172,7 +178,17 @@ export class ApplicationsList
   rows: ApplicationListRow[] = [];
 
   ngOnInit(): void {
+    this.restoreFormValues();
     this.initPlaceFields(this.form, this.refFacade);
+  }
+
+  restoreFormValues(): void {
+    this.form.patchValue(this.searchForm.state(), { emitEvent: false });
+  }
+
+  clearSearch(): void {
+    this.searchForm.reset();
+    this.form.reset(this.searchForm.state());
   }
 
   override ngOnDestroy(): void {
@@ -381,6 +397,11 @@ export class ApplicationsList
       });
       return;
     }
+
+    this.searchForm.setState({
+      ...DEFAULT_STATE,
+      ...this.form.getRawValue(),
+    } as SearchFormValue);
 
     const params: GetApplicationListsRequestParams = {
       page: this.currentPage - 1,
