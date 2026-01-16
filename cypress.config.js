@@ -80,7 +80,8 @@ module.exports = defineConfig({
     // Report and Media Settings
     reporter: 'cypress-multi-reporters',
     reporterOptions: {
-      reporterEnabled: 'spec, cypress-mochawesome-reporter, mocha-junit-reporter',
+      reporterEnabled:
+        'spec, cypress-mochawesome-reporter, mocha-junit-reporter',
       mochaJunitReporterReporterOptions: {
         mochaFile: 'cypress/reports/junit/results-[hash].xml',
         toConsole: false,
