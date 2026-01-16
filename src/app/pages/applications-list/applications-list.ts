@@ -77,6 +77,11 @@ import {
 import { ApplicationsListFormService } from '@services/applications-list-form.service';
 import { PdfService } from '@services/pdf.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
+import {
+  ApplicationListSearchFormService,
+  DEFAULT_STATE,
+  SearchFormValue,
+} from '@services/searchform/application-list-search-form.service';
 import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
@@ -111,6 +116,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   private readonly appListsApi = inject(ApplicationListsApi);
   private readonly refFacade = inject(ReferenceDataFacade);
   private readonly pdf = inject(PdfService);
+  private readonly searchForm = inject(ApplicationListSearchFormService);
   private readonly formSvc = inject(ApplicationsListFormService);
 
   openMenuForId: string | null = null;
@@ -140,7 +146,17 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   status = APPLICATIONS_LIST_CHOOSE_STATUS;
 
   ngOnInit(): void {
+    this.restoreFormValues();
     this.initPlaceFields(this.form, this.refFacade);
+  }
+
+  restoreFormValues(): void {
+    this.form.patchValue(this.searchForm.state(), { emitEvent: false });
+  }
+
+  clearSearch(): void {
+    this.searchForm.reset();
+    this.form.reset(this.searchForm.state());
   }
 
   // Registers signal-driven effects that watch request signals and run API calls,
@@ -421,6 +437,11 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       });
       return;
     }
+
+    this.searchForm.setState({
+      ...DEFAULT_STATE,
+      ...this.form.getRawValue(),
+    } as SearchFormValue);
 
     const params: GetApplicationListsRequestParams = {
       page: this.state().currentPage - 1,
