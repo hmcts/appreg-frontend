@@ -80,7 +80,7 @@ module.exports = defineConfig({
     // Report and Media Settings
     reporter: 'cypress-multi-reporters',
     reporterOptions: {
-      reporterEnabled: 'cypress-mochawesome-reporter, mocha-junit-reporter',
+      reporterEnabled: 'spec, cypress-mochawesome-reporter, mocha-junit-reporter',
       mochaJunitReporterReporterOptions: {
         mochaFile: 'cypress/reports/junit/results-[hash].xml',
         toConsole: false,
@@ -97,17 +97,18 @@ module.exports = defineConfig({
     },
     video: true,
     videosFolder: 'cypress/reports/videos',
+    videoCompression: 15,
     screenshotOnRunFailure: true,
     screenshotsFolder: 'cypress/reports/screenshots',
-    trashAssetsBeforeRuns: false,
+    trashAssetsBeforeRuns: true,
     // Downloads Configuration
     downloadsFolder: 'cypress/downloads',
     async setupNodeEvents(on, config) {
       const fs = require('node:fs');
       const path = require('node:path');
 
-      await addCucumberPreprocessorPlugin(on, config);
       require('cypress-mochawesome-reporter/plugin')(on);
+      await addCucumberPreprocessorPlugin(on, config);
 
       // Custom task to log accessibility violations
       on('task', {

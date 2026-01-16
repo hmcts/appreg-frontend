@@ -195,7 +195,7 @@ withPipeline(type, product, component) {
     script {
       def testResult = sh(script: 'yarn test:functional', returnStatus: true)
 
-      sh 'node cypress/scripts/reporting/generate-cucumber-html-report.js chrome smoke || true'
+      sh 'node cypress/scripts/reporting/generate-cucumber-html-report.js electron smoke || true'
 
       archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/**/*'
       archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/videos/**/*.mp4'
@@ -215,12 +215,12 @@ withPipeline(type, product, component) {
       ])
 
       publishHTML([
-        allowMissing: false,
+        allowMissing: true,
         alwaysLinkToLastBuild: true,
         keepAll: true,
-        reportDir: 'cypress/reports',
-        reportFiles: 'mochawesome.html',
-        reportName: 'Mochaware Report',
+        reportDir: 'cypress/reports/mochawesome',
+        reportFiles: 'index.html',
+        reportName: 'Mochawesome Report',
         reportTitles: 'Mochawesome Test Report',
       ])
 
@@ -235,7 +235,7 @@ withPipeline(type, product, component) {
     script {
       def testResult = sh(script: 'yarn test:functional', returnStatus: true)
 
-      sh 'node cypress/scripts/reporting/generate-cucumber-html-report.js chrome smoke || true'
+      sh 'node cypress/scripts/reporting/generate-cucumber-html-report.js electron smoke || true'
 
       archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/videos/**/*.mp4'
       archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/screenshots/**/*.png'
