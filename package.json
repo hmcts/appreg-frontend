@@ -199,7 +199,8 @@
     "tar": "^7.5.2",
     "js-yaml": "^4.1.1",
     "body-parser": "^2.2.2",
-    "undici": "^6.23.0"
+    "undici": "^6.23.0",
+    "diff": "^8.0.3"
   },
   "packageManager": "yarn@4.10.3"
 }
