@@ -8,6 +8,8 @@ import { LinkHelper } from '../forms/link/LinkHelper';
 
 export class MicrosoftAuthHelper {
   static performLogin(email: string, password: string): void {
+    cy.screenshot('03-Microsoft-Before-Login');
+
     cy.origin(
       'https://login.microsoftonline.com',
       { args: { email, password } },
@@ -31,7 +33,6 @@ export class MicrosoftAuthHelper {
           getVisible(sel).then(($input) => {
             const tryType = (delay: number): void => {
               cy.wrap($input).clear({ force: true });
-              cy.wait(150);
               cy.wrap($input).type(value, { log: false, delay });
               cy.wrap($input)
                 .invoke('val')
@@ -56,67 +57,38 @@ export class MicrosoftAuthHelper {
 
         // Helper to click submit button
         const clickSubmit = () => {
-          cy.get('body').then(($body) => {
-            const $btn = $body
-              .find('button, input[type="submit"]')
-              .filter((_, el) => {
-                const element = el as HTMLElement;
-                const text =
-                  element.innerText ||
-                  ('value' in element
-                    ? (element as HTMLInputElement).value
-                    : '') ||
-                  '';
-                return /^(sign in|continue|next|yes)$/i.test(text.trim());
-              })
-              .first();
-            if ($btn.length) {
-              cy.wrap($btn).click({ force: true });
-            } else {
-              cy.get('input[type="submit"]').first().click({ force: true });
-            }
-          });
+          // Microsoft Next / Sign in button id is stable
+          cy.get('#idSIButton9', { timeout: 20000 })
+            .should('be.visible')
+            .should('be.enabled')
+            .click();
         };
 
         // Enter email
         cy.log('Entering email...');
         typeExact(emailSel, innerEmail, 'email');
-        cy.screenshot('Microsoft-01-Email-Entered');
 
-        // Check if password is on same page or next page
-        cy.get('body').then(($b) => {
-          const hasPassHere = $b.find(passSel).length > 0;
+        // Submit email to proceed to password page
+        clickSubmit();
+        cy.log('Entering password (next page)...');
+        typeExact(passSel, innerPassword, 'password');
+        clickSubmit();
 
-          if (hasPassHere) {
-            cy.wait(250);
-            cy.log('Entering password (same page)...');
-            typeExact(passSel, innerPassword, 'password');
-            cy.screenshot('Microsoft-02-Password-Entered');
-            clickSubmit();
-          } else {
-            clickSubmit();
-            cy.wait(250);
-            cy.log('Entering password (next page)...');
-            typeExact(passSel, innerPassword, 'password');
-            cy.screenshot('Microsoft-02-Password-Entered');
-            clickSubmit();
-          }
-        });
-
-        // Handle "Stay signed in?" prompt
-        cy.get('body', { timeout: 20000 }).then(($body) => {
-          const text = $body.text();
-          if (/Stay signed in\?/i.test(text)) {
-            cy.log('Handling "Stay signed in?" prompt...');
-            cy.get('#idBtn_Back, button:contains("No")')
-              .first()
-              .should('be.visible')
-              .click({ force: true });
-            cy.screenshot('Microsoft-03-Stay-Signed-In-Handled');
-          }
-        });
+        // Wait for and handle "Stay signed in?" prompt (fail fast if not present)
+        cy.get('#idBtn_Back', { timeout: 15000 })
+          .should('be.visible')
+          .should('be.enabled')
+          .click();
+        cy.log('Clicked No button successfully');
       },
     );
+
+    // Wait for redirect back to your application after authentication
+    cy.url({ timeout: 30000 }).should('include', '/applications-list');
+    cy.screenshot('04-Microsoft-Applications-List-Loaded');
+    
+    // Verify session is established
+    cy.request('/sso/me').its('status').should('eq', 200);
   }
 
   static performSignOut(): void {
