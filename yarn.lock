@@ -18198,7 +18198,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tar@npm:^7.5.2":
+"tar@npm:^7.5.3":
   version: 7.5.3
   resolution: "tar@npm:7.5.3"
   dependencies:
