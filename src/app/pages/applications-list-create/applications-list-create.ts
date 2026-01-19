@@ -121,12 +121,6 @@ export class ApplicationsListCreate
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
 
-  statusOptions = [
-    { value: '', label: 'Choose status' },
-    { value: 'open', label: 'Open' },
-    { value: 'closed', label: 'Closed' },
-  ];
-
   @Input() listId?: string;
 
   // If the field is populated and invalid it will return true and stored here

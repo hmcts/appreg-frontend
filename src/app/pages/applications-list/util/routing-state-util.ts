@@ -1,7 +1,12 @@
 import { Location, isPlatformBrowser } from '@angular/common';
+import { FormGroup } from '@angular/forms';
 
+import { ApplicationListGetSummaryDto, ApplicationListStatus } from '@openapi';
 import { hasStringProp, isRecord } from '@util/data-utils';
+import { has } from '@util/has';
 import { isNullableString } from '@util/string-helpers';
+import { normaliseTime } from '@util/time-helpers';
+import { ApplicationListRow } from '@util/types/application-list/types';
 
 export type ApplicantContext = {
   applicant: string;
@@ -71,4 +76,32 @@ export function readNavState(
 
   const raw: unknown = location.getState();
   return isNavState(raw) ? raw : null;
+}
+
+export function toRow(x: ApplicationListGetSummaryDto): ApplicationListRow {
+  return {
+    id: x.id,
+    date: x.date,
+    time: normaliseTime(x.time) ?? '',
+    location: x.location,
+    description: x.description,
+    entries: x.entriesCount,
+    status: x.status,
+    deletable: x.status === ApplicationListStatus.OPEN,
+    etag: null,
+    rowVersion: null,
+  };
+}
+
+export function hasAnyParams(form: FormGroup): boolean {
+  const values = form.getRawValue() as Record<string, unknown>;
+  return (
+    has(values['date']) ||
+    has(values['time']) ||
+    has(values['description']) ||
+    has(values['status']) ||
+    has(values['court']) ||
+    has(values['location']) ||
+    has(values['cja'])
+  );
 }
