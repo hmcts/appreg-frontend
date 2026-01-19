@@ -82,8 +82,7 @@ export class MicrosoftAuthHelper {
       },
     );
 
-    // Microsoft auth completed - AuthHelper will handle the redirect
-    cy.log('Microsoft authentication completed');
+    cy.screenshot('04-After-Microsoft-Auth');
   }
 
   static performSignOut(): void {
