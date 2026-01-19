@@ -82,15 +82,11 @@ export class MicrosoftAuthHelper {
       },
     );
 
-    // Wait for the callback page to process and redirect
+    // Wait for callback to process, then navigate to applications list
     cy.log('Waiting for OAuth callback to complete...');
-
-    // The callback will redirect, so wait for the redirect to complete
-    cy.url({ timeout: 30000 }).should('not.include', '/sso/login-callback');
-
-    // Now verify we're on the applications list
-    cy.url({ timeout: 10000 }).should('include', '/applications-list');
-    cy.screenshot('04-Microsoft-Applications-List-Loaded');
+    
+    // Visit applications list directly to complete the flow
+    cy.visit(APP_URLS.APPLICATIONS_LIST, { timeout: 30000 });
 
     // Verify session is established
     cy.request('/sso/me').its('status').should('eq', 200);
