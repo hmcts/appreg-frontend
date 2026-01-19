@@ -1,9 +1,19 @@
 import { Location } from '@angular/common';
+import type { FormGroup } from '@angular/forms';
 
 import {
   EntryDetailNavState,
+  hasAnyParams,
   readNavState,
+  toRow,
 } from '@components/applications-list/util/routing-state-util';
+import { ApplicationListStatus } from '@openapi';
+
+function makeForm(raw: unknown): FormGroup {
+  return {
+    getRawValue: () => raw,
+  } as unknown as FormGroup;
+}
 
 describe('readNavState', () => {
   const makeLocation = (state: unknown): Location =>
@@ -162,5 +172,62 @@ describe('readNavState', () => {
     );
 
     expect(res).toEqual(state);
+  });
+});
+
+describe('hasAnyParams', () => {
+  it('returns false when all fields are empty/default', () => {
+    const form = makeForm({
+      date: null,
+      time: null,
+      description: '',
+      status: null,
+      court: '',
+      location: '',
+      cja: '',
+    });
+
+    expect(hasAnyParams(form)).toBe(false);
+  });
+
+  it('returns true when any field has a value', () => {
+    const form = makeForm({
+      date: '2025-12-15',
+      time: null,
+      description: '',
+      status: null,
+      court: '',
+      location: '',
+      cja: '',
+    });
+
+    expect(hasAnyParams(form)).toBe(true);
+  });
+});
+
+describe('toRow', () => {
+  it('maps summary dto fields and normalises time', () => {
+    const dto = {
+      id: 'AL-1',
+      date: '2025-12-15',
+      time: '10:30:00',
+      location: 'Court 1',
+      description: 'Morning session',
+      entriesCount: 3,
+      status: ApplicationListStatus.OPEN,
+    };
+
+    expect(toRow(dto)).toEqual({
+      id: 'AL-1',
+      date: '2025-12-15',
+      time: '10:30',
+      location: 'Court 1',
+      description: 'Morning session',
+      entries: 3,
+      status: ApplicationListStatus.OPEN,
+      deletable: true,
+      etag: null,
+      rowVersion: null,
+    });
   });
 });

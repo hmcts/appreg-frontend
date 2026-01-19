@@ -3,9 +3,9 @@ Feature: Applications List Create
   Scenario Outline: Create applications list successfully and verify success message Using Other location and CJA Autocomplete
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
-    Then User Clicks On The Link "Create application"
+    Then User Clicks On The Link "Create new list"
     Then User Clicks On The Breadcrumb Link 'Applications list'
-    Then User Clicks On The Link "Create application"
+    Then User Clicks On The Link "Create new list"
     Then User Should See The Date Field "Date"
     When User Set Date Field "Date" To "<Date>"
     Then User Should See The Time Field "Time"
@@ -16,7 +16,7 @@ Feature: Applications List Create
     When User Clicks On The "Create" Button
     Then User Sees Notification Banner "<NotificationMessage>"
     Then User Clicks On The Link "Click here to go back"
-    Then User Should See The Link "Create application"
+    Then User Should See The Link "Create new list"
     When User Set Date Field "Date" To "<Date>"
     Then User Selects "Choose" In The "Select status" Dropdown
     When User Clicks On The "Search" Button
@@ -26,7 +26,7 @@ Feature: Applications List Create
       | Date          | Time   | Location     | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
     Examples:
-      | User  | Date  | Time           | Description   | Status | OtherLocation           | NotificationMessage                            | OptionText     | SearchText | TableName | DisplayDate | Entries |  SelectButtonText | ButtonName |
+      | User  | Date  | Time           | Description   | Status | OtherLocation           | NotificationMessage                            | OptionText     | SearchText | TableName | DisplayDate | Entries | SelectButtonText | ButtonName |
       | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Other Location_{RANDOM} | Success Applications list created successfully | CJA Number 319 | 319        | Lists     | todayiso    | 0       | Select           | Open       |
 
 
@@ -34,9 +34,9 @@ Feature: Applications List Create
   Scenario Outline: Create applications list successfully and verify success message Using Court Autocomplete
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
-    Then User Clicks On The Link "Create application"
+    Then User Clicks On The Link "Create new list"
     Then User Clicks On The Breadcrumb Link 'Applications list'
-    Then User Clicks On The Link "Create application"
+    Then User Clicks On The Link "Create new list"
     Then User Should See The Date Field "Date"
     When User Set Date Field "Date" To "<Date>"
     Then User Should See The Time Field "Time"
@@ -46,7 +46,7 @@ Feature: Applications List Create
     When User Clicks On The "Create" Button
     Then User Sees Notification Banner "<NotificationMessage>"
     Then User Clicks On The Link "Click here to go back"
-    Then User Should See The Link "Create application"
+    Then User Should See The Link "Create new list"
     When User Set Date Field "Date" To "<Date>"
     Then User Selects "Choose" In The "Select status" Dropdown
     When User Clicks On The "Search" Button
@@ -54,8 +54,8 @@ Feature: Applications List Create
     Then User Should See Table "Lists" Has Rows
     Then User Should See Row In Table "<TableName>" With Values:
       | Date          | Time   | Location     | Description   | Entries   | Status   |
-     | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
-   #  When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
+      | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
+    #  When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
     #   | Date          | Time   | Location | Description   | Entries   | Status   |
     #   | <DisplayDate> | <Time> | <OptionText>  | <Description> | <Entries> | <Status> |
     # Then User Should See The Link "List details"
@@ -67,9 +67,9 @@ Feature: Applications List Create
   Scenario Outline: Verify validation messages on creating applications list with No Input
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
-    Then User Clicks On The Link "Create application"
+    Then User Clicks On The Link "Create new list"
     Then User Clicks On The Breadcrumb Link 'Applications list'
-    Then User Clicks On The Link "Create application"
+    Then User Clicks On The Link "Create new list"
     When User Clicks On The "Create" Button
     Then User Sees Validation Error "There is a problem Enter day, month and year Enter hours and minutes Description is required Other location is required CJA is required Court is required"
     Then User Should See The Date Field "Date"
@@ -105,7 +105,7 @@ Feature: Applications List Create
     When User Clicks On The "Create" Button
     Then User Sees Notification Banner "<NotificationMessage>"
     Then User Clicks On The Link "Click here to go back"
-    Then User Should See The Link "Create application"
+    Then User Should See The Link "Create new list"
 
     Examples:
       | User  | InvalidDate | ValidDate  | InvalidTime | ValidTime | Description   | Status | InvalidCourt | OtherLocation           | InvalidCJA | ValidCJA       | SearchText | NotificationMessage                            |
