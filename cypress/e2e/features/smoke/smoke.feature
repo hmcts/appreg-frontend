@@ -10,6 +10,7 @@ Feature: Applications Register Portal Access
     Then User Should See The Button "Sign in with your Justice SSO account"
     When User Signs In With Microsoft SSO As "user1"
     Then User See "Applications register" On The Page
+    Then User Signs Out From The Application
 
   @smoke
   Scenario Outline: Sign in and Sign out flow for "<role>"
