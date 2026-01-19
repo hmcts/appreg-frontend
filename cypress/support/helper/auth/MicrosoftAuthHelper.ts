@@ -8,7 +8,7 @@ import { LinkHelper } from '../forms/link/LinkHelper';
 
 export class MicrosoftAuthHelper {
   static performLogin(email: string, password: string): void {
-    cy.screenshot('03-Microsoft-Before-Login');
+    cy.screenshot('03-Microsoft-Login-Page');
 
     cy.origin(
       'https://login.microsoftonline.com',
@@ -74,17 +74,15 @@ export class MicrosoftAuthHelper {
         typeExact(passSel, innerPassword, 'password');
         clickSubmit();
 
-        // Wait for and handle "Stay signed in?" prompt (fail fast if not present)
+        // Wait for and handle "Stay signed in?" prompt
         cy.get('#idBtn_Back', { timeout: 15000 })
           .should('be.visible')
           .should('be.enabled')
           .click();
-        cy.log('Clicked No button successfully');
       },
     );
 
-    // Microsoft auth completed - AuthHelper will handle the redirect
-    cy.log('Microsoft authentication completed');
+    cy.screenshot('04-After-Microsoft-Auth');
   }
 
   static performSignOut(): void {
