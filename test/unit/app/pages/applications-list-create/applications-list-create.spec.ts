@@ -256,7 +256,7 @@ describe('ApplicationsListCreate', () => {
     ).applicationListCreateDto;
     expect(arg).toEqual({
       date: '2025-10-02',
-      time: '08:05:00',
+      time: '08:05',
       description: 'Morning list',
       status: ApplicationListStatus.OPEN,
       courtLocationCode: 'A1',
@@ -286,7 +286,7 @@ describe('ApplicationsListCreate', () => {
     ).applicationListCreateDto;
     expect(arg).toEqual({
       date: '2025-10-03',
-      time: '14:00:00',
+      time: '14:00',
       description: 'Afternoon list',
       status: ApplicationListStatus.OPEN,
       otherLocationDescription: 'Somewhere',
