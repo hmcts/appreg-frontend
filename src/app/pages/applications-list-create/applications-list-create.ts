@@ -69,11 +69,12 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
   private readonly formSvc = inject(ApplicationsListFormService);
 
   // Signal initialisation
-  private readonly signalState = createSignalState<ApplicationsListCreateState>(
-    initialApplicationsListCreateState,
-  );
-  private readonly state = this.signalState.state;
-  readonly vm = this.signalState.vm;
+  private readonly appListCreatesignalState =
+    createSignalState<ApplicationsListCreateState>(
+      initialApplicationsListCreateState,
+    );
+  private readonly appListCreateState = this.appListCreatesignalState.state;
+  readonly vm = this.appListCreatesignalState.vm;
   private readonly envInjector = inject(EnvironmentInjector);
 
   private readonly createRequest = signal<ApplicationListCreateDto | null>(
@@ -100,16 +101,17 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
             applicationListCreateDto: params,
           }),
         onSuccess: () => {
-          this.signalState.patch({ createDone: true });
+          this.appListCreatesignalState.patch({ createDone: true });
           this.createRequest.set(null);
         },
         onError: (err) => {
           const msg = getProblemText(err);
-          this.signalState.patch({
+          this.appListCreatesignalState.patch({
             submitted: true,
             createInvalid: true,
             unpopField: [{ text: msg, href: '#create', id: 'create' }],
           });
+          this.createRequest.set(null);
         },
       },
       this.envInjector,
@@ -119,9 +121,9 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
   onSubmit(event: SubmitEvent): void {
     event.preventDefault();
     const action = (event.submitter as HTMLButtonElement | null)?.value ?? '';
-    this.signalState.patch({ submitted: true });
+    this.appListCreatesignalState.patch({ submitted: true });
 
-    this.signalState.patch(clearNotificationsPatch());
+    this.appListCreatesignalState.patch(clearNotificationsPatch());
 
     const raw = this.form.getRawValue() as CreateFormRaw;
 
@@ -141,20 +143,26 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
       });
 
       if (missing.length) {
-        this.signalState.patch({ unpopField: missing, createInvalid: true });
+        this.appListCreatesignalState.patch({
+          unpopField: missing,
+          createInvalid: true,
+        });
         return;
       }
 
-      this.signalState.patch({ createInvalid: false });
+      this.appListCreatesignalState.patch({ createInvalid: false });
     }
 
     const conflict = validateCourtVsLocOrCja(raw);
     if (conflict) {
-      this.signalState.patch({ createInvalid: true, errorHint: conflict });
+      this.appListCreatesignalState.patch({
+        createInvalid: true,
+        errorHint: conflict,
+      });
       return;
     }
 
-    if (this.state().createInvalid) {
+    if (this.appListCreateState().createInvalid) {
       return;
     }
 

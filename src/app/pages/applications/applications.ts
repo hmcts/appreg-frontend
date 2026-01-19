@@ -17,7 +17,7 @@ onSubmit():
     @util/application-status-helpers
 */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -67,7 +67,7 @@ import { PlaceFieldsBase } from '@util/place-fields.base';
   ],
   templateUrl: './applications.html',
 })
-export class Applications extends PlaceFieldsBase implements OnInit, OnDestroy {
+export class Applications extends PlaceFieldsBase implements OnInit {
   private readonly destroy$ = new Subject<void>();
 
   isLoading: boolean = false;
@@ -126,12 +126,6 @@ export class Applications extends PlaceFieldsBase implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refFacade);
-  }
-
-  override ngOnDestroy(): void {
-    super.ngOnDestroy();
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   onSubmit(event: SubmitEvent): void {

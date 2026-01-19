@@ -124,11 +124,10 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   openPrintSelectForId: string | null = null;
 
   // Initialise signal state
-  private readonly signalState = createSignalState<ApplicationsListState>(
-    initialApplicationsListState,
-  );
-  private readonly state = this.signalState.state;
-  readonly vm = this.signalState.vm;
+  private readonly appListSignalState =
+    createSignalState<ApplicationsListState>(initialApplicationsListState);
+  private readonly appListState = this.appListSignalState.state;
+  readonly vm = this.appListSignalState.vm;
 
   // allows you to initialise effect in ngOnInit()
   private readonly envInjector = inject(EnvironmentInjector);
@@ -180,7 +179,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
           }),
         onSuccess: (page) => {
           const content: ApplicationListGetSummaryDto[] = page.content ?? [];
-          this.signalState.patch({
+          this.appListSignalState.patch({
             searchErrors: [],
             submitted: true,
             totalPages: page.totalPages ?? 0,
@@ -191,7 +190,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
         },
         onError: (err) => {
           const msg = getProblemText(err);
-          this.signalState.patch({
+          this.appListSignalState.patch({
             submitted: true,
             rows: [],
             totalPages: 0,
@@ -218,17 +217,17 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
             .pipe(map((resp) => ({ row, resp }))),
         onSuccess: ({ row, resp }) => {
           if (resp.status === 200 || resp.status === 204) {
-            this.signalState.patch({
-              rows: this.state().rows.filter((r) => r.id !== row.id),
+            this.appListSignalState.patch({
+              rows: this.appListState().rows.filter((r) => r.id !== row.id),
               deleteDone: true,
             });
           }
-          this.signalState.patch({ deletingId: null });
+          this.appListSignalState.patch({ deletingId: null });
           this.deleteRequest.set(null);
         },
         onError: (err) => {
           const status = getHttpStatus(err);
-          this.signalState.patch({
+          this.appListSignalState.patch({
             deleteInvalid: true,
             errorSummary: statusSummary(status),
             deletingId: null,
@@ -327,8 +326,8 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     const action = btn?.value ?? 'search';
 
     // Reset flag
-    this.signalState.patch(clearNotificationsPatch());
-    this.signalState.patch({ isSearch: true, rows: [] });
+    this.appListSignalState.patch(clearNotificationsPatch());
+    this.appListSignalState.patch({ isSearch: true, rows: [] });
 
     const dateCtrl = this.form.controls.date;
     const timeCtrl = this.form.controls.time;
@@ -350,7 +349,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
 
     // If any errors are found then return and do not run query
     if (validationErrors.length) {
-      this.signalState.patch({
+      this.appListSignalState.patch({
         submitted: true,
         searchErrors: validationErrors,
       });
@@ -360,7 +359,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     const hasAny = hasAnyParams(this.form);
 
     if (action === 'search') {
-      this.signalState.patch({
+      this.appListSignalState.patch({
         submitted: true,
         isSearch: true,
         currentPage: 1,
@@ -370,10 +369,10 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   }
 
   onDelete(row: ApplicationListRow): void {
-    this.signalState.patch(clearNotificationsPatch());
+    this.appListSignalState.patch(clearNotificationsPatch());
 
     if (row.deletable === false) {
-      this.signalState.patch({
+      this.appListSignalState.patch({
         deleteInvalid: true,
         errorSummary: [{ text: 'This list cannot be deleted.' }],
       });
@@ -389,7 +388,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       }
     }
 
-    this.signalState.patch({
+    this.appListSignalState.patch({
       deleteDone: false,
       deleteInvalid: false,
       errorSummary: [],
@@ -400,7 +399,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   }
 
   onPageChange(page: number): void {
-    this.signalState.patch({ currentPage: page });
+    this.appListSignalState.patch({ currentPage: page });
     const hasAny = hasAnyParams(this.form);
     this.loadApplicationsLists(hasAny);
   }
@@ -416,7 +415,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    this.signalState.patch(clearNotificationsPatch());
+    this.appListSignalState.patch(clearNotificationsPatch());
     this.printPageRequest.set(id);
   }
 
@@ -429,7 +428,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    this.signalState.patch(clearNotificationsPatch());
+    this.appListSignalState.patch(clearNotificationsPatch());
 
     this.printContinuousRequest.set({ id, isClosed });
   }
@@ -439,14 +438,14 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   }
 
   loadApplicationsLists(hasParams: boolean): void {
-    if (this.state().isLoading) {
+    if (this.appListState().isLoading) {
       return;
     }
 
     if (!hasParams) {
-      this.signalState.patch({
+      this.appListSignalState.patch({
         searchErrors: [
-          ...this.state().searchErrors,
+          ...this.appListState().searchErrors,
           {
             id: '',
             text: APPLICATIONS_LIST_ERROR_MESSAGES.invalidSearchCriteria,
@@ -462,12 +461,12 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     } as SearchFormValue);
 
     const params: GetApplicationListsRequestParams = {
-      page: this.state().currentPage - 1,
-      size: this.state().pageSize,
+      page: this.appListState().currentPage - 1,
+      size: this.appListState().pageSize,
       ...(hasParams ? { filter: loadQuery(this.form) } : {}),
     };
 
-    this.signalState.patch({ isLoading: true });
+    this.appListSignalState.patch({ isLoading: true });
     this.loadRequest.set(params);
   }
 
@@ -491,7 +490,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   }
 
   private showInline(message: string): void {
-    this.signalState.patch({
+    this.appListSignalState.patch({
       deleteInvalid: true,
       errorSummary: [{ text: message }],
     });
