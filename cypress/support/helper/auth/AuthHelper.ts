@@ -21,7 +21,6 @@ export class AuthHelper {
         MicrosoftAuthHelper.performLogin(email, password);
         cy.log('Visiting app to trigger OAuth callback...');
         cy.visit(APP_URLS.APPLICATIONS_LIST, { timeout: 30000 });
-        cy.screenshot('03-OAuth-Callback-Completed');
         cy.log('OAuth callback completed - redirected to applications list');
       },
       {
@@ -32,7 +31,7 @@ export class AuthHelper {
       },
     );
     NavigationHelper.navigateToUrl(APP_URLS.APPLICATIONS_LIST);
-    cy.screenshot('04-Final-ApplicationsList-Page');
+    cy.screenshot('05-Final-ApplicationsList-Page');
   }
 
   static aadSignOut(): void {
