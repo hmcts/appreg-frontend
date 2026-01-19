@@ -1,4 +1,4 @@
-import { ApplicationCodeGetSummaryDtoFeeAmount } from '@openapi';
+import { ApplicationCodeGetSummaryDtoFeeAmount, PaymentStatus } from '@openapi';
 
 /**
  * Route-return state shape from /change-payment-reference.
@@ -20,7 +20,7 @@ export type CivilFeeMeta = {
 };
 
 export type AddFeeDetailsPayload = {
-  feeStatus: string;
+  feeStatus: PaymentStatus;
   statusDate: string;
   paymentReference: string | null;
 };

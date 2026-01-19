@@ -120,7 +120,11 @@ import {
   titleFromDetail,
   wordingFromDetail,
 } from '@util/application-code-helpers';
-import { applyPaymentReferenceUpdateToFeeStatuses } from '@util/civil-fee-utils';
+import {
+  addOrReplaceFeeStatus,
+  applyPaymentReferenceUpdateToFeeStatuses,
+  toFeeStatus,
+} from '@util/civil-fee-utils';
 import {
   focusErrorSummary,
   onCreateErrorClick as onCreateErrorClickFn,
@@ -295,10 +299,23 @@ export class ApplicationsListEntryDetail implements OnInit {
   onAddFeeDetails(payload: AddFeeDetailsPayload): void {
     this.resetErrors();
 
-    void payload; //bypass linting for now
+    const current = this.form.controls.feeStatuses.value ?? [];
+    const nextItem = toFeeStatus(payload);
 
-    //TO BE DONE WHEN BACKEND IS READY
-    // console.log('Add fee details payload:', payload); //remove me
+    const { next, changed } = addOrReplaceFeeStatus(current, nextItem);
+    if (!changed) {
+      return;
+    }
+
+    this.form.controls.feeStatuses.setValue(next);
+    this.form.controls.feeStatuses.markAsDirty();
+
+    const bannerText: SuccessBanner = {
+      heading: 'Fee status updated',
+      body: 'Fee status has been successfully updated.',
+    };
+
+    this.persistFeeStatuses(next, bannerText);
   }
 
   // Used to update payment reference for current fee status from /change-payment-reference
@@ -317,7 +334,12 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.form.controls.feeStatuses.setValue(next);
     this.form.controls.feeStatuses.markAsDirty();
 
-    this.persistFeeStatuses(next);
+    const bannerText: SuccessBanner = {
+      heading: 'Payment reference updated',
+      body: 'The payment reference has been updated for the selected fee status.',
+    };
+
+    this.persistFeeStatuses(next, bannerText);
   }
 
   private clearPaymentRefReturnOnly(): void {
@@ -326,7 +348,10 @@ export class ApplicationsListEntryDetail implements OnInit {
     history.replaceState(rest, '');
   }
 
-  private persistFeeStatuses(feeStatuses: FeeStatus[]): void {
+  private persistFeeStatuses(
+    feeStatuses: FeeStatus[],
+    bannerText: SuccessBanner,
+  ): void {
     const entryId = getEntryId(this.route);
     if (!this.appListId || !entryId || !this.entryDetail) {
       return;
@@ -355,10 +380,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
           this.form.controls.feeStatuses.markAsPristine();
 
-          this.successBanner = {
-            heading: 'Payment reference updated',
-            body: 'The payment reference has been updated.',
-          };
+          this.successBanner = bannerText;
         },
         error: (err) => {
           this.applyMappedError(err);

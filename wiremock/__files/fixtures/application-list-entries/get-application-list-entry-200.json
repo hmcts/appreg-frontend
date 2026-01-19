@@ -30,7 +30,7 @@
   "feeStatuses": [
     {
       "paymentReference": "PAY-654321",
-      "paymentStatus": "UNDERTAKEN",
+      "paymentStatus": "DUE",
       "statusDate": "2025-10-24"
     },
     {

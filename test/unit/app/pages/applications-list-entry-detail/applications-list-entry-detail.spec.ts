@@ -123,17 +123,14 @@ describe('ApplicationsListEntryDetail', () => {
     mockGetApplicationListEntry = jest.fn();
     mockUpdateApplicationListEntry = jest.fn();
 
-    // Entry load on init
     mockGetApplicationListEntry.mockReturnValue(
       of({
         lodgementDate: '2025-11-01',
         applicationCode: 'APP-100',
-        // mimic “standard applicant loaded” scenario when needed by tests
         standardApplicantCode: null,
       } as unknown as EntryGetDetailDto),
     );
 
-    // Code detail resolve on init (title)
     mockGetApplicationCodeByCodeAndDate.mockReturnValue(
       of({
         applicationCode: 'APP-100',
@@ -168,7 +165,6 @@ describe('ApplicationsListEntryDetail', () => {
         { provide: ApplicationCodesApi, useValue: codesApiMock },
         { provide: ApplicationListEntriesApi, useValue: entriesApiMock },
         { provide: ActivatedRoute, useValue: routeStub },
-        // Real service (so your real form + validators run)
         ApplicationListEntryFormService,
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -367,9 +363,6 @@ describe('ApplicationsListEntryDetail', () => {
     expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
     expect(component['errorFound']).toBe(true);
 
-    // Intended behaviour: show the specific error
-    // NOTE: If your switch still falls through to default for 'standard',
-    // this will likely show "Select an applicant type" instead.
     expect(
       component['summaryErrors'].some((e) =>
         /standard applicant/i.test(e.text),
@@ -381,7 +374,6 @@ describe('ApplicationsListEntryDetail', () => {
     const formSvc = TestBed.inject(ApplicationListEntryFormService);
     jest.spyOn(formSvc, 'buildUpdateDto').mockReturnValue({} as EntryUpdateDto);
 
-    // Respondent defaults to organisation and is empty -> invalid
     component['form'].patchValue({ respondentEntryType: 'organisation' });
     const orgForm = component['forms'].respondentOrganisationForm;
     const base = orgForm.getRawValue();
@@ -406,7 +398,6 @@ describe('ApplicationsListEntryDetail', () => {
     expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
     expect(component['errorFound']).toBe(true);
 
-    // optional: assert at least one respondent org error is present
     expect(
       component['summaryErrors'].some((e) => /organisation name/i.test(e.text)),
     ).toBe(true);

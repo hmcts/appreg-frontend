@@ -7,8 +7,6 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { FeeStatus } from '../../../../generated/openapi/model/models';
-
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
@@ -19,11 +17,13 @@ import {
 } from '@components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { CIVIL_FEE_FIELD_MESSAGES } from '@constants/application-list-entry/error-messages';
+import { FeeStatus, PaymentStatus } from '@openapi';
 import {
   AddFeeDetailsPayload,
   CivilFeeMeta,
 } from '@shared-types/civil-fee/civil-fee';
 import { buildCivilFeeHeading, feeStatusRowId } from '@util/civil-fee-utils';
+import { markFormGroupClean } from '@util/form-helpers';
 
 export type CivilFeeForm = FormGroup<{
   hasOffsiteFee: FormControl<boolean | null>;
@@ -119,12 +119,15 @@ export class CivilFeeSectionComponent {
     }
 
     const payload: AddFeeDetailsPayload = {
-      feeStatus: (f.feeStatus.value ?? '').trim(),
+      feeStatus: f.feeStatus.value?.trim() as PaymentStatus,
       statusDate: (f.feeStatusDate.value ?? '').trim(),
       paymentReference: (f.paymentRef.value ?? null)?.trim() || null,
     };
 
     this.addFeeDetails.emit(payload);
+
+    this.submitted.set(false);
+    this.clearCivilFeeInputsAndErrors();
   }
 
   private emitCivilFeeErrors(): void {
@@ -190,4 +193,14 @@ export class CivilFeeSectionComponent {
       state: { row },
     });
   };
+
+  private clearCivilFeeInputsAndErrors(): void {
+    const f = this.feeForm().controls;
+
+    f.feeStatus.reset(null, { emitEvent: false });
+    f.feeStatusDate.reset(null, { emitEvent: false });
+    f.paymentRef.reset(null, { emitEvent: false });
+
+    markFormGroupClean(this.feeForm());
+  }
 }

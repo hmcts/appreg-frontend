@@ -17,9 +17,10 @@ export const CODES_COLUMNS: TableColumn[] = [
 ];
 
 export const FEE_STATUS_OPTIONS = [
-  { value: 'paid', label: 'Paid' },
-  { value: 'outstanding', label: 'Outstanding' },
-  { value: 'pending', label: 'Pending' },
+  { value: 'PAID', label: 'Paid' },
+  { value: 'UNDERTAKEN', label: 'Undertaken' },
+  { value: 'DUE', label: 'Due' },
+  { value: 'REMITTED', label: 'Remitted' },
 ];
 
 export const RESULT_WORDING_COLUMNS = [

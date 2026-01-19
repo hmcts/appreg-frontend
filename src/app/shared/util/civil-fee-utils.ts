@@ -2,6 +2,7 @@ import {
   ApplicationCodeGetSummaryDtoFeeAmount,
   ApplicationCodeGetSummaryDtoFeeAmountCurrencyEnum,
   FeeStatus,
+  PaymentStatus,
 } from '@openapi';
 import {
   CivilFeeMeta,
@@ -44,6 +45,48 @@ function addMoney(
     value: av + bv,
     currency: ApplicationCodeGetSummaryDtoFeeAmountCurrencyEnum.GBP,
   };
+}
+
+export function toFeeStatus(payload: {
+  feeStatus: PaymentStatus;
+  statusDate: string;
+  paymentReference: string | null;
+}): FeeStatus {
+  return {
+    paymentStatus: payload.feeStatus,
+    statusDate: payload.statusDate,
+    paymentReference: payload.paymentReference ?? undefined,
+  };
+}
+
+/**
+ * If a row with same paymentStatus|statusDate exists, replace it.
+ * Otherwise append.
+ */
+export function addOrReplaceFeeStatus(
+  current: FeeStatus[],
+  nextItem: FeeStatus,
+): { next: FeeStatus[]; changed: boolean } {
+  const id = feeStatusRowId(nextItem);
+
+  const idx = current.findIndex((fs) => feeStatusRowId(fs) === id);
+  if (idx === -1) {
+    return { next: [...current, nextItem], changed: true };
+  }
+
+  const existing = current[idx];
+  const same =
+    existing.paymentStatus === nextItem.paymentStatus &&
+    existing.statusDate === nextItem.statusDate &&
+    (existing.paymentReference ?? '') === (nextItem.paymentReference ?? '');
+
+  if (same) {
+    return { next: current, changed: false };
+  }
+
+  const copy = current.slice();
+  copy[idx] = { ...existing, ...nextItem };
+  return { next: copy, changed: true };
 }
 
 /**
