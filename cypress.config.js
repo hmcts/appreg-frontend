@@ -79,10 +79,11 @@ module.exports = defineConfig({
     experimentalOriginDependencies: true,
     testIsolation: true,
     // Report and Media Settings
-    video: false,
+    video: true,
+    videosFolder: 'cypress/reports/videos',
     screenshotOnRunFailure: true,
     screenshotsFolder: 'cypress/reports/screenshots',
-    trashAssetsBeforeRuns: false,
+    trashAssetsBeforeRuns: true,
     // Downloads Configuration
     downloadsFolder: 'cypress/downloads',
     async setupNodeEvents(on, config) {
