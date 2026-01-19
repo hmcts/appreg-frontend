@@ -8,36 +8,34 @@
       variant: 'primary',
     },
   ]"
->
-</app-page-header>
+/>
 
-@if (submitted && searchErrors.length) {
+@if (vm().submitted && vm().searchErrors.length) {
   <app-error-summary
     [title]="'There is a problem'"
-    [items]="searchErrors"
+    [items]="vm().searchErrors"
     targetId="search"
   />
 } @else {
-  @if (isSearch && !isLoading && !rows.length) {
+  @if (vm().isSearch && !vm().isLoading && !vm().rows.length) {
     <app-notification-banner
       heading="No lists found"
       body="Try different filters, or "
       linkText="create a new list"
       [linkCommands]="['/applications-list/create']"
-    >
-    </app-notification-banner>
+    />
   }
 }
 
-@if (deleteInvalid && errorSummary.length) {
+@if (vm().deleteInvalid && vm().errorSummary.length) {
   <app-error-summary
     [title]="'There is a problem'"
-    [items]="errorSummary"
+    [items]="vm().errorSummary"
     targetId="sortable-table"
   />
 }
 
-@if (deleteDone) {
+@if (vm().deleteDone) {
   <app-success-banner
     heading="Application List deleted successfully"
     body="If you believe this was in error, please contact support."
@@ -55,10 +53,9 @@
       label="Date"
       hint="For example, 27 3 2007"
       idPrefix="date"
-      [submitted]="submitted"
-      [isSearch]="isSearch"
-    >
-    </app-date-input>
+      [submitted]="vm().submitted"
+      [isSearch]="vm().isSearch"
+    />
 
     <!-- Time -->
     <app-duration-input
@@ -66,10 +63,9 @@
       label="Time"
       hint="Enter the time in 24-hour format, for example 08:30"
       idPrefix="time"
-      [submitted]="submitted"
+      [submitted]="vm().submitted"
       [required]="false"
-    >
-    </app-duration-input>
+    />
 
     <!-- Description -->
     <app-text-input
@@ -77,8 +73,7 @@
       label="Description"
       hint="A description of the application list"
       idPrefix="description"
-    >
-    </app-text-input>
+    />
 
     <!-- Status -->
     <app-select-input
@@ -87,8 +82,7 @@
       hint="The status of the application list"
       idPrefix="status"
       [options]="status"
-    >
-    </app-select-input>
+    />
   </div>
 
   <div class="govuk-grid-row">
@@ -110,8 +104,7 @@
       label="Other location"
       hint="Other location description"
       idPrefix="location"
-    >
-    </app-text-input>
+    />
 
     <!-- CJA -->
     <app-suggestions
@@ -145,13 +138,13 @@
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 
-@if (rows.length) {
+@if (vm().rows.length) {
   <!-- Sortable table component -->
   <app-sortable-table
     id="sortable-table"
     caption="Lists"
     [columns]="columns"
-    [data]="rows"
+    [data]="vm().rows"
     appMojButtonMenu
   >
     <ng-template #actionsTemplate let-row>
@@ -239,8 +232,8 @@
 
   <!-- Pager -->
   <app-pagination
-    [currentPage]="currentPage"
-    [totalPages]="totalPages"
+    [currentPage]="vm().currentPage"
+    [totalPages]="vm().totalPages"
     (pageChange)="onPageChange($event)"
-  ></app-pagination>
+  />
 }

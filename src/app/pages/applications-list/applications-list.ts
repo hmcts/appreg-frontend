@@ -1,15 +1,4 @@
 /*
-TODO: ARCPOC-816 prio 1, we want to refactor this file to migrate to
-signal based state. Core list/search/delete flow with many flags (submitted, isSearch etc), manual subscribe + takeUntil.
-
-We want to start with this file which can serve as a template for other files
-
-move flags/rows/paging/errors into a single state signal
-replace load subscriptions with signal-driven effect
-swap template bindings to vm().
-*/
-
-/*
 Applications List
 Main Component for page /applications-list
 
@@ -18,11 +7,6 @@ onSubmit():
   - GET request to Spring API which returns applications lists based on given params
   - If params are empty (user leaves fields empty or on default selected value) GET ALL is run
   - Populates query based on fields that are  !null/!undefined/!defaultValue
-  Helper functions:
-    src/app/pages/applications-list/util/has.ts
-    src/app/pages/applications-list/util/to-status.ts
-    src/app/pages/applications-list/util/load-query.ts
-    src/app/pages/applications-list/util/time-helpers.ts
 
 onDelete():
   - If not deletable, set errors and exit
@@ -31,34 +15,48 @@ onDelete():
   - DELETE list; 200/204 → remove row, mark done
   - Map 401/403/404/409/412/other to errorSummary
   - Always clear deletingId
+
+onPrintPage():
+  - Fetch list by id and generate a paged PDF in the browser
+  - If list is empty/missing or PDF fails, show inline message
+
+onPrintContinuous():
+  - Fetch list by id and generate a continuous PDF in the browser (uses isClosed which changes the title)
+  - If list is empty or PDF fails, show inline message
 */
 
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpContext } from '@angular/common/http';
 import {
   Component,
+  EnvironmentInjector,
   HostListener,
-  OnDestroy,
   OnInit,
   PLATFORM_ID,
   inject,
+  signal,
 } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { Subject, firstValueFrom, takeUntil } from 'rxjs';
+import { map } from 'rxjs/operators';
 
+import {
+  APPLICATIONS_LIST_CHOOSE_STATUS,
+  APPLICATIONS_LIST_COLUMNS,
+  APPLICATIONS_LIST_ERROR_MESSAGES,
+} from './util/applications-list.constants';
+import {
+  ApplicationsListState,
+  clearNotificationsPatch,
+  initialApplicationsListState,
+} from './util/applications-list.state';
 import { statusSummary } from './util/delete-status';
 import { loadQuery } from './util/load-query';
+import { hasAnyParams, toRow } from './util/routing-state-util';
 
 import { DateInputComponent } from '@components/date-input/date-input.component';
-import {
-  Duration,
-  DurationInputComponent,
-} from '@components/duration-input/duration-input.component';
-import {
-  ErrorItem,
-  ErrorSummaryComponent,
-} from '@components/error-summary/error-summary.component';
+import { DurationInputComponent } from '@components/duration-input/duration-input.component';
+import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
@@ -77,6 +75,7 @@ import {
   ApplicationListsApi,
   GetApplicationListsRequestParams,
 } from '@openapi';
+import { ApplicationsListFormService } from '@services/applications-list-form.service';
 import { PdfService } from '@services/pdf.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import {
@@ -84,11 +83,10 @@ import {
   DEFAULT_STATE,
   SearchFormValue,
 } from '@services/searchform/application-list-search-form.service';
-import { has } from '@util/has';
 import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
-import { normaliseTime } from '@util/time-helpers';
+import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
 
 @Component({
@@ -113,73 +111,50 @@ import { ApplicationListRow } from '@util/types/application-list/types';
   ],
   templateUrl: './applications-list.html',
 })
-export class ApplicationsList
-  extends PlaceFieldsBase
-  implements OnInit, OnDestroy
-{
+export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   // APIs
   private readonly platformId = inject(PLATFORM_ID);
   private readonly appListsApi = inject(ApplicationListsApi);
   private readonly refFacade = inject(ReferenceDataFacade);
   private readonly pdf = inject(PdfService);
   private readonly searchForm = inject(ApplicationListSearchFormService);
+  private readonly formSvc = inject(ApplicationsListFormService);
 
-  private readonly destroy$ = new Subject<void>();
   openMenuForId: string | null = null;
   openPrintSelectForId: string | null = null;
 
-  // Flags
-  submitted: boolean = false;
-  isSearch: boolean = false;
-  deleteDone: boolean = false;
-  deleteInvalid: boolean = false;
-  isLoading: boolean = false;
+  // Initialise signal state
+  private readonly signalState = createSignalState<ApplicationsListState>(
+    initialApplicationsListState,
+  );
+  private readonly state = this.signalState.state;
+  readonly vm = this.signalState.vm;
 
-  // Error summary
-  searchErrors: { id: string; text: string }[] = [];
-  errorSummary: ErrorItem[] = [];
+  // allows you to initialise effect in ngOnInit()
+  private readonly envInjector = inject(EnvironmentInjector);
 
-  deletingId: string | null = null;
+  // Create form
+  override form = this.formSvc.createSearchForm();
 
-  override form = new FormGroup({
-    date: new FormControl<string | null>(null),
-    time: new FormControl<Duration | null>(null),
-    description: new FormControl<string>(''),
-    status: new FormControl<string | null>(null),
-    court: new FormControl<string>(''),
-    location: new FormControl<string>(''),
-    cja: new FormControl<string>(''),
-  });
+  // API signals
+  private readonly loadRequest =
+    signal<GetApplicationListsRequestParams | null>(null);
+  private readonly deleteRequest = signal<ApplicationListRow | null>(null);
+  private readonly printPageRequest = signal<string | null>(null);
+  private readonly printContinuousRequest = signal<{
+    id: string;
+    isClosed: boolean;
+  } | null>(null);
 
-  currentPage = 1;
-  totalPages = 5;
-  pageSize = 10;
-
-  columns: TableColumn[] = [
-    { header: 'Date', field: 'date' },
-    { header: 'Time', field: 'time' },
-    {
-      header: 'Location',
-      field: 'location',
-      sortValue: (row) => this.buildTrailingNumericSortKey(row['location']),
-    },
-    { header: 'Description', field: 'description' },
-    { header: 'Entries', field: 'entries', numeric: true },
-    { header: 'Status', field: 'status' },
-    { header: 'Actions', field: 'actions', sortable: false },
-  ];
-
-  status = [
-    { label: 'Choose', value: '' },
-    { label: 'Open', value: 'open' },
-    { label: 'Closed', value: 'closed' },
-  ];
-
-  rows: ApplicationListRow[] = [];
+  columns: TableColumn[] = APPLICATIONS_LIST_COLUMNS;
+  status = APPLICATIONS_LIST_CHOOSE_STATUS;
 
   ngOnInit(): void {
     this.restoreFormValues();
     this.initPlaceFields(this.form, this.refFacade);
+
+    // Initialise effects
+    this.setupEffects();
   }
 
   restoreFormValues(): void {
@@ -191,10 +166,159 @@ export class ApplicationsList
     this.form.reset(this.searchForm.state());
   }
 
-  override ngOnDestroy(): void {
-    super.ngOnDestroy();
-    this.destroy$.next();
-    this.destroy$.complete();
+  // Registers signal-driven effects that watch request signals and run API calls,
+  // then update state on success/error
+  private setupEffects(): void {
+    // TODO: Use global error handling after ARCPOC-822 is done
+    // Applications list search
+    setupLoadEffect(
+      {
+        request: this.loadRequest,
+        load: (params) =>
+          this.appListsApi.getApplicationLists(params, undefined, undefined, {
+            transferCache: true,
+          }),
+        onSuccess: (page) => {
+          const content: ApplicationListGetSummaryDto[] = page.content ?? [];
+          this.signalState.patch({
+            searchErrors: [],
+            submitted: true,
+            totalPages: page.totalPages ?? 0,
+            rows: content.map((x) => toRow(x)),
+            isLoading: false,
+          });
+          this.loadRequest.set(null); // Clears request signal
+        },
+        onError: (err) => {
+          const msg = getProblemText(err);
+          this.signalState.patch({
+            submitted: true,
+            rows: [],
+            totalPages: 0,
+            isLoading: false,
+            searchErrors: [{ id: 'search', text: msg }],
+          });
+          this.loadRequest.set(null);
+        },
+      },
+      this.envInjector,
+    );
+
+    // Applications list delete
+    setupLoadEffect(
+      {
+        request: this.deleteRequest,
+        load: (row) =>
+          this.appListsApi
+            .deleteApplicationList({ listId: row.id }, 'response', false, {
+              context: new HttpContext()
+                .set(IF_MATCH, row.etag ?? null)
+                .set(ROW_VERSION, row.rowVersion ?? null),
+            })
+            .pipe(map((resp) => ({ row, resp }))),
+        onSuccess: ({ row, resp }) => {
+          if (resp.status === 200 || resp.status === 204) {
+            this.signalState.patch({
+              rows: this.state().rows.filter((r) => r.id !== row.id),
+              deleteDone: true,
+            });
+          }
+          this.signalState.patch({ deletingId: null });
+          this.deleteRequest.set(null);
+        },
+        onError: (err) => {
+          const status = getHttpStatus(err);
+          this.signalState.patch({
+            deleteInvalid: true,
+            errorSummary: statusSummary(status),
+            deletingId: null,
+          });
+          this.deleteRequest.set(null);
+        },
+      },
+      this.envInjector,
+    );
+
+    // Applications list print page
+    setupLoadEffect(
+      {
+        request: this.printPageRequest,
+        load: (id) =>
+          this.appListsApi.printApplicationList(
+            { listId: id },
+            undefined,
+            undefined,
+            {
+              transferCache: false,
+            },
+          ),
+        onSuccess: async (dto) => {
+          this.printPageRequest.set(null);
+          if (!this.hasEntries(dto)) {
+            this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint);
+            return;
+          }
+
+          try {
+            if (isPlatformBrowser(this.platformId)) {
+              await this.pdf.generatePagedApplicationListPdf(dto, {
+                crestUrl: '/assets/govuk-crest.png',
+              });
+            }
+          } catch {
+            this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry);
+          }
+        },
+        onError: (err) => {
+          this.printPageRequest.set(null);
+          const status = getHttpStatus(err);
+          if (status === 404) {
+            this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.listNotFound);
+          } else {
+            this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry);
+          }
+        },
+      },
+      this.envInjector,
+    );
+
+    // Applications list print cont
+    setupLoadEffect(
+      {
+        request: this.printContinuousRequest,
+        load: (req) =>
+          this.appListsApi
+            .printApplicationList({ listId: req.id }, undefined, undefined, {
+              transferCache: false,
+            })
+            .pipe(map((dto) => ({ dto, isClosed: req.isClosed }))),
+        onSuccess: async ({ dto, isClosed }) => {
+          this.printContinuousRequest.set(null);
+          if (!this.hasEntries(dto)) {
+            this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint);
+            return;
+          }
+
+          try {
+            if (isPlatformBrowser(this.platformId)) {
+              await this.pdf.generateContinuousApplicationListsPdf(
+                [dto],
+                isClosed,
+              );
+            }
+          } catch {
+            this.showInline(
+              APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric,
+            );
+          }
+        },
+        onError: () => {
+          this.printContinuousRequest.set(null);
+          this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric);
+        },
+      },
+      this.envInjector,
+    );
   }
 
   onSubmit(event: SubmitEvent): void {
@@ -203,48 +327,56 @@ export class ApplicationsList
     const action = btn?.value ?? 'search';
 
     // Reset flag
-    this.clearNotifications();
-    this.isSearch = true;
-    this.rows = [];
+    this.signalState.patch(clearNotificationsPatch());
+    this.signalState.patch({ isSearch: true, rows: [] });
 
     const dateCtrl = this.form.controls.date;
     const timeCtrl = this.form.controls.time;
+    const validationErrors: { id: string; text: string }[] = [];
+
     if (dateCtrl.errors?.['dateInvalid']) {
-      this.searchErrors.push({
+      validationErrors.push({
         id: 'date-day',
         text: dateCtrl.errors['dateErrorText'] as string,
       });
     }
 
     if (timeCtrl.errors?.['durationInvalid']) {
-      this.searchErrors.push({
+      validationErrors.push({
         id: 'time-hours',
         text: timeCtrl.errors['durationErrorText'] as string,
       });
     }
 
     // If any errors are found then return and do not run query
-    if (this.searchErrors.length) {
-      this.submitted = true;
+    if (validationErrors.length) {
+      this.signalState.patch({
+        submitted: true,
+        searchErrors: validationErrors,
+      });
       return;
     }
 
-    const hasAny = this.hasAnyParams();
+    const hasAny = hasAnyParams(this.form);
 
     if (action === 'search') {
-      this.submitted = true;
-      this.isSearch = true;
-      this.currentPage = 1;
+      this.signalState.patch({
+        submitted: true,
+        isSearch: true,
+        currentPage: 1,
+      });
       this.loadApplicationsLists(hasAny);
     }
   }
 
-  async onDelete(row: ApplicationListRow): Promise<void> {
-    this.clearNotifications();
+  onDelete(row: ApplicationListRow): void {
+    this.signalState.patch(clearNotificationsPatch());
 
     if (row.deletable === false) {
-      this.deleteInvalid = true;
-      this.errorSummary = [{ text: 'This list cannot be deleted.' }];
+      this.signalState.patch({
+        deleteInvalid: true,
+        errorSummary: [{ text: 'This list cannot be deleted.' }],
+      });
       return;
     }
 
@@ -257,41 +389,19 @@ export class ApplicationsList
       }
     }
 
-    this.deleteDone = false;
-    this.deleteInvalid = false;
-    this.errorSummary = [];
-    this.deletingId = row.id;
+    this.signalState.patch({
+      deleteDone: false,
+      deleteInvalid: false,
+      errorSummary: [],
+      deletingId: row.id,
+    });
 
-    const context = new HttpContext()
-      .set(IF_MATCH, row.etag ?? null)
-      .set(ROW_VERSION, row.rowVersion ?? null);
-
-    try {
-      const resp = await firstValueFrom(
-        this.appListsApi.deleteApplicationList(
-          { listId: row.id },
-          'response',
-          false,
-          { context },
-        ),
-      );
-
-      if (resp.status === 200 || resp.status === 204) {
-        this.rows = this.rows.filter((r) => r.id !== row.id);
-        this.deleteDone = true;
-      }
-    } catch (err: unknown) {
-      const status = getHttpStatus(err);
-      this.deleteInvalid = true;
-      this.errorSummary = statusSummary(status);
-    } finally {
-      this.deletingId = null;
-    }
+    this.deleteRequest.set(row);
   }
 
   onPageChange(page: number): void {
-    this.currentPage = page;
-    const hasAny = this.hasAnyParams();
+    this.signalState.patch({ currentPage: page });
+    const hasAny = hasAnyParams(this.form);
     this.loadApplicationsLists(hasAny);
   }
 
@@ -301,47 +411,16 @@ export class ApplicationsList
     this.openMenuForId = null;
   }
 
-  async onPrintPage(id: string): Promise<void> {
+  onPrintPage(id: string): void {
     if (!id) {
       return;
     }
 
-    this.clearNotifications();
-
-    try {
-      const dto = await firstValueFrom(
-        this.appListsApi.printApplicationList(
-          { listId: id },
-          undefined,
-          undefined,
-          {
-            transferCache: false,
-          },
-        ),
-      );
-
-      const hasEntries = Array.isArray(dto.entries) && dto.entries.length > 0;
-      if (!hasEntries) {
-        this.showInline('No entries available to print');
-        return;
-      }
-
-      if (isPlatformBrowser(this.platformId)) {
-        await this.pdf.generatePagedApplicationListPdf(dto, {
-          crestUrl: '/assets/govuk-crest.png',
-        });
-      }
-    } catch (err: unknown) {
-      const status = getHttpStatus(err);
-      if (status === 404) {
-        this.showInline('Application List not found');
-      } else {
-        this.showInline('Unable to generate PDF. Please try again later');
-      }
-    }
+    this.signalState.patch(clearNotificationsPatch());
+    this.printPageRequest.set(id);
   }
 
-  async onPrintContinuous(id: string, isClosed: boolean): Promise<void> {
+  onPrintContinuous(id: string, isClosed: boolean): void {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
@@ -350,35 +429,9 @@ export class ApplicationsList
       return;
     }
 
-    this.clearNotifications();
+    this.signalState.patch(clearNotificationsPatch());
 
-    const hasEntries = (x: unknown): x is { entries: unknown[] } => {
-      if (!x || typeof x !== 'object') {
-        return false;
-      }
-      const entries = (x as Record<string, unknown>)['entries'];
-      return Array.isArray(entries) && entries.length > 0;
-    };
-
-    try {
-      const dto = await firstValueFrom(
-        this.appListsApi.printApplicationList(
-          { listId: id },
-          undefined,
-          undefined,
-          { transferCache: false },
-        ),
-      );
-
-      if (!hasEntries(dto)) {
-        this.showInline('No entries available to print');
-        return;
-      }
-
-      await this.pdf.generateContinuousApplicationListsPdf([dto], isClosed);
-    } catch {
-      this.showInline('Unable to generate PDF.');
-    }
+    this.printContinuousRequest.set({ id, isClosed });
   }
 
   protected isOpen(row: ApplicationListRow): boolean {
@@ -386,14 +439,19 @@ export class ApplicationsList
   }
 
   loadApplicationsLists(hasParams: boolean): void {
-    if (this.isLoading) {
+    if (this.state().isLoading) {
       return;
     }
 
     if (!hasParams) {
-      this.searchErrors.push({
-        id: '',
-        text: 'Invalid Search Criteria. At least one field must be entered.',
+      this.signalState.patch({
+        searchErrors: [
+          ...this.state().searchErrors,
+          {
+            id: '',
+            text: APPLICATIONS_LIST_ERROR_MESSAGES.invalidSearchCriteria,
+          },
+        ],
       });
       return;
     }
@@ -404,62 +462,13 @@ export class ApplicationsList
     } as SearchFormValue);
 
     const params: GetApplicationListsRequestParams = {
-      page: this.currentPage - 1,
-      size: this.pageSize,
+      page: this.state().currentPage - 1,
+      size: this.state().pageSize,
       ...(hasParams ? { filter: loadQuery(this.form) } : {}),
     };
 
-    this.isLoading = true;
-    this.appListsApi
-      .getApplicationLists(params, undefined, undefined, {
-        transferCache: false,
-      })
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (page) => {
-          this.searchErrors = [];
-          this.submitted = true;
-          this.totalPages = page.totalPages ?? 0;
-          const content: ApplicationListGetSummaryDto[] = page.content ?? [];
-          this.rows = content.map((x) => this.toRow(x));
-          this.isLoading = false;
-        },
-        error: (err) => {
-          const msg = getProblemText(err);
-          this.submitted = true;
-          this.rows = [];
-          this.totalPages = 0;
-          this.isLoading = false;
-          this.searchErrors = [{ id: 'search', text: msg }];
-        },
-      });
-  }
-
-  private toRow(x: ApplicationListGetSummaryDto): ApplicationListRow {
-    return {
-      id: x.id,
-      date: x.date,
-      time: normaliseTime(x.time) ?? '',
-      location: x.location,
-      description: x.description,
-      entries: x.entriesCount,
-      status: x.status,
-      deletable: x.status === ApplicationListStatus.OPEN,
-      etag: null,
-      rowVersion: null,
-    };
-  }
-
-  private hasAnyParams(): boolean {
-    return (
-      has(this.form.value.date) ||
-      has(this.form.value.time) ||
-      has(this.form.value.description) ||
-      has(this.form.value.status) ||
-      has(this.form.value.court) ||
-      has(this.form.value.location) ||
-      has(this.form.value.cja)
-    );
+    this.signalState.patch({ isLoading: true });
+    this.loadRequest.set(params);
   }
 
   focusField(id: string, e: Event): void {
@@ -473,61 +482,18 @@ export class ApplicationsList
 
   /* ----------------------- Local UI helper methods ---------------------- */
 
-  private clearNotifications(): void {
-    this.deleteDone = false;
-    this.deleteInvalid = false;
-    this.errorSummary = [];
-    this.searchErrors = [];
-    this.submitted = false;
+  private hasEntries(x: unknown): x is { entries: unknown[] } {
+    if (!x || typeof x !== 'object') {
+      return false;
+    }
+    const entries = (x as Record<string, unknown>)['entries'];
+    return Array.isArray(entries) && entries.length > 0;
   }
 
   private showInline(message: string): void {
-    this.deleteInvalid = true;
-    this.errorSummary = [{ text: message }];
-  }
-
-  private buildTrailingNumericSortKey(value: unknown): string {
-    if (value === null) {
-      return '';
-    }
-
-    let s: string;
-
-    if (typeof value === 'string') {
-      s = value.trim().toLowerCase();
-    } else if (typeof value === 'number') {
-      s = String(value);
-    } else if (typeof value === 'boolean') {
-      s = value ? 'true' : 'false';
-    } else {
-      return '';
-    }
-
-    if (s === '') {
-      return '';
-    }
-
-    let i = s.length - 1;
-    while (i >= 0) {
-      const code = s.codePointAt(i);
-      if (code === undefined) {
-        break;
-      }
-
-      if (code < 48 || code > 57) {
-        break;
-      }
-      i--;
-    }
-
-    if (i === s.length - 1) {
-      return s;
-    }
-
-    const prefix = s.slice(0, i + 1);
-    const numStr = s.slice(i + 1);
-    const padded = numStr.padStart(4, '0');
-
-    return `${prefix}${padded}`;
+    this.signalState.patch({
+      deleteInvalid: true,
+      errorSummary: [{ text: message }],
+    });
   }
 }
