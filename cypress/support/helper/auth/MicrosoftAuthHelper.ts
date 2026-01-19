@@ -86,7 +86,7 @@ export class MicrosoftAuthHelper {
     // Wait for redirect back to your application after authentication
     cy.url({ timeout: 30000 }).should('include', '/applications-list');
     cy.screenshot('04-Microsoft-Applications-List-Loaded');
-    
+
     // Verify session is established
     cy.request('/sso/me').its('status').should('eq', 200);
   }
