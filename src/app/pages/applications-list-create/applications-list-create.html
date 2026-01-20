@@ -61,15 +61,18 @@
       tabindex="-1"
       label="Court"
       hint="Start typing to search for court houses"
-      [(search)]="courthouseSearch"
-      (searchChange)="onCourthouseInputChange()"
-      [suggestions]="filteredCourthouses"
+      [search]="state().courthouseSearch"
+      (searchChange)="setCourthouseSearch($event); onCourthouseInputChange()"
+      [suggestions]="state().filteredCourthouses"
       (selectItem)="selectCourthouse($event)"
       [disabled]="!!form.get('location')?.value || !!form.get('cja')?.value"
       [showError]="
         vm().createInvalid &&
-        !courthouseSearch.trim() &&
-        !(form.get('location')?.value?.toString()?.trim() || cjaSearch.trim())
+        !form.get('court')?.value &&
+        !(
+          form.get('location')?.value?.toString()?.trim() ||
+          !!form.get('cja')?.value
+        )
       "
       errorText="Court is required"
     />
@@ -92,18 +95,15 @@
       tabindex="-1"
       label="CJA"
       hint="Start typing to search"
-      [(search)]="cjaSearch"
-      (searchChange)="onCjaInputChange()"
-      [suggestions]="filteredCja"
+      [search]="state().cjaSearch"
+      (searchChange)="setCjaSearch($event); onCjaInputChange()"
+      [suggestions]="state().filteredCja"
       (selectItem)="selectCja($event)"
-      [disabled]="!!courthouseSearch.trim() || !!form.get('court')?.value"
+      [disabled]="!!form.get('court')?.value"
       [showError]="
         vm().createInvalid &&
-        !cjaSearch.trim() &&
-        !(
-          courthouseSearch.trim() ||
-          form.get('court')?.value?.toString()?.trim()
-        )
+        !form.get('cja')?.value &&
+        !form.get('court')?.value?.toString()?.trim()
       "
       errorText="CJA is required"
     />

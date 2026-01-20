@@ -1,6 +1,8 @@
 /**
  * Shared base for place/location form fields.
+ * Uses signal-backed state and auto-cleanup via DestroyRef/takeUntilDestroyed.
  */
+
 import { DestroyRef, Directive, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormGroup } from '@angular/forms';
@@ -25,8 +27,7 @@ interface PlaceRefFacade {
   cja$: Observable<CriminalJusticeAreaGetDto[]>;
 }
 
-// Signals
-interface PlaceFieldsState {
+export interface PlaceFieldsState {
   courthouseSearch: string;
   cjaSearch: string;
   courtLocations: CourtLocationGetSummaryDto[];
@@ -52,90 +53,58 @@ export abstract class PlaceFieldsBase {
   protected ref!: PlaceRefFacade;
   protected locationDisabler?: { unsubscribe: () => void };
 
-  private readonly signalState = createSignalState<PlaceFieldsState>(
+  // Signals
+  protected readonly signalState = createSignalState<PlaceFieldsState>(
     initialPlaceFieldsState,
   );
-  private readonly state = this.signalState.state;
+  protected readonly state = this.signalState.state;
 
-  get courthouseSearch(): string {
-    return this.state().courthouseSearch;
-  }
-  set courthouseSearch(v: string) {
-    this.signalState.patch({ courthouseSearch: v ?? '' });
+  protected patch(patch: Partial<PlaceFieldsState>): void {
+    this.signalState.patch(patch);
   }
 
-  get cjaSearch(): string {
-    return this.state().cjaSearch;
-  }
-  set cjaSearch(v: string) {
-    this.signalState.patch({ cjaSearch: v ?? '' });
+  setCourthouseSearch(value: string): void {
+    this.patch({ courthouseSearch: value ?? '' });
   }
 
-  get courtLocations(): CourtLocationGetSummaryDto[] {
-    return this.state().courtLocations;
-  }
-  set courtLocations(v: CourtLocationGetSummaryDto[]) {
-    this.signalState.patch({ courtLocations: v ?? [] });
-  }
-
-  get cja(): CriminalJusticeAreaGetDto[] {
-    return this.state().cja;
-  }
-  set cja(v: CriminalJusticeAreaGetDto[]) {
-    this.signalState.patch({ cja: v ?? [] });
-  }
-
-  get filteredCourthouses(): CourtLocationGetSummaryDto[] {
-    return this.state().filteredCourthouses;
-  }
-  set filteredCourthouses(v: CourtLocationGetSummaryDto[]) {
-    this.signalState.patch({ filteredCourthouses: v ?? [] });
-  }
-
-  get filteredCja(): CriminalJusticeAreaGetDto[] {
-    return this.state().filteredCja;
-  }
-  set filteredCja(v: CriminalJusticeAreaGetDto[]) {
-    this.signalState.patch({ filteredCja: v ?? [] });
+  setCjaSearch(value: string): void {
+    this.patch({ cjaSearch: value ?? '' });
   }
 
   protected initPlaceFields(form: FormGroup, ref: PlaceRefFacade): void {
     this.form = form;
     this.ref = ref;
 
-    this.courthouseSearch = '';
-    this.cjaSearch = '';
+    this.patch({ courthouseSearch: '', cjaSearch: '' });
 
     this.ref.courtLocations$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((items) => {
-        this.courtLocations = items;
-
         const code = String(this.form.controls['court'].value ?? '').trim();
-        if (!code) {
-          return;
-        }
+        const match = code
+          ? items.find((x) => x.locationCode === code)
+          : undefined;
 
-        const match = items.find((x) => x.locationCode === code);
-        if (match) {
-          this.courthouseSearch = `${match.locationCode} - ${match.name}`;
-        }
+        this.patch({
+          courtLocations: items,
+          ...(match
+            ? { courthouseSearch: `${match.locationCode} - ${match.name}` }
+            : {}),
+        });
       });
 
     this.ref.cja$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((items) => {
-        this.cja = items;
-
         const code = String(this.form.controls['cja'].value ?? '').trim();
-        if (!code) {
-          return;
-        }
+        const match = code ? items.find((x) => x.code === code) : undefined;
 
-        const match = items.find((x) => x.code === code);
-        if (match) {
-          this.cjaSearch = `${match.code} - ${match.description}`;
-        }
+        this.patch({
+          cja: items,
+          ...(match
+            ? { cjaSearch: `${match.code} - ${match.description}` }
+            : {}),
+        });
       });
 
     this.locationDisabler = attachLocationDisabler({
@@ -150,31 +119,38 @@ export abstract class PlaceFieldsBase {
   }
 
   onCourthouseInputChange(): void {
-    this.filteredCourthouses = filterCourts(
-      this.form,
-      this.courthouseSearch,
-      this.courtLocations,
-    );
+    const { courthouseSearch, courtLocations } = this.state();
+
+    this.patch({
+      filteredCourthouses: filterCourts(
+        this.form,
+        courthouseSearch,
+        courtLocations,
+      ),
+    });
   }
 
   onCjaInputChange(): void {
-    this.filteredCja = filterCja(this.form, this.cjaSearch, this.cja);
+    const { cjaSearch, cja } = this.state();
+    this.patch({ filteredCja: filterCja(this.form, cjaSearch, cja) });
   }
 
-  selectCourthouse(
-    c: { locationCode?: string } | CourtLocationGetSummaryDto,
-  ): void {
-    const { courthouseSearch, filteredCourthouses } = selectCourthouse(
+  selectCourthouse(c: unknown): void {
+    const next = selectCourthouse(
       this.form,
-      c,
+      c as { locationCode?: string } | CourtLocationGetSummaryDto,
     );
-    this.courthouseSearch = courthouseSearch;
-    this.filteredCourthouses = filteredCourthouses;
+    this.patch({
+      courthouseSearch: next.courthouseSearch,
+      filteredCourthouses: next.filteredCourthouses,
+    });
   }
 
-  selectCja(c: { code?: string } | CriminalJusticeAreaGetDto): void {
-    const { cjaSearch, filteredCja } = selectCja(this.form, c);
-    this.cjaSearch = cjaSearch;
-    this.filteredCja = filteredCja;
+  selectCja(c: unknown): void {
+    const next = selectCja(
+      this.form,
+      c as { code?: string } | CriminalJusticeAreaGetDto,
+    );
+    this.patch({ cjaSearch: next.cjaSearch, filteredCja: next.filteredCja });
   }
 }

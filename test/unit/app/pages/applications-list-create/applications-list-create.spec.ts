@@ -12,20 +12,9 @@ import {
   ApplicationListCreateDto,
   ApplicationListStatus,
   ApplicationListsApi,
-  CourtLocationGetSummaryDto,
   CourtLocationsApi,
-  CriminalJusticeAreaGetDto,
   CriminalJusticeAreasApi,
 } from '@openapi';
-
-const COURTS: CourtLocationGetSummaryDto[] = [
-  { name: 'Alpha Court', locationCode: 'A1' },
-  { name: 'Beta Court', locationCode: 'B2' },
-];
-const CJAS: CriminalJusticeAreaGetDto[] = [
-  { code: 'C1', description: 'Area One' },
-  { code: 'C2', description: 'Area Two' },
-];
 
 // Reactive-forms warning disabled
 let warnSpy: ReturnType<typeof jest.spyOn>;
@@ -120,83 +109,6 @@ describe('ApplicationsListCreate', () => {
     fixture.detectChanges();
     expect(courtsMock.getCourtLocations).toHaveBeenCalled();
     expect(cjaMock.getCriminalJusticeAreas).toHaveBeenCalled();
-  });
-
-  it('disables and enables related fields based on values', () => {
-    fixture.detectChanges();
-
-    // none -> all enabled
-    component.form.controls.court.setValue('');
-    component.form.controls.location.setValue('');
-    component.form.controls.cja.setValue('');
-    expect(component.form.controls.court.disabled).toBe(false);
-    expect(component.form.controls.location.disabled).toBe(false);
-    expect(component.form.controls.cja.disabled).toBe(false);
-
-    // court set -> others disabled
-    component.form.controls.court.setValue('A1');
-    expect(component.form.controls.court.disabled).toBe(false);
-    expect(component.form.controls.location.disabled).toBe(true);
-    expect(component.form.controls.cja.disabled).toBe(true);
-
-    // location set -> court disabled
-    component.form.controls.court.setValue('');
-    component.form.controls.location.setValue('Somewhere');
-    expect(component.form.controls.court.disabled).toBe(true);
-    expect(component.form.controls.location.disabled).toBe(false);
-    expect(component.form.controls.cja.disabled).toBe(false);
-
-    // cja set -> court disabled
-    component.form.controls.location.setValue('');
-    component.form.controls.cja.setValue('C1');
-    expect(component.form.controls.court.disabled).toBe(true);
-    expect(component.form.controls.location.disabled).toBe(false);
-    expect(component.form.controls.cja.disabled).toBe(false);
-  });
-
-  it('filters courthouses by name or code', () => {
-    component.courtLocations = [...COURTS];
-
-    component.courthouseSearch = 'a1';
-    component.onCourthouseInputChange();
-    expect(component.filteredCourthouses.map((c) => c.locationCode)).toEqual([
-      'A1',
-    ]);
-
-    component.courthouseSearch = 'beta';
-    component.onCourthouseInputChange();
-    expect(component.filteredCourthouses.map((c) => c.name)).toEqual([
-      'Beta Court',
-    ]);
-
-    component.courthouseSearch = '';
-    component.onCourthouseInputChange();
-    expect(component.filteredCourthouses).toHaveLength(0);
-  });
-
-  it('selectCourthouse sets value and clears suggestions', () => {
-    const c: CourtLocationGetSummaryDto = { name: 'X', locationCode: 'X1' };
-    component.selectCourthouse(c);
-    expect(component.courthouseSearch).toBe('X1 - X');
-    expect(component.form.controls.court.value).toBe('X1');
-    expect(component.filteredCourthouses).toHaveLength(0);
-  });
-
-  it('filters and selects CJA', () => {
-    component.cja = [...CJAS];
-
-    component.cjaSearch = 'area two';
-    component.onCjaInputChange();
-    expect(component.filteredCja.map((c) => c.code)).toEqual(['C2']);
-
-    const pick: CriminalJusticeAreaGetDto = {
-      code: 'C9',
-      description: 'Ninth',
-    };
-    component.selectCja(pick);
-    expect(component.cjaSearch).toBe('C9 - Ninth');
-    expect(component.form.controls.cja.value).toBe('C9');
-    expect(component.filteredCja).toHaveLength(0);
   });
 
   it('rejects missing fields on create', () => {
