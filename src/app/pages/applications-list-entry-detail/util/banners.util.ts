@@ -1,5 +1,6 @@
 import { isPlatformBrowser } from '@angular/common';
 
+import { ENTRY_SUCCESS_MESSAGES } from '@constants/application-list-entry/success-messages';
 import { SuccessBanner } from '@core-types/banner/banner.types';
 
 export function computeSuccessBanner(
@@ -8,15 +9,8 @@ export function computeSuccessBanner(
 ): SuccessBanner {
   const needsWording = wordingRefRegex.test(wording);
   return needsWording
-    ? {
-        heading: 'Application code added',
-        body: 'This code requires additional wording. Please complete the "Wording" section.',
-        link: { href: '#wording-section', text: 'Go to wording section' },
-      }
-    : {
-        heading: 'Application code added',
-        body: 'The application list entry was updated successfully.',
-      };
+    ? ENTRY_SUCCESS_MESSAGES.applicationCodeAdded.needsWording
+    : ENTRY_SUCCESS_MESSAGES.applicationCodeAdded.ok;
 }
 
 export function focusSuccessBanner(platformId: object): void {

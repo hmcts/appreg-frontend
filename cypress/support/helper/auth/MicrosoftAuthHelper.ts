@@ -8,27 +8,81 @@ import { LinkHelper } from '../forms/link/LinkHelper';
 
 export class MicrosoftAuthHelper {
   static performLogin(email: string, password: string): void {
+    cy.screenshot('03-Microsoft-Login-Page');
+
     cy.origin(
       'https://login.microsoftonline.com',
       { args: { email, password } },
       ({ email: innerEmail, password: innerPassword }) => {
+        const emailSel =
+          'input[name="loginfmt"], input[name="signInName"], input[name="logonIdentifier"], #email, input[type="email"]';
+        const passSel =
+          'input[name="passwd"], input[name="password"], #password, input[type="password"]';
+
+        // Helper to get visible, enabled element
+        const getVisible = (sel: string) =>
+          cy
+            .get(sel, { timeout: 30000 })
+            .filter(':visible')
+            .first()
+            .should('be.enabled')
+            .scrollIntoView();
+
+        // Helper to type with retry and verification
+        const typeExact = (sel: string, value: string, label: string) =>
+          getVisible(sel).then(($input) => {
+            const tryType = (delay: number): void => {
+              cy.wrap($input).clear({ force: true });
+              cy.wrap($input).type(value, { log: false, delay });
+              cy.wrap($input)
+                .invoke('val')
+                .then((v) => {
+                  const got = (v || '').toString().length;
+                  const want = value.length;
+                  if (got !== want) {
+                    if (delay >= 60) {
+                      throw new Error(
+                        `Failed to type full ${label}: got ${got}/${want}`,
+                      );
+                    }
+                    cy.log(
+                      `Retry typing ${label}: got ${got}/${want}, retry slower`,
+                    );
+                    tryType(60);
+                  }
+                });
+            };
+            tryType(35);
+          });
+
+        // Helper to click submit button
+        const clickSubmit = () => {
+          // Microsoft Next / Sign in button id is stable
+          cy.get('#idSIButton9', { timeout: 20000 })
+            .should('be.visible')
+            .should('be.enabled')
+            .click();
+        };
+
+        // Enter email
         cy.log('Entering email...');
-        cy.get('input[name="loginfmt"]')
-          .should('be.visible')
-          .type(innerEmail, { log: false });
-        cy.screenshot('Microsoft-01-Email-Entered');
-        cy.get('input[type="submit"]').click();
+        typeExact(emailSel, innerEmail, 'email');
 
-        cy.log('Entering password...');
-        cy.get('input[name="passwd"]')
-          .should('be.visible')
-          .type(innerPassword, { log: false });
-        cy.screenshot('Microsoft-02-Password-Entered');
-        cy.get('input[type="submit"]').should('be.visible').click();
+        // Submit email to proceed to password page
+        clickSubmit();
+        cy.log('Entering password (next page)...');
+        typeExact(passSel, innerPassword, 'password');
+        clickSubmit();
 
-        cy.get('#idBtn_Back').should('be.visible').click();
+        // Wait for and handle "Stay signed in?" prompt
+        cy.get('#idBtn_Back', { timeout: 15000 })
+          .should('be.visible')
+          .should('be.enabled')
+          .click();
       },
     );
+
+    cy.screenshot('04-After-Microsoft-Auth');
   }
 
   static performSignOut(): void {

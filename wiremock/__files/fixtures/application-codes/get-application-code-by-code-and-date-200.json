@@ -2,9 +2,13 @@
   "applicationCode": "MS99004",
   "title": "Statutory Declaration - Lost documents",
   "wording": "Attends to make a statutory declaration in relation to loss of original document, namely {TEXT|Specify Document Lost|100}",
-  "isFeeDue": false,
+  "isFeeDue": true,
   "requiresRespondent": false,
   "bulkRespondentAllowed": false,
+  "feeReference": "CO9.2",
+  "feeAmount": { "value": 7500, "currency": "GBP" },
+  "feeDescription": "Statutory declaration – lost documents",
+  "offsiteFeeAmount": { "value": 2500, "currency": "GBP" },
   "startDate": "2020-01-01",
   "endDate": null
 }

@@ -11,7 +11,7 @@ import {
   ViewChild,
 } from '@angular/core';
 
-type RowLike = Record<string, unknown>;
+import { Row } from '@core-types/table/row.types';
 
 /** The column contract for this table */
 export type TableColumn = {
@@ -36,13 +36,13 @@ export class SortableTableComponent implements AfterViewInit {
   actionsTpl?: TemplateRef<unknown>;
 
   @Input() caption = '';
+  @Input() hiddenCaption = false;
   @Input() columns: TableColumn[] = [];
-  @Input() data: RowLike[] = [];
+  @Input() data: Row[] = [];
 
   /** Optional id field / custom trackBy, kept from your original component */
   @Input() idField?: string;
-  @Input() trackBy?: (index: number, row: RowLike) => unknown;
-
+  @Input() trackBy?: (index: number, row: Row) => unknown;
   @ViewChild('mojTable', { static: true })
   tableRef!: ElementRef<HTMLTableElement>;
 
@@ -51,7 +51,7 @@ export class SortableTableComponent implements AfterViewInit {
   constructor(@Inject(PLATFORM_ID) private readonly platformId: object) {}
 
   /** trackBy helper retained for performance */
-  trackRow = (index: number, row: RowLike): unknown => {
+  trackRow = (index: number, row: Row): unknown => {
     if (this.trackBy) {
       return this.trackBy(index, row);
     }
@@ -63,7 +63,7 @@ export class SortableTableComponent implements AfterViewInit {
   };
 
   /** Value for data-sort-value (used by MoJ Sortable table) */
-  getSortValue(row: RowLike, col: TableColumn): string | null {
+  getSortValue(row: Row, col: TableColumn): string | null {
     const candidate: unknown = col.sortValue
       ? col.sortValue(row)
       : row[col.field];
