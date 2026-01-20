@@ -1,4 +1,4 @@
-/* 
+/*
 Helper functions for Application Codes
 */
 
@@ -33,7 +33,18 @@ export function titleFromDetail(d: ApplicationCodeGetDetailDto): string {
 
 export function wordingFromDetail(d: ApplicationCodeGetDetailDto): string {
   // Some backends return "wording" or "defaultWording"
-  return d.wording ?? '';
+  const wording = d?.wording as unknown;
+  if (typeof wording === 'string') {
+    return wording;
+  }
+
+  if (wording && typeof wording === 'object') {
+    const template = (wording as { template?: unknown }).template;
+    if (typeof template === 'string') {
+      return template;
+    }
+  }
+  return '';
 }
 
 export type CodeRow = {

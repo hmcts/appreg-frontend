@@ -1,5 +1,4 @@
 import {
-  compactStrings,
   hasRequiredOrg,
   hasRequiredPerson,
   makeContactDetails,
@@ -7,7 +6,13 @@ import {
   toOptionalTrimmed,
 } from './helpers';
 
-import { Applicant, EntryCreateDto, FeeStatus, Respondent } from '@openapi';
+import {
+  Applicant,
+  EntryCreateDto,
+  FeeStatus,
+  Respondent,
+  TemplateSubstitution,
+} from '@openapi';
 import {
   ApplicationsListEntryFormValue,
   OrganisationFormValue,
@@ -181,10 +186,20 @@ function buildFeeStatuses(
 
 function buildWordingFields(
   formValue: ApplicationsListEntryFormValue,
-): string[] | undefined {
+): TemplateSubstitution[] | undefined {
   const courtName = toOptionalTrimmed(formValue.courtName);
   const orgName = toOptionalTrimmed(formValue.organisationName);
-  return compactStrings([courtName, orgName]);
+
+  const fields: TemplateSubstitution[] = [];
+  // The key's are not set but hardcoding it for what we have right now
+  if (courtName !== null && typeof courtName === 'string') {
+    fields.push({ key: 'courtName', value: courtName });
+  }
+  if (orgName !== null && typeof orgName === 'string') {
+    fields.push({ key: 'organisationName', value: orgName });
+  }
+
+  return fields.length ? fields : undefined;
 }
 
 function buildNotesFields(formValue: ApplicationsListEntryFormValue) {
