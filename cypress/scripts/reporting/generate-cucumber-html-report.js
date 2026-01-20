@@ -32,6 +32,9 @@ function getBrowserSource(dirPath) {
   if (dirPath.includes('/edge/')) {
     return 'Edge';
   }
+  if (dirPath.includes('/electron/')) {
+    return 'Electron';
+  }
   if (!browser) {
     return 'Mixed';
   }
@@ -113,8 +116,8 @@ function buildPaths(segmentGroups) {
  * Get list of cucumber directories based on browser parameter
  */
 function getCucumberDirectories() {
-  // With a browser specified, honor the provided scope directly.
-  if (browser === 'chrome' || browser === 'edge') {
+  // With any browser specified, honor the provided scope directly.
+  if (browser) {
     return buildPaths([[browser, scope, 'cucumber-json']]);
   }
 

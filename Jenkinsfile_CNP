@@ -202,14 +202,14 @@ withPipeline(type, product, component) {
       archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/screenshots/**/*.png'
       archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/junit/**/*.xml'
 
-      junit allowEmptyResults: true, testResults: 'cypress/reports/junit/**/*.xml'
+      junit allowEmptyResults: true, testResults: 'functional-output/electron/smoke/junit/**/*.xml, cypress/reports/junit/**/*.xml'
 
       publishHTML([
         allowMissing: true,
         alwaysLinkToLastBuild: true,
         keepAll: true,
-        reportDir: 'cypress/reports/cucumber-html',
-        reportFiles: 'index.html',
+        reportDir: 'functional-output/electron/smoke/cucumber-html',
+        reportFiles: 'detailed-test-report.html',
         reportName: 'Cucumber HTML Report',
       ])
 
@@ -241,7 +241,7 @@ withPipeline(type, product, component) {
       archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/junit/**/*.xml'
       archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/**/*'
 
-      junit allowEmptyResults: true, testResults: 'cypress/reports/junit/**/*.xml'
+      junit allowEmptyResults: true, testResults: 'functional-output/electron/smoke/junit/**/*.xml, cypress/reports/junit/**/*.xml'
 
       if (testResult != 0) {
         error("Functional tests failed with exit code ${testResult}")
