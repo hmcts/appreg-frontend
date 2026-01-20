@@ -45,15 +45,13 @@ import { NotificationBannerComponent } from '@components/notification-banner/not
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
-import {
-  Row,
-  SelectableSortableTableComponent,
-} from '@components/selectable-sortable-table/selectable-sortable-table.component';
+import { SelectableSortableTableComponent } from '@components/selectable-sortable-table/selectable-sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { IF_MATCH } from '@context/concurrency-context';
 import { FormRaw } from '@core-types/forms/forms.types';
+import { Row } from '@core-types/table/row.types';
 import {
   ApplicationListGetDetailDto,
   ApplicationListStatus,
