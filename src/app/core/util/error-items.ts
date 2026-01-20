@@ -30,3 +30,17 @@ export function errorTextForDomId(
 ): string | null {
   return map[domId] ?? null;
 }
+
+export function getUniqueErrors(
+  parentErrors: readonly ErrorItem[],
+  childErrors: readonly ErrorItem[],
+): ErrorItem[] {
+  const uniq = new Map<string, ErrorItem>();
+
+  for (const e of [...parentErrors, ...childErrors]) {
+    const key = `${e.id ?? ''}|${e.text}`;
+    uniq.set(key, e);
+  }
+
+  return [...uniq.values()];
+}

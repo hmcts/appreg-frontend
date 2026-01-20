@@ -52,8 +52,11 @@ import {
 } from './util/applications-list.state';
 import { statusSummary } from './util/delete-status';
 import { loadQuery } from './util/load-query';
-import { hasAnyParams, toRow } from './util/routing-state-util';
 
+import {
+  hasAnyParams,
+  toRow,
+} from '@components/applications-list-entry-detail/util/routing-state-util';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import { DurationInputComponent } from '@components/duration-input/duration-input.component';
 import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';

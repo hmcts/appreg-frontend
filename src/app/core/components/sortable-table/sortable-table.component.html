@@ -4,6 +4,7 @@
   [attr.aria-describedby]="'sortable-' + caption"
 >
   <caption
+    [class.govuk-visually-hidden]="hiddenCaption"
     class="govuk-table__caption govuk-table__caption--m"
     id="sortable-{{ caption }}"
   >

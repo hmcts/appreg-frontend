@@ -69,7 +69,15 @@ export function buildStandardApplicationForm(
     wordingFields: fb.control<string[] | null>(null),
     feeStatuses: fb.control<FeeStatus[] | null>(null),
     hasOffsiteFee: fb.control<boolean | null>(null),
-
+    feeStatus: fb.control<string | null>(null, {
+      validators: [],
+    }),
+    feeStatusDate: fb.control<string | null>(null, {
+      validators: [],
+    }),
+    paymentRef: fb.control<string | null>(null, {
+      validators: [],
+    }),
     applicationNotes: fb.group({
       notes: fb.control<string | null>(null, {
         validators: [Validators.maxLength(4000)],
@@ -91,9 +99,6 @@ export function buildStandardApplicationForm(
     lodgementDate: fb.control<string | null>(null),
     courtName: fb.control<string | null>(null),
     organisationName: fb.control<string | null>(null),
-    feeStatus: fb.control<string | null>(null),
-    feeStatusDate: fb.control<string | null>(null),
-    paymentRef: fb.control<string | null>(null),
     accountReference: fb.control<string | null>(null),
     applicationDetails: fb.control<string | null>(null),
     resultCode: fb.control<string | null>(null),

@@ -31,8 +31,7 @@ function focusByIdOrFirstFocusable(idOrHref: string): void {
     root.scrollIntoView(true);
   }
 
-  const selector =
-    'input,select,textarea,[contenteditable="true"],[tabindex]:not([tabindex="-1"])';
+  const selector = 'input,select,textarea,[contenteditable="true"],[tabindex]';
 
   const target: HTMLElement = root.matches(selector)
     ? root

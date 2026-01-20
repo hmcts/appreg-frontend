@@ -44,7 +44,11 @@
       (blur)="handleBlur()"
     >
       @for (o of options; track o.value) {
-        <option [value]="o.value" [selected]="o.value === (value ?? '')">
+        <option
+          [value]="o.value"
+          [selected]="o.value === (value ?? '')"
+          [disabled]="o.disabled"
+        >
           {{ o.label }}
         </option>
       }

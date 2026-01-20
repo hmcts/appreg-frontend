@@ -15,7 +15,7 @@ import {
   ViewChild,
 } from '@angular/core';
 
-export type Row = Record<string, unknown>;
+import { Row } from '@core-types/table/row.types';
 
 export interface TableColumn {
   header: string;

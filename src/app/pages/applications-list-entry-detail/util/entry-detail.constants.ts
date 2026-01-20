@@ -17,9 +17,10 @@ export const CODES_COLUMNS: TableColumn[] = [
 ];
 
 export const FEE_STATUS_OPTIONS = [
-  { value: 'paid', label: 'Paid' },
-  { value: 'outstanding', label: 'Outstanding' },
-  { value: 'pending', label: 'Pending' },
+  { value: 'PAID', label: 'Paid' },
+  { value: 'UNDERTAKEN', label: 'Undertaken' },
+  { value: 'DUE', label: 'Due' },
+  { value: 'REMITTED', label: 'Remitted' },
 ];
 
 export const RESULT_WORDING_COLUMNS = [
@@ -35,9 +36,9 @@ export const EXISTING_RESULTS_WORDING_COLUMNS = [
 ];
 
 export const CIVIL_FEE_COLUMNS: TableColumn[] = [
-  { header: 'Fee Status', field: 'status' },
-  { header: 'Status Date', field: 'date' },
-  { header: 'Payment Ref', field: 'paymentRef' },
+  { header: 'Fee Status', field: 'paymentStatus' },
+  { header: 'Status Date', field: 'statusDate' },
+  { header: 'Payment Ref', field: 'paymentReference' },
 ];
 
 export const APPLICANT_TYPE_OPTIONS = [
