@@ -71,7 +71,7 @@ function makePage(
     title: c.title ?? '',
     bulkRespondentAllowed: Boolean(c.bulkRespondentAllowed),
     feeReference: c.feeReference,
-    wording: c.wording ?? '',
+    wording: c.wording ?? {},
     isFeeDue: c.isFeeDue ?? false,
     requiresRespondent: c.requiresRespondent ?? false,
   }));
@@ -135,7 +135,7 @@ describe('ApplicationsListEntryDetail', () => {
       of({
         applicationCode: 'APP-100',
         title: 'Loaded title',
-        wording: '',
+        wording: { template: '' },
         bulkRespondentAllowed: false,
         isFeeDue: false,
         requiresRespondent: false,
@@ -280,7 +280,7 @@ describe('ApplicationsListEntryDetail', () => {
       of({
         applicationCode: 'APP-7',
         title: 'After update title',
-        wording: '... {TEXT|Reference|123} ...',
+        wording: { template: '... {test} ...' },
         bulkRespondentAllowed: false,
         isFeeDue: false,
         requiresRespondent: false,
@@ -401,5 +401,89 @@ describe('ApplicationsListEntryDetail', () => {
     expect(
       component['summaryErrors'].some((e) => /organisation name/i.test(e.text)),
     ).toBe(true);
+  });
+
+  it('toEntryDetailPatch maps wordingFields to values and preserves other fields', () => {
+    const entryUpdateDto = {
+      applicationCode: 'APP-200',
+      lodgementDate: '2026-01-01',
+      wordingFields: [
+        { key: 'courtName', value: 'Court A' },
+        { key: 'organisationName', value: 'Org B' },
+      ],
+    } as unknown as EntryUpdateDto;
+
+    const patch = (
+      component as unknown as {
+        toEntryDetailPatch: (dto: EntryUpdateDto) => Partial<EntryGetDetailDto>;
+      }
+    ).toEntryDetailPatch(entryUpdateDto);
+
+    expect(patch).toEqual(
+      expect.objectContaining({
+        applicationCode: 'APP-200',
+        lodgementDate: '2026-01-01',
+        wordingFields: ['Court A', 'Org B'],
+      }),
+    );
+  });
+
+  it('mergeEntryDetailUpdate applies patch and lets response override', () => {
+    component['entryDetail'] = {
+      applicationCode: 'APP-100',
+      lodgementDate: '2025-11-01',
+      wordingFields: ['Old wording'],
+      feeStatuses: [],
+    } as unknown as EntryGetDetailDto;
+
+    const entryUpdateDto = {
+      applicationCode: 'APP-200',
+      wordingFields: [{ key: 'courtName', value: 'Court A' }],
+      feeStatuses: [],
+    } as unknown as EntryUpdateDto;
+
+    const res = {
+      applicationCode: 'APP-300',
+      respondent: { organisation: { name: 'Org X' } },
+    } as Partial<EntryGetDetailDto>;
+
+    (
+      component as unknown as {
+        mergeEntryDetailUpdate: (
+          dto: EntryUpdateDto,
+          res: Partial<EntryGetDetailDto> | null | undefined,
+        ) => void;
+      }
+    ).mergeEntryDetailUpdate(entryUpdateDto, res);
+
+    expect(component['entryDetail']?.applicationCode).toBe('APP-300');
+    expect(component['entryDetail']?.wordingFields).toEqual(['Court A']);
+    expect(component['entryDetail']?.respondent).toEqual(res.respondent);
+  });
+
+  it('mergeEntryDetailUpdate uses patch when response is empty', () => {
+    component['entryDetail'] = {
+      applicationCode: 'APP-100',
+      wordingFields: ['Old wording'],
+      feeStatuses: [],
+    } as unknown as EntryGetDetailDto;
+
+    const entryUpdateDto = {
+      applicationCode: 'APP-200',
+      wordingFields: [{ key: 'courtName', value: 'Court A' }],
+      feeStatuses: [],
+    } as unknown as EntryUpdateDto;
+
+    (
+      component as unknown as {
+        mergeEntryDetailUpdate: (
+          dto: EntryUpdateDto,
+          res: Partial<EntryGetDetailDto> | null | undefined,
+        ) => void;
+      }
+    ).mergeEntryDetailUpdate(entryUpdateDto, {});
+
+    expect(component['entryDetail']?.applicationCode).toBe('APP-200');
+    expect(component['entryDetail']?.wordingFields).toEqual(['Court A']);
   });
 });

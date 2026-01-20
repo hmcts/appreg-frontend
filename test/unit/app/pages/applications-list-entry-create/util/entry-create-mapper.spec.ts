@@ -304,7 +304,10 @@ describe('buildEntryCreateDto', () => {
     );
     const payload = roundTrip(dto as unknown as Record<string, unknown>);
 
-    expect(payload['wordingFields']).toEqual(['Court A', 'Org B']);
+    expect(payload['wordingFields']).toEqual([
+      { key: 'courtName', value: 'Court A' },
+      { key: 'organisationName', value: 'Org B' },
+    ]);
   });
 
   it('omits wordingFields when courtName and organisationName are empty/whitespace', () => {

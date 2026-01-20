@@ -20,6 +20,7 @@ import {
   Organisation,
   Person,
   Respondent,
+  TemplateSubstitution,
 } from '@openapi';
 import {
   ApplicantType,
@@ -165,6 +166,43 @@ export function buildOrganisationForm(
   }) as OrganisationForm;
 }
 
+// Wording fields went from string[] to TemplateSubstition[] & preserve keys when present
+const LEGACY_WORDING_KEYS = ['courtName', 'organisationName'] as const;
+
+function toTemplateSubstitutions(
+  values: (string | TemplateSubstitution)[] | null | undefined,
+): TemplateSubstitution[] | undefined {
+  if (!values?.length) {
+    return undefined;
+  }
+
+  const isTemplateSubstitution = (
+    value: string | TemplateSubstitution,
+  ): value is TemplateSubstitution =>
+    typeof value === 'object' &&
+    value !== null &&
+    'key' in value &&
+    'value' in value;
+
+  if (values.every(isTemplateSubstitution)) {
+    return values;
+  }
+
+  // Map string[] payloads to the new template
+  return values.map((v, i) => {
+    if (isTemplateSubstitution(v)) {
+      return v;
+    }
+
+    const key = LEGACY_WORDING_KEYS[i] ?? `field${i + 1}`;
+
+    return {
+      key,
+      value: typeof v === 'string' ? v : '',
+    };
+  });
+}
+
 export function buildEntryUpdateDtoFromForm(
   detail: EntryGetDetailDto,
   formValue: ApplicationsListEntryFormValue,
@@ -180,7 +218,7 @@ export function buildEntryUpdateDtoFromForm(
     applicant: detail.applicant,
     respondent: detail.respondent,
     numberOfRespondents: detail.numberOfRespondents,
-    wordingFields: detail.wordingFields,
+    wordingFields: toTemplateSubstitutions(detail.wordingFields),
     feeStatuses: detail.feeStatuses,
     hasOffsiteFee: detail.hasOffsiteFee,
     caseReference: detail.caseReference,
@@ -323,7 +361,7 @@ export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
     applicant: detail.applicant,
     respondent: detail.respondent,
     numberOfRespondents: detail.numberOfRespondents,
-    wordingFields: detail.wordingFields,
+    wordingFields: toTemplateSubstitutions(detail.wordingFields),
     feeStatuses: detail.feeStatuses,
     hasOffsiteFee: detail.hasOffsiteFee,
     caseReference: detail.caseReference,
