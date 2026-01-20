@@ -375,8 +375,8 @@ export class ApplicationsListEntryDetail implements OnInit {
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => {
-          this.entryDetail = { ...this.entryDetail!, ...entryUpdateDto };
+        next: (res) => {
+          this.mergeEntryDetailUpdate(entryUpdateDto, res);
 
           this.form.controls.feeStatuses.markAsPristine();
 
@@ -619,17 +619,10 @@ export class ApplicationsListEntryDetail implements OnInit {
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => {
+        next: (res) => {
           this.formSubmitted = false;
           this.errorFound = false;
-
-          // Keep snapshot in sync
-          if (this.entryDetail) {
-            this.entryDetail = {
-              ...this.entryDetail,
-              ...entryUpdateDto,
-            };
-          }
+          this.mergeEntryDetailUpdate(entryUpdateDto, res);
 
           this.successBanner = ENTRY_SUCCESS_MESSAGES.applicantUpdated;
 
@@ -701,8 +694,8 @@ export class ApplicationsListEntryDetail implements OnInit {
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => {
-          this.entryDetail = { ...this.entryDetail!, ...entryUpdateDto };
+        next: (res) => {
+          this.mergeEntryDetailUpdate(entryUpdateDto, res);
           this.persistedHasOffsiteFee = nextValue;
           this.form.controls.hasOffsiteFee.markAsPristine();
 
@@ -891,6 +884,37 @@ export class ApplicationsListEntryDetail implements OnInit {
         },
         error: (err) => this.handleFatalLoadError(err),
       });
+  }
+
+  private mergeEntryDetailUpdate(
+    entryUpdateDto: EntryUpdateDto,
+    res: Partial<EntryGetDetailDto> | null | undefined,
+  ): void {
+    if (!this.entryDetail) {
+      return;
+    }
+
+    const base = {
+      ...this.entryDetail,
+      ...this.toEntryDetailPatch(entryUpdateDto),
+    };
+    const hasResponse =
+      !!res && typeof res === 'object' && Object.keys(res).length > 0;
+
+    this.entryDetail = hasResponse ? { ...base, ...res } : base;
+  }
+
+  private toEntryDetailPatch(
+    entryUpdateDto: EntryUpdateDto,
+  ): Partial<EntryGetDetailDto> {
+    const { wordingFields, ...rest } = entryUpdateDto;
+    const patch: Partial<EntryGetDetailDto> = { ...rest };
+
+    if (wordingFields) {
+      patch.wordingFields = wordingFields.map((field) => field.value);
+    }
+
+    return patch;
   }
 
   onApplyResultPending(row: PendingResultRow): void {
