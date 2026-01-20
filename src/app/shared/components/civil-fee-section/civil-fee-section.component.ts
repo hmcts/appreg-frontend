@@ -11,12 +11,10 @@ import { DateInputComponent } from '@components/date-input/date-input.component'
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
 import { TableColumn } from '@components/selectable-sortable-table/selectable-sortable-table.component';
-import {
-  RowLike,
-  SortableTableComponent,
-} from '@components/sortable-table/sortable-table.component';
+import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { CIVIL_FEE_FIELD_MESSAGES } from '@constants/application-list-entry/error-messages';
+import { Row } from '@core-types/table/row.types';
 import { FeeStatus, PaymentStatus } from '@openapi';
 import {
   AddFeeDetailsPayload,
@@ -170,7 +168,7 @@ export class CivilFeeSectionComponent {
     { header: 'Action', field: 'actions', sortable: false },
   ];
 
-  feeStatusRows = (): RowLike[] =>
+  feeStatusRows = (): Row[] =>
     (this.feeForm().controls.feeStatuses.value ?? []).map((fs) => {
       const [yyyy, mm, dd] = fs.statusDate.split('-');
       return {
@@ -182,7 +180,7 @@ export class CivilFeeSectionComponent {
       };
     });
 
-  onChangePaymentReference = (row: RowLike): void => {
+  onChangePaymentReference = (row: Row): void => {
     if (!row['paymentReference']) {
       return;
     }

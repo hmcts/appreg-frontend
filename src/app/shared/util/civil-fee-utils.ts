@@ -130,6 +130,10 @@ export function readPaymentRefReturnState(state: unknown): {
   updatedRowId: string;
   newPaymentReference: string;
 } | null {
+  if (state === null || typeof state !== 'object') {
+    return null;
+  }
+
   const s = state as PaymentRefReturnState;
 
   const updatedRowId =

@@ -57,7 +57,7 @@ import {
   ApplicantContext,
   PaymentRefReturn,
   readNavState,
-} from '@components/applications-list/util/routing-state-util';
+} from '@components/applications-list-entry-detail/util/routing-state-util';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import {
   CivilFeeForm,
@@ -90,6 +90,7 @@ import {
   RESPONDENT_ORG_ERROR_HREFS,
   RESPONDENT_PERSON_ERROR_HREFS,
 } from '@constants/application-list-entry/respondent/error-hrefs';
+import { ENTRY_SUCCESS_MESSAGES } from '@constants/application-list-entry/success-messages';
 import { SuccessBanner } from '@core-types/banner/banner.types';
 import {
   ApplicationCodesApi,
@@ -129,6 +130,7 @@ import {
   focusErrorSummary,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '@util/error-click';
+import { getUniqueErrors } from '@util/error-items';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { markFormGroupClean, readText } from '@util/form-helpers';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
@@ -296,6 +298,10 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.civilFeeForm = this.formSvc.createCivilFeeForm(this.forms);
   }
 
+  resetSuccessBanner(): void {
+    this.successBanner = null;
+  }
+
   onAddFeeDetails(payload: AddFeeDetailsPayload): void {
     this.resetErrors();
 
@@ -310,10 +316,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.form.controls.feeStatuses.setValue(next);
     this.form.controls.feeStatuses.markAsDirty();
 
-    const bannerText: SuccessBanner = {
-      heading: 'Fee status updated',
-      body: 'Fee status has been successfully updated.',
-    };
+    const bannerText: SuccessBanner = ENTRY_SUCCESS_MESSAGES.feeStatusUpdated;
 
     this.persistFeeStatuses(next, bannerText);
   }
@@ -334,10 +337,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.form.controls.feeStatuses.setValue(next);
     this.form.controls.feeStatuses.markAsDirty();
 
-    const bannerText: SuccessBanner = {
-      heading: 'Payment reference updated',
-      body: 'The payment reference has been updated for the selected fee status.',
-    };
+    const bannerText: SuccessBanner = ENTRY_SUCCESS_MESSAGES.paymentRefUpdated;
 
     this.persistFeeStatuses(next, bannerText);
   }
@@ -381,6 +381,7 @@ export class ApplicationsListEntryDetail implements OnInit {
           this.form.controls.feeStatuses.markAsPristine();
 
           this.successBanner = bannerText;
+          focusSuccessBanner(this.platformId);
         },
         error: (err) => {
           this.applyMappedError(err);
@@ -422,7 +423,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   onAddCode(row: CodeRow): void {
-    this.successBanner = null;
+    this.resetSuccessBanner();
     this.resetErrors();
 
     const entryId = getEntryId(this.route);
@@ -556,21 +557,14 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.parentErrors = this.buildErrorSummary();
     const allChildErrors = Object.values(this.childErrors).flat();
 
-    this.summaryErrors = [...this.getUniqueErrors(allChildErrors)];
+    this.summaryErrors = [
+      ...getUniqueErrors(this.parentErrors, allChildErrors),
+    ];
     this.errorFound = this.summaryErrors.length > 0;
 
     if (this.errorFound) {
       focusErrorSummary(this.platformId);
     }
-  }
-
-  private getUniqueErrors(allChildErrors: ErrorItem[]): ErrorItem[] {
-    const uniq = new Map<string, ErrorItem>();
-    [...this.parentErrors, ...allChildErrors].forEach((e) => {
-      const key = `${e.id ?? ''}|${e.text}`;
-      uniq.set(key, e);
-    });
-    return [...uniq.values()];
   }
 
   onChildErrors(source: ChildErrorSource, errors: ErrorItem[]): void {
@@ -580,7 +574,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   onUpdateApplicant(): void {
     this.resetErrors();
-    this.successBanner = null;
+    this.resetSuccessBanner();
     this.formSubmitted = true;
 
     // Run Angular validation
@@ -637,10 +631,7 @@ export class ApplicationsListEntryDetail implements OnInit {
             };
           }
 
-          this.successBanner = {
-            heading: 'Applicant updated',
-            body: 'The applicant has been updated for this application list entry.',
-          };
+          this.successBanner = ENTRY_SUCCESS_MESSAGES.applicantUpdated;
 
           if (this.applicantType === 'person') {
             markFormGroupClean(this.personGroup);
@@ -715,12 +706,9 @@ export class ApplicationsListEntryDetail implements OnInit {
           this.persistedHasOffsiteFee = nextValue;
           this.form.controls.hasOffsiteFee.markAsPristine();
 
-          this.successBanner = {
-            heading: 'Off site fee updated',
-            body: nextValue
-              ? 'Off site fee has been applied to the entry.'
-              : 'Off site fee has been removed from the entry.',
-          };
+          this.successBanner = nextValue
+            ? ENTRY_SUCCESS_MESSAGES.offSiteFeeApplied
+            : ENTRY_SUCCESS_MESSAGES.offSiteFeeRemoved;
           focusSuccessBanner(this.platformId);
         },
         error: (err) => {
@@ -918,10 +906,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       entryId,
       row,
       () => {
-        this.successBanner = {
-          heading: 'Result applied',
-          body: 'The result has been updated for this application list entry.',
-        };
+        this.successBanner = ENTRY_SUCCESS_MESSAGES.resultApplied;
         focusSuccessBanner(this.platformId);
       },
       (err) => this.applyMappedError(err),
@@ -941,10 +926,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       entryId,
       resultId,
       () => {
-        this.successBanner = {
-          heading: 'Result removed',
-          body: 'The result has been removed from this application list entry.',
-        };
+        this.successBanner = ENTRY_SUCCESS_MESSAGES.resultRemoved;
         focusSuccessBanner(this.platformId);
       },
       (err) => this.applyMappedError(err),

@@ -8,9 +8,9 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { RowLike } from '@components/sortable-table/sortable-table.component';
+import { Row } from '@core-types/table/row.types';
 
-function isRowLike(value: unknown): value is RowLike {
+function isRowLike(value: unknown): value is Row {
   return typeof value === 'object' && value !== null;
 }
 
@@ -33,7 +33,7 @@ export class PaymentReferenceEditComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
-  row: RowLike | null = null;
+  row: Row | null = null;
   paymentReference = new FormControl<string>('', {
     nonNullable: true,
     validators: [requiredValidator, Validators.maxLength(15)],

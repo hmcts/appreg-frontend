@@ -20,9 +20,7 @@
     data-component="error-summary"
     (itemSelect)="onCreateErrorClick($event)"
   />
-}
-
-@if (successBanner) {
+} @else if (successBanner) {
   <app-success-banner
     [heading]="successBanner.heading"
     [body]="successBanner.body"
