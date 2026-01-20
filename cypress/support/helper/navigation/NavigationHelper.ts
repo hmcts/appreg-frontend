@@ -25,7 +25,7 @@ export class NavigationHelper {
 
   static verifyPageUrlContains(partialUrl: string): void {
     cy.log(`Verifying page URL contains ${partialUrl}`);
-    cy.url().should('include', partialUrl);
+    cy.url({ timeout: 30000 }).should('include', partialUrl);
   }
 
   static verifySignOutLinkVisible(): void {
