@@ -6,7 +6,7 @@ import {
   hasAnyParams,
   readNavState,
   toRow,
-} from '@components/applications-list/util/routing-state-util';
+} from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ApplicationListStatus } from '@openapi';
 
 function makeForm(raw: unknown): FormGroup {

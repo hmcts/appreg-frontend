@@ -6,6 +6,12 @@ type NotesErrorMap = Readonly<
   Record<NotesControlName, Readonly<Record<string, string>>>
 >;
 
+type CivilFeeControlName = 'feeStatus' | 'feeStatusDate' | 'paymentRef';
+
+type CivilFeeErrorMap = Readonly<
+  Record<CivilFeeControlName, Readonly<Record<string, string>>>
+>;
+
 const person_org_shared_messages = {
   addressLine1: {
     required: 'Enter address line 1',
@@ -78,6 +84,16 @@ export const ORG_FIELD_MESSAGES = {
   ...person_org_shared_messages,
 } as const;
 
+export const CIVIL_FEE_FIELD_MESSAGES: CivilFeeErrorMap = {
+  feeStatus: { required: 'Select a fee status' },
+  feeStatusDate: {
+    required: 'Enter a status date',
+  },
+  paymentRef: {
+    maxlength: 'Payment reference must be less than or equal to 15 characters',
+  },
+} as const;
+
 export const ENTRY_ERROR_MESSAGES = {
   standardApplicantCode: {
     required: 'Select a standard applicant',
@@ -88,4 +104,5 @@ export const ENTRY_ERROR_MESSAGES = {
   ...NOTES_ERROR_MESSAGES,
   ...PERSON_FIELD_MESSAGES,
   ...ORG_FIELD_MESSAGES,
+  ...CIVIL_FEE_FIELD_MESSAGES,
 } as const;

@@ -1,10 +1,10 @@
 import { Component, effect, input, output } from '@angular/core';
 
-import { ApplicantContext } from '@components/applications-list/util/routing-state-util';
 import {
   EXISTING_RESULTS_WORDING_COLUMNS,
   RESULT_WORDING_COLUMNS,
 } from '@components/applications-list-entry-detail/util/entry-detail.constants';
+import { ApplicantContext } from '@components/applications-list-entry-detail/util/routing-state-util';
 import {
   SortableTableComponent,
   TableColumn,
