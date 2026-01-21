@@ -183,15 +183,17 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
     return this.isInteractedInvalid(name) || this.missing(name) ? 'true' : null;
   }
 
-  // ControlValueAccessor
   writeValue(value: string | null): void {
     const { day, month, year } = this.dateForm.getRawValue();
-    const current =
-      this.dateForm.valid && day && month && year
-        ? `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
-        : null;
+    const allEmpty = day === '' && month === '' && year === '';
 
-    if (value === current) {
+    if (value === null || value === undefined) {
+      if (!allEmpty) {
+        this.dateForm.reset(
+          { day: '', month: '', year: '' },
+          { emitEvent: false },
+        );
+      }
       return;
     }
 
