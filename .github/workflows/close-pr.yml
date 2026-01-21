@@ -29,6 +29,7 @@ jobs:
             --allow-no-subscriptions
 
       - name: Remove redirect URIs for PR environment
+        shell: bash
         env:
           PR_NUMBER: ${{ github.event.number }}
           OBJECT_ID: ${{ secrets.APPREG_OBJECT_ID }}
@@ -46,16 +47,30 @@ jobs:
             --url "https://graph.microsoft.com/v1.0/applications/${OBJECT_ID}" \
             --query "web.redirectUris" -o json --only-show-errors)"
 
-          if [ "$CURRENT" = "null" ] || [ -z "$CURRENT" ]; then
+          if [ -z "${CURRENT}" ] || [ "${CURRENT}" = "null" ]; then
             CURRENT="[]"
           fi
 
-          if ! echo "$CURRENT" | jq -e . >/dev/null 2>&1; then
-            echo "$CURRENT" | head -c 1000 >&2 || true
-            exit 3
+          # Validate it's JSON array
+          echo "${CURRENT}" | jq -e . >/dev/null 2>&1
+
+          # Remove both URIs if present (idempotent)
+          UPDATED="$(echo "${CURRENT}" | jq --arg login "${LOGIN_CB}" --arg logout "${LOGOUT_CB}" '
+            map(select(. != $login and . != $logout))
+          ')"
+
+          if [ "${UPDATED}" = "${CURRENT}" ]; then
+            echo "NO_CHANGES"
+            exit 0
           fi
 
-          UPDATED="$CURRENT"
-          removed=0
+          BODY="$(jq -cn --argjson uris "${UPDATED}" '{web:{redirectUris:$uris}}')"
 
-          if echo "$UPDATE
+          az rest \
+            --method PATCH \
+            --url "https://graph.microsoft.com/v1.0/applications/${OBJECT_ID}" \
+            --headers "Content-Type=application/json" \
+            --body "${BODY}" \
+            -o none --only-show-errors
+
+          echo "CHANGED"
