@@ -78,15 +78,19 @@ class PdfServiceStub implements Pick<
 }
 
 const getState = (component: ApplicationsList) => component.vm();
+
+type AppListSignalStateAccessor = {
+  appListSignalState: { patch: (p: Partial<ApplicationsListState>) => void };
+};
+
 const patchState = (
   component: ApplicationsList,
   patch: Partial<ApplicationsListState>,
-) =>
-  (
-    component as unknown as {
-      signalState: { patch: (p: Partial<ApplicationsListState>) => void };
-    }
-  ).signalState.patch(patch);
+): void => {
+  (component as unknown as AppListSignalStateAccessor).appListSignalState.patch(
+    patch,
+  );
+};
 const flushSignalEffects = async (
   fixture?: ComponentFixture<ApplicationsList>,
 ): Promise<void> => {
@@ -137,12 +141,10 @@ function createInstance(
   (comp as unknown as { showInline: (m: string) => void }).showInline =
     showInlineSpy;
 
-  const signalState = (
-    comp as unknown as {
-      signalState: { patch: (p: Partial<ApplicationsListState>) => void };
-    }
-  ).signalState;
-  const patchSpy = jest.spyOn(signalState, 'patch');
+  const patchSpy = jest.spyOn(
+    (comp as unknown as AppListSignalStateAccessor).appListSignalState,
+    'patch',
+  );
 
   return { comp, api, pdf, patchSpy, showInlineSpy, fixture };
 }

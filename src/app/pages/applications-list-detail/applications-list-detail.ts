@@ -591,7 +591,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         name: dto.courtName ?? undefined,
       });
     } else if (dto.cjaCode) {
-      const area = this.cja.find((a) => a.code === dto.cjaCode) ?? {
+      const area = this.state().cja.find((a) => a.code === dto.cjaCode) ?? {
         code: dto.cjaCode,
       };
       this.selectCja(area);

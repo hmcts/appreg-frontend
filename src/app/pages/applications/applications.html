@@ -57,9 +57,9 @@
       id="court"
       label="Court"
       hint="Enter a description of the court"
-      [(search)]="courthouseSearch"
+      [(search)]="state().courthouseSearch"
       (searchChange)="onCourthouseInputChange()"
-      [suggestions]="filteredCourthouses"
+      [suggestions]="state().filteredCourthouses"
       (selectItem)="selectCourthouse($event)"
       [disabled]="!!form.get('location')?.value || !!form.get('cja')?.value"
     />
@@ -118,11 +118,11 @@
       id="cja"
       label="CJA"
       hint="Start typing to search"
-      [(search)]="cjaSearch"
+      [(search)]="state().cjaSearch"
       (searchChange)="onCjaInputChange()"
-      [suggestions]="filteredCja"
+      [suggestions]="state().filteredCja"
       (selectItem)="selectCja($event)"
-      [disabled]="!!courthouseSearch.trim() || !!form.get('court')?.value"
+      [disabled]="!!setCourthouseSearch || !!form.get('court')?.value"
     />
 
     <!-- Status -->
