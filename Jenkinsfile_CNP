@@ -8,8 +8,13 @@ def component = 'frontend'
 
 def branchesToSync = ['demo', 'ithc']
 
+def vaultOverrides = [
+  'dev': 'stg',
+  'preview': 'stg',
+]
+
 def secrets = [
-  "appreg-${env}": [
+  'appreg-${env}': [
     secret('POSTGRES-USER', 'DB_USER'),
     secret('POSTGRES-PASS', 'DB_PASSWORD'),
     secret('POSTGRES-HOST', 'DB_HOST'),
@@ -66,6 +71,7 @@ def publishFunctionalReports = {
 }
 
 withPipeline(type, product, component) {
+  overrideVaultEnvironments(vaultOverrides)
   loadVaultSecrets(secrets)
   enableSlackNotifications('#appreg-builds')
 
