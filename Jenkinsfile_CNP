@@ -194,15 +194,21 @@ withPipeline(type, product, component) {
   after('functionalTest:aat') {
     script {
       def testResult = sh(script: 'yarn test:functional', returnStatus: true)
+      
+      sh 'yarn mochawesome-merge cypress/reports/mochawesome/.jsons/*.json > cypress/reports/mochawesome/mochawesome.json || true'
+      sh 'yarn mochawesome-report-generator cypress/reports/mochawesome/mochawesome.json --reportDir cypress/reports/mochawesome --reportFilename index.html --inline || true'
 
+      sh 'mkdir -p functional-output/electron/smoke/cucumber-json || true'
+      sh 'cp cypress/reports/cucumber-json/*.json functional-output/electron/smoke/cucumber-json/ || true'
       sh 'node cypress/scripts/reporting/generate-cucumber-html-report.js electron smoke || true'
 
       archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/**/*'
       archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/videos/**/*.mp4'
       archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/screenshots/**/*.png'
-      archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/junit/**/*.xml'
+      archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/junit/*.xml'
 
-      junit allowEmptyResults: true, testResults: 'functional-output/electron/smoke/junit/**/*.xml, cypress/reports/junit/**/*.xml'
+      sh 'ls -la cypress/reports/junit/ || echo "No junit files"'
+      junit testResults: 'cypress/reports/junit/*.xml'
 
       publishHTML([
         allowMissing: true,
@@ -233,6 +239,11 @@ withPipeline(type, product, component) {
     script {
       def testResult = sh(script: 'yarn test:functional', returnStatus: true)
 
+      sh 'yarn mochawesome-merge cypress/reports/mochawesome/.jsons/*.json > cypress/reports/mochawesome/mochawesome.json || true'
+      sh 'yarn mochawesome-report-generator cypress/reports/mochawesome/mochawesome.json --reportDir cypress/reports/mochawesome --reportFilename index.html --inline || true'
+
+      sh 'mkdir -p functional-output/electron/smoke/cucumber-json || true'
+      sh 'cp cypress/reports/cucumber-json/*.json functional-output/electron/smoke/cucumber-json/ || true'
       sh 'node cypress/scripts/reporting/generate-cucumber-html-report.js electron smoke || true'
 
       archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/videos/**/*.mp4'
@@ -241,7 +252,8 @@ withPipeline(type, product, component) {
       archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/junit/**/*.xml'
       archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/**/*'
 
-      junit allowEmptyResults: true, testResults: 'functional-output/electron/smoke/junit/**/*.xml, cypress/reports/junit/**/*.xml'
+      sh 'ls -la cypress/reports/junit/ || echo "No junit files"'
+      junit testResults: 'cypress/reports/junit/*.xml'
 
       if (testResult != 0) {
         error("Functional tests failed with exit code ${testResult}")
