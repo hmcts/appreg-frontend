@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { NonNullableFormBuilder } from '@angular/forms';
+import { FormGroup, NonNullableFormBuilder } from '@angular/forms';
 
 import { buildEntryCreateDto } from '@components/applications-list-entry-create/util/entry-create-mapper';
 import {
@@ -11,6 +11,7 @@ import {
   organisationToFormPatch,
   personToFormPatch,
 } from '@components/applications-list-entry-detail/util/entry-detail.form';
+import { CivilFeeForm } from '@components/civil-fee-section/civil-fee-section.component';
 import {
   Applicant,
   EntryCreateDto,
@@ -58,6 +59,18 @@ export class ApplicationListEntryFormService {
       respondentPersonForm: buildPersonForm(this.fb),
       respondentOrganisationForm: buildOrganisationForm(this.fb),
     };
+  }
+
+  createCivilFeeForm(forms: ApplicationListEntryForms): CivilFeeForm {
+    const c = forms.form.controls;
+
+    return new FormGroup({
+      hasOffsiteFee: c.hasOffsiteFee,
+      feeStatus: c.feeStatus,
+      feeStatusDate: c.feeStatusDate,
+      paymentRef: c.paymentRef,
+      feeStatuses: c.feeStatuses,
+    });
   }
 
   /**

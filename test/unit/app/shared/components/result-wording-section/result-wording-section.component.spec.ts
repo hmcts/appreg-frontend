@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { ApplicantContext } from '@components/applications-list/util/routing-state-util';
+
 import { ResultWordingSectionComponent } from '@components/result-wording-section/result-wording-section.component';
 import { ResultCodeGetSummaryDto, ResultGetDto } from '@openapi';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';

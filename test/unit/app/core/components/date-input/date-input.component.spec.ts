@@ -96,4 +96,32 @@ describe('DateInputComponent', () => {
     expect(onChange).toHaveBeenCalledWith('2020-01-01');
     expect(onChange).toHaveBeenCalledWith('2021-12-02');
   });
+
+  it('disallowFutureDates: marks future dates invalid and emits null', () => {
+    // Freeze time so "today" is deterministic
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(2026, 0, 19, 12, 0, 0)); // 19 Jan 2026 (month is 0-based)
+
+    const onChange = jest.fn<void, [string | null]>();
+    component.registerOnChange(onChange);
+
+    component.disallowFutureDates = true;
+
+    // Tomorrow relative to frozen "today"
+    component.dateForm.setValue({ day: '20', month: '1', year: '2026' });
+
+    expect(component.dateForm.valid).toBe(false);
+    expect(component.dateForm.errors).toEqual(
+      expect.objectContaining({
+        dateInFuture: true,
+        dateInvalid: true,
+        dateErrorText: 'Date must not be in the future',
+      }),
+    );
+
+    // Because invalid, CVA emits null
+    expect(onChange).toHaveBeenCalledWith(null);
+
+    jest.useRealTimers();
+  });
 });
