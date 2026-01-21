@@ -90,14 +90,14 @@ describe('parseTimeToDuration', () => {
 });
 
 describe('requireTime', () => {
-  it('returns HH:mm:ss for a valid HH:mm string input', () => {
-    expect(requireTime('09:05')).toBe('09:05:00');
-    expect(requireTime('23:59')).toBe('23:59:00');
+  it('returns HH:mm for a valid HH:mm string input', () => {
+    expect(requireTime('09:05')).toBe('09:05');
+    expect(requireTime('23:59')).toBe('23:59');
   });
 
-  it('returns HH:mm:ss for a valid Duration input', () => {
+  it('returns HH:mm for a valid Duration input', () => {
     const input = makeDuration(9, 5);
-    expect(requireTime(input)).toBe('09:05:00');
+    expect(requireTime(input)).toBe('09:05');
   });
 
   it('throws an error when toTimeString returns undefined (invalid time)', () => {

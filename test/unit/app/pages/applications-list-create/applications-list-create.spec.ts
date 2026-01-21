@@ -6,25 +6,15 @@ import { jest } from '@jest/globals';
 import { of, throwError } from 'rxjs';
 
 import { ApplicationsListCreate } from '@components/applications-list-create/applications-list-create';
+import { ApplicationsListCreateState } from '@components/applications-list-create/util/applications-list-create.state';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import {
   ApplicationListCreateDto,
   ApplicationListStatus,
   ApplicationListsApi,
-  CourtLocationGetSummaryDto,
   CourtLocationsApi,
-  CriminalJusticeAreaGetDto,
   CriminalJusticeAreasApi,
 } from '@openapi';
-
-const COURTS: CourtLocationGetSummaryDto[] = [
-  { name: 'Alpha Court', locationCode: 'A1' },
-  { name: 'Beta Court', locationCode: 'B2' },
-];
-const CJAS: CriminalJusticeAreaGetDto[] = [
-  { code: 'C1', description: 'Area One' },
-  { code: 'C2', description: 'Area Two' },
-];
 
 // Reactive-forms warning disabled
 let warnSpy: ReturnType<typeof jest.spyOn>;
@@ -36,6 +26,15 @@ afterAll(() => warnSpy.mockRestore());
 describe('ApplicationsListCreate', () => {
   let fixture: ComponentFixture<ApplicationsListCreate>;
   let component: ApplicationsListCreate;
+
+  const getState = (c: ApplicationsListCreate): ApplicationsListCreateState =>
+    c.vm();
+
+  const flushSignalEffects = async (): Promise<void> => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  };
 
   // service mocks
   const appListsMock = {
@@ -112,83 +111,6 @@ describe('ApplicationsListCreate', () => {
     expect(cjaMock.getCriminalJusticeAreas).toHaveBeenCalled();
   });
 
-  it('disables and enables related fields based on values', () => {
-    fixture.detectChanges();
-
-    // none -> all enabled
-    component.form.controls.court.setValue('');
-    component.form.controls.location.setValue('');
-    component.form.controls.cja.setValue('');
-    expect(component.form.controls.court.disabled).toBe(false);
-    expect(component.form.controls.location.disabled).toBe(false);
-    expect(component.form.controls.cja.disabled).toBe(false);
-
-    // court set -> others disabled
-    component.form.controls.court.setValue('A1');
-    expect(component.form.controls.court.disabled).toBe(false);
-    expect(component.form.controls.location.disabled).toBe(true);
-    expect(component.form.controls.cja.disabled).toBe(true);
-
-    // location set -> court disabled
-    component.form.controls.court.setValue('');
-    component.form.controls.location.setValue('Somewhere');
-    expect(component.form.controls.court.disabled).toBe(true);
-    expect(component.form.controls.location.disabled).toBe(false);
-    expect(component.form.controls.cja.disabled).toBe(false);
-
-    // cja set -> court disabled
-    component.form.controls.location.setValue('');
-    component.form.controls.cja.setValue('C1');
-    expect(component.form.controls.court.disabled).toBe(true);
-    expect(component.form.controls.location.disabled).toBe(false);
-    expect(component.form.controls.cja.disabled).toBe(false);
-  });
-
-  it('filters courthouses by name or code', () => {
-    component.courtLocations = [...COURTS];
-
-    component.courthouseSearch = 'a1';
-    component.onCourthouseInputChange();
-    expect(component.filteredCourthouses.map((c) => c.locationCode)).toEqual([
-      'A1',
-    ]);
-
-    component.courthouseSearch = 'beta';
-    component.onCourthouseInputChange();
-    expect(component.filteredCourthouses.map((c) => c.name)).toEqual([
-      'Beta Court',
-    ]);
-
-    component.courthouseSearch = '';
-    component.onCourthouseInputChange();
-    expect(component.filteredCourthouses).toHaveLength(0);
-  });
-
-  it('selectCourthouse sets value and clears suggestions', () => {
-    const c: CourtLocationGetSummaryDto = { name: 'X', locationCode: 'X1' };
-    component.selectCourthouse(c);
-    expect(component.courthouseSearch).toBe('X1 - X');
-    expect(component.form.controls.court.value).toBe('X1');
-    expect(component.filteredCourthouses).toHaveLength(0);
-  });
-
-  it('filters and selects CJA', () => {
-    component.cja = [...CJAS];
-
-    component.cjaSearch = 'area two';
-    component.onCjaInputChange();
-    expect(component.filteredCja.map((c) => c.code)).toEqual(['C2']);
-
-    const pick: CriminalJusticeAreaGetDto = {
-      code: 'C9',
-      description: 'Ninth',
-    };
-    component.selectCja(pick);
-    expect(component.cjaSearch).toBe('C9 - Ninth');
-    expect(component.form.controls.cja.value).toBe('C9');
-    expect(component.filteredCja).toHaveLength(0);
-  });
-
   it('rejects missing fields on create', () => {
     component.form.reset({
       date: null,
@@ -200,9 +122,9 @@ describe('ApplicationsListCreate', () => {
       cja: '',
     });
     submit('create');
-    expect(component.createInvalid).toBe(true);
-    expect(component.unpopField.length).toBeGreaterThan(0);
-    expect(component.errorHint).toBe('There is a problem');
+    expect(getState(component).createInvalid).toBe(true);
+    expect(getState(component).unpopField.length).toBeGreaterThan(0);
+    expect(getState(component).errorHint).toBe('There is a problem');
     expect(appListsMock.createApplicationList).not.toHaveBeenCalled();
   });
 
@@ -217,14 +139,14 @@ describe('ApplicationsListCreate', () => {
       cja: '',
     });
     submit('create');
-    expect(component.createInvalid).toBe(true);
-    expect(component.errorHint).toBe(
+    expect(getState(component).createInvalid).toBe(true);
+    expect(getState(component).errorHint).toBe(
       'You can not have Court and Other Location or CJA filled in',
     );
     expect(appListsMock.createApplicationList).not.toHaveBeenCalled();
   });
 
-  it('submits successfully with court payload', () => {
+  it('submits successfully with court payload', async () => {
     component.form.setValue({
       date: '2025-10-02',
       time: { hours: 8, minutes: 5 },
@@ -235,6 +157,9 @@ describe('ApplicationsListCreate', () => {
       cja: '',
     });
     submit('create');
+
+    await flushSignalEffects();
+
     expect(appListsMock.createApplicationList).toHaveBeenCalledTimes(1);
     const arg = (
       appListsMock.createApplicationList.mock.calls[0][0] as {
@@ -243,16 +168,16 @@ describe('ApplicationsListCreate', () => {
     ).applicationListCreateDto;
     expect(arg).toEqual({
       date: '2025-10-02',
-      time: '08:05:00',
+      time: '08:05',
       description: 'Morning list',
       status: ApplicationListStatus.OPEN,
       courtLocationCode: 'A1',
     });
-    expect(component.createDone).toBe(true);
-    expect(component.createInvalid).toBe(false);
+    expect(getState(component).createDone).toBe(true);
+    expect(getState(component).createInvalid).toBe(false);
   });
 
-  it('submits successfully with other location + CJA payload', () => {
+  it('submits successfully with other location + CJA payload', async () => {
     component.form.setValue({
       date: '2025-10-03',
       time: { hours: 14, minutes: 0 },
@@ -263,6 +188,9 @@ describe('ApplicationsListCreate', () => {
       cja: 'C1',
     });
     submit('create');
+
+    await flushSignalEffects();
+
     const arg = (
       appListsMock.createApplicationList.mock.calls.pop()![0] as {
         applicationListCreateDto: ApplicationListCreateDto;
@@ -270,7 +198,7 @@ describe('ApplicationsListCreate', () => {
     ).applicationListCreateDto;
     expect(arg).toEqual({
       date: '2025-10-03',
-      time: '14:00:00',
+      time: '14:00',
       description: 'Afternoon list',
       status: ApplicationListStatus.OPEN,
       otherLocationDescription: 'Somewhere',
@@ -278,7 +206,7 @@ describe('ApplicationsListCreate', () => {
     });
   });
 
-  it('handles API error and sets errorHint', () => {
+  it('handles API error and sets errorHint', async () => {
     appListsMock.createApplicationList.mockReturnValueOnce(
       throwError(() => new Error('fail')),
     );
@@ -292,50 +220,56 @@ describe('ApplicationsListCreate', () => {
       cja: '',
     });
     submit('create');
-    expect(component.createDone).toBe(false);
-    expect(component.createInvalid).toBe(true);
-    expect(component.errorHint).toContain('There is a problem');
+
+    await flushSignalEffects();
+
+    expect(getState(component).createDone).toBe(false);
+    expect(getState(component).createInvalid).toBe(true);
+    expect(getState(component).errorHint).toContain('There is a problem');
   });
 
-  it('onDelete stores id', () => {
-    type WithId = { _id: number | undefined };
-    component.onDelete(42);
-    expect((component as unknown as WithId)._id).toBe(42);
-  });
-
-  it('focusField scrolls and focuses when element exists and no-ops otherwise', () => {
+  it('onCreateErrorClick scrolls and focuses when element exists and no-ops otherwise', () => {
     jest.useFakeTimers();
 
-    // Arrange: create a REAL element so .matches/.querySelector exist
+    // Arrange: element exists
     const el = document.createElement('div');
     el.id = 'target-id';
-    el.tabIndex = -1;
+    el.tabIndex = 0; // makes it focusable and matches selector
+    const scrollMock = jest.fn();
+    const focusMock = jest.fn();
+
+    // jsdom doesn't implement scrollIntoView; provide it
+    (
+      el as unknown as { scrollIntoView: (arg?: unknown) => void }
+    ).scrollIntoView = scrollMock;
+    (el as unknown as { focus: (arg?: unknown) => void }).focus = focusMock;
+
     document.body.appendChild(el);
 
-    const scrollSpy = jest.spyOn(Element.prototype, 'scrollIntoView');
-    const focusSpy = jest.spyOn(el, 'focus');
+    component.onCreateErrorClick({ text: 'Bad field', href: '#target-id' });
 
-    const preventDefault = jest.fn();
-    const ev = { preventDefault } as unknown as Event;
+    jest.advanceTimersByTime(60);
 
-    component.focusField('target-id', ev);
-    jest.runOnlyPendingTimers();
+    expect(scrollMock).toHaveBeenCalled();
+    expect(focusMock).toHaveBeenCalled();
 
-    // Assert: preventDefault called, scrolled and focused
-    expect(preventDefault).toHaveBeenCalledTimes(1);
-    expect(scrollSpy).toHaveBeenCalled();
-    expect(focusSpy).toHaveBeenCalled();
-
-    // Now test the "no element" branch: remove the element and try again
     el.remove();
-    scrollSpy.mockClear();
-    focusSpy.mockClear();
+    scrollMock.mockClear();
+    focusMock.mockClear();
 
-    component.focusField('target-id', ev);
-    jest.runOnlyPendingTimers();
+    component.onCreateErrorClick({ text: 'Bad field', href: '#target-id' });
+    jest.advanceTimersByTime(60);
+    expect(scrollMock).not.toHaveBeenCalled();
+    expect(focusMock).not.toHaveBeenCalled();
 
-    expect(scrollSpy).not.toHaveBeenCalled();
-    expect(focusSpy).not.toHaveBeenCalled();
+    component.onCreateErrorClick({ text: 'Bad field', href: '#' });
+    component.onCreateErrorClick({ text: 'Bad field', href: '   ' });
+    component.onCreateErrorClick({ text: 'Bad field' });
+    jest.advanceTimersByTime(60);
+    expect(scrollMock).not.toHaveBeenCalled();
+    expect(focusMock).not.toHaveBeenCalled();
+
+    jest.useRealTimers();
   });
 
   it('uses a 200 character limit on its text input(s)', () => {

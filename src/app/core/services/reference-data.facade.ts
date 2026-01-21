@@ -1,6 +1,17 @@
-import { Injectable } from '@angular/core';
+/**
+ * GET ALL request for CJA and Court locations used in place-fields.base.ts
+ */
+
+import {
+  EnvironmentInjector,
+  Injectable,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { EMPTY, Observable, of } from 'rxjs';
-import { catchError, expand, map, reduce, shareReplay } from 'rxjs/operators';
+import { catchError, expand, map, reduce } from 'rxjs/operators';
 
 import {
   CourtLocationGetSummaryDto,
@@ -8,26 +19,128 @@ import {
   CriminalJusticeAreaGetDto,
   CriminalJusticeAreasApi,
 } from '@openapi';
+import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
+
+interface ReferenceDataState {
+  cja: CriminalJusticeAreaGetDto[];
+  courtLocations: CourtLocationGetSummaryDto[];
+  cjaLoading: boolean;
+  courtsLoading: boolean;
+  cjaLoadError: boolean;
+  courtsLoadError: boolean;
+}
+
+const initialReferenceDataState: ReferenceDataState = {
+  cja: [],
+  courtLocations: [],
+  cjaLoading: false,
+  courtsLoading: false,
+  cjaLoadError: false,
+  courtsLoadError: false,
+};
 
 @Injectable({ providedIn: 'root' })
 export class ReferenceDataFacade {
-  readonly cja$: Observable<CriminalJusticeAreaGetDto[]>;
-  readonly courtLocations$: Observable<CourtLocationGetSummaryDto[]>;
+  // API
+  private readonly cjaApi = inject(CriminalJusticeAreasApi);
+  private readonly courtApi = inject(CourtLocationsApi);
 
+  private readonly envInjector = inject(EnvironmentInjector);
   private readonly pageSize = 100;
 
-  constructor(
-    private readonly cjaApi: CriminalJusticeAreasApi,
-    private readonly courtApi: CourtLocationsApi,
-  ) {
-    this.cja$ = this.loadAllCja().pipe(
-      catchError(() => of([])),
-      shareReplay({ bufferSize: 1, refCount: false }),
+  // Signal state
+  private readonly signalState = createSignalState<ReferenceDataState>(
+    initialReferenceDataState,
+  );
+  private readonly state = this.signalState.state;
+
+  readonly cja = computed(() => this.state().cja);
+  readonly courtLocations = computed(() => this.state().courtLocations);
+  readonly cja$: Observable<CriminalJusticeAreaGetDto[]> = toObservable(
+    this.cja,
+    { injector: this.envInjector },
+  );
+  readonly courtLocations$: Observable<CourtLocationGetSummaryDto[]> =
+    toObservable(this.courtLocations, { injector: this.envInjector });
+
+  // Request signals
+  private readonly loadCjaRequest = signal<boolean | null>(true);
+  private readonly loadCourtsRequest = signal<boolean | null>(true);
+
+  constructor() {
+    this.setupEffects();
+
+    // Trigger initial loads
+    this.signalState.patch({ cjaLoading: true, courtsLoading: true });
+    this.loadCjaRequest.set(true);
+    this.loadCourtsRequest.set(true);
+  }
+
+  // Manual refresh
+  refresh(): void {
+    this.signalState.patch({
+      cjaLoading: true,
+      courtsLoading: true,
+      cjaLoadError: false,
+      courtsLoadError: false,
+    });
+    this.loadCjaRequest.set(true);
+    this.loadCourtsRequest.set(true);
+  }
+
+  private setupEffects(): void {
+    setupLoadEffect(
+      {
+        request: () => this.loadCjaRequest(),
+        load: () =>
+          this.loadAllCja().pipe(
+            catchError(() => of([] as CriminalJusticeAreaGetDto[])),
+          ),
+        onSuccess: (items) => {
+          this.signalState.patch({
+            cja: items,
+            cjaLoading: false,
+            cjaLoadError: false,
+          });
+          this.loadCjaRequest.set(null);
+        },
+        onError: () => {
+          this.signalState.patch({
+            cja: [],
+            cjaLoading: false,
+            cjaLoadError: true,
+          });
+          this.loadCjaRequest.set(null);
+        },
+      },
+      this.envInjector,
     );
 
-    this.courtLocations$ = this.loadAllCourts().pipe(
-      catchError(() => of([])),
-      shareReplay({ bufferSize: 1, refCount: false }),
+    setupLoadEffect(
+      {
+        request: () => this.loadCourtsRequest(),
+        load: () =>
+          this.loadAllCourts().pipe(
+            catchError(() => of([] as CourtLocationGetSummaryDto[])),
+          ),
+        onSuccess: (items) => {
+          this.signalState.patch({
+            courtLocations: items,
+            courtsLoading: false,
+            courtsLoadError: false,
+          });
+          this.loadCourtsRequest.set(null);
+        },
+        onError: () => {
+          this.signalState.patch({
+            courtLocations: [],
+            courtsLoading: false,
+            courtsLoadError: true,
+          });
+          this.loadCourtsRequest.set(null);
+        },
+      },
+      this.envInjector,
     );
   }
 
@@ -38,7 +151,6 @@ export class ReferenceDataFacade {
     });
 
     return first$.pipe(
-      // Continue query until last
       expand((page) =>
         page.last
           ? EMPTY
@@ -47,7 +159,6 @@ export class ReferenceDataFacade {
               size: this.pageSize,
             }),
       ),
-      // Extract and concatenate content
       map((page) => page.content ?? []),
       reduce(
         (all, content) => all.concat(content),
