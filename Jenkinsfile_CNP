@@ -8,8 +8,13 @@ def component = 'frontend'
 
 def branchesToSync = ['demo', 'ithc']
 
+def vaultOverrides = [
+  'dev': 'stg',
+  'preview': 'stg',
+]
+
 def secrets = [
-  "appreg-\${env}": [
+  'appreg-${env}': [
     secret('POSTGRES-USER', 'DB_USER'),
     secret('POSTGRES-PASS', 'DB_PASSWORD'),
     secret('POSTGRES-HOST', 'DB_HOST'),
@@ -22,7 +27,6 @@ def secrets = [
     secret('TEST-ADMIN2-EMAIL', 'TEST_ADMIN2_EMAIL'),
     secret('TEST-ADMIN3-EMAIL', 'TEST_ADMIN3_EMAIL'),
     secret('TEST-USERS-PASSWORD', 'TEST_USERS_PASSWORD'),
-    secret('OBJECT-ID', 'OBJECT_ID'),
   ],
 ]
 
@@ -36,197 +40,33 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
   ]
 }
 
+def publishFunctionalReports = {
+  archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/**/*'
+
+  junit allowEmptyResults: true, testResults: 'functional-output/**/*.xml'
+
+  publishHTML([
+    allowMissing: true,
+    alwaysLinkToLastBuild: true,
+    keepAll: true,
+    reportDir: 'functional-output/chrome/smoke/cucumber-html',
+    reportFiles: 'detailed-test-report.html',
+    reportName: 'Cucumber Detailed Report',
+    reportTitles: 'Cucumber Detailed Report',
+  ])
+}
+
 withPipeline(type, product, component) {
+  overrideVaultEnvironments(vaultOverrides)
   loadVaultSecrets(secrets)
   enableSlackNotifications('#appreg-builds')
 
-  before('functionalTest:dev') {
-    if (!env.TEST_URL) {
-      error('TEST_URL missing from environment')
-    }
-
-    if (!env.OBJECT_ID) {
-      error('OBJECT_ID missing from environment')
-    }
-
-    def out
-    withEnv([
-      "AZ_SUBSCRIPTION_NAME=${env.SUBSCRIPTION_NAME}",
-      "TEST_URL=${env.TEST_URL}",
-      "TERM=xterm",
-    ]) {
-      out = sh(
-        script: '''
-          bash -lc '
-            set -euo pipefail
-
-            BASE_URL="${TEST_URL%/}"
-            LOGIN_CB="${BASE_URL}/sso/login-callback"
-            LOGOUT_CB="${BASE_URL}/sso/logout-callback"
-
-            CURRENT="$(env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${AZ_SUBSCRIPTION_NAME} az rest \
-              --method GET \
-              --url "https://graph.microsoft.com/v1.0/applications/${OBJECT_ID}" \
-              --query "web.redirectUris" -o json)"
-
-            if [ "$CURRENT" = "null" ] || [ -z "$CURRENT" ]; then
-              CURRENT="[]"
-            fi
-
-            if ! echo "$CURRENT" | jq -e . >/dev/null 2>&1; then
-              echo "$CURRENT" | head -c 1000 >&2 || true
-              exit 3
-            fi
-
-            UPDATED="$CURRENT"
-
-            if ! echo "$UPDATED" | jq -e --arg url "$LOGIN_CB" '"'"'any(. == $url)'"'"' > /dev/null; then
-              UPDATED=$(echo "$UPDATED" | jq --arg url "$LOGIN_CB" '"'"'. + [$url]'"'"')
-            fi
-
-            if ! echo "$UPDATED" | jq -e --arg url "$LOGOUT_CB" '"'"'any(. == $url)'"'"' > /dev/null; then
-              UPDATED=$(echo "$UPDATED" | jq --arg url "$LOGOUT_CB" '"'"'. + [$url]'"'"')
-            fi
-
-            if [ "$UPDATED" = "$CURRENT" ]; then
-              echo "NO_CHANGES"
-              exit 0
-            fi
-
-            BODY=$(jq -cn --argjson uris "$UPDATED" '"'"'{web:{redirectUris:$uris}}'"'"')
-
-            env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${AZ_SUBSCRIPTION_NAME} az rest \
-              --method PATCH \
-              --url "https://graph.microsoft.com/v1.0/applications/${OBJECT_ID}" \
-              --headers "Content-Type=application/json" \
-              --body "$BODY" \
-              -o none
-
-            echo "CHANGED"
-          '
-        ''',
-        returnStdout: true
-      ).trim()
-    }
-
-    if (!(out.contains('NO_CHANGES') || out.contains('CHANGED'))) {
-      error('Redirect URI update failed (unexpected output)')
-    }
+  afterAlways('functionalTest:dev') {
+    script { publishFunctionalReports() }
   }
 
-  afterSuccess('functionalTest:dev') {
-    if (!env.TEST_URL) {
-      return
-    }
-
-    if (!env.OBJECT_ID) {
-      error('OBJECT_ID missing from environment')
-    }
-
-    def out
-    withEnv([
-      "AZ_SUBSCRIPTION_NAME=${env.SUBSCRIPTION_NAME}",
-      "TEST_URL=${env.TEST_URL}",
-      "TERM=xterm",
-    ]) {
-      out = sh(
-        script: '''
-          bash -lc '
-            set -euo pipefail
-
-            BASE_URL="${TEST_URL%/}"
-            LOGIN_CB="${BASE_URL}/sso/login-callback"
-            LOGOUT_CB="${BASE_URL}/sso/logout-callback"
-
-            CURRENT="$(env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${AZ_SUBSCRIPTION_NAME} az rest \
-              --method GET \
-              --url "https://graph.microsoft.com/v1.0/applications/${OBJECT_ID}" \
-              --query "web.redirectUris" -o json)"
-
-            if [ "$CURRENT" = "null" ] || [ -z "$CURRENT" ]; then
-              CURRENT="[]"
-            fi
-
-            if ! echo "$CURRENT" | jq -e . >/dev/null 2>&1; then
-              echo "$CURRENT" | head -c 1000 >&2 || true
-              exit 3
-            fi
-
-            UPDATED="$CURRENT"
-            removed=0
-
-            if echo "$UPDATED" | jq -e --arg url "$LOGIN_CB" '"'"'any(. == $url)'"'"' > /dev/null; then
-              UPDATED=$(echo "$UPDATED" | jq --arg url "$LOGIN_CB" '"'"'map(select(. != $url))'"'"')
-              removed=1
-            fi
-
-            if echo "$UPDATED" | jq -e --arg url "$LOGOUT_CB" '"'"'any(. == $url)'"'"' > /dev/null; then
-              UPDATED=$(echo "$UPDATED" | jq --arg url "$LOGOUT_CB" '"'"'map(select(. != $url))'"'"')
-              removed=1
-            fi
-
-            if [ "$removed" -eq 0 ]; then
-              echo "NO_CHANGES"
-              exit 0
-            fi
-
-            BODY=$(jq -cn --argjson uris "$UPDATED" '"'"'{web:{redirectUris:$uris}}'"'"')
-
-            env AZURE_CONFIG_DIR=/opt/jenkins/.azure-${AZ_SUBSCRIPTION_NAME} az rest \
-              --method PATCH \
-              --url "https://graph.microsoft.com/v1.0/applications/${OBJECT_ID}" \
-              --headers "Content-Type=application/json" \
-              --body "$BODY" \
-              -o none
-
-            echo "CHANGED"
-          '
-        ''',
-        returnStdout: true
-      ).trim()
-    }
-
-    if (!(out.contains('NO_CHANGES') || out.contains('CHANGED'))) {
-      error('Redirect URI cleanup failed (unexpected output)')
-    }
-  }
-
-  after('functionalTest:aat') {
-    script {
-      def testResult = sh(script: 'yarn test:functional', returnStatus: true)
-
-      sh 'node cypress/scripts/generate-reports.js || true'
-
-      archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/**/*'
-      archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/screenshots/**/*.png'
-      archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/reports/junit/**/*.xml'
-
-      junit allowEmptyResults: true, testResults: 'cypress/reports/junit/**/*.xml'
-
-      publishHTML([
-        allowMissing: false,
-        alwaysLinkToLastBuild: true,
-        keepAll: true,
-        reportDir: 'cypress/reports/cucumber-html',
-        reportFiles: 'index.html',
-        reportName: 'Cucumber Report',
-        reportTitles: 'Cucumber Test Report',
-      ])
-
-      publishHTML([
-        allowMissing: false,
-        alwaysLinkToLastBuild: true,
-        keepAll: true,
-        reportDir: 'cypress/reports',
-        reportFiles: 'mochawesome.html',
-        reportName: 'Mochaware Report',
-        reportTitles: 'Mochawesome Test Report',
-      ])
-
-      if (testResult != 0) {
-        error("Smoke tests failed with exit code ${testResult}")
-      }
-    }
+  afterAlways('functionalTest:stg') {
+    script { publishFunctionalReports() }
   }
 
   syncBranchesWithMaster(branchesToSync)
