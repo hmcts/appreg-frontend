@@ -14,6 +14,15 @@ export const APPLICATIONS_LIST_COLUMNS: TableColumn[] = [
   { header: 'Actions', field: 'actions', sortable: false },
 ];
 
+export const APPLICATION_LIST_SORT_MAP: Record<string, string> = {
+  date: 'date',
+  time: 'time',
+  location: 'location',
+  description: 'description',
+  entries: 'entriesCount',
+  status: 'status',
+};
+
 export const APPLICATIONS_LIST_CHOOSE_STATUS = [
   { label: 'Choose', value: '' },
   { label: 'Open', value: 'open' },

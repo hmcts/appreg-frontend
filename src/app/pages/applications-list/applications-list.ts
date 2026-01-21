@@ -439,6 +439,15 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     this.printContinuousRequest.set({ id, isClosed });
   }
 
+  onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    this.signalState.patch({
+      sortField: sort,
+    });
+
+    const hasAny = hasAnyParams(this.form);
+    this.loadApplicationsLists(hasAny);
+  }
+
   protected isOpen(row: ApplicationListRow): boolean {
     return row.status === ApplicationListStatus.OPEN;
   }
@@ -466,9 +475,15 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       ...this.form.getRawValue(),
     } as SearchFormValue);
 
+    const paramSort = [
+      this.state().sortField.key,
+      this.state().sortField.direction,
+    ];
+
     const params: GetApplicationListsRequestParams = {
       page: this.state().currentPage - 1,
       size: this.state().pageSize,
+      sort: paramSort,
       ...(hasParams ? { filter: loadQuery(this.form) } : {}),
     };
 

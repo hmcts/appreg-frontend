@@ -21,9 +21,7 @@
           class="govuk-table__header"
           [class.govuk-table__header--numeric]="col.numeric"
           [class.app-sortable-table__cell--wrap]="!col.numeric"
-          [attr.aria-sort]="
-            col.sortable !== false ? (col.defaultSort ?? 'none') : null
-          "
+          [attr.aria-sort]="ariaSortFor(col.field)"
         >
           {{ col.header }}
         </th>

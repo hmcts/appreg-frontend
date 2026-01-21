@@ -4,8 +4,10 @@ import {
   Component,
   ContentChild,
   ElementRef,
+  EventEmitter,
   Inject,
   Input,
+  Output,
   PLATFORM_ID,
   TemplateRef,
   ViewChild,
@@ -39,6 +41,13 @@ export class SortableTableComponent implements AfterViewInit {
   @Input() hiddenCaption = false;
   @Input() columns: TableColumn[] = [];
   @Input() data: Row[] = [];
+  @Input() sortKey: string = 'date';
+  @Input() sortDirection: 'desc' | 'asc' = 'desc';
+
+  @Output() sortChange = new EventEmitter<{
+    key: string;
+    direction: 'desc' | 'asc';
+  }>();
 
   /** Optional id field / custom trackBy, kept from your original component */
   @Input() idField?: string;
@@ -118,5 +127,30 @@ export class SortableTableComponent implements AfterViewInit {
       .catch(() => {
         // no-op for non-browser/test environments
       });
+  }
+
+  onHeaderClick(col: { field: string; sortable?: boolean }): void {
+    if (col.sortable === false) {
+      return;
+    }
+
+    const key = col.field;
+
+    // Decide next direction
+    let direction: 'desc' | 'asc' = 'asc';
+    if (this.sortKey === key) {
+      direction = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    }
+
+    this.sortKey = key;
+    this.sortDirection = direction;
+    this.sortChange.emit({ key, direction });
+  }
+
+  ariaSortFor(key: string): 'ascending' | 'descending' {
+    if (this.sortKey !== key || !this.sortDirection) {
+      return 'descending';
+    }
+    return this.sortDirection === 'asc' ? 'ascending' : 'descending';
   }
 }

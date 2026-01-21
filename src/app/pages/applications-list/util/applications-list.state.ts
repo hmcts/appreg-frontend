@@ -14,6 +14,7 @@ export interface ApplicationsListState {
   totalPages: number;
   pageSize: number;
   rows: ApplicationListRow[];
+  sortField: { key: string, direction: 'desc' | 'asc' }
 }
 
 export const initialApplicationsListState: ApplicationsListState = {
@@ -29,6 +30,7 @@ export const initialApplicationsListState: ApplicationsListState = {
   totalPages: 5,
   pageSize: 10,
   rows: [],
+  sortField: { key: 'date', direction: 'desc' }
 };
 
 // Clear all error/success/notification states
