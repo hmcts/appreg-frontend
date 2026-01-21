@@ -164,8 +164,8 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   }
 
   clearSearch(): void {
-    this.signalState.patch(clearNotificationsPatch());
-    this.signalState.patch({ isSearch: false, rows: [] });
+    this.appListSignalState.patch(clearNotificationsPatch());
+    this.appListSignalState.patch({ isSearch: false, rows: [] });
     this.searchForm.reset();
     this.form.reset(this.searchForm.state());
   }
