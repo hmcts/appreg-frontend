@@ -1,3 +1,7 @@
+/**
+ * GET ALL request for CJA and Court locations used in place-fields.base.ts
+ */
+
 import {
   EnvironmentInjector,
   Injectable,

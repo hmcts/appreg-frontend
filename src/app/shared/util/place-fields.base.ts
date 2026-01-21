@@ -1,6 +1,11 @@
 /**
  * Shared base for place/location form fields.
  * Uses signal-backed state and auto-cleanup via DestroyRef/takeUntilDestroyed.
+ *
+ * Uses reference-data.facade.ts to GET ALL CJA and Court locations
+ *
+ * This file is used in applications-list.ts, applications-list-create.ts, applications-list-detail.ts,
+ * applications.ts
  */
 
 import { DestroyRef, Directive, inject } from '@angular/core';
