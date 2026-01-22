@@ -482,7 +482,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     const sortFieldKey = this.appListState().sortField.key;
     const sortFieldDirection = this.appListState().sortField.direction;
 
-    // Sorts are in the form of [key,direction]
+    // Sorts are in the form of ['key,direction']
     const paramSort = [`${sortFieldKey},${sortFieldDirection}`];
 
     const params: GetApplicationListsRequestParams = {
