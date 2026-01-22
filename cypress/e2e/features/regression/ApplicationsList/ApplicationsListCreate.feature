@@ -26,8 +26,8 @@ Feature: Applications List Create
       | Date          | Time   | Location     | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
     Examples:
-      | User  | Date  | Time           | Description   | Status | OtherLocation           | NotificationMessage                            | OptionText     | SearchText | TableName | DisplayDate | Entries | SelectButtonText | ButtonName |
-      | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Other Location_{RANDOM} | Success Applications list created successfully | CJA Number 319 | 319        | Lists     | todayiso    | 0       | Select           | Open       |
+      | User  | Date  | Time           | Description   | Status | OtherLocation           | NotificationMessage                            | OptionText    | SearchText | TableName | DisplayDate | Entries | SelectButtonText | ButtonName |
+      | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Other Location_{RANDOM} | Success Applications list created successfully | Wolverhampton | B9         | Lists     | todayiso    | 0       | Select           | Open       |
 
 
   @regression @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794
@@ -48,6 +48,7 @@ Feature: Applications List Create
     Then User Clicks On The Link "Click here to go back"
     Then User Should See The Link "Create new list"
     When User Set Date Field "Date" To "<Date>"
+    Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
     Then User Selects "Choose" In The "Select status" Dropdown
     When User Clicks On The "Search" Button
     Then User Should See The Table "Lists"
@@ -108,5 +109,5 @@ Feature: Applications List Create
     Then User Should See The Link "Create new list"
 
     Examples:
-      | User  | InvalidDate | ValidDate  | InvalidTime | ValidTime | Description   | Status | InvalidCourt | OtherLocation           | InvalidCJA | ValidCJA       | SearchText | NotificationMessage                            |
-      | user1 | 32/13/2024  | 01/12/2024 | 25:61       | 14:30     | Test_{RANDOM} | Open   | abc          | Other Location_{RANDOM} | abc        | CJA Number 319 | 319        | Success Applications list created successfully |
+      | User  | InvalidDate | ValidDate  | InvalidTime | ValidTime | Description   | Status | InvalidCourt | OtherLocation           | InvalidCJA | ValidCJA      | SearchText | NotificationMessage                            |
+      | user1 | 32/13/2024  | 01/12/2024 | 25:61       | 14:30     | Test_{RANDOM} | Open   | abc          | Other Location_{RANDOM} | abc        | Wolverhampton | B9         | Success Applications list created successfully |
