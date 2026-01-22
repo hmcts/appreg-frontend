@@ -129,9 +129,19 @@ export class SortableTableComponent implements AfterViewInit {
       });
   }
 
-  onHeaderClick(col: { field: string; sortable?: boolean }): void {
+  onHeaderClick(
+    event: Event | null,
+    col: { field: string; sortable?: boolean },
+  ): void {
     if (col.sortable === false) {
       return;
+    }
+
+    // Prevent native sort handler
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
     }
 
     const key = col.field;
@@ -145,6 +155,24 @@ export class SortableTableComponent implements AfterViewInit {
     this.sortKey = key;
     this.sortDirection = direction;
     this.sortChange.emit({ key, direction });
+  }
+
+  // SQ complains about not having a keydown tag in template
+  onHeaderKeydown(
+    event: KeyboardEvent,
+    col: { field: string; sortable?: boolean },
+  ): void {
+    if (col.sortable === false) {
+      return;
+    }
+
+    const key = event.key;
+    if (key !== 'Enter' && key !== ' ') {
+      return;
+    }
+
+    event.preventDefault();
+    this.onHeaderClick(event, col);
   }
 
   ariaSortFor(key: string): 'ascending' | 'descending' {

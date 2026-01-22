@@ -21,7 +21,14 @@
           class="govuk-table__header"
           [class.govuk-table__header--numeric]="col.numeric"
           [class.app-sortable-table__cell--wrap]="!col.numeric"
-          [attr.aria-sort]="ariaSortFor(col.field)"
+          [attr.aria-sort]="
+            col.sortable === false ? null : ariaSortFor(col.field)
+          "
+          [attr.tabindex]="col.sortable === false ? null : 0"
+          (click)="col.sortable === false ? null : onHeaderClick($event, col)"
+          (keydown)="
+            col.sortable === false ? null : onHeaderKeydown($event, col)
+          "
         >
           {{ col.header }}
         </th>
@@ -39,9 +46,6 @@
               class="govuk-table__header"
               [class.govuk-table__cell--numeric]="col.numeric"
               [class.app-sortable-table__cell--wrap]="!col.numeric"
-              [attr.data-sort-value]="
-                col.sortable !== false ? getSortValue(row, col) : null
-              "
             >
               {{ row[col.field] }}
             </th>
@@ -50,9 +54,6 @@
               class="govuk-table__cell"
               [class.govuk-table__cell--numeric]="col.numeric"
               [class.app-sortable-table__cell--wrap]="!col.numeric"
-              [attr.data-sort-value]="
-                col.sortable !== false ? getSortValue(row, col) : null
-              "
             >
               @if (col.field === 'actions') {
                 <ng-container

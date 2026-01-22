@@ -44,6 +44,7 @@ import {
   APPLICATIONS_LIST_CHOOSE_STATUS,
   APPLICATIONS_LIST_COLUMNS,
   APPLICATIONS_LIST_ERROR_MESSAGES,
+  APPLICATION_LIST_SORT_MAP,
 } from './util/applications-list.constants';
 import {
   ApplicationsListState,
@@ -439,8 +440,12 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   }
 
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    // Ensure the keys are correct (titles != backend sort key)
     this.appListSignalState.patch({
-      sortField: sort,
+      sortField: {
+        key: APPLICATION_LIST_SORT_MAP[sort.key] ?? sort.key,
+        direction: sort.direction,
+      },
     });
 
     const hasAny = hasAnyParams(this.form);
@@ -474,10 +479,11 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       ...this.form.getRawValue(),
     } as SearchFormValue);
 
-    const paramSort = [
-      this.appListState().sortField.key,
-      this.appListState().sortField.direction,
-    ];
+    const sortFieldKey = this.appListState().sortField.key;
+    const sortFieldDirection = this.appListState().sortField.direction;
+
+    // Sorts are in the form of [key,direction]
+    const paramSort = [`${sortFieldKey},${sortFieldDirection}`];
 
     const params: GetApplicationListsRequestParams = {
       page: this.appListState().currentPage - 1,

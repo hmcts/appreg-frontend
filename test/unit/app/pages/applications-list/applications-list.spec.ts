@@ -11,7 +11,6 @@ import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { ApplicationsList } from '@components/applications-list/applications-list';
-import { APPLICATIONS_LIST_COLUMNS } from '@components/applications-list/util/applications-list.constants';
 import {
   ApplicationsListState,
   clearNotificationsPatch,
@@ -593,41 +592,6 @@ describe('ApplicationsList – search', () => {
     const args = service.getApplicationLists.mock
       .calls[0][0] as GetApplicationListsRequestParams;
     expect(args.filter).toEqual({ status: 'CLOSED' });
-  });
-
-  describe('buildTrailingNumericSortKey', () => {
-    const sortKey = (v: unknown) => {
-      const column = APPLICATIONS_LIST_COLUMNS.find(
-        (item) => item.field === 'location',
-      );
-      if (!column?.sortValue) {
-        throw new Error('Location column sortValue is missing');
-      }
-      return column.sortValue({ location: v } as Record<string, unknown>);
-    };
-
-    it('returns empty string for null, empty string, and unsupported types', () => {
-      expect(sortKey(null)).toBe('');
-      expect(sortKey('   ')).toBe('');
-      expect(sortKey(undefined)).toBe('');
-      expect(sortKey({})).toBe('');
-      expect(sortKey([])).toBe('');
-    });
-
-    it('normalises strings and pads trailing numeric suffix', () => {
-      expect(sortKey(' ABC 12 ')).toBe('abc 0012');
-      expect(sortKey('abc')).toBe('abc');
-      expect(sortKey('abc12d')).toBe('abc12d'); // not trailing digits
-      expect(sortKey('abc12345')).toBe('abc12345'); // longer than 4
-      expect(sortKey('  7  ')).toBe('0007'); // prefix empty
-    });
-
-    it('handles numbers and booleans', () => {
-      expect(sortKey(12)).toBe('0012');
-      expect(sortKey(0)).toBe('0000');
-      expect(sortKey(true)).toBe('true');
-      expect(sortKey(false)).toBe('false');
-    });
   });
 
   describe('onSubmit', () => {

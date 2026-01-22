@@ -18,6 +18,10 @@ describe('applications-list.state', () => {
       totalPages: 5,
       pageSize: 10,
       rows: [],
+      sortField: {
+        direction: 'desc',
+        key: 'date',
+      },
     });
   });
 
