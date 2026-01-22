@@ -36,11 +36,12 @@ export const initialApplicationsListState: ApplicationsListState = {
 // Clear all error/success/notification states
 export const clearNotificationsPatch = (): Pick<
   ApplicationsListState,
-  'deleteDone' | 'deleteInvalid' | 'errorSummary' | 'searchErrors' | 'submitted'
+  'deleteDone' | 'deleteInvalid' | 'errorSummary' | 'searchErrors' | 'submitted' | 'sortField'
 > => ({
   deleteDone: false,
   deleteInvalid: false,
   errorSummary: [],
   searchErrors: [],
   submitted: false,
+  sortField: { key: 'date', direction: 'desc' },
 });
