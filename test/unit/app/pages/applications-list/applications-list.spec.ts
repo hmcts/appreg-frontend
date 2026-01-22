@@ -78,15 +78,19 @@ class PdfServiceStub implements Pick<
 }
 
 const getState = (component: ApplicationsList) => component.vm();
+
+type AppListSignalStateAccessor = {
+  appListSignalState: { patch: (p: Partial<ApplicationsListState>) => void };
+};
+
 const patchState = (
   component: ApplicationsList,
   patch: Partial<ApplicationsListState>,
-) =>
-  (
-    component as unknown as {
-      signalState: { patch: (p: Partial<ApplicationsListState>) => void };
-    }
-  ).signalState.patch(patch);
+): void => {
+  (component as unknown as AppListSignalStateAccessor).appListSignalState.patch(
+    patch,
+  );
+};
 const flushSignalEffects = async (
   fixture?: ComponentFixture<ApplicationsList>,
 ): Promise<void> => {
@@ -137,12 +141,10 @@ function createInstance(
   (comp as unknown as { showInline: (m: string) => void }).showInline =
     showInlineSpy;
 
-  const signalState = (
-    comp as unknown as {
-      signalState: { patch: (p: Partial<ApplicationsListState>) => void };
-    }
-  ).signalState;
-  const patchSpy = jest.spyOn(signalState, 'patch');
+  const patchSpy = jest.spyOn(
+    (comp as unknown as AppListSignalStateAccessor).appListSignalState,
+    'patch',
+  );
 
   return { comp, api, pdf, patchSpy, showInlineSpy, fixture };
 }
@@ -907,5 +909,37 @@ describe('ApplicationsList.onPrintContinuous', () => {
     expect(api.printApplicationList).toHaveBeenCalledTimes(1);
     expect(pdf.generateContinuousApplicationListsPdf).toHaveBeenCalledTimes(1);
     expect(showInlineSpy).toHaveBeenCalledWith('Unable to generate PDF.');
+  });
+});
+
+describe('ApplicationsList.clearSearch', () => {
+  it('clears state, errors and resets forms', () => {
+    const { comp, patchSpy } = createInstance('browser');
+
+    patchState(comp, {
+      isSearch: true,
+      rows: [{ id: 'x' } as ApplicationListRow],
+    });
+
+    const searchForm = comp as unknown as {
+      searchForm: {
+        reset: jest.Mock;
+        state: () => Record<string, unknown>;
+      };
+    };
+
+    searchForm.searchForm.reset = jest.fn();
+    searchForm.searchForm.state = jest.fn(() => ({ status: 'OPEN' }));
+
+    const formResetSpy = jest.spyOn(comp.form, 'reset');
+
+    comp.clearSearch();
+
+    expect(patchSpy).toHaveBeenCalledWith(clearNotificationsPatch());
+    expect(patchSpy).toHaveBeenCalledWith({ isSearch: false, rows: [] });
+
+    expect(searchForm.searchForm.reset).toHaveBeenCalled();
+    expect(formResetSpy).toHaveBeenCalled();
+    expect(formResetSpy.mock.calls[0][0]).toEqual({ status: 'OPEN' });
   });
 });

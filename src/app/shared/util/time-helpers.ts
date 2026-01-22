@@ -1,4 +1,4 @@
-/* 
+/*
 Helper function for applications-list.ts - loadApplicationsLists()
 Ensures that time field conforms to OpenAPI model
 
@@ -72,7 +72,7 @@ export function parseTimeToDuration(
   return { hours, minutes };
 }
 
-/*  
+/*
 Hardened function that throws error if its null/undefined for time
 */
 export function requireTime(t: Parameters<typeof toTimeString>[0]): string {
@@ -80,7 +80,7 @@ export function requireTime(t: Parameters<typeof toTimeString>[0]): string {
   if (!v) {
     throw new Error('time required');
   }
-  return v.length === 5 ? `${v}:00` : v;
+  return v;
 }
 
 export function todayIsoDate(): string {
