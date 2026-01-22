@@ -122,7 +122,7 @@
       (searchChange)="onCjaInputChange()"
       [suggestions]="state().filteredCja"
       (selectItem)="selectCja($event)"
-      [disabled]="!!setCourthouseSearch || !!form.get('court')?.value"
+      [disabled]="!!form.get('court')?.value"
     />
 
     <!-- Status -->
