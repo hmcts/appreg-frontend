@@ -89,7 +89,10 @@ Feature: Application List Row Actions
                 },
                 "numberOfRespondents": null,
                 "wordingFields": [
-                    "test wording {RANDOM}"
+                    {
+                        "key": "Reference",
+                        "value": "{RANDOM}"
+                    }
                 ],
                 "feeStatuses": [],
                 "hasOffsiteFee": true,
@@ -224,20 +227,19 @@ Feature: Application List Row Actions
         Then User Verifies Latest Downloaded PDF Has <Pages> Pages
         Then User Verifies Latest Downloaded PDF Contains Text "<Court>"
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
-            | Application brought by | Mr Henry James Taylor {RANDOM}                                                                                                                                                            |
-            | Respondent             | Ms Emily Rose Clark {RANDOM}                                                                                                                                                              |
-            | Matter considered      | Issue of liability order summons - council tax                                                                                                                                            |
-            | CT99002                | Attends to swear a complaint for the issue of a summons for the debtor to answer an application for a liability order in relation to unpaid council tax (reference test wording {RANDOM}) |
-            | This matter was before | Mr Turner {RANDOM} Graham MAGISTRATE Ms Hayes {RANDOM} Laura MAGISTRATE Mr Miller {RANDOM} Peter CLERK Ms Patel {RANDOM} Anita MAGISTRATE                                                 |
-            | Dated                  | <DisplayDate>                                                                                                                                                                             |
-            | Produced on            | <SearchDate>                                                                                                                                                                              |
-            | Application brought by | Mr John A B Smith {RANDOM}                                                                                                                                                                |
-            | Respondent             | -                                                                                                                                                                                         |
-            | Matter considered      | Copy documents (electronic)                                                                                                                                                               |
-            | AD99002                | Request for copy documents on computer disc or in electronic form                                                                                                                         |
-            | This matter was before | Mr Smith {RANDOM} John MAGISTRATE                                                                                                                                                         |
-            | Dated                  | <DisplayDate>                                                                                                                                                                             |
-            | Produced on            | <SearchDate>                                                                                                                                                                              |
+            | Application brought by | Mr Henry James Taylor {RANDOM}                                                                                                            |
+            | Respondent             | Ms Emily Rose Clark {RANDOM}                                                                                                              |
+            | Matter considered      | Issue of liability order summons - council tax                                                                                            |
+            | This matter was before | Mr Turner {RANDOM} Graham MAGISTRATE Ms Hayes {RANDOM} Laura MAGISTRATE Mr Miller {RANDOM} Peter CLERK Ms Patel {RANDOM} Anita MAGISTRATE |
+            | Dated                  | <DisplayDate>                                                                                                                             |
+            | Produced on            | <SearchDate>                                                                                                                              |
+            | Application brought by | Mr John A B Smith {RANDOM}                                                                                                                |
+            | Respondent             | -                                                                                                                                         |
+            | Matter considered      | Copy documents (electronic)                                                                                                               |
+            | AD99002                | Request for copy documents on computer disc or in electronic form                                                                         |
+            | This matter was before | Mr Smith {RANDOM} John MAGISTRATE                                                                                                         |
+            | Dated                  | <DisplayDate>                                                                                                                             |
+            | Produced on            | <SearchDate>                                                                                                                              |
         Then User Clears Downloaded PDFs
         Examples:
             | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
@@ -255,7 +257,7 @@ Feature: Application List Row Actions
             """
             {
                 "standardApplicantCode": "APP032",
-                "applicationCode": "AD99003",
+                "applicationCode": "AD99004",
                 "numberOfRespondents": null,
                 "wordingFields": [],
                 "feeStatuses": [
@@ -316,13 +318,12 @@ Feature: Application List Row Actions
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
             | Date & Time            | <DisplayDate> <Time>                                                                                                                      |
             | Duration               | -                                                                                                                                         |
-            | Location               | <otherLocationDescription> A8 - CJA Number 308                                                                                            |
+            | Location               | <otherLocationDescription> A8 - Derby                                                                                                     |
             | Applicant              | Sunrise Manufacturing Co 456 Industrial Estate, B1 2CD Email: info@example.com                                                            |
             | Respondent             | -                                                                                                                                         |
             | Case Reference         | CASE-{RANDOM}                                                                                                                             |
-            | Application Code       | AD99003                                                                                                                                   |
+            | Application Code       | AD99004                                                                                                                                   |
             | Account Reference      | ACC-{RANDOM}                                                                                                                              |
-            | Application Title      | Extract from the Court Register                                                                                                           |
             | Result                 | -                                                                                                                                         |
             | Notes                  | Case noted with ref {RANDOM}                                                                                                              |
             | This matter was before | Mr Turner {RANDOM} Graham MAGISTRATE Ms Hayes {RANDOM} Laura MAGISTRATE Mr Miller {RANDOM} Peter CLERK Ms Patel {RANDOM} Anita MAGISTRATE |
@@ -339,14 +340,12 @@ Feature: Application List Row Actions
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
             | Application brought by | Sunrise Manufacturing Co 456 Industrial Estate, B1 2CD Email: info@example.com Phone: 01234567891                                         |
             | Respondent             | -                                                                                                                                         |
-            | Matter considered      | Extract from the Court Register                                                                                                           |
-            | AD99003                | Certified extract from the court register                                                                                                 |
             | This matter was before | Mr Turner {RANDOM} Graham MAGISTRATE Ms Hayes {RANDOM} Laura MAGISTRATE Mr Miller {RANDOM} Peter CLERK Ms Patel {RANDOM} Anita MAGISTRATE |
             | Dated                  | <DisplayDate>                                                                                                                             |
             | Produced on            | <SearchDate>                                                                                                                              |
         Examples:
-            | User  | TableName | SearchDate | DisplayDate | Time           | cjaCode | OptionText     | otherLocationDescription                | Description               | Entries | Status | SelectButtonText | PDFNameContinuous                  | PDFNamePage                        | Pages |
-            | user1 | Lists     | today      | todayiso    | timenowhhmm-1h | A8      | CJA Number 308 | This is a location description {RANDOM} | ENFORCEMENT LIST-{RANDOM} | 1       | OPEN   | Select           | cja-number-308-todayiso-print-cont | cja-number-308-todayiso-print-page | 1     |
+            | User  | TableName | SearchDate | DisplayDate | Time           | cjaCode | OptionText | otherLocationDescription                | Description               | Entries | Status | SelectButtonText | PDFNameContinuous         | PDFNamePage               | Pages |
+            | user1 | Lists     | today      | todayiso    | timenowhhmm-1h | A8      | Derby      | This is a location description {RANDOM} | ENFORCEMENT LIST-{RANDOM} | 1       | OPEN   | Select           | derby-todayiso-print-cont | derby-todayiso-print-page | 1     |
 
 
     @regression @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-803
@@ -398,7 +397,10 @@ Feature: Application List Row Actions
                 },
                 "numberOfRespondents": null,
                 "wordingFields": [
-                    "test food {RANDOM}"
+                    {
+                        "key": "Describe Seized Food",
+                        "value": "{RANDOM}"
+                    }
                 ],
                 "feeStatuses": [],
                 "hasOffsiteFee": true,
@@ -461,7 +463,6 @@ Feature: Application List Row Actions
             | Application brought by | ACME Industries LTD {RANDOM} Downing Street, Westminster, London, SW1A 2AA Email: john-test@gmail.com Phone: 01225 123456 Mobile: 07123456789 ACC-{RANDOM} |
             | Respondent             | Beta Solutions Inc {RANDOM} Fleet Street, London, EC4Y 1AA Email: betasolutions@gmail.com Phone: 01132 654321 Mobile: 07987654321                          |
             | Matter considered      | Condemnation of Unfit Food                                                                                                                                 |
-            | MS99006                | Application for the condemnation of food, namely test food {RANDOM}                                                                                        |
             | This matter was before | Ms Patel {RANDOM} Anita MAGISTRATE                                                                                                                         |
             | Dated                  | <DisplayDate>                                                                                                                                              |
             | Produced on            | <SearchDate>                                                                                                                                               |
@@ -548,7 +549,10 @@ Feature: Application List Row Actions
                 },
                 "numberOfRespondents": null,
                 "wordingFields": [
-                    "test food {RANDOM}"
+                    {
+                        "key": "Describe Seized Food",
+                        "value": "{RANDOM}"
+                    }
                 ],
                 "feeStatuses": [],
                 "hasOffsiteFee": true,

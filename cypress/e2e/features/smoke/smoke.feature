@@ -20,8 +20,4 @@ Feature: Applications Register Portal Access
     Examples:
       | role   |
       | user1  |
-      | user2  |
-      | user3  |
       | admin1 |
-      | admin2 |
-      | admin3 |

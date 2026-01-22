@@ -9,14 +9,13 @@ Feature: Applications List Update
         Then User Verify Response Status Code Should Be "201"
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
-        Then User Clicks On The Link "Applications list"
         When User Set Date Field "Date" To "<SearchDate>"
         Then User Enters "<Description>" Into The "Description" Textbox
         When User Clicks On The "Search" Button
         Then User Should See The Table "<TableName>"
         When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
-            | Date          | Time   | Location | Description   | Entries   | Status   |
-            | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+            | Date          | Time   | Location   | Description   | Entries   | Status   |
+            | <DisplayDate> | <Time> | <Location> | <Description> | <Entries> | <Status> |
         Then User Should See The Link "List details"
         Then User Clicks On The Link "List details"
         Then User Verify The Page URL Contains "#list-details"
@@ -34,8 +33,8 @@ Feature: Applications List Update
         When User Clicks On The "Update" Button
         # Then User Sees Notification Banner "Success Update complete List successfully updated"
         Examples:
-            | User  | TableName | DisplayDate | Time  | Court          | Description | Entries | Status | ButtonName | SearchDate | SelectButtonText | CourtValue | OtherLocation        | cjaCode | CJAValue            | HH | MM | UpdatedDescription | UpdatedOtherLocation   |
-            | user1 | Lists     | 2025-12-04  | 15:05 | CJA Number 319 | Test_21442  | 0       | OPEN   | Open       | 04/12/2025 | Select           |            | Other Location_21442 | B9      | B9 - CJA Number 319 | 11 | 30 | Updated Test_21442 | Updated Location_21442 |
+            | User  | TableName | DisplayDate | Time  | Location      | Description   | Entries | Status | ButtonName | SearchDate | SelectButtonText | CourtValue | OtherLocation        | cjaCode | CJAValue           | HH | MM | UpdatedDescription    | UpdatedOtherLocation   |
+            | user1 | Lists     | 2025-12-04  | 15:05 | Wolverhampton | Test_{RANDOM} | 0       | OPEN   | Open       | 04/12/2025 | Select           |            | Other Location_21442 | B9      | B9 - Wolverhampton | 11 | 30 | Updated Test_{RANDOM} | Updated Location_21442 |
 
     @regression @ARCPOC-214 @ARCPOC-450 @ARCPOC-799
     Scenario Outline: Update applications list Successfully with Court selected
@@ -46,7 +45,6 @@ Feature: Applications List Update
         Then User Verify Response Status Code Should Be "201"
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
-        Then User Clicks On The Link "Applications list"
         When User Set Date Field "Date" To "<SearchDate>"
         Then User Enters "<Description>" Into The "Description" Textbox
         When User Clicks On The "Search" Button
@@ -77,8 +75,8 @@ Feature: Applications List Update
         #  A new bug ticket to be raised for the below issue where there are multiple notifications
         # Then User Sees Notification Banner "Success Update complete List successfully updated"
         Examples:
-            | User  | TableName | DisplayDate | Time  | Court  | CourtLocation                 | Description   | Entries | Status | ButtonName | SearchDate | SelectButtonText | OtherLocation | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText |
-            | user1 | Lists     | 2025-12-11  | 16:05 | RCJ001 | Royal Courts of Justice Set 1 | Test_11122025 | 0       | OPEN   | Open       | 11/12/2025 | Select           |               |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     |
+            | User  | TableName | DisplayDate | Time  | Court  | CourtLocation                 | Description   | Entries | Status | ButtonName | SearchDate | SelectButtonText | OtherLocation | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText | UpdatedHH | UpdatedMM |
+            | user1 | Lists     | 2025-12-11  | 16:05 | RCJ001 | Royal Courts of Justice Set 1 | Test_{RANDOM} | 0       | OPEN   | Open       | 11/12/2025 | Select           |               |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     | 12        | 45        |
 
     @regression @ARCPOC-214 @ARCPOC-450 @ARCPOC-799
     Scenario Outline: Update applications list Successfully with Court selected and field validations
@@ -89,7 +87,6 @@ Feature: Applications List Update
         Then User Verify Response Status Code Should Be "201"
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
-        Then User Clicks On The Link "Applications list"
         When User Set Date Field "Date" To "<SearchDate>"
         Then User Enters "<Description>" Into The "Description" Textbox
         When User Clicks On The "Search" Button
@@ -147,7 +144,7 @@ Feature: Applications List Update
         # Then User Sees Notification Banner "Success Update complete List successfully updated"
         Examples:
             | User  | TableName | DisplayDate | Time  | InvalidTime1 | InvalidTime2 | InvalidTime3 | UpdatedTime | Court  | courtLocation                 | Description   | Entries | InvalidStatus | Status | ButtonName | InvalidSearchDate | SearchDate | UpdatedSearchDate | SelectButtonText | OtherLocation | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText | InvalidHH | InvalidMM | UpdatedHH | UpdatedMM |
-            | user1 | Lists     | 2025-12-11  | 16:05 | 44:*SKIP*    | *SKIP*:00    | 46:70        | 16:30       | RCJ001 | Royal Courts of Justice Set 1 | Test_11122025 | 0       | Choose status | OPEN   | Open       | 32/13/2025        | 11/12/2025 | 12/12/2025        | Select           |               |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     | A1B2      | C3D4      | 12        | 45        |
+            | user1 | Lists     | 2025-12-11  | 16:05 | 44:*SKIP*    | *SKIP*:00    | 46:70        | 16:30       | RCJ001 | Royal Courts of Justice Set 1 | Test_11122025 | 0       | Choose status | OPEN   | Open       | 32/13/2025        | 11/12/2025 | 12/12/2025        | Select           |               |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     | A1        | C3        | 12        | 45        |
 
     @regression @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-852
     Scenario Outline: Update applications list Successfully with Court selected and field validations for Other location and CJA
@@ -158,7 +155,6 @@ Feature: Applications List Update
         Then User Verify Response Status Code Should Be "201"
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
-        Then User Clicks On The Link "Applications list"
         When User Set Date Field "Date" To "<SearchDate>"
         Then User Enters "<Description>" Into The "Description" Textbox
         When User Clicks On The "Search" Button
@@ -211,7 +207,7 @@ Feature: Applications List Update
         Then User Sees Notification Banner "There is a problem CJA is required"
         Then User Enters "<InvalidCJAValue>" Into The "CJA" Textbox
         When User Clicks On The "Update" Button
-        # Then User Sees Notification Banner "Criminal Justice Area not found"
+        Then User Sees Notification Banner "Criminal Justice Area not found"
         # Then User Clears The "CJA" Textbox
         # Then User Clears The "Other location" Textbox
         # Then User Enters "<InvalidCourtValue>" Into The "Court" Textbox
