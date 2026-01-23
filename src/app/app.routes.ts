@@ -8,15 +8,27 @@ import { ApplicationsListDetail } from '@components/applications-list-detail/app
 import { ApplicationsListEntryCreate } from '@components/applications-list-entry-create/applications-list-entry-create';
 import { ApplicationsListEntryDetail } from '@components/applications-list-entry-detail/applications-list-entry-detail';
 import { PaymentReferenceEditComponent } from '@components/civil-fee-section/payment-reference-edit/payment-reference-edit.component';
+import { ForbiddenComponent } from '@components/global-error/forbidden/forbidden.component';
+import { InternalErrorComponent } from '@components/global-error/internal-error/internal-error.component';
+import { NotFoundComponent } from '@components/global-error/not-found/not-found.component';
 import { Login } from '@components/login/login';
 import { Reports } from '@components/reports/reports';
 import { ResultSelected } from '@components/result-selected/result-selected';
 import { StandardApplicants } from '@components/standard-applicants/standard-applicants';
+import { homeRedirectGuard } from '@guards/home-redirect.guard';
 import { sessionGuard } from '@guards/session.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  {
+    path: '',
+    pathMatch: 'full',
+    canActivate: [homeRedirectGuard],
+    component: Login,
+  },
   { path: 'login', component: Login },
+  { path: 'forbidden', component: ForbiddenComponent },
+  { path: 'internal-error', component: InternalErrorComponent },
+  { path: 'page-not-found', component: NotFoundComponent },
   {
     path: 'applications-list',
     canActivate: [sessionGuard],
@@ -49,5 +61,5 @@ export const routes: Routes = [
     component: Reports,
     canActivate: [sessionGuard],
   },
-  { path: '**', redirectTo: 'login' },
+  { path: '**', redirectTo: 'page-not-found' },
 ];
