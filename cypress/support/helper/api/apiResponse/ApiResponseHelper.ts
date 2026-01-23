@@ -34,9 +34,7 @@ export class ApiResponseHelper {
     });
   }
 
-  static verifyResponseBodyShouldHave(
-    rows: [string, string][],
-  ): void {
+  static verifyResponseBodyShouldHave(rows: [string, string][]): void {
     cy.get('@lastApiResponse').then((response) => {
       const apiResponse = response as unknown as Cypress.Response<unknown>;
       if (!apiResponse) {

@@ -4,4 +4,4 @@ import { ApiDeleteHelper } from '../../../../support/helper/api/apiDelete/ApiDel
 
 When('User Makes DELETE API Request To {string}', (endpoint: string) => {
   ApiDeleteHelper.makeDeleteRequest(endpoint);
-}); 
+});

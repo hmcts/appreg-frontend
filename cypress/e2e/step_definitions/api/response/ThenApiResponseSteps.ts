@@ -17,7 +17,9 @@ Then(
 );
 
 Then('User Verify Response Body Should Have:', (dataTable: DataTable) => {
-  const rows: [string, string][] = dataTable.raw().filter((row): row is [string, string] => row.length === 2);
+  const rows: [string, string][] = dataTable
+    .raw()
+    .filter((row): row is [string, string] => row.length === 2);
   ApiResponseHelper.verifyResponseBodyShouldHave(rows);
 });
 
