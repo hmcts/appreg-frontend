@@ -30,13 +30,18 @@ export const initialApplicationsListState: ApplicationsListState = {
   totalPages: 5,
   pageSize: 10,
   rows: [],
-  sortField: { key: 'date', direction: 'desc' },
+  sortField: { key: 'date', direction: 'desc' }, // Default sort
 };
 
 // Clear all error/success/notification states
 export const clearNotificationsPatch = (): Pick<
   ApplicationsListState,
-  'deleteDone' | 'deleteInvalid' | 'errorSummary' | 'searchErrors' | 'submitted' | 'sortField'
+  | 'deleteDone'
+  | 'deleteInvalid'
+  | 'errorSummary'
+  | 'searchErrors'
+  | 'submitted'
+  | 'sortField'
 > => ({
   deleteDone: false,
   deleteInvalid: false,

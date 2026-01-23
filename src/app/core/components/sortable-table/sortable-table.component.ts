@@ -14,6 +14,12 @@ import {
 } from '@angular/core';
 
 import { Row } from '@core-types/table/row.types';
+import {
+  ariaSortFor as ariaSortForUtil,
+  getNextSortState,
+  isSortActivationKey,
+  suppressSortEvent,
+} from '@util/table-sort';
 
 /** The column contract for this table */
 export type TableColumn = {
@@ -71,7 +77,9 @@ export class SortableTableComponent implements AfterViewInit {
     // same behaviour you had before
   };
 
-  /** Value for data-sort-value (used by MoJ Sortable table) */
+  /** Value for data-sort-value (used by MoJ Sortable table)
+   * TODO: remove this
+  */
   getSortValue(row: Row, col: TableColumn): string | null {
     const candidate: unknown = col.sortValue
       ? col.sortValue(row)
@@ -108,6 +116,8 @@ export class SortableTableComponent implements AfterViewInit {
         type SortableCtorT = new (el: HTMLElement) => {
           init?: () => void;
           destroy?: () => void;
+          sort?: (...args: unknown[]) => unknown;
+          addRows?: (...args: unknown[]) => void;
         };
 
         // Support both export shapes (named vs default)
@@ -121,6 +131,12 @@ export class SortableTableComponent implements AfterViewInit {
         }
 
         const instance = new SortableCtor(this.tableRef.nativeElement);
+        if (typeof instance.sort === 'function') {
+          instance.sort = (...args: unknown[]) => args[0];
+        }
+        if (typeof instance.addRows === 'function') {
+          instance.addRows = () => undefined;
+        }
         instance.init?.();
         this.sortableInstance = instance;
       })
@@ -138,23 +154,18 @@ export class SortableTableComponent implements AfterViewInit {
     }
 
     // Prevent native sort handler
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-      event.stopImmediatePropagation();
-    }
+    suppressSortEvent(event);
 
     const key = col.field;
 
-    // Decide next direction
-    let direction: 'desc' | 'asc' = 'asc';
-    if (this.sortKey === key) {
-      direction = this.sortDirection === 'asc' ? 'desc' : 'asc';
-    }
+    const next = getNextSortState(
+      { key: this.sortKey, direction: this.sortDirection },
+      key,
+    );
 
-    this.sortKey = key;
-    this.sortDirection = direction;
-    this.sortChange.emit({ key, direction });
+    this.sortKey = next.key;
+    this.sortDirection = next.direction;
+    this.sortChange.emit(next);
   }
 
   // SQ complains about not having a keydown tag in template
@@ -166,8 +177,7 @@ export class SortableTableComponent implements AfterViewInit {
       return;
     }
 
-    const key = event.key;
-    if (key !== 'Enter' && key !== ' ') {
+    if (!isSortActivationKey(event)) {
       return;
     }
 
@@ -175,10 +185,11 @@ export class SortableTableComponent implements AfterViewInit {
     this.onHeaderClick(event, col);
   }
 
-  ariaSortFor(key: string): 'ascending' | 'descending' {
-    if (this.sortKey !== key || !this.sortDirection) {
-      return 'descending';
-    }
-    return this.sortDirection === 'asc' ? 'ascending' : 'descending';
+  ariaSortFor(key: string): 'ascending' | 'descending' | 'none' {
+    return ariaSortForUtil(
+      { key: this.sortKey, direction: this.sortDirection },
+      key,
+      'none',
+    );
   }
 }

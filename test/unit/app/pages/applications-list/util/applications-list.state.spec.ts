@@ -32,6 +32,10 @@ describe('applications-list.state', () => {
       errorSummary: [],
       searchErrors: [],
       submitted: false,
+      sortField: {
+        direction: 'desc',
+        key: 'date',
+      },
     });
   });
 });

@@ -37,7 +37,7 @@ type ApiStub = {
   getApplicationList: jest.Mock<
     Observable<ApplicationListResponse>,
     [
-      { listId: string; page: number; size: number },
+      { listId: string; page: number; size: number; sort?: string[] },
       'response',
       boolean,
       { transferCache: boolean },
@@ -248,8 +248,13 @@ describe('ApplicationsListDetail', () => {
 
       component.loadApplicationsLists();
 
-      expect(apiStub.getApplicationList).toHaveBeenCalledWith(
-        { listId: 'list-123', page: 0, size: 10 },
+      expect(apiStub.getApplicationList).toHaveBeenNthCalledWith(
+        2,
+        {
+          listId: 'list-123',
+          page: 0,
+          size: 10,
+        },
         'response',
         false,
         { transferCache: false },
