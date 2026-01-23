@@ -160,7 +160,7 @@ function getPathname(url: string | null | undefined): string {
     return '';
   }
   try {
-    return new URL(url, 'http://local').pathname;
+    return new URL(url, 'https://local').pathname;
   } catch {
     const q = url.indexOf('?');
     const h = url.indexOf('#');
