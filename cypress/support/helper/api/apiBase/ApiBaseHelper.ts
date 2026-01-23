@@ -87,6 +87,7 @@ export class ApiBaseHelper {
           cy.request({
             method,
             url,
+            failOnStatusCode: false,
             headers: {
               Authorization: `Bearer ${token as unknown as string}`,
               'Content-Type': 'application/vnd.hmcts.appreg.v1+json',
