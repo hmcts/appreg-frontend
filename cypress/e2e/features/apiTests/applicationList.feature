@@ -11,6 +11,11 @@ Feature: Application List
     When User Makes GET API Request To "/application-lists/:listId"
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Property "courtCode" Should Be "<CourtLocationCode>"
+    When User Makes PUT API Request To "/application-lists/:listId" With Body:
+      | date   | time   | status   | description         | courtLocationCode   |
+      | <Date> | <Time> | <Status> | Updated description | <CourtLocationCode> |
+    Then User Verify Response Status Code Should Be "200"
+    Then User Verify Response Body Property "description" Should Be "Updated description"
     When User Makes DELETE API Request To "/application-lists/:listId"
     Then User Verify Response Status Code Should Be "204"
     Examples:

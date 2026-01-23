@@ -25,6 +25,7 @@ export class ApiGetHelper {
       cy.log(
         `[ApiGetHelper] Received response with status: ${response.status}`,
       );
+      cy.log(`[ApiGetHelper] Response body: ${JSON.stringify(response.body)}`);
     });
   }
 }

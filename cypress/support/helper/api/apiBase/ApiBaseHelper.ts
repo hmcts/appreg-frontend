@@ -93,7 +93,15 @@ export class ApiBaseHelper {
               'Content-Type': 'application/vnd.hmcts.appreg.v1+json',
             },
             body,
-          }).as('lastApiResponse');
+          }).then((response) => {
+            cy.wrap(response).as('lastApiResponse');
+            cy.log(
+              `[ApiBaseHelper] Received response with status: ${response.status}`,
+            );
+            cy.log(
+              `[ApiBaseHelper] Response body: ${JSON.stringify(response.body)}`,
+            );
+          });
         });
       },
     );
