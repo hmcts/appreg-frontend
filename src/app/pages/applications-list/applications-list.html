@@ -10,14 +10,14 @@
   ]"
 />
 
-@if (vm().submitted && vm().searchErrors.length) {
+@if (storedRecordsVm().submitted && vm().searchErrors.length) {
   <app-error-summary
     [title]="'There is a problem'"
     [items]="vm().searchErrors"
     targetId="search"
   />
 } @else {
-  @if (vm().isSearch && !vm().isLoading && !vm().rows.length) {
+  @if (vm().isSearch && !vm().isLoading && !storedRecordsVm().rows.length) {
     <app-notification-banner
       heading="No lists found"
       body="Try different filters, or "
@@ -53,7 +53,7 @@
       label="Date"
       hint="For example, 27 3 2007"
       idPrefix="date"
-      [submitted]="vm().submitted"
+      [submitted]="storedRecordsVm().submitted"
       [isSearch]="vm().isSearch"
     />
 
@@ -63,7 +63,7 @@
       label="Time"
       hint="Enter the time in 24-hour format, for example 08:30"
       idPrefix="time"
-      [submitted]="vm().submitted"
+      [submitted]="storedRecordsVm().submitted"
       [required]="false"
     />
 
@@ -138,13 +138,13 @@
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 
-@if (vm().rows.length) {
+@if (storedRecordsVm().rows.length) {
   <!-- Sortable table component -->
   <app-sortable-table
     id="sortable-table"
     caption="Lists"
     [columns]="columns"
-    [data]="vm().rows"
+    [data]="storedRecordsVm().rows"
     appMojButtonMenu
   >
     <ng-template #actionsTemplate let-row>
@@ -232,8 +232,8 @@
 
   <!-- Pager -->
   <app-pagination
-    [currentPage]="vm().currentPage"
-    [totalPages]="vm().totalPages"
+    [currentPage]="storedRecordsVm().currentPage"
+    [totalPages]="storedRecordsVm().totalPages"
     (pageChange)="onPageChange($event)"
   />
 }
