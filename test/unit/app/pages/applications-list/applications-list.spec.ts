@@ -31,6 +31,7 @@ import {
   CriminalJusticeAreasApi,
   GetApplicationListsRequestParams,
 } from '@openapi';
+import { recordsState } from '@services/application-list-records/application-list-records.service';
 import { PdfService } from '@services/pdf.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { ApplicationListRow } from '@util/types/application-list/types';
@@ -77,13 +78,19 @@ class PdfServiceStub implements Pick<
   generateContinuousApplicationListsPdf = jest.fn<Promise<void>, [unknown[]]>();
 }
 
-const getState = (component: ApplicationsList) => component.vm();
+const getUIFlagState = (component: ApplicationsList) => component.vm();
+const getRecordsState = (component: ApplicationsList) =>
+  component.storedRecordsVm();
 
 type AppListSignalStateAccessor = {
   appListSignalState: { patch: (p: Partial<ApplicationsListState>) => void };
 };
 
-const patchState = (
+type AppListRecordsStateAccessor = {
+  storedRecordsState: { patch: (p: Partial<recordsState>) => void };
+};
+
+const patchUIState = (
   component: ApplicationsList,
   patch: Partial<ApplicationsListState>,
 ): void => {
@@ -91,6 +98,16 @@ const patchState = (
     patch,
   );
 };
+
+const patchRecordsState = (
+  component: ApplicationsList,
+  patch: Partial<recordsState>,
+): void => {
+  (
+    component as unknown as AppListRecordsStateAccessor
+  ).storedRecordsState.patch(patch);
+};
+
 const flushSignalEffects = async (
   fixture?: ComponentFixture<ApplicationsList>,
 ): Promise<void> => {
@@ -135,7 +152,7 @@ function createInstance(
   const comp = fixture.componentInstance;
   fixture.detectChanges();
 
-  patchState(comp, { rows });
+  patchRecordsState(comp, { rows });
 
   const showInlineSpy = jest.fn();
   (comp as unknown as { showInline: (m: string) => void }).showInline =
@@ -146,7 +163,12 @@ function createInstance(
     'patch',
   );
 
-  return { comp, api, pdf, patchSpy, showInlineSpy, fixture };
+  const storedPatchSpy = jest.spyOn(
+    (comp as unknown as AppListRecordsStateAccessor).storedRecordsState,
+    'patch',
+  );
+
+  return { comp, api, pdf, patchSpy, storedPatchSpy, showInlineSpy, fixture };
 }
 
 function submitEvent(value: string | null = 'search'): {
@@ -193,7 +215,7 @@ describe('ApplicationsList – delete flow (server platform: no confirm)', () =>
     fixture = TestBed.createComponent(ApplicationsList);
     component = fixture.componentInstance;
     // avoid ngOnInit’s demo data; set our own rows
-    patchState(component, {
+    patchRecordsState(component, {
       rows: [
         {
           id: 'abc-123',
@@ -234,16 +256,16 @@ describe('ApplicationsList – delete flow (server platform: no confirm)', () =>
     component.onDelete(row);
     await flushSignalEffects(fixture);
 
-    expect(getState(component).deleteInvalid).toBe(true);
-    expect(getState(component).errorSummary).toEqual([
+    expect(getUIFlagState(component).deleteInvalid).toBe(true);
+    expect(getUIFlagState(component).errorSummary).toEqual([
       { text: 'This list cannot be deleted.' },
     ]);
     expect(api.deleteApplicationList).not.toHaveBeenCalled();
-    expect(getState(component).deletingId).toBeNull();
+    expect(getUIFlagState(component).deletingId).toBeNull();
   });
 
   it('on success (204) removes row and sets deleteDone=true; passes ETag/RowVersion via HttpContext', async () => {
-    const row = getState(component).rows[0]; // abc-123
+    const row = getRecordsState(component).rows[0]; // abc-123
 
     // capture call args to inspect HttpContext values
     let capturedOptions: { context?: HttpContext } | undefined;
@@ -269,14 +291,14 @@ describe('ApplicationsList – delete flow (server platform: no confirm)', () =>
 
     // Row removed, banner flag set, deletingId reset
     expect(
-      getState(component).rows.find((r) => r.id === 'abc-123'),
+      getRecordsState(component).rows.find((r) => r.id === 'abc-123'),
     ).toBeUndefined();
-    expect(getState(component).rows).toHaveLength(1);
-    expect(getState(component).rows[0].id).toBe('keep-me');
-    expect(getState(component).deleteDone).toBe(true);
-    expect(getState(component).deleteInvalid).toBe(false);
-    expect(getState(component).errorSummary).toEqual([]);
-    expect(getState(component).deletingId).toBeNull();
+    expect(getRecordsState(component).rows).toHaveLength(1);
+    expect(getRecordsState(component).rows[0].id).toBe('keep-me');
+    expect(getUIFlagState(component).deleteDone).toBe(true);
+    expect(getUIFlagState(component).deleteInvalid).toBe(false);
+    expect(getUIFlagState(component).errorSummary).toEqual([]);
+    expect(getUIFlagState(component).deletingId).toBeNull();
   });
 
   describe('error mapping -> inline error summary', () => {
@@ -326,7 +348,7 @@ describe('ApplicationsList – delete flow (server platform: no confirm)', () =>
         };
 
         // keep a couple of rows to confirm list remains intact on error
-        patchState(component, {
+        patchRecordsState(component, {
           rows: [
             { ...row },
             {
@@ -348,13 +370,13 @@ describe('ApplicationsList – delete flow (server platform: no confirm)', () =>
         expect(api.deleteApplicationList).toHaveBeenCalled();
 
         // Error flags and message mapping
-        expect(getState(component).deleteDone).toBe(false);
-        expect(getState(component).deleteInvalid).toBe(true);
-        expect(getState(component).errorSummary[0].text).toBe(firstText);
+        expect(getUIFlagState(component).deleteDone).toBe(false);
+        expect(getUIFlagState(component).deleteInvalid).toBe(true);
+        expect(getUIFlagState(component).errorSummary[0].text).toBe(firstText);
 
         // Row NOT removed on error; deletingId reset
-        expect(getState(component).rows).toHaveLength(2);
-        expect(getState(component).deletingId).toBeNull();
+        expect(getRecordsState(component).rows).toHaveLength(2);
+        expect(getUIFlagState(component).deletingId).toBeNull();
       },
     );
   });
@@ -385,7 +407,7 @@ describe('ApplicationsList – delete flow (browser platform: confirm cancel)', 
     fixture = TestBed.createComponent(ApplicationsList);
     component = fixture.componentInstance;
 
-    patchState(component, {
+    patchRecordsState(component, {
       rows: [
         {
           id: 'abc-123',
@@ -406,17 +428,17 @@ describe('ApplicationsList – delete flow (browser platform: confirm cancel)', 
   });
 
   it('when user cancels confirmation, does NOT call API and leaves state unchanged', () => {
-    component.onDelete(getState(component).rows[0]);
+    component.onDelete(getRecordsState(component).rows[0]);
 
     expect(globalThis.confirm).toHaveBeenCalled();
     expect(api.deleteApplicationList).not.toHaveBeenCalled();
 
     // no flags set, no removal, deletingId stays null
-    expect(getState(component).deleteDone).toBe(false);
-    expect(getState(component).deleteInvalid).toBe(false);
-    expect(getState(component).errorSummary).toEqual([]);
-    expect(getState(component).rows).toHaveLength(1);
-    expect(getState(component).deletingId).toBeNull();
+    expect(getUIFlagState(component).deleteDone).toBe(false);
+    expect(getUIFlagState(component).deleteInvalid).toBe(false);
+    expect(getUIFlagState(component).errorSummary).toEqual([]);
+    expect(getRecordsState(component).rows).toHaveLength(1);
+    expect(getUIFlagState(component).deletingId).toBeNull();
   });
 });
 
@@ -465,7 +487,7 @@ describe('ApplicationsList – search', () => {
       getApplicationLists: jest.Mock;
     };
 
-    patchState(component, { pageSize: 25, currentPage: 1 });
+    patchRecordsState(component, { pageSize: 25, currentPage: 1 });
     fixture.detectChanges();
   });
 
@@ -489,10 +511,10 @@ describe('ApplicationsList – search', () => {
 
   it('when hasParams=false, does not call API and surfaces validation error', () => {
     service.getApplicationLists.mockClear();
-    patchState(component, { searchErrors: [] });
+    patchUIState(component, { searchErrors: [] });
     component.loadApplicationsLists(false);
     expect(service.getApplicationLists).not.toHaveBeenCalled();
-    expect(getState(component).searchErrors[0]).toEqual({
+    expect(getUIFlagState(component).searchErrors[0]).toEqual({
       id: '',
       text: 'Invalid Search Criteria. At least one field must be entered.',
     });
@@ -535,10 +557,10 @@ describe('ApplicationsList – search', () => {
     );
     component.loadApplicationsLists(true);
     await flushSignalEffects(fixture);
-    expect(getState(component).rows).toHaveLength(1);
-    expect(getState(component).rows[0].date).toBe('2025-09-17');
-    expect(getState(component).rows[0].time).toBe('14:05');
-    expect(getState(component).rows[0].entries).toBe(7);
+    expect(getRecordsState(component).rows).toHaveLength(1);
+    expect(getRecordsState(component).rows[0].date).toBe('2025-09-17');
+    expect(getRecordsState(component).rows[0].time).toBe('14:05');
+    expect(getRecordsState(component).rows[0].entries).toBe(7);
   });
 
   it('sets totals from page response', async () => {
@@ -548,14 +570,17 @@ describe('ApplicationsList – search', () => {
 
     component.loadApplicationsLists(true);
     await flushSignalEffects(fixture);
-    expect(getState(component).totalPages).toBe(2);
+    expect(getRecordsState(component).totalPages).toBe(2);
   });
 
   it('handles backend error: clears rows, zeros totals, sets submitted and searchErrors', async () => {
     service.getApplicationLists.mockReturnValue(
       throwError(() => new Error('Request failed')),
     );
-    patchState(component, {
+    patchUIState(component, {
+      searchErrors: [],
+    });
+    patchRecordsState(component, {
       rows: [
         {
           id: 'keep',
@@ -569,14 +594,13 @@ describe('ApplicationsList – search', () => {
       ],
       totalPages: 3,
       submitted: false,
-      searchErrors: [],
     });
     component.loadApplicationsLists(true);
     await flushSignalEffects(fixture);
-    expect(getState(component).rows).toHaveLength(0);
-    expect(getState(component).totalPages).toBe(0);
-    expect(getState(component).submitted).toBe(true);
-    expect(getState(component).searchErrors[0]).toEqual({
+    expect(getRecordsState(component).rows).toHaveLength(0);
+    expect(getRecordsState(component).totalPages).toBe(0);
+    expect(getRecordsState(component).submitted).toBe(true);
+    expect(getUIFlagState(component).searchErrors[0]).toEqual({
       id: 'search',
       text: 'Request failed',
     });
@@ -648,8 +672,8 @@ describe('ApplicationsList – search', () => {
       component.onSubmit(e);
 
       expect(preventDefault).toHaveBeenCalled();
-      expect(getState(component).submitted).toBe(true);
-      expect(getState(component).searchErrors).toEqual([
+      expect(getRecordsState(component).submitted).toBe(true);
+      expect(getUIFlagState(component).searchErrors).toEqual([
         { id: 'date-day', text: 'Enter a valid date' },
         { id: 'time-hours', text: 'Enter a valid time' },
       ]);
@@ -665,15 +689,15 @@ describe('ApplicationsList – search', () => {
       component.form.controls.date.setErrors(null);
       component.form.controls.time.setErrors(null);
 
-      patchState(component, { currentPage: 3 });
+      patchRecordsState(component, { currentPage: 3 });
 
       const { e, preventDefault } = submitEvent('search');
       component.onSubmit(e);
 
       expect(preventDefault).toHaveBeenCalled();
-      expect(getState(component).submitted).toBe(true);
-      expect(getState(component).isSearch).toBe(true);
-      expect(getState(component).currentPage).toBe(1);
+      expect(getRecordsState(component).submitted).toBe(true);
+      expect(getUIFlagState(component).isSearch).toBe(true);
+      expect(getRecordsState(component).currentPage).toBe(1);
       expect(spy).toHaveBeenCalledWith(true);
     });
 
@@ -914,10 +938,12 @@ describe('ApplicationsList.onPrintContinuous', () => {
 
 describe('ApplicationsList.clearSearch', () => {
   it('clears state, errors and resets forms', () => {
-    const { comp, patchSpy } = createInstance('browser');
+    const { comp, patchSpy, storedPatchSpy } = createInstance('browser');
 
-    patchState(comp, {
+    patchUIState(comp, {
       isSearch: true,
+    });
+    patchRecordsState(comp, {
       rows: [{ id: 'x' } as ApplicationListRow],
     });
 
@@ -936,7 +962,9 @@ describe('ApplicationsList.clearSearch', () => {
     comp.clearSearch();
 
     expect(patchSpy).toHaveBeenCalledWith(clearNotificationsPatch());
-    expect(patchSpy).toHaveBeenCalledWith({ isSearch: false, rows: [] });
+    expect(patchSpy).toHaveBeenCalledWith({ isSearch: false });
+
+    expect(storedPatchSpy).toHaveBeenCalledWith({ submitted: false, rows: [] });
 
     expect(searchForm.searchForm.reset).toHaveBeenCalled();
     expect(formResetSpy).toHaveBeenCalled();
