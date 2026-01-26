@@ -16,6 +16,10 @@ export class NotFoundComponent implements OnInit, OnDestroy {
   sessionService = inject(SessionService);
   readonly isAuthenticated = this.sessionService.isAuthenticated;
 
+  constructor() {
+    void this.sessionService.refresh();
+  }
+
   ngOnInit(): void {
     this.headerService.hideNavigation();
   }
