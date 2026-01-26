@@ -1,9 +1,9 @@
 import { RenderMode, ServerRoute } from '@angular/ssr';
 
 export const serverRoutes: ServerRoute[] = [
-  { path: 'forbidden', renderMode: RenderMode.Prerender },
-  { path: 'internal-error', renderMode: RenderMode.Prerender },
-  { path: 'page-not-found', renderMode: RenderMode.Prerender },
+  { path: 'forbidden', renderMode: RenderMode.Server },
+  { path: 'internal-error', renderMode: RenderMode.Server },
+  { path: 'page-not-found', renderMode: RenderMode.Server },
   { path: 'applications-list/:id', renderMode: RenderMode.Server },
   { path: 'applications-list/:id/update', renderMode: RenderMode.Server },
   {
@@ -18,6 +18,6 @@ export const serverRoutes: ServerRoute[] = [
   },
   {
     path: '**',
-    renderMode: RenderMode.Prerender,
+    renderMode: RenderMode.Server,
   },
 ];
