@@ -87,12 +87,21 @@ export class ApiBaseHelper {
           cy.request({
             method,
             url,
+            failOnStatusCode: false,
             headers: {
               Authorization: `Bearer ${token as unknown as string}`,
               'Content-Type': 'application/vnd.hmcts.appreg.v1+json',
             },
             body,
-          }).as('lastApiResponse');
+          }).then((response) => {
+            cy.wrap(response).as('lastApiResponse');
+            cy.log(
+              `[ApiBaseHelper] Received response with status: ${response.status}`,
+            );
+            cy.log(
+              `[ApiBaseHelper] Response body: ${JSON.stringify(response.body)}`,
+            );
+          });
         });
       },
     );
