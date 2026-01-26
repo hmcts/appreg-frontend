@@ -23,6 +23,7 @@ export const routes: Routes = [
     path: '',
     pathMatch: 'full',
     canActivate: [homeRedirectGuard],
+    component: Login,
   },
   { path: 'login', component: Login },
   { path: 'forbidden', component: ForbiddenComponent },
