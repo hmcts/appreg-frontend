@@ -66,7 +66,7 @@ withNightlyPipeline(type, product, component) {
           } finally {yes
           
             archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/smoke/**/*'
-              junit allowEmptyResults: true, testResults: 'cypress/reports/junit/*.xml'
+            junit allowEmptyResults: true, testResults: 'functional-output/**/*.xml'
             
             publishHTML target: [
               allowMissing         : true,
@@ -88,8 +88,7 @@ withNightlyPipeline(type, product, component) {
             yarnBuilder.yarn('test:parallel:regression:chrome')
           } finally {
             archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/regression/**/*'
-              junit allowEmptyResults: true, testResults: 'cypress/reports/junit/*.xml'
-            
+            junit allowEmptyResults: true, testResults: 'functional-output/**/*.xml'            
             publishHTML target: [
               allowMissing         : true,
               alwaysLinkToLastBuild: true,

@@ -1,4 +1,4 @@
-Feature: Reference Data
+Feature: API -Reference Data
 
     @api @regression @ARCPOC-415
     Scenario Outline: Verifying Court Locations Reference Data via API
