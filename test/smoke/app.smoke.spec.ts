@@ -33,7 +33,11 @@ describe('Smoke Test', () => {
 
     // Some servers respond 3xx; others send meta refresh HTML with 200.
     if (resHome.status >= 300 && resHome.status < 400) {
-      expect(resHome.headers.get('location')).toBe('/login');
+      const location = resHome.headers.get('location');
+      expect(location).not.toBeNull();
+
+      // Accept relative or absolute redirects to /login
+      expect(location).toMatch(/\/login$/);
     } else {
       expect(resHome.status).toBe(200);
       const homeHtml = await resHome.text();
