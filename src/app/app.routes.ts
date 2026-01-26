@@ -11,19 +11,18 @@ import { PaymentReferenceEditComponent } from '@components/civil-fee-section/pay
 import { ForbiddenComponent } from '@components/global-error/forbidden/forbidden.component';
 import { InternalErrorComponent } from '@components/global-error/internal-error/internal-error.component';
 import { NotFoundComponent } from '@components/global-error/not-found/not-found.component';
+import { HomeComponent } from '@components/home/home.component';
 import { Login } from '@components/login/login';
 import { Reports } from '@components/reports/reports';
 import { ResultSelected } from '@components/result-selected/result-selected';
 import { StandardApplicants } from '@components/standard-applicants/standard-applicants';
-import { homeRedirectGuard } from '@guards/home-redirect.guard';
 import { sessionGuard } from '@guards/session.guard';
 
 export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    canActivate: [homeRedirectGuard],
-    component: Login,
+    component: HomeComponent,
   },
   { path: 'login', component: Login },
   { path: 'forbidden', component: ForbiddenComponent },
