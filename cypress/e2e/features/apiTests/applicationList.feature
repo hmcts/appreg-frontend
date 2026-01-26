@@ -1,4 +1,4 @@
-Feature: Application List
+Feature: API - Application List
 
   @api @regression @ARCPOC-214 @ARCPOC-772
   Scenario Outline: Create Application List using courtLocationCode via API
