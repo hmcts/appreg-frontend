@@ -375,7 +375,7 @@ describe('GET /sso/login-callback', () => {
       .set(TEST_HEADERS);
 
     expect(res.status).toBe(302);
-    expect(res.headers['location']).toBe('/applications-list');
+    expect(res.headers['location']).toBe('/');
 
     expect(acquireTokenByCode).toHaveBeenCalledTimes(1);
     expect(acquireTokenByCode).toHaveBeenCalledWith(
