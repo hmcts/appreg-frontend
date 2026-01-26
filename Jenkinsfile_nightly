@@ -63,8 +63,7 @@ withNightlyPipeline(type, product, component) {
         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE', message: 'Smoke tests failed') {
           try {
             yarnBuilder.yarn('test:parallel:smoke:chrome')
-          } finally {yes
-          
+          } finally {
             archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/smoke/**/*'
             junit allowEmptyResults: true, testResults: 'functional-output/**/*.xml'
             
