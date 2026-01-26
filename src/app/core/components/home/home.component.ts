@@ -1,4 +1,5 @@
-import { Component, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Component, PLATFORM_ID, inject } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { SessionService } from '@services/session.service';
@@ -10,9 +11,12 @@ import { SessionService } from '@services/session.service';
 export class HomeComponent {
   private readonly session = inject(SessionService);
   private readonly router = inject(Router);
+  private readonly platformId = inject(PLATFORM_ID);
 
   constructor() {
-    void this.run();
+    if (isPlatformBrowser(this.platformId)) {
+      void this.run();
+    }
   }
 
   private async run(): Promise<void> {

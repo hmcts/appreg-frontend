@@ -1,6 +1,14 @@
 import { RenderMode, ServerRoute } from '@angular/ssr';
 
 export const serverRoutes: ServerRoute[] = [
+  {
+    path: '',
+    renderMode: RenderMode.Server,
+  },
+  {
+    path: 'login',
+    renderMode: RenderMode.Server,
+  },
   { path: 'forbidden', renderMode: RenderMode.Server },
   { path: 'internal-error', renderMode: RenderMode.Server },
   { path: 'page-not-found', renderMode: RenderMode.Server },
@@ -16,8 +24,5 @@ export const serverRoutes: ServerRoute[] = [
     path: 'applications-list/:id/result-selected',
     renderMode: RenderMode.Server,
   },
-  {
-    path: '**',
-    renderMode: RenderMode.Server,
-  },
+  { path: '**', renderMode: RenderMode.Server },
 ];
