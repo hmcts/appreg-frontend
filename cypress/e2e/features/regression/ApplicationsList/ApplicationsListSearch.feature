@@ -61,7 +61,7 @@ Feature: Applications List Search
       | admin1 |
 
   @regression @ARCPOC-214 @ARCPOC-452 @ARCPOC-977
-  Scenario Outline: Verify applications list table is displayed with search results
+  Scenario Outline: Verify applications list table is displayed with search results and values retained
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     When User Set Date Field "Date" To "<SearchDate>"
