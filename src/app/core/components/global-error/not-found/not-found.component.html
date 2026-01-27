@@ -1,0 +1,15 @@
+<h1 class="govuk-heading-xl govuk-!-margin-bottom-8" role="alert">
+  Page not found
+</h1>
+
+@if (isAuthenticated()) {
+  <p class="govuk-body">
+    <a routerLink="/applications-list" class="govuk-link"
+      >Go to application list</a
+    >
+  </p>
+} @else {
+  <p class="govuk-body">
+    <a routerLink="/login" class="govuk-link">Go to login</a>
+  </p>
+}

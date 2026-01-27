@@ -77,11 +77,7 @@
             routerLinkActive="govuk-service-navigation__item--active"
             [routerLinkActiveOptions]="{ exact: true }"
           >
-            <a
-              href="#"
-              class="govuk-service-navigation__link"
-              (click)="onSignOutClicked($event)"
-            >
+            <a href="/sso/logout" class="govuk-service-navigation__link">
               Sign out
             </a>
           </li>

@@ -43,7 +43,11 @@ module.exports = {
     ],
     '^@context/(.*)$': '<rootDir>/src/app/shared/context/$1',
     '^@validators/(.*)$': '<rootDir>/src/app/shared/validators/$1',
-    '^@interceptors/(.*)$': '<rootDir>/src/app/shared/interceptors/$1',
+    '^@interceptors/(.*)$': [
+      '<rootDir>/src/app/core/interceptors/$1',
+      '<rootDir>/src/app/shared/interceptors/$1',
+    ],
+    '^@guards/(.*)$': ['<rootDir>/src/app/guards/$1'],
   },
 
   transformIgnorePatterns: [String.raw`node_modules/(?!.*\.mjs$)`],
