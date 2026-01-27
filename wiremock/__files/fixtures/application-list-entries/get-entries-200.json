@@ -1,102 +1,523 @@
 {
   "pageNumber": 0,
-  "pageSize": 100,
-  "totalElements": 25,
+  "pageSize": 10,
+  "totalElements": 10,
   "totalPages": 1,
-  "sort": { "orders": [{ "property": "status", "direction": "asc" }] },
+  "sort": {
+    "orders": [
+      { "property": "courtCode", "direction": "asc" },
+      { "property": "id", "direction": "asc" }
+    ]
+  },
   "first": true,
   "last": true,
   "elementsOnPage": 10,
   "content": [
     {
-      "id": "0c7d9e2a-6d0a-42b8-b6a8-9a2a3b6a0101",
-      "applicantName": "CPS",
-      "respondentName": "John Smith",
-      "applicationTitle": "Issue of liability order warrant",
+      "id": "af1a8fc7-474a-41c5-ac3c-6ac5af9474d3",
+      "applicant": {
+        "person": null,
+        "organisation": {
+          "name": "Legal Aid Board",
+          "contactDetails": {
+            "addressLine1": "100 Legal Street",
+            "addressLine2": null,
+            "addressLine3": null,
+            "addressLine4": null,
+            "addressLine5": null,
+            "postcode": "BA15 1LA",
+            "phone": null,
+            "mobile": null,
+            "email": "info@legalaid.example.com"
+          }
+        }
+      },
+      "respondent": {
+        "person": {
+          "name": {
+            "title": "Mrs",
+            "surname": "Johnson",
+            "firstForename": "Sarah",
+            "secondForename": null,
+            "thirdForename": null
+          },
+          "contactDetails": {
+            "addressLine1": "12 The Avenue",
+            "addressLine2": null,
+            "addressLine3": null,
+            "addressLine4": null,
+            "addressLine5": null,
+            "postcode": "XY9 8ZZ",
+            "phone": null,
+            "mobile": "07700900000",
+            "email": "s.johnson@example.com"
+          }
+        },
+        "organisation": null
+      },
+      "applicationTitle": "A VERY LONG STRINA VERY LONG STRINA VERY LONG STRINA VERY LONG STRINA VERY LONG STRINA VERY LONG STRINA VERY LONG STRINA VERY LONG STRINA VERY LONG STRINA VERY LONG STRING",
+      "legislation": "Section 111 Magistrates' Courts Act 1980",
       "isFeeRequired": false,
       "isResulted": false,
+      "listId": "fb1cd595-4cae-4146-81fd-ad0f7541ca50",
+      "date": "2025-05-12",
+      "status": "CLOSED"
+    },
+    {
+      "id": "3a2c9e2f-c0e0-47ce-a28c-3d42095e55f2",
+      "applicant": {
+        "person": {
+          "name": {
+            "title": "Mr",
+            "surname": "Scott",
+            "firstForename": "William",
+            "secondForename": null,
+            "thirdForename": null
+          },
+          "contactDetails": {
+            "addressLine1": "159 Spruce Avenue",
+            "addressLine2": null,
+            "addressLine3": null,
+            "addressLine4": "Hamletville",
+            "addressLine5": null,
+            "postcode": "HV8 8MN",
+            "phone": "07890123456",
+            "mobile": null,
+            "email": "william.scott@example.com"
+          }
+        },
+        "organisation": null
+      },
+      "respondent": {
+        "person": null,
+        "organisation": {
+          "name": "Legal Aid Board",
+          "contactDetails": {
+            "addressLine1": "100 Legal Street",
+            "addressLine2": null,
+            "addressLine3": null,
+            "addressLine4": null,
+            "addressLine5": null,
+            "postcode": "BA15 1LA",
+            "phone": null,
+            "mobile": null,
+            "email": "info@legalaid.example.com"
+          }
+        }
+      },
+      "applicationTitle": "Appeal by Case Stated (Civil)",
+      "legislation": "Section 111 Magistrates' Courts Act 1980",
+      "isFeeRequired": false,
+      "isResulted": false,
+      "listId": "fb1cd595-4cae-4146-81fd-ad0f7541ca50",
+      "date": "2025-05-12",
+      "status": "CLOSED"
+    },
+    {
+      "id": "5f0b6d4a-32fd-4e0a-8c7f-6a4a6d6b1e9a",
+      "applicant": {
+        "person": {
+          "name": {
+            "title": "Ms",
+            "surname": "Patel",
+            "firstForename": "Aisha",
+            "secondForename": null,
+            "thirdForename": null
+          },
+          "contactDetails": {
+            "addressLine1": "44 King Street",
+            "addressLine2": null,
+            "addressLine3": null,
+            "addressLine4": "Riverton",
+            "addressLine5": null,
+            "postcode": "RV1 2AB",
+            "phone": null,
+            "mobile": "07900111222",
+            "email": "a.patel@example.com"
+          }
+        },
+        "organisation": null
+      },
+      "respondent": {
+        "person": {
+          "name": {
+            "title": "Mr",
+            "surname": "Hughes",
+            "firstForename": "Daniel",
+            "secondForename": null,
+            "thirdForename": null
+          },
+          "contactDetails": {
+            "addressLine1": "8 Meadow Close",
+            "addressLine2": null,
+            "addressLine3": null,
+            "addressLine4": null,
+            "addressLine5": null,
+            "postcode": "MD3 4CD",
+            "phone": "02079460000",
+            "mobile": null,
+            "email": "d.hughes@example.com"
+          }
+        },
+        "organisation": null
+      },
+      "applicationTitle": "Appeal Against Conviction",
+      "legislation": "Criminal Appeal Act 1968",
+      "isFeeRequired": true,
+      "isResulted": false,
+      "listId": "fb1cd595-4cae-4146-81fd-ad0f7541ca50",
+      "date": "2025-01-14",
       "status": "OPEN"
     },
     {
-      "id": "1b2f5b11-9a7a-4c8e-b1f1-6b2f5b110102",
-      "applicantName": "CPS",
-      "respondentName": "Jane Doe",
-      "applicationTitle": "Issue of warrant of arrest",
+      "id": "1c8c7f3b-16b6-4d75-9b63-47d8f7c1c7d1",
+      "applicant": {
+        "person": null,
+        "organisation": {
+          "name": "Crown Prosecution Service",
+          "contactDetails": {
+            "addressLine1": "1 Justice Square",
+            "addressLine2": null,
+            "addressLine3": null,
+            "addressLine4": "Central",
+            "addressLine5": null,
+            "postcode": "JS1 1AA",
+            "phone": "03001234567",
+            "mobile": null,
+            "email": "enquiries@cps.example.com"
+          }
+        }
+      },
+      "respondent": {
+        "person": {
+          "name": {
+            "title": "Ms",
+            "surname": "O'Neill",
+            "firstForename": "Fiona",
+            "secondForename": "Marie",
+            "thirdForename": null
+          },
+          "contactDetails": {
+            "addressLine1": "23 North Road",
+            "addressLine2": null,
+            "addressLine3": null,
+            "addressLine4": "Old Town",
+            "addressLine5": null,
+            "postcode": "NT9 9ZZ",
+            "phone": null,
+            "mobile": "07700912345",
+            "email": "f.oneill@example.com"
+          }
+        },
+        "organisation": null
+      },
+      "applicationTitle": "Judicial Review (Urgent)",
+      "legislation": "Senior Courts Act 1981",
       "isFeeRequired": true,
       "isResulted": true,
+      "listId": "fb1cd595-4cae-4146-81fd-ad0f7541ca50",
+      "date": "2025-03-23",
       "status": "CLOSED"
     },
     {
-      "id": "2c3e6c22-8b8b-4f9f-a2f2-7c3e6c220103",
-      "applicantName": "HMRC",
-      "respondentName": "Acme Trading Ltd",
-      "applicationTitle": "Statutory declaration",
+      "id": "b2d6c3ea-0f46-4d1c-8c4c-8c0e9b6c8e2a",
+      "applicant": {
+        "person": {
+          "name": {
+            "title": "Mr",
+            "surname": "Evans",
+            "firstForename": "Thomas",
+            "secondForename": null,
+            "thirdForename": null
+          },
+          "contactDetails": {
+            "addressLine1": "71 Oak Lane",
+            "addressLine2": null,
+            "addressLine3": null,
+            "addressLine4": null,
+            "addressLine5": null,
+            "postcode": "OK2 3EF",
+            "phone": null,
+            "mobile": "07800987654",
+            "email": "t.evans@example.com"
+          }
+        },
+        "organisation": null
+      },
+      "respondent": {
+        "person": null,
+        "organisation": {
+          "name": "Legal Aid Board",
+          "contactDetails": {
+            "addressLine1": "100 Legal Street",
+            "addressLine2": null,
+            "addressLine3": null,
+            "addressLine4": null,
+            "addressLine5": null,
+            "postcode": "BA15 1LA",
+            "phone": null,
+            "mobile": null,
+            "email": "info@legalaid.example.com"
+          }
+        }
+      },
+      "applicationTitle": "Appeal by Case Stated (Family)",
+      "legislation": "Section 111 Magistrates' Courts Act 1980",
       "isFeeRequired": false,
       "isResulted": false,
+      "listId": "fb1cd595-4cae-4146-81fd-ad0f7541ca50",
+      "date": "2025-12-11",
       "status": "OPEN"
     },
     {
-      "id": "3d4d7d33-7c9c-4a0f-b3f3-8d4d7d330104",
-      "applicantName": "Local Authority",
-      "respondentName": "Michael Brown",
-      "applicationTitle": "Approval of summons",
+      "id": "7c4a9a12-2d5c-4f43-bc3a-83e6d7f59a10",
+      "applicant": {
+        "person": null,
+        "organisation": {
+          "name": "HM Courts & Tribunals Service",
+          "contactDetails": {
+            "addressLine1": "102 Tribunal Way",
+            "addressLine2": null,
+            "addressLine3": null,
+            "addressLine4": "Civic Centre",
+            "addressLine5": null,
+            "postcode": "TT1 0XY",
+            "phone": "03009998888",
+            "mobile": null,
+            "email": "contact@hmcts.example.com"
+          }
+        }
+      },
+      "respondent": {
+        "person": {
+          "name": {
+            "title": "Mr",
+            "surname": "Miller",
+            "firstForename": "James",
+            "secondForename": null,
+            "thirdForename": null
+          },
+          "contactDetails": {
+            "addressLine1": "5 Seaview Terrace",
+            "addressLine2": null,
+            "addressLine3": null,
+            "addressLine4": "Baytown",
+            "addressLine5": null,
+            "postcode": "BY4 7GH",
+            "phone": "01632000000",
+            "mobile": null,
+            "email": "j.miller@example.com"
+          }
+        },
+        "organisation": null
+      },
+      "applicationTitle": "Case Management Direction",
+      "legislation": "Tribunals, Courts and Enforcement Act 2007",
       "isFeeRequired": false,
-      "isResulted": true,
-      "status": "CLOSED"
+      "isResulted": false,
+      "listId": "fb1cd595-4cae-4146-81fd-ad0f7541ca50",
+      "date": "2025-03-20",
+      "status": "OPEN"
     },
     {
-      "id": "4e5c8e44-6dad-4010-b4f4-9e5c8e440105",
-      "applicantName": "DVLA",
-      "respondentName": "Sarah Wilson",
-      "applicationTitle": "Endorsement of driving record",
+      "id": "d1f6f0a8-9cc9-4b15-8b9d-7a1c6e0d9b22",
+      "applicant": {
+        "person": {
+          "name": {
+            "title": "Dr",
+            "surname": "Reed",
+            "firstForename": "Helen",
+            "secondForename": null,
+            "thirdForename": null
+          },
+          "contactDetails": {
+            "addressLine1": "2 Bridge Street",
+            "addressLine2": null,
+            "addressLine3": null,
+            "addressLine4": "Stoneford",
+            "addressLine5": null,
+            "postcode": "SF6 1JK",
+            "phone": null,
+            "mobile": "07700123456",
+            "email": "h.reed@example.com"
+          }
+        },
+        "organisation": null
+      },
+      "respondent": {
+        "person": null,
+        "organisation": {
+          "name": "Crown Prosecution Service",
+          "contactDetails": {
+            "addressLine1": "1 Justice Square",
+            "addressLine2": null,
+            "addressLine3": null,
+            "addressLine4": "Central",
+            "addressLine5": null,
+            "postcode": "JS1 1AA",
+            "phone": "03001234567",
+            "mobile": null,
+            "email": "enquiries@cps.example.com"
+          }
+        }
+      },
+      "applicationTitle": "Appeal Against Sentence",
+      "legislation": "Criminal Justice Act 2003",
       "isFeeRequired": true,
       "isResulted": false,
+      "listId": "fb1cd595-4cae-4146-81fd-ad0f7541ca50",
+      "date": "2025-02-02",
       "status": "OPEN"
     },
     {
-      "id": "5f6b9f55-5ebe-4121-b5f5-af6b9f550106",
-      "applicantName": "CPS",
-      "respondentName": "Daniel Green",
-      "applicationTitle": "Breach of order",
+      "id": "4f9d3b7a-6a5a-4d6b-a9f1-6c4b2a0f9d33",
+      "applicant": {
+        "person": null,
+        "organisation": {
+          "name": "Local Authority Legal Services",
+          "contactDetails": {
+            "addressLine1": "9 Civic Road",
+            "addressLine2": null,
+            "addressLine3": null,
+            "addressLine4": "Riverton",
+            "addressLine5": null,
+            "postcode": "RV3 3ZZ",
+            "phone": "01170001111",
+            "mobile": null,
+            "email": "legal@localauthority.example.com"
+          }
+        }
+      },
+      "respondent": {
+        "person": {
+          "name": {
+            "title": "Mrs",
+            "surname": "Green",
+            "firstForename": "Emily",
+            "secondForename": null,
+            "thirdForename": null
+          },
+          "contactDetails": {
+            "addressLine1": "90 High Street",
+            "addressLine2": null,
+            "addressLine3": null,
+            "addressLine4": null,
+            "addressLine5": null,
+            "postcode": "HS2 8PL",
+            "phone": null,
+            "mobile": "07700888888",
+            "email": "e.green@example.com"
+          }
+        },
+        "organisation": null
+      },
+      "applicationTitle": "Statutory Appeal (Education)",
+      "legislation": "Education Act 1996",
       "isFeeRequired": false,
-      "isResulted": false,
-      "status": "OPEN"
-    },
-    {
-      "id": "607aa066-4fcf-4232-b606-b07aa0660107",
-      "applicantName": "Trading Standards",
-      "respondentName": "Corner Shop Ltd",
-      "applicationTitle": "Seizure application",
-      "isFeeRequired": true,
       "isResulted": true,
+      "listId": "fb1cd595-4cae-4146-81fd-ad0f7541ca50",
+      "date": "2025-01-14",
       "status": "CLOSED"
     },
     {
-      "id": "718bb177-3ad0-4343-b717-c18bb1770108",
-      "applicantName": "Police",
-      "respondentName": "Unknown",
-      "applicationTitle": "Search warrant",
+      "id": "9a3d7c2e-1b3a-4c7e-9b2a-0a7c6d5e4f33",
+      "applicant": {
+        "person": {
+          "name": {
+            "title": "Mr",
+            "surname": "Brown",
+            "firstForename": "Oliver",
+            "secondForename": "James",
+            "thirdForename": null
+          },
+          "contactDetails": {
+            "addressLine1": "11 Maple Drive",
+            "addressLine2": null,
+            "addressLine3": null,
+            "addressLine4": null,
+            "addressLine5": null,
+            "postcode": "MP5 5MP",
+            "phone": "01910000000",
+            "mobile": null,
+            "email": "o.brown@example.com"
+          }
+        },
+        "organisation": null
+      },
+      "respondent": {
+        "person": null,
+        "organisation": {
+          "name": "HM Courts & Tribunals Service",
+          "contactDetails": {
+            "addressLine1": "102 Tribunal Way",
+            "addressLine2": null,
+            "addressLine3": null,
+            "addressLine4": "Civic Centre",
+            "addressLine5": null,
+            "postcode": "TT1 0XY",
+            "phone": "03009998888",
+            "mobile": null,
+            "email": "contact@hmcts.example.com"
+          }
+        }
+      },
+      "applicationTitle": "Appeal by Case Stated (Housing)",
+      "legislation": "Section 111 Magistrates' Courts Act 1980",
       "isFeeRequired": false,
       "isResulted": false,
+      "listId": "fb1cd595-4cae-4146-81fd-ad0f7541ca50",
+      "date": "2025-03-19",
       "status": "OPEN"
     },
     {
-      "id": "829cc288-2be1-4454-b828-d29cc2880109",
-      "applicantName": "Environment Agency",
-      "respondentName": "Green Fields Farm",
-      "applicationTitle": "Enforcement notice",
+      "id": "2e4a7d9f-1d2c-4a8e-8a9b-9d7c6b5a4f21",
+      "applicant": {
+        "person": null,
+        "organisation": {
+          "name": "Legal Aid Board",
+          "contactDetails": {
+            "addressLine1": "100 Legal Street",
+            "addressLine2": null,
+            "addressLine3": null,
+            "addressLine4": null,
+            "addressLine5": null,
+            "postcode": "BA15 1LA",
+            "phone": null,
+            "mobile": null,
+            "email": "info@legalaid.example.com"
+          }
+        }
+      },
+      "respondent": {
+        "person": {
+          "name": {
+            "title": "Mr",
+            "surname": "Khan",
+            "firstForename": "Imran",
+            "secondForename": null,
+            "thirdForename": null
+          },
+          "contactDetails": {
+            "addressLine1": "3 Cedar Court",
+            "addressLine2": null,
+            "addressLine3": null,
+            "addressLine4": "Westfield",
+            "addressLine5": null,
+            "postcode": "WF7 7WF",
+            "phone": null,
+            "mobile": "07700777777",
+            "email": "i.khan@example.com"
+          }
+        },
+        "organisation": null
+      },
+      "applicationTitle": "Appeal by Case Stated (Administrative)",
+      "legislation": "Section 111 Magistrates' Courts Act 1980",
       "isFeeRequired": false,
-      "isResulted": true,
+      "isResulted": false,
+      "listId": "fb1cd595-4cae-4146-81fd-ad0f7541ca50",
+      "date": "2025-12-11",
       "status": "CLOSED"
-    },
-    {
-      "id": "93add399-1cf2-4565-b939-e3add3990110",
-      "applicantName": "Local Authority",
-      "respondentName": "Blue Estates",
-      "applicationTitle": "Noise abatement",
-      "isFeeRequired": false,
-      "isResulted": false,
-      "status": "OPEN"
     }
   ]
 }

@@ -1,20 +1,19 @@
 <h1 class="govuk-heading-xl">Applications</h1>
 
-@if (submitted && searchErrors.length) {
+@if (vm().submitted && vm().searchErrors.length) {
   <app-error-summary
-    [title]="errorHint || 'There is a problem'"
-    [items]="searchErrors"
+    [title]="'There is a problem'"
+    [items]="vm().searchErrors"
     targetId="search"
   />
 } @else {
-  @if (isSearch && !isLoading && !rows.length) {
+  @if (vm().isSearch && !vm().isLoading && !vm().rows.length) {
     <app-notification-banner
       heading="No lists found"
       body="Try different filters, or "
       linkText="create a new list"
       [linkCommands]="['/applications-list/create']"
-    >
-    </app-notification-banner>
+    />
   }
 }
 
@@ -29,10 +28,9 @@
       label="Date"
       hint="For example, 27 3 2007"
       idPrefix="date"
-      [submitted]="submitted"
-      [isSearch]="isSearch"
-    >
-    </app-date-input>
+      [submitted]="vm().submitted"
+      [isSearch]="vm().isSearch"
+    />
 
     <!-- Applicant Org -->
     <app-text-input
@@ -40,8 +38,7 @@
       label="Applicant Org"
       hint="Enter the applicants organisation"
       idPrefix="description"
-    >
-    </app-text-input>
+    />
 
     <!-- Respondent Org -->
     <app-text-input
@@ -49,8 +46,7 @@
       label="Respondent Org"
       hint="Enter the respondents organisation"
       idPrefix="description"
-    >
-    </app-text-input>
+    />
 
     <!-- Court -->
     <app-suggestions
@@ -72,8 +68,7 @@
       label="Applicant surname"
       hint="The applicants last name"
       idPrefix="description"
-    >
-    </app-text-input>
+    />
 
     <!-- Respondent surname -->
     <app-text-input
@@ -81,8 +76,7 @@
       label="Respondent surname"
       hint="The respondent last name"
       idPrefix="description"
-    >
-    </app-text-input>
+    />
 
     <!-- Location Description -->
     <app-text-input
@@ -90,8 +84,7 @@
       label="List other location"
       hint="Other location description"
       idPrefix="description"
-    >
-    </app-text-input>
+    />
 
     <!-- Applicant code -->
     <app-text-input
@@ -99,8 +92,7 @@
       label="Applicant code"
       hint="The standard applicant code"
       idPrefix="description"
-    >
-    </app-text-input>
+    />
   </div>
 
   <div class="govuk-grid-row">
@@ -110,8 +102,7 @@
       label="Post code"
       hint="Respondents post code"
       idPrefix="description"
-    >
-    </app-text-input>
+    />
 
     <!-- CJA -->
     <app-suggestions
@@ -122,7 +113,7 @@
       (searchChange)="onCjaInputChange()"
       [suggestions]="state().filteredCja"
       (selectItem)="selectCja($event)"
-      [disabled]="!!setCourthouseSearch || !!form.get('court')?.value"
+      [disabled]="!!state().courthouseSearch || !!form.get('court')?.value"
     />
 
     <!-- Status -->
@@ -132,8 +123,7 @@
       hint="Status of the application"
       idPrefix="status"
       [options]="status"
-    >
-    </app-select-input>
+    />
 
     <!-- Account reference -->
     <app-text-input
@@ -141,8 +131,7 @@
       label="Account reference"
       hint="The account reference code"
       idPrefix="description"
-    >
-    </app-text-input>
+    />
   </div>
 
   <div class="govuk-button-group">
@@ -155,6 +144,14 @@
     >
       Search
     </button>
+    <button
+      class="govuk-button govuk-button--secondary"
+      type="button"
+      data-module="govuk-button"
+      (click)="clearSearch()"
+    >
+      Clear search
+    </button>
   </div>
 </form>
 
@@ -162,15 +159,38 @@
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 
-@if (rows.length) {
+@if (vm().rows.length) {
   <!-- Sortable table component -->
-  <app-sortable-table [caption]="'Lists'" [columns]="columns">
+  <app-sortable-table
+    [caption]="'Lists'"
+    [columns]="columns"
+    [data]="tableRows()"
+    appMojButtonMenu
+  >
     <ng-template #actionsTemplate let-row>
-      <div class="govuk-button-group">
-        <a class="govuk-button" [routerLink]="['/applications', row.id]"
-          >Open</a
+      <div
+        class="moj-button-menu"
+        data-module="moj-button-menu"
+        data-button-text="Select"
+        data-button-classes="govuk-button"
+      >
+        <!-- Open -->
+        <!-- TODO: Currently there's not pages for just application so this route doesn't work. Need to create page for this -->
+        <button
+          type="button"
+          class="govuk-button moj-button-menu__item govuk-button--secondary"
+          [routerLink]="['/applications', row.id]"
         >
-        <button type="button" class="govuk-button govuk-button--secondary">
+          Open
+        </button>
+
+        <!-- Update -->
+        <!-- TODO: Currently there's not pages for just application so this route doesn't work. Need to create page for this -->
+        <button
+          type="button"
+          class="govuk-button moj-button-menu__item govuk-button--secondary"
+          [routerLink]="['/applications', row.id, 'update']"
+        >
           Update
         </button>
       </div>
@@ -179,8 +199,12 @@
 
   <!-- Pager -->
   <app-pagination
-    [currentPage]="currentPage"
-    [totalPages]="totalPages"
+    [currentPage]="vm().currentPage"
+    [totalPages]="vm().totalPages"
     (pageChange)="onPageChange($event)"
-  ></app-pagination>
+  />
+} @else {
+  @if (!vm().isLoading && vm().submitted && !vm().searchErrors.length) {
+    <p class="govuk-body">No results found.</p>
+  }
 }
