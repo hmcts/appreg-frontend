@@ -1,13 +1,13 @@
 <h1 class="govuk-heading-xl">Applications</h1>
 
-@if (submitted && searchErrors.length) {
+@if (vm().submitted && vm().searchErrors.length) {
   <app-error-summary
     [title]="'There is a problem'"
-    [items]="searchErrors"
+    [items]="vm().searchErrors"
     targetId="search"
   />
 } @else {
-  @if (isSearch && !isLoading && !rows.length) {
+  @if (vm().isSearch && !vm().isLoading && !vm().rows.length) {
     <app-notification-banner
       heading="No lists found"
       body="Try different filters, or "
@@ -28,8 +28,8 @@
       label="Date"
       hint="For example, 27 3 2007"
       idPrefix="date"
-      [submitted]="submitted"
-      [isSearch]="isSearch"
+      [submitted]="vm().submitted"
+      [isSearch]="vm().isSearch"
     />
 
     <!-- Applicant Org -->
@@ -113,7 +113,7 @@
       (searchChange)="onCjaInputChange()"
       [suggestions]="state().filteredCja"
       (selectItem)="selectCja($event)"
-      [disabled]="!!setCourthouseSearch || !!form.get('court')?.value"
+      [disabled]="!!state().courthouseSearch || !!form.get('court')?.value"
     />
 
     <!-- Status -->
@@ -144,6 +144,14 @@
     >
       Search
     </button>
+    <button
+      class="govuk-button govuk-button--secondary"
+      type="button"
+      data-module="govuk-button"
+      (click)="clearSearch()"
+    >
+      Clear search
+    </button>
   </div>
 </form>
 
@@ -151,12 +159,12 @@
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 
-@if (rows.length) {
+@if (vm().rows.length) {
   <!-- Sortable table component -->
   <app-sortable-table
     [caption]="'Lists'"
     [columns]="columns"
-    [data]="tableRows"
+    [data]="tableRows()"
     appMojButtonMenu
   >
     <ng-template #actionsTemplate let-row>
@@ -191,12 +199,12 @@
 
   <!-- Pager -->
   <app-pagination
-    [currentPage]="currentPage"
-    [totalPages]="totalPages"
+    [currentPage]="vm().currentPage"
+    [totalPages]="vm().totalPages"
     (pageChange)="onPageChange($event)"
   />
 } @else {
-  @if (!isLoading && submitted && !searchErrors.length) {
+  @if (!vm().isLoading && vm().submitted && !vm().searchErrors.length) {
     <p class="govuk-body">No results found.</p>
   }
 }

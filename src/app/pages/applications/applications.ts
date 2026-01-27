@@ -1,23 +1,4 @@
-/* TODO: arcpoc-816
-prio 2
-Refactor scattered flags, manual subscribe, repeated error handling
-*/
-
-/*
-Applications
-Main component for page /applications
-
-Functionality:
-onSubmit():
-  - GET request to Spring API which returns application entries based on given params
-  - If params are empty (user leaves fields empty or on default selected value) GET ALL is run
-  - Populates query based on fields that are !null/!undefined/!defaultValue
-  Helper functions:
-    @util/has
-    @util/application-status-helpers
-*/
-
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, computed, inject } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -25,15 +6,18 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { Subject, map, tap } from 'rxjs';
 
+import {
+  clearNotificationsPatch,
+  initialApplicationsState,
+  searchErrorPatch,
+  searchSuccessPatch,
+  startSearchPatch,
+} from './util/applications.state';
 import { mapToRow } from './util/table-mapper';
 
 import { DateInputComponent } from '@components/date-input/date-input.component';
-import {
-  ErrorItem,
-  ErrorSummaryComponent,
-} from '@components/error-summary/error-summary.component';
+import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
@@ -47,11 +31,11 @@ import {
   GetEntriesRequestParams,
 } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
-import { ApplicationRow } from '@shared-types/applications/applications.type';
 import { toStatus } from '@util/application-status-helpers';
 import { has } from '@util/has';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
+import { createSignalState } from '@util/signal-state-helpers';
 
 @Component({
   selector: 'app-applications',
@@ -76,19 +60,11 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   private readonly refFacade = inject(ReferenceDataFacade);
   private readonly appListApi = inject(ApplicationListEntriesApi);
 
-  private readonly destroy$ = new Subject<void>();
+  private readonly appState = createSignalState(initialApplicationsState);
+  readonly vm = this.appState.vm;
+  private readonly patchApp = this.appState.patch;
 
-  isLoading: boolean = false;
-  submitted: boolean = false;
-  isSearch: boolean = false;
-
-  // Error summary
-  errorHint: string = 'There is a problem';
-  searchErrors: { id: string; text: string }[] = [];
-  errorSummary: ErrorItem[] = [];
-
-  rows: EntryGetSummaryDto[] = [];
-  tableRows: ApplicationRow[] = [];
+  readonly tableRows = computed(() => this.vm().rows.map(mapToRow));
 
   override form = new FormGroup({
     date: new FormControl<string | null>(null),
@@ -104,10 +80,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     cja: new FormControl<string>(''),
     status: new FormControl<string | null>(null),
   });
-
-  currentPage = 1;
-  totalPages = 5;
-  pageSize = 10;
 
   columns = [
     { header: 'Date', field: 'date' },
@@ -135,11 +107,12 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     const btn = event.submitter as HTMLButtonElement | null;
     const action = btn?.value ?? 'search';
 
-    // Reset flag
-    this.searchErrors = [];
-    this.submitted = true;
-    this.isSearch = true;
-    this.rows = [];
+    this.patchApp({
+      ...clearNotificationsPatch(),
+      submitted: true,
+      isSearch: true,
+      rows: [],
+    });
 
     if (action === 'search') {
       this.loadApplications();
@@ -147,62 +120,77 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   loadApplications(): void {
-    if (this.isLoading === true) {
-      // Prevent query when query is already running
+    if (this.vm().isLoading) {
       return;
     }
 
     const dateCtrl = this.form.controls.date;
     if (dateCtrl.errors?.['dateInvalid']) {
-      this.searchErrors.push({
-        id: 'date-day',
-        text: dateCtrl.errors['dateErrorText'] as string,
+      this.patchApp({
+        searchErrors: [
+          {
+            id: 'date-day',
+            text: dateCtrl.errors['dateErrorText'] as string,
+          },
+        ],
       });
+      return;
     }
 
-    if (this.searchErrors.length) {
+    if (this.vm().searchErrors.length) {
       return;
     }
 
     const params: GetEntriesRequestParams = {
-      page: this.currentPage - 1,
-      size: this.pageSize,
+      page: this.vm().currentPage - 1,
+      size: this.vm().pageSize,
       filter: this.loadQuery(),
     };
 
-    this.isLoading = true;
+    this.patchApp({ ...startSearchPatch(), ...clearNotificationsPatch() });
 
     this.appListApi
       .getEntries(params, undefined, undefined, { transferCache: false })
-      .pipe(
-        tap(() => (this.isLoading = true)),
-        map((page) => {
-          const rows = page?.content ?? ([] as EntryGetSummaryDto[]);
-          return { page, rows };
-        }),
-      )
       .subscribe({
-        next: ({ page, rows }) => {
-          this.rows = rows;
-          this.tableRows = rows.map(mapToRow);
-
-          this.totalPages = page?.totalPages ?? 1;
-          this.isLoading = false;
+        next: (page) => {
+          const rows = page?.content ?? ([] as EntryGetSummaryDto[]);
+          this.patchApp(searchSuccessPatch(rows, page?.totalPages ?? 1));
         },
         error: () => {
-          this.errorHint = 'There is a problem';
-          this.searchErrors.push({
-            id: '',
-            text: 'There was a problem retrieving the applications. Try again.',
-          });
-          this.isLoading = false;
+          this.patchApp(searchErrorPatch());
         },
       });
   }
 
   onPageChange(page: number): void {
-    this.currentPage = page;
+    this.patchApp({ currentPage: page });
     this.loadApplications(); // fetch page `page`
+  }
+
+  clearSearch(): void {
+    this.appState.state.set(initialApplicationsState);
+
+    this.form.reset({
+      date: null,
+      applicantOrg: '',
+      respondentOrg: '',
+      applicantSurname: '',
+      respondentSurname: '',
+      location: '',
+      standardApplicantCode: '',
+      respondentPostcode: '',
+      accountReference: '',
+      court: '',
+      cja: '',
+      status: null,
+    });
+
+    this.patch({
+      courthouseSearch: '',
+      cjaSearch: '',
+      filteredCourthouses: [],
+      filteredCja: [],
+    });
   }
 
   // Helpers

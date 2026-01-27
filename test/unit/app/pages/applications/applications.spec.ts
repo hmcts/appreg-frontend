@@ -1,12 +1,44 @@
+import { HttpResponse } from '@angular/common/http';
+import type { WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
 import { Applications } from '@components/applications/applications';
-import { ApplicationListEntriesApi, EntryGetFilterDto } from '@openapi';
+import { ApplicationsState } from '@components/applications/util/applications.state';
+import {
+  ApplicationListEntriesApi,
+  ApplicationListStatus,
+  EntryGetFilterDto,
+  EntryGetSummaryDto,
+  EntryPage,
+} from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 
 interface HasLoadQuery {
   loadQuery(): EntryGetFilterDto;
+}
+
+function appStateSignal(
+  component: Applications,
+): WritableSignal<ApplicationsState> {
+  return (
+    component as unknown as {
+      appState: { state: WritableSignal<ApplicationsState> };
+    }
+  ).appState.state;
+}
+
+function makeEntry(
+  overrides?: Partial<EntryGetSummaryDto>,
+): EntryGetSummaryDto {
+  return {
+    id: 'row-1',
+    applicationTitle: 'Some title',
+    isFeeRequired: true,
+    isResulted: false,
+    status: 'OPEN' as ApplicationListStatus,
+    ...overrides,
+  };
 }
 
 describe('ApplicationsComponent', () => {
@@ -21,20 +53,28 @@ describe('ApplicationsComponent', () => {
     courtLocations$: of([]),
   };
 
-  const getEntriesMock = jest.fn();
+  const getEntriesMock: jest.MockedFunction<
+    ApplicationListEntriesApi['getEntries']
+  > = jest.fn();
+
   const appListEntriesApiStub: Pick<ApplicationListEntriesApi, 'getEntries'> = {
     getEntries: getEntriesMock,
   };
 
   beforeEach(async () => {
     getEntriesMock.mockReset();
+
     // default: empty page response
     getEntriesMock.mockReturnValue(
-      of({
-        content: [],
-        totalPages: 0,
-        number: 0,
-      }),
+      of(
+        new HttpResponse<EntryPage>({
+          body: {
+            content: [],
+            totalPages: 0,
+            number: 0,
+          } as unknown as EntryPage,
+        }),
+      ),
     );
 
     await TestBed.configureTestingModule({
@@ -94,7 +134,7 @@ describe('ApplicationsComponent', () => {
 
     it('enables Search when only status is set', () => {
       component.form.reset();
-      component.form.patchValue({ status: 'PENDING' });
+      component.form.patchValue({ status: 'open' }); // string is fine
       fixture.detectChanges();
 
       const button: HTMLButtonElement =
@@ -133,12 +173,11 @@ describe('ApplicationsComponent', () => {
         respondentPostcode: '  AB1 2CD ',
         standardApplicantCode: '  STD123 ',
         accountReference: '  ACC-999 ',
-        status: 'PENDING',
+        status: 'open',
       });
 
       const filter = (component as unknown as HasLoadQuery).loadQuery();
 
-      // Do NOT assert on status; implementation doesn’t set it
       expect(filter).toEqual(
         expect.objectContaining({
           date: '2025-01-02',
@@ -155,10 +194,7 @@ describe('ApplicationsComponent', () => {
         }),
       );
 
-      // empty/whitespace fields should not appear
-      component.form.reset({
-        date: '   ',
-      });
+      component.form.reset({ date: '   ' });
       const emptyFilter = (component as unknown as HasLoadQuery).loadQuery();
       expect(emptyFilter.date).toBeUndefined();
     });
@@ -167,7 +203,8 @@ describe('ApplicationsComponent', () => {
   describe('loadApplications', () => {
     it('does nothing when already loading', () => {
       getEntriesMock.mockClear();
-      component.isLoading = true;
+
+      appStateSignal(component).update((s) => ({ ...s, isLoading: true }));
 
       component.loadApplications();
 
@@ -191,41 +228,47 @@ describe('ApplicationsComponent', () => {
         cja: '',
         status: null,
       });
-      component.searchErrors = [];
-      component.errorHint = '';
+
+      appStateSignal(component).update((s) => ({
+        ...s,
+        searchErrors: [],
+        isLoading: false,
+      }));
 
       component.loadApplications();
 
       expect(getEntriesMock).toHaveBeenCalledTimes(1);
       const [params, , , options] = getEntriesMock.mock.calls[0];
 
-      expect(params.page).toBe(component.currentPage - 1);
-      expect(params.size).toBe(component.pageSize);
-      expect(params.filter).toEqual({});
+      expect(params?.page).toBe(component.vm().currentPage - 1);
+      expect(params?.size).toBe(component.vm().pageSize);
+      expect(params?.filter).toEqual({});
       expect(options).toEqual(
         expect.objectContaining({
           transferCache: false,
         }),
       );
-
-      expect(component.errorHint).toBe('');
     });
 
     it('calls API with correct params and updates rows and pagination on success', () => {
-      // Arrange filter + page state
-      component.currentPage = 2;
-      component.pageSize = 25;
-      component.form.patchValue({
-        applicantOrg: 'Org Ltd',
-      });
+      appStateSignal(component).update((s) => ({
+        ...s,
+        currentPage: 2,
+        pageSize: 25,
+        isLoading: false,
+      }));
+
+      component.form.patchValue({ applicantOrg: 'Org Ltd' });
 
       getEntriesMock.mockClear();
       getEntriesMock.mockReturnValueOnce(
         of({
-          content: [{ id: 'row-1' }],
+          content: [makeEntry({ id: 'row-1' })],
           totalPages: 5,
           number: 1,
-        }),
+        } as unknown as EntryPage) as unknown as ReturnType<
+          ApplicationListEntriesApi['getEntries']
+        >,
       );
 
       component.loadApplications();
@@ -233,9 +276,9 @@ describe('ApplicationsComponent', () => {
       expect(getEntriesMock).toHaveBeenCalledTimes(1);
       const [params, , , options] = getEntriesMock.mock.calls[0];
 
-      expect(params.page).toBe(component.currentPage - 1);
-      expect(params.size).toBe(component.pageSize);
-      expect(params.filter).toEqual(
+      expect(params?.page).toBe(component.vm().currentPage - 1);
+      expect(params?.size).toBe(component.vm().pageSize);
+      expect(params?.filter).toEqual(
         expect.objectContaining({
           applicantOrganisation: 'Org Ltd',
         }),
@@ -246,10 +289,10 @@ describe('ApplicationsComponent', () => {
         }),
       );
 
-      expect(component.rows).toEqual([{ id: 'row-1' }]);
-      expect(component.totalPages).toBe(5);
-      expect(component.currentPage).toBe(2);
-      expect(component.isLoading).toBe(false);
+      expect(component.vm().rows.map((r) => r.id)).toEqual(['row-1']);
+      expect(component.vm().totalPages).toBe(5);
+      expect(component.vm().currentPage).toBe(2);
+      expect(component.vm().isLoading).toBe(false);
     });
 
     it('handles API error by setting searchErrors and clearing loading state', () => {
@@ -258,17 +301,20 @@ describe('ApplicationsComponent', () => {
       getEntriesMock.mockClear();
       getEntriesMock.mockReturnValueOnce(throwError(() => new Error('boom')));
 
-      component.searchErrors = [];
-      component.errorHint = '';
-      component.isLoading = false;
+      appStateSignal(component).update((s) => ({
+        ...s,
+        searchErrors: [],
+        isLoading: false,
+        errorHint: '',
+      }));
 
       component.loadApplications();
 
       expect(getEntriesMock).toHaveBeenCalledTimes(1);
-      expect(component.isLoading).toBe(false);
-      expect(component.errorHint).toBe('There is a problem');
-      expect(component.searchErrors).toHaveLength(1);
-      expect(component.searchErrors[0].text).toContain(
+      expect(component.vm().isLoading).toBe(false);
+      expect(component.vm().errorHint).toBe('There is a problem');
+      expect(component.vm().searchErrors).toHaveLength(1);
+      expect(component.vm().searchErrors[0].text).toContain(
         'There was a problem retrieving the applications',
       );
     });
@@ -280,7 +326,7 @@ describe('ApplicationsComponent', () => {
 
       component.onPageChange(3);
 
-      expect(component.currentPage).toBe(3);
+      expect(component.vm().currentPage).toBe(3);
       expect(loadSpy).toHaveBeenCalledTimes(1);
     });
   });
