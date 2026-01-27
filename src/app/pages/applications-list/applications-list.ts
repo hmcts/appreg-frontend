@@ -352,6 +352,24 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     const timeCtrl = this.form.controls.time;
     const validationErrors: { id: string; text: string }[] = [];
 
+    //TODO: Should use new validation pattern in ALE update
+    // Using generic summary/child functions to retrieve messages from central error object
+
+    // CJA validation
+    const cjaTyped = (this.state().cjaSearch ?? '').trim();
+    const cjaCode = String(this.form.controls.cja.value ?? '').trim();
+
+    if (cjaTyped) {
+      const isKnownCode = this.state().cja.some((x) => x.code === cjaCode);
+
+      if (!isKnownCode) {
+        validationErrors.push({
+          id: 'cja',
+          text: APPLICATIONS_LIST_ERROR_MESSAGES.cjaNotFound,
+        });
+      }
+    }
+
     if (dateCtrl.errors?.['dateInvalid']) {
       validationErrors.push({
         id: 'date-day',

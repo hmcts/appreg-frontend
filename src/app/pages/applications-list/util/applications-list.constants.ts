@@ -27,6 +27,7 @@ export const APPLICATIONS_LIST_ERROR_MESSAGES = {
   listNotFound: 'Application List not found',
   invalidSearchCriteria:
     'Invalid Search Criteria. At least one field must be entered.',
+  cjaNotFound: 'Criminal Justice Area not found',
 } as const;
 
 // TODO: remove when we migrate to server sorting

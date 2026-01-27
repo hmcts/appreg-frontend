@@ -11,7 +11,10 @@ import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { ApplicationsList } from '@components/applications-list/applications-list';
-import { APPLICATIONS_LIST_COLUMNS } from '@components/applications-list/util/applications-list.constants';
+import {
+  APPLICATIONS_LIST_COLUMNS,
+  APPLICATIONS_LIST_ERROR_MESSAGES,
+} from '@components/applications-list/util/applications-list.constants';
 import {
   ApplicationsListState,
   clearNotificationsPatch,
@@ -34,6 +37,7 @@ import {
 import { recordsState } from '@services/application-list-records/application-list-records.service';
 import { PdfService } from '@services/pdf.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
+import { PlaceFieldsState } from '@util/place-fields.base';
 import { ApplicationListRow } from '@util/types/application-list/types';
 
 const makePrintDto = (entries: unknown[] = []): ApplicationListGetPrintDto =>
@@ -88,6 +92,17 @@ type AppListSignalStateAccessor = {
 
 type AppListRecordsStateAccessor = {
   storedRecordsState: { patch: (p: Partial<recordsState>) => void };
+};
+
+type PlaceFieldsStateAccessor = {
+  signalState: { patch: (p: Partial<PlaceFieldsState>) => void };
+};
+
+const patchPlaceState = (
+  component: ApplicationsList,
+  patch: Partial<PlaceFieldsState>,
+): void => {
+  (component as unknown as PlaceFieldsStateAccessor).signalState.patch(patch);
 };
 
 const patchUIState = (
@@ -713,6 +728,61 @@ describe('ApplicationsList – search', () => {
       const { e } = submitEvent(null);
       component.onSubmit(e);
 
+      expect(spy).toHaveBeenCalledWith(true);
+    });
+
+    it('blocks search and shows cjaNotFound when typed CJA is not a valid code', () => {
+      const spy = jest
+        .spyOn(component, 'loadApplicationsLists')
+        .mockImplementation(() => undefined);
+
+      // Ensure date/time validators aren't blocking for other reasons
+      component.form.controls.date.setErrors(null);
+      component.form.controls.time.setErrors(null);
+
+      // User typed "dhhs"
+      patchPlaceState(component, {
+        cjaSearch: 'dhhs',
+        cja: [
+          { code: '01', description: 'Area 01' } as CriminalJusticeAreaGetDto,
+          { code: '02', description: 'Area 02' } as CriminalJusticeAreaGetDto,
+        ],
+      });
+
+      // Suggestions component has put the typed text into the form control
+      component.form.controls.cja.setValue('dhhs');
+
+      const { e } = submitEvent('search');
+      component.onSubmit(e);
+
+      expect(getUIFlagState(component).searchErrors).toEqual([
+        { id: 'cja', text: APPLICATIONS_LIST_ERROR_MESSAGES.cjaNotFound },
+      ]);
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('allows search when CJA code exists in reference data', () => {
+      const spy = jest
+        .spyOn(component, 'loadApplicationsLists')
+        .mockImplementation(() => undefined);
+
+      component.form.controls.date.setErrors(null);
+      component.form.controls.time.setErrors(null);
+
+      patchPlaceState(component, {
+        cjaSearch: '01 - Area 01',
+        cja: [
+          { code: '01', description: 'Area 01' } as CriminalJusticeAreaGetDto,
+        ],
+      });
+
+      // Selected/entered code is valid
+      component.form.controls.cja.setValue('01');
+
+      const { e } = submitEvent('search');
+      component.onSubmit(e);
+
+      expect(getUIFlagState(component).searchErrors).toEqual([]);
       expect(spy).toHaveBeenCalledWith(true);
     });
   });
