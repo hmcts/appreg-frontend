@@ -17,7 +17,7 @@ onSubmit():
     @util/application-status-helpers
 */
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -25,7 +25,9 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { Subject } from 'rxjs';
+import { Subject, map, tap } from 'rxjs';
+
+import { mapToRow } from './util/table-mapper';
 
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import {
@@ -45,8 +47,10 @@ import {
   GetEntriesRequestParams,
 } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
+import { ApplicationRow } from '@shared-types/applications/applications.type';
 import { toStatus } from '@util/application-status-helpers';
 import { has } from '@util/has';
+import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 
 @Component({
@@ -64,10 +68,14 @@ import { PlaceFieldsBase } from '@util/place-fields.base';
     SuggestionsComponent,
     ErrorSummaryComponent,
     NotificationBannerComponent,
+    MojButtonMenuDirective,
   ],
   templateUrl: './applications.html',
 })
 export class Applications extends PlaceFieldsBase implements OnInit {
+  private readonly refFacade = inject(ReferenceDataFacade);
+  private readonly appListApi = inject(ApplicationListEntriesApi);
+
   private readonly destroy$ = new Subject<void>();
 
   isLoading: boolean = false;
@@ -80,6 +88,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   errorSummary: ErrorItem[] = [];
 
   rows: EntryGetSummaryDto[] = [];
+  tableRows: ApplicationRow[] = [];
 
   override form = new FormGroup({
     date: new FormControl<string | null>(null),
@@ -116,13 +125,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     { label: 'Open', value: 'open' },
     { label: 'Closed', value: 'closed' },
   ];
-
-  constructor(
-    private readonly refFacade: ReferenceDataFacade,
-    private readonly appListApi: ApplicationListEntriesApi,
-  ) {
-    super();
-  }
 
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refFacade);
@@ -172,9 +174,18 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
     this.appListApi
       .getEntries(params, undefined, undefined, { transferCache: false })
+      .pipe(
+        tap(() => (this.isLoading = true)),
+        map((page) => {
+          const rows = page?.content ?? ([] as EntryGetSummaryDto[]);
+          return { page, rows };
+        }),
+      )
       .subscribe({
-        next: (page) => {
-          this.rows = page?.content ?? [];
+        next: ({ page, rows }) => {
+          this.rows = rows;
+          this.tableRows = rows.map(mapToRow);
+
           this.totalPages = page?.totalPages ?? 1;
           this.isLoading = false;
         },
