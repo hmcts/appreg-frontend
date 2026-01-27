@@ -7,14 +7,10 @@ export class HeaderService {
   readonly isVisible = this._isVisible.asReadonly();
 
   showNavigation(): void {
-    setTimeout(() => {
-      this._isVisible.set(true);
-    });
+    this._isVisible.set(true);
   }
 
   hideNavigation(): void {
-    setTimeout(() => {
-      this._isVisible.set(false);
-    }, 0);
+    this._isVisible.set(false);
   }
 }
