@@ -14,7 +14,7 @@ type EndpointRule = { endpoint: string | RegExp; responses: number[] };
 const regexIdPlaceholder = '[0-9a-fA-F-]{36}';
 
 const subscribedEndpoints: EndpointRule[] = [
-  { endpoint: '/application-lists', responses: [400, 403, 406, 500] },
+  { endpoint: '/application-lists', responses: [400, 403, 404, 406, 500] },
   { endpoint: '/application-codes', responses: [400, 403, 406, 500] },
 
   {
