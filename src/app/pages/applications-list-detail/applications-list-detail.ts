@@ -19,8 +19,20 @@ Functionality:
 */
 
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { HttpContext, HttpErrorResponse } from '@angular/common/http';
-import { Component, Inject, NgZone, OnInit, PLATFORM_ID } from '@angular/core';
+import {
+  HttpContext,
+  HttpErrorResponse,
+  HttpResponse,
+} from '@angular/common/http';
+import {
+  Component,
+  EnvironmentInjector,
+  NgZone,
+  OnInit,
+  PLATFORM_ID,
+  inject,
+  signal,
+} from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -29,8 +41,13 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { finalize } from 'rxjs';
 
+import {
+  ApplicationsListDetailState,
+  initialApplicationsListDetailState,
+} from './util/applications-list-detail.state';
+
+import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import {
@@ -69,6 +86,7 @@ import { getProblemText } from '@util/http-error-to-text';
 import { validateCourtVsLocOrCja } from '@util/location-suggestion-helpers';
 import { MojButtonMenu, MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
+import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { parseTimeToDuration } from '@util/time-helpers';
 import {
   DateControlErrors,
@@ -108,6 +126,13 @@ type selectedRow = {
   resulted: 'Yes' | 'No';
 };
 
+type LoadDetailReq = { id: string; page: number; size: number };
+type UpdateReq = {
+  id: string;
+  payload: ApplicationListUpdateDto;
+  etag: string | null;
+};
+
 @Component({
   selector: 'app-application-detail',
   standalone: true,
@@ -133,19 +158,27 @@ type selectedRow = {
   styleUrls: ['./applications-list-detail.scss'],
 })
 export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
+  private readonly envInjector = inject(EnvironmentInjector);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly refField = inject(ReferenceDataFacade);
+  private readonly appListApi = inject(ApplicationListsApi);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly ngZone = inject(NgZone);
+  private readonly menus = inject(MojButtonMenu);
+
   id!: string;
   private etag: string | null = null;
 
-  currentPage = 1;
-  totalPages = 0;
+  private readonly detailSignalState =
+    createSignalState<ApplicationsListDetailState>(
+      initialApplicationsListDetailState,
+    );
 
-  pageSize = 10;
+  readonly vm = this.detailSignalState.vm;
 
-  selectedIds = new Set<string>();
-  selectedRows: Row[] = [];
-
-  isLoading = true;
-  private hasPrefilledFromApi = false;
+  private readonly loadRequest = signal<LoadDetailReq | null>(null);
+  private readonly updateRequest = signal<UpdateReq | null>(null);
 
   override form = new FormGroup({
     date: new FormControl<string | null>(null),
@@ -183,42 +216,13 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     allResulted: 'These applications have already been resulted.',
   };
 
-  rows: {
-    id: string;
-    sequenceNumber: number;
-    accountNumber: string | null;
-    applicant: string | null;
-    respondent: string | null;
-    postCode: string | null;
-    title: string;
-    feeReq: string;
-    resulted: string;
-  }[] = [];
-
-  // Flags
-  updateDone: boolean = false;
-  updateInvalid: boolean = false;
-
-  // Error logging
-  unpopField: ErrorItem[] = [];
-  errorHint: string = '';
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
 
-  constructor(
-    @Inject(PLATFORM_ID) private readonly platformId: object,
-    private readonly refField: ReferenceDataFacade,
-    private readonly appListApi: ApplicationListsApi,
-    private readonly route: ActivatedRoute,
-    private readonly router: Router,
-    private readonly ngZone: NgZone,
-    private readonly menus: MojButtonMenu,
-  ) {
-    super();
-  }
-
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refField);
+
+    this.setupEffects();
 
     const st = isPlatformBrowser(this.platformId)
       ? (history.state as { row?: Handoff })?.row
@@ -231,72 +235,78 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     }
   }
 
-  get noEntries(): boolean {
-    return (
-      !this.isLoading && !this.updateInvalid && (this.rows?.length ?? 0) === 0
-    );
-  }
+  private setupEffects(): void {
+    setupLoadEffect(
+      {
+        request: this.loadRequest,
 
-  loadApplicationsLists(): void {
-    if (!this.id) {
-      return;
-    }
+        load: (req: LoadDetailReq) =>
+          this.appListApi.getApplicationList(
+            { listId: req.id, page: req.page, size: req.size },
+            'response',
+            false,
+            { transferCache: false },
+          ),
 
-    this.isLoading = true;
-
-    this.appListApi
-      .getApplicationList(
-        {
-          listId: String(this.id),
-          page: this.currentPage - 1,
-          size: this.pageSize,
-        },
-        'response',
-        false,
-        { transferCache: false },
-      )
-      .pipe(
-        finalize(() => {
-          this.isLoading = false;
-        }),
-      )
-      .subscribe({
-        next: (res) => {
-          const dto = res.body!;
-          this.etag = res.headers.get('ETag') ?? this.etag;
-
-          if (!this.hasPrefilledFromApi) {
-            this.prefillFromApi(dto);
-            this.hasPrefilledFromApi = true;
+        onSuccess: (res: HttpResponse<ApplicationListGetDetailDto>) => {
+          const dto = res.body;
+          if (!dto) {
+            this.detailSignalState.patch({
+              isLoading: false,
+              updateInvalid: true,
+              errorHint: 'No data returned from server.',
+              errorSummary: [{ text: 'No data returned from server.' }],
+              rows: [],
+              totalPages: 0,
+              selectedIds: new Set<string>(),
+            });
+            this.loadRequest.set(null);
+            return;
           }
 
-          const items = dto?.entriesSummary ?? [];
-          // map API items → table rows
-          this.rows = items.map((e) => ({
+          this.etag = res.headers.get('ETag') ?? this.etag;
+
+          const vm = this.vm();
+
+          if (!vm.hasPrefilledFromApi) {
+            this.prefillFromApi(dto);
+            this.detailSignalState.patch({ hasPrefilledFromApi: true });
+          }
+
+          const items = dto.entriesSummary ?? [];
+          const rows: selectedRow[] = items.map((e) => ({
             id: e.uuid,
             sequenceNumber: e.sequenceNumber,
-            accountNumber: this.formatDisplayText(e.accountNumber),
-            applicant: this.formatDisplayText(e.applicant),
-            respondent: this.formatDisplayText(e.respondent),
-            postCode: this.formatDisplayText(e.postCode),
+            accountNumber: e.accountNumber ?? null,
+            applicant: e.applicant ?? null,
+            respondent: e.respondent ?? null,
+            postCode: e.postCode ?? null,
             title: e.applicationTitle,
             feeReq: e.feeRequired ? 'Yes' : 'No',
             resulted: e.result ? 'Yes' : 'No',
           }));
 
-          // compute total pages
-          const total = dto?.entriesCount ?? items.length;
-          this.totalPages =
-            total > this.pageSize ? Math.ceil(total / this.pageSize) : 0;
+          const total = dto.entriesCount ?? items.length;
+          const pageSize = vm.pageSize;
+          const totalPages = total > pageSize ? Math.ceil(total / pageSize) : 0;
 
-          // success → clear any prior error banner
-          this.updateInvalid = false;
-          this.errorHint = '';
+          const visible = new Set(rows.map((r) => r.id));
+          const selectedIds = new Set(
+            [...vm.selectedIds].filter((id) => visible.has(id)),
+          );
 
-          // keep selection in sync with visible rows
-          this.reconcileSelectionToVisible();
+          this.detailSignalState.patch({
+            isLoading: false,
+            updateInvalid: false,
+            errorHint: '',
+            errorSummary: [],
+            rows,
+            totalPages,
+            selectedIds,
+          });
 
-          // Re-init MOJ button menus AFTER DOM paint (browser-only)
+          this.loadRequest.set(null);
+
           if (isPlatformBrowser(this.platformId)) {
             this.ngZone.runOutsideAngular(() => {
               requestAnimationFrame(() => {
@@ -307,26 +317,94 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
             });
           }
         },
-        error: (err) => {
-          this.updateInvalid = true;
-          this.errorHint = getProblemText(err);
-          this.rows = [];
-          this.totalPages = 0;
-          this.selectedIds.clear();
+        onError: (err: unknown) => {
+          this.detailSignalState.patch({
+            isLoading: false,
+            updateInvalid: true,
+            errorHint: getProblemText(err),
+            errorSummary: [{ text: getProblemText(err) }],
+            rows: [],
+            totalPages: 0,
+            selectedIds: new Set<string>(),
+          });
+          this.loadRequest.set(null);
         },
-      });
+      },
+      this.envInjector,
+    );
+
+    setupLoadEffect(
+      {
+        request: this.updateRequest,
+        load: (req: UpdateReq) => {
+          const context = new HttpContext().set(IF_MATCH, req.etag ?? null);
+          return this.appListApi.updateApplicationList(
+            { listId: req.id, applicationListUpdateDto: req.payload },
+            'response',
+            false,
+            { context },
+          );
+        },
+        onSuccess: (res: HttpResponse<ApplicationListGetDetailDto>) => {
+          this.etag = res.headers.get('ETag') ?? this.etag;
+          this.detailSignalState.patch({
+            updateDone: true,
+            updateInvalid: false,
+            errorHint: '',
+            errorSummary: [],
+          });
+          this.updateRequest.set(null);
+        },
+        onError: (err: unknown) => {
+          const httpErr = err instanceof HttpErrorResponse ? err : undefined;
+
+          this.detailSignalState.patch({
+            updateInvalid: true,
+            errorHint: 'There is a problem',
+            errorSummary: httpErr
+              ? this.mapUpdateError(httpErr)
+              : [{ text: getProblemText(err) }],
+          });
+
+          this.updateRequest.set(null);
+        },
+      },
+      this.envInjector,
+    );
+  }
+
+  get noEntries(): boolean {
+    const vm = this.vm();
+    return !vm.isLoading && !vm.updateInvalid && (vm.rows?.length ?? 0) === 0;
+  }
+
+  loadApplicationsLists(): void {
+    if (!this.id) {
+      return;
+    }
+
+    this.detailSignalState.patch({ isLoading: true });
+    const vm = this.vm();
+
+    this.loadRequest.set({
+      id: this.id,
+      page: vm.currentPage - 1,
+      size: vm.pageSize,
+    });
+  }
+
+  onSelectedRowsChange(rows: Row[]): void {
+    this.detailSignalState.patch({ selectedRows: rows });
   }
 
   onResultButtonClick(): void {
-    const selectedRows = this.selectedRows as selectedRow[];
-    const resultedApplications: selectedRow[] = selectedRows.filter(
-      (r) => r.resulted === 'Yes',
-    );
-    const unResultedApplications: selectedRow[] = selectedRows.filter(
-      (r) => r.resulted === 'No',
-    );
-    let mixedResultedAndUnresultedApplications!: boolean;
-    this.unpopField = [];
+    const selected = this.vm().selectedRows as selectedRow[];
+
+    const resultedApplications = selected.filter((r) => r.resulted === 'Yes');
+    const unResultedApplications = selected.filter((r) => r.resulted === 'No');
+
+    // clear any prior messages
+    this.detailSignalState.patch({ errorSummary: [], errorHint: '' });
 
     if (unResultedApplications.length === 0) {
       const message =
@@ -334,7 +412,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           ? this.RESULT_ERROR_MESSAGES.singleResulted
           : this.RESULT_ERROR_MESSAGES.allResulted;
 
-      this.unpopField.push({ text: message });
+      this.detailSignalState.patch({
+        updateInvalid: true,
+        errorHint: 'There is a problem',
+        errorSummary: [{ text: message }],
+      });
       return;
     }
 
@@ -345,11 +427,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       title: r.title,
     }));
 
-    if (resultedApplications.length > 0 && unResultedApplications.length > 0) {
-      mixedResultedAndUnresultedApplications = true;
-    } else {
-      mixedResultedAndUnresultedApplications = false;
-    }
+    const mixedResultedAndUnresultedApplications =
+      resultedApplications.length > 0 && unResultedApplications.length > 0;
 
     void this.router.navigate(['result-selected'], {
       relativeTo: this.route,
@@ -357,118 +436,108 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
-  onSelectedRowsChange(rows: Row[]): void {
-    this.selectedRows = rows;
-  }
-
   onUpdate(): void {
-    this.updateInvalid = false;
-    this.unpopField = [];
-    this.updateDone = false;
+    // reset flags/errors
+    this.detailSignalState.patch({
+      updateInvalid: false,
+      updateDone: false,
+      errorSummary: [],
+      errorHint: '',
+    });
 
     const raw = this.form.getRawValue() as DetailFormRaw;
 
     const conflict = validateCourtVsLocOrCja(raw);
     if (conflict) {
-      this.updateInvalid = true;
-      this.errorHint = conflict;
-
+      this.detailSignalState.patch({
+        updateInvalid: true,
+        errorHint: conflict,
+      });
       return;
     }
 
-    this.buildErrorSummary();
+    //CJA Validation
+    const cjaTyped = (this.state().cjaSearch ?? '').trim();
+    const cjaCode = String(raw.cja ?? '').trim();
+    if (cjaTyped) {
+      const exists = this.state().cja.some((x) => x.code === cjaCode);
+      if (!exists) {
+        this.detailSignalState.patch({
+          updateInvalid: true,
+          errorSummary: [
+            { id: 'cja', text: APPLICATIONS_LIST_ERROR_MESSAGES.cjaNotFound },
+          ],
+        });
+        return;
+      }
+    }
 
-    if (this.unpopField.length) {
-      this.updateInvalid = true;
-      this.errorHint = 'There is a problem';
+    // build validation errors
+    const errors = this.buildErrorSummaryItems();
+    if (errors.length) {
+      this.detailSignalState.patch({
+        updateInvalid: true,
+        errorHint: 'There is a problem',
+        errorSummary: errors,
+      });
       return;
     }
 
-    // Confirmation window
+    // confirm
     if (isPlatformBrowser(this.platformId)) {
       const ok = globalThis.confirm(
         'Are you sure you want to update this Application List?',
       );
+
       if (!ok) {
         return;
       }
     }
 
+    // build payload
     const dur = this.form.controls.duration.value;
     const durationHours = this.toNum(dur?.hours);
     const durationMinutes = this.toNum(dur?.minutes);
-    const isDurHours = durationHours !== undefined;
-    const isDurMins = durationMinutes !== undefined;
 
-    let payload: ApplicationListUpdateDto;
     try {
       const normalized = buildNormalizedPayload(raw);
-      payload = {
+      const payload: ApplicationListUpdateDto = {
         ...normalized,
-        ...(isDurHours && Number.isInteger(durationHours)
-          ? { durationHours }
-          : {}),
-        ...(isDurMins && Number.isInteger(durationMinutes)
-          ? { durationMinutes }
-          : {}),
+        ...(Number.isInteger(durationHours) ? { durationHours } : {}),
+        ...(Number.isInteger(durationMinutes) ? { durationMinutes } : {}),
       } as ApplicationListUpdateDto;
 
-      const context = new HttpContext().set(IF_MATCH, this.etag ?? null);
-
-      this.appListApi
-        .updateApplicationList(
-          {
-            listId: String(this.id),
-            applicationListUpdateDto: payload,
-          },
-          'response',
-          false,
-          { context },
-        )
-        .subscribe({
-          next: (res) => {
-            this.etag = res.headers.get('ETag') ?? this.etag;
-            this.updateDone = true;
-          },
-          error: (err: HttpErrorResponse) => {
-            this.updateInvalid = true;
-            this.setHttpError(err);
-          },
-        });
+      this.updateRequest.set({ id: this.id, payload, etag: this.etag });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      this.updateInvalid = true;
-      this.errorHint = msg;
-      return;
+      this.detailSignalState.patch({
+        updateInvalid: true,
+        errorHint: msg,
+      });
     }
   }
 
   // TODO: Temporary function for bug fix ARCPOC-852, this component needs to be refactored to use cleaner error handling for the different scenarios
   // e.g. generic object to hold error state & messages, id's. Utilise generic error-summary functions for form errors
-  private setHttpError(err: HttpErrorResponse): void {
+  private mapUpdateError(err: HttpErrorResponse): ErrorItem[] {
     switch (err.status) {
       case 412:
-        this.unpopField.push({
-          text: 'Resource changed. Reload and try again.',
-        });
-        break;
+        return [{ text: 'Resource changed. Reload and try again.' }];
+
       case 404:
-        this.unpopField.push({ id: 'court', text: getProblemText(err) });
-        break;
+        // preserve your old behaviour: anchor to court field
+        return [{ id: 'court', text: getProblemText(err) }];
+
       default:
-        this.unpopField.push({ text: getProblemText(err) });
-        break;
+        return [{ text: getProblemText(err) }];
     }
   }
 
   onPageChange(page: number): void {
-    this.currentPage = page;
-
-    // —— Select-all behaviour fix option:
-    // Clear any previous selections when changing pages to avoid stale state.
-    // (If you prefer to persist across pages, remove this line and rely on reconcileSelectionToVisible)
-    this.selectedIds.clear();
-
+    this.detailSignalState.patch({
+      currentPage: page,
+      selectedIds: new Set(), // same behaviour as today
+    });
     this.loadApplicationsLists();
   }
 
@@ -488,14 +557,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   // —— Select-all behaviour helpers ————————————————
 
-  /** Keep selection limited to IDs visible on the current page. */
-  private reconcileSelectionToVisible(): void {
-    const visible = new Set(this.rows.map((r) => r.id));
-    this.selectedIds = new Set(
-      [...this.selectedIds].filter((id) => visible.has(id)),
-    );
-  }
-
   private readonly formatDisplayText = (
     v: string | null | undefined,
   ): string => {
@@ -512,41 +573,44 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     return v;
   };
 
-  private buildErrorSummary(): void {
+  private buildErrorSummaryItems(): ErrorItem[] {
     const { date, time, duration } = this.form.controls;
     const dateErrors = date.errors as DateControlErrors;
     const timeErrors = time.errors as TimeControlErrors;
     const durationErrors = duration.errors as DurationControlErrors;
     const durationValue = duration.value;
 
-    this.unpopField = collectMissing(this.form.getRawValue() as DetailFormRaw, {
-      dateInvalid: !!dateErrors?.dateInvalid,
-      dateErrorText: dateErrors?.dateErrorText ?? '',
-      durationErrorText: timeErrors?.durationErrorText ?? '',
-    });
+    const items: ErrorItem[] = collectMissing(
+      this.form.getRawValue() as DetailFormRaw,
+      {
+        dateInvalid: !!dateErrors?.dateInvalid,
+        dateErrorText: dateErrors?.dateErrorText ?? '',
+        durationErrorText: timeErrors?.durationErrorText ?? '',
+      },
+    );
 
     if (durationErrors && durationValue) {
       const { hours, minutes } = durationValue;
+
       const hoursInvalid = hours === null || Number.isNaN(hours);
       const minutesInvalid = minutes === null || Number.isNaN(minutes);
 
-      const hoursText = durationErrors.hoursErrorText;
-      const minutesText = durationErrors.minutesErrorText;
-
-      if (hoursInvalid && hoursText) {
-        this.unpopField.push({
+      if (hoursInvalid && durationErrors.hoursErrorText) {
+        items.push({
           id: 'duration-hours',
-          text: hoursText,
+          text: durationErrors.hoursErrorText,
         });
       }
 
-      if (minutesInvalid && minutesText) {
-        this.unpopField.push({
+      if (minutesInvalid && durationErrors.minutesErrorText) {
+        items.push({
           id: 'duration-minutes',
-          text: minutesText,
+          text: durationErrors.minutesErrorText,
         });
       }
     }
+
+    return items;
   }
 
   private readonly toNum = (

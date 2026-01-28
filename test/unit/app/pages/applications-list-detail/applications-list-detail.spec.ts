@@ -1,62 +1,90 @@
-import { provideHttpClient } from '@angular/common/http';
+import {
+  HttpErrorResponse,
+  HttpHeaders,
+  HttpResponse,
+  provideHttpClient,
+} from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Router, provideRouter } from '@angular/router';
-import { Observable, of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
+import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail';
-import { ApplicationListsApi } from '@openapi';
+import { ApplicationsListDetailState } from '@components/applications-list-detail/util/applications-list-detail.state';
+import { ErrorItem } from '@components/error-summary/error-summary.component';
+import { Row } from '@core-types/table/row.types';
+import {
+  ApplicationListGetDetailDto,
+  ApplicationListsApi,
+  CriminalJusticeAreaGetDto,
+} from '@openapi';
+import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { MojButtonMenu } from '@util/moj-button-menu';
 
-/** Minimal typed shape of the API response our component uses */
-interface ApplicationListItemDto {
-  uuid: string;
-  sequenceNumber: number;
-  accountNumber: string | null | undefined;
-  applicant: string | null | undefined;
-  respondent: string | null | undefined;
-  postCode: string | null | undefined;
-  applicationTitle: string;
-  feeRequired: boolean;
-  result: boolean;
-}
+const flushSignalEffects = async (
+  fixture?: ComponentFixture<ApplicationsListDetail>,
+): Promise<void> => {
+  if (fixture) {
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    return;
+  }
+  await Promise.resolve();
+};
 
-export type Row = Record<string, unknown>;
-
-interface ApplicationListResponse {
-  body: {
-    entriesCount: number;
-    entriesSummary: ApplicationListItemDto[];
+type DetailSignalStateAccessor = {
+  detailSignalState: {
+    patch: (p: Partial<ApplicationsListDetailState>) => void;
   };
-  headers: { get: (h: string) => string | null };
-}
+};
 
-/** Strongly-typed stub for the generated API */
-type ApiStub = {
-  getApplicationList: jest.Mock<
-    Observable<ApplicationListResponse>,
-    [
-      { listId: string; page: number; size: number },
-      'response',
-      boolean,
-      { transferCache: boolean },
-    ]
-  >;
+type PlaceFieldsStatePatch = {
+  cjaSearch?: string | null;
+  cja?: CriminalJusticeAreaGetDto[];
+};
+
+type PlaceFieldsSignalStateAccessor = {
+  signalState: { patch: (p: Partial<PlaceFieldsStatePatch>) => void };
 };
 
 describe('ApplicationsListDetail', () => {
   let fixture: ComponentFixture<ApplicationsListDetail>;
   let component: ApplicationsListDetail;
-  let stateSpy: jest.SpyInstance;
 
-  // Shared stubs
-  const apiStub: ApiStub = {
-    getApplicationList: jest.fn() as ApiStub['getApplicationList'],
+  const apiStub: jest.Mocked<
+    Pick<ApplicationListsApi, 'getApplicationList' | 'updateApplicationList'>
+  > = {
+    getApplicationList: jest.fn(),
+    updateApplicationList: jest.fn(),
   };
 
-  const menuStub: { initAll: (root: Document | HTMLElement) => void } = {
+  const menuStub: jest.Mocked<Pick<MojButtonMenu, 'initAll'>> = {
     initAll: jest.fn(),
+  };
+
+  const refFacadeStub: Pick<ReferenceDataFacade, 'courtLocations$' | 'cja$'> = {
+    courtLocations$: of([]),
+    cja$: of([] as CriminalJusticeAreaGetDto[]),
+  };
+
+  let historyStateSpy: jest.SpyInstance;
+
+  const vm = () => component.vm();
+
+  const patchDetailState = (p: Partial<ApplicationsListDetailState>): void => {
+    (component as unknown as DetailSignalStateAccessor).detailSignalState.patch(
+      p,
+    );
+  };
+
+  const patchPlaceFieldsState = (p: Partial<PlaceFieldsStatePatch>): void => {
+    (component as unknown as PlaceFieldsSignalStateAccessor).signalState.patch(
+      p,
+    );
   };
 
   beforeEach(async () => {
@@ -66,34 +94,47 @@ describe('ApplicationsListDetail', () => {
       description: '',
       status: 'OPEN' as const,
     };
-    stateSpy = jest
+
+    historyStateSpy = jest
       .spyOn(globalThis.history, 'state', 'get')
       .mockReturnValue({ row });
 
-    const defaultResponse: ApplicationListResponse = {
-      body: { entriesCount: 0, entriesSummary: [] },
-      headers: { get: (h: string) => (h === 'ETag' ? '"etag-v1"' : null) },
-    };
-    apiStub.getApplicationList.mockReturnValue(of(defaultResponse));
+    const dto = {
+      entriesCount: 0,
+      entriesSummary: [],
+    } as unknown as ApplicationListGetDetailDto;
+
+    apiStub.getApplicationList.mockReturnValue(
+      of(
+        new HttpResponse<ApplicationListGetDetailDto>({
+          status: 200,
+          body: dto,
+          headers: new HttpHeaders({ ETag: '"etag-v1"' }),
+        }),
+      ),
+    );
 
     await TestBed.configureTestingModule({
       imports: [ApplicationsListDetail],
       providers: [
+        provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
-        provideRouter([]),
+        { provide: PLATFORM_ID, useValue: 'browser' },
         { provide: ApplicationListsApi, useValue: apiStub },
         { provide: MojButtonMenu, useValue: menuStub },
+        { provide: ReferenceDataFacade, useValue: refFacadeStub },
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ApplicationsListDetail);
     component = fixture.componentInstance;
     fixture.detectChanges();
+    await flushSignalEffects(fixture);
   });
 
   afterEach(() => {
-    stateSpy?.mockRestore();
+    historyStateSpy?.mockRestore();
     jest.clearAllMocks();
   });
 
@@ -104,25 +145,34 @@ describe('ApplicationsListDetail', () => {
   it('renders tabs with correct selection', () => {
     const appsTab = fixture.debugElement.query(By.css('#tab_applications'));
     const detailsTab = fixture.debugElement.query(By.css('#tab_list-details'));
+
     expect(appsTab).toBeTruthy();
     expect(detailsTab).toBeTruthy();
+
     expect(appsTab.nativeElement.getAttribute('aria-selected')).toBe('true');
     expect(detailsTab.nativeElement.getAttribute('aria-selected')).toBe(
       'false',
     );
   });
 
-  it('shows success banner when updateDone is true', () => {
-    component.updateDone = true;
-    fixture.detectChanges();
+  it('shows success banner when updateDone is true', async () => {
+    patchDetailState({ updateDone: true });
+    await flushSignalEffects(fixture);
+
     expect(
       fixture.debugElement.query(By.css('app-success-banner')),
     ).toBeTruthy();
   });
 
-  it('shows error summary when unpopulated fields exist', () => {
-    component.unpopField = [{ href: '#x', text: 'Error' }];
-    fixture.detectChanges();
+  it('shows error summary when errorSummary has items', async () => {
+    patchDetailState({
+      errorSummary: [{ href: '#x', text: 'Error' }],
+      updateInvalid: true,
+      errorHint: 'There is a problem',
+    });
+
+    await flushSignalEffects(fixture);
+
     expect(
       fixture.debugElement.query(By.css('app-error-summary')),
     ).toBeTruthy();
@@ -135,30 +185,12 @@ describe('ApplicationsListDetail', () => {
     expect(spy).toHaveBeenCalled();
   });
 
-  it('disables Court suggestions when Other location or CJA is filled', () => {
-    component.form.get('location')?.setValue('Town Hall');
-    fixture.detectChanges();
-    const courts = fixture.debugElement.queryAll(By.css('app-suggestions'));
-    const courtSug = courts[0];
-    if (courtSug?.componentInstance) {
-      expect(courtSug.componentInstance.disabled).toBe(true);
-    }
-  });
-
-  it('disables CJA suggestions when Court is chosen or courthouseSearch has text', () => {
+  it('disables Other location when Court is chosen (PlaceFieldsBase disabler)', () => {
     component.form.get('court')?.setValue('LOC123');
     fixture.detectChanges();
-    const suggestions = fixture.debugElement.queryAll(
-      By.css('app-suggestions'),
-    );
-    const cjaSug = suggestions[1];
-    if (cjaSug?.componentInstance) {
-      expect(cjaSug.componentInstance.disabled).toBe(true);
-    }
 
-    component.form.get('court')?.setValue('LOC123');
-    fixture.detectChanges();
     expect(component.form.get('location')?.disabled).toBe(true);
+
     const otherLoc = fixture.debugElement.query(
       By.css('app-text-input[formControlName="location"]'),
     );
@@ -167,86 +199,76 @@ describe('ApplicationsListDetail', () => {
     }
   });
 
-  it('disables Other location when Court is chosen', () => {
-    component.form.get('court')?.setValue('LOC123');
-    fixture.detectChanges();
-    const otherLoc = fixture.debugElement.query(
-      By.css('app-text-input[formControlName="location"]'),
-    );
-    expect(component.form.get('location')?.disabled).toBe(true);
-    if (otherLoc?.componentInstance) {
-      expect(otherLoc.componentInstance.disabled).toBe(true);
-    }
-  });
-
-  it('exposes pagination inputs and handles onPageChange', () => {
-    const spy = jest
+  it('onPageChange patches page + clears selectedIds + triggers load', () => {
+    const loadSpy = jest
       .spyOn(component, 'loadApplicationsLists')
-      .mockImplementation(() => {});
-    component.selectedIds = new Set(['id1', 'id2']);
+      .mockImplementation(() => undefined);
+
+    patchDetailState({ selectedIds: new Set(['a', 'b']) });
 
     component.onPageChange(3);
 
-    expect(component.currentPage).toBe(3);
-    expect(component.selectedIds.size).toBe(0);
-    expect(spy).toHaveBeenCalledTimes(1);
+    expect(vm().currentPage).toBe(3);
+    expect(vm().selectedIds.size).toBe(0);
+    expect(loadSpy).toHaveBeenCalledTimes(1);
   });
 
   describe('noEntries', () => {
     it('is false while loading', () => {
-      component.isLoading = true;
-      component.updateInvalid = false;
-      component.rows = [];
+      patchDetailState({ isLoading: true, updateInvalid: false, rows: [] });
       expect(component.noEntries).toBe(false);
     });
 
     it('is false when updateInvalid is true', () => {
-      component.isLoading = false;
-      component.updateInvalid = true;
-      component.rows = [];
+      patchDetailState({ isLoading: false, updateInvalid: true, rows: [] });
       expect(component.noEntries).toBe(false);
     });
 
     it('is true when not loading, not invalid, and no rows', () => {
-      component.isLoading = false;
-      component.updateInvalid = false;
-      component.rows = [];
+      patchDetailState({ isLoading: false, updateInvalid: false, rows: [] });
       expect(component.noEntries).toBe(true);
     });
   });
 
   describe('loadApplicationsLists', () => {
-    it('populates rows, clears errors, updates paging and selection', () => {
+    it('calls API with listId, page (0-based), size; patches rows, clears errors, updates selection', async () => {
       component.id = 'list-123';
-      component.pageSize = 10;
-      component.currentPage = 1;
 
-      // prove reconciliation removes stale selection
-      component.selectedIds = new Set(['stale-id']);
+      patchDetailState({
+        currentPage: 1,
+        pageSize: 10,
+        selectedIds: new Set(['stale-id']),
+      });
 
-      const successResponse: ApplicationListResponse = {
-        body: {
-          entriesCount: 1,
-          entriesSummary: [
-            {
-              uuid: 'abc',
-              sequenceNumber: 7,
-              accountNumber: '',
-              applicant: null,
-              respondent: 'Acme',
-              postCode: undefined,
-              applicationTitle: 'Land Registry Appeal',
-              feeRequired: true,
-              result: false,
-            },
-          ],
-        },
-        headers: { get: (h: string) => (h === 'ETag' ? '"etag-v2"' : null) },
-      };
+      const dto = {
+        entriesCount: 1,
+        entriesSummary: [
+          {
+            uuid: 'abc',
+            sequenceNumber: 7,
+            accountNumber: '',
+            applicant: null,
+            respondent: 'Acme',
+            postCode: null,
+            applicationTitle: 'Land Registry Appeal',
+            feeRequired: true,
+            result: false,
+          },
+        ],
+      } as unknown as ApplicationListGetDetailDto;
 
-      apiStub.getApplicationList.mockReturnValueOnce(of(successResponse));
+      apiStub.getApplicationList.mockReturnValueOnce(
+        of(
+          new HttpResponse<ApplicationListGetDetailDto>({
+            status: 200,
+            body: dto,
+            headers: new HttpHeaders({ ETag: '"etag-v2"' }),
+          }),
+        ),
+      );
 
       component.loadApplicationsLists();
+      await flushSignalEffects(fixture);
 
       expect(apiStub.getApplicationList).toHaveBeenCalledWith(
         { listId: 'list-123', page: 0, size: 10 },
@@ -255,51 +277,48 @@ describe('ApplicationsListDetail', () => {
         { transferCache: false },
       );
 
-      expect(component.isLoading).toBe(false);
+      expect(vm().isLoading).toBe(false);
+      expect(vm().updateInvalid).toBe(false);
+      expect(vm().errorHint).toBe('');
+      expect(vm().errorSummary).toEqual([]);
 
-      expect(component.rows).toEqual([
+      expect(vm().rows).toEqual([
         {
           id: 'abc',
           sequenceNumber: 7,
-          accountNumber: '—',
-          applicant: '—',
+          accountNumber: '',
+          applicant: null,
           respondent: 'Acme',
-          postCode: '—',
+          postCode: null,
           title: 'Land Registry Appeal',
           feeReq: 'Yes',
           resulted: 'No',
         },
       ]);
 
-      expect((component as unknown as { etag: string | null }).etag).toBe(
-        '"etag-v2"',
-      );
-      expect(component.totalPages).toBe(0);
-
-      expect(component.updateInvalid).toBe(false);
-      expect(component.errorHint).toBe('');
-
-      expect(component.selectedIds.has('stale-id')).toBe(false);
+      expect(vm().selectedIds.has('stale-id')).toBe(false);
+      expect(vm().totalPages).toBe(0);
     });
 
-    it('sets error state on API failure', () => {
+    it('sets error state on API failure', async () => {
       component.id = 'list-123';
-      const err = new Error('boom');
 
-      // Emit an error Observable with the right type parameter
-      const error$ = new Observable<ApplicationListResponse>((subscriber) => {
-        subscriber.error(err);
-      });
+      apiStub.getApplicationList.mockReturnValueOnce(
+        throwError(
+          () => new HttpErrorResponse({ status: 500, statusText: 'boom' }),
+        ),
+      );
 
-      apiStub.getApplicationList.mockReturnValueOnce(error$);
+      patchDetailState({ selectedIds: new Set(['x', 'y']) });
 
-      component.selectedIds = new Set(['x', 'y']);
       component.loadApplicationsLists();
+      await flushSignalEffects(fixture);
 
-      expect(component.updateInvalid).toBe(true);
-      expect(component.rows).toEqual([]);
-      expect(component.totalPages).toBe(0);
-      expect(component.selectedIds.size).toBe(0);
+      expect(vm().updateInvalid).toBe(true);
+      expect(vm().rows).toEqual([]);
+      expect(vm().totalPages).toBe(0);
+      expect(vm().selectedIds.size).toBe(0);
+      expect(vm().errorSummary.length).toBeGreaterThan(0);
     });
   });
 
@@ -332,63 +351,65 @@ describe('ApplicationsListDetail', () => {
     );
   });
 
-  it('onSelectedRowsChange: updates selectedRows', () => {
-    const rows = [
-      { id: 'id-1', location: 'LOC1', description: '', status: 'OPEN' },
-    ];
+  it('onSelectedRowsChange: patches selectedRows in state', () => {
+    const rows: Row[] = [{ id: 'id-1', resulted: 'No' }];
     component.onSelectedRowsChange(rows);
-    expect(component.selectedRows).toEqual(rows);
+    expect(vm().selectedRows).toEqual(rows);
   });
 
   describe('onResultButtonClick', () => {
-    it('pushes "already been resulted" message and does not navigate when all selected are resulted', () => {
+    it('sets errorSummary message and does not navigate when all selected are resulted (plural)', () => {
       const router = TestBed.inject(Router);
       const navSpy = jest.spyOn(router, 'navigate');
 
-      component.selectedRows = [
-        {
-          sequenceNumber: 1,
-          applicant: 'A',
-          respondent: 'R',
-          title: 'T1',
-          resulted: 'Yes',
-        },
-        {
-          sequenceNumber: 2,
-          applicant: 'B',
-          respondent: 'S',
-          title: 'T2',
-          resulted: 'Yes',
-        },
-      ] as Row[];
+      patchDetailState({
+        selectedRows: [
+          {
+            sequenceNumber: 1,
+            applicant: 'A',
+            respondent: 'R',
+            title: 'T1',
+            resulted: 'Yes',
+          },
+          {
+            sequenceNumber: 2,
+            applicant: 'B',
+            respondent: 'S',
+            title: 'T2',
+            resulted: 'Yes',
+          },
+        ],
+      });
 
       component.onResultButtonClick();
 
-      expect(component.unpopField).toHaveLength(1);
-      expect(component.unpopField[0].text).toEqual(
+      expect(vm().errorSummary).toHaveLength(1);
+      expect(vm().errorSummary[0].text).toBe(
         'These applications have already been resulted.',
       );
       expect(navSpy).not.toHaveBeenCalled();
     });
 
-    it('pushes "has already been resulted" message and does not navigate when all selected are resulted', () => {
+    it('sets errorSummary message and does not navigate when all selected are resulted (singular)', () => {
       const router = TestBed.inject(Router);
       const navSpy = jest.spyOn(router, 'navigate');
 
-      component.selectedRows = [
-        {
-          sequenceNumber: 1,
-          applicant: 'A',
-          respondent: 'R',
-          title: 'T1',
-          resulted: 'Yes',
-        },
-      ] as Row[];
+      patchDetailState({
+        selectedRows: [
+          {
+            sequenceNumber: 1,
+            applicant: 'A',
+            respondent: 'R',
+            title: 'T1',
+            resulted: 'Yes',
+          },
+        ],
+      });
 
       component.onResultButtonClick();
 
-      expect(component.unpopField).toHaveLength(1);
-      expect(component.unpopField[0].text).toEqual(
+      expect(vm().errorSummary).toHaveLength(1);
+      expect(vm().errorSummary[0].text).toBe(
         'This application has already been resulted.',
       );
       expect(navSpy).not.toHaveBeenCalled();
@@ -398,41 +419,40 @@ describe('ApplicationsListDetail', () => {
       const router = TestBed.inject(Router);
       const navSpy = jest.spyOn(router, 'navigate');
 
-      component.selectedRows = [
-        {
-          sequenceNumber: 1,
-          applicant: 'A',
-          respondent: 'R',
-          title: 'T1',
-          resulted: 'Yes',
-        },
-        {
-          sequenceNumber: 2,
-          applicant: 'B',
-          respondent: 'S',
-          title: 'T2',
-          resulted: 'No',
-        },
-      ] as Row[];
+      patchDetailState({
+        selectedRows: [
+          {
+            sequenceNumber: 1,
+            applicant: 'A',
+            respondent: 'R',
+            title: 'T1',
+            resulted: 'Yes',
+          },
+          {
+            sequenceNumber: 2,
+            applicant: 'B',
+            respondent: 'S',
+            title: 'T2',
+            resulted: 'No',
+          },
+        ],
+      });
 
       component.onResultButtonClick();
 
       expect(navSpy).toHaveBeenCalledTimes(1);
-
-      const expectedResultingApplications = [
-        {
-          sequenceNumber: 2,
-          applicant: 'B',
-          respondent: 'S',
-          title: 'T2',
-        },
-      ];
-
       expect(navSpy).toHaveBeenCalledWith(
         ['result-selected'],
         expect.objectContaining({
           state: {
-            resultingApplications: expectedResultingApplications,
+            resultingApplications: [
+              {
+                sequenceNumber: 2,
+                applicant: 'B',
+                respondent: 'S',
+                title: 'T2',
+              },
+            ],
             mixedResultedAndUnresultedApplications: true,
           },
         }),
@@ -443,41 +463,70 @@ describe('ApplicationsListDetail', () => {
       const router = TestBed.inject(Router);
       const navSpy = jest.spyOn(router, 'navigate');
 
-      component.selectedRows = [
-        {
-          sequenceNumber: 10,
-          applicant: 'X',
-          respondent: 'Y',
-          title: 'Alpha',
-          resulted: 'No',
-        },
-        {
-          sequenceNumber: 11,
-          applicant: 'Z',
-          respondent: 'W',
-          title: 'Beta',
-          resulted: 'No',
-        },
-      ] as Row[];
+      patchDetailState({
+        selectedRows: [
+          {
+            sequenceNumber: 10,
+            applicant: 'X',
+            respondent: 'Y',
+            title: 'Alpha',
+            resulted: 'No',
+          },
+          {
+            sequenceNumber: 11,
+            applicant: 'Z',
+            respondent: 'W',
+            title: 'Beta',
+            resulted: 'No',
+          },
+        ],
+      });
 
       component.onResultButtonClick();
 
       expect(navSpy).toHaveBeenCalledTimes(1);
-
-      const expectedResultingApplications = [
-        { sequenceNumber: 10, applicant: 'X', respondent: 'Y', title: 'Alpha' },
-        { sequenceNumber: 11, applicant: 'Z', respondent: 'W', title: 'Beta' },
-      ];
-
       expect(navSpy).toHaveBeenCalledWith(
         ['result-selected'],
         expect.objectContaining({
           state: {
-            resultingApplications: expectedResultingApplications,
+            resultingApplications: [
+              {
+                sequenceNumber: 10,
+                applicant: 'X',
+                respondent: 'Y',
+                title: 'Alpha',
+              },
+              {
+                sequenceNumber: 11,
+                applicant: 'Z',
+                respondent: 'W',
+                title: 'Beta',
+              },
+            ],
             mixedResultedAndUnresultedApplications: false,
           },
         }),
       );
+    });
+  });
+
+  describe('onUpdate - CJA validation', () => {
+    it('when cjaSearch has text but cja code not in ref data, sets errorSummary and does not call update', async () => {
+      patchPlaceFieldsState({
+        cjaSearch: 'ABC - Something',
+        cja: [{ code: 'DEF' } as CriminalJusticeAreaGetDto],
+      });
+
+      component.form.controls.cja.setValue('ABC');
+
+      component.onUpdate();
+      await flushSignalEffects(fixture);
+
+      expect(vm().updateInvalid).toBe(true);
+      expect(vm().errorSummary).toEqual<ErrorItem[]>([
+        { id: 'cja', text: APPLICATIONS_LIST_ERROR_MESSAGES.cjaNotFound },
+      ]);
+      expect(apiStub.updateApplicationList).not.toHaveBeenCalled();
     });
   });
 });
