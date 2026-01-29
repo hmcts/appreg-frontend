@@ -12,9 +12,10 @@ import {
   ApplicationListCreateDto,
   ApplicationListStatus,
   ApplicationListsApi,
-  CourtLocationsApi,
-  CriminalJusticeAreasApi,
+  CourtLocationGetSummaryDto,
+  CriminalJusticeAreaGetDto,
 } from '@openapi';
+import { ReferenceDataFacade } from '@services/reference-data.facade';
 
 // Reactive-forms warning disabled
 let warnSpy: ReturnType<typeof jest.spyOn>;
@@ -22,6 +23,17 @@ beforeAll(() => {
   warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 });
 afterAll(() => warnSpy.mockRestore());
+
+const refFacadeStub: Pick<ReferenceDataFacade, 'courtLocations$' | 'cja$'> = {
+  courtLocations$: of<CourtLocationGetSummaryDto[]>([
+    { name: 'Alpha Court', locationCode: 'A1' } as CourtLocationGetSummaryDto,
+    { name: 'Beta Court', locationCode: 'B2' } as CourtLocationGetSummaryDto,
+  ]),
+  cja$: of<CriminalJusticeAreaGetDto[]>([
+    { code: 'C1', description: 'Area One' } as CriminalJusticeAreaGetDto,
+    { code: 'C2', description: 'Area Two' } as CriminalJusticeAreaGetDto,
+  ]),
+};
 
 describe('ApplicationsListCreate', () => {
   let fixture: ComponentFixture<ApplicationsListCreate>;
@@ -40,34 +52,6 @@ describe('ApplicationsListCreate', () => {
   const appListsMock = {
     createApplicationList: jest.fn().mockReturnValue(of({ id: 123 })),
   };
-  const courtsMock = {
-    getCourtLocations: jest.fn().mockReturnValue(
-      of({
-        content: [
-          { name: 'Alpha Court', locationCode: 'A1' },
-          { name: 'Beta Court', locationCode: 'B2' },
-        ],
-        pageNumber: 0,
-        pageSize: 2,
-        totalElements: 2,
-        elementsOnPage: 2,
-      }),
-    ),
-  };
-  const cjaMock = {
-    getCriminalJusticeAreas: jest.fn().mockReturnValue(
-      of({
-        content: [
-          { code: 'C1', description: 'Area One' },
-          { code: 'C2', description: 'Area Two' },
-        ],
-        pageNumber: 0,
-        pageSize: 2,
-        totalElements: 2,
-        elementsOnPage: 2,
-      }),
-    ),
-  };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -84,16 +68,23 @@ describe('ApplicationsListCreate', () => {
             queryParams: of({}),
           },
         },
+        { provide: ReferenceDataFacade, useValue: refFacadeStub },
       ],
       schemas: [NO_ERRORS_SCHEMA],
     })
       .overrideProvider(ApplicationListsApi, { useValue: appListsMock })
-      .overrideProvider(CourtLocationsApi, { useValue: courtsMock })
-      .overrideProvider(CriminalJusticeAreasApi, { useValue: cjaMock })
       .compileComponents();
 
     fixture = TestBed.createComponent(ApplicationsListCreate);
     component = fixture.componentInstance;
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   function submit(action: string) {
@@ -105,10 +96,15 @@ describe('ApplicationsListCreate', () => {
     return evt;
   }
 
-  it('calls reference data APIs on init', () => {
+  it('calls reference data APIs on init', async () => {
     fixture.detectChanges();
-    expect(courtsMock.getCourtLocations).toHaveBeenCalled();
-    expect(cjaMock.getCriminalJusticeAreas).toHaveBeenCalled();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(
+      (component as unknown as { state: () => { cja: unknown[] } }).state().cja
+        .length,
+    ).toBeGreaterThan(0);
   });
 
   it('rejects missing fields on create', () => {
@@ -123,7 +119,7 @@ describe('ApplicationsListCreate', () => {
     });
     submit('create');
     expect(getState(component).createInvalid).toBe(true);
-    expect(getState(component).unpopField.length).toBeGreaterThan(0);
+    expect(getState(component).errorSummary.length).toBeGreaterThan(0);
     expect(getState(component).errorHint).toBe('There is a problem');
     expect(appListsMock.createApplicationList).not.toHaveBeenCalled();
   });
@@ -140,9 +136,7 @@ describe('ApplicationsListCreate', () => {
     });
     submit('create');
     expect(getState(component).createInvalid).toBe(true);
-    expect(getState(component).errorHint).toBe(
-      'You can not have Court and Other Location or CJA filled in',
-    );
+    expect(getState(component).errorHint).toBe('There is a problem');
     expect(appListsMock.createApplicationList).not.toHaveBeenCalled();
   });
 
@@ -185,17 +179,37 @@ describe('ApplicationsListCreate', () => {
       status: 'OPEN',
       court: '',
       location: 'Somewhere',
-      cja: 'C1',
+      cja: '', // start empty, like the real UI
     });
-    submit('create');
 
+    // mimic user typing + selecting from suggestions
+    component.setCjaSearch('C1');
+    component.onCjaInputChange();
+    component.selectCja({ code: 'C1', description: 'Area One' });
+
+    (
+      component as unknown as {
+        patch: (p: { cja: { code: string; description: string }[] }) => void;
+      }
+    ).patch({
+      cja: [
+        { code: 'C1', description: 'Area One' },
+        { code: 'C2', description: 'Area Two' },
+      ],
+    });
+
+    submit('create');
     await flushSignalEffects();
 
+    expect(appListsMock.createApplicationList).toHaveBeenCalledTimes(1);
+
+    const last = appListsMock.createApplicationList.mock.calls.at(-1);
+    expect(last).toBeDefined();
+
     const arg = (
-      appListsMock.createApplicationList.mock.calls.pop()![0] as {
-        applicationListCreateDto: ApplicationListCreateDto;
-      }
+      last![0] as { applicationListCreateDto: ApplicationListCreateDto }
     ).applicationListCreateDto;
+
     expect(arg).toEqual({
       date: '2025-10-03',
       time: '14:00',

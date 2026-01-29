@@ -26,10 +26,14 @@ import {
   initialApplicationsListCreateState,
 } from './util/applications-list-create.state';
 
+import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import { DurationInputComponent } from '@components/duration-input/duration-input.component';
-import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
+import {
+  ErrorItem,
+  ErrorSummaryComponent,
+} from '@components/error-summary/error-summary.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
@@ -109,7 +113,8 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
           this.appListCreatesignalState.patch({
             submitted: true,
             createInvalid: true,
-            unpopField: [{ text: msg, href: '#create', id: 'create' }],
+            errorHint: 'There is a problem',
+            errorSummary: [{ text: msg, href: '#create', id: 'create' }],
           });
           this.createRequest.set(null);
         },
@@ -118,59 +123,112 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
     );
   }
 
+  private buildPayload(raw: CreateFormRaw): ApplicationListCreateDto {
+    return buildNormalizedPayload(raw) as ApplicationListCreateDto;
+  }
+
   onSubmit(event: SubmitEvent): void {
     event.preventDefault();
+
     const action = (event.submitter as HTMLButtonElement | null)?.value ?? '';
     this.appListCreatesignalState.patch({ submitted: true });
-
     this.appListCreatesignalState.patch(clearNotificationsPatch());
 
     const raw = this.form.getRawValue() as CreateFormRaw;
+
+    const { errors, errorHint } = this.collectSubmitErrors(action, raw);
+
+    if (errors.length) {
+      this.appListCreatesignalState.patch({
+        createInvalid: true,
+        errorHint,
+        errorSummary: errors,
+      });
+      return;
+    }
+
+    this.appListCreatesignalState.patch({
+      createInvalid: false,
+      errorHint: '',
+    });
+
+    const payload = this.buildPayload(raw);
+    this.createRequest.set(payload);
+  }
+
+  /**
+   * Builds ALL validation errors so they appear together.
+   * Keeps onSubmit clean.
+   * TODO: Refactor to use Angular FormGroup validation instead of manual checks
+   */
+  private collectSubmitErrors(
+    action: string,
+    raw: CreateFormRaw,
+  ): { errors: ErrorItem[]; errorHint: string } {
+    const errors: ErrorItem[] = [];
 
     if (action === 'create') {
       const dateErrors = this.form.controls.date.errors as {
         dateInvalid?: boolean;
         dateErrorText?: string;
       } | null;
+
       const timeErrors = this.form.controls.time.errors as {
         durationErrorText?: string;
       } | null;
 
-      const missing = collectMissing(raw, {
-        dateInvalid: !!dateErrors?.dateInvalid,
-        dateErrorText: dateErrors?.dateErrorText ?? '',
-        durationErrorText: timeErrors?.durationErrorText ?? '',
-      });
-
-      if (missing.length) {
-        this.appListCreatesignalState.patch({
-          unpopField: missing,
-          createInvalid: true,
-        });
-        return;
-      }
-
-      this.appListCreatesignalState.patch({ createInvalid: false });
+      errors.push(
+        ...collectMissing(raw, {
+          dateInvalid: !!dateErrors?.dateInvalid,
+          dateErrorText: dateErrors?.dateErrorText ?? '',
+          durationErrorText: timeErrors?.durationErrorText ?? '',
+        }),
+      );
     }
 
     const conflict = validateCourtVsLocOrCja(raw);
     if (conflict) {
-      this.appListCreatesignalState.patch({
-        createInvalid: true,
-        errorHint: conflict,
+      errors.push({ id: 'court', href: '#court', text: conflict });
+    }
+
+    // ---- CJA validation (required + not-found) ----
+    const court = String(raw.court ?? '').trim();
+    const location = String(raw.location ?? '').trim();
+    const cjaCode = String(raw.cja ?? '').trim();
+    const cjaSearch = String(this.state().cjaSearch ?? '').trim();
+
+    const needsCja = !court && location.length > 0; // only required in “other location” path
+    const attemptedCja = cjaSearch.length > 0 || cjaCode.length > 0;
+
+    // If user typed something but didn't select a valid code, show "not found"
+    if (attemptedCja && cjaCode.length === 0) {
+      errors.push({
+        id: 'cja',
+        href: '#cja',
+        text: APPLICATIONS_LIST_ERROR_MESSAGES.cjaNotFound,
       });
-      return;
+    } else if (cjaCode.length > 0) {
+      const exists = this.state().cja.some((x) => x.code === cjaCode);
+      if (!exists) {
+        errors.push({
+          id: 'cja',
+          href: '#cja',
+          text: APPLICATIONS_LIST_ERROR_MESSAGES.cjaNotFound,
+        });
+      }
+    } else if (needsCja) {
+      // Only “required” when other location is being used
+      errors.push({
+        id: 'cja',
+        href: '#cja',
+        text: 'CJA is required',
+      });
     }
 
-    if (this.appListCreateState().createInvalid) {
-      return;
-    }
-
-    const payload = this.buildPayload(raw);
-    this.createRequest.set(payload);
+    return { errors, errorHint: errors.length ? 'There is a problem' : '' };
   }
 
-  private buildPayload(raw: CreateFormRaw): ApplicationListCreateDto {
-    return buildNormalizedPayload(raw) as ApplicationListCreateDto;
+  fieldError(id: string): ErrorItem | undefined {
+    return this.vm().errorSummary.find((e) => e.id === id);
   }
 }

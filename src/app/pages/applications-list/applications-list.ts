@@ -175,6 +175,17 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     this.storedRecordsState.patch({ submitted: false, rows: [] });
     this.searchForm.reset();
     this.form.reset(this.searchForm.state());
+
+    // clear PlaceFieldsBase signal state
+    this.resetPlaceSearch();
+  }
+
+  private resetPlaceSearch(): void {
+    this.setCjaSearch('');
+    this.patch({ filteredCja: [] });
+
+    this.setCourthouseSearch('');
+    this.patch({ filteredCourthouses: [] });
   }
 
   // Registers signal-driven effects that watch request signals and run API calls,
@@ -438,6 +449,15 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     this.storedRecordsState.patch({ currentPage: page });
     const hasAny = hasAnyParams(this.form);
     this.loadApplicationsLists(hasAny);
+  }
+
+  onCjaSearchChange(value: string): void {
+    this.setCjaSearch(value);
+
+    this.form.controls.cja.setValue('');
+
+    // refresh suggestions list
+    this.onCjaInputChange();
   }
 
   @HostListener('document:click')
