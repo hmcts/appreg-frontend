@@ -4,10 +4,10 @@
 
 <h1 class="govuk-heading-xl">Create new applications list</h1>
 
-@if (vm().unpopField.length || vm().createInvalid) {
+@if (vm().errorSummary.length || vm().createInvalid) {
   <app-error-summary
     [title]="vm().errorHint"
-    [items]="vm().unpopField"
+    [items]="vm().errorSummary"
     (itemSelect)="onCreateErrorClick($event)"
   />
 }
@@ -100,12 +100,8 @@
       [suggestions]="state().filteredCja"
       (selectItem)="selectCja($event)"
       [disabled]="!!form.get('court')?.value"
-      [showError]="
-        vm().createInvalid &&
-        !form.get('cja')?.value &&
-        !form.get('court')?.value?.toString()?.trim()
-      "
-      errorText="CJA is required"
+      [showError]="vm().createInvalid && !!fieldError('cja')"
+      [errorText]="fieldError('cja')?.text ?? ''"
     />
   </div>
 

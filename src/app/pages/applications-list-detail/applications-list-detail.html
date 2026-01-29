@@ -270,12 +270,8 @@
           [suggestions]="this.state().filteredCja"
           (selectItem)="selectCja($event)"
           [disabled]="!!form.get('court')?.value"
-          [showError]="
-            vm().updateInvalid &&
-            !form.get('cja')?.value &&
-            !form.get('court')?.value?.toString()?.trim()
-          "
-          errorText="CJA is required"
+          [showError]="vm().updateInvalid && !!fieldError('cja')"
+          [errorText]="fieldError('cja')?.text ?? ''"
         />
 
         <!-- Duration: Optional field -->

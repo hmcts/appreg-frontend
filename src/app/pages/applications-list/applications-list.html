@@ -113,7 +113,7 @@
       hint="Start typing to search"
       formControlName="cja"
       [(search)]="state().cjaSearch"
-      (searchChange)="onCjaInputChange()"
+      (searchChange)="onCjaSearchChange($event)"
       [suggestions]="state().filteredCja"
       (selectItem)="selectCja($event)"
     />

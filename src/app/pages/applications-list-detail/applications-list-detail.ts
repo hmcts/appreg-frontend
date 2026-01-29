@@ -665,4 +665,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       });
     }
   }
+
+  fieldError(id: string): ErrorItem | undefined {
+    return this.vm().errorSummary.find((e) => e.id === id);
+  }
 }

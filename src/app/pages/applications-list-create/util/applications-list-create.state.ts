@@ -1,7 +1,7 @@
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 
 export interface ApplicationsListCreateState {
-  unpopField: ErrorItem[];
+  errorSummary: ErrorItem[];
   createInvalid: boolean;
   createDone: boolean;
   submitted: boolean;
@@ -10,7 +10,7 @@ export interface ApplicationsListCreateState {
 
 export const initialApplicationsListCreateState: ApplicationsListCreateState = {
   submitted: false,
-  unpopField: [],
+  errorSummary: [],
   createInvalid: false,
   createDone: false,
   errorHint: 'There is a problem',
@@ -19,9 +19,9 @@ export const initialApplicationsListCreateState: ApplicationsListCreateState = {
 // Clear all error/success/notification states
 export const clearNotificationsPatch = (): Pick<
   ApplicationsListCreateState,
-  'unpopField' | 'createInvalid' | 'createDone' | 'errorHint'
+  'errorSummary' | 'createInvalid' | 'createDone' | 'errorHint'
 > => ({
-  unpopField: [],
+  errorSummary: [],
   createInvalid: false,
   createDone: false,
   errorHint: 'There is a problem',
