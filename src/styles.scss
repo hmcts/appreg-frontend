@@ -1,36 +1,17 @@
 @use 'govuk-frontend/dist/govuk/index' as govuk;
 @use '@ministryofjustice/frontend/moj/all' as moj;
 
-.govuk-width-container {
-  max-width: 1100px;
-}
-
-@media (min-width: 1140px) {
-  @supports (margin: max(calc(0px))) {
-    .govuk-width-container {
-      margin-right: auto;
-      margin-left: auto;
-    }
+// Override global container widths (match working project)
+@mixin global-container-widths {
+  .govuk-width-container,
+  .moj-header__container,
+  .moj-primary-navigation__container {
+    @include govuk.govuk-width-container(1280px);
+    @include moj.moj-width-container(1280px);
   }
 }
 
-@media (min-width: 1080px) and (max-width: 1139px) {
-  @supports (margin: max(calc(0px))) {
-    .govuk-width-container {
-      margin-right: max(30px, calc(15px + env(safe-area-inset-right)));
-      margin-left: max(30px, calc(15px + env(safe-area-inset-left)));
-    }
-  }
-}
-
-@media (min-width: 1020px) and (max-width: 1079px) {
-  @supports (margin: max(calc(0px))) {
-    .govuk-width-container {
-      margin-right: max(30px, calc(15px + env(safe-area-inset-right)));
-      margin-left: max(30px, calc(15px + env(safe-area-inset-left)));
-    }
-  }
-}
+@include global-container-widths();
 
 .govuk-breadcrumbs {
   margin-top: -15px;

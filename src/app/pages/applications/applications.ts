@@ -55,6 +55,7 @@ import { createSignalState } from '@util/signal-state-helpers';
     MojButtonMenuDirective,
   ],
   templateUrl: './applications.html',
+  styleUrls: ['./applications.scss'],
 })
 export class Applications extends PlaceFieldsBase implements OnInit {
   private readonly refFacade = inject(ReferenceDataFacade);

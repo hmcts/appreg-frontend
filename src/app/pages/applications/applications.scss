@@ -1,0 +1,6 @@
+:host
+  ::ng-deep
+  table.govuk-table[data-module='moj-sortable-table']
+  :is(th.govuk-table__header, td.govuk-table__cell) {
+  max-width: 175px;
+}
