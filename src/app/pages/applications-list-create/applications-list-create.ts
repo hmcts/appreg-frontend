@@ -26,6 +26,7 @@ import {
   initialApplicationsListCreateState,
 } from './util/applications-list-create.state';
 
+import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import { DurationInputComponent } from '@components/duration-input/duration-input.component';
@@ -136,6 +137,7 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
         durationErrorText?: string;
       } | null;
 
+      //TODO: Refactor to use Angular form validation instead of manual checks
       const missing = collectMissing(raw, {
         dateInvalid: !!dateErrors?.dateInvalid,
         dateErrorText: dateErrors?.dateErrorText ?? '',
@@ -162,6 +164,10 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
       return;
     }
 
+    if (!this.validateCjaMembership(raw)) {
+      return;
+    }
+
     if (this.appListCreateState().createInvalid) {
       return;
     }
@@ -172,5 +178,33 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
 
   private buildPayload(raw: CreateFormRaw): ApplicationListCreateDto {
     return buildNormalizedPayload(raw) as ApplicationListCreateDto;
+  }
+
+  //TODO: When FormGroup Validation is implemented this should be a custom validator
+  private validateCjaMembership(raw: CreateFormRaw): boolean {
+    // Only validate cja if the user has typed in the CJA suggestions box
+    const cjaTyped = (this.state().cjaSearch ?? '').trim();
+    if (!cjaTyped) {
+      return true;
+    }
+
+    const cjaCode = String(raw.cja ?? '').trim();
+    const exists = this.state().cja.some((x) => x.code === cjaCode);
+
+    if (!exists) {
+      this.appListCreatesignalState.patch({
+        createInvalid: true,
+        unpopField: [
+          {
+            id: 'cja',
+            href: '#cja',
+            text: APPLICATIONS_LIST_ERROR_MESSAGES.cjaNotFound,
+          },
+        ],
+      });
+      return false;
+    }
+
+    return true;
   }
 }
