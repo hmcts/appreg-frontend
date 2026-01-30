@@ -1,0 +1,7 @@
+<app-delete
+  (confirm)="onDelete()"
+  (cancelled)="goBack()"
+  title="Are you sure you want to delete this application list?"
+>
+  <app-table [rows]="[listToDelete]" [columns]="columns"> </app-table>
+</app-delete>

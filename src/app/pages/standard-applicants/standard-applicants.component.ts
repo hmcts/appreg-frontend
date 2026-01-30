@@ -22,7 +22,7 @@ import { TextInputComponent } from '@components/text-input/text-input.component'
     PaginationComponent,
     SortableTableComponent,
   ],
-  templateUrl: './standard-applicants.html',
+  templateUrl: './standard-applicants.component.html',
 })
 export class StandardApplicants {
   currentPage = 1;
