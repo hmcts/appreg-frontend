@@ -13,7 +13,7 @@ export interface ColumnDef<T = unknown> {
   /** Column header text */
   header: string;
   /** How to get the cell value: a key, a dotted path ("person.name"), or a function */
-  accessor?: KeyOf<T> | string | AccessorFn<T>;
+  field?: KeyOf<T> | string | AccessorFn<T>;
   /** Optional custom cell template (receives value + row/col context) */
   cellTemplate?: TemplateRef<CellContext<T>>;
   headerClass?: string;
@@ -62,12 +62,12 @@ export class TableComponent<T = unknown> {
     const first = this.rows[0] as Record<string, unknown>;
     return Object.keys(first).map((k) => ({
       header: this.humanize(k),
-      accessor: k as KeyOf<T> | string,
+      field: k as KeyOf<T> | string,
     }));
   }
 
   valueOf(row: T, col: ColumnDef<T>, rowIndex: number): unknown {
-    const acc = col.accessor;
+    const acc = col.field;
 
     if (typeof acc === 'function') {
       return acc(row, rowIndex);

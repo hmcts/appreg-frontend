@@ -8,13 +8,8 @@ onSubmit():
   - If params are empty (user leaves fields empty or on default selected value) GET ALL is run
   - Populates query based on fields that are  !null/!undefined/!defaultValue
 
-onDelete():
-  - If not deletable, set errors and exit
-  - Confirm in browser; cancel exits
-  - Set deletingId; add ETag/rowVersion to HttpContext
-  - DELETE list; 200/204 → remove row, mark done
-  - Map 401/403/404/409/412/other to errorSummary
-  - Always clear deletingId
+Delete:
+  - Handled in applications-list-delete component
 
 onPrintPage():
   - Fetch list by id and generate a paged PDF in the browser
@@ -26,7 +21,6 @@ onPrintContinuous():
 */
 
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { HttpContext } from '@angular/common/http';
 import {
   Component,
   EnvironmentInjector,
@@ -37,12 +31,12 @@ import {
   signal,
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { map } from 'rxjs/operators';
+import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
+import { map, take } from 'rxjs/operators';
 
 import {
   APPLICATIONS_LIST_CHOOSE_STATUS,
-  APPLICATIONS_LIST_COLUMNS,
+  APPLICATIONS_LIST_COLUMNS_ACTION,
   APPLICATIONS_LIST_ERROR_MESSAGES,
   APPLICATION_LIST_SORT_MAP,
 } from './util/applications-list.constants';
@@ -72,7 +66,6 @@ import {
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
-import { IF_MATCH, ROW_VERSION } from '@context/concurrency-context';
 import {
   ApplicationListGetSummaryDto,
   ApplicationListStatus,
@@ -94,6 +87,8 @@ import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
 
+type DeleteFlash = { kind: 'success' } | { kind: 'error'; code: number };
+
 @Component({
   selector: 'app-applications-list',
   standalone: true,
@@ -114,7 +109,7 @@ import { ApplicationListRow } from '@util/types/application-list/types';
     MojButtonMenuDirective,
     PageHeaderComponent,
   ],
-  templateUrl: './applications-list.html',
+  templateUrl: './applications-list.component.html',
 })
 export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   // APIs
@@ -124,6 +119,8 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   private readonly pdf = inject(PdfService);
   private readonly searchForm = inject(ApplicationListSearchFormService);
   private readonly formSvc = inject(ApplicationsListFormService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   openMenuForId: string | null = null;
   openPrintSelectForId: string | null = null;
@@ -145,14 +142,13 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   // API signals
   private readonly loadRequest =
     signal<GetApplicationListsRequestParams | null>(null);
-  private readonly deleteRequest = signal<ApplicationListRow | null>(null);
   private readonly printPageRequest = signal<string | null>(null);
   private readonly printContinuousRequest = signal<{
     id: string;
     isClosed: boolean;
   } | null>(null);
 
-  columns: TableColumn[] = APPLICATIONS_LIST_COLUMNS;
+  columns: TableColumn[] = APPLICATIONS_LIST_COLUMNS_ACTION;
   status = APPLICATIONS_LIST_CHOOSE_STATUS;
 
   ngOnInit(): void {
@@ -164,6 +160,16 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
 
     // Initialise effects
     this.setupEffects();
+
+    this.route.queryParamMap.pipe(take(1)).subscribe((q) => {
+      const flash = this.readDeleteFlash(q);
+      if (!flash) {
+        return;
+      }
+
+      this.handleDeleteFlash(flash);
+      this.clearFlashParams();
+    });
   }
 
   restoreFormValues(): void {
@@ -226,43 +232,6 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
             totalPages: 0,
           });
           this.loadRequest.set(null);
-        },
-      },
-      this.envInjector,
-    );
-
-    // Applications list delete
-    setupLoadEffect(
-      {
-        request: this.deleteRequest,
-        load: (row) =>
-          this.appListsApi
-            .deleteApplicationList({ listId: row.id }, 'response', false, {
-              context: new HttpContext()
-                .set(IF_MATCH, row.etag ?? null)
-                .set(ROW_VERSION, row.rowVersion ?? null),
-            })
-            .pipe(map((resp) => ({ row, resp }))),
-        onSuccess: ({ row, resp }) => {
-          if (resp.status === 200 || resp.status === 204) {
-            this.appListSignalState.patch({
-              deleteDone: true,
-            });
-            const currentRows = this.storedRecordsState.state().rows;
-            const updatedRows = currentRows.filter((r) => r.id !== row.id);
-            this.storedRecordsState.patch({ rows: updatedRows });
-          }
-          this.appListSignalState.patch({ deletingId: null });
-          this.deleteRequest.set(null);
-        },
-        onError: (err) => {
-          const status = getHttpStatus(err);
-          this.appListSignalState.patch({
-            deleteInvalid: true,
-            errorSummary: statusSummary(status),
-            deletingId: null,
-          });
-          this.deleteRequest.set(null);
         },
       },
       this.envInjector,
@@ -416,36 +385,6 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     }
   }
 
-  onDelete(row: ApplicationListRow): void {
-    this.appListSignalState.patch(clearNotificationsPatch());
-
-    if (row.deletable === false) {
-      this.appListSignalState.patch({
-        deleteInvalid: true,
-        errorSummary: [{ text: 'This list cannot be deleted.' }],
-      });
-      return;
-    }
-
-    if (isPlatformBrowser(this.platformId)) {
-      const ok = globalThis.confirm(
-        'Are you sure you want to delete this Application List?',
-      );
-      if (!ok) {
-        return;
-      }
-    }
-
-    this.appListSignalState.patch({
-      deleteDone: false,
-      deleteInvalid: false,
-      errorSummary: [],
-      deletingId: row.id,
-    });
-
-    this.deleteRequest.set(row);
-  }
-
   onPageChange(page: number): void {
     this.storedRecordsState.patch({ currentPage: page });
     const hasAny = hasAnyParams(this.form);
@@ -573,5 +512,49 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       deleteInvalid: true,
       errorSummary: [{ text: message }],
     });
+  }
+
+  private handleDeleteFlash(flash: DeleteFlash): void {
+    this.appListSignalState.patch(clearNotificationsPatch());
+
+    if (flash.kind === 'success') {
+      this.appListSignalState.patch({
+        deleteDone: true,
+        deleteInvalid: false,
+        errorSummary: [],
+      });
+      return;
+    }
+
+    if (flash.kind === 'error') {
+      this.appListSignalState.patch({
+        deleteDone: false,
+        deleteInvalid: true,
+        errorSummary: statusSummary(flash.code),
+      });
+    }
+  }
+
+  private clearFlashParams(): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { delete: null, code: null },
+      replaceUrl: true,
+    });
+  }
+
+  private readDeleteFlash(q: ParamMap): DeleteFlash | null {
+    const del = q.get('delete');
+    if (del === 'success') {
+      return { kind: 'success' };
+    }
+
+    if (del === 'error') {
+      const raw = q.get('code');
+      const code = raw ? Number(raw) : NaN;
+      return { kind: 'error', code: Number.isFinite(code) ? code : 500 };
+    }
+
+    return null;
   }
 }

@@ -86,7 +86,7 @@ type ChildErrorSource = 'notes' | 'fee' | 'respondent' | 'applicant';
   viewProviders: [
     { provide: ControlContainer, useExisting: FormGroupDirective },
   ],
-  templateUrl: './applications-list-entry-create.html',
+  templateUrl: './applications-list-entry-create.component.html',
 })
 export class ApplicationsListEntryCreate implements OnInit {
   route = inject(ActivatedRoute);

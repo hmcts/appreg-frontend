@@ -7,7 +7,6 @@ export interface ApplicationsListState {
   isLoading: boolean;
   searchErrors: { id: string; text: string }[];
   errorSummary: ErrorItem[];
-  deletingId: string | null;
   sortField: { key: string; direction: 'desc' | 'asc' };
 }
 
@@ -18,7 +17,6 @@ export const initialApplicationsListState: ApplicationsListState = {
   isLoading: false,
   searchErrors: [],
   errorSummary: [],
-  deletingId: null,
   sortField: { key: 'date', direction: 'desc' }, // Default sort
 };
 

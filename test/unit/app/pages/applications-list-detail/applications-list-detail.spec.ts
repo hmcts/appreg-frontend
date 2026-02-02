@@ -12,7 +12,7 @@ import { Router, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
-import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail';
+import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail.component';
 import { ApplicationsListDetailState } from '@components/applications-list-detail/util/applications-list-detail.state';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { Row } from '@core-types/table/row.types';

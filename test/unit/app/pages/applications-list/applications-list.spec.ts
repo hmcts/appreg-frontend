@@ -1,16 +1,15 @@
-import {
-  HttpContext,
-  HttpErrorResponse,
-  HttpResponse,
-  provideHttpClient,
-} from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpResponse } from '@angular/common/http';
 import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import {
+  ActivatedRoute,
+  Router,
+  convertToParamMap,
+  provideRouter,
+} from '@angular/router';
 import { of, throwError } from 'rxjs';
 
-import { ApplicationsList } from '@components/applications-list/applications-list';
+import { ApplicationsList } from '@components/applications-list/applications-list.component';
 import {
   APPLICATIONS_LIST_COLUMNS,
   APPLICATIONS_LIST_ERROR_MESSAGES,
@@ -20,7 +19,6 @@ import {
   clearNotificationsPatch,
 } from '@components/applications-list/util/applications-list.state';
 import * as LoadQuery from '@components/applications-list/util/load-query';
-import { IF_MATCH, ROW_VERSION } from '@context/concurrency-context';
 import {
   ApplicationListGetFilterDto,
   ApplicationListGetPrintDto,
@@ -186,6 +184,38 @@ function createInstance(
   return { comp, api, pdf, patchSpy, storedPatchSpy, showInlineSpy, fixture };
 }
 
+function createInstanceWithQuery(
+  query: Record<string, string | null | undefined>,
+  platformId: 'browser' | 'server' = 'browser',
+) {
+  const routeStub: Partial<ActivatedRoute> = {
+    queryParamMap: of(convertToParamMap(query)),
+  };
+
+  TestBed.resetTestingModule();
+  TestBed.configureTestingModule({
+    imports: [ApplicationsList],
+    providers: [
+      provideRouter([]),
+      { provide: PLATFORM_ID, useValue: platformId },
+      { provide: ActivatedRoute, useValue: routeStub },
+      { provide: ApplicationListsApi, useValue: applicationsListsApiMock },
+      { provide: CourtLocationsApi, useValue: courtLocationsApiMock },
+      { provide: CriminalJusticeAreasApi, useValue: cjaApiMock },
+    ],
+  });
+
+  const fixture = TestBed.createComponent(ApplicationsList);
+  const comp = fixture.componentInstance;
+
+  const router = TestBed.inject(Router);
+  const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+  fixture.detectChanges(); // triggers ngOnInit
+
+  return { fixture, comp, routeStub, router, navigateSpy };
+}
+
 function submitEvent(value: string | null = 'search'): {
   e: SubmitEvent;
   preventDefault: jest.Mock;
@@ -204,256 +234,65 @@ function submitEvent(value: string | null = 'search'): {
   return { e, preventDefault };
 }
 
-describe('ApplicationsList – delete flow (server platform: no confirm)', () => {
-  let fixture: ComponentFixture<ApplicationsList>;
-  let component: ApplicationsList;
-  let api: { deleteApplicationList: jest.Mock };
-
-  beforeEach(async () => {
-    api = {
-      deleteApplicationList: jest
-        .fn()
-        .mockReturnValue(of({ status: 204 } as HttpResponse<unknown>)),
-    };
-
-    await TestBed.configureTestingModule({
-      imports: [ApplicationsList], // standalone component
-      providers: [
-        provideRouter([]),
-        { provide: PLATFORM_ID, useValue: 'server' }, // skip confirm() path by default
-        { provide: ApplicationListsApi, useValue: api },
-        provideHttpClient(),
-        provideHttpClientTesting(),
-      ],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(ApplicationsList);
-    component = fixture.componentInstance;
-    // avoid ngOnInit’s demo data; set our own rows
-    patchRecordsState(component, {
-      rows: [
-        {
-          id: 'abc-123',
-          date: '2025-10-01',
-          time: '09:30',
-          location: 'X',
-          description: 'Y',
-          entries: 0,
-          status: ApplicationListStatus.OPEN,
-          deletable: true,
-          etag: 'W/"etag-val"',
-          rowVersion: '42',
-        },
-        {
-          id: 'keep-me',
-          date: '',
-          time: '',
-          location: '',
-          description: '',
-          entries: 0,
-          status: ApplicationListStatus.OPEN,
-        },
-      ],
+describe('ApplicationsList - delete flash query param', () => {
+  it('delete=success -> sets deleteDone and clears params', async () => {
+    const { fixture, comp, routeStub, navigateSpy } = createInstanceWithQuery({
+      delete: 'success',
     });
-  });
 
-  it('guards when row.deletable === false: sets error and does NOT call API', async () => {
-    const row = {
-      id: 'nope',
-      date: '',
-      time: '',
-      location: '',
-      description: '',
-      entries: 0,
-      status: ApplicationListStatus.OPEN,
-      deletable: false,
-    };
-    component.onDelete(row);
     await flushSignalEffects(fixture);
 
-    expect(getUIFlagState(component).deleteInvalid).toBe(true);
-    expect(getUIFlagState(component).errorSummary).toEqual([
-      { text: 'This list cannot be deleted.' },
-    ]);
-    expect(api.deleteApplicationList).not.toHaveBeenCalled();
-    expect(getUIFlagState(component).deletingId).toBeNull();
+    expect(getUIFlagState(comp).deleteDone).toBe(true);
+    expect(getUIFlagState(comp).deleteInvalid).toBe(false);
+    expect(getUIFlagState(comp).errorSummary).toEqual([]);
+
+    expect(navigateSpy).toHaveBeenCalledWith([], {
+      relativeTo: routeStub as ActivatedRoute,
+      queryParams: { delete: null, code: null },
+      replaceUrl: true,
+    });
   });
 
-  it('on success (204) removes row and sets deleteDone=true; passes ETag/RowVersion via HttpContext', async () => {
-    const row = getRecordsState(component).rows[0]; // abc-123
+  it('delete=error&code=412 -> uses statusSummary(412) and clears params', async () => {
+    const { comp, fixture, routeStub, navigateSpy } = createInstanceWithQuery({
+      delete: 'error',
+      code: '412',
+    });
 
-    // capture call args to inspect HttpContext values
-    let capturedOptions: { context?: HttpContext } | undefined;
-
-    api.deleteApplicationList.mockImplementation(
-      (_params, _observe, _progress, options?: { context?: HttpContext }) => {
-        capturedOptions = options;
-        return of({ status: 204 } as HttpResponse<unknown>);
-      },
-    );
-
-    component.onDelete(row);
     await flushSignalEffects(fixture);
 
-    expect(api.deleteApplicationList).toHaveBeenCalledTimes(1);
-    expect(api.deleteApplicationList.mock.calls[0][0]).toEqual({
-      listId: 'abc-123',
-    });
+    expect(getUIFlagState(comp).deleteDone).toBe(false);
+    expect(getUIFlagState(comp).deleteInvalid).toBe(true);
 
-    // Concurrency tokens from context
-    expect(capturedOptions?.context?.get(IF_MATCH)).toBe('W/"etag-val"');
-    expect(capturedOptions?.context?.get(ROW_VERSION)).toBe('42');
+    expect(getUIFlagState(comp).errorSummary.length).toBeGreaterThan(0);
 
-    // Row removed, banner flag set, deletingId reset
-    expect(
-      getRecordsState(component).rows.find((r) => r.id === 'abc-123'),
-    ).toBeUndefined();
-    expect(getRecordsState(component).rows).toHaveLength(1);
-    expect(getRecordsState(component).rows[0].id).toBe('keep-me');
-    expect(getUIFlagState(component).deleteDone).toBe(true);
-    expect(getUIFlagState(component).deleteInvalid).toBe(false);
-    expect(getUIFlagState(component).errorSummary).toEqual([]);
-    expect(getUIFlagState(component).deletingId).toBeNull();
-  });
-
-  describe('error mapping -> inline error summary', () => {
-    const cases: Array<{ status: number; firstText: string }> = [
-      {
-        status: 401,
-        firstText: 'You are not signed in. Please sign in and try again.',
-      },
-      {
-        status: 403,
-        firstText: 'You do not have permission to delete this list.',
-      },
-      {
-        status: 404,
-        firstText: 'Application List not found. Return to the Lists view.',
-      },
-      {
-        status: 409,
-        firstText: 'This list has entries or is in a non-deletable state.',
-      },
-      {
-        status: 412,
-        firstText: 'The list has changed. Refresh the page and try again.',
-      },
-      {
-        status: 500,
-        firstText: 'Unable to delete list. Please try again later.',
-      }, // default branch
-    ];
-
-    it.each(cases)(
-      'status %s -> shows correct inline error',
-      async ({ status, firstText }) => {
-        api.deleteApplicationList.mockReturnValueOnce(
-          throwError(() => new HttpErrorResponse({ status })),
-        );
-
-        const row = {
-          id: 'abc-123',
-          date: '',
-          time: '',
-          location: '',
-          description: '',
-          entries: 0,
-          status: ApplicationListStatus.OPEN,
-          deletable: true,
-        };
-
-        // keep a couple of rows to confirm list remains intact on error
-        patchRecordsState(component, {
-          rows: [
-            { ...row },
-            {
-              id: 'keep-me',
-              date: '',
-              time: '',
-              location: '',
-              description: '',
-              entries: 0,
-              status: ApplicationListStatus.OPEN,
-            },
-          ],
-        });
-
-        component.onDelete(row);
-        await flushSignalEffects(fixture);
-
-        // API was called
-        expect(api.deleteApplicationList).toHaveBeenCalled();
-
-        // Error flags and message mapping
-        expect(getUIFlagState(component).deleteDone).toBe(false);
-        expect(getUIFlagState(component).deleteInvalid).toBe(true);
-        expect(getUIFlagState(component).errorSummary[0].text).toBe(firstText);
-
-        // Row NOT removed on error; deletingId reset
-        expect(getRecordsState(component).rows).toHaveLength(2);
-        expect(getUIFlagState(component).deletingId).toBeNull();
-      },
-    );
-  });
-});
-
-describe('ApplicationsList – delete flow (browser platform: confirm cancel)', () => {
-  let fixture: ComponentFixture<ApplicationsList>;
-  let component: ApplicationsList;
-  let api: { deleteApplicationList: jest.Mock };
-
-  beforeEach(async () => {
-    api = { deleteApplicationList: jest.fn() };
-
-    await TestBed.configureTestingModule({
-      imports: [ApplicationsList],
-      providers: [
-        provideRouter([]),
-        { provide: PLATFORM_ID, useValue: 'browser' }, // will hit window.confirm
-        { provide: ApplicationListsApi, useValue: api },
-        provideHttpClient(),
-        provideHttpClientTesting(),
-      ],
-    }).compileComponents();
-
-    // Important: stub confirm BEFORE component method runs
-    jest.spyOn(globalThis, 'confirm').mockReturnValue(false);
-
-    fixture = TestBed.createComponent(ApplicationsList);
-    component = fixture.componentInstance;
-
-    patchRecordsState(component, {
-      rows: [
-        {
-          id: 'abc-123',
-          date: '2025-10-01',
-          time: '09:30',
-          location: 'X',
-          description: 'Y',
-          entries: 0,
-          status: ApplicationListStatus.OPEN,
-          deletable: true,
-        },
-      ],
+    expect(navigateSpy).toHaveBeenCalledWith([], {
+      relativeTo: routeStub as ActivatedRoute,
+      queryParams: { delete: null, code: null },
+      replaceUrl: true,
     });
   });
 
-  afterEach(() => {
-    (globalThis.confirm as jest.Mock)?.mockRestore?.();
+  it('delete=error with no code -> defaults to 500', async () => {
+    const { comp, fixture } = createInstanceWithQuery({
+      delete: 'error',
+    });
+
+    await flushSignalEffects(fixture);
+
+    expect(getUIFlagState(comp).deleteInvalid).toBe(true);
+    expect(getUIFlagState(comp).errorSummary.length).toBeGreaterThan(0);
   });
 
-  it('when user cancels confirmation, does NOT call API and leaves state unchanged', () => {
-    component.onDelete(getRecordsState(component).rows[0]);
+  it('no delete param -> does nothing and does not navigate', async () => {
+    const { comp, fixture, navigateSpy } = createInstanceWithQuery({});
 
-    expect(globalThis.confirm).toHaveBeenCalled();
-    expect(api.deleteApplicationList).not.toHaveBeenCalled();
+    await flushSignalEffects(fixture);
 
-    // no flags set, no removal, deletingId stays null
-    expect(getUIFlagState(component).deleteDone).toBe(false);
-    expect(getUIFlagState(component).deleteInvalid).toBe(false);
-    expect(getUIFlagState(component).errorSummary).toEqual([]);
-    expect(getRecordsState(component).rows).toHaveLength(1);
-    expect(getUIFlagState(component).deletingId).toBeNull();
+    expect(getUIFlagState(comp).deleteDone).toBe(false);
+    expect(getUIFlagState(comp).deleteInvalid).toBe(false);
+    expect(getUIFlagState(comp).errorSummary).toEqual([]);
+    expect(navigateSpy).not.toHaveBeenCalled();
   });
 });
 

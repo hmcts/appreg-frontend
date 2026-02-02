@@ -12,7 +12,6 @@ describe('applications-list.state', () => {
       isLoading: false,
       searchErrors: [],
       errorSummary: [],
-      deletingId: null,
       sortField: {
         direction: 'desc',
         key: 'date',
