@@ -63,7 +63,7 @@ import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
     SuccessBannerComponent,
     ErrorSummaryComponent,
   ],
-  templateUrl: './applications-list-create.html',
+  templateUrl: './applications-list-create.component.html',
 })
 export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
   // APIs

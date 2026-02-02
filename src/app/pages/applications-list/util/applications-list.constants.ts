@@ -11,6 +11,10 @@ export const APPLICATIONS_LIST_COLUMNS: TableColumn[] = [
   { header: 'Description', field: 'description' },
   { header: 'Entries', field: 'entries', numeric: true },
   { header: 'Status', field: 'status' },
+];
+
+export const APPLICATIONS_LIST_COLUMNS_ACTION: TableColumn[] = [
+  ...APPLICATIONS_LIST_COLUMNS,
   { header: 'Actions', field: 'actions', sortable: false },
 ];
 

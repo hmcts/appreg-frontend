@@ -3,7 +3,7 @@ import type { WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
-import { Applications } from '@components/applications/applications';
+import { Applications } from '@components/applications/applications.component';
 import { ApplicationsState } from '@components/applications/util/applications.state';
 import {
   ApplicationListEntriesApi,

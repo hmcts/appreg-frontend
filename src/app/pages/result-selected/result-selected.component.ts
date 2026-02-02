@@ -25,7 +25,7 @@ type Row = {
     SearchBoxComponent,
     WarningBannerComponent,
   ],
-  templateUrl: './result-selected.html',
+  templateUrl: './result-selected.component.html',
 })
 export class ResultSelected implements OnInit {
   private route = inject(ActivatedRoute);
@@ -33,10 +33,10 @@ export class ResultSelected implements OnInit {
   mixedResultedAndUnresultedApplications!: boolean;
 
   columns: ColumnDef<Row>[] = [
-    { header: 'Sequence number', accessor: 'sequenceNumber' },
-    { header: 'Applicant(s)', accessor: 'applicant' },
-    { header: 'Respondent(s)', accessor: 'respondent' },
-    { header: 'Application Title(s)', accessor: 'title' },
+    { header: 'Sequence number', field: 'sequenceNumber' },
+    { header: 'Applicant(s)', field: 'applicant' },
+    { header: 'Respondent(s)', field: 'respondent' },
+    { header: 'Application Title(s)', field: 'title' },
   ];
 
   rows: Row[] = [
