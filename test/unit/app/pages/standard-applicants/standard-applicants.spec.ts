@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { StandardApplicants } from '@components/standard-applicants/standard-applicants';
+import { StandardApplicants } from '@components/standard-applicants/standard-applicants.component';
 
 describe('StandardApplicantsComponent', () => {
   let component: StandardApplicants;

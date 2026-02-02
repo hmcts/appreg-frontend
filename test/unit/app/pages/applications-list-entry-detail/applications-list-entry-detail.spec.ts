@@ -11,7 +11,7 @@ import {
 } from '@angular/router';
 import { Observable, of, throwError } from 'rxjs';
 
-import { ApplicationsListEntryDetail } from '@components/applications-list-entry-detail/applications-list-entry-detail';
+import { ApplicationsListEntryDetail } from '@components/applications-list-entry-detail/applications-list-entry-detail.component';
 import {
   ApplicationCodeGetDetailDto,
   ApplicationCodeGetSummaryDto,

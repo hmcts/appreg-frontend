@@ -1,21 +1,22 @@
 import { Routes } from '@angular/router';
 
-import { Applications } from '@components/applications/applications';
-import { ApplicationsList } from '@components/applications-list/applications-list';
-import { ApplicationsListBulkUpload } from '@components/applications-list-bulk-upload/applications-list-bulk-upload';
-import { ApplicationsListCreate } from '@components/applications-list-create/applications-list-create';
-import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail';
-import { ApplicationsListEntryCreate } from '@components/applications-list-entry-create/applications-list-entry-create';
-import { ApplicationsListEntryDetail } from '@components/applications-list-entry-detail/applications-list-entry-detail';
+import { Applications } from '@components/applications/applications.component';
+import { ApplicationsListCreate } from '@components/applications-list/applications-list-create/applications-list-create.component';
+import { ApplicationsListDeleteComponent } from '@components/applications-list/applications-list-delete/applications-list-delete.component';
+import { ApplicationsList } from '@components/applications-list/applications-list.component';
+import { ApplicationsListBulkUpload } from '@components/applications-list-bulk-upload/applications-list-bulk-upload.component';
+import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail.component';
+import { ApplicationsListEntryCreate } from '@components/applications-list-entry-create/applications-list-entry-create.component';
+import { ApplicationsListEntryDetail } from '@components/applications-list-entry-detail/applications-list-entry-detail.component';
 import { PaymentReferenceEditComponent } from '@components/civil-fee-section/payment-reference-edit/payment-reference-edit.component';
 import { ForbiddenComponent } from '@components/global-error/forbidden/forbidden.component';
 import { InternalErrorComponent } from '@components/global-error/internal-error/internal-error.component';
 import { NotFoundComponent } from '@components/global-error/not-found/not-found.component';
 import { HomeComponent } from '@components/home/home.component';
-import { Login } from '@components/login/login';
-import { Reports } from '@components/reports/reports';
-import { ResultSelected } from '@components/result-selected/result-selected';
-import { StandardApplicants } from '@components/standard-applicants/standard-applicants';
+import { Login } from '@components/login/login.component';
+import { Reports } from '@components/reports/reports.component';
+import { ResultSelected } from '@components/result-selected/result-selected.component';
+import { StandardApplicants } from '@components/standard-applicants/standard-applicants.component';
 import { sessionGuard } from '@guards/session.guard';
 
 export const routes: Routes = [
@@ -36,6 +37,7 @@ export const routes: Routes = [
       { path: 'create', component: ApplicationsListCreate },
       { path: ':id', component: ApplicationsListDetail },
       { path: ':id/update', component: ApplicationsListEntryDetail },
+      { path: ':id/delete', component: ApplicationsListDeleteComponent },
       {
         path: ':id/update/change-payment-reference',
         component: PaymentReferenceEditComponent,

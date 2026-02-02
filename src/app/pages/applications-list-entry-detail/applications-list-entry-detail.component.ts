@@ -175,7 +175,7 @@ export const ERROR_HREFS = {
     ResultWordingSectionComponent,
     CivilFeeSectionComponent,
   ],
-  templateUrl: './applications-list-entry-detail.html',
+  templateUrl: './applications-list-entry-detail.component.html',
 })
 export class ApplicationsListEntryDetail implements OnInit {
   private readonly destroyRef = inject(DestroyRef);

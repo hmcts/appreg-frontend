@@ -154,8 +154,8 @@ type UpdateReq = {
     MojButtonMenuDirective,
     NotificationBannerComponent,
   ],
-  templateUrl: './applications-list-detail.html',
-  styleUrls: ['./applications-list-detail.scss'],
+  templateUrl: './applications-list-detail.component.html',
+  styleUrls: ['./applications-list-detail.component.scss'],
 })
 export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly envInjector = inject(EnvironmentInjector);
