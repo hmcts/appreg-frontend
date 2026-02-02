@@ -21,7 +21,6 @@ export class SessionService {
       const res = await fetch('/sso/me', {
         credentials: 'include',
         cache: 'no-store',
-        redirect: 'manual',
         headers: { accept: 'application/json' },
       });
       const ok = res.status >= 200 && res.status < 300;

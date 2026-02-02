@@ -16,22 +16,22 @@
 >
 </app-page-header>
 
-@if (unpopField.length || updateInvalid) {
+@if (vm().errorSummary.length || vm().updateInvalid) {
   <app-error-summary
-    [title]="errorHint || 'There is a problem'"
+    [title]="vm().errorHint || 'There is a problem'"
     (itemSelect)="onCreateErrorClick($event)"
-    [items]="unpopField"
+    [items]="vm().errorSummary"
   />
 }
 
-@if (updateDone) {
+@if (vm().updateDone) {
   <app-success-banner
     heading="Update complete"
     linkText="List successfully updated"
   />
 }
 
-@if (noEntries && !isLoading) {
+@if (noEntries && !vm().isLoading) {
   <app-notification-banner
     heading="No lists entries found"
     body="Try again, or "
@@ -98,16 +98,16 @@
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
     />
 
-    @if (!noEntries && !isLoading) {
+    @if (!noEntries && !vm().isLoading) {
       <!-- Sortable table component -->
       <app-selectable-sortable-table
         id="sortable-table"
         caption="Lists"
         [columns]="columns"
-        [data]="rows"
+        [data]="vm().rows"
         idField="id"
         (selectedRowsChange)="onSelectedRowsChange($event)"
-        [(selectedIds)]="selectedIds"
+        [(selectedIds)]="vm().selectedIds"
         appMojButtonMenu
       >
         <caption
@@ -124,7 +124,7 @@
             <button
               type="button"
               class="govuk-button govuk-button--primary govuk-button--small float-right"
-              [disabled]="selectedRows.length === 0"
+              [disabled]="vm().selectedRows.length === 0"
               (click)="onResultButtonClick()"
             >
               Result selected
@@ -162,8 +162,8 @@
 
     <!-- Pager -->
     <app-pagination
-      [currentPage]="currentPage"
-      [totalPages]="totalPages"
+      [currentPage]="vm().currentPage"
+      [totalPages]="vm().totalPages"
       (pageChange)="onPageChange($event)"
     ></app-pagination>
   </div>
@@ -189,7 +189,7 @@
           label="Date"
           hint="For example, 27 3 2007"
           idPrefix="date"
-          [submitted]="updateInvalid"
+          [submitted]="vm().updateInvalid"
         >
         </app-date-input>
 
@@ -199,7 +199,7 @@
           label="Time"
           hint="Enter the time in 24-hour format, for example 08:30"
           idPrefix="time"
-          [submitted]="updateInvalid"
+          [submitted]="vm().updateInvalid"
           [required]="true"
           mode="clock"
         >
@@ -211,7 +211,7 @@
           label="Description"
           hint="A description of the application list"
           idPrefix="description"
-          [submitted]="updateInvalid"
+          [submitted]="vm().updateInvalid"
         >
         </app-text-input>
 
@@ -221,7 +221,7 @@
           label="Select status"
           hint="The status of the application list"
           idPrefix="status"
-          [submitted]="updateInvalid"
+          [submitted]="vm().updateInvalid"
           [options]="statusOptions"
         >
         </app-select-input>
@@ -239,7 +239,7 @@
           (selectItem)="selectCourthouse($event)"
           [disabled]="!!form.get('location')?.value || !!form.get('cja')?.value"
           [showError]="
-            updateInvalid &&
+            vm().updateInvalid &&
             !form.get('court')?.value &&
             !(
               form.get('location')?.value?.toString()?.trim() ||
@@ -255,7 +255,7 @@
           label="Other location"
           hint="Other location description"
           idPrefix="location"
-          [submitted]="updateInvalid && !form.get('court')?.value"
+          [submitted]="vm().updateInvalid && !form.get('court')?.value"
         >
           >
         </app-text-input>
@@ -270,12 +270,8 @@
           [suggestions]="this.state().filteredCja"
           (selectItem)="selectCja($event)"
           [disabled]="!!form.get('court')?.value"
-          [showError]="
-            updateInvalid &&
-            !form.get('cja')?.value &&
-            !form.get('court')?.value?.toString()?.trim()
-          "
-          errorText="CJA is required"
+          [showError]="vm().updateInvalid && !!fieldError('cja')"
+          [errorText]="fieldError('cja')?.text ?? ''"
         />
 
         <!-- Duration: Optional field -->
@@ -284,7 +280,7 @@
           label="Duration"
           hint="Duration of the list"
           idPrefix="duration"
-          [submitted]="updateInvalid"
+          [submitted]="vm().updateInvalid"
           [required]="false"
           mode="duration"
         ></app-duration-input>

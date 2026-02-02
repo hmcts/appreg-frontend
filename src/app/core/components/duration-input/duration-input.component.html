@@ -50,7 +50,10 @@
           [class.govuk-input--error]="displayErrors"
           type="text"
           spellcheck="false"
-          [attr.aria-describedby]="hint ? idPrefix + '-hint' : null"
+          [attr.aria-describedby]="
+            (hint ? idPrefix + '-hint ' : '') +
+            (displayErrors ? idPrefix + '-error' : '')
+          "
           [value]="hoursText"
           (input)="onHoursInput($event)"
           (blur)="touch()"
@@ -59,6 +62,7 @@
           pattern="[0-9]*"
           maxlength="2"
           autocomplete="off"
+          [attr.aria-label]="'Hours'"
         />
         <div
           class="govuk-input__suffix govuk-!-margin-right-3"
@@ -75,7 +79,10 @@
           [class.govuk-input--error]="displayErrors"
           type="text"
           spellcheck="false"
-          [attr.aria-describedby]="hint ? idPrefix + '-hint' : null"
+          [attr.aria-describedby]="
+            (hint ? idPrefix + '-hint ' : '') +
+            (displayErrors ? idPrefix + '-error' : '')
+          "
           [value]="minutesText"
           (input)="onMinutesInput($event)"
           (blur)="touch()"
@@ -84,6 +91,7 @@
           pattern="[0-9]*"
           maxlength="2"
           autocomplete="off"
+          [attr.aria-label]="'Minutes'"
         />
         <div
           class="govuk-input__suffix govuk-!-margin-right-3"

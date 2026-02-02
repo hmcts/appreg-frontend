@@ -36,7 +36,10 @@
       "@guards/*": ["./src/app/guards/*"],
       "@context/*": ["./src/app/shared/context/*"],
       "@validators/*": ["./src/app/shared/validators/*"],
-      "@interceptors/*": ["./src/app/shared/interceptors/*"]
+      "@interceptors/*": [
+        "./src/app/core/interceptors/*",
+        "./src/app/shared/interceptors/*"
+      ]
     }
   },
   "angularCompilerOptions": {

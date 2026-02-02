@@ -1,8 +1,6 @@
 import { ErrorItem } from '@components/error-summary/error-summary.component';
-import { ApplicationListRow } from '@util/types/application-list/types';
 
 export interface ApplicationsListState {
-  submitted: boolean;
   isSearch: boolean;
   deleteDone: boolean;
   deleteInvalid: boolean;
@@ -10,15 +8,10 @@ export interface ApplicationsListState {
   searchErrors: { id: string; text: string }[];
   errorSummary: ErrorItem[];
   deletingId: string | null;
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-  rows: ApplicationListRow[];
   sortField: { key: string; direction: 'desc' | 'asc' };
 }
 
 export const initialApplicationsListState: ApplicationsListState = {
-  submitted: false,
   isSearch: false,
   deleteDone: false,
   deleteInvalid: false,
@@ -26,10 +19,6 @@ export const initialApplicationsListState: ApplicationsListState = {
   searchErrors: [],
   errorSummary: [],
   deletingId: null,
-  currentPage: 1,
-  totalPages: 5,
-  pageSize: 10,
-  rows: [],
   sortField: { key: 'date', direction: 'desc' }, // Default sort
 };
 
@@ -40,13 +29,11 @@ export const clearNotificationsPatch = (): Pick<
   | 'deleteInvalid'
   | 'errorSummary'
   | 'searchErrors'
-  | 'submitted'
   | 'sortField'
 > => ({
   deleteDone: false,
   deleteInvalid: false,
   errorSummary: [],
   searchErrors: [],
-  submitted: false,
   sortField: { key: 'date', direction: 'desc' },
 });

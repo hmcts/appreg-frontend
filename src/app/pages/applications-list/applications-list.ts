@@ -79,6 +79,7 @@ import {
   ApplicationListsApi,
   GetApplicationListsRequestParams,
 } from '@openapi';
+import { ApplicationListRecordsService } from '@services/application-list-records/application-list-records.service';
 import { ApplicationsListFormService } from '@services/applications-list-form.service';
 import { PdfService } from '@services/pdf.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
@@ -132,6 +133,8 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     createSignalState<ApplicationsListState>(initialApplicationsListState);
   private readonly appListState = this.appListSignalState.state;
   readonly vm = this.appListSignalState.vm;
+  private readonly storedRecordsState = inject(ApplicationListRecordsService);
+  readonly storedRecordsVm = this.storedRecordsState.vm;
 
   // allows you to initialise effect in ngOnInit()
   private readonly envInjector = inject(EnvironmentInjector);
@@ -156,6 +159,9 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     this.restoreFormValues();
     this.initPlaceFields(this.form, this.refFacade);
 
+    // reset submitted to false when navigating back to prevent date/duration input errors
+    this.storedRecordsState.patch({ submitted: false });
+
     // Initialise effects
     this.setupEffects();
   }
@@ -166,9 +172,21 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
 
   clearSearch(): void {
     this.appListSignalState.patch(clearNotificationsPatch());
-    this.appListSignalState.patch({ isSearch: false, rows: [] });
+    this.appListSignalState.patch({ isSearch: false });
+    this.storedRecordsState.patch({ submitted: false, rows: [] });
     this.searchForm.reset();
     this.form.reset(this.searchForm.state());
+
+    // clear PlaceFieldsBase signal state
+    this.resetPlaceSearch();
+  }
+
+  private resetPlaceSearch(): void {
+    this.setCjaSearch('');
+    this.patch({ filteredCja: [] });
+
+    this.setCourthouseSearch('');
+    this.patch({ filteredCourthouses: [] });
   }
 
   // Registers signal-driven effects that watch request signals and run API calls,
@@ -187,21 +205,25 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
           const content: ApplicationListGetSummaryDto[] = page.content ?? [];
           this.appListSignalState.patch({
             searchErrors: [],
+            isLoading: false,
+          });
+          this.storedRecordsState.patch({
             submitted: true,
             totalPages: page.totalPages ?? 0,
             rows: content.map((x) => toRow(x)),
-            isLoading: false,
           });
           this.loadRequest.set(null); // Clears request signal
         },
         onError: (err) => {
           const msg = getProblemText(err);
           this.appListSignalState.patch({
+            isLoading: false,
+            searchErrors: [{ id: 'search', text: msg }],
+          });
+          this.storedRecordsState.patch({
             submitted: true,
             rows: [],
             totalPages: 0,
-            isLoading: false,
-            searchErrors: [{ id: 'search', text: msg }],
           });
           this.loadRequest.set(null);
         },
@@ -224,9 +246,11 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
         onSuccess: ({ row, resp }) => {
           if (resp.status === 200 || resp.status === 204) {
             this.appListSignalState.patch({
-              rows: this.appListState().rows.filter((r) => r.id !== row.id),
               deleteDone: true,
             });
+            const currentRows = this.storedRecordsState.state().rows;
+            const updatedRows = currentRows.filter((r) => r.id !== row.id);
+            this.storedRecordsState.patch({ rows: updatedRows });
           }
           this.appListSignalState.patch({ deletingId: null });
           this.deleteRequest.set(null);
@@ -333,11 +357,30 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
 
     // Reset flag
     this.appListSignalState.patch(clearNotificationsPatch());
-    this.appListSignalState.patch({ isSearch: true, rows: [] });
+    this.appListSignalState.patch({ isSearch: true });
+    this.storedRecordsState.patch({ rows: [] });
 
     const dateCtrl = this.form.controls.date;
     const timeCtrl = this.form.controls.time;
     const validationErrors: { id: string; text: string }[] = [];
+
+    //TODO: Should use new validation pattern in ALE update
+    // Using generic summary/child functions to retrieve messages from central error object
+
+    // CJA validation
+    const cjaTyped = (this.state().cjaSearch ?? '').trim();
+    const cjaCode = String(this.form.controls.cja.value ?? '').trim();
+
+    if (cjaTyped) {
+      const isKnownCode = this.state().cja.some((x) => x.code === cjaCode);
+
+      if (!isKnownCode) {
+        validationErrors.push({
+          id: 'cja',
+          text: APPLICATIONS_LIST_ERROR_MESSAGES.cjaNotFound,
+        });
+      }
+    }
 
     if (dateCtrl.errors?.['dateInvalid']) {
       validationErrors.push({
@@ -355,8 +398,8 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
 
     // If any errors are found then return and do not run query
     if (validationErrors.length) {
+      this.storedRecordsState.patch({ submitted: true });
       this.appListSignalState.patch({
-        submitted: true,
         searchErrors: validationErrors,
       });
       return;
@@ -365,10 +408,9 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     const hasAny = hasAnyParams(this.form);
 
     if (action === 'search') {
+      this.storedRecordsState.patch({ submitted: true, currentPage: 1 });
       this.appListSignalState.patch({
-        submitted: true,
         isSearch: true,
-        currentPage: 1,
       });
       this.loadApplicationsLists(hasAny);
     }
@@ -405,9 +447,18 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   }
 
   onPageChange(page: number): void {
-    this.appListSignalState.patch({ currentPage: page });
+    this.storedRecordsState.patch({ currentPage: page });
     const hasAny = hasAnyParams(this.form);
     this.loadApplicationsLists(hasAny);
+  }
+
+  onCjaSearchChange(value: string): void {
+    this.setCjaSearch(value);
+
+    this.form.controls.cja.setValue('');
+
+    // refresh suggestions list
+    this.onCjaInputChange();
   }
 
   @HostListener('document:click')
@@ -479,6 +530,8 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       ...this.form.getRawValue(),
     } as SearchFormValue);
 
+    const r = this.storedRecordsState.state();
+
     const sortFieldKey = this.appListState().sortField.key;
     const sortFieldDirection = this.appListState().sortField.direction;
 
@@ -486,8 +539,8 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     const paramSort = [`${sortFieldKey},${sortFieldDirection}`];
 
     const params: GetApplicationListsRequestParams = {
-      page: this.appListState().currentPage - 1,
-      size: this.appListState().pageSize,
+      page: r.currentPage - 1,
+      size: r.pageSize,
       sort: paramSort,
       ...(hasParams ? { filter: loadQuery(this.form) } : {}),
     };

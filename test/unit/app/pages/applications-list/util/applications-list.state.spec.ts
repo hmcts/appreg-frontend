@@ -6,7 +6,6 @@ import {
 describe('applications-list.state', () => {
   it('defines initial state values', () => {
     expect(initialApplicationsListState).toEqual({
-      submitted: false,
       isSearch: false,
       deleteDone: false,
       deleteInvalid: false,
@@ -14,10 +13,6 @@ describe('applications-list.state', () => {
       searchErrors: [],
       errorSummary: [],
       deletingId: null,
-      currentPage: 1,
-      totalPages: 5,
-      pageSize: 10,
-      rows: [],
       sortField: {
         direction: 'desc',
         key: 'date',
@@ -31,7 +26,6 @@ describe('applications-list.state', () => {
       deleteInvalid: false,
       errorSummary: [],
       searchErrors: [],
-      submitted: false,
       sortField: {
         direction: 'desc',
         key: 'date',

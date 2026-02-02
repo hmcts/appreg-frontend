@@ -34,6 +34,9 @@ Then(
     // Verify each row in the data table
     for (const row of rows) {
       TableSearch.verifyRowExists(tableCaption, row);
+      cy.screenshot(
+        `table-row-${tableCaption}-${Object.values(row).join('-')}`,
+      );
     }
   },
 );

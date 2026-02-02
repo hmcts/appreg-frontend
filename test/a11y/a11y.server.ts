@@ -12,11 +12,15 @@ export async function startStaticSpaServer(): Promise<{
 }> {
   const app = express();
 
+  // static assets
+  app.use(express.static(DIST_DIR, { extensions: ['html'] }));
   // SPA fallback -> always serve index.html
   app.use(history({ index: '/index.html', verbose: false }));
 
-  // static assets
-  app.use(express.static(DIST_DIR, { extensions: ['html'] }));
+  //Stub endpoints
+  app.get('/sso/me', (_req, res) => res.status(204).end());
+  app.get('/court-locations', (_req, res) => res.json([]));
+  app.get('/criminal-justice-areas', (_req, res) => res.json([]));
 
   // start on random port
   const server = await new Promise<Server>((resolve) => {

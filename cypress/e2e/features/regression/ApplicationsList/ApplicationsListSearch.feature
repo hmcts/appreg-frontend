@@ -60,11 +60,12 @@ Feature: Applications List Search
       | User   |
       | admin1 |
 
-  @regression @ARCPOC-214 @ARCPOC-452
-  Scenario Outline: Verify applications list table is displayed with search results
+  @regression @ARCPOC-214 @ARCPOC-452 @ARCPOC-977
+  Scenario Outline: Verify applications list table is displayed with search results and values retained
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     When User Set Date Field "Date" To "<SearchDate>"
+    Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
     When User Clicks On The "Search" Button
     # Table and header validation
     Then User Should See Table "<TableName>" Has Sortable Headers "Date, Time, Location, Description, Entries, Status"
@@ -73,9 +74,17 @@ Feature: Applications List Search
     Then User Should See Row In Table "<TableName>" With Values:
       | Date          | Time   | Location | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+    When User Clicks "<SelectButtonText>" Then "Open" From Menu In Row Of Table "<TableName>" With:
+      | Date          | Time   | Location | Description   | Entries   | Status   |
+      | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+    Then User Should See The Link "List details"
+    Then User Clicks On The Breadcrumb Link 'Applications list'
+    Then User Verifies The Date field "Date" Has Value "<SearchDate>"
+    Then User Verifies The "Court" Textbox Has Value "<SearchText> - <Court>"
+    Then User Should See Table "<TableName>" Has Rows
     Examples:
-      | User  | TableName | SearchDate | DisplayDate | Time  | Court                     | Description                   | Entries | Status |
-      | user1 | Lists     | 19/05/2025 | 2025-05-19  | 09:00 | Cardiff Crown Court Set 4 | Cancelled hearing for Probate | 2       | CLOSED |
+      | User  | TableName | SearchDate | DisplayDate | Time  | Court                     | Description | Entries | Status | SearchText | OptionText                | SelectButtonText | TableName |
+      | user1 | Lists     | 23/05/2025 | 2025-05-23  | 16:00 | Cardiff Crown Court Set 4 | Urgent list | 2       | OPEN   | CCC033     | Cardiff Crown Court Set 4 | Select           | Lists     |
 
   @regression @ARCPOC-214 @ARCPOC-452 @ARCPOC-759
   Scenario Outline: Filter and verify applications list with multiple filters
