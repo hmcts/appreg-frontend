@@ -1,4 +1,5 @@
 /// <reference types="cypress" />
+import { ObjectBuilder } from '../../../utils/ObjectBuilder';
 import { ApiBaseHelper } from '../apiBase/ApiBaseHelper';
 
 export class ApiPostHelper {
@@ -24,6 +25,27 @@ export class ApiPostHelper {
     const processedBody = ApiBaseHelper.processDynamicValues(
       parsedBody,
     ) as Cypress.RequestBody;
+    ApiBaseHelper.makeRequest('POST', endpoint, processedBody);
+  }
+
+  /**
+   * Makes a POST API request using a nested object built from flat dot-notation keys
+   * @param endpoint API endpoint
+   * @param flatProcessedRow Flat object with dot-notation keys and processed values
+   */
+  static postWithBuilder(
+    endpoint: string,
+    flatProcessedRow: Record<string, string>,
+  ): void {
+    const nestedBody = ObjectBuilder.buildNestedObject(flatProcessedRow);
+    const processedBody = ApiBaseHelper.processDynamicValues(
+      nestedBody,
+    ) as Cypress.RequestBody;
+    
+    // Log the built request for debugging
+    cy.log('🔧 Built nested object from dot-notation');
+    cy.log('📤 Request Body:', JSON.stringify(processedBody, null, 2));
+    
     ApiBaseHelper.makeRequest('POST', endpoint, processedBody);
   }
 }
