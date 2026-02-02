@@ -149,14 +149,12 @@
         </ng-template>
       </app-selectable-sortable-table>
     } @else if (noEntries && !vm().isLoading) {
-      <div class="no-margin-bottom">
-        <app-notification-banner
-          heading="No lists entries found"
-          body="Try again, or "
-          linkText="create a new list entry"
-          [linkCommands]="['/applications-list', id, 'create']"
-        />
-      </div>
+      <app-notification-banner
+        heading="No lists entries found"
+        body="Try again, or "
+        linkText="create a new list entry"
+        [linkCommands]="['/applications-list', id, 'create']"
+      />
     }
 
     <!-- Pager -->
