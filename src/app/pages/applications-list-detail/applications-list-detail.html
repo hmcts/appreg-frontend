@@ -31,16 +31,6 @@
   />
 }
 
-@if (noEntries && !vm().isLoading) {
-  <app-notification-banner
-    heading="No lists entries found"
-    body="Try again, or "
-    linkText="create a new list entry"
-    [linkCommands]="['/applications-list', id, 'create']"
-  >
-  </app-notification-banner>
-}
-
 <!-- Tabs -->
 <div class="govuk-tabs" data-module="govuk-tabs">
   <h2 class="govuk-tabs__title">Contents</h2>
@@ -158,6 +148,15 @@
           </div>
         </ng-template>
       </app-selectable-sortable-table>
+    } @else if (noEntries && !vm().isLoading) {
+      <div class="no-margin-bottom">
+        <app-notification-banner
+          heading="No lists entries found"
+          body="Try again, or "
+          linkText="create a new list entry"
+          [linkCommands]="['/applications-list', id, 'create']"
+        />
+      </div>
     }
 
     <!-- Pager -->
