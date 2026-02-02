@@ -8,6 +8,7 @@ import { APPLICATIONS_LIST_COLUMNS } from '../util/applications-list.constants';
 
 import { DeleteComponent } from '@components/delete/delete.component';
 import { TableComponent } from '@components/table/table.component';
+import { WarningBannerComponent } from '@components/warning-banner/warning-banner.component';
 import { IF_MATCH, ROW_VERSION } from '@context/concurrency-context';
 import { ApplicationListsApi } from '@openapi';
 import { ApplicationListRow } from '@util/types/application-list/types';
@@ -16,15 +17,15 @@ type DeleteNavState = { listToDelete?: ApplicationListRow };
 
 @Component({
   selector: 'app-applications-list-delete',
-  imports: [DeleteComponent, TableComponent],
+  imports: [DeleteComponent, TableComponent, WarningBannerComponent],
   templateUrl: './applications-list-delete.component.html',
 })
 export class ApplicationsListDeleteComponent implements OnInit {
-  private appListsApi = inject(ApplicationListsApi);
-  private location = inject(Location);
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
-  private platformId = inject(PLATFORM_ID);
+  private readonly appListsApi = inject(ApplicationListsApi);
+  private readonly location = inject(Location);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly platformId = inject(PLATFORM_ID);
 
   listToDelete: ApplicationListRow | undefined = isPlatformBrowser(
     this.platformId,
