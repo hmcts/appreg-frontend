@@ -1,5 +1,4 @@
 /// <reference types="cypress" />
-import { APP_URLS } from '../../constants/ProjectConstants';
 import { ButtonHelper } from '../forms/button/ButtonHelper';
 
 import { MicrosoftAuthHelper } from './MicrosoftAuthHelper';
@@ -7,7 +6,7 @@ import { MicrosoftAuthHelper } from './MicrosoftAuthHelper';
 export class AuthHelper {
   static signInWithMicrosoftSSO(email: string, password: string): void {
     cy.log(`Starting SSO login for: ${email}`);
-    cy.visit(APP_URLS.HOME);
+
     cy.screenshot('01-HomePage-Before-SignIn');
 
     ButtonHelper.clickButton('Sign in');
