@@ -5,3 +5,9 @@
 .govuk-table__caption--m {
   margin-bottom: 0;
 }
+
+::ng-deep {
+  .govuk-notification-banner {
+    margin-bottom: 0;
+  }
+}

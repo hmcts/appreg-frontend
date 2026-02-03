@@ -5,8 +5,8 @@ import { ActivatedRoute, provideRouter } from '@angular/router';
 import { jest } from '@jest/globals';
 import { of, throwError } from 'rxjs';
 
-import { ApplicationsListCreate } from '@components/applications-list-create/applications-list-create';
-import { ApplicationsListCreateState } from '@components/applications-list-create/util/applications-list-create.state';
+import { ApplicationsListCreate } from '@components/applications-list/applications-list-create/applications-list-create.component';
+import { ApplicationsListCreateState } from '@components/applications-list/applications-list-create/util/applications-list-create.state';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import {
   ApplicationListCreateDto,

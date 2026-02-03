@@ -16,8 +16,8 @@ describe('TableComponent (class tests)', () => {
 
   it('returns provided columns when set', () => {
     const provided: ColumnDef<Row>[] = [
-      { header: 'Applicants', accessor: 'applicants' },
-      { header: 'Respondents', accessor: 'respondents' },
+      { header: 'Applicants', field: 'applicants' },
+      { header: 'Respondents', field: 'respondents' },
     ];
 
     comp.columns = provided;
@@ -38,7 +38,7 @@ describe('TableComponent (class tests)', () => {
       'Respondents',
       'Title',
     ]);
-    expect(cols.map((c) => c.accessor)).toEqual([
+    expect(cols.map((c) => c.field)).toEqual([
       'applicants',
       'respondents',
       'title',
@@ -56,7 +56,7 @@ describe('TableComponent (class tests)', () => {
   it('valueOf supports function accessor', () => {
     const col: ColumnDef<Row> = {
       header: 'Fn',
-      accessor: (row, i) => `${row.title}-${i}`,
+      field: (row, i) => `${row.title}-${i}`,
     };
     const row: Row = { applicants: 'A', respondents: 'B', title: 'T' };
 
@@ -66,7 +66,7 @@ describe('TableComponent (class tests)', () => {
   it('valueOf supports direct key accessor', () => {
     const col: ColumnDef<Row> = {
       header: 'Applicants',
-      accessor: 'applicants',
+      field: 'applicants',
     };
     const row: Row = { applicants: 'AAA', respondents: 'B', title: 'T' };
 
@@ -74,7 +74,7 @@ describe('TableComponent (class tests)', () => {
   });
 
   it('valueOf supports dotted path accessor', () => {
-    const col: ColumnDef<Row> = { header: 'Name', accessor: 'person.name' };
+    const col: ColumnDef<Row> = { header: 'Name', field: 'person.name' };
     const row: Row = {
       applicants: 'A',
       respondents: 'B',
@@ -86,7 +86,7 @@ describe('TableComponent (class tests)', () => {
   });
 
   it('valueOf returns undefined when dotted path is missing', () => {
-    const col: ColumnDef<Row> = { header: 'Name', accessor: 'person.name' };
+    const col: ColumnDef<Row> = { header: 'Name', field: 'person.name' };
     const row: Row = {
       applicants: 'A',
       respondents: 'B',
