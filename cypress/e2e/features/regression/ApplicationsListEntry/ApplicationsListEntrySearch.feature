@@ -4,7 +4,7 @@ Feature: Applications List Entry Search
     Scenario: Verify components on applications list Entry (ALE) search page
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
-        Then User Clicks On The Exact Link "Applications"
+        Then User clicks on the link using exact text match "Applications"
         Then User Verify The Page URL Contains "/applications"
         Then User Should See The Date Field "Date"
         Then User Sees Text "For example, 27 3 2007" In "Date" Field
