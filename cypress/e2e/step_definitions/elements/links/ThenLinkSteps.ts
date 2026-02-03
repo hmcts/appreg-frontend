@@ -14,6 +14,10 @@ Then('User Clicks On The Link {string}', (linkText: string) => {
   LinkHelper.clickLink(linkText);
 });
 
+Then('User Clicks On The Exact Link {string}', (linkText: string) => {
+  LinkHelper.clickLinkExact(linkText);
+});
+
 Then(
   'User Clicks On The Breadcrumb Link {string}',
   (breadcrumbLinkText: string) => {
