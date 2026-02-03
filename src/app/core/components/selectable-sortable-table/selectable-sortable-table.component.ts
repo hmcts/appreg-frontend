@@ -31,6 +31,7 @@ export interface TableColumn {
   standalone: true,
   imports: [CommonModule],
   templateUrl: './selectable-sortable-table.component.html',
+  styleUrl: './selectable-sortable-table.component.scss',
 })
 export class SelectableSortableTableComponent
   implements AfterViewInit, OnDestroy
