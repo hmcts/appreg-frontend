@@ -483,17 +483,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    // confirm
-    if (isPlatformBrowser(this.platformId)) {
-      const ok = globalThis.confirm(
-        'Are you sure you want to update this Application List?',
-      );
-
-      if (!ok) {
-        return;
-      }
-    }
-
     // build payload
     const dur = this.form.controls.duration.value;
     const durationHours = this.toNum(dur?.hours);
