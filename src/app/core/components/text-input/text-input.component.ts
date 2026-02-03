@@ -35,6 +35,7 @@ export class TextInputComponent implements ControlValueAccessor {
   @Input() idPrefix = 'text-input';
   /** Optional width class (e.g. 'govuk-input--width-10') */
   @Input() widthClass = 'govuk-input--width-10';
+  @Input() containerWidthClass = 'govuk-grid-column-one-quarter';
   @Input() listId?: string;
   @Input() suggestions: {
     value: string;

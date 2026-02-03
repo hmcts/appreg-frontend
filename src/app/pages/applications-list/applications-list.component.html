@@ -66,15 +66,9 @@
       [submitted]="storedRecordsVm().submitted"
       [required]="false"
     />
+  </div>
 
-    <!-- Description -->
-    <app-text-input
-      formControlName="description"
-      label="Description"
-      hint="A description of the application list"
-      idPrefix="description"
-    />
-
+  <div class="govuk-grid-row">
     <!-- Status -->
     <app-select-input
       formControlName="status"
@@ -82,6 +76,18 @@
       hint="The status of the application list"
       idPrefix="status"
       [options]="status"
+    />
+  </div>
+
+  <div class="govuk-grid-row">
+    <!-- Description -->
+    <app-text-input
+      formControlName="description"
+      label="Description"
+      hint="A description of the application list"
+      idPrefix="description"
+      widthClass="govuk-input--width-30"
+      containerWidthClass="govuk-grid-column-one-half"
     />
   </div>
 
@@ -96,14 +102,20 @@
       (searchChange)="onCourthouseInputChange()"
       [suggestions]="state().filteredCourthouses"
       (selectItem)="selectCourthouse($event)"
+      widthClass="govuk-!-width-three-quarters"
+      containerWidthClass="govuk-grid-column-one-half"
     />
+  </div>
 
+  <div class="govuk-grid-row">
     <!-- Other location -->
     <app-text-input
       formControlName="location"
       label="Other location"
       hint="Other location description"
       idPrefix="location"
+      widthClass="govuk-input--width-full"
+      containerWidthClass="govuk-grid-column-one-quarter"
     />
 
     <!-- CJA -->
@@ -116,6 +128,8 @@
       (searchChange)="onCjaSearchChange($event)"
       [suggestions]="state().filteredCja"
       (selectItem)="selectCja($event)"
+      widthClass="govuk-!-width-full"
+      containerWidthClass="govuk-grid-column-one-quarter"
     />
   </div>
 
