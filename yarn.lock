@@ -4969,15 +4969,15 @@ __metadata:
   linkType: hard
 
 "@redocly/cli@npm:^2.1.4":
-  version: 2.15.0
-  resolution: "@redocly/cli@npm:2.15.0"
+  version: 2.15.1
+  resolution: "@redocly/cli@npm:2.15.1"
   dependencies:
     "@opentelemetry/exporter-trace-otlp-http": "npm:0.202.0"
     "@opentelemetry/resources": "npm:2.0.1"
     "@opentelemetry/sdk-trace-node": "npm:2.0.1"
     "@opentelemetry/semantic-conventions": "npm:1.34.0"
-    "@redocly/openapi-core": "npm:2.15.0"
-    "@redocly/respect-core": "npm:2.15.0"
+    "@redocly/openapi-core": "npm:2.15.1"
+    "@redocly/respect-core": "npm:2.15.1"
     abort-controller: "npm:^3.0.0"
     ajv: "npm:@redocly/ajv@8.17.1"
     ajv-formats: "npm:^3.0.1"
@@ -4988,6 +4988,7 @@ __metadata:
     handlebars: "npm:^4.7.6"
     https-proxy-agent: "npm:^7.0.5"
     mobx: "npm:^6.0.4"
+    picomatch: "npm:^4.0.3"
     pluralize: "npm:^8.0.0"
     react: "npm:^17.0.0 || ^18.2.0 || ^19.2.1"
     react-dom: "npm:^17.0.0 || ^18.2.0 || ^19.2.1"
@@ -5002,7 +5003,7 @@ __metadata:
   bin:
     openapi: bin/cli.js
     redocly: bin/cli.js
-  checksum: 10/5375fba51ac8219e553eef5ce66d2752c88f29162f3afa3af91fa1a819dc35370202a13149f14837acdd68cf513da7b550f4fe73868dea0e406fe500d846e603
+  checksum: 10/57d82366774775186ca375676d49f7f9f1e7d78fceda44cb63d80c47c808a10275a562bb8b8336f103b3bc996d7a97ede8c8562f3d9179703ced1da3140fc81c
   languageName: node
   linkType: hard
 
@@ -5013,21 +5014,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@redocly/config@npm:^0.41.2":
-  version: 0.41.2
-  resolution: "@redocly/config@npm:0.41.2"
+"@redocly/config@npm:^0.41.4":
+  version: 0.41.4
+  resolution: "@redocly/config@npm:0.41.4"
   dependencies:
     json-schema-to-ts: "npm:2.7.2"
-  checksum: 10/022394823bd21ae533928cc3e7406e08c272545871b048ed89879cb2013a323bf5b1c2b446710f81b29e52dbba1cdd4ccdd01315225da3e582ede7c2fbee945b
+  checksum: 10/e34f546d2eacf2f205917ccfee6372f0f5d5b45b0e782c61e9522086cadac61ab7e0ea957b28ec06ff5bca7a4128fa2a0a3abb345d77e73191656cef9499fc6d
   languageName: node
   linkType: hard
 
-"@redocly/openapi-core@npm:2.15.0":
-  version: 2.15.0
-  resolution: "@redocly/openapi-core@npm:2.15.0"
+"@redocly/openapi-core@npm:2.15.1":
+  version: 2.15.1
+  resolution: "@redocly/openapi-core@npm:2.15.1"
   dependencies:
     "@redocly/ajv": "npm:^8.17.2"
-    "@redocly/config": "npm:^0.41.2"
+    "@redocly/config": "npm:^0.41.4"
     ajv: "npm:@redocly/ajv@8.17.2"
     ajv-formats: "npm:^3.0.1"
     colorette: "npm:^1.2.0"
@@ -5036,7 +5037,7 @@ __metadata:
     picomatch: "npm:^4.0.3"
     pluralize: "npm:^8.0.0"
     yaml-ast-parser: "npm:0.0.43"
-  checksum: 10/f263dd22f880e63160a6f1201b9b7ae67ffaec8a5c7a6fd072d3c5bd21d5249d3d17a406335317062dddb5c92c06ee327ec6d08d0bbd0c413a053d996b22f321
+  checksum: 10/5535e98f0fd7f0259f5981f3d3397c6f4f18c19bebf6b1c7614f98dab43abe2fe3f0a1707cce5a1d2aef264ce38088e0537eeda39ce939495b396ce9429bed1b
   languageName: node
   linkType: hard
 
@@ -5057,14 +5058,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@redocly/respect-core@npm:2.15.0":
-  version: 2.15.0
-  resolution: "@redocly/respect-core@npm:2.15.0"
+"@redocly/respect-core@npm:2.15.1":
+  version: 2.15.1
+  resolution: "@redocly/respect-core@npm:2.15.1"
   dependencies:
     "@faker-js/faker": "npm:^7.6.0"
     "@noble/hashes": "npm:^1.8.0"
     "@redocly/ajv": "npm:8.17.1"
-    "@redocly/openapi-core": "npm:2.15.0"
+    "@redocly/openapi-core": "npm:2.15.1"
     ajv: "npm:@redocly/ajv@8.17.1"
     better-ajv-errors: "npm:^1.2.0"
     colorette: "npm:^2.0.20"
@@ -5072,7 +5073,8 @@ __metadata:
     jsonpath-rfc9535: "npm:1.3.0"
     openapi-sampler: "npm:^1.6.1"
     outdent: "npm:^0.8.0"
-  checksum: 10/5af8941e6804f112ee8f3016dbe7fad70222b582d5f06318c88af6d6782e0dec041eba6702760f19298e162e3420d765064e861d37a5ac6135a112d75d0b6657
+    picomatch: "npm:^4.0.3"
+  checksum: 10/d20980c7370835a5bcd3340c1fbaba9a1c8c493ba939882d8ac6663b4860f6b6594fe5ba52b8fdff5fab7ee4f103d8e34e1e009df70270ccae1b47bf744ed8cb
   languageName: node
   linkType: hard
 
@@ -9226,7 +9228,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:^3.2.4":
+"dompurify@npm:^3.2.4, dompurify@npm:^3.3.1":
   version: 3.3.1
   resolution: "dompurify@npm:3.3.1"
   dependencies:
@@ -13503,13 +13505,13 @@ __metadata:
   linkType: hard
 
 "jspdf@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "jspdf@npm:4.0.0"
+  version: 4.1.0
+  resolution: "jspdf@npm:4.1.0"
   dependencies:
     "@babel/runtime": "npm:^7.28.4"
     canvg: "npm:^3.0.11"
     core-js: "npm:^3.6.0"
-    dompurify: "npm:^3.2.4"
+    dompurify: "npm:^3.3.1"
     fast-png: "npm:^6.2.0"
     fflate: "npm:^0.8.1"
     html2canvas: "npm:^1.0.0-rc.5"
@@ -13522,7 +13524,7 @@ __metadata:
       optional: true
     html2canvas:
       optional: true
-  checksum: 10/c62d3ff32b450e184e8d535dfd71fccd38b457b1be3886839d18a8975f077f3f16b0b5fd7dd2f75416dc6a324608488cd3d5a20fb8ac7e44341adbdbbff20301
+  checksum: 10/07ca8deec968db23acf0747b4dc6ea6896a05cb4b0d4fc13ddd63b55e3165f66c2e80fc1d8383e162310a0e7af12382fb7f23c4d517c035d3a981f816da1b4bb
   languageName: node
   linkType: hard
 
