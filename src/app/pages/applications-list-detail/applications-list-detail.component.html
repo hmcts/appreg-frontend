@@ -89,67 +89,70 @@
     />
 
     @if (!noEntries && !vm().isLoading) {
-      <!-- Sortable table component -->
-      <app-selectable-sortable-table
-        id="sortable-table"
-        caption="Lists"
-        [columns]="columns"
-        [data]="vm().rows"
-        idField="id"
-        (selectedRowsChange)="onSelectedRowsChange($event)"
-        [(selectedIds)]="vm().selectedIds"
-        appMojButtonMenu
-      >
-        <caption
-          class="govuk-table__caption govuk-table__caption--m"
-          id="sortable-Lists"
+      <div class="app-table-scroll">
+        <!-- Sortable table component -->
+        <app-selectable-sortable-table
+          id="sortable-table"
+          caption="Lists"
+          [columns]="columns"
+          [data]="vm().rows"
+          idField="id"
+          (selectedRowsChange)="onSelectedRowsChange($event)"
+          [(selectedIds)]="vm().selectedIds"
+          appMojButtonMenu
         >
-          <span class="table-caption__text"> Lists </span>
-
-          <span
-            class="table-caption__actions"
-            role="group"
-            aria-label="Table actions"
+          <caption
+            class="govuk-table__caption govuk-table__caption--m"
+            id="sortable-Lists"
           >
-            <button
-              type="button"
-              class="govuk-button govuk-button--primary govuk-button--small float-right"
-              [disabled]="vm().selectedRows.length === 0"
-              (click)="onResultButtonClick()"
-            >
-              Result selected
-            </button>
-          </span>
-        </caption>
-        <!-- actions slot -->
-        <ng-template #actionsTemplate let-row>
-          <div
-            class="moj-button-menu"
-            data-module="moj-button-menu"
-            data-button-text="Select"
-            data-button-classes="govuk-button"
-          >
-            <!-- Open button -->
-            <button
-              type="button"
-              class="govuk-button moj-button-menu__item govuk-button--secondary"
-              (click)="openUpdate(row)"
-            >
-              Open
-            </button>
+            <span class="table-caption__text"> Lists </span>
 
-            <!-- Delete button -->
-            <button
-              type="button"
-              class="govuk-button moj-button-menu__item govuk-button--secondary"
+            <span
+              class="table-caption__actions"
+              role="group"
+              aria-label="Table actions"
             >
-              Delete
-            </button>
-          </div>
-        </ng-template>
-      </app-selectable-sortable-table>
+              <button
+                type="button"
+                class="govuk-button govuk-button--primary govuk-button--small float-right"
+                [disabled]="vm().selectedRows.length === 0"
+                (click)="onResultButtonClick()"
+              >
+                Result selected
+              </button>
+            </span>
+          </caption>
+          <!-- actions slot -->
+          <ng-template #actionsTemplate let-row>
+            <div
+              class="moj-button-menu"
+              data-module="moj-button-menu"
+              data-button-text="Select"
+              data-button-classes="govuk-button"
+            >
+              <!-- Open button -->
+              <button
+                type="button"
+                class="govuk-button moj-button-menu__item govuk-button--secondary"
+                (click)="openUpdate(row)"
+              >
+                Open
+              </button>
+
+              <!-- Delete button -->
+              <button
+                type="button"
+                class="govuk-button moj-button-menu__item govuk-button--secondary"
+              >
+                Delete
+              </button>
+            </div>
+          </ng-template>
+        </app-selectable-sortable-table>
+      </div>
     } @else if (noEntries && !vm().isLoading) {
       <app-notification-banner
+        id="noEntries"
         heading="No lists entries found"
         body="Try again, or "
         linkText="create a new list entry"
