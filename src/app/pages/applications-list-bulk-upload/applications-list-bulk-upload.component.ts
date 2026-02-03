@@ -1,16 +1,28 @@
-/**
- * TODO: arcpoc-816
- * prio 5
- * refactor manual state + subscribe.
- */
+/*
+Applications List – Bulk Upload (/applications-list/:id/bulk-upload)
 
-// TODO: add header comment
+Functionality:
+  - Validates selected CSV file by extension and MIME type
+  - Submits bulk upload request for the selected list
+  - Updates UI state for upload progress and result
+*/
 
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  EnvironmentInjector,
+  OnInit,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { finalize } from 'rxjs';
+
+import {
+  ApplicationsListBulkUploadState,
+  InitialBulkUploadState,
+} from './util/applications-list-bulk-upload.state';
 
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import {
@@ -26,6 +38,7 @@ import {
   JobAcknowledgement,
   JobStatus,
 } from '@openapi';
+import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 
 @Component({
   selector: 'app-applications-list-bulk-upload',
@@ -41,23 +54,63 @@ import {
   styleUrl: './applications-list-bulk-upload.component.scss',
 })
 export class ApplicationsListBulkUpload implements OnInit {
+  private readonly actionsApiService = inject(ActionsApi);
+  private readonly route = inject(ActivatedRoute);
+
   isValidCSV: boolean | null = null;
   errorSummary: ErrorItem[] = [];
-  errorHint: string = 'There is a problem';
   file!: File;
   isUploadInProgress = false;
   fileUploadStatus!: 'success' | 'error' | null;
   jobAcknowledgement!: JobAcknowledgement;
   listId!: string;
-  private readonly actionsApiService = inject(ActionsApi);
-  private route = inject(ActivatedRoute);
+
+  // Initialise signal state
+  private readonly bulkUploadSignalState =
+    createSignalState<ApplicationsListBulkUploadState>(InitialBulkUploadState);
+  private readonly bulkUploadState = this.bulkUploadSignalState.state;
+  readonly vm = this.bulkUploadSignalState.vm;
+
+  // allows you to initialise effect in ngOnInit()
+  private readonly envInjector = inject(EnvironmentInjector);
+
+  private readonly bulkUploadRequest =
+    signal<BulkUploadApplicationListEntriesRequestParams | null>(null);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     // invalid listId then navigate to 404 page
     if (id) {
-      this.listId = id;
+      // this.listId = id;
+      this.bulkUploadSignalState.patch({ listId: id });
     }
+
+    this.setupEffects();
+  }
+
+  private setupEffects(): void {
+    setupLoadEffect(
+      {
+        request: this.bulkUploadRequest,
+        load: (params) =>
+          this.actionsApiService.bulkUploadApplicationListEntries(
+            params,
+            'body',
+            true,
+          ),
+        onSuccess: (jobAcknowledgement) => {
+          this.jobAcknowledgement = jobAcknowledgement;
+          if (this.jobAcknowledgement.status === JobStatus.RECEIVED) {
+            this.fileUploadStatus = 'success';
+          }
+        },
+        onError: (err) => {
+          this.fileUploadStatus = 'error';
+          this.errorSummary = [{ text: `${err.message}` }];
+        },
+      },
+      this.envInjector,
+    );
   }
 
   onFileSelected(event: Event): void {
