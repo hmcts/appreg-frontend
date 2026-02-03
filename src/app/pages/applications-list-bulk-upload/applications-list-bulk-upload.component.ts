@@ -37,8 +37,8 @@ import {
     LoadingSpinner,
     SuccessBannerComponent,
   ],
-  templateUrl: './applications-list-bulk-upload.html',
-  styleUrl: './applications-list-bulk-upload.scss',
+  templateUrl: './applications-list-bulk-upload.component.html',
+  styleUrl: './applications-list-bulk-upload.component.scss',
 })
 export class ApplicationsListBulkUpload implements OnInit {
   isValidCSV: boolean | null = null;

@@ -29,7 +29,7 @@ import { WorkloadSectionComponent } from '@components/workload-section/workload-
     DurationSectionComponent,
     PrivateProsecutorsIndexSectionComponent,
   ],
-  templateUrl: './reports.html',
+  templateUrl: './reports.component.html',
 })
 export class Reports {
   // Reactive form backing the template

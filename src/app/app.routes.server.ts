@@ -14,6 +14,7 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'page-not-found', renderMode: RenderMode.Server },
   { path: 'applications-list/:id', renderMode: RenderMode.Server },
   { path: 'applications-list/:id/update', renderMode: RenderMode.Server },
+  { path: 'applications-list/:id/delete', renderMode: RenderMode.Server },
   {
     path: 'applications-list/:id/update/change-payment-reference',
     renderMode: RenderMode.Server,

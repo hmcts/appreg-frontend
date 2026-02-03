@@ -194,7 +194,8 @@
             <button
               type="button"
               class="govuk-button moj-button-menu__item govuk-button--warning"
-              (click)="onDelete(row)"
+              [routerLink]="['/applications-list', row.id, 'delete']"
+              [state]="{ listToDelete: row }"
             >
               Delete
             </button>

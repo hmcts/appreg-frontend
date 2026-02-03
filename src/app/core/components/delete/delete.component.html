@@ -1,0 +1,41 @@
+<div class="govuk-width-container">
+  <main class="govuk-main-wrapper">
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-full">
+        @if (title()) {
+          <h1 class="govuk-heading-l">{{ title() }}</h1>
+        } @else {
+          <h1 class="govuk-heading-l">
+            Are you sure you want to delete
+            {{ numberOfItems() > 1 ? 'these items' : 'this item' }}?
+          </h1>
+        }
+
+        <div class="govuk-!-margin-top-4">
+          <ng-content></ng-content>
+        </div>
+
+        <div class="govuk-!-margin-top-6">
+          <div class="govuk-button-group">
+            <button
+              class="govuk-button"
+              [class.govuk-button--warning]="isRedDeleteButton()"
+              [disabled]="isDeleting()"
+              (click)="onConfirm()"
+            >
+              {{ deleteButtonTxt() }}
+            </button>
+
+            <a
+              href="#"
+              (click)="$event.preventDefault(); onCancel()"
+              class="govuk-link govuk-link--no-visited-state"
+            >
+              {{ cancelButtonTxt() }}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
