@@ -14,9 +14,12 @@ Then('User Clicks On The Link {string}', (linkText: string) => {
   LinkHelper.clickLink(linkText);
 });
 
-Then('User clicks on the link using exact text match {string}', (linkText: string) => {
-  LinkHelper.clickLinkExact(linkText);
-});
+Then(
+  'User clicks on the link using exact text match {string}',
+  (linkText: string) => {
+    LinkHelper.clickLinkExact(linkText);
+  },
+);
 
 Then(
   'User Clicks On The Breadcrumb Link {string}',
