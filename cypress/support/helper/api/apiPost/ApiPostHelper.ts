@@ -41,11 +41,11 @@ export class ApiPostHelper {
     const processedBody = ApiBaseHelper.processDynamicValues(
       nestedBody,
     ) as Cypress.RequestBody;
-    
+
     // Log the built request for debugging
-    cy.log('🔧 Built nested object from dot-notation');
-    cy.log('📤 Request Body:', JSON.stringify(processedBody, null, 2));
-    
+    cy.log('Built nested object from dot-notation');
+    cy.log('Request Body:', JSON.stringify(processedBody, null, 2));
+
     ApiBaseHelper.makeRequest('POST', endpoint, processedBody);
   }
 }
