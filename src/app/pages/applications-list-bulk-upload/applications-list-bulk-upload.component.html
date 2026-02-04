@@ -3,7 +3,7 @@
     { label: 'Applications list', link: '/applications-list' },
     {
       label: 'Applications list details',
-      link: '/applications-list/' + this.vm().listId,
+      link: '/applications-list/' + vm().listId,
     },
   ]"
 />
@@ -19,7 +19,7 @@
 @if (vm().fileUploadStatus === 'error') {
   <app-error-summary
     [title]="'There is a problem'"
-    [items]="this.vm().errorSummary"
+    [items]="vm().errorSummary"
   />
 }
 
@@ -57,7 +57,7 @@
         <button
           type="submit"
           class="govuk-button float-right"
-          [disabled]="!this.vm().isValidCSV"
+          [disabled]="!vm().isValidCSV"
           data-module="govuk-button"
         >
           Upload file
