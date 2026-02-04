@@ -41,6 +41,7 @@ import { SelectInputComponent } from '@components/select-input/select-input.comp
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { WordingParserComponent } from '@components/wording-parser/wording-parser.component';
 import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
 import {
   ApplicationCodeGetSummaryDto,
@@ -82,6 +83,7 @@ type ChildErrorSource = 'notes' | 'fee' | 'respondent' | 'applicant';
     PersonSectionComponent,
     OrganisationSectionComponent,
     NotesSectionComponent,
+    WordingParserComponent,
   ],
   viewProviders: [
     { provide: ControlContainer, useExisting: FormGroupDirective },

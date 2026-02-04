@@ -1,0 +1,22 @@
+<!-- <p>wording-parser works!</p>
+<p>{{ value1.wording.template }}</p>
+<p>{{ value2.wording.template }}</p>
+<p>{{ value3.wording.template }}</p> -->
+
+<form [formGroup]="form">
+  <p class="govuk-body">
+    @for (t of tokens; track $index) {
+      @if (t.type == 'text') {
+        {{ t.value }}&nbsp;
+      } @else if (t.type == 'input') {
+        <input
+          class="govuk-input govuk-input--width-10"
+          name="width10"
+          type="text"
+          placeholder="Enter a {{ t.key }}"
+          formControlName="{{ t.key }}"
+        />&nbsp;
+      }
+    }
+  </p>
+</form>

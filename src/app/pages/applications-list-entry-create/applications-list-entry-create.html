@@ -112,25 +112,7 @@
   </ng-template>
 
   <ng-template #wordingTpl>
-    <div class="govuk-grid-row">
-      <!-- Court name -->
-      <app-text-input
-        formControlName="courtName"
-        label="Court name"
-        hint="Enter the official name of the court"
-        idPrefix="court-name"
-      >
-      </app-text-input>
-
-      <!-- Organisation name -->
-      <app-text-input
-        formControlName="organisationName"
-        label="Organisation name"
-        hint="Enter the legal name of the organisation"
-        idPrefix="organisation-name"
-      >
-      </app-text-input>
-    </div>
+    <app-wording-parser />
   </ng-template>
 
   <ng-template #respondentTpl>
