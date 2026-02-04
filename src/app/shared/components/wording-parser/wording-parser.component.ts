@@ -11,7 +11,7 @@ type Token = { type: 'text'; value: string } | { type: 'input'; key: string };
 interface SubstitutionKeyConstraint {
   key: string;
   value: string;
-  constraint?: {
+  constraint: {
     type: 'TEXT';
     length: number;
   };
@@ -46,18 +46,26 @@ export class WordingParserComponent implements OnInit {
 
     this.tokens = token2;
 
-    console.log(
-      this.tokenize('This is a test {{Applicant officer}} with a {{date}}'),
-    );
+    // console.log(
+    //   this.tokenize('This is a test {{Applicant officer}} with a {{date}}'),
+    // );
+    // console.log('Tokens 1:', token1);
+    // console.log('Tokens 2:', token2);
+    // console.log('Tokens 3:', token3);
 
-    console.log('Tokens 1:', token1);
-    console.log('Tokens 2:', token2);
-    console.log('Tokens 3:', token3);
     this.createFormControls();
     this.setFormControls();
   }
 
   createFormControls(): void {
+    // create an array where the key is the substitution key and the value is the constraint length
+    const constraintLengths: Record<string, number> = Object.fromEntries(
+      this.value2.wording['substitution-key-constraints'].map((item) => [
+        item.key,
+        item.constraint.length,
+      ]),
+    );
+
     this.tokens.forEach((token) => {
       if (token.type === 'input') {
         this.form.addControl(
@@ -65,14 +73,13 @@ export class WordingParserComponent implements OnInit {
           this.fb.control('', {
             validators: [
               (control: AbstractControl) => Validators.required(control),
-              (control: AbstractControl) => Validators.maxLength(100)(control),
+              (control: AbstractControl) =>
+                Validators.maxLength(constraintLengths[token.key])(control),
             ],
           }),
         );
       }
     });
-
-    console.log('Form Controls:', this.form.controls);
   }
 
   setFormControls(): void {
@@ -138,8 +145,7 @@ export class WordingParserComponent implements OnInit {
       'substitution-key-constraints': [
         {
           key: 'Applicant officer',
-          // value: '12345678',
-          value: '',
+          value: '12345678',
           constraint: {
             type: 'TEXT',
             length: 1234,
@@ -147,8 +153,7 @@ export class WordingParserComponent implements OnInit {
         },
         {
           key: 'date',
-          // value: '31/12/2026',
-          value: '',
+          value: '31/12/2026',
           constraint: {
             type: 'TEXT',
             length: 1234,
