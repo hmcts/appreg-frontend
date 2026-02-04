@@ -23,10 +23,7 @@ export const InitialBulkUploadState: ApplicationsListBulkUploadState = {
 
 export const clearFlags = (): Pick<
   ApplicationsListBulkUploadState,
-  | 'isValidCSV'
-  | 'errorSummary'
-  | 'isUploadInProgress'
-  | 'fileUploadStatus'
+  'isValidCSV' | 'errorSummary' | 'isUploadInProgress' | 'fileUploadStatus'
 > => ({
   isValidCSV: null,
   errorSummary: [],
