@@ -5,6 +5,10 @@ export class LinkHelper {
     LinkElement.findLink(linkText).click();
   }
 
+  static clickLinkExact(linkText: string): void {
+    LinkElement.findLinkExact(linkText).click();
+  }
+
   static verifyLinkVisible(linkText: string): void {
     LinkElement.findLink(linkText).should('be.visible');
   }

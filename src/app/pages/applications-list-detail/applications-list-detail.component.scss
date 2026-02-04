@@ -6,8 +6,15 @@
   margin-bottom: 0;
 }
 
-::ng-deep {
-  .govuk-notification-banner {
-    margin-bottom: 0;
-  }
+:host ::ng-deep #noEntries .govuk-notification-banner {
+  margin-bottom: 0;
+}
+
+.app-table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.app-table-scroll .govuk-table {
+  margin-bottom: 0;
 }

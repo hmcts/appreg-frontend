@@ -471,7 +471,7 @@ Feature: Application List Row Actions
             | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
             | user1 | Lists     | today      | todayiso    | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 0             | 5               | 1       | CLOSED | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 1     |
 
-    @regression @ARCPOC-214 @ARCPOC-575
+    @regression @ARCPOC-214 @ARCPOC-575 @ARCPOC-1037
     Scenario Outline: Verify application list is deleted successfully for applications list NO entries
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -487,7 +487,17 @@ Feature: Application List Row Actions
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | 0       | <Status> |
-        # When User Confirms The Deletion
+        Then User Sees Notification Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
+        Then User See "Are you sure you want to delete this application list?" On The Page
+        Then User Clicks On The Link "Cancel"
+        Then User Should See The Table "<TableName>"
+        When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
+            | Date          | Time   | Location | Description   | Entries | Status   |
+            | <DisplayDate> | <Time> | <Court>  | <Description> | 0       | <Status> |
+        Then User Sees Notification Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
+        Then User See "Are you sure you want to delete this application list?" On The Page
+        When User Clicks On The "Yes - delete" Button
+        Then User Should See The Link "Create new list"
         Then User Sees Notification Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
         Then User Clears The "Description" Textbox
         When User Set Date Field "Date" To "<SearchDate>"
@@ -500,7 +510,7 @@ Feature: Application List Row Actions
             | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                             | Status | SelectButtonText |
             | user1 | Lists     | today      | todayiso    | timenowhhmm-3h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | OPEN   | Select           |
 
-    @regression @ARCPOC-214 @ARCPOC-575
+    @regression @ARCPOC-214 @ARCPOC-575 @ARCPOC-1037
     Scenario Outline: Verify application list is deleted successfully for applications list 1 entry
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -508,68 +518,58 @@ Feature: Application List Row Actions
             | <DisplayDate> | <Time> | <Status> | <Description> | <courtLocationCode> |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
-        When User Makes POST API Request To "/application-lists/:listId/entries" With Json Body
-            """
-            {
-            "standardApplicantCode": null,
-            "applicationCode": "MS99006",
-            "applicant": {
-            "person": null,
-            "organisation": {
-            "name": "Demo Manufacturing LTD",
-            "contactDetails": {
-            "addressLine1": "{RANDOM} Downing Street",
-            "addressLine2": "Westminster",
-            "addressLine3": "London",
-            "addressLine4": "Greater London",
-            "addressLine5": "United Kingdom",
-            "postcode": "SW1A 2AA",
-            "phone": "01225 123456",
-            "mobile": "07123456789",
-            "email": "john-test@gmail.com"
-            }
-            }
-            },
-            "respondent": {
-            "person": null,
-            "organisation": {
-            "name": "Sample Services Inc",
-            "contactDetails": {
-            "addressLine1": "{RANDOM} Fleet Street",
-            "addressLine2": "London",
-            "addressLine3": "",
-            "addressLine4": "",
-            "addressLine5": "United Kingdom",
-            "postcode": "EC4Y 1AA",
-            "phone": "01132 654321",
-            "mobile": "07987654321",
-            "email": "sampleservices@gmail.com"
-            }
-            }
-            },
-            "numberOfRespondents": null,
-            "wordingFields": [
-            {
-            "key": "Describe Seized Food",
-            "value": "{RANDOM}"
-            }
-            ],
-            "feeStatuses": [],
-            "hasOffsiteFee": true,
-            "caseReference": "CASE-{RANDOM}",
-            "accountNumber": "ACC-{RANDOM}",
-            "notes": "Case noted with ref {RANDOM}",
-            "lodgementDate": "todayiso",
-            "officials": [
-            {
-            "title": "Ms",
-            "surname": "Patel {RANDOM}",
-            "forename": "Anita",
-            "type": "MAGISTRATE"
-            }
-            ]
-            }
-            """
+        When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
+            | standardApplicantCode                         | null                           |
+            | applicationCode                               | CT99002                        |
+            | applicant.person.name.title                   | Mr                             |
+            | applicant.person.name.surname                 | Taylor {RANDOM}                |
+            | applicant.person.name.firstForename           | Henry                          |
+            | applicant.person.name.secondForename          | James                          |
+            | applicant.person.contactDetails.addressLine1  | {RANDOM} King Street           |
+            | applicant.person.contactDetails.addressLine2  | Westminster                    |
+            | applicant.person.contactDetails.addressLine3  | London                         |
+            | applicant.person.contactDetails.addressLine4  | Greater London                 |
+            | applicant.person.contactDetails.addressLine5  | United Kingdom                 |
+            | applicant.person.contactDetails.postcode      | SW1A 1AA                       |
+            | applicant.person.contactDetails.phone         | 0203{RANDOM}                   |
+            | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
+            | applicant.person.contactDetails.email         | applicant{RANDOM}@example.com  |
+            | respondent.person.name.title                  | Ms                             |
+            | respondent.person.name.surname                | Clark {RANDOM}                 |
+            | respondent.person.name.firstForename          | Emily                          |
+            | respondent.person.name.secondForename         | Rose                           |
+            | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Road           |
+            | respondent.person.contactDetails.addressLine2 | Bristol                        |
+            | respondent.person.contactDetails.addressLine3 | Avon                           |
+            | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
+            | respondent.person.contactDetails.postcode     | BS1 5AA                        |
+            | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
+            | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
+            | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
+            | respondent.dateOfBirth                        | todayiso-25y                   |
+            | wordingFields.0.key                           | Reference                      |
+            | wordingFields.0.value                         | {RANDOM}                       |
+            | hasOffsiteFee                                 | true                           |
+            | caseReference                                 | CASE-{RANDOM}                  |
+            | accountNumber                                 | ACC-{RANDOM}                   |
+            | notes                                         | Case noted with ref {RANDOM}   |
+            | lodgementDate                                 | todayiso                       |
+            | officials.0.title                             | Mr                             |
+            | officials.0.surname                           | Turner {RANDOM}                |
+            | officials.0.forename                          | Graham                         |
+            | officials.0.type                              | MAGISTRATE                     |
+            | officials.1.title                             | Ms                             |
+            | officials.1.surname                           | Hayes {RANDOM}                 |
+            | officials.1.forename                          | Laura                          |
+            | officials.1.type                              | MAGISTRATE                     |
+            | officials.2.title                             | Mr                             |
+            | officials.2.surname                           | Miller {RANDOM}                |
+            | officials.2.forename                          | Peter                          |
+            | officials.2.type                              | CLERK                          |
+            | officials.3.title                             | Ms                             |
+            | officials.3.surname                           | Patel {RANDOM}                 |
+            | officials.3.forename                          | Anita                          |
+            | officials.3.type                              | MAGISTRATE                     |
         Then User Verify Response Status Code Should Be "201"
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
@@ -579,7 +579,10 @@ Feature: Application List Row Actions
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | 1       | <Status> |
-        # When User Confirms The Deletion
+        Then User Sees Notification Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
+        Then User See "Are you sure you want to delete this application list?" On The Page
+        When User Clicks On The "Yes - delete" Button
+        Then User Should See The Link "Create new list"
         Then User Sees Notification Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
         When User Set Date Field "Date" To "<SearchDate>"
         When User Clicks On The "Search" Button
