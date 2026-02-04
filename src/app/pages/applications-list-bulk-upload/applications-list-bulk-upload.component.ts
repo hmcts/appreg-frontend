@@ -1,31 +1,39 @@
-/**
- * TODO: arcpoc-816
- * prio 5
- * refactor manual state + subscribe.
- */
+/*
+Applications List – Bulk Upload (/applications-list/:id/bulk-upload)
 
-// TODO: add header comment
+Functionality:
+  - Validates selected CSV file by extension and MIME type
+  - Submits bulk upload request for the selected list
+  - Updates UI state for upload progress and result
+*/
 
-import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  EnvironmentInjector,
+  OnInit,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { finalize } from 'rxjs';
+
+import {
+  ApplicationsListBulkUploadState,
+  InitialBulkUploadState,
+} from './util/applications-list-bulk-upload.state';
 
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
-import {
-  ErrorItem,
-  ErrorSummaryComponent,
-} from '@components/error-summary/error-summary.component';
+import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
 import { LoadingSpinner } from '@components/loading-spinner/loading-spinner';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import {
   ActionsApi,
   BulkUploadApplicationListEntriesRequestParams,
-  JobAcknowledgement,
   JobStatus,
 } from '@openapi';
+import { getProblemText } from '@util/http-error-to-text';
+import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 
 @Component({
   selector: 'app-applications-list-bulk-upload',
@@ -41,27 +49,69 @@ import {
   styleUrl: './applications-list-bulk-upload.component.scss',
 })
 export class ApplicationsListBulkUpload implements OnInit {
-  isValidCSV: boolean | null = null;
-  errorSummary: ErrorItem[] = [];
-  errorHint: string = 'There is a problem';
-  file!: File;
-  isUploadInProgress = false;
-  fileUploadStatus!: 'success' | 'error' | null;
-  jobAcknowledgement!: JobAcknowledgement;
-  listId!: string;
   private readonly actionsApiService = inject(ActionsApi);
-  private route = inject(ActivatedRoute);
+  private readonly route = inject(ActivatedRoute);
+
+  // Initialise signal state
+  private readonly bulkUploadSignalState =
+    createSignalState<ApplicationsListBulkUploadState>(InitialBulkUploadState);
+  private readonly bulkUploadState = this.bulkUploadSignalState.state;
+  private readonly bulkUploadPatch = this.bulkUploadSignalState.patch;
+  readonly vm = this.bulkUploadSignalState.vm;
+
+  // allows you to initialise effect in ngOnInit()
+  private readonly envInjector = inject(EnvironmentInjector);
+
+  private readonly bulkUploadRequest =
+    signal<BulkUploadApplicationListEntriesRequestParams | null>(null);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     // invalid listId then navigate to 404 page
     if (id) {
-      this.listId = id;
+      this.bulkUploadSignalState.patch({ listId: id });
     }
+
+    this.setupEffects();
+  }
+
+  private setupEffects(): void {
+    setupLoadEffect(
+      {
+        request: this.bulkUploadRequest,
+        load: (params) =>
+          this.actionsApiService.bulkUploadApplicationListEntries(
+            params,
+            'body',
+            true,
+          ),
+        onSuccess: (jobAcknowledgement) => {
+          this.bulkUploadPatch({ jobAcknowledgement });
+          if (
+            this.bulkUploadState().jobAcknowledgement?.status ===
+            JobStatus.RECEIVED
+          ) {
+            this.bulkUploadPatch({ fileUploadStatus: 'success' });
+          }
+          this.bulkUploadPatch({ isUploadInProgress: false });
+          this.bulkUploadRequest.set(null);
+        },
+        onError: (err) => {
+          this.bulkUploadPatch({ fileUploadStatus: 'error' });
+          this.bulkUploadPatch({
+            errorSummary: [{ text: getProblemText(err) }],
+          });
+          this.bulkUploadPatch({ isUploadInProgress: false });
+
+          this.bulkUploadRequest.set(null);
+        },
+      },
+      this.envInjector,
+    );
   }
 
   onFileSelected(event: Event): void {
-    this.fileUploadStatus = null;
+    this.bulkUploadPatch({ fileUploadStatus: null });
     const input = event.target as HTMLInputElement;
 
     if (!input.files || input.files.length === 0) {
@@ -84,42 +134,31 @@ export class ApplicationsListBulkUpload implements OnInit {
     const isCsvMime = allowedMimes.has(file.type);
 
     if (!isCsvExtension && !isCsvMime) {
-      this.isValidCSV = false;
+      this.bulkUploadPatch({ isValidCSV: false });
       return;
     }
 
-    this.isValidCSV = true;
+    this.bulkUploadPatch({ isValidCSV: true });
 
     if (file) {
-      this.file = file;
+      this.bulkUploadPatch({ file });
     }
   }
 
   onSubmit(): void {
-    this.isUploadInProgress = true;
+    this.bulkUploadPatch({ isUploadInProgress: true });
+
+    if (!this.bulkUploadState().file) {
+      // No file so return
+      this.bulkUploadPatch({ isUploadInProgress: false });
+      return;
+    }
+
     const params: BulkUploadApplicationListEntriesRequestParams = {
-      listId: this.listId,
-      file: this.file,
+      listId: this.bulkUploadState().listId,
+      file: this.bulkUploadState().file ?? undefined,
     };
 
-    this.actionsApiService
-      .bulkUploadApplicationListEntries(params, 'body', true)
-      .pipe(
-        finalize(() => {
-          this.isUploadInProgress = false;
-        }),
-      )
-      .subscribe({
-        next: (jobAcknowledgement: JobAcknowledgement) => {
-          this.jobAcknowledgement = jobAcknowledgement;
-          if (this.jobAcknowledgement.status === JobStatus.RECEIVED) {
-            this.fileUploadStatus = 'success';
-          }
-        },
-        error: (err: HttpErrorResponse) => {
-          this.fileUploadStatus = 'error';
-          this.errorSummary = [{ text: `${err.message}` }];
-        },
-      });
+    this.bulkUploadRequest.set(params);
   }
 }
