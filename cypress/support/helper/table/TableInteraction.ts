@@ -107,4 +107,30 @@ export class TableInteraction {
       }
     }) as unknown as Cypress.Chainable<void>;
   }
+
+  static checkCheckboxInTableRow(
+    tableCaption: string,
+    columnValues: Record<string, string>,
+  ): Cypress.Chainable<void> {
+    return TableSearch.searchWithPagination(
+      tableCaption,
+      columnValues,
+      true,
+      (row) => {
+        return TableElement.getCheckboxInRow(row).then((checkbox) => {
+          cy.wrap(checkbox)
+            .scrollIntoView()
+            .should('exist')
+            .and('not.be.disabled')
+            .check({ force: true });
+        }) as unknown as Cypress.Chainable<void>;
+      },
+    ).then((found) => {
+      if (!found) {
+        throw new Error(
+          `Row with specified values not found in table "${tableCaption}" to check checkbox`,
+        );
+      }
+    }) as unknown as Cypress.Chainable<void>;
+  }
 }

@@ -11,10 +11,15 @@
 }
 
 .app-table-scroll {
+  max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  padding-bottom: 50px; /* Prevent vertical scrollbar on single records */
 }
 
 .app-table-scroll .govuk-table {
   margin-bottom: 0;
+}
+.app-table-scroll .moj-button-menu {
+  position: relative;
 }
