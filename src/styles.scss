@@ -37,6 +37,32 @@
   }
 }
 
+table {
+  td {
+    @extend .govuk-table__cell;
+  }
+  th {
+    @extend .govuk-table__header;
+  }
+  td,
+  th {
+    vertical-align: middle !important;
+  }
+}
+
+/* Table action column, centre its children */
+.govuk-table td.govuk-table__cell .govuk-button-group {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+}
+
+/* Table action column, remove vertical margins from the menu/button inside */
+.govuk-table td.govuk-table__cell .govuk-button-group .govuk-button,
+.govuk-table td.govuk-table__cell .govuk-button-group .moj-button-menu {
+  margin: 0;
+}
+
 /* Autocomplete dropdown */
 .app-autocomplete {
   position: relative;
@@ -92,4 +118,23 @@
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+/* ------------------------------------------------------------
+   GOVUK / MOJ sortable table: keep sort icon aligned consistently
+   when header text wraps to multiple lines.
+   ------------------------------------------------------------ */
+
+th.govuk-table__header[aria-sort] > button > svg {
+  position: static;
+  top: auto;
+  right: auto;
+  transform: none;
+
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  pointer-events: none;
+
+  margin-top: 2px;
 }

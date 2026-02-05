@@ -1,13 +1,12 @@
-:host ::ng-deep th.govuk-table__header[aria-sort] button > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+:host ::ng-deep .govuk-table__body .govuk-table__cell,
+:host ::ng-deep .govuk-table__body .govuk-table__header {
+  vertical-align: top;
 }
 
-:host ::ng-deep th.govuk-table__header[aria-sort] button svg {
-  width: 22px;
-  height: 22px;
-  flex: 0 0 22px;
-  min-width: 22px;
-  min-height: 22px;
+:host ::ng-deep .govuk-table__body .moj-multi-select__checkbox {
+  margin-top: 2px;
+}
+
+.govuk-checkboxes__label {
+  padding: 0;
 }
