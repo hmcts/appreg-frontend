@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, TemplateRef } from '@angular/core';
+import { Component, TemplateRef, effect, input, signal } from '@angular/core';
 
 export interface AccordionItem {
   heading: string;
@@ -19,30 +19,46 @@ export interface AccordionItem {
 })
 export class AccordionComponent {
   /** Root id used to build per-section ids (must be unique on the page) */
-  @Input() id = 'accordion';
+  readonly id = input('accordion');
   /** Sections to render */
-  @Input() items: AccordionItem[] = [];
+  readonly items = input<AccordionItem[]>([]);
   /** Allow multiple sections open at the same time */
-  @Input() allowMultiple = true;
+  readonly allowMultiple = input<boolean>(true);
+
+  /** Local state derived from input items so toggling doesn't mutate inputs. */
+  readonly displayItems = signal<AccordionItem[]>([]);
+
+  constructor() {
+    effect(() => {
+      this.displayItems.set(this.items());
+    });
+  }
 
   toggle(i: number): void {
-    if (!this.allowMultiple) {
-      this.items = this.items.map((it, idx) =>
-        idx === i
-          ? { ...it, expanded: !it.expanded }
-          : { ...it, expanded: false },
-      );
+    const current = this.displayItems();
+    if (!current.length) {
       return;
     }
-    this.items[i] = { ...this.items[i], expanded: !this.items[i].expanded };
-    this.items = [...this.items];
+    if (!this.allowMultiple()) {
+      const updated = current.map((item, idx) =>
+        idx === i
+          ? { ...item, expanded: !item.expanded }
+          : { ...item, expanded: false },
+      );
+      this.displayItems.set(updated);
+      return;
+    }
+    const updated = current.map((item, idx) =>
+      idx === i ? { ...item, expanded: !item.expanded } : item,
+    );
+    this.displayItems.set(updated);
   }
 
   headingId(i: number): string {
-    return `${this.id}-heading-${i + 1}`;
+    return `${this.id()}-heading-${i + 1}`;
   }
 
   panelId(i: number): string {
-    return `${this.id}-content-${i + 1}`;
+    return `${this.id()}-content-${i + 1}`;
   }
 }

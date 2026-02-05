@@ -31,21 +31,21 @@ describe('SelectInputComponent', () => {
 
     fixture = TestBed.createComponent(SelectInputComponent);
     component = fixture.componentInstance;
-    component.idPrefix = 'my-select';
-    component.options = [
+    fixture.componentRef.setInput('idPrefix', 'my-select');
+    fixture.componentRef.setInput('options', [
       { value: 'choose', label: 'Choose an option' },
       { value: 'A', label: 'Option A' },
       { value: 'B', label: 'Option B' },
-    ];
+    ]);
     component.value = 'choose';
-    component.submitted = false;
+    fixture.componentRef.setInput('submitted', false);
     component.disabled = false;
     fixture.detectChanges();
   });
 
   it('renders label and hint when provided', () => {
-    component.label = 'Court';
-    component.hint = 'Select a court';
+    fixture.componentRef.setInput('label', 'Court');
+    fixture.componentRef.setInput('hint', 'Select a court');
     fixture.detectChanges();
 
     const labelEl = fixture.debugElement.query(By.css('label.govuk-label'));
@@ -55,9 +55,9 @@ describe('SelectInputComponent', () => {
   });
 
   it('shows required error with label text when submitted and value missing', () => {
-    component.label = 'Court';
+    fixture.componentRef.setInput('label', 'Court');
     component.value = '';
-    component.submitted = true;
+    fixture.componentRef.setInput('submitted', true);
     fixture.detectChanges();
 
     const err = getError();
@@ -72,9 +72,9 @@ describe('SelectInputComponent', () => {
   });
 
   it('shows required error with fallback label when label is absent', () => {
-    component.label = '';
+    fixture.componentRef.setInput('label', '');
     component.value = '';
-    component.submitted = true;
+    fixture.componentRef.setInput('submitted', true);
     fixture.detectChanges();
 
     const err = getError();
@@ -85,19 +85,19 @@ describe('SelectInputComponent', () => {
   });
 
   it('treats empty sentinel as invalid when submitted', () => {
-    component.idPrefix = 'my-select';
-    component.options = [
+    fixture.componentRef.setInput('idPrefix', 'my-select');
+    fixture.componentRef.setInput('options', [
       { value: '', label: 'Choose…' },
       { value: 'A', label: 'A' },
-    ];
+    ]);
     component.value = '';
-    component.submitted = true;
+    fixture.componentRef.setInput('submitted', true);
     fixture.detectChanges();
     expect(getError()).toBeTruthy();
   });
 
   it('hides error and error classes when value valid', () => {
-    component.submitted = true;
+    fixture.componentRef.setInput('submitted', true);
     component.value = 'A';
     fixture.detectChanges();
 
@@ -109,8 +109,8 @@ describe('SelectInputComponent', () => {
   });
 
   it('computes aria-describedby correctly: hint only', () => {
-    component.hint = 'Pick one';
-    component.submitted = false;
+    fixture.componentRef.setInput('hint', 'Pick one');
+    fixture.componentRef.setInput('submitted', false);
     component.value = 'A'; // valid
     fixture.detectChanges();
 
@@ -119,14 +119,14 @@ describe('SelectInputComponent', () => {
   });
 
   it('computes aria-describedby correctly: hint + error', () => {
-    component.idPrefix = 'my-select';
-    component.hint = 'Pick one';
-    component.options = [
+    fixture.componentRef.setInput('idPrefix', 'my-select');
+    fixture.componentRef.setInput('hint', 'Pick one');
+    fixture.componentRef.setInput('options', [
       { value: '', label: 'Choose…' },
       { value: 'A', label: 'A' },
-    ];
+    ]);
     component.value = ''; // keep invalid
-    component.submitted = true;
+    fixture.componentRef.setInput('submitted', true);
     fixture.detectChanges();
 
     expect(getSelect().getAttribute('aria-describedby')).toBe(
@@ -135,8 +135,8 @@ describe('SelectInputComponent', () => {
   });
 
   it('computes aria-describedby correctly: error only (no hint)', () => {
-    component.hint = '';
-    component.submitted = true;
+    fixture.componentRef.setInput('hint', '');
+    fixture.componentRef.setInput('submitted', true);
     component.value = ''; // invalid
     fixture.detectChanges();
 

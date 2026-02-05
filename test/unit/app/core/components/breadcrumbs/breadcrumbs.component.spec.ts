@@ -17,11 +17,11 @@ describe('BreadcrumbsComponent', () => {
     fixture = TestBed.createComponent(BreadcrumbsComponent);
     component = fixture.componentInstance;
 
-    component.items = [
+    fixture.componentRef.setInput('items', [
       { label: 'Home', link: '/' },
       { label: 'Section', link: '/section' },
       { label: 'Current page', link: '/section/current' },
-    ];
+    ]);
 
     fixture.detectChanges();
   });
@@ -59,7 +59,7 @@ describe('BreadcrumbsComponent', () => {
   });
 
   it('renders no list items when items is empty', () => {
-    component.items = [];
+    fixture.componentRef.setInput('items', []);
     fixture.detectChanges();
 
     const items = fixture.debugElement.queryAll(

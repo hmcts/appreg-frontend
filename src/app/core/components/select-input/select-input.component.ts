@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, forwardRef } from '@angular/core';
+import { Component, forwardRef, input } from '@angular/core';
 import {
   ControlValueAccessor,
   FormsModule,
@@ -28,13 +28,13 @@ export interface SelectOption {
 })
 export class SelectInputComponent implements ControlValueAccessor {
   /** Legend text for the field */
-  @Input() label = 'Select';
+  label = input('Select');
   /** Hint text shown under the label */
-  @Input() hint = '';
+  hint = input('');
   /** Prefix for all `id` and `name` attributes */
-  @Input() idPrefix = 'select';
+  idPrefix = input('select');
   /** The list of `<option>`s to render */
-  @Input() options: SelectOption[] = [];
+  options = input<SelectOption[]>([]);
 
   /** Current value */
   value: string | null = null;
@@ -42,7 +42,7 @@ export class SelectInputComponent implements ControlValueAccessor {
   /** Disabled state (set via CVA) */
   disabled = false;
 
-  @Input() submitted = false;
+  submitted = input(false);
 
   private onTouched: () => void = () => {};
   private onChange: (v: string | null) => void = () => {};

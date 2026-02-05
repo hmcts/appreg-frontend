@@ -83,7 +83,7 @@ describe('PersonSectionComponent', () => {
     expect(selectDebug).toBeTruthy();
 
     const selectCmp = selectDebug.componentInstance as SelectInputLike;
-    expect(selectCmp.options).toEqual([
+    expect(selectCmp.options?.()).toEqual([
       { value: 'mr', label: 'Mr' },
       { value: 'mrs', label: 'Mrs' },
       { value: 'dr', label: 'Dr' },
@@ -134,7 +134,7 @@ describe('PersonSectionComponent', () => {
     const selectCmp = selectDebug.componentInstance as SelectInputLike;
 
     // template uses [idPrefix]="scopeId() + '-person-title'"
-    expect(selectCmp.idPrefix).toBe('respondent-person-title');
+    expect(selectCmp.idPrefix?.()).toBe('respondent-person-title');
   });
 
   it('passes submitted state down to relevant text inputs', () => {

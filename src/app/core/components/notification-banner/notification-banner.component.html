@@ -1,38 +1,38 @@
 <div
   class="govuk-notification-banner"
-  [class.govuk-notification-banner--success]="variant === 'success'"
+  [class.govuk-notification-banner--success]="variant() === 'success'"
   [attr.role]="role"
   [attr.aria-labelledby]="titleId"
-  [attr.tabindex]="autoFocus ? -1 : null"
+  [attr.tabindex]="autoFocus() ? -1 : null"
   data-module="govuk-notification-banner"
   #bannerEl
 >
   <div class="govuk-notification-banner__header">
     <h2 class="govuk-notification-banner__title" [id]="titleId">
-      {{ title }}
+      {{ title() }}
     </h2>
   </div>
 
   <div class="govuk-notification-banner__content">
-    @if (heading) {
-      <h3 class="govuk-notification-banner__heading">{{ heading }}</h3>
+    @if (heading()) {
+      <h3 class="govuk-notification-banner__heading">{{ heading() }}</h3>
     }
 
-    @if (body || linkText) {
+    @if (body() || linkText()) {
       <p class="govuk-body">
-        @if (body) {
-          {{ body }}
+        @if (body()) {
+          {{ body() }}
         }
-        @if (linkText && linkHref) {
-          <a class="govuk-notification-banner__link" [href]="linkHref">{{
-            linkText
+        @if (linkText() && linkHref()) {
+          <a class="govuk-notification-banner__link" [href]="linkHref()">{{
+            linkText()
           }}</a>
         }
-        @if (linkText && linkCommands) {
+        @if (linkText() && linkCommands()) {
           <a
             class="govuk-notification-banner__link"
-            [routerLink]="linkCommands"
-            >{{ linkText }}</a
+            [routerLink]="linkCommands()"
+            >{{ linkText() }}</a
           >
         }
       </p>

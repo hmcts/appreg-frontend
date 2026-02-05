@@ -1,5 +1,5 @@
-<div class="govuk-accordion" [attr.data-module]="'govuk-accordion'" [id]="id">
-  @for (item of items; track $index; let i = $index) {
+<div class="govuk-accordion" [attr.data-module]="'govuk-accordion'" [id]="id()">
+  @for (item of displayItems(); track $index; let i = $index) {
     <div class="govuk-accordion__section">
       <div class="govuk-accordion__section-header">
         <h2 class="govuk-accordion__section-heading">
