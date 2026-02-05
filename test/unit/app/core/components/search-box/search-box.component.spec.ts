@@ -21,12 +21,12 @@ describe('SearchBoxComponent (class tests)', () => {
   it('emits valueChange whenever the search control changes', () => {
     const spy = jest.fn();
     const sub = comp.valueChange.subscribe(spy);
-    TestBed.tick();
+    fixture.detectChanges();
 
     comp.form.controls.search.setValue('alpha');
-    TestBed.tick();
+    fixture.detectChanges();
     comp.form.controls.search.setValue('beta');
-    TestBed.tick();
+    fixture.detectChanges();
 
     expect(spy).toHaveBeenNthCalledWith(1, 'alpha');
     expect(spy).toHaveBeenNthCalledWith(2, 'beta');
