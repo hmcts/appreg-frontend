@@ -99,4 +99,10 @@ export class TableElement {
       );
     });
   }
+
+  static getCheckboxInRow(
+    row: JQuery<HTMLElement>,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy.wrap(row).find('td').first().find('input[type="checkbox"]');
+  }
 }

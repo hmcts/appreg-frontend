@@ -5,6 +5,7 @@ import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
 
 import { ApplicationsListBulkUpload } from '@components/applications-list-bulk-upload/applications-list-bulk-upload.component';
+import { ApplicationsListBulkUploadState } from '@components/applications-list-bulk-upload/util/applications-list-bulk-upload.state';
 import { ActionsApi, JobAcknowledgement, JobStatus, JobType } from '@openapi';
 
 describe('ApplicationsListBulkUpload', () => {
@@ -29,6 +30,30 @@ describe('ApplicationsListBulkUpload', () => {
 
   const actionsApiServiceMock = {
     bulkUploadApplicationListEntries: jest.fn(),
+  };
+
+  type BulkUploadSignalStateAccessor = {
+    bulkUploadSignalState: {
+      patch: (p: Partial<ApplicationsListBulkUploadState>) => void;
+    };
+  };
+
+  const getState = (comp: ApplicationsListBulkUpload) => comp.vm();
+  const patchState = (
+    comp: ApplicationsListBulkUpload,
+    patch: Partial<ApplicationsListBulkUploadState>,
+  ): void => {
+    (
+      comp as unknown as BulkUploadSignalStateAccessor
+    ).bulkUploadSignalState.patch(patch);
+  };
+
+  const flushSignalEffects = async (
+    testFixture: ComponentFixture<ApplicationsListBulkUpload>,
+  ): Promise<void> => {
+    testFixture.detectChanges();
+    await testFixture.whenStable();
+    testFixture.detectChanges();
   };
 
   beforeEach(async () => {
@@ -57,7 +82,9 @@ describe('ApplicationsListBulkUpload', () => {
   describe('ngOnInit', () => {
     it('should set the id from the route', () => {
       component.ngOnInit();
-      expect(component.listId).toBe('73d0276f-42a3-4150-b2fd-d9b2d56b359c');
+      expect(getState(component).listId).toBe(
+        '73d0276f-42a3-4150-b2fd-d9b2d56b359c',
+      );
     });
   });
 
@@ -69,8 +96,8 @@ describe('ApplicationsListBulkUpload', () => {
         },
       } as unknown as Event;
       component.onFileSelected(event);
-      expect(component.file).toBe(file);
-      expect(component.isValidCSV).toBeTruthy();
+      expect(getState(component).file).toBe(file);
+      expect(getState(component).isValidCSV).toBeTruthy();
     });
 
     it('should not set the selected file and validCSV should be false', () => {
@@ -80,13 +107,13 @@ describe('ApplicationsListBulkUpload', () => {
         },
       } as unknown as Event;
       component.onFileSelected(event);
-      expect(component.file).toBeUndefined();
-      expect(component.isValidCSV).toBeFalsy();
+      expect(getState(component).file).toBeNull();
+      expect(getState(component).isValidCSV).toBeFalsy();
     });
   });
 
   describe('onSubmit', () => {
-    it('calls API with correct params and sets success when job status is RECEIVED', () => {
+    it('calls API with correct params and sets success when job status is RECEIVED', async () => {
       const ack: JobAcknowledgement = {
         id: 'job-1',
         status: JobStatus.RECEIVED,
@@ -96,27 +123,28 @@ describe('ApplicationsListBulkUpload', () => {
         of(ack),
       );
 
-      component.listId = 'list-123';
-      component.file = new File(['csv-content'], 'test.csv', {
-        type: 'text/csv',
+      patchState(component, { listId: 'list-123' });
+      patchState(component, {
+        file: new File(['csv-content'], 'test.csv', { type: 'text/csv' }),
       });
 
       component.onSubmit();
+      await flushSignalEffects(fixture);
 
       expect(
         actionsApiServiceMock.bulkUploadApplicationListEntries,
       ).toHaveBeenCalledWith(
-        { listId: 'list-123', file: component.file },
+        { listId: 'list-123', file: getState(component).file },
         'body',
         true,
       );
 
-      expect(component.jobAcknowledgement).toBe(ack);
-      expect(component.fileUploadStatus).toBe('success');
-      expect(component.isUploadInProgress).toBe(false);
+      expect(getState(component).jobAcknowledgement).toBe(ack);
+      expect(getState(component).fileUploadStatus).toBe('success');
+      expect(getState(component).isUploadInProgress).toBe(false);
     });
 
-    it('sets error status and errorSummary when API errors', () => {
+    it('sets error status and errorSummary when API errors', async () => {
       const httpErr = new HttpErrorResponse({
         error: 'Bad',
         status: 500,
@@ -127,33 +155,37 @@ describe('ApplicationsListBulkUpload', () => {
         throwError(() => httpErr),
       );
 
-      component.listId = 'list-123';
-      component.file = new File(['csv-content'], 'test.csv', {
-        type: 'text/csv',
+      patchState(component, { listId: 'list-123' });
+      patchState(component, {
+        file: new File(['csv-content'], 'test.csv', { type: 'text/csv' }),
       });
 
       component.onSubmit();
+      await flushSignalEffects(fixture);
 
-      expect(component.fileUploadStatus).toBe('error');
-      expect(component.errorSummary).toBeTruthy();
-      expect(component.errorSummary[0].text).toContain(httpErr.message);
-      expect(component.isUploadInProgress).toBe(false);
+      expect(getState(component).fileUploadStatus).toBe('error');
+      expect(getState(component).errorSummary).toBeTruthy();
+      expect(getState(component).errorSummary[0].text).toContain(
+        httpErr.message,
+      );
+      expect(getState(component).isUploadInProgress).toBe(false);
     });
 
-    it('sets isUploadInProgress true while request is in-flight and false after complete', () => {
+    it('sets isUploadInProgress true while request is in-flight and false after complete', async () => {
       const subj = new Subject<JobAcknowledgement>();
       actionsApiServiceMock.bulkUploadApplicationListEntries.mockReturnValue(
         subj.asObservable(),
       );
 
-      component.listId = 'list-123';
-      component.file = new File(['csv-content'], 'test.csv', {
-        type: 'text/csv',
+      patchState(component, { listId: 'list-123' });
+      patchState(component, {
+        file: new File(['csv-content'], 'test.csv', { type: 'text/csv' }),
       });
 
       component.onSubmit();
+      await flushSignalEffects(fixture);
 
-      expect(component.isUploadInProgress).toBe(true);
+      expect(getState(component).isUploadInProgress).toBe(true);
 
       const ack: JobAcknowledgement = {
         id: 'job-1',
@@ -162,10 +194,11 @@ describe('ApplicationsListBulkUpload', () => {
       };
       subj.next(ack);
       subj.complete();
+      await flushSignalEffects(fixture);
 
-      expect(component.isUploadInProgress).toBe(false);
-      expect(component.jobAcknowledgement).toBe(ack);
-      expect(component.fileUploadStatus).toBe('success');
+      expect(getState(component).isUploadInProgress).toBe(false);
+      expect(getState(component).jobAcknowledgement).toBe(ack);
+      expect(getState(component).fileUploadStatus).toBe('success');
     });
   });
 });
