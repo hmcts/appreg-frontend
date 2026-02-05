@@ -47,7 +47,6 @@ import {
   initialApplicationsListDetailState,
 } from './util/applications-list-detail.state';
 
-import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import {
@@ -66,8 +65,9 @@ import { SelectableSortableTableComponent } from '@components/selectable-sortabl
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { DETAIL_ERROR_ANCHORS } from '@constants/application-list-detail-update/error-hrefs';
+import { DETAIL_FIELD_MESSAGES } from '@constants/application-list-detail-update/error-messages';
 import { IF_MATCH } from '@context/concurrency-context';
-import { FormRaw } from '@core-types/forms/forms.types';
 import { Row } from '@core-types/table/row.types';
 import {
   ApplicationListGetDetailDto,
@@ -77,31 +77,28 @@ import {
 } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { buildNormalizedPayload } from '@util/build-payload';
-import { collectMissing } from '@util/collect-missing';
 import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '@util/error-click';
 import { getProblemText } from '@util/http-error-to-text';
-import { validateCourtVsLocOrCja } from '@util/location-suggestion-helpers';
 import { MojButtonMenu, MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { parseTimeToDuration } from '@util/time-helpers';
-import {
-  DateControlErrors,
-  DurationControlErrors,
-  TimeControlErrors,
-} from '@util/types/applications-list-entry/types';
+import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
+import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
 
-type DetailFormRaw = Omit<
-  FormRaw<ApplicationListStatus>,
-  'date' | 'time' | 'status'
-> & {
-  date: string | null;
-  time: Duration | null;
-  status: string | null;
-};
+type DetailForm = FormGroup<{
+  date: FormControl<string | null>;
+  time: FormControl<Duration | null>;
+  description: FormControl<string>;
+  status: FormControl<string | null>;
+  court: FormControl<string | null>;
+  location: FormControl<string | null>;
+  cja: FormControl<string | null>;
+  duration: FormControl<Duration | null>;
+}>;
 
 type Handoff = {
   id: string;
@@ -124,6 +121,11 @@ type selectedRow = {
   title: string;
   feeReq: 'Yes' | 'No';
   resulted: 'Yes' | 'No';
+};
+
+type CourtLocCjaConflictError = { message: string };
+type DetailFormGroupErrors = {
+  courtLocCjaConflict?: CourtLocCjaConflictError;
 };
 
 type LoadDetailReq = { id: string; page: number; size: number };
@@ -180,18 +182,30 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly loadRequest = signal<LoadDetailReq | null>(null);
   private readonly updateRequest = signal<UpdateReq | null>(null);
 
-  override form = new FormGroup({
-    date: new FormControl<string | null>(null),
-    time: new FormControl<Duration | null>(null),
-    description: new FormControl<string>('', {
-      validators: [(c) => Validators.required(c)],
-    }),
-    status: new FormControl<string | null>(null),
-    court: new FormControl<string>(''),
-    location: new FormControl<string>(''),
-    cja: new FormControl<string>(''),
-    duration: new FormControl<Duration | null>(null),
-  });
+  override form: DetailForm = new FormGroup(
+    {
+      date: new FormControl<string | null>(null),
+      time: new FormControl<Duration | null>(null),
+      description: new FormControl<string>('', {
+        nonNullable: true,
+        validators: [(c) => Validators.required(c)],
+      }),
+      status: new FormControl<string | null>(null),
+      court: new FormControl<string>(''),
+      location: new FormControl<string>(''),
+      cja: new FormControl<string>(''),
+      duration: new FormControl<Duration | null>(null),
+    },
+    {
+      validators: [
+        courtLocCjaValidator(),
+        cjaMustExistIfTypedValidator({
+          getTyped: () => this.state().cjaSearch ?? '',
+          getValidCodes: () => this.state().cja.map((x) => x.code),
+        }),
+      ],
+    },
+  );
 
   statusOptions = [
     { value: '', label: 'Choose status' },
@@ -362,7 +376,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
             updateInvalid: true,
             errorHint: 'There is a problem',
             errorSummary: httpErr
-              ? this.mapUpdateError(httpErr)
+              ? this.mapUpdateHttpError(httpErr)
               : [{ text: getProblemText(err) }],
           });
 
@@ -445,35 +459,12 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       errorHint: '',
     });
 
-    const raw = this.form.getRawValue() as DetailFormRaw;
+    this.form.markAllAsTouched();
+    this.form.updateValueAndValidity({ emitEvent: false });
 
-    const conflict = validateCourtVsLocOrCja(raw);
-    if (conflict) {
-      this.detailSignalState.patch({
-        updateInvalid: true,
-        errorHint: conflict,
-      });
-      return;
-    }
+    const raw = this.form.getRawValue();
 
-    //CJA Validation
-    const cjaTyped = (this.state().cjaSearch ?? '').trim();
-    const cjaCode = String(raw.cja ?? '').trim();
-    if (cjaTyped) {
-      const exists = this.state().cja.some((x) => x.code === cjaCode);
-      if (!exists) {
-        this.detailSignalState.patch({
-          updateInvalid: true,
-          errorSummary: [
-            { id: 'cja', text: APPLICATIONS_LIST_ERROR_MESSAGES.cjaNotFound },
-          ],
-        });
-        return;
-      }
-    }
-
-    // build validation errors
-    const errors = this.buildErrorSummaryItems();
+    const errors = this.buildUpdateErrorSummary();
     if (errors.length) {
       this.detailSignalState.patch({
         updateInvalid: true,
@@ -506,9 +497,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     }
   }
 
-  // TODO: Temporary function for bug fix ARCPOC-852, this component needs to be refactored to use cleaner error handling for the different scenarios
-  // e.g. generic object to hold error state & messages, id's. Utilise generic error-summary functions for form errors
-  private mapUpdateError(err: HttpErrorResponse): ErrorItem[] {
+  private mapUpdateHttpError(err: HttpErrorResponse): ErrorItem[] {
     switch (err.status) {
       case 412:
         return [{ text: 'Resource changed. Reload and try again.' }];
@@ -545,62 +534,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   // —— Select-all behaviour helpers ————————————————
-
-  private readonly formatDisplayText = (
-    v: string | null | undefined,
-  ): string => {
-    if (v === null || v === undefined) {
-      return '—';
-    }
-
-    const trimmed = v.trim();
-
-    if (trimmed === '') {
-      return '—';
-    }
-
-    return v;
-  };
-
-  private buildErrorSummaryItems(): ErrorItem[] {
-    const { date, time, duration } = this.form.controls;
-    const dateErrors = date.errors as DateControlErrors;
-    const timeErrors = time.errors as TimeControlErrors;
-    const durationErrors = duration.errors as DurationControlErrors;
-    const durationValue = duration.value;
-
-    const items: ErrorItem[] = collectMissing(
-      this.form.getRawValue() as DetailFormRaw,
-      {
-        dateInvalid: !!dateErrors?.dateInvalid,
-        dateErrorText: dateErrors?.dateErrorText ?? '',
-        durationErrorText: timeErrors?.durationErrorText ?? '',
-      },
-    );
-
-    if (durationErrors && durationValue) {
-      const { hours, minutes } = durationValue;
-
-      const hoursInvalid = hours === null || Number.isNaN(hours);
-      const minutesInvalid = minutes === null || Number.isNaN(minutes);
-
-      if (hoursInvalid && durationErrors.hoursErrorText) {
-        items.push({
-          id: 'duration-hours',
-          text: durationErrors.hoursErrorText,
-        });
-      }
-
-      if (minutesInvalid && durationErrors.minutesErrorText) {
-        items.push({
-          id: 'duration-minutes',
-          text: durationErrors.minutesErrorText,
-        });
-      }
-    }
-
-    return items;
-  }
 
   private readonly toNum = (
     v: string | number | null | undefined,
@@ -657,5 +590,134 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   fieldError(id: string): ErrorItem | undefined {
     return this.vm().errorSummary.find((e) => e.id === id);
+  }
+
+  //TODO: List-details should really be it's own component to encapsulate this logic
+  private buildUpdateErrorSummary(): ErrorItem[] {
+    const items: ErrorItem[] = [];
+
+    const gErrs = this.form.errors as DetailFormGroupErrors | null;
+    const conflictMsg = gErrs?.courtLocCjaConflict?.message;
+    if (conflictMsg) {
+      items.push({ id: 'court', text: conflictMsg });
+    }
+
+    for (const name of this.detailFields()) {
+      const control = this.form.get(name);
+      const errs = control?.errors;
+      if (!errs) {
+        continue;
+      }
+
+      if (name === 'duration') {
+        this.pushDurationErrors(items, errs);
+        continue;
+      }
+
+      const msg = this.errorTextFromControl(errs, DETAIL_FIELD_MESSAGES[name]);
+      if (!msg) {
+        continue;
+      }
+
+      items.push({ id: this.anchorFor(name), text: msg });
+    }
+
+    return this.dedupeById(items);
+  }
+
+  private detailFields(): (keyof typeof DETAIL_FIELD_MESSAGES)[] {
+    return Object.keys(
+      DETAIL_FIELD_MESSAGES,
+    ) as (keyof typeof DETAIL_FIELD_MESSAGES)[];
+  }
+
+  private anchorFor(name: keyof typeof DETAIL_FIELD_MESSAGES): string {
+    switch (name) {
+      case 'date':
+        return DETAIL_ERROR_ANCHORS.date;
+      case 'time':
+        return DETAIL_ERROR_ANCHORS.time;
+      default:
+        return name as string;
+    }
+  }
+
+  private pushDurationErrors(
+    items: ErrorItem[],
+    errs: Record<string, unknown>,
+  ): void {
+    const hoursText = this.getString(errs, 'hoursErrorText');
+    const minsText = this.getString(errs, 'minutesErrorText');
+
+    if (hoursText) {
+      items.push({ id: DETAIL_ERROR_ANCHORS.duration_hours, text: hoursText });
+    }
+    if (minsText) {
+      items.push({ id: DETAIL_ERROR_ANCHORS.duration_minutes, text: minsText });
+    }
+
+    // fallback if duration invalid but no specific part message
+    if (!hoursText && !minsText) {
+      const msg = this.errorTextFromControl(
+        errs,
+        DETAIL_FIELD_MESSAGES.duration,
+      );
+      if (msg) {
+        items.push({ id: DETAIL_ERROR_ANCHORS.duration_hours, text: msg });
+      }
+    }
+  }
+
+  private getString(obj: Record<string, unknown>, key: string): string | null {
+    const v = obj[key];
+    return typeof v === 'string' && v.trim() ? v : null;
+  }
+
+  private dedupeById(items: ErrorItem[]): ErrorItem[] {
+    const seen = new Set<string>();
+    const out: ErrorItem[] = [];
+
+    for (const item of items) {
+      if (!item.id) {
+        continue;
+      }
+      if (seen.has(item.id)) {
+        continue;
+      }
+      seen.add(item.id);
+      out.push(item);
+    }
+    return out;
+  }
+
+  errorTextFromControl(
+    controlErrors: Record<string, unknown>,
+    messages: Record<string, string> | undefined,
+  ): string | null {
+    // Prefer explicit payload text if present (duration component)
+    const textPayloadKeys = [
+      'durationErrorText',
+      'hoursErrorText',
+      'minutesErrorText',
+    ] as const;
+
+    for (const k of textPayloadKeys) {
+      const v = controlErrors[k];
+      if (typeof v === 'string' && v.trim()) {
+        return v;
+      }
+    }
+
+    // Otherwise use message map keys
+    if (messages) {
+      for (const key of Object.keys(controlErrors)) {
+        const msg = messages[key];
+        if (msg) {
+          return msg;
+        }
+      }
+    }
+
+    return null;
   }
 }
