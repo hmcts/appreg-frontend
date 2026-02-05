@@ -1,31 +1,34 @@
 /**
- * TODO: arcpoc-816
- * refactor paging state + manual subscribe
+ * Standard Applicant table selection
  */
-
-// TODO: add header comment
 
 import { CommonModule } from '@angular/common';
 import {
   Component,
-  EventEmitter,
-  Input,
+  EnvironmentInjector,
   OnChanges,
   OnInit,
-  Output,
   SimpleChanges,
   inject,
+  input,
+  output,
+  signal,
 } from '@angular/core';
-import { finalize } from 'rxjs/operators';
+
+import {
+  mapSaToRow,
+  standardAppColumns,
+} from './util/standard-applicant-select-row-helpers';
+import {
+  StandardApplicantSelectPagingState,
+  initialStandardApplicantSelectPagingState,
+} from './util/standard-applicant-select.state';
 
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import { SelectableSortableTableComponent } from '@components/selectable-sortable-table/selectable-sortable-table.component';
 import { TableColumn } from '@components/sortable-table/sortable-table.component';
-import {
-  StandardApplicantGetSummaryDto,
-  StandardApplicantsApi,
-} from '@openapi';
-import { formatDate } from '@util/standard-applicant-helpers';
+import { StandardApplicantsApi } from '@openapi';
+import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { StandardApplicantRow } from '@util/types/applications-list-entry/types';
 
 @Component({
@@ -40,31 +43,33 @@ import { StandardApplicantRow } from '@util/types/applications-list-entry/types'
 })
 export class StandardApplicantSelectComponent implements OnInit, OnChanges {
   private readonly saApi = inject(StandardApplicantsApi);
+  private readonly envInjector = inject(EnvironmentInjector);
 
-  @Input() selectedCode: string | null = null;
-  @Output() selectedCodeChange = new EventEmitter<string | null>();
+  selectedCode = input<string | null>(null);
+  readonly selectedCodeChange = output<string | null>();
 
   rows: StandardApplicantRow[] = [];
 
-  readonly columns: TableColumn[] = [
-    { header: 'Code', field: 'code', sortable: true },
-    { header: 'Name', field: 'name', sortable: true },
-    { header: 'Address', field: 'address', sortable: true },
-    { header: 'Use from', field: 'useFrom', sortable: true },
-    { header: 'Use to', field: 'useTo', sortable: true },
-  ];
+  readonly columns: TableColumn[] = standardAppColumns;
 
   // Paging
-  pageIndex = 0;
-  totalPages = 0;
-  private readonly pageSize = 10;
-  loading = false;
+  private readonly saSignalState =
+    createSignalState<StandardApplicantSelectPagingState>(
+      initialStandardApplicantSelectPagingState,
+    );
+  private readonly saState = this.saSignalState.state;
+  readonly vm = this.saSignalState.vm;
+
+  private readonly loadRequest = signal<{ page: number; size: number } | null>(
+    null,
+  );
 
   // Selection for the table
   selectedIds: Set<string> = new Set<string>();
 
   ngOnInit(): void {
     this.syncSelectedIdsFromCode();
+    this.setupEffects();
     this.loadPage(0);
   }
 
@@ -80,8 +85,7 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
     const first = ids.values().next().value;
     const code = first ?? null;
 
-    if (code !== this.selectedCode) {
-      this.selectedCode = code;
+    if (code !== this.selectedCode()) {
       this.selectedCodeChange.emit(code);
     }
   }
@@ -90,74 +94,61 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
     this.loadPage(page);
   }
 
-  private loadPage(page: number): void {
-    this.loading = true;
-
-    this.saApi
-      .getStandardApplicants({ page, size: this.pageSize }, 'body', false, {
-        transferCache: true,
-      })
-      .pipe(finalize(() => (this.loading = false)))
-      .subscribe({
-        next: (pg) => {
-          const content = pg.content ?? [];
-          this.rows = content.map((sa) => this.mapToRow(sa));
-          const sizeOfPage = pg.pageSize ?? this.pageSize;
-          const total = pg.totalElements ?? content.length;
-
-          this.pageIndex = pg.pageNumber ?? page;
-          this.totalPages =
+  private setupEffects(): void {
+    setupLoadEffect(
+      {
+        request: this.loadRequest,
+        load: (params) =>
+          this.saApi.getStandardApplicants(params, 'body', false, {
+            transferCache: true,
+          }),
+        onSuccess: (page) => {
+          const content = page.content ?? [];
+          this.rows = content.map((sa) => mapSaToRow(sa));
+          const sizeOfPage = page.pageSize ?? this.saState().pageSize;
+          const total = page.totalElements ?? content.length;
+          const nextPageIndex = page.pageNumber ?? 0;
+          const nextTotalPages =
             sizeOfPage > 0 ? Math.max(1, Math.ceil(total / sizeOfPage)) : 0;
+
+          this.saSignalState.patch({
+            pageIndex: nextPageIndex,
+            totalPages: nextTotalPages,
+            loading: false,
+          });
 
           // Keep selection consistent when page changes
           this.syncSelectedIdsFromCode();
+
+          this.loadRequest.set(null);
         },
-        error: () => {
+        onError: () => {
           this.rows = [];
-          this.totalPages = 0;
+          this.saSignalState.patch({ totalPages: 0, loading: false });
+          this.loadRequest.set(null);
         },
-      });
+      },
+      this.envInjector,
+    );
+  }
+
+  private loadPage(page: number): void {
+    if (this.saState().loading) {
+      return;
+    }
+
+    this.saSignalState.patch({ loading: true });
+
+    const pageSize = this.saState().pageSize;
+    this.loadRequest.set({ page, size: pageSize });
   }
 
   private syncSelectedIdsFromCode(): void {
-    if (this.selectedCode) {
-      this.selectedIds = new Set<string>([this.selectedCode]);
+    const code = this.selectedCode();
+    if (code) {
+      this.selectedIds = new Set<string>([code]);
     } else {
       this.selectedIds = new Set<string>();
     }
-  }
-
-  private mapToRow(sa: StandardApplicantGetSummaryDto): StandardApplicantRow {
-    const code = sa.code ?? '';
-
-    const person = sa.applicant?.person;
-    const organisation = sa.applicant?.organisation;
-
-    const personName = person?.name
-      ? [
-          person.name.title,
-          person.name.firstForename,
-          person.name.secondForename,
-          person.name.thirdForename,
-          person.name.surname,
-        ]
-          .filter(Boolean)
-          .join(' ')
-      : '';
-
-    const name = organisation?.name ?? personName;
-
-    const address =
-      organisation?.contactDetails?.addressLine1 ??
-      person?.contactDetails?.addressLine1 ??
-      '';
-
-    return {
-      code,
-      name,
-      address,
-      useFrom: formatDate(sa.startDate),
-      useTo: formatDate(sa.endDate),
-    };
   }
 }
