@@ -3,4 +3,4 @@ export const DETAIL_ERROR_ANCHORS = {
   time: 'time-hours',
   duration_hours: 'duration-hours',
   duration_minutes: 'duration-minutes',
-} as const;
+};
