@@ -5,7 +5,7 @@
 />
 
 <!-- Bind this sub-form to the nested FormGroup provided by the parent -->
-<div class="govuk-grid-row" [formGroup]="group">
+<div class="govuk-grid-row" [formGroup]="group()">
   <!-- Date from -->
   <app-date-input
     formControlName="dateFrom"
@@ -43,7 +43,7 @@
   </app-text-input>
 </div>
 
-<div class="govuk-grid-row" [formGroup]="group">
+<div class="govuk-grid-row" [formGroup]="group()">
   <!-- Standard applicant name -->
   <app-text-input
     formControlName="standardApplicantName"
@@ -81,7 +81,7 @@
   </app-text-input>
 </div>
 
-<div class="govuk-grid-row" [formGroup]="group">
+<div class="govuk-grid-row" [formGroup]="group()">
   <!-- Court -->
   <app-text-input
     formControlName="court"
