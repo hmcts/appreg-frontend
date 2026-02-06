@@ -72,7 +72,7 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
   private serverSortClickHandler?: (event: Event) => void;
 
   private readonly platformId = inject(PLATFORM_ID);
-  private readonly sortKeyState = signal<string>('date');
+  private readonly sortKeyState = signal<string>('');
   private readonly sortDirectionState = signal<'desc' | 'asc'>('desc');
 
   private readonly syncSortKeyInput = effect(() => {
