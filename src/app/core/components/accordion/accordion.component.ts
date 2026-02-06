@@ -19,14 +19,14 @@ export interface AccordionItem {
 })
 export class AccordionComponent {
   /** Root id used to build per-section ids (must be unique on the page) */
-  readonly id = input('accordion');
+  id = input('accordion');
   /** Sections to render */
-  readonly items = input<AccordionItem[]>([]);
+  items = input<AccordionItem[]>([]);
   /** Allow multiple sections open at the same time */
-  readonly allowMultiple = input<boolean>(true);
+  allowMultiple = input<boolean>(true);
 
   /** Local state derived from input items so toggling doesn't mutate inputs. */
-  readonly displayItems = signal<AccordionItem[]>([]);
+  displayItems = signal<AccordionItem[]>([]);
 
   constructor() {
     effect(() => {

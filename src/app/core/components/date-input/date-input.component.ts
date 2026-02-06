@@ -48,12 +48,12 @@ type DateField = 'day' | 'month' | 'year';
   imports: [ReactiveFormsModule],
 })
 export class DateInputComponent implements ControlValueAccessor, Validator {
-  readonly label = input('Date');
-  readonly hint = input('For example, 27 3 2007');
-  readonly idPrefix = input('date');
-  readonly submitted = input(false);
-  readonly isSearch = input(false);
-  readonly disallowFutureDates = input(false);
+  label = input('Date');
+  hint = input('For example, 27 3 2007');
+  idPrefix = input('date');
+  submitted = input(false);
+  isSearch = input(false);
+  disallowFutureDates = input(false);
 
   disabled = false;
 
