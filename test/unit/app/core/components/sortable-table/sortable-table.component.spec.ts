@@ -145,6 +145,7 @@ describe('SortableTableComponent', () => {
     it('instantiates MoJ SortableTable once in the browser with the table element', async () => {
       await create('browser');
 
+      fixture.componentRef.setInput('clientOrServerSort', 'server');
       fixture.detectChanges();
       await fixture.whenStable();
       await new Promise<void>((resolve) => setTimeout(resolve, 0));

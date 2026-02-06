@@ -11,7 +11,6 @@ import { of, throwError } from 'rxjs';
 
 import { ApplicationsList } from '@components/applications-list/applications-list.component';
 import {
-  APPLICATIONS_LIST_COLUMNS,
   APPLICATIONS_LIST_ERROR_MESSAGES,
 } from '@components/applications-list/util/applications-list.constants';
 import {

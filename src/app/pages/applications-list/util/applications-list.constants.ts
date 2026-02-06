@@ -20,7 +20,7 @@ export const APPLICATIONS_LIST_COLUMNS_ACTION: TableColumn[] = [
 export const APPLICATION_LIST_SORT_MAP: Record<string, string> = {
   date: 'date',
   time: 'time',
-  location: 'location',
+  location: 'courtLocationCode', // TODO: change when this is changed in BE since its a bug. Should be 'location'
   description: 'description',
   entries: 'entriesCount',
   status: 'status',

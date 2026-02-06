@@ -1,6 +1,7 @@
 <table
   #mojTable
   class="govuk-table"
+  [attr.data-module]="clientOrServerSort() === 'client' ? 'moj-sortable-table' : null"
   [attr.aria-describedby]="'sortable-' + caption"
 >
   <caption
@@ -22,12 +23,11 @@
           [class.govuk-table__header--numeric]="col.numeric"
           [class.app-sortable-table__cell--wrap]="!col.numeric"
           [attr.aria-sort]="
-            col.sortable === false ? null : ariaSortFor(col.field)
-          "
-          [attr.tabindex]="col.sortable === false ? null : 0"
-          (click)="col.sortable === false ? null : onHeaderClick($event, col)"
-          (keydown)="
-            col.sortable === false ? null : onHeaderKeydown($event, col)
+            col.sortable === false
+              ? null
+              : clientOrServerSort() === 'server'
+                ? ariaSortFor(col.field)
+                : (col.defaultSort ?? 'none')
           "
         >
           {{ col.header }}
@@ -46,6 +46,11 @@
               class="govuk-table__header"
               [class.govuk-table__cell--numeric]="col.numeric"
               [class.app-sortable-table__cell--wrap]="!col.numeric"
+              [attr.data-sort-value]="
+                clientOrServerSort() === 'client' && col.sortable !== false
+                  ? getSortValue(row, col)
+                  : null
+              "
             >
               {{ row[col.field] }}
             </th>
@@ -54,6 +59,11 @@
               class="govuk-table__cell"
               [class.govuk-table__cell--numeric]="col.numeric"
               [class.app-sortable-table__cell--wrap]="!col.numeric"
+              [attr.data-sort-value]="
+                clientOrServerSort() === 'client' && col.sortable !== false
+                  ? getSortValue(row, col)
+                  : null
+              "
             >
               @if (col.field === 'actions') {
                 <ng-container
