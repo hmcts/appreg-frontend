@@ -24,6 +24,13 @@ describe('SortableTableComponent', () => {
   let fixture: ComponentFixture<SortableTableComponent>;
   let comp: SortableTableComponent;
 
+  const setInput = (name: string, value: unknown, detectChanges = true) => {
+    fixture.componentRef.setInput(name, value);
+    if (detectChanges) {
+      fixture.detectChanges();
+    }
+  };
+
   async function create(platform: 'browser' | 'server' = 'browser') {
     await TestBed.configureTestingModule({
       imports: [SortableTableComponent], // standalone
@@ -66,14 +73,16 @@ describe('SortableTableComponent', () => {
   describe('trackRow', () => {
     it('uses provided trackBy when present', async () => {
       await create('browser');
-      comp.trackBy = (i, r) => ('key' in r ? r['key'] : i);
+      setInput('trackBy', (i: number, r: Record<string, unknown>) =>
+        'key' in r ? r['key'] : i,
+      );
       const key = comp.trackRow(2, { key: 'abc' });
       expect(key).toBe('abc');
     });
 
     it('falls back to idField when provided', async () => {
       await create('browser');
-      comp.idField = 'id';
+      setInput('idField', 'id');
       const key = comp.trackRow(3, { id: 99 });
       expect(key).toBe(99);
     });

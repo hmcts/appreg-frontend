@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { DateInputComponent } from '@components/date-input/date-input.component';
@@ -19,5 +19,5 @@ import { TextInputComponent } from '@components/text-input/text-input.component'
 })
 export class ListMaintenanceSectionComponent {
   /** Parent passes the nested reactive form group for this section */
-  @Input({ required: true }) group!: FormGroup;
+  readonly group = input.required<FormGroup>();
 }

@@ -6,11 +6,11 @@ import type { ErrorItem } from '@components/error-summary/error-summary.componen
 import { PersonSectionComponent } from '@components/person-section/person-section.component';
 
 type TextInputLike = {
-  submitted?: boolean;
-  suppressError?: boolean;
-  error?: string | null;
-  inputType?: string;
-  idPrefix?: string;
+  submitted?: () => boolean;
+  suppressError?: () => boolean;
+  error?: () => string | null;
+  inputType?: () => string;
+  idPrefix?: () => string;
 };
 
 type SelectInputLike = {
@@ -83,7 +83,7 @@ describe('PersonSectionComponent', () => {
     expect(selectDebug).toBeTruthy();
 
     const selectCmp = selectDebug.componentInstance as SelectInputLike;
-    expect(selectCmp.options).toEqual([
+    expect(selectCmp.options?.()).toEqual([
       { value: 'mr', label: 'Mr' },
       { value: 'mrs', label: 'Mrs' },
       { value: 'dr', label: 'Dr' },
@@ -114,9 +114,9 @@ describe('PersonSectionComponent', () => {
     const mobileCmp = mobileDebug.componentInstance as TextInputLike;
     const emailCmp = emailDebug.componentInstance as TextInputLike;
 
-    expect(phoneCmp.inputType).toBe('tel');
-    expect(mobileCmp.inputType).toBe('tel');
-    expect(emailCmp.inputType).toBe('email');
+    expect(phoneCmp.inputType?.()).toBe('tel');
+    expect(mobileCmp.inputType?.()).toBe('tel');
+    expect(emailCmp.inputType?.()).toBe('email');
   });
 
   it('applies scopeId to idPrefix for inputs (so ids are unique)', () => {
@@ -126,7 +126,7 @@ describe('PersonSectionComponent', () => {
     const firstNameCmp = firstNameDebug.componentInstance as TextInputLike;
 
     // template uses [idPrefix]="scopeId() + '-person-first-name'"
-    expect(firstNameCmp.idPrefix).toBe('respondent-person-first-name');
+    expect(firstNameCmp.idPrefix?.()).toBe('respondent-person-first-name');
 
     const selectDebug = fixture.debugElement.query(
       By.css('app-select-input[formControlName="title"]'),
@@ -134,7 +134,7 @@ describe('PersonSectionComponent', () => {
     const selectCmp = selectDebug.componentInstance as SelectInputLike;
 
     // template uses [idPrefix]="scopeId() + '-person-title'"
-    expect(selectCmp.idPrefix).toBe('respondent-person-title');
+    expect(selectCmp.idPrefix?.()).toBe('respondent-person-title');
   });
 
   it('passes submitted state down to relevant text inputs', () => {
@@ -146,7 +146,7 @@ describe('PersonSectionComponent', () => {
     );
     const firstNameCmp = firstNameDebug.componentInstance as TextInputLike;
 
-    expect(firstNameCmp.submitted).toBe(true);
+    expect(firstNameCmp.submitted?.()).toBe(true);
   });
 
   it('maps ErrorItem.href to per-input error strings (inline errors)', () => {
@@ -174,8 +174,8 @@ describe('PersonSectionComponent', () => {
     );
     const firstNameCmp = firstNameDebug.componentInstance as TextInputLike;
 
-    expect(addr1Cmp.error).toBe('Enter address line 1');
-    expect(firstNameCmp.error).toBe('Enter a first name');
+    expect(addr1Cmp.error?.()).toBe('Enter address line 1');
+    expect(firstNameCmp.error?.()).toBe('Enter a first name');
   });
 
   it('returns null for errorFor when there is no matching ErrorItem', () => {

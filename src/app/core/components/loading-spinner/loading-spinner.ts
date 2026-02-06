@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 @Component({
   selector: 'app-loading-spinner',
@@ -8,6 +8,6 @@ import { Component, Input } from '@angular/core';
   styleUrl: './loading-spinner.scss',
 })
 export class LoadingSpinner {
-  @Input() text = 'Loading...';
-  @Input() size: 'small' | undefined;
+  text = input('Loading...');
+  size = input<'small' | undefined>();
 }

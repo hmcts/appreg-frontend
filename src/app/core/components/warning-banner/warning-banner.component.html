@@ -1,7 +1,7 @@
 <div
   role="region"
   class="moj-alert moj-alert--warning"
-  aria-label="warning: {{ message }}"
+  aria-label="warning: {{ message() }}"
   data-module="moj-alert"
 >
   <div>
@@ -23,7 +23,7 @@
     </svg>
   </div>
   <div class="moj-alert__content">
-    {{ message }}
+    {{ message() }}
   </div>
   <div class="moj-alert__action">
     <button class="moj-alert__dismiss" hidden>Dismiss</button>

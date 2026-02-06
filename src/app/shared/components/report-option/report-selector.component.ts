@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, forwardRef } from '@angular/core';
+import { Component, forwardRef, input } from '@angular/core';
 import {
   ControlValueAccessor,
   FormsModule,
@@ -28,15 +28,20 @@ export interface ReportOption {
 })
 export class ReportSelectorComponent implements ControlValueAccessor {
   /** Required: the list of radio options */
-  @Input({ required: true }) options: ReportOption[] = [];
+  // @Input({ required: true }) options: ReportOption[] = [];
+  readonly options = input.required<ReportOption[]>();
   /** Heading text in the legend */
-  @Input() legend = 'Select an option';
+  // @Input() legend = 'Select an option';
+  legend = input('Select an option');
   /** Radio group name (use a unique name per instance) */
-  @Input() name = 'report';
+  // @Input() name = 'report';
+  name = input('report');
   /** Prefix for the input/label IDs (unique per instance is ideal) */
-  @Input() idPrefix = 'report';
+  // @Input() idPrefix = 'report';
+  idPrefix = input('report');
   /** Optional aria-describedby id */
-  @Input() ariaDescribedBy?: string;
+  // @Input() ariaDescribedBy?: string;
+  ariaDescribedBy = input<string | null>(null);
 
   disabled = false;
   value: string | null = null;

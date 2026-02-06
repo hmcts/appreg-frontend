@@ -1,11 +1,5 @@
 import { CommonModule } from '@angular/common';
-import {
-  Component,
-  EventEmitter,
-  Input,
-  Output,
-  forwardRef,
-} from '@angular/core';
+import { Component, forwardRef, input, output, signal } from '@angular/core';
 import {
   ControlValueAccessor,
   FormsModule,
@@ -28,35 +22,37 @@ import {
 })
 export class TextInputComponent implements ControlValueAccessor {
   /** The label shown above the input */
-  @Input() label = '';
+  label = input('');
   /** The hint text shown under the label */
-  @Input() hint = '';
+  hint = input('');
   /** Prefix used for id/name (so you can render multiple on one page) */
-  @Input() idPrefix = 'text-input';
+  idPrefix = input('text-input');
   /** Optional width class (e.g. 'govuk-input--width-10') */
-  @Input() widthClass = 'govuk-input--width-10';
-  @Input() listId?: string;
-  @Input() suggestions: {
-    value: string;
-    label?: string;
-    [key: string]: unknown;
-  }[] = [];
-  @Input() submitted = false;
-  @Input() suppressError = false;
-  @Input() charLimit: number = 200;
-  @Input() error: string | null = null;
-  @Input() inputType: 'email' | 'text' | 'tel' = 'text';
+  widthClass = input('govuk-input--width-10');
+  listId = input<string | undefined>(undefined);
+  suggestions = input<
+    {
+      value: string;
+      label?: string;
+      [key: string]: unknown;
+    }[]
+  >([]);
+  submitted = input(false);
+  suppressError = input(false);
+  charLimit = input(200);
+  error = input<string | null>(null);
+  inputType = input<'email' | 'text' | 'tel'>('text');
 
-  @Output() typed = new EventEmitter<string>();
+  typed = output<string>();
 
-  value: string | null = null;
-  disabled = false;
+  valueState = signal<string | null>(null);
+  disabledState = signal(false);
 
   private onChange: (v: string | null) => void = () => {};
   private onTouched: () => void = () => {};
 
   writeValue(obj: string | null): void {
-    this.value = obj;
+    this.valueState.set(obj);
   }
 
   registerOnChange(fn: (v: string | null) => void): void {
@@ -68,25 +64,26 @@ export class TextInputComponent implements ControlValueAccessor {
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
+    this.disabledState.set(isDisabled);
   }
 
   onInput(event: Event): void {
     const target = event.target as HTMLInputElement;
     let val = target.value ?? '';
 
-    if (this.charLimit && val.length > this.charLimit) {
-      val = val.slice(0, this.charLimit);
+    const limit = this.charLimit();
+    if (limit && val.length > limit) {
+      val = val.slice(0, limit);
       target.value = val;
     }
 
-    this.value = val;
+    this.valueState.set(val);
     this.onChange(val);
     this.typed.emit(val);
   }
 
   get errorState(): boolean {
-    const v: unknown = this.value;
+    const v: unknown = this.valueState();
 
     let isEmpty = false;
 
@@ -96,14 +93,14 @@ export class TextInputComponent implements ControlValueAccessor {
       isEmpty = v.trim().length === 0;
     } // If non string we keep false
 
-    if (this.error) {
+    if (this.error()) {
       return true;
     }
 
-    if (this.suppressError) {
+    if (this.suppressError()) {
       return false;
     }
 
-    return this.submitted && isEmpty;
+    return this.submitted() && isEmpty;
   }
 }

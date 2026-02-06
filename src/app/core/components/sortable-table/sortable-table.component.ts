@@ -4,15 +4,15 @@ import {
   Component,
   ContentChild,
   ElementRef,
-  EventEmitter,
-  Inject,
-  Input,
   OnDestroy,
-  Output,
   PLATFORM_ID,
   TemplateRef,
   ViewChild,
+  effect,
+  inject,
   input,
+  output,
+  signal,
 } from '@angular/core';
 
 import { Row } from '@core-types/table/row.types';
@@ -45,39 +45,59 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
   @ContentChild('actionsTemplate', { read: TemplateRef })
   actionsTpl?: TemplateRef<unknown>;
 
-  @Input() caption = '';
-  @Input() hiddenCaption = false;
-  @Input() columns: TableColumn[] = [];
-  @Input() data: Row[] = [];
+  caption = input('');
+  hiddenCaption = input(false);
+  columns = input<TableColumn[]>([]);
+  data = input<Row[]>([]);
 
   // Table sort
-  @Input() sortKey: string = 'date';
-  @Input() sortDirection: 'desc' | 'asc' = 'desc';
+  sortKey = input<string>('date');
+  sortDirection = input<'desc' | 'asc'>('desc');
   clientOrServerSort = input<'server' | 'client'>('client');
 
-  @Output() sortChange = new EventEmitter<{
+  sortChange = output<{
     key: string;
     direction: 'desc' | 'asc';
   }>();
 
   /** Optional id field / custom trackBy, kept from your original component */
-  @Input() idField?: string;
-  @Input() trackBy?: (index: number, row: Row) => unknown;
+  idField = input<string | undefined>(undefined);
+  trackBy = input<((index: number, row: Row) => unknown) | undefined>(
+    undefined,
+  );
   @ViewChild('mojTable', { static: true })
   tableRef!: ElementRef<HTMLTableElement>;
 
   private sortableInstance?: { init?: () => void; destroy?: () => void };
   private serverSortClickHandler?: (event: Event) => void;
 
-  constructor(@Inject(PLATFORM_ID) private readonly platformId: object) {}
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly sortKeyState = signal<string>('date');
+  private readonly sortDirectionState = signal<'desc' | 'asc'>('desc');
+
+  private readonly syncSortKeyInput = effect(() => {
+    const next = this.sortKey();
+    if (next !== this.sortKeyState()) {
+      this.sortKeyState.set(next);
+    }
+  });
+
+  private readonly syncSortDirectionInput = effect(() => {
+    const next = this.sortDirection();
+    if (next !== this.sortDirectionState()) {
+      this.sortDirectionState.set(next);
+    }
+  });
 
   /** trackBy helper retained for performance */
   trackRow = (index: number, row: Row): unknown => {
-    if (this.trackBy) {
-      return this.trackBy(index, row);
+    const trackBy = this.trackBy();
+    if (trackBy) {
+      return trackBy(index, row);
     }
-    if (this.idField && this.idField in row) {
-      return row[this.idField];
+    const idField = this.idField();
+    if (idField && idField in row) {
+      return row[idField];
     }
     return index;
     // same behaviour you had before
@@ -181,12 +201,12 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
     const key = col.field;
 
     const next = getNextSortState(
-      { key: this.sortKey, direction: this.sortDirection },
+      { key: this.sortKeyState(), direction: this.sortDirectionState() },
       key,
     );
 
-    this.sortKey = next.key;
-    this.sortDirection = next.direction;
+    this.sortKeyState.set(next.key);
+    this.sortDirectionState.set(next.direction);
 
     if (this.clientOrServerSort() === 'server') {
       this.sortChange.emit(next);
@@ -212,7 +232,7 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
 
   ariaSortFor(key: string): 'ascending' | 'descending' | 'none' {
     return ariaSortForUtil(
-      { key: this.sortKey, direction: this.sortDirection },
+      { key: this.sortKeyState(), direction: this.sortDirectionState() },
       key,
       'none',
     );
@@ -236,7 +256,7 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
         if (direction !== 'ascending' && direction !== 'descending') {
           return;
         }
-        const column = this.columns[heading.cellIndex];
+        const column = this.columns()[heading.cellIndex];
         if (!column || column.sortable === false) {
           return;
         }
@@ -245,8 +265,8 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
           key: column.field,
           direction: direction === 'ascending' ? 'asc' : 'desc',
         };
-        this.sortKey = next.key;
-        this.sortDirection = next.direction;
+        this.sortKeyState.set(next.key);
+        this.sortDirectionState.set(next.direction);
         this.sortChange.emit(next);
       });
     };

@@ -6,6 +6,13 @@ describe('WarningBannerComponent', () => {
   let component: WarningBannerComponent;
   let fixture: ComponentFixture<WarningBannerComponent>;
 
+  const setInput = (name: string, value: unknown, detectChanges = true) => {
+    fixture.componentRef.setInput(name, value);
+    if (detectChanges) {
+      fixture.detectChanges();
+    }
+  };
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [WarningBannerComponent],
@@ -13,7 +20,7 @@ describe('WarningBannerComponent', () => {
 
     fixture = TestBed.createComponent(WarningBannerComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    setInput('message', 'Warning');
   });
 
   it('should create', () => {

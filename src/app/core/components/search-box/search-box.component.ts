@@ -1,17 +1,13 @@
-/**
- * TODO: arcpoc-816
- * valueChanges subscription
- * can be toSignal/effect.
- */
-
 import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
-  Input,
-  Output,
+  Signal,
+  effect,
+  input,
+  output,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   FormControl,
   FormGroup,
@@ -28,48 +24,59 @@ import {
 })
 export class SearchBoxComponent {
   /** Visual text */
-  @Input() label = 'Search for a result code';
-  @Input() hint = 'Start typing to see results';
-  @Input() buttonText = 'Save';
-  @Input() placeholder = '';
+  readonly label = input('Search for a result code');
+  readonly hint = input('Start typing to see results');
+  readonly buttonText = input('Save');
+  readonly placeholder = input('');
 
   /** Form/input attributes */
-  @Input() name = 'search';
-  @Input() inputId?: string;
-  @Input() ariaDescribedBy?: string;
+  readonly name = input('search');
+  readonly inputId = input<string | undefined>(undefined);
+  readonly ariaDescribedBy = input<string | undefined>(undefined);
 
   /** Events */
-  @Output() submitted = new EventEmitter<string>();
-  @Output() valueChange = new EventEmitter<string>();
+  readonly submitted = output<string>();
+  readonly valueChange = output<string>();
 
   // Monotonic counter shared by all instances
   private static nextId = 0;
 
   /** Internal form */
   readonly form: FormGroup<{ search: FormControl<string> }>;
+  private readonly searchValue: Signal<string>;
 
   /** Unique id so multiple instances don’t collide */
   private readonly uid = `search-${++SearchBoxComponent.nextId}`;
   get computedId(): string {
-    return this.inputId ?? this.uid;
+    return this.inputId() ?? this.uid;
   }
   get hintId(): string {
     return `${this.computedId}-hint`;
   }
   get ariaDescribedByAttr(): string | null {
-    if (this.ariaDescribedBy) {
-      return this.ariaDescribedBy;
+    const describedBy = this.ariaDescribedBy();
+    if (describedBy) {
+      return describedBy;
     }
-    return this.hint ? this.hintId : null;
+    return this.hint() ? this.hintId : null;
   }
 
   constructor(fb: NonNullableFormBuilder) {
     this.form = fb.group({
       search: fb.control(''),
     });
+    this.searchValue = toSignal(this.form.controls.search.valueChanges, {
+      initialValue: this.form.controls.search.value,
+    });
 
-    this.form.controls.search.valueChanges.subscribe((v) => {
-      this.valueChange.emit(v);
+    let initialized = false;
+    effect(() => {
+      const value = this.searchValue();
+      if (!initialized) {
+        initialized = true;
+        return;
+      }
+      this.valueChange.emit(value);
     });
   }
 

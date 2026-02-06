@@ -194,7 +194,7 @@ describe('ApplicationsListDetail', () => {
       By.css('app-text-input[formControlName="location"]'),
     );
     if (otherLoc?.componentInstance) {
-      expect(otherLoc.componentInstance.disabled).toBe(true);
+      expect(otherLoc.componentInstance.disabledState?.()).toBe(true);
     }
   });
 
