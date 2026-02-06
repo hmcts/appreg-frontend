@@ -44,9 +44,9 @@ import {
   OrganisationFormRaw,
   PersonFormRaw,
 } from '@util/types/applications-list-entry/types';
-import { optional } from '@validators/optional-validator';
+import { optional } from '@validators/optional.validator';
 import { standardApplicantCodeConditionalRequired } from '@validators/standard-applicant-code.validator';
-import { ukMobile, ukPhone, ukPostcode } from '@validators/uk-format-validator';
+import { ukMobile, ukPhone, ukPostcode } from '@validators/uk-format.validator';
 
 //Assuming 60 max char length for names/addresses
 const MAX_60 = Validators.maxLength(60);
