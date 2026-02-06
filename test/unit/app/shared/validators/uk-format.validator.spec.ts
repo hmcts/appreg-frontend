@@ -1,7 +1,7 @@
 import { AbstractControl } from '@angular/forms';
 
 import { UK_POSTCODE_REGEX } from '@constants/regex';
-import { ukMobile, ukPhone, ukPostcode } from '@validators/uk-format-validator';
+import { ukMobile, ukPhone, ukPostcode } from '@validators/uk-format.validator';
 
 const ctrl = (value: unknown): AbstractControl =>
   ({ value }) as AbstractControl;
