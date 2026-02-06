@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, forwardRef } from '@angular/core';
+import { Component, forwardRef, input, signal } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -37,13 +37,20 @@ export type DurationMode = 'clock' | 'duration';
   ],
 })
 export class DurationInputComponent implements ControlValueAccessor, Validator {
-  @Input() idPrefix!: string;
-  @Input() label?: string;
-  @Input() hint?: string;
-  @Input() disabled = false;
-  @Input() submitted = false;
-  @Input() required = true;
-  @Input() mode: DurationMode = 'clock'; // One for 24 hour clock and one for duration
+  // @Input() idPrefix!: string;
+  idPrefix = input.required<string>();
+  // @Input() label?: string;
+  label = input<string>();
+  // @Input() hint?: string;
+  hint = input<string>();
+  // @Input() disabled = false;
+  readonly disabled = input(false);
+  // @Input() submitted = false;
+  submitted = input(false);
+  // @Input() required = true;
+  required = input(true);
+  // @Input() mode: DurationMode = 'clock'; // One for 24 hour clock and one for duration
+  mode = input<DurationMode>('clock');
 
   // single source of truth: numbers
   hours: number | null = null;
@@ -75,7 +82,7 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
     this.onTouched = fn;
   }
   setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
+    this.cvaDisabled.set(isDisabled);
   }
 
   // Validation
@@ -95,11 +102,16 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
   private readonly HOURS_MAX_CLOCK = 23;
   private readonly MINS_MIN = 0;
   private readonly MINS_MAX = 59;
+  private readonly cvaDisabled = signal(false);
+
+  get isDisabled(): boolean {
+    return this.disabled() || this.cvaDisabled();
+  }
 
   private computeErrors(): ValidationErrors | null {
     const h = this.hours,
       m = this.minutes;
-    return this.mode === 'clock'
+    return this.mode() === 'clock'
       ? this.clockErrors(h, m)
       : this.durationErrors(h, m);
   }
@@ -109,13 +121,13 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
     m: number | null,
   ): ValidationErrors | null {
     // required + blanks
-    if (this.required && this.isBlank(h) && this.isBlank(m)) {
+    if (this.required() && this.isBlank(h) && this.isBlank(m)) {
       return {
         requiredParts: true,
         durationErrorText: 'Enter hours and minutes',
       };
     }
-    if (this.required && (this.isBlank(h) || this.isBlank(m))) {
+    if (this.required() && (this.isBlank(h) || this.isBlank(m))) {
       return this.partsInvalidError(
         this.missingMsg(this.isBlank(h), this.isBlank(m)),
       );
@@ -260,11 +272,11 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
   }
 
   get displayErrors(): boolean {
-    return this.submitted && this.showErrors;
+    return this.submitted() && this.showErrors;
   }
 
   get showErrors(): boolean {
-    return this.submitted && !!this.computeErrors();
+    return this.submitted() && !!this.computeErrors();
   }
 
   get errorText(): string {
@@ -276,7 +288,7 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
       return 'Enter hours and minutes';
     }
     if (e['durationInvalid']) {
-      if (this.mode === 'clock') {
+      if (this.mode() === 'clock') {
         return 'Enter a valid duration between 00:00 and 23:59';
       } else {
         return 'Enter a valid duration: Hours 0-99, Mins 0-59';

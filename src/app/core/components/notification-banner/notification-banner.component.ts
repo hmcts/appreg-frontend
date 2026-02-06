@@ -3,8 +3,8 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  Input,
   ViewChild,
+  input,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
@@ -17,14 +17,14 @@ type BannerVariant = 'default' | 'success';
   templateUrl: 'notification-banner.component.html',
 })
 export class NotificationBannerComponent implements AfterViewInit {
-  @Input() variant: BannerVariant = 'default';
-  @Input() title = 'Important';
-  @Input() heading = '';
-  @Input() body = '';
-  @Input() linkText?: string;
-  @Input() linkHref?: string;
-  @Input() linkCommands?: string[];
-  @Input() autoFocus = false;
+  variant = input<BannerVariant>('default');
+  title = input('Important');
+  heading = input('');
+  body = input('');
+  linkText = input<string | undefined>();
+  linkHref = input<string | undefined>();
+  linkCommands = input<string[] | undefined>();
+  autoFocus = input(false);
 
   @ViewChild('bannerEl') private readonly bannerEl?: ElementRef<HTMLDivElement>;
 
@@ -32,11 +32,11 @@ export class NotificationBannerComponent implements AfterViewInit {
   titleId = `govuk-notification-banner-title-${NotificationBannerComponent.nextId++}`;
 
   get role(): 'region' | 'alert' {
-    return this.variant === 'success' ? 'alert' : 'region';
+    return this.variant() === 'success' ? 'alert' : 'region';
   }
 
   ngAfterViewInit(): void {
-    if (this.autoFocus) {
+    if (this.autoFocus()) {
       setTimeout(() => this.bannerEl?.nativeElement.focus(), 0);
     }
   }

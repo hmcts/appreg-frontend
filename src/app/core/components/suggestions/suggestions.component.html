@@ -1,36 +1,38 @@
-<div [class]="containerWidthClass">
+<div [class]="containerWidthClass()">
   <div
     class="govuk-form-group"
-    [ngClass]="{ 'govuk-form-group--error': showError }"
+    [ngClass]="{ 'govuk-form-group--error': showError() }"
   >
     <div class="govuk-label-wrapper">
-      <label class="govuk-label govuk-label--m" [for]="id">{{ label }}</label>
+      <label class="govuk-label govuk-label--m" [for]="id()">{{
+        label()
+      }}</label>
     </div>
 
-    @if (hint) {
-      <div [id]="id + '-hint'" class="govuk-hint">{{ hint }}</div>
+    @if (hint()) {
+      <div [id]="id() + '-hint'" class="govuk-hint">{{ hint() }}</div>
     }
 
-    @if (showError) {
-      <p [id]="id + '-error'" class="govuk-error-message">
-        <span class="govuk-visually-hidden">Error:</span> {{ errorText }}
+    @if (showError()) {
+      <p [id]="id() + '-error'" class="govuk-error-message">
+        <span class="govuk-visually-hidden">Error:</span> {{ errorText() }}
       </p>
     }
 
     <div class="app-autocomplete">
       <input
         class="govuk-input"
-        [ngClass]="[widthClass, showError ? 'govuk-input--error' : '']"
-        [id]="id"
-        [name]="id"
+        [ngClass]="[widthClass(), showError() ? 'govuk-input--error' : '']"
+        [id]="id()"
+        [name]="id()"
         type="text"
-        [disabled]="disabled"
-        [(ngModel)]="search"
+        [disabled]="disabledState()"
+        [ngModel]="searchState()"
         (focus)="onFocus()"
         (blur)="onBlur()"
         (ngModelChange)="onInput($event)"
         [attr.aria-describedby]="
-          (hint ? id + '-hint ' : '') + (showError ? id + '-error' : '')
+          (hint() ? id() + '-hint ' : '') + (showError() ? id() + '-error' : '')
         "
         autocomplete="off"
       />
@@ -38,7 +40,7 @@
       @if (open || noResultsVisible) {
         <ul class="govuk-list app-autocomplete__menu">
           @if (open) {
-            @for (item of suggestions; track item) {
+            @for (item of suggestionsState(); track item) {
               <li>
                 <a
                   href="javascript:void(0)"

@@ -16,15 +16,15 @@ describe('ReportSelectorComponent', () => {
     fixture = TestBed.createComponent(ReportSelectorComponent);
     component = fixture.componentInstance;
 
-    component.legend = 'Select a report';
-    component.name = 'report';
-    component.idPrefix = 'report';
-    component.ariaDescribedBy = 'report-hint';
+    fixture.componentRef.setInput('legend', 'Select a report');
+    fixture.componentRef.setInput('name', 'report');
+    fixture.componentRef.setInput('idPrefix', 'report');
+    fixture.componentRef.setInput('ariaDescribedBy', 'report-hint');
     component.disabled = false;
-    component.options = [
+    fixture.componentRef.setInput('options', [
       { id: 'daily', label: 'Daily report', hint: 'Summary for the day' },
       { id: 'weekly', label: 'Weekly report' },
-    ];
+    ]);
     component.value = null;
 
     fixture.detectChanges();
@@ -85,7 +85,7 @@ describe('ReportSelectorComponent', () => {
   });
 
   it('renders "No options." when options array is empty', () => {
-    component.options = [];
+    fixture.componentRef.setInput('options', []);
     fixture.detectChanges();
 
     const radios = fixture.debugElement.queryAll(

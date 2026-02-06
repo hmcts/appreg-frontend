@@ -12,8 +12,8 @@
   />
 
   <app-pagination
-    [currentPage]="pageIndex"
-    [totalPages]="totalPages"
+    [currentPage]="vm().pageIndex"
+    [totalPages]="vm().totalPages"
     (pageChange)="onPageChange($event)"
   />
 </div>

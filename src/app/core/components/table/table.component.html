@@ -1,8 +1,8 @@
-<table [class]="tableClass">
-  @if (caption) {
-    <caption [class]="captionClass">
+<table [class]="tableClass()">
+  @if (caption()) {
+    <caption [class]="captionClass()">
       {{
-        caption
+        caption()
       }}
     </caption>
   }
@@ -24,7 +24,7 @@
   }
 
   <tbody class="govuk-table__body">
-    @for (row of rows; track $index; let r = $index) {
+    @for (row of rows(); track $index; let r = $index) {
       <tr class="govuk-table__row">
         @for (col of cols; track $index; let c = $index) {
           @if (c === 0) {

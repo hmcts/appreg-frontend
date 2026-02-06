@@ -30,7 +30,7 @@ describe('SearchWarrantsSectionComponent', () => {
       cja: new FormControl(''),
     });
 
-    component.group = group;
+    fixture.componentRef.setInput('group', group);
 
     fixture.detectChanges();
   });
@@ -40,7 +40,7 @@ describe('SearchWarrantsSectionComponent', () => {
   });
 
   it('should expose the provided FormGroup via the "group" input', () => {
-    expect(component.group).toBe(group);
+    expect(component.group()).toBe(group);
   });
 
   it('renders the "Search warrants" heading', () => {
