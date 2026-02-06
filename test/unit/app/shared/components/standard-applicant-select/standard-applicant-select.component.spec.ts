@@ -144,7 +144,7 @@ describe('StandardApplicantSelectComponent', () => {
     fixture.detectChanges(); // triggers ngOnInit
 
     expect(mockGetStandardApplicants).toHaveBeenCalledWith(
-      { page: 0, size: 10 },
+      { pageNumber: 0, pageSize: 10 },
       'body',
       false,
       expect.objectContaining({ transferCache: true }),
@@ -227,7 +227,7 @@ describe('StandardApplicantSelectComponent', () => {
     component.onPageChange(1);
 
     expect(mockGetStandardApplicants).toHaveBeenLastCalledWith(
-      { page: 1, size: 10 },
+      { pageNumber: 1, pageSize: 10 },
       'body',
       false,
       expect.objectContaining({ transferCache: true }),

@@ -19,7 +19,7 @@ export function getAllResultCodes(
   codesApi: ResultCodesApi,
 ): Signal<ResultCodeGetSummaryDto[]> {
   return toSignal(
-    codesApi.getResultCodes({ page: 0, size: 100 }).pipe(
+    codesApi.getResultCodes({ pageNumber: 0, pageSize: 100 }).pipe(
       map((page: ResultCodePage) => page.content ?? []),
       catchError(() => of([] as ResultCodeGetSummaryDto[])),
     ),
@@ -35,8 +35,8 @@ export function getEntryResults$(
     .getApplicationListEntryResults({
       listId: params.listId,
       entryId: params.entryId,
-      page: 0,
-      size: 100, // safe if small; adjust if needed
+      pageNumber: 0,
+      pageSize: 100, // safe if small; adjust if needed
     })
     .pipe(
       map((page: ResultPage) => page.content ?? []),

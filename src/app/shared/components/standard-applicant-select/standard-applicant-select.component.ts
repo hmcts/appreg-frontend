@@ -94,7 +94,7 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
     this.loading = true;
 
     this.saApi
-      .getStandardApplicants({ page, size: this.pageSize }, 'body', false, {
+      .getStandardApplicants({ pageNumber: page, pageSize: this.pageSize }, 'body', false, {
         transferCache: true,
       })
       .pipe(finalize(() => (this.loading = false)))

@@ -270,7 +270,7 @@ describe('ApplicationsListDetail', () => {
       await flushSignalEffects(fixture);
 
       expect(apiStub.getApplicationList).toHaveBeenCalledWith(
-        { listId: 'list-123', page: 0, size: 10 },
+        { listId: 'list-123', pageNumber: 0, pageSize: 10 },
         'response',
         false,
         { transferCache: false },

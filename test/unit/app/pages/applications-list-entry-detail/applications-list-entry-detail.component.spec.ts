@@ -229,7 +229,7 @@ describe('ApplicationsListEntryDetail', () => {
     component.onCodesSearch();
 
     expect(mockGetApplicationCodes).toHaveBeenCalledWith(
-      { code: 'APP-9', title: 'Something', page: 0, size: 10 },
+      { code: 'APP-9', title: 'Something', pageNumber: 0, pageSize: 10 },
       'body',
       false,
       expect.objectContaining({ transferCache: true }),

@@ -128,7 +128,7 @@ type DetailFormGroupErrors = {
   courtLocCjaConflict?: CourtLocCjaConflictError;
 };
 
-type LoadDetailReq = { id: string; page: number; size: number };
+type LoadDetailReq = { id: string; pageNumber: number; pageSize: number };
 type UpdateReq = {
   id: string;
   payload: ApplicationListUpdateDto;
@@ -256,7 +256,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
         load: (req: LoadDetailReq) =>
           this.appListApi.getApplicationList(
-            { listId: req.id, page: req.page, size: req.size },
+            { listId: req.id, pageNumber: req.page, pageSize: req.size },
             'response',
             false,
             { transferCache: false },
@@ -402,8 +402,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
     this.loadRequest.set({
       id: this.id,
-      page: vm.currentPage - 1,
-      size: vm.pageSize,
+      pageNumber: vm.currentPage - 1,
+      pageSize: vm.pageSize,
     });
   }
 
