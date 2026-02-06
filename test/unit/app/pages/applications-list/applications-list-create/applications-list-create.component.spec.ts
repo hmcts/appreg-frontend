@@ -296,7 +296,7 @@ describe('ApplicationsListCreate', () => {
     expect(textInputs.length).toBeGreaterThan(0);
 
     const with200Limit = textInputs.filter(
-      (de) => de.componentInstance.charLimit === 200,
+      (de) => de.componentInstance.charLimit?.() === 200,
     );
 
     expect(with200Limit.length).toBeGreaterThan(0);

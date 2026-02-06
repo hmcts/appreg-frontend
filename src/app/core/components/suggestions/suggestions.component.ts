@@ -1,12 +1,11 @@
 import { CommonModule } from '@angular/common';
 import {
   Component,
-  EventEmitter,
-  Input,
-  OnChanges,
-  Output,
-  SimpleChanges,
+  effect,
   forwardRef,
+  input,
+  output,
+  signal,
 } from '@angular/core';
 import {
   ControlValueAccessor,
@@ -29,44 +28,87 @@ import { asString, hasStringProp, isRecord } from '@util/data-utils';
     },
   ],
 })
-export class SuggestionsComponent<T = unknown>
-  implements OnChanges, ControlValueAccessor
-{
-  @Input() id = '';
-  @Input() label = '';
-  @Input() hint = '';
-  @Input() disabled = false;
-  @Input() showError = false;
-  @Input() errorText = 'This field is required';
-  @Input({ required: true }) suggestions: T[] = [];
+export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
+  id = input('');
+  label = input('');
+  hint = input('');
+  disabled = input(false);
+  showError = input(false);
+  errorText = input('This field is required');
+  suggestions = input.required<T[]>();
 
-  @Input() search = '';
-  @Output() searchChange = new EventEmitter<string>();
+  search = input('');
+  searchChange = output<string>();
 
-  @Input() getItemLabel: ((item: T) => string) | null = null;
-  @Output() selectItem = new EventEmitter<T>();
+  getItemLabel = input<((item: T) => string) | null>(null);
+  selectItem = output<T>();
 
-  @Input() value = '';
-  @Output() valueChange = new EventEmitter<string>();
+  value = input('');
+  valueChange = output<string>();
 
-  @Input() widthClass = 'govuk-input--width-10';
-  @Input() containerWidthClass = 'govuk-grid-column-one-quarter';
+  widthClass = input('govuk-input--width-10');
+  containerWidthClass = input('govuk-grid-column-one-quarter');
 
   private focused = false;
   private justSelected = false;
   private committedLabel: string | null = null;
+  searchState = signal('');
+  suggestionsState = signal<T[]>([]);
+  valueState = signal('');
+  disabledState = signal(false);
+  getItemLabelState = signal<((item: T) => string) | null>(null);
+
+  private readonly syncSearchInput = effect(() => {
+    const next = asString(this.search());
+    if (next === null) {
+      return;
+    }
+
+    this.searchState.set(next);
+    const trimmed = next.trim();
+
+    // If parent sets a value programmatically (e.g. hydrate), treat it as committed
+    // so we don't show "No results found" when suggestions is empty.
+    if (!this.focused && trimmed) {
+      this.committedLabel = next;
+      this.justSelected = true;
+      return;
+    }
+
+    // If search cleared externally, clear committed state
+    if (!trimmed) {
+      this.committedLabel = null;
+      this.justSelected = false;
+    }
+  });
+
+  private readonly syncSuggestionsInput = effect(() => {
+    this.suggestionsState.set(this.suggestions());
+  });
+
+  private readonly syncValueInput = effect(() => {
+    this.valueState.set(this.value());
+  });
+
+  private readonly syncDisabledInput = effect(() => {
+    this.disabledState.set(this.disabled());
+  });
+
+  private readonly syncGetItemLabelInput = effect(() => {
+    this.getItemLabelState.set(this.getItemLabel());
+  });
   private onChange: (value: string) => void = () => {};
   private onTouched: () => void = () => {};
 
-  writeValue(v: string | null): void {
-    const next = v ?? '';
-    this.value = next;
+  writeValue(next: string | null = ''): void {
+    const resolved = next ?? '';
+    this.valueState.set(resolved);
 
-    if (!next) {
-      this.search = '';
+    if (!resolved) {
+      this.searchState.set('');
       this.committedLabel = null;
       this.justSelected = false;
-      this.suggestions = [];
+      this.suggestionsState.set([]);
     }
   }
 
@@ -79,11 +121,11 @@ export class SuggestionsComponent<T = unknown>
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
+    this.disabledState.set(isDisabled);
   }
 
   onInput(v: string): void {
-    this.search = v;
+    this.searchState.set(v);
     this.searchChange.emit(v);
 
     this.justSelected = false;
@@ -96,32 +138,6 @@ export class SuggestionsComponent<T = unknown>
     }
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    const sc = changes['search'];
-    const next = asString(sc?.currentValue);
-
-    if (next === null) {
-      return;
-    }
-
-    const trimmed = next.trim();
-
-    // If parent sets a value programmatically (e.g. hydrate), treat it as committed
-    // so we don't show "No results found" when suggestions is empty.
-
-    if (!this.focused && trimmed) {
-      this.committedLabel = next;
-      this.justSelected = true;
-      return;
-    }
-
-    // If search cleared externally, clear committed state
-    if (!trimmed) {
-      this.committedLabel = null;
-      this.justSelected = false;
-    }
-  }
-
   onFocus(): void {
     this.focused = true;
   }
@@ -131,8 +147,9 @@ export class SuggestionsComponent<T = unknown>
   }
 
   labelFor(item: T): string {
-    if (this.getItemLabel) {
-      return this.getItemLabel(item);
+    const getItemLabel = this.getItemLabelState();
+    if (getItemLabel) {
+      return getItemLabel(item);
     }
     if (isRecord(item)) {
       if (hasStringProp(item, 'name')) {
@@ -178,11 +195,11 @@ export class SuggestionsComponent<T = unknown>
     const val = this.valueFor(item);
 
     // update UI text
-    this.search = label;
+    this.searchState.set(label);
     this.committedLabel = label;
 
     // clear list UI
-    this.suggestions = [];
+    this.suggestionsState.set([]);
     this.justSelected = true;
 
     // update CVA/form value
@@ -193,7 +210,7 @@ export class SuggestionsComponent<T = unknown>
   }
 
   private setValueInternal(v: string): void {
-    this.value = v;
+    this.valueState.set(v);
     this.valueChange.emit(v);
     this.onChange(v);
   }
@@ -213,30 +230,30 @@ export class SuggestionsComponent<T = unknown>
     return (
       this.focused &&
       this.hasQuery &&
-      (this.suggestions?.length ?? 0) === 0 &&
+      (this.suggestionsState().length ?? 0) === 0 &&
       !this.isCommittedText &&
       !this.justSelected &&
-      !this.disabled
+      !this.disabledState()
     );
   }
 
   get open(): boolean {
     return (
-      !this.disabled &&
-      !!this.search?.trim() &&
+      !this.disabledState() &&
+      !!this.searchState().trim() &&
       !this.isCommittedText &&
-      (this.suggestions?.length ?? 0) > 0
+      this.suggestionsState().length > 0
     );
   }
 
   get hasQuery(): boolean {
-    return !!this.search?.trim();
+    return !!this.searchState().trim();
   }
 
   get isCommittedText(): boolean {
     return (
       !!this.committedLabel &&
-      this.norm(this.search) === this.norm(this.committedLabel)
+      this.norm(this.searchState()) === this.norm(this.committedLabel)
     );
   }
 

@@ -107,7 +107,8 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
           this.rows = content.map((sa) => mapSaToRow(sa));
           const sizeOfPage = page.pageSize ?? this.saState().pageSize;
           const total = page.totalElements ?? content.length;
-          const nextPageIndex = page.pageNumber ?? 0;
+          const requestedPage = this.loadRequest()?.page ?? 0;
+          const nextPageIndex = page.pageNumber ?? requestedPage;
           const nextTotalPages =
             sizeOfPage > 0 ? Math.max(1, Math.ceil(total / sizeOfPage)) : 0;
 
