@@ -1,7 +1,9 @@
 <table
   #mojTable
   class="govuk-table"
-  [attr.data-module]="clientOrServerSort() === 'client' ? 'moj-sortable-table' : null"
+  [attr.data-module]="
+    clientOrServerSort() === 'client' ? 'moj-sortable-table' : null
+  "
   [attr.aria-describedby]="'sortable-' + caption()"
 >
   <caption

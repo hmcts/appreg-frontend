@@ -8,7 +8,6 @@ import {
   PLATFORM_ID,
   TemplateRef,
   ViewChild,
-  effect,
   inject,
   input,
   output,
@@ -75,20 +74,6 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
   private readonly sortKeyState = signal<string>('');
   private readonly sortDirectionState = signal<'desc' | 'asc'>('desc');
 
-  private readonly syncSortKeyInput = effect(() => {
-    const next = this.sortKey();
-    if (next !== this.sortKeyState()) {
-      this.sortKeyState.set(next);
-    }
-  });
-
-  private readonly syncSortDirectionInput = effect(() => {
-    const next = this.sortDirection();
-    if (next !== this.sortDirectionState()) {
-      this.sortDirectionState.set(next);
-    }
-  });
-
   /** trackBy helper retained for performance */
   trackRow = (index: number, row: Row): unknown => {
     const trackBy = this.trackBy();
@@ -103,7 +88,9 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
     // same behaviour you had before
   };
 
-  /** Value for data-sort-value (used by MoJ Sortable table) */
+  /** Value for data-sort-value (used by MoJ Sortable table)
+   * Client side sorting
+   */
   getSortValue(row: Row, col: TableColumn): string | null {
     const candidate: unknown = col.sortValue
       ? col.sortValue(row)
@@ -132,9 +119,6 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
   /** Initialise the MoJ SortableTable JS for this table only */
   ngAfterViewInit(): void {
     if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-    if (this.clientOrServerSort() !== 'server') {
       return;
     }
 

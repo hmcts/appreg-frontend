@@ -23,11 +23,7 @@ export const initialApplicationsListState: ApplicationsListState = {
 // Clear all error/success/notification states
 export const clearNotificationsPatch = (): Pick<
   ApplicationsListState,
-  | 'deleteDone'
-  | 'deleteInvalid'
-  | 'errorSummary'
-  | 'searchErrors'
-  | 'sortField'
+  'deleteDone' | 'deleteInvalid' | 'errorSummary' | 'searchErrors' | 'sortField'
 > => ({
   deleteDone: false,
   deleteInvalid: false,
