@@ -77,7 +77,7 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
     const missing = this.findMissing(day, month, year);
     if (missing.length > 0) {
       return {
-        requiredParts: true,
+        required: true,
         ...this.dateError(this.missingMsg(missing)),
       };
     }

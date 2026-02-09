@@ -123,7 +123,7 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
     // required + blanks
     if (this.required() && this.isBlank(h) && this.isBlank(m)) {
       return {
-        requiredParts: true,
+        required: true,
         durationErrorText: 'Enter hours and minutes',
       };
     }
@@ -242,12 +242,12 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
     return v === null || v === undefined || v === '';
   }
   private partsRequiredError(msg: string): ValidationErrors {
-    return { requiredParts: true, durationErrorText: msg };
+    return { required: true, durationErrorText: msg };
   }
 
   private partsInvalidError(msg: string): ValidationErrors {
     return {
-      requiredParts: true,
+      required: true,
       durationInvalid: true,
       durationErrorText: msg,
     };
@@ -284,7 +284,7 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
     if (!e) {
       return '';
     }
-    if (e['requiredParts']) {
+    if (e['required']) {
       return 'Enter hours and minutes';
     }
     if (e['durationInvalid']) {
