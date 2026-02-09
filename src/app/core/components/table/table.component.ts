@@ -2,8 +2,8 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  Input,
   TemplateRef,
+  input,
 } from '@angular/core';
 
 type AccessorFn<T> = (row: T, rowIndex: number) => unknown;
@@ -37,29 +37,30 @@ export interface CellContext<T = unknown> {
 })
 export class TableComponent<T = unknown> {
   /** Table caption and classes */
-  @Input() caption = '';
-  @Input() captionClass = 'govuk-table__caption govuk-table__caption--m';
+  caption = input('');
+  captionClass = input('govuk-table__caption govuk-table__caption--m');
 
   /** GOV.UK table classes overridable if needed */
-  @Input() tableClass = 'govuk-table';
+  tableClass = input('govuk-table');
 
   /** Column definitions (optional; will auto-generate from first row if omitted) */
-  @Input() columns: ColumnDef<T>[] = [];
+  columns = input<ColumnDef<T>[]>([]);
 
   /** Data rows */
-  @Input() rows: T[] = [];
+  rows = input<T[]>([]);
 
   /** Auto-generate columns using keys of the first row when no columns are provided */
-  @Input() autoGenerateColumns = true;
+  autoGenerateColumns = input(true);
 
   get cols(): ColumnDef<T>[] {
-    if (this.columns?.length) {
-      return this.columns;
+    const columns = this.columns();
+    if (columns.length) {
+      return columns;
     }
-    if (!this.autoGenerateColumns || !this.rows?.length) {
+    if (!this.autoGenerateColumns() || !this.rows().length) {
       return [];
     }
-    const first = this.rows[0] as Record<string, unknown>;
+    const first = this.rows()[0] as Record<string, unknown>;
     return Object.keys(first).map((k) => ({
       header: this.humanize(k),
       field: k as KeyOf<T> | string,

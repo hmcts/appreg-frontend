@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 @Component({
   selector: 'app-warning-banner',
@@ -6,5 +6,5 @@ import { Component, Input } from '@angular/core';
   templateUrl: './warning-banner.component.html',
 })
 export class WarningBannerComponent {
-  @Input({ required: true }) message!: string;
+  message = input.required<string>();
 }

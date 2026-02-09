@@ -16,6 +16,7 @@ describe('DurationInputComponent', () => {
 
     fixture = TestBed.createComponent(DurationInputComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('idPrefix', 'duration');
     fixture.detectChanges();
   });
 
@@ -23,7 +24,7 @@ describe('DurationInputComponent', () => {
     expect(component).toBeTruthy();
     expect(component.hours).toBeNull();
     expect(component.minutes).toBeNull();
-    expect(component.disabled).toBe(false);
+    expect(component.isDisabled).toBe(false);
   });
 
   it('writeValue sets hours/minutes; writeValue(null) resets both', () => {
@@ -52,10 +53,10 @@ describe('DurationInputComponent', () => {
 
   it('setDisabledState toggles the disabled flag', () => {
     component.setDisabledState(true);
-    expect(component.disabled).toBe(true);
+    expect(component.isDisabled).toBe(true);
 
     component.setDisabledState(false);
-    expect(component.disabled).toBe(false);
+    expect(component.isDisabled).toBe(false);
   });
 
   it('onHoursInput parses integer and propagates combined value', () => {

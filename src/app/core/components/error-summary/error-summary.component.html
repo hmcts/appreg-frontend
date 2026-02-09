@@ -7,19 +7,36 @@
   #summaryEl
 >
   <h2 class="govuk-error-summary__title" id="error-summary-title">
-    {{ title || 'There is a problem' }}
+    {{ title() || 'There is a problem' }}
   </h2>
   <div class="govuk-error-summary__body">
     <ul class="govuk-list govuk-error-summary__list">
-      @for (err of items; track $index) {
+      @for (err of items(); track $index) {
         <li>
-          <a
-            class="govuk-link"
-            [href]="linkHrefFor(err)"
-            (click)="onLinkClick($event, err)"
-          >
-            {{ err.text }}
-          </a>
+          @if (err.href && !err.href.startsWith('#')) {
+            <a
+              class="govuk-link"
+              [attr.href]="err.href"
+              (click)="itemSelect.emit(err)"
+            >
+              {{ err.text }}
+            </a>
+          } @else {
+            <a
+              class="govuk-link"
+              [routerLink]="[]"
+              [fragment]="
+                err.href && err.href.startsWith('#')
+                  ? err.href.slice(1)
+                  : err.id
+                    ? err.id
+                    : (targetId() ?? undefined)
+              "
+              (click)="itemSelect.emit(err)"
+            >
+              {{ err.text }}
+            </a>
+          }
         </li>
       }
     </ul>

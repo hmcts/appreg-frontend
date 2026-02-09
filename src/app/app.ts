@@ -1,20 +1,17 @@
-/**
- * TODO: arcpoc-816
- * root nav subscription. low priority, but easy takeUntilDestroyed/effect cleanup.
- */
-
 import { isPlatformBrowser } from '@angular/common';
 import {
   AfterViewInit,
   Component,
-  Inject,
+  DestroyRef,
   OnDestroy,
   OnInit,
   PLATFORM_ID,
+  inject,
   signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { Subscription, filter } from 'rxjs';
+import { filter } from 'rxjs';
 
 import { FooterComponent } from '@components/footer/footer.component';
 import { HeaderComponent } from '@components/header/header.component';
@@ -73,16 +70,14 @@ async function loadSortableCtor(): Promise<MojCtor | null> {
 export class App implements OnInit, AfterViewInit, OnDestroy {
   protected readonly title = signal('appreg-frontend');
 
-  private navSub?: Subscription;
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+
   private didGlobalInit = false;
 
   // Observer to catch sortable tables that are inserted later
   private mojObserver?: MutationObserver;
-
-  constructor(
-    @Inject(PLATFORM_ID) private readonly platformId: object,
-    private readonly router: Router,
-  ) {}
 
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) {
@@ -108,8 +103,11 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
     }
 
     // Re-init only the dynamic area on each navigation (after view swaps)
-    this.navSub = this.router.events
-      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+    this.router.events
+      .pipe(
+        filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe(() => {
         requestAnimationFrame(() => {
           const main =
@@ -125,7 +123,6 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.navSub?.unsubscribe();
     this.mojObserver?.disconnect();
   }
 

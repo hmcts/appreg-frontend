@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
 import { StandardApplicantSelectComponent } from '@components/standard-applicant-select/standard-applicant-select.component';
@@ -85,7 +85,7 @@ describe('StandardApplicantSelectComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('loads first page on init and maps rows from API', () => {
+  it('loads first page on init and maps rows from API', fakeAsync(() => {
     const page = {
       content: [
         makeSummary({
@@ -142,6 +142,7 @@ describe('StandardApplicantSelectComponent', () => {
     mockGetStandardApplicants.mockReturnValueOnce(of(page));
 
     fixture.detectChanges(); // triggers ngOnInit
+    TestBed.tick();
 
     expect(mockGetStandardApplicants).toHaveBeenCalledWith(
       { pageNumber: 0, pageSize: 10 },
@@ -159,13 +160,13 @@ describe('StandardApplicantSelectComponent', () => {
     expect(component.rows[1].name).toBe('Example Org');
     expect(component.rows[1].address).toBe('2 Org Rd');
 
-    expect(component.pageIndex).toBe(0);
-    expect(component.totalPages).toBe(1);
-  });
+    expect(component.vm().pageIndex).toBe(0);
+    expect(component.vm().totalPages).toBe(1);
+  }));
 
-  it('uses selectedCode input to initialise selectedIds and emits changes when selection changes', () => {
+  it('uses selectedCode input to initialise selectedIds and emits changes when selection changes', fakeAsync(() => {
     // Pre-set selectedCode before first change detection
-    component.selectedCode = 'SA-2';
+    fixture.componentRef.setInput('selectedCode', 'SA-2');
 
     const page = {
       content: [makeSummary({ code: 'SA-1' }), makeSummary({ code: 'SA-2' })],
@@ -180,6 +181,7 @@ describe('StandardApplicantSelectComponent', () => {
     const emitSpy = jest.spyOn(component.selectedCodeChange, 'emit');
 
     fixture.detectChanges(); // ngOnInit: syncSelectedIdsFromCode + loadPage
+    TestBed.tick();
 
     // After init, selectedIds should reflect selectedCode
     expect(component.selectedIds.has('SA-2')).toBe(true);
@@ -187,32 +189,27 @@ describe('StandardApplicantSelectComponent', () => {
     // Simulate user selecting a different row
     component.onSelectedIdsChange(new Set<string>(['SA-1']));
 
-    expect(component.selectedCode).toBe('SA-1');
     expect(emitSpy).toHaveBeenCalledWith('SA-1');
-  });
+  }));
 
-  it('clears selection when selectedCode becomes null', () => {
-    component.selectedCode = 'SA-1';
+  it('clears selection when selectedCode becomes null', fakeAsync(() => {
+    fixture.componentRef.setInput('selectedCode', 'SA-1');
     fixture.detectChanges();
+    TestBed.tick();
 
     expect(component.selectedIds.size).toBe(1);
 
     // Simulate input change from parent
-    component.selectedCode = null;
-    component.ngOnChanges({
-      selectedCode: {
-        previousValue: 'SA-1',
-        currentValue: null,
-        firstChange: false,
-        isFirstChange: () => false,
-      },
-    });
+    fixture.componentRef.setInput('selectedCode', null);
+    fixture.detectChanges();
+    TestBed.tick();
 
     expect(component.selectedIds.size).toBe(0);
-  });
+  }));
 
-  it('onPageChange triggers API call for requested page and updates pageIndex', () => {
+  it('onPageChange triggers API call for requested page and updates pageIndex', fakeAsync(() => {
     fixture.detectChanges(); // initial load, call #1
+    TestBed.tick();
 
     const secondPage = {
       content: [makeSummary({ code: 'SA-10' })],
@@ -225,6 +222,7 @@ describe('StandardApplicantSelectComponent', () => {
     mockGetStandardApplicants.mockReturnValueOnce(of(secondPage));
 
     component.onPageChange(1);
+    TestBed.tick();
 
     expect(mockGetStandardApplicants).toHaveBeenLastCalledWith(
       { pageNumber: 1, pageSize: 10 },
@@ -233,19 +231,21 @@ describe('StandardApplicantSelectComponent', () => {
       expect.objectContaining({ transferCache: true }),
     );
 
-    expect(component.pageIndex).toBe(1);
-    expect(component.totalPages).toBe(2);
+    expect(component.vm().pageIndex).toBe(1);
+    expect(component.vm().totalPages).toBe(2);
     expect(component.rows[0].code).toBe('SA-10');
-  });
+  }));
 
-  it('handles API error by clearing rows and totalPages', () => {
+  it('handles API error by clearing rows and totalPages', fakeAsync(() => {
     fixture.detectChanges();
+    TestBed.tick();
     mockGetStandardApplicants.mockReturnValueOnce(
       throwError(() => new Error('network')),
     );
 
     component.onPageChange(1);
+    TestBed.tick();
     expect(component.rows).toEqual([]);
-    expect(component.totalPages).toBe(0);
-  });
+    expect(component.vm().totalPages).toBe(0);
+  }));
 });

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 
 type PageItem = number | '…';
 
@@ -7,22 +7,22 @@ type PageItem = number | '…';
   templateUrl: './pagination.component.html',
 })
 export class PaginationComponent {
-  @Input() currentPage = 1; // 1-based
-  @Input() totalPages = 1;
-  @Input() paginationLimit = 7; // Configurable pagination limit
+  currentPage = input(1); // 1-based
+  totalPages = input(1);
+  paginationLimit = input(7); // Configurable pagination limit
 
-  @Output() pageChange = new EventEmitter<number>();
+  pageChange = output<number>();
 
   get pageList(): PageItem[] {
-    const total = this.totalPages || 0;
-    const current = this.currentPage || 1;
+    const total = this.totalPages() || 0;
+    const current = this.currentPage() || 1;
 
     if (total <= 0) {
       return [];
     }
 
     // For a small number of pages, just show them all.
-    if (total <= this.paginationLimit) {
+    if (total <= this.paginationLimit()) {
       return Array.from({ length: total }, (_, i) => i + 1);
     }
 
@@ -51,17 +51,17 @@ export class PaginationComponent {
   }
 
   goTo(page: number): void {
-    if (page < 1 || page > this.totalPages || page === this.currentPage) {
+    if (page < 1 || page > this.totalPages() || page === this.currentPage()) {
       return;
     }
     this.pageChange.emit(page);
   }
 
   prevEnabled(): boolean {
-    return this.currentPage > 1;
+    return this.currentPage() > 1;
   }
 
   nextEnabled(): boolean {
-    return this.currentPage < this.totalPages;
+    return this.currentPage() < this.totalPages();
   }
 }

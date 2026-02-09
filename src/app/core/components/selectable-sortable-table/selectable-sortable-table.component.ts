@@ -5,14 +5,15 @@ import {
   Component,
   ContentChild,
   ElementRef,
-  EventEmitter,
-  Inject,
-  Input,
   OnDestroy,
-  Output,
   PLATFORM_ID,
   TemplateRef,
   ViewChild,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
 } from '@angular/core';
 
 import { Row } from '@core-types/table/row.types';
@@ -39,31 +40,34 @@ export class SelectableSortableTableComponent
   @ContentChild('actionsTemplate', { read: TemplateRef })
   actionsTpl?: TemplateRef<unknown>;
 
-  @Input() caption = '';
-  @Input() columns: TableColumn[] = [];
-  @Input() data: Row[] = [];
+  caption = input('');
+  columns = input<TableColumn[]>([]);
+  data = input<Row[]>([]);
 
-  @Input({ required: true }) idField!: string;
+  idField = input.required<string>();
 
-  @Input() selectedIds: Set<string> = new Set<string>();
-  @Output() selectedIdsChange = new EventEmitter<Set<string>>();
+  selectedIds = input<Set<string>>(new Set<string>());
+  selectedIdsChange = output<Set<string>>();
 
-  @Output() selectedRowsChange = new EventEmitter<Row[]>();
+  selectedRowsChange = output<Row[]>();
 
   /** Keep stable across pagination so row checkbox ids are unique */
-  @Input() idPrefix = 'apps-';
+  idPrefix = input('apps-');
 
-  @Input() singleSelect = false;
+  singleSelect = input(false);
 
   @ViewChild('mojTable', { static: true })
   tableRef!: ElementRef<HTMLTableElement>;
 
+  private readonly selectedIdsState = signal<Set<string>>(new Set<string>());
   private readonly destroyFns: (() => void)[] = [];
 
-  constructor(
-    @Inject(PLATFORM_ID) private readonly platformId: object,
-    private readonly cdr: ChangeDetectorRef,
-  ) {}
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly cdr = inject(ChangeDetectorRef);
+
+  private readonly selectedIdsSync = effect(() => {
+    this.selectedIdsState.set(this.selectedIds() ?? new Set<string>());
+  });
 
   ngAfterViewInit(): void {
     if (!isPlatformBrowser(this.platformId)) {
@@ -115,7 +119,7 @@ export class SelectableSortableTableComponent
 
   /** Ids for the currently rendered (visible) rows */
   get visibleIds(): string[] {
-    return (this.data ?? [])
+    return (this.data() ?? [])
       .map((row) => this.getRowId(row))
       .filter((id): id is string => !!id);
   }
@@ -123,22 +127,24 @@ export class SelectableSortableTableComponent
   /** Are all visible rows selected? */
   get allVisibleSelected(): boolean {
     const ids = this.visibleIds;
-    return ids.length > 0 && ids.every((id) => this.selectedIds.has(id));
+    const selected = this.selectedIdsState();
+    return ids.length > 0 && ids.every((id) => selected.has(id));
   }
 
   /** Are some (but not all) visible rows selected? */
   get someVisibleSelected(): boolean {
     const ids = this.visibleIds;
-    return ids.some((id) => this.selectedIds.has(id));
+    const selected = this.selectedIdsState();
+    return ids.some((id) => selected.has(id));
   }
 
   /** Toggle selection for every row currently visible on this page */
 
   toggleSelectAllVisible(checked: boolean): void {
-    if (this.singleSelect) {
+    if (this.singleSelect()) {
       return;
     }
-    const next = new Set(this.selectedIds);
+    const next = new Set(this.selectedIdsState());
     for (const id of this.visibleIds) {
       if (checked) {
         next.add(id);
@@ -146,7 +152,7 @@ export class SelectableSortableTableComponent
         next.delete(id);
       }
     }
-    this.selectedIds = next;
+    this.selectedIdsState.set(next);
     this.selectedIdsChange.emit(next);
 
     this.selectedRowsChange.emit(this.getSelectedRows());
@@ -156,7 +162,7 @@ export class SelectableSortableTableComponent
 
   /** Narrow row value to a safe string id */
   private coerceRowId(row: Row): string | null {
-    const v = row[this.idField];
+    const v = row[this.idField()];
     if (typeof v === 'string') {
       return v;
     }
@@ -174,11 +180,11 @@ export class SelectableSortableTableComponent
 
   isSelected(row: Row): boolean {
     const id = this.getRowId(row);
-    return !!id && this.selectedIds.has(id);
+    return !!id && this.selectedIdsState().has(id);
   }
 
   get firstColField(): string {
-    return this.columns[0]?.field ?? '';
+    return this.columns()[0]?.field ?? '';
   }
 
   getRowId(row: Row): string {
@@ -192,13 +198,13 @@ export class SelectableSortableTableComponent
     }
 
     let next: Set<string>;
-    if (this.singleSelect) {
+    if (this.singleSelect()) {
       next = new Set<string>();
       if (checked) {
         next.add(id);
       }
     } else {
-      next = new Set(this.selectedIds);
+      next = new Set(this.selectedIdsState());
       if (checked) {
         next.add(id);
       } else {
@@ -206,7 +212,7 @@ export class SelectableSortableTableComponent
       }
     }
 
-    this.selectedIds = next;
+    this.selectedIdsState.set(next);
     this.selectedIdsChange.emit(next);
 
     this.selectedRowsChange.emit(this.getSelectedRows());
@@ -251,9 +257,9 @@ export class SelectableSortableTableComponent
   }
 
   getSelectedRows(): Row[] {
-    const ids = Array.from(this.selectedIds);
+    const ids = Array.from(this.selectedIdsState());
     return ids
-      .map((id) => (this.data ?? []).find((r) => this.getRowId(r) === id))
+      .map((id) => (this.data() ?? []).find((r) => this.getRowId(r) === id))
       .filter((r): r is Row => !!r);
   }
 }

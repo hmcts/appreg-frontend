@@ -1,4 +1,3 @@
-import { SimpleChange } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
@@ -15,6 +14,13 @@ describe('SuggestionsComponent', () => {
   let fixture: ComponentFixture<SuggestionsComponent<Item>>;
   let component: SuggestionsComponent<Item>;
 
+  const setInput = (name: string, value: unknown, detectChanges = true) => {
+    fixture.componentRef.setInput(name, value);
+    if (detectChanges) {
+      fixture.detectChanges();
+    }
+  };
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [SuggestionsComponent],
@@ -24,8 +30,7 @@ describe('SuggestionsComponent', () => {
     component = fixture.componentInstance;
 
     // required input
-    component.suggestions = [];
-    fixture.detectChanges();
+    setInput('suggestions', []);
   });
 
   it('creates', () => {
@@ -36,17 +41,17 @@ describe('SuggestionsComponent', () => {
     const emit = jest.spyOn(component.searchChange, 'emit');
 
     component.onInput('  abc ');
-    expect(component.search).toBe('  abc ');
+    expect(component.searchState()).toBe('  abc ');
     expect(emit).toHaveBeenCalledWith('  abc ');
   });
 
   it('labelFor uses getItemLabel when provided', () => {
-    component.getItemLabel = (it: Item) => `X:${it.code ?? ''}`;
+    setInput('getItemLabel', (it: Item) => `X:${it.code ?? ''}`);
     expect(component.labelFor({ code: 'C1' })).toBe('X:C1');
   });
 
   it('labelFor falls back to name, then description, else String(item)', () => {
-    component.getItemLabel = null;
+    setInput('getItemLabel', null);
 
     expect(component.labelFor({ name: 'Alpha' })).toBe('Alpha');
     expect(component.labelFor({ description: 'Desc' })).toBe('Desc');
@@ -67,7 +72,7 @@ describe('SuggestionsComponent', () => {
   });
 
   it('choose prevents default, emits selectItem, sets search/committedLabel, clears suggestions, and marks justSelected', () => {
-    component.suggestions = [{ name: 'Alpha' }, { name: 'Beta' }];
+    setInput('suggestions', [{ name: 'Alpha' }, { name: 'Beta' }]);
 
     const emit = jest.spyOn(component.selectItem, 'emit');
 
@@ -80,95 +85,85 @@ describe('SuggestionsComponent', () => {
     ).toHaveBeenCalledTimes(1);
     expect(emit).toHaveBeenCalledWith({ name: 'Alpha' });
 
-    expect(component.search).toBe('Alpha');
-    expect(component.suggestions).toEqual([]);
+    expect(component.searchState()).toBe('Alpha');
+    expect(component.suggestionsState()).toEqual([]);
     expect(component.isCommittedText).toBe(true);
   });
 
   it('hasQuery is true only when search has non-whitespace content', () => {
-    component.search = '';
+    component.searchState.set('');
     expect(component.hasQuery).toBe(false);
 
-    component.search = '   ';
+    component.searchState.set('   ');
     expect(component.hasQuery).toBe(false);
 
-    component.search = ' a ';
+    component.searchState.set(' a ');
     expect(component.hasQuery).toBe(true);
   });
 
   it('open is false when disabled', () => {
-    component.disabled = true;
-    component.search = 'abc';
-    component.suggestions = [{ name: 'N' }];
+    setInput('disabled', true);
+    component.onInput('abc');
+    setInput('suggestions', [{ name: 'N' }]);
     expect(component.open).toBe(false);
   });
 
   it('open is false when search is empty/whitespace', () => {
-    component.disabled = false;
-    component.suggestions = [{ name: 'N' }];
+    setInput('disabled', false);
+    setInput('suggestions', [{ name: 'N' }]);
 
-    component.search = '';
+    component.searchState.set('');
     expect(component.open).toBe(false);
 
-    component.search = '   ';
+    component.searchState.set('   ');
     expect(component.open).toBe(false);
   });
 
   it('open is false when suggestions is empty', () => {
-    component.disabled = false;
-    component.search = 'abc';
-    component.suggestions = [];
+    setInput('disabled', false);
+    component.onInput('abc');
+    setInput('suggestions', []);
     expect(component.open).toBe(false);
   });
 
   it('open is false when committed text matches search', () => {
-    component.disabled = false;
-    component.suggestions = [{ name: 'Alpha' }];
-
-    component.search = 'Alpha';
-    component.ngOnChanges({
-      search: new SimpleChange('', 'Alpha', false),
-    });
+    setInput('disabled', false);
+    setInput('suggestions', [{ name: 'Alpha' }]);
+    setInput('search', 'Alpha');
 
     expect(component.isCommittedText).toBe(true);
     expect(component.open).toBe(false);
   });
 
   it('open is true when enabled, search has text, suggestions exist, and text is not committed', () => {
-    component.disabled = false;
-    component.search = 'abc';
-    component.suggestions = [{ description: 'Ok' }];
+    setInput('disabled', false);
+    component.onInput('abc');
+    setInput('suggestions', [{ description: 'Ok' }]);
     expect(component.open).toBe(true);
   });
 
   it('noResultsVisible is true when focused + hasQuery + suggestions empty + not committed + not justSelected + not disabled', () => {
-    component.disabled = false;
-    component.suggestions = [];
-    component.search = 'abc';
+    setInput('disabled', false);
+    setInput('suggestions', []);
+    component.onInput('abc');
 
     component.onFocus();
     expect(component.noResultsVisible).toBe(true);
   });
 
   it('noResultsVisible is false when disabled', () => {
-    component.disabled = true;
-    component.suggestions = [];
-    component.search = 'abc';
+    setInput('disabled', true);
+    setInput('suggestions', []);
+    component.onInput('abc');
 
     component.onFocus();
     expect(component.noResultsVisible).toBe(false);
   });
 
   it('noResultsVisible is false when search is committed (programmatic hydrate)', () => {
-    component.disabled = false;
-    component.suggestions = [];
-    component.search = '';
-
-    component.ngOnChanges({
-      search: new SimpleChange('', 'Hydrated Value', false),
-    });
-
-    component.search = 'Hydrated Value';
+    setInput('disabled', false);
+    setInput('suggestions', []);
+    setInput('search', 'Hydrated Value');
     component.onFocus();
 
     expect(component.isCommittedText).toBe(true);
@@ -176,28 +171,17 @@ describe('SuggestionsComponent', () => {
   });
 
   it('ngOnChanges: when not focused and parent sets non-empty search, it becomes committed', () => {
-    component.search = '';
-    component.ngOnChanges({
-      search: new SimpleChange('', '  Programmatic  ', false),
-    });
-
-    component.search = '  Programmatic  ';
+    setInput('search', '  Programmatic  ');
     expect(component.isCommittedText).toBe(true);
   });
 
   it('ngOnChanges: when parent clears search, committed state is cleared', () => {
     // First: commit a value
-    component.ngOnChanges({
-      search: new SimpleChange('', 'Alpha', false),
-    });
-    component.search = 'Alpha';
+    setInput('search', 'Alpha');
     expect(component.isCommittedText).toBe(true);
 
     // Then: external clear
-    component.ngOnChanges({
-      search: new SimpleChange('Alpha', '   ', false),
-    });
-    component.search = '   ';
+    setInput('search', '   ');
     expect(component.isCommittedText).toBe(false);
   });
 
@@ -206,8 +190,8 @@ describe('SuggestionsComponent', () => {
     jest.useFakeTimers();
     expect(component.noResultsVisible).toBe(false);
 
-    component.search = 'abc';
-    component.suggestions = [];
+    component.onInput('abc');
+    setInput('suggestions', []);
     expect(component.noResultsVisible).toBe(true);
 
     component.onBlur();
@@ -218,19 +202,19 @@ describe('SuggestionsComponent', () => {
   });
 
   it('writeValue sets value and does not clear search/suggestions when value is non-empty', () => {
-    component.search = 'V1';
-    component.suggestions = [{ name: 'Alpha' }];
+    component.onInput('V1');
+    setInput('suggestions', [{ name: 'Alpha' }]);
 
     component.writeValue('V1');
 
-    expect(component.value).toBe('V1');
-    expect(component.search).toBe('V1');
-    expect(component.suggestions).toEqual([{ name: 'Alpha' }]);
+    expect(component.valueState()).toBe('V1');
+    expect(component.searchState()).toBe('V1');
+    expect(component.suggestionsState()).toEqual([{ name: 'Alpha' }]);
   });
 
   it('writeValue(null) clears value, search, suggestions, and committed state', () => {
-    component.search = 'abc';
-    component.suggestions = [{ name: 'Alpha' }];
+    component.onInput('abc');
+    setInput('suggestions', [{ name: 'Alpha' }]);
 
     // simulate committed state
     component.choose({ name: 'Alpha' }, {
@@ -240,10 +224,10 @@ describe('SuggestionsComponent', () => {
 
     component.writeValue(null);
 
-    expect(component.value).toBe('');
-    expect(component.search).toBe('');
+    expect(component.valueState()).toBe('');
+    expect(component.searchState()).toBe('');
     expect(component.isCommittedText).toBe(false);
-    expect(component.suggestions).toEqual([]);
+    expect(component.suggestionsState()).toEqual([]);
   });
 
   it('registerOnChange is invoked when value changes via choose()', () => {
@@ -270,10 +254,10 @@ describe('SuggestionsComponent', () => {
 
   it('setDisabledState updates disabled flag', () => {
     component.setDisabledState(false);
-    expect(component.disabled).toBe(false);
+    expect(component.disabledState()).toBe(false);
 
     component.setDisabledState(false);
-    expect(component.disabled).toBe(false);
+    expect(component.disabledState()).toBe(false);
   });
 
   it('choose sets value based on item.value when present', () => {
@@ -285,7 +269,7 @@ describe('SuggestionsComponent', () => {
       preventDefault: jest.fn(),
     } as unknown as MouseEvent);
 
-    expect(component.value).toBe('V123');
+    expect(component.valueState()).toBe('V123');
     expect(emitValue).toHaveBeenCalledWith('V123');
     expect(onChange).toHaveBeenCalledWith('V123');
   });
@@ -299,7 +283,7 @@ describe('SuggestionsComponent', () => {
       preventDefault: jest.fn(),
     } as unknown as MouseEvent);
 
-    expect(component.value).toBe('LC9');
+    expect(component.valueState()).toBe('LC9');
     expect(emitValue).toHaveBeenCalledWith('LC9');
     expect(onChange).toHaveBeenCalledWith('LC9');
   });
@@ -318,8 +302,8 @@ describe('SuggestionsComponent', () => {
     expect(component.isCommittedText).toBe(false);
 
     // with suggestions, dropdown can open
-    component.disabled = false;
-    component.suggestions = [{ name: 'Alpha' }];
+    setInput('disabled', false);
+    setInput('suggestions', [{ name: 'Alpha' }]);
     expect(component.open).toBe(true);
   });
 
@@ -330,9 +314,7 @@ describe('SuggestionsComponent', () => {
     expect(component.isCommittedText).toBe(true);
 
     // pass a non-string currentValue (asString should return null => no state change)
-    component.ngOnChanges({
-      search: new SimpleChange('Alpha', { not: 'a string' }, false),
-    });
+    setInput('search', { not: 'a string' });
 
     // still committed because changes should have been ignored
     expect(component.isCommittedText).toBe(true);
@@ -341,21 +323,17 @@ describe('SuggestionsComponent', () => {
   it('ngOnChanges does not auto-commit while focused', () => {
     component.onFocus();
 
-    component.ngOnChanges({
-      search: new SimpleChange('', 'Programmatic', false),
-    });
-
     // since focused, component should NOT set committedLabel, so not committed
-    component.search = 'Programmatic';
+    setInput('search', 'Programmatic');
     expect(component.isCommittedText).toBe(false);
   });
 
   it('onBlur clears focused after timers run (noResultsVisible becomes false)', () => {
     jest.useFakeTimers();
 
-    component.disabled = false;
-    component.suggestions = [];
-    component.search = 'abc';
+    setInput('disabled', false);
+    setInput('suggestions', []);
+    component.onInput('abc');
 
     component.onFocus();
     expect(component.noResultsVisible).toBe(true);

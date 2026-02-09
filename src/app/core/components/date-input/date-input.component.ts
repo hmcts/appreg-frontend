@@ -1,10 +1,11 @@
-/**
- * TODO: arcpoc-816
- * valueChanges subscription in CVA
- * can be effect + takeUntilDestroyed.
- */
-
-import { Component, Input, forwardRef } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  forwardRef,
+  inject,
+  input,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -47,57 +48,21 @@ type DateField = 'day' | 'month' | 'year';
   imports: [ReactiveFormsModule],
 })
 export class DateInputComponent implements ControlValueAccessor, Validator {
-  @Input() label = 'Date';
-  @Input() hint = 'For example, 27 3 2007';
-  @Input() idPrefix = 'date';
-  @Input() submitted = false;
-  @Input() isSearch = false;
-  @Input() disallowFutureDates = false;
+  label = input('Date');
+  hint = input('For example, 27 3 2007');
+  idPrefix = input('date');
+  submitted = input(false);
+  isSearch = input(false);
+  disallowFutureDates = input(false);
 
   disabled = false;
 
-  readonly dateForm: DateForm;
+  private readonly fb = inject(NonNullableFormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
 
   private onTouched: () => void = () => {};
   private onChange: (value: string | null) => void = () => {};
   private onValidatorChange: () => void = () => {};
-
-  private ctrl(name: DateField) {
-    return this.dateForm.get(name);
-  }
-
-  private val(name: DateField) {
-    return this.ctrl(name)?.value;
-  }
-
-  constructor(private readonly fb: NonNullableFormBuilder) {
-    this.dateForm = this.fb.group(
-      {
-        day: this.fb.control('', {
-          validators: [(c) => Validators.pattern(/^\d{1,2}$/)(c)],
-        }),
-        month: this.fb.control('', {
-          validators: [(c) => Validators.pattern(/^\d{1,2}$/)(c)],
-        }),
-        year: this.fb.control('', {
-          validators: [(c) => Validators.pattern(/^\d{4}$/)(c)],
-        }),
-      },
-      { validators: [this.groupValidator] },
-    ) as DateForm;
-
-    this.dateForm.valueChanges.subscribe(() => {
-      const { day, month, year } = this.dateForm.getRawValue();
-      const allEmpty = day === '' && month === '' && year === '';
-
-      let value: string | null = null;
-      if (!allEmpty && this.dateForm.valid) {
-        value = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-      }
-      this.onChange(value);
-      this.onValidatorChange();
-    });
-  }
 
   private readonly groupValidator: ValidatorFn = (
     ctrl: AbstractControl,
@@ -124,7 +89,7 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
       return this.dateError();
     }
 
-    if (this.disallowFutureDates) {
+    if (this.disallowFutureDates()) {
       const valueDate = new Date(y, m - 1, d);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -141,13 +106,52 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
     return null;
   };
 
+  readonly dateForm: DateForm = this.fb.group(
+    {
+      day: this.fb.control('', {
+        validators: [(c) => Validators.pattern(/^\d{1,2}$/)(c)],
+      }),
+      month: this.fb.control('', {
+        validators: [(c) => Validators.pattern(/^\d{1,2}$/)(c)],
+      }),
+      year: this.fb.control('', {
+        validators: [(c) => Validators.pattern(/^\d{4}$/)(c)],
+      }),
+    },
+    { validators: [this.groupValidator] },
+  ) as DateForm;
+
+  private ctrl(name: DateField) {
+    return this.dateForm.get(name);
+  }
+
+  private val(name: DateField) {
+    return this.ctrl(name)?.value;
+  }
+
+  constructor() {
+    this.dateForm.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        const { day, month, year } = this.dateForm.getRawValue();
+        const allEmpty = day === '' && month === '' && year === '';
+
+        let value: string | null = null;
+        if (!allEmpty && this.dateForm.valid) {
+          value = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        }
+        this.onChange(value);
+        this.onValidatorChange();
+      });
+  }
+
   groupError(submitted: boolean): boolean {
     if (!submitted) {
       return false;
     }
     const miss =
       this.missing('day') || this.missing('month') || this.missing('year');
-    if (!this.isSearch) {
+    if (!this.isSearch()) {
       return this.dateForm.invalid || miss;
     }
     return this.hasAny() && (this.dateForm.invalid || miss);
@@ -164,7 +168,7 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
     if (!submitted) {
       return base;
     }
-    if (!this.isSearch) {
+    if (!this.isSearch()) {
       return base || miss || dateInvalid;
     }
     return base || (this.hasAny() && (miss || dateInvalid));

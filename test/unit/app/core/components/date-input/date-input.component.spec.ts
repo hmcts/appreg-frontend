@@ -105,7 +105,7 @@ describe('DateInputComponent', () => {
     const onChange = jest.fn<void, [string | null]>();
     component.registerOnChange(onChange);
 
-    component.disallowFutureDates = true;
+    fixture.componentRef.setInput('disallowFutureDates', true);
 
     // Tomorrow relative to frozen "today"
     component.dateForm.setValue({ day: '20', month: '1', year: '2026' });
