@@ -1,9 +1,3 @@
-/**
- * TODO: arcpoc-816
- * prio 3
- * Refactor large detail view with paging/selection, multiple flags, subscribe without takeUntil.
- */
-
 /*
 Main component for /application-list/:id
 
@@ -46,6 +40,7 @@ import {
   ApplicationsListDetailState,
   initialApplicationsListDetailState,
 } from './util/applications-list-detail.state';
+import { DetailForm, DetailFormGroupErrors, Handoff, LoadDetailReq, UpdateReq, selectedRow } from './util/applications-list-detail.types';
 
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '@components/date-input/date-input.component';
@@ -66,12 +61,12 @@ import { SuccessBannerComponent } from '@components/success-banner/success-banne
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { DETAIL_ERROR_ANCHORS } from '@constants/application-list-detail-update/error-hrefs';
-import { DETAIL_FIELD_MESSAGES } from '@constants/application-list-detail-update/error-messages';
+import { DETAIL_FIELD_MESSAGES, RESULT_ERROR_MESSAGES } from '@constants/application-list-detail-update/error-messages';
+import { appListDetailColumns, appListDetailStatusOptions } from '@constants/application-list-detail-update/form-table-structure';
 import { IF_MATCH } from '@context/concurrency-context';
 import { Row } from '@core-types/table/row.types';
 import {
   ApplicationListGetDetailDto,
-  ApplicationListStatus,
   ApplicationListUpdateDto,
   ApplicationListsApi,
 } from '@openapi';
@@ -88,52 +83,6 @@ import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { parseTimeToDuration } from '@util/time-helpers';
 import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
 import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
-
-type DetailForm = FormGroup<{
-  date: FormControl<string | null>;
-  time: FormControl<Duration | null>;
-  description: FormControl<string>;
-  status: FormControl<string | null>;
-  court: FormControl<string | null>;
-  location: FormControl<string | null>;
-  cja: FormControl<string | null>;
-  duration: FormControl<Duration | null>;
-}>;
-
-type Handoff = {
-  id: string;
-  date: string | null;
-  time: string | null;
-  description: string | null;
-  status: ApplicationListStatus;
-  location: string;
-  etag: string | null;
-  version: number;
-};
-
-type selectedRow = {
-  id: string;
-  sequenceNumber: number;
-  accountNumber: string | null;
-  applicant: string | null;
-  respondent: string | null;
-  postCode: string | null;
-  title: string;
-  feeReq: 'Yes' | 'No';
-  resulted: 'Yes' | 'No';
-};
-
-type CourtLocCjaConflictError = { message: string };
-type DetailFormGroupErrors = {
-  courtLocCjaConflict?: CourtLocCjaConflictError;
-};
-
-type LoadDetailReq = { id: string; page: number; size: number };
-type UpdateReq = {
-  id: string;
-  payload: ApplicationListUpdateDto;
-  etag: string | null;
-};
 
 @Component({
   selector: 'app-application-detail',
@@ -207,28 +156,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     },
   );
 
-  statusOptions = [
-    { value: '', label: 'Choose status' },
-    { value: 'open', label: 'Open' },
-    { value: 'closed', label: 'Closed' },
-  ];
-
-  columns = [
-    { header: 'Sequence number', field: 'sequenceNumber' },
-    { header: 'Account number', field: 'accountNumber' },
-    { header: 'Applicant', field: 'applicant' },
-    { header: 'Respondent', field: 'respondent' },
-    { header: 'Post code', field: 'postCode' },
-    { header: 'Title', field: 'title' },
-    { header: 'Fee req', field: 'feeReq' },
-    { header: 'Resulted', field: 'resulted' },
-    { header: 'Actions', field: 'actions', sortable: false },
-  ];
-
-  RESULT_ERROR_MESSAGES = {
-    singleResulted: 'This application has already been resulted.',
-    allResulted: 'These applications have already been resulted.',
-  };
+  statusOptions = appListDetailStatusOptions;
+  columns = appListDetailColumns;
 
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
@@ -423,8 +352,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     if (unResultedApplications.length === 0) {
       const message =
         resultedApplications.length === 1
-          ? this.RESULT_ERROR_MESSAGES.singleResulted
-          : this.RESULT_ERROR_MESSAGES.allResulted;
+          ? RESULT_ERROR_MESSAGES.singleResulted
+          : RESULT_ERROR_MESSAGES.allResulted;
 
       this.detailSignalState.patch({
         updateInvalid: true,
@@ -593,6 +522,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   //TODO: List-details should really be it's own component to encapsulate this logic
+  // TODO: Check if update closes the list and do the relevant checks
   private buildUpdateErrorSummary(): ErrorItem[] {
     const items: ErrorItem[] = [];
 
