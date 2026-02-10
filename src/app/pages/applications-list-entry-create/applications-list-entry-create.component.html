@@ -90,25 +90,10 @@
   </ng-template>
 
   <ng-template #codesTpl>
-    <div class="govuk-grid-row">
-      <!-- Lodgement date -->
-      <app-date-input
-        formControlName="lodgementDate"
-        label="Lodgement date"
-        hint="For example, 27 3 2007"
-        idPrefix="lodgement-date"
-        [submitted]="submitted"
-        [isSearch]="true"
-      >
-      </app-date-input>
-
-      <!-- Application code -->
-      <app-application-code-search
-        [auto]="false"
-        (selectCode)="onCodeSelected($event)"
-      >
-      </app-application-code-search>
-    </div>
+    <!-- Application code -->
+    <app-application-code-search
+      (selectCodeAndLodgementDate)="onCodeSelected($event)"
+    />
   </ng-template>
 
   <ng-template #wordingTpl>
@@ -434,8 +419,7 @@
       { heading: 'Result wording', tpl: resultWordingTpl, expanded: false },
       { heading: 'Officials', tpl: officialsTpl, expanded: false },
     ]"
-  >
-  </app-accordion>
+  />
 
   <div class="govuk-button-group">
     <button type="submit" class="govuk-button" (click)="onSubmit($event)">

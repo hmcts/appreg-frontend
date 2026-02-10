@@ -11,29 +11,27 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   EventEmitter,
   Input,
-  OnDestroy,
   OnInit,
   Output,
+  inject,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { Subject, Subscription, merge, of } from 'rxjs';
-import {
-  catchError,
-  debounceTime,
-  distinctUntilChanged,
-  map,
-  switchMap,
-} from 'rxjs/operators';
+import { ActivatedRoute } from '@angular/router';
 
+import { CODES_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
+import { DateInputComponent } from '@components/date-input/date-input.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
-import { TextInputComponent } from '@components/text-input/text-input.component';
 import {
-  ApplicationCodeGetSummaryDto,
-  ApplicationCodesApi,
-  GetApplicationCodesRequestParams,
-} from '@openapi';
+  SortableTableComponent,
+  TableColumn,
+} from '@components/sortable-table/sortable-table.component';
+import { TextInputComponent } from '@components/text-input/text-input.component';
+import { ApplicationCodeGetSummaryDto, ApplicationCodesApi } from '@openapi';
+import { CodeRow, fetchCodeRows$ } from '@util/application-code-helpers';
 
 @Component({
   selector: 'app-application-code-search',
@@ -43,133 +41,118 @@ import {
     ReactiveFormsModule,
     NotificationBannerComponent,
     TextInputComponent,
+    DateInputComponent,
+    SortableTableComponent,
   ],
   templateUrl: './application-codes-search.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ApplicationCodeSearchComponent implements OnInit, OnDestroy {
-  @Input() debounceMs = 300; // Debounce typing before querying (ms) (important for auto)
-  @Input() minChars = 3; // Min chars before we run the query (important for auto)
-  @Input() auto = true; // True = query whilst typing, false = action button only
+export class ApplicationCodeSearchComponent implements OnInit {
   @Input() legend = 'Find an application code';
-  @Input() codePlaceholder = 'Enter code (e.g. APP01)';
-  @Input() titlePlaceholder = 'Enter application code title';
+  @Input() codePlaceholder = 'The code for the application e.g. APP-12345';
+  @Input() titlePlaceholder = 'Enter a concise title for this application';
+  @Input() mode: 'create' | 'update' = 'create';
+
+  @Input() appListId?: string;
+
+  private readonly route = inject(ActivatedRoute);
 
   // Emit row
-  @Output() selectCode = new EventEmitter<ApplicationCodeGetSummaryDto>();
+  @Output() selectCodeAndLodgementDate = new EventEmitter<{
+    code: string;
+    date: string;
+  }>();
   // Emit latest result set after each search
   @Output() resultsChange = new EventEmitter<ApplicationCodeGetSummaryDto[]>();
+  private readonly destroyRef = inject(DestroyRef);
+  listId!: string | null;
 
   submitted: boolean = false;
+  codesColumns: TableColumn[] = CODES_COLUMNS;
+  codesRows: CodeRow[] = [];
 
   form = new FormGroup({
+    lodgementDate: new FormControl<string | null>(null),
     code: new FormControl<string | null>(null),
     title: new FormControl<string | null>(null),
   });
 
   loading = false;
   errored = false;
-  results: ApplicationCodeGetSummaryDto[] = [];
-
-  private readonly runSearch$ = new Subject<void>();
-  private sub?: Subscription;
 
   constructor(
-    private readonly api: ApplicationCodesApi,
+    private readonly codesApi: ApplicationCodesApi,
     private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
+    // set today's date as the lodgement date by default, formatted as yyyy-MM-dd for the date input
+    this.form.patchValue({
+      lodgementDate: new Date().toISOString().split('T')[0],
+    });
+
     this.submitted = false;
-    const fv$ = this.form.valueChanges.pipe(
-      debounceTime(this.debounceMs),
-      distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
-      map(() => void 0),
-    );
+    this.listId = this.route.snapshot.paramMap.get('id');
+  }
 
-    const trigger$ = this.auto ? merge(fv$, this.runSearch$) : this.runSearch$;
+  search(): void {
+    this.submitted = true;
+    this.codesRows = [];
+    this.errored = false;
 
-    this.sub = trigger$
-      .pipe(
-        switchMap(() => {
-          const params = this.buildParams();
-          if (!params && this.auto) {
-            this.results = [];
-            this.errored = false;
-            this.loading = false;
-            this.cdr.markForCheck();
-            return of<ApplicationCodeGetSummaryDto[]>([]);
-          }
+    const code = this.form.value.code?.trim() ?? '';
+    const title = this.form.value.title?.trim() ?? '';
 
-          const p: GetApplicationCodesRequestParams = params ?? {};
-          this.loading = true;
-          this.errored = false;
+    this.loading = true;
+    fetchCodeRows$(
+      this.codesApi,
+      {
+        code: code || undefined,
+        title: title || undefined,
+        page: 0,
+        size: 10,
+      },
+      true,
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (rows) => {
+          this.codesRows = rows;
+          this.loading = false;
           this.cdr.markForCheck();
-
-          return this.api
-            .getApplicationCodes(p, 'body', false, { transferCache: false })
-            .pipe(
-              map((page) => page?.content ?? []),
-              catchError(() => {
-                this.errored = true;
-                return of<ApplicationCodeGetSummaryDto[]>([]);
-              }),
-            );
-        }),
-      )
-      .subscribe((rows) => {
-        this.loading = false;
-        this.results = rows;
-        this.resultsChange.emit(rows);
-        this.cdr.markForCheck();
-        this.submitted = true;
+        },
+        error: (err) => {
+          this.loading = false;
+          this.cdr.markForCheck();
+          // this.applyMappedError(err);
+        },
       });
   }
 
-  ngOnDestroy(): void {
-    this.sub?.unsubscribe();
-  }
-
-  // When we manually click search we want to run the query
-  search(): void {
-    this.runSearch$.next();
-    this.submitted = true;
-  }
-
-  choose(row: ApplicationCodeGetSummaryDto): void {
-    this.selectCode.emit(row);
+  onAddCode(row: CodeRow): void {
     this.submitted = false;
+    this.codesRows = [];
+    this.form.patchValue({ code: row.code, title: row.title });
+    if (!this.listId) {
+      return;
+    }
+
+    const code = (row?.code ?? '').trim();
+    if (!code) {
+      return;
+    }
+
+    this.selectCodeAndLodgementDate.emit({
+      code,
+      date: this.form.value.lodgementDate ?? '',
+    });
   }
 
   clear(): void {
-    this.form.patchValue({ code: null, title: null }, { emitEvent: false });
-    this.results = [];
+    this.form.patchValue({ code: null, title: null });
+    this.codesRows = [];
     this.errored = false;
     this.cdr.markForCheck();
     this.submitted = false;
   }
-
-  private buildParams(): GetApplicationCodesRequestParams | null {
-    const code = (this.form.value.code ?? '').trim();
-    const title = (this.form.value.title ?? '').trim();
-    const totalLen = code.length + title.length;
-
-    if (!code && !title) {
-      return null;
-    }
-    if (this.auto && totalLen < this.minChars) {
-      return null;
-    }
-
-    const params: GetApplicationCodesRequestParams = {};
-    if (code) {
-      params.code = code;
-    }
-    if (title) {
-      params.title = title;
-    }
-    return params;
-  }
-
-  // TODO: We need to emit an event for when table is moved
 }

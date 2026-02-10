@@ -1,18 +1,27 @@
 <fieldset class="govuk-fieldset">
   <div class="govuk-grid-row" [formGroup]="form">
+    <app-date-input
+      formControlName="lodgementDate"
+      label="Lodgement date"
+      hint="For example, 27 3 2007"
+      idPrefix="lodgement-date"
+      [submitted]="submitted"
+      [isSearch]="true"
+    />
+
     <app-text-input
       formControlName="code"
-      label="Code"
+      label="Application code"
       [hint]="codePlaceholder"
       idPrefix="applicationCode"
-    ></app-text-input>
+    />
 
     <app-text-input
       formControlName="title"
-      label="Title"
+      label="Application title"
       [hint]="titlePlaceholder"
       idPrefix="app-code-title"
-    ></app-text-input>
+    />
   </div>
 
   <div class="govuk-button-group">
@@ -27,6 +36,29 @@
       Clear
     </button>
   </div>
+
+  <!-- @if (!codesLoading && codesRows.length === 0) {
+    <app-notification-banner
+      heading="No codes found"
+      body="Try different filters, or retry the search."
+    />
+  } @else {
+    <app-sortable-table
+      id="codes-table"
+      caption="Codes"
+      [columns]="codesColumns"
+      [data]="codesRows"
+      appMojButtonMenu
+    >
+      <ng-template #actionsTemplate let-row>
+        <div class="govuk-button-group">
+          <button type="button" class="govuk-button" (click)="onAddCode(row)">
+            Add code
+          </button>
+        </div>
+      </ng-template>
+    </app-sortable-table>
+  } -->
 
   @if (loading) {
     <p class="govuk-body">Searching…</p>
@@ -47,18 +79,34 @@
     </div>
   } @else {
     @if (
-      results.length === 0 && submitted && (form.value.code || form.value.title)
+      codesRows.length === 0 &&
+      submitted &&
+      (form.value.code || form.value.title)
     ) {
       <app-notification-banner
         heading="No application codes found"
-        body="Try different filters"
-      >
-      </app-notification-banner>
+        body="Try different filters, or retry the search."
+      />
     }
 
-    <!-- TODO: refactor here -->
-    @if (results.length > 0) {
-      <table class="govuk-table">
+    @if (codesRows.length > 0) {
+      <app-sortable-table
+        id="codes-table"
+        caption="Codes"
+        [columns]="codesColumns"
+        [data]="codesRows"
+        appMojButtonMenu
+      >
+        <ng-template #actionsTemplate let-row>
+          <div class="govuk-button-group">
+            <button type="button" class="govuk-button" (click)="onAddCode(row)">
+              Add code
+            </button>
+          </div>
+        </ng-template>
+      </app-sortable-table>
+
+      <!-- <table class="govuk-table">
         <thead class="govuk-table__head">
           <tr class="govuk-table__row">
             <th scope="col" class="govuk-table__header">Code</th>
@@ -85,7 +133,7 @@
             </tr>
           }
         </tbody>
-      </table>
+      </table> -->
     }
   }
 </fieldset>

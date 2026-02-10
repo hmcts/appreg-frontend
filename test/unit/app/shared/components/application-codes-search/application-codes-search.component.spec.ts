@@ -138,7 +138,11 @@ describe('ApplicationCodeSearchComponent', () => {
 
     component.clear();
 
-    expect(component.form.value).toEqual({ code: null, title: null });
+    expect(component.form.value).toEqual({
+      lodgementDate: null,
+      code: null,
+      title: null,
+    });
     expect(component.results).toEqual([]);
     expect(component.errored).toBe(false);
     expect(markSpy).toHaveBeenCalled();
