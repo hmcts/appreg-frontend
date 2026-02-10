@@ -2,6 +2,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 
 import { Duration } from '@components/duration-input/duration-input.component';
 import { ApplicationListStatus, ApplicationListUpdateDto } from '@openapi';
+import type { CloseNotPermittedError } from '@validators/applications-list-close.validator';
 
 export type DetailForm = FormGroup<{
   date: FormControl<string | null>;
@@ -40,6 +41,7 @@ export type selectedRow = {
 export type CourtLocCjaConflictError = { message: string };
 export type DetailFormGroupErrors = {
   courtLocCjaConflict?: CourtLocCjaConflictError;
+  closeNotPermitted?: CloseNotPermittedError;
 };
 
 export type LoadDetailReq = { id: string; page: number; size: number };

@@ -6,45 +6,14 @@ import {
 } from '@angular/forms';
 
 import { validateCourtVsLocOrCja } from '@util/location-suggestion-helpers';
+import { readStringOrNullFromGroup } from '@util/string-helpers';
+import { setControlError } from '@util/validation';
 
 type CourtLocCja = {
   court: string | null;
   location: string | null;
   cja: string | null;
 };
-
-function setControlError(
-  group: FormGroup,
-  controlName: string,
-  key: string,
-  on: boolean,
-): void {
-  const c = group.get(controlName);
-  if (!c) {
-    return;
-  }
-
-  const current = { ...(c.errors ?? {}) };
-  if (on) {
-    current[key] = true;
-  } else {
-    delete current[key];
-  }
-
-  c.setErrors(Object.keys(current).length ? current : null);
-}
-
-function readStringOrNullFromGroup(
-  group: FormGroup,
-  name: string,
-): string | null {
-  const v: unknown = group.get(name)?.value;
-  if (typeof v !== 'string') {
-    return null;
-  }
-  const s = v.trim();
-  return s || null;
-}
 
 //Checks requiredness and conflicts between court, location and cja fields
 export function courtLocCjaValidator(): ValidatorFn {

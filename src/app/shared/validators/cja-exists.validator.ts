@@ -5,26 +5,7 @@ import {
   ValidatorFn,
 } from '@angular/forms';
 
-function setOrClearControlError(
-  group: FormGroup,
-  controlName: string,
-  key: string,
-  on: boolean,
-): void {
-  const c = group.get(controlName);
-  if (!c) {
-    return;
-  }
-
-  const current = { ...(c.errors ?? {}) };
-  if (on) {
-    current[key] = true;
-  } else {
-    delete current[key];
-  }
-
-  c.setErrors(Object.keys(current).length ? current : null);
-}
+import { setControlError } from '@util/validation';
 
 function readStringOrNullFromGroup(
   group: FormGroup,
@@ -52,14 +33,14 @@ export function cjaMustExistIfTypedValidator(opts: {
     // If they haven't typed anything, don't enforce existence.
     // Also clear any previous cjaNotFound error.
     if (!typed) {
-      setOrClearControlError(ctrl, 'cja', 'cjaNotFound', false);
+      setControlError(ctrl, 'cja', 'cjaNotFound', false);
       return null;
     }
 
     const cjaCode = readStringOrNullFromGroup(ctrl, 'cja');
     const valid = !!cjaCode && opts.getValidCodes().includes(cjaCode);
 
-    setOrClearControlError(ctrl, 'cja', 'cjaNotFound', !valid);
+    setControlError(ctrl, 'cja', 'cjaNotFound', !valid);
 
     return null;
   };

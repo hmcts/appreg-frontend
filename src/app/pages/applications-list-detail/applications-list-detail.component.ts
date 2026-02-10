@@ -35,12 +35,20 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
 
 import {
   ApplicationsListDetailState,
   initialApplicationsListDetailState,
 } from './util/applications-list-detail.state';
-import { DetailForm, DetailFormGroupErrors, Handoff, LoadDetailReq, UpdateReq, selectedRow } from './util/applications-list-detail.types';
+import {
+  DetailForm,
+  DetailFormGroupErrors,
+  Handoff,
+  LoadDetailReq,
+  UpdateReq,
+  selectedRow,
+} from './util/applications-list-detail.types';
 
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '@components/date-input/date-input.component';
@@ -61,11 +69,19 @@ import { SuccessBannerComponent } from '@components/success-banner/success-banne
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { DETAIL_ERROR_ANCHORS } from '@constants/application-list-detail-update/error-hrefs';
-import { DETAIL_FIELD_MESSAGES, RESULT_ERROR_MESSAGES } from '@constants/application-list-detail-update/error-messages';
-import { appListDetailColumns, appListDetailStatusOptions } from '@constants/application-list-detail-update/form-table-structure';
+import {
+  CLOSE_MESSAGES,
+  DETAIL_FIELD_MESSAGES,
+  RESULT_ERROR_MESSAGES,
+} from '@constants/application-list-detail-update/error-messages';
+import {
+  appListDetailColumns,
+  appListDetailStatusOptions,
+} from '@constants/application-list-detail-update/form-table-structure';
 import { IF_MATCH } from '@context/concurrency-context';
 import { Row } from '@core-types/table/row.types';
 import {
+  ApplicationListEntriesApi,
   ApplicationListGetDetailDto,
   ApplicationListUpdateDto,
   ApplicationListsApi,
@@ -81,6 +97,10 @@ import { MojButtonMenu, MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { parseTimeToDuration } from '@util/time-helpers';
+import {
+  CloseValidationEntry,
+  closePermitted,
+} from '@validators/applications-list-close.validator';
 import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
 import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
 
@@ -113,6 +133,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly refField = inject(ReferenceDataFacade);
   private readonly appListApi = inject(ApplicationListsApi);
+  private readonly appListEntryApi = inject(ApplicationListEntriesApi);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly ngZone = inject(NgZone);
@@ -130,6 +151,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   private readonly loadRequest = signal<LoadDetailReq | null>(null);
   private readonly updateRequest = signal<UpdateReq | null>(null);
+  private readonly loadEntryDetailsReq = signal<string[] | null>(null);
 
   override form: DetailForm = new FormGroup(
     {
@@ -151,6 +173,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         cjaMustExistIfTypedValidator({
           getTyped: () => this.state().cjaSearch ?? '',
           getValidCodes: () => this.state().cja.map((x) => x.code),
+        }),
+        closePermitted({
+          getEntries: () => this.closeValidationEntries(),
         }),
       ],
     },
@@ -246,9 +271,12 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
             rows,
             totalPages,
             selectedIds,
+            entriesDetails: [],
           });
 
           this.loadRequest.set(null);
+
+          this.loadEntryDetailsReq.set(rows.map((r) => r.id));
 
           if (isPlatformBrowser(this.platformId)) {
             this.ngZone.runOutsideAngular(() => {
@@ -310,6 +338,40 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           });
 
           this.updateRequest.set(null);
+        },
+      },
+      this.envInjector,
+    );
+
+    setupLoadEffect(
+      {
+        request: this.loadEntryDetailsReq,
+        load: (ids: string[]) => {
+          if (!ids.length) {
+            return of([]);
+          }
+          return forkJoin(
+            ids.map((entryId) =>
+              this.appListEntryApi.getApplicationListEntry({
+                listId: this.id,
+                entryId,
+              }),
+            ),
+          );
+        },
+        onSuccess: (res) => {
+          this.detailSignalState.patch({
+            entriesDetails: res,
+          });
+          this.loadEntryDetailsReq.set(null);
+        },
+        onError: (err: unknown) => {
+          this.detailSignalState.patch({
+            errorHint: getProblemText(err),
+            errorSummary: [{ text: getProblemText(err) }],
+            selectedIds: new Set<string>(),
+          });
+          this.loadEntryDetailsReq.set(null);
         },
       },
       this.envInjector,
@@ -386,6 +448,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       updateDone: false,
       errorSummary: [],
       errorHint: '',
+      entriesDetails: [],
     });
 
     this.form.markAllAsTouched();
@@ -522,7 +585,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   //TODO: List-details should really be it's own component to encapsulate this logic
-  // TODO: Check if update closes the list and do the relevant checks
   private buildUpdateErrorSummary(): ErrorItem[] {
     const items: ErrorItem[] = [];
 
@@ -530,6 +592,27 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     const conflictMsg = gErrs?.courtLocCjaConflict?.message;
     if (conflictMsg) {
       items.push({ id: 'court', text: conflictMsg });
+    }
+
+    // Closing applications list error checks
+    const closeReasons = gErrs?.closeNotPermitted?.noClose;
+    if (closeReasons) {
+      const durationHasCloseError =
+        !!this.form.get('duration')?.errors?.['closeDurationMissing'];
+      closeReasons.forEach((reason, idx) => {
+        // Remove dupe duration errors as there's 2 input fields we check here
+        if (
+          durationHasCloseError &&
+          reason === CLOSE_MESSAGES.durationMissing
+        ) {
+          return;
+        }
+        items.push({
+          id: `status-close-${idx + 1}`, // dedupeById removes dupe IDs so introduce unique ID for status
+          href: '#status',
+          text: reason,
+        });
+      });
     }
 
     for (const name of this.detailFields()) {
@@ -618,6 +701,22 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       out.push(item);
     }
     return out;
+  }
+
+  private closeValidationEntries(): CloseValidationEntry[] {
+    const rows = this.vm().rows as selectedRow[];
+    const details = this.detailSignalState.state().entriesDetails;
+    const hasOfficials =
+      details.length === rows.length &&
+      details.every((entry) => (entry.officials?.length ?? 0) > 0);
+
+    return rows.map((row) => ({
+      id: row.id,
+      hasResult: row.resulted === 'Yes',
+      hasFees: row.feeReq === 'Yes',
+      hasRespondent: !!row.respondent?.toString().trim(),
+      hasOfficials,
+    }));
   }
 
   errorTextFromControl(

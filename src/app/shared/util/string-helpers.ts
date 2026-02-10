@@ -1,3 +1,5 @@
+import { FormGroup } from '@angular/forms';
+
 export function trimToString(v: unknown): string {
   return typeof v === 'string' ? v.trim() : '';
 }
@@ -59,4 +61,19 @@ export function mapOptionValueToTitle(
 
   const match = options.find((o) => o.value === v);
   return match?.label ?? undefined;
+}
+
+/**
+ * Read formgroup string or return null
+ */
+export function readStringOrNullFromGroup(
+  group: FormGroup,
+  name: string,
+): string | null {
+  const v: unknown = group.get(name)?.value;
+  if (typeof v !== 'string') {
+    return null;
+  }
+  const s = v.trim();
+  return s || null;
 }

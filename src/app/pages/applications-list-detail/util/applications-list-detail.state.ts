@@ -1,5 +1,6 @@
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { Row } from '@core-types/table/row.types';
+import { EntryGetDetailDto } from '@openapi';
 
 export interface ApplicationsListDetailState {
   // paging
@@ -11,6 +12,9 @@ export interface ApplicationsListDetailState {
   rows: Row[];
   selectedIds: Set<string>;
   selectedRows: Row[];
+
+  // Entry details
+  entriesDetails: EntryGetDetailDto[];
 
   // flags
   isLoading: boolean;
@@ -33,6 +37,8 @@ export const initialApplicationsListDetailState: ApplicationsListDetailState = {
   rows: [],
   selectedIds: new Set<string>(),
   selectedRows: [],
+
+  entriesDetails: [],
 
   isLoading: true,
   updateDone: false,
