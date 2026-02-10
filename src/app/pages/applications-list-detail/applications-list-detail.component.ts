@@ -704,8 +704,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     controlErrors: Record<string, unknown>,
     messages: Record<string, string> | undefined,
   ): string | null {
-    // Prefer explicit payload text if present (duration component)
+    // Prefer explicit payload text if present (duration/date component)
     const textPayloadKeys = [
+      'dateErrorText',
       'durationErrorText',
       'hoursErrorText',
       'minutesErrorText',

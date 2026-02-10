@@ -286,7 +286,7 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
     return d <= daysInMonth;
   }
 
-  private dateError(msg = 'Enter a real date'): ValidationErrors {
+  private dateError(msg = 'Enter a valid date'): ValidationErrors {
     return { dateInvalid: true, dateErrorText: msg };
   }
 
