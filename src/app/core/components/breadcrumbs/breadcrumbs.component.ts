@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 @Component({
   selector: 'app-breadcrumbs',
@@ -7,5 +7,6 @@ import { RouterLink } from '@angular/router';
   imports: [RouterLink],
 })
 export class BreadcrumbsComponent {
-  @Input() items: { label: string; link: string }[] = [];
+  // @Input() items: { label: string; link: string }[] = [];
+  items = input<{ label: string; link: string }[]>([]);
 }

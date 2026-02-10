@@ -1,6 +1,6 @@
 {
-  "page": 0,
-  "size": 10,
+  "pageNumber": 0,
+  "pageSize": 10,
   "totalElements": 43,
   "totalPages": 5,
   "sort": ["title,asc"],

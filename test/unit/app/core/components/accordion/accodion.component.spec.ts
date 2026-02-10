@@ -15,11 +15,11 @@ describe('AccordionComponent', () => {
     fixture = TestBed.createComponent(AccordionComponent);
     component = fixture.componentInstance;
 
-    component.id = 'my-accordion';
-    component.items = [
+    fixture.componentRef.setInput('id', 'my-accordion');
+    fixture.componentRef.setInput('items', [
       { heading: 'First section', content: 'First content', expanded: true },
       { heading: 'Second section', content: 'Second content', expanded: false },
-    ];
+    ]);
 
     fixture.detectChanges();
   });

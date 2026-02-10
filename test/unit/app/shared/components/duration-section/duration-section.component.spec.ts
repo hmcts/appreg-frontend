@@ -30,7 +30,7 @@ describe('DurationSectionComponent', () => {
       cja: new FormControl(''),
     });
 
-    component.group = group;
+    fixture.componentRef.setInput('group', group);
 
     fixture.detectChanges();
   });
@@ -40,7 +40,7 @@ describe('DurationSectionComponent', () => {
   });
 
   it('should expose the provided FormGroup via the "group" input', () => {
-    expect(component.group).toBe(group);
+    expect(component.group()).toBe(group);
   });
 
   it('renders the "Duration" heading', () => {

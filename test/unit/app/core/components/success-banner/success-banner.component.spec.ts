@@ -8,6 +8,13 @@ describe('SuccessBannerComponent (external template)', () => {
   let fixture: ComponentFixture<SuccessBannerComponent>;
   let comp: SuccessBannerComponent;
 
+  const setInput = (name: string, value: unknown, detectChanges = true) => {
+    fixture.componentRef.setInput(name, value);
+    if (detectChanges) {
+      fixture.detectChanges();
+    }
+  };
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
@@ -42,11 +49,11 @@ describe('SuccessBannerComponent (external template)', () => {
   });
 
   it('renders heading, body, and a router link when linkCommands provided', () => {
-    comp.heading = 'Applications list successfully created';
-    comp.body = 'You can return to the list.';
-    comp.linkText = 'Click here to go back';
-    comp.linkCommands = ['/applications-list']; // absolute for deterministic URL
-    comp.linkHref = undefined; // ensure routerLink path is used
+    setInput('heading', 'Applications list successfully created', false);
+    setInput('body', 'You can return to the list.', false);
+    setInput('linkText', 'Click here to go back', false);
+    setInput('linkCommands', ['/applications-list'], false); // absolute for deterministic URL
+    setInput('linkHref', undefined, false); // ensure routerLink path is used
     fixture.detectChanges();
 
     const router = TestBed.inject(Router);
@@ -76,11 +83,11 @@ describe('SuccessBannerComponent (external template)', () => {
   });
 
   it('renders an href link when linkHref provided', () => {
-    comp.heading = 'Done';
-    comp.body = 'Read the docs.';
-    comp.linkText = 'Open docs';
-    comp.linkHref = '/docs';
-    comp.linkCommands = undefined; // ensure href path is used
+    setInput('heading', 'Done', false);
+    setInput('body', 'Read the docs.', false);
+    setInput('linkText', 'Open docs', false);
+    setInput('linkHref', '/docs', false);
+    setInput('linkCommands', undefined, false); // ensure href path is used
     fixture.detectChanges();
 
     const link = fixture.nativeElement.querySelector(
@@ -92,11 +99,10 @@ describe('SuccessBannerComponent (external template)', () => {
   });
 
   it('autoFocus focuses the banner element after view init', () => {
-    comp.heading = 'Any';
-    comp.autoFocus = true;
-
     // Enable fake timers BEFORE detectChanges (ngAfterViewInit schedules setTimeout)
     jest.useFakeTimers();
+    setInput('heading', 'Any', false);
+    setInput('autoFocus', true, false);
     fixture.detectChanges();
 
     // Access the private ViewChild via a typed cast
@@ -112,10 +118,9 @@ describe('SuccessBannerComponent (external template)', () => {
   });
 
   it('does not focus when autoFocus is false', () => {
-    comp.heading = 'Any';
-    comp.autoFocus = false;
-
     jest.useFakeTimers();
+    setInput('heading', 'Any', false);
+    setInput('autoFocus', false, false);
     fixture.detectChanges();
 
     const el = (
