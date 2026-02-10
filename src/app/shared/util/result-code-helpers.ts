@@ -35,8 +35,8 @@ export function getEntryResults$(
     .getApplicationListEntryResults({
       listId: params.listId,
       entryId: params.entryId,
-      pageNumber: 0,
-      pageSize: 100, // safe if small; adjust if needed
+      page: 0,
+      size: 100,
     })
     .pipe(
       map((page: ResultPage) => page.content ?? []),

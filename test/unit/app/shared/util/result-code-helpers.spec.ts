@@ -58,7 +58,10 @@ describe('result-code helpers', () => {
         getAllResultCodes(codesApi),
       );
 
-      expect(getResultCodesMock).toHaveBeenCalledWith({ pageNumber: 0, pageSize: 100 });
+      expect(getResultCodesMock).toHaveBeenCalledWith({
+        pageNumber: 0,
+        pageSize: 100,
+      });
       expect(sig()).toEqual(page.content);
     });
 

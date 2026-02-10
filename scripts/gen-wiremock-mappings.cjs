@@ -327,7 +327,10 @@ function applyListGuardsIfLooksPaged(bodyStr) {
     `{{else}}${guardSizePrefSize}{{/if}}`;
   s = s.replaceAll(/"pageNumber"\s*:\s*\d+/g, `"pageNumber": ${guardPage}`);
   s = s.replaceAll(/"page"\s*:\s*\d+/g, `"page": ${guardPage}`);
-  s = s.replaceAll(/"pageSize"\s*:\s*\d+/g, `"pageSize": ${guardPageSizeOrSize}`);
+  s = s.replaceAll(
+    /"pageSize"\s*:\s*\d+/g,
+    `"pageSize": ${guardPageSizeOrSize}`,
+  );
   s = s.replaceAll(/"size"\s*:\s*\d+/g, `"size": ${guardSizePrefSize}`);
   return s;
 }
