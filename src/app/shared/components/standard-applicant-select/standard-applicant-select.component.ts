@@ -60,9 +60,10 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
   private readonly saState = this.saSignalState.state;
   readonly vm = this.saSignalState.vm;
 
-  private readonly loadRequest = signal<{ page: number; size: number } | null>(
-    null,
-  );
+  private readonly loadRequest = signal<{
+    pageNumber: number;
+    pageSize: number;
+  } | null>(null);
 
   // Selection for the table
   selectedIds: Set<string> = new Set<string>();
@@ -107,7 +108,7 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
           this.rows = content.map((sa) => mapSaToRow(sa));
           const sizeOfPage = page.pageSize ?? this.saState().pageSize;
           const total = page.totalElements ?? content.length;
-          const requestedPage = this.loadRequest()?.page ?? 0;
+          const requestedPage = this.loadRequest()?.pageNumber ?? 0;
           const nextPageIndex = page.pageNumber ?? requestedPage;
           const nextTotalPages =
             sizeOfPage > 0 ? Math.max(1, Math.ceil(total / sizeOfPage)) : 0;
@@ -141,7 +142,7 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
     this.saSignalState.patch({ loading: true });
 
     const pageSize = this.saState().pageSize;
-    this.loadRequest.set({ page, size: pageSize });
+    this.loadRequest.set({ pageNumber: page, pageSize });
   }
 
   private syncSelectedIdsFromCode(): void {
