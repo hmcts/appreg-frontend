@@ -1,28 +1,35 @@
 <fieldset class="govuk-fieldset">
-  <div class="govuk-grid-row" [formGroup]="form">
-    <app-date-input
-      formControlName="lodgementDate"
-      label="Lodgement date"
-      hint="For example, 27 3 2007"
-      idPrefix="lodgement-date"
-      [submitted]="submitted"
-      [isSearch]="true"
-    />
+  <form [formGroup]="form">
+    <div class="govuk-grid-row">
+      <app-text-input
+        widthClass="govuk-input--width-20"
+        containerWidth="govuk-grid-column-one-third"
+        formControlName="code"
+        label="Application code"
+        [hint]="codePlaceholder"
+        idPrefix="applicationCode"
+      />
 
-    <app-text-input
-      formControlName="code"
-      label="Application code"
-      [hint]="codePlaceholder"
-      idPrefix="applicationCode"
-    />
-
-    <app-text-input
-      formControlName="title"
-      label="Application title"
-      [hint]="titlePlaceholder"
-      idPrefix="app-code-title"
-    />
-  </div>
+      <app-text-input
+        widthClass="govuk-input--width-30"
+        containerWidth="govuk-grid-column-one-half"
+        formControlName="title"
+        label="Application title"
+        [hint]="titlePlaceholder"
+        idPrefix="app-code-title"
+      />
+    </div>
+    <div class="govuk-grid-row">
+      <app-date-input
+        formControlName="lodgementDate"
+        label="Lodgement date"
+        hint="For example, 27 3 2007"
+        idPrefix="lodgement-date"
+        [submitted]="submitted"
+        [isSearch]="true"
+      />
+    </div>
+  </form>
 
   <div class="govuk-button-group">
     <button class="govuk-button" type="button" (click)="search()">

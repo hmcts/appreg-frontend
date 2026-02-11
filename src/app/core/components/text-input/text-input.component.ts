@@ -42,6 +42,7 @@ export class TextInputComponent implements ControlValueAccessor {
   charLimit = input(200);
   error = input<string | null>(null);
   inputType = input<'email' | 'text' | 'tel'>('text');
+  containerWidth = input<string>('govuk-grid-column-one-quarter');
 
   typed = output<string>();
 
