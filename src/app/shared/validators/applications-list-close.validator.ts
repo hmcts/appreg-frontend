@@ -28,7 +28,7 @@ import {
 import { CLOSE_MESSAGES } from '@constants/application-list-detail-update/error-messages';
 import { readStringOrNullFromGroup } from '@util/string-helpers';
 import { hasAnyDuration } from '@util/time-helpers';
-import { setControlError } from '@util/validation';
+import { setControlError } from '@validators/validation-helpers';
 
 export type CloseValidationEntry = {
   id?: string;
@@ -51,7 +51,9 @@ type ClosePermittedOptions = {
   durationControlName?: string;
 };
 
-export function closePermitted(options: ClosePermittedOptions = {}): ValidatorFn {
+export function closePermitted(
+  options: ClosePermittedOptions = {},
+): ValidatorFn {
   return (ctrl: AbstractControl): ValidationErrors | null => {
     if (!(ctrl instanceof FormGroup)) {
       return null;
@@ -81,9 +83,7 @@ export function closePermitted(options: ClosePermittedOptions = {}): ValidatorFn
 
     // TODO: we need to run another query i think to check if fees have been paid
     // Rule 3
-    if (
-      entries.some((e) => e.hasFees === true && e.hasPaidFee === false)
-    ) {
+    if (entries.some((e) => e.hasFees === true && e.hasPaidFee === false)) {
       noClose.push(CLOSE_MESSAGES.feeMissing);
     }
 

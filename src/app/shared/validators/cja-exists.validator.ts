@@ -5,7 +5,7 @@ import {
   ValidatorFn,
 } from '@angular/forms';
 
-import { setControlError } from '@util/validation';
+import { setControlError } from '@validators/validation-helpers';
 
 function readStringOrNullFromGroup(
   group: FormGroup,

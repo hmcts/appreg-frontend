@@ -7,7 +7,7 @@ import {
 
 import { validateCourtVsLocOrCja } from '@util/location-suggestion-helpers';
 import { readStringOrNullFromGroup } from '@util/string-helpers';
-import { setControlError } from '@util/validation';
+import { setControlError } from '@validators/validation-helpers';
 
 type CourtLocCja = {
   court: string | null;
