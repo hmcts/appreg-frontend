@@ -21,6 +21,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { ApplicationCodeGetSummaryDto, ApplicationCodesApi } from '@openapi';
 
 import { CODES_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { DateInputComponent } from '@components/date-input/date-input.component';
@@ -30,7 +31,6 @@ import {
   TableColumn,
 } from '@components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
-import { ApplicationCodeGetSummaryDto, ApplicationCodesApi } from '@openapi';
 import { CodeRow, fetchCodeRows$ } from '@util/application-code-helpers';
 
 @Component({
@@ -109,8 +109,8 @@ export class ApplicationCodeSearchComponent implements OnInit {
       {
         code: code || undefined,
         title: title || undefined,
-        page: 0,
-        size: 10,
+        pageNumber: 0,
+        pageSize: 10,
       },
       true,
     )
