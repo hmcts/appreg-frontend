@@ -27,23 +27,16 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import {
-  FormControl,
-  FormGroup,
-  FormsModule,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin, of } from 'rxjs';
 
+import { ApplicationsListDetailListDetailsComponent , closeValidationEntries } from './applications-list-detail-list-details/applications-list-detail-list-details.component';
 import {
   ApplicationsListDetailState,
   initialApplicationsListDetailState,
 } from './util/applications-list-detail.state';
 import {
   DetailForm,
-  DetailFormGroupErrors,
   Handoff,
   LoadDetailReq,
   UpdateReq,
@@ -51,10 +44,8 @@ import {
 } from './util/applications-list-detail.types';
 
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
-import { DateInputComponent } from '@components/date-input/date-input.component';
 import {
   Duration,
-  DurationInputComponent,
 } from '@components/duration-input/duration-input.component';
 import {
   ErrorItem,
@@ -63,15 +54,9 @@ import {
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
-import { SelectInputComponent } from '@components/select-input/select-input.component';
 import { SelectableSortableTableComponent } from '@components/selectable-sortable-table/selectable-sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
-import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
-import { TextInputComponent } from '@components/text-input/text-input.component';
-import { DETAIL_ERROR_ANCHORS } from '@constants/application-list-detail-update/error-hrefs';
 import {
-  CLOSE_MESSAGES,
-  DETAIL_FIELD_MESSAGES,
   RESULT_ERROR_MESSAGES,
 } from '@constants/application-list-detail-update/error-messages';
 import {
@@ -80,14 +65,8 @@ import {
 } from '@constants/application-list-detail-update/form-table-structure';
 import { IF_MATCH } from '@context/concurrency-context';
 import { Row } from '@core-types/table/row.types';
-import {
-  ApplicationListEntriesApi,
-  ApplicationListGetDetailDto,
-  ApplicationListUpdateDto,
-  ApplicationListsApi,
-} from '@openapi';
+import { ApplicationListGetDetailDto, ApplicationListsApi } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
-import { buildNormalizedPayload } from '@util/build-payload';
 import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
@@ -98,32 +77,26 @@ import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { parseTimeToDuration } from '@util/time-helpers';
 import {
-  CloseValidationEntry,
   closePermitted,
 } from '@validators/applications-list-close.validator';
 import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
 import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
+
 
 @Component({
   selector: 'app-application-detail',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    DurationInputComponent,
-    DateInputComponent,
-    TextInputComponent,
-    SelectInputComponent,
-    PaginationComponent,
     BreadcrumbsComponent,
-    SuggestionsComponent,
     ErrorSummaryComponent,
     SuccessBannerComponent,
     PageHeaderComponent,
+    ApplicationsListDetailListDetailsComponent,
     SelectableSortableTableComponent,
-    MojButtonMenuDirective,
+    PaginationComponent,
     NotificationBannerComponent,
+    MojButtonMenuDirective,
   ],
   templateUrl: './applications-list-detail.component.html',
   styleUrls: ['./applications-list-detail.component.scss'],
@@ -133,14 +106,13 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly refField = inject(ReferenceDataFacade);
   private readonly appListApi = inject(ApplicationListsApi);
-  private readonly appListEntryApi = inject(ApplicationListEntriesApi);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly ngZone = inject(NgZone);
   private readonly menus = inject(MojButtonMenu);
 
   id!: string;
-  private etag: string | null = null;
+  etag: string | null = null;
 
   private readonly detailSignalState =
     createSignalState<ApplicationsListDetailState>(
@@ -151,7 +123,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   private readonly loadRequest = signal<LoadDetailReq | null>(null);
   private readonly updateRequest = signal<UpdateReq | null>(null);
-  private readonly loadEntryDetailsReq = signal<string[] | null>(null);
+  entryIds: string[] = [];
 
   override form: DetailForm = new FormGroup(
     {
@@ -175,7 +147,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           getValidCodes: () => this.state().cja.map((x) => x.code),
         }),
         closePermitted({
-          getEntries: () => this.closeValidationEntries(),
+          getEntries: () => closeValidationEntries(this.vm()),
         }),
       ],
     },
@@ -232,6 +204,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
               totalPages: 0,
               selectedIds: new Set<string>(),
             });
+            this.entryIds = [];
             this.loadRequest.set(null);
             return;
           }
@@ -279,8 +252,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           });
 
           this.loadRequest.set(null);
-
-          this.loadEntryDetailsReq.set(rows.map((r) => r.id));
+          this.entryIds = rows.map((r) => r.id);
 
           if (isPlatformBrowser(this.platformId)) {
             this.ngZone.runOutsideAngular(() => {
@@ -302,6 +274,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
             totalPages: 0,
             selectedIds: new Set<string>(),
           });
+          this.entryIds = [];
           this.loadRequest.set(null);
         },
       },
@@ -347,39 +320,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       this.envInjector,
     );
 
-    setupLoadEffect(
-      {
-        request: this.loadEntryDetailsReq,
-        load: (ids: string[]) => {
-          if (!ids.length) {
-            return of([]);
-          }
-          return forkJoin(
-            ids.map((entryId) =>
-              this.appListEntryApi.getApplicationListEntry({
-                listId: this.id,
-                entryId,
-              }),
-            ),
-          );
-        },
-        onSuccess: (res) => {
-          this.detailSignalState.patch({
-            entriesDetails: res,
-          });
-          this.loadEntryDetailsReq.set(null);
-        },
-        onError: (err: unknown) => {
-          this.detailSignalState.patch({
-            errorHint: getProblemText(err),
-            errorSummary: [{ text: getProblemText(err) }],
-            selectedIds: new Set<string>(),
-          });
-          this.loadEntryDetailsReq.set(null);
-        },
-      },
-      this.envInjector,
-    );
   }
 
   get noEntries(): boolean {
@@ -445,53 +385,15 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
-  onUpdate(): void {
-    // reset flags/errors
-    this.detailSignalState.patch({
-      updateInvalid: false,
-      updateDone: false,
-      errorSummary: [],
-      errorHint: '',
-      entriesDetails: [],
-    });
+  readonly patchStateFn = (
+    patch: Partial<ApplicationsListDetailState>,
+  ): void => {
+    this.detailSignalState.patch(patch);
+  };
 
-    this.form.markAllAsTouched();
-    this.form.updateValueAndValidity({ emitEvent: false });
-
-    const raw = this.form.getRawValue();
-
-    const errors = this.buildUpdateErrorSummary();
-    if (errors.length) {
-      this.detailSignalState.patch({
-        updateInvalid: true,
-        errorHint: 'There is a problem',
-        errorSummary: errors,
-      });
-      return;
-    }
-
-    // build payload
-    const dur = this.form.controls.duration.value;
-    const durationHours = this.toNum(dur?.hours);
-    const durationMinutes = this.toNum(dur?.minutes);
-
-    try {
-      const normalized = buildNormalizedPayload(raw);
-      const payload: ApplicationListUpdateDto = {
-        ...normalized,
-        ...(Number.isInteger(durationHours) ? { durationHours } : {}),
-        ...(Number.isInteger(durationMinutes) ? { durationMinutes } : {}),
-      } as ApplicationListUpdateDto;
-
-      this.updateRequest.set({ id: this.id, payload, etag: this.etag });
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      this.detailSignalState.patch({
-        updateInvalid: true,
-        errorHint: msg,
-      });
-    }
-  }
+  readonly setUpdateRequestFn = (req: UpdateReq | null): void => {
+    this.updateRequest.set(req);
+  };
 
   private mapUpdateHttpError(err: HttpErrorResponse): ErrorItem[] {
     switch (err.status) {
@@ -529,28 +431,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
-  // —— Select-all behaviour helpers ————————————————
-
-  private readonly toNum = (
-    v: string | number | null | undefined,
-  ): number | undefined => {
-    if (v === null || v === undefined) {
-      return undefined;
-    }
-
-    if (typeof v === 'number') {
-      return Number.isFinite(v) ? v : undefined;
-    }
-
-    const s = v.trim();
-    if (s === '') {
-      return undefined;
-    }
-
-    const n = Number(s);
-    return Number.isFinite(n) ? n : undefined;
-  };
-
   private prefillFromApi(dto: ApplicationListGetDetailDto): void {
     this.form.patchValue({
       date: dto.date ?? null,
@@ -584,173 +464,4 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     }
   }
 
-  fieldError(id: string): ErrorItem | undefined {
-    return this.vm().errorSummary.find((e) => e.id === id);
-  }
-
-  //TODO: List-details should really be it's own component to encapsulate this logic
-  private buildUpdateErrorSummary(): ErrorItem[] {
-    const items: ErrorItem[] = [];
-
-    const gErrs = this.form.errors as DetailFormGroupErrors | null;
-    const conflictMsg = gErrs?.courtLocCjaConflict?.message;
-    if (conflictMsg) {
-      items.push({ id: 'court', text: conflictMsg });
-    }
-
-    // Closing applications list error checks
-    const closeReasons = gErrs?.closeNotPermitted?.noClose;
-    if (closeReasons) {
-      const durationHasCloseError =
-        !!this.form.get('duration')?.errors?.['closeDurationMissing'];
-      closeReasons.forEach((reason, idx) => {
-        // Remove dupe duration errors as there's 2 input fields we check here
-        if (
-          durationHasCloseError &&
-          reason === CLOSE_MESSAGES.durationMissing
-        ) {
-          return;
-        }
-        items.push({
-          id: `status-close-${idx + 1}`, // dedupeById removes dupe IDs so introduce unique ID for status
-          href: '#status',
-          text: reason,
-        });
-      });
-    }
-
-    for (const name of this.detailFields()) {
-      const control = this.form.get(name);
-      const errs = control?.errors;
-      if (!errs) {
-        continue;
-      }
-
-      if (name === 'duration') {
-        this.pushDurationErrors(items, errs);
-        continue;
-      }
-
-      const msg = this.errorTextFromControl(errs, DETAIL_FIELD_MESSAGES[name]);
-      if (!msg) {
-        continue;
-      }
-
-      items.push({ id: this.anchorFor(name), text: msg });
-    }
-
-    return this.dedupeById(items);
-  }
-
-  private detailFields(): (keyof typeof DETAIL_FIELD_MESSAGES)[] {
-    return Object.keys(
-      DETAIL_FIELD_MESSAGES,
-    ) as (keyof typeof DETAIL_FIELD_MESSAGES)[];
-  }
-
-  private anchorFor(name: keyof typeof DETAIL_FIELD_MESSAGES): string {
-    switch (name) {
-      case 'date':
-        return DETAIL_ERROR_ANCHORS.date;
-      case 'time':
-        return DETAIL_ERROR_ANCHORS.time;
-      default:
-        return name as string;
-    }
-  }
-
-  private pushDurationErrors(
-    items: ErrorItem[],
-    errs: Record<string, unknown>,
-  ): void {
-    const hoursText = this.getString(errs, 'hoursErrorText');
-    const minsText = this.getString(errs, 'minutesErrorText');
-
-    if (hoursText) {
-      items.push({ id: DETAIL_ERROR_ANCHORS.duration_hours, text: hoursText });
-    }
-    if (minsText) {
-      items.push({ id: DETAIL_ERROR_ANCHORS.duration_minutes, text: minsText });
-    }
-
-    // fallback if duration invalid but no specific part message
-    if (!hoursText && !minsText) {
-      const msg = this.errorTextFromControl(
-        errs,
-        DETAIL_FIELD_MESSAGES.duration,
-      );
-      if (msg) {
-        items.push({ id: DETAIL_ERROR_ANCHORS.duration_hours, text: msg });
-      }
-    }
-  }
-
-  private getString(obj: Record<string, unknown>, key: string): string | null {
-    const v = obj[key];
-    return typeof v === 'string' && v.trim() ? v : null;
-  }
-
-  private dedupeById(items: ErrorItem[]): ErrorItem[] {
-    const seen = new Set<string>();
-    const out: ErrorItem[] = [];
-
-    for (const item of items) {
-      if (!item.id) {
-        continue;
-      }
-      if (seen.has(item.id)) {
-        continue;
-      }
-      seen.add(item.id);
-      out.push(item);
-    }
-    return out;
-  }
-
-  private closeValidationEntries(): CloseValidationEntry[] {
-    const rows = this.vm().rows as selectedRow[];
-    const details = this.detailSignalState.state().entriesDetails;
-    const hasOfficials =
-      details.length === rows.length &&
-      details.every((entry) => (entry.officials?.length ?? 0) > 0);
-
-    return rows.map((row) => ({
-      id: row.id,
-      hasResult: row.resulted === 'Yes',
-      hasFees: row.feeReq === 'Yes',
-      hasRespondent: !!row.respondent?.toString().trim(),
-      hasOfficials,
-    }));
-  }
-
-  errorTextFromControl(
-    controlErrors: Record<string, unknown>,
-    messages: Record<string, string> | undefined,
-  ): string | null {
-    // Prefer explicit payload text if present (duration component)
-    const textPayloadKeys = [
-      'durationErrorText',
-      'hoursErrorText',
-      'minutesErrorText',
-    ] as const;
-
-    for (const k of textPayloadKeys) {
-      const v = controlErrors[k];
-      if (typeof v === 'string' && v.trim()) {
-        return v;
-      }
-    }
-
-    // Otherwise use message map keys
-    if (messages) {
-      for (const key of Object.keys(controlErrors)) {
-        const msg = messages[key];
-        if (msg) {
-          return msg;
-        }
-      }
-    }
-
-    return null;
-  }
 }

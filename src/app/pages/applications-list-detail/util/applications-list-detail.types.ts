@@ -44,7 +44,7 @@ export type DetailFormGroupErrors = {
   closeNotPermitted?: CloseNotPermittedError;
 };
 
-export type LoadDetailReq = { id: string; page: number; size: number };
+export type LoadDetailReq = { id: string; pageNumber: number; pageSize: number };
 export type UpdateReq = {
   id: string;
   payload: ApplicationListUpdateDto;
