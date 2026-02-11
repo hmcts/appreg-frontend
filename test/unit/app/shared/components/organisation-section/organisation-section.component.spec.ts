@@ -6,11 +6,11 @@ import type { ErrorItem } from '@components/error-summary/error-summary.componen
 import { OrganisationSectionComponent } from '@components/organisation-section/organisation-section.component';
 
 type TextInputLike = {
-  submitted?: boolean;
-  suppressError?: boolean;
-  error?: string | null;
-  inputType?: string;
-  idPrefix?: string;
+  submitted?: () => boolean;
+  suppressError?: () => boolean;
+  error?: () => string | null;
+  inputType?: () => string;
+  idPrefix?: () => string;
 };
 
 describe('OrganisationSectionComponent (signals)', () => {
@@ -153,31 +153,31 @@ describe('OrganisationSectionComponent (signals)', () => {
     ).componentInstance as TextInputLike;
 
     // Name/address required fields: suppressError = false
-    expect(nameCmp.submitted).toBe(true);
-    expect(nameCmp.error).toBe('Enter organisation name');
-    expect(nameCmp.suppressError).toBe(false);
+    expect(nameCmp.submitted?.()).toBe(true);
+    expect(nameCmp.error?.()).toBe('Enter organisation name');
+    expect(nameCmp.suppressError?.()).toBe(false);
 
-    expect(addr1Cmp.submitted).toBe(true);
-    expect(addr1Cmp.error).toBe('Enter address line 1');
-    expect(addr1Cmp.suppressError).toBe(false);
+    expect(addr1Cmp.submitted?.()).toBe(true);
+    expect(addr1Cmp.error?.()).toBe('Enter address line 1');
+    expect(addr1Cmp.suppressError?.()).toBe(false);
 
     // postcode: suppressError = true
-    expect(postcodeCmp.submitted).toBe(true);
-    expect(postcodeCmp.error).toBe('Enter postcode');
-    expect(postcodeCmp.suppressError).toBe(true);
+    expect(postcodeCmp.submitted?.()).toBe(true);
+    expect(postcodeCmp.error?.()).toBe('Enter postcode');
+    expect(postcodeCmp.suppressError?.()).toBe(true);
 
     // contact fields: suppressError = true
-    expect(phoneCmp.submitted).toBe(true);
-    expect(phoneCmp.error).toBe('Enter phone number');
-    expect(phoneCmp.suppressError).toBe(true);
+    expect(phoneCmp.submitted?.()).toBe(true);
+    expect(phoneCmp.error?.()).toBe('Enter phone number');
+    expect(phoneCmp.suppressError?.()).toBe(true);
 
-    expect(mobileCmp.submitted).toBe(true);
-    expect(mobileCmp.error).toBe('Enter mobile number');
-    expect(mobileCmp.suppressError).toBe(true);
+    expect(mobileCmp.submitted?.()).toBe(true);
+    expect(mobileCmp.error?.()).toBe('Enter mobile number');
+    expect(mobileCmp.suppressError?.()).toBe(true);
 
-    expect(emailCmp.submitted).toBe(true);
-    expect(emailCmp.error).toBe('Enter email address');
-    expect(emailCmp.suppressError).toBe(true);
+    expect(emailCmp.submitted?.()).toBe(true);
+    expect(emailCmp.error?.()).toBe('Enter email address');
+    expect(emailCmp.suppressError?.()).toBe(true);
   });
 
   it('configures inputType correctly for phone, mobile and email inputs', () => {
@@ -193,9 +193,9 @@ describe('OrganisationSectionComponent (signals)', () => {
       By.css('app-text-input[formControlName="emailAddress"]'),
     ).componentInstance as TextInputLike;
 
-    expect(phoneCmp.inputType).toBe('tel');
-    expect(mobileCmp.inputType).toBe('tel');
-    expect(emailCmp.inputType).toBe('email');
+    expect(phoneCmp.inputType?.()).toBe('tel');
+    expect(mobileCmp.inputType?.()).toBe('tel');
+    expect(emailCmp.inputType?.()).toBe('email');
   });
 
   it('builds idPrefix values using scopeId', () => {
@@ -204,6 +204,6 @@ describe('OrganisationSectionComponent (signals)', () => {
     ).componentInstance as TextInputLike;
 
     // assumes template uses: [idPrefix]="scopeId() + '-org-name'"
-    expect(nameCmp.idPrefix).toBe('respondent-org-name');
+    expect(nameCmp.idPrefix?.()).toBe('respondent-org-name');
   });
 });

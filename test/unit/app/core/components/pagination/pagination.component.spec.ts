@@ -7,7 +7,6 @@ import { PaginationComponent } from '@components/pagination/pagination.component
 
 describe('PaginationComponent', () => {
   let fixture: ComponentFixture<PaginationComponent>;
-  let component: PaginationComponent;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -15,17 +14,16 @@ describe('PaginationComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(PaginationComponent);
-    component = fixture.componentInstance;
   });
 
   it('creates', () => {
     fixture.detectChanges();
-    expect(component).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
   it('renders sequential page links when totalPages is small', () => {
-    component.currentPage = 1;
-    component.totalPages = 3;
+    fixture.componentRef.setInput('currentPage', 1);
+    fixture.componentRef.setInput('totalPages', 3);
 
     fixture.detectChanges();
 
@@ -42,8 +40,8 @@ describe('PaginationComponent', () => {
   });
 
   it('marks the current page with aria-current and current class', () => {
-    component.currentPage = 2;
-    component.totalPages = 5;
+    fixture.componentRef.setInput('currentPage', 2);
+    fixture.componentRef.setInput('totalPages', 5);
 
     fixture.detectChanges();
 
@@ -60,15 +58,15 @@ describe('PaginationComponent', () => {
   });
 
   it('shows previous link only when currentPage > 1', () => {
-    component.currentPage = 1;
-    component.totalPages = 5;
+    fixture.componentRef.setInput('currentPage', 1);
+    fixture.componentRef.setInput('totalPages', 5);
 
     fixture.detectChanges();
     expect(
       fixture.debugElement.query(By.css('.govuk-pagination__prev')),
     ).toBeNull();
 
-    component.currentPage = 2;
+    fixture.componentRef.setInput('currentPage', 2);
     fixture.detectChanges();
 
     expect(
@@ -77,15 +75,15 @@ describe('PaginationComponent', () => {
   });
 
   it('shows next link only when currentPage < totalPages', () => {
-    component.currentPage = 5;
-    component.totalPages = 5;
+    fixture.componentRef.setInput('currentPage', 5);
+    fixture.componentRef.setInput('totalPages', 5);
 
     fixture.detectChanges();
     expect(
       fixture.debugElement.query(By.css('.govuk-pagination__next')),
     ).toBeNull();
 
-    component.currentPage = 4;
+    fixture.componentRef.setInput('currentPage', 4);
     fixture.detectChanges();
 
     expect(
@@ -94,10 +92,10 @@ describe('PaginationComponent', () => {
   });
 
   it('calls onPageClick when a non-current page link is clicked', () => {
-    component.currentPage = 1;
-    component.totalPages = 3;
+    fixture.componentRef.setInput('currentPage', 1);
+    fixture.componentRef.setInput('totalPages', 3);
 
-    const onPageClickSpy = jest.spyOn(component, 'onPageClick');
+    const onPageClickSpy = jest.spyOn(fixture.componentInstance, 'onPageClick');
 
     fixture.detectChanges();
 
@@ -113,10 +111,10 @@ describe('PaginationComponent', () => {
   });
 
   it('calls goTo with previous and next page indexes when prev/next are clicked', () => {
-    component.currentPage = 3;
-    component.totalPages = 5;
+    fixture.componentRef.setInput('currentPage', 3);
+    fixture.componentRef.setInput('totalPages', 5);
 
-    const goToSpy = jest.spyOn(component, 'goTo');
+    const goToSpy = jest.spyOn(fixture.componentInstance, 'goTo');
 
     fixture.detectChanges();
 
@@ -138,8 +136,8 @@ describe('PaginationComponent', () => {
   });
 
   it('includes ellipsis items when there are many pages', () => {
-    component.currentPage = 10;
-    component.totalPages = 20;
+    fixture.componentRef.setInput('currentPage', 10);
+    fixture.componentRef.setInput('totalPages', 20);
 
     fixture.detectChanges();
 

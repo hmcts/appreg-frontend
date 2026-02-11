@@ -4,7 +4,6 @@ import { By } from '@angular/platform-browser';
 import { LoadingSpinner } from '@components/loading-spinner/loading-spinner';
 
 describe('LoadingSpinner', () => {
-  let component: LoadingSpinner;
   let fixture: ComponentFixture<LoadingSpinner>;
 
   beforeEach(() => {
@@ -12,7 +11,6 @@ describe('LoadingSpinner', () => {
       imports: [LoadingSpinner],
     });
     fixture = TestBed.createComponent(LoadingSpinner);
-    component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
@@ -26,7 +24,7 @@ describe('LoadingSpinner', () => {
 
   it('shows custom text', () => {
     const loadingText = 'Custom loading text';
-    component.text = loadingText;
+    fixture.componentRef.setInput('text', loadingText);
 
     fixture.detectChanges();
 
@@ -36,7 +34,7 @@ describe('LoadingSpinner', () => {
   });
 
   it('shows small loading spinner', () => {
-    component.size = 'small';
+    fixture.componentRef.setInput('size', 'small');
     fixture.detectChanges();
 
     const smallLoadingSpinner = fixture.debugElement.query(By.css('.small'));

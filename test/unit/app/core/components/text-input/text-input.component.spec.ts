@@ -6,6 +6,13 @@ describe('TextInputComponent', () => {
   let fixture: ComponentFixture<TextInputComponent>;
   let component: TextInputComponent;
 
+  const setInput = (name: string, value: unknown, detectChanges = true) => {
+    fixture.componentRef.setInput(name, value);
+    if (detectChanges) {
+      fixture.detectChanges();
+    }
+  };
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TextInputComponent], // standalone
@@ -18,12 +25,12 @@ describe('TextInputComponent', () => {
 
   it('creates with sensible defaults', () => {
     expect(component).toBeTruthy();
-    expect(component.label).toBe('');
-    expect(component.hint).toBe('');
-    expect(component.idPrefix).toBe('text-input');
-    expect(component.widthClass).toBe('govuk-input--width-10');
-    expect(component.value).toBeNull();
-    expect(component.disabled).toBe(false);
+    expect(component.label()).toBe('');
+    expect(component.hint()).toBe('');
+    expect(component.idPrefix()).toBe('text-input');
+    expect(component.widthClass()).toBe('govuk-input--width-10');
+    expect(component.valueState()).toBeNull();
+    expect(component.disabledState()).toBe(false);
   });
 
   it('writeValue sets value without emitting change', () => {
@@ -33,20 +40,20 @@ describe('TextInputComponent', () => {
     component.registerOnTouched(onTouched);
 
     component.writeValue('hello');
-    expect(component.value).toBe('hello');
+    expect(component.valueState()).toBe('hello');
     expect(onChange).not.toHaveBeenCalled();
     expect(onTouched).not.toHaveBeenCalled();
 
     component.writeValue(null);
-    expect(component.value).toBeNull();
+    expect(component.valueState()).toBeNull();
     expect(onChange).not.toHaveBeenCalled();
   });
 
   it('setDisabledState toggles disabled flag', () => {
     component.setDisabledState(true);
-    expect(component.disabled).toBe(true);
+    expect(component.disabledState()).toBe(true);
     component.setDisabledState(false);
-    expect(component.disabled).toBe(false);
+    expect(component.disabledState()).toBe(false);
   });
 
   it('onInput updates value and calls onChange with the new string', () => {
@@ -56,7 +63,7 @@ describe('TextInputComponent', () => {
     const evt = { target: { value: 'abc' } } as unknown as Event;
     component.onInput(evt);
 
-    expect(component.value).toBe('abc');
+    expect(component.valueState()).toBe('abc');
     expect(onChange).toHaveBeenCalledWith('abc');
   });
 
@@ -72,16 +79,16 @@ describe('TextInputComponent', () => {
   it('accepts input bindings (label/hint/idPrefix/widthClass) before init', () => {
     const localFixture = TestBed.createComponent(TextInputComponent);
     const cmp = localFixture.componentInstance;
-    cmp.label = 'Name';
-    cmp.hint = 'Enter your full name';
-    cmp.idPrefix = 'full-name';
-    cmp.widthClass = 'govuk-input--width-20';
+    localFixture.componentRef.setInput('label', 'Name');
+    localFixture.componentRef.setInput('hint', 'Enter your full name');
+    localFixture.componentRef.setInput('idPrefix', 'full-name');
+    localFixture.componentRef.setInput('widthClass', 'govuk-input--width-20');
     localFixture.detectChanges();
 
-    expect(cmp.label).toBe('Name');
-    expect(cmp.hint).toBe('Enter your full name');
-    expect(cmp.idPrefix).toBe('full-name');
-    expect(cmp.widthClass).toBe('govuk-input--width-20');
+    expect(cmp.label()).toBe('Name');
+    expect(cmp.hint()).toBe('Enter your full name');
+    expect(cmp.idPrefix()).toBe('full-name');
+    expect(cmp.widthClass()).toBe('govuk-input--width-20');
   });
 
   it('enforces charLimit and truncates emitted value', () => {
@@ -89,7 +96,7 @@ describe('TextInputComponent', () => {
     component.registerOnChange(onChange);
     const typedSpy = jest.spyOn(component.typed, 'emit');
 
-    component.charLimit = 5;
+    setInput('charLimit', 5);
     fixture.detectChanges();
 
     const input: HTMLInputElement =
@@ -98,7 +105,7 @@ describe('TextInputComponent', () => {
     input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
-    expect(component.value).toBe('01234');
+    expect(component.valueState()).toBe('01234');
     expect(onChange).toHaveBeenLastCalledWith('01234');
     expect(typedSpy).toHaveBeenLastCalledWith('01234');
   });

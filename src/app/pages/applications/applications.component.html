@@ -9,10 +9,8 @@
 } @else {
   @if (vm().isSearch && !vm().isLoading && !vm().rows.length) {
     <app-notification-banner
-      heading="No lists found"
-      body="Try different filters, or "
-      linkText="create a new list"
-      [linkCommands]="['/applications-list/create']"
+      heading="No application list entries found"
+      body="Try different filters"
     />
   }
 }
@@ -162,7 +160,7 @@
 @if (vm().rows.length) {
   <!-- Sortable table component -->
   <app-sortable-table
-    [caption]="'Lists'"
+    [caption]="'Application list entries'"
     [columns]="columns"
     [data]="tableRows()"
     appMojButtonMenu

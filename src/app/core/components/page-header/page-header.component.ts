@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { Params, RouterLink } from '@angular/router';
 
 type ButtonVariant = 'primary' | 'secondary' | 'warning';
@@ -24,14 +24,14 @@ export type PageHeaderAction = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PageHeaderComponent {
-  @Input({ required: true }) title!: string;
-  @Input() actions: PageHeaderAction[] = [];
+  title = input.required<string>();
+  actions = input<PageHeaderAction[]>([]);
 
   /** GOV.UK heading size: xl | l | m | s */
-  @Input() size: 'xl' | 'l' | 'm' | 's' = 'xl';
+  size = input<'xl' | 'l' | 'm' | 's'>('xl');
 
   get headingClass(): string {
-    switch (this.size) {
+    switch (this.size()) {
       case 'l':
         return 'govuk-heading-l';
       case 'm':

@@ -44,8 +44,8 @@ describe('NotificationBannerComponent (external template)', () => {
     const title = titleEl();
 
     // Defaults from component inputs
-    expect(comp.variant).toBe('default');
-    expect(comp.title).toBe('Important');
+    expect(comp.variant()).toBe('default');
+    expect(comp.title()).toBe('Important');
 
     // Role should be region for default variant
     expect(banner.getAttribute('role')).toBe('region');
@@ -58,7 +58,7 @@ describe('NotificationBannerComponent (external template)', () => {
   });
 
   it('applies success variant: role="alert" and success modifier class', () => {
-    comp.variant = 'success';
+    fixture.componentRef.setInput('variant', 'success');
     fixture.detectChanges();
 
     const banner = bannerEl();
@@ -69,8 +69,8 @@ describe('NotificationBannerComponent (external template)', () => {
   });
 
   it('renders heading and body text when provided', () => {
-    comp.heading = 'No lists found';
-    comp.body = 'Try different filters, or';
+    fixture.componentRef.setInput('heading', 'No lists found');
+    fixture.componentRef.setInput('body', 'Try different filters, or');
     fixture.detectChanges();
 
     const heading = fixture.nativeElement.querySelector(
@@ -86,8 +86,8 @@ describe('NotificationBannerComponent (external template)', () => {
   });
 
   it('renders a link using linkHref when provided', () => {
-    comp.linkText = 'create a new list';
-    comp.linkHref = '/applications-list/create';
+    fixture.componentRef.setInput('linkText', 'create a new list');
+    fixture.componentRef.setInput('linkHref', '/applications-list/create');
     fixture.detectChanges();
 
     const anchor = fixture.nativeElement.querySelector(
@@ -100,9 +100,11 @@ describe('NotificationBannerComponent (external template)', () => {
   });
 
   it('renders a routerLink when linkCommands is provided (no linkHref)', () => {
-    comp.linkText = 'create a new list';
-    comp.linkHref = undefined;
-    comp.linkCommands = ['/applications-list/create'];
+    fixture.componentRef.setInput('linkText', 'create a new list');
+    fixture.componentRef.setInput('linkHref', undefined);
+    fixture.componentRef.setInput('linkCommands', [
+      '/applications-list/create',
+    ]);
     fixture.detectChanges();
 
     const anchor = fixture.nativeElement.querySelector(
@@ -117,7 +119,7 @@ describe('NotificationBannerComponent (external template)', () => {
   });
 
   it('autoFocus focuses the banner element after view init and adds tabindex="-1"', () => {
-    comp.autoFocus = true;
+    fixture.componentRef.setInput('autoFocus', true);
 
     jest.useFakeTimers();
     fixture.detectChanges(); // triggers ngAfterViewInit
@@ -138,7 +140,7 @@ describe('NotificationBannerComponent (external template)', () => {
   });
 
   it('does not set tabindex when autoFocus is false', () => {
-    comp.autoFocus = false;
+    fixture.componentRef.setInput('autoFocus', false);
     fixture.detectChanges();
     const banner = bannerEl();
     expect(banner.hasAttribute('tabindex')).toBe(false);

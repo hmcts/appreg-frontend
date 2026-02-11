@@ -404,8 +404,8 @@ export class ApplicationsListEntryDetail implements OnInit {
       {
         code: code || undefined,
         title: title || undefined,
-        page: 0,
-        size: 10,
+        pageNumber: 0,
+        pageSize: 10,
       },
       true,
     )

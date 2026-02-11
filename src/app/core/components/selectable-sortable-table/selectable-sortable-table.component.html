@@ -1,13 +1,13 @@
 <table
   #mojTable
   class="govuk-table"
-  [attr.aria-describedby]="'sortable-' + caption"
+  [attr.aria-describedby]="'sortable-' + caption()"
 >
   <ng-content select="caption"></ng-content>
 
   <thead class="govuk-table__head">
     <tr class="govuk-table__row">
-      @if (!singleSelect) {
+      @if (!singleSelect()) {
         <!-- Select-all header (multi-select only) -->
         <th
           class="govuk-table__header moj-multi-select__select-all"
@@ -19,14 +19,14 @@
                 #selectAll
                 type="checkbox"
                 class="govuk-checkboxes__input"
-                [id]="idPrefix + 'select-all'"
+                [id]="idPrefix() + 'select-all'"
                 [checked]="allVisibleSelected"
                 [indeterminate]="someVisibleSelected && !allVisibleSelected"
                 (change)="toggleSelectAllVisible(selectAll.checked)"
               />
               <label
                 class="govuk-label govuk-checkboxes__label"
-                [for]="idPrefix + 'select-all'"
+                [for]="idPrefix() + 'select-all'"
               >
                 <span class="govuk-visually-hidden">Select all</span>
               </label>
@@ -38,7 +38,7 @@
         <th class="govuk-table__header" scope="col"></th>
       }
 
-      @for (col of columns; track col.field) {
+      @for (col of columns(); track col.field) {
         <th
           scope="col"
           class="govuk-table__header"
@@ -54,7 +54,7 @@
   </thead>
 
   <tbody class="govuk-table__body">
-    @for (row of data; track getRowId(row) || $index) {
+    @for (row of data(); track getRowId(row) || $index) {
       <tr
         class="govuk-table__row"
         [class.govuk-table__row--selected]="isSelected(row)"
@@ -68,13 +68,13 @@
                 type="checkbox"
                 class="govuk-checkboxes__input"
                 name="rows[]"
-                [id]="idPrefix + getRowId(row)"
+                [id]="idPrefix() + getRowId(row)"
                 [checked]="isSelected(row)"
                 (change)="toggleOne(row, cb.checked)"
               />
               <label
                 class="govuk-label govuk-checkboxes__label"
-                [for]="idPrefix + getRowId(row)"
+                [for]="idPrefix() + getRowId(row)"
               >
                 <span class="govuk-visually-hidden">
                   Select {{ row[firstColField] }}
@@ -84,7 +84,7 @@
           </div>
         </td>
 
-        @for (col of columns; track col.field; let ci = $index) {
+        @for (col of columns(); track col.field; let ci = $index) {
           @if (ci === 0) {
             <th
               scope="row"

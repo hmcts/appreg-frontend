@@ -1,14 +1,17 @@
-import { FormBuilder, NonNullableFormBuilder } from '@angular/forms';
+import { TestBed } from '@angular/core/testing';
 
 import { SearchBoxComponent } from '@components/search-box/search-box.component';
 
 describe('SearchBoxComponent (class tests)', () => {
-  let fb: NonNullableFormBuilder;
   let comp: SearchBoxComponent;
+  let fixture: ReturnType<typeof TestBed.createComponent<SearchBoxComponent>>;
 
   beforeEach(() => {
-    fb = new FormBuilder().nonNullable;
-    comp = new SearchBoxComponent(fb);
+    TestBed.configureTestingModule({
+      imports: [SearchBoxComponent],
+    });
+    fixture = TestBed.createComponent(SearchBoxComponent);
+    comp = fixture.componentInstance;
   });
 
   it('initializes with an empty search control', () => {
@@ -18,9 +21,12 @@ describe('SearchBoxComponent (class tests)', () => {
   it('emits valueChange whenever the search control changes', () => {
     const spy = jest.fn();
     const sub = comp.valueChange.subscribe(spy);
+    fixture.detectChanges();
 
     comp.form.controls.search.setValue('alpha');
+    fixture.detectChanges();
     comp.form.controls.search.setValue('beta');
+    fixture.detectChanges();
 
     expect(spy).toHaveBeenNthCalledWith(1, 'alpha');
     expect(spy).toHaveBeenNthCalledWith(2, 'beta');
@@ -49,31 +55,36 @@ describe('SearchBoxComponent (class tests)', () => {
     expect(id1).toMatch(/^search-/); // generated prefix
 
     // when inputId is set, it takes precedence
-    comp.inputId = 'custom-id';
+    fixture.componentRef.setInput('inputId', 'custom-id');
+    fixture.detectChanges();
     expect(comp.computedId).toBe('custom-id');
   });
 
   it('hintId appends "-hint" to computedId', () => {
-    comp.inputId = 'base-id';
+    fixture.componentRef.setInput('inputId', 'base-id');
+    fixture.detectChanges();
     expect(comp.hintId).toBe('base-id-hint');
   });
 
   it('ariaDescribedByAttr prefers explicit ariaDescribedBy when set', () => {
-    comp.inputId = 'x';
-    comp.ariaDescribedBy = 'a b';
+    fixture.componentRef.setInput('inputId', 'x');
+    fixture.componentRef.setInput('ariaDescribedBy', 'a b');
+    fixture.detectChanges();
     expect(comp.ariaDescribedByAttr).toBe('a b');
   });
 
   it('ariaDescribedByAttr falls back to hintId when hint text is present', () => {
-    comp.inputId = 'field-1';
-    comp.ariaDescribedBy = undefined; // not provided
-    comp.hint = 'Some hint';
+    fixture.componentRef.setInput('inputId', 'field-1');
+    fixture.componentRef.setInput('ariaDescribedBy', undefined); // not provided
+    fixture.componentRef.setInput('hint', 'Some hint');
+    fixture.detectChanges();
     expect(comp.ariaDescribedByAttr).toBe('field-1-hint');
   });
 
   it('ariaDescribedByAttr returns null when neither ariaDescribedBy nor hint are present', () => {
-    comp.ariaDescribedBy = undefined;
-    comp.hint = ''; // no hint content
+    fixture.componentRef.setInput('ariaDescribedBy', undefined);
+    fixture.componentRef.setInput('hint', ''); // no hint content
+    fixture.detectChanges();
     expect(comp.ariaDescribedByAttr).toBeNull();
   });
 });
