@@ -49,7 +49,7 @@ import { CodeRow, fetchCodeRows$ } from '@util/application-code-helpers';
 })
 export class ApplicationCodeSearchComponent implements OnInit {
   @Input() legend = 'Find an application code';
-  @Input() codePlaceholder = 'The code for the application e.g. APP-12345';
+  @Input() codePlaceholder = 'The code for the application';
   @Input() titlePlaceholder = 'Enter a concise title for this application';
   @Input() mode: 'create' | 'update' = 'create';
 
