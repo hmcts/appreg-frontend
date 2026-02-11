@@ -2,12 +2,12 @@ import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/
 
 export const DETAIL_FIELD_MESSAGES = {
   date: {
-    requiredParts: 'Enter day, month and year',
+    required: 'Enter day, month and year',
     dateInvalid: 'Enter a valid date',
     dateInFuture: 'Date must not be in the future',
   },
   time: {
-    requiredParts: 'Enter hours and minutes',
+    required: 'Enter hours and minutes',
     durationInvalid: 'Enter a valid duration between 00:00 and 23:59',
   },
   description: {
