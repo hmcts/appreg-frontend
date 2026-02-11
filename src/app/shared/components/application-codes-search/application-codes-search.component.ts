@@ -21,7 +21,6 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { ApplicationCodeGetSummaryDto, ApplicationCodesApi } from '@openapi';
 
 import { CODES_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { DateInputComponent } from '@components/date-input/date-input.component';
@@ -31,6 +30,7 @@ import {
   TableColumn,
 } from '@components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { ApplicationCodeGetSummaryDto, ApplicationCodesApi } from '@openapi';
 import { CodeRow, fetchCodeRows$ } from '@util/application-code-helpers';
 
 @Component({
@@ -154,5 +154,6 @@ export class ApplicationCodeSearchComponent implements OnInit {
     this.errored = false;
     this.cdr.markForCheck();
     this.submitted = false;
+    this.selectCodeAndLodgementDate.emit({ code: '', date: '' });
   }
 }

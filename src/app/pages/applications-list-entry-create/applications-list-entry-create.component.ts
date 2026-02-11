@@ -214,23 +214,25 @@ export class ApplicationsListEntryCreate implements OnInit {
     });
     console.log(this.form.value);
     // Call API to retrieve data associated with the App code
-    this.applicationCodesApi
-      .getApplicationCodeByCodeAndDate(
-        {
-          code: codeAndLodgementDate.code,
-          date: codeAndLodgementDate.date,
-        },
-        'body',
-        false,
-        { transferCache: true },
-      )
-      .subscribe({
-        next: (appCodeDetail) => {
-          console.log(appCodeDetail);
-        },
-        error: (err) => {
-          console.error('Error fetching code detail:', err);
-        },
-      });
+    if (this.form.value.applicationCode && this.form.value.lodgementDate) {
+      this.applicationCodesApi
+        .getApplicationCodeByCodeAndDate(
+          {
+            code: codeAndLodgementDate.code,
+            date: codeAndLodgementDate.date,
+          },
+          'body',
+          false,
+          { transferCache: true },
+        )
+        .subscribe({
+          next: (appCodeDetail) => {
+            console.log(appCodeDetail);
+          },
+          error: (err) => {
+            console.error('Error fetching code detail:', err);
+          },
+        });
+    }
   }
 }
