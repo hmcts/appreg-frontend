@@ -184,13 +184,19 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   override form: DetailForm = new FormGroup(
     {
-      date: new FormControl<string | null>(null),
-      time: new FormControl<Duration | null>(null),
+      date: new FormControl<string | null>(null, {
+        validators: [(c) => Validators.required(c)],
+      }),
+      time: new FormControl<Duration | null>(null, {
+        validators: [(c) => Validators.required(c)],
+      }),
       description: new FormControl<string>('', {
         nonNullable: true,
         validators: [(c) => Validators.required(c)],
       }),
-      status: new FormControl<string | null>(null),
+      status: new FormControl<string | null>(null, {
+        validators: [(c) => Validators.required(c)],
+      }),
       court: new FormControl<string>(''),
       location: new FormControl<string>(''),
       cja: new FormControl<string>(''),
@@ -698,8 +704,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     controlErrors: Record<string, unknown>,
     messages: Record<string, string> | undefined,
   ): string | null {
-    // Prefer explicit payload text if present (duration component)
+    // Prefer explicit payload text if present (duration/date component)
     const textPayloadKeys = [
+      'dateErrorText',
       'durationErrorText',
       'hoursErrorText',
       'minutesErrorText',
