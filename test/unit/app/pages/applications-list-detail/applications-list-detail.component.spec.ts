@@ -273,8 +273,8 @@ describe('ApplicationsListDetail', () => {
         2,
         {
           listId: 'list-123',
-          page: 0,
-          size: 10,
+          pageNumber: 0,
+          pageSize: 10,
         },
         'response',
         false,

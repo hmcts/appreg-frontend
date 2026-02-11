@@ -304,8 +304,8 @@ describe('ApplicationsList – search', () => {
       content: [],
       totalPages: 0,
       totalElements: 0,
-      number: 0,
-      size: 25,
+      pageNumber: 0,
+      pageSize: 25,
     } as unknown as ApplicationListPage;
 
     applicationsListsApiMock.getApplicationLists.mockReset();

@@ -478,8 +478,8 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     const paramSort = [`${sortFieldKey},${sortFieldDirection}`];
 
     const params: GetApplicationListsRequestParams = {
-      page: r.currentPage - 1,
-      size: r.pageSize,
+      pageNumber: r.currentPage - 1,
+      pageSize: r.pageSize,
       sort: paramSort,
       ...(hasParams ? { filter: loadQuery(this.form) } : {}),
     };
