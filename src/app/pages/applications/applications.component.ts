@@ -143,8 +143,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     }
 
     const params: GetEntriesRequestParams = {
-      page: this.vm().currentPage - 1,
-      size: this.vm().pageSize,
+      pageNumber: this.vm().currentPage - 1,
+      pageSize: this.vm().pageSize,
       filter: this.loadQuery(),
     };
 

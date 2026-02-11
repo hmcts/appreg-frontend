@@ -523,6 +523,10 @@ These are the scripts needed:
 - `yarn api:bundle` - Bundles the OpenAPI spec, schemas, responses into `tools/dist/openapi.bundled.yaml`
 - `yarn api:all` - Runs all API scripts (api:validate -> api:clear -> api:bundle -> api:generate)
 
+If you want to use a specific OpenAPI spec version, you can edit `scripts/fetch-unpack-openapi.cjs` and change the following:
+
+`let SPEC_VERSION = envOr('SPEC_VERSION', '**ENTER SPEC VERSION HERE AS A STRING**');`
+
 ## Branch Retention (auto-cleanup)
 
 This repository includes an automated policy to keep old/inactive branches tidy. It runs in two stages:

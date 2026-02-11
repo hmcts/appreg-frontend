@@ -210,7 +210,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
         load: (req: LoadDetailReq) =>
           this.appListApi.getApplicationList(
-            { listId: req.id, page: req.page, size: req.size },
+            {
+              listId: req.id,
+              pageNumber: req.pageNumber,
+              pageSize: req.pageSize,
+            },
             'response',
             false,
             { transferCache: false },
@@ -393,8 +397,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
     this.loadRequest.set({
       id: this.id,
-      page: vm.currentPage - 1,
-      size: vm.pageSize,
+      pageNumber: vm.currentPage - 1,
+      pageSize: vm.pageSize,
     });
   }
 
