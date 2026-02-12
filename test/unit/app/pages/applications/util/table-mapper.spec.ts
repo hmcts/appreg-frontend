@@ -98,7 +98,6 @@ describe('mapToRow', () => {
     expect(row).toEqual({
       id: 'id-123',
       date: '2025-04-24',
-      dateDisplay: '2025-04-24',
       applicant: 'Ms Jane Doe',
       respondent: 'Ms Bob Smith',
       title: 'Request for something',
@@ -119,7 +118,6 @@ describe('mapToRow', () => {
     const row = mapToRow(dto);
 
     expect(row.date).toBe('');
-    expect(row.dateDisplay).toBe('');
   });
 
   it('prefers organisation name over person name', () => {
