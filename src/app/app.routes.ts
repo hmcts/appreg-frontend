@@ -5,7 +5,6 @@ import { ApplicationsListCreate } from '@components/applications-list/applicatio
 import { ApplicationsListDeleteComponent } from '@components/applications-list/applications-list-delete/applications-list-delete.component';
 import { ApplicationsList } from '@components/applications-list/applications-list.component';
 import { ApplicationsListBulkUpload } from '@components/applications-list-bulk-upload/applications-list-bulk-upload.component';
-import { ApplicationsListDetailListDetailsComponent } from '@components/applications-list-detail/applications-list-detail-list-details/applications-list-detail-list-details.component';
 import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail.component';
 import { ApplicationsListEntryCreate } from '@components/applications-list-entry-create/applications-list-entry-create.component';
 import { ApplicationsListEntryDetail } from '@components/applications-list-entry-detail/applications-list-entry-detail.component';
@@ -37,10 +36,6 @@ export const routes: Routes = [
       { path: '', component: ApplicationsList },
       { path: 'create', component: ApplicationsListCreate },
       { path: ':id', component: ApplicationsListDetail },
-      {
-        path: ':id#list-details',
-        component: ApplicationsListDetailListDetailsComponent,
-      },
       { path: ':id/update', component: ApplicationsListEntryDetail },
       { path: ':id/delete', component: ApplicationsListDeleteComponent },
       {
