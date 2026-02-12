@@ -221,7 +221,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
               const row = toRow(x);
               const rawDate = typeof row.date === 'string' ? row.date : '';
               const dateDisplay =
-                this.dateTimePipe.transform(rawDate) ?? rawDate;
+                this.dateTimePipe.transform(rawDate) ?? rawDate; // Note: bug with sorting with this field but it should be fixed when we move to BE sorting
               return { ...row, dateDisplay };
             }),
           });
