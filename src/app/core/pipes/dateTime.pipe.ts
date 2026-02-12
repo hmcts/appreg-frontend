@@ -17,20 +17,6 @@ export class DateTimePipe implements PipeTransform {
       return null;
     }
 
-    // expects "YYYY-MM-DD"
-    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-    if (!match) {
-      return value;
-    }
-
-    const monthNum = Number.parseInt(match[2], 10);
-    const dayNum = Number.parseInt(match[3], 10);
-
-    // Return original string if date is out of range
-    if (monthNum < 1 || monthNum > 12 || dayNum < 1 || dayNum > 31) {
-      return value;
-    }
-
     return this.datePipe.transform(value, format) ?? value;
   }
 }
