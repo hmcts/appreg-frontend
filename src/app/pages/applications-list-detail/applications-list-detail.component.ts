@@ -5,11 +5,6 @@ Functionality:
   On page load:
     - Takes application list row from applications-list page and populates
     list-detail page
-  onUpdate:
-    - Input validation
-    - Window confirmation of update
-    - Create payload with If-match etag in header
-    - PUT request sent with payload and row ID
 */
 
 import { CommonModule, isPlatformBrowser } from '@angular/common';
@@ -182,10 +177,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   private setupEffects(): void {
+    // GET /application-lists/{listId}/entries
     setupLoadEffect(
       {
         request: this.loadRequest,
-
         load: (req: LoadDetailReq) =>
           this.appListApi.getApplicationList(
             {
@@ -287,6 +282,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       this.envInjector,
     );
 
+    // PUT /application-lists/{listId}/entries/{entryId}
     setupLoadEffect(
       {
         request: this.updateRequest,

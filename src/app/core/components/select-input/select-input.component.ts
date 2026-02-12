@@ -43,6 +43,8 @@ export class SelectInputComponent implements ControlValueAccessor {
   disabled = false;
 
   submitted = input(false);
+  showError = input(false);
+  errorText = input('');
 
   private onTouched: () => void = () => {};
   private onChange: (v: string | null) => void = () => {};

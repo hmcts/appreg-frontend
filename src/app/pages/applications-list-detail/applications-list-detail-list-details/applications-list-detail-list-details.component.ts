@@ -1,3 +1,13 @@
+/**
+ * Contains applications-list-detail#list-details update logic + validation
+ *
+ * onUpdate:
+    - Input validation
+    - Window confirmation of update
+    - Create payload with If-match etag in header
+    - PUT request sent with payload and row ID
+ */
+
 import { CommonModule } from '@angular/common';
 import {
   Component,
@@ -10,7 +20,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { forkJoin, of } from 'rxjs';
+import { catchError, forkJoin, map, of } from 'rxjs';
 
 import { ApplicationsListDetailState } from '../util/applications-list-detail.state';
 import {
@@ -31,7 +41,16 @@ import {
   CLOSE_MESSAGES,
   DETAIL_FIELD_MESSAGES,
 } from '@constants/application-list-detail-update/error-messages';
-import { ApplicationListEntriesApi, ApplicationListUpdateDto } from '@openapi';
+import {
+  ApplicationCodeGetDetailDto,
+  ApplicationCodesApi,
+  ApplicationListEntriesApi,
+  ApplicationListUpdateDto,
+  EntryGetDetailDto,
+  GetApplicationCodeByCodeAndDateRequestParams,
+  GetApplicationListEntryRequestParams,
+  PaymentStatus,
+} from '@openapi';
 import { buildNormalizedPayload } from '@util/build-payload';
 import { getProblemText } from '@util/http-error-to-text';
 import { PlaceFieldsState } from '@util/place-fields.base';
@@ -56,7 +75,18 @@ import { CloseValidationEntry } from '@validators/applications-list-close.valida
 export class ApplicationsListDetailListDetailsComponent implements OnInit {
   private readonly envInjector = inject(EnvironmentInjector);
   private readonly appListEntryApi = inject(ApplicationListEntriesApi);
-  private readonly loadEntryDetailsReq = signal<string[] | null>(null);
+  private readonly appCodesApi = inject(ApplicationCodesApi);
+
+  private readonly loadEntryDetailsReq = signal<
+    GetApplicationListEntryRequestParams[] | null
+  >(null);
+  private readonly loadCodeDetailsReq = signal<
+    | {
+        entryId: string;
+        params: GetApplicationCodeByCodeAndDateRequestParams;
+      }[]
+    | null
+  >(null);
 
   readonly form = input.required<DetailForm>();
 
@@ -83,30 +113,34 @@ export class ApplicationsListDetailListDetailsComponent implements OnInit {
   // Needed for list close validation
   private readonly syncEntryIds = effect(() => {
     const ids = this.entryIds();
-    this.loadEntryDetailsReq.set(ids?.length ? ids : null);
+    this.loadEntryDetailsReq.set(
+      ids?.length
+        ? ids.map((entryId) => ({ listId: this.id(), entryId }))
+        : null,
+    );
   });
 
   ngOnInit(): void {
+    // GET /application-lists/{listId}/entries/{entryId}
     setupLoadEffect(
       {
         request: this.loadEntryDetailsReq,
-        load: (ids: string[]) => {
-          if (!ids.length) {
-            return of([]);
-          }
-          return forkJoin(
-            ids.map((entryId) =>
-              this.appListEntryApi.getApplicationListEntry({
-                listId: this.id(),
-                entryId,
-              }),
+        load: (requests) =>
+          forkJoin(
+            requests.map((req) =>
+              this.appListEntryApi.getApplicationListEntry(req),
             ),
-          );
-        },
+          ).pipe(map((entries) => ({ entries }))),
         onSuccess: (res) => {
           this.patchState()({
-            entriesDetails: res,
+            entriesDetails: res.entries,
           });
+
+          // Get app codes for all entries as well
+          const codeRequests = this.buildCodeDetailRequests(res.entries);
+          this.loadCodeDetailsReq.set(
+            codeRequests.length ? codeRequests : null,
+          );
           this.loadEntryDetailsReq.set(null);
         },
         onError: (err: unknown) => {
@@ -116,6 +150,49 @@ export class ApplicationsListDetailListDetailsComponent implements OnInit {
             selectedIds: new Set<string>(),
           });
           this.loadEntryDetailsReq.set(null);
+        },
+      },
+      this.envInjector,
+    );
+
+    // GET /application-codes/{code}
+    setupLoadEffect(
+      {
+        request: this.loadCodeDetailsReq,
+        load: (requests) =>
+          forkJoin(
+            requests.map((req) =>
+              this.appCodesApi
+                .getApplicationCodeByCodeAndDate(req.params, 'body', false, {
+                  transferCache: true,
+                })
+                .pipe(catchError(() => of(null))),
+            ),
+          ).pipe(
+            map((codeDetails) => {
+              const byId: Record<string, ApplicationCodeGetDetailDto> = {};
+              requests.forEach((req, idx) => {
+                const detail = codeDetails[idx];
+                if (detail) {
+                  byId[req.entryId] = detail;
+                }
+              });
+              return byId;
+            }),
+          ),
+        onSuccess: (codeDetails) => {
+          this.patchState()({
+            entryCodeDetails: codeDetails,
+          });
+          this.loadCodeDetailsReq.set(null);
+        },
+        onError: (err: unknown) => {
+          this.patchState()({
+            errorHint: getProblemText(err),
+            errorSummary: [{ text: getProblemText(err) }],
+            selectedIds: new Set<string>(),
+          });
+          this.loadCodeDetailsReq.set(null);
         },
       },
       this.envInjector,
@@ -177,6 +254,29 @@ export class ApplicationsListDetailListDetailsComponent implements OnInit {
     return this.vm().errorSummary.find((e: ErrorItem) => e.id === id);
   }
 
+  hasCloseErrors(): boolean {
+    const gErrs = this.form().errors as DetailFormGroupErrors | null;
+    return (gErrs?.closeNotPermitted?.noClose?.length ?? 0) > 0;
+  }
+
+  closeErrorText(): string {
+    return 'Can not close this list due to the following errors.';
+  }
+
+  // If we are trying to close the list, we need duration fields to be filled
+  hasDurationCloseError(): boolean {
+    return !!this.form().get('duration')?.errors?.['closeDurationMissing'];
+  }
+
+  durationCloseErrorText(): string {
+    const errors = this.form().get('duration')?.errors as
+      | Record<string, unknown>
+      | null
+      | undefined;
+    const v = errors?.['durationErrorText'];
+    return typeof v === 'string' ? v : '';
+  }
+
   private buildUpdateErrorSummary(): ErrorItem[] {
     const items: ErrorItem[] = [];
 
@@ -192,15 +292,17 @@ export class ApplicationsListDetailListDetailsComponent implements OnInit {
       const durationHasCloseError =
         !!this.form().get('duration')?.errors?.['closeDurationMissing'];
       closeReasons.forEach((reason, idx) => {
-        // Remove dupe duration errors as there's 2 input fields we check here
+        // Remove dupe duration errors as there's 2 durations fields
         if (
           durationHasCloseError &&
-          reason === CLOSE_MESSAGES.durationMissing
+          (reason === CLOSE_MESSAGES.durationMissing ||
+            reason === CLOSE_MESSAGES.durationNonPositive)
         ) {
           return;
         }
         items.push({
-          id: `status-close-${idx + 1}`, // dedupeById removes dupe IDs so introduce unique ID for status
+          // dedupeById() removes dupe IDs. For close have unique IDs
+          id: `status-close-${idx + 1}`,
           href: '#status',
           text: reason,
         });
@@ -301,6 +403,7 @@ export class ApplicationsListDetailListDetailsComponent implements OnInit {
   ): string | null {
     // Prefer explicit payload text if present (duration component)
     const textPayloadKeys = [
+      'dateErrorText',
       'durationErrorText',
       'hoursErrorText',
       'minutesErrorText',
@@ -343,6 +446,32 @@ export class ApplicationsListDetailListDetailsComponent implements OnInit {
     const n = Number(s);
     return Number.isFinite(n) ? n : undefined;
   }
+
+  private buildCodeDetailRequests(entries: EntryGetDetailDto[]): {
+    entryId: string;
+    params: GetApplicationCodeByCodeAndDateRequestParams;
+  }[] {
+    return entries
+      .map((entry) => ({
+        entryId: entry.id,
+        params: {
+          code: entry.applicationCode,
+          date: entry.lodgementDate?.slice(0, 10) ?? '',
+        },
+      }))
+      .filter(
+        (
+          req,
+        ): req is {
+          entryId: string;
+          params: GetApplicationCodeByCodeAndDateRequestParams;
+        } => Boolean(req.params.code && req.params.date),
+      )
+      .map((req) => ({
+        entryId: req.entryId,
+        params: req.params,
+      }));
+  }
 }
 
 export const closeValidationEntries = (
@@ -350,16 +479,20 @@ export const closeValidationEntries = (
 ): CloseValidationEntry[] => {
   const rows = vm.rows as selectedRow[];
   const details = vm.entriesDetails;
+  const codeDetails = vm.entryCodeDetails ?? {};
+  const detailsById = new Map(details.map((entry) => [entry.id, entry]));
   const hasOfficials =
     details.length === rows.length &&
     details.every((entry) => (entry.officials?.length ?? 0) > 0);
-
-  console.log(details);
 
   return rows.map((row) => ({
     id: row.id,
     hasResult: row.resulted === 'Yes',
     hasFees: row.feeReq === 'Yes',
+    hasPaidFee: (detailsById.get(row.id)?.feeStatuses ?? []).some(
+      (fee) => fee.paymentStatus === PaymentStatus.PAID,
+    ),
+    requiresRespondent: codeDetails[row.id]?.requiresRespondent ?? null,
     hasRespondent: !!row.respondent?.toString().trim(),
     hasOfficials,
   }));

@@ -48,6 +48,8 @@
         hint="The status of the application list"
         idPrefix="status"
         [submitted]="vm().updateInvalid"
+        [showError]="vm().updateInvalid && hasCloseErrors()"
+        [errorText]="closeErrorText()"
         [options]="statusOptions()"
       />
     </div>
@@ -99,13 +101,16 @@
         [errorText]="fieldError('cja')?.text ?? ''"
       />
 
-      <!-- Duration: Optional field -->
+      <!-- Duration: Optional field when list is open
+       Required when list is closed -->
       <app-duration-input
         formControlName="duration"
         label="Duration"
         hint="Duration of the list"
         idPrefix="duration"
         [submitted]="vm().updateInvalid"
+        [showError]="vm().updateInvalid && hasDurationCloseError()"
+        [errorTextOverride]="durationCloseErrorText()"
         [required]="false"
         mode="duration"
       />

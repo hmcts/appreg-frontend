@@ -44,10 +44,14 @@ export const RESULT_ERROR_MESSAGES = {
 };
 
 export const CLOSE_MESSAGES = {
-  resultMissing: 'Each entry must have at least one result.',
-  officialsMissing: 'Each entry must have at least one official.',
-  feeMissing: 'Entries with required fees must have a fee status marked Paid.',
+  resultMissing: 'Each entry must have at least one result to close this list',
+  officialsMissing:
+    'Each entry must have at least one official to close this list',
+  feeMissing:
+    'Entries with required fees must have a fee status marked "PAID" to close this list',
   respondentMissing:
-    'Entries that require a respondent must have a respondent recorded.',
-  durationMissing: 'A duration must be recorded for the list.',
+    'Entries that require a respondent must have a respondent recorded to close this list',
+  durationMissing: 'A duration must be recorded to close this list.',
+  durationNonPositive:
+    'Please enter positive value for either the Duration Hour or Duration Minutes to close this list',
 } as const;
