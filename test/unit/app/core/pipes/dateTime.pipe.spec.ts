@@ -11,14 +11,14 @@ describe('DateTimePipe', () => {
     expect(pipe.transform('')).toBeNull();
   });
 
-  it('formats ISO date YYYY-MM-DD to DD Mon YYYY by default', () => {
-    expect(pipe.transform('2025-01-09')).toBe('09 Jan 2025');
+  it('formats ISO date YYYY-MM-DD using mediumDate by default', () => {
+    expect(pipe.transform('2025-01-09')).toBe('9 Jan 2025');
     expect(pipe.transform('2025-11-24')).toBe('24 Nov 2025');
   });
 
-  it('formats ISO date YYYY-MM-DD to DD Month YYYY when monthFormat is long', () => {
-    expect(pipe.transform('2025-01-09', 'long')).toBe('09 January 2025');
-    expect(pipe.transform('2025-11-24', 'long')).toBe('24 November 2025');
+  it('formats ISO date YYYY-MM-DD using longDate when format is longDate', () => {
+    expect(pipe.transform('2025-01-09', 'longDate')).toBe('9 January 2025');
+    expect(pipe.transform('2025-11-24', 'longDate')).toBe('24 November 2025');
   });
 
   it('returns the original input when it does not match YYYY-MM-DD', () => {

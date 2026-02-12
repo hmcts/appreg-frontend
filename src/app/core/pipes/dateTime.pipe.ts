@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
@@ -5,9 +6,12 @@ import { Pipe, PipeTransform } from '@angular/core';
   standalone: true,
 })
 export class DateTimePipe implements PipeTransform {
+  // Angular defaults to en-US so set to en-GB
+  private readonly datePipe = new DatePipe('en-GB');
+
   transform(
     value: string | undefined,
-    monthFormat: 'short' | 'long' = 'short',
+    format: 'shortDate' | 'mediumDate' | 'longDate' | 'fullDate' = 'mediumDate', // Angular presets
   ): string | null {
     if (!value) {
       return null;
@@ -19,46 +23,13 @@ export class DateTimePipe implements PipeTransform {
       return value;
     }
 
-    const [, year, monthRaw, day] = match;
-    const monthNum = Number.parseInt(monthRaw, 10);
+    const monthNum = Number.parseInt(match[2], 10);
 
-    const monthNamesLong = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-
-    const monthNamesShort = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-
-    const monthNames =
-      monthFormat === 'long' ? monthNamesLong : monthNamesShort;
-    const monthName = monthNames[monthNum - 1];
-    if (!monthName) {
+    // Return original string if date is out of range
+    if (monthNum < 1 || monthNum > 12) {
       return value;
     }
 
-    return `${day} ${monthName} ${year}`;
+    return this.datePipe.transform(value, format) ?? value;
   }
 }
