@@ -25,7 +25,10 @@ import {
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { ApplicationsListDetailListDetailsComponent , closeValidationEntries } from './applications-list-detail-list-details/applications-list-detail-list-details.component';
+import {
+  ApplicationsListDetailListDetailsComponent,
+  closeValidationEntries,
+} from './applications-list-detail-list-details/applications-list-detail-list-details.component';
 import {
   ApplicationsListDetailState,
   initialApplicationsListDetailState,
@@ -39,9 +42,7 @@ import {
 } from './util/applications-list-detail.types';
 
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
-import {
-  Duration,
-} from '@components/duration-input/duration-input.component';
+import { Duration } from '@components/duration-input/duration-input.component';
 import {
   ErrorItem,
   ErrorSummaryComponent,
@@ -51,9 +52,7 @@ import { PageHeaderComponent } from '@components/page-header/page-header.compone
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import { SelectableSortableTableComponent } from '@components/selectable-sortable-table/selectable-sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
-import {
-  RESULT_ERROR_MESSAGES,
-} from '@constants/application-list-detail-update/error-messages';
+import { RESULT_ERROR_MESSAGES } from '@constants/application-list-detail-update/error-messages';
 import {
   appListDetailColumns,
   appListDetailStatusOptions,
@@ -71,12 +70,9 @@ import { MojButtonMenu, MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { parseTimeToDuration } from '@util/time-helpers';
-import {
-  closePermitted,
-} from '@validators/applications-list-close.validator';
+import { closePermitted } from '@validators/applications-list-close.validator';
 import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
 import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
-
 
 @Component({
   selector: 'app-application-detail',
@@ -321,7 +317,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       },
       this.envInjector,
     );
-
   }
 
   get noEntries(): boolean {

@@ -37,7 +37,10 @@ export const routes: Routes = [
       { path: '', component: ApplicationsList },
       { path: 'create', component: ApplicationsListCreate },
       { path: ':id', component: ApplicationsListDetail },
-      { path: ':id#list-details', component: ApplicationsListDetailListDetailsComponent },
+      {
+        path: ':id#list-details',
+        component: ApplicationsListDetailListDetailsComponent,
+      },
       { path: ':id/update', component: ApplicationsListEntryDetail },
       { path: ':id/delete', component: ApplicationsListDeleteComponent },
       {

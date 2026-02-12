@@ -1,7 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, FormGroup } from '@angular/forms';
 
-import { ApplicationsListDetailListDetailsComponent, closeValidationEntries } from '@components/applications-list-detail/applications-list-detail-list-details/applications-list-detail-list-details.component';
+import {
+  ApplicationsListDetailListDetailsComponent,
+  closeValidationEntries,
+} from '@components/applications-list-detail/applications-list-detail-list-details/applications-list-detail-list-details.component';
 import { ApplicationsListDetailState } from '@components/applications-list-detail/util/applications-list-detail.state';
 import {
   ApplicationCodesApi,

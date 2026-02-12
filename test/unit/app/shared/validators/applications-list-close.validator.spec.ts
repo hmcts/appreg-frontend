@@ -10,7 +10,10 @@ describe('closePermitted', () => {
   const mkForm = () =>
     new FormGroup({
       status: new FormControl<string | null>(null),
-      duration: new FormControl<{ hours: number | null; minutes: number | null } | null>(null),
+      duration: new FormControl<{
+        hours: number | null;
+        minutes: number | null;
+      } | null>(null),
     });
 
   const runValidator = (
