@@ -1,6 +1,5 @@
 import { Applicant, EntryGetSummaryDto, Organisation, Person } from '@openapi';
 import { ApplicationRow } from '@shared-types/applications/applications.type';
-import { formatIsoDateToDmy } from '@util/date-utils';
 
 function formatFullName(person: Person): string {
   const n = person.name;
@@ -33,7 +32,8 @@ function applicantLikeDisplay(a?: Applicant): string {
 export function mapToRow(dto: EntryGetSummaryDto): ApplicationRow {
   return {
     id: dto.id,
-    date: dto.date ? formatIsoDateToDmy(dto.date) : '',
+    date: dto.date ?? '',
+    dateDisplay: dto.date ?? '',
     applicant: applicantLikeDisplay(dto.applicant),
     respondent: applicantLikeDisplay(dto.respondent),
     title: dto.applicationTitle ?? '',

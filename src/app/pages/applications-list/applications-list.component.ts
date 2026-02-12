@@ -65,6 +65,7 @@ import {
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import {
   ApplicationListGetSummaryDto,
   ApplicationListStatus,
@@ -120,6 +121,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   private readonly formSvc = inject(ApplicationsListFormService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly dateTimePipe = new DateTimePipe();
 
   openMenuForId: string | null = null;
   openPrintSelectForId: string | null = null;
@@ -215,7 +217,13 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
           this.storedRecordsState.patch({
             submitted: true,
             totalPages: page.totalPages ?? 0,
-            rows: content.map((x) => toRow(x)),
+            rows: content.map((x) => {
+              const row = toRow(x);
+              const rawDate = typeof row.date === 'string' ? row.date : '';
+              const dateDisplay =
+                this.dateTimePipe.transform(rawDate) ?? rawDate;
+              return { ...row, dateDisplay };
+            }),
           });
           this.loadRequest.set(null); // Clears request signal
         },

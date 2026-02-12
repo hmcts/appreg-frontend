@@ -24,6 +24,7 @@ import { SelectInputComponent } from '@components/select-input/select-input.comp
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import {
   ApplicationListEntriesApi,
   EntryGetFilterDto,
@@ -60,12 +61,20 @@ import { createSignalState } from '@util/signal-state-helpers';
 export class Applications extends PlaceFieldsBase implements OnInit {
   private readonly refFacade = inject(ReferenceDataFacade);
   private readonly appListApi = inject(ApplicationListEntriesApi);
+  private readonly dateTimePipe = new DateTimePipe();
 
   private readonly appState = createSignalState(initialApplicationsState);
   readonly vm = this.appState.vm;
   private readonly patchApp = this.appState.patch;
 
-  readonly tableRows = computed(() => this.vm().rows.map(mapToRow));
+  readonly tableRows = computed(() =>
+    this.vm().rows.map((dto) => {
+      const row = mapToRow(dto);
+      const rawDate = row.date;
+      const dateDisplay = this.dateTimePipe.transform(rawDate) ?? rawDate;
+      return { ...row, dateDisplay };
+    }),
+  );
 
   override form = new FormGroup({
     date: new FormControl<string | null>(null),
@@ -83,7 +92,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   });
 
   columns = [
-    { header: 'Date', field: 'date' },
+    { header: 'Date', field: 'dateDisplay' },
     { header: 'Applicant', field: 'applicant' },
     { header: 'Respondent', field: 'respondent' },
     { header: 'Application title', field: 'title' },

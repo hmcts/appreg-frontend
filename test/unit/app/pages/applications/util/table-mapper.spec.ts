@@ -7,15 +7,6 @@ import {
   Organisation,
   Person,
 } from '@openapi';
-import { formatIsoDateToDmy } from '@util/date-utils';
-
-jest.mock('@util/date-utils', () => ({
-  formatIsoDateToDmy: jest.fn(),
-}));
-
-const mockedFormatIsoDateToDmy = formatIsoDateToDmy as jest.MockedFunction<
-  typeof formatIsoDateToDmy
->;
 
 const contactDetailsStub: ContactDetails = {
   addressLine1: '',
@@ -35,11 +26,11 @@ function makePerson(
       title: 'Ms',
       firstForename: 'Jane',
       surname: 'Doe',
-      ...(name ?? {}),
+      ...name,
     },
     contactDetails: {
       ...contactDetailsStub,
-      ...(contactDetails ?? {}),
+      ...contactDetails,
     },
   } as Person;
 }
@@ -56,7 +47,7 @@ function makeOrg(
     ...rest,
     contactDetails: {
       ...contactDetailsStub,
-      ...(contactDetails ?? {}),
+      ...contactDetails,
     },
   } as Organisation;
 }
@@ -65,7 +56,7 @@ function makeApplicant(overrides?: Partial<Applicant>): Applicant {
   return {
     person: undefined,
     organisation: undefined,
-    ...(overrides ?? {}),
+    ...overrides,
   } as Applicant;
 }
 
@@ -85,9 +76,7 @@ describe('mapToRow', () => {
     jest.clearAllMocks();
   });
 
-  it('maps core fields and formats date when present', () => {
-    mockedFormatIsoDateToDmy.mockReturnValue('24/04/2025');
-
+  it('maps core fields and preserves date when present', () => {
     const dto = makeDto({
       date: '2025-04-24',
       applicant: makeApplicant({
@@ -106,12 +95,10 @@ describe('mapToRow', () => {
 
     const row = mapToRow(dto);
 
-    expect(mockedFormatIsoDateToDmy).toHaveBeenCalledTimes(1);
-    expect(mockedFormatIsoDateToDmy).toHaveBeenCalledWith('2025-04-24');
-
     expect(row).toEqual({
       id: 'id-123',
-      date: '24/04/2025',
+      date: '2025-04-24',
+      dateDisplay: '2025-04-24',
       applicant: 'Ms Jane Doe',
       respondent: 'Ms Bob Smith',
       title: 'Request for something',
@@ -122,7 +109,7 @@ describe('mapToRow', () => {
     });
   });
 
-  it('does not call formatIsoDateToDmy and returns empty date when dto.date is missing', () => {
+  it('returns empty date when dto.date is missing', () => {
     const dto = makeDto({
       date: undefined,
       applicant: makeApplicant({ person: makePerson() }),
@@ -131,8 +118,8 @@ describe('mapToRow', () => {
 
     const row = mapToRow(dto);
 
-    expect(mockedFormatIsoDateToDmy).not.toHaveBeenCalled();
     expect(row.date).toBe('');
+    expect(row.dateDisplay).toBe('');
   });
 
   it('prefers organisation name over person name', () => {

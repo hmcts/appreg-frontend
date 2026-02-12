@@ -18,6 +18,7 @@ export type ApplicationsSearchFormValue = {
 export type ApplicationRow = Row & {
   id: string;
   date: string;
+  dateDisplay: string;
   applicant: string;
   respondent: string;
   title: string;
