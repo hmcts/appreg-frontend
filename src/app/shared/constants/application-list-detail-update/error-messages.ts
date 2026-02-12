@@ -1,4 +1,4 @@
-import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
+import { APPLICATIONS_LIST_FORM_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 
 export const DETAIL_FIELD_MESSAGES = {
   date: {
@@ -17,14 +17,16 @@ export const DETAIL_FIELD_MESSAGES = {
     required: 'Select a status',
   },
   court: {
+    courtOrLocCjaRequired: 'Enter a court, or an other location and CJA',
     courtRequired: 'Court is required',
+    courtNotFound: APPLICATIONS_LIST_FORM_ERROR_MESSAGES.court.courtNotFound,
   },
   location: {
     locationRequired: 'Other location is required',
   },
   cja: {
     cjaRequired: 'CJA is required',
-    cjaNotFound: APPLICATIONS_LIST_ERROR_MESSAGES.cjaNotFound,
+    cjaNotFound: APPLICATIONS_LIST_FORM_ERROR_MESSAGES.cja.cjaNotFound,
   },
   duration: {
     durationInvalid: 'Enter a valid duration: Hours 0-99, Mins 0-59',

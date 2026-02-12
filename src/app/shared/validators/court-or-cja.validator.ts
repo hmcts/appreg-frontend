@@ -5,14 +5,6 @@ import {
   ValidatorFn,
 } from '@angular/forms';
 
-import { validateCourtVsLocOrCja } from '@util/location-suggestion-helpers';
-
-type CourtLocCja = {
-  court: string | null;
-  location: string | null;
-  cja: string | null;
-};
-
 function setControlError(
   group: FormGroup,
   controlName: string,
@@ -53,31 +45,53 @@ export function courtLocCjaValidator(): ValidatorFn {
       return null;
     }
 
-    const v: CourtLocCja = {
-      court: readStringOrNullFromGroup(ctrl, 'court'),
-      location: readStringOrNullFromGroup(ctrl, 'location'),
-      cja: readStringOrNullFromGroup(ctrl, 'cja'),
-    };
+    const court = readStringOrNullFromGroup(ctrl, 'court');
+    const location = readStringOrNullFromGroup(ctrl, 'location');
+    const cja = readStringOrNullFromGroup(ctrl, 'cja');
 
-    const hasCourt = !!v.court;
-    const hasLoc = !!v.location;
-    const hasCja = !!v.cja;
+    const hasCourt = !!court;
+    const hasLoc = !!location;
+    const hasCja = !!cja;
 
-    // Requiredness (matches collectMissing intent)
-    if (!hasCourt) {
-      setControlError(ctrl, 'location', 'locationRequired', !hasLoc);
-      setControlError(ctrl, 'cja', 'cjaRequired', !hasCja);
-      setControlError(ctrl, 'court', 'courtRequired', !(hasLoc || hasCja));
-    } else {
+    // ---- Requiredness for CREATE ----
+    // Valid if: court OR (location AND cja)
+    const hasPair = hasLoc && hasCja;
+    const valid = hasCourt || hasPair;
+
+    // If court isn't provided, both location and cja must be present
+    setControlError(ctrl, 'location', 'locationRequired', !hasCourt && !hasLoc);
+    setControlError(ctrl, 'cja', 'cjaRequired', !hasCourt && !hasCja);
+
+    // Single message for the rule (use court as the anchor)
+    setControlError(ctrl, 'court', 'courtOrLocCjaRequired', !valid);
+
+    // If court is provided, clear the dependent required errors
+    if (hasCourt) {
       setControlError(ctrl, 'location', 'locationRequired', false);
       setControlError(ctrl, 'cja', 'cjaRequired', false);
-      setControlError(ctrl, 'court', 'courtRequired', false);
     }
 
-    // Conflict
-    const conflictMsg = validateCourtVsLocOrCja(v);
-    return conflictMsg
-      ? { courtLocCjaConflict: { message: conflictMsg } }
-      : null;
+    // ---- Conflict ----
+    // If court is filled and either other field is filled => conflict
+    const conflictMsg =
+      hasCourt && (hasLoc || hasCja)
+        ? 'You can not have Court and Other Location or CJA filled in'
+        : null;
+
+    // Put the conflict on control
+    const courtCtrl = ctrl.get('court');
+    if (courtCtrl) {
+      const current = { ...(courtCtrl.errors ?? {}) };
+
+      if (conflictMsg) {
+        current['courtLocCjaConflict'] = conflictMsg;
+      } else {
+        delete current['courtLocCjaConflict'];
+      }
+
+      courtCtrl.setErrors(Object.keys(current).length ? current : null);
+    }
+
+    return null;
   };
 }

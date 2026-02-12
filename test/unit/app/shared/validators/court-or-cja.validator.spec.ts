@@ -1,17 +1,8 @@
 import { FormControl, FormGroup } from '@angular/forms';
 
-import { validateCourtVsLocOrCja } from '@util/location-suggestion-helpers';
 import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
 
-jest.mock('@util/location-suggestion-helpers', () => ({
-  validateCourtVsLocOrCja: jest.fn(),
-}));
-
-const mockedValidate = validateCourtVsLocOrCja as jest.MockedFunction<
-  typeof validateCourtVsLocOrCja
->;
-
-describe('courtLocCjaValidator', () => {
+describe('courtLocCjaValidator (create rule)', () => {
   const mkForm = () =>
     new FormGroup({
       court: new FormControl<string>(''),
@@ -19,30 +10,25 @@ describe('courtLocCjaValidator', () => {
       cja: new FormControl<string>(''),
     });
 
-  beforeEach(() => {
-    mockedValidate.mockReset();
-    mockedValidate.mockReturnValue(null);
-  });
-
   it('returns null when called with a non-FormGroup control', () => {
     const v = courtLocCjaValidator();
     expect(v(new FormControl('x'))).toBeNull();
   });
 
-  it('when all empty: sets courtRequired, locationRequired, cjaRequired', () => {
+  it('when all empty: sets courtOrLocCjaRequired, locationRequired, cjaRequired', () => {
     const form = mkForm();
     const v = courtLocCjaValidator();
 
     const res = v(form);
 
-    expect(res).toBeNull(); // no conflict from mock
+    expect(res).toBeNull();
 
-    expect(form.controls.court.errors).toEqual({ courtRequired: true });
     expect(form.controls.location.errors).toEqual({ locationRequired: true });
     expect(form.controls.cja.errors).toEqual({ cjaRequired: true });
+    expect(form.controls.court.errors).toEqual({ courtOrLocCjaRequired: true });
   });
 
-  it('when location provided (no court): clears locationRequired, keeps cjaRequired, clears courtRequired', () => {
+  it('when location provided only (no court): clears locationRequired, keeps cjaRequired, keeps courtOrLocCjaRequired', () => {
     const form = mkForm();
     form.controls.location.setValue('Somewhere');
 
@@ -51,10 +37,10 @@ describe('courtLocCjaValidator', () => {
 
     expect(form.controls.location.errors).toBeNull();
     expect(form.controls.cja.errors).toEqual({ cjaRequired: true });
-    expect(form.controls.court.errors).toBeNull(); // because hasLoc || hasCja
+    expect(form.controls.court.errors).toEqual({ courtOrLocCjaRequired: true });
   });
 
-  it('when cja provided (no court): clears cjaRequired, keeps locationRequired, clears courtRequired', () => {
+  it('when cja provided only (no court): clears cjaRequired, keeps locationRequired, keeps courtOrLocCjaRequired', () => {
     const form = mkForm();
     form.controls.cja.setValue('ABC');
 
@@ -63,72 +49,122 @@ describe('courtLocCjaValidator', () => {
 
     expect(form.controls.cja.errors).toBeNull();
     expect(form.controls.location.errors).toEqual({ locationRequired: true });
+    expect(form.controls.court.errors).toEqual({ courtOrLocCjaRequired: true });
+  });
+
+  it('when both location and cja provided (no court): clears requiredness errors', () => {
+    const form = mkForm();
+    form.controls.location.setValue('Somewhere');
+    form.controls.cja.setValue('ABC');
+
+    const v = courtLocCjaValidator();
+    v(form);
+
+    expect(form.controls.location.errors).toBeNull();
+    expect(form.controls.cja.errors).toBeNull();
     expect(form.controls.court.errors).toBeNull();
   });
 
-  it('when court provided: clears all requiredness errors but preserves other errors', () => {
+  it('when court provided: clears dependent required errors and clears courtOrLocCjaRequired', () => {
     const form = mkForm();
-
     form.controls.court.setValue('COURT1');
 
-    // Now seed errors that should be preserved
-    form.controls.court.setErrors({ courtRequired: true, other: true });
+    // seed errors to verify the validator clears only its own keys
+    form.controls.court.setErrors({ courtOrLocCjaRequired: true, other: true });
     form.controls.location.setErrors({ locationRequired: true, other: true });
     form.controls.cja.setErrors({ cjaRequired: true, other: true });
 
     const v = courtLocCjaValidator();
     v(form);
 
-    expect(form.controls.court.errors).toEqual({ other: true });
+    // locationRequired and cjaRequired cleared, but other preserved
     expect(form.controls.location.errors).toEqual({ other: true });
     expect(form.controls.cja.errors).toEqual({ other: true });
+
+    // courtOrLocCjaRequired cleared, but other preserved
+    expect(form.controls.court.errors).toEqual({ other: true });
   });
 
   it('trims values before evaluating requiredness', () => {
     const form = mkForm();
-    form.controls.location.setValue('   '); // treated as empty
-    form.controls.cja.setValue('  '); // treated as empty
+    form.controls.location.setValue('   ');
+    form.controls.cja.setValue('  ');
 
     const v = courtLocCjaValidator();
     v(form);
 
     expect(form.controls.location.errors).toEqual({ locationRequired: true });
     expect(form.controls.cja.errors).toEqual({ cjaRequired: true });
-    expect(form.controls.court.errors).toEqual({ courtRequired: true });
+    expect(form.controls.court.errors).toEqual({ courtOrLocCjaRequired: true });
   });
 
-  it('returns conflict error object when validateCourtVsLocOrCja returns a message', () => {
-    mockedValidate.mockReturnValueOnce('Conflict message');
-
+  it('when court and location filled: sets conflict error on court control', () => {
     const form = mkForm();
     form.controls.court.setValue('COURT1');
-    form.controls.location.setValue('Other location'); // typical conflict scenario
+    form.controls.location.setValue('Other location');
 
     const v = courtLocCjaValidator();
     const res = v(form);
 
-    expect(res).toEqual({
-      courtLocCjaConflict: { message: 'Conflict message' },
+    expect(res).toBeNull();
+    expect(form.controls.court.errors).toEqual({
+      courtLocCjaConflict:
+        'You can not have Court and Other Location or CJA filled in',
     });
   });
 
-  it('still applies requiredness logic even when conflict exists', () => {
-    mockedValidate.mockReturnValueOnce('Conflict message');
-
+  it('when court and cja filled: sets conflict error on court control', () => {
     const form = mkForm();
-    // No court => requiredness should run
-    form.controls.location.setValue('Somewhere'); // makes locationRequired false
-    // cja empty => cjaRequired true
+    form.controls.court.setValue('COURT1');
+    form.controls.cja.setValue('ABC');
 
     const v = courtLocCjaValidator();
-    const res = v(form);
+    v(form);
 
-    expect(res).toEqual({
-      courtLocCjaConflict: { message: 'Conflict message' },
+    expect(form.controls.court.errors).toEqual({
+      courtLocCjaConflict:
+        'You can not have Court and Other Location or CJA filled in',
     });
+  });
+
+  it('when conflict exists, it preserves other court errors and still clears location/cja requiredness when court is present', () => {
+    const form = mkForm();
+    form.controls.court.setValue('COURT1');
+    form.controls.location.setValue('Other location');
+
+    // seed court with an unrelated error
+    form.controls.court.setErrors({ other: true });
+
+    const v = courtLocCjaValidator();
+    v(form);
 
     expect(form.controls.location.errors).toBeNull();
-    expect(form.controls.cja.errors).toEqual({ cjaRequired: true });
-    expect(form.controls.court.errors).toBeNull(); // because hasLoc
+    expect(form.controls.cja.errors).toBeNull();
+
+    expect(form.controls.court.errors).toEqual({
+      other: true,
+      courtLocCjaConflict:
+        'You can not have Court and Other Location or CJA filled in',
+    });
+  });
+
+  it('clears conflict error when court-only becomes valid', () => {
+    const form = mkForm();
+    form.controls.court.setValue('COURT1');
+    form.controls.location.setValue('Other location');
+
+    const v = courtLocCjaValidator();
+    v(form);
+
+    expect(form.controls.court.errors).toEqual({
+      courtLocCjaConflict:
+        'You can not have Court and Other Location or CJA filled in',
+    });
+
+    // fix the conflict by clearing location
+    form.controls.location.setValue('');
+    v(form);
+
+    expect(form.controls.court.errors).toBeNull();
   });
 });

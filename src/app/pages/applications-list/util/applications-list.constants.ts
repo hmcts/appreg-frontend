@@ -31,7 +31,52 @@ export const APPLICATIONS_LIST_ERROR_MESSAGES = {
   listNotFound: 'Application List not found',
   invalidSearchCriteria:
     'Invalid Search Criteria. At least one field must be entered.',
-  cjaNotFound: 'Criminal Justice Area not found',
+} as const;
+
+export const APPLICATIONS_LIST_FORM_ERROR_MESSAGES = {
+  date: {
+    dateInvalid: 'Enter a valid date',
+  },
+  time: {
+    durationInvalid: 'Enter a valid duration between 00:00 and 23:59',
+  },
+  cja: {
+    cjaNotFound: 'Criminal Justice Area not found',
+  },
+  court: {
+    courtNotFound: 'Court Location not found',
+  },
+};
+
+export const APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES = {
+  date: {
+    required: 'Enter day, month and year',
+    dateInvalid: 'Enter a valid date',
+  },
+  time: {
+    required: 'Enter hours and minutes',
+    durationInvalid: 'Enter a valid duration between 00:00 and 23:59',
+  },
+  description: {
+    required: 'Description is required',
+    maxlength: 'Description must be 200 characters or fewer',
+  },
+  court: {
+    courtOrLocCjaRequired: 'Enter a court, or an other location and CJA',
+    courtRequired: 'Court is required',
+    courtNotFound: 'Court Location not found',
+    maxlength: 'Court must be 50 characters or fewer',
+  },
+  location: {
+    locationRequired: 'Enter an other location',
+    maxlength: 'Location must be 200 characters or fewer',
+  },
+  cja: {
+    cjaNotFound: 'Criminal Justice Area not found',
+    cjaRequired: 'CJA is required',
+    requiredIfOtherLocation: 'CJA is required',
+    maxlength: 'CJA must be 50 characters or fewer',
+  },
 } as const;
 
 // TODO: remove when we migrate to server sorting

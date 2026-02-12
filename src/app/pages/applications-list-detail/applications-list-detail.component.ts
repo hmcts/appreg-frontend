@@ -87,6 +87,7 @@ import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { parseTimeToDuration } from '@util/time-helpers';
 import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
+import { courtMustExistIfTypedValidator } from '@validators/court-exists.validator';
 import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
 
 type DetailForm = FormGroup<{
@@ -205,6 +206,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     {
       validators: [
         courtLocCjaValidator(),
+        courtMustExistIfTypedValidator({
+          getTyped: () => this.state().courthouseSearch ?? '',
+          getValidCodes: () =>
+            this.state().courtLocations.map((x) => x.locationCode),
+        }),
         cjaMustExistIfTypedValidator({
           getTyped: () => this.state().cjaSearch ?? '',
           getValidCodes: () => this.state().cja.map((x) => x.code),

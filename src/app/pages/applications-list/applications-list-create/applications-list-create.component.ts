@@ -26,7 +26,7 @@ import {
   initialApplicationsListCreateState,
 } from './util/applications-list-create.state';
 
-import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
+import { APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import { DurationInputComponent } from '@components/duration-input/duration-input.component';
@@ -41,12 +41,13 @@ import { ApplicationListCreateDto, ApplicationListsApi } from '@openapi';
 import { ApplicationsListFormService } from '@services/applications-list-form.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { buildNormalizedPayload } from '@util/build-payload';
-import { collectMissing } from '@util/collect-missing';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { getProblemText } from '@util/http-error-to-text';
-import { validateCourtVsLocOrCja } from '@util/location-suggestion-helpers';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
+import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
+import { courtMustExistIfTypedValidator } from '@validators/court-exists.validator';
+import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
 
 @Component({
   selector: 'app-applications-list',
@@ -87,12 +88,28 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
 
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
 
+  private readonly errorMap = APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES;
+
   // Reactive form backing the template
   override form = this.formSvc.createCreateForm();
 
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refField);
     this.setupEffects();
+
+    //Attach validators
+    this.form.addValidators([
+      courtLocCjaValidator(),
+      cjaMustExistIfTypedValidator({
+        getTyped: () => this.state().cjaSearch ?? '',
+        getValidCodes: () => this.state().cja.map((x) => x.code),
+      }),
+      courtMustExistIfTypedValidator({
+        getTyped: () => this.state().courthouseSearch ?? '',
+        getValidCodes: () =>
+          this.state().courtLocations.map((x) => x.locationCode),
+      }),
+    ]);
   }
 
   // Signal driven requests
@@ -130,18 +147,17 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
   onSubmit(event: SubmitEvent): void {
     event.preventDefault();
 
-    const action = (event.submitter as HTMLButtonElement | null)?.value ?? '';
     this.appListCreatesignalState.patch({ submitted: true });
     this.appListCreatesignalState.patch(clearNotificationsPatch());
 
-    const raw = this.form.getRawValue() as CreateFormRaw;
+    this.form.markAllAsTouched();
+    this.form.updateValueAndValidity({ emitEvent: false });
 
-    const { errors, errorHint } = this.collectSubmitErrors(action, raw);
-
+    const errors = this.buildErrorSummary();
     if (errors.length) {
       this.appListCreatesignalState.patch({
         createInvalid: true,
-        errorHint,
+        errorHint: 'There is a problem',
         errorSummary: errors,
       });
       return;
@@ -150,85 +166,49 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
     this.appListCreatesignalState.patch({
       createInvalid: false,
       errorHint: '',
+      errorSummary: [],
     });
 
-    const payload = this.buildPayload(raw);
+    const payload = this.buildPayload(this.form.getRawValue() as CreateFormRaw);
     this.createRequest.set(payload);
-  }
-
-  /**
-   * Builds ALL validation errors so they appear together.
-   * Keeps onSubmit clean.
-   * TODO: Refactor to use Angular FormGroup validation instead of manual checks
-   */
-  private collectSubmitErrors(
-    action: string,
-    raw: CreateFormRaw,
-  ): { errors: ErrorItem[]; errorHint: string } {
-    const errors: ErrorItem[] = [];
-
-    if (action === 'create') {
-      const dateErrors = this.form.controls.date.errors as {
-        dateInvalid?: boolean;
-        dateErrorText?: string;
-      } | null;
-
-      const timeErrors = this.form.controls.time.errors as {
-        durationErrorText?: string;
-      } | null;
-
-      errors.push(
-        ...collectMissing(raw, {
-          dateInvalid: !!dateErrors?.dateInvalid,
-          dateErrorText: dateErrors?.dateErrorText ?? '',
-          durationErrorText: timeErrors?.durationErrorText ?? '',
-        }),
-      );
-    }
-
-    const conflict = validateCourtVsLocOrCja(raw);
-    if (conflict) {
-      errors.push({ id: 'court', href: '#court', text: conflict });
-    }
-
-    // ---- CJA validation (required + not-found) ----
-    const court = String(raw.court ?? '').trim();
-    const location = String(raw.location ?? '').trim();
-    const cjaCode = String(raw.cja ?? '').trim();
-    const cjaSearch = String(this.state().cjaSearch ?? '').trim();
-
-    const needsCja = !court && location.length > 0; // only required in “other location” path
-    const attemptedCja = cjaSearch.length > 0 || cjaCode.length > 0;
-
-    // If user typed something but didn't select a valid code, show "not found"
-    if (attemptedCja && cjaCode.length === 0) {
-      errors.push({
-        id: 'cja',
-        href: '#cja',
-        text: APPLICATIONS_LIST_ERROR_MESSAGES.cjaNotFound,
-      });
-    } else if (cjaCode.length > 0) {
-      const exists = this.state().cja.some((x) => x.code === cjaCode);
-      if (!exists) {
-        errors.push({
-          id: 'cja',
-          href: '#cja',
-          text: APPLICATIONS_LIST_ERROR_MESSAGES.cjaNotFound,
-        });
-      }
-    } else if (needsCja) {
-      // Only “required” when other location is being used
-      errors.push({
-        id: 'cja',
-        href: '#cja',
-        text: 'CJA is required',
-      });
-    }
-
-    return { errors, errorHint: errors.length ? 'There is a problem' : '' };
   }
 
   fieldError(id: string): ErrorItem | undefined {
     return this.vm().errorSummary.find((e) => e.id === id);
+  }
+
+  private keys<T extends object>(o: T): (keyof T)[] {
+    return Object.keys(o) as (keyof T)[];
+  }
+
+  private buildErrorSummary(): ErrorItem[] {
+    const items: ErrorItem[] = [];
+
+    for (const controlName of this.keys(this.errorMap)) {
+      const ctrl = this.form.get(String(controlName));
+      if (!ctrl?.errors) {
+        continue;
+      }
+
+      const msgMap = this.errorMap[controlName];
+
+      for (const k of Object.keys(ctrl.errors)) {
+        if (!(k in msgMap)) {
+          continue;
+        }
+
+        const errorKey = k as keyof typeof msgMap;
+        const controlId =
+          controlName === 'time' ? 'time-hours' : String(controlName);
+
+        items.push({
+          id: String(controlId),
+          href: `#${String(controlId)}`,
+          text: msgMap[errorKey],
+        });
+      }
+    }
+
+    return items;
   }
 }

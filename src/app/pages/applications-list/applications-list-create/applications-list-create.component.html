@@ -66,15 +66,8 @@
       [suggestions]="state().filteredCourthouses"
       (selectItem)="selectCourthouse($event)"
       [disabled]="!!form.get('location')?.value || !!form.get('cja')?.value"
-      [showError]="
-        vm().createInvalid &&
-        !form.get('court')?.value &&
-        !(
-          form.get('location')?.value?.toString()?.trim() ||
-          !!form.get('cja')?.value
-        )
-      "
-      errorText="Court is required"
+      [showError]="vm().createInvalid && !!fieldError('court')"
+      [errorText]="fieldError('court')?.text ?? ''"
     />
   </div>
 

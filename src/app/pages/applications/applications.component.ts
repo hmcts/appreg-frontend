@@ -16,14 +16,19 @@ import {
 } from './util/applications.state';
 import { mapToRow } from './util/table-mapper';
 
+import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { DateInputComponent } from '@components/date-input/date-input.component';
-import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
+import {
+  ErrorItem,
+  ErrorSummaryComponent,
+} from '@components/error-summary/error-summary.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { APPLICATIONS_ERROR_MAP } from '@constants/applications/error-messages';
 import {
   ApplicationListEntriesApi,
   EntryGetFilterDto,
@@ -32,11 +37,18 @@ import {
 } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { toStatus } from '@util/application-status-helpers';
+import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { has } from '@util/has';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState } from '@util/signal-state-helpers';
+import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
+import { courtMustExistIfTypedValidator } from '@validators/court-exists.validator';
+import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
+import { ukPostcode } from '@validators/uk-format.validator';
 
+type AppErrorMap = typeof APPLICATIONS_ERROR_MAP;
+type ControlName = keyof AppErrorMap;
 @Component({
   selector: 'app-applications',
   standalone: true,
@@ -67,20 +79,38 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   readonly tableRows = computed(() => this.vm().rows.map(mapToRow));
 
-  override form = new FormGroup({
-    date: new FormControl<string | null>(null),
-    applicantOrg: new FormControl<string>(''),
-    respondentOrg: new FormControl<string>(''),
-    applicantSurname: new FormControl<string>(''),
-    respondentSurname: new FormControl<string>(''),
-    location: new FormControl<string>(''),
-    standardApplicantCode: new FormControl<string>(''),
-    respondentPostcode: new FormControl<string>(''),
-    accountReference: new FormControl<string>(''),
-    court: new FormControl<string>(''),
-    cja: new FormControl<string>(''),
-    status: new FormControl<string | null>(null),
-  });
+  override form = new FormGroup(
+    {
+      date: new FormControl<string | null>(null),
+      applicantOrg: new FormControl<string>(''),
+      respondentOrg: new FormControl<string>(''),
+      applicantSurname: new FormControl<string>(''),
+      respondentSurname: new FormControl<string>(''),
+      location: new FormControl<string>(''),
+      standardApplicantCode: new FormControl<string>(''),
+      respondentPostcode: new FormControl<string>('', {
+        validators: ukPostcode,
+      }),
+      accountReference: new FormControl<string>(''),
+      court: new FormControl<string>(''),
+      cja: new FormControl<string>(''),
+      status: new FormControl<string | null>(null),
+    },
+    {
+      validators: [
+        courtLocCjaValidator(),
+        cjaMustExistIfTypedValidator({
+          getTyped: () => this.state().cjaSearch ?? '',
+          getValidCodes: () => this.state().cja.map((x) => x.code),
+        }),
+        courtMustExistIfTypedValidator({
+          getTyped: () => this.state().courthouseSearch ?? '',
+          getValidCodes: () =>
+            this.state().courtLocations.map((x) => x.locationCode),
+        }),
+      ],
+    },
+  );
 
   columns = [
     { header: 'Date', field: 'date' },
@@ -99,14 +129,14 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     { label: 'Closed', value: 'closed' },
   ];
 
+  onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
+
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refFacade);
   }
 
-  onSubmit(event: SubmitEvent): void {
-    event.preventDefault();
-    const btn = event.submitter as HTMLButtonElement | null;
-    const action = btn?.value ?? 'search';
+  onSubmit(e: SubmitEvent): void {
+    e.preventDefault();
 
     this.patchApp({
       ...clearNotificationsPatch(),
@@ -115,26 +145,31 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       rows: [],
     });
 
-    if (action === 'search') {
-      this.loadApplications();
+    this.form.markAllAsTouched();
+    this.form.updateValueAndValidity({ emitEvent: false });
+
+    const validationErrors = this.buildErrorSummary();
+    if (validationErrors.length) {
+      this.patchApp({ searchErrors: validationErrors });
+      return;
     }
+
+    if (!this.hasAnyParams()) {
+      this.patchApp({
+        searchErrors: [
+          {
+            text: APPLICATIONS_LIST_ERROR_MESSAGES.invalidSearchCriteria,
+            id: 'search-error',
+          },
+        ],
+      });
+      return;
+    }
+    this.loadApplications();
   }
 
   loadApplications(): void {
     if (this.vm().isLoading) {
-      return;
-    }
-
-    const dateCtrl = this.form.controls.date;
-    if (dateCtrl.errors?.['dateInvalid']) {
-      this.patchApp({
-        searchErrors: [
-          {
-            id: 'date-day',
-            text: dateCtrl.errors['dateErrorText'] as string,
-          },
-        ],
-      });
       return;
     }
 
@@ -270,7 +305,67 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     return filter;
   }
 
-  get searchDisabled(): boolean {
-    return !this.hasAnyParams();
+  private readonly errorMap = APPLICATIONS_ERROR_MAP;
+
+  private keys<T extends object>(o: T): (keyof T)[] {
+    return Object.keys(o) as (keyof T)[];
+  }
+
+  private buildErrorSummary(): ErrorItem[] {
+    const items: ErrorItem[] = [];
+
+    for (const controlName of this.keys(this.errorMap)) {
+      const ctrl = this.form.get(controlName as string);
+      if (!ctrl?.errors) {
+        continue;
+      }
+
+      const msgMap = this.errorMap[controlName];
+
+      for (const k of Object.keys(ctrl.errors)) {
+        // only accept keys that exist in the message map
+        if (!(k in msgMap)) {
+          continue;
+        }
+
+        const errorKey = k as keyof typeof msgMap;
+        items.push({
+          id: String(controlName),
+          text: msgMap[errorKey],
+          href: `#${String(controlName)}`,
+        });
+      }
+    }
+
+    return items;
+  }
+
+  isControlInvalid<C extends ControlName>(controlName: C): boolean {
+    const c = this.form.get(String(controlName));
+    return !!(this.vm().submitted && c && c.invalid);
+  }
+
+  fieldError(id: string): ErrorItem | undefined {
+    return this.vm().searchErrors.find((e) => e.id === id);
+  }
+
+  getControlErrorMessages<C extends ControlName>(controlName: C): string[] {
+    const c = this.form.get(String(controlName));
+    if (!c?.errors) {
+      return [];
+    }
+
+    const msgMap = this.errorMap[controlName];
+    const msgs: string[] = [];
+
+    for (const k of Object.keys(c.errors)) {
+      if (!(k in msgMap)) {
+        continue;
+      }
+      const errorKey = k as keyof typeof msgMap;
+      msgs.push(msgMap[errorKey]);
+    }
+
+    return msgs;
   }
 }

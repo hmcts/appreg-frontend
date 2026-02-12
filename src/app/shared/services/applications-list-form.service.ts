@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { Duration } from '@components/duration-input/duration-input.component';
 import { ApplicationsListFormControls } from '@shared-types/applications-list/applications-list-form';
@@ -16,10 +16,7 @@ export class ApplicationsListFormService {
   }
 
   createCreateForm(): FormGroup<ApplicationsListFormControls> {
-    return new FormGroup(
-      this.buildControls({ status: 'open', placeUpdateOnChange: true }),
-      { updateOn: 'submit' },
-    );
+    return new FormGroup(this.buildControlsForCreate(), { updateOn: 'submit' });
   }
 
   private buildControls(opts: BuildOptions): ApplicationsListFormControls {
@@ -38,6 +35,40 @@ export class ApplicationsListFormService {
         ...placeOpts,
       }),
       cja: new FormControl<string>('', { nonNullable: true, ...placeOpts }),
+    };
+  }
+
+  private buildControlsForCreate(): ApplicationsListFormControls {
+    return {
+      date: new FormControl<string | null>(null, {
+        validators: [(control) => Validators.required(control)],
+      }),
+      time: new FormControl<Duration | null>(null, {
+        validators: [(control) => Validators.required(control)],
+      }),
+      description: new FormControl<string>('', {
+        nonNullable: true,
+        validators: [
+          (control) => Validators.required(control),
+          (control) => Validators.maxLength(200)(control),
+        ],
+      }),
+      status: new FormControl<string | null>('open'),
+      court: new FormControl<string>('', {
+        nonNullable: true,
+        validators: [(control) => Validators.maxLength(50)(control)],
+        updateOn: 'change',
+      }),
+      location: new FormControl<string>('', {
+        nonNullable: true,
+        validators: [(control) => Validators.maxLength(200)(control)],
+        updateOn: 'change',
+      }),
+      cja: new FormControl<string>('', {
+        nonNullable: true,
+        validators: [(control) => Validators.maxLength(50)(control)],
+        updateOn: 'change',
+      }),
     };
   }
 }
