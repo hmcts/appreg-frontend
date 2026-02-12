@@ -30,5 +30,7 @@ describe('DateTimePipe', () => {
   it('returns the original input when month is out of range', () => {
     expect(pipe.transform('2025-00-24')).toBe('2025-00-24');
     expect(pipe.transform('2025-13-24')).toBe('2025-13-24');
+    expect(pipe.transform('2025-13-32')).toBe('2025-13-32');
+    expect(pipe.transform('2025-13-00')).toBe('2025-13-00');
   });
 });

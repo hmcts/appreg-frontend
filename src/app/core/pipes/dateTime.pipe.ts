@@ -24,9 +24,10 @@ export class DateTimePipe implements PipeTransform {
     }
 
     const monthNum = Number.parseInt(match[2], 10);
+    const dayNum = Number.parseInt(match[3], 10);
 
     // Return original string if date is out of range
-    if (monthNum < 1 || monthNum > 12) {
+    if (monthNum < 1 || monthNum > 12 || dayNum < 1 || dayNum > 31) {
       return value;
     }
 
