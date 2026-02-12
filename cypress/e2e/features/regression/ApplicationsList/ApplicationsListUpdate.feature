@@ -146,7 +146,7 @@ Feature: Applications List Update
             | User  | TableName | DisplayDate | Time  | InvalidTime1 | InvalidTime2 | InvalidTime3 | UpdatedTime | Court  | courtLocation                 | Description   | Entries | InvalidStatus | Status | ButtonName | InvalidSearchDate | SearchDate | UpdatedSearchDate | SelectButtonText | OtherLocation | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText | InvalidHH | InvalidMM | UpdatedHH | UpdatedMM |
             | user1 | Lists     | 2025-12-11  | 16:05 | 44:*SKIP*    | *SKIP*:00    | 46:70        | 16:30       | RCJ001 | Royal Courts of Justice Set 1 | Test_11122025 | 0       | Choose status | OPEN   | Open       | 32/13/2025        | 11/12/2025 | 12/12/2025        | Select           |               |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     | A1        | C3        | 12        | 45        |
 
-    @regression @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-852 @PJ
+    @regression @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-852
     Scenario Outline: Update applications list Successfully with Court selected and field validations for Other location and CJA
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:

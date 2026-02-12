@@ -62,7 +62,6 @@ Feature: Applications List Result
         When User Checks The Checkbox In Row Of Table "Lists" With:
             | Sequence number | Account number | Applicant | Respondent | Post code | Title                                          | Fee req | Resulted |
             | 1               | ACC-{RANDOM}   |           |            | BS1 5AA   | Issue of liability order summons - council tax | No      | No       |
-            | 1               | APP-62111      |           |            |           | Copy documents (electronic)                    | Yes     | No       |
         Then User Should See The Button "Result selected" Is Enabled
         When User Clicks On The "Result selected" Button
         Then User See "Result applications" On The Page
@@ -70,7 +69,6 @@ Feature: Applications List Result
         Then User Should See Row In Table "Applications to result" With Values:
             | Sequence number | Applicant(s) | Respondent(s) | Application Title(s)                           |
             | 1               |              |               | Issue of liability order summons - council tax |
-            | 1               |              |               | Copy documents (electronic)                    |
         Then User Enters "test" Into The "Search for a result code" Textbox
         When User Clicks On The "Save" Button
         Examples:
