@@ -33,7 +33,6 @@ export function mapToRow(dto: EntryGetSummaryDto): ApplicationRow {
   return {
     id: dto.id,
     date: dto.date ?? '',
-    dateDisplay: dto.date ?? '',
     applicant: applicantLikeDisplay(dto.applicant),
     respondent: applicantLikeDisplay(dto.respondent),
     title: dto.applicationTitle ?? '',
