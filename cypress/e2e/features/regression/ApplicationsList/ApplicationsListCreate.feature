@@ -4,7 +4,7 @@ Feature: Applications List Create
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Create new list"
-    Then User Clicks On The Breadcrumb Link 'Applications list'
+    Then User Clicks On The Breadcrumb Link "Applications list"
     Then User Clicks On The Link "Create new list"
     Then User Should See The Date Field "Date"
     When User Set Date Field "Date" To "<Date>"
@@ -35,7 +35,7 @@ Feature: Applications List Create
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Create new list"
-    Then User Clicks On The Breadcrumb Link 'Applications list'
+    Then User Clicks On The Breadcrumb Link "Applications list"
     Then User Clicks On The Link "Create new list"
     Then User Should See The Date Field "Date"
     When User Set Date Field "Date" To "<Date>"
@@ -69,14 +69,14 @@ Feature: Applications List Create
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Create new list"
-    Then User Clicks On The Breadcrumb Link 'Applications list'
+    Then User Clicks On The Breadcrumb Link "Applications list"
     Then User Clicks On The Link "Create new list"
     When User Clicks On The "Create" Button
     Then User Sees Validation Error "There is a problem Enter day, month and year Enter hours and minutes Description is required Other location is required CJA is required Court is required"
     Then User Should See The Date Field "Date"
     When User Set Date Field "Date" To "<InvalidDate>"
     When User Clicks On The "Create" Button
-    Then User Sees Notification Banner "There is a problem Enter a real date Enter hours and minutes Description is required Other location is required CJA is required Court is required"
+    Then User Sees Notification Banner "There is a problem Enter a valid date Enter hours and minutes Description is required Other location is required CJA is required Court is required"
     When User Set Date Field "Date" To "<ValidDate>"
     When User Clicks On The "Create" Button
     Then User Sees Validation Error "There is a problem Enter hours and minutes Description is required Other location is required CJA is required Court is required"
