@@ -45,7 +45,7 @@
               Enter year
             }
           } @else if (dateForm.errors?.['dateInvalid']) {
-            {{ dateForm.errors?.['dateErrorText'] ?? 'Enter a real date' }}
+            {{ dateForm.errors?.['dateErrorText'] ?? 'Enter a valid date' }}
           }
         </p>
       }

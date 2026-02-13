@@ -33,13 +33,30 @@ Then(
 
     // Verify each row in the data table
     for (const row of rows) {
-      TableSearch.verifyRowExists(tableCaption, row);
+      TableSearch.verifyRowExists(row, tableCaption);
       cy.screenshot(
         `table-row-${tableCaption}-${Object.values(row).join('-')}`,
       );
     }
   },
 );
+
+/**
+ * Verifies that a row exists in any table (without caption) with the specified column values
+ */
+Then('User Should See Row In Table With Values:', (dataTable: DataTable) => {
+  const rows = dataTable.hashes();
+
+  if (rows.length === 0) {
+    throw new Error('DataTable must have at least one row of data');
+  }
+
+  // Verify each row in the data table
+  for (const row of rows) {
+    TableSearch.verifyRowExists(row);
+    cy.screenshot(`table-row-${Object.values(row).join('-')}`);
+  }
+});
 
 /**
  * Verifies that a specific header is NOT sortable
@@ -171,7 +188,7 @@ Then(
 
     // Verify each row in the data table
     for (const row of rows) {
-      TableSearch.hasNoRowWithValues(tableCaption, row);
+      TableSearch.hasNoRowWithValues(row, tableCaption);
     }
   },
 );

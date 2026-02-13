@@ -1,28 +1,38 @@
 export class TableElement {
   /**
-   * Finds a table by its caption text
-   * @param caption The caption text of the table
+   * Finds a table by its caption text or returns the first table if no caption provided
+   * @param caption Optional caption text of the table
+   */
+  static findTable(caption?: string): Cypress.Chainable {
+    if (caption) {
+      return cy
+        .contains('caption', caption, { matchCase: false })
+        .parent('table');
+    }
+    return cy.get('table').first();
+  }
+
+  /**
+   * @deprecated Use findTable() instead
    */
   static findTableByCaption(caption: string): Cypress.Chainable {
-    return cy
-      .contains('caption', caption, { matchCase: false })
-      .parent('table');
+    return this.findTable(caption);
   }
 
   /**
    * Gets table headers from a table
-   * @param tableCaption The caption text of the table
+   * @param tableCaption Optional caption text of the table. If not provided, uses first table.
    */
-  static getTableHeaders(tableCaption: string): Cypress.Chainable {
-    return this.findTableByCaption(tableCaption).find('thead th');
+  static getTableHeaders(tableCaption?: string): Cypress.Chainable {
+    return this.findTable(tableCaption).find('thead th');
   }
 
   /**
    * Gets all rows from table body
-   * @param tableCaption The caption text of the table
+   * @param tableCaption Optional caption text of the table. If not provided, uses first table.
    */
-  static getTableRows(tableCaption: string): Cypress.Chainable {
-    return this.findTableByCaption(tableCaption).find('tbody tr');
+  static getTableRows(tableCaption?: string): Cypress.Chainable {
+    return this.findTable(tableCaption).find('tbody tr');
   }
 
   /**
