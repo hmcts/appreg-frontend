@@ -228,9 +228,7 @@ export class TableSearch {
       .join(', ');
 
     const tableRef = caption ? `table "${caption}"` : 'table';
-    cy.log(
-      `Verifying NO row exists in ${tableRef} with: ${searchCriteria}`,
-    );
+    cy.log(`Verifying NO row exists in ${tableRef} with: ${searchCriteria}`);
 
     return TableSearch.findRowWithValues(columnValues, caption, true).then(
       (found) => {
