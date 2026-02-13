@@ -28,7 +28,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import {
   ApplicationsListDetailListDetailsComponent,
   closeValidationEntries,
-} from './applications-list-detail-list-details/applications-list-detail-list-details.component';
+} from './applications-list-update/applications-list-update.component';
 import {
   ApplicationsListDetailState,
   initialApplicationsListDetailState,

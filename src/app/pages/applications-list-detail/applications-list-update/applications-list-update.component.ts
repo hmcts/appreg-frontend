@@ -70,7 +70,7 @@ import { CloseValidationEntry } from '@validators/applications-list-close.valida
     SelectInputComponent,
     SuggestionsComponent,
   ],
-  templateUrl: './applications-list-detail-list-details.component.html',
+  templateUrl: './applications-list-update.component.html',
 })
 export class ApplicationsListDetailListDetailsComponent implements OnInit {
   private readonly envInjector = inject(EnvironmentInjector);
@@ -260,7 +260,7 @@ export class ApplicationsListDetailListDetailsComponent implements OnInit {
   }
 
   closeErrorText(): string {
-    return 'Can not close this list due to the following errors.';
+    return 'You cannot close this list. See the error summary for details.';
   }
 
   // If we are trying to close the list, we need duration fields to be filled
