@@ -74,7 +74,7 @@ export function courtLocCjaValidator(opts?: {
       'locationRequired',
       !hasCourt && hasCja && !hasLoc,
     );
-    setControlError(ctrl, 'cja', 'cjaRequired', !hasCourt && !hasCja);
+    setControlError(ctrl, 'cja', 'cjaRequired', !hasCourt && hasLoc && !hasCja);
 
     // Single “rule” error (anchor on court)
     setControlError(ctrl, 'court', 'courtOrLocCjaRequired', !valid);

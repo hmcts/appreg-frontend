@@ -38,6 +38,7 @@ import {
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { toStatus } from '@util/application-status-helpers';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
+import { buildFormErrorSummary } from '@util/error-summary';
 import { has } from '@util/has';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
@@ -78,6 +79,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   private readonly patchApp = this.appState.patch;
 
   readonly tableRows = computed(() => this.vm().rows.map(mapToRow));
+
+  private readonly errorMap = APPLICATIONS_ERROR_MAP;
 
   override form = new FormGroup(
     {
@@ -305,39 +308,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     return filter;
   }
 
-  private readonly errorMap = APPLICATIONS_ERROR_MAP;
-
-  private keys<T extends object>(o: T): (keyof T)[] {
-    return Object.keys(o) as (keyof T)[];
-  }
-
   private buildErrorSummary(): ErrorItem[] {
-    const items: ErrorItem[] = [];
-
-    for (const controlName of this.keys(this.errorMap)) {
-      const ctrl = this.form.get(controlName as string);
-      if (!ctrl?.errors) {
-        continue;
-      }
-
-      const msgMap = this.errorMap[controlName];
-
-      for (const k of Object.keys(ctrl.errors)) {
-        // only accept keys that exist in the message map
-        if (!(k in msgMap)) {
-          continue;
-        }
-
-        const errorKey = k as keyof typeof msgMap;
-        items.push({
-          id: String(controlName),
-          text: msgMap[errorKey],
-          href: `#${String(controlName)}`,
-        });
-      }
-    }
-
-    return items;
+    return buildFormErrorSummary(this.form, this.errorMap);
   }
 
   isControlInvalid<C extends ControlName>(controlName: C): boolean {

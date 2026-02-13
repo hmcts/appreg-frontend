@@ -531,7 +531,7 @@ describe('ApplicationsList – search', () => {
         { href: '#date', id: 'date', text: 'Enter a valid date' },
         {
           href: '#time-hours',
-          id: 'time-hours',
+          id: 'time',
           text: 'Enter a valid duration between 00:00 and 23:59',
         },
       ]);

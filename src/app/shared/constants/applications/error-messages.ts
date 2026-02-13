@@ -11,9 +11,9 @@ export const APPLICATIONS_ERROR_MAP: {
   date: { dateInvalid: 'Enter a valid date' },
   respondentPostcode: { postcode: 'Enter a valid UK postcode' },
   court: {
-    courtNotFound: 'Court Location not found',
+    courtNotFound: 'Court location not found',
   },
   cja: {
-    cjaNotFound: 'Criminal Justice Area not found',
+    cjaNotFound: 'Criminal justice area not found',
   },
 };

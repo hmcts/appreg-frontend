@@ -41,10 +41,10 @@ export const APPLICATIONS_LIST_FORM_ERROR_MESSAGES = {
     durationInvalid: 'Enter a valid duration between 00:00 and 23:59',
   },
   cja: {
-    cjaNotFound: 'Criminal Justice Area not found',
+    cjaNotFound: 'Criminal justice area not found',
   },
   court: {
-    courtNotFound: 'Court Location not found',
+    courtNotFound: 'Court location not found',
   },
 };
 
@@ -62,9 +62,10 @@ export const APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES = {
     maxlength: 'Description must be 200 characters or fewer',
   },
   court: {
-    courtOrLocCjaRequired: 'Enter a court, or an other location and CJA',
+    courtOrLocCjaRequired:
+      'Enter a court, or an other location and criminal justice area',
     courtRequired: 'Court is required',
-    courtNotFound: 'Court Location not found',
+    courtNotFound: 'Court location not found',
     maxlength: 'Court must be 50 characters or fewer',
   },
   location: {
@@ -72,10 +73,10 @@ export const APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES = {
     maxlength: 'Location must be 200 characters or fewer',
   },
   cja: {
-    cjaNotFound: 'Criminal Justice Area not found',
-    cjaRequired: 'CJA is required',
-    requiredIfOtherLocation: 'CJA is required',
-    maxlength: 'CJA must be 50 characters or fewer',
+    cjaNotFound: 'Criminal justice area not found',
+    cjaRequired: 'Criminal justice area is required',
+    requiredIfOtherLocation: 'Criminal justice area is required',
+    maxlength: 'Criminal justice area must be 50 characters or fewer',
   },
 } as const;
 

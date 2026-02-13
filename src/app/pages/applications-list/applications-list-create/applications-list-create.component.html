@@ -52,7 +52,6 @@
       hint="A description of the application list"
       idPrefix="description"
       [submitted]="vm().submitted"
-      [charLimit]="200"
     />
 
     <!-- Court -->
@@ -84,7 +83,6 @@
       hint="Other location description"
       idPrefix="location"
       [submitted]="vm().submitted && !!form.get('cja')?.value"
-      [charLimit]="200"
     />
 
     <!-- CJA -->

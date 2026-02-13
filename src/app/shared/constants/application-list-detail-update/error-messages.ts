@@ -12,21 +12,26 @@ export const DETAIL_FIELD_MESSAGES = {
   },
   description: {
     required: 'Enter a description',
+    maxlength: 'Description must be 200 characters or fewer',
   },
   status: {
     required: 'Select a status',
   },
   court: {
-    courtOrLocCjaRequired: 'Enter a court, or an other location and CJA',
+    courtOrLocCjaRequired:
+      'Enter a court, or an other location and criminal justice area',
     courtRequired: 'Court is required',
     courtNotFound: APPLICATIONS_LIST_FORM_ERROR_MESSAGES.court.courtNotFound,
+    maxlength: 'Court must be 50 characters or fewer',
   },
   location: {
     locationRequired: 'Other location is required',
+    maxlength: 'Location must be 200 characters or fewer',
   },
   cja: {
-    cjaRequired: 'CJA is required',
+    cjaRequired: 'Criminal justice area is required',
     cjaNotFound: APPLICATIONS_LIST_FORM_ERROR_MESSAGES.cja.cjaNotFound,
+    maxlength: 'Criminal justice area must be 50 characters or fewer',
   },
   duration: {
     durationInvalid: 'Enter a valid duration: Hours 0-99, Mins 0-59',

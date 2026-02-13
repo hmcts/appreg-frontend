@@ -2,7 +2,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 
 import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
 
-describe('courtLocCjaValidator (create rule)', () => {
+describe('courtLocCjaValidator (create/update rule)', () => {
   const mkForm = () =>
     new FormGroup({
       court: new FormControl<string>(''),
@@ -15,7 +15,7 @@ describe('courtLocCjaValidator (create rule)', () => {
     expect(v(new FormControl('x'))).toBeNull();
   });
 
-  it('when all empty: sets courtOrLocCjaRequired and cjaRequired, but NOT locationRequired', () => {
+  it('when all empty: sets courtOrLocCjaRequired, but NOT locationRequired or cjaRequired', () => {
     const form = mkForm();
     const v = courtLocCjaValidator();
 
@@ -23,30 +23,24 @@ describe('courtLocCjaValidator (create rule)', () => {
 
     expect(res).toBeNull();
 
-    // locationRequired only when CJA present
     expect(form.controls.location.errors).toBeNull();
-
-    // unchanged behaviour (assuming your validator still sets this when court is not used)
-    expect(form.controls.cja.errors).toEqual({ cjaRequired: true });
-
+    expect(form.controls.cja.errors).toBeNull();
     expect(form.controls.court.errors).toEqual({ courtOrLocCjaRequired: true });
   });
 
-  it('when location provided only (no court): does NOT set locationRequired, keeps cjaRequired, keeps courtOrLocCjaRequired', () => {
+  it('when location provided only (no court): sets cjaRequired, keeps courtOrLocCjaRequired, does NOT set locationRequired', () => {
     const form = mkForm();
     form.controls.location.setValue('Somewhere');
 
     const v = courtLocCjaValidator();
     v(form);
 
-    // because CJA not present, locationRequired should not appear
     expect(form.controls.location.errors).toBeNull();
-
     expect(form.controls.cja.errors).toEqual({ cjaRequired: true });
     expect(form.controls.court.errors).toEqual({ courtOrLocCjaRequired: true });
   });
 
-  it('when cja provided only (no court): clears cjaRequired, sets locationRequired, keeps courtOrLocCjaRequired', () => {
+  it('when cja provided only (no court): sets locationRequired, clears cjaRequired, keeps courtOrLocCjaRequired', () => {
     const form = mkForm();
     form.controls.cja.setValue('ABC');
 
@@ -83,6 +77,7 @@ describe('courtLocCjaValidator (create rule)', () => {
     const v = courtLocCjaValidator();
     v(form);
 
+    // our keys cleared, "other" preserved
     expect(form.controls.location.errors).toEqual({ other: true });
     expect(form.controls.cja.errors).toEqual({ other: true });
     expect(form.controls.court.errors).toEqual({ other: true });
@@ -96,12 +91,8 @@ describe('courtLocCjaValidator (create rule)', () => {
     const v = courtLocCjaValidator();
     v(form);
 
-    // no cja => locationRequired should NOT show
     expect(form.controls.location.errors).toBeNull();
-
-    // unchanged behaviour: cjaRequired still shows when court not used
-    expect(form.controls.cja.errors).toEqual({ cjaRequired: true });
-
+    expect(form.controls.cja.errors).toBeNull();
     expect(form.controls.court.errors).toEqual({ courtOrLocCjaRequired: true });
   });
 
@@ -164,6 +155,7 @@ describe('courtLocCjaValidator (create rule)', () => {
       courtLocCjaConflict: true,
     });
 
+    // fix the conflict by clearing location
     form.controls.location.setValue('');
     v(form);
 

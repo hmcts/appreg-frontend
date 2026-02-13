@@ -2,71 +2,88 @@ import { Injectable } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { Duration } from '@components/duration-input/duration-input.component';
-import { ApplicationsListFormControls } from '@shared-types/applications-list/applications-list-form';
+import {
+  ApplicationsListFormControls,
+  ApplicationsListUpdateFormControls,
+} from '@shared-types/applications-list/applications-list-form';
 
 type BuildOptions = {
-  status: string | null;
+  mode: 'search' | 'create' | 'update';
   placeUpdateOnChange?: boolean;
 };
 
 @Injectable({ providedIn: 'root' })
 export class ApplicationsListFormService {
   createSearchForm(): FormGroup<ApplicationsListFormControls> {
-    return new FormGroup(this.buildControls({ status: null }));
+    return new FormGroup(this.buildControls({ mode: 'search' }));
   }
 
   createCreateForm(): FormGroup<ApplicationsListFormControls> {
-    return new FormGroup(this.buildControlsForCreate(), { updateOn: 'submit' });
+    return new FormGroup(this.buildControls({ mode: 'create' }), {
+      updateOn: 'submit',
+    });
+  }
+
+  createUpdateForm(): FormGroup<ApplicationsListUpdateFormControls> {
+    return new FormGroup(
+      {
+        ...this.buildControls({ mode: 'update' }),
+        duration: new FormControl<Duration | null>(null),
+      },
+      { updateOn: 'submit' },
+    );
   }
 
   private buildControls(opts: BuildOptions): ApplicationsListFormControls {
-    const placeOpts = opts.placeUpdateOnChange
-      ? { updateOn: 'change' as const }
-      : undefined;
+    if (opts.mode === 'search') {
+      // keep search loose
+      const placeOpts = opts.placeUpdateOnChange
+        ? { updateOn: 'change' as const }
+        : undefined;
 
-    return {
-      date: new FormControl<string | null>(null),
-      time: new FormControl<Duration | null>(null),
-      description: new FormControl<string>('', { nonNullable: true }),
-      status: new FormControl<string | null>(opts.status),
-      court: new FormControl<string>('', { nonNullable: true, ...placeOpts }),
-      location: new FormControl<string>('', {
-        nonNullable: true,
-        ...placeOpts,
-      }),
-      cja: new FormControl<string>('', { nonNullable: true, ...placeOpts }),
-    };
-  }
+      return {
+        date: new FormControl<string | null>(null),
+        time: new FormControl<Duration | null>(null),
+        description: new FormControl<string>('', { nonNullable: true }),
+        status: new FormControl<string | null>(null),
+        court: new FormControl<string>('', { nonNullable: true, ...placeOpts }),
+        location: new FormControl<string>('', {
+          nonNullable: true,
+          ...placeOpts,
+        }),
+        cja: new FormControl<string>('', { nonNullable: true, ...placeOpts }),
+      };
+    }
 
-  private buildControlsForCreate(): ApplicationsListFormControls {
+    // shared create/update rules
     return {
       date: new FormControl<string | null>(null, {
-        validators: [(control) => Validators.required(control)],
+        validators: [(c) => Validators.required(c)],
       }),
       time: new FormControl<Duration | null>(null, {
-        validators: [(control) => Validators.required(control)],
+        validators: [(c) => Validators.required(c)],
       }),
       description: new FormControl<string>('', {
         nonNullable: true,
-        validators: [
-          (control) => Validators.required(control),
-          (control) => Validators.maxLength(200)(control),
-        ],
+        validators: [(c) => Validators.required(c), Validators.maxLength(200)],
       }),
-      status: new FormControl<string | null>('open'),
+      status: new FormControl<string | null>(
+        opts.mode === 'create' ? 'open' : null,
+        { validators: [(c) => Validators.required(c)] },
+      ),
       court: new FormControl<string>('', {
         nonNullable: true,
-        validators: [(control) => Validators.maxLength(50)(control)],
+        validators: [Validators.maxLength(50)],
         updateOn: 'change',
       }),
       location: new FormControl<string>('', {
         nonNullable: true,
-        validators: [(control) => Validators.maxLength(200)(control)],
+        validators: [Validators.maxLength(200)],
         updateOn: 'change',
       }),
       cja: new FormControl<string>('', {
         nonNullable: true,
-        validators: [(control) => Validators.maxLength(50)(control)],
+        validators: [Validators.maxLength(50)],
         updateOn: 'change',
       }),
     };

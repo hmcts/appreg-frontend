@@ -85,6 +85,7 @@ import {
   SearchFormValue,
 } from '@services/searchform/application-list-search-form.service';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
+import { buildFormErrorSummary } from '@util/error-summary';
 import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
@@ -343,43 +344,16 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     );
   }
 
-  private keys<T extends object>(o: T): (keyof T)[] {
-    return Object.keys(o) as (keyof T)[];
-  }
-
   fieldError(id: string): ErrorItem | undefined {
     return this.vm().searchErrors.find((e) => e.id === id);
   }
 
   private buildErrorSummary(): ErrorItem[] {
-    const items: ErrorItem[] = [];
-
-    for (const controlName of this.keys(this.errorMap)) {
-      const ctrl = this.form.get(String(controlName));
-      if (!ctrl?.errors) {
-        continue;
-      }
-
-      const msgMap = this.errorMap[controlName];
-
-      for (const k of Object.keys(ctrl.errors)) {
-        if (!(k in msgMap)) {
-          continue;
-        }
-
-        const errorKey = k as keyof typeof msgMap;
-        const controlId =
-          controlName === 'time' ? 'time-hours' : String(controlName);
-
-        items.push({
-          id: String(controlId),
-          href: `#${String(controlId)}`,
-          text: msgMap[errorKey],
-        });
-      }
-    }
-
-    return items;
+    return buildFormErrorSummary(this.form, this.errorMap, {
+      hrefs: {
+        time: '#time-hours',
+      },
+    });
   }
 
   onSubmit(event: SubmitEvent): void {

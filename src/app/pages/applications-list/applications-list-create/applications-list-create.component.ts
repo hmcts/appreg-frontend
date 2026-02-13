@@ -42,6 +42,7 @@ import { ApplicationsListFormService } from '@services/applications-list-form.se
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { buildNormalizedPayload } from '@util/build-payload';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
+import { buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
@@ -185,33 +186,10 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
   }
 
   private buildErrorSummary(): ErrorItem[] {
-    const items: ErrorItem[] = [];
-
-    for (const controlName of this.keys(this.errorMap)) {
-      const ctrl = this.form.get(String(controlName));
-      if (!ctrl?.errors) {
-        continue;
-      }
-
-      const msgMap = this.errorMap[controlName];
-
-      for (const k of Object.keys(ctrl.errors)) {
-        if (!(k in msgMap)) {
-          continue;
-        }
-
-        const errorKey = k as keyof typeof msgMap;
-        const controlId =
-          controlName === 'time' ? 'time-hours' : String(controlName);
-
-        items.push({
-          id: String(controlId),
-          href: `#${String(controlId)}`,
-          text: msgMap[errorKey],
-        });
-      }
-    }
-
-    return items;
+    return buildFormErrorSummary(this.form, this.errorMap, {
+      hrefs: {
+        time: '#time-hours',
+      },
+    });
   }
 }
