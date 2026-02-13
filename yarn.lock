@@ -245,15 +245,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular-devkit/architect@npm:0.2101.3":
-  version: 0.2101.3
-  resolution: "@angular-devkit/architect@npm:0.2101.3"
+"@angular-devkit/architect@npm:0.2101.4":
+  version: 0.2101.4
+  resolution: "@angular-devkit/architect@npm:0.2101.4"
   dependencies:
-    "@angular-devkit/core": "npm:21.1.3"
+    "@angular-devkit/core": "npm:21.1.4"
     rxjs: "npm:7.8.2"
   bin:
     architect: bin/cli.js
-  checksum: 10/2aba8ea4aaca39a3c28bcf7a98a1e276a5c19f8e393ed139cdba8c3649ab192b7988908450d0b4592b22ece3e6f86da432e75a4844b338e3d769bf1c5729d25e
+  checksum: 10/6b272143a56d95770f1b33ccb90e2ad5be36660663faf7585b732b0de4d398ba7051e01b7d0bc9e8cf7503c6f2f6fe50458ab506664ed03cd10987532cfd46e3
   languageName: node
   linkType: hard
 
@@ -305,9 +305,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular-devkit/core@npm:21.1.3":
-  version: 21.1.3
-  resolution: "@angular-devkit/core@npm:21.1.3"
+"@angular-devkit/core@npm:21.1.4":
+  version: 21.1.4
+  resolution: "@angular-devkit/core@npm:21.1.4"
   dependencies:
     ajv: "npm:8.17.1"
     ajv-formats: "npm:3.0.1"
@@ -320,20 +320,20 @@ __metadata:
   peerDependenciesMeta:
     chokidar:
       optional: true
-  checksum: 10/cde3e9c14d60aca693298e53c4ec6c7305018feaada9dd666d708fd67ad7de1903a0093489ebb1354fa95b6fb5c337168499a40454d551326a88b1ba533d77ef
+  checksum: 10/648460e76078668bb11e5ead5fc7e0875d9c35680477e177562c7faf89de28ee7e4767e2364004947621ffebb63a7f31ed6cf8b9e834c5f1bbfb933bf27f2b86
   languageName: node
   linkType: hard
 
-"@angular-devkit/schematics@npm:21.1.3":
-  version: 21.1.3
-  resolution: "@angular-devkit/schematics@npm:21.1.3"
+"@angular-devkit/schematics@npm:21.1.4":
+  version: 21.1.4
+  resolution: "@angular-devkit/schematics@npm:21.1.4"
   dependencies:
-    "@angular-devkit/core": "npm:21.1.3"
+    "@angular-devkit/core": "npm:21.1.4"
     jsonc-parser: "npm:3.3.1"
     magic-string: "npm:0.30.21"
     ora: "npm:9.0.0"
     rxjs: "npm:7.8.2"
-  checksum: 10/d4f5fbe6c65d16b06578a7b638aaf489c9944c2323ddca170bff4250a79f78419a438bb18f2df124c9186fb7d70ee4c29bf1a3fcc5504e6dec186e0bb213e62d
+  checksum: 10/90aa380c14cc4013e293edcedc301752862184b67a49bba461d954c42fde24101ad9f67951e583f4ec05e1da3e3aa0384933c48d927456b24cab7bada2473ba0
   languageName: node
   linkType: hard
 
@@ -484,16 +484,16 @@ __metadata:
   linkType: hard
 
 "@angular/cli@npm:^21.0.5":
-  version: 21.1.3
-  resolution: "@angular/cli@npm:21.1.3"
+  version: 21.1.4
+  resolution: "@angular/cli@npm:21.1.4"
   dependencies:
-    "@angular-devkit/architect": "npm:0.2101.3"
-    "@angular-devkit/core": "npm:21.1.3"
-    "@angular-devkit/schematics": "npm:21.1.3"
+    "@angular-devkit/architect": "npm:0.2101.4"
+    "@angular-devkit/core": "npm:21.1.4"
+    "@angular-devkit/schematics": "npm:21.1.4"
     "@inquirer/prompts": "npm:7.10.1"
     "@listr2/prompt-adapter-inquirer": "npm:3.0.5"
     "@modelcontextprotocol/sdk": "npm:1.26.0"
-    "@schematics/angular": "npm:21.1.3"
+    "@schematics/angular": "npm:21.1.4"
     "@yarnpkg/lockfile": "npm:1.1.0"
     algoliasearch: "npm:5.46.2"
     ini: "npm:6.0.0"
@@ -508,7 +508,7 @@ __metadata:
     zod: "npm:4.3.5"
   bin:
     ng: bin/ng.js
-  checksum: 10/a55f23cd19e8e9a2d148ba847907661d6c43276e53252ab30052636c6ce0dd91e9701eb0df31649144caecf8d8e1ec6fe55d07fba6daa114e618387e43bf73ec
+  checksum: 10/58cf41e7fa9ae9e5933bc9714a21cba0fd8d846fd16e035c5be17cc8003272efd1031ed9891f22e4fe04d14511805abcb05bc207a560478918945747c2be6271
   languageName: node
   linkType: hard
 
@@ -5417,14 +5417,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@schematics/angular@npm:21.1.3":
-  version: 21.1.3
-  resolution: "@schematics/angular@npm:21.1.3"
+"@schematics/angular@npm:21.1.4":
+  version: 21.1.4
+  resolution: "@schematics/angular@npm:21.1.4"
   dependencies:
-    "@angular-devkit/core": "npm:21.1.3"
-    "@angular-devkit/schematics": "npm:21.1.3"
+    "@angular-devkit/core": "npm:21.1.4"
+    "@angular-devkit/schematics": "npm:21.1.4"
     jsonc-parser: "npm:3.3.1"
-  checksum: 10/89c0c78dbeff8dbfeb2951aaad1a0a40aa06a69e4a2884c88e063a060e5727189937b58204d613c675ef8875cbf9b3189a5f8a0eabccb9d907b61a366dd061c4
+  checksum: 10/4ebfd375638e1a885fdd4cd3af41b08c894e1f9bb99d76377643b08931449b0ccc253932c413d41cc44097a6ffe49ade3ab3eca766849d3e3ca2dff09ee43598
   languageName: node
   linkType: hard
 
