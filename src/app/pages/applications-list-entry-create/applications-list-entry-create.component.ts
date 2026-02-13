@@ -241,9 +241,7 @@ export class ApplicationsListEntryCreate implements OnInit {
               this.resetSectionsOnApplicationCodeChange();
             }
           },
-          error: (err) => {
-            console.error('Error fetching code detail:', err);
-          },
+          error: () => {},
         });
     }
   }
