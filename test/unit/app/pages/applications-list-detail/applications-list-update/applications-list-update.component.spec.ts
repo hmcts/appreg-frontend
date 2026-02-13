@@ -2,9 +2,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, FormGroup } from '@angular/forms';
 
 import {
-  ApplicationsListDetailListDetailsComponent,
+  ApplicationsListUpdateComponent,
   closeValidationEntries,
-} from '@components/applications-list-detail/applications-list-detail-list-details/applications-list-detail-list-details.component';
+} from '@components/applications-list-detail/applications-list-update/applications-list-update.component';
 import { ApplicationsListDetailState } from '@components/applications-list-detail/util/applications-list-detail.state';
 import {
   ApplicationCodesApi,
@@ -16,8 +16,8 @@ import {
 import { PlaceFieldsState } from '@util/place-fields.base';
 
 describe('ApplicationsListDetailListDetailsComponent', () => {
-  let component: ApplicationsListDetailListDetailsComponent;
-  let fixture: ComponentFixture<ApplicationsListDetailListDetailsComponent>;
+  let component: ApplicationsListUpdateComponent;
+  let fixture: ComponentFixture<ApplicationsListUpdateComponent>;
 
   const mkForm = () =>
     new FormGroup({
@@ -59,7 +59,7 @@ describe('ApplicationsListDetailListDetailsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ApplicationsListDetailListDetailsComponent],
+      imports: [ApplicationsListUpdateComponent],
       providers: [
         {
           provide: ApplicationListEntriesApi,
@@ -72,9 +72,7 @@ describe('ApplicationsListDetailListDetailsComponent', () => {
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(
-      ApplicationsListDetailListDetailsComponent,
-    );
+    fixture = TestBed.createComponent(ApplicationsListUpdateComponent);
     component = fixture.componentInstance;
     fixture.componentRef.setInput('form', mkForm());
     fixture.componentRef.setInput('statusOptions', []);
@@ -99,7 +97,7 @@ describe('ApplicationsListDetailListDetailsComponent', () => {
 
     expect(component.hasCloseErrors()).toBe(true);
     expect(component.closeErrorText()).toBe(
-      'Can not close this list due to the following errors.',
+      'You cannot close this list. See the error summary for details.',
     );
   });
 

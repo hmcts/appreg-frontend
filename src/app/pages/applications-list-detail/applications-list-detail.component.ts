@@ -26,7 +26,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import {
-  ApplicationsListDetailListDetailsComponent,
+  ApplicationsListUpdateComponent,
   closeValidationEntries,
 } from './applications-list-update/applications-list-update.component';
 import {
@@ -83,7 +83,7 @@ import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
     ErrorSummaryComponent,
     SuccessBannerComponent,
     PageHeaderComponent,
-    ApplicationsListDetailListDetailsComponent,
+    ApplicationsListUpdateComponent,
     SelectableSortableTableComponent,
     PaginationComponent,
     NotificationBannerComponent,

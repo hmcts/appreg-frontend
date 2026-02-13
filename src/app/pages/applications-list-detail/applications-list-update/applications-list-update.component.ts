@@ -72,7 +72,7 @@ import { CloseValidationEntry } from '@validators/applications-list-close.valida
   ],
   templateUrl: './applications-list-update.component.html',
 })
-export class ApplicationsListDetailListDetailsComponent implements OnInit {
+export class ApplicationsListUpdateComponent implements OnInit {
   private readonly envInjector = inject(EnvironmentInjector);
   private readonly appListEntryApi = inject(ApplicationListEntriesApi);
   private readonly appCodesApi = inject(ApplicationCodesApi);
