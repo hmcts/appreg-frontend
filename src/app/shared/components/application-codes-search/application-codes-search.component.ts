@@ -121,7 +121,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
           this.loading = false;
           this.cdr.markForCheck();
         },
-        error: (err) => {
+        error: () => {
           this.loading = false;
           this.cdr.markForCheck();
           // this.applyMappedError(err);

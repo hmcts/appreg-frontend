@@ -44,29 +44,6 @@
     </button>
   </div>
 
-  <!-- @if (!codesLoading && codesRows.length === 0) {
-    <app-notification-banner
-      heading="No codes found"
-      body="Try different filters, or retry the search."
-    />
-  } @else {
-    <app-sortable-table
-      id="codes-table"
-      caption="Codes"
-      [columns]="codesColumns"
-      [data]="codesRows"
-      appMojButtonMenu
-    >
-      <ng-template #actionsTemplate let-row>
-        <div class="govuk-button-group">
-          <button type="button" class="govuk-button" (click)="onAddCode(row)">
-            Add code
-          </button>
-        </div>
-      </ng-template>
-    </app-sortable-table>
-  } -->
-
   @if (loading) {
     <p class="govuk-body">Searching…</p>
   } @else if (errored) {
@@ -112,35 +89,6 @@
           </div>
         </ng-template>
       </app-sortable-table>
-
-      <!-- <table class="govuk-table">
-        <thead class="govuk-table__head">
-          <tr class="govuk-table__row">
-            <th scope="col" class="govuk-table__header">Code</th>
-            <th scope="col" class="govuk-table__header">Title</th>
-            <th scope="col" class="govuk-table__header">Action</th>
-          </tr>
-        </thead>
-        <tbody class="govuk-table__body">
-          @for (r of results; track r.applicationCode) {
-            <tr class="govuk-table__row">
-              <td class="govuk-table__cell">
-                <code>{{ r.applicationCode }}</code>
-              </td>
-              <td class="govuk-table__cell">{{ r.title || '—' }}</td>
-              <td class="govuk-table__cell">
-                <button
-                  type="button"
-                  class="govuk-button govuk-button--secondary"
-                  (click)="choose(r)"
-                >
-                  Select
-                </button>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table> -->
     }
   }
 </fieldset>
