@@ -205,7 +205,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     },
     {
       validators: [
-        courtLocCjaValidator(),
+        courtLocCjaValidator({
+          getCourtTyped: () => this.state().courthouseSearch ?? '',
+          getCjaTyped: () => this.state().cjaSearch ?? '',
+        }),
         courtMustExistIfTypedValidator({
           getTyped: () => this.state().courthouseSearch ?? '',
           getValidCodes: () =>

@@ -99,7 +99,10 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
 
     //Attach validators
     this.form.addValidators([
-      courtLocCjaValidator(),
+      courtLocCjaValidator({
+        getCourtTyped: () => this.state().courthouseSearch ?? '',
+        getCjaTyped: () => this.state().cjaSearch ?? '',
+      }),
       cjaMustExistIfTypedValidator({
         getTyped: () => this.state().cjaSearch ?? '',
         getValidCodes: () => this.state().cja.map((x) => x.code),

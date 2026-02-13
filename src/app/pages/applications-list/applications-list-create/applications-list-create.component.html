@@ -31,7 +31,7 @@
       label="Date"
       hint="For example, 27 3 2007"
       idPrefix="date"
-      [submitted]="vm().createInvalid"
+      [submitted]="vm().submitted"
     />
 
     <!-- Time -->
@@ -40,7 +40,7 @@
       label="Time"
       hint="Enter the time in 24-hour format, for example 08:30"
       idPrefix="time"
-      [submitted]="vm().createInvalid"
+      [submitted]="vm().submitted"
       [required]="true"
       mode="clock"
     />
@@ -51,7 +51,7 @@
       label="Description"
       hint="A description of the application list"
       idPrefix="description"
-      [submitted]="vm().createInvalid"
+      [submitted]="vm().submitted"
       [charLimit]="200"
     />
 
@@ -66,7 +66,12 @@
       [suggestions]="state().filteredCourthouses"
       (selectItem)="selectCourthouse($event)"
       [disabled]="!!form.get('location')?.value || !!form.get('cja')?.value"
-      [showError]="vm().createInvalid && !!fieldError('court')"
+      [showError]="
+        vm().submitted &&
+        !form.get('location')?.value &&
+        !form.get('cja')?.value &&
+        !!fieldError('court')
+      "
       [errorText]="fieldError('court')?.text ?? ''"
     />
   </div>
@@ -78,7 +83,7 @@
       label="Other location"
       hint="Other location description"
       idPrefix="location"
-      [submitted]="vm().createInvalid && !form.get('court')?.value"
+      [submitted]="vm().submitted && !!form.get('cja')?.value"
       [charLimit]="200"
     />
 
@@ -93,7 +98,7 @@
       [suggestions]="state().filteredCja"
       (selectItem)="selectCja($event)"
       [disabled]="!!form.get('court')?.value"
-      [showError]="vm().createInvalid && !!fieldError('cja')"
+      [showError]="vm().submitted && !!fieldError('cja')"
       [errorText]="fieldError('cja')?.text ?? ''"
     />
   </div>

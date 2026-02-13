@@ -5,6 +5,8 @@ import {
   ValidatorFn,
 } from '@angular/forms';
 
+import { validateCourtVsLocOrCja } from '@util/location-suggestion-helpers';
+
 function setControlError(
   group: FormGroup,
   controlName: string,
@@ -39,7 +41,10 @@ function readStringOrNullFromGroup(
 }
 
 //Checks requiredness and conflicts between court, location and cja fields
-export function courtLocCjaValidator(): ValidatorFn {
+export function courtLocCjaValidator(opts?: {
+  getCourtTyped?: () => string;
+  getCjaTyped?: () => string;
+}): ValidatorFn {
   return (ctrl: AbstractControl): ValidationErrors | null => {
     if (!(ctrl instanceof FormGroup)) {
       return null;
@@ -49,46 +54,47 @@ export function courtLocCjaValidator(): ValidatorFn {
     const location = readStringOrNullFromGroup(ctrl, 'location');
     const cja = readStringOrNullFromGroup(ctrl, 'cja');
 
-    const hasCourt = !!court;
-    const hasLoc = !!location;
-    const hasCja = !!cja;
+    const courtTyped = (opts?.getCourtTyped?.() ?? '').trim();
+    const cjaTyped = (opts?.getCjaTyped?.() ?? '').trim();
 
-    // ---- Requiredness for CREATE ----
+    // Treat typing as "present" so we don't show Location/CJA required while user is using the court path
+    const hasCourt = !!court || !!courtTyped;
+    const hasLoc = !!location;
+    const hasCja = !!cja || !!cjaTyped;
+
+    // ---- Requiredness for UPDATE/CREATE rule ----
     // Valid if: court OR (location AND cja)
     const hasPair = hasLoc && hasCja;
     const valid = hasCourt || hasPair;
 
-    // If court isn't provided, both location and cja must be present
-    setControlError(ctrl, 'location', 'locationRequired', !hasCourt && !hasLoc);
+    // Only show "Other location required" when user has started/selected CJA (i.e. they're on that path)
+    setControlError(
+      ctrl,
+      'location',
+      'locationRequired',
+      !hasCourt && hasCja && !hasLoc,
+    );
     setControlError(ctrl, 'cja', 'cjaRequired', !hasCourt && !hasCja);
 
-    // Single message for the rule (use court as the anchor)
+    // Single “rule” error (anchor on court)
     setControlError(ctrl, 'court', 'courtOrLocCjaRequired', !valid);
 
-    // If court is provided, clear the dependent required errors
-    if (hasCourt) {
-      setControlError(ctrl, 'location', 'locationRequired', false);
-      setControlError(ctrl, 'cja', 'cjaRequired', false);
-    }
-
     // ---- Conflict ----
-    // If court is filled and either other field is filled => conflict
+    // Only a real conflict if the CODE is set (not just typed) and user also filled other fields
     const conflictMsg =
-      hasCourt && (hasLoc || hasCja)
-        ? 'You can not have Court and Other Location or CJA filled in'
+      !!court && (hasLoc || !!cja)
+        ? validateCourtVsLocOrCja({ court, location, cja })
         : null;
 
-    // Put the conflict on control
+    // Store conflict on court control (so summary anchors consistently)
     const courtCtrl = ctrl.get('court');
     if (courtCtrl) {
       const current = { ...(courtCtrl.errors ?? {}) };
-
       if (conflictMsg) {
-        current['courtLocCjaConflict'] = conflictMsg;
+        current['courtLocCjaConflict'] = true;
       } else {
         delete current['courtLocCjaConflict'];
       }
-
       courtCtrl.setErrors(Object.keys(current).length ? current : null);
     }
 
