@@ -42,7 +42,11 @@ import { SortableTableComponent } from '@components/sortable-table/sortable-tabl
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
-import { ApplicationCodesApi, ApplicationListEntriesApi } from '@openapi';
+import {
+  ApplicationCodeGetDetailDto,
+  ApplicationCodesApi,
+  ApplicationListEntriesApi,
+} from '@openapi';
 import { ApplicantStep } from '@page-types/applications-list-entry-create';
 import { ApplicationListEntryFormService } from '@services/application-list-entry-form.service';
 import {
@@ -93,6 +97,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   id: string = '';
   step: ApplicantStep = 'select';
+  appCodeDetail!: ApplicationCodeGetDetailDto;
 
   createDone: boolean = false;
   submitted: boolean = false;
@@ -212,7 +217,6 @@ export class ApplicationsListEntryCreate implements OnInit {
       applicationCode: codeAndLodgementDate.code,
       lodgementDate: codeAndLodgementDate.date,
     });
-    console.log(this.form.value);
     // Call API to retrieve data associated with the App code
     if (this.form.value.applicationCode && this.form.value.lodgementDate) {
       this.applicationCodesApi
@@ -227,12 +231,40 @@ export class ApplicationsListEntryCreate implements OnInit {
         )
         .subscribe({
           next: (appCodeDetail) => {
-            console.log(appCodeDetail);
+            const prevCode = this.appCodeDetail?.applicationCode;
+            const newCode = appCodeDetail.applicationCode;
+
+            this.appCodeDetail = appCodeDetail;
+
+            // if user selected a different code than what we had, reset sections
+            if (prevCode !== newCode) {
+              this.resetSectionsOnApplicationCodeChange();
+            }
           },
           error: (err) => {
             console.error('Error fetching code detail:', err);
           },
         });
     }
+  }
+
+  private resetSectionsOnApplicationCodeChange(): void {
+    this.form.patchValue({
+      // wording section fields
+      wordingFields: null,
+
+      // respondent section fields
+      respondentEntryType: null,
+
+      // Civil fee section fields
+      feeStatuses: null,
+      feeStatus: null,
+      feeStatusDate: null,
+      paymentRef: null,
+    });
+
+    // reset respondent section forms person and organisation
+    this.personForm.reset();
+    this.organisationForm.reset();
   }
 }
