@@ -1,6 +1,6 @@
 Feature: Applications List Result
 
-    @regression @ARCPOC-965 @PJ
+    @regression @ARCPOC-965
     Scenario Outline: Application List - Result Selected
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -71,6 +71,9 @@ Feature: Applications List Result
             | 1               |              |               | Issue of liability order summons - council tax |
         Then User Enters "test" Into The "Search for a result code" Textbox
         When User Clicks On The "Save" Button
+        # Application List Cleanup
+        When User Makes DELETE API Request To "/application-lists/:listId"
+        Then User Verify Response Status Code Should Be "204"
         Examples:
             | User  | SearchDate | DisplayDate | Time           | courtLocationCode | Court                     | Description                             | Entries | Status |
             | user2 | today      | todayiso    | timenowhhmm-3h | BCC026            | Bristol Crown Court Set 3 | Applications to review at Test_{RANDOM} | 1       | OPEN   |
