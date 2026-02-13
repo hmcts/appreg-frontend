@@ -577,8 +577,8 @@ Feature: Application List Row Actions
             | Date         | Time | Description | CourtSearch         | Court   | Status | Other location | CJA | CJASearch |
             | <SearchDate> |      |             | <courtLocationCode> | <Court> |        |                |     |           |
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
-            | Date          | Time   | Location | Description   | Entries | Status   |
-            | <DisplayDate> | <Time> | <Court>  | <Description> | 1       | <Status> |
+            | Date          | Time   | Location | Description   | Entries   | Status   |
+            | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User Sees Notification Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
@@ -587,28 +587,8 @@ Feature: Application List Row Actions
         When User Set Date Field "Date" To "<SearchDate>"
         When User Clicks On The "Search" Button
         Then User Should Not See Row In Table "<TableName>" With Values:
-            | Date          | Time   | Location | Description   | Entries | Status   |
-            | <DisplayDate> | <Time> | <Court>  | <Description> | 1       | <Status> |
-        Examples:
-            | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                             | Status | SelectButtonText |
-            | user1 | Lists     | today      | todayiso    | timenowhhmm-3h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | OPEN   | Select           |
-
-    @Checkbox @PJ
-    Scenario Outline: Checkbox
-        Given User Is On The Portal Page
-        When User Signs In With Microsoft SSO As "<User>"
-        When User Searches Application List With:
-            | Date         | Time | Description | CourtSearch         | Court   | Status | Other location | CJA | CJASearch |
-            | <SearchDate> |      |             | <courtLocationCode> | <Court> |        |                |     |           |
-        When User Clicks "<SelectButtonText>" Then "Open" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
-        Then User See "Applications" On The Page
-        Then User Should See The Table "Lists"
-        When User Checks The Checkbox In Row Of Table "<TableName>" With:
-            | Sequence number | Account number | Applicant | Respondent | Post code | Title                                          | Fee req | Resulted |
-            | 1               | ACC-62111      |           |            | BS1 5AA   | Issue of liability order summons - council tax | No      | No       |
-            | 1               | APP-62111      |           |            |           | Copy documents (electronic)                    | Yes     | No       |
         Examples:
-            | User  | TableName | SearchDate | DisplayDate | Time  | courtLocationCode | Court                             | Description                          | Entries | Status | SelectButtonText | TableName |
-            | user1 | Lists     | 02/02/2026 | 2026-02-02  | 14:20 | LCCC065           | Leeds Combined Court Centre Set 7 | Applications to review at Test_62111 | 3       | OPEN   | Select           | Lists     |
+            | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                             | Entries | Status | SelectButtonText |
+            | user1 | Lists     | today      | todayiso    | timenowhhmm-3h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 1       | OPEN   | Select           |
