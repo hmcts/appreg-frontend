@@ -1,15 +1,19 @@
 import { CheckboxElement } from '../../../pageobjects/generic/checkbox/checkboxElement';
 
 export class CheckboxHelper {
-  static checkByIndex(
-    rowIndex: number,
-  ): Cypress.Chainable<JQuery<HTMLInputElement>> {
-    return CheckboxElement.findInRowByIndex(rowIndex).check({ force: true });
+  /**
+   * Generic method to check a checkbox by label text
+   */
+  static check(labelText: string): Cypress.Chainable<JQuery<HTMLInputElement>> {
+    return CheckboxElement.findCheckbox(labelText).check({ force: true });
   }
 
-  static uncheckByIndex(
-    rowIndex: number,
+  /**
+   * Generic method to uncheck a checkbox by label text
+   */
+  static uncheck(
+    labelText: string,
   ): Cypress.Chainable<JQuery<HTMLInputElement>> {
-    return CheckboxElement.findInRowByIndex(rowIndex).uncheck({ force: true });
+    return CheckboxElement.findCheckbox(labelText).uncheck({ force: true });
   }
 }

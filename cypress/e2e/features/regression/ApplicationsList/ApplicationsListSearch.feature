@@ -50,7 +50,7 @@ Feature: Applications List Search
     # Verify date validation with invalid date
     When User Set Date Field "Date" To "99/99/9999"
     When User Clicks On The "Search" Button
-    Then User Sees Validation Error "There is a problem Enter a real date"
+    Then User Sees Validation Error "There is a problem Enter a valid date"
     # Verify time validation with invalid time
     When User Set Date Field "Date" To "today"
     When User Set Time Field "Time" To "25:61"
@@ -78,7 +78,7 @@ Feature: Applications List Search
       | Date          | Time   | Location | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
     Then User Should See The Link "List details"
-    Then User Clicks On The Breadcrumb Link 'Applications list'
+    Then User Clicks On The Breadcrumb Link "Applications list"
     Then User Verifies The Date field "Date" Has Value "<SearchDate>"
     Then User Verifies The "Court" Textbox Has Value "<SearchText> - <Court>"
     Then User Should See Table "<TableName>" Has Rows
