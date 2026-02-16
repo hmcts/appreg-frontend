@@ -7,6 +7,7 @@ import {
   PLATFORM_ID,
   TemplateRef,
   ViewChild,
+  contentChild,
   inject,
   input,
 } from '@angular/core';
@@ -34,6 +35,8 @@ export type TableColumn = {
 export class SortableTableComponent implements AfterViewInit {
   @ContentChild('actionsTemplate', { read: TemplateRef })
   actionsTpl?: TemplateRef<unknown>;
+
+  readonly dateTpl = contentChild<TemplateRef<unknown>>('dateTemplate');
 
   caption = input('');
   hiddenCaption = input(false);

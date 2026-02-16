@@ -29,6 +29,7 @@ import { SortableTableComponent } from '@components/sortable-table/sortable-tabl
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { APPLICATIONS_ERROR_MAP } from '@constants/applications/error-messages';
+import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import {
   ApplicationListEntriesApi,
   EntryGetFilterDto,
@@ -66,6 +67,7 @@ type ControlName = keyof AppErrorMap;
     ErrorSummaryComponent,
     NotificationBannerComponent,
     MojButtonMenuDirective,
+    DateTimePipe,
   ],
   templateUrl: './applications.component.html',
   styleUrls: ['./applications.component.scss'],
