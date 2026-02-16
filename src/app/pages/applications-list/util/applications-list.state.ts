@@ -5,7 +5,7 @@ export interface ApplicationsListState {
   deleteDone: boolean;
   deleteInvalid: boolean;
   isLoading: boolean;
-  searchErrors: { id: string; text: string }[];
+  searchErrors: ErrorItem[];
   errorSummary: ErrorItem[];
   sortField: { key: string; direction: 'desc' | 'asc' };
 }

@@ -11,3 +11,8 @@ export type ApplicationsListFormControls = {
   location: FormControl<string>;
   cja: FormControl<string>;
 };
+
+export type ApplicationsListUpdateFormControls =
+  ApplicationsListFormControls & {
+    duration: FormControl<Duration | null>;
+  };

@@ -6,6 +6,9 @@ export const ukPostcode: ValidatorFn = (
   c: AbstractControl,
 ): ValidationErrors | null => {
   const v = `${c.value ?? ''}`.trim();
+  if (!v) {
+    return null;
+  }
   return UK_POSTCODE_REGEX.test(v) ? null : { postcode: true };
 };
 

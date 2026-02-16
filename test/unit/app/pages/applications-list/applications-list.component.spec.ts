@@ -10,7 +10,7 @@ import {
 import { of, throwError } from 'rxjs';
 
 import { ApplicationsList } from '@components/applications-list/applications-list.component';
-import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
+import { APPLICATIONS_LIST_FORM_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import {
   ApplicationsListState,
   clearNotificationsPatch,
@@ -490,8 +490,12 @@ describe('ApplicationsList – search', () => {
       expect(preventDefault).toHaveBeenCalled();
       expect(getRecordsState(component).submitted).toBe(true);
       expect(getUIFlagState(component).searchErrors).toEqual([
-        { id: 'date-day', text: 'Enter a valid date' },
-        { id: 'time-hours', text: 'Enter a valid time' },
+        { href: '#date', id: 'date', text: 'Enter a valid date' },
+        {
+          href: '#time-hours',
+          id: 'time',
+          text: 'Enter a valid duration between 00:00 and 23:59',
+        },
       ]);
       expect(spy).not.toHaveBeenCalled();
     });
@@ -557,7 +561,11 @@ describe('ApplicationsList – search', () => {
       component.onSubmit(e);
 
       expect(getUIFlagState(component).searchErrors).toEqual([
-        { id: 'cja', text: APPLICATIONS_LIST_ERROR_MESSAGES.cjaNotFound },
+        {
+          href: '#cja',
+          id: 'cja',
+          text: APPLICATIONS_LIST_FORM_ERROR_MESSAGES.cja.cjaNotFound,
+        },
       ]);
       expect(spy).not.toHaveBeenCalled();
     });
