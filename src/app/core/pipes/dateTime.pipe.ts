@@ -9,25 +9,22 @@
  *  fullDate - Sunday, 28 June 2026
  */
 
-import { DatePipe } from '@angular/common';
-import { Pipe, PipeTransform } from '@angular/core';
+import { formatDate } from '@angular/common';
+import { LOCALE_ID, Pipe, PipeTransform, inject } from '@angular/core';
 
-@Pipe({
-  name: 'dateTime',
-  standalone: true,
-})
+@Pipe({ name: 'dateTime', standalone: true })
 export class DateTimePipe implements PipeTransform {
-  // Angular defaults to en-US so set to en-GB
-  private readonly datePipe = new DatePipe('en-GB');
+  // Use locale set in app.config.ts
+  private readonly locale = inject(LOCALE_ID);
 
   transform(
     value: string | undefined,
-    format: 'shortDate' | 'mediumDate' | 'longDate' | 'fullDate' = 'mediumDate', // Angular presets
+    format: 'shortDate' | 'mediumDate' | 'longDate' | 'fullDate' = 'mediumDate',
   ): string | null {
     if (!value) {
       return null;
     }
 
-    return this.datePipe.transform(value, format) ?? value;
+    return formatDate(value, format, this.locale);
   }
 }

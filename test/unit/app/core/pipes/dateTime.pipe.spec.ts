@@ -1,7 +1,17 @@
+import { LOCALE_ID } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 
 describe('DateTimePipe', () => {
-  const pipe = new DateTimePipe();
+  let pipe: DateTimePipe;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [DateTimePipe, { provide: LOCALE_ID, useValue: 'en-GB' }],
+    });
+    pipe = TestBed.inject(DateTimePipe);
+  });
 
   it('returns null for undefined', () => {
     expect(pipe.transform(undefined)).toBeNull();
