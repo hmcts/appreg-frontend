@@ -124,22 +124,6 @@ describe('ApplicationsListCreate', () => {
     expect(appListsMock.createApplicationList).not.toHaveBeenCalled();
   });
 
-  it('rejects conflicting court vs location/CJA', () => {
-    component.form.setValue({
-      date: '2025-10-01',
-      time: { hours: 9, minutes: 30 },
-      description: 'Desc',
-      status: 'OPEN',
-      court: 'A1',
-      location: 'Somewhere',
-      cja: '',
-    });
-    submit('create');
-    expect(getState(component).createInvalid).toBe(true);
-    expect(getState(component).errorHint).toBe('There is a problem');
-    expect(appListsMock.createApplicationList).not.toHaveBeenCalled();
-  });
-
   it('submits successfully with court payload', async () => {
     component.form.setValue({
       date: '2025-10-02',

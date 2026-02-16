@@ -9,44 +9,64 @@ import { validateCourtVsLocOrCja } from '@util/location-suggestion-helpers';
 import { readStringOrNullFromGroup } from '@util/string-helpers';
 import { setControlError } from '@validators/validation-helpers';
 
-type CourtLocCja = {
-  court: string | null;
-  location: string | null;
-  cja: string | null;
-};
-
 //Checks requiredness and conflicts between court, location and cja fields
-export function courtLocCjaValidator(): ValidatorFn {
+export function courtLocCjaValidator(opts?: {
+  getCourtTyped?: () => string;
+  getCjaTyped?: () => string;
+}): ValidatorFn {
   return (ctrl: AbstractControl): ValidationErrors | null => {
     if (!(ctrl instanceof FormGroup)) {
       return null;
     }
 
-    const v: CourtLocCja = {
-      court: readStringOrNullFromGroup(ctrl, 'court'),
-      location: readStringOrNullFromGroup(ctrl, 'location'),
-      cja: readStringOrNullFromGroup(ctrl, 'cja'),
-    };
+    const court = readStringOrNullFromGroup(ctrl, 'court');
+    const location = readStringOrNullFromGroup(ctrl, 'location');
+    const cja = readStringOrNullFromGroup(ctrl, 'cja');
 
-    const hasCourt = !!v.court;
-    const hasLoc = !!v.location;
-    const hasCja = !!v.cja;
+    const courtTyped = (opts?.getCourtTyped?.() ?? '').trim();
+    const cjaTyped = (opts?.getCjaTyped?.() ?? '').trim();
 
-    // Requiredness (matches collectMissing intent)
-    if (!hasCourt) {
-      setControlError(ctrl, 'location', 'locationRequired', !hasLoc);
-      setControlError(ctrl, 'cja', 'cjaRequired', !hasCja);
-      setControlError(ctrl, 'court', 'courtRequired', !(hasLoc || hasCja));
-    } else {
-      setControlError(ctrl, 'location', 'locationRequired', false);
-      setControlError(ctrl, 'cja', 'cjaRequired', false);
-      setControlError(ctrl, 'court', 'courtRequired', false);
+    // Treat typing as "present" so we don't show Location/CJA required while user is using the court path
+    const hasCourt = !!court || !!courtTyped;
+    const hasLoc = !!location;
+    const hasCja = !!cja || !!cjaTyped;
+
+    // ---- Requiredness for UPDATE/CREATE rule ----
+    // Valid if: court OR (location AND cja)
+    const hasPair = hasLoc && hasCja;
+    const valid = hasCourt || hasPair;
+
+    // Only show "Other location required" when user has started/selected CJA (i.e. they're on that path)
+    setControlError(
+      ctrl,
+      'location',
+      'locationRequired',
+      !hasCourt && hasCja && !hasLoc,
+    );
+    setControlError(ctrl, 'cja', 'cjaRequired', !hasCourt && hasLoc && !hasCja);
+
+    // Single “rule” error (anchor on court)
+    setControlError(ctrl, 'court', 'courtOrLocCjaRequired', !valid);
+
+    // ---- Conflict ----
+    // Only a real conflict if the CODE is set (not just typed) and user also filled other fields
+    const conflictMsg =
+      !!court && (hasLoc || !!cja)
+        ? validateCourtVsLocOrCja({ court, location, cja })
+        : null;
+
+    // Store conflict on court control (so summary anchors consistently)
+    const courtCtrl = ctrl.get('court');
+    if (courtCtrl) {
+      const current = { ...(courtCtrl.errors ?? {}) };
+      if (conflictMsg) {
+        current['courtLocCjaConflict'] = true;
+      } else {
+        delete current['courtLocCjaConflict'];
+      }
+      courtCtrl.setErrors(Object.keys(current).length ? current : null);
     }
 
-    // Conflict
-    const conflictMsg = validateCourtVsLocOrCja(v);
-    return conflictMsg
-      ? { courtLocCjaConflict: { message: conflictMsg } }
-      : null;
+    return null;
   };
 }

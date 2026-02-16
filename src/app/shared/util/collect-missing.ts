@@ -53,7 +53,7 @@ export function collectMissing(
     cja = has(v.cja);
   if (!court) {
     need(loc, 'location', 'Other location is required');
-    need(cja, 'cja', 'CJA is required');
+    need(cja, 'cja', 'Criminal justice area is required');
   }
   if (!(loc || cja) && !court) {
     out.push({ id: 'court', text: 'Court is required' });

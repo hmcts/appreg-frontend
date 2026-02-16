@@ -1,6 +1,7 @@
 import { HttpResponse } from '@angular/common/http';
 import type { WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { Applications } from '@components/applications/applications.component';
@@ -82,6 +83,16 @@ describe('ApplicationsComponent', () => {
       providers: [
         { provide: ReferenceDataFacade, useValue: referenceDataFacadeStub },
         { provide: ApplicationListEntriesApi, useValue: appListEntriesApiStub },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: { data: {} },
+            params: of({}),
+            queryParams: of({}),
+            queryParamMap: of(convertToParamMap({})),
+            paramMap: of(convertToParamMap({})),
+          },
+        },
       ],
     }).compileComponents();
 
@@ -94,8 +105,20 @@ describe('ApplicationsComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('searchDisabled / hasAnyParams', () => {
-    it('disables Search when all filters are empty', () => {
+  describe('onSubmit validation', () => {
+    const submitSearch = () => {
+      const event = {
+        preventDefault: jest.fn(),
+        submitter: { value: 'search' } as HTMLButtonElement,
+      } as unknown as SubmitEvent;
+
+      component.onSubmit(event);
+      fixture.detectChanges();
+
+      return event;
+    };
+
+    it('does not disable the Search button when all filters are empty', () => {
       component.form.reset({
         date: null,
         applicantOrg: '',
@@ -117,45 +140,85 @@ describe('ApplicationsComponent', () => {
         fixture.nativeElement.querySelector('#search');
 
       expect(button).toBeTruthy();
-      expect(component.searchDisabled).toBe(true);
-      expect(button.disabled).toBe(true);
-    });
-
-    it('enables Search when a single text filter is set', () => {
-      component.form.patchValue({ applicantOrg: 'Some Org' });
-      fixture.detectChanges();
-
-      const button: HTMLButtonElement =
-        fixture.nativeElement.querySelector('#search');
-
-      expect(component.searchDisabled).toBe(false);
       expect(button.disabled).toBe(false);
     });
 
-    it('enables Search when only status is set', () => {
-      component.form.reset();
-      component.form.patchValue({ status: 'open' }); // string is fine
-      fixture.detectChanges();
+    it('when submitted with no params: sets invalid search criteria error and does not call API', () => {
+      getEntriesMock.mockClear();
 
-      const button: HTMLButtonElement =
-        fixture.nativeElement.querySelector('#search');
+      component.form.reset({
+        date: null,
+        applicantOrg: '',
+        respondentOrg: '',
+        applicantSurname: '',
+        respondentSurname: '',
+        location: '',
+        standardApplicantCode: '',
+        respondentPostcode: '',
+        accountReference: '',
+        court: '',
+        cja: '',
+        status: null,
+      });
 
-      expect(component.searchDisabled).toBe(false);
-      expect(button.disabled).toBe(false);
+      const preventDefault = jest.fn();
+
+      const event = {
+        preventDefault,
+        submitter: { value: 'search' } as HTMLButtonElement,
+      } as unknown as SubmitEvent;
+
+      component.onSubmit(event);
+
+      expect(preventDefault).toHaveBeenCalled();
+
+      expect(getEntriesMock).not.toHaveBeenCalled();
+      expect(component.vm().submitted).toBe(true);
+
+      expect(component.vm().searchErrors).toEqual([
+        expect.objectContaining({
+          id: 'search-error',
+          text: expect.stringContaining('Invalid Search Criteria'),
+        }),
+      ]);
     });
 
-    it('disables Search again after clearing the last filled field', () => {
+    it('when submitted with a param: calls loadApplications (and API) rather than invalid search criteria', () => {
+      getEntriesMock.mockClear();
+
       component.form.patchValue({ applicantOrg: 'Some Org' });
-      fixture.detectChanges();
 
-      component.form.patchValue({ applicantOrg: '' });
-      fixture.detectChanges();
+      submitSearch();
 
-      const button: HTMLButtonElement =
-        fixture.nativeElement.querySelector('#search');
+      expect(getEntriesMock).toHaveBeenCalledTimes(1);
+      expect(
+        component.vm().searchErrors.some((e) => e.id === 'search-error'),
+      ).toBe(false);
+    });
 
-      expect(component.searchDisabled).toBe(true);
-      expect(button.disabled).toBe(true);
+    it('prioritises field validation errors (e.g. postcode invalid) over invalid search criteria', () => {
+      getEntriesMock.mockClear();
+
+      component.form.patchValue({ respondentPostcode: 'NOT_A_POSTCODE' });
+
+      submitSearch();
+
+      expect(getEntriesMock).not.toHaveBeenCalled();
+
+      // Should be a field error, not invalid search criteria
+      expect(
+        component.vm().searchErrors.some((e) => e.id === 'search-error'),
+      ).toBe(false);
+
+      expect(component.vm().searchErrors).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'respondentPostcode',
+            href: '#respondentPostcode',
+            text: expect.stringContaining('valid UK postcode'),
+          }),
+        ]),
+      );
     });
   });
 
@@ -201,6 +264,20 @@ describe('ApplicationsComponent', () => {
   });
 
   describe('loadApplications', () => {
+    it('does nothing when there are existing searchErrors', () => {
+      getEntriesMock.mockClear();
+
+      appStateSignal(component).update((s) => ({
+        ...s,
+        searchErrors: [{ id: 'x', text: 'err' }],
+        isLoading: false,
+      }));
+
+      component.loadApplications();
+
+      expect(getEntriesMock).not.toHaveBeenCalled();
+    });
+
     it('does nothing when already loading', () => {
       getEntriesMock.mockClear();
 

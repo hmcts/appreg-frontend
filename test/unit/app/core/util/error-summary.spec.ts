@@ -40,7 +40,11 @@ describe('buildFormErrorSummary', () => {
     const result = buildFormErrorSummary(form, messages);
 
     expect(result).toEqual<ErrorItem[]>([
-      { id: 'applicationCode', text: 'Enter an application code' },
+      {
+        id: 'applicationCode',
+        href: '#applicationCode',
+        text: 'Enter an application code',
+      },
     ]);
   });
 
@@ -62,7 +66,11 @@ describe('buildFormErrorSummary', () => {
     const result = buildFormErrorSummary(form, messages);
 
     expect(result).toEqual<ErrorItem[]>([
-      { id: 'applicationCode', text: 'Enter an application code' },
+      {
+        id: 'applicationCode',
+        href: '#applicationCode',
+        text: 'Enter an application code',
+      },
     ]);
   });
 
@@ -117,10 +125,19 @@ describe('buildFormErrorSummary', () => {
     });
 
     expect(result).toEqual<ErrorItem[]>([
-      { id: 'applicationCode', text: 'Enter an application code' },
-      { id: 'notes', text: 'Notes must be less than 4000 characters' },
+      {
+        id: 'applicationCode',
+        href: '#applicationCode',
+        text: 'Enter an application code',
+      },
+      {
+        id: 'notes',
+        href: '#notes',
+        text: 'Notes must be less than 4000 characters',
+      },
       {
         id: 'caseReference',
+        href: '#caseReference',
         text: 'Case reference must only contain letters and numbers',
       },
     ]);
@@ -150,7 +167,11 @@ describe('buildFormErrorSummary', () => {
 
     // nested path is ignored because it's not a FormGroup
     expect(result).toEqual<ErrorItem[]>([
-      { id: 'applicationCode', text: 'Enter an application code' },
+      {
+        id: 'applicationCode',
+        href: '#applicationCode',
+        text: 'Enter an application code',
+      },
     ]);
   });
 });

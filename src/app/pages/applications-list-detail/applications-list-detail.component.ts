@@ -22,7 +22,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import {
@@ -35,6 +35,7 @@ import {
 } from './util/applications-list-detail.state';
 import {
   DetailForm,
+  DetailFormGroupErrors,
   Handoff,
   LoadDetailReq,
   UpdateReq,
@@ -52,7 +53,11 @@ import { PageHeaderComponent } from '@components/page-header/page-header.compone
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import { SelectableSortableTableComponent } from '@components/selectable-sortable-table/selectable-sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
-import { RESULT_ERROR_MESSAGES } from '@constants/application-list-detail-update/error-messages';
+import { DETAIL_ERROR_ANCHORS } from '@constants/application-list-detail-update/error-hrefs';
+import {
+  DETAIL_FIELD_MESSAGES,
+  RESULT_ERROR_MESSAGES,
+} from '@constants/application-list-detail-update/error-messages';
 import {
   appListDetailColumns,
   appListDetailStatusOptions,
@@ -60,11 +65,13 @@ import {
 import { IF_MATCH } from '@context/concurrency-context';
 import { Row } from '@core-types/table/row.types';
 import { ApplicationListGetDetailDto, ApplicationListsApi } from '@openapi';
+import { ApplicationsListFormService } from '@services/applications-list-form.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '@util/error-click';
+import { buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenu, MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
@@ -72,6 +79,7 @@ import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { parseTimeToDuration } from '@util/time-helpers';
 import { closePermitted } from '@validators/applications-list-close.validator';
 import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
+import { courtMustExistIfTypedValidator } from '@validators/court-exists.validator';
 import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
 
 @Component({
@@ -94,6 +102,7 @@ import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
 })
 export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly envInjector = inject(EnvironmentInjector);
+  private readonly appListFormService = inject(ApplicationsListFormService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly refField = inject(ReferenceDataFacade);
   private readonly appListApi = inject(ApplicationListsApi);
@@ -116,48 +125,42 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly updateRequest = signal<UpdateReq | null>(null);
   entryIds: string[] = [];
 
-  override form: DetailForm = new FormGroup(
-    {
-      date: new FormControl<string | null>(null, {
-        validators: [(c) => Validators.required(c)],
-      }),
-      time: new FormControl<Duration | null>(null, {
-        validators: [(c) => Validators.required(c)],
-      }),
-      description: new FormControl<string>('', {
-        nonNullable: true,
-        validators: [(c) => Validators.required(c)],
-      }),
-      status: new FormControl<string | null>(null, {
-        validators: [(c) => Validators.required(c)],
-      }),
-      court: new FormControl<string>(''),
-      location: new FormControl<string>(''),
-      cja: new FormControl<string>(''),
-      duration: new FormControl<Duration | null>(null),
-    },
-    {
-      validators: [
-        courtLocCjaValidator(),
-        cjaMustExistIfTypedValidator({
-          getTyped: () => this.state().cjaSearch ?? '',
-          getValidCodes: () => this.state().cja.map((x) => x.code),
-        }),
-        closePermitted({
-          getEntries: () => closeValidationEntries(this.vm()),
-        }),
-      ],
-    },
-  );
+  override form = this.appListFormService.createUpdateForm();
 
   statusOptions = appListDetailStatusOptions;
   columns = appListDetailColumns;
+
+  private readonly hrefs = {
+    date: `#${DETAIL_ERROR_ANCHORS.date}`,
+    time: `#${DETAIL_ERROR_ANCHORS.time}`,
+    duration: `#${DETAIL_ERROR_ANCHORS.duration_hours}`,
+  } as const;
 
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
 
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refField);
+
+    //Attach validators
+    this.form.addValidators([
+      courtLocCjaValidator({
+        getCourtTyped: () => this.state().courthouseSearch ?? '',
+        getCjaTyped: () => this.state().cjaSearch ?? '',
+      }),
+      courtMustExistIfTypedValidator({
+        getTyped: () => this.state().courthouseSearch ?? '',
+        getValidCodes: () =>
+          this.state().courtLocations.map((x) => x.locationCode),
+      }),
+      cjaMustExistIfTypedValidator({
+        getTyped: () => this.state().cjaSearch ?? '',
+        getValidCodes: () => this.state().cja.map((x) => x.code),
+      }),
+      closePermitted({
+        getEntries: () => closeValidationEntries(this.vm()),
+      }),
+    ]);
 
     this.setupEffects();
 

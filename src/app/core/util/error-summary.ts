@@ -23,20 +23,22 @@ function buildFormErrorSummaryImpl(
   }
 
   // Nested groups (e.g. applicationNotes.*)
-  options?.nested?.forEach(({ path }) => {
+  options?.nested?.forEach(({ path, prefixId }) => {
     const group = form.get(path);
     if (!(group instanceof FormGroup)) {
       return;
     }
 
     for (const childName of Object.keys(group.controls)) {
+      const id = prefixId ? `${prefixId}.${childName}` : childName;
+
       addControlErrors(
         errors,
         group.controls[childName],
         childName,
         messages,
         hrefs,
-        childName,
+        id,
       );
     }
   });
@@ -45,6 +47,7 @@ function buildFormErrorSummaryImpl(
   options?.groups?.forEach(({ group, prefixId }) => {
     for (const childName of Object.keys(group.controls)) {
       const id = prefixId ? `${prefixId}.${childName}` : childName;
+
       addControlErrors(
         errors,
         group.controls[childName],
@@ -76,7 +79,7 @@ function addControlErrors(
 
   const rawErrors = control.errors as Record<string, unknown>;
   const map = messages[controlName] ?? {};
-  const href = hrefs[controlName];
+  const href = hrefs[id] ?? hrefs[controlName] ?? `#${id}`;
 
   for (const key of Object.keys(rawErrors)) {
     const text = map[key];
@@ -87,7 +90,7 @@ function addControlErrors(
     bucket.push({
       id,
       text,
-      href, // optional; undefined if none
+      href,
     });
   }
 }
