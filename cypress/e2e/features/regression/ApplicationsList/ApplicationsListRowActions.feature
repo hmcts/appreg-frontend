@@ -7,6 +7,7 @@ Feature: Application List Row Actions
             | date          | time   | status   | description   | courtLocationCode   |
             | <DisplayDate> | <Time> | <Status> | <Description> | <courtLocationCode> |
         Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "listId"
         Given User Has No Downloaded PDFs
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
@@ -22,6 +23,9 @@ Feature: Application List Row Actions
         Then User Enters "past" Into The "Description" Textbox
         When User Clicks On The "Search" Button
         Then User Sees Notification Banner "Important No lists found Try different filters, or create a new list"
+        # Application List Cleanup
+        When User Makes DELETE API Request To "/application-lists/:listId"
+        Then User Verify Response Status Code Should Be "204"
         Examples:
             | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                              | Entries | Status | SelectButtonText | ButtonName       |
             | user1 | Lists     | today      | todayiso    | timenowhhmm-2h | RCJ001            | Royal Courts of Justice Set 1     | Test_{RANDOM} for Applications to review | 0       | OPEN   | Select           | Print continuous |
@@ -343,6 +347,7 @@ Feature: Application List Row Actions
             | This matter was before | Mr Turner {RANDOM} Graham MAGISTRATE Ms Hayes {RANDOM} Laura MAGISTRATE Mr Miller {RANDOM} Peter CLERK Ms Patel {RANDOM} Anita MAGISTRATE |
             | Dated                  | <DisplayDate>                                                                                                                             |
             | Produced on            | <SearchDate>                                                                                                                              |
+        Then User Clears Downloaded PDFs
         Examples:
             | User  | TableName | SearchDate | DisplayDate | Time           | cjaCode | OptionText | otherLocationDescription                | Description               | Entries | Status | SelectButtonText | PDFNameContinuous         | PDFNamePage               | Pages |
             | user1 | Lists     | today      | todayiso    | timenowhhmm-1h | A8      | Derby      | This is a location description {RANDOM} | ENFORCEMENT LIST-{RANDOM} | 1       | OPEN   | Select           | derby-todayiso-print-cont | derby-todayiso-print-page | 1     |
@@ -467,6 +472,9 @@ Feature: Application List Row Actions
             | Dated                  | <DisplayDate>                                                                                                                                              |
             | Produced on            | <SearchDate>                                                                                                                                               |
         Then User Clears Downloaded PDFs
+        # Application List Cleanup
+        When User Makes DELETE API Request To "/application-lists/:listId"
+        Then User Verify Response Status Code Should Be "204"
         Examples:
             | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
             | user1 | Lists     | today      | todayiso    | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 0             | 5               | 1       | CLOSED | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 1     |
@@ -581,6 +589,9 @@ Feature: Application List Row Actions
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User Sees Notification Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
+        Then User Should See Row In Table With Values:
+            | Date          | Time   | Location | Description   | Entries   | Status   |
+            | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         When User Clicks On The "Yes - delete" Button
         Then User Should See The Link "Create new list"
         Then User Sees Notification Banner "Success Application List deleted successfully If you believe this was in error, please contact support."

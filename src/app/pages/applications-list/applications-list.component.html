@@ -15,6 +15,7 @@
     [title]="'There is a problem'"
     [items]="vm().searchErrors"
     targetId="search"
+    (itemSelect)="onCreateErrorClick($event)"
   />
 } @else {
   @if (vm().isSearch && !vm().isLoading && !storedRecordsVm().rows.length) {
@@ -96,6 +97,8 @@
       (searchChange)="onCourthouseInputChange()"
       [suggestions]="state().filteredCourthouses"
       (selectItem)="selectCourthouse($event)"
+      [showError]="storedRecordsVm().submitted && !!fieldError('court')"
+      [errorText]="fieldError('court')?.text ?? ''"
     />
 
     <!-- Other location -->
@@ -116,6 +119,8 @@
       (searchChange)="onCjaSearchChange($event)"
       [suggestions]="state().filteredCja"
       (selectItem)="selectCja($event)"
+      [showError]="storedRecordsVm().submitted && !!fieldError('cja')"
+      [errorText]="fieldError('cja')?.text ?? ''"
     />
   </div>
 

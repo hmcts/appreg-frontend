@@ -25,15 +25,16 @@ export class TableSearch {
 
   /**
    * Finds a row in the table that matches the given column values
+   * @param caption Optional table caption. If not provided, searches first table.
    */
   static findRowWithValues(
-    caption: string,
     columnValues: Record<string, string>,
+    caption?: string,
     searchAllPages: boolean = true,
   ): Cypress.Chainable<boolean> {
     return TableSearch.searchWithPagination(
-      caption,
       columnValues,
+      caption,
       searchAllPages,
     );
   }
@@ -42,12 +43,12 @@ export class TableSearch {
    * Searches through pages recursively
    */
   static searchWithPagination(
-    caption: string,
     columnValues: Record<string, string>,
-    searchAllPages: boolean,
+    caption?: string,
+    searchAllPages: boolean = true,
     onMatch?: (row: JQuery<HTMLElement>) => Cypress.Chainable<void>,
   ): Cypress.Chainable<boolean> {
-    return TableSearch.searchInCurrentPage(caption, columnValues, onMatch).then(
+    return TableSearch.searchInCurrentPage(columnValues, caption, onMatch).then(
       (found) => {
         if (found) {
           return cy.wrap(true);
@@ -55,13 +56,13 @@ export class TableSearch {
         if (!searchAllPages) {
           return cy.wrap(false);
         }
-        cy.screenshot(`table-page-${caption}`);
+        cy.screenshot(`table-page-${caption || 'table'}`);
         return TableNavigation.goToNextPageIfExists().then((hasNext) => {
           if (hasNext) {
             cy.log('Row not found on current page, checking next page...');
             return TableSearch.searchWithPagination(
-              caption,
               columnValues,
+              caption,
               searchAllPages,
               onMatch,
             );
@@ -76,15 +77,15 @@ export class TableSearch {
    * Searches for matching row in current page
    */
   private static searchInCurrentPage(
-    caption: string,
     columnValues: Record<string, string>,
+    caption?: string,
     onMatch?: (row: JQuery<HTMLElement>) => Cypress.Chainable<void>,
   ): Cypress.Chainable<boolean> {
     return TableElement.getTableHeaders(caption).then(($headers) => {
       const columnIndexMap = TableSearch.buildColumnIndexMap($headers);
       return TableSearch.searchRowsInTable(
-        caption,
         columnValues,
+        caption,
         columnIndexMap,
         onMatch,
       );
@@ -95,8 +96,8 @@ export class TableSearch {
    * Searches through table rows for a match
    */
   private static searchRowsInTable(
-    caption: string,
     columnValues: Record<string, string>,
+    caption: string | undefined,
     columnIndexMap: Record<string, number>,
     onMatch?: (row: JQuery<HTMLElement>) => Cypress.Chainable<void>,
   ): Cypress.Chainable<boolean> {
@@ -135,16 +136,15 @@ export class TableSearch {
     $row: JQuery<HTMLElement>,
     columnValues: Record<string, string>,
     columnIndexMap: Record<string, number>,
-    caption: string,
+    caption?: string,
   ): boolean {
     let rowMatches = true;
 
     for (const [columnName, expectedValue] of Object.entries(columnValues)) {
       const columnIndex = columnIndexMap[columnName];
       if (columnIndex === undefined) {
-        throw new Error(
-          `Column "${columnName}" not found in table "${caption}"`,
-        );
+        const tableRef = caption ? `table "${caption}"` : 'table';
+        throw new Error(`Column "${columnName}" not found in ${tableRef}`);
       }
 
       const parsedExpectedValue = TestDataGenerator.parseValue(expectedValue);
@@ -185,18 +185,21 @@ export class TableSearch {
 
   /**
    * Verifies that a row exists in the table with the given column values
+   * @param columnValues The column values to search for
+   * @param caption Optional table caption. If not provided, searches first table.
    */
   static verifyRowExists(
-    caption: string,
     columnValues: Record<string, string>,
+    caption?: string,
   ): Cypress.Chainable<boolean> {
     const searchCriteria = Object.entries(columnValues)
       .map(([col, val]) => `${col}="${val}"`)
       .join(', ');
 
-    cy.log(`Searching for row in table "${caption}" with: ${searchCriteria}`);
+    const tableRef = caption ? `table "${caption}"` : 'table';
+    cy.log(`Searching for row in ${tableRef} with: ${searchCriteria}`);
 
-    return TableSearch.findRowWithValues(caption, columnValues, true).then(
+    return TableSearch.findRowWithValues(columnValues, caption, true).then(
       (found) => {
         if (found) {
           cy.log(`✓ Row found with: ${searchCriteria}`);
@@ -205,7 +208,7 @@ export class TableSearch {
           .wrap(found)
           .should(
             'be.true',
-            `Row should exist in table "${caption}" with values: ${searchCriteria}`,
+            `Row should exist in ${tableRef} with values: ${searchCriteria}`,
           );
       },
     );
@@ -213,27 +216,28 @@ export class TableSearch {
 
   /**
    * Verifies that no row exists in the table with the specified values
+   * @param columnValues The column values to check
+   * @param caption Optional table caption. If not provided, searches first table.
    */
   static hasNoRowWithValues(
-    caption: string,
     columnValues: Record<string, string>,
+    caption?: string,
   ): Cypress.Chainable<void> {
     const searchCriteria = Object.entries(columnValues)
       .map(([col, val]) => `${col}="${val}"`)
       .join(', ');
 
-    cy.log(
-      `Verifying NO row exists in table "${caption}" with: ${searchCriteria}`,
-    );
+    const tableRef = caption ? `table "${caption}"` : 'table';
+    cy.log(`Verifying NO row exists in ${tableRef} with: ${searchCriteria}`);
 
-    return TableSearch.findRowWithValues(caption, columnValues, true).then(
+    return TableSearch.findRowWithValues(columnValues, caption, true).then(
       (found) => {
         if (!found) {
           cy.log(`✓ No row found with: ${searchCriteria}`);
           return;
         }
         throw new Error(
-          `✗ Unexpected row found in table "${caption}" with values: ${searchCriteria}`,
+          `✗ Unexpected row found in ${tableRef} with values: ${searchCriteria}`,
         );
       },
     ) as unknown as Cypress.Chainable<void>;
