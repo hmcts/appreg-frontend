@@ -31,6 +31,7 @@ import {
 } from '@components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { ApplicationCodeGetSummaryDto, ApplicationCodesApi } from '@openapi';
+import { ApplicationsListEntryForm } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import { CodeRow, fetchCodeRows$ } from '@util/application-code-helpers';
 
 @Component({
@@ -52,6 +53,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
   @Input() codePlaceholder = 'The code for the application';
   @Input() titlePlaceholder = 'Enter a concise title for this application';
   @Input() mode: 'create' | 'update' = 'create';
+  @Input() patchedFormData?: ApplicationsListEntryForm;
 
   @Input() appListId?: string;
 
@@ -86,11 +88,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // set today's date as the lodgement date by default, formatted as yyyy-MM-dd for the date input
-    this.form.patchValue({
-      lodgementDate: new Date().toISOString().split('T')[0],
-    });
-
+    this.initialPatchFormData();
     this.submitted = false;
     this.listId = this.route.snapshot.paramMap.get('id');
   }
@@ -155,5 +153,16 @@ export class ApplicationCodeSearchComponent implements OnInit {
     this.cdr.markForCheck();
     this.submitted = false;
     this.selectCodeAndLodgementDate.emit({ code: '', date: '' });
+  }
+
+  private initialPatchFormData(): void {
+    // set today's date as the lodgement date by default, formatted as yyyy-MM-dd for the date input
+    this.form.patchValue({
+      lodgementDate: this.patchedFormData?.value?.lodgementDate
+        ? this.patchedFormData?.value?.lodgementDate
+        : new Date().toISOString().split('T')[0],
+      code: this.patchedFormData?.value?.applicationCode ?? null,
+      title: this.patchedFormData?.value?.applicationTitle ?? null,
+    });
   }
 }

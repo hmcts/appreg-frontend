@@ -105,8 +105,6 @@ export class ApplicationListEntryFormService {
 
     this.hydrateRespondentFromDto(dto, forms, emitEvent);
 
-    this.patchIfPresent(forms.form, 'applicationTitle', null, emitEvent);
-
     // Prefer standard applicant if present
     const standardCode = (dto.standardApplicantCode ?? '').toString().trim();
     if (standardCode) {
@@ -265,19 +263,6 @@ export class ApplicationListEntryFormService {
       forms.respondentPersonForm.getRawValue(),
       forms.respondentOrganisationForm.getRawValue(),
     );
-  }
-
-  private patchIfPresent<K extends string>(
-    form: ApplicationsListEntryForm,
-    key: K,
-    value: unknown,
-    emitEvent: boolean,
-  ): void {
-    const ctrl = (form.controls as Record<string, unknown>)[key] as
-      | { setValue: (v: unknown, o?: { emitEvent?: boolean }) => void }
-      | undefined;
-
-    ctrl?.setValue(value, { emitEvent });
   }
 
   syncApplicantTypeState(

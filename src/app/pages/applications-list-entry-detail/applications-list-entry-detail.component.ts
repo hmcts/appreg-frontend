@@ -53,6 +53,7 @@ import { mapHttpErrorToSummary } from './util/errors.util';
 import { getEntryId } from './util/routing.util';
 
 import { AccordionComponent } from '@components/accordion/accordion.component';
+import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
 import {
   ApplicantContext,
   PaymentRefReturn,
@@ -63,7 +64,6 @@ import {
   CivilFeeForm,
   CivilFeeSectionComponent,
 } from '@components/civil-fee-section/civil-fee-section.component';
-import { DateInputComponent } from '@components/date-input/date-input.component';
 import {
   ErrorItem,
   ErrorSummaryComponent,
@@ -72,14 +72,12 @@ import {
   ApplicationNotesForm,
   NotesSectionComponent,
 } from '@components/notes-section/notes-section.component';
-import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { OrganisationSectionComponent } from '@components/organisation-section/organisation-section.component';
 import { PersonSectionComponent } from '@components/person-section/person-section.component';
 import { RespondentSectionComponent } from '@components/respondent-section/respondent-section.component';
 import { ResultWordingSectionComponent } from '@components/result-wording-section/result-wording-section.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
 import { TableColumn } from '@components/selectable-sortable-table/selectable-sortable-table.component';
-import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { StandardApplicantSelectComponent } from '@components/standard-applicant-select/standard-applicant-select.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
@@ -93,6 +91,7 @@ import {
 import { ENTRY_SUCCESS_MESSAGES } from '@constants/application-list-entry/success-messages';
 import { SuccessBanner } from '@core-types/banner/banner.types';
 import {
+  ApplicationCodeGetDetailDto,
   ApplicationCodesApi,
   ApplicationListEntriesApi,
   EntryGetDetailDto,
@@ -133,7 +132,6 @@ import {
 import { getUniqueErrors } from '@util/error-items';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { markFormGroupClean, readText } from '@util/form-helpers';
-import { MojButtonMenuDirective } from '@util/moj-button-menu';
 
 type ChildErrorSource =
   | 'notes'
@@ -162,18 +160,15 @@ export const ERROR_HREFS = {
     SelectInputComponent,
     PersonSectionComponent,
     OrganisationSectionComponent,
-    MojButtonMenuDirective,
-    SortableTableComponent,
     TextInputComponent,
-    DateInputComponent,
     ErrorSummaryComponent,
-    NotificationBannerComponent,
     SuccessBannerComponent,
     StandardApplicantSelectComponent,
     NotesSectionComponent,
     RespondentSectionComponent,
     ResultWordingSectionComponent,
     CivilFeeSectionComponent,
+    ApplicationCodeSearchComponent,
   ],
   templateUrl: './applications-list-entry-detail.component.html',
 })
@@ -188,6 +183,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   private readonly codesApi = inject(ApplicationCodesApi);
   private readonly formSvc = inject(ApplicationListEntryFormService);
   private readonly location = inject(Location);
+  private readonly applicationCodesApi = inject(ApplicationCodesApi);
 
   //Utilising facade for entry results to keep component clean
   readonly resultsFacade = inject(ApplicationListEntryResultsFacade);
@@ -195,9 +191,11 @@ export class ApplicationsListEntryDetail implements OnInit {
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
 
   appListId!: string;
+  appCodeDetail!: ApplicationCodeGetDetailDto;
 
   forms!: ApplicationListEntryForms;
 
+  formReady = false;
   form!: ApplicationsListEntryForm;
   personForm!: PersonForm;
   organisationForm!: OrganisationForm;
@@ -422,55 +420,43 @@ export class ApplicationsListEntryDetail implements OnInit {
       });
   }
 
-  onAddCode(row: CodeRow): void {
+  onCodeSelected(codeAndLodgementDate: { code: string; date: string }): void {
     this.resetSuccessBanner();
     this.resetErrors();
 
-    const entryId = getEntryId(this.route);
-    if (!this.appListId || !entryId) {
-      return;
+    this.form.patchValue({
+      applicationCode: codeAndLodgementDate.code,
+      lodgementDate: codeAndLodgementDate.date,
+    });
+    // Call API to retrieve data associated with the App code
+    if (this.form.value.applicationCode && this.form.value.lodgementDate) {
+      this.applicationCodesApi
+        .getApplicationCodeByCodeAndDate(
+          {
+            code: codeAndLodgementDate.code,
+            date: codeAndLodgementDate.date,
+          },
+          'body',
+          false,
+          { transferCache: true },
+        )
+        .subscribe({
+          next: (appCodeDetail) => {
+            const prevCode = this.appCodeDetail?.applicationCode;
+            const newCode = appCodeDetail.applicationCode;
+
+            this.appCodeDetail = appCodeDetail;
+
+            // if user selected a different code than what we had, reset sections
+            if (prevCode !== newCode) {
+              this.resetSectionsOnApplicationCodeChange();
+            }
+          },
+          error: (err) => {
+            console.error('Error fetching code detail:', err);
+          },
+        });
     }
-
-    const code = (row?.code ?? '').trim();
-    if (!code) {
-      return;
-    }
-
-    if (!this.entryDetail) {
-      this.errorFound = true;
-      this.summaryErrors = [
-        {
-          text: 'Entry is not loaded. Load the entry before adding a code.',
-        },
-      ];
-      return;
-    }
-
-    const entryUpdateDto = buildEntryUpdateDtoWithChange(
-      this.entryDetail,
-      'applicationCode',
-      code,
-    );
-
-    const params: UpdateApplicationListEntryRequestParams = {
-      listId: this.appListId,
-      entryId,
-      entryUpdateDto,
-    };
-
-    this.entriesApi
-      .updateApplicationListEntry(params, 'body', false, {
-        transferCache: false,
-      })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () =>
-          this.afterCodeUpdatedSuccessfully(
-            entryUpdateDto.applicationCode,
-            entryUpdateDto.lodgementDate,
-          ),
-        error: (err) => this.applyMappedError(err),
-      });
   }
 
   private buildErrorSummary(): ErrorItem[] {
@@ -803,8 +789,12 @@ export class ApplicationsListEntryDetail implements OnInit {
               feeAmount: codeDto.feeAmount ?? null,
               offsiteFeeAmount: codeDto.offsiteFeeAmount ?? null,
             };
+            this.formReady = true;
           },
-          error: () => this.form.patchValue({ applicationTitle: '' }),
+          error: () => {
+            this.form.patchValue({ applicationTitle: '' });
+            this.formReady = true;
+          },
         });
     }
   }
@@ -969,5 +959,25 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.errorFound = true;
 
     focusErrorSummary(this.platformId);
+  }
+
+  private resetSectionsOnApplicationCodeChange(): void {
+    this.form.patchValue({
+      // wording section fields
+      wordingFields: null,
+
+      // respondent section fields
+      respondentEntryType: null,
+
+      // Civil fee section fields
+      feeStatuses: null,
+      feeStatus: null,
+      feeStatusDate: null,
+      paymentRef: null,
+    });
+
+    // reset respondent section forms person and organisation
+    this.personForm.reset();
+    this.organisationForm.reset();
   }
 }

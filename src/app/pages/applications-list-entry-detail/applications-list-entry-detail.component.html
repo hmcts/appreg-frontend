@@ -93,69 +93,12 @@
     </button>
   </ng-template>
 
-  <!-- TODO: Refactor codes section into a separate component -->
   <ng-template #codesTpl>
-    <div class="govuk-grid-row">
-      <!-- Lodgement date -->
-      <app-date-input
-        formControlName="lodgementDate"
-        label="Lodgement date"
-        hint="For example, 27 3 2007"
-        idPrefix="lodgement-date"
-        [submitted]="formSubmitted"
-        [isSearch]="true"
+    @if (formReady) {
+      <app-application-code-search
+        [patchedFormData]="this.form"
+        (selectCodeAndLodgementDate)="onCodeSelected($event)"
       />
-
-      <!-- Application code -->
-      <app-text-input
-        formControlName="applicationCode"
-        label="Application code"
-        hint="The code for the application"
-        idPrefix="application-code"
-      />
-
-      <!-- Application title -->
-      <app-text-input
-        formControlName="applicationTitle"
-        label="Application title"
-        hint="Enter a concise title for this application"
-        idPrefix="application-title"
-      />
-    </div>
-
-    <div class="govuk-button-group">
-      <button type="button" class="govuk-button" (click)="onCodesSearch()">
-        Search
-      </button>
-    </div>
-
-    @if (codesHasSearched) {
-      @if (!codesLoading && codesRows.length === 0) {
-        <app-notification-banner
-          heading="No codes found"
-          body="Try different filters, or retry the search."
-        />
-      } @else {
-        <app-sortable-table
-          id="codes-table"
-          caption="Codes"
-          [columns]="codesColumns"
-          [data]="codesRows"
-          appMojButtonMenu
-        >
-          <ng-template #actionsTemplate let-row>
-            <div class="govuk-button-group">
-              <button
-                type="button"
-                class="govuk-button"
-                (click)="onAddCode(row)"
-              >
-                Add code
-              </button>
-            </div>
-          </ng-template>
-        </app-sortable-table>
-      }
     }
   </ng-template>
 
