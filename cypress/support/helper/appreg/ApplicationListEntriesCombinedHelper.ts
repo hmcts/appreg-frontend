@@ -18,7 +18,9 @@ export class ApplicationListEntriesCombinedHelper {
     );
 
     for (const [fieldLabel, value] of Object.entries(processedCriteria)) {
-      if (!value || value.trim() === '') {continue;}
+      if (!value || value.trim() === '') {
+        continue;
+      }
 
       switch (fieldLabel) {
         case 'Date':
