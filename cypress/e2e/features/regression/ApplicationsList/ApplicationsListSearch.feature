@@ -140,7 +140,7 @@ Feature: Applications List Search
     Then User Sees Validation Error "<ValidationMessage>"
     Examples:
       | User   | SearchText | ValidationMessage                                  | OptionText | ExpectedValue | Info             |
-      | admin1 | abc123     | There is a problem Criminal Justice Area not found |            | abc123        | No results found |
+      | admin1 | abc123     | There is a problem Criminal justice area not found |            | abc123        | No results found |
 
   # This Scenario has been ignored due to bug in sorting functionality @ARCPOC-756
   @ignore @ARCPOC-214 @ARCPOC-452 @ARCPOC-756
@@ -200,7 +200,7 @@ Feature: Applications List Search
       | User   | SearchText | OptionText                | ExpectedValue                      | Info             |
       | admin1 | Cardiff    | Cardiff Crown Court Set 4 | CCC033 - Cardiff Crown Court Set 4 | No results found |
 
-  @regression @ARCPOC-214 @ARCPOC-691
+  @regression @ARCPOC-214 @ARCPOC-691 @TP
   Scenario Outline: Verify Court field validation with invalid input
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -209,8 +209,8 @@ Feature: Applications List Search
     When User Clicks On The "Search" Button
     Then User Sees Notification Banner "<NotificationMessage>"
     Examples:
-      | User   | SearchText | NotificationMessage                                        | OptionText | ExpectedValue | Info             |
-      | admin1 | London     | No lists found Try different filters, or create a new list |            | London        | No results found |
+      | User   | SearchText | NotificationMessage                         | OptionText | ExpectedValue | Info             |
+      | admin1 | London     | There is a problem Court location not found |            | London        | No results found |
 
   @regression @ARCPOC-214 @ARCPOC-417
   Scenario Outline: Verify application list Open

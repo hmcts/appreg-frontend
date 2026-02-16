@@ -42,7 +42,6 @@ Feature: Applications List Entry Search
         When User Searches Application List Entry With:
             | Date         | Applicant Org | Respondent Org | CourtSearch | Court | Applicant surname | Respondent surname | List other location | Applicant code | Post code | CJA | Select status | Account reference |
             | <SearchDate> |               |                |             |       |                   |                    |                     |                |           |     |               |                   |
-        # Verify notification banner is displayed for empty state - Query raised for text of Notification banner
         When User Clicks On The "Search" Button
         Then User Sees Notification Banner "<NotificationMessage>"
         Then User See "No results found." On The Page
@@ -50,21 +49,15 @@ Feature: Applications List Entry Search
             | User  | SearchDate | NotificationMessage                                               |
             | user1 | 15/08/2023 | Important No application list entries found Try different filters |
 
-    @regression @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076 @TP
-    Scenario Outline: Verify Search button state and application list entry results on ALE search page
+    @regression @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076
+    Scenario Outline: Verify Search application list entries are listed in the table on ALE search page
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         Then User clicks on the link using exact text match "Applications"
         And User Verify The Page URL Contains "/applications"
-        # Initial state validation
-        Then User Should See The Button "Search" Is Disabled
-        When User Clicks On The "Clear search" Button
-        And User Searches Application List Entry With:
+        When User Searches Application List Entry With:
             | Date         | Applicant Org  | Respondent Org  | CourtSearch   | Court   | Applicant surname  | Respondent surname  | List other location | Applicant code  | Post code  | CJASearch   | CJA   | Select status  | Account reference  |
             | <SearchDate> | <ApplicantOrg> | <RespondentOrg> | <CourtSearch> | <Court> | <ApplicantSurname> | <RespondentSurname> | <OtherLocation>     | <ApplicantCode> | <PostCode> | <CJASearch> | <CJA> | <SelectStatus> | <AccountReference> |
-        # Button state after input
-        Then User Should See The Button "Search" Is Enabled
-        # Results validation (only when results are expected)
         Then User Should See Table "<TableName>" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
         And User Should See Table "<TableName>" Header "Actions" Is Not Sortable
         And User Should See Row In Table "<TableName>" With Values:
@@ -77,27 +70,42 @@ Feature: Applications List Entry Search
             | user1 | 28/01/2026 |              |               | LCCC025     | Leeds Combined Court Centre Set 3 | Taylor           |                   |               |               |          |           |             |              |                  | Application list entries | 28/01/2026 | Mr Henry Taylor 35874            | Ms Emily Clark 35874                            | Issue of liability order summons - council tax       | No  | No       | OPEN   |
             | user1 |            |              |               |             |                                   |                  |                   | MCJC002       |               |          | 10        | Southampton |              |                  | Application list entries | 13/01/2026 | Test Organisation 13 - applicant | Mr TestForenameRespondent TestSurnameRespondent | Issue of liability order summons - non-domestic rate | No  | No       | OPEN   |
 
-    @regression @ARCPOC-222 @ARCPOC-442
-    # Asked Dave for more validation error message scenarios. Will update the table once I have the information.
+    @regression @ARCPOC-222 @ARCPOC-442 @ARCPOC-1083
     Scenario: Verify Validation Error Messages on Application list entry Search Page
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
         Then User clicks on the link using exact text match "Applications"
         Then User Verify The Page URL Contains "/applications"
-        When User Searches Application List Entry With:
-            | Date | Applicant Org | Respondent Org | CourtSearch | Court | Applicant surname | Respondent surname | List other location | Applicant code | Post code | CJA | Select status | Account reference |
-            | dd// |               |                |             |       |                   |                    |                     |                |           |     |               |                   |
-        Then User Should See The Button "Search" Is Disabled
-        When User Searches Application List Entry With:
-            | Date         | Applicant Org | Respondent Org | CourtSearch | Court | Applicant surname | Respondent surname | List other location | Applicant code | Post code | CJA | Select status | Account reference |
-            | dd/mm/*SKIP* |               |                |             |       |                   |                    |                     |                |           |     |               |                   |
-        Then User Should See The Button "Search" Is Disabled
-        When User Searches Application List Entry With:
-            | Date       | Applicant Org | Respondent Org | CourtSearch | Court | Applicant surname | Respondent surname | List other location | Applicant code | Post code | CJA | Select status | Account reference |
-            | dd/mm/yyyy | ACME          |                |             |       | Smith             |                    |                     |                |           |     |               |                   |
-        Then User Should See The Button "Search" Is Enabled
         When User Clicks On The "Search" Button
-        Then User Sees Validation Error Messages "There is a problem Enter a real date"
+        Then User Sees Notification Banner "There is a problem Invalid Search Criteria. At least one field must be entered."
+        When User Searches Application List Entry With:
+            | Date          | Applicant Org | Respondent Org | CourtSearch | Court | Applicant surname | Respondent surname | List other location | Applicant code | Post code | CJA | Select status | Account reference |
+            | <InvalidDate> | ACME          |                |             |       |                   |                    |                     |                |           |     |               |                   |
+        Then User Sees Notification Banner "There is a problem Enter a valid date"
+        When User Clicks On The "Clear search" Button
+        Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<InvalidCourt>"
+        Then User Verifies "<Info>" Is Visible Under The "Court" Textbox
+        When User Clicks On The "Search" Button
+        Then User Sees Notification Banner "There is a problem Court location not found"
+        When User Clicks On The "Clear search" Button
+        Then User Selects "<OptionText>" From The Textbox "CJA" Autocomplete By Typing "<InvalidCJA>"
+        Then User Verifies "<Info>" Is Visible Under The "CJA" Textbox
+        When User Clicks On The "Search" Button
+        Then User Sees Notification Banner "There is a problem Criminal justice area not found"
+        When User Clicks On The "Clear search" Button
+        When User Searches Application List Entry With:
+            | Date | Applicant Org | Respondent Org | CourtSearch | Court | Applicant surname | Respondent surname | List other location | Applicant code | Post code         | CJA | Select status | Account reference |
+            |      |               |                |             |       |                   |                    |                     |                | <InvalidPostcode> |     |               |                   |
+        Then User Sees Notification Banner "There is a problem Enter a valid UK postcode"
+        When User Clicks On The "Clear search" Button
+        When User Searches Application List Entry With:
+            | Date        | Applicant Org | Respondent Org | CourtSearch | Court | Applicant surname | Respondent surname | List other location | Applicant code | Post code       | CJASearch | CJA | Select status | Account reference |
+            | <ValidDate> | ACME          |                |             |       | Taylor            |                    |                     |                | <ValidPostcode> |           |     | Open          |                   |
+        Then User Sees Notification Banner "Important No application list entries found Try different filters"
+        Then User See "No results found." On The Page
+        Examples:
+            | InvalidDate | ValidDate  | InvalidCourt | InvalidCJA | InvalidPostcode | ValidPostcode | OptionText | SearchText | Info             |
+            | 31/13/2048  | 12/01/2025 | InvalidCourt | InvalidCJA | ABC123          | AB1 2CD       |            | Cardiff    | No results found |
 
     @ignore @ARCPOC-222 @ARCPOC-442
     Scenario Outline: Verify Applications List Entry table sorting functionality
