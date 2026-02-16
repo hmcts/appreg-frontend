@@ -52,6 +52,7 @@ import {
   PaymentStatus,
 } from '@openapi';
 import { buildNormalizedPayload } from '@util/build-payload';
+import { buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { PlaceFieldsState } from '@util/place-fields.base';
 import { setupLoadEffect } from '@util/signal-state-helpers';
@@ -108,6 +109,12 @@ export class ApplicationsListUpdateComponent implements OnInit {
   readonly cjaInputChange = output<void>();
   readonly selectCourthouse = output<unknown>();
   readonly selectCja = output<unknown>();
+
+  private readonly hrefs = {
+    date: `#${DETAIL_ERROR_ANCHORS.date}`,
+    time: `#${DETAIL_ERROR_ANCHORS.time}`,
+    duration: `#${DETAIL_ERROR_ANCHORS.duration_hours}`,
+  } as const;
 
   // Run a query to get entry details
   // Needed for list close validation
@@ -277,100 +284,89 @@ export class ApplicationsListUpdateComponent implements OnInit {
     return typeof v === 'string' ? v : '';
   }
 
+
+  // Closing applications list error checks
+  //   const closeReasons = gErrs?.closeNotPermitted?.noClose;
+  //   if (closeReasons) {
+  //     const durationHasCloseError =
+  //       !!this.form().get('duration')?.errors?.['closeDurationMissing'];
+  //     closeReasons.forEach((reason, idx) => {
+  //       // Remove dupe duration errors as there's 2 durations fields
+  //       if (
+  //         durationHasCloseError &&
+  //         (reason === CLOSE_MESSAGES.durationMissing ||
+  //           reason === CLOSE_MESSAGES.durationNonPositive)
+  //       ) {
+  //         return;
+  //       }
+  //       items.push({
+  //         // dedupeById() removes dupe IDs. For close have unique IDs
+  //         id: `status-close-${idx + 1}`,
+  //         href: '#status',
+  //         text: reason,
+  //       });
+  //     });
+  //   }
+
   private buildUpdateErrorSummary(): ErrorItem[] {
-    const items: ErrorItem[] = [];
+    const items = buildFormErrorSummary(this.form(), DETAIL_FIELD_MESSAGES, {
+      hrefs: this.hrefs,
+    });
 
-    const gErrs = this.form().errors as DetailFormGroupErrors | null;
-    const conflictMsg = gErrs?.courtLocCjaConflict?.message;
-    if (conflictMsg) {
-      items.push({ id: 'court', text: conflictMsg });
-    }
-
-    // Closing applications list error checks
-    const closeReasons = gErrs?.closeNotPermitted?.noClose;
-    if (closeReasons) {
-      const durationHasCloseError =
-        !!this.form().get('duration')?.errors?.['closeDurationMissing'];
-      closeReasons.forEach((reason, idx) => {
-        // Remove dupe duration errors as there's 2 durations fields
-        if (
-          durationHasCloseError &&
-          (reason === CLOSE_MESSAGES.durationMissing ||
-            reason === CLOSE_MESSAGES.durationNonPositive)
-        ) {
-          return;
-        }
-        items.push({
-          // dedupeById() removes dupe IDs. For close have unique IDs
-          id: `status-close-${idx + 1}`,
-          href: '#status',
-          text: reason,
-        });
-      });
-    }
-
-    for (const name of this.detailFields()) {
-      const control = this.form().get(name);
-      const errs = control?.errors;
-      if (!errs) {
-        continue;
-      }
-
-      if (name === 'duration') {
-        this.pushDurationErrors(items, errs);
-        continue;
-      }
-
-      const msg = this.errorTextFromControl(errs, DETAIL_FIELD_MESSAGES[name]);
-      if (!msg) {
-        continue;
-      }
-
-      items.push({ id: this.anchorFor(name), text: msg });
-    }
+    this.replaceDurationErrors(items);
 
     return this.dedupeById(items);
   }
 
-  private detailFields(): (keyof typeof DETAIL_FIELD_MESSAGES)[] {
-    return Object.keys(
-      DETAIL_FIELD_MESSAGES,
-    ) as (keyof typeof DETAIL_FIELD_MESSAGES)[];
-  }
-
-  private anchorFor(name: keyof typeof DETAIL_FIELD_MESSAGES): string {
-    switch (name) {
-      case 'date':
-        return DETAIL_ERROR_ANCHORS.date;
-      case 'time':
-        return DETAIL_ERROR_ANCHORS.time;
-      default:
-        return name as string;
+  private replaceDurationErrors(items: ErrorItem[]): void {
+    const durCtrl = this.form().get('duration');
+    const errs = durCtrl?.errors as Record<string, unknown> | null;
+    if (!errs) {
+      return;
     }
-  }
 
-  private pushDurationErrors(
-    items: ErrorItem[],
-    errs: Record<string, unknown>,
-  ): void {
+    // remove generic duration entry if util added it
+    for (let i = items.length - 1; i >= 0; i--) {
+      if (items[i].id === 'duration') {
+        items.splice(i, 1);
+      }
+    }
+
     const hoursText = this.getString(errs, 'hoursErrorText');
     const minsText = this.getString(errs, 'minutesErrorText');
 
     if (hoursText) {
-      items.push({ id: DETAIL_ERROR_ANCHORS.duration_hours, text: hoursText });
-    }
-    if (minsText) {
-      items.push({ id: DETAIL_ERROR_ANCHORS.duration_minutes, text: minsText });
+      items.push({
+        id: DETAIL_ERROR_ANCHORS.duration_hours,
+        href: `#${DETAIL_ERROR_ANCHORS.duration_hours}`,
+        text: hoursText,
+      });
     }
 
-    // fallback if duration invalid but no specific part message
+    if (minsText) {
+      items.push({
+        id: DETAIL_ERROR_ANCHORS.duration_minutes,
+        href: `#${DETAIL_ERROR_ANCHORS.duration_minutes}`,
+        text: minsText,
+      });
+    }
+
+    // fallback: duration invalid but no part message
     if (!hoursText && !minsText) {
-      const msg = this.errorTextFromControl(
-        errs,
-        DETAIL_FIELD_MESSAGES.duration,
-      );
-      if (msg) {
-        items.push({ id: DETAIL_ERROR_ANCHORS.duration_hours, text: msg });
+      const msgMap = DETAIL_FIELD_MESSAGES.duration;
+
+      // check known keys only
+      const fallbackKeys: (keyof typeof msgMap)[] = ['durationInvalid'];
+
+      for (const k of fallbackKeys) {
+        if (errs[k]) {
+          items.push({
+            id: DETAIL_ERROR_ANCHORS.duration_hours,
+            href: `#${DETAIL_ERROR_ANCHORS.duration_hours}`,
+            text: msgMap[k],
+          });
+          break;
+        }
       }
     }
   }

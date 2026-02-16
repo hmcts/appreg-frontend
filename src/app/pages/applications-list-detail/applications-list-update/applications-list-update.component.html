@@ -64,18 +64,13 @@
         (searchChange)="courthouseInputChange.emit()"
         [suggestions]="placeState().filteredCourthouses"
         (selectItem)="selectCourthouse.emit($event)"
-        [disabled]="
-          !!form().get('location')?.value || !!form().get('cja')?.value
-        "
         [showError]="
           vm().updateInvalid &&
-          !form().get('court')?.value &&
-          !(
-            form().get('location')?.value?.toString()?.trim() ||
-            !!form().get('cja')?.value
-          )
+          !form().get('location')?.value &&
+          !form().get('cja')?.value &&
+          !!fieldError('court')
         "
-        errorText="Court is required"
+        [errorText]="fieldError('court')?.text ?? ''"
       />
 
       <!-- Other location -->
@@ -84,7 +79,7 @@
         label="Other location"
         hint="Other location description"
         idPrefix="location"
-        [submitted]="vm().updateInvalid && !form().get('court')?.value"
+        [submitted]="vm().updateInvalid && !!form().get('cja')?.value"
       />
 
       <!-- CJA -->
