@@ -44,8 +44,8 @@ export class TableInteraction {
     selectButtonText: string,
   ): Cypress.Chainable<void> {
     return TableSearch.searchWithPagination(
-      tableCaption,
       columnValues,
+      tableCaption,
       true,
       (row) => {
         return TableElement.getButtonInRow(row, selectButtonText)
@@ -76,8 +76,8 @@ export class TableInteraction {
     expectedMenuOptions: string[],
   ): Cypress.Chainable<void> {
     return TableSearch.searchWithPagination(
-      tableCaption,
       columnValues,
+      tableCaption,
       true,
       (row) => {
         return TableElement.getButtonInRow(row, selectButtonText)
@@ -113,8 +113,8 @@ export class TableInteraction {
     columnValues: Record<string, string>,
   ): Cypress.Chainable<void> {
     return TableSearch.searchWithPagination(
-      tableCaption,
       columnValues,
+      tableCaption,
       true,
       (row) => {
         return TableElement.getCheckboxInRow(row).then((checkbox) => {

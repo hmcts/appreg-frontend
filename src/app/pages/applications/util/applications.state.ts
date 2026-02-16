@@ -7,7 +7,7 @@ export interface ApplicationsState {
   submitted: boolean;
 
   errorHint: string;
-  searchErrors: { id: string; text: string }[];
+  searchErrors: ErrorItem[];
   errorSummary: ErrorItem[];
 
   // results

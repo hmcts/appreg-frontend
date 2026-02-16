@@ -1,10 +1,20 @@
+/// <reference types="cypress" />
 export class CheckboxElement {
-  static findInRowByIndex(
-    rowIndex: number,
+  /**
+   * Supports both wrapped and linked labels (for/id)
+   */
+  static findCheckbox(
+    labelText: string,
   ): Cypress.Chainable<JQuery<HTMLInputElement>> {
-    return cy
-      .get('tbody.govuk-table__body tr.govuk-table__row')
-      .eq(rowIndex)
-      .find('input[type="checkbox"].govuk-checkboxes__input');
+    return cy.contains('label', labelText).then(($label) => {
+      const forAttr = $label.attr('for');
+      if (forAttr) {
+        // Label with for attribute pointing to checkbox id
+        return cy.get(`input[type="checkbox"]#${forAttr}`);
+      } else {
+        // Label wrapping the checkbox
+        return cy.wrap($label).find('input[type="checkbox"]');
+      }
+    });
   }
 }

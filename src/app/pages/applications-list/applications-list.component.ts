@@ -38,6 +38,7 @@ import {
   APPLICATIONS_LIST_CHOOSE_STATUS,
   APPLICATIONS_LIST_COLUMNS_ACTION,
   APPLICATIONS_LIST_ERROR_MESSAGES,
+  APPLICATIONS_LIST_FORM_ERROR_MESSAGES,
 } from './util/applications-list.constants';
 import {
   ApplicationsListState,
@@ -53,7 +54,10 @@ import {
 } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import { DurationInputComponent } from '@components/duration-input/duration-input.component';
-import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
+import {
+  ErrorItem,
+  ErrorSummaryComponent,
+} from '@components/error-summary/error-summary.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
@@ -80,11 +84,16 @@ import {
   DEFAULT_STATE,
   SearchFormValue,
 } from '@services/searchform/application-list-search-form.service';
+import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
+import { buildFormErrorSummary } from '@util/error-summary';
 import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
+import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
+import { courtMustExistIfTypedValidator } from '@validators/court-exists.validator';
+import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
 
 type DeleteFlash = { kind: 'success' } | { kind: 'error'; code: number };
 
@@ -135,6 +144,9 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   // allows you to initialise effect in ngOnInit()
   private readonly envInjector = inject(EnvironmentInjector);
 
+  private readonly errorMap = APPLICATIONS_LIST_FORM_ERROR_MESSAGES;
+  onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
+
   // Create form
   override form = this.formSvc.createSearchForm();
 
@@ -153,6 +165,20 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   ngOnInit(): void {
     this.restoreFormValues();
     this.initPlaceFields(this.form, this.refFacade);
+
+    //Attach validators
+    this.form.addValidators([
+      courtLocCjaValidator(),
+      cjaMustExistIfTypedValidator({
+        getTyped: () => this.state().cjaSearch ?? '',
+        getValidCodes: () => this.state().cja.map((x) => x.code),
+      }),
+      courtMustExistIfTypedValidator({
+        getTyped: () => this.state().courthouseSearch ?? '',
+        getValidCodes: () =>
+          this.state().courtLocations.map((x) => x.locationCode),
+      }),
+    ]);
 
     // reset submitted to false when navigating back to prevent date/duration input errors
     this.storedRecordsState.patch({ submitted: false });
@@ -318,6 +344,18 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     );
   }
 
+  fieldError(id: string): ErrorItem | undefined {
+    return this.vm().searchErrors.find((e) => e.id === id);
+  }
+
+  private buildErrorSummary(): ErrorItem[] {
+    return buildFormErrorSummary(this.form, this.errorMap, {
+      hrefs: {
+        time: '#time-hours',
+      },
+    });
+  }
+
   onSubmit(event: SubmitEvent): void {
     event.preventDefault();
     const btn = event.submitter as HTMLButtonElement | null;
@@ -328,48 +366,13 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     this.appListSignalState.patch({ isSearch: true });
     this.storedRecordsState.patch({ rows: [] });
 
-    const dateCtrl = this.form.controls.date;
-    const timeCtrl = this.form.controls.time;
-    const validationErrors: { id: string; text: string }[] = [];
+    this.form.markAllAsTouched();
+    this.form.updateValueAndValidity({ emitEvent: false });
 
-    //TODO: Should use new validation pattern in ALE update
-    // Using generic summary/child functions to retrieve messages from central error object
-
-    // CJA validation
-    const cjaTyped = (this.state().cjaSearch ?? '').trim();
-    const cjaCode = String(this.form.controls.cja.value ?? '').trim();
-
-    if (cjaTyped) {
-      const isKnownCode = this.state().cja.some((x) => x.code === cjaCode);
-
-      if (!isKnownCode) {
-        validationErrors.push({
-          id: 'cja',
-          text: APPLICATIONS_LIST_ERROR_MESSAGES.cjaNotFound,
-        });
-      }
-    }
-
-    if (dateCtrl.errors?.['dateInvalid']) {
-      validationErrors.push({
-        id: 'date-day',
-        text: dateCtrl.errors['dateErrorText'] as string,
-      });
-    }
-
-    if (timeCtrl.errors?.['durationInvalid']) {
-      validationErrors.push({
-        id: 'time-hours',
-        text: timeCtrl.errors['durationErrorText'] as string,
-      });
-    }
-
-    // If any errors are found then return and do not run query
+    const validationErrors = this.buildErrorSummary();
     if (validationErrors.length) {
       this.storedRecordsState.patch({ submitted: true });
-      this.appListSignalState.patch({
-        searchErrors: validationErrors,
-      });
+      this.appListSignalState.patch({ searchErrors: validationErrors });
       return;
     }
 

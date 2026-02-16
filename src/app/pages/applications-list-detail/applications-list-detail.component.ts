@@ -33,13 +33,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import {
-  FormControl,
-  FormGroup,
-  FormsModule,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import {
@@ -49,10 +43,7 @@ import {
 
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '@components/date-input/date-input.component';
-import {
-  Duration,
-  DurationInputComponent,
-} from '@components/duration-input/duration-input.component';
+import { DurationInputComponent } from '@components/duration-input/duration-input.component';
 import {
   ErrorItem,
   ErrorSummaryComponent,
@@ -75,30 +66,22 @@ import {
   ApplicationListUpdateDto,
   ApplicationListsApi,
 } from '@openapi';
+import { ApplicationsListFormService } from '@services/applications-list-form.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { buildNormalizedPayload } from '@util/build-payload';
 import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '@util/error-click';
+import { buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenu, MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { parseTimeToDuration } from '@util/time-helpers';
 import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
+import { courtMustExistIfTypedValidator } from '@validators/court-exists.validator';
 import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
-
-type DetailForm = FormGroup<{
-  date: FormControl<string | null>;
-  time: FormControl<Duration | null>;
-  description: FormControl<string>;
-  status: FormControl<string | null>;
-  court: FormControl<string | null>;
-  location: FormControl<string | null>;
-  cja: FormControl<string | null>;
-  duration: FormControl<Duration | null>;
-}>;
 
 type Handoff = {
   id: string;
@@ -121,11 +104,6 @@ type selectedRow = {
   title: string;
   feeReq: 'Yes' | 'No';
   resulted: 'Yes' | 'No';
-};
-
-type CourtLocCjaConflictError = { message: string };
-type DetailFormGroupErrors = {
-  courtLocCjaConflict?: CourtLocCjaConflictError;
 };
 
 type LoadDetailReq = { id: string; pageNumber: number; pageSize: number };
@@ -161,6 +139,7 @@ type UpdateReq = {
 })
 export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly envInjector = inject(EnvironmentInjector);
+  private readonly appListFormService = inject(ApplicationsListFormService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly refField = inject(ReferenceDataFacade);
   private readonly appListApi = inject(ApplicationListsApi);
@@ -182,36 +161,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly loadRequest = signal<LoadDetailReq | null>(null);
   private readonly updateRequest = signal<UpdateReq | null>(null);
 
-  override form: DetailForm = new FormGroup(
-    {
-      date: new FormControl<string | null>(null, {
-        validators: [(c) => Validators.required(c)],
-      }),
-      time: new FormControl<Duration | null>(null, {
-        validators: [(c) => Validators.required(c)],
-      }),
-      description: new FormControl<string>('', {
-        nonNullable: true,
-        validators: [(c) => Validators.required(c)],
-      }),
-      status: new FormControl<string | null>(null, {
-        validators: [(c) => Validators.required(c)],
-      }),
-      court: new FormControl<string>(''),
-      location: new FormControl<string>(''),
-      cja: new FormControl<string>(''),
-      duration: new FormControl<Duration | null>(null),
-    },
-    {
-      validators: [
-        courtLocCjaValidator(),
-        cjaMustExistIfTypedValidator({
-          getTyped: () => this.state().cjaSearch ?? '',
-          getValidCodes: () => this.state().cja.map((x) => x.code),
-        }),
-      ],
-    },
-  );
+  override form = this.appListFormService.createUpdateForm();
 
   statusOptions = [
     { value: '', label: 'Choose status' },
@@ -236,11 +186,34 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     allResulted: 'These applications have already been resulted.',
   };
 
+  private readonly hrefs = {
+    date: `#${DETAIL_ERROR_ANCHORS.date}`,
+    time: `#${DETAIL_ERROR_ANCHORS.time}`,
+    duration: `#${DETAIL_ERROR_ANCHORS.duration_hours}`,
+  } as const;
+
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
 
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refField);
+
+    //Attach validators
+    this.form.addValidators([
+      courtLocCjaValidator({
+        getCourtTyped: () => this.state().courthouseSearch ?? '',
+        getCjaTyped: () => this.state().cjaSearch ?? '',
+      }),
+      courtMustExistIfTypedValidator({
+        getTyped: () => this.state().courthouseSearch ?? '',
+        getValidCodes: () =>
+          this.state().courtLocations.map((x) => x.locationCode),
+      }),
+      cjaMustExistIfTypedValidator({
+        getTyped: () => this.state().cjaSearch ?? '',
+        getValidCodes: () => this.state().cja.map((x) => x.code),
+      }),
+    ]);
 
     this.setupEffects();
 
@@ -604,76 +577,64 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   //TODO: List-details should really be it's own component to encapsulate this logic
   private buildUpdateErrorSummary(): ErrorItem[] {
-    const items: ErrorItem[] = [];
+    const items = buildFormErrorSummary(this.form, DETAIL_FIELD_MESSAGES, {
+      hrefs: this.hrefs,
+    });
 
-    const gErrs = this.form.errors as DetailFormGroupErrors | null;
-    const conflictMsg = gErrs?.courtLocCjaConflict?.message;
-    if (conflictMsg) {
-      items.push({ id: 'court', text: conflictMsg });
-    }
-
-    for (const name of this.detailFields()) {
-      const control = this.form.get(name);
-      const errs = control?.errors;
-      if (!errs) {
-        continue;
-      }
-
-      if (name === 'duration') {
-        this.pushDurationErrors(items, errs);
-        continue;
-      }
-
-      const msg = this.errorTextFromControl(errs, DETAIL_FIELD_MESSAGES[name]);
-      if (!msg) {
-        continue;
-      }
-
-      items.push({ id: this.anchorFor(name), text: msg });
-    }
+    this.replaceDurationErrors(items);
 
     return this.dedupeById(items);
   }
 
-  private detailFields(): (keyof typeof DETAIL_FIELD_MESSAGES)[] {
-    return Object.keys(
-      DETAIL_FIELD_MESSAGES,
-    ) as (keyof typeof DETAIL_FIELD_MESSAGES)[];
-  }
-
-  private anchorFor(name: keyof typeof DETAIL_FIELD_MESSAGES): string {
-    switch (name) {
-      case 'date':
-        return DETAIL_ERROR_ANCHORS.date;
-      case 'time':
-        return DETAIL_ERROR_ANCHORS.time;
-      default:
-        return name as string;
+  private replaceDurationErrors(items: ErrorItem[]): void {
+    const durCtrl = this.form.get('duration');
+    const errs = durCtrl?.errors as Record<string, unknown> | null;
+    if (!errs) {
+      return;
     }
-  }
 
-  private pushDurationErrors(
-    items: ErrorItem[],
-    errs: Record<string, unknown>,
-  ): void {
+    // remove generic duration entry if util added it
+    for (let i = items.length - 1; i >= 0; i--) {
+      if (items[i].id === 'duration') {
+        items.splice(i, 1);
+      }
+    }
+
     const hoursText = this.getString(errs, 'hoursErrorText');
     const minsText = this.getString(errs, 'minutesErrorText');
 
     if (hoursText) {
-      items.push({ id: DETAIL_ERROR_ANCHORS.duration_hours, text: hoursText });
-    }
-    if (minsText) {
-      items.push({ id: DETAIL_ERROR_ANCHORS.duration_minutes, text: minsText });
+      items.push({
+        id: DETAIL_ERROR_ANCHORS.duration_hours,
+        href: `#${DETAIL_ERROR_ANCHORS.duration_hours}`,
+        text: hoursText,
+      });
     }
 
-    // fallback if duration invalid but no specific part message
+    if (minsText) {
+      items.push({
+        id: DETAIL_ERROR_ANCHORS.duration_minutes,
+        href: `#${DETAIL_ERROR_ANCHORS.duration_minutes}`,
+        text: minsText,
+      });
+    }
+
+    // fallback: duration invalid but no part message
     if (!hoursText && !minsText) {
-      const msg = this.errorTextFromControl(
-        errs,
-        DETAIL_FIELD_MESSAGES.duration,
-      );
-      if (msg) {
-        items.push({ id: DETAIL_ERROR_ANCHORS.duration_hours, text: msg });
+      const msgMap = DETAIL_FIELD_MESSAGES.duration;
+
+      // check known keys only
+      const fallbackKeys: (keyof typeof msgMap)[] = ['durationInvalid'];
+
+      for (const k of fallbackKeys) {
+        if (errs[k]) {
+          items.push({
+            id: DETAIL_ERROR_ANCHORS.duration_hours,
+            href: `#${DETAIL_ERROR_ANCHORS.duration_hours}`,
+            text: msgMap[k],
+          });
+          break;
+        }
       }
     }
   }
