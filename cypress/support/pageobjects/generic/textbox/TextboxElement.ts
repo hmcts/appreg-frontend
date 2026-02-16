@@ -13,7 +13,6 @@ export class TextboxElement {
         { matchCase: false },
       )
       .then(($el) => {
-
         // If it's a label, find the associated input
         if ($el.is('label')) {
           const forAttr = $el.attr('for');
@@ -21,7 +20,7 @@ export class TextboxElement {
             return cy.get(`#${forAttr}`).then(($target) => {
               // If target is already an input/textarea/select, use it directly
               if ($target.is('input, textarea, select')) {
-                return cy.wrap($target);  
+                return cy.wrap($target);
               }
               // If target is a container (component), look for input inside
               const inputInside = $target.find('input, textarea, select');
@@ -38,6 +37,6 @@ export class TextboxElement {
         // If it's already an input/textarea/select, return it
         return cy.wrap($el);
       });
-  // });
-}
+    // });
+  }
 }
