@@ -121,7 +121,7 @@ Feature: Applications List Update
         Then User Selects "<InvalidStatus>" In The "Status" Dropdown
         Then User Clears The "Court" Textbox
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "There is a problem Enter day, month and year Enter hours and minutes Enter a description Select a status Court is required Other location is required CJA is required"
+        Then User Sees Notification Banner "There is a problem Enter day, month and year Enter hours and minutes Enter a description Enter a court, or an other location and criminal justice area"
         When User Set Date Field "Date" To "<InvalidSearchDate>"
         When User Clicks On The "Update" Button
         Then User Sees Notification Banner "There is a problem Enter a valid date Enter hours and minutes Enter a description Select a status Court is required Other location is required CJA is required"
