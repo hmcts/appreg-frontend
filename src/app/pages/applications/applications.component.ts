@@ -67,6 +67,7 @@ type ControlName = keyof AppErrorMap;
     ErrorSummaryComponent,
     NotificationBannerComponent,
     MojButtonMenuDirective,
+    DateTimePipe
   ],
   templateUrl: './applications.component.html',
   styleUrls: ['./applications.component.scss'],
@@ -74,20 +75,12 @@ type ControlName = keyof AppErrorMap;
 export class Applications extends PlaceFieldsBase implements OnInit {
   private readonly refFacade = inject(ReferenceDataFacade);
   private readonly appListApi = inject(ApplicationListEntriesApi);
-  private readonly dateTimePipe = new DateTimePipe();
 
   private readonly appState = createSignalState(initialApplicationsState);
   readonly vm = this.appState.vm;
   private readonly patchApp = this.appState.patch;
 
-  readonly tableRows = computed(() =>
-    this.vm().rows.map((dto) => {
-      const row = mapToRow(dto);
-      const rawDate = row.date;
-      const dateDisplay = this.dateTimePipe.transform(rawDate) ?? rawDate;
-      return { ...row, dateDisplay };
-    }),
-  );
+  readonly tableRows = computed(() => this.vm().rows.map(mapToRow));
 
   private readonly errorMap = APPLICATIONS_ERROR_MAP;
 
@@ -125,7 +118,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   );
 
   columns = [
-    { header: 'Date', field: 'dateDisplay' },
+    { header: 'Date', field: 'date' },
     { header: 'Applicant', field: 'applicant' },
     { header: 'Respondent', field: 'respondent' },
     { header: 'Application title', field: 'title' },

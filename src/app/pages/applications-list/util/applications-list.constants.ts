@@ -1,7 +1,7 @@
 import { TableColumn } from '@components/sortable-table/sortable-table.component';
 
 export const APPLICATIONS_LIST_COLUMNS: TableColumn[] = [
-  { header: 'Date', field: 'dateDisplay' },
+  { header: 'Date', field: 'date' },
   { header: 'Time', field: 'time' },
   {
     header: 'Location',

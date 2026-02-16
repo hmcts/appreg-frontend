@@ -117,6 +117,7 @@ type DeleteFlash = { kind: 'success' } | { kind: 'error'; code: number };
     NotificationBannerComponent,
     MojButtonMenuDirective,
     PageHeaderComponent,
+    DateTimePipe,
   ],
   templateUrl: './applications-list.component.html',
 })
@@ -130,7 +131,6 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   private readonly formSvc = inject(ApplicationsListFormService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly dateTimePipe = new DateTimePipe();
 
   openMenuForId: string | null = null;
   openPrintSelectForId: string | null = null;
@@ -243,13 +243,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
           this.storedRecordsState.patch({
             submitted: true,
             totalPages: page.totalPages ?? 0,
-            rows: content.map((x) => {
-              const row = toRow(x);
-              const rawDate = typeof row.date === 'string' ? row.date : '';
-              const dateDisplay =
-                this.dateTimePipe.transform(rawDate) ?? rawDate; // Note: bug with sorting with this field but it should be fixed when we move to BE sorting
-              return { ...row, dateDisplay };
-            }),
+            rows: content.map((x) => toRow(x)),
           });
           this.loadRequest.set(null); // Clears request signal
         },
@@ -541,7 +535,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
 
     if (del === 'error') {
       const raw = q.get('code');
-      const code = raw ? Number(raw) : NaN;
+      const code = raw ? Number(raw) : Number.NaN;
       return { kind: 'error', code: Number.isFinite(code) ? code : 500 };
     }
 
