@@ -67,7 +67,7 @@ type ControlName = keyof AppErrorMap;
     ErrorSummaryComponent,
     NotificationBannerComponent,
     MojButtonMenuDirective,
-    DateTimePipe
+    DateTimePipe,
   ],
   templateUrl: './applications.component.html',
   styleUrls: ['./applications.component.scss'],
