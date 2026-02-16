@@ -1,3 +1,14 @@
+/**
+ * Takes an ISO date string and converts to a human readable date.
+ * Uses angular DatePipe default presets but we convert to en-gb
+ *
+ * Formats:
+ *  shortDate - 28/6/26
+ *  mediumDate - 28 Jun 2026
+ *  longDate - 28 June 2026
+ *  fullDate - Sunday, 28 June 2026
+ */
+
 import { DatePipe } from '@angular/common';
 import { Pipe, PipeTransform } from '@angular/core';
 
