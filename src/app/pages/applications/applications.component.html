@@ -24,34 +24,19 @@
     <!-- Date -->
     <app-date-input
       formControlName="date"
-      label="Date"
+      label="List date"
       hint="For example, 27 3 2007"
       idPrefix="date"
       [submitted]="vm().submitted"
       [isSearch]="vm().isSearch"
     />
+  </div>
 
-    <!-- Applicant Org -->
-    <app-text-input
-      formControlName="applicantOrg"
-      label="Applicant Org"
-      hint="Enter the applicants organisation"
-      idPrefix="applicant-org"
-    />
-
-    <!-- Respondent Org -->
-    <app-text-input
-      formControlName="respondentOrg"
-      label="Respondent Org"
-      hint="Enter the respondents organisation"
-      idPrefix="respondent-org"
-    />
-
+  <div class="govuk-grid-row">
     <!-- Court -->
     <app-suggestions
       id="court"
       label="Court"
-      hint="Enter a description of the court"
       [(search)]="state().courthouseSearch"
       (searchChange)="onCourthouseInputChange()"
       [suggestions]="state().filteredCourthouses"
@@ -59,84 +44,130 @@
       [disabled]="!!form.get('location')?.value || !!form.get('cja')?.value"
       [showError]="vm().searchErrors.length > 0 && !!fieldError('court')"
       [errorText]="fieldError('court')?.text ?? ''"
+      containerWidthClass="govuk-grid-column-one-half"
+      widthClass="govuk-!-width-two-thirds"
     />
   </div>
 
   <div class="govuk-grid-row">
+    <!-- Applicant Org -->
+    <app-text-input
+      formControlName="applicantOrg"
+      label="Applicant organisation"
+      idPrefix="applicant-org"
+      containerWidthClass="govuk-grid-column-one-quarter"
+      widthClass="govuk-!-width-full"
+    />
+
     <!-- Applicant last name -->
     <app-text-input
       formControlName="applicantSurname"
       label="Applicant surname"
-      hint="The applicants last name"
       idPrefix="applicant-surname"
-    />
-
-    <!-- Respondent surname -->
-    <app-text-input
-      formControlName="respondentSurname"
-      label="Respondent surname"
-      hint="The respondent last name"
-      idPrefix="respondent-surname"
-    />
-
-    <!-- Location Description -->
-    <app-text-input
-      formControlName="location"
-      label="List other location"
-      hint="Other location description"
-      idPrefix="location"
-    />
-
-    <!-- Applicant code -->
-    <app-text-input
-      formControlName="standardApplicantCode"
-      label="Applicant code"
-      hint="The standard applicant code"
-      idPrefix="applicant-code"
+      containerWidthClass="govuk-grid-column-one-quarter"
+      widthClass="govuk-!-width-full"
     />
   </div>
 
   <div class="govuk-grid-row">
-    <!-- Postcode -->
+    <!-- Respondent Org -->
     <app-text-input
-      formControlName="respondentPostcode"
-      label="Post code"
-      hint="Respondents post code"
-      idPrefix="respondentPostcode"
-      [error]="getControlErrorMessages('respondentPostcode')[0]"
+      formControlName="respondentOrg"
+      label="Respondent organisation"
+      idPrefix="respondent-org"
+      containerWidthClass="govuk-grid-column-one-quarter"
+      widthClass="govuk-!-width-full"
     />
-
-    <!-- CJA -->
-    <app-suggestions
-      id="cja"
-      label="CJA"
-      hint="Start typing to search"
-      [(search)]="state().cjaSearch"
-      (searchChange)="onCjaInputChange()"
-      [suggestions]="state().filteredCja"
-      (selectItem)="selectCja($event)"
-      [disabled]="!!state().courthouseSearch || !!form.get('court')?.value"
-      [showError]="vm().searchErrors.length > 0 && !!fieldError('cja')"
-      [errorText]="fieldError('cja')?.text ?? ''"
+    <!-- Respondent surname -->
+    <app-text-input
+      formControlName="respondentSurname"
+      label="Respondent surname"
+      idPrefix="respondent-surname"
+      containerWidthClass="govuk-grid-column-one-quarter"
+      widthClass="govuk-!-width-full"
     />
+  </div>
 
+  <div class="govuk-grid-row">
     <!-- Status -->
     <app-select-input
       formControlName="status"
-      label="Select status"
-      hint="Status of the application"
+      label="Select application status"
       idPrefix="status"
       [options]="status"
     />
-
-    <!-- Account reference -->
-    <app-text-input
-      formControlName="accountReference"
-      label="Account reference"
-      hint="The account reference code"
-      idPrefix="account-reference"
-    />
   </div>
+
+  <details class="govuk-details" [open]="vm().isAdvancedSearch">
+    <summary
+      class="govuk-details__summary"
+      (click)="$event.preventDefault(); toggleAdvancedSearch()"
+    >
+      <span class="govuk-details__summary-text"> Advanced search </span>
+    </summary>
+    <div class="govuk-details__text">
+      <div class="govuk-grid-row">
+        <!-- Postcode -->
+        <app-text-input
+          formControlName="respondentPostcode"
+          label="Respondent post code"
+          idPrefix="respondentPostcode"
+          [error]="getControlErrorMessages('respondentPostcode')[0]"
+          containerWidthClass="govuk-grid-column-one-quarter"
+          widthClass="govuk-!-width-full"
+        />
+      </div>
+      <div class="govuk-grid-row">
+        <!-- CJA -->
+        <app-suggestions
+          id="cja"
+          label="Criminal justice area"
+          [(search)]="state().cjaSearch"
+          (searchChange)="onCjaInputChange()"
+          [suggestions]="state().filteredCja"
+          (selectItem)="selectCja($event)"
+          [disabled]="!!state().courthouseSearch || !!form.get('court')?.value"
+          [showError]="vm().searchErrors.length > 0 && !!fieldError('cja')"
+          [errorText]="fieldError('cja')?.text ?? ''"
+          containerWidthClass="govuk-grid-column-one-quarter"
+          widthClass="govuk-!-width-full"
+        />
+      </div>
+
+      <div class="govuk-grid-row">
+        <!-- Location Description -->
+        <app-text-input
+          formControlName="location"
+          label="Other location description"
+          idPrefix="location"
+          containerWidthClass="govuk-grid-column-one-quarter"
+          widthClass="govuk-!-width-full"
+        />
+      </div>
+
+      <div class="govuk-grid-row">
+        <!-- Applicant code -->
+        <app-text-input
+          formControlName="standardApplicantCode"
+          label="Standard applicant code"
+          idPrefix="applicant-code"
+          containerWidthClass="govuk-grid-column-one-quarter"
+          widthClass="govuk-!-width-full"
+        />
+      </div>
+
+      <div class="govuk-grid-row">
+        <!-- Account reference -->
+        <app-text-input
+          formControlName="accountReference"
+          label="Account reference"
+          idPrefix="account-reference"
+          containerWidthClass="govuk-grid-column-one-quarter"
+          widthClass="govuk-!-width-full"
+        />
+      </div>
+    </div>
+  </details>
 
   <div class="govuk-button-group">
     <button id="search" type="submit" class="govuk-button" value="search">
