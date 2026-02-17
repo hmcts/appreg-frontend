@@ -52,7 +52,6 @@ export class ApplicationCodeSearchComponent implements OnInit {
   @Input() legend = 'Find an application code';
   @Input() codePlaceholder = 'The code for the application';
   @Input() titlePlaceholder = 'Enter a concise title for this application';
-  @Input() mode: 'create' | 'update' = 'create';
   @Input() patchedFormData?: ApplicationsListEntryForm;
 
   @Input() appListId?: string;
@@ -121,8 +120,8 @@ export class ApplicationCodeSearchComponent implements OnInit {
         },
         error: () => {
           this.loading = false;
+          this.errored = true;
           this.cdr.markForCheck();
-          // this.applyMappedError(err);
         },
       });
   }
@@ -130,7 +129,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
   onAddCode(row: CodeRow): void {
     this.submitted = false;
     this.codesRows = [];
-    this.form.patchValue({ code: row.code, title: row.title });
+
     if (!this.listId) {
       return;
     }
@@ -139,6 +138,13 @@ export class ApplicationCodeSearchComponent implements OnInit {
     if (!code) {
       return;
     }
+
+    const title = (row?.title ?? '').trim();
+    if (!title) {
+      return;
+    }
+
+    this.form.patchValue({ code, title });
 
     this.selectCodeAndLodgementDate.emit({
       code,
