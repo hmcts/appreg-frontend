@@ -156,6 +156,10 @@
     (sortChange)="onSortChange($event)"
     appMojButtonMenu
   >
+    <ng-template #dateTemplate let-row>
+      {{ row.date | dateTime }}
+    </ng-template>
+
     <ng-template #actionsTemplate let-row>
       <div class="govuk-button-group">
         <!-- actions slot -->

@@ -8,6 +8,7 @@ import {
   PLATFORM_ID,
   TemplateRef,
   ViewChild,
+  contentChild,
   inject,
   input,
   output,
@@ -43,6 +44,8 @@ export type TableColumn = {
 export class SortableTableComponent implements AfterViewInit, OnDestroy {
   @ContentChild('actionsTemplate', { read: TemplateRef })
   actionsTpl?: TemplateRef<unknown>;
+
+  readonly dateTpl = contentChild<TemplateRef<unknown>>('dateTemplate');
 
   caption = input('');
   hiddenCaption = input(false);
