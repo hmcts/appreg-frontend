@@ -287,6 +287,9 @@ export class ApplicationsListUpdateComponent implements OnInit {
   private buildUpdateErrorSummary(): ErrorItem[] {
     const items = buildFormErrorSummary(this.form(), DETAIL_FIELD_MESSAGES, {
       hrefs: this.hrefs,
+      priorityKeys: {
+        date: ['dateInvalid', 'required'],
+      },
     });
 
     this.replaceDurationErrors(items);
