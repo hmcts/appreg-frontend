@@ -29,6 +29,7 @@ export class TextInputComponent implements ControlValueAccessor {
   idPrefix = input('text-input');
   /** Optional width class (e.g. 'govuk-input--width-10') */
   widthClass = input('govuk-input--width-10');
+  containerWidthClass = input('govuk-grid-column-one-quarter');
   listId = input<string | undefined>(undefined);
   suggestions = input<
     {
@@ -42,7 +43,6 @@ export class TextInputComponent implements ControlValueAccessor {
   charLimit = input(200);
   error = input<string | null>(null);
   inputType = input<'email' | 'text' | 'tel'>('text');
-  containerWidth = input<string>('govuk-grid-column-one-quarter');
 
   typed = output<string>();
 
