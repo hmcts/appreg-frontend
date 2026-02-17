@@ -19,7 +19,7 @@ export class DateTimePipe implements PipeTransform {
 
   transform(
     value: string | undefined,
-    format: 'shortDate' | 'mediumDate' | 'longDate' | 'fullDate' = 'mediumDate',
+    format: 'mediumDate' | 'longDate' = 'mediumDate',
   ): string | null {
     if (!value) {
       return null;
