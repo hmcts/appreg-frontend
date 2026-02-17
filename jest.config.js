@@ -34,6 +34,7 @@ module.exports = {
     '^@page-types/(.*)$': '<rootDir>/src/app/pages/$1/util/types',
     '^@shared-types/(.*)$': '<rootDir>/src/app/shared/models/$1',
     '^@core-types/(.*)$': '<rootDir>/src/app/core/models/$1',
+    '^@core/(.*)$': '<rootDir>/src/app/core/$1',
     '^@entry-create-util/(.*)$':
       '<rootDir>/src/app/pages/applications-list-entry-create/util/$1',
     '^@constants/(.*)$': '<rootDir>/src/app/shared/constants/$1',

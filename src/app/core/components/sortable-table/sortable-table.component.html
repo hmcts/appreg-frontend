@@ -45,7 +45,13 @@
                 col.sortable !== false ? getSortValue(row, col) : null
               "
             >
-              {{ row[col.field] }}
+              @if (col.field === 'date' && dateTpl()) {
+                <ng-container
+                  *ngTemplateOutlet="dateTpl(); context: { $implicit: row }"
+                ></ng-container>
+              } @else {
+                {{ row[col.field] }}
+              }
             </th>
           } @else {
             <td
@@ -62,6 +68,10 @@
                     actionsTpl ?? null;
                     context: { $implicit: row }
                   "
+                ></ng-container>
+              } @else if (col.field === 'date' && dateTpl()) {
+                <ng-container
+                  *ngTemplateOutlet="dateTpl(); context: { $implicit: row }"
                 ></ng-container>
               } @else {
                 {{ row[col.field] }}

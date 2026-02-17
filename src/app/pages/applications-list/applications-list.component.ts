@@ -69,6 +69,7 @@ import {
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import {
   ApplicationListGetSummaryDto,
   ApplicationListStatus,
@@ -116,6 +117,7 @@ type DeleteFlash = { kind: 'success' } | { kind: 'error'; code: number };
     NotificationBannerComponent,
     MojButtonMenuDirective,
     PageHeaderComponent,
+    DateTimePipe,
   ],
   templateUrl: './applications-list.component.html',
 })
@@ -533,7 +535,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
 
     if (del === 'error') {
       const raw = q.get('code');
-      const code = raw ? Number(raw) : NaN;
+      const code = raw ? Number(raw) : Number.NaN;
       return { kind: 'error', code: Number.isFinite(code) ? code : 500 };
     }
 

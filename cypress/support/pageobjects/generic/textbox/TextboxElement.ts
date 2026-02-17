@@ -37,5 +37,6 @@ export class TextboxElement {
         // If it's already an input/textarea/select, return it
         return cy.wrap($el);
       });
+    // });
   }
 }
