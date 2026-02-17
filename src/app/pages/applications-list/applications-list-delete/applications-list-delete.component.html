@@ -7,5 +7,9 @@
   (cancelled)="goBack()"
   title="Are you sure you want to delete this application list?"
 >
-  <app-table [rows]="[listToDelete]" [columns]="columns"> </app-table>
+  <app-table [rows]="[listToDelete]" [columns]="columns">
+    <ng-template #dateTemplate let-row>
+      {{ row.date | dateTime }}
+    </ng-template>
+  </app-table>
 </app-delete>
