@@ -7,7 +7,7 @@ export const DETAIL_FIELD_MESSAGES = {
     dateInFuture: 'Date must not be in the future',
   },
   time: {
-    required: 'Enter hours and minutes',
+    required: 'Enter valid hours and minutes',
     durationInvalid: 'Enter a valid duration between 00:00 and 23:59',
   },
   description: {

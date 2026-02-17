@@ -310,6 +310,10 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     return filter;
   }
 
+  toggleAdvancedSearch(): void {
+    this.patchApp({ isAdvancedSearch: !this.vm().isAdvancedSearch });
+  }
+
   private buildErrorSummary(): ErrorItem[] {
     return buildFormErrorSummary(this.form, this.errorMap);
   }
