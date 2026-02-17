@@ -59,7 +59,7 @@ import { setupLoadEffect } from '@util/signal-state-helpers';
 import { CloseValidationEntry } from '@validators/applications-list-close.validator';
 
 @Component({
-  selector: 'app-applications-list-detail-list-details',
+  selector: 'app-applications-list-update',
   standalone: true,
   imports: [
     CommonModule,
