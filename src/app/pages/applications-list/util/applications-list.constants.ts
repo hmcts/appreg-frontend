@@ -62,7 +62,7 @@ export const APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES = {
     dateInvalid: 'Enter a valid date',
   },
   time: {
-    required: 'Enter hours and minutes',
+    required: 'Enter valid hours and minutes',
     durationInvalid: 'Enter a valid duration between 00:00 and 23:59',
   },
   description: {
