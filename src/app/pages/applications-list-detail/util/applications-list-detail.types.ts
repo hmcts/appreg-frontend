@@ -9,9 +9,9 @@ export type DetailForm = FormGroup<{
   time: FormControl<Duration | null>;
   description: FormControl<string>;
   status: FormControl<string | null>;
-  court: FormControl<string | null>;
-  location: FormControl<string | null>;
-  cja: FormControl<string | null>;
+  court: FormControl<string>;
+  location: FormControl<string>;
+  cja: FormControl<string>;
   duration: FormControl<Duration | null>;
 }>;
 

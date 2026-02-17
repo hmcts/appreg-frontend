@@ -261,16 +261,16 @@ export class ApplicationsListUpdateComponent implements OnInit {
     return this.vm().errorSummary.find((e: ErrorItem) => e.id === id);
   }
 
+  // Error hightlighting/summary for closing a list
   hasCloseErrors(): boolean {
     const gErrs = this.form().errors as DetailFormGroupErrors | null;
     return (gErrs?.closeNotPermitted?.noClose?.length ?? 0) > 0;
   }
 
   closeErrorText(): string {
-    return 'You cannot close this list. See the error summary for details.';
+    return CLOSE_MESSAGES.closeInvalid;
   }
 
-  // If we are trying to close the list, we need duration fields to be filled
   hasDurationCloseError(): boolean {
     return !!this.form().get('duration')?.errors?.['closeDurationMissing'];
   }
@@ -284,38 +284,44 @@ export class ApplicationsListUpdateComponent implements OnInit {
     return typeof v === 'string' ? v : '';
   }
 
-
-  // Closing applications list error checks
-  //   const closeReasons = gErrs?.closeNotPermitted?.noClose;
-  //   if (closeReasons) {
-  //     const durationHasCloseError =
-  //       !!this.form().get('duration')?.errors?.['closeDurationMissing'];
-  //     closeReasons.forEach((reason, idx) => {
-  //       // Remove dupe duration errors as there's 2 durations fields
-  //       if (
-  //         durationHasCloseError &&
-  //         (reason === CLOSE_MESSAGES.durationMissing ||
-  //           reason === CLOSE_MESSAGES.durationNonPositive)
-  //       ) {
-  //         return;
-  //       }
-  //       items.push({
-  //         // dedupeById() removes dupe IDs. For close have unique IDs
-  //         id: `status-close-${idx + 1}`,
-  //         href: '#status',
-  //         text: reason,
-  //       });
-  //     });
-  //   }
-
   private buildUpdateErrorSummary(): ErrorItem[] {
     const items = buildFormErrorSummary(this.form(), DETAIL_FIELD_MESSAGES, {
       hrefs: this.hrefs,
     });
 
     this.replaceDurationErrors(items);
+    this.addCloseValidationErrors(items);
 
     return this.dedupeById(items);
+  }
+
+  private addCloseValidationErrors(items: ErrorItem[]): void {
+    const gErrs = this.form().errors as DetailFormGroupErrors | null;
+    const closeReasons = gErrs?.closeNotPermitted?.noClose;
+    if (!closeReasons) {
+      return;
+    }
+
+    const durationHasCloseError =
+      !!this.form().get('duration')?.errors?.['closeDurationMissing'];
+
+    closeReasons.forEach((reason, idx) => {
+      // Remove dupe duration errors as there's 2 durations fields
+      if (
+        durationHasCloseError &&
+        (reason === CLOSE_MESSAGES.durationMissing ||
+          reason === CLOSE_MESSAGES.durationNonPositive)
+      ) {
+        return;
+      }
+
+      items.push({
+        // dedupeById() removes dupe IDs. For close have unique IDs
+        id: `status-close-${idx + 1}`,
+        href: '#status',
+        text: reason,
+      });
+    });
   }
 
   private replaceDurationErrors(items: ErrorItem[]): void {
@@ -334,6 +340,7 @@ export class ApplicationsListUpdateComponent implements OnInit {
 
     const hoursText = this.getString(errs, 'hoursErrorText');
     const minsText = this.getString(errs, 'minutesErrorText');
+    const durationText = this.getString(errs, 'durationErrorText');
 
     if (hoursText) {
       items.push({
@@ -349,6 +356,16 @@ export class ApplicationsListUpdateComponent implements OnInit {
         href: `#${DETAIL_ERROR_ANCHORS.duration_minutes}`,
         text: minsText,
       });
+    }
+
+    // close validation
+    if (!hoursText && !minsText && durationText) {
+      items.push({
+        id: DETAIL_ERROR_ANCHORS.duration_hours,
+        href: `#${DETAIL_ERROR_ANCHORS.duration_hours}`,
+        text: durationText,
+      });
+      return;
     }
 
     // fallback: duration invalid but no part message
@@ -391,38 +408,6 @@ export class ApplicationsListUpdateComponent implements OnInit {
       out.push(item);
     }
     return out;
-  }
-
-  private errorTextFromControl(
-    controlErrors: Record<string, unknown>,
-    messages: Record<string, string> | undefined,
-  ): string | null {
-    // Prefer explicit payload text if present (duration component)
-    const textPayloadKeys = [
-      'dateErrorText',
-      'durationErrorText',
-      'hoursErrorText',
-      'minutesErrorText',
-    ] as const;
-
-    for (const k of textPayloadKeys) {
-      const v = controlErrors[k];
-      if (typeof v === 'string' && v.trim()) {
-        return v;
-      }
-    }
-
-    // Otherwise use message map keys
-    if (messages) {
-      for (const key of Object.keys(controlErrors)) {
-        const msg = messages[key];
-        if (msg) {
-          return msg;
-        }
-      }
-    }
-
-    return null;
   }
 
   private toNum(v: string | number | null | undefined): number | undefined {

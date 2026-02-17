@@ -22,7 +22,6 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import {
@@ -34,8 +33,6 @@ import {
   initialApplicationsListDetailState,
 } from './util/applications-list-detail.state';
 import {
-  DetailForm,
-  DetailFormGroupErrors,
   Handoff,
   LoadDetailReq,
   UpdateReq,
@@ -43,7 +40,6 @@ import {
 } from './util/applications-list-detail.types';
 
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
-import { Duration } from '@components/duration-input/duration-input.component';
 import {
   ErrorItem,
   ErrorSummaryComponent,
@@ -54,10 +50,7 @@ import { PaginationComponent } from '@components/pagination/pagination.component
 import { SelectableSortableTableComponent } from '@components/selectable-sortable-table/selectable-sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { DETAIL_ERROR_ANCHORS } from '@constants/application-list-detail-update/error-hrefs';
-import {
-  DETAIL_FIELD_MESSAGES,
-  RESULT_ERROR_MESSAGES,
-} from '@constants/application-list-detail-update/error-messages';
+import { RESULT_ERROR_MESSAGES } from '@constants/application-list-detail-update/error-messages';
 import {
   appListDetailColumns,
   appListDetailStatusOptions,
@@ -71,7 +64,6 @@ import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '@util/error-click';
-import { buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenu, MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';

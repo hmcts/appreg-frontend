@@ -51,6 +51,8 @@ export const RESULT_ERROR_MESSAGES = {
 };
 
 export const CLOSE_MESSAGES = {
+  closeInvalid:
+    'You cannot close this list. See the error summary for details.',
   resultMissing: 'Each entry must have at least one result to close this list',
   officialsMissing:
     'Each entry must have at least one official to close this list',
@@ -60,5 +62,5 @@ export const CLOSE_MESSAGES = {
     'Entries that require a respondent must have a respondent recorded to close this list',
   durationMissing: 'A duration must be recorded to close this list.',
   durationNonPositive:
-    'Please enter positive value for either the Duration Hour or Duration Minutes to close this list',
+    'Please enter positive value for either hours or minutes to close this list',
 } as const;
