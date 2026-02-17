@@ -14,6 +14,8 @@ export type BuildFormErrorSummaryOptions = {
   hrefs?: ErrorHrefsMap;
   // external groups not nested under the root form
   groups?: { group: FormGroup; prefixId?: string }[];
+  // We can prioritise key errors for summary
+  priorityKeys?: Record<string, string[]>;
 };
 
 export type BuildFormErrorSummaryFn = (

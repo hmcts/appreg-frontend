@@ -190,6 +190,9 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
       hrefs: {
         time: '#time-hours',
       },
+      priorityKeys: {
+        date: ['dateInvalid', 'required'],
+      },
     });
   }
 }
