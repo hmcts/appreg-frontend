@@ -64,6 +64,7 @@
         (searchChange)="courthouseInputChange.emit()"
         [suggestions]="placeState().filteredCourthouses"
         (selectItem)="selectCourthouse.emit($event)"
+        [disabled]="!!form().get('location')?.value || !!form().get('cja')?.value"
         [showError]="
           vm().updateInvalid &&
           !form().get('location')?.value &&
