@@ -453,7 +453,7 @@ export class ApplicationsListEntryDetail implements OnInit {
             }
           },
           error: (err) => {
-            console.error('Error fetching code detail:', err);
+            this.applyMappedError(err);
           },
         });
     }
