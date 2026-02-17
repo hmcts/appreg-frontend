@@ -72,35 +72,35 @@ Feature: Applications List Create
     Then User Clicks On The Breadcrumb Link "Applications list"
     Then User Clicks On The Link "Create new list"
     When User Clicks On The "Create" Button
-    Then User Sees Validation Error "There is a problem Enter day, month and year Enter hours and minutes Description is required Other location is required CJA is required Court is required"
+    Then User Sees Validation Error "There is a problem Enter day, month and year Enter hours and minutes Description is required Enter a court, or an other location and criminal justice area"
     Then User Should See The Date Field "Date"
     When User Set Date Field "Date" To "<InvalidDate>"
     When User Clicks On The "Create" Button
-    Then User Sees Notification Banner "There is a problem Enter a valid date Enter hours and minutes Description is required Other location is required CJA is required Court is required"
+    Then User Sees Notification Banner "There is a problem Enter day, month and year Enter a valid date Enter hours and minutes Description is required Enter a court, or an other location and criminal justice area"
     When User Set Date Field "Date" To "<ValidDate>"
     When User Clicks On The "Create" Button
-    Then User Sees Validation Error "There is a problem Enter hours and minutes Description is required Other location is required CJA is required Court is required"
+    Then User Sees Validation Error "There is a problem Enter hours and minutes Description is required Enter a court, or an other location and criminal justice area"
     Then User Should See The Time Field "Time"
     When User Set Time Field "Time" To "<InvalidTime>"
     When User Clicks On The "Create" Button
-    Then User Sees Notification Banner "There is a problem Enter a valid duration between 00:00 and 23:59 Description is required Other location is required CJA is required Court is required"
+    Then User Sees Notification Banner "There is a problem Enter a valid duration between 00:00 and 23:59 Description is required Enter a court, or an other location and criminal justice area"
     Then User Should See The Time Field "Time"
     When User Set Time Field "Time" To "<ValidTime>"
     When User Clicks On The "Create" Button
-    Then User Sees Notification Banner "There is a problem Description is required Other location is required CJA is required Court is required"
+    Then User Sees Notification Banner "There is a problem Description is required Enter a court, or an other location and criminal justice area"
     Then User Enters "<Description>" Into The "Description" Textbox
     When User Clicks On The "Create" Button
-    Then User Sees Notification Banner "There is a problem Other location is required CJA is required Court is required"
+    Then User Sees Notification Banner "There is a problem Enter a court, or an other location and criminal justice area"
     Then User Enters "<InvalidCourt>" Into The "Court" Textbox
     When User Clicks On The "Create" Button
-    Then User Sees Notification Banner "There is a problem Court Location not found"
+    Then User Sees Notification Banner "There is a problem Court location not found"
     Then User Clears The "Court" Textbox
     Then User Enters "<OtherLocation>" Into The "Other location" Textbox
     When User Clicks On The "Create" Button
-    Then User Sees Notification Banner "There is a problem CJA is required"
+    Then User Sees Notification Banner "Enter a court, or an other location and criminal justice area Criminal justice area is required"
     Then User Enters "<InvalidCJA>" Into The "CJA" Textbox
     When User Clicks On The "Create" Button
-    Then User Sees Notification Banner "There is a problem Criminal Justice Area not found"
+    Then User Sees Notification Banner "There is a problem Criminal justice area not found"
     Then User Clears The "CJA" Textbox
     Then User Selects "<ValidCJA>" From The Textbox "CJA" Autocomplete By Typing "<SearchText>"
     When User Clicks On The "Create" Button
@@ -109,5 +109,5 @@ Feature: Applications List Create
     Then User Should See The Link "Create new list"
 
     Examples:
-      | User  | InvalidDate | ValidDate  | InvalidTime | ValidTime | Description   | Status | InvalidCourt | OtherLocation           | InvalidCJA | ValidCJA      | SearchText | NotificationMessage                            |
-      | user1 | 32/13/2024  | 01/12/2024 | 25:61       | 14:30     | Test_{RANDOM} | Open   | abc          | Other Location_{RANDOM} | abc        | Wolverhampton | B9         | Success Applications list created successfully |
+      | User  | InvalidDate | ValidDate  | InvalidTime | ValidTime | Description   | Status | InvalidCourt | OtherLocation           | InvalidCJA | ValidCJA      | SearchText | NotificationMessage                                                 |
+      | user1 | 32/13/2024  | 01/12/2024 | 25:61       | 14:30     | Test_{RANDOM} | Open   | abc          | Other Location_{RANDOM} | abc        | Wolverhampton | B9         | Success Applications list created successfullyClick here to go back |

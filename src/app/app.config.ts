@@ -1,11 +1,14 @@
+import { registerLocaleData } from '@angular/common';
 import {
   HttpInterceptorFn,
   provideHttpClient,
   withInterceptors,
   withXsrfConfiguration,
 } from '@angular/common/http';
+import localeEnGb from '@angular/common/locales/en-GB';
 import {
   ApplicationConfig,
+  LOCALE_ID,
   provideBrowserGlobalErrorListeners,
   provideZoneChangeDetection,
 } from '@angular/core';
@@ -20,6 +23,8 @@ export const credentialsInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req.clone({ withCredentials: true }));
 };
 
+registerLocaleData(localeEnGb);
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
@@ -32,7 +37,8 @@ export const appConfig: ApplicationConfig = {
       }),
       withInterceptors([credentialsInterceptor, errorInterceptor]),
     ),
-
+    // Override default en-US to en-GB
+    { provide: LOCALE_ID, useValue: 'en-GB' },
     { provide: BASE_PATH, useValue: '' },
     {
       provide: Configuration,
