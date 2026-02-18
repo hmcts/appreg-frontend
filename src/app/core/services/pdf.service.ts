@@ -1,7 +1,8 @@
 // TODO: Look through this service and refactor
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 
+import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import { asArr, asObj, asStrOrNum } from '@util/data-utils';
 import {
   drawHr,
@@ -15,6 +16,8 @@ import { JsPDFLike, PdfList } from '@util/types/pdf-service/pdf-types';
 
 @Injectable({ providedIn: 'root' })
 export class PdfService {
+  private readonly dateTimePipe = inject(DateTimePipe);
+
   /**
    * Single-entry, paged layout (portrait).
    * Intentionally mirrors the continuous layout’s typography where sensible.
@@ -210,7 +213,9 @@ export class PdfService {
       const judges = this.fallbackText(e.judge);
       writeLabelValue('This matter was before', judges);
 
-      writeLabelValue('Dated', e.date);
+      // date format = 17 Febuary 2026
+      const date = this.safeFormatDate(e.date, 'longDate');
+      writeLabelValue('Dated', date as string);
 
       drawFooter();
     }
@@ -439,7 +444,10 @@ export class PdfService {
       // Top meta row (LEFT: Date & Time + Duration; RIGHT: Location)
       const normalisedTime = normaliseTime(data.listTime ?? '');
 
-      const dateTime = this.fallbackText(data.listDate + ' ' + normalisedTime); // YYYY-MM-DD HH:MM
+      // date format = 17 Feb 2026
+      const date = this.safeFormatDate(data.listDate);
+
+      const dateTime = this.fallbackText(date + ' ' + normalisedTime); // YYYY-MM-DD HH:MM
       const duration = this.fallbackText(extractDurationFromDto(raw), '—');
       const leftLabels = 'Date & Time\nDuration';
       const leftValues = `${dateTime}\n${duration}`;
@@ -888,5 +896,22 @@ export class PdfService {
         cjaString,
       );
     return match ? match[1].trim() : cjaString;
+  }
+
+  private safeFormatDate(
+    value: string | Date | undefined,
+    format: 'mediumDate' | 'longDate' = 'mediumDate',
+  ): string | null {
+    const todaysDate = new Date().toISOString().slice(0, 10);
+    if (!value || (typeof value === 'string' && value.trim() === '')) {
+      return this.dateTimePipe.transform(todaysDate, format);
+    }
+
+    try {
+      return this.dateTimePipe.transform(value as string, format);
+    } catch {
+      // fallback to today's date
+      return this.dateTimePipe.transform(todaysDate, format);
+    }
   }
 }

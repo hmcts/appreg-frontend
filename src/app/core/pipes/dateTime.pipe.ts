@@ -10,16 +10,23 @@
  */
 
 import { formatDate } from '@angular/common';
-import { LOCALE_ID, Pipe, PipeTransform, inject } from '@angular/core';
+import {
+  Injectable,
+  LOCALE_ID,
+  Pipe,
+  PipeTransform,
+  inject,
+} from '@angular/core';
 
 @Pipe({ name: 'dateTime', standalone: true })
+@Injectable({ providedIn: 'root' })
 export class DateTimePipe implements PipeTransform {
   // Use locale set in app.config.ts
   private readonly locale = inject(LOCALE_ID);
 
   transform(
     value: string | undefined,
-    format: 'shortDate' | 'mediumDate' | 'longDate' | 'fullDate' = 'mediumDate',
+    format: 'mediumDate' | 'longDate' = 'mediumDate',
   ): string | null {
     if (!value) {
       return null;

@@ -10,6 +10,7 @@ import { DeleteComponent } from '@components/delete/delete.component';
 import { TableComponent } from '@components/table/table.component';
 import { WarningBannerComponent } from '@components/warning-banner/warning-banner.component';
 import { IF_MATCH, ROW_VERSION } from '@context/concurrency-context';
+import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import { ApplicationListsApi } from '@openapi';
 import { ApplicationListRow } from '@util/types/application-list/types';
 
@@ -17,7 +18,12 @@ type DeleteNavState = { listToDelete?: ApplicationListRow };
 
 @Component({
   selector: 'app-applications-list-delete',
-  imports: [DeleteComponent, TableComponent, WarningBannerComponent],
+  imports: [
+    DeleteComponent,
+    TableComponent,
+    WarningBannerComponent,
+    DateTimePipe,
+  ],
   templateUrl: './applications-list-delete.component.html',
 })
 export class ApplicationsListDeleteComponent implements OnInit {
