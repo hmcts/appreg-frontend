@@ -193,6 +193,29 @@ export class ApplicationListEntryFormService {
     });
   }
 
+  resetSectionsOnApplicationCodeChange(forms: ApplicationListEntryForms): void {
+    forms.form.patchValue({
+      // wording section fields
+      wordingFields: null,
+
+      // respondent section fields
+      respondentEntryType: null,
+
+      // Civil fee section fields
+      feeStatuses: null,
+      feeStatus: null,
+      feeStatusDate: null,
+      paymentRef: null,
+    });
+
+    // reset respondent section forms person and organisation
+    forms.personForm.reset();
+    forms.organisationForm.reset();
+
+    markFormGroupClean(forms.personForm);
+    markFormGroupClean(forms.organisationForm);
+  }
+
   setApplicantType(
     forms: ApplicationListEntryForms,
     type: ApplicantType,

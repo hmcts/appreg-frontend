@@ -417,7 +417,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
             // if user selected a different code than what we had, reset sections
             if (prevCode !== newCode) {
-              this.resetSectionsOnApplicationCodeChange();
+              this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
             }
           },
           error: (err) => {
@@ -927,25 +927,5 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.errorFound = true;
 
     focusErrorSummary(this.platformId);
-  }
-
-  private resetSectionsOnApplicationCodeChange(): void {
-    this.form.patchValue({
-      // wording section fields
-      wordingFields: null,
-
-      // respondent section fields
-      respondentEntryType: null,
-
-      // Civil fee section fields
-      feeStatuses: null,
-      feeStatus: null,
-      feeStatusDate: null,
-      paymentRef: null,
-    });
-
-    // reset respondent section forms person and organisation
-    this.personForm.reset();
-    this.organisationForm.reset();
   }
 }
