@@ -119,13 +119,10 @@ describe('ApplicationCodeSearchComponent', () => {
       .spyOn(helpers, 'fetchCodeRows$')
       .mockReturnValue(throwError(() => new Error('404')));
 
-    const markSpy = jest.spyOn(component['cdr'], 'markForCheck');
-
     component.search();
 
     expect(component.loading()).toBe(false);
     expect(component.errored()).toBe(true);
-    expect(markSpy).toHaveBeenCalled();
   });
 
   it('onAddCode() should emit selectCodeAndLodgementDate when valid', () => {
@@ -167,7 +164,6 @@ describe('ApplicationCodeSearchComponent', () => {
 
   it('clear() should reset form, rows, errored and emit empty selection', () => {
     const emitSpy = jest.spyOn(component.selectCodeAndLodgementDate, 'emit');
-    const markSpy = jest.spyOn(component['cdr'], 'markForCheck');
 
     component.form.patchValue({ code: 'X', title: 'Y' });
     component.codesRows = mockRows.slice();
@@ -180,7 +176,6 @@ describe('ApplicationCodeSearchComponent', () => {
     expect(component.codesRows).toEqual([]);
     expect(component.errored()).toBe(false);
     expect(component.submitted()).toBe(false);
-    expect(markSpy).toHaveBeenCalled();
     expect(emitSpy).toHaveBeenCalledWith({ code: '', date: '' });
   });
 

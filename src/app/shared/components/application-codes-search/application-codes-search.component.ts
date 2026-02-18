@@ -9,7 +9,6 @@
 import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   DestroyRef,
   OnInit,
@@ -59,7 +58,6 @@ export class ApplicationCodeSearchComponent implements OnInit {
 
   private readonly route = inject(ActivatedRoute);
   private readonly codesApi = inject(ApplicationCodesApi);
-  private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
 
   listId!: string | null;
@@ -106,12 +104,10 @@ export class ApplicationCodeSearchComponent implements OnInit {
         next: (rows) => {
           this.codesRows = rows;
           this.loading.set(false);
-          this.cdr.markForCheck();
         },
         error: () => {
           this.loading.set(false);
           this.errored.set(true);
-          this.cdr.markForCheck();
         },
       });
   }
@@ -146,7 +142,6 @@ export class ApplicationCodeSearchComponent implements OnInit {
     this.form.patchValue({ code: null, title: null });
     this.codesRows = [];
     this.errored.set(false);
-    this.cdr.markForCheck();
     this.submitted.set(false);
     this.selectCodeAndLodgementDate.emit({ code: '', date: '' });
   }
