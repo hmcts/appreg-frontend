@@ -24,6 +24,7 @@ export type Handoff = {
   location: string;
   etag: string | null;
   version: number;
+  entriesCount: number;
 };
 
 export type selectedRow = {

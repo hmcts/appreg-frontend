@@ -175,12 +175,13 @@
     [placeState]="state()"
     [id]="id"
     [etag]="etag"
-    [entryIds]="entryIds"
+    [entryIds]="vm().allEntryIds"
     [patchState]="patchStateFn"
     [setUpdateRequest]="setUpdateRequestFn"
     (courthouseInputChange)="onCourthouseInputChange()"
     (cjaInputChange)="onCjaInputChange()"
     (selectCourthouse)="selectCourthouse($event)"
     (selectCja)="selectCja($event)"
+    (requestAllEntryIds)="onRequestAllEntryIds()"
   />
 </div>

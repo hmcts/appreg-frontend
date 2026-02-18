@@ -16,6 +16,7 @@ export interface ApplicationsListDetailState {
   // Entry details
   entriesDetails: EntryGetDetailDto[];
   entryCodeDetails: Record<string, ApplicationCodeGetDetailDto>;
+  allEntryIds: string[];
 
   // flags
   isLoading: boolean;
@@ -41,6 +42,7 @@ export const initialApplicationsListDetailState: ApplicationsListDetailState = {
 
   entriesDetails: [],
   entryCodeDetails: {},
+  allEntryIds: [],
 
   isLoading: true,
   updateDone: false,

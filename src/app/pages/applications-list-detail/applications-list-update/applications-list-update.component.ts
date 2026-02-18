@@ -89,6 +89,8 @@ export class ApplicationsListUpdateComponent implements OnInit {
     | null
   >(null);
 
+  private readonly closeAttempted = signal(false);
+
   readonly form = input.required<DetailForm>();
 
   readonly statusOptions = input.required<{ value: string; label: string }[]>();
@@ -110,6 +112,8 @@ export class ApplicationsListUpdateComponent implements OnInit {
   readonly selectCourthouse = output<unknown>();
   readonly selectCja = output<unknown>();
 
+  requestAllEntryIds = output<void>();
+
   private readonly hrefs = {
     date: `#${DETAIL_ERROR_ANCHORS.date}`,
     time: `#${DETAIL_ERROR_ANCHORS.time}`,
@@ -119,9 +123,21 @@ export class ApplicationsListUpdateComponent implements OnInit {
   // Run a query to get entry details
   // Needed for list close validation
   private readonly syncEntryIds = effect(() => {
-    const ids = this.entryIds();
+    const ids = this.entryIds() ?? [];
+    const status = this.form().controls.status.value;
+    const shouldRunCloseValidation =
+      this.closeAttempted() && status === 'closed';
+
+    if (!shouldRunCloseValidation) {
+      // Prevent any pre-loading on page render
+      this.loadEntryDetailsReq.set(null);
+      this.loadCodeDetailsReq.set(null);
+      return;
+    }
+
+    // Only now build requests
     this.loadEntryDetailsReq.set(
-      ids?.length
+      ids.length
         ? ids.map((entryId) => ({ listId: this.id(), entryId }))
         : null,
     );
@@ -217,6 +233,18 @@ export class ApplicationsListUpdateComponent implements OnInit {
 
     this.form().markAllAsTouched();
     this.form().updateValueAndValidity({ emitEvent: false });
+
+    const isClosing =
+      this.form().getRawValue().status?.toLowerCase() === 'closed';
+    this.closeAttempted.set(isClosing);
+
+    if (isClosing) {
+      this.requestAllEntryIds.emit();
+    } else {
+      // Make sure we don't run unnecessary requests if we're not trying to close a list
+      this.loadEntryDetailsReq.set(null);
+      this.loadEntryDetailsReq.set(null);
+    }
 
     const raw = this.form().getRawValue();
 

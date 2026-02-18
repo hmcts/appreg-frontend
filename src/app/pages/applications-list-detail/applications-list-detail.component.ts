@@ -23,6 +23,7 @@ import {
   signal,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { EMPTY, catchError, map, mergeMap, range, reduce } from 'rxjs';
 
 import {
   ApplicationsListUpdateComponent,
@@ -49,7 +50,6 @@ import { PageHeaderComponent } from '@components/page-header/page-header.compone
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import { SelectableSortableTableComponent } from '@components/selectable-sortable-table/selectable-sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
-import { DETAIL_ERROR_ANCHORS } from '@constants/application-list-detail-update/error-hrefs';
 import { RESULT_ERROR_MESSAGES } from '@constants/application-list-detail-update/error-messages';
 import {
   appListDetailColumns,
@@ -105,6 +105,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   id!: string;
   etag: string | null = null;
+  entryCount: number = 0;
 
   private readonly detailSignalState =
     createSignalState<ApplicationsListDetailState>(
@@ -115,18 +116,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   private readonly loadRequest = signal<LoadDetailReq | null>(null);
   private readonly updateRequest = signal<UpdateReq | null>(null);
-  entryIds: string[] = [];
 
   override form = this.appListFormService.createUpdateForm();
 
   statusOptions = appListDetailStatusOptions;
   columns = appListDetailColumns;
-
-  private readonly hrefs = {
-    date: `#${DETAIL_ERROR_ANCHORS.date}`,
-    time: `#${DETAIL_ERROR_ANCHORS.time}`,
-    duration: `#${DETAIL_ERROR_ANCHORS.duration_hours}`,
-  } as const;
 
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
@@ -161,6 +155,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       : undefined;
 
     this.id = st?.id ?? this.route.snapshot.paramMap.get('id') ?? '';
+    this.entryCount = st?.entriesCount ?? 0;
 
     if (isPlatformBrowser(this.platformId)) {
       this.loadApplicationsLists();
@@ -196,7 +191,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
               totalPages: 0,
               selectedIds: new Set<string>(),
             });
-            this.entryIds = [];
+            this.detailSignalState.patch({ allEntryIds: [] });
             this.loadRequest.set(null);
             return;
           }
@@ -244,7 +239,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           });
 
           this.loadRequest.set(null);
-          this.entryIds = rows.map((r) => r.id);
+          this.detailSignalState.patch({ allEntryIds: rows.map((r) => r.id) });
 
           if (isPlatformBrowser(this.platformId)) {
             this.ngZone.runOutsideAngular(() => {
@@ -266,7 +261,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
             totalPages: 0,
             selectedIds: new Set<string>(),
           });
-          this.entryIds = [];
+          this.detailSignalState.patch({ allEntryIds: [] });
           this.loadRequest.set(null);
         },
       },
@@ -377,6 +372,25 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
+  onRequestAllEntryIds(): void {
+    const totalEntries = this.entryCount ?? 0;
+    if (!this.id || totalEntries <= 0) {
+      return;
+    }
+
+    this.loadAllEntryIds$(this.id, totalEntries).subscribe({
+      next: (ids: string[]) => this.onAllIdsLoaded(ids),
+      error: () => this.onAllIdsLoaded([]),
+    });
+  }
+
+  // When loadAllEntryIds completes, set:
+  private onAllIdsLoaded(ids: string[]): void {
+    this.detailSignalState.patch({
+      allEntryIds: ids,
+    });
+  }
+
   readonly patchStateFn = (
     patch: Partial<ApplicationsListDetailState>,
   ): void => {
@@ -454,5 +468,25 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         location: dto.otherLocationDescription,
       });
     }
+  }
+
+  // Close list validation, we need to get all entryIds to check all entries
+  private loadAllEntryIds$(listId: string, noEntries: number) {
+    const pageSize = 100;
+    const totalPages = Math.ceil(noEntries / pageSize);
+
+    return range(0, totalPages).pipe(
+      mergeMap((pageNumber) =>
+        this.appListApi.getApplicationList(
+          { listId, pageNumber, pageSize },
+          'body',
+          false,
+          { transferCache: true },
+        ),
+      ),
+      map((dto) => (dto.entriesSummary ?? []).map((e) => e.uuid)),
+      reduce((acc, ids) => acc.concat(ids), [] as string[]),
+      catchError(() => EMPTY),
+    );
   }
 }
