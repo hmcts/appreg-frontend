@@ -43,7 +43,8 @@ import { SuccessBannerComponent } from '@components/success-banner/success-banne
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
 import {
-  ApplicationCodeGetSummaryDto,
+  ApplicationCodeGetDetailDto,
+  ApplicationCodesApi,
   ApplicationListEntriesApi,
 } from '@openapi';
 import { ApplicantStep } from '@page-types/applications-list-entry-create';
@@ -91,10 +92,12 @@ type ChildErrorSource = 'notes' | 'fee' | 'respondent' | 'applicant';
 export class ApplicationsListEntryCreate implements OnInit {
   route = inject(ActivatedRoute);
   appEntryApi = inject(ApplicationListEntriesApi);
+  applicationCodesApi = inject(ApplicationCodesApi);
   formSvc = inject(ApplicationListEntryFormService);
 
   id: string = '';
   step: ApplicantStep = 'select';
+  appCodeDetail!: ApplicationCodeGetDetailDto;
 
   createDone: boolean = false;
   submitted: boolean = false;
@@ -209,7 +212,37 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.updateAllErrors();
   }
 
-  onCodeSelected(row: ApplicationCodeGetSummaryDto): void {
-    this.form.patchValue({ applicationCode: row.applicationCode });
+  onCodeSelected(codeAndLodgementDate: { code: string; date: string }): void {
+    this.form.patchValue({
+      applicationCode: codeAndLodgementDate.code,
+      lodgementDate: codeAndLodgementDate.date,
+    });
+    // Call API to retrieve data associated with the App code
+    if (this.form.value.applicationCode && this.form.value.lodgementDate) {
+      this.applicationCodesApi
+        .getApplicationCodeByCodeAndDate(
+          {
+            code: codeAndLodgementDate.code,
+            date: codeAndLodgementDate.date,
+          },
+          'body',
+          false,
+          { transferCache: true },
+        )
+        .subscribe({
+          next: (appCodeDetail) => {
+            const prevCode = this.appCodeDetail?.applicationCode;
+            const newCode = appCodeDetail.applicationCode;
+
+            this.appCodeDetail = appCodeDetail;
+
+            // if user selected a different code than what we had, reset sections
+            if (prevCode !== newCode) {
+              this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
+            }
+          },
+          error: () => {},
+        });
+    }
   }
 }
