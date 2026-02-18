@@ -142,7 +142,7 @@
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
     "adm-zip": "^0.5.16",
-    "ajv": "^8.17.1",
+    "ajv": "^8.18.0",
     "axe-core": "^4.10.3",
     "concurrently": "^9.0.0",
     "cypress": "15.9.0",
