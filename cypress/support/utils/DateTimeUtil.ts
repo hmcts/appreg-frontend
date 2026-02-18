@@ -8,8 +8,8 @@
  * - "todayiso"        → Today's date in YYYY-MM-DD format
  * - "tomorrowiso"     → Tomorrow's date in YYYY-MM-DD format
  * - "yesterdayiso"    → Yesterday's date in YYYY-MM-DD format
- * - "display"         → Today in DD MMM YYYY format (e.g., "30 Sep 2025")
- * - "displaypadded"   → Today in DD MMM YYYY format (padded)
+ * - "todaydisplay"    → Today in D MMM YYYY format (e.g., "7 Feb 2026", no leading zero)
+ * - "displaypadded"   → Today in DD MMM YYYY format (e.g., "07 Feb 2026", padded)
  *
  * ISO DATE CONVERSION:
  * - Any date with suffix "_iso" will be converted from YYYY-MM-DD to DD/MM/YYYY
@@ -161,7 +161,7 @@ export class DateTimeUtil {
         return this.getDateWithOffset(1, 'iso');
       case 'yesterdayiso':
         return this.getDateWithOffset(-1, 'iso');
-      case 'display':
+      case 'todaydisplay':
         return this.formatToday('display');
       case 'displaypadded':
         return this.formatToday('padded');
@@ -192,11 +192,11 @@ export class DateTimeUtil {
         key: 'yesterdayiso',
         getValue: () => this.getDateWithOffset(-1, 'iso'),
       },
+      { key: 'todaydisplay', getValue: () => this.formatToday('display') },
       { key: 'today', getValue: () => this.formatDate(new Date()) },
       { key: 'tomorrow', getValue: () => this.getDateWithOffset(1) },
       { key: 'yesterday', getValue: () => this.getDateWithOffset(-1) },
       { key: 'displaypadded', getValue: () => this.formatToday('padded') },
-      { key: 'display', getValue: () => this.formatToday('display') },
       { key: 'timenowhhmm', getValue: () => this.timeNowHHMM() },
       { key: 'timenow', getValue: () => this.timeNow() },
       { key: 'timestamp', getValue: () => this.createTimestamp('iso') },
@@ -323,10 +323,11 @@ export class DateTimeUtil {
       case 'iso':
         return date.toISOString().split('T')[0]; // YYYY-MM-DD
       case 'display':
+        return this.formatWithPattern(date, 'D MMM YYYY'); // D MMM YYYY (no leading zero)
       case 'padded':
         return this.formatWithPattern(date, 'DD MMM YYYY'); // DD MMM YYYY
       default:
-        return this.formatWithPattern(date, 'DD MMM YYYY');
+        return this.formatWithPattern(date, 'D MMM YYYY');
     }
   }
 

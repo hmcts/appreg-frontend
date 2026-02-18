@@ -4,8 +4,8 @@ Feature: Application List Row Actions
     Scenario Outline: Verify PDF download for 0 entries
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
-            | date          | time   | status   | description   | courtLocationCode   |
-            | <DisplayDate> | <Time> | <Status> | <Description> | <courtLocationCode> |
+            | date      | time   | status   | description   | courtLocationCode   |
+            | <APIDate> | <Time> | <Status> | <Description> | <courtLocationCode> |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         Given User Has No Downloaded PDFs
@@ -27,16 +27,16 @@ Feature: Application List Row Actions
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
         Examples:
-            | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                              | Entries | Status | SelectButtonText | ButtonName       |
-            | user1 | Lists     | today      | todayiso    | timenowhhmm-2h | RCJ001            | Royal Courts of Justice Set 1     | Test_{RANDOM} for Applications to review | 0       | OPEN   | Select           | Print continuous |
-            | user1 | Lists     | today      | todayiso    | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Test_{RANDOM} for Leeds applications     | 0       | OPEN   | Select           | Print page       |
+            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                             | Description                              | Entries | Status | SelectButtonText | ButtonName       |
+            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-2h | RCJ001            | Royal Courts of Justice Set 1     | Test_{RANDOM} for Applications to review | 0       | OPEN   | Select           | Print continuous |
+            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Test_{RANDOM} for Leeds applications     | 0       | OPEN   | Select           | Print page       |
 
     @regression @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-803
     Scenario Outline: Verify PDF download for print continuous and print page with entries for Court
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
-            | date          | time   | status   | description   | durationHours   | durationMinutes   | courtLocationCode   |
-            | <DisplayDate> | <Time> | <Status> | <Description> | <durationHours> | <durationMinutes> | <courtLocationCode> |
+            | date      | time   | status   | description   | durationHours   | durationMinutes   | courtLocationCode   |
+            | <APIDate> | <Time> | <Status> | <Description> | <durationHours> | <durationMinutes> | <courtLocationCode> |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         When User Makes POST API Request To "/application-lists/:listId/entries" With Json Body
@@ -200,7 +200,7 @@ Feature: Application List Row Actions
         Then User Verifies Latest Downloaded PDF Contains Text "Check List Report"
         Then User Verifies Latest Downloaded PDF Contains <Entries> "Applicant" Entries
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
-            | Date & Time            | <DisplayDate> <Time>                                                                                                                      |
+            | Date & Time            | <APIDate> <Time>                                                                                                                          |
             | Duration               | <durationHours> Hours <durationMinutes> Minutes                                                                                           |
             | Location               | <Court>                                                                                                                                   |
             | Applicant              | Mr Henry James Taylor {RANDOM}                                                                                                            |
@@ -235,26 +235,26 @@ Feature: Application List Row Actions
             | Respondent             | Ms Emily Rose Clark {RANDOM}                                                                                                              |
             | Matter considered      | Issue of liability order summons - council tax                                                                                            |
             | This matter was before | Mr Turner {RANDOM} Graham MAGISTRATE Ms Hayes {RANDOM} Laura MAGISTRATE Mr Miller {RANDOM} Peter CLERK Ms Patel {RANDOM} Anita MAGISTRATE |
-            | Dated                  | <DisplayDate>                                                                                                                             |
+            | Dated                  | <APIDate>                                                                                                                                 |
             | Produced on            | <SearchDate>                                                                                                                              |
             | Application brought by | Mr John A B Smith {RANDOM}                                                                                                                |
             | Respondent             | -                                                                                                                                         |
             | Matter considered      | Copy documents (electronic)                                                                                                               |
             | AD99002                | Request for copy documents on computer disc or in electronic form                                                                         |
             | This matter was before | Mr Smith {RANDOM} John MAGISTRATE                                                                                                         |
-            | Dated                  | <DisplayDate>                                                                                                                             |
+            | Dated                  | <APIDate>                                                                                                                                 |
             | Produced on            | <SearchDate>                                                                                                                              |
         Then User Clears Downloaded PDFs
         Examples:
-            | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
-            | user1 | Lists     | today      | todayiso    | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 2             | 22              | 2       | OPEN   | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 2     |
+            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
+            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 2             | 22              | 2       | OPEN   | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 2     |
 
     @regression @ARCPOC-214 @ARCPOC-453 @ARCPOC-449
     Scenario Outline: Verify PDF download for print page with entries for CJA
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
-            | date          | time   | status   | description   | cjaCode   | otherLocationDescription   |
-            | <DisplayDate> | <Time> | <Status> | <Description> | <cjaCode> | <otherLocationDescription> |
+            | date      | time   | status   | description   | cjaCode   | otherLocationDescription   |
+            | <APIDate> | <Time> | <Status> | <Description> | <cjaCode> | <otherLocationDescription> |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         When User Makes POST API Request To "/application-lists/:listId/entries" With Json Body
@@ -320,7 +320,7 @@ Feature: Application List Row Actions
         Then User Verifies Latest Downloaded PDF Contains Text "Check List Report"
         Then User Verifies Latest Downloaded PDF Contains <Entries> "Applicant" Entries
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
-            | Date & Time            | <DisplayDate> <Time>                                                                                                                      |
+            | Date & Time            | <APIDate> <Time>                                                                                                                          |
             | Duration               | -                                                                                                                                         |
             | Location               | <otherLocationDescription> A8 - Derby                                                                                                     |
             | Applicant              | Sunrise Manufacturing Co 456 Industrial Estate, B1 2CD Email: info@example.com                                                            |
@@ -345,20 +345,20 @@ Feature: Application List Row Actions
             | Application brought by | Sunrise Manufacturing Co 456 Industrial Estate, B1 2CD Email: info@example.com Phone: 01234567891                                         |
             | Respondent             | -                                                                                                                                         |
             | This matter was before | Mr Turner {RANDOM} Graham MAGISTRATE Ms Hayes {RANDOM} Laura MAGISTRATE Mr Miller {RANDOM} Peter CLERK Ms Patel {RANDOM} Anita MAGISTRATE |
-            | Dated                  | <DisplayDate>                                                                                                                             |
+            | Dated                  | <APIDate>                                                                                                                                 |
             | Produced on            | <SearchDate>                                                                                                                              |
         Then User Clears Downloaded PDFs
         Examples:
-            | User  | TableName | SearchDate | DisplayDate | Time           | cjaCode | OptionText | otherLocationDescription                | Description               | Entries | Status | SelectButtonText | PDFNameContinuous         | PDFNamePage               | Pages |
-            | user1 | Lists     | today      | todayiso    | timenowhhmm-1h | A8      | Derby      | This is a location description {RANDOM} | ENFORCEMENT LIST-{RANDOM} | 1       | OPEN   | Select           | derby-todayiso-print-cont | derby-todayiso-print-page | 1     |
+            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | cjaCode | OptionText | otherLocationDescription                | Description               | Entries | Status | SelectButtonText | PDFNameContinuous         | PDFNamePage               | Pages |
+            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-1h | A8      | Derby      | This is a location description {RANDOM} | ENFORCEMENT LIST-{RANDOM} | 1       | OPEN   | Select           | derby-todayiso-print-cont | derby-todayiso-print-page | 1     |
 
 
     @regression @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-803
     Scenario Outline: Verify PDF download for print continuous and print page with entries for Court and Status Closed
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
-            | date          | time   | status | description   | durationHours   | durationMinutes   | courtLocationCode   |
-            | <DisplayDate> | <Time> | OPEN   | <Description> | <durationHours> | <durationMinutes> | <courtLocationCode> |
+            | date      | time   | status | description   | durationHours   | durationMinutes   | courtLocationCode   |
+            | <APIDate> | <Time> | OPEN   | <Description> | <durationHours> | <durationMinutes> | <courtLocationCode> |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         When User Makes POST API Request To "/application-lists/:listId/entries" With Json Body
@@ -425,8 +425,8 @@ Feature: Application List Row Actions
             """
         Then User Verify Response Status Code Should Be "201"
         When User Makes PUT API Request To "/application-lists/:listId" With Body:
-            | date          | time   | status   | description   | durationHours   | durationMinutes   | courtLocationCode   |
-            | <DisplayDate> | <Time> | <Status> | <Description> | <durationHours> | <durationMinutes> | <courtLocationCode> |
+            | date      | time   | status   | description   | durationHours   | durationMinutes   | courtLocationCode   |
+            | <APIDate> | <Time> | <Status> | <Description> | <durationHours> | <durationMinutes> | <courtLocationCode> |
         Given User Has No Downloaded PDFs
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
@@ -443,7 +443,7 @@ Feature: Application List Row Actions
         Then User Verifies Latest Downloaded PDF Contains Text "Applications Register Report"
         Then User Verifies Latest Downloaded PDF Contains <Entries> "Applicant" Entries
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
-            | Date & Time            | <DisplayDate> <Time>                                              |
+            | Date & Time            | <APIDate> <Time>                                                  |
             | Duration               | <durationMinutes> Minutes                                         |
             | Location               | <Court>                                                           |
             | Applicant              | ACME Industries LTD {RANDOM} Downing Street, Westminster, London, |
@@ -469,22 +469,22 @@ Feature: Application List Row Actions
             | Respondent             | Beta Solutions Inc {RANDOM} Fleet Street, London, EC4Y 1AA Email: betasolutions@gmail.com Phone: 01132 654321 Mobile: 07987654321                          |
             | Matter considered      | Condemnation of Unfit Food                                                                                                                                 |
             | This matter was before | Ms Patel {RANDOM} Anita MAGISTRATE                                                                                                                         |
-            | Dated                  | <DisplayDate>                                                                                                                                              |
+            | Dated                  | <APIDate>                                                                                                                                                  |
             | Produced on            | <SearchDate>                                                                                                                                               |
         Then User Clears Downloaded PDFs
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
         Examples:
-            | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
-            | user1 | Lists     | today      | todayiso    | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 0             | 5               | 1       | CLOSED | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 1     |
+            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
+            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 0             | 5               | 1       | CLOSED | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 1     |
 
     @regression @ARCPOC-214 @ARCPOC-575 @ARCPOC-1037
     Scenario Outline: Verify application list is deleted successfully for applications list NO entries
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
-            | date          | time   | status   | description   | courtLocationCode   |
-            | <DisplayDate> | <Time> | <Status> | <Description> | <courtLocationCode> |
+            | date      | time   | status   | description   | courtLocationCode   |
+            | <APIDate> | <Time> | <Status> | <Description> | <courtLocationCode> |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         Given User Is On The Portal Page
@@ -515,15 +515,15 @@ Feature: Application List Row Actions
             | Date          | Time   | Location | Description   | Entries | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | 0       | <Status> |
         Examples:
-            | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                             | Status | SelectButtonText |
-            | user1 | Lists     | today      | todayiso    | timenowhhmm-3h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | OPEN   | Select           |
+            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                             | Description                             | Status | SelectButtonText |
+            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | OPEN   | Select           |
 
     @regression @ARCPOC-214 @ARCPOC-575 @ARCPOC-1037
     Scenario Outline: Verify application list is deleted successfully for applications list 1 entry
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
-            | date          | time   | status   | description   | courtLocationCode   |
-            | <DisplayDate> | <Time> | <Status> | <Description> | <courtLocationCode> |
+            | date      | time   | status   | description   | courtLocationCode   |
+            | <APIDate> | <Time> | <Status> | <Description> | <courtLocationCode> |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
@@ -601,5 +601,5 @@ Feature: Application List Row Actions
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Examples:
-            | User  | TableName | SearchDate | DisplayDate | Time           | courtLocationCode | Court                             | Description                             | Entries | Status | SelectButtonText |
-            | user1 | Lists     | today      | todayiso    | timenowhhmm-3h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 1       | OPEN   | Select           |
+            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                             | Description                             | Entries | Status | SelectButtonText |
+            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 1       | OPEN   | Select           |
