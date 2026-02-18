@@ -201,64 +201,6 @@ describe('ApplicationsListEntryDetail', () => {
     );
   });
 
-  it('onCodesSearch builds request from form and maps rows', () => {
-    component['form'].patchValue({
-      applicationCode: 'APP-9',
-      applicationTitle: 'Something',
-    });
-
-    mockGetApplicationCodes.mockReturnValue(
-      of(
-        makePage([
-          {
-            applicationCode: 'APP-9',
-            title: 'Something',
-            bulkRespondentAllowed: true,
-            feeReference: 'CO9.2',
-          },
-          {
-            applicationCode: 'APP-10',
-            title: 'Else',
-            bulkRespondentAllowed: false,
-            feeReference: undefined,
-          },
-        ]),
-      ),
-    );
-
-    component.onCodesSearch();
-
-    expect(mockGetApplicationCodes).toHaveBeenCalledWith(
-      { code: 'APP-9', title: 'Something', pageNumber: 0, pageSize: 10 },
-      'body',
-      false,
-      expect.objectContaining({ transferCache: true }),
-    );
-
-    expect(component['codesRows']).toEqual([
-      { code: 'APP-9', title: 'Something', bulk: 'Yes', fee: 'CO9.2' },
-      { code: 'APP-10', title: 'Else', bulk: 'No', fee: '—' },
-    ]);
-  });
-
-  it('onCodesSearch maps HTTP error into error state', () => {
-    mockGetApplicationCodes.mockReturnValueOnce(
-      throwError(
-        () =>
-          new HttpErrorResponse({
-            status: 401,
-            error: { title: 'Auth', detail: 'Please sign in' },
-          }),
-      ),
-    );
-
-    component.onCodesSearch();
-
-    expect(component['errorFound']).toBe(true);
-    expect(component['errorHint']).toBeTruthy();
-    expect(component['summaryErrors'].length).toBeGreaterThan(0);
-  });
-
   it('onCodeSelected calls codes API and patches form when date is provided', () => {
     component['form'].patchValue({ lodgementDate: '' });
 

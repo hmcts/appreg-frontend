@@ -53,7 +53,6 @@ export class ApplicationCodeSearchComponent implements OnInit {
   codePlaceholder = input('The code for the application');
   titlePlaceholder = input('Enter a concise title for this application');
   patchedFormData = input<ApplicationsListEntryForm | undefined>(undefined);
-  appListId = input<string | undefined>(undefined);
 
   selectCodeAndLodgementDate = output<{ code: string; date: string }>();
   resultsChange = output<ApplicationCodeGetSummaryDto[]>();

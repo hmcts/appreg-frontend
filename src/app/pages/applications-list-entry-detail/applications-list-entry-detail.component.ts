@@ -388,38 +388,6 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   // ── UI handlers ─────────────────────────────────────────────────────────────
-  onCodesSearch(): void {
-    this.codesHasSearched = true;
-    this.codesRows = [];
-    this.resetErrors();
-
-    const code = readText(this.form, 'applicationCode').trim();
-    const title = readText(this.form, 'applicationTitle').trim();
-
-    this.codesLoading = true;
-    fetchCodeRows$(
-      this.codesApi,
-      {
-        code: code || undefined,
-        title: title || undefined,
-        pageNumber: 0,
-        pageSize: 10,
-      },
-      true,
-    )
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (rows) => {
-          this.codesRows = rows;
-          this.codesLoading = false;
-        },
-        error: (err) => {
-          this.codesLoading = false;
-          this.applyMappedError(err);
-        },
-      });
-  }
-
   onCodeSelected(codeAndLodgementDate: { code: string; date: string }): void {
     this.resetSuccessBanner();
     this.resetErrors();
