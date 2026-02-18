@@ -12,11 +12,11 @@ import {
   ChangeDetectorRef,
   Component,
   DestroyRef,
-  EventEmitter,
-  Input,
   OnInit,
-  Output,
   inject,
+  input,
+  output,
+  signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -49,28 +49,27 @@ import { CodeRow, fetchCodeRows$ } from '@util/application-code-helpers';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ApplicationCodeSearchComponent implements OnInit {
-  @Input() legend = 'Find an application code';
-  @Input() codePlaceholder = 'The code for the application';
-  @Input() titlePlaceholder = 'Enter a concise title for this application';
-  @Input() patchedFormData?: ApplicationsListEntryForm;
+  legend = input('Find an application code');
+  codePlaceholder = input('The code for the application');
+  titlePlaceholder = input('Enter a concise title for this application');
+  patchedFormData = input<ApplicationsListEntryForm | undefined>(undefined);
+  appListId = input<string | undefined>(undefined);
 
-  @Input() appListId?: string;
+  selectCodeAndLodgementDate = output<{ code: string; date: string }>();
+  resultsChange = output<ApplicationCodeGetSummaryDto[]>();
 
   private readonly route = inject(ActivatedRoute);
-
-  // Emit row
-  @Output() selectCodeAndLodgementDate = new EventEmitter<{
-    code: string;
-    date: string;
-  }>();
-  // Emit latest result set after each search
-  @Output() resultsChange = new EventEmitter<ApplicationCodeGetSummaryDto[]>();
+  private readonly codesApi = inject(ApplicationCodesApi);
+  private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
-  listId!: string | null;
 
-  submitted: boolean = false;
+  listId!: string | null;
   codesColumns: TableColumn[] = CODES_COLUMNS;
   codesRows: CodeRow[] = [];
+
+  submitted = signal(false);
+  loading = signal(false);
+  errored = signal(false);
 
   form = new FormGroup({
     lodgementDate: new FormControl<string | null>(null),
@@ -78,29 +77,21 @@ export class ApplicationCodeSearchComponent implements OnInit {
     title: new FormControl<string | null>(null),
   });
 
-  loading = false;
-  errored = false;
-
-  constructor(
-    private readonly codesApi: ApplicationCodesApi,
-    private readonly cdr: ChangeDetectorRef,
-  ) {}
-
   ngOnInit(): void {
     this.initialPatchFormData();
-    this.submitted = false;
+    this.submitted.set(false);
     this.listId = this.route.snapshot.paramMap.get('id');
   }
 
   search(): void {
-    this.submitted = true;
+    this.submitted.set(true);
     this.codesRows = [];
-    this.errored = false;
+    this.errored.set(false);
 
     const code = this.form.value.code?.trim() ?? '';
     const title = this.form.value.title?.trim() ?? '';
 
-    this.loading = true;
+    this.loading.set(true);
     fetchCodeRows$(
       this.codesApi,
       {
@@ -115,19 +106,19 @@ export class ApplicationCodeSearchComponent implements OnInit {
       .subscribe({
         next: (rows) => {
           this.codesRows = rows;
-          this.loading = false;
+          this.loading.set(false);
           this.cdr.markForCheck();
         },
         error: () => {
-          this.loading = false;
-          this.errored = true;
+          this.loading.set(false);
+          this.errored.set(true);
           this.cdr.markForCheck();
         },
       });
   }
 
   onAddCode(row: CodeRow): void {
-    this.submitted = false;
+    this.submitted.set(false);
     this.codesRows = [];
 
     if (!this.listId) {
@@ -155,20 +146,20 @@ export class ApplicationCodeSearchComponent implements OnInit {
   clear(): void {
     this.form.patchValue({ code: null, title: null });
     this.codesRows = [];
-    this.errored = false;
+    this.errored.set(false);
     this.cdr.markForCheck();
-    this.submitted = false;
+    this.submitted.set(false);
     this.selectCodeAndLodgementDate.emit({ code: '', date: '' });
   }
 
   private initialPatchFormData(): void {
     // set today's date as the lodgement date by default, formatted as yyyy-MM-dd for the date input
     this.form.patchValue({
-      lodgementDate: this.patchedFormData?.value?.lodgementDate
-        ? this.patchedFormData?.value?.lodgementDate
+      lodgementDate: this.patchedFormData()?.value?.lodgementDate
+        ? this.patchedFormData()?.value?.lodgementDate
         : new Date().toISOString().split('T')[0],
-      code: this.patchedFormData?.value?.applicationCode ?? null,
-      title: this.patchedFormData?.value?.applicationTitle ?? null,
+      code: this.patchedFormData()?.value?.applicationCode ?? null,
+      title: this.patchedFormData()?.value?.applicationTitle ?? null,
     });
   }
 }

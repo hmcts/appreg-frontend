@@ -6,7 +6,7 @@
         containerWidthClass="govuk-grid-column-one-quarter"
         formControlName="code"
         label="Application code"
-        [hint]="codePlaceholder"
+        hint="codePlaceholder"
         idPrefix="applicationCode"
       />
 
@@ -15,7 +15,7 @@
         containerWidthClass="govuk-grid-column-two-thirds"
         formControlName="title"
         label="Application title"
-        [hint]="titlePlaceholder"
+        hint="titlePlaceholder"
         idPrefix="app-code-title"
       />
     </div>
@@ -25,7 +25,7 @@
         label="Lodgement date"
         hint="For example, 27 3 2007"
         idPrefix="lodgement-date"
-        [submitted]="submitted"
+        [submitted]="submitted()"
         [isSearch]="true"
       />
     </div>
@@ -44,9 +44,9 @@
     </button>
   </div>
 
-  @if (loading) {
+  @if (loading()) {
     <p class="govuk-body">Searching…</p>
-  } @else if (errored) {
+  } @else if (errored()) {
     <!-- TODO: refactor here (move and make it look nicer) -->
     <div
       class="govuk-error-summary"
@@ -64,7 +64,7 @@
   } @else {
     @if (
       codesRows.length === 0 &&
-      submitted &&
+      submitted() &&
       (form.value.code || form.value.title)
     ) {
       <app-notification-banner

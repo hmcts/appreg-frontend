@@ -11,6 +11,7 @@ import { CodeRow } from '@util/application-code-helpers';
 describe('ApplicationCodeSearchComponent', () => {
   let fixture: ComponentFixture<ApplicationCodeSearchComponent>;
   let component: ApplicationCodeSearchComponent;
+  let componentRef: ComponentFixture<ApplicationCodeSearchComponent>['componentRef'];
 
   const apiMock: Partial<ApplicationCodesApi> = {};
 
@@ -48,6 +49,9 @@ describe('ApplicationCodeSearchComponent', () => {
 
     fixture = TestBed.createComponent(ApplicationCodeSearchComponent);
     component = fixture.componentInstance;
+
+    componentRef = fixture.componentRef;
+
     fixture.detectChanges(); // runs ngOnInit
   });
 
@@ -58,8 +62,8 @@ describe('ApplicationCodeSearchComponent', () => {
   it('should create and initialize listId', () => {
     expect(component).toBeTruthy();
     expect(component.listId).toBe('123');
-    expect(component.loading).toBe(false);
-    expect(component.errored).toBe(false);
+    expect(component.loading()).toBe(false);
+    expect(component.errored()).toBe(false);
     expect(component.codesRows).toEqual([]);
   });
 
@@ -72,7 +76,7 @@ describe('ApplicationCodeSearchComponent', () => {
 
     component.search();
 
-    expect(component.submitted).toBe(true);
+    expect(component.submitted()).toBe(true);
     // fetchCodeRows$ should be called with trimmed values
     expect(fetchSpy).toHaveBeenCalledWith(
       apiMock,
@@ -84,7 +88,7 @@ describe('ApplicationCodeSearchComponent', () => {
       },
       true,
     );
-    expect(component.loading).toBe(false);
+    expect(component.loading()).toBe(false);
     expect(component.codesRows).toEqual(mockRows);
   });
 
@@ -119,8 +123,8 @@ describe('ApplicationCodeSearchComponent', () => {
 
     component.search();
 
-    expect(component.loading).toBe(false);
-    expect(component.errored).toBe(true);
+    expect(component.loading()).toBe(false);
+    expect(component.errored()).toBe(true);
     expect(markSpy).toHaveBeenCalled();
   });
 
@@ -146,7 +150,7 @@ describe('ApplicationCodeSearchComponent', () => {
     expect(component.form.value.code).toBe(mockRows[0].code);
     expect(component.form.value.title).toBe(mockRows[0].title);
 
-    expect(component.submitted).toBe(false);
+    expect(component.submitted()).toBe(false);
     expect(component.codesRows).toEqual([]);
   });
 
@@ -167,27 +171,27 @@ describe('ApplicationCodeSearchComponent', () => {
 
     component.form.patchValue({ code: 'X', title: 'Y' });
     component.codesRows = mockRows.slice();
-    component.errored = true;
+    component.errored.set(true);
 
     component.clear();
 
     expect(component.form.value.code).toBeNull();
     expect(component.form.value.title).toBeNull();
     expect(component.codesRows).toEqual([]);
-    expect(component.errored).toBe(false);
-    expect(component.submitted).toBe(false);
+    expect(component.errored()).toBe(false);
+    expect(component.submitted()).toBe(false);
     expect(markSpy).toHaveBeenCalled();
     expect(emitSpy).toHaveBeenCalledWith({ code: '', date: '' });
   });
 
   it('initialPatchFormData() should use patchedFormData when provided', () => {
-    component.patchedFormData = {
+    componentRef.setInput('patchedFormData', {
       value: {
         lodgementDate: '2023-01-01',
         applicationCode: 'APP01',
         applicationTitle: 'Title',
       },
-    } as ApplicationsListEntryForm;
+    } as ApplicationsListEntryForm);
 
     component.ngOnInit();
 
@@ -199,7 +203,7 @@ describe('ApplicationCodeSearchComponent', () => {
   });
 
   it('initialPatchFormData() uses today and nulls when patchedFormData is undefined', () => {
-    component.patchedFormData = undefined;
+    componentRef.setInput('patchedFormData', undefined);
 
     component.ngOnInit();
 
@@ -213,12 +217,12 @@ describe('ApplicationCodeSearchComponent', () => {
   });
 
   it('initialPatchFormData() uses today and also uses patchedFormData', () => {
-    component.patchedFormData = {
+    componentRef.setInput('patchedFormData', {
       value: {
         applicationCode: 'APP01',
         applicationTitle: 'Title',
       },
-    } as ApplicationsListEntryForm;
+    } as ApplicationsListEntryForm);
 
     component.ngOnInit();
 
