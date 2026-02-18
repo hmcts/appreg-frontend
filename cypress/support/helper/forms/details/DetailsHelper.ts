@@ -22,10 +22,8 @@ export class DetailsHelper {
     labelText: string,
     detailsSectionTitle: string,
   ): void {
-    cy.contains(
-      'details summary, details, summary',
-      detailsSectionTitle,
-    ).should('be.visible')
+    cy.contains('details summary, details, summary', detailsSectionTitle)
+      .should('be.visible')
       .parent()
       .within(() => {
         cy.contains('label', labelText, { matchCase: false }).should('exist');
