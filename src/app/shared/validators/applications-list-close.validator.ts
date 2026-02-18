@@ -29,6 +29,8 @@
   We then need to run GET /application-codes/{code} to determine whether respondent is required.
   If respondent is required, check respondent field is populated.
   If fees are required, check if fee string is 'PAID'
+
+  Note: entries are all paginated so we need to check all pages if there's a large number of entries
  */
 
 import {
