@@ -4,8 +4,8 @@ Feature: Applications List Result
     Scenario Outline: Application List - Result Selected
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
-            | date          | time   | status   | description   | courtLocationCode   |
-            | <DisplayDate> | <Time> | <Status> | <Description> | <courtLocationCode> |
+            | date      | time   | status   | description   | courtLocationCode   |
+            | <APIDate> | <Time> | <Status> | <Description> | <courtLocationCode> |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
@@ -75,5 +75,5 @@ Feature: Applications List Result
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
         Examples:
-            | User  | SearchDate | DisplayDate | Time           | courtLocationCode | Court                     | Description                             | Entries | Status |
-            | user2 | today      | todayiso    | timenowhhmm-3h | BCC026            | Bristol Crown Court Set 3 | Applications to review at Test_{RANDOM} | 1       | OPEN   |
+            | User  | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                     | Description                             | Entries | Status |
+            | user2 | today      | todayiso | todaydisplay | timenowhhmm-3h | BCC026            | Bristol Crown Court Set 3 | Applications to review at Test_{RANDOM} | 1       | OPEN   |

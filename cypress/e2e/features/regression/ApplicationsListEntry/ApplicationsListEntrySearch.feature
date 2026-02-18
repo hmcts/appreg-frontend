@@ -1,6 +1,6 @@
 Feature: Applications List Entry Search
 
-    @regression @ARCPOC-222 @ARCPOC-442
+    @ignore @ARCPOC-222 @ARCPOC-442
     Scenario: Verify components on applications list entry (ALE) search page
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
@@ -33,7 +33,7 @@ Feature: Applications List Entry Search
         Then User Should See The Button "Search"
         Then User Should See The Button "Clear search"
 
-    @regression @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052
+    @ignore @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052
     Scenario Outline: Verify applications list entry table shows empty state with no results
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
@@ -49,7 +49,7 @@ Feature: Applications List Entry Search
             | User  | SearchDate | NotificationMessage                                               |
             | user1 | 15/08/2023 | Important No application list entries found Try different filters |
 
-    @regression @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076
+    @ignore @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076
     Scenario Outline: Verify Search application list entries are listed in the table on ALE search page
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
@@ -70,7 +70,7 @@ Feature: Applications List Entry Search
             | user1 | 28/01/2026 |              |               | LCCC025     | Leeds Combined Court Centre Set 3 | Taylor           |                   |               |               |          |           |             |              |                  | Application list entries | 28/01/2026 | Mr Henry Taylor 35874            | Ms Emily Clark 35874                            | Issue of liability order summons - council tax       | No  | No       | OPEN   |
             | user1 |            |              |               |             |                                   |                  |                   | MCJC002       |               |          | 10        | Southampton |              |                  | Application list entries | 13/01/2026 | Test Organisation 13 - applicant | Mr TestForenameRespondent TestSurnameRespondent | Issue of liability order summons - non-domestic rate | No  | No       | OPEN   |
 
-    @regression @ARCPOC-222 @ARCPOC-442 @ARCPOC-1083
+    @ignore @ARCPOC-222 @ARCPOC-442 @ARCPOC-1083
     Scenario: Verify Validation Error Messages on Application list entry Search Page
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"

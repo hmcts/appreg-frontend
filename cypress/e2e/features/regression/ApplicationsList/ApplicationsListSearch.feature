@@ -84,7 +84,7 @@ Feature: Applications List Search
     Then User Should See Table "<TableName>" Has Rows
     Examples:
       | User  | TableName | SearchDate | DisplayDate | Time  | Court                     | Description | Entries | Status | SearchText | OptionText                | SelectButtonText | TableName |
-      | user1 | Lists     | 23/05/2025 | 2025-05-23  | 16:00 | Cardiff Crown Court Set 4 | Urgent list | 2       | OPEN   | CCC033     | Cardiff Crown Court Set 4 | Select           | Lists     |
+      | user1 | Lists     | 23/05/2025 | 23 May 2025 | 16:00 | Cardiff Crown Court Set 4 | Urgent list | 2       | OPEN   | CCC033     | Cardiff Crown Court Set 4 | Select           | Lists     |
 
   @regression @ARCPOC-214 @ARCPOC-452 @ARCPOC-759
   Scenario Outline: Filter and verify applications list with multiple filters
@@ -113,7 +113,7 @@ Feature: Applications List Search
     Then User Should See Table "<TableName>" Column "Location" First And Last Page Has Value "<OptionTextCourt>"
     Examples:
       | User  | Status | TableName | Time  | SearchDate | DisplayDate | Description | SearchTextCourt | OptionTextCourt           |
-      | user1 | Closed | Lists     | 14:00 | 19/05/2025 | 2025-05-19  | No show     | Cardiff         | Cardiff Crown Court Set 4 |
+      | user1 | Closed | Lists     | 14:00 | 19/05/2025 | 19 May 2025 | No show     | Cardiff         | Cardiff Crown Court Set 4 |
 
   @regression @ARCPOC-214 @ARCPOC-660
   Scenario Outline: Verify CJA field validation with valid input
@@ -227,8 +227,8 @@ Feature: Applications List Search
     Then User Should See The Link "List details"
     Examples:
       | User  | TableName | DisplayDate | Time  | Court                             | Description | Entries | Status | ButtonName | SearchDate | SelectButtonText | CourtSearch |
-      | user1 | Lists     | 2001-01-01  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | *SKIP*     | Select           | LCCC025     |
-      | user1 | Lists     | 2001-01-01  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | 01/1/2001  | Select           | LCCC025     |
+      | user1 | Lists     | 1 Jan 2001  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | *SKIP*     | Select           | LCCC025     |
+      | user1 | Lists     | 1 Jan 2001  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | 01/1/2001  | Select           | LCCC025     |
 
   @regression @ARCPOC-214 @ARCPOC-417
   Scenario Outline: Verify application list row menu options
@@ -242,5 +242,5 @@ Feature: Applications List Search
       | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
     Examples:
       | User  | TableName | SearchDate | DisplayDate | Time  | CourtSearch | Court                             | Description                          | Entries | Status | SelectButtonText | MenuOptions                                 |
-      | user1 | Lists     | 12/01/2026 | 2026-01-12  | 14:51 | LCCC065     | Leeds Combined Court Centre Set 7 | Applications to review at Test_1153  | 2       | OPEN   | Select           | Open, Print page,  Print continuous, Delete |
-      | user1 | Lists     | 07/01/2026 | 2026-01-07  | 15:31 | LCCC025     | Leeds Combined Court Centre Set 3 | Applications to review at Test_13162 | 1       | CLOSED | Select           | Print page,  Print continuous               |
+      | user1 | Lists     | 12/01/2026 | 12 Jan 2026 | 14:51 | LCCC065     | Leeds Combined Court Centre Set 7 | Applications to review at Test_1153  | 2       | OPEN   | Select           | Open, Print page,  Print continuous, Delete |
+      | user1 | Lists     | 07/01/2026 | 7 Jan 2026  | 15:31 | LCCC025     | Leeds Combined Court Centre Set 3 | Applications to review at Test_13162 | 1       | CLOSED | Select           | Print page,  Print continuous               |
