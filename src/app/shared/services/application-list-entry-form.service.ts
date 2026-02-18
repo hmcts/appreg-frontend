@@ -105,8 +105,6 @@ export class ApplicationListEntryFormService {
 
     this.hydrateRespondentFromDto(dto, forms, emitEvent);
 
-    this.patchIfPresent(forms.form, 'applicationTitle', null, emitEvent);
-
     // Prefer standard applicant if present
     const standardCode = (dto.standardApplicantCode ?? '').toString().trim();
     if (standardCode) {
@@ -195,6 +193,29 @@ export class ApplicationListEntryFormService {
     });
   }
 
+  resetSectionsOnApplicationCodeChange(forms: ApplicationListEntryForms): void {
+    forms.form.patchValue({
+      // wording section fields
+      wordingFields: null,
+
+      // respondent section fields
+      respondentEntryType: null,
+
+      // Civil fee section fields
+      feeStatuses: null,
+      feeStatus: null,
+      feeStatusDate: null,
+      paymentRef: null,
+    });
+
+    // reset respondent section forms person and organisation
+    forms.personForm.reset();
+    forms.organisationForm.reset();
+
+    markFormGroupClean(forms.personForm);
+    markFormGroupClean(forms.organisationForm);
+  }
+
   setApplicantType(
     forms: ApplicationListEntryForms,
     type: ApplicantType,
@@ -265,19 +286,6 @@ export class ApplicationListEntryFormService {
       forms.respondentPersonForm.getRawValue(),
       forms.respondentOrganisationForm.getRawValue(),
     );
-  }
-
-  private patchIfPresent<K extends string>(
-    form: ApplicationsListEntryForm,
-    key: K,
-    value: unknown,
-    emitEvent: boolean,
-  ): void {
-    const ctrl = (form.controls as Record<string, unknown>)[key] as
-      | { setValue: (v: unknown, o?: { emitEvent?: boolean }) => void }
-      | undefined;
-
-    ctrl?.setValue(value, { emitEvent });
   }
 
   syncApplicantTypeState(
