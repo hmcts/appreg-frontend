@@ -6,7 +6,7 @@
         containerWidthClass="govuk-grid-column-one-quarter"
         formControlName="code"
         label="Application code"
-        hint="codePlaceholder"
+        [hint]="codePlaceholder()"
         idPrefix="applicationCode"
       />
 
@@ -15,7 +15,7 @@
         containerWidthClass="govuk-grid-column-two-thirds"
         formControlName="title"
         label="Application title"
-        hint="titlePlaceholder"
+        [hint]="titlePlaceholder()"
         idPrefix="app-code-title"
       />
     </div>
