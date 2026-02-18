@@ -9,7 +9,7 @@ export const APPLICANT_COLUMNS: TableColumn[] = [
 ];
 
 export const CODES_COLUMNS: TableColumn[] = [
-  { header: 'Code', field: 'code', numeric: true },
+  { header: 'Code', field: 'code' },
   { header: 'Title', field: 'title' },
   { header: 'Bulk', field: 'bulk' },
   { header: 'Fee req', field: 'fee' },
