@@ -20,7 +20,7 @@
       hint="For example, 17:30"
       idPrefix="time"
       [submitted]="submitted()"
-      [required]="isCreate()"
+      [required]="isCreate() || isUpdate()"
       [mode]="'clock'"
     />
   </div>
