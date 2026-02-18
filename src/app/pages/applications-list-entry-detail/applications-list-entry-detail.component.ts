@@ -116,7 +116,6 @@ import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import {
   CodeRow,
   fetchCodeDetail$,
-  fetchCodeRows$,
   titleFromDetail,
   wordingFromDetail,
 } from '@util/application-code-helpers';
@@ -131,7 +130,7 @@ import {
 } from '@util/error-click';
 import { getUniqueErrors } from '@util/error-items';
 import { buildFormErrorSummary } from '@util/error-summary';
-import { markFormGroupClean, readText } from '@util/form-helpers';
+import { markFormGroupClean } from '@util/form-helpers';
 
 type ChildErrorSource =
   | 'notes'
