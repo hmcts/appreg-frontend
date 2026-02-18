@@ -1,8 +1,8 @@
 // TODO: Look through this service and refactor
 
-import { formatDate } from '@angular/common';
-import { Injectable, LOCALE_ID, inject } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 
+import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import { asArr, asObj, asStrOrNum } from '@util/data-utils';
 import {
   drawHr,
@@ -16,7 +16,7 @@ import { JsPDFLike, PdfList } from '@util/types/pdf-service/pdf-types';
 
 @Injectable({ providedIn: 'root' })
 export class PdfService {
-  private readonly locale = inject(LOCALE_ID);
+  private readonly dateTimePipe = inject(DateTimePipe);
 
   /**
    * Single-entry, paged layout (portrait).
@@ -215,7 +215,7 @@ export class PdfService {
 
       // date format = 17 Febuary 2026
       const date = this.safeFormatDate(e.date, 'longDate');
-      writeLabelValue('Dated', date);
+      writeLabelValue('Dated', date as string);
 
       drawFooter();
     }
@@ -445,11 +445,7 @@ export class PdfService {
       const normalisedTime = normaliseTime(data.listTime ?? '');
 
       // date format = 17 Feb 2026
-      const date = formatDate(
-        data.listDate as string,
-        'mediumDate',
-        this.locale,
-      );
+      const date = this.safeFormatDate(data.listDate);
 
       const dateTime = this.fallbackText(date + ' ' + normalisedTime); // YYYY-MM-DD HH:MM
       const duration = this.fallbackText(extractDurationFromDto(raw), '—');
@@ -904,17 +900,18 @@ export class PdfService {
 
   private safeFormatDate(
     value: string | Date | undefined,
-    format: string,
-  ): string {
+    format: 'mediumDate' | 'longDate' = 'mediumDate',
+  ): string | null {
+    const todaysDate = new Date().toISOString().slice(0, 10);
     if (!value || (typeof value === 'string' && value.trim() === '')) {
-      return formatDate(new Date(), format, this.locale);
+      return this.dateTimePipe.transform(todaysDate, format);
     }
 
     try {
-      return formatDate(value as string, format, this.locale);
+      return this.dateTimePipe.transform(value as string, format);
     } catch {
       // fallback to today's date
-      return formatDate(new Date(), format, this.locale);
+      return this.dateTimePipe.transform(todaysDate, format);
     }
   }
 }
