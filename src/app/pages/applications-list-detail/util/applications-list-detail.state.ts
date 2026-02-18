@@ -1,6 +1,9 @@
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { Row } from '@core-types/table/row.types';
-import { ApplicationCodeGetDetailDto, EntryGetDetailDto } from '@openapi';
+import { ApplicationCodeGetDetailDto, ApplicationListGetDetailDto, EntryGetDetailDto } from '@openapi';
+
+export type EntrySummary =
+  NonNullable<ApplicationListGetDetailDto['entriesSummary']>[number];
 
 export interface ApplicationsListDetailState {
   // paging
@@ -17,6 +20,7 @@ export interface ApplicationsListDetailState {
   entriesDetails: EntryGetDetailDto[];
   entryCodeDetails: Record<string, ApplicationCodeGetDetailDto>;
   allEntryIds: string[];
+  allEntriesSummary: EntrySummary[];
 
   // flags
   isLoading: boolean;
@@ -43,6 +47,7 @@ export const initialApplicationsListDetailState: ApplicationsListDetailState = {
   entriesDetails: [],
   entryCodeDetails: {},
   allEntryIds: [],
+  allEntriesSummary: [],
 
   isLoading: true,
   updateDone: false,

@@ -243,7 +243,7 @@ export class ApplicationsListUpdateComponent implements OnInit {
     } else {
       // Make sure we don't run unnecessary requests if we're not trying to close a list
       this.loadEntryDetailsReq.set(null);
-      this.loadEntryDetailsReq.set(null);
+      this.loadCodeDetailsReq.set(null);
     }
 
     const raw = this.form().getRawValue();
@@ -489,23 +489,46 @@ export class ApplicationsListUpdateComponent implements OnInit {
 export const closeValidationEntries = (
   vm: ApplicationsListDetailState,
 ): CloseValidationEntry[] => {
-  const rows = vm.rows as selectedRow[];
-  const details = vm.entriesDetails;
-  const codeDetails = vm.entryCodeDetails ?? {};
-  const detailsById = new Map(details.map((entry) => [entry.id, entry]));
-  const hasOfficials =
-    details.length === rows.length &&
-    details.every((entry) => (entry.officials?.length ?? 0) > 0);
+  const summaries = vm.allEntriesSummary ?? [];
 
-  return rows.map((row) => ({
-    id: row.id,
-    hasResult: row.resulted === 'Yes',
-    hasFees: row.feeReq === 'Yes',
-    hasPaidFee: (detailsById.get(row.id)?.feeStatuses ?? []).some(
-      (fee) => fee.paymentStatus === PaymentStatus.PAID,
-    ),
-    requiresRespondent: codeDetails[row.id]?.requiresRespondent ?? null,
-    hasRespondent: !!row.respondent?.toString().trim(),
-    hasOfficials,
-  }));
+  const detailsById = new Map(
+    (vm.entriesDetails ?? []).map((entry) => [entry.id, entry]),
+  );
+  const codeDetails = vm.entryCodeDetails ?? {};
+
+  // fallback, only use rows in first page (won't take into account all entries if list has many)
+  if (summaries.length === 0) {
+    const rows = vm.rows as selectedRow[];
+    return rows.map((row) => {
+      const detail = detailsById.get(row.id);
+      return {
+        id: row.id,
+        hasResult: row.resulted === 'Yes',
+        hasFees: row.feeReq === 'Yes',
+        hasPaidFee: (detail?.feeStatuses ?? []).some(
+          (fee) => fee.paymentStatus === PaymentStatus.PAID,
+        ),
+        requiresRespondent: codeDetails[row.id]?.requiresRespondent ?? null,
+        hasRespondent: !!row.respondent?.toString().trim(),
+        hasOfficials: (detail?.officials?.length ?? 0) > 0,
+      };
+    });
+  }
+
+  // build from all entry summaries
+  return summaries.map((s) => {
+    const detail = detailsById.get(s.uuid);
+
+    return {
+      id: s.uuid,
+      hasResult: !!s.result,
+      hasFees: !!s.feeRequired,
+      hasRespondent: !!s.respondent?.toString().trim(),
+      hasPaidFee: (detail?.feeStatuses ?? []).some(
+        (fee) => fee.paymentStatus === PaymentStatus.PAID,
+      ),
+      hasOfficials: (detail?.officials?.length ?? 0) > 0,
+      requiresRespondent: codeDetails[s.uuid]?.requiresRespondent ?? null,
+    };
+  });
 };

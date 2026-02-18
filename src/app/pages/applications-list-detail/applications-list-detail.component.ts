@@ -378,9 +378,21 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    this.loadAllEntryIds$(this.id, totalEntries).subscribe({
-      next: (ids: string[]) => this.onAllIdsLoaded(ids),
-      error: () => this.onAllIdsLoaded([]),
+    this.loadAllEntrySummaries$(this.id, totalEntries).subscribe({
+      next: (summaries) => {
+        const ids = summaries.map((s) => s.uuid);
+
+        this.detailSignalState.patch({
+          allEntryIds: ids,
+          allEntriesSummary: summaries,
+        });
+      },
+      error: () => {
+        this.detailSignalState.patch({
+          allEntryIds: [],
+          allEntriesSummary: [],
+        });
+      },
     });
   }
 
@@ -471,7 +483,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   // Close list validation, we need to get all entryIds to check all entries
-  private loadAllEntryIds$(listId: string, noEntries: number) {
+  private loadAllEntrySummaries$(listId: string, noEntries: number) {
     const pageSize = 100;
     const totalPages = Math.ceil(noEntries / pageSize);
 
@@ -484,8 +496,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           { transferCache: true },
         ),
       ),
-      map((dto) => (dto.entriesSummary ?? []).map((e) => e.uuid)),
-      reduce((acc, ids) => acc.concat(ids), [] as string[]),
+      map((dto) => dto.entriesSummary ?? []),
+      reduce(
+        (acc, page) => acc.concat(page),
+        [] as NonNullable<ApplicationListGetDetailDto['entriesSummary']>,
+      ),
       catchError(() => EMPTY),
     );
   }
