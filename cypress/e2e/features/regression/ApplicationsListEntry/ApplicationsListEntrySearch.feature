@@ -16,11 +16,11 @@ Feature: Applications List Entry Search
         Then User Should See The Dropdown "Select application status"
         Then User Should See The Details section "Advanced search"
         Then User Clicks On The Details section "Advanced search"
-        Then User Should See The Textbox "Respondent post code"
-        Then User Should See The Textbox "Criminal justice area"
-        Then User Should See The Textbox "Other location description"
-        Then User Should See The Textbox "Standard applicant code"
-        Then User Should See The Textbox "Account reference"
+        Then User Should See The Textbox "Respondent post code" In The "Advanced search" section
+        Then User Should See The Textbox "Criminal justice area" In The "Advanced search" section
+        Then User Should See The Textbox "Other location description" In The "Advanced search" section
+        Then User Should See The Textbox "Standard applicant code" In The "Advanced search" section
+        Then User Should See The Textbox "Account reference" In The "Advanced search" section
         Then User Should See The Button "Search"
         Then User Should See The Button "Clear search"
 

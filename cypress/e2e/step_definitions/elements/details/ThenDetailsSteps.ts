@@ -10,15 +10,15 @@ Then(
 );
 
 Then(
-  'User Should Not See The Details section {string}',
+  'User Clicks On The Details section {string}',
   (detailsSectionTitle: string) => {
-    DetailsHelper.verifyDetailsSectionNotVisible(detailsSectionTitle);
+    DetailsHelper.clickDetailsSection(detailsSectionTitle);
   },
 );
 
 Then(
-  'User Clicks On The Details section {string}',
-  (detailsSectionTitle: string) => {
-    DetailsHelper.clickDetailsSection(detailsSectionTitle);
+  'User Should See The Textbox {string} In The Details section {string}',
+  (labelText: string, detailsSectionTitle: string) => {
+    DetailsHelper.verifyTextboxInDetailsSection(labelText, detailsSectionTitle);
   },
 );
