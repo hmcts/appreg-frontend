@@ -182,107 +182,13 @@
     />
 
     <form [formGroup]="form" (ngSubmit)="onUpdate()" autocomplete="off">
-      <div class="govuk-grid-row">
-        <!-- Date -->
-        <app-date-input
-          formControlName="date"
-          label="Date"
-          hint="For example, 27 3 2007"
-          idPrefix="date"
-          [submitted]="vm().updateInvalid"
-        >
-        </app-date-input>
-
-        <!-- Time -->
-        <app-duration-input
-          formControlName="time"
-          label="Time"
-          hint="Enter the time in 24-hour format, for example 08:30"
-          idPrefix="time"
-          [submitted]="vm().updateInvalid"
-          [required]="true"
-          mode="clock"
-        >
-        </app-duration-input>
-
-        <!-- Description -->
-        <app-text-input
-          formControlName="description"
-          label="Description"
-          hint="A description of the application list"
-          idPrefix="description"
-          [submitted]="vm().updateInvalid"
-        >
-        </app-text-input>
-
-        <!-- Status -->
-        <app-select-input
-          formControlName="status"
-          label="Select status"
-          hint="The status of the application list"
-          idPrefix="status"
-          [submitted]="vm().updateInvalid"
-          [options]="statusOptions"
-        >
-        </app-select-input>
-      </div>
-
-      <div class="govuk-grid-row">
-        <!-- Court -->
-        <app-suggestions
-          id="court"
-          label="Court"
-          hint="Start typing to search"
-          [(search)]="this.state().courthouseSearch"
-          (searchChange)="onCourthouseInputChange()"
-          [suggestions]="this.state().filteredCourthouses"
-          (selectItem)="selectCourthouse($event)"
-          [disabled]="!!form.get('location')?.value || !!form.get('cja')?.value"
-          [showError]="
-            vm().updateInvalid &&
-            !form.get('location')?.value &&
-            !form.get('cja')?.value &&
-            !!fieldError('court')
-          "
-          [errorText]="fieldError('court')?.text ?? ''"
-        />
-
-        <!-- Other location -->
-        <app-text-input
-          formControlName="location"
-          label="Other location"
-          hint="Other location description"
-          idPrefix="location"
-          [submitted]="vm().updateInvalid && !!form.get('cja')?.value"
-        >
-          >
-        </app-text-input>
-
-        <!-- CJA -->
-        <app-suggestions
-          id="cja"
-          label="CJA"
-          hint="Start typing to search"
-          [(search)]="this.state().cjaSearch"
-          (searchChange)="onCjaInputChange()"
-          [suggestions]="this.state().filteredCja"
-          (selectItem)="selectCja($event)"
-          [disabled]="!!form.get('court')?.value"
-          [showError]="vm().updateInvalid && !!fieldError('cja')"
-          [errorText]="fieldError('cja')?.text ?? ''"
-        />
-
-        <!-- Duration: Optional field -->
-        <app-duration-input
-          formControlName="duration"
-          label="Duration"
-          hint="Duration of the list"
-          idPrefix="duration"
-          [submitted]="vm().updateInvalid"
-          [required]="false"
-          mode="duration"
-        ></app-duration-input>
-      </div>
+      <app-applications-list-form
+        [form]="form"
+        [mode]="'update'"
+        [submitted]="vm().updateInvalid"
+        [suggestions]="suggestionsFacade"
+        [getError]="fieldError.bind(this)"
+      />
 
       <div class="govuk-button-group">
         <button type="submit" class="govuk-button">Update</button>

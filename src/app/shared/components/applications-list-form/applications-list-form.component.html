@@ -1,0 +1,136 @@
+<div [formGroup]="form()">
+  <div class="govuk-grid-row">
+    <!-- Date -->
+    <app-date-input
+      formControlName="date"
+      label="Date"
+      hint="For example, 27 3 2007"
+      idPrefix="date"
+      [submitted]="submitted()"
+      [isSearch]="isSearch()"
+      containerWidth="govuk-grid-column-one-third"
+    />
+  </div>
+
+  <div class="govuk-grid-row">
+    <!-- Time -->
+    <app-duration-input
+      formControlName="time"
+      label="Time"
+      hint="For example, 17:30"
+      idPrefix="time"
+      [submitted]="submitted()"
+      [required]="isCreate()"
+      [mode]="'clock'"
+    />
+  </div>
+
+  <!-- Status -->
+  @if (showStatus()) {
+    <div class="govuk-grid-row">
+      <app-select-input
+        formControlName="status"
+        label="Select list status"
+        idPrefix="status"
+        [options]="status"
+      />
+    </div>
+  }
+
+  <div class="govuk-grid-row">
+    <!-- Court -->
+    <app-suggestions
+      id="court"
+      tabindex="-1"
+      label="Court"
+      formControlName="court"
+      [search]="suggestions().courthouseSearch()"
+      (searchChange)="
+        suggestions().setCourthouseSearch($event);
+        suggestions().onCourthouseInputChange()
+      "
+      [suggestions]="suggestions().filteredCourthouses()"
+      (selectItem)="suggestions().selectCourthouse($event)"
+      [showError]="showError('court')"
+      [errorText]="errorText('court')"
+      containerWidthClass="govuk-grid-column-one-half"
+      widthClass="govuk-!-width-two-thirds"
+    />
+  </div>
+
+  <ng-template #advancedFields>
+    <!-- Advanced fields block -->
+    <div class="govuk-grid-row">
+      <!-- Description -->
+      <app-text-input
+        formControlName="description"
+        label="List description"
+        idPrefix="description"
+        [error]="errorText('description')"
+        containerWidthClass="govuk-grid-column-one-half"
+        widthClass="govuk-!-width-two-thirds"
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <!-- CJA -->
+      <app-suggestions
+        id="cja"
+        tabindex="-1"
+        label="Criminal justice area"
+        formControlName="cja"
+        [search]="suggestions().cjaSearch()"
+        (searchChange)="
+          suggestions().setCjaSearch($event); suggestions().onCjaInputChange()
+        "
+        [suggestions]="suggestions().filteredCja()"
+        (selectItem)="suggestions().selectCja($event)"
+        [showError]="showError('cja')"
+        [errorText]="errorText('cja')"
+        containerWidthClass="govuk-grid-column-one-quarter"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <!-- Other location -->
+      <app-text-input
+        formControlName="location"
+        label="Other location description"
+        idPrefix="location"
+        [error]="errorText('location')"
+        containerWidthClass="govuk-grid-column-one-quarter"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
+  </ng-template>
+
+  @if (isSearch()) {
+    <details class="govuk-details" [open]="advancedOpen()">
+      <summary class="govuk-details__summary" (click)="onAdvancedClick($event)">
+        <span class="govuk-details__summary-text">Advanced search</span>
+      </summary>
+
+      <div class="govuk-details__text">
+        <ng-container *ngTemplateOutlet="advancedFields"></ng-container>
+      </div>
+    </details>
+  } @else {
+    <!--  Create/update no advanced toggle -->
+    <ng-container *ngTemplateOutlet="advancedFields"></ng-container>
+  }
+
+  <div class="govuk-grid-row">
+    @if (showDuration()) {
+      <app-duration-input
+        formControlName="duration"
+        label="Duration"
+        hint="Duration of the list"
+        idPrefix="duration"
+        [submitted]="submitted()"
+        [required]="false"
+        mode="duration"
+      />
+    }
+  </div>
+</div>
