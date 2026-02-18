@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   TemplateRef,
+  contentChild,
   input,
 } from '@angular/core';
 
@@ -51,6 +52,8 @@ export class TableComponent<T = unknown> {
 
   /** Auto-generate columns using keys of the first row when no columns are provided */
   autoGenerateColumns = input(true);
+
+  readonly dateTpl = contentChild<TemplateRef<unknown>>('dateTemplate');
 
   get cols(): ColumnDef<T>[] {
     const columns = this.columns();
