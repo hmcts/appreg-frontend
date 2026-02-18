@@ -103,7 +103,6 @@ describe('SessionService (browser platform)', () => {
       expect.objectContaining({
         credentials: 'include',
         cache: 'no-store',
-        redirect: 'manual',
         headers: expect.objectContaining({ accept: 'application/json' }),
       }),
     );

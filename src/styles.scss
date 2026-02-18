@@ -1,36 +1,17 @@
 @use 'govuk-frontend/dist/govuk/index' as govuk;
 @use '@ministryofjustice/frontend/moj/all' as moj;
 
-.govuk-width-container {
-  max-width: 1100px;
-}
-
-@media (min-width: 1140px) {
-  @supports (margin: max(calc(0px))) {
-    .govuk-width-container {
-      margin-right: auto;
-      margin-left: auto;
-    }
+// Override global container widths (match working project)
+@mixin global-container-widths {
+  .govuk-width-container,
+  .moj-header__container,
+  .moj-primary-navigation__container {
+    @include govuk.govuk-width-container(1280px);
+    @include moj.moj-width-container(1280px);
   }
 }
 
-@media (min-width: 1080px) and (max-width: 1139px) {
-  @supports (margin: max(calc(0px))) {
-    .govuk-width-container {
-      margin-right: max(30px, calc(15px + env(safe-area-inset-right)));
-      margin-left: max(30px, calc(15px + env(safe-area-inset-left)));
-    }
-  }
-}
-
-@media (min-width: 1020px) and (max-width: 1079px) {
-  @supports (margin: max(calc(0px))) {
-    .govuk-width-container {
-      margin-right: max(30px, calc(15px + env(safe-area-inset-right)));
-      margin-left: max(30px, calc(15px + env(safe-area-inset-left)));
-    }
-  }
-}
+@include global-container-widths();
 
 .govuk-breadcrumbs {
   margin-top: -15px;
@@ -54,6 +35,32 @@
   .app-header-row {
     align-items: flex-start;
   }
+}
+
+table {
+  td {
+    @extend .govuk-table__cell;
+  }
+  th {
+    @extend .govuk-table__header;
+  }
+  td,
+  th {
+    vertical-align: middle !important;
+  }
+}
+
+/* Table action column, centre its children */
+.govuk-table td.govuk-table__cell .govuk-button-group {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+}
+
+/* Table action column, remove vertical margins from the menu/button inside */
+.govuk-table td.govuk-table__cell .govuk-button-group .govuk-button,
+.govuk-table td.govuk-table__cell .govuk-button-group .moj-button-menu {
+  margin: 0;
 }
 
 /* Autocomplete dropdown */
@@ -111,4 +118,23 @@
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+/* ------------------------------------------------------------
+   GOVUK / MOJ sortable table: keep sort icon aligned consistently
+   when header text wraps to multiple lines.
+   ------------------------------------------------------------ */
+
+th.govuk-table__header[aria-sort] > button > svg {
+  position: static;
+  top: auto;
+  right: auto;
+  transform: none;
+
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  pointer-events: none;
+
+  margin-top: 2px;
 }

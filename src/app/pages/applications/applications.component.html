@@ -1,0 +1,243 @@
+<h1 class="govuk-heading-xl">Applications</h1>
+
+@if (vm().submitted && vm().searchErrors.length) {
+  <app-error-summary
+    [title]="'There is a problem'"
+    [items]="vm().searchErrors"
+    targetId="search"
+    (itemSelect)="onCreateErrorClick($event)"
+  />
+} @else {
+  @if (vm().isSearch && !vm().isLoading && !vm().rows.length) {
+    <app-notification-banner
+      heading="No application list entries found"
+      body="Try different filters"
+    />
+  }
+}
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
+<form [formGroup]="form" (ngSubmit)="onSubmit($event)">
+  <div class="govuk-grid-row">
+    <!-- Date -->
+    <app-date-input
+      formControlName="date"
+      label="List date"
+      hint="For example, 27 3 2007"
+      idPrefix="date"
+      [submitted]="vm().submitted"
+      [isSearch]="vm().isSearch"
+    />
+  </div>
+
+  <div class="govuk-grid-row">
+    <!-- Court -->
+    <app-suggestions
+      id="court"
+      label="Court"
+      [(search)]="state().courthouseSearch"
+      (searchChange)="onCourthouseInputChange()"
+      [suggestions]="state().filteredCourthouses"
+      (selectItem)="selectCourthouse($event)"
+      [disabled]="!!form.get('location')?.value || !!form.get('cja')?.value"
+      [showError]="vm().searchErrors.length > 0 && !!fieldError('court')"
+      [errorText]="fieldError('court')?.text ?? ''"
+      containerWidthClass="govuk-grid-column-one-half"
+      widthClass="govuk-!-width-two-thirds"
+    />
+  </div>
+
+  <div class="govuk-grid-row">
+    <!-- Applicant Org -->
+    <app-text-input
+      formControlName="applicantOrg"
+      label="Applicant organisation"
+      idPrefix="applicant-org"
+      containerWidthClass="govuk-grid-column-one-quarter"
+      widthClass="govuk-!-width-full"
+    />
+
+    <!-- Applicant last name -->
+    <app-text-input
+      formControlName="applicantSurname"
+      label="Applicant surname"
+      idPrefix="applicant-surname"
+      containerWidthClass="govuk-grid-column-one-quarter"
+      widthClass="govuk-!-width-full"
+    />
+  </div>
+
+  <div class="govuk-grid-row">
+    <!-- Respondent Org -->
+    <app-text-input
+      formControlName="respondentOrg"
+      label="Respondent organisation"
+      idPrefix="respondent-org"
+      containerWidthClass="govuk-grid-column-one-quarter"
+      widthClass="govuk-!-width-full"
+    />
+    <!-- Respondent surname -->
+    <app-text-input
+      formControlName="respondentSurname"
+      label="Respondent surname"
+      idPrefix="respondent-surname"
+      containerWidthClass="govuk-grid-column-one-quarter"
+      widthClass="govuk-!-width-full"
+    />
+  </div>
+
+  <div class="govuk-grid-row">
+    <!-- Status -->
+    <app-select-input
+      formControlName="status"
+      label="Select application status"
+      idPrefix="status"
+      [options]="status"
+    />
+  </div>
+
+  <details class="govuk-details" [open]="vm().isAdvancedSearch">
+    <summary
+      class="govuk-details__summary"
+      (click)="$event.preventDefault(); toggleAdvancedSearch()"
+    >
+      <span class="govuk-details__summary-text"> Advanced search </span>
+    </summary>
+    <div class="govuk-details__text">
+      <div class="govuk-grid-row">
+        <!-- Postcode -->
+        <app-text-input
+          formControlName="respondentPostcode"
+          label="Respondent post code"
+          idPrefix="respondentPostcode"
+          [error]="getControlErrorMessages('respondentPostcode')[0]"
+          containerWidthClass="govuk-grid-column-one-quarter"
+          widthClass="govuk-!-width-full"
+        />
+      </div>
+      <div class="govuk-grid-row">
+        <!-- CJA -->
+        <app-suggestions
+          id="cja"
+          label="Criminal justice area"
+          [(search)]="state().cjaSearch"
+          (searchChange)="onCjaInputChange()"
+          [suggestions]="state().filteredCja"
+          (selectItem)="selectCja($event)"
+          [disabled]="!!state().courthouseSearch || !!form.get('court')?.value"
+          [showError]="vm().searchErrors.length > 0 && !!fieldError('cja')"
+          [errorText]="fieldError('cja')?.text ?? ''"
+          containerWidthClass="govuk-grid-column-one-quarter"
+          widthClass="govuk-!-width-full"
+        />
+      </div>
+
+      <div class="govuk-grid-row">
+        <!-- Location Description -->
+        <app-text-input
+          formControlName="location"
+          label="Other location description"
+          idPrefix="location"
+          containerWidthClass="govuk-grid-column-one-quarter"
+          widthClass="govuk-!-width-full"
+        />
+      </div>
+
+      <div class="govuk-grid-row">
+        <!-- Applicant code -->
+        <app-text-input
+          formControlName="standardApplicantCode"
+          label="Standard applicant code"
+          idPrefix="applicant-code"
+          containerWidthClass="govuk-grid-column-one-quarter"
+          widthClass="govuk-!-width-full"
+        />
+      </div>
+
+      <div class="govuk-grid-row">
+        <!-- Account reference -->
+        <app-text-input
+          formControlName="accountReference"
+          label="Account reference"
+          idPrefix="account-reference"
+          containerWidthClass="govuk-grid-column-one-quarter"
+          widthClass="govuk-!-width-full"
+        />
+      </div>
+    </div>
+  </details>
+
+  <div class="govuk-button-group">
+    <button id="search" type="submit" class="govuk-button" value="search">
+      Search
+    </button>
+    <button
+      class="govuk-button govuk-button--secondary"
+      type="button"
+      data-module="govuk-button"
+      (click)="clearSearch()"
+    >
+      Clear search
+    </button>
+  </div>
+</form>
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
+
+@if (vm().rows.length) {
+  <!-- Sortable table component -->
+  <app-sortable-table
+    [caption]="'Application list entries'"
+    [columns]="columns"
+    [data]="tableRows()"
+    appMojButtonMenu
+  >
+    <ng-template #dateTemplate let-row>
+      {{ row.date | dateTime }}
+    </ng-template>
+
+    <ng-template #actionsTemplate let-row>
+      <div
+        class="moj-button-menu"
+        data-module="moj-button-menu"
+        data-button-text="Select"
+        data-button-classes="govuk-button"
+      >
+        <!-- Open -->
+        <!-- TODO: Currently there's not pages for just application so this route doesn't work. Need to create page for this -->
+        <button
+          type="button"
+          class="govuk-button moj-button-menu__item govuk-button--secondary"
+          [routerLink]="['/applications', row.id]"
+        >
+          Open
+        </button>
+
+        <!-- Update -->
+        <!-- TODO: Currently there's not pages for just application so this route doesn't work. Need to create page for this -->
+        <button
+          type="button"
+          class="govuk-button moj-button-menu__item govuk-button--secondary"
+          [routerLink]="['/applications', row.id, 'update']"
+        >
+          Update
+        </button>
+      </div>
+    </ng-template>
+  </app-sortable-table>
+
+  <!-- Pager -->
+  <app-pagination
+    [currentPage]="vm().currentPage"
+    [totalPages]="vm().totalPages"
+    (pageChange)="onPageChange($event)"
+  />
+} @else {
+  @if (!vm().isLoading && vm().submitted && !vm().searchErrors.length) {
+    <p class="govuk-body">No results found.</p>
+  }
+}

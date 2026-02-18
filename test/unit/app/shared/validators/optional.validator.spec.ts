@@ -1,6 +1,6 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
-import { isEmpty, optional } from '@validators/optional-validator';
+import { isEmpty, optional } from '@validators/optional.validator';
 
 describe('isEmpty', () => {
   it('returns true for null/undefined', () => {

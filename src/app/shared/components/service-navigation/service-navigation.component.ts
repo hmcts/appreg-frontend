@@ -1,20 +1,14 @@
-import { isPlatformBrowser } from '@angular/common';
-import {
-  Component,
-  Inject,
-  OnInit,
-  PLATFORM_ID,
-  computed,
-  signal,
-} from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   NavigationEnd,
   Router,
   RouterLink,
   RouterLinkActive,
 } from '@angular/router';
-import { filter } from 'rxjs/operators';
+import { filter, map, startWith } from 'rxjs/operators';
 
+import { HeaderService } from '@services/header.service';
 import { SessionService } from '@services/session.service';
 
 @Component({
@@ -23,36 +17,26 @@ import { SessionService } from '@services/session.service';
   standalone: true,
   imports: [RouterLinkActive, RouterLink],
 })
-export class ServiceNavigationComponent implements OnInit {
-  readonly isLoginPage = signal(false);
-  readonly showMenu = computed(
-    () => this.session.isAuthenticated() && !this.isLoginPage(),
+export class ServiceNavigationComponent {
+  readonly session = inject(SessionService);
+  private readonly header = inject(HeaderService);
+  private readonly router = inject(Router);
+
+  readonly url = toSignal(
+    this.router.events.pipe(
+      filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+      map((e) => e.urlAfterRedirects),
+      startWith(this.router.url),
+    ),
+    { initialValue: this.router.url },
   );
 
-  constructor(
-    public session: SessionService, // public so template can read it if needed
-    private readonly router: Router,
-    @Inject(PLATFORM_ID) private readonly platformId: object,
-  ) {}
+  readonly isLoginPage = computed(() => this.url().startsWith('/login'));
 
-  ngOnInit(): void {
-    // set initial state (important on first paint)
-    if (isPlatformBrowser(this.platformId)) {
-      this.isLoginPage.set(this.router.url.startsWith('/login'));
-    }
-
-    this.router.events
-      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
-      .subscribe((e) => {
-        this.isLoginPage.set(e.urlAfterRedirects.startsWith('/login'));
-      });
-  }
-
-  onSignOutClicked(ev: Event): void {
-    ev.preventDefault();
-    if (!globalThis.confirm('Are you sure you want to sign out?')) {
-      return;
-    }
-    globalThis.location.assign('/sso/logout');
-  }
+  readonly showMenu = computed(
+    () =>
+      this.session.isAuthenticated() &&
+      !this.isLoginPage() &&
+      this.header.isVisible(),
+  );
 }

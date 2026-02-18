@@ -1,54 +1,54 @@
-<div class="govuk-grid-column-one-quarter">
+<div [class]="containerWidthClass()">
   <div
     class="govuk-form-group"
     [ngClass]="{
       'govuk-form-group--error': errorState,
     }"
   >
-    @if (label) {
+    @if (label()) {
       <div class="govuk-label-wrapper">
-        <label class="govuk-label govuk-label--m" [for]="idPrefix">
-          {{ label }}
+        <label class="govuk-label" [for]="idPrefix()">
+          {{ label() }}
         </label>
       </div>
     }
 
-    @if (hint) {
-      <div [id]="idPrefix + '-hint'" class="govuk-hint">
-        {{ hint }}
+    @if (hint()) {
+      <div [id]="idPrefix() + '-hint'" class="govuk-hint">
+        {{ hint() }}
       </div>
     }
 
     @if (errorState) {
-      <p [id]="idPrefix + '-error'" class="govuk-error-message">
+      <p [id]="idPrefix() + '-error'" class="govuk-error-message">
         <span class="govuk-visually-hidden">Error:</span>
-        {{ error || (label || 'This field') + ' is required' }}
+        {{ error() || (label() || 'This field') + ' is required' }}
       </p>
     }
 
     <input
       class="govuk-input"
-      [ngClass]="[widthClass, errorState ? 'govuk-input--error' : '']"
-      [id]="idPrefix"
-      [name]="idPrefix"
-      [attr.type]="inputType"
+      [ngClass]="[widthClass(), errorState ? 'govuk-input--error' : '']"
+      [id]="idPrefix()"
+      [name]="idPrefix()"
+      [attr.type]="inputType()"
       [attr.aria-describedby]="
         (
-          (hint ? idPrefix + '-hint' : '') +
+          (hint() ? idPrefix() + '-hint' : '') +
           ' ' +
-          (errorState ? idPrefix + '-error' : '')
+          (errorState ? idPrefix() + '-error' : '')
         ).trim()
       "
-      [value]="value"
+      [value]="valueState()"
       (input)="onInput($event)"
-      [disabled]="disabled"
-      [attr.list]="listId || null"
-      [attr.maxlength]="charLimit || null"
+      [disabled]="disabledState()"
+      [attr.list]="listId() || null"
+      [attr.maxlength]="charLimit() || null"
     />
 
-    @if (listId) {
-      <datalist [id]="listId">
-        @for (s of suggestions; track s?.value ?? s) {
+    @if (listId()) {
+      <datalist [id]="listId()">
+        @for (s of suggestions(); track s?.value ?? s) {
           <option [value]="s?.value ?? s">{{ s?.label ?? s }}</option>
         }
       </datalist>

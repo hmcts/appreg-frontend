@@ -2,8 +2,9 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  Input,
   TemplateRef,
+  contentChild,
+  input,
 } from '@angular/core';
 
 type AccessorFn<T> = (row: T, rowIndex: number) => unknown;
@@ -13,7 +14,7 @@ export interface ColumnDef<T = unknown> {
   /** Column header text */
   header: string;
   /** How to get the cell value: a key, a dotted path ("person.name"), or a function */
-  accessor?: KeyOf<T> | string | AccessorFn<T>;
+  field?: KeyOf<T> | string | AccessorFn<T>;
   /** Optional custom cell template (receives value + row/col context) */
   cellTemplate?: TemplateRef<CellContext<T>>;
   headerClass?: string;
@@ -37,37 +38,40 @@ export interface CellContext<T = unknown> {
 })
 export class TableComponent<T = unknown> {
   /** Table caption and classes */
-  @Input() caption = '';
-  @Input() captionClass = 'govuk-table__caption govuk-table__caption--m';
+  caption = input('');
+  captionClass = input('govuk-table__caption govuk-table__caption--m');
 
   /** GOV.UK table classes overridable if needed */
-  @Input() tableClass = 'govuk-table';
+  tableClass = input('govuk-table');
 
   /** Column definitions (optional; will auto-generate from first row if omitted) */
-  @Input() columns: ColumnDef<T>[] = [];
+  columns = input<ColumnDef<T>[]>([]);
 
   /** Data rows */
-  @Input() rows: T[] = [];
+  rows = input<T[]>([]);
 
   /** Auto-generate columns using keys of the first row when no columns are provided */
-  @Input() autoGenerateColumns = true;
+  autoGenerateColumns = input(true);
+
+  readonly dateTpl = contentChild<TemplateRef<unknown>>('dateTemplate');
 
   get cols(): ColumnDef<T>[] {
-    if (this.columns?.length) {
-      return this.columns;
+    const columns = this.columns();
+    if (columns.length) {
+      return columns;
     }
-    if (!this.autoGenerateColumns || !this.rows?.length) {
+    if (!this.autoGenerateColumns() || !this.rows().length) {
       return [];
     }
-    const first = this.rows[0] as Record<string, unknown>;
+    const first = this.rows()[0] as Record<string, unknown>;
     return Object.keys(first).map((k) => ({
       header: this.humanize(k),
-      accessor: k as KeyOf<T> | string,
+      field: k as KeyOf<T> | string,
     }));
   }
 
   valueOf(row: T, col: ColumnDef<T>, rowIndex: number): unknown {
-    const acc = col.accessor;
+    const acc = col.field;
 
     if (typeof acc === 'function') {
       return acc(row, rowIndex);

@@ -1,3 +1,5 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
 import { ColumnDef, TableComponent } from '@components/table/table.component';
 
 type Row = {
@@ -8,29 +10,52 @@ type Row = {
 };
 
 describe('TableComponent (class tests)', () => {
+  let fixture: ComponentFixture<TableComponent<Row>>;
   let comp: TableComponent<Row>;
 
-  beforeEach(() => {
-    comp = new TableComponent<Row>();
+  const setInput = (name: string, value: unknown, detectChanges = true) => {
+    fixture.componentRef.setInput(name, value);
+    if (detectChanges) {
+      fixture.detectChanges();
+    }
+  };
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [TableComponent],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(TableComponent<Row>);
+    comp = fixture.componentInstance;
   });
 
   it('returns provided columns when set', () => {
     const provided: ColumnDef<Row>[] = [
-      { header: 'Applicants', accessor: 'applicants' },
-      { header: 'Respondents', accessor: 'respondents' },
+      { header: 'Applicants', field: 'applicants' },
+      { header: 'Respondents', field: 'respondents' },
     ];
 
-    comp.columns = provided;
-    comp.rows = [{ applicants: 'A', respondents: 'B', title: 'T' }];
+    setInput('columns', provided, false);
+    setInput(
+      'rows',
+      [{ applicants: 'A', respondents: 'B', title: 'T' }],
+      false,
+    );
+    fixture.detectChanges();
 
     // cols should be exactly what we provided (no auto-gen)
     expect(comp.cols).toBe(provided);
   });
 
   it('auto-generates columns from first row when none provided', () => {
-    comp.columns = [];
-    comp.autoGenerateColumns = true;
-    comp.rows = [{ applicants: 'A', respondents: 'B', title: 'T' }];
+    setInput('columns', [], false);
+    setInput('autoGenerateColumns', true, false);
+    setInput(
+      'rows',
+      [{ applicants: 'A', respondents: 'B', title: 'T' }],
+      false,
+    );
+    fixture.detectChanges();
 
     const cols = comp.cols;
     expect(cols.map((c) => c.header)).toEqual([
@@ -38,7 +63,7 @@ describe('TableComponent (class tests)', () => {
       'Respondents',
       'Title',
     ]);
-    expect(cols.map((c) => c.accessor)).toEqual([
+    expect(cols.map((c) => c.field)).toEqual([
       'applicants',
       'respondents',
       'title',
@@ -46,9 +71,14 @@ describe('TableComponent (class tests)', () => {
   });
 
   it('does not auto-generate when autoGenerateColumns=false', () => {
-    comp.columns = [];
-    comp.autoGenerateColumns = false;
-    comp.rows = [{ applicants: 'A', respondents: 'B', title: 'T' }];
+    setInput('columns', [], false);
+    setInput('autoGenerateColumns', false, false);
+    setInput(
+      'rows',
+      [{ applicants: 'A', respondents: 'B', title: 'T' }],
+      false,
+    );
+    fixture.detectChanges();
 
     expect(comp.cols).toEqual([]);
   });
@@ -56,7 +86,7 @@ describe('TableComponent (class tests)', () => {
   it('valueOf supports function accessor', () => {
     const col: ColumnDef<Row> = {
       header: 'Fn',
-      accessor: (row, i) => `${row.title}-${i}`,
+      field: (row, i) => `${row.title}-${i}`,
     };
     const row: Row = { applicants: 'A', respondents: 'B', title: 'T' };
 
@@ -66,7 +96,7 @@ describe('TableComponent (class tests)', () => {
   it('valueOf supports direct key accessor', () => {
     const col: ColumnDef<Row> = {
       header: 'Applicants',
-      accessor: 'applicants',
+      field: 'applicants',
     };
     const row: Row = { applicants: 'AAA', respondents: 'B', title: 'T' };
 
@@ -74,7 +104,7 @@ describe('TableComponent (class tests)', () => {
   });
 
   it('valueOf supports dotted path accessor', () => {
-    const col: ColumnDef<Row> = { header: 'Name', accessor: 'person.name' };
+    const col: ColumnDef<Row> = { header: 'Name', field: 'person.name' };
     const row: Row = {
       applicants: 'A',
       respondents: 'B',
@@ -86,7 +116,7 @@ describe('TableComponent (class tests)', () => {
   });
 
   it('valueOf returns undefined when dotted path is missing', () => {
-    const col: ColumnDef<Row> = { header: 'Name', accessor: 'person.name' };
+    const col: ColumnDef<Row> = { header: 'Name', field: 'person.name' };
     const row: Row = {
       applicants: 'A',
       respondents: 'B',

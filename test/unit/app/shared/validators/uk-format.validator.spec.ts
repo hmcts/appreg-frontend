@@ -1,12 +1,19 @@
 import { AbstractControl } from '@angular/forms';
 
 import { UK_POSTCODE_REGEX } from '@constants/regex';
-import { ukMobile, ukPhone, ukPostcode } from '@validators/uk-format-validator';
+import { ukMobile, ukPhone, ukPostcode } from '@validators/uk-format.validator';
 
 const ctrl = (value: unknown): AbstractControl =>
   ({ value }) as AbstractControl;
 
 describe('ukPostcode', () => {
+  it('returns null for empty values (optional field)', () => {
+    expect(ukPostcode(ctrl(null))).toBeNull();
+    expect(ukPostcode(ctrl(undefined))).toBeNull();
+    expect(ukPostcode(ctrl(''))).toBeNull();
+    expect(ukPostcode(ctrl('   '))).toBeNull();
+  });
+
   it('returns null for valid UK postcodes (including with whitespace)', () => {
     const samples = ['SW1A 2AA', 'sw1a 2aa', 'EC1A 1BB', 'M1 1AE', 'W1A 0AX'];
 
@@ -19,16 +26,10 @@ describe('ukPostcode', () => {
     }
   });
 
-  it('returns { postcode: true } for invalid values (including empty)', () => {
-    expect(ukPostcode(ctrl(null))).toEqual({ postcode: true });
-    expect(ukPostcode(ctrl(undefined))).toEqual({ postcode: true });
-    expect(ukPostcode(ctrl(''))).toEqual({ postcode: true });
-    expect(ukPostcode(ctrl('   '))).toEqual({ postcode: true });
-
+  it('returns { postcode: true } for invalid non-empty values', () => {
     expect(ukPostcode(ctrl('NOT A POSTCODE'))).toEqual({ postcode: true });
     expect(ukPostcode(ctrl('12345'))).toEqual({ postcode: true });
-    expect(ukPostcode(ctrl('SW1A-2AA'))) // dash
-      .toEqual({ postcode: true });
+    expect(ukPostcode(ctrl('SW1A-2AA'))).toEqual({ postcode: true }); // dash
   });
 });
 

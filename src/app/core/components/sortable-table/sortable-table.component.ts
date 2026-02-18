@@ -4,11 +4,12 @@ import {
   Component,
   ContentChild,
   ElementRef,
-  Inject,
-  Input,
   PLATFORM_ID,
   TemplateRef,
   ViewChild,
+  contentChild,
+  inject,
+  input,
 } from '@angular/core';
 
 import { Row } from '@core-types/table/row.types';
@@ -35,28 +36,34 @@ export class SortableTableComponent implements AfterViewInit {
   @ContentChild('actionsTemplate', { read: TemplateRef })
   actionsTpl?: TemplateRef<unknown>;
 
-  @Input() caption = '';
-  @Input() hiddenCaption = false;
-  @Input() columns: TableColumn[] = [];
-  @Input() data: Row[] = [];
+  readonly dateTpl = contentChild<TemplateRef<unknown>>('dateTemplate');
+
+  caption = input('');
+  hiddenCaption = input(false);
+  columns = input<TableColumn[]>([]);
+  data = input<Row[]>([]);
 
   /** Optional id field / custom trackBy, kept from your original component */
-  @Input() idField?: string;
-  @Input() trackBy?: (index: number, row: Row) => unknown;
+  idField = input<string | undefined>(undefined);
+  trackBy = input<((index: number, row: Row) => unknown) | undefined>(
+    undefined,
+  );
   @ViewChild('mojTable', { static: true })
   tableRef!: ElementRef<HTMLTableElement>;
 
   private sortableInstance?: { init?: () => void; destroy?: () => void };
 
-  constructor(@Inject(PLATFORM_ID) private readonly platformId: object) {}
+  private readonly platformId = inject(PLATFORM_ID);
 
   /** trackBy helper retained for performance */
   trackRow = (index: number, row: Row): unknown => {
-    if (this.trackBy) {
-      return this.trackBy(index, row);
+    const trackBy = this.trackBy();
+    if (trackBy) {
+      return trackBy(index, row);
     }
-    if (this.idField && this.idField in row) {
-      return row[this.idField];
+    const idField = this.idField();
+    if (idField && idField in row) {
+      return row[idField];
     }
     return index;
     // same behaviour you had before

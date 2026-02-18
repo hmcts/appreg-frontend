@@ -1,4 +1,7 @@
+import '@angular/compiler';
+import '@angular/common/locales/global/en-GB';
 import { setupZoneTestEnv } from 'jest-preset-angular/setup-env/zone';
+
 setupZoneTestEnv();
 
 // Mock govuk and moj frontend bundles so tests can run without dom errors

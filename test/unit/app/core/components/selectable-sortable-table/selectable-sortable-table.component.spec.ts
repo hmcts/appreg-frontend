@@ -64,6 +64,20 @@ describe('SelectableSortableTableComponent (original template)', () => {
   let fixture: ComponentFixture<SelectableSortableTableComponent>;
   let comp: SelectableSortableTableComponent;
 
+  const getSelectedIdsState = (): Set<string> =>
+    (
+      comp as unknown as {
+        selectedIdsState: () => Set<string>;
+      }
+    ).selectedIdsState();
+
+  const setInput = (name: string, value: unknown, detectChanges = true) => {
+    fixture.componentRef.setInput(name, value);
+    if (detectChanges) {
+      fixture.detectChanges();
+    }
+  };
+
   async function create(platform: 'browser' | 'server' = 'browser') {
     await TestBed.configureTestingModule({
       imports: [SelectableSortableTableComponent], // standalone component
@@ -81,11 +95,12 @@ describe('SelectableSortableTableComponent (original template)', () => {
     ];
     const data: Row[] = [{ id: 'abc', name: 'Everest', elevation: 8848 }];
 
-    comp.caption = 'Lists';
-    comp.columns = columns;
-    comp.data = data;
-    comp.idField = 'id';
-    comp.idPrefix = 'row-';
+    setInput('caption', 'Lists', false);
+    setInput('columns', columns, false);
+    setInput('data', data, false);
+    setInput('idField', 'id', false);
+    setInput('idPrefix', 'row-', false);
+    fixture.detectChanges();
   }
 
   beforeEach(() => {
@@ -147,9 +162,9 @@ describe('SelectableSortableTableComponent (original template)', () => {
       comp.selectedIdsChange.subscribe((s) => emitted.push(new Set(s)));
       const rowsSpy = jest.spyOn(comp.selectedRowsChange, 'emit');
 
-      comp.selectedIds = new Set(['x']);
+      setInput('selectedIds', new Set(['x']));
       comp.toggleOne({ id: 'abc' } as Row, true);
-      expect(Array.from(comp.selectedIds)).toEqual(['x', 'abc']);
+      expect(Array.from(getSelectedIdsState())).toEqual(['x', 'abc']);
       expect(Array.from(emitted[0])).toEqual(['x', 'abc']);
       expect(rowsSpy).toHaveBeenCalledTimes(1);
       expect(rowsSpy).toHaveBeenCalledWith([
@@ -157,7 +172,7 @@ describe('SelectableSortableTableComponent (original template)', () => {
       ]);
 
       comp.toggleOne({ id: 'abc' } as Row, false);
-      expect(Array.from(comp.selectedIds)).toEqual(['x']);
+      expect(Array.from(getSelectedIdsState())).toEqual(['x']);
       expect(Array.from(emitted[1])).toEqual(['x']);
       expect(rowsSpy).toHaveBeenCalledTimes(2);
       expect(rowsSpy.mock.calls[1][0]).toEqual([]);
@@ -181,7 +196,7 @@ describe('SelectableSortableTableComponent (original template)', () => {
       fixture.detectChanges();
       await fixture.whenStable();
 
-      expect(comp.selectedIds.has('abc')).toBe(true);
+      expect(getSelectedIdsState().has('abc')).toBe(true);
     });
   });
 
@@ -214,15 +229,15 @@ describe('SelectableSortableTableComponent (original template)', () => {
       await create('browser');
 
       const d = new Date('2025-09-30T10:20:30.000Z');
-      comp.idField = 'id';
-      comp.data = [
+      setInput('idField', 'id');
+      setInput('data', [
         { id: 's' },
         { id: 12 },
         { id: d },
         { id: true },
         { id: false },
         {}, // -> ''
-      ] as Row[];
+      ] as Row[]);
 
       expect(comp.getRowId({ id: 'x' } as Row)).toBe('x');
       expect(comp.getRowId({ id: 12 } as Row)).toBe('12');
@@ -237,26 +252,26 @@ describe('SelectableSortableTableComponent (original template)', () => {
 
     it('computes allVisibleSelected / someVisibleSelected', async () => {
       await create('browser');
-      comp.idField = 'id';
-      comp.data = [{ id: 'a' }, { id: 'b' }] as Row[];
+      setInput('idField', 'id');
+      setInput('data', [{ id: 'a' }, { id: 'b' }] as Row[]);
 
-      comp.selectedIds = new Set<string>();
+      setInput('selectedIds', new Set<string>());
       expect(comp.allVisibleSelected).toBe(false);
       expect(comp.someVisibleSelected).toBe(false);
 
-      comp.selectedIds = new Set<string>(['a']);
+      setInput('selectedIds', new Set<string>(['a']));
       expect(comp.allVisibleSelected).toBe(false);
       expect(comp.someVisibleSelected).toBe(true);
 
-      comp.selectedIds = new Set<string>(['a', 'b']);
+      setInput('selectedIds', new Set<string>(['a', 'b']));
       expect(comp.allVisibleSelected).toBe(true);
       expect(comp.someVisibleSelected).toBe(true);
     });
 
     it('isSelected returns false for empty id and true when selected', async () => {
       await create('browser');
-      comp.idField = 'id';
-      comp.selectedIds = new Set<string>(['a']);
+      setInput('idField', 'id');
+      setInput('selectedIds', new Set<string>(['a']));
 
       expect(comp.isSelected({} as Row)).toBe(false);
       expect(comp.isSelected({ id: 'a' } as Row)).toBe(true);
@@ -265,10 +280,10 @@ describe('SelectableSortableTableComponent (original template)', () => {
 
     it('firstColField returns empty string when no columns', async () => {
       await create('browser');
-      comp.columns = [];
+      setInput('columns', []);
       expect(comp.firstColField).toBe('');
 
-      comp.columns = [{ header: 'H', field: 'f' }];
+      setInput('columns', [{ header: 'H', field: 'f' }]);
       expect(comp.firstColField).toBe('f');
     });
   });
@@ -276,24 +291,24 @@ describe('SelectableSortableTableComponent (original template)', () => {
   describe('toggleSelectAllVisible', () => {
     it('does nothing when singleSelect is true', async () => {
       await create('browser');
-      comp.singleSelect = true;
-      comp.idField = 'id';
-      comp.data = [{ id: 'a' }, { id: 'b' }] as Row[];
-      comp.selectedIds = new Set<string>(['a']);
+      setInput('singleSelect', true);
+      setInput('idField', 'id');
+      setInput('data', [{ id: 'a' }, { id: 'b' }] as Row[]);
+      setInput('selectedIds', new Set<string>(['a']));
 
       const emitSpy = jest.spyOn(comp.selectedIdsChange, 'emit');
       comp.toggleSelectAllVisible(true);
 
-      expect(Array.from(comp.selectedIds)).toEqual(['a']);
+      expect(Array.from(getSelectedIdsState())).toEqual(['a']);
       expect(emitSpy).not.toHaveBeenCalled();
     });
 
     it('selects and deselects all visible ids when singleSelect is false', async () => {
       await create('browser');
-      comp.singleSelect = false;
-      comp.idField = 'id';
-      comp.data = [{ id: 'a' }, { id: 'b' }] as Row[];
-      comp.selectedIds = new Set<string>(['x']);
+      setInput('singleSelect', false);
+      setInput('idField', 'id');
+      setInput('data', [{ id: 'a' }, { id: 'b' }] as Row[]);
+      setInput('selectedIds', new Set<string>(['x']));
 
       const rowsSpy = jest.spyOn(comp.selectedRowsChange, 'emit');
 
@@ -301,7 +316,7 @@ describe('SelectableSortableTableComponent (original template)', () => {
       comp.selectedIdsChange.subscribe((s) => emitted.push(new Set(s)));
 
       comp.toggleSelectAllVisible(true);
-      expect(new Set(comp.selectedIds)).toEqual(new Set(['x', 'a', 'b']));
+      expect(new Set(getSelectedIdsState())).toEqual(new Set(['x', 'a', 'b']));
       expect(new Set(emitted[0])).toEqual(new Set(['x', 'a', 'b']));
 
       expect(rowsSpy).toHaveBeenCalledWith(
@@ -309,7 +324,7 @@ describe('SelectableSortableTableComponent (original template)', () => {
       );
 
       comp.toggleSelectAllVisible(false);
-      expect(new Set(comp.selectedIds)).toEqual(new Set(['x']));
+      expect(new Set(getSelectedIdsState())).toEqual(new Set(['x']));
       expect(new Set(emitted[1])).toEqual(new Set(['x']));
       expect(rowsSpy.mock.calls[1][0]).toEqual([]);
     });
@@ -318,7 +333,7 @@ describe('SelectableSortableTableComponent (original template)', () => {
   describe('toggleOne additional branches', () => {
     it('returns early when row id is empty (no emit)', async () => {
       await create('browser');
-      comp.idField = 'id';
+      setInput('idField', 'id');
 
       const emitSpy = jest.spyOn(comp.selectedIdsChange, 'emit');
       comp.toggleOne({} as Row, true);
@@ -328,19 +343,19 @@ describe('SelectableSortableTableComponent (original template)', () => {
 
     it('singleSelect clears existing selection and keeps only the clicked row when checked', async () => {
       await create('browser');
-      comp.idField = 'id';
-      comp.singleSelect = true;
-      comp.selectedIds = new Set<string>(['x']);
+      setInput('idField', 'id');
+      setInput('singleSelect', true);
+      setInput('selectedIds', new Set<string>(['x']));
 
       const emitted: Set<string>[] = [];
       comp.selectedIdsChange.subscribe((s) => emitted.push(new Set(s)));
 
       comp.toggleOne({ id: 'a' } as Row, true);
-      expect(new Set(comp.selectedIds)).toEqual(new Set(['a']));
+      expect(new Set(getSelectedIdsState())).toEqual(new Set(['a']));
       expect(new Set(emitted[0])).toEqual(new Set(['a']));
 
       comp.toggleOne({ id: 'a' } as Row, false);
-      expect(new Set(comp.selectedIds)).toEqual(new Set());
+      expect(new Set(getSelectedIdsState())).toEqual(new Set());
       expect(new Set(emitted[1])).toEqual(new Set());
     });
   });
@@ -434,14 +449,16 @@ describe('SelectableSortableTableComponent (original template)', () => {
   });
 
   describe('getSelectedRows()', () => {
-    it('returns the currently selected rows', () => {
+    it('returns the currently selected rows', async () => {
+      await create('browser');
+      setInput('idField', 'id');
       // selectedIds order: 'b' then 'a'
-      comp['selectedIds'] = new Set(['b', 'a']);
-      comp['data'] = [
+      setInput('selectedIds', new Set(['b', 'a']));
+      setInput('data', [
         { id: 'a', label: 'A' },
         { id: 'b', label: 'B' },
         { id: 'c', label: 'C' },
-      ];
+      ]);
 
       const result = comp.getSelectedRows() as Row[];
 

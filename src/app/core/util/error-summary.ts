@@ -16,27 +16,39 @@ function buildFormErrorSummaryImpl(
 ): ErrorItem[] {
   const errors: ErrorItem[] = [];
   const hrefs = options?.hrefs ?? {};
+  const priorityKeys = options?.priorityKeys;
 
   // Top-level controls
   for (const name of Object.keys(form.controls)) {
-    addControlErrors(errors, form.controls[name], name, messages, hrefs, name);
+    addControlErrors(
+      errors,
+      form.controls[name],
+      name,
+      messages,
+      hrefs,
+      name,
+      priorityKeys,
+    );
   }
 
   // Nested groups (e.g. applicationNotes.*)
-  options?.nested?.forEach(({ path }) => {
+  options?.nested?.forEach(({ path, prefixId }) => {
     const group = form.get(path);
     if (!(group instanceof FormGroup)) {
       return;
     }
 
     for (const childName of Object.keys(group.controls)) {
+      const id = prefixId ? `${prefixId}.${childName}` : childName;
+
       addControlErrors(
         errors,
         group.controls[childName],
         childName,
         messages,
         hrefs,
-        childName,
+        id,
+        priorityKeys,
       );
     }
   });
@@ -45,6 +57,7 @@ function buildFormErrorSummaryImpl(
   options?.groups?.forEach(({ group, prefixId }) => {
     for (const childName of Object.keys(group.controls)) {
       const id = prefixId ? `${prefixId}.${childName}` : childName;
+
       addControlErrors(
         errors,
         group.controls[childName],
@@ -52,6 +65,7 @@ function buildFormErrorSummaryImpl(
         messages,
         hrefs,
         id,
+        priorityKeys,
       );
     }
   });
@@ -69,6 +83,7 @@ function addControlErrors(
   messages: ErrorMessageMap,
   hrefs: ErrorHrefsMap,
   id: string,
+  priorityKeys?: Record<string, string[]>,
 ): void {
   if (!control?.errors) {
     return;
@@ -76,18 +91,28 @@ function addControlErrors(
 
   const rawErrors = control.errors as Record<string, unknown>;
   const map = messages[controlName] ?? {};
-  const href = hrefs[controlName];
+  const href = hrefs[id] ?? hrefs[controlName] ?? `#${id}`;
 
-  for (const key of Object.keys(rawErrors)) {
+  const preferred = priorityKeys?.[controlName] ?? priorityKeys?.[id];
+
+  const orderedKeys = preferred?.length
+    ? [
+        ...preferred,
+        ...Object.keys(rawErrors).filter((k) => !preferred.includes(k)),
+      ]
+    : Object.keys(rawErrors);
+
+  for (const key of orderedKeys) {
     const text = map[key];
     if (!text) {
       continue;
     }
+    if (!(key in rawErrors)) {
+      continue;
+    }
 
-    bucket.push({
-      id,
-      text,
-      href, // optional; undefined if none
-    });
+    bucket.push({ id, text, href });
+
+    break;
   }
 }

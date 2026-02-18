@@ -1,11 +1,11 @@
 <div class="moj-page-header-actions">
   <div class="moj-page-header-actions__title">
-    <h1 [ngClass]="headingClass">{{ title }}</h1>
+    <h1 [ngClass]="headingClass">{{ title() }}</h1>
   </div>
 
   <div class="moj-page-header-actions__actions">
     <div class="moj-button-group moj-button-group--inline">
-      @for (a of actions; track a.id ?? a.label) {
+      @for (a of actions(); track a.id ?? a.label) {
         @if (a.routerLink) {
           <a
             class="govuk-button"

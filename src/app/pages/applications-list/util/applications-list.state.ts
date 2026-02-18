@@ -5,9 +5,8 @@ export interface ApplicationsListState {
   deleteDone: boolean;
   deleteInvalid: boolean;
   isLoading: boolean;
-  searchErrors: { id: string; text: string }[];
+  searchErrors: ErrorItem[];
   errorSummary: ErrorItem[];
-  deletingId: string | null;
 }
 
 export const initialApplicationsListState: ApplicationsListState = {
@@ -17,7 +16,6 @@ export const initialApplicationsListState: ApplicationsListState = {
   isLoading: false,
   searchErrors: [],
   errorSummary: [],
-  deletingId: null,
 };
 
 // Clear all error/success/notification states

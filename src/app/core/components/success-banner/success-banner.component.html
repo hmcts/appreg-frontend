@@ -16,11 +16,11 @@
   </div>
 
   <div class="govuk-notification-banner__content">
-    <h3 class="govuk-notification-banner__heading">{{ heading }}</h3>
+    <h3 class="govuk-notification-banner__heading">{{ heading() }}</h3>
 
-    @if (segments.length) {
+    @if (segments().length) {
       <p class="govuk-body">
-        @for (seg of segments; track $index) {
+        @for (seg of segments(); track $index) {
           @switch (seg.kind) {
             @case ('text') {
               <span>{{ seg.text }}</span>
@@ -46,25 +46,25 @@
           }
         }
       </p>
-    } @else if (body || linkText) {
+    } @else if (body() || linkText()) {
       <p class="govuk-body">
-        @if (body) {
-          {{ body }}
+        @if (body()) {
+          {{ body() }}
         }
-        @if (linkText && linkHref) {
-          <a class="govuk-notification-banner__link" [href]="linkHref">{{
-            linkText
+        @if (linkText() && linkHref()) {
+          <a class="govuk-notification-banner__link" [href]="linkHref()">{{
+            linkText()
           }}</a>
         }
-        @if (linkText && linkCommands) {
+        @if (linkText() && linkCommands()) {
           <a
             class="govuk-notification-banner__link"
-            [routerLink]="linkCommands"
-            >{{ linkText }}</a
+            [routerLink]="linkCommands()"
+            >{{ linkText() }}</a
           >
         }
-        @if (linkText && !linkHref && !linkCommands) {
-          <span>{{ linkText }}</span>
+        @if (linkText() && !linkHref() && !linkCommands()) {
+          <span>{{ linkText() }}</span>
         }
       </p>
     }

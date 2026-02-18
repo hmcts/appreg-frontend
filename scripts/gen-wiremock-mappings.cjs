@@ -308,15 +308,15 @@ async function exampleFromSchemaOrGenerate(media) {
 function applyListGuardsIfLooksPaged(bodyStr) {
   let s = bodyStr;
   const guardPage =
-    '{{#if request.query.page}}' +
+    '{{#if request.query.pageNumber}}' +
     "{{#if (matches request.query.page.[0] '^[0-9]+$')}}" +
-    '{{request.query.page.[0]}}' +
+    '{{request.query.pageNumber.[0]}}' +
     '{{else}}0{{/if}}' +
     '{{else}}0{{/if}}';
   const guardSizePrefSize =
-    '{{#if request.query.size}}' +
+    '{{#if request.query.pageSize}}' +
     "{{#if (matches request.query.size.[0] '^[0-9]+$')}}" +
-    '{{request.query.size.[0]}}' +
+    '{{request.query.pageSize.[0]}}' +
     '{{else}}100{{/if}}' +
     '{{else}}100{{/if}}';
   const guardPageSizeOrSize =
@@ -325,10 +325,13 @@ function applyListGuardsIfLooksPaged(bodyStr) {
     '{{request.query.pageSize.[0]}}' +
     '{{else}}100{{/if}}' +
     `{{else}}${guardSizePrefSize}{{/if}}`;
-  s = s.replace(/"pageNumber"\s*:\s*\d+/g, `"pageNumber": ${guardPage}`);
-  s = s.replace(/"page"\s*:\s*\d+/g, `"page": ${guardPage}`);
-  s = s.replace(/"pageSize"\s*:\s*\d+/g, `"pageSize": ${guardPageSizeOrSize}`);
-  s = s.replace(/"size"\s*:\s*\d+/g, `"size": ${guardSizePrefSize}`);
+  s = s.replaceAll(/"pageNumber"\s*:\s*\d+/g, `"pageNumber": ${guardPage}`);
+  s = s.replaceAll(/"page"\s*:\s*\d+/g, `"page": ${guardPage}`);
+  s = s.replaceAll(
+    /"pageSize"\s*:\s*\d+/g,
+    `"pageSize": ${guardPageSizeOrSize}`,
+  );
+  s = s.replaceAll(/"size"\s*:\s*\d+/g, `"size": ${guardSizePrefSize}`);
   return s;
 }
 

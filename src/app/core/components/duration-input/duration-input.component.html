@@ -4,18 +4,18 @@
       class="govuk-fieldset"
       role="group"
       [attr.aria-describedby]="
-        (hint ? idPrefix + '-hint' : '') +
-        (displayErrors ? ' ' + idPrefix + '-error' : '')
+        (hint() ? idPrefix() + '-hint' : '') +
+        (displayErrors ? ' ' + idPrefix() + '-error' : '')
       "
     >
-      <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
-        @if (label) {
-          <h1 class="govuk-fieldset__heading">{{ label }}</h1>
+      <legend class="govuk-fieldset__legend govuk-fieldset__legend">
+        @if (label()) {
+          <h1 class="govuk-fieldset__heading">{{ label() }}</h1>
         }
       </legend>
 
-      @if (hint) {
-        <div [id]="idPrefix + '-hint'" class="govuk-hint">{{ hint }}</div>
+      @if (hint()) {
+        <div [id]="idPrefix() + '-hint'" class="govuk-hint">{{ hint() }}</div>
       }
 
       @let h = hours ?? '';
@@ -25,10 +25,10 @@
       @let anyEntered = h !== '' || m !== '';
 
       @if (displayErrors) {
-        <p [id]="idPrefix + '-error'" class="govuk-error-message">
+        <p [id]="idPrefix() + '-error'" class="govuk-error-message">
           <span class="govuk-visually-hidden">Error:</span>
-          @if (mode === 'clock' && anyEntered && (missH || missM)) {
-            @if (missH && missM && required) {
+          @if (mode() === 'clock' && anyEntered && (missH || missM)) {
+            @if (missH && missM && required()) {
               Enter hours and minutes
             } @else if (missH) {
               Enter hours
@@ -45,20 +45,24 @@
         <!-- Hours -->
         <input
           class="govuk-input govuk-input--width-2"
-          [id]="idPrefix + '-hours'"
-          [name]="idPrefix + '-hours'"
+          [id]="idPrefix() + '-hours'"
+          [name]="idPrefix() + '-hours'"
           [class.govuk-input--error]="displayErrors"
           type="text"
           spellcheck="false"
-          [attr.aria-describedby]="hint ? idPrefix + '-hint' : null"
+          [attr.aria-describedby]="
+            (hint() ? idPrefix() + '-hint ' : '') +
+            (displayErrors ? idPrefix() + '-error' : '')
+          "
           [value]="hoursText"
           (input)="onHoursInput($event)"
           (blur)="touch()"
-          [disabled]="disabled"
+          [disabled]="isDisabled"
           inputmode="numeric"
           pattern="[0-9]*"
           maxlength="2"
           autocomplete="off"
+          [attr.aria-label]="'Hours'"
         />
         <div
           class="govuk-input__suffix govuk-!-margin-right-3"
@@ -70,20 +74,24 @@
         <!-- Minutes -->
         <input
           class="govuk-input govuk-input--width-2"
-          [id]="idPrefix + '-minutes'"
-          [name]="idPrefix + '-minutes'"
+          [id]="idPrefix() + '-minutes'"
+          [name]="idPrefix() + '-minutes'"
           [class.govuk-input--error]="displayErrors"
           type="text"
           spellcheck="false"
-          [attr.aria-describedby]="hint ? idPrefix + '-hint' : null"
+          [attr.aria-describedby]="
+            (hint() ? idPrefix() + '-hint ' : '') +
+            (displayErrors ? idPrefix() + '-error' : '')
+          "
           [value]="minutesText"
           (input)="onMinutesInput($event)"
           (blur)="touch()"
-          [disabled]="disabled"
+          [disabled]="isDisabled"
           inputmode="numeric"
           pattern="[0-9]*"
           maxlength="2"
           autocomplete="off"
+          [attr.aria-label]="'Minutes'"
         />
         <div
           class="govuk-input__suffix govuk-!-margin-right-3"

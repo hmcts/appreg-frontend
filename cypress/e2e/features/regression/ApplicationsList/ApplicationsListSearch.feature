@@ -50,7 +50,7 @@ Feature: Applications List Search
     # Verify date validation with invalid date
     When User Set Date Field "Date" To "99/99/9999"
     When User Clicks On The "Search" Button
-    Then User Sees Validation Error "There is a problem Enter a real date"
+    Then User Sees Validation Error "There is a problem Enter a valid date"
     # Verify time validation with invalid time
     When User Set Date Field "Date" To "today"
     When User Set Time Field "Time" To "25:61"
@@ -61,7 +61,7 @@ Feature: Applications List Search
       | admin1 |
 
   @regression @ARCPOC-214 @ARCPOC-452 @ARCPOC-977
-  Scenario Outline: Verify applications list table is displayed with search results
+  Scenario Outline: Verify applications list table is displayed with search results and values retained
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     When User Set Date Field "Date" To "<SearchDate>"
@@ -78,13 +78,13 @@ Feature: Applications List Search
       | Date          | Time   | Location | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
     Then User Should See The Link "List details"
-    Then User Clicks On The Breadcrumb Link 'Applications list'
+    Then User Clicks On The Breadcrumb Link "Applications list"
     Then User Verifies The Date field "Date" Has Value "<SearchDate>"
     Then User Verifies The "Court" Textbox Has Value "<SearchText> - <Court>"
     Then User Should See Table "<TableName>" Has Rows
     Examples:
       | User  | TableName | SearchDate | DisplayDate | Time  | Court                     | Description | Entries | Status | SearchText | OptionText                | SelectButtonText | TableName |
-      | user1 | Lists     | 23/05/2025 | 2025-05-23  | 16:00 | Cardiff Crown Court Set 4 | Urgent list | 2       | OPEN   | CCC033     | Cardiff Crown Court Set 4 | Select           | Lists     |
+      | user1 | Lists     | 23/05/2025 | 23 May 2025 | 16:00 | Cardiff Crown Court Set 4 | Urgent list | 2       | OPEN   | CCC033     | Cardiff Crown Court Set 4 | Select           | Lists     |
 
   @regression @ARCPOC-214 @ARCPOC-452 @ARCPOC-759
   Scenario Outline: Filter and verify applications list with multiple filters
@@ -113,7 +113,7 @@ Feature: Applications List Search
     Then User Should See Table "<TableName>" Column "Location" First And Last Page Has Value "<OptionTextCourt>"
     Examples:
       | User  | Status | TableName | Time  | SearchDate | DisplayDate | Description | SearchTextCourt | OptionTextCourt           |
-      | user1 | Closed | Lists     | 14:00 | 19/05/2025 | 2025-05-19  | No show     | Cardiff         | Cardiff Crown Court Set 4 |
+      | user1 | Closed | Lists     | 14:00 | 19/05/2025 | 19 May 2025 | No show     | Cardiff         | Cardiff Crown Court Set 4 |
 
   @regression @ARCPOC-214 @ARCPOC-660
   Scenario Outline: Verify CJA field validation with valid input
@@ -140,7 +140,7 @@ Feature: Applications List Search
     Then User Sees Validation Error "<ValidationMessage>"
     Examples:
       | User   | SearchText | ValidationMessage                                  | OptionText | ExpectedValue | Info             |
-      | admin1 | abc123     | There is a problem Criminal Justice Area not found |            | abc123        | No results found |
+      | admin1 | abc123     | There is a problem Criminal justice area not found |            | abc123        | No results found |
 
   # This Scenario has been ignored due to bug in sorting functionality @ARCPOC-756
   @ignore @ARCPOC-214 @ARCPOC-452 @ARCPOC-756
@@ -200,7 +200,7 @@ Feature: Applications List Search
       | User   | SearchText | OptionText                | ExpectedValue                      | Info             |
       | admin1 | Cardiff    | Cardiff Crown Court Set 4 | CCC033 - Cardiff Crown Court Set 4 | No results found |
 
-  @regression @ARCPOC-214 @ARCPOC-691
+  @regression @ARCPOC-214 @ARCPOC-691 @TP
   Scenario Outline: Verify Court field validation with invalid input
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -209,8 +209,8 @@ Feature: Applications List Search
     When User Clicks On The "Search" Button
     Then User Sees Notification Banner "<NotificationMessage>"
     Examples:
-      | User   | SearchText | NotificationMessage                                        | OptionText | ExpectedValue | Info             |
-      | admin1 | London     | No lists found Try different filters, or create a new list |            | London        | No results found |
+      | User   | SearchText | NotificationMessage                         | OptionText | ExpectedValue | Info             |
+      | admin1 | London     | There is a problem Court location not found |            | London        | No results found |
 
   @regression @ARCPOC-214 @ARCPOC-417
   Scenario Outline: Verify application list Open
@@ -227,8 +227,8 @@ Feature: Applications List Search
     Then User Should See The Link "List details"
     Examples:
       | User  | TableName | DisplayDate | Time  | Court                             | Description | Entries | Status | ButtonName | SearchDate | SelectButtonText | CourtSearch |
-      | user1 | Lists     | 2001-01-01  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | *SKIP*     | Select           | LCCC025     |
-      | user1 | Lists     | 2001-01-01  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | 01/1/2001  | Select           | LCCC025     |
+      | user1 | Lists     | 1 Jan 2001  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | *SKIP*     | Select           | LCCC025     |
+      | user1 | Lists     | 1 Jan 2001  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | 01/1/2001  | Select           | LCCC025     |
 
   @regression @ARCPOC-214 @ARCPOC-417
   Scenario Outline: Verify application list row menu options
@@ -242,5 +242,5 @@ Feature: Applications List Search
       | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
     Examples:
       | User  | TableName | SearchDate | DisplayDate | Time  | CourtSearch | Court                             | Description                          | Entries | Status | SelectButtonText | MenuOptions                                 |
-      | user1 | Lists     | 12/01/2026 | 2026-01-12  | 14:51 | LCCC065     | Leeds Combined Court Centre Set 7 | Applications to review at Test_1153  | 2       | OPEN   | Select           | Open, Print page,  Print continuous, Delete |
-      | user1 | Lists     | 07/01/2026 | 2026-01-07  | 15:31 | LCCC025     | Leeds Combined Court Centre Set 3 | Applications to review at Test_13162 | 1       | CLOSED | Select           | Print page,  Print continuous               |
+      | user1 | Lists     | 12/01/2026 | 12 Jan 2026 | 14:51 | LCCC065     | Leeds Combined Court Centre Set 7 | Applications to review at Test_1153  | 2       | OPEN   | Select           | Open, Print page,  Print continuous, Delete |
+      | user1 | Lists     | 07/01/2026 | 7 Jan 2026  | 15:31 | LCCC025     | Leeds Combined Court Centre Set 3 | Applications to review at Test_13162 | 1       | CLOSED | Select           | Print page,  Print continuous               |

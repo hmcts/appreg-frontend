@@ -150,6 +150,7 @@ export class ApplicationCodeSearchComponent implements OnInit, OnDestroy {
   }
 
   private buildParams(): GetApplicationCodesRequestParams | null {
+    /** TODO: we should add pageNumber and pageSize to this query */
     const code = (this.form.value.code ?? '').trim();
     const title = (this.form.value.title ?? '').trim();
     const totalLen = code.length + title.length;

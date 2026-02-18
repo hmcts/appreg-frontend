@@ -5,9 +5,10 @@ export interface ApplicationsState {
   isSearch: boolean;
   isLoading: boolean;
   submitted: boolean;
+  isAdvancedSearch: boolean;
 
   errorHint: string;
-  searchErrors: { id: string; text: string }[];
+  searchErrors: ErrorItem[];
   errorSummary: ErrorItem[];
 
   // results
@@ -23,7 +24,7 @@ export const initialApplicationsState: ApplicationsState = {
   isSearch: false,
   isLoading: false,
   submitted: false,
-
+  isAdvancedSearch: false,
   errorHint: 'There is a problem',
   searchErrors: [],
   errorSummary: [],

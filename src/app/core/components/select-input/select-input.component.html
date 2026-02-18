@@ -2,40 +2,40 @@
   <div
     class="govuk-form-group"
     [ngClass]="{
-      'govuk-form-group--error': submitted && !value,
+      'govuk-form-group--error': submitted() && !value,
     }"
   >
-    @if (label) {
+    @if (label()) {
       <div class="govuk-label-wrapper">
-        <label class="govuk-label govuk-label--m" [for]="idPrefix">
-          {{ label }}
+        <label class="govuk-label" [for]="idPrefix()">
+          {{ label() }}
         </label>
       </div>
     }
 
-    @if (hint) {
-      <div [id]="idPrefix + '-hint'" class="govuk-hint">
-        {{ hint }}
+    @if (hint()) {
+      <div [id]="idPrefix() + '-hint'" class="govuk-hint">
+        {{ hint() }}
       </div>
     }
 
-    @if (submitted && !value) {
-      <p [id]="idPrefix + '-error'" class="govuk-error-message">
+    @if (submitted() && !value) {
+      <p [id]="idPrefix() + '-error'" class="govuk-error-message">
         <span class="govuk-visually-hidden">Error:</span>
-        {{ label || 'This field' }} is required
+        {{ label() || 'This field' }} is required
       </p>
     }
 
     <select
       class="govuk-select"
-      [ngClass]="submitted && !value ? 'govuk-select--error' : ''"
-      [id]="idPrefix"
-      [name]="idPrefix"
+      [ngClass]="submitted() && !value ? 'govuk-select--error' : ''"
+      [id]="idPrefix()"
+      [name]="idPrefix()"
       [attr.aria-describedby]="
         (
-          (hint ? idPrefix + '-hint' : '') +
+          (hint() ? idPrefix() + '-hint' : '') +
           ' ' +
-          (submitted && !value ? idPrefix + '-error' : '')
+          (submitted() && !value ? idPrefix() + '-error' : '')
         ).trim()
       "
       [disabled]="disabled"
@@ -43,7 +43,7 @@
       (change)="handleChange($event)"
       (blur)="handleBlur()"
     >
-      @for (o of options; track o.value) {
+      @for (o of options(); track o.value) {
         <option
           [value]="o.value"
           [selected]="o.value === (value ?? '')"

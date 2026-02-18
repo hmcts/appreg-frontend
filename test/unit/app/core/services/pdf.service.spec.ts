@@ -1,3 +1,7 @@
+import { formatDate } from '@angular/common';
+import { LOCALE_ID } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+
 import { PdfService } from '@services/pdf.service';
 
 type JsPDFInstance = {
@@ -127,11 +131,23 @@ const anyTextCallMatches = (re: RegExp): boolean => {
 };
 
 describe('PdfService.generateApplicationListPdf', () => {
+  let service: PdfService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        PdfService,
+        { provide: LOCALE_ID, useValue: 'en-GB' }, // or whatever your app uses
+      ],
+    });
+
+    service = TestBed.inject(PdfService);
+  });
+
   it('names the file as "<court-name>-<YYYY-MM-DD>-print-page.pdf" (fileSafe + exact date)', async () => {
-    const svc = new PdfService();
     const { __instance } = getJsPDF();
 
-    await svc.generatePagedApplicationListPdf({
+    await service.generatePagedApplicationListPdf({
       courtName: 'Bath Magistrates Court',
       date: '2025-09-17',
       entries: [{}],
@@ -144,10 +160,9 @@ describe('PdfService.generateApplicationListPdf', () => {
   });
 
   it('names the file as "<cja-name>-<YYYY-MM-DD>-print-page.pdf" when courtName is missing (strips code prefix)', async () => {
-    const svc = new PdfService();
     const { __instance } = getJsPDF();
 
-    await svc.generatePagedApplicationListPdf({
+    await service.generatePagedApplicationListPdf({
       courtName: '',
       cja: '01 - CJA Number 1',
       date: '2025-09-17',
@@ -161,10 +176,9 @@ describe('PdfService.generateApplicationListPdf', () => {
   });
 
   it('falls back to "court-<today>-print-page.pdf" when courtName/date are missing', async () => {
-    const svc = new PdfService();
     const { __instance } = getJsPDF();
 
-    await svc.generatePagedApplicationListPdf({
+    await service.generatePagedApplicationListPdf({
       entries: [{}],
     });
 
@@ -174,10 +188,9 @@ describe('PdfService.generateApplicationListPdf', () => {
   });
 
   it('creates one page per entry (addPage called for each additional entry)', async () => {
-    const svc = new PdfService();
     const { __instance } = getJsPDF();
 
-    await svc.generatePagedApplicationListPdf({
+    await service.generatePagedApplicationListPdf({
       courtName: 'X',
       date: '2025-09-17',
       entries: [{}, {}, {}],
@@ -187,9 +200,7 @@ describe('PdfService.generateApplicationListPdf', () => {
   });
 
   it('renders header labels and footer date (produced on)', async () => {
-    const svc = new PdfService();
-
-    await svc.generatePagedApplicationListPdf({
+    await service.generatePagedApplicationListPdf({
       courtName: 'Bath Magistrates Court',
       date: '2025-09-17',
       entries: [{}],
@@ -208,9 +219,7 @@ describe('PdfService.generateApplicationListPdf', () => {
   });
 
   it('prints the application code row only when code is non-empty', async () => {
-    const svc = new PdfService();
-
-    await svc.generatePagedApplicationListPdf({
+    await service.generatePagedApplicationListPdf({
       courtName: 'X',
       date: '2025-09-17',
       entries: [
@@ -225,19 +234,18 @@ describe('PdfService.generateApplicationListPdf', () => {
   });
 
   it('adds crest image when a crestUrl is provided and resolves to a data URL', async () => {
-    const svc = new PdfService();
     const { __instance } = getJsPDF();
 
     const spy = jest
       .spyOn(
-        svc as unknown as {
+        service as unknown as {
           tryLoadImageAsDataUrl: (u: string) => Promise<string | null>;
         },
         'tryLoadImageAsDataUrl',
       )
       .mockResolvedValue('data:image/png;base64,AAA');
 
-    await svc.generatePagedApplicationListPdf(
+    await service.generatePagedApplicationListPdf(
       { courtName: 'X', date: '2025-09-17', entries: [{}] },
       { crestUrl: '/assets/govuk-crest.png' },
     );
@@ -247,24 +255,23 @@ describe('PdfService.generateApplicationListPdf', () => {
   });
 
   it('skips crest image if crestUrl is omitted or load fails', async () => {
-    const svc = new PdfService();
     const { __instance } = getJsPDF();
 
     // No crestUrl
-    await svc.generatePagedApplicationListPdf({ entries: [{}] });
+    await service.generatePagedApplicationListPdf({ entries: [{}] });
     expect(__instance.addImage).toHaveBeenCalledTimes(0);
 
     // crestUrl provided but loader returns null
     jest
       .spyOn(
-        svc as unknown as {
+        service as unknown as {
           tryLoadImageAsDataUrl: (u: string) => Promise<string | null>;
         },
         'tryLoadImageAsDataUrl',
       )
       .mockResolvedValueOnce(null);
 
-    await svc.generatePagedApplicationListPdf(
+    await service.generatePagedApplicationListPdf(
       { entries: [{}] },
       { crestUrl: '/x.png' },
     );
@@ -273,6 +280,19 @@ describe('PdfService.generateApplicationListPdf', () => {
 });
 
 describe('PdfService.generateContinuousApplicationListsPdf', () => {
+  let service: PdfService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        PdfService,
+        { provide: LOCALE_ID, useValue: 'en-GB' }, // or whatever your app uses
+      ],
+    });
+
+    service = TestBed.inject(PdfService);
+  });
+
   const makeRawDto = (
     overrides: Partial<Record<string, unknown>> = {},
     entryOverrides?: unknown[],
@@ -306,10 +326,9 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
   });
 
   it('constructs a landscape jsPDF and renders header with page number', async () => {
-    const svc = new PdfService();
     const { jsPDF } = getJsPDF();
 
-    await svc.generateContinuousApplicationListsPdf([makeRawDto()], false);
+    await service.generateContinuousApplicationListsPdf([makeRawDto()], false);
 
     expect(jsPDF).toHaveBeenCalledWith({
       orientation: 'landscape',
@@ -321,10 +340,9 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
   });
 
   it('names file "<court>-<YYYY-MM-DD>-print-cont.pdf" when all lists share the same court', async () => {
-    const svc = new PdfService();
     const { __instance } = getJsPDF();
 
-    await svc.generateContinuousApplicationListsPdf(
+    await service.generateContinuousApplicationListsPdf(
       [
         makeRawDto({ courtName: 'Bath Magistrates Court' }),
         makeRawDto({ courtName: 'Bath Magistrates Court' }),
@@ -339,10 +357,9 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
   });
 
   it('names file "<cja>-<YYYY-MM-DD>-print-cont.pdf" when all lists share the same CJA and courtName is missing (strips code prefix)', async () => {
-    const svc = new PdfService();
     const { __instance } = getJsPDF();
 
-    await svc.generateContinuousApplicationListsPdf(
+    await service.generateContinuousApplicationListsPdf(
       [
         makeRawDto({ courtName: '', cja: '01 - CJA Number 1' }),
         makeRawDto({ courtName: '', cja: '01 - CJA Number 1' }),
@@ -357,10 +374,9 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
   });
 
   it('names file "applications-<YYYY-MM-DD>-print-cont.pdf" when courts differ or are missing', async () => {
-    const svc = new PdfService();
     const { __instance } = getJsPDF();
 
-    await svc.generateContinuousApplicationListsPdf(
+    await service.generateContinuousApplicationListsPdf(
       [
         makeRawDto({ courtName: 'Bath Magistrates Court' }),
         makeRawDto({ courtName: 'Bristol Crown Court' }),
@@ -376,7 +392,6 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
   });
 
   it('adds a new page and increments page number when content exceeds available space', async () => {
-    const svc = new PdfService();
     const { __instance } = getJsPDF();
 
     // Force a very short page height so ensureSpace() triggers
@@ -386,7 +401,7 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
     try {
       // Make one DTO with an entry that has a very tall "Notes" block
       const tallNotes = new Array(50).fill('line').join('\n');
-      await svc.generateContinuousApplicationListsPdf(
+      await service.generateContinuousApplicationListsPdf(
         [
           makeRawDto({}, [
             {
@@ -407,9 +422,7 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
   });
 
   it('renders the top meta row and application blocks (labels + values)', async () => {
-    const svc = new PdfService();
-
-    await svc.generateContinuousApplicationListsPdf(
+    await service.generateContinuousApplicationListsPdf(
       [
         makeRawDto({}, [
           {
@@ -465,10 +478,9 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
   });
 
   it('uses "Applications Register Report" as the header title when isClosed is true', async () => {
-    const svc = new PdfService();
     const { __instance } = getJsPDF();
 
-    await svc.generateContinuousApplicationListsPdf([makeRawDto()], true);
+    await service.generateContinuousApplicationListsPdf([makeRawDto()], true);
 
     // Title should be rendered via doc.text(title, M, headerY)
     const titleCall = __instance.text.mock.calls.find(
@@ -485,10 +497,9 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
   });
 
   it('renders multiple officials on separate lines (one per object)', async () => {
-    const svc = new PdfService();
     const { __instance } = getJsPDF();
 
-    await svc.generateContinuousApplicationListsPdf(
+    await service.generateContinuousApplicationListsPdf(
       [
         makeRawDto({}, [
           {
@@ -554,58 +565,45 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
     const priv = (s: PdfService): PrivateFns => s as unknown as PrivateFns;
 
     it('cjaName: strips leading numeric code + dash and returns the CJA name', () => {
-      const svc = new PdfService();
-
-      expect(priv(svc).cjaName('01 - CJA Number 1')).toBe('CJA Number 1');
+      expect(priv(service).cjaName('01 - CJA Number 1')).toBe('CJA Number 1');
     });
 
     it('cjaName: handles en-dash/em-dash variants', () => {
-      const svc = new PdfService();
-
-      expect(priv(svc).cjaName('01 – CJA Number 1')).toBe('CJA Number 1');
-      expect(priv(svc).cjaName('01 — CJA Number 1')).toBe('CJA Number 1');
+      expect(priv(service).cjaName('01 – CJA Number 1')).toBe('CJA Number 1');
+      expect(priv(service).cjaName('01 — CJA Number 1')).toBe('CJA Number 1');
     });
 
     it('cjaName: strips alphanumeric prefixes like A4/123A', () => {
-      const svc = new PdfService();
-
-      expect(priv(svc).cjaName('A4 - Greater Manchester')).toBe(
+      expect(priv(service).cjaName('A4 - Greater Manchester')).toBe(
         'Greater Manchester',
       );
-      expect(priv(svc).cjaName('123A - Name')).toBe('Name');
+      expect(priv(service).cjaName('123A - Name')).toBe('Name');
     });
 
     it('cjaName: keeps hyphenated names that are not alphanumeric prefixes', () => {
-      const svc = new PdfService();
-
-      expect(priv(svc).cjaName('South-West London')).toBe('South-West London');
-      expect(priv(svc).cjaName('West - Midlands')).toBe('West - Midlands');
+      expect(priv(service).cjaName('South-West London')).toBe(
+        'South-West London',
+      );
+      expect(priv(service).cjaName('West - Midlands')).toBe('West - Midlands');
     });
 
     it('cjaName: trims whitespace around numeric prefix', () => {
-      const svc = new PdfService();
-
-      expect(priv(svc).cjaName('  123  -  Name  ')).toBe('Name');
+      expect(priv(service).cjaName('  123  -  Name  ')).toBe('Name');
     });
 
     it('cjaName: returns empty string for blank/whitespace input', () => {
-      const svc = new PdfService();
-
-      expect(priv(svc).cjaName(undefined)).toBe('');
-      expect(priv(svc).cjaName('   \n\t ')).toBe('');
+      expect(priv(service).cjaName(undefined)).toBe('');
+      expect(priv(service).cjaName('   \n\t ')).toBe('');
     });
 
     it('cjaName: returns original string when no dash is present', () => {
-      const svc = new PdfService();
-
-      expect(priv(svc).cjaName('CJA Number 1')).toBe('CJA Number 1');
+      expect(priv(service).cjaName('CJA Number 1')).toBe('CJA Number 1');
     });
 
     it('generatePagedApplicationListPdf: uses CJA name (stripped) when courtName is missing', async () => {
-      const svc = new PdfService();
       const { __instance } = getJsPDF();
 
-      await svc.generatePagedApplicationListPdf({
+      await service.generatePagedApplicationListPdf({
         courtName: '',
         cja: '01 - CJA Number 1',
         date: '2025-09-17',
@@ -618,10 +616,9 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
     });
 
     it('generateContinuousApplicationListsPdf: uses CJA name (stripped) when courtName is missing and CJA is consistent', async () => {
-      const svc = new PdfService();
       const { __instance } = getJsPDF();
 
-      await svc.generateContinuousApplicationListsPdf(
+      await service.generateContinuousApplicationListsPdf(
         [
           makeRawDto({ courtName: '', cja: '01 - CJA Number 1' }),
           makeRawDto({ courtName: '', cja: '01 - CJA Number 1' }),
@@ -644,8 +641,6 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
     const priv = (s: PdfService): PrivateFns => s as unknown as PrivateFns;
 
     it('formatContactDetails: joins nested address parts with commas', () => {
-      const svc = new PdfService();
-
       const cd = {
         address: {
           addressLine1: '10 Downing Street',
@@ -655,28 +650,24 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
         },
       };
 
-      expect(priv(svc).formatContactDetails(cd)).toBe(
+      expect(priv(service).formatContactDetails(cd)).toBe(
         '10 Downing Street, Westminster, London, SW1A 2AA',
       );
     });
 
     it('formatContactDetails: supports flattened address fields and alternative keys', () => {
-      const svc = new PdfService();
-
       const cd = {
         addressLine1: '1 Main Road',
         townOrCity: 'Manchester',
         postCode: 'M1 1AA',
       };
 
-      expect(priv(svc).formatContactDetails(cd)).toBe(
+      expect(priv(service).formatContactDetails(cd)).toBe(
         '1 Main Road, Manchester, M1 1AA',
       );
     });
 
     it('formatParty: appends address on a new line for a person party', () => {
-      const svc = new PdfService();
-
       const party = {
         person: {
           name: {
@@ -694,14 +685,12 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
         },
       };
 
-      expect(priv(svc).formatParty(party)).toBe(
+      expect(priv(service).formatParty(party)).toBe(
         'Mr John Smith\n5 Example Street, Leeds, LS1 1AA',
       );
     });
 
     it('formatParty: appends address on a new line for an organisation party', () => {
-      const svc = new PdfService();
-
       const party = {
         organisation: {
           name: 'CPS',
@@ -715,14 +704,12 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
         },
       };
 
-      expect(priv(svc).formatParty(party)).toBe(
+      expect(priv(service).formatParty(party)).toBe(
         'CPS\n2 Crown Square, Bristol, BS1 4AA',
       );
     });
 
     it('formatParty: returns address-only when no person/org name is available', () => {
-      const svc = new PdfService();
-
       const party = {
         organisation: {
           name: '   ',
@@ -734,7 +721,58 @@ describe('PdfService.generateContinuousApplicationListsPdf', () => {
         },
       };
 
-      expect(priv(svc).formatParty(party)).toBe('100 High Street');
+      expect(priv(service).formatParty(party)).toBe('100 High Street');
+    });
+  });
+
+  describe('PdfService safeFormatDate', () => {
+    type PrivateFns = {
+      safeFormatDate: (raw?: string, format?: string) => string;
+    };
+
+    const priv = (s: PdfService): PrivateFns => s as unknown as PrivateFns;
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2026-02-17T00:00:00.000Z'));
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    const call = (value: unknown, fmt: string) =>
+      priv(service).safeFormatDate(value as string, fmt);
+
+    it('falls back to today when value is undefined', () => {
+      const expected = formatDate(new Date(), 'longDate', 'en-GB');
+      expect(call(undefined, 'longDate')).toBe(expected);
+    });
+
+    it('falls back to today when value is an empty string', () => {
+      const expected = formatDate(new Date(), 'longDate', 'en-GB');
+      expect(call('', 'longDate')).toBe(expected);
+    });
+
+    it('falls back to today when value is whitespace', () => {
+      const expected = formatDate(new Date(), 'longDate', 'en-GB');
+      expect(call('   ', 'longDate')).toBe(expected);
+    });
+
+    it('returns formatted date for a valid ISO string', () => {
+      expect(call('2026-06-06', 'longDate')).toBe(
+        formatDate('2026-06-06', 'longDate', 'en-GB'),
+      );
+    });
+
+    it('returns formatted date for a Date object', () => {
+      const d = new Date('2026-06-06T00:00:00.000Z');
+      expect(call(d, 'longDate')).toBe(formatDate(d, 'longDate', 'en-GB'));
+    });
+
+    it('falls back to today when value is not parseable', () => {
+      const expected = formatDate(new Date(), 'longDate', 'en-GB');
+      expect(call('not-a-date', 'longDate')).toBe(expected);
     });
   });
 });

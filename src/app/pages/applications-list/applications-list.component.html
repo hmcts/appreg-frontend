@@ -1,0 +1,249 @@
+<app-page-header
+  title="Applications List"
+  [actions]="[
+    {
+      label: 'Create new list',
+      routerLink: ['create'],
+      startIcon: true,
+      variant: 'primary',
+    },
+  ]"
+/>
+
+@if (storedRecordsVm().submitted && vm().searchErrors.length) {
+  <app-error-summary
+    [title]="'There is a problem'"
+    [items]="vm().searchErrors"
+    targetId="search"
+    (itemSelect)="onCreateErrorClick($event)"
+  />
+} @else {
+  @if (vm().isSearch && !vm().isLoading && !storedRecordsVm().rows.length) {
+    <app-notification-banner
+      heading="No lists found"
+      body="Try different filters, or "
+      linkText="create a new list"
+      [linkCommands]="['/applications-list/create']"
+    />
+  }
+}
+
+@if (vm().deleteInvalid && vm().errorSummary.length) {
+  <app-error-summary
+    [title]="'There is a problem'"
+    [items]="vm().errorSummary"
+    targetId="sortable-table"
+  />
+}
+
+@if (vm().deleteDone) {
+  <app-success-banner
+    heading="Application List deleted successfully"
+    body="If you believe this was in error, please contact support."
+  />
+}
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
+<form [formGroup]="form" (ngSubmit)="onSubmit($event)">
+  <div class="govuk-grid-row">
+    <!-- Date -->
+    <app-date-input
+      formControlName="date"
+      label="Date"
+      hint="For example, 27 3 2007"
+      idPrefix="date"
+      [submitted]="storedRecordsVm().submitted"
+      [isSearch]="vm().isSearch"
+    />
+
+    <!-- Time -->
+    <app-duration-input
+      formControlName="time"
+      label="Time"
+      hint="Enter the time in 24-hour format, for example 08:30"
+      idPrefix="time"
+      [submitted]="storedRecordsVm().submitted"
+      [required]="false"
+    />
+
+    <!-- Description -->
+    <app-text-input
+      formControlName="description"
+      label="Description"
+      hint="A description of the application list"
+      idPrefix="description"
+    />
+
+    <!-- Status -->
+    <app-select-input
+      formControlName="status"
+      label="Select status"
+      hint="The status of the application list"
+      idPrefix="status"
+      [options]="status"
+    />
+  </div>
+
+  <div class="govuk-grid-row">
+    <!-- Court -->
+    <app-suggestions
+      id="court"
+      label="Court"
+      hint="Start typing to search"
+      formControlName="court"
+      [(search)]="state().courthouseSearch"
+      (searchChange)="onCourthouseInputChange()"
+      [suggestions]="state().filteredCourthouses"
+      (selectItem)="selectCourthouse($event)"
+      [showError]="storedRecordsVm().submitted && !!fieldError('court')"
+      [errorText]="fieldError('court')?.text ?? ''"
+    />
+
+    <!-- Other location -->
+    <app-text-input
+      formControlName="location"
+      label="Other location"
+      hint="Other location description"
+      idPrefix="location"
+    />
+
+    <!-- CJA -->
+    <app-suggestions
+      id="cja"
+      label="CJA"
+      hint="Start typing to search"
+      formControlName="cja"
+      [(search)]="state().cjaSearch"
+      (searchChange)="onCjaSearchChange($event)"
+      [suggestions]="state().filteredCja"
+      (selectItem)="selectCja($event)"
+      [showError]="storedRecordsVm().submitted && !!fieldError('cja')"
+      [errorText]="fieldError('cja')?.text ?? ''"
+    />
+  </div>
+
+  <div class="govuk-button-group">
+    <button id="search" type="submit" class="govuk-button" value="search">
+      Search
+    </button>
+    <button
+      class="govuk-button govuk-button--secondary"
+      type="button"
+      data-module="govuk-button"
+      (click)="clearSearch()"
+    >
+      Clear search
+    </button>
+  </div>
+</form>
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
+
+@if (storedRecordsVm().rows.length) {
+  <!-- Sortable table component -->
+  <app-sortable-table
+    id="sortable-table"
+    caption="Lists"
+    [columns]="columns"
+    [data]="storedRecordsVm().rows"
+    appMojButtonMenu
+  >
+    <ng-template #dateTemplate let-row>
+      {{ row.date | dateTime }}
+    </ng-template>
+
+    <ng-template #actionsTemplate let-row>
+      <div class="govuk-button-group">
+        <!-- actions slot -->
+        @if (isOpen(row)) {
+          <div
+            class="moj-button-menu"
+            data-module="moj-button-menu"
+            data-button-text="Select"
+            data-button-classes="govuk-button"
+          >
+            <!-- Open button (only when open) -->
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+              [routerLink]="['/applications-list', row.id]"
+              [state]="{
+                row: {
+                  id: row.id,
+                },
+              }"
+            >
+              Open
+            </button>
+
+            <!-- Print page button (always shown) -->
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+              (click)="onPrintPage(row.id)"
+            >
+              Print page
+            </button>
+
+            <!-- Print continuous button (always shown)
+             Print cont with false bool param to change PDF title -->
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+              (click)="onPrintContinuous(row.id, false)"
+            >
+              Print continuous
+            </button>
+
+            <!-- Delete button (only when open) -->
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--warning"
+              [routerLink]="['/applications-list', row.id, 'delete']"
+              [state]="{ listToDelete: row }"
+            >
+              Delete
+            </button>
+          </div>
+        } @else {
+          <div
+            class="moj-button-menu"
+            data-module="moj-button-menu"
+            data-button-text="Select"
+            data-button-classes="govuk-button"
+          >
+            <!-- Print page button (always shown) -->
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+              (click)="onPrintPage(row.id)"
+            >
+              Print page
+            </button>
+
+            <!-- Print continuous button (always shown)
+             Print cont with true bool param to change PDF title -->
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+              (click)="onPrintContinuous(row.id, true)"
+            >
+              Print continuous
+            </button>
+          </div>
+        }
+      </div>
+    </ng-template>
+  </app-sortable-table>
+
+  <!-- Pager -->
+  <app-pagination
+    [currentPage]="storedRecordsVm().currentPage"
+    [totalPages]="storedRecordsVm().totalPages"
+    (pageChange)="onPageChange($event)"
+  />
+}

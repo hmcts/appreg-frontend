@@ -146,8 +146,8 @@ export class ReferenceDataFacade {
 
   private loadAllCja(): Observable<CriminalJusticeAreaGetDto[]> {
     const first$ = this.cjaApi.getCriminalJusticeAreas({
-      page: 0,
-      size: this.pageSize,
+      pageNumber: 0,
+      pageSize: this.pageSize,
     });
 
     return first$.pipe(
@@ -155,8 +155,8 @@ export class ReferenceDataFacade {
         page.last
           ? EMPTY
           : this.cjaApi.getCriminalJusticeAreas({
-              page: page.pageNumber + 1,
-              size: this.pageSize,
+              pageNumber: page.pageNumber + 1,
+              pageSize: this.pageSize,
             }),
       ),
       map((page) => page.content ?? []),
@@ -169,8 +169,8 @@ export class ReferenceDataFacade {
 
   private loadAllCourts(): Observable<CourtLocationGetSummaryDto[]> {
     const first$ = this.courtApi.getCourtLocations({
-      page: 0,
-      size: this.pageSize,
+      pageNumber: 0,
+      pageSize: this.pageSize,
     });
 
     return first$.pipe(
@@ -178,8 +178,8 @@ export class ReferenceDataFacade {
         page.last
           ? EMPTY
           : this.courtApi.getCourtLocations({
-              page: page.pageNumber + 1,
-              size: this.pageSize,
+              pageNumber: page.pageNumber + 1,
+              pageSize: this.pageSize,
             }),
       ),
       map((page) => page.content ?? []),

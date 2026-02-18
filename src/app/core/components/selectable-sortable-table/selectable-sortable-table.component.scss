@@ -1,0 +1,12 @@
+:host ::ng-deep .govuk-table__body .govuk-table__cell,
+:host ::ng-deep .govuk-table__body .govuk-table__header {
+  vertical-align: top;
+}
+
+:host ::ng-deep .govuk-table__body .moj-multi-select__checkbox {
+  margin-top: 2px;
+}
+
+.govuk-checkboxes__label {
+  padding: 0;
+}

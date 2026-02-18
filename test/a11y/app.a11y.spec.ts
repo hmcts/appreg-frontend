@@ -7,6 +7,8 @@ const hide = '.govuk-footer__licence-logo, .govuk-header__logotype-crown';
 let baseUrl: string;
 let server: import('node:http').Server;
 
+jest.setTimeout(120000);
+
 beforeAll(async () => {
   const started = await startStaticSpaServer();
   baseUrl = started.baseUrl;

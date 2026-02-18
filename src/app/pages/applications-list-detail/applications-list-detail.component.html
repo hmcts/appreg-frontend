@@ -1,0 +1,292 @@
+<!-- Breadcrumbs -->
+<app-breadcrumbs
+  [items]="[{ label: 'Applications list', link: '/applications-list' }]"
+></app-breadcrumbs>
+
+<app-page-header
+  title="Applications List"
+  [actions]="[
+    {
+      label: 'Create application',
+      routerLink: ['create'],
+      startIcon: true,
+      variant: 'primary',
+    },
+  ]"
+>
+</app-page-header>
+
+@if (vm().errorSummary.length || vm().updateInvalid) {
+  <app-error-summary
+    [title]="vm().errorHint || 'There is a problem'"
+    (itemSelect)="onCreateErrorClick($event)"
+    [items]="vm().errorSummary"
+  />
+}
+
+@if (vm().updateDone) {
+  <app-success-banner
+    heading="Update complete"
+    linkText="List successfully updated"
+  />
+}
+
+<!-- Tabs -->
+<div class="govuk-tabs" data-module="govuk-tabs">
+  <h2 class="govuk-tabs__title">Contents</h2>
+
+  <ul class="govuk-tabs__list">
+    <!-- Applications tab -->
+    <li class="govuk-tabs__list-item govuk-tabs__list-item--selected">
+      <a
+        class="govuk-tabs__tab"
+        href="#applications"
+        id="tab_applications"
+        aria-controls="applications"
+        aria-selected="true"
+      >
+        Applications
+      </a>
+    </li>
+
+    <!-- List details tab -->
+    <li class="govuk-tabs__list-item">
+      <a
+        class="govuk-tabs__tab"
+        href="#list-details"
+        id="tab_list-details"
+        role="tab"
+        aria-controls="list-details"
+        aria-selected="false"
+      >
+        List details
+      </a>
+    </li>
+  </ul>
+
+  <!-- Applications panel -->
+  <div
+    class="govuk-tabs__panel"
+    id="applications"
+    role="tabpanel"
+    aria-labelledby="tab_applications"
+  >
+    <app-page-header
+      title="Applications"
+      size="l"
+      [actions]="[
+        {
+          label: 'Bulk upload',
+          variant: 'secondary',
+          routerLink: ['bulk-upload'],
+        },
+      ]"
+    >
+    </app-page-header>
+
+    <hr
+      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+    />
+
+    @if (!noEntries && !vm().isLoading) {
+      <div class="app-table-scroll">
+        <!-- Sortable table component -->
+        <app-selectable-sortable-table
+          id="sortable-table"
+          caption="Lists"
+          [columns]="columns"
+          [data]="vm().rows"
+          idField="id"
+          (selectedRowsChange)="onSelectedRowsChange($event)"
+          [(selectedIds)]="vm().selectedIds"
+          appMojButtonMenu
+        >
+          <caption
+            class="govuk-table__caption govuk-table__caption--m"
+            id="sortable-Lists"
+          >
+            <span class="table-caption__text"> Lists </span>
+
+            <span
+              class="table-caption__actions"
+              role="group"
+              aria-label="Table actions"
+            >
+              <button
+                type="button"
+                class="govuk-button govuk-button--primary govuk-button--small float-right"
+                [disabled]="vm().selectedRows.length === 0"
+                (click)="onResultButtonClick()"
+              >
+                Result selected
+              </button>
+            </span>
+          </caption>
+          <!-- actions slot -->
+          <ng-template #actionsTemplate let-row>
+            <div
+              class="moj-button-menu"
+              data-module="moj-button-menu"
+              data-button-text="Select"
+              data-button-classes="govuk-button"
+            >
+              <!-- Open button -->
+              <button
+                type="button"
+                class="govuk-button moj-button-menu__item govuk-button--secondary"
+                (click)="openUpdate(row)"
+              >
+                Open
+              </button>
+
+              <!-- Delete button -->
+              <button
+                type="button"
+                class="govuk-button moj-button-menu__item govuk-button--secondary"
+              >
+                Delete
+              </button>
+            </div>
+          </ng-template>
+        </app-selectable-sortable-table>
+      </div>
+    } @else if (noEntries && !vm().isLoading) {
+      <app-notification-banner
+        id="noEntries"
+        heading="No lists entries found"
+        body="Try again, or "
+        linkText="create a new list entry"
+        [linkCommands]="['/applications-list', id, 'create']"
+      />
+    }
+
+    <!-- Pager -->
+    <app-pagination
+      [currentPage]="vm().currentPage"
+      [totalPages]="vm().totalPages"
+      (pageChange)="onPageChange($event)"
+    ></app-pagination>
+  </div>
+
+  <!-- List details panel -->
+  <div
+    class="govuk-tabs__panel govuk-tabs__panel--hidden"
+    id="list-details"
+    role="tabpanel"
+    aria-labelledby="tab_list-details"
+  >
+    <h2 class="govuk-heading-l">List details</h2>
+
+    <hr
+      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+    />
+
+    <form [formGroup]="form" (ngSubmit)="onUpdate()" autocomplete="off">
+      <div class="govuk-grid-row">
+        <!-- Date -->
+        <app-date-input
+          formControlName="date"
+          label="Date"
+          hint="For example, 27 3 2007"
+          idPrefix="date"
+          [submitted]="vm().updateInvalid"
+        >
+        </app-date-input>
+
+        <!-- Time -->
+        <app-duration-input
+          formControlName="time"
+          label="Time"
+          hint="Enter the time in 24-hour format, for example 08:30"
+          idPrefix="time"
+          [submitted]="vm().updateInvalid"
+          [required]="true"
+          mode="clock"
+        >
+        </app-duration-input>
+
+        <!-- Description -->
+        <app-text-input
+          formControlName="description"
+          label="Description"
+          hint="A description of the application list"
+          idPrefix="description"
+          [submitted]="vm().updateInvalid"
+        >
+        </app-text-input>
+
+        <!-- Status -->
+        <app-select-input
+          formControlName="status"
+          label="Select status"
+          hint="The status of the application list"
+          idPrefix="status"
+          [submitted]="vm().updateInvalid"
+          [options]="statusOptions"
+        >
+        </app-select-input>
+      </div>
+
+      <div class="govuk-grid-row">
+        <!-- Court -->
+        <app-suggestions
+          id="court"
+          label="Court"
+          hint="Start typing to search"
+          [(search)]="this.state().courthouseSearch"
+          (searchChange)="onCourthouseInputChange()"
+          [suggestions]="this.state().filteredCourthouses"
+          (selectItem)="selectCourthouse($event)"
+          [disabled]="!!form.get('location')?.value || !!form.get('cja')?.value"
+          [showError]="
+            vm().updateInvalid &&
+            !form.get('location')?.value &&
+            !form.get('cja')?.value &&
+            !!fieldError('court')
+          "
+          [errorText]="fieldError('court')?.text ?? ''"
+        />
+
+        <!-- Other location -->
+        <app-text-input
+          formControlName="location"
+          label="Other location"
+          hint="Other location description"
+          idPrefix="location"
+          [submitted]="vm().updateInvalid && !!form.get('cja')?.value"
+        >
+          >
+        </app-text-input>
+
+        <!-- CJA -->
+        <app-suggestions
+          id="cja"
+          label="CJA"
+          hint="Start typing to search"
+          [(search)]="this.state().cjaSearch"
+          (searchChange)="onCjaInputChange()"
+          [suggestions]="this.state().filteredCja"
+          (selectItem)="selectCja($event)"
+          [disabled]="!!form.get('court')?.value"
+          [showError]="vm().updateInvalid && !!fieldError('cja')"
+          [errorText]="fieldError('cja')?.text ?? ''"
+        />
+
+        <!-- Duration: Optional field -->
+        <app-duration-input
+          formControlName="duration"
+          label="Duration"
+          hint="Duration of the list"
+          idPrefix="duration"
+          [submitted]="vm().updateInvalid"
+          [required]="false"
+          mode="duration"
+        ></app-duration-input>
+      </div>
+
+      <div class="govuk-button-group">
+        <button type="submit" class="govuk-button">Update</button>
+      </div>
+    </form>
+  </div>
+</div>

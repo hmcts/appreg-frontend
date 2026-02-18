@@ -1,6 +1,5 @@
 /// <reference types="cypress" />
 import {
-  APP_URLS,
   TIMEOUT_CONSTANTS,
   UI_CONSTANTS,
 } from '../../constants/ProjectConstants';
@@ -102,9 +101,9 @@ export class MicrosoftAuthHelper {
     });
 
     // Verify signed-out state in app
-    cy.visit(APP_URLS.HOME);
-    cy.contains(/sign in|login/i, {
-      timeout: TIMEOUT_CONSTANTS.DEFAULT_TIMEOUT,
-    }).should('be.visible');
+    cy.url({ timeout: TIMEOUT_CONSTANTS.LONG_TIMEOUT }).should(
+      'include',
+      '/login',
+    );
   }
 }

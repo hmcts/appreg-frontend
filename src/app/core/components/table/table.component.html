@@ -1,8 +1,8 @@
-<table [class]="tableClass">
-  @if (caption) {
-    <caption [class]="captionClass">
+<table [class]="tableClass()">
+  @if (caption()) {
+    <caption [class]="captionClass()">
       {{
-        caption
+        caption()
       }}
     </caption>
   }
@@ -24,7 +24,7 @@
   }
 
   <tbody class="govuk-table__body">
-    @for (row of rows; track $index; let r = $index) {
+    @for (row of rows(); track $index; let r = $index) {
       <tr class="govuk-table__row">
         @for (col of cols; track $index; let c = $index) {
           @if (c === 0) {
@@ -34,7 +34,13 @@
               [ngClass]="col.cellClass"
             >
               @if (!col.cellTemplate) {
-                {{ valueOf(row, col, r) }}
+                @if (col.field === 'date' && dateTpl()) {
+                  <ng-container
+                    *ngTemplateOutlet="dateTpl(); context: { $implicit: row }"
+                  ></ng-container>
+                } @else {
+                  {{ valueOf(row, col, r) }}
+                }
               } @else {
                 <ng-container
                   *ngTemplateOutlet="
@@ -54,7 +60,13 @@
           } @else {
             <td class="govuk-table__cell" [ngClass]="col.cellClass">
               @if (!col.cellTemplate) {
-                {{ valueOf(row, col, r) }}
+                @if (col.field === 'date' && dateTpl()) {
+                  <ng-container
+                    *ngTemplateOutlet="dateTpl(); context: { $implicit: row }"
+                  ></ng-container>
+                } @else {
+                  {{ valueOf(row, col, r) }}
+                }
               } @else {
                 <ng-container
                   *ngTemplateOutlet="

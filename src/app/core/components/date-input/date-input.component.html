@@ -1,33 +1,35 @@
 <div class="govuk-grid-column-one-quarter app-date-tight">
   <div
     class="govuk-form-group"
-    [class.govuk-form-group--error]="groupError(submitted)"
+    [class.govuk-form-group--error]="groupError(submitted())"
   >
     <fieldset
       class="govuk-fieldset"
       role="group"
       [attr.aria-describedby]="
-        idPrefix +
+        idPrefix() +
         '-hint' +
-        (groupError(submitted) ? ' ' + idPrefix + '-error' : '')
+        (groupError(submitted()) ? ' ' + idPrefix() + '-error' : '')
       "
       [formGroup]="dateForm"
     >
-      <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
-        <h1 class="govuk-fieldset__heading">{{ label }}</h1>
+      <legend class="govuk-fieldset__legend govuk-fieldset__legend">
+        <h1 class="govuk-fieldset__heading">{{ label() }}</h1>
       </legend>
 
-      <div [id]="idPrefix + '-hint'" class="govuk-hint">{{ hint }}</div>
+      <div [id]="idPrefix() + '-hint'" class="govuk-hint">
+        {{ hint() }}
+      </div>
 
-      @if (groupError(submitted)) {
-        <p [id]="idPrefix + '-error'" class="govuk-error-message">
+      @if (groupError(submitted())) {
+        <p [id]="idPrefix() + '-error'" class="govuk-error-message">
           <span class="govuk-visually-hidden">Error:</span>
           @let missDay = missing('day');
           @let missMonth = missing('month');
           @let missYear = missing('year');
 
           @if (missDay || missMonth || missYear) {
-            @if (missDay && missMonth && missYear && !isSearch) {
+            @if (missDay && missMonth && missYear && !isSearch()) {
               Enter day, month and year
             } @else if (missDay && missMonth) {
               Enter day and month
@@ -43,25 +45,25 @@
               Enter year
             }
           } @else if (dateForm.errors?.['dateInvalid']) {
-            {{ dateForm.errors?.['dateErrorText'] ?? 'Enter a real date' }}
+            {{ dateForm.errors?.['dateErrorText'] ?? 'Enter a valid date' }}
           }
         </p>
       }
 
-      <div class="govuk-date-input" [id]="idPrefix">
+      <div class="govuk-date-input" [id]="idPrefix()">
         <!-- Day -->
         <div class="govuk-date-input__item">
           <div class="govuk-form-group">
             <label
               class="govuk-label govuk-date-input__label"
-              [for]="idPrefix + '-day'"
+              [for]="idPrefix() + '-day'"
               >Day</label
             >
             <input
               class="govuk-input govuk-date-input__input govuk-input--width-2"
-              [class.govuk-input--error]="fieldError('day', submitted)"
-              [id]="idPrefix + '-day'"
-              [name]="idPrefix + '-day'"
+              [class.govuk-input--error]="fieldError('day', submitted())"
+              [id]="idPrefix() + '-day'"
+              [name]="idPrefix() + '-day'"
               type="text"
               inputmode="numeric"
               pattern="[0-9]*"
@@ -69,7 +71,7 @@
               autocomplete="off"
               spellcheck="false"
               [attr.aria-invalid]="
-                submitted
+                submitted()
                   ? ariaInvalidAfterSubmit('day')
                   : ariaInvalidLive('day')
               "
@@ -83,14 +85,14 @@
           <div class="govuk-form-group">
             <label
               class="govuk-label govuk-date-input__label"
-              [for]="idPrefix + '-month'"
+              [for]="idPrefix() + '-month'"
               >Month</label
             >
             <input
               class="govuk-input govuk-date-input__input govuk-input--width-2"
-              [class.govuk-input--error]="fieldError('month', submitted)"
-              [id]="idPrefix + '-month'"
-              [name]="idPrefix + '-month'"
+              [class.govuk-input--error]="fieldError('month', submitted())"
+              [id]="idPrefix() + '-month'"
+              [name]="idPrefix() + '-month'"
               type="text"
               inputmode="numeric"
               pattern="[0-9]*"
@@ -98,7 +100,7 @@
               autocomplete="off"
               spellcheck="false"
               [attr.aria-invalid]="
-                submitted
+                submitted()
                   ? ariaInvalidAfterSubmit('day')
                   : ariaInvalidLive('day')
               "
@@ -112,14 +114,14 @@
           <div class="govuk-form-group">
             <label
               class="govuk-label govuk-date-input__label"
-              [for]="idPrefix + '-year'"
+              [for]="idPrefix() + '-year'"
               >Year</label
             >
             <input
               class="govuk-input govuk-date-input__input govuk-input--width-4"
-              [class.govuk-input--error]="fieldError('year', submitted)"
-              [id]="idPrefix + '-year'"
-              [name]="idPrefix + '-year'"
+              [class.govuk-input--error]="fieldError('year', submitted())"
+              [id]="idPrefix() + '-year'"
+              [name]="idPrefix() + '-year'"
               type="text"
               inputmode="numeric"
               pattern="[0-9]*"
@@ -127,7 +129,7 @@
               autocomplete="off"
               spellcheck="false"
               [attr.aria-invalid]="
-                submitted
+                submitted()
                   ? ariaInvalidAfterSubmit('day')
                   : ariaInvalidLive('day')
               "
