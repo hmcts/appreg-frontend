@@ -1,9 +1,14 @@
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { Row } from '@core-types/table/row.types';
-import { ApplicationCodeGetDetailDto, ApplicationListGetDetailDto, EntryGetDetailDto } from '@openapi';
+import {
+  ApplicationCodeGetDetailDto,
+  ApplicationListGetDetailDto,
+  EntryGetDetailDto,
+} from '@openapi';
 
-export type EntrySummary =
-  NonNullable<ApplicationListGetDetailDto['entriesSummary']>[number];
+export type EntrySummary = NonNullable<
+  ApplicationListGetDetailDto['entriesSummary']
+>[number];
 
 export interface ApplicationsListDetailState {
   // paging
