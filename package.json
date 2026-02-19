@@ -201,7 +201,8 @@
     "body-parser": "^2.2.2",
     "undici": "^6.23.0",
     "diff": "^8.0.3",
-    "qs": "^6.14.2"
+    "qs": "^6.14.2",
+    "minimatch": "^10.2.1"
   },
   "packageManager": "yarn@4.10.3"
 }
