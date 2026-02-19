@@ -99,7 +99,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   id: string = '';
   step: ApplicantStep = 'select';
-  appCodeDetail!: ApplicationCodeGetDetailDto;
+  appCodeDetail: ApplicationCodeGetDetailDto | null = null;
 
   createDone: boolean = false;
   submitted: boolean = false;
@@ -245,6 +245,8 @@ export class ApplicationsListEntryCreate implements OnInit {
           },
           error: () => {},
         });
+    } else {
+      this.appCodeDetail = null;
     }
   }
 }

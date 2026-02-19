@@ -1,10 +1,12 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, input } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+
+import { TemplateDetail } from '@openapi';
 
 type Token = { type: 'text'; value: string } | { type: 'input'; key: string };
 
@@ -30,6 +32,7 @@ interface WordingConfig {
 })
 export class WordingParserComponent implements OnInit {
   private fb = inject(FormBuilder);
+  wordingObject = input<TemplateDetail>();
 
   tokens: Token[] = [
     { type: 'text', value: 'This is a test ' },

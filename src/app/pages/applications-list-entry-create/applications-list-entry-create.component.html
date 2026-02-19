@@ -97,7 +97,11 @@
   </ng-template>
 
   <ng-template #wordingTpl>
-    <app-wording-parser />
+    @if (appCodeDetail) {
+      <app-wording-parser [wordingObject]="appCodeDetail.wording" />
+    } @else {
+      <p class="govuk-body">Please select an application code.</p>
+    }
   </ng-template>
 
   <ng-template #respondentTpl>
