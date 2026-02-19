@@ -10,6 +10,7 @@ export type SearchFormValue = {
   court: string;
   location: string;
   cja: string;
+  isAdvancedSearch: boolean;
 };
 
 export const DEFAULT_STATE: SearchFormValue = {
@@ -20,6 +21,7 @@ export const DEFAULT_STATE: SearchFormValue = {
   court: '',
   location: '',
   cja: '',
+  isAdvancedSearch: false,
 };
 
 @Injectable({
