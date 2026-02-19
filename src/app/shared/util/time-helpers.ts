@@ -96,7 +96,5 @@ export function hasAnyDuration(v: unknown): boolean {
     return false;
   }
   const d = v as { hours?: number | null; minutes?: number | null };
-  return d.hours !== null && d.hours !== undefined
-    ? true
-    : d.minutes !== null && d.minutes !== undefined;
+  return d.hours !== null || d.minutes !== null;
 }

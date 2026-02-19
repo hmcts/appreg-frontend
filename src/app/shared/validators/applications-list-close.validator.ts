@@ -41,24 +41,10 @@ import {
 } from '@angular/forms';
 
 import { CLOSE_MESSAGES } from '@constants/application-list-detail-update/error-messages';
-import { readStringOrNullFromGroup } from '@util/string-helpers';
+import { CloseValidationEntry } from '@shared-types/applications-list-close/applications-list-close.type';
+import { getTrimmedStringOrNullFromGroup } from '@util/string-helpers';
 import { hasAnyDuration } from '@util/time-helpers';
-import { setControlError } from '@validators/validation-helpers';
-
-export type CloseValidationEntry = {
-  id?: string;
-  hasResult?: boolean | null;
-  hasOfficials?: boolean | null;
-  hasFees?: boolean | null;
-  hasPaidFee?: boolean | null;
-  requiresRespondent?: boolean | null;
-  hasRespondent?: boolean | null;
-  hasDuration?: boolean | null;
-};
-
-export type CloseNotPermittedError = {
-  noClose: string[];
-};
+import { setControlError } from '@util/validation-helpers';
 
 type ClosePermittedOptions = {
   getEntries?: () => readonly CloseValidationEntry[];
@@ -77,7 +63,7 @@ export function closePermitted(
     const statusName = options.statusControlName ?? 'status';
     const durationName = options.durationControlName ?? 'duration';
 
-    const status = readStringOrNullFromGroup(ctrl, statusName);
+    const status = getTrimmedStringOrNullFromGroup(ctrl, statusName);
     if (status !== 'closed') {
       // Reset this so that if the status is changed to open we don't show the error
       setControlError(ctrl, durationName, 'closeDurationMissing', false, {

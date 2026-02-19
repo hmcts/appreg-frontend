@@ -1,5 +1,4 @@
 export const appListDetailStatusOptions = [
-  { value: '', label: 'Choose status' },
   { value: 'open', label: 'Open' },
   { value: 'closed', label: 'Closed' },
 ];

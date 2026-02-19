@@ -2,12 +2,12 @@ import { FormControl, FormGroup } from '@angular/forms';
 
 import { Duration } from '@components/duration-input/duration-input.component';
 import { ApplicationListStatus, ApplicationListUpdateDto } from '@openapi';
-import type { CloseNotPermittedError } from '@validators/applications-list-close.validator';
+import { CloseNotPermittedError } from '@shared-types/applications-list-close/applications-list-close.type';
 
 export type DetailForm = FormGroup<{
   date: FormControl<string | null>;
   time: FormControl<Duration | null>;
-  description: FormControl<string>;
+  description: FormControl<string | null>;
   status: FormControl<string | null>;
   court: FormControl<string>;
   location: FormControl<string>;

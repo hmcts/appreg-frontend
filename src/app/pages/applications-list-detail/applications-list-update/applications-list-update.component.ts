@@ -51,12 +51,12 @@ import {
   GetApplicationListEntryRequestParams,
   PaymentStatus,
 } from '@openapi';
+import { CloseValidationEntry } from '@shared-types/applications-list-close/applications-list-close.type';
 import { buildNormalizedPayload } from '@util/build-payload';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { PlaceFieldsState } from '@util/place-fields.base';
 import { setupLoadEffect } from '@util/signal-state-helpers';
-import { CloseValidationEntry } from '@validators/applications-list-close.validator';
 
 @Component({
   selector: 'app-applications-list-update',

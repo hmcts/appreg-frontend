@@ -4,25 +4,7 @@ Common field validators
 
 import { FormGroup } from '@angular/forms';
 
-import { ErrorSummaryItem } from '@core-types/error/error.types';
-
-export interface ContactFieldIds {
-  postcode: string;
-  phone: string;
-  mobile: string;
-  email: string;
-}
-
-export interface ValidationResult {
-  fieldErrors: Record<string, string>;
-  summaryItems: ErrorSummaryItem[];
-  valid: boolean;
-}
-
-export type ControlErrorTextOptions = {
-  errorTextKey?: string;
-  errorText?: string;
-};
+import { ControlErrorTextOptions } from '@shared-types/validators/validator.type';
 
 export function setControlError(
   group: FormGroup,

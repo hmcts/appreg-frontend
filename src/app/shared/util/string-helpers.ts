@@ -66,7 +66,7 @@ export function mapOptionValueToTitle(
 /**
  * Read formgroup string or return null
  */
-export function readStringOrNullFromGroup(
+export function getTrimmedStringOrNullFromGroup(
   group: FormGroup,
   name: string,
 ): string | null {
