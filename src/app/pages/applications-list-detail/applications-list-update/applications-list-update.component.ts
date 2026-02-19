@@ -22,13 +22,13 @@ import {
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { catchError, forkJoin, map, of } from 'rxjs';
 
-import { ApplicationsListDetailState } from '../util/applications-list-detail.state';
 import {
+  ApplicationsListDetailState,
   DetailForm,
   DetailFormGroupErrors,
   UpdateReq,
   selectedRow,
-} from '../util/applications-list-detail.types';
+} from '../util';
 
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import { DurationInputComponent } from '@components/duration-input/duration-input.component';
