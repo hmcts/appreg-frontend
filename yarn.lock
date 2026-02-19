@@ -10575,7 +10575,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"find-cypress-specs@npm:^1.45.2":
+"find-cypress-specs@npm:1.54.9":
   version: 1.54.9
   resolution: "find-cypress-specs@npm:1.54.9"
   dependencies:
@@ -10594,6 +10594,28 @@ __metadata:
   bin:
     find-cypress-specs: bin/find.js
   checksum: 10/c68db394016066f15cd440f2b8622418b4fef2d33d30d858d687a35fe8cfd02919d444dddf2a0454f0079146c48372d83d791447c215650e63df8d4284dd1ee8
+  languageName: node
+  linkType: hard
+
+"find-cypress-specs@patch:find-cypress-specs@npm%3A1.54.9#~/.yarn/patches/find-cypress-specs-npm-1.54.9-fc193a790b.patch":
+  version: 1.54.9
+  resolution: "find-cypress-specs@patch:find-cypress-specs@npm%3A1.54.9#~/.yarn/patches/find-cypress-specs-npm-1.54.9-fc193a790b.patch::version=1.54.9&hash=d48558"
+  dependencies:
+    "@actions/core": "npm:^2.0.2"
+    arg: "npm:^5.0.1"
+    console.table: "npm:^0.10.0"
+    debug: "npm:^4.3.3"
+    find-test-names: "npm:1.29.19"
+    minimatch: "npm:^5.1.4"
+    pluralize: "npm:^8.0.0"
+    require-and-forget: "npm:^1.0.1"
+    shelljs: "npm:^0.10.0"
+    spec-change: "npm:^1.11.17"
+    tinyglobby: "npm:^0.2.15"
+    tsx: "npm:^4.19.3"
+  bin:
+    find-cypress-specs: bin/find.js
+  checksum: 10/72e530942239789e7b10050304c66ec9ca3f6bf45941b17e5d8249c9a2f324e402edcb09f8be8fd02478e43a02674483a9198b93a8af30fb51289388396d7ceb
   languageName: node
   linkType: hard
 
