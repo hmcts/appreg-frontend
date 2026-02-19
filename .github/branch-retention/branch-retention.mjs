@@ -2,7 +2,6 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import { Octokit } from '@octokit/rest';
-import { Minimatch } from 'minimatch';
 import YAML from 'yaml';
 
 // Repo env
@@ -12,6 +11,8 @@ const token = process.env.GITHUB_TOKEN;
 if (!owner || !repo || !token) {
   process.exit(1);
 }
+const MAX_PATTERN_LEN = 256;
+
 const octokit = new Octokit({ auth: token });
 
 const MODE = process.argv.includes('--mode')
@@ -50,11 +51,49 @@ function daysAgo(date) {
   return Math.floor(ms / (1000 * 60 * 60 * 24));
 }
 
+function globToRegExp(p) {
+  if (p.length > MAX_PATTERN_LEN) {
+    return null;
+  } // treat as non-match
+  const escaped = p.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(
+    '^' + escaped.replace(/\*/g, '.*').replace(/\?/g, '.') + '$',
+  );
+}
+
 function anyMatch(name, patterns) {
   if (!Array.isArray(patterns) || patterns.length === 0) {
     return false;
   }
-  return patterns.some((p) => new Minimatch(p).match(name));
+
+  return patterns.some((p) => {
+    // Exact
+    if (!p.includes('*') && !p.includes('?')) {
+      return name === p;
+    }
+
+    // Only handle the specific patterns you actually use:
+    // "prefix/*"
+    if (p.endsWith('/*') && !p.slice(0, -2).includes('*') && !p.includes('?')) {
+      const prefix = p.slice(0, -1); // keep trailing '/'
+      return name.startsWith(prefix);
+    }
+
+    // "*literal*"
+    if (
+      p.startsWith('*') &&
+      p.endsWith('*') &&
+      !p.slice(1, -1).includes('*') &&
+      !p.includes('?')
+    ) {
+      const needle = p.slice(1, -1);
+      return name.includes(needle);
+    }
+
+    // Fallback: very small glob-to-regex supporting * and ?
+    const re = globToRegExp(p);
+    return re ? re.test(name) : false;
+  });
 }
 
 async function listBranches() {
