@@ -24,82 +24,13 @@
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 <form [formGroup]="form" (ngSubmit)="onSubmit($event)" autocomplete="off">
-  <div class="govuk-grid-row">
-    <!-- Date -->
-    <app-date-input
-      formControlName="date"
-      label="Date"
-      hint="For example, 27 3 2007"
-      idPrefix="date"
-      [submitted]="vm().submitted"
-    />
-
-    <!-- Time -->
-    <app-duration-input
-      formControlName="time"
-      label="Time"
-      hint="Enter the time in 24-hour format, for example 08:30"
-      idPrefix="time"
-      [submitted]="vm().submitted"
-      [required]="true"
-      mode="clock"
-    />
-
-    <!-- Description -->
-    <app-text-input
-      formControlName="description"
-      label="Description"
-      hint="A description of the application list"
-      idPrefix="description"
-      [submitted]="vm().submitted"
-    />
-
-    <!-- Court -->
-    <app-suggestions
-      id="court"
-      tabindex="-1"
-      label="Court"
-      hint="Start typing to search for court houses"
-      [search]="state().courthouseSearch"
-      (searchChange)="setCourthouseSearch($event); onCourthouseInputChange()"
-      [suggestions]="state().filteredCourthouses"
-      (selectItem)="selectCourthouse($event)"
-      [disabled]="!!form.get('location')?.value || !!form.get('cja')?.value"
-      [showError]="
-        vm().submitted &&
-        !form.get('location')?.value &&
-        !form.get('cja')?.value &&
-        !!fieldError('court')
-      "
-      [errorText]="fieldError('court')?.text ?? ''"
-    />
-  </div>
-
-  <div class="govuk-grid-row">
-    <!-- Other location -->
-    <app-text-input
-      formControlName="location"
-      label="Other location"
-      hint="Other location description"
-      idPrefix="location"
-      [submitted]="vm().submitted && !!form.get('cja')?.value"
-    />
-
-    <!-- CJA -->
-    <app-suggestions
-      id="cja"
-      tabindex="-1"
-      label="CJA"
-      hint="Start typing to search"
-      [search]="state().cjaSearch"
-      (searchChange)="setCjaSearch($event); onCjaInputChange()"
-      [suggestions]="state().filteredCja"
-      (selectItem)="selectCja($event)"
-      [disabled]="!!form.get('court')?.value"
-      [showError]="vm().submitted && !!fieldError('cja')"
-      [errorText]="fieldError('cja')?.text ?? ''"
-    />
-  </div>
+  <app-applications-list-form
+    [form]="form"
+    [mode]="'create'"
+    [submitted]="vm().submitted"
+    [suggestions]="suggestionsFacade"
+    [getError]="fieldError.bind(this)"
+  />
 
   <div class="govuk-button-group">
     <button id="create" type="submit" class="govuk-button" value="create">

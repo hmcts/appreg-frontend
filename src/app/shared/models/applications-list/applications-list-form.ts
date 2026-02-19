@@ -16,3 +16,5 @@ export type ApplicationsListUpdateFormControls =
   ApplicationsListFormControls & {
     duration: FormControl<Duration | null>;
   };
+
+export type ApplicationsListFormMode = 'search' | 'create' | 'update';

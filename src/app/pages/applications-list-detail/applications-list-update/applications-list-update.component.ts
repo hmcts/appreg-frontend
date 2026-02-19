@@ -30,12 +30,9 @@ import {
   selectedRow,
 } from '../util';
 
-import { DateInputComponent } from '@components/date-input/date-input.component';
-import { DurationInputComponent } from '@components/duration-input/duration-input.component';
+import { ApplicationsListFormComponent } from '@components/applications-list-form/applications-list-form.component';
+import { SuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
-import { SelectInputComponent } from '@components/select-input/select-input.component';
-import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
-import { TextInputComponent } from '@components/text-input/text-input.component';
 import { DETAIL_ERROR_ANCHORS } from '@constants/application-list-detail-update/error-hrefs';
 import {
   CLOSE_MESSAGES,
@@ -65,11 +62,7 @@ import { setupLoadEffect } from '@util/signal-state-helpers';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    DurationInputComponent,
-    DateInputComponent,
-    TextInputComponent,
-    SelectInputComponent,
-    SuggestionsComponent,
+    ApplicationsListFormComponent,
   ],
   templateUrl: './applications-list-update.component.html',
 })
@@ -107,12 +100,9 @@ export class ApplicationsListUpdateComponent implements OnInit {
 
   readonly setUpdateRequest = input.required<(req: UpdateReq | null) => void>();
 
-  readonly courthouseInputChange = output<void>();
-  readonly cjaInputChange = output<void>();
-  readonly selectCourthouse = output<unknown>();
-  readonly selectCja = output<unknown>();
-
   requestAllEntryIds = output<void>();
+
+  suggestionsFacade = input.required<SuggestionsFacade>();
 
   private readonly hrefs = {
     date: `#${DETAIL_ERROR_ANCHORS.date}`,

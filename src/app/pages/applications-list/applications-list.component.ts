@@ -35,7 +35,6 @@ import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
 import { map, take } from 'rxjs/operators';
 
 import {
-  APPLICATIONS_LIST_CHOOSE_STATUS,
   APPLICATIONS_LIST_COLUMNS_ACTION,
   APPLICATIONS_LIST_ERROR_MESSAGES,
   APPLICATIONS_LIST_FORM_ERROR_MESSAGES,
@@ -52,8 +51,8 @@ import {
   hasAnyParams,
   toRow,
 } from '@components/applications-list-entry-detail/util/routing-state-util';
-import { DateInputComponent } from '@components/date-input/date-input.component';
-import { DurationInputComponent } from '@components/duration-input/duration-input.component';
+import { ApplicationsListFormComponent } from '@components/applications-list-form/applications-list-form.component';
+import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import {
   ErrorItem,
   ErrorSummaryComponent,
@@ -61,14 +60,11 @@ import {
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
-import { SelectInputComponent } from '@components/select-input/select-input.component';
 import {
   SortableTableComponent,
   TableColumn,
 } from '@components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
-import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
-import { TextInputComponent } from '@components/text-input/text-input.component';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import {
   ApplicationListGetSummaryDto,
@@ -104,20 +100,16 @@ type DeleteFlash = { kind: 'success' } | { kind: 'error'; code: number };
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    DateInputComponent,
-    DurationInputComponent,
-    TextInputComponent,
-    SelectInputComponent,
     RouterLink,
     PaginationComponent,
     SortableTableComponent,
     SuccessBannerComponent,
     ErrorSummaryComponent,
-    SuggestionsComponent,
     NotificationBannerComponent,
     MojButtonMenuDirective,
     PageHeaderComponent,
     DateTimePipe,
+    ApplicationsListFormComponent,
   ],
   templateUrl: './applications-list.component.html',
 })
@@ -143,6 +135,8 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   private readonly storedRecordsState = inject(ApplicationListRecordsService);
   readonly storedRecordsVm = this.storedRecordsState.vm;
 
+  readonly searchFormState = this.searchForm.state;
+
   // allows you to initialise effect in ngOnInit()
   private readonly envInjector = inject(EnvironmentInjector);
 
@@ -151,6 +145,8 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
 
   // Create form
   override form = this.formSvc.createSearchForm();
+
+  suggestionsFacade = buildSuggestionsFacade(this);
 
   // API signals
   private readonly loadRequest =
@@ -162,7 +158,6 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   } | null>(null);
 
   columns: TableColumn[] = APPLICATIONS_LIST_COLUMNS_ACTION;
-  status = APPLICATIONS_LIST_CHOOSE_STATUS;
 
   ngOnInit(): void {
     this.restoreFormValues();
@@ -458,6 +453,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     this.searchForm.setState({
       ...DEFAULT_STATE,
       ...this.form.getRawValue(),
+      isAdvancedSearch: this.searchForm.state().isAdvancedSearch,
     } as SearchFormValue);
 
     const r = this.storedRecordsState.state();
@@ -479,6 +475,12 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       el.focus({ preventScroll: true });
     }
+  }
+
+  toggleAdvancedSearch(): void {
+    this.searchForm.patchState({
+      isAdvancedSearch: !this.searchForm.state().isAdvancedSearch,
+    });
   }
 
   /* ----------------------- Local UI helper methods ---------------------- */

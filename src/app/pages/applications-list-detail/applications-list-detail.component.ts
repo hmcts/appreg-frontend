@@ -31,15 +31,14 @@ import {
 } from './applications-list-update/applications-list-update.component';
 import {
   ApplicationsListDetailState,
-  initialApplicationsListDetailState,
-} from './util/applications-list-detail.state';
-import {
   Handoff,
   LoadDetailReq,
   UpdateReq,
+  initialApplicationsListDetailState,
   selectedRow,
-} from './util/applications-list-detail.types';
+} from './util';
 
+import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import {
   ErrorItem,
@@ -79,6 +78,7 @@ import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
   standalone: true,
   imports: [
     CommonModule,
+    PaginationComponent,
     BreadcrumbsComponent,
     ErrorSummaryComponent,
     SuccessBannerComponent,
@@ -121,6 +121,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   statusOptions = appListDetailStatusOptions;
   columns = appListDetailColumns;
+
+  suggestionsFacade = buildSuggestionsFacade(this);
 
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;

@@ -1,3 +1,4 @@
+<!-- List details panel -->
 <div
   class="govuk-tabs__panel govuk-tabs__panel--hidden"
   id="list-details"
@@ -11,108 +12,13 @@
   />
 
   <form [formGroup]="form()" (ngSubmit)="onUpdate()" autocomplete="off">
-    <div class="govuk-grid-row">
-      <!-- Date -->
-      <app-date-input
-        formControlName="date"
-        label="Date"
-        hint="For example, 27 3 2007"
-        idPrefix="date"
-        [submitted]="vm().updateInvalid"
-      />
-
-      <!-- Time -->
-      <app-duration-input
-        formControlName="time"
-        label="Time"
-        hint="Enter the time in 24-hour format, for example 08:30"
-        idPrefix="time"
-        [submitted]="vm().updateInvalid"
-        [required]="true"
-        mode="clock"
-      />
-
-      <!-- Description -->
-      <app-text-input
-        formControlName="description"
-        label="Description"
-        hint="A description of the application list"
-        idPrefix="description"
-        [submitted]="vm().updateInvalid"
-      />
-
-      <!-- Status -->
-      <app-select-input
-        formControlName="status"
-        label="Select status"
-        hint="The status of the application list"
-        idPrefix="status"
-        [submitted]="vm().updateInvalid"
-        [showError]="vm().updateInvalid && hasCloseErrors()"
-        [errorText]="closeErrorText()"
-        [options]="statusOptions()"
-      />
-    </div>
-
-    <div class="govuk-grid-row">
-      <!-- Court -->
-      <app-suggestions
-        id="court"
-        label="Court"
-        hint="Start typing to search"
-        [(search)]="placeState().courthouseSearch"
-        (searchChange)="courthouseInputChange.emit()"
-        [suggestions]="placeState().filteredCourthouses"
-        (selectItem)="selectCourthouse.emit($event)"
-        [disabled]="
-          !!form().get('location')?.value || !!form().get('cja')?.value
-        "
-        [showError]="
-          vm().updateInvalid &&
-          !form().get('location')?.value &&
-          !form().get('cja')?.value &&
-          !!fieldError('court')
-        "
-        [errorText]="fieldError('court')?.text ?? ''"
-      />
-
-      <!-- Other location -->
-      <app-text-input
-        formControlName="location"
-        label="Other location"
-        hint="Other location description"
-        idPrefix="location"
-        [submitted]="vm().updateInvalid && !!form().get('cja')?.value"
-      />
-
-      <!-- CJA -->
-      <app-suggestions
-        id="cja"
-        label="CJA"
-        hint="Start typing to search"
-        [(search)]="placeState().cjaSearch"
-        (searchChange)="cjaInputChange.emit()"
-        [suggestions]="placeState().filteredCja"
-        (selectItem)="selectCja.emit($event)"
-        [disabled]="!!form().get('court')?.value"
-        [showError]="vm().updateInvalid && !!fieldError('cja')"
-        [errorText]="fieldError('cja')?.text ?? ''"
-      />
-
-      <!-- Duration: Optional field when list is open
-       Required when list is closed -->
-      <app-duration-input
-        formControlName="duration"
-        label="Duration"
-        hint="Duration of the list"
-        idPrefix="duration"
-        [submitted]="vm().updateInvalid"
-        [showError]="vm().updateInvalid && hasDurationCloseError()"
-        [errorTextOverride]="durationCloseErrorText()"
-        [required]="false"
-        mode="duration"
-      />
-    </div>
+    <app-applications-list-form
+      [form]="form()"
+      [mode]="'update'"
+      [submitted]="vm().updateInvalid"
+      [suggestions]="suggestionsFacade()"
+      [getError]="fieldError.bind(this)"
+    />
 
     <div class="govuk-button-group">
       <button type="submit" class="govuk-button">Update</button>
