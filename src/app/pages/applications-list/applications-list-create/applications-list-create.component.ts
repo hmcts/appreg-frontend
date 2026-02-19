@@ -27,16 +27,14 @@ import {
 } from './util/applications-list-create.state';
 
 import { APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
+import { ApplicationsListFormComponent } from '@components/applications-list-form/applications-list-form.component';
+import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
-import { DateInputComponent } from '@components/date-input/date-input.component';
-import { DurationInputComponent } from '@components/duration-input/duration-input.component';
 import {
   ErrorItem,
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
-import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
-import { TextInputComponent } from '@components/text-input/text-input.component';
 import { ApplicationListCreateDto, ApplicationListsApi } from '@openapi';
 import { ApplicationsListFormService } from '@services/applications-list-form.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
@@ -56,14 +54,11 @@ import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    DateInputComponent,
-    DurationInputComponent,
-    TextInputComponent,
     FormsModule,
-    SuggestionsComponent,
     BreadcrumbsComponent,
     SuccessBannerComponent,
     ErrorSummaryComponent,
+    ApplicationsListFormComponent,
   ],
   templateUrl: './applications-list-create.component.html',
 })
@@ -93,6 +88,8 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
 
   // Reactive form backing the template
   override form = this.formSvc.createCreateForm();
+
+  suggestionsFacade = buildSuggestionsFacade(this);
 
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refField);

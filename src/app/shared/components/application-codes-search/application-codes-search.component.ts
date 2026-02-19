@@ -9,31 +9,29 @@
 import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
-  EventEmitter,
-  Input,
-  OnDestroy,
+  DestroyRef,
   OnInit,
-  Output,
+  inject,
+  input,
+  output,
+  signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { Subject, Subscription, merge, of } from 'rxjs';
-import {
-  catchError,
-  debounceTime,
-  distinctUntilChanged,
-  map,
-  switchMap,
-} from 'rxjs/operators';
+import { ActivatedRoute } from '@angular/router';
 
+import { CODES_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
+import { DateInputComponent } from '@components/date-input/date-input.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
-import { TextInputComponent } from '@components/text-input/text-input.component';
 import {
-  ApplicationCodeGetSummaryDto,
-  ApplicationCodesApi,
-  GetApplicationCodesRequestParams,
-} from '@openapi';
+  SortableTableComponent,
+  TableColumn,
+} from '@components/sortable-table/sortable-table.component';
+import { TextInputComponent } from '@components/text-input/text-input.component';
+import { ApplicationCodeGetSummaryDto, ApplicationCodesApi } from '@openapi';
+import { ApplicationsListEntryForm } from '@shared-types/applications-list-entry-create/application-list-entry-form';
+import { CodeRow, fetchCodeRows$ } from '@util/application-code-helpers';
 
 @Component({
   selector: 'app-application-code-search',
@@ -43,134 +41,119 @@ import {
     ReactiveFormsModule,
     NotificationBannerComponent,
     TextInputComponent,
+    DateInputComponent,
+    SortableTableComponent,
   ],
   templateUrl: './application-codes-search.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ApplicationCodeSearchComponent implements OnInit, OnDestroy {
-  @Input() debounceMs = 300; // Debounce typing before querying (ms) (important for auto)
-  @Input() minChars = 3; // Min chars before we run the query (important for auto)
-  @Input() auto = true; // True = query whilst typing, false = action button only
-  @Input() legend = 'Find an application code';
-  @Input() codePlaceholder = 'Enter code (e.g. APP01)';
-  @Input() titlePlaceholder = 'Enter application code title';
+export class ApplicationCodeSearchComponent implements OnInit {
+  legend = input('Find an application code');
+  codePlaceholder = input('The code for the application');
+  titlePlaceholder = input('Enter a concise title for this application');
+  patchedFormData = input<ApplicationsListEntryForm | undefined>(undefined);
 
-  // Emit row
-  @Output() selectCode = new EventEmitter<ApplicationCodeGetSummaryDto>();
-  // Emit latest result set after each search
-  @Output() resultsChange = new EventEmitter<ApplicationCodeGetSummaryDto[]>();
+  selectCodeAndLodgementDate = output<{ code: string; date: string }>();
+  resultsChange = output<ApplicationCodeGetSummaryDto[]>();
 
-  submitted: boolean = false;
+  private readonly route = inject(ActivatedRoute);
+  private readonly codesApi = inject(ApplicationCodesApi);
+  private readonly destroyRef = inject(DestroyRef);
+
+  listId!: string | null;
+  codesColumns: TableColumn[] = CODES_COLUMNS;
+  codesRows: CodeRow[] = [];
+
+  submitted = signal(false);
+  loading = signal(false);
+  errored = signal(false);
 
   form = new FormGroup({
+    lodgementDate: new FormControl<string | null>(null),
     code: new FormControl<string | null>(null),
     title: new FormControl<string | null>(null),
   });
 
-  loading = false;
-  errored = false;
-  results: ApplicationCodeGetSummaryDto[] = [];
-
-  private readonly runSearch$ = new Subject<void>();
-  private sub?: Subscription;
-
-  constructor(
-    private readonly api: ApplicationCodesApi,
-    private readonly cdr: ChangeDetectorRef,
-  ) {}
-
   ngOnInit(): void {
-    this.submitted = false;
-    const fv$ = this.form.valueChanges.pipe(
-      debounceTime(this.debounceMs),
-      distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
-      map(() => void 0),
-    );
+    this.initialPatchFormData();
+    this.submitted.set(false);
+    this.listId = this.route.snapshot.paramMap.get('id');
+  }
 
-    const trigger$ = this.auto ? merge(fv$, this.runSearch$) : this.runSearch$;
+  search(): void {
+    this.submitted.set(true);
+    this.codesRows = [];
+    this.errored.set(false);
 
-    this.sub = trigger$
-      .pipe(
-        switchMap(() => {
-          const params = this.buildParams();
-          if (!params && this.auto) {
-            this.results = [];
-            this.errored = false;
-            this.loading = false;
-            this.cdr.markForCheck();
-            return of<ApplicationCodeGetSummaryDto[]>([]);
-          }
+    const code = this.form.value.code?.trim() ?? '';
+    const title = this.form.value.title?.trim() ?? '';
 
-          const p: GetApplicationCodesRequestParams = params ?? {};
-          this.loading = true;
-          this.errored = false;
-          this.cdr.markForCheck();
-
-          return this.api
-            .getApplicationCodes(p, 'body', false, { transferCache: false })
-            .pipe(
-              map((page) => page?.content ?? []),
-              catchError(() => {
-                this.errored = true;
-                return of<ApplicationCodeGetSummaryDto[]>([]);
-              }),
-            );
-        }),
-      )
-      .subscribe((rows) => {
-        this.loading = false;
-        this.results = rows;
-        this.resultsChange.emit(rows);
-        this.cdr.markForCheck();
-        this.submitted = true;
+    this.loading.set(true);
+    fetchCodeRows$(
+      this.codesApi,
+      {
+        code: code || undefined,
+        title: title || undefined,
+        pageNumber: 0,
+        pageSize: 10,
+      },
+      true,
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (rows) => {
+          this.codesRows = rows;
+          this.loading.set(false);
+        },
+        error: () => {
+          this.loading.set(false);
+          this.errored.set(true);
+        },
       });
   }
 
-  ngOnDestroy(): void {
-    this.sub?.unsubscribe();
-  }
+  onAddCode(row: CodeRow): void {
+    this.submitted.set(false);
+    this.codesRows = [];
 
-  // When we manually click search we want to run the query
-  search(): void {
-    this.runSearch$.next();
-    this.submitted = true;
-  }
+    if (!this.listId) {
+      return;
+    }
 
-  choose(row: ApplicationCodeGetSummaryDto): void {
-    this.selectCode.emit(row);
-    this.submitted = false;
+    const code = (row?.code ?? '').trim();
+    if (!code) {
+      return;
+    }
+
+    const title = (row?.title ?? '').trim();
+    if (!title) {
+      return;
+    }
+
+    this.form.patchValue({ code, title });
+
+    this.selectCodeAndLodgementDate.emit({
+      code,
+      date: this.form.value.lodgementDate ?? '',
+    });
   }
 
   clear(): void {
-    this.form.patchValue({ code: null, title: null }, { emitEvent: false });
-    this.results = [];
-    this.errored = false;
-    this.cdr.markForCheck();
-    this.submitted = false;
+    this.form.patchValue({ code: null, title: null });
+    this.codesRows = [];
+    this.errored.set(false);
+    this.submitted.set(false);
+    this.selectCodeAndLodgementDate.emit({ code: '', date: '' });
   }
 
-  private buildParams(): GetApplicationCodesRequestParams | null {
-    /** TODO: we should add pageNumber and pageSize to this query */
-    const code = (this.form.value.code ?? '').trim();
-    const title = (this.form.value.title ?? '').trim();
-    const totalLen = code.length + title.length;
-
-    if (!code && !title) {
-      return null;
-    }
-    if (this.auto && totalLen < this.minChars) {
-      return null;
-    }
-
-    const params: GetApplicationCodesRequestParams = {};
-    if (code) {
-      params.code = code;
-    }
-    if (title) {
-      params.title = title;
-    }
-    return params;
+  private initialPatchFormData(): void {
+    // set today's date as the lodgement date by default, formatted as yyyy-MM-dd for the date input
+    this.form.patchValue({
+      lodgementDate: this.patchedFormData()?.value?.lodgementDate
+        ? this.patchedFormData()?.value?.lodgementDate
+        : new Date().toISOString().split('T')[0],
+      code: this.patchedFormData()?.value?.applicationCode ?? null,
+      title: this.patchedFormData()?.value?.applicationTitle ?? null,
+    });
   }
-
-  // TODO: We need to emit an event for when table is moved
 }
