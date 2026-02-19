@@ -41,7 +41,7 @@ Then(
 
 Then(
   'User Verifies Latest Downloaded PDF Contains The Following Values:',
-  (dataTable: { rawTable: string[][] }) => {
-    PdfAssertions.verifyLatestPdfContainsValues(dataTable.rawTable);
+  (dataTable: { rows: () => string[][] }) => {
+    PdfAssertions.verifyLatestPdfContainsValues(dataTable.rows());
   },
 );
