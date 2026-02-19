@@ -9,6 +9,7 @@
  * - "tomorrowiso"     → Tomorrow's date in YYYY-MM-DD format
  * - "yesterdayiso"    → Yesterday's date in YYYY-MM-DD format
  * - "todaydisplay"    → Today in D MMM YYYY format (e.g., "7 Feb 2026", no leading zero)
+ * - "todaydisplaylong"→ Today in D MMMM YYYY format (e.g., "7 February 2026", full month)
  * - "displaypadded"   → Today in DD MMM YYYY format (e.g., "07 Feb 2026", padded)
  *
  * ISO DATE CONVERSION:
@@ -163,6 +164,8 @@ export class DateTimeUtil {
         return this.getDateWithOffset(-1, 'iso');
       case 'todaydisplay':
         return this.formatToday('display');
+      case 'todaydisplaylong':
+        return this.formatToday('displaylong');
       case 'displaypadded':
         return this.formatToday('padded');
 
@@ -192,6 +195,7 @@ export class DateTimeUtil {
         key: 'yesterdayiso',
         getValue: () => this.getDateWithOffset(-1, 'iso'),
       },
+      { key: 'todaydisplaylong', getValue: () => this.formatToday('displaylong') },
       { key: 'todaydisplay', getValue: () => this.formatToday('display') },
       { key: 'today', getValue: () => this.formatDate(new Date()) },
       { key: 'tomorrow', getValue: () => this.getDateWithOffset(1) },
@@ -313,10 +317,10 @@ export class DateTimeUtil {
 
   /**
    * Format today's date in different formats
-   * @param format The format type: 'display', 'iso', or 'padded'
+   * @param format The format type: 'display', 'iso', 'displaylong', or 'padded'
    * @returns Formatted date string
    */
-  static formatToday(format: 'display' | 'iso' | 'padded' = 'display'): string {
+  static formatToday(format: 'display' | 'iso' | 'displaylong' | 'padded' = 'display'): string {
     const date = new Date();
 
     switch (format) {
@@ -324,6 +328,8 @@ export class DateTimeUtil {
         return date.toISOString().split('T')[0]; // YYYY-MM-DD
       case 'display':
         return this.formatWithPattern(date, 'D MMM YYYY'); // D MMM YYYY (no leading zero)
+      case 'displaylong':
+        return this.formatWithPattern(date, 'D MMMM YYYY'); // D MMMM YYYY (full month)
       case 'padded':
         return this.formatWithPattern(date, 'DD MMM YYYY'); // DD MMM YYYY
       default:
