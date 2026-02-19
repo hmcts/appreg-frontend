@@ -195,7 +195,10 @@ export class DateTimeUtil {
         key: 'yesterdayiso',
         getValue: () => this.getDateWithOffset(-1, 'iso'),
       },
-      { key: 'todaydisplaylong', getValue: () => this.formatToday('displaylong') },
+      {
+        key: 'todaydisplaylong',
+        getValue: () => this.formatToday('displaylong'),
+      },
       { key: 'todaydisplay', getValue: () => this.formatToday('display') },
       { key: 'today', getValue: () => this.formatDate(new Date()) },
       { key: 'tomorrow', getValue: () => this.getDateWithOffset(1) },
@@ -320,7 +323,9 @@ export class DateTimeUtil {
    * @param format The format type: 'display', 'iso', 'displaylong', or 'padded'
    * @returns Formatted date string
    */
-  static formatToday(format: 'display' | 'iso' | 'displaylong' | 'padded' = 'display'): string {
+  static formatToday(
+    format: 'display' | 'iso' | 'displaylong' | 'padded' = 'display',
+  ): string {
     const date = new Date();
 
     switch (format) {
