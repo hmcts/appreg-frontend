@@ -64,6 +64,8 @@ export abstract class PlaceFieldsBase {
   );
   protected readonly state = this.signalState.state;
 
+  readonly placeState = (): PlaceFieldsState => this.state();
+
   protected patch(patch: Partial<PlaceFieldsState>): void {
     this.signalState.patch(patch);
   }

@@ -1255,7 +1255,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.17.8, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.28.4":
+"@babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.17.8, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.28.6":
   version: 7.28.6
   resolution: "@babel/runtime@npm:7.28.6"
   checksum: 10/fbcd439cb74d4a681958eb064c509829e3f46d8a4bfaaf441baa81bb6733d1e680bccc676c813883d7741bcaada1d0d04b15aa320ef280b5734e2192b50decf9
@@ -6673,7 +6673,7 @@ __metadata:
     connect-redis: "npm:^9.0.0"
     cookie-parser: "npm:^1.4.7"
     cross-fetch: "npm:^4.1.0"
-    cypress: "npm:15.9.0"
+    cypress: "npm:15.10.0"
     cypress-axe: "npm:^1.7.0"
     cypress-mochawesome-reporter: "npm:^4.0.2"
     cypress-multi-reporters: "npm:^2.0.5"
@@ -6701,7 +6701,7 @@ __metadata:
     jest-preset-angular: "npm:^15.0.0"
     jsdom: "npm:^24"
     json-schema-faker: "npm:^0.5.9"
-    jspdf: "npm:^4.0.0"
+    jspdf: "npm:^4.2.0"
     jspdf-autotable: "npm:^5.0.2"
     junit-report-merger: "npm:^8.0.0"
     lodash: "npm:^4.17.21"
@@ -8462,9 +8462,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cypress@npm:15.9.0":
-  version: 15.9.0
-  resolution: "cypress@npm:15.9.0"
+"cypress@npm:15.10.0":
+  version: 15.10.0
+  resolution: "cypress@npm:15.10.0"
   dependencies:
     "@cypress/request": "npm:^3.0.10"
     "@cypress/xvfb": "npm:^1.2.4"
@@ -8494,7 +8494,7 @@ __metadata:
     hasha: "npm:5.2.2"
     is-installed-globally: "npm:~0.4.0"
     listr2: "npm:^3.8.3"
-    lodash: "npm:^4.17.21"
+    lodash: "npm:^4.17.23"
     log-symbols: "npm:^4.0.0"
     minimist: "npm:^1.2.8"
     ospath: "npm:^1.2.2"
@@ -8510,7 +8510,7 @@ __metadata:
     yauzl: "npm:^2.10.0"
   bin:
     cypress: bin/cypress
-  checksum: 10/f561e7f9f8956e26a1eeb1dc98614b83abb63c1f83d008ffd26a03d96c15c25037980868f57e07f9821be4c41ace6886f8edf4de6d86a3b5de5f3c059b586ecd
+  checksum: 10/d32e501737f48580ba28072b680b8ad53fd1da3bcfca101c6c6fffcc8e5692a280bd01b792dffdc4e1e37407883bb1979669ea11bc8f2f49c59c118c72d8acce
   languageName: node
   linkType: hard
 
@@ -13284,11 +13284,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jspdf@npm:^4.0.0":
-  version: 4.1.0
-  resolution: "jspdf@npm:4.1.0"
+"jspdf@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "jspdf@npm:4.2.0"
   dependencies:
-    "@babel/runtime": "npm:^7.28.4"
+    "@babel/runtime": "npm:^7.28.6"
     canvg: "npm:^3.0.11"
     core-js: "npm:^3.6.0"
     dompurify: "npm:^3.3.1"
@@ -13304,7 +13304,7 @@ __metadata:
       optional: true
     html2canvas:
       optional: true
-  checksum: 10/07ca8deec968db23acf0747b4dc6ea6896a05cb4b0d4fc13ddd63b55e3165f66c2e80fc1d8383e162310a0e7af12382fb7f23c4d517c035d3a981f816da1b4bb
+  checksum: 10/2c31dfce3ea6d7f839d551bb152bb24a26d6bd2093f7b2b3dd1227438446dbca22edb239ad2899328defaa24860f94a7582ed782d26dace136f6462d8101c0ce
   languageName: node
   linkType: hard
 

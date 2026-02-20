@@ -47,82 +47,15 @@
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 <form [formGroup]="form" (ngSubmit)="onSubmit($event)">
-  <div class="govuk-grid-row">
-    <!-- Date -->
-    <app-date-input
-      formControlName="date"
-      label="Date"
-      hint="For example, 27 3 2007"
-      idPrefix="date"
-      [submitted]="storedRecordsVm().submitted"
-      [isSearch]="vm().isSearch"
-    />
-
-    <!-- Time -->
-    <app-duration-input
-      formControlName="time"
-      label="Time"
-      hint="Enter the time in 24-hour format, for example 08:30"
-      idPrefix="time"
-      [submitted]="storedRecordsVm().submitted"
-      [required]="false"
-    />
-
-    <!-- Description -->
-    <app-text-input
-      formControlName="description"
-      label="Description"
-      hint="A description of the application list"
-      idPrefix="description"
-    />
-
-    <!-- Status -->
-    <app-select-input
-      formControlName="status"
-      label="Select status"
-      hint="The status of the application list"
-      idPrefix="status"
-      [options]="status"
-    />
-  </div>
-
-  <div class="govuk-grid-row">
-    <!-- Court -->
-    <app-suggestions
-      id="court"
-      label="Court"
-      hint="Start typing to search"
-      formControlName="court"
-      [(search)]="state().courthouseSearch"
-      (searchChange)="onCourthouseInputChange()"
-      [suggestions]="state().filteredCourthouses"
-      (selectItem)="selectCourthouse($event)"
-      [showError]="storedRecordsVm().submitted && !!fieldError('court')"
-      [errorText]="fieldError('court')?.text ?? ''"
-    />
-
-    <!-- Other location -->
-    <app-text-input
-      formControlName="location"
-      label="Other location"
-      hint="Other location description"
-      idPrefix="location"
-    />
-
-    <!-- CJA -->
-    <app-suggestions
-      id="cja"
-      label="CJA"
-      hint="Start typing to search"
-      formControlName="cja"
-      [(search)]="state().cjaSearch"
-      (searchChange)="onCjaSearchChange($event)"
-      [suggestions]="state().filteredCja"
-      (selectItem)="selectCja($event)"
-      [showError]="storedRecordsVm().submitted && !!fieldError('cja')"
-      [errorText]="fieldError('cja')?.text ?? ''"
-    />
-  </div>
+  <app-applications-list-form
+    [form]="form"
+    [mode]="'search'"
+    [submitted]="storedRecordsVm().submitted"
+    [suggestions]="suggestionsFacade"
+    [getError]="fieldError.bind(this)"
+    [advancedOpen]="searchFormState().isAdvancedSearch"
+    [onToggleAdvanced]="toggleAdvancedSearch.bind(this)"
+  />
 
   <div class="govuk-button-group">
     <button id="search" type="submit" class="govuk-button" value="search">

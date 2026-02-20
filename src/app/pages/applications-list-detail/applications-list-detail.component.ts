@@ -41,9 +41,9 @@ import {
   initialApplicationsListDetailState,
 } from './util/applications-list-detail.state';
 
+import { ApplicationsListFormComponent } from '@components/applications-list-form/applications-list-form.component';
+import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
-import { DateInputComponent } from '@components/date-input/date-input.component';
-import { DurationInputComponent } from '@components/duration-input/duration-input.component';
 import {
   ErrorItem,
   ErrorSummaryComponent,
@@ -51,11 +51,8 @@ import {
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
-import { SelectInputComponent } from '@components/select-input/select-input.component';
 import { SelectableSortableTableComponent } from '@components/selectable-sortable-table/selectable-sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
-import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
-import { TextInputComponent } from '@components/text-input/text-input.component';
 import { DETAIL_ERROR_ANCHORS } from '@constants/application-list-detail-update/error-hrefs';
 import { DETAIL_FIELD_MESSAGES } from '@constants/application-list-detail-update/error-messages';
 import { IF_MATCH } from '@context/concurrency-context';
@@ -120,19 +117,15 @@ type UpdateReq = {
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    DurationInputComponent,
-    DateInputComponent,
-    TextInputComponent,
-    SelectInputComponent,
     PaginationComponent,
     BreadcrumbsComponent,
-    SuggestionsComponent,
     ErrorSummaryComponent,
     SuccessBannerComponent,
     PageHeaderComponent,
     SelectableSortableTableComponent,
     MojButtonMenuDirective,
     NotificationBannerComponent,
+    ApplicationsListFormComponent,
   ],
   templateUrl: './applications-list-detail.component.html',
   styleUrls: ['./applications-list-detail.component.scss'],
@@ -162,6 +155,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly updateRequest = signal<UpdateReq | null>(null);
 
   override form = this.appListFormService.createUpdateForm();
+
+  suggestionsFacade = buildSuggestionsFacade(this);
 
   statusOptions = [
     { value: '', label: 'Choose status' },
