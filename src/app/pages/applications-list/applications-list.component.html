@@ -83,6 +83,10 @@
     caption="Lists"
     [columns]="columns"
     [data]="storedRecordsVm().rows"
+    [clientOrServerSort]="'server'"
+    [sortKey]="vm().sortField.key"
+    [sortDirection]="vm().sortField.direction"
+    (sortChange)="onSortChange($event)"
     appMojButtonMenu
   >
     <ng-template #dateTemplate let-row>

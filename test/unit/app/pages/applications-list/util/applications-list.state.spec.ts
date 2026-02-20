@@ -12,6 +12,10 @@ describe('applications-list.state', () => {
       isLoading: false,
       searchErrors: [],
       errorSummary: [],
+      sortField: {
+        direction: 'desc',
+        key: 'date',
+      },
     });
   });
 
@@ -21,6 +25,10 @@ describe('applications-list.state', () => {
       deleteInvalid: false,
       errorSummary: [],
       searchErrors: [],
+      sortField: {
+        direction: 'desc',
+        key: 'date',
+      },
     });
   });
 });

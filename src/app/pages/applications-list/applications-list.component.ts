@@ -38,6 +38,7 @@ import {
   APPLICATIONS_LIST_COLUMNS_ACTION,
   APPLICATIONS_LIST_ERROR_MESSAGES,
   APPLICATIONS_LIST_FORM_ERROR_MESSAGES,
+  APPLICATION_LIST_SORT_MAP,
 } from './util/applications-list.constants';
 import {
   ApplicationsListState,
@@ -428,6 +429,19 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     this.printContinuousRequest.set({ id, isClosed });
   }
 
+  onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    // Ensure the keys are correct (titles != backend sort key)
+    this.appListSignalState.patch({
+      sortField: {
+        key: APPLICATION_LIST_SORT_MAP[sort.key] ?? sort.key,
+        direction: sort.direction,
+      },
+    });
+
+    const hasAny = hasAnyParams(this.form);
+    this.loadApplicationsLists(hasAny);
+  }
+
   protected isOpen(row: ApplicationListRow): boolean {
     return row.status === ApplicationListStatus.OPEN;
   }
@@ -458,9 +472,16 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
 
     const r = this.storedRecordsState.state();
 
+    const sortFieldKey = this.appListState().sortField.key;
+    const sortFieldDirection = this.appListState().sortField.direction;
+
+    // Sorts are in the form of ['key,direction']
+    const paramSort = [`${sortFieldKey},${sortFieldDirection}`];
+
     const params: GetApplicationListsRequestParams = {
       pageNumber: r.currentPage - 1,
       pageSize: r.pageSize,
+      sort: paramSort,
       ...(hasParams ? { filter: loadQuery(this.form) } : {}),
     };
 

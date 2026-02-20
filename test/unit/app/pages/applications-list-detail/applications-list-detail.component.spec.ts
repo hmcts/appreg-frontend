@@ -269,8 +269,13 @@ describe('ApplicationsListDetail', () => {
       component.loadApplicationsLists();
       await flushSignalEffects(fixture);
 
-      expect(apiStub.getApplicationList).toHaveBeenCalledWith(
-        { listId: 'list-123', pageNumber: 0, pageSize: 10 },
+      expect(apiStub.getApplicationList).toHaveBeenNthCalledWith(
+        2,
+        {
+          listId: 'list-123',
+          pageNumber: 0,
+          pageSize: 10,
+        },
         'response',
         false,
         { transferCache: false },
