@@ -10,7 +10,10 @@ export class AccordionHelper {
     return AccordionElement.findAccordion(accordionTitle).should('be.visible');
   }
 
-  static toggleAccordion(accordionTitle: string) {
+  /**
+   * Generic method to toggle an accordion by its title
+   */
+  static toggleAccordion(accordionTitle: string): void {
     AccordionElement.findAccordion(accordionTitle).click();
   }
 }
