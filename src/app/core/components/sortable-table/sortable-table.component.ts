@@ -52,8 +52,9 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
   columns = input<TableColumn[]>([]);
   data = input<Row[]>([]);
 
-  // Table sort
-  sortKey = input<string>('date');
+  // Table sort: server side
+  // Make sure to set default key and direction in page component
+  sortKey = input<string>('');
   sortDirection = input<'desc' | 'asc'>('desc');
   clientOrServerSort = input<'server' | 'client'>('client');
 

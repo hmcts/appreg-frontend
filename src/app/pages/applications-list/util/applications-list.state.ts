@@ -17,7 +17,7 @@ export const initialApplicationsListState: ApplicationsListState = {
   isLoading: false,
   searchErrors: [],
   errorSummary: [],
-  sortField: { key: 'date', direction: 'desc' }, // Default sort
+  sortField: { key: 'date', direction: 'desc' }, // We set the default for server side sorting here
 };
 
 // Clear all error/success/notification states
