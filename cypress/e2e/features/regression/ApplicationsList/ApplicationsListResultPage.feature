@@ -60,15 +60,15 @@ Feature: Applications List Result
         Then User See "Applications" On The Page
         Then User Should See The Button "Result selected" Is Disabled
         When User Checks The Checkbox In Row Of Table "Lists" With:
-            | Sequence number | Account number | Applicant | Respondent | Post code | Title                                          | Fee req | Resulted |
-            | 1               | ACC-{RANDOM}   |           |            | BS1 5AA   | Issue of liability order summons - council tax | No      | No       |
+            | Sequence number | Account number | Applicant                  | Respondent                | Post code | Title                                          | Fee req | Resulted |
+            | 1               | ACC-{RANDOM}   | Taylor {RANDOM}, Henry, Mr | Clark {RANDOM}, Emily, Ms | BS1 5AA   | Issue of liability order summons - council tax | No      | No       |
         Then User Should See The Button "Result selected" Is Enabled
         When User Clicks On The "Result selected" Button
         Then User See "Result applications" On The Page
         Then User See "Applications to result" On The Page
         Then User Should See Row In Table "Applications to result" With Values:
-            | Sequence number | Applicant(s) | Respondent(s) | Application Title(s)                           |
-            | 1               |              |               | Issue of liability order summons - council tax |
+            | Sequence number | Applicant(s)               | Respondent(s)             | Application Title(s)                           |
+            | 1               | Taylor {RANDOM}, Henry, Mr | Clark {RANDOM}, Emily, Ms | Issue of liability order summons - council tax |
         Then User Enters "test" Into The "Search for a result code" Textbox
         When User Clicks On The "Save" Button
         # Application List Cleanup
