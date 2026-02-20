@@ -4,24 +4,13 @@ export class AccordionHelper {
   /**
    * Generic method to check if an accordion is visible by its title
    */
-  static IsAccordionVisible(
-    detailsSectionTitle: string,
+  static isAccordionVisible(
+    accordionTitle: string,
   ): Cypress.Chainable<JQuery<HTMLElement>> {
-    return AccordionElement.findAccordion(detailsSectionTitle).should(
-      'be.visible',
-    );
+    return AccordionElement.findAccordion(accordionTitle).should('be.visible');
   }
 
-  /**
-   * Generic method to verify if a textbox with a specific label is present within an accordion
-   */
-  static verifyTextboxInAccordion(
-    labelText: string,
-    detailsSectionTitle: string,
-  ): Cypress.Chainable<JQuery<HTMLElement>> {
-    return AccordionElement.findTextboxInAccordion(
-      labelText,
-      detailsSectionTitle,
-    ).should('be.visible');
+  static toggleAccordion(accordionTitle: string) {
+    AccordionElement.findAccordion(accordionTitle).click();
   }
 }
