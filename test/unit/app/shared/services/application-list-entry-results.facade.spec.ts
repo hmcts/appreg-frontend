@@ -8,7 +8,7 @@ import {
   ResultCodesApi,
   ResultGetDto,
 } from '@openapi';
-import { ApplicationListEntryResultsFacade } from '@services/application-list-entry-results.facade';
+import { ApplicationListEntryResultsFacade } from '@services/applications-list-entry/application-list-entry-results.facade';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import * as resultCodeHelpers from '@util/result-code-helpers';
 

@@ -4,7 +4,7 @@ import {
   ApplicationListSearchFormService,
   DEFAULT_STATE,
   SearchFormValue,
-} from '@services/searchform/application-list-search-form.service';
+} from '@services/applications-list/searchform/application-list-search-form.service';
 
 describe('ApplicationListSearchFormService', () => {
   let service: ApplicationListSearchFormService;

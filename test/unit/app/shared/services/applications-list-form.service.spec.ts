@@ -1,4 +1,4 @@
-import { ApplicationsListFormService } from '@services/applications-list-form.service';
+import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
 
 describe('ApplicationsListFormService', () => {
   let service: ApplicationsListFormService;
