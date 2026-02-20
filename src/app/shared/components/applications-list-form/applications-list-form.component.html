@@ -33,6 +33,9 @@
         label="Select list status"
         idPrefix="status"
         [options]="status"
+        [submitted]="updateInvalid()"
+        [showError]="hasCloseErrors()"
+        [errorText]="closeErrorText()"
       />
     </div>
   }
@@ -127,7 +130,9 @@
         label="Duration"
         hint="Duration of the list"
         idPrefix="duration"
-        [submitted]="submitted()"
+        [submitted]="updateInvalid()"
+        [showError]="hasDurationCloseError()"
+        [errorTextOverride]="durationCloseErrorText()"
         [required]="false"
         mode="duration"
       />

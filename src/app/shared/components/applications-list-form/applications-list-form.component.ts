@@ -46,6 +46,13 @@ export class ApplicationsListFormComponent {
 
   suggestions = input.required<SuggestionsFacade>();
 
+  // applications-list-update.component error messages
+  hasCloseErrors = input(false);
+  closeErrorText = input('');
+  updateInvalid = input(false);
+  hasDurationCloseError = input(false);
+  durationCloseErrorText = input('');
+
   status = APPLICATIONS_LIST_CHOOSE_STATUS;
 
   isCreate = computed(() => this.mode() === 'create');

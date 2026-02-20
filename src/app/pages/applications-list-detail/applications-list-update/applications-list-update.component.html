@@ -18,6 +18,11 @@
       [submitted]="vm().updateInvalid"
       [suggestions]="suggestionsFacade()"
       [getError]="fieldError.bind(this)"
+      [hasCloseErrors]="hasCloseErrors()"
+      [closeErrorText]="closeErrorText()"
+      [updateInvalid]="vm().updateInvalid"
+      [hasDurationCloseError]="hasDurationCloseError()"
+      [durationCloseErrorText]="durationCloseErrorText()"
     />
 
     <div class="govuk-button-group">

@@ -6,6 +6,7 @@ import {
   closeValidationEntries,
 } from '@components/applications-list-detail/applications-list-update/applications-list-update.component';
 import { ApplicationsListDetailState } from '@components/applications-list-detail/util/applications-list-detail.state';
+import { SuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import {
   ApplicationCodesApi,
   ApplicationListEntriesApi,
@@ -15,7 +16,7 @@ import {
 } from '@openapi';
 import { PlaceFieldsState } from '@util/place-fields.base';
 
-describe('ApplicationsListDetailListDetailsComponent', () => {
+describe('ApplicationsListUpdateComponent', () => {
   let component: ApplicationsListUpdateComponent;
   let fixture: ComponentFixture<ApplicationsListUpdateComponent>;
 
@@ -46,6 +47,8 @@ describe('ApplicationsListDetailListDetailsComponent', () => {
     errorHint: '',
     errorSummary: [],
     hasPrefilledFromApi: false,
+    allEntryIds: [],
+    allEntriesSummary: [],
   });
 
   const mkPlaceState = (): PlaceFieldsState => ({
@@ -55,6 +58,19 @@ describe('ApplicationsListDetailListDetailsComponent', () => {
     cja: [],
     filteredCourthouses: [],
     filteredCja: [],
+  });
+
+  const mkSuggestionsFacade = (): SuggestionsFacade => ({
+    courthouseSearch: () => '',
+    setCourthouseSearch: jest.fn(),
+    filteredCourthouses: () => [],
+    onCourthouseInputChange: jest.fn(),
+    selectCourthouse: jest.fn(),
+    cjaSearch: () => '',
+    setCjaSearch: jest.fn(),
+    filteredCja: () => [],
+    onCjaInputChange: jest.fn(),
+    selectCja: jest.fn(),
   });
 
   beforeEach(async () => {
@@ -83,6 +99,7 @@ describe('ApplicationsListDetailListDetailsComponent', () => {
     fixture.componentRef.setInput('patchState', jest.fn());
     fixture.componentRef.setInput('vm', mkVm());
     fixture.componentRef.setInput('setUpdateRequest', jest.fn());
+    fixture.componentRef.setInput('suggestionsFacade', mkSuggestionsFacade());
     fixture.detectChanges();
   });
 
@@ -204,6 +221,8 @@ describe('closeValidationEntries', () => {
       errorHint: '',
       errorSummary: [],
       hasPrefilledFromApi: false,
+      allEntryIds: [],
+      allEntriesSummary: [],
     };
 
     const out = closeValidationEntries(vm);
