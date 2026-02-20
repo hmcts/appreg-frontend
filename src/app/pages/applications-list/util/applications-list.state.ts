@@ -7,6 +7,7 @@ export interface ApplicationsListState {
   isLoading: boolean;
   searchErrors: ErrorItem[];
   errorSummary: ErrorItem[];
+  sortField: { key: string; direction: 'desc' | 'asc' };
 }
 
 export const initialApplicationsListState: ApplicationsListState = {
@@ -16,15 +17,17 @@ export const initialApplicationsListState: ApplicationsListState = {
   isLoading: false,
   searchErrors: [],
   errorSummary: [],
+  sortField: { key: 'date', direction: 'desc' }, // We set the default for server side sorting here
 };
 
 // Clear all error/success/notification states
 export const clearNotificationsPatch = (): Pick<
   ApplicationsListState,
-  'deleteDone' | 'deleteInvalid' | 'errorSummary' | 'searchErrors'
+  'deleteDone' | 'deleteInvalid' | 'errorSummary' | 'searchErrors' | 'sortField'
 > => ({
   deleteDone: false,
   deleteInvalid: false,
   errorSummary: [],
   searchErrors: [],
+  sortField: { key: 'date', direction: 'desc' },
 });

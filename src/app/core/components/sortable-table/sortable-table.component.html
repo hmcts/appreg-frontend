@@ -1,6 +1,9 @@
 <table
+  #mojTable
   class="govuk-table"
-  data-module="moj-sortable-table"
+  [attr.data-module]="
+    clientOrServerSort() === 'client' ? 'moj-sortable-table' : null
+  "
   [attr.aria-describedby]="'sortable-' + caption()"
 >
   <caption
@@ -22,7 +25,11 @@
           [class.govuk-table__header--numeric]="col.numeric"
           [class.app-sortable-table__cell--wrap]="!col.numeric"
           [attr.aria-sort]="
-            col.sortable !== false ? (col.defaultSort ?? 'none') : null
+            col.sortable === false
+              ? null
+              : clientOrServerSort() === 'server'
+                ? ariaSortFor(col.field)
+                : (col.defaultSort ?? 'none')
           "
         >
           {{ col.header }}
@@ -42,7 +49,9 @@
               [class.govuk-table__cell--numeric]="col.numeric"
               [class.app-sortable-table__cell--wrap]="!col.numeric"
               [attr.data-sort-value]="
-                col.sortable !== false ? getSortValue(row, col) : null
+                clientOrServerSort() === 'client' && col.sortable !== false
+                  ? getSortValue(row, col)
+                  : null
               "
             >
               @if (col.field === 'date' && dateTpl()) {
@@ -59,7 +68,9 @@
               [class.govuk-table__cell--numeric]="col.numeric"
               [class.app-sortable-table__cell--wrap]="!col.numeric"
               [attr.data-sort-value]="
-                col.sortable !== false ? getSortValue(row, col) : null
+                clientOrServerSort() === 'client' && col.sortable !== false
+                  ? getSortValue(row, col)
+                  : null
               "
             >
               @if (col.field === 'actions') {
