@@ -6,39 +6,8 @@ import {
 } from '@angular/forms';
 
 import { validateCourtVsLocOrCja } from '@util/location-suggestion-helpers';
-
-function setControlError(
-  group: FormGroup,
-  controlName: string,
-  key: string,
-  on: boolean,
-): void {
-  const c = group.get(controlName);
-  if (!c) {
-    return;
-  }
-
-  const current = { ...(c.errors ?? {}) };
-  if (on) {
-    current[key] = true;
-  } else {
-    delete current[key];
-  }
-
-  c.setErrors(Object.keys(current).length ? current : null);
-}
-
-function readStringOrNullFromGroup(
-  group: FormGroup,
-  name: string,
-): string | null {
-  const v: unknown = group.get(name)?.value;
-  if (typeof v !== 'string') {
-    return null;
-  }
-  const s = v.trim();
-  return s || null;
-}
+import { getTrimmedStringOrNullFromGroup } from '@util/string-helpers';
+import { setControlError } from '@util/validation-helpers';
 
 //Checks requiredness and conflicts between court, location and cja fields
 export function courtLocCjaValidator(opts?: {
@@ -50,9 +19,9 @@ export function courtLocCjaValidator(opts?: {
       return null;
     }
 
-    const court = readStringOrNullFromGroup(ctrl, 'court');
-    const location = readStringOrNullFromGroup(ctrl, 'location');
-    const cja = readStringOrNullFromGroup(ctrl, 'cja');
+    const court = getTrimmedStringOrNullFromGroup(ctrl, 'court');
+    const location = getTrimmedStringOrNullFromGroup(ctrl, 'location');
+    const cja = getTrimmedStringOrNullFromGroup(ctrl, 'cja');
 
     const courtTyped = (opts?.getCourtTyped?.() ?? '').trim();
     const cjaTyped = (opts?.getCjaTyped?.() ?? '').trim();
@@ -89,7 +58,7 @@ export function courtLocCjaValidator(opts?: {
     // Store conflict on court control (so summary anchors consistently)
     const courtCtrl = ctrl.get('court');
     if (courtCtrl) {
-      const current = { ...(courtCtrl.errors ?? {}) };
+      const current = { ...courtCtrl.errors };
       if (conflictMsg) {
         current['courtLocCjaConflict'] = true;
       } else {

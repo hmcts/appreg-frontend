@@ -90,3 +90,11 @@ export function todayIsoDate(): string {
   const dd = String(d.getDate()).padStart(2, '0');
   return `${yyyy}-${mm}-${dd}`;
 }
+
+export function hasAnyDuration(v: unknown): boolean {
+  if (!v || typeof v !== 'object') {
+    return false;
+  }
+  const d = v as { hours?: number | null; minutes?: number | null };
+  return d.hours !== null || d.minutes !== null;
+}

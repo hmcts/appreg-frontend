@@ -73,15 +73,15 @@ import {
   ApplicationListsApi,
   GetApplicationListsRequestParams,
 } from '@openapi';
-import { ApplicationListRecordsService } from '@services/application-list-records/application-list-records.service';
-import { ApplicationsListFormService } from '@services/applications-list-form.service';
-import { PdfService } from '@services/pdf.service';
-import { ReferenceDataFacade } from '@services/reference-data.facade';
+import { ApplicationListRecordsService } from '@services/applications-list/application-list-records.service';
+import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
 import {
   ApplicationListSearchFormService,
   DEFAULT_STATE,
   SearchFormValue,
-} from '@services/searchform/application-list-search-form.service';
+} from '@services/applications-list/searchform/application-list-search-form.service';
+import { PdfService } from '@services/pdf.service';
+import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { getHttpStatus, getProblemText } from '@util/http-error-to-text';

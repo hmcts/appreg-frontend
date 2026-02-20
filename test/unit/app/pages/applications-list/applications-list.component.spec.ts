@@ -7,6 +7,7 @@ import {
   convertToParamMap,
   provideRouter,
 } from '@angular/router';
+import { recordsState } from '@services/application-list-records/application-list-records.service';
 import { of, throwError } from 'rxjs';
 
 import { ApplicationsList } from '@components/applications-list/applications-list.component';
@@ -29,7 +30,6 @@ import {
   CriminalJusticeAreasApi,
   GetApplicationListsRequestParams,
 } from '@openapi';
-import { recordsState } from '@services/application-list-records/application-list-records.service';
 import { PdfService } from '@services/pdf.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { PlaceFieldsState } from '@util/place-fields.base';

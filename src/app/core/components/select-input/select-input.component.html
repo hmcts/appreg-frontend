@@ -2,7 +2,7 @@
   <div
     class="govuk-form-group"
     [ngClass]="{
-      'govuk-form-group--error': submitted() && !value,
+      'govuk-form-group--error': submitted() && (!value || showError()),
     }"
   >
     @if (label()) {
@@ -19,23 +19,29 @@
       </div>
     }
 
-    @if (submitted() && !value) {
+    @if (submitted() && (!value || showError())) {
       <p [id]="idPrefix() + '-error'" class="govuk-error-message">
         <span class="govuk-visually-hidden">Error:</span>
-        {{ label() || 'This field' }} is required
+        @if (showError() && errorText()) {
+          {{ errorText() }}
+        } @else {
+          {{ label() || 'This field' }} is required
+        }
       </p>
     }
 
     <select
       class="govuk-select"
-      [ngClass]="submitted() && !value ? 'govuk-select--error' : ''"
+      [ngClass]="
+        submitted() && (!value || showError()) ? 'govuk-select--error' : ''
+      "
       [id]="idPrefix()"
       [name]="idPrefix()"
       [attr.aria-describedby]="
         (
           (hint() ? idPrefix() + '-hint' : '') +
           ' ' +
-          (submitted() && !value ? idPrefix() + '-error' : '')
+          (submitted() && (!value || showError()) ? idPrefix() + '-error' : '')
         ).trim()
       "
       [disabled]="disabled"

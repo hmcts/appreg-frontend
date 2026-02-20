@@ -99,8 +99,8 @@ import {
   FeeStatus,
   UpdateApplicationListEntryRequestParams,
 } from '@openapi';
-import { ApplicationListEntryFormService } from '@services/application-list-entry-form.service';
-import { ApplicationListEntryResultsFacade } from '@services/application-list-entry-results.facade';
+import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
+import { ApplicationListEntryResultsFacade } from '@services/applications-list-entry/application-list-entry-results.facade';
 import {
   ApplicantType,
   ApplicationListEntryForms,

@@ -175,24 +175,18 @@
     role="tabpanel"
     aria-labelledby="tab_list-details"
   >
-    <h2 class="govuk-heading-l">List details</h2>
-
-    <hr
-      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+    <app-applications-list-update
+      [form]="form"
+      [vm]="vm()"
+      [statusOptions]="statusOptions"
+      [placeState]="state()"
+      [id]="id"
+      [etag]="etag"
+      [entryIds]="vm().allEntryIds"
+      [patchState]="patchStateFn"
+      [setUpdateRequest]="setUpdateRequestFn"
+      (requestAllEntryIds)="onRequestAllEntryIds()"
+      [suggestionsFacade]="suggestionsFacade"
     />
-
-    <form [formGroup]="form" (ngSubmit)="onUpdate()" autocomplete="off">
-      <app-applications-list-form
-        [form]="form"
-        [mode]="'update'"
-        [submitted]="vm().updateInvalid"
-        [suggestions]="suggestionsFacade"
-        [getError]="fieldError.bind(this)"
-      />
-
-      <div class="govuk-button-group">
-        <button type="submit" class="govuk-button">Update</button>
-      </div>
-    </form>
   </div>
 </div>
