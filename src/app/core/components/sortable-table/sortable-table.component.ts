@@ -1,3 +1,10 @@
+/**
+ * Depends on `@ministryofjustice/frontend` `SortableTable` for sortable header UI/interactions
+ * Sorting mode is controlled by `clientOrServerSort`:
+ * client sorts in-browser via `data-sort-value` from `getSortValue()`
+ * server keeps the same UI but emits `sortChange` for parent-side fetch/sort.
+ */
+
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   AfterViewInit,
