@@ -1,0 +1,13 @@
+<app-wording-parser
+  [wordingObject]="wordingObject()"
+  (tokensChange)="onTokensChange($event)"
+/>
+@if (isSaveDisabled()) {
+  <button
+    class="govuk-button"
+    data-module="govuk-button"
+    (click)="saveWording.emit()"
+  >
+    Save Wording
+  </button>
+}

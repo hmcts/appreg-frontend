@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, input } from '@angular/core';
+import { Component, OnInit, inject, input, output } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -8,7 +8,9 @@ import {
 
 import { TemplateDetail } from '@openapi';
 
-type Token = { type: 'text'; value: string } | { type: 'input'; key: string };
+export type Token =
+  | { type: 'text'; value: string }
+  | { type: 'input'; key: string };
 
 interface SubstitutionKeyConstraint {
   key: string;
@@ -32,7 +34,10 @@ interface WordingConfig {
 })
 export class WordingParserComponent implements OnInit {
   private fb = inject(FormBuilder);
-  wordingObject = input<TemplateDetail>();
+  wordingObject = input.required<TemplateDetail>();
+  hasInput!: boolean;
+
+  tokensChange = output<Token[]>();
 
   tokens: Token[] = [
     { type: 'text', value: 'This is a test ' },
@@ -43,18 +48,8 @@ export class WordingParserComponent implements OnInit {
   form = this.fb.group({});
 
   ngOnInit(): void {
-    const token1 = this.tokenize(this.value1.wording.template);
-    const token2 = this.tokenize(this.value2.wording.template);
-    const token3 = this.tokenize(this.value3.wording.template);
-
-    this.tokens = token2;
-
-    // console.log(
-    //   this.tokenize('This is a test {{Applicant officer}} with a {{date}}'),
-    // );
-    // console.log('Tokens 1:', token1);
-    // console.log('Tokens 2:', token2);
-    // console.log('Tokens 3:', token3);
+    this.tokens = this.tokenize(this.wordingObject().template ?? '');
+    this.tokensChange.emit(this.tokens);
 
     this.createFormControls();
     this.setFormControls();
