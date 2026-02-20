@@ -168,17 +168,25 @@
     ></app-pagination>
   </div>
 
-  <app-applications-list-update
-    [form]="form"
-    [vm]="vm()"
-    [statusOptions]="statusOptions"
-    [placeState]="state()"
-    [id]="id"
-    [etag]="etag"
-    [entryIds]="vm().allEntryIds"
-    [patchState]="patchStateFn"
-    [setUpdateRequest]="setUpdateRequestFn"
-    (requestAllEntryIds)="onRequestAllEntryIds()"
-    [suggestionsFacade]="suggestionsFacade"
-  />
+  <!-- List details panel -->
+  <div
+    class="govuk-tabs__panel govuk-tabs__panel--hidden"
+    id="list-details"
+    role="tabpanel"
+    aria-labelledby="tab_list-details"
+  >
+    <app-applications-list-update
+      [form]="form"
+      [vm]="vm()"
+      [statusOptions]="statusOptions"
+      [placeState]="state()"
+      [id]="id"
+      [etag]="etag"
+      [entryIds]="vm().allEntryIds"
+      [patchState]="patchStateFn"
+      [setUpdateRequest]="setUpdateRequestFn"
+      (requestAllEntryIds)="onRequestAllEntryIds()"
+      [suggestionsFacade]="suggestionsFacade"
+    />
+  </div>
 </div>
