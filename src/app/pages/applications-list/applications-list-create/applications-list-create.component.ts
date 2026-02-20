@@ -36,7 +36,7 @@ import {
 } from '@components/error-summary/error-summary.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { ApplicationListCreateDto, ApplicationListsApi } from '@openapi';
-import { ApplicationsListFormService } from '@services/applications-list-form.service';
+import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { buildNormalizedPayload } from '@util/build-payload';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';

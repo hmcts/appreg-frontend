@@ -48,7 +48,7 @@ import {
   ApplicationListEntriesApi,
 } from '@openapi';
 import { ApplicantStep } from '@page-types/applications-list-entry-create';
-import { ApplicationListEntryFormService } from '@services/application-list-entry-form.service';
+import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,

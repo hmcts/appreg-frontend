@@ -57,7 +57,7 @@ import {
 import { IF_MATCH } from '@context/concurrency-context';
 import { Row } from '@core-types/table/row.types';
 import { ApplicationListGetDetailDto, ApplicationListsApi } from '@openapi';
-import { ApplicationsListFormService } from '@services/applications-list-form.service';
+import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import {
   focusField,
