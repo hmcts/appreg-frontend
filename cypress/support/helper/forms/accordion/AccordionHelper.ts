@@ -19,8 +19,9 @@ export class AccordionHelper {
     labelText: string,
     detailsSectionTitle: string,
   ): Cypress.Chainable<JQuery<HTMLElement>> {
-    return AccordionElement.findTextboxInAccordion(labelText, detailsSectionTitle).should(
-      'be.visible',
-    );
+    return AccordionElement.findTextboxInAccordion(
+      labelText,
+      detailsSectionTitle,
+    ).should('be.visible');
   }
 }
