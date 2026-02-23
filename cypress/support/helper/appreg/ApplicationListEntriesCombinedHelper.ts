@@ -10,7 +10,11 @@ export class ApplicationListEntriesCombinedHelper {
    * Performs a search for a specific application entry using unique identifiers
    * @param criteria - Search criteria object (field label -> value)
    */
-  static searchApplicationListEntry({ criteria }: { criteria: Record<string, string>; }): void {
+  static searchApplicationListEntry({
+    criteria,
+  }: {
+    criteria: Record<string, string>;
+  }): void {
     // ensure the search accordion is opened/toggled before interacting with fields
 
     AccordionHelper.toggleAccordion('Advanced search');
