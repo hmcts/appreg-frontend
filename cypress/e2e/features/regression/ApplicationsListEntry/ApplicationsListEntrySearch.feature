@@ -110,7 +110,7 @@ Feature: Applications List Entry Search
             | User  | SearchDate | CourtSearch | Court                             | ApplicantOrg                  | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant                     | Respondent                     | ApplicationTitle                               | Fee | Resulted | Status |
             | user1 | today      | LCCC065     | Leeds Combined Court Centre Set 7 | Applicant Industries {RANDOM} |                  |               |                   |              |                    |           |     |               |               |                  | Application list entries | todaydisplay | Applicant Industries {RANDOM} | Respondent Industries {RANDOM} | Issue of liability order summons - council tax | No  | No       | OPEN   |
 
-    @regression @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076 @TP
+    @regression @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076
     Scenario Outline: Verify Search application list entries are listed in the table on ALE search page with Other Location and CJA, Applicant Person and Respondent Person
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -188,7 +188,7 @@ Feature: Applications List Entry Search
             | User  | Dateiso  | Time           | Description                             | DurationHours | DurationMinutes | otherLocationDescription         | SearchDate | CourtSearch | Court | ApplicantOrg | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA    | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant                | Respondent              | ApplicationTitle                               | Fee | Resulted | Status |
             | user1 | todayiso | timenowhhmm-2h | Applications to review at Test_{RANDOM} | 1             | 11              | Temporary Courtroom at Town Hall |            |             |       |              |                  |               |                   | Open         | BS1 5AA            | 01        | London |               |               |                  | Application list entries | todaydisplay | Mr Henry Taylor {RANDOM} | Ms Emily Clark {RANDOM} | Issue of liability order summons - council tax | No  | No       | OPEN   |
 
-    @ignore @ARCPOC-222 @ARCPOC-442 @ARCPOC-1083
+    @regression @ARCPOC-222 @ARCPOC-442 @ARCPOC-1083
     Scenario: Verify Validation Error Messages on Application list entry Search Page
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
@@ -197,8 +197,8 @@ Feature: Applications List Entry Search
         When User Clicks On The "Search" Button
         Then User Sees Notification Banner "There is a problem Invalid Search Criteria. At least one field must be entered."
         When User Searches Application List Entry With:
-            | Date          | Applicant Org | Respondent Org | CourtSearch | Court | Applicant surname | Respondent surname | List other location | Applicant code | Post code | CJA | Select status | Account reference |
-            | <InvalidDate> | ACME          |                |             |       |                   |                    |                     |                |           |     |               |                   |
+            | Date          | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
+            | <InvalidDate> |             |       | ACME                   |                   |                         |                    |                           |                      |           |                       |                            |                         |                   |
         Then User Sees Notification Banner "There is a problem Enter a valid date"
         When User Clicks On The "Clear search" Button
         Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<InvalidCourt>"
@@ -206,19 +206,20 @@ Feature: Applications List Entry Search
         When User Clicks On The "Search" Button
         Then User Sees Notification Banner "There is a problem Court location not found"
         When User Clicks On The "Clear search" Button
-        Then User Selects "<OptionText>" From The Textbox "CJA" Autocomplete By Typing "<InvalidCJA>"
-        Then User Verifies "<Info>" Is Visible Under The "CJA" Textbox
+        When User Toggles The Accordion "Advanced search"
+        Then User Selects "<OptionText>" From The Textbox "Criminal justice area" Autocomplete By Typing "<InvalidCJA>"
+        Then User Verifies "<Info>" Is Visible Under The "Criminal justice area" Textbox
         When User Clicks On The "Search" Button
         Then User Sees Notification Banner "There is a problem Criminal justice area not found"
         When User Clicks On The "Clear search" Button
         When User Searches Application List Entry With:
-            | Date | Applicant Org | Respondent Org | CourtSearch | Court | Applicant surname | Respondent surname | List other location | Applicant code | Post code         | CJA | Select status | Account reference |
-            |      |               |                |             |       |                   |                    |                     |                | <InvalidPostcode> |     |               |                   |
+            | Date | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
+            |      |             |       |                        |                   |                         |                    |                           | <InvalidPostcode>    |           |                       |                            |                         |                   |
         Then User Sees Notification Banner "There is a problem Enter a valid UK postcode"
         When User Clicks On The "Clear search" Button
         When User Searches Application List Entry With:
-            | Date        | Applicant Org | Respondent Org | CourtSearch | Court | Applicant surname | Respondent surname | List other location | Applicant code | Post code       | CJASearch | CJA | Select status | Account reference |
-            | <ValidDate> | ACME          |                |             |       | Taylor            |                    |                     |                | <ValidPostcode> |           |     | Open          |                   |
+            | Date        | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
+            | <ValidDate> |             |       | ACME                   |                   |                         | Taylor             | Open                      | <ValidPostcode>      |           |                       |                            |                         |                   |
         Then User Sees Notification Banner "Important No application list entries found Try different filters"
         Then User See "No results found." On The Page
         Examples:
