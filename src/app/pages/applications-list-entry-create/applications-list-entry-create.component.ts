@@ -242,6 +242,8 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   onCodeSelected(codeAndLodgementDate: { code: string; date: string }): void {
+    this.appListEntryCreatePatch({ bulkApplicationsAllowed: false });
+
     const prevSelection = {
       code: this.form.controls.applicationCode.value,
       date: this.form.controls.lodgementDate.value,
@@ -265,15 +267,23 @@ export class ApplicationsListEntryCreate implements OnInit {
         )
         .subscribe({
           next: (appCodeDetail) => {
+            let allowBulkApplications = false;
             const hasSelectionChanged =
               prevSelection.code !== codeAndLodgementDate.code;
-
-            this.appListEntryCreatePatch({ appCodeDetail });
 
             // if user selected a different code/date than current form, reset dependent sections
             if (hasSelectionChanged) {
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
             }
+
+            if (appCodeDetail.bulkRespondentAllowed) {
+              allowBulkApplications = true;
+            }
+
+            this.appListEntryCreatePatch({
+              bulkApplicationsAllowed: allowBulkApplications,
+              appCodeDetail,
+            });
           },
           error: () => {},
         });

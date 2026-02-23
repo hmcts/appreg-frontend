@@ -12,6 +12,7 @@ export interface ApplicationsListEntryCreateState {
   errorFound: boolean;
   errorHint: string;
   summaryErrors: ErrorItem[];
+  bulkApplicationsAllowed: boolean
 }
 
 export const initialApplicationsListEntryCreateState: ApplicationsListEntryCreateState =
@@ -24,6 +25,7 @@ export const initialApplicationsListEntryCreateState: ApplicationsListEntryCreat
     errorFound: false,
     errorHint: '',
     summaryErrors: [],
+    bulkApplicationsAllowed: false,
   };
 
 // Clear all error/success/notification states

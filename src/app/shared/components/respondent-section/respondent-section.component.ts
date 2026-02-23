@@ -1,4 +1,4 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, effect, input } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 
 import { ErrorItem } from '@components/error-summary/error-summary.component';
@@ -31,16 +31,33 @@ export class RespondentSectionComponent {
   readonly form = input.required<ApplicationsListEntryForm>();
   readonly personGroup = input.required<PersonForm>();
   readonly organisationGroup = input.required<OrganisationForm>();
+  readonly bulkAllowed = input<boolean>(false);
 
   readonly respondentEntryTypeOptions =
     input.required<readonly { value: RespondentEntryType; label: string }[]>();
 
   // app-select-input expects mutable
-  readonly selectOptions = computed(() => [
-    ...this.respondentEntryTypeOptions(),
-  ]);
+  // Only show 'Bulk Applications' if application code allows it
+  readonly selectOptions = computed(() => {
+    const options = [...this.respondentEntryTypeOptions()];
+    return this.bulkAllowed()
+      ? options
+      : options.filter((o) => o.value !== 'bulk');
+  });
 
   readonly personTitleOptions = input<Option<string>[]>([]);
   readonly submitted = input(false);
   readonly errorItems = input<readonly ErrorItem[]>([]);
+
+  constructor() {
+    // Reset type if bulkAllowed is set to false
+    effect(() => {
+      if (
+        !this.bulkAllowed() &&
+        this.form().controls.respondentEntryType.value === 'bulk'
+      ) {
+        this.form().controls.respondentEntryType.setValue('person');
+      }
+    });
+  }
 }

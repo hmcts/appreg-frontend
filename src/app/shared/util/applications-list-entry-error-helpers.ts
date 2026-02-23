@@ -43,5 +43,9 @@ export function buildRespondentErrors<TErrorMessages extends ErrorMessageMap>({
     });
   }
 
+  if (respondentEntryType === 'bulk') {
+    // TODO: fill this in
+  }
+
   return [];
 }

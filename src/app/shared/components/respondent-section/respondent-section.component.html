@@ -33,6 +33,8 @@
     />
   }
   @case ('bulk') {
-    <app-respondent-bulk-application></app-respondent-bulk-application>
+    @if (bulkAllowed()) {
+      <app-respondent-bulk-application></app-respondent-bulk-application>
+    }
   }
 }

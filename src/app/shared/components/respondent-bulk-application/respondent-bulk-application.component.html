@@ -1,1 +1,10 @@
-<p>respondent-bulk-application works!</p>
+<h3 class="govuk-heading-m">Bulk Application</h3>
+
+<div class="govuk-grid-row">
+  <app-text-input
+      label="Number of respondents"
+      [idPrefix]="'respondent-bulk-application'"
+      [submitted]="submitted()"
+      [suppressError]="false"
+    />
+</div>
