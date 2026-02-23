@@ -1,6 +1,6 @@
 Feature: Applications List Entry Search
 
-    @ignore @ARCPOC-222 @ARCPOC-442 @ARCPOC-1086
+    @regression @ARCPOC-222 @ARCPOC-442 @ARCPOC-1086
     Scenario: Verify components on applications list entry (ALE) search page
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
@@ -24,42 +24,169 @@ Feature: Applications List Entry Search
         Then User Should See The Button "Search"
         Then User Should See The Button "Clear search"
 
-    @ignore @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052
+    @regression @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052
     Scenario Outline: Verify applications list entry table shows empty state with no results
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         Then User clicks on the link using exact text match "Applications"
         Then User Verify The Page URL Contains "/applications"
         When User Searches Application List Entry With:
-            | Date         | Applicant Org | Respondent Org | CourtSearch | Court | Applicant surname | Respondent surname | List other location | Applicant code | Post code | CJA | Select status | Account reference |
-            | <SearchDate> |               |                |             |       |                   |                    |                     |                |           |     |               |                   |
-        When User Clicks On The "Search" Button
+            | Date         | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | Criminal justice area | Other location description | Standard applicant code | Account reference |
+            | <SearchDate> |             |       |                        |                   |                         |                    |                           |                      |                       |                            |                         |                   |
         Then User Sees Notification Banner "<NotificationMessage>"
         Then User See "No results found." On The Page
         Examples:
             | User  | SearchDate | NotificationMessage                                               |
             | user1 | 15/08/2023 | Important No application list entries found Try different filters |
 
-    @ignore @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076
-    Scenario Outline: Verify Search application list entries are listed in the table on ALE search page
+    @regression @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076
+    Scenario Outline: Verify Search application list entries are listed in the table on ALE search page with Court, Applicant Orgs and Respondent Orgs
+        Given User Authenticates Via API As "<User>"
+        When User Makes POST API Request To "/application-lists" With Body:
+            | date     | time           | status | description                             | durationHours | durationMinutes | courtLocationCode |
+            | todayiso | timenowhhmm-2h | OPEN   | Applications to review at Test_{RANDOM} | 2             | 22              | LCCC065           |
+        Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "listId"
+        When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
+            | standardApplicantCode                               | null                           |
+            | applicationCode                                     | CT99002                        |
+            | applicant.organisation.name                         | Applicant Industries {RANDOM}  |
+            | applicant.organisation.contactDetails.addressLine1  | {RANDOM} King Street           |
+            | applicant.organisation.contactDetails.addressLine2  | Westminster                    |
+            | applicant.organisation.contactDetails.addressLine3  | London                         |
+            | applicant.organisation.contactDetails.addressLine4  | Greater London                 |
+            | applicant.organisation.contactDetails.addressLine5  | United Kingdom                 |
+            | applicant.organisation.contactDetails.postcode      | SW1A 1AA                       |
+            | applicant.organisation.contactDetails.phone         | 0203{RANDOM}                   |
+            | applicant.organisation.contactDetails.mobile        | 07123{RANDOM}                  |
+            | applicant.organisation.contactDetails.email         | applicant{RANDOM}@example.com  |
+            | respondent.organisation.name                        | Respondent Industries {RANDOM} |
+            | respondent.organisation.contactDetails.addressLine1 | {RANDOM} Market Road           |
+            | respondent.organisation.contactDetails.addressLine2 | Bristol                        |
+            | respondent.organisation.contactDetails.addressLine3 | Avon                           |
+            | respondent.organisation.contactDetails.addressLine4 | United Kingdom                 |
+            | respondent.organisation.contactDetails.postcode     | BS1 5AA                        |
+            | respondent.organisation.contactDetails.phone        | 0117{RANDOM}                   |
+            | respondent.organisation.contactDetails.mobile       | 07984{RANDOM}                  |
+            | respondent.organisation.contactDetails.email        | respondent{RANDOM}@example.com |
+            | wordingFields.0.key                                 | Reference                      |
+            | wordingFields.0.value                               | {RANDOM}                       |
+            | hasOffsiteFee                                       | true                           |
+            | caseReference                                       | CASE-{RANDOM}                  |
+            | accountNumber                                       | ACC-{RANDOM}                   |
+            | notes                                               | Case noted with ref {RANDOM}   |
+            | lodgementDate                                       | todayiso                       |
+            | officials.0.title                                   | Mr                             |
+            | officials.0.surname                                 | Turner {RANDOM}                |
+            | officials.0.forename                                | Graham                         |
+            | officials.0.type                                    | MAGISTRATE                     |
+            | officials.1.title                                   | Ms                             |
+            | officials.1.surname                                 | Hayes {RANDOM}                 |
+            | officials.1.forename                                | Laura                          |
+            | officials.1.type                                    | MAGISTRATE                     |
+            | officials.2.title                                   | Mr                             |
+            | officials.2.surname                                 | Miller {RANDOM}                |
+            | officials.2.forename                                | Peter                          |
+            | officials.2.type                                    | CLERK                          |
+            | officials.3.title                                   | Ms                             |
+            | officials.3.surname                                 | Patel {RANDOM}                 |
+            | officials.3.forename                                | Anita                          |
+            | officials.3.type                                    | MAGISTRATE                     |
+        Then User Verify Response Status Code Should Be "201"
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         Then User clicks on the link using exact text match "Applications"
         And User Verify The Page URL Contains "/applications"
         When User Searches Application List Entry With:
-            | Date         | Applicant Org  | Respondent Org  | CourtSearch   | Court   | Applicant surname  | Respondent surname  | List other location | Applicant code  | Post code  | CJASearch   | CJA   | Select status  | Account reference  |
-            | <SearchDate> | <ApplicantOrg> | <RespondentOrg> | <CourtSearch> | <Court> | <ApplicantSurname> | <RespondentSurname> | <OtherLocation>     | <ApplicantCode> | <PostCode> | <CJASearch> | <CJA> | <SelectStatus> | <AccountReference> |
+            | Date         | CourtSearch   | Court   | Applicant organisation | Applicant surname  | Respondent organisation | Respondent surname  | Select application status | Respondent post code | CJASearch   | Criminal justice area | Other location description | Standard applicant code | Account reference  |
+            | <SearchDate> | <CourtSearch> | <Court> | <ApplicantOrg>         | <ApplicantSurname> | <RespondentOrg>         | <RespondentSurname> | <SelectStatus>            | <RespondentPostcode> | <CJASearch> | <CJA>                 | <OtherLocation>            | <ApplicantCode>         | <AccountReference> |
+
         Then User Should See Table "<TableName>" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
         And User Should See Table "<TableName>" Header "Actions" Is Not Sortable
         And User Should See Row In Table "<TableName>" With Values:
-            | Date         | Applicant   | Respondent   | Application title  | Fee   | Resulted   | Status   |
-            | <ResultDate> | <Applicant> | <Respondent> | <ApplicationTitle> | <Fee> | <Resulted> | <Status> |
+            | Date          | Applicant   | Respondent   | Application title  | Fee   | Resulted   | Status   |
+            | <DisplayDate> | <Applicant> | <Respondent> | <ApplicationTitle> | <Fee> | <Resulted> | <Status> |
         Examples:
-            | User  | SearchDate | ApplicantOrg | RespondentOrg | CourtSearch | Court                             | ApplicantSurname | RespondentSurname | OtherLocation | ApplicantCode | PostCode | CJASearch | CJA         | SelectStatus | AccountReference | TableName                | ResultDate | Applicant                        | Respondent                                      | ApplicationTitle                                     | Fee | Resulted | Status |
-            | user1 | 28/01/2026 | ACME         |               |             |                                   |                  |                   |               |               |          |           |             |              |                  | Application list entries | 28/01/2026 | ACME Industries LTD              | Beta Solutions Inc                              | Condemnation of Unfit Food                           | No  | No       | CLOSED |
-            | user1 | 26/01/2026 |              | Beta          |             |                                   |                  |                   |               |               |          |           |             |              |                  | Application list entries | 26/01/2026 | ACME Industries LTD              | Beta Solutions Inc                              | Condemnation of Unfit Food                           | No  | No       | Closed |
-            | user1 | 28/01/2026 |              |               | LCCC025     | Leeds Combined Court Centre Set 3 | Taylor           |                   |               |               |          |           |             |              |                  | Application list entries | 28/01/2026 | Mr Henry Taylor 35874            | Ms Emily Clark 35874                            | Issue of liability order summons - council tax       | No  | No       | OPEN   |
-            | user1 |            |              |               |             |                                   |                  |                   | MCJC002       |               |          | 10        | Southampton |              |                  | Application list entries | 13/01/2026 | Test Organisation 13 - applicant | Mr TestForenameRespondent TestSurnameRespondent | Issue of liability order summons - non-domestic rate | No  | No       | OPEN   |
+            | User  | SearchDate | CourtSearch | Court                             | ApplicantOrg                  | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant                     | Respondent                     | ApplicationTitle                               | Fee | Resulted | Status |
+            | user1 | today      | LCCC065     | Leeds Combined Court Centre Set 7 | Applicant Industries {RANDOM} |                  |               |                   |              |                    |           |     |               |               |                  | Application list entries | todaydisplay | Applicant Industries {RANDOM} | Respondent Industries {RANDOM} | Issue of liability order summons - council tax | No  | No       | OPEN   |
+
+    @regression @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076 @TP
+    Scenario Outline: Verify Search application list entries are listed in the table on ALE search page with Other Location and CJA, Applicant Person and Respondent Person
+        Given User Authenticates Via API As "<User>"
+        When User Makes POST API Request To "/application-lists" With Body:
+            | date      | time   | status   | description   | durationHours   | durationMinutes   | otherLocationDescription   | cjaCode     |
+            | <Dateiso> | <Time> | <Status> | <Description> | <DurationHours> | <DurationMinutes> | <OtherLocationDescription> | <CJASearch> |
+        Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "listId"
+        When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
+            | standardApplicantCode                         | null                           |
+            | applicationCode                               | CT99002                        |
+            | applicant.person.name.title                   | Mr                             |
+            | applicant.person.name.surname                 | Taylor {RANDOM}                |
+            | applicant.person.name.firstForename           | Henry                          |
+            | applicant.person.name.secondForename          | James                          |
+            | applicant.person.contactDetails.addressLine1  | {RANDOM} King Street           |
+            | applicant.person.contactDetails.addressLine2  | Westminster                    |
+            | applicant.person.contactDetails.addressLine3  | London                         |
+            | applicant.person.contactDetails.addressLine4  | Greater London                 |
+            | applicant.person.contactDetails.addressLine5  | United Kingdom                 |
+            | applicant.person.contactDetails.postcode      | SW1A 1AA                       |
+            | applicant.person.contactDetails.phone         | 0203{RANDOM}                   |
+            | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
+            | applicant.person.contactDetails.email         | applicant{RANDOM}@example.com  |
+            | respondent.person.name.title                  | Ms                             |
+            | respondent.person.name.surname                | Clark {RANDOM}                 |
+            | respondent.person.name.firstForename          | Emily                          |
+            | respondent.person.name.secondForename         | Rose                           |
+            | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Road           |
+            | respondent.person.contactDetails.addressLine2 | Bristol                        |
+            | respondent.person.contactDetails.addressLine3 | Avon                           |
+            | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
+            | respondent.person.contactDetails.postcode     | BS1 5AA                        |
+            | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
+            | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
+            | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
+            | respondent.dateOfBirth                        | todayiso-25y                   |
+            | wordingFields.0.key                           | Reference                      |
+            | wordingFields.0.value                         | {RANDOM}                       |
+            | hasOffsiteFee                                 | true                           |
+            | caseReference                                 | CASE-{RANDOM}                  |
+            | accountNumber                                 | ACC-{RANDOM}                   |
+            | notes                                         | Case noted with ref {RANDOM}   |
+            | lodgementDate                                 | todayiso                       |
+            | officials.0.title                             | Mr                             |
+            | officials.0.surname                           | Turner {RANDOM}                |
+            | officials.0.forename                          | Graham                         |
+            | officials.0.type                              | MAGISTRATE                     |
+            | officials.1.title                             | Ms                             |
+            | officials.1.surname                           | Hayes {RANDOM}                 |
+            | officials.1.forename                          | Laura                          |
+            | officials.1.type                              | MAGISTRATE                     |
+            | officials.2.title                             | Mr                             |
+            | officials.2.surname                           | Miller {RANDOM}                |
+            | officials.2.forename                          | Peter                          |
+            | officials.2.type                              | CLERK                          |
+            | officials.3.title                             | Ms                             |
+            | officials.3.surname                           | Patel {RANDOM}                 |
+            | officials.3.forename                          | Anita                          |
+            | officials.3.type                              | MAGISTRATE                     |
+        Then User Verify Response Status Code Should Be "201"
+        Given User Is On The Portal Page
+        When User Signs In With Microsoft SSO As "<User>"
+        Then User clicks on the link using exact text match "Applications"
+        And User Verify The Page URL Contains "/applications"
+        When User Searches Application List Entry With:
+            | Date         | CourtSearch   | Court   | Applicant organisation | Applicant surname  | Respondent organisation | Respondent surname  | Select application status | Respondent post code | CJASearch   | Criminal justice area | Other location description | Standard applicant code | Account reference  |
+            | <SearchDate> | <CourtSearch> | <Court> | <ApplicantOrg>         | <ApplicantSurname> | <RespondentOrg>         | <RespondentSurname> | <SelectStatus>            | <RespondentPostcode> | <CJASearch> | <CJA>                 | <OtherLocation>            | <ApplicantCode>         | <AccountReference> |
+
+        Then User Should See Table "<TableName>" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
+        And User Should See Table "<TableName>" Header "Actions" Is Not Sortable
+        And User Should See Row In Table "<TableName>" With Values:
+            | Date          | Applicant   | Respondent   | Application title  | Fee   | Resulted   | Status   |
+            | <DisplayDate> | <Applicant> | <Respondent> | <ApplicationTitle> | <Fee> | <Resulted> | <Status> |
+        Examples:
+            | User  | Dateiso  | Time           | Description                             | DurationHours | DurationMinutes | otherLocationDescription         | SearchDate | CourtSearch | Court | ApplicantOrg | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA    | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant                | Respondent              | ApplicationTitle                               | Fee | Resulted | Status |
+            | user1 | todayiso | timenowhhmm-2h | Applications to review at Test_{RANDOM} | 1             | 11              | Temporary Courtroom at Town Hall |            |             |       |              |                  |               |                   | Open         | BS1 5AA            | 01        | London |               |               |                  | Application list entries | todaydisplay | Mr Henry Taylor {RANDOM} | Ms Emily Clark {RANDOM} | Issue of liability order summons - council tax | No  | No       | OPEN   |
 
     @ignore @ARCPOC-222 @ARCPOC-442 @ARCPOC-1083
     Scenario: Verify Validation Error Messages on Application list entry Search Page

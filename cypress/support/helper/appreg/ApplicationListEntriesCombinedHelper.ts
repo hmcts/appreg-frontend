@@ -1,4 +1,5 @@
 import { processDatatableRow } from '../../utils/TestDataGenerator';
+import { AccordionHelper } from '../forms/accordion/AccordionHelper';
 import { ButtonHelper } from '../forms/button/ButtonHelper';
 import { DateTimeHelper } from '../forms/datetime/DateTimeHelper';
 import { DropdownHelper } from '../forms/dropdown/DropdownHelper';
@@ -9,7 +10,11 @@ export class ApplicationListEntriesCombinedHelper {
    * Performs a search for a specific application entry using unique identifiers
    * @param criteria - Search criteria object (field label -> value)
    */
-  static searchApplicationListEntry(criteria: Record<string, string>): void {
+  static searchApplicationListEntry(criteria: Record<string, string>) {
+    // ensure the search accordion is opened/toggled before interacting with fields
+
+    AccordionHelper.toggleAccordion('Advanced search');
+
     const processedCriteria = processDatatableRow(criteria);
 
     cy.log(
@@ -27,11 +32,11 @@ export class ApplicationListEntriesCombinedHelper {
           DateTimeHelper.setDateValue('Date', value);
           break;
 
-        case 'Applicant Org':
+        case 'Applicant organisation':
           TextboxHelper.typeInTextbox('Applicant Org', value);
           break;
 
-        case 'Respondent Org':
+        case 'Respondent organisation':
           TextboxHelper.typeInTextbox('Respondent Org', value);
           break;
 
@@ -65,23 +70,30 @@ export class ApplicationListEntriesCombinedHelper {
           TextboxHelper.typeInTextbox('Applicant code', value);
           break;
 
-        case 'Post code':
-          TextboxHelper.typeInTextbox('Post code', value);
+        case 'Respondent post code':
+          TextboxHelper.typeInTextbox('Respondent post code', value);
           break;
 
         case 'CJASearch':
           // handled in CJA case
           break;
 
-        case 'CJA': {
+        case 'Criminal justice area': {
           const cjaSearchText = processedCriteria['CJASearch'] || value;
-          TextboxHelper.selectAutocompleteOption('CJA', cjaSearchText, value);
+          TextboxHelper.selectAutocompleteOption(
+            'Criminal justice area',
+            cjaSearchText,
+            value,
+          );
           break;
         }
 
-        case 'Select status':
+        case 'Select application status':
           if (value !== 'Choose') {
-            DropdownHelper.selectDropdownOption('Select status', value);
+            DropdownHelper.selectDropdownOption(
+              'Select application status',
+              value,
+            );
           }
           break;
 
@@ -94,8 +106,6 @@ export class ApplicationListEntriesCombinedHelper {
           break;
       }
     }
-
-    ButtonHelper.isButtonEnabled('Search');
     ButtonHelper.clickButton('Search');
   }
 }
