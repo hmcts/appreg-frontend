@@ -4,7 +4,7 @@ import { ApplicationListEntriesCombinedHelper } from '../../../support/helper/ap
 
 When('User Searches Application List Entry With:', (dataTable: DataTable) => {
   const searchCriteria = dataTable.hashes()[0];
-  ApplicationListEntriesCombinedHelper.searchApplicationListEntry(
-    searchCriteria,
-  );
+  ApplicationListEntriesCombinedHelper.searchApplicationListEntry({
+    criteria: searchCriteria,
+  });
 });

@@ -63,9 +63,9 @@ export class ApplicationListCombinedHelper {
           break;
         }
 
-        case 'Status':
+        case 'Select list status':
           if (value !== 'Choose') {
-            DropdownHelper.selectDropdownOption('Select status', value);
+            DropdownHelper.selectDropdownOption('Select list status', value);
           }
           break;
 
