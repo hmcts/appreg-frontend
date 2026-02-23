@@ -4,7 +4,7 @@ import { ApplicationNotesForm } from '@components/notes-section/notes-section.co
 import { Applicant, FeeStatus, Respondent } from '@openapi';
 
 export type ApplicantType = 'person' | 'org' | 'standard';
-export type RespondentEntryType = 'person' | 'organisation';
+export type RespondentEntryType = 'person' | 'organisation' | 'bulk';
 
 export type ApplicationListEntryForms = {
   form: ApplicationsListEntryForm;
