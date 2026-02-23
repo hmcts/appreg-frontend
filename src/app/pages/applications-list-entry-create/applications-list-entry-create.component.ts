@@ -52,6 +52,7 @@ import {
 } from '@constants/application-list-entry/respondent/error-hrefs';
 import { ApplicationCodesApi, ApplicationListEntriesApi } from '@openapi';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
+import { buildRespondentErrors } from '@util/applications-list-entry-error-helpers';
 import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
@@ -202,17 +203,12 @@ export class ApplicationsListEntryCreate implements OnInit {
         error: (err: HttpErrorResponse) => {
           const errorHintMsg = getProblemText(err);
 
-          // this.errorFound = true;
-          // this.errorHint = getProblemText(err);
-
           this.appListEntryCreatePatch({
             errorFound: true,
             errorHint: errorHintMsg,
           });
         },
       });
-    // this.submitted = false;
-
     this.appListEntryCreatePatch({ submitted: false });
   }
 
@@ -227,6 +223,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private updateAllErrors(): void {
+    // TODO: we need to check app code to see if respondent is required, if not then skip. Also run validation if the user has put any values in this form.
     this.updateRespondentErrors();
 
     this.parentErrors = this.buildErrorSummary();
@@ -281,37 +278,13 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private updateRespondentErrors(): void {
-    // TODO: shared function in src/app/pages/applications-list-entry-detail/applications-list-entry-detail.component.ts so we should move this into a shared area to reuse.
-    const t = this.form.controls.respondentEntryType.value;
-
-    if (t === 'person') {
-      this.forms.respondentPersonForm.markAllAsTouched();
-      this.forms.respondentPersonForm.updateValueAndValidity({
-        emitEvent: false,
-      });
-
-      this.childErrors.respondent = buildFormErrorSummary(
-        this.forms.respondentPersonForm,
-        ENTRY_ERROR_MESSAGES,
-        { hrefs: RESPONDENT_PERSON_ERROR_HREFS },
-      );
-      return;
-    }
-
-    if (t === 'organisation') {
-      this.forms.respondentOrganisationForm.markAllAsTouched();
-      this.forms.respondentOrganisationForm.updateValueAndValidity({
-        emitEvent: false,
-      });
-
-      this.childErrors.respondent = buildFormErrorSummary(
-        this.forms.respondentOrganisationForm,
-        ENTRY_ERROR_MESSAGES,
-        { hrefs: RESPONDENT_ORG_ERROR_HREFS },
-      );
-      return;
-    }
-
-    this.childErrors.respondent = [];
+    this.childErrors.respondent = buildRespondentErrors({
+      respondentEntryType: this.form.controls.respondentEntryType.value,
+      respondentPersonForm: this.forms.respondentPersonForm,
+      respondentOrganisationForm: this.forms.respondentOrganisationForm,
+      errorMessages: ENTRY_ERROR_MESSAGES,
+      respondentPersonHrefs: RESPONDENT_PERSON_ERROR_HREFS,
+      respondentOrganisationHrefs: RESPONDENT_ORG_ERROR_HREFS,
+    });
   }
 }

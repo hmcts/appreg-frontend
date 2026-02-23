@@ -113,6 +113,7 @@ import {
 } from '@shared-types/civil-fee/civil-fee';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import { CodeRow } from '@util/application-code-helpers';
+import { buildRespondentErrors } from '@util/applications-list-entry-error-helpers';
 import {
   addOrReplaceFeeStatus,
   applyPaymentReferenceUpdateToFeeStatuses,
@@ -464,37 +465,14 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   private updateRespondentErrors(): void {
-    const t = this.form.controls.respondentEntryType.value;
-
-    if (t === 'person') {
-      this.forms.respondentPersonForm.markAllAsTouched();
-      this.forms.respondentPersonForm.updateValueAndValidity({
-        emitEvent: false,
-      });
-
-      this.childErrors.respondent = buildFormErrorSummary(
-        this.forms.respondentPersonForm,
-        UPDATE_ENTRY_ERROR_MESSAGES,
-        { hrefs: RESPONDENT_PERSON_ERROR_HREFS },
-      );
-      return;
-    }
-
-    if (t === 'organisation') {
-      this.forms.respondentOrganisationForm.markAllAsTouched();
-      this.forms.respondentOrganisationForm.updateValueAndValidity({
-        emitEvent: false,
-      });
-
-      this.childErrors.respondent = buildFormErrorSummary(
-        this.forms.respondentOrganisationForm,
-        UPDATE_ENTRY_ERROR_MESSAGES,
-        { hrefs: RESPONDENT_ORG_ERROR_HREFS },
-      );
-      return;
-    }
-
-    this.childErrors.respondent = [];
+    this.childErrors.respondent = buildRespondentErrors({
+      respondentEntryType: this.form.controls.respondentEntryType.value,
+      respondentPersonForm: this.forms.respondentPersonForm,
+      respondentOrganisationForm: this.forms.respondentOrganisationForm,
+      errorMessages: UPDATE_ENTRY_ERROR_MESSAGES,
+      respondentPersonHrefs: RESPONDENT_PERSON_ERROR_HREFS,
+      respondentOrganisationHrefs: RESPONDENT_ORG_ERROR_HREFS,
+    });
   }
 
   private updateAllErrors(): void {
