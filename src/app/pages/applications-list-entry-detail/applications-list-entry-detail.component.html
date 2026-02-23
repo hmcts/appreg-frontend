@@ -36,65 +36,24 @@
 
 <form [formGroup]="form">
   <ng-template #applicantTpl>
-    <h3 class="govuk-heading-m">Application entry type</h3>
-    <div class="govuk-grid-row">
-      <app-select-input
-        formControlName="applicantType"
-        label="Select type"
-        hint="The type of applicant for this application"
-        idPrefix="application-entry-type"
-        [options]="applicantEntryTypeOptions"
-      ></app-select-input>
-    </div>
-
-    <hr
-      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+    <app-applicant-section
+      [form]="form"
+      [applicantType]="applicantType"
+      [personGroup]="personGroup"
+      [organisationGroup]="organisationGroup"
+      [submitted]="formSubmitted()"
+      [errorItems]="applicantErrorItems"
+      [selectedStandardApplicantCode]="selectedStandardApplicantCode"
+      (standardApplicantCodeChange)="onStandardApplicantCodeChanged($event)"
+      [isUpdateDisabled]="isUpdateDisabled"
+      (updateClicked)="onUpdateApplicant()"
+      [showUpdateButton]="true"
+      updateButtonText="Update applicant"
     />
-
-    @switch (applicantType) {
-      @case ('person') {
-        <app-person-section
-          scopeId="applicant"
-          [group]="personGroup"
-          [titleOptions]="personTitleOptions"
-          [submitted]="formSubmitted"
-          [errors]="applicantErrorItems"
-        />
-      }
-      @case ('org') {
-        <app-organisation-section
-          scopeId="applicant"
-          [group]="organisationGroup"
-          [submitted]="formSubmitted"
-          [errors]="applicantErrorItems"
-        />
-      }
-      @case ('standard') {
-        <app-standard-applicant-select
-          [selectedCode]="selectedStandardApplicantCode"
-          (selectedCodeChange)="onStandardApplicantCodeChanged($event)"
-        />
-      }
-    }
-
-    <hr
-      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
-    />
-
-    <button
-      type="button"
-      class="govuk-button"
-      id="btn-update-applicant"
-      [attr.data-applicant-type]="applicantType"
-      [disabled]="isUpdateDisabled"
-      (click)="onUpdateApplicant()"
-    >
-      Update applicant
-    </button>
   </ng-template>
 
   <ng-template #codesTpl>
-    @if (formReady) {
+    @if (formReady()) {
       <app-application-code-search
         [patchedFormData]="this.form"
         (selectCodeAndLodgementDate)="onCodeSelected($event)"
@@ -130,7 +89,7 @@
       [organisationGroup]="forms.respondentOrganisationForm"
       [respondentEntryTypeOptions]="respondentEntryTypeOptions"
       [personTitleOptions]="personTitleOptions"
-      [submitted]="formSubmitted"
+      [submitted]="formSubmitted()"
       [errorItems]="respondentErrorItems"
     />
   </ng-template>

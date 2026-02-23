@@ -4,6 +4,11 @@
     "outDir": "./out-tsc/app",
     "types": ["node"]
   },
-  "include": ["server/**/*.ts", "src/**/*.ts", "server/msal.ts"],
+  "include": [
+    "server/**/*.ts",
+    "src/**/*.ts",
+    "server/msal.ts",
+    "test/unit/app/shared/components/applicant-section/applicant-section.component.spec.ts"
+  ],
   "exclude": ["src/**/*.spec.ts", "test"]
 }

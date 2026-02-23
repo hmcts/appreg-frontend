@@ -31,6 +31,7 @@ import {
   OnInit,
   PLATFORM_ID,
   inject,
+  signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -40,7 +41,6 @@ import { map } from 'rxjs';
 import { computeSuccessBanner, focusSuccessBanner } from './util/banners.util';
 import {
   APPLICANT_COLUMNS,
-  APPLICANT_TYPE_OPTIONS,
   CIVIL_FEE_COLUMNS,
   CODES_COLUMNS,
   FEE_STATUS_OPTIONS,
@@ -53,6 +53,7 @@ import { mapHttpErrorToSummary } from './util/errors.util';
 import { getEntryId } from './util/routing.util';
 
 import { AccordionComponent } from '@components/accordion/accordion.component';
+import { ApplicantSectionComponent } from '@components/applicant-section/applicant-section.component';
 import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
 import {
   ApplicantContext,
@@ -72,13 +73,10 @@ import {
   ApplicationNotesForm,
   NotesSectionComponent,
 } from '@components/notes-section/notes-section.component';
-import { OrganisationSectionComponent } from '@components/organisation-section/organisation-section.component';
-import { PersonSectionComponent } from '@components/person-section/person-section.component';
 import { RespondentSectionComponent } from '@components/respondent-section/respondent-section.component';
 import { ResultWordingSectionComponent } from '@components/result-wording-section/result-wording-section.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
 import { TableColumn } from '@components/selectable-sortable-table/selectable-sortable-table.component';
-import { StandardApplicantSelectComponent } from '@components/standard-applicant-select/standard-applicant-select.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
@@ -157,17 +155,15 @@ export const ERROR_HREFS = {
     BreadcrumbsComponent,
     AccordionComponent,
     SelectInputComponent,
-    PersonSectionComponent,
-    OrganisationSectionComponent,
     TextInputComponent,
     ErrorSummaryComponent,
     SuccessBannerComponent,
-    StandardApplicantSelectComponent,
     NotesSectionComponent,
     RespondentSectionComponent,
     ResultWordingSectionComponent,
     CivilFeeSectionComponent,
     ApplicationCodeSearchComponent,
+    ApplicantSectionComponent,
   ],
   templateUrl: './applications-list-entry-detail.component.html',
 })
@@ -194,12 +190,13 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   forms!: ApplicationListEntryForms;
 
-  formReady = false;
+  formReady = signal(false);
+  formSubmitted = signal(false);
+
   form!: ApplicationsListEntryForm;
   personForm!: PersonForm;
   organisationForm!: OrganisationForm;
 
-  formSubmitted = false;
   selectedStandardApplicantCode: string | null = null;
 
   private entryDetail: EntryGetDetailDto | null = null;
@@ -232,7 +229,6 @@ export class ApplicationsListEntryDetail implements OnInit {
   civilFeeColumns: TableColumn[] = CIVIL_FEE_COLUMNS;
 
   feeStatusOptions = FEE_STATUS_OPTIONS;
-  applicantEntryTypeOptions = APPLICANT_TYPE_OPTIONS;
   respondentEntryTypeOptions = RESPONDENT_TYPE_OPTIONS;
   personTitleOptions = PERSON_TITLE_OPTIONS;
 
@@ -528,7 +524,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   onUpdateApplicant(): void {
     this.resetErrors();
     this.resetSuccessBanner();
-    this.formSubmitted = true;
+    this.formSubmitted.set(true);
 
     // Run Angular validation
     this.form.markAllAsTouched();
@@ -573,7 +569,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
-          this.formSubmitted = false;
+          this.formSubmitted.set(false);
           this.errorFound = false;
           this.mergeEntryDetailUpdate(entryUpdateDto, res);
 
@@ -586,7 +582,7 @@ export class ApplicationsListEntryDetail implements OnInit {
           }
         },
         error: (err) => {
-          this.formSubmitted = false;
+          this.formSubmitted.set(false);
           this.applyMappedError(err);
           focusErrorSummary(this.platformId);
         },
@@ -756,11 +752,11 @@ export class ApplicationsListEntryDetail implements OnInit {
               feeAmount: codeDto.feeAmount ?? null,
               offsiteFeeAmount: codeDto.offsiteFeeAmount ?? null,
             };
-            this.formReady = true;
+            this.formReady.set(true);
           },
           error: () => {
             this.form.patchValue({ applicationTitle: '' });
-            this.formReady = true;
+            this.formReady.set(true);
           },
         });
     }
@@ -773,7 +769,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         map((type): ApplicantType => type ?? 'person'),
       )
       .subscribe((t) => {
-        this.formSubmitted = false;
+        this.formSubmitted.set(false);
         this.resetErrors();
 
         // keep UI state in sync

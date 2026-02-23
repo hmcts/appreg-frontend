@@ -5,5 +5,8 @@
     "types": ["jest", "node"]
   },
   "files": ["setup.jest.ts"],
-  "include": ["src/**/*.ts"]
+  "include": [
+    "src/**/*.ts",
+    "test/unit/app/shared/components/applicant-section/applicant-section.component.spec.ts"
+  ]
 }

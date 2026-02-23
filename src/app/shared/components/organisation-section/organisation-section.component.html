@@ -4,12 +4,12 @@
   <div class="govuk-grid-row">
     <app-text-input
       formControlName="name"
-      label="Organisation Name"
-      hint="The name of the organisation"
+      label="Organisation name"
       [idPrefix]="scopeId() + '-org-name'"
       [submitted]="submitted()"
       [suppressError]="false"
       [error]="errorFor(scopeId() + '-org-name')"
+      widthClass="govuk-!-width-full"
     />
   </div>
 
@@ -22,51 +22,64 @@
     <app-text-input
       formControlName="addressLine1"
       label="Address line 1"
-      hint="Building and street"
       [idPrefix]="scopeId() + '-org-address-line-1'"
       [submitted]="submitted()"
       [suppressError]="false"
       [error]="errorFor(scopeId() + '-org-address-line-1')"
+      widthClass="govuk-!-width-full"
     />
+  </div>
+
+  <div class="govuk-grid-row">
     <app-text-input
       formControlName="addressLine2"
       label="Address line 2"
-      hint="District or locality (optional)"
       [idPrefix]="scopeId() + '-org-address-line-2'"
       [error]="errorFor(scopeId() + '-org-address-line-2')"
+      widthClass="govuk-!-width-full"
     />
+  </div>
+
+  <div class="govuk-grid-row">
     <app-text-input
       formControlName="addressLine3"
-      label="Address line 3"
-      hint="Town or city"
+      label="Town or city"
       [idPrefix]="scopeId() + '-org-address-line-3'"
       [error]="errorFor(scopeId() + '-org-address-line-3')"
+      widthClass="govuk-!-width-full"
     />
+  </div>
+
+  <div class="govuk-grid-row">
     <app-text-input
       formControlName="addressLine4"
-      label="Address line 4"
-      hint="County or region"
+      label="County or region"
       [idPrefix]="scopeId() + '-org-address-line-4'"
       [error]="errorFor(scopeId() + '-org-address-line-4')"
+      widthClass="govuk-!-width-full"
     />
   </div>
 
   <div class="govuk-grid-row">
     <app-text-input
       formControlName="addressLine5"
-      label="Address line 5"
-      hint="Post town, e.g. Manchester"
+      label="Post town"
       [idPrefix]="scopeId() + '-org-address-line-5'"
       [error]="errorFor(scopeId() + '-org-address-line-5')"
+      widthClass="govuk-!-width-full"
     />
+  </div>
+
+  <div class="govuk-grid-row">
     <app-text-input
       formControlName="postcode"
       label="Postcode"
-      hint="e.g. SW1A 2AA"
+      hint="For example, SW1A 2AA"
       [idPrefix]="scopeId() + '-org-postcode'"
       [submitted]="submitted()"
       [suppressError]="true"
       [error]="errorFor(scopeId() + '-org-postcode')"
+      containerWidthClass="govuk-grid-column-one-half"
     />
   </div>
 
@@ -79,32 +92,41 @@
     <app-text-input
       formControlName="phoneNumber"
       label="Phone number"
-      hint="Enter the organisation's landline, e.g. 020 7946 0000"
+      hint="For example, 020 7946 0000"
       [idPrefix]="scopeId() + '-org-phone-number'"
       inputType="tel"
       [submitted]="submitted()"
       [suppressError]="true"
       [error]="errorFor(scopeId() + '-org-phone-number')"
+      containerWidthClass="govuk-grid-column-one-half"
     />
+  </div>
+
+  <div class="govuk-grid-row">
     <app-text-input
       formControlName="mobileNumber"
       label="Mobile number"
-      hint="Enter the organisation's UK mobile, e.g. 07123 456789"
+      hint="For example, 07123 456789"
       [idPrefix]="scopeId() + '-org-mobile-number'"
       inputType="tel"
       [submitted]="submitted()"
       [suppressError]="true"
       [error]="errorFor(scopeId() + '-org-mobile-number')"
+      containerWidthClass="govuk-grid-column-one-half"
     />
+  </div>
+
+  <div class="govuk-grid-row">
     <app-text-input
       formControlName="emailAddress"
       label="Email address"
-      hint="e.g. name@department.gov.uk"
+      hint="For example, name@department.gov.uk"
       [idPrefix]="scopeId() + '-org-email-address'"
       inputType="email"
       [submitted]="submitted()"
       [suppressError]="true"
       [error]="errorFor(scopeId() + '-org-email-address')"
+      containerWidthClass="govuk-grid-column-one-half"
     />
   </div>
 </div>

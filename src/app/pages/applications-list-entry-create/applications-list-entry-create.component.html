@@ -31,62 +31,21 @@
 />
 
 <form [formGroup]="form" novalidate>
-  <!-- Applicant details (based on chosen type) -->
+  <!-- Applicant section -->
   <ng-template #applicantTpl>
-    <div class="govuk-grid-row">
-      <app-select-input
-        formControlName="applicantType"
-        label="Select an applicant"
-        hint="The type of applicant for this application"
-        idPrefix="applicant"
-        [options]="[
-          { value: 'person', label: 'Person' },
-          { value: 'org', label: 'Organisation' },
-          { value: 'standard', label: 'Standard Applicant' },
-        ]"
-      ></app-select-input>
-    </div>
-
-    @switch (form.get('applicantType')?.value) {
-      @case ('person') {
-        <app-person-section
-          [titleOptions]="[
-            { value: 'mr', label: 'Mr' },
-            { value: 'mrs', label: 'Mrs' },
-            { value: 'miss', label: 'Miss' },
-            { value: 'dr', label: 'Dr' },
-            { value: 'other', label: 'Other' },
-          ]"
-          [group]="personForm"
-          scopeId="applicant"
-        >
-        </app-person-section>
-      }
-
-      @case ('org') {
-        <app-organisation-section
-          [group]="organisationForm"
-          scopeId="applicant"
-        >
-        </app-organisation-section>
-      }
-
-      @case ('standard') {
-        <app-sortable-table
-          id="sortable-table"
-          caption="Lists"
-          [columns]="[
-            { header: 'Code', field: 'code', numeric: true },
-            { header: 'Name', field: 'name' },
-            { header: 'Address line 1', field: 'address' },
-            { header: 'Use from', field: 'useFrom' },
-            { header: 'Use to', field: 'useTo' },
-          ]"
-          appMojButtonMenu
-        >
-        </app-sortable-table>
-      }
-    }
+    <app-applicant-section
+      [form]="form"
+      [applicantType]="form.controls.applicantType.value"
+      [personGroup]="personForm"
+      [organisationGroup]="organisationForm"
+      [submitted]="submitted"
+      [errorItems]="applicantErrorItems"
+      [selectedStandardApplicantCode]="
+        form.controls.standardApplicantCode.value
+      "
+      (standardApplicantCodeChange)="onStandardApplicantCodeChanged($event)"
+      [showUpdateButton]="false"
+    />
   </ng-template>
 
   <ng-template #codesTpl>
