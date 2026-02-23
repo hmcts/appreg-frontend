@@ -1,9 +1,3 @@
-/**
- * TODO: arcpoc-816
- * prio 4
- * refactor create flow with multiple flags and manual subscribe
- */
-
 /*
 Applications List Entry – Create (/applications-list/:id/create)
 
@@ -24,10 +18,19 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 
-import { toOptionalTrimmed } from './util/helpers';
+import {
+  ApplicationsListEntryCreateState,
+  ChildErrorSource,
+  initialApplicationsListEntryCreateState,
+  toOptionalTrimmed,
+} from './util';
 
 import { AccordionComponent } from '@components/accordion/accordion.component';
 import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
+import {
+  PERSON_TITLE_OPTIONS,
+  RESPONDENT_TYPE_OPTIONS,
+} from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import {
@@ -37,17 +40,17 @@ import {
 import { NotesSectionComponent } from '@components/notes-section/notes-section.component';
 import { OrganisationSectionComponent } from '@components/organisation-section/organisation-section.component';
 import { PersonSectionComponent } from '@components/person-section/person-section.component';
+import { RespondentSectionComponent } from '@components/respondent-section/respondent-section.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
 import {
-  ApplicationCodeGetDetailDto,
-  ApplicationCodesApi,
-  ApplicationListEntriesApi,
-} from '@openapi';
-import { ApplicantStep } from '@page-types/applications-list-entry-create';
+  RESPONDENT_ORG_ERROR_HREFS,
+  RESPONDENT_PERSON_ERROR_HREFS,
+} from '@constants/application-list-entry/respondent/error-hrefs';
+import { ApplicationCodesApi, ApplicationListEntriesApi } from '@openapi';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 import {
   focusField,
@@ -56,8 +59,7 @@ import {
 import { buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
-
-type ChildErrorSource = 'notes' | 'fee' | 'respondent' | 'applicant';
+import { createSignalState } from '@util/signal-state-helpers';
 
 @Component({
   selector: 'app-applications-list-entry-create',
@@ -83,6 +85,7 @@ type ChildErrorSource = 'notes' | 'fee' | 'respondent' | 'applicant';
     PersonSectionComponent,
     OrganisationSectionComponent,
     NotesSectionComponent,
+    RespondentSectionComponent,
   ],
   viewProviders: [
     { provide: ControlContainer, useExisting: FormGroupDirective },
@@ -95,16 +98,27 @@ export class ApplicationsListEntryCreate implements OnInit {
   applicationCodesApi = inject(ApplicationCodesApi);
   formSvc = inject(ApplicationListEntryFormService);
 
-  id: string = '';
-  step: ApplicantStep = 'select';
-  appCodeDetail!: ApplicationCodeGetDetailDto;
+  // Initialise signal state
+  private readonly appListEntryCreateSignalState =
+    createSignalState<ApplicationsListEntryCreateState>(
+      initialApplicationsListEntryCreateState,
+    );
+  private readonly appListEntryCreateState =
+    this.appListEntryCreateSignalState.state;
+  private readonly appListEntryCreatePatch =
+    this.appListEntryCreateSignalState.patch;
+  readonly vm = this.appListEntryCreateSignalState.vm;
 
-  createDone: boolean = false;
-  submitted: boolean = false;
-  errorFound: boolean = false;
-  errorHint: string = '';
+  // id: string = '';
+  // step: ApplicantStep = 'select';
+  // appCodeDetail!: ApplicationCodeGetDetailDto;
 
-  summaryErrors: ErrorItem[] = [];
+  // createDone: boolean = false;
+  // submitted: boolean = false;
+  // errorFound: boolean = false;
+  // errorHint: string = '';
+
+  // summaryErrors: ErrorItem[] = [];
 
   private parentErrors: ErrorItem[] = [];
   private childErrors: Record<ChildErrorSource, ErrorItem[]> = {
@@ -113,6 +127,9 @@ export class ApplicationsListEntryCreate implements OnInit {
     respondent: [],
     applicant: [],
   };
+
+  respondentEntryTypeOptions = RESPONDENT_TYPE_OPTIONS;
+  personTitleOptions = PERSON_TITLE_OPTIONS;
 
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
@@ -123,20 +140,31 @@ export class ApplicationsListEntryCreate implements OnInit {
   organisationForm = this.forms.organisationForm;
 
   ngOnInit(): void {
-    this.id = this.route.snapshot.paramMap.get('id')!;
+    this.appListEntryCreateState().id = this.route.snapshot.paramMap.get('id')!;
   }
 
   private resetFlags(): void {
-    this.submitted = true;
-    this.errorFound = false;
-    this.errorHint = '';
-    this.createDone = false;
+    // this.submitted = true;
+    // this.errorFound = false;
+    // this.errorHint = '';
+    // this.createDone = false;
+
+    this.appListEntryCreatePatch({
+      submitted: true,
+      errorFound: false,
+      errorHint: '',
+      createDone: false,
+    });
 
     this.clearErrors();
   }
 
   private clearErrors(): void {
-    this.summaryErrors = [];
+    // this.summaryErrors = [];
+    this.appListEntryCreatePatch({
+      summaryErrors: [],
+    });
+
     this.parentErrors = [];
     this.childErrors = {
       notes: [],
@@ -169,7 +197,12 @@ export class ApplicationsListEntryCreate implements OnInit {
     // Build error summary from control errors + child errors
     this.updateAllErrors();
 
-    if (this.errorFound) {
+    // if (this.errorFound) {
+    //   // Don't submit if we’ve got validation errors
+    //   return;
+    // }
+
+    if (this.appListEntryCreateState().errorFound) {
       // Don't submit if we’ve got validation errors
       return;
     }
@@ -180,17 +213,34 @@ export class ApplicationsListEntryCreate implements OnInit {
     );
 
     this.appEntryApi
-      .createApplicationListEntry({ listId: this.id, entryCreateDto })
+      .createApplicationListEntry({
+        listId: this.appListEntryCreateState().id,
+        entryCreateDto,
+      })
       .subscribe({
         next: () => {
-          this.createDone = true;
+          // this.createDone = true;
+          this.appListEntryCreatePatch({ createDone: true });
         },
         error: (err: HttpErrorResponse) => {
-          this.errorFound = true;
-          this.errorHint = getProblemText(err);
+          const errorHintMsg = getProblemText(err);
+
+          // this.errorFound = true;
+          // this.errorHint = getProblemText(err);
+
+          this.appListEntryCreatePatch({
+            errorFound: true,
+            errorHint: errorHintMsg,
+          });
         },
       });
-    this.submitted = false;
+    // this.submitted = false;
+
+    this.appListEntryCreatePatch({ submitted: false });
+  }
+
+  get respondentErrorItems(): ErrorItem[] {
+    return this.childErrors.respondent;
   }
 
   private buildErrorSummary(): ErrorItem[] {
@@ -200,11 +250,18 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private updateAllErrors(): void {
+    this.updateRespondentErrors();
+
     this.parentErrors = this.buildErrorSummary();
     const allChildErrors = Object.values(this.childErrors).flat();
 
-    this.summaryErrors = [...this.parentErrors, ...allChildErrors];
-    this.errorFound = this.summaryErrors.length > 0;
+    // this.summaryErrors = [...this.parentErrors, ...allChildErrors];
+    // this.errorFound = this.summaryErrors.length > 0;
+
+    this.appListEntryCreatePatch({
+      summaryErrors: [...this.parentErrors, ...allChildErrors],
+      errorFound: this.appListEntryCreateState().summaryErrors.length > 0,
+    });
   }
 
   onChildErrors(source: ChildErrorSource, errors: ErrorItem[]): void {
@@ -231,10 +288,15 @@ export class ApplicationsListEntryCreate implements OnInit {
         )
         .subscribe({
           next: (appCodeDetail) => {
-            const prevCode = this.appCodeDetail?.applicationCode;
+            // const prevCode = this.appCodeDetail?.applicationCode;
+
+            const prevCode =
+              this.appListEntryCreateState().appCodeDetail?.applicationCode;
             const newCode = appCodeDetail.applicationCode;
 
-            this.appCodeDetail = appCodeDetail;
+            // this.appCodeDetail = appCodeDetail;
+
+            this.appListEntryCreatePatch({ appCodeDetail });
 
             // if user selected a different code than what we had, reset sections
             if (prevCode !== newCode) {
@@ -244,5 +306,40 @@ export class ApplicationsListEntryCreate implements OnInit {
           error: () => {},
         });
     }
+  }
+
+  private updateRespondentErrors(): void {
+    // TODO: shared function in src/app/pages/applications-list-entry-detail/applications-list-entry-detail.component.ts so we should move this into a shared area to reuse.
+    const t = this.form.controls.respondentEntryType.value;
+
+    if (t === 'person') {
+      this.forms.respondentPersonForm.markAllAsTouched();
+      this.forms.respondentPersonForm.updateValueAndValidity({
+        emitEvent: false,
+      });
+
+      this.childErrors.respondent = buildFormErrorSummary(
+        this.forms.respondentPersonForm,
+        ENTRY_ERROR_MESSAGES,
+        { hrefs: RESPONDENT_PERSON_ERROR_HREFS },
+      );
+      return;
+    }
+
+    if (t === 'organisation') {
+      this.forms.respondentOrganisationForm.markAllAsTouched();
+      this.forms.respondentOrganisationForm.updateValueAndValidity({
+        emitEvent: false,
+      });
+
+      this.childErrors.respondent = buildFormErrorSummary(
+        this.forms.respondentOrganisationForm,
+        ENTRY_ERROR_MESSAGES,
+        { hrefs: RESPONDENT_ORG_ERROR_HREFS },
+      );
+      return;
+    }
+
+    this.childErrors.respondent = [];
   }
 }

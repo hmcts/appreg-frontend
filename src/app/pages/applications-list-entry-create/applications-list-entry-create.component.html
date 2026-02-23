@@ -3,22 +3,22 @@
     { label: 'Applications list', link: '/applications-list' },
     {
       label: 'Applications list details',
-      link: '/applications-list/' + id,
+      link: '/applications-list/' + vm().id,
     },
   ]"
 />
 
 <h1 class="govuk-heading-xl">Create new entry</h1>
 
-@if (summaryErrors.length || errorFound) {
+@if (vm().summaryErrors.length || vm().errorFound) {
   <app-error-summary
-    [title]="errorHint || 'There is a problem'"
-    [items]="summaryErrors"
+    [title]="vm().errorHint || 'There is a problem'"
+    [items]="vm().summaryErrors"
     (itemSelect)="onCreateErrorClick($event)"
   />
 }
 
-@if (createDone) {
+@if (vm().createDone) {
   <app-success-banner
     heading="Applications list successfully created"
     [linkCommands]="['/applications-list', ':id']"
@@ -119,46 +119,15 @@
   </ng-template>
 
   <ng-template #respondentTpl>
-    <h3 class="govuk-heading-m">Application entry type</h3>
-    <div class="govuk-grid-row">
-      <app-select-input
-        formControlName="respondentEntryType"
-        label="Select type"
-        hint="The type of respondant for this application"
-        idPrefix="respondent-entry-type"
-        [options]="[
-          { value: 'person', label: 'Person' },
-          { value: 'organisation', label: 'Organisation' },
-        ]"
-      >
-      </app-select-input>
-    </div>
-
-    <hr
-      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+    <app-respondent-section
+      [form]="form"
+      [personGroup]="forms.respondentPersonForm"
+      [organisationGroup]="forms.respondentOrganisationForm"
+      [respondentEntryTypeOptions]="respondentEntryTypeOptions"
+      [personTitleOptions]="personTitleOptions"
+      [submitted]="vm().submitted"
+      [errorItems]="respondentErrorItems"
     />
-
-    @switch (form.controls.respondentEntryType.value) {
-      @case ('person') {
-        <app-person-section
-          [group]="personForm"
-          [titleOptions]="[
-            { value: 'mr', label: 'Mr' },
-            { value: 'mrs', label: 'Mrs' },
-            { value: 'miss', label: 'Miss' },
-            { value: 'dr', label: 'Dr' },
-            { value: 'other', label: 'Other' },
-          ]"
-          scopeId="respondent"
-        />
-      }
-      @case ('organisation') {
-        <app-organisation-section
-          [group]="organisationForm"
-          scopeId="respondent"
-        />
-      }
-    }
   </ng-template>
 
   <ng-template #civilFeeTpl>
@@ -201,7 +170,7 @@
         label="Status date"
         hint="For example, 15 5 2025"
         idPrefix="fee-status-date"
-        [submitted]="submitted"
+        [submitted]="vm().submitted"
       >
       </app-date-input>
 
@@ -426,7 +395,7 @@
     </button>
     <a
       class="govuk-button govuk-button--secondary"
-      [routerLink]="['/applications-list', id]"
+      [routerLink]="['/applications-list', vm().id]"
     >
       Cancel
     </a>
