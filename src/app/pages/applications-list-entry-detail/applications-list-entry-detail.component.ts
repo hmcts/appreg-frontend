@@ -386,6 +386,11 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.resetSuccessBanner();
     this.resetErrors();
 
+    const prevSelection = {
+      code: this.form.controls.applicationCode.value,
+      date: this.form.controls.lodgementDate.value,
+    };
+
     this.form.patchValue({
       applicationCode: codeAndLodgementDate.code,
       lodgementDate: codeAndLodgementDate.date,
@@ -404,15 +409,14 @@ export class ApplicationsListEntryDetail implements OnInit {
         )
         .subscribe({
           next: (appCodeDetail) => {
-            const prevCode = this.appCodeDetail?.applicationCode;
-            const newCode = appCodeDetail.applicationCode;
+            const hasSelectionChanged =
+              prevSelection.code !== codeAndLodgementDate.code;
 
-            this.appCodeDetail = appCodeDetail;
-
-            // if user selected a different code than what we had, reset sections
-            if (prevCode !== newCode) {
+            if (hasSelectionChanged) {
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
             }
+
+            this.appCodeDetail = appCodeDetail;
           },
           error: (err) => {
             this.applyMappedError(err);

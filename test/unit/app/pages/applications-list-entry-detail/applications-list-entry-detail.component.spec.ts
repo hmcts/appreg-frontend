@@ -196,16 +196,30 @@ describe('ApplicationsListEntryDetail', () => {
   });
 
   it('onCodeSelected fetches code detail, sets appCodeDetail and resets sections when code changed', () => {
-    const personResetSpy = jest.fn();
-    const organisationResetSpy = jest.fn();
+    const applicantPersonResetSpy = jest.fn();
+    const applicantOrganisationResetSpy = jest.fn();
+    const respondentPersonResetSpy = jest.fn();
+    const respondentOrganisationResetSpy = jest.fn();
 
-    component.personForm.reset = personResetSpy;
-    component.organisationForm.reset = organisationResetSpy;
+    component.personForm.reset = applicantPersonResetSpy;
+    component.organisationForm.reset = applicantOrganisationResetSpy;
+    component.forms.respondentPersonForm.reset = respondentPersonResetSpy;
+    component.forms.respondentOrganisationForm.reset =
+      respondentOrganisationResetSpy;
 
     component.appCodeDetail = {
       applicationCode: 'OLD-CODE',
     } as ApplicationCodeGetDetailDto;
 
+    component['form'].patchValue({
+      respondent: {
+        person: {
+          name: { firstForename: 'Old', surname: 'Respondent' },
+          contactDetails: { addressLine1: '1 Street' },
+        },
+      },
+      numberOfRespondents: 2,
+    });
     component['form'].patchValue({ lodgementDate: '2025-11-01' });
 
     mockGetApplicationCodeByCodeAndDate.mockReturnValue(
@@ -229,9 +243,13 @@ describe('ApplicationsListEntryDetail', () => {
     expect(component['form'].controls.applicationCode.value).toBe('APP-7');
 
     expect(component.appCodeDetail?.applicationCode).toBe('APP-7');
+    expect(component['form'].controls.respondent.value).toBeNull();
+    expect(component['form'].controls.numberOfRespondents.value).toBeNull();
 
-    expect(personResetSpy).toHaveBeenCalled();
-    expect(organisationResetSpy).toHaveBeenCalled();
+    expect(respondentPersonResetSpy).toHaveBeenCalled();
+    expect(respondentOrganisationResetSpy).toHaveBeenCalled();
+    expect(applicantPersonResetSpy).not.toHaveBeenCalled();
+    expect(applicantOrganisationResetSpy).not.toHaveBeenCalled();
   });
 
   it('onUpdateApplicant uses form service buildUpdateDto and calls update API', () => {

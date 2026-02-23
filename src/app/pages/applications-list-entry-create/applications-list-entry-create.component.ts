@@ -223,7 +223,6 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private updateAllErrors(): void {
-    // TODO: we need to check app code to see if respondent is required, if not then skip. Also run validation if the user has put any values in this form.
     this.updateRespondentErrors();
 
     this.parentErrors = this.buildErrorSummary();
@@ -243,6 +242,11 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   onCodeSelected(codeAndLodgementDate: { code: string; date: string }): void {
+    const prevSelection = {
+      code: this.form.controls.applicationCode.value,
+      date: this.form.controls.lodgementDate.value,
+    };
+
     this.form.patchValue({
       applicationCode: codeAndLodgementDate.code,
       lodgementDate: codeAndLodgementDate.date,
@@ -261,14 +265,13 @@ export class ApplicationsListEntryCreate implements OnInit {
         )
         .subscribe({
           next: (appCodeDetail) => {
-            const prevCode =
-              this.appListEntryCreateState().appCodeDetail?.applicationCode;
-            const newCode = appCodeDetail.applicationCode;
+            const hasSelectionChanged =
+              prevSelection.code !== codeAndLodgementDate.code;
 
             this.appListEntryCreatePatch({ appCodeDetail });
 
-            // if user selected a different code than what we had, reset sections
-            if (prevCode !== newCode) {
+            // if user selected a different code/date than current form, reset dependent sections
+            if (hasSelectionChanged) {
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
             }
           },
@@ -278,13 +281,20 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private updateRespondentErrors(): void {
-    this.childErrors.respondent = buildRespondentErrors({
-      respondentEntryType: this.form.controls.respondentEntryType.value,
-      respondentPersonForm: this.forms.respondentPersonForm,
-      respondentOrganisationForm: this.forms.respondentOrganisationForm,
-      errorMessages: ENTRY_ERROR_MESSAGES,
-      respondentPersonHrefs: RESPONDENT_PERSON_ERROR_HREFS,
-      respondentOrganisationHrefs: RESPONDENT_ORG_ERROR_HREFS,
-    });
+    // Run validation if respondent is required
+    const isRespondentRequired =
+      // set to 'true' incase we can't get the required data to be safe
+      this.appListEntryCreateState().appCodeDetail?.requiresRespondent ?? true;
+
+    if (isRespondentRequired) {
+      this.childErrors.respondent = buildRespondentErrors({
+        respondentEntryType: this.form.controls.respondentEntryType.value,
+        respondentPersonForm: this.forms.respondentPersonForm,
+        respondentOrganisationForm: this.forms.respondentOrganisationForm,
+        errorMessages: ENTRY_ERROR_MESSAGES,
+        respondentPersonHrefs: RESPONDENT_PERSON_ERROR_HREFS,
+        respondentOrganisationHrefs: RESPONDENT_ORG_ERROR_HREFS,
+      });
+    }
   }
 }
