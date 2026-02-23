@@ -109,17 +109,6 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.appListEntryCreateSignalState.patch;
   readonly vm = this.appListEntryCreateSignalState.vm;
 
-  // id: string = '';
-  // step: ApplicantStep = 'select';
-  // appCodeDetail!: ApplicationCodeGetDetailDto;
-
-  // createDone: boolean = false;
-  // submitted: boolean = false;
-  // errorFound: boolean = false;
-  // errorHint: string = '';
-
-  // summaryErrors: ErrorItem[] = [];
-
   private parentErrors: ErrorItem[] = [];
   private childErrors: Record<ChildErrorSource, ErrorItem[]> = {
     notes: [],
@@ -144,11 +133,6 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private resetFlags(): void {
-    // this.submitted = true;
-    // this.errorFound = false;
-    // this.errorHint = '';
-    // this.createDone = false;
-
     this.appListEntryCreatePatch({
       submitted: true,
       errorFound: false,
@@ -160,7 +144,6 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private clearErrors(): void {
-    // this.summaryErrors = [];
     this.appListEntryCreatePatch({
       summaryErrors: [],
     });
@@ -197,11 +180,6 @@ export class ApplicationsListEntryCreate implements OnInit {
     // Build error summary from control errors + child errors
     this.updateAllErrors();
 
-    // if (this.errorFound) {
-    //   // Don't submit if we’ve got validation errors
-    //   return;
-    // }
-
     if (this.appListEntryCreateState().errorFound) {
       // Don't submit if we’ve got validation errors
       return;
@@ -219,7 +197,6 @@ export class ApplicationsListEntryCreate implements OnInit {
       })
       .subscribe({
         next: () => {
-          // this.createDone = true;
           this.appListEntryCreatePatch({ createDone: true });
         },
         error: (err: HttpErrorResponse) => {
@@ -255,12 +232,11 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.parentErrors = this.buildErrorSummary();
     const allChildErrors = Object.values(this.childErrors).flat();
 
-    // this.summaryErrors = [...this.parentErrors, ...allChildErrors];
-    // this.errorFound = this.summaryErrors.length > 0;
+    const summaryErrors = [...this.parentErrors, ...allChildErrors];
 
     this.appListEntryCreatePatch({
-      summaryErrors: [...this.parentErrors, ...allChildErrors],
-      errorFound: this.appListEntryCreateState().summaryErrors.length > 0,
+      summaryErrors,
+      errorFound: summaryErrors.length > 0,
     });
   }
 
@@ -288,13 +264,9 @@ export class ApplicationsListEntryCreate implements OnInit {
         )
         .subscribe({
           next: (appCodeDetail) => {
-            // const prevCode = this.appCodeDetail?.applicationCode;
-
             const prevCode =
               this.appListEntryCreateState().appCodeDetail?.applicationCode;
             const newCode = appCodeDetail.applicationCode;
-
-            // this.appCodeDetail = appCodeDetail;
 
             this.appListEntryCreatePatch({ appCodeDetail });
 

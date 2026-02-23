@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 
 import { ApplicationsListEntryCreate } from '@components/applications-list-entry-create/applications-list-entry-create.component';
 import { buildEntryCreateDto } from '@components/applications-list-entry-create/util/entry-create-mapper';
@@ -20,6 +21,7 @@ function roundTrip<T extends object>(o: T): T {
 describe('ApplicationsListEntryCreate (payload + helpers)', () => {
   let fixture: ComponentFixture<ApplicationsListEntryCreate>;
   let component: ApplicationsListEntryCreate;
+  let createApplicationListEntryMock: jest.Mock;
 
   function build(): unknown {
     return buildEntryCreateDto(
@@ -32,6 +34,8 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
   }
 
   beforeEach(async () => {
+    createApplicationListEntryMock = jest.fn().mockReturnValue(of({}));
+
     await TestBed.configureTestingModule({
       imports: [ApplicationsListEntryCreate],
       providers: [
@@ -40,7 +44,9 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
         provideHttpClientTesting(),
         {
           provide: ApplicationListEntriesApi,
-          useValue: { createApplicationListEntry: jest.fn() },
+          useValue: {
+            createApplicationListEntry: createApplicationListEntryMock,
+          },
         },
         {
           provide: ActivatedRoute,
@@ -56,6 +62,16 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
 
     // If the component ever moves initialisation into ngOnInit, this keeps the spec stable.
     fixture.detectChanges();
+  });
+
+  it('onSubmit: blocks create call when validation errors exist', () => {
+    component.form.patchValue({ applicationCode: '   ' });
+
+    component.onSubmit(new Event('submit'));
+
+    expect(createApplicationListEntryMock).not.toHaveBeenCalled();
+    expect(component.vm().errorFound).toBe(true);
+    expect(component.vm().summaryErrors.length).toBeGreaterThan(0);
   });
 
   it('payload: omits applicant/respondent when empty', () => {

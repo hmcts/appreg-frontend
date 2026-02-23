@@ -37,7 +37,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { map } from 'rxjs';
 
-import { computeSuccessBanner, focusSuccessBanner } from './util/banners.util';
+import { focusSuccessBanner } from './util/banners.util';
 import {
   APPLICANT_COLUMNS,
   APPLICANT_TYPE_OPTIONS,
@@ -46,7 +46,6 @@ import {
   FEE_STATUS_OPTIONS,
   PERSON_TITLE_OPTIONS,
   RESPONDENT_TYPE_OPTIONS,
-  WORDING_REF_REGEX,
 } from './util/entry-detail.constants';
 import { buildEntryUpdateDtoWithChange } from './util/entry-detail.form';
 import { mapHttpErrorToSummary } from './util/errors.util';
@@ -113,12 +112,7 @@ import {
   CivilFeeMeta,
 } from '@shared-types/civil-fee/civil-fee';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
-import {
-  CodeRow,
-  fetchCodeDetail$,
-  titleFromDetail,
-  wordingFromDetail,
-} from '@util/application-code-helpers';
+import { CodeRow } from '@util/application-code-helpers';
 import {
   addOrReplaceFeeStatus,
   applyPaymentReferenceUpdateToFeeStatuses,
@@ -708,29 +702,6 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.errorHint = mapped.errorHint;
     this.summaryErrors = mapped.errorSummary;
     this.errorFound = mapped.errorSummary.length > 0;
-  }
-
-  private afterCodeUpdatedSuccessfully(
-    code: string,
-    lodgementDate: string,
-  ): void {
-    this.form.patchValue({ applicationCode: code });
-
-    fetchCodeDetail$(this.codesApi, code, lodgementDate, true)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (detail) => {
-          this.form.patchValue({ applicationTitle: titleFromDetail(detail) });
-
-          const wording = wordingFromDetail(detail);
-          this.successBanner = computeSuccessBanner(wording, WORDING_REF_REGEX);
-          focusSuccessBanner(this.platformId);
-        },
-        error: () => {
-          this.successBanner = computeSuccessBanner('', WORDING_REF_REGEX);
-          focusSuccessBanner(this.platformId);
-        },
-      });
   }
 
   private loadCodesSectionFromEntry(entry: EntryGetDetailDto): void {
