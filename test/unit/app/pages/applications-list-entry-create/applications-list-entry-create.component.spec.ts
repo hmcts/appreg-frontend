@@ -74,6 +74,30 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     expect(component.vm().summaryErrors.length).toBeGreaterThan(0);
   });
 
+  it('onSubmit: validates respondent when partially filled even if not required', () => {
+    (
+      component as unknown as {
+        appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
+      }
+    ).appListEntryCreatePatch({
+      appCodeDetail: { requiresRespondent: false },
+    });
+
+    component.form.patchValue({
+      applicationCode: 'A001',
+      respondentEntryType: 'person',
+    });
+    component.forms.respondentPersonForm.patchValue({
+      firstName: 'John',
+    });
+
+    component.onSubmit(new Event('submit'));
+
+    expect(createApplicationListEntryMock).not.toHaveBeenCalled();
+    expect(component.vm().errorFound).toBe(true);
+    expect(component.respondentErrorItems.length).toBeGreaterThan(0);
+  });
+
   it('payload: omits applicant/respondent when empty', () => {
     component.form.patchValue({
       applicationCode: 'A001',

@@ -282,11 +282,14 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   private updateRespondentErrors(): void {
     // Run validation if respondent is required
+    // and when respondent forms are fully/partially populated
     const isRespondentRequired =
-      // set to 'true' incase we can't get the required data to be safe
       this.appListEntryCreateState().appCodeDetail?.requiresRespondent ?? true;
 
-    if (isRespondentRequired) {
+    const shouldValidateRespondent =
+      isRespondentRequired || this.respondentFormsHaveAnyValue();
+
+    if (shouldValidateRespondent) {
       this.childErrors.respondent = buildRespondentErrors({
         respondentEntryType: this.form.controls.respondentEntryType.value,
         respondentPersonForm: this.forms.respondentPersonForm,
@@ -295,6 +298,33 @@ export class ApplicationsListEntryCreate implements OnInit {
         respondentPersonHrefs: RESPONDENT_PERSON_ERROR_HREFS,
         respondentOrganisationHrefs: RESPONDENT_ORG_ERROR_HREFS,
       });
+      return;
     }
+
+    this.childErrors.respondent = [];
+  }
+
+  private respondentFormsHaveAnyValue(): boolean {
+    // Recursively check respondent object for values
+    const hasAnyValue = (value: unknown): boolean => {
+      if (value === null || value === undefined) {
+        return false;
+      }
+
+      if (typeof value === 'string') {
+        return value.trim().length > 0;
+      }
+
+      if (typeof value === 'object') {
+        return Object.values(value).some((item) => hasAnyValue(item));
+      }
+
+      return true;
+    };
+
+    return (
+      hasAnyValue(this.forms.respondentPersonForm.getRawValue()) ||
+      hasAnyValue(this.forms.respondentOrganisationForm.getRawValue())
+    );
   }
 }
