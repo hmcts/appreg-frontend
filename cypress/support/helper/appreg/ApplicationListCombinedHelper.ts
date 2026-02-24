@@ -59,7 +59,11 @@ export class ApplicationListCombinedHelper {
 
         case 'Criminal justice area': {
           const cjaSearchText = processedCriteria.CJASearch || value;
-          TextboxHelper.selectAutocompleteOption('Criminal justice area', cjaSearchText, value);
+          TextboxHelper.selectAutocompleteOption(
+            'Criminal justice area',
+            cjaSearchText,
+            value,
+          );
           break;
         }
 
