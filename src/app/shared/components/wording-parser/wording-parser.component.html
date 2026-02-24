@@ -1,7 +1,3 @@
-<!-- <p>wording-parser works!</p>
-<p>{{ value1.wording.template }}</p>
-<p>{{ value2.wording.template }}</p>
-<p>{{ value3.wording.template }}</p> -->
 <form [formGroup]="form">
   <p class="govuk-body">
     @for (t of tokens; track $index) {
@@ -9,13 +5,24 @@
         {{ t.value }}&nbsp;
       } @else if (t.type == 'input') {
         <input
+          [id]="t.key"
           class="govuk-input govuk-input--width-10"
-          name="width10"
+          [class.govuk-input--error]="form.get(t.key)?.invalid && submitted()"
+          [formControlName]="t.key"
           type="text"
-          placeholder="Enter a {{ t.key }}"
-          formControlName="{{ t.key }}"
+          name="width10"
+          [placeholder]="'Enter a ' + t.key"
         />&nbsp;
       }
     }
   </p>
+  @if (isSaveDisabled()) {
+    <button
+      class="govuk-button"
+      data-module="govuk-button"
+      (click)="submitWordingFields()"
+    >
+      Save Wording
+    </button>
+  }
 </form>

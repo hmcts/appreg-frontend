@@ -1,13 +1,7 @@
 <app-wording-parser
   [wordingObject]="wordingObject()"
+  [submitAttempt]="submitAttempt()"
   (tokensChange)="onTokensChange($event)"
+  (wordingFieldsDTO)="onWordingFieldsDTO($event)"
+  (wordingFieldErrors)="onWordingFieldErrors($event)"
 />
-@if (isSaveDisabled()) {
-  <button
-    class="govuk-button"
-    data-module="govuk-button"
-    (click)="saveWording.emit()"
-  >
-    Save Wording
-  </button>
-}

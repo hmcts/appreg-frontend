@@ -55,6 +55,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
 
   selectCodeAndLodgementDate = output<{ code: string; date: string }>();
   resultsChange = output<ApplicationCodeGetSummaryDto[]>();
+  resetParentErrors = output<void>();
 
   private readonly route = inject(ActivatedRoute);
   private readonly codesApi = inject(ApplicationCodesApi);
@@ -144,6 +145,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
     this.errored.set(false);
     this.submitted.set(false);
     this.selectCodeAndLodgementDate.emit({ code: '', date: '' });
+    this.resetParentErrors.emit();
   }
 
   private initialPatchFormData(): void {

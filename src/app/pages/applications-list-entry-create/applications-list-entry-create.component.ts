@@ -16,7 +16,7 @@ Functionality:
 
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import {
   ControlContainer,
   FormGroupDirective,
@@ -47,6 +47,7 @@ import {
   ApplicationCodeGetDetailDto,
   ApplicationCodesApi,
   ApplicationListEntriesApi,
+  TemplateSubstitution,
 } from '@openapi';
 import { ApplicantStep } from '@page-types/applications-list-entry-create';
 import { ApplicationListEntryFormService } from '@services/application-list-entry-form.service';
@@ -58,7 +59,12 @@ import { buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 
-type ChildErrorSource = 'notes' | 'fee' | 'respondent' | 'applicant';
+type ChildErrorSource =
+  | 'notes'
+  | 'fee'
+  | 'respondent'
+  | 'applicant'
+  | 'wording';
 
 @Component({
   selector: 'app-applications-list-entry-create',
@@ -114,7 +120,10 @@ export class ApplicationsListEntryCreate implements OnInit {
     fee: [],
     respondent: [],
     applicant: [],
+    wording: [],
   };
+
+  submitAttempt = signal(0);
 
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
@@ -126,6 +135,10 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   ngOnInit(): void {
     this.id = this.route.snapshot.paramMap.get('id')!;
+  }
+
+  resetParentErrorsFromCodeSearch(): void {
+    this.resetFlags();
   }
 
   private resetFlags(): void {
@@ -145,12 +158,14 @@ export class ApplicationsListEntryCreate implements OnInit {
       fee: [],
       respondent: [],
       applicant: [],
+      wording: [],
     };
   }
 
   onSubmit(e: Event): void {
     e.preventDefault();
 
+    this.submitAttempt.update((n) => n + 1);
     this.resetFlags();
 
     //Run Angular validation
@@ -193,6 +208,12 @@ export class ApplicationsListEntryCreate implements OnInit {
         },
       });
     this.submitted = false;
+  }
+
+  onWordingFieldsDTO(dto: { wordingFields: TemplateSubstitution[] }): void {
+    this.forms.form.patchValue({
+      wordingFields: dto.wordingFields,
+    });
   }
 
   private buildErrorSummary(): ErrorItem[] {
@@ -240,7 +261,9 @@ export class ApplicationsListEntryCreate implements OnInit {
 
             // if user selected a different code than what we had, reset sections
             if (prevCode !== newCode) {
+              this.submitAttempt.set(0);
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
+              this.onChildErrors('wording', []);
             }
           },
           error: () => {},

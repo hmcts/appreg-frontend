@@ -93,12 +93,18 @@
     <!-- Application code -->
     <app-application-code-search
       (selectCodeAndLodgementDate)="onCodeSelected($event)"
+      (resetParentErrors)="resetParentErrorsFromCodeSearch()"
     />
   </ng-template>
 
   <ng-template #wordingTpl>
     @if (appCodeDetail) {
-      <app-wording-section [wordingObject]="appCodeDetail.wording" />
+      <app-wording-section
+        [wordingObject]="appCodeDetail.wording"
+        [submitAttempt]="submitAttempt()"
+        (wordingFieldsDTO)="onWordingFieldsDTO($event)"
+        (wordingFieldErrors)="onChildErrors('wording', $event)"
+      />
     } @else {
       <p class="govuk-body">Please select an application code.</p>
     }
