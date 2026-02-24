@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { WordingSectionComponent } from './wording-section.component';
+import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
 
 describe('WordingSectionComponent', () => {
   let component: WordingSectionComponent;
@@ -8,9 +8,8 @@ describe('WordingSectionComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [WordingSectionComponent]
-    })
-    .compileComponents();
+      imports: [WordingSectionComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(WordingSectionComponent);
     component = fixture.componentInstance;

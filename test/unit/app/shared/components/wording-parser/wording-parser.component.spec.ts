@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { WordingParserComponent } from './wording-parser.component';
+import { WordingParserComponent } from '@components/wording-parser/wording-parser.component';
 
 describe('WordingParserComponent', () => {
   let component: WordingParserComponent;
@@ -8,9 +8,8 @@ describe('WordingParserComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [WordingParserComponent]
-    })
-    .compileComponents();
+      imports: [WordingParserComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(WordingParserComponent);
     component = fixture.componentInstance;
