@@ -53,13 +53,13 @@ export class ApplicationListCombinedHelper {
           // Skip - handled by CJA case
           break;
 
-        case 'Other location':
-          TextboxHelper.typeInTextbox('Other location', value);
+        case 'Other location description':
+          TextboxHelper.typeInTextbox('Other location description', value);
           break;
 
-        case 'CJA': {
+        case 'Criminal justice area': {
           const cjaSearchText = processedCriteria.CJASearch || value;
-          TextboxHelper.selectAutocompleteOption('CJA', cjaSearchText, value);
+          TextboxHelper.selectAutocompleteOption('Criminal justice area', cjaSearchText, value);
           break;
         }
 
@@ -69,7 +69,7 @@ export class ApplicationListCombinedHelper {
           }
           break;
 
-        case 'Description':
+        case 'List description':
           TextboxHelper.typeInTextbox(fieldLabel, value);
           break;
       }
