@@ -10,15 +10,13 @@
 
 <h1 class="govuk-heading-xl">Create new entry</h1>
 
-@if (summaryErrors.length || errorFound) {
+@if (errorFound) {
   <app-error-summary
     [title]="errorHint || 'There is a problem'"
     [items]="summaryErrors"
     (itemSelect)="onCreateErrorClick($event)"
   />
-}
-
-@if (createDone) {
+} @else if (createDone) {
   <app-success-banner
     heading="Applications list successfully created"
     [linkCommands]="['/applications-list', ':id']"
@@ -31,62 +29,21 @@
 />
 
 <form [formGroup]="form" novalidate>
-  <!-- Applicant details (based on chosen type) -->
+  <!-- Applicant section -->
   <ng-template #applicantTpl>
-    <div class="govuk-grid-row">
-      <app-select-input
-        formControlName="applicantType"
-        label="Select an applicant"
-        hint="The type of applicant for this application"
-        idPrefix="applicant"
-        [options]="[
-          { value: 'person', label: 'Person' },
-          { value: 'org', label: 'Organisation' },
-          { value: 'standard', label: 'Standard Applicant' },
-        ]"
-      ></app-select-input>
-    </div>
-
-    @switch (form.get('applicantType')?.value) {
-      @case ('person') {
-        <app-person-section
-          [titleOptions]="[
-            { value: 'mr', label: 'Mr' },
-            { value: 'mrs', label: 'Mrs' },
-            { value: 'miss', label: 'Miss' },
-            { value: 'dr', label: 'Dr' },
-            { value: 'other', label: 'Other' },
-          ]"
-          [group]="personForm"
-          scopeId="applicant"
-        >
-        </app-person-section>
-      }
-
-      @case ('org') {
-        <app-organisation-section
-          [group]="organisationForm"
-          scopeId="applicant"
-        >
-        </app-organisation-section>
-      }
-
-      @case ('standard') {
-        <app-sortable-table
-          id="sortable-table"
-          caption="Lists"
-          [columns]="[
-            { header: 'Code', field: 'code', numeric: true },
-            { header: 'Name', field: 'name' },
-            { header: 'Address line 1', field: 'address' },
-            { header: 'Use from', field: 'useFrom' },
-            { header: 'Use to', field: 'useTo' },
-          ]"
-          appMojButtonMenu
-        >
-        </app-sortable-table>
-      }
-    }
+    <app-applicant-section
+      [form]="form"
+      [applicantType]="form.controls.applicantType.value"
+      [personGroup]="personForm"
+      [organisationGroup]="organisationForm"
+      [submitted]="submitted"
+      [errorItems]="applicantErrorItems"
+      [selectedStandardApplicantCode]="
+        form.controls.standardApplicantCode.value
+      "
+      (standardApplicantCodeChange)="onStandardApplicantCodeChanged($event)"
+      [showUpdateButton]="false"
+    />
   </ng-template>
 
   <ng-template #codesTpl>
@@ -119,7 +76,6 @@
   </ng-template>
 
   <ng-template #respondentTpl>
-    <h3 class="govuk-heading-m">Application entry type</h3>
     <div class="govuk-grid-row">
       <app-select-input
         formControlName="respondentEntryType"
@@ -178,7 +134,7 @@
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
     />
 
-    <h2 class="govuk-heading-m">Update fee status</h2>
+    <h2 class="govuk-heading-s">Update fee status</h2>
 
     <div class="govuk-grid-row">
       <!-- Fee status -->
@@ -253,7 +209,7 @@
 
   <ng-template #officialsTpl>
     <!-- Magistrate 1 -->
-    <h3 class="govuk-heading-m">Magistrate 1</h3>
+    <h3 class="govuk-heading-s">Magistrate 1</h3>
     <div class="govuk-grid-row">
       <app-select-input
         formControlName="mags1Title"
@@ -292,7 +248,7 @@
     />
 
     <!-- Magistrate 2 -->
-    <h3 class="govuk-heading-m">Magistrate 2</h3>
+    <h3 class="govuk-heading-s">Magistrate 2</h3>
     <div class="govuk-grid-row">
       <app-select-input
         formControlName="mags2Title"
@@ -331,7 +287,7 @@
     />
 
     <!-- Magistrate 3 -->
-    <h3 class="govuk-heading-m">Magistrate 3</h3>
+    <h3 class="govuk-heading-s">Magistrate 3</h3>
     <div class="govuk-grid-row">
       <app-select-input
         formControlName="mags3Title"
@@ -369,7 +325,7 @@
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
     />
 
-    <h2 class="govuk-heading-m">Officials</h2>
+    <h2 class="govuk-heading-s">Officials</h2>
 
     <div class="govuk-grid-row">
       <app-select-input

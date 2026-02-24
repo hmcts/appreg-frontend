@@ -16,18 +16,31 @@ Functionality:
 
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  OnInit,
+  PLATFORM_ID,
+  inject,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ControlContainer,
   FormGroupDirective,
   ReactiveFormsModule,
 } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
+import { map } from 'rxjs';
 
 import { toOptionalTrimmed } from './util/helpers';
 
 import { AccordionComponent } from '@components/accordion/accordion.component';
+import { ApplicantSectionComponent } from '@components/applicant-section/applicant-section.component';
 import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
+import {
+  APPLICANT_TYPE_OPTIONS,
+  PERSON_TITLE_OPTIONS,
+} from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import {
@@ -43,16 +56,23 @@ import { SuccessBannerComponent } from '@components/success-banner/success-banne
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
 import {
+  APPLICANT_ORG_ERROR_HREFS,
+  APPLICANT_PERSON_ERROR_HREFS,
+} from '@constants/application-list-entry/respondent/error-hrefs';
+import {
   ApplicationCodeGetDetailDto,
   ApplicationCodesApi,
   ApplicationListEntriesApi,
 } from '@openapi';
 import { ApplicantStep } from '@page-types/applications-list-entry-create';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
+import { ApplicantType } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import {
+  focusErrorSummary,
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '@util/error-click';
+import { getUniqueErrors } from '@util/error-items';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
@@ -83,6 +103,7 @@ type ChildErrorSource = 'notes' | 'fee' | 'respondent' | 'applicant';
     PersonSectionComponent,
     OrganisationSectionComponent,
     NotesSectionComponent,
+    ApplicantSectionComponent,
   ],
   viewProviders: [
     { provide: ControlContainer, useExisting: FormGroupDirective },
@@ -90,10 +111,13 @@ type ChildErrorSource = 'notes' | 'fee' | 'respondent' | 'applicant';
   templateUrl: './applications-list-entry-create.component.html',
 })
 export class ApplicationsListEntryCreate implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+
   route = inject(ActivatedRoute);
   appEntryApi = inject(ApplicationListEntriesApi);
   applicationCodesApi = inject(ApplicationCodesApi);
   formSvc = inject(ApplicationListEntryFormService);
+  private readonly platformId = inject(PLATFORM_ID);
 
   id: string = '';
   step: ApplicantStep = 'select';
@@ -122,8 +146,12 @@ export class ApplicationsListEntryCreate implements OnInit {
   personForm = this.forms.personForm;
   organisationForm = this.forms.organisationForm;
 
+  applicantEntryTypeOptions = APPLICANT_TYPE_OPTIONS;
+  personTitleOptions = PERSON_TITLE_OPTIONS;
+
   ngOnInit(): void {
     this.id = this.route.snapshot.paramMap.get('id')!;
+    this.bindApplicantTypeChanges();
   }
 
   private resetFlags(): void {
@@ -199,12 +227,49 @@ export class ApplicationsListEntryCreate implements OnInit {
     });
   }
 
+  private updateApplicantErrors(): void {
+    if (this.form.controls.applicantType.value === 'person') {
+      this.personForm.markAllAsTouched();
+      this.personForm.updateValueAndValidity({ emitEvent: false });
+
+      this.childErrors.applicant = buildFormErrorSummary(
+        this.personForm,
+        ENTRY_ERROR_MESSAGES,
+        { hrefs: APPLICANT_PERSON_ERROR_HREFS },
+      );
+      return;
+    }
+
+    if (this.form.controls.applicantType.value === 'org') {
+      this.organisationForm.markAllAsTouched();
+      this.organisationForm.updateValueAndValidity({ emitEvent: false });
+
+      this.childErrors.applicant = buildFormErrorSummary(
+        this.organisationForm,
+        ENTRY_ERROR_MESSAGES,
+        { hrefs: APPLICANT_ORG_ERROR_HREFS },
+      );
+      return;
+    }
+
+    this.childErrors.applicant = [];
+  }
+
   private updateAllErrors(): void {
+    this.updateApplicantErrors();
+
     this.parentErrors = this.buildErrorSummary();
     const allChildErrors = Object.values(this.childErrors).flat();
 
-    this.summaryErrors = [...this.parentErrors, ...allChildErrors];
+    this.summaryErrors = [
+      ...getUniqueErrors(this.parentErrors, allChildErrors),
+    ];
+
     this.errorFound = this.summaryErrors.length > 0;
+
+    if (this.errorFound) {
+      focusErrorSummary(this.platformId);
+    }
   }
 
   onChildErrors(source: ChildErrorSource, errors: ErrorItem[]): void {
@@ -244,5 +309,31 @@ export class ApplicationsListEntryCreate implements OnInit {
           error: () => {},
         });
     }
+  }
+
+  onStandardApplicantCodeChanged(code: string | null): void {
+    this.formSvc.setStandardApplicantCode(this.forms, code, {
+      emitEvent: false,
+    });
+  }
+
+  private bindApplicantTypeChanges(): void {
+    this.form.controls.applicantType.valueChanges
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        map((type): ApplicantType => type ?? 'person'),
+      )
+      .subscribe((t) => {
+        this.submitted = false;
+        this.clearErrors();
+
+        // reset/rehydrate subforms + keep standardApplicantCode in sync
+        this.formSvc.onApplicantTypeChanged(this.forms, t);
+        this.formSvc.syncApplicantTypeState(this.forms, t);
+      });
+  }
+
+  get applicantErrorItems(): ErrorItem[] {
+    return this.childErrors.applicant;
   }
 }

@@ -8,7 +8,7 @@
 >
   <caption
     [class.govuk-visually-hidden]="hiddenCaption()"
-    class="govuk-table__caption govuk-table__caption--m"
+    class="govuk-table__caption govuk-table__caption--{{ captionSize() }}"
     id="sortable-{{ caption() }}"
   >
     {{

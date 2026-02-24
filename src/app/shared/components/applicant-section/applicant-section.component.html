@@ -1,0 +1,53 @@
+<div [formGroup]="form()">
+  <div class="govuk-grid-row">
+    <app-select-input
+      formControlName="applicantType"
+      label="Select applicant type"
+      idPrefix="application-entry-type"
+      [options]="entryTypeOptions()"
+    ></app-select-input>
+  </div>
+
+  <hr
+    class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+  />
+
+  @switch (applicantType()) {
+    @case ('person') {
+      <app-person-section
+        scopeId="applicant"
+        [group]="personGroup()"
+        [titleOptions]="personTitleOptions"
+        [submitted]="submitted()"
+        [errors]="errorItems()"
+      />
+    }
+    @case ('org') {
+      <app-organisation-section
+        scopeId="applicant"
+        [group]="organisationGroup()"
+        [submitted]="submitted()"
+        [errors]="errorItems()"
+      />
+    }
+    @case ('standard') {
+      <app-standard-applicant-select
+        [selectedCode]="selectedStandardApplicantCode()"
+        (selectedCodeChange)="onStandardChanged($event)"
+      />
+    }
+  }
+
+  @if (showUpdateButton()) {
+    <button
+      type="button"
+      class="govuk-button"
+      id="btn-update-applicant"
+      [attr.data-applicant-type]="applicantType()"
+      [disabled]="isUpdateDisabled()"
+      (click)="onUpdateClicked()"
+    >
+      {{ updateButtonText() }}
+    </button>
+  }
+</div>

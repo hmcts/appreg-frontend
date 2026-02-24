@@ -66,14 +66,14 @@ describe('PersonSectionComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('renders the section headings', () => {
-    const headings = fixture.debugElement
-      .queryAll(By.css('h3.govuk-heading-m'))
-      .map((h) => (h.nativeElement as HTMLElement).textContent?.trim());
+  it('renders the section legends (fieldsets)', () => {
+    const legends = fixture.debugElement
+      .queryAll(By.css('legend.govuk-fieldset__legend--s'))
+      .map((l) => (l.nativeElement as HTMLElement).textContent?.trim());
 
-    expect(headings).toContain('Names');
-    expect(headings).toContain('Address');
-    expect(headings).toContain('Contact details');
+    expect(legends).toContain('Names');
+    expect(legends).toContain('Address');
+    expect(legends).toContain('Contact details');
   });
 
   it('renders one app-select-input for title and passes titleOptions', () => {
