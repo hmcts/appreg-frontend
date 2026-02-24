@@ -17,7 +17,6 @@
     [title]="errorHint || 'There is a problem'"
     [items]="summaryErrors"
     targetId="codes-table"
-    data-component="error-summary"
     (itemSelect)="onCreateErrorClick($event)"
   />
 } @else if (successBanner) {
@@ -128,7 +127,7 @@
 
   <ng-template #officialsTpl>
     <!-- Magistrate 1 -->
-    <h3 class="govuk-heading-m">Magistrate 1</h3>
+    <h3 class="govuk-heading-s">Magistrate 1</h3>
     <div class="govuk-grid-row">
       <app-select-input
         formControlName="mags1Title"
@@ -158,7 +157,7 @@
     />
 
     <!-- Magistrate 2 -->
-    <h3 class="govuk-heading-m">Magistrate 2</h3>
+    <h3 class="govuk-heading-s">Magistrate 2</h3>
     <div class="govuk-grid-row">
       <app-select-input
         formControlName="mags2Title"
@@ -188,7 +187,7 @@
     />
 
     <!-- Magistrate 3 -->
-    <h3 class="govuk-heading-m">Magistrate 3</h3>
+    <h3 class="govuk-heading-s">Magistrate 3</h3>
     <div class="govuk-grid-row">
       <app-select-input
         formControlName="mags3Title"
@@ -217,7 +216,7 @@
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
     />
 
-    <h2 class="govuk-heading-m">Officials</h2>
+    <h2 class="govuk-heading-s">Officials</h2>
 
     <div class="govuk-grid-row">
       <app-select-input

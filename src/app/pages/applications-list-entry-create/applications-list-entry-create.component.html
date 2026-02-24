@@ -10,15 +10,13 @@
 
 <h1 class="govuk-heading-xl">Create new entry</h1>
 
-@if (summaryErrors.length || errorFound) {
+@if (errorFound) {
   <app-error-summary
     [title]="errorHint || 'There is a problem'"
     [items]="summaryErrors"
     (itemSelect)="onCreateErrorClick($event)"
   />
-}
-
-@if (createDone) {
+} @else if (createDone) {
   <app-success-banner
     heading="Applications list successfully created"
     [linkCommands]="['/applications-list', ':id']"
@@ -78,7 +76,6 @@
   </ng-template>
 
   <ng-template #respondentTpl>
-    <h3 class="govuk-heading-m">Application entry type</h3>
     <div class="govuk-grid-row">
       <app-select-input
         formControlName="respondentEntryType"
@@ -137,7 +134,7 @@
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
     />
 
-    <h2 class="govuk-heading-m">Update fee status</h2>
+    <h2 class="govuk-heading-s">Update fee status</h2>
 
     <div class="govuk-grid-row">
       <!-- Fee status -->
@@ -212,7 +209,7 @@
 
   <ng-template #officialsTpl>
     <!-- Magistrate 1 -->
-    <h3 class="govuk-heading-m">Magistrate 1</h3>
+    <h3 class="govuk-heading-s">Magistrate 1</h3>
     <div class="govuk-grid-row">
       <app-select-input
         formControlName="mags1Title"
@@ -251,7 +248,7 @@
     />
 
     <!-- Magistrate 2 -->
-    <h3 class="govuk-heading-m">Magistrate 2</h3>
+    <h3 class="govuk-heading-s">Magistrate 2</h3>
     <div class="govuk-grid-row">
       <app-select-input
         formControlName="mags2Title"
@@ -290,7 +287,7 @@
     />
 
     <!-- Magistrate 3 -->
-    <h3 class="govuk-heading-m">Magistrate 3</h3>
+    <h3 class="govuk-heading-s">Magistrate 3</h3>
     <div class="govuk-grid-row">
       <app-select-input
         formControlName="mags3Title"
@@ -328,7 +325,7 @@
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
     />
 
-    <h2 class="govuk-heading-m">Officials</h2>
+    <h2 class="govuk-heading-s">Officials</h2>
 
     <div class="govuk-grid-row">
       <app-select-input

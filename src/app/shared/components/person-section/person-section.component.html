@@ -1,163 +1,177 @@
 <div [formGroup]="group()">
-  <h3 class="govuk-heading-m">Names</h3>
+  <fieldset class="govuk-fieldset">
+    <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">
+      Names
+    </legend>
 
-  <div class="govuk-grid-row">
-    <app-select-input
-      formControlName="title"
-      label="Select title"
-      [idPrefix]="scopeId() + '-person-title'"
-      [options]="titleOptions()"
-    />
-  </div>
+    <div class="govuk-grid-row">
+      <app-select-input
+        formControlName="title"
+        label="Select title"
+        [idPrefix]="scopeId() + '-person-title'"
+        [options]="titleOptions()"
+      />
+    </div>
 
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="firstName"
-      [idPrefix]="scopeId() + '-person-first-name'"
-      label="First name"
-      [submitted]="submitted()"
-      [suppressError]="false"
-      [error]="errorFor(scopeId() + '-person-first-name')"
-      widthClass="govuk-!-width-full"
-    />
-  </div>
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="firstName"
+        [idPrefix]="scopeId() + '-person-first-name'"
+        label="First name"
+        [submitted]="submitted()"
+        [suppressError]="false"
+        [error]="errorFor(scopeId() + '-person-first-name')"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
 
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="middleNames"
-      label="Middle name(s)"
-      [idPrefix]="scopeId() + '-person-middle-names'"
-      [error]="errorFor(scopeId() + '-person-middle-names')"
-      widthClass="govuk-!-width-full"
-    />
-  </div>
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="middleNames"
+        label="Middle name(s)"
+        [idPrefix]="scopeId() + '-person-middle-names'"
+        [error]="errorFor(scopeId() + '-person-middle-names')"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
 
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="surname"
-      [idPrefix]="scopeId() + '-person-surname'"
-      label="Surname"
-      [submitted]="submitted()"
-      [suppressError]="false"
-      [error]="errorFor(scopeId() + '-person-surname')"
-      widthClass="govuk-!-width-full"
-    />
-  </div>
-
-  <hr
-    class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
-  />
-  <h3 class="govuk-heading-m">Address</h3>
-
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="addressLine1"
-      [idPrefix]="scopeId() + '-person-address-line-1'"
-      label="Address line 1"
-      [submitted]="submitted()"
-      [suppressError]="false"
-      [error]="errorFor(scopeId() + '-person-address-line-1')"
-      widthClass="govuk-!-width-full"
-    />
-  </div>
-
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="addressLine2"
-      label="Address line 2"
-      [idPrefix]="scopeId() + '-person-address-line-2'"
-      [error]="errorFor(scopeId() + '-person-address-line-2')"
-      widthClass="govuk-!-width-full"
-    />
-  </div>
-
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="addressLine3"
-      label="Town or city"
-      [idPrefix]="scopeId() + '-person-address-line-3'"
-      [error]="errorFor(scopeId() + '-person-address-line-3')"
-      widthClass="govuk-!-width-full"
-    />
-  </div>
-
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="addressLine4"
-      label="County or region"
-      [idPrefix]="scopeId() + '-person-address-line-4'"
-      [error]="errorFor(scopeId() + '-person-address-line-4')"
-      widthClass="govuk-!-width-full"
-    />
-  </div>
-
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="addressLine5"
-      label="Post town"
-      [idPrefix]="scopeId() + '-person-address-line-5'"
-      [error]="errorFor(scopeId() + '-person-address-line-5')"
-      widthClass="govuk-!-width-full"
-    />
-  </div>
-
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="postcode"
-      [idPrefix]="scopeId() + '-person-postcode'"
-      label="Postcode"
-      hint="For example, SW1A 2AA"
-      [submitted]="submitted()"
-      [suppressError]="true"
-      [error]="errorFor(scopeId() + '-person-postcode')"
-      containerWidthClass="govuk-grid-column-one-half"
-    />
-  </div>
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="surname"
+        [idPrefix]="scopeId() + '-person-surname'"
+        label="Surname"
+        [submitted]="submitted()"
+        [suppressError]="false"
+        [error]="errorFor(scopeId() + '-person-surname')"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
+  </fieldset>
 
   <hr
     class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
   />
-  <h3 class="govuk-heading-m">Contact details</h3>
 
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="phoneNumber"
-      [idPrefix]="scopeId() + '-person-phone-number'"
-      label="Phone number"
-      hint="For example, 020 7946 0000"
-      inputType="tel"
-      [submitted]="submitted()"
-      [suppressError]="true"
-      [error]="errorFor(scopeId() + '-person-phone-number')"
-      containerWidthClass="govuk-grid-column-one-half"
-    />
-  </div>
+  <fieldset class="govuk-fieldset">
+    <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">
+      Address
+    </legend>
 
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="mobileNumber"
-      [idPrefix]="scopeId() + '-person-mobile-number'"
-      label="Mobile number"
-      hint="For example, 07123 456789"
-      inputType="tel"
-      [submitted]="submitted()"
-      [suppressError]="true"
-      [error]="errorFor(scopeId() + '-person-mobile-number')"
-      containerWidthClass="govuk-grid-column-one-half"
-    />
-  </div>
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="addressLine1"
+        [idPrefix]="scopeId() + '-person-address-line-1'"
+        label="Address line 1"
+        [submitted]="submitted()"
+        [suppressError]="false"
+        [error]="errorFor(scopeId() + '-person-address-line-1')"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
 
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="emailAddress"
-      [idPrefix]="scopeId() + '-person-email-address'"
-      label="Email address"
-      hint="For example, name@department.gov.uk"
-      inputType="email"
-      [submitted]="submitted()"
-      [suppressError]="true"
-      [error]="errorFor(scopeId() + '-person-email-address')"
-      containerWidthClass="govuk-grid-column-one-half"
-    />
-  </div>
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="addressLine2"
+        label="Address line 2"
+        [idPrefix]="scopeId() + '-person-address-line-2'"
+        [error]="errorFor(scopeId() + '-person-address-line-2')"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="addressLine3"
+        label="Town or city"
+        [idPrefix]="scopeId() + '-person-address-line-3'"
+        [error]="errorFor(scopeId() + '-person-address-line-3')"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="addressLine4"
+        label="County or region"
+        [idPrefix]="scopeId() + '-person-address-line-4'"
+        [error]="errorFor(scopeId() + '-person-address-line-4')"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="addressLine5"
+        label="Post town"
+        [idPrefix]="scopeId() + '-person-address-line-5'"
+        [error]="errorFor(scopeId() + '-person-address-line-5')"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="postcode"
+        [idPrefix]="scopeId() + '-person-postcode'"
+        label="Postcode"
+        hint="For example, SW1A 2AA"
+        [submitted]="submitted()"
+        [suppressError]="true"
+        [error]="errorFor(scopeId() + '-person-postcode')"
+        containerWidthClass="govuk-grid-column-one-half"
+      />
+    </div>
+  </fieldset>
+
+  <hr
+    class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+  />
+
+  <fieldset class="govuk-fieldset">
+    <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">
+      Contact details
+    </legend>
+
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="phoneNumber"
+        [idPrefix]="scopeId() + '-person-phone-number'"
+        label="Phone number"
+        hint="For example, 020 7946 0000"
+        inputType="tel"
+        [submitted]="submitted()"
+        [suppressError]="true"
+        [error]="errorFor(scopeId() + '-person-phone-number')"
+        containerWidthClass="govuk-grid-column-one-half"
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="mobileNumber"
+        [idPrefix]="scopeId() + '-person-mobile-number'"
+        label="Mobile number"
+        hint="For example, 07123 456789"
+        inputType="tel"
+        [submitted]="submitted()"
+        [suppressError]="true"
+        [error]="errorFor(scopeId() + '-person-mobile-number')"
+        containerWidthClass="govuk-grid-column-one-half"
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="emailAddress"
+        [idPrefix]="scopeId() + '-person-email-address'"
+        label="Email address"
+        hint="For example, name@department.gov.uk"
+        inputType="email"
+        [submitted]="submitted()"
+        [suppressError]="true"
+        [error]="errorFor(scopeId() + '-person-email-address')"
+        containerWidthClass="govuk-grid-column-one-half"
+      />
+    </div>
+  </fieldset>
 </div>

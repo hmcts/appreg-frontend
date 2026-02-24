@@ -16,7 +16,13 @@ Functionality:
 
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  OnInit,
+  PLATFORM_ID,
+  inject,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ControlContainer,
@@ -50,6 +56,10 @@ import { SuccessBannerComponent } from '@components/success-banner/success-banne
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
 import {
+  APPLICANT_ORG_ERROR_HREFS,
+  APPLICANT_PERSON_ERROR_HREFS,
+} from '@constants/application-list-entry/respondent/error-hrefs';
+import {
   ApplicationCodeGetDetailDto,
   ApplicationCodesApi,
   ApplicationListEntriesApi,
@@ -58,9 +68,11 @@ import { ApplicantStep } from '@page-types/applications-list-entry-create';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 import { ApplicantType } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import {
+  focusErrorSummary,
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '@util/error-click';
+import { getUniqueErrors } from '@util/error-items';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
@@ -105,6 +117,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   appEntryApi = inject(ApplicationListEntriesApi);
   applicationCodesApi = inject(ApplicationCodesApi);
   formSvc = inject(ApplicationListEntryFormService);
+  private readonly platformId = inject(PLATFORM_ID);
 
   id: string = '';
   step: ApplicantStep = 'select';
@@ -214,12 +227,49 @@ export class ApplicationsListEntryCreate implements OnInit {
     });
   }
 
+  private updateApplicantErrors(): void {
+    if (this.form.controls.applicantType.value === 'person') {
+      this.personForm.markAllAsTouched();
+      this.personForm.updateValueAndValidity({ emitEvent: false });
+
+      this.childErrors.applicant = buildFormErrorSummary(
+        this.personForm,
+        ENTRY_ERROR_MESSAGES,
+        { hrefs: APPLICANT_PERSON_ERROR_HREFS },
+      );
+      return;
+    }
+
+    if (this.form.controls.applicantType.value === 'org') {
+      this.organisationForm.markAllAsTouched();
+      this.organisationForm.updateValueAndValidity({ emitEvent: false });
+
+      this.childErrors.applicant = buildFormErrorSummary(
+        this.organisationForm,
+        ENTRY_ERROR_MESSAGES,
+        { hrefs: APPLICANT_ORG_ERROR_HREFS },
+      );
+      return;
+    }
+
+    this.childErrors.applicant = [];
+  }
+
   private updateAllErrors(): void {
+    this.updateApplicantErrors();
+
     this.parentErrors = this.buildErrorSummary();
     const allChildErrors = Object.values(this.childErrors).flat();
 
-    this.summaryErrors = [...this.parentErrors, ...allChildErrors];
+    this.summaryErrors = [
+      ...getUniqueErrors(this.parentErrors, allChildErrors),
+    ];
+
     this.errorFound = this.summaryErrors.length > 0;
+
+    if (this.errorFound) {
+      focusErrorSummary(this.platformId);
+    }
   }
 
   onChildErrors(source: ChildErrorSource, errors: ErrorItem[]): void {

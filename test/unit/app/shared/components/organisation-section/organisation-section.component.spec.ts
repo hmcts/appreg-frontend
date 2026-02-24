@@ -52,15 +52,16 @@ describe('OrganisationSectionComponent (signals)', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('renders the section headings', () => {
+  it('renders the section legends (fieldsets)', () => {
     const el: HTMLElement = fixture.nativeElement;
-    const headings = Array.from(el.querySelectorAll('h3.govuk-heading-m')).map(
-      (h) => h.textContent?.trim(),
-    );
 
-    expect(headings).toContain('Name');
-    expect(headings).toContain('Address');
-    expect(headings).toContain('Contact details');
+    const legends = Array.from(
+      el.querySelectorAll('legend.govuk-fieldset__legend--s'),
+    ).map((l) => l.textContent?.trim());
+
+    expect(legends).toContain('Name');
+    expect(legends).toContain('Address');
+    expect(legends).toContain('Contact details');
   });
 
   it('renders all expected app-text-input components', () => {
