@@ -47,6 +47,7 @@ import { SuccessBannerComponent } from '@components/success-banner/success-banne
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
 import {
+  RESPONDENT_BULK_ERROR_HREFS,
   RESPONDENT_ORG_ERROR_HREFS,
   RESPONDENT_PERSON_ERROR_HREFS,
 } from '@constants/application-list-entry/respondent/error-hrefs';
@@ -57,6 +58,7 @@ import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '@util/error-click';
+import { getUniqueErrors } from '@util/error-items';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
@@ -227,8 +229,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
     this.parentErrors = this.buildErrorSummary();
     const allChildErrors = Object.values(this.childErrors).flat();
-
-    const summaryErrors = [...this.parentErrors, ...allChildErrors];
+    const summaryErrors = getUniqueErrors(this.parentErrors, allChildErrors);
 
     this.appListEntryCreatePatch({
       summaryErrors,
@@ -307,6 +308,8 @@ export class ApplicationsListEntryCreate implements OnInit {
         errorMessages: ENTRY_ERROR_MESSAGES,
         respondentPersonHrefs: RESPONDENT_PERSON_ERROR_HREFS,
         respondentOrganisationHrefs: RESPONDENT_ORG_ERROR_HREFS,
+        respondentBulkControl: this.form.controls.numberOfRespondents,
+        respondentBulkHrefs: RESPONDENT_BULK_ERROR_HREFS,
       });
       return;
     }
@@ -325,6 +328,10 @@ export class ApplicationsListEntryCreate implements OnInit {
         return value.trim().length > 0;
       }
 
+      if (typeof value === 'number') {
+        return value > 0;
+      }
+
       if (typeof value === 'object') {
         return Object.values(value).some((item) => hasAnyValue(item));
       }
@@ -333,6 +340,7 @@ export class ApplicationsListEntryCreate implements OnInit {
     };
 
     return (
+      hasAnyValue(this.form.controls.numberOfRespondents.value) ||
       hasAnyValue(this.forms.respondentPersonForm.getRawValue()) ||
       hasAnyValue(this.forms.respondentOrganisationForm.getRawValue())
     );

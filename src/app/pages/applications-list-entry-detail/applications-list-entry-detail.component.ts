@@ -84,6 +84,7 @@ import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-me
 import {
   APPLICANT_ORG_ERROR_HREFS,
   APPLICANT_PERSON_ERROR_HREFS,
+  RESPONDENT_BULK_ERROR_HREFS,
   RESPONDENT_ORG_ERROR_HREFS,
   RESPONDENT_PERSON_ERROR_HREFS,
 } from '@constants/application-list-entry/respondent/error-hrefs';
@@ -476,6 +477,8 @@ export class ApplicationsListEntryDetail implements OnInit {
       errorMessages: UPDATE_ENTRY_ERROR_MESSAGES,
       respondentPersonHrefs: RESPONDENT_PERSON_ERROR_HREFS,
       respondentOrganisationHrefs: RESPONDENT_ORG_ERROR_HREFS,
+      respondentBulkControl: this.form.controls.numberOfRespondents,
+      respondentBulkHrefs: RESPONDENT_BULK_ERROR_HREFS,
     });
   }
 

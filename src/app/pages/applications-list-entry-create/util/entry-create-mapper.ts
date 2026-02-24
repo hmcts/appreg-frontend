@@ -3,6 +3,7 @@ import {
   hasRequiredPerson,
   makeContactDetails,
   pruneNullish,
+  toOptionalInteger,
   toOptionalTrimmed,
 } from './helpers';
 
@@ -37,7 +38,7 @@ export function buildEntryCreateDto(
       respondentPersonForm,
       respondentOrganisationForm,
     ),
-    numberOfRespondents: formValue.numberOfRespondents ?? undefined,
+    numberOfRespondents: toOptionalInteger(formValue.numberOfRespondents),
     wordingFields: buildWordingFields(formValue),
     feeStatuses: buildFeeStatuses(formValue),
     hasOffsiteFee: formValue.hasOffsiteFee ?? undefined,

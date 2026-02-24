@@ -1,4 +1,4 @@
-import { FormGroup } from '@angular/forms';
+import { AbstractControl, FormGroup } from '@angular/forms';
 
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { RespondentEntryType } from '@shared-types/applications-list-entry-create/application-list-entry-form';
@@ -14,6 +14,8 @@ interface BuildRespondentErrorsParams<ErrorMessageMap> {
 
   respondentPersonHrefs: Record<string, string>;
   respondentOrganisationHrefs: Record<string, string>;
+  respondentBulkControl: AbstractControl;
+  respondentBulkHrefs: Record<string, string>;
 }
 
 // Validation for respondent form. Returns errors or empty array
@@ -24,6 +26,8 @@ export function buildRespondentErrors<TErrorMessages extends ErrorMessageMap>({
   errorMessages,
   respondentPersonHrefs,
   respondentOrganisationHrefs,
+  respondentBulkControl,
+  respondentBulkHrefs,
 }: BuildRespondentErrorsParams<TErrorMessages>): ErrorItem[] {
   if (respondentEntryType === 'person') {
     respondentPersonForm.markAllAsTouched();
@@ -44,7 +48,26 @@ export function buildRespondentErrors<TErrorMessages extends ErrorMessageMap>({
   }
 
   if (respondentEntryType === 'bulk') {
-    // TODO: fill this in
+    respondentBulkControl.markAsTouched();
+    respondentBulkControl.updateValueAndValidity({ emitEvent: false });
+
+    const value = respondentBulkControl.value as string;
+    const isBlank = value === null || value === undefined || `${value}`.trim() === '';
+
+    if (isBlank) {
+      const currentErrors = respondentBulkControl.errors ?? {};
+      respondentBulkControl.setErrors({
+        ...currentErrors,
+      });
+    }
+
+    const bulkGroup = new FormGroup({
+      numberOfRespondents: respondentBulkControl,
+    });
+
+    return buildFormErrorSummary(bulkGroup, errorMessages, {
+      hrefs: respondentBulkHrefs,
+    });
   }
 
   return [];

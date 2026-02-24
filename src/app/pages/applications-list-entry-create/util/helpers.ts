@@ -8,6 +8,25 @@ export const toOptionalTrimmed = (
   return s || undefined;
 };
 
+export const toOptionalInteger = (
+  input: unknown,
+): number | undefined => {
+  if (input === null || input === undefined) {
+    return undefined;
+  }
+
+  const asString = `${input}`.trim();
+  if (!asString) {
+    return undefined;
+  }
+
+  if (!/^\d+$/.test(asString)) {
+    return undefined;
+  }
+
+  return Number(asString);
+};
+
 export const compactStrings = (
   values: (string | null | undefined)[],
 ): string[] | undefined => {

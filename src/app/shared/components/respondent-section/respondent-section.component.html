@@ -34,7 +34,11 @@
   }
   @case ('bulk') {
     @if (bulkAllowed()) {
-      <app-respondent-bulk-application></app-respondent-bulk-application>
+      <app-respondent-bulk-application
+        [form]="form()"
+        [submitted]="submitted()"
+        [errors]="errorItems()"
+      />
     }
   }
 }
