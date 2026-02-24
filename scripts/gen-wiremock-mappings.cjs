@@ -34,6 +34,10 @@ const FIXTURE_ROOT = 'fixtures';
 const REPORT_CSV_DEFAULT = 'reports/sample.csv';
 const REPORT_CSV_FILENAME = 'report.csv';
 
+const ENABLE_TEMPLATING = ['1', 'true', 'yes'].includes(
+  String(process.env.ENABLE_TEMPLATING || '').toLowerCase(),
+);
+
 // Map status ➜ shared error body file under __files/errors
 const ERROR_FILE_BY_STATUS = Object.freeze({
   400: 'errors/bad-request.json',
@@ -397,7 +401,7 @@ async function emit400InvalidQuery(op, dir, m, url, seenPerOp) {
     response: {
       status: 400,
       headers: { 'Content-Type': 'application/problem+json' },
-      transformers: ['response-template'],
+      // transformers: ['response-template'],
       bodyFileName: ERROR_FILE_BY_STATUS[400],
       ...(STUB_DELAY_MS ? { fixedDelayMilliseconds: STUB_DELAY_MS } : {}),
     },
@@ -428,7 +432,7 @@ async function emit401MissingAuth(op, dir, m, url, seenPerOp) {
     response: {
       status: 401,
       headers: { 'Content-Type': 'application/problem+json' },
-      transformers: ['response-template'],
+      // transformers: ['response-template'],
       bodyFileName: ERROR_FILE_BY_STATUS[401],
       ...(STUB_DELAY_MS ? { fixedDelayMilliseconds: STUB_DELAY_MS } : {}),
     },
@@ -469,7 +473,7 @@ async function emit403ForbiddenDebug(op, dir, m, url, seenPerOp) {
     response: {
       status: 403,
       headers: { 'Content-Type': 'application/problem+json' },
-      transformers: ['response-template'],
+      // transformers: ['response-template'],
       bodyFileName: ERROR_FILE_BY_STATUS[403],
       ...(STUB_DELAY_MS ? { fixedDelayMilliseconds: STUB_DELAY_MS } : {}),
     },
@@ -500,7 +504,7 @@ async function emit406WrongAccept(op, dir, m, url, seenPerOp) {
     response: {
       status: 406,
       headers: { 'Content-Type': 'application/problem+json' },
-      transformers: ['response-template'],
+      // transformers: ['response-template'],
       bodyFileName: ERROR_FILE_BY_STATUS[406],
       ...(STUB_DELAY_MS ? { fixedDelayMilliseconds: STUB_DELAY_MS } : {}),
     },
@@ -536,7 +540,7 @@ async function emit400MissingBodyFields(op, dir, m, url, seenPerOp) {
     response: {
       status: 400,
       headers: { 'Content-Type': 'application/problem+json' },
-      transformers: ['response-template'],
+      // transformers: ['response-template'],
       bodyFileName: ERROR_FILE_BY_STATUS[400],
       ...(STUB_DELAY_MS ? { fixedDelayMilliseconds: STUB_DELAY_MS } : {}),
     },
@@ -657,7 +661,7 @@ async function main() {
           response: {
             status: code,
             headers: { 'Content-Type': 'application/problem+json' },
-            transformers: ['response-template'],
+            // transformers: ['response-template'],
             ...(STUB_DELAY_MS ? { fixedDelayMilliseconds: STUB_DELAY_MS } : {}),
             bodyFileName,
           },
@@ -713,7 +717,7 @@ async function main() {
         successResponse = {
           status: Number(statusCode),
           headers,
-          transformers: ['response-template'],
+          // transformers: ['response-template'],
           ...(STUB_DELAY_MS ? { fixedDelayMilliseconds: STUB_DELAY_MS } : {}),
           bodyFileName: maybeFixture.rel, // fixtures/<group>/<op>-200.json
         };
@@ -724,14 +728,18 @@ async function main() {
           const json = pickJsonMedia(resp.content || {}) || [];
           const media = json[1];
           const example = media ? await exampleFromSchemaOrGenerate(media) : {};
-          responseBodyStr = applyListGuardsIfLooksPaged(
-            bodyJsonString(example),
-          );
+          // responseBodyStr = applyListGuardsIfLooksPaged(
+          //   bodyJsonString(example),
+          // );
+          const raw = bodyJsonString(example);
+          responseBodyStr = ENABLE_TEMPLATING
+            ? applyListGuardsIfLooksPaged(raw)
+            : raw;
         }
         successResponse = {
           status: Number(statusCode),
           headers,
-          transformers: ['response-template'],
+          // transformers: ['response-template'],
           ...(STUB_DELAY_MS ? { fixedDelayMilliseconds: STUB_DELAY_MS } : {}),
           ...(String(statusCode) === '204' ? {} : { body: responseBodyStr }),
         };

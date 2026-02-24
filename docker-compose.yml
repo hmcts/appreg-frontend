@@ -15,7 +15,7 @@ services:
   wiremock:
     image: wiremock/wiremock:latest
     container_name: appreg-wiremock
-    command: ['--verbose', '--global-response-templating']
+    command: ['--verbose']
     ports:
       - '4550:8080'
     volumes:
