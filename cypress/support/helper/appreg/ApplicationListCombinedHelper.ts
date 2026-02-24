@@ -1,4 +1,5 @@
 import { processDatatableRow } from '../../utils/TestDataGenerator';
+import { AccordionHelper } from '../forms/accordion/AccordionHelper';
 import { ButtonHelper } from '../forms/button/ButtonHelper';
 import { DateTimeHelper } from '../forms/datetime/DateTimeHelper';
 import { DropdownHelper } from '../forms/dropdown/DropdownHelper';
@@ -11,6 +12,8 @@ export class ApplicationListCombinedHelper {
    * @param criteria - Search criteria object (field label -> value)
    */
   static searchApplicationList(criteria: Record<string, string>): void {
+    AccordionHelper.toggleAccordion('Advanced search');
+
     const processedCriteria = processDatatableRow(criteria);
 
     cy.log('Searching Application List with criteria:', processedCriteria);
@@ -60,9 +63,9 @@ export class ApplicationListCombinedHelper {
           break;
         }
 
-        case 'Status':
+        case 'Select list status':
           if (value !== 'Choose') {
-            DropdownHelper.selectDropdownOption('Select status', value);
+            DropdownHelper.selectDropdownOption('Select list status', value);
           }
           break;
 
