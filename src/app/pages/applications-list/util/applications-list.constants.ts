@@ -6,7 +6,6 @@ export const APPLICATIONS_LIST_COLUMNS: TableColumn[] = [
   {
     header: 'Location',
     field: 'location',
-    sortValue: (row) => buildTrailingNumericSortKey(row['location']),
   },
   { header: 'Description', field: 'description' },
   { header: 'Entries', field: 'entries', numeric: true },
@@ -17,6 +16,15 @@ export const APPLICATIONS_LIST_COLUMNS_ACTION: TableColumn[] = [
   ...APPLICATIONS_LIST_COLUMNS,
   { header: 'Actions', field: 'actions', sortable: false },
 ];
+
+export const APPLICATION_LIST_SORT_MAP: Record<string, string> = {
+  date: 'date',
+  time: 'time',
+  location: 'location',
+  description: 'description',
+  entries: 'entriesCount',
+  status: 'status',
+};
 
 export const APPLICATIONS_LIST_CHOOSE_STATUS = [
   { label: 'Choose', value: '' },
@@ -79,49 +87,3 @@ export const APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES = {
     maxlength: 'Criminal justice area must be 50 characters or fewer',
   },
 } as const;
-
-// TODO: remove when we migrate to server sorting
-function buildTrailingNumericSortKey(value: unknown): string {
-  if (value === null) {
-    return '';
-  }
-
-  let s: string;
-
-  if (typeof value === 'string') {
-    s = value.trim().toLowerCase();
-  } else if (typeof value === 'number') {
-    s = String(value);
-  } else if (typeof value === 'boolean') {
-    s = value ? 'true' : 'false';
-  } else {
-    return '';
-  }
-
-  if (s === '') {
-    return '';
-  }
-
-  let i = s.length - 1;
-  while (i >= 0) {
-    const code = s.codePointAt(i);
-    if (code === undefined) {
-      break;
-    }
-
-    if (code < 48 || code > 57) {
-      break;
-    }
-    i--;
-  }
-
-  if (i === s.length - 1) {
-    return s;
-  }
-
-  const prefix = s.slice(0, i + 1);
-  const numStr = s.slice(i + 1);
-  const padded = numStr.padStart(4, '0');
-
-  return `${prefix}${padded}`;
-}

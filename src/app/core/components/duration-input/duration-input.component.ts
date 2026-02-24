@@ -47,6 +47,8 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
   readonly disabled = input(false);
   // @Input() submitted = false;
   submitted = input(false);
+  showError = input(false);
+  errorTextOverride = input('');
   // @Input() required = true;
   required = input(true);
   // @Input() mode: DurationMode = 'clock'; // One for 24 hour clock and one for duration
@@ -272,7 +274,7 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
   }
 
   get displayErrors(): boolean {
-    return this.submitted() && this.showErrors;
+    return this.submitted() && (this.showErrors || this.showError());
   }
 
   get showErrors(): boolean {
@@ -280,6 +282,11 @@ export class DurationInputComponent implements ControlValueAccessor, Validator {
   }
 
   get errorText(): string {
+    const override = this.errorTextOverride()?.trim();
+    if (this.showError() && override) {
+      return override;
+    }
+
     const e = this.computeErrors();
     if (!e) {
       return '';

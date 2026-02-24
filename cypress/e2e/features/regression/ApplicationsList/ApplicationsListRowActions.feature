@@ -188,8 +188,8 @@ Feature: Application List Row Actions
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
-            | Date         | Time | Description | CourtSearch   | Court | Status | Other location | CJA | CJASearch |
-            | <SearchDate> |      |             | <Description> |       |        |                |     |           |
+            | Date         | Time | Description   | CourtSearch | Court | Status | Other location | CJA | CJASearch |
+            | <SearchDate> |      | <Description> |             |       |        |                |     |           |
         When User Clicks "<SelectButtonText>" Then "Print continuous" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
@@ -200,7 +200,7 @@ Feature: Application List Row Actions
         Then User Verifies Latest Downloaded PDF Contains Text "Check List Report"
         Then User Verifies Latest Downloaded PDF Contains <Entries> "Applicant" Entries
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
-            | Date & Time            | <APIDate> <Time>                                                                                                                          |
+            | Date & Time            | <DisplayDate> <Time>                                                                                                                      |
             | Duration               | <durationHours> Hours <durationMinutes> Minutes                                                                                           |
             | Location               | <Court>                                                                                                                                   |
             | Applicant              | Mr Henry James Taylor {RANDOM}                                                                                                            |
@@ -235,19 +235,19 @@ Feature: Application List Row Actions
             | Respondent             | Ms Emily Rose Clark {RANDOM}                                                                                                              |
             | Matter considered      | Issue of liability order summons - council tax                                                                                            |
             | This matter was before | Mr Turner {RANDOM} Graham MAGISTRATE Ms Hayes {RANDOM} Laura MAGISTRATE Mr Miller {RANDOM} Peter CLERK Ms Patel {RANDOM} Anita MAGISTRATE |
-            | Dated                  | <APIDate>                                                                                                                                 |
+            | Dated                  | <DisplayDateLong>                                                                                                                         |
             | Produced on            | <SearchDate>                                                                                                                              |
             | Application brought by | Mr John A B Smith {RANDOM}                                                                                                                |
             | Respondent             | -                                                                                                                                         |
             | Matter considered      | Copy documents (electronic)                                                                                                               |
             | AD99002                | Request for copy documents on computer disc or in electronic form                                                                         |
             | This matter was before | Mr Smith {RANDOM} John MAGISTRATE                                                                                                         |
-            | Dated                  | <APIDate>                                                                                                                                 |
+            | Dated                  | <DisplayDateLong>                                                                                                                         |
             | Produced on            | <SearchDate>                                                                                                                              |
         Then User Clears Downloaded PDFs
         Examples:
-            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
-            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 2             | 22              | 2       | OPEN   | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 2     |
+            | User  | TableName | SearchDate | APIDate  | DisplayDate  | DisplayDateLong  | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
+            | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 2             | 22              | 2       | OPEN   | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 2     |
 
     @regression @ARCPOC-214 @ARCPOC-453 @ARCPOC-449
     Scenario Outline: Verify PDF download for print page with entries for CJA
@@ -309,8 +309,8 @@ Feature: Application List Row Actions
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
-            | Date         | Time | Description | CourtSearch | Court | Status   | Other location | CJA          | CJASearch |
-            | <SearchDate> |      |             |             |       | <Status> |                | <OptionText> | <cjaCode> |
+            | Date         | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+            | <SearchDate> |      |                  |             |       | <Status>           |                            | <OptionText>          | <cjaCode> |
         When User Clicks "<SelectButtonText>" Then "Print continuous" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location     | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
@@ -320,7 +320,7 @@ Feature: Application List Row Actions
         Then User Verifies Latest Downloaded PDF Contains Text "Check List Report"
         Then User Verifies Latest Downloaded PDF Contains <Entries> "Applicant" Entries
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
-            | Date & Time            | <APIDate> <Time>                                                                                                                          |
+            | Date & Time            | <DisplayDate> <Time>                                                                                                                      |
             | Duration               | -                                                                                                                                         |
             | Location               | <otherLocationDescription> A8 - Derby                                                                                                     |
             | Applicant              | Sunrise Manufacturing Co 456 Industrial Estate, B1 2CD Email: info@example.com                                                            |
@@ -345,12 +345,12 @@ Feature: Application List Row Actions
             | Application brought by | Sunrise Manufacturing Co 456 Industrial Estate, B1 2CD Email: info@example.com Phone: 01234567891                                         |
             | Respondent             | -                                                                                                                                         |
             | This matter was before | Mr Turner {RANDOM} Graham MAGISTRATE Ms Hayes {RANDOM} Laura MAGISTRATE Mr Miller {RANDOM} Peter CLERK Ms Patel {RANDOM} Anita MAGISTRATE |
-            | Dated                  | <APIDate>                                                                                                                                 |
+            | Dated                  | <DisplayDateLong>                                                                                                                         |
             | Produced on            | <SearchDate>                                                                                                                              |
         Then User Clears Downloaded PDFs
         Examples:
-            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | cjaCode | OptionText | otherLocationDescription                | Description               | Entries | Status | SelectButtonText | PDFNameContinuous         | PDFNamePage               | Pages |
-            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-1h | A8      | Derby      | This is a location description {RANDOM} | ENFORCEMENT LIST-{RANDOM} | 1       | OPEN   | Select           | derby-todayiso-print-cont | derby-todayiso-print-page | 1     |
+            | User  | TableName | SearchDate | APIDate  | DisplayDate  | DisplayDateLong  | Time           | cjaCode | OptionText | otherLocationDescription                | Description               | Entries | Status | SelectButtonText | PDFNameContinuous         | PDFNamePage               | Pages |
+            | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-1h | A8      | Derby      | This is a location description {RANDOM} | ENFORCEMENT LIST-{RANDOM} | 1       | OPEN   | Select           | derby-todayiso-print-cont | derby-todayiso-print-page | 1     |
 
 
     @regression @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-803
@@ -424,6 +424,14 @@ Feature: Application List Row Actions
             }
             """
         Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "entryId"
+        When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
+            """
+            {
+            "resultCode": "AUTH"
+            }
+            """
+        Then User Verify Response Status Code Should Be "201"
         When User Makes PUT API Request To "/application-lists/:listId" With Body:
             | date      | time   | status   | description   | durationHours   | durationMinutes   | courtLocationCode   |
             | <APIDate> | <Time> | <Status> | <Description> | <durationHours> | <durationMinutes> | <courtLocationCode> |
@@ -431,8 +439,8 @@ Feature: Application List Row Actions
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
-            | Date         | Time | Description | CourtSearch | Court | Status | Other location | CJA | CJASearch |
-            | <SearchDate> |      |             |             |       |        |                |     |           |
+            | Date         | Time | List description | CourtSearch         | Court   | Select list status | Other location description | Criminal justice area | CJASearch |
+            | <SearchDate> |      |                  | <courtLocationCode> | <Court> |                    |                            |                       |           |
         When User Clicks "<SelectButtonText>" Then "Print continuous" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
@@ -443,7 +451,7 @@ Feature: Application List Row Actions
         Then User Verifies Latest Downloaded PDF Contains Text "Applications Register Report"
         Then User Verifies Latest Downloaded PDF Contains <Entries> "Applicant" Entries
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
-            | Date & Time            | <APIDate> <Time>                                                  |
+            | Date & Time            | <DisplayDate> <Time>                                              |
             | Duration               | <durationMinutes> Minutes                                         |
             | Location               | <Court>                                                           |
             | Applicant              | ACME Industries LTD {RANDOM} Downing Street, Westminster, London, |
@@ -469,15 +477,15 @@ Feature: Application List Row Actions
             | Respondent             | Beta Solutions Inc {RANDOM} Fleet Street, London, EC4Y 1AA Email: betasolutions@gmail.com Phone: 01132 654321 Mobile: 07987654321                          |
             | Matter considered      | Condemnation of Unfit Food                                                                                                                                 |
             | This matter was before | Ms Patel {RANDOM} Anita MAGISTRATE                                                                                                                         |
-            | Dated                  | <APIDate>                                                                                                                                                  |
+            | Dated                  | <DisplayDateLong>                                                                                                                                          |
             | Produced on            | <SearchDate>                                                                                                                                               |
         Then User Clears Downloaded PDFs
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
         Examples:
-            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
-            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 0             | 5               | 1       | CLOSED | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 1     |
+            | User  | TableName | SearchDate | APIDate  | DisplayDate  | DisplayDateLong  | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
+            | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 0             | 5               | 1       | CLOSED | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 1     |
 
     @regression @ARCPOC-214 @ARCPOC-575 @ARCPOC-1037
     Scenario Outline: Verify application list is deleted successfully for applications list NO entries
@@ -490,8 +498,8 @@ Feature: Application List Row Actions
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
-            | Date         | Time | Description   | CourtSearch | Court | Status | Other location | CJA | CJASearch |
-            | <SearchDate> |      | <Description> |             |       |        |                |     |           |
+            | Date         | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+            | <SearchDate> |      | <Description>    |             |       |                    |                            |                       |           |
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | 0       | <Status> |
@@ -582,8 +590,8 @@ Feature: Application List Row Actions
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
-            | Date         | Time | Description | CourtSearch         | Court   | Status | Other location | CJA | CJASearch |
-            | <SearchDate> |      |             | <courtLocationCode> | <Court> |        |                |     |           |
+            | Date         | Time | List description | CourtSearch         | Court   | Select list status | Other location description | Criminal justice area | CJASearch |
+            | <SearchDate> |      |                  | <courtLocationCode> | <Court> |                    |                            |                       |           |
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |

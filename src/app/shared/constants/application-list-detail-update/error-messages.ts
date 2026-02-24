@@ -44,3 +44,23 @@ export const DETAIL_GROUP_MESSAGES = {
   courtLocCjaConflict:
     'You can not have Court and Other Location or CJA filled in',
 } as const;
+
+export const RESULT_ERROR_MESSAGES = {
+  singleResulted: 'This application has already been resulted.',
+  allResulted: 'These applications have already been resulted.',
+};
+
+export const CLOSE_MESSAGES = {
+  closeInvalid:
+    'You cannot close this list. See the error summary for details.',
+  resultMissing: 'Each entry must have at least one result to close this list',
+  officialsMissing:
+    'Each entry must have at least one official to close this list',
+  feeMissing:
+    'Entries with required fees must have a fee status marked "PAID" to close this list',
+  respondentMissing:
+    'Entries that require a respondent must have a respondent recorded to close this list',
+  durationMissing: 'A duration must be recorded to close this list.',
+  durationNonPositive:
+    'Please enter positive value for either hours or minutes to close this list',
+} as const;

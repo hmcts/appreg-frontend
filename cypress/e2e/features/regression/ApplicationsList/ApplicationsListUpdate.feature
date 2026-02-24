@@ -19,16 +19,16 @@ Feature: Applications List Update
         Then User Verify The Page URL Contains "#list-details"
         Then User Verifies The Time field "Time" Has Value "<Time>"
         Then User Verifies The "Description" Textbox Has Value "<Description>"
-        Then User Verifies "<Status>" Is Selected In The "Status" Dropdown
+        Then User Verifies "<Status>" Is Selected In The "Select list status" Dropdown
         Then User Verifies The "Court" Textbox Has Selected Value "<CourtValue>"
         Then User Verifies The "Other location" Textbox Has Value "<OtherLocation>"
-        Then User Verifies The "CJA" Textbox Has Value "<cjaCode> - <CJAValue>"
+        Then User Verifies The "Criminal justice area" Textbox Has Value "<cjaCode> - <CJAValue>"
         Then User Verifies The "Duration" field Has Values hours "<HH>" and minutes "<MM>"
         Then User Clears The "Description" Textbox
         Then User Enters "<UpdatedDescription>" Into The "Description" Textbox
         Then User Clears The "Other location" Textbox
         Then User Enters "<UpdatedOtherLocation>" Into The "Other location" Textbox
-        Then User Selects "<CJAValue>" From The Textbox "CJA" Autocomplete By Typing "<cjaCode>"
+        Then User Selects "<CJAValue>" From The Textbox "Criminal justice area" Autocomplete By Typing "<cjaCode>"
         When User Clicks On The "Update" Button
         Then User Sees Notification Banner "Success Update completeList successfully updated"
         Then User Clicks On The Breadcrumb Link "Applications list"
@@ -65,10 +65,10 @@ Feature: Applications List Update
         Then User Verifies The Date field "Date" Has Value "<SearchDate>"
         Then User Verifies The Time field "Time" Has Value "<Time>"
         Then User Verifies The "Description" Textbox Has Value "<Description>"
-        Then User Verifies "<Status>" Is Selected In The "Status" Dropdown
+        Then User Verifies "<Status>" Is Selected In The "Select list status" Dropdown
         Then User Verifies The "Court" Textbox Has Selected Value "<Court> - <CourtLocation>"
         Then User Verifies The "Other location" Textbox Has Value "<OtherLocation>"
-        Then User Verifies The "CJA" Textbox Has Value "<CJAValue>"
+        Then User Verifies The "Criminal justice area" Textbox Has Value "<CJAValue>"
         Then User Verifies The "Duration" field Has Values hours "<HH>" and minutes "<MM>"
         When User Set "<UpdatedHH>" and "<UpdatedMM>" In The "Duration" Field
         Then User Clears The "Description" Textbox
@@ -110,29 +110,29 @@ Feature: Applications List Update
         Then User Verifies The Date field "Date" Has Value "<SearchDate>"
         Then User Verifies The Time field "Time" Has Value "<Time>"
         Then User Verifies The "Description" Textbox Has Value "<Description>"
-        Then User Verifies "<Status>" Is Selected In The "Status" Dropdown
+        Then User Verifies "<Status>" Is Selected In The " Select list status " Dropdown
         Then User Verifies The "Court" Textbox Has Selected Value "<Court> - <courtLocation>"
         Then User Verifies The "Other location" Textbox Has Value "<OtherLocation>"
-        Then User Verifies The "CJA" Textbox Has Value "<CJAValue>"
+        Then User Verifies The "Criminal justice area" Textbox Has Value "<CJAValue>"
         Then User Verifies The "Duration" field Has Values hours "<HH>" and minutes "<MM>"
         When User Clears The Date Field "Date"
         When User Clears The Time Field "Time"
         Then User Clears The "Description" Textbox
-        Then User Selects "<InvalidStatus>" In The "Status" Dropdown
+        Then User Selects "<InvalidStatus>" In The "Select list status" Dropdown
         Then User Clears The "Court" Textbox
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "There is a problem Enter day, month and year Enter hours and minutes Enter a description Select a status Enter a court, or an other location and criminal justice area"
+        Then User Sees Notification Banner "There is a problem Enter day, month and year Enter valid hours and minutes Enter a description Select a status Enter a court, or an other location and criminal justice area"
         When User Set Date Field "Date" To "<InvalidSearchDate>"
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "There is a problem Enter day, month and year Enter hours and minutes Enter a description Select a status Enter a court, or an other location and criminal justice area"
+        Then User Sees Notification Banner "There is a problem Enter a valid date Enter valid hours and minutes Enter a description Select a status Enter a court, or an other location and criminal justice area"
         When User Set Date Field "Date" To "<UpdatedSearchDate>"
         When User Set Time Field "Time" To "<InvalidTime1>"
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "There is a problem Enter hours and minutes Enter a description Select a status Enter a court, or an other location and criminal justice area"
+        Then User Sees Notification Banner "There is a problem Enter valid hours and minutes Enter a description Select a status Enter a court, or an other location and criminal justice area"
         When User Clears The Time Field "Time"
         When User Set Time Field "Time" To "<InvalidTime2>"
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "There is a problem Enter hours and minutes Enter a description Select a status Enter a court, or an other location and criminal justice area"
+        Then User Sees Notification Banner "There is a problem Enter valid hours and minutes Enter a description Select a status Enter a court, or an other location and criminal justice area"
         When User Clears The Time Field "Time"
         When User Set Time Field "Time" To "<InvalidTime3>"
         When User Clicks On The "Update" Button
@@ -141,16 +141,16 @@ Feature: Applications List Update
         Then User Enters "<UpdatedDescription>" Into The "Description" Textbox
         When User Clicks On The "Update" Button
         Then User Sees Notification Banner "There is a problem Select a status Enter a court, or an other location and criminal justice area"
-        Then User Selects "<Status>" In The "Status" Dropdown
+        Then User Selects "<Status>" In The "Select list status" Dropdown
         When User Clicks On The "Update" Button
         Then User Sees Notification Banner "There is a problem Enter a court, or an other location and criminal justice area"
         Then User Enters "<UpdatedOtherLocation>" Into The "Other location" Textbox
         When User Clicks On The "Update" Button
         Then User Sees Notification Banner "There is a problem Enter a court, or an other location and criminal justice area"
-        Then User Enters "<InvalidCJAValue>" Into The "CJA" Textbox
+        Then User Enters "<InvalidCJAValue>" Into The "Criminal justice area" Textbox
         When User Clicks On The "Update" Button
         Then User Sees Notification Banner "There is a problem Criminal justice area not found"
-        Then User Clears The "CJA" Textbox
+        Then User Clears The "Criminal justice area" Textbox
         Then User Clears The "Other location" Textbox
         Then User Enters "<InvalidCourtValue>" Into The "Court" Textbox
         When User Clicks On The "Update" Button
@@ -162,4 +162,4 @@ Feature: Applications List Update
         Then User Sees Notification Banner "Success Update completeList successfully updated"
         Examples:
             | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description          | Status | Entries | InvalidSearchDate | UpdatedSearchDate | InvalidTime1 | InvalidTime2 | InvalidTime3 | UpdatedTime | UpdatedDescription                    | InvalidStatus | OtherLocation | CJAValue | HH | MM | OptionText                | SearchText | UpdatedHH | UpdatedMM | UpdatedOtherLocation      | InvalidCJAValue | InvalidCourtValue |
-            | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test Update {RANDOM} | OPEN   | 0       | 32/13/2025        | 12/12/2025        | 44:*SKIP*    | *SKIP*:33    | 46:70        | 16:30       | Updated Description For Test {RANDOM} | Choose status |               |          | 11 | 30 | Cardiff Crown Court Set 4 | CCC033     | 3         | 45        | Updated Location {RANDOM} | InvalidCJA      | InvalidCourt      |
+            | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test Update {RANDOM} | OPEN   | 0       | 32/13/2025        | 12/12/2025        | 44:*SKIP*    | *SKIP*:33    | 46:70        | 16:30       | Updated Description For Test {RANDOM} | Choose        |               |          | 11 | 30 | Cardiff Crown Court Set 4 | CCC033     | 3         | 45        | Updated Location {RANDOM} | InvalidCJA      | InvalidCourt      |

@@ -1,9 +1,24 @@
 {
   "id": "{{request.pathSegments.[3]}}",
   "listId": "{{request.pathSegments.[1]}}",
-  "standardApplicantCode": "APP001",
+  "standardApplicantCode": "SA002",
   "applicationCode": "APP99001",
-  "applicant": { "type": "ORGANISATION", "organisationName": "CPS" },
+  "applicant": { 
+    "organisation": {
+      "name": "ACME Industries LTD",
+      "contactDetails": {
+        "addressLine1": "10 Downing Street",
+        "addressLine2": "Westminster",
+        "addressLine3": "London",
+        "addressLine4": "Greater London",
+        "addressLine5": "United Kingdom",
+        "postcode": "SW1A 2AA",
+        "phone": "01225 123456",
+        "mobile": "07123456789",
+        "email": "john-doe@gmail.com"
+      }
+    }
+},
   "respondent": {
     "type": "person",
     "person": {
@@ -13,7 +28,7 @@
         "surname": "Taylor"
       },
       "contactDetails": {
-        "addressLine1": "",
+        "addressLine1": "123 road drive",
         "addressLine2": "",
         "addressLine3": "",
         "addressLine4": "",
@@ -40,8 +55,8 @@
     }
   ],
   "hasOffsiteFee": true,
-  "caseReference": "CASE-001",
-  "accountNumber": "ACC-001",
+  "caseReference": "CASE001",
+  "accountNumber": "ACC001",
   "notes": "Example entry",
   "lodgementDate": "2025-12-01",
   "officials": []

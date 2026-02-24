@@ -4,7 +4,7 @@ import {
   ApplicationListSearchFormService,
   DEFAULT_STATE,
   SearchFormValue,
-} from '@services/searchform/application-list-search-form.service';
+} from '@services/applications-list/searchform/application-list-search-form.service';
 
 describe('ApplicationListSearchFormService', () => {
   let service: ApplicationListSearchFormService;
@@ -31,6 +31,7 @@ describe('ApplicationListSearchFormService', () => {
       court: 'Court A',
       location: 'London',
       cja: 'CJA-123',
+      isAdvancedSearch: false,
     };
 
     service.setState(next);
@@ -63,6 +64,7 @@ describe('ApplicationListSearchFormService', () => {
       court: 'Court X',
       location: 'Birmingham',
       cja: 'CJA-999',
+      isAdvancedSearch: false,
     };
     service.setState(initial);
 
@@ -83,6 +85,7 @@ describe('ApplicationListSearchFormService', () => {
       court: 'Court A',
       location: 'London',
       cja: 'CJA-123',
+      isAdvancedSearch: false,
     });
 
     service.reset();

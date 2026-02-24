@@ -177,13 +177,6 @@ describe('ApplicationsListDetail', () => {
     ).toBeTruthy();
   });
 
-  it('submits form and calls onUpdate', () => {
-    const spy = jest.spyOn(component, 'onUpdate');
-    const form = fixture.debugElement.query(By.css('form'));
-    form.triggerEventHandler('ngSubmit', {});
-    expect(spy).toHaveBeenCalled();
-  });
-
   it('disables Other location when Court is chosen (PlaceFieldsBase disabler)', () => {
     component.form.controls.court.setValue('LOC123');
     fixture.detectChanges();
@@ -269,8 +262,13 @@ describe('ApplicationsListDetail', () => {
       component.loadApplicationsLists();
       await flushSignalEffects(fixture);
 
-      expect(apiStub.getApplicationList).toHaveBeenCalledWith(
-        { listId: 'list-123', pageNumber: 0, pageSize: 10 },
+      expect(apiStub.getApplicationList).toHaveBeenNthCalledWith(
+        2,
+        {
+          listId: 'list-123',
+          pageNumber: 0,
+          pageSize: 10,
+        },
         'response',
         false,
         { transferCache: false },

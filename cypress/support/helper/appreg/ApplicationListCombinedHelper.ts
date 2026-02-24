@@ -1,4 +1,5 @@
 import { processDatatableRow } from '../../utils/TestDataGenerator';
+import { AccordionHelper } from '../forms/accordion/AccordionHelper';
 import { ButtonHelper } from '../forms/button/ButtonHelper';
 import { DateTimeHelper } from '../forms/datetime/DateTimeHelper';
 import { DropdownHelper } from '../forms/dropdown/DropdownHelper';
@@ -11,6 +12,8 @@ export class ApplicationListCombinedHelper {
    * @param criteria - Search criteria object (field label -> value)
    */
   static searchApplicationList(criteria: Record<string, string>): void {
+    AccordionHelper.toggleAccordion('Advanced search');
+
     const processedCriteria = processDatatableRow(criteria);
 
     cy.log('Searching Application List with criteria:', processedCriteria);
@@ -50,23 +53,27 @@ export class ApplicationListCombinedHelper {
           // Skip - handled by CJA case
           break;
 
-        case 'Other location':
-          TextboxHelper.typeInTextbox('Other location', value);
+        case 'Other location description':
+          TextboxHelper.typeInTextbox('Other location description', value);
           break;
 
-        case 'CJA': {
+        case 'Criminal justice area': {
           const cjaSearchText = processedCriteria.CJASearch || value;
-          TextboxHelper.selectAutocompleteOption('CJA', cjaSearchText, value);
+          TextboxHelper.selectAutocompleteOption(
+            'Criminal justice area',
+            cjaSearchText,
+            value,
+          );
           break;
         }
 
-        case 'Status':
+        case 'Select list status':
           if (value !== 'Choose') {
-            DropdownHelper.selectDropdownOption('Select status', value);
+            DropdownHelper.selectDropdownOption('Select list status', value);
           }
           break;
 
-        case 'Description':
+        case 'List description':
           TextboxHelper.typeInTextbox(fieldLabel, value);
           break;
       }

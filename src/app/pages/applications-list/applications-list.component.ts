@@ -35,10 +35,10 @@ import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
 import { map, take } from 'rxjs/operators';
 
 import {
-  APPLICATIONS_LIST_CHOOSE_STATUS,
   APPLICATIONS_LIST_COLUMNS_ACTION,
   APPLICATIONS_LIST_ERROR_MESSAGES,
   APPLICATIONS_LIST_FORM_ERROR_MESSAGES,
+  APPLICATION_LIST_SORT_MAP,
 } from './util/applications-list.constants';
 import {
   ApplicationsListState,
@@ -52,8 +52,8 @@ import {
   hasAnyParams,
   toRow,
 } from '@components/applications-list-entry-detail/util/routing-state-util';
-import { DateInputComponent } from '@components/date-input/date-input.component';
-import { DurationInputComponent } from '@components/duration-input/duration-input.component';
+import { ApplicationsListFormComponent } from '@components/applications-list-form/applications-list-form.component';
+import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import {
   ErrorItem,
   ErrorSummaryComponent,
@@ -61,14 +61,11 @@ import {
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
-import { SelectInputComponent } from '@components/select-input/select-input.component';
 import {
   SortableTableComponent,
   TableColumn,
 } from '@components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
-import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
-import { TextInputComponent } from '@components/text-input/text-input.component';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import {
   ApplicationListGetSummaryDto,
@@ -76,15 +73,15 @@ import {
   ApplicationListsApi,
   GetApplicationListsRequestParams,
 } from '@openapi';
-import { ApplicationListRecordsService } from '@services/application-list-records/application-list-records.service';
-import { ApplicationsListFormService } from '@services/applications-list-form.service';
-import { PdfService } from '@services/pdf.service';
-import { ReferenceDataFacade } from '@services/reference-data.facade';
+import { ApplicationListRecordsService } from '@services/applications-list/application-list-records.service';
+import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
 import {
   ApplicationListSearchFormService,
   DEFAULT_STATE,
   SearchFormValue,
-} from '@services/searchform/application-list-search-form.service';
+} from '@services/applications-list/searchform/application-list-search-form.service';
+import { PdfService } from '@services/pdf.service';
+import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
@@ -104,20 +101,16 @@ type DeleteFlash = { kind: 'success' } | { kind: 'error'; code: number };
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    DateInputComponent,
-    DurationInputComponent,
-    TextInputComponent,
-    SelectInputComponent,
     RouterLink,
     PaginationComponent,
     SortableTableComponent,
     SuccessBannerComponent,
     ErrorSummaryComponent,
-    SuggestionsComponent,
     NotificationBannerComponent,
     MojButtonMenuDirective,
     PageHeaderComponent,
     DateTimePipe,
+    ApplicationsListFormComponent,
   ],
   templateUrl: './applications-list.component.html',
 })
@@ -143,6 +136,8 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   private readonly storedRecordsState = inject(ApplicationListRecordsService);
   readonly storedRecordsVm = this.storedRecordsState.vm;
 
+  readonly searchFormState = this.searchForm.state;
+
   // allows you to initialise effect in ngOnInit()
   private readonly envInjector = inject(EnvironmentInjector);
 
@@ -151,6 +146,8 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
 
   // Create form
   override form = this.formSvc.createSearchForm();
+
+  suggestionsFacade = buildSuggestionsFacade(this);
 
   // API signals
   private readonly loadRequest =
@@ -162,7 +159,6 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   } | null>(null);
 
   columns: TableColumn[] = APPLICATIONS_LIST_COLUMNS_ACTION;
-  status = APPLICATIONS_LIST_CHOOSE_STATUS;
 
   ngOnInit(): void {
     this.restoreFormValues();
@@ -433,6 +429,19 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     this.printContinuousRequest.set({ id, isClosed });
   }
 
+  onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    // Ensure the keys are correct (titles != backend sort key)
+    this.appListSignalState.patch({
+      sortField: {
+        key: APPLICATION_LIST_SORT_MAP[sort.key] ?? sort.key,
+        direction: sort.direction,
+      },
+    });
+
+    const hasAny = hasAnyParams(this.form);
+    this.loadApplicationsLists(hasAny);
+  }
+
   protected isOpen(row: ApplicationListRow): boolean {
     return row.status === ApplicationListStatus.OPEN;
   }
@@ -458,13 +467,21 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     this.searchForm.setState({
       ...DEFAULT_STATE,
       ...this.form.getRawValue(),
+      isAdvancedSearch: this.searchForm.state().isAdvancedSearch,
     } as SearchFormValue);
 
     const r = this.storedRecordsState.state();
 
+    const sortFieldKey = this.appListState().sortField.key;
+    const sortFieldDirection = this.appListState().sortField.direction;
+
+    // Sorts are in the form of ['key,direction']
+    const paramSort = [`${sortFieldKey},${sortFieldDirection}`];
+
     const params: GetApplicationListsRequestParams = {
       pageNumber: r.currentPage - 1,
       pageSize: r.pageSize,
+      sort: paramSort,
       ...(hasParams ? { filter: loadQuery(this.form) } : {}),
     };
 
@@ -479,6 +496,12 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       el.focus({ preventScroll: true });
     }
+  }
+
+  toggleAdvancedSearch(): void {
+    this.searchForm.patchState({
+      isAdvancedSearch: !this.searchForm.state().isAdvancedSearch,
+    });
   }
 
   /* ----------------------- Local UI helper methods ---------------------- */

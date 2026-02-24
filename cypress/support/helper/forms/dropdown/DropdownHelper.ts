@@ -13,7 +13,6 @@ export class DropdownHelper {
   ): Cypress.Chainable<JQuery<HTMLElement>> {
     return DropdownElement.findDropdown(name).then(($dropdown) => {
       if ($dropdown.is('select')) {
-        //cy.wrap($dropdown).select(option);
         cy.wrap($dropdown)
           .find('option')
           .then(($options) => {

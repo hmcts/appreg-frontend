@@ -10,21 +10,25 @@ Feature: Applications List Create
     When User Set Date Field "Date" To "<Date>"
     Then User Should See The Time Field "Time"
     When User Set Time Field "Time" To "<Time>"
-    Then User Enters "<Description>" Into The "Description" Textbox
+    Then User Enters "<Description>" Into The "List description" Textbox
     Then User Enters "<OtherLocation>" Into The "Other location" Textbox
-    Then User Selects "<OptionText>" From The Textbox "CJA" Autocomplete By Typing "<SearchText>"
+    Then User Selects "<OptionText>" From The Textbox "Criminal justice area" Autocomplete By Typing "<SearchText>"
     When User Clicks On The "Create" Button
     Then User Sees Notification Banner "<NotificationMessage>"
     Then User Clicks On The Link "Click here to go back"
     Then User Should See The Link "Create new list"
+    When User Searches Application List With:
+      | Date   | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+      | <Date> |      | <Description>    |             |       | <Status>           |                            |                       |           |
     When User Set Date Field "Date" To "<Date>"
-    Then User Selects "Choose" In The "Select status" Dropdown
+    Then User Selects "Choose" In The "Select list status" Dropdown
     When User Clicks On The "Search" Button
     Then User Should See The Table "Lists"
     Then User Should See Table "Lists" Has Rows
     Then User Should See Row In Table "<TableName>" With Values:
       | Date          | Time   | Location     | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
+
     Examples:
       | User  | Date  | Time           | Description   | Status | OtherLocation           | NotificationMessage                            | OptionText    | SearchText | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName |
       | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Other Location_{RANDOM} | Success Applications list created successfully | Wolverhampton | B9         | Lists     | todaydisplay | 0       | Select           | Open       |
@@ -40,7 +44,7 @@ Feature: Applications List Create
     When User Set Date Field "Date" To "<Date>"
     Then User Should See The Time Field "Time"
     When User Set Time Field "Time" To "<Time>"
-    Then User Enters "<Description>" Into The "Description" Textbox
+    Then User Enters "<Description>" Into The "List description" Textbox
     Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
     When User Clicks On The "Create" Button
     Then User Sees Notification Banner "<NotificationMessage>"
@@ -48,7 +52,7 @@ Feature: Applications List Create
     Then User Should See The Link "Create new list"
     When User Set Date Field "Date" To "<Date>"
     Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
-    Then User Selects "Choose" In The "Select status" Dropdown
+    Then User Selects "Choose" In The "Select list status" Dropdown
     When User Clicks On The "Search" Button
     Then User Should See The Table "Lists"
     Then User Should See Table "Lists" Has Rows
@@ -87,21 +91,21 @@ Feature: Applications List Create
     When User Set Time Field "Time" To "<Time>"
     When User Clicks On The "Create" Button
     Then User Sees Notification Banner "There is a problem Description is required Enter a court, or an other location and criminal justice area"
-    Then User Enters "<Description>" Into The "Description" Textbox
+    Then User Enters "<Description>" Into The "List description" Textbox
     When User Clicks On The "Create" Button
     Then User Sees Notification Banner "There is a problem Enter a court, or an other location and criminal justice area"
     Then User Enters "<InvalidCourt>" Into The "Court" Textbox
     When User Clicks On The "Create" Button
     Then User Sees Notification Banner "There is a problem Court location not found"
     Then User Clears The "Court" Textbox
-    Then User Enters "<OtherLocation>" Into The "Other location" Textbox
+    Then User Enters "<OtherLocation>" Into The "Other location description" Textbox
     When User Clicks On The "Create" Button
     Then User Sees Notification Banner "Enter a court, or an other location and criminal justice area Criminal justice area is required"
-    Then User Enters "<InvalidCJA>" Into The "CJA" Textbox
+    Then User Enters "<InvalidCJA>" Into The "Criminal justice area" Textbox
     When User Clicks On The "Create" Button
     Then User Sees Notification Banner "There is a problem Criminal justice area not found"
-    Then User Clears The "CJA" Textbox
-    Then User Selects "<CJA>" From The Textbox "CJA" Autocomplete By Typing "<SearchText>"
+    Then User Clears The "Criminal justice area" Textbox
+    Then User Selects "<CJA>" From The Textbox "Criminal justice area" Autocomplete By Typing "<SearchText>"
     When User Clicks On The "Create" Button
     Then User Sees Notification Banner "<NotificationMessage>"
     Then User Clicks On The Link "Click here to go back"

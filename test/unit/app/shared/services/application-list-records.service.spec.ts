@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { ApplicationListRecordsService } from '@services/application-list-records/application-list-records.service';
+import { ApplicationListRecordsService } from '@services/applications-list/application-list-records.service';
 
 describe('ApplicationListRecordsService', () => {
   let service: ApplicationListRecordsService;

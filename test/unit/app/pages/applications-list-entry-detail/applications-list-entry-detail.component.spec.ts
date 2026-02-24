@@ -22,7 +22,7 @@ import {
   GetApplicationCodesRequestParams,
   UpdateApplicationListEntryRequestParams,
 } from '@openapi';
-import { ApplicationListEntryFormService } from '@services/application-list-entry-form.service';
+import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 
 type GetCodesFn = (
   params: GetApplicationCodesRequestParams,
@@ -51,48 +51,6 @@ type GetCodeDetailFn = (
   reportProgress?: boolean,
   options?: { transferCache?: boolean; context?: unknown },
 ) => Observable<ApplicationCodeGetDetailDto>;
-
-// function makePage(
-//   content: ReadonlyArray<Partial<ApplicationCodeGetSummaryDto>>,
-//   extras: Partial<
-//     Pick<
-//       ApplicationCodePage,
-//       | 'totalPages'
-//       | 'totalElements'
-//       | 'pageNumber'
-//       | 'pageSize'
-//       | 'elementsOnPage'
-//     >
-//   > = {},
-// ): ApplicationCodePage {
-//   const normalized: ApplicationCodeGetSummaryDto[] = content.map((c) => ({
-//     applicationCode: c.applicationCode ?? '',
-//     title: c.title ?? '',
-//     bulkRespondentAllowed: Boolean(c.bulkRespondentAllowed),
-//     feeReference: c.feeReference,
-//     wording: c.wording ?? {},
-//     isFeeDue: c.isFeeDue ?? false,
-//     requiresRespondent: c.requiresRespondent ?? false,
-//   }));
-
-//   const pageSize = extras.pageSize ?? 10;
-//   const totalElements = extras.totalElements ?? normalized.length;
-//   const totalPages =
-//     extras.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize));
-//   const pageNumber = extras.pageNumber ?? 0;
-//   const elementsOnPage =
-//     extras.elementsOnPage ??
-//     Math.min(pageSize, Math.max(0, totalElements - pageNumber * pageSize));
-
-//   return {
-//     content: normalized,
-//     totalPages,
-//     totalElements,
-//     pageNumber,
-//     pageSize,
-//     elementsOnPage,
-//   };
-// }
 
 describe('ApplicationsListEntryDetail', () => {
   let fixture: ComponentFixture<ApplicationsListEntryDetail>;

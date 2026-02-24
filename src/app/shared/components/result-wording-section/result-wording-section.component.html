@@ -1,6 +1,7 @@
 <app-sortable-table
   id="results-applicant-table"
   caption="You are resulting the following application(s)"
+  captionSize="s"
   [columns]="applicantRespondentColumns"
   [data]="resultApplicantContext()"
   appMojButtonMenu
@@ -23,6 +24,7 @@
 <app-sortable-table
   id="results-table"
   caption="Results"
+  captionSize="s"
   [columns]="existingResultsColumns"
   [data]="tableRows"
   idField="id"
