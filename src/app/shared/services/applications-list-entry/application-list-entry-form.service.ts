@@ -210,11 +210,11 @@ export class ApplicationListEntryFormService {
     });
 
     // reset respondent section forms person and organisation
-    forms.personForm.reset();
-    forms.organisationForm.reset();
+    forms.respondentPersonForm.reset();
+    forms.respondentOrganisationForm.reset();
 
-    markFormGroupClean(forms.personForm);
-    markFormGroupClean(forms.organisationForm);
+    markFormGroupClean(forms.respondentPersonForm);
+    markFormGroupClean(forms.respondentOrganisationForm);
   }
 
   setApplicantType(
