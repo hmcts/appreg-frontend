@@ -206,11 +206,16 @@ export class WordingParserComponent implements OnInit {
       }
 
       if (e['maxlength']) {
-        const max = e['maxlength']?.requiredLength;
-        errors.push({
-          text: `Wording section - ${key} must be ${max} characters or fewer`,
-          href: `#${key}`,
-        });
+        const max = (
+          control.getError('maxlength') as { requiredLength: number } | null
+        )?.requiredLength;
+
+        if (max !== null) {
+          errors.push({
+            text: `Wording section - ${key} must be ${max} characters or fewer`,
+            href: `#${key}`,
+          });
+        }
       }
 
       // Optional: catch-all for any other validator keys
