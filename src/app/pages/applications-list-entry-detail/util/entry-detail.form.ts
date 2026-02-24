@@ -66,7 +66,7 @@ export function buildStandardApplicationForm(
 ): ApplicationsListEntryForm {
   return fb.group({
     applicationTitle: fb.control<string | null>(null),
-    applicantType: fb.control<ApplicantType>('org'),
+    applicantType: fb.control<ApplicantType>('person'),
     applicant: fb.control<Applicant | null>(null),
     standardApplicantCode: fb.control<string | null>(null, [
       standardApplicantCodeConditionalRequired,

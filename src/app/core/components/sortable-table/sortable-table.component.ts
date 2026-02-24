@@ -55,6 +55,7 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
   readonly dateTpl = contentChild<TemplateRef<unknown>>('dateTemplate');
 
   caption = input('');
+  captionSize = input<'s' | 'm' | 'l'>('m');
   hiddenCaption = input(false);
   columns = input<TableColumn[]>([]);
   data = input<Row[]>([]);
