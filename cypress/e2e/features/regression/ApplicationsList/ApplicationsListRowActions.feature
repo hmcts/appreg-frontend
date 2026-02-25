@@ -309,8 +309,8 @@ Feature: Application List Row Actions
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
-            | Date         | Time | Description | CourtSearch | Court | Status   | Other location | CJA          | CJASearch |
-            | <SearchDate> |      |             |             |       | <Status> |                | <OptionText> | <cjaCode> |
+            | Date         | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+            | <SearchDate> |      |                  |             |       | <Status>           |                            | <OptionText>          | <cjaCode> |
         When User Clicks "<SelectButtonText>" Then "Print continuous" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location     | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
@@ -424,6 +424,14 @@ Feature: Application List Row Actions
             }
             """
         Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "entryId"
+        When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
+            """
+            {
+            "resultCode": "AUTH"
+            }
+            """
+        Then User Verify Response Status Code Should Be "201"
         When User Makes PUT API Request To "/application-lists/:listId" With Body:
             | date      | time   | status   | description   | durationHours   | durationMinutes   | courtLocationCode   |
             | <APIDate> | <Time> | <Status> | <Description> | <durationHours> | <durationMinutes> | <courtLocationCode> |
@@ -431,8 +439,8 @@ Feature: Application List Row Actions
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
-            | Date         | Time | Description | CourtSearch | Court | Status | Other location | CJA | CJASearch |
-            | <SearchDate> |      |             |             |       |        |                |     |           |
+            | Date         | Time | List description | CourtSearch         | Court   | Select list status | Other location description | Criminal justice area | CJASearch |
+            | <SearchDate> |      |                  | <courtLocationCode> | <Court> |                    |                            |                       |           |
         When User Clicks "<SelectButtonText>" Then "Print continuous" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
@@ -490,8 +498,8 @@ Feature: Application List Row Actions
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
-            | Date         | Time | Description   | CourtSearch | Court | Status | Other location | CJA | CJASearch |
-            | <SearchDate> |      | <Description> |             |       |        |                |     |           |
+            | Date         | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+            | <SearchDate> |      | <Description>    |             |       |                    |                            |                       |           |
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | 0       | <Status> |
@@ -582,8 +590,8 @@ Feature: Application List Row Actions
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
         When User Searches Application List With:
-            | Date         | Time | Description | CourtSearch         | Court   | Status | Other location | CJA | CJASearch |
-            | <SearchDate> |      |             | <courtLocationCode> | <Court> |        |                |     |           |
+            | Date         | Time | List description | CourtSearch         | Court   | Select list status | Other location description | Criminal justice area | CJASearch |
+            | <SearchDate> |      |                  | <courtLocationCode> | <Court> |                    |                            |                       |           |
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
