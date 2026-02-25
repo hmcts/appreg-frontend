@@ -134,7 +134,9 @@ export class TableElement {
     $body: JQuery<HTMLElement>,
   ): JQuery<HTMLElement> {
     // Try multiple selectors to be framework-agnostic
-    let $pagination = $body.find('nav[role="navigation"][aria-label*="agination"]');
+    let $pagination = $body.find(
+      'nav[role="navigation"][aria-label*="agination"]',
+    );
     if ($pagination.length === 0) {
       $pagination = $body.find('.pagination, [class*="pagination"]');
     }
