@@ -154,7 +154,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   private resetFlags(): void {
     this.appListEntryCreatePatch({
-      submitted: true,
+      submitted: false,
       errorFound: false,
       errorHint: '',
       createDone: false,
@@ -210,6 +210,7 @@ export class ApplicationsListEntryCreate implements OnInit {
       this.form.value.standardApplicantCode,
     );
 
+    this.appListEntryCreatePatch({ submitted: true });
     this.appEntryApi
       .createApplicationListEntry({
         listId: this.appListEntryCreateState().id,
@@ -352,7 +353,6 @@ export class ApplicationsListEntryCreate implements OnInit {
         )
         .subscribe({
           next: (appCodeDetail) => {
-            let allowBulkApplications = false;
             const hasSelectionChanged =
               prevSelection.code !== codeAndLodgementDate.code;
 
@@ -361,12 +361,9 @@ export class ApplicationsListEntryCreate implements OnInit {
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
             }
 
-            if (appCodeDetail.bulkRespondentAllowed) {
-              allowBulkApplications = true;
-            }
-
             this.appListEntryCreatePatch({
-              bulkApplicationsAllowed: allowBulkApplications,
+              bulkApplicationsAllowed:
+                appCodeDetail.bulkRespondentAllowed ?? false,
               appCodeDetail,
             });
           },

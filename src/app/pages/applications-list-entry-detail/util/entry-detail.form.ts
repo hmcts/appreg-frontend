@@ -55,7 +55,7 @@ const EMAIL: ValidatorFn = (c) => Validators.email(c);
 
 // Bulk respondent
 const MAX_4 = Validators.maxLength(4);
-const MIN_RESPONDENT_INTEGER = Validators.min(0);
+const MIN_RESPONDENT_INTEGER = Validators.min(1);
 const MAX_RESPONDENT_INTEGER = Validators.max(9999);
 const WHOLE_NUMBER: ValidatorFn = optional((c) =>
   Validators.pattern(/^\d+$/)(c),

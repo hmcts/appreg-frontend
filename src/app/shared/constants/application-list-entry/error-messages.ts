@@ -96,7 +96,8 @@ export const CIVIL_FEE_FIELD_MESSAGES: CivilFeeErrorMap = {
 
 export const NUMBER_OF_RESPONDENT_MESSAGES = {
   numberOfRespondents: {
-    pattern: 'Number of respondents must be a positive whole number',
+    pattern:
+      'Number of respondents must be a positive whole number between 1 - 9999',
     maxlength:
       'Number of respondents must be less than or equal to 4 characters',
   },

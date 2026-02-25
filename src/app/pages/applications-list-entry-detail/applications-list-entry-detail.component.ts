@@ -408,7 +408,6 @@ export class ApplicationsListEntryDetail implements OnInit {
         )
         .subscribe({
           next: (appCodeDetail) => {
-            let allowBulkApplications = false;
             const hasSelectionChanged =
               prevSelection.code !== codeAndLodgementDate.code;
 
@@ -416,11 +415,8 @@ export class ApplicationsListEntryDetail implements OnInit {
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
             }
 
-            if (appCodeDetail.bulkRespondentAllowed) {
-              allowBulkApplications = true;
-            }
-
-            this.bulkApplicationsAllowed = allowBulkApplications;
+            this.bulkApplicationsAllowed =
+              appCodeDetail.bulkRespondentAllowed ?? false;
             this.appCodeDetail = appCodeDetail;
           },
           error: (err) => {
