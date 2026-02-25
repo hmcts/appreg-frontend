@@ -91,5 +91,18 @@ export class RespondentSectionComponent {
         this.form().controls.respondentEntryType.setValue('person');
       }
     });
+
+    // Clear stale bulk count when user switches type
+    effect((onCleanup) => {
+      const form = this.form();
+      const sub = form.controls.respondentEntryType.valueChanges.subscribe(
+        (respondentEntryType) => {
+          if (respondentEntryType !== 'bulk') {
+            form.controls.numberOfRespondents.reset();
+          }
+        },
+      );
+      onCleanup(() => sub.unsubscribe());
+    });
   }
 }

@@ -9,11 +9,22 @@ export const toOptionalTrimmed = (
 };
 
 export const toOptionalInteger = (input: unknown): number | undefined => {
-  if (input === null || input === undefined) {
+  if (input === null) {
     return undefined;
   }
 
-  const asString = `${input}`.trim();
+  if (typeof input === 'number') {
+    if (!Number.isFinite(input) || !Number.isInteger(input) || input === 0) {
+      return undefined;
+    }
+    return input;
+  }
+
+  if (typeof input !== 'string') {
+    return undefined;
+  }
+
+  const asString = input.trim();
   if (!asString) {
     return undefined;
   }
@@ -22,7 +33,9 @@ export const toOptionalInteger = (input: unknown): number | undefined => {
     return undefined;
   }
 
-  return Number(asString);
+  // If user enters 0 we still want to omit
+  const n = Number(asString);
+  return n === 0 ? undefined : n;
 };
 
 export const compactStrings = (

@@ -16,6 +16,7 @@ import type {
 const buildMinimalEntryForm = (type: RespondentEntryType) =>
   new FormGroup({
     respondentEntryType: new FormControl<RespondentEntryType | null>(type),
+    numberOfRespondents: new FormControl<number | null>(null),
   }) as unknown as ApplicationsListEntryForm;
 
 const buildMinimalPersonForm = () =>
@@ -198,6 +199,20 @@ describe('RespondentSectionComponent - bulkAllowed behaviour', () => {
     fixture.detectChanges();
 
     expect(component.form().controls.respondentEntryType.value).toBe('person');
+  });
+
+  it('clears numberOfRespondents when switching from bulk to non-bulk respondent type', () => {
+    fixture.componentRef.setInput('bulkAllowed', true);
+    fixture.detectChanges();
+
+    component.form().controls.respondentEntryType.setValue('bulk');
+    component.form().controls.numberOfRespondents.setValue(-1);
+    fixture.detectChanges();
+
+    component.form().controls.respondentEntryType.setValue('person');
+    fixture.detectChanges();
+
+    expect(component.form().controls.numberOfRespondents.value).toBeNull();
   });
 
   it('renders bulk child component when bulkAllowed=true and respondentEntryType=bulk', () => {
