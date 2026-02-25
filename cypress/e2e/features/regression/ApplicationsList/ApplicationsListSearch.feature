@@ -144,35 +144,6 @@ Feature: Applications List Search
       | User   | SearchText | ValidationMessage                                  | OptionText | ExpectedValue | Info             |
       | admin1 | abc123     | There is a problem Criminal justice area not found |            | abc123        | No results found |
 
-  # This Scenario has been ignored due to bug in sorting functionality @ARCPOC-756
-  @ignore @ARCPOC-214 @ARCPOC-452 @ARCPOC-756
-  Scenario Outline: Verify applications list table sorting functionality
-    Given User Is On The Portal Page
-    When User Signs In With Microsoft SSO As "<User>"
-    # Search to get table with data
-    Then User Selects "<Status>" In The "Select status" Dropdown
-    When User Clicks On The "Search" Button
-    Then User Should See The Table "<TableName>"
-    # Verify all sortable headers default to 'none'
-    Then User Should See Table "<TableName>" Header "Date" Has Sort Order "none"
-    Then User Should See Table "<TableName>" Header "Time" Has Sort Order "none"
-    Then User Should See Table "<TableName>" Header "Location" Has Sort Order "none"
-    Then User Should See Table "<TableName>" Header "Description" Has Sort Order "none"
-    Then User Should See Table "<TableName>" Header "Entries" Has Sort Order "none"
-    Then User Should See Table "<TableName>" Header "Status" Has Sort Order "none"
-    # Test sort cycle: none -> ascending -> descending
-    When User Clicks On Table Header "<Column>" In Table "<TableName>"
-    Then User Should See Table "<TableName>" Header "<Column>" Has Sort Order "ascending"
-    Then User Should See Table "<TableName>" Has Rows
-    Then User Should See Table "<TableName>" Column "<Column>" Is Sorted "ascending"
-    When User Clicks On Table Header "<Column>" In Table "<TableName>"
-    Then User Should See Table "<TableName>" Header "<Column>" Has Sort Order "descending"
-    Then User Should See Table "<TableName>" Has Rows
-    Then User Should See Table "<TableName>" Column "<Column>" Is Sorted "descending"
-    Examples:
-      | User  | TableName | SearchDate | Status | Column |
-      | user1 | Lists     | 19/05/2025 | Closed | Date   |
-
   @regression @ARCPOC-214 @ARCPOC-452
   Scenario Outline: Verify applications list table shows empty state with no results
     Given User Is On The Portal Page
@@ -232,7 +203,7 @@ Feature: Applications List Search
       | user1 | Lists     | 1 Jan 2001  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | *SKIP*     | Select           | LCCC025     |
       | user1 | Lists     | 1 Jan 2001  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | 01/1/2001  | Select           | LCCC025     |
 
-  @regression @ARCPOC-214 @ARCPOC-417 @PJ
+  @regression @ARCPOC-214 @ARCPOC-417
   Scenario Outline: Verify application list row menu options
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -246,3 +217,84 @@ Feature: Applications List Search
       | User  | TableName | SearchDate | DisplayDate | Time  | CourtSearch | Court                             | Description                          | Entries | Status | SelectButtonText | MenuOptions                                 |
       | user1 | Lists     | 12/01/2026 | 12 Jan 2026 | 14:51 | LCCC065     | Leeds Combined Court Centre Set 7 | Applications to review at Test_1153  | 2       | OPEN   | Select           | Open, Print page,  Print continuous, Delete |
       | user1 | Lists     | 07/01/2026 | 7 Jan 2026  | 15:31 | LCCC025     | Leeds Combined Court Centre Set 3 | Applications to review at Test_13162 | 1       | CLOSED | Select           | Print page,  Print continuous               |
+
+  @regression @ARCPOC-214 @ARCPOC-452 @ARCPOC-756 @ARCPOC-891 @PJ
+  Scenario: Verify applications list table sorting functionality and pagination persistence
+    Given User Is On The Portal Page
+    When User Signs In With Microsoft SSO As "user1"
+    # Search to get table with multiple pages
+    When User Searches Application List With:
+      | Date | Time  | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+      |      | 05:54 |                  |             |       |                    |                            | London                |           |
+    Then User Should See The Table "Lists"
+    # Verify all sortable headers default to 'none'
+    Then User Should See Table "Lists" Header "Date" Has Sort Order "none"
+    Then User Should See Table "Lists" Header "Time" Has Sort Order "none"
+    Then User Should See Table "Lists" Header "Location" Has Sort Order "none"
+    Then User Should See Table "Lists" Header "Description" Has Sort Order "none"
+    Then User Should See Table "Lists" Header "Entries" Has Sort Order "none"
+    Then User Should See Table "Lists" Header "Status" Has Sort Order "none"
+    # Test Date column
+    When User Clicks On Table Header "Date" In Table "Lists"
+    Then User Should See Table "Lists" Header "Date" Has Sort Order "ascending"
+    When User Goes To First Page
+    Then User Should See Table "Lists" Column "Date" Is Sorted "ascending"
+    When User Goes To Last Page
+    Then User Should See Table "Lists" Header "Date" Has Sort Order "ascending"
+    When User Goes To First Page
+    Then User Should See Table "Lists" Header "Date" Has Sort Order "ascending"
+    When User Clicks On Table Header "Date" In Table "Lists"
+    Then User Should See Table "Lists" Header "Date" Has Sort Order "descending"
+    # Search to get table with multiple pages
+    When User Clicks On The "Clear search" Button
+    When User Searches Application List With:
+      | Date       | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+      | 24/02/2026 |      |                  |             |       |                    |                            |                       |           |
+    # Test Time column
+    When User Clicks On Table Header "Time" In Table "Lists"
+    Then User Should See Table "Lists" Header "Time" Has Sort Order "ascending"
+    When User Clicks On Table Header "Time" In Table "Lists"
+    Then User Should See Table "Lists" Header "Time" Has Sort Order "descending"
+    When User Goes To First Page
+    Then User Should See Table "Lists" Column "Time" Is Sorted "descending"
+    When User Goes To Last Page
+    Then User Should See Table "Lists" Header "Time" Has Sort Order "descending"
+    When User Goes To First Page
+    Then User Should See Table "Lists" Header "Time" Has Sort Order "descending"
+    # Test Description column
+    When User Clicks On Table Header "Description" In Table "Lists"
+    Then User Should See Table "Lists" Header "Description" Has Sort Order "ascending"
+    When User Goes To First Page
+    Then User Should See Table "Lists" Column "Description" Is Sorted "ascending"
+    When User Goes To Last Page
+    Then User Should See Table "Lists" Header "Description" Has Sort Order "ascending"
+    When User Goes To First Page
+    Then User Should See Table "Lists" Header "Description" Has Sort Order "ascending"
+    When User Clicks On Table Header "Description" In Table "Lists"
+    Then User Should See Table "Lists" Header "Description" Has Sort Order "descending"
+    # Test Entries column
+    When User Clicks On Table Header "Entries" In Table "Lists"
+    Then User Should See Table "Lists" Header "Entries" Has Sort Order "ascending"
+    When User Clicks On Table Header "Entries" In Table "Lists"
+    Then User Should See Table "Lists" Header "Entries" Has Sort Order "descending"
+    When User Goes To First Page
+    Then User Should See Table "Lists" Column "Entries" Is Sorted "descending"
+    # Test Status column
+    When User Clicks On Table Header "Status" In Table "Lists"
+    Then User Should See Table "Lists" Header "Status" Has Sort Order "ascending"
+    When User Goes To First Page
+    Then User Should See Table "Lists" Column "Status" Is Sorted "ascending"
+    When User Clicks On Table Header "Status" In Table "Lists"
+    Then User Should See Table "Lists" Header "Status" Has Sort Order "descending"
+    # Test Location column
+    When User Clicks On Table Header "Location" In Table "Lists"
+    Then User Should See Table "Lists" Header "Location" Has Sort Order "ascending"
+    When User Clicks On Table Header "Location" In Table "Lists"
+    Then User Should See Table "Lists" Header "Location" Has Sort Order "descending"
+    When User Goes To First Page
+    Then User Should See Table "Lists" Column "Location" Is Sorted "descending"
+    When User Goes To Last Page
+    Then User Should See Table "Lists" Header "Location" Has Sort Order "descending"
+    When User Goes To First Page
+    Then User Should See Table "Lists" Header "Location" Has Sort Order "descending"
+
