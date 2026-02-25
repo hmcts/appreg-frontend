@@ -35,7 +35,6 @@ export class WordingParserComponent implements OnInit {
   wordingObject = input.required<TemplateDetail>();
 
   wordingFieldErrors = output<ErrorItem[]>();
-  tokensChange = output<Token[]>();
   wordingFieldsDTO = output<{ wordingFields: TemplateSubstitution[] }>();
 
   submitAttempt = input(0);
@@ -67,8 +66,6 @@ export class WordingParserComponent implements OnInit {
 
   ngOnInit(): void {
     this.tokens = this.tokenize(this.wordingObject().template ?? '');
-    // this.tokens = this.tokenize(this.value1.wording.template);
-    this.tokensChange.emit(this.tokens);
 
     this.createFormControls();
     this.patchFormControls();
@@ -194,10 +191,6 @@ export class WordingParserComponent implements OnInit {
         continue;
       }
 
-      // Only show when user has interacted / attempted save
-      // (you can remove this if you want immediate summary)
-      // if (!(control.touched || control.dirty)) continue;
-
       if (e['required']) {
         errors.push({
           text: `Wording section - Enter a ${key}`,
@@ -218,7 +211,6 @@ export class WordingParserComponent implements OnInit {
         }
       }
 
-      // Optional: catch-all for any other validator keys
       const known = new Set(['required', 'maxlength']);
       const otherKey = Object.keys(e).find((k) => !known.has(k));
       if (otherKey) {
