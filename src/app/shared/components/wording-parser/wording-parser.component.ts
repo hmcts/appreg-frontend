@@ -28,10 +28,9 @@ export type Token =
   selector: 'app-wording-parser',
   imports: [ReactiveFormsModule],
   templateUrl: './wording-parser.component.html',
-  styleUrl: './wording-parser.component.scss',
 })
 export class WordingParserComponent implements OnInit {
-  private fb = inject(FormBuilder);
+  private readonly fb = inject(FormBuilder);
   wordingObject = input.required<TemplateDetail>();
 
   wordingFieldErrors = output<ErrorItem[]>();
@@ -121,12 +120,13 @@ export class WordingParserComponent implements OnInit {
 
   tokenize(template: string): Token[] {
     const tokens: Token[] = [];
-    const regex = /\{\{\s*([A-Za-z](?:[A-Za-z ]{0,254}[A-Za-z])?)\s*\}\}/g;
+    const wordingTemplateTokenizerRegex =
+      /\{\{\s*([A-Za-z](?:[A-Za-z ]{0,254}[A-Za-z])?)\s*\}\}/g;
 
     let lastIndex = 0;
     let match: RegExpExecArray | null;
 
-    while ((match = regex.exec(template)) !== null) {
+    while ((match = wordingTemplateTokenizerRegex.exec(template)) !== null) {
       if (match.index > lastIndex) {
         tokens.push({
           type: 'text',
@@ -135,7 +135,7 @@ export class WordingParserComponent implements OnInit {
       }
 
       tokens.push({ type: 'input', key: (match[1] ?? '').trim() });
-      lastIndex = regex.lastIndex;
+      lastIndex = wordingTemplateTokenizerRegex.lastIndex;
     }
 
     if (lastIndex < template.length) {

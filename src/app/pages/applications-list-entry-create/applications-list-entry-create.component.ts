@@ -327,9 +327,16 @@ export class ApplicationsListEntryCreate implements OnInit {
 
             // if user selected a different code than what we had, reset sections
             if (prevCode !== newCode) {
+              const hadSubmitAttempt = this.submitAttempt() > 0;
+
               this.submitAttempt.set(0);
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
-              this.onChildErrors('wording', []);
+
+              if (hadSubmitAttempt) {
+                this.onChildErrors('wording', []);
+              } else {
+                this.childErrors.wording = [];
+              }
             }
           },
           error: () => {},
