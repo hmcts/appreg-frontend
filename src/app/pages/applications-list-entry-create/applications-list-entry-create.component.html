@@ -12,7 +12,7 @@
 
 @if (vm().errorFound) {
   <app-error-summary
-    [title]="vm().errorHint || 'There is a problem'"
+    [title]="'There is a problem'"
     [items]="vm().summaryErrors"
     (itemSelect)="onCreateErrorClick($event)"
   />

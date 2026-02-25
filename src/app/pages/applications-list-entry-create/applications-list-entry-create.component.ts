@@ -156,7 +156,6 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.appListEntryCreatePatch({
       submitted: false,
       errorFound: false,
-      errorHint: '',
       createDone: false,
     });
 
@@ -225,7 +224,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
           this.appListEntryCreatePatch({
             errorFound: true,
-            errorHint: errorHintMsg,
+            summaryErrors: [{ text: errorHintMsg }],
           });
         },
       });

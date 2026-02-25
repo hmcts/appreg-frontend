@@ -10,7 +10,6 @@ export interface ApplicationsListEntryCreateState {
   createDone: boolean;
   submitted: boolean;
   errorFound: boolean;
-  errorHint: string;
   summaryErrors: ErrorItem[];
   bulkApplicationsAllowed: boolean;
 }
@@ -23,7 +22,6 @@ export const initialApplicationsListEntryCreateState: ApplicationsListEntryCreat
     createDone: false,
     submitted: false,
     errorFound: false,
-    errorHint: '',
     summaryErrors: [],
     bulkApplicationsAllowed: false,
   };
