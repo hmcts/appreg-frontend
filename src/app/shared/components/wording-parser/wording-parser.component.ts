@@ -121,7 +121,7 @@ export class WordingParserComponent implements OnInit {
 
   tokenize(template: string): Token[] {
     const tokens: Token[] = [];
-    const regex = /\{\{([^}]*)\}\}/g;
+    const regex = /\{\{\s*([A-Za-z](?:[A-Za-z ]{0,254}[A-Za-z])?)\s*\}\}/g;
 
     let lastIndex = 0;
     let match: RegExpExecArray | null;
