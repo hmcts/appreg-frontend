@@ -51,16 +51,6 @@ export function buildRespondentErrors<TErrorMessages extends ErrorMessageMap>({
     respondentBulkControl.markAsTouched();
     respondentBulkControl.updateValueAndValidity({ emitEvent: false });
 
-    const value = respondentBulkControl.value as string;
-    const isBlank = value === null || value === undefined || `${value}`.trim() === '';
-
-    if (isBlank) {
-      const currentErrors = respondentBulkControl.errors ?? {};
-      respondentBulkControl.setErrors({
-        ...currentErrors,
-      });
-    }
-
     const bulkGroup = new FormGroup({
       numberOfRespondents: respondentBulkControl,
     });

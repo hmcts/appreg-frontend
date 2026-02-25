@@ -8,9 +8,7 @@ export const toOptionalTrimmed = (
   return s || undefined;
 };
 
-export const toOptionalInteger = (
-  input: unknown,
-): number | undefined => {
+export const toOptionalInteger = (input: unknown): number | undefined => {
   if (input === null || input === undefined) {
     return undefined;
   }

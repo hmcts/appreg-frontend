@@ -12,7 +12,7 @@ export interface ApplicationsListEntryCreateState {
   errorFound: boolean;
   errorHint: string;
   summaryErrors: ErrorItem[];
-  bulkApplicationsAllowed: boolean
+  bulkApplicationsAllowed: boolean;
 }
 
 export const initialApplicationsListEntryCreateState: ApplicationsListEntryCreateState =
@@ -27,21 +27,3 @@ export const initialApplicationsListEntryCreateState: ApplicationsListEntryCreat
     summaryErrors: [],
     bulkApplicationsAllowed: false,
   };
-
-// Clear all error/success/notification states
-export const clearStates = (): Pick<
-  ApplicationsListEntryCreateState,
-  | 'step'
-  | 'createDone'
-  | 'submitted'
-  | 'errorFound'
-  | 'errorHint'
-  | 'summaryErrors'
-> => ({
-  step: 'select',
-  createDone: false,
-  submitted: false,
-  errorFound: false,
-  errorHint: '',
-  summaryErrors: [],
-});

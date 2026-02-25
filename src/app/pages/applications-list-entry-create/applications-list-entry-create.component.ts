@@ -48,8 +48,6 @@ import {
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
 import { NotesSectionComponent } from '@components/notes-section/notes-section.component';
-import { OrganisationSectionComponent } from '@components/organisation-section/organisation-section.component';
-import { PersonSectionComponent } from '@components/person-section/person-section.component';
 import { RespondentSectionComponent } from '@components/respondent-section/respondent-section.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
@@ -76,6 +74,7 @@ import { getUniqueErrors } from '@util/error-items';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
+import { respondentFormsHaveAnyValue } from '@util/respondent-helpers';
 import { createSignalState } from '@util/signal-state-helpers';
 
 @Component({
@@ -99,8 +98,6 @@ import { createSignalState } from '@util/signal-state-helpers';
     ApplicationCodeSearchComponent,
     TextInputComponent,
     DateInputComponent,
-    PersonSectionComponent,
-    OrganisationSectionComponent,
     NotesSectionComponent,
     ApplicantSectionComponent,
     RespondentSectionComponent,
@@ -272,6 +269,38 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.childErrors.applicant = [];
   }
 
+  private updateRespondentErrors(): void {
+    // Run validation if respondent is required
+    // and when respondent forms are fully/partially populated
+    const isRespondentRequired =
+      this.appListEntryCreateState().appCodeDetail?.requiresRespondent ?? true;
+
+    const respondentFormHasValues = respondentFormsHaveAnyValue({
+      numberOfRespondents: this.form.controls.numberOfRespondents,
+      respondentPersonForm: this.forms.respondentPersonForm,
+      respondentOrganisationForm: this.forms.respondentOrganisationForm,
+    });
+
+    const shouldValidateRespondent =
+      isRespondentRequired || respondentFormHasValues;
+
+    if (shouldValidateRespondent) {
+      this.childErrors.respondent = buildRespondentErrors({
+        respondentEntryType: this.form.controls.respondentEntryType.value,
+        respondentPersonForm: this.forms.respondentPersonForm,
+        respondentOrganisationForm: this.forms.respondentOrganisationForm,
+        errorMessages: ENTRY_ERROR_MESSAGES,
+        respondentPersonHrefs: RESPONDENT_PERSON_ERROR_HREFS,
+        respondentOrganisationHrefs: RESPONDENT_ORG_ERROR_HREFS,
+        respondentBulkControl: this.form.controls.numberOfRespondents,
+        respondentBulkHrefs: RESPONDENT_BULK_ERROR_HREFS,
+      });
+      return;
+    }
+
+    this.childErrors.respondent = [];
+  }
+
   private updateAllErrors(): void {
     this.updateApplicantErrors();
     this.updateRespondentErrors();
@@ -359,7 +388,7 @@ export class ApplicationsListEntryCreate implements OnInit {
         map((type): ApplicantType => type ?? 'person'),
       )
       .subscribe((t) => {
-        this.submitted = false;
+        this.appListEntryCreatePatch({ submitted: false });
         this.clearErrors();
 
         // reset/rehydrate subforms + keep standardApplicantCode in sync
@@ -370,60 +399,5 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   get applicantErrorItems(): ErrorItem[] {
     return this.childErrors.applicant;
-  }
-
-  private updateRespondentErrors(): void {
-    // Run validation if respondent is required
-    // and when respondent forms are fully/partially populated
-    const isRespondentRequired =
-      this.appListEntryCreateState().appCodeDetail?.requiresRespondent ?? true;
-
-    const shouldValidateRespondent =
-      isRespondentRequired || this.respondentFormsHaveAnyValue();
-
-    if (shouldValidateRespondent) {
-      this.childErrors.respondent = buildRespondentErrors({
-        respondentEntryType: this.form.controls.respondentEntryType.value,
-        respondentPersonForm: this.forms.respondentPersonForm,
-        respondentOrganisationForm: this.forms.respondentOrganisationForm,
-        errorMessages: ENTRY_ERROR_MESSAGES,
-        respondentPersonHrefs: RESPONDENT_PERSON_ERROR_HREFS,
-        respondentOrganisationHrefs: RESPONDENT_ORG_ERROR_HREFS,
-        respondentBulkControl: this.form.controls.numberOfRespondents,
-        respondentBulkHrefs: RESPONDENT_BULK_ERROR_HREFS,
-      });
-      return;
-    }
-
-    this.childErrors.respondent = [];
-  }
-
-  private respondentFormsHaveAnyValue(): boolean {
-    // Recursively check respondent object for values
-    const hasAnyValue = (value: unknown): boolean => {
-      if (value === null || value === undefined) {
-        return false;
-      }
-
-      if (typeof value === 'string') {
-        return value.trim().length > 0;
-      }
-
-      if (typeof value === 'number') {
-        return value > 0;
-      }
-
-      if (typeof value === 'object') {
-        return Object.values(value).some((item) => hasAnyValue(item));
-      }
-
-      return true;
-    };
-
-    return (
-      hasAnyValue(this.form.controls.numberOfRespondents.value) ||
-      hasAnyValue(this.forms.respondentPersonForm.getRawValue()) ||
-      hasAnyValue(this.forms.respondentOrganisationForm.getRawValue())
-    );
   }
 }

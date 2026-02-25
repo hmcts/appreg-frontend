@@ -1,7 +1,9 @@
+import { Component, input } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, FormGroup } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 
+import { RespondentBulkApplicationComponent } from '@components/respondent-bulk-application/respondent-bulk-application.component';
 import { RespondentSectionComponent } from '@components/respondent-section/respondent-section.component';
 import type {
   ApplicationsListEntryForm,
@@ -10,46 +12,56 @@ import type {
   RespondentEntryType,
 } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 
+// Minimal runtime forms – only include controls that the rendered templates actually bind to
+const buildMinimalEntryForm = (type: RespondentEntryType) =>
+  new FormGroup({
+    respondentEntryType: new FormControl<RespondentEntryType | null>(type),
+  }) as unknown as ApplicationsListEntryForm;
+
+const buildMinimalPersonForm = () =>
+  new FormGroup({
+    title: new FormControl<string | null>(null),
+    firstName: new FormControl<string>(''),
+    middleNames: new FormControl<string>(''),
+    surname: new FormControl<string | null>(null),
+    addressLine1: new FormControl<string>(''),
+    addressLine2: new FormControl<string>(''),
+    addressLine3: new FormControl<string>(''),
+    addressLine4: new FormControl<string>(''),
+    addressLine5: new FormControl<string>(''),
+    postcode: new FormControl<string | null>(null),
+    phoneNumber: new FormControl<string | null>(null),
+    mobileNumber: new FormControl<string | null>(null),
+    emailAddress: new FormControl<string | null>(null),
+  }) as unknown as PersonForm;
+
+const buildMinimalOrganisationForm = () =>
+  new FormGroup({
+    name: new FormControl<string>(''),
+    addressLine1: new FormControl<string>(''),
+    addressLine2: new FormControl<string>(''),
+    addressLine3: new FormControl<string>(''),
+    addressLine4: new FormControl<string>(''),
+    addressLine5: new FormControl<string>(''),
+    postcode: new FormControl<string | null>(null),
+    phoneNumber: new FormControl<string | null>(null),
+    mobileNumber: new FormControl<string | null>(null),
+    emailAddress: new FormControl<string | null>(null),
+  }) as unknown as OrganisationForm;
+@Component({
+  selector: 'app-respondent-bulk-application',
+  standalone: true,
+  template: '',
+})
+class RespondentBulkApplicationStubComponent {
+  readonly form = input<unknown>();
+  readonly submitted = input<boolean | null>(null);
+  readonly errors = input<unknown>();
+}
+
 describe('RespondentSectionComponent', () => {
   let fixture: ComponentFixture<RespondentSectionComponent>;
   let component: RespondentSectionComponent;
-
-  // Minimal runtime forms – only include controls that the rendered templates actually bind to
-  const buildMinimalEntryForm = (type: RespondentEntryType) =>
-    new FormGroup({
-      respondentEntryType: new FormControl<RespondentEntryType | null>(type),
-    }) as unknown as ApplicationsListEntryForm;
-
-  const buildMinimalPersonForm = () =>
-    new FormGroup({
-      title: new FormControl<string | null>(null),
-      firstName: new FormControl<string>(''),
-      middleNames: new FormControl<string>(''),
-      surname: new FormControl<string | null>(null),
-      addressLine1: new FormControl<string>(''),
-      addressLine2: new FormControl<string>(''),
-      addressLine3: new FormControl<string>(''),
-      addressLine4: new FormControl<string>(''),
-      addressLine5: new FormControl<string>(''),
-      postcode: new FormControl<string | null>(null),
-      phoneNumber: new FormControl<string | null>(null),
-      mobileNumber: new FormControl<string | null>(null),
-      emailAddress: new FormControl<string | null>(null),
-    }) as unknown as PersonForm;
-
-  const buildMinimalOrganisationForm = () =>
-    new FormGroup({
-      name: new FormControl<string>(''),
-      addressLine1: new FormControl<string>(''),
-      addressLine2: new FormControl<string>(''),
-      addressLine3: new FormControl<string>(''),
-      addressLine4: new FormControl<string>(''),
-      addressLine5: new FormControl<string>(''),
-      postcode: new FormControl<string | null>(null),
-      phoneNumber: new FormControl<string | null>(null),
-      mobileNumber: new FormControl<string | null>(null),
-      emailAddress: new FormControl<string | null>(null),
-    }) as unknown as OrganisationForm;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -114,5 +126,89 @@ describe('RespondentSectionComponent', () => {
 
     const org = fixture.debugElement.query(By.css('app-organisation-section'));
     expect(org).toBeTruthy();
+  });
+});
+
+describe('RespondentSectionComponent - bulkAllowed behaviour', () => {
+  let fixture: ComponentFixture<RespondentSectionComponent>;
+  let component: RespondentSectionComponent;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [RespondentSectionComponent],
+    })
+      .overrideComponent(RespondentSectionComponent, {
+        remove: { imports: [RespondentBulkApplicationComponent] },
+        add: { imports: [RespondentBulkApplicationStubComponent] },
+      })
+      .compileComponents();
+
+    fixture = TestBed.createComponent(RespondentSectionComponent);
+    component = fixture.componentInstance;
+
+    const form = buildMinimalEntryForm('person');
+    const personGroup = buildMinimalPersonForm();
+    const organisationGroup = buildMinimalOrganisationForm();
+
+    fixture.componentRef.setInput('form', form);
+    fixture.componentRef.setInput('personGroup', personGroup);
+    fixture.componentRef.setInput('organisationGroup', organisationGroup);
+
+    fixture.componentRef.setInput('respondentEntryTypeOptions', [
+      { value: 'person', label: 'Person' },
+      { value: 'organisation', label: 'Organisation' },
+      { value: 'bulk', label: 'Bulk' },
+    ]);
+
+    fixture.componentRef.setInput('personTitleOptions', [
+      { value: 'mr', label: 'Mr' },
+      { value: 'mrs', label: 'Mrs' },
+    ]);
+
+    fixture.componentRef.setInput('bulkAllowed', false);
+    fixture.componentRef.setInput('submitted', false);
+    fixture.componentRef.setInput('errorItems', []);
+
+    fixture.detectChanges();
+  });
+
+  it('selectOptions filters out bulk when bulkAllowed=false', () => {
+    expect(component.selectOptions().some((o) => o.value === 'bulk')).toBe(
+      false,
+    );
+  });
+
+  it('bulk option kept when bulkAllowed=true', () => {
+    fixture.componentRef.setInput('bulkAllowed', true);
+    fixture.detectChanges();
+
+    expect(component.selectOptions().some((o) => o.value === 'bulk')).toBe(
+      true,
+    );
+  });
+
+  it('effect resets respondentEntryType from bulk to person when bulk becomes disallowed', () => {
+    fixture.componentRef.setInput('bulkAllowed', true);
+    fixture.detectChanges();
+
+    component.form().controls.respondentEntryType.setValue('bulk');
+    fixture.detectChanges();
+
+    fixture.componentRef.setInput('bulkAllowed', false);
+    fixture.detectChanges();
+
+    expect(component.form().controls.respondentEntryType.value).toBe('person');
+  });
+
+  it('renders bulk child component when bulkAllowed=true and respondentEntryType=bulk', () => {
+    fixture.componentRef.setInput('bulkAllowed', true);
+    fixture.detectChanges();
+
+    component.form().controls.respondentEntryType.setValue('bulk');
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement.query(By.css('app-respondent-bulk-application')),
+    ).toBeTruthy();
   });
 });

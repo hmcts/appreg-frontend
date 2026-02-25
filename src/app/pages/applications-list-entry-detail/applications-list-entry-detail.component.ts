@@ -125,6 +125,7 @@ import {
 import { getUniqueErrors } from '@util/error-items';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { markFormGroupClean } from '@util/form-helpers';
+import { respondentFormsHaveAnyValue } from '@util/respondent-helpers';
 
 type ChildErrorSource =
   | 'notes'
@@ -188,6 +189,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   formReady = signal(false);
   formSubmitted = signal(false);
+  bulkApplicationsAllowed = false;
 
   form!: ApplicationsListEntryForm;
   personForm!: PersonForm;
@@ -406,6 +408,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         )
         .subscribe({
           next: (appCodeDetail) => {
+            let allowBulkApplications = false;
             const hasSelectionChanged =
               prevSelection.code !== codeAndLodgementDate.code;
 
@@ -413,6 +416,11 @@ export class ApplicationsListEntryDetail implements OnInit {
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
             }
 
+            if (appCodeDetail.bulkRespondentAllowed) {
+              allowBulkApplications = true;
+            }
+
+            this.bulkApplicationsAllowed = allowBulkApplications;
             this.appCodeDetail = appCodeDetail;
           },
           error: (err) => {
@@ -466,16 +474,35 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   private updateRespondentErrors(): void {
-    this.childErrors.respondent = buildRespondentErrors({
-      respondentEntryType: this.form.controls.respondentEntryType.value,
+    // Run validation if respondent is required
+    // and when respondent forms are fully/partially populated
+    const isRespondentRequired =
+      this.appCodeDetail?.requiresRespondent ?? true;
+
+    const respondentFormHasValues = respondentFormsHaveAnyValue({
+      numberOfRespondents: this.form.controls.numberOfRespondents,
       respondentPersonForm: this.forms.respondentPersonForm,
       respondentOrganisationForm: this.forms.respondentOrganisationForm,
-      errorMessages: UPDATE_ENTRY_ERROR_MESSAGES,
-      respondentPersonHrefs: RESPONDENT_PERSON_ERROR_HREFS,
-      respondentOrganisationHrefs: RESPONDENT_ORG_ERROR_HREFS,
-      respondentBulkControl: this.form.controls.numberOfRespondents,
-      respondentBulkHrefs: RESPONDENT_BULK_ERROR_HREFS,
     });
+
+    const shouldValidateRespondent =
+      isRespondentRequired || respondentFormHasValues;
+
+    if (shouldValidateRespondent) {
+      this.childErrors.respondent = buildRespondentErrors({
+        respondentEntryType: this.form.controls.respondentEntryType.value,
+        respondentPersonForm: this.forms.respondentPersonForm,
+        respondentOrganisationForm: this.forms.respondentOrganisationForm,
+        errorMessages: UPDATE_ENTRY_ERROR_MESSAGES,
+        respondentPersonHrefs: RESPONDENT_PERSON_ERROR_HREFS,
+        respondentOrganisationHrefs: RESPONDENT_ORG_ERROR_HREFS,
+        respondentBulkControl: this.form.controls.numberOfRespondents,
+        respondentBulkHrefs: RESPONDENT_BULK_ERROR_HREFS,
+      });
+      return;
+    }
+
+    this.childErrors.respondent = [];
   }
 
   private updateAllErrors(): void {
