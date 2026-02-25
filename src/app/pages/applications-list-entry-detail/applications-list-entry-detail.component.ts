@@ -476,8 +476,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   private updateRespondentErrors(): void {
     // Run validation if respondent is required
     // and when respondent forms are fully/partially populated
-    const isRespondentRequired =
-      this.appCodeDetail?.requiresRespondent ?? true;
+    const isRespondentRequired = this.appCodeDetail?.requiresRespondent ?? true;
 
     const respondentFormHasValues = respondentFormsHaveAnyValue({
       numberOfRespondents: this.form.controls.numberOfRespondents,

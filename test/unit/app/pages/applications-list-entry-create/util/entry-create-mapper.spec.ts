@@ -412,4 +412,45 @@ describe('buildEntryCreateDto', () => {
     expect(payload['standardApplicantCode']).toBe('STD-123');
     expect('applicant' in payload).toBe(false);
   });
+
+  it('maps numberOfRespondents via toOptionalInteger ("12" -> 12)', () => {
+    const formValue = makeBaseFormValue({
+      numberOfRespondents:
+        '12' as unknown as ApplicationsListEntryFormValue['numberOfRespondents'],
+    });
+
+    const dto = buildEntryCreateDto(
+      formValue,
+      makeBlankPerson(),
+      makeBlankOrganisation(),
+      makeBlankPerson(),
+      makeBlankOrganisation(),
+    );
+
+    const payload = roundTrip(dto as unknown as Record<string, unknown>);
+    expect(payload['numberOfRespondents']).toBe(12);
+  });
+
+  it('omits numberOfRespondents when blank or non-numeric', () => {
+    const makePayload = (v: unknown): Record<string, unknown> => {
+      const formValue = makeBaseFormValue({
+        numberOfRespondents:
+          v as ApplicationsListEntryFormValue['numberOfRespondents'],
+      });
+
+      const dto = buildEntryCreateDto(
+        formValue,
+        makeBlankPerson(),
+        makeBlankOrganisation(),
+        makeBlankPerson(),
+        makeBlankOrganisation(),
+      );
+
+      return roundTrip(dto as unknown as Record<string, unknown>);
+    };
+
+    expect('numberOfRespondents' in makePayload('')).toBe(false);
+    expect('numberOfRespondents' in makePayload('   ')).toBe(false);
+    expect('numberOfRespondents' in makePayload('abc')).toBe(false);
+  });
 });

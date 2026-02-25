@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { Subject, of } from 'rxjs';
 
 import { ApplicationsListEntryCreate } from '@components/applications-list-entry-create/applications-list-entry-create.component';
 import { buildEntryCreateDto } from '@components/applications-list-entry-create/util/entry-create-mapper';
@@ -10,11 +10,10 @@ import {
   compactStrings,
   toOptionalTrimmed,
 } from '@components/applications-list-entry-create/util/helpers';
-import { ApplicationListEntriesApi } from '@openapi';
+import { ApplicationCodesApi, ApplicationListEntriesApi } from '@openapi';
+import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 
 function roundTrip<T extends object>(o: T): T {
-  // NOTE: Sonar complains, but structuredClone() will fail for some environments,
-  // so we keep JSON round-trip here.
   return JSON.parse(JSON.stringify(o));
 }
 
@@ -254,5 +253,147 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
 
     const compact = compactStrings(['  a', ' ', null, undefined, 'b  ']);
     expect(compact).toEqual(['a', 'b']);
+  });
+});
+
+describe('ApplicationsListEntryCreate (new code selection + bulk respondent paths)', () => {
+  let fixture: ComponentFixture<ApplicationsListEntryCreate>;
+  let component: ApplicationsListEntryCreate;
+
+  let createApplicationListEntryMock: jest.Mock;
+  let getApplicationCodeByCodeAndDateMock: jest.Mock;
+
+  let resetSectionsSpy: jest.SpyInstance;
+
+  beforeEach(async () => {
+    createApplicationListEntryMock = jest.fn().mockReturnValue(of({}));
+    getApplicationCodeByCodeAndDateMock = jest.fn();
+
+    await TestBed.configureTestingModule({
+      imports: [ApplicationsListEntryCreate],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: ApplicationListEntriesApi,
+          useValue: {
+            createApplicationListEntry: createApplicationListEntryMock,
+          },
+        },
+        {
+          provide: ApplicationCodesApi,
+          useValue: {
+            getApplicationCodeByCodeAndDate:
+              getApplicationCodeByCodeAndDateMock,
+          },
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: { get: () => 'LIST-1' } } },
+        },
+      ],
+    })
+      .overrideTemplate(ApplicationsListEntryCreate, '')
+      .compileComponents();
+
+    // Spy on the real service so createForms()
+    resetSectionsSpy = jest
+      .spyOn(
+        TestBed.inject(ApplicationListEntryFormService),
+        'resetSectionsOnApplicationCodeChange',
+      )
+      .mockImplementation(() => undefined);
+
+    fixture = TestBed.createComponent(ApplicationsListEntryCreate);
+    component = fixture.componentInstance;
+
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    resetSectionsSpy.mockRestore();
+  });
+
+  it('onCodeSelected sets bulkApplicationsAllowed from API detail.bulkRespondentAllowed', () => {
+    getApplicationCodeByCodeAndDateMock.mockReturnValue(
+      of({ bulkRespondentAllowed: true } as unknown),
+    );
+
+    component.onCodeSelected({ code: 'A001', date: '2026-02-01' });
+
+    expect(component.vm().bulkApplicationsAllowed).toBe(true);
+    expect(component.vm().appCodeDetail).toEqual(
+      expect.objectContaining({ bulkRespondentAllowed: true }),
+    );
+  });
+
+  it('onCodeSelected keeps bulkApplicationsAllowed false when API bulkRespondentAllowed is falsey', () => {
+    getApplicationCodeByCodeAndDateMock.mockReturnValue(of({} as unknown));
+
+    component.onCodeSelected({ code: 'A001', date: '2026-02-01' });
+
+    expect(component.vm().bulkApplicationsAllowed).toBe(false);
+    expect(component.vm().appCodeDetail).toEqual(expect.any(Object));
+  });
+
+  it('onCodeSelected resets dependent sections when the selected application code changes', () => {
+    component.form.patchValue({
+      applicationCode: 'OLD',
+      lodgementDate: '2026-01-01',
+    });
+
+    getApplicationCodeByCodeAndDateMock.mockReturnValue(of({} as unknown));
+
+    component.onCodeSelected({ code: 'NEW', date: '2026-02-01' });
+
+    expect(resetSectionsSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('onCodeSelected does not reset dependent sections when only the date changes', () => {
+    component.form.patchValue({
+      applicationCode: 'SAME',
+      lodgementDate: '2026-01-01',
+    });
+
+    getApplicationCodeByCodeAndDateMock.mockReturnValue(of({} as unknown));
+
+    component.onCodeSelected({ code: 'SAME', date: '2026-02-02' });
+
+    expect(resetSectionsSpy).not.toHaveBeenCalled();
+  });
+
+  it("onSubmit: respondent validation path with bulk (respondentEntryType='bulk')", () => {
+    component.form.patchValue({
+      applicationCode: 'A001',
+      lodgementDate: '2026-02-01',
+      applicantType: 'standard',
+      standardApplicantCode: 'SA-1',
+      respondentEntryType: 'bulk',
+      numberOfRespondents: -1, // Value out of range
+    });
+
+    component.onSubmit(new Event('submit'));
+
+    expect(createApplicationListEntryMock).not.toHaveBeenCalled();
+    expect(component.vm().errorFound).toBe(true);
+    expect(component.respondentErrorItems.length).toBeGreaterThan(0);
+  });
+
+  it('onCodeSelected makes API call with code/date and expected args', () => {
+    const s = new Subject<unknown>();
+    getApplicationCodeByCodeAndDateMock.mockReturnValue(s.asObservable());
+
+    component.onCodeSelected({ code: 'A001', date: '2026-02-01' });
+
+    expect(getApplicationCodeByCodeAndDateMock).toHaveBeenCalledWith(
+      { code: 'A001', date: '2026-02-01' },
+      'body',
+      false,
+      { transferCache: true },
+    );
+
+    s.next({ bulkRespondentAllowed: false });
+    s.complete();
   });
 });
