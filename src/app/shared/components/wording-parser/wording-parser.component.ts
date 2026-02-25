@@ -121,7 +121,7 @@ export class WordingParserComponent implements OnInit {
 
   tokenize(template: string): Token[] {
     const tokens: Token[] = [];
-    const regex = /\{\{\s*([^}]+?)\s*\}\}/g;
+    const regex = /\{\{([^}]*)\}\}/g;
 
     let lastIndex = 0;
     let match: RegExpExecArray | null;
