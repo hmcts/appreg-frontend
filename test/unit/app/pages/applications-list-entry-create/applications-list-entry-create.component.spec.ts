@@ -355,6 +355,13 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
       applicationCode: 'SAME',
       lodgementDate: '2026-01-01',
     });
+    (
+      component as unknown as {
+        appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
+      }
+    ).appListEntryCreatePatch({
+      appCodeDetail: { applicationCode: 'SAME' },
+    });
 
     getApplicationCodeByCodeAndDateMock.mockReturnValue(of({} as unknown));
 

@@ -369,7 +369,7 @@ export class ApplicationsListEntryCreate implements OnInit {
           next: (appCodeDetail) => {
             const prevCode =
               this.appListEntryCreateState().appCodeDetail?.applicationCode;
-            const newCode = appCodeDetail.applicationCode;
+            const newCode = codeAndLodgementDate.code;
 
             this.appListEntryCreatePatch({ appCodeDetail });
 
@@ -393,7 +393,14 @@ export class ApplicationsListEntryCreate implements OnInit {
               appCodeDetail,
             });
           },
-          error: () => {},
+          error: (err) => {
+            const msg = getProblemText(err);
+
+            this.appListEntryCreatePatch({
+              summaryErrors: [{ text: msg }],
+              errorFound: true,
+            });
+          },
         });
     } else {
       this.appListEntryCreatePatch({ appCodeDetail: null });

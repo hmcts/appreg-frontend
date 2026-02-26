@@ -55,9 +55,9 @@
   </ng-template>
 
   <ng-template #wordingTpl>
-    @if (vm().appCodeDetail) {
+    @if (vm().appCodeDetail; as appCodeDetail) {
       <app-wording-section
-        [wordingObject]="vm().appCodeDetail.wording"
+        [wordingObject]="appCodeDetail.wording"
         [wordingSubmitAttempt]="wordingSubmitAttempt()"
         (wordingFieldsDTO)="onWordingFieldsDTO($event)"
         (wordingFieldErrors)="onChildErrors('wording', $event)"
