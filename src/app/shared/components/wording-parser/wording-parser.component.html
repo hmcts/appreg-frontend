@@ -5,12 +5,13 @@
         {{ t.value }}&nbsp;
       } @else if (t.type == 'input') {
         <input
-          [id]="t.key"
+          [id]="normaliseKey(t.key)"
           class="govuk-input govuk-input--width-10"
-          [class.govuk-input--error]="form.get(t.key)?.invalid && submitted()"
-          [formControlName]="t.key"
+          [class.govuk-input--error]="
+            form.get(normaliseKey(t.key))?.invalid && submitted()
+          "
+          [formControlName]="normaliseKey(t.key)"
           type="text"
-          name="width10"
           [placeholder]="'Enter a ' + t.key"
         />&nbsp;
       }

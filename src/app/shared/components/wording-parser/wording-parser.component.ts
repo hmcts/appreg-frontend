@@ -36,6 +36,8 @@ export class WordingParserComponent implements OnInit {
   wordingFieldErrors = output<ErrorItem[]>();
   wordingFieldsDTO = output<{ wordingFields: TemplateSubstitution[] }>();
 
+  private normalisedKeyToKeyMap = new Map<string, string>();
+
   submitAttempt = input(0);
   submitted = signal(false);
 
@@ -73,7 +75,6 @@ export class WordingParserComponent implements OnInit {
   createFormControls(): void {
     // create an array where the key is the substitution key and the value is the constraint length
     // e.g. "Date": 10
-
     const constraintLengths = (
       this.wordingObject()['substitution-key-constraints'] ?? []
     ).reduce<Record<string, number>>((acc, item) => {
@@ -83,15 +84,23 @@ export class WordingParserComponent implements OnInit {
       return acc;
     }, {});
 
+    this.normalisedKeyToKeyMap.clear();
+
     this.tokens.forEach((token) => {
       if (token.type === 'input') {
+        const formKey = this.normaliseKey(token.key);
+
+        this.normalisedKeyToKeyMap.set(formKey, token.key);
+
+        const maxLength = constraintLengths[token.key];
+
         this.form.addControl(
-          token.key,
+          formKey,
           this.fb.control('', {
             validators: [
               (control: AbstractControl) => Validators.required(control),
               (control: AbstractControl) =>
-                Validators.maxLength(constraintLengths[token.key])(control),
+                Validators.maxLength(maxLength)(control),
             ],
           }),
         );
@@ -112,16 +121,14 @@ export class WordingParserComponent implements OnInit {
         return;
       }
 
-      if (this.form.contains(item.key)) {
-        this.form.get(item.key)?.setValue(item.value);
-      }
+      const formKey = this.normaliseKey(item.key);
+      this.form.get(formKey)?.setValue(item.value);
     });
   }
 
   tokenize(template: string): Token[] {
     const tokens: Token[] = [];
-    const wordingTemplateTokenizerRegex =
-      /\{\{\s*([A-Za-z](?:[A-Za-z ]{0,254}[A-Za-z])?)\s*\}\}/g;
+    const wordingTemplateTokenizerRegex = /\{\{\s*([A-Za-z. ]{1,256})\s*\}\}/g;
 
     let lastIndex = 0;
     let match: RegExpExecArray | null;
@@ -166,7 +173,7 @@ export class WordingParserComponent implements OnInit {
 
     return {
       wordingFields: Object.entries(formValue).map(([key, value]) => ({
-        key,
+        key: this.normalisedKeyToKeyMap.get(key),
         value,
       })),
     };
@@ -181,7 +188,9 @@ export class WordingParserComponent implements OnInit {
       .map((t) => t.key);
 
     for (const key of inputKeysInOrder) {
-      const control = this.form.get(key);
+      const formKey = this.normaliseKey(key);
+
+      const control = this.form.get(formKey);
       if (!control) {
         continue;
       }
@@ -193,8 +202,8 @@ export class WordingParserComponent implements OnInit {
 
       if (e['required']) {
         errors.push({
-          text: `Wording section - Enter a ${key}`,
-          href: `#${key}`,
+          text: `Enter a ${key} in the wording section`,
+          href: `#${formKey}`,
         });
       }
 
@@ -205,22 +214,19 @@ export class WordingParserComponent implements OnInit {
 
         if (max !== null) {
           errors.push({
-            text: `Wording section - ${key} must be ${max} characters or fewer`,
-            href: `#${key}`,
+            text: `${key} in wording section must be ${max} characters or fewer`,
+            href: `#${formKey}`,
           });
         }
-      }
-
-      const known = new Set(['required', 'maxlength']);
-      const otherKey = Object.keys(e).find((k) => !known.has(k));
-      if (otherKey) {
-        errors.push({
-          text: `Check ${key}`,
-          href: `#${key}`,
-        });
       }
     }
 
     return errors;
+  }
+
+  // converts string e.g. No. of accounts into No-of-accounts to be used as form control keys and in error hrefs,
+  // as spaces and full stops are not valid in form control names or html ids
+  normaliseKey(key: string): string {
+    return key.replace(/\./g, '').trim().replace(/\s+/g, '-');
   }
 }

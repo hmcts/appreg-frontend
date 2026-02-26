@@ -90,10 +90,10 @@ describe('WordingParserComponent', () => {
     it('should create controls for input tokens and patch values', () => {
       init(makeWordingObject());
 
-      expect(component.form.contains('Applicant officer')).toBe(true);
+      expect(component.form.contains('Applicant-officer')).toBe(true);
       expect(component.form.contains('date')).toBe(true);
 
-      expect(component.form.get('Applicant officer')?.value).toBe('12345678');
+      expect(component.form.get('Applicant-officer')?.value).toBe('12345678');
       expect(component.form.get('date')?.value).toBe('31/12/2026');
     });
 
@@ -115,7 +115,7 @@ describe('WordingParserComponent', () => {
         }),
       );
 
-      expect(component.form.get('Applicant officer')?.value).toEqual('');
+      expect(component.form.get('Applicant-officer')?.value).toEqual('');
       expect(component.form.get('date')?.value).toEqual('');
     });
 
@@ -173,8 +173,8 @@ describe('WordingParserComponent', () => {
       expect(dtoSpy).not.toHaveBeenCalled();
 
       expect(errorsSpy).toHaveBeenCalledWith([
-        { text: 'Wording section - Enter a A', href: '#A' },
-        { text: 'Wording section - Enter a B', href: '#B' },
+        { text: 'Enter a A in the wording section', href: '#A' },
+        { text: 'Enter a B in the wording section', href: '#B' },
       ]);
     });
 
@@ -202,8 +202,40 @@ describe('WordingParserComponent', () => {
 
       expect(errorsSpy).toHaveBeenCalledWith([
         {
-          text: 'Wording section - A must be 3 characters or fewer',
+          text: 'A in wording section must be 3 characters or fewer',
           href: '#A',
+        },
+      ]);
+    });
+
+    it('should emit maxlength error when value exceeds constraint and key is No. of accounts', () => {
+      init(
+        makeWordingObject({
+          template: 'Hi {{No. of accounts}}',
+          'substitution-key-constraints': [
+            {
+              key: 'No. of accounts',
+              value: '',
+              constraint: { length: 3, type: TemplateConstraintTypeEnum.TEXT },
+            },
+          ],
+        }),
+      );
+
+      const errorsSpy = jest.spyOn(component.wordingFieldErrors, 'emit');
+
+      (
+        component.form.get('No-of-accounts') as unknown as FormControl<
+          string | null
+        >
+      ).setValue('TOOLONG');
+
+      component.submitWordingFields();
+
+      expect(errorsSpy).toHaveBeenCalledWith([
+        {
+          text: 'No. of accounts in wording section must be 3 characters or fewer',
+          href: '#No-of-accounts',
         },
       ]);
     });
@@ -223,33 +255,6 @@ describe('WordingParserComponent', () => {
           { key: 'date', value: '31/12/2026' },
         ],
       });
-    });
-  });
-
-  describe('unknown validation error branch', () => {
-    it('should emit "Check key" for unknown validator errors', () => {
-      init(
-        makeWordingObject({
-          template: 'Hi {{A}}',
-          'substitution-key-constraints': [
-            {
-              key: 'A',
-              value: '123',
-              constraint: { length: 5, type: TemplateConstraintTypeEnum.TEXT },
-            },
-          ],
-        }),
-      );
-
-      const control = component.form.get('A');
-      control?.addValidators(() => ({ customError: true }));
-      control?.updateValueAndValidity();
-
-      const errorsSpy = jest.spyOn(component.wordingFieldErrors, 'emit');
-
-      component.submitWordingFields();
-
-      expect(errorsSpy).toHaveBeenCalledWith([{ text: 'Check A', href: '#A' }]);
     });
   });
 
@@ -278,7 +283,7 @@ describe('WordingParserComponent', () => {
       fixture.detectChanges();
 
       expect(errorsSpy).toHaveBeenCalledWith([
-        { text: 'Wording section - Enter a A', href: '#A' },
+        { text: 'Enter a A in the wording section', href: '#A' },
       ]);
     });
 
@@ -302,6 +307,17 @@ describe('WordingParserComponent', () => {
       fixture.detectChanges();
 
       expect(errorsSpy).toHaveBeenCalledWith([]);
+    });
+  });
+
+  describe('normaliseKey', () => {
+    it('should replace spaces and full stops with hyphens', () => {
+      expect(component.normaliseKey('No. of accounts')).toBe('No-of-accounts');
+    });
+    it("transform 'Applicant officer' into 'Applicant-officer'", () => {
+      expect(component.normaliseKey('Applicant officer')).toBe(
+        'Applicant-officer',
+      );
     });
   });
 });

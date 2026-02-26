@@ -171,7 +171,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private resetFlags(): void {
-    this.submitted = true;
+    this.submitted = false;
     this.errorFound = false;
     this.errorHint = '';
     this.createDone = false;
@@ -240,6 +240,8 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   onWordingFieldsDTO(dto: { wordingFields: TemplateSubstitution[] }): void {
+    console.log('Wording fields DTO received in parent component:', dto);
+
     this.forms.form.patchValue({
       wordingFields: dto.wordingFields,
     });
@@ -327,7 +329,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
             // if user selected a different code than what we had, reset sections
             if (prevCode !== newCode) {
-              const hadSubmitAttempt = this.submitAttempt() > 0;
+              const hadSubmitAttempt = this.submitted;
 
               this.submitAttempt.set(0);
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
