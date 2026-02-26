@@ -34,6 +34,9 @@ const FIXTURE_ROOT = 'fixtures';
 const REPORT_CSV_DEFAULT = 'reports/sample.csv';
 const REPORT_CSV_FILENAME = 'report.csv';
 
+// Disable response-template for specific success mappings (opId:status)
+const DISABLE_TEMPLATE_FOR = new Set(['getApplicationCodeByCodeAndDate:200']);
+
 // Map status ➜ shared error body file under __files/errors
 const ERROR_FILE_BY_STATUS = Object.freeze({
   400: 'errors/bad-request.json',
@@ -738,6 +741,14 @@ async function main() {
       }
 
       const is204 = String(statusCode) === '204';
+
+      const disableKey = `${op.operationId}:${statusCode}`;
+      if (
+        DISABLE_TEMPLATE_FOR.has(disableKey) &&
+        successResponse.transformers
+      ) {
+        delete successResponse.transformers;
+      }
 
       const successMapping = {
         name: (op.operationId || `${m} ${p}`).replace(/\s+/g, ' '),

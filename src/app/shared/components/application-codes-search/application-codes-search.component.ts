@@ -55,6 +55,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
 
   selectCodeAndLodgementDate = output<{ code: string; date: string }>();
   resultsChange = output<ApplicationCodeGetSummaryDto[]>();
+  resetParentErrors = output<void>();
 
   private readonly route = inject(ActivatedRoute);
   private readonly codesApi = inject(ApplicationCodesApi);
@@ -78,6 +79,15 @@ export class ApplicationCodeSearchComponent implements OnInit {
     this.initialPatchFormData();
     this.submitted.set(false);
     this.listId = this.route.snapshot.paramMap.get('id');
+
+    this.form.controls.code.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((v) => {
+        const code = (v ?? '').trim();
+        if (!code) {
+          this.clear({ emitEvent: false });
+        }
+      });
   }
 
   search(): void {
@@ -138,12 +148,16 @@ export class ApplicationCodeSearchComponent implements OnInit {
     });
   }
 
-  clear(): void {
-    this.form.patchValue({ code: null, title: null });
+  clear(options?: { emitEvent?: boolean }): void {
+    this.form.patchValue(
+      { code: null, title: null },
+      { emitEvent: options?.emitEvent ?? true },
+    );
     this.codesRows = [];
     this.errored.set(false);
     this.submitted.set(false);
     this.selectCodeAndLodgementDate.emit({ code: '', date: '' });
+    this.resetParentErrors.emit();
   }
 
   private initialPatchFormData(): void {

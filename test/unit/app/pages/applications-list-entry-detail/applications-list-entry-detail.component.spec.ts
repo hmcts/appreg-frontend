@@ -196,11 +196,10 @@ describe('ApplicationsListEntryDetail', () => {
   });
 
   it('onCodeSelected fetches code detail, sets appCodeDetail and resets sections when code changed', () => {
-    const personResetSpy = jest.fn();
-    const organisationResetSpy = jest.fn();
-
-    component.personForm.reset = personResetSpy;
-    component.organisationForm.reset = organisationResetSpy;
+    const resetSectionsSpy = jest.spyOn(
+      component['formSvc'],
+      'resetSectionsOnApplicationCodeChange',
+    );
 
     component.appCodeDetail = {
       applicationCode: 'OLD-CODE',
@@ -230,8 +229,7 @@ describe('ApplicationsListEntryDetail', () => {
 
     expect(component.appCodeDetail?.applicationCode).toBe('APP-7');
 
-    expect(personResetSpy).toHaveBeenCalled();
-    expect(organisationResetSpy).toHaveBeenCalled();
+    expect(resetSectionsSpy).toHaveBeenCalledWith(component.forms);
   });
 
   it('onUpdateApplicant uses form service buildUpdateDto and calls update API', () => {

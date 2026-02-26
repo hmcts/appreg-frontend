@@ -50,29 +50,21 @@
     <!-- Application code -->
     <app-application-code-search
       (selectCodeAndLodgementDate)="onCodeSelected($event)"
+      (resetParentErrors)="resetParentErrorsFromCodeSearch()"
     />
   </ng-template>
 
   <ng-template #wordingTpl>
-    <div class="govuk-grid-row">
-      <!-- Court name -->
-      <app-text-input
-        formControlName="courtName"
-        label="Court name"
-        hint="Enter the official name of the court"
-        idPrefix="court-name"
-      >
-      </app-text-input>
-
-      <!-- Organisation name -->
-      <app-text-input
-        formControlName="organisationName"
-        label="Organisation name"
-        hint="Enter the legal name of the organisation"
-        idPrefix="organisation-name"
-      >
-      </app-text-input>
-    </div>
+    @if (appCodeDetail) {
+      <app-wording-section
+        [wordingObject]="appCodeDetail.wording"
+        [wordingSubmitAttempt]="wordingSubmitAttempt()"
+        (wordingFieldsDTO)="onWordingFieldsDTO($event)"
+        (wordingFieldErrors)="onChildErrors('wording', $event)"
+      />
+    } @else {
+      <div class="govuk-inset-text">Please select an application code.</div>
+    }
   </ng-template>
 
   <ng-template #respondentTpl>

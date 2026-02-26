@@ -22,6 +22,7 @@ import {
   OnInit,
   PLATFORM_ID,
   inject,
+  signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -54,6 +55,7 @@ import { SelectInputComponent } from '@components/select-input/select-input.comp
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
 import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
 import {
   APPLICANT_ORG_ERROR_HREFS,
@@ -63,6 +65,7 @@ import {
   ApplicationCodeGetDetailDto,
   ApplicationCodesApi,
   ApplicationListEntriesApi,
+  TemplateSubstitution,
 } from '@openapi';
 import { ApplicantStep } from '@page-types/applications-list-entry-create';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
@@ -77,7 +80,12 @@ import { buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 
-type ChildErrorSource = 'notes' | 'fee' | 'respondent' | 'applicant';
+type ChildErrorSource =
+  | 'notes'
+  | 'fee'
+  | 'respondent'
+  | 'applicant'
+  | 'wording';
 
 @Component({
   selector: 'app-applications-list-entry-create',
@@ -103,6 +111,7 @@ type ChildErrorSource = 'notes' | 'fee' | 'respondent' | 'applicant';
     PersonSectionComponent,
     OrganisationSectionComponent,
     NotesSectionComponent,
+    WordingSectionComponent,
     ApplicantSectionComponent,
   ],
   viewProviders: [
@@ -121,7 +130,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   id: string = '';
   step: ApplicantStep = 'select';
-  appCodeDetail!: ApplicationCodeGetDetailDto;
+  appCodeDetail: ApplicationCodeGetDetailDto | null = null;
 
   createDone: boolean = false;
   submitted: boolean = false;
@@ -136,7 +145,10 @@ export class ApplicationsListEntryCreate implements OnInit {
     fee: [],
     respondent: [],
     applicant: [],
+    wording: [],
   };
+
+  wordingSubmitAttempt = signal(0);
 
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
@@ -154,8 +166,12 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.bindApplicantTypeChanges();
   }
 
+  resetParentErrorsFromCodeSearch(): void {
+    this.resetFlags();
+  }
+
   private resetFlags(): void {
-    this.submitted = true;
+    this.submitted = false;
     this.errorFound = false;
     this.errorHint = '';
     this.createDone = false;
@@ -171,12 +187,14 @@ export class ApplicationsListEntryCreate implements OnInit {
       fee: [],
       respondent: [],
       applicant: [],
+      wording: [],
     };
   }
 
   onSubmit(e: Event): void {
     e.preventDefault();
 
+    this.wordingSubmitAttempt.update((n) => n + 1);
     this.resetFlags();
 
     //Run Angular validation
@@ -219,6 +237,12 @@ export class ApplicationsListEntryCreate implements OnInit {
         },
       });
     this.submitted = false;
+  }
+
+  onWordingFieldsDTO(dto: { wordingFields: TemplateSubstitution[] }): void {
+    this.forms.form.patchValue({
+      wordingFields: dto.wordingFields,
+    });
   }
 
   private buildErrorSummary(): ErrorItem[] {
@@ -303,11 +327,22 @@ export class ApplicationsListEntryCreate implements OnInit {
 
             // if user selected a different code than what we had, reset sections
             if (prevCode !== newCode) {
+              const hadSubmitAttempt = this.submitted;
+
+              this.wordingSubmitAttempt.set(0);
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
+
+              if (hadSubmitAttempt) {
+                this.onChildErrors('wording', []);
+              } else {
+                this.childErrors.wording = [];
+              }
             }
           },
           error: () => {},
         });
+    } else {
+      this.appCodeDetail = null;
     }
   }
 

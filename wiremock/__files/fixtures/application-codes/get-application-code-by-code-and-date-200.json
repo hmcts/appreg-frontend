@@ -1,7 +1,13 @@
 {
   "applicationCode": "MS99004",
   "title": "Statutory Declaration - Lost documents",
-  "wording": "Attends to make a statutory declaration in relation to loss of original document, namely {TEXT|Specify Document Lost|100}",
+  "wording": { 
+    "template": "This is a test {{ Applicant officer }} with a {{ date }}", 
+    "substitution-key-constraints": [ 
+      { "key": "Applicant officer", "value": "Jordan Miller", "constraint": { "type": "TEXT", "length": 1234 } },
+      { "key": "date", "value": "23/12/2024", "constraint": { "type": "TEXT", "length": 1234 } }
+    ]
+  },
   "isFeeDue": true,
   "requiresRespondent": false,
   "bulkRespondentAllowed": false,

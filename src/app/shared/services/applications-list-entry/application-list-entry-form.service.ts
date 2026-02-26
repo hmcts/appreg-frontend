@@ -91,7 +91,8 @@ export class ApplicationListEntryFormService {
         applicationCode: dto.applicationCode ?? null,
         respondent: dto.respondent ?? null,
         numberOfRespondents: dto.numberOfRespondents ?? null,
-        wordingFields: dto.wordingFields ?? null,
+        // TODO: Revisit when ticket ARCPOC-1058 is done
+        // wordingFields: dto.wordingFields ?? null,
         feeStatuses: dto.feeStatuses ?? null,
         hasOffsiteFee: dto.hasOffsiteFee ?? null,
         applicationNotes: {
@@ -209,11 +210,11 @@ export class ApplicationListEntryFormService {
     });
 
     // reset respondent section forms person and organisation
-    forms.personForm.reset();
-    forms.organisationForm.reset();
+    forms.respondentPersonForm.reset();
+    forms.respondentOrganisationForm.reset();
 
-    markFormGroupClean(forms.personForm);
-    markFormGroupClean(forms.organisationForm);
+    markFormGroupClean(forms.respondentPersonForm);
+    markFormGroupClean(forms.respondentOrganisationForm);
   }
 
   setApplicantType(
