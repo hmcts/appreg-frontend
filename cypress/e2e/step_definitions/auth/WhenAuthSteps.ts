@@ -4,7 +4,10 @@ import { AuthErrorScenarios } from '../../../support/helper/auth/AuthErrorScenar
 import { AuthHelper } from '../../../support/helper/auth/AuthHelper';
 
 When('User Signs In With Microsoft SSO As {string}', (userType: string) => {
-  cy.task<Record<string, { email: string; password: string }>>('getEnv', 'SSO_USERS').then((ssoUsers) => {
+  cy.task<Record<string, { email: string; password: string }>>(
+    'getEnv',
+    'SSO_USERS',
+  ).then((ssoUsers) => {
     const user = ssoUsers[userType] || ssoUsers['default'];
     if (!user) {
       throw new Error(`SSO user type "${userType}" not found in configuration`);

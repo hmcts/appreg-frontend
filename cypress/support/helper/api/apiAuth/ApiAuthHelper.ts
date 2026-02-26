@@ -7,7 +7,10 @@ export class ApiAuthHelper {
     let scope: string;
 
     return cy
-      .task<Record<string, { email: string; password: string }>>('getEnv', 'SSO_USERS')
+      .task<Record<string, { email: string; password: string }>>(
+        'getEnv',
+        'SSO_USERS',
+      )
       .then((users) => {
         ssoUsers = users;
         return cy.task<string>('getEnv', 'TENANT_ID');
@@ -28,7 +31,7 @@ export class ApiAuthHelper {
         scope = sc;
         const user = ssoUsers[userKey];
         const url = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
-        
+
         return cy.request({
           method: 'POST',
           url,
