@@ -3,6 +3,7 @@ import { DataTable, Then } from '@badeball/cypress-cucumber-preprocessor';
 import { TableHelper } from '../../../../support/helper/table/TableHelper';
 import { TableSearch } from '../../../../support/helper/table/TableSearch';
 import { TableVerification } from '../../../../support/helper/table/TableVerification';
+import { DateTimeUtil } from '../../../../support/utils/DateTimeUtil';
 
 /**
  * Verifies that a table with the given caption is visible
@@ -117,8 +118,8 @@ Then(
         if (isDateColumn) {
           // Parse and sort dates chronologically
           sorted = [...values].sort((a, b) => {
-            const dateA = new Date(a);
-            const dateB = new Date(b);
+            const dateA = DateTimeUtil.parseDate(a);
+            const dateB = DateTimeUtil.parseDate(b);
             return dateA.getTime() - dateB.getTime();
           });
         } else {
