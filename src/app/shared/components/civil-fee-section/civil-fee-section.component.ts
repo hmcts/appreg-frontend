@@ -1,5 +1,13 @@
-import { Component, inject, input, output, signal } from '@angular/core';
 import {
+  Component,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
+import {
+  AbstractControl,
   FormControl,
   FormGroup,
   ReactiveFormsModule,
@@ -66,14 +74,23 @@ export class CivilFeeSectionComponent {
   // Application code returns whether a fee is required
   feeRequired = input<boolean>(false);
 
-  feeStatusOptionsWithPlaceholder = (): {
-    value: string;
-    label: string;
-    disabled?: boolean;
-  }[] => [
-    { value: '', label: 'Select fee status', disabled: true },
-    ...this.feeStatusOptions(),
-  ];
+  readonly feeStatusOptionsWithPlaceholder = computed<
+    { value: string; label: string; disabled?: boolean }[]
+  >(() => {
+    // Disable unselection if fee is required and there's no fees associated
+    const feesAreRequiredAndEmpty =
+      this.feeRequired() &&
+      (this.feeForm().controls.feeStatuses.value ?? []).length === 0;
+
+    return [
+      {
+        value: '',
+        label: 'Select fee status',
+        disabled: feesAreRequiredAndEmpty,
+      },
+      ...this.feeStatusOptions(),
+    ];
+  });
 
   offSiteFee = (): boolean =>
     this.feeForm().controls.hasOffsiteFee.value === true;
@@ -97,11 +114,21 @@ export class CivilFeeSectionComponent {
   onAddFeeDetailsClick(): void {
     this.submitted.set(true);
     const f = this.feeForm().controls;
+    const requiredValidator = (control: AbstractControl) =>
+      Validators.required(control);
 
-    //Lazy attach validators so they don't show on parent update
-    f.feeStatus.setValidators([(c) => Validators.required(c)]);
-    f.feeStatusDate.setValidators([(c) => Validators.required(c)]);
-    f.paymentRef.setValidators([(c) => Validators.maxLength(15)(c)]);
+    const feesAreRequiredAndEmpty =
+      this.feeRequired() &&
+      (this.feeForm().controls.feeStatuses.value ?? []).length === 0;
+
+    // Lazy attach validators so they do not show on parent update.
+    f.feeStatus.setValidators(
+      feesAreRequiredAndEmpty ? [requiredValidator] : [],
+    );
+    f.feeStatusDate.setValidators(
+      feesAreRequiredAndEmpty ? [requiredValidator] : [],
+    );
+    f.paymentRef.setValidators([Validators.maxLength(15)]);
 
     f.feeStatus.updateValueAndValidity({ emitEvent: false });
     f.feeStatusDate.updateValueAndValidity({ emitEvent: false });
@@ -179,7 +206,7 @@ export class CivilFeeSectionComponent {
         rowId: feeStatusRowId(fs),
         paymentReference: fs.paymentReference ?? '',
         paymentStatus: fs.paymentStatus,
-        statusDateRaw: fs.statusDate, // e.g. 2025-10-25 (sort-friendly)
+        statusDateRaw: fs.statusDate, // e.g. 2025-10-25 (sort-friendly), in template is formatted
       };
     });
 

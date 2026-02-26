@@ -214,8 +214,6 @@ export class ApplicationsListEntryDetail implements OnInit {
   errorFound = false;
   summaryErrors: ErrorItem[] = [];
 
-  isFeeRequired: boolean = false;
-
   private parentErrors: ErrorItem[] = [];
   private childErrors: Record<ChildErrorSource, ErrorItem[]> = {
     notes: [],
@@ -240,6 +238,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   //Civil fee
   feeMeta: CivilFeeMeta | null = null;
   civilFeeForm!: CivilFeeForm;
+  isFeeRequired: boolean = false;
   private persistedHasOffsiteFee = false;
 
   ngOnInit(): void {
