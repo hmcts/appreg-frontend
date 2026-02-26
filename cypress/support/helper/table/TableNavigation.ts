@@ -62,4 +62,47 @@ export class TableNavigation {
       });
     });
   }
+
+  /**
+   * Navigates to first page by clicking page 1 link
+   * @returns True if navigated, false if already on page 1
+   */
+  static navigateToFirstPage(): Cypress.Chainable<boolean> {
+    return cy.get('body').then(($body) => {
+      const $page1Link = TableElement.getFirstPageLink($body);
+      // Check if we're already on page 1 (current page has aria-current="page")
+      if ($page1Link.attr('aria-current') === 'page') {
+        return cy.wrap(false);
+      }
+      if ($page1Link.length > 0) {
+        return cy
+          .wrap($page1Link.first())
+          .click({ force: true })
+          .then(() => {
+            cy.wait(500);
+            return cy
+              .get('table')
+              .should('be.visible')
+              .and('not.have.class', 'animating');
+          })
+          .then(() => true);
+      }
+      return cy.wrap(false);
+    });
+  }
+
+  /**
+   * Checks if table has multiple pages
+   * @returns True if pagination exists with more than one page
+   */
+  static hasMultiplePages(): Cypress.Chainable<boolean> {
+    return cy.get('body').then(($body) => {
+      const $pagination = TableElement.getPaginationContainer($body);
+      if ($pagination.length === 0) {
+        return cy.wrap(false);
+      }
+      const $pageLinks = TableElement.getPageLinks($body);
+      return cy.wrap($pageLinks.length > 1);
+    });
+  }
 }
