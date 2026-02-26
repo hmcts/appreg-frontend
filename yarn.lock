@@ -589,9 +589,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/ssr@npm:^20.3.1":
-  version: 20.3.16
-  resolution: "@angular/ssr@npm:20.3.16"
+"@angular/ssr@npm:^20.3.17":
+  version: 20.3.17
+  resolution: "@angular/ssr@npm:20.3.17"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
@@ -602,7 +602,7 @@ __metadata:
   peerDependenciesMeta:
     "@angular/platform-server":
       optional: true
-  checksum: 10/450fbb6d1e743a53e05970c21e21a760345137a2a6e6820cffe2b91d1a92295353e9e207cfbd6b8c815e890f8923eb83840168ecd4092e63ed99325259e9697b
+  checksum: 10/a4f97284ed26af36b803955b8877a8e4358fc3e7cb23e083714b89901822d0bc3d77a34b16cd4796090d14e5550748b15d4cc19e533ddc67f793fdcc35a9fdaa
   languageName: node
   linkType: hard
 
@@ -6695,7 +6695,7 @@ __metadata:
     "@angular/platform-browser-dynamic": "npm:^20.3.0"
     "@angular/platform-server": "npm:^20.3.0"
     "@angular/router": "npm:^20.3.0"
-    "@angular/ssr": "npm:^20.3.1"
+    "@angular/ssr": "npm:^20.3.17"
     "@apidevtools/json-schema-ref-parser": "npm:^15.1.2"
     "@azure/msal-node": "npm:^3.8.4"
     "@badeball/cypress-cucumber-preprocessor": "npm:^24.0.0"
