@@ -1,20 +1,47 @@
 export class ApiAuthHelper {
   static authenticateUser(userKey: string): Cypress.Chainable<void> {
-    const user = Cypress.env('SSO_USERS')[userKey];
-    const url = `https://login.microsoftonline.com/${Cypress.env('TENANT_ID')}/oauth2/v2.0/token`;
+    let ssoUsers: Record<string, { email: string; password: string }>;
+    let tenantId: string;
+    let clientId: string;
+    let clientSecret: string;
+    let scope: string;
+
     return cy
-      .request({
-        method: 'POST',
-        url,
-        form: true,
-        body: {
-          grant_type: 'password',
-          client_id: Cypress.env('CLIENT_ID'),
-          client_secret: Cypress.env('CLIENT_SECRET'),
-          scope: Cypress.env('SCOPE'),
-          username: user.email,
-          password: user.password,
-        },
+      .task<Record<string, { email: string; password: string }>>('getEnv', 'SSO_USERS')
+      .then((users) => {
+        ssoUsers = users;
+        return cy.task<string>('getEnv', 'TENANT_ID');
+      })
+      .then((tenant) => {
+        tenantId = tenant;
+        return cy.task<string>('getEnv', 'CLIENT_ID');
+      })
+      .then((client) => {
+        clientId = client;
+        return cy.task<string>('getEnv', 'CLIENT_SECRET');
+      })
+      .then((secret) => {
+        clientSecret = secret;
+        return cy.task<string>('getEnv', 'SCOPE');
+      })
+      .then((sc) => {
+        scope = sc;
+        const user = ssoUsers[userKey];
+        const url = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
+        
+        return cy.request({
+          method: 'POST',
+          url,
+          form: true,
+          body: {
+            grant_type: 'password',
+            client_id: clientId,
+            client_secret: clientSecret,
+            scope,
+            username: user.email,
+            password: user.password,
+          },
+        });
       })
       .then((response) => {
         expect(response.status).to.eq(200);

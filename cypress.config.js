@@ -112,6 +112,10 @@ module.exports = defineConfig({
 
       // Custom task to log accessibility violations
       on('task', {
+        // Secure env access from Node context
+        getEnv(key) {
+          return config.env[key] || null;
+        },
         logA11yViolations(violations) {
           const logPath = path.join(
             __dirname,
