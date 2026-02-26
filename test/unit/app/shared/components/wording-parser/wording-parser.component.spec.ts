@@ -24,13 +24,13 @@ describe('WordingParserComponent', () => {
       ...(overrides ?? {}),
     }) as unknown as TemplateDetail;
 
-  const init = (wordingObject: TemplateDetail, submitAttempt = 0) => {
+  const init = (wordingObject: TemplateDetail, wordingSubmitAttempt = 0) => {
     fixture = TestBed.createComponent(WordingParserComponent);
     component = fixture.componentInstance;
 
     // REQUIRED inputs
     fixture.componentRef.setInput('wordingObject', wordingObject);
-    fixture.componentRef.setInput('submitAttempt', submitAttempt);
+    fixture.componentRef.setInput('wordingSubmitAttempt', wordingSubmitAttempt);
 
     fixture.detectChanges();
   };
@@ -258,8 +258,8 @@ describe('WordingParserComponent', () => {
     });
   });
 
-  describe('submitAttempt signal effect', () => {
-    it('should emit errors when submitAttempt increments and form invalid', () => {
+  describe('wordingSubmitAttempt signal effect', () => {
+    it('should emit errors when wordingSubmitAttempt increments and form invalid', () => {
       init(
         makeWordingObject({
           template: 'Hi {{A}}',
@@ -279,7 +279,7 @@ describe('WordingParserComponent', () => {
         component.form.get('A') as unknown as FormControl<string | null>
       ).setValue('');
 
-      fixture.componentRef.setInput('submitAttempt', 1);
+      fixture.componentRef.setInput('wordingSubmitAttempt', 1);
       fixture.detectChanges();
 
       expect(errorsSpy).toHaveBeenCalledWith([
@@ -287,7 +287,7 @@ describe('WordingParserComponent', () => {
       ]);
     });
 
-    it('should emit empty array when submitAttempt increments and form valid', () => {
+    it('should emit empty array when wordingSubmitAttempt increments and form valid', () => {
       init(
         makeWordingObject({
           template: 'Hi {{A}}',
@@ -303,7 +303,7 @@ describe('WordingParserComponent', () => {
 
       const errorsSpy = jest.spyOn(component.wordingFieldErrors, 'emit');
 
-      fixture.componentRef.setInput('submitAttempt', 1);
+      fixture.componentRef.setInput('wordingSubmitAttempt', 1);
       fixture.detectChanges();
 
       expect(errorsSpy).toHaveBeenCalledWith([]);

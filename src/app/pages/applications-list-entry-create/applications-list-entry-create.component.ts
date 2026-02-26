@@ -148,7 +148,7 @@ export class ApplicationsListEntryCreate implements OnInit {
     wording: [],
   };
 
-  submitAttempt = signal(0);
+  wordingSubmitAttempt = signal(0);
 
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
@@ -194,7 +194,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   onSubmit(e: Event): void {
     e.preventDefault();
 
-    this.submitAttempt.update((n) => n + 1);
+    this.wordingSubmitAttempt.update((n) => n + 1);
     this.resetFlags();
 
     //Run Angular validation
@@ -331,7 +331,7 @@ export class ApplicationsListEntryCreate implements OnInit {
             if (prevCode !== newCode) {
               const hadSubmitAttempt = this.submitted;
 
-              this.submitAttempt.set(0);
+              this.wordingSubmitAttempt.set(0);
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
 
               if (hadSubmitAttempt) {

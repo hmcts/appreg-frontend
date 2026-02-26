@@ -38,7 +38,7 @@ export class WordingParserComponent implements OnInit {
 
   private normalisedKeyToKeyMap = new Map<string, string>();
 
-  submitAttempt = input(0);
+  wordingSubmitAttempt = input(0);
   submitted = signal(false);
 
   tokens: Token[] = [];
@@ -51,7 +51,7 @@ export class WordingParserComponent implements OnInit {
 
   constructor() {
     effect(() => {
-      const attempt = this.submitAttempt();
+      const attempt = this.wordingSubmitAttempt();
       if (attempt === 0) {
         return;
       }

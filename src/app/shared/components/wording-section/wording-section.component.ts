@@ -11,7 +11,7 @@ import { TemplateDetail, TemplateSubstitution } from '@openapi';
 })
 export class WordingSectionComponent {
   wordingObject = input.required<TemplateDetail>();
-  submitAttempt = input.required<number>();
+  wordingSubmitAttempt = input.required<number>();
 
   wordingFieldErrors = output<ErrorItem[]>();
   wordingFieldsDTO = output<{ wordingFields: TemplateSubstitution[] }>();

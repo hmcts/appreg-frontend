@@ -17,7 +17,7 @@ describe('WordingSectionComponent', () => {
     component = fixture.componentInstance;
 
     fixture.componentRef.setInput('wordingObject', {} as TemplateDetail);
-    fixture.componentRef.setInput('submitAttempt', 0);
+    fixture.componentRef.setInput('wordingSubmitAttempt', 0);
 
     fixture.detectChanges();
   });

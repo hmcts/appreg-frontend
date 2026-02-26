@@ -58,7 +58,7 @@
     @if (appCodeDetail) {
       <app-wording-section
         [wordingObject]="appCodeDetail.wording"
-        [submitAttempt]="submitAttempt()"
+        [wordingSubmitAttempt]="wordingSubmitAttempt()"
         (wordingFieldsDTO)="onWordingFieldsDTO($event)"
         (wordingFieldErrors)="onChildErrors('wording', $event)"
       />
