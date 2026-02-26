@@ -20,7 +20,9 @@ function expectSpaShell(html: string): void {
 
   // CSR shell markers
   expect(html).toMatch(/<app-root[^>]*>/i);
-  expect(html).toMatch(/\/@vite\/client|main\.js|polyfills\.js/i);
+  expect(html).toMatch(
+    /\/@vite\/client|<script[^>]+src="[^"]*(main|polyfills)[^"]*\.js"[^>]*>/i,
+  );
 }
 
 describe('Smoke Test', () => {
