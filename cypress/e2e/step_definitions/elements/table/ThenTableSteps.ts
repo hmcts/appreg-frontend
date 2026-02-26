@@ -108,7 +108,24 @@ Then(
   ) => {
     TableHelper.getAllColumnValuesAcrossPages(tableCaption, columnName).then(
       (values) => {
-        const sorted = [...values].sort((a, b) => a.localeCompare(b));
+        // Check if column contains dates (format: "5 Dec 2025", "10 Jan 2026", etc.)
+        const isDateColumn =
+          columnName.toLowerCase() === 'date' ||
+          values.some((v) => /^\d{1,2}\s+\w{3}\s+\d{4}$/.test(v));
+
+        let sorted: string[];
+        if (isDateColumn) {
+          // Parse and sort dates chronologically
+          sorted = [...values].sort((a, b) => {
+            const dateA = new Date(a);
+            const dateB = new Date(b);
+            return dateA.getTime() - dateB.getTime();
+          });
+        } else {
+          // Sort as strings
+          sorted = [...values].sort((a, b) => a.localeCompare(b));
+        }
+
         if (sortOrder === 'descending') {
           sorted.reverse();
         }
