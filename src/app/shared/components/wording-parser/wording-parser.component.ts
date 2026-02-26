@@ -128,7 +128,8 @@ export class WordingParserComponent implements OnInit {
 
   tokenize(template: string): Token[] {
     const tokens: Token[] = [];
-    const wordingTemplateTokenizerRegex = /\{\{\s*([A-Za-z. ]{1,256})\s*\}\}/g;
+    const wordingTemplateTokenizerRegex =
+      /\{\{[ \t]{0,50}([^{}\r\n]{1,256})[ \t]{0,50}\}\}/g;
 
     let lastIndex = 0;
     let match: RegExpExecArray | null;
