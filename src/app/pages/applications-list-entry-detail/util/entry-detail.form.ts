@@ -8,7 +8,13 @@ import { PERSON_TITLE_OPTIONS } from './entry-detail.constants';
 
 import { buildEntryCreateDto } from '@components/applications-list-entry-create/util/entry-create-mapper';
 import { ApplicationNotesForm } from '@components/notes-section/notes-section.component';
-import { ALPHANUMERIC_REGEX } from '@constants/regex';
+import {
+  ADDRESS_REGEX,
+  ALPHANUMERIC_REGEX,
+  APPLICATION_CODE_REGEX,
+  NAME_REGEX,
+  STANDARD_APPLICANT_CODE_REGEX,
+} from '@constants/regex';
 import {
   Applicant,
   ContactDetails,
@@ -61,9 +67,12 @@ export function buildStandardApplicationForm(
     applicantType: fb.control<ApplicantType>('person'),
     applicant: fb.control<Applicant | null>(null),
     standardApplicantCode: fb.control<string | null>(null, [
+      Validators.pattern(STANDARD_APPLICANT_CODE_REGEX),
       standardApplicantCodeConditionalRequired,
     ]),
-    applicationCode: fb.control<string | null>(null, []),
+    applicationCode: fb.control<string | null>(null, {
+      validators: [Validators.pattern(APPLICATION_CODE_REGEX)],
+    }),
     respondentEntryType: fb.control<RespondentEntryType | null>('organisation'),
     respondent: fb.control<Respondent | null>(null),
     numberOfRespondents: fb.control<number | null>(null),
@@ -105,17 +114,33 @@ export function buildStandardApplicationForm(
     resultCode: fb.control<string | null>(null),
 
     mags1Title: fb.control<string | null>(null),
-    mags1FirstName: fb.control<string | null>(null),
-    mags1Surname: fb.control<string | null>(null),
+    mags1FirstName: fb.control<string | null>(null, {
+      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+    }),
+    mags1Surname: fb.control<string | null>(null, {
+      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+    }),
     mags2Title: fb.control<string | null>(null),
-    mags2FirstName: fb.control<string | null>(null),
-    mags2Surname: fb.control<string | null>(null),
+    mags2FirstName: fb.control<string | null>(null, {
+      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+    }),
+    mags2Surname: fb.control<string | null>(null, {
+      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+    }),
     mags3Title: fb.control<string | null>(null),
-    mags3FirstName: fb.control<string | null>(null),
-    mags3Surname: fb.control<string | null>(null),
+    mags3FirstName: fb.control<string | null>(null, {
+      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+    }),
+    mags3Surname: fb.control<string | null>(null, {
+      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+    }),
     officialTitle: fb.control<string | null>(null),
-    officialFirstName: fb.control<string | null>(null),
-    officialSurname: fb.control<string | null>(null),
+    officialFirstName: fb.control<string | null>(null, {
+      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+    }),
+    officialSurname: fb.control<string | null>(null, {
+      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+    }),
   }) as ApplicationsListEntryForm;
 }
 
@@ -123,11 +148,21 @@ export function buildPersonOrgSharedControls(
   fb: NonNullableFormBuilder,
 ): PersonOrgSharedControls {
   return {
-    addressLine1: fb.control<string>('', { validators: [REQUIRED, MAX_60] }),
-    addressLine2: fb.control<string>('', { validators: [MAX_60] }),
-    addressLine3: fb.control<string>('', { validators: [MAX_60] }),
-    addressLine4: fb.control<string>('', { validators: [MAX_60] }),
-    addressLine5: fb.control<string>('', { validators: [MAX_60] }),
+    addressLine1: fb.control<string>('', {
+      validators: [REQUIRED, MAX_60, Validators.pattern(ADDRESS_REGEX)],
+    }),
+    addressLine2: fb.control<string>('', {
+      validators: [MAX_60, Validators.pattern(ADDRESS_REGEX)],
+    }),
+    addressLine3: fb.control<string>('', {
+      validators: [MAX_60, Validators.pattern(ADDRESS_REGEX)],
+    }),
+    addressLine4: fb.control<string>('', {
+      validators: [MAX_60, Validators.pattern(ADDRESS_REGEX)],
+    }),
+    addressLine5: fb.control<string>('', {
+      validators: [MAX_60, Validators.pattern(ADDRESS_REGEX)],
+    }),
     postcode: fb.control<string | null>(null, {
       validators: [optional(ukPostcode), MAX_60],
     }),
@@ -147,11 +182,13 @@ export function buildPersonForm(fb: NonNullableFormBuilder): PersonForm {
   return fb.group({
     title: fb.control<string | null>(null),
     firstName: fb.control<string>('', {
-      validators: [REQUIRED, MAX_60],
+      validators: [REQUIRED, MAX_60, Validators.pattern(NAME_REGEX)],
     }),
-    middleNames: fb.control<string>('', { validators: [MAX_60] }),
+    middleNames: fb.control<string>('', {
+      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+    }),
     surname: fb.control<string | null>(null, {
-      validators: [REQUIRED, MAX_60],
+      validators: [REQUIRED, MAX_60, Validators.pattern(NAME_REGEX)],
     }),
     ...buildPersonOrgSharedControls(fb),
   }) as PersonForm;
@@ -161,7 +198,9 @@ export function buildOrganisationForm(
   fb: NonNullableFormBuilder,
 ): OrganisationForm {
   return fb.group({
-    name: fb.control<string>('', { validators: [REQUIRED, MAX_60] }),
+    name: fb.control<string>('', {
+      validators: [REQUIRED, MAX_60, Validators.pattern(NAME_REGEX)],
+    }),
     ...buildPersonOrgSharedControls(fb),
   }) as OrganisationForm;
 }
