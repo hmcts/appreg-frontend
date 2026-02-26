@@ -240,8 +240,6 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   onWordingFieldsDTO(dto: { wordingFields: TemplateSubstitution[] }): void {
-    console.log('Wording fields DTO received in parent component:', dto);
-
     this.forms.form.patchValue({
       wordingFields: dto.wordingFields,
     });
