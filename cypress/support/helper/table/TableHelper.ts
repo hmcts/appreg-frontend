@@ -80,7 +80,7 @@ export class TableHelper {
    * @param caption The caption text of the table
    */
   static isTableVisible(caption: string): void {
-    TableElement.findTableByCaption(caption).should('be.visible');
+    TableElement.findTable(caption).should('be.visible');
   }
 
   /**
