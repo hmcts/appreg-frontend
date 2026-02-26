@@ -73,7 +73,7 @@ export function buildStandardApplicationForm(
     applicationCode: fb.control<string | null>(null, {
       validators: [Validators.pattern(APPLICATION_CODE_REGEX)],
     }),
-    respondentEntryType: fb.control<RespondentEntryType | null>('organisation'),
+    respondentEntryType: fb.control<RespondentEntryType | null>('person'),
     respondent: fb.control<Respondent | null>(null),
     numberOfRespondents: fb.control<number | null>(null),
     wordingFields: fb.control<string[] | null>(null),
