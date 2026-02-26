@@ -196,16 +196,10 @@ describe('ApplicationsListEntryDetail', () => {
   });
 
   it('onCodeSelected fetches code detail, sets appCodeDetail and resets sections when code changed', () => {
-    const applicantPersonResetSpy = jest.fn();
-    const applicantOrganisationResetSpy = jest.fn();
-    const respondentPersonResetSpy = jest.fn();
-    const respondentOrganisationResetSpy = jest.fn();
-
-    component.personForm.reset = applicantPersonResetSpy;
-    component.organisationForm.reset = applicantOrganisationResetSpy;
-    component.forms.respondentPersonForm.reset = respondentPersonResetSpy;
-    component.forms.respondentOrganisationForm.reset =
-      respondentOrganisationResetSpy;
+    const resetSectionsSpy = jest.spyOn(
+      component['formSvc'],
+      'resetSectionsOnApplicationCodeChange',
+    );
 
     component.appCodeDetail = {
       applicationCode: 'OLD-CODE',
@@ -243,13 +237,8 @@ describe('ApplicationsListEntryDetail', () => {
     expect(component['form'].controls.applicationCode.value).toBe('APP-7');
 
     expect(component.appCodeDetail?.applicationCode).toBe('APP-7');
-    expect(component['form'].controls.respondent.value).toBeNull();
-    expect(component['form'].controls.numberOfRespondents.value).toBeNull();
 
-    expect(respondentPersonResetSpy).toHaveBeenCalled();
-    expect(respondentOrganisationResetSpy).toHaveBeenCalled();
-    expect(applicantPersonResetSpy).not.toHaveBeenCalled();
-    expect(applicantOrganisationResetSpy).not.toHaveBeenCalled();
+    expect(resetSectionsSpy).toHaveBeenCalledWith(component.forms);
   });
 
   it('onUpdateApplicant uses form service buildUpdateDto and calls update API', () => {

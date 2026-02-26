@@ -6,7 +6,7 @@ import { ApplicationCodeGetDetailDto } from '@openapi';
 export interface ApplicationsListEntryCreateState {
   id: string;
   step: ApplicantStep;
-  appCodeDetail: ApplicationCodeGetDetailDto | undefined;
+  appCodeDetail: ApplicationCodeGetDetailDto | null;
   createDone: boolean;
   submitted: boolean;
   errorFound: boolean;
@@ -18,7 +18,7 @@ export const initialApplicationsListEntryCreateState: ApplicationsListEntryCreat
   {
     id: '',
     step: 'select',
-    appCodeDetail: undefined,
+    appCodeDetail: null,
     createDone: false,
     submitted: false,
     errorFound: false,

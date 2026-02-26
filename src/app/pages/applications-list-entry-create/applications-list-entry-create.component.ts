@@ -16,6 +16,7 @@ import {
   OnInit,
   PLATFORM_ID,
   inject,
+  signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -53,6 +54,7 @@ import { SelectInputComponent } from '@components/select-input/select-input.comp
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
 import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
 import {
   APPLICANT_ORG_ERROR_HREFS,
@@ -61,7 +63,11 @@ import {
   RESPONDENT_ORG_ERROR_HREFS,
   RESPONDENT_PERSON_ERROR_HREFS,
 } from '@constants/application-list-entry/respondent/error-hrefs';
-import { ApplicationCodesApi, ApplicationListEntriesApi } from '@openapi';
+import {
+  ApplicationCodesApi,
+  ApplicationListEntriesApi,
+  TemplateSubstitution,
+} from '@openapi';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 import { ApplicantType } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import { buildRespondentErrors } from '@util/applications-list-entry-error-helpers';
@@ -99,6 +105,7 @@ import { createSignalState } from '@util/signal-state-helpers';
     TextInputComponent,
     DateInputComponent,
     NotesSectionComponent,
+    WordingSectionComponent,
     ApplicantSectionComponent,
     RespondentSectionComponent,
   ],
@@ -133,7 +140,10 @@ export class ApplicationsListEntryCreate implements OnInit {
     fee: [],
     respondent: [],
     applicant: [],
+    wording: [],
   };
+
+  wordingSubmitAttempt = signal(0);
 
   respondentEntryTypeOptions = RESPONDENT_TYPE_OPTIONS;
   personTitleOptions = PERSON_TITLE_OPTIONS;
@@ -150,6 +160,10 @@ export class ApplicationsListEntryCreate implements OnInit {
   ngOnInit(): void {
     this.appListEntryCreateState().id = this.route.snapshot.paramMap.get('id')!;
     this.bindApplicantTypeChanges();
+  }
+
+  resetParentErrorsFromCodeSearch(): void {
+    this.resetFlags();
   }
 
   private resetFlags(): void {
@@ -173,12 +187,14 @@ export class ApplicationsListEntryCreate implements OnInit {
       fee: [],
       respondent: [],
       applicant: [],
+      wording: [],
     };
   }
 
   onSubmit(e: Event): void {
     e.preventDefault();
 
+    this.wordingSubmitAttempt.update((n) => n + 1);
     this.resetFlags();
 
     //Run Angular validation
@@ -233,6 +249,12 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   get respondentErrorItems(): ErrorItem[] {
     return this.childErrors.respondent;
+  }
+
+  onWordingFieldsDTO(dto: { wordingFields: TemplateSubstitution[] }): void {
+    this.forms.form.patchValue({
+      wordingFields: dto.wordingFields,
+    });
   }
 
   private buildErrorSummary(): ErrorItem[] {
@@ -327,13 +349,6 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   onCodeSelected(codeAndLodgementDate: { code: string; date: string }): void {
-    this.appListEntryCreatePatch({ bulkApplicationsAllowed: false });
-
-    const prevSelection = {
-      code: this.form.controls.applicationCode.value,
-      date: this.form.controls.lodgementDate.value,
-    };
-
     this.form.patchValue({
       applicationCode: codeAndLodgementDate.code,
       lodgementDate: codeAndLodgementDate.date,
@@ -352,12 +367,24 @@ export class ApplicationsListEntryCreate implements OnInit {
         )
         .subscribe({
           next: (appCodeDetail) => {
-            const hasSelectionChanged =
-              prevSelection.code !== codeAndLodgementDate.code;
+            const prevCode =
+              this.appListEntryCreateState().appCodeDetail?.applicationCode;
+            const newCode = appCodeDetail.applicationCode;
 
-            // if user selected a different code/date than current form, reset dependent sections
-            if (hasSelectionChanged) {
+            this.appListEntryCreatePatch({ appCodeDetail });
+
+            // if user selected a different code than what we had, reset sections
+            if (prevCode !== newCode) {
+              const hadSubmitAttempt = this.appListEntryCreateState().submitted;
+
+              this.wordingSubmitAttempt.set(0);
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
+
+              if (hadSubmitAttempt) {
+                this.onChildErrors('wording', []);
+              } else {
+                this.childErrors.wording = [];
+              }
             }
 
             this.appListEntryCreatePatch({
@@ -368,6 +395,8 @@ export class ApplicationsListEntryCreate implements OnInit {
           },
           error: () => {},
         });
+    } else {
+      this.appListEntryCreatePatch({ appCodeDetail: null });
     }
   }
 

@@ -1,7 +1,12 @@
 import { FormControl, FormGroup } from '@angular/forms';
 
 import { ApplicationNotesForm } from '@components/notes-section/notes-section.component';
-import { Applicant, FeeStatus, Respondent } from '@openapi';
+import {
+  Applicant,
+  FeeStatus,
+  Respondent,
+  TemplateSubstitution,
+} from '@openapi';
 
 export type ApplicantType = 'person' | 'org' | 'standard';
 export type RespondentEntryType = 'person' | 'organisation' | 'bulk';
@@ -22,7 +27,7 @@ export type ApplicationsListEntryForm = FormGroup<{
   applicationCode: FormControl<string | null>;
   respondent: FormControl<Respondent | null>;
   numberOfRespondents: FormControl<number | null>;
-  wordingFields: FormControl<string[] | null>;
+  wordingFields: FormControl<TemplateSubstitution[] | null>;
   feeStatuses: FormControl<FeeStatus[] | null>;
   hasOffsiteFee: FormControl<boolean | null>;
   applicationNotes: ApplicationNotesForm;
