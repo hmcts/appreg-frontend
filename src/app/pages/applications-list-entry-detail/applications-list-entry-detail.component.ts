@@ -214,6 +214,8 @@ export class ApplicationsListEntryDetail implements OnInit {
   errorFound = false;
   summaryErrors: ErrorItem[] = [];
 
+  isFeeRequired: boolean = false;
+
   private parentErrors: ErrorItem[] = [];
   private childErrors: Record<ChildErrorSource, ErrorItem[]> = {
     notes: [],
@@ -414,6 +416,8 @@ export class ApplicationsListEntryDetail implements OnInit {
             if (prevCode !== newCode) {
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
             }
+
+            this.isFeeRequired = appCodeDetail.isFeeDue ?? false;
           },
           error: (err) => {
             this.applyMappedError(err);

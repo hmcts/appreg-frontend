@@ -14,6 +14,7 @@ import { TableColumn } from '@components/selectable-sortable-table/selectable-so
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { CIVIL_FEE_FIELD_MESSAGES } from '@constants/application-list-entry/error-messages';
+import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import { Row } from '@core-types/table/row.types';
 import { FeeStatus, PaymentStatus } from '@openapi';
 import {
@@ -41,6 +42,7 @@ type CivilFeeValidatedControlName = keyof typeof CIVIL_FEE_FIELD_MESSAGES;
     DateInputComponent,
     TextInputComponent,
     ReactiveFormsModule,
+    DateTimePipe,
   ],
   templateUrl: './civil-fee-section.component.html',
 })
@@ -60,6 +62,9 @@ export class CivilFeeSectionComponent {
   offsiteFeeChanged = output<boolean>();
 
   submitted = signal(false);
+
+  // Application code returns whether a fee is required
+  feeRequired = input<boolean>(false);
 
   feeStatusOptionsWithPlaceholder = (): {
     value: string;
@@ -170,13 +175,11 @@ export class CivilFeeSectionComponent {
 
   feeStatusRows = (): Row[] =>
     (this.feeForm().controls.feeStatuses.value ?? []).map((fs) => {
-      const [yyyy, mm, dd] = fs.statusDate.split('-');
       return {
         rowId: feeStatusRowId(fs),
         paymentReference: fs.paymentReference ?? '',
         paymentStatus: fs.paymentStatus,
         statusDateRaw: fs.statusDate, // e.g. 2025-10-25 (sort-friendly)
-        statusDate: `${dd}/${mm}/${yyyy}`, // display
       };
     });
 

@@ -34,8 +34,13 @@
       [hiddenCaption]="true"
       [columns]="civilFeeColumnsWithChangeLink()"
       [data]="feeStatusRows()"
+      [dateFieldIdentifier]="'statusDateRaw'"
       appMojButtonMenu
     >
+      <ng-template #dateTemplate let-row>
+        {{ row.statusDateRaw | dateTime }}
+      </ng-template>
+
       <ng-template #actionsTemplate let-row>
         @if (row['paymentReference']) {
           <a

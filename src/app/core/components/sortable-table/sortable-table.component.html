@@ -54,7 +54,7 @@
                   : null
               "
             >
-              @if (col.field === 'date' && dateTpl()) {
+              @if (col.field === dateFieldIdentifier() && dateTpl()) {
                 <ng-container
                   *ngTemplateOutlet="dateTpl(); context: { $implicit: row }"
                 ></ng-container>
@@ -80,7 +80,7 @@
                     context: { $implicit: row }
                   "
                 ></ng-container>
-              } @else if (col.field === 'date' && dateTpl()) {
+              } @else if (col.field === dateFieldIdentifier() && dateTpl()) {
                 <ng-container
                   *ngTemplateOutlet="dateTpl(); context: { $implicit: row }"
                 ></ng-container>

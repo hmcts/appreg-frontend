@@ -210,7 +210,7 @@ describe('CivilFeeSectionComponent', () => {
     expect(component.feeHeadingText()).toBe('MOCK_HEADING');
   });
 
-  it('feeStatusRows maps FeeStatus array into RowLike rows (date formatted dd/mm/yyyy)', () => {
+  it('feeStatusRows maps FeeStatus array into RowLike rows (date formatted in template using DateTimePipe)', () => {
     const f = component.feeForm().controls;
 
     f.feeStatuses.setValue([
@@ -234,14 +234,12 @@ describe('CivilFeeSectionComponent', () => {
         paymentReference: 'REF1',
         paymentStatus: 'paid',
         statusDateRaw: '2025-10-25',
-        statusDate: '25/10/2025',
       },
       {
         rowId: 'row-exempt-2025-01-02',
         paymentReference: '',
         paymentStatus: 'exempt',
         statusDateRaw: '2025-01-02',
-        statusDate: '02/01/2025',
       },
     ]);
   });
