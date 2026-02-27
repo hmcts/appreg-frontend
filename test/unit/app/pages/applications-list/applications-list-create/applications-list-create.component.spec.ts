@@ -165,6 +165,29 @@ describe('ApplicationsListCreate', () => {
     expect(getState(component).createInvalid).toBe(false);
   });
 
+  it('navigates to details page on successful create', async () => {
+    const router = TestBed.inject(Router);
+    const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+    component.form.setValue({
+      date: '2025-10-02',
+      time: { hours: 8, minutes: 5 },
+      description: 'Morning list',
+      status: 'OPEN',
+      court: 'A1',
+      location: '',
+      cja: '',
+    });
+
+    submit('create');
+    await flushSignalEffects();
+
+    expect(navigateSpy).toHaveBeenCalledTimes(1);
+    expect(navigateSpy).toHaveBeenCalledWith(['applications-list', 123], {
+      queryParams: { listCreated: true },
+      fragment: 'list-details',
+    });
+  });
+
   it('submits successfully with other location + CJA payload', async () => {
     component.form.setValue({
       date: '2025-10-03',

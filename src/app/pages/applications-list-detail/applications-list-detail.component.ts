@@ -130,9 +130,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refField);
 
-    if (this.route.snapshot.queryParamMap.get('listCreated') === 'true') {
-      this.vm().createDone = true;
-    }
+    this.setSuccessBanner();
 
     //Attach validators
     this.form.addValidators([
@@ -165,6 +163,12 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
     if (isPlatformBrowser(this.platformId)) {
       this.loadApplicationsLists();
+    }
+  }
+
+  setSuccessBanner(): void {
+    if (this.route.snapshot.queryParamMap.get('listCreated') === 'true') {
+      this.vm().createDone = true;
     }
   }
 

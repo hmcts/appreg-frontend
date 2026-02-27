@@ -57,7 +57,6 @@ import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
     ReactiveFormsModule,
     FormsModule,
     BreadcrumbsComponent,
-    SuccessBannerComponent,
     ErrorSummaryComponent,
     ApplicationsListFormComponent,
   ],
