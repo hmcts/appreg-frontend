@@ -79,28 +79,29 @@ export class ApiBaseHelper {
   ): void {
     ApiBaseHelper.resolveEndpointPlaceholders(endpoint).then(
       (resolvedEndpoint) => {
-        const baseUrl = Cypress.env('API_BASE_URL');
-        const url = baseUrl
-          ? `${baseUrl}${resolvedEndpoint}`
-          : resolvedEndpoint;
-        cy.get('@authToken').then((token) => {
-          cy.request({
-            method,
-            url,
-            failOnStatusCode: false,
-            headers: {
-              Authorization: `Bearer ${token as unknown as string}`,
-              'Content-Type': 'application/vnd.hmcts.appreg.v1+json',
-            },
-            body,
-          }).then((response) => {
-            cy.wrap(response).as('lastApiResponse');
-            cy.log(
-              `[ApiBaseHelper] Received response with status: ${response.status}`,
-            );
-            cy.log(
-              `[ApiBaseHelper] Response body: ${JSON.stringify(response.body)}`,
-            );
+        cy.task<string>('getEnv', 'API_BASE_URL').then((baseUrl) => {
+          const url = baseUrl
+            ? `${baseUrl}${resolvedEndpoint}`
+            : resolvedEndpoint;
+          cy.get('@authToken').then((token) => {
+            cy.request({
+              method,
+              url,
+              failOnStatusCode: false,
+              headers: {
+                Authorization: `Bearer ${token as unknown as string}`,
+                'Content-Type': 'application/vnd.hmcts.appreg.v1+json',
+              },
+              body,
+            }).then((response) => {
+              cy.wrap(response).as('lastApiResponse');
+              cy.log(
+                `[ApiBaseHelper] Received response with status: ${response.status}`,
+              );
+              cy.log(
+                `[ApiBaseHelper] Response body: ${JSON.stringify(response.body)}`,
+              );
+            });
           });
         });
       },
