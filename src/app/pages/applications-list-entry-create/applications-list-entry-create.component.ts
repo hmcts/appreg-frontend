@@ -33,8 +33,6 @@ import {
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { map } from 'rxjs';
 
-import { toOptionalTrimmed } from './util/helpers';
-
 import { AccordionComponent } from '@components/accordion/accordion.component';
 import { ApplicantSectionComponent } from '@components/applicant-section/applicant-section.component';
 import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
@@ -200,17 +198,6 @@ export class ApplicationsListEntryCreate implements OnInit {
     //Run Angular validation
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity({ emitEvent: false });
-
-    const v = this.form.value;
-    const appCode = toOptionalTrimmed(v.applicationCode);
-
-    //TODO: This could probably be handled via Angular form validation
-    // Custom rule: application code required
-    if (!appCode) {
-      const control = this.form.controls.applicationCode;
-      const newErrors = { ...control.errors, required: true };
-      control.setErrors(newErrors);
-    }
 
     // Build error summary from control errors + child errors
     this.updateAllErrors();

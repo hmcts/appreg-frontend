@@ -44,6 +44,17 @@ export function pruneNullish<T extends object>(o: T): T {
   return o;
 }
 
+export const normalisePhone = (
+  input: string | null | undefined,
+): string | undefined => {
+  const s = input?.trim();
+  if (!s) {
+    return undefined;
+  }
+  // keep only digits, spaces, hyphens (legacy)
+  return s.replaceAll(/[^0-9 -]/g, '');
+};
+
 export function makeContactDetails(src: {
   addressLine1?: string | null;
   addressLine2?: string | null;
@@ -61,9 +72,9 @@ export function makeContactDetails(src: {
     addressLine3: toOptionalTrimmed(src.addressLine3),
     addressLine4: toOptionalTrimmed(src.addressLine4),
     addressLine5: toOptionalTrimmed(src.addressLine5),
-    postcode: toOptionalTrimmed(src.postcode),
-    phone: toOptionalTrimmed(src.phoneNumber),
-    mobile: toOptionalTrimmed(src.mobileNumber),
+    postcode: toOptionalTrimmed(src.postcode)?.toUpperCase(),
+    phone: normalisePhone(src.phoneNumber),
+    mobile: normalisePhone(src.mobileNumber),
     email: toOptionalTrimmed(src.emailAddress),
   };
 
