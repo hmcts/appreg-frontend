@@ -233,7 +233,7 @@ Feature: Applications List Entry Search
         Then User clicks on the link using exact text match "Applications"
         Then User Verify The Page URL Contains "/applications"
         # Search to get table with data
-        Then User Selects "<Status>" In The "Select status" Dropdown
+        Then User Selects "<Status>" In The "Select application status" Dropdown
         When User Clicks On The "Search" Button
         Then User Should See The Table "<TableName>"
         # Verify all sortable headers default to 'none'

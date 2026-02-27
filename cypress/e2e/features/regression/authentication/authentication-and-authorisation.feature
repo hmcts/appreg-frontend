@@ -1,4 +1,4 @@
-Feature: Authentication and Authorisation    
+Feature: Authentication and Authorisation
   I want to authenticate and authorise using Microsoft SSO
   So that I can access the application securely
 
@@ -30,9 +30,15 @@ Feature: Authentication and Authorisation
     Then User Verify The Page URL Contains "/login"
 
   @regression @ARCPOC-294 @ARCPOC-426 @accessibility
-  Scenario: Accessibility check on Login Page
+  Scenario: Accessibility check on authenticated core pages
     Given User Is On The Portal Page
     Then User Checks Accessibility Of The Current Page
+    When User Signs In With Microsoft SSO As "user1"
+    Then User Navigates To Each URL In The Datatable And Checks Accessibility
+      | url                       |
+      | /applications-list        |
+      | /applications-list/create |
+      | /applications             |
 
   @regression @ARCPOC-294 @ARCPOC-426
   Scenario: Verify SSO login flow
@@ -50,7 +56,7 @@ Feature: Authentication and Authorisation
     Given User Is On The Portal Page
     When User Tries To Sign In With Invalid Email "invalid_email@hmcts.net" And Expects Error "This username may be incorrect. Make sure you typed it correctly. Otherwise, contact your admin."
 
-    @regression @ARCPOC-294 @ARCPOC-426
+  @regression @ARCPOC-294 @ARCPOC-426
   Scenario: Verify error on valid email and invalid password
     Given User Is On The Portal Page
     When User Tries To Sign In With Valid Email "ar-test-1@hmcts.net" And Invalid Password "any_password" And Expects Error "Your account or password is incorrect. If you don't remember your password, reset it now."
@@ -64,7 +70,7 @@ Feature: Authentication and Authorisation
     Then User Verify The "appreg.sid" Cookie Should Exist
     Then User Verify The Session Is Valid
 
- @regression @ARCPOC-294 @ARCPOC-425
+  @regression @ARCPOC-294 @ARCPOC-425
   Scenario: Protected route access with active session
     When User Signs In With Microsoft SSO As "user1"
     Then User Verify The Page URL Contains "/applications-list"
@@ -81,7 +87,7 @@ Feature: Authentication and Authorisation
     Then User Verify Response Status Code Should Be "200"
 
   @regression @ARCPOC-294 @ARCPOC-425
-  Scenario: API request without session returns unauthorized  
+  Scenario: API request without session returns unauthorized
     Given User Is On The Portal Page
     When User Makes GET API Request To "/sso/me" Using Frontend URL
     Then User Verify Response Status Code Should Be "401"

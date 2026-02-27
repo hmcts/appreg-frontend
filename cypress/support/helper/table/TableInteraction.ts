@@ -24,7 +24,7 @@ export class TableInteraction {
   static clickTableHeader(caption: string, headerText: string): void {
     cy.log(`Clicking on table header "${headerText}" in table "${caption}"`);
 
-    TableElement.findTableByCaption(caption)
+    TableElement.findTable(caption)
       .find('thead th')
       .contains(headerText)
       .closest('th')
