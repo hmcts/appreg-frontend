@@ -71,7 +71,7 @@ export function buildStandardApplicationForm(
       standardApplicantCodeConditionalRequired,
     ]),
     applicationCode: fb.control<string | null>(null, {
-      validators: [Validators.pattern(APPLICATION_CODE_REGEX)],
+      validators: [REQUIRED, Validators.pattern(APPLICATION_CODE_REGEX)],
     }),
     respondentEntryType: fb.control<RespondentEntryType | null>('person'),
     respondent: fb.control<Respondent | null>(null),

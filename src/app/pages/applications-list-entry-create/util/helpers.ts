@@ -52,7 +52,7 @@ export const normalisePhone = (
     return undefined;
   }
   // keep only digits, spaces, hyphens (legacy)
-  return s.replace(/[^0-9 -]/g, '');
+  return s.replaceAll(/[^0-9 -]/g, '');
 };
 
 export function makeContactDetails(src: {

@@ -3,7 +3,7 @@
 export const ALPHANUMERIC_REGEX: RegExp = /^[A-Za-z0-9]*$/;
 
 export const UK_POSTCODE_REGEX: RegExp =
-  /^(?:[Gg][Ii][Rr] 0[Aa]{2}|(?:(?:[A-Za-z][0-9]{1,2})|(?:[A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|(?:[A-Za-z][0-9][A-Za-z])|(?:[A-Za-z][A-Ha-hJ-Yj-y][0-9][A-Za-z])) [0-9][A-Za-z]{2})$/;
+  /^(?:GIR 0AA|[A-Z]{1,2}\d[A-Z\d]? \d[A-Z]{2})$/i;
 
 export const STANDARD_APPLICANT_CODE_REGEX: RegExp = /^[a-zA-Z0-9+\-._ ]*$/;
 
