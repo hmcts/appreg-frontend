@@ -1,0 +1,54 @@
+<div
+  class="govuk-width-container summary-card-action"
+  [class.summary-card-action--compact]="compact()"
+>
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      @for (list of summaryLists(); track list.id ?? list.title) {
+        <div class="govuk-summary-card">
+          <div class="govuk-summary-card__title-wrapper">
+            <h2 class="govuk-summary-card__title">
+              {{ list.title }}
+            </h2>
+            <ul class="govuk-summary-card__actions">
+              <li class="govuk-summary-card__action">
+                @if (getStatusTag(list.status)) {
+                  <strong
+                    class="govuk-tag govuk-!-margin-right-2"
+                    [ngClass]="getStatusTag(list.status)?.className"
+                  >
+                    {{ getStatusTag(list.status)?.text }}
+                  </strong>
+                }
+                <a
+                  class="govuk-link"
+                  href="javascript:void(0)"
+                  (click)="onActionClick(list)"
+                >
+                  {{ actionText() }}
+                  <span class="govuk-visually-hidden">
+                    {{ list.title }}</span
+                  ></a
+                >
+              </li>
+            </ul>
+          </div>
+          @for (entry of list.content; track entry.key) {
+            <div class="govuk-summary-card__content">
+              <dl class="govuk-summary-list">
+                <div class="govuk-summary-list__row">
+                  <dt class="govuk-summary-list__key">
+                    {{ entry.key }}
+                  </dt>
+                  <dd class="govuk-summary-list__value">
+                    {{ entry.value }}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

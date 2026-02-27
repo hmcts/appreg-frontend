@@ -1,15 +1,23 @@
-import { Component, effect, input, output } from '@angular/core';
-
 import {
-  EXISTING_RESULTS_WORDING_COLUMNS,
-  RESULT_WORDING_COLUMNS,
-} from '@components/applications-list-entry-detail/util/entry-detail.constants';
+  Component,
+  computed,
+  effect,
+  input,
+  output,
+  signal,
+} from '@angular/core';
+
+import { RESULT_WORDING_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { ApplicantContext } from '@components/applications-list-entry-detail/util/routing-state-util';
 import {
   SortableTableComponent,
   TableColumn,
 } from '@components/sortable-table/sortable-table.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
+import {
+  SummaryListCardAction,
+  SummaryListCardActionComponent,
+} from '@components/summary-list-card-action/summary-list-card-action.component';
 import { ResultCodeGetSummaryDto, ResultGetDto } from '@openapi';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import { makeTempId } from '@util/data-utils';
@@ -18,7 +26,11 @@ import { ResultRow, toExistingRows } from '@util/result-code-helpers';
 @Component({
   selector: 'app-result-wording-section',
   templateUrl: './result-wording-section.component.html',
-  imports: [SortableTableComponent, SuggestionsComponent],
+  imports: [
+    SortableTableComponent,
+    SuggestionsComponent,
+    SummaryListCardActionComponent,
+  ],
 })
 export class ResultWordingSectionComponent {
   resultApplicantContext = input<ApplicantContext[]>([]);
@@ -32,10 +44,12 @@ export class ResultWordingSectionComponent {
   applyPending = output<PendingResultRow>();
   clearPendingToken = input<number>(0);
 
-  private pending: PendingResultRow[] = [];
+  private readonly pending = signal<PendingResultRow[]>([]);
+  private readonly pendingVersion = signal(0);
+  private readonly appliedVersion = signal(0);
 
   applicantRespondentColumns: TableColumn[] = RESULT_WORDING_COLUMNS;
-  existingResultsColumns: TableColumn[] = EXISTING_RESULTS_WORDING_COLUMNS;
+
   resultCodeLabel = (rc: ResultCodeGetSummaryDto): string =>
     `${rc.resultCode} - ${rc.title}`;
 
@@ -48,14 +62,16 @@ export class ResultWordingSectionComponent {
         return;
       }
 
-      this.pending = [];
-      this.pendingChange.emit(this.pending);
-      this.resultCodeSearch = '';
+      if (this.pendingVersion() === this.appliedVersion()) {
+        this.pending.set([]);
+        this.pendingChange.emit(this.pending());
+        this.resultCodeSearch = '';
+      }
     });
   }
 
   get filteredResultCodes(): ResultCodeGetSummaryDto[] {
-    if (this.pending.length > 0) {
+    if (this.pending().length > 0) {
       return [];
     }
 
@@ -69,7 +85,7 @@ export class ResultWordingSectionComponent {
       .slice(0, 50);
   }
 
-  get tableRows(): ResultRow[] {
+  readonly tableRows = computed<ResultRow[]>(() => {
     const codes = this.resultCodesList();
     const existing = toExistingRows(this.existingResults() ?? [], codes);
 
@@ -83,8 +99,22 @@ export class ResultWordingSectionComponent {
       };
     };
 
-    return [...this.pending.map(withWording), ...existing.map(withWording)];
-  }
+    return [...this.pending().map(withWording), ...existing.map(withWording)];
+  });
+
+  readonly existingResultSummaryLists = computed<SummaryListCardAction[]>(() =>
+    this.tableRows().map((row) => ({
+      id: row.kind === 'pending' ? row.tempId : row.id,
+      title: row.display,
+      status: row.kind === 'pending' ? 'pending' : 'existing',
+      content: [
+        {
+          key: 'Wording',
+          value: row.wording ?? '-',
+        },
+      ],
+    })),
+  );
 
   selectResultCode(item: ResultCodeGetSummaryDto): void {
     const code = item.resultCode.trim();
@@ -93,7 +123,7 @@ export class ResultWordingSectionComponent {
     }
 
     const exists =
-      this.pending.some((p) => p.resultCode === code) ||
+      this.pending().some((p) => p.resultCode === code) ||
       (this.existingResults() ?? []).some((e) => e.resultCode === code);
 
     if (exists) {
@@ -111,46 +141,57 @@ export class ResultWordingSectionComponent {
     };
 
     //Only allow one result to be added at a time
-    this.pending = [row];
-    this.pendingChange.emit(this.pending);
+    this.pending.set([row]);
+    this.pendingVersion.update((n) => n + 1);
+    this.pendingChange.emit(this.pending());
     this.resultCodeSearch = '';
   }
 
   get canApply(): boolean {
-    return this.pending.length > 0;
+    return this.pending().length > 0;
   }
 
   onSaveResult(): void {
-    const row = this.pending[0];
+    const row = this.pending()[0];
     if (!row) {
       return;
     }
 
     this.applyPending.emit(row);
+    this.appliedVersion.set(this.pendingVersion());
+    this.pending.set([]);
+    this.pendingChange.emit(this.pending());
+    this.resultCodeSearch = '';
   }
 
-  onRemoveClicked(row: Record<string, unknown>): void {
-    const kind = row['kind'];
-
-    if (kind === 'pending') {
-      const tempId = row['tempId'];
-      if (typeof tempId === 'string') {
-        this.removePending(tempId);
-      }
+  onRemoveClicked(row: ResultRow): void {
+    if (row.kind === 'pending') {
+      this.removePending(row.tempId);
       return;
     }
 
-    if (kind === 'existing') {
-      const id = row['id'];
-      if (typeof id === 'string') {
-        this.removeExisting.emit(id);
-      }
+    this.removeExisting.emit(row.id);
+  }
+
+  onSummaryActionClick(action: SummaryListCardAction): void {
+    const id = action.id;
+    if (!id) {
+      return;
+    }
+
+    const row = this.tableRows().find((r) => {
+      const rowId = r.kind === 'pending' ? r.tempId : r.id;
+      return rowId === id;
+    });
+
+    if (row) {
+      this.onRemoveClicked(row);
     }
   }
 
   private removePending(tempId: string): void {
-    this.pending = this.pending.filter((p) => p.tempId !== tempId);
-    this.pendingChange.emit(this.pending);
+    this.pending.set(this.pending().filter((p) => p.tempId !== tempId));
+    this.pendingChange.emit(this.pending());
   }
 
   private norm(s: string): string {
