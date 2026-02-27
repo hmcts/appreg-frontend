@@ -115,4 +115,44 @@ export class TableElement {
   ): Cypress.Chainable<JQuery<HTMLElement>> {
     return cy.wrap(row).find('td').first().find('input[type="checkbox"]');
   }
+
+  /**
+   * Gets the first page link (Page 1) from pagination
+   * @param $body The body element to search within
+   * @returns JQuery element of the first page link
+   */
+  static getFirstPageLink($body: JQuery<HTMLElement>): JQuery<HTMLElement> {
+    return $body.find('a[aria-label="Page 1"]');
+  }
+
+  /**
+   * Gets the pagination container
+   * @param $body The body element to search within
+   * @returns JQuery element of the pagination container
+   */
+  static getPaginationContainer(
+    $body: JQuery<HTMLElement>,
+  ): JQuery<HTMLElement> {
+    // Try multiple selectors to be framework-agnostic
+    let $pagination = $body.find(
+      'nav[role="navigation"][aria-label*="agination"]',
+    );
+    if ($pagination.length === 0) {
+      $pagination = $body.find('.pagination, [class*="pagination"]');
+    }
+    return $pagination;
+  }
+
+  /**
+   * Gets all page links from pagination
+   * @param $body The body element to search within
+   * @returns JQuery element of all page links
+   */
+  static getPageLinks($body: JQuery<HTMLElement>): JQuery<HTMLElement> {
+    const $pagination = this.getPaginationContainer($body);
+    if ($pagination.length === 0) {
+      return Cypress.$();
+    }
+    return $pagination.find('a[aria-label^="Page "]');
+  }
 }

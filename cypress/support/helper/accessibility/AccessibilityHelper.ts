@@ -1,11 +1,38 @@
 /// <reference types="cypress" />
 import 'cypress-axe';
-import type { Result } from 'axe-core';
+import type { Result, RunOptions } from 'axe-core';
+
+const WCAG22_AA_OPTIONS: RunOptions = {
+  runOnly: {
+    type: 'tag',
+    values: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'],
+  },
+  rules: {
+    'target-size': { enabled: true },
+  },
+};
 
 export class AccessibilityHelper {
   static checkAccessibility(): void {
     cy.injectAxe();
-    cy.checkA11y(undefined, undefined, (violations: Result[]) => {
+    cy.checkA11y(undefined, WCAG22_AA_OPTIONS, (violations: Result[]) => {
+      // Count violations by impact level
+      const violationsByImpact = {
+        critical: violations.filter((v) => v.impact === 'critical').length,
+        serious: violations.filter((v) => v.impact === 'serious').length,
+        moderate: violations.filter((v) => v.impact === 'moderate').length,
+        minor: violations.filter((v) => v.impact === 'minor').length,
+      };
+
+      const summary = `Total: ${violations.length} | Critical: ${violationsByImpact.critical} | Serious: ${violationsByImpact.serious} | Moderate: ${violationsByImpact.moderate} | Minor: ${violationsByImpact.minor}`;
+
+      // Log to Cypress UI
+      cy.log('**Accessibility Check Summary**');
+      cy.log(summary);
+
+      // Log to terminal console
+      cy.task('log', `[A11Y SUMMARY] ${summary}`);
+
       if (violations.length) {
         // Log all violations to file for reporting
         cy.task('logA11yViolations', violations);

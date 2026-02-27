@@ -147,7 +147,7 @@ export class TableVerification {
    */
   static verifyHeaderIsNotSortable(caption: string, headerText: string): void {
     cy.log(`Verifying header "${headerText}" is NOT sortable`);
-    TableElement.findTableByCaption(caption)
+    TableElement.findTable(caption)
       .find('thead th')
       .contains(headerText)
       .closest('th')
@@ -165,7 +165,7 @@ export class TableVerification {
     );
 
     for (const headerText of sortableHeaders) {
-      TableElement.findTableByCaption(caption)
+      TableElement.findTable(caption)
         .find('thead th')
         .contains(headerText)
         .closest('th')
@@ -184,7 +184,7 @@ export class TableVerification {
     cy.log(
       `Verifying header "${headerText}" has sort order: "${expectedSortOrder}"`,
     );
-    TableElement.findTableByCaption(caption)
+    TableElement.findTable(caption)
       .find('thead th')
       .contains(headerText)
       .closest('th')

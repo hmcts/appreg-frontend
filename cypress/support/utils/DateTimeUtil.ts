@@ -58,6 +58,42 @@ export class DateTimeUtil {
   static readonly DTF_TIME_ONLY = 'HH:mm:ss';
 
   /**
+   * Parses date strings in format "17 Apr 2025" into Date objects
+   * @param dateStr Date string to parse (e.g., "5 Dec 2025", "17 Apr 2025")
+   * @returns Parsed Date object
+   */
+  static parseDate(dateStr: string): Date {
+    // Handle format: "5 Dec 2025", "17 Apr 2025", etc.
+    const parts = dateStr.trim().split(/\s+/);
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parts[1];
+      const year = parseInt(parts[2], 10);
+      // Convert month name to number (Jan=0, Feb=1, etc.)
+      const monthMap: Record<string, number> = {
+        Jan: 0,
+        Feb: 1,
+        Mar: 2,
+        Apr: 3,
+        May: 4,
+        Jun: 5,
+        Jul: 6,
+        Aug: 7,
+        Sep: 8,
+        Oct: 9,
+        Nov: 10,
+        Dec: 11,
+      };
+      const monthNum = monthMap[month];
+      if (monthNum !== undefined) {
+        return new Date(year, monthNum, day);
+      }
+    }
+    // Fallback to Date constructor
+    return new Date(dateStr);
+  }
+
+  /**
    * Converts dynamic date/time strings to actual values
    * @param dateValue Examples: "today", "today+7d", "today-3m", "timenow", "timestamp", "22/7/2024"
    * @returns Processed date/time string in appropriate format
