@@ -18,6 +18,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 import { CreateFormRaw } from './util/applications-list-create-types';
 import {
@@ -68,6 +69,7 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
   private readonly refField = inject(ReferenceDataFacade);
 
   private readonly formSvc = inject(ApplicationsListFormService);
+  private readonly router = inject(Router);
 
   // Signal initialisation
   private readonly appListCreatesignalState =
@@ -122,8 +124,11 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
           this.appLists.createApplicationList({
             applicationListCreateDto: params,
           }),
-        onSuccess: () => {
-          this.appListCreatesignalState.patch({ createDone: true });
+        onSuccess: (response) => {
+          this.router.navigate(['applications-list', response.id], {
+            queryParams: { listCreated: true },
+            fragment: 'list-details',
+          });
           this.createRequest.set(null);
         },
         onError: (err) => {
