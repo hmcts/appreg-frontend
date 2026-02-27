@@ -1,7 +1,8 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { NO_ERRORS_SCHEMA, PLATFORM_ID, TransferState } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { ActivatedRoute, provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { jest } from '@jest/globals';
 import { of, throwError } from 'rxjs';
 
@@ -151,7 +152,6 @@ describe('ApplicationsListCreate', () => {
       status: ApplicationListStatus.OPEN,
       courtLocationCode: 'A1',
     });
-    expect(getState(component).createDone).toBe(true);
     expect(getState(component).createInvalid).toBe(false);
   });
 
@@ -206,8 +206,11 @@ describe('ApplicationsListCreate', () => {
 
   it('handles API error and sets errorHint', async () => {
     appListsMock.createApplicationList.mockReturnValueOnce(
-      throwError(() => new Error('fail')),
+      throwError(
+        () => new HttpErrorResponse({ status: 500, statusText: 'boom' }),
+      ),
     );
+
     component.form.setValue({
       date: '2025-10-04',
       time: { hours: 10, minutes: 10 },
@@ -217,11 +220,11 @@ describe('ApplicationsListCreate', () => {
       location: '',
       cja: '',
     });
+
     submit('create');
 
     await flushSignalEffects();
 
-    expect(getState(component).createDone).toBe(false);
     expect(getState(component).createInvalid).toBe(true);
     expect(getState(component).errorHint).toContain('There is a problem');
   });

@@ -124,8 +124,8 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
           this.appLists.createApplicationList({
             applicationListCreateDto: params,
           }),
-        onSuccess: (response) => {
-          this.router.navigate(['applications-list', response.id], {
+        onSuccess: async (response) => {
+          await this.router.navigate(['applications-list', response.id], {
             queryParams: { listCreated: true },
             fragment: 'list-details',
           });
