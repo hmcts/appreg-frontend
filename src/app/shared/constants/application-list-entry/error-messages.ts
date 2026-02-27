@@ -16,18 +16,23 @@ const person_org_shared_messages = {
   addressLine1: {
     required: 'Enter address line 1',
     maxlength: 'Address line 1 must be less than or equal to 60 characters',
+    pattern: 'Address line 1 contains invalid characters',
   },
   addressLine2: {
     maxlength: 'Address line 2 must be less than or equal to 60 characters',
+    pattern: 'Address line 2 contains invalid characters',
   },
   addressLine3: {
     maxlength: 'Address line 3 must be less than or equal to 60 characters',
+    pattern: 'Town or city contains invalid characters',
   },
   addressLine4: {
     maxlength: 'Address line 4 must be less than or equal to 60 characters',
+    pattern: 'County or region contains invalid characters',
   },
   addressLine5: {
     maxlength: 'Address line 5 must be less than or equal to 60 characters',
+    pattern: 'Post town contains invalid characters',
   },
   postcode: {
     maxlength: 'Postcode must be less than or equal to 60 characters',
@@ -65,13 +70,16 @@ export const PERSON_FIELD_MESSAGES = {
   firstName: {
     required: 'Enter a first name',
     maxlength: 'First name must be less than or equal to 60 characters',
+    pattern: 'First name contains invalid characters',
   },
   middleNames: {
     maxlength: 'Middle names must be less than or equal to 60 characters',
+    pattern: 'Middle names contain invalid characters',
   },
   surname: {
     required: 'Enter a last name',
     maxlength: 'Last name must be less than or equal to 60 characters',
+    pattern: 'Last name contains invalid characters',
   },
   ...person_org_shared_messages,
 } as const;
@@ -80,6 +88,7 @@ export const ORG_FIELD_MESSAGES = {
   name: {
     required: 'Enter organisation name',
     maxlength: 'Organisation name must be less than or equal to 60 characters',
+    pattern: 'Organisation name contains invalid characters',
   },
   ...person_org_shared_messages,
 } as const;
@@ -91,6 +100,41 @@ export const CIVIL_FEE_FIELD_MESSAGES: CivilFeeErrorMap = {
   },
   paymentRef: {
     maxlength: 'Payment reference must be less than or equal to 15 characters',
+  },
+} as const;
+
+export const OFFICIAL_FIELD_MESSAGES = {
+  mags1FirstName: {
+    maxlength: 'First name must be less than or equal to 60 characters',
+    pattern: 'First name contains invalid characters',
+  },
+  mags1Surname: {
+    maxlength: 'Last name must be less than or equal to 60 characters',
+    pattern: 'Last name contains invalid characters',
+  },
+  mags2FirstName: {
+    maxlength: 'First name must be less than or equal to 60 characters',
+    pattern: 'First name contains invalid characters',
+  },
+  mags2Surname: {
+    maxlength: 'Last name must be less than or equal to 60 characters',
+    pattern: 'Last name contains invalid characters',
+  },
+  mags3FirstName: {
+    maxlength: 'First name must be less than or equal to 60 characters',
+    pattern: 'First name contains invalid characters',
+  },
+  mags3Surname: {
+    maxlength: 'Last name must be less than or equal to 60 characters',
+    pattern: 'Last name contains invalid characters',
+  },
+  officialFirstName: {
+    maxlength: 'First name must be less than or equal to 60 characters',
+    pattern: 'First name contains invalid characters',
+  },
+  officialSurname: {
+    maxlength: 'Last name must be less than or equal to 60 characters',
+    pattern: 'Last name contains invalid characters',
   },
 } as const;
 
@@ -114,5 +158,6 @@ export const ENTRY_ERROR_MESSAGES = {
   ...PERSON_FIELD_MESSAGES,
   ...ORG_FIELD_MESSAGES,
   ...CIVIL_FEE_FIELD_MESSAGES,
+  ...OFFICIAL_FIELD_MESSAGES,
   ...NUMBER_OF_RESPONDENT_MESSAGES,
 } as const;

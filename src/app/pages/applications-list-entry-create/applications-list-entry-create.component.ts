@@ -201,17 +201,6 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity({ emitEvent: false });
 
-    const v = this.form.value;
-    const appCode = toOptionalTrimmed(v.applicationCode);
-
-    //TODO: This could probably be handled via Angular form validation
-    // Custom rule: application code required
-    if (!appCode) {
-      const control = this.form.controls.applicationCode;
-      const newErrors = { ...control.errors, required: true };
-      control.setErrors(newErrors);
-    }
-
     // Build error summary from control errors + child errors
     this.updateAllErrors();
 
