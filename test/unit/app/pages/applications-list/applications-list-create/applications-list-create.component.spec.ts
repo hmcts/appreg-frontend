@@ -1,5 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { NO_ERRORS_SCHEMA, PLATFORM_ID, TransferState } from '@angular/core';
+import {
+  Component,
+  NO_ERRORS_SCHEMA,
+  PLATFORM_ID,
+  TransferState,
+} from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
@@ -17,6 +22,9 @@ import {
   CriminalJusticeAreaGetDto,
 } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
+
+@Component({ template: '' })
+class DummyComponent {}
 
 // Reactive-forms warning disabled
 let warnSpy: ReturnType<typeof jest.spyOn>;
@@ -58,7 +66,6 @@ describe('ApplicationsListCreate', () => {
     await TestBed.configureTestingModule({
       imports: [ApplicationsListCreate],
       providers: [
-        provideRouter([]),
         { provide: PLATFORM_ID, useValue: 'browser' },
         TransferState,
         {
@@ -70,6 +77,9 @@ describe('ApplicationsListCreate', () => {
           },
         },
         { provide: ReferenceDataFacade, useValue: refFacadeStub },
+        provideRouter([
+          { path: 'applications-list/:id', component: DummyComponent },
+        ]),
       ],
       schemas: [NO_ERRORS_SCHEMA],
     })
