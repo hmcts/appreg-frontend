@@ -77,13 +77,30 @@ describe('CivilFeeSectionComponent', () => {
     expect(component.entryId).toBe('EN-1');
   });
 
-  it('feeStatusOptionsWithPlaceholder prepends a disabled placeholder', () => {
+  it('feeStatusOptionsWithPlaceholder is disabled when fee is required', () => {
+    fixture.componentRef.setInput('feeRequired', true);
+    fixture.detectChanges();
+
     const opts = component.feeStatusOptionsWithPlaceholder();
 
     expect(opts[0]).toEqual({
       value: '',
       label: 'Select fee status',
       disabled: true,
+    });
+    expect(opts.slice(1)).toEqual(feeStatusOptions);
+  });
+
+  it('feeStatusOptionsWithPlaceholder is NOT disabled when fee is required', () => {
+    fixture.componentRef.setInput('feeRequired', false);
+    fixture.detectChanges();
+
+    const opts = component.feeStatusOptionsWithPlaceholder();
+
+    expect(opts[0]).toEqual({
+      value: '',
+      label: 'Select fee status',
+      disabled: false,
     });
     expect(opts.slice(1)).toEqual(feeStatusOptions);
   });
@@ -275,5 +292,98 @@ describe('CivilFeeSectionComponent', () => {
     });
 
     expect(routerNavigate).not.toHaveBeenCalled();
+  });
+
+  it('showErrors returns true when parentSubmitted is true', () => {
+    fixture.componentRef.setInput('parentSubmitted', true);
+    fixture.detectChanges();
+
+    expect(component.showErrors()).toBe(true);
+  });
+
+  it('showErrors returns true when submitted is true (add fee click)', () => {
+    fixture.componentRef.setInput('feeRequired', true);
+    fixture.detectChanges();
+
+    component.onAddFeeDetailsClick();
+
+    expect(component.showErrors()).toBe(true);
+  });
+
+  it('on parent submit: when fee is required and no rows exist, attaches feeStatuses validator and required validators for feeStatus/feeStatusDate', () => {
+    fixture.componentRef.setInput('feeRequired', true);
+    fixture.componentRef.setInput('parentSubmitted', true);
+    fixture.detectChanges();
+
+    const f = component.feeForm().controls;
+
+    expect(f.feeStatuses.errors).toEqual(
+      expect.objectContaining({ feeRequired: true }),
+    );
+
+    f.feeStatus.setValue('');
+    f.feeStatusDate.setValue('');
+    f.feeStatus.updateValueAndValidity({ emitEvent: false });
+    f.feeStatusDate.updateValueAndValidity({ emitEvent: false });
+
+    expect(f.feeStatus.errors).toEqual(
+      expect.objectContaining({ required: true }),
+    );
+    expect(f.feeStatusDate.errors).toEqual(
+      expect.objectContaining({ required: true }),
+    );
+  });
+
+  it('on parent submit: when a fee row exists, feeStatus/feeStatusDate remain required', () => {
+    fixture.componentRef.setInput('feeRequired', true);
+    fixture.componentRef.setInput('parentSubmitted', true);
+    fixture.detectChanges();
+
+    const f = component.feeForm().controls;
+
+    f.feeStatuses.setValue([
+      {
+        id: 'ROW-1',
+        paymentStatus: 'Paid',
+        statusDate: '01/01/2026',
+      } as unknown as FeeStatus,
+    ]);
+    fixture.detectChanges();
+
+    // If the user tries to add another row, they still must supply these
+    f.feeStatus.setValue('');
+    f.feeStatusDate.setValue('');
+    f.feeStatus.updateValueAndValidity({ emitEvent: false });
+    f.feeStatusDate.updateValueAndValidity({ emitEvent: false });
+
+    expect(f.feeStatus.errors?.['required']).toBe(true);
+    expect(f.feeStatusDate.errors?.['required']).toBe(true);
+  });
+
+  it('on parent submit: emits civilFeeErrors for missing fee status and status date when fee is required and no rows exist', () => {
+    const emitSpy = jest.spyOn(component.civilFeeErrors, 'emit');
+
+    fixture.componentRef.setInput('feeRequired', true);
+    fixture.componentRef.setInput('parentSubmitted', true);
+    fixture.detectChanges();
+
+    const lastCall = emitSpy.mock.calls.at(-1) as
+      | [ErrorItem[]]
+      | undefined;
+
+    const emitted = lastCall?.[0] ?? [];
+
+    expect(emitted).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'feeStatus',
+          text: 'Select a fee status',
+        }),
+        expect.objectContaining({
+          id: 'feeStatusDate',
+          text: 'Enter a status date',
+        }),
+      ]),
+    );
   });
 });
