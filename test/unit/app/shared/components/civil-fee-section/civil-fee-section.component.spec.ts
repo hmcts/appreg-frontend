@@ -367,9 +367,7 @@ describe('CivilFeeSectionComponent', () => {
     fixture.componentRef.setInput('parentSubmitted', true);
     fixture.detectChanges();
 
-    const lastCall = emitSpy.mock.calls.at(-1) as
-      | [ErrorItem[]]
-      | undefined;
+    const lastCall = emitSpy.mock.calls.at(-1) as [ErrorItem[]] | undefined;
 
     const emitted = lastCall?.[0] ?? [];
 
