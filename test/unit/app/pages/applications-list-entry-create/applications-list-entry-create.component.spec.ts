@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 
 import { ApplicationsListEntryCreate } from '@components/applications-list-entry-create/applications-list-entry-create.component';
 import { buildEntryCreateDto } from '@components/applications-list-entry-create/util/entry-create-mapper';
@@ -10,6 +11,7 @@ import {
   toOptionalTrimmed,
 } from '@components/applications-list-entry-create/util/helpers';
 import { ApplicationListEntriesApi } from '@openapi';
+import { AddFeeDetailsPayload } from '@shared-types/civil-fee/civil-fee';
 
 function roundTrip<T extends object>(o: T): T {
   // NOTE: Sonar complains, but structuredClone() will fail for some environments,
@@ -214,5 +216,102 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
 
     const compact = compactStrings(['  a', ' ', null, undefined, 'b  ']);
     expect(compact).toEqual(['a', 'b']);
+  });
+});
+
+describe('ApplicationsListEntryCreate (submission + error flow)', () => {
+  let fixture: ComponentFixture<ApplicationsListEntryCreate>;
+  let component: ApplicationsListEntryCreate;
+  let api: { createApplicationListEntry: jest.Mock };
+  let updateFeeStatusesControlSpy: jest.SpyInstance;
+
+  beforeEach(async () => {
+    api = { createApplicationListEntry: jest.fn().mockReturnValue(of({})) };
+
+    await TestBed.configureTestingModule({
+      imports: [ApplicationsListEntryCreate],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: ApplicationListEntriesApi, useValue: api },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: { get: () => 'LIST-1' } } },
+        },
+      ],
+    })
+      .overrideTemplate(ApplicationsListEntryCreate, '')
+      .compileComponents();
+
+    // Spy after module is loaded
+    const civilFeeUtils = await import('@util/civil-fee-utils');
+    updateFeeStatusesControlSpy = jest
+      .spyOn(civilFeeUtils, 'updateFeeStatusesControl')
+      .mockImplementation(() => ({ next: [], changed: true }));
+
+    fixture = TestBed.createComponent(ApplicationsListEntryCreate);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    updateFeeStatusesControlSpy.mockRestore();
+  });
+
+  it('onChildErrors: when not submitted, aggregates child errors but does not trigger other section validation', () => {
+    component.submitted = false;
+    component.form.controls.applicantType.setValue('person');
+
+    expect(component.personForm.touched).toBe(false);
+
+    component.onChildErrors('civilFee', [
+      { id: 'feeStatus', text: 'Select a fee status' },
+    ]);
+
+    expect(component.summaryErrors).toEqual([
+      { id: 'feeStatus', text: 'Select a fee status' },
+    ]);
+    expect(component.errorFound).toBe(true);
+
+    // child errors should not touch other sections when not submitted
+    expect(component.personForm.touched).toBe(false);
+  });
+
+  it('onSubmit: invalid form blocks API call and keeps submitted=true (so errors display)', () => {
+    component.onSubmit(new Event('submit'));
+
+    expect(api.createApplicationListEntry).not.toHaveBeenCalled();
+    expect(component.errorFound).toBe(true);
+    expect(component.submitted).toBe(true);
+    expect(component.summaryErrors.length).toBeGreaterThan(0);
+  });
+
+  it('onAddFeeDetails: calls updateFeeStatusesControl with feeStatuses control + payload and does not submit', () => {
+    const payload = {
+      feeStatus: 'Paid',
+      statusDate: '2026-01-10',
+      paymentReference: 'REF1',
+    } as unknown as AddFeeDetailsPayload;
+
+    component.onAddFeeDetails(payload);
+
+    expect(updateFeeStatusesControlSpy).toHaveBeenCalledTimes(1);
+    expect(updateFeeStatusesControlSpy).toHaveBeenCalledWith(
+      component.form.controls.feeStatuses,
+      payload,
+    );
+
+    expect(api.createApplicationListEntry).not.toHaveBeenCalled();
+  });
+
+  it('onOffsiteFeeChanged: updates hasOffsiteFee without emitting, and marks control dirty', () => {
+    const ctrl = component.form.controls.hasOffsiteFee;
+    expect(ctrl.dirty).toBe(false);
+
+    component.onOffsiteFeeChanged(true);
+
+    expect(ctrl.value).toBe(true);
+    expect(ctrl.dirty).toBe(true);
   });
 });
