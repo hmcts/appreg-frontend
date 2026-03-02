@@ -13,6 +13,7 @@ import { of, throwError } from 'rxjs';
 
 import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail.component';
 import { ApplicationsListDetailState } from '@components/applications-list-detail/util/applications-list-detail.state';
+import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { Row } from '@core-types/table/row.types';
 import {
   ApplicationListGetDetailDto,
@@ -220,6 +221,23 @@ describe('ApplicationsListDetail', () => {
       expect(resetSpy).toHaveBeenCalled();
     });
 
+    it('should reset success banner when applications tab has no errors but updateDone is true', () => {
+      jest.spyOn(component, 'vm').mockReturnValue({
+        errorSummary: [] as ErrorItem[],
+        updateInvalid: false,
+        updateDone: true,
+      } as ApplicationsListDetailState);
+
+      const resetBannerSpy = jest.spyOn(
+        component as unknown as { resetSuccessBanner(): void },
+        'resetSuccessBanner',
+      );
+
+      component.onTabSelected('applications');
+
+      expect(resetBannerSpy).toHaveBeenCalled();
+    });
+
     it('should NOT reset error summary when a different tab is selected', () => {
       jest.spyOn(component, 'vm').mockReturnValue({
         errorSummary: [{ text: 'Something went wrong' }],
@@ -234,6 +252,18 @@ describe('ApplicationsListDetail', () => {
       component.onTabSelected('details');
 
       expect(resetSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  it('ResetSuccessBanner should reset success banner by setting updateDone to false', () => {
+    const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
+
+    (
+      component as unknown as { resetSuccessBanner(): void }
+    ).resetSuccessBanner();
+
+    expect(patchSpy).toHaveBeenCalledWith({
+      updateDone: false,
     });
   });
 

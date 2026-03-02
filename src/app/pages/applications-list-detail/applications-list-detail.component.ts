@@ -167,11 +167,16 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   onTabSelected(tab: string): void {
-    if (
-      tab === 'applications' &&
-      (this.vm().errorSummary.length > 0 || this.vm().updateInvalid)
-    ) {
+    if (tab !== 'applications') {
+      return;
+    }
+
+    const vm = this.vm();
+
+    if (vm.errorSummary.length > 0 || vm.updateInvalid) {
       this.resetErrorSummary();
+    } else if (vm.updateDone) {
+      this.resetSuccessBanner();
     }
   }
 
@@ -180,6 +185,12 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       errorSummary: [],
       errorHint: '',
       updateInvalid: false,
+    });
+  }
+
+  private resetSuccessBanner(): void {
+    this.detailSignalState.patch({
+      updateDone: false,
     });
   }
 
