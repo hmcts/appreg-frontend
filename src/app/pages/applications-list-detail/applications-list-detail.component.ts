@@ -22,9 +22,8 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { EMPTY, catchError, filter, map, mergeMap, range, reduce } from 'rxjs';
+import { EMPTY, catchError, map, mergeMap, range, reduce } from 'rxjs';
 
 import {
   ApplicationsListUpdateComponent,
@@ -163,17 +162,15 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     if (isPlatformBrowser(this.platformId)) {
       this.loadApplicationsLists();
     }
+  }
 
-    this.route.fragment
-      .pipe(
-        filter(
-          (fragment) =>
-            fragment === 'applications' &&
-            (this.vm().errorSummary.length > 0 || this.vm().updateInvalid),
-        ),
-        takeUntilDestroyed(this.getDestroyRef()),
-      )
-      .subscribe(() => this.resetErrorSummary());
+  onTabSelected(tab: string): void {
+    if (
+      tab === 'applications' &&
+      (this.vm().errorSummary.length > 0 || this.vm().updateInvalid)
+    ) {
+      this.resetErrorSummary();
+    }
   }
 
   private resetErrorSummary(): void {

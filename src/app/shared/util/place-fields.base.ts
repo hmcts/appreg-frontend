@@ -70,10 +70,6 @@ export abstract class PlaceFieldsBase {
     this.signalState.patch(patch);
   }
 
-  protected getDestroyRef(): DestroyRef {
-    return this.destroyRef;
-  }
-
   setCourthouseSearch(value: string): void {
     this.patch({ courthouseSearch: value ?? '' });
   }

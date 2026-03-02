@@ -203,6 +203,40 @@ describe('ApplicationsListDetail', () => {
     });
   });
 
+  describe('onTabSelected', () => {
+    it('should reset error summary when applications tab has validation issues', () => {
+      jest.spyOn(component, 'vm').mockReturnValue({
+        errorSummary: [{ text: 'Something went wrong' }],
+        updateInvalid: false,
+      } as ApplicationsListDetailState);
+
+      const resetSpy = jest.spyOn(
+        component as unknown as { resetErrorSummary(): void },
+        'resetErrorSummary',
+      );
+
+      component.onTabSelected('applications');
+
+      expect(resetSpy).toHaveBeenCalled();
+    });
+
+    it('should NOT reset error summary when a different tab is selected', () => {
+      jest.spyOn(component, 'vm').mockReturnValue({
+        errorSummary: [{ text: 'Something went wrong' }],
+        updateInvalid: true,
+      } as ApplicationsListDetailState);
+
+      const resetSpy = jest.spyOn(
+        component as unknown as { resetErrorSummary(): void },
+        'resetErrorSummary',
+      );
+
+      component.onTabSelected('details');
+
+      expect(resetSpy).not.toHaveBeenCalled();
+    });
+  });
+
   it('onPageChange patches page + clears selectedIds + triggers load', () => {
     const loadSpy = jest
       .spyOn(component, 'loadApplicationsLists')
