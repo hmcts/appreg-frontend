@@ -16,6 +16,10 @@
 >
 </app-page-header>
 
+@if (vm().createDone) {
+  <app-success-banner heading="Applications list created successfully" />
+}
+
 @if (vm().errorSummary.length || vm().updateInvalid) {
   <app-error-summary
     [title]="vm().errorHint || 'There is a problem'"

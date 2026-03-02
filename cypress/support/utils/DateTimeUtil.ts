@@ -66,9 +66,9 @@ export class DateTimeUtil {
     // Handle format: "5 Dec 2025", "17 Apr 2025", etc.
     const parts = dateStr.trim().split(/\s+/);
     if (parts.length === 3) {
-      const day = parseInt(parts[0], 10);
+      const day = Number.parseInt(parts[0], 10);
       const month = parts[1];
-      const year = parseInt(parts[2], 10);
+      const year = Number.parseInt(parts[2], 10);
       // Convert month name to number (Jan=0, Feb=1, etc.)
       const monthMap: Record<string, number> = {
         Jan: 0,
@@ -413,16 +413,21 @@ export class DateTimeUtil {
     const year = date.getFullYear().toString();
     const shortMonth = date.toLocaleDateString('en', { month: 'short' });
     const longMonth = date.toLocaleDateString('en', { month: 'long' });
+    const replacements: Record<string, string> = {
+      YYYY: year,
+      YY: year.slice(-2),
+      MMMM: longMonth,
+      MMM: shortMonth,
+      MM: month,
+      M: (date.getMonth() + 1).toString(),
+      DD: day,
+      D: date.getDate().toString(),
+    };
 
-    return pattern
-      .replaceAll('YYYY', year)
-      .replaceAll('YY', year.slice(-2))
-      .replaceAll('MMMM', longMonth)
-      .replaceAll('MMM', shortMonth)
-      .replaceAll('MM', month)
-      .replaceAll('M', (date.getMonth() + 1).toString())
-      .replaceAll('DD', day)
-      .replaceAll('D', date.getDate().toString());
+    return pattern.replaceAll(
+      /YYYY|YY|MMMM|MMM|MM|M|DD|D/g,
+      (token) => replacements[token],
+    );
   }
 
   /**

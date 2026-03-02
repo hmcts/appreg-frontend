@@ -18,6 +18,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 import { CreateFormRaw } from './util/applications-list-create-types';
 import {
@@ -34,7 +35,6 @@ import {
   ErrorItem,
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
-import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { ApplicationListCreateDto, ApplicationListsApi } from '@openapi';
 import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
@@ -56,7 +56,6 @@ import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
     ReactiveFormsModule,
     FormsModule,
     BreadcrumbsComponent,
-    SuccessBannerComponent,
     ErrorSummaryComponent,
     ApplicationsListFormComponent,
   ],
@@ -68,6 +67,7 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
   private readonly refField = inject(ReferenceDataFacade);
 
   private readonly formSvc = inject(ApplicationsListFormService);
+  private readonly router = inject(Router);
 
   // Signal initialisation
   private readonly appListCreatesignalState =
@@ -122,8 +122,11 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
           this.appLists.createApplicationList({
             applicationListCreateDto: params,
           }),
-        onSuccess: () => {
-          this.appListCreatesignalState.patch({ createDone: true });
+        onSuccess: async (response) => {
+          await this.router.navigate(['applications-list', response.id], {
+            queryParams: { listCreated: true },
+            fragment: 'list-details',
+          });
           this.createRequest.set(null);
         },
         onError: (err) => {

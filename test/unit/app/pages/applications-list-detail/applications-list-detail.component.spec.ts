@@ -8,7 +8,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { Router, provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail.component';
@@ -363,6 +363,30 @@ describe('ApplicationsListDetail', () => {
       expect(vm().selectedIds.size).toBe(0);
       expect(vm().errorSummary.length).toBeGreaterThan(0);
     });
+  });
+
+  it('setSuccessBanner: sets createDone to true when listCreated=true', () => {
+    const route = TestBed.inject(ActivatedRoute);
+    const routeSpy = jest
+      .spyOn(route.snapshot.queryParamMap, 'get')
+      .mockReturnValue('true');
+
+    component.setSuccessBanner();
+
+    expect(routeSpy).toHaveBeenCalledWith('listCreated');
+    expect(component.vm().createDone).toBe(true);
+  });
+
+  it('setSuccessBanner: sets createDone to false when listCreated=false', () => {
+    const route = TestBed.inject(ActivatedRoute);
+    const routeSpy = jest
+      .spyOn(route.snapshot.queryParamMap, 'get')
+      .mockReturnValue('false');
+
+    component.setSuccessBanner();
+
+    expect(routeSpy).toHaveBeenCalledWith('listCreated');
+    expect(component.vm().createDone).toBe(false);
   });
 
   it('openUpdate: navigates with state & queryParams', async () => {

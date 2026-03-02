@@ -130,6 +130,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refField);
 
+    this.setSuccessBanner();
+
     //Attach validators
     this.form.addValidators([
       courtLocCjaValidator({
@@ -179,6 +181,12 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       errorHint: '',
       updateInvalid: false,
     });
+  }
+
+  setSuccessBanner(): void {
+    if (this.route.snapshot.queryParamMap.get('listCreated') === 'true') {
+      this.vm().createDone = true;
+    }
   }
 
   private setupEffects(): void {
