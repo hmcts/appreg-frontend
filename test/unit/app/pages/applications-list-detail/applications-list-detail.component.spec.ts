@@ -191,6 +191,18 @@ describe('ApplicationsListDetail', () => {
     }
   });
 
+  it('resetErrorSummary patches detailSignalState with default values', () => {
+    const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
+
+    component['resetErrorSummary']();
+
+    expect(patchSpy).toHaveBeenCalledWith({
+      errorSummary: [],
+      errorHint: '',
+      updateInvalid: false,
+    });
+  });
+
   it('onPageChange patches page + clears selectedIds + triggers load', () => {
     const loadSpy = jest
       .spyOn(component, 'loadApplicationsLists')
