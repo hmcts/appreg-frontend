@@ -49,6 +49,7 @@
   <ng-template #codesTpl>
     <!-- Application code -->
     <app-application-code-search
+      [patchedFormData]="form"
       (selectCodeAndLodgementDate)="onCodeSelected($event)"
       (resetParentErrors)="resetParentErrorsFromCodeSearch()"
     />
@@ -120,6 +121,7 @@
       (offsiteFeeChanged)="onOffsiteFeeChanged($event)"
       [feeRequired]="isFeeRequired"
       [parentSubmitted]="submitted"
+      [changePaymentReferenceStateFactory]="buildChangePaymentReferenceState"
     />
   </ng-template>
 

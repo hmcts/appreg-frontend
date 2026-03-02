@@ -294,7 +294,8 @@ describe('CivilFeeSectionComponent', () => {
     expect(routerNavigate).not.toHaveBeenCalled();
   });
 
-  it('showErrors returns true when parentSubmitted is true', () => {
+  it('showErrors returns true when parentSubmitted is true and feeRequired is true', () => {
+    fixture.componentRef.setInput('feeRequired', true);
     fixture.componentRef.setInput('parentSubmitted', true);
     fixture.detectChanges();
 

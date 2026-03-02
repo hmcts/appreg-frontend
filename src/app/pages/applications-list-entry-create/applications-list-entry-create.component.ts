@@ -14,7 +14,7 @@ Functionality:
   - Run POST query with payload
 */
 
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
@@ -42,6 +42,7 @@ import {
   FEE_STATUS_OPTIONS,
   PERSON_TITLE_OPTIONS,
 } from '@components/applications-list-entry-detail/util/entry-detail.constants';
+import { readNavState } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import {
   CivilFeeForm,
@@ -70,14 +71,21 @@ import {
   ApplicationListEntriesApi,
   TemplateSubstitution,
 } from '@openapi';
-import { ApplicantStep } from '@page-types/applications-list-entry-create';
+import {
+  ApplicantStep,
+  CreateDraftState,
+} from '@page-types/applications-list-entry-create';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 import { ApplicantType } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import {
   AddFeeDetailsPayload,
   CivilFeeMeta,
 } from '@shared-types/civil-fee/civil-fee';
-import { updateFeeStatusesControl } from '@util/civil-fee-utils';
+import {
+  readPaymentRefReturnState,
+  updateFeeStatusesControl,
+  updatePaymentReferenceInFeeStatusesControl,
+} from '@util/civil-fee-utils';
 import {
   focusErrorSummary,
   focusField,
@@ -135,6 +143,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   appEntryApi = inject(ApplicationListEntriesApi);
   applicationCodesApi = inject(ApplicationCodesApi);
   formSvc = inject(ApplicationListEntryFormService);
+  private readonly location = inject(Location);
   private readonly platformId = inject(PLATFORM_ID);
 
   id: string = '';
@@ -179,8 +188,15 @@ export class ApplicationsListEntryCreate implements OnInit {
   isFeeRequired: boolean = false;
 
   ngOnInit(): void {
+    const state = readNavState(this.location, this.platformId);
+    const navState = (state ?? {}) as Record<string, unknown>;
+
     this.id = this.route.snapshot.paramMap.get('id')!;
     this.bindApplicantTypeChanges();
+
+    this.applyCreateDraftState(navState['createDraft']);
+    this.applyPaymentRefReturn(navState['paymentRefReturn']);
+    this.clearNavigationStateOnly();
   }
 
   resetParentErrorsFromCodeSearch(): void {
@@ -378,6 +394,10 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.form.controls.hasOffsiteFee.markAsDirty();
   }
 
+  buildChangePaymentReferenceState = (): Record<string, unknown> => ({
+    createDraft: this.buildCreateDraftState(),
+  });
+
   private bindApplicantTypeChanges(): void {
     this.form.controls.applicantType.valueChanges
       .pipe(
@@ -396,5 +416,85 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   get applicantErrorItems(): ErrorItem[] {
     return this.childErrors.applicant;
+  }
+
+  private applyPaymentRefReturn(state: unknown): void {
+    const paymentRefReturn = readPaymentRefReturnState(state);
+    if (!paymentRefReturn) {
+      return;
+    }
+
+    updatePaymentReferenceInFeeStatusesControl(
+      this.form.controls.feeStatuses,
+      paymentRefReturn.updatedRowId,
+      paymentRefReturn.newPaymentReference,
+    );
+  }
+
+  private buildCreateDraftState(): CreateDraftState {
+    return {
+      form: this.form.getRawValue(),
+      personForm: this.personForm.getRawValue(),
+      organisationForm: this.organisationForm.getRawValue(),
+      respondentPersonForm: this.forms.respondentPersonForm.getRawValue(),
+      respondentOrganisationForm:
+        this.forms.respondentOrganisationForm.getRawValue(),
+      appCodeDetail: this.appCodeDetail,
+      feeMeta: this.feeMeta,
+      isFeeRequired: this.isFeeRequired,
+    };
+  }
+
+  private applyCreateDraftState(state: unknown): void {
+    // We need to store a draft of the current forms so when we nav back from payment ref page
+    // we patch the cleaned forms with the draft values
+    if (state === null || typeof state !== 'object') {
+      return;
+    }
+
+    const draft = state as Partial<CreateDraftState>;
+
+    if (draft.form) {
+      this.form.patchValue(draft.form, { emitEvent: false });
+    }
+    if (draft.personForm) {
+      this.personForm.patchValue(draft.personForm, { emitEvent: false });
+    }
+    if (draft.organisationForm) {
+      this.organisationForm.patchValue(draft.organisationForm, {
+        emitEvent: false,
+      });
+    }
+    if (draft.respondentPersonForm) {
+      this.forms.respondentPersonForm.patchValue(draft.respondentPersonForm, {
+        emitEvent: false,
+      });
+    }
+    if (draft.respondentOrganisationForm) {
+      this.forms.respondentOrganisationForm.patchValue(
+        draft.respondentOrganisationForm,
+        {
+          emitEvent: false,
+        },
+      );
+    }
+
+    this.appCodeDetail = draft.appCodeDetail ?? null;
+
+    this.form.patchValue({
+      applicationTitle: this.appCodeDetail?.title ?? null,
+    });
+
+    this.feeMeta = draft.feeMeta ?? null;
+    this.isFeeRequired = draft.isFeeRequired === true;
+
+    const type = this.form.controls.applicantType.value ?? 'person';
+    this.formSvc.syncApplicantTypeState(this.forms, type);
+  }
+
+  private clearNavigationStateOnly(): void {
+    const current = (history.state ?? {}) as Record<string, unknown>;
+    const { paymentRefReturn, createDraft, row, ...rest } = current;
+    history.replaceState(rest, '');
   }
 }

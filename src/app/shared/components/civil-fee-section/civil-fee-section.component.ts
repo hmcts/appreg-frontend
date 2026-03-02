@@ -71,6 +71,9 @@ export class CivilFeeSectionComponent implements OnInit {
   civilFeeColumns = input.required<TableColumn[]>();
   feeStatusOptions = input.required<{ value: string; label: string }[]>();
   feeMeta = input<CivilFeeMeta | null>(null);
+  changePaymentReferenceStateFactory = input<
+    (() => Record<string, unknown>) | null
+  >(null);
 
   civilFeeErrors = output<ErrorItem[]>();
   addFeeDetails = output<AddFeeDetailsPayload>();
@@ -94,18 +97,16 @@ export class CivilFeeSectionComponent implements OnInit {
   }
 
   // Show error msg with both parent and child form submission
-  readonly showErrors = computed(
-    () => {
-      const f = this.feeForm().controls;
-      const feeRowsEmpty = (f.feeStatuses.value ?? []).length === 0;
+  readonly showErrors = computed(() => {
+    const f = this.feeForm().controls;
+    const feeRowsEmpty = (f.feeStatuses.value ?? []).length === 0;
 
-      if (this.feeRequired() && feeRowsEmpty) {
-        return this.submitted() || this.parentSubmitted();
-      }
+    if (this.feeRequired() && feeRowsEmpty) {
+      return this.submitted() || this.parentSubmitted();
+    }
 
-      return false;
-    },
-  );
+    return false;
+  });
 
   readonly feeStatusOptionsWithPlaceholder = computed<
     { value: string; label: string; disabled?: boolean }[]
@@ -238,10 +239,12 @@ export class CivilFeeSectionComponent implements OnInit {
       return;
     }
 
+    const extraState = this.changePaymentReferenceStateFactory()?.() ?? {};
+
     void this.router.navigate(['change-payment-reference'], {
       relativeTo: this.route,
       queryParamsHandling: 'preserve',
-      state: { row },
+      state: { ...extraState, row },
     });
   };
 

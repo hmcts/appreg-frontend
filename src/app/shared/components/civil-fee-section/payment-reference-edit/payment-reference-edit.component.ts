@@ -104,12 +104,12 @@ export class PaymentReferenceEditComponent implements OnInit {
     void this.router.navigate(['../'], {
       relativeTo: this.route,
       queryParamsHandling: 'preserve',
-      state: {
+      state: this.buildReturnState({
         paymentRefReturn: {
           updatedRowId,
           newPaymentReference: this.paymentReference.value,
         },
-      },
+      }),
     });
   }
 
@@ -117,7 +117,15 @@ export class PaymentReferenceEditComponent implements OnInit {
     void this.router.navigate(['../'], {
       relativeTo: this.route,
       queryParamsHandling: 'preserve',
-      state: { focusId: 'civil-fee-section' }, // TODO: Implement a scroll service to focus on certain elements on navigation
+      state: this.buildReturnState({ focusId: 'civil-fee-section' }), // TODO: Implement a scroll service to focus on certain elements on navigation
     });
+  }
+
+  private buildReturnState(
+    extraState: Record<string, unknown>,
+  ): Record<string, unknown> {
+    const current = (history.state ?? {}) as Record<string, unknown>;
+    const { row, ...rest } = current;
+    return { ...rest, ...extraState };
   }
 }
