@@ -43,6 +43,10 @@ export const routes: Routes = [
         component: PaymentReferenceEditComponent,
       },
       { path: ':id/create', component: ApplicationsListEntryCreate },
+      {
+        path: ':id/create/change-payment-reference',
+        component: PaymentReferenceEditComponent,
+      },
       { path: ':id/bulk-upload', component: ApplicationsListBulkUpload },
       { path: ':id/result-selected', component: ResultSelected },
     ],

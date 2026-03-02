@@ -1,9 +1,13 @@
 import {
   Component,
+  Injector,
+  OnInit,
   computed,
+  effect,
   inject,
   input,
   output,
+  runInInjectionContext,
   signal,
 } from '@angular/core';
 import {
@@ -11,6 +15,8 @@ import {
   FormControl,
   FormGroup,
   ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -54,9 +60,10 @@ type CivilFeeValidatedControlName = keyof typeof CIVIL_FEE_FIELD_MESSAGES;
   ],
   templateUrl: './civil-fee-section.component.html',
 })
-export class CivilFeeSectionComponent {
+export class CivilFeeSectionComponent implements OnInit {
   router = inject(Router);
   route = inject(ActivatedRoute);
+  private readonly injector = inject(Injector);
 
   readonly entryId = this.route.snapshot.paramMap.get('id');
 
@@ -70,9 +77,26 @@ export class CivilFeeSectionComponent {
   offsiteFeeChanged = output<boolean>();
 
   submitted = signal(false);
+  parentSubmitted = input(false);
 
   // Application code returns whether a fee is required
   feeRequired = input<boolean>(false);
+
+  ngOnInit(): void {
+    runInInjectionContext(this.injector, () => {
+      effect(() => {
+        if (!this.parentSubmitted()) {
+          return;
+        }
+        this.attachValidatorsForSubmitAttempt();
+      });
+    });
+  }
+
+  // Show error msg with both parent and child form submission
+  readonly showErrors = computed(
+    () => this.submitted() || this.parentSubmitted(),
+  );
 
   readonly feeStatusOptionsWithPlaceholder = computed<
     { value: string; label: string; disabled?: boolean }[]
@@ -114,21 +138,11 @@ export class CivilFeeSectionComponent {
   onAddFeeDetailsClick(): void {
     this.submitted.set(true);
     const f = this.feeForm().controls;
-    const requiredValidator = (control: AbstractControl) =>
-      Validators.required(control);
-
-    const feesAreRequiredAndEmpty =
-      this.feeRequired() &&
-      (this.feeForm().controls.feeStatuses.value ?? []).length === 0;
 
     // Lazy attach validators so they do not show on parent update.
-    f.feeStatus.setValidators(
-      feesAreRequiredAndEmpty ? [requiredValidator] : [],
-    );
-    f.feeStatusDate.setValidators(
-      feesAreRequiredAndEmpty ? [requiredValidator] : [],
-    );
-    f.paymentRef.setValidators([Validators.maxLength(15)]);
+    f.feeStatus.setValidators([(c) => Validators.required(c)]);
+    f.feeStatusDate.setValidators([(c) => Validators.required(c)]);
+    f.paymentRef.setValidators([(c) => Validators.maxLength(15)(c)]);
 
     f.feeStatus.updateValueAndValidity({ emitEvent: false });
     f.feeStatusDate.updateValueAndValidity({ emitEvent: false });
@@ -230,5 +244,50 @@ export class CivilFeeSectionComponent {
     f.paymentRef.reset(null, { emitEvent: false });
 
     markFormGroupClean(this.feeForm());
+  }
+
+  private readonly feeStatusesRequiredValidator: ValidatorFn = (
+    control: AbstractControl,
+  ): ValidationErrors | null => {
+    if (!this.feeRequired()) {
+      return null;
+    }
+
+    const v = control.value as unknown;
+    const arr = Array.isArray(v) ? v : [];
+    return arr.length > 0 ? null : { feeRequired: true };
+  };
+
+  // This attaches validators when the parent attempts to submit
+  // Without this it will only attach when clicking civil-fee button
+  private attachValidatorsForSubmitAttempt(): void {
+    const f = this.feeForm().controls;
+
+    f.feeStatuses.setValidators(
+      this.feeRequired() ? [this.feeStatusesRequiredValidator] : [],
+    );
+    f.feeStatuses.updateValueAndValidity({ emitEvent: false });
+
+    const feeRowsEmpty = (f.feeStatuses.value ?? []).length === 0;
+
+    if (this.feeRequired() && feeRowsEmpty) {
+      f.feeStatus.setValidators([(c) => Validators.required(c)]);
+      f.feeStatusDate.setValidators([(c) => Validators.required(c)]);
+    } else {
+      f.feeStatus.setValidators([]);
+      f.feeStatusDate.setValidators([]);
+    }
+    f.paymentRef.setValidators([(c) => Validators.maxLength(15)(c)]);
+
+    f.feeStatus.updateValueAndValidity({ emitEvent: false });
+    f.feeStatusDate.updateValueAndValidity({ emitEvent: false });
+    f.paymentRef.updateValueAndValidity({ emitEvent: false });
+
+    f.feeStatuses.markAsTouched();
+    f.feeStatus.markAsTouched();
+    f.feeStatusDate.markAsTouched();
+    f.paymentRef.markAsTouched();
+
+    this.emitCivilFeeErrors();
   }
 }

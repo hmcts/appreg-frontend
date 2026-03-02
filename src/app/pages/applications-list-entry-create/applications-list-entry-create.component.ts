@@ -38,10 +38,15 @@ import { ApplicantSectionComponent } from '@components/applicant-section/applica
 import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
 import {
   APPLICANT_TYPE_OPTIONS,
+  CIVIL_FEE_COLUMNS,
+  FEE_STATUS_OPTIONS,
   PERSON_TITLE_OPTIONS,
 } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
-import { DateInputComponent } from '@components/date-input/date-input.component';
+import {
+  CivilFeeForm,
+  CivilFeeSectionComponent,
+} from '@components/civil-fee-section/civil-fee-section.component';
 import {
   ErrorItem,
   ErrorSummaryComponent,
@@ -69,6 +74,11 @@ import { ApplicantStep } from '@page-types/applications-list-entry-create';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 import { ApplicantType } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import {
+  AddFeeDetailsPayload,
+  CivilFeeMeta,
+} from '@shared-types/civil-fee/civil-fee';
+import { updateFeeStatusesControl } from '@util/civil-fee-utils';
+import {
   focusErrorSummary,
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
@@ -83,7 +93,8 @@ type ChildErrorSource =
   | 'fee'
   | 'respondent'
   | 'applicant'
-  | 'wording';
+  | 'wording'
+  | 'civilFee';
 
 @Component({
   selector: 'app-applications-list-entry-create',
@@ -105,12 +116,12 @@ type ChildErrorSource =
     MojButtonMenuDirective,
     ApplicationCodeSearchComponent,
     TextInputComponent,
-    DateInputComponent,
     PersonSectionComponent,
     OrganisationSectionComponent,
     NotesSectionComponent,
     WordingSectionComponent,
     ApplicantSectionComponent,
+    CivilFeeSectionComponent,
   ],
   viewProviders: [
     { provide: ControlContainer, useExisting: FormGroupDirective },
@@ -144,6 +155,7 @@ export class ApplicationsListEntryCreate implements OnInit {
     respondent: [],
     applicant: [],
     wording: [],
+    civilFee: [],
   };
 
   wordingSubmitAttempt = signal(0);
@@ -158,6 +170,13 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   applicantEntryTypeOptions = APPLICANT_TYPE_OPTIONS;
   personTitleOptions = PERSON_TITLE_OPTIONS;
+
+  // Civil fee
+  civilFeeColumns = CIVIL_FEE_COLUMNS;
+  feeStatusOptions = FEE_STATUS_OPTIONS;
+  feeMeta: CivilFeeMeta | null = null;
+  civilFeeForm: CivilFeeForm = this.formSvc.createCivilFeeForm(this.forms);
+  isFeeRequired: boolean = false;
 
   ngOnInit(): void {
     this.id = this.route.snapshot.paramMap.get('id')!;
@@ -186,6 +205,7 @@ export class ApplicationsListEntryCreate implements OnInit {
       respondent: [],
       applicant: [],
       wording: [],
+      civilFee: [],
     };
   }
 
@@ -195,12 +215,14 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.wordingSubmitAttempt.update((n) => n + 1);
     this.resetFlags();
 
+    this.submitted = true;
+
     //Run Angular validation
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity({ emitEvent: false });
 
     // Build error summary from control errors + child errors
-    this.updateAllErrors();
+    this.updateAllErrors({ validateOtherSections: this.submitted });
 
     if (this.errorFound) {
       // Don't submit if we’ve got validation errors
@@ -266,26 +288,27 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.childErrors.applicant = [];
   }
 
-  private updateAllErrors(): void {
-    this.updateApplicantErrors();
+  private updateAllErrors(opts: { validateOtherSections: boolean }): void {
+    // Full or partial validation
+    if (opts.validateOtherSections) {
+      this.updateApplicantErrors();
+      this.parentErrors = this.buildErrorSummary();
+    }
 
-    this.parentErrors = this.buildErrorSummary();
     const allChildErrors = Object.values(this.childErrors).flat();
-
     this.summaryErrors = [
       ...getUniqueErrors(this.parentErrors, allChildErrors),
     ];
-
     this.errorFound = this.summaryErrors.length > 0;
 
-    if (this.errorFound) {
+    if (opts.validateOtherSections && this.errorFound) {
       focusErrorSummary(this.platformId);
     }
   }
 
   onChildErrors(source: ChildErrorSource, errors: ErrorItem[]): void {
     this.childErrors[source] = errors ?? [];
-    this.updateAllErrors();
+    this.updateAllErrors({ validateOtherSections: this.submitted });
   }
 
   onCodeSelected(codeAndLodgementDate: { code: string; date: string }): void {
@@ -325,6 +348,13 @@ export class ApplicationsListEntryCreate implements OnInit {
                 this.childErrors.wording = [];
               }
             }
+
+            this.isFeeRequired = appCodeDetail.isFeeDue ?? false;
+            this.feeMeta = {
+              feeReference: appCodeDetail.feeReference ?? null,
+              feeAmount: appCodeDetail.feeAmount ?? null,
+              offsiteFeeAmount: appCodeDetail.offsiteFeeAmount ?? null,
+            };
           },
           error: () => {},
         });
@@ -337,6 +367,15 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.formSvc.setStandardApplicantCode(this.forms, code, {
       emitEvent: false,
     });
+  }
+
+  onAddFeeDetails(payload: AddFeeDetailsPayload): void {
+    updateFeeStatusesControl(this.form.controls.feeStatuses, payload);
+  }
+
+  onOffsiteFeeChanged(nextValue: boolean): void {
+    this.form.controls.hasOffsiteFee.setValue(nextValue, { emitEvent: false });
+    this.form.controls.hasOffsiteFee.markAsDirty();
   }
 
   private bindApplicantTypeChanges(): void {

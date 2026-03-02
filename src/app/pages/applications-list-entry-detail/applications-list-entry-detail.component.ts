@@ -118,9 +118,8 @@ import {
   wordingFromDetail,
 } from '@util/application-code-helpers';
 import {
-  addOrReplaceFeeStatus,
-  applyPaymentReferenceUpdateToFeeStatuses,
-  toFeeStatus,
+  updateFeeStatusesControl,
+  updatePaymentReferenceInFeeStatusesControl,
 } from '@util/civil-fee-utils';
 import {
   focusErrorSummary,
@@ -299,40 +298,31 @@ export class ApplicationsListEntryDetail implements OnInit {
   onAddFeeDetails(payload: AddFeeDetailsPayload): void {
     this.resetErrors();
 
-    const current = this.form.controls.feeStatuses.value ?? [];
-    const nextItem = toFeeStatus(payload);
-
-    const { next, changed } = addOrReplaceFeeStatus(current, nextItem);
+    const { next, changed } = updateFeeStatusesControl(
+      this.form.controls.feeStatuses,
+      payload,
+    );
     if (!changed) {
       return;
     }
 
-    this.form.controls.feeStatuses.setValue(next);
-    this.form.controls.feeStatuses.markAsDirty();
-
     const bannerText: SuccessBanner = ENTRY_SUCCESS_MESSAGES.feeStatusUpdated;
-
     this.persistFeeStatuses(next, bannerText);
   }
 
   // Used to update payment reference for current fee status from /change-payment-reference
   private applyPaymentRefReturn(updatedRowId: string, newRef: string): void {
-    const current = this.form.controls.feeStatuses.value ?? [];
-    const { next, changed } = applyPaymentReferenceUpdateToFeeStatuses(
-      current,
+    const { next, changed } = updatePaymentReferenceInFeeStatusesControl(
+      this.form.controls.feeStatuses,
       updatedRowId,
-      newRef.trim(),
+      newRef,
     );
 
     if (!changed) {
       return;
     }
 
-    this.form.controls.feeStatuses.setValue(next);
-    this.form.controls.feeStatuses.markAsDirty();
-
     const bannerText: SuccessBanner = ENTRY_SUCCESS_MESSAGES.paymentRefUpdated;
-
     this.persistFeeStatuses(next, bannerText);
   }
 

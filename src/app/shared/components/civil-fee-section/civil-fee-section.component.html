@@ -68,7 +68,7 @@
       hint="Select the status of the fee to be paid"
       id="feeStatus"
       [options]="feeStatusOptionsWithPlaceholder()"
-      [submitted]="submitted()"
+      [submitted]="showErrors()"
     />
 
     <!-- Status date -->
@@ -77,7 +77,7 @@
       label="Status date"
       hint="For example, 15 5 2025"
       id="feeStatusDate"
-      [submitted]="submitted()"
+      [submitted]="showErrors()"
       [disallowFutureDates]="true"
     />
 
