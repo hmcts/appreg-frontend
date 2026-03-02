@@ -95,7 +95,16 @@ export class CivilFeeSectionComponent implements OnInit {
 
   // Show error msg with both parent and child form submission
   readonly showErrors = computed(
-    () => this.submitted() || this.parentSubmitted(),
+    () => {
+      const f = this.feeForm().controls;
+      const feeRowsEmpty = (f.feeStatuses.value ?? []).length === 0;
+
+      if (this.feeRequired() && feeRowsEmpty) {
+        return this.submitted() || this.parentSubmitted();
+      }
+
+      return false;
+    },
   );
 
   readonly feeStatusOptionsWithPlaceholder = computed<
