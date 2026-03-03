@@ -166,6 +166,34 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     }
   }
 
+  onTabSelected(tab: string): void {
+    if (tab !== 'applications') {
+      return;
+    }
+
+    const vm = this.vm();
+
+    if (vm.errorSummary.length > 0 || vm.updateInvalid) {
+      this.resetErrorSummary();
+    } else if (vm.updateDone) {
+      this.resetSuccessBanner();
+    }
+  }
+
+  private resetErrorSummary(): void {
+    this.detailSignalState.patch({
+      errorSummary: [],
+      errorHint: '',
+      updateInvalid: false,
+    });
+  }
+
+  private resetSuccessBanner(): void {
+    this.detailSignalState.patch({
+      updateDone: false,
+    });
+  }
+
   setSuccessBanner(): void {
     if (this.route.snapshot.queryParamMap.get('listCreated') === 'true') {
       this.vm().createDone = true;

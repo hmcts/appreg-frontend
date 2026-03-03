@@ -48,6 +48,7 @@
         id="tab_applications"
         aria-controls="applications"
         aria-selected="true"
+        (click)="onTabSelected('applications')"
       >
         Applications
       </a>
@@ -62,6 +63,7 @@
         role="tab"
         aria-controls="list-details"
         aria-selected="false"
+        (click)="onTabSelected('list-details')"
       >
         List details
       </a>
