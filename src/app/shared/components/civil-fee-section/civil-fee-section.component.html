@@ -42,7 +42,7 @@
       </ng-template>
 
       <ng-template #actionsTemplate let-row>
-        @if (row['paymentReference']) {
+        @if (row['paymentStatus'] !== 'DUE') {
           <a
             class="govuk-link"
             href="javascript:void(0)"

@@ -285,9 +285,19 @@ describe('CivilFeeSectionComponent', () => {
     );
   });
 
-  it('onChangePaymentReference does nothing when paymentReference is empty', () => {
+  it('onChangePaymentReference does something to allow payment reference to be changed', () => {
     component.onChangePaymentReference({
       rowId: 'row-1',
+      paymentReference: '',
+    });
+
+    expect(routerNavigate).toHaveBeenCalled();
+  });
+
+  it('onChangePaymentReference does nothing if status === DUE', () => {
+    component.onChangePaymentReference({
+      rowId: 'row-1',
+      paymentStatus: 'DUE',
       paymentReference: '',
     });
 

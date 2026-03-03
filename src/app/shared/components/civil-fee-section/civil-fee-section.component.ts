@@ -238,7 +238,7 @@ export class CivilFeeSectionComponent implements OnInit {
     });
 
   onChangePaymentReference = (row: Row): void => {
-    if (!row['paymentReference']) {
+    if (row['paymentStatus'] === 'DUE') {
       return;
     }
 
