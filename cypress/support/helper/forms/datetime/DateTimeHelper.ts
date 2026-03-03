@@ -95,6 +95,26 @@ export class DateTimeHelper {
       .should('have.value', '');
   }
 
+  // === DURATION FIELD METHODS ===
+
+  /**
+   * Clears the duration field (hours and minutes) for a given field label
+   * @param fieldLabel The label/name of the duration field group (for context)
+   */
+  static clearDurationField(fieldLabel: string): void {
+    DateTimeElement.findHourInput(fieldLabel)
+      .should('be.visible')
+      .should('be.enabled')
+      .clear()
+      .should('have.value', '');
+
+    DateTimeElement.findMinuteInput(fieldLabel)
+      .should('be.visible')
+      .should('be.enabled')
+      .clear()
+      .should('have.value', '');
+  }
+
   // === TIME FIELD METHODS ===
 
   /**
