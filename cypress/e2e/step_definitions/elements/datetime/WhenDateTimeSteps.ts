@@ -43,6 +43,10 @@ When(
   },
 );
 
+When('User Clears The Duration Field {string}', (fieldLabel: string) => {
+  DateTimeHelper.clearDurationField(fieldLabel);
+});
+
 When(
   'User Set {string} and {string} In The {string} Field',
   (hours: string, minutes: string, fieldLabel: string) => {
