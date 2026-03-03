@@ -152,7 +152,10 @@ export class CivilFeeSectionComponent implements OnInit {
     // Lazy attach validators so they do not show on parent update.
     f.feeStatus.setValidators([(c) => Validators.required(c)]);
     f.feeStatusDate.setValidators([(c) => Validators.required(c)]);
-    f.paymentRef.setValidators([(c) => Validators.maxLength(15)(c)]);
+    f.paymentRef.setValidators([
+      this.paymentRefNotAllowedWhenDueValidator,
+      (c) => Validators.maxLength(15)(c),
+    ]);
 
     f.feeStatus.updateValueAndValidity({ emitEvent: false });
     f.feeStatusDate.updateValueAndValidity({ emitEvent: false });
@@ -289,7 +292,10 @@ export class CivilFeeSectionComponent implements OnInit {
       f.feeStatus.setValidators([]);
       f.feeStatusDate.setValidators([]);
     }
-    f.paymentRef.setValidators([(c) => Validators.maxLength(15)(c)]);
+    f.paymentRef.setValidators([
+      this.paymentRefNotAllowedWhenDueValidator,
+      (c) => Validators.maxLength(15)(c),
+    ]);
 
     f.feeStatus.updateValueAndValidity({ emitEvent: false });
     f.feeStatusDate.updateValueAndValidity({ emitEvent: false });
@@ -302,4 +308,18 @@ export class CivilFeeSectionComponent implements OnInit {
 
     this.emitCivilFeeErrors();
   }
+
+  private readonly paymentRefNotAllowedWhenDueValidator: ValidatorFn = (
+    control: AbstractControl,
+  ): ValidationErrors | null => {
+    const paymentRef = ((control.value as string) ?? '').toString().trim();
+    if (!paymentRef) {
+      return null;
+    }
+
+    const status = (this.feeForm().controls.feeStatus.value ?? '')
+      .toString()
+      .trim();
+    return status === 'DUE' ? { invalidStatus: true } : null;
+  };
 }

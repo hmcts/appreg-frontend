@@ -385,4 +385,27 @@ describe('CivilFeeSectionComponent', () => {
       ]),
     );
   });
+
+  it("onAddFeeDetailsClick blocks when feeStatus is 'DUE' and paymentRef is provided", () => {
+    const errorsSpy = jest.fn();
+    const addSpy = jest.fn();
+
+    component.civilFeeErrors.subscribe(errorsSpy);
+    component.addFeeDetails.subscribe(addSpy);
+
+    const f = component.feeForm().controls;
+
+    f.feeStatus.setValue('DUE');
+    f.feeStatusDate.setValue('2025-11-01');
+    f.paymentRef.setValue('REF-123');
+
+    component.onAddFeeDetailsClick();
+
+    expect(addSpy).not.toHaveBeenCalled();
+    expect(f.paymentRef.hasError('invalidStatus')).toBe(true);
+
+    expect(errorsSpy).toHaveBeenCalled();
+    const [errors] = errorsSpy.mock.calls[0] as [ErrorItem[]];
+    expect(errors.some((e) => e.id === 'paymentRef')).toBe(true);
+  });
 });
