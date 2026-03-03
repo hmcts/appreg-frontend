@@ -31,8 +31,8 @@ Feature: Applications List Create
     Then User Sees Notification Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
 
     Examples:
-      | User  | Date  | Time           | Description   | Status | OtherLocation           | NotificationMessage                            | OptionText    | SearchText | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName |
-      | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Other Location_{RANDOM} | Success Applications list created successfully | Wolverhampton | B9         | Lists     | todaydisplay | 0       | Select           | Open       |
+      | User  | Date  | Time           | Description   | Status | OtherLocation           | NotificationMessage                            | OptionText    | SearchText | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName | HH | MM |
+      | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Other Location_{RANDOM} | Success Applications list created successfully | Wolverhampton | B9         | Lists     | todaydisplay | 0       | Select           | Open       | 0  | 0  |
 
   @regression @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794
   Scenario Outline: Create applications list using Court Autocomplete
