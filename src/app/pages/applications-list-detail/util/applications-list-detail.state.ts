@@ -28,6 +28,7 @@ export interface ApplicationsListDetailState {
   allEntriesSummary: EntrySummary[];
 
   // flags
+  createDone: boolean;
   isLoading: boolean;
   updateDone: boolean;
   updateInvalid: boolean;
@@ -54,6 +55,7 @@ export const initialApplicationsListDetailState: ApplicationsListDetailState = {
   allEntryIds: [],
   allEntriesSummary: [],
 
+  createDone: false,
   isLoading: true,
   updateDone: false,
   updateInvalid: false,
@@ -66,10 +68,11 @@ export const initialApplicationsListDetailState: ApplicationsListDetailState = {
 
 export const clearUpdateNotificationsPatch = (): Pick<
   ApplicationsListDetailState,
-  'updateDone' | 'updateInvalid' | 'errorHint' | 'errorSummary'
+  'updateDone' | 'updateInvalid' | 'errorHint' | 'errorSummary' | 'createDone'
 > => ({
   updateDone: false,
   updateInvalid: false,
   errorHint: '',
   errorSummary: [],
+  createDone: false,
 });

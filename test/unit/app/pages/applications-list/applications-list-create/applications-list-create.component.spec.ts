@@ -1,7 +1,13 @@
-import { NO_ERRORS_SCHEMA, PLATFORM_ID, TransferState } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import {
+  Component,
+  NO_ERRORS_SCHEMA,
+  PLATFORM_ID,
+  TransferState,
+} from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { ActivatedRoute, provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { jest } from '@jest/globals';
 import { of, throwError } from 'rxjs';
 
@@ -16,6 +22,9 @@ import {
   CriminalJusticeAreaGetDto,
 } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
+
+@Component({ template: '' })
+class DummyComponent {}
 
 // Reactive-forms warning disabled
 let warnSpy: ReturnType<typeof jest.spyOn>;
@@ -57,7 +66,6 @@ describe('ApplicationsListCreate', () => {
     await TestBed.configureTestingModule({
       imports: [ApplicationsListCreate],
       providers: [
-        provideRouter([]),
         { provide: PLATFORM_ID, useValue: 'browser' },
         TransferState,
         {
@@ -69,6 +77,9 @@ describe('ApplicationsListCreate', () => {
           },
         },
         { provide: ReferenceDataFacade, useValue: refFacadeStub },
+        provideRouter([
+          { path: 'applications-list/:id', component: DummyComponent },
+        ]),
       ],
       schemas: [NO_ERRORS_SCHEMA],
     })
@@ -151,8 +162,30 @@ describe('ApplicationsListCreate', () => {
       status: ApplicationListStatus.OPEN,
       courtLocationCode: 'A1',
     });
-    expect(getState(component).createDone).toBe(true);
     expect(getState(component).createInvalid).toBe(false);
+  });
+
+  it('navigates to details page on successful create', async () => {
+    const router = TestBed.inject(Router);
+    const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+    component.form.setValue({
+      date: '2025-10-02',
+      time: { hours: 8, minutes: 5 },
+      description: 'Morning list',
+      status: 'OPEN',
+      court: 'A1',
+      location: '',
+      cja: '',
+    });
+
+    submit('create');
+    await flushSignalEffects();
+
+    expect(navigateSpy).toHaveBeenCalledTimes(1);
+    expect(navigateSpy).toHaveBeenCalledWith(['applications-list', 123], {
+      queryParams: { listCreated: true },
+      fragment: 'list-details',
+    });
   });
 
   it('submits successfully with other location + CJA payload', async () => {
@@ -206,8 +239,11 @@ describe('ApplicationsListCreate', () => {
 
   it('handles API error and sets errorHint', async () => {
     appListsMock.createApplicationList.mockReturnValueOnce(
-      throwError(() => new Error('fail')),
+      throwError(
+        () => new HttpErrorResponse({ status: 500, statusText: 'boom' }),
+      ),
     );
+
     component.form.setValue({
       date: '2025-10-04',
       time: { hours: 10, minutes: 10 },
@@ -217,11 +253,11 @@ describe('ApplicationsListCreate', () => {
       location: '',
       cja: '',
     });
+
     submit('create');
 
     await flushSignalEffects();
 
-    expect(getState(component).createDone).toBe(false);
     expect(getState(component).createInvalid).toBe(true);
     expect(getState(component).errorHint).toContain('There is a problem');
   });
