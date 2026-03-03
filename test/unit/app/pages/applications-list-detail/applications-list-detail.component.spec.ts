@@ -8,11 +8,12 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { Router, provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail.component';
 import { ApplicationsListDetailState } from '@components/applications-list-detail/util/applications-list-detail.state';
+import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { Row } from '@core-types/table/row.types';
 import {
   ApplicationListGetDetailDto,
@@ -191,6 +192,81 @@ describe('ApplicationsListDetail', () => {
     }
   });
 
+  it('resetErrorSummary patches detailSignalState with default values', () => {
+    const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
+
+    component['resetErrorSummary']();
+
+    expect(patchSpy).toHaveBeenCalledWith({
+      errorSummary: [],
+      errorHint: '',
+      updateInvalid: false,
+    });
+  });
+
+  describe('onTabSelected', () => {
+    it('should reset error summary when applications tab has validation issues', () => {
+      jest.spyOn(component, 'vm').mockReturnValue({
+        errorSummary: [{ text: 'Something went wrong' }],
+        updateInvalid: false,
+      } as ApplicationsListDetailState);
+
+      const resetSpy = jest.spyOn(
+        component as unknown as { resetErrorSummary(): void },
+        'resetErrorSummary',
+      );
+
+      component.onTabSelected('applications');
+
+      expect(resetSpy).toHaveBeenCalled();
+    });
+
+    it('should reset success banner when applications tab has no errors but updateDone is true', () => {
+      jest.spyOn(component, 'vm').mockReturnValue({
+        errorSummary: [] as ErrorItem[],
+        updateInvalid: false,
+        updateDone: true,
+      } as ApplicationsListDetailState);
+
+      const resetBannerSpy = jest.spyOn(
+        component as unknown as { resetSuccessBanner(): void },
+        'resetSuccessBanner',
+      );
+
+      component.onTabSelected('applications');
+
+      expect(resetBannerSpy).toHaveBeenCalled();
+    });
+
+    it('should NOT reset error summary when a different tab is selected', () => {
+      jest.spyOn(component, 'vm').mockReturnValue({
+        errorSummary: [{ text: 'Something went wrong' }],
+        updateInvalid: true,
+      } as ApplicationsListDetailState);
+
+      const resetSpy = jest.spyOn(
+        component as unknown as { resetErrorSummary(): void },
+        'resetErrorSummary',
+      );
+
+      component.onTabSelected('details');
+
+      expect(resetSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  it('ResetSuccessBanner should reset success banner by setting updateDone to false', () => {
+    const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
+
+    (
+      component as unknown as { resetSuccessBanner(): void }
+    ).resetSuccessBanner();
+
+    expect(patchSpy).toHaveBeenCalledWith({
+      updateDone: false,
+    });
+  });
+
   it('onPageChange patches page + clears selectedIds + triggers load', () => {
     const loadSpy = jest
       .spyOn(component, 'loadApplicationsLists')
@@ -317,6 +393,30 @@ describe('ApplicationsListDetail', () => {
       expect(vm().selectedIds.size).toBe(0);
       expect(vm().errorSummary.length).toBeGreaterThan(0);
     });
+  });
+
+  it('setSuccessBanner: sets createDone to true when listCreated=true', () => {
+    const route = TestBed.inject(ActivatedRoute);
+    const routeSpy = jest
+      .spyOn(route.snapshot.queryParamMap, 'get')
+      .mockReturnValue('true');
+
+    component.setSuccessBanner();
+
+    expect(routeSpy).toHaveBeenCalledWith('listCreated');
+    expect(component.vm().createDone).toBe(true);
+  });
+
+  it('setSuccessBanner: sets createDone to false when listCreated=false', () => {
+    const route = TestBed.inject(ActivatedRoute);
+    const routeSpy = jest
+      .spyOn(route.snapshot.queryParamMap, 'get')
+      .mockReturnValue('false');
+
+    component.setSuccessBanner();
+
+    expect(routeSpy).toHaveBeenCalledWith('listCreated');
+    expect(component.vm().createDone).toBe(false);
   });
 
   it('openUpdate: navigates with state & queryParams', async () => {
