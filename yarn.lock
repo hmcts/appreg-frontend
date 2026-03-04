@@ -636,13 +636,13 @@ __metadata:
   linkType: hard
 
 "@apidevtools/json-schema-ref-parser@npm:^15.1.2":
-  version: 15.2.2
-  resolution: "@apidevtools/json-schema-ref-parser@npm:15.2.2"
+  version: 15.3.1
+  resolution: "@apidevtools/json-schema-ref-parser@npm:15.3.1"
   dependencies:
     js-yaml: "npm:^4.1.1"
   peerDependencies:
     "@types/json-schema": ^7.0.15
-  checksum: 10/9ed13cda5bd7cd5cc71b7e1cfcc8a7f4fa5f064ff03ba2d884cb0d2262b630690f50e7e7839f121795160049038e66b6c2da409b0a3e55c319a5f9924a084831
+  checksum: 10/0b8e823626aed8ef6ef903fbaaea46e67a26f4e50299b3e159487e4b6cdc48899fab76cbb235aec5ce540d755e4370cc61a3b6bdca64421a6353fae4fdc76814
   languageName: node
   linkType: hard
 
