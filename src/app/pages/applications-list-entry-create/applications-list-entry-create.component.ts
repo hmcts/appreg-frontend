@@ -223,7 +223,7 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.wordingSubmitAttempt.update((n) => n + 1);
     this.resetFlags();
 
-    this.appListEntryCreateState().submitted = true;
+    this.appListEntryCreatePatch({ submitted: true });
 
     //Run Angular validation
     this.form.markAllAsTouched();
