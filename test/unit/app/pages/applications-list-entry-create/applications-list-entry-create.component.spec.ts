@@ -419,7 +419,7 @@ describe('ApplicationsListEntryCreate (payment reference return)', () => {
     expect(currentState['keep']).toBe('value');
   });
 
-  it('restores create draft state before applying payment reference update', () => {
+  it('restores entry create snapshot before applying payment reference update', () => {
     const appCodeDetail = {
       applicationCode: 'APP-1',
       title: 'Title',
