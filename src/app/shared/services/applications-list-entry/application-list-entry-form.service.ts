@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { FormGroup, NonNullableFormBuilder } from '@angular/forms';
 
 import { buildEntryCreateDto } from '@components/applications-list-entry-create/util/entry-create-mapper';
+import { toOptionalTrimmed } from '@components/applications-list-entry-create/util/helpers';
 import {
   buildEntryUpdateDtoFromForm,
   buildOrganisationForm,
@@ -17,6 +18,8 @@ import {
   EntryCreateDto,
   EntryGetDetailDto,
   EntryUpdateDto,
+  Official,
+  OfficialType,
   Organisation,
   Person,
 } from '@openapi';
@@ -333,4 +336,53 @@ export class ApplicationListEntryFormService {
     markFormGroupClean(forms.respondentPersonForm);
     markFormGroupClean(forms.respondentOrganisationForm);
   }
+}
+
+function buildOfficials(formValue: ApplicationsListEntryFormValue) {
+  const toOfficial = (
+    title: string | null | undefined,
+    forename: string | null | undefined,
+    surname: string | null | undefined,
+    type: OfficialType,
+  ): Official | undefined => {
+    const official: Official = {
+      title: toOptionalTrimmed(title),
+      forename: toOptionalTrimmed(forename),
+      surname: toOptionalTrimmed(surname),
+      type,
+    };
+
+    const isEmpty = !official.title && !official.forename && !official.surname;
+
+    return isEmpty ? undefined : official;
+  };
+
+  const officials = [
+    toOfficial(
+      formValue.mags1Title,
+      formValue.mags1FirstName,
+      formValue.mags1Surname,
+      OfficialType.MAGISTRATE,
+    ),
+    toOfficial(
+      formValue.mags2Title,
+      formValue.mags2FirstName,
+      formValue.mags2Surname,
+      OfficialType.MAGISTRATE,
+    ),
+    toOfficial(
+      formValue.mags3Title,
+      formValue.mags3FirstName,
+      formValue.mags3Surname,
+      OfficialType.MAGISTRATE,
+    ),
+    toOfficial(
+      formValue.officialTitle,
+      formValue.officialFirstName,
+      formValue.officialSurname,
+      OfficialType.CLERK,
+    ),
+  ].filter((o): o is Official => !!o);
+
+  return officials.length ? { officials } : {};
 }

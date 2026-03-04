@@ -73,9 +73,9 @@ import {
   ApplicationNotesForm,
   NotesSectionComponent,
 } from '@components/notes-section/notes-section.component';
+import { OfficialsSectionComponent } from '@components/officials-section/officials-section.component';
 import { RespondentSectionComponent } from '@components/respondent-section/respondent-section.component';
 import { ResultWordingSectionComponent } from '@components/result-wording-section/result-wording-section.component';
-import { SelectInputComponent } from '@components/select-input/select-input.component';
 import { TableColumn } from '@components/selectable-sortable-table/selectable-sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
@@ -154,7 +154,6 @@ export const ERROR_HREFS = {
     RouterModule,
     BreadcrumbsComponent,
     AccordionComponent,
-    SelectInputComponent,
     TextInputComponent,
     ErrorSummaryComponent,
     SuccessBannerComponent,
@@ -164,6 +163,7 @@ export const ERROR_HREFS = {
     CivilFeeSectionComponent,
     ApplicationCodeSearchComponent,
     ApplicantSectionComponent,
+    OfficialsSectionComponent,
   ],
   templateUrl: './applications-list-entry-detail.component.html',
 })
