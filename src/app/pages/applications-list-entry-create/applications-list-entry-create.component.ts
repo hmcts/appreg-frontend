@@ -14,7 +14,7 @@ Functionality:
   - Run POST query with payload
 */
 
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
@@ -33,15 +33,23 @@ import {
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { map } from 'rxjs';
 
+import { parseCreateNavState } from './util/navigation-state';
+
 import { AccordionComponent } from '@components/accordion/accordion.component';
 import { ApplicantSectionComponent } from '@components/applicant-section/applicant-section.component';
 import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
 import {
   APPLICANT_TYPE_OPTIONS,
+  CIVIL_FEE_COLUMNS,
+  FEE_STATUS_OPTIONS,
   PERSON_TITLE_OPTIONS,
 } from '@components/applications-list-entry-detail/util/entry-detail.constants';
+import { readNavState } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
-import { DateInputComponent } from '@components/date-input/date-input.component';
+import {
+  CivilFeeForm,
+  CivilFeeSectionComponent,
+} from '@components/civil-fee-section/civil-fee-section.component';
 import {
   ErrorItem,
   ErrorSummaryComponent,
@@ -65,9 +73,21 @@ import {
   ApplicationListEntriesApi,
   TemplateSubstitution,
 } from '@openapi';
-import { ApplicantStep } from '@page-types/applications-list-entry-create';
+import {
+  ApplicantStep,
+  EntryCreateSnapshot,
+} from '@page-types/applications-list-entry-create';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 import { ApplicantType } from '@shared-types/applications-list-entry-create/application-list-entry-form';
+import {
+  AddFeeDetailsPayload,
+  CivilFeeMeta,
+} from '@shared-types/civil-fee/civil-fee';
+import {
+  readPaymentRefReturnState,
+  updateFeeStatusesControl,
+  updatePaymentReferenceInFeeStatusesControl,
+} from '@util/civil-fee-utils';
 import {
   focusErrorSummary,
   focusField,
@@ -83,7 +103,8 @@ type ChildErrorSource =
   | 'fee'
   | 'respondent'
   | 'applicant'
-  | 'wording';
+  | 'wording'
+  | 'civilFee';
 
 @Component({
   selector: 'app-applications-list-entry-create',
@@ -105,12 +126,12 @@ type ChildErrorSource =
     MojButtonMenuDirective,
     ApplicationCodeSearchComponent,
     TextInputComponent,
-    DateInputComponent,
     PersonSectionComponent,
     OrganisationSectionComponent,
     NotesSectionComponent,
     WordingSectionComponent,
     ApplicantSectionComponent,
+    CivilFeeSectionComponent,
   ],
   viewProviders: [
     { provide: ControlContainer, useExisting: FormGroupDirective },
@@ -124,6 +145,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   appEntryApi = inject(ApplicationListEntriesApi);
   applicationCodesApi = inject(ApplicationCodesApi);
   formSvc = inject(ApplicationListEntryFormService);
+  private readonly location = inject(Location);
   private readonly platformId = inject(PLATFORM_ID);
 
   id: string = '';
@@ -144,6 +166,7 @@ export class ApplicationsListEntryCreate implements OnInit {
     respondent: [],
     applicant: [],
     wording: [],
+    civilFee: [],
   };
 
   wordingSubmitAttempt = signal(0);
@@ -159,9 +182,17 @@ export class ApplicationsListEntryCreate implements OnInit {
   applicantEntryTypeOptions = APPLICANT_TYPE_OPTIONS;
   personTitleOptions = PERSON_TITLE_OPTIONS;
 
+  // Civil fee
+  civilFeeColumns = CIVIL_FEE_COLUMNS;
+  feeStatusOptions = FEE_STATUS_OPTIONS;
+  feeMeta: CivilFeeMeta | null = null;
+  civilFeeForm: CivilFeeForm = this.formSvc.createCivilFeeForm(this.forms);
+  isFeeRequired: boolean = false;
+
   ngOnInit(): void {
     this.id = this.route.snapshot.paramMap.get('id')!;
     this.bindApplicantTypeChanges();
+    this.restoreNavigationState();
   }
 
   resetParentErrorsFromCodeSearch(): void {
@@ -186,6 +217,7 @@ export class ApplicationsListEntryCreate implements OnInit {
       respondent: [],
       applicant: [],
       wording: [],
+      civilFee: [],
     };
   }
 
@@ -195,12 +227,14 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.wordingSubmitAttempt.update((n) => n + 1);
     this.resetFlags();
 
+    this.submitted = true;
+
     //Run Angular validation
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity({ emitEvent: false });
 
     // Build error summary from control errors + child errors
-    this.updateAllErrors();
+    this.updateErrors({ validateOtherSections: this.submitted });
 
     if (this.errorFound) {
       // Don't submit if we’ve got validation errors
@@ -266,26 +300,27 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.childErrors.applicant = [];
   }
 
-  private updateAllErrors(): void {
-    this.updateApplicantErrors();
+  private updateErrors(opts: { validateOtherSections: boolean }): void {
+    // Full or partial validation
+    if (opts.validateOtherSections) {
+      this.updateApplicantErrors();
+      this.parentErrors = this.buildErrorSummary();
+    }
 
-    this.parentErrors = this.buildErrorSummary();
     const allChildErrors = Object.values(this.childErrors).flat();
-
     this.summaryErrors = [
       ...getUniqueErrors(this.parentErrors, allChildErrors),
     ];
-
     this.errorFound = this.summaryErrors.length > 0;
 
-    if (this.errorFound) {
+    if (opts.validateOtherSections && this.errorFound) {
       focusErrorSummary(this.platformId);
     }
   }
 
   onChildErrors(source: ChildErrorSource, errors: ErrorItem[]): void {
     this.childErrors[source] = errors ?? [];
-    this.updateAllErrors();
+    this.updateErrors({ validateOtherSections: this.submitted });
   }
 
   onCodeSelected(codeAndLodgementDate: { code: string; date: string }): void {
@@ -325,6 +360,13 @@ export class ApplicationsListEntryCreate implements OnInit {
                 this.childErrors.wording = [];
               }
             }
+
+            this.isFeeRequired = appCodeDetail.isFeeDue;
+            this.feeMeta = {
+              feeReference: appCodeDetail.feeReference ?? null,
+              feeAmount: appCodeDetail.feeAmount ?? null,
+              offsiteFeeAmount: appCodeDetail.offsiteFeeAmount ?? null,
+            };
           },
           error: () => {},
         });
@@ -338,6 +380,19 @@ export class ApplicationsListEntryCreate implements OnInit {
       emitEvent: false,
     });
   }
+
+  onAddFeeDetails(payload: AddFeeDetailsPayload): void {
+    updateFeeStatusesControl(this.form.controls.feeStatuses, payload);
+  }
+
+  onOffsiteFeeChanged(nextValue: boolean): void {
+    this.form.controls.hasOffsiteFee.setValue(nextValue, { emitEvent: false });
+    this.form.controls.hasOffsiteFee.markAsDirty();
+  }
+
+  buildChangePaymentReferenceState = (): Record<string, unknown> => ({
+    entryCreateSnapshot: this.buildEntryCreateSnapshot(),
+  });
 
   private bindApplicantTypeChanges(): void {
     this.form.controls.applicantType.valueChanges
@@ -357,5 +412,94 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   get applicantErrorItems(): ErrorItem[] {
     return this.childErrors.applicant;
+  }
+
+  private restoreNavigationState(): void {
+    const rawNavState = readNavState(this.location, this.platformId);
+    const navState = parseCreateNavState(rawNavState);
+
+    this.applyEntryCreateSnapshot(navState.entryCreateSnapshot);
+    this.applyPaymentRefReturn(navState.paymentRefReturn);
+    this.clearNavigationStateOnly();
+  }
+
+  private applyPaymentRefReturn(state: unknown): void {
+    const paymentRefReturn = readPaymentRefReturnState(state);
+    if (!paymentRefReturn) {
+      return;
+    }
+
+    updatePaymentReferenceInFeeStatusesControl(
+      this.form.controls.feeStatuses,
+      paymentRefReturn.updatedRowId,
+      paymentRefReturn.newPaymentReference,
+    );
+  }
+
+  private buildEntryCreateSnapshot(): EntryCreateSnapshot {
+    return {
+      form: this.form.getRawValue(),
+      personForm: this.personForm.getRawValue(),
+      organisationForm: this.organisationForm.getRawValue(),
+      respondentPersonForm: this.forms.respondentPersonForm.getRawValue(),
+      respondentOrganisationForm:
+        this.forms.respondentOrganisationForm.getRawValue(),
+      appCodeDetail: this.appCodeDetail,
+      feeMeta: this.feeMeta,
+      isFeeRequired: this.isFeeRequired,
+    };
+  }
+
+  private applyEntryCreateSnapshot(state: unknown): void {
+    // We need to store a draft of the current forms so when we nav back from payment ref page
+    // we patch the cleaned forms with the draft values
+    if (state === null || typeof state !== 'object') {
+      return;
+    }
+
+    const draft = state as Partial<EntryCreateSnapshot>;
+
+    if (draft.form) {
+      this.form.patchValue(draft.form, { emitEvent: false });
+    }
+    if (draft.personForm) {
+      this.personForm.patchValue(draft.personForm, { emitEvent: false });
+    }
+    if (draft.organisationForm) {
+      this.organisationForm.patchValue(draft.organisationForm, {
+        emitEvent: false,
+      });
+    }
+    if (draft.respondentPersonForm) {
+      this.forms.respondentPersonForm.patchValue(draft.respondentPersonForm, {
+        emitEvent: false,
+      });
+    }
+    if (draft.respondentOrganisationForm) {
+      this.forms.respondentOrganisationForm.patchValue(
+        draft.respondentOrganisationForm,
+        {
+          emitEvent: false,
+        },
+      );
+    }
+
+    this.appCodeDetail = draft.appCodeDetail ?? null;
+
+    this.form.patchValue({
+      applicationTitle: this.appCodeDetail?.title ?? null,
+    });
+
+    this.feeMeta = draft.feeMeta ?? null;
+    this.isFeeRequired = draft.isFeeRequired === true;
+
+    const type = this.form.controls.applicantType.value ?? 'person';
+    this.formSvc.syncApplicantTypeState(this.forms, type);
+  }
+
+  private clearNavigationStateOnly(): void {
+    const current = (history.state ?? {}) as Record<string, unknown>;
+    const { paymentRefReturn, entryCreateSnapshot, row, ...rest } = current;
+    history.replaceState(rest, '');
   }
 }

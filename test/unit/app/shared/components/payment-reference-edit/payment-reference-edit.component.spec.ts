@@ -74,7 +74,7 @@ describe('PaymentReferenceEditComponent', () => {
     expect(component.paymentReference.value).toBe('');
   });
 
-  it('isPaymentReferenceInvalid is false initially, true after submit if empty', () => {
+  it('If payment reference is empty, allow save', () => {
     createComponentWithHistoryState({
       row: { rowId: 'r1', paymentReference: '' },
     });
@@ -83,10 +83,7 @@ describe('PaymentReferenceEditComponent', () => {
 
     component.save(); // sets submitted=true and touches control
 
-    expect(component.isPaymentReferenceInvalid()).toBe(true);
-    expect(component.getPaymentReferenceError()).toBe(
-      'Enter a payment reference',
-    );
+    expect(component.isPaymentReferenceInvalid()).toBe(false);
   });
 
   it('getPaymentReferenceError returns maxlength message when > 15 chars', () => {
@@ -106,10 +103,16 @@ describe('PaymentReferenceEditComponent', () => {
 
   it('save does not navigate when control invalid', () => {
     createComponentWithHistoryState({
-      row: { rowId: 'r1', paymentReference: '' },
+      row: {
+        rowId: 'r1',
+        paymentReference:
+          'jkfdlafjdksal;fjdskal;fjdskalfdsafdsafjdiosafjdsafjdsaifjdsiafsafdsafdsa',
+      },
     });
 
-    component.paymentReference.setValue(''); // required invalid
+    component.paymentReference.setValue(
+      'jkfdlafjdksal;fjdskal;fjdskalfdsafdsafjdiosafjdsafjdsaifjdsiafsafdsafdsa',
+    ); // past 15 char limit
     component.save();
 
     expect(routerNavigate).not.toHaveBeenCalled();
