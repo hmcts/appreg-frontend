@@ -13,10 +13,7 @@ export class TextHelper {
     TextElement.getText(selector).should('contain.text', expectedText);
   }
 
-  static verifyPageHeading(
-    expectedText: string,
-    headingSelector: string = '#main-content :header:visible',
-  ): void {
+  static verifyPageHeading(headingSelector: string, expectedText: string): void {
     TextElement.getText(headingSelector)
       .first()
       .should('contain.text', expectedText);

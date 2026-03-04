@@ -8,7 +8,7 @@ Then('User See {string} On The Page', (expectedText: string) => {
 });
 
 Then('User Sees Page Heading {string}', (expectedText: string) => {
-  TextHelper.verifyPageHeading(expectedText, PageElements.pageHeading);
+  TextHelper.verifyPageHeading(PageElements.pageHeading, expectedText);
 });
 
 Then(
