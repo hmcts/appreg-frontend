@@ -31,7 +31,6 @@ import {
   ApplicationsListEntryCreateState,
   ChildErrorSource,
   initialApplicationsListEntryCreateState,
-  toOptionalTrimmed,
 } from './util';
 
 import { AccordionComponent } from '@components/accordion/accordion.component';
