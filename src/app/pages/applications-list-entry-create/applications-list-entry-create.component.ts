@@ -414,8 +414,9 @@ export class ApplicationsListEntryCreate implements OnInit {
               }
             }
 
-            this.appListEntryCreateState().isFeeRequired =
-              appCodeDetail.isFeeDue;
+            this.appListEntryCreatePatch({
+              isFeeRequired: appCodeDetail.isFeeDue,
+            });
             this.feeMeta = {
               feeReference: appCodeDetail.feeReference ?? null,
               feeAmount: appCodeDetail.feeAmount ?? null,
