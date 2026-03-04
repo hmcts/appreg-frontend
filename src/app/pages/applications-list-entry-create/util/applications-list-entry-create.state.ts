@@ -25,5 +25,5 @@ export const initialApplicationsListEntryCreateState: ApplicationsListEntryCreat
     errorFound: false,
     summaryErrors: [],
     bulkApplicationsAllowed: false,
-    isFeeRequired: false
+    isFeeRequired: false,
   };

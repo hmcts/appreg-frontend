@@ -12,11 +12,12 @@ import {
 } from '@components/applications-list-entry-create/util/helpers';
 import {
   ApplicationCodeGetDetailDto,
-  ApplicationCodesApi, ApplicationListEntriesApi,
+  ApplicationCodesApi,
+  ApplicationListEntriesApi,
   FeeStatus,
 } from '@openapi';
-import { AddFeeDetailsPayload } from '@shared-types/civil-fee/civil-fee';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
+import { AddFeeDetailsPayload } from '@shared-types/civil-fee/civil-fee';
 
 function roundTrip<T extends object>(o: T): T {
   return JSON.parse(JSON.stringify(o));
