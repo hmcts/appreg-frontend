@@ -15,23 +15,24 @@ Feature: Applications List Create
     Then User Selects "<OptionText>" From The Textbox "Criminal justice area" Autocomplete By Typing "<SearchText>"
     When User Clicks On The "Create" Button
     Then User Sees Notification Banner "<NotificationMessage>"
-    Then User Clicks On The Link "Click here to go back"
-    Then User Should See The Link "Create new list"
+    Then User Verify The Page URL Contains "listCreated=true#list-details"
+    Then User Should See The Link "Create application"
+    Then User Clicks On The Breadcrumb Link "Applications list"
     When User Searches Application List With:
       | Date   | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
       | <Date> |      | <Description>    |             |       | <Status>           |                            |                       |           |
-    When User Set Date Field "Date" To "<Date>"
-    Then User Selects "Choose" In The "Select list status" Dropdown
-    When User Clicks On The "Search" Button
-    Then User Should See The Table "Lists"
-    Then User Should See Table "Lists" Has Rows
-    Then User Should See Row In Table "<TableName>" With Values:
+    When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
       | Date          | Time   | Location     | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
+    Then User Sees Notification Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
+    Then User See "Are you sure you want to delete this application list?" On The Page
+    When User Clicks On The "Yes - delete" Button
+    Then User Should See The Link "Create new list"
+    Then User Sees Notification Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
 
     Examples:
-      | User  | Date  | Time           | Description   | Status | OtherLocation           | NotificationMessage                            | OptionText    | SearchText | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName |
-      | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Other Location_{RANDOM} | Success Applications list created successfully | Wolverhampton | B9         | Lists     | todaydisplay | 0       | Select           | Open       |
+      | User  | Date  | Time           | Description   | Status | OtherLocation           | NotificationMessage                            | OptionText    | SearchText | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName | HH | MM |
+      | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Other Location_{RANDOM} | Success Applications list created successfully | Wolverhampton | B9         | Lists     | todaydisplay | 0       | Select           | Open       | 0  | 0  |
 
   @regression @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794
   Scenario Outline: Create applications list using Court Autocomplete
@@ -48,21 +49,20 @@ Feature: Applications List Create
     Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
     When User Clicks On The "Create" Button
     Then User Sees Notification Banner "<NotificationMessage>"
-    Then User Clicks On The Link "Click here to go back"
+    Then User Verify The Page URL Contains "listCreated=true#list-details"
+    Then User Should See The Link "Create application"
+    Then User Clicks On The Breadcrumb Link "Applications list"
+    When User Searches Application List With:
+      | Date   | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+      | <Date> |      | <Description>    |             |       | <Status>           |                            |                       |           |
+    When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
+      | Date          | Time   | Location     | Description   | Entries   | Status   |
+      | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
+    Then User Sees Notification Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
+    Then User See "Are you sure you want to delete this application list?" On The Page
+    When User Clicks On The "Yes - delete" Button
     Then User Should See The Link "Create new list"
-    When User Set Date Field "Date" To "<Date>"
-    Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
-    Then User Selects "Choose" In The "Select list status" Dropdown
-    When User Clicks On The "Search" Button
-    Then User Should See The Table "Lists"
-    Then User Should See Table "Lists" Has Rows
-    Then User Should See Row In Table "<TableName>" With Values:
-      | Date          | Time   | Location     | Description   | Entries   | Status   |
-      | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
-    When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
-      | Date          | Time   | Location     | Description   | Entries   | Status   |
-      | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
-    Then User Should See The Link "List details"
+    Then User Sees Notification Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
     Examples:
       | User  | Date  | Time           | Description   | Status | NotificationMessage                            | SearchText | OptionText                    | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName |
       | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Success Applications list created successfully | royal      | Royal Courts of Justice Set 1 | Lists     | todaydisplay | 0       | Select           | Open       |
@@ -108,9 +108,21 @@ Feature: Applications List Create
     Then User Selects "<CJA>" From The Textbox "Criminal justice area" Autocomplete By Typing "<SearchText>"
     When User Clicks On The "Create" Button
     Then User Sees Notification Banner "<NotificationMessage>"
-    Then User Clicks On The Link "Click here to go back"
+    Then User Verify The Page URL Contains "listCreated=true#list-details"
+    Then User Should See The Link "Create application"
+    Then User Clicks On The Breadcrumb Link "Applications list"
+    When User Searches Application List With:
+      | Date   | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+      | <Date> |      | <Description>    |             |       | <Status>           |                            |                       |           |
+    When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
+      | Date          | Time   | Location | Description   | Entries   | Status   |
+      | <DisplayDate> | <Time> | <CJA>    | <Description> | <Entries> | <Status> |
+    Then User Sees Notification Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
+    Then User See "Are you sure you want to delete this application list?" On The Page
+    When User Clicks On The "Yes - delete" Button
     Then User Should See The Link "Create new list"
+    Then User Sees Notification Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
 
     Examples:
-      | User  | InvalidDate | Date  | InvalidTime | Time  | Description   | Status | InvalidCourt | OtherLocation           | InvalidCJA | CJA           | SearchText | NotificationMessage                                                 |
-      | user1 | 32/13/2024  | today | 25:61       | 14:30 | Test_{RANDOM} | Open   | abc          | Other Location_{RANDOM} | abc        | Wolverhampton | B9         | Success Applications list created successfullyClick here to go back |
+      | User  | InvalidDate | Date  | InvalidTime | Time  | Description   | Status | InvalidCourt | OtherLocation           | InvalidCJA | CJA           | SearchText | NotificationMessage                            | TableName | DisplayDate  | Entries | SelectButtonText |
+      | user1 | 32/13/2024  | today | 25:61       | 14:30 | Test_{RANDOM} | Open   | abc          | Other Location_{RANDOM} | abc        | Wolverhampton | B9         | Success Applications list created successfully | Lists     | todaydisplay | 0       | Select           |

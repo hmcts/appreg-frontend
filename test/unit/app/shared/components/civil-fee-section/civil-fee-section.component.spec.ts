@@ -49,6 +49,14 @@ describe('CivilFeeSectionComponent', () => {
     { value: 'exempt', label: 'Exempt' },
   ];
 
+  const attachValidatorsForSubmitAttempt = (): void => {
+    (
+      component as unknown as {
+        attachValidatorsForSubmitAttempt: () => void;
+      }
+    ).attachValidatorsForSubmitAttempt();
+  };
+
   beforeEach(async () => {
     routerNavigate = jest.fn().mockResolvedValue(true);
 
@@ -77,13 +85,30 @@ describe('CivilFeeSectionComponent', () => {
     expect(component.entryId).toBe('EN-1');
   });
 
-  it('feeStatusOptionsWithPlaceholder prepends a disabled placeholder', () => {
+  it('feeStatusOptionsWithPlaceholder is disabled when fee is required', () => {
+    fixture.componentRef.setInput('feeRequired', true);
+    fixture.detectChanges();
+
     const opts = component.feeStatusOptionsWithPlaceholder();
 
     expect(opts[0]).toEqual({
       value: '',
       label: 'Select fee status',
       disabled: true,
+    });
+    expect(opts.slice(1)).toEqual(feeStatusOptions);
+  });
+
+  it('feeStatusOptionsWithPlaceholder is NOT disabled when fee is required', () => {
+    fixture.componentRef.setInput('feeRequired', false);
+    fixture.detectChanges();
+
+    const opts = component.feeStatusOptionsWithPlaceholder();
+
+    expect(opts[0]).toEqual({
+      value: '',
+      label: 'Select fee status',
+      disabled: false,
     });
     expect(opts.slice(1)).toEqual(feeStatusOptions);
   });
@@ -210,7 +235,7 @@ describe('CivilFeeSectionComponent', () => {
     expect(component.feeHeadingText()).toBe('MOCK_HEADING');
   });
 
-  it('feeStatusRows maps FeeStatus array into RowLike rows (date formatted dd/mm/yyyy)', () => {
+  it('feeStatusRows maps FeeStatus array into RowLike rows (date formatted in template using DateTimePipe)', () => {
     const f = component.feeForm().controls;
 
     f.feeStatuses.setValue([
@@ -234,14 +259,12 @@ describe('CivilFeeSectionComponent', () => {
         paymentReference: 'REF1',
         paymentStatus: 'paid',
         statusDateRaw: '2025-10-25',
-        statusDate: '25/10/2025',
       },
       {
         rowId: 'row-exempt-2025-01-02',
         paymentReference: '',
         paymentStatus: 'exempt',
         statusDateRaw: '2025-01-02',
-        statusDate: '02/01/2025',
       },
     ]);
   });
@@ -270,12 +293,128 @@ describe('CivilFeeSectionComponent', () => {
     );
   });
 
-  it('onChangePaymentReference does nothing when paymentReference is empty', () => {
+  it('onChangePaymentReference does something to allow payment reference to be changed', () => {
     component.onChangePaymentReference({
       rowId: 'row-1',
       paymentReference: '',
     });
 
+    expect(routerNavigate).toHaveBeenCalled();
+  });
+
+  it('onChangePaymentReference does nothing if status === DUE', () => {
+    component.onChangePaymentReference({
+      rowId: 'row-1',
+      paymentStatus: 'DUE',
+      paymentReference: '',
+    });
+
     expect(routerNavigate).not.toHaveBeenCalled();
+  });
+
+  it('showErrors returns true when parentSubmitted is true and feeRequired is true', () => {
+    fixture.componentRef.setInput('feeRequired', true);
+    fixture.componentRef.setInput('parentSubmitted', true);
+    fixture.detectChanges();
+
+    expect(component.showErrors()).toBe(true);
+  });
+
+  it('showErrors returns true when submitted is true (add fee click)', () => {
+    fixture.componentRef.setInput('feeRequired', true);
+    fixture.detectChanges();
+
+    component.onAddFeeDetailsClick();
+
+    expect(component.showErrors()).toBe(true);
+  });
+
+  it('on parent submit: when fee is required and no rows exist, attaches feeStatuses validator and required validators for feeStatus/feeStatusDate', () => {
+    fixture.componentRef.setInput('feeRequired', true);
+    fixture.detectChanges();
+
+    attachValidatorsForSubmitAttempt();
+
+    const f = component.feeForm().controls;
+
+    expect(f.feeStatuses.hasError('feeRequired')).toBe(true);
+
+    f.feeStatus.setValue('');
+    f.feeStatusDate.setValue('');
+
+    expect(f.feeStatus.hasError('required')).toBe(true);
+    expect(f.feeStatusDate.hasError('required')).toBe(true);
+  });
+
+  it('on parent submit: when a fee row exists, feeStatus/feeStatusDate remain required', () => {
+    const f = component.feeForm().controls;
+
+    f.feeStatuses.setValue([
+      {
+        id: 'ROW-1',
+        paymentStatus: 'Paid',
+        statusDate: '01/01/2026',
+      } as unknown as FeeStatus,
+    ]);
+
+    fixture.componentRef.setInput('feeRequired', true);
+    fixture.detectChanges();
+
+    attachValidatorsForSubmitAttempt();
+
+    f.feeStatus.setValue('');
+    f.feeStatusDate.setValue('');
+
+    expect(f.feeStatuses.hasError('feeRequired')).toBe(false);
+    expect(f.feeStatus.hasError('required')).toBe(false);
+    expect(f.feeStatusDate.hasError('required')).toBe(false);
+  });
+
+  it('on parent submit: emits civilFeeErrors for missing fee status and status date when fee is required and no rows exist', () => {
+    const emitSpy = jest.spyOn(component.civilFeeErrors, 'emit');
+
+    fixture.componentRef.setInput('feeRequired', true);
+    fixture.componentRef.setInput('parentSubmitted', true);
+    fixture.detectChanges();
+
+    const lastCall = emitSpy.mock.calls.at(-1) as [ErrorItem[]] | undefined;
+
+    const emitted = lastCall?.[0] ?? [];
+
+    expect(emitted).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'feeStatus',
+          text: 'Select a fee status',
+        }),
+        expect.objectContaining({
+          id: 'feeStatusDate',
+          text: 'Enter a status date',
+        }),
+      ]),
+    );
+  });
+
+  it("onAddFeeDetailsClick blocks when feeStatus is 'DUE' and paymentRef is provided", () => {
+    const errorsSpy = jest.fn();
+    const addSpy = jest.fn();
+
+    component.civilFeeErrors.subscribe(errorsSpy);
+    component.addFeeDetails.subscribe(addSpy);
+
+    const f = component.feeForm().controls;
+
+    f.feeStatus.setValue('DUE');
+    f.feeStatusDate.setValue('2025-11-01');
+    f.paymentRef.setValue('REF-123');
+
+    component.onAddFeeDetailsClick();
+
+    expect(addSpy).not.toHaveBeenCalled();
+    expect(f.paymentRef.hasError('invalidStatus')).toBe(true);
+
+    expect(errorsSpy).toHaveBeenCalled();
+    const [errors] = errorsSpy.mock.calls[0] as [ErrorItem[]];
+    expect(errors.some((e) => e.id === 'paymentRef')).toBe(true);
   });
 });

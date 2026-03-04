@@ -1,11 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import {
-  AbstractControl,
-  FormControl,
-  ReactiveFormsModule,
-  ValidationErrors,
-  Validators,
-} from '@angular/forms';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { Row } from '@core-types/table/row.types';
@@ -14,12 +8,8 @@ function isRowLike(value: unknown): value is Row {
   return typeof value === 'object' && value !== null;
 }
 
-const requiredValidator = (control: AbstractControl): ValidationErrors | null =>
-  Validators.required(control);
-
 const PAYMENT_REF_EDIT_ERRORS = {
   paymentReference: {
-    required: 'Enter a payment reference',
     maxlength: 'Payment reference must be less than or equal to 15 characters',
   },
 };
@@ -36,7 +26,7 @@ export class PaymentReferenceEditComponent implements OnInit {
   row: Row | null = null;
   paymentReference = new FormControl<string>('', {
     nonNullable: true,
-    validators: [requiredValidator, Validators.maxLength(15)],
+    validators: [Validators.maxLength(15)],
   });
 
   submitted = signal(false);
@@ -75,9 +65,6 @@ export class PaymentReferenceEditComponent implements OnInit {
 
     const map = PAYMENT_REF_EDIT_ERRORS.paymentReference;
 
-    if (errors['required']) {
-      return map.required;
-    }
     if (errors['maxlength']) {
       return map.maxlength;
     }
@@ -104,12 +91,12 @@ export class PaymentReferenceEditComponent implements OnInit {
     void this.router.navigate(['../'], {
       relativeTo: this.route,
       queryParamsHandling: 'preserve',
-      state: {
+      state: this.buildReturnState({
         paymentRefReturn: {
           updatedRowId,
           newPaymentReference: this.paymentReference.value,
         },
-      },
+      }),
     });
   }
 
@@ -117,7 +104,15 @@ export class PaymentReferenceEditComponent implements OnInit {
     void this.router.navigate(['../'], {
       relativeTo: this.route,
       queryParamsHandling: 'preserve',
-      state: { focusId: 'civil-fee-section' }, // TODO: Implement a scroll service to focus on certain elements on navigation
+      state: this.buildReturnState({ focusId: 'civil-fee-section' }), // TODO: Implement a scroll service to focus on certain elements on navigation
     });
+  }
+
+  private buildReturnState(
+    extraState: Record<string, unknown>,
+  ): Record<string, unknown> {
+    const current = (history.state ?? {}) as Record<string, unknown>;
+    const { row, ...rest } = current;
+    return { ...rest, ...extraState };
   }
 }
