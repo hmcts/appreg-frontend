@@ -9,7 +9,18 @@ export class TextElement {
     return cy.get(selector);
   }
 
-  static getTextByContent(content: string): Cypress.Chainable {
+  /**
+   * Returns a Cypress chainable for an element containing text, optionally scoped by selector
+   * @param content Text content to locate
+   * @param selector Optional CSS selector to scope the text lookup
+   */
+  static getTextByContent(
+    content: string,
+    selector?: string,
+  ): Cypress.Chainable {
+    if (selector) {
+      return cy.contains(selector, content);
+    }
     return cy.contains(content);
   }
 }
