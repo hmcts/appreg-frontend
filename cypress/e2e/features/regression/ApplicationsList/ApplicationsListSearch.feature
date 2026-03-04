@@ -4,7 +4,7 @@ Feature: Applications List Search
   Scenario: Verify components on applications list search page
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
-    Then User See "Applications List" On The Page
+    Then User Sees Page Heading "Applications List"
     Then User Should See The Date Field "Date"
     Then User Sees Text "For example, 27 3 2007" In "Date" Field
     Then User Should See The Time Field "Time"
@@ -290,4 +290,3 @@ Feature: Applications List Search
     Then User Should See Table "Lists" Header "Location" Has Sort Order "descending"
     When User Goes To First Page
     Then User Should See Table "Lists" Header "Location" Has Sort Order "descending"
-
