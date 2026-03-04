@@ -142,6 +142,7 @@ export const OFFICIAL_FIELD_MESSAGES = {
 
 export const NUMBER_OF_RESPONDENT_MESSAGES = {
   numberOfRespondents: {
+    required: 'Enter number of respondents',
     pattern:
       'Number of respondents must be a positive whole number between 1 - 9999',
     maxlength:

@@ -1,6 +1,6 @@
 import { AbstractControl } from '@angular/forms';
 
-function controlHasAnyValue(
+export function controlHasAnyValue(
   control: AbstractControl | null | undefined,
 ): boolean {
   // Recursively check control for values

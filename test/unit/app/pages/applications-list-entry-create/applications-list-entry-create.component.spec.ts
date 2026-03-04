@@ -100,7 +100,33 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
 
     expect(createApplicationListEntryMock).not.toHaveBeenCalled();
     expect(component.vm().errorFound).toBe(true);
+    expect(component.respondentSubmittedAndRequired).toBe(true);
     expect(component.respondentErrorItems.length).toBeGreaterThan(0);
+  });
+
+  it('onSubmit: does not mark respondent submitted when respondent is optional and empty', () => {
+    (
+      component as unknown as {
+        appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
+      }
+    ).appListEntryCreatePatch({
+      appCodeDetail: { requiresRespondent: false },
+    });
+
+    component.form.patchValue({
+      applicationCode: '   ', // keep submit invalid via non-respondent field
+      respondentEntryType: 'person',
+      numberOfRespondents: null,
+    });
+    component.forms.respondentPersonForm.reset();
+    component.forms.respondentOrganisationForm.reset();
+
+    component.onSubmit(new Event('submit'));
+
+    expect(createApplicationListEntryMock).not.toHaveBeenCalled();
+    expect(component.vm().submitted).toBe(true);
+    expect(component.respondentSubmittedAndRequired).toBe(false);
+    expect(component.respondentErrorItems).toEqual([]);
   });
 
   it('payload: omits applicant/respondent when empty', () => {
@@ -650,6 +676,39 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
     expect(createApplicationListEntryMock).not.toHaveBeenCalled();
     expect(component.vm().errorFound).toBe(true);
     expect(component.respondentErrorItems.length).toBeGreaterThan(0);
+  });
+
+  it('onSubmit: adds bulk required error to summary when respondent is required and bulk is empty', () => {
+    (
+      component as unknown as {
+        appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
+      }
+    ).appListEntryCreatePatch({
+      appCodeDetail: { requiresRespondent: true },
+    });
+
+    component.form.patchValue({
+      applicationCode: 'A001',
+      lodgementDate: '2026-02-01',
+      applicantType: 'standard',
+      standardApplicantCode: 'SA-1',
+      respondentEntryType: 'bulk',
+      numberOfRespondents: null,
+    });
+
+    component.onSubmit(new Event('submit'));
+
+    expect(createApplicationListEntryMock).not.toHaveBeenCalled();
+    expect(component.vm().errorFound).toBe(true);
+    expect(component.vm().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'numberOfRespondents',
+          text: 'Enter number of respondents',
+          href: '#respondent-number-of-respondents',
+        }),
+      ]),
+    );
   });
 
   it('onCodeSelected makes API call with code/date and expected args', () => {

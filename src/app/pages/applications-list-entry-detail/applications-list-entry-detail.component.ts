@@ -485,6 +485,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         respondentOrganisationHrefs: RESPONDENT_ORG_ERROR_HREFS,
         respondentBulkControl: this.form.controls.numberOfRespondents,
         respondentBulkHrefs: RESPONDENT_BULK_ERROR_HREFS,
+        bulkCountRequired: isRespondentRequired,
       });
       return;
     }

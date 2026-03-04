@@ -270,6 +270,13 @@ export class ApplicationsListEntryCreate implements OnInit {
     return this.childErrors.respondent;
   }
 
+  get respondentSubmittedAndRequired(): boolean {
+    return (
+      this.appListEntryCreateState().submitted &&
+      this.shouldValidateRespondent()
+    );
+  }
+
   onWordingFieldsDTO(dto: { wordingFields: TemplateSubstitution[] }): void {
     this.forms.form.patchValue({
       wordingFields: dto.wordingFields,
@@ -311,21 +318,10 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   private updateRespondentErrors(): void {
-    // Run validation if respondent is required
-    // and when respondent forms are fully/partially populated
     const isRespondentRequired =
-      this.appListEntryCreateState().appCodeDetail?.requiresRespondent ?? true;
+      this.appListEntryCreateState().appCodeDetail?.requiresRespondent === true;
 
-    const respondentFormHasValues = respondentFormsHaveAnyValue({
-      numberOfRespondents: this.form.controls.numberOfRespondents,
-      respondentPersonForm: this.forms.respondentPersonForm,
-      respondentOrganisationForm: this.forms.respondentOrganisationForm,
-    });
-
-    const shouldValidateRespondent =
-      isRespondentRequired || respondentFormHasValues;
-
-    if (shouldValidateRespondent) {
+    if (this.shouldValidateRespondent()) {
       this.childErrors.respondent = buildRespondentErrors({
         respondentEntryType: this.form.controls.respondentEntryType.value,
         respondentPersonForm: this.forms.respondentPersonForm,
@@ -335,11 +331,27 @@ export class ApplicationsListEntryCreate implements OnInit {
         respondentOrganisationHrefs: RESPONDENT_ORG_ERROR_HREFS,
         respondentBulkControl: this.form.controls.numberOfRespondents,
         respondentBulkHrefs: RESPONDENT_BULK_ERROR_HREFS,
+        bulkCountRequired: isRespondentRequired,
       });
       return;
     }
 
     this.childErrors.respondent = [];
+  }
+
+  private shouldValidateRespondent(): boolean {
+    // Run validation if respondent is required, or if user has started filling
+    // respondent fields even when optional.
+    const isRespondentRequired =
+      this.appListEntryCreateState().appCodeDetail?.requiresRespondent === true;
+
+    const respondentFormHasValues = respondentFormsHaveAnyValue({
+      numberOfRespondents: this.form.controls.numberOfRespondents,
+      respondentPersonForm: this.forms.respondentPersonForm,
+      respondentOrganisationForm: this.forms.respondentOrganisationForm,
+    });
+
+    return isRespondentRequired || respondentFormHasValues;
   }
 
   private updateErrors(opts: { validateOtherSections: boolean }): void {
