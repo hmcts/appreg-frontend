@@ -7,6 +7,10 @@ Then('User See {string} On The Page', (expectedText: string) => {
   TextHelper.verifyTextPresence(PageElements.body, expectedText);
 });
 
+Then('User Sees Page Heading {string}', (expectedText: string) => {
+  TextHelper.verifyPageHeading(expectedText);
+});
+
 Then(
   'User Sees Text {string} In {string} Field',
   (expectedText: string, containerLabel: string) => {

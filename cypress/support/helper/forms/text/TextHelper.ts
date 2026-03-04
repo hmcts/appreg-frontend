@@ -14,6 +14,29 @@ export class TextHelper {
   }
 
   /**
+   * Asserts that the first visible heading in main page content contains expected text.
+   * This is intentionally heading-level agnostic (h1-h6) to avoid brittle tests.
+   * @param expectedText The expected page heading text
+   */
+  static verifyPageHeading(expectedText: string): void {
+    const headingSelector = '#main-content :header:visible';
+    const normalizedExpected = StringUtils.normalizeText(expectedText);
+
+    cy.log(`Verifying page heading "${normalizedExpected}"`);
+
+    TextElement.getText(headingSelector)
+      .first()
+      .should(($heading) => {
+        const normalizedActual = StringUtils.normalizeText($heading.text());
+
+        expect(
+          normalizedActual,
+          `Expected first visible heading in main content to contain text "${normalizedExpected}"`,
+        ).to.include(normalizedExpected);
+      });
+  }
+
+  /**
    * Verifies text exists within a labeled section
    * @param sectionLabel The label/heading of the section
    * @param expectedText The expected text content within that section
