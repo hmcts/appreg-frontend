@@ -12,6 +12,7 @@ export interface ApplicationsListEntryCreateState {
   errorFound: boolean;
   summaryErrors: ErrorItem[];
   bulkApplicationsAllowed: boolean;
+  isFeeRequired: boolean;
 }
 
 export const initialApplicationsListEntryCreateState: ApplicationsListEntryCreateState =
@@ -24,4 +25,5 @@ export const initialApplicationsListEntryCreateState: ApplicationsListEntryCreat
     errorFound: false,
     summaryErrors: [],
     bulkApplicationsAllowed: false,
+    isFeeRequired: false
   };

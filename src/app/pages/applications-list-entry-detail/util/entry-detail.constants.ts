@@ -37,7 +37,7 @@ export const EXISTING_RESULTS_WORDING_COLUMNS = [
 
 export const CIVIL_FEE_COLUMNS: TableColumn[] = [
   { header: 'Fee Status', field: 'paymentStatus' },
-  { header: 'Status Date', field: 'statusDate' },
+  { header: 'Status Date', field: 'statusDateRaw' },
   { header: 'Payment Ref', field: 'paymentReference' },
 ];
 

@@ -103,7 +103,8 @@
       (addFeeDetails)="onAddFeeDetails($event)"
       (civilFeeErrors)="onChildErrors('civilFee', $event)"
       (offsiteFeeChanged)="onOffsiteFeeChanged($event)"
-    ></app-civil-fee-section>
+      [feeRequired]="isFeeRequired"
+    />
   </ng-template>
 
   <ng-template #notesTpl>

@@ -114,9 +114,8 @@ import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import { CodeRow } from '@util/application-code-helpers';
 import { buildRespondentErrors } from '@util/applications-list-entry-error-helpers';
 import {
-  addOrReplaceFeeStatus,
-  applyPaymentReferenceUpdateToFeeStatuses,
-  toFeeStatus,
+  updateFeeStatusesControl,
+  updatePaymentReferenceInFeeStatusesControl,
 } from '@util/civil-fee-utils';
 import {
   focusErrorSummary,
@@ -236,6 +235,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   //Civil fee
   feeMeta: CivilFeeMeta | null = null;
   civilFeeForm!: CivilFeeForm;
+  isFeeRequired: boolean = false;
   private persistedHasOffsiteFee = false;
 
   ngOnInit(): void {
@@ -296,40 +296,31 @@ export class ApplicationsListEntryDetail implements OnInit {
   onAddFeeDetails(payload: AddFeeDetailsPayload): void {
     this.resetErrors();
 
-    const current = this.form.controls.feeStatuses.value ?? [];
-    const nextItem = toFeeStatus(payload);
-
-    const { next, changed } = addOrReplaceFeeStatus(current, nextItem);
+    const { next, changed } = updateFeeStatusesControl(
+      this.form.controls.feeStatuses,
+      payload,
+    );
     if (!changed) {
       return;
     }
 
-    this.form.controls.feeStatuses.setValue(next);
-    this.form.controls.feeStatuses.markAsDirty();
-
     const bannerText: SuccessBanner = ENTRY_SUCCESS_MESSAGES.feeStatusUpdated;
-
     this.persistFeeStatuses(next, bannerText);
   }
 
   // Used to update payment reference for current fee status from /change-payment-reference
   private applyPaymentRefReturn(updatedRowId: string, newRef: string): void {
-    const current = this.form.controls.feeStatuses.value ?? [];
-    const { next, changed } = applyPaymentReferenceUpdateToFeeStatuses(
-      current,
+    const { next, changed } = updatePaymentReferenceInFeeStatusesControl(
+      this.form.controls.feeStatuses,
       updatedRowId,
-      newRef.trim(),
+      newRef,
     );
 
     if (!changed) {
       return;
     }
 
-    this.form.controls.feeStatuses.setValue(next);
-    this.form.controls.feeStatuses.markAsDirty();
-
     const bannerText: SuccessBanner = ENTRY_SUCCESS_MESSAGES.paymentRefUpdated;
-
     this.persistFeeStatuses(next, bannerText);
   }
 
@@ -415,8 +406,9 @@ export class ApplicationsListEntryDetail implements OnInit {
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
             }
 
-            this.bulkApplicationsAllowed =
-              appCodeDetail.bulkRespondentAllowed ?? false;
+            this.isFeeRequired = appCodeDetail.isFeeDue;
+
+            this.bulkApplicationsAllowed = appCodeDetail.bulkRespondentAllowed;
             this.appCodeDetail = appCodeDetail;
           },
           error: (err) => {

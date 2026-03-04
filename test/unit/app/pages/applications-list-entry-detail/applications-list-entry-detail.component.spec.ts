@@ -19,10 +19,14 @@ import {
   ApplicationListEntriesApi,
   EntryGetDetailDto,
   EntryUpdateDto,
+  FeeStatus,
   GetApplicationCodesRequestParams,
+  PaymentStatus,
   UpdateApplicationListEntryRequestParams,
 } from '@openapi';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
+import type { AddFeeDetailsPayload } from '@shared-types/civil-fee/civil-fee';
+import * as civilFeeUtils from '@util/civil-fee-utils';
 
 type GetCodesFn = (
   params: GetApplicationCodesRequestParams,
@@ -51,6 +55,10 @@ type GetCodeDetailFn = (
   reportProgress?: boolean,
   options?: { transferCache?: boolean; context?: unknown },
 ) => Observable<ApplicationCodeGetDetailDto>;
+
+type PaymentRefApplier = {
+  applyPaymentRefReturn: (updatedRowId: string, newRef: string) => void;
+};
 
 describe('ApplicationsListEntryDetail', () => {
   let fixture: ComponentFixture<ApplicationsListEntryDetail>;
@@ -413,5 +421,132 @@ describe('ApplicationsListEntryDetail', () => {
 
     expect(component['entryDetail']?.applicationCode).toBe('APP-200');
     expect(component['entryDetail']?.wordingFields).toEqual(['Court A']);
+  });
+
+  it('onCodeSelected sets isFeeRequired from app-code response isFeeDue', () => {
+    component['form'].patchValue({ lodgementDate: '2025-11-01' });
+
+    mockGetApplicationCodeByCodeAndDate.mockReturnValue(
+      of({
+        applicationCode: 'APP-1',
+        title: 'Title for APP-1',
+        wording: { template: '...' },
+        bulkRespondentAllowed: false,
+        isFeeDue: true,
+        requiresRespondent: false,
+        feeReference: undefined,
+        startDate: '2025-01-01',
+        endDate: null,
+      } as ApplicationCodeGetDetailDto),
+    );
+
+    component.onCodeSelected({ code: 'APP-1', date: '2025-11-01' });
+
+    expect(component.isFeeRequired).toBe(true);
+  });
+
+  it('onAddFeeDetails: when helper returns changed=false, does not call update API', () => {
+    const spy = jest
+      .spyOn(civilFeeUtils, 'updateFeeStatusesControl')
+      .mockReturnValue({ next: [], changed: false });
+
+    const payload: AddFeeDetailsPayload = {
+      feeStatus: PaymentStatus.PAID,
+      statusDate: '2026-01-10',
+      paymentReference: 'REF1',
+    };
+
+    component.onAddFeeDetails(payload);
+
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
+
+    spy.mockRestore();
+  });
+
+  it('onAddFeeDetails: when helper returns changed=true, persists feeStatuses via update API', () => {
+    const next: FeeStatus[] = [
+      {
+        paymentStatus: 'Paid',
+        statusDate: '2026-01-10',
+        paymentReference: 'REF1',
+      } as unknown as FeeStatus,
+    ];
+
+    const spy = jest
+      .spyOn(civilFeeUtils, 'updateFeeStatusesControl')
+      .mockReturnValue({ next, changed: true });
+
+    const payload: AddFeeDetailsPayload = {
+      feeStatus: PaymentStatus.PAID,
+      statusDate: '2026-01-10',
+      paymentReference: 'REF1',
+    };
+
+    component.onAddFeeDetails(payload);
+
+    expect(spy).toHaveBeenCalledTimes(1);
+
+    expect(mockUpdateApplicationListEntry).toHaveBeenCalledTimes(1);
+    const call = mockUpdateApplicationListEntry.mock.calls[0];
+    const params = call[0];
+
+    expect(params.listId).toBe('AL-1');
+    expect(params.entryId).toBe('EN-1');
+    expect(params.entryUpdateDto).toEqual(
+      expect.objectContaining({
+        feeStatuses: next,
+      }),
+    );
+
+    spy.mockRestore();
+  });
+
+  it('applyPaymentRefReturn: when helper returns changed=false, does not call update API', () => {
+    const spy = jest
+      .spyOn(civilFeeUtils, 'updatePaymentReferenceInFeeStatusesControl')
+      .mockReturnValue({ next: [], changed: false });
+
+    const subject = component as unknown as PaymentRefApplier;
+
+    subject.applyPaymentRefReturn('ROW-1', 'NEW');
+
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
+
+    spy.mockRestore();
+  });
+
+  it('applyPaymentRefReturn: when helper returns changed=true, persists feeStatuses via update API', () => {
+    const next: FeeStatus[] = [
+      {
+        paymentStatus: 'Paid',
+        statusDate: '2026-01-10',
+        paymentReference: 'NEW',
+      } as unknown as FeeStatus,
+    ];
+
+    const spy = jest
+      .spyOn(civilFeeUtils, 'updatePaymentReferenceInFeeStatusesControl')
+      .mockReturnValue({ next, changed: true });
+
+    const subject = component as unknown as PaymentRefApplier;
+    subject.applyPaymentRefReturn('ROW-1', '  NEW  ');
+
+    expect(spy).toHaveBeenCalledTimes(1);
+
+    expect(mockUpdateApplicationListEntry).toHaveBeenCalledTimes(1);
+    const call = mockUpdateApplicationListEntry.mock.calls[0];
+    const params = call[0];
+
+    expect(params.listId).toBe('AL-1');
+    expect(params.entryId).toBe('EN-1');
+    expect(params.entryUpdateDto).toEqual(
+      expect.objectContaining({
+        feeStatuses: next,
+      }),
+    );
+
+    spy.mockRestore();
   });
 });

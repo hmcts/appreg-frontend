@@ -10,7 +10,12 @@ import {
   compactStrings,
   toOptionalTrimmed,
 } from '@components/applications-list-entry-create/util/helpers';
-import { ApplicationCodesApi, ApplicationListEntriesApi } from '@openapi';
+import {
+  ApplicationCodeGetDetailDto,
+  ApplicationCodesApi, ApplicationListEntriesApi,
+  FeeStatus,
+} from '@openapi';
+import { AddFeeDetailsPayload } from '@shared-types/civil-fee/civil-fee';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 
 function roundTrip<T extends object>(o: T): T {
@@ -253,6 +258,265 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
 
     const compact = compactStrings(['  a', ' ', null, undefined, 'b  ']);
     expect(compact).toEqual(['a', 'b']);
+  });
+});
+
+describe('ApplicationsListEntryCreate (submission + error flow)', () => {
+  let fixture: ComponentFixture<ApplicationsListEntryCreate>;
+  let component: ApplicationsListEntryCreate;
+  let api: { createApplicationListEntry: jest.Mock };
+  let updateFeeStatusesControlSpy: jest.SpyInstance;
+
+  beforeEach(async () => {
+    api = { createApplicationListEntry: jest.fn().mockReturnValue(of({})) };
+
+    await TestBed.configureTestingModule({
+      imports: [ApplicationsListEntryCreate],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: ApplicationListEntriesApi, useValue: api },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: { get: () => 'LIST-1' } } },
+        },
+      ],
+    })
+      .overrideTemplate(ApplicationsListEntryCreate, '')
+      .compileComponents();
+
+    // Spy after module is loaded
+    const civilFeeUtils = await import('@util/civil-fee-utils');
+    updateFeeStatusesControlSpy = jest
+      .spyOn(civilFeeUtils, 'updateFeeStatusesControl')
+      .mockImplementation(() => ({ next: [], changed: true }));
+
+    fixture = TestBed.createComponent(ApplicationsListEntryCreate);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    updateFeeStatusesControlSpy.mockRestore();
+  });
+
+  it('onChildErrors: when not submitted, aggregates child errors but does not trigger other section validation', () => {
+    component.vm().submitted = false;
+    component.form.controls.applicantType.setValue('person');
+
+    expect(component.personForm.touched).toBe(false);
+
+    component.onChildErrors('civilFee', [
+      { id: 'feeStatus', text: 'Select a fee status' },
+    ]);
+
+    expect(component.vm().summaryErrors).toEqual([
+      { id: 'feeStatus', text: 'Select a fee status' },
+    ]);
+    expect(component.vm().errorFound).toBe(true);
+
+    // child errors should not touch other sections when not submitted
+    expect(component.personForm.touched).toBe(false);
+  });
+
+  it('onSubmit: invalid form blocks API call and keeps submitted=true (so errors display)', () => {
+    component.onSubmit(new Event('submit'));
+
+    expect(api.createApplicationListEntry).not.toHaveBeenCalled();
+    expect(component.vm().errorFound).toBe(true);
+    expect(component.vm().submitted).toBe(true);
+    expect(component.vm().summaryErrors.length).toBeGreaterThan(0);
+  });
+
+  it('onAddFeeDetails: calls updateFeeStatusesControl with feeStatuses control + payload and does not submit', () => {
+    const payload = {
+      feeStatus: 'Paid',
+      statusDate: '2026-01-10',
+      paymentReference: 'REF1',
+    } as unknown as AddFeeDetailsPayload;
+
+    component.onAddFeeDetails(payload);
+
+    expect(updateFeeStatusesControlSpy).toHaveBeenCalledTimes(1);
+    expect(updateFeeStatusesControlSpy).toHaveBeenCalledWith(
+      component.form.controls.feeStatuses,
+      payload,
+    );
+
+    expect(api.createApplicationListEntry).not.toHaveBeenCalled();
+  });
+
+  it('onOffsiteFeeChanged: updates hasOffsiteFee without emitting, and marks control dirty', () => {
+    const ctrl = component.form.controls.hasOffsiteFee;
+    expect(ctrl.dirty).toBe(false);
+
+    component.onOffsiteFeeChanged(true);
+
+    expect(ctrl.value).toBe(true);
+    expect(ctrl.dirty).toBe(true);
+  });
+});
+
+describe('ApplicationsListEntryCreate (payment reference return)', () => {
+  let fixture: ComponentFixture<ApplicationsListEntryCreate>;
+  let component: ApplicationsListEntryCreate;
+  let updatePaymentReferenceInFeeStatusesControlSpy: jest.SpyInstance;
+  let readNavStateSpy: jest.SpyInstance;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [ApplicationsListEntryCreate],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: ApplicationListEntriesApi,
+          useValue: { createApplicationListEntry: jest.fn() },
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: { get: () => 'LIST-1' } } },
+        },
+      ],
+    })
+      .overrideTemplate(ApplicationsListEntryCreate, '')
+      .compileComponents();
+
+    const civilFeeUtils = await import('@util/civil-fee-utils');
+    updatePaymentReferenceInFeeStatusesControlSpy = jest.spyOn(
+      civilFeeUtils,
+      'updatePaymentReferenceInFeeStatusesControl',
+    );
+    const routingStateUtil =
+      await import('@components/applications-list-entry-detail/util/routing-state-util');
+    readNavStateSpy = jest.spyOn(routingStateUtil, 'readNavState');
+  });
+
+  afterEach(() => {
+    updatePaymentReferenceInFeeStatusesControlSpy.mockRestore();
+    readNavStateSpy.mockRestore();
+    history.replaceState({}, '');
+  });
+
+  it('applies paymentRefReturn from navigation state during init', () => {
+    const existingRows: FeeStatus[] = [
+      {
+        paymentStatus: 'Paid',
+        statusDate: '2026-01-10',
+        paymentReference: 'OLD',
+      } as unknown as FeeStatus,
+    ];
+
+    readNavStateSpy.mockReturnValue({
+      paymentRefReturn: {
+        updatedRowId: 'Paid|2026-01-10',
+        newPaymentReference: 'NEW',
+      },
+    });
+
+    fixture = TestBed.createComponent(ApplicationsListEntryCreate);
+    component = fixture.componentInstance;
+    component.form.controls.feeStatuses.setValue(existingRows);
+
+    fixture.detectChanges();
+
+    expect(updatePaymentReferenceInFeeStatusesControlSpy).toHaveBeenCalledWith(
+      component.form.controls.feeStatuses,
+      'Paid|2026-01-10',
+      'NEW',
+    );
+  });
+
+  it('clears paymentRefReturn from history state after init', () => {
+    readNavStateSpy.mockReturnValue({
+      paymentRefReturn: {
+        updatedRowId: 'Paid|2026-01-10',
+        newPaymentReference: 'NEW',
+      },
+    });
+
+    history.replaceState(
+      {
+        paymentRefReturn: {
+          updatedRowId: 'Paid|2026-01-10',
+          newPaymentReference: 'NEW',
+        },
+        keep: 'value',
+      },
+      '',
+    );
+
+    fixture = TestBed.createComponent(ApplicationsListEntryCreate);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const currentState = history.state as Record<string, unknown>;
+    expect(currentState['paymentRefReturn']).toBeUndefined();
+    expect(currentState['keep']).toBe('value');
+  });
+
+  it('restores entry create snapshot before applying payment reference update', () => {
+    const appCodeDetail = {
+      applicationCode: 'APP-1',
+      title: 'Title',
+      wording: { template: 'Template' },
+      requiresRespondent: false,
+      bulkRespondentAllowed: false,
+    } as unknown as ApplicationCodeGetDetailDto;
+
+    readNavStateSpy.mockReturnValue({
+      entryCreateSnapshot: {
+        form: {
+          applicantType: 'person',
+          applicationCode: 'APP-1',
+          lodgementDate: '2026-01-10',
+          feeStatuses: [
+            {
+              paymentStatus: 'Paid',
+              statusDate: '2026-01-10',
+              paymentReference: 'OLD',
+            },
+          ],
+        },
+        personForm: { firstName: 'Jane', surname: 'Doe' },
+        organisationForm: { name: 'Org A' },
+        respondentPersonForm: { firstName: 'Resp', surname: 'One' },
+        respondentOrganisationForm: { name: 'Resp Org' },
+        appCodeDetail,
+        feeMeta: {
+          feeReference: 'CO9.2',
+          feeAmount: { value: 7500, currency: 'GBP' },
+          offsiteFeeAmount: null,
+        },
+        isFeeRequired: true,
+      },
+      paymentRefReturn: {
+        updatedRowId: 'Paid|2026-01-10',
+        newPaymentReference: 'NEW',
+      },
+    });
+
+    fixture = TestBed.createComponent(ApplicationsListEntryCreate);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(component.form.controls.applicationCode.value).toBe('APP-1');
+    expect(component.form.controls.lodgementDate.value).toBe('2026-01-10');
+    expect(component.personForm.controls.firstName.value).toBe('Jane');
+    expect(component.forms.respondentOrganisationForm.controls.name.value).toBe(
+      'Resp Org',
+    );
+    expect(component.vm().appCodeDetail?.applicationCode).toBe('APP-1');
+    expect(component.vm().isFeeRequired).toBe(true);
+    expect(component.feeMeta?.feeReference).toBe('CO9.2');
+
+    expect(updatePaymentReferenceInFeeStatusesControlSpy).toHaveBeenCalledWith(
+      component.form.controls.feeStatuses,
+      'Paid|2026-01-10',
+      'NEW',
+    );
   });
 });
 

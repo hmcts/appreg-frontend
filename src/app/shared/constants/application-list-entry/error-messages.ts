@@ -100,6 +100,8 @@ export const CIVIL_FEE_FIELD_MESSAGES: CivilFeeErrorMap = {
   },
   paymentRef: {
     maxlength: 'Payment reference must be less than or equal to 15 characters',
+    invalidStatus:
+      'A payment reference cannot be supplied when fee status is DUE',
   },
 } as const;
 
