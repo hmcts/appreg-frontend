@@ -33,6 +33,8 @@ import {
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { map } from 'rxjs';
 
+import { parseCreateNavState } from './util/navigation-state';
+
 import { AccordionComponent } from '@components/accordion/accordion.component';
 import { ApplicantSectionComponent } from '@components/applicant-section/applicant-section.component';
 import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
@@ -73,7 +75,7 @@ import {
 } from '@openapi';
 import {
   ApplicantStep,
-  CreateDraftState,
+  EntryCreateSnapshot,
 } from '@page-types/applications-list-entry-create';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 import { ApplicantType } from '@shared-types/applications-list-entry-create/application-list-entry-form';
@@ -188,15 +190,9 @@ export class ApplicationsListEntryCreate implements OnInit {
   isFeeRequired: boolean = false;
 
   ngOnInit(): void {
-    const state = readNavState(this.location, this.platformId);
-    const navState = (state ?? {}) as Record<string, unknown>;
-
     this.id = this.route.snapshot.paramMap.get('id')!;
     this.bindApplicantTypeChanges();
-
-    this.applyCreateDraftState(navState['createDraft']);
-    this.applyPaymentRefReturn(navState['paymentRefReturn']);
-    this.clearNavigationStateOnly();
+    this.restoreNavigationState();
   }
 
   resetParentErrorsFromCodeSearch(): void {
@@ -238,7 +234,7 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.form.updateValueAndValidity({ emitEvent: false });
 
     // Build error summary from control errors + child errors
-    this.updateAllErrors({ validateOtherSections: this.submitted });
+    this.updateErrors({ validateOtherSections: this.submitted });
 
     if (this.errorFound) {
       // Don't submit if we’ve got validation errors
@@ -304,7 +300,7 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.childErrors.applicant = [];
   }
 
-  private updateAllErrors(opts: { validateOtherSections: boolean }): void {
+  private updateErrors(opts: { validateOtherSections: boolean }): void {
     // Full or partial validation
     if (opts.validateOtherSections) {
       this.updateApplicantErrors();
@@ -324,7 +320,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   onChildErrors(source: ChildErrorSource, errors: ErrorItem[]): void {
     this.childErrors[source] = errors ?? [];
-    this.updateAllErrors({ validateOtherSections: this.submitted });
+    this.updateErrors({ validateOtherSections: this.submitted });
   }
 
   onCodeSelected(codeAndLodgementDate: { code: string; date: string }): void {
@@ -365,7 +361,7 @@ export class ApplicationsListEntryCreate implements OnInit {
               }
             }
 
-            this.isFeeRequired = appCodeDetail.isFeeDue ?? false;
+            this.isFeeRequired = appCodeDetail.isFeeDue;
             this.feeMeta = {
               feeReference: appCodeDetail.feeReference ?? null,
               feeAmount: appCodeDetail.feeAmount ?? null,
@@ -395,7 +391,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   }
 
   buildChangePaymentReferenceState = (): Record<string, unknown> => ({
-    createDraft: this.buildCreateDraftState(),
+    entryCreateSnapshot: this.buildEntryCreateSnapshot(),
   });
 
   private bindApplicantTypeChanges(): void {
@@ -418,6 +414,15 @@ export class ApplicationsListEntryCreate implements OnInit {
     return this.childErrors.applicant;
   }
 
+  private restoreNavigationState(): void {
+    const rawNavState = readNavState(this.location, this.platformId);
+    const navState = parseCreateNavState(rawNavState);
+
+    this.applyEntryCreateSnapshot(navState.entryCreateSnapshot);
+    this.applyPaymentRefReturn(navState.paymentRefReturn);
+    this.clearNavigationStateOnly();
+  }
+
   private applyPaymentRefReturn(state: unknown): void {
     const paymentRefReturn = readPaymentRefReturnState(state);
     if (!paymentRefReturn) {
@@ -431,7 +436,7 @@ export class ApplicationsListEntryCreate implements OnInit {
     );
   }
 
-  private buildCreateDraftState(): CreateDraftState {
+  private buildEntryCreateSnapshot(): EntryCreateSnapshot {
     return {
       form: this.form.getRawValue(),
       personForm: this.personForm.getRawValue(),
@@ -445,14 +450,14 @@ export class ApplicationsListEntryCreate implements OnInit {
     };
   }
 
-  private applyCreateDraftState(state: unknown): void {
+  private applyEntryCreateSnapshot(state: unknown): void {
     // We need to store a draft of the current forms so when we nav back from payment ref page
     // we patch the cleaned forms with the draft values
     if (state === null || typeof state !== 'object') {
       return;
     }
 
-    const draft = state as Partial<CreateDraftState>;
+    const draft = state as Partial<EntryCreateSnapshot>;
 
     if (draft.form) {
       this.form.patchValue(draft.form, { emitEvent: false });
@@ -494,7 +499,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   private clearNavigationStateOnly(): void {
     const current = (history.state ?? {}) as Record<string, unknown>;
-    const { paymentRefReturn, createDraft, row, ...rest } = current;
+    const { paymentRefReturn, entryCreateSnapshot, row, ...rest } = current;
     history.replaceState(rest, '');
   }
 }

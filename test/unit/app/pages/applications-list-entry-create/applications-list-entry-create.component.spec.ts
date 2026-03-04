@@ -429,7 +429,7 @@ describe('ApplicationsListEntryCreate (payment reference return)', () => {
     } as unknown as ApplicationCodeGetDetailDto;
 
     readNavStateSpy.mockReturnValue({
-      createDraft: {
+      entryCreateSnapshot: {
         form: {
           applicantType: 'person',
           applicationCode: 'APP-1',

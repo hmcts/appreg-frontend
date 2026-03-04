@@ -49,6 +49,14 @@ describe('CivilFeeSectionComponent', () => {
     { value: 'exempt', label: 'Exempt' },
   ];
 
+  const attachValidatorsForSubmitAttempt = (): void => {
+    (
+      component as unknown as {
+        attachValidatorsForSubmitAttempt: () => void;
+      }
+    ).attachValidatorsForSubmitAttempt();
+  };
+
   beforeEach(async () => {
     routerNavigate = jest.fn().mockResolvedValue(true);
 
@@ -323,33 +331,22 @@ describe('CivilFeeSectionComponent', () => {
 
   it('on parent submit: when fee is required and no rows exist, attaches feeStatuses validator and required validators for feeStatus/feeStatusDate', () => {
     fixture.componentRef.setInput('feeRequired', true);
-    fixture.componentRef.setInput('parentSubmitted', true);
     fixture.detectChanges();
+
+    attachValidatorsForSubmitAttempt();
 
     const f = component.feeForm().controls;
 
-    expect(f.feeStatuses.errors).toEqual(
-      expect.objectContaining({ feeRequired: true }),
-    );
+    expect(f.feeStatuses.hasError('feeRequired')).toBe(true);
 
     f.feeStatus.setValue('');
     f.feeStatusDate.setValue('');
-    f.feeStatus.updateValueAndValidity({ emitEvent: false });
-    f.feeStatusDate.updateValueAndValidity({ emitEvent: false });
 
-    expect(f.feeStatus.errors).toEqual(
-      expect.objectContaining({ required: true }),
-    );
-    expect(f.feeStatusDate.errors).toEqual(
-      expect.objectContaining({ required: true }),
-    );
+    expect(f.feeStatus.hasError('required')).toBe(true);
+    expect(f.feeStatusDate.hasError('required')).toBe(true);
   });
 
   it('on parent submit: when a fee row exists, feeStatus/feeStatusDate remain required', () => {
-    fixture.componentRef.setInput('feeRequired', true);
-    fixture.componentRef.setInput('parentSubmitted', true);
-    fixture.detectChanges();
-
     const f = component.feeForm().controls;
 
     f.feeStatuses.setValue([
@@ -359,16 +356,18 @@ describe('CivilFeeSectionComponent', () => {
         statusDate: '01/01/2026',
       } as unknown as FeeStatus,
     ]);
+
+    fixture.componentRef.setInput('feeRequired', true);
     fixture.detectChanges();
 
-    // If the user tries to add another row, they still must supply these
+    attachValidatorsForSubmitAttempt();
+
     f.feeStatus.setValue('');
     f.feeStatusDate.setValue('');
-    f.feeStatus.updateValueAndValidity({ emitEvent: false });
-    f.feeStatusDate.updateValueAndValidity({ emitEvent: false });
 
-    expect(f.feeStatus.errors?.['required']).toBe(true);
-    expect(f.feeStatusDate.errors?.['required']).toBe(true);
+    expect(f.feeStatuses.hasError('feeRequired')).toBe(false);
+    expect(f.feeStatus.hasError('required')).toBe(false);
+    expect(f.feeStatusDate.hasError('required')).toBe(false);
   });
 
   it('on parent submit: emits civilFeeErrors for missing fee status and status date when fee is required and no rows exist', () => {

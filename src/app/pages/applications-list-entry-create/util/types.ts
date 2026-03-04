@@ -8,7 +8,7 @@ import { CivilFeeMeta } from '@shared-types/civil-fee/civil-fee';
 
 export type ApplicantStep = 'select' | 'person' | 'org' | 'standard';
 
-export type CreateDraftState = {
+export type EntryCreateSnapshot = {
   form: ApplicationsListEntryFormValue;
   personForm: PersonFormValue;
   organisationForm: OrganisationFormValue;

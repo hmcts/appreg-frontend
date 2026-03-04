@@ -406,7 +406,7 @@ export class ApplicationsListEntryDetail implements OnInit {
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
             }
 
-            this.isFeeRequired = appCodeDetail.isFeeDue ?? false;
+            this.isFeeRequired = appCodeDetail.isFeeDue;
           },
           error: (err) => {
             this.applyMappedError(err);
