@@ -15,6 +15,7 @@ import {
   PLATFORM_ID,
   TemplateRef,
   ViewChild,
+  computed,
   contentChild,
   inject,
   input,
@@ -55,6 +56,16 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
   readonly dateTpl = contentChild<TemplateRef<unknown>>('dateTemplate');
 
   caption = input('');
+  captionId = computed(() => {
+    const text = this.caption() ?? '';
+
+    return text
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .replace(/^([0-9])/, 'a$1');
+  });
   captionSize = input<'s' | 'm' | 'l'>('m');
   hiddenCaption = input(false);
   columns = input<TableColumn[]>([]);

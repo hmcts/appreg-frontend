@@ -49,8 +49,24 @@ function testAccessibility(p: string): void {
 }
 
 describe('Accessibility', () => {
-  testAccessibility('/login');
-  testAccessibility('/applications-list');
-  testAccessibility('/applications-list/1');
-  testAccessibility('/applications-list/create');
+  const routes = [
+    '/login',
+    '/forbidden',
+    '/internal-error',
+    '/page-not-found',
+    '/applications-list',
+    '/applications-list/1',
+    '/applications-list/1/create',
+    '/applications-list/1/update',
+    '/applications-list/1/delete',
+    '/applications-list/1/update/change-payment-reference',
+    '/applications-list/1/create/change-payment-reference',
+    '/applications-list/1/bulk-upload',
+    '/applications-list/1/result-selected',
+    '/applications-list/create',
+  ];
+
+  test.each(routes)('Page %s has no accessibility errors', (route) => {
+    testAccessibility(route);
+  });
 });
