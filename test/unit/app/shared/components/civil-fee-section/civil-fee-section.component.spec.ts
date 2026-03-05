@@ -1,3 +1,4 @@
+import { LOCALE_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
@@ -63,6 +64,7 @@ describe('CivilFeeSectionComponent', () => {
     await TestBed.configureTestingModule({
       imports: [CivilFeeSectionComponent],
       providers: [
+        { provide: LOCALE_ID, useValue: 'en-GB' },
         { provide: ActivatedRoute, useValue: routeStub },
         { provide: Router, useValue: { navigate: routerNavigate } },
       ],
@@ -267,6 +269,29 @@ describe('CivilFeeSectionComponent', () => {
         statusDateRaw: '2025-01-02',
       },
     ]);
+  });
+
+  it('renders formatted fee status date in the table instead of raw ISO text', () => {
+    fixture.componentRef.setInput('civilFeeColumns', [
+      { header: 'Status date', field: 'statusDateRaw', sortable: true },
+    ]);
+
+    component.feeForm().controls.feeStatuses.setValue([
+      {
+        paymentStatus: 'paid',
+        statusDate: '2025-01-09',
+        paymentReference: 'REF1',
+      } as unknown as FeeStatus,
+    ]);
+
+    fixture.detectChanges();
+
+    const firstDateCell = fixture.nativeElement.querySelector(
+      'tbody tr th.govuk-table__header',
+    ) as HTMLElement | null;
+
+    expect(firstDateCell?.textContent?.trim()).toBe('9 Jan 2025');
+    expect(firstDateCell?.textContent).not.toContain('2025-01-09');
   });
 
   it('onChangePaymentReference navigates when paymentReference exists', () => {

@@ -1,5 +1,5 @@
 import { HttpResponse } from '@angular/common/http';
-import type { WritableSignal } from '@angular/core';
+import { LOCALE_ID, type WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of, throwError } from 'rxjs';
@@ -81,6 +81,7 @@ describe('ApplicationsComponent', () => {
     await TestBed.configureTestingModule({
       imports: [Applications],
       providers: [
+        { provide: LOCALE_ID, useValue: 'en-GB' },
         { provide: ReferenceDataFacade, useValue: referenceDataFacadeStub },
         { provide: ApplicationListEntriesApi, useValue: appListEntriesApiStub },
         {
@@ -405,6 +406,24 @@ describe('ApplicationsComponent', () => {
 
       expect(component.vm().currentPage).toBe(3);
       expect(loadSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('date rendering', () => {
+    it('renders formatted date in the table instead of raw ISO text', () => {
+      appStateSignal(component).update((s) => ({
+        ...s,
+        rows: [makeEntry({ id: 'row-date', date: '2025-01-09' })],
+      }));
+
+      fixture.detectChanges();
+
+      const firstDateCell = fixture.nativeElement.querySelector(
+        'tbody tr th.govuk-table__header',
+      ) as HTMLElement | null;
+
+      expect(firstDateCell?.textContent?.trim()).toBe('9 Jan 2025');
+      expect(firstDateCell?.textContent).not.toContain('2025-01-09');
     });
   });
 });
