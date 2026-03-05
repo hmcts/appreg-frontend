@@ -8,7 +8,9 @@
       </div>
       <div class="govuk-summary-list__row">
         <dt class="govuk-summary-list__key">Status date</dt>
-        <dd class="govuk-summary-list__value">{{ row?.['statusDate'] }}</dd>
+        <dd class="govuk-summary-list__value">
+          {{ statusDateRaw | dateTime }}
+        </dd>
       </div>
     </dl>
 
