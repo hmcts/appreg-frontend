@@ -549,4 +549,46 @@ describe('ApplicationsListEntryDetail', () => {
 
     spy.mockRestore();
   });
+
+  it('onChildErrors stores resultWording child errors', () => {
+    const errors = [{ text: 'Enter a Date in the result wording section' }];
+
+    component.onChildErrors('resultWording', errors);
+
+    expect(component['childErrors'].resultWording).toEqual(errors);
+  });
+
+  it('onSubmitResults calls results facade submitResultChanges', () => {
+    const updateSpy = jest
+      .spyOn(component.resultsFacade, 'submitResultChanges')
+      .mockImplementation();
+
+    component.onSubmitResults({
+      pendingToCreate: [],
+      existingToUpdate: [
+        {
+          resultId: 'R-1',
+          resultCode: 'RC1',
+          wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+        },
+      ],
+    });
+
+    expect(updateSpy).toHaveBeenCalledWith(
+      'AL-1',
+      'EN-1',
+      {
+        pendingToCreate: [],
+        existingToUpdate: [
+          {
+            resultId: 'R-1',
+            resultCode: 'RC1',
+            wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+          },
+        ],
+      },
+      expect.any(Function),
+      expect.any(Function),
+    );
+  });
 });

@@ -2,5 +2,8 @@
   "id": "11111111-2222-3333-4444-555555555555",
   "entryId": "5ebf20ff-72aa-4b96-be8b-572101fe2b1c",
   "resultCode": "ADJ",
-  "wordingFields": ["25 October 2025", "London"]
+  "wordingFields": [
+    { "key": "Date", "value": "25 October 2025" },
+    { "key": "Location", "value": "London" }
+  ]
 }

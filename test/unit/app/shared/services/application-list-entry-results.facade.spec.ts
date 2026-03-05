@@ -7,6 +7,7 @@ import {
   ResultCodePage,
   ResultCodesApi,
   ResultGetDto,
+  TemplateDetail,
 } from '@openapi';
 import { ApplicationListEntryResultsFacade } from '@services/applications-list-entry/application-list-entry-results.facade';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
@@ -37,6 +38,7 @@ describe('ApplicationListEntryResultsFacade', () => {
   let entryResultsApi: {
     createApplicationListEntryResult: jest.Mock;
     deleteApplicationListEntryResult: jest.Mock;
+    updateApplicationListEntryResult: jest.Mock;
   };
   let resultCodesApi: {
     getResultCodes: jest.Mock;
@@ -47,6 +49,7 @@ describe('ApplicationListEntryResultsFacade', () => {
     entryResultsApi = {
       createApplicationListEntryResult: jest.fn(() => of(null) as unknown),
       deleteApplicationListEntryResult: jest.fn(() => of(null) as unknown),
+      updateApplicationListEntryResult: jest.fn(() => of(null) as unknown),
     };
     resultCodesApi = {
       getResultCodes: jest.fn(
@@ -112,46 +115,6 @@ describe('ApplicationListEntryResultsFacade', () => {
     });
   });
 
-  describe('applyPendingResult', () => {
-    it('does nothing when inputs are missing', () => {
-      const loadSpy = jest.spyOn(facade, 'loadEntryResults');
-      const row = { resultCode: 'RC1' } as PendingResultRow;
-
-      facade.applyPendingResult('', 'E-1', row);
-      facade.applyPendingResult('L-1', '', row);
-      facade.applyPendingResult('L-1', 'E-1', {
-        resultCode: '',
-      } as PendingResultRow);
-
-      expect(
-        entryResultsApi.createApplicationListEntryResult,
-      ).not.toHaveBeenCalled();
-      expect(loadSpy).not.toHaveBeenCalled();
-    });
-
-    it('creates result, reloads, clears pending, and calls onSuccess', () => {
-      const loadSpy = jest.spyOn(facade, 'loadEntryResults');
-      const onSuccess = jest.fn();
-      const row = { resultCode: ' rc1 ' } as PendingResultRow;
-
-      facade.pendingRows.set([row]);
-
-      facade.applyPendingResult('L-1', 'E-1', row, onSuccess);
-
-      expect(
-        entryResultsApi.createApplicationListEntryResult,
-      ).toHaveBeenCalledWith({
-        listId: 'L-1',
-        entryId: 'E-1',
-        resultCreateDto: { resultCode: 'rc1' },
-      });
-      expect(loadSpy).toHaveBeenCalledWith('L-1', 'E-1');
-      expect(facade.clearPendingToken()).toBe(1);
-      expect(facade.pendingRows()).toEqual([]);
-      expect(onSuccess).toHaveBeenCalled();
-    });
-  });
-
   describe('removeResult', () => {
     it('does nothing when inputs are missing', () => {
       const loadSpy = jest.spyOn(facade, 'loadEntryResults');
@@ -184,6 +147,60 @@ describe('ApplicationListEntryResultsFacade', () => {
     });
   });
 
+  describe('submitResultChanges', () => {
+    it('submits existing updates and pending creates in one cycle', () => {
+      const loadSpy = jest.spyOn(facade, 'loadEntryResults');
+      const onSuccess = jest.fn();
+
+      facade.submitResultChanges(
+        'L-1',
+        'E-1',
+        {
+          pendingToCreate: [
+            {
+              resultCode: ' rc2 ',
+              wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+            } as PendingResultRow,
+          ],
+          existingToUpdate: [
+            {
+              resultId: 'R-9',
+              resultCode: ' rc1 ',
+              wordingFields: [{ key: 'Location', value: 'London' }],
+            },
+          ],
+        },
+        onSuccess,
+      );
+
+      expect(
+        entryResultsApi.updateApplicationListEntryResult,
+      ).toHaveBeenCalledWith({
+        listId: 'L-1',
+        entryId: 'E-1',
+        resultId: 'R-9',
+        resultUpdateDto: {
+          resultCode: 'rc1',
+          wordingFields: [{ key: 'Location', value: 'London' }],
+        },
+      });
+      expect(
+        entryResultsApi.createApplicationListEntryResult,
+      ).toHaveBeenCalledWith({
+        listId: 'L-1',
+        entryId: 'E-1',
+        resultCreateDto: {
+          resultCode: 'rc2',
+          wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+        },
+      });
+      expect(loadSpy).toHaveBeenCalledWith('L-1', 'E-1');
+      expect(facade.clearPendingToken()).toBe(1);
+      expect(facade.pendingRows()).toEqual([]);
+      expect(onSuccess).toHaveBeenCalled();
+    });
+  });
+
   describe('setPending', () => {
     beforeEach(() => {
       jest.useFakeTimers();
@@ -206,6 +223,9 @@ describe('ApplicationListEntryResultsFacade', () => {
         { transferCache: true },
       );
       expect(facade.resultCodeWordingByCode()).toEqual({ RC1: 'W' });
+      expect(facade.resultCodeTemplateByCode()).toEqual({
+        RC1: { template: 'W', 'substitution-key-constraints': [] },
+      });
 
       facade.setPending([row]);
       expect(resultCodesApi.getResultCodeByCodeAndDate).toHaveBeenCalledTimes(
@@ -221,6 +241,37 @@ describe('ApplicationListEntryResultsFacade', () => {
       facade.setPending([{ resultCode: 'RC2' } as PendingResultRow]);
 
       expect(facade.resultCodeWordingByCode()).toEqual({ RC2: '-' });
+      expect(facade.resultCodeTemplateByCode()).toEqual({
+        RC2: { template: '', 'substitution-key-constraints': [] },
+      });
+    });
+
+    it('supports TemplateDetail wording and unescapes placeholder tokens', () => {
+      const detail = makeDetail({
+        wording: {
+          template: "Result '\\{\\{ Date \\}\\}' at \\{\\{ Location \\}\\}.",
+          'substitution-key-constraints': [
+            { key: 'Date', value: '2026-03-02', constraint: { length: 10 } },
+          ],
+        } as unknown as TemplateDetail,
+      } as unknown as Partial<ResultCodeGetDetailDto>);
+      resultCodesApi.getResultCodeByCodeAndDate.mockReturnValueOnce(
+        of(detail) as unknown,
+      );
+
+      facade.setPending([{ resultCode: 'RC3' } as PendingResultRow]);
+
+      expect(facade.resultCodeWordingByCode()).toEqual({
+        RC3: "Result '{{ Date }}' at {{ Location }}.",
+      });
+      expect(facade.resultCodeTemplateByCode()).toEqual({
+        RC3: {
+          template: "Result '{{ Date }}' at {{ Location }}.",
+          'substitution-key-constraints': [
+            { key: 'Date', value: '2026-03-02', constraint: { length: 10 } },
+          ],
+        },
+      });
     });
   });
 });

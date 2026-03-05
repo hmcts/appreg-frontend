@@ -3,7 +3,6 @@ import {
   AfterViewInit,
   Component,
   DestroyRef,
-  OnDestroy,
   OnInit,
   PLATFORM_ID,
   inject,
@@ -19,43 +18,6 @@ import { ServiceNavigationComponent } from '@components/service-navigation/servi
 
 type GovUkInitAll = (opts?: { scope?: Element | Document | null }) => void;
 type GovUkGlobal = { GOVUKFrontend?: { initAll?: GovUkInitAll } };
-type SortableCtor = new (el: HTMLElement) => { init?: () => void };
-
-/* ---------- MoJ Sortable Table helpers ---------- */
-type MojCtor = new (
-  el: HTMLElement,
-  cfg?: Record<string, unknown>,
-) => { init?: () => void };
-
-const sortableInitialised = new WeakSet<HTMLElement>();
-
-function pickSortableCtor(mod: unknown): MojCtor | null {
-  const m = mod as {
-    SortableTable?: unknown;
-    default?: { SortableTable?: unknown };
-  };
-  const candidate =
-    m && typeof m.SortableTable === 'function'
-      ? m.SortableTable
-      : m?.default?.SortableTable;
-
-  return typeof candidate === 'function' ? (candidate as MojCtor) : null;
-}
-
-async function loadSortableCtor(): Promise<MojCtor | null> {
-  try {
-    const mod: unknown = await import('@ministryofjustice/frontend');
-    const ctor = pickSortableCtor(mod);
-    if (ctor) {
-      return ctor;
-    }
-  } catch {
-    // ignore;
-  }
-  return null;
-}
-
-/* --------------------------------------------------------------------------- */
 
 @Component({
   selector: 'app-root',
@@ -67,7 +29,7 @@ async function loadSortableCtor(): Promise<MojCtor | null> {
   ],
   templateUrl: './app.html',
 })
-export class App implements OnInit, AfterViewInit, OnDestroy {
+export class App implements OnInit, AfterViewInit {
   protected readonly title = signal('appreg-frontend');
 
   private readonly platformId = inject(PLATFORM_ID);
@@ -75,9 +37,6 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
 
   private didGlobalInit = false;
-
-  // Observer to catch sortable tables that are inserted later
-  private mojObserver?: MutationObserver;
 
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) {
@@ -97,8 +56,6 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
     // One full-page init (header/footer included)
     if (!this.didGlobalInit) {
       void this.initGovUkFrontend();
-      // Initialise any sortable tables currently in the DOM
-      this.initAllSortableTables();
       this.didGlobalInit = true;
     }
 
@@ -116,14 +73,8 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
           if (main) {
             void this.initGovUkFrontend(main);
           }
-          // Enhance sortable tables that belong to the new route content
-          this.initAllSortableTables(document);
         });
       });
-  }
-
-  ngOnDestroy(): void {
-    this.mojObserver?.disconnect();
   }
 
   // ARCPOC-860: temporarily remove data-module on already-initialised elements
@@ -185,82 +136,6 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
         fn({ scope: root });
       } finally {
         restore();
-      }
-    }
-  }
-
-  private readonly sortableSelector = '[data-module="moj-sortable-table"]';
-
-  private collectSortable(node: Node): HTMLElement[] {
-    if (!(node instanceof HTMLElement)) {
-      return [];
-    }
-    const direct = node.matches?.(this.sortableSelector) ? [node] : [];
-    const found = node.querySelectorAll?.(this.sortableSelector) ?? [];
-    return [...direct, ...(Array.from(found) as HTMLElement[])];
-  }
-
-  /** Enhance all MoJ Sortable tables in the given scope and observe for new ones */
-  private sortableCtor?: SortableCtor;
-
-  /** Enhance all MoJ Sortable tables in the given scope and observe for new ones */
-  private initAllSortableTables(scope?: ParentNode): void {
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-    void this.setupSortable(scope);
-  }
-
-  private async setupSortable(scope?: ParentNode): Promise<void> {
-    const SortableTable = await loadSortableCtor();
-    if (!SortableTable) {
-      return;
-    }
-
-    this.sortableCtor = SortableTable;
-    const root: ParentNode = scope ?? document;
-
-    this.enhanceExisting(root);
-    this.ensureObserver(root);
-  }
-
-  private enhanceExisting(root: ParentNode): void {
-    const tables = root.querySelectorAll<HTMLElement>(
-      '[data-module="moj-sortable-table"]',
-    );
-    for (const el of tables) {
-      this.enhance(el);
-    }
-  }
-
-  private enhance(el: HTMLElement): void {
-    if (sortableInitialised.has(el) || !this.sortableCtor) {
-      return;
-    }
-    const inst = new this.sortableCtor(el);
-    inst.init?.();
-    sortableInitialised.add(el);
-  }
-
-  private ensureObserver(root: ParentNode): void {
-    if (this.mojObserver) {
-      return;
-    }
-
-    this.mojObserver = new MutationObserver(this.handleMutations.bind(this));
-    this.mojObserver.observe(root, { childList: true, subtree: true });
-  }
-
-  private handleMutations(records: MutationRecord[]): void {
-    for (const r of records) {
-      this.processAddedNodes(r.addedNodes);
-    }
-  }
-
-  private processAddedNodes(nodes: NodeList): void {
-    for (const n of nodes) {
-      for (const el of this.collectSortable(n)) {
-        this.enhance(el);
       }
     }
   }

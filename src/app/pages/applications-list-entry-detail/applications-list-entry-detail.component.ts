@@ -111,6 +111,7 @@ import {
   CivilFeeMeta,
 } from '@shared-types/civil-fee/civil-fee';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
+import { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
 import { CodeRow } from '@util/application-code-helpers';
 import { buildRespondentErrors } from '@util/applications-list-entry-error-helpers';
 import {
@@ -131,7 +132,8 @@ type ChildErrorSource =
   | 'fee'
   | 'respondent'
   | 'applicant'
-  | 'civilFee';
+  | 'civilFee'
+  | 'resultWording';
 
 const UPDATE_ENTRY_ERROR_MESSAGES = ENTRY_ERROR_MESSAGES;
 
@@ -218,6 +220,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     respondent: [],
     applicant: [],
     civilFee: [],
+    resultWording: [],
   };
 
   // View constants (from helpers)
@@ -335,7 +338,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     bannerText: SuccessBanner,
   ): void {
     const entryId = getEntryId(this.route);
-    if (!this.appListId || !entryId || !this.entryDetail) {
+    if (!entryId || !this.entryDetail) {
       return;
     }
 
@@ -534,9 +537,9 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
-    // Ensure we have listId, entryId and a loaded server snapshot
+    // Ensure we have entryId and a loaded server snapshot
     const entryId = getEntryId(this.route);
-    if (!this.appListId || !entryId || !this.entryDetail) {
+    if (!entryId || !this.entryDetail) {
       this.errorFound = true;
       this.summaryErrors = [
         {
@@ -615,7 +618,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   private persistHasOffsiteFee(nextValue: boolean, prevValue: boolean): void {
     const entryId = getEntryId(this.route);
 
-    if (!this.appListId || !entryId || !this.entryDetail) {
+    if (!entryId || !this.entryDetail) {
       return;
     }
 
@@ -765,6 +768,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       respondent: [],
       applicant: [],
       civilFee: [],
+      resultWording: [],
     };
   }
 
@@ -841,18 +845,18 @@ export class ApplicationsListEntryDetail implements OnInit {
     return patch;
   }
 
-  onApplyResultPending(row: PendingResultRow): void {
+  onSubmitResults(payload: ResultSectionSubmitPayload): void {
     const entryId = getEntryId(this.route);
     const listId = this.appListId;
 
-    if (!listId || !entryId) {
+    if (!entryId) {
       return;
     }
 
-    this.resultsFacade.applyPendingResult(
+    this.resultsFacade.submitResultChanges(
       listId,
       entryId,
-      row,
+      payload,
       () => {
         this.successBanner = ENTRY_SUCCESS_MESSAGES.resultApplied;
         focusSuccessBanner(this.platformId);
@@ -865,7 +869,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     const entryId = getEntryId(this.route);
     const listId = this.appListId;
 
-    if (!listId || !entryId || !resultId) {
+    if (!entryId || !resultId) {
       return;
     }
 
