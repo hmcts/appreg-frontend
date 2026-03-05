@@ -63,8 +63,9 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .replace(/^([0-9])/, 'a$1');
+      .replace(/^-+/, '')
+      .replace(/-+$/, '')
+      .replace(/^(\d)/, 'a$1');
   });
   captionSize = input<'s' | 'm' | 'l'>('m');
   hiddenCaption = input(false);
