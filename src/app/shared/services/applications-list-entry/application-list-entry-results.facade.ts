@@ -2,7 +2,6 @@ import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin } from 'rxjs';
 
-import type { ResultSectionSubmitPayload } from '@components/result-wording-section/result-wording-section.component';
 import {
   ApplicationListEntryResultsApi,
   ResultCodeGetDetailDto,
@@ -11,6 +10,7 @@ import {
   TemplateDetail,
 } from '@openapi';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
+import type { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
 import { getAllResultCodes, getEntryResults$ } from '@util/result-code-helpers';
 
 @Injectable()
@@ -259,6 +259,6 @@ export class ApplicationListEntryResultsFacade {
   }
 
   private unescapeTemplatePlaceholders(template: string): string {
-    return template.replace(/\\\{\\\{/g, '{{').replace(/\\\}\\\}/g, '}}');
+    return template.replaceAll(/\\\{\\\{/g, '{{').replaceAll(/\\\}\\\}/g, '}}');
   }
 }

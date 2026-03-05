@@ -3,10 +3,8 @@ import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
-import {
-  SummaryListCardAction,
-  SummaryListCardActionComponent,
-} from '@components/summary-list-card-action/summary-list-card-action.component';
+import { SummaryListCardActionComponent } from '@components/summary-list-card-action/summary-list-card-action.component';
+import { SummaryListCardAction } from '@core-types/summary-list-card-action/summary-list-card.type';
 
 const makeSummaryList = (
   overrides?: Partial<SummaryListCardAction>,
@@ -15,7 +13,7 @@ const makeSummaryList = (
   title: 'Test row',
   status: 'existing',
   content: [{ key: 'Wording', value: 'Default wording' }],
-  ...(overrides ?? {}),
+  ...overrides,
 });
 
 @Component({
@@ -61,7 +59,7 @@ describe('SummaryListCardActionComponent', () => {
     });
 
     it('renders title, key/value content, and default action text', () => {
-      const host = fixture.nativeElement as HTMLElement;
+      const host = fixture.nativeElement;
 
       expect(host.textContent).toContain('Test row');
       expect(host.textContent).toContain('Wording');
@@ -72,7 +70,7 @@ describe('SummaryListCardActionComponent', () => {
     it('applies compact class by default', () => {
       const container = fixture.nativeElement.querySelector(
         '.summary-card-action',
-      ) as HTMLElement;
+      );
 
       expect(container.classList.contains('summary-card-action--compact')).toBe(
         true,
@@ -84,10 +82,8 @@ describe('SummaryListCardActionComponent', () => {
       fixture.componentRef.setInput('compact', false);
       fixture.detectChanges();
 
-      const host = fixture.nativeElement as HTMLElement;
-      const container = host.querySelector(
-        '.summary-card-action',
-      ) as HTMLElement;
+      const host = fixture.nativeElement;
+      const container = host.querySelector('.summary-card-action');
 
       expect(host.textContent).toContain('Delete');
       expect(container.classList.contains('summary-card-action--compact')).toBe(
@@ -144,14 +140,14 @@ describe('SummaryListCardActionComponent', () => {
     });
 
     it('renders custom card body with list context when cardBodyTemplate is provided', () => {
-      const host = fixture.nativeElement as HTMLElement;
+      const host = fixture.nativeElement;
 
       expect(host.textContent).toContain('Test row custom body');
       expect(host.querySelector('.custom-card-body')).toBeTruthy();
     });
 
     it('suppresses default entry value when cardBodyTemplate is provided', () => {
-      const host = fixture.nativeElement as HTMLElement;
+      const host = fixture.nativeElement;
 
       expect(host.textContent).not.toContain('Default wording');
     });

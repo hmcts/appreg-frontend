@@ -25,11 +25,9 @@ import {
   TableColumn,
 } from '@components/sortable-table/sortable-table.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
-import {
-  SummaryListCardAction,
-  SummaryListCardActionComponent,
-} from '@components/summary-list-card-action/summary-list-card-action.component';
+import { SummaryListCardActionComponent } from '@components/summary-list-card-action/summary-list-card-action.component';
 import { WordingParserComponent } from '@components/wording-parser/wording-parser.component';
+import { SummaryListCardAction } from '@core-types/summary-list-card-action/summary-list-card.type';
 import {
   ResultCodeGetSummaryDto,
   ResultGetDto,
@@ -37,19 +35,12 @@ import {
   TemplateSubstitution,
 } from '@openapi';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
+import {
+  ResultSectionSubmitPayload,
+  UpdateExistingResultWordingPayload,
+} from '@shared-types/result-wording-section/result-section.types';
 import { makeTempId } from '@util/data-utils';
 import { ResultRow, toExistingRows } from '@util/result-code-helpers';
-
-export type UpdateExistingResultWordingPayload = {
-  resultId: string;
-  resultCode: string;
-  wordingFields: TemplateSubstitution[];
-};
-
-export type ResultSectionSubmitPayload = {
-  pendingToCreate: PendingResultRow[];
-  existingToUpdate: UpdateExistingResultWordingPayload[];
-};
 
 @Component({
   selector: 'app-result-wording-section',
@@ -86,8 +77,8 @@ export class ResultWordingSectionComponent {
 
   private submitValidationRequested = false;
   private validationTargetCardIds = new Set<string>();
-  private validationResolvedCardIds = new Set<string>();
-  private validationErrorsByCard = new Map<string, ErrorItem[]>();
+  private readonly validationResolvedCardIds = new Set<string>();
+  private readonly validationErrorsByCard = new Map<string, ErrorItem[]>();
 
   applicantRespondentColumns: TableColumn[] = RESULT_WORDING_COLUMNS;
 

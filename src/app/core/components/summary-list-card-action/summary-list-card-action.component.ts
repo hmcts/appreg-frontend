@@ -1,18 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, TemplateRef, input, output } from '@angular/core';
 
-export type SummaryListCardActionContent = {
-  key: string;
-  value: string;
-};
-
-export type SummaryListCardAction = {
-  id?: string;
-  title: string;
-  status?: 'pending' | 'existing';
-  showValue?: boolean;
-  content: SummaryListCardActionContent[];
-};
+import { SummaryListCardAction } from '@core-types/summary-list-card-action/summary-list-card.type';
 
 @Component({
   selector: 'app-summary-list-card-action',

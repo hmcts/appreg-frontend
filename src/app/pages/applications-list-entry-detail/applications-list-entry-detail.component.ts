@@ -74,7 +74,6 @@ import {
 } from '@components/notes-section/notes-section.component';
 import { RespondentSectionComponent } from '@components/respondent-section/respondent-section.component';
 import { ResultWordingSectionComponent } from '@components/result-wording-section/result-wording-section.component';
-import type { ResultSectionSubmitPayload } from '@components/result-wording-section/result-wording-section.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
 import { TableColumn } from '@components/selectable-sortable-table/selectable-sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
@@ -112,6 +111,7 @@ import {
   CivilFeeMeta,
 } from '@shared-types/civil-fee/civil-fee';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
+import { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
 import { CodeRow } from '@util/application-code-helpers';
 import { buildRespondentErrors } from '@util/applications-list-entry-error-helpers';
 import {
@@ -338,7 +338,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     bannerText: SuccessBanner,
   ): void {
     const entryId = getEntryId(this.route);
-    if (!this.appListId || !entryId || !this.entryDetail) {
+    if (!entryId || !this.entryDetail) {
       return;
     }
 
@@ -537,9 +537,9 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
-    // Ensure we have listId, entryId and a loaded server snapshot
+    // Ensure we have entryId and a loaded server snapshot
     const entryId = getEntryId(this.route);
-    if (!this.appListId || !entryId || !this.entryDetail) {
+    if (!entryId || !this.entryDetail) {
       this.errorFound = true;
       this.summaryErrors = [
         {
@@ -618,7 +618,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   private persistHasOffsiteFee(nextValue: boolean, prevValue: boolean): void {
     const entryId = getEntryId(this.route);
 
-    if (!this.appListId || !entryId || !this.entryDetail) {
+    if (!entryId || !this.entryDetail) {
       return;
     }
 
@@ -849,7 +849,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     const entryId = getEntryId(this.route);
     const listId = this.appListId;
 
-    if (!listId || !entryId || !payload) {
+    if (!entryId) {
       return;
     }
 
@@ -869,7 +869,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     const entryId = getEntryId(this.route);
     const listId = this.appListId;
 
-    if (!listId || !entryId || !resultId) {
+    if (!entryId || !resultId) {
       return;
     }
 
