@@ -156,15 +156,17 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
         }
 
         const instance = new SortableCtor(this.tableRef.nativeElement);
-        // keep moj UI but prevent client-side sorting
-        if (typeof instance.sort === 'function') {
-          instance.sort = (...args: unknown[]) => args[0];
+        if (this.clientOrServerSort() === 'server') {
+          // keep MoJ button UI but prevent in-browser row reordering for server mode
+          if (typeof instance.sort === 'function') {
+            instance.sort = (...args: unknown[]) => args[0];
+          }
+          if (typeof instance.addRows === 'function') {
+            instance.addRows = () => undefined;
+          }
+          // use MoJ button clicks to emit server-side sort events
+          this.attachServerSortListener();
         }
-        if (typeof instance.addRows === 'function') {
-          instance.addRows = () => undefined;
-        }
-        // moj button clicks for server side sorting
-        this.attachServerSortListener();
         instance.init?.();
         this.sortableInstance = instance;
       })

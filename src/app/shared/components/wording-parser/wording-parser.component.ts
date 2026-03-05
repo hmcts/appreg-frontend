@@ -1,5 +1,6 @@
 import {
   Component,
+  DestroyRef,
   OnInit,
   computed,
   effect,
@@ -8,6 +9,7 @@ import {
   output,
   signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   FormBuilder,
@@ -31,14 +33,19 @@ export type Token =
 })
 export class WordingParserComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
+
   wordingObject = input.required<TemplateDetail>();
+  wordingSubmitAttempt = input(0);
+  showSaveButton = input(true);
+  section = input('wording');
 
   wordingFieldErrors = output<ErrorItem[]>();
   wordingFieldsDTO = output<{ wordingFields: TemplateSubstitution[] }>();
 
   private readonly normalisedKeyToKeyMap = new Map<string, string>();
+  private lastHandledAttempt = 0;
 
-  wordingSubmitAttempt = input(0);
   submitted = signal(false);
 
   tokens: Token[] = [];
@@ -52,16 +59,21 @@ export class WordingParserComponent implements OnInit {
   constructor() {
     effect(() => {
       const attempt = this.wordingSubmitAttempt();
-      if (attempt === 0) {
+      if (attempt === 0 || attempt === this.lastHandledAttempt) {
         return;
       }
 
-      this.submitted.set(true);
+      this.lastHandledAttempt = attempt;
 
-      this.form.markAllAsTouched();
-      this.form.updateValueAndValidity({ emitEvent: false });
+      if (this.showSaveButton()) {
+        this.submitted.set(true);
+        this.form.markAllAsTouched();
+        this.form.updateValueAndValidity({ emitEvent: false });
+        this.wordingFieldErrors.emit(this.form.valid ? [] : this.buildErrors());
+        return;
+      }
 
-      this.wordingFieldErrors.emit(this.form.valid ? [] : this.buildErrors());
+      this.submitWordingFields();
     });
   }
 
@@ -70,6 +82,16 @@ export class WordingParserComponent implements OnInit {
 
     this.createFormControls();
     this.patchFormControls();
+
+    // In no-save-button mode (used by result wording cards), emit live draft values
+    // so parent components can detect edits and enable submit actions.
+    if (!this.showSaveButton()) {
+      this.form.valueChanges
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.wordingFieldsDTO.emit(this.toWordingFields(this.form));
+        });
+    }
   }
 
   createFormControls(): void {
@@ -175,7 +197,7 @@ export class WordingParserComponent implements OnInit {
     return {
       wordingFields: Object.entries(formValue).map(([key, value]) => ({
         key: this.normalisedKeyToKeyMap.get(key),
-        value,
+        value: value ?? '',
       })),
     };
   }
@@ -203,7 +225,7 @@ export class WordingParserComponent implements OnInit {
 
       if (e['required']) {
         errors.push({
-          text: `Enter a ${key} in the wording section`,
+          text: `Enter a ${key} in the ${this.section()} section`,
           href: `#${formKey}`,
         });
       }
@@ -215,7 +237,7 @@ export class WordingParserComponent implements OnInit {
 
         if (max !== null) {
           errors.push({
-            text: `${key} in wording section must be ${max} characters or fewer`,
+            text: `${key} in the ${this.section()} section must be ${max} characters or fewer`,
             href: `#${formKey}`,
           });
         }

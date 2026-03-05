@@ -3,7 +3,7 @@
   [class.summary-card-action--compact]="compact()"
 >
   <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
+    <div class="govuk-grid-column-full">
       @for (list of summaryLists(); track list.id ?? list.title) {
         <div class="govuk-summary-card">
           <div class="govuk-summary-card__title-wrapper">
@@ -41,7 +41,17 @@
                     {{ entry.key }}
                   </dt>
                   <dd class="govuk-summary-list__value">
-                    {{ entry.value }}
+                    @if (list.showValue !== false) {
+                      {{ entry.value }}
+                    }
+                    @if (cardBodyTemplate() && list.showValue === false) {
+                      <ng-container
+                        *ngTemplateOutlet="
+                          cardBodyTemplate()!;
+                          context: { $implicit: list }
+                        "
+                      />
+                    }
                   </dd>
                 </div>
               </dl>

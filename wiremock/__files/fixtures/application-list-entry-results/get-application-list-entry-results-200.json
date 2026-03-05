@@ -8,13 +8,22 @@
       "id": "a1111111-2222-3333-4444-555555555555",
       "entryId": "5ebf20ff-72aa-4b96-be8b-572101fe2b1c",
       "resultCode": "ADJ",
-      "wordingFields": ["25 October 2025", "London"]
+      "wording": {
+        "template": "Result 'ADJ' applied on \\{\\{ Date \\}\\} at \\{\\{ Location \\}\\}.",
+        "substitution-key-constraints": [
+          { "key": "Date", "constraint": { "type": "DATE", "length": 10 }, "value": "2025-10-25" },
+          { "key": "Location", "constraint": { "type": "TEXT", "length": 60 }, "value": "London" }
+        ]
+      } 
     },
     {
       "id": "b2222222-3333-4444-5555-666666666666",
       "entryId": "5ebf20ff-72aa-4b96-be8b-572101fe2b1c",
       "resultCode": "HRD",
-      "wordingFields": []
+      "wording": {
+        "template": "Result 'HRD' applied.",
+        "substitution-key-constraints": []
+      }
     }
   ]
 }

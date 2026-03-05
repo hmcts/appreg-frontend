@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, input, output } from '@angular/core';
+import { Component, TemplateRef, input, output } from '@angular/core';
 
 export type SummaryListCardActionContent = {
   key: string;
@@ -10,6 +10,7 @@ export type SummaryListCardAction = {
   id?: string;
   title: string;
   status?: 'pending' | 'existing';
+  showValue?: boolean;
   content: SummaryListCardActionContent[];
 };
 
@@ -23,6 +24,10 @@ export class SummaryListCardActionComponent {
   summaryLists = input.required<SummaryListCardAction[]>();
   actionText = input<string>('Remove');
   compact = input(true);
+
+  cardBodyTemplate = input<TemplateRef<{
+    $implicit: SummaryListCardAction;
+  }> | null>(null);
 
   onClick = output<SummaryListCardAction>();
 

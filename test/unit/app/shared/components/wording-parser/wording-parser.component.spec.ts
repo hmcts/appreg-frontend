@@ -202,7 +202,7 @@ describe('WordingParserComponent', () => {
 
       expect(errorsSpy).toHaveBeenCalledWith([
         {
-          text: 'A in wording section must be 3 characters or fewer',
+          text: 'A in the wording section must be 3 characters or fewer',
           href: '#A',
         },
       ]);
@@ -234,7 +234,7 @@ describe('WordingParserComponent', () => {
 
       expect(errorsSpy).toHaveBeenCalledWith([
         {
-          text: 'No. of accounts in wording section must be 3 characters or fewer',
+          text: 'No. of accounts in the wording section must be 3 characters or fewer',
           href: '#No-of-accounts',
         },
       ]);
@@ -307,6 +307,33 @@ describe('WordingParserComponent', () => {
       fixture.detectChanges();
 
       expect(errorsSpy).toHaveBeenCalledWith([]);
+    });
+
+    it('should emit DTO when wordingSubmitAttempt increments and showSaveButton is false', () => {
+      init(
+        makeWordingObject({
+          template: 'Hi {{A}}',
+          'substitution-key-constraints': [
+            {
+              key: 'A',
+              value: 'OK',
+              constraint: { length: 5, type: TemplateConstraintTypeEnum.TEXT },
+            },
+          ],
+        }),
+      );
+
+      fixture.componentRef.setInput('showSaveButton', false);
+      fixture.detectChanges();
+
+      const dtoSpy = jest.spyOn(component.wordingFieldsDTO, 'emit');
+
+      fixture.componentRef.setInput('wordingSubmitAttempt', 1);
+      fixture.detectChanges();
+
+      expect(dtoSpy).toHaveBeenCalledWith({
+        wordingFields: [{ key: 'A', value: 'OK' }],
+      });
     });
   });
 

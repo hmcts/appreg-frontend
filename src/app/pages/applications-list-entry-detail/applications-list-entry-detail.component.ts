@@ -74,6 +74,7 @@ import {
 } from '@components/notes-section/notes-section.component';
 import { RespondentSectionComponent } from '@components/respondent-section/respondent-section.component';
 import { ResultWordingSectionComponent } from '@components/result-wording-section/result-wording-section.component';
+import type { ResultSectionSubmitPayload } from '@components/result-wording-section/result-wording-section.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
 import { TableColumn } from '@components/selectable-sortable-table/selectable-sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
@@ -131,7 +132,8 @@ type ChildErrorSource =
   | 'fee'
   | 'respondent'
   | 'applicant'
-  | 'civilFee';
+  | 'civilFee'
+  | 'resultWording';
 
 const UPDATE_ENTRY_ERROR_MESSAGES = ENTRY_ERROR_MESSAGES;
 
@@ -218,6 +220,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     respondent: [],
     applicant: [],
     civilFee: [],
+    resultWording: [],
   };
 
   // View constants (from helpers)
@@ -765,6 +768,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       respondent: [],
       applicant: [],
       civilFee: [],
+      resultWording: [],
     };
   }
 
@@ -841,18 +845,18 @@ export class ApplicationsListEntryDetail implements OnInit {
     return patch;
   }
 
-  onApplyResultPending(row: PendingResultRow): void {
+  onSubmitResults(payload: ResultSectionSubmitPayload): void {
     const entryId = getEntryId(this.route);
     const listId = this.appListId;
 
-    if (!listId || !entryId) {
+    if (!listId || !entryId || !payload) {
       return;
     }
 
-    this.resultsFacade.applyPendingResult(
+    this.resultsFacade.submitResultChanges(
       listId,
       entryId,
-      row,
+      payload,
       () => {
         this.successBanner = ENTRY_SUCCESS_MESSAGES.resultApplied;
         focusSuccessBanner(this.platformId);

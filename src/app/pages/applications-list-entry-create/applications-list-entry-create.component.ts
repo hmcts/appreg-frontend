@@ -45,6 +45,7 @@ import {
   PERSON_TITLE_OPTIONS,
   RESPONDENT_TYPE_OPTIONS,
 } from '@components/applications-list-entry-detail/util/entry-detail.constants';
+import { mapHttpErrorToSummary } from '@components/applications-list-entry-detail/util/errors.util';
 import { readNavState } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import {
@@ -57,10 +58,7 @@ import {
 } from '@components/error-summary/error-summary.component';
 import { NotesSectionComponent } from '@components/notes-section/notes-section.component';
 import { RespondentSectionComponent } from '@components/respondent-section/respondent-section.component';
-import { SelectInputComponent } from '@components/select-input/select-input.component';
-import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
-import { TextInputComponent } from '@components/text-input/text-input.component';
 import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
 import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
 import {
@@ -94,8 +92,6 @@ import {
 } from '@util/error-click';
 import { getUniqueErrors } from '@util/error-items';
 import { buildFormErrorSummary } from '@util/error-summary';
-import { getProblemText } from '@util/http-error-to-text';
-import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { respondentFormsHaveAnyValue } from '@util/respondent-helpers';
 import { createSignalState } from '@util/signal-state-helpers';
 
@@ -108,17 +104,9 @@ import { createSignalState } from '@util/signal-state-helpers';
     RouterModule,
     BreadcrumbsComponent,
     AccordionComponent,
-    SelectInputComponent,
-    BreadcrumbsComponent,
-    ReactiveFormsModule,
-    RouterModule,
     SuccessBannerComponent,
     ErrorSummaryComponent,
-    SortableTableComponent,
-    AccordionComponent,
-    MojButtonMenuDirective,
     ApplicationCodeSearchComponent,
-    TextInputComponent,
     NotesSectionComponent,
     WordingSectionComponent,
     ApplicantSectionComponent,
@@ -255,11 +243,11 @@ export class ApplicationsListEntryCreate implements OnInit {
           this.appListEntryCreatePatch({ createDone: true });
         },
         error: (err: HttpErrorResponse) => {
-          const errorHintMsg = getProblemText(err);
-
           this.appListEntryCreatePatch({
             errorFound: true,
-            summaryErrors: [{ text: errorHintMsg }],
+            summaryErrors: [
+              { text: mapHttpErrorToSummary(err).errorSummary[0].text },
+            ],
           });
         },
       });
@@ -442,11 +430,11 @@ export class ApplicationsListEntryCreate implements OnInit {
             });
           },
           error: (err) => {
-            const msg = getProblemText(err);
-
             this.appListEntryCreatePatch({
-              summaryErrors: [{ text: msg }],
               errorFound: true,
+              summaryErrors: [
+                { text: mapHttpErrorToSummary(err).errorSummary[0].text },
+              ],
             });
           },
         });

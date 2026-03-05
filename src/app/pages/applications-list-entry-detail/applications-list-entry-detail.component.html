@@ -121,9 +121,11 @@
       [existingResults]="resultsFacade.entryResults()"
       [clearPendingToken]="resultsFacade.clearPendingToken()"
       [wordingByCode]="resultsFacade.resultCodeWordingByCode()"
+      [resultCodeTemplateByCode]="resultsFacade.resultCodeTemplateByCode()"
       (pendingChange)="onPendingChange($event)"
-      (applyPending)="onApplyResultPending($event)"
+      (submitResults)="onSubmitResults($event)"
       (removeExisting)="onRemoveResult($event)"
+      (wordingFieldErrors)="onChildErrors('resultWording', $event)"
     ></app-result-wording-section>
   </ng-template>
 
