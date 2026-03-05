@@ -27,7 +27,7 @@ Feature: Applications List Create
     Then User Sees Notification Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
     Then User See "Are you sure you want to delete this application list?" On The Page
     When User Clicks On The "Yes - delete" Button
-    Then User Should See The Link "Create new list"
+    Then User Sees Page Heading "Applications List"
     Then User Sees Notification Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
 
     Examples:
@@ -61,7 +61,7 @@ Feature: Applications List Create
     Then User Sees Notification Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
     Then User See "Are you sure you want to delete this application list?" On The Page
     When User Clicks On The "Yes - delete" Button
-    Then User Should See The Link "Create new list"
+    Then User Sees Page Heading "Applications List"
     Then User Sees Notification Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
     Examples:
       | User  | Date  | Time           | Description   | Status | NotificationMessage                            | SearchText | OptionText                    | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName |
@@ -120,7 +120,7 @@ Feature: Applications List Create
     Then User Sees Notification Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
     Then User See "Are you sure you want to delete this application list?" On The Page
     When User Clicks On The "Yes - delete" Button
-    Then User Should See The Link "Create new list"
+    Then User Sees Page Heading "Applications List"
     Then User Sees Notification Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
 
     Examples:

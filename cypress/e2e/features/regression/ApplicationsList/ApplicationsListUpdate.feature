@@ -1,6 +1,6 @@
 Feature: Applications List Update
 
-    @regression @ARCPOC-214 @ARCPOC-450 @ARCPOC-799
+    @regression @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @tp
     Scenario Outline: Update applications list Successfully with Other location and CJA selected
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -38,7 +38,7 @@ Feature: Applications List Update
         Then User Sees Notification Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
-        Then User Should See The Link "Create new list"
+        Then User Sees Page Heading "Applications List"
         Then User Sees Notification Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
         Examples:
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Location      | Description   | Entries | Status | SelectButtonText | CourtValue | OtherLocation        | cjaCode | CJAValue      | HH | MM | UpdatedDescription    | UpdatedOtherLocation   |
@@ -84,7 +84,7 @@ Feature: Applications List Update
         Then User Sees Notification Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
-        Then User Should See The Link "Create new list"
+        Then User Sees Page Heading "Applications List"
         Then User Sees Notification Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
         Examples:
             | User   | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Court  | CourtLocation                 | Description   | Entries | Status | ButtonName | SelectButtonText | OtherLocation | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText | UpdatedHH | UpdatedMM |
