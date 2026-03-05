@@ -59,13 +59,21 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
   captionId = computed(() => {
     const text = this.caption() ?? '';
 
-    return text
+    let s = text
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+/, '')
-      .replace(/-+$/, '')
-      .replace(/^(\d)/, 'a$1');
+      .replace(/^-+/, '');
+
+    while (s.endsWith('-')) {
+      s = s.slice(0, -1);
+    }
+
+    if (s.length && s[0] >= '0' && s[0] <= '9') {
+      s = `a${s}`;
+    }
+
+    return s;
   });
   captionSize = input<'s' | 'm' | 'l'>('m');
   hiddenCaption = input(false);
