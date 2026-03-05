@@ -1,3 +1,5 @@
+import { formatDate } from '@angular/common';
+import { LOCALE_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 
@@ -72,6 +74,24 @@ describe('PaymentReferenceEditComponent', () => {
     });
 
     expect(component.paymentReference.value).toBe('');
+  });
+
+  it('renders status date using the dateTime pipe format', () => {
+    createComponentWithHistoryState({
+      row: {
+        rowId: 'r1',
+        paymentReference: 'REF1',
+        statusDateRaw: '2026-01-01',
+      },
+    });
+
+    const locale = TestBed.inject(LOCALE_ID);
+    const expectedDate = formatDate('2026-01-01', 'mediumDate', locale);
+    const summaryValues = fixture.nativeElement.querySelectorAll(
+      '.govuk-summary-list__value',
+    );
+
+    expect(summaryValues[1]?.textContent?.trim()).toBe(expectedDate);
   });
 
   it('If payment reference is empty, allow save', () => {
