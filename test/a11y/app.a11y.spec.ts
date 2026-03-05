@@ -66,7 +66,7 @@ describe('Accessibility', () => {
     '/applications-list/create',
   ];
 
-  test.each(routes)('Page %s has no accessibility errors', (route) => {
+  routes.forEach((route) => {
     testAccessibility(route);
   });
 });
