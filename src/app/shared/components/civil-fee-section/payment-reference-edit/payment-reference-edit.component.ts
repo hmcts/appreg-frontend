@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
+import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import { Row } from '@core-types/table/row.types';
 
 function isRowLike(value: unknown): value is Row {
@@ -16,7 +17,7 @@ const PAYMENT_REF_EDIT_ERRORS = {
 
 @Component({
   selector: 'app-payment-reference-edit',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, DateTimePipe],
   templateUrl: './payment-reference-edit.component.html',
 })
 export class PaymentReferenceEditComponent implements OnInit {
@@ -30,6 +31,11 @@ export class PaymentReferenceEditComponent implements OnInit {
   });
 
   submitted = signal(false);
+
+  get statusDateRaw(): string | undefined {
+    const value = this.row?.['statusDateRaw'];
+    return typeof value === 'string' ? value : undefined;
+  }
 
   ngOnInit(): void {
     const maybeRow: unknown = (history.state as { row?: unknown }).row;
