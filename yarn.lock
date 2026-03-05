@@ -9256,15 +9256,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@github:cure53/DOMPurify#729097f63a78e3e0e9f771e648f462bee100e78f":
+"dompurify@npm:^3.2.4, dompurify@npm:^3.3.1":
   version: 3.3.1
-  resolution: "dompurify@https://github.com/cure53/DOMPurify.git#commit=729097f63a78e3e0e9f771e648f462bee100e78f"
+  resolution: "dompurify@npm:3.3.1"
   dependencies:
     "@types/trusted-types": "npm:^2.0.7"
   dependenciesMeta:
     "@types/trusted-types":
       optional: true
-  checksum: 10/01164e22d4508505d60ce1f5a03ce7a4e69ababcb927f1a9abfa403f48ca24ec63e46358597f07f1a6469d3674342a03d430615bcb43313186b375ffa4464087
+  checksum: 10/f71cca489e628591165d16e8cf4fa4f0d3e2ee48db4d73e9d2c5bedc6f915c92f9e9f101f8c4ba790bec0cdffe7f4e1747f5e31c69dc53ce7ae20a81ff6b0022
   languageName: node
   linkType: hard
 
