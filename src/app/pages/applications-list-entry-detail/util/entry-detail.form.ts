@@ -59,6 +59,14 @@ const MAX_60 = Validators.maxLength(60);
 const REQUIRED: ValidatorFn = (c) => Validators.required(c);
 const EMAIL: ValidatorFn = (c) => Validators.email(c);
 
+// Bulk respondent
+const MAX_4 = Validators.maxLength(4);
+const MIN_RESPONDENT_INTEGER = Validators.min(1);
+const MAX_RESPONDENT_INTEGER = Validators.max(9999);
+const WHOLE_NUMBER: ValidatorFn = optional((c) =>
+  Validators.pattern(/^\d+$/)(c),
+);
+
 export function buildStandardApplicationForm(
   fb: NonNullableFormBuilder,
 ): ApplicationsListEntryForm {
@@ -75,7 +83,14 @@ export function buildStandardApplicationForm(
     }),
     respondentEntryType: fb.control<RespondentEntryType | null>('person'),
     respondent: fb.control<Respondent | null>(null),
-    numberOfRespondents: fb.control<number | null>(null),
+    numberOfRespondents: fb.control<number | null>(null, {
+      validators: [
+        MAX_4,
+        WHOLE_NUMBER,
+        MIN_RESPONDENT_INTEGER,
+        MAX_RESPONDENT_INTEGER,
+      ],
+    }),
     wordingFields: fb.control<string[] | null>(null),
     feeStatuses: fb.control<FeeStatus[] | null>(null),
     hasOffsiteFee: fb.control<boolean | null>(null),

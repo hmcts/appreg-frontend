@@ -1,0 +1,12 @@
+<h3 class="govuk-heading-m">Bulk Application</h3>
+
+<div class="govuk-grid-row" [formGroup]="form()">
+  <app-text-input
+    formControlName="numberOfRespondents"
+    label="Number of respondents"
+    idPrefix="respondent-number-of-respondents"
+    [submitted]="submitted()"
+    [suppressError]="false"
+    [error]="errorFor('respondent-number-of-respondents')"
+  />
+</div>

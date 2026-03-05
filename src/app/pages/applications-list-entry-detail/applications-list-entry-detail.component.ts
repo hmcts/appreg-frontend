@@ -38,7 +38,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { map } from 'rxjs';
 
-import { computeSuccessBanner, focusSuccessBanner } from './util/banners.util';
+import { focusSuccessBanner } from './util/banners.util';
 import {
   APPLICANT_COLUMNS,
   CIVIL_FEE_COLUMNS,
@@ -46,7 +46,6 @@ import {
   FEE_STATUS_OPTIONS,
   PERSON_TITLE_OPTIONS,
   RESPONDENT_TYPE_OPTIONS,
-  WORDING_REF_REGEX,
 } from './util/entry-detail.constants';
 import { buildEntryUpdateDtoWithChange } from './util/entry-detail.form';
 import { mapHttpErrorToSummary } from './util/errors.util';
@@ -83,6 +82,7 @@ import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-me
 import {
   APPLICANT_ORG_ERROR_HREFS,
   APPLICANT_PERSON_ERROR_HREFS,
+  RESPONDENT_BULK_ERROR_HREFS,
   RESPONDENT_ORG_ERROR_HREFS,
   RESPONDENT_PERSON_ERROR_HREFS,
 } from '@constants/application-list-entry/respondent/error-hrefs';
@@ -111,12 +111,8 @@ import {
   CivilFeeMeta,
 } from '@shared-types/civil-fee/civil-fee';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
-import {
-  CodeRow,
-  fetchCodeDetail$,
-  titleFromDetail,
-  wordingFromDetail,
-} from '@util/application-code-helpers';
+import { CodeRow } from '@util/application-code-helpers';
+import { buildRespondentErrors } from '@util/applications-list-entry-error-helpers';
 import {
   updateFeeStatusesControl,
   updatePaymentReferenceInFeeStatusesControl,
@@ -128,6 +124,7 @@ import {
 import { getUniqueErrors } from '@util/error-items';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { markFormGroupClean } from '@util/form-helpers';
+import { respondentFormsHaveAnyValue } from '@util/respondent-helpers';
 
 type ChildErrorSource =
   | 'notes'
@@ -191,6 +188,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   formReady = signal(false);
   formSubmitted = signal(false);
+  bulkApplicationsAllowed = false;
 
   form!: ApplicationsListEntryForm;
   personForm!: PersonForm;
@@ -378,6 +376,11 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.resetSuccessBanner();
     this.resetErrors();
 
+    const prevSelection = {
+      code: this.form.controls.applicationCode.value,
+      date: this.form.controls.lodgementDate.value,
+    };
+
     this.form.patchValue({
       applicationCode: codeAndLodgementDate.code,
       lodgementDate: codeAndLodgementDate.date,
@@ -396,17 +399,17 @@ export class ApplicationsListEntryDetail implements OnInit {
         )
         .subscribe({
           next: (appCodeDetail) => {
-            const prevCode = this.appCodeDetail?.applicationCode;
-            const newCode = appCodeDetail.applicationCode;
+            const hasSelectionChanged =
+              prevSelection.code !== codeAndLodgementDate.code;
 
-            this.appCodeDetail = appCodeDetail;
-
-            // if user selected a different code than what we had, reset sections
-            if (prevCode !== newCode) {
+            if (hasSelectionChanged) {
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
             }
 
             this.isFeeRequired = appCodeDetail.isFeeDue;
+
+            this.bulkApplicationsAllowed = appCodeDetail.bulkRespondentAllowed;
+            this.appCodeDetail = appCodeDetail;
           },
           error: (err) => {
             this.applyMappedError(err);
@@ -459,33 +462,31 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   private updateRespondentErrors(): void {
-    const t = this.form.controls.respondentEntryType.value;
+    // Run validation if respondent is required
+    // and when respondent forms are fully/partially populated
+    const isRespondentRequired = this.appCodeDetail?.requiresRespondent ?? true;
 
-    if (t === 'person') {
-      this.forms.respondentPersonForm.markAllAsTouched();
-      this.forms.respondentPersonForm.updateValueAndValidity({
-        emitEvent: false,
+    const respondentFormHasValues = respondentFormsHaveAnyValue({
+      numberOfRespondents: this.form.controls.numberOfRespondents,
+      respondentPersonForm: this.forms.respondentPersonForm,
+      respondentOrganisationForm: this.forms.respondentOrganisationForm,
+    });
+
+    const shouldValidateRespondent =
+      isRespondentRequired || respondentFormHasValues;
+
+    if (shouldValidateRespondent) {
+      this.childErrors.respondent = buildRespondentErrors({
+        respondentEntryType: this.form.controls.respondentEntryType.value,
+        respondentPersonForm: this.forms.respondentPersonForm,
+        respondentOrganisationForm: this.forms.respondentOrganisationForm,
+        errorMessages: UPDATE_ENTRY_ERROR_MESSAGES,
+        respondentPersonHrefs: RESPONDENT_PERSON_ERROR_HREFS,
+        respondentOrganisationHrefs: RESPONDENT_ORG_ERROR_HREFS,
+        respondentBulkControl: this.form.controls.numberOfRespondents,
+        respondentBulkHrefs: RESPONDENT_BULK_ERROR_HREFS,
+        bulkCountRequired: isRespondentRequired,
       });
-
-      this.childErrors.respondent = buildFormErrorSummary(
-        this.forms.respondentPersonForm,
-        UPDATE_ENTRY_ERROR_MESSAGES,
-        { hrefs: RESPONDENT_PERSON_ERROR_HREFS },
-      );
-      return;
-    }
-
-    if (t === 'organisation') {
-      this.forms.respondentOrganisationForm.markAllAsTouched();
-      this.forms.respondentOrganisationForm.updateValueAndValidity({
-        emitEvent: false,
-      });
-
-      this.childErrors.respondent = buildFormErrorSummary(
-        this.forms.respondentOrganisationForm,
-        UPDATE_ENTRY_ERROR_MESSAGES,
-        { hrefs: RESPONDENT_ORG_ERROR_HREFS },
-      );
       return;
     }
 
@@ -697,29 +698,6 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.errorHint = mapped.errorHint;
     this.summaryErrors = mapped.errorSummary;
     this.errorFound = mapped.errorSummary.length > 0;
-  }
-
-  private afterCodeUpdatedSuccessfully(
-    code: string,
-    lodgementDate: string,
-  ): void {
-    this.form.patchValue({ applicationCode: code });
-
-    fetchCodeDetail$(this.codesApi, code, lodgementDate, true)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (detail) => {
-          this.form.patchValue({ applicationTitle: titleFromDetail(detail) });
-
-          const wording = wordingFromDetail(detail);
-          this.successBanner = computeSuccessBanner(wording, WORDING_REF_REGEX);
-          focusSuccessBanner(this.platformId);
-        },
-        error: () => {
-          this.successBanner = computeSuccessBanner('', WORDING_REF_REGEX);
-          focusSuccessBanner(this.platformId);
-        },
-      });
   }
 
   private loadCodesSectionFromEntry(entry: EntryGetDetailDto): void {

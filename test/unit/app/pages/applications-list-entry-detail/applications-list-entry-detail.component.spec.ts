@@ -213,6 +213,15 @@ describe('ApplicationsListEntryDetail', () => {
       applicationCode: 'OLD-CODE',
     } as ApplicationCodeGetDetailDto;
 
+    component['form'].patchValue({
+      respondent: {
+        person: {
+          name: { firstForename: 'Old', surname: 'Respondent' },
+          contactDetails: { addressLine1: '1 Street' },
+        },
+      },
+      numberOfRespondents: 2,
+    });
     component['form'].patchValue({ lodgementDate: '2025-11-01' });
 
     mockGetApplicationCodeByCodeAndDate.mockReturnValue(

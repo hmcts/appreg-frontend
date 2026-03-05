@@ -36,7 +36,7 @@ export class WordingParserComponent implements OnInit {
   wordingFieldErrors = output<ErrorItem[]>();
   wordingFieldsDTO = output<{ wordingFields: TemplateSubstitution[] }>();
 
-  private normalisedKeyToKeyMap = new Map<string, string>();
+  private readonly normalisedKeyToKeyMap = new Map<string, string>();
 
   wordingSubmitAttempt = input(0);
   submitted = signal(false);
@@ -228,6 +228,6 @@ export class WordingParserComponent implements OnInit {
   // converts string e.g. No. of accounts into No-of-accounts to be used as form control keys and in error hrefs,
   // as spaces and full stops are not valid in form control names or html ids
   normaliseKey(key: string): string {
-    return key.replace(/\./g, '').trim().replace(/\s+/g, '-');
+    return key.replaceAll('.', '').trim().replaceAll(/\s+/g, '-');
   }
 }
