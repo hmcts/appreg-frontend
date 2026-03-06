@@ -38,13 +38,13 @@ export const routes: Routes = [
       { path: ':id', component: ApplicationsListDetail },
       { path: ':id/update', component: ApplicationsListEntryDetail },
       { path: ':id/delete', component: ApplicationsListDeleteComponent },
-      {
-        path: ':id/update/change-payment-reference',
-        component: PaymentReferenceEditComponent,
-      },
       { path: ':id/create', component: ApplicationsListEntryCreate },
       {
         path: ':id/create/change-payment-reference',
+        component: PaymentReferenceEditComponent,
+      },
+      {
+        path: ':id/update/change-payment-reference',
         component: PaymentReferenceEditComponent,
       },
       { path: ':id/bulk-upload', component: ApplicationsListBulkUpload },
