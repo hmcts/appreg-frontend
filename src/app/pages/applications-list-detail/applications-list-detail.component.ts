@@ -104,6 +104,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly menus = inject(MojButtonMenu);
 
   id!: string;
+  listRow: ApplicationListRow | undefined = undefined;
   etag: string | null = null;
   entryCount: number = 0;
 
@@ -126,8 +127,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
-
-  listRow: ApplicationListRow | undefined = undefined;
 
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refField);
