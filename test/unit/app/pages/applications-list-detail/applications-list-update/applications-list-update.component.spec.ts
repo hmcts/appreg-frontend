@@ -16,7 +16,7 @@ import {
   PaymentStatus,
   TemplateDetail,
 } from '@openapi';
-import { AppListCloseNavState } from '@shared-types/applications-list/applications-list-form';
+import { AppListNavState } from '@shared-types/applications-list/applications-list-form';
 import { PlaceFieldsState } from '@util/place-fields.base';
 
 describe('ApplicationsListUpdateComponent', () => {
@@ -54,7 +54,7 @@ describe('ApplicationsListUpdateComponent', () => {
     hasPrefilledFromApi: false,
     allEntryIds: [],
     allEntriesSummary: [],
-    createDone: false
+    createDone: false,
   });
 
   const mkPlaceState = (): PlaceFieldsState => ({
@@ -183,7 +183,7 @@ describe('ApplicationsListUpdateComponent', () => {
 
     const [commands, extras] = (router.navigate as jest.Mock).mock.calls[0] as [
       string[],
-      { state?: AppListCloseNavState },
+      { state?: AppListNavState },
     ];
     expect(commands).toEqual(['/applications-list', 'list-1', 'close']);
     expect(extras.state?.closeRequest?.id).toBe('list-1');
@@ -280,7 +280,7 @@ describe('closeValidationEntries', () => {
       hasPrefilledFromApi: false,
       allEntryIds: [],
       allEntriesSummary: [],
-      createDone: false
+      createDone: false,
     };
 
     const out = closeValidationEntries(vm);

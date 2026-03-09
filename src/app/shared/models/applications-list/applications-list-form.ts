@@ -21,7 +21,10 @@ export type ApplicationsListUpdateFormControls =
 
 export type ApplicationsListFormMode = 'search' | 'create' | 'update';
 
-export type AppListNavState = { listRow?: ApplicationListRow, closeRequest?: AppListCloseRequest};
+export type AppListNavState = {
+  listRow?: ApplicationListRow;
+  closeRequest?: AppListCloseRequest;
+};
 
 export type AppListCloseRequest = {
   id: string;

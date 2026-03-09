@@ -1,4 +1,12 @@
-import { Component, OnDestroy, OnInit, inject, input, output, signal } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 
 import { HeaderService } from '@core/services/header.service';
 
@@ -7,7 +15,7 @@ import { HeaderService } from '@core/services/header.service';
   imports: [],
   templateUrl: './list-close.component.html',
 })
-export class ListCloseComponent implements OnInit, OnDestroy{
+export class ListCloseComponent implements OnInit, OnDestroy {
   numberOfItems = input<number>(0);
   title = input<string>('');
   closeButtonTxt = input<string>('Continue');

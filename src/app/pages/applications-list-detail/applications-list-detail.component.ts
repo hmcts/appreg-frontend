@@ -31,7 +31,6 @@ import {
 } from './applications-list-update/applications-list-update.component';
 import {
   ApplicationsListDetailState,
-  Handoff,
   LoadDetailReq,
   UpdateReq,
   initialApplicationsListDetailState,
