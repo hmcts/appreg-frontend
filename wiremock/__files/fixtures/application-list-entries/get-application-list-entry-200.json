@@ -41,7 +41,10 @@
     }
   },
   "numberOfRespondents": 1,
-  "wordingFields": ["25 October 2025", "London"],
+  "wordingFields": [
+    { "key": "Date", "value": "25 October 2025" },
+    { "key": "Location", "value": "London" }
+  ],
   "feeStatuses": [
     {
       "paymentReference": "PAY-654321",

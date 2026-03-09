@@ -4,12 +4,12 @@
   [attr.data-module]="
     clientOrServerSort() === 'client' ? 'moj-sortable-table' : null
   "
-  [attr.aria-describedby]="'sortable-' + caption()"
+  [attr.aria-describedby]="'sortable-' + captionId()"
 >
   <caption
     [class.govuk-visually-hidden]="hiddenCaption()"
     class="govuk-table__caption govuk-table__caption--{{ captionSize() }}"
-    id="sortable-{{ caption() }}"
+    [id]="'sortable-' + captionId()"
   >
     {{
       caption()

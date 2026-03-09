@@ -87,6 +87,7 @@
       [personGroup]="forms.respondentPersonForm"
       [organisationGroup]="forms.respondentOrganisationForm"
       [respondentEntryTypeOptions]="respondentEntryTypeOptions"
+      [bulkAllowed]="bulkApplicationsAllowed"
       [personTitleOptions]="personTitleOptions"
       [submitted]="formSubmitted()"
       [errorItems]="respondentErrorItems"
@@ -120,9 +121,11 @@
       [existingResults]="resultsFacade.entryResults()"
       [clearPendingToken]="resultsFacade.clearPendingToken()"
       [wordingByCode]="resultsFacade.resultCodeWordingByCode()"
+      [resultCodeTemplateByCode]="resultsFacade.resultCodeTemplateByCode()"
       (pendingChange)="onPendingChange($event)"
-      (applyPending)="onApplyResultPending($event)"
+      (submitResults)="onSubmitResults($event)"
       (removeExisting)="onRemoveResult($event)"
+      (wordingFieldErrors)="onChildErrors('resultWording', $event)"
     ></app-result-wording-section>
   </ng-template>
 

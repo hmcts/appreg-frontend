@@ -203,7 +203,9 @@ export class ApplicationListEntryFormService {
       wordingFields: null,
 
       // respondent section fields
-      respondentEntryType: null,
+      respondent: null,
+      respondentEntryType: 'organisation',
+      numberOfRespondents: null,
 
       // Civil fee section fields
       feeStatuses: null,

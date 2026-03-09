@@ -50,6 +50,7 @@ export const APPLICANT_TYPE_OPTIONS = [
 export const RESPONDENT_TYPE_OPTIONS = [
   { value: 'person', label: 'Person' },
   { value: 'organisation', label: 'Organisation' },
+  { value: 'bulk', label: 'Bulk Application' },
 ] as const;
 
 export const PERSON_TITLE_OPTIONS = [

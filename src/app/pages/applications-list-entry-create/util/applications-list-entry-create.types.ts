@@ -6,8 +6,6 @@ import {
 } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import { CivilFeeMeta } from '@shared-types/civil-fee/civil-fee';
 
-export type ApplicantStep = 'select' | 'person' | 'org' | 'standard';
-
 export type EntryCreateSnapshot = {
   form: ApplicationsListEntryFormValue;
   personForm: PersonFormValue;
@@ -18,3 +16,12 @@ export type EntryCreateSnapshot = {
   feeMeta: CivilFeeMeta | null;
   isFeeRequired: boolean;
 };
+
+export type ApplicantStep = 'select' | 'person' | 'org' | 'standard';
+export type ChildErrorSource =
+  | 'notes'
+  | 'fee'
+  | 'respondent'
+  | 'applicant'
+  | 'wording'
+  | 'civilFee';

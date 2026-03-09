@@ -8,6 +8,36 @@ export const toOptionalTrimmed = (
   return s || undefined;
 };
 
+export const toOptionalInteger = (input: unknown): number | undefined => {
+  if (input === null) {
+    return undefined;
+  }
+
+  if (typeof input === 'number') {
+    if (!Number.isFinite(input) || !Number.isInteger(input) || input === 0) {
+      return undefined;
+    }
+    return input;
+  }
+
+  if (typeof input !== 'string') {
+    return undefined;
+  }
+
+  const asString = input.trim();
+  if (!asString) {
+    return undefined;
+  }
+
+  if (!/^\d+$/.test(asString)) {
+    return undefined;
+  }
+
+  // If user enters 0 we still want to omit
+  const n = Number(asString);
+  return n === 0 ? undefined : n;
+};
+
 export const compactStrings = (
   values: (string | null | undefined)[],
 ): string[] | undefined => {

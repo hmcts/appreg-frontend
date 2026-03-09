@@ -1,7 +1,5 @@
 import { StandardApplicantGetSummaryDto } from '@openapi';
 
-export type ApplicantType = 'person' | 'organisation' | 'standardApplicant';
-
 export type StandardApplicantRow = {
   code: StandardApplicantGetSummaryDto['code'];
   name: string;

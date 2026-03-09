@@ -1,7 +1,27 @@
 {
   "resultCode": "{{upper request.pathSegments.[1]}}",
   "title": "Result {{upper request.pathSegments.[1]}}",
-  "wording": "Result '{{upper request.pathSegments.[1]}}' applied {{#if request.query.date}}on {{request.query.date.[0]}}{{else}}today{{/if}}.",
+  "wording": {
+    "template": "Result '{{upper request.pathSegments.[1]}}' applied on \\{\\{ Date \\}\\} at \\{\\{ Location \\}\\}.",
+    "substitution-key-constraints": [
+      {
+        "key": "Date",
+        "value": "{{#if request.query.date}}{{request.query.date.[0]}}{{/if}}",
+        "constraint": {
+          "type": "DATE",
+          "length": 10
+        }
+      },
+      {
+        "key": "Location",
+        "value": "London",
+        "constraint": {
+          "type": "TEXT",
+          "length": 60
+        }
+      }
+    ]
+  },
   "startDate": "2010-01-01",
   "endDate": null
 }

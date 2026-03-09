@@ -189,5 +189,29 @@ describe('result-code helpers', () => {
       );
       expect(rows2[0].wording).toBe('A, B');
     });
+
+    it('maps TemplateSubstitution[] values to wording and preserves key/value pairs', () => {
+      const codes = [makeCode({ resultCode: 'RC1', title: 'One' })];
+
+      const rows = toExistingRows(
+        [
+          makeResult({
+            id: 'E3',
+            resultCode: 'RC1',
+            wordingFields: [
+              { key: 'Date', value: '2026-03-02' },
+              { key: 'Location', value: 'London' },
+            ] as unknown as string[],
+          }),
+        ],
+        codes,
+      );
+
+      expect(rows[0].wording).toBe('2026-03-02, London');
+      expect(rows[0].wordingFields).toEqual([
+        { key: 'Date', value: '2026-03-02' },
+        { key: 'Location', value: 'London' },
+      ]);
+    });
   });
 });
