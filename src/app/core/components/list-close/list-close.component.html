@@ -1,0 +1,34 @@
+<div class="govuk-width-container">
+  <main class="govuk-main-wrapper">
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-full">
+        <h1 class="govuk-heading-l">{{ title() }}</h1>
+
+        <div class="govuk-!-margin-top-4">
+          <ng-content></ng-content>
+        </div>
+
+        <div class="govuk-!-margin-top-6">
+          <div class="govuk-button-group">
+            <button
+              class="govuk-button"
+              [class.govuk-button--warning]="isRedCloseButton()"
+              [disabled]="isClosing()"
+              (click)="onConfirm()"
+            >
+              {{ closeButtonTxt() }}
+            </button>
+
+            <a
+              href="#"
+              (click)="$event.preventDefault(); onCancel()"
+              class="govuk-link govuk-link--no-visited-state"
+            >
+              {{ cancelButtonTxt() }}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

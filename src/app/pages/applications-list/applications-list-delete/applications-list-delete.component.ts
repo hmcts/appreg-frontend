@@ -12,9 +12,8 @@ import { WarningBannerComponent } from '@components/warning-banner/warning-banne
 import { IF_MATCH, ROW_VERSION } from '@context/concurrency-context';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import { ApplicationListsApi } from '@openapi';
+import { AppListNavState } from '@shared-types/applications-list/applications-list-form';
 import { ApplicationListRow } from '@util/types/application-list/types';
-
-type DeleteNavState = { listToDelete?: ApplicationListRow };
 
 @Component({
   selector: 'app-applications-list-delete',
@@ -36,7 +35,7 @@ export class ApplicationsListDeleteComponent implements OnInit {
   listToDelete: ApplicationListRow | undefined = isPlatformBrowser(
     this.platformId,
   )
-    ? (this.location.getState() as DeleteNavState).listToDelete
+    ? (this.location.getState() as AppListNavState).listRow
     : undefined;
 
   idFromUrl = this.route.snapshot.paramMap.get('id');

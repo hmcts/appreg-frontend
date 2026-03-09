@@ -20,6 +20,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { catchError, forkJoin, map, of } from 'rxjs';
 
 import {
@@ -48,12 +49,14 @@ import {
   GetApplicationListEntryRequestParams,
   PaymentStatus,
 } from '@openapi';
+import { AppListNavState } from '@shared-types/applications-list/applications-list-form';
 import { CloseValidationEntry } from '@shared-types/applications-list-close/applications-list-close.type';
 import { buildNormalizedPayload } from '@util/build-payload';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { PlaceFieldsState } from '@util/place-fields.base';
 import { setupLoadEffect } from '@util/signal-state-helpers';
+import { ApplicationListRow } from '@util/types/application-list/types';
 
 @Component({
   selector: 'app-applications-list-update',
@@ -70,6 +73,7 @@ export class ApplicationsListUpdateComponent implements OnInit {
   private readonly envInjector = inject(EnvironmentInjector);
   private readonly appListEntryApi = inject(ApplicationListEntriesApi);
   private readonly appCodesApi = inject(ApplicationCodesApi);
+  private readonly router = inject(Router);
 
   private readonly loadEntryDetailsReq = signal<
     GetApplicationListEntryRequestParams[] | null
@@ -103,6 +107,8 @@ export class ApplicationsListUpdateComponent implements OnInit {
   requestAllEntryIds = output<void>();
 
   suggestionsFacade = input.required<SuggestionsFacade>();
+
+  readonly listRow = input<ApplicationListRow | undefined>(undefined);
 
   private readonly hrefs = {
     date: `#${DETAIL_ERROR_ANCHORS.date}`,
@@ -260,6 +266,22 @@ export class ApplicationsListUpdateComponent implements OnInit {
         ...(Number.isInteger(durationHours) ? { durationHours } : {}),
         ...(Number.isInteger(durationMinutes) ? { durationMinutes } : {}),
       } as ApplicationListUpdateDto;
+
+      // Nav to close list page
+      if (isClosing) {
+        const state: AppListNavState = {
+          listRow: this.listRow(),
+          closeRequest: {
+            id: this.id(),
+            payload,
+            etag: this.etag(),
+          },
+        };
+        void this.router.navigate(['/applications-list', this.id(), 'close'], {
+          state,
+        });
+        return;
+      }
 
       this.setUpdateRequest()({
         id: this.id(),

@@ -68,6 +68,7 @@ import { MojButtonMenu, MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { parseTimeToDuration } from '@util/time-helpers';
+import { ApplicationListRow } from '@util/types/application-list/types';
 import { closePermitted } from '@validators/applications-list-close.validator';
 import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
 import { courtMustExistIfTypedValidator } from '@validators/court-exists.validator';
@@ -127,6 +128,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
   focusField = focusField;
 
+  listRow: ApplicationListRow | undefined = undefined;
+
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refField);
 
@@ -155,9 +158,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.setupEffects();
 
     const st = isPlatformBrowser(this.platformId)
-      ? (history.state as { row?: Handoff })?.row
+      ? (history.state as { row?: ApplicationListRow })?.row
       : undefined;
 
+    this.listRow = st ?? undefined;
     this.id = st?.id ?? this.route.snapshot.paramMap.get('id') ?? '';
     this.entryCount = st?.entriesCount ?? 0;
 

@@ -1,0 +1,15 @@
+<app-warning-banner
+  message="This action will close the list, and no further updates to the applications will be allowed"
+/>
+
+<app-list-close
+  (confirm)="onConfirm()"
+  (cancelled)="goBack()"
+  title="Are you sure you want to close this application list?"
+>
+  <app-table [rows]="[listToClose]" [columns]="columns">
+    <ng-template #dateTemplate let-row>
+      {{ row?.date | dateTime }}
+    </ng-template>
+  </app-table>
+</app-list-close>

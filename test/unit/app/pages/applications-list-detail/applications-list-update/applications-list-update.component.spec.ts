@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, FormGroup } from '@angular/forms';
+import { Router } from '@angular/router';
 
 import {
   ApplicationsListUpdateComponent,
@@ -10,15 +11,19 @@ import { SuggestionsFacade } from '@components/applications-list-form/facade/app
 import {
   ApplicationCodesApi,
   ApplicationListEntriesApi,
+  ApplicationListStatus,
   Official,
   PaymentStatus,
   TemplateDetail,
 } from '@openapi';
+import { AppListCloseNavState } from '@shared-types/applications-list/applications-list-form';
 import { PlaceFieldsState } from '@util/place-fields.base';
 
 describe('ApplicationsListUpdateComponent', () => {
   let component: ApplicationsListUpdateComponent;
   let fixture: ComponentFixture<ApplicationsListUpdateComponent>;
+  let router: Pick<Router, 'navigate'>;
+  let setUpdateRequest: jest.Mock;
 
   const mkForm = () =>
     new FormGroup({
@@ -49,6 +54,7 @@ describe('ApplicationsListUpdateComponent', () => {
     hasPrefilledFromApi: false,
     allEntryIds: [],
     allEntriesSummary: [],
+    createDone: false
   });
 
   const mkPlaceState = (): PlaceFieldsState => ({
@@ -74,6 +80,11 @@ describe('ApplicationsListUpdateComponent', () => {
   });
 
   beforeEach(async () => {
+    router = {
+      navigate: jest.fn().mockResolvedValue(true),
+    };
+    setUpdateRequest = jest.fn();
+
     await TestBed.configureTestingModule({
       imports: [ApplicationsListUpdateComponent],
       providers: [
@@ -85,6 +96,7 @@ describe('ApplicationsListUpdateComponent', () => {
           provide: ApplicationCodesApi,
           useValue: { getApplicationCodeByCodeAndDate: jest.fn() },
         },
+        { provide: Router, useValue: router },
       ],
     }).compileComponents();
 
@@ -98,7 +110,7 @@ describe('ApplicationsListUpdateComponent', () => {
     fixture.componentRef.setInput('entryIds', []);
     fixture.componentRef.setInput('patchState', jest.fn());
     fixture.componentRef.setInput('vm', mkVm());
-    fixture.componentRef.setInput('setUpdateRequest', jest.fn());
+    fixture.componentRef.setInput('setUpdateRequest', setUpdateRequest);
     fixture.componentRef.setInput('suggestionsFacade', mkSuggestionsFacade());
     fixture.detectChanges();
   });
@@ -134,6 +146,51 @@ describe('ApplicationsListUpdateComponent', () => {
     });
 
     expect(component.durationCloseErrorText()).toBe('');
+  });
+
+  it('onUpdate: when not closing, submits update request directly', () => {
+    component.form().patchValue({
+      date: '2026-02-10',
+      time: { hours: 10, minutes: 30 },
+      description: 'updated list',
+      status: ApplicationListStatus.OPEN,
+      court: 'ABC',
+      location: '',
+      cja: '',
+    });
+
+    component.onUpdate();
+
+    expect(setUpdateRequest).toHaveBeenCalledTimes(1);
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('onUpdate: when closing, navigates to close confirmation with state and does not submit immediately', () => {
+    component.form().patchValue({
+      date: '2026-02-10',
+      time: { hours: 10, minutes: 30 },
+      description: 'updated list',
+      status: ApplicationListStatus.CLOSED,
+      court: 'ABC',
+      location: '',
+      cja: '',
+    });
+
+    component.onUpdate();
+
+    expect(setUpdateRequest).not.toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledTimes(1);
+
+    const [commands, extras] = (router.navigate as jest.Mock).mock.calls[0] as [
+      string[],
+      { state?: AppListCloseNavState },
+    ];
+    expect(commands).toEqual(['/applications-list', 'list-1', 'close']);
+    expect(extras.state?.closeRequest?.id).toBe('list-1');
+    expect(extras.state?.closeRequest?.etag).toBeNull();
+    expect(extras.state?.closeRequest?.payload.status).toBe(
+      ApplicationListStatus.CLOSED,
+    );
   });
 });
 
@@ -223,6 +280,7 @@ describe('closeValidationEntries', () => {
       hasPrefilledFromApi: false,
       allEntryIds: [],
       allEntriesSummary: [],
+      createDone: false
     };
 
     const out = closeValidationEntries(vm);
