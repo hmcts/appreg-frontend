@@ -247,7 +247,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           }
 
           this.etag = res.headers.get('ETag') ?? this.etag;
-          this.entryCount = dto.entriesCount ?? (dto.entriesSummary?.length ?? 0);
+          this.entryCount = dto.entriesCount ?? dto.entriesSummary?.length ?? 0;
 
           const vm = this.vm();
 
