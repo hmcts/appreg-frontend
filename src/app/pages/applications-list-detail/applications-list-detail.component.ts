@@ -73,6 +73,10 @@ import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
 import { courtMustExistIfTypedValidator } from '@validators/court-exists.validator';
 import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
 
+type ApplicationsListDetailHistoryState = {
+  row?: ApplicationListRow;
+};
+
 @Component({
   selector: 'app-application-detail',
   standalone: true,
@@ -199,6 +203,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   setSuccessBanner(): void {
     if (this.route.snapshot.queryParamMap.get('listCreated') === 'true') {
       this.vm().createDone = true;
+      const createState = history.state as ApplicationsListDetailHistoryState;
+      this.listRow = createState.row ?? undefined;
     }
   }
 
