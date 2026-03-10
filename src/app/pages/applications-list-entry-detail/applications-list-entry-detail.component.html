@@ -8,10 +8,6 @@
   ]"
 />
 
-<h1 class="govuk-heading-xl">Applications list entry update</h1>
-
-<h2 class="govuk-heading-l">Summary of application list entry</h2>
-
 @if (errorFound) {
   <app-error-summary
     [title]="errorHint || 'There is a problem'"
@@ -32,6 +28,10 @@
     </p>
   }
 }
+
+<h1 class="govuk-heading-xl">Applications list entry update</h1>
+
+<h2 class="govuk-heading-l">Summary of application list entry</h2>
 
 <form [formGroup]="form">
   <ng-template #applicantTpl>
