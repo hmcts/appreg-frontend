@@ -5,15 +5,18 @@
 Package manager: Yarn 4 via Corepack (`corepack enable` + `yarn`).
 
 Always:
+
 - Do not add secrets, tokens, credentials, or PII to code, logs, comments, fixtures, or tests.
 - Keep API-generated artifacts in sync when API contracts change (`yarn api:all`).
 - Add or update tests when behavior changes.
 
 For repo conventions and contribution rules, see:
+
 - `docs/REPO_GUIDELINES.md`
 - `docs/CONTRIBUTING.md`
 
 For testing guidance, see:
+
 - `docs/CYPRESS_COMPONENT_TESTING.md`
 - `docs/CYPRESS_E2E_TESTING.md`
 
