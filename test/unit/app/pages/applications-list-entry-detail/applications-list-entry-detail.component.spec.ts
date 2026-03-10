@@ -84,14 +84,18 @@ describe('ApplicationsListEntryDetail', () => {
     jest.resetAllMocks();
 
     (
-      routeStub.snapshot as unknown as { paramMap: ReturnType<typeof convertToParamMap> }
+      routeStub.snapshot as unknown as {
+        paramMap: ReturnType<typeof convertToParamMap>;
+      }
     ).paramMap = convertToParamMap({
       listId: 'AL-1',
       entryId: 'EN-1',
       id: 'AL-1',
     });
     (
-      routeStub.snapshot as unknown as { queryParamMap: ReturnType<typeof convertToParamMap> }
+      routeStub.snapshot as unknown as {
+        queryParamMap: ReturnType<typeof convertToParamMap>;
+      }
     ).queryParamMap = convertToParamMap({
       entryId: 'EN-1',
       appListId: 'AL-1',
@@ -182,7 +186,9 @@ describe('ApplicationsListEntryDetail', () => {
 
   it('shows list-created success banner when listCreated=true query param is present', () => {
     (
-      routeStub.snapshot as unknown as { queryParamMap: ReturnType<typeof convertToParamMap> }
+      routeStub.snapshot as unknown as {
+        queryParamMap: ReturnType<typeof convertToParamMap>;
+      }
     ).queryParamMap = convertToParamMap({
       entryId: 'EN-1',
       appListId: 'AL-1',
@@ -193,7 +199,9 @@ describe('ApplicationsListEntryDetail', () => {
     const freshComponent = freshFixture.componentInstance;
     freshFixture.detectChanges();
 
-    expect(freshComponent.successBanner?.heading).toBe('Application list created');
+    expect(freshComponent.successBanner?.heading).toBe(
+      'Application list created',
+    );
     expect(freshComponent.successBanner?.body).toBe(
       'The application list has been created successfully.',
     );

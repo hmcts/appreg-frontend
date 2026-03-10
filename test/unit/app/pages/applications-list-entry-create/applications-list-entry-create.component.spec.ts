@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, provideRouter, Router } from '@angular/router';
+import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { Subject, of } from 'rxjs';
 
 import { ApplicationsListEntryCreate } from '@components/applications-list-entry-create/applications-list-entry-create.component';
@@ -13,8 +13,8 @@ import {
 import {
   ApplicationCodeGetDetailDto,
   ApplicationCodesApi,
-  EntryCreateDto,
   ApplicationListEntriesApi,
+  EntryCreateDto,
   FeeStatus,
 } from '@openapi';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
@@ -391,9 +391,7 @@ describe('ApplicationsListEntryCreate (submission + error flow)', () => {
     api.createApplicationListEntry.mockReturnValue(
       of({ listId: 'LIST-1', id: 'ENTRY-1' }),
     );
-    const navigateSpy = jest
-      .spyOn(router, 'navigate')
-      .mockResolvedValue(true);
+    const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
 
     jest
       .spyOn(
