@@ -75,14 +75,14 @@ Feature: Applications List Create
     Then User Clicks On The Breadcrumb Link "Applications list"
     Then User Clicks On The Link "Create new list"
     When User Clicks On The "Create" Button
-    Then User Sees Validation Error "There is a problem Enter day, month and year Enter valid hours and minutes Description is required Enter a court, or an other location and criminal justice area"
+    Then User Sees Validation Error Banner "There is a problem Enter day, month and year Enter valid hours and minutes Description is required Enter a court, or an other location and criminal justice area"
     Then User Should See The Date Field "Date"
     When User Set Date Field "Date" To "<InvalidDate>"
     When User Clicks On The "Create" Button
     Then User Sees Notification Banner "There is a problem Enter a valid date Enter valid hours and minutes Description is required Enter a court, or an other location and criminal justice area"
     When User Set Date Field "Date" To "<Date>"
     When User Clicks On The "Create" Button
-    Then User Sees Validation Error "There is a problem Enter valid hours and minutes Description is required Enter a court, or an other location and criminal justice area"
+    Then User Sees Validation Error Banner "There is a problem Enter valid hours and minutes Description is required Enter a court, or an other location and criminal justice area"
     Then User Should See The Time Field "Time"
     When User Set Time Field "Time" To "<InvalidTime>"
     When User Clicks On The "Create" Button
