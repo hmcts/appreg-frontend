@@ -8,7 +8,7 @@
   [actions]="[
     {
       label: 'Create application',
-      routerLink: ['create'],
+      routerLink: ['create-entry'],
       startIcon: true,
       variant: 'primary',
     },
@@ -162,7 +162,7 @@
         heading="No lists entries found"
         body="Try again, or "
         linkText="create a new list entry"
-        [linkCommands]="['/applications-list', id, 'create']"
+        [linkCommands]="['/applications-list', id, 'create-entry']"
       />
     }
 

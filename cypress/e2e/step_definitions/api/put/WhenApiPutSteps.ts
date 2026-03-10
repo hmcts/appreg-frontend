@@ -28,3 +28,27 @@ When(
     ApiPutHelper.putWithJsonBody(endpoint, jsonBody);
   },
 );
+
+When(
+  'User Makes PUT API Request To {string} With Object Builder:',
+  (endpoint: string, dataTable: DataTable) => {
+    const rows = dataTable.raw();
+    const rowObj: Record<string, string> = {};
+
+    // Skip header row (index 0) and process data rows (starting from index 1)
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (row.length >= 2) {
+        const key = row[0].trim();
+        const value = row[1].trim();
+        rowObj[key] = value;
+      }
+    }
+
+    // Process dynamic values like {RANDOM}, dates, etc.
+    const processedRow = processDatatableRow(rowObj);
+
+    // Build nested object from flat dot-notation keys and make PUT request
+    ApiPutHelper.putWithBuilder(endpoint, processedRow);
+  },
+);
