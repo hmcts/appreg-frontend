@@ -6821,7 +6821,7 @@ __metadata:
     eslint-plugin-n: "npm:^14.0.0"
     eslint-plugin-prettier: "npm:^5.5.4"
     express: "npm:^5.2.1"
-    express-rate-limit: "npm:^8.0.1"
+    express-rate-limit: "npm:^8.3.1"
     express-session: "npm:^1.18.2"
     glob: "npm:^13.0.1"
     globals: "npm:^16.3.0"
@@ -9173,15 +9173,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:^3.2.4, dompurify@npm:^3.3.1":
-  version: 3.3.1
-  resolution: "dompurify@npm:3.3.1"
+"dompurify@npm:^3.3.2":
+  version: 3.3.2
+  resolution: "dompurify@npm:3.3.2"
   dependencies:
     "@types/trusted-types": "npm:^2.0.7"
   dependenciesMeta:
     "@types/trusted-types":
       optional: true
-  checksum: 10/f71cca489e628591165d16e8cf4fa4f0d3e2ee48db4d73e9d2c5bedc6f915c92f9e9f101f8c4ba790bec0cdffe7f4e1747f5e31c69dc53ce7ae20a81ff6b0022
+  checksum: 10/3ca02559677ce6d9583a500f21ffbb6b9e88f1af99f69fa0d0d9442cddbac98810588c869f8b435addb5115492d6e49870024bca322169b941bafedb99c7f281
   languageName: node
   linkType: hard
 
@@ -10373,7 +10373,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"express-rate-limit@npm:^8.0.1, express-rate-limit@npm:^8.2.1":
+"express-rate-limit@npm:^8.2.1":
   version: 8.2.1
   resolution: "express-rate-limit@npm:8.2.1"
   dependencies:
@@ -10381,6 +10381,17 @@ __metadata:
   peerDependencies:
     express: ">= 4.11"
   checksum: 10/7cbf70df2e88e590e463d2d8f93380775b2ea181d97f2c50c2ff9f2c666c247f83109a852b21d9c99ccc5762119101f281f54a27252a2f1a0a918be6d71f955b
+  languageName: node
+  linkType: hard
+
+"express-rate-limit@npm:^8.3.1":
+  version: 8.3.1
+  resolution: "express-rate-limit@npm:8.3.1"
+  dependencies:
+    ip-address: "npm:10.1.0"
+  peerDependencies:
+    express: ">= 4.11"
+  checksum: 10/dd97bfc48c01a6d4c5433203232b5e7a1e55e21322bde49033e5f8c4339584fe671a94096144a0810f4ea21dcec8aaaf15823109627e609f8ed1bc5912a345cf
   languageName: node
   linkType: hard
 
@@ -11862,7 +11873,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ip-address@npm:^10.0.1":
+"ip-address@npm:10.1.0, ip-address@npm:^10.0.1":
   version: 10.1.0
   resolution: "ip-address@npm:10.1.0"
   checksum: 10/a6979629d1ad9c1fb424bc25182203fad739b40225aebc55ec6243bbff5035faf7b9ed6efab3a097de6e713acbbfde944baacfa73e11852bb43989c45a68d79e
@@ -18030,16 +18041,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tar@npm:^7.5.7":
-  version: 7.5.9
-  resolution: "tar@npm:7.5.9"
+"tar@npm:^7.5.10":
+  version: 7.5.11
+  resolution: "tar@npm:7.5.11"
   dependencies:
     "@isaacs/fs-minipass": "npm:^4.0.0"
     chownr: "npm:^3.0.0"
     minipass: "npm:^7.1.2"
     minizlib: "npm:^3.1.0"
     yallist: "npm:^5.0.0"
-  checksum: 10/1213cdde9c22d6acf8809ba5d2a025212ce3517bc99c4a4c6981b7dc0489bf3b164db9c826c9517680889194c9ba57448c8ff0da35eca9a60bb7689bf0b3897d
+  checksum: 10/fb2e77ee858a73936c68e066f4a602d428d6f812e6da0cc1e14a41f99498e4f7fd3535e355fa15157240a5538aa416026cfa6306bb0d1d1c1abf314b1f878e9a
   languageName: node
   linkType: hard
 
