@@ -8,24 +8,25 @@ import {
   signal,
 } from '@angular/core';
 
-import { HeaderService } from '@core/services/header.service';
+import { HeaderService } from '@services/header.service';
 
 @Component({
-  selector: 'app-list-close',
+  selector: 'app-review-confirm',
+  standalone: true,
   imports: [],
-  templateUrl: './list-close.component.html',
+  templateUrl: './review-confirm.component.html',
 })
-export class ListCloseComponent implements OnInit, OnDestroy {
+export class ReviewConfirmComponent implements OnInit, OnDestroy {
   numberOfItems = input<number>(0);
   title = input<string>('');
-  closeButtonTxt = input<string>('Continue');
+  confirmButtonTxt = input<string>('Continue');
   cancelButtonTxt = input<string>('Cancel');
-  isRedCloseButton = input<boolean>(true);
+  isRedButton = input<boolean>(true);
 
   confirm = output<void>();
   cancelled = output<void>();
 
-  isClosing = signal(false);
+  isConfirmed = signal(false);
 
   headerService = inject(HeaderService);
 
@@ -38,12 +39,12 @@ export class ListCloseComponent implements OnInit, OnDestroy {
   }
 
   onConfirm(): void {
-    this.isClosing.set(true);
+    this.isConfirmed.set(true);
     this.confirm.emit();
   }
 
   onCancel(): void {
-    this.isClosing.set(false);
+    this.isConfirmed.set(false);
     this.cancelled.emit();
   }
 }

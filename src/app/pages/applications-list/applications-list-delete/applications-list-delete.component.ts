@@ -6,7 +6,7 @@ import { map } from 'rxjs';
 
 import { APPLICATIONS_LIST_COLUMNS } from '../util/applications-list.constants';
 
-import { DeleteComponent } from '@components/delete/delete.component';
+import { ReviewConfirmComponent } from '@components/review-confirm/review-confirm.component';
 import { TableComponent } from '@components/table/table.component';
 import { WarningBannerComponent } from '@components/warning-banner/warning-banner.component';
 import { IF_MATCH, ROW_VERSION } from '@context/concurrency-context';
@@ -18,7 +18,7 @@ import { ApplicationListRow } from '@util/types/application-list/types';
 @Component({
   selector: 'app-applications-list-delete',
   imports: [
-    DeleteComponent,
+    ReviewConfirmComponent,
     TableComponent,
     WarningBannerComponent,
     DateTimePipe,
