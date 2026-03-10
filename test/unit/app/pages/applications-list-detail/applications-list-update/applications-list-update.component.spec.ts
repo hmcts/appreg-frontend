@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, FormGroup } from '@angular/forms';
+import { of, throwError } from 'rxjs';
 
 import {
   ApplicationsListUpdateComponent,
@@ -24,6 +25,8 @@ describe('ApplicationsListUpdateComponent', () => {
   let fixture: ComponentFixture<ApplicationsListUpdateComponent>;
   let patchStateMock: jest.Mock;
   let setUpdateRequestMock: jest.Mock;
+  let entryApiMock: { getApplicationListEntry: jest.Mock };
+  let codeApiMock: { getApplicationCodeByCodeAndDate: jest.Mock };
 
   const mkForm = () =>
     new FormGroup({
@@ -82,17 +85,26 @@ describe('ApplicationsListUpdateComponent', () => {
     selectCja: jest.fn(),
   });
 
+  const flushEffects = async (): Promise<void> => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  };
+
   beforeEach(async () => {
+    entryApiMock = { getApplicationListEntry: jest.fn() };
+    codeApiMock = { getApplicationCodeByCodeAndDate: jest.fn() };
+
     await TestBed.configureTestingModule({
       imports: [ApplicationsListUpdateComponent],
       providers: [
         {
           provide: ApplicationListEntriesApi,
-          useValue: { getApplicationListEntry: jest.fn() },
+          useValue: entryApiMock,
         },
         {
           provide: ApplicationCodesApi,
-          useValue: { getApplicationCodeByCodeAndDate: jest.fn() },
+          useValue: codeApiMock,
         },
       ],
     }).compileComponents();
@@ -111,6 +123,14 @@ describe('ApplicationsListUpdateComponent', () => {
     fixture.componentRef.setInput('vm', mkVm());
     fixture.componentRef.setInput('setUpdateRequest', setUpdateRequestMock);
     fixture.componentRef.setInput('suggestionsFacade', mkSuggestionsFacade());
+    entryApiMock.getApplicationListEntry.mockReturnValue(
+      of({
+        id: 'e-default',
+        applicationCode: '',
+        lodgementDate: null,
+      } as never),
+    );
+    codeApiMock.getApplicationCodeByCodeAndDate.mockReturnValue(of(null));
     fixture.detectChanges();
   });
 
@@ -335,6 +355,22 @@ describe('ApplicationsListUpdateComponent', () => {
     );
   });
 
+  it('onUpdate non-closing resets close statuses to idle', () => {
+    component.form().patchValue({
+      status: 'open',
+      date: '2026-03-10',
+      time: { hours: 9, minutes: 30 },
+      court: 'LOC1',
+    });
+
+    component.onUpdate();
+
+    expect(patchStateMock).toHaveBeenCalledWith({
+      closeEntryDetailsStatus: 'idle',
+      closeCodeDetailsStatus: 'idle',
+    });
+  });
+
   it('builds close validation error summary without duplicate duration close reason', () => {
     component.form().setErrors({
       closeNotPermitted: {
@@ -396,6 +432,423 @@ describe('ApplicationsListUpdateComponent', () => {
         params: { code: 'A1', date: '2026-03-10' },
       },
     ]);
+  });
+
+  describe('syncEntryIds', () => {
+    it('marks close detail statuses ready when closing and entryIds are empty', async () => {
+      fixture.componentRef.setInput('vm', {
+        ...mkVm(),
+        closeSummaryStatus: 'ready',
+        closeEntryDetailsStatus: 'idle',
+        closeCodeDetailsStatus: 'idle',
+      });
+      fixture.componentRef.setInput('entryIds', []);
+      fixture.detectChanges();
+
+      component.form().patchValue({
+        status: 'closed',
+        date: '2026-03-10',
+        time: { hours: 9, minutes: 30 },
+        court: 'LOC1',
+      });
+
+      component.onUpdate();
+      await flushEffects();
+
+      expect(patchStateMock).toHaveBeenCalledWith({
+        closeEntryDetailsStatus: 'ready',
+        closeCodeDetailsStatus: 'ready',
+      });
+    });
+
+    it('loads entry details once per key and avoids duplicate request for same ids', async () => {
+      entryApiMock.getApplicationListEntry.mockReturnValue(
+        of({
+          id: 'e1',
+          applicationCode: '',
+          lodgementDate: null,
+          officials: [],
+          feeStatuses: [],
+        } as never),
+      );
+
+      fixture.componentRef.setInput('vm', {
+        ...mkVm(),
+        closeSummaryStatus: 'ready',
+        closeEntryDetailsStatus: 'idle',
+        closeCodeDetailsStatus: 'idle',
+      });
+      fixture.componentRef.setInput('entryIds', ['e1']);
+      component.form().patchValue({
+        status: 'closed',
+        date: '2026-03-10',
+        time: { hours: 9, minutes: 30 },
+        court: 'LOC1',
+      });
+
+      component.onUpdate();
+      await flushEffects();
+
+      expect(entryApiMock.getApplicationListEntry).toHaveBeenCalledTimes(1);
+
+      fixture.componentRef.setInput('vm', {
+        ...mkVm(),
+        closeSummaryStatus: 'ready',
+        closeEntryDetailsStatus: 'idle',
+        closeCodeDetailsStatus: 'idle',
+      });
+      fixture.componentRef.setInput('entryIds', ['e1']);
+      await flushEffects();
+
+      expect(entryApiMock.getApplicationListEntry).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('maybeFinalizePendingCloseSubmit', () => {
+    it('does not finalize when pending close submit exists but status is no longer closed', async () => {
+      fixture.componentRef.setInput('vm', {
+        ...mkVm(),
+        closeSummaryStatus: 'loading',
+        closeEntryDetailsStatus: 'idle',
+        closeCodeDetailsStatus: 'idle',
+      });
+      fixture.detectChanges();
+
+      component.form().patchValue({
+        status: 'closed',
+        date: '2026-03-10',
+        time: { hours: 9, minutes: 30 },
+        court: 'LOC1',
+      });
+      component.onUpdate();
+
+      component.form().patchValue({ status: 'open' });
+      fixture.componentRef.setInput('vm', {
+        ...mkVm(),
+        closeSummaryStatus: 'ready',
+        closeEntryDetailsStatus: 'ready',
+        closeCodeDetailsStatus: 'ready',
+      });
+      await flushEffects();
+
+      expect(setUpdateRequestMock).not.toHaveBeenCalled();
+    });
+
+    it('finalizes once pending close submit transitions to fully ready', async () => {
+      const summarySpy = jest
+        .spyOn(
+          component as unknown as {
+            buildUpdateErrorSummary(): { id?: string; text: string }[];
+          },
+          'buildUpdateErrorSummary',
+        )
+        .mockReturnValue([]);
+      const payloadSpy = jest
+        .spyOn(buildPayloadUtil, 'buildNormalizedPayload')
+        .mockReturnValue({
+          date: '2026-03-10',
+          time: '09:30',
+          description: 'Closed list',
+          status: ApplicationListStatus.CLOSED,
+          courtLocationCode: 'LOC1',
+        });
+
+      fixture.componentRef.setInput('vm', {
+        ...mkVm(),
+        closeSummaryStatus: 'loading',
+        closeEntryDetailsStatus: 'idle',
+        closeCodeDetailsStatus: 'idle',
+      });
+      fixture.detectChanges();
+
+      component.form().patchValue({
+        status: 'closed',
+        date: '2026-03-10',
+        time: { hours: 9, minutes: 30 },
+        description: 'Closed list',
+        court: 'LOC1',
+      });
+      component.onUpdate();
+
+      fixture.componentRef.setInput('vm', {
+        ...mkVm(),
+        closeSummaryStatus: 'ready',
+        closeEntryDetailsStatus: 'ready',
+        closeCodeDetailsStatus: 'ready',
+      });
+      await flushEffects();
+
+      expect(setUpdateRequestMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          payload: expect.objectContaining({ status: 'CLOSED' }),
+        }),
+      );
+
+      summarySpy.mockRestore();
+      payloadSpy.mockRestore();
+    });
+
+    it('does not finalize when pending close submit moves to summary error', async () => {
+      fixture.componentRef.setInput('vm', {
+        ...mkVm(),
+        closeSummaryStatus: 'loading',
+        closeEntryDetailsStatus: 'idle',
+        closeCodeDetailsStatus: 'idle',
+      });
+      fixture.detectChanges();
+
+      component.form().patchValue({
+        status: 'closed',
+        date: '2026-03-10',
+        time: { hours: 9, minutes: 30 },
+        court: 'LOC1',
+      });
+      component.onUpdate();
+
+      fixture.componentRef.setInput('vm', {
+        ...mkVm(),
+        closeSummaryStatus: 'error',
+        closeEntryDetailsStatus: 'ready',
+        closeCodeDetailsStatus: 'ready',
+      });
+      await flushEffects();
+
+      expect(setUpdateRequestMock).not.toHaveBeenCalled();
+    });
+
+    it('clears pending close submit when form status is not closed', async () => {
+      component.form().patchValue({ status: 'open' });
+
+      (
+        component as unknown as {
+          pendingCloseSubmit: { set(v: boolean): void; (): boolean };
+        }
+      ).pendingCloseSubmit.set(true);
+      await flushEffects();
+
+      expect(
+        (
+          component as unknown as {
+            pendingCloseSubmit: () => boolean;
+          }
+        ).pendingCloseSubmit(),
+      ).toBe(false);
+      expect(setUpdateRequestMock).not.toHaveBeenCalled();
+    });
+
+    it('clears pending close submit when close entry details status is error', async () => {
+      component.form().patchValue({ status: 'closed' });
+      fixture.componentRef.setInput('vm', {
+        ...mkVm(),
+        closeSummaryStatus: 'ready',
+        closeEntryDetailsStatus: 'error',
+        closeCodeDetailsStatus: 'ready',
+      });
+
+      (
+        component as unknown as {
+          pendingCloseSubmit: { set(v: boolean): void; (): boolean };
+        }
+      ).pendingCloseSubmit.set(true);
+      await flushEffects();
+
+      expect(
+        (
+          component as unknown as {
+            pendingCloseSubmit: () => boolean;
+          }
+        ).pendingCloseSubmit(),
+      ).toBe(false);
+      expect(setUpdateRequestMock).not.toHaveBeenCalled();
+    });
+
+    it('clears pending close submit when close code details status is error', async () => {
+      component.form().patchValue({ status: 'closed' });
+      fixture.componentRef.setInput('vm', {
+        ...mkVm(),
+        closeSummaryStatus: 'ready',
+        closeEntryDetailsStatus: 'ready',
+        closeCodeDetailsStatus: 'error',
+      });
+
+      (
+        component as unknown as {
+          pendingCloseSubmit: { set(v: boolean): void; (): boolean };
+        }
+      ).pendingCloseSubmit.set(true);
+      await flushEffects();
+
+      expect(
+        (
+          component as unknown as {
+            pendingCloseSubmit: () => boolean;
+          }
+        ).pendingCloseSubmit(),
+      ).toBe(false);
+      expect(setUpdateRequestMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('ngOnInit load effects', () => {
+    it('handles entry detail load success with no code detail requests', async () => {
+      entryApiMock.getApplicationListEntry.mockReturnValue(
+        of({
+          id: 'e1',
+          applicationCode: '',
+          lodgementDate: null,
+          officials: [],
+          feeStatuses: [],
+        } as never),
+      );
+
+      fixture.componentRef.setInput('vm', {
+        ...mkVm(),
+        closeSummaryStatus: 'ready',
+        closeEntryDetailsStatus: 'idle',
+        closeCodeDetailsStatus: 'idle',
+      });
+      fixture.componentRef.setInput('entryIds', ['e1']);
+      component.form().patchValue({
+        status: 'closed',
+        date: '2026-03-10',
+        time: { hours: 9, minutes: 30 },
+        court: 'LOC1',
+      });
+
+      component.onUpdate();
+      await flushEffects();
+
+      expect(patchStateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          entriesDetails: expect.any(Array),
+          closeEntryDetailsStatus: 'ready',
+        }),
+      );
+      expect(patchStateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          closeCodeDetailsStatus: 'ready',
+          entryCodeDetails: {},
+        }),
+      );
+    });
+
+    it('handles entry + code detail load success and maps code details by entry id', async () => {
+      entryApiMock.getApplicationListEntry.mockReturnValue(
+        of({
+          id: 'e1',
+          applicationCode: 'A1',
+          lodgementDate: '2026-03-10T00:00:00',
+          officials: [],
+          feeStatuses: [],
+        } as never),
+      );
+      codeApiMock.getApplicationCodeByCodeAndDate.mockReturnValue(
+        of({
+          applicationCode: 'A1',
+          requiresRespondent: true,
+        } as never),
+      );
+
+      fixture.componentRef.setInput('vm', {
+        ...mkVm(),
+        closeSummaryStatus: 'ready',
+        closeEntryDetailsStatus: 'idle',
+        closeCodeDetailsStatus: 'idle',
+      });
+      fixture.componentRef.setInput('entryIds', ['e1']);
+      component.form().patchValue({
+        status: 'closed',
+        date: '2026-03-10',
+        time: { hours: 9, minutes: 30 },
+        court: 'LOC1',
+      });
+
+      component.onUpdate();
+      await flushEffects();
+
+      expect(codeApiMock.getApplicationCodeByCodeAndDate).toHaveBeenCalledWith(
+        { code: 'A1', date: '2026-03-10' },
+        'body',
+        false,
+        { transferCache: true },
+      );
+      expect(patchStateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          entryCodeDetails: expect.objectContaining({
+            e1: expect.objectContaining({ applicationCode: 'A1' }),
+          }),
+          closeCodeDetailsStatus: 'ready',
+        }),
+      );
+    });
+
+    it('handles entry detail load error', async () => {
+      entryApiMock.getApplicationListEntry.mockReturnValue(
+        throwError(() => new Error('entry-load-error')),
+      );
+
+      fixture.componentRef.setInput('vm', {
+        ...mkVm(),
+        closeSummaryStatus: 'ready',
+        closeEntryDetailsStatus: 'idle',
+        closeCodeDetailsStatus: 'idle',
+      });
+      fixture.componentRef.setInput('entryIds', ['e1']);
+      component.form().patchValue({
+        status: 'closed',
+        date: '2026-03-10',
+        time: { hours: 9, minutes: 30 },
+        court: 'LOC1',
+      });
+
+      component.onUpdate();
+      await flushEffects();
+
+      expect(patchStateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          closeEntryDetailsStatus: 'error',
+        }),
+      );
+    });
+
+    it('swallows code detail API errors and still marks code detail status ready', async () => {
+      entryApiMock.getApplicationListEntry.mockReturnValue(
+        of({
+          id: 'e1',
+          applicationCode: 'A1',
+          lodgementDate: '2026-03-10T00:00:00',
+          officials: [],
+          feeStatuses: [],
+        } as never),
+      );
+      codeApiMock.getApplicationCodeByCodeAndDate.mockReturnValue(
+        throwError(() => new Error('code-load-error')),
+      );
+
+      fixture.componentRef.setInput('vm', {
+        ...mkVm(),
+        closeSummaryStatus: 'ready',
+        closeEntryDetailsStatus: 'idle',
+        closeCodeDetailsStatus: 'idle',
+      });
+      fixture.componentRef.setInput('entryIds', ['e1']);
+      component.form().patchValue({
+        status: 'closed',
+        date: '2026-03-10',
+        time: { hours: 9, minutes: 30 },
+        court: 'LOC1',
+      });
+
+      component.onUpdate();
+      await flushEffects();
+
+      expect(patchStateMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          closeCodeDetailsStatus: 'ready',
+          entryCodeDetails: {},
+        }),
+      );
+    });
   });
 });
 
