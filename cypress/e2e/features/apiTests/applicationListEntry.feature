@@ -11,60 +11,121 @@ Feature: API - Application List Entry
         When User Makes POST API Request To "/application-lists/:listId/entries" With Json Body
             """
             {
-                "standardApplicantCode": null,
-                "applicationCode": "AD99002",
-                "applicant": {
-                    "person": {
-                        "name": {
-                            "title": "Mr, Mrs",
-                            "surname": "Smith{RANDOM}",
-                            "firstForename": "John",
-                            "secondForename": "A",
-                            "thirdForename": "B"
-                        },
-                        "contactDetails": {
-                            "addressLine1": "{RANDOM} High Street",
-                            "addressLine2": "Westminster",
-                            "addressLine3": "London",
-                            "addressLine4": "Greater London",
-                            "addressLine5": "United Kingdom",
-                            "postcode": "SW1A 2AA",
-                            "phone": "0207{RANDOM}",
-                            "mobile": "07123{RANDOM}",
-                            "email": "john.smith{RANDOM}@example.com"
-                        }
-                    }
-                },
-                "wordingFields": [],
-                "feeStatuses": [
-                    {
-                        "paymentReference": "PAY-{RANDOM}",
-                        "paymentStatus": "PAID",
-                        "statusDate": "todayiso+1d"
-                    }
-                ],
-                "hasOffsiteFee": false,
-                "caseReference": "CASE-001",
-                "accountNumber": "APP-{RANDOM}",
-                "notes": "Application discussion ref {RANDOM}",
-                "lodgementDate": "todayiso",
-                "officials": [
-                    {
-                        "title": "Mr, Mrs",
-                        "surname": "Smith{RANDOM}",
-                        "forename": "John",
-                        "type": "MAGISTRATE"
-                    }
-                ]
+            "standardApplicantCode": null,
+            "applicationCode": "AD99002",
+            "applicant": {
+            "person": {
+            "name": {
+            "title": "Mr, Mrs",
+            "surname": "Smith{RANDOM}",
+            "firstForename": "John",
+            "secondForename": "A",
+            "thirdForename": "B"
+            },
+            "contactDetails": {
+            "addressLine1": "{RANDOM} High Street",
+            "addressLine2": "Westminster",
+            "addressLine3": "London",
+            "addressLine4": "Greater London",
+            "addressLine5": "United Kingdom",
+            "postcode": "SW1A 2AA",
+            "phone": "0207{RANDOM}",
+            "mobile": "07123{RANDOM}",
+            "email": "john.smith{RANDOM}@example.com"
+            }
+            }
+            },
+            "wordingFields": [],
+            "feeStatuses": [
+            {
+            "paymentReference": "PAY-{RANDOM}",
+            "paymentStatus": "PAID",
+            "statusDate": "todayiso+1d"
+            }
+            ],
+            "hasOffsiteFee": false,
+            "caseReference": "CASE-001",
+            "accountNumber": "APP-{RANDOM}",
+            "notes": "Application discussion ref {RANDOM}",
+            "lodgementDate": "todayiso"
             }
             """
         Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "entryId"
+        When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
+            """
+            {
+            "resultCode": "RTC",
+            "wordingFields": [
+            {                   "key": "Date",
+            "value": "24-02-2026"
+
+            },
+            {                   "key": "Courthouse",
+            "value": "London Courthouse"
+
+            }
+            ]
+            }
+            """
+        Then User Verify Response Status Code Should Be "201"
+        When User Makes PUT API Request To "/application-lists/:listId/entries/:entryId" With Json Body
+            """
+            {
+            "standardApplicantCode": null,
+            "applicationCode": "AD99002",
+            "applicant": {
+            "person": {
+            "name": {
+            "title": "Mr, Mrs",
+            "surname": "Smith{RANDOM}",
+            "firstForename": "John",
+            "secondForename": "A",
+            "thirdForename": "B"
+            },
+            "contactDetails": {
+            "addressLine1": "{RANDOM} High Street",
+            "addressLine2": "Westminster",
+            "addressLine3": "London",
+            "addressLine4": "Greater London",
+            "addressLine5": "United Kingdom",
+            "postcode": "SW1A 2AA",
+            "phone": "0207{RANDOM}",
+            "mobile": "07123{RANDOM}",
+            "email": "john.smith{RANDOM}@example.com"
+            }
+            }
+            },
+            "wordingFields": [],
+            "feeStatuses": [
+            {
+            "paymentReference": "PAY-{RANDOM}",
+            "paymentStatus": "PAID",
+            "statusDate": "todayiso+1d"
+            }
+            ],
+            "hasOffsiteFee": false,
+            "caseReference": "CASE-001",
+            "accountNumber": "APP-{RANDOM}",
+            "notes": "Updated application discussion ref {RANDOM}",
+            "lodgementDate": "todayiso",
+            "officials": [
+            {
+            "title": "Mr, Mrs",
+            "surname": "Smith{RANDOM}",
+            "forename": "John",
+            "type": "MAGISTRATE"
+            }
+            ]
+            }
+            """
+        Then User Verify Response Status Code Should Be "200"
         Examples:
             | User  |
             | user1 |
 
 
-    @api @regression @ARCPOC-229
+    @api @regression @ARCPOC-229 @PJ
     Scenario Outline: Create Application List Entry with Court Location
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -125,6 +186,47 @@ Feature: API - Application List Entry
             | officials.3.forename                          | Anita                          |
             | officials.3.type                              | MAGISTRATE                     |
         Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "entryId"
+        When User Makes PUT API Request To "/application-lists/:listId/entries/:entryId" With Object Builder:
+            | standardApplicantCode                         | null                                 |
+            | applicationCode                               | CT99002                              |
+            | applicant.person.name.title                   | Mr                                   |
+            | applicant.person.name.surname                 | Taylor {RANDOM}                      |
+            | applicant.person.name.firstForename           | Henry                                |
+            | applicant.person.name.secondForename          | James                                |
+            | applicant.person.contactDetails.addressLine1  | {RANDOM} King Street                 |
+            | applicant.person.contactDetails.addressLine2  | Westminster                          |
+            | applicant.person.contactDetails.addressLine3  | London                               |
+            | applicant.person.contactDetails.addressLine4  | Greater London                       |
+            | applicant.person.contactDetails.addressLine5  | United Kingdom                       |
+            | applicant.person.contactDetails.postcode      | SW1A 1AA                             |
+            | applicant.person.contactDetails.phone         | 0203{RANDOM}                         |
+            | applicant.person.contactDetails.mobile        | 07123{RANDOM}                        |
+            | applicant.person.contactDetails.email         | {RANDOM}@example.com                 |
+            | respondent.person.name.title                  | Ms                                   |
+            | respondent.person.name.surname                | Clark {RANDOM}                       |
+            | respondent.person.name.firstForename          | Emily                                |
+            | respondent.person.name.secondForename         | Rose                                 |
+            | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Road                 |
+            | respondent.person.contactDetails.addressLine2 | Bristol                              |
+            | respondent.person.contactDetails.addressLine3 | Avon                                 |
+            | respondent.person.contactDetails.addressLine4 | United Kingdom                       |
+            | respondent.person.contactDetails.postcode     | BS1 5AA                              |
+            | respondent.person.contactDetails.phone        | 0117{RANDOM}                         |
+            | respondent.person.contactDetails.mobile       | 07984{RANDOM}                        |
+            | respondent.person.contactDetails.email        | {RANDOM}@example.com                 |
+            | respondent.dateOfBirth                        | todayiso-25y                         |
+            | wordingFields.0.key                           | Reference                            |
+            | wordingFields.0.value                         | {RANDOM}                             |
+            | hasOffsiteFee                                 | true                                 |
+            | caseReference                                 | CASE-{RANDOM}                        |
+            | accountNumber                                 | ACC-{RANDOM}                         |
+            | notes                                         | Updated case noted with ref {RANDOM} |
+            | lodgementDate                                 | todayiso                             |
+            | officials.0.title                             | Mr                                   |
+            | officials.0.surname                           | Turner {RANDOM}                      |
+            | officials.0.forename                          | Graham                               |
+            | officials.0.type                              | MAGISTRATE                           |
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
             | standardApplicantCode                        | null                                |
             | applicationCode                              | AD99002                             |
