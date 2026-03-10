@@ -16,6 +16,7 @@ import { ApplicationsListDetailState } from '@components/applications-list-detai
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { Row } from '@core-types/table/row.types';
 import {
+  ApplicationListEntriesApi,
   ApplicationListGetDetailDto,
   ApplicationListsApi,
   CriminalJusticeAreaGetDto,
@@ -59,6 +60,9 @@ describe('ApplicationsListDetail', () => {
   > = {
     getApplicationList: jest.fn(),
     updateApplicationList: jest.fn(),
+  };
+  const entryApiStub: { getApplicationListEntries: jest.Mock } = {
+    getApplicationListEntries: jest.fn(),
   };
 
   const menuStub: jest.Mocked<Pick<MojButtonMenu, 'initAll'>> = {
@@ -112,6 +116,9 @@ describe('ApplicationsListDetail', () => {
         }),
       ),
     );
+    entryApiStub.getApplicationListEntries.mockReturnValue(
+      of({ content: [] } as never),
+    );
 
     await TestBed.configureTestingModule({
       imports: [ApplicationsListDetail],
@@ -121,6 +128,7 @@ describe('ApplicationsListDetail', () => {
         provideHttpClientTesting(),
         { provide: PLATFORM_ID, useValue: 'browser' },
         { provide: ApplicationListsApi, useValue: apiStub },
+        { provide: ApplicationListEntriesApi, useValue: entryApiStub },
         { provide: MojButtonMenu, useValue: menuStub },
         { provide: ReferenceDataFacade, useValue: refFacadeStub },
       ],
@@ -299,6 +307,15 @@ describe('ApplicationsListDetail', () => {
   });
 
   describe('loadApplicationsLists', () => {
+    it('returns early when id is missing', () => {
+      const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
+      component.id = '';
+
+      component.loadApplicationsLists();
+
+      expect(patchSpy).not.toHaveBeenCalledWith({ isLoading: true });
+    });
+
     it('calls API with listId, page (0-based), size; patches rows, clears errors, updates selection', async () => {
       component.id = 'list-123';
 
@@ -417,9 +434,43 @@ describe('ApplicationsListDetail', () => {
 
       expect(component.entryCount).toBe(5);
     });
+
+    it('sets invalid state when API response body is missing', async () => {
+      component.id = 'list-123';
+
+      apiStub.getApplicationList.mockReturnValueOnce(
+        of(
+          new HttpResponse<ApplicationListGetDetailDto>({
+            status: 200,
+            body: null as never,
+            headers: new HttpHeaders({ ETag: '"etag-v4"' }),
+          }),
+        ),
+      );
+
+      component.loadApplicationsLists();
+      await flushSignalEffects(fixture);
+
+      expect(vm().updateInvalid).toBe(true);
+      expect(vm().errorHint).toBe('No data returned from server.');
+      expect(vm().rows).toEqual([]);
+      expect(vm().allEntryIds).toEqual([]);
+    });
   });
 
   describe('onRequestAllEntryIds', () => {
+    it('returns early when list id is missing', () => {
+      component.id = '';
+      component.entryCount = 2;
+
+      const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
+      component.onRequestAllEntryIds();
+
+      expect(patchSpy).not.toHaveBeenCalledWith(
+        expect.objectContaining({ closeSummaryStatus: 'loading' }),
+      );
+    });
+
     it('does not set close validation to ready while list is still loading', () => {
       component.id = 'list-123';
       component.entryCount = 0;
@@ -436,6 +487,223 @@ describe('ApplicationsListDetail', () => {
       expect(vm().closeSummaryStatus).toBe('idle');
       expect(vm().closeEntryDetailsStatus).toBe('idle');
       expect(vm().closeCodeDetailsStatus).toBe('idle');
+    });
+
+    it('sets close validation statuses to ready when there are no entries', () => {
+      component.id = 'list-123';
+      component.entryCount = 0;
+
+      patchDetailState({
+        isLoading: false,
+        closeSummaryStatus: 'idle',
+        closeEntryDetailsStatus: 'idle',
+        closeCodeDetailsStatus: 'idle',
+      });
+
+      component.onRequestAllEntryIds();
+
+      expect(vm().closeSummaryStatus).toBe('ready');
+      expect(vm().closeEntryDetailsStatus).toBe('ready');
+      expect(vm().closeCodeDetailsStatus).toBe('ready');
+      expect(vm().allEntryIds).toEqual([]);
+    });
+
+    it('returns early while close summary is already loading', () => {
+      component.id = 'list-123';
+      component.entryCount = 5;
+      patchDetailState({
+        isLoading: false,
+        closeSummaryStatus: 'loading',
+      });
+
+      component.onRequestAllEntryIds();
+
+      expect(entryApiStub.getApplicationListEntries).not.toHaveBeenCalled();
+    });
+
+    it('returns early when already loaded all summaries', () => {
+      component.id = 'list-123';
+      component.entryCount = 2;
+      patchDetailState({
+        isLoading: false,
+        closeSummaryStatus: 'ready',
+        allEntriesSummary: [{ id: 'e1' }, { id: 'e2' }] as never,
+      });
+
+      component.onRequestAllEntryIds();
+
+      expect(entryApiStub.getApplicationListEntries).not.toHaveBeenCalled();
+    });
+
+    it('loads all summary pages and patches ids on success', async () => {
+      component.id = 'list-123';
+      component.entryCount = 150;
+      patchDetailState({
+        isLoading: false,
+        closeSummaryStatus: 'idle',
+      });
+
+      entryApiStub.getApplicationListEntries
+        .mockReturnValueOnce(of({ content: [{ id: 'e1' }] } as never))
+        .mockReturnValueOnce(of({ content: [{ id: 'e2' }] } as never));
+
+      component.onRequestAllEntryIds();
+      await flushSignalEffects(fixture);
+
+      expect(entryApiStub.getApplicationListEntries).toHaveBeenCalledTimes(2);
+      expect(entryApiStub.getApplicationListEntries).toHaveBeenNthCalledWith(
+        1,
+        { listId: 'list-123', pageNumber: 0, pageSize: 100 },
+        'body',
+        false,
+        { transferCache: true },
+      );
+      expect(entryApiStub.getApplicationListEntries).toHaveBeenNthCalledWith(
+        2,
+        { listId: 'list-123', pageNumber: 1, pageSize: 100 },
+        'body',
+        false,
+        { transferCache: true },
+      );
+      expect(vm().closeSummaryStatus).toBe('ready');
+      expect(vm().allEntryIds).toEqual(['e1', 'e2']);
+    });
+
+    it('sets error state when loading all entry summaries fails', async () => {
+      component.id = 'list-123';
+      component.entryCount = 1;
+      patchDetailState({
+        isLoading: false,
+        closeSummaryStatus: 'idle',
+      });
+
+      entryApiStub.getApplicationListEntries.mockReturnValueOnce(
+        throwError(() => new Error('entry summaries failed')),
+      );
+
+      component.onRequestAllEntryIds();
+      await flushSignalEffects(fixture);
+
+      expect(vm().closeSummaryStatus).toBe('error');
+      expect(vm().updateInvalid).toBe(true);
+      expect(vm().errorSummary.length).toBeGreaterThan(0);
+      expect(vm().allEntryIds).toEqual([]);
+    });
+  });
+
+  describe('helper methods', () => {
+    it('onAllIdsLoaded patches allEntryIds', () => {
+      (
+        component as unknown as { onAllIdsLoaded(ids: string[]): void }
+      ).onAllIdsLoaded(['x', 'y']);
+
+      expect(vm().allEntryIds).toEqual(['x', 'y']);
+    });
+
+    it('patchStateFn forwards patches to detail signal state', () => {
+      component.patchStateFn({ updateDone: true });
+      expect(vm().updateDone).toBe(true);
+    });
+
+    it('setUpdateRequestFn stores update request', async () => {
+      apiStub.updateApplicationList.mockReturnValueOnce(
+        of(
+          new HttpResponse<ApplicationListGetDetailDto>({
+            status: 200,
+            body: { entriesSummary: [] } as never,
+            headers: new HttpHeaders({ ETag: '"etag-new"' }),
+          }),
+        ),
+      );
+
+      component.setUpdateRequestFn({
+        id: 'list-123',
+        payload: { description: 'updated' } as never,
+        etag: '"etag-old"',
+      });
+      await flushSignalEffects(fixture);
+
+      expect(apiStub.updateApplicationList).toHaveBeenCalledTimes(1);
+      expect(component.etag).toBe('"etag-new"');
+    });
+
+    it('mapUpdateHttpError handles known status codes', () => {
+      const out412 = (
+        component as unknown as {
+          mapUpdateHttpError(err: HttpErrorResponse): ErrorItem[];
+        }
+      ).mapUpdateHttpError(
+        new HttpErrorResponse({ status: 412, statusText: 'precondition' }),
+      );
+      const out404 = (
+        component as unknown as {
+          mapUpdateHttpError(err: HttpErrorResponse): ErrorItem[];
+        }
+      ).mapUpdateHttpError(
+        new HttpErrorResponse({
+          status: 404,
+          error: { title: 'Not found' },
+          statusText: 'not found',
+        }),
+      );
+      const out500 = (
+        component as unknown as {
+          mapUpdateHttpError(err: HttpErrorResponse): ErrorItem[];
+        }
+      ).mapUpdateHttpError(
+        new HttpErrorResponse({ status: 500, statusText: 'server error' }),
+      );
+
+      expect(out412).toEqual([
+        { text: 'Resource changed. Reload and try again.' },
+      ]);
+      expect(out404[0].id).toBe('court');
+      expect(out500).toHaveLength(1);
+    });
+
+    it('prefillFromApi handles both court and cja data', () => {
+      const courtSpy = jest.spyOn(component, 'selectCourthouse');
+      const cjaSpy = jest.spyOn(component, 'selectCja');
+
+      (
+        component as unknown as {
+          prefillFromApi(dto: ApplicationListGetDetailDto): void;
+        }
+      ).prefillFromApi({
+        date: '2026-03-10',
+        time: '08:15:00',
+        description: 'Court list',
+        status: 'OPEN',
+        durationHours: 1,
+        durationMinutes: 30,
+        courtCode: 'CRT1',
+        courtName: 'Court 1',
+      } as ApplicationListGetDetailDto);
+
+      patchPlaceFieldsState({
+        cja: [{ code: 'CJA1' } as CriminalJusticeAreaGetDto],
+      });
+
+      (
+        component as unknown as {
+          prefillFromApi(dto: ApplicationListGetDetailDto): void;
+        }
+      ).prefillFromApi({
+        date: '2026-03-10',
+        time: '09:45',
+        description: 'CJA list',
+        status: 'OPEN',
+        durationHours: null,
+        durationMinutes: null,
+        cjaCode: 'CJA1',
+        otherLocationDescription: 'Other location text',
+      } as unknown as ApplicationListGetDetailDto);
+
+      expect(courtSpy).toHaveBeenCalled();
+      expect(cjaSpy).toHaveBeenCalled();
+      expect(component.form.controls.location.value).toBe(
+        'Other location text',
+      );
     });
   });
 

@@ -7,6 +7,7 @@ import {
 } from '@components/applications-list-detail/applications-list-update/applications-list-update.component';
 import { ApplicationsListDetailState } from '@components/applications-list-detail/util/applications-list-detail.state';
 import { SuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
+import { CLOSE_MESSAGES } from '@constants/application-list-detail-update/error-messages';
 import {
   ApplicationCodesApi,
   ApplicationListEntriesApi,
@@ -15,11 +16,14 @@ import {
   PaymentStatus,
   TemplateDetail,
 } from '@openapi';
+import * as buildPayloadUtil from '@util/build-payload';
 import { PlaceFieldsState } from '@util/place-fields.base';
 
 describe('ApplicationsListUpdateComponent', () => {
   let component: ApplicationsListUpdateComponent;
   let fixture: ComponentFixture<ApplicationsListUpdateComponent>;
+  let patchStateMock: jest.Mock;
+  let setUpdateRequestMock: jest.Mock;
 
   const mkForm = () =>
     new FormGroup({
@@ -95,15 +99,17 @@ describe('ApplicationsListUpdateComponent', () => {
 
     fixture = TestBed.createComponent(ApplicationsListUpdateComponent);
     component = fixture.componentInstance;
+    patchStateMock = jest.fn();
+    setUpdateRequestMock = jest.fn();
     fixture.componentRef.setInput('form', mkForm());
     fixture.componentRef.setInput('statusOptions', []);
     fixture.componentRef.setInput('placeState', mkPlaceState());
     fixture.componentRef.setInput('id', 'list-1');
     fixture.componentRef.setInput('etag', null);
     fixture.componentRef.setInput('entryIds', []);
-    fixture.componentRef.setInput('patchState', jest.fn());
+    fixture.componentRef.setInput('patchState', patchStateMock);
     fixture.componentRef.setInput('vm', mkVm());
-    fixture.componentRef.setInput('setUpdateRequest', jest.fn());
+    fixture.componentRef.setInput('setUpdateRequest', setUpdateRequestMock);
     fixture.componentRef.setInput('suggestionsFacade', mkSuggestionsFacade());
     fixture.detectChanges();
   });
@@ -139,6 +145,257 @@ describe('ApplicationsListUpdateComponent', () => {
     });
 
     expect(component.durationCloseErrorText()).toBe('');
+  });
+
+  it('finalizeUpdate sets update request for a valid form payload', () => {
+    component.form().patchValue({
+      date: '2026-03-10',
+      time: { hours: 9, minutes: 30 },
+      description: 'Updated list',
+      status: 'open',
+      court: 'LOC1',
+      duration: null,
+    });
+
+    const summarySpy = jest
+      .spyOn(
+        component as unknown as {
+          buildUpdateErrorSummary(): { id?: string; text: string }[];
+        },
+        'buildUpdateErrorSummary',
+      )
+      .mockReturnValue([]);
+    const payloadSpy = jest
+      .spyOn(buildPayloadUtil, 'buildNormalizedPayload')
+      .mockReturnValue({
+        date: '2026-03-10',
+        time: '09:30',
+        description: 'Updated list',
+        status: ApplicationListStatus.OPEN,
+        courtLocationCode: 'LOC1',
+      });
+
+    (
+      component as unknown as {
+        finalizeUpdate(): void;
+      }
+    ).finalizeUpdate();
+
+    expect(setUpdateRequestMock).toHaveBeenCalledWith({
+      id: 'list-1',
+      payload: expect.objectContaining({
+        date: '2026-03-10',
+        time: '09:30',
+        description: 'Updated list',
+        status: 'OPEN',
+        courtLocationCode: 'LOC1',
+      }),
+      etag: null,
+    });
+
+    summarySpy.mockRestore();
+    payloadSpy.mockRestore();
+  });
+
+  it('finalizeUpdate patches validation errors when required time is missing', () => {
+    component.form().patchValue({
+      date: '2026-03-10',
+      time: null,
+      status: 'open',
+      court: 'LOC1',
+    });
+
+    (
+      component as unknown as {
+        finalizeUpdate(): void;
+      }
+    ).finalizeUpdate();
+
+    expect(setUpdateRequestMock).not.toHaveBeenCalled();
+    expect(patchStateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        updateInvalid: true,
+        errorHint: 'There is a problem',
+      }),
+    );
+  });
+
+  it('finalizeUpdate patches message when payload creation throws', () => {
+    const summarySpy = jest
+      .spyOn(
+        component as unknown as {
+          buildUpdateErrorSummary(): { id?: string; text: string }[];
+        },
+        'buildUpdateErrorSummary',
+      )
+      .mockReturnValue([]);
+    const payloadSpy = jest
+      .spyOn(buildPayloadUtil, 'buildNormalizedPayload')
+      .mockImplementation(() => {
+        throw new Error('payload failure');
+      });
+
+    (
+      component as unknown as {
+        finalizeUpdate(): void;
+      }
+    ).finalizeUpdate();
+
+    expect(setUpdateRequestMock).not.toHaveBeenCalled();
+    expect(patchStateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        updateInvalid: true,
+        errorHint: 'payload failure',
+      }),
+    );
+
+    summarySpy.mockRestore();
+    payloadSpy.mockRestore();
+  });
+
+  it('onUpdate closing emits request for all entry ids when summary is not ready', () => {
+    fixture.componentRef.setInput('vm', {
+      ...mkVm(),
+      closeSummaryStatus: 'loading',
+      closeEntryDetailsStatus: 'idle',
+      closeCodeDetailsStatus: 'idle',
+    });
+    fixture.detectChanges();
+
+    const emitSpy = jest.spyOn(component.requestAllEntryIds, 'emit');
+
+    component.form().patchValue({
+      date: '2026-03-10',
+      time: { hours: 9, minutes: 30 },
+      description: 'Close list',
+      status: 'closed',
+      court: 'LOC1',
+    });
+
+    component.onUpdate();
+
+    expect(emitSpy).toHaveBeenCalledTimes(1);
+    expect(setUpdateRequestMock).not.toHaveBeenCalled();
+  });
+
+  it('onUpdate closing waits for detail/code readiness before finalizing', () => {
+    fixture.componentRef.setInput('vm', {
+      ...mkVm(),
+      closeSummaryStatus: 'ready',
+      closeEntryDetailsStatus: 'loading',
+      closeCodeDetailsStatus: 'idle',
+    });
+    fixture.detectChanges();
+
+    const emitSpy = jest.spyOn(component.requestAllEntryIds, 'emit');
+
+    component.form().patchValue({
+      date: '2026-03-10',
+      time: { hours: 9, minutes: 30 },
+      description: 'Close list',
+      status: 'closed',
+      court: 'LOC1',
+    });
+
+    component.onUpdate();
+
+    expect(emitSpy).not.toHaveBeenCalled();
+    expect(setUpdateRequestMock).not.toHaveBeenCalled();
+  });
+
+  it('onUpdate closing finalizes when all close validation statuses are ready', () => {
+    fixture.componentRef.setInput('vm', {
+      ...mkVm(),
+      closeSummaryStatus: 'ready',
+      closeEntryDetailsStatus: 'ready',
+      closeCodeDetailsStatus: 'ready',
+    });
+    fixture.detectChanges();
+
+    component.form().patchValue({
+      date: '2026-03-10',
+      time: { hours: 9, minutes: 30 },
+      description: 'Close list',
+      status: 'closed',
+      court: 'LOC1',
+      duration: { hours: 1, minutes: 0 },
+    });
+
+    component.onUpdate();
+
+    expect(setUpdateRequestMock).toHaveBeenCalledTimes(1);
+    expect(setUpdateRequestMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payload: expect.objectContaining({
+          status: 'CLOSED',
+          durationHours: 1,
+          durationMinutes: 0,
+        }),
+      }),
+    );
+  });
+
+  it('builds close validation error summary without duplicate duration close reason', () => {
+    component.form().setErrors({
+      closeNotPermitted: {
+        noClose: [CLOSE_MESSAGES.durationMissing, 'Some other close reason'],
+      },
+    });
+    component.form().get('duration')?.setErrors({
+      closeDurationMissing: true,
+      durationErrorText: 'Duration required before closing',
+    });
+
+    const summary = (
+      component as unknown as {
+        buildUpdateErrorSummary(): { id?: string; text: string }[];
+      }
+    ).buildUpdateErrorSummary();
+
+    expect(summary).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'duration-hours',
+          text: 'Duration required before closing',
+        }),
+        expect.objectContaining({
+          id: 'status-close-2',
+          text: 'Some other close reason',
+        }),
+      ]),
+    );
+    expect(summary).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          text: CLOSE_MESSAGES.durationMissing,
+        }),
+      ]),
+    );
+  });
+
+  it('buildCodeDetailRequests keeps only entries with code and date', () => {
+    const out = (
+      component as unknown as {
+        buildCodeDetailRequests(
+          entries: Array<{
+            id: string;
+            applicationCode?: string | null;
+            lodgementDate?: string | null;
+          }>,
+        ): Array<{ entryId: string; params: { code: string; date: string } }>;
+      }
+    ).buildCodeDetailRequests([
+      { id: 'e1', applicationCode: 'A1', lodgementDate: '2026-03-10T10:00:00' },
+      { id: 'e2', applicationCode: '', lodgementDate: '2026-03-10' },
+      { id: 'e3', applicationCode: 'A3', lodgementDate: null },
+    ]);
+
+    expect(out).toEqual([
+      {
+        entryId: 'e1',
+        params: { code: 'A1', date: '2026-03-10' },
+      },
+    ]);
   });
 });
 
