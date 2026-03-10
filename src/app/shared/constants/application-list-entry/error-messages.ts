@@ -100,6 +100,8 @@ export const CIVIL_FEE_FIELD_MESSAGES: CivilFeeErrorMap = {
   },
   paymentRef: {
     maxlength: 'Payment reference must be less than or equal to 15 characters',
+    invalidStatus:
+      'A payment reference cannot be supplied when fee status is DUE',
   },
 } as const;
 
@@ -138,6 +140,16 @@ export const OFFICIAL_FIELD_MESSAGES = {
   },
 } as const;
 
+export const NUMBER_OF_RESPONDENT_MESSAGES = {
+  numberOfRespondents: {
+    required: 'Enter number of respondents',
+    pattern:
+      'Number of respondents must be a positive whole number between 1 - 9999',
+    maxlength:
+      'Number of respondents must be less than or equal to 4 characters',
+  },
+} as const;
+
 export const ENTRY_ERROR_MESSAGES = {
   standardApplicantCode: {
     required: 'Select a standard applicant',
@@ -150,4 +162,5 @@ export const ENTRY_ERROR_MESSAGES = {
   ...ORG_FIELD_MESSAGES,
   ...CIVIL_FEE_FIELD_MESSAGES,
   ...OFFICIAL_FIELD_MESSAGES,
+  ...NUMBER_OF_RESPONDENT_MESSAGES,
 } as const;

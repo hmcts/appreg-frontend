@@ -3,6 +3,7 @@ import {
   hasRequiredPerson,
   makeContactDetails,
   pruneNullish,
+  toOptionalInteger,
   toOptionalTrimmed,
 } from './helpers';
 
@@ -37,7 +38,7 @@ export function buildEntryCreateDto(
       respondentPersonForm,
       respondentOrganisationForm,
     ),
-    numberOfRespondents: formValue.numberOfRespondents ?? undefined,
+    numberOfRespondents: toOptionalInteger(formValue.numberOfRespondents),
     wordingFields: buildWordingFields(formValue),
     feeStatuses: buildFeeStatuses(formValue),
     hasOffsiteFee: formValue.hasOffsiteFee ?? undefined,
@@ -167,6 +168,12 @@ function buildRespondent(
 function buildFeeStatuses(
   formValue: ApplicationsListEntryFormValue,
 ): FeeStatus[] | undefined {
+  // Check existing fees in table
+  const existing = formValue.feeStatuses ?? undefined;
+  if (existing && existing.length > 0) {
+    return existing;
+  }
+
   const paymentStatus = toOptionalTrimmed(formValue.feeStatus);
   const statusDate = toOptionalTrimmed(formValue.feeStatusDate);
   const paymentRef = toOptionalTrimmed(formValue.paymentRef);

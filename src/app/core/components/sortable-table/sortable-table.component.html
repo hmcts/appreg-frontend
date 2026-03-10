@@ -4,12 +4,12 @@
   [attr.data-module]="
     clientOrServerSort() === 'client' ? 'moj-sortable-table' : null
   "
-  [attr.aria-describedby]="'sortable-' + caption()"
+  [attr.aria-describedby]="'sortable-' + captionId()"
 >
   <caption
     [class.govuk-visually-hidden]="hiddenCaption()"
     class="govuk-table__caption govuk-table__caption--{{ captionSize() }}"
-    id="sortable-{{ caption() }}"
+    [id]="'sortable-' + captionId()"
   >
     {{
       caption()
@@ -54,7 +54,7 @@
                   : null
               "
             >
-              @if (col.field === 'date' && dateTpl()) {
+              @if (col.field === dateFieldIdentifier() && dateTpl()) {
                 <ng-container
                   *ngTemplateOutlet="dateTpl(); context: { $implicit: row }"
                 ></ng-container>
@@ -80,7 +80,7 @@
                     context: { $implicit: row }
                   "
                 ></ng-container>
-              } @else if (col.field === 'date' && dateTpl()) {
+              } @else if (col.field === dateFieldIdentifier() && dateTpl()) {
                 <ng-container
                   *ngTemplateOutlet="dateTpl(); context: { $implicit: row }"
                 ></ng-container>

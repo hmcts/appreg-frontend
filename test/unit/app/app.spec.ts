@@ -1,4 +1,4 @@
-import { PLATFORM_ID } from '@angular/core';
+import { Component, PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
@@ -6,10 +6,13 @@ import { App } from '../../../src/app/app';
 
 const nextTick = () => new Promise<void>((r) => setTimeout(r, 0));
 
+@Component({
+  standalone: true,
+  template: '',
+})
+class DummyRouteComponent {}
+
 /* ---------------------- Mocks ---------------------- */
-const { SortableTable: mojFrontendCtor } = jest.requireMock(
-  '@ministryofjustice/frontend',
-);
 const { initAll: govukInitAll } = jest.requireMock('govuk-frontend');
 
 /* requestAnimationFrame: make it immediate and typed */
@@ -36,7 +39,10 @@ describe('App (root)', () => {
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [
-        provideRouter([]),
+        provideRouter([
+          { path: '', component: DummyRouteComponent },
+          { path: 'next', component: DummyRouteComponent },
+        ]),
         { provide: PLATFORM_ID, useValue: platform },
       ],
     })
@@ -48,7 +54,6 @@ describe('App (root)', () => {
 
     document.body.className = '';
     document.body.innerHTML = '';
-    mojFrontendCtor.mockClear();
     govukInitAll.mockClear();
   }
 
@@ -94,40 +99,34 @@ describe('App (root)', () => {
       fixture.detectChanges();
       await nextTick();
       expect(govukInitAll).not.toHaveBeenCalled();
-      expect(mojFrontendCtor).not.toHaveBeenCalled();
     });
 
-    it('initialises GOV.UK and enhances all existing sortable tables (browser)', async () => {
+    it('initialises GOV.UK frontend on browser', async () => {
       await create('browser');
-
-      const t1 = document.createElement('table');
-      t1.setAttribute('data-module', 'moj-sortable-table');
-      const t2 = document.createElement('table');
-      t2.setAttribute('data-module', 'moj-sortable-table');
-      document.body.append(t1, t2);
 
       fixture.detectChanges(); // triggers ngAfterViewInit (dynamic import queued)
       await nextTick(); // allow promise callback to run
 
       expect(govukInitAll).toHaveBeenCalledTimes(1);
-      expect(mojFrontendCtor).toHaveBeenCalledTimes(2);
-      expect(mojFrontendCtor).toHaveBeenCalledWith(t1);
-      expect(mojFrontendCtor).toHaveBeenCalledWith(t2);
     });
 
-    it('enhances sortable tables added later via MutationObserver', async () => {
+    it('can re-initialise GOV.UK frontend for scoped content', async () => {
       await create('browser');
 
       fixture.detectChanges();
       await nextTick();
 
-      const t3 = document.createElement('table');
-      t3.setAttribute('data-module', 'moj-sortable-table');
-      document.body.append(t3);
+      const callsBefore = govukInitAll.mock.calls.length;
+
+      await (
+        comp as unknown as {
+          initGovUkFrontend(scope?: HTMLElement): Promise<void>;
+        }
+      ).initGovUkFrontend(document.body);
 
       await nextTick();
-      expect(mojFrontendCtor).toHaveBeenCalledTimes(1);
-      expect(mojFrontendCtor).toHaveBeenCalledWith(t3);
+
+      expect(govukInitAll.mock.calls.length).toBeGreaterThan(callsBefore);
     });
   });
 

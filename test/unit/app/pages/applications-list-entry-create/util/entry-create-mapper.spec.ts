@@ -1,4 +1,5 @@
 import { buildEntryCreateDto } from '@entry-create-util/entry-create-mapper';
+import { FeeStatus } from '@openapi';
 import {
   ApplicationsListEntryFormValue,
   OrganisationFormValue,
@@ -411,5 +412,114 @@ describe('buildEntryCreateDto', () => {
 
     expect(payload['standardApplicantCode']).toBe('STD-123');
     expect('applicant' in payload).toBe(false);
+  });
+
+  it('returns existing feeStatuses when fee table already contains rows (does not rebuild from single fee fields)', () => {
+    const existingFees: FeeStatus[] = [
+      {
+        paymentStatus: 'Paid',
+        statusDate: '2025-02-01',
+        paymentReference: 'KEEP-ME',
+      } as unknown as FeeStatus,
+      {
+        paymentStatus: 'Due',
+        statusDate: '2025-02-02',
+        paymentReference: 'KEEP-ME-2',
+      } as unknown as FeeStatus,
+    ];
+
+    const formValue = makeBaseFormValue({
+      applicationCode: 'F002',
+      feeStatuses: existingFees,
+      // these should be ignored when feeStatuses already populated
+      feeStatus: 'Remitted',
+      feeStatusDate: '2030-01-01',
+      paymentRef: 'SHOULD-NOT-APPEAR',
+    });
+
+    const dto = buildEntryCreateDto(
+      formValue,
+      makeBlankPerson(),
+      makeBlankOrganisation(),
+      makeBlankPerson(),
+      makeBlankOrganisation(),
+    );
+
+    const payload = roundTrip(dto as unknown as Record<string, unknown>);
+
+    const fs = payload['feeStatuses'] as
+      | Array<Record<string, unknown>>
+      | undefined;
+
+    expect(Array.isArray(fs)).toBe(true);
+    expect(fs?.length).toBe(2);
+
+    expect(fs?.[0]).toEqual(
+      expect.objectContaining({
+        paymentStatus: 'Paid',
+        statusDate: '2025-02-01',
+        paymentReference: 'KEEP-ME',
+      }),
+    );
+
+    expect(fs?.[1]).toEqual(
+      expect.objectContaining({
+        paymentStatus: 'Due',
+        statusDate: '2025-02-02',
+        paymentReference: 'KEEP-ME-2',
+      }),
+    );
+
+    // prove it did not rebuild from single fee fields
+    expect(fs).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          paymentStatus: 'Remitted',
+          statusDate: '2030-01-01',
+          paymentReference: 'SHOULD-NOT-APPEAR',
+        }),
+      ]),
+    );
+  });
+
+  it('maps numberOfRespondents via toOptionalInteger ("12" -> 12)', () => {
+    const formValue = makeBaseFormValue({
+      numberOfRespondents:
+        '12' as unknown as ApplicationsListEntryFormValue['numberOfRespondents'],
+    });
+
+    const dto = buildEntryCreateDto(
+      formValue,
+      makeBlankPerson(),
+      makeBlankOrganisation(),
+      makeBlankPerson(),
+      makeBlankOrganisation(),
+    );
+
+    const payload = roundTrip(dto as unknown as Record<string, unknown>);
+    expect(payload['numberOfRespondents']).toBe(12);
+  });
+
+  it('omits numberOfRespondents when blank or non-numeric', () => {
+    const makePayload = (v: unknown): Record<string, unknown> => {
+      const formValue = makeBaseFormValue({
+        numberOfRespondents:
+          v as ApplicationsListEntryFormValue['numberOfRespondents'],
+      });
+
+      const dto = buildEntryCreateDto(
+        formValue,
+        makeBlankPerson(),
+        makeBlankOrganisation(),
+        makeBlankPerson(),
+        makeBlankOrganisation(),
+      );
+
+      return roundTrip(dto as unknown as Record<string, unknown>);
+    };
+
+    expect('numberOfRespondents' in makePayload('')).toBe(false);
+    expect('numberOfRespondents' in makePayload('   ')).toBe(false);
+    expect('numberOfRespondents' in makePayload('abc')).toBe(false);
   });
 });

@@ -37,7 +37,7 @@ export const EXISTING_RESULTS_WORDING_COLUMNS = [
 
 export const CIVIL_FEE_COLUMNS: TableColumn[] = [
   { header: 'Fee Status', field: 'paymentStatus' },
-  { header: 'Status Date', field: 'statusDate' },
+  { header: 'Status Date', field: 'statusDateRaw' },
   { header: 'Payment Ref', field: 'paymentReference' },
 ];
 
@@ -50,6 +50,7 @@ export const APPLICANT_TYPE_OPTIONS = [
 export const RESPONDENT_TYPE_OPTIONS = [
   { value: 'person', label: 'Person' },
   { value: 'organisation', label: 'Organisation' },
+  { value: 'bulk', label: 'Bulk Application' },
 ] as const;
 
 export const PERSON_TITLE_OPTIONS = [

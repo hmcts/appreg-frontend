@@ -43,6 +43,10 @@ export const RESPONDENT_ORG_ERROR_HREFS = {
   emailAddress: '#respondent-org-email-address',
 } as const;
 
+export const RESPONDENT_BULK_ERROR_HREFS = {
+  numberOfRespondents: '#respondent-number-of-respondents',
+} as const;
+
 export const APPLICANT_ORG_ERROR_HREFS = {
   name: '#applicant-org-name',
   addressLine1: '#applicant-org-address-line-1',

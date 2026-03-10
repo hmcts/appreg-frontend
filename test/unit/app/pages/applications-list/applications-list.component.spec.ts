@@ -1,5 +1,5 @@
 import { HttpResponse } from '@angular/common/http';
-import { PLATFORM_ID } from '@angular/core';
+import { LOCALE_ID, PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import {
   ActivatedRoute,
@@ -7,7 +7,6 @@ import {
   convertToParamMap,
   provideRouter,
 } from '@angular/router';
-import { recordsState } from '@services/application-list-records/application-list-records.service';
 import { of, throwError } from 'rxjs';
 
 import { ApplicationsList } from '@components/applications-list/applications-list.component';
@@ -30,6 +29,7 @@ import {
   CriminalJusticeAreasApi,
   GetApplicationListsRequestParams,
 } from '@openapi';
+import { recordsState } from '@services/applications-list/application-list-records.service';
 import { PdfService } from '@services/pdf.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { PlaceFieldsState } from '@util/place-fields.base';
@@ -150,6 +150,7 @@ function createInstance(
   TestBed.configureTestingModule({
     imports: [ApplicationsList],
     providers: [
+      { provide: LOCALE_ID, useValue: 'en-GB' },
       provideRouter([]),
       { provide: PLATFORM_ID, useValue: platformId },
       { provide: ApplicationListsApi, useValue: api },
@@ -193,6 +194,7 @@ function createInstanceWithQuery(
   TestBed.configureTestingModule({
     imports: [ApplicationsList],
     providers: [
+      { provide: LOCALE_ID, useValue: 'en-GB' },
       provideRouter([]),
       { provide: PLATFORM_ID, useValue: platformId },
       { provide: ActivatedRoute, useValue: routeStub },
@@ -323,6 +325,7 @@ describe('ApplicationsList – search', () => {
     await TestBed.configureTestingModule({
       imports: [ApplicationsList],
       providers: [
+        { provide: LOCALE_ID, useValue: 'en-GB' },
         provideRouter([]),
         { provide: ApplicationListsApi, useValue: applicationsListsApiMock },
         { provide: CourtLocationsApi, useValue: courtLocationsApiMock },
@@ -848,5 +851,34 @@ describe('ApplicationsList.clearSearch', () => {
     expect(searchForm.searchForm.reset).toHaveBeenCalled();
     expect(formResetSpy).toHaveBeenCalled();
     expect(formResetSpy.mock.calls[0][0]).toEqual({ status: 'OPEN' });
+  });
+});
+
+describe('ApplicationsList date rendering', () => {
+  it('renders formatted date in the table instead of raw ISO text', async () => {
+    const { comp, fixture } = createInstance('browser');
+
+    patchRecordsState(comp, {
+      rows: [
+        {
+          id: 'list-1',
+          date: '2025-01-09',
+          time: '10:00',
+          location: 'Court A',
+          description: 'List description',
+          entries: 2,
+          status: ApplicationListStatus.OPEN,
+        } as unknown as ApplicationListRow,
+      ],
+    });
+
+    await flushSignalEffects(fixture);
+
+    const firstDateCell = fixture.nativeElement.querySelector(
+      'tbody tr th.govuk-table__header',
+    ) as HTMLElement | null;
+
+    expect(firstDateCell?.textContent?.trim()).toBe('9 Jan 2025');
+    expect(firstDateCell?.textContent).not.toContain('2025-01-09');
   });
 });

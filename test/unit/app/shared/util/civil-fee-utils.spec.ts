@@ -1,4 +1,4 @@
-// civil-fee.utils.spec.ts
+import { FormControl } from '@angular/forms';
 
 import type {
   ApplicationCodeGetSummaryDtoFeeAmount,
@@ -9,6 +9,7 @@ import {
   PaymentStatus,
 } from '@openapi';
 import {
+  AddFeeDetailsPayload,
   CivilFeeMeta,
   PaymentRefReturnState,
 } from '@shared-types/civil-fee/civil-fee';
@@ -19,6 +20,8 @@ import {
   feeStatusRowId,
   readPaymentRefReturnState,
   toFeeStatus,
+  updateFeeStatusesControl,
+  updatePaymentReferenceInFeeStatusesControl,
 } from '@util/civil-fee-utils';
 
 const money = (value: number): ApplicationCodeGetSummaryDtoFeeAmount => ({
@@ -359,5 +362,123 @@ describe('applyPaymentReferenceUpdateToFeeStatuses', () => {
     );
 
     expect(changed).toBe(false);
+  });
+});
+
+describe('updateFeeStatusesControl', () => {
+  it('does not mutate the control when changed=false (no setValue / no markAsDirty)', () => {
+    const existing: FeeStatus = mkFeeStatus({
+      paymentStatus: PaymentStatus.PAID,
+      statusDate: '2026-01-10',
+      paymentReference: 'REF1',
+    });
+
+    const ctrl = new FormControl<FeeStatus[] | null>([existing]);
+
+    const setValueSpy = jest.spyOn(ctrl, 'setValue');
+    const markAsDirtySpy = jest.spyOn(ctrl, 'markAsDirty');
+
+    const payload: AddFeeDetailsPayload = {
+      feeStatus: PaymentStatus.PAID,
+      statusDate: '2026-01-10',
+      paymentReference: 'REF1',
+    };
+
+    const { next, changed } = updateFeeStatusesControl(ctrl, payload);
+
+    expect(changed).toBe(false);
+    expect(next).toBe(ctrl.value);
+    expect(ctrl.dirty).toBe(false);
+
+    expect(setValueSpy).not.toHaveBeenCalled();
+    expect(markAsDirtySpy).not.toHaveBeenCalled();
+  });
+
+  it('mutates the control when changed=true (setValue + markAsDirty)', () => {
+    const existing: FeeStatus = mkFeeStatus({
+      paymentStatus: PaymentStatus.PAID,
+      statusDate: '2026-01-10',
+      paymentReference: 'REF1',
+    });
+
+    const ctrl = new FormControl<FeeStatus[] | null>([existing]);
+
+    const setValueSpy = jest.spyOn(ctrl, 'setValue');
+    const markAsDirtySpy = jest.spyOn(ctrl, 'markAsDirty');
+
+    const payload: AddFeeDetailsPayload = {
+      feeStatus: PaymentStatus.DUE,
+      statusDate: '2026-01-11',
+      paymentReference: null,
+    };
+
+    const { next, changed } = updateFeeStatusesControl(ctrl, payload);
+
+    expect(changed).toBe(true);
+    expect(ctrl.value).toEqual(next);
+    expect(ctrl.value).toHaveLength(2);
+    expect(ctrl.dirty).toBe(true);
+
+    expect(setValueSpy).toHaveBeenCalledTimes(1);
+    expect(markAsDirtySpy).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('updatePaymentReferenceInFeeStatusesControl', () => {
+  it('does not mutate the control when changed=false (trims and matches existing)', () => {
+    const existing: FeeStatus = mkFeeStatus({
+      paymentStatus: PaymentStatus.PAID,
+      statusDate: '2026-01-10',
+      paymentReference: 'REF1',
+    });
+
+    const ctrl = new FormControl<FeeStatus[] | null>([existing]);
+
+    const setValueSpy = jest.spyOn(ctrl, 'setValue');
+    const markAsDirtySpy = jest.spyOn(ctrl, 'markAsDirty');
+
+    const rowId = feeStatusRowId(existing);
+
+    const { next, changed } = updatePaymentReferenceInFeeStatusesControl(
+      ctrl,
+      rowId,
+      '  REF1  ',
+    );
+
+    expect(changed).toBe(false);
+    expect(next).toEqual([existing]);
+    expect(ctrl.dirty).toBe(false);
+
+    expect(setValueSpy).not.toHaveBeenCalled();
+    expect(markAsDirtySpy).not.toHaveBeenCalled();
+  });
+
+  it('mutates the control when changed=true (trims payment ref, setValue + markAsDirty)', () => {
+    const existing: FeeStatus = mkFeeStatus({
+      paymentStatus: PaymentStatus.PAID,
+      statusDate: '2026-01-10',
+      paymentReference: 'OLD',
+    });
+
+    const ctrl = new FormControl<FeeStatus[] | null>([existing]);
+
+    const setValueSpy = jest.spyOn(ctrl, 'setValue');
+    const markAsDirtySpy = jest.spyOn(ctrl, 'markAsDirty');
+
+    const rowId = feeStatusRowId(existing);
+
+    const { next, changed } = updatePaymentReferenceInFeeStatusesControl(
+      ctrl,
+      rowId,
+      '  NEW  ',
+    );
+
+    expect(changed).toBe(true);
+    expect(ctrl.value).toEqual(next);
+    expect(ctrl.value?.[0].paymentReference).toBe('NEW');
+    expect(ctrl.dirty).toBe(true);
+
+    expect(setValueSpy).toHaveBeenCalledTimes(1);
+    expect(markAsDirtySpy).toHaveBeenCalledTimes(1);
   });
 });

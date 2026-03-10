@@ -15,6 +15,7 @@ import {
   PLATFORM_ID,
   TemplateRef,
   ViewChild,
+  computed,
   contentChild,
   inject,
   input,
@@ -55,10 +56,31 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
   readonly dateTpl = contentChild<TemplateRef<unknown>>('dateTemplate');
 
   caption = input('');
+  captionId = computed(() => {
+    const text = this.caption() ?? '';
+
+    let s = text
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+/, '');
+
+    while (s.endsWith('-')) {
+      s = s.slice(0, -1);
+    }
+
+    if (s.length && s[0] >= '0' && s[0] <= '9') {
+      s = `a${s}`;
+    }
+
+    return s;
+  });
   captionSize = input<'s' | 'm' | 'l'>('m');
   hiddenCaption = input(false);
   columns = input<TableColumn[]>([]);
   data = input<Row[]>([]);
+
+  dateFieldIdentifier = input<string>('date');
 
   // Table sort: server side
   // Make sure to set default key and direction in page component
@@ -154,15 +176,17 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
         }
 
         const instance = new SortableCtor(this.tableRef.nativeElement);
-        // keep moj UI but prevent client-side sorting
-        if (typeof instance.sort === 'function') {
-          instance.sort = (...args: unknown[]) => args[0];
+        if (this.clientOrServerSort() === 'server') {
+          // keep MoJ button UI but prevent in-browser row reordering for server mode
+          if (typeof instance.sort === 'function') {
+            instance.sort = (...args: unknown[]) => args[0];
+          }
+          if (typeof instance.addRows === 'function') {
+            instance.addRows = () => undefined;
+          }
+          // use MoJ button clicks to emit server-side sort events
+          this.attachServerSortListener();
         }
-        if (typeof instance.addRows === 'function') {
-          instance.addRows = () => undefined;
-        }
-        // moj button clicks for server side sorting
-        this.attachServerSortListener();
         instance.init?.();
         this.sortableInstance = instance;
       })

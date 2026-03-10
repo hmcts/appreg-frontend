@@ -46,6 +46,10 @@ import {
   trimToUndefined,
 } from '@util/string-helpers';
 import {
+  WordingFieldLike,
+  toTemplateSubstitutions,
+} from '@util/template-substitution-utils';
+import {
   ContactFormRaw,
   OrganisationFormRaw,
   PersonFormRaw,
@@ -58,6 +62,14 @@ import { ukMobile, ukPhone, ukPostcode } from '@validators/uk-format.validator';
 const MAX_60 = Validators.maxLength(60);
 const REQUIRED: ValidatorFn = (c) => Validators.required(c);
 const EMAIL: ValidatorFn = (c) => Validators.email(c);
+
+// Bulk respondent
+const MAX_4 = Validators.maxLength(4);
+const MIN_RESPONDENT_INTEGER = Validators.min(1);
+const MAX_RESPONDENT_INTEGER = Validators.max(9999);
+const WHOLE_NUMBER: ValidatorFn = optional((c) =>
+  Validators.pattern(/^\d+$/)(c),
+);
 
 export function buildStandardApplicationForm(
   fb: NonNullableFormBuilder,
@@ -75,8 +87,15 @@ export function buildStandardApplicationForm(
     }),
     respondentEntryType: fb.control<RespondentEntryType | null>('person'),
     respondent: fb.control<Respondent | null>(null),
-    numberOfRespondents: fb.control<number | null>(null),
-    wordingFields: fb.control<string[] | null>(null),
+    numberOfRespondents: fb.control<number | null>(null, {
+      validators: [
+        MAX_4,
+        WHOLE_NUMBER,
+        MIN_RESPONDENT_INTEGER,
+        MAX_RESPONDENT_INTEGER,
+      ],
+    }),
+    wordingFields: fb.control<TemplateSubstitution[] | null>(null),
     feeStatuses: fb.control<FeeStatus[] | null>(null),
     hasOffsiteFee: fb.control<boolean | null>(null),
     feeStatus: fb.control<string | null>(null, {
@@ -205,42 +224,8 @@ export function buildOrganisationForm(
   }) as OrganisationForm;
 }
 
-// Wording fields went from string[] to TemplateSubstition[] & preserve keys when present
+// Wording fields moved from string[] to TemplateSubstitution[]; preserve stable fallback keys for legacy responses.
 const LEGACY_WORDING_KEYS = ['courtName', 'organisationName'] as const;
-
-function toTemplateSubstitutions(
-  values: (string | TemplateSubstitution)[] | null | undefined,
-): TemplateSubstitution[] | undefined {
-  if (!values?.length) {
-    return undefined;
-  }
-
-  const isTemplateSubstitution = (
-    value: string | TemplateSubstitution,
-  ): value is TemplateSubstitution =>
-    typeof value === 'object' &&
-    value !== null &&
-    'key' in value &&
-    'value' in value;
-
-  if (values.every(isTemplateSubstitution)) {
-    return values;
-  }
-
-  // Map string[] payloads to the new template
-  return values.map((v, i) => {
-    if (isTemplateSubstitution(v)) {
-      return v;
-    }
-
-    const key = LEGACY_WORDING_KEYS[i] ?? `field${i + 1}`;
-
-    return {
-      key,
-      value: typeof v === 'string' ? v : '',
-    };
-  });
-}
 
 export function buildEntryUpdateDtoFromForm(
   detail: EntryGetDetailDto,
@@ -257,7 +242,10 @@ export function buildEntryUpdateDtoFromForm(
     applicant: detail.applicant,
     respondent: detail.respondent,
     numberOfRespondents: detail.numberOfRespondents,
-    wordingFields: toTemplateSubstitutions(detail.wordingFields),
+    wordingFields: toTemplateSubstitutions(
+      (detail.wordingFields ?? []) as WordingFieldLike[],
+      LEGACY_WORDING_KEYS,
+    ),
     feeStatuses: detail.feeStatuses,
     hasOffsiteFee: detail.hasOffsiteFee,
     caseReference: detail.caseReference,
@@ -400,7 +388,10 @@ export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
     applicant: detail.applicant,
     respondent: detail.respondent,
     numberOfRespondents: detail.numberOfRespondents,
-    wordingFields: toTemplateSubstitutions(detail.wordingFields),
+    wordingFields: toTemplateSubstitutions(
+      (detail.wordingFields ?? []) as WordingFieldLike[],
+      LEGACY_WORDING_KEYS,
+    ),
     feeStatuses: detail.feeStatuses,
     hasOffsiteFee: detail.hasOffsiteFee,
     caseReference: detail.caseReference,

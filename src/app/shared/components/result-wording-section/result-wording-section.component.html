@@ -21,33 +21,31 @@
   />
 </div>
 
-<app-sortable-table
-  id="results-table"
-  caption="Results"
-  captionSize="s"
-  [columns]="existingResultsColumns"
-  [data]="tableRows"
-  idField="id"
->
-  <ng-template #actionsTemplate let-row>
-    <div class="govuk-button-group">
-      <button
-        type="button"
-        class="govuk-button govuk-button--warning"
-        (click)="onRemoveClicked(row)"
-      >
-        Remove
-      </button>
-    </div>
-  </ng-template>
-</app-sortable-table>
+<app-summary-list-card-action
+  [summaryLists]="existingResultSummaryLists()"
+  (onClick)="onSummaryActionClick($event)"
+  [cardBodyTemplate]="resultCardBody"
+/>
+
+<ng-template #resultCardBody let-card>
+  @if (getTemplateForCard(card); as template) {
+    <app-wording-parser
+      [wordingObject]="template"
+      (wordingFieldsDTO)="onCardWordingFieldsDTO(card, $event)"
+      (wordingFieldErrors)="onCardWordingFieldErrors(card, $event)"
+      [wordingSubmitAttempt]="wordingSubmitAttempt()"
+      [showSaveButton]="false"
+      section="result wording"
+    />
+  }
+</ng-template>
 
 <div class="govuk-button-group">
   <button
     type="button"
     class="govuk-button"
     (click)="onSaveResult()"
-    [disabled]="!canApply"
+    [disabled]="!canSubmitResults()"
   >
     Apply result
   </button>

@@ -1,3 +1,5 @@
+import { FormControl } from '@angular/forms';
+
 import {
   ApplicationCodeGetSummaryDtoFeeAmount,
   ApplicationCodeGetSummaryDtoFeeAmountCurrencyEnum,
@@ -5,6 +7,7 @@ import {
   PaymentStatus,
 } from '@openapi';
 import {
+  AddFeeDetailsPayload,
   CivilFeeMeta,
   PaymentRefReturnState,
 } from '@shared-types/civil-fee/civil-fee';
@@ -174,6 +177,49 @@ export function applyPaymentReferenceUpdateToFeeStatuses(
     changed = true;
     return { ...fs, paymentReference: newPaymentReference };
   });
+
+  return { next, changed };
+}
+
+// Helper functions used in civil fee sections in
+// src/app/pages/applications-list-entry-detail/applications-list-entry-detail.component.ts
+// src/app/pages/applications-list-entry-create/applications-list-entry-create.component.ts
+export function updateFeeStatusesControl(
+  feeStatusesCtrl: FormControl<FeeStatus[] | null>,
+  payload: AddFeeDetailsPayload,
+): { next: FeeStatus[]; changed: boolean } {
+  const current = feeStatusesCtrl.value ?? [];
+  const nextItem = toFeeStatus(payload);
+
+  const { next, changed } = addOrReplaceFeeStatus(current, nextItem);
+  if (!changed) {
+    return { next, changed };
+  }
+
+  feeStatusesCtrl.setValue(next);
+  feeStatusesCtrl.markAsDirty();
+
+  return { next, changed };
+}
+
+export function updatePaymentReferenceInFeeStatusesControl(
+  feeStatusesCtrl: FormControl<FeeStatus[] | null>,
+  updatedRowId: string,
+  newPaymentReference: string,
+): { next: FeeStatus[]; changed: boolean } {
+  const current = feeStatusesCtrl.value ?? [];
+  const { next, changed } = applyPaymentReferenceUpdateToFeeStatuses(
+    current,
+    updatedRowId,
+    newPaymentReference.trim(),
+  );
+
+  if (!changed) {
+    return { next, changed };
+  }
+
+  feeStatusesCtrl.setValue(next);
+  feeStatusesCtrl.markAsDirty();
 
   return { next, changed };
 }

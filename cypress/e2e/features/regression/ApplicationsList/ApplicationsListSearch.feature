@@ -4,7 +4,7 @@ Feature: Applications List Search
   Scenario: Verify components on applications list search page
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
-    Then User See "Applications List" On The Page
+    Then User Sees Page Heading "Applications List"
     Then User Should See The Date Field "Date"
     Then User Sees Text "For example, 27 3 2007" In "Date" Field
     Then User Should See The Time Field "Time"
@@ -218,7 +218,7 @@ Feature: Applications List Search
       | user1 | Lists     | 12/01/2026 | 12 Jan 2026 | 14:51 | LCCC065     | Leeds Combined Court Centre Set 7 | Applications to review at Test_1153  | 2       | OPEN   | Select           | Open, Print page,  Print continuous, Delete |
       | user1 | Lists     | 07/01/2026 | 7 Jan 2026  | 15:31 | LCCC025     | Leeds Combined Court Centre Set 3 | Applications to review at Test_13162 | 1       | CLOSED | Select           | Print page,  Print continuous               |
 
-  @regression @ARCPOC-214 @ARCPOC-452 @ARCPOC-756 @ARCPOC-891 @PJ
+  @regression @ARCPOC-214 @ARCPOC-452 @ARCPOC-756 @ARCPOC-891
   Scenario: Verify applications list table sorting functionality and pagination persistence
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
@@ -290,4 +290,3 @@ Feature: Applications List Search
     Then User Should See Table "Lists" Header "Location" Has Sort Order "descending"
     When User Goes To First Page
     Then User Should See Table "Lists" Header "Location" Has Sort Order "descending"
-

@@ -1,3 +1,5 @@
+import { formatDate } from '@angular/common';
+import { LOCALE_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 
@@ -74,7 +76,25 @@ describe('PaymentReferenceEditComponent', () => {
     expect(component.paymentReference.value).toBe('');
   });
 
-  it('isPaymentReferenceInvalid is false initially, true after submit if empty', () => {
+  it('renders status date using the dateTime pipe format', () => {
+    createComponentWithHistoryState({
+      row: {
+        rowId: 'r1',
+        paymentReference: 'REF1',
+        statusDateRaw: '2026-01-01',
+      },
+    });
+
+    const locale = TestBed.inject(LOCALE_ID);
+    const expectedDate = formatDate('2026-01-01', 'mediumDate', locale);
+    const summaryValues = fixture.nativeElement.querySelectorAll(
+      '.govuk-summary-list__value',
+    );
+
+    expect(summaryValues[1]?.textContent?.trim()).toBe(expectedDate);
+  });
+
+  it('If payment reference is empty, allow save', () => {
     createComponentWithHistoryState({
       row: { rowId: 'r1', paymentReference: '' },
     });
@@ -83,10 +103,7 @@ describe('PaymentReferenceEditComponent', () => {
 
     component.save(); // sets submitted=true and touches control
 
-    expect(component.isPaymentReferenceInvalid()).toBe(true);
-    expect(component.getPaymentReferenceError()).toBe(
-      'Enter a payment reference',
-    );
+    expect(component.isPaymentReferenceInvalid()).toBe(false);
   });
 
   it('getPaymentReferenceError returns maxlength message when > 15 chars', () => {
@@ -106,10 +123,16 @@ describe('PaymentReferenceEditComponent', () => {
 
   it('save does not navigate when control invalid', () => {
     createComponentWithHistoryState({
-      row: { rowId: 'r1', paymentReference: '' },
+      row: {
+        rowId: 'r1',
+        paymentReference:
+          'jkfdlafjdksal;fjdskal;fjdskalfdsafdsafjdiosafjdsafjdsaifjdsiafsafdsafdsa',
+      },
     });
 
-    component.paymentReference.setValue(''); // required invalid
+    component.paymentReference.setValue(
+      'jkfdlafjdksal;fjdskal;fjdskalfdsafdsafjdiosafjdsafjdsaifjdsiafsafdsafdsa',
+    ); // past 15 char limit
     component.save();
 
     expect(routerNavigate).not.toHaveBeenCalled();
