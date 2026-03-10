@@ -246,14 +246,13 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.createForms();
 
     const listId =
-      this.route.snapshot.paramMap.get('listId') ??
+      this.route.snapshot.paramMap.get('id') ??
       state?.appListId ??
       this.route.snapshot.queryParamMap.get('appListId') ??
       '';
 
     const entryId =
       this.route.snapshot.paramMap.get('entryId') ??
-      this.route.snapshot.paramMap.get('id') ??
       this.route.snapshot.queryParamMap.get('entryId') ??
       '';
 
@@ -279,6 +278,9 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.bindApplicantTypeChanges();
 
     this.loadEntryAndPatchForm(listId, entryId, pr);
+
+    //Shows success banner if navigated from create page with ?listCreated=true
+    this.handleListCreate();
   }
 
   private createForms(): void {
@@ -812,6 +814,13 @@ export class ApplicationsListEntryDetail implements OnInit {
         },
         error: (err) => this.handleFatalLoadError(err),
       });
+  }
+
+  private handleListCreate(): void {
+    if (this.route.snapshot.queryParamMap.get('listCreated') === 'true') {
+      this.successBanner = ENTRY_SUCCESS_MESSAGES.listCreated;
+      focusSuccessBanner(this.platformId);
+    }
   }
 
   private mergeEntryDetailUpdate(

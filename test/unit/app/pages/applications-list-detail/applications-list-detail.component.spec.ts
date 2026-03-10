@@ -433,7 +433,7 @@ describe('ApplicationsListDetail', () => {
     });
 
     expect(navSpy).toHaveBeenCalledWith(
-      ['/applications-list', 'entry-123', 'update'],
+      ['/applications-list', 'list-9', 'update-entry', 'entry-123'],
       {
         state: {
           appListId: 'list-9',
@@ -443,7 +443,6 @@ describe('ApplicationsListDetail', () => {
             title: 'Case XYZ',
           },
         },
-        queryParams: { appListId: 'list-9' },
       },
     );
   });

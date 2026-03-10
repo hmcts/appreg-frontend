@@ -218,7 +218,7 @@ Feature: Applications List Search
       | user1 | Lists     | 12/01/2026 | 12 Jan 2026 | 14:51 | LCCC065     | Leeds Combined Court Centre Set 7 | Applications to review at Test_1153  | 2       | OPEN   | Select           | Open, Print page,  Print continuous, Delete |
       | user1 | Lists     | 07/01/2026 | 7 Jan 2026  | 15:31 | LCCC025     | Leeds Combined Court Centre Set 3 | Applications to review at Test_13162 | 1       | CLOSED | Select           | Print page,  Print continuous               |
 
-  @regression @ARCPOC-214 @ARCPOC-452 @ARCPOC-756 @ARCPOC-891 @PJ
+  @regression @ARCPOC-214 @ARCPOC-452 @ARCPOC-756 @ARCPOC-891
   Scenario: Verify applications list table sorting functionality and pagination persistence
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"

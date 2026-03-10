@@ -474,17 +474,19 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   async openUpdate(row: Partial<selectedRow>): Promise<void> {
-    await this.router.navigate(['/applications-list', row.id, 'update'], {
-      state: {
-        appListId: this.id,
-        resultApplicantContext: {
-          applicant: row.applicant,
-          respondent: row.respondent,
-          title: row.title,
+    await this.router.navigate(
+      ['/applications-list', this.id, 'update-entry', row.id],
+      {
+        state: {
+          appListId: this.id,
+          resultApplicantContext: {
+            applicant: row.applicant,
+            respondent: row.respondent,
+            title: row.title,
+          },
         },
       },
-      queryParams: { appListId: this.id },
-    });
+    );
   }
 
   private prefillFromApi(dto: ApplicationListGetDetailDto): void {

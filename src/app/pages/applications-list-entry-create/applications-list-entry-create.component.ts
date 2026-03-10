@@ -1,5 +1,5 @@
 /*
-Applications List Entry – Create (/applications-list/:id/create)
+Applications List Entry – Create (/applications-list/:id/create-entry)
 
 Functionality:
   - Creates application list entry payload
@@ -24,7 +24,7 @@ import {
   FormGroupDirective,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { map } from 'rxjs';
 
 import {
@@ -127,6 +127,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   formSvc = inject(ApplicationListEntryFormService);
   private readonly location = inject(Location);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly router = inject(Router);
 
   // Initialise signal state
   private readonly appListEntryCreateSignalState =
@@ -239,8 +240,12 @@ export class ApplicationsListEntryCreate implements OnInit {
         entryCreateDto,
       })
       .subscribe({
-        next: () => {
+        next: (entry) => {
           this.appListEntryCreatePatch({ createDone: true });
+          void this.router.navigate(
+            ['applications-list', entry.listId, 'update-entry', entry.id],
+            { queryParams: { listCreated: true } },
+          );
         },
         error: (err: HttpErrorResponse) => {
           this.appListEntryCreatePatch({

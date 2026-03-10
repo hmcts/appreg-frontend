@@ -56,7 +56,7 @@ describe('Accessibility', () => {
     '/page-not-found',
     '/applications-list',
     '/applications-list/1',
-    '/applications-list/1/create',
+    '/applications-list/1/create-entry',
     '/applications-list/1/update',
     '/applications-list/1/delete',
     '/applications-list/1/update/change-payment-reference',
