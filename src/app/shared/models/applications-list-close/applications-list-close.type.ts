@@ -12,3 +12,5 @@ export type CloseValidationEntry = {
 export type CloseNotPermittedError = {
   noClose: string[];
 };
+
+export type CloseValidationLoadStatus = 'idle' | 'loading' | 'ready' | 'error';

@@ -23,7 +23,7 @@ import {
   signal,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { EMPTY, catchError, map, mergeMap, range, reduce } from 'rxjs';
+import { map, mergeMap, range, reduce } from 'rxjs';
 
 import {
   ApplicationsListUpdateComponent,
@@ -56,7 +56,12 @@ import {
 } from '@constants/application-list-detail-update/form-table-structure';
 import { IF_MATCH } from '@context/concurrency-context';
 import { Row } from '@core-types/table/row.types';
-import { ApplicationListGetDetailDto, ApplicationListsApi } from '@openapi';
+import {
+  ApplicationListEntriesApi,
+  ApplicationListGetDetailDto,
+  ApplicationListsApi,
+  EntryGetSummaryDto,
+} from '@openapi';
 import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import {
@@ -98,6 +103,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly refField = inject(ReferenceDataFacade);
   private readonly appListApi = inject(ApplicationListsApi);
+  private readonly appListEntryApi = inject(ApplicationListEntriesApi);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly ngZone = inject(NgZone);
@@ -220,6 +226,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         onSuccess: (res: HttpResponse<ApplicationListGetDetailDto>) => {
           const dto = res.body;
           if (!dto) {
+            this.entryCount = 0;
             this.detailSignalState.patch({
               isLoading: false,
               updateInvalid: true,
@@ -228,6 +235,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
               rows: [],
               totalPages: 0,
               selectedIds: new Set<string>(),
+              allEntryIds: [],
+              allEntriesSummary: [],
+              closeSummaryStatus: 'idle',
+              closeEntryDetailsStatus: 'idle',
+              closeCodeDetailsStatus: 'idle',
             });
             this.detailSignalState.patch({ allEntryIds: [] });
             this.loadRequest.set(null);
@@ -235,6 +247,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           }
 
           this.etag = res.headers.get('ETag') ?? this.etag;
+          this.entryCount = dto.entriesCount ?? (dto.entriesSummary?.length ?? 0);
 
           const vm = this.vm();
 
@@ -274,6 +287,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
             totalPages,
             selectedIds,
             entriesDetails: [],
+            entryCodeDetails: {},
+            allEntriesSummary: [],
+            closeSummaryStatus: 'idle',
+            closeEntryDetailsStatus: 'idle',
+            closeCodeDetailsStatus: 'idle',
           });
 
           this.loadRequest.set(null);
@@ -298,6 +316,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
             rows: [],
             totalPages: 0,
             selectedIds: new Set<string>(),
+            allEntryIds: [],
+            allEntriesSummary: [],
+            closeSummaryStatus: 'idle',
+            closeEntryDetailsStatus: 'idle',
+            closeCodeDetailsStatus: 'idle',
           });
           this.detailSignalState.patch({ allEntryIds: [] });
           this.loadRequest.set(null);
@@ -412,23 +435,60 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   onRequestAllEntryIds(): void {
     const totalEntries = this.entryCount ?? 0;
-    if (!this.id || totalEntries <= 0) {
+    if (!this.id) {
+      return;
+    }
+    if (this.vm().isLoading) {
+      return;
+    }
+    if (totalEntries <= 0) {
+      this.detailSignalState.patch({
+        allEntryIds: [],
+        allEntriesSummary: [],
+        closeSummaryStatus: 'ready',
+        closeEntryDetailsStatus: 'ready',
+        closeCodeDetailsStatus: 'ready',
+      });
       return;
     }
 
+    const vm = this.vm();
+    if (vm.closeSummaryStatus === 'loading') {
+      return;
+    }
+    if (
+      vm.closeSummaryStatus === 'ready' &&
+      vm.allEntriesSummary.length === totalEntries
+    ) {
+      return;
+    }
+
+    this.detailSignalState.patch({
+      closeSummaryStatus: 'loading',
+      closeEntryDetailsStatus: 'idle',
+      closeCodeDetailsStatus: 'idle',
+    });
+
     this.loadAllEntrySummaries$(this.id, totalEntries).subscribe({
       next: (summaries) => {
-        const ids = summaries.map((s) => s.uuid);
+        const ids = summaries.map((s) => s.id);
 
         this.detailSignalState.patch({
           allEntryIds: ids,
           allEntriesSummary: summaries,
+          closeSummaryStatus: 'ready',
         });
       },
-      error: () => {
+      error: (err: unknown) => {
         this.detailSignalState.patch({
           allEntryIds: [],
           allEntriesSummary: [],
+          closeSummaryStatus: 'error',
+          closeEntryDetailsStatus: 'idle',
+          closeCodeDetailsStatus: 'idle',
+          updateInvalid: true,
+          errorHint: 'There is a problem',
+          errorSummary: [{ text: getProblemText(err) }],
         });
       },
     });
@@ -529,19 +589,15 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
     return range(0, totalPages).pipe(
       mergeMap((pageNumber) =>
-        this.appListApi.getApplicationList(
+        this.appListEntryApi.getApplicationListEntries(
           { listId, pageNumber, pageSize },
           'body',
           false,
           { transferCache: true },
         ),
       ),
-      map((dto) => dto.entriesSummary ?? []),
-      reduce(
-        (acc, page) => acc.concat(page),
-        [] as NonNullable<ApplicationListGetDetailDto['entriesSummary']>,
-      ),
-      catchError(() => EMPTY),
+      map((page) => page.content ?? []),
+      reduce((acc, page) => acc.concat(page), [] as EntryGetSummaryDto[]),
     );
   }
 }

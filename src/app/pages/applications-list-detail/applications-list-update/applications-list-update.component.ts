@@ -83,6 +83,8 @@ export class ApplicationsListUpdateComponent implements OnInit {
   >(null);
 
   private readonly closeAttempted = signal(false);
+  private readonly pendingCloseSubmit = signal(false);
+  private readonly closeDetailsRequestKey = signal<string | null>(null);
 
   readonly form = input.required<DetailForm>();
 
@@ -113,8 +115,10 @@ export class ApplicationsListUpdateComponent implements OnInit {
   // Run a query to get entry details
   // Needed for list close validation
   private readonly syncEntryIds = effect(() => {
+    const vm = this.vm();
     const ids = this.entryIds() ?? [];
     const status = this.form().controls.status.value;
+    const summaryStatus = vm.closeSummaryStatus;
     const shouldRunCloseValidation =
       this.closeAttempted() && status === 'closed';
 
@@ -122,15 +126,94 @@ export class ApplicationsListUpdateComponent implements OnInit {
       // Prevent any pre-loading on page render
       this.loadEntryDetailsReq.set(null);
       this.loadCodeDetailsReq.set(null);
+      this.closeDetailsRequestKey.set(null);
+      this.pendingCloseSubmit.set(false);
+      if (
+        vm.closeEntryDetailsStatus !== 'idle' ||
+        vm.closeCodeDetailsStatus !== 'idle'
+      ) {
+        this.patchState()({
+          closeEntryDetailsStatus: 'idle',
+          closeCodeDetailsStatus: 'idle',
+        });
+      }
       return;
     }
 
+    if (summaryStatus !== 'ready') {
+      this.loadEntryDetailsReq.set(null);
+      this.loadCodeDetailsReq.set(null);
+      this.closeDetailsRequestKey.set(null);
+      return;
+    }
+
+    if (!ids.length) {
+      if (
+        vm.closeEntryDetailsStatus !== 'ready' ||
+        vm.closeCodeDetailsStatus !== 'ready'
+      ) {
+        this.patchState()({
+          closeEntryDetailsStatus: 'ready',
+          closeCodeDetailsStatus: 'ready',
+        });
+      }
+      return;
+    }
+
+    const key = ids.join('|');
+    if (this.closeDetailsRequestKey() === key) {
+      return;
+    }
+
+    this.closeDetailsRequestKey.set(key);
+
     // Only now build requests
+    this.patchState()({
+      entriesDetails: [],
+      entryCodeDetails: {},
+      closeEntryDetailsStatus: 'loading',
+      closeCodeDetailsStatus: 'loading',
+    });
     this.loadEntryDetailsReq.set(
-      ids.length
-        ? ids.map((entryId) => ({ listId: this.id(), entryId }))
-        : null,
+      ids.map((entryId) => ({ listId: this.id(), entryId })),
     );
+  });
+
+  private readonly maybeFinalizePendingCloseSubmit = effect(() => {
+    if (!this.pendingCloseSubmit()) {
+      return;
+    }
+
+    const status = this.form().controls.status.value;
+    if (status !== 'closed') {
+      this.pendingCloseSubmit.set(false);
+      return;
+    }
+
+    const vm = this.vm();
+    if (vm.closeSummaryStatus === 'error') {
+      this.pendingCloseSubmit.set(false);
+      return;
+    }
+    if (vm.closeEntryDetailsStatus === 'error') {
+      this.pendingCloseSubmit.set(false);
+      return;
+    }
+    if (vm.closeCodeDetailsStatus === 'error') {
+      this.pendingCloseSubmit.set(false);
+      return;
+    }
+
+    if (
+      vm.closeSummaryStatus !== 'ready' ||
+      vm.closeEntryDetailsStatus !== 'ready' ||
+      vm.closeCodeDetailsStatus !== 'ready'
+    ) {
+      return;
+    }
+
+    this.pendingCloseSubmit.set(false);
+    this.finalizeUpdate();
   });
 
   ngOnInit(): void {
@@ -147,13 +230,25 @@ export class ApplicationsListUpdateComponent implements OnInit {
         onSuccess: (res) => {
           this.patchState()({
             entriesDetails: res.entries,
+            closeEntryDetailsStatus: 'ready',
           });
 
           // Get app codes for all entries as well
           const codeRequests = this.buildCodeDetailRequests(res.entries);
-          this.loadCodeDetailsReq.set(
-            codeRequests.length ? codeRequests : null,
-          );
+          if (!codeRequests.length) {
+            this.patchState()({
+              closeCodeDetailsStatus: 'ready',
+              entryCodeDetails: {},
+            });
+            this.loadCodeDetailsReq.set(null);
+            this.loadEntryDetailsReq.set(null);
+            return;
+          }
+
+          this.patchState()({
+            closeCodeDetailsStatus: 'loading',
+          });
+          this.loadCodeDetailsReq.set(codeRequests);
           this.loadEntryDetailsReq.set(null);
         },
         onError: (err: unknown) => {
@@ -161,7 +256,9 @@ export class ApplicationsListUpdateComponent implements OnInit {
             errorHint: getProblemText(err),
             errorSummary: [{ text: getProblemText(err) }],
             selectedIds: new Set<string>(),
+            closeEntryDetailsStatus: 'error',
           });
+          this.closeDetailsRequestKey.set(null);
           this.loadEntryDetailsReq.set(null);
         },
       },
@@ -196,6 +293,7 @@ export class ApplicationsListUpdateComponent implements OnInit {
         onSuccess: (codeDetails) => {
           this.patchState()({
             entryCodeDetails: codeDetails,
+            closeCodeDetailsStatus: 'ready',
           });
           this.loadCodeDetailsReq.set(null);
         },
@@ -204,7 +302,9 @@ export class ApplicationsListUpdateComponent implements OnInit {
             errorHint: getProblemText(err),
             errorSummary: [{ text: getProblemText(err) }],
             selectedIds: new Set<string>(),
+            closeCodeDetailsStatus: 'error',
           });
+          this.closeDetailsRequestKey.set(null);
           this.loadCodeDetailsReq.set(null);
         },
       },
@@ -213,6 +313,21 @@ export class ApplicationsListUpdateComponent implements OnInit {
   }
 
   onUpdate(): void {
+    const isClosing = this.isClosing();
+    this.closeAttempted.set(isClosing);
+
+    if (!isClosing) {
+      // Make sure we don't run unnecessary requests if we're not trying to close a list
+      this.pendingCloseSubmit.set(false);
+      this.closeDetailsRequestKey.set(null);
+      this.loadEntryDetailsReq.set(null);
+      this.loadCodeDetailsReq.set(null);
+      this.patchState()({
+        closeEntryDetailsStatus: 'idle',
+        closeCodeDetailsStatus: 'idle',
+      });
+    }
+
     // reset flags/errors
     this.patchState()({
       updateInvalid: false,
@@ -221,20 +336,38 @@ export class ApplicationsListUpdateComponent implements OnInit {
       errorHint: '',
     });
 
+    if (isClosing) {
+      if (!this.prepareCloseValidationData()) {
+        return;
+      }
+    }
+
+    this.finalizeUpdate();
+  }
+
+  private prepareCloseValidationData(): boolean {
+    const vm = this.vm();
+
+    if (vm.closeSummaryStatus !== 'ready') {
+      this.pendingCloseSubmit.set(true);
+      this.requestAllEntryIds.emit();
+      return false;
+    }
+
+    if (
+      vm.closeEntryDetailsStatus !== 'ready' ||
+      vm.closeCodeDetailsStatus !== 'ready'
+    ) {
+      this.pendingCloseSubmit.set(true);
+      return false;
+    }
+
+    return true;
+  }
+
+  private finalizeUpdate(): void {
     this.form().markAllAsTouched();
     this.form().updateValueAndValidity({ emitEvent: false });
-
-    const isClosing =
-      this.form().getRawValue().status?.toLowerCase() === 'closed';
-    this.closeAttempted.set(isClosing);
-
-    if (isClosing) {
-      this.requestAllEntryIds.emit();
-    } else {
-      // Make sure we don't run unnecessary requests if we're not trying to close a list
-      this.loadEntryDetailsReq.set(null);
-      this.loadCodeDetailsReq.set(null);
-    }
 
     const raw = this.form().getRawValue();
 
@@ -273,6 +406,10 @@ export class ApplicationsListUpdateComponent implements OnInit {
         errorHint: msg,
       });
     }
+  }
+
+  private isClosing(): boolean {
+    return this.form().getRawValue().status?.toLowerCase() === 'closed';
   }
 
   fieldError(id: string): ErrorItem | undefined {
@@ -487,7 +624,7 @@ export const closeValidationEntries = (
   const codeDetails = vm.entryCodeDetails ?? {};
 
   // fallback, only use rows in first page (won't take into account all entries if list has many)
-  if (summaries.length === 0) {
+  if (summaries.length === 0 && vm.closeSummaryStatus === 'error') {
     const rows = vm.rows as selectedRow[];
     return rows.map((row) => {
       const detail = detailsById.get(row.id);
@@ -507,18 +644,18 @@ export const closeValidationEntries = (
 
   // build from all entry summaries
   return summaries.map((s) => {
-    const detail = detailsById.get(s.uuid);
+    const detail = detailsById.get(s.id);
 
     return {
-      id: s.uuid,
-      hasResult: !!s.result,
-      hasFees: !!s.feeRequired,
-      hasRespondent: !!s.respondent?.toString().trim(),
+      id: s.id,
+      hasResult: s.isResulted,
+      hasFees: s.isFeeRequired,
+      hasRespondent: !!(s.respondent?.person || s.respondent?.organisation),
       hasPaidFee: (detail?.feeStatuses ?? []).some(
         (fee) => fee.paymentStatus === PaymentStatus.PAID,
       ),
       hasOfficials: (detail?.officials?.length ?? 0) > 0,
-      requiresRespondent: codeDetails[s.uuid]?.requiresRespondent ?? null,
+      requiresRespondent: codeDetails[s.id]?.requiresRespondent ?? null,
     };
   });
 };

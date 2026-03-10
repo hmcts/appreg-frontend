@@ -10,6 +10,7 @@ import { SuggestionsFacade } from '@components/applications-list-form/facade/app
 import {
   ApplicationCodesApi,
   ApplicationListEntriesApi,
+  ApplicationListStatus,
   Official,
   PaymentStatus,
   TemplateDetail,
@@ -49,6 +50,10 @@ describe('ApplicationsListUpdateComponent', () => {
     hasPrefilledFromApi: false,
     allEntryIds: [],
     allEntriesSummary: [],
+    closeSummaryStatus: 'error',
+    closeEntryDetailsStatus: 'error',
+    closeCodeDetailsStatus: 'error',
+    createDone: false,
   });
 
   const mkPlaceState = (): PlaceFieldsState => ({
@@ -223,6 +228,10 @@ describe('closeValidationEntries', () => {
       hasPrefilledFromApi: false,
       allEntryIds: [],
       allEntriesSummary: [],
+      closeSummaryStatus: 'error',
+      closeEntryDetailsStatus: 'error',
+      closeCodeDetailsStatus: 'error',
+      createDone: false,
     };
 
     const out = closeValidationEntries(vm);
@@ -247,5 +256,159 @@ describe('closeValidationEntries', () => {
         hasOfficials: true,
       },
     ]);
+  });
+
+  it('maps summary entries using isResulted/isFeeRequired fields', () => {
+    const vm: ApplicationsListDetailState = {
+      currentPage: 1,
+      pageSize: 10,
+      totalPages: 1,
+      rows: [],
+      selectedIds: new Set<string>(),
+      selectedRows: [],
+      entriesDetails: [
+        {
+          id: 'e-summary-1',
+          listId: 'list',
+          applicationCode: 'A1',
+          numberOfRespondents: 1,
+          lodgementDate: '2024-01-01',
+          officials: [{ forename: 'Alex', surname: 'One' } as Official],
+          feeStatuses: [
+            { paymentStatus: PaymentStatus.PAID, statusDate: '2024-01-02' },
+          ],
+        },
+        {
+          id: 'e-summary-2',
+          listId: 'list',
+          applicationCode: 'A2',
+          numberOfRespondents: 0,
+          lodgementDate: '2024-01-01',
+          officials: [],
+          feeStatuses: [
+            { paymentStatus: PaymentStatus.DUE, statusDate: '2024-01-02' },
+          ],
+        },
+      ],
+      entryCodeDetails: {
+        'e-summary-1': {
+          applicationCode: 'A1',
+          title: 'Title',
+          wording: { template: 'T' } as TemplateDetail,
+          isFeeDue: true,
+          requiresRespondent: true,
+          bulkRespondentAllowed: false,
+          startDate: '2024-01-01',
+          endDate: null,
+        },
+        'e-summary-2': {
+          applicationCode: 'A2',
+          title: 'Title',
+          wording: { template: 'T' } as TemplateDetail,
+          isFeeDue: false,
+          requiresRespondent: false,
+          bulkRespondentAllowed: false,
+          startDate: '2024-01-01',
+          endDate: null,
+        },
+      },
+      isLoading: false,
+      updateDone: false,
+      updateInvalid: false,
+      errorHint: '',
+      errorSummary: [],
+      hasPrefilledFromApi: false,
+      allEntryIds: ['e-summary-1', 'e-summary-2'],
+      allEntriesSummary: [
+        {
+          id: 'e-summary-1',
+          applicationTitle: 'Title 1',
+          isFeeRequired: true,
+          isResulted: false,
+          status: ApplicationListStatus.OPEN,
+          respondent: {
+            person: {
+              name: { firstForename: 'John', surname: 'Smith' },
+              contactDetails: { addressLine1: 'address' },
+            },
+          },
+        },
+        {
+          id: 'e-summary-2',
+          applicationTitle: 'Title 2',
+          isFeeRequired: false,
+          isResulted: true,
+          status: ApplicationListStatus.OPEN,
+        },
+      ],
+      closeSummaryStatus: 'ready',
+      closeEntryDetailsStatus: 'ready',
+      closeCodeDetailsStatus: 'ready',
+      createDone: false,
+    };
+
+    const out = closeValidationEntries(vm);
+
+    expect(out).toEqual([
+      {
+        id: 'e-summary-1',
+        hasResult: false,
+        hasFees: true,
+        hasPaidFee: true,
+        requiresRespondent: true,
+        hasRespondent: true,
+        hasOfficials: true,
+      },
+      {
+        id: 'e-summary-2',
+        hasResult: true,
+        hasFees: false,
+        hasPaidFee: false,
+        requiresRespondent: false,
+        hasRespondent: false,
+        hasOfficials: false,
+      },
+    ]);
+  });
+
+  it('does not fallback to rows when summaries are not ready and no summary error', () => {
+    const vm: ApplicationsListDetailState = {
+      currentPage: 1,
+      pageSize: 10,
+      totalPages: 1,
+      rows: [
+        {
+          id: 'row-only',
+          sequenceNumber: 1,
+          accountNumber: null,
+          applicant: null,
+          respondent: null,
+          postCode: null,
+          title: 'Row Only',
+          feeReq: 'Yes',
+          resulted: 'No',
+        },
+      ],
+      selectedIds: new Set<string>(),
+      selectedRows: [],
+      entriesDetails: [],
+      entryCodeDetails: {},
+      isLoading: false,
+      updateDone: false,
+      updateInvalid: false,
+      errorHint: '',
+      errorSummary: [],
+      hasPrefilledFromApi: false,
+      allEntryIds: [],
+      allEntriesSummary: [],
+      closeSummaryStatus: 'loading',
+      closeEntryDetailsStatus: 'idle',
+      closeCodeDetailsStatus: 'idle',
+      createDone: false,
+    };
+
+    const out = closeValidationEntries(vm);
+
+    expect(out).toEqual([]);
   });
 });

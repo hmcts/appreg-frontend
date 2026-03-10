@@ -393,6 +393,50 @@ describe('ApplicationsListDetail', () => {
       expect(vm().selectedIds.size).toBe(0);
       expect(vm().errorSummary.length).toBeGreaterThan(0);
     });
+
+    it('updates entryCount from API entriesCount', async () => {
+      component.id = 'list-123';
+
+      const dto = {
+        entriesCount: 5,
+        entriesSummary: [],
+      } as unknown as ApplicationListGetDetailDto;
+
+      apiStub.getApplicationList.mockReturnValueOnce(
+        of(
+          new HttpResponse<ApplicationListGetDetailDto>({
+            status: 200,
+            body: dto,
+            headers: new HttpHeaders({ ETag: '"etag-v3"' }),
+          }),
+        ),
+      );
+
+      component.loadApplicationsLists();
+      await flushSignalEffects(fixture);
+
+      expect(component.entryCount).toBe(5);
+    });
+  });
+
+  describe('onRequestAllEntryIds', () => {
+    it('does not set close validation to ready while list is still loading', () => {
+      component.id = 'list-123';
+      component.entryCount = 0;
+
+      patchDetailState({
+        isLoading: true,
+        closeSummaryStatus: 'idle',
+        closeEntryDetailsStatus: 'idle',
+        closeCodeDetailsStatus: 'idle',
+      });
+
+      component.onRequestAllEntryIds();
+
+      expect(vm().closeSummaryStatus).toBe('idle');
+      expect(vm().closeEntryDetailsStatus).toBe('idle');
+      expect(vm().closeCodeDetailsStatus).toBe('idle');
+    });
   });
 
   it('setSuccessBanner: sets createDone to true when listCreated=true', () => {
