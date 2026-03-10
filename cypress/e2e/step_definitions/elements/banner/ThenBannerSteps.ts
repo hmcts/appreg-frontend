@@ -7,9 +7,12 @@ Then('User Sees Validation Error Banner {string}', (expectedText: string) => {
   cy.screenshot(`ErrorBannerWithText-${expectedText.substring(0, 30)}`);
 });
 
-Then('User Does Not See Validation Error Banner {string}', (unexpectedText: string) => {
-  BannerHelper.verifyErrorBannerNotPresent(unexpectedText);
-});
+Then(
+  'User Does Not See Validation Error Banner {string}',
+  (unexpectedText: string) => {
+    BannerHelper.verifyErrorBannerNotPresent(unexpectedText);
+  },
+);
 
 Then('User Sees Notification Banner {string}', (expectedText: string) => {
   BannerHelper.verifyBannerText(expectedText);
