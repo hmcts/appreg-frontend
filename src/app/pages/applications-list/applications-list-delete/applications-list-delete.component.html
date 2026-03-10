@@ -5,6 +5,7 @@
 <app-review-confirm
   (confirm)="onDelete()"
   (cancelled)="goBack()"
+  confirmButtonTxt="Yes - delete"
   title="Are you sure you want to delete this application list?"
 >
   <app-table [rows]="[listToDelete]" [columns]="columns">
