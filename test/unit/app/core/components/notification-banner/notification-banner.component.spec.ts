@@ -87,7 +87,10 @@ describe('NotificationBannerComponent (external template)', () => {
 
   it('renders a link using linkHref when provided', () => {
     fixture.componentRef.setInput('linkText', 'create a new list');
-    fixture.componentRef.setInput('linkHref', '/applications-list/create');
+    fixture.componentRef.setInput(
+      'linkHref',
+      '/applications-list/create-entry',
+    );
     fixture.detectChanges();
 
     const anchor = fixture.nativeElement.querySelector(
@@ -96,14 +99,14 @@ describe('NotificationBannerComponent (external template)', () => {
 
     expect(anchor).toBeTruthy();
     expect(anchor.textContent?.trim()).toBe('create a new list');
-    expect(anchor.getAttribute('href')).toBe('/applications-list/create');
+    expect(anchor.getAttribute('href')).toBe('/applications-list/create-entry');
   });
 
   it('renders a routerLink when linkCommands is provided (no linkHref)', () => {
     fixture.componentRef.setInput('linkText', 'create a new list');
     fixture.componentRef.setInput('linkHref', undefined);
     fixture.componentRef.setInput('linkCommands', [
-      '/applications-list/create',
+      '/applications-list/create-entry',
     ]);
     fixture.detectChanges();
 

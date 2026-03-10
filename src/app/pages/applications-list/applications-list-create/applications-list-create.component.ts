@@ -1,5 +1,5 @@
 /*
-Applications List – Create (/applications-list/create)
+Applications List – Create (/applications-list/create-entry)
 
 Functionality:
   - Submits form via POST to create a new application list

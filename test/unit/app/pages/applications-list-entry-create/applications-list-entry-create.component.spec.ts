@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, provideRouter } from '@angular/router';
+import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { Subject, of } from 'rxjs';
 
 import { ApplicationsListEntryCreate } from '@components/applications-list-entry-create/applications-list-entry-create.component';
@@ -13,6 +13,7 @@ import {
 import {
   ApplicationCodeGetDetailDto,
   ApplicationCodesApi,
+  EntryCreateDto,
   ApplicationListEntriesApi,
   FeeStatus,
 } from '@openapi';
@@ -293,6 +294,7 @@ describe('ApplicationsListEntryCreate (submission + error flow)', () => {
   let component: ApplicationsListEntryCreate;
   let api: { createApplicationListEntry: jest.Mock };
   let updateFeeStatusesControlSpy: jest.SpyInstance;
+  let router: Router;
 
   beforeEach(async () => {
     api = { createApplicationListEntry: jest.fn().mockReturnValue(of({})) };
@@ -321,6 +323,7 @@ describe('ApplicationsListEntryCreate (submission + error flow)', () => {
 
     fixture = TestBed.createComponent(ApplicationsListEntryCreate);
     component = fixture.componentInstance;
+    router = TestBed.inject(Router);
     fixture.detectChanges();
   });
 
@@ -382,6 +385,39 @@ describe('ApplicationsListEntryCreate (submission + error flow)', () => {
 
     expect(ctrl.value).toBe(true);
     expect(ctrl.dirty).toBe(true);
+  });
+
+  it('onSubmit: navigates to update-entry page with listCreated query param after successful create', () => {
+    api.createApplicationListEntry.mockReturnValue(
+      of({ listId: 'LIST-1', id: 'ENTRY-1' }),
+    );
+    const navigateSpy = jest
+      .spyOn(router, 'navigate')
+      .mockResolvedValue(true);
+
+    jest
+      .spyOn(
+        component as unknown as {
+          updateErrors: (opts: { validateOtherSections: boolean }) => void;
+        },
+        'updateErrors',
+      )
+      .mockImplementation(() => undefined);
+    jest
+      .spyOn(component.formSvc, 'buildCreateDto')
+      .mockReturnValue({} as EntryCreateDto);
+
+    component.onSubmit(new Event('submit'));
+
+    expect(api.createApplicationListEntry).toHaveBeenCalledWith({
+      listId: 'LIST-1',
+      entryCreateDto: {},
+    });
+    expect(navigateSpy).toHaveBeenCalledWith(
+      ['applications-list', 'LIST-1', 'update-entry', 'ENTRY-1'],
+      { queryParams: { listCreated: true } },
+    );
+    expect(component.vm().createDone).toBe(true);
   });
 });
 

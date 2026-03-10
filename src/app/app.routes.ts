@@ -36,15 +36,18 @@ export const routes: Routes = [
       { path: '', component: ApplicationsList },
       { path: 'create', component: ApplicationsListCreate },
       { path: ':id', component: ApplicationsListDetail },
-      { path: ':id/update', component: ApplicationsListEntryDetail },
       { path: ':id/delete', component: ApplicationsListDeleteComponent },
-      { path: ':id/create', component: ApplicationsListEntryCreate },
+      { path: ':id/create-entry', component: ApplicationsListEntryCreate },
       {
-        path: ':id/create/change-payment-reference',
+        path: ':id/update-entry/:entryId',
+        component: ApplicationsListEntryDetail,
+      },
+      {
+        path: ':id/create-entry/change-payment-reference',
         component: PaymentReferenceEditComponent,
       },
       {
-        path: ':id/update/change-payment-reference',
+        path: ':id/update-entry/:entryId/change-payment-reference',
         component: PaymentReferenceEditComponent,
       },
       { path: ':id/bulk-upload', component: ApplicationsListBulkUpload },
