@@ -10,7 +10,9 @@ const require = createRequire(import.meta.url);
 export class PropertiesVolume {
   async enableFor(server: Application): Promise<void> {
     if (process.env['NODE_ENV'] === 'development') {
-      const config = require('config') as Config;
+      const { default: config } = (await import('config')) as {
+        default: Config;
+      };
 
       await addFromAzureVault(config, {
         pathToHelmChart: 'charts/appreg-frontend/values.yaml',
@@ -19,7 +21,9 @@ export class PropertiesVolume {
     }
 
     if (server.locals['ENV'] !== 'development') {
-      const config = require('config') as Config;
+      const { default: config } = (await import('config')) as {
+        default: Config;
+      };
 
       const pvm = require('@hmcts/properties-volume') as typeof PV;
 
