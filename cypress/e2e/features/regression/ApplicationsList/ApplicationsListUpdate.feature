@@ -139,7 +139,7 @@ Feature: Applications List Update
         Then User Sees Validation Error Banner "There is a problem Enter a valid duration between 00:00 and 23:59 Enter a description Select a status Enter a court, or an other location and criminal justice area"
         When User Set Time Field "Time" To "<UpdatedTime>"
         Then User Enters "<UpdatedDescription>" Into The "Description" Textbox
-        When User Clicks On The "Update" Buttonyarn
+        When User Clicks On The "Update" Button
         Then User Sees Validation Error Banner "There is a problem Select a status Enter a court, or an other location and criminal justice area"
         Then User Selects "<Status>" In The "Select list status" Dropdown
         When User Clicks On The "Update" Button
@@ -263,17 +263,17 @@ Feature: Applications List Update
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
             """
             {
-                "resultCode": "RTC",
-                "wordingFields": [
-                    {
-                        "key": "Date",
-                        "value": "24-02-2026"
-                    },
-                    {
-                        "key": "Courthouse",
-                        "value": "London Courthouse"
-                    }
-                ]
+            "resultCode": "RTC",
+            "wordingFields": [
+            {
+            "key": "Date",
+            "value": "24-02-2026"
+            },
+            {
+            "key": "Courthouse",
+            "value": "London Courthouse"
+            }
+            ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
