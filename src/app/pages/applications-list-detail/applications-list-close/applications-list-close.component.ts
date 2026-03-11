@@ -59,7 +59,9 @@ export class ApplicationsListCloseComponent implements OnInit {
   }
 
   goBack(): void {
-    void this.router.navigate(['/applications-list', this.idFromUrl]);
+    void this.router.navigate(['/applications-list', this.idFromUrl], {
+      state: { row: this.listToClose },
+    });
   }
 
   private closeList(): void {

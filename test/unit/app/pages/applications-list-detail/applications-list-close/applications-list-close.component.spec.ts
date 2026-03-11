@@ -14,6 +14,7 @@ import { ApplicationsListCloseComponent } from '@components/applications-list-de
 import { HeaderService } from '@core/services/header.service';
 import { ApplicationListStatus, ApplicationListsApi } from '@openapi';
 import { AppListNavState } from '@shared-types/applications-list/applications-list-form';
+import { ApplicationListRow } from '@util/types/application-list/types';
 
 describe('ApplicationsListCloseComponent', () => {
   let fixture: ComponentFixture<ApplicationsListCloseComponent>;
@@ -23,7 +24,24 @@ describe('ApplicationsListCloseComponent', () => {
   let location: Pick<Location, 'getState'>;
   let appListsApi: Pick<ApplicationListsApi, 'updateApplicationList'>;
 
+  const makeRow = (
+    overrides: Partial<ApplicationListRow> = {},
+  ): ApplicationListRow => ({
+    id: 'list-123',
+    date: '2026-02-10',
+    time: '10:30',
+    location: 'ABC',
+    description: 'test',
+    status: ApplicationListStatus.OPEN,
+    entries: 3,
+    deletable: false,
+    etag: 'W/"123"',
+    rowVersion: '1',
+    ...overrides,
+  });
+
   const closeState: AppListNavState = {
+    listRow: makeRow(),
     closeRequest: {
       id: 'list-123',
       etag: 'W/"123"',
@@ -109,10 +127,10 @@ describe('ApplicationsListCloseComponent', () => {
     (router.navigate as jest.Mock).mockClear();
     component.goBack();
 
-    expect(router.navigate).toHaveBeenCalledWith([
-      '/applications-list',
-      'list-123',
-    ]);
+    expect(router.navigate).toHaveBeenCalledWith(
+      ['/applications-list', 'list-123'],
+      { state: { row: closeState.listRow } },
+    );
   });
 
   it('renders expected close warning message', async () => {
