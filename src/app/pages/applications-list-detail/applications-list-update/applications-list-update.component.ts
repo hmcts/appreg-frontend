@@ -28,6 +28,7 @@ import {
   DetailForm,
   DetailFormGroupErrors,
   UpdateReq,
+  clearUpdateNotificationsPatch,
   selectedRow,
 } from '../util';
 
@@ -220,12 +221,7 @@ export class ApplicationsListUpdateComponent implements OnInit {
 
   onUpdate(): void {
     // reset flags/errors
-    this.patchState()({
-      updateInvalid: false,
-      updateDone: false,
-      errorSummary: [],
-      errorHint: '',
-    });
+    this.patchState()(clearUpdateNotificationsPatch());
 
     this.form().markAllAsTouched();
     this.form().updateValueAndValidity({ emitEvent: false });

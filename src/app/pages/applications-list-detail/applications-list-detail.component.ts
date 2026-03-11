@@ -33,6 +33,7 @@ import {
   ApplicationsListDetailState,
   LoadDetailReq,
   UpdateReq,
+  clearUpdateNotificationsPatch,
   initialApplicationsListDetailState,
   selectedRow,
 } from './util';
@@ -134,7 +135,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refField);
-
+    this.detailSignalState.patch(clearUpdateNotificationsPatch());
     this.setSuccessBanner();
 
     //Attach validators
@@ -205,6 +206,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       this.vm().createDone = true;
       const createState = history.state as ApplicationsListDetailHistoryState;
       this.listRow = createState.row ?? undefined;
+    }
+
+    if (this.route.snapshot.queryParamMap.get('isCloseSuccess')) {
+      this.vm().updateDone = true;
     }
   }
 

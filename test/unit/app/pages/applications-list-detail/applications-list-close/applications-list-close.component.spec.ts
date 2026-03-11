@@ -143,10 +143,10 @@ describe('ApplicationsListCloseComponent', () => {
       listId: 'list-123',
       applicationListUpdateDto: closeState.closeRequest?.payload,
     });
-    expect(router.navigate).toHaveBeenCalledWith([
-      '/applications-list',
-      'list-123',
-    ]);
+    expect(router.navigate).toHaveBeenCalledWith(
+      ['/applications-list', 'list-123'],
+      { fragment: 'list-details', queryParams: { isCloseSuccess: true } },
+    );
   });
 
   it('clicking continue navigates with close=error query on api error', async () => {
