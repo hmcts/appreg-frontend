@@ -79,10 +79,14 @@ export class ApiBaseHelper {
   ): void {
     ApiBaseHelper.resolveEndpointPlaceholders(endpoint).then(
       (resolvedEndpoint) => {
+        // Process dynamic values like {RANDOM} in the endpoint URL/query params
+        const processedEndpoint =
+          TestDataGenerator.parseValue(resolvedEndpoint);
+
         cy.task<string>('getEnv', 'API_BASE_URL').then((baseUrl) => {
           const url = baseUrl
-            ? `${baseUrl}${resolvedEndpoint}`
-            : resolvedEndpoint;
+            ? `${baseUrl}${processedEndpoint}`
+            : processedEndpoint;
           cy.get('@authToken').then((token) => {
             cy.request({
               method,
