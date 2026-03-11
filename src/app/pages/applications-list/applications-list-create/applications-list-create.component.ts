@@ -28,7 +28,6 @@ import {
 } from './util/applications-list-create.state';
 
 import { APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
-import { toRow } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ApplicationsListFormComponent } from '@components/applications-list-form/applications-list-form.component';
 import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
@@ -124,28 +123,7 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
             applicationListCreateDto: params,
           }),
         onSuccess: async (response) => {
-          const submittedPayload = this.createRequest();
-          const row = toRow(
-            submittedPayload
-              ? {
-                  id: response.id,
-                  date: response.date ?? submittedPayload.date,
-                  time: response.time ?? submittedPayload.time,
-                  location:
-                    response.courtName ??
-                    response.otherLocationDescription ??
-                    submittedPayload.courtLocationCode ??
-                    submittedPayload.otherLocationDescription ??
-                    '',
-                  description:
-                    response.description ?? submittedPayload.description,
-                  entriesCount: response.entriesCount ?? 0,
-                  status: response.status ?? submittedPayload.status,
-                }
-              : response,
-          );
           await this.router.navigate(['applications-list', response.id], {
-            state: { row },
             queryParams: { listCreated: true },
             fragment: 'list-details',
           });

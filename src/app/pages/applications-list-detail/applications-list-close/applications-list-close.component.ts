@@ -44,7 +44,7 @@ export class ApplicationsListCloseComponent implements OnInit {
   columns = APPLICATIONS_LIST_COLUMNS;
 
   ngOnInit(): void {
-    if (!this.idFromUrl || !this.closeRequest) {
+    if (!this.idFromUrl || !this.closeRequest || !this.listToClose) {
       void this.router.navigate(['/applications-list']);
       return;
     }

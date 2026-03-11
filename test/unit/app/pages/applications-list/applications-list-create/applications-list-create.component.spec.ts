@@ -183,20 +183,6 @@ describe('ApplicationsListCreate', () => {
 
     expect(navigateSpy).toHaveBeenCalledTimes(1);
     expect(navigateSpy).toHaveBeenCalledWith(['applications-list', 123], {
-      state: {
-        row: {
-          id: 123,
-          date: '2025-10-02',
-          time: '08:05',
-          location: 'A1',
-          description: 'Morning list',
-          entries: 0,
-          status: 'OPEN',
-          deletable: true,
-          etag: null,
-          rowVersion: null,
-        },
-      },
       queryParams: { listCreated: true },
       fragment: 'list-details',
     });

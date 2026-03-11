@@ -56,7 +56,11 @@ import {
 } from '@constants/application-list-detail-update/form-table-structure';
 import { IF_MATCH } from '@context/concurrency-context';
 import { Row } from '@core-types/table/row.types';
-import { ApplicationListGetDetailDto, ApplicationListsApi } from '@openapi';
+import {
+  ApplicationListGetDetailDto,
+  ApplicationListStatus,
+  ApplicationListsApi,
+} from '@openapi';
 import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import {
@@ -67,7 +71,7 @@ import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenu, MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
-import { parseTimeToDuration } from '@util/time-helpers';
+import { normaliseTime, parseTimeToDuration } from '@util/time-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
 import { closePermitted } from '@validators/applications-list-close.validator';
 import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
@@ -164,7 +168,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       ? (history.state as { row?: ApplicationListRow })?.row
       : undefined;
 
-    this.listRow = st ?? undefined;
     this.id = st?.id ?? this.route.snapshot.paramMap.get('id') ?? '';
     this.entryCount = st?.entriesCount ?? 0;
 
@@ -214,7 +217,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   private setupEffects(): void {
-    // GET /application-lists/{listId}/entries
+    // GET /application-lists/{listId}
     setupLoadEffect(
       {
         request: this.loadRequest,
@@ -503,6 +506,21 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   private prefillFromApi(dto: ApplicationListGetDetailDto): void {
+    this.listRow ??= {
+      id: dto.id,
+      date: dto.date,
+      time: normaliseTime(dto.time),
+      location: dto.courtName ?? dto.otherLocationDescription ?? '',
+      description: dto.description,
+      entries: dto.entriesCount ?? 0,
+      status: dto.status,
+      deletable: dto.status === ApplicationListStatus.OPEN,
+      etag: this.etag,
+      rowVersion: dto.version?.toString() ?? null,
+    };
+
+    this.entryCount = dto.entriesCount ?? this.entryCount;
+
     this.form.patchValue({
       date: dto.date ?? null,
       time: parseTimeToDuration(dto.time),
