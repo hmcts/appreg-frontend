@@ -164,9 +164,7 @@ async function bootstrap(): Promise<void> {
     process.env['DEV_BYPASS_BEARER_TOKEN'] || 'dev-bypass-token';
 
   if (bypassSso && !developmentMode) {
-    throw new Error(
-      'DEV_BYPASS_SSO is only allowed when NODE_ENV=development',
-    );
+    throw new Error('DEV_BYPASS_SSO is only allowed when NODE_ENV=development');
   }
 
   const ngDevServer = process.env['NG_DEV_SERVER'] || 'http://localhost:4200';
