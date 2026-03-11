@@ -43,6 +43,13 @@
   />
 }
 
+@if (vm().listCloseDone) {
+  <app-success-banner
+    heading="Application List closed successfully"
+    body="If you believe this was in error, please contact support."
+  />
+}
+
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
@@ -108,12 +115,7 @@
               type="button"
               class="govuk-button moj-button-menu__item govuk-button--secondary"
               [routerLink]="['/applications-list', row.id]"
-              [state]="{
-                row: {
-                  id: row.id,
-                  entriesCount: row.entries,
-                },
-              }"
+              [state]="{ row }"
             >
               Open
             </button>
@@ -142,7 +144,7 @@
               type="button"
               class="govuk-button moj-button-menu__item govuk-button--warning"
               [routerLink]="['/applications-list', row.id, 'delete']"
-              [state]="{ listToDelete: row }"
+              [state]="{ listRow: row }"
             >
               Delete
             </button>

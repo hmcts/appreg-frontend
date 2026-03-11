@@ -195,27 +195,27 @@ Feature: Applications List Entry Search
         Then User clicks on the link using exact text match "Applications"
         Then User Verify The Page URL Contains "/applications"
         When User Clicks On The "Search" Button
-        Then User Sees Notification Banner "There is a problem Invalid Search Criteria. At least one field must be entered."
+        Then User Sees Validation Error Banner "There is a problem Invalid Search Criteria. At least one field must be entered."
         When User Searches Application List Entry With:
             | Date          | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
             | <InvalidDate> |             |       | ACME                   |                   |                         |                    |                           |                      |           |                       |                            |                         |                   |
-        Then User Sees Notification Banner "There is a problem Enter a valid date"
+        Then User Sees Validation Error Banner "There is a problem Enter a valid date"
         When User Clicks On The "Clear search" Button
         Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<InvalidCourt>"
         Then User Verifies "<Info>" Is Visible Under The "Court" Textbox
         When User Clicks On The "Search" Button
-        Then User Sees Notification Banner "There is a problem Court location not found"
+        Then User Sees Validation Error Banner "There is a problem Court location not found"
         When User Clicks On The "Clear search" Button
         When User Toggles The Accordion "Advanced search"
         Then User Selects "<OptionText>" From The Textbox "Criminal justice area" Autocomplete By Typing "<InvalidCJA>"
         Then User Verifies "<Info>" Is Visible Under The "Criminal justice area" Textbox
         When User Clicks On The "Search" Button
-        Then User Sees Notification Banner "There is a problem Criminal justice area not found"
+        Then User Sees Validation Error Banner "There is a problem Criminal justice area not found"
         When User Clicks On The "Clear search" Button
         When User Searches Application List Entry With:
             | Date | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
             |      |             |       |                        |                   |                         |                    |                           | <InvalidPostcode>    |           |                       |                            |                         |                   |
-        Then User Sees Notification Banner "There is a problem Enter a valid UK postcode"
+        Then User Sees Validation Error Banner "There is a problem Enter a valid UK postcode"
         When User Clicks On The "Clear search" Button
         When User Searches Application List Entry With:
             | Date        | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |

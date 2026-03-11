@@ -31,13 +31,14 @@ import {
 } from './applications-list-update/applications-list-update.component';
 import {
   ApplicationsListDetailState,
-  Handoff,
   LoadDetailReq,
   UpdateReq,
+  clearUpdateNotificationsPatch,
   initialApplicationsListDetailState,
   selectedRow,
 } from './util';
 
+import { toRow } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import {
@@ -73,10 +74,15 @@ import { MojButtonMenu, MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { parseTimeToDuration } from '@util/time-helpers';
+import { ApplicationListRow } from '@util/types/application-list/types';
 import { closePermitted } from '@validators/applications-list-close.validator';
 import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
 import { courtMustExistIfTypedValidator } from '@validators/court-exists.validator';
 import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
+
+type ApplicationsListDetailHistoryState = {
+  row?: ApplicationListRow;
+};
 
 @Component({
   selector: 'app-application-detail',
@@ -110,6 +116,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly menus = inject(MojButtonMenu);
 
   id!: string;
+  listRow: ApplicationListRow | undefined = undefined;
   etag: string | null = null;
   entryCount: number = 0;
 
@@ -135,7 +142,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refField);
-
+    this.detailSignalState.patch(clearUpdateNotificationsPatch());
     this.setSuccessBanner();
 
     //Attach validators
@@ -161,7 +168,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.setupEffects();
 
     const st = isPlatformBrowser(this.platformId)
-      ? (history.state as { row?: Handoff })?.row
+      ? (history.state as { row?: ApplicationListRow })?.row
       : undefined;
 
     this.id = st?.id ?? this.route.snapshot.paramMap.get('id') ?? '';
@@ -203,11 +210,13 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   setSuccessBanner(): void {
     if (this.route.snapshot.queryParamMap.get('listCreated') === 'true') {
       this.vm().createDone = true;
+      const createState = history.state as ApplicationsListDetailHistoryState;
+      this.listRow = createState.row ?? undefined;
     }
   }
 
   private setupEffects(): void {
-    // GET /application-lists/{listId}/entries
+    // GET /application-lists/{listId}
     setupLoadEffect(
       {
         request: this.loadRequest,
@@ -550,6 +559,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   private prefillFromApi(dto: ApplicationListGetDetailDto): void {
+    this.listRow ??= toRow(dto);
+    this.listRow.etag = this.etag; // This isn't stored in the DTO
+
+    this.entryCount = dto.entriesCount ?? this.entryCount;
+
     this.form.patchValue({
       date: dto.date ?? null,
       time: parseTimeToDuration(dto.time),

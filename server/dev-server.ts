@@ -159,6 +159,13 @@ async function bootstrap(): Promise<void> {
   const env = process.env['NODE_ENV'] || 'development';
   const developmentMode = env === 'development';
   const isProd = env === 'production';
+  const bypassSso = process.env['DEV_BYPASS_SSO'] === 'true';
+  const bypassBearerToken =
+    process.env['DEV_BYPASS_BEARER_TOKEN'] || 'dev-bypass-token';
+
+  if (bypassSso && !developmentMode) {
+    throw new Error('DEV_BYPASS_SSO is only allowed when NODE_ENV=development');
+  }
 
   const ngDevServer = process.env['NG_DEV_SERVER'] || 'http://localhost:4200';
 
@@ -203,7 +210,27 @@ async function bootstrap(): Promise<void> {
   // Node routes mounted locally
   setupHealthcheck(app);
   setupInfoRoute(app);
-  setupSsoRoutes(app);
+  if (bypassSso) {
+    logger.warn('DEV_BYPASS_SSO=true: SSO is bypassed for local development');
+
+    app.get('/sso/me', (_req: Request, res: Response) => {
+      res.json({
+        authenticated: true,
+        name: 'Local Dev User',
+        username: 'local.dev@example.invalid',
+      });
+    });
+
+    app.get('/sso/login', (_req: Request, res: Response) => {
+      res.redirect('/');
+    });
+
+    app.get('/sso/logout', (_req: Request, res: Response) => {
+      res.redirect('/login');
+    });
+  } else {
+    setupSsoRoutes(app);
+  }
 
   // CSRF cookie for API mutations
   app.use((req: Request, res: Response, next: NextFunction) => {
@@ -268,7 +295,8 @@ async function bootstrap(): Promise<void> {
     secure: false,
     on: {
       proxyReq: (proxyReq, req) => {
-        const token = getApiAccessToken(req);
+        const token =
+          getApiAccessToken(req) || (bypassSso ? bypassBearerToken : null);
         if (token) {
           proxyReq.setHeader('authorization', `Bearer ${token}`);
         }

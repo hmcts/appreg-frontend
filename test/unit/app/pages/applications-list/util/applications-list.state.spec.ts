@@ -16,6 +16,7 @@ describe('applications-list.state', () => {
         direction: 'desc',
         key: 'date',
       },
+      listCloseDone: false,
     });
   });
 
@@ -29,6 +30,7 @@ describe('applications-list.state', () => {
         direction: 'desc',
         key: 'date',
       },
+      listCloseDone: false,
     });
   });
 });

@@ -94,8 +94,24 @@ export class TestDataGenerator {
       return '';
     }
 
-    // First, replace date/time keywords
-    let parsed = DateTimeUtil.parseDateValue(value);
+    let parsed = value;
+
+    // Only process date/time keywords if the value contains date/time-related patterns
+    // This prevents issues when processing URLs or other strings that contain "/"
+    const dateTimeKeywords =
+      /\b(today|tomorrow|yesterday|timenow|timestamp|numerictimestamp|localtimestamp|todayiso|tomorrowiso|yesterdayiso|todaydisplay|todaydisplaylong|displaypadded|timenowhhmm)\b/i;
+    const dateArithmetic =
+      /(today|todayiso|timenow|timenowhhmm|timestamp|numerictimestamp)([+-])(\d+)([dwmyhs])/i;
+    const isoDateSuffix = /_iso\b/i;
+
+    if (
+      dateTimeKeywords.test(value) ||
+      dateArithmetic.test(value) ||
+      isoDateSuffix.test(value)
+    ) {
+      // Only call DateTimeUtil if value contains date/time patterns
+      parsed = DateTimeUtil.parseDateValue(value);
+    }
 
     // Then, replace {RANDOM} placeholders
     parsed = this.replaceRandomPlaceholders(parsed);

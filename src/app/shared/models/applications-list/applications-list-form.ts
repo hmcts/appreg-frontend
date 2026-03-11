@@ -1,6 +1,8 @@
 import { FormControl } from '@angular/forms';
 
 import { Duration } from '@components/duration-input/duration-input.component';
+import { ApplicationListUpdateDto } from '@openapi';
+import { ApplicationListRow } from '@util/types/application-list/types';
 
 export type ApplicationsListFormControls = {
   date: FormControl<string | null>;
@@ -18,3 +20,14 @@ export type ApplicationsListUpdateFormControls =
   };
 
 export type ApplicationsListFormMode = 'search' | 'create' | 'update';
+
+export type AppListNavState = {
+  listRow?: ApplicationListRow;
+  closeRequest?: AppListCloseRequest;
+};
+
+export type AppListCloseRequest = {
+  id: string;
+  payload: ApplicationListUpdateDto;
+  etag: string | null;
+};

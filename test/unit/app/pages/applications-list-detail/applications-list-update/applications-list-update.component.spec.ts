@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, FormGroup } from '@angular/forms';
+import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import {
@@ -17,12 +18,15 @@ import {
   PaymentStatus,
   TemplateDetail,
 } from '@openapi';
+import { AppListNavState } from '@shared-types/applications-list/applications-list-form';
 import * as buildPayloadUtil from '@util/build-payload';
 import { PlaceFieldsState } from '@util/place-fields.base';
 
 describe('ApplicationsListUpdateComponent', () => {
   let component: ApplicationsListUpdateComponent;
   let fixture: ComponentFixture<ApplicationsListUpdateComponent>;
+  let router: Pick<Router, 'navigate'>;
+  let setUpdateRequest: jest.Mock;
   let patchStateMock: jest.Mock;
   let setUpdateRequestMock: jest.Mock;
   let entryApiMock: { getApplicationListEntry: jest.Mock };
@@ -57,10 +61,10 @@ describe('ApplicationsListUpdateComponent', () => {
     hasPrefilledFromApi: false,
     allEntryIds: [],
     allEntriesSummary: [],
+    createDone: false,
     closeSummaryStatus: 'error',
     closeEntryDetailsStatus: 'error',
     closeCodeDetailsStatus: 'error',
-    createDone: false,
   });
 
   const mkPlaceState = (): PlaceFieldsState => ({
@@ -92,6 +96,11 @@ describe('ApplicationsListUpdateComponent', () => {
   };
 
   beforeEach(async () => {
+    router = {
+      navigate: jest.fn().mockResolvedValue(true),
+    };
+    setUpdateRequest = jest.fn();
+
     entryApiMock = { getApplicationListEntry: jest.fn() };
     codeApiMock = { getApplicationCodeByCodeAndDate: jest.fn() };
 
@@ -106,6 +115,7 @@ describe('ApplicationsListUpdateComponent', () => {
           provide: ApplicationCodesApi,
           useValue: codeApiMock,
         },
+        { provide: Router, useValue: router },
       ],
     }).compileComponents();
 
@@ -121,7 +131,7 @@ describe('ApplicationsListUpdateComponent', () => {
     fixture.componentRef.setInput('entryIds', []);
     fixture.componentRef.setInput('patchState', patchStateMock);
     fixture.componentRef.setInput('vm', mkVm());
-    fixture.componentRef.setInput('setUpdateRequest', setUpdateRequestMock);
+    fixture.componentRef.setInput('setUpdateRequest', setUpdateRequest);
     fixture.componentRef.setInput('suggestionsFacade', mkSuggestionsFacade());
     entryApiMock.getApplicationListEntry.mockReturnValue(
       of({
@@ -165,6 +175,51 @@ describe('ApplicationsListUpdateComponent', () => {
     });
 
     expect(component.durationCloseErrorText()).toBe('');
+  });
+
+  it('onUpdate: when not closing, submits update request directly', () => {
+    component.form().patchValue({
+      date: '2026-02-10',
+      time: { hours: 10, minutes: 30 },
+      description: 'updated list',
+      status: ApplicationListStatus.OPEN,
+      court: 'ABC',
+      location: '',
+      cja: '',
+    });
+
+    component.onUpdate();
+
+    expect(setUpdateRequest).toHaveBeenCalledTimes(1);
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('onUpdate: when closing, navigates to close confirmation with state and does not submit immediately', () => {
+    component.form().patchValue({
+      date: '2026-02-10',
+      time: { hours: 10, minutes: 30 },
+      description: 'updated list',
+      status: ApplicationListStatus.CLOSED,
+      court: 'ABC',
+      location: '',
+      cja: '',
+    });
+
+    component.onUpdate();
+
+    expect(setUpdateRequest).not.toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledTimes(1);
+
+    const [commands, extras] = (router.navigate as jest.Mock).mock.calls[0] as [
+      string[],
+      { state?: AppListNavState },
+    ];
+    expect(commands).toEqual(['/applications-list', 'list-1', 'close']);
+    expect(extras.state?.closeRequest?.id).toBe('list-1');
+    expect(extras.state?.closeRequest?.etag).toBeNull();
+    expect(extras.state?.closeRequest?.payload.status).toBe(
+      ApplicationListStatus.CLOSED,
+    );
   });
 
   it('finalizeUpdate sets update request for a valid form payload', () => {
@@ -938,10 +993,10 @@ describe('closeValidationEntries', () => {
       hasPrefilledFromApi: false,
       allEntryIds: [],
       allEntriesSummary: [],
+      createDone: false,
       closeSummaryStatus: 'error',
       closeEntryDetailsStatus: 'error',
       closeCodeDetailsStatus: 'error',
-      createDone: false,
     };
 
     const out = closeValidationEntries(vm);
