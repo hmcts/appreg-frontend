@@ -82,9 +82,8 @@ export class ApplicationsListCloseComponent implements OnInit {
       )
       .subscribe({
         next: () => {
-          void this.router.navigate(['/applications-list', req.id], {
+          void this.router.navigate(['/applications-list'], {
             queryParams: { isCloseSuccess: true },
-            fragment: 'list-details',
           });
         },
         error: (err: unknown) => {

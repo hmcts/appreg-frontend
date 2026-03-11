@@ -207,10 +207,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       const createState = history.state as ApplicationsListDetailHistoryState;
       this.listRow = createState.row ?? undefined;
     }
-
-    if (this.route.snapshot.queryParamMap.get('isCloseSuccess')) {
-      this.vm().updateDone = true;
-    }
   }
 
   private setupEffects(): void {

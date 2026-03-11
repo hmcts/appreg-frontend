@@ -43,6 +43,13 @@
   />
 }
 
+@if (vm().listCloseDone) {
+  <app-success-banner
+    heading="Application List closed successfully"
+    body="If you believe this was in error, please contact support."
+  />
+}
+
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />

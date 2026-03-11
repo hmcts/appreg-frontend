@@ -145,7 +145,7 @@ describe('ApplicationsListCloseComponent', () => {
     );
   });
 
-  it('clicking continue sends close update and navigates to list detail on success', async () => {
+  it('clicking continue sends close update and navigates to home page on success', async () => {
     await setup({ routeId: 'list-123', navState: closeState });
 
     const continueButton = fixture.nativeElement.querySelector(
@@ -161,10 +161,9 @@ describe('ApplicationsListCloseComponent', () => {
       listId: 'list-123',
       applicationListUpdateDto: closeState.closeRequest?.payload,
     });
-    expect(router.navigate).toHaveBeenCalledWith(
-      ['/applications-list', 'list-123'],
-      { fragment: 'list-details', queryParams: { isCloseSuccess: true } },
-    );
+    expect(router.navigate).toHaveBeenCalledWith(['/applications-list'], {
+      queryParams: { isCloseSuccess: true },
+    });
   });
 
   it('clicking continue navigates with close=error query on api error', async () => {
