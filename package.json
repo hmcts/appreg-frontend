@@ -12,7 +12,7 @@
     "api:generate": "openapi-generator-cli generate -c tools/openapi/generator-config.yaml",
     "api:bundle": "redocly bundle tools/openapi/vendor/openapi/openapi.yaml -o tools/dist/openapi.bundled.yaml",
     "api:all": "yarn api:clear && yarn api:fetch-unpack && yarn api:validate && yarn api:bundle && yarn api:generate",
-    "mock:gen": "node scripts/gen-wiremock-mappings.cjs",
+    "mock:gen": "node scripts/gen-wiremock-mappings.mjs",
     "mock:gen:errors": "node scripts/gen-error-bodies.cjs",
     "mock:sync": "yarn api:fetch-unpack && yarn mock:gen:errors && yarn mock:gen",
     "start": "node dist/appreg-frontend/server/server.mjs",
