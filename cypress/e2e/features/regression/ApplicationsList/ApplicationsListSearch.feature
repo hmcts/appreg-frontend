@@ -180,9 +180,9 @@ Feature: Applications List Search
     Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
     Then User Verifies "<Info>" Is Visible Under The "Court" Textbox
     When User Clicks On The "Search" Button
-    Then User Sees Notification Banner "<NotificationMessage>"
+    Then User Sees Validation Error Banner "<ValidationErrorMessage>"
     Examples:
-      | User   | SearchText | NotificationMessage                         | OptionText | ExpectedValue | Info             |
+      | User   | SearchText | ValidationErrorMessage                      | OptionText | ExpectedValue | Info             |
       | admin1 | London     | There is a problem Court location not found |            | London        | No results found |
 
   @regression @ARCPOC-214 @ARCPOC-417
