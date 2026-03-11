@@ -1,11 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { DeleteComponent } from '@components/delete/delete.component';
+import { ReviewConfirmComponent } from '@components/review-confirm/review-confirm.component';
 import { HeaderService } from '@services/header.service';
 
-describe('DeleteComponent', () => {
-  let fixture: ComponentFixture<DeleteComponent>;
-  let component: DeleteComponent;
+describe('ReviewConfirmComponent', () => {
+  let fixture: ComponentFixture<ReviewConfirmComponent>;
+  let component: ReviewConfirmComponent;
 
   let headerServiceStub: Pick<
     HeaderService,
@@ -19,11 +19,11 @@ describe('DeleteComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [DeleteComponent],
+      imports: [ReviewConfirmComponent],
       providers: [{ provide: HeaderService, useValue: headerServiceStub }],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(DeleteComponent);
+    fixture = TestBed.createComponent(ReviewConfirmComponent);
     component = fixture.componentInstance;
   });
 
@@ -44,42 +44,42 @@ describe('DeleteComponent', () => {
     expect(headerServiceStub.showNavigation).toHaveBeenCalledTimes(1);
   });
 
-  it('defaults: isDeleting is false initially', () => {
-    expect(component.isDeleting()).toBe(false);
+  it('defaults: isConfimed is false initially', () => {
+    expect(component.isConfirmed()).toBe(false);
   });
 
-  it('onConfirm sets isDeleting=true and emits confirm', () => {
+  it('onConfirm sets isConfirmed=true and emits confirm', () => {
     const emitSpy = jest.spyOn(component.confirm, 'emit');
 
     component.onConfirm();
 
-    expect(component.isDeleting()).toBe(true);
+    expect(component.isConfirmed()).toBe(true);
     expect(emitSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('onCancel sets isDeleting=false and emits cancelled', () => {
+  it('onCancel sets isConfirmed=false and emits cancelled', () => {
     const emitSpy = jest.spyOn(component.cancelled, 'emit');
 
-    component.isDeleting.set(true); // simulate mid-delete
+    component.isConfirmed.set(true); // simulate mid-delete
     component.onCancel();
 
-    expect(component.isDeleting()).toBe(false);
+    expect(component.isConfirmed()).toBe(false);
     expect(emitSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('inputs: can set numberOfItems/title/button text/isRedDeleteButton', () => {
+  it('inputs: can set numberOfItems/title/button text/isRedButton', () => {
     fixture.componentRef.setInput('numberOfItems', 2);
     fixture.componentRef.setInput('title', 'Delete lists');
-    fixture.componentRef.setInput('deleteButtonTxt', 'Delete');
+    fixture.componentRef.setInput('confirmButtonTxt', 'Delete');
     fixture.componentRef.setInput('cancelButtonTxt', 'Back');
-    fixture.componentRef.setInput('isRedDeleteButton', false);
+    fixture.componentRef.setInput('isRedButton', false);
 
     fixture.detectChanges();
 
     expect(component.numberOfItems()).toBe(2);
     expect(component.title()).toBe('Delete lists');
-    expect(component.deleteButtonTxt()).toBe('Delete');
+    expect(component.confirmButtonTxt()).toBe('Delete');
     expect(component.cancelButtonTxt()).toBe('Back');
-    expect(component.isRedDeleteButton()).toBe(false);
+    expect(component.isRedButton()).toBe(false);
   });
 });

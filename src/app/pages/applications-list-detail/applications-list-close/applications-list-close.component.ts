@@ -2,88 +2,97 @@ import { Location, isPlatformBrowser } from '@angular/common';
 import { HttpContext, HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { map } from 'rxjs';
 
-import { APPLICATIONS_LIST_COLUMNS } from '../util/applications-list.constants';
-
+import { APPLICATIONS_LIST_COLUMNS } from '@components/applications-list/util/applications-list.constants';
 import { ReviewConfirmComponent } from '@components/review-confirm/review-confirm.component';
 import { TableComponent } from '@components/table/table.component';
 import { WarningBannerComponent } from '@components/warning-banner/warning-banner.component';
-import { IF_MATCH, ROW_VERSION } from '@context/concurrency-context';
+import { IF_MATCH } from '@context/concurrency-context';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import { ApplicationListsApi } from '@openapi';
 import { AppListNavState } from '@shared-types/applications-list/applications-list-form';
 import { ApplicationListRow } from '@util/types/application-list/types';
 
 @Component({
-  selector: 'app-applications-list-delete',
+  selector: 'app-applications-list-close',
   imports: [
     ReviewConfirmComponent,
-    TableComponent,
     WarningBannerComponent,
+    TableComponent,
     DateTimePipe,
   ],
-  templateUrl: './applications-list-delete.component.html',
+  templateUrl: './applications-list-close.component.html',
 })
-export class ApplicationsListDeleteComponent implements OnInit {
+export class ApplicationsListCloseComponent implements OnInit {
   private readonly appListsApi = inject(ApplicationListsApi);
-  private readonly location = inject(Location);
-  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly location = inject(Location);
   private readonly platformId = inject(PLATFORM_ID);
 
-  listToDelete: ApplicationListRow | undefined = isPlatformBrowser(
+  idFromUrl = this.route.snapshot.paramMap.get('id');
+
+  private readonly navState: AppListNavState | undefined = isPlatformBrowser(
     this.platformId,
   )
-    ? (this.location.getState() as AppListNavState).listRow
+    ? (this.location.getState() as AppListNavState)
     : undefined;
 
-  idFromUrl = this.route.snapshot.paramMap.get('id');
+  private readonly closeRequest = this.navState?.closeRequest;
+  listToClose: ApplicationListRow | undefined = this.navState?.listRow;
 
   columns = APPLICATIONS_LIST_COLUMNS;
 
   ngOnInit(): void {
-    if (!this.listToDelete && this.idFromUrl) {
+    if (!this.idFromUrl || !this.closeRequest || !this.listToClose) {
+      void this.router.navigate(['/applications-list']);
+      return;
+    }
+
+    if (this.closeRequest?.id !== this.idFromUrl) {
       this.goBack();
     }
   }
 
-  onDelete(): void {
-    this.deleteList();
+  onConfirm(): void {
+    this.closeList();
   }
 
   goBack(): void {
-    void this.router.navigate(['/applications-list']);
+    void this.router.navigate(['/applications-list', this.idFromUrl], {
+      state: { row: this.listToClose },
+    });
   }
 
-  private deleteList(): void {
-    const row = this.listToDelete;
-    if (!row) {
+  private closeList(): void {
+    const req = this.closeRequest;
+    if (!req) {
+      this.goBack();
       return;
     }
 
     this.appListsApi
-      .deleteApplicationList({ listId: row.id }, 'response', false, {
-        context: new HttpContext()
-          .set(IF_MATCH, row.etag ?? null)
-          .set(ROW_VERSION, row.rowVersion ?? null),
-      })
-      .pipe(map((resp) => resp.status))
+      .updateApplicationList(
+        { listId: req.id, applicationListUpdateDto: req.payload },
+        'response',
+        false,
+        {
+          context: new HttpContext().set(IF_MATCH, req.etag ?? null),
+        },
+      )
       .subscribe({
         next: () => {
           void this.router.navigate(['/applications-list'], {
-            queryParams: {
-              delete: 'success',
-            },
+            queryParams: { isCloseSuccess: true },
           });
         },
         error: (err: unknown) => {
           const code =
             err instanceof HttpErrorResponse ? err.status : undefined;
 
-          void this.router.navigate(['/applications-list'], {
+          void this.router.navigate(['/applications-list', req.id], {
             queryParams: {
-              delete: 'error',
+              close: 'error',
               code: code ?? 500,
             },
           });

@@ -39,41 +39,6 @@ export class TextHelper {
   }
 
   /**
-   * Verifies that a validation error message is displayed
-   * @param errorMessage The expected error message text
-   */
-  static verifyValidationError(errorMessage: string): void {
-    TextElement.getText('[role="alert"]')
-      .should('be.visible')
-      .invoke('text')
-      .then((actualText) => {
-        const normalizedActual = StringUtils.normalizeText(actualText);
-        expect(normalizedActual).to.include(errorMessage);
-      });
-  }
-
-  /**
-   * Verifies that no validation errors are displayed
-   */
-  static verifyNoValidationErrors(): void {
-    TextElement.getText('[role="alert"]').should('not.exist');
-  }
-
-  /**
-   * Verifies that a notification banner message is displayed
-   * @param message The expected message text (heading and/or body)
-   */
-  static verifyNotificationBanner(message: string): void {
-    TextElement.getText('[role="region"], [role="alert"]')
-      .should('be.visible')
-      .invoke('text')
-      .then((actualText) => {
-        const normalizedActual = StringUtils.normalizeText(actualText);
-        expect(normalizedActual).to.include(message);
-      });
-  }
-
-  /**
    * Verifies that a field-level error message is displayed under a specific field
    * @param fieldLabel The label of the field (e.g., "Date", "Time")
    * @param errorMessage The expected error message text

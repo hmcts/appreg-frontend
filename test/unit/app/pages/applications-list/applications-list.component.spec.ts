@@ -186,8 +186,12 @@ function createInstanceWithQuery(
   query: Record<string, string | null | undefined>,
   platformId: 'browser' | 'server' = 'browser',
 ) {
+  const queryParamMap = convertToParamMap(query);
   const routeStub: Partial<ActivatedRoute> = {
-    queryParamMap: of(convertToParamMap(query)),
+    queryParamMap: of(queryParamMap),
+    snapshot: {
+      queryParamMap,
+    } as ActivatedRoute['snapshot'],
   };
 
   TestBed.resetTestingModule();

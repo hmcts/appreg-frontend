@@ -45,16 +45,16 @@ Feature: Applications List Search
     When User Signs In With Microsoft SSO As "<User>"
     # Verify validation when clicking Search without entering any data
     When User Clicks On The "Search" Button
-    Then User Sees Validation Error "There is a problem Invalid Search Criteria. At least one field must be entered."
+    Then User Sees Validation Error Banner "There is a problem Invalid Search Criteria. At least one field must be entered."
     # Verify date validation with invalid date
     When User Set Date Field "Date" To "99/99/9999"
     When User Clicks On The "Search" Button
-    Then User Sees Validation Error "There is a problem Enter a valid date"
+    Then User Sees Validation Error Banner "There is a problem Enter a valid date"
     # Verify time validation with invalid time
     When User Set Date Field "Date" To "today"
     When User Set Time Field "Time" To "25:61"
     When User Clicks On The "Search" Button
-    Then User Sees Validation Error "There is a problem Enter a valid duration between 00:00 and 23:59"
+    Then User Sees Validation Error Banner "There is a problem Enter a valid duration between 00:00 and 23:59"
     Examples:
       | User   |
       | admin1 |
@@ -124,7 +124,7 @@ Feature: Applications List Search
     Then User Verifies The "Criminal justice area" Textbox Has Selected Value "<ExpectedValue>"
     Then User Verifies "<Info>" Is Not Visible Under The "Criminal justice area" Textbox
     When User Clicks On The "Search" Button
-    Then User Does Not See Validation Errors
+    Then User Does Not See Validation Error Banner "There is a problem Criminal justice area not found"
     Examples:
       | User   | SearchText | OptionText | ExpectedValue  | Info             |
       | admin1 | 01         | London     | 01 - London    | No results found |
@@ -139,7 +139,7 @@ Feature: Applications List Search
     # Then User Verifies The "Criminal justice area" Textbox Has Selected Value "<ExpectedValue>"
     Then User Verifies "<Info>" Is Visible Under The "Criminal justice area" Textbox
     When User Clicks On The "Search" Button
-    Then User Sees Validation Error "<ValidationMessage>"
+    Then User Sees Validation Error Banner "<ValidationMessage>"
     Examples:
       | User   | SearchText | ValidationMessage                                  | OptionText | ExpectedValue | Info             |
       | admin1 | abc123     | There is a problem Criminal justice area not found |            | abc123        | No results found |
@@ -168,7 +168,7 @@ Feature: Applications List Search
     Then User Verifies The "Court" Textbox Has Selected Value "<ExpectedValue>"
     Then User Verifies "<Info>" Is Not Visible Under The "Court" Textbox
     When User Clicks On The "Search" Button
-    Then User Does Not See Validation Errors
+    Then User Does Not See Validation Error Banner "There is a problem Court location not found"
     Examples:
       | User   | SearchText | OptionText                | ExpectedValue                      | Info             |
       | admin1 | Cardiff    | Cardiff Crown Court Set 4 | CCC033 - Cardiff Crown Court Set 4 | No results found |
@@ -180,9 +180,9 @@ Feature: Applications List Search
     Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
     Then User Verifies "<Info>" Is Visible Under The "Court" Textbox
     When User Clicks On The "Search" Button
-    Then User Sees Notification Banner "<NotificationMessage>"
+    Then User Sees Validation Error Banner "<ValidationErrorMessage>"
     Examples:
-      | User   | SearchText | NotificationMessage                         | OptionText | ExpectedValue | Info             |
+      | User   | SearchText | ValidationErrorMessage                      | OptionText | ExpectedValue | Info             |
       | admin1 | London     | There is a problem Court location not found |            | London        | No results found |
 
   @regression @ARCPOC-214 @ARCPOC-417

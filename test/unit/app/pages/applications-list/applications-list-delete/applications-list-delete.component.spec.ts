@@ -61,7 +61,7 @@ describe('ApplicationsListDeleteComponent', () => {
     };
 
     location = {
-      getState: jest.fn().mockReturnValue({ listToDelete: navStateRow }),
+      getState: jest.fn().mockReturnValue({ listRow: navStateRow }),
     };
 
     const snapshot = {
@@ -97,17 +97,17 @@ describe('ApplicationsListDeleteComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('ngOnInit: when no listToDelete but id exists -> navigates back', async () => {
+  it('ngOnInit: when no listRow but id exists -> navigates back', async () => {
     await setup({ navStateRow: undefined, routeId: 'abc-123' });
     expect(router.navigate).toHaveBeenCalledWith(['/applications-list']);
   });
 
-  it('ngOnInit: when listToDelete exists -> does not navigate back', async () => {
+  it('ngOnInit: when listRow exists -> does not navigate back', async () => {
     await setup({ navStateRow: makeRow(), routeId: 'abc-123' });
     expect(router.navigate).not.toHaveBeenCalledWith(['/applications-list']);
   });
 
-  it('onDelete: when listToDelete is missing -> does nothing', async () => {
+  it('onDelete: when listRow is missing -> does nothing', async () => {
     await setup({ navStateRow: undefined });
 
     component.onDelete();
@@ -192,7 +192,7 @@ describe('ApplicationsListDeleteComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/applications-list']);
   });
 
-  it('server platform: listToDelete is undefined even if state exists -> navigates back when id exists', async () => {
+  it('server platform: listRow is undefined even if state exists -> navigates back when id exists', async () => {
     await setup({
       platformId: 'server',
       navStateRow: makeRow(),

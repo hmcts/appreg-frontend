@@ -187,6 +187,14 @@ Run below to run code using Wiremock/Stub
 yarn dev:stub
 ```
 
+If you do not have Azure SSO onboarding yet, run the local SSO bypass mode:
+
+```powershell
+yarn dev:stub:no-sso
+```
+
+This mode also injects a local dummy bearer token for API proxy calls so WireMock auth-header matchers pass. You can override it with `DEV_BYPASS_BEARER_TOKEN`.
+
 Run below to run code using Staging connectivity (VPN required)
 
 ```powershell
