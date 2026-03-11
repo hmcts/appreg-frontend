@@ -453,6 +453,38 @@ describe('ApplicationsListDetail', () => {
     expect(vm().selectedRows).toEqual(rows);
   });
 
+  it('prefillFromApi: sets listRow when navigation state row is missing', () => {
+    component.listRow = undefined;
+    component['etag'] = '"etag-v2"';
+
+    const dto = {
+      id: 'list-123',
+      date: '2026-03-01',
+      time: '09:30:00',
+      courtName: 'Bristol',
+      description: 'Morning list',
+      entriesCount: 4,
+      status: 'OPEN',
+      version: 7,
+    } as unknown as ApplicationListGetDetailDto;
+
+    component['prefillFromApi'](dto);
+
+    expect(component.listRow).toEqual({
+      id: 'list-123',
+      date: '2026-03-01',
+      time: '09:30',
+      location: 'Bristol',
+      description: 'Morning list',
+      entries: 4,
+      status: 'OPEN',
+      deletable: true,
+      etag: '"etag-v2"',
+      rowVersion: '7',
+    });
+    expect(component.entryCount).toBe(4);
+  });
+
   describe('onResultButtonClick', () => {
     it('sets errorSummary message and does not navigate when all selected are resulted (plural)', () => {
       const router = TestBed.inject(Router);

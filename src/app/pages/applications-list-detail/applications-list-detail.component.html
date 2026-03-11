@@ -17,7 +17,10 @@
 </app-page-header>
 
 @if (vm().createDone) {
-  <app-success-banner heading="Applications list created successfully" />
+  <app-success-banner
+    heading="Applications list created"
+    linkText="List successfully created"
+  />
 }
 
 @if (vm().errorSummary.length || vm().updateInvalid) {
@@ -193,6 +196,7 @@
       [setUpdateRequest]="setUpdateRequestFn"
       (requestAllEntryIds)="onRequestAllEntryIds()"
       [suggestionsFacade]="suggestionsFacade"
+      [listRow]="listRow"
     />
   </div>
 </div>

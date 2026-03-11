@@ -193,6 +193,10 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       this.handleDeleteFlash(flash);
       this.clearFlashParams();
     });
+
+    if (this.route.snapshot.queryParamMap.get('isCloseSuccess')) {
+      this.appListSignalState.patch({ listCloseDone: true });
+    }
   }
 
   restoreFormValues(): void {

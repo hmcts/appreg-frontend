@@ -6,7 +6,7 @@
           <h1 class="govuk-heading-l">{{ title() }}</h1>
         } @else {
           <h1 class="govuk-heading-l">
-            Are you sure you want to delete
+            Are you sure you want to action these items
             {{ numberOfItems() > 1 ? 'these items' : 'this item' }}?
           </h1>
         }
@@ -19,11 +19,11 @@
           <div class="govuk-button-group">
             <button
               class="govuk-button"
-              [class.govuk-button--warning]="isRedDeleteButton()"
-              [disabled]="isDeleting()"
+              [class.govuk-button--warning]="isRedButton()"
+              [disabled]="isConfirmed()"
               (click)="onConfirm()"
             >
-              {{ deleteButtonTxt() }}
+              {{ confirmButtonTxt() }}
             </button>
 
             <a
