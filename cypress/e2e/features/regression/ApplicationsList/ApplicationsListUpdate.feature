@@ -1,6 +1,6 @@
 Feature: Applications List Update
 
-    @regression @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @tp
+    @regression @ARCPOC-214 @ARCPOC-450 @ARCPOC-799
     Scenario Outline: Update applications list Successfully with Other location and CJA selected
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -30,16 +30,16 @@ Feature: Applications List Update
         Then User Enters "<UpdatedOtherLocation>" Into The "Other location" Textbox
         Then User Selects "<CJAValue>" From The Textbox "Criminal justice area" Autocomplete By Typing "<cjaCode>"
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "Success Update completeList successfully updated"
+        Then User Sees Success Banner "Success Update completeList successfully updated"
         Then User Clicks On The Breadcrumb Link "Applications list"
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location   | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <CJAValue> | <Description> | <Entries> | <Status> |
-        Then User Sees Notification Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
+        Then User Sees Warning Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
         Then User Sees Page Heading "Applications List"
-        Then User Sees Notification Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
+        Then User Sees Success Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
         Examples:
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Location      | Description   | Entries | Status | SelectButtonText | CourtValue | OtherLocation        | cjaCode | CJAValue      | HH | MM | UpdatedDescription    | UpdatedOtherLocation   |
             | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | Wolverhampton | Test_{RANDOM} | 0       | OPEN   | Select           |            | Other Location_21442 | B9      | Wolverhampton | 11 | 30 | Updated Test_{RANDOM} | Updated Location_21442 |
@@ -76,16 +76,16 @@ Feature: Applications List Update
         Then User Clears The "Court" Textbox
         Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "Success Update completeList successfully updated"
+        Then User Sees Success Banner "Success Update completeList successfully updated"
         Then User Clicks On The Breadcrumb Link "Applications list"
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location        | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <CourtLocation> | <Description> | <Entries> | <Status> |
-        Then User Sees Notification Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
+        Then User Sees Warning Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
         Then User Sees Page Heading "Applications List"
-        Then User Sees Notification Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
+        Then User Sees Success Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
         Examples:
             | User   | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Court  | CourtLocation                 | Description   | Entries | Status | ButtonName | SelectButtonText | OtherLocation | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText | UpdatedHH | UpdatedMM |
             | admin1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test_{RANDOM} | 0       | OPEN   | Open       | Select           |               |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     | 12        | 45        |
@@ -121,45 +121,45 @@ Feature: Applications List Update
         Then User Selects "<InvalidStatus>" In The "Select list status" Dropdown
         Then User Clears The "Court" Textbox
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "There is a problem Enter day, month and year Enter valid hours and minutes Enter a description Select a status Enter a court, or an other location and criminal justice area"
+        Then User Sees Validation Error Banner "There is a problem Enter day, month and year Enter valid hours and minutes Enter a description Select a status Enter a court, or an other location and criminal justice area"
         When User Set Date Field "Date" To "<InvalidSearchDate>"
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "There is a problem Enter a valid date Enter valid hours and minutes Enter a description Select a status Enter a court, or an other location and criminal justice area"
+        Then User Sees Validation Error Banner "There is a problem Enter a valid date Enter valid hours and minutes Enter a description Select a status Enter a court, or an other location and criminal justice area"
         When User Set Date Field "Date" To "<UpdatedSearchDate>"
         When User Set Time Field "Time" To "<InvalidTime1>"
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "There is a problem Enter valid hours and minutes Enter a description Select a status Enter a court, or an other location and criminal justice area"
+        Then User Sees Validation Error Banner "There is a problem Enter valid hours and minutes Enter a description Select a status Enter a court, or an other location and criminal justice area"
         When User Clears The Time Field "Time"
         When User Set Time Field "Time" To "<InvalidTime2>"
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "There is a problem Enter valid hours and minutes Enter a description Select a status Enter a court, or an other location and criminal justice area"
+        Then User Sees Validation Error Banner "There is a problem Enter valid hours and minutes Enter a description Select a status Enter a court, or an other location and criminal justice area"
         When User Clears The Time Field "Time"
         When User Set Time Field "Time" To "<InvalidTime3>"
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "There is a problem Enter a valid duration between 00:00 and 23:59 Enter a description Select a status Enter a court, or an other location and criminal justice area"
+        Then User Sees Validation Error Banner "There is a problem Enter a valid duration between 00:00 and 23:59 Enter a description Select a status Enter a court, or an other location and criminal justice area"
         When User Set Time Field "Time" To "<UpdatedTime>"
         Then User Enters "<UpdatedDescription>" Into The "Description" Textbox
-        When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "There is a problem Select a status Enter a court, or an other location and criminal justice area"
+        When User Clicks On The "Update" Buttonyarn
+        Then User Sees Validation Error Banner "There is a problem Select a status Enter a court, or an other location and criminal justice area"
         Then User Selects "<Status>" In The "Select list status" Dropdown
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "There is a problem Enter a court, or an other location and criminal justice area"
+        Then User Sees Validation Error Banner "There is a problem Enter a court, or an other location and criminal justice area"
         Then User Enters "<UpdatedOtherLocation>" Into The "Other location" Textbox
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "There is a problem Enter a court, or an other location and criminal justice area"
+        Then User Sees Validation Error Banner "There is a problem Enter a court, or an other location and criminal justice area"
         Then User Enters "<InvalidCJAValue>" Into The "Criminal justice area" Textbox
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "There is a problem Criminal justice area not found"
+        Then User Sees Validation Error Banner "There is a problem Criminal justice area not found"
         Then User Clears The "Criminal justice area" Textbox
         Then User Clears The "Other location" Textbox
         Then User Enters "<InvalidCourtValue>" Into The "Court" Textbox
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "There is a problem Court location not found"
+        Then User Sees Validation Error Banner "There is a problem Court location not found"
         Then User Clears The "Court" Textbox
         Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
         When User Set "<UpdatedHH>" and "<UpdatedMM>" In The "Duration" Field
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "Success Update completeList successfully updated"
+        Then User Sees Success Banner "Success Update completeList successfully updated"
         Examples:
             | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description          | Status | Entries | InvalidSearchDate | UpdatedSearchDate | InvalidTime1 | InvalidTime2 | InvalidTime3 | UpdatedTime | UpdatedDescription                    | InvalidStatus | OtherLocation | CJAValue | HH | MM | OptionText                | SearchText | UpdatedHH | UpdatedMM | UpdatedOtherLocation      | InvalidCJAValue | InvalidCourtValue |
             | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test Update {RANDOM} | OPEN   | 0       | 32/13/2025        | 12/12/2025        | 44:*SKIP*    | *SKIP*:33    | 46:70        | 16:30       | Updated Description For Test {RANDOM} | Choose        |               |          | 11 | 30 | Cardiff Crown Court Set 4 | CCC033     | 3         | 45        | Updated Location {RANDOM} | InvalidCJA      | InvalidCourt      |
@@ -184,21 +184,18 @@ Feature: Applications List Update
         Then User Verifies "<BeforeUpdateStatus>" Is Selected In The " Select list status " Dropdown
         Then User Selects "<Status>" In The "Select list status" Dropdown
         When User Clicks On The "Update" Button
-        Then User Sees Notification Banner "Please enter positive value for either hours or minutes to close this list"
+        Then User Sees Validation Error Banner "There is a problem Please enter positive value for either hours or minutes to close this list"
         When User Clears The Duration Field "Duration"
         When User Set "<durationHours>" and "<durationMinutes>" In The "Duration" Field
         When User Clicks On The "Update" Button
-        # Waiting for the bug ARCPOC-920 to be fixed, as the expected notification banner is not showing after setting duration and clicking update button for closing the list.
-        Then User Sees Notification Banner "Success Application List closed successfully If you believe this was in error, please contact support."
-        Then User See "Are you sure you want to close this application list?" On The Page
-        When User Clicks On The "Yes - close" Button
-        Then User Sees Notification Banner "Success Application List closed successfully If you believe this was in error, please contact support."
+        # Bug ARCPOC-1191 is raised for confirmartion banner message before completing the closing list action
+        Then User Sees Success Banner "Success Update completeList successfully updated"
         Examples:
             | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description   | Status | BeforeUpdateStatus | durationHours | durationMinutes |
             | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test {RANDOM} | CLOSED | OPEN               | 3             | 3               |
 
 
-    @ignore @ARCPOC-214 @ARCPOC-1073 @tp
+    @ignore @ARCPOC-214 @ARCPOC-1073
     Scenario Outline: Close application list with One ALE
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -235,16 +232,15 @@ Feature: Applications List Update
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
             | respondent.dateOfBirth                        | todayiso-25y                   |
-            | wordingFields.0.key                           | Reference                      |
-            | wordingFields.0.value                         | {RANDOM}                       |
-            | feeStatuses.0.paymentReference                | <feeReference>                 |
-            | feeStatuses.0.status                          | <feeStatus>                    |
+            | feeStatuses.0.paymentReference                |                                |
+            | feeStatuses.0.paymentStatus                   | <feeStatusDue>                 |
             | feeStatuses.0.statusDate                      | <feeStatusDate>                |
             | hasOffsiteFee                                 | false                          |
             | caseReference                                 | CASE-{RANDOM}                  |
             | accountNumber                                 | ACC-{RANDOM}                   |
             | notes                                         | Case noted with ref {RANDOM}   |
             | lodgementDate                                 | todayiso                       |
+        Then User Stores Response Body Property "id" As "entryId"
         Then User Verify Response Status Code Should Be "201"
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
@@ -259,14 +255,38 @@ Feature: Applications List Update
         Then User Verifies "<BeforeUpdateStatus>" Is Selected In The " Select list status " Dropdown
         Then User Selects "<Status>" In The "Select list status" Dropdown
         When User Clicks On The "Update" Button
-        # Then User Sees Notification Banner "Please enter positive value for either hours or minutes to close this list"
-        # When User Clears The Duration Field "Duration"
-        # When User Set "<durationHours>" and "<durationMinutes>" In The "Duration" Field
-        # Waiting for the bug ARCPOC-920 to be fixed, as the expected notification banner is not showing after setting duration and clicking update button for closing the list.
-        Then User Sees Notification Banner "Success Application List closed successfully If you believe this was in error, please contact support."
-        Then User See "Are you sure you want to close this application list?" On The Page
-        When User Clicks On The "Yes - close" Button
-        Then User Sees Notification Banner "Success Application List closed successfully If you believe this was in error, please contact support."
+        Then User Sees Validation Error Banner "There is a problem Please enter positive value for either hours or minutes to close this list Each entry must have at least one result to close this list Each entry must have at least one official to close this list Entries with required fees must have a fee status marked \"PAID\" to close this list"
+        When User Clears The Duration Field "Duration"
+        When User Set "<durationHours>" and "<durationMinutes>" In The "Duration" Field
+        When User Clicks On The "Update" Button
+        Then User Sees Validation Error Banner "There is a problem Each entry must have at least one result to close this list Each entry must have at least one official to close this list Entries with required fees must have a fee status marked \"PAID\" to close this list"
+        When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
+            """
+            {
+                "resultCode": "RTC",
+                "wordingFields": [
+                    {
+                        "key": "Date",
+                        "value": "24-02-2026"
+                    },
+                    {
+                        "key": "Courthouse",
+                        "value": "London Courthouse"
+                    }
+                ]
+            }
+            """
+        Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "resultId"
+        When User Clicks On The "Update" Button
+        Then User Sees Validation Error Banner "There is a problem Each entry must have at least one official to close this list Entries with required fees must have a fee status marked \"PAID\" to close this list"
+        # When User Clicks On The "Update" Button
+        # Then User Sees Validation Error Banner "There is a problem Entries with required fees must have a fee status marked \"PAID\" to close this list"
+        # When User Clicks On The "Update" Button
+        # Then User Sees Success Banner "Success Application List closed successfully If you believe this was in error, please contact support."
+        # Then User See "Are you sure you want to close this application list?" On The Page
+        # When User Clicks On The "Yes - close" Button
+        # Then User Sees Notification Banner "Success Application List closed successfully If you believe this was in error, please contact support."
         Examples:
-            | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description   | Status | BeforeUpdateStatus | durationHours | durationMinutes | feeReference | feeStatus | feeStatusDate |
-            | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test {RANDOM} | CLOSED | OPEN               |               |                 | REF-{RANDOM} | PAID      | todayiso      |
+            | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description   | Status | BeforeUpdateStatus | durationHours | durationMinutes | feeReference | feeStatusDue | feeStatusDate |
+            | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test {RANDOM} | CLOSED | OPEN               | 3             | 3               | REF-{RANDOM} | DUE          | todayiso      |

@@ -18,20 +18,6 @@ Then(
   },
 );
 
-Then('User Sees Validation Error {string}', (errorMessage: string) => {
-  TextHelper.verifyValidationError(errorMessage);
-  cy.screenshot(`ValidationError-${errorMessage}`);
-});
-
-Then('User Does Not See Validation Errors', () => {
-  TextHelper.verifyNoValidationErrors();
-});
-
-Then('User Sees Notification Banner {string}', (message: string) => {
-  TextHelper.verifyNotificationBanner(message);
-  cy.screenshot(`NotificationBanner-${message.substring(0, 30)}`);
-});
-
 Then(
   'User Sees Field Error {string} For {string}',
   (errorMessage: string, fieldLabel: string) => {
