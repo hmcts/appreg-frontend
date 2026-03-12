@@ -11,6 +11,11 @@ Feature: API - Application List
     When User Makes GET API Request To "/application-lists/:listId"
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Property "courtCode" Should Be "<CourtLocationCode>"
+    When User Makes GET API Request To "/application-lists?description=<Description>"
+    Then User Verify Response Status Code Should Be "200"
+    Then User Verify Response Body Should Have:
+      | content[0].description | <Description> |
+      | content[0].id          | :listId       |
     When User Makes PUT API Request To "/application-lists/:listId" With Body:
       | date   | time   | status   | description         | courtLocationCode   |
       | <Date> | <Time> | <Status> | Updated description | <CourtLocationCode> |
