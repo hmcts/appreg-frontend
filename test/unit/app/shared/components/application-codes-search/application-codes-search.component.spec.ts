@@ -111,7 +111,7 @@ describe('ApplicationCodeSearchComponent', () => {
       {
         code: undefined,
         title: undefined,
-        pageNumber: 2,
+        pageNumber: 3,
         pageSize: 25,
       },
       true,
@@ -212,7 +212,7 @@ describe('ApplicationCodeSearchComponent', () => {
     expect(component.errored()).toBe(false);
     expect(component.submitted()).toBe(false);
     expect(component.totalPages()).toBe(0);
-    expect(component.currentPage()).toBe(1);
+    expect(component.currentPage()).toBe(0);
     expect(emitSpy).toHaveBeenCalledWith({ code: '', date: '' });
     expect(resetParentErrorsSpy).toHaveBeenCalled();
   });

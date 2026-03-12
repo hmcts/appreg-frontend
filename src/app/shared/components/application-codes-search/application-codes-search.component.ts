@@ -60,7 +60,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
 
   // API query response
   totalPages = signal(0);
-  currentPage = signal(1);
+  currentPage = signal(0);
 
   selectCodeAndLodgementDate = output<{ code: string; date: string }>();
   resultsChange = output<ApplicationCodeGetSummaryDto[]>();
@@ -113,7 +113,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
       {
         code: code || undefined,
         title: title || undefined,
-        pageNumber: this.currentPage() - 1,
+        pageNumber: this.currentPage(),
         pageSize: this.pageSize(),
       },
       true,
@@ -174,7 +174,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
     this.selectCodeAndLodgementDate.emit({ code: '', date: '' });
     this.resetParentErrors.emit();
     this.totalPages.set(0);
-    this.currentPage.set(1);
+    this.currentPage.set(0);
   }
 
   private initialPatchFormData(): void {

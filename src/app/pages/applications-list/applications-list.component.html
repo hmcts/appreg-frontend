@@ -184,6 +184,7 @@
   <app-pagination
     [currentPage]="storedRecordsVm().currentPage"
     [totalPages]="storedRecordsVm().totalPages"
+    [zeroBased]="false"
     (pageChange)="onPageChange($event)"
   />
 }

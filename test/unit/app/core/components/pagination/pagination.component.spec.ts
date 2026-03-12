@@ -1,5 +1,3 @@
-// pagination.component.spec.ts
-
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
@@ -41,6 +39,7 @@ describe('PaginationComponent', () => {
 
   it('marks the current page with aria-current and current class', () => {
     fixture.componentRef.setInput('currentPage', 2);
+    fixture.componentRef.setInput('zeroBased', false);
     fixture.componentRef.setInput('totalPages', 5);
 
     fixture.detectChanges();
@@ -59,6 +58,7 @@ describe('PaginationComponent', () => {
 
   it('shows previous link only when currentPage > 1', () => {
     fixture.componentRef.setInput('currentPage', 1);
+    fixture.componentRef.setInput('zeroBased', false);
     fixture.componentRef.setInput('totalPages', 5);
 
     fixture.detectChanges();
@@ -76,6 +76,7 @@ describe('PaginationComponent', () => {
 
   it('shows next link only when currentPage < totalPages', () => {
     fixture.componentRef.setInput('currentPage', 5);
+    fixture.componentRef.setInput('zeroBased', false);
     fixture.componentRef.setInput('totalPages', 5);
 
     fixture.detectChanges();
@@ -112,6 +113,7 @@ describe('PaginationComponent', () => {
 
   it('calls goTo with previous and next page indexes when prev/next are clicked', () => {
     fixture.componentRef.setInput('currentPage', 3);
+    fixture.componentRef.setInput('zeroBased', false);
     fixture.componentRef.setInput('totalPages', 5);
 
     const goToSpy = jest.spyOn(fixture.componentInstance, 'goTo');
@@ -124,7 +126,7 @@ describe('PaginationComponent', () => {
     expect(prevLinkDebug).toBeTruthy();
 
     prevLinkDebug.triggerEventHandler('click', new MouseEvent('click'));
-    expect(goToSpy).toHaveBeenCalledWith(2);
+    expect(goToSpy).toHaveBeenCalledWith(1);
 
     const nextLinkDebug = fixture.debugElement.query(
       By.css('.govuk-pagination__next a'),
@@ -132,7 +134,7 @@ describe('PaginationComponent', () => {
     expect(nextLinkDebug).toBeTruthy();
 
     nextLinkDebug.triggerEventHandler('click', new MouseEvent('click'));
-    expect(goToSpy).toHaveBeenCalledWith(4);
+    expect(goToSpy).toHaveBeenCalledWith(3);
   });
 
   it('includes ellipsis items when there are many pages', () => {
@@ -146,5 +148,26 @@ describe('PaginationComponent', () => {
     );
 
     expect(ellipsisItems.length).toBeGreaterThan(0);
+  });
+
+  it('supports zero-based mode and emits zero-based page indices', () => {
+    fixture.componentRef.setInput('zeroBased', true);
+    fixture.componentRef.setInput('currentPage', 1);
+    fixture.componentRef.setInput('totalPages', 5);
+
+    const emitSpy = jest.spyOn(fixture.componentInstance.pageChange, 'emit');
+
+    fixture.detectChanges();
+
+    const currentLinkDebug = fixture.debugElement.query(
+      By.css('.govuk-pagination__item a[aria-current="page"]'),
+    );
+    expect(currentLinkDebug).toBeTruthy();
+
+    const currentLink = currentLinkDebug.nativeElement as HTMLAnchorElement;
+    expect(currentLink.textContent?.trim()).toBe('2');
+
+    fixture.componentInstance.goTo(2);
+    expect(emitSpy).toHaveBeenCalledWith(2);
   });
 });

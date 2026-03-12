@@ -7,15 +7,16 @@ type PageItem = number | '…';
   templateUrl: './pagination.component.html',
 })
 export class PaginationComponent {
-  currentPage = input(1); // 1-based
+  currentPage = input(1);
   totalPages = input(1);
+  zeroBased = input(true); // switch between 0 or 1 based indexing
   paginationLimit = input(7); // Configurable pagination limit
 
   pageChange = output<number>();
 
   get pageList(): PageItem[] {
     const total = this.totalPages() || 0;
-    const current = this.currentPage() || 1;
+    const current = this.currentIndex() + 1;
 
     if (total <= 0) {
       return [];
@@ -46,22 +47,31 @@ export class PaginationComponent {
   onPageClick(item: PageItem, event: MouseEvent): void {
     event.preventDefault();
     if (typeof item === 'number') {
-      this.goTo(item);
+      this.goTo(item - 1);
     }
   }
 
-  goTo(page: number): void {
-    if (page < 1 || page > this.totalPages() || page === this.currentPage()) {
+  goTo(pageIndex: number): void {
+    if (
+      pageIndex < 0 ||
+      pageIndex >= this.totalPages() ||
+      pageIndex === this.currentIndex()
+    ) {
       return;
     }
-    this.pageChange.emit(page);
+    this.pageChange.emit(this.zeroBased() ? pageIndex : pageIndex + 1);
   }
 
   prevEnabled(): boolean {
-    return this.currentPage() > 1;
+    return this.currentIndex() > 0;
   }
 
   nextEnabled(): boolean {
-    return this.currentPage() < this.totalPages();
+    return this.currentIndex() < this.totalPages() - 1;
+  }
+
+  currentIndex(): number {
+    const page = this.currentPage();
+    return this.zeroBased() ? Math.max(page, 0) : Math.max(page - 1, 0);
   }
 }

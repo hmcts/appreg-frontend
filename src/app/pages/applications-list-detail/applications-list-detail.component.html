@@ -173,8 +173,9 @@
     <app-pagination
       [currentPage]="vm().currentPage"
       [totalPages]="vm().totalPages"
+      [zeroBased]="false"
       (pageChange)="onPageChange($event)"
-    ></app-pagination>
+    />
   </div>
 
   <!-- List details panel -->
