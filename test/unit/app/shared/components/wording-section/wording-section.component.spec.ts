@@ -43,4 +43,18 @@ describe('WordingSectionComponent', () => {
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy).toHaveBeenCalledWith(errors);
   });
+
+  it('validateForSubmit delegates to wording parser when available', () => {
+    const expectedErrors: ErrorItem[] = [{ text: 'wording validation error' }];
+
+    (
+      component as unknown as {
+        wordingParser: { validateForSubmit: () => ErrorItem[] };
+      }
+    ).wordingParser = {
+      validateForSubmit: () => expectedErrors,
+    };
+
+    expect(component.validateForSubmit()).toEqual(expectedErrors);
+  });
 });

@@ -218,16 +218,21 @@ describe('CivilFeeSectionComponent', () => {
     expect(f.paymentRef.hasError('maxlength')).toBe(true);
   });
 
-  it('when fee is not required, hides checkbox and update inputs and disables add button', () => {
+  it('when fee is not required, keeps inputs visible but disabled and disables add button', () => {
     fixture.componentRef.setInput('feeRequired', false);
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
 
     expect(host.querySelector('#offSiteFee')).toBeNull();
-    expect(host.querySelector('#feeStatus')).toBeNull();
-    expect(host.querySelector('#feeStatusDate')).toBeNull();
-    expect(host.querySelector('#paymentRef')).toBeNull();
+    expect(host.querySelector('app-select-input')).not.toBeNull();
+    expect(host.querySelector('app-date-input')).not.toBeNull();
+    expect(host.querySelector('app-text-input')).not.toBeNull();
+    expect(
+      component.feeForm().controls.feeStatus.disabled &&
+        component.feeForm().controls.feeStatusDate.disabled &&
+        component.feeForm().controls.paymentRef.disabled,
+    ).toBe(true);
     expect(
       (host.querySelector('button.govuk-button') as HTMLButtonElement).disabled,
     ).toBe(true);
@@ -448,6 +453,26 @@ describe('CivilFeeSectionComponent', () => {
     const emitted = lastCall?.[0] ?? [];
 
     expect(emitted).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'feeStatus',
+          text: 'Select a fee status',
+        }),
+        expect.objectContaining({
+          id: 'feeStatusDate',
+          text: 'Enter a status date',
+        }),
+      ]),
+    );
+  });
+
+  it('validateForSubmit returns current civil fee errors', () => {
+    fixture.componentRef.setInput('feeRequired', true);
+    fixture.detectChanges();
+
+    const errors = component.validateForSubmit();
+
+    expect(errors).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           id: 'feeStatus',

@@ -146,6 +146,10 @@ export class CivilFeeSectionComponent implements OnInit {
   }
 
   onAddFeeDetailsClick(): void {
+    if (!this.feeRequired()) {
+      return;
+    }
+
     this.submitted.set(true);
     const f = this.feeForm().controls;
 
@@ -188,6 +192,15 @@ export class CivilFeeSectionComponent implements OnInit {
   }
 
   private emitCivilFeeErrors(): void {
+    this.civilFeeErrors.emit(this.buildCivilFeeErrors());
+  }
+
+  validateForSubmit(): ErrorItem[] {
+    this.attachValidatorsForSubmitAttempt();
+    return this.buildCivilFeeErrors();
+  }
+
+  private buildCivilFeeErrors(): ErrorItem[] {
     const entries: ErrorItem[] = [];
 
     (['feeStatus', 'feeStatusDate', 'paymentRef'] as const).forEach((name) => {
@@ -196,7 +209,7 @@ export class CivilFeeSectionComponent implements OnInit {
       });
     });
 
-    this.civilFeeErrors.emit(entries);
+    return entries;
   }
 
   getControlErrorMessages(controlName: CivilFeeValidatedControlName): string[] {
@@ -292,6 +305,26 @@ export class CivilFeeSectionComponent implements OnInit {
   // Without this it will only attach when clicking civil-fee button
   private attachValidatorsForSubmitAttempt(): void {
     const f = this.feeForm().controls;
+
+    if (!this.feeRequired()) {
+      f.feeStatuses.setValidators([]);
+      f.feeStatus.setValidators([]);
+      f.feeStatusDate.setValidators([]);
+      f.paymentRef.setValidators([]);
+
+      f.feeStatuses.setErrors(null);
+      f.feeStatus.setErrors(null);
+      f.feeStatusDate.setErrors(null);
+      f.paymentRef.setErrors(null);
+
+      f.feeStatuses.updateValueAndValidity({ emitEvent: false });
+      f.feeStatus.updateValueAndValidity({ emitEvent: false });
+      f.feeStatusDate.updateValueAndValidity({ emitEvent: false });
+      f.paymentRef.updateValueAndValidity({ emitEvent: false });
+
+      this.civilFeeErrors.emit([]);
+      return;
+    }
 
     f.feeStatuses.setValidators(
       this.feeRequired() ? [this.feeStatusesRequiredValidator] : [],

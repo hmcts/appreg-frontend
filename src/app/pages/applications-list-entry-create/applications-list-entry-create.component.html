@@ -58,6 +58,7 @@
   <ng-template #wordingTpl>
     @if (vm().appCodeDetail; as appCodeDetail) {
       <app-wording-section
+        #wordingSection
         [wordingObject]="appCodeDetail.wording"
         [wordingSubmitAttempt]="wordingSubmitAttempt()"
         (wordingFieldsDTO)="onWordingFieldsDTO($event)"
@@ -83,6 +84,7 @@
 
   <ng-template #civilFeeTpl>
     <app-civil-fee-section
+      #civilFeeSection
       [civilFeeColumns]="civilFeeColumns"
       [feeStatusOptions]="feeStatusOptions"
       [feeForm]="civilFeeForm"

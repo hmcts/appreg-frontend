@@ -285,10 +285,12 @@ describe('buildEntryCreateDto', () => {
     expect('feeStatuses' in payload).toBe(false);
   });
 
-  it('builds wordingFields from courtName and organisationName when present', () => {
+  it('builds wordingFields from wordingFields form value when present', () => {
     const formValue = makeBaseFormValue({
-      courtName: '  Court A ',
-      organisationName: '  Org B ',
+      wordingFields: [
+        { key: 'courtName', value: '  Court A ' },
+        { key: 'organisationName', value: '  Org B ' },
+      ],
     });
 
     const person = makeBlankPerson();
@@ -311,10 +313,13 @@ describe('buildEntryCreateDto', () => {
     ]);
   });
 
-  it('omits wordingFields when courtName and organisationName are empty/whitespace', () => {
+  it('omits wordingFields when wordingFields are empty/whitespace', () => {
     const formValue = makeBaseFormValue({
-      courtName: '   ',
-      organisationName: '',
+      wordingFields: [
+        { key: 'courtName', value: '   ' },
+        { key: '', value: 'value' },
+        { key: 'organisationName', value: '' },
+      ],
     });
 
     const person = makeBlankPerson();
