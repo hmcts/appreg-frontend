@@ -318,7 +318,7 @@ describe('ApplicationsComponent', () => {
       expect(getEntriesMock).toHaveBeenCalledTimes(1);
       const [params, , , options] = getEntriesMock.mock.calls[0];
 
-      expect(params?.pageNumber).toBe(component.vm().currentPage - 1);
+      expect(params?.pageNumber).toBe(component.vm().currentPage);
       expect(params?.pageSize).toBe(component.vm().pageSize);
       expect(params?.filter).toEqual({});
       expect(options).toEqual(
@@ -354,7 +354,7 @@ describe('ApplicationsComponent', () => {
       expect(getEntriesMock).toHaveBeenCalledTimes(1);
       const [params, , , options] = getEntriesMock.mock.calls[0];
 
-      expect(params?.pageNumber).toBe(component.vm().currentPage - 1);
+      expect(params?.pageNumber).toBe(component.vm().currentPage);
       expect(params?.pageSize).toBe(component.vm().pageSize);
       expect(params?.filter).toEqual(
         expect.objectContaining({

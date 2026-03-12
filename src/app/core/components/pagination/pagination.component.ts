@@ -9,7 +9,6 @@ type PageItem = number | '…';
 export class PaginationComponent {
   currentPage = input(1);
   totalPages = input(1);
-  zeroBased = input(true); // switch between 0 or 1 based indexing
   paginationLimit = input(7); // Configurable pagination limit
 
   pageChange = output<number>();
@@ -55,7 +54,7 @@ export class PaginationComponent {
     if (page < 0 || page >= this.totalPages() || page === this.currentIndex()) {
       return;
     }
-    this.pageChange.emit(this.zeroBased() ? page : page + 1);
+    this.pageChange.emit(page);
   }
 
   prevEnabled(): boolean {
@@ -68,6 +67,6 @@ export class PaginationComponent {
 
   currentIndex(): number {
     const page = this.currentPage();
-    return this.zeroBased() ? Math.max(page, 0) : Math.max(page - 1, 0);
+    return Math.max(page, 0);
   }
 }
