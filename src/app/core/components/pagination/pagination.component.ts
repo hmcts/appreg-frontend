@@ -51,15 +51,15 @@ export class PaginationComponent {
     }
   }
 
-  goTo(pageIndex: number): void {
+  goTo(page: number): void {
     if (
-      pageIndex < 0 ||
-      pageIndex >= this.totalPages() ||
-      pageIndex === this.currentIndex()
+      page < 0 ||
+      page >= this.totalPages() ||
+      page === this.currentIndex()
     ) {
       return;
     }
-    this.pageChange.emit(this.zeroBased() ? pageIndex : pageIndex + 1);
+    this.pageChange.emit(this.zeroBased() ? page : page + 1);
   }
 
   prevEnabled(): boolean {
