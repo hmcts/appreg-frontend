@@ -5,7 +5,7 @@
       <a
         class="govuk-link govuk-pagination__link"
         href="#"
-        (click)="goTo(currentPage() - 1); $event.preventDefault()"
+        (click)="goTo(currentIndex() - 1); $event.preventDefault()"
         rel="prev"
       >
         <svg
@@ -41,13 +41,13 @@
       } @else {
         <li
           class="govuk-pagination__item"
-          [class.govuk-pagination__item--current]="item === currentPage()"
+          [class.govuk-pagination__item--current]="item === currentIndex() + 1"
         >
           <a
             class="govuk-link govuk-pagination__link"
             href="#"
             [attr.aria-label]="'Page ' + item"
-            [attr.aria-current]="item === currentPage() ? 'page' : null"
+            [attr.aria-current]="item === currentIndex() + 1 ? 'page' : null"
             (click)="onPageClick(item, $event)"
           >
             {{ item }}
@@ -63,7 +63,7 @@
       <a
         class="govuk-link govuk-pagination__link"
         href="#"
-        (click)="goTo(currentPage() + 1); $event.preventDefault()"
+        (click)="goTo(currentIndex() + 1); $event.preventDefault()"
         rel="next"
       >
         <span class="govuk-pagination__link-title">

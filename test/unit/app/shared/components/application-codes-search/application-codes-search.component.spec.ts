@@ -6,7 +6,7 @@ import { ApplicationCodeSearchComponent } from '@components/application-codes-se
 import { ApplicationCodesApi } from '@openapi';
 import { ApplicationsListEntryForm } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import * as helpers from '@util/application-code-helpers';
-import { CodeRow } from '@util/application-code-helpers';
+import { CodeRow, CodeRowsResult } from '@util/application-code-helpers';
 
 describe('ApplicationCodeSearchComponent', () => {
   let fixture: ComponentFixture<ApplicationCodeSearchComponent>;
@@ -23,20 +23,23 @@ describe('ApplicationCodeSearchComponent', () => {
     } as unknown as ActivatedRoute['snapshot'],
   };
 
-  const mockRows: CodeRow[] = [
-    {
-      code: 'MS99004',
-      title: 'Statutory Declaration - Lost documents',
-      bulk: 'No',
-      fee: '—',
-    },
-    {
-      code: 'MS99003',
-      title: 'Statutory Declaration - Local Authority Car Park',
-      bulk: 'No',
-      fee: '—',
-    },
-  ];
+  const mockRows: CodeRowsResult = {
+    rows: [
+      {
+        code: 'MS99004',
+        title: 'Statutory Declaration - Lost documents',
+        bulk: 'No',
+        fee: '—',
+      },
+      {
+        code: 'MS99003',
+        title: 'Statutory Declaration - Local Authority Car Park',
+        bulk: 'No',
+        fee: '—',
+      },
+    ],
+    totalPages: 0,
+  };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -89,13 +92,39 @@ describe('ApplicationCodeSearchComponent', () => {
       true,
     );
     expect(component.loading()).toBe(false);
-    expect(component.codesRows).toEqual(mockRows);
+    expect(component.codesRows).toEqual(mockRows.rows);
+    expect(component.totalPages()).toBe(mockRows.totalPages);
+  });
+
+  it('search() should use current page and page size in request', () => {
+    const fetchSpy = jest
+      .spyOn(helpers, 'fetchCodeRows$')
+      .mockReturnValue(of(mockRows));
+
+    component.currentPage.set(3);
+    component.pageSize.set(25);
+
+    component.search();
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      apiMock,
+      {
+        code: undefined,
+        title: undefined,
+        pageNumber: 3,
+        pageSize: 25,
+      },
+      true,
+    );
   });
 
   it('search() should handle empty values correctly', () => {
-    const fetchSpy = jest
-      .spyOn(helpers, 'fetchCodeRows$')
-      .mockReturnValue(of([]));
+    const fetchSpy = jest.spyOn(helpers, 'fetchCodeRows$').mockReturnValue(
+      of({
+        rows: [],
+        totalPages: 0,
+      }),
+    );
 
     component.form.patchValue({ code: null, title: null });
 
@@ -131,21 +160,21 @@ describe('ApplicationCodeSearchComponent', () => {
     component.form.patchValue({ lodgementDate: '2024-01-01' });
 
     const rowWithWhitespace: CodeRow = {
-      code: ` ${mockRows[0].code} `,
-      title: ` ${mockRows[0].title} `,
-      bulk: mockRows[0].bulk,
-      fee: mockRows[0].fee,
+      code: ` ${mockRows.rows[0].code} `,
+      title: ` ${mockRows.rows[0].title} `,
+      bulk: mockRows.rows[0].bulk,
+      fee: mockRows.rows[0].fee,
     };
 
     component.onAddCode(rowWithWhitespace);
 
     expect(emitSpy).toHaveBeenCalledWith({
-      code: mockRows[0].code,
+      code: mockRows.rows[0].code,
       date: '2024-01-01',
     });
 
-    expect(component.form.value.code).toBe(mockRows[0].code);
-    expect(component.form.value.title).toBe(mockRows[0].title);
+    expect(component.form.value.code).toBe(mockRows.rows[0].code);
+    expect(component.form.value.title).toBe(mockRows.rows[0].title);
 
     expect(component.submitted()).toBe(false);
     expect(component.codesRows).toEqual([]);
@@ -156,7 +185,7 @@ describe('ApplicationCodeSearchComponent', () => {
 
     const emitSpy = jest.spyOn(component.selectCodeAndLodgementDate, 'emit');
 
-    const row: CodeRow = { ...mockRows[0] };
+    const row: CodeRow = { ...mockRows.rows[0] };
     component.onAddCode(row);
 
     expect(emitSpy).not.toHaveBeenCalled();
@@ -164,10 +193,16 @@ describe('ApplicationCodeSearchComponent', () => {
 
   it('clear() should reset form, rows, errored and emit empty selection', () => {
     const emitSpy = jest.spyOn(component.selectCodeAndLodgementDate, 'emit');
+    const resetParentErrorsSpy = jest.spyOn(
+      component.resetParentErrors,
+      'emit',
+    );
 
     component.form.patchValue({ code: 'X', title: 'Y' });
-    component.codesRows = mockRows.slice();
+    component.codesRows = mockRows.rows.slice();
     component.errored.set(true);
+    component.totalPages.set(8);
+    component.currentPage.set(4);
 
     component.clear();
 
@@ -176,7 +211,32 @@ describe('ApplicationCodeSearchComponent', () => {
     expect(component.codesRows).toEqual([]);
     expect(component.errored()).toBe(false);
     expect(component.submitted()).toBe(false);
+    expect(component.totalPages()).toBe(0);
+    expect(component.currentPage()).toBe(0);
     expect(emitSpy).toHaveBeenCalledWith({ code: '', date: '' });
+    expect(resetParentErrorsSpy).toHaveBeenCalled();
+  });
+
+  it('ngOnInit() should clear without re-emitting when code is emptied', () => {
+    const clearSpy = jest.spyOn(component, 'clear');
+
+    component.form.patchValue({ code: 'ABC', title: 'Some title' });
+    component.form.controls.code.setValue('   ');
+
+    expect(clearSpy).toHaveBeenCalledWith({ emitEvent: false });
+    expect(component.form.value.code).toBeNull();
+    expect(component.form.value.title).toBeNull();
+  });
+
+  it('onPageChange() should update page and trigger a search', () => {
+    const searchSpy = jest
+      .spyOn(component, 'search')
+      .mockImplementation(() => undefined);
+
+    component.onPageChange(5);
+
+    expect(component.currentPage()).toBe(5);
+    expect(searchSpy).toHaveBeenCalled();
   });
 
   it('initialPatchFormData() should use patchedFormData when provided', () => {

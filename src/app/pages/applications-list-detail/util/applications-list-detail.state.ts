@@ -42,7 +42,7 @@ export interface ApplicationsListDetailState {
 }
 
 export const initialApplicationsListDetailState: ApplicationsListDetailState = {
-  currentPage: 1,
+  currentPage: 0,
   pageSize: 10,
   totalPages: 0,
 

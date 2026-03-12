@@ -47,7 +47,6 @@
   @if (loading()) {
     <p class="govuk-body">Searching…</p>
   } @else if (errored()) {
-    <!-- TODO: refactor here (move and make it look nicer) -->
     <div
       class="govuk-error-summary"
       aria-labelledby="app-code-error-title"
@@ -89,6 +88,12 @@
           </div>
         </ng-template>
       </app-sortable-table>
+
+      <app-pagination
+        [currentPage]="currentPage()"
+        [totalPages]="totalPages()"
+        (pageChange)="onPageChange($event)"
+      />
     }
   }
 </fieldset>

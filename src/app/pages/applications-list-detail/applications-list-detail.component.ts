@@ -394,7 +394,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
     this.loadRequest.set({
       id: this.id,
-      pageNumber: vm.currentPage - 1,
+      pageNumber: vm.currentPage,
       pageSize: vm.pageSize,
     });
   }
