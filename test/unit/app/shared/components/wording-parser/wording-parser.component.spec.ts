@@ -290,7 +290,13 @@ describe('WordingParserComponent', () => {
       init(makeWordingObject());
 
       const errorsSpy = jest.spyOn(component.wordingFieldErrors, 'emit');
-      component.form.get('Applicant-officer')?.setValue('changed');
+      (
+        component.form.get('Applicant-officer') as unknown as FormControl<
+          string | null
+        >
+      ).setValue('changed');
+      component.form.get('Applicant-officer')?.markAsDirty();
+      component.form.markAsDirty();
 
       const errors = component.validateForSubmit();
 
@@ -319,7 +325,9 @@ describe('WordingParserComponent', () => {
 
       const errorsSpy = jest.spyOn(component.wordingFieldErrors, 'emit');
 
-      component.form.get('A')?.setValue('');
+      (
+        component.form.get('A') as unknown as FormControl<string | null>
+      ).setValue('');
 
       const errors = component.validateForSubmit();
 
@@ -385,7 +393,17 @@ describe('WordingParserComponent', () => {
       init(makeWordingObject());
 
       const errorsSpy = jest.spyOn(component.wordingFieldErrors, 'emit');
-      component.form.get('Applicant-officer')?.setValue('changed');
+      (
+        component.form.get('Applicant-officer') as unknown as FormControl<
+          string | null
+        >
+      ).setValue('changed');
+      (
+        component.form.get('Applicant-officer') as unknown as FormControl<
+          string | null
+        >
+      ).markAsDirty();
+      component.form.markAsDirty();
 
       fixture.componentRef.setInput('wordingSubmitAttempt', 1);
       fixture.detectChanges();
