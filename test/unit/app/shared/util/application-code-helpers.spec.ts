@@ -237,7 +237,7 @@ describe('application-code-helpers', () => {
   describe('fetchCodeRows$', () => {
     type PageItem = NonNullable<ApplicationCodePage['content']>[number];
 
-    it('fetches codes page and maps to CodeRow[]', async () => {
+    it('fetches codes page and maps to CodeRowsResult', async () => {
       const api = makeApi();
 
       const request = {
@@ -252,7 +252,10 @@ describe('application-code-helpers', () => {
         feeReference: 'FEE1',
       } as unknown as PageItem;
 
-      const page = { content: [item] } as unknown as ApplicationCodePage;
+      const page = {
+        content: [item],
+        totalPages: 7,
+      } as unknown as ApplicationCodePage;
 
       api.getApplicationCodes.mockReturnValueOnce(
         asReturn(api.getApplicationCodes, of(page)),
@@ -264,8 +267,39 @@ describe('application-code-helpers', () => {
 
       expect(rows).toEqual<CodeRowsResult>({
         rows: [{ bulk: 'Yes', code: 'A1', fee: 'FEE1', title: 'Title 1' }],
-        totalPages: 0,
+        totalPages: 7,
       });
+    });
+
+    it('passes transferCache false through to getApplicationCodes', async () => {
+      const api = makeApi();
+
+      const request = {
+        search: 'abc',
+        page: 1,
+      } as unknown as GetApplicationCodesRequestParams;
+
+      const page = {
+        content: [],
+        totalPages: 0,
+      } as unknown as ApplicationCodePage;
+
+      api.getApplicationCodes.mockReturnValueOnce(
+        asReturn(api.getApplicationCodes, of(page)),
+      );
+
+      await firstValueFrom(
+        fetchCodeRows$(api as unknown as ApplicationCodesApi, request, false),
+      );
+
+      expect(api.getApplicationCodes).toHaveBeenCalledWith(
+        request,
+        'body',
+        false,
+        {
+          transferCache: false,
+        },
+      );
     });
   });
 });
