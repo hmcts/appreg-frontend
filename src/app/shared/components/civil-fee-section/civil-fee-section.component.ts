@@ -88,10 +88,10 @@ export class CivilFeeSectionComponent implements OnInit {
   ngOnInit(): void {
     runInInjectionContext(this.injector, () => {
       effect(() => {
-        if (!this.parentSubmitted()) {
-          return;
+        if (this.parentSubmitted()) {
+          this.attachValidatorsForSubmitAttempt();
         }
-        this.attachValidatorsForSubmitAttempt();
+        this.syncCivilFeeControlState(this.feeRequired());
       });
     });
   }
@@ -250,6 +250,21 @@ export class CivilFeeSectionComponent implements OnInit {
       state: { ...extraState, row },
     });
   };
+
+  private syncCivilFeeControlState(feeRequired: boolean): void {
+    const f = this.feeForm().controls;
+    const controls = [f.feeStatus, f.feeStatusDate, f.paymentRef];
+
+    controls.forEach((ctrl) => {
+      if (feeRequired) {
+        ctrl.enable({ emitEvent: false });
+      } else {
+        ctrl.disable({ emitEvent: false });
+        ctrl.setErrors(null);
+      }
+      ctrl.updateValueAndValidity({ emitEvent: false });
+    });
+  }
 
   private clearCivilFeeInputsAndErrors(): void {
     const f = this.feeForm().controls;

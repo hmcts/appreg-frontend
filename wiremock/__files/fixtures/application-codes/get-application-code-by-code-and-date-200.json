@@ -10,7 +10,7 @@
   },
   "isFeeDue": true,
   "requiresRespondent": false,
-  "bulkRespondentAllowed": false,
+  "bulkRespondentAllowed": true,
   "feeReference": "CO9.2",
   "feeAmount": { "value": 7500, "currency": "GBP" },
   "feeDescription": "Statutory declaration – lost documents",

@@ -19,9 +19,15 @@
       "applicationCode": "MS99004",
       "title": "Statutory Decalration -Lost documents",
       "wording": "Attends to make a statutory declaration in relation to loss of original document, namely {TEXT|Specify Document Lost|100}",
-      "isFeeDue": false,
-      "requiresRespondent": false,
-      "bulkRespondentAllowed": false
+      "requiresRespondent": true,
+      "bulkRespondentAllowed": true,
+      "isFeeDue": true,
+      "feeReference": "CO5.1a",
+      "feeAmount": {
+          "value": 1100,
+          "currency": "GBP"
+      },
+      "feeDescription": "Lost documents statutory declaration"
     },
     {
       "applicationCode": "MS99003",
