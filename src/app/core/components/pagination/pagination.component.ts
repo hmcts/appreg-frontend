@@ -52,11 +52,7 @@ export class PaginationComponent {
   }
 
   goTo(page: number): void {
-    if (
-      page < 0 ||
-      page >= this.totalPages() ||
-      page === this.currentIndex()
-    ) {
+    if (page < 0 || page >= this.totalPages() || page === this.currentIndex()) {
       return;
     }
     this.pageChange.emit(this.zeroBased() ? page : page + 1);
