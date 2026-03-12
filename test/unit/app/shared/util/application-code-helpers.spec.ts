@@ -8,6 +8,7 @@ import type {
 } from '@openapi';
 import {
   CodeRow,
+  CodeRowsResult,
   fetchCodeDetail$,
   fetchCodeRows$,
   fetchCodesPage$,
@@ -261,9 +262,10 @@ describe('application-code-helpers', () => {
         fetchCodeRows$(api as unknown as ApplicationCodesApi, request),
       );
 
-      expect(rows).toEqual<CodeRow[]>([
-        { code: 'A1', title: 'Title 1', bulk: 'Yes', fee: 'FEE1' },
-      ]);
+      expect(rows).toEqual<CodeRowsResult>({
+        rows: [{ bulk: 'Yes', code: 'A1', fee: 'FEE1', title: 'Title 1' }],
+        totalPages: 0,
+      });
     });
   });
 });

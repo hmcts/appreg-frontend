@@ -24,6 +24,7 @@ import { ActivatedRoute } from '@angular/router';
 import { CODES_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
+import { PaginationComponent } from '@components/pagination/pagination.component';
 import {
   SortableTableComponent,
   TableColumn,
@@ -43,6 +44,7 @@ import { CodeRow, fetchCodeRows$ } from '@util/application-code-helpers';
     TextInputComponent,
     DateInputComponent,
     SortableTableComponent,
+    PaginationComponent,
   ],
   templateUrl: './application-codes-search.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -52,6 +54,13 @@ export class ApplicationCodeSearchComponent implements OnInit {
   codePlaceholder = input('The code for the application');
   titlePlaceholder = input('Enter a concise title for this application');
   patchedFormData = input<ApplicationsListEntryForm | undefined>(undefined);
+
+  // API query params
+  pageSize = signal(10);
+
+  // API query response
+  totalPages = signal(0);
+  currentPage = signal(1);
 
   selectCodeAndLodgementDate = output<{ code: string; date: string }>();
   resultsChange = output<ApplicationCodeGetSummaryDto[]>();
@@ -104,16 +113,17 @@ export class ApplicationCodeSearchComponent implements OnInit {
       {
         code: code || undefined,
         title: title || undefined,
-        pageNumber: 0,
-        pageSize: 10,
+        pageNumber: this.currentPage() - 1,
+        pageSize: this.pageSize(),
       },
       true,
     )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (rows) => {
-          this.codesRows = rows;
+        next: (result) => {
+          this.codesRows = result.rows;
           this.loading.set(false);
+          this.totalPages.set(result.totalPages);
         },
         error: () => {
           this.loading.set(false);
@@ -148,6 +158,11 @@ export class ApplicationCodeSearchComponent implements OnInit {
     });
   }
 
+  onPageChange(page: number): void {
+    this.currentPage.set(page);
+    this.search();
+  }
+
   clear(options?: { emitEvent?: boolean }): void {
     this.form.patchValue(
       { code: null, title: null },
@@ -158,6 +173,8 @@ export class ApplicationCodeSearchComponent implements OnInit {
     this.submitted.set(false);
     this.selectCodeAndLodgementDate.emit({ code: '', date: '' });
     this.resetParentErrors.emit();
+    this.totalPages.set(0);
+    this.currentPage.set(1);
   }
 
   private initialPatchFormData(): void {

@@ -6,7 +6,7 @@ import { ApplicationCodeSearchComponent } from '@components/application-codes-se
 import { ApplicationCodesApi } from '@openapi';
 import { ApplicationsListEntryForm } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import * as helpers from '@util/application-code-helpers';
-import { CodeRow } from '@util/application-code-helpers';
+import { CodeRow, CodeRowsResult } from '@util/application-code-helpers';
 
 describe('ApplicationCodeSearchComponent', () => {
   let fixture: ComponentFixture<ApplicationCodeSearchComponent>;
@@ -23,20 +23,23 @@ describe('ApplicationCodeSearchComponent', () => {
     } as unknown as ActivatedRoute['snapshot'],
   };
 
-  const mockRows: CodeRow[] = [
-    {
-      code: 'MS99004',
-      title: 'Statutory Declaration - Lost documents',
-      bulk: 'No',
-      fee: '—',
-    },
-    {
-      code: 'MS99003',
-      title: 'Statutory Declaration - Local Authority Car Park',
-      bulk: 'No',
-      fee: '—',
-    },
-  ];
+  const mockRows: CodeRowsResult = {
+    rows: [
+      {
+        code: 'MS99004',
+        title: 'Statutory Declaration - Lost documents',
+        bulk: 'No',
+        fee: '—',
+      },
+      {
+        code: 'MS99003',
+        title: 'Statutory Declaration - Local Authority Car Park',
+        bulk: 'No',
+        fee: '—',
+      },
+    ],
+    totalPages: 0,
+  };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -89,13 +92,16 @@ describe('ApplicationCodeSearchComponent', () => {
       true,
     );
     expect(component.loading()).toBe(false);
-    expect(component.codesRows).toEqual(mockRows);
+    expect(component.codesRows).toEqual(mockRows.rows);
   });
 
   it('search() should handle empty values correctly', () => {
-    const fetchSpy = jest
-      .spyOn(helpers, 'fetchCodeRows$')
-      .mockReturnValue(of([]));
+    const fetchSpy = jest.spyOn(helpers, 'fetchCodeRows$').mockReturnValue(
+      of({
+        rows: [],
+        totalPages: 0,
+      }),
+    );
 
     component.form.patchValue({ code: null, title: null });
 
@@ -131,21 +137,21 @@ describe('ApplicationCodeSearchComponent', () => {
     component.form.patchValue({ lodgementDate: '2024-01-01' });
 
     const rowWithWhitespace: CodeRow = {
-      code: ` ${mockRows[0].code} `,
-      title: ` ${mockRows[0].title} `,
-      bulk: mockRows[0].bulk,
-      fee: mockRows[0].fee,
+      code: ` ${mockRows.rows[0].code} `,
+      title: ` ${mockRows.rows[0].title} `,
+      bulk: mockRows.rows[0].bulk,
+      fee: mockRows.rows[0].fee,
     };
 
     component.onAddCode(rowWithWhitespace);
 
     expect(emitSpy).toHaveBeenCalledWith({
-      code: mockRows[0].code,
+      code: mockRows.rows[0].code,
       date: '2024-01-01',
     });
 
-    expect(component.form.value.code).toBe(mockRows[0].code);
-    expect(component.form.value.title).toBe(mockRows[0].title);
+    expect(component.form.value.code).toBe(mockRows.rows[0].code);
+    expect(component.form.value.title).toBe(mockRows.rows[0].title);
 
     expect(component.submitted()).toBe(false);
     expect(component.codesRows).toEqual([]);
@@ -156,7 +162,7 @@ describe('ApplicationCodeSearchComponent', () => {
 
     const emitSpy = jest.spyOn(component.selectCodeAndLodgementDate, 'emit');
 
-    const row: CodeRow = { ...mockRows[0] };
+    const row: CodeRow = { ...mockRows.rows[0] };
     component.onAddCode(row);
 
     expect(emitSpy).not.toHaveBeenCalled();
@@ -166,7 +172,7 @@ describe('ApplicationCodeSearchComponent', () => {
     const emitSpy = jest.spyOn(component.selectCodeAndLodgementDate, 'emit');
 
     component.form.patchValue({ code: 'X', title: 'Y' });
-    component.codesRows = mockRows.slice();
+    component.codesRows = mockRows.rows.slice();
     component.errored.set(true);
 
     component.clear();
