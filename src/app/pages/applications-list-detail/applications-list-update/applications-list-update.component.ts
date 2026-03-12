@@ -397,7 +397,7 @@ export class ApplicationsListUpdateComponent implements OnInit {
       } as ApplicationListUpdateDto;
 
       // Nav to close list page
-      if (isClosing) {
+      if (this.isClosing()) {
         const state: AppListNavState = {
           listRow: this.listRow(),
           closeRequest: {
