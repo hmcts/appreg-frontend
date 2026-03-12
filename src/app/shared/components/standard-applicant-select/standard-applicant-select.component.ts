@@ -106,16 +106,9 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
         onSuccess: (page) => {
           const content = page.content ?? [];
           this.rows = content.map((sa) => mapSaToRow(sa));
-          const sizeOfPage = page.pageSize ?? this.saState().pageSize;
-          const total = page.totalElements ?? content.length;
-          const requestedPage = this.loadRequest()?.pageNumber ?? 0;
-          const nextPageIndex = page.pageNumber ?? requestedPage;
-          const nextTotalPages =
-            sizeOfPage > 0 ? Math.max(1, Math.ceil(total / sizeOfPage)) : 0;
 
           this.saSignalState.patch({
-            pageIndex: nextPageIndex,
-            totalPages: nextTotalPages,
+            totalPages: page.totalPages,
             loading: false,
           });
 
@@ -139,10 +132,11 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
       return;
     }
 
-    this.saSignalState.patch({ loading: true });
+    this.saSignalState.patch({ loading: true, pageIndex: page });
 
     const pageSize = this.saState().pageSize;
-    this.loadRequest.set({ pageNumber: page, pageSize });
+
+    this.loadRequest.set({ pageNumber: this.saState().pageIndex, pageSize });
   }
 
   private syncSelectedIdsFromCode(): void {

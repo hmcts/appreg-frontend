@@ -524,7 +524,7 @@ describe('ApplicationsList – search', () => {
       expect(preventDefault).toHaveBeenCalled();
       expect(getRecordsState(component).submitted).toBe(true);
       expect(getUIFlagState(component).isSearch).toBe(true);
-      expect(getRecordsState(component).currentPage).toBe(1);
+      expect(getRecordsState(component).currentPage).toBe(0);
       expect(spy).toHaveBeenCalledWith(true);
     });
 

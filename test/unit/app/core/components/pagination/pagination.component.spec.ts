@@ -1,5 +1,3 @@
-// pagination.component.spec.ts
-
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
@@ -51,14 +49,14 @@ describe('PaginationComponent', () => {
     expect(currentLinkDebug).toBeTruthy();
 
     const currentLink = currentLinkDebug.nativeElement as HTMLAnchorElement;
-    expect(currentLink.textContent?.trim()).toBe('2');
+    expect(currentLink.textContent?.trim()).toBe('3');
 
     const li = currentLinkDebug.parent!.nativeElement as HTMLLIElement;
     expect(li.classList.contains('govuk-pagination__item--current')).toBe(true);
   });
 
-  it('shows previous link only when currentPage > 1', () => {
-    fixture.componentRef.setInput('currentPage', 1);
+  it('shows previous link only when currentPage > 0', () => {
+    fixture.componentRef.setInput('currentPage', 0);
     fixture.componentRef.setInput('totalPages', 5);
 
     fixture.detectChanges();
@@ -66,7 +64,7 @@ describe('PaginationComponent', () => {
       fixture.debugElement.query(By.css('.govuk-pagination__prev')),
     ).toBeNull();
 
-    fixture.componentRef.setInput('currentPage', 2);
+    fixture.componentRef.setInput('currentPage', 1);
     fixture.detectChanges();
 
     expect(
@@ -75,7 +73,7 @@ describe('PaginationComponent', () => {
   });
 
   it('shows next link only when currentPage < totalPages', () => {
-    fixture.componentRef.setInput('currentPage', 5);
+    fixture.componentRef.setInput('currentPage', 4);
     fixture.componentRef.setInput('totalPages', 5);
 
     fixture.detectChanges();
@@ -83,7 +81,7 @@ describe('PaginationComponent', () => {
       fixture.debugElement.query(By.css('.govuk-pagination__next')),
     ).toBeNull();
 
-    fixture.componentRef.setInput('currentPage', 4);
+    fixture.componentRef.setInput('currentPage', 2);
     fixture.detectChanges();
 
     expect(
@@ -111,8 +109,8 @@ describe('PaginationComponent', () => {
   });
 
   it('calls goTo with previous and next page indexes when prev/next are clicked', () => {
-    fixture.componentRef.setInput('currentPage', 3);
-    fixture.componentRef.setInput('totalPages', 5);
+    fixture.componentRef.setInput('currentPage', 5);
+    fixture.componentRef.setInput('totalPages', 10);
 
     const goToSpy = jest.spyOn(fixture.componentInstance, 'goTo');
 
@@ -124,7 +122,7 @@ describe('PaginationComponent', () => {
     expect(prevLinkDebug).toBeTruthy();
 
     prevLinkDebug.triggerEventHandler('click', new MouseEvent('click'));
-    expect(goToSpy).toHaveBeenCalledWith(2);
+    expect(goToSpy).toHaveBeenCalledWith(4);
 
     const nextLinkDebug = fixture.debugElement.query(
       By.css('.govuk-pagination__next a'),
@@ -132,7 +130,7 @@ describe('PaginationComponent', () => {
     expect(nextLinkDebug).toBeTruthy();
 
     nextLinkDebug.triggerEventHandler('click', new MouseEvent('click'));
-    expect(goToSpy).toHaveBeenCalledWith(4);
+    expect(goToSpy).toHaveBeenCalledWith(6);
   });
 
   it('includes ellipsis items when there are many pages', () => {

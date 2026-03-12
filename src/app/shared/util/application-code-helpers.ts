@@ -54,6 +54,11 @@ export type CodeRow = {
   fee: string;
 };
 
+export type CodeRowsResult = {
+  rows: CodeRow[];
+  totalPages: number;
+};
+
 export function mapCodeRows(page: ApplicationCodePage): CodeRow[] {
   const items = page?.content ?? [];
   return items.map((i) => ({
@@ -87,8 +92,11 @@ export function fetchCodeRows$(
   api: ApplicationCodesApi,
   request: GetApplicationCodesRequestParams,
   useTransferCache = true,
-): Observable<CodeRow[]> {
+): Observable<CodeRowsResult> {
   return fetchCodesPage$(api, request, useTransferCache).pipe(
-    map((page: ApplicationCodePage) => mapCodeRows(page)),
+    map((page: ApplicationCodePage) => ({
+      rows: mapCodeRows(page),
+      totalPages: page.totalPages ?? 0,
+    })),
   );
 }
