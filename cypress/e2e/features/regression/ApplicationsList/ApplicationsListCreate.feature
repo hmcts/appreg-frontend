@@ -31,8 +31,8 @@ Feature: Applications List Create
     Then User Sees Success Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
 
     Examples:
-      | User  | Date  | Time           | Description   | Status | OtherLocation           | SuccessMessage                                 | OptionText    | SearchText | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName | HH | MM |
-      | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Other Location_{RANDOM} | Success Applications list created successfully | Wolverhampton | B9         | Lists     | todaydisplay | 0       | Select           | Open       | 0  | 0  |
+      | User  | Date  | Time           | Description   | Status | OtherLocation           | SuccessMessage                                             | OptionText    | SearchText | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName | HH | MM |
+      | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Other Location_{RANDOM} | Success Applications list createdList successfully created | Wolverhampton | B9         | Lists     | todaydisplay | 0       | Select           | Open       | 0  | 0  |
 
   @regression @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794
   Scenario Outline: Create applications list using Court Autocomplete
@@ -64,8 +64,8 @@ Feature: Applications List Create
     Then User Sees Page Heading "Applications List"
     Then User Sees Success Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
     Examples:
-      | User  | Date  | Time           | Description   | Status | SuccessMessage                                 | SearchText | OptionText                    | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName |
-      | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Success Applications list created successfully | royal      | Royal Courts of Justice Set 1 | Lists     | todaydisplay | 0       | Select           | Open       |
+      | User  | Date  | Time           | Description   | Status | SuccessMessage                                             | SearchText | OptionText                    | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName |
+      | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Success Applications list createdList successfully created | royal      | Royal Courts of Justice Set 1 | Lists     | todaydisplay | 0       | Select           | Open       |
 
   @regression @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @ARCPOC-792 @ARCPOC-1012
   Scenario Outline: Verify validation messages on creating applications list with No Input
@@ -124,5 +124,5 @@ Feature: Applications List Create
     Then User Sees Success Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
 
     Examples:
-      | User  | InvalidDate | Date  | InvalidTime | Time  | Description   | Status | InvalidCourt | OtherLocation           | InvalidCJA | CJA           | SearchText | SuccessMessage                                 | TableName | DisplayDate  | Entries | SelectButtonText |
-      | user1 | 32/13/2024  | today | 25:61       | 14:30 | Test_{RANDOM} | Open   | abc          | Other Location_{RANDOM} | abc        | Wolverhampton | B9         | Success Applications list created successfully | Lists     | todaydisplay | 0       | Select           |
+      | User  | InvalidDate | Date  | InvalidTime | Time  | Description   | Status | InvalidCourt | OtherLocation           | InvalidCJA | CJA           | SearchText | SuccessMessage                                             | TableName | DisplayDate  | Entries | SelectButtonText |
+      | user1 | 32/13/2024  | today | 25:61       | 14:30 | Test_{RANDOM} | Open   | abc          | Other Location_{RANDOM} | abc        | Wolverhampton | B9         | Success Applications list createdList successfully created | Lists     | todaydisplay | 0       | Select           |
