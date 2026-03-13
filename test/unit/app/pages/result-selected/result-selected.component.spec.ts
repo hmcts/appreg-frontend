@@ -4,13 +4,12 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
-import { ResultGetDto } from '../../../../../src/generated/openapi/model/models';
-
 import { ApplicationEntriesResultContext } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ResultSelected } from '@components/result-selected/result-selected.component';
 import {
   ApplicationListEntryResultsApi,
   CreateApplicationListEntryResultRequestParams,
+  ResultGetDto,
 } from '@openapi';
 import { ApplicationListEntryResultsFacade } from '@services/applications-list-entry/application-list-entry-results.facade';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';

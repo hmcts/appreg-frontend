@@ -45,18 +45,15 @@ export type BatchResult =
     ReactiveFormsModule,
     BreadcrumbsComponent,
     WarningBannerComponent,
-    ResultWordingSectionComponent,
-    SuccessBannerComponent,
-    ErrorSummaryComponent,
   ],
   templateUrl: './result-selected.component.html',
 })
 export class ResultSelected implements OnInit {
   private route = inject(ActivatedRoute);
+  private readonly resultCodesApi = inject(ApplicationListEntryResultsApi);
   readonly resultsFacade = inject(ApplicationListEntryResultsFacade);
   listId!: string;
   mixedResultedAndUnresultedApplications!: boolean;
-  private readonly resultCodesApi = inject(ApplicationListEntryResultsApi);
 
   isSubmitting = signal(false);
   batchResults!: BatchResult[];
