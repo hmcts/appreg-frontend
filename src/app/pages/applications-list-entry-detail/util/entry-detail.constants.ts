@@ -23,6 +23,13 @@ export const FEE_STATUS_OPTIONS = [
   { value: 'REMITTED', label: 'Remitted' },
 ];
 
+export const APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS = [
+  { header: 'Sequence number', field: 'sequenceNumber' },
+  { header: 'Applicant(s)', field: 'applicant' },
+  { header: 'Respondent(s)', field: 'respondent' },
+  { header: 'Application Title(s)', field: 'title' },
+];
+
 export const RESULT_WORDING_COLUMNS = [
   { header: 'Applicant(s)', field: 'applicant' },
   { header: 'Respondent(s)', field: 'respondent' },
