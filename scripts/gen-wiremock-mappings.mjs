@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-'use strict';
-
+/* eslint-disable import/namespace */
 /**
  * Generate WireMock mappings from an OpenAPI spec — without duplicates.
  *
@@ -12,13 +11,12 @@
  *   use it as response via bodyFileName.
  */
 
-const fs = require('node:fs');
-const fsp = require('node:fs/promises');
-const path = require('node:path');
+import fs from 'node:fs';
+import fsp from 'node:fs/promises';
+import path from 'node:path';
 
-const Ajv = require('ajv');
-const jsf = require('json-schema-faker');
-const YAML = require('yaml');
+import { generate as jsfGenerate } from 'json-schema-faker';
+import YAML from 'yaml';
 
 // ---------- Config (override via env) ----------
 const SPEC_PATH = 'tools/openapi/vendor/openapi/openapi.yaml';
@@ -147,14 +145,14 @@ async function readSpecWithDeref() {
 }
 
 // ---------- JSON Schema Faker setup ----------
-const ajv = new Ajv({ strict: false, allowUnionTypes: true });
-jsf.option({
+const JSF_OPTIONS = {
   alwaysFakeOptionals: true,
   useDefaultValue: true,
   fillProperties: true,
-});
-jsf.option({ minItems: 1, maxItems: 3 });
-jsf.extend('ajv', () => ajv);
+  minItems: 1,
+  maxItems: 3,
+  failOnInvalidTypes: false,
+};
 
 // ---------- Utility: operation grouping / url matching ----------
 function toGroup(op) {
@@ -299,7 +297,7 @@ async function exampleFromSchemaOrGenerate(media) {
   }
   if (media && media.schema) {
     try {
-      return await jsf.resolve(media.schema);
+      return await jsfGenerate(media.schema, JSF_OPTIONS);
       // eslint-disable-next-line no-unused-vars
     } catch (_e) {
       // ignore

@@ -186,8 +186,12 @@ function createInstanceWithQuery(
   query: Record<string, string | null | undefined>,
   platformId: 'browser' | 'server' = 'browser',
 ) {
+  const queryParamMap = convertToParamMap(query);
   const routeStub: Partial<ActivatedRoute> = {
-    queryParamMap: of(convertToParamMap(query)),
+    queryParamMap: of(queryParamMap),
+    snapshot: {
+      queryParamMap,
+    } as ActivatedRoute['snapshot'],
   };
 
   TestBed.resetTestingModule();
@@ -520,7 +524,7 @@ describe('ApplicationsList – search', () => {
       expect(preventDefault).toHaveBeenCalled();
       expect(getRecordsState(component).submitted).toBe(true);
       expect(getUIFlagState(component).isSearch).toBe(true);
-      expect(getRecordsState(component).currentPage).toBe(1);
+      expect(getRecordsState(component).currentPage).toBe(0);
       expect(spy).toHaveBeenCalledWith(true);
     });
 

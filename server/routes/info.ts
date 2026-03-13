@@ -9,7 +9,7 @@ export function setupInfoRoute(app: Express): void {
     infoRequestHandler({
       extraBuildInfo: {
         host: os.hostname(),
-        name: 'hmcts-court-fines',
+        name: 'hmcts-app-reg',
         uptime: process.uptime(),
       },
       info: {},

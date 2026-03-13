@@ -38,7 +38,14 @@
 
 @if (vm().deleteDone) {
   <app-success-banner
-    heading="Application List deleted successfully"
+    heading="Application list deleted successfully"
+    body="If you believe this was in error, please contact support."
+  />
+}
+
+@if (vm().listCloseDone) {
+  <app-success-banner
+    heading="Application list closed successfully"
     body="If you believe this was in error, please contact support."
   />
 }
@@ -108,12 +115,7 @@
               type="button"
               class="govuk-button moj-button-menu__item govuk-button--secondary"
               [routerLink]="['/applications-list', row.id]"
-              [state]="{
-                row: {
-                  id: row.id,
-                  entriesCount: row.entries,
-                },
-              }"
+              [state]="{ row }"
             >
               Open
             </button>
@@ -142,7 +144,7 @@
               type="button"
               class="govuk-button moj-button-menu__item govuk-button--warning"
               [routerLink]="['/applications-list', row.id, 'delete']"
-              [state]="{ listToDelete: row }"
+              [state]="{ listRow: row }"
             >
               Delete
             </button>

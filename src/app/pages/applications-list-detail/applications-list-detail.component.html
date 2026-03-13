@@ -17,7 +17,10 @@
 </app-page-header>
 
 @if (vm().createDone) {
-  <app-success-banner heading="Applications list created successfully" />
+  <app-success-banner
+    heading="Application list created"
+    linkText="The application list has been successfully created"
+  />
 }
 
 @if (vm().errorSummary.length || vm().updateInvalid) {
@@ -30,8 +33,8 @@
 
 @if (vm().updateDone) {
   <app-success-banner
-    heading="Update complete"
-    linkText="List successfully updated"
+    heading="Application list updated"
+    linkText="The application list has been successfully updated"
   />
 }
 
@@ -171,7 +174,7 @@
       [currentPage]="vm().currentPage"
       [totalPages]="vm().totalPages"
       (pageChange)="onPageChange($event)"
-    ></app-pagination>
+    />
   </div>
 
   <!-- List details panel -->
@@ -193,6 +196,7 @@
       [setUpdateRequest]="setUpdateRequestFn"
       (requestAllEntryIds)="onRequestAllEntryIds()"
       [suggestionsFacade]="suggestionsFacade"
+      [listRow]="listRow"
     />
   </div>
 </div>

@@ -31,7 +31,7 @@ export const initialApplicationsState: ApplicationsState = {
 
   rows: [],
 
-  currentPage: 1,
+  currentPage: 0,
   totalPages: 1,
   pageSize: 10,
 };
@@ -86,7 +86,7 @@ export const clearResultsPatch = (): Pick<
   'rows' | 'currentPage' | 'totalPages' | 'submitted' | 'isSearch'
 > => ({
   rows: [],
-  currentPage: 1,
+  currentPage: 0,
   totalPages: 1,
   submitted: false,
   isSearch: false,

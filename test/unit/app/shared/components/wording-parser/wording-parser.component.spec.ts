@@ -255,6 +255,86 @@ describe('WordingParserComponent', () => {
           { key: 'date', value: '31/12/2026' },
         ],
       });
+      expect(component.form.pristine).toBe(true);
+    });
+  });
+
+  describe('validateForSubmit()', () => {
+    it('returns errors and emits wordingFieldErrors when invalid', () => {
+      init(
+        makeWordingObject({
+          template: 'Hi {{A}}',
+          'substitution-key-constraints': [
+            {
+              key: 'A',
+              value: '',
+              constraint: { length: 5, type: TemplateConstraintTypeEnum.TEXT },
+            },
+          ],
+        }),
+      );
+
+      const errorsSpy = jest.spyOn(component.wordingFieldErrors, 'emit');
+      const dtoSpy = jest.spyOn(component.wordingFieldsDTO, 'emit');
+
+      const errors = component.validateForSubmit();
+
+      expect(errors).toEqual([
+        { text: 'Enter a A in the wording section', href: '#A' },
+      ]);
+      expect(errorsSpy).toHaveBeenCalledWith(errors);
+      expect(dtoSpy).not.toHaveBeenCalled();
+    });
+
+    it('returns save-first error when form has unsaved changes', () => {
+      init(makeWordingObject());
+
+      const errorsSpy = jest.spyOn(component.wordingFieldErrors, 'emit');
+      (
+        component.form.get('Applicant-officer') as unknown as FormControl<
+          string | null
+        >
+      ).setValue('changed');
+      component.form.get('Applicant-officer')?.markAsDirty();
+      component.form.markAsDirty();
+
+      const errors = component.validateForSubmit();
+
+      expect(errors).toEqual([
+        {
+          text: 'Save wording changes in the wording section before submitting',
+          href: '#save-wording-button',
+        },
+      ]);
+      expect(errorsSpy).toHaveBeenCalledWith(errors);
+    });
+
+    it('returns required errors instead of save-first when form is dirty and invalid', () => {
+      init(
+        makeWordingObject({
+          template: 'Hi {{A}}',
+          'substitution-key-constraints': [
+            {
+              key: 'A',
+              value: 'OK',
+              constraint: { length: 5, type: TemplateConstraintTypeEnum.TEXT },
+            },
+          ],
+        }),
+      );
+
+      const errorsSpy = jest.spyOn(component.wordingFieldErrors, 'emit');
+
+      (
+        component.form.get('A') as unknown as FormControl<string | null>
+      ).setValue('');
+
+      const errors = component.validateForSubmit();
+
+      expect(errors).toEqual([
+        { text: 'Enter a A in the wording section', href: '#A' },
+      ]);
+      expect(errorsSpy).toHaveBeenCalledWith(errors);
     });
   });
 
@@ -307,6 +387,33 @@ describe('WordingParserComponent', () => {
       fixture.detectChanges();
 
       expect(errorsSpy).toHaveBeenCalledWith([]);
+    });
+
+    it('should emit save-first error when wordingSubmitAttempt increments with unsaved changes', () => {
+      init(makeWordingObject());
+
+      const errorsSpy = jest.spyOn(component.wordingFieldErrors, 'emit');
+      (
+        component.form.get('Applicant-officer') as unknown as FormControl<
+          string | null
+        >
+      ).setValue('changed');
+      (
+        component.form.get('Applicant-officer') as unknown as FormControl<
+          string | null
+        >
+      ).markAsDirty();
+      component.form.markAsDirty();
+
+      fixture.componentRef.setInput('wordingSubmitAttempt', 1);
+      fixture.detectChanges();
+
+      expect(errorsSpy).toHaveBeenCalledWith([
+        {
+          text: 'Save wording changes in the wording section before submitting',
+          href: '#save-wording-button',
+        },
+      ]);
     });
 
     it('should emit DTO when wordingSubmitAttempt increments and showSaveButton is false', () => {

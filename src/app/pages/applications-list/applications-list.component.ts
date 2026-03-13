@@ -193,6 +193,10 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
       this.handleDeleteFlash(flash);
       this.clearFlashParams();
     });
+
+    if (this.route.snapshot.queryParamMap.get('isCloseSuccess')) {
+      this.appListSignalState.patch({ listCloseDone: true });
+    }
   }
 
   restoreFormValues(): void {
@@ -377,7 +381,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     const hasAny = hasAnyParams(this.form);
 
     if (action === 'search') {
-      this.storedRecordsState.patch({ submitted: true, currentPage: 1 });
+      this.storedRecordsState.patch({ submitted: true, currentPage: 0 });
       this.appListSignalState.patch({
         isSearch: true,
       });
@@ -479,7 +483,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     const paramSort = [`${sortFieldKey},${sortFieldDirection}`];
 
     const params: GetApplicationListsRequestParams = {
-      pageNumber: r.currentPage - 1,
+      pageNumber: r.currentPage,
       pageSize: r.pageSize,
       sort: paramSort,
       ...(hasParams ? { filter: loadQuery(this.form) } : {}),

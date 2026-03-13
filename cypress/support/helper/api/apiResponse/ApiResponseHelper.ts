@@ -1,5 +1,7 @@
 /// <reference types="cypress" />
 
+import { TestDataGenerator } from '../../../utils/TestDataGenerator';
+
 export class ApiResponseHelper {
   static verifyStatusCode(expectedStatusCode: string | number): void {
     const expectedStatus =
@@ -41,27 +43,30 @@ export class ApiResponseHelper {
         throw new Error('No API response found to verify.');
       }
       const body = apiResponse.body as Record<string, unknown>;
+
+      // Process each row sequentially
       for (const [header, value] of rows) {
-        const expected = ApiResponseHelper.parseExpectedValue(value);
-        const actual = ApiResponseHelper.resolvePath(body, header);
-        cy.log(
-          `Assert: ${header} | Expected: ${JSON.stringify(expected)} | Actual: ${JSON.stringify(actual)}`,
-        );
-        if (Array.isArray(expected)) {
-          if (Array.isArray(actual)) {
-            for (const item of expected) {
-              expect(actual).to.deep.include(item);
+        ApiResponseHelper.resolveExpectedValue(value).then((expected) => {
+          const actual = ApiResponseHelper.resolvePath(body, header);
+          cy.log(
+            `Assert: ${header} | Expected: ${JSON.stringify(expected)} | Actual: ${JSON.stringify(actual)}`,
+          );
+          if (Array.isArray(expected)) {
+            if (Array.isArray(actual)) {
+              for (const item of expected) {
+                expect(actual).to.deep.include(item);
+              }
+            } else {
+              throw new TypeError(
+                `Expected an array for property ${header}, but got ${typeof actual}`,
+              );
             }
+          } else if (expected !== null && typeof expected === 'object') {
+            expect(actual).to.deep.equal(expected);
           } else {
-            throw new TypeError(
-              `Expected an array for property ${header}, but got ${typeof actual}`,
-            );
+            expect(actual).to.equal(expected);
           }
-        } else if (expected !== null && typeof expected === 'object') {
-          expect(actual).to.deep.equal(expected);
-        } else {
-          expect(actual).to.equal(expected);
-        }
+        });
       }
     });
   }
@@ -77,37 +82,65 @@ export class ApiResponseHelper {
       }
       const body = apiResponse.body as Record<string, unknown>;
       const current = ApiResponseHelper.resolvePath(body, propertyPath);
-      const expected = ApiResponseHelper.parseExpectedValue(expectedValue);
 
-      cy.log(
-        `Verifying response property "${propertyPath}": Expected = ${JSON.stringify(
-          expected,
-        )}, Actual = ${JSON.stringify(current)}`,
-      );
+      ApiResponseHelper.resolveExpectedValue(expectedValue).then((expected) => {
+        cy.log(
+          `Verifying response property "${propertyPath}": Expected = ${JSON.stringify(
+            expected,
+          )}, Actual = ${JSON.stringify(current)}`,
+        );
 
-      if (Array.isArray(expected)) {
-        if (Array.isArray(current)) {
-          for (const item of expected) {
-            expect(current).to.deep.include(item);
+        if (Array.isArray(expected)) {
+          if (Array.isArray(current)) {
+            for (const item of expected) {
+              expect(current).to.deep.include(item);
+            }
+          } else {
+            throw new TypeError(
+              `Expected an array for property ${propertyPath}, but got ${typeof current}`,
+            );
           }
+        } else if (expected !== null && typeof expected === 'object') {
+          expect(current).to.deep.equal(expected);
         } else {
-          throw new TypeError(
-            `Expected an array for property ${propertyPath}, but got ${typeof current}`,
-          );
+          expect(current).to.equal(expected);
         }
-      } else if (expected !== null && typeof expected === 'object') {
-        expect(current).to.deep.equal(expected);
-      } else {
-        expect(current).to.equal(expected);
-      }
+      });
     });
   }
 
-  private static parseExpectedValue(value: string): unknown {
+  /**
+   * Resolves expected values by handling aliases and dynamic placeholders
+   * @param value Expected value (can contain :alias references or {RANDOM})
+   * @returns Chainable with resolved value
+   */
+  private static resolveExpectedValue(
+    value: string,
+  ): Cypress.Chainable<unknown> {
+    // Check if the value is an alias reference (starts with :)
+    if (value.startsWith(':')) {
+      const aliasName = value.substring(1);
+      return cy.get(`@${aliasName}`).then((aliasValue) => {
+        // Try to parse the alias value as JSON if possible
+        if (typeof aliasValue === 'string') {
+          try {
+            return JSON.parse(aliasValue) as unknown;
+          } catch {
+            return aliasValue as unknown;
+          }
+        }
+        return aliasValue as unknown;
+      });
+    }
+
+    // Process dynamic values like {RANDOM}, date/time keywords, etc.
+    const processedValue = TestDataGenerator.parseValue(value);
+
+    // Try to parse as JSON after processing dynamic values
     try {
-      return JSON.parse(value);
+      return cy.wrap(JSON.parse(processedValue) as unknown);
     } catch {
-      return value;
+      return cy.wrap(processedValue as unknown);
     }
   }
 

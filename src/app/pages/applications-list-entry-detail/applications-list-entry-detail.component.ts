@@ -520,39 +520,167 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.updateAllErrors();
   }
 
-  onUpdateApplicant(): void {
-    this.resetErrors();
-    this.resetSuccessBanner();
-    this.formSubmitted.set(true);
+  // onUpdateApplicant(): void {
+  //   this.resetErrors();
+  //   this.resetSuccessBanner();
+  //   this.formSubmitted.set(true);
 
-    // Run Angular validation
-    this.form.markAllAsTouched();
-    this.form.controls.standardApplicantCode.updateValueAndValidity({
-      emitEvent: false,
-    });
-    this.form.updateValueAndValidity({ emitEvent: false });
+  //   // Validate applicant section only
+  //   this.updateApplicantErrors();
+  //   this.form.controls.standardApplicantCode.markAllAsTouched();
+  //   this.form.controls.standardApplicantCode.updateValueAndValidity({
+  //     emitEvent: false,
+  //   });
 
-    // Build error summary from control + child errors
-    this.updateAllErrors();
+  //   //TO-DO: This could be refactored further to share one persist update method for onUpdateApplicant and onUpdateApplication
+  //   const standardApplicantErrors = buildFormErrorSummary(
+  //     this.form,
+  //     UPDATE_ENTRY_ERROR_MESSAGES,
+  //     { hrefs: ERROR_HREFS },
+  //   ).filter((e) => e.id === 'standardApplicantCode');
 
-    if (this.errorFound) {
-      return;
-    }
+  //   this.summaryErrors = [
+  //     ...getUniqueErrors(
+  //       [],
+  //       [...this.childErrors.applicant, ...standardApplicantErrors],
+  //     ),
+  //   ];
+  //   this.errorFound = this.summaryErrors.length > 0;
 
-    // Ensure we have entryId and a loaded server snapshot
+  //   if (this.errorFound) {
+  //     focusErrorSummary(this.platformId);
+  //     return;
+  //   }
+
+  //   const entryId = getEntryId(this.route);
+  //   if (!entryId || !this.entryDetail) {
+  //     this.errorFound = true;
+  //     this.summaryErrors = [
+  //       { text: 'Entry is not loaded. Reload the page and try again.' },
+  //     ];
+  //     focusErrorSummary(this.platformId);
+  //     return;
+  //   }
+
+  //   const entryUpdateDto = this.buildEntryUpdateDto();
+
+  //   const params: UpdateApplicationListEntryRequestParams = {
+  //     listId: this.appListId,
+  //     entryId,
+  //     entryUpdateDto,
+  //   };
+
+  //   this.entriesApi
+  //     .updateApplicationListEntry(params, 'body', false, {
+  //       context: undefined,
+  //       transferCache: false,
+  //     })
+  //     .pipe(takeUntilDestroyed(this.destroyRef))
+  //     .subscribe({
+  //       next: (res) => {
+  //         this.formSubmitted.set(false);
+  //         this.errorFound = false;
+  //         this.mergeEntryDetailUpdate(entryUpdateDto, res);
+
+  //         this.successBanner = ENTRY_SUCCESS_MESSAGES.applicantUpdated;
+
+  //         if (this.applicantType === 'person') {
+  //           markFormGroupClean(this.personGroup);
+  //         } else if (this.applicantType === 'org') {
+  //           markFormGroupClean(this.organisationGroup);
+  //         } else {
+  //           this.form.controls.standardApplicantCode.markAsPristine();
+  //         }
+  //       },
+  //       error: (err) => {
+  //         this.formSubmitted.set(false);
+  //         this.applyMappedError(err);
+  //         focusErrorSummary(this.platformId);
+  //       },
+  //     });
+  // }
+
+  // onUpdateApplication(): void {
+  //   this.resetErrors();
+  //   this.resetSuccessBanner();
+  //   this.formSubmitted.set(true);
+
+  //   // Run Angular validation
+  //   this.form.markAllAsTouched();
+  //   this.form.controls.standardApplicantCode.updateValueAndValidity({
+  //     emitEvent: false,
+  //   });
+  //   this.form.updateValueAndValidity({ emitEvent: false });
+
+  //   // Build error summary from control + child errors
+  //   this.updateAllErrors();
+
+  //   if (this.errorFound) {
+  //     return;
+  //   }
+
+  //   // Ensure we have entryId and a loaded server snapshot
+  //   const entryId = getEntryId(this.route);
+  //   if (!entryId || !this.entryDetail) {
+  //     this.errorFound = true;
+  //     this.summaryErrors = [
+  //       {
+  //         text: 'Entry is not loaded. Reload the page and try again.',
+  //       },
+  //     ];
+  //     focusErrorSummary(this.platformId);
+  //     return;
+  //   }
+
+  //   const entryUpdateDto = this.buildEntryUpdateDto();
+
+  //   const params: UpdateApplicationListEntryRequestParams = {
+  //     listId: this.appListId,
+  //     entryId,
+  //     entryUpdateDto,
+  //   };
+
+  //   this.entriesApi
+  //     .updateApplicationListEntry(params, 'body', false, {
+  //       context: undefined,
+  //       transferCache: false,
+  //     })
+  //     .pipe(takeUntilDestroyed(this.destroyRef))
+  //     .subscribe({
+  //       next: (res) => {
+  //         this.formSubmitted.set(false);
+  //         this.errorFound = false;
+  //         this.mergeEntryDetailUpdate(entryUpdateDto, res);
+
+  //         this.successBanner = ENTRY_SUCCESS_MESSAGES.listUpdated;
+
+  //         if (this.applicantType === 'person') {
+  //           markFormGroupClean(this.personGroup);
+  //         } else if (this.applicantType === 'org') {
+  //           markFormGroupClean(this.organisationGroup);
+  //         }
+  //       },
+  //       error: (err) => {
+  //         this.formSubmitted.set(false);
+  //         this.applyMappedError(err);
+  //         focusErrorSummary(this.platformId);
+  //       },
+  //     });
+  // }
+
+  private submitEntryUpdate(
+    entryUpdateDto: EntryUpdateDto,
+    successBanner: SuccessBanner,
+  ): void {
     const entryId = getEntryId(this.route);
     if (!entryId || !this.entryDetail) {
       this.errorFound = true;
       this.summaryErrors = [
-        {
-          text: 'Entry is not loaded. Reload the page and try again.',
-        },
+        { text: 'Entry is not loaded. Reload the page and try again.' },
       ];
       focusErrorSummary(this.platformId);
       return;
     }
-
-    const entryUpdateDto = this.buildEntryUpdateDto();
 
     const params: UpdateApplicationListEntryRequestParams = {
       listId: this.appListId,
@@ -571,13 +699,14 @@ export class ApplicationsListEntryDetail implements OnInit {
           this.formSubmitted.set(false);
           this.errorFound = false;
           this.mergeEntryDetailUpdate(entryUpdateDto, res);
-
-          this.successBanner = ENTRY_SUCCESS_MESSAGES.applicantUpdated;
+          this.successBanner = successBanner;
 
           if (this.applicantType === 'person') {
             markFormGroupClean(this.personGroup);
           } else if (this.applicantType === 'org') {
             markFormGroupClean(this.organisationGroup);
+          } else {
+            this.form.controls.standardApplicantCode.markAsPristine();
           }
         },
         error: (err) => {
@@ -586,6 +715,47 @@ export class ApplicationsListEntryDetail implements OnInit {
           focusErrorSummary(this.platformId);
         },
       });
+  }
+
+  private runFullSubmitValidation(): boolean {
+    this.form.markAllAsTouched();
+    this.form.controls.standardApplicantCode.updateValueAndValidity({
+      emitEvent: false,
+    });
+    this.form.updateValueAndValidity({ emitEvent: false });
+
+    this.updateAllErrors();
+    return this.errorFound;
+  }
+
+  onUpdateApplicant(): void {
+    this.resetErrors();
+    this.resetSuccessBanner();
+    this.formSubmitted.set(true);
+
+    if (this.runFullSubmitValidation()) {
+      return;
+    }
+
+    this.submitEntryUpdate(
+      this.buildEntryUpdateDto(),
+      ENTRY_SUCCESS_MESSAGES.applicantUpdated,
+    );
+  }
+
+  onUpdateApplication(): void {
+    this.resetErrors();
+    this.resetSuccessBanner();
+    this.formSubmitted.set(true);
+
+    if (this.runFullSubmitValidation()) {
+      return;
+    }
+
+    this.submitEntryUpdate(
+      this.buildEntryUpdateDto(),
+      ENTRY_SUCCESS_MESSAGES.listUpdated,
+    );
   }
 
   private buildEntryUpdateDto(): EntryUpdateDto {

@@ -187,6 +187,14 @@ Run below to run code using Wiremock/Stub
 yarn dev:stub
 ```
 
+If you do not have Azure SSO onboarding yet, run the local SSO bypass mode:
+
+```powershell
+yarn dev:stub:no-sso
+```
+
+This mode also injects a local dummy bearer token for API proxy calls so WireMock auth-header matchers pass. You can override it with `DEV_BYPASS_BEARER_TOKEN`.
+
 Run below to run code using Staging connectivity (VPN required)
 
 ```powershell
@@ -276,7 +284,7 @@ yarn mock:gen:errors
 
 ```bash
 yarn mock:gen
-# -> runs: node scripts/gen-wiremock-mappings.cjs
+# -> runs: node scripts/gen-wiremock-mappings.mjs
 # Reads the OpenAPI spec, creates one 2xx mapping per endpoint,
 # and one mapping per error code (401/403/404/… as defined).
 # If a curated fixture exists, it’s used via "bodyFileName".
@@ -292,7 +300,7 @@ yarn mock:sync
 
 ### How the generator scripts work
 
-- **OpenAPI ingest:** `gen-wiremock-mappings.cjs` reads `tools/openapi/vendor/openapi/openapi.yaml` (and local `$refs`).
+- **OpenAPI ingest:** `gen-wiremock-mappings.mjs` reads `tools/openapi/vendor/openapi/openapi.yaml` (and local `$refs`).
 - **Grouping:** Each operation is grouped by its first OpenAPI tag (e.g., `court-locations`).
 - **One success mapping per endpoint:**
   - Prefers the curated fixture at `wiremock/__files/fixtures/<group>/<opId-kebab>-<2xx>.json`.

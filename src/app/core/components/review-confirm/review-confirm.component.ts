@@ -11,22 +11,22 @@ import {
 import { HeaderService } from '@services/header.service';
 
 @Component({
-  selector: 'app-delete',
+  selector: 'app-review-confirm',
   standalone: true,
   imports: [],
-  templateUrl: './delete.component.html',
+  templateUrl: './review-confirm.component.html',
 })
-export class DeleteComponent implements OnInit, OnDestroy {
+export class ReviewConfirmComponent implements OnInit, OnDestroy {
   numberOfItems = input<number>(0);
   title = input<string>('');
-  deleteButtonTxt = input<string>('Yes - delete');
+  confirmButtonTxt = input<string>('Continue');
   cancelButtonTxt = input<string>('Cancel');
-  isRedDeleteButton = input<boolean>(true);
+  isRedButton = input<boolean>(true);
 
   confirm = output<void>();
   cancelled = output<void>();
 
-  isDeleting = signal(false);
+  isConfirmed = signal(false);
 
   headerService = inject(HeaderService);
 
@@ -39,12 +39,12 @@ export class DeleteComponent implements OnInit, OnDestroy {
   }
 
   onConfirm(): void {
-    this.isDeleting.set(true);
+    this.isConfirmed.set(true);
     this.confirm.emit();
   }
 
   onCancel(): void {
-    this.isDeleting.set(false);
+    this.isConfirmed.set(false);
     this.cancelled.emit();
   }
 }

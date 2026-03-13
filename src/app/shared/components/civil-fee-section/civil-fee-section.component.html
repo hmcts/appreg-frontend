@@ -1,32 +1,36 @@
 <div [formGroup]="feeForm()">
-  <div class="govuk-form-group">
-    <div
-      class="govuk-checkboxes govuk-checkboxes--small"
-      data-module="govuk-checkboxes"
-    >
-      <div class="govuk-checkboxes__item">
-        <input
-          class="govuk-checkboxes__input"
-          id="offSiteFee"
-          type="checkbox"
-          formControlName="hasOffsiteFee"
-          (click)="onOffsiteFeeChange()"
-          (keydown.enter)="onOffsiteFeeChange($event)"
-        />
+  @if (feeRequired()) {
+    <div class="govuk-form-group">
+      <div
+        class="govuk-checkboxes govuk-checkboxes--small"
+        data-module="govuk-checkboxes"
+      >
+        <div class="govuk-checkboxes__item">
+          <input
+            class="govuk-checkboxes__input"
+            id="offSiteFee"
+            type="checkbox"
+            formControlName="hasOffsiteFee"
+            (click)="onOffsiteFeeChange()"
+            (keydown.enter)="onOffsiteFeeChange($event)"
+          />
 
-        <label class="govuk-label govuk-checkboxes__label" for="offSiteFee">
-          Off site fee applies
-        </label>
-        <div class="govuk-hint govuk-checkboxes__hint">
-          Selecting this will automatically apply the off site fee to the entry.
-          This change is saved immediately.
+          <label class="govuk-label govuk-checkboxes__label" for="offSiteFee">
+            Off site fee applies
+          </label>
+          <div class="govuk-hint govuk-checkboxes__hint">
+            Selecting this will automatically apply the off site fee to the
+            entry. This change is saved immediately.
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  }
 
   <section id="civil-fee-section">
-    <h2 class="govuk-heading-s">{{ feeHeadingText() }}</h2>
+    <h2 class="govuk-heading-s">
+      {{ feeRequired() ? feeHeadingText() : 'No fee required' }}
+    </h2>
 
     <app-sortable-table
       id="civil-fee-table"
@@ -58,8 +62,9 @@
     </app-sortable-table>
   </section>
 
-  <h2 class="govuk-heading-s">Update fee status</h2>
-
+  @if (feeRequired()) {
+    <h2 class="govuk-heading-s">Update fee status</h2>
+  }
   <div class="govuk-grid-row">
     <!-- Fee status -->
     <app-select-input
@@ -92,7 +97,12 @@
   </div>
 
   <div class="govuk-button-group">
-    <button type="button" class="govuk-button" (click)="onAddFeeDetailsClick()">
+    <button
+      type="button"
+      class="govuk-button"
+      [disabled]="!feeRequired()"
+      (click)="onAddFeeDetailsClick()"
+    >
       Add fee details
     </button>
   </div>

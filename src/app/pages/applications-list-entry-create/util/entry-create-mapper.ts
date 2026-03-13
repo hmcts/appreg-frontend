@@ -194,19 +194,14 @@ function buildFeeStatuses(
 function buildWordingFields(
   formValue: ApplicationsListEntryFormValue,
 ): TemplateSubstitution[] | undefined {
-  const courtName = toOptionalTrimmed(formValue.courtName);
-  const orgName = toOptionalTrimmed(formValue.organisationName);
+  const fields = (formValue.wordingFields ?? [])
+    .map((field) => ({
+      key: (field.key ?? '').trim(),
+      value: (field.value ?? '').trim(),
+    }))
+    .filter((field) => field.key.length > 0 && field.value.length > 0);
 
-  const fields: TemplateSubstitution[] = [];
-  // The key's are not set but hardcoding it for what we have right now
-  if (courtName !== null && typeof courtName === 'string') {
-    fields.push({ key: 'courtName', value: courtName });
-  }
-  if (orgName !== null && typeof orgName === 'string') {
-    fields.push({ key: 'organisationName', value: orgName });
-  }
-
-  return fields.length ? fields : undefined;
+  return fields.length > 0 ? fields : undefined;
 }
 
 function buildNotesFields(formValue: ApplicationsListEntryFormValue) {

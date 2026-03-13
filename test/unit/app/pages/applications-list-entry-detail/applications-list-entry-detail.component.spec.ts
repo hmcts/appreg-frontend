@@ -200,10 +200,10 @@ describe('ApplicationsListEntryDetail', () => {
     freshFixture.detectChanges();
 
     expect(freshComponent.successBanner?.heading).toBe(
-      'Application list created',
+      'Application list entry created',
     );
     expect(freshComponent.successBanner?.body).toBe(
-      'The application list has been created successfully.',
+      'The application list entry has been created successfully.',
     );
   });
 

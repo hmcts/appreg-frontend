@@ -18,7 +18,7 @@ Feature: Application List Row Actions
         When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
-        Then User Sees Notification Banner "There is a problem No entries available to print"
+        Then User Sees Validation Error Banner "There is a problem No entries available to print"
         Then User Clears The "Description" Textbox
         Then User Enters "past" Into The "Description" Textbox
         When User Clicks On The "Search" Button
@@ -51,7 +51,7 @@ Feature: Application List Row Actions
             "surname": "Taylor {RANDOM}",
             "firstForename": "Henry",
             "secondForename": "James",
-            "thirdForename": ""
+            "thirdForename": null
             },
             "contactDetails": {
             "addressLine1": "{RANDOM} King Street",
@@ -74,14 +74,14 @@ Feature: Application List Row Actions
             "surname": "Clark {RANDOM}",
             "firstForename": "Emily",
             "secondForename": "Rose",
-            "thirdForename": ""
+            "thirdForename": null
             },
             "contactDetails": {
             "addressLine1": "{RANDOM} Market Road",
             "addressLine2": "Bristol",
             "addressLine3": "Avon",
             "addressLine4": "United Kingdom",
-            "addressLine5": "",
+            "addressLine5": null,
             "postcode": "BS1 5AA",
             "phone": "0117{RANDOM}",
             "mobile": "07984{RANDOM}",
@@ -390,8 +390,8 @@ Feature: Application List Row Actions
             "contactDetails": {
             "addressLine1": "{RANDOM} Fleet Street",
             "addressLine2": "London",
-            "addressLine3": "",
-            "addressLine4": "",
+            "addressLine3": null,
+            "addressLine4": null,
             "addressLine5": "United Kingdom",
             "postcode": "EC4Y 1AA",
             "phone": "01132 654321",
@@ -503,18 +503,18 @@ Feature: Application List Row Actions
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | 0       | <Status> |
-        Then User Sees Notification Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
+        Then User Sees Warning Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         Then User Clicks On The Link "Cancel"
         Then User Should See The Table "<TableName>"
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | 0       | <Status> |
-        Then User Sees Notification Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
+        Then User Sees Warning Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
         Then User Should See The Link "Create new list"
-        Then User Sees Notification Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
+        Then User Sees Success Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
         Then User Clears The "Description" Textbox
         When User Set Date Field "Date" To "<SearchDate>"
         When User Clicks On The "Search" Button
@@ -595,14 +595,14 @@ Feature: Application List Row Actions
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
-        Then User Sees Notification Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
+        Then User Sees Warning Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         Then User Should See Row In Table With Values:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         When User Clicks On The "Yes - delete" Button
         Then User Should See The Link "Create new list"
-        Then User Sees Notification Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
+        Then User Sees Success Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
         When User Set Date Field "Date" To "<SearchDate>"
         When User Clicks On The "Search" Button
         Then User Should Not See Row In Table "<TableName>" With Values:

@@ -16,12 +16,6 @@
     [items]="vm().summaryErrors"
     (itemSelect)="onCreateErrorClick($event)"
   />
-} @else if (vm().createDone) {
-  <app-success-banner
-    heading="Applications list successfully created"
-    [linkCommands]="['/applications-list', ':id']"
-    linkText="Click here to go back"
-  />
 }
 
 <hr
@@ -58,6 +52,7 @@
   <ng-template #wordingTpl>
     @if (vm().appCodeDetail; as appCodeDetail) {
       <app-wording-section
+        #wordingSection
         [wordingObject]="appCodeDetail.wording"
         [wordingSubmitAttempt]="wordingSubmitAttempt()"
         (wordingFieldsDTO)="onWordingFieldsDTO($event)"
@@ -83,6 +78,7 @@
 
   <ng-template #civilFeeTpl>
     <app-civil-fee-section
+      #civilFeeSection
       [civilFeeColumns]="civilFeeColumns"
       [feeStatusOptions]="feeStatusOptions"
       [feeForm]="civilFeeForm"

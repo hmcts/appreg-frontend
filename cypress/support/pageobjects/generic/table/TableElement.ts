@@ -155,4 +155,23 @@ export class TableElement {
     }
     return $pagination.find('a[aria-label^="Page "]');
   }
+
+  /**
+   * Gets the current page number from pagination
+   * @param $body The body element to search within
+   * @returns The current page number, or 1 if not found
+   */
+  static getCurrentPageNumber($body: JQuery<HTMLElement>): number {
+    const $currentPage = $body.find(
+      'a[aria-current="page"][aria-label^="Page "]',
+    );
+    if ($currentPage.length > 0) {
+      const ariaLabel = $currentPage.attr('aria-label') || '';
+      const match = ariaLabel.match(/Page (\d+)/);
+      if (match) {
+        return parseInt(match[1], 10);
+      }
+    }
+    return 1;
+  }
 }

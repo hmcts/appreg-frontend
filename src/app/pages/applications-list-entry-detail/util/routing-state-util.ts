@@ -1,7 +1,11 @@
 import { Location, isPlatformBrowser } from '@angular/common';
 import { FormGroup } from '@angular/forms';
 
-import { ApplicationListGetSummaryDto, ApplicationListStatus } from '@openapi';
+import {
+  ApplicationListGetDetailDto,
+  ApplicationListGetSummaryDto,
+  ApplicationListStatus,
+} from '@openapi';
 import { hasStringProp, isRecord } from '@util/data-utils';
 import { has } from '@util/has';
 import { isNullableString } from '@util/string-helpers';
@@ -89,18 +93,30 @@ export function readNavState(
   return isNavState(raw) ? raw : null;
 }
 
-export function toRow(x: ApplicationListGetSummaryDto): ApplicationListRow {
+function getRowLocation(
+  x: ApplicationListGetSummaryDto | ApplicationListGetDetailDto,
+): string {
+  if ('location' in x) {
+    return x.location;
+  }
+
+  return x.courtName ?? x.otherLocationDescription ?? '';
+}
+
+export function toRow(
+  x: ApplicationListGetSummaryDto | ApplicationListGetDetailDto,
+): ApplicationListRow {
   return {
     id: x.id,
     date: x.date,
     time: normaliseTime(x.time) ?? '',
-    location: x.location,
+    location: getRowLocation(x),
     description: x.description,
-    entries: x.entriesCount,
+    entries: x.entriesCount ?? 0,
     status: x.status,
     deletable: x.status === ApplicationListStatus.OPEN,
     etag: null,
-    rowVersion: null,
+    rowVersion: 'version' in x ? x.version.toString() : null,
   };
 }
 
