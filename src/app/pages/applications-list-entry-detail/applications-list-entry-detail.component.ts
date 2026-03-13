@@ -173,7 +173,6 @@ export class ApplicationsListEntryDetail implements OnInit {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly router = inject(Router);
   private readonly entriesApi = inject(ApplicationListEntriesApi);
-  private readonly codesApi = inject(ApplicationCodesApi);
   private readonly formSvc = inject(ApplicationListEntryFormService);
   private readonly location = inject(Location);
   private readonly applicationCodesApi = inject(ApplicationCodesApi);
@@ -882,7 +881,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.form.patchValue({ lodgementDate, applicationCode });
 
     if (applicationCode && lodgementDate) {
-      this.codesApi
+      this.applicationCodesApi
         .getApplicationCodeByCodeAndDate(
           { code: applicationCode, date: lodgementDate },
           'body',
