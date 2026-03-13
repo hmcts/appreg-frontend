@@ -12,10 +12,13 @@ export class TableNavigation {
    */
   static goToNextPageIfExists(): Cypress.Chainable<boolean> {
     return cy.get('body').then(($body) => {
-      const $nextButton = TableElement.getNextPaginationButton($body);
+      const $nextButton = TableElement.getEnabledNextPaginationButton($body);
       if ($nextButton.length > 0) {
+        // Capture current page before clicking
+        const currentPage = TableElement.getCurrentPageNumber($body);
+        
         return cy.get('body').then(($freshBody) => {
-          const $freshButton = TableElement.getNextPaginationButton($freshBody);
+          const $freshButton = TableElement.getEnabledNextPaginationButton($freshBody);
           return cy
             .wrap($freshButton.first())
             .click({ force: true })
@@ -26,7 +29,18 @@ export class TableNavigation {
                 .should('be.visible')
                 .and('not.have.class', 'animating');
             })
-            .then(() => true);
+            .then(() => {
+              // Verify page actually changed
+              return cy.get('body').then(($newBody) => {
+                const newPage = TableElement.getCurrentPageNumber($newBody);
+                if (newPage === currentPage) {
+                  // Page didn't change, stop pagination
+                  cy.log(`Page did not change (still on page ${currentPage}), stopping pagination`);
+                  return false;
+                }
+                return true;
+              });
+            });
         });
       }
       return cy.wrap(false);
