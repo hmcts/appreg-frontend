@@ -14,6 +14,11 @@ export type ApplicantContext = {
   title: string;
 };
 
+export type ApplicationEntriesResultContext = {
+  id: string;
+  sequenceNumber: string;
+} & ApplicantContext;
+
 export type PaymentRefReturn = {
   updatedRowId: string;
   newPaymentReference: string;

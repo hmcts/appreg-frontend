@@ -395,6 +395,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     }
 
     const resultingApplications = unResultedApplications.map((r) => ({
+      id: r.id,
       sequenceNumber: r.sequenceNumber,
       applicant: r.applicant,
       respondent: r.respondent,
@@ -406,7 +407,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
     void this.router.navigate(['result-selected'], {
       relativeTo: this.route,
-      state: { resultingApplications, mixedResultedAndUnresultedApplications },
+      state: {
+        resultingApplications,
+        mixedResultedAndUnresultedApplications,
+      },
     });
   }
 
