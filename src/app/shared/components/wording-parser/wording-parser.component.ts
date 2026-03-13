@@ -66,10 +66,7 @@ export class WordingParserComponent implements OnInit {
       this.lastHandledAttempt = attempt;
 
       if (this.showSaveButton()) {
-        this.submitted.set(true);
-        this.form.markAllAsTouched();
-        this.form.updateValueAndValidity({ emitEvent: false });
-        this.wordingFieldErrors.emit(this.form.valid ? [] : this.buildErrors());
+        this.validateForSubmit();
         return;
       }
 
@@ -176,17 +173,41 @@ export class WordingParserComponent implements OnInit {
   }
 
   submitWordingFields(): void {
+    const errors = this.validateForSubmit({ enforceSavedWording: false });
+
+    if (errors.length === 0) {
+      this.wordingFieldsDTO.emit(this.toWordingFields(this.form));
+      this.form.markAsPristine();
+    }
+  }
+
+  validateForSubmit(opts: { enforceSavedWording?: boolean } = {}): ErrorItem[] {
     this.submitted.set(true);
+
+    const enforceSavedWording = opts.enforceSavedWording ?? true;
 
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity({ emitEvent: false });
 
-    if (this.form.valid) {
-      this.wordingFieldErrors.emit([]);
-      this.wordingFieldsDTO.emit(this.toWordingFields(this.form));
-    } else {
-      this.wordingFieldErrors.emit(this.buildErrors());
+    const validationErrors = this.form.valid ? [] : this.buildErrors();
+    if (validationErrors.length > 0) {
+      this.wordingFieldErrors.emit(validationErrors);
+      return validationErrors;
     }
+
+    if (enforceSavedWording && this.showSaveButton() && this.form.dirty) {
+      const errors: ErrorItem[] = [
+        {
+          text: `Save wording changes in the ${this.section()} section before submitting`,
+          href: '#save-wording-button',
+        },
+      ];
+      this.wordingFieldErrors.emit(errors);
+      return errors;
+    }
+
+    this.wordingFieldErrors.emit([]);
+    return [];
   }
 
   private toWordingFields(form: FormGroup): {

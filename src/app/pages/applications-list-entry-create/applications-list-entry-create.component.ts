@@ -15,6 +15,7 @@ import {
   DestroyRef,
   OnInit,
   PLATFORM_ID,
+  ViewChild,
   inject,
   signal,
 } from '@angular/core';
@@ -80,6 +81,7 @@ import {
   CivilFeeMeta,
 } from '@shared-types/civil-fee/civil-fee';
 import { buildRespondentErrors } from '@util/applications-list-entry-error-helpers';
+import { collectChildSubmitErrors } from '@util/child-submit-validation';
 import {
   readPaymentRefReturnState,
   updateFeeStatusesControl,
@@ -169,6 +171,10 @@ export class ApplicationsListEntryCreate implements OnInit {
   feeStatusOptions = FEE_STATUS_OPTIONS;
   feeMeta: CivilFeeMeta | null = null;
   civilFeeForm: CivilFeeForm = this.formSvc.createCivilFeeForm(this.forms);
+  @ViewChild('wordingSection')
+  private wordingSection?: WordingSectionComponent;
+  @ViewChild('civilFeeSection')
+  private civilFeeSection?: CivilFeeSectionComponent;
 
   ngOnInit(): void {
     this.appListEntryCreateState().id = this.route.snapshot.paramMap.get('id')!;
@@ -209,14 +215,15 @@ export class ApplicationsListEntryCreate implements OnInit {
   onSubmit(e: Event): void {
     e.preventDefault();
 
-    this.wordingSubmitAttempt.update((n) => n + 1);
     this.resetFlags();
+    this.wordingSubmitAttempt.update((n) => n + 1);
 
     this.appListEntryCreatePatch({ submitted: true });
 
     //Run Angular validation
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity({ emitEvent: false });
+    this.validateChildSectionsForSubmit();
 
     // Build error summary from control errors + child errors
     this.updateErrors({
@@ -378,6 +385,20 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.updateErrors({
       validateOtherSections: this.appListEntryCreateState().submitted,
     });
+  }
+
+  private validateChildSectionsForSubmit(): void {
+    const submitErrors = collectChildSubmitErrors<ChildErrorSource>([
+      { source: 'wording', section: this.wordingSection },
+      { source: 'civilFee', section: this.civilFeeSection },
+    ]);
+
+    if (submitErrors.wording) {
+      this.childErrors.wording = submitErrors.wording;
+    }
+    if (submitErrors.civilFee) {
+      this.childErrors.civilFee = submitErrors.civilFee;
+    }
   }
 
   onCodeSelected(codeAndLodgementDate: { code: string; date: string }): void {
