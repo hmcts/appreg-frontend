@@ -3,7 +3,7 @@ appVersion: '1.0'
 description: A Helm chart for appreg-frontend App
 name: appreg-frontend
 home: https://github.com/hmcts/appreg-frontend
-version: 0.0.11
+version: 0.0.12
 dependencies:
   - name: nodejs
     version: 3.2.0
