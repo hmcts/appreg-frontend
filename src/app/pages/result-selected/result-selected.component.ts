@@ -23,7 +23,7 @@ import { ApplicationListEntryResultsFacade } from '@services/applications-list-e
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
 
-type BatchResult =
+export type BatchResult =
   | {
       id: string;
       sequenceNumber?: number;
