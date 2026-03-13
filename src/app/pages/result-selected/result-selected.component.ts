@@ -45,6 +45,9 @@ export type BatchResult =
     ReactiveFormsModule,
     BreadcrumbsComponent,
     WarningBannerComponent,
+    ResultWordingSectionComponent,
+    SuccessBannerComponent,
+    ErrorSummaryComponent,
   ],
   templateUrl: './result-selected.component.html',
 })
