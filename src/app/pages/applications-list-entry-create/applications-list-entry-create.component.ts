@@ -58,7 +58,6 @@ import {
 } from '@components/error-summary/error-summary.component';
 import { NotesSectionComponent } from '@components/notes-section/notes-section.component';
 import { RespondentSectionComponent } from '@components/respondent-section/respondent-section.component';
-import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
 import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
 import {
@@ -104,7 +103,6 @@ import { createSignalState } from '@util/signal-state-helpers';
     RouterModule,
     BreadcrumbsComponent,
     AccordionComponent,
-    SuccessBannerComponent,
     ErrorSummaryComponent,
     ApplicationCodeSearchComponent,
     NotesSectionComponent,

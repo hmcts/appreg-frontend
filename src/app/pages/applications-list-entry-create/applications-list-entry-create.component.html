@@ -16,12 +16,6 @@
     [items]="vm().summaryErrors"
     (itemSelect)="onCreateErrorClick($event)"
   />
-} @else if (vm().createDone) {
-  <app-success-banner
-    heading="Applications list successfully created"
-    [linkCommands]="['/applications-list', ':id']"
-    linkText="Click here to go back"
-  />
 }
 
 <hr
