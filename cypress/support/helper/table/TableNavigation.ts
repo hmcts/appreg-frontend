@@ -16,9 +16,10 @@ export class TableNavigation {
       if ($nextButton.length > 0) {
         // Capture current page before clicking
         const currentPage = TableElement.getCurrentPageNumber($body);
-        
+
         return cy.get('body').then(($freshBody) => {
-          const $freshButton = TableElement.getEnabledNextPaginationButton($freshBody);
+          const $freshButton =
+            TableElement.getEnabledNextPaginationButton($freshBody);
           return cy
             .wrap($freshButton.first())
             .click({ force: true })
@@ -35,7 +36,9 @@ export class TableNavigation {
                 const newPage = TableElement.getCurrentPageNumber($newBody);
                 if (newPage === currentPage) {
                   // Page didn't change, stop pagination
-                  cy.log(`Page did not change (still on page ${currentPage}), stopping pagination`);
+                  cy.log(
+                    `Page did not change (still on page ${currentPage}), stopping pagination`,
+                  );
                   return false;
                 }
                 return true;
