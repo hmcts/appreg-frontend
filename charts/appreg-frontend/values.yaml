@@ -14,8 +14,8 @@ nodejs:
           alias: azure-client-secret-fe
         - name: azure-app-id
           alias: azure-app-id-fe
-        - name: redis-access-key
-          alias: redis-access-key
+        - name: redis-connection-string
+          alias: redis-connection-string
         - name: test-user1-email
           alias: TEST-USER1-EMAIL
         - name: test-user2-email
