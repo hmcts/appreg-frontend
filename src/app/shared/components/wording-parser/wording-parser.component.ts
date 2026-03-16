@@ -59,6 +59,18 @@ export class WordingParserComponent {
     // Ensures we display the correct wording field on subsequent app code changes
     effect(() => this.tokeniseAndPatchWordingField());
 
+    effect((onCleanup) => {
+      if (this.showSaveButton()) {
+        return;
+      }
+
+      const sub = this.form.valueChanges.subscribe(() => {
+        this.wordingFieldsDTO.emit(this.toWordingFields(this.form));
+      });
+
+      onCleanup(() => sub.unsubscribe());
+    });
+
     effect(() => {
       const attempt = this.wordingSubmitAttempt();
       if (attempt === 0 || attempt === this.lastHandledAttempt) {
@@ -87,6 +99,24 @@ export class WordingParserComponent {
       }
       return acc;
     }, {});
+
+    // Remove stale controls from previous templates
+    const activeInputKeys = this.tokens
+      .filter(
+        (token): token is { type: 'input'; key: string } =>
+          token.type === 'input',
+      )
+      .map((token) => token.key);
+
+    const activeFormKeys = new Set(
+      activeInputKeys.map((key) => this.normaliseKey(key)),
+    );
+
+    Object.keys(this.form.controls).forEach((existingKey) => {
+      if (!activeFormKeys.has(existingKey)) {
+        this.form.removeControl(existingKey);
+      }
+    });
 
     this.normalisedKeyToKeyMap.clear();
 
