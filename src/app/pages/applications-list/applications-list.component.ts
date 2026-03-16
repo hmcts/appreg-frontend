@@ -199,7 +199,9 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     }
 
     // Refresh applications lists after navigating back
-    this.loadApplicationsLists(hasAnyParams(this.form));
+    if (this.storedRecordsVm().rows.length > 0) {
+      this.loadApplicationsLists(hasAnyParams(this.form));
+    }
   }
 
   restoreFormValues(): void {
