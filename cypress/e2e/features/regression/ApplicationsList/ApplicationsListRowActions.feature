@@ -42,145 +42,145 @@ Feature: Application List Row Actions
         When User Makes POST API Request To "/application-lists/:listId/entries" With Json Body
             """
             {
-            "standardApplicantCode": null,
-            "applicationCode": "CT99002",
-            "applicant": {
-            "person": {
-            "name": {
-            "title": "Mr",
-            "surname": "Taylor {RANDOM}",
-            "firstForename": "Henry",
-            "secondForename": "James",
-            "thirdForename": null
-            },
-            "contactDetails": {
-            "addressLine1": "{RANDOM} King Street",
-            "addressLine2": "Westminster",
-            "addressLine3": "London",
-            "addressLine4": "Greater London",
-            "addressLine5": "United Kingdom",
-            "postcode": "SW1A 1AA",
-            "phone": "0203{RANDOM}",
-            "mobile": "07123{RANDOM}",
-            "email": "applicant{RANDOM}@example.com"
-            }
-            },
-            "organisation": null
-            },
-            "respondent": {
-            "person": {
-            "name": {
-            "title": "Ms",
-            "surname": "Clark {RANDOM}",
-            "firstForename": "Emily",
-            "secondForename": "Rose",
-            "thirdForename": null
-            },
-            "contactDetails": {
-            "addressLine1": "{RANDOM} Market Road",
-            "addressLine2": "Bristol",
-            "addressLine3": "Avon",
-            "addressLine4": "United Kingdom",
-            "addressLine5": null,
-            "postcode": "BS1 5AA",
-            "phone": "0117{RANDOM}",
-            "mobile": "07984{RANDOM}",
-            "email": "respondent{RANDOM}@example.com"
-            }
-            },
-            "dateOfBirth": "todayiso-25y",
-            "organisation": null
-            },
-            "numberOfRespondents": null,
-            "wordingFields": [
-            {
-            "key": "Reference",
-            "value": "{RANDOM}"
-            }
-            ],
-            "feeStatuses": [],
-            "hasOffsiteFee": true,
-            "caseReference": "CASE-{RANDOM}",
-            "accountNumber": "ACC-{RANDOM}",
-            "notes": "Case noted with ref {RANDOM}",
-            "lodgementDate": "todayiso",
-            "officials": [
-            {
-            "title": "Mr",
-            "surname": "Turner {RANDOM}",
-            "forename": "Graham",
-            "type": "MAGISTRATE"
-            },
-            {
-            "title": "Ms",
-            "surname": "Hayes {RANDOM}",
-            "forename": "Laura",
-            "type": "MAGISTRATE"
-            },
-            {
-            "title": "Mr",
-            "surname": "Miller {RANDOM}",
-            "forename": "Peter",
-            "type": "CLERK"
-            },
-            {
-            "title": "Ms",
-            "surname": "Patel {RANDOM}",
-            "forename": "Anita",
-            "type": "MAGISTRATE"
-            }
-            ]
+                "standardApplicantCode": null,
+                "applicationCode": "CT99002",
+                "applicant": {
+                    "person": {
+                        "name": {
+                            "title": "Mr",
+                            "surname": "Taylor {RANDOM}",
+                            "firstForename": "Henry",
+                            "secondForename": "James",
+                            "thirdForename": null
+                        },
+                        "contactDetails": {
+                            "addressLine1": "{RANDOM} King Street",
+                            "addressLine2": "Westminster",
+                            "addressLine3": "London",
+                            "addressLine4": "Greater London",
+                            "addressLine5": "United Kingdom",
+                            "postcode": "SW1A 1AA",
+                            "phone": "0203{RANDOM}",
+                            "mobile": "07123{RANDOM}",
+                            "email": "applicant{RANDOM}@example.com"
+                        }
+                    },
+                    "organisation": null
+                },
+                "respondent": {
+                    "person": {
+                        "name": {
+                            "title": "Ms",
+                            "surname": "Clark {RANDOM}",
+                            "firstForename": "Emily",
+                            "secondForename": "Rose",
+                            "thirdForename": null
+                        },
+                        "contactDetails": {
+                            "addressLine1": "{RANDOM} Market Road",
+                            "addressLine2": "Bristol",
+                            "addressLine3": "Avon",
+                            "addressLine4": "United Kingdom",
+                            "addressLine5": null,
+                            "postcode": "BS1 5AA",
+                            "phone": "0117{RANDOM}",
+                            "mobile": "07984{RANDOM}",
+                            "email": "respondent{RANDOM}@example.com"
+                        }
+                    },
+                    "dateOfBirth": "todayiso-25y",
+                    "organisation": null
+                },
+                "numberOfRespondents": null,
+                "wordingFields": [
+                    {
+                        "key": "Reference",
+                        "value": "{RANDOM}"
+                    }
+                ],
+                "feeStatuses": [],
+                "hasOffsiteFee": true,
+                "caseReference": "CASE-{RANDOM}",
+                "accountNumber": "ACC-{RANDOM}",
+                "notes": "Case noted with ref {RANDOM}",
+                "lodgementDate": "todayiso",
+                "officials": [
+                    {
+                        "title": "Mr",
+                        "surname": "Turner {RANDOM}",
+                        "forename": "Graham",
+                        "type": "MAGISTRATE"
+                    },
+                    {
+                        "title": "Ms",
+                        "surname": "Hayes {RANDOM}",
+                        "forename": "Laura",
+                        "type": "MAGISTRATE"
+                    },
+                    {
+                        "title": "Mr",
+                        "surname": "Miller {RANDOM}",
+                        "forename": "Peter",
+                        "type": "CLERK"
+                    },
+                    {
+                        "title": "Ms",
+                        "surname": "Patel {RANDOM}",
+                        "forename": "Anita",
+                        "type": "MAGISTRATE"
+                    }
+                ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
         When User Makes POST API Request To "/application-lists/:listId/entries" With Json Body
             """
             {
-            "standardApplicantCode": null,
-            "applicationCode": "AD99002",
-            "applicant": {
-            "person": {
-            "name": {
-            "title": "Mr",
-            "surname": "Smith {RANDOM}",
-            "firstForename": "John",
-            "secondForename": "A",
-            "thirdForename": "B"
-            },
-            "contactDetails": {
-            "addressLine1": "{RANDOM} High Street",
-            "addressLine2": "Westminster",
-            "addressLine3": "London",
-            "addressLine4": "Greater London",
-            "addressLine5": "United Kingdom",
-            "postcode": "SW1A 2AA",
-            "phone": "0207{RANDOM}",
-            "mobile": "07123{RANDOM}",
-            "email": "john.smith{RANDOM}@example.com"
-            }
-            }
-            },
-            "wordingFields": [],
-            "feeStatuses": [
-            {
-            "paymentReference": "PAY-{RANDOM}",
-            "paymentStatus": "PAID",
-            "statusDate": "todayiso+1d"
-            }
-            ],
-            "hasOffsiteFee": false,
-            "caseReference": "CASE-{RANDOM}",
-            "accountNumber": "ACC-{RANDOM}",
-            "notes": "Application discussion ref {RANDOM}",
-            "lodgementDate": "todayiso",
-            "officials": [
-            {
-            "title": "Mr",
-            "surname": "Smith {RANDOM}",
-            "forename": "John",
-            "type": "MAGISTRATE"
-            }
-            ]
+                "standardApplicantCode": null,
+                "applicationCode": "AD99002",
+                "applicant": {
+                    "person": {
+                        "name": {
+                            "title": "Mr",
+                            "surname": "Smith {RANDOM}",
+                            "firstForename": "John",
+                            "secondForename": "A",
+                            "thirdForename": "B"
+                        },
+                        "contactDetails": {
+                            "addressLine1": "{RANDOM} High Street",
+                            "addressLine2": "Westminster",
+                            "addressLine3": "London",
+                            "addressLine4": "Greater London",
+                            "addressLine5": "United Kingdom",
+                            "postcode": "SW1A 2AA",
+                            "phone": "0207{RANDOM}",
+                            "mobile": "07123{RANDOM}",
+                            "email": "john.smith{RANDOM}@example.com"
+                        }
+                    }
+                },
+                "wordingFields": [],
+                "feeStatuses": [
+                    {
+                        "paymentReference": "PAY-{RANDOM}",
+                        "paymentStatus": "PAID",
+                        "statusDate": "todayiso+1d"
+                    }
+                ],
+                "hasOffsiteFee": false,
+                "caseReference": "CASE-{RANDOM}",
+                "accountNumber": "ACC-{RANDOM}",
+                "notes": "Application discussion ref {RANDOM}",
+                "lodgementDate": "todayiso",
+                "officials": [
+                    {
+                        "title": "Mr",
+                        "surname": "Smith {RANDOM}",
+                        "forename": "John",
+                        "type": "MAGISTRATE"
+                    }
+                ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -260,48 +260,48 @@ Feature: Application List Row Actions
         When User Makes POST API Request To "/application-lists/:listId/entries" With Json Body
             """
             {
-            "standardApplicantCode": "APP032",
-            "applicationCode": "AD99004",
-            "numberOfRespondents": null,
-            "wordingFields": [],
-            "feeStatuses": [
-            {
-            "paymentReference": "PAY-{RANDOM}",
-            "paymentStatus": "PAID",
-            "statusDate": "todayiso-2d"
-            }
-            ],
-            "hasOffsiteFee": false,
-            "caseReference": "CASE-{RANDOM}",
-            "accountNumber": "ACC-{RANDOM}",
-            "notes": "Case noted with ref {RANDOM}",
-            "lodgementDate": "todayiso",
-            "officials": [
-            {
-            "title": "Mr",
-            "surname": "Turner {RANDOM}",
-            "forename": "Graham",
-            "type": "MAGISTRATE"
-            },
-            {
-            "title": "Ms",
-            "surname": "Hayes {RANDOM}",
-            "forename": "Laura",
-            "type": "MAGISTRATE"
-            },
-            {
-            "title": "Mr",
-            "surname": "Miller {RANDOM}",
-            "forename": "Peter",
-            "type": "CLERK"
-            },
-            {
-            "title": "Ms",
-            "surname": "Patel {RANDOM}",
-            "forename": "Anita",
-            "type": "MAGISTRATE"
-            }
-            ]
+                "standardApplicantCode": "APP032",
+                "applicationCode": "AD99004",
+                "numberOfRespondents": null,
+                "wordingFields": [],
+                "feeStatuses": [
+                    {
+                        "paymentReference": "PAY-{RANDOM}",
+                        "paymentStatus": "PAID",
+                        "statusDate": "todayiso-2d"
+                    }
+                ],
+                "hasOffsiteFee": false,
+                "caseReference": "CASE-{RANDOM}",
+                "accountNumber": "ACC-{RANDOM}",
+                "notes": "Case noted with ref {RANDOM}",
+                "lodgementDate": "todayiso",
+                "officials": [
+                    {
+                        "title": "Mr",
+                        "surname": "Turner {RANDOM}",
+                        "forename": "Graham",
+                        "type": "MAGISTRATE"
+                    },
+                    {
+                        "title": "Ms",
+                        "surname": "Hayes {RANDOM}",
+                        "forename": "Laura",
+                        "type": "MAGISTRATE"
+                    },
+                    {
+                        "title": "Mr",
+                        "surname": "Miller {RANDOM}",
+                        "forename": "Peter",
+                        "type": "CLERK"
+                    },
+                    {
+                        "title": "Ms",
+                        "surname": "Patel {RANDOM}",
+                        "forename": "Anita",
+                        "type": "MAGISTRATE"
+                    }
+                ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -364,63 +364,63 @@ Feature: Application List Row Actions
         When User Makes POST API Request To "/application-lists/:listId/entries" With Json Body
             """
             {
-            "standardApplicantCode": null,
-            "applicationCode": "MS99006",
-            "applicant": {
-            "person": null,
-            "organisation": {
-            "name": "ACME Industries LTD",
-            "contactDetails": {
-            "addressLine1": "{RANDOM} Downing Street",
-            "addressLine2": "Westminster",
-            "addressLine3": "London",
-            "addressLine4": "Greater London",
-            "addressLine5": "United Kingdom",
-            "postcode": "SW1A 2AA",
-            "phone": "01225 123456",
-            "mobile": "07123456789",
-            "email": "john-test@gmail.com"
-            }
-            }
-            },
-            "respondent": {
-            "person": null,
-            "organisation": {
-            "name": "Beta Solutions Inc",
-            "contactDetails": {
-            "addressLine1": "{RANDOM} Fleet Street",
-            "addressLine2": "London",
-            "addressLine3": null,
-            "addressLine4": null,
-            "addressLine5": "United Kingdom",
-            "postcode": "EC4Y 1AA",
-            "phone": "01132 654321",
-            "mobile": "07987654321",
-            "email": "betasolutions@gmail.com"
-            }
-            }
-            },
-            "numberOfRespondents": null,
-            "wordingFields": [
-            {
-            "key": "Describe Seized Food",
-            "value": "{RANDOM}"
-            }
-            ],
-            "feeStatuses": [],
-            "hasOffsiteFee": true,
-            "caseReference": "CASE-{RANDOM}",
-            "accountNumber": "ACC-{RANDOM}",
-            "notes": "Case noted with ref {RANDOM}",
-            "lodgementDate": "todayiso",
-            "officials": [
-            {
-            "title": "Ms",
-            "surname": "Patel {RANDOM}",
-            "forename": "Anita",
-            "type": "MAGISTRATE"
-            }
-            ]
+                "standardApplicantCode": null,
+                "applicationCode": "MS99006",
+                "applicant": {
+                    "person": null,
+                    "organisation": {
+                        "name": "ACME Industries LTD",
+                        "contactDetails": {
+                            "addressLine1": "{RANDOM} Downing Street",
+                            "addressLine2": "Westminster",
+                            "addressLine3": "London",
+                            "addressLine4": "Greater London",
+                            "addressLine5": "United Kingdom",
+                            "postcode": "SW1A 2AA",
+                            "phone": "01225 123456",
+                            "mobile": "07123456789",
+                            "email": "john-test@gmail.com"
+                        }
+                    }
+                },
+                "respondent": {
+                    "person": null,
+                    "organisation": {
+                        "name": "Beta Solutions Inc",
+                        "contactDetails": {
+                            "addressLine1": "{RANDOM} Fleet Street",
+                            "addressLine2": "London",
+                            "addressLine3": null,
+                            "addressLine4": null,
+                            "addressLine5": "United Kingdom",
+                            "postcode": "EC4Y 1AA",
+                            "phone": "01132 654321",
+                            "mobile": "07987654321",
+                            "email": "betasolutions@gmail.com"
+                        }
+                    }
+                },
+                "numberOfRespondents": null,
+                "wordingFields": [
+                    {
+                        "key": "Describe Seized Food",
+                        "value": "{RANDOM}"
+                    }
+                ],
+                "feeStatuses": [],
+                "hasOffsiteFee": true,
+                "caseReference": "CASE-{RANDOM}",
+                "accountNumber": "ACC-{RANDOM}",
+                "notes": "Case noted with ref {RANDOM}",
+                "lodgementDate": "todayiso",
+                "officials": [
+                    {
+                        "title": "Ms",
+                        "surname": "Patel {RANDOM}",
+                        "forename": "Anita",
+                        "type": "MAGISTRATE"
+                    }
+                ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -428,7 +428,7 @@ Feature: Application List Row Actions
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
             """
             {
-            "resultCode": "AUTH"
+                "resultCode": "AUTH"
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -514,7 +514,7 @@ Feature: Application List Row Actions
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
         Then User Should See The Link "Create new list"
-        Then User Sees Success Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
+        Then User Sees Success Banner "Success Application list deleted successfully If you believe this was in error, please contact support."
         Then User Clears The "Description" Textbox
         When User Set Date Field "Date" To "<SearchDate>"
         When User Clicks On The "Search" Button
@@ -602,7 +602,7 @@ Feature: Application List Row Actions
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         When User Clicks On The "Yes - delete" Button
         Then User Should See The Link "Create new list"
-        Then User Sees Success Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
+        Then User Sees Success Banner "Success Application list deleted successfully If you believe this was in error, please contact support."
         When User Set Date Field "Date" To "<SearchDate>"
         When User Clicks On The "Search" Button
         Then User Should Not See Row In Table "<TableName>" With Values:
