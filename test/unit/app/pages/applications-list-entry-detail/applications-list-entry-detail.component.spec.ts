@@ -160,6 +160,37 @@ describe('ApplicationsListEntryDetail', () => {
     fixture.detectChanges();
   });
 
+  it('ngOnInit loads entry and application code and patches form', () => {
+    const freshFixture = TestBed.createComponent(ApplicationsListEntryDetail);
+    const freshComponent = freshFixture.componentInstance;
+
+    freshComponent.ngOnInit();
+
+    const raw = freshComponent['form'].getRawValue();
+
+    expect(raw.lodgementDate).toBe('2025-11-01');
+    expect(freshComponent['form'].controls.applicationCode.value).toBe(
+      'APP-100',
+    );
+    expect(freshComponent['form'].controls.applicationTitle?.value).toBe(
+      'Loaded title',
+    );
+
+    expect(mockGetApplicationListEntry).toHaveBeenCalledWith(
+      { listId: 'AL-1', entryId: 'EN-1' },
+      'body',
+      false,
+      expect.objectContaining({ transferCache: true }),
+    );
+
+    expect(mockGetApplicationCodeByCodeAndDate).toHaveBeenCalledWith(
+      { code: 'APP-100', date: '2025-11-01' },
+      'body',
+      false,
+      expect.objectContaining({ transferCache: true }),
+    );
+  });
+
   it('hydrates codes section on init: patches lodgementDate, applicationCode, and resolves applicationTitle', () => {
     const raw = component['form'].getRawValue();
 
@@ -205,6 +236,54 @@ describe('ApplicationsListEntryDetail', () => {
     expect(freshComponent.successBanner?.body).toBe(
       'The application list entry has been created successfully.',
     );
+  });
+
+  it('clearPaymentRefReturnOnly removes paymentRefReturn from history.state and preserves other keys', () => {
+    history.replaceState(
+      {
+        paymentRefReturn: { updatedRowId: 'ROW-1', newPaymentReference: 'REF' },
+        keep: 'KEEP_ME',
+      },
+      '',
+    );
+
+    const replaceSpy = jest.spyOn(history, 'replaceState');
+
+    const subject = component as unknown as {
+      clearPaymentRefReturnOnly: () => void;
+    };
+
+    subject.clearPaymentRefReturnOnly();
+
+    expect(replaceSpy).toHaveBeenCalledTimes(1);
+    expect(replaceSpy).toHaveBeenCalledWith({ keep: 'KEEP_ME' }, '');
+
+    replaceSpy.mockRestore();
+  });
+
+  it('persistFeeStatus does not call update API when fee details are added but entryDetail is missing', () => {
+    component['entryDetail'] = null;
+
+    const payload: AddFeeDetailsPayload = {
+      feeStatus: PaymentStatus.PAID,
+      statusDate: '2026-01-10',
+      paymentReference: 'REF1',
+    };
+
+    jest.spyOn(civilFeeUtils, 'updateFeeStatusesControl').mockReturnValue({
+      next: [
+        {
+          paymentStatus: 'Paid',
+          statusDate: '2026-01-10',
+          paymentReference: 'REF1',
+        } as unknown as FeeStatus,
+      ],
+      changed: true,
+    });
+
+    component.onAddFeeDetails(payload);
+
+    expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
   });
 
   it('onCodeSelected calls codes API and patches form when date is provided', () => {
