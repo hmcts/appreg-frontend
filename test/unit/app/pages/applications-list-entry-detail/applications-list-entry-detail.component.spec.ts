@@ -373,6 +373,43 @@ describe('ApplicationsListEntryDetail', () => {
     expect(resetSectionsSpy).toHaveBeenCalledWith(component.forms);
   });
 
+  it('updateApplicantErrors validates person applicant: produces first name and last name errors', () => {
+    component['form'].controls.applicantType.setValue('person');
+
+    const personForm = component.personGroup;
+    const base = personForm.getRawValue();
+    personForm.reset(
+      {
+        ...base,
+        firstName: '',
+        middleNames: '',
+        surname: '',
+        addressLine1: '24 Walton Lane', // keep address so only names fail
+      },
+      { emitEvent: false },
+    );
+
+    component.onUpdateApplicant();
+
+    expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
+
+    expect(component['appListEntryDetailState']().errorFound).toBe(true);
+
+    const applicantErrors = component.applicantErrorItems;
+    expect(Array.isArray(applicantErrors)).toBe(true);
+    expect(applicantErrors.length).toBeGreaterThan(0);
+
+    const hasFirstNameError = applicantErrors.some((e) =>
+      /Enter a first name/i.test(e.text),
+    );
+    const hasSurnameError = applicantErrors.some((e) =>
+      /Enter a last name/i.test(e.text),
+    );
+
+    expect(hasFirstNameError).toBe(true);
+    expect(hasSurnameError).toBe(true);
+  });
+
   it('onUpdateApplicant uses form service buildUpdateDto and calls update API', () => {
     const formSvc = TestBed.inject(ApplicationListEntryFormService);
 
