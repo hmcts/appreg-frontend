@@ -10,7 +10,10 @@
 ></app-breadcrumbs>
 
 @if (resultCodeApplySuccess()) {
-  <app-success-banner heading="Result codes applied successfully" />
+  <app-success-banner
+    heading="Result codes applied successfully"
+    [body]="successMessage()"
+  />
 }
 
 @if (errorSummaryItems().length > 0) {

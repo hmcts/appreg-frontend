@@ -182,6 +182,10 @@ describe('ResultSelectedComponent', () => {
 
     component.onSubmitResults(payload);
 
+    expect(component.successMessage()).toEqual(
+      "Result code 'ADJ - Adjourned' applied successfully to application list entries",
+    );
+
     expect(mockApi.createApplicationListEntryResult).toHaveBeenCalledTimes(2);
     expect(mockApi.createApplicationListEntryResult).toHaveBeenCalledWith(
       expectedParamsForR1,

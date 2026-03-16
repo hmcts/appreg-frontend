@@ -55,8 +55,11 @@ export class ResultSelected implements OnInit {
   private route = inject(ActivatedRoute);
   private readonly resultCodesApi = inject(ApplicationListEntryResultsApi);
   readonly resultsFacade = inject(ApplicationListEntryResultsFacade);
+
   listId!: string;
   mixedResultedAndUnresultedApplications!: boolean;
+  successMessage = signal('');
+  private selectedResultCode = signal<string>('');
 
   isSubmitting = signal(false);
   batchResults!: BatchResult[];
@@ -131,6 +134,9 @@ export class ResultSelected implements OnInit {
           });
 
         this.errorSummaryItems.set(errorItems);
+        this.successMessage.set(
+          `Result code '${this.selectedResultCode()}' applied successfully to application list entries`,
+        );
         this.resultCodeApplySuccess.set(errorItems.length === 0);
       });
   }
@@ -140,6 +146,8 @@ export class ResultSelected implements OnInit {
     globalPayload: ResultSectionSubmitPayload,
   ): CreateApplicationListEntryResultRequestParams {
     const newResultCode = globalPayload.pendingToCreate[0];
+
+    this.selectedResultCode.set(newResultCode.display);
 
     const resultCreateDto = {
       resultCode: newResultCode.resultCode,

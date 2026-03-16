@@ -13,6 +13,10 @@
 
 @include global-container-widths();
 
+.govuk-notification-banner__content > * {
+  max-width: none;
+}
+
 .govuk-breadcrumbs {
   margin-top: -15px;
 }
