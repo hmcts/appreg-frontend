@@ -58,6 +58,9 @@ export class WordingParserComponent implements OnInit {
 
   constructor() {
     effect(() => {
+      // Ensures we display the correct wording field on subsequent app code changes
+      this.tokeniseAndPatchWordingField();
+
       const attempt = this.wordingSubmitAttempt();
       if (attempt === 0 || attempt === this.lastHandledAttempt) {
         return;
@@ -75,20 +78,7 @@ export class WordingParserComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.tokens = this.tokenize(this.wordingObject().template ?? '');
-
-    this.createFormControls();
-    this.patchFormControls();
-
-    // In no-save-button mode (used by result wording cards), emit live draft values
-    // so parent components can detect edits and enable submit actions.
-    if (!this.showSaveButton()) {
-      this.form.valueChanges
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe(() => {
-          this.wordingFieldsDTO.emit(this.toWordingFields(this.form));
-        });
-    }
+    this.tokeniseAndPatchWordingField();
   }
 
   createFormControls(): void {
@@ -272,5 +262,20 @@ export class WordingParserComponent implements OnInit {
   // as spaces and full stops are not valid in form control names or html ids
   normaliseKey(key: string): string {
     return key.replaceAll('.', '').trim().replaceAll(/\s+/g, '-');
+  }
+
+  private tokeniseAndPatchWordingField(): void {
+    this.tokens = this.tokenize(this.wordingObject().template ?? '');
+
+    this.createFormControls();
+    this.patchFormControls();
+
+    if (!this.showSaveButton()) {
+      this.form.valueChanges
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.wordingFieldsDTO.emit(this.toWordingFields(this.form));
+        });
+    }
   }
 }

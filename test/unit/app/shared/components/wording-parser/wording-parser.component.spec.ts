@@ -21,7 +21,7 @@ describe('WordingParserComponent', () => {
         },
         { key: 'date', value: '31/12/2026', constraint: { length: 10 } },
       ],
-      ...(overrides ?? {}),
+      ...overrides,
     }) as unknown as TemplateDetail;
 
   const init = (wordingObject: TemplateDetail, wordingSubmitAttempt = 0) => {
@@ -55,6 +55,73 @@ describe('WordingParserComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('lifecycle', () => {
+    it('should call tokeniseAndPatchWordingField in ngOnInit', () => {
+      fixture = TestBed.createComponent(WordingParserComponent);
+      component = fixture.componentInstance;
+
+      const tokeniseAndPatchSpy = jest.spyOn(
+        component as never,
+        'tokeniseAndPatchWordingField' as never,
+      );
+
+      fixture.componentRef.setInput('wordingObject', makeWordingObject());
+      tokeniseAndPatchSpy.mockClear();
+
+      component.ngOnInit();
+
+      expect(tokeniseAndPatchSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should retokenize and patch wording fields when the wording object changes', () => {
+      init(
+        makeWordingObject({
+          template: 'Hello {{ name }}',
+          'substitution-key-constraints': [
+            {
+              key: 'name',
+              value: 'Initial value',
+              constraint: {
+                length: 20,
+                type: TemplateConstraintTypeEnum.DATE,
+              },
+            },
+          ],
+        }),
+      );
+
+      const tokeniseAndPatchSpy = jest.spyOn(
+        component as never,
+        'tokeniseAndPatchWordingField' as never,
+      );
+
+      fixture.componentRef.setInput(
+        'wordingObject',
+        makeWordingObject({
+          template: 'Updated {{ date }}',
+          'substitution-key-constraints': [
+            {
+              key: 'date',
+              value: '16/03/2026',
+              constraint: {
+                length: 10,
+                type: TemplateConstraintTypeEnum.DATE,
+              },
+            },
+          ],
+        }),
+      );
+      fixture.detectChanges();
+
+      expect(tokeniseAndPatchSpy).toHaveBeenCalled();
+      expect(component.tokens).toEqual([
+        { type: 'text', value: 'Updated ' },
+        { type: 'input', key: 'date' },
+      ]);
+      expect(component.form.get('date')?.value).toBe('16/03/2026');
+    });
   });
 
   describe('tokenize()', () => {
@@ -440,6 +507,39 @@ describe('WordingParserComponent', () => {
 
       expect(dtoSpy).toHaveBeenCalledWith({
         wordingFields: [{ key: 'A', value: 'OK' }],
+      });
+    });
+  });
+
+  describe('tokeniseAndPatchWordingField()', () => {
+    it('should emit wordingFieldsDTO on form value changes when showSaveButton is false', () => {
+      fixture = TestBed.createComponent(WordingParserComponent);
+      component = fixture.componentInstance;
+
+      fixture.componentRef.setInput(
+        'wordingObject',
+        makeWordingObject({
+          template: 'Hi {{A}}',
+          'substitution-key-constraints': [
+            {
+              key: 'A',
+              value: 'OK',
+              constraint: { length: 5, type: TemplateConstraintTypeEnum.TEXT },
+            },
+          ],
+        }),
+      );
+      fixture.componentRef.setInput('showSaveButton', false);
+      fixture.detectChanges();
+
+      const dtoSpy = jest.spyOn(component.wordingFieldsDTO, 'emit');
+
+      (
+        component.form.get('A') as unknown as FormControl<string | null>
+      ).setValue('NEW');
+
+      expect(dtoSpy).toHaveBeenCalledWith({
+        wordingFields: [{ key: 'A', value: 'NEW' }],
       });
     });
   });
