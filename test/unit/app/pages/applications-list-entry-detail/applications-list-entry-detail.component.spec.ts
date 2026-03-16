@@ -241,7 +241,7 @@ describe('ApplicationsListEntryDetail', () => {
     expect(component['form'].controls.applicationCode.value).toBe('APP-1');
     expect(component['form'].controls.lodgementDate.value).toBe('2025-11-01');
 
-    expect(component['errorFound']).toBe(false);
+    expect(component['appListEntryDetailState']().errorFound).toBe(false);
   });
 
   it('onCodeSelected fetches code detail, sets appCodeDetail and resets sections when code changed', () => {
@@ -250,9 +250,11 @@ describe('ApplicationsListEntryDetail', () => {
       'resetSectionsOnApplicationCodeChange',
     );
 
-    component.appCodeDetail = {
-      applicationCode: 'OLD-CODE',
-    } as ApplicationCodeGetDetailDto;
+    component['appListEntryDetailPatch']({
+      appCodeDetail: {
+        applicationCode: 'OLD-CODE',
+      } as ApplicationCodeGetDetailDto,
+    });
 
     component['form'].patchValue({
       respondent: {
@@ -285,7 +287,9 @@ describe('ApplicationsListEntryDetail', () => {
 
     expect(component['form'].controls.applicationCode.value).toBe('APP-7');
 
-    expect(component.appCodeDetail?.applicationCode).toBe('APP-7');
+    expect(
+      component['appListEntryDetailState']().appCodeDetail?.applicationCode,
+    ).toBe('APP-7');
 
     expect(resetSectionsSpy).toHaveBeenCalledWith(component.forms);
   });
@@ -338,10 +342,10 @@ describe('ApplicationsListEntryDetail', () => {
     component.onUpdateApplicant();
 
     expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
-    expect(component['errorFound']).toBe(true);
+    expect(component['appListEntryDetailState']().errorFound).toBe(true);
 
     expect(
-      component['summaryErrors'].some((e) =>
+      component['appListEntryDetailState']().summaryErrors.some((e) =>
         /standard applicant/i.test(e.text),
       ),
     ).toBe(true);
@@ -373,10 +377,12 @@ describe('ApplicationsListEntryDetail', () => {
     component.onUpdateApplicant();
 
     expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
-    expect(component['errorFound']).toBe(true);
+    expect(component['appListEntryDetailState']().errorFound).toBe(true);
 
     expect(
-      component['summaryErrors'].some((e) => /organisation name/i.test(e.text)),
+      component['appListEntryDetailState']().summaryErrors.some((e) =>
+        /organisation name/i.test(e.text),
+      ),
     ).toBe(true);
   });
 
@@ -483,7 +489,7 @@ describe('ApplicationsListEntryDetail', () => {
 
     component.onCodeSelected({ code: 'APP-1', date: '2025-11-01' });
 
-    expect(component.isFeeRequired).toBe(true);
+    expect(component['appListEntryDetailState']().isFeeRequired).toBe(true);
   });
 
   it('onAddFeeDetails: when helper returns changed=false, does not call update API', () => {

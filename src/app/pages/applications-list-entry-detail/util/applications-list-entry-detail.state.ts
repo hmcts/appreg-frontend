@@ -3,7 +3,7 @@ import { ApplicationCodeGetDetailDto } from '@openapi';
 
 export interface ApplicationsListEntryDetailState {
   appListId: string;
-  AppCodeDetail: ApplicationCodeGetDetailDto | null;
+  appCodeDetail: ApplicationCodeGetDetailDto | null;
   formSubmitted: boolean;
   errorFound: boolean;
   summaryErrors: ErrorItem[];
@@ -14,7 +14,7 @@ export interface ApplicationsListEntryDetailState {
 export const initialApplicationsListEntryDetailState: ApplicationsListEntryDetailState =
   {
     appListId: '',
-    AppCodeDetail: null,
+    appCodeDetail: null,
     formSubmitted: false,
     errorFound: false,
     summaryErrors: [],
