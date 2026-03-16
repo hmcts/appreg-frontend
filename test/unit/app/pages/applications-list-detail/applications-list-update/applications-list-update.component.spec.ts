@@ -38,16 +38,13 @@ describe('ApplicationsListUpdateComponent', () => {
     rows: [],
     selectedIds: new Set<string>(),
     selectedRows: [],
-    entriesDetails: [],
-    entryCodeDetails: {},
     isLoading: false,
     updateDone: false,
     updateInvalid: false,
     errorHint: '',
     errorSummary: [],
+    preserveErrorSummaryOnLoad: false,
     hasPrefilledFromApi: false,
-    allEntryIds: [],
-    allEntriesSummary: [],
     createDone: false,
   });
 
@@ -101,7 +98,6 @@ describe('ApplicationsListUpdateComponent', () => {
     fixture.componentRef.setInput('placeState', mkPlaceState());
     fixture.componentRef.setInput('id', 'list-1');
     fixture.componentRef.setInput('etag', null);
-    fixture.componentRef.setInput('entryIds', []);
     fixture.componentRef.setInput('patchState', jest.fn());
     fixture.componentRef.setInput('vm', mkVm());
     fixture.componentRef.setInput('setUpdateRequest', setUpdateRequest);
@@ -122,6 +118,24 @@ describe('ApplicationsListUpdateComponent', () => {
     expect(component.closeErrorText()).toBe(
       'You cannot close this list. See the error summary for details.',
     );
+  });
+
+  it('uses returned close error text from the detail page state', () => {
+    fixture.componentRef.setInput('vm', {
+      ...mkVm(),
+      updateInvalid: true,
+      errorSummary: [
+        {
+          id: 'status-close',
+          href: '#status',
+          text: 'List cannot be closed.',
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    expect(component.hasCloseErrors()).toBe(true);
+    expect(component.closeErrorText()).toBe('List cannot be closed.');
   });
 
   it('detects duration close errors and text', () => {

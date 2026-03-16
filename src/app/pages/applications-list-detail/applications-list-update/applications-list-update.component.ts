@@ -11,15 +11,7 @@
  */
 
 import { CommonModule } from '@angular/common';
-import {
-  Component,
-  EnvironmentInjector,
-  effect,
-  inject,
-  input,
-  output,
-  signal,
-} from '@angular/core';
+import { Component, inject, input, signal } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -39,14 +31,7 @@ import {
   CLOSE_MESSAGES,
   DETAIL_FIELD_MESSAGES,
 } from '@constants/application-list-detail-update/error-messages';
-import {
-  ApplicationCodesApi,
-  ApplicationListEntriesApi,
-  ApplicationListUpdateDto,
-  EntryGetDetailDto,
-  GetApplicationCodeByCodeAndDateRequestParams,
-  GetApplicationListEntryRequestParams,
-} from '@openapi';
+import { ApplicationListUpdateDto } from '@openapi';
 import { AppListNavState } from '@shared-types/applications-list/applications-list-form';
 import { buildNormalizedPayload } from '@util/build-payload';
 import { buildFormErrorSummary } from '@util/error-summary';
@@ -65,21 +50,7 @@ import { ApplicationListRow } from '@util/types/application-list/types';
   templateUrl: './applications-list-update.component.html',
 })
 export class ApplicationsListUpdateComponent {
-  private readonly envInjector = inject(EnvironmentInjector);
-  private readonly appListEntryApi = inject(ApplicationListEntriesApi);
-  private readonly appCodesApi = inject(ApplicationCodesApi);
   private readonly router = inject(Router);
-
-  private readonly loadEntryDetailsReq = signal<
-    GetApplicationListEntryRequestParams[] | null
-  >(null);
-  private readonly loadCodeDetailsReq = signal<
-    | {
-        entryId: string;
-        params: GetApplicationCodeByCodeAndDateRequestParams;
-      }[]
-    | null
-  >(null);
 
   private readonly closeAttempted = signal(false);
 
@@ -91,15 +62,12 @@ export class ApplicationsListUpdateComponent {
 
   readonly id = input.required<string>();
   readonly etag = input.required<string | null>();
-  readonly entryIds = input.required<string[]>();
 
   readonly patchState =
     input.required<(patch: Partial<ApplicationsListDetailState>) => void>();
   readonly vm = input.required<ApplicationsListDetailState>();
 
   readonly setUpdateRequest = input.required<(req: UpdateReq | null) => void>();
-
-  requestAllEntryIds = output<void>();
 
   suggestionsFacade = input.required<SuggestionsFacade>();
 
@@ -110,29 +78,6 @@ export class ApplicationsListUpdateComponent {
     time: `#${DETAIL_ERROR_ANCHORS.time}`,
     duration: `#${DETAIL_ERROR_ANCHORS.duration_hours}`,
   } as const;
-
-  // Run a query to get entry details
-  // Needed for list close validation
-  private readonly syncEntryIds = effect(() => {
-    const ids = this.entryIds() ?? [];
-    const status = this.form().controls.status.value;
-    const shouldRunCloseValidation =
-      this.closeAttempted() && status === 'closed';
-
-    if (!shouldRunCloseValidation) {
-      // Prevent any pre-loading on page render
-      this.loadEntryDetailsReq.set(null);
-      this.loadCodeDetailsReq.set(null);
-      return;
-    }
-
-    // Only now build requests
-    this.loadEntryDetailsReq.set(
-      ids.length
-        ? ids.map((entryId) => ({ listId: this.id(), entryId }))
-        : null,
-    );
-  });
 
   onUpdate(): void {
     // reset flags/errors
@@ -207,11 +152,14 @@ export class ApplicationsListUpdateComponent {
   // Error hightlighting/summary for closing a list
   hasCloseErrors(): boolean {
     const gErrs = this.form().errors as DetailFormGroupErrors | null;
-    return (gErrs?.closeNotPermitted?.noClose?.length ?? 0) > 0;
+    return (
+      (gErrs?.closeNotPermitted?.noClose?.length ?? 0) > 0 ||
+      !!this.serverCloseError()
+    );
   }
 
   closeErrorText(): string {
-    return CLOSE_MESSAGES.closeInvalid;
+    return this.serverCloseError()?.text ?? CLOSE_MESSAGES.closeInvalid;
   }
 
   hasDurationCloseError(): boolean {
@@ -239,6 +187,10 @@ export class ApplicationsListUpdateComponent {
     this.addCloseValidationErrors(items);
 
     return this.dedupeById(items);
+  }
+
+  private serverCloseError(): ErrorItem | undefined {
+    return this.vm().errorSummary.find((item) => item.id === 'status-close');
   }
 
   private addCloseValidationErrors(items: ErrorItem[]): void {
@@ -372,31 +324,5 @@ export class ApplicationsListUpdateComponent {
 
     const n = Number(s);
     return Number.isFinite(n) ? n : undefined;
-  }
-
-  private buildCodeDetailRequests(entries: EntryGetDetailDto[]): {
-    entryId: string;
-    params: GetApplicationCodeByCodeAndDateRequestParams;
-  }[] {
-    return entries
-      .map((entry) => ({
-        entryId: entry.id,
-        params: {
-          code: entry.applicationCode,
-          date: entry.lodgementDate?.slice(0, 10) ?? '',
-        },
-      }))
-      .filter(
-        (
-          req,
-        ): req is {
-          entryId: string;
-          params: GetApplicationCodeByCodeAndDateRequestParams;
-        } => Boolean(req.params.code && req.params.date),
-      )
-      .map((req) => ({
-        entryId: req.entryId,
-        params: req.params,
-      }));
   }
 }
