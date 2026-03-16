@@ -38,6 +38,10 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { map } from 'rxjs';
 
+import {
+  ApplicationsListEntryDetailState,
+  initialApplicationsListEntryDetailState,
+} from './util/applications-list-entry-detail.state';
 import { focusSuccessBanner } from './util/banners.util';
 import {
   APPLICANT_COLUMNS,
@@ -126,6 +130,7 @@ import { getUniqueErrors } from '@util/error-items';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { markFormGroupClean } from '@util/form-helpers';
 import { respondentFormsHaveAnyValue } from '@util/respondent-helpers';
+import { createSignalState } from '@util/signal-state-helpers';
 
 type ChildErrorSource =
   | 'notes'
@@ -181,16 +186,21 @@ export class ApplicationsListEntryDetail implements OnInit {
   //Utilising facade for entry results to keep component clean
   readonly resultsFacade = inject(ApplicationListEntryResultsFacade);
 
+  private readonly appListEntryDetailSignalState =
+    createSignalState<ApplicationsListEntryDetailState>(
+      initialApplicationsListEntryDetailState,
+    );
+
+  private readonly appListEntryDetailState =
+    this.appListEntryDetailSignalState.state;
+  private readonly appListEntryDetailPatch =
+    this.appListEntryDetailSignalState.patch;
+  readonly vm = this.appListEntryDetailSignalState.vm;
+
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
 
-  appListId!: string;
-  appCodeDetail!: ApplicationCodeGetDetailDto;
-
   forms!: ApplicationListEntryForms;
-
   formReady = signal(false);
-  formSubmitted = signal(false);
-  bulkApplicationsAllowed = false;
 
   form!: ApplicationsListEntryForm;
   personForm!: PersonForm;
@@ -210,8 +220,6 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   // Error summary state
   errorHint: string | null = 'There is a problem';
-  errorFound = false;
-  summaryErrors: ErrorItem[] = [];
 
   private parentErrors: ErrorItem[] = [];
   private childErrors: Record<ChildErrorSource, ErrorItem[]> = {
@@ -238,7 +246,6 @@ export class ApplicationsListEntryDetail implements OnInit {
   //Civil fee
   feeMeta: CivilFeeMeta | null = null;
   civilFeeForm!: CivilFeeForm;
-  isFeeRequired: boolean = false;
   private persistedHasOffsiteFee = false;
 
   ngOnInit(): void {
