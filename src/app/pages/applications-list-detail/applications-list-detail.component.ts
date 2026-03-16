@@ -25,10 +25,7 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { EMPTY, catchError, map, mergeMap, range, reduce } from 'rxjs';
 
-import {
-  ApplicationsListUpdateComponent,
-  closeValidationEntries,
-} from './applications-list-update/applications-list-update.component';
+import { ApplicationsListUpdateComponent } from './applications-list-update/applications-list-update.component';
 import {
   ApplicationsListDetailState,
   LoadDetailReq,
@@ -154,9 +151,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         getTyped: () => this.state().cjaSearch ?? '',
         getValidCodes: () => this.state().cja.map((x) => x.code),
       }),
-      closePermitted({
-        getEntries: () => closeValidationEntries(this.vm()),
-      }),
+      closePermitted(),
     ]);
 
     this.setupEffects();

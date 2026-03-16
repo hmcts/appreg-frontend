@@ -2,6 +2,10 @@
   message="This action will close the list, and no further updates to the applications will be allowed"
 />
 
+@if (responseErrorFound()) {
+  <!-- TODO: error summary with close errors -->
+}
+
 <app-review-confirm
   (confirm)="onConfirm()"
   (cancelled)="goBack()"

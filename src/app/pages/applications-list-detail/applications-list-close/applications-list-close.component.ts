@@ -1,6 +1,6 @@
 import { Location, isPlatformBrowser } from '@angular/common';
 import { HttpContext, HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
+import { Component, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { APPLICATIONS_LIST_COLUMNS } from '@components/applications-list/util/applications-list.constants';
@@ -42,6 +42,8 @@ export class ApplicationsListCloseComponent implements OnInit {
   listToClose: ApplicationListRow | undefined = this.navState?.listRow;
 
   columns = APPLICATIONS_LIST_COLUMNS;
+
+  responseErrorFound = signal(false);
 
   ngOnInit(): void {
     if (!this.idFromUrl || !this.closeRequest || !this.listToClose) {
