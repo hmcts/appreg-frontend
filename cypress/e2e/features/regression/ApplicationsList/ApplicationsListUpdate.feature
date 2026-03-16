@@ -30,7 +30,7 @@ Feature: Applications List Update
         Then User Enters "<UpdatedOtherLocation>" Into The "Other location" Textbox
         Then User Selects "<CJAValue>" From The Textbox "Criminal justice area" Autocomplete By Typing "<cjaCode>"
         When User Clicks On The "Update" Button
-        Then User Sees Success Banner "Success Update completeList successfully updated"
+        Then User Sees Success Banner "<SuccessBanner>"
         Then User Clicks On The Breadcrumb Link "Applications list"
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location   | Description   | Entries   | Status   |
@@ -39,10 +39,10 @@ Feature: Applications List Update
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
         Then User Sees Page Heading "Applications List"
-        Then User Sees Success Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
+        Then User Sees Success Banner "Success Application list deleted successfully If you believe this was in error, please contact support."
         Examples:
-            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Location      | Description   | Entries | Status | SelectButtonText | CourtValue | OtherLocation        | cjaCode | CJAValue      | HH | MM | UpdatedDescription    | UpdatedOtherLocation   |
-            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | Wolverhampton | Test_{RANDOM} | 0       | OPEN   | Select           |            | Other Location_21442 | B9      | Wolverhampton | 11 | 30 | Updated Test_{RANDOM} | Updated Location_21442 |
+            | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Location      | Description   | Entries | Status | SelectButtonText | CourtValue | OtherLocation        | cjaCode | CJAValue      | HH | MM | UpdatedDescription    | UpdatedOtherLocation   | SuccessBanner                                                                      |
+            | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | Wolverhampton | Test_{RANDOM} | 0       | OPEN   | Select           |            | Other Location_21442 | B9      | Wolverhampton | 11 | 30 | Updated Test_{RANDOM} | Updated Location_21442 | Success Application list updatedThe application list has been successfully updated |
 
     @regression @ARCPOC-214 @ARCPOC-450 @ARCPOC-799
     Scenario Outline: Update applications list Successfully with Court selected
@@ -76,7 +76,7 @@ Feature: Applications List Update
         Then User Clears The "Court" Textbox
         Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
         When User Clicks On The "Update" Button
-        Then User Sees Success Banner "Success Update completeList successfully updated"
+        Then User Sees Success Banner "<SuccessBanner>"
         Then User Clicks On The Breadcrumb Link "Applications list"
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location        | Description   | Entries   | Status   |
@@ -85,10 +85,10 @@ Feature: Applications List Update
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
         Then User Sees Page Heading "Applications List"
-        Then User Sees Success Banner "Success Application List deleted successfully If you believe this was in error, please contact support."
+        Then User Sees Success Banner "Success Application list deleted successfully If you believe this was in error, please contact support."
         Examples:
-            | User   | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Court  | CourtLocation                 | Description   | Entries | Status | ButtonName | SelectButtonText | OtherLocation | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText | UpdatedHH | UpdatedMM |
-            | admin1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test_{RANDOM} | 0       | OPEN   | Open       | Select           |               |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     | 12        | 45        |
+            | User   | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Court  | CourtLocation                 | Description   | Entries | Status | ButtonName | SelectButtonText | OtherLocation | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText | UpdatedHH | UpdatedMM | SuccessBanner                                                                      |
+            | admin1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test_{RANDOM} | 0       | OPEN   | Open       | Select           |               |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     | 12        | 45        | Success Application list updatedThe application list has been successfully updated |
 
     @regression @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @ARCPOC-852
     Scenario Outline: Update applications list Successfully with field validations
@@ -159,10 +159,10 @@ Feature: Applications List Update
         Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
         When User Set "<UpdatedHH>" and "<UpdatedMM>" In The "Duration" Field
         When User Clicks On The "Update" Button
-        Then User Sees Success Banner "Success Update completeList successfully updated"
+        Then User Sees Success Banner "<SuccessMessage>"
         Examples:
-            | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description          | Status | Entries | InvalidSearchDate | UpdatedSearchDate | InvalidTime1 | InvalidTime2 | InvalidTime3 | UpdatedTime | UpdatedDescription                    | InvalidStatus | OtherLocation | CJAValue | HH | MM | OptionText                | SearchText | UpdatedHH | UpdatedMM | UpdatedOtherLocation      | InvalidCJAValue | InvalidCourtValue |
-            | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test Update {RANDOM} | OPEN   | 0       | 32/13/2025        | 12/12/2025        | 44:*SKIP*    | *SKIP*:33    | 46:70        | 16:30       | Updated Description For Test {RANDOM} | Choose        |               |          | 11 | 30 | Cardiff Crown Court Set 4 | CCC033     | 3         | 45        | Updated Location {RANDOM} | InvalidCJA      | InvalidCourt      |
+            | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description          | Status | Entries | InvalidSearchDate | UpdatedSearchDate | InvalidTime1 | InvalidTime2 | InvalidTime3 | UpdatedTime | UpdatedDescription                    | InvalidStatus | OtherLocation | CJAValue | HH | MM | OptionText                | SearchText | UpdatedHH | UpdatedMM | UpdatedOtherLocation      | InvalidCJAValue | InvalidCourtValue | SuccessMessage                                                                     |
+            | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test Update {RANDOM} | OPEN   | 0       | 32/13/2025        | 12/12/2025        | 44:*SKIP*    | *SKIP*:33    | 46:70        | 16:30       | Updated Description For Test {RANDOM} | Choose        |               |          | 11 | 30 | Cardiff Crown Court Set 4 | CCC033     | 3         | 45        | Updated Location {RANDOM} | InvalidCJA      | InvalidCourt      | Success Application list updatedThe application list has been successfully updated |
 
     @ignore @ARCPOC-214 @ARCPOC-1073
     Scenario Outline: Close application list with NO ALE
@@ -189,10 +189,10 @@ Feature: Applications List Update
         When User Set "<durationHours>" and "<durationMinutes>" In The "Duration" Field
         When User Clicks On The "Update" Button
         # Bug ARCPOC-1191 is raised for confirmartion banner message before completing the closing list action
-        Then User Sees Success Banner "Success Update completeList successfully updated"
+        Then User Sees Success Banner "<SuccessMessage>"
         Examples:
-            | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description   | Status | BeforeUpdateStatus | durationHours | durationMinutes |
-            | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test {RANDOM} | CLOSED | OPEN               | 3             | 3               |
+            | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description   | Status | BeforeUpdateStatus | durationHours | durationMinutes | SuccessMessage                                                                     |
+            | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test {RANDOM} | CLOSED | OPEN               | 3             | 3               | Success Application list updatedThe application list has been successfully updated |
 
 
     @ignore @ARCPOC-214 @ARCPOC-1073
@@ -263,17 +263,17 @@ Feature: Applications List Update
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
             """
             {
-            "resultCode": "RTC",
-            "wordingFields": [
-            {
-            "key": "Date",
-            "value": "24-02-2026"
-            },
-            {
-            "key": "Courthouse",
-            "value": "London Courthouse"
-            }
-            ]
+                "resultCode": "RTC",
+                "wordingFields": [
+                    {
+                        "key": "Date",
+                        "value": "24-02-2026"
+                    },
+                    {
+                        "key": "Courthouse",
+                        "value": "London Courthouse"
+                    }
+                ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
