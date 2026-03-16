@@ -1,7 +1,6 @@
 import {
   Component,
   DestroyRef,
-  OnInit,
   computed,
   effect,
   inject,
@@ -31,7 +30,7 @@ export type Token =
   imports: [ReactiveFormsModule],
   templateUrl: './wording-parser.component.html',
 })
-export class WordingParserComponent implements OnInit {
+export class WordingParserComponent {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -57,10 +56,10 @@ export class WordingParserComponent implements OnInit {
   form = this.fb.group({});
 
   constructor() {
-    effect(() => {
-      // Ensures we display the correct wording field on subsequent app code changes
-      this.tokeniseAndPatchWordingField();
+    // Ensures we display the correct wording field on subsequent app code changes
+    effect(() => this.tokeniseAndPatchWordingField());
 
+    effect(() => {
       const attempt = this.wordingSubmitAttempt();
       if (attempt === 0 || attempt === this.lastHandledAttempt) {
         return;
@@ -75,10 +74,6 @@ export class WordingParserComponent implements OnInit {
 
       this.submitWordingFields();
     });
-  }
-
-  ngOnInit(): void {
-    this.tokeniseAndPatchWordingField();
   }
 
   createFormControls(): void {

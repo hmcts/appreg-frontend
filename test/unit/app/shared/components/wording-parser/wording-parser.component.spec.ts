@@ -58,7 +58,7 @@ describe('WordingParserComponent', () => {
   });
 
   describe('lifecycle', () => {
-    it('should call tokeniseAndPatchWordingField in ngOnInit', () => {
+    it('should call tokeniseAndPatchWordingField in constructor', () => {
       fixture = TestBed.createComponent(WordingParserComponent);
       component = fixture.componentInstance;
 
@@ -70,7 +70,7 @@ describe('WordingParserComponent', () => {
       fixture.componentRef.setInput('wordingObject', makeWordingObject());
       tokeniseAndPatchSpy.mockClear();
 
-      component.ngOnInit();
+      fixture.detectChanges();
 
       expect(tokeniseAndPatchSpy).toHaveBeenCalledTimes(1);
     });
