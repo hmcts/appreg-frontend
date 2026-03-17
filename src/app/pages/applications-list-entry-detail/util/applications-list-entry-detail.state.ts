@@ -1,4 +1,5 @@
 import { ErrorItem } from '@components/error-summary/error-summary.component';
+import { SuccessBanner } from '@core-types/banner/banner.types';
 import { ApplicationCodeGetDetailDto } from '@openapi';
 
 export interface ApplicationsListEntryDetailState {
@@ -9,6 +10,8 @@ export interface ApplicationsListEntryDetailState {
   summaryErrors: ErrorItem[];
   bulkApplicationsAllowed: boolean;
   isFeeRequired: boolean;
+  successBanner: SuccessBanner | null;
+  errorHint: string | null;
 }
 
 export const initialApplicationsListEntryDetailState: ApplicationsListEntryDetailState =
@@ -20,4 +23,6 @@ export const initialApplicationsListEntryDetailState: ApplicationsListEntryDetai
     summaryErrors: [],
     bulkApplicationsAllowed: false,
     isFeeRequired: false,
+    successBanner: null,
+    errorHint: 'There is a problem',
   };

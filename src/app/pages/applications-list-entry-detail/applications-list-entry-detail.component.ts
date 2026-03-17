@@ -213,12 +213,6 @@ export class ApplicationsListEntryDetail implements OnInit {
   codesLoading = false;
   codesHasSearched = false;
 
-  // Success banner
-  successBanner: SuccessBanner | null = null;
-
-  // Error summary state
-  errorHint: string | null = 'There is a problem';
-
   private parentErrors: ErrorItem[] = [];
   private childErrors: Record<ChildErrorSource, ErrorItem[]> = {
     notes: [],
