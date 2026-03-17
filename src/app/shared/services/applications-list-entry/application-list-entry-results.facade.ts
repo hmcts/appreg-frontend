@@ -24,6 +24,8 @@ export class ApplicationListEntryResultsFacade {
   readonly entryResults = signal<ResultGetDto[]>([]);
   readonly entryResultsLoading = signal(false);
 
+  readonly newlyCreatedEntryResults = signal<ResultGetDto[]>([]);
+
   readonly pendingRows = signal<PendingResultRow[]>([]);
   readonly clearPendingToken = signal(0);
 
@@ -45,6 +47,14 @@ export class ApplicationListEntryResultsFacade {
     this.resultCodeWordingByCode.set({});
     this.resultCodeTemplateByCode.set({});
     this.resultCodeDetailCache.clear();
+  }
+
+  addCreatedEntryResults(results: ResultGetDto[]): void {
+    this.newlyCreatedEntryResults.set(results ?? []);
+  }
+
+  clearCreatedEntryResults(): void {
+    this.newlyCreatedEntryResults.set([]);
   }
 
   loadEntryResults(listId: string, entryId: string): void {
@@ -102,6 +112,7 @@ export class ApplicationListEntryResultsFacade {
       return;
     }
 
+    // PUT
     const existingRequests = (payload.existingToUpdate ?? [])
       .filter((item) => !!item.resultId && !!item.resultCode)
       .map((item) =>
@@ -116,6 +127,7 @@ export class ApplicationListEntryResultsFacade {
         }),
       );
 
+    // POST
     const pendingRequests = (payload.pendingToCreate ?? [])
       .filter((row) => !!row.resultCode)
       .map((row) =>

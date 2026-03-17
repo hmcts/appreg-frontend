@@ -139,6 +139,12 @@ export class ResultSelected implements OnInit {
   }
 
   onSubmitResults(payload: ResultSectionSubmitPayload): void {
+    const item = payload.pendingToCreate?.[0] ?? payload.existingToUpdate?.[0];
+
+    if (item) {
+      this.selectedResultCode.set(item.resultCode);
+    }
+
     this.idToSequenceNumberMap = Object.fromEntries(
       this.rows.map((row) => [row.id, row.sequenceNumber]),
     );
@@ -150,19 +156,58 @@ export class ResultSelected implements OnInit {
     this.isSubmitting.set(true);
     this.batchResults = [];
 
+    const existingResultsByEntryId: Record<string, ResultGetDto> =
+      Object.fromEntries(
+        (this.resultsFacade.newlyCreatedEntryResults() ?? []).map((r) => [
+          r.entryId,
+          r,
+        ]),
+      );
+
     const calls: Observable<BatchResult>[] = this.rows.map((row) => {
-      return this.resultCodesApi
-        .createApplicationListEntryResult(this.paramsForRow(row, payload))
-        .pipe(
-          map((response: ResultGetDto) => ({
-            id: row.id,
-            success: true,
-            response,
-          })),
-          catchError((error: HttpErrorResponse) =>
-            of({ id: row.id, success: false, error }),
-          ),
-        );
+      const params = this.buildResultRequestForRow(row, payload);
+
+      const existing = existingResultsByEntryId[params.entryId];
+
+      if (existing?.id) {
+        // Build update DTO from params.resultCreateDto
+        const updateDto = {
+          resultCode: params.resultCreateDto.resultCode,
+          wordingFields: params.resultCreateDto.wordingFields ?? [],
+        };
+
+        return this.resultCodesApi
+          .updateApplicationListEntryResult({
+            listId: params.listId,
+            entryId: params.entryId,
+            resultId: existing.id,
+            resultUpdateDto: updateDto,
+          })
+          .pipe(
+            map((response: ResultGetDto) => ({
+              id: row.id,
+              success: true,
+              response,
+            })),
+            catchError((error: HttpErrorResponse) =>
+              of({ id: row.id, success: false, error }),
+            ),
+          );
+      } else {
+        // Create (POST) using params
+        return this.resultCodesApi
+          .createApplicationListEntryResult(params)
+          .pipe(
+            map((response: ResultGetDto) => ({
+              id: row.id,
+              success: true,
+              response,
+            })),
+            catchError((error: HttpErrorResponse) =>
+              of({ id: row.id, success: false, error }),
+            ),
+          );
+      }
     });
 
     forkJoin([...calls])
@@ -188,16 +233,28 @@ export class ResultSelected implements OnInit {
               }
             : null,
         );
+
+        const successfulResponses: ResultGetDto[] = results
+          .filter((r) => r.success)
+          .map(
+            (r) => (r as { success: true; response: ResultGetDto }).response,
+          );
+
+        this.resultsFacade.addCreatedEntryResults(successfulResponses);
+
+        if (errorItems.length === 0 && successfulResponses.length > 0) {
+          this.resultsFacade.clearPendingToken.update((n) => n + 1);
+        }
       });
   }
 
-  private paramsForRow(
+  // create params for both POST and PUT
+  private buildResultRequestForRow(
     row: ApplicationEntriesResultContext,
-    globalPayload: ResultSectionSubmitPayload,
+    payload: ResultSectionSubmitPayload,
   ): CreateApplicationListEntryResultRequestParams {
-    const newResultCode = globalPayload.pendingToCreate[0];
-
-    this.selectedResultCode.set(newResultCode.display);
+    const newResultCode =
+      payload.pendingToCreate?.[0] ?? payload.existingToUpdate?.[0];
 
     const resultCreateDto = {
       resultCode: newResultCode.resultCode,
