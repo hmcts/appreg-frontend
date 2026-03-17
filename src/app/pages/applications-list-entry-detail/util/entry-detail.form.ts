@@ -162,31 +162,31 @@ export function buildStandardApplicationForm(
 
     mags1Title: fb.control<string | null>(null),
     mags1FirstName: fb.control<string | null>(null, {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      validators: [MAX_60, Validators.pattern(NAME_REGEX), optional(REQUIRED)],
     }),
     mags1Surname: fb.control<string | null>(null, {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      validators: [MAX_60, Validators.pattern(NAME_REGEX), optional(REQUIRED)],
     }),
     mags2Title: fb.control<string | null>(null),
     mags2FirstName: fb.control<string | null>(null, {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      validators: [MAX_60, Validators.pattern(NAME_REGEX), optional(REQUIRED)],
     }),
     mags2Surname: fb.control<string | null>(null, {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      validators: [MAX_60, Validators.pattern(NAME_REGEX), optional(REQUIRED)],
     }),
     mags3Title: fb.control<string | null>(null),
     mags3FirstName: fb.control<string | null>(null, {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      validators: [MAX_60, Validators.pattern(NAME_REGEX), optional(REQUIRED)],
     }),
     mags3Surname: fb.control<string | null>(null, {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      validators: [MAX_60, Validators.pattern(NAME_REGEX), optional(REQUIRED)],
     }),
     officialTitle: fb.control<string | null>(null),
     officialFirstName: fb.control<string | null>(null, {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      validators: [MAX_60, Validators.pattern(NAME_REGEX), optional(REQUIRED)],
     }),
     officialSurname: fb.control<string | null>(null, {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      validators: [MAX_60, Validators.pattern(NAME_REGEX), optional(REQUIRED)],
     }),
   }) as ApplicationsListEntryForm;
 }
