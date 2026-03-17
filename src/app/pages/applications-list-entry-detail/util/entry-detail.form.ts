@@ -59,6 +59,33 @@ import { optional } from '@validators/optional.validator';
 import { standardApplicantCodeConditionalRequired } from '@validators/standard-applicant-code.validator';
 import { ukMobile, ukPhone, ukPostcode } from '@validators/uk-format.validator';
 
+type MagSlot = {
+  titleKey: keyof ApplicationsListEntryFormValue;
+  firstKey: keyof ApplicationsListEntryFormValue;
+  surKey: keyof ApplicationsListEntryFormValue;
+};
+
+const hasText = (v: unknown): v is string =>
+  typeof v === 'string' && v.trim().length > 0;
+
+const MAG_SLOTS: readonly MagSlot[] = [
+  {
+    titleKey: 'mags1Title',
+    firstKey: 'mags1FirstName',
+    surKey: 'mags1Surname',
+  },
+  {
+    titleKey: 'mags2Title',
+    firstKey: 'mags2FirstName',
+    surKey: 'mags2Surname',
+  },
+  {
+    titleKey: 'mags3Title',
+    firstKey: 'mags3FirstName',
+    surKey: 'mags3Surname',
+  },
+] as const;
+
 //Assuming 60 max char length for names/addresses
 const MAX_60 = Validators.maxLength(60);
 const REQUIRED: ValidatorFn = (c) => Validators.required(c);
@@ -253,7 +280,6 @@ export function buildEntryUpdateDtoFromForm(
     accountNumber: detail.accountNumber,
     notes: detail.notes,
     lodgementDate: detail.lodgementDate,
-    ...(detail as { officials?: Official[] }),
   };
 
   // Reuse existing mapper to build a “patch”
@@ -442,7 +468,6 @@ export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
     accountNumber: detail.accountNumber,
     notes: detail.notes,
     lodgementDate: detail.lodgementDate,
-    ...(detail as { officials?: Official[] }),
   };
 
   return {
@@ -503,38 +528,8 @@ export function getRespondentEntryType(
   return null;
 }
 
-const hasText = (v: unknown): v is string =>
-  typeof v === 'string' && v.trim().length > 0;
-
-type MagSlot = {
-  titleKey: keyof ApplicationsListEntryFormValue;
-  firstKey: keyof ApplicationsListEntryFormValue;
-  surKey: keyof ApplicationsListEntryFormValue;
-};
-
-const MAG_SLOTS: readonly MagSlot[] = [
-  {
-    titleKey: 'mags1Title',
-    firstKey: 'mags1FirstName',
-    surKey: 'mags1Surname',
-  },
-  {
-    titleKey: 'mags2Title',
-    firstKey: 'mags2FirstName',
-    surKey: 'mags2Surname',
-  },
-  {
-    titleKey: 'mags3Title',
-    firstKey: 'mags3FirstName',
-    surKey: 'mags3Surname',
-  },
-] as const;
-
-const isOfficialFilled = (
-  title?: unknown,
-  forename?: unknown,
-  surname?: unknown,
-): boolean => hasText(title) || hasText(forename) || hasText(surname);
+const isOfficialFilled = (forename?: unknown, surname?: unknown): boolean =>
+  hasText(forename) || hasText(surname);
 
 const buildMagistrateOfficials = (
   formValue: ApplicationsListEntryFormValue,
@@ -544,7 +539,7 @@ const buildMagistrateOfficials = (
     const forename = formValue[firstKey];
     const surname = formValue[surKey];
 
-    if (!isOfficialFilled(title, forename, surname)) {
+    if (!isOfficialFilled(forename, surname)) {
       return [];
     }
 
@@ -565,7 +560,7 @@ const buildClerkOfficials = (
   const forename = formValue.officialFirstName;
   const surname = formValue.officialSurname;
 
-  if (!isOfficialFilled(title, forename, surname)) {
+  if (!isOfficialFilled(forename, surname)) {
     return [];
   }
 

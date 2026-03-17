@@ -47,10 +47,7 @@ import {
   PERSON_TITLE_OPTIONS,
   RESPONDENT_TYPE_OPTIONS,
 } from './util/entry-detail.constants';
-import {
-  buildEntryUpdateDtoWithChange,
-  buildOfficialsFromFormValue,
-} from './util/entry-detail.form';
+import { buildEntryUpdateDtoWithChange } from './util/entry-detail.form';
 import { mapHttpErrorToSummary } from './util/errors.util';
 import { getEntryId } from './util/routing.util';
 
@@ -769,16 +766,10 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
-    const officials =
-      buildOfficialsFromFormValue(this.form.getRawValue()).officials ?? [];
-
-    const entryUpdateDto = buildEntryUpdateDtoWithChange(
-      this.entryDetail,
-      'officials',
-      officials,
+    this.submitEntryUpdate(
+      this.buildEntryUpdateDto(),
+      ENTRY_SUCCESS_MESSAGES.officialsUpdated,
     );
-
-    this.submitEntryUpdate(entryUpdateDto, ENTRY_SUCCESS_MESSAGES.listUpdated);
   }
 
   private buildEntryUpdateDto(): EntryUpdateDto {

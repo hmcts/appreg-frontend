@@ -46,4 +46,8 @@ export const ENTRY_SUCCESS_MESSAGES = {
       link: { href: '#wording-section', text: 'Go to wording section' },
     },
   },
+  officialsUpdated: {
+    heading: 'Officials updated',
+    body: 'Officials have been updated for this application list entry.',
+  },
 };

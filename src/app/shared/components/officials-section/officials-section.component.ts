@@ -1,6 +1,7 @@
 import { Component, input, output } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
+import { PERSON_TITLE_OPTIONS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 
@@ -10,7 +11,7 @@ import { TextInputComponent } from '@components/text-input/text-input.component'
   templateUrl: './officials-section.component.html',
 })
 export class OfficialsSectionComponent {
-  readonly titleOptions = input.required<{ value: string; label: string }[]>();
+  readonly titleOptions = PERSON_TITLE_OPTIONS;
   readonly group = input.required<FormGroup>();
 
   readonly saveOfficialsClicked = output<void>();
