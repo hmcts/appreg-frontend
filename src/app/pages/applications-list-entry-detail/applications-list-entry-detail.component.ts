@@ -38,6 +38,10 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { map } from 'rxjs';
 
+import {
+  ApplicationsListEntryDetailState,
+  initialApplicationsListEntryDetailState,
+} from './util/applications-list-entry-detail.state';
 import { focusSuccessBanner } from './util/banners.util';
 import {
   APPLICANT_COLUMNS,
@@ -89,7 +93,6 @@ import {
 import { ENTRY_SUCCESS_MESSAGES } from '@constants/application-list-entry/success-messages';
 import { SuccessBanner } from '@core-types/banner/banner.types';
 import {
-  ApplicationCodeGetDetailDto,
   ApplicationCodesApi,
   ApplicationListEntriesApi,
   EntryGetDetailDto,
@@ -126,6 +129,7 @@ import { getUniqueErrors } from '@util/error-items';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { markFormGroupClean } from '@util/form-helpers';
 import { respondentFormsHaveAnyValue } from '@util/respondent-helpers';
+import { createSignalState } from '@util/signal-state-helpers';
 
 type ChildErrorSource =
   | 'notes'
@@ -180,16 +184,21 @@ export class ApplicationsListEntryDetail implements OnInit {
   //Utilising facade for entry results to keep component clean
   readonly resultsFacade = inject(ApplicationListEntryResultsFacade);
 
+  private readonly appListEntryDetailSignalState =
+    createSignalState<ApplicationsListEntryDetailState>(
+      initialApplicationsListEntryDetailState,
+    );
+
+  private readonly appListEntryDetailState =
+    this.appListEntryDetailSignalState.state;
+  private readonly appListEntryDetailPatch =
+    this.appListEntryDetailSignalState.patch;
+  readonly vm = this.appListEntryDetailSignalState.vm;
+
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
 
-  appListId!: string;
-  appCodeDetail!: ApplicationCodeGetDetailDto;
-
   forms!: ApplicationListEntryForms;
-
   formReady = signal(false);
-  formSubmitted = signal(false);
-  bulkApplicationsAllowed = false;
 
   form!: ApplicationsListEntryForm;
   personForm!: PersonForm;
@@ -209,8 +218,6 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   // Error summary state
   errorHint: string | null = 'There is a problem';
-  errorFound = false;
-  summaryErrors: ErrorItem[] = [];
 
   private parentErrors: ErrorItem[] = [];
   private childErrors: Record<ChildErrorSource, ErrorItem[]> = {
@@ -237,7 +244,6 @@ export class ApplicationsListEntryDetail implements OnInit {
   //Civil fee
   feeMeta: CivilFeeMeta | null = null;
   civilFeeForm!: CivilFeeForm;
-  isFeeRequired: boolean = false;
   private persistedHasOffsiteFee = false;
 
   ngOnInit(): void {
@@ -261,7 +267,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
-    this.appListId = listId;
+    this.appListEntryDetailPatch({ appListId: listId });
 
     if (state?.resultApplicantContext) {
       this.resultApplicantContext = [state.resultApplicantContext];
@@ -350,7 +356,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     );
 
     const params: UpdateApplicationListEntryRequestParams = {
-      listId: this.appListId,
+      listId: this.appListEntryDetailState().appListId,
       entryId,
       entryUpdateDto,
     };
@@ -410,10 +416,11 @@ export class ApplicationsListEntryDetail implements OnInit {
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
             }
 
-            this.isFeeRequired = appCodeDetail.isFeeDue;
-
-            this.bulkApplicationsAllowed = appCodeDetail.bulkRespondentAllowed;
-            this.appCodeDetail = appCodeDetail;
+            this.appListEntryDetailPatch({
+              isFeeRequired: appCodeDetail.isFeeDue,
+              bulkApplicationsAllowed: appCodeDetail.bulkRespondentAllowed,
+              appCodeDetail,
+            });
           },
           error: (err) => {
             this.applyMappedError(err);
@@ -468,7 +475,8 @@ export class ApplicationsListEntryDetail implements OnInit {
   private updateRespondentErrors(): void {
     // Run validation if respondent is required
     // and when respondent forms are fully/partially populated
-    const isRespondentRequired = this.appCodeDetail?.requiresRespondent ?? true;
+    const isRespondentRequired =
+      this.appListEntryDetailState().appCodeDetail?.requiresRespondent ?? true;
 
     const respondentFormHasValues = respondentFormsHaveAnyValue({
       numberOfRespondents: this.form.controls.numberOfRespondents,
@@ -504,12 +512,17 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.parentErrors = this.buildErrorSummary();
     const allChildErrors = Object.values(this.childErrors).flat();
 
-    this.summaryErrors = [
+    const summaryErrors = [
       ...getUniqueErrors(this.parentErrors, allChildErrors),
     ];
-    this.errorFound = this.summaryErrors.length > 0;
+    const errorFound = summaryErrors.length > 0;
 
-    if (this.errorFound) {
+    this.appListEntryDetailPatch({
+      summaryErrors,
+      errorFound,
+    });
+
+    if (errorFound) {
       focusErrorSummary(this.platformId);
     }
   }
@@ -673,16 +686,18 @@ export class ApplicationsListEntryDetail implements OnInit {
   ): void {
     const entryId = getEntryId(this.route);
     if (!entryId || !this.entryDetail) {
-      this.errorFound = true;
-      this.summaryErrors = [
-        { text: 'Entry is not loaded. Reload the page and try again.' },
-      ];
+      this.appListEntryDetailPatch({
+        errorFound: true,
+        summaryErrors: [
+          { text: 'Entry is not loaded. Reload the page and try again.' },
+        ],
+      });
       focusErrorSummary(this.platformId);
       return;
     }
 
     const params: UpdateApplicationListEntryRequestParams = {
-      listId: this.appListId,
+      listId: this.appListEntryDetailState().appListId,
       entryId,
       entryUpdateDto,
     };
@@ -695,8 +710,10 @@ export class ApplicationsListEntryDetail implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
-          this.formSubmitted.set(false);
-          this.errorFound = false;
+          this.appListEntryDetailPatch({
+            formSubmitted: false,
+            errorFound: false,
+          });
           this.mergeEntryDetailUpdate(entryUpdateDto, res);
           this.successBanner = successBanner;
 
@@ -709,7 +726,7 @@ export class ApplicationsListEntryDetail implements OnInit {
           }
         },
         error: (err) => {
-          this.formSubmitted.set(false);
+          this.appListEntryDetailPatch({ formSubmitted: false });
           this.applyMappedError(err);
           focusErrorSummary(this.platformId);
         },
@@ -724,13 +741,13 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.form.updateValueAndValidity({ emitEvent: false });
 
     this.updateAllErrors();
-    return this.errorFound;
+    return this.appListEntryDetailState().errorFound;
   }
 
   onUpdateApplicant(): void {
     this.resetErrors();
     this.resetSuccessBanner();
-    this.formSubmitted.set(true);
+    this.appListEntryDetailPatch({ formSubmitted: true });
 
     if (this.runFullSubmitValidation()) {
       return;
@@ -745,7 +762,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   onUpdateApplication(): void {
     this.resetErrors();
     this.resetSuccessBanner();
-    this.formSubmitted.set(true);
+    this.appListEntryDetailPatch({ formSubmitted: true });
 
     if (this.runFullSubmitValidation()) {
       return;
@@ -800,7 +817,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     );
 
     const params: UpdateApplicationListEntryRequestParams = {
-      listId: this.appListId,
+      listId: this.appListEntryDetailState().appListId,
       entryId,
       entryUpdateDto,
     };
@@ -870,8 +887,10 @@ export class ApplicationsListEntryDetail implements OnInit {
   private applyMappedError(err: unknown): void {
     const mapped = mapHttpErrorToSummary(err);
     this.errorHint = mapped.errorHint;
-    this.summaryErrors = mapped.errorSummary;
-    this.errorFound = mapped.errorSummary.length > 0;
+    this.appListEntryDetailPatch({
+      summaryErrors: mapped.errorSummary,
+      errorFound: mapped.errorSummary.length > 0,
+    });
   }
 
   private loadCodesSectionFromEntry(entry: EntryGetDetailDto): void {
@@ -914,7 +933,8 @@ export class ApplicationsListEntryDetail implements OnInit {
         map((type): ApplicantType => type ?? 'person'),
       )
       .subscribe((t) => {
-        this.formSubmitted.set(false);
+        this.appListEntryDetailPatch({ formSubmitted: false });
+
         this.resetErrors();
 
         // keep UI state in sync
@@ -929,8 +949,10 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   private resetErrors(): void {
     this.errorHint = 'There is a problem';
-    this.summaryErrors = [];
-    this.errorFound = false;
+    this.appListEntryDetailPatch({
+      summaryErrors: [],
+      errorFound: false,
+    });
 
     this.parentErrors = [];
     this.childErrors = {
@@ -1036,7 +1058,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   onSubmitResults(payload: ResultSectionSubmitPayload): void {
     const entryId = getEntryId(this.route);
-    const listId = this.appListId;
+    const listId = this.appListEntryDetailState().appListId;
 
     if (!entryId) {
       return;
@@ -1056,7 +1078,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   onRemoveResult(resultId: string): void {
     const entryId = getEntryId(this.route);
-    const listId = this.appListId;
+    const listId = this.appListEntryDetailState().appListId;
 
     if (!entryId || !resultId) {
       return;
@@ -1082,8 +1104,10 @@ export class ApplicationsListEntryDetail implements OnInit {
     const { errorHint, errorSummary } = mapHttpErrorToSummary(err);
 
     this.errorHint = errorHint;
-    this.summaryErrors = errorSummary;
-    this.errorFound = true;
+    this.appListEntryDetailPatch({
+      summaryErrors: errorSummary,
+      errorFound: true,
+    });
 
     focusErrorSummary(this.platformId);
   }
