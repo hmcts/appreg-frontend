@@ -131,7 +131,7 @@ describe('ResultSelectedComponent', () => {
     expect(component.isSubmitting()).toBe(false);
   });
 
-  it('onSubmitResults - all-success path: populates batchResults and sets success state', () => {
+  it('onSubmitResults - all-success path: populates batchResults and sets successBanner', () => {
     component.listId = 'list-success';
     component.rows = [
       {
@@ -182,9 +182,10 @@ describe('ResultSelectedComponent', () => {
 
     component.onSubmitResults(payload);
 
-    expect(component.successMessage()).toEqual(
-      "Result code 'ADJ - Adjourned' applied successfully to application list entries",
-    );
+    expect(component.successBanner()).toEqual({
+      body: "Result code 'ADJ' applied successfully to application list entries",
+      heading: 'Result codes applied successfully',
+    });
 
     expect(mockApi.createApplicationListEntryResult).toHaveBeenCalledTimes(2);
     expect(mockApi.createApplicationListEntryResult).toHaveBeenCalledWith(
@@ -230,10 +231,7 @@ describe('ResultSelectedComponent', () => {
     );
 
     const errorSummarySetSpy = jest.spyOn(component.errorSummaryItems, 'set');
-    const resultCodeApplySuccessSetSpy = jest.spyOn(
-      component.resultCodeApplySuccess,
-      'set',
-    );
+    const successBannerSetSpy = jest.spyOn(component.successBanner, 'set');
 
     component.onSubmitResults({
       pendingToCreate: [
@@ -277,7 +275,7 @@ describe('ResultSelectedComponent', () => {
       'Sequence number 20 failed to update',
     );
 
-    expect(resultCodeApplySuccessSetSpy).toHaveBeenCalledWith(false);
+    expect(successBannerSetSpy).toHaveBeenCalledWith(null);
     expect(component.isSubmitting()).toBe(false);
   });
 });
