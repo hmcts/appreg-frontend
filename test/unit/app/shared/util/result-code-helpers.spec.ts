@@ -8,6 +8,7 @@ import {
   ResultCodesApi,
   ResultGetDto,
   ResultPage,
+  TemplateDetail,
 } from '@openapi';
 import {
   formatResultCodeLabel,
@@ -33,7 +34,6 @@ function makeResult(overrides: Partial<ResultGetDto>): ResultGetDto {
   return {
     id: 'R-1',
     resultCode: 'RC1',
-    wordingFields: [],
     ...overrides,
   } as unknown as ResultGetDto;
 }
@@ -168,29 +168,26 @@ describe('result-code helpers', () => {
   });
 
   describe('toExistingRows', () => {
-    it('maps wording "-" when no fields, joins when fields exist', () => {
+    it('maps wording "-" when there are no substitution constraints', () => {
       const codes = [makeCode({ resultCode: 'RC1', title: 'One' })];
 
       const rows1 = toExistingRows(
-        [makeResult({ id: 'E1', resultCode: 'RC1', wordingFields: [] })],
-        codes,
-      );
-      expect(rows1[0].wording).toBe('-');
-
-      const rows2 = toExistingRows(
         [
           makeResult({
-            id: 'E2',
+            id: 'E1',
             resultCode: 'RC1',
-            wordingFields: ['A', 'B'],
+            wording: {
+              template: 'No placeholders',
+              'substitution-key-constraints': [],
+            } as TemplateDetail,
           }),
         ],
         codes,
       );
-      expect(rows2[0].wording).toBe('A, B');
+      expect(rows1[0].wording).toBe('-');
     });
 
-    it('maps TemplateSubstitution[] values to wording and preserves key/value pairs', () => {
+    it('maps substitution constraints to wording and preserves key/value pairs', () => {
       const codes = [makeCode({ resultCode: 'RC1', title: 'One' })];
 
       const rows = toExistingRows(
@@ -198,10 +195,13 @@ describe('result-code helpers', () => {
           makeResult({
             id: 'E3',
             resultCode: 'RC1',
-            wordingFields: [
-              { key: 'Date', value: '2026-03-02' },
-              { key: 'Location', value: 'London' },
-            ] as unknown as string[],
+            wording: {
+              template: "Result '{{ Date }}' at '{{ Location }}'",
+              'substitution-key-constraints': [
+                { key: 'Date', value: '2026-03-02' },
+                { key: 'Location', value: 'London' },
+              ],
+            } as unknown as TemplateDetail,
           }),
         ],
         codes,

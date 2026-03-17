@@ -433,7 +433,7 @@ export class ResultWordingSectionComponent {
       }
 
       return {
-        ...(wording as TemplateDetail),
+        ...wording,
         template: this.unescapeTemplatePlaceholders(template),
       };
     }
