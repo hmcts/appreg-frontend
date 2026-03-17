@@ -14,8 +14,7 @@ import { HmctsLoggerBridge } from '../server/modules/logger';
 export interface SetupSessionArgs {
   isProd: boolean;
   useRedis: boolean;
-  redisHost: string;
-  redisAccessKey: string;
+  redisUrl?: string;
   cookieName: string;
   sessionSecret: string;
   prefix?: string;
@@ -30,8 +29,7 @@ export interface SetupSessionArgs {
 export async function setupSession({
   isProd,
   useRedis,
-  redisHost,
-  redisAccessKey,
+  redisUrl = '',
   cookieName,
   sessionSecret,
   prefix = 'appreg:sess:',
@@ -47,14 +45,12 @@ export async function setupSession({
   let store: Store;
 
   if (useRedis) {
-    const key = (redisAccessKey || '').trim();
-    if (!key) {
+    const url = (redisUrl || '').trim();
+    if (!url) {
       throw new Error(
-        'Redis access key is missing (secrets.appreg.redis-access-key).',
+        'Redis connection string is missing (secrets.appreg.redis-connection-string).',
       );
     }
-
-    const url = `rediss://default:${encodeURIComponent(key)}@${redisHost}:6380`;
 
     const client: RedisClientType = createClient({
       url,

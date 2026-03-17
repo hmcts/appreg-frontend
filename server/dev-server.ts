@@ -19,6 +19,7 @@ import { AppInsights } from './modules/appinsights';
 import { Helmet } from './modules/helmet';
 import { HmctsLoggerBridge } from './modules/logger';
 import { PropertiesVolume } from './modules/properties-volume';
+import { getRedisUrl } from './redis-config';
 import { setupHealthcheck } from './routes/health';
 import { setupInfoRoute } from './routes/info';
 import { getCca, setupSsoRoutes } from './routes/sso';
@@ -196,8 +197,7 @@ async function bootstrap(): Promise<void> {
     await setupSession({
       isProd,
       useRedis: false,
-      redisHost: 'appreg-stg.redis.cache.windows.net',
-      redisAccessKey: '',
+      redisUrl: getRedisUrl(config),
       cookieName,
       sessionSecret: config.get<string>('secrets.appreg.app-session-secret-fe'),
       prefix: 'appreg:sess:',

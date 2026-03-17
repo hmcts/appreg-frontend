@@ -16,7 +16,7 @@
       "azure-app-id-fe": "dummyClientId",
       "azure-tenant-id-fe": "dummyTenantId",
       "azure-client-secret-fe": "dummyClientSecret",
-      "redis-access-key": "dummyRedisAccessKey",
+      "redis-connection-string": "dummyRedisConnectionString",
       "app-insights-connection-string-fe": "dummyInstrumentationKey",
       "app-session-secret-fe": "dummySessionSecret",
       "TEST-USER1-EMAIL": "dummyTestUser1Email",
