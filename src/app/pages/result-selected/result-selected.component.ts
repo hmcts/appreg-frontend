@@ -170,7 +170,6 @@ export class ResultSelected implements OnInit {
       const existing = existingResultsByEntryId[params.entryId];
 
       if (existing?.id) {
-        // Build update DTO from params.resultCreateDto
         const updateDto = {
           resultCode: params.resultCreateDto.resultCode,
           wordingFields: params.resultCreateDto.wordingFields ?? [],
@@ -194,7 +193,6 @@ export class ResultSelected implements OnInit {
             ),
           );
       } else {
-        // Create (POST) using params
         return this.resultCodesApi
           .createApplicationListEntryResult(params)
           .pipe(

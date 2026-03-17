@@ -6,10 +6,12 @@ import { of, throwError } from 'rxjs';
 
 import { ApplicationEntriesResultContext } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ResultSelected } from '@components/result-selected/result-selected.component';
+import { ENTRY_SUCCESS_MESSAGES } from '@constants/application-list-entry/success-messages';
 import {
   ApplicationListEntryResultsApi,
   CreateApplicationListEntryResultRequestParams,
   ResultGetDto,
+  UpdateApplicationListEntryResultRequestParams,
 } from '@openapi';
 import { ApplicationListEntryResultsFacade } from '@services/applications-list-entry/application-list-entry-results.facade';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
@@ -35,6 +37,7 @@ describe('ResultSelectedComponent', () => {
 
   let mockApi: {
     createApplicationListEntryResult: jest.Mock;
+    updateApplicationListEntryResult: jest.Mock;
   };
 
   beforeEach(async () => {
@@ -42,6 +45,7 @@ describe('ResultSelectedComponent', () => {
       createApplicationListEntryResult: jest
         .fn()
         .mockReturnValue(of(makeResultDto('x', 1))),
+      updateApplicationListEntryResult: jest.fn().mockReturnValue(of(null)),
     };
 
     await TestBed.configureTestingModule({
@@ -277,5 +281,253 @@ describe('ResultSelectedComponent', () => {
 
     expect(successBannerSetSpy).toHaveBeenCalledWith(null);
     expect(component.isSubmitting()).toBe(false);
+  });
+
+  it('onSubmitResults - when an existing result for an entry exists it calls update API and treats response as success', () => {
+    component.listId = 'list-update';
+    component.rows = [
+      {
+        id: 'r1',
+        sequenceNumber: '1',
+        applicant: 'Applicant 1',
+        respondent: 'Respondent 1',
+        title: 'Title 1',
+      },
+    ] as ApplicationEntriesResultContext[];
+
+    const existingToUpdateItem = {
+      kind: 'existing',
+      id: 'real-result-id',
+      resultCode: 'UPD',
+      display: 'UPD - Updated',
+      wordingFields: [{ key: 'k-upd', value: 'v-upd' }],
+      wording: 'w-upd',
+    };
+
+    const payload: ResultSectionSubmitPayload = {
+      pendingToCreate: [],
+      existingToUpdate: [existingToUpdateItem],
+    } as unknown as ResultSectionSubmitPayload;
+
+    const existingResultDto: ResultGetDto = {
+      id: 'existing-result-123',
+      entryId: 'r1',
+      sequenceNumber: 1,
+    } as unknown as ResultGetDto;
+
+    const facadeInstance = (
+      component as unknown as {
+        resultsFacade: ApplicationListEntryResultsFacade;
+      }
+    ).resultsFacade;
+    jest
+      .spyOn(facadeInstance, 'newlyCreatedEntryResults')
+      .mockReturnValue([existingResultDto]);
+
+    mockApi.updateApplicationListEntryResult = jest
+      .fn()
+      .mockImplementation(
+        (requestParameters: UpdateApplicationListEntryResultRequestParams) =>
+          of(makeResultDto(requestParameters.entryId, 1)),
+      );
+
+    component.onSubmitResults(payload);
+
+    expect(mockApi.updateApplicationListEntryResult).toHaveBeenCalledTimes(1);
+
+    const calledWith =
+      mockApi.updateApplicationListEntryResult.mock.calls[0][0];
+    expect(calledWith.listId).toBe('list-update');
+    expect(calledWith.entryId).toBe('r1');
+    expect(calledWith.resultId).toBe('existing-result-123');
+    expect(calledWith.resultUpdateDto.resultCode).toBe('UPD');
+    expect(calledWith.resultUpdateDto.wordingFields).toEqual([
+      { key: 'k-upd', value: 'v-upd' },
+    ]);
+
+    expect(component.successBanner()).toEqual({
+      heading: 'Result codes applied successfully',
+      body: "Result code 'UPD' applied successfully to application list entries",
+    });
+
+    expect(component.batchResults).toHaveLength(1);
+    expect(component.batchResults[0].id).toBe('r1');
+    expect(component.batchResults[0].success).toBe(true);
+  });
+
+  it('onRemoveResult returns early when missing required values (no facade call)', () => {
+    component.listId = '';
+    const removeSpy = jest.spyOn(
+      ApplicationListEntryResultsFacade.prototype,
+      'removeResult',
+    );
+
+    component.onRemoveResult('some-result-id');
+
+    expect(removeSpy).not.toHaveBeenCalled();
+  });
+
+  it('onRemoveResult success path: calls facade.removeResult, sets success banner and focuses it', () => {
+    component.listId = 'list-success';
+
+    const removeMock = jest
+      .spyOn(ApplicationListEntryResultsFacade.prototype, 'removeResult')
+      .mockImplementation(
+        (
+          listId: string,
+          entryId: string,
+          resultId: string,
+          onSuccess?: () => void,
+        ): void => {
+          if (!listId || !entryId || !resultId) {
+            return;
+          }
+
+          onSuccess?.();
+        },
+      );
+
+    const successBannerSpy = jest.spyOn(component.successBanner, 'set');
+
+    component.onRemoveResult('result-xyz');
+
+    expect(removeMock).toHaveBeenCalledTimes(1);
+    expect(removeMock).toHaveBeenCalledWith(
+      component.listId,
+      '73d0276f-42a3-4150-b2fd-d9b2d56b359c',
+      'result-xyz',
+      expect.any(Function),
+      expect.any(Function),
+    );
+
+    expect(successBannerSpy).toHaveBeenCalledWith(
+      ENTRY_SUCCESS_MESSAGES.resultRemoved,
+    );
+
+    removeMock.mockRestore();
+    successBannerSpy.mockRestore();
+  });
+
+  it('onRemoveResult error path: calls facade and applyMappedError', () => {
+    component.listId = 'list-456';
+    const error = new Error('fail');
+
+    jest
+      .spyOn(ApplicationListEntryResultsFacade.prototype, 'removeResult')
+      .mockImplementation(
+        (
+          listId: string,
+          entryId: string,
+          resultId: string,
+          onSuccess?: () => void,
+          onError?: (err: unknown) => void,
+        ): void => {
+          if (!listId || !entryId || !resultId) {
+            return;
+          }
+          onError?.(error);
+        },
+      );
+
+    type HasApplyError = {
+      applyMappedError: (err: unknown) => void;
+    };
+
+    const errorSpy = jest.spyOn(
+      component as unknown as HasApplyError,
+      'applyMappedError',
+    );
+
+    component.onRemoveResult('bad-id');
+
+    expect(errorSpy).toHaveBeenCalledWith(new Error('fail'));
+  });
+
+  it('buildResultRequestForRow - uses pendingToCreate when present', () => {
+    const row = {
+      id: 'entry-1',
+      sequenceNumber: '1',
+      applicant: 'A',
+      respondent: 'R',
+      title: 'T',
+    } as ApplicationEntriesResultContext;
+
+    const pending: PendingResultRow = {
+      kind: 'pending',
+      tempId: 'tmp-1',
+      resultCode: 'P_CODE',
+      display: 'P_CODE - Title',
+      wordingFields: [{ key: 'k1', value: 'v1' }],
+      wording: 'w',
+    };
+
+    component.listId = 'list-x';
+
+    const payload = {
+      pendingToCreate: [pending],
+      existingToUpdate: [],
+    } as unknown as ResultSectionSubmitPayload;
+
+    const accessor = component as unknown as {
+      buildResultRequestForRow: (
+        row: ApplicationEntriesResultContext,
+        payload: ResultSectionSubmitPayload,
+      ) => CreateApplicationListEntryResultRequestParams;
+    };
+
+    const result = accessor.buildResultRequestForRow(row, payload);
+
+    expect(result).toEqual({
+      listId: 'list-x',
+      entryId: 'entry-1',
+      resultCreateDto: {
+        resultCode: 'P_CODE',
+        wordingFields: [{ key: 'k1', value: 'v1' }],
+      },
+    });
+  });
+
+  it('buildResultRequestForRow - falls back to existingToUpdate when pending empty (no any)', () => {
+    const row = {
+      id: 'entry-2',
+      sequenceNumber: '2',
+      applicant: 'A2',
+      respondent: 'R2',
+      title: 'T2',
+    } as ApplicationEntriesResultContext;
+
+    const existing = {
+      kind: 'existing',
+      id: 'real-id',
+      resultCode: 'E_CODE',
+      display: 'E_CODE - Title',
+      wordingFields: [{ key: 'ke', value: 've' }],
+      wording: 'we',
+    };
+
+    component.listId = 'list-y';
+
+    const payload = {
+      pendingToCreate: [],
+      existingToUpdate: [existing],
+    } as unknown as ResultSectionSubmitPayload;
+
+    const accessor = component as unknown as {
+      buildResultRequestForRow: (
+        row: ApplicationEntriesResultContext,
+        payload: ResultSectionSubmitPayload,
+      ) => CreateApplicationListEntryResultRequestParams;
+    };
+
+    const result = accessor.buildResultRequestForRow(row, payload);
+
+    expect(result).toEqual({
+      listId: 'list-y',
+      entryId: 'entry-2',
+      resultCreateDto: {
+        resultCode: 'E_CODE',
+        wordingFields: [{ key: 'ke', value: 've' }],
+      },
+    });
   });
 });
