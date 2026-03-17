@@ -60,6 +60,10 @@ type PaymentRefApplier = {
   applyPaymentRefReturn: (updatedRowId: string, newRef: string) => void;
 };
 
+type EntryDetailWithLegacyWordingFields = EntryGetDetailDto & {
+  wordingFields?: string[];
+};
+
 describe('ApplicationsListEntryDetail', () => {
   let fixture: ComponentFixture<ApplicationsListEntryDetail>;
   let component: ApplicationsListEntryDetail;
@@ -514,7 +518,9 @@ describe('ApplicationsListEntryDetail', () => {
 
     const patch = (
       component as unknown as {
-        toEntryDetailPatch: (dto: EntryUpdateDto) => Partial<EntryGetDetailDto>;
+        toEntryDetailPatch: (
+          dto: EntryUpdateDto,
+        ) => Partial<EntryGetDetailDto> & { wordingFields?: string[] };
       }
     ).toEntryDetailPatch(entryUpdateDto);
 
@@ -533,7 +539,7 @@ describe('ApplicationsListEntryDetail', () => {
       lodgementDate: '2025-11-01',
       wordingFields: ['Old wording'],
       feeStatuses: [],
-    } as unknown as EntryGetDetailDto;
+    } as EntryDetailWithLegacyWordingFields;
 
     const entryUpdateDto = {
       applicationCode: 'APP-200',
@@ -565,7 +571,7 @@ describe('ApplicationsListEntryDetail', () => {
       applicationCode: 'APP-100',
       wordingFields: ['Old wording'],
       feeStatuses: [],
-    } as unknown as EntryGetDetailDto;
+    } as EntryDetailWithLegacyWordingFields;
 
     const entryUpdateDto = {
       applicationCode: 'APP-200',
