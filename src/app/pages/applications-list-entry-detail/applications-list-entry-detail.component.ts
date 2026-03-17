@@ -31,7 +31,6 @@ import {
   OnInit,
   PLATFORM_ID,
   inject,
-  signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -198,9 +197,8 @@ export class ApplicationsListEntryDetail implements OnInit {
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
 
   forms!: ApplicationListEntryForms;
-  formReady = signal(false);
-
   form!: ApplicationsListEntryForm;
+
   personForm!: PersonForm;
   organisationForm!: OrganisationForm;
 

@@ -6,6 +6,7 @@ export interface ApplicationsListEntryDetailState {
   appListId: string;
   appCodeDetail: ApplicationCodeGetDetailDto | null;
   formSubmitted: boolean;
+  formReady: boolean;
   errorFound: boolean;
   summaryErrors: ErrorItem[];
   bulkApplicationsAllowed: boolean;
@@ -19,6 +20,7 @@ export const initialApplicationsListEntryDetailState: ApplicationsListEntryDetai
     appListId: '',
     appCodeDetail: null,
     formSubmitted: false,
+    formReady: false,
     errorFound: false,
     summaryErrors: [],
     bulkApplicationsAllowed: false,
