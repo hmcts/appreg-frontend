@@ -18,7 +18,6 @@ import {
 } from '@shared-types/result-code/result-code-row';
 import {
   WordingFieldLike,
-  toTemplateSubstitutions,
   wordingFromFields,
 } from '@util/template-substitution-utils';
 
@@ -80,16 +79,9 @@ export function toExistingRows(
   codes: ResultCodeGetSummaryDto[],
 ): ExistingResultRow[] {
   return results.map((r) => {
-    const fromFields =
-      toTemplateSubstitutions((r.wordingFields ?? []) as WordingFieldLike[]) ??
-      [];
-
     const resolvedFields =
-      fromFields.length > 0
-        ? fromFields
-        : (fromTemplateDetail(
-            (r as ResultGetDto & { wording?: unknown }).wording,
-          ) ?? []);
+      fromTemplateDetail((r as ResultGetDto & { wording?: unknown }).wording) ??
+      [];
 
     return {
       kind: 'existing',

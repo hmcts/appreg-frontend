@@ -28,7 +28,7 @@ import { LoadingSpinner } from '@components/loading-spinner/loading-spinner';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import {
-  ActionsApi,
+  ApplicationListEntriesApi,
   BulkUploadApplicationListEntriesRequestParams,
   JobStatus,
 } from '@openapi';
@@ -49,7 +49,9 @@ import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
   styleUrl: './applications-list-bulk-upload.component.scss',
 })
 export class ApplicationsListBulkUpload implements OnInit {
-  private readonly actionsApiService = inject(ActionsApi);
+  private readonly applicationListEntriesApi = inject(
+    ApplicationListEntriesApi,
+  );
   private readonly route = inject(ActivatedRoute);
 
   // Initialise signal state
@@ -80,7 +82,7 @@ export class ApplicationsListBulkUpload implements OnInit {
       {
         request: this.bulkUploadRequest,
         load: (params) =>
-          this.actionsApiService.bulkUploadApplicationListEntries(
+          this.applicationListEntriesApi.bulkUploadApplicationListEntries(
             params,
             'body',
             true,

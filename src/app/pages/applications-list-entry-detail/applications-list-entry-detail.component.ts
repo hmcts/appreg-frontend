@@ -992,6 +992,13 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
   }
 
+  private getLegacyWordingFields(
+    entry: EntryGetDetailDto | null | undefined,
+  ): string[] | undefined {
+    return (entry as (EntryGetDetailDto & { wordingFields?: string[] }) | null)
+      ?.wordingFields;
+  }
+
   private mergeEntryDetailUpdate(
     entryUpdateDto: EntryUpdateDto,
     res: Partial<EntryGetDetailDto> | null | undefined,
@@ -1012,12 +1019,16 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   private toEntryDetailPatch(
     entryUpdateDto: EntryUpdateDto,
-  ): Partial<EntryGetDetailDto> {
+  ): Partial<EntryGetDetailDto> & { wordingFields?: string[] } {
     const { wordingFields, ...rest } = entryUpdateDto;
-    const patch: Partial<EntryGetDetailDto> = { ...rest };
+    const patch: Partial<EntryGetDetailDto> & { wordingFields?: string[] } = {
+      ...rest,
+    };
 
     if (wordingFields) {
       patch.wordingFields = wordingFields.map((field) => field.value);
+    } else {
+      patch.wordingFields = this.getLegacyWordingFields(this.entryDetail);
     }
 
     return patch;
