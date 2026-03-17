@@ -161,7 +161,9 @@ export class ApplicationListEntryResultsFacade {
     }
   }
 
-  private toTemplateDetail(wording: string | null | undefined): TemplateDetail {
+  private toTemplateDetail(
+    wording: string | TemplateDetail | null | undefined,
+  ): TemplateDetail {
     return this.normalizeTemplateDetail(wording);
   }
 

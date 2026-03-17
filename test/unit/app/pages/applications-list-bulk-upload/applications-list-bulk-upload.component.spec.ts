@@ -6,7 +6,12 @@ import { Subject, of, throwError } from 'rxjs';
 
 import { ApplicationsListBulkUpload } from '@components/applications-list-bulk-upload/applications-list-bulk-upload.component';
 import { ApplicationsListBulkUploadState } from '@components/applications-list-bulk-upload/util/applications-list-bulk-upload.state';
-import { ActionsApi, JobAcknowledgement, JobStatus, JobType } from '@openapi';
+import {
+  ApplicationListEntriesApi,
+  JobAcknowledgement,
+  JobStatus,
+  JobType,
+} from '@openapi';
 
 describe('ApplicationsListBulkUpload', () => {
   let component: ApplicationsListBulkUpload;
@@ -28,7 +33,7 @@ describe('ApplicationsListBulkUpload', () => {
     type: 'application/pdf',
   });
 
-  const actionsApiServiceMock = {
+  const applicationListEntriesApiMock = {
     bulkUploadApplicationListEntries: jest.fn(),
   };
 
@@ -62,8 +67,8 @@ describe('ApplicationsListBulkUpload', () => {
       providers: [
         { provide: ActivatedRoute, useValue: mockActivatedRoute },
         {
-          provide: ActionsApi,
-          useValue: actionsApiServiceMock,
+          provide: ApplicationListEntriesApi,
+          useValue: applicationListEntriesApiMock,
         },
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -119,7 +124,7 @@ describe('ApplicationsListBulkUpload', () => {
         status: JobStatus.RECEIVED,
         type: JobType.BULK_UPLOAD_ENTRIES,
       };
-      actionsApiServiceMock.bulkUploadApplicationListEntries.mockReturnValue(
+      applicationListEntriesApiMock.bulkUploadApplicationListEntries.mockReturnValue(
         of(ack),
       );
 
@@ -132,7 +137,7 @@ describe('ApplicationsListBulkUpload', () => {
       await flushSignalEffects(fixture);
 
       expect(
-        actionsApiServiceMock.bulkUploadApplicationListEntries,
+        applicationListEntriesApiMock.bulkUploadApplicationListEntries,
       ).toHaveBeenCalledWith(
         { listId: 'list-123', file: getState(component).file },
         'body',
@@ -151,7 +156,7 @@ describe('ApplicationsListBulkUpload', () => {
         statusText: 'Server error',
         url: '/api/upload',
       });
-      actionsApiServiceMock.bulkUploadApplicationListEntries.mockReturnValue(
+      applicationListEntriesApiMock.bulkUploadApplicationListEntries.mockReturnValue(
         throwError(() => httpErr),
       );
 
@@ -173,7 +178,7 @@ describe('ApplicationsListBulkUpload', () => {
 
     it('sets isUploadInProgress true while request is in-flight and false after complete', async () => {
       const subj = new Subject<JobAcknowledgement>();
-      actionsApiServiceMock.bulkUploadApplicationListEntries.mockReturnValue(
+      applicationListEntriesApiMock.bulkUploadApplicationListEntries.mockReturnValue(
         subj.asObservable(),
       );
 

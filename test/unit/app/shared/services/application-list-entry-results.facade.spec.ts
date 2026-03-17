@@ -17,7 +17,6 @@ function makeResult(overrides: Partial<ResultGetDto>): ResultGetDto {
   return {
     id: 'R-1',
     resultCode: 'RC1',
-    wordingFields: [],
     ...overrides,
   } as unknown as ResultGetDto;
 }
