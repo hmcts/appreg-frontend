@@ -9,16 +9,16 @@
   ]"
 ></app-breadcrumbs>
 
-@if (resultCodeApplySuccess()) {
+@if (successBanner(); as successBanner) {
   <app-success-banner
-    heading="Result codes applied successfully"
-    [body]="successMessage()"
+    [heading]="successBanner.heading"
+    [body]="successBanner.body"
   />
 }
 
-@if (errorSummaryItems().length > 0) {
+@if (errorFound()) {
   <app-error-summary
-    [title]="'There is a problem'"
+    [title]="errorHint || 'There is a problem'"
     [items]="errorSummaryItems()"
     targetId="results-applicant-table"
   />
@@ -34,15 +34,17 @@
 
 <app-result-wording-section
   [resultApplicantContext]="rows"
-  [existingResults]="[]"
-  [applicantRespondentColumns]="columns"
-  [captionSize]="'m'"
-  [caption]="'Application(s) to result'"
-  [buttonText]="'Save changes'"
   [resultCodesList]="resultsFacade.resultCodesSignal()"
+  [existingResults]="[]"
   [clearPendingToken]="resultsFacade.clearPendingToken()"
   [wordingByCode]="resultsFacade.resultCodeWordingByCode()"
   [resultCodeTemplateByCode]="resultsFacade.resultCodeTemplateByCode()"
   (pendingChange)="onPendingChange($event)"
   (submitResults)="onSubmitResults($event)"
+  (removeExisting)="onRemoveResult($event)"
+  (wordingFieldErrors)="onError($event)"
+  [applicantRespondentColumns]="columns"
+  [captionSize]="'m'"
+  [caption]="'Application(s) to result'"
+  [buttonText]="'Save changes'"
 />

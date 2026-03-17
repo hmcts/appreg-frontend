@@ -1,11 +1,21 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  PLATFORM_ID,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Observable, catchError, finalize, forkJoin, map, of } from 'rxjs';
 
+import { focusSuccessBanner } from '@components/applications-list-entry-detail/util/banners.util';
 import { APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
+import { mapHttpErrorToSummary } from '@components/applications-list-entry-detail/util/errors.util';
 import { ApplicationEntriesResultContext } from '@components/applications-list-entry-detail/util/routing-state-util';
+import { getEntryId } from '@components/applications-list-entry-detail/util/routing.util';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import {
   ErrorItem,
@@ -14,6 +24,8 @@ import {
 import { ResultWordingSectionComponent } from '@components/result-wording-section/result-wording-section.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { WarningBannerComponent } from '@components/warning-banner/warning-banner.component';
+import { ENTRY_SUCCESS_MESSAGES } from '@constants/application-list-entry/success-messages';
+import { SuccessBanner } from '@core-types/banner/banner.types';
 import {
   ApplicationListEntryResultsApi,
   CreateApplicationListEntryResultRequestParams,
@@ -54,20 +66,23 @@ export type BatchResult =
 export class ResultSelected implements OnInit {
   private route = inject(ActivatedRoute);
   private readonly resultCodesApi = inject(ApplicationListEntryResultsApi);
+  private readonly platformId = inject(PLATFORM_ID);
   readonly resultsFacade = inject(ApplicationListEntryResultsFacade);
 
   listId!: string;
   mixedResultedAndUnresultedApplications!: boolean;
-  successMessage = signal('');
   private selectedResultCode = signal<string>('');
 
   isSubmitting = signal(false);
   batchResults!: BatchResult[];
-  resultCodeApplySuccess = signal(false);
-  errorSummaryItems = signal<ErrorItem[]>([]);
-  idToSequenceNumberMap!: Record<string, string | undefined>;
 
-  requestParams!: CreateApplicationListEntryResultRequestParams;
+  successBanner = signal<SuccessBanner | null>(null);
+
+  errorHint: string | null = 'There is a problem';
+  errorFound = computed(() => this.errorSummaryItems().length > 0);
+  errorSummaryItems = signal<ErrorItem[]>([]);
+
+  idToSequenceNumberMap!: Record<string, string | undefined>;
 
   columns = APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS;
 
@@ -93,6 +108,36 @@ export class ResultSelected implements OnInit {
     this.resultsFacade.setPending(rows);
   }
 
+  onRemoveResult(resultId: string): void {
+    const entryId = getEntryId(this.route);
+
+    if (!entryId || !resultId || !this.listId) {
+      return;
+    }
+
+    this.resultsFacade.removeResult(
+      this.listId,
+      entryId,
+      resultId,
+      () => {
+        this.successBanner.set(ENTRY_SUCCESS_MESSAGES.resultRemoved);
+        focusSuccessBanner(this.platformId);
+      },
+      (err) => this.applyMappedError(err),
+    );
+  }
+
+  private applyMappedError(err: unknown): void {
+    const mapped = mapHttpErrorToSummary(err);
+    this.errorHint = mapped.errorHint;
+
+    this.errorSummaryItems.set(mapped.errorSummary);
+  }
+
+  onError(errors: ErrorItem[]): void {
+    this.errorSummaryItems.set(errors);
+  }
+
   onSubmitResults(payload: ResultSectionSubmitPayload): void {
     this.idToSequenceNumberMap = Object.fromEntries(
       this.rows.map((row) => [row.id, row.sequenceNumber]),
@@ -105,7 +150,7 @@ export class ResultSelected implements OnInit {
     this.isSubmitting.set(true);
     this.batchResults = [];
 
-    const calls$: Observable<BatchResult>[] = this.rows.map((row) => {
+    const calls: Observable<BatchResult>[] = this.rows.map((row) => {
       return this.resultCodesApi
         .createApplicationListEntryResult(this.paramsForRow(row, payload))
         .pipe(
@@ -120,7 +165,7 @@ export class ResultSelected implements OnInit {
         );
     });
 
-    forkJoin([...calls$])
+    forkJoin([...calls])
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe((results: BatchResult[]) => {
         this.batchResults = results;
@@ -134,10 +179,15 @@ export class ResultSelected implements OnInit {
           });
 
         this.errorSummaryItems.set(errorItems);
-        this.successMessage.set(
-          `Result code '${this.selectedResultCode()}' applied successfully to application list entries`,
+
+        this.successBanner.set(
+          errorItems.length === 0
+            ? {
+                heading: 'Result codes applied successfully',
+                body: `Result code '${this.selectedResultCode()}' applied successfully to application list entries`,
+              }
+            : null,
         );
-        this.resultCodeApplySuccess.set(errorItems.length === 0);
       });
   }
 
