@@ -3,7 +3,7 @@
   "listId": "{{request.pathSegments.[1]}}",
   "standardApplicantCode": "SA002",
   "applicationCode": "APP99001",
-  "applicant": { 
+  "applicant": {
     "organisation": {
       "name": "ACME Industries LTD",
       "contactDetails": {
@@ -62,5 +62,20 @@
   "accountNumber": "ACC001",
   "notes": "Example entry",
   "lodgementDate": "2025-12-01",
-  "officials": []
+  "officials": [{
+      "title": "Mrs",
+      "surname": "Smith",
+      "forename": "John",
+      "type": "MAGISTRATE"
+    }, {
+      "title": "Mrs",
+      "surname": "fda",
+      "forename": "cdcd",
+      "type": "MAGISTRATE"
+    },{
+      "title": "Mr, Mrs",
+      "surname": "Smith",
+      "forename": "John",
+      "type": "CLERK"
+    }]
 }

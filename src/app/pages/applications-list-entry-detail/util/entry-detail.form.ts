@@ -23,6 +23,7 @@ import {
   FeeStatus,
   FullName,
   Official,
+  OfficialType,
   Organisation,
   Person,
   Respondent,
@@ -256,13 +257,16 @@ export function buildEntryUpdateDtoFromForm(
   };
 
   // Reuse existing mapper to build a “patch”
-  const patch = buildEntryCreateDto(
-    formValue,
-    applicantPersonValue,
-    applicantOrgValue,
-    respondentPersonValue,
-    respondentOrgValue,
-  ) as unknown as Partial<EntryUpdateDto>;
+  const patch: Partial<EntryUpdateDto> = {
+    ...buildEntryCreateDto(
+      formValue,
+      applicantPersonValue,
+      applicantOrgValue,
+      respondentPersonValue,
+      respondentOrgValue,
+    ),
+    ...buildOfficialsFromFormValue(formValue),
+  };
 
   // Merge server snapshot with patch from form
   return {
@@ -372,6 +376,46 @@ export function organisationToFormPatch(
   };
 }
 
+export function officialsToFormPatch(
+  officials: Official[] | null | undefined,
+): Partial<ApplicationsListEntryFormValue> {
+  if (!officials?.length) {
+    return {};
+  }
+
+  const magistrates = officials.filter(
+    (o) => o.type === OfficialType.MAGISTRATE,
+  );
+  const clerk = officials.find((o) => o.type === OfficialType.CLERK);
+
+  const patch: Partial<ApplicationsListEntryFormValue> = {};
+
+  const magSlots = [
+    { title: 'mags1Title', first: 'mags1FirstName', sur: 'mags1Surname' },
+    { title: 'mags2Title', first: 'mags2FirstName', sur: 'mags2Surname' },
+    { title: 'mags3Title', first: 'mags3FirstName', sur: 'mags3Surname' },
+  ] as const;
+
+  magistrates.slice(0, magSlots.length).forEach((m, i) => {
+    const slot = magSlots[i];
+
+    patch[slot.title] = mapTitleToOptionValue(m.title, PERSON_TITLE_OPTIONS);
+    patch[slot.first] = m.forename ?? null;
+    patch[slot.sur] = m.surname ?? null;
+  });
+
+  if (clerk) {
+    patch.officialTitle = mapTitleToOptionValue(
+      clerk.title,
+      PERSON_TITLE_OPTIONS,
+    );
+    patch.officialFirstName = clerk.forename ?? null;
+    patch.officialSurname = clerk.surname ?? null;
+  }
+
+  return patch;
+}
+
 export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
   detail: EntryGetDetailDto | null | undefined,
   key: K,
@@ -457,4 +501,91 @@ export function getRespondentEntryType(
   }
 
   return null;
+}
+
+const hasText = (v: unknown): v is string =>
+  typeof v === 'string' && v.trim().length > 0;
+
+type MagSlot = {
+  titleKey: keyof ApplicationsListEntryFormValue;
+  firstKey: keyof ApplicationsListEntryFormValue;
+  surKey: keyof ApplicationsListEntryFormValue;
+};
+
+const MAG_SLOTS: readonly MagSlot[] = [
+  {
+    titleKey: 'mags1Title',
+    firstKey: 'mags1FirstName',
+    surKey: 'mags1Surname',
+  },
+  {
+    titleKey: 'mags2Title',
+    firstKey: 'mags2FirstName',
+    surKey: 'mags2Surname',
+  },
+  {
+    titleKey: 'mags3Title',
+    firstKey: 'mags3FirstName',
+    surKey: 'mags3Surname',
+  },
+] as const;
+
+const isOfficialFilled = (
+  title?: unknown,
+  forename?: unknown,
+  surname?: unknown,
+): boolean => hasText(title) || hasText(forename) || hasText(surname);
+
+const buildMagistrateOfficials = (
+  formValue: ApplicationsListEntryFormValue,
+): Official[] =>
+  MAG_SLOTS.flatMap(({ titleKey, firstKey, surKey }) => {
+    const title = formValue[titleKey];
+    const forename = formValue[firstKey];
+    const surname = formValue[surKey];
+
+    if (!isOfficialFilled(title, forename, surname)) {
+      return [];
+    }
+
+    return [
+      {
+        type: OfficialType.MAGISTRATE,
+        title: hasText(title) ? title.trim() : undefined,
+        forename: hasText(forename) ? forename.trim() : undefined,
+        surname: hasText(surname) ? surname.trim() : undefined,
+      },
+    ];
+  });
+
+const buildClerkOfficials = (
+  formValue: ApplicationsListEntryFormValue,
+): Official[] => {
+  const title = formValue.officialTitle;
+  const forename = formValue.officialFirstName;
+  const surname = formValue.officialSurname;
+
+  if (!isOfficialFilled(title, forename, surname)) {
+    return [];
+  }
+
+  return [
+    {
+      type: OfficialType.CLERK,
+      title: hasText(title) ? title.trim() : undefined,
+      forename: hasText(forename) ? forename.trim() : undefined,
+      surname: hasText(surname) ? surname.trim() : undefined,
+    },
+  ];
+};
+
+export function buildOfficialsFromFormValue(
+  formValue: ApplicationsListEntryFormValue,
+): Partial<Pick<EntryUpdateDto, 'officials'>> {
+  const officials = [
+    ...buildMagistrateOfficials(formValue),
+    ...buildClerkOfficials(formValue),
+  ];
+
+  return officials.length ? { officials } : {};
 }

@@ -130,7 +130,11 @@
   </ng-template>
 
   <ng-template #officialsTpl>
-    <app-officials-section [titleOptions]="personTitleOptions" />
+    <app-officials-section
+      [titleOptions]="personTitleOptions"
+      [group]="form"
+      (saveOfficialsClicked)="onSaveOfficials()"
+    />
   </ng-template>
 
   <app-accordion
