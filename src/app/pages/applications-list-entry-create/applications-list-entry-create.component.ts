@@ -170,9 +170,9 @@ export class ApplicationsListEntryCreate implements OnInit {
   feeMeta: CivilFeeMeta | null = null;
   civilFeeForm: CivilFeeForm = this.formSvc.createCivilFeeForm(this.forms);
   @ViewChild('wordingSection')
-  private wordingSection?: WordingSectionComponent;
+  private readonly wordingSection?: WordingSectionComponent;
   @ViewChild('civilFeeSection')
-  private civilFeeSection?: CivilFeeSectionComponent;
+  private readonly civilFeeSection?: CivilFeeSectionComponent;
 
   ngOnInit(): void {
     this.appListEntryCreateState().id = this.route.snapshot.paramMap.get('id')!;
