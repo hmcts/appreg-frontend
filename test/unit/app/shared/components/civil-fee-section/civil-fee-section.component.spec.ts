@@ -78,6 +78,7 @@ describe('CivilFeeSectionComponent', () => {
     fixture.componentRef.setInput('civilFeeColumns', columns);
     fixture.componentRef.setInput('feeStatusOptions', feeStatusOptions);
     fixture.componentRef.setInput('feeMeta', null);
+    fixture.componentRef.setInput('feeRequired', true);
 
     fixture.detectChanges();
   });
@@ -215,6 +216,51 @@ describe('CivilFeeSectionComponent', () => {
 
     expect(addSpy).not.toHaveBeenCalled();
     expect(f.paymentRef.hasError('maxlength')).toBe(true);
+  });
+
+  it('when fee is not required, keeps inputs visible but disabled and disables add button', () => {
+    fixture.componentRef.setInput('feeRequired', false);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+
+    expect(host.querySelector('#offSiteFee')).toBeNull();
+    expect(host.querySelector('app-select-input')).not.toBeNull();
+    expect(host.querySelector('app-date-input')).not.toBeNull();
+    expect(host.querySelector('app-text-input')).not.toBeNull();
+    expect(
+      component.feeForm().controls.feeStatus.disabled &&
+        component.feeForm().controls.feeStatusDate.disabled &&
+        component.feeForm().controls.paymentRef.disabled,
+    ).toBe(true);
+    expect(
+      (host.querySelector('button.govuk-button') as HTMLButtonElement).disabled,
+    ).toBe(true);
+  });
+
+  it('when fee is not required, parent submit does not apply civil fee validators', () => {
+    fixture.componentRef.setInput('feeRequired', false);
+    fixture.detectChanges();
+
+    const f = component.feeForm().controls;
+    const emitSpy = jest.spyOn(component.civilFeeErrors, 'emit');
+
+    attachValidatorsForSubmitAttempt();
+
+    f.feeStatus.setValue('');
+    f.feeStatusDate.setValue('');
+    f.paymentRef.setValue('12345678901234567890');
+    f.feeStatuses.setValue([]);
+    f.feeStatus.updateValueAndValidity({ emitEvent: false });
+    f.feeStatusDate.updateValueAndValidity({ emitEvent: false });
+    f.paymentRef.updateValueAndValidity({ emitEvent: false });
+    f.feeStatuses.updateValueAndValidity({ emitEvent: false });
+
+    expect(f.feeStatus.errors).toBeNull();
+    expect(f.feeStatusDate.errors).toBeNull();
+    expect(f.paymentRef.errors).toBeNull();
+    expect(f.feeStatuses.errors).toBeNull();
+    expect(emitSpy).toHaveBeenCalledWith([]);
   });
 
   it('isControlInvalid returns true only when invalid and touched/dirty', () => {
@@ -407,6 +453,26 @@ describe('CivilFeeSectionComponent', () => {
     const emitted = lastCall?.[0] ?? [];
 
     expect(emitted).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'feeStatus',
+          text: 'Select a fee status',
+        }),
+        expect.objectContaining({
+          id: 'feeStatusDate',
+          text: 'Enter a status date',
+        }),
+      ]),
+    );
+  });
+
+  it('validateForSubmit returns current civil fee errors', () => {
+    fixture.componentRef.setInput('feeRequired', true);
+    fixture.detectChanges();
+
+    const errors = component.validateForSubmit();
+
+    expect(errors).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           id: 'feeStatus',

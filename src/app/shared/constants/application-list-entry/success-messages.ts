@@ -1,7 +1,11 @@
 export const ENTRY_SUCCESS_MESSAGES = {
+  listUpdated: {
+    heading: 'Application list entry updated',
+    body: 'The application list entry has been updated successfully.',
+  },
   listCreated: {
-    heading: 'Application list created',
-    body: 'The application list has been created successfully.',
+    heading: 'Application list entry created',
+    body: 'The application list entry has been created successfully.',
   },
   applicantUpdated: {
     heading: 'Applicant updated',

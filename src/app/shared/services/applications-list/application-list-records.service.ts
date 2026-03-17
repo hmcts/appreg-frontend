@@ -18,7 +18,7 @@ export class ApplicationListRecordsService {
   private readonly _state = createSignalState<recordsState>({
     rows: [],
     totalPages: 0,
-    currentPage: 1,
+    currentPage: 0,
     pageSize: 10,
     submitted: false,
   });

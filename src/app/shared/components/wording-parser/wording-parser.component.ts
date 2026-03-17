@@ -1,7 +1,6 @@
 import {
   Component,
   DestroyRef,
-  OnInit,
   computed,
   effect,
   inject,
@@ -31,7 +30,7 @@ export type Token =
   imports: [ReactiveFormsModule],
   templateUrl: './wording-parser.component.html',
 })
-export class WordingParserComponent implements OnInit {
+export class WordingParserComponent {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -57,6 +56,21 @@ export class WordingParserComponent implements OnInit {
   form = this.fb.group({});
 
   constructor() {
+    // Ensures we display the correct wording field on subsequent app code changes
+    effect(() => this.tokeniseAndPatchWordingField());
+
+    effect((onCleanup) => {
+      if (this.showSaveButton()) {
+        return;
+      }
+
+      const sub = this.form.valueChanges.subscribe(() => {
+        this.wordingFieldsDTO.emit(this.toWordingFields(this.form));
+      });
+
+      onCleanup(() => sub.unsubscribe());
+    });
+
     effect(() => {
       const attempt = this.wordingSubmitAttempt();
       if (attempt === 0 || attempt === this.lastHandledAttempt) {
@@ -66,32 +80,12 @@ export class WordingParserComponent implements OnInit {
       this.lastHandledAttempt = attempt;
 
       if (this.showSaveButton()) {
-        this.submitted.set(true);
-        this.form.markAllAsTouched();
-        this.form.updateValueAndValidity({ emitEvent: false });
-        this.wordingFieldErrors.emit(this.form.valid ? [] : this.buildErrors());
+        this.validateForSubmit();
         return;
       }
 
       this.submitWordingFields();
     });
-  }
-
-  ngOnInit(): void {
-    this.tokens = this.tokenize(this.wordingObject().template ?? '');
-
-    this.createFormControls();
-    this.patchFormControls();
-
-    // In no-save-button mode (used by result wording cards), emit live draft values
-    // so parent components can detect edits and enable submit actions.
-    if (!this.showSaveButton()) {
-      this.form.valueChanges
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe(() => {
-          this.wordingFieldsDTO.emit(this.toWordingFields(this.form));
-        });
-    }
   }
 
   createFormControls(): void {
@@ -105,6 +99,24 @@ export class WordingParserComponent implements OnInit {
       }
       return acc;
     }, {});
+
+    // Remove stale controls from previous templates
+    const activeInputKeys = this.tokens
+      .filter(
+        (token): token is { type: 'input'; key: string } =>
+          token.type === 'input',
+      )
+      .map((token) => token.key);
+
+    const activeFormKeys = new Set(
+      activeInputKeys.map((key) => this.normaliseKey(key)),
+    );
+
+    Object.keys(this.form.controls).forEach((existingKey) => {
+      if (!activeFormKeys.has(existingKey)) {
+        this.form.removeControl(existingKey);
+      }
+    });
 
     this.normalisedKeyToKeyMap.clear();
 
@@ -176,17 +188,41 @@ export class WordingParserComponent implements OnInit {
   }
 
   submitWordingFields(): void {
+    const errors = this.validateForSubmit({ enforceSavedWording: false });
+
+    if (errors.length === 0) {
+      this.wordingFieldsDTO.emit(this.toWordingFields(this.form));
+      this.form.markAsPristine();
+    }
+  }
+
+  validateForSubmit(opts: { enforceSavedWording?: boolean } = {}): ErrorItem[] {
     this.submitted.set(true);
+
+    const enforceSavedWording = opts.enforceSavedWording ?? true;
 
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity({ emitEvent: false });
 
-    if (this.form.valid) {
-      this.wordingFieldErrors.emit([]);
-      this.wordingFieldsDTO.emit(this.toWordingFields(this.form));
-    } else {
-      this.wordingFieldErrors.emit(this.buildErrors());
+    const validationErrors = this.form.valid ? [] : this.buildErrors();
+    if (validationErrors.length > 0) {
+      this.wordingFieldErrors.emit(validationErrors);
+      return validationErrors;
     }
+
+    if (enforceSavedWording && this.showSaveButton() && this.form.dirty) {
+      const errors: ErrorItem[] = [
+        {
+          text: `Save wording changes in the ${this.section()} section before submitting`,
+          href: '#save-wording-button',
+        },
+      ];
+      this.wordingFieldErrors.emit(errors);
+      return errors;
+    }
+
+    this.wordingFieldErrors.emit([]);
+    return [];
   }
 
   private toWordingFields(form: FormGroup): {
@@ -251,5 +287,20 @@ export class WordingParserComponent implements OnInit {
   // as spaces and full stops are not valid in form control names or html ids
   normaliseKey(key: string): string {
     return key.replaceAll('.', '').trim().replaceAll(/\s+/g, '-');
+  }
+
+  private tokeniseAndPatchWordingField(): void {
+    this.tokens = this.tokenize(this.wordingObject().template ?? '');
+
+    this.createFormControls();
+    this.patchFormControls();
+
+    if (!this.showSaveButton()) {
+      this.form.valueChanges
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.wordingFieldsDTO.emit(this.toWordingFields(this.form));
+        });
+    }
   }
 }

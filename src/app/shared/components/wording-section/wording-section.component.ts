@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, ViewChild, input, output } from '@angular/core';
 
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { WordingParserComponent } from '@components/wording-parser/wording-parser.component';
@@ -10,6 +10,9 @@ import { TemplateDetail, TemplateSubstitution } from '@openapi';
   templateUrl: './wording-section.component.html',
 })
 export class WordingSectionComponent {
+  @ViewChild(WordingParserComponent)
+  private readonly wordingParser?: WordingParserComponent;
+
   wordingObject = input.required<TemplateDetail>();
   wordingSubmitAttempt = input.required<number>();
 
@@ -22,5 +25,9 @@ export class WordingSectionComponent {
 
   onWordingFieldErrors(errors: ErrorItem[]): void {
     this.wordingFieldErrors.emit(errors);
+  }
+
+  validateForSubmit(): ErrorItem[] {
+    return this.wordingParser?.validateForSubmit() ?? [];
   }
 }
