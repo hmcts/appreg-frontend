@@ -16,10 +16,7 @@ import {
   ExistingResultRow,
   PendingResultRow,
 } from '@shared-types/result-code/result-code-row';
-import {
-  WordingFieldLike,
-  wordingFromFields,
-} from '@util/template-substitution-utils';
+import { wordingFromFields } from '@util/template-substitution-utils';
 
 export function getAllResultCodes(
   codesApi: ResultCodesApi,
