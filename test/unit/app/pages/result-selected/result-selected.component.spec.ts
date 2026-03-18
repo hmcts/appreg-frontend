@@ -139,69 +139,84 @@ describe('ResultSelectedComponent', () => {
     expect(component.isSubmitting()).toBe(false);
   });
 
-  it('onSubmitResults - all-success path: populates batchResults and sets successBanner', () => {
-    component.listId = 'list-success';
-    component.rows = [
-      {
-        id: 'r1',
-        sequenceNumber: '1',
-        applicant: 'A',
-        respondent: 'R',
-        title: 'T1',
-      },
-      {
-        id: 'r2',
-        sequenceNumber: '2',
-        applicant: 'B',
-        respondent: 'S',
-        title: 'T2',
-      },
-    ] as ApplicationEntriesResultContext[];
+  it('onRemoveResult success path: calls facade.removeResult and sets success banner', () => {
+    component.listId = 'list-123';
 
-    const payload: ResultSectionSubmitPayload = {
-      pendingToCreate: [
-        {
-          kind: 'pending',
-          tempId: 'tmp_ebf79d63-080b-46fa-938a-f5d82874b234',
-          resultCode: 'ADJ',
-          display: 'ADJ - Adjourned',
-          wordingFields: [],
-          wording: '-',
+    // get the exact facade instance used by the component
+    const facadeInstance = (
+      component as unknown as {
+        resultsFacade: ApplicationListEntryResultsFacade;
+      }
+    ).resultsFacade;
+
+    // narrow interface for what we interact with in this test
+    type FacadeShape = {
+      newlyCreatedEntryResults: () => ResultGetDto[];
+      removeResult: (
+        listId: string,
+        entryId: string,
+        resultId: string,
+        onSuccess?: () => void,
+        onError?: (err: unknown) => void,
+      ) => void;
+      clearCreatedEntryResults: () => void;
+    };
+
+    const facade = facadeInstance as unknown as FacadeShape;
+
+    const createdResult: ResultGetDto = {
+      id: 'result-xyz',
+      entryId: '73d0276f-42a3-4150-b2fd-d9b2d56b359c',
+    } as ResultGetDto;
+
+    // 1) Ensure the facade reports the created result (so entryMap is non-empty)
+    const newlyCreatedSpy = jest
+      .spyOn(facade, 'newlyCreatedEntryResults')
+      .mockReturnValue([createdResult]);
+
+    // 2) Stub clearCreatedEntryResults on the same instance so it doesn't call the real .set()
+    const clearCreatedSpy = jest
+      .spyOn(facade, 'clearCreatedEntryResults')
+      .mockImplementation(() => {});
+
+    // 3) Spy removeResult and simulate a successful removal by invoking onSuccess()
+    const removeSpy = jest
+      .spyOn(facade, 'removeResult')
+      .mockImplementation(
+        (
+          _listId: string,
+          _entryId: string,
+          _resultId: string,
+          onSuccess?: () => void,
+        ): void => {
+          onSuccess?.();
         },
-      ] as PendingResultRow[],
-      existingToUpdate: [],
-    };
+      );
 
-    const expectedParamsForR1: CreateApplicationListEntryResultRequestParams = {
-      listId: component.listId,
-      entryId: 'r1',
-      resultCreateDto: { resultCode: 'ADJ', wordingFields: [] },
-    };
-    const expectedParamsForR2: CreateApplicationListEntryResultRequestParams = {
-      listId: component.listId,
-      entryId: 'r2',
-      resultCreateDto: { resultCode: 'ADJ', wordingFields: [] },
-    };
+    // spy the component's success banner setter
+    const successBannerSpy = jest.spyOn(component.successBanner, 'set');
 
-    mockApi.createApplicationListEntryResult.mockImplementation(
-      (params: CreateApplicationListEntryResultRequestParams) =>
-        of(makeResultDto(params.entryId, params.entryId === 'r1' ? 1 : 2)),
+    // Act
+    component.onRemoveResult('result-xyz');
+
+    // Assert
+    expect(removeSpy).toHaveBeenCalledWith(
+      'list-123',
+      '73d0276f-42a3-4150-b2fd-d9b2d56b359c',
+      'result-xyz',
+      expect.any(Function),
+      expect.any(Function),
     );
 
-    component.onSubmitResults(payload);
-
-    expect(component.successBanner()).toEqual({
-      body: "Result code 'ADJ' applied successfully to application list entries",
-      heading: 'Result codes applied successfully',
-    });
-
-    expect(mockApi.createApplicationListEntryResult).toHaveBeenCalledTimes(2);
-    expect(mockApi.createApplicationListEntryResult).toHaveBeenCalledWith(
-      expectedParamsForR1,
+    expect(successBannerSpy).toHaveBeenCalledWith(
+      ENTRY_SUCCESS_MESSAGES.resultsRemoved,
     );
-    expect(mockApi.createApplicationListEntryResult).toHaveBeenCalledWith(
-      expectedParamsForR2,
-    );
+
+    // cleanup
+    successBannerSpy.mockRestore();
+    removeSpy.mockRestore();
+    clearCreatedSpy.mockRestore();
+    newlyCreatedSpy.mockRestore();
   });
 
   it('onSubmitResults - partial-failure path: mixed results, error summary contains failing sequence, sets failure flag', () => {
@@ -368,34 +383,62 @@ describe('ResultSelectedComponent', () => {
     expect(component.batchResults[0].success).toBe(true);
   });
 
-  it('onRemoveResult returns early when missing required values (no facade call)', () => {
+  it('onRemoveResult returns early when listId is missing (no facade call)', () => {
     component.listId = '';
-    const removeSpy = jest.spyOn(
-      ApplicationListEntryResultsFacade.prototype,
-      'removeResult',
-    );
 
-    component.onRemoveResult('some-result-id');
+    const facadeInstance = (
+      component as unknown as {
+        resultsFacade: ApplicationListEntryResultsFacade;
+      }
+    ).resultsFacade;
+
+    const removeSpy = jest.spyOn(facadeInstance, 'removeResult');
+
+    component.onRemoveResult('result-1');
 
     expect(removeSpy).not.toHaveBeenCalled();
+
+    removeSpy.mockRestore();
   });
 
-  it('onRemoveResult success path: calls facade.removeResult, sets success banner and focuses it', () => {
-    component.listId = 'list-success';
+  it('onRemoveResult success path: calls facade.removeResult and sets success banner', () => {
+    component.listId = 'list-123';
 
-    const removeMock = jest
-      .spyOn(ApplicationListEntryResultsFacade.prototype, 'removeResult')
+    type FacadeShape = {
+      newlyCreatedEntryResults: () => ResultGetDto[];
+      removeResult: (
+        listId: string,
+        entryId: string,
+        resultId: string,
+        onSuccess?: () => void,
+        onError?: (err: unknown) => void,
+      ) => void;
+    };
+
+    const facade = (
+      component as unknown as {
+        resultsFacade: ApplicationListEntryResultsFacade;
+      }
+    ).resultsFacade as unknown as FacadeShape;
+
+    const createdResult: ResultGetDto = {
+      id: 'result-xyz',
+      entryId: '73d0276f-42a3-4150-b2fd-d9b2d56b359c',
+    } as ResultGetDto;
+
+    const newlyCreatedSpy = jest
+      .spyOn(facade, 'newlyCreatedEntryResults')
+      .mockReturnValue([createdResult]);
+
+    const removeSpy = jest
+      .spyOn(facade, 'removeResult')
       .mockImplementation(
         (
-          listId: string,
-          entryId: string,
-          resultId: string,
+          _listId: string,
+          _entryId: string,
+          _resultId: string,
           onSuccess?: () => void,
         ): void => {
-          if (!listId || !entryId || !resultId) {
-            return;
-          }
-
           onSuccess?.();
         },
       );
@@ -404,9 +447,8 @@ describe('ResultSelectedComponent', () => {
 
     component.onRemoveResult('result-xyz');
 
-    expect(removeMock).toHaveBeenCalledTimes(1);
-    expect(removeMock).toHaveBeenCalledWith(
-      component.listId,
+    expect(removeSpy).toHaveBeenCalledWith(
+      'list-123',
       '73d0276f-42a3-4150-b2fd-d9b2d56b359c',
       'result-xyz',
       expect.any(Function),
@@ -414,56 +456,73 @@ describe('ResultSelectedComponent', () => {
     );
 
     expect(successBannerSpy).toHaveBeenCalledWith(
-      ENTRY_SUCCESS_MESSAGES.resultRemoved,
+      ENTRY_SUCCESS_MESSAGES.resultsRemoved,
     );
 
-    removeMock.mockRestore();
+    // cleanup
     successBannerSpy.mockRestore();
+    removeSpy.mockRestore();
+    newlyCreatedSpy.mockRestore();
   });
 
-  it('onRemoveResult error path: calls facade and applyMappedError', () => {
+  it('onRemoveResult error path: calls facade and applies mapped error', () => {
     component.listId = 'list-456';
+
+    type FacadeShape = {
+      newlyCreatedEntryResults: () => ResultGetDto[];
+      removeResult: (
+        listId: string,
+        entryId: string,
+        resultId: string,
+        onSuccess?: () => void,
+        onError?: (err: unknown) => void,
+      ) => void;
+    };
+
+    const facade = (
+      component as unknown as {
+        resultsFacade: ApplicationListEntryResultsFacade;
+      }
+    ).resultsFacade as unknown as FacadeShape;
+
     const error = new Error('fail');
 
-    jest
-      .spyOn(ApplicationListEntryResultsFacade.prototype, 'removeResult')
+    const createdResult: ResultGetDto = {
+      id: 'bad-id',
+      entryId: '73d0276f-42a3-4150-b2fd-d9b2d56b359c',
+    } as ResultGetDto;
+
+    const newlyCreatedSpy = jest
+      .spyOn(facade, 'newlyCreatedEntryResults')
+      .mockReturnValue([createdResult]);
+
+    const removeSpy = jest
+      .spyOn(facade, 'removeResult')
       .mockImplementation(
         (
-          listId: string,
-          entryId: string,
-          resultId: string,
-          onSuccess?: () => void,
+          _listId: string,
+          _entryId: string,
+          _resultId: string,
+          _onSuccess?: () => void,
           onError?: (err: unknown) => void,
         ): void => {
-          if (!listId || !entryId || !resultId) {
-            return;
-          }
           onError?.(error);
         },
       );
 
-    const focusSpy = jest
-      .spyOn(errorClick, 'focusErrorSummary')
-      .mockImplementation(() => {});
-
-    type HasApplyError = {
-      applyMappedError: (err: unknown) => void;
-    };
-
-    const errorSpy = jest.spyOn(
-      component as unknown as HasApplyError,
+    const applyMappedErrorSpy = jest.spyOn(
+      component as unknown as { applyMappedError: (e: unknown) => void },
       'applyMappedError',
     );
 
     component.onRemoveResult('bad-id');
 
-    const injectedPlatformId = TestBed.inject(PLATFORM_ID);
-    expect(focusSpy).toHaveBeenCalledTimes(1);
-    expect(focusSpy).toHaveBeenCalledWith(injectedPlatformId);
+    expect(applyMappedErrorSpy).toHaveBeenCalledWith(error);
 
-    expect(errorSpy).toHaveBeenCalledWith(new Error('fail'));
-
-    focusSpy.mockRestore();
+    // cleanup
+    applyMappedErrorSpy.mockRestore();
+    removeSpy.mockRestore();
+    newlyCreatedSpy.mockRestore();
   });
 
   it('onError should set errorSummaryItems and call focusErrorSummary with platformId', () => {

@@ -15,7 +15,6 @@ import { focusSuccessBanner } from '@components/applications-list-entry-detail/u
 import { APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { mapHttpErrorToSummary } from '@components/applications-list-entry-detail/util/errors.util';
 import { ApplicationEntriesResultContext } from '@components/applications-list-entry-detail/util/routing-state-util';
-import { getEntryId } from '@components/applications-list-entry-detail/util/routing.util';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import {
   ErrorItem,
@@ -120,25 +119,46 @@ export class ResultSelected implements OnInit {
   }
 
   onRemoveResult(resultId: string): void {
-    const entryId = getEntryId(this.route);
-
-    if (!entryId || !resultId || !this.listId) {
+    if (!resultId || !this.listId) {
       return;
     }
 
-    this.resultsFacade.removeResult(
-      this.listId,
-      entryId,
-      resultId,
-      () => {
-        this.successBanner.set(ENTRY_SUCCESS_MESSAGES.resultRemoved);
-        focusSuccessBanner(this.platformId);
-      },
-      (err) => {
-        this.applyMappedError(err);
-        focusErrorSummary(this.platformId);
-      },
-    );
+    const newlyCreated = this.resultsFacade.newlyCreatedEntryResults();
+
+    const entryMap = new Map<string, string>();
+
+    newlyCreated.forEach((r: ResultGetDto) => {
+      if (r.entryId && r.id) {
+        entryMap.set(r.entryId, r.id);
+      }
+    });
+
+    if (entryMap.size === 0) {
+      return;
+    }
+
+    entryMap.forEach((resultCodeId, entryId) => {
+      const rid = resultCodeId;
+
+      if (!rid) {
+        return;
+      }
+
+      this.resultsFacade.removeResult(
+        this.listId,
+        entryId,
+        rid,
+        () => {
+          this.successBanner.set(ENTRY_SUCCESS_MESSAGES.resultsRemoved);
+          this.resultsFacade.clearCreatedEntryResults();
+          focusSuccessBanner(this.platformId);
+        },
+        (err) => {
+          this.applyMappedError(err);
+          focusErrorSummary(this.platformId);
+        },
+      );
+    });
   }
 
   private applyMappedError(err: unknown): void {
