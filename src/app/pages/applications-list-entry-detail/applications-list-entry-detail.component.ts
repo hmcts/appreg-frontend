@@ -971,6 +971,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       respondent: [],
       applicant: [],
       civilFee: [],
+      wording: [],
       resultWording: [],
     };
   }
