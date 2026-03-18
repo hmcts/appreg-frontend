@@ -142,14 +142,12 @@ describe('ResultSelectedComponent', () => {
   it('onRemoveResult success path: calls facade.removeResult and sets success banner', () => {
     component.listId = 'list-123';
 
-    // get the exact facade instance used by the component
     const facadeInstance = (
       component as unknown as {
         resultsFacade: ApplicationListEntryResultsFacade;
       }
     ).resultsFacade;
 
-    // narrow interface for what we interact with in this test
     type FacadeShape = {
       newlyCreatedEntryResults: () => ResultGetDto[];
       removeResult: (
@@ -169,17 +167,14 @@ describe('ResultSelectedComponent', () => {
       entryId: '73d0276f-42a3-4150-b2fd-d9b2d56b359c',
     } as ResultGetDto;
 
-    // 1) Ensure the facade reports the created result (so entryMap is non-empty)
     const newlyCreatedSpy = jest
       .spyOn(facade, 'newlyCreatedEntryResults')
       .mockReturnValue([createdResult]);
 
-    // 2) Stub clearCreatedEntryResults on the same instance so it doesn't call the real .set()
     const clearCreatedSpy = jest
       .spyOn(facade, 'clearCreatedEntryResults')
       .mockImplementation(() => {});
 
-    // 3) Spy removeResult and simulate a successful removal by invoking onSuccess()
     const removeSpy = jest
       .spyOn(facade, 'removeResult')
       .mockImplementation(
@@ -193,13 +188,10 @@ describe('ResultSelectedComponent', () => {
         },
       );
 
-    // spy the component's success banner setter
     const successBannerSpy = jest.spyOn(component.successBanner, 'set');
 
-    // Act
     component.onRemoveResult('result-xyz');
 
-    // Assert
     expect(removeSpy).toHaveBeenCalledWith(
       'list-123',
       '73d0276f-42a3-4150-b2fd-d9b2d56b359c',
@@ -212,7 +204,6 @@ describe('ResultSelectedComponent', () => {
       ENTRY_SUCCESS_MESSAGES.resultsRemoved,
     );
 
-    // cleanup
     successBannerSpy.mockRestore();
     removeSpy.mockRestore();
     clearCreatedSpy.mockRestore();
@@ -470,7 +461,6 @@ describe('ResultSelectedComponent', () => {
       ENTRY_SUCCESS_MESSAGES.resultsRemoved,
     );
 
-    // cleanup
     successBannerSpy.mockRestore();
     removeSpy.mockRestore();
     clearCreatedSpy.mockRestore();
@@ -531,7 +521,6 @@ describe('ResultSelectedComponent', () => {
 
     expect(applyMappedErrorSpy).toHaveBeenCalledWith(error);
 
-    // cleanup
     applyMappedErrorSpy.mockRestore();
     removeSpy.mockRestore();
     newlyCreatedSpy.mockRestore();
