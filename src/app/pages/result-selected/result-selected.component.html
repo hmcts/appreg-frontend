@@ -9,19 +9,17 @@
   ]"
 ></app-breadcrumbs>
 
-@if (successBanner(); as successBanner) {
-  <app-success-banner
-    [heading]="successBanner.heading"
-    [body]="successBanner.body"
-  />
-}
-
 @if (errorFound()) {
   <app-error-summary
     [title]="errorHint || 'There is a problem'"
     [items]="errorSummaryItems()"
     targetId="results-applicant-table"
     (itemSelect)="onCreateErrorClick($event)"
+  />
+} @else if (successBanner(); as successBanner) {
+  <app-success-banner
+    [heading]="successBanner.heading"
+    [body]="successBanner.body"
   />
 }
 
