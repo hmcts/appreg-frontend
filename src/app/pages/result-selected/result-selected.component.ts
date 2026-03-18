@@ -34,6 +34,7 @@ import {
 import { ApplicationListEntryResultsFacade } from '@services/applications-list-entry/application-list-entry-results.facade';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
+import { focusErrorSummary } from '@util/error-click';
 
 export type BatchResult =
   | {
@@ -123,7 +124,10 @@ export class ResultSelected implements OnInit {
         this.successBanner.set(ENTRY_SUCCESS_MESSAGES.resultRemoved);
         focusSuccessBanner(this.platformId);
       },
-      (err) => this.applyMappedError(err),
+      (err) => {
+        this.applyMappedError(err);
+        focusErrorSummary(this.platformId);
+      },
     );
   }
 
@@ -136,6 +140,7 @@ export class ResultSelected implements OnInit {
 
   onError(errors: ErrorItem[]): void {
     this.errorSummaryItems.set(errors);
+    focusErrorSummary(this.platformId);
   }
 
   onSubmitResults(payload: ResultSectionSubmitPayload): void {
@@ -152,7 +157,6 @@ export class ResultSelected implements OnInit {
     if (!this.listId || !this.rows?.length) {
       return;
     }
-
     this.isSubmitting.set(true);
     this.batchResults = [];
 
@@ -222,6 +226,9 @@ export class ResultSelected implements OnInit {
           });
 
         this.errorSummaryItems.set(errorItems);
+        if (errorItems.length > 0) {
+          focusErrorSummary(this.platformId);
+        }
 
         this.successBanner.set(
           errorItems.length === 0

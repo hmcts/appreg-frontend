@@ -1,10 +1,12 @@
 import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { ApplicationEntriesResultContext } from '@components/applications-list-entry-detail/util/routing-state-util';
+import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { ResultSelected } from '@components/result-selected/result-selected.component';
 import { ENTRY_SUCCESS_MESSAGES } from '@constants/application-list-entry/success-messages';
 import {
@@ -16,6 +18,7 @@ import {
 import { ApplicationListEntryResultsFacade } from '@services/applications-list-entry/application-list-entry-results.facade';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
+import * as errorClick from '@util/error-click';
 
 describe('ResultSelectedComponent', () => {
   let component: ResultSelected;
@@ -53,6 +56,7 @@ describe('ResultSelectedComponent', () => {
       providers: [
         { provide: ActivatedRoute, useValue: mockActivatedRoute },
         { provide: ApplicationListEntryResultsApi, useValue: mockApi },
+        { provide: PLATFORM_ID, useValue: 'browser' },
         provideHttpClient(),
         provideHttpClientTesting(),
       ],
@@ -234,6 +238,9 @@ describe('ResultSelectedComponent', () => {
       },
     );
 
+    const focusSpy = jest
+      .spyOn(errorClick, 'focusErrorSummary')
+      .mockImplementation(() => {});
     const errorSummarySetSpy = jest.spyOn(component.errorSummaryItems, 'set');
     const successBannerSetSpy = jest.spyOn(component.successBanner, 'set');
 
@@ -281,6 +288,12 @@ describe('ResultSelectedComponent', () => {
 
     expect(successBannerSetSpy).toHaveBeenCalledWith(null);
     expect(component.isSubmitting()).toBe(false);
+
+    const injectedPlatformId = TestBed.inject(PLATFORM_ID);
+    expect(focusSpy).toHaveBeenCalledTimes(1);
+    expect(focusSpy).toHaveBeenCalledWith(injectedPlatformId);
+
+    focusSpy.mockRestore();
   });
 
   it('onSubmitResults - when an existing result for an entry exists it calls update API and treats response as success', () => {
@@ -429,6 +442,10 @@ describe('ResultSelectedComponent', () => {
         },
       );
 
+    const focusSpy = jest
+      .spyOn(errorClick, 'focusErrorSummary')
+      .mockImplementation(() => {});
+
     type HasApplyError = {
       applyMappedError: (err: unknown) => void;
     };
@@ -440,7 +457,37 @@ describe('ResultSelectedComponent', () => {
 
     component.onRemoveResult('bad-id');
 
+    const injectedPlatformId = TestBed.inject(PLATFORM_ID);
+    expect(focusSpy).toHaveBeenCalledTimes(1);
+    expect(focusSpy).toHaveBeenCalledWith(injectedPlatformId);
+
     expect(errorSpy).toHaveBeenCalledWith(new Error('fail'));
+
+    focusSpy.mockRestore();
+  });
+
+  it('onError should set errorSummaryItems and call focusErrorSummary with platformId', () => {
+    const errors = [
+      { text: 'Error 1', href: '#field1' },
+    ] as unknown as ErrorItem[];
+
+    const setSpy = jest.spyOn(component.errorSummaryItems, 'set');
+
+    const focusSpy = jest
+      .spyOn(errorClick, 'focusErrorSummary')
+      .mockImplementation(() => {});
+
+    component.onError(errors);
+
+    expect(setSpy).toHaveBeenCalledTimes(1);
+    expect(setSpy).toHaveBeenCalledWith(errors);
+
+    const injectedPlatformId = TestBed.inject(PLATFORM_ID);
+    expect(focusSpy).toHaveBeenCalledTimes(1);
+    expect(focusSpy).toHaveBeenCalledWith(injectedPlatformId);
+
+    focusSpy.mockRestore();
+    setSpy.mockRestore();
   });
 
   it('buildResultRequestForRow - uses pendingToCreate when present', () => {
