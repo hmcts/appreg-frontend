@@ -86,6 +86,11 @@ export class ResultSelected implements OnInit {
   errorFound = computed(() => this.errorSummaryItems().length > 0);
   errorSummaryItems = signal<ErrorItem[]>([]);
 
+  readonly firstCreatedEntryArray = computed(() => {
+    const all = this.resultsFacade.newlyCreatedEntryResults() ?? [];
+    return all.length > 0 ? [all[0]] : [];
+  });
+
   onCreateErrorClick = onCreateErrorClickFn;
 
   idToSequenceNumberMap!: Record<string, string | undefined>;
