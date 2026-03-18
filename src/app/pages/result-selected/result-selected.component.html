@@ -21,6 +21,7 @@
     [title]="errorHint || 'There is a problem'"
     [items]="errorSummaryItems()"
     targetId="results-applicant-table"
+    (itemSelect)="onCreateErrorClick($event)"
   />
 }
 

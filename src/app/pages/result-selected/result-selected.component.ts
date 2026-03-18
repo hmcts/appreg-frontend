@@ -34,7 +34,10 @@ import {
 import { ApplicationListEntryResultsFacade } from '@services/applications-list-entry/application-list-entry-results.facade';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
-import { focusErrorSummary } from '@util/error-click';
+import {
+  focusErrorSummary,
+  onCreateErrorClick as onCreateErrorClickFn,
+} from '@util/error-click';
 
 export type BatchResult =
   | {
@@ -82,6 +85,8 @@ export class ResultSelected implements OnInit {
   errorHint: string | null = 'There is a problem';
   errorFound = computed(() => this.errorSummaryItems().length > 0);
   errorSummaryItems = signal<ErrorItem[]>([]);
+
+  onCreateErrorClick = onCreateErrorClickFn;
 
   idToSequenceNumberMap!: Record<string, string | undefined>;
 
