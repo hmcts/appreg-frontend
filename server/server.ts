@@ -27,6 +27,7 @@ import { AppInsights } from './modules/appinsights';
 import { Helmet } from './modules/helmet';
 import { HmctsLoggerBridge } from './modules/logger';
 import { PropertiesVolume } from './modules/properties-volume';
+import { getRedisUrl } from './redis-config';
 import { setupHealthcheck } from './routes/health';
 import { setupInfoRoute } from './routes/info';
 import { getCca, setupSsoRoutes } from './routes/sso';
@@ -80,11 +81,8 @@ const runningAsEntrypoint = (() => {
   }
 })();
 
-const hasRedisKey =
-  config.has('secrets.appreg.redis-access-key') &&
-  !!(config.get<string>('secrets.appreg.redis-access-key') || '').trim();
-
-const useRedis = isProd && runningAsEntrypoint && hasRedisKey;
+const redisUrl = getRedisUrl(config);
+const useRedis = isProd && runningAsEntrypoint;
 
 const cookieName = config.has('session.cookieName')
   ? config.get<string>('session.cookieName')
@@ -96,10 +94,7 @@ app.use(
   await setupSession({
     isProd,
     useRedis,
-    redisHost: 'appreg-stg.redis.cache.windows.net',
-    redisAccessKey: useRedis
-      ? config.get<string>('secrets.appreg.redis-access-key')
-      : '',
+    redisUrl,
     cookieName,
     sessionSecret: config.get<string>('secrets.appreg.app-session-secret-fe'),
     prefix: 'appreg:sess:',

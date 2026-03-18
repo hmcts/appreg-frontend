@@ -129,7 +129,7 @@ describe('ApplicationsListCloseComponent', () => {
 
     expect(router.navigate).toHaveBeenCalledWith(
       ['/applications-list', 'list-123'],
-      { state: { row: closeState.listRow } },
+      { state: { row: closeState.listRow }, fragment: 'list-details' },
     );
   });
 
@@ -183,6 +183,49 @@ describe('ApplicationsListCloseComponent', () => {
       ['/applications-list', 'list-123'],
       {
         queryParams: { close: 'error', code: 412 },
+        state: { row: closeState.listRow, closeError: undefined },
+        fragment: 'list-details',
+      },
+    );
+  });
+
+  it('clicking continue passes 400 problem details back to the detail page', async () => {
+    await setup({ routeId: 'list-123', navState: closeState });
+
+    (appListsApi.updateApplicationList as jest.Mock).mockReturnValueOnce(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 400,
+            error: {
+              status: 400,
+              title: 'List cannot be closed',
+              detail:
+                'All applications must have a Paid or Remitted Fee status.',
+            },
+          }),
+      ),
+    );
+
+    const continueButton = fixture.nativeElement.querySelector(
+      'button.govuk-button',
+    ) as HTMLButtonElement;
+
+    continueButton.click();
+
+    expect(router.navigate).toHaveBeenCalledWith(
+      ['/applications-list', 'list-123'],
+      {
+        queryParams: { close: 'error', code: 400 },
+        state: {
+          row: closeState.listRow,
+          closeError: {
+            status: 400,
+            title: 'List cannot be closed',
+            detail: 'All applications must have a Paid or Remitted Fee status.',
+          },
+        },
+        fragment: 'list-details',
       },
     );
   });

@@ -23,7 +23,7 @@ const subscribedEndpoints: EndpointRule[] = [
   },
   {
     endpoint: new RegExp(
-      `^/application-lists/${regexIdPlaceholder}/entries/bulk-upload$`,
+      `^/application-lists/${regexIdPlaceholder}/entries/bulk-import$`,
     ),
     responses: [400, 403, 413, 415, 500],
   },

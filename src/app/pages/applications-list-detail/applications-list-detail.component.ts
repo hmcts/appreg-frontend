@@ -23,12 +23,8 @@ import {
   signal,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { EMPTY, catchError, map, mergeMap, range, reduce } from 'rxjs';
 
-import {
-  ApplicationsListUpdateComponent,
-  closeValidationEntries,
-} from './applications-list-update/applications-list-update.component';
+import { ApplicationsListUpdateComponent } from './applications-list-update/applications-list-update.component';
 import {
   ApplicationsListDetailState,
   LoadDetailReq,
@@ -77,6 +73,11 @@ import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
 
 type ApplicationsListDetailHistoryState = {
   row?: ApplicationListRow;
+  closeError?: {
+    status?: number;
+    title?: string;
+    detail?: string;
+  };
 };
 
 @Component({
@@ -138,6 +139,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.initPlaceFields(this.form, this.refField);
     this.detailSignalState.patch(clearUpdateNotificationsPatch());
     this.setSuccessBanner();
+    this.setCloseErrorFromNavigation();
 
     //Attach validators
     this.form.addValidators([
@@ -154,9 +156,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         getTyped: () => this.state().cjaSearch ?? '',
         getValidCodes: () => this.state().cja.map((x) => x.code),
       }),
-      closePermitted({
-        getEntries: () => closeValidationEntries(this.vm()),
-      }),
+      closePermitted(),
     ]);
 
     this.setupEffects();
@@ -191,6 +191,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.detailSignalState.patch({
       errorSummary: [],
       errorHint: '',
+      preserveErrorSummaryOnLoad: false,
       updateInvalid: false,
     });
   }
@@ -207,6 +208,34 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       const createState = history.state as ApplicationsListDetailHistoryState;
       this.listRow = createState.row ?? undefined;
     }
+  }
+
+  private setCloseErrorFromNavigation(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const isCloseError =
+      this.route.snapshot.queryParamMap.get('close') === 'error';
+    const code = Number(this.route.snapshot.queryParamMap.get('code'));
+    const closeState = history.state as ApplicationsListDetailHistoryState;
+    const closeError = closeState.closeError;
+
+    if (!isCloseError || !code || !closeError) {
+      return;
+    }
+
+    const text = closeError.detail?.trim() || closeError.title?.trim();
+    if (!text) {
+      return;
+    }
+
+    this.detailSignalState.patch({
+      updateInvalid: true,
+      errorHint: 'There is a problem',
+      errorSummary: [{ id: 'status-close', href: '#status', text }],
+      preserveErrorSummaryOnLoad: true,
+    });
   }
 
   private setupEffects(): void {
@@ -238,7 +267,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
               totalPages: 0,
               selectedIds: new Set<string>(),
             });
-            this.detailSignalState.patch({ allEntryIds: [] });
             this.loadRequest.set(null);
             return;
           }
@@ -246,6 +274,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           this.etag = res.headers.get('ETag') ?? this.etag;
 
           const vm = this.vm();
+          const preserveErrorSummary = vm.preserveErrorSummaryOnLoad;
 
           if (!vm.hasPrefilledFromApi) {
             this.prefillFromApi(dto);
@@ -276,17 +305,16 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
           this.detailSignalState.patch({
             isLoading: false,
-            updateInvalid: false,
+            updateInvalid: preserveErrorSummary ? vm.updateInvalid : false,
             errorHint: '',
-            errorSummary: [],
+            errorSummary: preserveErrorSummary ? vm.errorSummary : [],
+            preserveErrorSummaryOnLoad: preserveErrorSummary,
             rows,
             totalPages,
             selectedIds,
-            entriesDetails: [],
           });
 
           this.loadRequest.set(null);
-          this.detailSignalState.patch({ allEntryIds: rows.map((r) => r.id) });
 
           if (isPlatformBrowser(this.platformId)) {
             this.ngZone.runOutsideAngular(() => {
@@ -308,7 +336,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
             totalPages: 0,
             selectedIds: new Set<string>(),
           });
-          this.detailSignalState.patch({ allEntryIds: [] });
           this.loadRequest.set(null);
         },
       },
@@ -419,37 +446,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
-  onRequestAllEntryIds(): void {
-    const totalEntries = this.entryCount ?? 0;
-    if (!this.id || totalEntries <= 0) {
-      return;
-    }
-
-    this.loadAllEntrySummaries$(this.id, totalEntries).subscribe({
-      next: (summaries) => {
-        const ids = summaries.map((s) => s.uuid);
-
-        this.detailSignalState.patch({
-          allEntryIds: ids,
-          allEntriesSummary: summaries,
-        });
-      },
-      error: () => {
-        this.detailSignalState.patch({
-          allEntryIds: [],
-          allEntriesSummary: [],
-        });
-      },
-    });
-  }
-
-  // When loadAllEntryIds completes, set:
-  private onAllIdsLoaded(ids: string[]): void {
-    this.detailSignalState.patch({
-      allEntryIds: ids,
-    });
-  }
-
   readonly patchStateFn = (
     patch: Partial<ApplicationsListDetailState>,
   ): void => {
@@ -534,28 +530,5 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         location: dto.otherLocationDescription,
       });
     }
-  }
-
-  // Close list validation, we need to get all entryIds to check all entries
-  private loadAllEntrySummaries$(listId: string, noEntries: number) {
-    const pageSize = 100;
-    const totalPages = Math.ceil(noEntries / pageSize);
-
-    return range(0, totalPages).pipe(
-      mergeMap((pageNumber) =>
-        this.appListApi.getApplicationList(
-          { listId, pageNumber, pageSize },
-          'body',
-          false,
-          { transferCache: true },
-        ),
-      ),
-      map((dto) => dto.entriesSummary ?? []),
-      reduce(
-        (acc, page) => acc.concat(page),
-        [] as NonNullable<ApplicationListGetDetailDto['entriesSummary']>,
-      ),
-      catchError(() => EMPTY),
-    );
   }
 }

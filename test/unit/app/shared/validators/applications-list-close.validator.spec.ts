@@ -1,10 +1,7 @@
 import { FormControl, FormGroup } from '@angular/forms';
 
 import { CLOSE_MESSAGES } from '@constants/application-list-detail-update/error-messages';
-import {
-  CloseValidationEntry,
-  closePermitted,
-} from '@validators/applications-list-close.validator';
+import { closePermitted } from '@validators/applications-list-close.validator';
 
 describe('closePermitted', () => {
   const mkForm = () =>
@@ -16,11 +13,8 @@ describe('closePermitted', () => {
       } | null>(null),
     });
 
-  const runValidator = (
-    form: FormGroup,
-    entries: CloseValidationEntry[] = [],
-  ) => {
-    const v = closePermitted({ getEntries: () => entries });
+  const runValidator = (form: FormGroup) => {
+    const v = closePermitted();
     return v(form);
   };
 
@@ -44,30 +38,6 @@ describe('closePermitted', () => {
     expect(form.controls.duration.errors).toBeNull();
   });
 
-  it('adds rule errors when closing', () => {
-    const form = mkForm();
-    form.controls.status.setValue('closed');
-    form.controls.duration.setValue({ hours: 1, minutes: 0 });
-
-    const res = runValidator(form, [
-      { hasResult: false },
-      { hasOfficials: false },
-      { hasFees: true, hasPaidFee: false },
-      { requiresRespondent: true, hasRespondent: false },
-    ]);
-
-    expect(res).toEqual({
-      closeNotPermitted: {
-        noClose: [
-          CLOSE_MESSAGES.resultMissing,
-          CLOSE_MESSAGES.officialsMissing,
-          CLOSE_MESSAGES.feeMissing,
-          CLOSE_MESSAGES.respondentMissing,
-        ],
-      },
-    });
-  });
-
   it('adds duration missing when no duration provided', () => {
     const form = mkForm();
     form.controls.status.setValue('closed');
@@ -87,9 +57,9 @@ describe('closePermitted', () => {
   it('adds duration missing when any entry hasDuration is false', () => {
     const form = mkForm();
     form.controls.status.setValue('closed');
-    form.controls.duration.setValue({ hours: 1, minutes: 0 });
+    form.controls.duration.setValue({ hours: null, minutes: null });
 
-    const res = runValidator(form, [{ hasDuration: false }]);
+    const res = runValidator(form);
 
     expect(res).toEqual({
       closeNotPermitted: { noClose: [CLOSE_MESSAGES.durationMissing] },

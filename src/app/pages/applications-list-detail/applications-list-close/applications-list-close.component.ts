@@ -13,6 +13,12 @@ import { ApplicationListsApi } from '@openapi';
 import { AppListNavState } from '@shared-types/applications-list/applications-list-form';
 import { ApplicationListRow } from '@util/types/application-list/types';
 
+type CloseErrorNavigationState = {
+  status?: number;
+  title?: string;
+  detail?: string;
+};
+
 @Component({
   selector: 'app-applications-list-close',
   imports: [
@@ -61,6 +67,7 @@ export class ApplicationsListCloseComponent implements OnInit {
   goBack(): void {
     void this.router.navigate(['/applications-list', this.idFromUrl], {
       state: { row: this.listToClose },
+      fragment: 'list-details',
     });
   }
 
@@ -87,14 +94,25 @@ export class ApplicationsListCloseComponent implements OnInit {
           });
         },
         error: (err: unknown) => {
-          const code =
-            err instanceof HttpErrorResponse ? err.status : undefined;
+          const httpErr = err instanceof HttpErrorResponse ? err : undefined;
+          const code = httpErr?.status;
+          const errorPayload =
+            httpErr &&
+            typeof httpErr.error === 'object' &&
+            httpErr.error !== null
+              ? (httpErr.error as CloseErrorNavigationState)
+              : undefined;
 
           void this.router.navigate(['/applications-list', req.id], {
             queryParams: {
               close: 'error',
               code: code ?? 500,
             },
+            state: {
+              row: this.listToClose,
+              closeError: errorPayload,
+            },
+            fragment: 'list-details',
           });
         },
       });

@@ -197,6 +197,11 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     if (this.route.snapshot.queryParamMap.get('isCloseSuccess')) {
       this.appListSignalState.patch({ listCloseDone: true });
     }
+
+    // Refresh applications lists after navigating back
+    if (this.storedRecordsVm().rows.length > 0) {
+      this.loadApplicationsLists(hasAnyParams(this.form));
+    }
   }
 
   restoreFormValues(): void {

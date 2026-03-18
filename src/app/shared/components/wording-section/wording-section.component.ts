@@ -11,7 +11,7 @@ import { TemplateDetail, TemplateSubstitution } from '@openapi';
 })
 export class WordingSectionComponent {
   @ViewChild(WordingParserComponent)
-  private wordingParser?: WordingParserComponent;
+  private readonly wordingParser?: WordingParserComponent;
 
   wordingObject = input.required<TemplateDetail>();
   wordingSubmitAttempt = input.required<number>();

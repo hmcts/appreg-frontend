@@ -31,6 +31,7 @@ import {
   OnInit,
   PLATFORM_ID,
   inject,
+  signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -197,6 +198,8 @@ export class ApplicationsListEntryDetail implements OnInit {
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
 
   forms!: ApplicationListEntryForms;
+  formReady = signal(false);
+
   form!: ApplicationsListEntryForm;
 
   personForm!: PersonForm;
@@ -210,6 +213,12 @@ export class ApplicationsListEntryDetail implements OnInit {
   codesRows: CodeRow[] = [];
   codesLoading = false;
   codesHasSearched = false;
+
+  // Success banner
+  successBanner: SuccessBanner | null = null;
+
+  // Error summary state
+  errorHint: string | null = 'There is a problem';
 
   private parentErrors: ErrorItem[] = [];
   private childErrors: Record<ChildErrorSource, ErrorItem[]> = {
@@ -1006,6 +1015,13 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
   }
 
+  private getLegacyWordingFields(
+    entry: EntryGetDetailDto | null | undefined,
+  ): string[] | undefined {
+    return (entry as (EntryGetDetailDto & { wordingFields?: string[] }) | null)
+      ?.wordingFields;
+  }
+
   private mergeEntryDetailUpdate(
     entryUpdateDto: EntryUpdateDto,
     res: Partial<EntryGetDetailDto> | null | undefined,
@@ -1026,12 +1042,16 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   private toEntryDetailPatch(
     entryUpdateDto: EntryUpdateDto,
-  ): Partial<EntryGetDetailDto> {
+  ): Partial<EntryGetDetailDto> & { wordingFields?: string[] } {
     const { wordingFields, ...rest } = entryUpdateDto;
-    const patch: Partial<EntryGetDetailDto> = { ...rest };
+    const patch: Partial<EntryGetDetailDto> & { wordingFields?: string[] } = {
+      ...rest,
+    };
 
     if (wordingFields) {
       patch.wordingFields = wordingFields.map((field) => field.value);
+    } else {
+      patch.wordingFields = this.getLegacyWordingFields(this.entryDetail);
     }
 
     return patch;
