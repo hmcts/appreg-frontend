@@ -430,6 +430,17 @@ describe('ResultSelectedComponent', () => {
       .spyOn(facade, 'newlyCreatedEntryResults')
       .mockReturnValue([createdResult]);
 
+    const clearCreatedSpy = jest
+      .spyOn(
+        (
+          component as unknown as {
+            resultsFacade: ApplicationListEntryResultsFacade;
+          }
+        ).resultsFacade,
+        'clearCreatedEntryResults',
+      )
+      .mockImplementation(() => {});
+
     const removeSpy = jest
       .spyOn(facade, 'removeResult')
       .mockImplementation(
@@ -462,6 +473,7 @@ describe('ResultSelectedComponent', () => {
     // cleanup
     successBannerSpy.mockRestore();
     removeSpy.mockRestore();
+    clearCreatedSpy.mockRestore();
     newlyCreatedSpy.mockRestore();
   });
 
