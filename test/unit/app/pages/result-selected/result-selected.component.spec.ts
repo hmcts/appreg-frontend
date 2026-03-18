@@ -98,6 +98,8 @@ describe('ResultSelectedComponent', () => {
       'setPending',
     );
 
+    const setErrorSummarySpy = jest.spyOn(component.errorSummaryItems, 'set');
+
     const pendingRows: PendingResultRow[] = [
       {
         kind: 'pending',
@@ -122,6 +124,31 @@ describe('ResultSelectedComponent', () => {
 
     expect(setPendingSpy).toHaveBeenCalledTimes(1);
     expect(setPendingSpy).toHaveBeenCalledWith(pendingRows);
+
+    expect(setErrorSummarySpy).not.toHaveBeenCalled();
+
+    setPendingSpy.mockRestore();
+    setErrorSummarySpy.mockRestore();
+  });
+
+  it('onPendingChange should clear errorSummaryItems when passed an empty array', () => {
+    const setPendingSpy = jest.spyOn(
+      ApplicationListEntryResultsFacade.prototype,
+      'setPending',
+    );
+
+    const setErrorSummarySpy = jest.spyOn(component.errorSummaryItems, 'set');
+
+    component.onPendingChange([] as PendingResultRow[]);
+
+    expect(setPendingSpy).toHaveBeenCalledTimes(1);
+    expect(setPendingSpy).toHaveBeenCalledWith([]);
+
+    expect(setErrorSummarySpy).toHaveBeenCalledTimes(1);
+    expect(setErrorSummarySpy).toHaveBeenCalledWith([]);
+
+    setPendingSpy.mockRestore();
+    setErrorSummarySpy.mockRestore();
   });
 
   it('onSubmitResults returns early if listId missing or rows empty (no API calls)', () => {

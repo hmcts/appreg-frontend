@@ -116,6 +116,10 @@ export class ResultSelected implements OnInit {
 
   onPendingChange(rows: PendingResultRow[]): void {
     this.resultsFacade.setPending(rows);
+
+    if (!rows || rows.length === 0) {
+      this.errorSummaryItems.set([]);
+    }
   }
 
   onRemoveResult(resultId: string): void {
