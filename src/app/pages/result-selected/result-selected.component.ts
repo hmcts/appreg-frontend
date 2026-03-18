@@ -281,8 +281,14 @@ export class ResultSelected implements OnInit {
 
         this.resultsFacade.addCreatedEntryResults(successfulResponses);
 
-        if (errorItems.length === 0 && successfulResponses.length > 0) {
-          this.resultsFacade.clearPendingToken.update((n) => n + 1);
+        if (errorItems.length === 0) {
+          focusSuccessBanner(this.platformId);
+
+          if (successfulResponses.length > 0) {
+            this.resultsFacade.clearPendingToken.update((n) => n + 1);
+          }
+        } else {
+          focusSuccessBanner(this.platformId);
         }
       });
   }

@@ -5,6 +5,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
+import * as bannersUtil from '@components/applications-list-entry-detail/util/banners.util';
 import { ApplicationEntriesResultContext } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { ResultSelected } from '@components/result-selected/result-selected.component';
@@ -194,6 +195,10 @@ describe('ResultSelectedComponent', () => {
       entryId: '73d0276f-42a3-4150-b2fd-d9b2d56b359c',
     } as ResultGetDto;
 
+    const focusSuccessSpy = jest
+      .spyOn(bannersUtil, 'focusSuccessBanner')
+      .mockImplementation(() => {});
+
     const newlyCreatedSpy = jest
       .spyOn(facade, 'newlyCreatedEntryResults')
       .mockReturnValue([createdResult]);
@@ -227,10 +232,13 @@ describe('ResultSelectedComponent', () => {
       expect.any(Function),
     );
 
+    expect(focusSuccessSpy).toHaveBeenCalledTimes(1);
+
     expect(successBannerSpy).toHaveBeenCalledWith(
       ENTRY_SUCCESS_MESSAGES.resultsRemoved,
     );
 
+    focusSuccessSpy.mockRestore();
     successBannerSpy.mockRestore();
     removeSpy.mockRestore();
     clearCreatedSpy.mockRestore();
@@ -271,9 +279,13 @@ describe('ResultSelectedComponent', () => {
       },
     );
 
-    const focusSpy = jest
+    const focusErrorSpy = jest
       .spyOn(errorClick, 'focusErrorSummary')
       .mockImplementation(() => {});
+    const focusSuccessSpy = jest
+      .spyOn(bannersUtil, 'focusSuccessBanner')
+      .mockImplementation(() => {});
+
     const errorSummarySetSpy = jest.spyOn(component.errorSummaryItems, 'set');
     const successBannerSetSpy = jest.spyOn(component.successBanner, 'set');
 
@@ -323,10 +335,14 @@ describe('ResultSelectedComponent', () => {
     expect(component.isSubmitting()).toBe(false);
 
     const injectedPlatformId = TestBed.inject(PLATFORM_ID);
-    expect(focusSpy).toHaveBeenCalledTimes(1);
-    expect(focusSpy).toHaveBeenCalledWith(injectedPlatformId);
+    expect(focusErrorSpy).toHaveBeenCalledTimes(1);
+    expect(focusErrorSpy).toHaveBeenCalledWith(injectedPlatformId);
 
-    focusSpy.mockRestore();
+    expect(focusErrorSpy).toHaveBeenCalledTimes(1);
+    expect(focusSuccessSpy).toHaveBeenCalledTimes(1);
+
+    focusErrorSpy.mockRestore();
+    focusSuccessSpy.mockRestore();
   });
 
   it('onSubmitResults - when an existing result for an entry exists it calls update API and treats response as success', () => {
