@@ -219,6 +219,74 @@ describe('ApplicationsListEntryDetail', () => {
     );
   });
 
+  it('isUpdateDisabled true when entryDetail is not set', () => {
+    component['entryDetail'] = null;
+
+    expect(component.isUpdateDisabled).toBe(true);
+  });
+
+  it('isUpdateDisabled for standard applicant requires selectedStandardApplicantCode (uses full EntryGetDetailDto shape)', () => {
+    component['entryDetail'] = {
+      id: 'EN-1',
+      listId: 'AL-1',
+      applicationCode: 'APP-100',
+      numberOfRespondents: 0,
+      lodgementDate: '2025-11-01',
+    };
+
+    component['form'].controls.applicantType.setValue('standard');
+    component.onStandardApplicantCodeChanged(null);
+    expect(component.isUpdateDisabled).toBe(true);
+
+    component.onStandardApplicantCodeChanged('SA-123');
+    component['form'].controls.standardApplicantCode.setValue('SA-123', {
+      emitEvent: false,
+    });
+    expect(component.isUpdateDisabled).toBe(false);
+  });
+
+  it('submitEntryUpdate sets errorFound + summaryErrors when entryDetail is missing (EntryUpdateDto-aware)', () => {
+    component['entryDetail'] = null;
+
+    const dummyDto = {
+      applicationCode: 'APP-1',
+      lodgementDate: '2026-01-01',
+    };
+
+    const dummyBanner = {
+      heading: 'X',
+      body: 'Y',
+    };
+
+    component['submitEntryUpdate'](dummyDto, dummyBanner);
+
+    const state = component['appListEntryDetailState']();
+    expect(state.errorFound).toBe(true);
+    expect(Array.isArray(state.summaryErrors)).toBe(true);
+    expect(state.summaryErrors.length).toBeGreaterThan(0);
+
+    const found = state.summaryErrors.some((s) =>
+      /Entry is not loaded/i.test(s.text),
+    );
+    expect(found).toBe(true);
+  });
+
+  it('runFullSubmitValidation returns true and sets errorFound when person name fields blank', () => {
+    component['form'].controls.applicantType.setValue('person');
+
+    const personForm = component.personGroup;
+    const base = personForm.getRawValue();
+    personForm.reset(
+      { ...base, firstName: '', middleNames: '', surname: '' },
+      { emitEvent: false },
+    );
+
+    const result = component['runFullSubmitValidation']();
+
+    expect(result).toBe(true);
+    expect(component['appListEntryDetailState']().errorFound).toBe(true);
+  });
+
   it('shows list-created success banner when listCreated=true query param is present', () => {
     (
       routeStub.snapshot as unknown as {
