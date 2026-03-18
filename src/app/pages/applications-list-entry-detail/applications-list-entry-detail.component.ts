@@ -31,7 +31,6 @@ import {
   OnInit,
   PLATFORM_ID,
   inject,
-  signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -198,8 +197,6 @@ export class ApplicationsListEntryDetail implements OnInit {
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
 
   forms!: ApplicationListEntryForms;
-  formReady = signal(false);
-
   form!: ApplicationsListEntryForm;
 
   personForm!: PersonForm;
@@ -213,12 +210,6 @@ export class ApplicationsListEntryDetail implements OnInit {
   codesRows: CodeRow[] = [];
   codesLoading = false;
   codesHasSearched = false;
-
-  // Success banner
-  successBanner: SuccessBanner | null = null;
-
-  // Error summary state
-  errorHint: string | null = 'There is a problem';
 
   private parentErrors: ErrorItem[] = [];
   private childErrors: Record<ChildErrorSource, ErrorItem[]> = {
@@ -301,7 +292,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   resetSuccessBanner(): void {
-    this.successBanner = null;
+    this.appListEntryDetailPatch({ successBanner: null });
   }
 
   onAddFeeDetails(payload: AddFeeDetailsPayload): void {
@@ -373,7 +364,9 @@ export class ApplicationsListEntryDetail implements OnInit {
 
           this.form.controls.feeStatuses.markAsPristine();
 
-          this.successBanner = bannerText;
+          this.appListEntryDetailPatch({
+            successBanner: bannerText,
+          });
           focusSuccessBanner(this.platformId);
         },
         error: (err) => {
@@ -716,7 +709,7 @@ export class ApplicationsListEntryDetail implements OnInit {
             errorFound: false,
           });
           this.mergeEntryDetailUpdate(entryUpdateDto, res);
-          this.successBanner = successBanner;
+          this.appListEntryDetailPatch({ successBanner });
 
           if (this.applicantType === 'person') {
             markFormGroupClean(this.personGroup);
@@ -834,9 +827,11 @@ export class ApplicationsListEntryDetail implements OnInit {
           this.persistedHasOffsiteFee = nextValue;
           this.form.controls.hasOffsiteFee.markAsPristine();
 
-          this.successBanner = nextValue
-            ? ENTRY_SUCCESS_MESSAGES.offSiteFeeApplied
-            : ENTRY_SUCCESS_MESSAGES.offSiteFeeRemoved;
+          this.appListEntryDetailPatch({
+            successBanner: nextValue
+              ? ENTRY_SUCCESS_MESSAGES.offSiteFeeApplied
+              : ENTRY_SUCCESS_MESSAGES.offSiteFeeRemoved,
+          });
           focusSuccessBanner(this.platformId);
         },
         error: (err) => {
@@ -887,8 +882,8 @@ export class ApplicationsListEntryDetail implements OnInit {
   // ── Private helpers ─────────────────────────────────────────────────────────
   private applyMappedError(err: unknown): void {
     const mapped = mapHttpErrorToSummary(err);
-    this.errorHint = mapped.errorHint;
     this.appListEntryDetailPatch({
+      errorHint: mapped.errorHint,
       summaryErrors: mapped.errorSummary,
       errorFound: mapped.errorSummary.length > 0,
     });
@@ -917,11 +912,11 @@ export class ApplicationsListEntryDetail implements OnInit {
               feeAmount: codeDto.feeAmount ?? null,
               offsiteFeeAmount: codeDto.offsiteFeeAmount ?? null,
             };
-            this.formReady.set(true);
+            this.appListEntryDetailPatch({ formReady: true });
           },
           error: () => {
             this.form.patchValue({ applicationTitle: '' });
-            this.formReady.set(true);
+            this.appListEntryDetailPatch({ formReady: true });
           },
         });
     }
@@ -949,8 +944,8 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   private resetErrors(): void {
-    this.errorHint = 'There is a problem';
     this.appListEntryDetailPatch({
+      errorHint: 'There is a problem',
       summaryErrors: [],
       errorFound: false,
     });
@@ -1010,7 +1005,9 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   private handleListCreate(): void {
     if (this.route.snapshot.queryParamMap.get('listCreated') === 'true') {
-      this.successBanner = ENTRY_SUCCESS_MESSAGES.listCreated;
+      this.appListEntryDetailPatch({
+        successBanner: ENTRY_SUCCESS_MESSAGES.listCreated,
+      });
       focusSuccessBanner(this.platformId);
     }
   }
@@ -1070,7 +1067,9 @@ export class ApplicationsListEntryDetail implements OnInit {
       entryId,
       payload,
       () => {
-        this.successBanner = ENTRY_SUCCESS_MESSAGES.resultApplied;
+        this.appListEntryDetailPatch({
+          successBanner: ENTRY_SUCCESS_MESSAGES.resultApplied,
+        });
         focusSuccessBanner(this.platformId);
       },
       (err) => this.applyMappedError(err),
@@ -1090,7 +1089,9 @@ export class ApplicationsListEntryDetail implements OnInit {
       entryId,
       resultId,
       () => {
-        this.successBanner = ENTRY_SUCCESS_MESSAGES.resultRemoved;
+        this.appListEntryDetailPatch({
+          successBanner: ENTRY_SUCCESS_MESSAGES.resultRemoved,
+        });
         focusSuccessBanner(this.platformId);
       },
       (err) => this.applyMappedError(err),
@@ -1104,8 +1105,8 @@ export class ApplicationsListEntryDetail implements OnInit {
   private handleFatalLoadError(err: unknown): void {
     const { errorHint, errorSummary } = mapHttpErrorToSummary(err);
 
-    this.errorHint = errorHint;
     this.appListEntryDetailPatch({
+      errorHint,
       summaryErrors: errorSummary,
       errorFound: true,
     });

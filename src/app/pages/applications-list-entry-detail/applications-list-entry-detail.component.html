@@ -10,21 +10,21 @@
 
 @if (vm().errorFound) {
   <app-error-summary
-    [title]="errorHint || 'There is a problem'"
+    [title]="vm().errorHint || 'There is a problem'"
     [items]="vm().summaryErrors"
     targetId="codes-table"
     (itemSelect)="onCreateErrorClick($event)"
   />
-} @else if (successBanner) {
+} @else if (vm().successBanner; as successBanner) {
   <app-success-banner
     [heading]="successBanner.heading"
     [body]="successBanner.body"
   />
 
   <!-- If your banner body doesn't support HTML links, render a link just under it -->
-  @if (successBanner.link) {
+  @if (vm().successBanner!.link; as bannerWithLink) {
     <p class="govuk-body govuk-!-margin-bottom-0">
-      <a [href]="successBanner.link.href">{{ successBanner.link.text }}</a>
+      <a [href]="bannerWithLink.href">{{ bannerWithLink.text }}</a>
     </p>
   }
 }
@@ -52,7 +52,7 @@
   </ng-template>
 
   <ng-template #codesTpl>
-    @if (formReady()) {
+    @if (vm().formReady) {
       <app-application-code-search
         [patchedFormData]="this.form"
         (selectCodeAndLodgementDate)="onCodeSelected($event)"

@@ -234,12 +234,13 @@ describe('ApplicationsListEntryDetail', () => {
     const freshComponent = freshFixture.componentInstance;
     freshFixture.detectChanges();
 
-    expect(freshComponent.successBanner?.heading).toBe(
-      'Application list entry created',
-    );
-    expect(freshComponent.successBanner?.body).toBe(
-      'The application list entry has been created successfully.',
-    );
+    expect(
+      freshComponent['appListEntryDetailState']().successBanner?.heading,
+    ).toBe('Application list entry created');
+
+    expect(
+      freshComponent['appListEntryDetailState']().successBanner?.body,
+    ).toBe('The application list entry has been created successfully.');
   });
 
   it('clearPaymentRefReturnOnly removes paymentRefReturn from history.state and preserves other keys', () => {
@@ -451,7 +452,9 @@ describe('ApplicationsListEntryDetail', () => {
     expect(reportProgress).toBe(false);
     expect(options).toEqual(expect.objectContaining({ transferCache: false }));
 
-    expect(component['successBanner']?.heading).toBe('Applicant updated');
+    expect(component['appListEntryDetailState']().successBanner?.heading).toBe(
+      'Applicant updated',
+    );
   });
 
   it('onUpdateApplicant (standard) blocks submit when no standard applicant selected (validator-driven)', () => {
