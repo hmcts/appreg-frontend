@@ -188,7 +188,6 @@ Feature: Applications List Update
         When User Clears The Duration Field "Duration"
         When User Set "<durationHours>" and "<durationMinutes>" In The "Duration" Field
         When User Clicks On The "Update" Button
-        # Bug ARCPOC-1191 is raised for confirmartion banner message before completing the closing list action
         Then User Sees Warning Banner "This action will close the list, and no further updates to the applications will be allowed"
         Then User See "Are you sure you want to close this application list?" On The Page
         Then User Clicks On The Link "Cancel"
