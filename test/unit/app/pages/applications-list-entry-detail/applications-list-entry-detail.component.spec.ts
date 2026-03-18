@@ -323,6 +323,59 @@ describe('ApplicationsListEntryDetail', () => {
     expect(state.successBanner).toBeTruthy();
   });
 
+  it('onRemoveResult sets successBanner when removeResult succeeds', () => {
+    component['appListEntryDetailPatch']({ appListId: 'AL-1' });
+
+    const removeSpy = jest
+      .spyOn(component.resultsFacade, 'removeResult')
+      .mockImplementation((listId, entryId, resultId, onSuccess) => {
+        if (onSuccess) {
+          onSuccess();
+        }
+      });
+
+    component.onRemoveResult('R-1');
+
+    expect(removeSpy).toHaveBeenCalledTimes(1);
+
+    const [listId, entryId, resultId] = removeSpy.mock.calls[0];
+    expect(listId).toBe('AL-1');
+    expect(entryId).toBe('EN-1');
+    expect(resultId).toBe('R-1');
+
+    const state = component['appListEntryDetailState']();
+    expect(state.successBanner).toBeTruthy();
+    expect(state.successBanner?.heading).toBe('Result removed');
+
+    removeSpy.mockRestore();
+  });
+
+  it('onRemoveResult calls applyMappedError when removeResult errors', () => {
+    component['appListEntryDetailPatch']({ appListId: 'AL-1' });
+
+    const error = new Error('boom');
+
+    component['applyMappedError'] = jest.fn();
+
+    const removeSpy = jest
+      .spyOn(component.resultsFacade, 'removeResult')
+      .mockImplementation(
+        (_listId, _entryId, _resultId, _onSuccess, onError) => {
+          if (onError) {
+            onError(error);
+          }
+        },
+      );
+
+    component.onRemoveResult('R-1');
+
+    const calls = (component['applyMappedError'] as jest.Mock).mock.calls;
+    expect(calls).toHaveLength(1);
+    expect(calls[0][0]).toBe(error);
+
+    removeSpy.mockRestore();
+  });
+
   it('onOffsiteFeeChanged does nothing when value has not changed', () => {
     component['persistedHasOffsiteFee'] = true;
 
@@ -360,9 +413,7 @@ describe('ApplicationsListEntryDetail', () => {
 
     expect(component['appListEntryDetailState']().formSubmitted).toBe(true);
 
-    expect(
-      (component['submitEntryUpdate'] as jest.Mock).mock.calls,
-    ).toHaveLength(0);
+    expect(component['submitEntryUpdate']).not.toHaveBeenCalled();
   });
 
   it('onUpdateApplication calls submitEntryUpdate when validation passes', () => {
@@ -395,6 +446,60 @@ describe('ApplicationsListEntryDetail', () => {
     const callArgs = submitMock.mock.calls[0];
     expect(callArgs[0]).toEqual(expectedDto);
     expect(callArgs[1]).toBeTruthy();
+  });
+
+  it('onUpdateApplication returns early when validation fails (does not call submitEntryUpdate)', () => {
+    component['form'].controls.applicantType.setValue('person');
+
+    const personForm = component.personGroup;
+    const base = personForm.getRawValue();
+    personForm.reset(
+      { ...base, firstName: '', middleNames: '', surname: '' },
+      { emitEvent: false },
+    );
+
+    component['submitEntryUpdate'] = jest.fn();
+
+    component.onUpdateApplication();
+
+    expect(component['appListEntryDetailState']().formSubmitted).toBe(true);
+
+    expect(component['submitEntryUpdate']).not.toHaveBeenCalled();
+  });
+
+  it('onUpdateApplication builds dto and calls submitEntryUpdate when validation passes', () => {
+    component['entryDetail'] = {
+      id: 'EN-1',
+      listId: 'AL-1',
+      applicationCode: 'APP-100',
+      numberOfRespondents: 0,
+      lodgementDate: '2025-11-01',
+    };
+
+    const expectedDto = {
+      applicationCode: 'APP-1',
+      lodgementDate: '2026-01-01',
+    };
+    component['buildEntryUpdateDto'] = () => expectedDto;
+
+    const submitMock = jest.fn();
+    component['submitEntryUpdate'] = submitMock;
+
+    component['form'].controls.applicantType.setValue('standard');
+    component.onStandardApplicantCodeChanged('SA-123');
+    component['form'].controls.standardApplicantCode.setValue('SA-123', {
+      emitEvent: false,
+    });
+
+    component.onUpdateApplication();
+
+    expect(submitMock).toHaveBeenCalledTimes(1);
+    const callArgs = submitMock.mock.calls[0];
+    expect(callArgs[0]).toEqual(expectedDto);
+
+    const bannerArg = callArgs[1];
+    expect(bannerArg).toBeTruthy();
+    expect(typeof bannerArg.heading).toBe('string');
   });
 
   it('persistHasOffsiteFee rolls back form value on API error', () => {
