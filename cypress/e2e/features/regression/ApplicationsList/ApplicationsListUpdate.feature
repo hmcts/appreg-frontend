@@ -1,6 +1,6 @@
 Feature: Applications List Update
 
-    @regression @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @tp
+    @regression @ARCPOC-214 @ARCPOC-450 @ARCPOC-799
     Scenario Outline: Update applications list Successfully with Other location and CJA selected
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -44,7 +44,7 @@ Feature: Applications List Update
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Location      | Description   | Entries | Status | SelectButtonText | CourtValue | OtherLocation        | cjaCode | CJAValue      | HH | MM | UpdatedDescription    | UpdatedOtherLocation   | SuccessBanner                                                                      |
             | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | Wolverhampton | Test_{RANDOM} | 0       | OPEN   | Select           |            | Other Location_21442 | B9      | Wolverhampton | 11 | 30 | Updated Test_{RANDOM} | Updated Location_21442 | Success Application list updatedThe application list has been successfully updated |
 
-    @regression @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @tp
+    @regression @ARCPOC-214 @ARCPOC-450 @ARCPOC-799
     Scenario Outline: Update applications list Successfully with Court selected
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
