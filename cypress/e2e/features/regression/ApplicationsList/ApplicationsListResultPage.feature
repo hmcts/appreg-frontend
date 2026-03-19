@@ -32,7 +32,7 @@ Feature: Applications List Result
             | respondent.person.contactDetails.addressLine2 | Bristol                        |
             | respondent.person.contactDetails.addressLine3 | Avon                           |
             | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
-            | respondent.person.contactDetails.postcode     | BS1 5AA                        |
+            | respondent.person.contactDetails.postcode     | BS15 5AA                        |
             | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
@@ -61,16 +61,14 @@ Feature: Applications List Result
         Then User Should See The Button "Result selected" Is Disabled
         When User Checks The Checkbox In Row Of Table "Lists" With:
             | Sequence number | Account number | Applicant                  | Respondent                | Post code | Title                                          | Fee req | Resulted |
-            | 1               | ACC-{RANDOM}   | Taylor {RANDOM}, Henry, Mr | Clark {RANDOM}, Emily, Ms | BS1 5AA   | Issue of liability order summons - council tax | No      | No       |
+            | 1               | ACC-{RANDOM}   | Taylor {RANDOM}, Henry, Mr | Clark {RANDOM}, Emily, Ms | BS15 5AA   | Issue of liability order summons - council tax | No      | No       |
         Then User Should See The Button "Result selected" Is Enabled
         When User Clicks On The "Result selected" Button
         Then User See "Result applications" On The Page
-        Then User See "Applications to result" On The Page
-        Then User Should See Row In Table "Applications to result" With Values:
+        Then User Should See Row In Table "Application(s) to result" With Values:
             | Sequence number | Applicant(s)               | Respondent(s)             | Application Title(s)                           |
             | 1               | Taylor {RANDOM}, Henry, Mr | Clark {RANDOM}, Emily, Ms | Issue of liability order summons - council tax |
-        Then User Enters "test" Into The "Search for a result code" Textbox
-        When User Clicks On The "Save" Button
+        Then User Selects "RTC - Refer to Court" From The Textbox "Result code" Autocomplete By Typing "RTC"
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
@@ -104,7 +102,7 @@ Feature: Applications List Result
             | respondent.organisation.contactDetails.addressLine2 | Bristol                       |
             | respondent.organisation.contactDetails.addressLine3 | Avon                          |
             | respondent.organisation.contactDetails.addressLine4 | United Kingdom                |
-            | respondent.organisation.contactDetails.postcode     | BS1 5AA                       |
+            | respondent.organisation.contactDetails.postcode     | BS15 5AA                       |
             | respondent.organisation.contactDetails.phone        | 0117{RANDOM}                  |
             | respondent.organisation.contactDetails.mobile       | 07984{RANDOM}                 |
             | wordingFields.0.key                                 | Reference                     |
@@ -142,7 +140,7 @@ Feature: Applications List Result
             | respondent.person.contactDetails.addressLine2 | Bristol                      |
             | respondent.person.contactDetails.addressLine3 | Avon                         |
             | respondent.person.contactDetails.addressLine4 | United Kingdom               |
-            | respondent.person.contactDetails.postcode     | BS1 5AA                      |
+            | respondent.person.contactDetails.postcode     | BS15 5AA                      |
             | respondent.person.contactDetails.phone        | 0117{RANDOM}                 |
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                |
             | respondent.person.contactDetails.email        | {RANDOM}@example.com         |
@@ -187,13 +185,11 @@ Feature: Applications List Result
         Then User Should See The Button "Result selected" Is Enabled
         When User Clicks On The "Result selected" Button
         Then User See "Result applications" On The Page
-        Then User See "Applications to result" On The Page
         Then User Sees Warning Banner "Resulted applications are hidden. Only applications without a result (No) are selected for processing."
-        Then User Should See Row In Table "Applications to result" With Values:
+        Then User Should See Row In Table "Application(s) to result" With Values:
             | Sequence number | Applicant(s)                  | Respondent(s)                | Application Title(s)                           |
             | 1               | Test Acme Industries {RANDOM} | Test Respondent Ltd {RANDOM} | Issue of liability order summons - council tax |
-        Then User Enters "test" Into The "Search for a result code" Textbox
-        When User Clicks On The "Save" Button
+        Then User Selects "RTC - Refer to Court" From The Textbox "Result code" Autocomplete By Typing "RTC"
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
