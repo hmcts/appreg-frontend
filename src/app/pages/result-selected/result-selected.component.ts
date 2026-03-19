@@ -56,7 +56,7 @@ export class ResultSelected implements OnInit {
 
   listId!: string;
   mixedResultedAndUnresultedApplications!: boolean;
-  private selectedResultCode = signal<string>('');
+  private readonly selectedResultCode = signal<string>('');
 
   isSubmitting = signal(false);
   batchResults!: BulkResultChange[];
@@ -198,11 +198,7 @@ export class ResultSelected implements OnInit {
             : null,
         );
 
-        if (errorItems.length === 0) {
-          focusSuccessBanner(this.platformId);
-        } else {
-          focusSuccessBanner(this.platformId);
-        }
+        focusSuccessBanner(this.platformId);
       },
       (err) => {
         this.isSubmitting.set(false);
