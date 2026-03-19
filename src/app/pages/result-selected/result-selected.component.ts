@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   OnInit,
@@ -9,7 +8,6 @@ import {
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { Observable, catchError, finalize, forkJoin, map, of } from 'rxjs';
 
 import { focusSuccessBanner } from '@components/applications-list-entry-detail/util/banners.util';
 import { APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
@@ -25,32 +23,17 @@ import { SuccessBannerComponent } from '@components/success-banner/success-banne
 import { WarningBannerComponent } from '@components/warning-banner/warning-banner.component';
 import { ENTRY_SUCCESS_MESSAGES } from '@constants/application-list-entry/success-messages';
 import { SuccessBanner } from '@core-types/banner/banner.types';
+import { ResultGetDto } from '@openapi';
 import {
-  ApplicationListEntryResultsApi,
-  CreateApplicationListEntryResultRequestParams,
-  ResultGetDto,
-} from '@openapi';
-import { ApplicationListEntryResultsFacade } from '@services/applications-list-entry/application-list-entry-results.facade';
+  ApplicationListEntryResultsFacade,
+  BulkResultChange,
+} from '@services/applications-list-entry/application-list-entry-results.facade';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
 import {
   focusErrorSummary,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '@util/error-click';
-
-export type BatchResult =
-  | {
-      id: string;
-      sequenceNumber?: number;
-      success: boolean;
-      response: ResultGetDto;
-    }
-  | {
-      id: string;
-      sequenceNumber?: number;
-      success: boolean;
-      error: HttpErrorResponse;
-    };
 @Component({
   selector: 'app-result-selected',
   standalone: true,
@@ -68,7 +51,6 @@ export type BatchResult =
 })
 export class ResultSelected implements OnInit {
   private route = inject(ActivatedRoute);
-  private readonly resultCodesApi = inject(ApplicationListEntryResultsApi);
   private readonly platformId = inject(PLATFORM_ID);
   readonly resultsFacade = inject(ApplicationListEntryResultsFacade);
 
@@ -77,7 +59,7 @@ export class ResultSelected implements OnInit {
   private selectedResultCode = signal<string>('');
 
   isSubmitting = signal(false);
-  batchResults!: BatchResult[];
+  batchResults!: BulkResultChange[];
 
   successBanner = signal<SuccessBanner | null>(null);
 
@@ -85,9 +67,18 @@ export class ResultSelected implements OnInit {
   errorFound = computed(() => this.errorSummaryItems().length > 0);
   errorSummaryItems = signal<ErrorItem[]>([]);
 
-  readonly firstCreatedEntryArray = computed(() => {
-    const all = this.resultsFacade.newlyCreatedEntryResults() ?? [];
-    return all.length > 0 ? [all[0]] : [];
+  readonly createdEntryResults = computed(() => {
+    const createdResults = this.resultsFacade.newlyCreatedEntryResults() ?? [];
+    const representatives = new Map<string, ResultGetDto>();
+
+    createdResults.forEach((result) => {
+      const key = this.toLogicalResultKey(result);
+      if (!representatives.has(key)) {
+        representatives.set(key, result);
+      }
+    });
+
+    return Array.from(representatives.values());
   });
 
   onCreateErrorClick = onCreateErrorClickFn;
@@ -127,42 +118,26 @@ export class ResultSelected implements OnInit {
       return;
     }
 
-    const newlyCreated = this.resultsFacade.newlyCreatedEntryResults();
+    this.resultsFacade.removeCreatedEntryResultGroup(
+      this.listId,
+      resultId,
+      (results) => {
+        const failedRemovals = results.filter((result) => !result.success);
 
-    const entryMap = new Map<string, string>();
-
-    newlyCreated.forEach((r: ResultGetDto) => {
-      if (r.entryId && r.id) {
-        entryMap.set(r.entryId, r.id);
-      }
-    });
-
-    if (entryMap.size === 0) {
-      return;
-    }
-
-    entryMap.forEach((resultCodeId, entryId) => {
-      const rid = resultCodeId;
-
-      if (!rid) {
-        return;
-      }
-
-      this.resultsFacade.removeResult(
-        this.listId,
-        entryId,
-        rid,
-        () => {
-          this.successBanner.set(ENTRY_SUCCESS_MESSAGES.resultsRemoved);
-          this.resultsFacade.clearCreatedEntryResults();
-          focusSuccessBanner(this.platformId);
-        },
-        (err) => {
-          this.applyMappedError(err);
+        if (failedRemovals.length > 0) {
+          this.applyMappedError(failedRemovals[0].error);
           focusErrorSummary(this.platformId);
-        },
-      );
-    });
+          return;
+        }
+
+        this.successBanner.set(ENTRY_SUCCESS_MESSAGES.resultsRemoved);
+        focusSuccessBanner(this.platformId);
+      },
+      (err) => {
+        this.applyMappedError(err);
+        focusErrorSummary(this.platformId);
+      },
+    );
   }
 
   private applyMappedError(err: unknown): void {
@@ -193,69 +168,19 @@ export class ResultSelected implements OnInit {
     }
     this.isSubmitting.set(true);
     this.batchResults = [];
-
-    const existingResultsByEntryId: Record<string, ResultGetDto> =
-      Object.fromEntries(
-        (this.resultsFacade.newlyCreatedEntryResults() ?? []).map((r) => [
-          r.entryId,
-          r,
-        ]),
-      );
-
-    const calls: Observable<BatchResult>[] = this.rows.map((row) => {
-      const params = this.buildResultRequestForRow(row, payload);
-
-      const existing = existingResultsByEntryId[params.entryId];
-
-      if (existing?.id) {
-        const updateDto = {
-          resultCode: params.resultCreateDto.resultCode,
-          wordingFields: params.resultCreateDto.wordingFields ?? [],
-        };
-
-        return this.resultCodesApi
-          .updateApplicationListEntryResult({
-            listId: params.listId,
-            entryId: params.entryId,
-            resultId: existing.id,
-            resultUpdateDto: updateDto,
-          })
-          .pipe(
-            map((response: ResultGetDto) => ({
-              id: row.id,
-              success: true,
-              response,
-            })),
-            catchError((error: HttpErrorResponse) =>
-              of({ id: row.id, success: false, error }),
-            ),
-          );
-      } else {
-        return this.resultCodesApi
-          .createApplicationListEntryResult(params)
-          .pipe(
-            map((response: ResultGetDto) => ({
-              id: row.id,
-              success: true,
-              response,
-            })),
-            catchError((error: HttpErrorResponse) =>
-              of({ id: row.id, success: false, error }),
-            ),
-          );
-      }
-    });
-
-    forkJoin([...calls])
-      .pipe(finalize(() => this.isSubmitting.set(false)))
-      .subscribe((results: BatchResult[]) => {
+    this.resultsFacade.submitResultChangesForEntries(
+      this.listId,
+      this.rows.map((row) => row.id),
+      payload,
+      (results) => {
+        this.isSubmitting.set(false);
         this.batchResults = results;
 
-        const errorItems: ErrorItem[] = this.batchResults
+        const errorItems: ErrorItem[] = results
           .filter((r) => !r.success)
           .map((r) => {
             return {
-              text: `Sequence number ${this.idToSequenceNumberMap[r.id]} failed to update`,
+              text: `Sequence number ${this.idToSequenceNumberMap[r.entryId]} failed to update`,
             } as ErrorItem;
           });
 
@@ -273,43 +198,24 @@ export class ResultSelected implements OnInit {
             : null,
         );
 
-        const successfulResponses: ResultGetDto[] = results
-          .filter((r) => r.success)
-          .map(
-            (r) => (r as { success: true; response: ResultGetDto }).response,
-          );
-
-        this.resultsFacade.addCreatedEntryResults(successfulResponses);
-
         if (errorItems.length === 0) {
           focusSuccessBanner(this.platformId);
-
-          if (successfulResponses.length > 0) {
-            this.resultsFacade.clearPendingToken.update((n) => n + 1);
-          }
         } else {
           focusSuccessBanner(this.platformId);
         }
-      });
+      },
+      (err) => {
+        this.isSubmitting.set(false);
+        this.applyMappedError(err);
+        focusErrorSummary(this.platformId);
+      },
+    );
   }
 
-  // create params for both POST and PUT
-  private buildResultRequestForRow(
-    row: ApplicationEntriesResultContext,
-    payload: ResultSectionSubmitPayload,
-  ): CreateApplicationListEntryResultRequestParams {
-    const newResultCode =
-      payload.pendingToCreate?.[0] ?? payload.existingToUpdate?.[0];
-
-    const resultCreateDto = {
-      resultCode: newResultCode.resultCode,
-      wordingFields: newResultCode.wordingFields,
-    };
-
-    return {
-      listId: this.listId,
-      entryId: row.id,
-      resultCreateDto,
-    };
+  private toLogicalResultKey(result: ResultGetDto): string {
+    return [
+      (result.resultCode ?? '').trim(),
+      (result.wording?.template ?? '').trim(),
+    ].join('|');
   }
 }

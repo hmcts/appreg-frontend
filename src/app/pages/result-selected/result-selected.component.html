@@ -34,7 +34,7 @@
 <app-result-wording-section
   [resultApplicantContext]="rows"
   [resultCodesList]="resultsFacade.resultCodesSignal()"
-  [existingResults]="firstCreatedEntryArray()"
+  [existingResults]="createdEntryResults()"
   [clearPendingToken]="resultsFacade.clearPendingToken()"
   [wordingByCode]="resultsFacade.resultCodeWordingByCode()"
   [resultCodeTemplateByCode]="resultsFacade.resultCodeTemplateByCode()"
