@@ -133,4 +133,17 @@ export class TableInteraction {
       }
     }) as unknown as Cypress.Chainable<void>;
   }
+
+  /**
+   * Checks the "Select all" checkbox in the table header to select all rows
+   * @param tableCaption Caption of the table to scope the checkbox search
+   */
+  static checkSelectAllCheckbox(tableCaption: string): void {
+    cy.log(`Checking the "Select all" checkbox in table "${tableCaption}"`);
+    TableElement.getSelectAllCheckbox(tableCaption)
+      .scrollIntoView()
+      .should('exist')
+      .and('not.be.disabled')
+      .check({ force: true });
+  }
 }

@@ -107,8 +107,58 @@ module.exports = defineConfig({
       const fs = require('node:fs');
       const path = require('node:path');
 
+      // Clean report folders before test run
+      const cleanReportFolders = () => {
+        const foldersToClean = [
+          'cypress/reports/cucumber-json',
+          'cypress/reports/mochawesome',
+          'cypress/reports/parallel',
+          'cypress/reports/screenshots',
+          'cypress/reports/videos',
+          'cypress/reports/junit',
+          'cypress/downloads',
+          'runner-results',
+          'functional-output',
+        ];
+
+        foldersToClean.forEach((folder) => {
+          const folderPath = path.join(__dirname, folder);
+          if (fs.existsSync(folderPath)) {
+            fs.rmSync(folderPath, { recursive: true, force: true });
+            cypressLog.info(`Cleaned: ${folder}`);
+          }
+        });
+      };
+
+      cleanReportFolders();
+
       require('cypress-mochawesome-reporter/plugin')(on);
       await addCucumberPreprocessorPlugin(on, config);
+
+      // Configure Chrome to allow downloads in headless mode (cypress run)
+      on('before:browser:launch', (browser, launchOptions) => {
+        if (browser.family === 'chromium' && browser.name !== 'electron') {
+          const downloadPath = path.join(
+            config.projectRoot,
+            config.downloadsFolder,
+          );
+
+          // Ensure downloads folder exists
+          if (!fs.existsSync(downloadPath)) {
+            fs.mkdirSync(downloadPath, { recursive: true });
+          }
+
+          launchOptions.preferences.default.download = {
+            default_directory: downloadPath,
+            prompt_for_download: false,
+          };
+
+          // Additional Chrome args for consistent download behavior
+          launchOptions.args.push('--enable-features=NetworkService');
+          launchOptions.args.push('--disable-features=VizDisplayCompositor');
+        }
+        return launchOptions;
+      });
 
       // Custom task to log accessibility violations
       on('task', {
@@ -128,6 +178,12 @@ module.exports = defineConfig({
           return null;
         },
         // PDF helper tasks
+        ensureDownloadsFolder(downloadsPath) {
+          if (!fs.existsSync(downloadsPath)) {
+            fs.mkdirSync(downloadsPath, { recursive: true });
+          }
+          return null;
+        },
         clearDownloadsFolder(downloadsPath) {
           if (fs.existsSync(downloadsPath)) {
             const files = fs.readdirSync(downloadsPath);

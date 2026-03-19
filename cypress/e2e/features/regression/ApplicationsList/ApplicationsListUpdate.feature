@@ -32,9 +32,12 @@ Feature: Applications List Update
         When User Clicks On The "Update" Button
         Then User Sees Success Banner "<SuccessBanner>"
         Then User Clicks On The Breadcrumb Link "Applications list"
+        When User Searches Application List With:
+            | Date         | Time | Description          | CourtSearch | Court | Status | Other location | CJA | CJASearch |
+            | <SearchDate> |      | <UpdatedDescription> |             |       |        |                |     |           |
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
-            | Date          | Time   | Location   | Description   | Entries   | Status   |
-            | <DisplayDate> | <Time> | <CJAValue> | <Description> | <Entries> | <Status> |
+            | Date          | Time   | Location   | Description          | Entries   | Status   |
+            | <DisplayDate> | <Time> | <CJAValue> | <UpdatedDescription> | <Entries> | <Status> |
         Then User Sees Warning Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
@@ -44,7 +47,7 @@ Feature: Applications List Update
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Location      | Description   | Entries | Status | SelectButtonText | CourtValue | OtherLocation        | cjaCode | CJAValue      | HH | MM | UpdatedDescription    | UpdatedOtherLocation   | SuccessBanner                                                                      |
             | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | Wolverhampton | Test_{RANDOM} | 0       | OPEN   | Select           |            | Other Location_21442 | B9      | Wolverhampton | 11 | 30 | Updated Test_{RANDOM} | Updated Location_21442 | Success Application list updatedThe application list has been successfully updated |
 
-    @regression @ARCPOC-214 @ARCPOC-450 @ARCPOC-799
+    @regression @ARCPOC-214 @ARCPOC-450 @ARCPOC-799 @PJ
     Scenario Outline: Update applications list Successfully with Court selected
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -78,9 +81,12 @@ Feature: Applications List Update
         When User Clicks On The "Update" Button
         Then User Sees Success Banner "<SuccessBanner>"
         Then User Clicks On The Breadcrumb Link "Applications list"
+        When User Searches Application List With:
+            | Date         | Time | Description          | CourtSearch | Court | Status | Other location | CJA | CJASearch |
+            | <SearchDate> |      | <UpdatedDescription> |             |       |        |                |     |           |
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
-            | Date          | Time   | Location        | Description   | Entries   | Status   |
-            | <DisplayDate> | <Time> | <CourtLocation> | <Description> | <Entries> | <Status> |
+            | Date          | Time   | Location     | Description          | Entries   | Status   |
+            | <DisplayDate> | <Time> | <OptionText> | <UpdatedDescription> | <Entries> | <Status> |
         Then User Sees Warning Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
@@ -277,17 +283,17 @@ Feature: Applications List Update
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
             """
             {
-                "resultCode": "RTC",
-                "wordingFields": [
-                    {
-                        "key": "Date",
-                        "value": "24-02-2026"
-                    },
-                    {
-                        "key": "Courthouse",
-                        "value": "London Courthouse"
-                    }
-                ]
+            "resultCode": "RTC",
+            "wordingFields": [
+            {
+            "key": "Date",
+            "value": "24-02-2026"
+            },
+            {
+            "key": "Courthouse",
+            "value": "London Courthouse"
+            }
+            ]
             }
             """
         Then User Verify Response Status Code Should Be "201"

@@ -9,9 +9,16 @@ export class PdfDownloadHelper {
     return `${Cypress.config('projectRoot')}/${this.DOWNLOADS_FOLDER}`;
   }
 
-  static listPdfFiles(): Cypress.Chainable<string[]> {
+  static ensureDownloadsFolderExists(): Cypress.Chainable<null> {
     const downloadsPath = this.getDownloadsPath();
-    return cy.task('listPdfFiles', downloadsPath);
+    return cy.task('ensureDownloadsFolder', downloadsPath);
+  }
+
+  static listPdfFiles(): Cypress.Chainable<string[]> {
+    return this.ensureDownloadsFolderExists().then(() => {
+      const downloadsPath = this.getDownloadsPath();
+      return cy.task('listPdfFiles', downloadsPath);
+    });
   }
 
   static getLatestPdfOrFail(): Cypress.Chainable<string> {
