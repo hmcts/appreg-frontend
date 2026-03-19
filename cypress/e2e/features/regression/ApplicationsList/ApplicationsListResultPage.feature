@@ -194,10 +194,9 @@ Feature: Applications List Result
             | 1               | Test Acme Industries {RANDOM} | Test Respondent Ltd {RANDOM} | Issue of liability order summons - council tax |
         Then User Enters "test" Into The "Search for a result code" Textbox
         When User Clicks On The "Save" Button
-        Then User See "Applications" On The Page
         # Application List Cleanup
-        # When User Makes DELETE API Request To "/application-lists/:listId"
-        # Then User Verify Response Status Code Should Be "204"
+        When User Makes DELETE API Request To "/application-lists/:listId"
+        Then User Verify Response Status Code Should Be "204"
         Examples:
             | User  | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                     | Description                             | Entries | Status |
             | user2 | today      | todayiso | todaydisplay | timenowhhmm-3h | BCC026            | Bristol Crown Court Set 3 | Applications to review at Test_{RANDOM} | 2       | OPEN   |
