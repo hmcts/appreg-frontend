@@ -30,6 +30,7 @@ import {
   DestroyRef,
   OnInit,
   PLATFORM_ID,
+  ViewChild,
   inject,
   signal,
 } from '@angular/core';
@@ -174,6 +175,8 @@ export const ERROR_HREFS = {
   templateUrl: './applications-list-entry-detail.component.html',
 })
 export class ApplicationsListEntryDetail implements OnInit {
+  @ViewChild('wordingSection') wordingSection?: WordingSectionComponent;
+
   private readonly destroyRef = inject(DestroyRef);
 
   // APIs
@@ -422,6 +425,8 @@ export class ApplicationsListEntryDetail implements OnInit {
 
             if (hasSelectionChanged) {
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
+
+              this.wordingSubmitAttempt.set(0);
               this.entryDetail!.wording = undefined;
             }
 
@@ -751,6 +756,9 @@ export class ApplicationsListEntryDetail implements OnInit {
     });
     this.form.updateValueAndValidity({ emitEvent: false });
 
+    const wordingErrors = this.wordingSection?.validateForSubmit() ?? [];
+    this.onChildErrors('wording', wordingErrors);
+
     this.updateAllErrors();
     return this.appListEntryDetailState().errorFound;
   }
@@ -774,6 +782,8 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.resetErrors();
     this.resetSuccessBanner();
     this.appListEntryDetailPatch({ formSubmitted: true });
+
+    this.wordingSubmitAttempt.update((n) => n + 1);
 
     if (this.runFullSubmitValidation()) {
       return;
