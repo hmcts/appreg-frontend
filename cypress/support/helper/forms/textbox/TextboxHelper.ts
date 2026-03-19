@@ -74,9 +74,7 @@ export class TextboxHelper {
       .clear();
 
     // Re-find element after clear to handle potential re-renders
-    TextboxElement.findTextbox(selector)
-      .should('be.visible')
-      .type(text);
+    TextboxElement.findTextbox(selector).should('be.visible').type(text);
 
     // Wait for autocomplete dropdown to appear and trigger mousedown on the link
     cy.get('.app-autocomplete__menu')

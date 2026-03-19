@@ -59,8 +59,10 @@ export class TableElement {
       .find('td')
       .last()
       .find('button')
-      .filter((_, el) => 
-        StringUtils.normalizeText(Cypress.$(el).text()) === StringUtils.normalizeText(buttonText)
+      .filter(
+        (_, el) =>
+          StringUtils.normalizeText(Cypress.$(el).text()) ===
+          StringUtils.normalizeText(buttonText),
       )
       .first();
   }
@@ -81,8 +83,10 @@ export class TableElement {
       .find('ul[role="list"], ul[role="menu"], .dropdown-menu, .actions-menu')
       .should('be.visible')
       .find('button, a')
-      .filter((_, el) => 
-        StringUtils.normalizeText(Cypress.$(el).text()) === StringUtils.normalizeText(menuButtonText)
+      .filter(
+        (_, el) =>
+          StringUtils.normalizeText(Cypress.$(el).text()) ===
+          StringUtils.normalizeText(menuButtonText),
       )
       .first();
   }

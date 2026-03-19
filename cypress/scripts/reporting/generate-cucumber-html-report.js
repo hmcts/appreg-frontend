@@ -218,7 +218,7 @@ function processScenario(scenario, feature, stats, testsByFeature) {
   const scenarioDuration = steps.reduce((sum, step) => sum + step.duration, 0);
 
   // Extract tags from scenario
-  const tags = scenario.tags ? scenario.tags.map(tag => tag.name) : [];
+  const tags = scenario.tags ? scenario.tags.map((tag) => tag.name) : [];
 
   // Update stats
   updateStats(stats, scenarioStatus, scenarioDuration);

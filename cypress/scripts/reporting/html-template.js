@@ -59,8 +59,11 @@ function generateScenariosHTML(scenarios, browser) {
       // Add tags
       let tagsHTML = '';
       if (scenario.tags && scenario.tags.length > 0) {
-        tagsHTML = '<div class="tags">' +
-          scenario.tags.map(tag => `<span class="tag">${tag}</span>`).join('') +
+        tagsHTML =
+          '<div class="tags">' +
+          scenario.tags
+            .map((tag) => `<span class="tag">${tag}</span>`)
+            .join('') +
           '</div>';
       }
 
