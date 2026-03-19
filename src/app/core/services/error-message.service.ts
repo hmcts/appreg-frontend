@@ -41,6 +41,12 @@ const subscribedEndpoints: EndpointRule[] = [
     ),
     responses: [400, 403, 404, 409, 500],
   },
+  {
+    endpoint: new RegExp(
+      `^/application-lists/${regexIdPlaceholder}/entries/${regexIdPlaceholder}/results$`,
+    ),
+    responses: [400, 403, 500],
+  },
 ];
 
 // Contains endpoints where errors will be ignored
