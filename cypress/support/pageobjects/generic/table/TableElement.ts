@@ -117,6 +117,13 @@ export class TableElement {
   }
 
   /**
+   * Gets the "Select all" checkbox in the table header
+   */
+  static getSelectAllCheckbox(): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy.get('#apps-select-all');
+  }
+
+  /**
    * Gets the first page link (Page 1) from pagination
    * @param $body The body element to search within
    * @returns JQuery element of the first page link
