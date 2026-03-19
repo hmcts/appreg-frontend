@@ -56,6 +56,14 @@ function generateScenariosHTML(scenarios, browser) {
         browserBadge = `<span class="browser-badge" style="background: ${browserColor}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px;">🌐 ${scenario.browser}</span>`;
       }
 
+      // Add tags
+      let tagsHTML = '';
+      if (scenario.tags && scenario.tags.length > 0) {
+        tagsHTML = '<div class="tags">' +
+          scenario.tags.map(tag => `<span class="tag">${tag}</span>`).join('') +
+          '</div>';
+      }
+
       return `
     <div class="scenario">
       <div class="scenario-header">
@@ -63,6 +71,7 @@ function generateScenariosHTML(scenarios, browser) {
           <span class="status-badge ${scenario.status}">${scenario.status}</span>
           <span class="scenario-name">${scenario.name}</span>
           ${browserBadge}
+          ${tagsHTML}
         </div>
         <div>
           <span class="scenario-duration">${scenario.duration.toFixed(0)}ms</span>
@@ -320,6 +329,7 @@ function generateHTML(stats, testsByFeature, browser) {
       align-items: center;
       gap: 10px;
       flex: 1;
+      flex-wrap: wrap;
     }
     
     .status-badge {
@@ -347,6 +357,29 @@ function generateHTML(stats, testsByFeature, browser) {
     
     .scenario-name {
       font-weight: 500;
+    }
+    
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      width: 100%;
+      margin-top: 8px;
+    }
+    
+    .tag {
+      display: inline-block;
+      background: #e9ecef;
+      color: #495057;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.75em;
+      font-weight: 500;
+      border: 1px solid #dee2e6;
+    }
+    
+    .tag:hover {
+      background: #dee2e6;
     }
     
     .browser-badge {
