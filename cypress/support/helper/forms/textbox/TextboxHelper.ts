@@ -67,10 +67,15 @@ export class TextboxHelper {
     text: string,
     optionText: string,
   ): void {
+    // Break chain to handle DOM re-renders during clear/type
     TextboxElement.findTextbox(selector)
       .should('be.visible')
       .should('be.enabled')
-      .clear()
+      .clear();
+
+    // Re-find element after clear to handle potential re-renders
+    TextboxElement.findTextbox(selector)
+      .should('be.visible')
       .type(text);
 
     // Wait for autocomplete dropdown to appear and trigger mousedown on the link

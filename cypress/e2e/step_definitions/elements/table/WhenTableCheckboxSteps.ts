@@ -33,7 +33,7 @@ When(
 /**
  * Checks the "Select all" checkbox in the table header to select all rows
  */
-When('User Checks The Select All Checkbox In Table {string}', () => {
-  TableInteraction.checkSelectAllCheckbox();
+When('User Checks The Select All Checkbox In Table {string}', (tableName: string) => {
+  TableInteraction.checkSelectAllCheckbox(tableName);
   cy.screenshot('checked-select-all-checkbox');
 });

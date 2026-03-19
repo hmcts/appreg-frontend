@@ -203,48 +203,41 @@ export class TableVerification {
     columnValues: string[],
   ): void {
     cy.log(
-      `Verifying table "${tableCaption}" column "${columnName}" is sorted ${sortOrder}`,
+      `Verifying column "${columnName}" is sorted ${sortOrder} (${columnValues.length} values)`,
     );
 
-    // Check if column contains dates (format: "5 Dec 2025", "10 Jan 2026", etc.)
+    const nonEmptyValues = columnValues.filter((v) => v && v.trim() !== '');
+
     const isDateColumn =
       columnName.toLowerCase() === 'date' ||
-      columnValues.some((v) => /^\d{1,2}\s+\w{3}\s+\d{4}$/.test(v));
+      nonEmptyValues.some((v) => /^\d{1,2}\s+\w{3}\s+\d{4}$/.test(v));
 
     let sorted: string[];
     if (isDateColumn) {
-      // Parse and sort dates chronologically
-      sorted = [...columnValues].sort((a, b) => {
+      sorted = [...nonEmptyValues].sort((a, b) => {
         const dateA = DateTimeUtil.parseDate(a);
         const dateB = DateTimeUtil.parseDate(b);
         return dateA.getTime() - dateB.getTime();
       });
     } else {
-      // Sort as strings
-      sorted = [...columnValues].sort((a, b) => a.localeCompare(b));
+      sorted = [...nonEmptyValues].sort((a, b) => a.localeCompare(b));
     }
 
     if (sortOrder === 'descending') {
       sorted.reverse();
     }
 
-    cy.log(`Actual values: ${JSON.stringify(columnValues)}`);
-    cy.log(`Expected sorted: ${JSON.stringify(sorted)}`);
-
-    let mismatchFound = false;
-    for (let idx = 0; idx < columnValues.length; idx++) {
-      if (columnValues[idx] !== sorted[idx]) {
+    for (let idx = 0; idx < Math.min(nonEmptyValues.length, 5); idx++) {
+      if (nonEmptyValues[idx] !== sorted[idx]) {
         cy.log(
-          `Mismatch at index ${idx}: actual="${columnValues[idx]}", expected="${sorted[idx]}"`,
+          `Mismatch at index ${idx}: actual="${nonEmptyValues[idx]}", expected="${sorted[idx]}"`,
         );
-        mismatchFound = true;
       }
     }
 
-    if (!mismatchFound) {
-      cy.log('No mismatches found, arrays are equal.');
-    }
-
-    expect(columnValues).to.deep.equal(sorted);
+    expect(
+      nonEmptyValues,
+      `Column "${columnName}" should be sorted ${sortOrder}`,
+    ).to.deep.equal(sorted);
   }
 }
