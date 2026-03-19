@@ -65,7 +65,7 @@ Feature: Applications List Entry Search
             | respondent.organisation.contactDetails.addressLine2 | Bristol                        |
             | respondent.organisation.contactDetails.addressLine3 | Avon                           |
             | respondent.organisation.contactDetails.addressLine4 | United Kingdom                 |
-            | respondent.organisation.contactDetails.postcode     | BS1 5AA                        |
+            | respondent.organisation.contactDetails.postcode     | BS15 5AA                        |
             | respondent.organisation.contactDetails.phone        | 0117{RANDOM}                   |
             | respondent.organisation.contactDetails.mobile       | 07984{RANDOM}                  |
             | respondent.organisation.contactDetails.email        | respondent{RANDOM}@example.com |
@@ -142,7 +142,7 @@ Feature: Applications List Entry Search
             | respondent.person.contactDetails.addressLine2 | Bristol                        |
             | respondent.person.contactDetails.addressLine3 | Avon                           |
             | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
-            | respondent.person.contactDetails.postcode     | BS1 5AA                        |
+            | respondent.person.contactDetails.postcode     | BS15 5AA                        |
             | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
@@ -186,7 +186,7 @@ Feature: Applications List Entry Search
             | <DisplayDate> | <Applicant> | <Respondent> | <ApplicationTitle> | <Fee> | <Resulted> | <Status> |
         Examples:
             | User  | Dateiso  | Time           | Description                             | DurationHours | DurationMinutes | otherLocationDescription         | SearchDate | CourtSearch | Court | ApplicantOrg | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA    | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant                | Respondent              | ApplicationTitle                               | Fee | Resulted | Status |
-            | user1 | todayiso | timenowhhmm-2h | Applications to review at Test_{RANDOM} | 1             | 11              | Temporary Courtroom at Town Hall |            |             |       |              |                  |               |                   | Open         | BS1 5AA            | 01        | London |               |               |                  | Application list entries | todaydisplay | Mr Henry Taylor {RANDOM} | Ms Emily Clark {RANDOM} | Issue of liability order summons - council tax | No  | No       | OPEN   |
+            | user1 | todayiso | timenowhhmm-2h | Applications to review at Test_{RANDOM} | 1             | 11              | Temporary Courtroom at Town Hall |            |             |       |              |                  |               |                   | Open         | BS15 5AA            | 01        | London |               |               |                  | Application list entries | todaydisplay | Mr Henry Taylor {RANDOM} | Ms Emily Clark {RANDOM} | Issue of liability order summons - council tax | No  | No       | OPEN   |
 
     @regression @ARCPOC-222 @ARCPOC-442 @ARCPOC-1083
     Scenario: Verify Validation Error Messages on Application list entry Search Page

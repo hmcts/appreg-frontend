@@ -157,7 +157,7 @@ Feature: API - Application List Entry
             | respondent.person.contactDetails.addressLine2 | Bristol                        |
             | respondent.person.contactDetails.addressLine3 | Avon                           |
             | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
-            | respondent.person.contactDetails.postcode     | BS1 5AA                        |
+            | respondent.person.contactDetails.postcode     | BS15 5AA                        |
             | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
@@ -211,7 +211,7 @@ Feature: API - Application List Entry
             | respondent.person.contactDetails.addressLine2 | Bristol                              |
             | respondent.person.contactDetails.addressLine3 | Avon                                 |
             | respondent.person.contactDetails.addressLine4 | United Kingdom                       |
-            | respondent.person.contactDetails.postcode     | BS1 5AA                              |
+            | respondent.person.contactDetails.postcode     | BS15 5AA                              |
             | respondent.person.contactDetails.phone        | 0117{RANDOM}                         |
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                        |
             | respondent.person.contactDetails.email        | {RANDOM}@example.com                 |
@@ -275,7 +275,7 @@ Feature: API - Application List Entry
             | respondent.organisation.contactDetails.addressLine2 | Bristol                        |
             | respondent.organisation.contactDetails.addressLine3 | Avon                           |
             | respondent.organisation.contactDetails.addressLine4 | United Kingdom                 |
-            | respondent.organisation.contactDetails.postcode     | BS1 5AA                        |
+            | respondent.organisation.contactDetails.postcode     | BS15 5AA                        |
             | respondent.organisation.contactDetails.phone        | 0117{RANDOM}                   |
             | respondent.organisation.contactDetails.mobile       | 07984{RANDOM}                  |
             | respondent.organisation.contactDetails.email        | respondent{RANDOM}@example.com |
