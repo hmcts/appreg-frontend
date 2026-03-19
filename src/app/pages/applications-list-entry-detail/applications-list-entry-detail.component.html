@@ -65,6 +65,7 @@
       <app-wording-section
         #wordingSection
         [wordingObject]="appCodeDetail.wording"
+        [wordingObjectValues]="entryDetail?.wording!"
         [wordingSubmitAttempt]="wordingSubmitAttempt()"
         (wordingFieldsDTO)="onWordingFieldsDTO($event)"
         (wordingFieldErrors)="onChildErrors('wording', $event)"

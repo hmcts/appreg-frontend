@@ -209,7 +209,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   selectedStandardApplicantCode: string | null = null;
 
-  private entryDetail: EntryGetDetailDto | null = null;
+  entryDetail: EntryGetDetailDto | null = null;
 
   // Codes table state
   codesRows: CodeRow[] = [];
@@ -422,6 +422,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
             if (hasSelectionChanged) {
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
+              this.entryDetail!.wording = undefined;
             }
 
             this.appListEntryDetailPatch({
@@ -434,6 +435,8 @@ export class ApplicationsListEntryDetail implements OnInit {
             this.applyMappedError(err);
           },
         });
+    } else {
+      this.appListEntryDetailPatch({ appCodeDetail: null });
     }
   }
 
@@ -926,7 +929,13 @@ export class ApplicationsListEntryDetail implements OnInit {
               feeAmount: codeDto.feeAmount ?? null,
               offsiteFeeAmount: codeDto.offsiteFeeAmount ?? null,
             };
-            this.appListEntryDetailPatch({ formReady: true });
+
+            this.appListEntryDetailPatch({
+              appCodeDetail: codeDto,
+              isFeeRequired: codeDto.isFeeDue,
+              bulkApplicationsAllowed: codeDto.bulkRespondentAllowed,
+              formReady: true,
+            });
           },
           error: () => {
             this.form.patchValue({ applicationTitle: '' });
