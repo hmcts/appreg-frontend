@@ -274,11 +274,19 @@ export function buildEntryUpdateDtoFromForm(
     respondentOrgValue,
   ) as unknown as Partial<EntryUpdateDto>;
 
-  // Merge server snapshot with patch from form
-  return {
+  const dto: EntryUpdateDto = {
     ...base,
     ...patch,
   };
+
+  if (formValue.applicantType === 'standard') {
+    dto.standardApplicantCode = (formValue.standardApplicantCode ?? '').trim();
+    delete dto.applicant;
+  } else {
+    delete dto.standardApplicantCode;
+  }
+
+  return dto;
 }
 
 export function buildContactDetailsFromRaw(v: ContactFormRaw): ContactDetails {
