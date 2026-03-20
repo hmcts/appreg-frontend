@@ -37,24 +37,46 @@ export class PdfDownloadHelper {
     });
   }
 
-  static findPdfByName(partialName: string): Cypress.Chainable<string> {
+  static findPdfByName(
+    partialName: string,
+    timeout = 10000,
+  ): Cypress.Chainable<string> {
     const processedName = TestDataGenerator.parseValue(partialName);
+    const startTime = Date.now();
 
-    return this.listPdfFiles().then((files) => {
-      const matchedFile = [...files]
-        .reverse()
-        .find((file) => file.includes(processedName));
-      if (!matchedFile) {
-        throw new Error(
-          `No PDF found with name containing "${processedName}". Found files: ${files.join(', ')}`,
-        );
-      }
-      Cypress.log({
-        name: 'findPdfByName',
-        message: `Found PDF: "${matchedFile}" (searched for: "${processedName}")`,
-      });
-      return matchedFile;
-    });
+    const attemptFind = (): Cypress.Chainable<string> => {
+      return this.listPdfFiles().then((files) => {
+        const matchedFile = [...files]
+          .reverse()
+          .find((file) => file.includes(processedName));
+
+        if (matchedFile) {
+          Cypress.log({
+            name: 'findPdfByName',
+            message: `Found PDF: "${matchedFile}" (searched for: "${processedName}")`,
+          });
+          return matchedFile;
+        }
+
+        const elapsed = Date.now() - startTime;
+        if (elapsed >= timeout) {
+          throw new Error(
+            `No PDF found with name containing "${processedName}" after ${timeout}ms. Found files: ${files.join(', ')}`,
+          );
+        }
+
+        // Wait and retry
+        Cypress.log({
+          name: 'findPdfByName',
+          message: `PDF not found yet, retrying... (elapsed: ${elapsed}ms)`,
+        });
+        return cy
+          .wait(500)
+          .then(() => attemptFind() as unknown) as Cypress.Chainable<string>;
+      }) as Cypress.Chainable<string>;
+    };
+
+    return attemptFind();
   }
 
   static clearDownloadsFolder(): Cypress.Chainable<null> {
