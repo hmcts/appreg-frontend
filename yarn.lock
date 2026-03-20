@@ -618,9 +618,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/ssr@npm:^20.3.18":
-  version: 20.3.20
-  resolution: "@angular/ssr@npm:20.3.20"
+"@angular/ssr@npm:^20.3.21":
+  version: 20.3.21
+  resolution: "@angular/ssr@npm:20.3.21"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
@@ -631,7 +631,7 @@ __metadata:
   peerDependenciesMeta:
     "@angular/platform-server":
       optional: true
-  checksum: 10/b55bfe37a19cf973815e3979d55080aa9b921ff9edaec1fb919a375a81665ba90ad1d6266c1aafe0e809c1c4e9651f04c8e4f3806a79b1e3c112b1bfcd7b77b5
+  checksum: 10/cb4c038a56cde6dec9876955b056453dd0249c36ba2abcc9edeebba860368f63a23b56a2e124d4f28eb552ce01161b8492acad963a5465b475789063cdefe386
   languageName: node
   linkType: hard
 
@@ -884,21 +884,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/msal-common@npm:15.16.1":
-  version: 15.16.1
-  resolution: "@azure/msal-common@npm:15.16.1"
-  checksum: 10/99ce7222b60fc130f1dc67351ce94386ef16b6891614ef793b494fd18fd2a43a53d4ba4929a4035a981307bedb6c1bd997b4c618b488f191cd6156a9d0203a2d
+"@azure/msal-common@npm:15.17.0":
+  version: 15.17.0
+  resolution: "@azure/msal-common@npm:15.17.0"
+  checksum: 10/ca0c040a236744f0d648ab1444b0eed6406b41311b4271feaefb7f845a198d3fc8d182b0c5297790ba8ce1341a9928f8832d2f05c86a37e85cb444e5d66dee5e
   languageName: node
   linkType: hard
 
 "@azure/msal-node@npm:^3.5.0, @azure/msal-node@npm:^3.8.4":
-  version: 3.8.9
-  resolution: "@azure/msal-node@npm:3.8.9"
+  version: 3.8.10
+  resolution: "@azure/msal-node@npm:3.8.10"
   dependencies:
-    "@azure/msal-common": "npm:15.16.1"
+    "@azure/msal-common": "npm:15.17.0"
     jsonwebtoken: "npm:^9.0.0"
     uuid: "npm:^8.3.0"
-  checksum: 10/358095cea813fb201d36364ab9e57c5dcc923a4e4c4f4380b53c4ea2b1a2598de773de6d4acb477c4bf906628c1c03f8504f4a25cbbda1661fcded9316c64f00
+  checksum: 10/bdd9746c25f288af5eca8ff2703ebd7265607b26d6e7605f64c45e58e5cdef61a095d706403cb8e651f83fcb0326d345fff0968081f4b802f70350d4cf7f939e
   languageName: node
   linkType: hard
 
@@ -6567,7 +6567,7 @@ __metadata:
     "@angular/platform-browser-dynamic": "npm:^20.3.18"
     "@angular/platform-server": "npm:^20.3.18"
     "@angular/router": "npm:^20.3.18"
-    "@angular/ssr": "npm:^20.3.18"
+    "@angular/ssr": "npm:^20.3.21"
     "@apidevtools/json-schema-ref-parser": "npm:^15.1.2"
     "@azure/msal-node": "npm:^3.8.4"
     "@badeball/cypress-cucumber-preprocessor": "npm:^24.0.0"
