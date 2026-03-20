@@ -80,20 +80,10 @@ module.exports = defineConfig({
     // Report and Media Settings
     reporter: 'cypress-multi-reporters',
     reporterOptions: {
-      reporterEnabled:
-        'spec, cypress-mochawesome-reporter, mocha-junit-reporter',
+      reporterEnabled: 'spec, mocha-junit-reporter',
       mochaJunitReporterReporterOptions: {
         mochaFile: 'cypress/reports/junit/results-[hash].xml',
         toConsole: false,
-      },
-      cypressMochawesomeReporterReporterOptions: {
-        reportDir: 'cypress/reports/mochawesome',
-        charts: true,
-        reportPageTitle: 'Application Register E2E Test Results',
-        embeddedScreenshots: true,
-        inlineAssets: true,
-        html: true,
-        json: true,
       },
     },
     video: true,
@@ -107,32 +97,6 @@ module.exports = defineConfig({
       const fs = require('node:fs');
       const path = require('node:path');
 
-      // Clean report folders before test run
-      const cleanReportFolders = () => {
-        const foldersToClean = [
-          'cypress/reports/cucumber-json',
-          'cypress/reports/mochawesome',
-          'cypress/reports/parallel',
-          'cypress/reports/screenshots',
-          'cypress/reports/videos',
-          'cypress/reports/junit',
-          'cypress/downloads',
-          'runner-results',
-          'functional-output',
-        ];
-
-        foldersToClean.forEach((folder) => {
-          const folderPath = path.join(__dirname, folder);
-          if (fs.existsSync(folderPath)) {
-            fs.rmSync(folderPath, { recursive: true, force: true });
-            cypressLog.info(`Cleaned: ${folder}`);
-          }
-        });
-      };
-
-      cleanReportFolders();
-
-      require('cypress-mochawesome-reporter/plugin')(on);
       await addCucumberPreprocessorPlugin(on, config);
 
       // Configure Chrome to allow downloads in headless mode (cypress run)
