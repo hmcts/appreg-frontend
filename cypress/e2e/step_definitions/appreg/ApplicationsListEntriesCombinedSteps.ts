@@ -8,3 +8,13 @@ When('User Searches Application List Entry With:', (dataTable: DataTable) => {
     criteria: searchCriteria,
   });
 });
+
+When('User Fills In The Applicant Details', (dataTable: DataTable) => {
+  const criteria = dataTable.rowsHash();
+  ApplicationListEntriesCombinedHelper.fillApplicant({ criteria });
+});
+
+When('User Fills In The Respondent Details', (dataTable: DataTable) => {
+  const criteria = dataTable.rowsHash();
+  ApplicationListEntriesCombinedHelper.fillRespondent({ criteria });
+});
