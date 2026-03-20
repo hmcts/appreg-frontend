@@ -75,6 +75,11 @@ export class TableInteraction {
     selectButtonText: string,
     expectedMenuOptions: string[],
   ): Cypress.Chainable<void> {
+    // Wait for table to be visible before searching
+    cy.contains('caption', tableCaption, { timeout: 20000 }).should(
+      'be.visible',
+    );
+
     return TableSearch.searchWithPagination(
       columnValues,
       tableCaption,
