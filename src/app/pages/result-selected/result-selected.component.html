@@ -9,6 +9,20 @@
   ]"
 ></app-breadcrumbs>
 
+@if (errorFound()) {
+  <app-error-summary
+    [title]="errorHint || 'There is a problem'"
+    [items]="errorSummaryItems()"
+    targetId="results-applicant-table"
+    (itemSelect)="onCreateErrorClick($event)"
+  />
+} @else if (successBanner(); as successBanner) {
+  <app-success-banner
+    [heading]="successBanner.heading"
+    [body]="successBanner.body"
+  />
+}
+
 <h1 class="govuk-heading-xl">Result applications</h1>
 
 @if (mixedResultedAndUnresultedApplications) {
@@ -17,21 +31,19 @@
   />
 }
 
-<!-- Table of applications to result -->
-<app-table
-  [caption]="'Applications to result'"
-  [columns]="columns"
-  [rows]="rows"
->
-</app-table>
-
-<!-- Search box to filter result codes -->
-<app-search-box
-  [label]="'Search for a result code'"
-  [hint]="'Start typing to see results'"
-  buttonText="Save"
-  placeholder="e.g. APPC"
-  (valueChange)="onSearchChange()"
-  (submitted)="onSearchSubmit()"
->
-</app-search-box>
+<app-result-wording-section
+  [resultApplicantContext]="rows"
+  [resultCodesList]="resultsFacade.resultCodesSignal()"
+  [existingResults]="createdEntryResults()"
+  [clearPendingToken]="resultsFacade.clearPendingToken()"
+  [wordingByCode]="resultsFacade.resultCodeWordingByCode()"
+  [resultCodeTemplateByCode]="resultsFacade.resultCodeTemplateByCode()"
+  (pendingChange)="onPendingChange($event)"
+  (submitResults)="onSubmitResults($event)"
+  (removeExisting)="onRemoveResult($event)"
+  (wordingFieldErrors)="onError($event)"
+  [applicantRespondentColumns]="columns"
+  [captionSize]="'m'"
+  [caption]="'Application(s) to result'"
+  [buttonText]="'Save changes'"
+/>

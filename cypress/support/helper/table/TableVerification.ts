@@ -1,5 +1,6 @@
 /// <reference types="cypress" />
 import { TableElement } from '../../pageobjects/generic/table/TableElement';
+import { DateTimeUtil } from '../../utils/DateTimeUtil';
 import { TestDataGenerator } from '../../utils/TestDataGenerator';
 
 import { TableNavigation } from './TableNavigation';
@@ -189,5 +190,54 @@ export class TableVerification {
       .contains(headerText)
       .closest('th')
       .should('have.attr', 'aria-sort', expectedSortOrder);
+  }
+
+  /**
+   * Verifies that a table column is sorted in the specified order
+   * Handles both string and date column sorting with pagination support
+   */
+  static verifyColumnIsSorted(
+    tableCaption: string,
+    columnName: string,
+    sortOrder: 'ascending' | 'descending',
+    columnValues: string[],
+  ): void {
+    cy.log(
+      `Verifying column "${columnName}" is sorted ${sortOrder} (${columnValues.length} values)`,
+    );
+
+    const nonEmptyValues = columnValues.filter((v) => v && v.trim() !== '');
+
+    const isDateColumn =
+      columnName.toLowerCase() === 'date' ||
+      nonEmptyValues.some((v) => /^\d{1,2}\s+\w{3}\s+\d{4}$/.test(v));
+
+    let sorted: string[];
+    if (isDateColumn) {
+      sorted = [...nonEmptyValues].sort((a, b) => {
+        const dateA = DateTimeUtil.parseDate(a);
+        const dateB = DateTimeUtil.parseDate(b);
+        return dateA.getTime() - dateB.getTime();
+      });
+    } else {
+      sorted = [...nonEmptyValues].sort((a, b) => a.localeCompare(b));
+    }
+
+    if (sortOrder === 'descending') {
+      sorted.reverse();
+    }
+
+    for (let idx = 0; idx < Math.min(nonEmptyValues.length, 5); idx++) {
+      if (nonEmptyValues[idx] !== sorted[idx]) {
+        cy.log(
+          `Mismatch at index ${idx}: actual="${nonEmptyValues[idx]}", expected="${sorted[idx]}"`,
+        );
+      }
+    }
+
+    expect(
+      nonEmptyValues,
+      `Column "${columnName}" should be sorted ${sortOrder}`,
+    ).to.deep.equal(sorted);
   }
 }
