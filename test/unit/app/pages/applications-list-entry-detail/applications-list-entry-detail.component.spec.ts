@@ -799,6 +799,12 @@ describe('ApplicationsListEntryDetail', () => {
   });
 
   it('onUpdateApplicant blocks submit when respondent organisation is invalid', () => {
+    component['appListEntryDetailPatch']({
+      appCodeDetail: {
+        requiresRespondent: true,
+      } as ApplicationCodeGetDetailDto,
+    });
+
     const formSvc = TestBed.inject(ApplicationListEntryFormService);
     jest.spyOn(formSvc, 'buildUpdateDto').mockReturnValue({} as EntryUpdateDto);
 
