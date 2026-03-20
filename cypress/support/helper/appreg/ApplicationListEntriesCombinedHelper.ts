@@ -1,5 +1,5 @@
 import { processDatatableRow } from '../../utils/TestDataGenerator';
-import { AccordionHelper } from '../forms/accordion/AccordionHelper';
+import { AccordionHelper } from '../forms/accordion/accordion/AccordionHelper';
 import { ButtonHelper } from '../forms/button/ButtonHelper';
 import { DateTimeHelper } from '../forms/datetime/DateTimeHelper';
 import { DropdownHelper } from '../forms/dropdown/DropdownHelper';
