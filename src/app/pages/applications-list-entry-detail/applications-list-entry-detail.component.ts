@@ -30,7 +30,9 @@ import {
   DestroyRef,
   OnInit,
   PLATFORM_ID,
+  ViewChild,
   inject,
+  signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -81,6 +83,7 @@ import { SelectInputComponent } from '@components/select-input/select-input.comp
 import { TableColumn } from '@components/selectable-sortable-table/selectable-sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
+import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
 import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
 import {
   APPLICANT_ORG_ERROR_HREFS,
@@ -97,6 +100,7 @@ import {
   EntryGetDetailDto,
   EntryUpdateDto,
   FeeStatus,
+  TemplateSubstitution,
   UpdateApplicationListEntryRequestParams,
 } from '@openapi';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
@@ -136,6 +140,7 @@ type ChildErrorSource =
   | 'respondent'
   | 'applicant'
   | 'civilFee'
+  | 'wording'
   | 'resultWording';
 
 const UPDATE_ENTRY_ERROR_MESSAGES = ENTRY_ERROR_MESSAGES;
@@ -165,10 +170,13 @@ export const ERROR_HREFS = {
     CivilFeeSectionComponent,
     ApplicationCodeSearchComponent,
     ApplicantSectionComponent,
+    WordingSectionComponent,
   ],
   templateUrl: './applications-list-entry-detail.component.html',
 })
 export class ApplicationsListEntryDetail implements OnInit {
+  @ViewChild('wordingSection') wordingSection?: WordingSectionComponent;
+
   private readonly destroyRef = inject(DestroyRef);
 
   // APIs
@@ -204,7 +212,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   selectedStandardApplicantCode: string | null = null;
 
-  private entryDetail: EntryGetDetailDto | null = null;
+  entryDetail: EntryGetDetailDto | null = null;
 
   // Codes table state
   codesRows: CodeRow[] = [];
@@ -217,9 +225,12 @@ export class ApplicationsListEntryDetail implements OnInit {
     fee: [],
     respondent: [],
     applicant: [],
+    wording: [],
     civilFee: [],
     resultWording: [],
   };
+
+  wordingSubmitAttempt = signal(0);
 
   // View constants (from helpers)
   applicantColumns: TableColumn[] = APPLICANT_COLUMNS;
@@ -289,6 +300,12 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.organisationForm = this.forms.organisationForm;
 
     this.civilFeeForm = this.formSvc.createCivilFeeForm(this.forms);
+  }
+
+  onWordingFieldsDTO(dto: { wordingFields: TemplateSubstitution[] }): void {
+    this.forms.form.patchValue({
+      wordingFields: dto.wordingFields,
+    });
   }
 
   resetSuccessBanner(): void {
@@ -408,6 +425,9 @@ export class ApplicationsListEntryDetail implements OnInit {
 
             if (hasSelectionChanged) {
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
+
+              this.wordingSubmitAttempt.set(0);
+              this.entryDetail!.wording = undefined;
             }
 
             this.appListEntryDetailPatch({
@@ -420,6 +440,8 @@ export class ApplicationsListEntryDetail implements OnInit {
             this.applyMappedError(err);
           },
         });
+    } else {
+      this.appListEntryDetailPatch({ appCodeDetail: null });
     }
   }
 
@@ -586,6 +608,9 @@ export class ApplicationsListEntryDetail implements OnInit {
     });
     this.form.updateValueAndValidity({ emitEvent: false });
 
+    const wordingErrors = this.wordingSection?.validateForSubmit() ?? [];
+    this.onChildErrors('wording', wordingErrors);
+
     this.updateAllErrors();
     return this.appListEntryDetailState().errorFound;
   }
@@ -609,6 +634,8 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.resetErrors();
     this.resetSuccessBanner();
     this.appListEntryDetailPatch({ formSubmitted: true });
+
+    this.wordingSubmitAttempt.update((n) => n + 1);
 
     if (this.runFullSubmitValidation()) {
       return;
@@ -764,7 +791,13 @@ export class ApplicationsListEntryDetail implements OnInit {
               feeAmount: codeDto.feeAmount ?? null,
               offsiteFeeAmount: codeDto.offsiteFeeAmount ?? null,
             };
-            this.appListEntryDetailPatch({ formReady: true });
+
+            this.appListEntryDetailPatch({
+              appCodeDetail: codeDto,
+              isFeeRequired: codeDto.isFeeDue,
+              bulkApplicationsAllowed: codeDto.bulkRespondentAllowed,
+              formReady: true,
+            });
           },
           error: () => {
             this.form.patchValue({ applicationTitle: '' });
@@ -809,6 +842,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       respondent: [],
       applicant: [],
       civilFee: [],
+      wording: [],
       resultWording: [],
     };
   }

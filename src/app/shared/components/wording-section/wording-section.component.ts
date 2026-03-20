@@ -14,6 +14,7 @@ export class WordingSectionComponent {
   private readonly wordingParser?: WordingParserComponent;
 
   wordingObject = input.required<TemplateDetail>();
+  wordingObjectValues = input<TemplateDetail>();
   wordingSubmitAttempt = input.required<number>();
 
   wordingFieldErrors = output<ErrorItem[]>();

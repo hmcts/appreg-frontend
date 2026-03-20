@@ -61,24 +61,18 @@
   </ng-template>
 
   <ng-template #wordingTpl>
-    <span id="wording-section"></span>
-    <div class="govuk-grid-row">
-      <!-- Court name -->
-      <app-text-input
-        formControlName="courtName"
-        label="Court name"
-        hint="Enter the official name of the court"
-        idPrefix="court-name"
+    @if (vm().appCodeDetail; as appCodeDetail) {
+      <app-wording-section
+        #wordingSection
+        [wordingObject]="appCodeDetail.wording"
+        [wordingObjectValues]="entryDetail?.wording!"
+        [wordingSubmitAttempt]="wordingSubmitAttempt()"
+        (wordingFieldsDTO)="onWordingFieldsDTO($event)"
+        (wordingFieldErrors)="onChildErrors('wording', $event)"
       />
-
-      <!-- Organisation name -->
-      <app-text-input
-        formControlName="organisationName"
-        label="Organisation name"
-        hint="Enter the legal name of the organisation"
-        idPrefix="organisation-name"
-      />
-    </div>
+    } @else {
+      <div class="govuk-inset-text">Please select an application code.</div>
+    }
   </ng-template>
 
   <ng-template #respondentTpl>

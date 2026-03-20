@@ -39,6 +39,8 @@ export class WordingParserComponent {
   showSaveButton = input(true);
   section = input('wording');
 
+  wordingObjectValues = input<TemplateDetail>();
+
   wordingFieldErrors = output<ErrorItem[]>();
   wordingFieldsDTO = output<{ wordingFields: TemplateSubstitution[] }>();
 
@@ -144,7 +146,7 @@ export class WordingParserComponent {
 
   patchFormControls(): void {
     const constraints =
-      this.wordingObject()['substitution-key-constraints'] ?? [];
+      this.wordingObjectValues()?.['substitution-key-constraints'] ?? [];
 
     if (!constraints.length) {
       return;
