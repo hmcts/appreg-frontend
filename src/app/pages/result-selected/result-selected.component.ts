@@ -211,7 +211,11 @@ export class ResultSelected implements OnInit {
   private toLogicalResultKey(result: ResultGetDto): string {
     return [
       (result.resultCode ?? '').trim(),
-      (result.wording?.template ?? '').trim(),
+      this.getWordingTemplate(result),
     ].join('|');
+  }
+
+  private getWordingTemplate(result: ResultGetDto): string {
+    return (result.wording?.template ?? '').trim();
   }
 }

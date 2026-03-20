@@ -38,6 +38,51 @@
   />
 }
 
+@if (vm().bulkUploadFeedback?.kind === 'progress') {
+  <section
+    class="app-bulk-upload-progress govuk-inset-text"
+    role="status"
+    aria-live="polite"
+    aria-atomic="true"
+  >
+    <div class="app-bulk-upload-progress__content">
+      <div class="app-bulk-upload-progress__spinner" aria-hidden="true"></div>
+      <div>
+        <h2 class="govuk-heading-m">
+          {{ vm().bulkUploadFeedback?.heading }}
+        </h2>
+        <p class="govuk-body govuk-!-margin-bottom-0">
+          {{ vm().bulkUploadFeedback?.body }}
+        </p>
+      </div>
+    </div>
+  </section>
+}
+
+@if (vm().bulkUploadFeedback?.kind === 'success') {
+  <app-success-banner
+    [heading]="vm().bulkUploadFeedback?.heading ?? ''"
+    [body]="vm().bulkUploadFeedback?.body ?? ''"
+  />
+}
+
+@if (vm().bulkUploadFeedback?.kind === 'warning') {
+  <app-notification-banner
+    variant="warning"
+    [title]="vm().bulkUploadFeedback?.title ?? 'Warning'"
+    [heading]="vm().bulkUploadFeedback?.heading ?? ''"
+    [body]="vm().bulkUploadFeedback?.body ?? ''"
+    [autoFocus]="true"
+  />
+}
+
+@if (vm().bulkUploadFeedback?.kind === 'error') {
+  <app-error-summary
+    [title]="vm().bulkUploadFeedback?.heading ?? 'There is a problem'"
+    [items]="[{ text: vm().bulkUploadFeedback?.body ?? '' }]"
+  />
+}
+
 <!-- Tabs -->
 <div class="govuk-tabs" data-module="govuk-tabs">
   <h2 class="govuk-tabs__title">Contents</h2>
