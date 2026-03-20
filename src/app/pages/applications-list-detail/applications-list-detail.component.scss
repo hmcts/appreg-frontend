@@ -20,6 +20,37 @@
 .app-table-scroll .govuk-table {
   margin-bottom: 0;
 }
+
 .app-table-scroll .moj-button-menu {
   position: relative;
+}
+
+.app-bulk-upload-progress {
+  margin-top: 1.5rem;
+}
+
+.app-bulk-upload-progress__content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.app-bulk-upload-progress__spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  border: 6px solid #dee0e2;
+  border-top-color: #1d70b8;
+  border-radius: 50%;
+  animation: bulk-upload-spin 0.9s linear infinite;
+}
+
+@keyframes bulk-upload-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
