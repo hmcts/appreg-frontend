@@ -58,7 +58,7 @@ module.exports = defineConfig({
   },
   e2e: {
     retries: {
-      runMode: 0,
+      runMode: 2,
       openMode: 0,
     },
     // Test Files Configuration
@@ -86,7 +86,7 @@ module.exports = defineConfig({
         toConsole: false,
       },
     },
-    video: true,
+    video: process.env.CI === 'true',
     videosFolder: 'cypress/reports/videos',
     screenshotOnRunFailure: true,
     screenshotsFolder: 'cypress/reports/screenshots',
@@ -112,7 +112,7 @@ module.exports = defineConfig({
             fs.mkdirSync(downloadPath, { recursive: true });
           }
 
-          launchOptions.preferences.default.download = {
+          launchOptions.preferences.default['download'] = {
             default_directory: downloadPath,
             prompt_for_download: false,
           };
