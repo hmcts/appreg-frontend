@@ -62,7 +62,6 @@ withNightlyPipeline(type, product, component) {
       stage('Smoke Tests') {
         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE', message: 'Smoke tests failed') {
           try {
-            sh 'mkdir -p cypress/reports/parallel cypress/reports/videos'
             yarnBuilder.yarn('test:parallel:smoke:chrome')
           } finally {
             archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/smoke/**/*'
@@ -85,7 +84,6 @@ withNightlyPipeline(type, product, component) {
       stage('Regression Tests') {
         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Regression tests failed') {
           try {
-            sh 'mkdir -p cypress/reports/parallel cypress/reports/videos'
             yarnBuilder.yarn('test:parallel:regression:chrome')
           } finally {
             archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-output/chrome/regression/**/*'
