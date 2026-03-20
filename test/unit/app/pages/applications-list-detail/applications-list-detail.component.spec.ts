@@ -262,7 +262,9 @@ describe('ApplicationsListDetail', () => {
       expect(banner).toBeTruthy();
       expect(banner.nativeElement.getAttribute('role')).toBe('region');
       expect(
-        banner.nativeElement.classList.contains('govuk-notification-banner--success'),
+        banner.nativeElement.classList.contains(
+          'govuk-notification-banner--success',
+        ),
       ).toBe(false);
       expect(banner.nativeElement.textContent).toContain(
         'Bulk upload completed with errors',
@@ -299,7 +301,9 @@ describe('ApplicationsListDetail', () => {
       startBulkUploadPolling();
       await flushSignalEffects(fixture);
 
-      const summary = fixture.debugElement.query(By.css('.govuk-error-summary'));
+      const summary = fixture.debugElement.query(
+        By.css('.govuk-error-summary'),
+      );
       expect(summary).toBeTruthy();
       expect(summary.nativeElement.textContent).toContain('Bulk upload failed');
       expect(summary.nativeElement.textContent).toContain(
@@ -316,7 +320,9 @@ describe('ApplicationsListDetail', () => {
       startBulkUploadPolling();
       await flushSignalEffects(fixture);
 
-      const summary = fixture.debugElement.query(By.css('.govuk-error-summary'));
+      const summary = fixture.debugElement.query(
+        By.css('.govuk-error-summary'),
+      );
       expect(summary).toBeTruthy();
       expect(summary.nativeElement.textContent).toContain(
         'Unable to load upload status',

@@ -20,7 +20,8 @@ import YAML from 'yaml';
 
 // ---------- Config (override via env) ----------
 const SPEC_PATH =
-  process.env['MOCK_GEN_SPEC_PATH'] || 'tools/openapi/vendor/openapi/openapi.yaml';
+  process.env['MOCK_GEN_SPEC_PATH'] ||
+  'tools/openapi/vendor/openapi/openapi.yaml';
 const SPEC_DIR =
   process.env['MOCK_GEN_SPEC_DIR'] || 'tools/openapi/vendor/openapi';
 const MAPPINGS_DIR =
@@ -30,8 +31,7 @@ const STUB_DELAY_MS = Number.parseInt(process.env.STUB_DELAY_MS || '0', 10);
 const EMIT_GUARD_STUBS = ['1', 'true', 'yes'].includes(
   String(process.env.EMIT_GUARD_STUBS || '').toLowerCase(),
 );
-const WM_FILES_DIR =
-  process.env['MOCK_GEN_WM_FILES_DIR'] || 'wiremock/__files';
+const WM_FILES_DIR = process.env['MOCK_GEN_WM_FILES_DIR'] || 'wiremock/__files';
 const FIXTURE_ROOT = process.env['MOCK_GEN_FIXTURE_ROOT'] || 'fixtures';
 const REPORT_CSV_DEFAULT = 'reports/sample.csv';
 const REPORT_CSV_FILENAME = 'report.csv';
