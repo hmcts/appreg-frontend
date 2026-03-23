@@ -7,7 +7,7 @@
       link: '/applications-list/' + listId,
     },
   ]"
-></app-breadcrumbs>
+/>
 
 @if (errorFound()) {
   <app-error-summary
@@ -24,12 +24,6 @@
 }
 
 <h1 class="govuk-heading-xl">Result applications</h1>
-
-@if (mixedResultedAndUnresultedApplications) {
-  <app-warning-banner
-    [message]="'Resulted applications are hidden. Only applications without a result (No) are selected for processing.'"
-  />
-}
 
 <app-result-wording-section
   [resultApplicantContext]="rows"
