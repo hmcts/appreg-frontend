@@ -3,28 +3,28 @@
     { label: 'Applications list', link: '/applications-list' },
     {
       label: 'Applications list details',
-      link: '/applications-list/' + appListId,
+      link: '/applications-list/' + vm().appListId,
     },
   ]"
 />
 
-@if (errorFound) {
+@if (vm().errorFound) {
   <app-error-summary
-    [title]="errorHint || 'There is a problem'"
-    [items]="summaryErrors"
+    [title]="vm().errorHint || 'There is a problem'"
+    [items]="vm().summaryErrors"
     targetId="codes-table"
     (itemSelect)="onCreateErrorClick($event)"
   />
-} @else if (successBanner) {
+} @else if (vm().successBanner; as successBanner) {
   <app-success-banner
     [heading]="successBanner.heading"
     [body]="successBanner.body"
   />
 
   <!-- If your banner body doesn't support HTML links, render a link just under it -->
-  @if (successBanner.link) {
+  @if (vm().successBanner!.link; as bannerWithLink) {
     <p class="govuk-body govuk-!-margin-bottom-0">
-      <a [href]="successBanner.link.href">{{ successBanner.link.text }}</a>
+      <a [href]="bannerWithLink.href">{{ bannerWithLink.text }}</a>
     </p>
   }
 }
@@ -40,7 +40,7 @@
       [applicantType]="applicantType"
       [personGroup]="personGroup"
       [organisationGroup]="organisationGroup"
-      [submitted]="formSubmitted()"
+      [submitted]="vm().formSubmitted"
       [errorItems]="applicantErrorItems"
       [selectedStandardApplicantCode]="selectedStandardApplicantCode"
       (standardApplicantCodeChange)="onStandardApplicantCodeChanged($event)"
@@ -52,7 +52,7 @@
   </ng-template>
 
   <ng-template #codesTpl>
-    @if (formReady()) {
+    @if (vm().formReady) {
       <app-application-code-search
         [patchedFormData]="this.form"
         (selectCodeAndLodgementDate)="onCodeSelected($event)"
@@ -61,24 +61,18 @@
   </ng-template>
 
   <ng-template #wordingTpl>
-    <span id="wording-section"></span>
-    <div class="govuk-grid-row">
-      <!-- Court name -->
-      <app-text-input
-        formControlName="courtName"
-        label="Court name"
-        hint="Enter the official name of the court"
-        idPrefix="court-name"
+    @if (vm().appCodeDetail; as appCodeDetail) {
+      <app-wording-section
+        #wordingSection
+        [wordingObject]="appCodeDetail.wording"
+        [wordingObjectValues]="entryDetail?.wording!"
+        [wordingSubmitAttempt]="wordingSubmitAttempt()"
+        (wordingFieldsDTO)="onWordingFieldsDTO($event)"
+        (wordingFieldErrors)="onChildErrors('wording', $event)"
       />
-
-      <!-- Organisation name -->
-      <app-text-input
-        formControlName="organisationName"
-        label="Organisation name"
-        hint="Enter the legal name of the organisation"
-        idPrefix="organisation-name"
-      />
-    </div>
+    } @else {
+      <div class="govuk-inset-text">Please select an application code.</div>
+    }
   </ng-template>
 
   <ng-template #respondentTpl>
@@ -87,9 +81,9 @@
       [personGroup]="forms.respondentPersonForm"
       [organisationGroup]="forms.respondentOrganisationForm"
       [respondentEntryTypeOptions]="respondentEntryTypeOptions"
-      [bulkAllowed]="bulkApplicationsAllowed"
+      [bulkAllowed]="vm().bulkApplicationsAllowed"
       [personTitleOptions]="personTitleOptions"
-      [submitted]="formSubmitted()"
+      [submitted]="vm().formSubmitted"
       [errorItems]="respondentErrorItems"
     />
   </ng-template>
@@ -103,7 +97,7 @@
       (addFeeDetails)="onAddFeeDetails($event)"
       (civilFeeErrors)="onChildErrors('civilFee', $event)"
       (offsiteFeeChanged)="onOffsiteFeeChanged($event)"
-      [feeRequired]="isFeeRequired"
+      [feeRequired]="vm().isFeeRequired"
     />
   </ng-template>
 
@@ -156,7 +150,7 @@
     </button>
     <a
       class="govuk-button govuk-button--secondary"
-      [routerLink]="['/applications-list', appListId]"
+      [routerLink]="['/applications-list', vm().appListId]"
     >
       Cancel
     </a>

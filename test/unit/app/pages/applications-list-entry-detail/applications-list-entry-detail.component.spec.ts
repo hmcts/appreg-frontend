@@ -63,6 +63,10 @@ type PaymentRefApplier = {
   applyPaymentRefReturn: (updatedRowId: string, newRef: string) => void;
 };
 
+type EntryDetailWithLegacyWordingFields = EntryGetDetailDto & {
+  wordingFields?: string[];
+};
+
 describe('ApplicationsListEntryDetail', () => {
   let fixture: ComponentFixture<ApplicationsListEntryDetail>;
   let component: ApplicationsListEntryDetail;
@@ -163,6 +167,37 @@ describe('ApplicationsListEntryDetail', () => {
     fixture.detectChanges();
   });
 
+  it('ngOnInit loads entry and application code and patches form', () => {
+    const freshFixture = TestBed.createComponent(ApplicationsListEntryDetail);
+    const freshComponent = freshFixture.componentInstance;
+
+    freshComponent.ngOnInit();
+
+    const raw = freshComponent['form'].getRawValue();
+
+    expect(raw.lodgementDate).toBe('2025-11-01');
+    expect(freshComponent['form'].controls.applicationCode.value).toBe(
+      'APP-100',
+    );
+    expect(freshComponent['form'].controls.applicationTitle?.value).toBe(
+      'Loaded title',
+    );
+
+    expect(mockGetApplicationListEntry).toHaveBeenCalledWith(
+      { listId: 'AL-1', entryId: 'EN-1' },
+      'body',
+      false,
+      expect.objectContaining({ transferCache: true }),
+    );
+
+    expect(mockGetApplicationCodeByCodeAndDate).toHaveBeenCalledWith(
+      { code: 'APP-100', date: '2025-11-01' },
+      'body',
+      false,
+      expect.objectContaining({ transferCache: true }),
+    );
+  });
+
   it('hydrates codes section on init: patches lodgementDate, applicationCode, and resolves applicationTitle', () => {
     const raw = component['form'].getRawValue();
 
@@ -187,6 +222,330 @@ describe('ApplicationsListEntryDetail', () => {
     );
   });
 
+  it('isUpdateDisabled true when entryDetail is not set', () => {
+    component['entryDetail'] = null;
+
+    expect(component.isUpdateDisabled).toBe(true);
+  });
+
+  it('isUpdateDisabled for standard applicant requires selectedStandardApplicantCode (uses full EntryGetDetailDto shape)', () => {
+    component['entryDetail'] = {
+      id: 'EN-1',
+      listId: 'AL-1',
+      applicationCode: 'APP-100',
+      numberOfRespondents: 0,
+      lodgementDate: '2025-11-01',
+    };
+
+    component['form'].controls.applicantType.setValue('standard');
+    component.onStandardApplicantCodeChanged(null);
+    expect(component.isUpdateDisabled).toBe(true);
+
+    component.onStandardApplicantCodeChanged('SA-123');
+    component['form'].controls.standardApplicantCode.setValue('SA-123', {
+      emitEvent: false,
+    });
+    expect(component.isUpdateDisabled).toBe(false);
+  });
+
+  it('submitEntryUpdate sets errorFound + summaryErrors when entryDetail is missing (EntryUpdateDto-aware)', () => {
+    component['entryDetail'] = null;
+
+    const dummyDto = {
+      applicationCode: 'APP-1',
+      lodgementDate: '2026-01-01',
+    };
+
+    const dummyBanner = {
+      heading: 'X',
+      body: 'Y',
+    };
+
+    component['submitEntryUpdate'](dummyDto, dummyBanner);
+
+    const state = component['appListEntryDetailState']();
+    expect(state.errorFound).toBe(true);
+    expect(Array.isArray(state.summaryErrors)).toBe(true);
+    expect(state.summaryErrors.length).toBeGreaterThan(0);
+
+    const found = state.summaryErrors.some((s) =>
+      /Entry is not loaded/i.test(s.text),
+    );
+    expect(found).toBe(true);
+  });
+
+  it('runFullSubmitValidation returns true and sets errorFound when person name fields blank', () => {
+    component['form'].controls.applicantType.setValue('person');
+
+    const personForm = component.personGroup;
+    const base = personForm.getRawValue();
+    personForm.reset(
+      { ...base, firstName: '', middleNames: '', surname: '' },
+      { emitEvent: false },
+    );
+
+    const result = component['runFullSubmitValidation']();
+
+    expect(result).toBe(true);
+    expect(component['appListEntryDetailState']().errorFound).toBe(true);
+  });
+
+  it('persistHasOffsiteFee calls update API and applies success state on nextValue=true', () => {
+    component['entryDetail'] = {
+      id: 'EN-1',
+      listId: 'AL-1',
+      applicationCode: 'APP-100',
+      numberOfRespondents: 0,
+      lodgementDate: '2025-11-01',
+    };
+
+    component['appListEntryDetailPatch']({ appListId: 'AL-1' });
+
+    mockUpdateApplicationListEntry.mockClear();
+    mockUpdateApplicationListEntry.mockReturnValueOnce(of({}));
+
+    component['form'].controls.hasOffsiteFee.setValue(false, {
+      emitEvent: false,
+    });
+
+    component['persistHasOffsiteFee'](true, false);
+
+    expect(mockUpdateApplicationListEntry).toHaveBeenCalledTimes(1);
+    const callArgs = mockUpdateApplicationListEntry.mock.calls[0];
+    const params = callArgs[0];
+
+    expect(params.listId).toBe('AL-1');
+    expect(params.entryId).toBe('EN-1');
+    expect(params.entryUpdateDto).toBeDefined();
+    expect(params.entryUpdateDto.hasOffsiteFee).toBe(true);
+
+    expect(component['persistedHasOffsiteFee']).toBe(true);
+    expect(component['form'].controls.hasOffsiteFee.pristine).toBe(true);
+
+    const state = component['appListEntryDetailState']();
+    expect(state.successBanner).toBeTruthy();
+  });
+
+  it('onRemoveResult sets successBanner when removeResult succeeds', () => {
+    component['appListEntryDetailPatch']({ appListId: 'AL-1' });
+
+    const removeSpy = jest
+      .spyOn(component.resultsFacade, 'removeResult')
+      .mockImplementation((listId, entryId, resultId, onSuccess) => {
+        if (onSuccess) {
+          onSuccess();
+        }
+      });
+
+    component.onRemoveResult('R-1');
+
+    expect(removeSpy).toHaveBeenCalledTimes(1);
+
+    const [listId, entryId, resultId] = removeSpy.mock.calls[0];
+    expect(listId).toBe('AL-1');
+    expect(entryId).toBe('EN-1');
+    expect(resultId).toBe('R-1');
+
+    const state = component['appListEntryDetailState']();
+    expect(state.successBanner).toBeTruthy();
+    expect(state.successBanner?.heading).toBe('Result removed');
+
+    removeSpy.mockRestore();
+  });
+
+  it('onRemoveResult calls applyMappedError when removeResult errors', () => {
+    component['appListEntryDetailPatch']({ appListId: 'AL-1' });
+
+    const error = new Error('boom');
+
+    component['applyMappedError'] = jest.fn();
+
+    const removeSpy = jest
+      .spyOn(component.resultsFacade, 'removeResult')
+      .mockImplementation(
+        (_listId, _entryId, _resultId, _onSuccess, onError) => {
+          if (onError) {
+            onError(error);
+          }
+        },
+      );
+
+    component.onRemoveResult('R-1');
+
+    const calls = (component['applyMappedError'] as jest.Mock).mock.calls;
+    expect(calls).toHaveLength(1);
+    expect(calls[0][0]).toBe(error);
+
+    removeSpy.mockRestore();
+  });
+
+  it('onOffsiteFeeChanged does nothing when value has not changed', () => {
+    component['persistedHasOffsiteFee'] = true;
+
+    const spy = jest.spyOn(component as never, 'persistHasOffsiteFee');
+
+    component.onOffsiteFeeChanged(true);
+
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('onOffsiteFeeChanged calls persistHasOffsiteFee when value changes', () => {
+    component['persistedHasOffsiteFee'] = false;
+
+    const spy = jest.spyOn(component as never, 'persistHasOffsiteFee');
+
+    component.onOffsiteFeeChanged(true);
+
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy).toHaveBeenCalledWith(true, false);
+  });
+
+  it('onUpdateApplication returns early when validation fails (no submit called)', () => {
+    component['form'].controls.applicantType.setValue('person');
+
+    const personForm = component.personGroup;
+    const base = personForm.getRawValue();
+    personForm.reset(
+      { ...base, firstName: '', middleNames: '', surname: '' },
+      { emitEvent: false },
+    );
+
+    component['submitEntryUpdate'] = jest.fn();
+
+    component.onUpdateApplication();
+
+    expect(component['appListEntryDetailState']().formSubmitted).toBe(true);
+
+    expect(component['submitEntryUpdate']).not.toHaveBeenCalled();
+  });
+
+  it('onUpdateApplication calls submitEntryUpdate when validation passes', () => {
+    component['entryDetail'] = {
+      id: 'EN-1',
+      listId: 'AL-1',
+      applicationCode: 'APP-100',
+      numberOfRespondents: 0,
+      lodgementDate: '2025-11-01',
+    };
+
+    const expectedDto = {
+      applicationCode: 'APP-1',
+      lodgementDate: '2026-01-01',
+    };
+    component['buildEntryUpdateDto'] = () => expectedDto;
+
+    const submitMock = jest.fn();
+    component['submitEntryUpdate'] = submitMock;
+
+    component['form'].controls.applicantType.setValue('standard');
+    component.onStandardApplicantCodeChanged('SA-123');
+    component['form'].controls.standardApplicantCode.setValue('SA-123', {
+      emitEvent: false,
+    });
+
+    component.onUpdateApplication();
+
+    expect(submitMock).toHaveBeenCalledTimes(1);
+    const callArgs = submitMock.mock.calls[0];
+    expect(callArgs[0]).toEqual(expectedDto);
+    expect(callArgs[1]).toBeTruthy();
+  });
+
+  it('onUpdateApplication returns early when validation fails (does not call submitEntryUpdate)', () => {
+    component['form'].controls.applicantType.setValue('person');
+
+    const personForm = component.personGroup;
+    const base = personForm.getRawValue();
+    personForm.reset(
+      { ...base, firstName: '', middleNames: '', surname: '' },
+      { emitEvent: false },
+    );
+
+    component['submitEntryUpdate'] = jest.fn();
+
+    component.onUpdateApplication();
+
+    expect(component['appListEntryDetailState']().formSubmitted).toBe(true);
+
+    expect(component['submitEntryUpdate']).not.toHaveBeenCalled();
+  });
+
+  it('onUpdateApplication builds dto and calls submitEntryUpdate when validation passes', () => {
+    component['entryDetail'] = {
+      id: 'EN-1',
+      listId: 'AL-1',
+      applicationCode: 'APP-100',
+      numberOfRespondents: 0,
+      lodgementDate: '2025-11-01',
+    };
+
+    const expectedDto = {
+      applicationCode: 'APP-1',
+      lodgementDate: '2026-01-01',
+    };
+    component['buildEntryUpdateDto'] = () => expectedDto;
+
+    const submitMock = jest.fn();
+    component['submitEntryUpdate'] = submitMock;
+
+    component['form'].controls.applicantType.setValue('standard');
+    component.onStandardApplicantCodeChanged('SA-123');
+    component['form'].controls.standardApplicantCode.setValue('SA-123', {
+      emitEvent: false,
+    });
+
+    component.onUpdateApplication();
+
+    expect(submitMock).toHaveBeenCalledTimes(1);
+    const callArgs = submitMock.mock.calls[0];
+    expect(callArgs[0]).toEqual(expectedDto);
+
+    const bannerArg = callArgs[1];
+    expect(bannerArg).toBeTruthy();
+    expect(typeof bannerArg.heading).toBe('string');
+  });
+
+  it('persistHasOffsiteFee rolls back form value on API error', () => {
+    // ensure we have a loaded entry and appListId set in state
+    component['entryDetail'] = {
+      id: 'EN-1',
+      listId: 'AL-1',
+      applicationCode: 'APP-100',
+      numberOfRespondents: 0,
+      lodgementDate: '2025-11-01',
+    };
+    component['appListEntryDetailPatch']({ appListId: 'AL-1' });
+
+    // prepare API mock to error (use Observable that emits error)
+    mockUpdateApplicationListEntry.mockClear();
+    mockUpdateApplicationListEntry.mockReturnValueOnce(
+      new Observable((subscriber) => {
+        subscriber.error(new Error('boom'));
+      }),
+    );
+
+    // set form control to nextValue initially true (we'll attempt to change to false but error should rollback to prevValue)
+    component['form'].controls.hasOffsiteFee.setValue(true, {
+      emitEvent: false,
+    });
+    // call method attempting to set nextValue = false, prevValue = true
+    component['persistHasOffsiteFee'](false, true);
+
+    // update API was attempted
+    expect(mockUpdateApplicationListEntry).toHaveBeenCalledTimes(1);
+
+    // After the API error, the control should have been rolled back to prevValue and marked pristine
+    expect(component['form'].controls.hasOffsiteFee.value).toBe(true);
+    expect(component['form'].controls.hasOffsiteFee.pristine).toBe(true);
+
+    // Ensure error state is set on the component state (applyMappedError sets summaryErrors / errorHint)
+    const state = component['appListEntryDetailState']();
+    // We don't assert specific messages here; just that an error mapping produced summaryErrors or errorHint
+    expect(
+      state.errorFound || state.summaryErrors.length > 0 || state.errorHint,
+    ).toBeTruthy();
+  });
+
   it('shows list-created success banner when listCreated=true query param is present', () => {
     (
       routeStub.snapshot as unknown as {
@@ -202,12 +561,61 @@ describe('ApplicationsListEntryDetail', () => {
     const freshComponent = freshFixture.componentInstance;
     freshFixture.detectChanges();
 
-    expect(freshComponent.successBanner?.heading).toBe(
-      'Application list entry created',
+    expect(
+      freshComponent['appListEntryDetailState']().successBanner?.heading,
+    ).toBe('Application list entry created');
+
+    expect(
+      freshComponent['appListEntryDetailState']().successBanner?.body,
+    ).toBe('The application list entry has been created successfully.');
+  });
+
+  it('clearPaymentRefReturnOnly removes paymentRefReturn from history.state and preserves other keys', () => {
+    history.replaceState(
+      {
+        paymentRefReturn: { updatedRowId: 'ROW-1', newPaymentReference: 'REF' },
+        keep: 'KEEP_ME',
+      },
+      '',
     );
-    expect(freshComponent.successBanner?.body).toBe(
-      'The application list entry has been created successfully.',
-    );
+
+    const replaceSpy = jest.spyOn(history, 'replaceState');
+
+    const subject = component as unknown as {
+      clearPaymentRefReturnOnly: () => void;
+    };
+
+    subject.clearPaymentRefReturnOnly();
+
+    expect(replaceSpy).toHaveBeenCalledTimes(1);
+    expect(replaceSpy).toHaveBeenCalledWith({ keep: 'KEEP_ME' }, '');
+
+    replaceSpy.mockRestore();
+  });
+
+  it('persistFeeStatus does not call update API when fee details are added but entryDetail is missing', () => {
+    component['entryDetail'] = null;
+
+    const payload: AddFeeDetailsPayload = {
+      feeStatus: PaymentStatus.PAID,
+      statusDate: '2026-01-10',
+      paymentReference: 'REF1',
+    };
+
+    jest.spyOn(civilFeeUtils, 'updateFeeStatusesControl').mockReturnValue({
+      next: [
+        {
+          paymentStatus: 'Paid',
+          statusDate: '2026-01-10',
+          paymentReference: 'REF1',
+        } as unknown as FeeStatus,
+      ],
+      changed: true,
+    });
+
+    component.onAddFeeDetails(payload);
+
+    expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
   });
 
   it('onCodeSelected calls codes API and patches form when date is provided', () => {
@@ -244,7 +652,7 @@ describe('ApplicationsListEntryDetail', () => {
     expect(component['form'].controls.applicationCode.value).toBe('APP-1');
     expect(component['form'].controls.lodgementDate.value).toBe('2025-11-01');
 
-    expect(component['errorFound']).toBe(false);
+    expect(component['appListEntryDetailState']().errorFound).toBe(false);
   });
 
   it('onCodeSelected fetches code detail, sets appCodeDetail and resets sections when code changed', () => {
@@ -253,9 +661,11 @@ describe('ApplicationsListEntryDetail', () => {
       'resetSectionsOnApplicationCodeChange',
     );
 
-    component.appCodeDetail = {
-      applicationCode: 'OLD-CODE',
-    } as ApplicationCodeGetDetailDto;
+    component['appListEntryDetailPatch']({
+      appCodeDetail: {
+        applicationCode: 'OLD-CODE',
+      } as ApplicationCodeGetDetailDto,
+    });
 
     component['form'].patchValue({
       respondent: {
@@ -288,9 +698,48 @@ describe('ApplicationsListEntryDetail', () => {
 
     expect(component['form'].controls.applicationCode.value).toBe('APP-7');
 
-    expect(component.appCodeDetail?.applicationCode).toBe('APP-7');
+    expect(
+      component['appListEntryDetailState']().appCodeDetail?.applicationCode,
+    ).toBe('APP-7');
 
     expect(resetSectionsSpy).toHaveBeenCalledWith(component.forms);
+  });
+
+  it('updateApplicantErrors validates person applicant: produces first name and last name errors', () => {
+    component['form'].controls.applicantType.setValue('person');
+
+    const personForm = component.personGroup;
+    const base = personForm.getRawValue();
+    personForm.reset(
+      {
+        ...base,
+        firstName: '',
+        middleNames: '',
+        surname: '',
+        addressLine1: '24 Walton Lane', // keep address so only names fail
+      },
+      { emitEvent: false },
+    );
+
+    component.onUpdateApplicant();
+
+    expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
+
+    expect(component['appListEntryDetailState']().errorFound).toBe(true);
+
+    const applicantErrors = component.applicantErrorItems;
+    expect(Array.isArray(applicantErrors)).toBe(true);
+    expect(applicantErrors.length).toBeGreaterThan(0);
+
+    const hasFirstNameError = applicantErrors.some((e) =>
+      /Enter a first name/i.test(e.text),
+    );
+    const hasSurnameError = applicantErrors.some((e) =>
+      /Enter a last name/i.test(e.text),
+    );
+
+    expect(hasFirstNameError).toBe(true);
+    expect(hasSurnameError).toBe(true);
   });
 
   it('onUpdateApplicant uses form service buildUpdateDto and calls update API', () => {
@@ -330,7 +779,9 @@ describe('ApplicationsListEntryDetail', () => {
     expect(reportProgress).toBe(false);
     expect(options).toEqual(expect.objectContaining({ transferCache: false }));
 
-    expect(component['successBanner']?.heading).toBe('Applicant updated');
+    expect(component['appListEntryDetailState']().successBanner?.heading).toBe(
+      'Applicant updated',
+    );
   });
 
   it('onUpdateApplicant (standard) blocks submit when no standard applicant selected (validator-driven)', () => {
@@ -341,16 +792,22 @@ describe('ApplicationsListEntryDetail', () => {
     component.onUpdateApplicant();
 
     expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
-    expect(component['errorFound']).toBe(true);
+    expect(component['appListEntryDetailState']().errorFound).toBe(true);
 
     expect(
-      component['summaryErrors'].some((e) =>
+      component['appListEntryDetailState']().summaryErrors.some((e) =>
         /standard applicant/i.test(e.text),
       ),
     ).toBe(true);
   });
 
   it('onUpdateApplicant blocks submit when respondent organisation is invalid', () => {
+    component['appListEntryDetailPatch']({
+      appCodeDetail: {
+        requiresRespondent: true,
+      } as ApplicationCodeGetDetailDto,
+    });
+
     const formSvc = TestBed.inject(ApplicationListEntryFormService);
     jest.spyOn(formSvc, 'buildUpdateDto').mockReturnValue({} as EntryUpdateDto);
 
@@ -376,10 +833,12 @@ describe('ApplicationsListEntryDetail', () => {
     component.onUpdateApplicant();
 
     expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
-    expect(component['errorFound']).toBe(true);
+    expect(component['appListEntryDetailState']().errorFound).toBe(true);
 
     expect(
-      component['summaryErrors'].some((e) => /organisation name/i.test(e.text)),
+      component['appListEntryDetailState']().summaryErrors.some((e) =>
+        /organisation name/i.test(e.text),
+      ),
     ).toBe(true);
   });
 
@@ -395,7 +854,9 @@ describe('ApplicationsListEntryDetail', () => {
 
     const patch = (
       component as unknown as {
-        toEntryDetailPatch: (dto: EntryUpdateDto) => Partial<EntryGetDetailDto>;
+        toEntryDetailPatch: (
+          dto: EntryUpdateDto,
+        ) => Partial<EntryGetDetailDto> & { wordingFields?: string[] };
       }
     ).toEntryDetailPatch(entryUpdateDto);
 
@@ -414,7 +875,7 @@ describe('ApplicationsListEntryDetail', () => {
       lodgementDate: '2025-11-01',
       wordingFields: ['Old wording'],
       feeStatuses: [],
-    } as unknown as EntryGetDetailDto;
+    } as EntryDetailWithLegacyWordingFields;
 
     const entryUpdateDto = {
       applicationCode: 'APP-200',
@@ -446,7 +907,7 @@ describe('ApplicationsListEntryDetail', () => {
       applicationCode: 'APP-100',
       wordingFields: ['Old wording'],
       feeStatuses: [],
-    } as unknown as EntryGetDetailDto;
+    } as EntryDetailWithLegacyWordingFields;
 
     const entryUpdateDto = {
       applicationCode: 'APP-200',
@@ -486,7 +947,7 @@ describe('ApplicationsListEntryDetail', () => {
 
     component.onCodeSelected({ code: 'APP-1', date: '2025-11-01' });
 
-    expect(component.isFeeRequired).toBe(true);
+    expect(component['appListEntryDetailState']().isFeeRequired).toBe(true);
   });
 
   it('onAddFeeDetails: when helper returns changed=false, does not call update API', () => {

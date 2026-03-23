@@ -97,22 +97,22 @@ describe('WordingParserComponent', () => {
         'tokeniseAndPatchWordingField' as never,
       );
 
-      fixture.componentRef.setInput(
-        'wordingObject',
-        makeWordingObject({
-          template: 'Updated {{ date }}',
-          'substitution-key-constraints': [
-            {
-              key: 'date',
-              value: '16/03/2026',
-              constraint: {
-                length: 10,
-                type: TemplateConstraintTypeEnum.DATE,
-              },
+      const updatedWording = makeWordingObject({
+        template: 'Updated {{ date }}',
+        'substitution-key-constraints': [
+          {
+            key: 'date',
+            value: '16/03/2026',
+            constraint: {
+              length: 10,
+              type: TemplateConstraintTypeEnum.DATE,
             },
-          ],
-        }),
-      );
+          },
+        ],
+      });
+
+      fixture.componentRef.setInput('wordingObject', updatedWording);
+      fixture.componentRef.setInput('wordingObjectValues', updatedWording);
       fixture.detectChanges();
 
       expect(tokeniseAndPatchSpy).toHaveBeenCalled();
@@ -155,7 +155,11 @@ describe('WordingParserComponent', () => {
 
   describe('form initialization', () => {
     it('should create controls for input tokens and patch values', () => {
-      init(makeWordingObject());
+      const wordingObject = makeWordingObject();
+
+      init(wordingObject);
+      fixture.componentRef.setInput('wordingObjectValues', wordingObject);
+      fixture.detectChanges();
 
       expect(component.form.contains('Applicant-officer')).toBe(true);
       expect(component.form.contains('date')).toBe(true);
@@ -310,6 +314,9 @@ describe('WordingParserComponent', () => {
     it('should emit DTO and empty errors when valid', () => {
       init(makeWordingObject());
 
+      fixture.componentRef.setInput('wordingObjectValues', makeWordingObject());
+      fixture.detectChanges();
+
       const errorsSpy = jest.spyOn(component.wordingFieldErrors, 'emit');
       const dtoSpy = jest.spyOn(component.wordingFieldsDTO, 'emit');
 
@@ -355,6 +362,25 @@ describe('WordingParserComponent', () => {
 
     it('returns save-first error when form has unsaved changes', () => {
       init(makeWordingObject());
+
+      fixture.componentRef.setInput(
+        'wordingObjectValues',
+        makeWordingObject({
+          'substitution-key-constraints': [
+            {
+              key: 'Applicant officer',
+              value: '12345678',
+              constraint: { length: 12, type: TemplateConstraintTypeEnum.TEXT },
+            },
+            {
+              key: 'date',
+              value: '31/12/2026',
+              constraint: { length: 10, type: TemplateConstraintTypeEnum.TEXT },
+            },
+          ],
+        }),
+      );
+      fixture.detectChanges();
 
       const errorsSpy = jest.spyOn(component.wordingFieldErrors, 'emit');
       (
@@ -435,19 +461,30 @@ describe('WordingParserComponent', () => {
     });
 
     it('should emit empty array when wordingSubmitAttempt increments and form valid', () => {
-      init(
-        makeWordingObject({
-          template: 'Hi {{A}}',
-          'substitution-key-constraints': [
-            {
-              key: 'A',
-              value: 'OK',
-              constraint: { length: 5, type: TemplateConstraintTypeEnum.TEXT },
-            },
-          ],
-        }),
-      );
+      const wordingObject = makeWordingObject({
+        template: 'Hi {{A}}',
+        'substitution-key-constraints': [
+          {
+            key: 'A',
+            constraint: { length: 5, type: TemplateConstraintTypeEnum.TEXT },
+          },
+        ],
+      });
 
+      const wordingObjectValues = makeWordingObject({
+        template: 'Hi {{A}}',
+        'substitution-key-constraints': [
+          {
+            key: 'A',
+            value: 'OK',
+            constraint: { length: 5, type: TemplateConstraintTypeEnum.TEXT },
+          },
+        ],
+      });
+
+      init(wordingObject);
+      fixture.componentRef.setInput('wordingObjectValues', wordingObjectValues);
+      fixture.detectChanges();
       const errorsSpy = jest.spyOn(component.wordingFieldErrors, 'emit');
 
       fixture.componentRef.setInput('wordingSubmitAttempt', 1);
@@ -458,6 +495,9 @@ describe('WordingParserComponent', () => {
 
     it('should emit save-first error when wordingSubmitAttempt increments with unsaved changes', () => {
       init(makeWordingObject());
+
+      fixture.componentRef.setInput('wordingObjectValues', makeWordingObject());
+      fixture.detectChanges();
 
       const errorsSpy = jest.spyOn(component.wordingFieldErrors, 'emit');
       (
@@ -485,6 +525,19 @@ describe('WordingParserComponent', () => {
 
     it('should emit DTO when wordingSubmitAttempt increments and showSaveButton is false', () => {
       init(
+        makeWordingObject({
+          template: 'Hi {{A}}',
+          'substitution-key-constraints': [
+            {
+              key: 'A',
+              constraint: { length: 5, type: TemplateConstraintTypeEnum.TEXT },
+            },
+          ],
+        }),
+      );
+
+      fixture.componentRef.setInput(
+        'wordingObjectValues',
         makeWordingObject({
           template: 'Hi {{A}}',
           'substitution-key-constraints': [

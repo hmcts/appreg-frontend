@@ -27,6 +27,10 @@ export const ENTRY_SUCCESS_MESSAGES = {
     heading: 'Result removed',
     body: 'The result has been removed from this application list entry.',
   },
+  resultsRemoved: {
+    heading: 'Results removed',
+    body: 'The results have been removed from these application list entries.',
+  },
   feeStatusUpdated: {
     heading: 'Fee status updated',
     body: 'The fee status has been updated for this application list entry.',

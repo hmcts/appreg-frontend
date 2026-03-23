@@ -200,8 +200,85 @@ describe('ApplicationsListDetail', () => {
     expect(patchSpy).toHaveBeenCalledWith({
       errorSummary: [],
       errorHint: '',
+      preserveErrorSummaryOnLoad: false,
       updateInvalid: false,
     });
+  });
+
+  it('maps a 400 close error from navigation state onto the detail page', async () => {
+    historyStateSpy.mockReturnValue({
+      row: {
+        id: 'id-1',
+        location: 'LOC1',
+        description: '',
+        status: 'OPEN',
+      },
+      closeError: {
+        status: 400,
+        title: 'List cannot be closed',
+        detail: 'All applications must have a Paid or Remitted Fee status.',
+      },
+    });
+
+    const route = TestBed.inject(ActivatedRoute);
+    jest
+      .spyOn(route.snapshot.queryParamMap, 'get')
+      .mockImplementation((key) => {
+        if (key === 'close') {
+          return 'error';
+        }
+        if (key === 'code') {
+          return '400';
+        }
+        return null;
+      });
+
+    (
+      component as unknown as {
+        setCloseErrorFromNavigation(): void;
+      }
+    ).setCloseErrorFromNavigation();
+
+    await flushSignalEffects(fixture);
+
+    expect(vm().updateInvalid).toBe(true);
+    expect(vm().errorHint).toBe('There is a problem');
+    expect(vm().errorSummary).toEqual([
+      {
+        id: 'status-close',
+        href: '#status',
+        text: 'All applications must have a Paid or Remitted Fee status.',
+      },
+    ]);
+    expect(vm().preserveErrorSummaryOnLoad).toBe(true);
+  });
+
+  it('preserves returned close errors when the detail page reload completes', async () => {
+    patchDetailState({
+      updateInvalid: true,
+      errorSummary: [
+        {
+          id: 'status-close',
+          href: '#status',
+          text: 'All applications must have a Paid or Remitted Fee status.',
+        },
+      ],
+      preserveErrorSummaryOnLoad: true,
+    });
+
+    component.id = 'list-123';
+    component.loadApplicationsLists();
+    await flushSignalEffects(fixture);
+
+    expect(vm().updateInvalid).toBe(true);
+    expect(vm().errorSummary).toEqual([
+      {
+        id: 'status-close',
+        href: '#status',
+        text: 'All applications must have a Paid or Remitted Fee status.',
+      },
+    ]);
+    expect(vm().preserveErrorSummaryOnLoad).toBe(true);
   });
 
   describe('onTabSelected', () => {
@@ -209,6 +286,7 @@ describe('ApplicationsListDetail', () => {
       jest.spyOn(component, 'vm').mockReturnValue({
         errorSummary: [{ text: 'Something went wrong' }],
         updateInvalid: false,
+        preserveErrorSummaryOnLoad: false,
       } as ApplicationsListDetailState);
 
       const resetSpy = jest.spyOn(
@@ -226,6 +304,7 @@ describe('ApplicationsListDetail', () => {
         errorSummary: [] as ErrorItem[],
         updateInvalid: false,
         updateDone: true,
+        preserveErrorSummaryOnLoad: false,
       } as ApplicationsListDetailState);
 
       const resetBannerSpy = jest.spyOn(
@@ -242,6 +321,7 @@ describe('ApplicationsListDetail', () => {
       jest.spyOn(component, 'vm').mockReturnValue({
         errorSummary: [{ text: 'Something went wrong' }],
         updateInvalid: true,
+        preserveErrorSummaryOnLoad: false,
       } as ApplicationsListDetailState);
 
       const resetSpy = jest.spyOn(

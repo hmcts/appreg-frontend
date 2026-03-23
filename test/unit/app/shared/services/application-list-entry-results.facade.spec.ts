@@ -17,7 +17,6 @@ function makeResult(overrides: Partial<ResultGetDto>): ResultGetDto {
   return {
     id: 'R-1',
     resultCode: 'RC1',
-    wordingFields: [],
     ...overrides,
   } as unknown as ResultGetDto;
 }
@@ -197,6 +196,282 @@ describe('ApplicationListEntryResultsFacade', () => {
       expect(loadSpy).toHaveBeenCalledWith('L-1', 'E-1');
       expect(facade.clearPendingToken()).toBe(1);
       expect(facade.pendingRows()).toEqual([]);
+      expect(onSuccess).toHaveBeenCalled();
+    });
+  });
+
+  describe('submitResultChangesForEntries', () => {
+    it('creates pending results for each selected entry and clears pending when all succeed', () => {
+      const onSuccess = jest.fn();
+      entryResultsApi.createApplicationListEntryResult
+        .mockReturnValueOnce(of(makeResult({ id: 'R-10', entryId: 'E-1' })))
+        .mockReturnValueOnce(of(makeResult({ id: 'R-11', entryId: 'E-2' })));
+
+      facade.submitResultChangesForEntries(
+        'L-1',
+        ['E-1', 'E-2'],
+        {
+          pendingToCreate: [
+            {
+              resultCode: ' rc2 ',
+              wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+            } as PendingResultRow,
+          ],
+          existingToUpdate: [],
+        },
+        onSuccess,
+      );
+
+      expect(
+        entryResultsApi.createApplicationListEntryResult,
+      ).toHaveBeenNthCalledWith(1, {
+        listId: 'L-1',
+        entryId: 'E-1',
+        resultCreateDto: {
+          resultCode: 'rc2',
+          wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+        },
+      });
+      expect(
+        entryResultsApi.createApplicationListEntryResult,
+      ).toHaveBeenNthCalledWith(2, {
+        listId: 'L-1',
+        entryId: 'E-2',
+        resultCreateDto: {
+          resultCode: 'rc2',
+          wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+        },
+      });
+      expect(facade.newlyCreatedEntryResults()).toEqual([
+        makeResult({ id: 'R-10', entryId: 'E-1' }),
+        makeResult({ id: 'R-11', entryId: 'E-2' }),
+      ]);
+      expect(facade.clearPendingToken()).toBe(1);
+      expect(facade.pendingRows()).toEqual([]);
+      expect(onSuccess).toHaveBeenCalled();
+    });
+
+    it('updates tracked created results by resultId', () => {
+      const onSuccess = jest.fn();
+
+      facade.addCreatedEntryResults([
+        makeResult({ id: 'R-1', entryId: 'E-1', wordingFields: [] }),
+      ]);
+      entryResultsApi.updateApplicationListEntryResult.mockReturnValueOnce(
+        of(
+          makeResult({
+            id: 'R-1',
+            entryId: 'E-1',
+            wordingFields: [{ key: 'Location', value: 'London' }],
+          }),
+        ),
+      );
+
+      facade.submitResultChangesForEntries(
+        'L-1',
+        ['E-1'],
+        {
+          pendingToCreate: [],
+          existingToUpdate: [
+            {
+              resultId: 'R-1',
+              resultCode: ' rc1 ',
+              wordingFields: [{ key: 'Location', value: 'London' }],
+            },
+          ],
+        },
+        onSuccess,
+      );
+
+      expect(
+        entryResultsApi.updateApplicationListEntryResult,
+      ).toHaveBeenCalledWith({
+        listId: 'L-1',
+        entryId: 'E-1',
+        resultId: 'R-1',
+        resultUpdateDto: {
+          resultCode: 'rc1',
+          wordingFields: [{ key: 'Location', value: 'London' }],
+        },
+      });
+      expect(facade.newlyCreatedEntryResults()).toEqual([
+        makeResult({
+          id: 'R-1',
+          entryId: 'E-1',
+          wordingFields: [{ key: 'Location', value: 'London' }],
+        }),
+      ]);
+      expect(onSuccess).toHaveBeenCalled();
+    });
+
+    it('updates all created results in the same logical group from one representative result id', () => {
+      const onSuccess = jest.fn();
+
+      facade.addCreatedEntryResults([
+        makeResult({
+          id: 'R-1',
+          entryId: 'E-1',
+          resultCode: 'RC1',
+          wording: {
+            template: 'Same wording',
+            'substitution-key-constraints': [],
+          },
+        }),
+        makeResult({
+          id: 'R-2',
+          entryId: 'E-2',
+          resultCode: 'RC1',
+          wording: {
+            template: 'Same wording',
+            'substitution-key-constraints': [],
+          },
+        }),
+      ]);
+
+      entryResultsApi.updateApplicationListEntryResult
+        .mockReturnValueOnce(
+          of(
+            makeResult({
+              id: 'R-1',
+              entryId: 'E-1',
+              resultCode: 'RC1',
+              wording: {
+                template: 'Updated wording',
+                'substitution-key-constraints': [],
+              },
+            }),
+          ),
+        )
+        .mockReturnValueOnce(
+          of(
+            makeResult({
+              id: 'R-2',
+              entryId: 'E-2',
+              resultCode: 'RC1',
+              wording: {
+                template: 'Updated wording',
+                'substitution-key-constraints': [],
+              },
+            }),
+          ),
+        );
+
+      facade.submitResultChangesForEntries(
+        'L-1',
+        ['E-1', 'E-2'],
+        {
+          pendingToCreate: [],
+          existingToUpdate: [
+            {
+              resultId: 'R-1',
+              resultCode: 'RC1',
+              wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+            },
+          ],
+        },
+        onSuccess,
+      );
+
+      expect(
+        entryResultsApi.updateApplicationListEntryResult,
+      ).toHaveBeenNthCalledWith(1, {
+        listId: 'L-1',
+        entryId: 'E-1',
+        resultId: 'R-1',
+        resultUpdateDto: {
+          resultCode: 'RC1',
+          wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+        },
+      });
+      expect(
+        entryResultsApi.updateApplicationListEntryResult,
+      ).toHaveBeenNthCalledWith(2, {
+        listId: 'L-1',
+        entryId: 'E-2',
+        resultId: 'R-2',
+        resultUpdateDto: {
+          resultCode: 'RC1',
+          wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+        },
+      });
+      expect(onSuccess).toHaveBeenCalled();
+    });
+  });
+
+  describe('removeCreatedEntryResults', () => {
+    it('deletes matching created results and keeps the rest', () => {
+      const onSuccess = jest.fn();
+
+      facade.addCreatedEntryResults([
+        makeResult({ id: 'R-1', entryId: 'E-1' }),
+        makeResult({ id: 'R-2', entryId: 'E-2' }),
+      ]);
+
+      facade.removeCreatedEntryResults('L-1', ['R-1'], onSuccess);
+
+      expect(
+        entryResultsApi.deleteApplicationListEntryResult,
+      ).toHaveBeenCalledWith({
+        listId: 'L-1',
+        entryId: 'E-1',
+        resultId: 'R-1',
+      });
+      expect(facade.newlyCreatedEntryResults()).toEqual([
+        makeResult({ id: 'R-2', entryId: 'E-2' }),
+      ]);
+      expect(onSuccess).toHaveBeenCalled();
+    });
+  });
+
+  describe('removeCreatedEntryResultGroup', () => {
+    it('deletes all created results that match the clicked result logically', () => {
+      const onSuccess = jest.fn();
+
+      facade.addCreatedEntryResults([
+        makeResult({
+          id: 'R-1',
+          entryId: 'E-1',
+          resultCode: 'RC1',
+          wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+        }),
+        makeResult({
+          id: 'R-2',
+          entryId: 'E-2',
+          resultCode: 'RC1',
+          wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+        }),
+        makeResult({
+          id: 'R-3',
+          entryId: 'E-3',
+          resultCode: 'RC2',
+          wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+        }),
+      ]);
+
+      facade.removeCreatedEntryResultGroup('L-1', 'R-1', onSuccess);
+
+      expect(
+        entryResultsApi.deleteApplicationListEntryResult,
+      ).toHaveBeenNthCalledWith(1, {
+        listId: 'L-1',
+        entryId: 'E-1',
+        resultId: 'R-1',
+      });
+      expect(
+        entryResultsApi.deleteApplicationListEntryResult,
+      ).toHaveBeenNthCalledWith(2, {
+        listId: 'L-1',
+        entryId: 'E-2',
+        resultId: 'R-2',
+      });
+      expect(facade.newlyCreatedEntryResults()).toEqual([
+        makeResult({
+          id: 'R-3',
+          entryId: 'E-3',
+          resultCode: 'RC2',
+          wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+        }),
+      ]);
       expect(onSuccess).toHaveBeenCalled();
     });
   });

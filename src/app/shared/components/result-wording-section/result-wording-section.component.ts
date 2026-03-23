@@ -18,7 +18,10 @@ import {
 } from '@angular/core';
 
 import { RESULT_WORDING_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
-import { ApplicantContext } from '@components/applications-list-entry-detail/util/routing-state-util';
+import {
+  ApplicantContext,
+  ApplicationEntriesResultContext,
+} from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import {
   SortableTableComponent,
@@ -53,12 +56,17 @@ import { ResultRow, toExistingRows } from '@util/result-code-helpers';
   ],
 })
 export class ResultWordingSectionComponent {
-  resultApplicantContext = input<ApplicantContext[]>([]);
+  resultApplicantContext = input<
+    ApplicantContext[] | ApplicationEntriesResultContext[]
+  >([]);
   resultCodesList = input<ResultCodeGetSummaryDto[]>([]);
   existingResults = input<ResultGetDto[]>([]);
   wordingByCode = input<Record<string, string>>({});
   resultCodeTemplateByCode = input<Record<string, TemplateDetail>>({});
   clearPendingToken = input<number>(0);
+  caption = input<string>('You are resulting the following application(s)');
+  captionSize = input<'s' | 'm' | 'l'>('s');
+  buttonText = input<string>('Apply result');
 
   removeExisting = output<string>();
   pendingChange = output<PendingResultRow[]>();
@@ -80,7 +88,7 @@ export class ResultWordingSectionComponent {
   private readonly validationResolvedCardIds = new Set<string>();
   private readonly validationErrorsByCard = new Map<string, ErrorItem[]>();
 
-  applicantRespondentColumns: TableColumn[] = RESULT_WORDING_COLUMNS;
+  applicantRespondentColumns = input<TableColumn[]>(RESULT_WORDING_COLUMNS);
 
   resultCodeLabel = (rc: ResultCodeGetSummaryDto): string =>
     `${rc.resultCode} - ${rc.title}`;
@@ -425,7 +433,7 @@ export class ResultWordingSectionComponent {
       }
 
       return {
-        ...(wording as TemplateDetail),
+        ...wording,
         template: this.unescapeTemplatePlaceholders(template),
       };
     }

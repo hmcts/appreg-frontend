@@ -255,6 +255,16 @@ export function buildOrganisationForm(
 // Wording fields moved from string[] to TemplateSubstitution[]; preserve stable fallback keys for legacy responses.
 const LEGACY_WORDING_KEYS = ['courtName', 'organisationName'] as const;
 
+type EntryDetailWithLegacyWordingFields = EntryGetDetailDto & {
+  wordingFields?: WordingFieldLike[];
+};
+
+function getEntryWordingFields(
+  detail: EntryGetDetailDto,
+): WordingFieldLike[] | undefined {
+  return (detail as EntryDetailWithLegacyWordingFields).wordingFields;
+}
+
 export function buildEntryUpdateDtoFromForm(
   detail: EntryGetDetailDto,
   formValue: ApplicationsListEntryFormValue,
@@ -271,7 +281,7 @@ export function buildEntryUpdateDtoFromForm(
     respondent: detail.respondent,
     numberOfRespondents: detail.numberOfRespondents,
     wordingFields: toTemplateSubstitutions(
-      (detail.wordingFields ?? []) as WordingFieldLike[],
+      getEntryWordingFields(detail),
       LEGACY_WORDING_KEYS,
     ),
     feeStatuses: detail.feeStatuses,
@@ -459,7 +469,7 @@ export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
     respondent: detail.respondent,
     numberOfRespondents: detail.numberOfRespondents,
     wordingFields: toTemplateSubstitutions(
-      (detail.wordingFields ?? []) as WordingFieldLike[],
+      getEntryWordingFields(detail),
       LEGACY_WORDING_KEYS,
     ),
     feeStatuses: detail.feeStatuses,

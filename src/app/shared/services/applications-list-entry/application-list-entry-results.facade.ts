@@ -1,6 +1,6 @@
 import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { forkJoin } from 'rxjs';
+import { Observable, catchError, forkJoin, map, of } from 'rxjs';
 
 import {
   ApplicationListEntryResultsApi,
@@ -13,6 +13,35 @@ import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import type { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
 import { getAllResultCodes, getEntryResults$ } from '@util/result-code-helpers';
 
+export type BulkResultChange =
+  | {
+      action: 'create' | 'update';
+      entryId: string;
+      resultId?: string;
+      success: true;
+      response: ResultGetDto;
+    }
+  | {
+      action: 'create' | 'update';
+      entryId: string;
+      resultId?: string;
+      success: false;
+      error: unknown;
+    };
+
+export type BulkResultRemoval =
+  | {
+      entryId: string;
+      resultId: string;
+      success: true;
+    }
+  | {
+      entryId: string;
+      resultId: string;
+      success: false;
+      error: unknown;
+    };
+
 @Injectable()
 export class ApplicationListEntryResultsFacade {
   private readonly destroyRef = inject(DestroyRef);
@@ -23,6 +52,8 @@ export class ApplicationListEntryResultsFacade {
 
   readonly entryResults = signal<ResultGetDto[]>([]);
   readonly entryResultsLoading = signal(false);
+
+  readonly newlyCreatedEntryResults = signal<ResultGetDto[]>([]);
 
   readonly pendingRows = signal<PendingResultRow[]>([]);
   readonly clearPendingToken = signal(0);
@@ -45,6 +76,249 @@ export class ApplicationListEntryResultsFacade {
     this.resultCodeWordingByCode.set({});
     this.resultCodeTemplateByCode.set({});
     this.resultCodeDetailCache.clear();
+  }
+
+  addCreatedEntryResults(results: ResultGetDto[]): void {
+    this.newlyCreatedEntryResults.set(results ?? []);
+  }
+
+  clearCreatedEntryResults(): void {
+    this.newlyCreatedEntryResults.set([]);
+  }
+
+  submitResultChangesForEntries(
+    listId: string,
+    entryIds: string[],
+    payload: ResultSectionSubmitPayload,
+    onSuccess?: (results: BulkResultChange[]) => void,
+    onError?: (err: unknown) => void,
+  ): void {
+    if (!listId || !payload) {
+      return;
+    }
+
+    const currentCreatedResults = this.newlyCreatedEntryResults() ?? [];
+    const createdById = new Map(
+      currentCreatedResults
+        .filter((result) => !!result.id)
+        .map((result) => [result.id, result]),
+    );
+
+    const updateRequests: Observable<BulkResultChange>[] = [];
+    (payload.existingToUpdate ?? [])
+      .filter((item) => !!item.resultId && !!item.resultCode)
+      .forEach((item) => {
+        const anchor = createdById.get(item.resultId);
+        if (!anchor?.entryId) {
+          return;
+        }
+
+        currentCreatedResults
+          .filter((result) =>
+            this.areLogicallyEquivalentResults(result, anchor),
+          )
+          .forEach((result) => {
+            if (!result.entryId || !result.id) {
+              return;
+            }
+
+            updateRequests.push(
+              this.entryResultsApi
+                .updateApplicationListEntryResult({
+                  listId,
+                  entryId: result.entryId,
+                  resultId: result.id,
+                  resultUpdateDto: {
+                    resultCode: item.resultCode.trim(),
+                    wordingFields: item.wordingFields ?? [],
+                  },
+                })
+                .pipe(
+                  map(
+                    (response): BulkResultChange => ({
+                      action: 'update',
+                      entryId: result.entryId,
+                      resultId: result.id,
+                      success: true,
+                      response,
+                    }),
+                  ),
+                  catchError((error: unknown) =>
+                    of<BulkResultChange>({
+                      action: 'update',
+                      entryId: result.entryId,
+                      resultId: result.id,
+                      success: false,
+                      error,
+                    }),
+                  ),
+                ),
+            );
+          });
+      });
+
+    const createRequests: Observable<BulkResultChange>[] = [];
+    (payload.pendingToCreate ?? [])
+      .filter((item) => !!item.resultCode)
+      .forEach((item) => {
+        (entryIds ?? [])
+          .filter((entryId) => !!entryId)
+          .forEach((entryId) => {
+            createRequests.push(
+              this.entryResultsApi
+                .createApplicationListEntryResult({
+                  listId,
+                  entryId,
+                  resultCreateDto: {
+                    resultCode: item.resultCode.trim(),
+                    wordingFields: item.wordingFields ?? [],
+                  },
+                })
+                .pipe(
+                  map(
+                    (response): BulkResultChange => ({
+                      action: 'create',
+                      entryId,
+                      success: true,
+                      response,
+                    }),
+                  ),
+                  catchError((error: unknown) =>
+                    of<BulkResultChange>({
+                      action: 'create',
+                      entryId,
+                      success: false,
+                      error,
+                    }),
+                  ),
+                ),
+            );
+          });
+      });
+
+    const allRequests = [...updateRequests, ...createRequests];
+    if (allRequests.length === 0) {
+      return;
+    }
+
+    forkJoin(allRequests)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (results) => {
+          const successfulResponses = results
+            .filter((result) => result.success)
+            .map((result) => result.response);
+
+          this.mergeCreatedEntryResults(successfulResponses);
+
+          const hasCreateFailures = results.some(
+            (result) => result.action === 'create' && !result.success,
+          );
+          const hasCreateRequests = createRequests.length > 0;
+
+          if (hasCreateRequests && !hasCreateFailures) {
+            this.clearPendingToken.update((n) => n + 1);
+            this.pendingRows.set([]);
+          }
+
+          onSuccess?.(results);
+        },
+        error: (err) => onError?.(err),
+      });
+  }
+
+  removeCreatedEntryResults(
+    listId: string,
+    resultIds: string[],
+    onSuccess?: (results: BulkResultRemoval[]) => void,
+    onError?: (err: unknown) => void,
+  ): void {
+    if (!listId) {
+      return;
+    }
+
+    const targets = (this.newlyCreatedEntryResults() ?? []).filter(
+      (result) =>
+        !!result.id &&
+        !!result.entryId &&
+        (resultIds.length === 0 || resultIds.includes(result.id)),
+    );
+
+    if (targets.length === 0) {
+      return;
+    }
+
+    const requests = targets.map((result) =>
+      this.entryResultsApi
+        .deleteApplicationListEntryResult({
+          listId,
+          entryId: result.entryId,
+          resultId: result.id,
+        })
+        .pipe(
+          map(
+            (): BulkResultRemoval => ({
+              entryId: result.entryId,
+              resultId: result.id,
+              success: true,
+            }),
+          ),
+          catchError((error: unknown) =>
+            of({
+              entryId: result.entryId,
+              resultId: result.id,
+              success: false,
+              error,
+            }),
+          ),
+        ),
+    );
+
+    forkJoin(requests)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (results) => {
+          const deletedIds = new Set(
+            results
+              .filter((result) => result.success)
+              .map((result) => result.resultId),
+          );
+
+          this.newlyCreatedEntryResults.update((current) =>
+            current.filter((result) => !deletedIds.has(result.id ?? '')),
+          );
+
+          onSuccess?.(results);
+        },
+        error: (err) => onError?.(err),
+      });
+  }
+
+  removeCreatedEntryResultGroup(
+    listId: string,
+    anchorResultId: string,
+    onSuccess?: (results: BulkResultRemoval[]) => void,
+    onError?: (err: unknown) => void,
+  ): void {
+    if (!listId || !anchorResultId) {
+      return;
+    }
+
+    const createdResults = this.newlyCreatedEntryResults() ?? [];
+    const anchor = createdResults.find(
+      (result) => result.id === anchorResultId,
+    );
+
+    if (!anchor) {
+      return;
+    }
+
+    const matchingIds = createdResults
+      .filter((result) => this.areLogicallyEquivalentResults(result, anchor))
+      .map((result) => result.id)
+      .filter((id): id is string => !!id);
+
+    this.removeCreatedEntryResults(listId, matchingIds, onSuccess, onError);
   }
 
   loadEntryResults(listId: string, entryId: string): void {
@@ -102,6 +376,7 @@ export class ApplicationListEntryResultsFacade {
       return;
     }
 
+    // PUT
     const existingRequests = (payload.existingToUpdate ?? [])
       .filter((item) => !!item.resultId && !!item.resultCode)
       .map((item) =>
@@ -116,6 +391,7 @@ export class ApplicationListEntryResultsFacade {
         }),
       );
 
+    // POST
     const pendingRequests = (payload.pendingToCreate ?? [])
       .filter((row) => !!row.resultCode)
       .map((row) =>
@@ -161,7 +437,9 @@ export class ApplicationListEntryResultsFacade {
     }
   }
 
-  private toTemplateDetail(wording: string | null | undefined): TemplateDetail {
+  private toTemplateDetail(
+    wording: string | TemplateDetail | null | undefined,
+  ): TemplateDetail {
     return this.normalizeTemplateDetail(wording);
   }
 
@@ -260,5 +538,45 @@ export class ApplicationListEntryResultsFacade {
 
   private unescapeTemplatePlaceholders(template: string): string {
     return template.replaceAll(/\\\{\\\{/g, '{{').replaceAll(/\\\}\\\}/g, '}}');
+  }
+
+  private mergeCreatedEntryResults(results: ResultGetDto[]): void {
+    if (results.length === 0) {
+      return;
+    }
+
+    this.newlyCreatedEntryResults.update((current) => {
+      const next = [...current];
+
+      results.forEach((result) => {
+        const existingIndex = next.findIndex(
+          (currentResult) => currentResult.id === result.id,
+        );
+
+        if (existingIndex >= 0) {
+          next[existingIndex] = result;
+          return;
+        }
+
+        next.push(result);
+      });
+
+      return next;
+    });
+  }
+
+  private areLogicallyEquivalentResults(
+    left: ResultGetDto,
+    right: ResultGetDto,
+  ): boolean {
+    return (
+      (left.resultCode ?? '').trim() === (right.resultCode ?? '').trim() &&
+      this.normalizedWordingTemplate(left) ===
+        this.normalizedWordingTemplate(right)
+    );
+  }
+
+  private normalizedWordingTemplate(result: ResultGetDto): string {
+    return (result.wording?.template ?? '').trim();
   }
 }

@@ -6,7 +6,7 @@ const logger = require('./logger');
 
 // Get browser and optional scope from command line arguments
 const browser = process.argv[2]; // 'chrome', 'edge', or undefined
-const scope = process.argv[3] || 'regression'; // 'regression', 'smoke', etc.
+const scope = process.argv[3] || 'regression'; // 'regression', 'smoke', 'all', etc.
 const runId =
   process.env.RUN_ID || process.env.BUILD_TAG || process.env.BUILD_NUMBER;
 
@@ -113,6 +113,23 @@ function buildPaths(segmentGroups) {
  * Get list of cucumber directories based on browser parameter
  */
 function getCucumberDirectories() {
+  // When scope is 'all', include both regression and smoke tests
+  // Also check the 'all' directory for merged parallel reports
+  if (scope === 'all') {
+    if (browser === 'chrome' || browser === 'edge') {
+      return buildPaths([
+        [browser, 'all', 'cucumber-json'],
+        [browser, 'regression', 'cucumber-json'],
+        [browser, 'smoke', 'cucumber-json'],
+      ]);
+    }
+    return buildPaths([
+      ['all', 'cucumber-json'],
+      ['regression', 'cucumber-json'],
+      ['smoke', 'cucumber-json'],
+    ]);
+  }
+
   // With a browser specified, honor the provided scope directly.
   if (browser === 'chrome' || browser === 'edge') {
     return buildPaths([[browser, scope, 'cucumber-json']]);
@@ -217,6 +234,9 @@ function processScenario(scenario, feature, stats, testsByFeature) {
   const scenarioStatus = calculateScenarioStatus(steps);
   const scenarioDuration = steps.reduce((sum, step) => sum + step.duration, 0);
 
+  // Extract tags from scenario
+  const tags = scenario.tags ? scenario.tags.map((tag) => tag.name) : [];
+
   // Update stats
   updateStats(stats, scenarioStatus, scenarioDuration);
 
@@ -227,6 +247,7 @@ function processScenario(scenario, feature, stats, testsByFeature) {
     duration: scenarioDuration,
     steps,
     browser: feature._browserSource || null,
+    tags,
   });
 }
 

@@ -1,10 +1,6 @@
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { Row } from '@core-types/table/row.types';
-import {
-  ApplicationCodeGetDetailDto,
-  ApplicationListGetDetailDto,
-  EntryGetDetailDto,
-} from '@openapi';
+import { ApplicationListGetDetailDto } from '@openapi';
 
 export type EntrySummary = NonNullable<
   ApplicationListGetDetailDto['entriesSummary']
@@ -21,12 +17,6 @@ export interface ApplicationsListDetailState {
   selectedIds: Set<string>;
   selectedRows: Row[];
 
-  // Entry details
-  entriesDetails: EntryGetDetailDto[];
-  entryCodeDetails: Record<string, ApplicationCodeGetDetailDto>;
-  allEntryIds: string[];
-  allEntriesSummary: EntrySummary[];
-
   // flags
   createDone: boolean;
   isLoading: boolean;
@@ -36,6 +26,7 @@ export interface ApplicationsListDetailState {
   // errors
   errorHint: string;
   errorSummary: ErrorItem[];
+  preserveErrorSummaryOnLoad: boolean;
 
   // internal
   hasPrefilledFromApi: boolean;
@@ -50,11 +41,6 @@ export const initialApplicationsListDetailState: ApplicationsListDetailState = {
   selectedIds: new Set<string>(),
   selectedRows: [],
 
-  entriesDetails: [],
-  entryCodeDetails: {},
-  allEntryIds: [],
-  allEntriesSummary: [],
-
   createDone: false,
   isLoading: true,
   updateDone: false,
@@ -62,17 +48,24 @@ export const initialApplicationsListDetailState: ApplicationsListDetailState = {
 
   errorHint: '',
   errorSummary: [],
+  preserveErrorSummaryOnLoad: false,
 
   hasPrefilledFromApi: false,
 };
 
 export const clearUpdateNotificationsPatch = (): Pick<
   ApplicationsListDetailState,
-  'updateDone' | 'updateInvalid' | 'errorHint' | 'errorSummary' | 'createDone'
+  | 'updateDone'
+  | 'updateInvalid'
+  | 'errorHint'
+  | 'errorSummary'
+  | 'createDone'
+  | 'preserveErrorSummaryOnLoad'
 > => ({
   updateDone: false,
   updateInvalid: false,
   errorHint: '',
   errorSummary: [],
   createDone: false,
+  preserveErrorSummaryOnLoad: false,
 });

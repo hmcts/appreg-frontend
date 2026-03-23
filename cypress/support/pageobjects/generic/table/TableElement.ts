@@ -1,9 +1,13 @@
+import { StringUtils } from '../../../utils/StringUtils';
+
 export class TableElement {
   /**
    * Finds a table by its caption text or returns the first table if no caption provided
    * @param caption Optional caption text of the table
    */
-  static findTable(caption?: string): Cypress.Chainable {
+  static findTable(
+    caption?: string,
+  ): Cypress.Chainable<JQuery<HTMLTableElement>> {
     if (caption) {
       return cy
         .contains('caption', caption, { matchCase: false })
@@ -15,7 +19,9 @@ export class TableElement {
   /**
    * @deprecated Use findTable() instead
    */
-  static findTableByCaption(caption: string): Cypress.Chainable {
+  static findTableByCaption(
+    caption: string,
+  ): Cypress.Chainable<JQuery<HTMLTableElement>> {
     return this.findTable(caption);
   }
 
@@ -23,7 +29,9 @@ export class TableElement {
    * Gets table headers from a table
    * @param tableCaption Optional caption text of the table. If not provided, uses first table.
    */
-  static getTableHeaders(tableCaption?: string): Cypress.Chainable {
+  static getTableHeaders(
+    tableCaption?: string,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
     return this.findTable(tableCaption).find('thead th');
   }
 
@@ -31,7 +39,9 @@ export class TableElement {
    * Gets all rows from table body
    * @param tableCaption Optional caption text of the table. If not provided, uses first table.
    */
-  static getTableRows(tableCaption?: string): Cypress.Chainable {
+  static getTableRows(
+    tableCaption?: string,
+  ): Cypress.Chainable<JQuery<HTMLTableRowElement>> {
     return this.findTable(tableCaption).find('tbody tr');
   }
 
@@ -49,7 +59,11 @@ export class TableElement {
       .find('td')
       .last()
       .find('button')
-      .filter((_, el) => Cypress.$(el).text().trim() === buttonText)
+      .filter(
+        (_, el) =>
+          StringUtils.normalizeText(Cypress.$(el).text()) ===
+          StringUtils.normalizeText(buttonText),
+      )
       .first();
   }
 
@@ -69,7 +83,11 @@ export class TableElement {
       .find('ul[role="list"], ul[role="menu"], .dropdown-menu, .actions-menu')
       .should('be.visible')
       .find('button, a')
-      .filter((_, el) => Cypress.$(el).text().trim() === menuButtonText)
+      .filter(
+        (_, el) =>
+          StringUtils.normalizeText(Cypress.$(el).text()) ===
+          StringUtils.normalizeText(menuButtonText),
+      )
       .first();
   }
 
@@ -114,6 +132,19 @@ export class TableElement {
     row: JQuery<HTMLElement>,
   ): Cypress.Chainable<JQuery<HTMLElement>> {
     return cy.wrap(row).find('td').first().find('input[type="checkbox"]');
+  }
+
+  /**
+   * Gets the "Select all" checkbox in the table header
+   * @param tableCaption Optional caption of the table. If not provided, uses first table.
+   */
+  static getSelectAllCheckbox(
+    tableCaption?: string,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return this.findTable(tableCaption)
+      .find('thead')
+      .find('input[type="checkbox"]')
+      .first();
   }
 
   /**

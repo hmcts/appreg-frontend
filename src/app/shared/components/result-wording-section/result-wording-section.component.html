@@ -1,8 +1,8 @@
 <app-sortable-table
   id="results-applicant-table"
-  caption="You are resulting the following application(s)"
-  captionSize="s"
-  [columns]="applicantRespondentColumns"
+  [caption]="caption()"
+  [captionSize]="captionSize()"
+  [columns]="applicantRespondentColumns()"
   [data]="resultApplicantContext()"
   appMojButtonMenu
 />
@@ -47,6 +47,6 @@
     (click)="onSaveResult()"
     [disabled]="!canSubmitResults()"
   >
-    Apply result
+    {{ buttonText() }}
   </button>
 </div>

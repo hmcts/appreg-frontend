@@ -58,7 +58,7 @@ module.exports = defineConfig({
   },
   e2e: {
     retries: {
-      runMode: 0,
+      runMode: 2,
       openMode: 0,
     },
     // Test Files Configuration
@@ -80,23 +80,13 @@ module.exports = defineConfig({
     // Report and Media Settings
     reporter: 'cypress-multi-reporters',
     reporterOptions: {
-      reporterEnabled:
-        'spec, cypress-mochawesome-reporter, mocha-junit-reporter',
+      reporterEnabled: 'spec, mocha-junit-reporter',
       mochaJunitReporterReporterOptions: {
         mochaFile: 'cypress/reports/junit/results-[hash].xml',
         toConsole: false,
       },
-      cypressMochawesomeReporterReporterOptions: {
-        reportDir: 'cypress/reports/mochawesome',
-        charts: true,
-        reportPageTitle: 'Application Register E2E Test Results',
-        embeddedScreenshots: true,
-        inlineAssets: true,
-        html: true,
-        json: true,
-      },
     },
-    video: true,
+    video: process.env.CI === 'true',
     videosFolder: 'cypress/reports/videos',
     screenshotOnRunFailure: true,
     screenshotsFolder: 'cypress/reports/screenshots',
@@ -107,8 +97,32 @@ module.exports = defineConfig({
       const fs = require('node:fs');
       const path = require('node:path');
 
-      require('cypress-mochawesome-reporter/plugin')(on);
       await addCucumberPreprocessorPlugin(on, config);
+
+      // Configure Chrome to allow downloads in headless mode (cypress run)
+      on('before:browser:launch', (browser, launchOptions) => {
+        if (browser.family === 'chromium' && browser.name !== 'electron') {
+          const downloadPath = path.join(
+            config.projectRoot,
+            config.downloadsFolder,
+          );
+
+          // Ensure downloads folder exists
+          if (!fs.existsSync(downloadPath)) {
+            fs.mkdirSync(downloadPath, { recursive: true });
+          }
+
+          launchOptions.preferences.default['download'] = {
+            default_directory: downloadPath,
+            prompt_for_download: false,
+          };
+
+          // Additional Chrome args for consistent download behavior
+          launchOptions.args.push('--enable-features=NetworkService');
+          launchOptions.args.push('--disable-features=VizDisplayCompositor');
+        }
+        return launchOptions;
+      });
 
       // Custom task to log accessibility violations
       on('task', {
@@ -128,6 +142,12 @@ module.exports = defineConfig({
           return null;
         },
         // PDF helper tasks
+        ensureDownloadsFolder(downloadsPath) {
+          if (!fs.existsSync(downloadsPath)) {
+            fs.mkdirSync(downloadsPath, { recursive: true });
+          }
+          return null;
+        },
         clearDownloadsFolder(downloadsPath) {
           if (fs.existsSync(downloadsPath)) {
             const files = fs.readdirSync(downloadsPath);
