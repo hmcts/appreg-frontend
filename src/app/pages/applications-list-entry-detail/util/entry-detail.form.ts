@@ -55,6 +55,7 @@ import {
   OrganisationFormRaw,
   PersonFormRaw,
 } from '@util/types/applications-list-entry/types';
+import { crossFormValidation } from '@validators/cross-form.validator';
 import { optional } from '@validators/optional.validator';
 import { standardApplicantCodeConditionalRequired } from '@validators/standard-applicant-code.validator';
 import { ukMobile, ukPhone, ukPostcode } from '@validators/uk-format.validator';
@@ -102,93 +103,104 @@ const WHOLE_NUMBER: ValidatorFn = optional((c) =>
 export function buildStandardApplicationForm(
   fb: NonNullableFormBuilder,
 ): ApplicationsListEntryForm {
-  return fb.group({
-    applicationTitle: fb.control<string | null>(null),
-    applicantType: fb.control<ApplicantType>('person'),
-    applicant: fb.control<Applicant | null>(null),
-    standardApplicantCode: fb.control<string | null>(null, [
-      Validators.pattern(STANDARD_APPLICANT_CODE_REGEX),
-      standardApplicantCodeConditionalRequired,
-    ]),
-    applicationCode: fb.control<string | null>(null, {
-      validators: [REQUIRED, Validators.pattern(APPLICATION_CODE_REGEX)],
-    }),
-    respondentEntryType: fb.control<RespondentEntryType | null>('person'),
-    respondent: fb.control<Respondent | null>(null),
-    numberOfRespondents: fb.control<number | null>(null, {
-      validators: [
-        MAX_4,
-        WHOLE_NUMBER,
-        MIN_RESPONDENT_INTEGER,
-        MAX_RESPONDENT_INTEGER,
-      ],
-    }),
-    wordingFields: fb.control<TemplateSubstitution[] | null>(null),
-    feeStatuses: fb.control<FeeStatus[] | null>(null),
-    hasOffsiteFee: fb.control<boolean | null>(null),
-    feeStatus: fb.control<string | null>(null, {
-      validators: [],
-    }),
-    feeStatusDate: fb.control<string | null>(null, {
-      validators: [],
-    }),
-    paymentRef: fb.control<string | null>(null, {
-      validators: [],
-    }),
-    applicationNotes: fb.group({
-      notes: fb.control<string | null>(null, {
-        validators: [Validators.maxLength(4000)],
+  // Surname is required if first name is filled
+  const officialNamePairValidators = [
+    crossFormValidation('mags1FirstName', 'mags1Surname'),
+    crossFormValidation('mags2FirstName', 'mags2Surname'),
+    crossFormValidation('mags3FirstName', 'mags3Surname'),
+    crossFormValidation('officialFirstName', 'officialSurname'),
+  ];
+
+  return fb.group(
+    {
+      applicationTitle: fb.control<string | null>(null),
+      applicantType: fb.control<ApplicantType>('person'),
+      applicant: fb.control<Applicant | null>(null),
+      standardApplicantCode: fb.control<string | null>(null, [
+        Validators.pattern(STANDARD_APPLICANT_CODE_REGEX),
+        standardApplicantCodeConditionalRequired,
+      ]),
+      applicationCode: fb.control<string | null>(null, {
+        validators: [REQUIRED, Validators.pattern(APPLICATION_CODE_REGEX)],
       }),
-      caseReference: fb.control<string | null>(null, {
+      respondentEntryType: fb.control<RespondentEntryType | null>('person'),
+      respondent: fb.control<Respondent | null>(null),
+      numberOfRespondents: fb.control<number | null>(null, {
         validators: [
-          Validators.maxLength(15),
-          Validators.pattern(ALPHANUMERIC_REGEX),
+          MAX_4,
+          WHOLE_NUMBER,
+          MIN_RESPONDENT_INTEGER,
+          MAX_RESPONDENT_INTEGER,
         ],
       }),
-      accountReference: fb.control<string | null>(null, {
-        validators: [
-          Validators.maxLength(20),
-          Validators.pattern(ALPHANUMERIC_REGEX),
-        ],
+      wordingFields: fb.control<TemplateSubstitution[] | null>(null),
+      feeStatuses: fb.control<FeeStatus[] | null>(null),
+      hasOffsiteFee: fb.control<boolean | null>(null),
+      feeStatus: fb.control<string | null>(null, {
+        validators: [],
       }),
-    }) as ApplicationNotesForm,
+      feeStatusDate: fb.control<string | null>(null, {
+        validators: [],
+      }),
+      paymentRef: fb.control<string | null>(null, {
+        validators: [],
+      }),
+      applicationNotes: fb.group({
+        notes: fb.control<string | null>(null, {
+          validators: [Validators.maxLength(4000)],
+        }),
+        caseReference: fb.control<string | null>(null, {
+          validators: [
+            Validators.maxLength(15),
+            Validators.pattern(ALPHANUMERIC_REGEX),
+          ],
+        }),
+        accountReference: fb.control<string | null>(null, {
+          validators: [
+            Validators.maxLength(20),
+            Validators.pattern(ALPHANUMERIC_REGEX),
+          ],
+        }),
+      }) as ApplicationNotesForm,
 
-    lodgementDate: fb.control<string | null>(null),
-    courtName: fb.control<string | null>(null),
-    organisationName: fb.control<string | null>(null),
-    accountReference: fb.control<string | null>(null),
-    applicationDetails: fb.control<string | null>(null),
-    resultCode: fb.control<string | null>(null),
+      lodgementDate: fb.control<string | null>(null),
+      courtName: fb.control<string | null>(null),
+      organisationName: fb.control<string | null>(null),
+      accountReference: fb.control<string | null>(null),
+      applicationDetails: fb.control<string | null>(null),
+      resultCode: fb.control<string | null>(null),
 
-    mags1Title: fb.control<string | null>(null),
-    mags1FirstName: fb.control<string | null>(null, {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX), optional(REQUIRED)],
-    }),
-    mags1Surname: fb.control<string | null>(null, {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX), optional(REQUIRED)],
-    }),
-    mags2Title: fb.control<string | null>(null),
-    mags2FirstName: fb.control<string | null>(null, {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX), optional(REQUIRED)],
-    }),
-    mags2Surname: fb.control<string | null>(null, {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX), optional(REQUIRED)],
-    }),
-    mags3Title: fb.control<string | null>(null),
-    mags3FirstName: fb.control<string | null>(null, {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX), optional(REQUIRED)],
-    }),
-    mags3Surname: fb.control<string | null>(null, {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX), optional(REQUIRED)],
-    }),
-    officialTitle: fb.control<string | null>(null),
-    officialFirstName: fb.control<string | null>(null, {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX), optional(REQUIRED)],
-    }),
-    officialSurname: fb.control<string | null>(null, {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX), optional(REQUIRED)],
-    }),
-  }) as ApplicationsListEntryForm;
+      mags1Title: fb.control<string | null>(null),
+      mags1FirstName: fb.control<string | null>(null, {
+        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      }),
+      mags1Surname: fb.control<string | null>(null, {
+        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      }),
+      mags2Title: fb.control<string | null>(null),
+      mags2FirstName: fb.control<string | null>(null, {
+        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      }),
+      mags2Surname: fb.control<string | null>(null, {
+        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      }),
+      mags3Title: fb.control<string | null>(null),
+      mags3FirstName: fb.control<string | null>(null, {
+        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      }),
+      mags3Surname: fb.control<string | null>(null, {
+        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      }),
+      officialTitle: fb.control<string | null>(null),
+      officialFirstName: fb.control<string | null>(null, {
+        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      }),
+      officialSurname: fb.control<string | null>(null, {
+        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      }),
+    },
+    { validators: officialNamePairValidators },
+  ) as ApplicationsListEntryForm;
 }
 
 export function buildPersonOrgSharedControls(

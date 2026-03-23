@@ -7,7 +7,7 @@
       <app-select-input
         formControlName="mags1Title"
         label="Select magistrate’s title"
-        idPrefix="mags1-title"
+        idPrefix="officials-mags1-title"
         [options]="titleOptions"
       />
     </div>
@@ -16,7 +16,8 @@
       <app-text-input
         formControlName="mags1FirstName"
         label="Magistrate’s first name"
-        idPrefix="mags1-first-name"
+        idPrefix="officials-mags1-first-name"
+        [error]="errorFor('officials-mags1-first-name')"
         widthClass="govuk-!-width-full"
       />
     </div>
@@ -25,7 +26,8 @@
       <app-text-input
         formControlName="mags1Surname"
         label="Magistrate’s surname"
-        idPrefix="mags1-surname"
+        idPrefix="officials-mags1-surname"
+        [error]="errorFor('officials-mags1-surname')"
         widthClass="govuk-!-width-full"
       />
     </div>
@@ -43,7 +45,7 @@
       <app-select-input
         formControlName="mags2Title"
         label="Select magistrate’s title"
-        idPrefix="mags2-title"
+        idPrefix="officials-mags2-title"
         [options]="titleOptions"
       />
     </div>
@@ -52,7 +54,8 @@
       <app-text-input
         formControlName="mags2FirstName"
         label="Magistrate’s first name"
-        idPrefix="mags2-first-name"
+        idPrefix="officials-mags2-first-name"
+        [error]="errorFor('officials-mags2-first-name')"
         widthClass="govuk-!-width-full"
       />
     </div>
@@ -61,7 +64,8 @@
       <app-text-input
         formControlName="mags2Surname"
         label="Magistrate’s surname"
-        idPrefix="mags2-surname"
+        idPrefix="officials-mags2-surname"
+        [error]="errorFor('officials-mags2-surname')"
         widthClass="govuk-!-width-full"
       />
     </div>
@@ -79,7 +83,7 @@
       <app-select-input
         formControlName="mags3Title"
         label="Select magistrate’s title"
-        idPrefix="mags3-title"
+        idPrefix="officials-mags3-title"
         [options]="titleOptions"
       />
     </div>
@@ -88,7 +92,8 @@
       <app-text-input
         formControlName="mags3FirstName"
         label="Magistrate’s first name"
-        idPrefix="mags3-first-name"
+        idPrefix="officials-mags3-first-name"
+        [error]="errorFor('officials-mags3-first-name')"
         widthClass="govuk-!-width-full"
       />
     </div>
@@ -97,7 +102,8 @@
       <app-text-input
         formControlName="mags3Surname"
         label="Magistrate’s surname"
-        idPrefix="mags3-surname"
+        idPrefix="officials-mags3-surname"
+        [error]="errorFor('officials-mags3-surname')"
         widthClass="govuk-!-width-full"
       />
     </div>
@@ -114,7 +120,7 @@
       <app-select-input
         formControlName="officialTitle"
         label="Select court official’s title"
-        idPrefix="official-title"
+        idPrefix="officials-official-title"
         [options]="titleOptions"
       />
     </div>
@@ -123,7 +129,8 @@
       <app-text-input
         formControlName="officialFirstName"
         label="Official’s first name"
-        idPrefix="official-first-name"
+        idPrefix="officials-official-first-name"
+        [error]="errorFor('officials-official-first-name')"
         widthClass="govuk-!-width-full"
       />
     </div>
@@ -132,7 +139,8 @@
       <app-text-input
         formControlName="officialSurname"
         label="Official’s surname"
-        idPrefix="official-surname"
+        idPrefix="officials-official-surname"
+        [error]="errorFor('officials-official-surname')"
         widthClass="govuk-!-width-full"
       />
     </div>

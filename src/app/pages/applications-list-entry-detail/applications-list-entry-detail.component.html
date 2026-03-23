@@ -126,6 +126,7 @@
   <ng-template #officialsTpl>
     <app-officials-section
       [group]="form"
+      [errors]="vm().summaryErrors"
       (saveOfficialsClicked)="onSaveOfficials()"
     />
   </ng-template>
