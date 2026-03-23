@@ -33,5 +33,6 @@ nodejs:
   environment:
     ALLOW_CONFIG_MUTATIONS: true
     NODE_ENV: 'production'
+    APPREG_API_BASE_URL: https://appreg-api.{{ .Values.global.environment }}.platform.hmcts.net
     TESTVAR: 'testvalue'
     LOG_LEVEL: 'DEBUG'
