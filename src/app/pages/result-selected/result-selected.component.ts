@@ -20,7 +20,6 @@ import {
 } from '@components/error-summary/error-summary.component';
 import { ResultWordingSectionComponent } from '@components/result-wording-section/result-wording-section.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
-import { WarningBannerComponent } from '@components/warning-banner/warning-banner.component';
 import { ENTRY_SUCCESS_MESSAGES } from '@constants/application-list-entry/success-messages';
 import { SuccessBanner } from '@core-types/banner/banner.types';
 import { ResultGetDto } from '@openapi';
