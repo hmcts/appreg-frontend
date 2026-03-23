@@ -1,13 +1,19 @@
 import { FormBuilder } from '@angular/forms';
 
 import {
+  buildEntryUpdateDtoFromForm,
   buildOrganisationForm,
   buildPersonForm,
   buildPersonOrgSharedControls,
   buildStandardApplicationForm,
   getRespondentEntryType,
 } from '@components/applications-list-entry-detail/util/entry-detail.form';
-import type { Organisation, Person, Respondent } from '@openapi';
+import type {
+  EntryGetDetailDto,
+  Organisation,
+  Person,
+  Respondent,
+} from '@openapi';
 
 describe('applications-list entry form builders', () => {
   const fb = new FormBuilder().nonNullable;
@@ -190,6 +196,116 @@ describe('applications-list entry form builders', () => {
       const r = mkRespondent({}); // neither person nor organisation
       expect(getRespondentEntryType(null)).toBeNull();
       expect(getRespondentEntryType(r)).toBeNull();
+    });
+  });
+
+  describe('buildEntryUpdateDtoFromForm', () => {
+    const personApplicant = {
+      person: {
+        name: {
+          firstForename: 'Jane',
+          surname: 'Doe',
+        },
+        contactDetails: {
+          addressLine1: '1 Street',
+        },
+      },
+    };
+
+    const baseDetail: EntryGetDetailDto = {
+      applicationCode: 'APP-100',
+      standardApplicantCode: 'STD-OLD',
+      applicant: personApplicant,
+      respondent: undefined,
+      numberOfRespondents: undefined,
+      feeStatuses: undefined,
+      hasOffsiteFee: undefined,
+      caseReference: undefined,
+      accountNumber: undefined,
+      notes: undefined,
+      lodgementDate: '2025-01-01',
+    } as unknown as EntryGetDetailDto;
+
+    const blankPerson = {
+      title: null,
+      firstName: '',
+      middleNames: '',
+      surname: null,
+      addressLine1: '',
+      addressLine2: '',
+      addressLine3: '',
+      addressLine4: '',
+      addressLine5: '',
+      postcode: null,
+      phoneNumber: null,
+      mobileNumber: null,
+      emailAddress: null,
+    };
+
+    const blankOrg = {
+      name: '',
+      addressLine1: '',
+      addressLine2: '',
+      addressLine3: '',
+      addressLine4: '',
+      addressLine5: '',
+      postcode: null,
+      phoneNumber: null,
+      mobileNumber: null,
+      emailAddress: null,
+    };
+
+    it('clears applicant when applicantType is standard', () => {
+      const dto = buildEntryUpdateDtoFromForm(
+        baseDetail,
+        {
+          applicantType: 'standard',
+          standardApplicantCode: '  STD-123  ',
+          applicationCode: 'APP-100',
+          respondentEntryType: 'person',
+          applicationNotes: {
+            notes: null,
+            caseReference: null,
+            accountReference: null,
+          },
+        } as never,
+        blankPerson as never,
+        blankOrg as never,
+        blankPerson as never,
+        blankOrg as never,
+      );
+
+      expect(dto.standardApplicantCode).toBe('STD-123');
+      expect('applicant' in dto).toBe(false);
+    });
+
+    it('clears stale standardApplicantCode when applicantType is person', () => {
+      const dto = buildEntryUpdateDtoFromForm(
+        baseDetail,
+        {
+          applicantType: 'person',
+          standardApplicantCode: 'STD-OLD',
+          applicationCode: 'APP-100',
+          respondentEntryType: 'person',
+          applicationNotes: {
+            notes: null,
+            caseReference: null,
+            accountReference: null,
+          },
+        } as never,
+        {
+          ...blankPerson,
+          firstName: 'John',
+          surname: 'Smith',
+          addressLine1: '1 Street',
+        } as never,
+        blankOrg as never,
+        blankPerson as never,
+        blankOrg as never,
+      );
+
+      expect(dto.applicant?.person?.name?.firstForename).toBe('John');
+      expect('standardApplicantCode' in dto).toBe(false);
     });
   });
 });
