@@ -26,7 +26,8 @@
 <h1 class="govuk-heading-xl">Result applications</h1>
 
 @if (mixedResultedAndUnresultedApplications) {
-  <app-warning-banner
+  <app-alert
+    alertType="warning"
     [message]="'Resulted applications are hidden. Only applications without a result (No) are selected for processing.'"
   />
 }

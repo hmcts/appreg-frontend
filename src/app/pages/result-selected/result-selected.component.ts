@@ -9,6 +9,7 @@ import {
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
+import { AlertComponent } from '@components/alert/alert.component';
 import { focusSuccessBanner } from '@components/applications-list-entry-detail/util/banners.util';
 import { APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { mapHttpErrorToSummary } from '@components/applications-list-entry-detail/util/errors.util';
@@ -20,7 +21,6 @@ import {
 } from '@components/error-summary/error-summary.component';
 import { ResultWordingSectionComponent } from '@components/result-wording-section/result-wording-section.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
-import { WarningBannerComponent } from '@components/warning-banner/warning-banner.component';
 import { ENTRY_SUCCESS_MESSAGES } from '@constants/application-list-entry/success-messages';
 import { SuccessBanner } from '@core-types/banner/banner.types';
 import { ResultGetDto } from '@openapi';
@@ -42,10 +42,10 @@ import {
     FormsModule,
     ReactiveFormsModule,
     BreadcrumbsComponent,
-    WarningBannerComponent,
     ResultWordingSectionComponent,
     SuccessBannerComponent,
     ErrorSummaryComponent,
+    AlertComponent,
   ],
   templateUrl: './result-selected.component.html',
 })
