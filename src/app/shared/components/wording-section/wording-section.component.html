@@ -1,3 +1,11 @@
+@if (saveSuccessful()) {
+  <app-alert
+    alertType="success"
+    message="Successfully saved wording"
+    [allowDismiss]="true"
+  />
+}
+
 <app-wording-parser
   [wordingObject]="wordingObject()"
   [wordingObjectValues]="wordingObjectValues()"
