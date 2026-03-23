@@ -82,7 +82,6 @@ import { RespondentSectionComponent } from '@components/respondent-section/respo
 import { ResultWordingSectionComponent } from '@components/result-wording-section/result-wording-section.component';
 import { TableColumn } from '@components/selectable-sortable-table/selectable-sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
-import { TextInputComponent } from '@components/text-input/text-input.component';
 import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
 import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
 import {
@@ -160,7 +159,6 @@ export const ERROR_HREFS = {
     RouterModule,
     BreadcrumbsComponent,
     AccordionComponent,
-    TextInputComponent,
     ErrorSummaryComponent,
     SuccessBannerComponent,
     NotesSectionComponent,
@@ -650,7 +648,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   onSaveOfficials(): void {
     this.resetErrors();
     this.resetSuccessBanner();
-    this.formSubmitted.set(true);
+    this.appListEntryDetailPatch({ formSubmitted: true });
 
     if (this.runFullSubmitValidation()) {
       return;

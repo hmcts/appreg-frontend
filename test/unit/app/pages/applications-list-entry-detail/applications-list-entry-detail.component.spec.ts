@@ -12,7 +12,10 @@ import {
 import { Observable, of } from 'rxjs';
 
 import { ApplicationsListEntryDetail } from '@components/applications-list-entry-detail/applications-list-entry-detail.component';
-import { buildOfficialsFromFormValue, officialsToFormPatch } from '@components/applications-list-entry-detail/util/entry-detail.form';
+import {
+  buildOfficialsFromFormValue,
+  officialsToFormPatch,
+} from '@components/applications-list-entry-detail/util/entry-detail.form';
 import {
   ApplicationCodeGetDetailDto,
   ApplicationCodePage,
