@@ -22,6 +22,7 @@
     "dev:stub": "yarn mock:sync && concurrently --names \"MOCK,NODE,ANGULAR\" -c \"bgMagenta.bold,bgBlue.bold,bgGreen.bold\" \"yarn start:mock\" \"yarn start:dev\" \"yarn watch\"",
     "dev:stub:no-sso": "yarn mock:sync && concurrently --names \"MOCK,NODE,ANGULAR\" -c \"bgMagenta.bold,bgBlue.bold,bgGreen.bold\" \"yarn start:mock\" \"DEV_BYPASS_SSO=true yarn start:dev\" \"yarn watch\"",
     "dev:stg": "APPREG_API_BASE_URL=https://appreg-api.staging.platform.hmcts.net concurrently --names \"VERIFY-STG-ACCESS,NODE,ANGULAR\" -c \"bgRed.bold,bgBlue.bold,bgGreen.bold\" \"yarn verify-stg-access\" \"yarn start:dev\" \"yarn watch\"",
+    "dev:demo": "APPREG_API_BASE_URL=https://appreg-api.demo.platform.hmcts.net concurrently --names \"VERIFY-STG-ACCESS,NODE,ANGULAR\" -c \"bgRed.bold,bgBlue.bold,bgGreen.bold\" \"yarn verify-stg-access\" \"yarn start:dev\" \"yarn watch\"",
     "lint": "yarn api:all && stylelint **/*.scss -v -q && eslint . --ext .js,.ts --max-warnings 0 && prettier --check .",
     "lint:fix": "prettier --write . && eslint --fix .",
     "build": "ng build",

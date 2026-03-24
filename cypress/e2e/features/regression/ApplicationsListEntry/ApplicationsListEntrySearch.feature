@@ -4,7 +4,7 @@ Feature: Applications List Entry Search
     Scenario: Verify components on applications list entry (ALE) search page
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
-        Then User clicks on the link using exact text match "Applications"
+        Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"
         Then User Should See The Date Field "List date"
         Then User Sees Text "For example, 27 3 2007" In "List date" Field
@@ -28,7 +28,7 @@ Feature: Applications List Entry Search
     Scenario Outline: Verify applications list entry table shows empty state with no results
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
-        Then User clicks on the link using exact text match "Applications"
+        Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"
         When User Searches Application List Entry With:
             | Date         | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | Criminal justice area | Other location description | Standard applicant code | Account reference |
@@ -65,7 +65,7 @@ Feature: Applications List Entry Search
             | respondent.organisation.contactDetails.addressLine2 | Bristol                        |
             | respondent.organisation.contactDetails.addressLine3 | Avon                           |
             | respondent.organisation.contactDetails.addressLine4 | United Kingdom                 |
-            | respondent.organisation.contactDetails.postcode     | BS15 5AA                        |
+            | respondent.organisation.contactDetails.postcode     | BS15 5AA                       |
             | respondent.organisation.contactDetails.phone        | 0117{RANDOM}                   |
             | respondent.organisation.contactDetails.mobile       | 07984{RANDOM}                  |
             | respondent.organisation.contactDetails.email        | respondent{RANDOM}@example.com |
@@ -95,7 +95,7 @@ Feature: Applications List Entry Search
         Then User Verify Response Status Code Should Be "201"
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
-        Then User clicks on the link using exact text match "Applications"
+        Then User Clicks On The Link Using Exact Text Match "Applications"
         And User Verify The Page URL Contains "/applications"
         When User Searches Application List Entry With:
             | Date         | CourtSearch   | Court   | Applicant organisation | Applicant surname  | Respondent organisation | Respondent surname  | Select application status | Respondent post code | CJASearch   | Criminal justice area | Other location description | Standard applicant code | Account reference  |
@@ -142,7 +142,7 @@ Feature: Applications List Entry Search
             | respondent.person.contactDetails.addressLine2 | Bristol                        |
             | respondent.person.contactDetails.addressLine3 | Avon                           |
             | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
-            | respondent.person.contactDetails.postcode     | BS15 5AA                        |
+            | respondent.person.contactDetails.postcode     | BS15 5AA                       |
             | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
@@ -173,7 +173,7 @@ Feature: Applications List Entry Search
         Then User Verify Response Status Code Should Be "201"
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
-        Then User clicks on the link using exact text match "Applications"
+        Then User Clicks On The Link Using Exact Text Match "Applications"
         And User Verify The Page URL Contains "/applications"
         When User Searches Application List Entry With:
             | Date         | CourtSearch   | Court   | Applicant organisation | Applicant surname  | Respondent organisation | Respondent surname  | Select application status | Respondent post code | CJASearch   | Criminal justice area | Other location description | Standard applicant code | Account reference  |
@@ -186,13 +186,13 @@ Feature: Applications List Entry Search
             | <DisplayDate> | <Applicant> | <Respondent> | <ApplicationTitle> | <Fee> | <Resulted> | <Status> |
         Examples:
             | User  | Dateiso  | Time           | Description                             | DurationHours | DurationMinutes | otherLocationDescription         | SearchDate | CourtSearch | Court | ApplicantOrg | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA    | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant                | Respondent              | ApplicationTitle                               | Fee | Resulted | Status |
-            | user1 | todayiso | timenowhhmm-2h | Applications to review at Test_{RANDOM} | 1             | 11              | Temporary Courtroom at Town Hall |            |             |       |              |                  |               |                   | Open         | BS15 5AA            | 01        | London |               |               |                  | Application list entries | todaydisplay | Mr Henry Taylor {RANDOM} | Ms Emily Clark {RANDOM} | Issue of liability order summons - council tax | No  | No       | OPEN   |
+            | user1 | todayiso | timenowhhmm-2h | Applications to review at Test_{RANDOM} | 1             | 11              | Temporary Courtroom at Town Hall |            |             |       |              |                  |               |                   | Open         | BS15 5AA           | 01        | London |               |               |                  | Application list entries | todaydisplay | Mr Henry Taylor {RANDOM} | Ms Emily Clark {RANDOM} | Issue of liability order summons - council tax | No  | No       | OPEN   |
 
     @regression @ARCPOC-222 @ARCPOC-442 @ARCPOC-1083
     Scenario: Verify Validation Error Messages on Application list entry Search Page
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
-        Then User clicks on the link using exact text match "Applications"
+        Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"
         When User Clicks On The "Search" Button
         Then User Sees Validation Error Banner "There is a problem Invalid Search Criteria. At least one field must be entered."
@@ -230,7 +230,7 @@ Feature: Applications List Entry Search
     Scenario Outline: Verify Applications List Entry table sorting functionality
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
-        Then User clicks on the link using exact text match "Applications"
+        Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"
         # Search to get table with data
         Then User Selects "<Status>" In The "Select application status" Dropdown
