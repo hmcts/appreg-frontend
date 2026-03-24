@@ -1,3 +1,11 @@
+/*
+Polls /jobs/{jobId} for async bulk-upload jobs.
+Normalises the currently expected terminal states (SUCCEEDED,
+COMPLETED_WITH_ERRORS and FAILED), treats COMPLETED as success for
+compatibility, and reads counts/messages from a few possible response shapes
+while the job-status contract is still settling.
+*/
+
 import { HttpResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, exhaustMap, map, takeWhile, timer } from 'rxjs';
