@@ -67,6 +67,8 @@ export class CivilFeeSectionComponent implements OnInit {
 
   readonly entryId = this.route.snapshot.paramMap.get('id');
 
+  autoSaveOffsiteFee = input(false);
+
   feeForm = input.required<CivilFeeForm>();
   civilFeeColumns = input.required<TableColumn[]>();
   feeStatusOptions = input.required<{ value: string; label: string }[]>();
