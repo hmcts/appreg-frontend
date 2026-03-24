@@ -37,6 +37,12 @@ const REPORT_CSV_DEFAULT = 'reports/sample.csv';
 const REPORT_CSV_FILENAME = 'report.csv';
 
 const FIXTURE_OVERRIDES = Object.freeze({
+  'application-list-entries:bulkUploadApplicationListEntries:202':
+    path.posix.join(
+      FIXTURE_ROOT,
+      'actions',
+      'bulk-upload-application-list-entries-202.json',
+    ),
   'jobs:getJobStatusById:200': path.posix.join(
     FIXTURE_ROOT,
     'jobs',
