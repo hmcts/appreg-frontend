@@ -333,6 +333,20 @@ describe('WordingParserComponent', () => {
     });
   });
 
+  describe('getInputWidthClass', () => {
+    it('should return width-20 when key length is greater than 15', () => {
+      expect(component.getInputWidthClass('abcdefghijklmnop')).toBe(
+        'govuk-input--width-20',
+      );
+    });
+
+    it('should return width-10 when key length is 15 or less', () => {
+      expect(component.getInputWidthClass('abcdefghijklmno')).toBe(
+        'govuk-input--width-10',
+      );
+    });
+  });
+
   describe('validateForSubmit()', () => {
     it('returns errors and emits wordingFieldErrors when invalid', () => {
       init(

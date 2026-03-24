@@ -566,64 +566,7 @@ describe('ApplicationsListDetail', () => {
   });
 
   describe('onResultButtonClick', () => {
-    it('sets errorSummary message and does not navigate when all selected are resulted (plural)', () => {
-      const router = TestBed.inject(Router);
-      const navSpy = jest.spyOn(router, 'navigate');
-
-      patchDetailState({
-        selectedRows: [
-          {
-            sequenceNumber: 1,
-            applicant: 'A',
-            respondent: 'R',
-            title: 'T1',
-            resulted: 'Yes',
-          },
-          {
-            sequenceNumber: 2,
-            applicant: 'B',
-            respondent: 'S',
-            title: 'T2',
-            resulted: 'Yes',
-          },
-        ],
-      });
-
-      component.onResultButtonClick();
-
-      expect(vm().errorSummary).toHaveLength(1);
-      expect(vm().errorSummary[0].text).toBe(
-        'These applications have already been resulted.',
-      );
-      expect(navSpy).not.toHaveBeenCalled();
-    });
-
-    it('sets errorSummary message and does not navigate when all selected are resulted (singular)', () => {
-      const router = TestBed.inject(Router);
-      const navSpy = jest.spyOn(router, 'navigate');
-
-      patchDetailState({
-        selectedRows: [
-          {
-            sequenceNumber: 1,
-            applicant: 'A',
-            respondent: 'R',
-            title: 'T1',
-            resulted: 'Yes',
-          },
-        ],
-      });
-
-      component.onResultButtonClick();
-
-      expect(vm().errorSummary).toHaveLength(1);
-      expect(vm().errorSummary[0].text).toBe(
-        'This application has already been resulted.',
-      );
-      expect(navSpy).not.toHaveBeenCalled();
-    });
-
-    it('navigates with mixedResultedAndUnresultedApplications = true for mixed selection', () => {
+    it('navigates to result-selected with selected  applications', () => {
       const router = TestBed.inject(Router);
       const navSpy = jest.spyOn(router, 'navigate');
 
@@ -649,11 +592,18 @@ describe('ApplicationsListDetail', () => {
       component.onResultButtonClick();
 
       expect(navSpy).toHaveBeenCalledTimes(1);
+
       expect(navSpy).toHaveBeenCalledWith(
         ['result-selected'],
         expect.objectContaining({
           state: {
             resultingApplications: [
+              {
+                sequenceNumber: 1,
+                applicant: 'A',
+                respondent: 'R',
+                title: 'T1',
+              },
               {
                 sequenceNumber: 2,
                 applicant: 'B',
@@ -661,57 +611,6 @@ describe('ApplicationsListDetail', () => {
                 title: 'T2',
               },
             ],
-            mixedResultedAndUnresultedApplications: true,
-          },
-        }),
-      );
-    });
-
-    it('navigates with mixedResultedAndUnresultedApplications = false when all unresulted', () => {
-      const router = TestBed.inject(Router);
-      const navSpy = jest.spyOn(router, 'navigate');
-
-      patchDetailState({
-        selectedRows: [
-          {
-            sequenceNumber: 10,
-            applicant: 'X',
-            respondent: 'Y',
-            title: 'Alpha',
-            resulted: 'No',
-          },
-          {
-            sequenceNumber: 11,
-            applicant: 'Z',
-            respondent: 'W',
-            title: 'Beta',
-            resulted: 'No',
-          },
-        ],
-      });
-
-      component.onResultButtonClick();
-
-      expect(navSpy).toHaveBeenCalledTimes(1);
-      expect(navSpy).toHaveBeenCalledWith(
-        ['result-selected'],
-        expect.objectContaining({
-          state: {
-            resultingApplications: [
-              {
-                sequenceNumber: 10,
-                applicant: 'X',
-                respondent: 'Y',
-                title: 'Alpha',
-              },
-              {
-                sequenceNumber: 11,
-                applicant: 'Z',
-                respondent: 'W',
-                title: 'Beta',
-              },
-            ],
-            mixedResultedAndUnresultedApplications: false,
           },
         }),
       );

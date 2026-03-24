@@ -55,7 +55,6 @@ export class ResultSelected implements OnInit {
   readonly resultsFacade = inject(ApplicationListEntryResultsFacade);
 
   listId!: string;
-  mixedResultedAndUnresultedApplications!: boolean;
   private readonly selectedResultCode = signal<string>('');
 
   isSubmitting = signal(false);
@@ -100,9 +99,6 @@ export class ResultSelected implements OnInit {
           resultingApplications?: ApplicationEntriesResultContext[];
         }
       )?.resultingApplications ?? [];
-    this.mixedResultedAndUnresultedApplications =
-      (history.state as { mixedResultedAndUnresultedApplications?: boolean })
-        ?.mixedResultedAndUnresultedApplications ?? false;
   }
 
   onPendingChange(rows: PendingResultRow[]): void {

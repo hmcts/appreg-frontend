@@ -73,7 +73,7 @@ describe('ResultSelectedComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('ngOnInit should set rows and mixed flag from history.state when present', () => {
+  it('ngOnInit should set rows from history.state when present', () => {
     const sampleRows = [
       { id: 'r1', sequenceNumber: '1' },
       { id: 'r2', sequenceNumber: '2' },
@@ -82,7 +82,6 @@ describe('ResultSelectedComponent', () => {
     history.replaceState(
       {
         resultingApplications: sampleRows,
-        mixedResultedAndUnresultedApplications: true,
       },
       '',
     );
@@ -91,7 +90,6 @@ describe('ResultSelectedComponent', () => {
 
     expect(component.listId).toBe('73d0276f-42a3-4150-b2fd-d9b2d56b359c');
     expect(component.rows).toEqual(sampleRows);
-    expect(component.mixedResultedAndUnresultedApplications).toBeTruthy();
   });
 
   it('onPendingChange should call facade.setPending with provided rows', () => {
