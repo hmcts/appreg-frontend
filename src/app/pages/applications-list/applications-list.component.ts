@@ -48,7 +48,6 @@ import {
 import { statusSummary } from './util/delete-status';
 import { loadQuery } from './util/load-query';
 
-import { AlertComponent } from '@components/alert/alert.component';
 import {
   hasAnyParams,
   toRow,
@@ -112,7 +111,6 @@ type DeleteFlash = { kind: 'success' } | { kind: 'error'; code: number };
     PageHeaderComponent,
     DateTimePipe,
     ApplicationsListFormComponent,
-    AlertComponent,
   ],
   templateUrl: './applications-list.component.html',
 })
