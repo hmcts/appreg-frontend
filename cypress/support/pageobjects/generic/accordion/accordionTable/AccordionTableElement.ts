@@ -29,9 +29,6 @@ export class AccordionTableElement {
     columnValues: Record<string, string>,
     selectButtonText: string,
   ): Cypress.Chainable<void> {
-    return TableElement.verifyButtonInTableRows(
-      tableCaption,
-      selectButtonText,
-    );
+    return TableElement.verifyButtonInTableRows(tableCaption, selectButtonText);
   }
 }
