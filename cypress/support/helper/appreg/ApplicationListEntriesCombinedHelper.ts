@@ -139,11 +139,12 @@ export class ApplicationListEntriesCombinedHelper {
         case 'Applicant type':
         case 'Select respondent type':
         case 'Respondent type':
+        case 'Select type':
           AccordionDropdownHelper.selectDropdownInAccordion(
             accordionTitle,
             fieldLabel.includes('applicant')
               ? 'Select applicant type'
-              : 'Select respondent type',
+              : 'Select type',
             value,
           );
           break;
