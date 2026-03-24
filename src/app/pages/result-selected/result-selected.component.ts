@@ -9,7 +9,6 @@ import {
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
-import { AlertComponent } from '@components/alert/alert.component';
 import { focusSuccessBanner } from '@components/applications-list-entry-detail/util/banners.util';
 import { APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { mapHttpErrorToSummary } from '@components/applications-list-entry-detail/util/errors.util';
@@ -45,7 +44,6 @@ import {
     ResultWordingSectionComponent,
     SuccessBannerComponent,
     ErrorSummaryComponent,
-    AlertComponent,
   ],
   templateUrl: './result-selected.component.html',
 })
