@@ -77,17 +77,17 @@ import {
   ApplicationNotesForm,
   NotesSectionComponent,
 } from '@components/notes-section/notes-section.component';
+import { OfficialsSectionComponent } from '@components/officials-section/officials-section.component';
 import { RespondentSectionComponent } from '@components/respondent-section/respondent-section.component';
 import { ResultWordingSectionComponent } from '@components/result-wording-section/result-wording-section.component';
-import { SelectInputComponent } from '@components/select-input/select-input.component';
 import { TableColumn } from '@components/selectable-sortable-table/selectable-sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
-import { TextInputComponent } from '@components/text-input/text-input.component';
 import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
 import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
 import {
   APPLICANT_ORG_ERROR_HREFS,
   APPLICANT_PERSON_ERROR_HREFS,
+  OFFICIALS_ERROR_HREFS,
   RESPONDENT_BULK_ERROR_HREFS,
   RESPONDENT_ORG_ERROR_HREFS,
   RESPONDENT_PERSON_ERROR_HREFS,
@@ -147,6 +147,7 @@ const UPDATE_ENTRY_ERROR_MESSAGES = ENTRY_ERROR_MESSAGES;
 
 export const ERROR_HREFS = {
   standardApplicantCode: '#standard-applicant',
+  ...OFFICIALS_ERROR_HREFS,
   ...RESPONDENT_PERSON_ERROR_HREFS,
 } as const;
 
@@ -160,8 +161,6 @@ export const ERROR_HREFS = {
     RouterModule,
     BreadcrumbsComponent,
     AccordionComponent,
-    SelectInputComponent,
-    TextInputComponent,
     ErrorSummaryComponent,
     SuccessBannerComponent,
     NotesSectionComponent,
@@ -171,6 +170,7 @@ export const ERROR_HREFS = {
     ApplicationCodeSearchComponent,
     ApplicantSectionComponent,
     WordingSectionComponent,
+    OfficialsSectionComponent,
   ],
   templateUrl: './applications-list-entry-detail.component.html',
 })
@@ -644,6 +644,21 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.submitEntryUpdate(
       this.buildEntryUpdateDto(),
       ENTRY_SUCCESS_MESSAGES.listUpdated,
+    );
+  }
+
+  onSaveOfficials(): void {
+    this.resetErrors();
+    this.resetSuccessBanner();
+    this.appListEntryDetailPatch({ formSubmitted: true });
+
+    if (this.runFullSubmitValidation()) {
+      return;
+    }
+
+    this.submitEntryUpdate(
+      this.buildEntryUpdateDto(),
+      ENTRY_SUCCESS_MESSAGES.officialsUpdated,
     );
   }
 

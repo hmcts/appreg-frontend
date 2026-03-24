@@ -23,6 +23,7 @@ import {
   FeeStatus,
   FullName,
   Official,
+  OfficialType,
   Organisation,
   Person,
   Respondent,
@@ -54,9 +55,37 @@ import {
   OrganisationFormRaw,
   PersonFormRaw,
 } from '@util/types/applications-list-entry/types';
+import { crossFormValidation } from '@validators/cross-form.validator';
 import { optional } from '@validators/optional.validator';
 import { standardApplicantCodeConditionalRequired } from '@validators/standard-applicant-code.validator';
 import { ukMobile, ukPhone, ukPostcode } from '@validators/uk-format.validator';
+
+type MagSlot = {
+  titleKey: keyof ApplicationsListEntryFormValue;
+  firstKey: keyof ApplicationsListEntryFormValue;
+  surKey: keyof ApplicationsListEntryFormValue;
+};
+
+const hasText = (v: unknown): v is string =>
+  typeof v === 'string' && v.trim().length > 0;
+
+const MAG_SLOTS: readonly MagSlot[] = [
+  {
+    titleKey: 'mags1Title',
+    firstKey: 'mags1FirstName',
+    surKey: 'mags1Surname',
+  },
+  {
+    titleKey: 'mags2Title',
+    firstKey: 'mags2FirstName',
+    surKey: 'mags2Surname',
+  },
+  {
+    titleKey: 'mags3Title',
+    firstKey: 'mags3FirstName',
+    surKey: 'mags3Surname',
+  },
+] as const;
 
 //Assuming 60 max char length for names/addresses
 const MAX_60 = Validators.maxLength(60);
@@ -74,93 +103,104 @@ const WHOLE_NUMBER: ValidatorFn = optional((c) =>
 export function buildStandardApplicationForm(
   fb: NonNullableFormBuilder,
 ): ApplicationsListEntryForm {
-  return fb.group({
-    applicationTitle: fb.control<string | null>(null),
-    applicantType: fb.control<ApplicantType>('person'),
-    applicant: fb.control<Applicant | null>(null),
-    standardApplicantCode: fb.control<string | null>(null, [
-      Validators.pattern(STANDARD_APPLICANT_CODE_REGEX),
-      standardApplicantCodeConditionalRequired,
-    ]),
-    applicationCode: fb.control<string | null>(null, {
-      validators: [REQUIRED, Validators.pattern(APPLICATION_CODE_REGEX)],
-    }),
-    respondentEntryType: fb.control<RespondentEntryType | null>('person'),
-    respondent: fb.control<Respondent | null>(null),
-    numberOfRespondents: fb.control<number | null>(null, {
-      validators: [
-        MAX_4,
-        WHOLE_NUMBER,
-        MIN_RESPONDENT_INTEGER,
-        MAX_RESPONDENT_INTEGER,
-      ],
-    }),
-    wordingFields: fb.control<TemplateSubstitution[] | null>(null),
-    feeStatuses: fb.control<FeeStatus[] | null>(null),
-    hasOffsiteFee: fb.control<boolean | null>(null),
-    feeStatus: fb.control<string | null>(null, {
-      validators: [],
-    }),
-    feeStatusDate: fb.control<string | null>(null, {
-      validators: [],
-    }),
-    paymentRef: fb.control<string | null>(null, {
-      validators: [],
-    }),
-    applicationNotes: fb.group({
-      notes: fb.control<string | null>(null, {
-        validators: [Validators.maxLength(4000)],
+  // Surname is required if first name is filled
+  const officialNamePairValidators = [
+    crossFormValidation('mags1FirstName', 'mags1Surname'),
+    crossFormValidation('mags2FirstName', 'mags2Surname'),
+    crossFormValidation('mags3FirstName', 'mags3Surname'),
+    crossFormValidation('officialFirstName', 'officialSurname'),
+  ];
+
+  return fb.group(
+    {
+      applicationTitle: fb.control<string | null>(null),
+      applicantType: fb.control<ApplicantType>('person'),
+      applicant: fb.control<Applicant | null>(null),
+      standardApplicantCode: fb.control<string | null>(null, [
+        Validators.pattern(STANDARD_APPLICANT_CODE_REGEX),
+        standardApplicantCodeConditionalRequired,
+      ]),
+      applicationCode: fb.control<string | null>(null, {
+        validators: [REQUIRED, Validators.pattern(APPLICATION_CODE_REGEX)],
       }),
-      caseReference: fb.control<string | null>(null, {
+      respondentEntryType: fb.control<RespondentEntryType | null>('person'),
+      respondent: fb.control<Respondent | null>(null),
+      numberOfRespondents: fb.control<number | null>(null, {
         validators: [
-          Validators.maxLength(15),
-          Validators.pattern(ALPHANUMERIC_REGEX),
+          MAX_4,
+          WHOLE_NUMBER,
+          MIN_RESPONDENT_INTEGER,
+          MAX_RESPONDENT_INTEGER,
         ],
       }),
-      accountReference: fb.control<string | null>(null, {
-        validators: [
-          Validators.maxLength(20),
-          Validators.pattern(ALPHANUMERIC_REGEX),
-        ],
+      wordingFields: fb.control<TemplateSubstitution[] | null>(null),
+      feeStatuses: fb.control<FeeStatus[] | null>(null),
+      hasOffsiteFee: fb.control<boolean | null>(null),
+      feeStatus: fb.control<string | null>(null, {
+        validators: [],
       }),
-    }) as ApplicationNotesForm,
+      feeStatusDate: fb.control<string | null>(null, {
+        validators: [],
+      }),
+      paymentRef: fb.control<string | null>(null, {
+        validators: [],
+      }),
+      applicationNotes: fb.group({
+        notes: fb.control<string | null>(null, {
+          validators: [Validators.maxLength(4000)],
+        }),
+        caseReference: fb.control<string | null>(null, {
+          validators: [
+            Validators.maxLength(15),
+            Validators.pattern(ALPHANUMERIC_REGEX),
+          ],
+        }),
+        accountReference: fb.control<string | null>(null, {
+          validators: [
+            Validators.maxLength(20),
+            Validators.pattern(ALPHANUMERIC_REGEX),
+          ],
+        }),
+      }) as ApplicationNotesForm,
 
-    lodgementDate: fb.control<string | null>(null),
-    courtName: fb.control<string | null>(null),
-    organisationName: fb.control<string | null>(null),
-    accountReference: fb.control<string | null>(null),
-    applicationDetails: fb.control<string | null>(null),
-    resultCode: fb.control<string | null>(null),
+      lodgementDate: fb.control<string | null>(null),
+      courtName: fb.control<string | null>(null),
+      organisationName: fb.control<string | null>(null),
+      accountReference: fb.control<string | null>(null),
+      applicationDetails: fb.control<string | null>(null),
+      resultCode: fb.control<string | null>(null),
 
-    mags1Title: fb.control<string | null>(null),
-    mags1FirstName: fb.control<string | null>(null, {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
-    }),
-    mags1Surname: fb.control<string | null>(null, {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
-    }),
-    mags2Title: fb.control<string | null>(null),
-    mags2FirstName: fb.control<string | null>(null, {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
-    }),
-    mags2Surname: fb.control<string | null>(null, {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
-    }),
-    mags3Title: fb.control<string | null>(null),
-    mags3FirstName: fb.control<string | null>(null, {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
-    }),
-    mags3Surname: fb.control<string | null>(null, {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
-    }),
-    officialTitle: fb.control<string | null>(null),
-    officialFirstName: fb.control<string | null>(null, {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
-    }),
-    officialSurname: fb.control<string | null>(null, {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
-    }),
-  }) as ApplicationsListEntryForm;
+      mags1Title: fb.control<string | null>('mr'),
+      mags1FirstName: fb.control<string | null>(null, {
+        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      }),
+      mags1Surname: fb.control<string | null>(null, {
+        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      }),
+      mags2Title: fb.control<string | null>('mr'),
+      mags2FirstName: fb.control<string | null>(null, {
+        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      }),
+      mags2Surname: fb.control<string | null>(null, {
+        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      }),
+      mags3Title: fb.control<string | null>('mr'),
+      mags3FirstName: fb.control<string | null>(null, {
+        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      }),
+      mags3Surname: fb.control<string | null>(null, {
+        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      }),
+      officialTitle: fb.control<string | null>('mr'),
+      officialFirstName: fb.control<string | null>(null, {
+        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      }),
+      officialSurname: fb.control<string | null>(null, {
+        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      }),
+    },
+    { validators: officialNamePairValidators },
+  ) as ApplicationsListEntryForm;
 }
 
 export function buildPersonOrgSharedControls(
@@ -262,17 +302,19 @@ export function buildEntryUpdateDtoFromForm(
     accountNumber: detail.accountNumber,
     notes: detail.notes,
     lodgementDate: detail.lodgementDate,
-    ...(detail as { officials?: Official[] }),
   };
 
   // Reuse existing mapper to build a “patch”
-  const patch = buildEntryCreateDto(
-    formValue,
-    applicantPersonValue,
-    applicantOrgValue,
-    respondentPersonValue,
-    respondentOrgValue,
-  ) as unknown as Partial<EntryUpdateDto>;
+  const patch: Partial<EntryUpdateDto> = {
+    ...buildEntryCreateDto(
+      formValue,
+      applicantPersonValue,
+      applicantOrgValue,
+      respondentPersonValue,
+      respondentOrgValue,
+    ),
+    ...buildOfficialsFromFormValue(formValue),
+  };
 
   const dto: EntryUpdateDto = {
     ...base,
@@ -390,6 +432,46 @@ export function organisationToFormPatch(
   };
 }
 
+export function officialsToFormPatch(
+  officials: Official[] | null | undefined,
+): Partial<ApplicationsListEntryFormValue> {
+  if (!officials?.length) {
+    return {};
+  }
+
+  const magistrates = officials.filter(
+    (o) => o.type === OfficialType.MAGISTRATE,
+  );
+  const clerk = officials.find((o) => o.type === OfficialType.CLERK);
+
+  const patch: Partial<ApplicationsListEntryFormValue> = {};
+
+  const magSlots = [
+    { title: 'mags1Title', first: 'mags1FirstName', sur: 'mags1Surname' },
+    { title: 'mags2Title', first: 'mags2FirstName', sur: 'mags2Surname' },
+    { title: 'mags3Title', first: 'mags3FirstName', sur: 'mags3Surname' },
+  ] as const;
+
+  magistrates.slice(0, magSlots.length).forEach((m, i) => {
+    const slot = magSlots[i];
+
+    patch[slot.title] = mapTitleToOptionValue(m.title, PERSON_TITLE_OPTIONS);
+    patch[slot.first] = m.forename ?? null;
+    patch[slot.sur] = m.surname ?? null;
+  });
+
+  if (clerk) {
+    patch.officialTitle = mapTitleToOptionValue(
+      clerk.title,
+      PERSON_TITLE_OPTIONS,
+    );
+    patch.officialFirstName = clerk.forename ?? null;
+    patch.officialSurname = clerk.surname ?? null;
+  }
+
+  return patch;
+}
+
 export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
   detail: EntryGetDetailDto | null | undefined,
   key: K,
@@ -475,4 +557,61 @@ export function getRespondentEntryType(
   }
 
   return null;
+}
+
+const isOfficialFilled = (forename?: unknown, surname?: unknown): boolean =>
+  hasText(forename) || hasText(surname);
+
+const buildMagistrateOfficials = (
+  formValue: ApplicationsListEntryFormValue,
+): Official[] =>
+  MAG_SLOTS.flatMap(({ titleKey, firstKey, surKey }) => {
+    const title = formValue[titleKey];
+    const forename = formValue[firstKey];
+    const surname = formValue[surKey];
+
+    if (!isOfficialFilled(forename, surname)) {
+      return [];
+    }
+
+    return [
+      {
+        type: OfficialType.MAGISTRATE,
+        title: hasText(title) ? title.trim() : undefined,
+        forename: hasText(forename) ? forename.trim() : undefined,
+        surname: hasText(surname) ? surname.trim() : undefined,
+      },
+    ];
+  });
+
+const buildClerkOfficials = (
+  formValue: ApplicationsListEntryFormValue,
+): Official[] => {
+  const title = formValue.officialTitle;
+  const forename = formValue.officialFirstName;
+  const surname = formValue.officialSurname;
+
+  if (!isOfficialFilled(forename, surname)) {
+    return [];
+  }
+
+  return [
+    {
+      type: OfficialType.CLERK,
+      title: hasText(title) ? title.trim() : undefined,
+      forename: hasText(forename) ? forename.trim() : undefined,
+      surname: hasText(surname) ? surname.trim() : undefined,
+    },
+  ];
+};
+
+export function buildOfficialsFromFormValue(
+  formValue: ApplicationsListEntryFormValue,
+): Partial<Pick<EntryUpdateDto, 'officials'>> {
+  const officials = [
+    ...buildMagistrateOfficials(formValue),
+    ...buildClerkOfficials(formValue),
+  ];
+
+  return officials.length ? { officials } : {};
 }
