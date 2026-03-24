@@ -170,28 +170,28 @@ export function buildStandardApplicationForm(
       applicationDetails: fb.control<string | null>(null),
       resultCode: fb.control<string | null>(null),
 
-      mags1Title: fb.control<string | null>(null),
+      mags1Title: fb.control<string | null>('mr'),
       mags1FirstName: fb.control<string | null>(null, {
         validators: [MAX_60, Validators.pattern(NAME_REGEX)],
       }),
       mags1Surname: fb.control<string | null>(null, {
         validators: [MAX_60, Validators.pattern(NAME_REGEX)],
       }),
-      mags2Title: fb.control<string | null>(null),
+      mags2Title: fb.control<string | null>('mr'),
       mags2FirstName: fb.control<string | null>(null, {
         validators: [MAX_60, Validators.pattern(NAME_REGEX)],
       }),
       mags2Surname: fb.control<string | null>(null, {
         validators: [MAX_60, Validators.pattern(NAME_REGEX)],
       }),
-      mags3Title: fb.control<string | null>(null),
+      mags3Title: fb.control<string | null>('mr'),
       mags3FirstName: fb.control<string | null>(null, {
         validators: [MAX_60, Validators.pattern(NAME_REGEX)],
       }),
       mags3Surname: fb.control<string | null>(null, {
         validators: [MAX_60, Validators.pattern(NAME_REGEX)],
       }),
-      officialTitle: fb.control<string | null>(null),
+      officialTitle: fb.control<string | null>('mr'),
       officialFirstName: fb.control<string | null>(null, {
         validators: [MAX_60, Validators.pattern(NAME_REGEX)],
       }),
@@ -498,6 +498,7 @@ export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
     accountNumber: detail.accountNumber,
     notes: detail.notes,
     lodgementDate: detail.lodgementDate,
+    ...(detail as { officials?: Official[] }),
   };
 
   return {
