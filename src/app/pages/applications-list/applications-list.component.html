@@ -10,7 +10,12 @@
   ]"
 />
 
-<app-alert alertType="warning" message="warning test"></app-alert>
+<app-alert
+  alertType="warning"
+  title="title test"
+  [href]="{ href: '/', msg: 'test link' }"
+  message="warning test"
+></app-alert>
 <app-alert alertType="error" message="error test"></app-alert>
 <app-alert alertType="information" message="information test"></app-alert>
 <app-alert alertType="success" message="success test"></app-alert>
