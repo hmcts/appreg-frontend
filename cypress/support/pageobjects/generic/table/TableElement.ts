@@ -205,4 +205,22 @@ export class TableElement {
     }
     return 1;
   }
+
+  /**
+   * Gets the last page link from pagination
+   * @param $body The body element to search within
+   * @returns JQuery element of the last page link
+   */
+  static verifyButtonInTableRows(
+    tableCaption: string,
+    buttonText: string,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return this.findTable(tableCaption)
+      .find('tbody tr')
+      .find('td')
+      .last()
+      .find('button')
+      .should('contain', buttonText)
+      .click();
+  }
 }
