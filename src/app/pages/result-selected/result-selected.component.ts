@@ -20,7 +20,6 @@ import {
 } from '@components/error-summary/error-summary.component';
 import { ResultWordingSectionComponent } from '@components/result-wording-section/result-wording-section.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
-import { WarningBannerComponent } from '@components/warning-banner/warning-banner.component';
 import { ENTRY_SUCCESS_MESSAGES } from '@constants/application-list-entry/success-messages';
 import { SuccessBanner } from '@core-types/banner/banner.types';
 import { ResultGetDto } from '@openapi';
@@ -42,7 +41,6 @@ import {
     FormsModule,
     ReactiveFormsModule,
     BreadcrumbsComponent,
-    WarningBannerComponent,
     ResultWordingSectionComponent,
     SuccessBannerComponent,
     ErrorSummaryComponent,
@@ -55,7 +53,6 @@ export class ResultSelected implements OnInit {
   readonly resultsFacade = inject(ApplicationListEntryResultsFacade);
 
   listId!: string;
-  mixedResultedAndUnresultedApplications!: boolean;
   private readonly selectedResultCode = signal<string>('');
 
   isSubmitting = signal(false);
@@ -100,9 +97,6 @@ export class ResultSelected implements OnInit {
           resultingApplications?: ApplicationEntriesResultContext[];
         }
       )?.resultingApplications ?? [];
-    this.mixedResultedAndUnresultedApplications =
-      (history.state as { mixedResultedAndUnresultedApplications?: boolean })
-        ?.mixedResultedAndUnresultedApplications ?? false;
   }
 
   onPendingChange(rows: PendingResultRow[]): void {

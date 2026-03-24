@@ -45,11 +45,6 @@ export const DETAIL_GROUP_MESSAGES = {
     'You can not have Court and Other Location or CJA filled in',
 } as const;
 
-export const RESULT_ERROR_MESSAGES = {
-  singleResulted: 'This application has already been resulted.',
-  allResulted: 'These applications have already been resulted.',
-};
-
 export const CLOSE_MESSAGES = {
   closeInvalid:
     'You cannot close this list. See the error summary for details.',
