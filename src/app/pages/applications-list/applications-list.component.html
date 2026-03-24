@@ -10,6 +10,11 @@
   ]"
 />
 
+<app-alert alertType="warning" message="warning test"></app-alert>
+<app-alert alertType="error" message="error test"></app-alert>
+<app-alert alertType="information" message="information test"></app-alert>
+<app-alert alertType="success" message="success test"></app-alert>
+
 @if (storedRecordsVm().submitted && vm().searchErrors.length) {
   <app-error-summary
     [title]="'There is a problem'"
