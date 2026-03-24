@@ -32,6 +32,16 @@ export class AccordionElement {
       throw new Error(`Accordion "${accordionTitle}" not found`);
     });
   }
+  static getAccordionContent(
+    accordionTitle: string,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return this.findAccordionSection(accordionTitle).then(($section) => {
+      const selector = $section.is('details')
+        ? '.govuk-details__text'
+        : '.govuk-accordion__section-content';
+      return cy.wrap($section.find(selector).first());
+    });
+  }
 
   static findAccordionSection(
     accordionTitle: string,
@@ -62,17 +72,6 @@ export class AccordionElement {
       return cy.wrap($button) as unknown as Cypress.Chainable<
         JQuery<HTMLElement>
       >;
-    });
-  }
-
-  static getAccordionContent(
-    accordionTitle: string,
-  ): Cypress.Chainable<JQuery<HTMLElement>> {
-    return this.findAccordionSection(accordionTitle).then(($section) => {
-      const selector = $section.is('details')
-        ? '.govuk-details__text'
-        : '.govuk-accordion__section-content';
-      return cy.wrap($section.find(selector).first());
     });
   }
 

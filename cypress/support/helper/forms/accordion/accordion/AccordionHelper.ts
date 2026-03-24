@@ -1,3 +1,5 @@
+/// <reference types="cypress" />
+
 import { AccordionElement } from '../../../../pageobjects/generic/accordion/accordion/AccordionElement';
 
 export class AccordionHelper {
@@ -42,35 +44,5 @@ export class AccordionHelper {
         this.toggleAccordion(accordionTitle);
       }
     });
-  }
-
-  /**
-   * Generic method to verify the value of an accordion by its title
-   */
-  static verifyAccordionValue(
-    accordionTitle: string,
-    expectedValue: string,
-  ): void {
-    AccordionElement.getAccordionContent(accordionTitle).contains(
-      expectedValue,
-    );
-  }
-
-  /**
-   * Generic method to verify the value of an accordion by its title
-   */
-  static verifyAccordionTextboxPlaceholder(
-    accordionTitle: string,
-    placeholder: string,
-    value: string,
-  ): void {
-    AccordionElement.getAccordionContent(accordionTitle)
-      .find('input')
-      .should('have.attr', 'placeholder', placeholder)
-      .type(value);
-  }
-
-  static scrollIntoViewAccordion(accordionTitle: string): void {
-    AccordionElement.findAccordion(accordionTitle).scrollIntoView();
   }
 }

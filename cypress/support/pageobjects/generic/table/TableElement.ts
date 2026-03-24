@@ -220,6 +220,7 @@ export class TableElement {
       .find('td')
       .last()
       .find('button')
+      .should('contain', buttonText)
       .click();
   }
 }

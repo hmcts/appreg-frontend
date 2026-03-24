@@ -1,3 +1,4 @@
+import { AccordionElement } from '../../../../pageobjects/generic/accordion/accordion/AccordionElement';
 import { AccordionTextboxElement } from '../../../../pageobjects/generic/accordion/accordionTextbox/AccordionTextboxElement';
 import { AccordionHelper } from '../accordion/AccordionHelper';
 
@@ -34,5 +35,35 @@ export class AccordionTextboxHelper {
       accordionTitle,
       textboxLabel,
     ).should('have.value', expectedValue);
+  }
+
+  /**
+   * Generic method to verify the value of an accordion by its title
+   */
+  static verifyAccordionValue(
+    accordionTitle: string,
+    expectedValue: string,
+  ): void {
+    AccordionElement.getAccordionContent(accordionTitle).contains(
+      expectedValue,
+    );
+  }
+
+  /**
+   * Generic method to verify the value of an accordion by its title
+   */
+  static verifyAccordionTextboxPlaceholder(
+    accordionTitle: string,
+    placeholder: string,
+    value: string,
+  ): void {
+    AccordionElement.getAccordionContent(accordionTitle)
+      .find('input')
+      .should('have.attr', 'placeholder', placeholder)
+      .type(value);
+  }
+
+  static scrollIntoViewAccordion(accordionTitle: string): void {
+    AccordionElement.findAccordion(accordionTitle).scrollIntoView();
   }
 }
