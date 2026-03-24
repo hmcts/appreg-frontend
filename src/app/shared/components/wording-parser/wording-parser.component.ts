@@ -1,3 +1,4 @@
+import { NgClass } from '@angular/common';
 import {
   Component,
   DestroyRef,
@@ -27,7 +28,7 @@ export type Token =
 
 @Component({
   selector: 'app-wording-parser',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, NgClass],
   templateUrl: './wording-parser.component.html',
 })
 export class WordingParserComponent {
@@ -88,6 +89,10 @@ export class WordingParserComponent {
 
       this.submitWordingFields();
     });
+  }
+
+  getInputWidthClass(key: string): string {
+    return key.length > 15 ? 'govuk-input--width-20' : 'govuk-input--width-10';
   }
 
   createFormControls(): void {
