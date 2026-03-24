@@ -54,6 +54,7 @@ import {
 } from './util/entry-detail.constants';
 import { buildEntryUpdateDtoWithChange } from './util/entry-detail.form';
 import { mapHttpErrorToSummary } from './util/errors.util';
+import { buildResultApplicantContext } from './util/result-context.util';
 import { getEntryId } from './util/routing.util';
 
 import { AccordionComponent } from '@components/accordion/accordion.component';
@@ -61,6 +62,7 @@ import { ApplicantSectionComponent } from '@components/applicant-section/applica
 import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
 import {
   ApplicantContext,
+  EntryDetailNavState,
   PaymentRefReturn,
   readNavState,
 } from '@components/applications-list-entry-detail/util/routing-state-util';
@@ -243,6 +245,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   // Result wording data
   resultApplicantContext: ApplicantContext[] = [];
+  private navState: EntryDetailNavState | null = null;
 
   //Civil fee
   feeMeta: CivilFeeMeta | null = null;
@@ -251,6 +254,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   ngOnInit(): void {
     const state = readNavState(this.location, this.platformId);
+    this.navState = state;
     this.createForms();
 
     const listId =
@@ -272,10 +276,6 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     this.appListEntryDetailPatch({ appListId: listId });
 
-    if (state?.resultApplicantContext) {
-      this.resultApplicantContext = [state.resultApplicantContext];
-    }
-
     //Civil fee feeStatus payment ref edit handling
     const pr = state?.paymentRefReturn ?? null;
     if (pr) {
@@ -285,7 +285,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     // Watch applicantType changes
     this.bindApplicantTypeChanges();
 
-    this.loadEntryAndPatchForm(listId, entryId, pr);
+    this.loadEntryAndPatchForm(listId, entryId, pr, state);
 
     //Shows success banner if navigated from create page with ?listCreated=true
     this.handleListCreate();
@@ -423,12 +423,16 @@ export class ApplicationsListEntryDetail implements OnInit {
             const hasSelectionChanged =
               prevSelection.code !== codeAndLodgementDate.code;
 
+            this.form.patchValue({ applicationTitle: appCodeDetail.title });
+
             if (hasSelectionChanged) {
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
 
               this.wordingSubmitAttempt.set(0);
               this.entryDetail!.wording = undefined;
             }
+
+            this.handleResultWordingContext(this.navState);
 
             this.appListEntryDetailPatch({
               isFeeRequired: appCodeDetail.isFeeDue,
@@ -437,10 +441,14 @@ export class ApplicationsListEntryDetail implements OnInit {
             });
           },
           error: (err) => {
+            this.form.patchValue({ applicationTitle: '' });
+            this.handleResultWordingContext(this.navState);
             this.applyMappedError(err);
           },
         });
     } else {
+      this.form.patchValue({ applicationTitle: '' });
+      this.handleResultWordingContext(this.navState);
       this.appListEntryDetailPatch({ appCodeDetail: null });
     }
   }
@@ -801,6 +809,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         .subscribe({
           next: (codeDto) => {
             this.form.patchValue({ applicationTitle: codeDto.title });
+            this.handleResultWordingContext(this.navState);
             this.feeMeta = {
               feeReference: codeDto.feeReference ?? null,
               feeAmount: codeDto.feeAmount ?? null,
@@ -816,6 +825,7 @@ export class ApplicationsListEntryDetail implements OnInit {
           },
           error: () => {
             this.form.patchValue({ applicationTitle: '' });
+            this.handleResultWordingContext(this.navState);
             this.appListEntryDetailPatch({ formReady: true });
           },
         });
@@ -868,6 +878,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     listId: string,
     entryId: string,
     paymentRefReturn: PaymentRefReturn | null,
+    state: EntryDetailNavState | null | undefined,
   ): void {
     this.entriesApi
       .getApplicationListEntry({ listId, entryId }, 'body', false, {
@@ -889,6 +900,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
           const type = this.form.controls.applicantType.value ?? 'person';
           this.formSvc.syncApplicantTypeState(this.forms, type);
+          this.handleResultWordingContext(state);
 
           if (paymentRefReturn) {
             this.applyPaymentRefReturn(
@@ -1013,5 +1025,47 @@ export class ApplicationsListEntryDetail implements OnInit {
     });
 
     focusErrorSummary(this.platformId);
+  }
+
+  private handleResultWordingContext(
+    state: EntryDetailNavState | null | undefined,
+  ): void {
+    const currentTitle =
+      this.form.controls.applicationTitle?.value?.trim() ||
+      this.appListEntryDetailState().appCodeDetail?.title ||
+      state?.resultApplicantContext?.title ||
+      '';
+
+    if (!this.entryDetail) {
+      this.resultApplicantContext = state?.resultApplicantContext
+        ? [
+            {
+              ...state.resultApplicantContext,
+              title: currentTitle,
+            },
+          ]
+        : [];
+      return;
+    }
+
+    const apiContext = buildResultApplicantContext(
+      this.entryDetail,
+      currentTitle,
+    );
+
+    this.resultApplicantContext = [
+      state?.resultApplicantContext
+        ? {
+            applicant:
+              this.entryDetail.standardApplicantCode?.trim() &&
+              state.resultApplicantContext.applicant
+                ? state.resultApplicantContext.applicant
+                : apiContext.applicant,
+            respondent:
+              apiContext.respondent || state.resultApplicantContext.respondent,
+            title: currentTitle,
+          }
+        : apiContext,
+    ];
   }
 }
