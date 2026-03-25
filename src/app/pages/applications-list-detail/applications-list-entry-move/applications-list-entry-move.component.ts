@@ -6,6 +6,4 @@ import { Component } from '@angular/core';
   templateUrl: './applications-list-entry-move.component.html',
   styleUrl: './applications-list-entry-move.component.scss',
 })
-export class ApplicationsListEntryMoveComponent {
-
-}
+export class ApplicationsListEntryMoveComponent {}
