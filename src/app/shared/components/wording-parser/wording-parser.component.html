@@ -6,7 +6,8 @@
       } @else if (t.type == 'input') {
         <input
           [id]="normaliseKey(t.key)"
-          class="govuk-input govuk-input--width-10"
+          class="govuk-input"
+          [ngClass]="getInputWidthClass(t.key)"
           [class.govuk-input--error]="
             form.get(normaliseKey(t.key))?.invalid && submitted()
           "

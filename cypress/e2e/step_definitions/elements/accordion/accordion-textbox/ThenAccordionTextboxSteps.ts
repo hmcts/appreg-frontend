@@ -29,3 +29,20 @@ Then(
     );
   },
 );
+
+Then(
+  'User Verifies The {string} Accordion Has Value {string}',
+  (accordionTitle: string, expectedValue: string) => {
+    AccordionTextboxHelper.verifyAccordionValue(accordionTitle, expectedValue);
+  },
+);
+Then(
+  'User Verifies The {string} Accordion Has textbox with placeholder {string} and Enters {string}',
+  (accordionTitle: string, placeholder: string, value: string) => {
+    AccordionTextboxHelper.verifyAccordionTextboxPlaceholder(
+      accordionTitle,
+      placeholder,
+      value,
+    );
+  },
+);

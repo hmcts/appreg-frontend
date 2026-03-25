@@ -13,6 +13,10 @@ import { Observable, of } from 'rxjs';
 
 import { ApplicationsListEntryDetail } from '@components/applications-list-entry-detail/applications-list-entry-detail.component';
 import {
+  buildOfficialsFromFormValue,
+  officialsToFormPatch,
+} from '@components/applications-list-entry-detail/util/entry-detail.form';
+import {
   ApplicationCodeGetDetailDto,
   ApplicationCodePage,
   ApplicationCodesApi,
@@ -21,10 +25,12 @@ import {
   EntryUpdateDto,
   FeeStatus,
   GetApplicationCodesRequestParams,
+  OfficialType,
   PaymentStatus,
   UpdateApplicationListEntryRequestParams,
 } from '@openapi';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
+import { ApplicationsListEntryFormValue } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import type { AddFeeDetailsPayload } from '@shared-types/civil-fee/civil-fee';
 import * as civilFeeUtils from '@util/civil-fee-utils';
 
@@ -1092,5 +1098,329 @@ describe('ApplicationsListEntryDetail', () => {
       expect.any(Function),
       expect.any(Function),
     );
+  });
+});
+
+describe('officials mapping', () => {
+  const createFormValue = (
+    overrides: Partial<ApplicationsListEntryFormValue> = {},
+  ): ApplicationsListEntryFormValue =>
+    ({
+      applicationTitle: null,
+      applicantType: 'person',
+      applicant: null,
+      standardApplicantCode: null,
+      applicationCode: null,
+      respondentEntryType: 'person',
+      respondent: null,
+      numberOfRespondents: null,
+      wordingFields: null,
+      feeStatuses: null,
+      hasOffsiteFee: null,
+      feeStatus: null,
+      feeStatusDate: null,
+      paymentRef: null,
+      applicationNotes: {
+        notes: null,
+        caseReference: null,
+        accountReference: null,
+      },
+      lodgementDate: null,
+      courtName: null,
+      organisationName: null,
+      accountReference: null,
+      applicationDetails: null,
+      resultCode: null,
+      mags1Title: null,
+      mags1FirstName: null,
+      mags1Surname: null,
+      mags2Title: null,
+      mags2FirstName: null,
+      mags2Surname: null,
+      mags3Title: null,
+      mags3FirstName: null,
+      mags3Surname: null,
+      officialTitle: null,
+      officialFirstName: null,
+      officialSurname: null,
+      ...overrides,
+    }) as ApplicationsListEntryFormValue;
+
+  describe('buildOfficialsFromFormValue', () => {
+    it('returns empty object when no magistrate or official names are filled', () => {
+      const result = buildOfficialsFromFormValue(createFormValue());
+
+      expect(result).toEqual({});
+    });
+
+    it('builds magistrate officials when first name and surname are filled and trims values', () => {
+      const result = buildOfficialsFromFormValue(
+        createFormValue({
+          mags1Title: ' mr ',
+          mags1FirstName: ' John ',
+          mags1Surname: ' Smith ',
+          mags2Title: 'dr',
+          mags2FirstName: ' Jane ',
+          mags2Surname: ' Doe ',
+        }),
+      );
+
+      expect(result).toEqual({
+        officials: [
+          {
+            type: OfficialType.MAGISTRATE,
+            title: 'mr',
+            forename: 'John',
+            surname: 'Smith',
+          },
+          {
+            type: OfficialType.MAGISTRATE,
+            title: 'dr',
+            forename: 'Jane',
+            surname: 'Doe',
+          },
+        ],
+      });
+    });
+
+    it('includes a magistrate when only first name is filled', () => {
+      const result = buildOfficialsFromFormValue(
+        createFormValue({
+          mags1FirstName: 'OnlyFirst',
+          mags1Surname: null,
+        }),
+      );
+
+      expect(result).toEqual({
+        officials: [
+          {
+            type: OfficialType.MAGISTRATE,
+            title: undefined,
+            forename: 'OnlyFirst',
+            surname: undefined,
+          },
+        ],
+      });
+    });
+
+    it('includes a magistrate when only surname is filled', () => {
+      const result = buildOfficialsFromFormValue(
+        createFormValue({
+          mags1FirstName: '   ',
+          mags1Surname: 'OnlySurname',
+        }),
+      );
+
+      expect(result).toEqual({
+        officials: [
+          {
+            type: OfficialType.MAGISTRATE,
+            title: undefined,
+            forename: undefined,
+            surname: 'OnlySurname',
+          },
+        ],
+      });
+    });
+
+    it('builds clerk official when official names are filled', () => {
+      const result = buildOfficialsFromFormValue(
+        createFormValue({
+          officialTitle: ' ms ',
+          officialFirstName: ' Alice ',
+          officialSurname: ' Brown ',
+        }),
+      );
+
+      expect(result).toEqual({
+        officials: [
+          {
+            type: OfficialType.CLERK,
+            title: 'ms',
+            forename: 'Alice',
+            surname: 'Brown',
+          },
+        ],
+      });
+    });
+
+    it('returns magistrates first and clerk last when both exist', () => {
+      const result = buildOfficialsFromFormValue(
+        createFormValue({
+          mags1FirstName: 'Mag',
+          mags1Surname: 'One',
+          officialFirstName: 'Clerk',
+          officialSurname: 'User',
+        }),
+      );
+
+      expect(result).toEqual({
+        officials: [
+          {
+            type: OfficialType.MAGISTRATE,
+            title: undefined,
+            forename: 'Mag',
+            surname: 'One',
+          },
+          {
+            type: OfficialType.CLERK,
+            title: undefined,
+            forename: 'Clerk',
+            surname: 'User',
+          },
+        ],
+      });
+    });
+  });
+
+  describe('officialsToFormPatch', () => {
+    it('returns empty object when officials is undefined', () => {
+      expect(officialsToFormPatch(undefined)).toEqual({});
+    });
+
+    it('returns empty object when officials is null', () => {
+      expect(officialsToFormPatch(null)).toEqual({});
+    });
+
+    it('returns empty object when officials is empty', () => {
+      expect(officialsToFormPatch([])).toEqual({});
+    });
+
+    it('maps magistrates into form slots in order', () => {
+      const result = officialsToFormPatch([
+        {
+          type: OfficialType.MAGISTRATE,
+          title: 'Mr',
+          forename: 'John',
+          surname: 'Smith',
+        },
+        {
+          type: OfficialType.MAGISTRATE,
+          title: 'Mrs',
+          forename: 'Jane',
+          surname: 'Doe',
+        },
+      ]);
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          mags1Title: 'mr',
+          mags1FirstName: 'John',
+          mags1Surname: 'Smith',
+          mags2Title: 'mrs',
+          mags2FirstName: 'Jane',
+          mags2Surname: 'Doe',
+        }),
+      );
+    });
+
+    it('maps clerk into official fields', () => {
+      const result = officialsToFormPatch([
+        {
+          type: OfficialType.CLERK,
+          title: 'Dr',
+          forename: 'Alex',
+          surname: 'Taylor',
+        },
+      ]);
+
+      expect(result).toEqual({
+        officialTitle: 'dr',
+        officialFirstName: 'Alex',
+        officialSurname: 'Taylor',
+      });
+    });
+
+    it('maps null clerk names back to empty string', () => {
+      const result = officialsToFormPatch([
+        {
+          type: OfficialType.CLERK,
+          title: undefined,
+          forename: undefined,
+          surname: undefined,
+        },
+      ]);
+
+      expect(result).toEqual({
+        officialTitle: '',
+        officialFirstName: null,
+        officialSurname: null,
+      });
+    });
+
+    it('only maps the first three magistrates', () => {
+      const result = officialsToFormPatch([
+        {
+          type: OfficialType.MAGISTRATE,
+          title: 'Mr',
+          forename: 'One',
+          surname: 'A',
+        },
+        {
+          type: OfficialType.MAGISTRATE,
+          title: 'Mrs',
+          forename: 'Two',
+          surname: 'B',
+        },
+        {
+          type: OfficialType.MAGISTRATE,
+          title: 'Miss',
+          forename: 'Three',
+          surname: 'C',
+        },
+        {
+          type: OfficialType.MAGISTRATE,
+          title: 'Dr',
+          forename: 'Four',
+          surname: 'D',
+        },
+      ]);
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          mags1Title: 'mr',
+          mags1FirstName: 'One',
+          mags1Surname: 'A',
+          mags2Title: 'mrs',
+          mags2FirstName: 'Two',
+          mags2Surname: 'B',
+          mags3Title: 'miss',
+          mags3FirstName: 'Three',
+          mags3Surname: 'C',
+        }),
+      );
+
+      expect(result).not.toEqual(
+        expect.objectContaining({
+          mags4Title: expect.anything(),
+        }),
+      );
+    });
+
+    it('maps both magistrates and clerk in one patch', () => {
+      const result = officialsToFormPatch([
+        {
+          type: OfficialType.MAGISTRATE,
+          title: 'mr',
+          forename: 'John',
+          surname: 'Smith',
+        },
+        {
+          type: OfficialType.CLERK,
+          title: 'other',
+          forename: 'Clara',
+          surname: 'Jones',
+        },
+      ]);
+
+      expect(result).toEqual({
+        mags1Title: 'mr',
+        mags1FirstName: 'John',
+        mags1Surname: 'Smith',
+        officialTitle: 'other',
+        officialFirstName: 'Clara',
+        officialSurname: 'Jones',
+      });
+    });
   });
 });

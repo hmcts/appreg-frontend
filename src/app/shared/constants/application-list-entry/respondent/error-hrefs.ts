@@ -59,3 +59,18 @@ export const APPLICANT_ORG_ERROR_HREFS = {
   mobileNumber: '#applicant-org-mobile-number',
   emailAddress: '#applicant-org-email-address',
 } as const;
+
+export const OFFICIALS_ERROR_HREFS = {
+  mags1Title: '#officials-mags1-title',
+  mags1FirstName: '#officials-mags1-first-name',
+  mags1Surname: '#officials-mags1-surname',
+  mags2Title: '#officials-mags2-title',
+  mags2FirstName: '#officials-mags2-first-name',
+  mags2Surname: '#officials-mags2-surname',
+  mags3Title: '#officials-mags3-title',
+  mags3FirstName: '#officials-mags3-first-name',
+  mags3Surname: '#officials-mags3-surname',
+  officialTitle: '#officials-official-title',
+  officialFirstName: '#officials-official-first-name',
+  officialSurname: '#officials-official-surname',
+} as const;

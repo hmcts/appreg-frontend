@@ -57,4 +57,19 @@ describe('WordingSectionComponent', () => {
 
     expect(component.validateForSubmit()).toEqual(expectedErrors);
   });
+
+  it('onWordingFieldsDTO sets saveSuccessful() to true', () => {
+    const dto = {
+      wordingFields: [{ key: 'a', value: 'b' }] as TemplateSubstitution[],
+    };
+
+    component.onWordingFieldsDTO(dto);
+    expect(component.saveSuccessful()).toEqual(true);
+  });
+
+  it('onWordingFieldErrors sets saveSuccessful() to false', () => {
+    const errors: ErrorItem[] = [{ text: 'some error' }];
+    component.onWordingFieldErrors(errors);
+    expect(component.saveSuccessful()).toEqual(false);
+  });
 });

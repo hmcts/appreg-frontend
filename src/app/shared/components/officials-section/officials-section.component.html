@@ -1,0 +1,154 @@
+<div [formGroup]="group()">
+  <!-- Magistrate 1 -->
+  <fieldset class="govuk-fieldset">
+    <h3 class="govuk-heading-s">Magistrate 1</h3>
+
+    <div class="govuk-grid-row">
+      <app-select-input
+        formControlName="mags1Title"
+        label="Select magistrate’s title"
+        idPrefix="officials-mags1-title"
+        [options]="titleOptions"
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="mags1FirstName"
+        label="Magistrate’s first name"
+        idPrefix="officials-mags1-first-name"
+        [error]="errorFor('officials-mags1-first-name')"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="mags1Surname"
+        label="Magistrate’s surname"
+        idPrefix="officials-mags1-surname"
+        [error]="errorFor('officials-mags1-surname')"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
+  </fieldset>
+
+  <hr
+    class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+  />
+
+  <!-- Magistrate 2 -->
+  <fieldset class="govuk-fieldset">
+    <h3 class="govuk-heading-s">Magistrate 2</h3>
+
+    <div class="govuk-grid-row">
+      <app-select-input
+        formControlName="mags2Title"
+        label="Select magistrate’s title"
+        idPrefix="officials-mags2-title"
+        [options]="titleOptions"
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="mags2FirstName"
+        label="Magistrate’s first name"
+        idPrefix="officials-mags2-first-name"
+        [error]="errorFor('officials-mags2-first-name')"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="mags2Surname"
+        label="Magistrate’s surname"
+        idPrefix="officials-mags2-surname"
+        [error]="errorFor('officials-mags2-surname')"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
+  </fieldset>
+
+  <hr
+    class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+  />
+
+  <!-- Magistrate 3 -->
+  <fieldset class="govuk-fieldset">
+    <h3 class="govuk-heading-s">Magistrate 3</h3>
+
+    <div class="govuk-grid-row">
+      <app-select-input
+        formControlName="mags3Title"
+        label="Select magistrate’s title"
+        idPrefix="officials-mags3-title"
+        [options]="titleOptions"
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="mags3FirstName"
+        label="Magistrate’s first name"
+        idPrefix="officials-mags3-first-name"
+        [error]="errorFor('officials-mags3-first-name')"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="mags3Surname"
+        label="Magistrate’s surname"
+        idPrefix="officials-mags3-surname"
+        [error]="errorFor('officials-mags3-surname')"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
+  </fieldset>
+
+  <hr
+    class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+  />
+
+  <fieldset class="govuk-fieldset">
+    <h2 class="govuk-heading-s">Officials</h2>
+
+    <div class="govuk-grid-row">
+      <app-select-input
+        formControlName="officialTitle"
+        label="Select court official’s title"
+        idPrefix="officials-official-title"
+        [options]="titleOptions"
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="officialFirstName"
+        label="Official’s first name"
+        idPrefix="officials-official-first-name"
+        [error]="errorFor('officials-official-first-name')"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="officialSurname"
+        label="Official’s surname"
+        idPrefix="officials-official-surname"
+        [error]="errorFor('officials-official-surname')"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
+  </fieldset>
+
+  <div class="govuk-button-group">
+    <button type="button" class="govuk-button" (click)="onSaveOfficials()">
+      Save recording officials
+    </button>
+  </div>
+</div>

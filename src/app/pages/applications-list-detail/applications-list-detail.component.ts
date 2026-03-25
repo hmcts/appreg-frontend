@@ -46,7 +46,6 @@ import { PageHeaderComponent } from '@components/page-header/page-header.compone
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import { SelectableSortableTableComponent } from '@components/selectable-sortable-table/selectable-sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
-import { RESULT_ERROR_MESSAGES } from '@constants/application-list-detail-update/error-messages';
 import {
   appListDetailColumns,
   appListDetailStatusOptions,
@@ -410,27 +409,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   onResultButtonClick(): void {
     const selected = this.vm().selectedRows as selectedRow[];
 
-    const resultedApplications = selected.filter((r) => r.resulted === 'Yes');
-    const unResultedApplications = selected.filter((r) => r.resulted === 'No');
-
     // clear any prior messages
     this.detailSignalState.patch({ errorSummary: [], errorHint: '' });
 
-    if (unResultedApplications.length === 0) {
-      const message =
-        resultedApplications.length === 1
-          ? RESULT_ERROR_MESSAGES.singleResulted
-          : RESULT_ERROR_MESSAGES.allResulted;
-
-      this.detailSignalState.patch({
-        updateInvalid: true,
-        errorHint: 'There is a problem',
-        errorSummary: [{ text: message }],
-      });
-      return;
-    }
-
-    const resultingApplications = unResultedApplications.map((r) => ({
+    const resultingApplications = selected.map((r) => ({
       id: r.id,
       sequenceNumber: r.sequenceNumber,
       applicant: r.applicant,
@@ -438,14 +420,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       title: r.title,
     }));
 
-    const mixedResultedAndUnresultedApplications =
-      resultedApplications.length > 0 && unResultedApplications.length > 0;
-
     void this.router.navigate(['result-selected'], {
       relativeTo: this.route,
       state: {
         resultingApplications,
-        mixedResultedAndUnresultedApplications,
       },
     });
   }

@@ -8,6 +8,7 @@ import {
   buildPersonForm,
   buildStandardApplicationForm,
   getRespondentEntryType,
+  officialsToFormPatch,
   organisationToFormPatch,
   personToFormPatch,
 } from '@components/applications-list-entry-detail/util/entry-detail.form';
@@ -100,6 +101,7 @@ export class ApplicationListEntryFormService {
           caseReference: dto.caseReference ?? null,
           accountReference: dto.accountNumber ?? null,
         },
+        ...officialsToFormPatch(dto.officials),
       },
       { emitEvent },
     );

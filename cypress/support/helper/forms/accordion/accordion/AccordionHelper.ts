@@ -1,3 +1,5 @@
+/// <reference types="cypress" />
+
 import { AccordionElement } from '../../../../pageobjects/generic/accordion/accordion/AccordionElement';
 
 export class AccordionHelper {

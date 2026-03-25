@@ -38,7 +38,7 @@ Feature: Applications List Update
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location   | Description          | Entries   | Status   |
             | <DisplayDate> | <Time> | <CJAValue> | <UpdatedDescription> | <Entries> | <Status> |
-        Then User Sees Warning Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
+        Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
         Then User Sees Page Heading "Applications List"
@@ -87,7 +87,7 @@ Feature: Applications List Update
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location     | Description          | Entries   | Status   |
             | <DisplayDate> | <Time> | <OptionText> | <UpdatedDescription> | <Entries> | <Status> |
-        Then User Sees Warning Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
+        Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
         Then User Sees Page Heading "Applications List"
@@ -194,7 +194,7 @@ Feature: Applications List Update
         When User Clears The Duration Field "Duration"
         When User Set "<durationHours>" and "<durationMinutes>" In The "Duration" Field
         When User Clicks On The "Update" Button
-        Then User Sees Warning Banner "This action will close the list, and no further updates to the applications will be allowed"
+        Then User Sees Warning Alert "This action will close the list, and no further updates to the applications will be allowed"
         Then User See "Are you sure you want to close this application list?" On The Page
         Then User Clicks On The Link "Cancel"
         Then User Verify The Page URL Contains "#list-details"
@@ -202,7 +202,7 @@ Feature: Applications List Update
         Then User Selects "<Status>" In The "Select list status" Dropdown
         When User Set "<durationHours>" and "<durationMinutes>" In The "Duration" Field
         When User Clicks On The "Update" Button
-        Then User Sees Warning Banner "This action will close the list, and no further updates to the applications will be allowed"
+        Then User Sees Warning Alert "This action will close the list, and no further updates to the applications will be allowed"
         Then User See "Are you sure you want to close this application list?" On The Page
         When User Clicks On The "Continue" Button
         Then User Sees Success Banner "Success Application list closed successfully If you believe this was in error, please contact support."
@@ -275,7 +275,7 @@ Feature: Applications List Update
         When User Clears The Duration Field "Duration"
         When User Set "<durationHours>" and "<durationMinutes>" In The "Duration" Field
         When User Clicks On The "Update" Button
-        Then User Sees Warning Banner "This action will close the list, and no further updates to the applications will be allowed"
+        Then User Sees Warning Alert "This action will close the list, and no further updates to the applications will be allowed"
         Then User See "Are you sure you want to close this application list?" On The Page
         When User Clicks On The "Continue" Button
         Then User Sees Validation Error Banner "There is a problem List cannot be closed. Please result all the applications in the list and try again"
@@ -283,17 +283,17 @@ Feature: Applications List Update
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
             """
             {
-            "resultCode": "RTC",
-            "wordingFields": [
-            {
-            "key": "Date",
-            "value": "24-02-2026"
-            },
-            {
-            "key": "Courthouse",
-            "value": "London Courthouse"
-            }
-            ]
+                "resultCode": "RTC",
+                "wordingFields": [
+                    {
+                        "key": "Date",
+                        "value": "24-02-2026"
+                    },
+                    {
+                        "key": "Courthouse",
+                        "value": "London Courthouse"
+                    }
+                ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -303,7 +303,7 @@ Feature: Applications List Update
         Then User Selects "<Status>" In The "Select list status" Dropdown
         When User Set "<durationHours>" and "<durationMinutes>" In The "Duration" Field
         When User Clicks On The "Update" Button
-        Then User Sees Warning Banner "This action will close the list, and no further updates to the applications will be allowed"
+        Then User Sees Warning Alert "This action will close the list, and no further updates to the applications will be allowed"
         Then User See "Are you sure you want to close this application list?" On The Page
         When User Clicks On The "Continue" Button
         Then User Sees Validation Error Banner "There is a problem List cannot be closed. No Official is recorded against any of the applications in the list."
@@ -355,7 +355,7 @@ Feature: Applications List Update
         Then User Selects "<Status>" In The "Select list status" Dropdown
         When User Set "<durationHours>" and "<durationMinutes>" In The "Duration" Field
         When User Clicks On The "Update" Button
-        Then User Sees Warning Banner "This action will close the list, and no further updates to the applications will be allowed"
+        Then User Sees Warning Alert "This action will close the list, and no further updates to the applications will be allowed"
         Then User See "Are you sure you want to close this application list?" On The Page
         When User Clicks On The "Continue" Button
         Then User Sees Validation Error Banner "There is a problem List cannot be closed. At least one application does not have a Paid or Remitted fee status."
@@ -407,7 +407,7 @@ Feature: Applications List Update
         Then User Selects "<Status>" In The "Select list status" Dropdown
         When User Set "<durationHours>" and "<durationMinutes>" In The "Duration" Field
         When User Clicks On The "Update" Button
-        Then User Sees Warning Banner "This action will close the list, and no further updates to the applications will be allowed"
+        Then User Sees Warning Alert "This action will close the list, and no further updates to the applications will be allowed"
         Then User See "Are you sure you want to close this application list?" On The Page
         When User Clicks On The "Continue" Button
         Then User Sees Success Banner "Success Application list closed successfully If you believe this was in error, please contact support."
