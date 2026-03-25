@@ -24,7 +24,7 @@ Feature: Applications List Create
     When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
       | Date          | Time   | Location     | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
-    Then User Sees Warning Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
+    Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
     Then User See "Are you sure you want to delete this application list?" On The Page
     When User Clicks On The "Yes - delete" Button
     Then User Sees Page Heading "Applications List"
@@ -58,7 +58,7 @@ Feature: Applications List Create
     When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
       | Date          | Time   | Location     | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <OptionText> | <Description> | <Entries> | <Status> |
-    Then User Sees Warning Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
+    Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
     Then User See "Are you sure you want to delete this application list?" On The Page
     When User Clicks On The "Yes - delete" Button
     Then User Sees Page Heading "Applications List"
@@ -117,7 +117,7 @@ Feature: Applications List Create
     When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
       | Date          | Time   | Location | Description   | Entries   | Status   |
       | <DisplayDate> | <Time> | <CJA>    | <Description> | <Entries> | <Status> |
-    Then User Sees Warning Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
+    Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
     Then User See "Are you sure you want to delete this application list?" On The Page
     When User Clicks On The "Yes - delete" Button
     Then User Sees Page Heading "Applications List"

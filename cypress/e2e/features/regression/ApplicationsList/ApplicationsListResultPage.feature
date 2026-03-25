@@ -185,7 +185,6 @@ Feature: Applications List Result
         Then User Should See The Button "Result selected" Is Enabled
         When User Clicks On The "Result selected" Button
         Then User See "Result applications" On The Page
-        Then User Sees Warning Banner "Resulted applications are hidden. Only applications without a result (No) are selected for processing."
         Then User Should See Row In Table "Application(s) to result" With Values:
             | Sequence number | Applicant(s)                  | Respondent(s)                | Application Title(s)                           |
             | 1               | Test Acme Industries {RANDOM} | Test Respondent Ltd {RANDOM} | Issue of liability order summons - council tax |

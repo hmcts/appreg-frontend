@@ -503,14 +503,14 @@ Feature: Application List Row Actions
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | 0       | <Status> |
-        Then User Sees Warning Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
+        Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         Then User Clicks On The Link "Cancel"
         Then User Should See The Table "<TableName>"
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | 0       | <Status> |
-        Then User Sees Warning Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
+        Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
         Then User Should See The Link "Create new list"
@@ -595,7 +595,7 @@ Feature: Application List Row Actions
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
-        Then User Sees Warning Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
+        Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         Then User Should See Row In Table With Values:
             | Date          | Time   | Location | Description   | Entries   | Status   |
