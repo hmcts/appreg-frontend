@@ -40,7 +40,7 @@ Feature: API -Reference Data
             | User  |
             | user1 |
 
-    @api @referenceData@regression @ARCPOC-551
+    @api @referenceData @regression @ARCPOC-551
     Scenario Outline: Verifying Criminal Justice Area Reference Data via API
         Given User Authenticates Via API As "<User>"
         When User Makes GET API Request To "/criminal-justice-areas"
