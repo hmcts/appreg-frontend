@@ -1,5 +1,5 @@
 Feature: Applications List Create
-  @regression @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794
   Scenario Outline: Create applications list using CJA and other location
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -34,7 +34,7 @@ Feature: Applications List Create
       | User  | Date  | Time           | Description   | Status | OtherLocation           | SuccessMessage                                                                     | OptionText    | SearchText | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName | HH | MM |
       | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Other Location_{RANDOM} | Success Application list createdThe application list has been successfully created | Wolverhampton | B9         | Lists     | todaydisplay | 0       | Select           | Open       | 0  | 0  |
 
-  @regression @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794
   Scenario Outline: Create applications list using Court Autocomplete
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -67,7 +67,7 @@ Feature: Applications List Create
       | User  | Date  | Time           | Description   | Status | SuccessMessage                                                                     | SearchText | OptionText                    | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName |
       | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Success Application list createdThe application list has been successfully created | royal      | Royal Courts of Justice Set 1 | Lists     | todaydisplay | 0       | Select           | Open       |
 
-  @regression @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @ARCPOC-792 @ARCPOC-1012
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-451 @ARCPOC-793 @ARCPOC-794 @ARCPOC-792 @ARCPOC-1012
   Scenario Outline: Verify validation messages on creating applications list with No Input
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"

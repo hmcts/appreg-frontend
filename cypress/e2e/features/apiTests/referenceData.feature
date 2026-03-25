@@ -1,6 +1,6 @@
 Feature: API -Reference Data
 
-    @api @regression @ARCPOC-415
+    @api @referenceData @regression @ARCPOC-415
     Scenario Outline: Verifying Court Locations Reference Data via API
         Given User Authenticates Via API As "<User>"
         When User Makes GET API Request To "/court-locations"
@@ -23,7 +23,7 @@ Feature: API -Reference Data
             | User  |
             | user1 |
 
-    @api @regression @ARCPOC-416
+    @api @referenceData @regression @ARCPOC-416
     Scenario Outline: Verifying Court Location Code
         Given User Authenticates Via API As "<User>"
         When User Makes GET API Request To "/court-locations/RCJ001?date=2025-12-04"
@@ -40,7 +40,7 @@ Feature: API -Reference Data
             | User  |
             | user1 |
 
-    @api @regression @ARCPOC-551
+    @api @referenceData@regression @ARCPOC-551
     Scenario Outline: Verifying Criminal Justice Area Reference Data via API
         Given User Authenticates Via API As "<User>"
         When User Makes GET API Request To "/criminal-justice-areas"
@@ -63,7 +63,7 @@ Feature: API -Reference Data
             | User  |
             | user1 |
 
-    @api @regression @ARCPOC-550
+    @api @referenceData @regression @ARCPOC-550
     Scenario Outline: Verifying CJA Code
         Given User Authenticates Via API As "<User>"
         When User Makes GET API Request To "/criminal-justice-areas/09"
@@ -79,7 +79,7 @@ Feature: API -Reference Data
             | User  |
             | user1 |
 
-    @api @regression @ARCPOC-411
+    @api @referenceData @regression @ARCPOC-411
     Scenario Outline: Verifying Application Codes Reference Data via API
         Given User Authenticates Via API As "<User>"
         When User Makes GET API Request To "/application-codes"
@@ -96,7 +96,7 @@ Feature: API -Reference Data
             | User  |
             | user1 |
 
-    @api @regression @ARCPOC-412
+    @api @referenceData @regression @ARCPOC-412
     Scenario Outline: Verifying Application Code
         Given User Authenticates Via API As "<User>"
         When User Makes GET API Request To "/application-codes/RE99003?date=2016-01-01"
@@ -125,7 +125,7 @@ Feature: API -Reference Data
             | User  |
             | user1 |
 
-    @api @regression @ARCPOC-656
+    @api @referenceData @regression @ARCPOC-656
     Scenario Outline: Verify Result Code Reference Data via API
         Given User Authenticates Via API As "<User>"
         When User Makes GET API Request To "/result-codes"
@@ -146,7 +146,7 @@ Feature: API -Reference Data
             | User  |
             | user1 |
 
-    @api @regression @ARCPOC-413
+    @api @referenceData @regression @ARCPOC-413
     Scenario Outline: Verify Result Code via code
         Given User Authenticates Via API As "<User>"
         When User Makes GET API Request To "/result-codes/APPC?date=2016-01-01"

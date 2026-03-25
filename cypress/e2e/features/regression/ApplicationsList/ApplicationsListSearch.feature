@@ -1,6 +1,6 @@
 Feature: Applications List Search
 
-  @regression @ARCPOC-214 @ARCPOC-452
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-452
   Scenario: Verify components on applications list search page
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
@@ -19,7 +19,7 @@ Feature: Applications List Search
     Then User Should See The Button "Search"
     Then User Should See The Button "Clear search"
 
-  @regression @ARCPOC-214 @ARCPOC-452
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-452
   Scenario: Verify mutual exclusivity of Court and CJA fields
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
@@ -39,7 +39,7 @@ Feature: Applications List Search
     Then User Enters "Test Location" Into The "Other location description" Textbox
     Then User Should See The Textbox "Court" Is Disabled
 
-  @regression @ARCPOC-214 @ARCPOC-452
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-452
   Scenario Outline: Verify applications list search validation
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -59,7 +59,7 @@ Feature: Applications List Search
       | User   |
       | admin1 |
 
-  @regression @ARCPOC-214 @ARCPOC-452 @ARCPOC-977
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-452 @ARCPOC-977
   Scenario Outline: Verify applications list table is displayed with search results and values retained
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -85,7 +85,7 @@ Feature: Applications List Search
       | User  | TableName | SearchDate | DisplayDate | Time  | Court                     | Description | Entries | Status | SearchText | OptionText                | SelectButtonText | TableName |
       | user1 | Lists     | 23/05/2025 | 23 May 2025 | 16:00 | Cardiff Crown Court Set 4 | Urgent list | 2       | OPEN   | CCC033     | Cardiff Crown Court Set 4 | Select           | Lists     |
 
-  @regression @ARCPOC-214 @ARCPOC-452 @ARCPOC-759
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-452 @ARCPOC-759
   Scenario Outline: Filter and verify applications list with multiple filters
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -115,7 +115,7 @@ Feature: Applications List Search
       | User  | Status | TableName | Time  | SearchDate | DisplayDate | Description | SearchTextCourt | OptionTextCourt           |
       | user1 | Closed | Lists     | 14:00 | 19/05/2025 | 19 May 2025 | No show     | Cardiff         | Cardiff Crown Court Set 4 |
 
-  @regression @ARCPOC-214 @ARCPOC-660
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-660
   Scenario Outline: Verify CJA field validation with valid input
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -130,7 +130,7 @@ Feature: Applications List Search
       | admin1 | 01         | London     | 01 - London    | No results found |
       | admin1 | 05         | Liverpool  | 05 - Liverpool | No results found |
 
-  @regression @ARCPOC-214 @ARCPOC-660
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-660
   Scenario Outline: Verify CJA field validation with invalid input
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -144,7 +144,7 @@ Feature: Applications List Search
       | User   | SearchText | ValidationMessage                                  | OptionText | ExpectedValue | Info             |
       | admin1 | abc123     | There is a problem Criminal justice area not found |            | abc123        | No results found |
 
-  @regression @ARCPOC-214 @ARCPOC-452
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-452
   Scenario Outline: Verify applications list table shows empty state with no results
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -160,7 +160,7 @@ Feature: Applications List Search
       | User  | SearchDate | Status | NotificationMessage                                                  | LinkText          | CreatePageText               |
       | user1 | 01/01/2099 | Closed | Important No lists found Try different filters, or create a new list | create a new list | Create new applications list |
 
-  @regression @ARCPOC-214 @ARCPOC-691
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-691
   Scenario Outline: Verify Court field validation with valid input
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -173,7 +173,7 @@ Feature: Applications List Search
       | User   | SearchText | OptionText                | ExpectedValue                      | Info             |
       | admin1 | Cardiff    | Cardiff Crown Court Set 4 | CCC033 - Cardiff Crown Court Set 4 | No results found |
 
-  @regression @ARCPOC-214 @ARCPOC-691
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-691
   Scenario Outline: Verify Court field validation with invalid input
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -185,7 +185,7 @@ Feature: Applications List Search
       | User   | SearchText | ValidationErrorMessage                      | OptionText | ExpectedValue | Info             |
       | admin1 | London     | There is a problem Court location not found |            | London        | No results found |
 
-  @regression @ARCPOC-214 @ARCPOC-417
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-417
   Scenario Outline: Verify application list Open
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -203,7 +203,7 @@ Feature: Applications List Search
       | user1 | Lists     | 1 Jan 2001  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | *SKIP*     | Select           | LCCC025     |
       | user1 | Lists     | 1 Jan 2001  | 10:10 | Leeds Combined Court Centre Set 3 | test        | 0       | Open   | Open       | 01/1/2001  | Select           | LCCC025     |
 
-  @regression @ARCPOC-214 @ARCPOC-417
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-417
   Scenario Outline: Verify application list row menu options
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
@@ -218,7 +218,7 @@ Feature: Applications List Search
       | user1 | Lists     | 12/01/2026 | 12 Jan 2026 | 14:51 | LCCC065     | Leeds Combined Court Centre Set 7 | Applications to review at Test_1153  | 2       | OPEN   | Select           | Open, Print page,  Print continuous, Delete |
       | user1 | Lists     | 07/01/2026 | 7 Jan 2026  | 15:31 | LCCC025     | Leeds Combined Court Centre Set 3 | Applications to review at Test_13162 | 1       | CLOSED | Select           | Print page,  Print continuous               |
 
-  @regression @ARCPOC-214 @ARCPOC-452 @ARCPOC-756 @ARCPOC-891
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-452 @ARCPOC-756 @ARCPOC-891
   Scenario: Verify applications list table sorting functionality and pagination persistence
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"

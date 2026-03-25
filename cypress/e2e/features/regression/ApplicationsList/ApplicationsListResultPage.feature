@@ -1,6 +1,6 @@
 Feature: Applications List Result
 
-    @regression @ARCPOC-965
+    @regression @applicationsList @ARCPOC-965
     Scenario Outline: Application List - Result Selected with One ALE
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -32,7 +32,7 @@ Feature: Applications List Result
             | respondent.person.contactDetails.addressLine2 | Bristol                        |
             | respondent.person.contactDetails.addressLine3 | Avon                           |
             | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
-            | respondent.person.contactDetails.postcode     | BS15 5AA                        |
+            | respondent.person.contactDetails.postcode     | BS15 5AA                       |
             | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
@@ -61,7 +61,7 @@ Feature: Applications List Result
         Then User Should See The Button "Result selected" Is Disabled
         When User Checks The Checkbox In Row Of Table "Lists" With:
             | Sequence number | Account number | Applicant                  | Respondent                | Post code | Title                                          | Fee req | Resulted |
-            | 1               | ACC-{RANDOM}   | Taylor {RANDOM}, Henry, Mr | Clark {RANDOM}, Emily, Ms | BS15 5AA   | Issue of liability order summons - council tax | No      | No       |
+            | 1               | ACC-{RANDOM}   | Taylor {RANDOM}, Henry, Mr | Clark {RANDOM}, Emily, Ms | BS15 5AA  | Issue of liability order summons - council tax | No      | No       |
         Then User Should See The Button "Result selected" Is Enabled
         When User Clicks On The "Result selected" Button
         Then User See "Result applications" On The Page
@@ -76,7 +76,7 @@ Feature: Applications List Result
             | User  | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                     | Description                             | Entries | Status |
             | user2 | today      | todayiso | todaydisplay | timenowhhmm-3h | BCC026            | Bristol Crown Court Set 3 | Applications to review at Test_{RANDOM} | 1       | OPEN   |
 
-    @regression @ARCPOC-965
+    @regression @applicationsList @ARCPOC-965
     Scenario Outline: Application List - Result Selected with Multiple ALEs
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -102,7 +102,7 @@ Feature: Applications List Result
             | respondent.organisation.contactDetails.addressLine2 | Bristol                       |
             | respondent.organisation.contactDetails.addressLine3 | Avon                          |
             | respondent.organisation.contactDetails.addressLine4 | United Kingdom                |
-            | respondent.organisation.contactDetails.postcode     | BS15 5AA                       |
+            | respondent.organisation.contactDetails.postcode     | BS15 5AA                      |
             | respondent.organisation.contactDetails.phone        | 0117{RANDOM}                  |
             | respondent.organisation.contactDetails.mobile       | 07984{RANDOM}                 |
             | wordingFields.0.key                                 | Reference                     |
@@ -140,7 +140,7 @@ Feature: Applications List Result
             | respondent.person.contactDetails.addressLine2 | Bristol                      |
             | respondent.person.contactDetails.addressLine3 | Avon                         |
             | respondent.person.contactDetails.addressLine4 | United Kingdom               |
-            | respondent.person.contactDetails.postcode     | BS15 5AA                      |
+            | respondent.person.contactDetails.postcode     | BS15 5AA                     |
             | respondent.person.contactDetails.phone        | 0117{RANDOM}                 |
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                |
             | respondent.person.contactDetails.email        | {RANDOM}@example.com         |

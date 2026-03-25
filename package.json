@@ -53,7 +53,7 @@
     "cypress:run:smoke:chrome": "cypress run --browser chrome --env TAGS=@smoke",
     "cypress:run:regression:chrome": "cypress run --browser chrome --env TAGS='@regression and not @ignore and not @broken'",
     "cypress:run:all": "cypress run --browser chrome --env TAGS='(@regression and not @ignore and not @broken) or @smoke'",
-    "cypress:clean:reports": "rimraf cypress/reports/cucumber-json cypress/reports/mochawesome cypress/reports/parallel cypress/reports/screenshots runner-results",
+    "cypress:clean:reports": "rimraf cypress/reports/cucumber-json cypress/reports/cucumber-messages cypress/reports/mochawesome cypress/reports/parallel cypress/reports/screenshots cypress/reports/junit cypress/reports/videos runner-results functional-output",
     "branch:dry-run": "yarn node .github/branch-retention/branch-retention.mjs --mode dry-run",
     "branch:enforce": "yarn node .github/branch-retention/branch-retention.mjs --mode enforce"
   },
