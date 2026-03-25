@@ -428,6 +428,27 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
+  onMoveButtonClick(): void {
+    const selected = this.vm().selectedRows as selectedRow[];
+
+    this.detailSignalState.patch(clearUpdateNotificationsPatch());
+
+    const entriesToMove = selected.map((r) => ({
+      id: r.id,
+      sequenceNumber: r.sequenceNumber,
+      applicant: r.applicant,
+      respondent: r.respondent,
+      title: r.title,
+    }));
+
+    void this.router.navigate(['move'], {
+      relativeTo: this.route,
+      state: {
+        entriesToMove,
+      },
+    });
+  }
+
   readonly patchStateFn = (
     patch: Partial<ApplicationsListDetailState>,
   ): void => {

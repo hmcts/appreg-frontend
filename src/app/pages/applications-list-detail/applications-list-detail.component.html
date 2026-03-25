@@ -123,11 +123,20 @@
             >
               <button
                 type="button"
-                class="govuk-button govuk-button--primary govuk-button--small float-right"
+                class="govuk-button govuk-button--primary govuk-button--small table-caption__action-button"
                 [disabled]="vm().selectedRows.length === 0"
                 (click)="onResultButtonClick()"
               >
                 Result selected
+              </button>
+
+              <button
+                type="button"
+                class="govuk-button govuk-button--secondary govuk-button--small table-caption__action-button"
+                [disabled]="vm().selectedRows.length === 0"
+                (click)="onMoveButtonClick()"
+              >
+                Move entries
               </button>
             </span>
           </caption>

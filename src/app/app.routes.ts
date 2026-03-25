@@ -7,6 +7,7 @@ import { ApplicationsList } from '@components/applications-list/applications-lis
 import { ApplicationsListBulkUpload } from '@components/applications-list-bulk-upload/applications-list-bulk-upload.component';
 import { ApplicationsListCloseComponent } from '@components/applications-list-detail/applications-list-close/applications-list-close.component';
 import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail.component';
+import { ApplicationsListEntryMoveComponent } from '@components/applications-list-detail/applications-list-entry-move/applications-list-entry-move.component';
 import { ApplicationsListEntryCreate } from '@components/applications-list-entry-create/applications-list-entry-create.component';
 import { ApplicationsListEntryDetail } from '@components/applications-list-entry-detail/applications-list-entry-detail.component';
 import { PaymentReferenceEditComponent } from '@components/civil-fee-section/payment-reference-edit/payment-reference-edit.component';
@@ -54,6 +55,7 @@ export const routes: Routes = [
       },
       { path: ':id/bulk-upload', component: ApplicationsListBulkUpload },
       { path: ':id/result-selected', component: ResultSelected },
+      { path: ':id/move', component: ApplicationsListEntryMoveComponent },
     ],
   },
   {
