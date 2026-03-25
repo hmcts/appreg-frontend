@@ -90,6 +90,7 @@
 
   <ng-template #civilFeeTpl>
     <app-civil-fee-section
+      #civilFeeSection
       [civilFeeColumns]="civilFeeColumns"
       [feeStatusOptions]="feeStatusOptions"
       [feeForm]="civilFeeForm"
@@ -99,6 +100,7 @@
       (offsiteFeeChanged)="onOffsiteFeeChanged($event)"
       [feeRequired]="vm().isFeeRequired"
       [autoSaveOffsiteFee]="true"
+      [parentSubmitted]="vm().formSubmitted"
     />
   </ng-template>
 

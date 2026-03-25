@@ -293,6 +293,36 @@ describe('ApplicationsListEntryDetail', () => {
     expect(component['appListEntryDetailState']().errorFound).toBe(true);
   });
 
+  it('runFullSubmitValidation includes civil fee child validation errors', () => {
+    component['form'].controls.applicantType.setValue('standard');
+    component.onStandardApplicantCodeChanged('SA-123');
+    component['form'].controls.standardApplicantCode.setValue('SA-123', {
+      emitEvent: false,
+    });
+
+    component['wordingSection'] = {
+      validateForSubmit: () => [],
+    } as never;
+    component['civilFeeSection'] = {
+      validateForSubmit: () => [
+        { id: 'feeStatus', text: 'Select a fee status' },
+      ],
+    } as never;
+
+    const result = component['runFullSubmitValidation']();
+
+    expect(result).toBe(true);
+    expect(component['appListEntryDetailState']().errorFound).toBe(true);
+    expect(component['appListEntryDetailState']().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'feeStatus',
+          text: 'Select a fee status',
+        }),
+      ]),
+    );
+  });
+
   it('persistHasOffsiteFee calls update API and applies success state on nextValue=true', () => {
     component['entryDetail'] = {
       id: 'EN-1',

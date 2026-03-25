@@ -122,6 +122,7 @@ import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
 import { CodeRow } from '@util/application-code-helpers';
 import { buildRespondentErrors } from '@util/applications-list-entry-error-helpers';
+import { collectChildSubmitErrors } from '@util/child-submit-validation';
 import {
   updateFeeStatusesControl,
   updatePaymentReferenceInFeeStatusesControl,
@@ -177,7 +178,10 @@ export const ERROR_HREFS = {
   templateUrl: './applications-list-entry-detail.component.html',
 })
 export class ApplicationsListEntryDetail implements OnInit {
-  @ViewChild('wordingSection') wordingSection?: WordingSectionComponent;
+  @ViewChild('wordingSection')
+  private readonly wordingSection?: WordingSectionComponent;
+  @ViewChild('civilFeeSection')
+  private readonly civilFeeSection?: CivilFeeSectionComponent;
 
   private readonly destroyRef = inject(DestroyRef);
 
@@ -616,8 +620,13 @@ export class ApplicationsListEntryDetail implements OnInit {
     });
     this.form.updateValueAndValidity({ emitEvent: false });
 
-    const wordingErrors = this.wordingSection?.validateForSubmit() ?? [];
-    this.onChildErrors('wording', wordingErrors);
+    const submitErrors = collectChildSubmitErrors<ChildErrorSource>([
+      { source: 'wording', section: this.wordingSection },
+      { source: 'civilFee', section: this.civilFeeSection },
+    ]);
+
+    this.childErrors.wording = submitErrors.wording ?? [];
+    this.childErrors.civilFee = submitErrors.civilFee ?? [];
 
     this.updateAllErrors();
     return this.appListEntryDetailState().errorFound;
