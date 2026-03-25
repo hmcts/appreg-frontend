@@ -75,6 +75,7 @@ import {
 } from '@openapi';
 import { ApplicationListRecordsService } from '@services/applications-list/application-list-records.service';
 import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
+import { buildApplicationsListErrorSummary } from '@services/applications-list/build-applications-list-error-summary';
 import {
   ApplicationListSearchFormService,
   DEFAULT_STATE,
@@ -83,7 +84,6 @@ import {
 import { PdfService } from '@services/pdf.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
-import { buildFormErrorSummary } from '@util/error-summary';
 import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
@@ -356,11 +356,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   }
 
   private buildErrorSummary(): ErrorItem[] {
-    return buildFormErrorSummary(this.form, this.errorMap, {
-      hrefs: {
-        time: '#time-hours',
-      },
-    });
+    return buildApplicationsListErrorSummary(this.form, this.errorMap);
   }
 
   onSubmit(event: SubmitEvent): void {

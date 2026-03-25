@@ -37,10 +37,10 @@ import {
 } from '@components/error-summary/error-summary.component';
 import { ApplicationListCreateDto, ApplicationListsApi } from '@openapi';
 import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
+import { buildApplicationsListErrorSummary } from '@services/applications-list/build-applications-list-error-summary';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { buildNormalizedPayload } from '@util/build-payload';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
-import { buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
@@ -186,10 +186,7 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
   }
 
   private buildErrorSummary(): ErrorItem[] {
-    return buildFormErrorSummary(this.form, this.errorMap, {
-      hrefs: {
-        time: '#time-hours',
-      },
+    return buildApplicationsListErrorSummary(this.form, this.errorMap, {
       priorityKeys: {
         date: ['dateInvalid', 'required'],
       },
