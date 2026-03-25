@@ -1,1 +1,36 @@
-<p>applications-list-entry-move works!</p>
+<app-breadcrumbs
+  [items]="[
+    { label: 'Applications list', link: '/applications-list' },
+    {
+      label: 'Applications list details',
+      link: '/applications-list/' + vm().listId,
+    },
+  ]"
+/>
+
+<h1 class="govuk-heading-xl">Move applications</h1>
+
+<app-sortable-table
+  id="entry-selected-table"
+  [caption]="'You are moving the following application(s)'"
+  [columns]="columns"
+  [data]="vm().selectedEntries"
+  appMojButtonMenu
+/>
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
+
+<app-page-header
+  title="Search for an existing application list to move to or create a new list"
+  size="m"
+  [actions]="[
+    {
+      label: 'Create new list',
+      routerLink: ['create'],
+      startIcon: true,
+      variant: 'primary',
+    },
+  ]"
+/>
