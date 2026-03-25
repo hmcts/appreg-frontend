@@ -17,6 +17,12 @@ import {
 } from '@angular/core';
 
 import { Row } from '@core-types/table/row.types';
+import {
+  ariaSortFor as ariaSortForUtil,
+  getNextSortState,
+  isSortActivationKey,
+  suppressSortEvent,
+} from '@util/table-sort';
 
 export interface TableColumn {
   header: string;
@@ -51,6 +57,25 @@ export class SelectableSortableTableComponent
 
   selectedRowsChange = output<Row[]>();
 
+  private sortableInstance?: { init?: () => void; destroy?: () => void };
+  private serverSortClickHandler?: (event: Event) => void;
+
+  // Table sort: server side
+  // Make sure to set default key and direction in page component
+  sortKey = input<string>('');
+  sortDirection = input<'desc' | 'asc'>('desc');
+  clientOrServerSort = input<'server' | 'client'>('client');
+
+  private readonly syncSortState = effect(() => {
+    this.sortKeyState.set(this.sortKey());
+    this.sortDirectionState.set(this.sortDirection());
+  });
+
+  sortChange = output<{
+    key: string;
+    direction: 'desc' | 'asc';
+  }>();
+
   /** Keep stable across pagination so row checkbox ids are unique */
   idPrefix = input('apps-');
 
@@ -68,6 +93,9 @@ export class SelectableSortableTableComponent
   private readonly selectedIdsSync = effect(() => {
     this.selectedIdsState.set(this.selectedIds() ?? new Set<string>());
   });
+
+  private readonly sortKeyState = signal<string>('');
+  private readonly sortDirectionState = signal<'desc' | 'asc'>('desc');
 
   ngAfterViewInit(): void {
     if (!isPlatformBrowser(this.platformId)) {
@@ -98,10 +126,64 @@ export class SelectableSortableTableComponent
             /* noop */
           }
         });
+
+        if (this.clientOrServerSort() === 'server') {
+          this.attachServerSortListener();
+        }
       }
     });
 
     // IMPORTANT: No MultiSelect initialisation, no MutationObserver, no re-init.
+  }
+
+  onHeaderClick(
+    event: Event | null,
+    col: { field: string; sortable?: boolean },
+  ): void {
+    if (col.sortable === false) {
+      return;
+    }
+
+    // Prevent native sort handler
+    suppressSortEvent(event);
+
+    const key = col.field;
+
+    const next = getNextSortState(
+      { key: this.sortKeyState(), direction: this.sortDirectionState() },
+      key,
+    );
+
+    this.sortKeyState.set(next.key);
+    this.sortDirectionState.set(next.direction);
+
+    if (this.clientOrServerSort() === 'server') {
+      this.sortChange.emit(next);
+    }
+  }
+
+  onHeaderKeydown(
+    event: KeyboardEvent,
+    col: { field: string; sortable?: boolean },
+  ): void {
+    if (col.sortable === false) {
+      return;
+    }
+
+    if (!isSortActivationKey(event)) {
+      return;
+    }
+
+    event.preventDefault();
+    this.onHeaderClick(event, col);
+  }
+
+  ariaSortFor(key: string): 'ascending' | 'descending' | 'none' {
+    return ariaSortForUtil(
+      { key: this.sortKeyState(), direction: this.sortDirectionState() },
+      key,
+      'none',
+    );
   }
 
   ngOnDestroy(): void {
@@ -261,5 +343,46 @@ export class SelectableSortableTableComponent
     return ids
       .map((id) => (this.data() ?? []).find((r) => this.getRowId(r) === id))
       .filter((r): r is Row => !!r);
+  }
+
+  private attachServerSortListener(): void {
+    if (this.serverSortClickHandler) {
+      return;
+    }
+
+    this.serverSortClickHandler = (event: Event) => {
+      const target = event.target as HTMLElement | null;
+      const heading = target?.closest('th') as HTMLTableCellElement | null;
+      if (!heading?.hasAttribute('aria-sort')) {
+        return;
+      }
+
+      // moj updates aria-sort after handling the click
+      queueMicrotask(() => {
+        const direction = heading.getAttribute('aria-sort');
+        if (direction !== 'ascending' && direction !== 'descending') {
+          return;
+        }
+        const headerOffset = this.singleSelect() ? 0 : 1;
+        const columnIndex = heading.cellIndex - headerOffset;
+        const column = this.columns()[columnIndex];
+        if (!column || column.sortable === false) {
+          return;
+        }
+
+        const next: { key: string; direction: 'asc' | 'desc' } = {
+          key: column.field,
+          direction: direction === 'ascending' ? 'asc' : 'desc',
+        };
+        this.sortKeyState.set(next.key);
+        this.sortDirectionState.set(next.direction);
+        this.sortChange.emit(next);
+      });
+    };
+
+    this.tableRef.nativeElement.addEventListener(
+      'click',
+      this.serverSortClickHandler,
+    );
   }
 }

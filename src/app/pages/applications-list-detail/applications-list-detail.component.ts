@@ -34,6 +34,7 @@ import {
   selectedRow,
 } from './util';
 
+import { APPLICATION_LIST_ENTRIES_SORT_MAP } from '@components/applications-list/util/applications-list.constants';
 import { toRow } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
@@ -119,6 +120,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       initialApplicationsListDetailState,
     );
 
+  private readonly detailState = this.detailSignalState.state;
+
   readonly vm = this.detailSignalState.vm;
 
   private readonly loadRequest = signal<LoadDetailReq | null>(null);
@@ -195,6 +198,18 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
+  onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    // Ensure the keys are correct (titles != backend sort key)
+    this.detailSignalState.patch({
+      sortField: {
+        key: APPLICATION_LIST_ENTRIES_SORT_MAP[sort.key] ?? sort.key,
+        direction: sort.direction,
+      },
+    });
+
+    this.loadApplicationsLists();
+  }
+
   private resetSuccessBanner(): void {
     this.detailSignalState.patch({
       updateDone: false,
@@ -248,6 +263,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
               listId: req.id,
               pageNumber: req.pageNumber,
               pageSize: req.pageSize,
+              sort: req.sort,
             },
             'response',
             false,
@@ -395,10 +411,16 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.detailSignalState.patch({ isLoading: true });
     const vm = this.vm();
 
+    const sortFieldKey = this.detailState().sortField.key;
+    const sortDirection = this.detailState().sortField.direction;
+
+    const paramSort = [`${sortFieldKey},${sortDirection}`];
+
     this.loadRequest.set({
       id: this.id,
       pageNumber: vm.currentPage,
       pageSize: vm.pageSize,
+      sort: paramSort,
     });
   }
 

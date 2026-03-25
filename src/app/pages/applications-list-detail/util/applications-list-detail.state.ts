@@ -30,6 +30,8 @@ export interface ApplicationsListDetailState {
 
   // internal
   hasPrefilledFromApi: boolean;
+
+  sortField: { key: string; direction: 'desc' | 'asc' };
 }
 
 export const initialApplicationsListDetailState: ApplicationsListDetailState = {
@@ -51,6 +53,8 @@ export const initialApplicationsListDetailState: ApplicationsListDetailState = {
   preserveErrorSummaryOnLoad: false,
 
   hasPrefilledFromApi: false,
+
+  sortField: { key: 'date', direction: 'desc' },
 };
 
 export const clearUpdateNotificationsPatch = (): Pick<
@@ -61,6 +65,7 @@ export const clearUpdateNotificationsPatch = (): Pick<
   | 'errorSummary'
   | 'createDone'
   | 'preserveErrorSummaryOnLoad'
+  | 'sortField'
 > => ({
   updateDone: false,
   updateInvalid: false,
@@ -68,4 +73,5 @@ export const clearUpdateNotificationsPatch = (): Pick<
   errorSummary: [],
   createDone: false,
   preserveErrorSummaryOnLoad: false,
+  sortField: { key: 'sequenceNumber', direction: 'asc' },
 });

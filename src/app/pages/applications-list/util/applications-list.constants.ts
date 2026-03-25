@@ -26,6 +26,17 @@ export const APPLICATION_LIST_SORT_MAP: Record<string, string> = {
   status: 'status',
 };
 
+export const APPLICATION_LIST_ENTRIES_SORT_MAP: Record<string, string> = {
+  sequenceNumber: 'sequenceNumber',
+  accountNumber: 'accountNumber',
+  applicant: 'applicant',
+  respondent: 'respondent',
+  postcode: 'respondentPostcode',
+  title: 'applicationTitle',
+  feeRequired: 'feeRequired',
+  resulted: 'resulted',
+};
+
 export const APPLICATIONS_LIST_CHOOSE_STATUS = [
   { label: 'Choose', value: '' },
   { label: 'Open', value: 'open' },

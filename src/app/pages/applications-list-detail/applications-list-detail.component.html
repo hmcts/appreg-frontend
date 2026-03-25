@@ -102,11 +102,15 @@
         <!-- Sortable table component -->
         <app-selectable-sortable-table
           id="sortable-table"
+          idField="id"
           caption="Lists"
           [columns]="columns"
           [data]="vm().rows"
-          idField="id"
+          [clientOrServerSort]="'server'"
+          [sortKey]="vm().sortField.key"
+          [sortDirection]="vm().sortField.direction"
           (selectedRowsChange)="onSelectedRowsChange($event)"
+          (sortChange)="onSortChange($event)"
           [(selectedIds)]="vm().selectedIds"
           appMojButtonMenu
         >

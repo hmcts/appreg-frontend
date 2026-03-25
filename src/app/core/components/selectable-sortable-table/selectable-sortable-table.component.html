@@ -44,7 +44,11 @@
           class="govuk-table__header"
           [class.govuk-table__header--numeric]="col.numeric"
           [attr.aria-sort]="
-            col.sortable !== false ? (col.defaultSort ?? 'none') : null
+            col.sortable === false
+              ? null
+              : clientOrServerSort() === 'server'
+                ? ariaSortFor(col.field)
+                : (col.defaultSort ?? 'none')
           "
         >
           {{ col.header }}
@@ -90,8 +94,12 @@
               scope="row"
               class="govuk-table__header"
               [class.govuk-table__cell--numeric]="col.numeric"
-              [attr.data-sort-value]="
-                col.sortable !== false ? getSortValue(row, col) : null
+              [attr.aria-sort]="
+                col.sortable === false
+                  ? null
+                  : clientOrServerSort() === 'server'
+                    ? ariaSortFor(col.field)
+                    : (col.defaultSort ?? 'none')
               "
             >
               {{ row[col.field] }}

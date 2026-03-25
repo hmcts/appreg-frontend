@@ -49,6 +49,7 @@ export type LoadDetailReq = {
   id: string;
   pageNumber: number;
   pageSize: number;
+  sort?: string[];
 };
 export type UpdateReq = {
   id: string;
