@@ -358,11 +358,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
             return;
           }
 
-          console.log('Entries DTO', dto);
-
           const rows = this.mapTableResponsetoRows(dto);
-
-          console.log(rows);
 
           const total = dto.totalElements ?? rows.length;
           const pageSize = this.vm().pageSize;
