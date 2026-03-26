@@ -457,64 +457,85 @@ Edit `test/a11y/a11y.spec.ts` and append routes:
 
 - **Note:** `NODE_TLS_REJECT_UNAUTHORIZED=0` is set in the script to allow self-signed local certs; do not rely on this outside test environments.
 
-## Cypress Frontend Automation Setup
+## Cypress E2E Testing
 
-### Folder Structure
+End-to-end tests using **Cypress 15.11.0** with **Cucumber BDD**. Tests are organized in `cypress/e2e/features/` by type: `smoke/`, `regression/`, `apiTests/`.
 
-- cypress/
-- e2e/
-- features/
-- smoke/
-- smoke.feature
-- step_definitions/
-- elements/
-- navigation/
-- WhenNavigationSteps.ts
-- fixtures/
-- test-data.json
-- support/
-- e2e.js
+### Quick Start
 
-### Configuration Files
+1. **Configure credentials** in `config/development.json`:
 
-- cypress.config.js: Cypress configuration
+   ```json
+   {
+     "secrets": {
+       "rpx": {
+         "test": {
+           "user1": { "email": "...", "password": "..." },
+           "admin1": { "email": "...", "password": "..." }
+         }
+       }
+     }
+   }
+   ```
 
-### Running Tests Locally
+2. **Run tests:**
 
-1. Install dependencies:
-   yarn install
+   ```bash
+   # Interactive mode
+   yarn cypress:open
 
-2. Add users to development.json add your actual test credentials:
+   # Headless (all tests)
+   yarn cypress:run
 
-#### User credentials
+   # Smoke tests
+   yarn cypress:run:smoke:chrome
 
-- TEST_USER1_EMAIL=<your-user1@hmcts.net>
-- TEST_USER1_PASSWORD=your-actual-password
+   # Regression (parallel, recommended)
+   yarn test:parallel:regression:chrome
+   ```
 
-#### Admin credentials
+3. **Target an environment:**
 
-- TEST_ADMIN1_EMAIL=<your-admin1@hmcts.net>
-- TEST_ADMIN1_PASSWORD=your-actual-admin-password
+   ```bash
+   TEST_URL='https://appreg.demo.apps.hmcts.net' yarn cypress:run
+   ```
 
-#### ... fill in all other credentials
+### Common Commands
 
-3. Run Cypress tests:
+| Command                                | Description                            |
+| -------------------------------------- | -------------------------------------- |
+| `yarn cypress:open`                    | Open Cypress UI                        |
+| `yarn cypress:run`                     | Run all tests headlessly               |
+| `yarn cypress:run:smoke:chrome`        | Run smoke tests                        |
+| `yarn cypress:run:regression:chrome`   | Run regression tests                   |
+| `yarn test:parallel:regression:chrome` | Run regression in parallel (4 threads) |
+| `yarn cypress:clean:reports`           | Clean test reports                     |
 
-#### Open Cypress UI:
+### Tags
 
-yarn cypress:open
+Filter tests using `TAGS` environment variable:
 
-#### Open Cypress UI with specific tag:
+```bash
+TAGS='@smoke' yarn cypress:run
+TAGS='@regression and @applicationsList' yarn cypress:run
+TAGS='@regression and not @ignore and not @broken' yarn cypress:run
+```
 
-CYPRESS_TAGS="@ARCPOC-660" yarn cypress:open
+**Note:** Use `TAGS` (not `CYPRESS_TAGS`) with the scripts above, as they pass tags via `--env TAGS` which overrides `CYPRESS_TAGS`. For interactive mode without tags, use:
 
-#### Run all tests headlessly:
+```bash
+CYPRESS_TAGS='@smoke' yarn cypress:open
+```
 
-yarn cypress:run
+Available tags: `@smoke`, `@regression`, `@ignore`, `@broken`, feature tags (`@applicationsList`), story tags (`@ARCPOC-214`)
 
-### Sample Test
+### Reports
 
-A sample BDD feature file is provided at `cypress/e2e/features/smoke/smoke.feature` with step definitions in `cypress/e2e/step_definitions/elements/navigation/WhenNavigationSteps.ts`.
+After execution, reports are in:
+
+- `cypress/reports/cucumber-html/` – HTML reports
+- `cypress/reports/screenshots/` – Failure screenshots
+- `functional-output/` – CI artifacts
 
 ## OpenAPI
 

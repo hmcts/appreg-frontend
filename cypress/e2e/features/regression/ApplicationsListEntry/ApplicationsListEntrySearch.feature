@@ -1,6 +1,6 @@
 Feature: Applications List Entry Search
 
-    @regression @ARCPOC-222 @ARCPOC-442 @ARCPOC-1086
+    @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1086
     Scenario: Verify components on applications list entry (ALE) search page
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
@@ -24,7 +24,7 @@ Feature: Applications List Entry Search
         Then User Should See The Button "Search"
         Then User Should See The Button "Clear search"
 
-    @regression @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052
+    @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052
     Scenario Outline: Verify applications list entry table shows empty state with no results
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
@@ -110,7 +110,7 @@ Feature: Applications List Entry Search
             | User  | SearchDate | CourtSearch | Court                             | ApplicantOrg                  | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant                     | Respondent                     | ApplicationTitle                               | Fee | Resulted | Status |
             | user1 | today      | LCCC065     | Leeds Combined Court Centre Set 7 | Applicant Industries {RANDOM} |                  |               |                   |              |                    |           |     |               |               |                  | Application list entries | todaydisplay | Applicant Industries {RANDOM} | Respondent Industries {RANDOM} | Issue of liability order summons - council tax | No  | No       | OPEN   |
 
-    @regression @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076
+    @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076
     Scenario Outline: Verify Search application list entries are listed in the table on ALE search page with Other Location and CJA, Applicant Person and Respondent Person
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -188,7 +188,7 @@ Feature: Applications List Entry Search
             | User  | Dateiso  | Time           | Description                             | DurationHours | DurationMinutes | otherLocationDescription         | SearchDate | CourtSearch | Court | ApplicantOrg | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA    | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant                | Respondent              | ApplicationTitle                               | Fee | Resulted | Status |
             | user1 | todayiso | timenowhhmm-2h | Applications to review at Test_{RANDOM} | 1             | 11              | Temporary Courtroom at Town Hall |            |             |       |              |                  |               |                   | Open         | BS15 5AA           | 01        | London |               |               |                  | Application list entries | todaydisplay | Mr Henry Taylor {RANDOM} | Ms Emily Clark {RANDOM} | Issue of liability order summons - council tax | No  | No       | OPEN   |
 
-    @regression @ARCPOC-222 @ARCPOC-442 @ARCPOC-1083
+    @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1083
     Scenario: Verify Validation Error Messages on Application list entry Search Page
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
@@ -226,7 +226,7 @@ Feature: Applications List Entry Search
             | InvalidDate | ValidDate  | InvalidCourt | InvalidCJA | InvalidPostcode | ValidPostcode | OptionText | SearchText | Info             |
             | 31/13/2048  | 12/01/2025 | InvalidCourt | InvalidCJA | ABC123          | AB1 2CD       |            | Cardiff    | No results found |
 
-    @ignore @ARCPOC-222 @ARCPOC-442
+    @ignore @applicationListEntry @ARCPOC-222 @ARCPOC-442
     Scenario Outline: Verify Applications List Entry table sorting functionality
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"

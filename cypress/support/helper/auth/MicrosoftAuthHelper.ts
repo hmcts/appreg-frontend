@@ -77,7 +77,18 @@ export class MicrosoftAuthHelper {
         cy.get('#idBtn_Back', { timeout: 15000 })
           .should('be.visible')
           .should('be.enabled')
-          .click();
+          .then(($btn) => {
+            const text = $btn.val() as string;
+            cy.log(`Clicking button: ${text}`);
+            cy.wrap($btn).click();
+          });
+
+        // Wait a moment for redirect to start
+        cy.wait(2000);
+
+        cy.url().then((url) => {
+          cy.log(`URL after SSO: ${url}`);
+        });
       },
     );
 

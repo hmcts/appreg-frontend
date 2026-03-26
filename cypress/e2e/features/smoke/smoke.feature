@@ -1,6 +1,6 @@
 Feature: Applications Register Portal Access
 
-  @smoke
+  @smoke @authentication @ARCPOC-294 @ARCPOC-426
   Scenario: Verify portal access and SSO login flow
     Given User Is On The Portal Page
     Then User Verify The Page Title Is "HMCTS Applications Register - Home - GOV.UK"
@@ -9,7 +9,7 @@ Feature: Applications Register Portal Access
     And User See "To access this service, you now must use the Ministry of Justice Modernisation Platform’s Single Sign On (SSO):" On The Page
     Then User Should See The Button "Sign in with your Justice SSO account"
 
-  @smoke
+  @smoke @authentication @ARCPOC-294 @ARCPOC-426
   Scenario Outline: Sign in and Sign out flow for "<role>"
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<role>"

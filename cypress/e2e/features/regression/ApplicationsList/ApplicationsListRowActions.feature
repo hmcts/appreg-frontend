@@ -1,6 +1,6 @@
 Feature: Application List Row Actions
 
-    @regression @ARCPOC-214 @ARCPOC-453 @ARCPOC-799 @ARCPOC-802 @ARCPOC-449
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-799 @ARCPOC-802 @ARCPOC-449
     Scenario Outline: Verify PDF download for 0 entries
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -31,7 +31,7 @@ Feature: Application List Row Actions
             | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-2h | RCJ001            | Royal Courts of Justice Set 1     | Test_{RANDOM} for Applications to review | 0       | OPEN   | Select           | Print continuous |
             | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Test_{RANDOM} for Leeds applications     | 0       | OPEN   | Select           | Print page       |
 
-    @regression @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-803
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-803
     Scenario Outline: Verify PDF download for print continuous and print page with entries for Court
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -42,145 +42,145 @@ Feature: Application List Row Actions
         When User Makes POST API Request To "/application-lists/:listId/entries" With Json Body
             """
             {
-                "standardApplicantCode": null,
-                "applicationCode": "CT99002",
-                "applicant": {
-                    "person": {
-                        "name": {
-                            "title": "Mr",
-                            "surname": "Taylor {RANDOM}",
-                            "firstForename": "Henry",
-                            "secondForename": "James",
-                            "thirdForename": null
-                        },
-                        "contactDetails": {
-                            "addressLine1": "{RANDOM} King Street",
-                            "addressLine2": "Westminster",
-                            "addressLine3": "London",
-                            "addressLine4": "Greater London",
-                            "addressLine5": "United Kingdom",
-                            "postcode": "SW1A 1AA",
-                            "phone": "0203{RANDOM}",
-                            "mobile": "07123{RANDOM}",
-                            "email": "applicant{RANDOM}@example.com"
-                        }
-                    },
-                    "organisation": null
-                },
-                "respondent": {
-                    "person": {
-                        "name": {
-                            "title": "Ms",
-                            "surname": "Clark {RANDOM}",
-                            "firstForename": "Emily",
-                            "secondForename": "Rose",
-                            "thirdForename": null
-                        },
-                        "contactDetails": {
-                            "addressLine1": "{RANDOM} Market Road",
-                            "addressLine2": "Bristol",
-                            "addressLine3": "Avon",
-                            "addressLine4": "United Kingdom",
-                            "addressLine5": null,
-                            "postcode": "BS15 5AA",
-                            "phone": "0117{RANDOM}",
-                            "mobile": "07984{RANDOM}",
-                            "email": "respondent{RANDOM}@example.com"
-                        }
-                    },
-                    "dateOfBirth": "todayiso-25y",
-                    "organisation": null
-                },
-                "numberOfRespondents": null,
-                "wordingFields": [
-                    {
-                        "key": "Reference",
-                        "value": "{RANDOM}"
-                    }
-                ],
-                "feeStatuses": [],
-                "hasOffsiteFee": true,
-                "caseReference": "CASE-{RANDOM}",
-                "accountNumber": "ACC-{RANDOM}",
-                "notes": "Case noted with ref {RANDOM}",
-                "lodgementDate": "todayiso",
-                "officials": [
-                    {
-                        "title": "Mr",
-                        "surname": "Turner {RANDOM}",
-                        "forename": "Graham",
-                        "type": "MAGISTRATE"
-                    },
-                    {
-                        "title": "Ms",
-                        "surname": "Hayes {RANDOM}",
-                        "forename": "Laura",
-                        "type": "MAGISTRATE"
-                    },
-                    {
-                        "title": "Mr",
-                        "surname": "Miller {RANDOM}",
-                        "forename": "Peter",
-                        "type": "CLERK"
-                    },
-                    {
-                        "title": "Ms",
-                        "surname": "Patel {RANDOM}",
-                        "forename": "Anita",
-                        "type": "MAGISTRATE"
-                    }
-                ]
+            "standardApplicantCode": null,
+            "applicationCode": "CT99002",
+            "applicant": {
+            "person": {
+            "name": {
+            "title": "Mr",
+            "surname": "Taylor {RANDOM}",
+            "firstForename": "Henry",
+            "secondForename": "James",
+            "thirdForename": null
+            },
+            "contactDetails": {
+            "addressLine1": "{RANDOM} King Street",
+            "addressLine2": "Westminster",
+            "addressLine3": "London",
+            "addressLine4": "Greater London",
+            "addressLine5": "United Kingdom",
+            "postcode": "SW1A 1AA",
+            "phone": "0203{RANDOM}",
+            "mobile": "07123{RANDOM}",
+            "email": "applicant{RANDOM}@example.com"
+            }
+            },
+            "organisation": null
+            },
+            "respondent": {
+            "person": {
+            "name": {
+            "title": "Ms",
+            "surname": "Clark {RANDOM}",
+            "firstForename": "Emily",
+            "secondForename": "Rose",
+            "thirdForename": null
+            },
+            "contactDetails": {
+            "addressLine1": "{RANDOM} Market Road",
+            "addressLine2": "Bristol",
+            "addressLine3": "Avon",
+            "addressLine4": "United Kingdom",
+            "addressLine5": null,
+            "postcode": "BS15 5AA",
+            "phone": "0117{RANDOM}",
+            "mobile": "07984{RANDOM}",
+            "email": "respondent{RANDOM}@example.com"
+            }
+            },
+            "dateOfBirth": "todayiso-25y",
+            "organisation": null
+            },
+            "numberOfRespondents": null,
+            "wordingFields": [
+            {
+            "key": "Reference",
+            "value": "{RANDOM}"
+            }
+            ],
+            "feeStatuses": [],
+            "hasOffsiteFee": true,
+            "caseReference": "CASE-{RANDOM}",
+            "accountNumber": "ACC-{RANDOM}",
+            "notes": "Case noted with ref {RANDOM}",
+            "lodgementDate": "todayiso",
+            "officials": [
+            {
+            "title": "Mr",
+            "surname": "Turner {RANDOM}",
+            "forename": "Graham",
+            "type": "MAGISTRATE"
+            },
+            {
+            "title": "Ms",
+            "surname": "Hayes {RANDOM}",
+            "forename": "Laura",
+            "type": "MAGISTRATE"
+            },
+            {
+            "title": "Mr",
+            "surname": "Miller {RANDOM}",
+            "forename": "Peter",
+            "type": "CLERK"
+            },
+            {
+            "title": "Ms",
+            "surname": "Patel {RANDOM}",
+            "forename": "Anita",
+            "type": "MAGISTRATE"
+            }
+            ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
         When User Makes POST API Request To "/application-lists/:listId/entries" With Json Body
             """
             {
-                "standardApplicantCode": null,
-                "applicationCode": "AD99002",
-                "applicant": {
-                    "person": {
-                        "name": {
-                            "title": "Mr",
-                            "surname": "Smith {RANDOM}",
-                            "firstForename": "John",
-                            "secondForename": "A",
-                            "thirdForename": "B"
-                        },
-                        "contactDetails": {
-                            "addressLine1": "{RANDOM} High Street",
-                            "addressLine2": "Westminster",
-                            "addressLine3": "London",
-                            "addressLine4": "Greater London",
-                            "addressLine5": "United Kingdom",
-                            "postcode": "SW1A 2AA",
-                            "phone": "0207{RANDOM}",
-                            "mobile": "07123{RANDOM}",
-                            "email": "john.smith{RANDOM}@example.com"
-                        }
-                    }
-                },
-                "wordingFields": [],
-                "feeStatuses": [
-                    {
-                        "paymentReference": "PAY-{RANDOM}",
-                        "paymentStatus": "PAID",
-                        "statusDate": "todayiso+1d"
-                    }
-                ],
-                "hasOffsiteFee": false,
-                "caseReference": "CASE-{RANDOM}",
-                "accountNumber": "ACC-{RANDOM}",
-                "notes": "Application discussion ref {RANDOM}",
-                "lodgementDate": "todayiso",
-                "officials": [
-                    {
-                        "title": "Mr",
-                        "surname": "Smith {RANDOM}",
-                        "forename": "John",
-                        "type": "MAGISTRATE"
-                    }
-                ]
+            "standardApplicantCode": null,
+            "applicationCode": "AD99002",
+            "applicant": {
+            "person": {
+            "name": {
+            "title": "Mr",
+            "surname": "Smith {RANDOM}",
+            "firstForename": "John",
+            "secondForename": "A",
+            "thirdForename": "B"
+            },
+            "contactDetails": {
+            "addressLine1": "{RANDOM} High Street",
+            "addressLine2": "Westminster",
+            "addressLine3": "London",
+            "addressLine4": "Greater London",
+            "addressLine5": "United Kingdom",
+            "postcode": "SW1A 2AA",
+            "phone": "0207{RANDOM}",
+            "mobile": "07123{RANDOM}",
+            "email": "john.smith{RANDOM}@example.com"
+            }
+            }
+            },
+            "wordingFields": [],
+            "feeStatuses": [
+            {
+            "paymentReference": "PAY-{RANDOM}",
+            "paymentStatus": "PAID",
+            "statusDate": "todayiso+1d"
+            }
+            ],
+            "hasOffsiteFee": false,
+            "caseReference": "CASE-{RANDOM}",
+            "accountNumber": "ACC-{RANDOM}",
+            "notes": "Application discussion ref {RANDOM}",
+            "lodgementDate": "todayiso",
+            "officials": [
+            {
+            "title": "Mr",
+            "surname": "Smith {RANDOM}",
+            "forename": "John",
+            "type": "MAGISTRATE"
+            }
+            ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -249,7 +249,7 @@ Feature: Application List Row Actions
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | DisplayDateLong  | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
             | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 2             | 22              | 2       | OPEN   | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 2     |
 
-    @regression @ARCPOC-214 @ARCPOC-453 @ARCPOC-449
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449
     Scenario Outline: Verify PDF download for print page with entries for CJA
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -260,48 +260,48 @@ Feature: Application List Row Actions
         When User Makes POST API Request To "/application-lists/:listId/entries" With Json Body
             """
             {
-                "standardApplicantCode": "APP032",
-                "applicationCode": "AD99004",
-                "numberOfRespondents": null,
-                "wordingFields": [],
-                "feeStatuses": [
-                    {
-                        "paymentReference": "PAY-{RANDOM}",
-                        "paymentStatus": "PAID",
-                        "statusDate": "todayiso-2d"
-                    }
-                ],
-                "hasOffsiteFee": false,
-                "caseReference": "CASE-{RANDOM}",
-                "accountNumber": "ACC-{RANDOM}",
-                "notes": "Case noted with ref {RANDOM}",
-                "lodgementDate": "todayiso",
-                "officials": [
-                    {
-                        "title": "Mr",
-                        "surname": "Turner {RANDOM}",
-                        "forename": "Graham",
-                        "type": "MAGISTRATE"
-                    },
-                    {
-                        "title": "Ms",
-                        "surname": "Hayes {RANDOM}",
-                        "forename": "Laura",
-                        "type": "MAGISTRATE"
-                    },
-                    {
-                        "title": "Mr",
-                        "surname": "Miller {RANDOM}",
-                        "forename": "Peter",
-                        "type": "CLERK"
-                    },
-                    {
-                        "title": "Ms",
-                        "surname": "Patel {RANDOM}",
-                        "forename": "Anita",
-                        "type": "MAGISTRATE"
-                    }
-                ]
+            "standardApplicantCode": "APP032",
+            "applicationCode": "AD99004",
+            "numberOfRespondents": null,
+            "wordingFields": [],
+            "feeStatuses": [
+            {
+            "paymentReference": "PAY-{RANDOM}",
+            "paymentStatus": "PAID",
+            "statusDate": "todayiso-2d"
+            }
+            ],
+            "hasOffsiteFee": false,
+            "caseReference": "CASE-{RANDOM}",
+            "accountNumber": "ACC-{RANDOM}",
+            "notes": "Case noted with ref {RANDOM}",
+            "lodgementDate": "todayiso",
+            "officials": [
+            {
+            "title": "Mr",
+            "surname": "Turner {RANDOM}",
+            "forename": "Graham",
+            "type": "MAGISTRATE"
+            },
+            {
+            "title": "Ms",
+            "surname": "Hayes {RANDOM}",
+            "forename": "Laura",
+            "type": "MAGISTRATE"
+            },
+            {
+            "title": "Mr",
+            "surname": "Miller {RANDOM}",
+            "forename": "Peter",
+            "type": "CLERK"
+            },
+            {
+            "title": "Ms",
+            "surname": "Patel {RANDOM}",
+            "forename": "Anita",
+            "type": "MAGISTRATE"
+            }
+            ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -353,7 +353,7 @@ Feature: Application List Row Actions
             | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-1h | A8      | Derby      | This is a location description {RANDOM} | ENFORCEMENT LIST-{RANDOM} | 1       | OPEN   | Select           | derby-todayiso-print-cont | derby-todayiso-print-page | 1     |
 
 
-    @regression @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-803
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @ARCPOC-803
     Scenario Outline: Verify PDF download for print continuous and print page with entries for Court and Status Closed
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -364,63 +364,63 @@ Feature: Application List Row Actions
         When User Makes POST API Request To "/application-lists/:listId/entries" With Json Body
             """
             {
-                "standardApplicantCode": null,
-                "applicationCode": "MS99006",
-                "applicant": {
-                    "person": null,
-                    "organisation": {
-                        "name": "ACME Industries LTD",
-                        "contactDetails": {
-                            "addressLine1": "{RANDOM} Downing Street",
-                            "addressLine2": "Westminster",
-                            "addressLine3": "London",
-                            "addressLine4": "Greater London",
-                            "addressLine5": "United Kingdom",
-                            "postcode": "SW1A 2AA",
-                            "phone": "01225 123456",
-                            "mobile": "07123456789",
-                            "email": "john-test@gmail.com"
-                        }
-                    }
-                },
-                "respondent": {
-                    "person": null,
-                    "organisation": {
-                        "name": "Beta Solutions Inc",
-                        "contactDetails": {
-                            "addressLine1": "{RANDOM} Fleet Street",
-                            "addressLine2": "London",
-                            "addressLine3": null,
-                            "addressLine4": null,
-                            "addressLine5": "United Kingdom",
-                            "postcode": "EC4Y 1AA",
-                            "phone": "01132 654321",
-                            "mobile": "07987654321",
-                            "email": "betasolutions@gmail.com"
-                        }
-                    }
-                },
-                "numberOfRespondents": null,
-                "wordingFields": [
-                    {
-                        "key": "Describe Seized Food",
-                        "value": "{RANDOM}"
-                    }
-                ],
-                "feeStatuses": [],
-                "hasOffsiteFee": true,
-                "caseReference": "CASE-{RANDOM}",
-                "accountNumber": "ACC-{RANDOM}",
-                "notes": "Case noted with ref {RANDOM}",
-                "lodgementDate": "todayiso",
-                "officials": [
-                    {
-                        "title": "Ms",
-                        "surname": "Patel {RANDOM}",
-                        "forename": "Anita",
-                        "type": "MAGISTRATE"
-                    }
-                ]
+            "standardApplicantCode": null,
+            "applicationCode": "MS99006",
+            "applicant": {
+            "person": null,
+            "organisation": {
+            "name": "ACME Industries LTD",
+            "contactDetails": {
+            "addressLine1": "{RANDOM} Downing Street",
+            "addressLine2": "Westminster",
+            "addressLine3": "London",
+            "addressLine4": "Greater London",
+            "addressLine5": "United Kingdom",
+            "postcode": "SW1A 2AA",
+            "phone": "01225 123456",
+            "mobile": "07123456789",
+            "email": "john-test@gmail.com"
+            }
+            }
+            },
+            "respondent": {
+            "person": null,
+            "organisation": {
+            "name": "Beta Solutions Inc",
+            "contactDetails": {
+            "addressLine1": "{RANDOM} Fleet Street",
+            "addressLine2": "London",
+            "addressLine3": null,
+            "addressLine4": null,
+            "addressLine5": "United Kingdom",
+            "postcode": "EC4Y 1AA",
+            "phone": "01132 654321",
+            "mobile": "07987654321",
+            "email": "betasolutions@gmail.com"
+            }
+            }
+            },
+            "numberOfRespondents": null,
+            "wordingFields": [
+            {
+            "key": "Describe Seized Food",
+            "value": "{RANDOM}"
+            }
+            ],
+            "feeStatuses": [],
+            "hasOffsiteFee": true,
+            "caseReference": "CASE-{RANDOM}",
+            "accountNumber": "ACC-{RANDOM}",
+            "notes": "Case noted with ref {RANDOM}",
+            "lodgementDate": "todayiso",
+            "officials": [
+            {
+            "title": "Ms",
+            "surname": "Patel {RANDOM}",
+            "forename": "Anita",
+            "type": "MAGISTRATE"
+            }
+            ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -428,7 +428,7 @@ Feature: Application List Row Actions
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
             """
             {
-                "resultCode": "AUTH"
+            "resultCode": "AUTH"
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -487,7 +487,7 @@ Feature: Application List Row Actions
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | DisplayDateLong  | Time           | courtLocationCode | Court                             | Description                             | durationHours | durationMinutes | Entries | Status | SelectButtonText | PDFNameContinuous                                     | PDFNamePage                                           | Pages |
             | user1 | Lists     | today      | todayiso | todaydisplay | todaydisplaylong | timenowhhmm-2h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | 0             | 5               | 1       | CLOSED | Select           | leeds-combined-court-centre-set-3-todayiso-print-cont | leeds-combined-court-centre-set-3-todayiso-print-page | 1     |
 
-    @regression @ARCPOC-214 @ARCPOC-575 @ARCPOC-1037
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-575 @ARCPOC-1037
     Scenario Outline: Verify application list is deleted successfully for applications list NO entries
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -503,14 +503,14 @@ Feature: Application List Row Actions
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | 0       | <Status> |
-        Then User Sees Warning Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
+        Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         Then User Clicks On The Link "Cancel"
         Then User Should See The Table "<TableName>"
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | 0       | <Status> |
-        Then User Sees Warning Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
+        Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
         Then User Should See The Link "Create new list"
@@ -526,7 +526,7 @@ Feature: Application List Row Actions
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                             | Description                             | Status | SelectButtonText |
             | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | LCCC025           | Leeds Combined Court Centre Set 3 | Applications to review at Test_{RANDOM} | OPEN   | Select           |
 
-    @regression @ARCPOC-214 @ARCPOC-575 @ARCPOC-1037
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-575 @ARCPOC-1037
     Scenario Outline: Verify application list is deleted successfully for applications list 1 entry
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -558,7 +558,7 @@ Feature: Application List Row Actions
             | respondent.person.contactDetails.addressLine2 | Bristol                        |
             | respondent.person.contactDetails.addressLine3 | Avon                           |
             | respondent.person.contactDetails.addressLine4 | United Kingdom                 |
-            | respondent.person.contactDetails.postcode     | BS15 5AA                        |
+            | respondent.person.contactDetails.postcode     | BS15 5AA                       |
             | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
@@ -595,7 +595,7 @@ Feature: Application List Row Actions
         When User Clicks "<SelectButtonText>" Then "Delete" From Menu In Row Of Table "<TableName>" With:
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
-        Then User Sees Warning Banner "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
+        Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         Then User Should See Row In Table With Values:
             | Date          | Time   | Location | Description   | Entries   | Status   |
