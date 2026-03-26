@@ -25,7 +25,6 @@ type MoveConfirmNavState = {
   selector: 'app-move-confirm',
   imports: [ReviewConfirmComponent, DateTimePipe, TableComponent],
   templateUrl: './move-confirm.component.html',
-  styleUrl: './move-confirm.component.scss',
 })
 export class MoveConfirmComponent implements OnInit {
   private readonly router = inject(Router);

@@ -4,10 +4,7 @@ import { ActivatedRoute, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 
 import { MoveConfirmComponent } from '@components/applications-list-detail/applications-list-entry-move/move-confirm/move-confirm.component';
-import {
-  ApplicationListEntriesApi,
-  ApplicationListStatus,
-} from '@openapi';
+import { ApplicationListEntriesApi, ApplicationListStatus } from '@openapi';
 
 describe('MoveConfirmComponent', () => {
   let component: MoveConfirmComponent;

@@ -78,7 +78,6 @@ import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
     NotificationBannerComponent,
   ],
   templateUrl: './applications-list-entry-move.component.html',
-  styleUrl: './applications-list-entry-move.component.scss',
 })
 export class ApplicationsListEntryMoveComponent
   extends PlaceFieldsBase
