@@ -126,7 +126,7 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
 
     // If we are coming from /applications-list/:id/move
     if (isPlatformBrowser(this.platformId)) {
-      const navState = history.state as {
+      const navState = (history.state ?? {}) as {
         createMoveTargetList?: boolean;
         originalListId?: string;
         entriesToMove?: ApplicationEntriesResultContext[];
@@ -134,7 +134,7 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
 
       this.appListCreatesignalState.patch({
         listId: navState.originalListId ?? '',
-        entriesToMove: navState.entriesToMove,
+        entriesToMove: navState.entriesToMove ?? [],
       });
 
       if (
@@ -148,6 +148,7 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
       // render cancel button
       this.fromMoveApplications.set(navState.createMoveTargetList ?? false);
 
+      // Adjust breadcrumbs based on how we got to create page
       if (this.appListCreateState().listId) {
         this.breadcrumbs.set([
           { label: 'Applications list', link: '/applications-list' },
@@ -245,7 +246,6 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
     return this.vm().errorSummary.find((e) => e.id === id);
   }
 
-  // This button is only shown when we navigate here from move applications page
   onCancel(): void {
     const { listId, entriesToMove } = this.appListCreateState();
 

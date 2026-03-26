@@ -57,6 +57,22 @@ describe('ApplicationsListCreate', () => {
     fixture.detectChanges();
   };
 
+  const setHistoryState = (state: Record<string, unknown> = {}): void => {
+    globalThis.history.replaceState(state, '', '/');
+  };
+
+  const createComponent = async (
+    navState: Record<string, unknown> = {},
+  ): Promise<void> => {
+    setHistoryState(navState);
+    fixture = TestBed.createComponent(ApplicationsListCreate);
+    component = fixture.componentInstance;
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  };
+
   // service mocks
   const appListsMock = {
     createApplicationList: jest.fn().mockReturnValue(of({ id: 123 })),
@@ -85,16 +101,11 @@ describe('ApplicationsListCreate', () => {
     })
       .overrideProvider(ApplicationListsApi, { useValue: appListsMock })
       .compileComponents();
-
-    fixture = TestBed.createComponent(ApplicationsListCreate);
-    component = fixture.componentInstance;
-
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
+    await createComponent();
   });
 
   afterEach(() => {
+    setHistoryState();
     jest.clearAllMocks();
   });
 
@@ -260,6 +271,150 @@ describe('ApplicationsListCreate', () => {
 
     expect(getState(component).createInvalid).toBe(true);
     expect(getState(component).errorHint).toContain('There is a problem');
+  });
+
+  it('loads move context from browser history and updates breadcrumbs', async () => {
+    const entriesToMove = [
+      {
+        id: 'entry-1',
+        sequenceNumber: '1',
+        applicant: 'A Person',
+        respondent: 'B Person',
+        title: 'Case title',
+      },
+    ];
+
+    await createComponent({
+      createMoveTargetList: true,
+      originalListId: '42',
+      entriesToMove,
+    });
+
+    expect(component.fromMoveApplications()).toBe(true);
+    expect(component.breadcrumbs()).toEqual([
+      { label: 'Applications list', link: '/applications-list' },
+      {
+        label: 'Applications list details',
+        link: '/applications-list/42',
+      },
+    ]);
+  });
+
+  it('redirects to applications list when move state is incomplete', async () => {
+    const router = TestBed.inject(Router);
+    const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    await createComponent({
+      createMoveTargetList: true,
+    });
+
+    expect(navigateSpy).toHaveBeenCalledWith(['/applications-list']);
+    expect(component.fromMoveApplications()).toBe(true);
+  });
+
+  it('navigates to move confirm after creating a move target list', async () => {
+    const router = TestBed.inject(Router);
+    const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+    const entriesToMove = [
+      {
+        id: 'entry-1',
+        sequenceNumber: '1',
+        applicant: 'A Person',
+        respondent: 'B Person',
+        title: 'Case title',
+      },
+    ];
+
+    await createComponent({
+      createMoveTargetList: true,
+      originalListId: '42',
+      entriesToMove,
+    });
+
+    appListsMock.createApplicationList.mockReturnValueOnce(
+      of({
+        id: 123,
+        date: '2025-10-02',
+        time: '08:05',
+        courtName: 'Alpha Court',
+        description: 'Morning list',
+        entriesCount: 0,
+        status: ApplicationListStatus.OPEN,
+      }),
+    );
+
+    component.form.setValue({
+      date: '2025-10-02',
+      time: { hours: 8, minutes: 5 },
+      description: 'Morning list',
+      status: 'OPEN',
+      court: 'A1',
+      location: '',
+      cja: '',
+    });
+
+    submit('create');
+    await flushSignalEffects();
+
+    expect(navigateSpy).toHaveBeenCalledWith(
+      ['applications-list', 123, 'move', 'confirm'],
+      {
+        state: {
+          targetList: {
+            id: 123,
+            date: '2025-10-02',
+            time: '08:05',
+            location: 'Alpha Court',
+            description: 'Morning list',
+            entries: 0,
+            status: ApplicationListStatus.OPEN,
+            deletable: true,
+            etag: null,
+            rowVersion: null,
+          },
+          originalListId: '42',
+          entriesToMove,
+        },
+      },
+    );
+  });
+
+  it('cancels back to applications list when move context is missing', () => {
+    const router = TestBed.inject(Router);
+    const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    component.onCancel();
+
+    expect(navigateSpy).toHaveBeenCalledWith(['/applications-list']);
+  });
+
+  it('cancels back to move page when move context exists', async () => {
+    const router = TestBed.inject(Router);
+    const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+    const entriesToMove = [
+      {
+        id: 'entry-1',
+        sequenceNumber: '1',
+        applicant: 'A Person',
+        respondent: 'B Person',
+        title: 'Case title',
+      },
+    ];
+
+    await createComponent({
+      createMoveTargetList: true,
+      originalListId: '42',
+      entriesToMove,
+    });
+
+    component.onCancel();
+
+    expect(navigateSpy).toHaveBeenCalledWith(
+      ['/applications-list', '42', 'move'],
+      {
+        state: { entriesToMove },
+      },
+    );
   });
 
   it('onCreateErrorClick scrolls and focuses when element exists and no-ops otherwise', () => {
