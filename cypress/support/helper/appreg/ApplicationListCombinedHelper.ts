@@ -80,5 +80,25 @@ export class ApplicationListCombinedHelper {
     }
 
     ButtonHelper.clickButton('Search');
+
+    // Wait for either the table to appear or the "No lists found" banner
+    // This ensures the search has completed before proceeding
+    cy.get('body', { timeout: 20000 }).should(($body) => {
+      const hasTable = $body.find('caption:contains("Lists")').length > 0;
+      const hasNoResultsBanner = $body.text().includes('No lists found');
+
+      if (!hasTable && !hasNoResultsBanner) {
+        throw new Error('Search results not loaded yet - waiting...');
+      }
+    });
+
+    // Log which state we're in
+    cy.get('body').then(($body) => {
+      if ($body.find('caption:contains("Lists")').length > 0) {
+        cy.log('✓ Search results table loaded');
+      } else {
+        cy.log('⚠ No results found - "No lists found" banner displayed');
+      }
+    });
   }
 }
