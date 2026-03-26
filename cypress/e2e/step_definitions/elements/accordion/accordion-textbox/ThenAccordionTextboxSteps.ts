@@ -46,3 +46,13 @@ Then(
     );
   },
 );
+
+Then(
+  'User Verifies The Textbox {string} Is Disabled In The Accordion {string}',
+  (textboxLabel: string, accordionTitle: string) => {
+    AccordionTextboxHelper.verifyTextboxDisabledInAccordion(
+      accordionTitle,
+      textboxLabel,
+    );
+  },
+);
