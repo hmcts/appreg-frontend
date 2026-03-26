@@ -1,0 +1,11 @@
+<app-review-confirm
+  (confirm)="onConfirm()"
+  (cancelled)="goBack()"
+  title="Are you sure you want to move these applications to this application list?"
+>
+  <app-table [rows]="[targetList]" [columns]="columns">
+    <ng-template #dateTemplate let-row>
+      {{ row?.date | dateTime }}
+    </ng-template>
+  </app-table>
+</app-review-confirm>

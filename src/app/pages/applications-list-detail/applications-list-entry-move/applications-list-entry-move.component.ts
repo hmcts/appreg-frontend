@@ -59,6 +59,7 @@ import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { getProblemText } from '@util/http-error-to-text';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
+import { ApplicationListRow } from '@util/types/application-list/types';
 import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
 import { courtMustExistIfTypedValidator } from '@validators/court-exists.validator';
 import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
@@ -174,6 +175,26 @@ export class ApplicationsListEntryMoveComponent
     }
 
     this.loadApplicationsLists();
+  }
+
+  onSelect(targetList: ApplicationListRow): void {
+    const { listId, selectedEntries } = this.moveEntryState();
+
+    if (!listId || !targetList.id || !selectedEntries.length) {
+      return;
+    }
+
+    this.moveEntryPatch({ targetListId: targetList.id });
+
+    void this.router.navigate(
+      ['/applications-list', listId, 'move', 'confirm'],
+      {
+        state: {
+          entriesToMove: selectedEntries,
+          targetList,
+        },
+      },
+    );
   }
 
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
