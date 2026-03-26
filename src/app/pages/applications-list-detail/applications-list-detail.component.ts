@@ -550,11 +550,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private mapTableResponsetoRows(dto: {
     content: EntryGetSummaryDto[];
   }): selectedRow[] {
-    return dto.content.map((entry) => {
+    return dto.content.map((entry: EntryGetSummaryDto) => {
       return {
         id: entry.id,
         sequenceNumber: entry.sequenceNumber!,
-        accountNumber: '',
+        accountNumber: entry.accountNumber ?? '',
         applicant: entry.applicant?.person
           ? this.formatPersonName(entry.applicant)
           : this.returnOrgName(entry.applicant),
