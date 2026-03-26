@@ -153,6 +153,13 @@ export class ApplicationsListEntryMoveComponent
           this.state().courtLocations.map((x) => x.locationCode),
       }),
     ]);
+
+    this.storedRecordsState.patch({
+      rows: [],
+      totalPages: 0,
+      currentPage: 0,
+      submitted: false,
+    });
   }
 
   onSearch(event: SubmitEvent): void {
