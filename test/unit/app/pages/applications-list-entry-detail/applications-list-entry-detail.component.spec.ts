@@ -300,10 +300,10 @@ describe('ApplicationsListEntryDetail', () => {
       emitEvent: false,
     });
 
-    component['wordingSection'] = {
+    (component as never)['wordingSection'] = {
       validateForSubmit: () => [],
     } as never;
-    component['civilFeeSection'] = {
+    (component as never)['civilFeeSection'] = {
       validateForSubmit: () => [
         { id: 'feeStatus', text: 'Select a fee status' },
       ],
@@ -920,7 +920,7 @@ describe('ApplicationsListEntryDetail', () => {
       lodgementDate: '2025-11-01',
       wordingFields: ['Old wording'],
       feeStatuses: [],
-    } as EntryDetailWithLegacyWordingFields;
+    } as unknown as EntryDetailWithLegacyWordingFields;
 
     const entryUpdateDto = {
       applicationCode: 'APP-200',
@@ -943,7 +943,10 @@ describe('ApplicationsListEntryDetail', () => {
     ).mergeEntryDetailUpdate(entryUpdateDto, res);
 
     expect(component['entryDetail']?.applicationCode).toBe('APP-300');
-    expect(component['entryDetail']?.wordingFields).toEqual(['Court A']);
+    expect(
+      (component['entryDetail'] as EntryDetailWithLegacyWordingFields)
+        ?.wordingFields,
+    ).toEqual(['Court A']);
     expect(component['entryDetail']?.respondent).toEqual(res.respondent);
   });
 
@@ -952,7 +955,7 @@ describe('ApplicationsListEntryDetail', () => {
       applicationCode: 'APP-100',
       wordingFields: ['Old wording'],
       feeStatuses: [],
-    } as EntryDetailWithLegacyWordingFields;
+    } as unknown as EntryDetailWithLegacyWordingFields;
 
     const entryUpdateDto = {
       applicationCode: 'APP-200',
@@ -970,7 +973,10 @@ describe('ApplicationsListEntryDetail', () => {
     ).mergeEntryDetailUpdate(entryUpdateDto, {});
 
     expect(component['entryDetail']?.applicationCode).toBe('APP-200');
-    expect(component['entryDetail']?.wordingFields).toEqual(['Court A']);
+    expect(
+      (component['entryDetail'] as EntryDetailWithLegacyWordingFields)
+        ?.wordingFields,
+    ).toEqual(['Court A']);
   });
 
   it('onCodeSelected sets isFeeRequired from app-code response isFeeDue', () => {
@@ -1081,7 +1087,9 @@ describe('ApplicationsListEntryDetail', () => {
       } as unknown as FeeStatus,
     ];
 
-    component.form.controls.feeStatuses.setValue(previous, { emitEvent: false });
+    component.form.controls.feeStatuses.setValue(previous, {
+      emitEvent: false,
+    });
 
     const helperSpy = jest
       .spyOn(civilFeeUtils, 'updateFeeStatusesControl')
@@ -1172,7 +1180,9 @@ describe('ApplicationsListEntryDetail', () => {
       } as unknown as FeeStatus,
     ];
 
-    component.form.controls.feeStatuses.setValue(previous, { emitEvent: false });
+    component.form.controls.feeStatuses.setValue(previous, {
+      emitEvent: false,
+    });
 
     const helperSpy = jest
       .spyOn(civilFeeUtils, 'updatePaymentReferenceInFeeStatusesControl')

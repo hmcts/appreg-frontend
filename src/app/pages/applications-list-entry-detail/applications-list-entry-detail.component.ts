@@ -149,9 +149,9 @@ const UPDATE_ENTRY_ERROR_MESSAGES = ENTRY_ERROR_MESSAGES;
 
 export const ERROR_HREFS = {
   standardApplicantCode: '#standard-applicant',
-  ...OFFICIALS_ERROR_HREFS,
-  ...RESPONDENT_PERSON_ERROR_HREFS,
-} as const;
+  ...(OFFICIALS_ERROR_HREFS as Record<string, string>),
+  ...(RESPONDENT_PERSON_ERROR_HREFS as Record<string, string>),
+} as const satisfies Record<string, string>;
 
 @Component({
   selector: 'app-applications-list-entry-detail',
@@ -317,7 +317,9 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   onAddFeeDetails(payload: AddFeeDetailsPayload): void {
     this.resetErrors();
-    const previousFeeStatuses = [...(this.form.controls.feeStatuses.value ?? [])];
+    const previousFeeStatuses = [
+      ...(this.form.controls.feeStatuses.value ?? []),
+    ];
 
     const { next, changed } = updateFeeStatusesControl(
       this.form.controls.feeStatuses,
@@ -333,7 +335,9 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   // Used to update payment reference for current fee status from /change-payment-reference
   private applyPaymentRefReturn(updatedRowId: string, newRef: string): void {
-    const previousFeeStatuses = [...(this.form.controls.feeStatuses.value ?? [])];
+    const previousFeeStatuses = [
+      ...(this.form.controls.feeStatuses.value ?? []),
+    ];
 
     const { next, changed } = updatePaymentReferenceInFeeStatusesControl(
       this.form.controls.feeStatuses,
@@ -689,7 +693,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     this.submitEntryUpdate(
       this.buildEntryUpdateDto(),
-      ENTRY_SUCCESS_MESSAGES.officialsUpdated,
+      ENTRY_SUCCESS_MESSAGES.officialsUpdated as SuccessBanner,
     );
   }
 
