@@ -155,15 +155,7 @@ export class ApplicationsListEntryMoveComponent
     ]);
 
     // We can only move to open applications lists, force status to open
-    this.form.setValue({
-      date: null,
-      time: null,
-      status: 'open',
-      description: null,
-      court: '',
-      location: '',
-      cja: '',
-    });
+    this.form.patchValue({ status: 'open' });
 
     this.storedRecordsState.patch({
       rows: [],

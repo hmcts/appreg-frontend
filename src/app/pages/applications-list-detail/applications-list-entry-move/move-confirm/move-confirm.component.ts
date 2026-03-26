@@ -7,6 +7,11 @@ import { ApplicationEntriesResultContext } from '@components/applications-list-e
 import { ReviewConfirmComponent } from '@components/review-confirm/review-confirm.component';
 import { TableComponent } from '@components/table/table.component';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
+import {
+  ApplicationListEntriesApi,
+  MoveApplicationListEntriesRequestParams,
+  MoveEntriesDto,
+} from '@openapi';
 import { ApplicationListRow } from '@util/types/application-list/types';
 
 type MoveConfirmNavState = {
@@ -25,6 +30,7 @@ export class MoveConfirmComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly appListEntryApi = inject(ApplicationListEntriesApi);
 
   columns = APPLICATIONS_LIST_COLUMNS;
 
@@ -49,7 +55,37 @@ export class MoveConfirmComponent implements OnInit {
   }
 
   onConfirm(): void {
-    // TODO: run POST /application-lists/{listId}/entries/move
+    const targetList = this.targetList;
+    const listId = this.originalListId;
+
+    if (!targetList || !listId || !this.entriesToMove.length) {
+      this.goBack();
+      return;
+    }
+
+    const entriesToMoveIds = new Set(
+      this.entriesToMove.map((entry) => entry.id),
+    );
+
+    const moveParams: MoveEntriesDto = {
+      targetListId: targetList.id,
+      entryIds: entriesToMoveIds,
+    };
+
+    const params: MoveApplicationListEntriesRequestParams = {
+      listId,
+      moveEntriesDto: moveParams,
+    };
+
+    // POST /application-lists/{listId}/entries/move
+    this.appListEntryApi.moveApplicationListEntries(params).subscribe({
+      next: () => {
+        void this.router.navigate(['/applications-list', this.targetList?.id], {
+          queryParams: { moveEntriesSuccessful: true },
+        });
+      },
+      error: () => {},
+    });
   }
 
   goBack(): void {

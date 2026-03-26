@@ -23,6 +23,13 @@
   />
 }
 
+@if (vm().moveDone) {
+  <app-success-banner
+    heading="Applications successfully moved"
+    linkText="Applications have been successfully moved to the selected applications list"
+  />
+}
+
 @if (vm().errorSummary.length || vm().updateInvalid) {
   <app-error-summary
     [title]="vm().errorHint || 'There is a problem'"
