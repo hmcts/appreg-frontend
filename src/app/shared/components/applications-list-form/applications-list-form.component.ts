@@ -40,6 +40,7 @@ export class ApplicationsListFormComponent {
 
   mode = input<ApplicationsListFormMode>('search');
   submitted = input(false);
+  showStatusField = input(true);
 
   advancedOpen = input(false);
   onToggleAdvanced = input<(() => void) | null>(null);
@@ -59,7 +60,9 @@ export class ApplicationsListFormComponent {
   isSearch = computed(() => this.mode() === 'search');
   isUpdate = computed(() => this.mode() === 'update');
 
-  showStatus = computed(() => this.mode() !== 'create');
+  showStatus = computed(
+    () => this.showStatusField() && this.mode() !== 'create',
+  );
   showDuration = computed(() => this.mode() === 'update');
 
   getError = input<((id: string) => ErrorItem | undefined) | null>(null);

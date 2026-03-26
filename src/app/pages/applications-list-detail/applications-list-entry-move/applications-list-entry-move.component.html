@@ -61,6 +61,7 @@
   <app-applications-list-form
     [form]="form"
     [mode]="'search'"
+    [showStatusField]="false"
     [submitted]="storedRecordsVm().submitted"
     [suggestions]="suggestionsFacade"
     [getError]="fieldError.bind(this)"
