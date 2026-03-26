@@ -1,4 +1,5 @@
 import { Location, isPlatformBrowser } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -12,6 +13,7 @@ import {
   MoveApplicationListEntriesRequestParams,
   MoveEntriesDto,
 } from '@openapi';
+import { getProblemText } from '@util/http-error-to-text';
 import { ApplicationListRow } from '@util/types/application-list/types';
 
 type MoveConfirmNavState = {
@@ -84,7 +86,21 @@ export class MoveConfirmComponent implements OnInit {
           queryParams: { moveEntriesSuccessful: true },
         });
       },
-      error: () => {},
+      error: (err: unknown) => {
+        const httpErr = err instanceof HttpErrorResponse ? err : undefined;
+        const code = httpErr?.status;
+        const errorPayload = getProblemText(err);
+
+        void this.router.navigate(['/applications-list', this.originalListId], {
+          queryParams: {
+            move: 'error',
+            code: code ?? 500,
+          },
+          state: {
+            moveError: errorPayload,
+          },
+        });
+      },
     });
   }
 

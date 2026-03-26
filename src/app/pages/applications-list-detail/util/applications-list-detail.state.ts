@@ -71,5 +71,5 @@ export const clearUpdateNotificationsPatch = (): Pick<
   errorSummary: [],
   createDone: false,
   preserveErrorSummaryOnLoad: false,
-  moveDone: false
+  moveDone: false,
 });

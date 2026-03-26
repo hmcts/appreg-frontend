@@ -77,6 +77,7 @@ type ApplicationsListDetailHistoryState = {
     title?: string;
     detail?: string;
   };
+  moveError?: string;
 };
 
 @Component({
@@ -139,6 +140,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.detailSignalState.patch(clearUpdateNotificationsPatch());
     this.setSuccessBanner();
     this.setCloseErrorFromNavigation();
+    this.setMoveErrorFromNavigation();
 
     //Attach validators
     this.form.addValidators([
@@ -208,7 +210,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       this.listRow = createState.row ?? undefined;
     }
 
-    if (this.route.snapshot.queryParamMap.get('moveEntriesSuccessful') === 'true') {
+    if (
+      this.route.snapshot.queryParamMap.get('moveEntriesSuccessful') === 'true'
+    ) {
       this.vm().moveDone = true;
     }
   }
@@ -237,6 +241,33 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       updateInvalid: true,
       errorHint: 'There is a problem',
       errorSummary: [{ id: 'status-close', href: '#status', text }],
+      preserveErrorSummaryOnLoad: true,
+    });
+  }
+
+  private setMoveErrorFromNavigation(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const isMoveError =
+      this.route.snapshot.queryParamMap.get('move') === 'error';
+    const code = Number(this.route.snapshot.queryParamMap.get('code'));
+    const moveState = history.state as ApplicationsListDetailHistoryState;
+    const moveError = moveState.moveError;
+
+    if (!isMoveError || !code || !moveError) {
+      return;
+    }
+
+    if (!moveError) {
+      return;
+    }
+
+    this.detailSignalState.patch({
+      updateInvalid: true,
+      errorHint: 'There is a problem',
+      errorSummary: [{ id: '', href: '', text: moveError }],
       preserveErrorSummaryOnLoad: true,
     });
   }
