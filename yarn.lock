@@ -4919,16 +4919,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@redocly/cli-otel@npm:0.1.2":
+  version: 0.1.2
+  resolution: "@redocly/cli-otel@npm:0.1.2"
+  dependencies:
+    ulid: "npm:^2.3.0"
+  checksum: 10/9aa17f7605b1708f70caac73319305bc73f955768040d5197913e3f9f8a6020dc842b6ab1ae8483fc1e8bae7465656bb3bd0f4c91d05515e202556623df110b6
+  languageName: node
+  linkType: hard
+
 "@redocly/cli@npm:^2.1.4":
-  version: 2.24.1
-  resolution: "@redocly/cli@npm:2.24.1"
+  version: 2.25.1
+  resolution: "@redocly/cli@npm:2.25.1"
   dependencies:
     "@opentelemetry/exporter-trace-otlp-http": "npm:0.202.0"
     "@opentelemetry/resources": "npm:2.0.1"
     "@opentelemetry/sdk-trace-node": "npm:2.0.1"
     "@opentelemetry/semantic-conventions": "npm:1.34.0"
-    "@redocly/openapi-core": "npm:2.24.1"
-    "@redocly/respect-core": "npm:2.24.1"
+    "@redocly/cli-otel": "npm:0.1.2"
+    "@redocly/openapi-core": "npm:2.25.1"
+    "@redocly/respect-core": "npm:2.25.1"
     abort-controller: "npm:^3.0.0"
     ajv: "npm:@redocly/ajv@8.18.0"
     ajv-formats: "npm:^3.0.1"
@@ -4954,7 +4964,7 @@ __metadata:
   bin:
     openapi: bin/cli.js
     redocly: bin/cli.js
-  checksum: 10/a67086e7cc8a4854a55a94a93e84190a86ffd376fd6c79fbbb49eb4513bfe57efd6b657271180b507262866e8d63a8063e43ce0892c5b4798d9fd0681d50fd5d
+  checksum: 10/59c103e9f116db4e8d01817cd83836293a1bbefa123bf84d460635f6b0e49dcf0c72c8e0846ff9e488776a6f3ff335c5b6065e0c48b1c329b7a9ef3e06e3c611
   languageName: node
   linkType: hard
 
@@ -4965,7 +4975,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@redocly/config@npm:^0.44.1":
+"@redocly/config@npm:^0.44.2":
   version: 0.44.2
   resolution: "@redocly/config@npm:0.44.2"
   dependencies:
@@ -4974,12 +4984,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@redocly/openapi-core@npm:2.24.1":
-  version: 2.24.1
-  resolution: "@redocly/openapi-core@npm:2.24.1"
+"@redocly/openapi-core@npm:2.25.1":
+  version: 2.25.1
+  resolution: "@redocly/openapi-core@npm:2.25.1"
   dependencies:
     "@redocly/ajv": "npm:^8.18.0"
-    "@redocly/config": "npm:^0.44.1"
+    "@redocly/config": "npm:^0.44.2"
     ajv: "npm:@redocly/ajv@8.18.0"
     ajv-formats: "npm:^3.0.1"
     colorette: "npm:^1.2.0"
@@ -4988,7 +4998,7 @@ __metadata:
     picomatch: "npm:^4.0.3"
     pluralize: "npm:^8.0.0"
     yaml-ast-parser: "npm:0.0.43"
-  checksum: 10/eb6e6781e27bc233ae8235901f77eadc5cbff6635af4b31a4346c5be89ec9632bc6b48807bf13bbb536715ea1cdfac9b61e1b55281a5a182e71d886ba1a75e3f
+  checksum: 10/369fde8db7fda315e843128971a0cc41ed674b84ffb9b4da425c3b66f189b000552b990588fe1c3ff00ebf9fb22086e52f7f675496613d8c1a873f66edf959a3
   languageName: node
   linkType: hard
 
@@ -5009,14 +5019,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@redocly/respect-core@npm:2.24.1":
-  version: 2.24.1
-  resolution: "@redocly/respect-core@npm:2.24.1"
+"@redocly/respect-core@npm:2.25.1":
+  version: 2.25.1
+  resolution: "@redocly/respect-core@npm:2.25.1"
   dependencies:
     "@faker-js/faker": "npm:^7.6.0"
     "@noble/hashes": "npm:^1.8.0"
     "@redocly/ajv": "npm:^8.18.0"
-    "@redocly/openapi-core": "npm:2.24.1"
+    "@redocly/openapi-core": "npm:2.25.1"
     ajv: "npm:@redocly/ajv@8.18.0"
     better-ajv-errors: "npm:^1.2.0"
     colorette: "npm:^2.0.20"
@@ -5025,7 +5035,7 @@ __metadata:
     openapi-sampler: "npm:^1.7.1"
     outdent: "npm:^0.8.0"
     picomatch: "npm:^4.0.3"
-  checksum: 10/b5b05429608a4a37ee1e8d93a9895a1c48d935ce63da10a270c8983360480faa4ff2ea75737e861d5925da3aa6555a5e2dba3f804d820de3e6000fce83421180
+  checksum: 10/d6cdd7ca102cb97e9248457f5387028aa0aa6b73b011be4194ad518f9bce93c3043d9e9a11412148fdfab22f8a955fb736a212d6dd7264c8114789e569164965
   languageName: node
   linkType: hard
 
@@ -18313,6 +18323,15 @@ __metadata:
   version: 1.5.0
   resolution: "uint8array-extras@npm:1.5.0"
   checksum: 10/94fd56a2dda6a7445f5176f301f491814c87757d38e4b3c932299ab54d69ec504830e5d5c18ffa20cf694a69a210315be8b4a2c9952c6334da817ea2d2e1dce0
+  languageName: node
+  linkType: hard
+
+"ulid@npm:^2.3.0":
+  version: 2.4.0
+  resolution: "ulid@npm:2.4.0"
+  bin:
+    ulid: bin/cli.js
+  checksum: 10/409ad0a703ea9f25d2a35cf790b767030a2c7b5ca0df6acb73669628156ab63bb97925a3fd7aaaf0b2384d39bd3ed2f7cd2c2de9f1171df6bc79b8c097865d92
   languageName: node
   linkType: hard
 
