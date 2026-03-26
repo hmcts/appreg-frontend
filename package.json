@@ -205,7 +205,8 @@
     "diff": "^8.0.3",
     "qs": "^6.14.2",
     "minimatch": "^10.2.3",
-    "find-cypress-specs@npm:^1.45.2": "patch:find-cypress-specs@npm%3A1.54.9#~/.yarn/patches/find-cypress-specs-npm-1.54.9-fc193a790b.patch"
+    "find-cypress-specs@npm:^1.45.2": "patch:find-cypress-specs@npm%3A1.54.9#~/.yarn/patches/find-cypress-specs-npm-1.54.9-fc193a790b.patch",
+    "picomatch": "^4.0.4"
   },
   "packageManager": "yarn@4.10.3"
 }
