@@ -29,7 +29,10 @@ import {
 } from './util/applications-list-create.state';
 
 import { APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
-import { ApplicationEntriesResultContext } from '@components/applications-list-entry-detail/util/routing-state-util';
+import {
+  ApplicationEntriesResultContext,
+  toRow,
+} from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ApplicationsListFormComponent } from '@components/applications-list-form/applications-list-form.component';
 import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
@@ -46,6 +49,7 @@ import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { getProblemText } from '@util/http-error-to-text';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
+import { ApplicationListRow } from '@util/types/application-list/types';
 import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
 import { courtMustExistIfTypedValidator } from '@validators/court-exists.validator';
 import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
@@ -166,6 +170,23 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
             applicationListCreateDto: params,
           }),
         onSuccess: async (response) => {
+          // Nav to move-confirm page instead
+          if (this.fromMoveApplications()) {
+            const targetListDetails: ApplicationListRow = toRow(response);
+
+            void this.router.navigate(
+              ['applications-list', response.id, 'move', 'confirm'],
+              {
+                state: {
+                  targetList: targetListDetails,
+                  originalListId: this.appListCreateState().listId,
+                  entriesToMove: this.appListCreateState().entriesToMove,
+                },
+              },
+            );
+            return;
+          }
+
           await this.router.navigate(['applications-list', response.id], {
             queryParams: { listCreated: true },
             fragment: 'list-details',
