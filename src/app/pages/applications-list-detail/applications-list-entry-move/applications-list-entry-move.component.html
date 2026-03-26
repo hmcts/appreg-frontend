@@ -40,13 +40,15 @@
   appMojButtonMenu
 />
 
+<!-- Nav to existing create page with params to adjust that page accordingly -->
 <app-page-header
   title="Search for an existing application list to move to or create a new list"
   size="m"
   [actions]="[
     {
       label: 'Create new list',
-      routerLink: ['create'],
+      routerLink: '/applications-list/create',
+      state: createListState,
       startIcon: true,
       variant: 'primary',
     },

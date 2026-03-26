@@ -118,6 +118,18 @@ export class ApplicationsListEntryMoveComponent
 
   private readonly errorMap = APPLICATIONS_LIST_FORM_ERROR_MESSAGES;
 
+  get createListState(): {
+    createMoveTargetList: boolean;
+    originalListId: string;
+    entriesToMove: ApplicationEntriesResultContext[];
+  } {
+    return {
+      createMoveTargetList: true,
+      originalListId: this.moveEntryState().listId,
+      entriesToMove: this.moveEntryState().selectedEntries,
+    };
+  }
+
   ngOnInit(): void {
     this.moveEntryPatch({
       listId: this.route.snapshot.paramMap.get('id') ?? undefined,

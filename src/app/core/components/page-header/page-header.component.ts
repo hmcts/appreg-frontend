@@ -12,6 +12,7 @@ export type PageHeaderAction = {
   disabled?: boolean;
   id?: string;
   queryParams?: Params;
+  state?: Record<string, unknown>;
   // If you need a click handler without navigation:
   onClick?: (this: void, ev: Event) => void;
 };

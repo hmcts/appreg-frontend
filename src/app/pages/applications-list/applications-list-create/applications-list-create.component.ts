@@ -9,11 +9,12 @@ Functionality:
   - Uses text-suggestion helpers for court/CJA inputs
 */
 
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   Component,
   EnvironmentInjector,
   OnInit,
+  PLATFORM_ID,
   inject,
   signal,
 } from '@angular/core';
@@ -28,6 +29,7 @@ import {
 } from './util/applications-list-create.state';
 
 import { APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
+import { ApplicationEntriesResultContext } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ApplicationsListFormComponent } from '@components/applications-list-form/applications-list-form.component';
 import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
@@ -68,6 +70,7 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
 
   private readonly formSvc = inject(ApplicationsListFormService);
   private readonly router = inject(Router);
+  private readonly platformId = inject(PLATFORM_ID);
 
   // Signal initialisation
   private readonly appListCreatesignalState =
@@ -91,6 +94,11 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
 
   suggestionsFacade = buildSuggestionsFacade(this);
 
+  fromMoveApplications = signal(false);
+  breadcrumbs = signal([
+    { label: 'Applications list', link: '/applications-list' },
+  ]);
+
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refField);
     this.setupEffects();
@@ -111,6 +119,41 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
           this.state().courtLocations.map((x) => x.locationCode),
       }),
     ]);
+
+    // If we are coming from /applications-list/:id/move
+    if (isPlatformBrowser(this.platformId)) {
+      const navState = history.state as {
+        createMoveTargetList?: boolean;
+        originalListId?: string;
+        entriesToMove?: ApplicationEntriesResultContext[];
+      };
+
+      this.appListCreatesignalState.patch({
+        listId: navState.originalListId ?? '',
+        entriesToMove: navState.entriesToMove,
+      });
+
+      if (
+        navState.createMoveTargetList &&
+        !this.appListCreateState().listId &&
+        !this.appListCreateState().entriesToMove.length
+      ) {
+        void this.router.navigate(['/applications-list']);
+      }
+
+      // render cancel button
+      this.fromMoveApplications.set(navState.createMoveTargetList ?? false);
+
+      if (this.appListCreateState().listId) {
+        this.breadcrumbs.set([
+          { label: 'Applications list', link: '/applications-list' },
+          {
+            label: 'Applications list details',
+            link: `/applications-list/${this.appListCreateState().listId}`,
+          },
+        ]);
+      }
+    }
   }
 
   // Signal driven requests
@@ -179,6 +222,20 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
 
   fieldError(id: string): ErrorItem | undefined {
     return this.vm().errorSummary.find((e) => e.id === id);
+  }
+
+  // This button is only shown when we navigate here from move applications page
+  onCancel(): void {
+    const { listId, entriesToMove } = this.appListCreateState();
+
+    if (!listId || !entriesToMove.length) {
+      void this.router.navigate(['/applications-list']);
+      return;
+    }
+
+    void this.router.navigate(['/applications-list', listId, 'move'], {
+      state: { entriesToMove },
+    });
   }
 
   private keys<T extends object>(o: T): (keyof T)[] {
