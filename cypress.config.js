@@ -190,6 +190,23 @@ module.exports = defineConfig({
         process.env.CYPRESS_TAGS ||
         (config.env && config.env.TAGS);
 
+      // Determine API base URL dynamically based on TEST_URL
+      const testUrl = process.env.TEST_URL || config.baseUrl || '';
+      let apiBaseUrl = appConfigGet(appConfig, 'api.baseUrl');
+
+      if (testUrl.includes('demo')) {
+        apiBaseUrl = 'https://appreg-api.demo.platform.hmcts.net';
+        cypressLog.info('Using demo API base URL (detected from TEST_URL)');
+      } else if (testUrl.includes('staging') || testUrl.includes('stg')) {
+        apiBaseUrl = 'https://appreg-api.staging.platform.hmcts.net';
+        cypressLog.info('Using staging API base URL (detected from TEST_URL)');
+      } else if (testUrl.includes('localhost')) {
+        apiBaseUrl = 'http://localhost:8080';
+        cypressLog.info(
+          'Using local WireMock API base URL (detected localhost)',
+        );
+      }
+
       config.env = {
         ...config.env,
         SSO_USERS: {
@@ -243,7 +260,7 @@ module.exports = defineConfig({
         ),
         TENANT_ID: appConfigGet(appConfig, 'secrets.appreg.azure-tenant-id-fe'),
         SCOPE: `api://${appConfigGet(appConfig, 'secrets.appreg.azure-app-id-fe')}/frontend`,
-        API_BASE_URL: appConfigGet(appConfig, 'api.baseUrl'),
+        API_BASE_URL: apiBaseUrl,
         SESSION_COOKIE_NAME: appConfigGet(appConfig, 'session.cookieName'),
         ...(tags ? { TAGS: tags } : {}),
       };

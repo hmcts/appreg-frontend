@@ -1,3 +1,4 @@
+/// <reference types="cypress" />
 export class ApiAuthHelper {
   static authenticateUser(userKey: string): Cypress.Chainable<void> {
     let ssoUsers: Record<string, { email: string; password: string }>;
@@ -11,23 +12,23 @@ export class ApiAuthHelper {
         'getEnv',
         'SSO_USERS',
       )
-      .then((users) => {
+      .then((users: Record<string, { email: string; password: string }>) => {
         ssoUsers = users;
         return cy.task<string>('getEnv', 'TENANT_ID');
       })
-      .then((tenant) => {
+      .then((tenant: string) => {
         tenantId = tenant;
         return cy.task<string>('getEnv', 'CLIENT_ID');
       })
-      .then((client) => {
+      .then((client: string) => {
         clientId = client;
         return cy.task<string>('getEnv', 'CLIENT_SECRET');
       })
-      .then((secret) => {
+      .then((secret: string) => {
         clientSecret = secret;
         return cy.task<string>('getEnv', 'SCOPE');
       })
-      .then((sc) => {
+      .then((sc: string) => {
         scope = sc;
         const user = ssoUsers[userKey];
         const url = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
@@ -46,7 +47,7 @@ export class ApiAuthHelper {
           },
         });
       })
-      .then((response) => {
+      .then((response: { status: number; body: { access_token: string } }) => {
         expect(response.status).to.eq(200);
         cy.wrap(response.body.access_token).as('authToken');
       }) as unknown as Cypress.Chainable<void>;
