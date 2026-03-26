@@ -237,20 +237,25 @@ export class CivilFeeSectionComponent implements OnInit {
     return buildCivilFeeHeading(this.feeMeta() ?? {}, this.offSiteFee());
   }
 
-  civilFeeColumnsWithChangeLink = (): TableColumn[] => [
-    ...this.civilFeeColumns(),
-    { header: 'Action', field: 'actions', sortable: false },
-  ];
+  civilFeeColumnsWithChangeLink = (): TableColumn[] =>
+    this.feeRequired()
+      ? [
+          ...this.civilFeeColumns(),
+          { header: 'Action', field: 'actions', sortable: false },
+        ]
+      : this.civilFeeColumns();
 
-  feeStatusRows = (): Row[] =>
-    (this.feeForm().controls.feeStatuses.value ?? []).map((fs) => {
-      return {
-        rowId: feeStatusRowId(fs),
-        paymentReference: fs.paymentReference ?? '',
-        paymentStatus: fs.paymentStatus,
-        statusDateRaw: fs.statusDate, // e.g. 2025-10-25 (sort-friendly), in template is formatted
-      };
-    });
+  feeStatusRows = (): Row[] => {
+    const rows = this.feeForm().controls.feeStatuses.value ?? [];
+
+    return rows.map((fs, index) => ({
+      rowId: feeStatusRowId(fs),
+      paymentReference: fs.paymentReference ?? '',
+      paymentStatus: fs.paymentStatus,
+      statusDateRaw: fs.statusDate,
+      isLast: index === rows.length - 1,
+    }));
+  };
 
   onChangePaymentReference = (row: Row): void => {
     if (row['paymentStatus'] === 'DUE') {

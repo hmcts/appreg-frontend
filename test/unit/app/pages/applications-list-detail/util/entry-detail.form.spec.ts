@@ -2,6 +2,7 @@ import { FormBuilder } from '@angular/forms';
 
 import {
   buildEntryUpdateDtoFromForm,
+  buildEntryUpdateDtoWithChange,
   buildOrganisationForm,
   buildPersonForm,
   buildPersonOrgSharedControls,
@@ -334,6 +335,50 @@ describe('applications-list entry form builders', () => {
       );
 
       expect(dto.applicant?.person?.name?.firstForename).toBe('John');
+      expect('standardApplicantCode' in dto).toBe(false);
+    });
+  });
+
+  describe('buildEntryUpdateDtoWithChange', () => {
+    it('clears applicant when detail uses standardApplicantCode', () => {
+      const dto = buildEntryUpdateDtoWithChange(
+        {
+          applicationCode: 'APP-100',
+          standardApplicantCode: 'STD-123',
+          applicant: {
+            person: {
+              name: { firstForename: 'Jane', surname: 'Doe' },
+              contactDetails: { addressLine1: '1 Street' },
+            },
+          },
+          lodgementDate: '2025-01-01',
+        } as unknown as EntryGetDetailDto,
+        'feeStatuses',
+        [],
+      );
+
+      expect(dto.standardApplicantCode).toBe('STD-123');
+      expect('applicant' in dto).toBe(false);
+    });
+
+    it('clears standardApplicantCode when detail uses applicant object', () => {
+      const dto = buildEntryUpdateDtoWithChange(
+        {
+          applicationCode: 'APP-100',
+          standardApplicantCode: 'STD-OLD',
+          applicant: {
+            person: {
+              name: { firstForename: 'Jane', surname: 'Doe' },
+              contactDetails: { addressLine1: '1 Street' },
+            },
+          },
+          lodgementDate: '2025-01-01',
+        } as unknown as EntryGetDetailDto,
+        'standardApplicantCode',
+        undefined as never,
+      );
+
+      expect(dto.applicant?.person?.name?.firstForename).toBe('Jane');
       expect('standardApplicantCode' in dto).toBe(false);
     });
   });

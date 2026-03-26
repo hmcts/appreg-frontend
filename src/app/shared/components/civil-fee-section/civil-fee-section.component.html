@@ -50,7 +50,7 @@
       </ng-template>
 
       <ng-template #actionsTemplate let-row>
-        @if (row['paymentStatus'] !== 'DUE') {
+        @if (row['paymentStatus'] !== 'DUE' && row['isLast']) {
           <a
             class="govuk-link"
             href="javascript:void(0)"

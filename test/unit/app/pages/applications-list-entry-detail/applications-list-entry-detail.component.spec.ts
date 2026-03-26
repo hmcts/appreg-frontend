@@ -333,6 +333,9 @@ describe('ApplicationsListEntryDetail', () => {
     };
 
     component['appListEntryDetailPatch']({ appListId: 'AL-1' });
+    component['form'].controls.applicationCode.setValue('APP-200', {
+      emitEvent: false,
+    });
 
     mockUpdateApplicationListEntry.mockClear();
     mockUpdateApplicationListEntry.mockReturnValueOnce(of({}));
@@ -350,6 +353,7 @@ describe('ApplicationsListEntryDetail', () => {
     expect(params.listId).toBe('AL-1');
     expect(params.entryId).toBe('EN-1');
     expect(params.entryUpdateDto).toBeDefined();
+    expect(params.entryUpdateDto.applicationCode).toBe('APP-200');
     expect(params.entryUpdateDto.hasOffsiteFee).toBe(true);
 
     expect(component['persistedHasOffsiteFee']).toBe(true);
@@ -717,9 +721,11 @@ describe('ApplicationsListEntryDetail', () => {
         title: 'After update title',
         wording: { template: '... {test} ...' },
         bulkRespondentAllowed: false,
-        isFeeDue: false,
+        isFeeDue: true,
         requiresRespondent: false,
-        feeReference: undefined,
+        feeReference: 'CO7.2',
+        feeAmount: { value: 2500, currency: 'GBP' },
+        offsiteFeeAmount: { value: 3000, currency: 'GBP' },
         startDate: '2025-01-01',
         endDate: null,
       } as ApplicationCodeGetDetailDto),
@@ -734,6 +740,12 @@ describe('ApplicationsListEntryDetail', () => {
     expect(
       component['appListEntryDetailState']().appCodeDetail?.applicationCode,
     ).toBe('APP-7');
+    expect(component.feeMeta).toEqual({
+      feeReference: 'CO7.2',
+      feeAmount: { value: 2500, currency: 'GBP' },
+      offsiteFeeAmount: { value: 3000, currency: 'GBP' },
+    });
+    expect(component['appListEntryDetailState']().isFeeRequired).toBe(true);
 
     expect(resetSectionsSpy).toHaveBeenCalledWith(component.forms);
   });
@@ -1021,6 +1033,17 @@ describe('ApplicationsListEntryDetail', () => {
       paymentReference: 'REF1',
     };
 
+    component['entryDetail'] = {
+      id: 'EN-1',
+      listId: 'AL-1',
+      applicationCode: 'APP-100',
+      numberOfRespondents: 0,
+      lodgementDate: '2025-11-01',
+    };
+    component['form'].controls.applicationCode.setValue('APP-200', {
+      emitEvent: false,
+    });
+
     component.onAddFeeDetails(payload);
 
     expect(spy).toHaveBeenCalledTimes(1);
@@ -1033,11 +1056,56 @@ describe('ApplicationsListEntryDetail', () => {
     expect(params.entryId).toBe('EN-1');
     expect(params.entryUpdateDto).toEqual(
       expect.objectContaining({
+        applicationCode: 'APP-200',
         feeStatuses: next,
       }),
     );
 
     spy.mockRestore();
+  });
+
+  it('onAddFeeDetails rolls back feeStatuses when update API errors', () => {
+    const previous: FeeStatus[] = [
+      {
+        paymentStatus: 'UNDERTAKEN',
+        statusDate: '2026-01-09',
+        paymentReference: 'OLD',
+      } as unknown as FeeStatus,
+    ];
+    const next: FeeStatus[] = [
+      ...previous,
+      {
+        paymentStatus: 'PAID',
+        statusDate: '2026-01-10',
+        paymentReference: 'NEW',
+      } as unknown as FeeStatus,
+    ];
+
+    component.form.controls.feeStatuses.setValue(previous, { emitEvent: false });
+
+    const helperSpy = jest
+      .spyOn(civilFeeUtils, 'updateFeeStatusesControl')
+      .mockReturnValue({ next, changed: true });
+
+    mockUpdateApplicationListEntry.mockClear();
+    mockUpdateApplicationListEntry.mockReturnValueOnce(
+      new Observable((subscriber) => {
+        subscriber.error(new Error('boom'));
+      }),
+    );
+
+    const payload: AddFeeDetailsPayload = {
+      feeStatus: PaymentStatus.PAID,
+      statusDate: '2026-01-10',
+      paymentReference: 'NEW',
+    };
+
+    component.onAddFeeDetails(payload);
+
+    expect(component.form.controls.feeStatuses.value).toEqual(previous);
+    expect(component.form.controls.feeStatuses.pristine).toBe(true);
+
+    helperSpy.mockRestore();
   });
 
   it('applyPaymentRefReturn: when helper returns changed=false, does not call update API', () => {
@@ -1086,6 +1154,44 @@ describe('ApplicationsListEntryDetail', () => {
     );
 
     spy.mockRestore();
+  });
+
+  it('applyPaymentRefReturn rolls back feeStatuses when update API errors', () => {
+    const previous: FeeStatus[] = [
+      {
+        paymentStatus: 'UNDERTAKEN',
+        statusDate: '2026-01-10',
+        paymentReference: 'OLD',
+      } as unknown as FeeStatus,
+    ];
+    const next: FeeStatus[] = [
+      {
+        paymentStatus: 'UNDERTAKEN',
+        statusDate: '2026-01-10',
+        paymentReference: 'NEW',
+      } as unknown as FeeStatus,
+    ];
+
+    component.form.controls.feeStatuses.setValue(previous, { emitEvent: false });
+
+    const helperSpy = jest
+      .spyOn(civilFeeUtils, 'updatePaymentReferenceInFeeStatusesControl')
+      .mockReturnValue({ next, changed: true });
+
+    mockUpdateApplicationListEntry.mockClear();
+    mockUpdateApplicationListEntry.mockReturnValueOnce(
+      new Observable((subscriber) => {
+        subscriber.error(new Error('boom'));
+      }),
+    );
+
+    const subject = component as unknown as PaymentRefApplier;
+    subject.applyPaymentRefReturn('ROW-1', 'NEW');
+
+    expect(component.form.controls.feeStatuses.value).toEqual(previous);
+    expect(component.form.controls.feeStatuses.pristine).toBe(true);
+
+    helperSpy.mockRestore();
   });
 
   it('onChildErrors stores resultWording child errors', () => {

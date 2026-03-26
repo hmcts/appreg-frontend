@@ -323,12 +323,10 @@ export function buildEntryUpdateDtoFromForm(
 
   if (formValue.applicantType === 'standard') {
     dto.standardApplicantCode = (formValue.standardApplicantCode ?? '').trim();
-    delete dto.applicant;
-  } else {
-    delete dto.standardApplicantCode;
+    return normalizeApplicantSelection(dto, 'standard');
   }
 
-  return dto;
+  return normalizeApplicantSelection(dto, 'applicant');
 }
 
 export function buildContactDetailsFromRaw(v: ContactFormRaw): ContactDetails {
@@ -501,10 +499,32 @@ export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
     ...(detail as { officials?: Official[] }),
   };
 
-  return {
+  const dto: EntryUpdateDto = {
     ...base,
     [key]: value,
   };
+
+  const hasStandardApplicantCode =
+    typeof dto.standardApplicantCode === 'string' &&
+    dto.standardApplicantCode.trim().length > 0;
+
+  return normalizeApplicantSelection(
+    dto,
+    hasStandardApplicantCode ? 'standard' : 'applicant',
+  );
+}
+
+function normalizeApplicantSelection(
+  dto: EntryUpdateDto,
+  mode: 'standard' | 'applicant',
+): EntryUpdateDto {
+  if (mode === 'standard') {
+    delete dto.applicant;
+    return dto;
+  }
+
+  delete dto.standardApplicantCode;
+  return dto;
 }
 
 //  TODO: temp backend/mock shape whilst type is not finalised

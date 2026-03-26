@@ -52,7 +52,6 @@ import {
   PERSON_TITLE_OPTIONS,
   RESPONDENT_TYPE_OPTIONS,
 } from './util/entry-detail.constants';
-import { buildEntryUpdateDtoWithChange } from './util/entry-detail.form';
 import { mapHttpErrorToSummary } from './util/errors.util';
 import { buildResultApplicantContext } from './util/result-context.util';
 import { getEntryId } from './util/routing.util';
@@ -318,6 +317,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   onAddFeeDetails(payload: AddFeeDetailsPayload): void {
     this.resetErrors();
+    const previousFeeStatuses = [...(this.form.controls.feeStatuses.value ?? [])];
 
     const { next, changed } = updateFeeStatusesControl(
       this.form.controls.feeStatuses,
@@ -328,11 +328,13 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
 
     const bannerText: SuccessBanner = ENTRY_SUCCESS_MESSAGES.feeStatusUpdated;
-    this.persistFeeStatuses(next, bannerText);
+    this.persistFeeStatuses(previousFeeStatuses, next, bannerText);
   }
 
   // Used to update payment reference for current fee status from /change-payment-reference
   private applyPaymentRefReturn(updatedRowId: string, newRef: string): void {
+    const previousFeeStatuses = [...(this.form.controls.feeStatuses.value ?? [])];
+
     const { next, changed } = updatePaymentReferenceInFeeStatusesControl(
       this.form.controls.feeStatuses,
       updatedRowId,
@@ -344,7 +346,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
 
     const bannerText: SuccessBanner = ENTRY_SUCCESS_MESSAGES.paymentRefUpdated;
-    this.persistFeeStatuses(next, bannerText);
+    this.persistFeeStatuses(previousFeeStatuses, next, bannerText);
   }
 
   private clearPaymentRefReturnOnly(): void {
@@ -354,6 +356,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   private persistFeeStatuses(
+    previousFeeStatuses: FeeStatus[],
     feeStatuses: FeeStatus[],
     bannerText: SuccessBanner,
   ): void {
@@ -362,8 +365,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
-    const entryUpdateDto = buildEntryUpdateDtoWithChange(
-      this.entryDetail,
+    const entryUpdateDto = this.buildCurrentEntryUpdateDtoWithChange(
       'feeStatuses',
       feeStatuses,
     );
@@ -391,6 +393,11 @@ export class ApplicationsListEntryDetail implements OnInit {
           focusSuccessBanner(this.platformId);
         },
         error: (err) => {
+          this.form.controls.feeStatuses.setValue(previousFeeStatuses, {
+            emitEvent: false,
+          });
+          this.form.controls.feeStatuses.markAsPristine();
+
           this.applyMappedError(err);
         },
       });
@@ -428,6 +435,11 @@ export class ApplicationsListEntryDetail implements OnInit {
               prevSelection.code !== codeAndLodgementDate.code;
 
             this.form.patchValue({ applicationTitle: appCodeDetail.title });
+            this.feeMeta = {
+              feeReference: appCodeDetail.feeReference ?? null,
+              feeAmount: appCodeDetail.feeAmount ?? null,
+              offsiteFeeAmount: appCodeDetail.offsiteFeeAmount ?? null,
+            };
 
             if (hasSelectionChanged) {
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
@@ -446,12 +458,14 @@ export class ApplicationsListEntryDetail implements OnInit {
           },
           error: (err) => {
             this.form.patchValue({ applicationTitle: '' });
+            this.feeMeta = null;
             this.handleResultWordingContext(this.navState);
             this.applyMappedError(err);
           },
         });
     } else {
       this.form.patchValue({ applicationTitle: '' });
+      this.feeMeta = null;
       this.handleResultWordingContext(this.navState);
       this.appListEntryDetailPatch({ appCodeDetail: null });
     }
@@ -691,6 +705,16 @@ export class ApplicationsListEntryDetail implements OnInit {
     );
   }
 
+  private buildCurrentEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
+    key: K,
+    value: EntryUpdateDto[K],
+  ): EntryUpdateDto {
+    return {
+      ...this.buildEntryUpdateDto(),
+      [key]: value,
+    };
+  }
+
   onStandardApplicantCodeChanged(code: string | null): void {
     this.selectedStandardApplicantCode = code;
     this.formSvc.setStandardApplicantCode(this.forms, code, {
@@ -715,8 +739,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
-    const entryUpdateDto = buildEntryUpdateDtoWithChange(
-      this.entryDetail,
+    const entryUpdateDto = this.buildCurrentEntryUpdateDtoWithChange(
       'hasOffsiteFee',
       nextValue,
     );
