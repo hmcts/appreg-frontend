@@ -1,6 +1,9 @@
 <table [class]="tableClass()">
   @if (caption()) {
-    <caption [class]="captionClass()">
+    <caption
+      [class.govuk-visually-hidden]="hiddenCaption()"
+      class="govuk-table__caption govuk-table__caption--{{ captionSize() }}"
+    >
       {{
         caption()
       }}

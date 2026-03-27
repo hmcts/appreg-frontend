@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
-import { Subject, of } from 'rxjs';
+import { Observable, Subject, of } from 'rxjs';
 
 import { ApplicationsListEntryCreate } from '@components/applications-list-entry-create/applications-list-entry-create.component';
 import { buildEntryCreateDto } from '@components/applications-list-entry-create/util/entry-create-mapper';
@@ -693,6 +693,70 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
     component.onCodeSelected({ code: 'SAME', date: '2026-02-02' });
 
     expect(resetSectionsSpy).not.toHaveBeenCalled();
+  });
+
+  it('onCodeSelected clears fee metadata and fee-required state when app code is cleared', () => {
+    component.form.patchValue({
+      applicationCode: 'OLD',
+      lodgementDate: '2026-01-01',
+      applicationTitle: 'Old title',
+    });
+    component.feeMeta = {
+      feeReference: 'CO9.2',
+      feeAmount: { value: 2500, currency: 'GBP' },
+      offsiteFeeAmount: { value: 3000, currency: 'GBP' },
+    };
+    (
+      component as unknown as {
+        appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
+      }
+    ).appListEntryCreatePatch({
+      appCodeDetail: { applicationCode: 'OLD' },
+      isFeeRequired: true,
+    });
+
+    component.form.patchValue({
+      applicationCode: null,
+      lodgementDate: null,
+    });
+    component.onCodeSelected({ code: '', date: '' });
+
+    expect(component.vm().appCodeDetail).toBeNull();
+    expect(component.vm().isFeeRequired).toBe(false);
+    expect(component.feeMeta).toBeNull();
+    expect(component.form.controls.applicationTitle.value).toBeNull();
+  });
+
+  it('onCodeSelected clears fee metadata and fee-required state when app code lookup fails', () => {
+    component.form.patchValue({
+      applicationTitle: 'Old title',
+    });
+    component.feeMeta = {
+      feeReference: 'CO9.2',
+      feeAmount: { value: 2500, currency: 'GBP' },
+      offsiteFeeAmount: { value: 3000, currency: 'GBP' },
+    };
+    (
+      component as unknown as {
+        appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
+      }
+    ).appListEntryCreatePatch({
+      appCodeDetail: { applicationCode: 'OLD' },
+      isFeeRequired: true,
+    });
+
+    getApplicationCodeByCodeAndDateMock.mockReturnValue(
+      new Observable((subscriber) => {
+        subscriber.error(new Error('boom'));
+      }) as never,
+    );
+
+    component.onCodeSelected({ code: 'A001', date: '2026-02-01' });
+
+    expect(component.vm().appCodeDetail).toBeNull();
+    expect(component.vm().isFeeRequired).toBe(false);
+    expect(component.feeMeta).toBeNull();
+    expect(component.form.controls.applicationTitle.value).toBeNull();
   });
 
   it("onSubmit: respondent validation path with bulk (respondentEntryType='bulk')", () => {

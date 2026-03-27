@@ -19,8 +19,12 @@
             Off site fee applies
           </label>
           <div class="govuk-hint govuk-checkboxes__hint">
-            Selecting this will automatically apply the off site fee to the
-            entry. This change is saved immediately.
+            @if (autoSaveOffsiteFee()) {
+              Selecting this will automatically apply the off site fee to the
+              entry. This change is saved immediately.
+            } @else {
+              Selecting this will apply the off site fee to the entry.
+            }
           </div>
         </div>
       </div>
@@ -46,7 +50,7 @@
       </ng-template>
 
       <ng-template #actionsTemplate let-row>
-        @if (row['paymentStatus'] !== 'DUE') {
+        @if (row['paymentStatus'] !== 'DUE' && row['isLast']) {
           <a
             class="govuk-link"
             href="javascript:void(0)"

@@ -49,10 +49,10 @@ import { ResultRow, toExistingRows } from '@util/result-code-helpers';
   selector: 'app-result-wording-section',
   templateUrl: './result-wording-section.component.html',
   imports: [
-    SortableTableComponent,
     SuggestionsComponent,
     SummaryListCardActionComponent,
     WordingParserComponent,
+    SortableTableComponent,
   ],
 })
 export class ResultWordingSectionComponent {

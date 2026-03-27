@@ -293,16 +293,54 @@ describe('ApplicationsListEntryDetail', () => {
     expect(component['appListEntryDetailState']().errorFound).toBe(true);
   });
 
-  it('persistHasOffsiteFee calls update API and applies success state on nextValue=true', () => {
+  it('runFullSubmitValidation includes civil fee child validation errors', () => {
+    component['form'].controls.applicantType.setValue('standard');
+    component.onStandardApplicantCodeChanged('SA-123');
+    component['form'].controls.standardApplicantCode.setValue('SA-123', {
+      emitEvent: false,
+    });
+
+    (component as never)['wordingSection'] = {
+      validateForSubmit: () => [],
+    } as never;
+    (component as never)['civilFeeSection'] = {
+      validateForSubmit: () => [
+        { id: 'feeStatus', text: 'Select a fee status' },
+      ],
+    } as never;
+
+    const result = component['runFullSubmitValidation']();
+
+    expect(result).toBe(true);
+    expect(component['appListEntryDetailState']().errorFound).toBe(true);
+    expect(component['appListEntryDetailState']().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'feeStatus',
+          text: 'Select a fee status',
+        }),
+      ]),
+    );
+  });
+
+  it('persistHasOffsiteFee keeps isolated fee saves scoped to current app code only', () => {
     component['entryDetail'] = {
       id: 'EN-1',
       listId: 'AL-1',
       applicationCode: 'APP-100',
+      notes: 'persisted note',
       numberOfRespondents: 0,
       lodgementDate: '2025-11-01',
     };
 
     component['appListEntryDetailPatch']({ appListId: 'AL-1' });
+    component['form'].controls.applicationCode.setValue('APP-200', {
+      emitEvent: false,
+    });
+    component['form'].controls.applicationNotes.controls.notes.setValue(
+      'draft note',
+      { emitEvent: false },
+    );
 
     mockUpdateApplicationListEntry.mockClear();
     mockUpdateApplicationListEntry.mockReturnValueOnce(of({}));
@@ -320,6 +358,8 @@ describe('ApplicationsListEntryDetail', () => {
     expect(params.listId).toBe('AL-1');
     expect(params.entryId).toBe('EN-1');
     expect(params.entryUpdateDto).toBeDefined();
+    expect(params.entryUpdateDto.applicationCode).toBe('APP-200');
+    expect(params.entryUpdateDto.notes).toBe('persisted note');
     expect(params.entryUpdateDto.hasOffsiteFee).toBe(true);
 
     expect(component['persistedHasOffsiteFee']).toBe(true);
@@ -687,9 +727,11 @@ describe('ApplicationsListEntryDetail', () => {
         title: 'After update title',
         wording: { template: '... {test} ...' },
         bulkRespondentAllowed: false,
-        isFeeDue: false,
+        isFeeDue: true,
         requiresRespondent: false,
-        feeReference: undefined,
+        feeReference: 'CO7.2',
+        feeAmount: { value: 2500, currency: 'GBP' },
+        offsiteFeeAmount: { value: 3000, currency: 'GBP' },
         startDate: '2025-01-01',
         endDate: null,
       } as ApplicationCodeGetDetailDto),
@@ -704,6 +746,12 @@ describe('ApplicationsListEntryDetail', () => {
     expect(
       component['appListEntryDetailState']().appCodeDetail?.applicationCode,
     ).toBe('APP-7');
+    expect(component.feeMeta).toEqual({
+      feeReference: 'CO7.2',
+      feeAmount: { value: 2500, currency: 'GBP' },
+      offsiteFeeAmount: { value: 3000, currency: 'GBP' },
+    });
+    expect(component['appListEntryDetailState']().isFeeRequired).toBe(true);
 
     expect(resetSectionsSpy).toHaveBeenCalledWith(component.forms);
   });
@@ -878,7 +926,7 @@ describe('ApplicationsListEntryDetail', () => {
       lodgementDate: '2025-11-01',
       wordingFields: ['Old wording'],
       feeStatuses: [],
-    } as EntryDetailWithLegacyWordingFields;
+    } as unknown as EntryDetailWithLegacyWordingFields;
 
     const entryUpdateDto = {
       applicationCode: 'APP-200',
@@ -901,7 +949,10 @@ describe('ApplicationsListEntryDetail', () => {
     ).mergeEntryDetailUpdate(entryUpdateDto, res);
 
     expect(component['entryDetail']?.applicationCode).toBe('APP-300');
-    expect(component['entryDetail']?.wordingFields).toEqual(['Court A']);
+    expect(
+      (component['entryDetail'] as EntryDetailWithLegacyWordingFields)
+        ?.wordingFields,
+    ).toEqual(['Court A']);
     expect(component['entryDetail']?.respondent).toEqual(res.respondent);
   });
 
@@ -910,7 +961,7 @@ describe('ApplicationsListEntryDetail', () => {
       applicationCode: 'APP-100',
       wordingFields: ['Old wording'],
       feeStatuses: [],
-    } as EntryDetailWithLegacyWordingFields;
+    } as unknown as EntryDetailWithLegacyWordingFields;
 
     const entryUpdateDto = {
       applicationCode: 'APP-200',
@@ -928,7 +979,10 @@ describe('ApplicationsListEntryDetail', () => {
     ).mergeEntryDetailUpdate(entryUpdateDto, {});
 
     expect(component['entryDetail']?.applicationCode).toBe('APP-200');
-    expect(component['entryDetail']?.wordingFields).toEqual(['Court A']);
+    expect(
+      (component['entryDetail'] as EntryDetailWithLegacyWordingFields)
+        ?.wordingFields,
+    ).toEqual(['Court A']);
   });
 
   it('onCodeSelected sets isFeeRequired from app-code response isFeeDue', () => {
@@ -972,7 +1026,7 @@ describe('ApplicationsListEntryDetail', () => {
     spy.mockRestore();
   });
 
-  it('onAddFeeDetails: when helper returns changed=true, persists feeStatuses via update API', () => {
+  it('onAddFeeDetails: when helper returns changed=true, uses current app code without persisting unrelated drafts', () => {
     const next: FeeStatus[] = [
       {
         paymentStatus: 'Paid',
@@ -991,6 +1045,22 @@ describe('ApplicationsListEntryDetail', () => {
       paymentReference: 'REF1',
     };
 
+    component['entryDetail'] = {
+      id: 'EN-1',
+      listId: 'AL-1',
+      applicationCode: 'APP-100',
+      notes: 'persisted note',
+      numberOfRespondents: 0,
+      lodgementDate: '2025-11-01',
+    };
+    component['form'].controls.applicationCode.setValue('APP-200', {
+      emitEvent: false,
+    });
+    component['form'].controls.applicationNotes.controls.notes.setValue(
+      'draft note',
+      { emitEvent: false },
+    );
+
     component.onAddFeeDetails(payload);
 
     expect(spy).toHaveBeenCalledTimes(1);
@@ -1003,11 +1073,59 @@ describe('ApplicationsListEntryDetail', () => {
     expect(params.entryId).toBe('EN-1');
     expect(params.entryUpdateDto).toEqual(
       expect.objectContaining({
+        applicationCode: 'APP-200',
+        notes: 'persisted note',
         feeStatuses: next,
       }),
     );
 
     spy.mockRestore();
+  });
+
+  it('onAddFeeDetails rolls back feeStatuses when update API errors', () => {
+    const previous: FeeStatus[] = [
+      {
+        paymentStatus: 'UNDERTAKEN',
+        statusDate: '2026-01-09',
+        paymentReference: 'OLD',
+      } as unknown as FeeStatus,
+    ];
+    const next: FeeStatus[] = [
+      ...previous,
+      {
+        paymentStatus: 'PAID',
+        statusDate: '2026-01-10',
+        paymentReference: 'NEW',
+      } as unknown as FeeStatus,
+    ];
+
+    component.form.controls.feeStatuses.setValue(previous, {
+      emitEvent: false,
+    });
+
+    const helperSpy = jest
+      .spyOn(civilFeeUtils, 'updateFeeStatusesControl')
+      .mockReturnValue({ next, changed: true });
+
+    mockUpdateApplicationListEntry.mockClear();
+    mockUpdateApplicationListEntry.mockReturnValueOnce(
+      new Observable((subscriber) => {
+        subscriber.error(new Error('boom'));
+      }),
+    );
+
+    const payload: AddFeeDetailsPayload = {
+      feeStatus: PaymentStatus.PAID,
+      statusDate: '2026-01-10',
+      paymentReference: 'NEW',
+    };
+
+    component.onAddFeeDetails(payload);
+
+    expect(component.form.controls.feeStatuses.value).toEqual(previous);
+    expect(component.form.controls.feeStatuses.pristine).toBe(true);
+
+    helperSpy.mockRestore();
   });
 
   it('applyPaymentRefReturn: when helper returns changed=false, does not call update API', () => {
@@ -1056,6 +1174,46 @@ describe('ApplicationsListEntryDetail', () => {
     );
 
     spy.mockRestore();
+  });
+
+  it('applyPaymentRefReturn rolls back feeStatuses when update API errors', () => {
+    const previous: FeeStatus[] = [
+      {
+        paymentStatus: 'UNDERTAKEN',
+        statusDate: '2026-01-10',
+        paymentReference: 'OLD',
+      } as unknown as FeeStatus,
+    ];
+    const next: FeeStatus[] = [
+      {
+        paymentStatus: 'UNDERTAKEN',
+        statusDate: '2026-01-10',
+        paymentReference: 'NEW',
+      } as unknown as FeeStatus,
+    ];
+
+    component.form.controls.feeStatuses.setValue(previous, {
+      emitEvent: false,
+    });
+
+    const helperSpy = jest
+      .spyOn(civilFeeUtils, 'updatePaymentReferenceInFeeStatusesControl')
+      .mockReturnValue({ next, changed: true });
+
+    mockUpdateApplicationListEntry.mockClear();
+    mockUpdateApplicationListEntry.mockReturnValueOnce(
+      new Observable((subscriber) => {
+        subscriber.error(new Error('boom'));
+      }),
+    );
+
+    const subject = component as unknown as PaymentRefApplier;
+    subject.applyPaymentRefReturn('ROW-1', 'NEW');
+
+    expect(component.form.controls.feeStatuses.value).toEqual(previous);
+    expect(component.form.controls.feeStatuses.pristine).toBe(true);
+
+    helperSpy.mockRestore();
   });
 
   it('onChildErrors stores resultWording child errors', () => {
