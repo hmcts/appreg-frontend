@@ -6,6 +6,7 @@ import {
 
 import { PERSON_TITLE_OPTIONS } from './entry-detail.constants';
 
+import { toOptionalTrimmed } from '@components/applications-list-entry-create/util';
 import { buildEntryCreateDto } from '@components/applications-list-entry-create/util/entry-create-mapper';
 import { ApplicationNotesForm } from '@components/notes-section/notes-section.component';
 import {
@@ -323,10 +324,12 @@ export function buildEntryUpdateDtoFromForm(
 
   if (formValue.applicantType === 'standard') {
     dto.standardApplicantCode = (formValue.standardApplicantCode ?? '').trim();
-    return normalizeApplicantSelection(dto, 'standard');
+    normalizeApplicantSelection(dto, 'standard');
+    return dto;
   }
 
-  return normalizeApplicantSelection(dto, 'applicant');
+  normalizeApplicantSelection(dto, 'applicant');
+  return dto;
 }
 
 export function buildContactDetailsFromRaw(v: ContactFormRaw): ContactDetails {
@@ -508,23 +511,45 @@ export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
     typeof dto.standardApplicantCode === 'string' &&
     dto.standardApplicantCode.trim().length > 0;
 
-  return normalizeApplicantSelection(
+  normalizeApplicantSelection(
     dto,
     hasStandardApplicantCode ? 'standard' : 'applicant',
   );
+
+  return dto;
+}
+
+export function buildEntryUpdateDtoForFeeChange<K extends keyof EntryUpdateDto>(
+  detail: EntryGetDetailDto | null | undefined,
+  formValue: ApplicationsListEntryFormValue,
+  key: K,
+  value: EntryUpdateDto[K],
+): EntryUpdateDto {
+  const dto = buildEntryUpdateDtoWithChange(detail, key, value);
+
+  const applicationCode = toOptionalTrimmed(formValue.applicationCode);
+  if (applicationCode) {
+    dto.applicationCode = applicationCode;
+  }
+
+  const lodgementDate = toOptionalTrimmed(formValue.lodgementDate);
+  if (lodgementDate) {
+    dto.lodgementDate = lodgementDate;
+  }
+
+  return dto;
 }
 
 function normalizeApplicantSelection(
   dto: EntryUpdateDto,
   mode: 'standard' | 'applicant',
-): EntryUpdateDto {
+): void {
   if (mode === 'standard') {
     delete dto.applicant;
-    return dto;
+    return;
   }
 
   delete dto.standardApplicantCode;
-  return dto;
 }
 
 //  TODO: temp backend/mock shape whilst type is not finalised

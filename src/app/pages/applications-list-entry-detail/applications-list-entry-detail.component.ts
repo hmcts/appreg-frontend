@@ -52,6 +52,7 @@ import {
   PERSON_TITLE_OPTIONS,
   RESPONDENT_TYPE_OPTIONS,
 } from './util/entry-detail.constants';
+import { buildEntryUpdateDtoForFeeChange } from './util/entry-detail.form';
 import { mapHttpErrorToSummary } from './util/errors.util';
 import { buildResultApplicantContext } from './util/result-context.util';
 import { getEntryId } from './util/routing.util';
@@ -369,7 +370,9 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
-    const entryUpdateDto = this.buildCurrentEntryUpdateDtoWithChange(
+    const entryUpdateDto = buildEntryUpdateDtoForFeeChange(
+      this.entryDetail,
+      this.form.getRawValue(),
       'feeStatuses',
       feeStatuses,
     );
@@ -709,16 +712,6 @@ export class ApplicationsListEntryDetail implements OnInit {
     );
   }
 
-  private buildCurrentEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
-    key: K,
-    value: EntryUpdateDto[K],
-  ): EntryUpdateDto {
-    return {
-      ...this.buildEntryUpdateDto(),
-      [key]: value,
-    };
-  }
-
   onStandardApplicantCodeChanged(code: string | null): void {
     this.selectedStandardApplicantCode = code;
     this.formSvc.setStandardApplicantCode(this.forms, code, {
@@ -743,7 +736,9 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
-    const entryUpdateDto = this.buildCurrentEntryUpdateDtoWithChange(
+    const entryUpdateDto = buildEntryUpdateDtoForFeeChange(
+      this.entryDetail,
+      this.form.getRawValue(),
       'hasOffsiteFee',
       nextValue,
     );

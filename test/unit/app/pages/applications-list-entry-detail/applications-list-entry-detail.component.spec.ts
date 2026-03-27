@@ -323,11 +323,12 @@ describe('ApplicationsListEntryDetail', () => {
     );
   });
 
-  it('persistHasOffsiteFee calls update API and applies success state on nextValue=true', () => {
+  it('persistHasOffsiteFee keeps isolated fee saves scoped to current app code only', () => {
     component['entryDetail'] = {
       id: 'EN-1',
       listId: 'AL-1',
       applicationCode: 'APP-100',
+      notes: 'persisted note',
       numberOfRespondents: 0,
       lodgementDate: '2025-11-01',
     };
@@ -336,6 +337,10 @@ describe('ApplicationsListEntryDetail', () => {
     component['form'].controls.applicationCode.setValue('APP-200', {
       emitEvent: false,
     });
+    component['form'].controls.applicationNotes.controls.notes.setValue(
+      'draft note',
+      { emitEvent: false },
+    );
 
     mockUpdateApplicationListEntry.mockClear();
     mockUpdateApplicationListEntry.mockReturnValueOnce(of({}));
@@ -354,6 +359,7 @@ describe('ApplicationsListEntryDetail', () => {
     expect(params.entryId).toBe('EN-1');
     expect(params.entryUpdateDto).toBeDefined();
     expect(params.entryUpdateDto.applicationCode).toBe('APP-200');
+    expect(params.entryUpdateDto.notes).toBe('persisted note');
     expect(params.entryUpdateDto.hasOffsiteFee).toBe(true);
 
     expect(component['persistedHasOffsiteFee']).toBe(true);
@@ -1020,7 +1026,7 @@ describe('ApplicationsListEntryDetail', () => {
     spy.mockRestore();
   });
 
-  it('onAddFeeDetails: when helper returns changed=true, persists feeStatuses via update API', () => {
+  it('onAddFeeDetails: when helper returns changed=true, uses current app code without persisting unrelated drafts', () => {
     const next: FeeStatus[] = [
       {
         paymentStatus: 'Paid',
@@ -1043,12 +1049,17 @@ describe('ApplicationsListEntryDetail', () => {
       id: 'EN-1',
       listId: 'AL-1',
       applicationCode: 'APP-100',
+      notes: 'persisted note',
       numberOfRespondents: 0,
       lodgementDate: '2025-11-01',
     };
     component['form'].controls.applicationCode.setValue('APP-200', {
       emitEvent: false,
     });
+    component['form'].controls.applicationNotes.controls.notes.setValue(
+      'draft note',
+      { emitEvent: false },
+    );
 
     component.onAddFeeDetails(payload);
 
@@ -1063,6 +1074,7 @@ describe('ApplicationsListEntryDetail', () => {
     expect(params.entryUpdateDto).toEqual(
       expect.objectContaining({
         applicationCode: 'APP-200',
+        notes: 'persisted note',
         feeStatuses: next,
       }),
     );
