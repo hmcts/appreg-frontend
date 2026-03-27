@@ -9,13 +9,6 @@
 />
 <app-page-header title="Bulk Upload Applications" />
 
-@if (vm().fileUploadStatus === 'success') {
-  <app-success-banner
-    heading="Bulk upload complete"
-    linkText="Applications successfully uploaded"
-  />
-}
-
 @if (vm().fileUploadStatus === 'error') {
   <app-error-summary
     [title]="'There is a problem'"

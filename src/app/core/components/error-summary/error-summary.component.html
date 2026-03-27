@@ -14,7 +14,9 @@
     <ul class="govuk-list govuk-error-summary__list">
       @for (err of items(); track $index) {
         <li>
-          @if (err.href && !err.href.startsWith('#')) {
+          @if (!err.href && !err.id && !targetId()) {
+            {{ err.text }}
+          } @else if (err.href && !err.href.startsWith('#')) {
             <a
               class="govuk-link"
               [attr.href]="err.href"

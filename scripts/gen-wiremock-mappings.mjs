@@ -19,18 +19,36 @@ import { generate as jsfGenerate } from 'json-schema-faker';
 import YAML from 'yaml';
 
 // ---------- Config (override via env) ----------
-const SPEC_PATH = 'tools/openapi/vendor/openapi/openapi.yaml';
-const SPEC_DIR = 'tools/openapi/vendor/openapi';
-const MAPPINGS_DIR = 'wiremock/mappings';
+const SPEC_PATH =
+  process.env['MOCK_GEN_SPEC_PATH'] ||
+  'tools/openapi/vendor/openapi/openapi.yaml';
+const SPEC_DIR =
+  process.env['MOCK_GEN_SPEC_DIR'] || 'tools/openapi/vendor/openapi';
+const MAPPINGS_DIR =
+  process.env['MOCK_GEN_MAPPINGS_DIR'] || 'wiremock/mappings';
 const DEFAULT_VENDOR = 'application/vnd.hmcts.appreg.v1+json';
 const STUB_DELAY_MS = Number.parseInt(process.env.STUB_DELAY_MS || '0', 10);
 const EMIT_GUARD_STUBS = ['1', 'true', 'yes'].includes(
   String(process.env.EMIT_GUARD_STUBS || '').toLowerCase(),
 );
-const WM_FILES_DIR = 'wiremock/__files';
-const FIXTURE_ROOT = 'fixtures';
+const WM_FILES_DIR = process.env['MOCK_GEN_WM_FILES_DIR'] || 'wiremock/__files';
+const FIXTURE_ROOT = process.env['MOCK_GEN_FIXTURE_ROOT'] || 'fixtures';
 const REPORT_CSV_DEFAULT = 'reports/sample.csv';
 const REPORT_CSV_FILENAME = 'report.csv';
+
+const FIXTURE_OVERRIDES = Object.freeze({
+  'application-list-entries:bulkUploadApplicationListEntries:202':
+    path.posix.join(
+      FIXTURE_ROOT,
+      'actions',
+      'bulk-upload-application-list-entries-202.json',
+    ),
+  'jobs:getJobStatusById:200': path.posix.join(
+    FIXTURE_ROOT,
+    'jobs',
+    'get-job-status-200.json',
+  ),
+});
 
 // Disable response-template for specific success mappings (opId:status)
 const DISABLE_TEMPLATE_FOR = new Set(['getApplicationCodeByCodeAndDate:200']);
@@ -354,6 +372,14 @@ function mkBaseRequest(method, url, hasBody, opParams = [], op /* optional */) {
 async function resolveFixture(group, opId, statusCode) {
   if (!opId) {
     return null;
+  }
+  const overrideKey = `${group}:${opId}:${statusCode}`;
+  const overrideRel = FIXTURE_OVERRIDES[overrideKey];
+  if (overrideRel) {
+    const overrideAbs = path.join(WM_FILES_DIR, overrideRel);
+    if (await fileExists(overrideAbs)) {
+      return { rel: overrideRel, abs: overrideAbs };
+    }
   }
   const kebab = toKebab(opId);
   const rel = path.posix.join(

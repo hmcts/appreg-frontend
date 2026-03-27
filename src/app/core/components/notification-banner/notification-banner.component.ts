@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-type BannerVariant = 'default' | 'success';
+type BannerVariant = 'default' | 'success' | 'warning';
 
 @Component({
   selector: 'app-notification-banner',

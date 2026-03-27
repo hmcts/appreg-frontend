@@ -7,6 +7,7 @@ Functionality:
   - Updates UI state for upload progress and result
 */
 
+import { HttpResponse } from '@angular/common/http';
 import {
   Component,
   EnvironmentInjector,
@@ -15,7 +16,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import {
   ApplicationsListBulkUploadState,
@@ -26,11 +27,10 @@ import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.compon
 import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
 import { LoadingSpinner } from '@components/loading-spinner/loading-spinner';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
-import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import {
   ApplicationListEntriesApi,
   BulkUploadApplicationListEntriesRequestParams,
-  JobStatus,
+  JobAcknowledgement,
 } from '@openapi';
 import { getProblemText } from '@util/http-error-to-text';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
@@ -43,16 +43,14 @@ import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
     PageHeaderComponent,
     ErrorSummaryComponent,
     LoadingSpinner,
-    SuccessBannerComponent,
   ],
   templateUrl: './applications-list-bulk-upload.component.html',
   styleUrl: './applications-list-bulk-upload.component.scss',
 })
 export class ApplicationsListBulkUpload implements OnInit {
-  private readonly applicationListEntriesApi = inject(
-    ApplicationListEntriesApi,
-  );
+  private readonly actionsApi = inject(ApplicationListEntriesApi);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   // Initialise signal state
   private readonly bulkUploadSignalState =
@@ -69,7 +67,6 @@ export class ApplicationsListBulkUpload implements OnInit {
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
-    // invalid listId then navigate to 404 page
     if (id) {
       this.bulkUploadSignalState.patch({ listId: id });
     }
@@ -82,21 +79,38 @@ export class ApplicationsListBulkUpload implements OnInit {
       {
         request: this.bulkUploadRequest,
         load: (params) =>
-          this.applicationListEntriesApi.bulkUploadApplicationListEntries(
+          this.actionsApi.bulkUploadApplicationListEntries(
             params,
-            'body',
-            true,
+            'response',
+            false,
+            { transferCache: false },
           ),
-        onSuccess: (jobAcknowledgement) => {
+        onSuccess: async (res: HttpResponse<JobAcknowledgement>) => {
+          const jobAcknowledgement = res.body ?? null;
           this.bulkUploadPatch({ jobAcknowledgement });
-          if (
-            this.bulkUploadState().jobAcknowledgement?.status ===
-            JobStatus.RECEIVED
-          ) {
-            this.bulkUploadPatch({ fileUploadStatus: 'success' });
-          }
-          this.bulkUploadPatch({ isUploadInProgress: false });
+
           this.bulkUploadRequest.set(null);
+
+          if (res.status === 202 && jobAcknowledgement?.id) {
+            const navigated = await this.router.navigate(
+              ['/applications-list', this.bulkUploadState().listId],
+              {
+                queryParams: { bulkUploadJobId: jobAcknowledgement.id },
+              },
+            );
+
+            if (navigated) {
+              return;
+            }
+          }
+
+          this.bulkUploadPatch({
+            fileUploadStatus: 'error',
+            errorSummary: [
+              { text: 'Unable to start bulk upload. Please try again.' },
+            ],
+            isUploadInProgress: false,
+          });
         },
         onError: (err) => {
           this.bulkUploadPatch({ fileUploadStatus: 'error' });

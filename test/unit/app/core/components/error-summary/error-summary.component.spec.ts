@@ -25,11 +25,10 @@ describe('ErrorSummaryComponent (external template)', () => {
     document.body.innerHTML = '';
   });
 
-  it('renders items and computes hrefs (explicit href, target hash, fallback "/")', () => {
+  it('renders items and computes hrefs when a navigation target exists', () => {
     fixture.componentRef.setInput('items', [
       { text: 'With explicit href', href: '/somewhere' },
       { text: 'With targetId (hash)' },
-      { text: 'No href or targetId' },
     ]);
     fixture.componentRef.setInput('targetId', 'sortable-table'); // affects item[1]
     fixture.detectChanges();
@@ -38,18 +37,19 @@ describe('ErrorSummaryComponent (external template)', () => {
       'a.govuk-link',
     ) as NodeListOf<HTMLAnchorElement>;
 
-    expect(links).toHaveLength(3);
+    expect(links).toHaveLength(2);
     expect(links[0].getAttribute('href')).toBe('/somewhere');
     expect(links[1].getAttribute('href')).toContain('#sortable-table');
+  });
 
+  it('renders plain text when an item has no navigation target', () => {
     fixture.componentRef.setInput('items', [{ text: 'No href or targetId' }]);
     fixture.componentRef.setInput('targetId', undefined);
     fixture.detectChanges();
 
-    const fallbackLink = fixture.nativeElement.querySelector(
-      'a.govuk-link',
-    ) as HTMLAnchorElement;
-    expect(fallbackLink.getAttribute('href')).toBe('/');
+    const fallbackLink = fixture.nativeElement.querySelector('a.govuk-link');
+    expect(fallbackLink).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('No href or targetId');
   });
 
   it('autoFocus focuses the summary element after view init', () => {

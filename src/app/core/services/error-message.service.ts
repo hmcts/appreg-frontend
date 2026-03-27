@@ -28,6 +28,10 @@ const subscribedEndpoints: EndpointRule[] = [
     responses: [400, 403, 413, 415, 500],
   },
   {
+    endpoint: new RegExp(`^/jobs/${regexIdPlaceholder}$`),
+    responses: [400, 403, 404, 500],
+  },
+  {
     endpoint: new RegExp(`^/application-lists/${regexIdPlaceholder}$`),
     responses: [400, 403, 404, 409, 500],
   },
