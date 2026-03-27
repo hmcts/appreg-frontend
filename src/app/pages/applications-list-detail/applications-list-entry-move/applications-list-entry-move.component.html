@@ -21,9 +21,7 @@
   @if (vm().searchDone && !vm().isLoading && !storedRecordsVm().rows.length) {
     <app-notification-banner
       heading="No lists found"
-      body="Try different filters, or "
-      linkText="create a new list"
-      [linkCommands]="['/applications-list/create']"
+      body="Try different filters"
     />
   }
 }
