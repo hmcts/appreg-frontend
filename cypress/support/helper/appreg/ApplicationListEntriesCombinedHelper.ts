@@ -147,6 +147,18 @@ export class ApplicationListEntriesCombinedHelper {
               : 'Select type',
             value,
           );
+          // Wait for Angular to re-render form fields after type change
+          cy.wait(500);
+          break;
+
+        case 'Organisation name':
+        case 'Organization name':
+        case 'Org name':
+          AccordionTextboxHelper.enterTextIntoAccordionTextbox(
+            accordionTitle,
+            'Organisation name',
+            value,
+          );
           break;
 
         case 'Select title':
@@ -341,6 +353,36 @@ export class ApplicationListEntriesCombinedHelper {
 
     cy.log('Filling Applicant with criteria:', criteria);
 
+    const processedCriteria = processDatatableRow(criteria);
+    const applicantType =
+      processedCriteria['Select applicant type'] ||
+      processedCriteria['Applicant type'] ||
+      '';
+
+    // Handle Standard Applicant differently - it uses a table selection, not form fields
+    if (applicantType.toLowerCase().includes('standard')) {
+      // Select Standard Applicant from dropdown
+      AccordionDropdownHelper.selectDropdownInAccordion(
+        accordionTitle,
+        'Select applicant type',
+        applicantType,
+      );
+
+      // Wait for Angular to render the standard applicant table
+      cy.wait(500);
+
+      // Select from standard applicant table by Code
+      const codeToSelect =
+        processedCriteria['Code'] || processedCriteria['Applicant code'];
+      if (codeToSelect) {
+        cy.get(`#apps-${codeToSelect}`).check();
+        cy.log(`Selected standard applicant: ${codeToSelect}`);
+      }
+
+      return;
+    }
+
+    // For Person or Organisation types, fill all form fields
     this.fillNameFields({ accordionTitle, criteria });
     this.fillAddressFields({ accordionTitle, criteria });
     this.fillContactDetails({ accordionTitle, criteria });

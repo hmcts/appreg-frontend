@@ -13,6 +13,22 @@ export class AlertHelper {
     AlertElement.findAlert(alertText).should('be.visible');
   }
 
+  static verifyWarningAlertVisible(alertText: string): void {
+    AlertElement.findWarningAlert(alertText).should('be.visible');
+  }
+
+  static verifyErrorAlertVisible(alertText: string): void {
+    AlertElement.findErrorAlert(alertText).should('be.visible');
+  }
+
+  static verifySuccessAlertVisible(alertText: string): void {
+    AlertElement.findSuccessAlert(alertText).should('be.visible');
+  }
+
+  static verifyInfoAlertVisible(alertText: string): void {
+    AlertElement.findInfoAlert(alertText).should('be.visible');
+  }
+
   static verifyAlertNotVisible(alertText: string): void {
     AlertElement.findAlert(alertText).should('not.be.visible');
   }

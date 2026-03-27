@@ -66,4 +66,15 @@ export class AccordionTextboxHelper {
   static scrollIntoViewAccordion(accordionTitle: string): void {
     AccordionElement.findAccordion(accordionTitle).scrollIntoView();
   }
+
+  static verifyTextboxDisabledInAccordion(
+    accordionTitle: string,
+    textboxLabel: string,
+  ): void {
+    AccordionHelper.ensureAccordionExpanded(accordionTitle);
+    AccordionTextboxElement.findTextboxInAccordion(
+      accordionTitle,
+      textboxLabel,
+    ).should('be.disabled');
+  }
 }

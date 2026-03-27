@@ -1,6 +1,6 @@
 Feature: API - Application List Entry
 
-    @api @regression @ARCPOC-222 @ARCPOC-229
+    @api @applicationListEntry @regression @ARCPOC-222 @ARCPOC-229
     Scenario Outline: Create Application List Entry with CJA and Other Location
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -125,7 +125,7 @@ Feature: API - Application List Entry
             | user1 |
 
 
-    @api @regression @ARCPOC-222 @ARCPOC-229
+    @api @applicationListEntry @regression @ARCPOC-222 @ARCPOC-229
     Scenario Outline: Create Application List Entry with Court Location
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
