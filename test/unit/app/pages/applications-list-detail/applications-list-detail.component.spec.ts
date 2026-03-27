@@ -16,9 +16,14 @@ import { ApplicationsListDetailState } from '@components/applications-list-detai
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { Row } from '@core-types/table/row.types';
 import {
+  Applicant,
+  ApplicationListEntriesApi,
   ApplicationListGetDetailDto,
   ApplicationListsApi,
+  ApplicationListStatus,
   CriminalJusticeAreaGetDto,
+  EntryGetSummaryDto,
+  EntryPage,
 } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { MojButtonMenu } from '@util/moj-button-menu';
@@ -59,6 +64,12 @@ describe('ApplicationsListDetail', () => {
   > = {
     getApplicationList: jest.fn(),
     updateApplicationList: jest.fn(),
+  };
+
+  const entriesApiStub: jest.Mocked<
+    Pick<ApplicationListEntriesApi, 'getApplicationListEntries'>
+  > = {
+    getApplicationListEntries: jest.fn(),
   };
 
   const menuStub: jest.Mocked<Pick<MojButtonMenu, 'initAll'>> = {
@@ -113,6 +124,57 @@ describe('ApplicationsListDetail', () => {
       ),
     );
 
+    const respondent: Applicant = {
+      organisation: {
+        name: 'Acme',
+        contactDetails: {
+          addressLine1: '123 Street',
+          addressLine2: null,
+          addressLine3: null,
+          addressLine4: null,
+          addressLine5: null,
+          postcode: 'AB12 3CD',
+          phone: null,
+          mobile: null,
+          email: null,
+        },
+      },
+    };
+
+    const entry: EntryGetSummaryDto = {
+      id: 'abc',
+      sequenceNumber: 7,
+      accountNumber: '',
+      applicant: undefined,
+      respondent,
+      applicationTitle: 'Land Registry Appeal',
+      isFeeRequired: true,
+      isResulted: false,
+      status: ApplicationListStatus.OPEN,
+    };
+
+    const entriesPage: EntryPage = {
+      pageNumber: 1,
+      pageSize: 10,
+      totalElements: 1,
+      totalPages: 1,
+      first: true,
+      last: true,
+      elementsOnPage: 1,
+      sort: { orders: [] },
+      content: [entry],
+    };
+
+    entriesApiStub.getApplicationListEntries.mockReturnValue(
+      of(
+        new HttpResponse<EntryPage>({
+          status: 200,
+          body: entriesPage,
+          headers: new HttpHeaders(),
+        }),
+      ),
+    );
+
     await TestBed.configureTestingModule({
       imports: [ApplicationsListDetail],
       providers: [
@@ -121,6 +183,7 @@ describe('ApplicationsListDetail', () => {
         provideHttpClientTesting(),
         { provide: PLATFORM_ID, useValue: 'browser' },
         { provide: ApplicationListsApi, useValue: apiStub },
+        { provide: ApplicationListEntriesApi, useValue: entriesApiStub },
         { provide: MojButtonMenu, useValue: menuStub },
         { provide: ReferenceDataFacade, useValue: refFacadeStub },
       ],
@@ -267,7 +330,7 @@ describe('ApplicationsListDetail', () => {
     });
 
     component.id = 'list-123';
-    component.loadApplicationsLists();
+    component.loadListDetailsInfo();
     await flushSignalEffects(fixture);
 
     expect(vm().updateInvalid).toBe(true);
@@ -349,7 +412,7 @@ describe('ApplicationsListDetail', () => {
 
   it('onPageChange patches page + clears selectedIds + triggers load', () => {
     const loadSpy = jest
-      .spyOn(component, 'loadApplicationsLists')
+      .spyOn(component, 'loadListDetailsInfo')
       .mockImplementation(() => undefined);
 
     patchDetailState({ selectedIds: new Set(['a', 'b']) });
@@ -378,7 +441,7 @@ describe('ApplicationsListDetail', () => {
     });
   });
 
-  describe('loadApplicationsLists', () => {
+  describe('loadListDetailsInfo', () => {
     it('calls API with listId, page (0-based), size; patches rows, clears errors, updates selection', async () => {
       component.id = 'list-123';
 
@@ -415,7 +478,7 @@ describe('ApplicationsListDetail', () => {
         ),
       );
 
-      component.loadApplicationsLists();
+      component.loadListDetailsInfo();
       await flushSignalEffects(fixture);
 
       expect(apiStub.getApplicationList).toHaveBeenNthCalledWith(
@@ -442,7 +505,7 @@ describe('ApplicationsListDetail', () => {
           accountNumber: '',
           applicant: null,
           respondent: 'Acme',
-          postCode: null,
+          postCode: 'AB12 3CD',
           title: 'Land Registry Appeal',
           feeReq: 'Yes',
           resulted: 'No',
@@ -464,7 +527,7 @@ describe('ApplicationsListDetail', () => {
 
       patchDetailState({ selectedIds: new Set(['x', 'y']) });
 
-      component.loadApplicationsLists();
+      component.loadListDetailsInfo();
       await flushSignalEffects(fixture);
 
       expect(vm().updateInvalid).toBe(true);

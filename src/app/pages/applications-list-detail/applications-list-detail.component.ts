@@ -134,6 +134,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly listDetailRequest = signal<listDetailsReq | null>(null);
   private readonly updateRequest = signal<UpdateReq | null>(null);
 
+  private loadFailed = signal(false);
+
   override form = this.appListFormService.createUpdateForm();
 
   statusOptions = appListDetailStatusOptions;
@@ -283,20 +285,21 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           this.etag = res.headers.get('ETag') ?? this.etag;
 
           const vm = this.vm();
-          const preserveErrorSummary = vm.preserveErrorSummaryOnLoad;
 
           if (!vm.hasPrefilledFromApi) {
             this.prefillFromApi(dto);
             this.detailSignalState.patch({ hasPrefilledFromApi: true });
           }
 
-          this.detailSignalState.patch({
-            isLoading: false,
-            updateInvalid: preserveErrorSummary ? vm.updateInvalid : false,
-            errorHint: '',
-            errorSummary: preserveErrorSummary ? vm.errorSummary : [],
-            preserveErrorSummaryOnLoad: preserveErrorSummary,
-          });
+          // this.detailSignalState.patch({
+          //   isLoading: false,
+          //   updateInvalid: preserveErrorSummary ? vm.updateInvalid : false,
+          //   errorHint: '',
+          //   errorSummary: preserveErrorSummary ? vm.errorSummary : [],
+          //   preserveErrorSummaryOnLoad: preserveErrorSummary,
+          // });
+
+          this.patchLoadSuccessState({});
 
           this.listDetailRequest.set(null);
 
@@ -311,6 +314,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           }
         },
         onError: (err: unknown) => {
+          this.loadFailed.set(true);
+
           this.detailSignalState.patch({
             isLoading: false,
             updateInvalid: true,
@@ -369,17 +374,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
             [...this.vm().selectedIds].filter((id) => visible.has(id)),
           );
 
-          this.detailSignalState.patch({
-            rows,
-            totalPages,
-            selectedIds,
-          });
-
-          this.detailSignalState.patch({
-            isLoading: false,
-            updateInvalid: false,
-            errorHint: '',
-            errorSummary: [],
+          this.patchLoadSuccessState({
             rows,
             totalPages,
             selectedIds,
@@ -389,6 +384,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         },
 
         onError: (err: unknown) => {
+          this.loadFailed.set(true);
+
+          // append to existing errors if we already have data, otherwise replace (e.g. on first load)
           this.detailSignalState.patch({
             isLoading: false,
             updateInvalid: true,
@@ -455,6 +453,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       return;
     }
 
+    this.loadFailed.set(false);
     this.detailSignalState.patch({ isLoading: true });
     const vm = this.vm();
 
@@ -544,6 +543,28 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         },
       },
     );
+  }
+
+  private patchLoadSuccessState(
+    patch: Partial<
+      Pick<ApplicationsListDetailState, 'rows' | 'totalPages' | 'selectedIds'>
+    >,
+  ): void {
+    if (this.loadFailed()) {
+      return;
+    }
+
+    const vm = this.vm();
+    const preserveErrorSummary = vm.preserveErrorSummaryOnLoad;
+
+    this.detailSignalState.patch({
+      ...patch,
+      isLoading: false,
+      updateInvalid: preserveErrorSummary ? vm.updateInvalid : false,
+      errorHint: preserveErrorSummary ? vm.errorHint : '',
+      errorSummary: preserveErrorSummary ? vm.errorSummary : [],
+      preserveErrorSummaryOnLoad: preserveErrorSummary,
+    });
   }
 
   // return type selectedRow[]
