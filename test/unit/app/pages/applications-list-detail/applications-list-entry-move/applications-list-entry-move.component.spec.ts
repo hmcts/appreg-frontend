@@ -9,7 +9,6 @@ import {
 import { jest } from '@jest/globals';
 import { of, throwError } from 'rxjs';
 
-import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { ApplicationsListEntryMoveComponent } from '@components/applications-list-detail/applications-list-entry-move/applications-list-entry-move.component';
 import { ApplicationEntriesResultContext } from '@components/applications-list-entry-detail/util/routing-state-util';
 import {
@@ -126,6 +125,10 @@ describe('ApplicationsListEntryMoveComponent', () => {
     jest.clearAllMocks();
   });
 
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
   it('creates with move state from the route and browser history', () => {
     expect(component).toBeTruthy();
     expect(component.createListState).toEqual({
@@ -159,23 +162,6 @@ describe('ApplicationsListEntryMoveComponent', () => {
     expect(navigateSpy).toHaveBeenCalledWith(['../'], {
       relativeTo: TestBed.inject(ActivatedRoute),
     });
-  });
-
-  it('shows an invalid search criteria error when all search fields are empty', () => {
-    const preventDefault = jest.fn();
-    const event = { preventDefault } as unknown as SubmitEvent;
-    component.form.patchValue({ status: null });
-
-    component.onSearch(event);
-
-    expect(preventDefault).toHaveBeenCalled();
-    expect(getApplicationListsMock).not.toHaveBeenCalled();
-    expect(component.vm().searchErrors).toEqual([
-      {
-        id: '',
-        text: APPLICATIONS_LIST_ERROR_MESSAGES.invalidSearchCriteria,
-      },
-    ]);
   });
 
   it('stores validation errors and stops before loading when the form summary is invalid', () => {

@@ -16,7 +16,6 @@ import {
 
 import {
   APPLICATIONS_LIST_COLUMNS_ACTION,
-  APPLICATIONS_LIST_ERROR_MESSAGES,
   APPLICATIONS_LIST_FORM_ERROR_MESSAGES,
   APPLICATION_LIST_SORT_MAP,
 } from '@components/applications-list/util/applications-list.constants';
@@ -24,7 +23,6 @@ import { loadQuery } from '@components/applications-list/util/load-query';
 import { APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import {
   ApplicationEntriesResultContext,
-  hasAnyParams,
   toRow,
 } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ApplicationsListFormComponent } from '@components/applications-list-form/applications-list-form.component';
@@ -117,6 +115,7 @@ export class ApplicationsListEntryMoveComponent
 
   private readonly errorMap = APPLICATIONS_LIST_FORM_ERROR_MESSAGES;
 
+  // Nav state to /applications-list/create
   get createListState(): {
     createMoveTargetList: boolean;
     originalListId: string;
@@ -179,6 +178,11 @@ export class ApplicationsListEntryMoveComponent
   onSearch(event: SubmitEvent): void {
     // Search applications list
     event.preventDefault();
+    this.moveEntryPatch({
+      searchErrors: [],
+      searchDone: false,
+      isLoading: false,
+    });
 
     this.storedRecordsState.patch({ rows: [] });
 
@@ -204,8 +208,6 @@ export class ApplicationsListEntryMoveComponent
     if (!listId || !targetList.id || !selectedEntries.length) {
       return;
     }
-
-    this.moveEntryPatch({ targetListId: targetList.id });
 
     void this.router.navigate(
       ['/applications-list', listId, 'move', 'confirm'],
@@ -254,21 +256,7 @@ export class ApplicationsListEntryMoveComponent
   }
 
   private loadApplicationsLists(): void {
-    this.moveEntryPatch(entryMoveClearPatch());
     this.moveEntryPatch({ isLoading: true });
-
-    if (!hasAnyParams(this.form)) {
-      this.moveEntryPatch({
-        searchErrors: [
-          ...this.moveEntryState().searchErrors,
-          {
-            id: '',
-            text: APPLICATIONS_LIST_ERROR_MESSAGES.invalidSearchCriteria,
-          },
-        ],
-      });
-      return;
-    }
 
     this.searchForm.setState({
       ...DEFAULT_STATE,

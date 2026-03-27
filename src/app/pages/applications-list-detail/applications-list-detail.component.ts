@@ -252,11 +252,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
     const isMoveError =
       this.route.snapshot.queryParamMap.get('move') === 'error';
-    const code = Number(this.route.snapshot.queryParamMap.get('code'));
     const moveState = history.state as ApplicationsListDetailHistoryState;
     const moveError = moveState.moveError;
 
-    if (!isMoveError || !code || !moveError) {
+    if (!isMoveError || !moveError) {
       return;
     }
 

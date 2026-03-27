@@ -253,6 +253,63 @@ describe('ApplicationsListDetail', () => {
     expect(vm().preserveErrorSummaryOnLoad).toBe(true);
   });
 
+  it('maps move errors from navigation state onto the detail page', async () => {
+    historyStateSpy.mockReturnValue({
+      row: {
+        id: 'id-1',
+        location: 'LOC1',
+        description: '',
+        status: 'OPEN',
+      },
+      moveError: 'Unable to move applications right now.',
+    });
+
+    const route = TestBed.inject(ActivatedRoute);
+    jest
+      .spyOn(route.snapshot.queryParamMap, 'get')
+      .mockImplementation((key) => {
+        if (key === 'move') {
+          return 'error';
+        }
+        return null;
+      });
+
+    (
+      component as unknown as {
+        setMoveErrorFromNavigation(): void;
+      }
+    ).setMoveErrorFromNavigation();
+
+    await flushSignalEffects(fixture);
+
+    expect(vm().updateInvalid).toBe(true);
+    expect(vm().errorHint).toBe('There is a problem');
+    expect(vm().errorSummary).toEqual([
+      {
+        id: '',
+        href: '',
+        text: 'Unable to move applications right now.',
+      },
+    ]);
+    expect(vm().preserveErrorSummaryOnLoad).toBe(true);
+  });
+
+  it('sets moveDone when moveEntriesSuccessful query param is true', () => {
+    const route = TestBed.inject(ActivatedRoute);
+    jest
+      .spyOn(route.snapshot.queryParamMap, 'get')
+      .mockImplementation((key) => {
+        if (key === 'moveEntriesSuccessful') {
+          return 'true';
+        }
+        return null;
+      });
+
+    component.setSuccessBanner();
+
+    expect(vm().moveDone).toBe(true);
+  });
+
   it('preserves returned close errors when the detail page reload completes', async () => {
     patchDetailState({
       updateInvalid: true,

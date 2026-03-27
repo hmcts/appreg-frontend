@@ -3,7 +3,6 @@ import { ErrorItem } from '@components/error-summary/error-summary.component';
 
 export interface ApplicationsListEntryMoveState {
   listId: string;
-  targetListId: string;
 
   selectedEntries: ApplicationEntriesResultContext[];
 
@@ -17,7 +16,6 @@ export interface ApplicationsListEntryMoveState {
 export const initialApplicationsListEntryMoveState: ApplicationsListEntryMoveState =
   {
     listId: '',
-    targetListId: '',
     selectedEntries: [],
     searchErrors: [],
     sortField: {
