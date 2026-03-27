@@ -34,4 +34,27 @@ export class AccordionButtonHelper {
       buttonText,
     ).should('be.visible');
   }
+
+  /**
+   * Verify a button is enabled within an accordion
+   */
+  static verifyButtonEnabled(accordionTitle: string, buttonText: string): void {
+    AccordionButtonElement.findButtonInAccordion(
+      accordionTitle,
+      buttonText,
+    ).should('be.enabled');
+  }
+
+  /**
+   * Verify a button is disabled within an accordion
+   */
+  static verifyButtonDisabled(
+    accordionTitle: string,
+    buttonText: string,
+  ): void {
+    AccordionButtonElement.findButtonInAccordion(
+      accordionTitle,
+      buttonText,
+    ).should('be.disabled');
+  }
 }

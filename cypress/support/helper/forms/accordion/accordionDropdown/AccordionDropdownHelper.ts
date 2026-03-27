@@ -51,4 +51,18 @@ export class AccordionDropdownHelper {
       .find('option:selected')
       .should('contain.text', expectedValue);
   }
+
+  /**
+   * Verify selected value in a dropdown within an accordion
+   */
+  static verifyDropdownDisabled(
+    accordionTitle: string,
+    dropdownLabel: string,
+  ): void {
+    AccordionHelper.ensureAccordionExpanded(accordionTitle);
+    AccordionDropdownElement.findDropdownInAccordion(
+      accordionTitle,
+      dropdownLabel,
+    ).should('be.disabled');
+  }
 }

@@ -1,3 +1,4 @@
+import { AccordionElement } from '../../../../pageobjects/generic/accordion/accordion/AccordionElement';
 import { AccordionDateElement } from '../../../../pageobjects/generic/accordion/accordionDate/AccordionDateElement';
 import { TestDataGenerator } from '../../../../utils/TestDataGenerator';
 import { AccordionHelper } from '../accordion/AccordionHelper';
@@ -87,6 +88,24 @@ export class AccordionDateTimeHelper {
     AccordionDateElement.findYearInputInAccordion(accordionTitle).should(
       'have.value',
       year,
+    );
+  }
+
+  static verifyDateFieldDisabledInAccordion(
+    accordionTitle: string,
+    dateFieldLabel: string,
+  ): void {
+    AccordionElement.findAccordionSection(accordionTitle)
+      .contains(dateFieldLabel)
+      .should('be.visible');
+    AccordionDateElement.findDayInputInAccordion(accordionTitle).should(
+      'be.disabled',
+    );
+    AccordionDateElement.findMonthInputInAccordion(accordionTitle).should(
+      'be.disabled',
+    );
+    AccordionDateElement.findYearInputInAccordion(accordionTitle).should(
+      'be.disabled',
     );
   }
 }
