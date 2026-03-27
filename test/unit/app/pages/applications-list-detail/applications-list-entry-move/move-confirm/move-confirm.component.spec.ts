@@ -146,12 +146,47 @@ describe('MoveConfirmComponent', () => {
       listId: '10',
       moveEntriesDto: {
         targetListId: '20',
-        entryIds: new Set(['entry-1']),
+        entryIds: ['entry-1'],
       },
     });
     expect(navigateSpy).toHaveBeenCalledWith(['/applications-list', '20'], {
       queryParams: { moveEntriesSuccessful: true },
     });
+  });
+
+  it('deduplicates entry ids before posting the move request', () => {
+    component.entriesToMove = [
+      ...entriesToMove,
+      {
+        id: 'entry-2',
+        sequenceNumber: '2',
+        applicant: 'C Person',
+        respondent: 'D Person',
+        title: 'Another case',
+      },
+      {
+        id: 'entry-2',
+        sequenceNumber: '2',
+        applicant: 'C Person',
+        respondent: 'D Person',
+        title: 'Another case',
+      },
+    ];
+
+    component.onConfirm();
+
+    const request = moveApplicationListEntriesMock.mock.calls[0]?.[0] as {
+      listId: string;
+      moveEntriesDto: {
+        targetListId: string;
+        entryIds: string[];
+      };
+    };
+
+    expect(request.moveEntriesDto.entryIds).toEqual(['entry-1', 'entry-2']);
+    expect(new Set(request.moveEntriesDto.entryIds).size).toBe(
+      request.moveEntriesDto.entryIds.length,
+    );
   });
 
   it('navigates back to the source list with an error when the move API fails', () => {

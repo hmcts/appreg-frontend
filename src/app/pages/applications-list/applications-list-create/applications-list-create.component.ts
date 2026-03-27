@@ -176,7 +176,12 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
             const targetListDetails: ApplicationListRow = toRow(response);
 
             void this.router.navigate(
-              ['applications-list', response.id, 'move', 'confirm'],
+              [
+                'applications-list',
+                this.appListCreateState().listId,
+                'move',
+                'confirm',
+              ],
               {
                 state: {
                   targetList: targetListDetails,

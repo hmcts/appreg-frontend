@@ -109,22 +109,14 @@
 
     <ng-template #actionsTemplate let-row>
       <div class="govuk-button-group">
-        <!-- actions slot -->
-        <div
-          class="moj-button-menu"
-          data-module="moj-button-menu"
-          data-button-text="Select"
-          data-button-classes="govuk-button"
+        <!-- Open button (only when open) -->
+        <button
+          type="button"
+          class="govuk-button moj-button-menu__item govuk-button--primary"
+          (click)="onSelect(row)"
         >
-          <!-- Open button (only when open) -->
-          <button
-            type="button"
-            class="govuk-button moj-button-menu__item govuk-button--primary"
-            (click)="onSelect(row)"
-          >
-            Select
-          </button>
-        </div>
+          Select
+        </button>
       </div>
     </ng-template>
   </app-sortable-table>

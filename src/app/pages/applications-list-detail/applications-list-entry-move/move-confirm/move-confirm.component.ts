@@ -63,13 +63,13 @@ export class MoveConfirmComponent implements OnInit {
       return;
     }
 
-    const entriesToMoveIds = new Set(
-      this.entriesToMove.map((entry) => entry.id),
-    );
+    const entriesToMoveIds = [
+      ...new Set(this.entriesToMove.map((entry) => entry.id)),
+    ];
 
     const moveParams: MoveEntriesDto = {
       targetListId: targetList.id,
-      entryIds: entriesToMoveIds,
+      entryIds: entriesToMoveIds as unknown as Set<string>,
     };
 
     const params: MoveApplicationListEntriesRequestParams = {

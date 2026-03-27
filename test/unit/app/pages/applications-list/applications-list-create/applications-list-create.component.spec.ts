@@ -357,7 +357,7 @@ describe('ApplicationsListCreate', () => {
     await flushSignalEffects();
 
     expect(navigateSpy).toHaveBeenCalledWith(
-      ['applications-list', 123, 'move', 'confirm'],
+      ['applications-list', '42', 'move', 'confirm'],
       {
         state: {
           targetList: {
