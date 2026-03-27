@@ -394,7 +394,7 @@ describe('ApplicationsListEntryMoveComponent', () => {
       date: null,
       time: null,
       description: '',
-      status: null,
+      status: 'open',
       court: '',
       location: '',
       cja: '',

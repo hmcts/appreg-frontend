@@ -227,6 +227,7 @@ export class ApplicationsListEntryMoveComponent
         direction: sort.direction,
       },
     });
+    this.loadApplicationsLists();
   }
 
   onPageChange(page: number): void {
@@ -250,6 +251,7 @@ export class ApplicationsListEntryMoveComponent
 
     this.searchForm.reset();
     this.form.reset(this.searchForm.state());
+    this.form.patchValue({ status: 'open' });
 
     // clear PlaceFieldsBase signal state
     this.resetPlaceSearch();
