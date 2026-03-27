@@ -2,6 +2,7 @@
   (confirm)="onConfirm()"
   (cancelled)="goBack()"
   title="Are you sure you want to move these applications to this application list?"
+  [isRedButton]="false"
 >
   <app-table [rows]="[targetList]" [columns]="columns">
     <ng-template #dateTemplate let-row>
