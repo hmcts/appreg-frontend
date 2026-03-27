@@ -53,6 +53,17 @@ describe('ApplicationsListEntryMoveComponent', () => {
       status: ApplicationListStatus.OPEN,
       version: 4,
     },
+    {
+      id: 'dupe-id',
+      date: '2026-03-26',
+      time: '10:00',
+      location: 'Court 1',
+      courtName: 'Court 1',
+      description: 'Target list',
+      entriesCount: 2,
+      status: ApplicationListStatus.OPEN,
+      version: 4,
+    },
   ];
 
   const applicationListPage: ApplicationListPage = {
@@ -216,8 +227,81 @@ describe('ApplicationsListEntryMoveComponent', () => {
         etag: null,
         rowVersion: '4',
       },
+      {
+        id: 'dupe-id',
+        date: '2026-03-26',
+        time: '10:00',
+        location: 'Court 1',
+        description: 'Target list',
+        entries: 2,
+        status: ApplicationListStatus.OPEN,
+        deletable: true,
+        etag: null,
+        rowVersion: '4',
+      },
     ]);
     expect(component.searchFormState().description).toBe('Target');
+  });
+
+  it('excludes the original list from the search results when ids match', async () => {
+    getApplicationListsMock.mockReturnValueOnce(
+      of({
+        ...applicationListPage,
+        content: [
+          {
+            id: 'source-list-id',
+            date: '2026-03-26',
+            time: '09:00',
+            location: 'Court 1',
+            courtName: 'Court 1',
+            description: 'Original list',
+            entriesCount: 1,
+            status: ApplicationListStatus.OPEN,
+            version: 2,
+          },
+          {
+            id: 'target-list-id',
+            date: '2026-03-26',
+            time: '10:00',
+            location: 'Court 1',
+            courtName: 'Court 1',
+            description: 'Target list',
+            entriesCount: 2,
+            status: ApplicationListStatus.OPEN,
+            version: 4,
+          },
+        ],
+        totalElements: 2,
+        elementsOnPage: 2,
+      }),
+    );
+
+    component.form.patchValue({ description: 'Target' });
+    const event = { preventDefault: jest.fn() } as unknown as SubmitEvent;
+
+    component.onSearch(event);
+    await flushSignalEffects();
+
+    expect(component.storedRecordsVm().rows).toEqual([
+      {
+        id: 'target-list-id',
+        date: '2026-03-26',
+        time: '10:00',
+        location: 'Court 1',
+        description: 'Target list',
+        entries: 2,
+        status: ApplicationListStatus.OPEN,
+        deletable: true,
+        etag: null,
+        rowVersion: '4',
+      },
+    ]);
+
+    expect(component.storedRecordsVm().rows).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'source-list-id' }),
+      ]),
+    );
   });
 
   it('stores API errors for a failed search', async () => {
