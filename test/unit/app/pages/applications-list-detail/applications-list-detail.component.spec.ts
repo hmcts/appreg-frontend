@@ -12,6 +12,7 @@ import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail.component';
+import { selectedRow } from '@components/applications-list-detail/util';
 import { ApplicationsListDetailState } from '@components/applications-list-detail/util/applications-list-detail.state';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { Row } from '@core-types/table/row.types';
@@ -265,6 +266,170 @@ describe('ApplicationsListDetail', () => {
       errorHint: '',
       preserveErrorSummaryOnLoad: false,
       updateInvalid: false,
+    });
+  });
+
+  describe('mapTableResponsetoRows', () => {
+    it('maps the API shape into selected rows', () => {
+      const dto = {
+        content: [
+          {
+            id: 'entry-1',
+            sequenceNumber: 42,
+            accountNumber: 'ACC-123',
+            applicant: {
+              organisation: {
+                name: 'Applicant Org',
+                contactDetails: {
+                  postcode: 'AA1 1AA',
+                },
+              },
+            },
+            respondent: {
+              organisation: {
+                name: 'Respondent Org',
+                contactDetails: {
+                  postcode: 'BB2 2BB',
+                },
+              },
+            },
+            applicationTitle: 'Some application title',
+            isFeeRequired: true,
+            resulted: false,
+          },
+        ],
+      } as unknown as { content: EntryGetSummaryDto[] };
+
+      const result = (
+        component as unknown as {
+          mapTableResponsetoRows(dto: {
+            content: EntryGetSummaryDto[];
+          }): selectedRow[];
+        }
+      ).mapTableResponsetoRows(dto);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        id: 'entry-1',
+        sequenceNumber: 42,
+        accountNumber: 'ACC-123',
+        applicant: 'Applicant Org',
+        respondent: 'Respondent Org',
+        postCode: 'BB2 2BB',
+        title: 'Some application title',
+        feeReq: 'Yes',
+        resulted: 'No',
+      });
+    });
+
+    it('uses person names when person data exists', () => {
+      const dto = {
+        content: [
+          {
+            id: 'entry-2',
+            sequenceNumber: 7,
+            accountNumber: null,
+            applicant: {
+              person: {
+                name: {
+                  surname: 'Brown',
+                  firstForename: 'Alex',
+                  secondForename: 'J',
+                  thirdForename: null,
+                  title: 'Mr',
+                },
+              },
+            },
+            respondent: {
+              person: {
+                name: {
+                  surname: 'Green',
+                  firstForename: 'Sam',
+                  secondForename: null,
+                  thirdForename: null,
+                  title: null,
+                },
+                contactDetails: {
+                  postcode: 'CC3 3CC',
+                },
+              },
+            },
+            applicationTitle: 'Another title',
+            isFeeRequired: false,
+            resulted: true,
+          },
+        ],
+      } as unknown as { content: EntryGetSummaryDto[] };
+
+      const result = (
+        component as unknown as {
+          mapTableResponsetoRows(dto: {
+            content: EntryGetSummaryDto[];
+          }): selectedRow[];
+        }
+      ).mapTableResponsetoRows(dto);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        id: 'entry-2',
+        sequenceNumber: 7,
+        accountNumber: '',
+        applicant: 'Brown, Alex J, Mr',
+        respondent: 'Green, Sam',
+        postCode: 'CC3 3CC',
+        title: 'Another title',
+        feeReq: 'No',
+        resulted: 'Yes',
+      });
+    });
+  });
+
+  describe('formatPersonName', () => {
+    const callFormatPersonName = (applicant?: Applicant): string | null => {
+      return (
+        component as unknown as {
+          formatPersonName(applicant?: Applicant): string | null;
+        }
+      ).formatPersonName(applicant);
+    };
+
+    it('returns null when applicant or name is missing', () => {
+      expect(callFormatPersonName()).toBeNull();
+      expect(callFormatPersonName({} as Applicant)).toBeNull();
+    });
+
+    it('formats surname, forenames, and title', () => {
+      const applicant = {
+        person: {
+          name: {
+            surname: 'Smith',
+            firstForename: 'John',
+            secondForename: 'Paul',
+            thirdForename: 'George',
+            title: 'Mr',
+          },
+        },
+      } as Applicant;
+
+      expect(callFormatPersonName(applicant)).toBe(
+        'Smith, John Paul George, Mr',
+      );
+    });
+
+    it('skips missing forenames', () => {
+      const applicant = {
+        person: {
+          name: {
+            surname: 'Smith',
+            firstForename: 'John',
+            secondForename: null,
+            thirdForename: undefined,
+            title: 'Mr',
+          },
+        },
+      } as Applicant;
+
+      expect(callFormatPersonName(applicant)).toBe('Smith, John, Mr');
     });
   });
 

@@ -291,14 +291,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
             this.detailSignalState.patch({ hasPrefilledFromApi: true });
           }
 
-          // this.detailSignalState.patch({
-          //   isLoading: false,
-          //   updateInvalid: preserveErrorSummary ? vm.updateInvalid : false,
-          //   errorHint: '',
-          //   errorSummary: preserveErrorSummary ? vm.errorSummary : [],
-          //   preserveErrorSummaryOnLoad: preserveErrorSummary,
-          // });
-
           this.patchLoadSuccessState({});
 
           this.listDetailRequest.set(null);
