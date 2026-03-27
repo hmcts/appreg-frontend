@@ -291,12 +291,17 @@ export class ApplicationsListEntryMoveComponent
             transferCache: true,
           }),
         onSuccess: (page) => {
-          const content: ApplicationListGetSummaryDto[] = page.content ?? [];
+          // Exclude original list in presented rows
+          const content: ApplicationListGetSummaryDto[] =
+            page.content.filter(
+              (item) => item.id !== this.moveEntryState().listId,
+            ) ?? [];
           this.moveEntryPatch({
             searchErrors: [],
             isLoading: false,
             searchDone: true,
           });
+
           this.storedRecordsState.patch({
             submitted: true,
             totalPages: page.totalPages ?? 0,
