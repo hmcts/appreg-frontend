@@ -31,4 +31,10 @@ export class AccordionTableElement {
   ): Cypress.Chainable<void> {
     return TableElement.verifyButtonInTableRows(tableCaption, selectButtonText);
   }
+
+  static verifyCheckboxInAccordionTableRows(
+    columnValues: Record<string, string>,
+  ): Cypress.Chainable<void> {
+    return TableElement.verifyCheckboxInTableRows(columnValues);
+  }
 }

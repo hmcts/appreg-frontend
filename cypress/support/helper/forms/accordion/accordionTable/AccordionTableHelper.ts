@@ -32,4 +32,12 @@ export class AccordionTableHelper {
       selectButtonText,
     );
   }
+
+  static checkCheckboxInAccordionTableRows(
+    columnValues: Record<string, string>,
+  ): Cypress.Chainable<void> {
+    return AccordionTableElement.verifyCheckboxInAccordionTableRows(
+      columnValues,
+    );
+  }
 }
