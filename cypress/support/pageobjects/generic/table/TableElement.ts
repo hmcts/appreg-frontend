@@ -1,3 +1,4 @@
+import { TableSearch } from '../../../../support/helper/table/TableSearch';
 import { StringUtils } from '../../../utils/StringUtils';
 
 export class TableElement {
@@ -222,5 +223,31 @@ export class TableElement {
       .find('button')
       .should('contain', buttonText)
       .click();
+  }
+
+  /**
+   * Verifies that a checkbox in a table row exists and checks it.
+   * The table row is searched by the given column values.
+   * @param columnValues The column values to search for
+   * @returns JQuery element of the checkbox
+   */
+  static verifyCheckboxInTableRows(
+    columnValues: Record<string, string>,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return TableSearch.searchWithPagination(
+      columnValues,
+      undefined,
+      true,
+      (row: JQuery<HTMLElement>): Cypress.Chainable<void> => {
+        // Ensure the callback returns a Chainable<void> to satisfy typing
+        return TableElement.getCheckboxInRow(row).then((checkbox) => {
+          cy.wrap(checkbox)
+            .scrollIntoView()
+            .should('exist')
+            .and('not.be.disabled')
+            .check({ force: true });
+        });
+      },
+    );
   }
 }
