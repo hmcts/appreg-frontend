@@ -1,5 +1,7 @@
 import { FormGroup } from '@angular/forms';
 
+import { Applicant } from '@openapi';
+
 export function trimToString(v: unknown): string {
   return typeof v === 'string' ? v.trim() : '';
 }
@@ -76,4 +78,29 @@ export function getTrimmedStringOrNullFromGroup(
   }
   const s = v.trim();
   return s || null;
+}
+
+export function formatPersonName(applicant?: Applicant): string | null {
+  const name = applicant?.person?.name;
+  if (!name) {
+    return null;
+  }
+
+  const forenames = [
+    name.firstForename,
+    name.secondForename,
+    name.thirdForename,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return [name.title, forenames, name.surname].filter(Boolean).join(', ');
+}
+
+export function returnOrgName(applicant?: Applicant): string | null {
+  const organisation = applicant?.organisation;
+  if (!organisation) {
+    return null;
+  }
+  return organisation.name;
 }

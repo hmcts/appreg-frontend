@@ -1,6 +1,7 @@
 import { TableColumn } from '@components/sortable-table/sortable-table.component';
 import { StandardApplicantGetSummaryDto } from '@openapi';
 import { formatDate } from '@util/standard-applicant-helpers';
+import { formatPersonName, returnOrgName } from '@util/string-helpers';
 import { StandardApplicantRow } from '@util/types/applications-list-entry/types';
 
 export const standardAppColumns: TableColumn[] = [
@@ -15,23 +16,11 @@ export function mapSaToRow(
   sa: StandardApplicantGetSummaryDto,
 ): StandardApplicantRow {
   const code = sa.code ?? '';
-
+  const applicant = sa.applicant;
   const person = sa.applicant?.person;
   const organisation = sa.applicant?.organisation;
 
-  const personName = person?.name
-    ? [
-        person.name.title,
-        person.name.firstForename,
-        person.name.secondForename,
-        person.name.thirdForename,
-        person.name.surname,
-      ]
-        .filter(Boolean)
-        .join(' ')
-    : '';
-
-  const name = organisation?.name ?? personName;
+  const name = returnOrgName(applicant) ?? formatPersonName(applicant) ?? '';
 
   const address =
     organisation?.contactDetails?.addressLine1 ??

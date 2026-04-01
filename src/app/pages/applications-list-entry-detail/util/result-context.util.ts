@@ -1,6 +1,7 @@
 import { ApplicantContext } from './routing-state-util';
 
 import { Applicant, EntryGetDetailDto, FullName, Respondent } from '@openapi';
+import { returnOrgName } from '@util/string-helpers';
 
 export function buildResultApplicantContext(
   entry: EntryGetDetailDto,
@@ -27,8 +28,8 @@ function formatRespondentForResultContext(entry: EntryGetDetailDto): string {
 }
 
 function formatApplicantLike(applicant: Applicant | undefined): string {
-  if (applicant?.organisation?.name?.trim()) {
-    return applicant.organisation.name.trim();
+  if (returnOrgName(applicant)) {
+    return returnOrgName(applicant) ?? '';
   }
 
   return formatPersonNameSurnameFirst(applicant?.person?.name);

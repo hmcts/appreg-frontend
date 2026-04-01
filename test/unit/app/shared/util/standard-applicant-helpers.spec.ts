@@ -1,7 +1,9 @@
-import {
-  buildStandardApplicantRows,
-  formatDate,
-} from '@util/standard-applicant-helpers';
+import { mapSaToRow } from '@components/standard-applicant-select/util/standard-applicant-select-row-helpers';
+import { formatDate } from '@util/standard-applicant-helpers';
+
+const buildStandardApplicantRows = (
+  input: Parameters<typeof mapSaToRow>[0][],
+) => input.map((item) => mapSaToRow(item));
 
 describe('formatDate', () => {
   it('returns formatted date in en-GB format for a valid ISO date', () => {
@@ -54,7 +56,7 @@ describe('buildStandardApplicantRows', () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]).toEqual({
       code: 'SA-001',
-      name: 'Mr John Q Public',
+      name: 'Mr, John Q, Public',
       address: '1 Test Street',
       useFrom: '01/12/2025',
       useTo: '31/12/2025',
@@ -90,7 +92,7 @@ describe('buildStandardApplicantRows', () => {
     });
   });
 
-  it('prefers organisation name over person name when both exist, but prefers person address', () => {
+  it('prefers organisation name and organisation address when both exist', () => {
     const input = [
       {
         code: 'SA-BOTH',
@@ -125,7 +127,7 @@ describe('buildStandardApplicantRows', () => {
     expect(rows[0]).toEqual({
       code: 'SA-BOTH',
       name: 'Org Name Preferred',
-      address: 'Person Address 1',
+      address: 'Org Address 1',
       useFrom: '01/03/2025',
       useTo: '15/03/2025',
     });

@@ -28,6 +28,7 @@ import {
 } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { MojButtonMenu } from '@util/moj-button-menu';
+import { formatPersonName } from '@util/string-helpers';
 
 const flushSignalEffects = async (
   fixture?: ComponentFixture<ApplicationsListDetail>,
@@ -391,17 +392,9 @@ describe('ApplicationsListDetail', () => {
   });
 
   describe('formatPersonName', () => {
-    const callFormatPersonName = (applicant?: Applicant): string | null => {
-      return (
-        component as unknown as {
-          formatPersonName(applicant?: Applicant): string | null;
-        }
-      ).formatPersonName(applicant);
-    };
-
     it('returns null when applicant or name is missing', () => {
-      expect(callFormatPersonName()).toBeNull();
-      expect(callFormatPersonName({} as Applicant)).toBeNull();
+      expect(formatPersonName()).toBeNull();
+      expect(formatPersonName({} as Applicant)).toBeNull();
     });
 
     it('formats title, forenames, and surname', () => {
@@ -417,9 +410,7 @@ describe('ApplicationsListDetail', () => {
         },
       } as Applicant;
 
-      expect(callFormatPersonName(applicant)).toBe(
-        'Mr, John Paul George, Smith',
-      );
+      expect(formatPersonName(applicant)).toBe('Mr, John Paul George, Smith');
     });
 
     it('skips missing forenames', () => {
@@ -435,7 +426,7 @@ describe('ApplicationsListDetail', () => {
         },
       } as Applicant;
 
-      expect(callFormatPersonName(applicant)).toBe('Mr, John, Smith');
+      expect(formatPersonName(applicant)).toBe('Mr, John, Smith');
     });
   });
 

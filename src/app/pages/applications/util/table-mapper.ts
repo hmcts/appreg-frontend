@@ -1,5 +1,6 @@
-import { Applicant, EntryGetSummaryDto, Organisation, Person } from '@openapi';
+import { Applicant, EntryGetSummaryDto, Person } from '@openapi';
 import { ApplicationRow } from '@shared-types/applications/applications.type';
+import { returnOrgName } from '@util/string-helpers';
 
 function formatFullName(person: Person): string {
   const n = person.name;
@@ -9,17 +10,13 @@ function formatFullName(person: Person): string {
     .join(' ');
 }
 
-function formatOrganisation(org: Organisation): string {
-  return org.name;
-}
-
 function applicantLikeDisplay(a?: Applicant): string {
   if (!a) {
     return '';
   }
 
   if (a.organisation) {
-    return formatOrganisation(a.organisation);
+    return returnOrgName(a) ?? '';
   }
 
   if (a.person) {

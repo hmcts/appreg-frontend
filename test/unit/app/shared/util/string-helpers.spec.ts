@@ -1,6 +1,9 @@
+import { Applicant } from '@openapi';
 import {
+  formatPersonName,
   mapOptionValueToTitle,
   mapTitleToOptionValue,
+  returnOrgName,
   trimToString,
   trimToUndefined,
 } from '@util/string-helpers';
@@ -125,5 +128,62 @@ describe('mapOptionValueToTitle', () => {
 
   it('returns undefined when the value does not match an option', () => {
     expect(mapOptionValueToTitle('dr', options)).toBeUndefined();
+  });
+});
+
+describe('formatPersonName', () => {
+  it('returns null when applicant or person name is missing', () => {
+    expect(formatPersonName()).toBeNull();
+    expect(formatPersonName({} as Applicant)).toBeNull();
+    expect(formatPersonName({ person: {} } as Applicant)).toBeNull();
+  });
+
+  it('formats title, forenames, and surname', () => {
+    const applicant = {
+      person: {
+        name: {
+          title: 'Mr',
+          firstForename: 'John',
+          secondForename: 'Paul',
+          thirdForename: 'George',
+          surname: 'Smith',
+        },
+      },
+    } as Applicant;
+
+    expect(formatPersonName(applicant)).toBe('Mr, John Paul George, Smith');
+  });
+
+  it('skips missing forenames and empty title parts', () => {
+    const applicant = {
+      person: {
+        name: {
+          title: 'Mr',
+          firstForename: 'John',
+          secondForename: null,
+          thirdForename: undefined,
+          surname: 'Smith',
+        },
+      },
+    } as Applicant;
+
+    expect(formatPersonName(applicant)).toBe('Mr, John, Smith');
+  });
+});
+
+describe('returnOrgName', () => {
+  it('returns null when applicant or organisation is missing', () => {
+    expect(returnOrgName()).toBeNull();
+    expect(returnOrgName({} as Applicant)).toBeNull();
+  });
+
+  it('returns the organisation name when present', () => {
+    const applicant = {
+      organisation: {
+        name: 'Acme Ltd',
+      },
+    } as Applicant;
+
+    expect(returnOrgName(applicant)).toBe('Acme Ltd');
   });
 });

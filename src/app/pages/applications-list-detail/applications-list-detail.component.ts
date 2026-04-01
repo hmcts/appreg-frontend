@@ -54,7 +54,6 @@ import {
 import { IF_MATCH } from '@context/concurrency-context';
 import { Row } from '@core-types/table/row.types';
 import {
-  Applicant,
   ApplicationListEntriesApi,
   ApplicationListGetDetailDto,
   ApplicationListsApi,
@@ -71,6 +70,7 @@ import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenu, MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
+import { formatPersonName, returnOrgName } from '@util/string-helpers';
 import { parseTimeToDuration } from '@util/time-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
 import { closePermitted } from '@validators/applications-list-close.validator';
@@ -569,11 +569,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         sequenceNumber: entry.sequenceNumber!,
         accountNumber: entry.accountNumber ?? '',
         applicant: entry.applicant?.person
-          ? this.formatPersonName(entry.applicant)
-          : this.returnOrgName(entry.applicant),
+          ? formatPersonName(entry.applicant)
+          : returnOrgName(entry.applicant),
         respondent: entry.respondent?.person
-          ? this.formatPersonName(entry.respondent)
-          : this.returnOrgName(entry.respondent),
+          ? formatPersonName(entry.respondent)
+          : returnOrgName(entry.respondent),
         postCode:
           entry.respondent?.person?.contactDetails?.postcode ??
           entry.respondent?.organisation?.contactDetails?.postcode ??
@@ -583,31 +583,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         resulted: entry.resulted?.resultCode ?? '',
       };
     });
-  }
-
-  private formatPersonName(applicant?: Applicant): string | null {
-    const name = applicant?.person?.name;
-    if (!name) {
-      return null;
-    }
-
-    const forenames = [
-      name.firstForename,
-      name.secondForename,
-      name.thirdForename,
-    ]
-      .filter(Boolean)
-      .join(' ');
-
-    return [name.title, forenames, name.surname].filter(Boolean).join(', ');
-  }
-
-  private returnOrgName(applicant?: Applicant): string | null {
-    const organisation = applicant?.organisation;
-    if (!organisation) {
-      return null;
-    }
-    return organisation.name;
   }
 
   private prefillFromApi(dto: ApplicationListGetDetailDto): void {
