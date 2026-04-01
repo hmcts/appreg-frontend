@@ -301,10 +301,12 @@ describe('ApplicationsListDetail', () => {
             },
             applicationTitle: 'Some application title',
             isFeeRequired: true,
-            resulted: {
-              resultCode: 'COST',
-              title: 'Costs granted',
-            },
+            resulted: [
+              {
+                resultCode: 'COST',
+                title: 'Costs granted',
+              },
+            ],
           },
         ],
       } as unknown as { content: EntryGetSummaryDto[] };
@@ -365,10 +367,12 @@ describe('ApplicationsListDetail', () => {
             },
             applicationTitle: 'Another title',
             isFeeRequired: false,
-            resulted: {
-              resultCode: 'COST',
-              title: 'Costs granted',
-            },
+            resulted: [
+              {
+                resultCode: 'COST',
+                title: 'Costs granted',
+              },
+            ],
           },
         ],
       } as unknown as { content: EntryGetSummaryDto[] };
@@ -442,10 +446,12 @@ describe('ApplicationsListDetail', () => {
         isFeeRequired: false,
         isResulted: true,
         status: ApplicationListStatus.OPEN,
-        resulted: {
-          resultCode: 'COST',
-          title: 'Costs granted',
-        },
+        resulted: [
+          {
+            resultCode: 'COST',
+            title: 'Costs granted',
+          },
+        ],
       } as unknown as EntryGetSummaryDto;
 
       expect(resultCodeHelpers().getResultCodes(entry)).toEqual(['COST']);
