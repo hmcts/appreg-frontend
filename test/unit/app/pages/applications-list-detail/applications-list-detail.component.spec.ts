@@ -28,6 +28,7 @@ import {
 } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { MojButtonMenu } from '@util/moj-button-menu';
+import { formatPersonName } from '@util/string-helpers';
 
 const flushSignalEffects = async (
   fixture?: ComponentFixture<ApplicationsListDetail>,
@@ -54,6 +55,11 @@ type PlaceFieldsStatePatch = {
 
 type PlaceFieldsSignalStateAccessor = {
   signalState: { patch: (p: Partial<PlaceFieldsStatePatch>) => void };
+};
+
+type ResultCodeHelpersAccessor = {
+  getResultCodes(entry: EntryGetSummaryDto): string[];
+  joinResultCodes(resultCodes: string[]): string;
 };
 
 describe('ApplicationsListDetail', () => {
@@ -295,7 +301,10 @@ describe('ApplicationsListDetail', () => {
             },
             applicationTitle: 'Some application title',
             isFeeRequired: true,
-            resulted: false,
+            resulted: {
+              resultCode: 'COST',
+              title: 'Costs granted',
+            },
           },
         ],
       } as unknown as { content: EntryGetSummaryDto[] };
@@ -318,7 +327,7 @@ describe('ApplicationsListDetail', () => {
         postCode: 'BB2 2BB',
         title: 'Some application title',
         feeReq: 'Yes',
-        resulted: 'No',
+        resulted: 'COST',
       });
     });
 
@@ -356,7 +365,10 @@ describe('ApplicationsListDetail', () => {
             },
             applicationTitle: 'Another title',
             isFeeRequired: false,
-            resulted: true,
+            resulted: {
+              resultCode: 'COST',
+              title: 'Costs granted',
+            },
           },
         ],
       } as unknown as { content: EntryGetSummaryDto[] };
@@ -374,31 +386,78 @@ describe('ApplicationsListDetail', () => {
         id: 'entry-2',
         sequenceNumber: 7,
         accountNumber: '',
-        applicant: 'Brown, Alex J, Mr',
-        respondent: 'Green, Sam',
+        applicant: 'Mr, Alex J, Brown',
+        respondent: 'Sam, Green',
         postCode: 'CC3 3CC',
         title: 'Another title',
         feeReq: 'No',
-        resulted: 'Yes',
+        resulted: 'COST',
       });
     });
   });
 
-  describe('formatPersonName', () => {
-    const callFormatPersonName = (applicant?: Applicant): string | null => {
-      return (
-        component as unknown as {
-          formatPersonName(applicant?: Applicant): string | null;
-        }
-      ).formatPersonName(applicant);
-    };
+  describe('result code helpers', () => {
+    const resultCodeHelpers = (): ResultCodeHelpersAccessor =>
+      component as unknown as ResultCodeHelpersAccessor;
 
-    it('returns null when applicant or name is missing', () => {
-      expect(callFormatPersonName()).toBeNull();
-      expect(callFormatPersonName({} as Applicant)).toBeNull();
+    it('getResultCodes returns all codes when resulted is a string array', () => {
+      const entry = {
+        id: 'entry-1',
+        applicationTitle: 'Title',
+        isFeeRequired: false,
+        isResulted: true,
+        status: ApplicationListStatus.OPEN,
+        resulted: ['COST', 'ADJ'],
+      } as unknown as EntryGetSummaryDto;
+
+      expect(resultCodeHelpers().getResultCodes(entry)).toEqual([
+        'COST',
+        'ADJ',
+      ]);
     });
 
-    it('formats surname, forenames, and title', () => {
+    it('getResultCodes returns a single-item array for the legacy result object shape', () => {
+      const entry = {
+        id: 'entry-2',
+        applicationTitle: 'Title',
+        isFeeRequired: false,
+        isResulted: true,
+        status: ApplicationListStatus.OPEN,
+        resulted: {
+          resultCode: 'COST',
+          title: 'Costs granted',
+        },
+      } as unknown as EntryGetSummaryDto;
+
+      expect(resultCodeHelpers().getResultCodes(entry)).toEqual(['COST']);
+    });
+
+    it('getResultCodes returns an empty array when no result code is present', () => {
+      const entry = {
+        id: 'entry-3',
+        applicationTitle: 'Title',
+        isFeeRequired: false,
+        isResulted: false,
+        status: ApplicationListStatus.OPEN,
+      } as EntryGetSummaryDto;
+
+      expect(resultCodeHelpers().getResultCodes(entry)).toEqual([]);
+    });
+
+    it('joinResultCodes joins trimmed codes and ignores blank values', () => {
+      expect(
+        resultCodeHelpers().joinResultCodes([' COST ', '', '  ', 'ADJ']),
+      ).toBe('COST, ADJ');
+    });
+  });
+
+  describe('formatPersonName', () => {
+    it('returns null when applicant or name is missing', () => {
+      expect(formatPersonName()).toBeNull();
+      expect(formatPersonName({} as Applicant)).toBeNull();
+    });
+
+    it('formats title, forenames, and surname', () => {
       const applicant = {
         person: {
           name: {
@@ -411,9 +470,7 @@ describe('ApplicationsListDetail', () => {
         },
       } as Applicant;
 
-      expect(callFormatPersonName(applicant)).toBe(
-        'Smith, John Paul George, Mr',
-      );
+      expect(formatPersonName(applicant)).toBe('Mr, John Paul George, Smith');
     });
 
     it('skips missing forenames', () => {
@@ -429,7 +486,7 @@ describe('ApplicationsListDetail', () => {
         },
       } as Applicant;
 
-      expect(callFormatPersonName(applicant)).toBe('Smith, John, Mr');
+      expect(formatPersonName(applicant)).toBe('Mr, John, Smith');
     });
   });
 
@@ -673,7 +730,7 @@ describe('ApplicationsListDetail', () => {
           postCode: 'AB12 3CD',
           title: 'Land Registry Appeal',
           feeReq: 'Yes',
-          resulted: 'No',
+          resulted: '',
         },
       ]);
 
