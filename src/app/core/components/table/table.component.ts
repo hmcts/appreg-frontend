@@ -39,7 +39,8 @@ export interface CellContext<T = unknown> {
 export class TableComponent<T = unknown> {
   /** Table caption and classes */
   caption = input('');
-  captionClass = input('govuk-table__caption govuk-table__caption--m');
+  captionSize = input<'s' | 'm' | 'l'>('m');
+  hiddenCaption = input(false);
 
   /** GOV.UK table classes overridable if needed */
   tableClass = input('govuk-table');

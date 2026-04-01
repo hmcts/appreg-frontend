@@ -454,7 +454,11 @@ export class ApplicationsListEntryCreate implements OnInit {
             });
           },
           error: (err) => {
+            this.form.patchValue({ applicationTitle: null });
+            this.feeMeta = null;
             this.appListEntryCreatePatch({
+              appCodeDetail: null,
+              isFeeRequired: false,
               errorFound: true,
               summaryErrors: [
                 { text: mapHttpErrorToSummary(err).errorSummary[0].text },
@@ -463,7 +467,12 @@ export class ApplicationsListEntryCreate implements OnInit {
           },
         });
     } else {
-      this.appListEntryCreatePatch({ appCodeDetail: null });
+      this.form.patchValue({ applicationTitle: null });
+      this.feeMeta = null;
+      this.appListEntryCreatePatch({
+        appCodeDetail: null,
+        isFeeRequired: false,
+      });
     }
   }
 

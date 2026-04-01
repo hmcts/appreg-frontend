@@ -52,8 +52,9 @@ import {
   PERSON_TITLE_OPTIONS,
   RESPONDENT_TYPE_OPTIONS,
 } from './util/entry-detail.constants';
-import { buildEntryUpdateDtoWithChange } from './util/entry-detail.form';
+import { buildEntryUpdateDtoForFeeChange } from './util/entry-detail.form';
 import { mapHttpErrorToSummary } from './util/errors.util';
+import { buildResultApplicantContext } from './util/result-context.util';
 import { getEntryId } from './util/routing.util';
 
 import { AccordionComponent } from '@components/accordion/accordion.component';
@@ -61,6 +62,7 @@ import { ApplicantSectionComponent } from '@components/applicant-section/applica
 import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
 import {
   ApplicantContext,
+  EntryDetailNavState,
   PaymentRefReturn,
   readNavState,
 } from '@components/applications-list-entry-detail/util/routing-state-util';
@@ -120,6 +122,7 @@ import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
 import { CodeRow } from '@util/application-code-helpers';
 import { buildRespondentErrors } from '@util/applications-list-entry-error-helpers';
+import { collectChildSubmitErrors } from '@util/child-submit-validation';
 import {
   updateFeeStatusesControl,
   updatePaymentReferenceInFeeStatusesControl,
@@ -147,9 +150,9 @@ const UPDATE_ENTRY_ERROR_MESSAGES = ENTRY_ERROR_MESSAGES;
 
 export const ERROR_HREFS = {
   standardApplicantCode: '#standard-applicant',
-  ...OFFICIALS_ERROR_HREFS,
-  ...RESPONDENT_PERSON_ERROR_HREFS,
-} as const;
+  ...(OFFICIALS_ERROR_HREFS as Record<string, string>),
+  ...(RESPONDENT_PERSON_ERROR_HREFS as Record<string, string>),
+} as const satisfies Record<string, string>;
 
 @Component({
   selector: 'app-applications-list-entry-detail',
@@ -175,7 +178,10 @@ export const ERROR_HREFS = {
   templateUrl: './applications-list-entry-detail.component.html',
 })
 export class ApplicationsListEntryDetail implements OnInit {
-  @ViewChild('wordingSection') wordingSection?: WordingSectionComponent;
+  @ViewChild('wordingSection')
+  private readonly wordingSection?: WordingSectionComponent;
+  @ViewChild('civilFeeSection')
+  private readonly civilFeeSection?: CivilFeeSectionComponent;
 
   private readonly destroyRef = inject(DestroyRef);
 
@@ -243,6 +249,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   // Result wording data
   resultApplicantContext: ApplicantContext[] = [];
+  private navState: EntryDetailNavState | null = null;
 
   //Civil fee
   feeMeta: CivilFeeMeta | null = null;
@@ -251,6 +258,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   ngOnInit(): void {
     const state = readNavState(this.location, this.platformId);
+    this.navState = state;
     this.createForms();
 
     const listId =
@@ -272,10 +280,6 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     this.appListEntryDetailPatch({ appListId: listId });
 
-    if (state?.resultApplicantContext) {
-      this.resultApplicantContext = [state.resultApplicantContext];
-    }
-
     //Civil fee feeStatus payment ref edit handling
     const pr = state?.paymentRefReturn ?? null;
     if (pr) {
@@ -285,7 +289,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     // Watch applicantType changes
     this.bindApplicantTypeChanges();
 
-    this.loadEntryAndPatchForm(listId, entryId, pr);
+    this.loadEntryAndPatchForm(listId, entryId, pr, state);
 
     //Shows success banner if navigated from create page with ?listCreated=true
     this.handleListCreate();
@@ -314,6 +318,9 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   onAddFeeDetails(payload: AddFeeDetailsPayload): void {
     this.resetErrors();
+    const previousFeeStatuses = [
+      ...(this.form.controls.feeStatuses.value ?? []),
+    ];
 
     const { next, changed } = updateFeeStatusesControl(
       this.form.controls.feeStatuses,
@@ -324,11 +331,15 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
 
     const bannerText: SuccessBanner = ENTRY_SUCCESS_MESSAGES.feeStatusUpdated;
-    this.persistFeeStatuses(next, bannerText);
+    this.persistFeeStatuses(previousFeeStatuses, next, bannerText);
   }
 
   // Used to update payment reference for current fee status from /change-payment-reference
   private applyPaymentRefReturn(updatedRowId: string, newRef: string): void {
+    const previousFeeStatuses = [
+      ...(this.form.controls.feeStatuses.value ?? []),
+    ];
+
     const { next, changed } = updatePaymentReferenceInFeeStatusesControl(
       this.form.controls.feeStatuses,
       updatedRowId,
@@ -340,7 +351,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
 
     const bannerText: SuccessBanner = ENTRY_SUCCESS_MESSAGES.paymentRefUpdated;
-    this.persistFeeStatuses(next, bannerText);
+    this.persistFeeStatuses(previousFeeStatuses, next, bannerText);
   }
 
   private clearPaymentRefReturnOnly(): void {
@@ -350,6 +361,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   private persistFeeStatuses(
+    previousFeeStatuses: FeeStatus[],
     feeStatuses: FeeStatus[],
     bannerText: SuccessBanner,
   ): void {
@@ -358,8 +370,9 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
-    const entryUpdateDto = buildEntryUpdateDtoWithChange(
+    const entryUpdateDto = buildEntryUpdateDtoForFeeChange(
       this.entryDetail,
+      this.form.getRawValue(),
       'feeStatuses',
       feeStatuses,
     );
@@ -387,6 +400,11 @@ export class ApplicationsListEntryDetail implements OnInit {
           focusSuccessBanner(this.platformId);
         },
         error: (err) => {
+          this.form.controls.feeStatuses.setValue(previousFeeStatuses, {
+            emitEvent: false,
+          });
+          this.form.controls.feeStatuses.markAsPristine();
+
           this.applyMappedError(err);
         },
       });
@@ -423,12 +441,21 @@ export class ApplicationsListEntryDetail implements OnInit {
             const hasSelectionChanged =
               prevSelection.code !== codeAndLodgementDate.code;
 
+            this.form.patchValue({ applicationTitle: appCodeDetail.title });
+            this.feeMeta = {
+              feeReference: appCodeDetail.feeReference ?? null,
+              feeAmount: appCodeDetail.feeAmount ?? null,
+              offsiteFeeAmount: appCodeDetail.offsiteFeeAmount ?? null,
+            };
+
             if (hasSelectionChanged) {
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
 
               this.wordingSubmitAttempt.set(0);
               this.entryDetail!.wording = undefined;
             }
+
+            this.handleResultWordingContext(this.navState);
 
             this.appListEntryDetailPatch({
               isFeeRequired: appCodeDetail.isFeeDue,
@@ -437,10 +464,16 @@ export class ApplicationsListEntryDetail implements OnInit {
             });
           },
           error: (err) => {
+            this.form.patchValue({ applicationTitle: '' });
+            this.feeMeta = null;
+            this.handleResultWordingContext(this.navState);
             this.applyMappedError(err);
           },
         });
     } else {
+      this.form.patchValue({ applicationTitle: '' });
+      this.feeMeta = null;
+      this.handleResultWordingContext(this.navState);
       this.appListEntryDetailPatch({ appCodeDetail: null });
     }
   }
@@ -608,8 +641,13 @@ export class ApplicationsListEntryDetail implements OnInit {
     });
     this.form.updateValueAndValidity({ emitEvent: false });
 
-    const wordingErrors = this.wordingSection?.validateForSubmit() ?? [];
-    this.onChildErrors('wording', wordingErrors);
+    const submitErrors = collectChildSubmitErrors<ChildErrorSource>([
+      { source: 'wording', section: this.wordingSection },
+      { source: 'civilFee', section: this.civilFeeSection },
+    ]);
+
+    this.childErrors.wording = submitErrors.wording ?? [];
+    this.childErrors.civilFee = submitErrors.civilFee ?? [];
 
     this.updateAllErrors();
     return this.appListEntryDetailState().errorFound;
@@ -658,7 +696,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     this.submitEntryUpdate(
       this.buildEntryUpdateDto(),
-      ENTRY_SUCCESS_MESSAGES.officialsUpdated,
+      ENTRY_SUCCESS_MESSAGES.officialsUpdated as SuccessBanner,
     );
   }
 
@@ -698,8 +736,9 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
-    const entryUpdateDto = buildEntryUpdateDtoWithChange(
+    const entryUpdateDto = buildEntryUpdateDtoForFeeChange(
       this.entryDetail,
+      this.form.getRawValue(),
       'hasOffsiteFee',
       nextValue,
     );
@@ -801,6 +840,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         .subscribe({
           next: (codeDto) => {
             this.form.patchValue({ applicationTitle: codeDto.title });
+            this.handleResultWordingContext(this.navState);
             this.feeMeta = {
               feeReference: codeDto.feeReference ?? null,
               feeAmount: codeDto.feeAmount ?? null,
@@ -816,6 +856,7 @@ export class ApplicationsListEntryDetail implements OnInit {
           },
           error: () => {
             this.form.patchValue({ applicationTitle: '' });
+            this.handleResultWordingContext(this.navState);
             this.appListEntryDetailPatch({ formReady: true });
           },
         });
@@ -868,6 +909,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     listId: string,
     entryId: string,
     paymentRefReturn: PaymentRefReturn | null,
+    state: EntryDetailNavState | null | undefined,
   ): void {
     this.entriesApi
       .getApplicationListEntry({ listId, entryId }, 'body', false, {
@@ -889,6 +931,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
           const type = this.form.controls.applicantType.value ?? 'person';
           this.formSvc.syncApplicantTypeState(this.forms, type);
+          this.handleResultWordingContext(state);
 
           if (paymentRefReturn) {
             this.applyPaymentRefReturn(
@@ -1013,5 +1056,47 @@ export class ApplicationsListEntryDetail implements OnInit {
     });
 
     focusErrorSummary(this.platformId);
+  }
+
+  private handleResultWordingContext(
+    state: EntryDetailNavState | null | undefined,
+  ): void {
+    const currentTitle =
+      this.form.controls.applicationTitle?.value?.trim() ||
+      this.appListEntryDetailState().appCodeDetail?.title ||
+      state?.resultApplicantContext?.title ||
+      '';
+
+    if (!this.entryDetail) {
+      this.resultApplicantContext = state?.resultApplicantContext
+        ? [
+            {
+              ...state.resultApplicantContext,
+              title: currentTitle,
+            },
+          ]
+        : [];
+      return;
+    }
+
+    const apiContext = buildResultApplicantContext(
+      this.entryDetail,
+      currentTitle,
+    );
+
+    this.resultApplicantContext = [
+      state?.resultApplicantContext
+        ? {
+            applicant:
+              this.entryDetail.standardApplicantCode?.trim() &&
+              state.resultApplicantContext.applicant
+                ? state.resultApplicantContext.applicant
+                : apiContext.applicant,
+            respondent:
+              apiContext.respondent || state.resultApplicantContext.respondent,
+            title: currentTitle,
+          }
+        : apiContext,
+    ];
   }
 }
