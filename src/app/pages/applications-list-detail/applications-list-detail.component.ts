@@ -580,9 +580,34 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           '',
         title: `${entry.applicationTitle}`.trim(),
         feeReq: entry.isFeeRequired ? 'Yes' : 'No',
-        resulted: entry.resulted?.resultCode ?? '',
+        resulted: this.joinResultCodes(this.getResultCodes(entry)),
       };
     });
+  }
+
+  private getResultCodes(entry: EntryGetSummaryDto): string[] {
+    const resulted = (
+      entry as EntryGetSummaryDto & {
+        resulted?: { resultCode?: string } | string[];
+      }
+    ).resulted;
+
+    if (Array.isArray(resulted)) {
+      return resulted;
+    }
+
+    if (resulted?.resultCode) {
+      return [resulted.resultCode];
+    }
+
+    return [];
+  }
+
+  private joinResultCodes(resultCodes: string[]): string {
+    return resultCodes
+      .map((resultCode) => resultCode.trim())
+      .filter(Boolean)
+      .join(', ');
   }
 
   private prefillFromApi(dto: ApplicationListGetDetailDto): void {

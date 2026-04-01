@@ -57,6 +57,11 @@ type PlaceFieldsSignalStateAccessor = {
   signalState: { patch: (p: Partial<PlaceFieldsStatePatch>) => void };
 };
 
+type ResultCodeHelpersAccessor = {
+  getResultCodes(entry: EntryGetSummaryDto): string[];
+  joinResultCodes(resultCodes: string[]): string;
+};
+
 describe('ApplicationsListDetail', () => {
   let fixture: ComponentFixture<ApplicationsListDetail>;
   let component: ApplicationsListDetail;
@@ -388,6 +393,61 @@ describe('ApplicationsListDetail', () => {
         feeReq: 'No',
         resulted: 'COST',
       });
+    });
+  });
+
+  describe('result code helpers', () => {
+    const resultCodeHelpers = (): ResultCodeHelpersAccessor =>
+      component as unknown as ResultCodeHelpersAccessor;
+
+    it('getResultCodes returns all codes when resulted is a string array', () => {
+      const entry = {
+        id: 'entry-1',
+        applicationTitle: 'Title',
+        isFeeRequired: false,
+        isResulted: true,
+        status: ApplicationListStatus.OPEN,
+        resulted: ['COST', 'ADJ'],
+      } as unknown as EntryGetSummaryDto;
+
+      expect(resultCodeHelpers().getResultCodes(entry)).toEqual([
+        'COST',
+        'ADJ',
+      ]);
+    });
+
+    it('getResultCodes returns a single-item array for the legacy result object shape', () => {
+      const entry = {
+        id: 'entry-2',
+        applicationTitle: 'Title',
+        isFeeRequired: false,
+        isResulted: true,
+        status: ApplicationListStatus.OPEN,
+        resulted: {
+          resultCode: 'COST',
+          title: 'Costs granted',
+        },
+      } as unknown as EntryGetSummaryDto;
+
+      expect(resultCodeHelpers().getResultCodes(entry)).toEqual(['COST']);
+    });
+
+    it('getResultCodes returns an empty array when no result code is present', () => {
+      const entry = {
+        id: 'entry-3',
+        applicationTitle: 'Title',
+        isFeeRequired: false,
+        isResulted: false,
+        status: ApplicationListStatus.OPEN,
+      } as EntryGetSummaryDto;
+
+      expect(resultCodeHelpers().getResultCodes(entry)).toEqual([]);
+    });
+
+    it('joinResultCodes joins trimmed codes and ignores blank values', () => {
+      expect(
+        resultCodeHelpers().joinResultCodes([' COST ', '', '  ', 'ADJ']),
+      ).toBe('COST, ADJ');
     });
   });
 
