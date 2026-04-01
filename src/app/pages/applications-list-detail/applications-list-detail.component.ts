@@ -589,12 +589,16 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private getResultCodes(entry: EntryGetSummaryDto): string[] {
     const resulted = (
       entry as Omit<EntryGetSummaryDto, 'resulted'> & {
-        resulted?: ResultCodeGetSummaryDto | string[];
+        resulted?: ResultCodeGetSummaryDto | ResultCodeGetSummaryDto[];
       }
     ).resulted;
 
     if (Array.isArray(resulted)) {
-      return resulted;
+      return resulted
+        .map((resultCode) =>
+          typeof resultCode === 'string' ? resultCode : resultCode.resultCode,
+        )
+        .filter(Boolean);
     }
 
     if (resulted && 'resultCode' in resulted && resulted.resultCode) {
