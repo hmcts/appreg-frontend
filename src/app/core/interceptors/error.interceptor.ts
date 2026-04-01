@@ -9,6 +9,7 @@ import { catchError, throwError } from 'rxjs';
 
 import { ErrorMessageService } from '@services/error-message.service';
 import { TelemetryService } from '@services/telemetry.service';
+import { toSanitizedPath } from '@util/sanitized-path';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const errorHandler = inject(ErrorHandler);
@@ -91,23 +92,4 @@ function toTelemetryError(
   trackedError.name = 'HttpRequestFailure';
 
   return trackedError;
-}
-
-function toSanitizedPath(url: string | null | undefined): string {
-  if (!url) {
-    return '';
-  }
-
-  try {
-    return new URL(url, 'https://local').pathname;
-  } catch {
-    const queryIndex = url.indexOf('?');
-    const hashIndex = url.indexOf('#');
-    const cut = Math.min(
-      queryIndex === -1 ? url.length : queryIndex,
-      hashIndex === -1 ? url.length : hashIndex,
-    );
-
-    return url.slice(0, cut);
-  }
 }

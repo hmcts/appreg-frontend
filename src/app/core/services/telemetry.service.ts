@@ -9,6 +9,7 @@ import {
 import { filter } from 'rxjs';
 
 import { AppConfigService } from '@services/app-config.service';
+import { toSanitizedPath } from '@util/sanitized-path';
 
 export type TelemetryProperties = Record<
   string,
@@ -179,25 +180,6 @@ function toCustomProperties(
   );
 }
 
-function toSanitizedPath(url: string | null | undefined): string {
-  if (!url) {
-    return '';
-  }
-
-  try {
-    return new URL(url, 'https://local').pathname;
-  } catch {
-    const queryIndex = url.indexOf('?');
-    const hashIndex = url.indexOf('#');
-    const cut = Math.min(
-      queryIndex === -1 ? url.length : queryIndex,
-      hashIndex === -1 ? url.length : hashIndex,
-    );
-
-    return url.slice(0, cut);
-  }
-}
-
 function updateTraceContext(
   traceContext: TraceContextLike,
   operation: {
@@ -233,18 +215,34 @@ function createSpanId(): string {
   return createHexId(8);
 }
 
+let fallbackIdCounter = 0;
+
 function createHexId(byteLength: number): string {
+  const randomUuid = globalThis.crypto?.randomUUID?.();
+  if (randomUuid) {
+    return randomUuid.replace(/-/g, '').slice(0, byteLength * 2);
+  }
+
   const bytes = new Uint8Array(byteLength);
 
   if (globalThis.crypto?.getRandomValues) {
     globalThis.crypto.getRandomValues(bytes);
-  } else {
-    for (let index = 0; index < bytes.length; index += 1) {
-      bytes[index] = Math.floor(Math.random() * 256);
-    }
+
+    return Array.from(bytes, (value) =>
+      value.toString(16).padStart(2, '0'),
+    ).join('');
   }
 
-  return Array.from(bytes, (value) => value.toString(16).padStart(2, '0')).join(
-    '',
-  );
+  return createFallbackHexId(byteLength * 2);
+}
+
+function createFallbackHexId(length: number): string {
+  fallbackIdCounter += 1;
+
+  const performanceNow = globalThis.performance?.now();
+  const seed = `${Date.now().toString(16)}${
+    performanceNow ? Math.floor(performanceNow * 1000).toString(16) : ''
+  }${fallbackIdCounter.toString(16)}`;
+
+  return seed.padStart(length, '0').slice(-length);
 }
