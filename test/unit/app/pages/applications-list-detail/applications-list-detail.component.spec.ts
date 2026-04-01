@@ -295,7 +295,10 @@ describe('ApplicationsListDetail', () => {
             },
             applicationTitle: 'Some application title',
             isFeeRequired: true,
-            resulted: false,
+            resulted: {
+              resultCode: 'COST',
+              title: 'Costs granted',
+            },
           },
         ],
       } as unknown as { content: EntryGetSummaryDto[] };
@@ -318,7 +321,7 @@ describe('ApplicationsListDetail', () => {
         postCode: 'BB2 2BB',
         title: 'Some application title',
         feeReq: 'Yes',
-        resulted: 'No',
+        resulted: 'COST',
       });
     });
 
@@ -356,7 +359,10 @@ describe('ApplicationsListDetail', () => {
             },
             applicationTitle: 'Another title',
             isFeeRequired: false,
-            resulted: true,
+            resulted: {
+              resultCode: 'COST',
+              title: 'Costs granted',
+            },
           },
         ],
       } as unknown as { content: EntryGetSummaryDto[] };
@@ -379,7 +385,7 @@ describe('ApplicationsListDetail', () => {
         postCode: 'CC3 3CC',
         title: 'Another title',
         feeReq: 'No',
-        resulted: 'Yes',
+        resulted: 'COST',
       });
     });
   });
@@ -673,7 +679,7 @@ describe('ApplicationsListDetail', () => {
           postCode: 'AB12 3CD',
           title: 'Land Registry Appeal',
           feeReq: 'Yes',
-          resulted: 'No',
+          resulted: '',
         },
       ]);
 

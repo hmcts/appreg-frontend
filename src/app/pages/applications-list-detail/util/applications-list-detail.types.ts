@@ -36,7 +36,7 @@ export type selectedRow = {
   postCode: string | null;
   title: string;
   feeReq: 'Yes' | 'No';
-  resulted: 'Yes' | 'No';
+  resulted: string | null;
 };
 
 export type CourtLocCjaConflictError = { message: string };

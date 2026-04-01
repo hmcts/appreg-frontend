@@ -134,7 +134,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly listDetailRequest = signal<listDetailsReq | null>(null);
   private readonly updateRequest = signal<UpdateReq | null>(null);
 
-  private loadFailed = signal(false);
+  private readonly loadFailed = signal(false);
 
   override form = this.appListFormService.createUpdateForm();
 
@@ -580,7 +580,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           '',
         title: `${entry.applicationTitle}`.trim(),
         feeReq: entry.isFeeRequired ? 'Yes' : 'No',
-        resulted: entry.resulted ? 'Yes' : 'No',
+        resulted: entry.resulted?.resultCode ?? '',
       };
     });
   }
