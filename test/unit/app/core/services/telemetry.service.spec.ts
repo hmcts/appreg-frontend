@@ -144,20 +144,18 @@ describe('TelemetryService', () => {
       ),
     );
 
-    expect(trackPageView).toHaveBeenCalledWith(
-      {
-        name: '/reports',
-        uri: '/reports',
-        properties: {
-          route: '/reports',
-        },
+    expect(trackPageView).toHaveBeenCalledWith({
+      name: '/reports',
+      uri: '/reports',
+      properties: {
+        route: '/reports',
       },
-    );
+    });
     expect(traceContext.setName).toHaveBeenLastCalledWith('/reports');
 
-    const initializer = addTelemetryInitializer.mock.calls[0][0] as (
-      item: { tags?: Record<string, string> },
-    ) => void;
+    const initializer = addTelemetryInitializer.mock.calls[0][0] as (item: {
+      tags?: Record<string, string>;
+    }) => void;
     const telemetryItem = { tags: {} as Record<string, string> };
     initializer(telemetryItem);
 

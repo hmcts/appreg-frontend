@@ -70,7 +70,9 @@ function getAppInsightsConnectSrc(): string[] {
 
   const endpointSuffix = connectionStringMap.get('endpointsuffix');
   if (endpointSuffix) {
-    const locationPrefix = toLocationPrefix(connectionStringMap.get('location'));
+    const locationPrefix = toLocationPrefix(
+      connectionStringMap.get('location'),
+    );
     addOrigin(origins, `https://${locationPrefix}dc.${endpointSuffix}`);
     addOrigin(origins, `https://live.${endpointSuffix}`);
   }

@@ -87,21 +87,16 @@ export class TelemetryService {
 
     this.updateOperationContext(path);
 
-    this.appInsights?.trackPageView(
-      {
-        name: path,
-        uri: path,
-        properties: {
-          route: path,
-        },
+    this.appInsights?.trackPageView({
+      name: path,
+      uri: path,
+      properties: {
+        route: path,
       },
-    );
+    });
   }
 
-  logException(
-    exception: Error,
-    properties?: TelemetryProperties,
-  ): void {
+  logException(exception: Error, properties?: TelemetryProperties): void {
     const route = toSanitizedPath(
       typeof properties?.['route'] === 'string'
         ? properties['route']
@@ -136,7 +131,9 @@ export class TelemetryService {
 
     this.router.events
       .pipe(
-        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        filter(
+          (event): event is NavigationEnd => event instanceof NavigationEnd,
+        ),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((event) => {

@@ -69,7 +69,8 @@ function normalizeAppConfig(
   value: Partial<BrowserAppConfig> | null | undefined,
 ): BrowserAppConfig {
   const environment =
-    typeof value?.environment === 'string' && value.environment.trim().length > 0
+    typeof value?.environment === 'string' &&
+    value.environment.trim().length > 0
       ? value.environment.trim()
       : DEFAULT_APP_CONFIG.environment;
   const appInsights = value?.appInsights;

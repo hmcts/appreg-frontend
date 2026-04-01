@@ -74,7 +74,8 @@ describe('Helmet Module', () => {
 
   it('adds the configured App Insights ingestion origin to connect-src', () => {
     mockedConfig.has.mockImplementation(
-      (key: string) => key === 'secrets.appreg.app-insights-connection-string-fe',
+      (key: string) =>
+        key === 'secrets.appreg.app-insights-connection-string-fe',
     );
     mockedConfig.get.mockImplementation((key: string) => {
       if (key === 'secrets.appreg.app-insights-connection-string-fe') {
@@ -99,7 +100,8 @@ describe('Helmet Module', () => {
 
   it('derives App Insights hosts from EndpointSuffix and Location', () => {
     mockedConfig.has.mockImplementation(
-      (key: string) => key === 'secrets.appreg.app-insights-connection-string-fe',
+      (key: string) =>
+        key === 'secrets.appreg.app-insights-connection-string-fe',
     );
     mockedConfig.get.mockImplementation((key: string) => {
       if (key === 'secrets.appreg.app-insights-connection-string-fe') {
