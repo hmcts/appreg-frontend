@@ -380,8 +380,8 @@ describe('ApplicationsListDetail', () => {
         id: 'entry-2',
         sequenceNumber: 7,
         accountNumber: '',
-        applicant: 'Brown, Alex J, Mr',
-        respondent: 'Green, Sam',
+        applicant: 'Mr, Alex J, Brown',
+        respondent: 'Sam, Green',
         postCode: 'CC3 3CC',
         title: 'Another title',
         feeReq: 'No',
@@ -404,7 +404,7 @@ describe('ApplicationsListDetail', () => {
       expect(callFormatPersonName({} as Applicant)).toBeNull();
     });
 
-    it('formats surname, forenames, and title', () => {
+    it('formats title, forenames, and surname', () => {
       const applicant = {
         person: {
           name: {
@@ -418,7 +418,7 @@ describe('ApplicationsListDetail', () => {
       } as Applicant;
 
       expect(callFormatPersonName(applicant)).toBe(
-        'Smith, John Paul George, Mr',
+        'Mr, John Paul George, Smith',
       );
     });
 
@@ -435,7 +435,7 @@ describe('ApplicationsListDetail', () => {
         },
       } as Applicant;
 
-      expect(callFormatPersonName(applicant)).toBe('Smith, John, Mr');
+      expect(callFormatPersonName(applicant)).toBe('Mr, John, Smith');
     });
   });
 

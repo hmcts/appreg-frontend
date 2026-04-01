@@ -599,7 +599,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       .filter(Boolean)
       .join(' ');
 
-    return [name.surname, forenames, name.title].filter(Boolean).join(', ');
+    return [name.title, forenames, name.surname].filter(Boolean).join(', ');
   }
 
   private returnOrgName(applicant?: Applicant): string | null {
