@@ -301,10 +301,12 @@ describe('ApplicationsListDetail', () => {
             },
             applicationTitle: 'Some application title',
             isFeeRequired: true,
-            resulted: {
-              resultCode: 'COST',
-              title: 'Costs granted',
-            },
+            resulted: [
+              {
+                resultCode: 'COST',
+                title: 'Costs granted',
+              },
+            ],
           },
         ],
       } as unknown as { content: EntryGetSummaryDto[] };
@@ -365,10 +367,12 @@ describe('ApplicationsListDetail', () => {
             },
             applicationTitle: 'Another title',
             isFeeRequired: false,
-            resulted: {
-              resultCode: 'COST',
-              title: 'Costs granted',
-            },
+            resulted: [
+              {
+                resultCode: 'COST',
+                title: 'Costs granted',
+              },
+            ],
           },
         ],
       } as unknown as { content: EntryGetSummaryDto[] };
@@ -416,6 +420,25 @@ describe('ApplicationsListDetail', () => {
       ]);
     });
 
+    it('getResultCodes returns all codes when resulted is an object array', () => {
+      const entry = {
+        id: 'entry-1b',
+        applicationTitle: 'Title',
+        isFeeRequired: false,
+        isResulted: true,
+        status: ApplicationListStatus.OPEN,
+        resulted: [
+          { resultCode: 'COST', title: 'Costs granted' },
+          { resultCode: 'ADJ', title: 'Adjourned' },
+        ],
+      } as unknown as EntryGetSummaryDto;
+
+      expect(resultCodeHelpers().getResultCodes(entry)).toEqual([
+        'COST',
+        'ADJ',
+      ]);
+    });
+
     it('getResultCodes returns a single-item array for the legacy result object shape', () => {
       const entry = {
         id: 'entry-2',
@@ -423,10 +446,12 @@ describe('ApplicationsListDetail', () => {
         isFeeRequired: false,
         isResulted: true,
         status: ApplicationListStatus.OPEN,
-        resulted: {
-          resultCode: 'COST',
-          title: 'Costs granted',
-        },
+        resulted: [
+          {
+            resultCode: 'COST',
+            title: 'Costs granted',
+          },
+        ],
       } as unknown as EntryGetSummaryDto;
 
       expect(resultCodeHelpers().getResultCodes(entry)).toEqual(['COST']);

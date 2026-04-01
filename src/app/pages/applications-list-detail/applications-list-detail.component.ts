@@ -59,6 +59,7 @@ import {
   ApplicationListsApi,
   EntryGetSummaryDto,
   EntryPage,
+  ResultCodeGetSummaryDto,
 } from '@openapi';
 import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
@@ -588,16 +589,16 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private getResultCodes(entry: EntryGetSummaryDto): string[] {
     const resulted = (
       entry as EntryGetSummaryDto & {
-        resulted?: { resultCode?: string } | string[];
+        resulted?: ResultCodeGetSummaryDto | ResultCodeGetSummaryDto[];
       }
     ).resulted;
 
     if (Array.isArray(resulted)) {
-      return resulted;
-    }
-
-    if (resulted?.resultCode) {
-      return [resulted.resultCode];
+      return resulted
+        .map((resultCode) =>
+          typeof resultCode === 'string' ? resultCode : resultCode.resultCode,
+        )
+        .filter(Boolean);
     }
 
     return [];
