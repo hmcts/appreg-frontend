@@ -29,6 +29,7 @@ import { HmctsLoggerBridge } from './modules/logger';
 import { PropertiesVolume } from './modules/properties-volume';
 import { getRedisUrl } from './redis-config';
 import { setupHealthcheck } from './routes/health';
+import { setupAppConfigRoute } from './routes/app-config';
 import { setupInfoRoute } from './routes/info';
 import { getCca, setupSsoRoutes } from './routes/sso';
 import { setupSession } from './session';
@@ -106,6 +107,7 @@ app.use(
 
 // ----- Routes
 setupHealthcheck(app);
+setupAppConfigRoute(app);
 setupInfoRoute(app);
 setupSsoRoutes(app);
 

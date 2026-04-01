@@ -1,4 +1,10 @@
 {
+  "appInsights": {
+    "enabled": {
+      "__name": "APPINSIGHTS_ENABLED",
+      "__format": "boolean"
+    }
+  },
   "api": {
     "baseUrl": "APPREG_API_BASE_URL"
   }
