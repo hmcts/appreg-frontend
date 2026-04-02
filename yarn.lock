@@ -636,13 +636,13 @@ __metadata:
   linkType: hard
 
 "@apidevtools/json-schema-ref-parser@npm:^15.1.2":
-  version: 15.3.4
-  resolution: "@apidevtools/json-schema-ref-parser@npm:15.3.4"
+  version: 15.3.5
+  resolution: "@apidevtools/json-schema-ref-parser@npm:15.3.5"
   dependencies:
     js-yaml: "npm:^4.1.1"
   peerDependencies:
     "@types/json-schema": ^7.0.15
-  checksum: 10/91621593fdff4fa5135539bdb60b4a9b6acb484090c6ead3c82fa1ccaf65e566cad156093b0b05c2d5e8b053c451104abcd75d77ccb8cd081fc2ce93580aa1af
+  checksum: 10/dd597e7cfd3ae57121b29f6489e39502199a96dce072788497dd30fab3296ed4f6dd95da1ddd26ae3461594a75f1d563c0b894bf70cd43e690b08ed9af78aa83
   languageName: node
   linkType: hard
 
@@ -6431,9 +6431,9 @@ __metadata:
   linkType: hard
 
 "adm-zip@npm:^0.5.16":
-  version: 0.5.16
-  resolution: "adm-zip@npm:0.5.16"
-  checksum: 10/e167d1b9e60cde37334efda828fa514680af9facbd4183952f36526390e5c7da9a90ca1e6880dfd3aba7b3517f1506c6178e0dc29cd630b26b98c795f97fc599
+  version: 0.5.17
+  resolution: "adm-zip@npm:0.5.17"
+  checksum: 10/035ea96d04376c290bed3401b67d1a2a2654996450ec9056dccc0fb194cb6a956bf7ad388d2648b0e1775338a377805601deca4bcd689658dc1d39247a1e9bdd
   languageName: node
   linkType: hard
 
@@ -7021,9 +7021,9 @@ __metadata:
   linkType: hard
 
 "axe-core@npm:*, axe-core@npm:^4.10.3, axe-core@npm:~4.11.1":
-  version: 4.11.1
-  resolution: "axe-core@npm:4.11.1"
-  checksum: 10/bbc8e8959258a229b92fbaa73437050825579815051cac7b0fdbb6752946fea226e403bfeeef3d60d712477bdd4c01afdc8455f27c3d85e4251df88b032b6250
+  version: 4.11.2
+  resolution: "axe-core@npm:4.11.2"
+  checksum: 10/495a6baa80a157603e5ea9ebfefb06ef4f947d722f8adcefea3a086c918363437406fa5adf27bd9f759314f7661f023110bd5490b3d13f623c92d3dbdf432298
   languageName: node
   linkType: hard
 
@@ -7041,7 +7041,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.13.6":
+"axios@npm:1.13.6":
   version: 1.13.6
   resolution: "axios@npm:1.13.6"
   dependencies:
@@ -13588,9 +13588,9 @@ __metadata:
   linkType: hard
 
 "lodash@npm:^4.17.14, lodash@npm:^4.17.15, lodash@npm:^4.17.21, lodash@npm:^4.17.23":
-  version: 4.17.23
-  resolution: "lodash@npm:4.17.23"
-  checksum: 10/82504c88250f58da7a5a4289f57a4f759c44946c005dd232821c7688b5fcfbf4a6268f6a6cdde4b792c91edd2f3b5398c1d2a0998274432cff76def48735e233
+  version: 4.18.1
+  resolution: "lodash@npm:4.18.1"
+  checksum: 10/306fea53dfd39dad1f03d45ba654a2405aebd35797b673077f401edb7df2543623dc44b9effbb98f69b32152295fff725a4cec99c684098947430600c6af0c3f
   languageName: node
   linkType: hard
 

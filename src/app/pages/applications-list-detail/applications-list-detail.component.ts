@@ -54,12 +54,12 @@ import {
 import { IF_MATCH } from '@context/concurrency-context';
 import { Row } from '@core-types/table/row.types';
 import {
-  Applicant,
   ApplicationListEntriesApi,
   ApplicationListGetDetailDto,
   ApplicationListsApi,
   EntryGetSummaryDto,
   EntryPage,
+  ResultCodeGetSummaryDto,
 } from '@openapi';
 import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
@@ -71,6 +71,7 @@ import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenu, MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
+import { formatPersonName, returnOrgName } from '@util/string-helpers';
 import { parseTimeToDuration } from '@util/time-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
 import { closePermitted } from '@validators/applications-list-close.validator';
@@ -135,7 +136,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly listDetailRequest = signal<listDetailsReq | null>(null);
   private readonly updateRequest = signal<UpdateReq | null>(null);
 
-  private loadFailed = signal(false);
+  private readonly loadFailed = signal(false);
 
   override form = this.appListFormService.createUpdateForm();
 
@@ -624,45 +625,45 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         sequenceNumber: entry.sequenceNumber!,
         accountNumber: entry.accountNumber ?? '',
         applicant: entry.applicant?.person
-          ? this.formatPersonName(entry.applicant)
-          : this.returnOrgName(entry.applicant),
+          ? formatPersonName(entry.applicant)
+          : returnOrgName(entry.applicant),
         respondent: entry.respondent?.person
-          ? this.formatPersonName(entry.respondent)
-          : this.returnOrgName(entry.respondent),
+          ? formatPersonName(entry.respondent)
+          : returnOrgName(entry.respondent),
         postCode:
           entry.respondent?.person?.contactDetails?.postcode ??
           entry.respondent?.organisation?.contactDetails?.postcode ??
           '',
         title: `${entry.applicationTitle}`.trim(),
         feeReq: entry.isFeeRequired ? 'Yes' : 'No',
-        resulted: entry.resulted ? 'Yes' : 'No',
+        resulted: this.joinResultCodes(this.getResultCodes(entry)),
       };
     });
   }
 
-  private formatPersonName(applicant?: Applicant): string | null {
-    const name = applicant?.person?.name;
-    if (!name) {
-      return null;
+  private getResultCodes(entry: EntryGetSummaryDto): string[] {
+    const resulted = (
+      entry as EntryGetSummaryDto & {
+        resulted?: ResultCodeGetSummaryDto | ResultCodeGetSummaryDto[];
+      }
+    ).resulted;
+
+    if (Array.isArray(resulted)) {
+      return resulted
+        .map((resultCode) =>
+          typeof resultCode === 'string' ? resultCode : resultCode.resultCode,
+        )
+        .filter(Boolean);
     }
 
-    const forenames = [
-      name.firstForename,
-      name.secondForename,
-      name.thirdForename,
-    ]
-      .filter(Boolean)
-      .join(' ');
-
-    return [name.surname, forenames, name.title].filter(Boolean).join(', ');
+    return [];
   }
 
-  private returnOrgName(applicant?: Applicant): string | null {
-    const organisation = applicant?.organisation;
-    if (!organisation) {
-      return null;
-    }
-    return organisation.name;
+  private joinResultCodes(resultCodes: string[]): string {
+    return resultCodes
+      .map((resultCode) => resultCode.trim())
+      .filter(Boolean)
+      .join(', ');
   }
 
   private prefillFromApi(dto: ApplicationListGetDetailDto): void {
