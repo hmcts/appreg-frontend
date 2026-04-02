@@ -203,7 +203,6 @@ export class ApplicationListEntryFormService {
 
       // respondent section fields
       respondent: null,
-      respondentEntryType: 'organisation',
       numberOfRespondents: null,
     });
 

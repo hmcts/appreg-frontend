@@ -171,6 +171,52 @@ describe('ResultWordingSectionComponent', () => {
     expect(component.canSubmitResults()).toBe(true);
   });
 
+  it('getInitialWordingValuesForCard returns saved substitution values for existing results', () => {
+    fixture.componentRef.setInput('existingResults', [
+      makeExistingResult({
+        id: 'E1',
+        resultCode: 'RC2',
+        wording: {
+          template: "Result '{{ Date }}' applied.",
+          'substitution-key-constraints': [
+            { key: 'Date', value: '2025-10-25', constraint: { length: 10 } },
+          ],
+        } as unknown as TemplateDetail,
+      }),
+    ]);
+    fixture.detectChanges();
+
+    const card = component.existingResultSummaryLists()[0];
+
+    expect(component.getInitialWordingValuesForCard(card)).toEqual({
+      template: "Result '{{ Date }}' applied.",
+      'substitution-key-constraints': [
+        { key: 'Date', value: '2025-10-25', constraint: { length: 10 } },
+      ],
+    });
+  });
+
+  it('getInitialWordingValuesForCard does not feed pending draft values back to the parser', () => {
+    fixture.componentRef.setInput('resultCodeTemplateByCode', {
+      RC1: {
+        template: "Result '{{ Date }}' applied.",
+        'substitution-key-constraints': [
+          { key: 'Date', constraint: { length: 10 } },
+        ],
+      },
+    } as Record<string, TemplateDetail>);
+    fixture.detectChanges();
+
+    component.selectResultCode(codes[0]);
+
+    const card = component.existingResultSummaryLists()[0];
+    component.onCardWordingFieldsDTO(card, {
+      wordingFields: [{ key: 'Date', value: '2026-03-02' }],
+    });
+
+    expect(component.getInitialWordingValuesForCard(card)).toBeUndefined();
+  });
+
   it('onSaveResult emits submitResults with pending row', () => {
     const submitSpy = jest.spyOn(component.submitResults, 'emit');
 
