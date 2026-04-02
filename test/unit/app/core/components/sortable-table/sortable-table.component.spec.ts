@@ -1,4 +1,4 @@
-import { PLATFORM_ID, Component } from '@angular/core';
+import { Component, PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
@@ -33,7 +33,9 @@ jest.mock('@ministryofjustice/frontend', () => ({
   imports: [SortableTableComponent],
   template: `
     <app-sortable-table [columns]="columns" [data]="data">
-      <caption class="govuk-table__caption">Projected caption</caption>
+      <caption class="govuk-table__caption">
+        Projected caption
+      </caption>
     </app-sortable-table>
   `,
 })
@@ -92,7 +94,9 @@ describe('SortableTableComponent', () => {
   it('creates with the real template', async () => {
     await create('browser');
     expect(comp).toBeTruthy();
-    expect(fixture.debugElement.query(By.css('table.govuk-table'))).toBeTruthy();
+    expect(
+      fixture.debugElement.query(By.css('table.govuk-table')),
+    ).toBeTruthy();
   });
 
   describe('trackRow', () => {
@@ -156,7 +160,9 @@ describe('SortableTableComponent', () => {
       await create('browser');
       setInput('selectable', true);
 
-      expect(fixture.debugElement.query(By.css('#row-select-all'))).toBeTruthy();
+      expect(
+        fixture.debugElement.query(By.css('#row-select-all')),
+      ).toBeTruthy();
       expect(fixture.debugElement.query(By.css('#row-abc'))).toBeTruthy();
     });
 
@@ -245,7 +251,9 @@ describe('SortableTableComponent', () => {
 
       const captions = hostFixture.debugElement.queryAll(By.css('caption'));
       expect(captions).toHaveLength(1);
-      expect(captions[0].nativeElement.textContent.trim()).toBe('Projected caption');
+      expect(captions[0].nativeElement.textContent.trim()).toBe(
+        'Projected caption',
+      );
     });
   });
 

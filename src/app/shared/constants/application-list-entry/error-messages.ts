@@ -96,7 +96,7 @@ export const ORG_FIELD_MESSAGES = {
 export const CIVIL_FEE_FIELD_MESSAGES: CivilFeeErrorMap = {
   feeStatus: { required: 'Select a fee status' },
   feeStatusDate: {
-    required: 'Enter a status date',
+    required: 'Enter a valid status date',
   },
   paymentRef: {
     maxlength: 'Payment reference must be less than or equal to 15 characters',
@@ -160,6 +160,10 @@ export const ENTRY_ERROR_MESSAGES = {
   },
   applicationCode: {
     required: 'Enter an application code',
+  },
+  lodgementDate: {
+    required: 'Enter a valid lodgement date',
+    dateInFuture: 'Lodgement date must not be in the future',
   },
   ...NOTES_ERROR_MESSAGES,
   ...PERSON_FIELD_MESSAGES,

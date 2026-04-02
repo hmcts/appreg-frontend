@@ -135,6 +135,20 @@ describe('applications-list entry form builders', () => {
   });
 
   describe('buildStandardApplicationForm', () => {
+    it('lodgementDate rejects future dates', () => {
+      const form = buildStandardApplicationForm(fb);
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const yyyyMmDd = tomorrow.toISOString().split('T')[0];
+
+      form.controls.lodgementDate.setValue(yyyyMmDd);
+      form.controls.lodgementDate.updateValueAndValidity();
+
+      expect(form.controls.lodgementDate.errors).toHaveProperty(
+        'dateInFuture',
+      );
+    });
+
     it('applicationNotes.caseReference enforces alphanumeric only', () => {
       const form = buildStandardApplicationForm(fb);
       const notesGroup = form.controls.applicationNotes;

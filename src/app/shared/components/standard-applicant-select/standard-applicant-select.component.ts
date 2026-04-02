@@ -36,11 +36,7 @@ import { StandardApplicantRow } from '@util/types/applications-list-entry/types'
 @Component({
   selector: 'app-standard-applicant-select',
   standalone: true,
-  imports: [
-    CommonModule,
-    SortableTableComponent,
-    PaginationComponent,
-  ],
+  imports: [CommonModule, SortableTableComponent, PaginationComponent],
   templateUrl: './standard-applicant-select.component.html',
 })
 export class StandardApplicantSelectComponent implements OnInit, OnChanges {

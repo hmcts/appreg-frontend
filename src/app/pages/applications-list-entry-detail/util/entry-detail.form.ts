@@ -57,6 +57,7 @@ import {
   PersonFormRaw,
 } from '@util/types/applications-list-entry/types';
 import { crossFormValidation } from '@validators/cross-form.validator';
+import { dateNotInFuture } from '@validators/date-not-in-future.validator';
 import { optional } from '@validators/optional.validator';
 import { standardApplicantCodeConditionalRequired } from '@validators/standard-applicant-code.validator';
 import { ukMobile, ukPhone, ukPostcode } from '@validators/uk-format.validator';
@@ -164,7 +165,9 @@ export function buildStandardApplicationForm(
         }),
       }) as ApplicationNotesForm,
 
-      lodgementDate: fb.control<string | null>(null),
+      lodgementDate: fb.control<string | null>(null, {
+        validators: [REQUIRED, optional(dateNotInFuture())],
+      }),
       courtName: fb.control<string | null>(null),
       organisationName: fb.control<string | null>(null),
       accountReference: fb.control<string | null>(null),

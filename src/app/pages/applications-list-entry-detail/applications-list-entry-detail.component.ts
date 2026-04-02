@@ -150,6 +150,7 @@ const UPDATE_ENTRY_ERROR_MESSAGES = ENTRY_ERROR_MESSAGES;
 
 export const ERROR_HREFS = {
   standardApplicantCode: '#standard-applicant',
+  lodgementDate: '#lodgement-date-day',
   ...(OFFICIALS_ERROR_HREFS as Record<string, string>),
   ...(RESPONDENT_PERSON_ERROR_HREFS as Record<string, string>),
 } as const satisfies Record<string, string>;

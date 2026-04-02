@@ -359,6 +359,33 @@ describe('ApplicationsListEntryCreate (submission + error flow)', () => {
     expect(component.vm().summaryErrors.length).toBeGreaterThan(0);
   });
 
+  it('onSubmit: surfaces a lodgement date future-date error from the parent form', () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const yyyyMmDd = tomorrow.toISOString().split('T')[0];
+
+    component.form.patchValue({
+      applicationCode: 'A001',
+      lodgementDate: yyyyMmDd,
+      applicantType: 'standard',
+      standardApplicantCode: 'SA-1',
+    });
+
+    component.onSubmit(new Event('submit'));
+
+    expect(api.createApplicationListEntry).not.toHaveBeenCalled();
+    expect(component.vm().errorFound).toBe(true);
+    expect(component.vm().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'lodgementDate',
+          text: 'Lodgement date must not be in the future',
+          href: '#lodgement-date-day',
+        }),
+      ]),
+    );
+  });
+
   it('onAddFeeDetails: calls updateFeeStatusesControl with feeStatuses control + payload and does not submit', () => {
     const payload = {
       feeStatus: 'Paid',

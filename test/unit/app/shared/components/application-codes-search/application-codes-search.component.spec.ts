@@ -289,4 +289,20 @@ describe('ApplicationCodeSearchComponent', () => {
       title: 'Title',
     });
   });
+
+  it('syncs child lodgementDate changes to the parent patched form control', () => {
+    const setValue = jest.fn();
+
+    componentRef.setInput('patchedFormData', {
+      value: {},
+      controls: {
+        lodgementDate: { setValue },
+      },
+    } as unknown as ApplicationsListEntryForm);
+
+    component.ngOnInit();
+    component.form.controls.lodgementDate.setValue('2026-01-01');
+
+    expect(setValue).toHaveBeenCalledWith('2026-01-01');
+  });
 });

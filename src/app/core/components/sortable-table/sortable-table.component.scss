@@ -53,9 +53,7 @@
   min-width: 0;
 }
 
-:host
-  ::ng-deep
-.app-sortable-table__sort-indicator {
+:host ::ng-deep .app-sortable-table__sort-indicator {
   position: relative;
   flex: 0 0 0.75rem;
   width: 0.75rem;
@@ -63,9 +61,7 @@
   height: 0.9rem;
 }
 
-:host
-  ::ng-deep
-  .app-sortable-table__sort-indicator::before {
+:host ::ng-deep .app-sortable-table__sort-indicator::before {
   content: '';
   position: absolute;
   left: 50%;
@@ -78,9 +74,7 @@
   transform: translate(-50%, -50%);
 }
 
-:host
-  ::ng-deep
-  .app-sortable-table__sort-indicator::after {
+:host ::ng-deep .app-sortable-table__sort-indicator::after {
   content: '';
   position: absolute;
   left: 50%;
