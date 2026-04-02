@@ -8,6 +8,7 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ContentChild,
   ElementRef,
@@ -17,6 +18,7 @@ import {
   ViewChild,
   computed,
   contentChild,
+  effect,
   inject,
   input,
   output,
@@ -48,6 +50,7 @@ export type TableColumn = {
   standalone: true,
   imports: [CommonModule],
   templateUrl: './sortable-table.component.html',
+  styleUrl: './sortable-table.component.scss',
 })
 export class SortableTableComponent implements AfterViewInit, OnDestroy {
   @ContentChild('actionsTemplate', { read: TemplateRef })
@@ -98,6 +101,13 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
   trackBy = input<((index: number, row: Row) => unknown) | undefined>(
     undefined,
   );
+  selectable = input(false);
+  selectedIds = input<Set<string>>(new Set<string>());
+  selectedIdsChange = output<Set<string>>();
+  selectedRowsChange = output<Row[]>();
+  idPrefix = input('apps-');
+  singleSelect = input(false);
+
   @ViewChild('mojTable', { static: true })
   tableRef!: ElementRef<HTMLTableElement>;
 
@@ -105,8 +115,13 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
   private serverSortClickHandler?: (event: Event) => void;
 
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly cdr = inject(ChangeDetectorRef);
   private readonly sortKeyState = signal<string>('');
   private readonly sortDirectionState = signal<'desc' | 'asc'>('desc');
+  private readonly selectedIdsState = signal<Set<string>>(new Set<string>());
+  private readonly selectedIdsSync = effect(() => {
+    this.selectedIdsState.set(this.selectedIds() ?? new Set<string>());
+  });
 
   /** trackBy helper retained for performance */
   trackRow = (index: number, row: Row): unknown => {
@@ -148,6 +163,76 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
 
     // Any other object/array -> don't emit a sort value (avoids [object Object])
     return null;
+  }
+
+  get visibleIds(): string[] {
+    return (this.data() ?? [])
+      .map((row) => this.getRowId(row))
+      .filter((id): id is string => !!id);
+  }
+
+  get allVisibleSelected(): boolean {
+    const ids = this.visibleIds;
+    const selected = this.selectedIdsState();
+    return ids.length > 0 && ids.every((id) => selected.has(id));
+  }
+
+  get someVisibleSelected(): boolean {
+    const ids = this.visibleIds;
+    const selected = this.selectedIdsState();
+    return ids.some((id) => selected.has(id));
+  }
+
+  get firstColField(): string {
+    return this.columns()[0]?.field ?? '';
+  }
+
+  isSelected(row: Row): boolean {
+    const id = this.getRowId(row);
+    return !!id && this.selectedIdsState().has(id);
+  }
+
+  getRowId(row: Row): string {
+    return this.coerceRowId(row) ?? '';
+  }
+
+  toggleSelectAllVisible(checked: boolean): void {
+    if (this.singleSelect()) {
+      return;
+    }
+    const next = new Set(this.selectedIdsState());
+    for (const id of this.visibleIds) {
+      if (checked) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
+    }
+    this.updateSelection(next);
+  }
+
+  toggleOne(row: Row, checked: boolean): void {
+    const id = this.getRowId(row);
+    if (!id) {
+      return;
+    }
+
+    let next: Set<string>;
+    if (this.singleSelect()) {
+      next = new Set<string>();
+      if (checked) {
+        next.add(id);
+      }
+    } else {
+      next = new Set(this.selectedIdsState());
+      if (checked) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
+    }
+
+    this.updateSelection(next);
   }
 
   /** Initialise the MoJ SortableTable JS for this table only */
@@ -276,7 +361,10 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
         if (direction !== 'ascending' && direction !== 'descending') {
           return;
         }
-        const column = this.columns()[heading.cellIndex];
+        const columnIndex = this.selectable()
+          ? heading.cellIndex - 1
+          : heading.cellIndex;
+        const column = this.columns()[columnIndex];
         if (!column || column.sortable === false) {
           return;
         }
@@ -295,5 +383,42 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
       'click',
       this.serverSortClickHandler,
     );
+  }
+
+  private coerceRowId(row: Row): string | null {
+    const idField = this.idField();
+    if (!idField) {
+      return null;
+    }
+
+    const value = row[idField];
+    if (typeof value === 'string') {
+      return value;
+    }
+    if (typeof value === 'number') {
+      return String(value);
+    }
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+    if (typeof value === 'boolean') {
+      return value ? '1' : '0';
+    }
+
+    return null;
+  }
+
+  private updateSelection(next: Set<string>): void {
+    this.selectedIdsState.set(next);
+    this.selectedIdsChange.emit(next);
+    this.selectedRowsChange.emit(this.getSelectedRows());
+    this.cdr.markForCheck();
+  }
+
+  private getSelectedRows(): Row[] {
+    const ids = Array.from(this.selectedIdsState());
+    return ids
+      .map((id) => (this.data() ?? []).find((row) => this.getRowId(row) === id))
+      .filter((row): row is Row => !!row);
   }
 }

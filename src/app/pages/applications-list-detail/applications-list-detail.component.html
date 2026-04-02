@@ -107,12 +107,16 @@
     @if (!noEntries && !vm().isLoading) {
       <div class="app-table-scroll">
         <!-- Sortable table component -->
-        <app-selectable-sortable-table
+        <app-sortable-table
           id="sortable-table"
-          caption="Lists"
           [columns]="columns"
           [data]="vm().rows"
+          [selectable]="true"
+          [clientOrServerSort]="'server'"
+          [sortKey]="vm().sortField.key"
+          [sortDirection]="vm().sortField.direction"
           idField="id"
+          (sortChange)="onSortChange($event)"
           (selectedRowsChange)="onSelectedRowsChange($event)"
           [(selectedIds)]="vm().selectedIds"
           appMojButtonMenu
@@ -174,7 +178,7 @@
               </button> -->
             </div>
           </ng-template>
-        </app-selectable-sortable-table>
+        </app-sortable-table>
       </div>
     } @else if (noEntries && !vm().isLoading) {
       <app-notification-banner

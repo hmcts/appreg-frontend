@@ -4,20 +4,55 @@
   [attr.data-module]="
     clientOrServerSort() === 'client' ? 'moj-sortable-table' : null
   "
-  [attr.aria-describedby]="'sortable-' + captionId()"
+  [attr.aria-describedby]="caption() ? 'sortable-' + captionId() : null"
 >
-  <caption
-    [class.govuk-visually-hidden]="hiddenCaption()"
-    class="govuk-table__caption govuk-table__caption--{{ captionSize() }}"
-    [id]="'sortable-' + captionId()"
-  >
-    {{
-      caption()
-    }}
-  </caption>
+  <ng-content select="caption"></ng-content>
+
+  @if (caption()) {
+    <caption
+      [class.govuk-visually-hidden]="hiddenCaption()"
+      class="govuk-table__caption govuk-table__caption--{{ captionSize() }}"
+      [id]="'sortable-' + captionId()"
+    >
+      {{
+        caption()
+      }}
+    </caption>
+  }
 
   <thead class="govuk-table__head">
     <tr class="govuk-table__row">
+      @if (selectable()) {
+        @if (!singleSelect()) {
+          <th
+            class="govuk-table__header moj-multi-select__select-all"
+            scope="col"
+          >
+            <div class="govuk-checkboxes govuk-checkboxes--small">
+              <div class="govuk-checkboxes__item moj-multi-select__checkbox">
+                <input
+                  #selectAll
+                  type="checkbox"
+                  class="govuk-checkboxes__input"
+                  [id]="idPrefix() + 'select-all'"
+                  [checked]="allVisibleSelected"
+                  [indeterminate]="someVisibleSelected && !allVisibleSelected"
+                  (change)="toggleSelectAllVisible(selectAll.checked)"
+                />
+                <label
+                  class="govuk-label govuk-checkboxes__label"
+                  [for]="idPrefix() + 'select-all'"
+                >
+                  <span class="govuk-visually-hidden">Select all</span>
+                </label>
+              </div>
+            </div>
+          </th>
+        } @else {
+          <th class="govuk-table__header" scope="col"></th>
+        }
+      }
+
       @for (col of columns(); track col.field) {
         <th
           scope="col"
@@ -40,7 +75,36 @@
 
   <tbody class="govuk-table__body">
     @for (row of data(); track trackRow($index, row)) {
-      <tr class="govuk-table__row">
+      <tr
+        class="govuk-table__row"
+        [class.govuk-table__row--selected]="selectable() && isSelected(row)"
+      >
+        @if (selectable()) {
+          <td class="govuk-table__cell">
+            <div class="govuk-checkboxes govuk-checkboxes--small">
+              <div class="govuk-checkboxes__item moj-multi-select__checkbox">
+                <input
+                  #cb
+                  type="checkbox"
+                  class="govuk-checkboxes__input"
+                  name="rows[]"
+                  [id]="idPrefix() + getRowId(row)"
+                  [checked]="isSelected(row)"
+                  (change)="toggleOne(row, cb.checked)"
+                />
+                <label
+                  class="govuk-label govuk-checkboxes__label"
+                  [for]="idPrefix() + getRowId(row)"
+                >
+                  <span class="govuk-visually-hidden">
+                    Select {{ row[firstColField] }}
+                  </span>
+                </label>
+              </div>
+            </div>
+          </td>
+        }
+
         @for (col of columns(); track col.field; let ci = $index) {
           @if (ci === 0) {
             <th
