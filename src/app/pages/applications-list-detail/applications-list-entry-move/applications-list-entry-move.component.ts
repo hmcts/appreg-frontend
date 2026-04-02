@@ -1,7 +1,9 @@
+import { isPlatformBrowser } from '@angular/common';
 import {
   Component,
   EnvironmentInjector,
   OnInit,
+  PLATFORM_ID,
   inject,
   signal,
 } from '@angular/core';
@@ -88,6 +90,7 @@ export class ApplicationsListEntryMoveComponent
   private readonly searchForm = inject(ApplicationListSearchFormService);
   private readonly appListsApi = inject(ApplicationListsApi);
   private readonly refField = inject(ReferenceDataFacade);
+  private readonly platformId = inject(PLATFORM_ID);
   private readonly envInjector = inject(EnvironmentInjector);
 
   // Initialise signal state
@@ -138,12 +141,13 @@ export class ApplicationsListEntryMoveComponent
     });
 
     this.moveEntryPatch({
-      selectedEntries:
-        (
-          history.state as {
-            entriesToMove?: ApplicationEntriesResultContext[];
-          }
-        )?.entriesToMove ?? [],
+      selectedEntries: isPlatformBrowser(this.platformId)
+        ? ((
+            history.state as {
+              entriesToMove?: ApplicationEntriesResultContext[];
+            }
+          )?.entriesToMove ?? [])
+        : [],
     });
 
     if (

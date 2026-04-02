@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import {
   ActivatedRoute,
@@ -135,6 +136,7 @@ describe('ApplicationsListEntryMoveComponent', () => {
       imports: [ApplicationsListEntryMoveComponent],
       providers: [
         provideRouter([]),
+        { provide: PLATFORM_ID, useValue: 'browser' },
         { provide: ActivatedRoute, useValue: routeStub },
         { provide: ApplicationListsApi, useValue: apiStub },
         { provide: ReferenceDataFacade, useValue: refFacadeStub },
@@ -199,6 +201,25 @@ describe('ApplicationsListEntryMoveComponent', () => {
 
     await createComponent({ historyState: {} });
 
+    expect(navigateSpy).toHaveBeenCalledWith(['../'], {
+      relativeTo: TestBed.inject(ActivatedRoute),
+    });
+  });
+
+  it('does not read browser history state during server-side init', async () => {
+    TestBed.overrideProvider(PLATFORM_ID, { useValue: 'server' });
+
+    const navigateSpy = jest
+      .spyOn(TestBed.inject(Router), 'navigate')
+      .mockResolvedValue(true);
+
+    await createComponent({ historyState: { entriesToMove } });
+
+    expect(component.createListState).toEqual({
+      createMoveTargetList: true,
+      originalListId: 'source-list-id',
+      entriesToMove: [],
+    });
     expect(navigateSpy).toHaveBeenCalledWith(['../'], {
       relativeTo: TestBed.inject(ActivatedRoute),
     });
