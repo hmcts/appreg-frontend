@@ -192,7 +192,11 @@ export class ApplicationsListEntryMoveComponent
       isLoading: false,
     });
 
-    this.storedRecordsState.patch({ rows: [] });
+    this.storedRecordsState.patch({
+      rows: [],
+      totalPages: 0,
+      currentPage: 0,
+    });
 
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity({ emitEvent: false });
