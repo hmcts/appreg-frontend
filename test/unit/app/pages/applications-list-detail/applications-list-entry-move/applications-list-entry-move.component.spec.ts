@@ -15,9 +15,12 @@ import {
   ApplicationListPage,
   ApplicationListStatus,
   ApplicationListsApi,
+  CourtLocationGetSummaryDto,
+  CriminalJusticeAreaGetDto,
 } from '@openapi';
 import * as buildApplicationsListErrorSummaryModule from '@services/applications-list/build-applications-list-error-summary';
 import { DEFAULT_STATE } from '@services/applications-list/searchform/application-list-search-form.service';
+import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { ApplicationListRow } from '@util/types/application-list/types';
 
 describe('ApplicationsListEntryMoveComponent', () => {
@@ -82,6 +85,15 @@ describe('ApplicationsListEntryMoveComponent', () => {
       getApplicationListsMock as unknown as ApplicationListsApi['getApplicationLists'],
   };
 
+  const refFacadeStub: Pick<ReferenceDataFacade, 'courtLocations$' | 'cja$'> = {
+    courtLocations$: of<CourtLocationGetSummaryDto[]>([
+      { locationCode: 'A1', name: 'Alpha Court' } as CourtLocationGetSummaryDto,
+    ]),
+    cja$: of<CriminalJusticeAreaGetDto[]>([
+      { code: 'C1', description: 'Area One' } as CriminalJusticeAreaGetDto,
+    ]),
+  };
+
   const flushSignalEffects = async (): Promise<void> => {
     fixture.detectChanges();
     await fixture.whenStable();
@@ -125,6 +137,7 @@ describe('ApplicationsListEntryMoveComponent', () => {
         provideRouter([]),
         { provide: ActivatedRoute, useValue: routeStub },
         { provide: ApplicationListsApi, useValue: apiStub },
+        { provide: ReferenceDataFacade, useValue: refFacadeStub },
       ],
     }).compileComponents();
 
@@ -149,6 +162,22 @@ describe('ApplicationsListEntryMoveComponent', () => {
     });
     expect(component.form.getRawValue().status).toBe('open');
     expect(component.storedRecordsVm().submitted).toBe(false);
+  });
+
+  it('loads court and cja reference data on init for suggestions', () => {
+    const placeState = (
+      component as unknown as {
+        state: () => {
+          courtLocations: CourtLocationGetSummaryDto[];
+          cja: CriminalJusticeAreaGetDto[];
+        };
+      }
+    ).state();
+
+    expect(placeState.courtLocations).toEqual([
+      { locationCode: 'A1', name: 'Alpha Court' },
+    ]);
+    expect(placeState.cja).toEqual([{ code: 'C1', description: 'Area One' }]);
   });
 
   it('redirects back when the route id is missing', async () => {

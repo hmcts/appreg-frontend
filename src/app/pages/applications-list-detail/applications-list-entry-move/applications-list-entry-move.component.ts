@@ -53,6 +53,7 @@ import {
   DEFAULT_STATE,
   SearchFormValue,
 } from '@services/applications-list/searchform/application-list-search-form.service';
+import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { getProblemText } from '@util/http-error-to-text';
 import { PlaceFieldsBase } from '@util/place-fields.base';
@@ -86,6 +87,7 @@ export class ApplicationsListEntryMoveComponent
   private readonly formSvc = inject(ApplicationsListFormService);
   private readonly searchForm = inject(ApplicationListSearchFormService);
   private readonly appListsApi = inject(ApplicationListsApi);
+  private readonly refField = inject(ReferenceDataFacade);
   private readonly envInjector = inject(EnvironmentInjector);
 
   // Initialise signal state
@@ -129,6 +131,8 @@ export class ApplicationsListEntryMoveComponent
   }
 
   ngOnInit(): void {
+    this.initPlaceFields(this.form, this.refField);
+
     this.moveEntryPatch({
       listId: this.route.snapshot.paramMap.get('id') ?? undefined,
     });
