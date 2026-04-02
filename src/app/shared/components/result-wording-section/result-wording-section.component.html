@@ -31,7 +31,7 @@
   @if (getTemplateForCard(card); as template) {
     <app-wording-parser
       [wordingObject]="template"
-      [wordingObjectValues]="getWordingValuesForCard(card)"
+      [wordingObjectValues]="getInitialWordingValuesForCard(card)"
       (wordingFieldsDTO)="onCardWordingFieldsDTO(card, $event)"
       (wordingFieldErrors)="onCardWordingFieldErrors(card, $event)"
       [wordingSubmitAttempt]="wordingSubmitAttempt()"

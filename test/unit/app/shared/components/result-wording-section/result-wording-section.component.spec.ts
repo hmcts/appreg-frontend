@@ -171,7 +171,7 @@ describe('ResultWordingSectionComponent', () => {
     expect(component.canSubmitResults()).toBe(true);
   });
 
-  it('getWordingValuesForCard returns saved substitution values for existing results', () => {
+  it('getInitialWordingValuesForCard returns saved substitution values for existing results', () => {
     fixture.componentRef.setInput('existingResults', [
       makeExistingResult({
         id: 'E1',
@@ -188,7 +188,7 @@ describe('ResultWordingSectionComponent', () => {
 
     const card = component.existingResultSummaryLists()[0];
 
-    expect(component.getWordingValuesForCard(card)).toEqual({
+    expect(component.getInitialWordingValuesForCard(card)).toEqual({
       template: "Result '{{ Date }}' applied.",
       'substitution-key-constraints': [
         { key: 'Date', value: '2025-10-25', constraint: { length: 10 } },
@@ -196,7 +196,7 @@ describe('ResultWordingSectionComponent', () => {
     });
   });
 
-  it('getWordingValuesForCard returns draft substitution values for pending results', () => {
+  it('getInitialWordingValuesForCard does not feed pending draft values back to the parser', () => {
     fixture.componentRef.setInput('resultCodeTemplateByCode', {
       RC1: {
         template: "Result '{{ Date }}' applied.",
@@ -214,12 +214,7 @@ describe('ResultWordingSectionComponent', () => {
       wordingFields: [{ key: 'Date', value: '2026-03-02' }],
     });
 
-    expect(component.getWordingValuesForCard(card)).toEqual({
-      template: "Result '{{ Date }}' applied.",
-      'substitution-key-constraints': [
-        { key: 'Date', value: '2026-03-02', constraint: { length: 10 } },
-      ],
-    });
+    expect(component.getInitialWordingValuesForCard(card)).toBeUndefined();
   });
 
   it('onSaveResult emits submitResults with pending row', () => {

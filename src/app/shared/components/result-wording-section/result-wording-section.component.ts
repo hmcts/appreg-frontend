@@ -314,27 +314,14 @@ export class ResultWordingSectionComponent {
     return this.existingTemplateById()[card.id] ?? null;
   }
 
-  getWordingValuesForCard(
+  getInitialWordingValuesForCard(
     card: SummaryListCardAction,
   ): TemplateDetail | undefined {
-    const template = this.getTemplateForCard(card);
-    if (!template || !card.id) {
+    if (!card.id || card.status !== 'existing') {
       return;
     }
 
-    if (card.status === 'pending') {
-      const pendingRow = this.pending().find((p) => p.tempId === card.id);
-      return this.withWordingFieldValues(
-        template,
-        pendingRow?.wordingFields ?? [],
-      );
-    }
-
-    const originalFields = this.existingOriginalFieldsById()[card.id] ?? [];
-    const draftFields =
-      this.existingWordingDraftById()[card.id] ?? originalFields;
-
-    return this.withWordingFieldValues(template, draftFields);
+    return this.existingTemplateById()[card.id] ?? undefined;
   }
 
   onCardWordingFieldsDTO(
@@ -468,32 +455,6 @@ export class ResultWordingSectionComponent {
     return template
       .replaceAll(String.raw`\{\{`, '{{')
       .replaceAll(String.raw`\}\}`, '}}');
-  }
-
-  private withWordingFieldValues(
-    template: TemplateDetail,
-    wordingFields: TemplateSubstitution[],
-  ): TemplateDetail {
-    const valuesByKey = new Map(
-      (wordingFields ?? [])
-        .filter(
-          (field): field is TemplateSubstitution & { key: string } =>
-            !!field.key,
-        )
-        .map((field) => [field.key, field.value]),
-    );
-
-    return {
-      ...template,
-      'substitution-key-constraints': (
-        template['substitution-key-constraints'] ?? []
-      ).map((constraint) => ({
-        ...constraint,
-        value: constraint.key
-          ? (valuesByKey.get(constraint.key) ?? constraint.value)
-          : constraint.value,
-      })),
-    };
   }
 
   private getParserCardIdsForSubmit(): string[] {
