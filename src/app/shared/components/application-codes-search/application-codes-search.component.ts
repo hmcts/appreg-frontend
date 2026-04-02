@@ -94,7 +94,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((value) => {
         // Keep the parent form control in sync so parent-level submit validation
-        // (required/dateInFuture + error summary) always reflects the entered date.
+        // (required + error summary) always reflects the entered date.
         this.patchedFormData()?.controls.lodgementDate.setValue(value);
       });
 

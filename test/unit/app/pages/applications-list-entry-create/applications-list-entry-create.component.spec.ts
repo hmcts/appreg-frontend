@@ -359,14 +359,10 @@ describe('ApplicationsListEntryCreate (submission + error flow)', () => {
     expect(component.vm().summaryErrors.length).toBeGreaterThan(0);
   });
 
-  it('onSubmit: surfaces a lodgement date future-date error from the parent form', () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const yyyyMmDd = tomorrow.toISOString().split('T')[0];
-
+  it('onSubmit: surfaces a lodgement date validation error from the parent form', () => {
     component.form.patchValue({
       applicationCode: 'A001',
-      lodgementDate: yyyyMmDd,
+      lodgementDate: null,
       applicantType: 'standard',
       standardApplicantCode: 'SA-1',
     });
@@ -379,7 +375,7 @@ describe('ApplicationsListEntryCreate (submission + error flow)', () => {
       expect.arrayContaining([
         expect.objectContaining({
           id: 'lodgementDate',
-          text: 'Lodgement date must not be in the future',
+          text: 'Enter a valid lodgement date',
           href: '#lodgement-date-day',
         }),
       ]),

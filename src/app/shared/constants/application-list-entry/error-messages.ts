@@ -163,7 +163,6 @@ export const ENTRY_ERROR_MESSAGES = {
   },
   lodgementDate: {
     required: 'Enter a valid lodgement date',
-    dateInFuture: 'Lodgement date must not be in the future',
   },
   ...NOTES_ERROR_MESSAGES,
   ...PERSON_FIELD_MESSAGES,

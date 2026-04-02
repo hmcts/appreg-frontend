@@ -501,7 +501,7 @@ describe('CivilFeeSectionComponent', () => {
         }),
         expect.objectContaining({
           id: 'feeStatusDate',
-          text: 'Enter a status date',
+          text: 'Enter a valid status date',
         }),
       ]),
     );
@@ -521,7 +521,7 @@ describe('CivilFeeSectionComponent', () => {
         }),
         expect.objectContaining({
           id: 'feeStatusDate',
-          text: 'Enter a status date',
+          text: 'Enter a valid status date',
         }),
       ]),
     );

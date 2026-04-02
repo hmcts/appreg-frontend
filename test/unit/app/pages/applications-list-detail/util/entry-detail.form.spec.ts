@@ -135,18 +135,12 @@ describe('applications-list entry form builders', () => {
   });
 
   describe('buildStandardApplicationForm', () => {
-    it('lodgementDate rejects future dates', () => {
+    it('lodgementDate is required', () => {
       const form = buildStandardApplicationForm(fb);
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const yyyyMmDd = tomorrow.toISOString().split('T')[0];
-
-      form.controls.lodgementDate.setValue(yyyyMmDd);
+      form.controls.lodgementDate.setValue(null);
       form.controls.lodgementDate.updateValueAndValidity();
 
-      expect(form.controls.lodgementDate.errors).toHaveProperty(
-        'dateInFuture',
-      );
+      expect(form.controls.lodgementDate.errors).toHaveProperty('required');
     });
 
     it('applicationNotes.caseReference enforces alphanumeric only', () => {
