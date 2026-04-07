@@ -201,6 +201,27 @@ Run below to run code using Staging connectivity (VPN required)
 yarn dev:stg
 ```
 
+## Application Insights
+
+Frontend browser telemetry is configured at runtime from `GET /app/config`.
+The browser SDK is enabled automatically outside local/test environments when
+`secrets.appreg.app-insights-connection-string-fe` is available.
+
+For local development, telemetry stays off by default even if the connection
+string exists. To opt in locally, set:
+
+```bash
+APPINSIGHTS_ENABLED=true
+```
+
+Implementation notes:
+
+- Browser exceptions are sent through the Angular `ErrorHandler` override.
+- Failed Angular `HttpClient` requests are logged from the error interceptor.
+- Route changes are logged as page views.
+- Telemetry payloads only include route and request paths, status data, and
+  correlation IDs when present. Query strings and response bodies are excluded.
+
 ### Troubleshooting (Windows)
 
 #### Node

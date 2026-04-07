@@ -28,6 +28,7 @@ import { Helmet } from './modules/helmet';
 import { HmctsLoggerBridge } from './modules/logger';
 import { PropertiesVolume } from './modules/properties-volume';
 import { getRedisUrl } from './redis-config';
+import { setupAppConfigRoute } from './routes/app-config';
 import { setupHealthcheck } from './routes/health';
 import { setupInfoRoute } from './routes/info';
 import { getCca, setupSsoRoutes } from './routes/sso';
@@ -106,6 +107,7 @@ app.use(
 
 // ----- Routes
 setupHealthcheck(app);
+setupAppConfigRoute(app);
 setupInfoRoute(app);
 setupSsoRoutes(app);
 
