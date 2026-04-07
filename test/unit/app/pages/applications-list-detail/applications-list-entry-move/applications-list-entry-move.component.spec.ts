@@ -105,6 +105,21 @@ describe('ApplicationsListEntryMoveComponent', () => {
     globalThis.history.replaceState(state, '', '/');
   };
 
+  const configureTestingModule = async (
+    platformId: 'browser' | 'server' = 'browser',
+  ): Promise<void> => {
+    await TestBed.configureTestingModule({
+      imports: [ApplicationsListEntryMoveComponent],
+      providers: [
+        provideRouter([]),
+        { provide: PLATFORM_ID, useValue: platformId },
+        { provide: ActivatedRoute, useValue: routeStub },
+        { provide: ApplicationListsApi, useValue: apiStub },
+        { provide: ReferenceDataFacade, useValue: refFacadeStub },
+      ],
+    }).compileComponents();
+  };
+
   const createComponent = async ({
     listId = 'source-list-id',
     historyState = { entriesToMove },
@@ -132,17 +147,7 @@ describe('ApplicationsListEntryMoveComponent', () => {
     getApplicationListsMock.mockReset();
     getApplicationListsMock.mockReturnValue(of(applicationListPage));
 
-    await TestBed.configureTestingModule({
-      imports: [ApplicationsListEntryMoveComponent],
-      providers: [
-        provideRouter([]),
-        { provide: PLATFORM_ID, useValue: 'browser' },
-        { provide: ActivatedRoute, useValue: routeStub },
-        { provide: ApplicationListsApi, useValue: apiStub },
-        { provide: ReferenceDataFacade, useValue: refFacadeStub },
-      ],
-    }).compileComponents();
-
+    await configureTestingModule();
     await createComponent();
   });
 
@@ -207,7 +212,8 @@ describe('ApplicationsListEntryMoveComponent', () => {
   });
 
   it('does not read browser history state during server-side init', async () => {
-    TestBed.overrideProvider(PLATFORM_ID, { useValue: 'server' });
+    TestBed.resetTestingModule();
+    await configureTestingModule('server');
 
     const navigateSpy = jest
       .spyOn(TestBed.inject(Router), 'navigate')
