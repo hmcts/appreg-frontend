@@ -35,6 +35,7 @@ import {
   tableDataReq,
 } from './util';
 
+import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { toRow } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
@@ -52,10 +53,12 @@ import {
   appListDetailStatusOptions,
 } from '@constants/application-list-detail-update/form-table-structure';
 import { IF_MATCH } from '@context/concurrency-context';
+import { PdfService } from '@core/services/pdf.service';
 import { Row } from '@core-types/table/row.types';
 import {
   ApplicationListEntriesApi,
   ApplicationListGetDetailDto,
+  ApplicationListGetPrintDto,
   ApplicationListsApi,
   EntryGetSummaryDto,
   EntryPage,
@@ -89,6 +92,12 @@ type ApplicationsListDetailHistoryState = {
   moveError?: string;
 };
 
+type PrintRequest = {
+  id: string;
+  mode: 'page' | 'continuous';
+  isClosed?: boolean;
+};
+
 @Component({
   selector: 'app-application-detail',
   standalone: true,
@@ -114,6 +123,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly refField = inject(ReferenceDataFacade);
   private readonly appListApi = inject(ApplicationListsApi);
+  private readonly pdf = inject(PdfService);
   private readonly appListEntriesApi = inject(ApplicationListEntriesApi);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -135,6 +145,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly tableDataRequest = signal<tableDataReq | null>(null);
   private readonly listDetailRequest = signal<listDetailsReq | null>(null);
   private readonly updateRequest = signal<UpdateReq | null>(null);
+  private readonly printRequest = signal<PrintRequest | null>(null);
 
   private readonly loadFailed = signal(false);
 
@@ -468,6 +479,47 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       },
       this.envInjector,
     );
+
+    // GET /application-lists/{listId}/print
+    setupLoadEffect(
+      {
+        request: this.printRequest,
+        load: (req: PrintRequest) =>
+          this.appListApi.printApplicationList(
+            { listId: req.id },
+            undefined,
+            undefined,
+            {
+              transferCache: false,
+            },
+          ),
+        onSuccess: async (dto) => {
+          const mode = this.printRequest()?.mode;
+          this.printRequest.set(null);
+
+          const filteredDto = this.filterEntriesToPrint(dto);
+
+          if (mode === 'page') {
+            await this.handlePrintPage(filteredDto);
+            return;
+          }
+
+          await this.handlePrintContinuous(filteredDto);
+        },
+        onError: (err) => {
+          this.printRequest.set(null);
+          const errMsg = getProblemText(err);
+          this.detailSignalState.patch({
+            errorSummary: [
+              {
+                text: errMsg,
+              },
+            ],
+          });
+        },
+      },
+      this.envInjector,
+    );
   }
 
   get noEntries(): boolean {
@@ -545,9 +597,28 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
-  onPrintContinuousClick(): void {}
+  onPrintContinuousClick(): void {
+    // clear any prior messages
+    this.detailSignalState.patch(clearUpdateNotificationsPatch());
+    if (!this.id) {
+      return;
+    }
 
-  onPrintPageClick(): void {}
+    this.printRequest.set({
+      id: this.id,
+      mode: 'continuous',
+    });
+  }
+
+  onPrintPageClick(): void {
+    // clear any prior messages
+    this.detailSignalState.patch(clearUpdateNotificationsPatch());
+    if (!this.id) {
+      return;
+    }
+
+    this.printRequest.set({ id: this.id, mode: 'page' });
+  }
 
   readonly patchStateFn = (
     patch: Partial<ApplicationsListDetailState>,
@@ -668,6 +739,71 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       .map((resultCode) => resultCode.trim())
       .filter(Boolean)
       .join(', ');
+  }
+
+  private filterEntriesToPrint(
+    dto: ApplicationListGetPrintDto,
+  ): ApplicationListGetPrintDto {
+    const filteredEntries = dto.entries.filter((entry) =>
+      this.detailSignalState.state().selectedIds.has(entry.id),
+    );
+
+    return {
+      ...dto,
+      entries: filteredEntries,
+    };
+  }
+
+  private async handlePrintPage(
+    dto: ApplicationListGetPrintDto,
+  ): Promise<void> {
+    if (!dto.entries.length) {
+      this.detailSignalState.patch({
+        errorSummary: [
+          { text: APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint },
+        ],
+      });
+      return;
+    }
+
+    try {
+      if (isPlatformBrowser(this.platformId)) {
+        await this.pdf.generatePagedApplicationListPdf(dto, {
+          crestUrl: '/assets/govuk-crest.png',
+        });
+      }
+    } catch {
+      this.detailSignalState.patch({
+        errorSummary: [
+          { text: APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry },
+        ],
+      });
+    }
+  }
+
+  private async handlePrintContinuous(
+    dto: ApplicationListGetPrintDto,
+  ): Promise<void> {
+    if (!dto.entries.length) {
+      this.detailSignalState.patch({
+        errorSummary: [
+          { text: APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint },
+        ],
+      });
+      return;
+    }
+
+    try {
+      if (isPlatformBrowser(this.platformId)) {
+        await this.pdf.generateContinuousApplicationListsPdf([dto], false);
+      }
+    } catch {
+      this.detailSignalState.patch({
+        errorSummary: [
+          { text: APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric },
+        ],
+      });
+    }
   }
 
   private prefillFromApi(dto: ApplicationListGetDetailDto): void {
