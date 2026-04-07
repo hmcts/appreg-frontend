@@ -307,14 +307,55 @@ describe('CivilFeeSectionComponent', () => {
         paymentReference: 'REF1',
         paymentStatus: 'paid',
         statusDateRaw: '2025-10-25',
+        isLast: false,
       },
       {
         rowId: 'row-exempt-2025-01-02',
         paymentReference: '',
         paymentStatus: 'exempt',
         statusDateRaw: '2025-01-02',
+        isLast: true,
       },
     ]);
+  });
+
+  it('renders the Change link only for the last non-DUE fee row', () => {
+    fixture.componentRef.setInput('civilFeeColumns', [
+      { header: 'Status', field: 'paymentStatus', sortable: true },
+    ]);
+
+    component.feeForm().controls.feeStatuses.setValue([
+      {
+        paymentStatus: 'paid',
+        statusDate: '2025-01-09',
+        paymentReference: 'REF1',
+      } as unknown as FeeStatus,
+      {
+        paymentStatus: 'exempt',
+        statusDate: '2025-01-10',
+        paymentReference: 'REF2',
+      } as unknown as FeeStatus,
+    ]);
+
+    fixture.detectChanges();
+
+    const changeLinks = Array.from(
+      fixture.nativeElement.querySelectorAll('a.govuk-link'),
+    );
+
+    expect(changeLinks).toHaveLength(1);
+    expect(changeLinks[0].textContent).toContain('Change');
+    expect(changeLinks[0].textContent).toContain('payment reference REF2');
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'payment reference REF1',
+    );
+  });
+
+  it('does not include the Action column when fee is not required', () => {
+    fixture.componentRef.setInput('feeRequired', false);
+    fixture.detectChanges();
+
+    expect(component.civilFeeColumnsWithChangeLink()).toEqual(columns);
   });
 
   it('renders formatted fee status date in the table instead of raw ISO text', () => {

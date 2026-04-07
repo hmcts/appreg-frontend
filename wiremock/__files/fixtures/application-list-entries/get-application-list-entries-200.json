@@ -1,99 +1,423 @@
 {
-  "pageNumber": 0,
-  "pageSize": 10,
-  "totalElements": 23,
-  "totalPages": 3,
-  "sort": ["status,asc"],
-  "content": [
-    {
-      "id": "1f7c8d77-1b26-4f7e-8d8f-111111111111",
-      "applicantName": "John Smith",
-      "respondentName": "Jane Smith",
-      "applicationTitle": "Appeal to Crown Court",
-      "isFeeRequired": false,
-      "isResulted": false,
-      "status": "OPEN"
+    "pageNumber": 0,
+    "pageSize": 10,
+    "totalElements": 26,
+    "totalPages": 3,
+    "sort": {
+        "orders": [
+            {
+                "property": "sequenceNumber",
+                "direction": "asc"
+            }
+        ]
     },
-    {
-      "id": "2f7c8d77-1b26-4f7e-8d8f-222222222222",
-      "applicantName": "CPS",
-      "respondentName": "N/A",
-      "applicationTitle": "Warrant of arrest",
-      "isFeeRequired": true,
-      "isResulted": true,
-      "status": "CLOSED"
-    },
-    {
-      "id": "3f7c8d77-1b26-4f7e-8d8f-333333333333",
-      "applicantName": "Legal Aid Board",
-      "respondentName": "Thomas Lee",
-      "applicationTitle": "Appeal to Crown Court",
-      "isFeeRequired": false,
-      "isResulted": false,
-      "status": "OPEN"
-    },
-    {
-      "id": "4f7c8d77-1b26-4f7e-8d8f-444444444444",
-      "applicantName": "CPS",
-      "respondentName": "N/A",
-      "applicationTitle": "Issue of liability order warrant",
-      "isFeeRequired": true,
-      "isResulted": true,
-      "status": "CLOSED"
-    },
-    {
-      "id": "5f7c8d77-1b26-4f7e-8d8f-555555555555",
-      "applicantName": "Greater Manchester Police",
-      "respondentName": "Alex Green",
-      "applicationTitle": "Search warrant",
-      "isFeeRequired": false,
-      "isResulted": false,
-      "status": "OPEN"
-    },
-    {
-      "id": "6f7c8d77-1b26-4f7e-8d8f-666666666666",
-      "applicantName": "CPS",
-      "respondentName": "N/A",
-      "applicationTitle": "Warrant of arrest",
-      "isFeeRequired": true,
-      "isResulted": true,
-      "status": "CLOSED"
-    },
-    {
-      "id": "7f7c8d77-1b26-4f7e-8d8f-777777777777",
-      "applicantName": "Legal Aid Board",
-      "respondentName": "Deborah Mills",
-      "applicationTitle": "Appeal to Crown Court",
-      "isFeeRequired": false,
-      "isResulted": false,
-      "status": "OPEN"
-    },
-    {
-      "id": "8f7c8d77-1b26-4f7e-8d8f-888888888888",
-      "applicantName": "CPS",
-      "respondentName": "N/A",
-      "applicationTitle": "Issue of warrant of arrest",
-      "isFeeRequired": true,
-      "isResulted": true,
-      "status": "CLOSED"
-    },
-    {
-      "id": "9f7c8d77-1b26-4f7e-8d8f-999999999999",
-      "applicantName": "John Smith",
-      "respondentName": "Jane Smith",
-      "applicationTitle": "Appeal to Crown Court",
-      "isFeeRequired": false,
-      "isResulted": false,
-      "status": "OPEN"
-    },
-    {
-      "id": "af7c8d77-1b26-4f7e-8d8f-aaaaaaaaaaaa",
-      "applicantName": "CPS",
-      "respondentName": "N/A",
-      "applicationTitle": "Warrant of arrest",
-      "isFeeRequired": true,
-      "isResulted": true,
-      "status": "CLOSED"
-    }
-  ]
+    "first": true,
+    "last": false,
+    "elementsOnPage": 10,
+    "content": [
+        {
+            "id": "4503ac46-c40a-4c77-9fb9-efed831c8809",
+            "applicant": {
+                "person": {
+                    "name": {
+                        "title": null,
+                        "surname": "asdf",
+                        "firstForename": "asdf",
+                        "secondForename": null,
+                        "thirdForename": null
+                    },
+                    "contactDetails": {
+                        "addressLine1": "asdfasdf",
+                        "addressLine2": null,
+                        "addressLine3": null,
+                        "addressLine4": null,
+                        "addressLine5": null,
+                        "postcode": null,
+                        "phone": null,
+                        "mobile": null,
+                        "email": null
+                    }
+                },
+                "organisation": null
+            },
+            "respondent": null,
+            "applicationTitle": "Search Warrant - Stolen Goods",
+            "legislation": "Section 8 Police and Criminal Evidence Act 1984",
+            "isFeeRequired": false,
+            "isResulted": true,
+            "listId": "9161fede-5ce5-412e-8264-ae122aae9ffa",
+            "date": "3036-09-12",
+            "sequenceNumber": 1,
+            "resulted": {
+                "resultCode": "COST",
+                "title": "Costs granted"
+            },
+            "status": "OPEN",
+            "accountNumber": null
+        },
+        {
+            "id": "0a40e8e4-9b4f-456b-9162-a23e8f05110f",
+            "applicant": {
+                "person": {
+                    "name": {
+                        "title": null,
+                        "surname": "asdf",
+                        "firstForename": "asdf",
+                        "secondForename": null,
+                        "thirdForename": null
+                    },
+                    "contactDetails": {
+                        "addressLine1": "asdf",
+                        "addressLine2": null,
+                        "addressLine3": null,
+                        "addressLine4": null,
+                        "addressLine5": null,
+                        "postcode": null,
+                        "phone": null,
+                        "mobile": null,
+                        "email": null
+                    }
+                },
+                "organisation": null
+            },
+            "respondent": null,
+            "applicationTitle": "Search Warrant - Stolen Goods",
+            "legislation": "Section 8 Police and Criminal Evidence Act 1984",
+            "isFeeRequired": false,
+            "isResulted": true,
+            "listId": "9161fede-5ce5-412e-8264-ae122aae9ffa",
+            "date": "3036-09-12",
+            "sequenceNumber": 1,
+            "resulted": {
+                "resultCode": "COST",
+                "title": "Costs granted"
+            },
+            "status": "OPEN",
+            "accountNumber": null
+        },
+        {
+            "id": "6325bb43-1c9e-4bfb-b324-a74a5025063e",
+            "applicant": {
+                "person": {
+                    "name": {
+                        "title": null,
+                        "surname": "asdf",
+                        "firstForename": "asdf",
+                        "secondForename": null,
+                        "thirdForename": null
+                    },
+                    "contactDetails": {
+                        "addressLine1": "asdf",
+                        "addressLine2": null,
+                        "addressLine3": null,
+                        "addressLine4": null,
+                        "addressLine5": null,
+                        "postcode": null,
+                        "phone": null,
+                        "mobile": null,
+                        "email": null
+                    }
+                },
+                "organisation": null
+            },
+            "respondent": null,
+            "applicationTitle": "Search Warrant - Stolen Goods",
+            "legislation": "Section 8 Police and Criminal Evidence Act 1984",
+            "isFeeRequired": false,
+            "isResulted": true,
+            "listId": "9161fede-5ce5-412e-8264-ae122aae9ffa",
+            "date": "3036-09-12",
+            "sequenceNumber": 1,
+            "resulted": {
+                "resultCode": "COST",
+                "title": "Costs granted"
+            },
+            "status": "OPEN",
+            "accountNumber": null
+        },
+        {
+            "id": "5a2ba64c-0301-4847-b2f6-b64f90daeeea",
+            "applicant": {
+                "person": {
+                    "name": {
+                        "title": null,
+                        "surname": "Bradely",
+                        "firstForename": "Chocolate",
+                        "secondForename": null,
+                        "thirdForename": null
+                    },
+                    "contactDetails": {
+                        "addressLine1": "asdfasdf",
+                        "addressLine2": null,
+                        "addressLine3": null,
+                        "addressLine4": null,
+                        "addressLine5": null,
+                        "postcode": null,
+                        "phone": null,
+                        "mobile": null,
+                        "email": null
+                    }
+                },
+                "organisation": null
+            },
+            "respondent": null,
+            "applicationTitle": "Search Warrant - Stolen Goods",
+            "legislation": "Section 8 Police and Criminal Evidence Act 1984",
+            "isFeeRequired": false,
+            "isResulted": true,
+            "listId": "9161fede-5ce5-412e-8264-ae122aae9ffa",
+            "date": "3036-09-12",
+            "sequenceNumber": 1,
+            "resulted": {
+                "resultCode": "AUTH",
+                "title": "Authorised"
+            },
+            "status": "OPEN",
+            "accountNumber": null
+        },
+        {
+            "id": "01ed3ee3-9cca-4ee0-9658-0826fab2feb1",
+            "applicant": {
+                "person": {
+                    "name": {
+                        "title": null,
+                        "surname": "Cooper",
+                        "firstForename": "Breadly",
+                        "secondForename": null,
+                        "thirdForename": null
+                    },
+                    "contactDetails": {
+                        "addressLine1": "123 Chocolate Lane",
+                        "addressLine2": null,
+                        "addressLine3": null,
+                        "addressLine4": null,
+                        "addressLine5": null,
+                        "postcode": null,
+                        "phone": null,
+                        "mobile": null,
+                        "email": null
+                    }
+                },
+                "organisation": null
+            },
+            "respondent": null,
+            "applicationTitle": "Appeal to Crown Court",
+            "legislation": "Section 108 Magistrates' Courts Act 1980",
+            "isFeeRequired": false,
+            "isResulted": true,
+            "listId": "9161fede-5ce5-412e-8264-ae122aae9ffa",
+            "date": "3036-09-12",
+            "sequenceNumber": 1,
+            "resulted": {
+                "resultCode": "PROA",
+                "title": "Production Order (to allow access)"
+            },
+            "status": "OPEN",
+            "accountNumber": null
+        },
+        {
+            "id": "02b0e49c-9475-4a26-ad4d-ee37d138785c",
+            "applicant": {
+                "person": {
+                    "name": {
+                        "title": null,
+                        "surname": "Cooper",
+                        "firstForename": "Bradely",
+                        "secondForename": null,
+                        "thirdForename": null
+                    },
+                    "contactDetails": {
+                        "addressLine1": "123 asdfasdfasdf",
+                        "addressLine2": null,
+                        "addressLine3": null,
+                        "addressLine4": null,
+                        "addressLine5": null,
+                        "postcode": null,
+                        "phone": null,
+                        "mobile": null,
+                        "email": null
+                    }
+                },
+                "organisation": null
+            },
+            "respondent": {
+                "person": null,
+                "organisation": {
+                    "name": "21221eeed",
+                    "contactDetails": {
+                        "addressLine1": "123131",
+                        "addressLine2": null,
+                        "addressLine3": null,
+                        "addressLine4": null,
+                        "addressLine5": null,
+                        "postcode": null,
+                        "phone": null,
+                        "mobile": null,
+                        "email": null
+                    }
+                }
+            },
+            "applicationTitle": "Certificate of Satisfaction",
+            "legislation": "",
+            "isFeeRequired": true,
+            "isResulted": false,
+            "listId": "9161fede-5ce5-412e-8264-ae122aae9ffa",
+            "date": "3036-09-12",
+            "sequenceNumber": 1,
+            "resulted": null,
+            "status": "OPEN",
+            "accountNumber": null
+        },
+        {
+            "id": "2bfc3dcb-2049-4b61-b75d-2515fd697afd",
+            "applicant": {
+                "person": {
+                    "name": {
+                        "title": null,
+                        "surname": "asdfasdf",
+                        "firstForename": "asdf",
+                        "secondForename": null,
+                        "thirdForename": null
+                    },
+                    "contactDetails": {
+                        "addressLine1": "asdfasdf",
+                        "addressLine2": null,
+                        "addressLine3": null,
+                        "addressLine4": null,
+                        "addressLine5": null,
+                        "postcode": "M12 1AA",
+                        "phone": null,
+                        "mobile": null,
+                        "email": null
+                    }
+                },
+                "organisation": null
+            },
+            "respondent": null,
+            "applicationTitle": "Appeal to Crown Court",
+            "legislation": "Section 108 Magistrates' Courts Act 1980",
+            "isFeeRequired": false,
+            "isResulted": true,
+            "listId": "9161fede-5ce5-412e-8264-ae122aae9ffa",
+            "date": "3036-09-12",
+            "sequenceNumber": 1,
+            "resulted": {
+                "resultCode": "APPABANDON",
+                "title": "Application Abandoned"
+            },
+            "status": "OPEN",
+            "accountNumber": null
+        },
+        {
+            "id": "56e717fa-22a7-4be1-902f-c186cf7334b7",
+            "applicant": {
+                "person": {
+                    "name": {
+                        "title": null,
+                        "surname": "asdfasdf",
+                        "firstForename": "asdfasdf",
+                        "secondForename": null,
+                        "thirdForename": null
+                    },
+                    "contactDetails": {
+                        "addressLine1": "asdfasdf",
+                        "addressLine2": null,
+                        "addressLine3": null,
+                        "addressLine4": null,
+                        "addressLine5": null,
+                        "postcode": null,
+                        "phone": null,
+                        "mobile": null,
+                        "email": null
+                    }
+                },
+                "organisation": null
+            },
+            "respondent": null,
+            "applicationTitle": "Appeal to Crown Court",
+            "legislation": "Section 108 Magistrates' Courts Act 1980",
+            "isFeeRequired": false,
+            "isResulted": false,
+            "listId": "9161fede-5ce5-412e-8264-ae122aae9ffa",
+            "date": "3036-09-12",
+            "sequenceNumber": 1,
+            "resulted": null,
+            "status": "OPEN",
+            "accountNumber": null
+        },
+        {
+            "id": "23b50d14-1a45-4418-ab41-1596cc475d83",
+            "applicant": {
+                "person": {
+                    "name": {
+                        "title": null,
+                        "surname": "Blooer",
+                        "firstForename": "Simon",
+                        "secondForename": null,
+                        "thirdForename": null
+                    },
+                    "contactDetails": {
+                        "addressLine1": "32 Nederlunds Av",
+                        "addressLine2": null,
+                        "addressLine3": null,
+                        "addressLine4": null,
+                        "addressLine5": null,
+                        "postcode": null,
+                        "phone": null,
+                        "mobile": null,
+                        "email": null
+                    }
+                },
+                "organisation": null
+            },
+            "respondent": null,
+            "applicationTitle": "Appeal to Crown Court",
+            "legislation": "Section 108 Magistrates' Courts Act 1980",
+            "isFeeRequired": false,
+            "isResulted": false,
+            "listId": "9161fede-5ce5-412e-8264-ae122aae9ffa",
+            "date": "3036-09-12",
+            "sequenceNumber": 1,
+            "resulted": null,
+            "status": "OPEN",
+            "accountNumber": null
+        },
+        {
+            "id": "74be2403-a92a-44e6-90d1-8fbdc60caf28",
+            "applicant": {
+                "person": {
+                    "name": {
+                        "title": null,
+                        "surname": "Duels",
+                        "firstForename": "Terry",
+                        "secondForename": null,
+                        "thirdForename": null
+                    },
+                    "contactDetails": {
+                        "addressLine1": "43 Chocolate",
+                        "addressLine2": null,
+                        "addressLine3": null,
+                        "addressLine4": null,
+                        "addressLine5": null,
+                        "postcode": null,
+                        "phone": null,
+                        "mobile": null,
+                        "email": null
+                    }
+                },
+                "organisation": null
+            },
+            "respondent": null,
+            "applicationTitle": "Appeal to Crown Court",
+            "legislation": "Section 108 Magistrates' Courts Act 1980",
+            "isFeeRequired": false,
+            "isResulted": false,
+            "listId": "9161fede-5ce5-412e-8264-ae122aae9ffa",
+            "date": "3036-09-12",
+            "sequenceNumber": 1,
+            "resulted": null,
+            "status": "OPEN",
+            "accountNumber": null
+        }
+    ]
 }

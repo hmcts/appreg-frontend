@@ -36,7 +36,7 @@ export type selectedRow = {
   postCode: string | null;
   title: string;
   feeReq: 'Yes' | 'No';
-  resulted: 'Yes' | 'No';
+  resulted: string | null;
 };
 
 export type CourtLocCjaConflictError = { message: string };
@@ -45,13 +45,20 @@ export type DetailFormGroupErrors = {
   closeNotPermitted?: CloseNotPermittedError;
 };
 
-export type LoadDetailReq = {
+export type tableDataReq = {
   id: string;
   pageNumber: number;
   pageSize: number;
+  filter?: { field: string; value: string }[];
+  sort?: { field: string; direction: 'asc' | 'desc' }[];
 };
 export type UpdateReq = {
   id: string;
   payload: ApplicationListUpdateDto;
   etag: string | null;
+};
+export type listDetailsReq = {
+  id: string;
+  pageNumber: number;
+  pageSize: number;
 };

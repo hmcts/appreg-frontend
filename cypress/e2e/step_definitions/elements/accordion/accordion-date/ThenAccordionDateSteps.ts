@@ -31,3 +31,16 @@ Then(
     );
   },
 );
+/**
+ * Step: User Enters a day value into a day field within a specific accordion
+ * Example: When User Enters "22" Into The Accordion "Event Details" Day Field "Start Date"
+ */
+Then(
+  'User Verifies Date Field {string} Is Disabled In The Accordion {string}',
+  (dateFieldLabel: string, accordionTitle: string) => {
+    AccordionDateTimeHelper.verifyDateFieldDisabledInAccordion(
+      accordionTitle,
+      dateFieldLabel,
+    );
+  },
+);

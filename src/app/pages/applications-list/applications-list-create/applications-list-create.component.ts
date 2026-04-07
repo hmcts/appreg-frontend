@@ -9,11 +9,12 @@ Functionality:
   - Uses text-suggestion helpers for court/CJA inputs
 */
 
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   Component,
   EnvironmentInjector,
   OnInit,
+  PLATFORM_ID,
   inject,
   signal,
 } from '@angular/core';
@@ -28,6 +29,10 @@ import {
 } from './util/applications-list-create.state';
 
 import { APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
+import {
+  ApplicationEntriesResultContext,
+  toRow,
+} from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ApplicationsListFormComponent } from '@components/applications-list-form/applications-list-form.component';
 import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
@@ -37,13 +42,14 @@ import {
 } from '@components/error-summary/error-summary.component';
 import { ApplicationListCreateDto, ApplicationListsApi } from '@openapi';
 import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
+import { buildApplicationsListErrorSummary } from '@services/applications-list/build-applications-list-error-summary';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { buildNormalizedPayload } from '@util/build-payload';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
-import { buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
+import { ApplicationListRow } from '@util/types/application-list/types';
 import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
 import { courtMustExistIfTypedValidator } from '@validators/court-exists.validator';
 import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
@@ -68,6 +74,7 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
 
   private readonly formSvc = inject(ApplicationsListFormService);
   private readonly router = inject(Router);
+  private readonly platformId = inject(PLATFORM_ID);
 
   // Signal initialisation
   private readonly appListCreatesignalState =
@@ -91,6 +98,11 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
 
   suggestionsFacade = buildSuggestionsFacade(this);
 
+  fromMoveApplications = signal(false);
+  breadcrumbs = signal([
+    { label: 'Applications list', link: '/applications-list' },
+  ]);
+
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refField);
     this.setupEffects();
@@ -111,6 +123,41 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
           this.state().courtLocations.map((x) => x.locationCode),
       }),
     ]);
+
+    // If we are coming from /applications-list/:id/move
+    if (isPlatformBrowser(this.platformId)) {
+      const navState = (history.state ?? {}) as {
+        createMoveTargetList?: boolean;
+        originalListId?: string;
+        entriesToMove?: ApplicationEntriesResultContext[];
+      };
+
+      this.appListCreatesignalState.patch({
+        listId: navState.originalListId ?? '',
+        entriesToMove: navState.entriesToMove ?? [],
+      });
+
+      if (
+        (navState.createMoveTargetList && !this.appListCreateState().listId) ||
+        !this.appListCreateState().entriesToMove.length
+      ) {
+        void this.router.navigate(['/applications-list']);
+      }
+
+      // render cancel button
+      this.fromMoveApplications.set(navState.createMoveTargetList ?? false);
+
+      // Adjust breadcrumbs based on how we got to create page
+      if (this.appListCreateState().listId) {
+        this.breadcrumbs.set([
+          { label: 'Applications list', link: '/applications-list' },
+          {
+            label: 'Applications list details',
+            link: `/applications-list/${this.appListCreateState().listId}`,
+          },
+        ]);
+      }
+    }
   }
 
   // Signal driven requests
@@ -123,6 +170,28 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
             applicationListCreateDto: params,
           }),
         onSuccess: async (response) => {
+          // Nav to move-confirm page instead
+          if (this.fromMoveApplications()) {
+            const targetListDetails: ApplicationListRow = toRow(response);
+
+            void this.router.navigate(
+              [
+                'applications-list',
+                this.appListCreateState().listId,
+                'move',
+                'confirm',
+              ],
+              {
+                state: {
+                  targetList: targetListDetails,
+                  originalListId: this.appListCreateState().listId,
+                  entriesToMove: this.appListCreateState().entriesToMove,
+                },
+              },
+            );
+            return;
+          }
+
           await this.router.navigate(['applications-list', response.id], {
             queryParams: { listCreated: true },
             fragment: 'list-details',
@@ -181,15 +250,25 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
     return this.vm().errorSummary.find((e) => e.id === id);
   }
 
+  onCancel(): void {
+    const { listId, entriesToMove } = this.appListCreateState();
+
+    if (!listId || !entriesToMove.length) {
+      void this.router.navigate(['/applications-list']);
+      return;
+    }
+
+    void this.router.navigate(['/applications-list', listId, 'move'], {
+      state: { entriesToMove },
+    });
+  }
+
   private keys<T extends object>(o: T): (keyof T)[] {
     return Object.keys(o) as (keyof T)[];
   }
 
   private buildErrorSummary(): ErrorItem[] {
-    return buildFormErrorSummary(this.form, this.errorMap, {
-      hrefs: {
-        time: '#time-hours',
-      },
+    return buildApplicationsListErrorSummary(this.form, this.errorMap, {
       priorityKeys: {
         date: ['dateInvalid', 'required'],
       },

@@ -23,3 +23,11 @@
 .app-table-scroll .moj-button-menu {
   position: relative;
 }
+
+.table-caption__actions {
+  float: right;
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  align-items: center;
+}

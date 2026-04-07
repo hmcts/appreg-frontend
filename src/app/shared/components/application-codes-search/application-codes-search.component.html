@@ -47,28 +47,23 @@
   @if (loading()) {
     <p class="govuk-body">Searching…</p>
   } @else if (errored()) {
-    <div
-      class="govuk-error-summary"
-      aria-labelledby="app-code-error-title"
-      role="alert"
-      tabindex="-1"
-    >
-      <h2 class="govuk-error-summary__title" id="app-code-error-title">
-        There is a problem
-      </h2>
-      <div class="govuk-error-summary__body">
-        <p>We couldn’t fetch application codes. Please try again.</p>
-      </div>
-    </div>
+    <app-alert
+      alertType="error"
+      title="There is a problem"
+      message="We couldn’t fetch application codes. Please try again."
+      [allowDismiss]="true"
+    />
   } @else {
     @if (
       codesRows.length === 0 &&
       submitted() &&
       (form.value.code || form.value.title)
     ) {
-      <app-notification-banner
-        heading="No application codes found"
-        body="Try different filters, or retry the search."
+      <app-alert
+        alertType="information"
+        title="No application codes found"
+        message="Try different filters, or retry the search."
+        [allowDismiss]="true"
       />
     }
 

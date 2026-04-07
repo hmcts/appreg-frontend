@@ -12,16 +12,23 @@ import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail.component';
+import { selectedRow } from '@components/applications-list-detail/util';
 import { ApplicationsListDetailState } from '@components/applications-list-detail/util/applications-list-detail.state';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { Row } from '@core-types/table/row.types';
 import {
+  Applicant,
+  ApplicationListEntriesApi,
   ApplicationListGetDetailDto,
+  ApplicationListStatus,
   ApplicationListsApi,
   CriminalJusticeAreaGetDto,
+  EntryGetSummaryDto,
+  EntryPage,
 } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { MojButtonMenu } from '@util/moj-button-menu';
+import { formatPersonName } from '@util/string-helpers';
 
 const flushSignalEffects = async (
   fixture?: ComponentFixture<ApplicationsListDetail>,
@@ -50,6 +57,11 @@ type PlaceFieldsSignalStateAccessor = {
   signalState: { patch: (p: Partial<PlaceFieldsStatePatch>) => void };
 };
 
+type ResultCodeHelpersAccessor = {
+  getResultCodes(entry: EntryGetSummaryDto): string[];
+  joinResultCodes(resultCodes: string[]): string;
+};
+
 describe('ApplicationsListDetail', () => {
   let fixture: ComponentFixture<ApplicationsListDetail>;
   let component: ApplicationsListDetail;
@@ -59,6 +71,12 @@ describe('ApplicationsListDetail', () => {
   > = {
     getApplicationList: jest.fn(),
     updateApplicationList: jest.fn(),
+  };
+
+  const entriesApiStub: jest.Mocked<
+    Pick<ApplicationListEntriesApi, 'getApplicationListEntries'>
+  > = {
+    getApplicationListEntries: jest.fn(),
   };
 
   const menuStub: jest.Mocked<Pick<MojButtonMenu, 'initAll'>> = {
@@ -113,6 +131,57 @@ describe('ApplicationsListDetail', () => {
       ),
     );
 
+    const respondent: Applicant = {
+      organisation: {
+        name: 'Acme',
+        contactDetails: {
+          addressLine1: '123 Street',
+          addressLine2: null,
+          addressLine3: null,
+          addressLine4: null,
+          addressLine5: null,
+          postcode: 'AB12 3CD',
+          phone: null,
+          mobile: null,
+          email: null,
+        },
+      },
+    };
+
+    const entry: EntryGetSummaryDto = {
+      id: 'abc',
+      sequenceNumber: 7,
+      accountNumber: '',
+      applicant: undefined,
+      respondent,
+      applicationTitle: 'Land Registry Appeal',
+      isFeeRequired: true,
+      isResulted: false,
+      status: ApplicationListStatus.OPEN,
+    };
+
+    const entriesPage: EntryPage = {
+      pageNumber: 1,
+      pageSize: 10,
+      totalElements: 1,
+      totalPages: 1,
+      first: true,
+      last: true,
+      elementsOnPage: 1,
+      sort: { orders: [] },
+      content: [entry],
+    };
+
+    entriesApiStub.getApplicationListEntries.mockReturnValue(
+      of(
+        new HttpResponse<EntryPage>({
+          status: 200,
+          body: entriesPage,
+          headers: new HttpHeaders(),
+        }),
+      ),
+    );
+
     await TestBed.configureTestingModule({
       imports: [ApplicationsListDetail],
       providers: [
@@ -121,6 +190,7 @@ describe('ApplicationsListDetail', () => {
         provideHttpClientTesting(),
         { provide: PLATFORM_ID, useValue: 'browser' },
         { provide: ApplicationListsApi, useValue: apiStub },
+        { provide: ApplicationListEntriesApi, useValue: entriesApiStub },
         { provide: MojButtonMenu, useValue: menuStub },
         { provide: ReferenceDataFacade, useValue: refFacadeStub },
       ],
@@ -205,6 +275,246 @@ describe('ApplicationsListDetail', () => {
     });
   });
 
+  describe('mapTableResponsetoRows', () => {
+    it('maps the API shape into selected rows', () => {
+      const dto = {
+        content: [
+          {
+            id: 'entry-1',
+            sequenceNumber: 42,
+            accountNumber: 'ACC-123',
+            applicant: {
+              organisation: {
+                name: 'Applicant Org',
+                contactDetails: {
+                  postcode: 'AA1 1AA',
+                },
+              },
+            },
+            respondent: {
+              organisation: {
+                name: 'Respondent Org',
+                contactDetails: {
+                  postcode: 'BB2 2BB',
+                },
+              },
+            },
+            applicationTitle: 'Some application title',
+            isFeeRequired: true,
+            resulted: [
+              {
+                resultCode: 'COST',
+                title: 'Costs granted',
+              },
+            ],
+          },
+        ],
+      } as unknown as { content: EntryGetSummaryDto[] };
+
+      const result = (
+        component as unknown as {
+          mapTableResponsetoRows(dto: {
+            content: EntryGetSummaryDto[];
+          }): selectedRow[];
+        }
+      ).mapTableResponsetoRows(dto);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        id: 'entry-1',
+        sequenceNumber: 42,
+        accountNumber: 'ACC-123',
+        applicant: 'Applicant Org',
+        respondent: 'Respondent Org',
+        postCode: 'BB2 2BB',
+        title: 'Some application title',
+        feeReq: 'Yes',
+        resulted: 'COST',
+      });
+    });
+
+    it('uses person names when person data exists', () => {
+      const dto = {
+        content: [
+          {
+            id: 'entry-2',
+            sequenceNumber: 7,
+            accountNumber: null,
+            applicant: {
+              person: {
+                name: {
+                  surname: 'Brown',
+                  firstForename: 'Alex',
+                  secondForename: 'J',
+                  thirdForename: null,
+                  title: 'Mr',
+                },
+              },
+            },
+            respondent: {
+              person: {
+                name: {
+                  surname: 'Green',
+                  firstForename: 'Sam',
+                  secondForename: null,
+                  thirdForename: null,
+                  title: null,
+                },
+                contactDetails: {
+                  postcode: 'CC3 3CC',
+                },
+              },
+            },
+            applicationTitle: 'Another title',
+            isFeeRequired: false,
+            resulted: [
+              {
+                resultCode: 'COST',
+                title: 'Costs granted',
+              },
+            ],
+          },
+        ],
+      } as unknown as { content: EntryGetSummaryDto[] };
+
+      const result = (
+        component as unknown as {
+          mapTableResponsetoRows(dto: {
+            content: EntryGetSummaryDto[];
+          }): selectedRow[];
+        }
+      ).mapTableResponsetoRows(dto);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        id: 'entry-2',
+        sequenceNumber: 7,
+        accountNumber: '',
+        applicant: 'Mr, Alex J, Brown',
+        respondent: 'Sam, Green',
+        postCode: 'CC3 3CC',
+        title: 'Another title',
+        feeReq: 'No',
+        resulted: 'COST',
+      });
+    });
+  });
+
+  describe('result code helpers', () => {
+    const resultCodeHelpers = (): ResultCodeHelpersAccessor =>
+      component as unknown as ResultCodeHelpersAccessor;
+
+    it('getResultCodes returns all codes when resulted is a string array', () => {
+      const entry = {
+        id: 'entry-1',
+        applicationTitle: 'Title',
+        isFeeRequired: false,
+        isResulted: true,
+        status: ApplicationListStatus.OPEN,
+        resulted: ['COST', 'ADJ'],
+      } as unknown as EntryGetSummaryDto;
+
+      expect(resultCodeHelpers().getResultCodes(entry)).toEqual([
+        'COST',
+        'ADJ',
+      ]);
+    });
+
+    it('getResultCodes returns all codes when resulted is an object array', () => {
+      const entry = {
+        id: 'entry-1b',
+        applicationTitle: 'Title',
+        isFeeRequired: false,
+        isResulted: true,
+        status: ApplicationListStatus.OPEN,
+        resulted: [
+          { resultCode: 'COST', title: 'Costs granted' },
+          { resultCode: 'ADJ', title: 'Adjourned' },
+        ],
+      } as unknown as EntryGetSummaryDto;
+
+      expect(resultCodeHelpers().getResultCodes(entry)).toEqual([
+        'COST',
+        'ADJ',
+      ]);
+    });
+
+    it('getResultCodes returns a single-item array for the legacy result object shape', () => {
+      const entry = {
+        id: 'entry-2',
+        applicationTitle: 'Title',
+        isFeeRequired: false,
+        isResulted: true,
+        status: ApplicationListStatus.OPEN,
+        resulted: [
+          {
+            resultCode: 'COST',
+            title: 'Costs granted',
+          },
+        ],
+      } as unknown as EntryGetSummaryDto;
+
+      expect(resultCodeHelpers().getResultCodes(entry)).toEqual(['COST']);
+    });
+
+    it('getResultCodes returns an empty array when no result code is present', () => {
+      const entry = {
+        id: 'entry-3',
+        applicationTitle: 'Title',
+        isFeeRequired: false,
+        isResulted: false,
+        status: ApplicationListStatus.OPEN,
+      } as EntryGetSummaryDto;
+
+      expect(resultCodeHelpers().getResultCodes(entry)).toEqual([]);
+    });
+
+    it('joinResultCodes joins trimmed codes and ignores blank values', () => {
+      expect(
+        resultCodeHelpers().joinResultCodes([' COST ', '', '  ', 'ADJ']),
+      ).toBe('COST, ADJ');
+    });
+  });
+
+  describe('formatPersonName', () => {
+    it('returns null when applicant or name is missing', () => {
+      expect(formatPersonName()).toBeNull();
+      expect(formatPersonName({} as Applicant)).toBeNull();
+    });
+
+    it('formats title, forenames, and surname', () => {
+      const applicant = {
+        person: {
+          name: {
+            surname: 'Smith',
+            firstForename: 'John',
+            secondForename: 'Paul',
+            thirdForename: 'George',
+            title: 'Mr',
+          },
+        },
+      } as Applicant;
+
+      expect(formatPersonName(applicant)).toBe('Mr, John Paul George, Smith');
+    });
+
+    it('skips missing forenames', () => {
+      const applicant = {
+        person: {
+          name: {
+            surname: 'Smith',
+            firstForename: 'John',
+            secondForename: null,
+            thirdForename: undefined,
+            title: 'Mr',
+          },
+        },
+      } as Applicant;
+
+      expect(formatPersonName(applicant)).toBe('Mr, John, Smith');
+    });
+  });
+
   it('maps a 400 close error from navigation state onto the detail page', async () => {
     historyStateSpy.mockReturnValue({
       row: {
@@ -253,6 +563,63 @@ describe('ApplicationsListDetail', () => {
     expect(vm().preserveErrorSummaryOnLoad).toBe(true);
   });
 
+  it('maps move errors from navigation state onto the detail page', async () => {
+    historyStateSpy.mockReturnValue({
+      row: {
+        id: 'id-1',
+        location: 'LOC1',
+        description: '',
+        status: 'OPEN',
+      },
+      moveError: 'Unable to move applications right now.',
+    });
+
+    const route = TestBed.inject(ActivatedRoute);
+    jest
+      .spyOn(route.snapshot.queryParamMap, 'get')
+      .mockImplementation((key) => {
+        if (key === 'move') {
+          return 'error';
+        }
+        return null;
+      });
+
+    (
+      component as unknown as {
+        setMoveErrorFromNavigation(): void;
+      }
+    ).setMoveErrorFromNavigation();
+
+    await flushSignalEffects(fixture);
+
+    expect(vm().updateInvalid).toBe(true);
+    expect(vm().errorHint).toBe('There is a problem');
+    expect(vm().errorSummary).toEqual([
+      {
+        id: '',
+        href: '',
+        text: 'Unable to move applications right now.',
+      },
+    ]);
+    expect(vm().preserveErrorSummaryOnLoad).toBe(true);
+  });
+
+  it('sets moveDone when moveEntriesSuccessful query param is true', () => {
+    const route = TestBed.inject(ActivatedRoute);
+    jest
+      .spyOn(route.snapshot.queryParamMap, 'get')
+      .mockImplementation((key) => {
+        if (key === 'moveEntriesSuccessful') {
+          return 'true';
+        }
+        return null;
+      });
+
+    component.setSuccessBanner();
+
+    expect(vm().moveDone).toBe(true);
+  });
+
   it('preserves returned close errors when the detail page reload completes', async () => {
     patchDetailState({
       updateInvalid: true,
@@ -267,7 +634,7 @@ describe('ApplicationsListDetail', () => {
     });
 
     component.id = 'list-123';
-    component.loadApplicationsLists();
+    component.loadListDetailsInfo();
     await flushSignalEffects(fixture);
 
     expect(vm().updateInvalid).toBe(true);
@@ -349,7 +716,7 @@ describe('ApplicationsListDetail', () => {
 
   it('onPageChange patches page + clears selectedIds + triggers load', () => {
     const loadSpy = jest
-      .spyOn(component, 'loadApplicationsLists')
+      .spyOn(component, 'loadListDetailsInfo')
       .mockImplementation(() => undefined);
 
     patchDetailState({ selectedIds: new Set(['a', 'b']) });
@@ -378,7 +745,7 @@ describe('ApplicationsListDetail', () => {
     });
   });
 
-  describe('loadApplicationsLists', () => {
+  describe('loadListDetailsInfo', () => {
     it('calls API with listId, page (0-based), size; patches rows, clears errors, updates selection', async () => {
       component.id = 'list-123';
 
@@ -415,7 +782,7 @@ describe('ApplicationsListDetail', () => {
         ),
       );
 
-      component.loadApplicationsLists();
+      component.loadListDetailsInfo();
       await flushSignalEffects(fixture);
 
       expect(apiStub.getApplicationList).toHaveBeenNthCalledWith(
@@ -442,10 +809,10 @@ describe('ApplicationsListDetail', () => {
           accountNumber: '',
           applicant: null,
           respondent: 'Acme',
-          postCode: null,
+          postCode: 'AB12 3CD',
           title: 'Land Registry Appeal',
           feeReq: 'Yes',
-          resulted: 'No',
+          resulted: '',
         },
       ]);
 
@@ -464,7 +831,7 @@ describe('ApplicationsListDetail', () => {
 
       patchDetailState({ selectedIds: new Set(['x', 'y']) });
 
-      component.loadApplicationsLists();
+      component.loadListDetailsInfo();
       await flushSignalEffects(fixture);
 
       expect(vm().updateInvalid).toBe(true);

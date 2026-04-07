@@ -1,7 +1,9 @@
 import { FormBuilder } from '@angular/forms';
 
 import {
+  buildEntryUpdateDtoForFeeChange,
   buildEntryUpdateDtoFromForm,
+  buildEntryUpdateDtoWithChange,
   buildOrganisationForm,
   buildPersonForm,
   buildPersonOrgSharedControls,
@@ -335,6 +337,84 @@ describe('applications-list entry form builders', () => {
 
       expect(dto.applicant?.person?.name?.firstForename).toBe('John');
       expect('standardApplicantCode' in dto).toBe(false);
+    });
+  });
+
+  describe('buildEntryUpdateDtoWithChange', () => {
+    it('clears applicant when detail uses standardApplicantCode', () => {
+      const dto = buildEntryUpdateDtoWithChange(
+        {
+          applicationCode: 'APP-100',
+          standardApplicantCode: 'STD-123',
+          applicant: {
+            person: {
+              name: { firstForename: 'Jane', surname: 'Doe' },
+              contactDetails: { addressLine1: '1 Street' },
+            },
+          },
+          lodgementDate: '2025-01-01',
+        } as unknown as EntryGetDetailDto,
+        'feeStatuses',
+        [],
+      );
+
+      expect(dto.standardApplicantCode).toBe('STD-123');
+      expect('applicant' in dto).toBe(false);
+    });
+
+    it('clears standardApplicantCode when detail uses applicant object', () => {
+      const dto = buildEntryUpdateDtoWithChange(
+        {
+          applicationCode: 'APP-100',
+          standardApplicantCode: 'STD-OLD',
+          applicant: {
+            person: {
+              name: { firstForename: 'Jane', surname: 'Doe' },
+              contactDetails: { addressLine1: '1 Street' },
+            },
+          },
+          lodgementDate: '2025-01-01',
+        } as unknown as EntryGetDetailDto,
+        'standardApplicantCode',
+        undefined as never,
+      );
+
+      expect(dto.applicant?.person?.name?.firstForename).toBe('Jane');
+      expect('standardApplicantCode' in dto).toBe(false);
+    });
+  });
+
+  describe('buildEntryUpdateDtoForFeeChange', () => {
+    it('uses current applicationCode and lodgementDate from the form while preserving unrelated persisted fields', () => {
+      const dto = buildEntryUpdateDtoForFeeChange(
+        {
+          applicationCode: 'APP-100',
+          lodgementDate: '2025-01-01',
+          notes: 'persisted note',
+          applicant: {
+            person: {
+              name: { firstForename: 'Jane', surname: 'Doe' },
+              contactDetails: { addressLine1: '1 Street' },
+            },
+          },
+        } as unknown as EntryGetDetailDto,
+        {
+          applicationCode: 'APP-200',
+          lodgementDate: '2025-02-02',
+          applicationNotes: {
+            notes: 'draft note',
+            caseReference: null,
+            accountReference: null,
+          },
+        } as never,
+        'feeStatuses',
+        [],
+      );
+
+      expect(dto.applicationCode).toBe('APP-200');
+      expect(dto.lodgementDate).toBe('2025-02-02');
+      expect(dto.notes).toBe('persisted note');
+      expect(dto.applicant?.person?.name?.firstForename).toBe('Jane');
     });
   });
 });

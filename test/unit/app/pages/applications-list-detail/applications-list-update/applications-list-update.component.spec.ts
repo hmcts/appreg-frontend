@@ -46,6 +46,7 @@ describe('ApplicationsListUpdateComponent', () => {
     preserveErrorSummaryOnLoad: false,
     hasPrefilledFromApi: false,
     createDone: false,
+    moveDone: false,
   });
 
   const mkPlaceState = (): PlaceFieldsState => ({

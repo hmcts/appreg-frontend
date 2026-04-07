@@ -21,9 +21,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
+import { AlertComponent } from '@components/alert/alert.component';
 import { CODES_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { DateInputComponent } from '@components/date-input/date-input.component';
-import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import {
   SortableTableComponent,
@@ -40,11 +40,11 @@ import { CodeRow, fetchCodeRows$ } from '@util/application-code-helpers';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    NotificationBannerComponent,
     TextInputComponent,
     DateInputComponent,
     SortableTableComponent,
     PaginationComponent,
+    AlertComponent,
   ],
   templateUrl: './application-codes-search.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

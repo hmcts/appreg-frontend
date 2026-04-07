@@ -68,6 +68,8 @@ Feature: Applications List Result
         Then User Should See Row In Table "Application(s) to result" With Values:
             | Sequence number | Applicant(s)                     | Respondent(s)                  | Application Title(s)                           |
             | 1               | Mr, Henry James, Taylor {RANDOM} | Ms, Emily Rose, Clark {RANDOM} | Issue of liability order summons - council tax |
+            | Sequence number | Applicant(s)                     | Respondent(s)                  | Application Title(s)                           |
+            | 1               | Mr, Henry James, Taylor {RANDOM} | Ms, Emily Rose, Clark {RANDOM} | Issue of liability order summons - council tax |
         Then User Selects "RTC - Refer to Court" From The Textbox "Result code" Autocomplete By Typing "RTC"
 
         # Application List Cleanup

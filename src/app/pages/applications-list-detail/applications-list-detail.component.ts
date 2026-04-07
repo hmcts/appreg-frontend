@@ -27,11 +27,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ApplicationsListUpdateComponent } from './applications-list-update/applications-list-update.component';
 import {
   ApplicationsListDetailState,
-  LoadDetailReq,
   UpdateReq,
   clearUpdateNotificationsPatch,
   initialApplicationsListDetailState,
+  listDetailsReq,
   selectedRow,
+  tableDataReq,
 } from './util';
 
 import { toRow } from '@components/applications-list-entry-detail/util/routing-state-util';
@@ -52,7 +53,14 @@ import {
 } from '@constants/application-list-detail-update/form-table-structure';
 import { IF_MATCH } from '@context/concurrency-context';
 import { Row } from '@core-types/table/row.types';
-import { ApplicationListGetDetailDto, ApplicationListsApi } from '@openapi';
+import {
+  ApplicationListEntriesApi,
+  ApplicationListGetDetailDto,
+  ApplicationListsApi,
+  EntryGetSummaryDto,
+  EntryPage,
+  ResultCodeGetSummaryDto,
+} from '@openapi';
 import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import {
@@ -63,6 +71,7 @@ import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenu, MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
+import { formatPersonName, returnOrgName } from '@util/string-helpers';
 import { parseTimeToDuration } from '@util/time-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
 import { closePermitted } from '@validators/applications-list-close.validator';
@@ -77,6 +86,7 @@ type ApplicationsListDetailHistoryState = {
     title?: string;
     detail?: string;
   };
+  moveError?: string;
 };
 
 @Component({
@@ -104,6 +114,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly refField = inject(ReferenceDataFacade);
   private readonly appListApi = inject(ApplicationListsApi);
+  private readonly appListEntriesApi = inject(ApplicationListEntriesApi);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly ngZone = inject(NgZone);
@@ -121,8 +132,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   readonly vm = this.detailSignalState.vm;
 
-  private readonly loadRequest = signal<LoadDetailReq | null>(null);
+  private readonly tableDataRequest = signal<tableDataReq | null>(null);
+  private readonly listDetailRequest = signal<listDetailsReq | null>(null);
   private readonly updateRequest = signal<UpdateReq | null>(null);
+
+  private readonly loadFailed = signal(false);
 
   override form = this.appListFormService.createUpdateForm();
 
@@ -139,6 +153,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.detailSignalState.patch(clearUpdateNotificationsPatch());
     this.setSuccessBanner();
     this.setCloseErrorFromNavigation();
+    this.setMoveErrorFromNavigation();
 
     //Attach validators
     this.form.addValidators([
@@ -168,7 +183,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.entryCount = st?.entriesCount ?? 0;
 
     if (isPlatformBrowser(this.platformId)) {
-      this.loadApplicationsLists();
+      this.loadListDetailsInfo();
     }
   }
 
@@ -207,6 +222,12 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       const createState = history.state as ApplicationsListDetailHistoryState;
       this.listRow = createState.row ?? undefined;
     }
+
+    if (
+      this.route.snapshot.queryParamMap.get('moveEntriesSuccessful') === 'true'
+    ) {
+      this.vm().moveDone = true;
+    }
   }
 
   private setCloseErrorFromNavigation(): void {
@@ -237,12 +258,38 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
+  private setMoveErrorFromNavigation(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const isMoveError =
+      this.route.snapshot.queryParamMap.get('move') === 'error';
+    const moveState = history.state as ApplicationsListDetailHistoryState;
+    const moveError = moveState.moveError;
+
+    if (!isMoveError || !moveError) {
+      return;
+    }
+
+    if (!moveError) {
+      return;
+    }
+
+    this.detailSignalState.patch({
+      updateInvalid: true,
+      errorHint: 'There is a problem',
+      errorSummary: [{ id: '', href: '', text: moveError }],
+      preserveErrorSummaryOnLoad: true,
+    });
+  }
+
   private setupEffects(): void {
-    // GET /application-lists/{listId}
+    // GET /application-lists/{listId} for list details info
     setupLoadEffect(
       {
-        request: this.loadRequest,
-        load: (req: LoadDetailReq) =>
+        request: this.listDetailRequest,
+        load: (req: listDetailsReq) =>
           this.appListApi.getApplicationList(
             {
               listId: req.id,
@@ -266,54 +313,22 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
               totalPages: 0,
               selectedIds: new Set<string>(),
             });
-            this.loadRequest.set(null);
+            this.listDetailRequest.set(null);
             return;
           }
 
           this.etag = res.headers.get('ETag') ?? this.etag;
 
           const vm = this.vm();
-          const preserveErrorSummary = vm.preserveErrorSummaryOnLoad;
 
           if (!vm.hasPrefilledFromApi) {
             this.prefillFromApi(dto);
             this.detailSignalState.patch({ hasPrefilledFromApi: true });
           }
 
-          const items = dto.entriesSummary ?? [];
-          const rows: selectedRow[] = items.map((e) => ({
-            id: e.uuid,
-            sequenceNumber: e.sequenceNumber,
-            accountNumber: e.accountNumber ?? null,
-            applicant: e.applicant ?? null,
-            respondent: e.respondent ?? null,
-            postCode: e.postCode ?? null,
-            title: e.applicationTitle,
-            feeReq: e.feeRequired ? 'Yes' : 'No',
-            resulted: e.result ? 'Yes' : 'No',
-          }));
+          this.patchLoadSuccessState({});
 
-          const total = dto.entriesCount ?? items.length;
-          const pageSize = vm.pageSize;
-          const totalPages = total > pageSize ? Math.ceil(total / pageSize) : 0;
-
-          const visible = new Set(rows.map((r) => r.id));
-          const selectedIds = new Set(
-            [...vm.selectedIds].filter((id) => visible.has(id)),
-          );
-
-          this.detailSignalState.patch({
-            isLoading: false,
-            updateInvalid: preserveErrorSummary ? vm.updateInvalid : false,
-            errorHint: '',
-            errorSummary: preserveErrorSummary ? vm.errorSummary : [],
-            preserveErrorSummaryOnLoad: preserveErrorSummary,
-            rows,
-            totalPages,
-            selectedIds,
-          });
-
-          this.loadRequest.set(null);
+          this.listDetailRequest.set(null);
 
           if (isPlatformBrowser(this.platformId)) {
             this.ngZone.runOutsideAngular(() => {
@@ -326,6 +341,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           }
         },
         onError: (err: unknown) => {
+          this.loadFailed.set(true);
+
           this.detailSignalState.patch({
             isLoading: false,
             updateInvalid: true,
@@ -335,7 +352,78 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
             totalPages: 0,
             selectedIds: new Set<string>(),
           });
-          this.loadRequest.set(null);
+          this.listDetailRequest.set(null);
+        },
+      },
+      this.envInjector,
+    );
+
+    // GET /application-lists/{listId}/entries for table data, with pagination
+    setupLoadEffect(
+      {
+        request: this.tableDataRequest,
+        load: (req: tableDataReq) =>
+          this.appListEntriesApi.getApplicationListEntries(
+            {
+              listId: req.id,
+              pageNumber: req.pageNumber,
+              pageSize: req.pageSize,
+            },
+            'response',
+            false,
+            { transferCache: false },
+          ),
+
+        onSuccess: (res: HttpResponse<EntryPage>) => {
+          const dto = res.body;
+          if (!dto) {
+            this.detailSignalState.patch({
+              isLoading: false,
+              updateInvalid: true,
+              errorHint: 'No data returned from server.',
+              errorSummary: [{ text: 'No data returned from server.' }],
+              rows: [],
+              totalPages: 0,
+              selectedIds: new Set<string>(),
+            });
+            this.tableDataRequest.set(null);
+            return;
+          }
+
+          const rows = this.mapTableResponsetoRows(dto);
+
+          const total = dto.totalElements ?? rows.length;
+          const pageSize = this.vm().pageSize;
+          const totalPages = total > pageSize ? Math.ceil(total / pageSize) : 0;
+
+          const visible = new Set(rows.map((r) => r.id));
+          const selectedIds = new Set(
+            [...this.vm().selectedIds].filter((id) => visible.has(id)),
+          );
+
+          this.patchLoadSuccessState({
+            rows,
+            totalPages,
+            selectedIds,
+          });
+
+          this.tableDataRequest.set(null);
+        },
+
+        onError: (err: unknown) => {
+          this.loadFailed.set(true);
+
+          // append to existing errors if we already have data, otherwise replace (e.g. on first load)
+          this.detailSignalState.patch({
+            isLoading: false,
+            updateInvalid: true,
+            errorHint: getProblemText(err),
+            errorSummary: [{ text: getProblemText(err) }],
+            rows: [],
+            totalPages: 0,
+            selectedIds: new Set<string>(),
+          });
+          this.tableDataRequest.set(null);
         },
       },
       this.envInjector,
@@ -387,15 +475,23 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     return !vm.isLoading && !vm.updateInvalid && (vm.rows?.length ?? 0) === 0;
   }
 
-  loadApplicationsLists(): void {
+  loadListDetailsInfo(): void {
     if (!this.id) {
       return;
     }
 
+    this.loadFailed.set(false);
     this.detailSignalState.patch({ isLoading: true });
     const vm = this.vm();
 
-    this.loadRequest.set({
+    // replace with table details req
+    this.listDetailRequest.set({
+      id: this.id,
+      pageNumber: vm.currentPage,
+      pageSize: vm.pageSize,
+    });
+
+    this.tableDataRequest.set({
       id: this.id,
       pageNumber: vm.currentPage,
       pageSize: vm.pageSize,
@@ -424,6 +520,27 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       relativeTo: this.route,
       state: {
         resultingApplications,
+      },
+    });
+  }
+
+  onMoveButtonClick(): void {
+    const selected = this.vm().selectedRows as selectedRow[];
+
+    this.detailSignalState.patch(clearUpdateNotificationsPatch());
+
+    const entriesToMove = selected.map((r) => ({
+      id: r.id,
+      sequenceNumber: r.sequenceNumber,
+      applicant: r.applicant,
+      respondent: r.respondent,
+      title: r.title,
+    }));
+
+    void this.router.navigate(['move'], {
+      relativeTo: this.route,
+      state: {
+        entriesToMove,
       },
     });
   }
@@ -457,7 +574,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       currentPage: page,
       selectedIds: new Set(), // same behaviour as today
     });
-    this.loadApplicationsLists();
+    this.loadListDetailsInfo();
   }
 
   async openUpdate(row: Partial<selectedRow>): Promise<void> {
@@ -474,6 +591,79 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         },
       },
     );
+  }
+
+  private patchLoadSuccessState(
+    patch: Partial<
+      Pick<ApplicationsListDetailState, 'rows' | 'totalPages' | 'selectedIds'>
+    >,
+  ): void {
+    if (this.loadFailed()) {
+      return;
+    }
+
+    const vm = this.vm();
+    const preserveErrorSummary = vm.preserveErrorSummaryOnLoad;
+
+    this.detailSignalState.patch({
+      ...patch,
+      isLoading: false,
+      updateInvalid: preserveErrorSummary ? vm.updateInvalid : false,
+      errorHint: preserveErrorSummary ? vm.errorHint : '',
+      errorSummary: preserveErrorSummary ? vm.errorSummary : [],
+      preserveErrorSummaryOnLoad: preserveErrorSummary,
+    });
+  }
+
+  // return type selectedRow[]
+  private mapTableResponsetoRows(dto: {
+    content: EntryGetSummaryDto[];
+  }): selectedRow[] {
+    return dto.content.map((entry: EntryGetSummaryDto) => {
+      return {
+        id: entry.id,
+        sequenceNumber: entry.sequenceNumber!,
+        accountNumber: entry.accountNumber ?? '',
+        applicant: entry.applicant?.person
+          ? formatPersonName(entry.applicant)
+          : returnOrgName(entry.applicant),
+        respondent: entry.respondent?.person
+          ? formatPersonName(entry.respondent)
+          : returnOrgName(entry.respondent),
+        postCode:
+          entry.respondent?.person?.contactDetails?.postcode ??
+          entry.respondent?.organisation?.contactDetails?.postcode ??
+          '',
+        title: `${entry.applicationTitle}`.trim(),
+        feeReq: entry.isFeeRequired ? 'Yes' : 'No',
+        resulted: this.joinResultCodes(this.getResultCodes(entry)),
+      };
+    });
+  }
+
+  private getResultCodes(entry: EntryGetSummaryDto): string[] {
+    const resulted = (
+      entry as EntryGetSummaryDto & {
+        resulted?: ResultCodeGetSummaryDto | ResultCodeGetSummaryDto[];
+      }
+    ).resulted;
+
+    if (Array.isArray(resulted)) {
+      return resulted
+        .map((resultCode) =>
+          typeof resultCode === 'string' ? resultCode : resultCode.resultCode,
+        )
+        .filter(Boolean);
+    }
+
+    return [];
+  }
+
+  private joinResultCodes(resultCodes: string[]): string {
+    return resultCodes
+      .map((resultCode) => resultCode.trim())
+      .filter(Boolean)
+      .join(', ');
   }
 
   private prefillFromApi(dto: ApplicationListGetDetailDto): void {

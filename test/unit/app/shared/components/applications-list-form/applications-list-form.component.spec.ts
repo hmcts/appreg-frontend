@@ -83,6 +83,14 @@ describe('ApplicationsListFormComponent (Jest)', () => {
       expect(component.showStatus()).toBe(false);
     });
 
+    it('showStatus is false when the field is explicitly hidden', () => {
+      fixture.componentRef.setInput('mode', 'search');
+      fixture.componentRef.setInput('showStatusField', false);
+      fixture.detectChanges();
+
+      expect(component.showStatus()).toBe(false);
+    });
+
     it('showDuration is true only for update mode', () => {
       fixture.componentRef.setInput('mode', 'search');
       fixture.detectChanges();

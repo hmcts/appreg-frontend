@@ -203,14 +203,7 @@ export class ApplicationListEntryFormService {
 
       // respondent section fields
       respondent: null,
-      respondentEntryType: 'organisation',
       numberOfRespondents: null,
-
-      // Civil fee section fields
-      feeStatuses: null,
-      feeStatus: null,
-      feeStatusDate: null,
-      paymentRef: null,
     });
 
     // reset respondent section forms person and organisation

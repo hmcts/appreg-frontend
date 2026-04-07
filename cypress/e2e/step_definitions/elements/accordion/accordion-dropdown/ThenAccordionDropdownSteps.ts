@@ -29,3 +29,13 @@ Then(
     );
   },
 );
+
+Then(
+  'User Verifies Dropdown {string} Is Disabled In The Accordion {string}',
+  (dropdownLabel: string, accordionTitle: string) => {
+    AccordionDropdownHelper.verifyDropdownDisabled(
+      accordionTitle,
+      dropdownLabel,
+    );
+  },
+);

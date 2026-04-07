@@ -1,7 +1,7 @@
 <!-- Breadcrumbs -->
 <app-breadcrumbs
   [items]="[{ label: 'Applications list', link: '/applications-list' }]"
-></app-breadcrumbs>
+/>
 
 <app-page-header
   title="Applications List"
@@ -20,6 +20,13 @@
   <app-success-banner
     heading="Application list created"
     linkText="The application list has been successfully created"
+  />
+}
+
+@if (vm().moveDone) {
+  <app-success-banner
+    heading="Applications successfully moved"
+    linkText="Applications have been successfully moved to the selected applications list"
   />
 }
 
@@ -123,11 +130,20 @@
             >
               <button
                 type="button"
-                class="govuk-button govuk-button--primary govuk-button--small float-right"
+                class="govuk-button govuk-button--primary govuk-button--small table-caption__action-button"
                 [disabled]="vm().selectedRows.length === 0"
                 (click)="onResultButtonClick()"
               >
                 Result selected
+              </button>
+
+              <button
+                type="button"
+                class="govuk-button govuk-button--secondary govuk-button--small table-caption__action-button"
+                [disabled]="vm().selectedRows.length === 0"
+                (click)="onMoveButtonClick()"
+              >
+                Move entries
               </button>
             </span>
           </caption>
@@ -149,12 +165,13 @@
               </button>
 
               <!-- Delete button -->
-              <button
+              <!-- TODO: implement thjs in ARCPOC-1281: https://tools.hmcts.net/jira/browse/ARCPOC-1281 -->
+              <!-- <button
                 type="button"
                 class="govuk-button moj-button-menu__item govuk-button--secondary"
               >
                 Delete
-              </button>
+              </button> -->
             </div>
           </ng-template>
         </app-selectable-sortable-table>

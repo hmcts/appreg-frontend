@@ -23,15 +23,15 @@ const person_org_shared_messages = {
     pattern: 'Address line 2 contains invalid characters',
   },
   addressLine3: {
-    maxlength: 'Address line 3 must be less than or equal to 60 characters',
+    maxlength: 'Town or city must be less than or equal to 60 characters',
     pattern: 'Town or city contains invalid characters',
   },
   addressLine4: {
-    maxlength: 'Address line 4 must be less than or equal to 60 characters',
+    maxlength: 'County or region must be less than or equal to 60 characters',
     pattern: 'County or region contains invalid characters',
   },
   addressLine5: {
-    maxlength: 'Address line 5 must be less than or equal to 60 characters',
+    maxlength: 'Post town must be less than or equal to 60 characters',
     pattern: 'Post town contains invalid characters',
   },
   postcode: {

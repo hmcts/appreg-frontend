@@ -49,10 +49,10 @@ import { ResultRow, toExistingRows } from '@util/result-code-helpers';
   selector: 'app-result-wording-section',
   templateUrl: './result-wording-section.component.html',
   imports: [
-    SortableTableComponent,
     SuggestionsComponent,
     SummaryListCardActionComponent,
     WordingParserComponent,
+    SortableTableComponent,
   ],
 })
 export class ResultWordingSectionComponent {
@@ -314,6 +314,16 @@ export class ResultWordingSectionComponent {
     return this.existingTemplateById()[card.id] ?? null;
   }
 
+  getInitialWordingValuesForCard(
+    card: SummaryListCardAction,
+  ): TemplateDetail | undefined {
+    if (!card.id || card.status !== 'existing') {
+      return;
+    }
+
+    return this.existingTemplateById()[card.id] ?? undefined;
+  }
+
   onCardWordingFieldsDTO(
     card: SummaryListCardAction,
     dto: { wordingFields: TemplateSubstitution[] },
@@ -442,7 +452,9 @@ export class ResultWordingSectionComponent {
   }
 
   private unescapeTemplatePlaceholders(template: string): string {
-    return template.replace(/\\\{\\\{/g, '{{').replace(/\\\}\\\}/g, '}}');
+    return template
+      .replaceAll(String.raw`\{\{`, '{{')
+      .replaceAll(String.raw`\}\}`, '}}');
   }
 
   private getParserCardIdsForSubmit(): string[] {
