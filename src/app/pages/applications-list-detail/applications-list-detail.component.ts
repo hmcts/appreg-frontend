@@ -95,7 +95,6 @@ type ApplicationsListDetailHistoryState = {
 type PrintRequest = {
   id: string;
   mode: 'page' | 'continuous';
-  isClosed?: boolean;
 };
 
 @Component({
