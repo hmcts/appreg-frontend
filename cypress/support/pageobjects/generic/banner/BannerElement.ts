@@ -28,6 +28,12 @@ export class BannerElement {
     return cy.get(this.successAlertSelector);
   }
 
+  static findSuccessAlertByText(
+    text: string,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy.contains(this.successAlertSelector, text, { timeout: 10000 });
+  }
+
   static getErrorAlert(): Cypress.Chainable<JQuery<HTMLElement>> {
     return cy.get(this.errorAlertSelector);
   }
