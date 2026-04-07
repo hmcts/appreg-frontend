@@ -94,6 +94,7 @@ describe('ApplicationsListCreate', () => {
         },
         { provide: ReferenceDataFacade, useValue: refFacadeStub },
         provideRouter([
+          { path: 'applications-list', component: DummyComponent },
           { path: 'applications-list/:id', component: DummyComponent },
         ]),
       ],

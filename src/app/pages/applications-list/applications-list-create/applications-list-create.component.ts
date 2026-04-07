@@ -138,8 +138,7 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
       });
 
       if (
-        navState.createMoveTargetList &&
-        !this.appListCreateState().listId &&
+        (navState.createMoveTargetList && !this.appListCreateState().listId) ||
         !this.appListCreateState().entriesToMove.length
       ) {
         void this.router.navigate(['/applications-list']);

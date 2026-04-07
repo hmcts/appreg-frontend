@@ -4,7 +4,23 @@
   title="Are you sure you want to move these applications to this application list?"
   [isRedButton]="false"
 >
-  <app-table [rows]="[targetList]" [columns]="columns">
+  <hr
+    class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+  />
+
+  <app-sortable-table
+    id="entry-selected-table"
+    [caption]="'You are moving the following application(s)'"
+    [columns]="columnsEntries"
+    [data]="entriesToMove"
+    appMojButtonMenu
+  />
+
+  <app-table
+    [rows]="[targetList]"
+    [columns]="columns"
+    [caption]="'To this applications list'"
+  >
     <ng-template #dateTemplate let-row>
       {{ row?.date | dateTime }}
     </ng-template>

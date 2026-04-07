@@ -3,8 +3,10 @@ import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { APPLICATIONS_LIST_COLUMNS } from '@components/applications-list/util/applications-list.constants';
+import { APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { ApplicationEntriesResultContext } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ReviewConfirmComponent } from '@components/review-confirm/review-confirm.component';
+import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { TableComponent } from '@components/table/table.component';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import {
@@ -22,7 +24,12 @@ type MoveConfirmNavState = {
 
 @Component({
   selector: 'app-move-confirm',
-  imports: [ReviewConfirmComponent, DateTimePipe, TableComponent],
+  imports: [
+    ReviewConfirmComponent,
+    DateTimePipe,
+    TableComponent,
+    SortableTableComponent,
+  ],
   templateUrl: './move-confirm.component.html',
 })
 export class MoveConfirmComponent implements OnInit {
@@ -33,6 +40,7 @@ export class MoveConfirmComponent implements OnInit {
   private readonly appListEntryApi = inject(ApplicationListEntriesApi);
 
   columns = APPLICATIONS_LIST_COLUMNS;
+  columnsEntries = APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS;
 
   private readonly navState: MoveConfirmNavState | undefined =
     isPlatformBrowser(this.platformId)
