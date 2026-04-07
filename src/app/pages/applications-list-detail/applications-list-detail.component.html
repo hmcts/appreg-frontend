@@ -128,23 +128,55 @@
               role="group"
               aria-label="Table actions"
             >
-              <button
-                type="button"
-                class="govuk-button govuk-button--primary govuk-button--small table-caption__action-button"
-                [disabled]="vm().selectedRows.length === 0"
-                (click)="onResultButtonClick()"
-              >
-                Result selected
-              </button>
+              @if (vm().selectedRows.length === 0) {
+                <button
+                  type="button"
+                  class="govuk-button govuk-button--small govuk-button--primary table-caption__action-button"
+                  disabled
+                >
+                  Actions
+                </button>
+              } @else {
+                <div
+                  class="moj-button-menu"
+                  data-module="moj-button-menu"
+                  data-button-text="Actions"
+                  data-align-menu="right"
+                  data-button-classes="govuk-button govuk-button--small govuk-button--primary table-caption__action-button"
+                >
+                  <button
+                    type="button"
+                    class="govuk-button moj-button-menu__item govuk-button--secondary"
+                    (click)="onResultButtonClick()"
+                  >
+                    Result selected
+                  </button>
 
-              <button
-                type="button"
-                class="govuk-button govuk-button--secondary govuk-button--small table-caption__action-button"
-                [disabled]="vm().selectedRows.length === 0"
-                (click)="onMoveButtonClick()"
-              >
-                Move entries
-              </button>
+                  <button
+                    type="button"
+                    class="govuk-button moj-button-menu__item govuk-button--secondary"
+                    (click)="onMoveButtonClick()"
+                  >
+                    Move entries
+                  </button>
+
+                  <button
+                    type="button"
+                    class="govuk-button moj-button-menu__item govuk-button--secondary"
+                    (click)="onPrintContinuousClick()"
+                  >
+                    Print continuous
+                  </button>
+
+                  <button
+                    type="button"
+                    class="govuk-button moj-button-menu__item govuk-button--secondary"
+                    (click)="onPrintPageClick()"
+                  >
+                    Print page
+                  </button>
+                </div>
+              }
             </span>
           </caption>
           <!-- actions slot -->

@@ -545,6 +545,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
+  onPrintContinuousClick(): void {}
+
+  onPrintPageClick(): void {}
+
   readonly patchStateFn = (
     patch: Partial<ApplicationsListDetailState>,
   ): void => {
