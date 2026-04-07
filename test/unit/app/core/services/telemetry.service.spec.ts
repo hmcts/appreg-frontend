@@ -114,8 +114,8 @@ describe('TelemetryService', () => {
     expect(applicationInsightsCtor).toHaveBeenCalledWith({
       config: {
         connectionString: 'InstrumentationKey=abc123',
-        disableAjaxTracking: true,
-        disableFetchTracking: true,
+        disableAjaxTracking: false,
+        disableFetchTracking: false,
         enableAutoRouteTracking: false,
       },
     });
