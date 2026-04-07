@@ -51,8 +51,8 @@ export class TelemetryService {
     this.appInsights = new ApplicationInsights({
       config: {
         connectionString,
-        disableAjaxTracking: true,
-        disableFetchTracking: true,
+        disableAjaxTracking: false,
+        disableFetchTracking: false,
         enableAutoRouteTracking: false,
       },
     });
