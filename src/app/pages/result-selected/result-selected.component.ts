@@ -48,7 +48,7 @@ import {
   templateUrl: './result-selected.component.html',
 })
 export class ResultSelected implements OnInit {
-  private route = inject(ActivatedRoute);
+  private readonly route = inject(ActivatedRoute);
   private readonly platformId = inject(PLATFORM_ID);
   readonly resultsFacade = inject(ApplicationListEntryResultsFacade);
 

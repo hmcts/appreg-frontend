@@ -1,0 +1,128 @@
+<app-breadcrumbs
+  [items]="[
+    { label: 'Applications list', link: '/applications-list' },
+    {
+      label: 'Applications list details',
+      link: '/applications-list/' + vm().listId,
+    },
+  ]"
+/>
+
+<h1 class="govuk-heading-xl">Move applications</h1>
+
+@if (storedRecordsVm().submitted && vm().searchErrors.length) {
+  <app-error-summary
+    [title]="'There is a problem'"
+    [items]="vm().searchErrors"
+    targetId="search"
+    (itemSelect)="onCreateErrorClick($event)"
+  />
+} @else {
+  @if (vm().searchDone && !vm().isLoading && !storedRecordsVm().rows.length) {
+    <app-notification-banner
+      heading="No lists found"
+      body="Try different filters"
+    />
+  }
+}
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
+
+<app-sortable-table
+  id="entry-selected-table"
+  [caption]="'You are moving the following application(s)'"
+  [columns]="columnsEntries"
+  [data]="vm().selectedEntries"
+  appMojButtonMenu
+/>
+
+<!-- Nav to existing create page with params to adjust that page accordingly -->
+<app-page-header
+  title="Search for an existing application list to move to or create a new list"
+  size="m"
+  [actions]="[
+    {
+      label: 'Create new list',
+      routerLink: '/applications-list/create',
+      state: createListState,
+      startIcon: true,
+      variant: 'primary',
+    },
+  ]"
+/>
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
+
+<form [formGroup]="form" (ngSubmit)="onSearch($event)">
+  <app-applications-list-form
+    [form]="form"
+    [mode]="'search'"
+    [showStatusField]="false"
+    [submitted]="storedRecordsVm().submitted"
+    [suggestions]="suggestionsFacade"
+    [getError]="fieldError.bind(this)"
+    [advancedOpen]="searchFormState().isAdvancedSearch"
+    [onToggleAdvanced]="toggleAdvancedSearch.bind(this)"
+  />
+
+  <div class="govuk-button-group">
+    <button id="search" type="submit" class="govuk-button" value="search">
+      Search
+    </button>
+    <button
+      class="govuk-button govuk-button--secondary"
+      type="button"
+      data-module="govuk-button"
+      (click)="clearSearch()"
+    >
+      Clear search
+    </button>
+  </div>
+</form>
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
+
+@if (storedRecordsVm().rows.length) {
+  <!-- Sortable table component -->
+  <app-sortable-table
+    id="sortable-table"
+    caption="Lists"
+    [columns]="columnsLists"
+    [data]="storedRecordsVm().rows"
+    [clientOrServerSort]="'server'"
+    [sortKey]="vm().sortField.key"
+    [sortDirection]="vm().sortField.direction"
+    (sortChange)="onSortChange($event)"
+    appMojButtonMenu
+  >
+    <ng-template #dateTemplate let-row>
+      {{ row.date | dateTime }}
+    </ng-template>
+
+    <ng-template #actionsTemplate let-row>
+      <div class="govuk-button-group">
+        <!-- Open button (only when open) -->
+        <button
+          type="button"
+          class="govuk-button moj-button-menu__item govuk-button--primary"
+          (click)="onSelect(row)"
+        >
+          Select
+        </button>
+      </div>
+    </ng-template>
+  </app-sortable-table>
+
+  <!-- Pager -->
+  <app-pagination
+    [currentPage]="storedRecordsVm().currentPage"
+    [totalPages]="storedRecordsVm().totalPages"
+    (pageChange)="onPageChange($event)"
+  />
+}

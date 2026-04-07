@@ -1,3 +1,4 @@
+import { ApplicationEntriesResultContext } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 
 export interface ApplicationsListCreateState {
@@ -5,6 +6,9 @@ export interface ApplicationsListCreateState {
   createInvalid: boolean;
   submitted: boolean;
   errorHint: string;
+
+  listId: string;
+  entriesToMove: ApplicationEntriesResultContext[];
 }
 
 export const initialApplicationsListCreateState: ApplicationsListCreateState = {
@@ -12,6 +16,8 @@ export const initialApplicationsListCreateState: ApplicationsListCreateState = {
   errorSummary: [],
   createInvalid: false,
   errorHint: 'There is a problem',
+  listId: '',
+  entriesToMove: [],
 };
 
 // Clear all error/success/notification states

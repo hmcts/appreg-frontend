@@ -7,6 +7,5 @@ import { RouterLink } from '@angular/router';
   imports: [RouterLink],
 })
 export class BreadcrumbsComponent {
-  // @Input() items: { label: string; link: string }[] = [];
   items = input<{ label: string; link: string }[]>([]);
 }

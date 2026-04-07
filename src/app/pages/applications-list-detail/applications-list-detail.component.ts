@@ -86,6 +86,7 @@ type ApplicationsListDetailHistoryState = {
     title?: string;
     detail?: string;
   };
+  moveError?: string;
 };
 
 @Component({
@@ -152,6 +153,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.detailSignalState.patch(clearUpdateNotificationsPatch());
     this.setSuccessBanner();
     this.setCloseErrorFromNavigation();
+    this.setMoveErrorFromNavigation();
 
     //Attach validators
     this.form.addValidators([
@@ -220,6 +222,12 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       const createState = history.state as ApplicationsListDetailHistoryState;
       this.listRow = createState.row ?? undefined;
     }
+
+    if (
+      this.route.snapshot.queryParamMap.get('moveEntriesSuccessful') === 'true'
+    ) {
+      this.vm().moveDone = true;
+    }
   }
 
   private setCloseErrorFromNavigation(): void {
@@ -246,6 +254,32 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       updateInvalid: true,
       errorHint: 'There is a problem',
       errorSummary: [{ id: 'status-close', href: '#status', text }],
+      preserveErrorSummaryOnLoad: true,
+    });
+  }
+
+  private setMoveErrorFromNavigation(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const isMoveError =
+      this.route.snapshot.queryParamMap.get('move') === 'error';
+    const moveState = history.state as ApplicationsListDetailHistoryState;
+    const moveError = moveState.moveError;
+
+    if (!isMoveError || !moveError) {
+      return;
+    }
+
+    if (!moveError) {
+      return;
+    }
+
+    this.detailSignalState.patch({
+      updateInvalid: true,
+      errorHint: 'There is a problem',
+      errorSummary: [{ id: '', href: '', text: moveError }],
       preserveErrorSummaryOnLoad: true,
     });
   }
@@ -486,6 +520,27 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       relativeTo: this.route,
       state: {
         resultingApplications,
+      },
+    });
+  }
+
+  onMoveButtonClick(): void {
+    const selected = this.vm().selectedRows as selectedRow[];
+
+    this.detailSignalState.patch(clearUpdateNotificationsPatch());
+
+    const entriesToMove = selected.map((r) => ({
+      id: r.id,
+      sequenceNumber: r.sequenceNumber,
+      applicant: r.applicant,
+      respondent: r.respondent,
+      title: r.title,
+    }));
+
+    void this.router.navigate(['move'], {
+      relativeTo: this.route,
+      state: {
+        entriesToMove,
       },
     });
   }

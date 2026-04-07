@@ -1,6 +1,4 @@
-<app-breadcrumbs
-  [items]="[{ label: 'Applications list', link: '/applications-list' }]"
-/>
+<app-breadcrumbs [items]="breadcrumbs()" />
 
 <h1 class="govuk-heading-xl">Create new applications list</h1>
 
@@ -28,6 +26,16 @@
     <button id="create" type="submit" class="govuk-button" value="create">
       Create
     </button>
+
+    @if (fromMoveApplications()) {
+      <a
+        href="#"
+        (click)="$event.preventDefault(); onCancel()"
+        class="govuk-link govuk-link--no-visited-state"
+      >
+        Cancel
+      </a>
+    }
   </div>
 </form>
 
