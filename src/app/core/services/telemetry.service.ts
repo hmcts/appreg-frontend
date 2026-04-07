@@ -220,7 +220,7 @@ let fallbackIdCounter = 0;
 function createHexId(byteLength: number): string {
   const randomUuid = globalThis.crypto?.randomUUID?.();
   if (randomUuid) {
-    return randomUuid.replace(/-/g, '').slice(0, byteLength * 2);
+    return randomUuid.replaceAll('-', '').slice(0, byteLength * 2);
   }
 
   const bytes = new Uint8Array(byteLength);
