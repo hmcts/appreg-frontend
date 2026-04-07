@@ -11,15 +11,18 @@ import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
+import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail.component';
 import { selectedRow } from '@components/applications-list-detail/util';
 import { ApplicationsListDetailState } from '@components/applications-list-detail/util/applications-list-detail.state';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
+import { PdfService } from '@core/services/pdf.service';
 import { Row } from '@core-types/table/row.types';
 import {
   Applicant,
   ApplicationListEntriesApi,
   ApplicationListGetDetailDto,
+  ApplicationListGetPrintDto,
   ApplicationListStatus,
   ApplicationListsApi,
   CriminalJusticeAreaGetDto,
@@ -62,6 +65,14 @@ type ResultCodeHelpersAccessor = {
   joinResultCodes(resultCodes: string[]): string;
 };
 
+type PrintHelpersAccessor = {
+  filterEntriesToPrint(
+    dto: ApplicationListGetPrintDto,
+  ): ApplicationListGetPrintDto;
+  handlePrintPage(dto: ApplicationListGetPrintDto): Promise<void>;
+  handlePrintContinuous(dto: ApplicationListGetPrintDto): Promise<void>;
+};
+
 describe('ApplicationsListDetail', () => {
   let fixture: ComponentFixture<ApplicationsListDetail>;
   let component: ApplicationsListDetail;
@@ -81,6 +92,17 @@ describe('ApplicationsListDetail', () => {
 
   const menuStub: jest.Mocked<Pick<MojButtonMenu, 'initAll'>> = {
     initAll: jest.fn(),
+  };
+
+  const pdfStub: jest.Mocked<
+    Pick<
+      PdfService,
+      | 'generatePagedApplicationListPdf'
+      | 'generateContinuousApplicationListsPdf'
+    >
+  > = {
+    generatePagedApplicationListPdf: jest.fn(),
+    generateContinuousApplicationListsPdf: jest.fn(),
   };
 
   const refFacadeStub: Pick<ReferenceDataFacade, 'courtLocations$' | 'cja$'> = {
@@ -192,6 +214,7 @@ describe('ApplicationsListDetail', () => {
         { provide: ApplicationListsApi, useValue: apiStub },
         { provide: ApplicationListEntriesApi, useValue: entriesApiStub },
         { provide: MojButtonMenu, useValue: menuStub },
+        { provide: PdfService, useValue: pdfStub },
         { provide: ReferenceDataFacade, useValue: refFacadeStub },
       ],
     }).compileComponents();
@@ -473,6 +496,146 @@ describe('ApplicationsListDetail', () => {
       expect(
         resultCodeHelpers().joinResultCodes([' COST ', '', '  ', 'ADJ']),
       ).toBe('COST, ADJ');
+    });
+  });
+
+  describe('filterEntriesToPrint', () => {
+    const printHelpers = (): PrintHelpersAccessor =>
+      component as unknown as PrintHelpersAccessor;
+
+    it('returns only entries whose ids are selected', () => {
+      patchDetailState({ selectedIds: new Set(['entry-1', 'entry-3']) });
+
+      const dto = {
+        entries: [{ id: 'entry-1' }, { id: 'entry-2' }, { id: 'entry-3' }],
+      } as ApplicationListGetPrintDto;
+
+      const result = printHelpers().filterEntriesToPrint(dto);
+
+      expect(result).toEqual({
+        ...dto,
+        entries: [{ id: 'entry-1' }, { id: 'entry-3' }],
+      });
+    });
+
+    it('returns the dto with an empty entries array when nothing is selected', () => {
+      patchDetailState({ selectedIds: new Set() });
+
+      const dto = {
+        entries: [{ id: 'entry-1' }, { id: 'entry-2' }],
+      } as ApplicationListGetPrintDto;
+
+      const result = printHelpers().filterEntriesToPrint(dto);
+
+      expect(result).toEqual({
+        ...dto,
+        entries: [],
+      });
+    });
+  });
+
+  describe('handlePrintPage', () => {
+    const printHelpers = (): PrintHelpersAccessor =>
+      component as unknown as PrintHelpersAccessor;
+
+    it('patches an error and does not generate a pdf when there are no entries', async () => {
+      const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
+      const dto = { entries: [] } as unknown as ApplicationListGetPrintDto;
+
+      await printHelpers().handlePrintPage(dto);
+
+      expect(pdfStub.generatePagedApplicationListPdf).not.toHaveBeenCalled();
+      expect(patchSpy).toHaveBeenCalledWith({
+        errorSummary: [
+          { text: APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint },
+        ],
+      });
+    });
+
+    it('generates a paged pdf when entries are present', async () => {
+      const dto = {
+        entries: [{ id: 'entry-1' }],
+      } as ApplicationListGetPrintDto;
+
+      await printHelpers().handlePrintPage(dto);
+
+      expect(pdfStub.generatePagedApplicationListPdf).toHaveBeenCalledWith(
+        dto,
+        {
+          crestUrl: '/assets/govuk-crest.png',
+        },
+      );
+    });
+
+    it('patches a retry error when pdf generation fails', async () => {
+      const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
+      const dto = {
+        entries: [{ id: 'entry-1' }],
+      } as ApplicationListGetPrintDto;
+
+      pdfStub.generatePagedApplicationListPdf.mockRejectedValueOnce(
+        new Error('pdf failed'),
+      );
+
+      await printHelpers().handlePrintPage(dto);
+
+      expect(patchSpy).toHaveBeenCalledWith({
+        errorSummary: [
+          { text: APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry },
+        ],
+      });
+    });
+  });
+
+  describe('handlePrintContinuous', () => {
+    const printHelpers = (): PrintHelpersAccessor =>
+      component as unknown as PrintHelpersAccessor;
+
+    it('patches an error and does not generate a pdf when there are no entries', async () => {
+      const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
+      const dto = { entries: [] } as unknown as ApplicationListGetPrintDto;
+
+      await printHelpers().handlePrintContinuous(dto);
+
+      expect(
+        pdfStub.generateContinuousApplicationListsPdf,
+      ).not.toHaveBeenCalled();
+      expect(patchSpy).toHaveBeenCalledWith({
+        errorSummary: [
+          { text: APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint },
+        ],
+      });
+    });
+
+    it('generates a continuous pdf when entries are present', async () => {
+      const dto = {
+        entries: [{ id: 'entry-1' }],
+      } as ApplicationListGetPrintDto;
+
+      await printHelpers().handlePrintContinuous(dto);
+
+      expect(
+        pdfStub.generateContinuousApplicationListsPdf,
+      ).toHaveBeenCalledWith([dto], false);
+    });
+
+    it('patches a generic error when pdf generation fails', async () => {
+      const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
+      const dto = {
+        entries: [{ id: 'entry-1' }],
+      } as ApplicationListGetPrintDto;
+
+      pdfStub.generateContinuousApplicationListsPdf.mockRejectedValueOnce(
+        new Error('pdf failed'),
+      );
+
+      await printHelpers().handlePrintContinuous(dto);
+
+      expect(patchSpy).toHaveBeenCalledWith({
+        errorSummary: [
+          { text: APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric },
+        ],
+      });
     });
   });
 
