@@ -1,7 +1,7 @@
 Feature: Applications List Result
 
-    @regression @applicationsList @ARCPOC-965
-    Scenario Outline: Application List - Result Selected with One ALE
+    @regression @applicationsList @ARCPOC-965 @ARCPOC-1072 @ARCPOC-1267
+    Scenario Outline: Application List - Result Selected - Person Applicant and Respondent
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
             | date      | time   | status   | description   | courtLocationCode   |
@@ -60,15 +60,16 @@ Feature: Applications List Result
         Then User See "Applications" On The Page
         Then User Should See The Button "Result selected" Is Disabled
         When User Checks The Checkbox In Row Of Table "Lists" With:
-            | Sequence number | Account number | Applicant                  | Respondent                | Post code | Title                                          | Fee req | Resulted |
-            | 1               | ACC-{RANDOM}   | Taylor {RANDOM}, Henry, Mr | Clark {RANDOM}, Emily, Ms | BS15 5AA  | Issue of liability order summons - council tax | No      | No       |
+            | Sequence number | Account number | Applicant                        | Respondent                     | Post code | Title                                          | Fee req | Resulted |
+            | 1               | ACC-{RANDOM}   | Mr, Henry James, Taylor {RANDOM} | Ms, Emily Rose, Clark {RANDOM} | BS15 5AA  | Issue of liability order summons - council tax | No      |          |
         Then User Should See The Button "Result selected" Is Enabled
         When User Clicks On The "Result selected" Button
         Then User See "Result applications" On The Page
         Then User Should See Row In Table "Application(s) to result" With Values:
-            | Sequence number | Applicant(s)               | Respondent(s)             | Application Title(s)                           |
-            | 1               | Taylor {RANDOM}, Henry, Mr | Clark {RANDOM}, Emily, Ms | Issue of liability order summons - council tax |
+            | Sequence number | Applicant(s)                     | Respondent(s)                  | Application Title(s)                           |
+            | 1               | Mr, Henry James, Taylor {RANDOM} | Ms, Emily Rose, Clark {RANDOM} | Issue of liability order summons - council tax |
         Then User Selects "RTC - Refer to Court" From The Textbox "Result code" Autocomplete By Typing "RTC"
+
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
@@ -76,8 +77,8 @@ Feature: Applications List Result
             | User  | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                     | Description                             | Entries | Status |
             | user2 | today      | todayiso | todaydisplay | timenowhhmm-3h | BCC026            | Bristol Crown Court Set 3 | Applications to review at Test_{RANDOM} | 1       | OPEN   |
 
-    @regression @applicationsList @ARCPOC-965
-    Scenario Outline: Application List - Result Selected with Multiple ALEs
+    @regression @applicationsList @ARCPOC-965 @ARCPOC-1072 @ARCPOC-1267
+    Scenario Outline: Application List - Result Selected - Organisation Applicant and Respondent
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
             | date      | time   | status   | description   | courtLocationCode   |
