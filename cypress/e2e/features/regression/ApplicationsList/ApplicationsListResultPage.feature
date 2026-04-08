@@ -107,7 +107,7 @@ Feature: Applications List Result
             | User  | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                     | Description                             | Entries | Status |
             | user2 | today      | todayiso | todaydisplay | timenowhhmm-3h | BCC026            | Bristol Crown Court Set 3 | Applications to review at Test_{RANDOM} | 1       | OPEN   |
 
-    @regression @applicationsList @ARCPOC-965 @ARCPOC-1072 @ARCPOC-1267 @PJ
+    @regression @applicationsList @ARCPOC-965 @ARCPOC-1072 @ARCPOC-1267
     Scenario Outline: Application List - Result Selected - Organisation Applicant and Respondent
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
