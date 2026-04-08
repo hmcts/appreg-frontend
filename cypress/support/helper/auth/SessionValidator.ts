@@ -37,7 +37,6 @@ export class SessionValidator {
   }
 
   static waitForSessionEstablishment(): void {
-    cy.wait(AUTH_CONSTANTS.SESSION_WAIT_TIME);
     cy.getCookie(AUTH_CONSTANTS.SESSION_COOKIE_NAME, {
       timeout: TIMEOUT_CONSTANTS.EXTENDED_TIMEOUT,
     }).should('exist');

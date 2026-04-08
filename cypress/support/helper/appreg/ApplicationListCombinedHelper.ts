@@ -12,7 +12,7 @@ export class ApplicationListCombinedHelper {
    * @param criteria - Search criteria object (field label -> value)
    */
   static searchApplicationList(criteria: Record<string, string>): void {
-    AccordionHelper.toggleAccordion('Advanced search');
+    AccordionHelper.ensureAccordionExpanded('Advanced search');
 
     const processedCriteria = processDatatableRow(criteria);
 

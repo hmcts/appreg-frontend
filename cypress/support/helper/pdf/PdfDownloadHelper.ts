@@ -1,9 +1,10 @@
 /// <reference types="cypress" />
 
+import { PDF_CONSTANTS } from '../../constants/ProjectConstants';
 import { TestDataGenerator } from '../../utils/TestDataGenerator';
 
 export class PdfDownloadHelper {
-  private static readonly DOWNLOADS_FOLDER = 'cypress/downloads';
+  private static readonly DOWNLOADS_FOLDER = PDF_CONSTANTS.DOWNLOADS_FOLDER;
 
   static getDownloadsPath(): string {
     return `${Cypress.config('projectRoot')}/${this.DOWNLOADS_FOLDER}`;
@@ -39,7 +40,7 @@ export class PdfDownloadHelper {
 
   static findPdfByName(
     partialName: string,
-    timeout = 10000,
+    timeout = PDF_CONSTANTS.DEFAULT_FIND_TIMEOUT_MS,
   ): Cypress.Chainable<string> {
     const processedName = TestDataGenerator.parseValue(partialName);
     const startTime = Date.now();
@@ -71,7 +72,7 @@ export class PdfDownloadHelper {
           message: `PDF not found yet, retrying... (elapsed: ${elapsed}ms)`,
         });
         return cy
-          .wait(500)
+          .wait(PDF_CONSTANTS.POLL_INTERVAL_MS)
           .then(() => attemptFind() as unknown) as Cypress.Chainable<string>;
       }) as Cypress.Chainable<string>;
     };

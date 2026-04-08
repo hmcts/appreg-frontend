@@ -25,13 +25,9 @@ export class TableHelper {
   ): Cypress.Chainable<string[]> {
     let allValues: string[] = [];
 
-    cy.get('table').should('be.visible').and('not.have.class', 'animating');
-
     function collectPage(): Cypress.Chainable<string[]> {
-      return cy
-        .get('table')
+      return TableElement.findTable(tableCaption)
         .should('be.visible')
-        .and('not.have.class', 'animating')
         .then(() => {
           return TableHelper.getColumnValues(tableCaption, columnName);
         })
@@ -39,7 +35,6 @@ export class TableHelper {
           allValues = allValues.concat(values);
           return TableNavigation.goToNextPageIfExists().then((hasNext) => {
             if (hasNext) {
-              cy.wait(200);
               return collectPage();
             }
             return cy.wrap(allValues);

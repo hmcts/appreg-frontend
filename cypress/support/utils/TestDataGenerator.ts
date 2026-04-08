@@ -39,7 +39,7 @@ export class TestDataGenerator {
    * @param max Maximum number (default: 100000)
    * @returns Random number as string
    */
-  static getRandomNumber(max: number = 100000): string {
+  private static getRandomNumber(max: number = 100000): string {
     return Math.floor(Math.random() * max).toString();
   }
 
@@ -47,7 +47,7 @@ export class TestDataGenerator {
    * Generates a random ID with timestamp for extra uniqueness
    * @returns Unique ID string
    */
-  static getUniqueId(): string {
+  private static getUniqueId(): string {
     const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
     const random = Math.floor(Math.random() * 1000);
     return `${timestamp}${random}`;
@@ -58,7 +58,7 @@ export class TestDataGenerator {
    * @param length Length of the string
    * @returns Random alphanumeric string
    */
-  static getRandomString(length: number = 8): string {
+  private static getRandomString(length: number = 8): string {
     const chars =
       'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let result = '';
@@ -72,7 +72,7 @@ export class TestDataGenerator {
    * Generates a random email address
    * @returns Random email string
    */
-  static getRandomEmail(): string {
+  private static getRandomEmail(): string {
     const user = this.getRandomString(6);
     const domain = this.getRandomString(5);
     return `${user}@${domain}.com`;
@@ -116,6 +116,18 @@ export class TestDataGenerator {
     // Then, replace {RANDOM} placeholders
     parsed = this.replaceRandomPlaceholders(parsed);
 
+    // Resolve standalone random keywords
+    switch (parsed.trim().toLowerCase()) {
+      case 'randomnumber':
+        return this.getRandomNumber();
+      case 'uniqueid':
+        return this.getUniqueId();
+      case 'randomstring':
+        return this.getRandomString();
+      case 'randomemail':
+        return this.getRandomEmail();
+    }
+
     return parsed;
   }
 }
@@ -136,26 +148,7 @@ export function processDatatableRow(
       continue;
     }
 
-    let processedValue = value;
-
-    // Use the centralized parseValue method for date/time and {RANDOM} replacements
-    processedValue = TestDataGenerator.parseValue(processedValue);
-
-    // Optionally, handle other random keywords
-    if (processedValue === 'randomnumber') {
-      processedValue = TestDataGenerator.getRandomNumber();
-    }
-    if (processedValue === 'uniqueid') {
-      processedValue = TestDataGenerator.getUniqueId();
-    }
-    if (processedValue === 'randomstring') {
-      processedValue = TestDataGenerator.getRandomString();
-    }
-    if (processedValue === 'randomemail') {
-      processedValue = TestDataGenerator.getRandomEmail();
-    }
-
-    result[key] = processedValue;
+    result[key] = TestDataGenerator.parseValue(value);
   }
 
   return result;
