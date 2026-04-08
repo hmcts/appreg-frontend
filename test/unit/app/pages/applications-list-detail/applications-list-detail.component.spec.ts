@@ -30,6 +30,7 @@ import {
   EntryPage,
 } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
+import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenu } from '@util/moj-button-menu';
 import { formatPersonName } from '@util/string-helpers';
 
@@ -48,6 +49,12 @@ const flushSignalEffects = async (
 type DetailSignalStateAccessor = {
   detailSignalState: {
     patch: (p: Partial<ApplicationsListDetailState>) => void;
+  };
+};
+
+type PrintRequestSignalAccessor = {
+  printRequest: {
+    set: (value: { id: string; mode: 'page' | 'continuous' } | null) => void;
   };
 };
 
@@ -78,10 +85,14 @@ describe('ApplicationsListDetail', () => {
   let component: ApplicationsListDetail;
 
   const apiStub: jest.Mocked<
-    Pick<ApplicationListsApi, 'getApplicationList' | 'updateApplicationList'>
+    Pick<
+      ApplicationListsApi,
+      'getApplicationList' | 'updateApplicationList' | 'printApplicationList'
+    >
   > = {
     getApplicationList: jest.fn(),
     updateApplicationList: jest.fn(),
+    printApplicationList: jest.fn(),
   };
 
   const entriesApiStub: jest.Mocked<
@@ -151,6 +162,14 @@ describe('ApplicationsListDetail', () => {
           headers: new HttpHeaders({ ETag: '"etag-v1"' }),
         }),
       ),
+    );
+
+    apiStub.printApplicationList.mockReturnValue(
+      of({
+        entries: [{ id: 'entry-1' }, { id: 'entry-2' }],
+      } as ApplicationListGetPrintDto) as unknown as ReturnType<
+        ApplicationListsApi['printApplicationList']
+      >,
     );
 
     const respondent: Applicant = {
@@ -634,6 +653,220 @@ describe('ApplicationsListDetail', () => {
       expect(patchSpy).toHaveBeenCalledWith({
         errorSummary: [
           { text: APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric },
+        ],
+      });
+    });
+  });
+
+  describe('onPrintContinuousClick', () => {
+    it('clears notifications and sets a continuous print request when id exists', () => {
+      const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
+      const setSpy = jest.spyOn(
+        (component as unknown as PrintRequestSignalAccessor).printRequest,
+        'set',
+      );
+
+      component.id = 'list-123';
+
+      component.onPrintContinuousClick();
+
+      expect(patchSpy).toHaveBeenCalledWith({
+        updateDone: false,
+        updateInvalid: false,
+        errorHint: '',
+        errorSummary: [],
+        createDone: false,
+        preserveErrorSummaryOnLoad: false,
+        moveDone: false,
+      });
+      expect(setSpy).toHaveBeenCalledWith({
+        id: 'list-123',
+        mode: 'continuous',
+      });
+    });
+
+    it('clears notifications and does not set a print request when id is missing', () => {
+      const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
+      const setSpy = jest.spyOn(
+        (component as unknown as PrintRequestSignalAccessor).printRequest,
+        'set',
+      );
+
+      component.id = '';
+
+      component.onPrintContinuousClick();
+
+      expect(patchSpy).toHaveBeenCalled();
+      expect(setSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('onPrintPageClick', () => {
+    it('clears notifications and sets a page print request when id exists', () => {
+      const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
+      const setSpy = jest.spyOn(
+        (component as unknown as PrintRequestSignalAccessor).printRequest,
+        'set',
+      );
+
+      component.id = 'list-123';
+
+      component.onPrintPageClick();
+
+      expect(patchSpy).toHaveBeenCalledWith({
+        updateDone: false,
+        updateInvalid: false,
+        errorHint: '',
+        errorSummary: [],
+        createDone: false,
+        preserveErrorSummaryOnLoad: false,
+        moveDone: false,
+      });
+      expect(setSpy).toHaveBeenCalledWith({
+        id: 'list-123',
+        mode: 'page',
+      });
+    });
+
+    it('clears notifications and does not set a print request when id is missing', () => {
+      const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
+      const setSpy = jest.spyOn(
+        (component as unknown as PrintRequestSignalAccessor).printRequest,
+        'set',
+      );
+
+      component.id = '';
+
+      component.onPrintPageClick();
+
+      expect(patchSpy).toHaveBeenCalled();
+      expect(setSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('printRequest effect', () => {
+    it('calls print api, clears the request, filters selected entries, and routes page mode to handlePrintPage', async () => {
+      const setSpy = jest.spyOn(
+        (component as unknown as PrintRequestSignalAccessor).printRequest,
+        'set',
+      );
+      const handlePrintPageSpy = jest
+        .spyOn(
+          component as unknown as {
+            handlePrintPage(dto: ApplicationListGetPrintDto): Promise<void>;
+          },
+          'handlePrintPage',
+        )
+        .mockResolvedValue();
+      const handlePrintContinuousSpy = jest
+        .spyOn(
+          component as unknown as {
+            handlePrintContinuous(
+              dto: ApplicationListGetPrintDto,
+            ): Promise<void>;
+          },
+          'handlePrintContinuous',
+        )
+        .mockResolvedValue();
+
+      patchDetailState({ selectedIds: new Set(['entry-1']) });
+
+      (component as unknown as PrintRequestSignalAccessor).printRequest.set({
+        id: 'list-123',
+        mode: 'page',
+      });
+      await flushSignalEffects(fixture);
+
+      expect(apiStub.printApplicationList).toHaveBeenCalledWith(
+        { listId: 'list-123' },
+        undefined,
+        undefined,
+        {
+          transferCache: false,
+        },
+      );
+      expect(setSpy).toHaveBeenCalledWith(null);
+      expect(handlePrintPageSpy).toHaveBeenCalledWith({
+        entries: [{ id: 'entry-1' }],
+      });
+      expect(handlePrintContinuousSpy).not.toHaveBeenCalled();
+    });
+
+    it('calls print api, clears the request, filters selected entries, and routes continuous mode to handlePrintContinuous', async () => {
+      const setSpy = jest.spyOn(
+        (component as unknown as PrintRequestSignalAccessor).printRequest,
+        'set',
+      );
+      const handlePrintPageSpy = jest
+        .spyOn(
+          component as unknown as {
+            handlePrintPage(dto: ApplicationListGetPrintDto): Promise<void>;
+          },
+          'handlePrintPage',
+        )
+        .mockResolvedValue();
+      const handlePrintContinuousSpy = jest
+        .spyOn(
+          component as unknown as {
+            handlePrintContinuous(
+              dto: ApplicationListGetPrintDto,
+            ): Promise<void>;
+          },
+          'handlePrintContinuous',
+        )
+        .mockResolvedValue();
+
+      patchDetailState({ selectedIds: new Set(['entry-2']) });
+
+      (component as unknown as PrintRequestSignalAccessor).printRequest.set({
+        id: 'list-123',
+        mode: 'continuous',
+      });
+      await flushSignalEffects(fixture);
+
+      expect(apiStub.printApplicationList).toHaveBeenCalledWith(
+        { listId: 'list-123' },
+        undefined,
+        undefined,
+        {
+          transferCache: false,
+        },
+      );
+      expect(setSpy).toHaveBeenCalledWith(null);
+      expect(handlePrintContinuousSpy).toHaveBeenCalledWith({
+        entries: [{ id: 'entry-2' }],
+      });
+      expect(handlePrintPageSpy).not.toHaveBeenCalled();
+    });
+
+    it('clears the request and patches errorSummary when the print api fails', async () => {
+      const requestError = new HttpErrorResponse({
+        status: 500,
+        statusText: 'Server Error',
+        error: { detail: 'Print failed' },
+      });
+      const setSpy = jest.spyOn(
+        (component as unknown as PrintRequestSignalAccessor).printRequest,
+        'set',
+      );
+      const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
+
+      apiStub.printApplicationList.mockReturnValueOnce(
+        throwError(() => requestError),
+      );
+
+      (component as unknown as PrintRequestSignalAccessor).printRequest.set({
+        id: 'list-123',
+        mode: 'page',
+      });
+      await flushSignalEffects(fixture);
+
+      expect(setSpy).toHaveBeenCalledWith(null);
+      expect(patchSpy).toHaveBeenCalledWith({
+        errorSummary: [
+          {
+            text: getProblemText(requestError),
+          },
         ],
       });
     });
