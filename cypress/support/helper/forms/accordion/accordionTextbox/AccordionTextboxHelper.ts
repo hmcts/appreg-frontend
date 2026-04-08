@@ -60,6 +60,7 @@ export class AccordionTextboxHelper {
     AccordionElement.getAccordionContent(accordionTitle)
       .find('input')
       .should('have.attr', 'placeholder', placeholder)
+      .clear()
       .type(value);
   }
 
