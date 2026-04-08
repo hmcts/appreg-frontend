@@ -289,4 +289,37 @@ describe('ApplicationCodeSearchComponent', () => {
       title: 'Title',
     });
   });
+
+  it('syncs child lodgementDate changes to the parent patched form control', () => {
+    const setValue = jest.fn();
+    const get = jest.fn().mockReturnValue({ setValue });
+
+    componentRef.setInput('patchedFormData', {
+      value: {},
+      get,
+    } as unknown as ApplicationsListEntryForm);
+
+    component.ngOnInit();
+    component.form.controls.lodgementDate.setValue('2026-01-01');
+
+    expect(get).toHaveBeenCalledWith('lodgementDate');
+    expect(setValue).toHaveBeenCalledWith('2026-01-01');
+  });
+
+  it('syncs initial lodgementDate to parent patched form control on init', () => {
+    const setValue = jest.fn();
+    const get = jest.fn().mockReturnValue({ setValue });
+
+    componentRef.setInput('patchedFormData', {
+      value: {
+        lodgementDate: '2023-01-01',
+      },
+      get,
+    } as unknown as ApplicationsListEntryForm);
+
+    component.ngOnInit();
+
+    expect(get).toHaveBeenCalledWith('lodgementDate');
+    expect(setValue).toHaveBeenCalledWith('2023-01-01');
+  });
 });

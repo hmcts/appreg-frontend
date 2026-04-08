@@ -1,9 +1,10 @@
 <div id="standard-applicant">
-  <app-selectable-sortable-table
+  <app-sortable-table
     id="standard-applicant-table"
     caption="Standard applicants"
     [columns]="columns"
     [data]="rows"
+    [selectable]="true"
     idField="code"
     [singleSelect]="true"
     [selectedIds]="selectedIds"

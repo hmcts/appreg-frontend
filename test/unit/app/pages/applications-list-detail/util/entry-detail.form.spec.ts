@@ -135,6 +135,14 @@ describe('applications-list entry form builders', () => {
   });
 
   describe('buildStandardApplicationForm', () => {
+    it('lodgementDate is required', () => {
+      const form = buildStandardApplicationForm(fb);
+      form.controls.lodgementDate.setValue(null);
+      form.controls.lodgementDate.updateValueAndValidity();
+
+      expect(form.controls.lodgementDate.errors).toHaveProperty('required');
+    });
+
     it('applicationNotes.caseReference enforces alphanumeric only', () => {
       const form = buildStandardApplicationForm(fb);
       const notesGroup = form.controls.applicationNotes;

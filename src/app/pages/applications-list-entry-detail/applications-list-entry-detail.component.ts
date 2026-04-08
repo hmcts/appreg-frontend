@@ -82,7 +82,7 @@ import {
 import { OfficialsSectionComponent } from '@components/officials-section/officials-section.component';
 import { RespondentSectionComponent } from '@components/respondent-section/respondent-section.component';
 import { ResultWordingSectionComponent } from '@components/result-wording-section/result-wording-section.component';
-import { TableColumn } from '@components/selectable-sortable-table/selectable-sortable-table.component';
+import { TableColumn } from '@components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
 import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
@@ -150,6 +150,7 @@ const UPDATE_ENTRY_ERROR_MESSAGES = ENTRY_ERROR_MESSAGES;
 
 export const ERROR_HREFS = {
   standardApplicantCode: '#standard-applicant',
+  lodgementDate: '#lodgement-date-day',
   ...(OFFICIALS_ERROR_HREFS as Record<string, string>),
   ...(RESPONDENT_PERSON_ERROR_HREFS as Record<string, string>),
 } as const satisfies Record<string, string>;

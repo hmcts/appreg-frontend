@@ -8,9 +8,9 @@ export const appListDetailColumns = [
   { header: 'Account number', field: 'accountNumber' },
   { header: 'Applicant', field: 'applicant' },
   { header: 'Respondent', field: 'respondent' },
-  { header: 'Post code', field: 'postCode' },
+  { header: 'Postcode', field: 'postCode' },
   { header: 'Title', field: 'title' },
-  { header: 'Fee req', field: 'feeReq' },
+  { header: 'Fee', field: 'feeReq' },
   { header: 'Resulted', field: 'resulted' },
   { header: 'Actions', field: 'actions', sortable: false },
 ];

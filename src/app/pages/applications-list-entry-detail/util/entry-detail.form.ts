@@ -164,7 +164,9 @@ export function buildStandardApplicationForm(
         }),
       }) as ApplicationNotesForm,
 
-      lodgementDate: fb.control<string | null>(null),
+      lodgementDate: fb.control<string | null>(null, {
+        validators: [REQUIRED],
+      }),
       courtName: fb.control<string | null>(null),
       organisationName: fb.control<string | null>(null),
       accountReference: fb.control<string | null>(null),
