@@ -208,6 +208,25 @@ export class TableElement {
   }
 
   /**
+   * Gets the currently active pagination link (aria-current="page")
+   * @returns Cypress chainable of the active page anchor
+   */
+  static getActivePageLink(): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy.get('a[aria-current="page"][aria-label^="Page "]');
+  }
+
+  /**
+   * Gets the pagination link for a specific page number
+   * @param pageNumber The 1-based page number
+   * @returns Cypress chainable of the page anchor
+   */
+  static getPageLinkByNumber(
+    pageNumber: number,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy.get(`a[aria-label="Page ${pageNumber}"]`);
+  }
+
+  /**
    * Gets the last page link from pagination
    * @param $body The body element to search within
    * @returns JQuery element of the last page link
@@ -215,14 +234,14 @@ export class TableElement {
   static verifyButtonInTableRows(
     tableCaption: string,
     buttonText: string,
-  ): Cypress.Chainable<JQuery<HTMLElement>> {
+  ): Cypress.Chainable<void> {
     return this.findTable(tableCaption)
       .find('tbody tr')
       .find('td')
       .last()
       .find('button')
       .should('contain', buttonText)
-      .click();
+      .click() as unknown as Cypress.Chainable<void>;
   }
 
   /**
@@ -233,7 +252,7 @@ export class TableElement {
    */
   static verifyCheckboxInTableRows(
     columnValues: Record<string, string>,
-  ): Cypress.Chainable<JQuery<HTMLElement>> {
+  ): Cypress.Chainable<boolean> {
     return TableSearch.searchWithPagination(
       columnValues,
       undefined,
@@ -246,7 +265,7 @@ export class TableElement {
             .should('exist')
             .and('not.be.disabled')
             .check({ force: true });
-        });
+        }) as unknown as Cypress.Chainable<void>;
       },
     );
   }

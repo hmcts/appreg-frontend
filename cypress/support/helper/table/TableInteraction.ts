@@ -31,7 +31,7 @@ export class TableInteraction {
       .find('button')
       .click();
 
-    cy.wait(500);
+    cy.get('table').should('be.visible').and('not.have.class', 'animating');
   }
 
   /**

@@ -36,6 +36,7 @@ export class AccordionHelper {
         this.toggleAccordion(accordionTitle);
       }
     });
+    AccordionElement.getAccordionContent(accordionTitle).should('be.visible');
   }
 
   static ensureAccordionCollapsed(accordionTitle: string): void {

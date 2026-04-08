@@ -3,6 +3,7 @@ import { APP_URLS } from '../../constants/ProjectConstants';
 import { ButtonHelper } from '../forms/button/ButtonHelper';
 
 import { MicrosoftAuthHelper } from './MicrosoftAuthHelper';
+import { SessionValidator } from './SessionValidator';
 
 export class AuthHelper {
   static signInWithMicrosoftSSO(email: string, password: string): void {
@@ -16,6 +17,7 @@ export class AuthHelper {
     MicrosoftAuthHelper.performLogin(email, password);
 
     cy.url({ timeout: 30000 }).should('include', '/applications-list');
+    SessionValidator.waitForSessionEstablishment();
     cy.screenshot('06-Final-ApplicationsList-Page');
     cy.log('SSO login completed');
   }

@@ -60,8 +60,8 @@ Feature: Applications List Result
         Then User See "Applications" On The Page
         Then User Should See The Button "Result selected" Is Disabled
         When User Checks The Checkbox In Row Of Table "Lists" With:
-            | Sequence number | Account number | Applicant                        | Respondent                     | Post code | Title                                          | Fee req | Resulted |
-            | 1               | ACC-{RANDOM}   | Mr, Henry James, Taylor {RANDOM} | Ms, Emily Rose, Clark {RANDOM} | BS15 5AA  | Issue of liability order summons - council tax | No      |          |
+            | Sequence number | Account number | Applicant                        | Respondent                     | Postcode | Title                                          | Fee | Resulted |
+            | 1               | ACC-{RANDOM}   | Mr, Henry James, Taylor {RANDOM} | Ms, Emily Rose, Clark {RANDOM} | BS15 5AA | Issue of liability order summons - council tax | No  |          |
         Then User Should See The Button "Result selected" Is Enabled
         When User Clicks On The "Result selected" Button
         Then User See "Result applications" On The Page
@@ -101,8 +101,8 @@ Feature: Applications List Result
         Then User Should See Tag "Existing" In Summary Card "APPC - Appeal to Crown Court"
         Then User Clicks On The Breadcrumb Link "Applications list details"
         Then User Should See Row In Table "Lists" With Values:
-            | Sequence number | Account number | Applicant                        | Respondent                     | Post code | Title                                          | Fee req | Resulted   |
-            | 1               | ACC-{RANDOM}   | Mr, Henry James, Taylor {RANDOM} | Ms, Emily Rose, Clark {RANDOM} | BS15 5AA  | Issue of liability order summons - council tax | No      | AUTH, APPC |
+            | Sequence number | Account number | Applicant                        | Respondent                     | Postcode | Title                                          | Fee | Resulted   |
+            | 1               | ACC-{RANDOM}   | Mr, Henry James, Taylor {RANDOM} | Ms, Emily Rose, Clark {RANDOM} | BS15 5AA | Issue of liability order summons - council tax | No  | AUTH, APPC |
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
@@ -245,9 +245,9 @@ Feature: Applications List Result
         Then User Should See Tag "Existing" In Summary Card "COST - Costs granted"
         Then User Clicks On The Breadcrumb Link "Applications list details"
         Then User Should See Row In Table "Lists" With Values:
-            | Sequence number | Account number | Applicant                        | Respondent                     | Post code | Title                                          | Fee req | Resulted        |
-            | 1               |                | Test Acme Industries {RANDOM}    | Test Respondent Ltd {RANDOM}   | BS15 5AA  | Issue of liability order summons - council tax | No      | PROA, COST      |
-            | 2               | ACC-{RANDOM}   | Mr, Henry James, Taylor {RANDOM} | Ms, Emily Rose, Clark {RANDOM} | BS15 5AA  | Collection Order - Financial Penalty Account   | No      | RTC, PROA, COST |
+            | Sequence number | Account number | Applicant                        | Respondent                     | Postcode | Title                                          | Fee | Resulted        |
+            | 1               |                | Test Acme Industries {RANDOM}    | Test Respondent Ltd {RANDOM}   | BS15 5AA | Issue of liability order summons - council tax | No  | PROA, COST      |
+            | 2               | ACC-{RANDOM}   | Mr, Henry James, Taylor {RANDOM} | Ms, Emily Rose, Clark {RANDOM} | BS15 5AA | Collection Order - Financial Penalty Account   | No  | RTC, PROA, COST |
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"

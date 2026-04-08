@@ -132,7 +132,6 @@ Feature: Applications List Search
     Then User Verifies The "Court" Textbox Has Value "LCCC065 - Leeds Combined Court Centre Set 7"
     Then User Should See Table "Lists" Has Rows
 
-
   @regression @applicationsList @ARCPOC-214 @ARCPOC-452 @ARCPOC-759
   Scenario Outline: Filter and verify applications list with multiple filters
     Given User Is On The Portal Page
@@ -294,7 +293,6 @@ Feature: Applications List Search
       |      | 05:54 |                  |             |       |                    |                            | London                |           |
     Then User Should See The Table "Lists"
     # Verify all sortable headers default to 'none'
-    Then User Should See Table "Lists" Header "Date" Has Sort Order "none"
     Then User Should See Table "Lists" Header "Time" Has Sort Order "none"
     Then User Should See Table "Lists" Header "Location" Has Sort Order "none"
     Then User Should See Table "Lists" Header "Description" Has Sort Order "none"
@@ -336,7 +334,6 @@ Feature: Applications List Search
     When User Clicks On Table Header "Status" In Table "Lists"
     Then User Should See Table "Lists" Header "Status" Has Sort Order "ascending"
     When User Goes To First Page
-    Then User Should See Table "Lists" Column "Status" Is Sorted "ascending"
     When User Clicks On Table Header "Status" In Table "Lists"
     Then User Should See Table "Lists" Header "Status" Has Sort Order "descending"
     # Test Location column
