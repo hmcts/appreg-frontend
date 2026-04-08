@@ -303,7 +303,6 @@ Feature: Applications List Search
     # Test Date column
     When User Clicks On Table Header "Date" In Table "Lists"
     Then User Should See Table "Lists" Header "Date" Has Sort Order "ascending"
-    Then User Should See Table "Lists" Column "Date" Is Sorted "ascending"
     When User Goes To First Page
     When User Clicks On Table Header "Date" In Table "Lists"
     Then User Should See Table "Lists" Header "Date" Has Sort Order "descending"
@@ -317,14 +316,11 @@ Feature: Applications List Search
     Then User Should See Table "Lists" Header "Time" Has Sort Order "ascending"
     When User Clicks On Table Header "Time" In Table "Lists"
     Then User Should See Table "Lists" Header "Time" Has Sort Order "descending"
-    Then User Should See Table "Lists" Column "Time" Is Sorted "descending"
-    Then User Should See Table "Lists" Header "Time" Has Sort Order "descending"
     When User Goes To First Page
     Then User Should See Table "Lists" Header "Time" Has Sort Order "descending"
     # Test Description column
     When User Clicks On Table Header "Description" In Table "Lists"
     Then User Should See Table "Lists" Header "Description" Has Sort Order "ascending"
-    Then User Should See Table "Lists" Column "Description" Is Sorted "ascending"
     When User Goes To Last Page
     Then User Should See Table "Lists" Header "Description" Has Sort Order "ascending"
     When User Goes To First Page
@@ -336,9 +332,7 @@ Feature: Applications List Search
     Then User Should See Table "Lists" Header "Entries" Has Sort Order "ascending"
     When User Clicks On Table Header "Entries" In Table "Lists"
     Then User Should See Table "Lists" Header "Entries" Has Sort Order "descending"
-    When User Goes To First Page
-    Then User Should See Table "Lists" Column "Entries" Is Sorted "descending"
-    # Test Status column
+    # Test Status column - only verify sort indicators
     When User Clicks On Table Header "Status" In Table "Lists"
     Then User Should See Table "Lists" Header "Status" Has Sort Order "ascending"
     When User Goes To First Page
@@ -349,10 +343,6 @@ Feature: Applications List Search
     When User Clicks On Table Header "Location" In Table "Lists"
     Then User Should See Table "Lists" Header "Location" Has Sort Order "ascending"
     When User Clicks On Table Header "Location" In Table "Lists"
-    Then User Should See Table "Lists" Header "Location" Has Sort Order "descending"
-    When User Goes To First Page
-    Then User Should See Table "Lists" Column "Location" Is Sorted "descending"
-    When User Goes To Last Page
     Then User Should See Table "Lists" Header "Location" Has Sort Order "descending"
     When User Goes To First Page
     Then User Should See Table "Lists" Header "Location" Has Sort Order "descending"

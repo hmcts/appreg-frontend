@@ -540,6 +540,7 @@ Filter tests using `TAGS` environment variable:
 TAGS='@smoke' yarn cypress:run
 TAGS='@regression and @applicationsList' yarn cypress:run
 TAGS='@regression and not @ignore and not @broken' yarn cypress:run
+TEST_URL='https://appreg.demo.apps.hmcts.net' TAGS='(@applicationsList or @referenceData or @authentication) and not @ignore and not @broken' yarn test:parallel:regression:chrome
 ```
 
 **Note:** Use `TAGS` (not `CYPRESS_TAGS`) with the scripts above, as they pass tags via `--env TAGS` which overrides `CYPRESS_TAGS`. For interactive mode without tags, use:

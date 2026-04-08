@@ -14,7 +14,7 @@ export class BannerHelper {
     );
   }
   static verifySuccessBanner(message: string): void {
-    BannerElement.getSuccessAlert()
+    BannerElement.findSuccessAlertByText(message)
       .should('be.visible')
       .invoke('text')
       .then((actualText) => {
