@@ -1,7 +1,11 @@
+import config from 'config';
 import * as express from 'express';
 import helmet from 'helmet';
 
 const self = "'self'";
+const localApiOrigin = 'http://localhost:4550';
+const APP_INSIGHTS_CONNECTION_STRING_KEY =
+  'secrets.appreg.app-insights-connection-string-fe';
 
 /**
  * Module that enables helmet in the application
@@ -16,6 +20,7 @@ export class Helmet {
     // This is strict as we don't run any inline scripts.
     // If any are added in the future, it will need a hash added here.
     const scriptSrc = [self];
+    const connectSrc = [self, localApiOrigin, ...getAppInsightsConnectSrc()];
 
     if (this.developmentMode) {
       // Uncaught EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval'
@@ -29,8 +34,8 @@ export class Helmet {
       helmet({
         contentSecurityPolicy: {
           directives: {
-            connectSrc: ["'self'", 'http://localhost:4550'],
-            defaultSrc: ["'self'", 'http://localhost:4550'],
+            connectSrc,
+            defaultSrc: [self, localApiOrigin],
             fontSrc: [self, 'data:'],
             imgSrc: [self],
             objectSrc: [self],
@@ -42,4 +47,72 @@ export class Helmet {
       }),
     );
   }
+}
+
+function getAppInsightsConnectSrc(): string[] {
+  const connectionString = readTrimmedConfigValue(
+    APP_INSIGHTS_CONNECTION_STRING_KEY,
+  );
+
+  if (!connectionString) {
+    return [];
+  }
+
+  const connectionStringMap = parseConnectionString(connectionString);
+  const origins = new Set<string>();
+
+  for (const endpointKey of ['ingestionendpoint', 'liveendpoint']) {
+    const endpoint = connectionStringMap.get(endpointKey);
+    if (endpoint) {
+      addOrigin(origins, endpoint);
+    }
+  }
+
+  const endpointSuffix = connectionStringMap.get('endpointsuffix');
+  if (endpointSuffix) {
+    const locationPrefix = toLocationPrefix(
+      connectionStringMap.get('location'),
+    );
+    addOrigin(origins, `https://${locationPrefix}dc.${endpointSuffix}`);
+    addOrigin(origins, `https://live.${endpointSuffix}`);
+  }
+
+  return Array.from(origins);
+}
+
+function parseConnectionString(connectionString: string): Map<string, string> {
+  const map = new Map<string, string>();
+
+  for (const segment of connectionString.split(';')) {
+    const [rawKey, ...rawValueParts] = segment.split('=');
+    const key = rawKey?.trim().toLowerCase();
+    const value = rawValueParts.join('=').trim();
+
+    if (key && value) {
+      map.set(key, value);
+    }
+  }
+
+  return map;
+}
+
+function toLocationPrefix(location: string | undefined): string {
+  return location && location.length > 0 ? `${location}.` : '';
+}
+
+function addOrigin(origins: Set<string>, endpoint: string): void {
+  try {
+    origins.add(new URL(endpoint).origin);
+  } catch {
+    // Ignore invalid endpoint values and keep the rest of the policy intact.
+  }
+}
+
+function readTrimmedConfigValue(key: string): string | null {
+  if (!config.has(key)) {
+    return null;
+  }
+
+  const value = String(config.get<string>(key) || '').trim();
+  return value.length > 0 ? value : null;
 }
