@@ -112,7 +112,6 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
   tableRef!: ElementRef<HTMLTableElement>;
 
   private sortableInstance?: { init?: () => void; destroy?: () => void };
-  private serverSortClickHandler?: (event: Event) => void;
 
   private readonly platformId = inject(PLATFORM_ID);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -121,6 +120,11 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
   private readonly selectedIdsState = signal<Set<string>>(new Set<string>());
   private readonly selectedIdsSync = effect(() => {
     this.selectedIdsState.set(this.selectedIds() ?? new Set<string>());
+  });
+  // Keep the rendered server-side sort state aligned with the page state.
+  private readonly sortStateSync = effect(() => {
+    this.sortKeyState.set(this.sortKey() ?? '');
+    this.sortDirectionState.set(this.sortDirection() ?? 'desc');
   });
 
   /** trackBy helper retained for performance */
@@ -137,9 +141,7 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
     // same behaviour you had before
   };
 
-  /** Value for data-sort-value (used by MoJ Sortable table)
-   * Client side sorting
-   */
+  /** Supply a stable value for MoJ client-side sorting without leaking objects into the DOM. */
   getSortValue(row: Row, col: TableColumn): string | null {
     const candidate: unknown = col.sortValue
       ? col.sortValue(row)
@@ -235,9 +237,16 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
     this.updateSelection(next);
   }
 
-  /** Initialise the MoJ SortableTable JS for this table only */
+  /**
+   * Initialise the MoJ sortable table once the real DOM exists.
+   * Server mode deliberately skips MoJ JS so the rendered row order always matches
+   * the latest backend payload.
+   */
   ngAfterViewInit(): void {
-    if (!isPlatformBrowser(this.platformId)) {
+    if (
+      !isPlatformBrowser(this.platformId) ||
+      this.clientOrServerSort() === 'server'
+    ) {
       return;
     }
 
@@ -261,17 +270,6 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
         }
 
         const instance = new SortableCtor(this.tableRef.nativeElement);
-        if (this.clientOrServerSort() === 'server') {
-          // keep MoJ button UI but prevent in-browser row reordering for server mode
-          if (typeof instance.sort === 'function') {
-            instance.sort = (...args: unknown[]) => args[0];
-          }
-          if (typeof instance.addRows === 'function') {
-            instance.addRows = () => undefined;
-          }
-          // use MoJ button clicks to emit server-side sort events
-          this.attachServerSortListener();
-        }
         instance.init?.();
         this.sortableInstance = instance;
       })
@@ -281,52 +279,37 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.serverSortClickHandler) {
-      // Remove delegated click handler
-      this.tableRef.nativeElement.removeEventListener(
-        'click',
-        this.serverSortClickHandler,
-      );
-      this.serverSortClickHandler = undefined;
-    }
     this.sortableInstance?.destroy?.();
   }
 
+  /**
+   * Server mode owns the sort interaction in Angular so the table only ever
+   * renders rows in the exact order returned by the backend.
+   */
   onHeaderClick(
     event: Event | null,
     col: { field: string; sortable?: boolean },
   ): void {
-    if (col.sortable === false) {
+    if (this.clientOrServerSort() !== 'server' || col.sortable === false) {
       return;
     }
 
-    // Prevent native sort handler
     suppressSortEvent(event);
-
-    const key = col.field;
 
     const next = getNextSortState(
       { key: this.sortKeyState(), direction: this.sortDirectionState() },
-      key,
+      col.field,
     );
 
     this.sortKeyState.set(next.key);
     this.sortDirectionState.set(next.direction);
-
-    if (this.clientOrServerSort() === 'server') {
-      this.sortChange.emit(next);
-    }
+    this.sortChange.emit(next);
   }
 
-  // SQ complains about not having a keydown tag in template
   onHeaderKeydown(
     event: KeyboardEvent,
     col: { field: string; sortable?: boolean },
   ): void {
-    if (col.sortable === false) {
-      return;
-    }
-
     if (!isSortActivationKey(event)) {
       return;
     }
@@ -340,48 +323,6 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
       { key: this.sortKeyState(), direction: this.sortDirectionState() },
       key,
       'none',
-    );
-  }
-
-  private attachServerSortListener(): void {
-    if (this.serverSortClickHandler) {
-      return;
-    }
-
-    this.serverSortClickHandler = (event: Event) => {
-      const target = event.target as HTMLElement | null;
-      const heading = target?.closest('th') as HTMLTableCellElement | null;
-      if (!heading?.hasAttribute('aria-sort')) {
-        return;
-      }
-
-      // moj updates aria-sort after handling the click
-      queueMicrotask(() => {
-        const direction = heading.getAttribute('aria-sort');
-        if (direction !== 'ascending' && direction !== 'descending') {
-          return;
-        }
-        const columnIndex = this.selectable()
-          ? heading.cellIndex - 1
-          : heading.cellIndex;
-        const column = this.columns()[columnIndex];
-        if (!column || column.sortable === false) {
-          return;
-        }
-
-        const next: { key: string; direction: 'asc' | 'desc' } = {
-          key: column.field,
-          direction: direction === 'ascending' ? 'asc' : 'desc',
-        };
-        this.sortKeyState.set(next.key);
-        this.sortDirectionState.set(next.direction);
-        this.sortChange.emit(next);
-      });
-    };
-
-    this.tableRef.nativeElement.addEventListener(
-      'click',
-      this.serverSortClickHandler,
     );
   }
 

@@ -59,6 +59,7 @@
           class="govuk-table__header"
           [class.govuk-table__header--numeric]="col.numeric"
           [class.app-sortable-table__cell--wrap]="!col.numeric"
+          [class.app-sortable-table__cell--nowrap]="col.field === 'actions'"
           [attr.aria-sort]="
             col.sortable === false
               ? null
@@ -67,7 +68,24 @@
                 : (col.defaultSort ?? 'none')
           "
         >
-          {{ col.header }}
+          @if (clientOrServerSort() === 'server' && col.sortable !== false) {
+            <button
+              type="button"
+              class="app-sortable-table__header-button"
+              (click)="onHeaderClick($event, col)"
+              (keydown)="onHeaderKeydown($event, col)"
+            >
+              <span class="app-sortable-table__header-label">
+                {{ col.header }}
+              </span>
+              <span
+                class="app-sortable-table__sort-indicator"
+                aria-hidden="true"
+              ></span>
+            </button>
+          } @else {
+            {{ col.header }}
+          }
         </th>
       }
     </tr>
@@ -112,6 +130,7 @@
               class="govuk-table__header"
               [class.govuk-table__cell--numeric]="col.numeric"
               [class.app-sortable-table__cell--wrap]="!col.numeric"
+              [class.app-sortable-table__cell--nowrap]="col.field === 'actions'"
               [attr.data-sort-value]="
                 clientOrServerSort() === 'client' && col.sortable !== false
                   ? getSortValue(row, col)
@@ -131,6 +150,7 @@
               class="govuk-table__cell"
               [class.govuk-table__cell--numeric]="col.numeric"
               [class.app-sortable-table__cell--wrap]="!col.numeric"
+              [class.app-sortable-table__cell--nowrap]="col.field === 'actions'"
               [attr.data-sort-value]="
                 clientOrServerSort() === 'client' && col.sortable !== false
                   ? getSortValue(row, col)

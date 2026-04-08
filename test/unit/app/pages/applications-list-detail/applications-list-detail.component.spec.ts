@@ -728,7 +728,7 @@ describe('ApplicationsListDetail', () => {
     expect(loadSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('onSortChange maps table sort keys to backend sort keys and reloads data', () => {
+  it('onSortChange stores the UI sort key and reloads data', () => {
     const loadSpy = jest
       .spyOn(component, 'loadListDetailsInfo')
       .mockImplementation(() => undefined);
@@ -736,7 +736,7 @@ describe('ApplicationsListDetail', () => {
     component.onSortChange({ key: 'title', direction: 'desc' });
 
     expect(vm().sortField).toEqual({
-      key: 'applicationTitle',
+      key: 'title',
       direction: 'desc',
     });
     expect(loadSpy).toHaveBeenCalledTimes(1);

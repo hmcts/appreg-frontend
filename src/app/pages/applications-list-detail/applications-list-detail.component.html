@@ -104,8 +104,11 @@
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
     />
 
-    @if (!noEntries && !vm().isLoading) {
-      <div class="app-table-scroll">
+    @if (vm().rows.length || (!noEntries && !vm().isLoading)) {
+      <div
+        class="app-table-scroll"
+        [class.app-table-scroll--loading]="vm().isLoading"
+      >
         <!-- Sortable table component -->
         <app-sortable-table
           id="sortable-table"
@@ -179,6 +182,9 @@
             </div>
           </ng-template>
         </app-sortable-table>
+        @if (vm().isLoading) {
+          <div class="app-table-scroll__loading" aria-hidden="true"></div>
+        }
       </div>
     } @else if (noEntries && !vm().isLoading) {
       <app-notification-banner

@@ -495,7 +495,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.loadFailed.set(false);
     this.detailSignalState.patch({ isLoading: true });
     const vm = this.vm();
-    const paramSort = [`${vm.sortField.key},${vm.sortField.direction}`];
+    const apiSortKey =
+      APPLICATION_LIST_DETAIL_SORT_MAP[vm.sortField.key] ?? vm.sortField.key;
+    const paramSort = [`${apiSortKey},${vm.sortField.direction}`];
 
     // replace with table details req
     this.listDetailRequest.set({
@@ -594,7 +596,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
     this.detailSignalState.patch({
       sortField: {
-        key: APPLICATION_LIST_DETAIL_SORT_MAP[sort.key] ?? sort.key,
+        key: sort.key,
         direction: sort.direction,
       },
     });

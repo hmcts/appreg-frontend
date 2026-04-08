@@ -8,7 +8,7 @@ import {
   CivilFeeSectionComponent,
 } from '@components/civil-fee-section/civil-fee-section.component';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
-import { TableColumn } from '@components/selectable-sortable-table/selectable-sortable-table.component';
+import { TableColumn } from '@components/sortable-table/sortable-table.component';
 import { FeeStatus } from '@openapi';
 
 jest.mock('@util/civil-fee-utils', () => ({
