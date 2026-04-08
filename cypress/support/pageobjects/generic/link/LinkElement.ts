@@ -1,10 +1,7 @@
 /// <reference types="cypress" />
 
 export class LinkElement {
-  static findLink(
-    linkText: string,
-    exact: boolean = false,
-  ): Cypress.Chainable<JQuery<HTMLElement>> {
+  static findLink(linkText: string, exact: boolean = false): Cypress.Chainable {
     if (!exact) {
       // preserve previous substring matching behavior (no change to tests)
       return cy.contains('a, button[role="link"]', linkText);
@@ -20,15 +17,11 @@ export class LinkElement {
     return cy.contains('a, button[role="link"]', exactRegex);
   }
 
-  static findLinkExact(
-    linkText: string,
-  ): Cypress.Chainable<JQuery<HTMLElement>> {
+  static findLinkExact(linkText: string): Cypress.Chainable {
     return this.findLink(linkText, true);
   }
 
-  static findBreadcrumbLink(
-    breadcrumbLinkText: string,
-  ): Cypress.Chainable<JQuery<HTMLElement>> {
+  static findBreadcrumbLink(breadcrumbLinkText: string): Cypress.Chainable {
     return cy
       .get(
         'nav[aria-label="breadcrumb"], nav[aria-label="Breadcrumb"], nav[role="navigation"], .breadcrumb, nav.breadcrumbs',
