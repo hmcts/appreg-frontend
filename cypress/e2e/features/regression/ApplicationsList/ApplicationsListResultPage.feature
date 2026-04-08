@@ -68,6 +68,9 @@ Feature: Applications List Result
         Then User Should See Row In Table "Application(s) to result" With Values:
             | Sequence number | Applicant(s)                     | Respondent(s)                  | Application Title(s)                           |
             | 1               | Mr, Henry James, Taylor {RANDOM} | Ms, Emily Rose, Clark {RANDOM} | Issue of liability order summons - council tax |
+        Then User Should See The Button "Save changes" Is Disabled
+        Then User Selects " " From The Textbox "Result code" Autocomplete By Typing "abc"
+        Then User Verifies "No results found" Is Visible Under The "Result code" Textbox
         Then User Selects "RTC - Refer to Court" From The Textbox "Result code" Autocomplete By Typing "RTC"
         Then User Should See Summary Card With Title "RTC - Refer to Court"
         Then User Should See Tag "Pending" In Summary Card "RTC - Refer to Court"
