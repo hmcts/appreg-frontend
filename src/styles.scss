@@ -117,32 +117,6 @@ table {
   margin-bottom: 8px;
 }
 
-.app-sortable-table__cell--wrap {
-  max-width: 20ch;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-/* ------------------------------------------------------------
-   GOVUK / MOJ sortable table: keep sort icon aligned consistently
-   when header text wraps to multiple lines.
-   ------------------------------------------------------------ */
-
-th.govuk-table__header[aria-sort] > button > svg {
-  position: static;
-  top: auto;
-  right: auto;
-  transform: none;
-
-  width: 22px;
-  height: 22px;
-  flex: 0 0 auto;
-  pointer-events: none;
-
-  margin-top: 2px;
-}
-
 .govuk-notification-banner,
 .govuk-error-summary {
   margin-top: 1.5rem;

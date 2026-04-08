@@ -29,7 +29,6 @@ import { Row } from '@core-types/table/row.types';
 import {
   ariaSortFor as ariaSortForUtil,
   getNextSortState,
-  isSortActivationKey,
   suppressSortEvent,
 } from '@util/table-sort';
 
@@ -304,18 +303,6 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
     this.sortKeyState.set(next.key);
     this.sortDirectionState.set(next.direction);
     this.sortChange.emit(next);
-  }
-
-  onHeaderKeydown(
-    event: KeyboardEvent,
-    col: { field: string; sortable?: boolean },
-  ): void {
-    if (!isSortActivationKey(event)) {
-      return;
-    }
-
-    event.preventDefault();
-    this.onHeaderClick(event, col);
   }
 
   ariaSortFor(key: string): 'ascending' | 'descending' | 'none' {

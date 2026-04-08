@@ -142,3 +142,15 @@
 :host ::ng-deep .app-sortable-table__cell--nowrap .govuk-button {
   white-space: nowrap;
 }
+
+:host ::ng-deep th.govuk-table__header[aria-sort] > button > svg {
+  position: static;
+  top: auto;
+  right: auto;
+  transform: none;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  pointer-events: none;
+  margin-top: 2px;
+}

@@ -85,17 +85,30 @@ export class ApplicationCodeSearchComponent implements OnInit {
     title: new FormControl<string | null>(null),
   });
 
+  private setParentLodgementDate(value: string | null): void {
+    const parent = this.patchedFormData() as
+      | { get?: (path: string) => { setValue?: (v: string | null) => void } }
+      | undefined;
+
+    if (typeof parent?.get !== 'function') {
+      return;
+    }
+
+    parent.get('lodgementDate')?.setValue?.(value);
+  }
+
   ngOnInit(): void {
     this.initialPatchFormData();
     this.submitted.set(false);
     this.listId = this.route.snapshot.paramMap.get('id');
+    this.setParentLodgementDate(this.form.controls.lodgementDate.value);
 
     this.form.controls.lodgementDate.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((value) => {
         // Keep the parent form control in sync so parent-level submit validation
         // (required + error summary) always reflects the entered date.
-        this.patchedFormData()?.controls.lodgementDate.setValue(value);
+        this.setParentLodgementDate(value);
       });
 
     this.form.controls.code.valueChanges
