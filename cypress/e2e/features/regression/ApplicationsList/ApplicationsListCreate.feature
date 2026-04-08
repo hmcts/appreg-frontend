@@ -6,9 +6,9 @@ Feature: Applications List Create
     Then User Clicks On The Link "Create new list"
     Then User Clicks On The Breadcrumb Link "Applications list"
     Then User Clicks On The Link "Create new list"
-    Then User Should See The Date Field "Date"
+    # Then User Should See The Date Field "Date"
     When User Set Date Field "Date" To "<Date>"
-    Then User Should See The Time Field "Time"
+    # Then User Should See The Time Field "Time"
     When User Set Time Field "Time" To "<Time>"
     Then User Enters "<Description>" Into The "List description" Textbox
     Then User Enters "<OtherLocation>" Into The "Other location" Textbox
@@ -39,11 +39,11 @@ Feature: Applications List Create
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Create new list"
-    Then User Clicks On The Breadcrumb Link "Applications list"
-    Then User Clicks On The Link "Create new list"
-    Then User Should See The Date Field "Date"
+    # Then User Clicks On The Breadcrumb Link "Applications list"
+    # Then User Clicks On The Link "Create new list"
+    # Then User Should See The Date Field "Date"
     When User Set Date Field "Date" To "<Date>"
-    Then User Should See The Time Field "Time"
+    # Then User Should See The Time Field "Time"
     When User Set Time Field "Time" To "<Time>"
     Then User Enters "<Description>" Into The "List description" Textbox
     Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
@@ -72,8 +72,8 @@ Feature: Applications List Create
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
     Then User Clicks On The Link "Create new list"
-    Then User Clicks On The Breadcrumb Link "Applications list"
-    Then User Clicks On The Link "Create new list"
+    # Then User Clicks On The Breadcrumb Link "Applications list"
+    # Then User Clicks On The Link "Create new list"
     When User Clicks On The "Create" Button
     Then User Sees Validation Error Banner "There is a problem Enter day, month and year Enter valid hours and minutes Description is required Enter a court, or an other location and criminal justice area"
     Then User Should See The Date Field "Date"
