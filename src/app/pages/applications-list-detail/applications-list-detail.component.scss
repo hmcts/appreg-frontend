@@ -11,6 +11,7 @@
 }
 
 .app-table-scroll {
+  position: relative;
   max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -30,6 +31,16 @@
   gap: 1rem;
   justify-content: flex-end;
   align-items: center;
+}
+
+.app-table-scroll--loading {
+  opacity: 0.7;
+}
+
+.app-table-scroll__loading {
+  position: absolute;
+  inset: 0 0 50px 0;
+  pointer-events: none;
 }
 
 .table-caption__actions .moj-button-menu,

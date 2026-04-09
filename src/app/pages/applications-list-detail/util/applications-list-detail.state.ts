@@ -11,6 +11,7 @@ export interface ApplicationsListDetailState {
   currentPage: number;
   pageSize: number;
   totalPages: number;
+  sortField: { key: string; direction: 'desc' | 'asc' };
 
   // rows + selection
   rows: Row[];
@@ -37,6 +38,7 @@ export const initialApplicationsListDetailState: ApplicationsListDetailState = {
   currentPage: 0,
   pageSize: 10,
   totalPages: 0,
+  sortField: { key: 'sequenceNumber', direction: 'asc' },
 
   rows: [],
   selectedIds: new Set<string>(),

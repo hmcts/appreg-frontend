@@ -35,6 +35,7 @@ describe('ApplicationsListUpdateComponent', () => {
     currentPage: 1,
     pageSize: 10,
     totalPages: 1,
+    sortField: { key: 'sequenceNumber', direction: 'asc' },
     rows: [],
     selectedIds: new Set<string>(),
     selectedRows: [],

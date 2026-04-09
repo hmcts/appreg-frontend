@@ -25,8 +25,10 @@ import {
 } from './util/standard-applicant-select.state';
 
 import { PaginationComponent } from '@components/pagination/pagination.component';
-import { SelectableSortableTableComponent } from '@components/selectable-sortable-table/selectable-sortable-table.component';
-import { TableColumn } from '@components/sortable-table/sortable-table.component';
+import {
+  SortableTableComponent,
+  TableColumn,
+} from '@components/sortable-table/sortable-table.component';
 import { StandardApplicantsApi } from '@openapi';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { StandardApplicantRow } from '@util/types/applications-list-entry/types';
@@ -34,11 +36,7 @@ import { StandardApplicantRow } from '@util/types/applications-list-entry/types'
 @Component({
   selector: 'app-standard-applicant-select',
   standalone: true,
-  imports: [
-    CommonModule,
-    SelectableSortableTableComponent,
-    PaginationComponent,
-  ],
+  imports: [CommonModule, SortableTableComponent, PaginationComponent],
   templateUrl: './standard-applicant-select.component.html',
 })
 export class StandardApplicantSelectComponent implements OnInit, OnChanges {

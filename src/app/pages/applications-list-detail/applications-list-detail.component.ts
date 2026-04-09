@@ -46,7 +46,7 @@ import {
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
-import { SelectableSortableTableComponent } from '@components/selectable-sortable-table/selectable-sortable-table.component';
+import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import {
   appListDetailColumns,
@@ -92,6 +92,17 @@ type ApplicationsListDetailHistoryState = {
   moveError?: string;
 };
 
+const APPLICATION_LIST_DETAIL_SORT_MAP: Record<string, string> = {
+  sequenceNumber: 'sequenceNumber',
+  accountNumber: 'accountReference',
+  applicant: 'applicantName',
+  respondent: 'respondentName',
+  postCode: 'respondentPostcode',
+  title: 'applicationTitle',
+  feeReq: 'feeRequired',
+  resulted: 'resulted',
+};
+
 type PrintRequest = {
   id: string;
   mode: 'page' | 'continuous';
@@ -108,7 +119,7 @@ type PrintRequest = {
     SuccessBannerComponent,
     PageHeaderComponent,
     ApplicationsListUpdateComponent,
-    SelectableSortableTableComponent,
+    SortableTableComponent,
     PaginationComponent,
     NotificationBannerComponent,
     MojButtonMenuDirective,
@@ -378,6 +389,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
               listId: req.id,
               pageNumber: req.pageNumber,
               pageSize: req.pageSize,
+              sort: req.sort,
             },
             'response',
             false,
@@ -534,6 +546,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.loadFailed.set(false);
     this.detailSignalState.patch({ isLoading: true });
     const vm = this.vm();
+    const apiSortKey =
+      APPLICATION_LIST_DETAIL_SORT_MAP[vm.sortField.key] ?? vm.sortField.key;
+    const paramSort = [`${apiSortKey},${vm.sortField.direction}`];
 
     // replace with table details req
     this.listDetailRequest.set({
@@ -546,6 +561,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       id: this.id,
       pageNumber: vm.currentPage,
       pageSize: vm.pageSize,
+      sort: paramSort,
     });
   }
 
@@ -648,6 +664,17 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       currentPage: page,
       selectedIds: new Set(), // same behaviour as today
     });
+    this.loadListDetailsInfo();
+  }
+
+  onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    this.detailSignalState.patch({
+      sortField: {
+        key: sort.key,
+        direction: sort.direction,
+      },
+    });
+
     this.loadListDetailsInfo();
   }
 

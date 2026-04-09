@@ -104,15 +104,22 @@
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
     />
 
-    @if (!noEntries && !vm().isLoading) {
-      <div class="app-table-scroll">
+    @if (vm().rows.length || (!noEntries && !vm().isLoading)) {
+      <div
+        class="app-table-scroll"
+        [class.app-table-scroll--loading]="vm().isLoading"
+      >
         <!-- Sortable table component -->
-        <app-selectable-sortable-table
+        <app-sortable-table
           id="sortable-table"
-          caption="Lists"
           [columns]="columns"
           [data]="vm().rows"
+          [selectable]="true"
+          [clientOrServerSort]="'server'"
+          [sortKey]="vm().sortField.key"
+          [sortDirection]="vm().sortField.direction"
           idField="id"
+          (sortChange)="onSortChange($event)"
           (selectedRowsChange)="onSelectedRowsChange($event)"
           [(selectedIds)]="vm().selectedIds"
           appMojButtonMenu
@@ -206,7 +213,10 @@
               </button> -->
             </div>
           </ng-template>
-        </app-selectable-sortable-table>
+        </app-sortable-table>
+        @if (vm().isLoading) {
+          <div class="app-table-scroll__loading" aria-hidden="true"></div>
+        }
       </div>
     } @else if (noEntries && !vm().isLoading) {
       <app-notification-banner

@@ -55,6 +55,7 @@
     @if (vm().formReady) {
       <app-application-code-search
         [patchedFormData]="this.form"
+        [parentSubmitted]="vm().formSubmitted"
         (selectCodeAndLodgementDate)="onCodeSelected($event)"
       />
     }

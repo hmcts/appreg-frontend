@@ -13,9 +13,10 @@ beforeEach(() => {
   cy.viewport(1280, 720); // Set a default viewport size
 });
 
-// Capture screenshots for passed tests (keep failure screenshots via Cypress defaults)
 afterEach(function () {
-  if (this.currentTest && this.currentTest.state === 'passed') {
-    cy.screenshot(`success-${this.currentTest.title}`);
-  }
+  const state = this.currentTest?.state ?? 'unknown';
+  const title = (this.currentTest?.title ?? 'unnamed')
+    .replace(/[^a-zA-Z0-9-_]/g, '_')
+    .slice(0, 80);
+  cy.screenshot(`${state}/${title}`, { overwrite: true });
 });

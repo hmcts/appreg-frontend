@@ -8,6 +8,7 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ContentChild,
   ElementRef,
@@ -17,6 +18,7 @@ import {
   ViewChild,
   computed,
   contentChild,
+  effect,
   inject,
   input,
   output,
@@ -27,7 +29,6 @@ import { Row } from '@core-types/table/row.types';
 import {
   ariaSortFor as ariaSortForUtil,
   getNextSortState,
-  isSortActivationKey,
   suppressSortEvent,
 } from '@util/table-sort';
 
@@ -48,6 +49,7 @@ export type TableColumn = {
   standalone: true,
   imports: [CommonModule],
   templateUrl: './sortable-table.component.html',
+  styleUrl: './sortable-table.component.scss',
 })
 export class SortableTableComponent implements AfterViewInit, OnDestroy {
   @ContentChild('actionsTemplate', { read: TemplateRef })
@@ -98,15 +100,31 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
   trackBy = input<((index: number, row: Row) => unknown) | undefined>(
     undefined,
   );
+  selectable = input(false);
+  selectedIds = input<Set<string>>(new Set<string>());
+  selectedIdsChange = output<Set<string>>();
+  selectedRowsChange = output<Row[]>();
+  idPrefix = input('apps-');
+  singleSelect = input(false);
+
   @ViewChild('mojTable', { static: true })
   tableRef!: ElementRef<HTMLTableElement>;
 
   private sortableInstance?: { init?: () => void; destroy?: () => void };
-  private serverSortClickHandler?: (event: Event) => void;
 
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly cdr = inject(ChangeDetectorRef);
   private readonly sortKeyState = signal<string>('');
   private readonly sortDirectionState = signal<'desc' | 'asc'>('desc');
+  private readonly selectedIdsState = signal<Set<string>>(new Set<string>());
+  private readonly selectedIdsSync = effect(() => {
+    this.selectedIdsState.set(this.selectedIds() ?? new Set<string>());
+  });
+  // Keep the rendered server-side sort state aligned with the page state.
+  private readonly sortStateSync = effect(() => {
+    this.sortKeyState.set(this.sortKey() ?? '');
+    this.sortDirectionState.set(this.sortDirection() ?? 'desc');
+  });
 
   /** trackBy helper retained for performance */
   trackRow = (index: number, row: Row): unknown => {
@@ -122,9 +140,7 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
     // same behaviour you had before
   };
 
-  /** Value for data-sort-value (used by MoJ Sortable table)
-   * Client side sorting
-   */
+  /** Supply a stable value for MoJ client-side sorting without leaking objects into the DOM. */
   getSortValue(row: Row, col: TableColumn): string | null {
     const candidate: unknown = col.sortValue
       ? col.sortValue(row)
@@ -150,9 +166,86 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
     return null;
   }
 
-  /** Initialise the MoJ SortableTable JS for this table only */
+  get visibleIds(): string[] {
+    return (this.data() ?? [])
+      .map((row) => this.getRowId(row))
+      .filter((id): id is string => !!id);
+  }
+
+  get allVisibleSelected(): boolean {
+    const ids = this.visibleIds;
+    const selected = this.selectedIdsState();
+    return ids.length > 0 && ids.every((id) => selected.has(id));
+  }
+
+  get someVisibleSelected(): boolean {
+    const ids = this.visibleIds;
+    const selected = this.selectedIdsState();
+    return ids.some((id) => selected.has(id));
+  }
+
+  get firstColField(): string {
+    return this.columns()[0]?.field ?? '';
+  }
+
+  isSelected(row: Row): boolean {
+    const id = this.getRowId(row);
+    return !!id && this.selectedIdsState().has(id);
+  }
+
+  getRowId(row: Row): string {
+    return this.coerceRowId(row) ?? '';
+  }
+
+  toggleSelectAllVisible(checked: boolean): void {
+    if (this.singleSelect()) {
+      return;
+    }
+    const next = new Set(this.selectedIdsState());
+    for (const id of this.visibleIds) {
+      if (checked) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
+    }
+    this.updateSelection(next);
+  }
+
+  toggleOne(row: Row, checked: boolean): void {
+    const id = this.getRowId(row);
+    if (!id) {
+      return;
+    }
+
+    let next: Set<string>;
+    if (this.singleSelect()) {
+      next = new Set<string>();
+      if (checked) {
+        next.add(id);
+      }
+    } else {
+      next = new Set(this.selectedIdsState());
+      if (checked) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
+    }
+
+    this.updateSelection(next);
+  }
+
+  /**
+   * Initialise the MoJ sortable table once the real DOM exists.
+   * Server mode deliberately skips MoJ JS so the rendered row order always matches
+   * the latest backend payload.
+   */
   ngAfterViewInit(): void {
-    if (!isPlatformBrowser(this.platformId)) {
+    if (
+      !isPlatformBrowser(this.platformId) ||
+      this.clientOrServerSort() === 'server'
+    ) {
       return;
     }
 
@@ -176,17 +269,6 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
         }
 
         const instance = new SortableCtor(this.tableRef.nativeElement);
-        if (this.clientOrServerSort() === 'server') {
-          // keep MoJ button UI but prevent in-browser row reordering for server mode
-          if (typeof instance.sort === 'function') {
-            instance.sort = (...args: unknown[]) => args[0];
-          }
-          if (typeof instance.addRows === 'function') {
-            instance.addRows = () => undefined;
-          }
-          // use MoJ button clicks to emit server-side sort events
-          this.attachServerSortListener();
-        }
         instance.init?.();
         this.sortableInstance = instance;
       })
@@ -196,58 +278,31 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.serverSortClickHandler) {
-      // Remove delegated click handler
-      this.tableRef.nativeElement.removeEventListener(
-        'click',
-        this.serverSortClickHandler,
-      );
-      this.serverSortClickHandler = undefined;
-    }
     this.sortableInstance?.destroy?.();
   }
 
+  /**
+   * Server mode owns the sort interaction in Angular so the table only ever
+   * renders rows in the exact order returned by the backend.
+   */
   onHeaderClick(
     event: Event | null,
     col: { field: string; sortable?: boolean },
   ): void {
-    if (col.sortable === false) {
+    if (this.clientOrServerSort() !== 'server' || col.sortable === false) {
       return;
     }
 
-    // Prevent native sort handler
     suppressSortEvent(event);
-
-    const key = col.field;
 
     const next = getNextSortState(
       { key: this.sortKeyState(), direction: this.sortDirectionState() },
-      key,
+      col.field,
     );
 
     this.sortKeyState.set(next.key);
     this.sortDirectionState.set(next.direction);
-
-    if (this.clientOrServerSort() === 'server') {
-      this.sortChange.emit(next);
-    }
-  }
-
-  // SQ complains about not having a keydown tag in template
-  onHeaderKeydown(
-    event: KeyboardEvent,
-    col: { field: string; sortable?: boolean },
-  ): void {
-    if (col.sortable === false) {
-      return;
-    }
-
-    if (!isSortActivationKey(event)) {
-      return;
-    }
-
-    event.preventDefault();
-    this.onHeaderClick(event, col);
+    this.sortChange.emit(next);
   }
 
   ariaSortFor(key: string): 'ascending' | 'descending' | 'none' {
@@ -258,42 +313,40 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
     );
   }
 
-  private attachServerSortListener(): void {
-    if (this.serverSortClickHandler) {
-      return;
+  private coerceRowId(row: Row): string | null {
+    const idField = this.idField();
+    if (!idField) {
+      return null;
     }
 
-    this.serverSortClickHandler = (event: Event) => {
-      const target = event.target as HTMLElement | null;
-      const heading = target?.closest('th') as HTMLTableCellElement | null;
-      if (!heading?.hasAttribute('aria-sort')) {
-        return;
-      }
+    const value = row[idField];
+    if (typeof value === 'string') {
+      return value;
+    }
+    if (typeof value === 'number') {
+      return String(value);
+    }
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+    if (typeof value === 'boolean') {
+      return value ? '1' : '0';
+    }
 
-      // moj updates aria-sort after handling the click
-      queueMicrotask(() => {
-        const direction = heading.getAttribute('aria-sort');
-        if (direction !== 'ascending' && direction !== 'descending') {
-          return;
-        }
-        const column = this.columns()[heading.cellIndex];
-        if (!column || column.sortable === false) {
-          return;
-        }
+    return null;
+  }
 
-        const next: { key: string; direction: 'asc' | 'desc' } = {
-          key: column.field,
-          direction: direction === 'ascending' ? 'asc' : 'desc',
-        };
-        this.sortKeyState.set(next.key);
-        this.sortDirectionState.set(next.direction);
-        this.sortChange.emit(next);
-      });
-    };
+  private updateSelection(next: Set<string>): void {
+    this.selectedIdsState.set(next);
+    this.selectedIdsChange.emit(next);
+    this.selectedRowsChange.emit(this.getSelectedRows());
+    this.cdr.markForCheck();
+  }
 
-    this.tableRef.nativeElement.addEventListener(
-      'click',
-      this.serverSortClickHandler,
-    );
+  private getSelectedRows(): Row[] {
+    const ids = Array.from(this.selectedIdsState());
+    return ids
+      .map((id) => (this.data() ?? []).find((row) => this.getRowId(row) === id))
+      .filter((row): row is Row => !!row);
   }
 }

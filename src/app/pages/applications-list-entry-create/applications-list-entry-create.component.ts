@@ -96,6 +96,10 @@ import { buildFormErrorSummary } from '@util/error-summary';
 import { respondentFormsHaveAnyValue } from '@util/respondent-helpers';
 import { createSignalState } from '@util/signal-state-helpers';
 
+const ENTRY_CREATE_ERROR_HREFS = {
+  lodgementDate: '#lodgement-date-day',
+} as const satisfies Record<string, string>;
+
 @Component({
   selector: 'app-applications-list-entry-create',
   standalone: true,
@@ -284,6 +288,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   private buildErrorSummary(): ErrorItem[] {
     return buildFormErrorSummary(this.form, ENTRY_ERROR_MESSAGES, {
       nested: [{ path: 'applicationNotes', prefixId: 'applicationNotes' }],
+      hrefs: ENTRY_CREATE_ERROR_HREFS,
     });
   }
 

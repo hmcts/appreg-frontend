@@ -1124,6 +1124,20 @@ describe('ApplicationsListDetail', () => {
     expect(loadSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('onSortChange stores the UI sort key and reloads data', () => {
+    const loadSpy = jest
+      .spyOn(component, 'loadListDetailsInfo')
+      .mockImplementation(() => undefined);
+
+    component.onSortChange({ key: 'title', direction: 'desc' });
+
+    expect(vm().sortField).toEqual({
+      key: 'title',
+      direction: 'desc',
+    });
+    expect(loadSpy).toHaveBeenCalledTimes(1);
+  });
+
   describe('noEntries', () => {
     it('is false while loading', () => {
       patchDetailState({ isLoading: true, updateInvalid: false, rows: [] });
@@ -1148,6 +1162,7 @@ describe('ApplicationsListDetail', () => {
       patchDetailState({
         currentPage: 1,
         pageSize: 10,
+        sortField: { key: 'sequenceNumber', direction: 'asc' },
         selectedIds: new Set(['stale-id']),
       });
 
@@ -1180,6 +1195,18 @@ describe('ApplicationsListDetail', () => {
 
       component.loadListDetailsInfo();
       await flushSignalEffects(fixture);
+
+      expect(entriesApiStub.getApplicationListEntries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          listId: 'list-123',
+          pageNumber: 1,
+          pageSize: 10,
+          sort: ['sequenceNumber,asc'],
+        }),
+        'response',
+        false,
+        { transferCache: false },
+      );
 
       expect(apiStub.getApplicationList).toHaveBeenNthCalledWith(
         2,

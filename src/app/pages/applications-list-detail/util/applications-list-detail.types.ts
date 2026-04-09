@@ -50,7 +50,7 @@ export type tableDataReq = {
   pageNumber: number;
   pageSize: number;
   filter?: { field: string; value: string }[];
-  sort?: { field: string; direction: 'asc' | 'desc' }[];
+  sort?: string[];
 };
 export type UpdateReq = {
   id: string;

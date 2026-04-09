@@ -477,6 +477,39 @@ describe('ApplicationsList – search', () => {
     expect(args.filter).toEqual({ status: 'CLOSED' });
   });
 
+  it('onSortChange stores the UI sort key and reloads data', () => {
+    const loadSpy = jest
+      .spyOn(component, 'loadApplicationsLists')
+      .mockImplementation(() => undefined);
+
+    component.onSortChange({ key: 'entries', direction: 'desc' });
+
+    expect(getUIFlagState(component).sortField).toEqual({
+      key: 'entries',
+      direction: 'desc',
+    });
+    expect(loadSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('maps the stored UI sort key to the backend sort param when loading', async () => {
+    jest.spyOn(LoadQuery, 'loadQuery').mockReturnValue({
+      status: ApplicationListStatus.OPEN,
+    } as ApplicationListGetFilterDto);
+
+    patchUIState(component, {
+      sortField: { key: 'entries', direction: 'desc' },
+    });
+
+    service.getApplicationLists.mockReturnValue(of(pageStub([])));
+
+    component.loadApplicationsLists(true);
+    await flushSignalEffects(fixture);
+
+    const args = service.getApplicationLists.mock
+      .calls[0][0] as GetApplicationListsRequestParams;
+    expect(args.sort).toEqual(['entriesCount,desc']);
+  });
+
   describe('onSubmit', () => {
     it('collects date/time validation errors and does not run search', () => {
       const spy = jest.spyOn(component, 'loadApplicationsLists');

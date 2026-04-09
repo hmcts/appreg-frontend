@@ -201,6 +201,27 @@ Run below to run code using Staging connectivity (VPN required)
 yarn dev:stg
 ```
 
+## Application Insights
+
+Frontend browser telemetry is configured at runtime from `GET /app/config`.
+The browser SDK is enabled automatically outside local/test environments when
+`secrets.appreg.app-insights-connection-string-fe` is available.
+
+For local development, telemetry stays off by default even if the connection
+string exists. To opt in locally, set:
+
+```bash
+APPINSIGHTS_ENABLED=true
+```
+
+Implementation notes:
+
+- Browser exceptions are sent through the Angular `ErrorHandler` override.
+- Failed Angular `HttpClient` requests are logged from the error interceptor.
+- Route changes are logged as page views.
+- Telemetry payloads only include route and request paths, status data, and
+  correlation IDs when present. Query strings and response bodies are excluded.
+
 ### Troubleshooting (Windows)
 
 #### Node
@@ -519,6 +540,7 @@ Filter tests using `TAGS` environment variable:
 TAGS='@smoke' yarn cypress:run
 TAGS='@regression and @applicationsList' yarn cypress:run
 TAGS='@regression and not @ignore and not @broken' yarn cypress:run
+TEST_URL='https://appreg.demo.apps.hmcts.net' TAGS='(@applicationsList or @referenceData or @authentication) and not @ignore and not @broken' yarn test:parallel:regression:chrome
 ```
 
 **Note:** Use `TAGS` (not `CYPRESS_TAGS`) with the scripts above, as they pass tags via `--env TAGS` which overrides `CYPRESS_TAGS`. For interactive mode without tags, use:

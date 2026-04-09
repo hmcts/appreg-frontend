@@ -11,7 +11,10 @@ import {
 } from '@angular/router';
 import { Observable, of } from 'rxjs';
 
-import { ApplicationsListEntryDetail } from '@components/applications-list-entry-detail/applications-list-entry-detail.component';
+import {
+  ApplicationsListEntryDetail,
+  ERROR_HREFS,
+} from '@components/applications-list-entry-detail/applications-list-entry-detail.component';
 import {
   buildOfficialsFromFormValue,
   officialsToFormPatch,
@@ -168,6 +171,10 @@ describe('ApplicationsListEntryDetail', () => {
     component = fixture.componentInstance;
 
     fixture.detectChanges();
+  });
+
+  it('maps lodgementDate error summary links to the date input day field', () => {
+    expect(ERROR_HREFS.lodgementDate).toBe('#lodgement-date-day');
   });
 
   it('ngOnInit loads entry and application code and patches form', () => {

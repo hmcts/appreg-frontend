@@ -20,6 +20,7 @@ import { Helmet } from './modules/helmet';
 import { HmctsLoggerBridge } from './modules/logger';
 import { PropertiesVolume } from './modules/properties-volume';
 import { getRedisUrl } from './redis-config';
+import { setupAppConfigRoute } from './routes/app-config';
 import { setupHealthcheck } from './routes/health';
 import { setupInfoRoute } from './routes/info';
 import { getCca, setupSsoRoutes } from './routes/sso';
@@ -209,6 +210,7 @@ async function bootstrap(): Promise<void> {
 
   // Node routes mounted locally
   setupHealthcheck(app);
+  setupAppConfigRoute(app);
   setupInfoRoute(app);
   if (bypassSso) {
     logger.warn('DEV_BYPASS_SSO=true: SSO is bypassed for local development');

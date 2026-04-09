@@ -301,6 +301,16 @@ describe('ApplicationsListCreate', () => {
     ]);
   });
 
+  it('does not redirect when opened directly without move state', async () => {
+    const router = TestBed.inject(Router);
+    const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    await createComponent({});
+
+    expect(navigateSpy).not.toHaveBeenCalledWith(['/applications-list']);
+    expect(component.fromMoveApplications()).toBe(false);
+  });
+
   it('redirects to applications list when move state is incomplete', async () => {
     const router = TestBed.inject(Router);
     const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);

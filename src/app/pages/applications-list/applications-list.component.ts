@@ -435,10 +435,9 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   }
 
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
-    // Ensure the keys are correct (titles != backend sort key)
     this.appListSignalState.patch({
       sortField: {
-        key: APPLICATION_LIST_SORT_MAP[sort.key] ?? sort.key,
+        key: sort.key,
         direction: sort.direction,
       },
     });
@@ -477,7 +476,9 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
 
     const r = this.storedRecordsState.state();
 
-    const sortFieldKey = this.appListState().sortField.key;
+    const sortFieldKey =
+      APPLICATION_LIST_SORT_MAP[this.appListState().sortField.key] ??
+      this.appListState().sortField.key;
     const sortFieldDirection = this.appListState().sortField.direction;
 
     // Sorts are in the form of ['key,direction']

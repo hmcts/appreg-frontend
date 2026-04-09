@@ -24,11 +24,11 @@ export class TableNavigation {
             .wrap($freshButton.first())
             .click({ force: true })
             .then(() => {
-              cy.wait(500);
-              return cy
-                .get('table')
-                .should('be.visible')
-                .and('not.have.class', 'animating');
+              TableElement.getActivePageLink().should(
+                'not.have.attr',
+                'aria-label',
+                `Page ${currentPage}`,
+              );
             })
             .then(() => {
               // Verify page actually changed
@@ -62,17 +62,19 @@ export class TableNavigation {
       }
       // Re-query to prevent element detachment
       return cy.get('body').then(($freshBody) => {
+        const currentPage = TableElement.getCurrentPageNumber($freshBody);
         const $freshButton =
           TableElement.getEnabledNextPaginationButton($freshBody);
         return cy
           .wrap($freshButton.first())
           .click({ force: true })
           .then(() => {
-            cy.wait(500);
-            return cy
-              .get('table')
-              .should('be.visible')
-              .and('not.have.class', 'animating');
+            // Wait for the pagination aria-current to reflect the new page
+            TableElement.getActivePageLink().should(
+              'not.have.attr',
+              'aria-label',
+              `Page ${currentPage}`,
+            );
           })
           .then(() => TableNavigation.navigateToLastPage())
           .then(() => true);
@@ -96,11 +98,12 @@ export class TableNavigation {
           .wrap($page1Link.first())
           .click({ force: true })
           .then(() => {
-            cy.wait(500);
-            return cy
-              .get('table')
-              .should('be.visible')
-              .and('not.have.class', 'animating');
+            // Wait for page 1 to become the active page
+            TableElement.getPageLinkByNumber(1).should(
+              'have.attr',
+              'aria-current',
+              'page',
+            );
           })
           .then(() => true);
       }

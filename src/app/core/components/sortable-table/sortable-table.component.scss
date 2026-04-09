@@ -1,0 +1,156 @@
+:host ::ng-deep .govuk-table__body .govuk-table__cell,
+:host ::ng-deep .govuk-table__body .govuk-table__header {
+  vertical-align: top;
+}
+
+:host ::ng-deep .govuk-table__body .moj-multi-select__checkbox {
+  margin-top: 2px;
+}
+
+.govuk-checkboxes__label {
+  padding: 0;
+}
+
+:host ::ng-deep thead .app-sortable-table__cell--wrap {
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.app-sortable-table__cell--nowrap {
+  white-space: nowrap;
+}
+
+:host
+  ::ng-deep
+  .govuk-table__header[aria-sort]
+  > .app-sortable-table__header-button,
+:host
+  ::ng-deep
+  .govuk-table__header[aria-sort]
+  > .app-sortable-table__header-button:hover {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  border-width: 0;
+  color: #005ea5;
+  background-color: transparent;
+  box-shadow: 0 0 0 0;
+  font-family: inherit;
+  font-weight: inherit;
+  text-align: inherit;
+  line-height: 1.25;
+  white-space: normal;
+  cursor: pointer;
+}
+
+:host ::ng-deep .app-sortable-table__header-label {
+  display: block;
+  min-width: 0;
+}
+
+:host ::ng-deep .app-sortable-table__sort-indicator {
+  position: relative;
+  flex: 0 0 0.75rem;
+  width: 0.75rem;
+  min-width: 0.75rem;
+  height: 0.9rem;
+}
+
+:host ::ng-deep .app-sortable-table__sort-indicator::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 0.24rem);
+  width: 0;
+  height: 0;
+  border-right: 0.2rem solid transparent;
+  border-left: 0.2rem solid transparent;
+  border-top: 0.34rem solid currentColor;
+  transform: translate(-50%, -50%);
+}
+
+:host ::ng-deep .app-sortable-table__sort-indicator::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: calc(50% - 0.24rem);
+  width: 0;
+  height: 0;
+  border-right: 0.2rem solid transparent;
+  border-bottom: 0.34rem solid currentColor;
+  border-left: 0.2rem solid transparent;
+  transform: translate(-50%, -50%);
+}
+
+:host
+  ::ng-deep
+  .govuk-table__header[aria-sort='ascending']
+  .app-sortable-table__sort-indicator::before,
+:host
+  ::ng-deep
+  .govuk-table__header[aria-sort='descending']
+  .app-sortable-table__sort-indicator::before {
+  content: none;
+}
+
+:host
+  ::ng-deep
+  .govuk-table__header[aria-sort='ascending']
+  .app-sortable-table__sort-indicator::after {
+  content: '';
+  top: 50%;
+  border-right-width: 0.36rem;
+  border-bottom-width: 0.61rem;
+  border-left-width: 0.36rem;
+  transform: translate(-50%, -50%);
+}
+
+:host
+  ::ng-deep
+  .govuk-table__header[aria-sort='descending']
+  .app-sortable-table__sort-indicator::after {
+  content: '';
+  top: 50%;
+  border-right-width: 0.36rem;
+  border-top-width: 0.61rem;
+  border-bottom-width: 0;
+  border-left-width: 0.36rem;
+  border-top-style: solid;
+  border-top-color: currentColor;
+  transform: translate(-50%, -50%);
+}
+
+:host
+  ::ng-deep
+  .govuk-table__header[aria-sort]
+  > .app-sortable-table__header-button:focus {
+  outline: none;
+  color: #0b0c0c;
+  background-color: #ffdd00;
+  box-shadow:
+    0 -2px #ffdd00,
+    0 4px #0b0c0c;
+}
+
+:host ::ng-deep .app-sortable-table__cell--nowrap .moj-button-menu,
+:host ::ng-deep .app-sortable-table__cell--nowrap .moj-button-menu__toggle,
+:host ::ng-deep .app-sortable-table__cell--nowrap .moj-button-menu__item,
+:host ::ng-deep .app-sortable-table__cell--nowrap .govuk-button {
+  white-space: nowrap;
+}
+
+:host ::ng-deep th.govuk-table__header[aria-sort] > button > svg {
+  position: static;
+  top: auto;
+  right: auto;
+  transform: none;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  pointer-events: none;
+  margin-top: 2px;
+}

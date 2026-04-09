@@ -1,7 +1,7 @@
 Feature: Applications List Result
 
-    @regression @applicationsList @ARCPOC-965
-    Scenario Outline: Application List - Result Selected with One ALE
+    @regression @applicationsList @ARCPOC-965 @ARCPOC-1072 @ARCPOC-1267
+    Scenario Outline: Application List - Result Selected - Person Applicant and Respondent
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
             | date      | time   | status   | description   | courtLocationCode   |
@@ -60,15 +60,49 @@ Feature: Applications List Result
         Then User See "Applications" On The Page
         Then User Should See The Button "Result selected" Is Disabled
         When User Checks The Checkbox In Row Of Table "Lists" With:
-            | Sequence number | Account number | Applicant                        | Respondent                      | Post code | Title                                          | Fee req | Resulted |
-            | 1               | ACC-{RANDOM}   | Mr, Henry James, Taylor {RANDOM} | Ms, Emily Rose, Clark {RANDOMA} | BS15 5AA  | Issue of liability order summons - council tax | No      |          |
+            | Sequence number | Account number | Applicant                        | Respondent                     | Postcode | Title                                          | Fee | Resulted |
+            | 1               | ACC-{RANDOM}   | Mr, Henry James, Taylor {RANDOM} | Ms, Emily Rose, Clark {RANDOM} | BS15 5AA | Issue of liability order summons - council tax | No  |          |
         Then User Should See The Button "Result selected" Is Enabled
         When User Clicks On The "Result selected" Button
         Then User See "Result applications" On The Page
         Then User Should See Row In Table "Application(s) to result" With Values:
             | Sequence number | Applicant(s)                     | Respondent(s)                  | Application Title(s)                           |
             | 1               | Mr, Henry James, Taylor {RANDOM} | Ms, Emily Rose, Clark {RANDOM} | Issue of liability order summons - council tax |
+        Then User Should See The Button "Save changes" Is Disabled
+        Then User Selects " " From The Textbox "Result code" Autocomplete By Typing "abc"
+        Then User Verifies "No results found" Is Visible Under The "Result code" Textbox
         Then User Selects "RTC - Refer to Court" From The Textbox "Result code" Autocomplete By Typing "RTC"
+        Then User Should See Summary Card With Title "RTC - Refer to Court"
+        Then User Should See Tag "Pending" In Summary Card "RTC - Refer to Court"
+        Then User Should See The Link "Remove" In Summary Card "RTC - Refer to Court"
+        Then User Should See "Wording" In Summary Card "RTC - Refer to Court"
+        Then User Should See "Referred for full court hearing on" In Summary Card "RTC - Refer to Court"
+        When User Clicks On The "Save changes" Button
+        Then User Sees Validation Error Banner "There is a problem Enter a Date in the result wording section Enter a Courthouse in the result wording section"
+        Then User Verifies The "RTC - Refer to Court" Summary Card Has Textbox With Placeholder "Enter a Date" And Enters "01/04/2026"
+        When User Clicks On The "Save changes" Button
+        Then User Sees Validation Error Banner "There is a problem Enter a Courthouse in the result wording section"
+        Then User Verifies The "RTC - Refer to Court" Summary Card Has Textbox With Placeholder "Enter a Courthouse" And Enters "Bristol Crown Court"
+        When User Clicks On The "Save changes" Button
+        Then User Should See Tag "Existing" In Summary Card "RTC - Refer to Court"
+        Then User Sees Success Banner "Result codes applied successfully"
+        Then User Clicks The Link "Remove" In Summary Card "RTC - Refer to Court"
+        Then User Sees Success Banner "Results removed The results have been removed from these application list entries."
+        Then User Selects "AUTH - Authorised" From The Textbox "Result code" Autocomplete By Typing "AUTH"
+        Then User Should See Summary Card With Title "AUTH - Authorised"
+        When User Clicks On The "Save changes" Button
+        Then User Sees Success Banner "Result codes applied successfully"
+        Then User Should See Tag "Existing" In Summary Card "AUTH - Authorised"
+        Then User Selects "APPC - Appeal to Crown Court" From The Textbox "Result code" Autocomplete By Typing "APPC"
+        Then User Should See Summary Card With Title "APPC - Appeal to Crown Court"
+        Then User Verifies The "APPC - Appeal to Crown Court" Summary Card Has Textbox With Placeholder "Enter a Name of Crown Court" And Enters "Bristol Crown Court"
+        When User Clicks On The "Save changes" Button
+        Then User Sees Success Banner "Result codes applied successfully"
+        Then User Should See Tag "Existing" In Summary Card "APPC - Appeal to Crown Court"
+        Then User Clicks On The Breadcrumb Link "Applications list details"
+        Then User Should See Row In Table "Lists" With Values:
+            | Sequence number | Account number | Applicant                        | Respondent                     | Postcode | Title                                          | Fee | Resulted   |
+            | 1               | ACC-{RANDOM}   | Mr, Henry James, Taylor {RANDOM} | Ms, Emily Rose, Clark {RANDOM} | BS15 5AA | Issue of liability order summons - council tax | No  | AUTH, APPC |
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
@@ -76,8 +110,8 @@ Feature: Applications List Result
             | User  | SearchDate | APIDate  | DisplayDate  | Time           | courtLocationCode | Court                     | Description                             | Entries | Status |
             | user2 | today      | todayiso | todaydisplay | timenowhhmm-3h | BCC026            | Bristol Crown Court Set 3 | Applications to review at Test_{RANDOM} | 1       | OPEN   |
 
-    @regression @applicationsList @ARCPOC-965
-    Scenario Outline: Application List - Result Selected with Multiple ALEs
+    @regression @applicationsList @ARCPOC-965 @ARCPOC-1072 @ARCPOC-1267
+    Scenario Outline: Application List - Result Selected - Organisation Applicant and Respondent
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
             | date      | time   | status   | description   | courtLocationCode   |
@@ -157,17 +191,17 @@ Feature: Applications List Result
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
             """
             {
-                "resultCode": "RTC",
-                "wordingFields": [
-                    {
-                        "key": "Date",
-                        "value": "24-02-2026"
-                    },
-                    {
-                        "key": "Courthouse",
-                        "value": "London Courthouse"
-                    }
-                ]
+            "resultCode": "RTC",
+            "wordingFields": [
+            {
+            "key": "Date",
+            "value": "24-02-2026"
+            },
+            {
+            "key": "Courthouse",
+            "value": "London Courthouse"
+            }
+            ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -186,9 +220,34 @@ Feature: Applications List Result
         When User Clicks On The "Result selected" Button
         Then User See "Result applications" On The Page
         Then User Should See Row In Table "Application(s) to result" With Values:
-            | Sequence number | Applicant(s)                  | Respondent(s)                | Application Title(s)                           |
-            | 1               | Test Acme Industries {RANDOM} | Test Respondent Ltd {RANDOM} | Issue of liability order summons - council tax |
-        Then User Selects "RTC - Refer to Court" From The Textbox "Result code" Autocomplete By Typing "RTC"
+            | Sequence number | Applicant(s)                     | Respondent(s)                  | Application Title(s)                           |
+            | 1               | Test Acme Industries {RANDOM}    | Test Respondent Ltd {RANDOM}   | Issue of liability order summons - council tax |
+            | 2               | Mr, Henry James, Taylor {RANDOM} | Ms, Emily Rose, Clark {RANDOM} | Collection Order - Financial Penalty Account   |
+        Then User Selects "PROA - Production Order (to allow access)" From The Textbox "Result code" Autocomplete By Typing "PROA"
+        Then User Should See Summary Card With Title "PROA - Production Order (to allow access)"
+        Then User Should See Tag "Pending" In Summary Card "PROA - Production Order (to allow access)"
+        Then User Should See The Link "Remove" In Summary Card "PROA - Production Order (to allow access)"
+        Then User Should See "Wording" In Summary Card "PROA - Production Order (to allow access)"
+        Then User Should See "Production Order made for access to be allowed to material within" In Summary Card "PROA - Production Order (to allow access)"
+        Then User Verifies The "PROA - Production Order (to allow access)" Summary Card Has Textbox With Placeholder "Enter a Number of days" And Enters "30"
+        When User Clicks On The "Save changes" Button
+        Then User Sees Success Banner "Result codes applied successfully"
+        Then User Should See Tag "Existing" In Summary Card "PROA - Production Order (to allow access)"
+        Then User Selects "COST - Costs granted" From The Textbox "Result code" Autocomplete By Typing "COST"
+        Then User Should See Summary Card With Title "COST - Costs granted"
+        Then User Should See Tag "Pending" In Summary Card "COST - Costs granted"
+        Then User Should See The Link "Remove" In Summary Card "COST - Costs granted"
+        Then User Should See "Wording" In Summary Card "COST - Costs granted"
+        Then User Should See "Application for costs granted in the sum of" In Summary Card "COST - Costs granted"
+        Then User Verifies The "COST - Costs granted" Summary Card Has Textbox With Placeholder "Enter a Amount of costs" And Enters "500"
+        When User Clicks On The "Save changes" Button
+        Then User Sees Success Banner "Result codes applied successfully"
+        Then User Should See Tag "Existing" In Summary Card "COST - Costs granted"
+        Then User Clicks On The Breadcrumb Link "Applications list details"
+        Then User Should See Row In Table "Lists" With Values:
+            | Sequence number | Account number | Applicant                        | Respondent                     | Postcode | Title                                          | Fee | Resulted        |
+            | 1               |                | Test Acme Industries {RANDOM}    | Test Respondent Ltd {RANDOM}   | BS15 5AA | Issue of liability order summons - council tax | No  | PROA, COST      |
+            | 2               | ACC-{RANDOM}   | Mr, Henry James, Taylor {RANDOM} | Ms, Emily Rose, Clark {RANDOM} | BS15 5AA | Collection Order - Financial Penalty Account   | No  | RTC, PROA, COST |
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
