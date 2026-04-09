@@ -770,8 +770,17 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private filterEntriesToPrint(
     dto: ApplicationListGetPrintDto,
   ): ApplicationListGetPrintDto {
+    const selectedIds = new Set(
+      this.detailSignalState.state().selectedRows.flatMap((row) => {
+        const id = row['id'];
+        return typeof id === 'string' || typeof id === 'number'
+          ? [String(id)]
+          : [];
+      }),
+    );
+
     const filteredEntries = dto.entries.filter((entry) =>
-      this.detailSignalState.state().selectedIds.has(entry.id),
+      selectedIds.has(entry.id),
     );
 
     return {

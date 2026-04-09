@@ -522,8 +522,10 @@ describe('ApplicationsListDetail', () => {
     const printHelpers = (): PrintHelpersAccessor =>
       component as unknown as PrintHelpersAccessor;
 
-    it('returns only entries whose ids are selected', () => {
-      patchDetailState({ selectedIds: new Set(['entry-1', 'entry-3']) });
+    it('returns only entries whose row ids are selected', () => {
+      patchDetailState({
+        selectedRows: [{ id: 'entry-1' } as Row, { id: 'entry-3' } as Row],
+      });
 
       const dto = {
         entries: [{ id: 'entry-1' }, { id: 'entry-2' }, { id: 'entry-3' }],
@@ -538,7 +540,7 @@ describe('ApplicationsListDetail', () => {
     });
 
     it('returns the dto with an empty entries array when nothing is selected', () => {
-      patchDetailState({ selectedIds: new Set() });
+      patchDetailState({ selectedRows: [] });
 
       const dto = {
         entries: [{ id: 'entry-1' }, { id: 'entry-2' }],
@@ -769,7 +771,7 @@ describe('ApplicationsListDetail', () => {
         )
         .mockResolvedValue();
 
-      patchDetailState({ selectedIds: new Set(['entry-1']) });
+      patchDetailState({ selectedRows: [{ id: 'entry-1' } as Row] });
 
       (component as unknown as PrintRequestSignalAccessor).printRequest.set({
         id: 'list-123',
@@ -816,7 +818,7 @@ describe('ApplicationsListDetail', () => {
         )
         .mockResolvedValue();
 
-      patchDetailState({ selectedIds: new Set(['entry-2']) });
+      patchDetailState({ selectedRows: [{ id: 'entry-2' } as Row] });
 
       (component as unknown as PrintRequestSignalAccessor).printRequest.set({
         id: 'list-123',
