@@ -14,38 +14,38 @@ type EndpointRule = { endpoint: string | RegExp; responses: number[] };
 const regexIdPlaceholder = '[0-9a-fA-F-]{36}';
 
 const subscribedEndpoints: EndpointRule[] = [
-  { endpoint: '/application-lists', responses: [400, 403, 404, 406, 500] },
-  { endpoint: '/application-codes', responses: [400, 403, 406, 500] },
+  { endpoint: '/application-lists', responses: [400, 403, 404, 406, 500, 504] },
+  { endpoint: '/application-codes', responses: [400, 403, 406, 500, 504] },
 
   {
     endpoint: new RegExp(`^/application-codes/${regexIdPlaceholder}$`),
-    responses: [400, 403, 413, 415, 500],
+    responses: [400, 403, 413, 415, 500, 504],
   },
   {
     endpoint: new RegExp(
       `^/application-lists/${regexIdPlaceholder}/entries/bulk-import$`,
     ),
-    responses: [400, 403, 413, 415, 500],
+    responses: [400, 403, 413, 415, 500, 504],
   },
   {
     endpoint: new RegExp(`^/application-lists/${regexIdPlaceholder}$`),
-    responses: [400, 403, 404, 409, 500],
+    responses: [400, 403, 404, 409, 500, 504],
   },
   {
     endpoint: new RegExp(`^/application-lists/${regexIdPlaceholder}/entries$`),
-    responses: [400, 403, 404, 409, 500],
+    responses: [400, 403, 404, 409, 500, 504],
   },
   {
     endpoint: new RegExp(
       `^/application-lists/${regexIdPlaceholder}/entries/${regexIdPlaceholder}$`,
     ),
-    responses: [400, 403, 404, 409, 500],
+    responses: [400, 403, 404, 409, 500, 504],
   },
   {
     endpoint: new RegExp(
       `^/application-lists/${regexIdPlaceholder}/entries/${regexIdPlaceholder}/results$`,
     ),
-    responses: [400, 403, 500],
+    responses: [400, 403, 500, 504],
   },
 ];
 
