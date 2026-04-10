@@ -11,15 +11,18 @@ import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
+import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail.component';
 import { selectedRow } from '@components/applications-list-detail/util';
 import { ApplicationsListDetailState } from '@components/applications-list-detail/util/applications-list-detail.state';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
+import { PdfService } from '@core/services/pdf.service';
 import { Row } from '@core-types/table/row.types';
 import {
   Applicant,
   ApplicationListEntriesApi,
   ApplicationListGetDetailDto,
+  ApplicationListGetPrintDto,
   ApplicationListStatus,
   ApplicationListsApi,
   CriminalJusticeAreaGetDto,
@@ -27,6 +30,7 @@ import {
   EntryPage,
 } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
+import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenu } from '@util/moj-button-menu';
 import { formatPersonName } from '@util/string-helpers';
 
@@ -48,6 +52,12 @@ type DetailSignalStateAccessor = {
   };
 };
 
+type PrintRequestSignalAccessor = {
+  printRequest: {
+    set: (value: { id: string; mode: 'page' | 'continuous' } | null) => void;
+  };
+};
+
 type PlaceFieldsStatePatch = {
   cjaSearch?: string | null;
   cja?: CriminalJusticeAreaGetDto[];
@@ -62,15 +72,27 @@ type ResultCodeHelpersAccessor = {
   joinResultCodes(resultCodes: string[]): string;
 };
 
+type PrintHelpersAccessor = {
+  filterEntriesToPrint(
+    dto: ApplicationListGetPrintDto,
+  ): ApplicationListGetPrintDto;
+  handlePrintPage(dto: ApplicationListGetPrintDto): Promise<void>;
+  handlePrintContinuous(dto: ApplicationListGetPrintDto): Promise<void>;
+};
+
 describe('ApplicationsListDetail', () => {
   let fixture: ComponentFixture<ApplicationsListDetail>;
   let component: ApplicationsListDetail;
 
   const apiStub: jest.Mocked<
-    Pick<ApplicationListsApi, 'getApplicationList' | 'updateApplicationList'>
+    Pick<
+      ApplicationListsApi,
+      'getApplicationList' | 'updateApplicationList' | 'printApplicationList'
+    >
   > = {
     getApplicationList: jest.fn(),
     updateApplicationList: jest.fn(),
+    printApplicationList: jest.fn(),
   };
 
   const entriesApiStub: jest.Mocked<
@@ -81,6 +103,17 @@ describe('ApplicationsListDetail', () => {
 
   const menuStub: jest.Mocked<Pick<MojButtonMenu, 'initAll'>> = {
     initAll: jest.fn(),
+  };
+
+  const pdfStub: jest.Mocked<
+    Pick<
+      PdfService,
+      | 'generatePagedApplicationListPdf'
+      | 'generateContinuousApplicationListsPdf'
+    >
+  > = {
+    generatePagedApplicationListPdf: jest.fn(),
+    generateContinuousApplicationListsPdf: jest.fn(),
   };
 
   const refFacadeStub: Pick<ReferenceDataFacade, 'courtLocations$' | 'cja$'> = {
@@ -129,6 +162,14 @@ describe('ApplicationsListDetail', () => {
           headers: new HttpHeaders({ ETag: '"etag-v1"' }),
         }),
       ),
+    );
+
+    apiStub.printApplicationList.mockReturnValue(
+      of({
+        entries: [{ id: 'entry-1' }, { id: 'entry-2' }],
+      } as ApplicationListGetPrintDto) as unknown as ReturnType<
+        ApplicationListsApi['printApplicationList']
+      >,
     );
 
     const respondent: Applicant = {
@@ -192,6 +233,7 @@ describe('ApplicationsListDetail', () => {
         { provide: ApplicationListsApi, useValue: apiStub },
         { provide: ApplicationListEntriesApi, useValue: entriesApiStub },
         { provide: MojButtonMenu, useValue: menuStub },
+        { provide: PdfService, useValue: pdfStub },
         { provide: ReferenceDataFacade, useValue: refFacadeStub },
       ],
     }).compileComponents();
@@ -473,6 +515,362 @@ describe('ApplicationsListDetail', () => {
       expect(
         resultCodeHelpers().joinResultCodes([' COST ', '', '  ', 'ADJ']),
       ).toBe('COST, ADJ');
+    });
+  });
+
+  describe('filterEntriesToPrint', () => {
+    const printHelpers = (): PrintHelpersAccessor =>
+      component as unknown as PrintHelpersAccessor;
+
+    it('returns only entries whose row ids are selected', () => {
+      patchDetailState({
+        selectedRows: [{ id: 'entry-1' } as Row, { id: 'entry-3' } as Row],
+      });
+
+      const dto = {
+        entries: [{ id: 'entry-1' }, { id: 'entry-2' }, { id: 'entry-3' }],
+      } as ApplicationListGetPrintDto;
+
+      const result = printHelpers().filterEntriesToPrint(dto);
+
+      expect(result).toEqual({
+        ...dto,
+        entries: [{ id: 'entry-1' }, { id: 'entry-3' }],
+      });
+    });
+
+    it('returns the dto with an empty entries array when nothing is selected', () => {
+      patchDetailState({ selectedRows: [] });
+
+      const dto = {
+        entries: [{ id: 'entry-1' }, { id: 'entry-2' }],
+      } as ApplicationListGetPrintDto;
+
+      const result = printHelpers().filterEntriesToPrint(dto);
+
+      expect(result).toEqual({
+        ...dto,
+        entries: [],
+      });
+    });
+  });
+
+  describe('handlePrintPage', () => {
+    const printHelpers = (): PrintHelpersAccessor =>
+      component as unknown as PrintHelpersAccessor;
+
+    it('patches an error and does not generate a pdf when there are no entries', async () => {
+      const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
+      const dto = { entries: [] } as unknown as ApplicationListGetPrintDto;
+
+      await printHelpers().handlePrintPage(dto);
+
+      expect(pdfStub.generatePagedApplicationListPdf).not.toHaveBeenCalled();
+      expect(patchSpy).toHaveBeenCalledWith({
+        errorSummary: [
+          { text: APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint },
+        ],
+      });
+    });
+
+    it('generates a paged pdf when entries are present', async () => {
+      const dto = {
+        entries: [{ id: 'entry-1' }],
+      } as ApplicationListGetPrintDto;
+
+      await printHelpers().handlePrintPage(dto);
+
+      expect(pdfStub.generatePagedApplicationListPdf).toHaveBeenCalledWith(
+        dto,
+        {
+          crestUrl: '/assets/govuk-crest.png',
+        },
+      );
+    });
+
+    it('patches a retry error when pdf generation fails', async () => {
+      const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
+      const dto = {
+        entries: [{ id: 'entry-1' }],
+      } as ApplicationListGetPrintDto;
+
+      pdfStub.generatePagedApplicationListPdf.mockRejectedValueOnce(
+        new Error('pdf failed'),
+      );
+
+      await printHelpers().handlePrintPage(dto);
+
+      expect(patchSpy).toHaveBeenCalledWith({
+        errorSummary: [
+          { text: APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry },
+        ],
+      });
+    });
+  });
+
+  describe('handlePrintContinuous', () => {
+    const printHelpers = (): PrintHelpersAccessor =>
+      component as unknown as PrintHelpersAccessor;
+
+    it('patches an error and does not generate a pdf when there are no entries', async () => {
+      const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
+      const dto = { entries: [] } as unknown as ApplicationListGetPrintDto;
+
+      await printHelpers().handlePrintContinuous(dto);
+
+      expect(
+        pdfStub.generateContinuousApplicationListsPdf,
+      ).not.toHaveBeenCalled();
+      expect(patchSpy).toHaveBeenCalledWith({
+        errorSummary: [
+          { text: APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint },
+        ],
+      });
+    });
+
+    it('generates a continuous pdf when entries are present', async () => {
+      const dto = {
+        entries: [{ id: 'entry-1' }],
+      } as ApplicationListGetPrintDto;
+
+      await printHelpers().handlePrintContinuous(dto);
+
+      expect(
+        pdfStub.generateContinuousApplicationListsPdf,
+      ).toHaveBeenCalledWith([dto], false);
+    });
+
+    it('patches a generic error when pdf generation fails', async () => {
+      const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
+      const dto = {
+        entries: [{ id: 'entry-1' }],
+      } as ApplicationListGetPrintDto;
+
+      pdfStub.generateContinuousApplicationListsPdf.mockRejectedValueOnce(
+        new Error('pdf failed'),
+      );
+
+      await printHelpers().handlePrintContinuous(dto);
+
+      expect(patchSpy).toHaveBeenCalledWith({
+        errorSummary: [
+          { text: APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric },
+        ],
+      });
+    });
+  });
+
+  describe('onPrintContinuousClick', () => {
+    it('clears notifications and sets a continuous print request when id exists', () => {
+      const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
+      const setSpy = jest.spyOn(
+        (component as unknown as PrintRequestSignalAccessor).printRequest,
+        'set',
+      );
+
+      component.id = 'list-123';
+
+      component.onPrintContinuousClick();
+
+      expect(patchSpy).toHaveBeenCalledWith({
+        updateDone: false,
+        updateInvalid: false,
+        errorHint: '',
+        errorSummary: [],
+        createDone: false,
+        preserveErrorSummaryOnLoad: false,
+        moveDone: false,
+      });
+      expect(setSpy).toHaveBeenCalledWith({
+        id: 'list-123',
+        mode: 'continuous',
+      });
+    });
+
+    it('clears notifications and does not set a print request when id is missing', () => {
+      const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
+      const setSpy = jest.spyOn(
+        (component as unknown as PrintRequestSignalAccessor).printRequest,
+        'set',
+      );
+
+      component.id = '';
+
+      component.onPrintContinuousClick();
+
+      expect(patchSpy).toHaveBeenCalled();
+      expect(setSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('onPrintPageClick', () => {
+    it('clears notifications and sets a page print request when id exists', () => {
+      const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
+      const setSpy = jest.spyOn(
+        (component as unknown as PrintRequestSignalAccessor).printRequest,
+        'set',
+      );
+
+      component.id = 'list-123';
+
+      component.onPrintPageClick();
+
+      expect(patchSpy).toHaveBeenCalledWith({
+        updateDone: false,
+        updateInvalid: false,
+        errorHint: '',
+        errorSummary: [],
+        createDone: false,
+        preserveErrorSummaryOnLoad: false,
+        moveDone: false,
+      });
+      expect(setSpy).toHaveBeenCalledWith({
+        id: 'list-123',
+        mode: 'page',
+      });
+    });
+
+    it('clears notifications and does not set a print request when id is missing', () => {
+      const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
+      const setSpy = jest.spyOn(
+        (component as unknown as PrintRequestSignalAccessor).printRequest,
+        'set',
+      );
+
+      component.id = '';
+
+      component.onPrintPageClick();
+
+      expect(patchSpy).toHaveBeenCalled();
+      expect(setSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('printRequest effect', () => {
+    it('calls print api, clears the request, filters selected entries, and routes page mode to handlePrintPage', async () => {
+      const setSpy = jest.spyOn(
+        (component as unknown as PrintRequestSignalAccessor).printRequest,
+        'set',
+      );
+      const handlePrintPageSpy = jest
+        .spyOn(
+          component as unknown as {
+            handlePrintPage(dto: ApplicationListGetPrintDto): Promise<void>;
+          },
+          'handlePrintPage',
+        )
+        .mockResolvedValue();
+      const handlePrintContinuousSpy = jest
+        .spyOn(
+          component as unknown as {
+            handlePrintContinuous(
+              dto: ApplicationListGetPrintDto,
+            ): Promise<void>;
+          },
+          'handlePrintContinuous',
+        )
+        .mockResolvedValue();
+
+      patchDetailState({ selectedRows: [{ id: 'entry-1' } as Row] });
+
+      (component as unknown as PrintRequestSignalAccessor).printRequest.set({
+        id: 'list-123',
+        mode: 'page',
+      });
+      await flushSignalEffects(fixture);
+
+      expect(apiStub.printApplicationList).toHaveBeenCalledWith(
+        { listId: 'list-123' },
+        undefined,
+        undefined,
+        {
+          transferCache: false,
+        },
+      );
+      expect(setSpy).toHaveBeenCalledWith(null);
+      expect(handlePrintPageSpy).toHaveBeenCalledWith({
+        entries: [{ id: 'entry-1' }],
+      });
+      expect(handlePrintContinuousSpy).not.toHaveBeenCalled();
+    });
+
+    it('calls print api, clears the request, filters selected entries, and routes continuous mode to handlePrintContinuous', async () => {
+      const setSpy = jest.spyOn(
+        (component as unknown as PrintRequestSignalAccessor).printRequest,
+        'set',
+      );
+      const handlePrintPageSpy = jest
+        .spyOn(
+          component as unknown as {
+            handlePrintPage(dto: ApplicationListGetPrintDto): Promise<void>;
+          },
+          'handlePrintPage',
+        )
+        .mockResolvedValue();
+      const handlePrintContinuousSpy = jest
+        .spyOn(
+          component as unknown as {
+            handlePrintContinuous(
+              dto: ApplicationListGetPrintDto,
+            ): Promise<void>;
+          },
+          'handlePrintContinuous',
+        )
+        .mockResolvedValue();
+
+      patchDetailState({ selectedRows: [{ id: 'entry-2' } as Row] });
+
+      (component as unknown as PrintRequestSignalAccessor).printRequest.set({
+        id: 'list-123',
+        mode: 'continuous',
+      });
+      await flushSignalEffects(fixture);
+
+      expect(apiStub.printApplicationList).toHaveBeenCalledWith(
+        { listId: 'list-123' },
+        undefined,
+        undefined,
+        {
+          transferCache: false,
+        },
+      );
+      expect(setSpy).toHaveBeenCalledWith(null);
+      expect(handlePrintContinuousSpy).toHaveBeenCalledWith({
+        entries: [{ id: 'entry-2' }],
+      });
+      expect(handlePrintPageSpy).not.toHaveBeenCalled();
+    });
+
+    it('clears the request and patches errorSummary when the print api fails', async () => {
+      const requestError = new HttpErrorResponse({
+        status: 500,
+        statusText: 'Server Error',
+        error: { detail: 'Print failed' },
+      });
+      const setSpy = jest.spyOn(
+        (component as unknown as PrintRequestSignalAccessor).printRequest,
+        'set',
+      );
+      const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
+
+      apiStub.printApplicationList.mockReturnValueOnce(
+        throwError(() => requestError),
+      );
+
+      (component as unknown as PrintRequestSignalAccessor).printRequest.set({
+        id: 'list-123',
+        mode: 'page',
+      });
+      await flushSignalEffects(fixture);
+
+      expect(setSpy).toHaveBeenCalledWith(null);
+      expect(patchSpy).toHaveBeenCalledWith({
+        errorSummary: [
+          {
+            text: getProblemText(requestError),
+          },
+        ],
+      });
     });
   });
 
