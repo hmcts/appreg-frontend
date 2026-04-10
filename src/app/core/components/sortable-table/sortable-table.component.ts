@@ -81,6 +81,7 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
   hiddenCaption = input(false);
   columns = input<TableColumn[]>([]);
   data = input<Row[]>([]);
+  noDataMessage = input('No results found.');
 
   dateFieldIdentifier = input<string>('date');
 
