@@ -149,6 +149,46 @@ export class TableElement {
   }
 
   /**
+   * Gets the toggle button for the Actions menu in the table caption
+   * @param tableCaption Caption of the table
+   * @param toggleButtonText Text of the toggle button (e.g. "Actions")
+   */
+  static getCaptionMenuToggle(
+    tableCaption: string,
+    toggleButtonText: string,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy
+      .contains('caption', tableCaption, { matchCase: false })
+      .find('.moj-button-menu__toggle-button')
+      .filter((_, el) =>
+        StringUtils.normalizeText(Cypress.$(el).text()).includes(
+          StringUtils.normalizeText(toggleButtonText),
+        ),
+      )
+      .first();
+  }
+
+  /**
+   * Gets a menu item button from the open caption Actions menu
+   * @param tableCaption Caption of the table
+   * @param menuItemText Text of the menu item to find (e.g. "Result selected")
+   */
+  static getCaptionMenuItem(
+    tableCaption: string,
+    menuItemText: string,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy
+      .contains('caption', tableCaption, { matchCase: false })
+      .find('.moj-button-menu__item')
+      .filter(
+        (_, el) =>
+          StringUtils.normalizeText(Cypress.$(el).text()) ===
+          StringUtils.normalizeText(menuItemText),
+      )
+      .first();
+  }
+
+  /**
    * Gets the first page link (Page 1) from pagination
    * @param $body The body element to search within
    * @returns JQuery element of the first page link

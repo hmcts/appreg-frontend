@@ -42,6 +42,18 @@ When(
 );
 
 When(
+  'User Clicks {string} Then {string} From Caption Menu In Table {string}',
+  (toggleButtonText: string, menuItemText: string, tableCaption: string) => {
+    TableInteraction.clickCaptionMenuButton(
+      tableCaption,
+      toggleButtonText,
+      menuItemText,
+    );
+    cy.screenshot(`clicked-caption-menu-${menuItemText}-in-${tableCaption}`);
+  },
+);
+
+When(
   'User Clicks {string} In Row Of Table {string} And Verify Menu Options {string}',
   (
     selectButtonText: string,

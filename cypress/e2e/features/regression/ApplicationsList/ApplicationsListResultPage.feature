@@ -58,12 +58,12 @@ Feature: Applications List Result
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User See "Applications" On The Page
-        Then User Should See The Button "Result selected" Is Disabled
+        Then User Should See The Button "Actions" Is Disabled
         When User Checks The Checkbox In Row Of Table "Lists" With:
             | Sequence number | Account number | Applicant                        | Respondent                     | Postcode | Title                                          | Fee | Resulted |
             | 1               | ACC-{RANDOM}   | Mr, Henry James, Taylor {RANDOM} | Ms, Emily Rose, Clark {RANDOM} | BS15 5AA | Issue of liability order summons - council tax | No  |          |
-        Then User Should See The Button "Result selected" Is Enabled
-        When User Clicks On The "Result selected" Button
+        Then User Should See The Button "Actions" Is Enabled
+        When User Clicks "Actions" Then "Result selected" From Caption Menu In Table "Lists"
         Then User See "Result applications" On The Page
         Then User Should See Row In Table "Application(s) to result" With Values:
             | Sequence number | Applicant(s)                     | Respondent(s)                  | Application Title(s)                           |
@@ -214,10 +214,10 @@ Feature: Applications List Result
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User See "Applications" On The Page
-        Then User Should See The Button "Result selected" Is Disabled
+        Then User Should See The Button "Actions" Is Disabled
         When User Checks The Select All Checkbox In Table "Lists"
-        Then User Should See The Button "Result selected" Is Enabled
-        When User Clicks On The "Result selected" Button
+        Then User Should See The Button "Actions" Is Enabled
+        When User Clicks "Actions" Then "Result selected" From Caption Menu In Table "Lists"
         Then User See "Result applications" On The Page
         Then User Should See Row In Table "Application(s) to result" With Values:
             | Sequence number | Applicant(s)                     | Respondent(s)                  | Application Title(s)                           |
