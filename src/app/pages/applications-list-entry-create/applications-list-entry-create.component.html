@@ -45,6 +45,7 @@
     <app-application-code-search
       [patchedFormData]="form"
       [parentSubmitted]="vm().submitted"
+      [lodgementDateDisabled]="false"
       (selectCodeAndLodgementDate)="onCodeSelected($event)"
       (resetParentErrors)="resetParentErrorsFromCodeSearch()"
     />
