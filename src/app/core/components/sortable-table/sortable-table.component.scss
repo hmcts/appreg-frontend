@@ -11,9 +11,9 @@
   padding: 0;
 }
 
-:host ::ng-deep thead .app-sortable-table__cell--wrap {
+:host ::ng-deep tbody .app-sortable-table__cell--wrap {
   white-space: normal;
-  overflow-wrap: normal;
+  overflow-wrap: anywhere;
   word-break: normal;
 }
 
