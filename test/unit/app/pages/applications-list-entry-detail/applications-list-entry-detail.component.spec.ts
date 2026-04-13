@@ -69,7 +69,7 @@ type PaymentRefApplier = {
   applyPaymentRefReturn: (updatedRowId: string, newRef: string) => void;
 };
 
-type EntryDetailWithLegacyWordingFields = EntryGetDetailDto & {
+type EntryDetailWithWordingSnapshot = EntryGetDetailDto & {
   wordingFields?: string[];
 };
 
@@ -124,6 +124,21 @@ describe('ApplicationsListEntryDetail', () => {
         lodgementDate: '2025-11-01',
         applicationCode: 'APP-100',
         standardApplicantCode: null,
+        wording: {
+          template: 'At {{Court}} for {{Date}}',
+          'substitution-key-constraints': [
+            {
+              key: 'Court',
+              value: 'Court A',
+              constraint: { length: 20 },
+            },
+            {
+              key: 'Date',
+              value: '2026-04-13',
+              constraint: { length: 10 },
+            },
+          ],
+        },
       } as unknown as EntryGetDetailDto),
     );
 
@@ -230,6 +245,13 @@ describe('ApplicationsListEntryDetail', () => {
       false,
       expect.objectContaining({ transferCache: true }),
     );
+  });
+
+  it('hydrates wordingFields from entry wording on init', () => {
+    expect(component['form'].controls.wordingFields.value).toEqual([
+      { key: 'Court', value: 'Court A' },
+      { key: 'Date', value: '2026-04-13' },
+    ]);
   });
 
   it('isUpdateDisabled true when entryDetail is not set', () => {
@@ -933,7 +955,7 @@ describe('ApplicationsListEntryDetail', () => {
       lodgementDate: '2025-11-01',
       wordingFields: ['Old wording'],
       feeStatuses: [],
-    } as unknown as EntryDetailWithLegacyWordingFields;
+    } as unknown as EntryDetailWithWordingSnapshot;
 
     const entryUpdateDto = {
       applicationCode: 'APP-200',
@@ -957,7 +979,7 @@ describe('ApplicationsListEntryDetail', () => {
 
     expect(component['entryDetail']?.applicationCode).toBe('APP-300');
     expect(
-      (component['entryDetail'] as EntryDetailWithLegacyWordingFields)
+      (component['entryDetail'] as EntryDetailWithWordingSnapshot)
         ?.wordingFields,
     ).toEqual(['Court A']);
     expect(component['entryDetail']?.respondent).toEqual(res.respondent);
@@ -968,7 +990,7 @@ describe('ApplicationsListEntryDetail', () => {
       applicationCode: 'APP-100',
       wordingFields: ['Old wording'],
       feeStatuses: [],
-    } as unknown as EntryDetailWithLegacyWordingFields;
+    } as unknown as EntryDetailWithWordingSnapshot;
 
     const entryUpdateDto = {
       applicationCode: 'APP-200',
@@ -987,7 +1009,7 @@ describe('ApplicationsListEntryDetail', () => {
 
     expect(component['entryDetail']?.applicationCode).toBe('APP-200');
     expect(
-      (component['entryDetail'] as EntryDetailWithLegacyWordingFields)
+      (component['entryDetail'] as EntryDetailWithWordingSnapshot)
         ?.wordingFields,
     ).toEqual(['Court A']);
   });

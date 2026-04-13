@@ -1,5 +1,6 @@
-import { TemplateSubstitution } from '@openapi';
+import { EntryGetDetailDto, TemplateSubstitution } from '@openapi';
 import {
+  getEntryWordingFields,
   isTemplateSubstitution,
   toTemplateSubstitutions,
   toWordingValues,
@@ -74,6 +75,46 @@ describe('template-substitution-utils', () => {
       ).toBe('2026-03-02, London');
       expect(wordingFromFields([])).toBe('-');
       expect(wordingFromFields(undefined)).toBe('-');
+    });
+  });
+
+  describe('getEntryWordingFields', () => {
+    it('maps entry wording constraints to template substitutions', () => {
+      const entry = {
+        wording: {
+          template: 'At {{Court}} for {{Date}}',
+          'substitution-key-constraints': [
+            { key: 'Court', value: 'Court A', constraint: { length: 20 } },
+            { key: 'Date', value: '2026-04-13', constraint: { length: 10 } },
+          ],
+        },
+      } as EntryGetDetailDto;
+
+      expect(getEntryWordingFields(entry)).toEqual([
+        { key: 'Court', value: 'Court A' },
+        { key: 'Date', value: '2026-04-13' },
+      ]);
+    });
+
+    it('ignores entries without both key and value', () => {
+      const entry = {
+        wording: {
+          template: 'At {{Court}} for {{Date}}',
+          'substitution-key-constraints': [
+            { key: 'Court', value: 'Court A', constraint: { length: 20 } },
+            { key: 'Date', value: undefined, constraint: { length: 10 } },
+            { key: undefined, value: '2026-04-13', constraint: { length: 10 } },
+          ],
+        },
+      } as unknown as EntryGetDetailDto;
+
+      expect(getEntryWordingFields(entry)).toEqual([
+        { key: 'Court', value: 'Court A' },
+      ]);
+    });
+
+    it('returns undefined when entry has no wording', () => {
+      expect(getEntryWordingFields({} as EntryGetDetailDto)).toBeUndefined();
     });
   });
 });

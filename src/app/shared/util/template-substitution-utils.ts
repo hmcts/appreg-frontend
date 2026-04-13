@@ -1,4 +1,8 @@
-import { TemplateSubstitution } from '@openapi';
+import {
+  EntryGetDetailDto,
+  TemplateKeyWithConstraint,
+  TemplateSubstitution,
+} from '@openapi';
 
 export type WordingFieldLike = string | TemplateSubstitution;
 
@@ -49,4 +53,17 @@ export function wordingFromFields(
 ): string {
   const resolved = toWordingValues(values);
   return resolved.length > 0 ? resolved.join(', ') : '-';
+}
+
+export function getEntryWordingFields(
+  detail: EntryGetDetailDto | null | undefined,
+): TemplateSubstitution[] | undefined {
+  return detail?.wording?.['substitution-key-constraints']
+    ?.filter(
+      (
+        item,
+      ): item is TemplateKeyWithConstraint & { key: string; value: string } =>
+        typeof item.key === 'string' && typeof item.value === 'string',
+    )
+    .map(({ key, value }) => ({ key, value }));
 }
