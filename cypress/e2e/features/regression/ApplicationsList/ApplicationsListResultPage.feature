@@ -1,6 +1,6 @@
 Feature: Applications List Result
 
-    @regression @applicationsList @ARCPOC-965 @ARCPOC-1072 @ARCPOC-1267 @ARCPOC-1226 @PJ
+    @regression @applicationsList @ARCPOC-965 @ARCPOC-1072 @ARCPOC-1267 @ARCPOC-1226
     Scenario Outline: Application List - Result Selected - Person Applicant and Respondent
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
