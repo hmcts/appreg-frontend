@@ -140,6 +140,32 @@ export class TableInteraction {
   }
 
   /**
+   * Clicks a menu item from the Actions button menu in a table caption
+   * @param tableCaption Caption of the table to scope the search
+   * @param toggleButtonText Text of the toggle button to open the menu (e.g. "Actions")
+   * @param menuItemText Text of the menu item to click (e.g. "Result selected")
+   */
+  static clickCaptionMenuButton(
+    tableCaption: string,
+    toggleButtonText: string,
+    menuItemText: string,
+  ): void {
+    cy.log(
+      `Clicking "${menuItemText}" from "${toggleButtonText}" caption menu in table "${tableCaption}"`,
+    );
+    TableElement.getCaptionMenuToggle(tableCaption, toggleButtonText)
+      .scrollIntoView()
+      .should('be.visible')
+      .click()
+      .then(() => {
+        TableElement.getCaptionMenuItem(tableCaption, menuItemText)
+          .scrollIntoView()
+          .should('be.visible')
+          .click();
+      });
+  }
+
+  /**
    * Checks the "Select all" checkbox in the table header to select all rows
    * @param tableCaption Caption of the table to scope the checkbox search
    */
