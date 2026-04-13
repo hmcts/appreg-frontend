@@ -1,6 +1,6 @@
 Feature: Applications List Result
 
-    @regression @applicationsList @ARCPOC-965 @ARCPOC-1072 @ARCPOC-1267
+    @regression @applicationsList @ARCPOC-965 @ARCPOC-1072 @ARCPOC-1267 @ARCPOC-1226 @PJ
     Scenario Outline: Application List - Result Selected - Person Applicant and Respondent
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -59,6 +59,21 @@ Feature: Applications List Result
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User See "Applications" On The Page
         Then User Should See The Button "Actions" Is Disabled
+        Then User Should See Table "Lists" Header "Sequence number" Has Sort Order "ascending"
+        When User Clicks On Table Header "Account number" In Table "Lists"
+        Then User Should See Table "Lists" Header "Account number" Has Sort Order "ascending"
+        When User Clicks On Table Header "Applicant" In Table "Lists"
+        Then User Should See Table "Lists" Header "Applicant" Has Sort Order "ascending"
+        When User Clicks On Table Header "Respondent" In Table "Lists"
+        Then User Should See Table "Lists" Header "Respondent" Has Sort Order "ascending"
+        When User Clicks On Table Header "Postcode" In Table "Lists"
+        Then User Should See Table "Lists" Header "Postcode" Has Sort Order "ascending"
+        When User Clicks On Table Header "Title" In Table "Lists"
+        Then User Should See Table "Lists" Header "Title" Has Sort Order "ascending"
+        When User Clicks On Table Header "Fee" In Table "Lists"
+        Then User Should See Table "Lists" Header "Fee" Has Sort Order "ascending"
+        When User Clicks On Table Header "Resulted" In Table "Lists"
+        Then User Should See Table "Lists" Header "Resulted" Has Sort Order "ascending"
         When User Checks The Checkbox In Row Of Table "Lists" With:
             | Sequence number | Account number | Applicant                        | Respondent                     | Postcode | Title                                          | Fee | Resulted |
             | 1               | ACC-{RANDOM}   | Mr, Henry James, Taylor {RANDOM} | Ms, Emily Rose, Clark {RANDOM} | BS15 5AA | Issue of liability order summons - council tax | No  |          |
