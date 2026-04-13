@@ -169,7 +169,9 @@ describe('StandardApplicantSelectComponent', () => {
 
     expect(component.vm().pageIndex).toBe(0);
     expect(component.vm().totalPages).toBe(1);
-    expect(fixture.debugElement.query(By.css('app-sortable-table'))).toBeTruthy();
+    expect(
+      fixture.debugElement.query(By.css('app-sortable-table')),
+    ).toBeTruthy();
     expect(fixture.debugElement.query(By.css('app-pagination'))).toBeTruthy();
   }));
 

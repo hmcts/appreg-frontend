@@ -62,7 +62,10 @@ describe('SortableTableComponent', () => {
     }
   };
 
-  async function create(platform: 'browser' | 'server' = 'browser') {
+  async function create(
+    platform: 'browser' | 'server' = 'browser',
+    initialData: Row[] = [{ id: 'abc', name: 'Everest', elevation: 8848 }],
+  ) {
     await TestBed.configureTestingModule({
       imports: [SortableTableComponent],
       providers: [{ provide: PLATFORM_ID, useValue: platform }],
@@ -76,11 +79,9 @@ describe('SortableTableComponent', () => {
       { header: 'Elevation', field: 'elevation', numeric: true },
       { header: 'Actions', field: 'actions', sortable: false },
     ];
-    const data: Row[] = [{ id: 'abc', name: 'Everest', elevation: 8848 }];
-
     setInput('caption', 'Lists', false);
     setInput('columns', columns, false);
-    setInput('data', data, false);
+    setInput('data', initialData, false);
     setInput('idField', 'id', false);
     setInput('idPrefix', 'row-', false);
     fixture.detectChanges();
@@ -97,6 +98,18 @@ describe('SortableTableComponent', () => {
     expect(
       fixture.debugElement.query(By.css('table.govuk-table')),
     ).toBeTruthy();
+  });
+
+  it('renders no-data message and no table when data is empty', async () => {
+    await create('browser', []);
+
+    expect(fixture.debugElement.query(By.css('table.govuk-table'))).toBeNull();
+    expect(fixture.debugElement.query(By.css('thead'))).toBeNull();
+    expect(fixture.debugElement.query(By.css('#no-data-message'))).toBeTruthy();
+    expect(
+      fixture.debugElement.query(By.css('#no-data-message')).nativeElement
+        .textContent,
+    ).toContain('No results found.');
   });
 
   describe('trackRow', () => {
@@ -275,6 +288,16 @@ describe('SortableTableComponent', () => {
 
       expect(SortableTableMock).toHaveBeenCalledTimes(1);
       expect(SortableTableMock).toHaveBeenCalledWith(tableEl);
+    });
+
+    it('does not instantiate MoJ SortableTable when there is no table rendered', async () => {
+      await create('browser', []);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+      expect(fixture.debugElement.query(By.css('table'))).toBeNull();
+      expect(SortableTableMock).not.toHaveBeenCalled();
     });
   });
 });

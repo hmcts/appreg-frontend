@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { StandardApplicants } from '@components/standard-applicants/standard-applicants.component';
@@ -16,10 +17,11 @@ const flushSignalEffects = async (
 describe('StandardApplicantsComponent', () => {
   let component: StandardApplicants;
   let fixture: ComponentFixture<StandardApplicants>;
-  const apiStub: jest.Mocked<Pick<StandardApplicantsApi, 'getStandardApplicants'>> =
-    {
-      getStandardApplicants: jest.fn(),
-    };
+  const apiStub: jest.Mocked<
+    Pick<StandardApplicantsApi, 'getStandardApplicants'>
+  > = {
+    getStandardApplicants: jest.fn(),
+  };
 
   beforeEach(async () => {
     apiStub.getStandardApplicants.mockReturnValue(
@@ -31,7 +33,10 @@ describe('StandardApplicantsComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [StandardApplicants],
-      providers: [{ provide: StandardApplicantsApi, useValue: apiStub }],
+      providers: [
+        provideRouter([]),
+        { provide: StandardApplicantsApi, useValue: apiStub },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(StandardApplicants);
@@ -81,7 +86,9 @@ describe('StandardApplicantsComponent', () => {
     component.onSubmit(new SubmitEvent('submit'));
     await flushSignalEffects(fixture);
 
-    expect(fixture.debugElement.query(By.css('app-sortable-table'))).toBeTruthy();
+    expect(
+      fixture.debugElement.query(By.css('app-sortable-table')),
+    ).toBeTruthy();
     expect(fixture.debugElement.query(By.css('app-pagination'))).toBeTruthy();
     expect(
       fixture.nativeElement.querySelector('#no-data-message')?.textContent,

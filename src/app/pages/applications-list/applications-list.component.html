@@ -83,7 +83,10 @@
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 
-@if (storedRecordsVm().submitted && !vm().isLoading) {
+@if (
+  storedRecordsVm().rows.length ||
+  (storedRecordsVm().submitted && !vm().isLoading)
+) {
   <!-- Sortable table component -->
   <app-sortable-table
     id="sortable-table"
