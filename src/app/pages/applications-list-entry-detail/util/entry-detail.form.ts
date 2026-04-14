@@ -304,7 +304,6 @@ export function buildEntryUpdateDtoFromForm(
     caseReference: detail.caseReference,
     accountNumber: detail.accountNumber,
     notes: detail.notes,
-    lodgementDate: detail.lodgementDate,
   };
 
   // Reuse existing mapper to build a “patch”
@@ -500,7 +499,6 @@ export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
     caseReference: detail.caseReference,
     accountNumber: detail.accountNumber,
     notes: detail.notes,
-    lodgementDate: detail.lodgementDate,
     ...(detail as { officials?: Official[] }),
   };
 
@@ -532,11 +530,6 @@ export function buildEntryUpdateDtoForFeeChange<K extends keyof EntryUpdateDto>(
   const applicationCode = toOptionalTrimmed(formValue.applicationCode);
   if (applicationCode) {
     dto.applicationCode = applicationCode;
-  }
-
-  const lodgementDate = toOptionalTrimmed(formValue.lodgementDate);
-  if (lodgementDate) {
-    dto.lodgementDate = lodgementDate;
   }
 
   return dto;
