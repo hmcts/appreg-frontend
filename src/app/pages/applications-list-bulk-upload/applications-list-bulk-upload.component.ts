@@ -30,7 +30,7 @@ import { SuccessBannerComponent } from '@components/success-banner/success-banne
 import {
   ApplicationListEntriesApi,
   BulkUploadApplicationListEntriesRequestParams,
-  JobStatus,
+  JobStatus2 as JobStatus,
 } from '@openapi';
 import { getProblemText } from '@util/http-error-to-text';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
