@@ -464,5 +464,40 @@ describe('applications-list entry form builders', () => {
       expect(dto.notes).toBe('persisted note');
       expect(dto.applicant?.person?.name?.firstForename).toBe('Jane');
     });
+
+    it('prefers staged wordingFields from the form when building a fee-only update', () => {
+      const stagedWordingFields = [
+        { key: 'Court', value: 'New Court' },
+        { key: 'Date', value: '2026-04-14' },
+      ];
+
+      const dto = buildEntryUpdateDtoForFeeChange(
+        {
+          applicationCode: 'APP-100',
+          lodgementDate: '2025-01-01',
+          wording: {
+            template: 'At {{Court}} for {{Date}}',
+            'substitution-key-constraints': [
+              { key: 'Court', value: 'Old Court', constraint: { length: 20 } },
+              { key: 'Date', value: '2026-04-13', constraint: { length: 10 } },
+            ],
+          },
+        } as unknown as EntryGetDetailDto,
+        {
+          applicationCode: 'APP-100',
+          lodgementDate: '2025-01-01',
+          wordingFields: stagedWordingFields,
+          applicationNotes: {
+            notes: null,
+            caseReference: null,
+            accountReference: null,
+          },
+        } as never,
+        'feeStatuses',
+        [],
+      );
+
+      expect(dto.wordingFields).toEqual(stagedWordingFields);
+    });
   });
 });

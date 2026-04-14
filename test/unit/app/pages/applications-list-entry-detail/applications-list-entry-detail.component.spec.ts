@@ -618,6 +618,41 @@ describe('ApplicationsListEntryDetail', () => {
     ).toBeTruthy();
   });
 
+  it('persistHasOffsiteFee blocks the partial save when wording is invalid', () => {
+    component['entryDetail'] = {
+      id: 'EN-1',
+      listId: 'AL-1',
+      applicationCode: 'APP-100',
+      numberOfRespondents: 0,
+      lodgementDate: '2025-11-01',
+    };
+    component['appListEntryDetailPatch']({ appListId: 'AL-1' });
+    component['form'].controls.hasOffsiteFee.setValue(true, {
+      emitEvent: false,
+    });
+
+    (component as never)['wordingSection'] = {
+      validateForSubmit: () => [
+        { text: 'Enter a Court in the wording section', href: '#Court' },
+      ],
+    } as never;
+
+    mockUpdateApplicationListEntry.mockClear();
+
+    component['persistHasOffsiteFee'](false, true);
+
+    expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
+    expect(component['form'].controls.hasOffsiteFee.value).toBe(true);
+    expect(component['form'].controls.hasOffsiteFee.pristine).toBe(true);
+    expect(component['appListEntryDetailState']().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          text: 'Enter a Court in the wording section',
+        }),
+      ]),
+    );
+  });
+
   it('shows list-created success banner when listCreated=true query param is present', () => {
     (
       routeStub.snapshot as unknown as {

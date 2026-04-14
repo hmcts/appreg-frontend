@@ -516,10 +516,15 @@ export function buildEntryUpdateDtoForFeeChange<K extends keyof EntryUpdateDto>(
   value: EntryUpdateDto[K],
 ): EntryUpdateDto {
   const dto = buildEntryUpdateDtoWithChange(detail, key, value);
+  const stagedWordingFields = formValue.wordingFields;
 
   const applicationCode = toOptionalTrimmed(formValue.applicationCode);
   if (applicationCode) {
     dto.applicationCode = applicationCode;
+  }
+
+  if (stagedWordingFields?.length) {
+    dto.wordingFields = stagedWordingFields;
   }
 
   return dto;

@@ -26,6 +26,10 @@ export type Token =
   | { type: 'text'; value: string }
   | { type: 'input'; key: string };
 
+export type WordingValidationOptions = {
+  enforceSavedWording?: boolean;
+};
+
 @Component({
   selector: 'app-wording-parser',
   imports: [ReactiveFormsModule, NgClass],
@@ -203,7 +207,7 @@ export class WordingParserComponent {
     }
   }
 
-  validateForSubmit(opts: { enforceSavedWording?: boolean } = {}): ErrorItem[] {
+  validateForSubmit(opts: WordingValidationOptions = {}): ErrorItem[] {
     this.submitted.set(true);
 
     const enforceSavedWording = opts.enforceSavedWording ?? true;
