@@ -12,7 +12,7 @@ export const CODES_COLUMNS: TableColumn[] = [
   { header: 'Code', field: 'code' },
   { header: 'Title', field: 'title' },
   { header: 'Bulk', field: 'bulk' },
-  { header: 'Fee req', field: 'fee' },
+  { header: 'Fee required', field: 'isFeeDue' },
   { header: 'Actions', field: 'actions', sortable: false },
 ];
 
