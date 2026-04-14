@@ -12,6 +12,7 @@ import {
   Component,
   DestroyRef,
   OnInit,
+  effect,
   inject,
   input,
   output,
@@ -55,6 +56,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
   titlePlaceholder = input('Enter a concise title for this application');
   parentSubmitted = input(false);
   patchedFormData = input<ApplicationsListEntryForm | undefined>(undefined);
+  lodgementDateDisabled = input(false);
 
   // API query params
   pageSize = signal(10);
@@ -84,6 +86,19 @@ export class ApplicationCodeSearchComponent implements OnInit {
     code: new FormControl<string | null>(null),
     title: new FormControl<string | null>(null),
   });
+
+  constructor() {
+    effect(() => {
+      const lodgementDateControl = this.form.controls.lodgementDate;
+
+      if (this.lodgementDateDisabled()) {
+        lodgementDateControl.disable({ emitEvent: false });
+        return;
+      }
+
+      lodgementDateControl.enable({ emitEvent: false });
+    });
+  }
 
   private setParentLodgementDate(value: string | null): void {
     const parent = this.patchedFormData() as
@@ -176,7 +191,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
 
     this.selectCodeAndLodgementDate.emit({
       code,
-      date: this.form.value.lodgementDate ?? '',
+      date: this.form.controls.lodgementDate.value ?? '',
     });
   }
 

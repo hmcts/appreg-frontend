@@ -98,7 +98,7 @@ describe('helpers', () => {
   });
 
   describe('pruneNullish', () => {
-    it('deletes keys with null values but keeps undefined', () => {
+    it('deletes keys with null and undefined values', () => {
       const o: {
         a?: string | null;
         b?: string | undefined;
@@ -113,9 +113,8 @@ describe('helpers', () => {
 
       expect(out).toBe(o); // mutates + returns same object
       expect('a' in out).toBe(false);
+      expect('b' in out).toBe(false);
       expect('c' in out).toBe(false);
-      expect('b' in out).toBe(true);
-      expect(out.b).toBeUndefined();
     });
 
     it('does not delete falsy non-null values', () => {

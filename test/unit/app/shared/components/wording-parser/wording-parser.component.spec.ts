@@ -409,7 +409,7 @@ describe('WordingParserComponent', () => {
 
       expect(errors).toEqual([
         {
-          text: 'Save wording changes in the wording section before submitting',
+          text: 'Apply wording changes in the wording section before submitting',
           href: '#save-wording-button',
         },
       ]);
@@ -531,7 +531,7 @@ describe('WordingParserComponent', () => {
 
       expect(errorsSpy).toHaveBeenCalledWith([
         {
-          text: 'Save wording changes in the wording section before submitting',
+          text: 'Apply wording changes in the wording section before submitting',
           href: '#save-wording-button',
         },
       ]);

@@ -1,7 +1,8 @@
 import { ErrorItem } from '@components/error-summary/error-summary.component';
+import { WordingValidationOptions } from '@components/wording-parser/wording-parser.component';
 
 export interface SubmitValidatableSection {
-  validateForSubmit(): ErrorItem[];
+  validateForSubmit(opts?: WordingValidationOptions): ErrorItem[];
 }
 
 export type SubmitValidationTarget<T extends string> = {

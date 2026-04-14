@@ -67,7 +67,7 @@ export function hasRequiredOrg(o: {
 export function pruneNullish<T extends object>(o: T): T {
   const rec = o as Record<string, unknown>;
   for (const [k, v] of Object.entries(rec)) {
-    if (v === null) {
+    if (v === null || v === undefined) {
       delete rec[k];
     }
   }

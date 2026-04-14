@@ -69,7 +69,7 @@ type PaymentRefApplier = {
   applyPaymentRefReturn: (updatedRowId: string, newRef: string) => void;
 };
 
-type EntryDetailWithLegacyWordingFields = EntryGetDetailDto & {
+type EntryDetailWithWordingSnapshot = EntryGetDetailDto & {
   wordingFields?: string[];
 };
 
@@ -124,6 +124,21 @@ describe('ApplicationsListEntryDetail', () => {
         lodgementDate: '2025-11-01',
         applicationCode: 'APP-100',
         standardApplicantCode: null,
+        wording: {
+          template: 'At {{Court}} for {{Date}}',
+          'substitution-key-constraints': [
+            {
+              key: 'Court',
+              value: 'Court A',
+              constraint: { length: 20 },
+            },
+            {
+              key: 'Date',
+              value: '2026-04-13',
+              constraint: { length: 10 },
+            },
+          ],
+        },
       } as unknown as EntryGetDetailDto),
     );
 
@@ -230,6 +245,13 @@ describe('ApplicationsListEntryDetail', () => {
       false,
       expect.objectContaining({ transferCache: true }),
     );
+  });
+
+  it('hydrates wordingFields from entry wording on init', () => {
+    expect(component['form'].controls.wordingFields.value).toEqual([
+      { key: 'Court', value: 'Court A' },
+      { key: 'Date', value: '2026-04-13' },
+    ]);
   });
 
   it('isUpdateDisabled true when entryDetail is not set', () => {
@@ -596,6 +618,41 @@ describe('ApplicationsListEntryDetail', () => {
     ).toBeTruthy();
   });
 
+  it('persistHasOffsiteFee blocks the partial save when wording is invalid', () => {
+    component['entryDetail'] = {
+      id: 'EN-1',
+      listId: 'AL-1',
+      applicationCode: 'APP-100',
+      numberOfRespondents: 0,
+      lodgementDate: '2025-11-01',
+    };
+    component['appListEntryDetailPatch']({ appListId: 'AL-1' });
+    component['form'].controls.hasOffsiteFee.setValue(true, {
+      emitEvent: false,
+    });
+
+    (component as never)['wordingSection'] = {
+      validateForSubmit: () => [
+        { text: 'Enter a Court in the wording section', href: '#Court' },
+      ],
+    } as never;
+
+    mockUpdateApplicationListEntry.mockClear();
+
+    component['persistHasOffsiteFee'](false, true);
+
+    expect(mockUpdateApplicationListEntry).not.toHaveBeenCalled();
+    expect(component['form'].controls.hasOffsiteFee.value).toBe(true);
+    expect(component['form'].controls.hasOffsiteFee.pristine).toBe(true);
+    expect(component['appListEntryDetailState']().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          text: 'Enter a Court in the wording section',
+        }),
+      ]),
+    );
+  });
+
   it('shows list-created success banner when listCreated=true query param is present', () => {
     (
       routeStub.snapshot as unknown as {
@@ -933,7 +990,7 @@ describe('ApplicationsListEntryDetail', () => {
       lodgementDate: '2025-11-01',
       wordingFields: ['Old wording'],
       feeStatuses: [],
-    } as unknown as EntryDetailWithLegacyWordingFields;
+    } as unknown as EntryDetailWithWordingSnapshot;
 
     const entryUpdateDto = {
       applicationCode: 'APP-200',
@@ -957,7 +1014,7 @@ describe('ApplicationsListEntryDetail', () => {
 
     expect(component['entryDetail']?.applicationCode).toBe('APP-300');
     expect(
-      (component['entryDetail'] as EntryDetailWithLegacyWordingFields)
+      (component['entryDetail'] as EntryDetailWithWordingSnapshot)
         ?.wordingFields,
     ).toEqual(['Court A']);
     expect(component['entryDetail']?.respondent).toEqual(res.respondent);
@@ -968,7 +1025,7 @@ describe('ApplicationsListEntryDetail', () => {
       applicationCode: 'APP-100',
       wordingFields: ['Old wording'],
       feeStatuses: [],
-    } as unknown as EntryDetailWithLegacyWordingFields;
+    } as unknown as EntryDetailWithWordingSnapshot;
 
     const entryUpdateDto = {
       applicationCode: 'APP-200',
@@ -987,7 +1044,7 @@ describe('ApplicationsListEntryDetail', () => {
 
     expect(component['entryDetail']?.applicationCode).toBe('APP-200');
     expect(
-      (component['entryDetail'] as EntryDetailWithLegacyWordingFields)
+      (component['entryDetail'] as EntryDetailWithWordingSnapshot)
         ?.wordingFields,
     ).toEqual(['Court A']);
   });

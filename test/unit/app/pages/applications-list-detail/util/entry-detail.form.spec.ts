@@ -346,6 +346,47 @@ describe('applications-list entry form builders', () => {
       expect(dto.applicant?.person?.name?.firstForename).toBe('John');
       expect('standardApplicantCode' in dto).toBe(false);
     });
+
+    it('preserves wording fields from detail.wording when the form has not changed them', () => {
+      const dto = buildEntryUpdateDtoFromForm(
+        {
+          ...baseDetail,
+          wording: {
+            template: 'At {{Court}} for {{Date}}',
+            'substitution-key-constraints': [
+              { key: 'Court', value: 'Court A', constraint: { length: 20 } },
+              { key: 'Date', value: '2026-04-13', constraint: { length: 10 } },
+            ],
+          },
+        } as EntryGetDetailDto,
+        {
+          applicantType: 'person',
+          standardApplicantCode: null,
+          applicationCode: 'APP-100',
+          respondentEntryType: 'person',
+          wordingFields: null,
+          applicationNotes: {
+            notes: null,
+            caseReference: null,
+            accountReference: null,
+          },
+        } as never,
+        {
+          ...blankPerson,
+          firstName: 'John',
+          surname: 'Smith',
+          addressLine1: '1 Street',
+        } as never,
+        blankOrg as never,
+        blankPerson as never,
+        blankOrg as never,
+      );
+
+      expect(dto.wordingFields).toEqual([
+        { key: 'Court', value: 'Court A' },
+        { key: 'Date', value: '2026-04-13' },
+      ]);
+    });
   });
 
   describe('buildEntryUpdateDtoWithChange', () => {
@@ -408,7 +449,7 @@ describe('applications-list entry form builders', () => {
         } as unknown as EntryGetDetailDto,
         {
           applicationCode: 'APP-200',
-          lodgementDate: '2025-02-02',
+          lodgementDate: '2025-01-01',
           applicationNotes: {
             notes: 'draft note',
             caseReference: null,
@@ -420,9 +461,43 @@ describe('applications-list entry form builders', () => {
       );
 
       expect(dto.applicationCode).toBe('APP-200');
-      expect(dto.lodgementDate).toBe('2025-02-02');
       expect(dto.notes).toBe('persisted note');
       expect(dto.applicant?.person?.name?.firstForename).toBe('Jane');
+    });
+
+    it('prefers staged wordingFields from the form when building a fee-only update', () => {
+      const stagedWordingFields = [
+        { key: 'Court', value: 'New Court' },
+        { key: 'Date', value: '2026-04-14' },
+      ];
+
+      const dto = buildEntryUpdateDtoForFeeChange(
+        {
+          applicationCode: 'APP-100',
+          lodgementDate: '2025-01-01',
+          wording: {
+            template: 'At {{Court}} for {{Date}}',
+            'substitution-key-constraints': [
+              { key: 'Court', value: 'Old Court', constraint: { length: 20 } },
+              { key: 'Date', value: '2026-04-13', constraint: { length: 10 } },
+            ],
+          },
+        } as unknown as EntryGetDetailDto,
+        {
+          applicationCode: 'APP-100',
+          lodgementDate: '2025-01-01',
+          wordingFields: stagedWordingFields,
+          applicationNotes: {
+            notes: null,
+            caseReference: null,
+            accountReference: null,
+          },
+        } as never,
+        'feeStatuses',
+        [],
+      );
+
+      expect(dto.wordingFields).toEqual(stagedWordingFields);
     });
   });
 });
