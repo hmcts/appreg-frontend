@@ -72,6 +72,8 @@ module.exports = defineConfig({
     requestTimeout: 20000,
     responseTimeout: 30000,
     taskTimeout: 300000,
+    // Scroll Behaviour
+    scrollBehavior: 'nearest',
     // Browser and Security Settings
     chromeWebSecurity: false,
     experimentalModifyObstructiveThirdPartyCode: true,
