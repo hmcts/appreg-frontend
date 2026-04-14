@@ -322,4 +322,30 @@ describe('ApplicationCodeSearchComponent', () => {
     expect(get).toHaveBeenCalledWith('lodgementDate');
     expect(setValue).toHaveBeenCalledWith('2023-01-01');
   });
+
+  it('disables the lodgement date control when requested by the parent', () => {
+    componentRef.setInput('lodgementDateDisabled', true);
+    fixture.detectChanges();
+
+    expect(component.form.controls.lodgementDate.disabled).toBe(true);
+  });
+
+  it('emits the lodgement date when adding a code in disabled mode', () => {
+    componentRef.setInput('lodgementDateDisabled', true);
+    fixture.detectChanges();
+
+    component.form.controls.lodgementDate.setValue('2026-04-13');
+
+    const emitSpy = jest.spyOn(component.selectCodeAndLodgementDate, 'emit');
+
+    component.onAddCode({
+      code: 'ABC123',
+      title: 'Example title',
+    } as CodeRow);
+
+    expect(emitSpy).toHaveBeenCalledWith({
+      code: 'ABC123',
+      date: '2026-04-13',
+    });
+  });
 });

@@ -23,7 +23,11 @@
       <app-date-input
         formControlName="lodgementDate"
         label="Lodgement date"
-        hint="For example, 27 3 2007"
+        [hint]="
+          lodgementDateDisabled()
+            ? 'Lodgement date cannot be changed'
+            : 'For example, 27 3 2007'
+        "
         idPrefix="lodgement-date"
         [submitted]="submitted() || parentSubmitted()"
         [isSearch]="!parentSubmitted()"

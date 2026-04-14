@@ -408,6 +408,7 @@ describe('applications-list entry form builders', () => {
         } as unknown as EntryGetDetailDto,
         {
           applicationCode: 'APP-200',
+          lodgementDate: '2025-01-01',
           applicationNotes: {
             notes: 'draft note',
             caseReference: null,
