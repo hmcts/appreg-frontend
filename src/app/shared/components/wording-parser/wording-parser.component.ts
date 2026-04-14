@@ -220,7 +220,7 @@ export class WordingParserComponent {
     if (enforceSavedWording && this.showSaveButton() && this.form.dirty) {
       const errors: ErrorItem[] = [
         {
-          text: `Save wording changes in the ${this.section()} section before submitting`,
+          text: `Apply wording changes in the ${this.section()} section before submitting`,
           href: '#save-wording-button',
         },
       ];
