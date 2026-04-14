@@ -362,7 +362,7 @@ Feature: Applications List Result
         Then User Verifies The "RTC - Refer to Court" Summary Card Has Textbox With Placeholder "Enter a Courthouse" And Enters "Bristol Crown Court"
         When User Clicks On The "Save changes" Button
         Then User Should See Tag "Existing" In Summary Card "RTC - Refer to Court"
-        Then User Sees Success Banner "Result codes applied successfully"
+        Then User Sees Success Banner "Result codes applied successfully" Containing "RTC"
         Then User Clicks The Link "Remove" In Summary Card "RTC - Refer to Court"
         Then User Sees Success Banner "Results removed The results have been removed from these application list entries."
         # Apply PROA with wording (number of days)
@@ -374,7 +374,7 @@ Feature: Applications List Result
         Then User Should See "Production Order made for access to be allowed to material within" In Summary Card "PROA - Production Order (to allow access)"
         Then User Verifies The "PROA - Production Order (to allow access)" Summary Card Has Textbox With Placeholder "Enter a Number of days" And Enters "30"
         When User Clicks On The "Save changes" Button
-        Then User Sees Success Banner "Result codes applied successfully"
+        Then User Sees Success Banner "Result codes applied successfully" Containing "PROA"
         Then User Should See Tag "Existing" In Summary Card "PROA - Production Order (to allow access)"
         # Apply COST with wording (amount)
         Then User Selects "COST - Costs granted" From The Textbox "Result code" Autocomplete By Typing "COST"
@@ -385,7 +385,7 @@ Feature: Applications List Result
         Then User Should See "Application for costs granted in the sum of" In Summary Card "COST - Costs granted"
         Then User Verifies The "COST - Costs granted" Summary Card Has Textbox With Placeholder "Enter a Amount of costs" And Enters "500"
         When User Clicks On The "Save changes" Button
-        Then User Sees Success Banner "Result codes applied successfully"
+        Then User Sees Success Banner "Result codes applied successfully" Containing "COST"
         Then User Should See Tag "Existing" In Summary Card "COST - Costs granted"
         Then User Clicks On The Breadcrumb Link "Applications list details"
         # Verify rows 2, 3, 5 have PROA and COST applied; row 5 retains pre-existing RTC; rows 1, 4, 6, 7, 8 unchanged

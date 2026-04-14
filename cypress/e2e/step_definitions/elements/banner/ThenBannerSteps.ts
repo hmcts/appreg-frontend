@@ -20,9 +20,9 @@ Then('User Sees Notification Banner {string}', (expectedText: string) => {
 });
 
 Then(
-  'User Sees Notification Banner {string} Containing {string}',
+  'User Sees Success Banner {string} Containing {string}',
   (heading: string, bodyText: string) => {
-    BannerHelper.verifyNotificationBannerWithHeadingAndBody(heading, bodyText);
+    BannerHelper.verifySuccessBannerContaining(heading, bodyText);
     cy.screenshot(`BannerWithText-${heading.substring(0, 30)}`);
   },
 );

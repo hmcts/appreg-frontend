@@ -11,10 +11,6 @@ export class BannerElement {
     'app-error-summary [role="alert"]';
   private static readonly warningRegionSelector =
     'app-warning-banner [role="region"]';
-  private static readonly notificationBannerHeadingSelector =
-    'app-notification-banner .govuk-notification-banner__heading';
-  private static readonly notificationBannerBodySelector =
-    'app-notification-banner .govuk-notification-banner__content';
 
   static findNotificationRegionByText(
     text: string,
@@ -54,14 +50,12 @@ export class BannerElement {
     return cy.contains(this.warningRegionSelector, text);
   }
 
-  static findNotificationBannerWithHeadingAndBody(
+  static findSuccessAlertWithBody(
     heading: string,
     bodyText: string,
   ): Cypress.Chainable<JQuery<HTMLElement>> {
     return cy
-      .contains(this.notificationBannerHeadingSelector, heading)
-      .closest('.govuk-notification-banner')
-      .find(this.notificationBannerBodySelector)
+      .contains(this.successAlertSelector, heading, { timeout: 10000 })
       .should('contain.text', bodyText);
   }
 }
