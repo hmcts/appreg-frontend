@@ -408,7 +408,6 @@ describe('applications-list entry form builders', () => {
         } as unknown as EntryGetDetailDto,
         {
           applicationCode: 'APP-200',
-          lodgementDate: '2025-02-02',
           applicationNotes: {
             notes: 'draft note',
             caseReference: null,
@@ -420,7 +419,6 @@ describe('applications-list entry form builders', () => {
       );
 
       expect(dto.applicationCode).toBe('APP-200');
-      expect(dto.lodgementDate).toBe('2025-02-02');
       expect(dto.notes).toBe('persisted note');
       expect(dto.applicant?.person?.name?.firstForename).toBe('Jane');
     });
