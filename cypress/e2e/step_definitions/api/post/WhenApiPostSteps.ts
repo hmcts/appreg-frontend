@@ -35,8 +35,8 @@ When(
     const rows = dataTable.raw();
     const rowObj: Record<string, string> = {};
 
-    // Skip header row (index 0) and process data rows (starting from index 1)
-    for (let i = 1; i < rows.length; i++) {
+    // Process all rows (no header row in Object Builder tables)
+    for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       if (row.length >= 2) {
         const key = row[0].trim();

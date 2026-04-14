@@ -40,4 +40,13 @@ export class BannerHelper {
   static verifyWarningBanner(expectedText: string): void {
     BannerElement.findWarningRegionByText(expectedText).should('be.visible');
   }
+
+  static verifySuccessBannerContaining(
+    heading: string,
+    bodyText: string,
+  ): void {
+    BannerElement.findSuccessAlertWithBody(heading, bodyText).should(
+      'be.visible',
+    );
+  }
 }

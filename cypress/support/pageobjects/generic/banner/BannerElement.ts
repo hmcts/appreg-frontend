@@ -49,4 +49,13 @@ export class BannerElement {
   ): Cypress.Chainable<JQuery<HTMLElement>> {
     return cy.contains(this.warningRegionSelector, text);
   }
+
+  static findSuccessAlertWithBody(
+    heading: string,
+    bodyText: string,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy
+      .contains(this.successAlertSelector, heading, { timeout: 10000 })
+      .should('contain.text', bodyText);
+  }
 }
