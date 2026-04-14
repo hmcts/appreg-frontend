@@ -371,6 +371,14 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
+    if (this.runWordingValidationForPartialSave()) {
+      this.form.controls.feeStatuses.setValue(previousFeeStatuses, {
+        emitEvent: false,
+      });
+      this.form.controls.feeStatuses.markAsPristine();
+      return;
+    }
+
     const entryUpdateDto = buildEntryUpdateDtoForFeeChange(
       this.entryDetail,
       this.form.getRawValue(),
@@ -654,6 +662,16 @@ export class ApplicationsListEntryDetail implements OnInit {
     return this.appListEntryDetailState().errorFound;
   }
 
+  private runWordingValidationForPartialSave(): boolean {
+    this.childErrors.wording =
+      this.wordingSection?.validateForSubmit({
+        enforceSavedWording: false,
+      }) ?? [];
+
+    this.updateAllErrors();
+    return this.childErrors.wording.length > 0;
+  }
+
   onUpdateApplicant(): void {
     this.resetErrors();
     this.resetSuccessBanner();
@@ -734,6 +752,14 @@ export class ApplicationsListEntryDetail implements OnInit {
     const entryId = getEntryId(this.route);
 
     if (!entryId || !this.entryDetail) {
+      return;
+    }
+
+    if (this.runWordingValidationForPartialSave()) {
+      this.form.controls.hasOffsiteFee.setValue(prevValue, {
+        emitEvent: false,
+      });
+      this.form.controls.hasOffsiteFee.markAsPristine();
       return;
     }
 

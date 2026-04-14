@@ -2,7 +2,10 @@ import { Component, ViewChild, input, output, signal } from '@angular/core';
 
 import { AlertComponent } from '@components/alert/alert.component';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
-import { WordingParserComponent } from '@components/wording-parser/wording-parser.component';
+import {
+  WordingParserComponent,
+  WordingValidationOptions,
+} from '@components/wording-parser/wording-parser.component';
 import { TemplateDetail, TemplateSubstitution } from '@openapi';
 
 @Component({
@@ -33,7 +36,7 @@ export class WordingSectionComponent {
     this.saveSuccessful.set(false);
   }
 
-  validateForSubmit(): ErrorItem[] {
-    return this.wordingParser?.validateForSubmit() ?? [];
+  validateForSubmit(opts?: WordingValidationOptions): ErrorItem[] {
+    return this.wordingParser?.validateForSubmit(opts) ?? [];
   }
 }

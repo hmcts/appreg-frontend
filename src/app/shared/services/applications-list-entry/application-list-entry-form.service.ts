@@ -32,6 +32,7 @@ import {
   createEmptyPerson,
 } from '@util/applicant-helpers';
 import { markFormGroupClean } from '@util/form-helpers';
+import { getEntryWordingFields } from '@util/template-substitution-utils';
 
 type HydrateOptions = {
   /** Default false: avoid triggering applicantType valueChanges etc. */
@@ -92,8 +93,7 @@ export class ApplicationListEntryFormService {
         applicationCode: dto.applicationCode ?? null,
         respondent: dto.respondent ?? null,
         numberOfRespondents: dto.numberOfRespondents ?? null,
-        // TODO: Revisit when ticket ARCPOC-1058 is done
-        // wordingFields: dto.wordingFields ?? null,
+        wordingFields: getEntryWordingFields(dto) ?? null,
         feeStatuses: dto.feeStatuses ?? null,
         hasOffsiteFee: dto.hasOffsiteFee ?? null,
         applicationNotes: {

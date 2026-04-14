@@ -48,7 +48,7 @@ import {
   trimToUndefined,
 } from '@util/string-helpers';
 import {
-  WordingFieldLike,
+  getEntryWordingFields,
   toTemplateSubstitutions,
 } from '@util/template-substitution-utils';
 import {
@@ -267,18 +267,8 @@ export function buildOrganisationForm(
   }) as OrganisationForm;
 }
 
-// Wording fields moved from string[] to TemplateSubstitution[]; preserve stable fallback keys for legacy responses.
+// Preserve stable fallback keys for wording values that may arrive without keys.
 const LEGACY_WORDING_KEYS = ['courtName', 'organisationName'] as const;
-
-type EntryDetailWithLegacyWordingFields = EntryGetDetailDto & {
-  wordingFields?: WordingFieldLike[];
-};
-
-function getEntryWordingFields(
-  detail: EntryGetDetailDto,
-): WordingFieldLike[] | undefined {
-  return (detail as EntryDetailWithLegacyWordingFields).wordingFields;
-}
 
 export function buildEntryUpdateDtoFromForm(
   detail: EntryGetDetailDto,
@@ -526,10 +516,15 @@ export function buildEntryUpdateDtoForFeeChange<K extends keyof EntryUpdateDto>(
   value: EntryUpdateDto[K],
 ): EntryUpdateDto {
   const dto = buildEntryUpdateDtoWithChange(detail, key, value);
+  const stagedWordingFields = formValue.wordingFields;
 
   const applicationCode = toOptionalTrimmed(formValue.applicationCode);
   if (applicationCode) {
     dto.applicationCode = applicationCode;
+  }
+
+  if (stagedWordingFields?.length) {
+    dto.wordingFields = stagedWordingFields;
   }
 
   return dto;
