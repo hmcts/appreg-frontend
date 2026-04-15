@@ -139,14 +139,14 @@ Feature: Application List Entries Print
         Then User See "Applications" On The Page
         Then User Should See The Button "Actions" Is Disabled
         # Select all entries
-        When User Checks The Checkbox In Row Of Table "Lists" With:
+        When User Checks The Checkbox In Row Of Table "Entries" With:
             | Sequence number | Account number  | Applicant                           | Respondent                     | Postcode | Title                                          | Fee | Resulted |
             | 1               | ACC-E1-{RANDOM} | Mr, Henry James, Taylor {RANDOM}    | Ms, Emily Rose, Clark {RANDOM} | BS15 5AA | Issue of liability order summons - council tax | No  | AUTH     |
             | 2               | ACC-E2-{RANDOM} | Mrs, Sarah Louise, Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account   | No  | AUTH     |
             | 3               | ACC-E3-{RANDOM} | Innovative Solutions Inc            | Mr, Owen, Davies {RANDOM}      | LS1 1AA  | Issue of liability order summons - council tax | No  | AUTH     |
         Then User Should See The Button "Actions" Is Enabled
         # Print continuous
-        When User Clicks "Actions" Then "Print continuous" From Caption Menu In Table "Lists"
+        When User Clicks "Actions" Then "Print continuous" From Caption Menu In Table "Entries"
         Then User Verifies PDF "<PDFNameContinuous>" Is Downloaded
         Then User Verifies Latest Downloaded PDF Is Not Empty
         Then User Verifies Latest Downloaded PDF Has <Pages> Pages
@@ -179,7 +179,7 @@ Feature: Application List Entries Print
             | This matter was before | -                                              |
         Then User Clears Downloaded PDFs
         # Print page
-        When User Clicks "Actions" Then "Print page" From Caption Menu In Table "Lists"
+        When User Clicks "Actions" Then "Print page" From Caption Menu In Table "Entries"
         Then User Verifies PDF "<PDFNamePage>" Is Downloaded
         Then User Verifies Latest Downloaded PDF Is Not Empty
         Then User Verifies Latest Downloaded PDF Has <Pages> Pages
@@ -206,8 +206,8 @@ Feature: Application List Entries Print
             | Produced on            | <SearchDate>                                   |
         Then User Clears Downloaded PDFs
         # Application List Cleanup
-        # When User Makes DELETE API Request To "/application-lists/:listId"
-        # Then User Verify Response Status Code Should Be "204"
+        When User Makes DELETE API Request To "/application-lists/:listId"
+        Then User Verify Response Status Code Should Be "204"
         Examples:
             | User  | APIDate  | Time           | Status | Description                             | courtLocationCode | SearchDate | DisplayDate  | DisplayDateLong  | Entries | Court                     | Pages | PDFNameContinuous                             | PDFNamePage                                   |
             | user2 | todayiso | timenowhhmm-3h | OPEN   | Applications to review at Test_{RANDOM} | BCC026            | today      | todayDisplay | todaydisplaylong | 3       | Bristol Crown Court Set 3 | 3     | bristol-crown-court-set-3-todayiso-print-cont | bristol-crown-court-set-3-todayiso-print-page |
