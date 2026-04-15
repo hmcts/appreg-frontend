@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed, fakeAsync } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { of, throwError } from 'rxjs';
 
 import { StandardApplicantSelectComponent } from '@components/standard-applicant-select/standard-applicant-select.component';
@@ -141,11 +142,17 @@ describe('StandardApplicantSelectComponent', () => {
 
     mockGetStandardApplicants.mockReturnValueOnce(of(page));
 
-    fixture.detectChanges(); // triggers ngOnInit
+    fixture.detectChanges();
     TestBed.tick();
 
     expect(mockGetStandardApplicants).toHaveBeenCalledWith(
-      { pageNumber: 0, pageSize: 10 },
+      {
+        code: undefined,
+        name: undefined,
+        pageNumber: 0,
+        pageSize: 10,
+        sort: ['code,asc'],
+      },
       'body',
       false,
       expect.objectContaining({ transferCache: true }),
@@ -162,6 +169,10 @@ describe('StandardApplicantSelectComponent', () => {
 
     expect(component.vm().pageIndex).toBe(0);
     expect(component.vm().totalPages).toBe(1);
+    expect(
+      fixture.debugElement.query(By.css('app-sortable-table')),
+    ).toBeTruthy();
+    expect(fixture.debugElement.query(By.css('app-pagination'))).toBeTruthy();
   }));
 
   it('uses selectedCode input to initialise selectedIds and emits changes when selection changes', fakeAsync(() => {
@@ -180,7 +191,7 @@ describe('StandardApplicantSelectComponent', () => {
 
     const emitSpy = jest.spyOn(component.selectedCodeChange, 'emit');
 
-    fixture.detectChanges(); // ngOnInit: syncSelectedIdsFromCode + loadPage
+    fixture.detectChanges();
     TestBed.tick();
 
     // After init, selectedIds should reflect selectedCode
@@ -208,7 +219,7 @@ describe('StandardApplicantSelectComponent', () => {
   }));
 
   it('onPageChange triggers API call for requested page and updates pageIndex', fakeAsync(() => {
-    fixture.detectChanges(); // initial load, call #1
+    fixture.detectChanges();
     TestBed.tick();
 
     const secondPage = {
@@ -225,7 +236,13 @@ describe('StandardApplicantSelectComponent', () => {
     TestBed.tick();
 
     expect(mockGetStandardApplicants).toHaveBeenLastCalledWith(
-      { pageNumber: 1, pageSize: 10 },
+      {
+        code: undefined,
+        name: undefined,
+        pageNumber: 1,
+        pageSize: 10,
+        sort: ['code,asc'],
+      },
       'body',
       false,
       expect.objectContaining({ transferCache: true }),
@@ -247,5 +264,48 @@ describe('StandardApplicantSelectComponent', () => {
     TestBed.tick();
     expect(component.rows).toEqual([]);
     expect(component.vm().totalPages).toBe(0);
+  }));
+
+  it('maps useTo sort key to backend to and reloads first page', fakeAsync(() => {
+    fixture.detectChanges();
+    TestBed.tick();
+
+    component.onSortChange({ key: 'useTo', direction: 'desc' });
+    TestBed.tick();
+
+    expect(mockGetStandardApplicants).toHaveBeenLastCalledWith(
+      {
+        code: undefined,
+        name: undefined,
+        pageNumber: 0,
+        pageSize: 10,
+        sort: ['to,desc'],
+      },
+      'body',
+      false,
+      expect.objectContaining({ transferCache: true }),
+    );
+    expect(component.vm().pageIndex).toBe(0);
+  }));
+
+  it('submits trimmed code and name filters', fakeAsync(() => {
+    fixture.detectChanges();
+    component.form.patchValue({ code: ' SA-1 ', name: ' Example ' });
+
+    component.onSubmit(new SubmitEvent('submit'));
+    TestBed.tick();
+
+    expect(mockGetStandardApplicants).toHaveBeenCalledWith(
+      {
+        code: 'SA-1',
+        name: 'Example',
+        pageNumber: 0,
+        pageSize: 10,
+        sort: ['code,asc'],
+      },
+      'body',
+      false,
+      expect.objectContaining({ transferCache: true }),
+    );
   }));
 });

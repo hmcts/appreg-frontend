@@ -14,6 +14,7 @@ import {
   output,
   signal,
 } from '@angular/core';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import {
   mapSaToRow,
@@ -29,14 +30,22 @@ import {
   SortableTableComponent,
   TableColumn,
 } from '@components/sortable-table/sortable-table.component';
+import { TextInputComponent } from '@components/text-input/text-input.component';
 import { StandardApplicantsApi } from '@openapi';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
+import { toStandardApplicantSortKey } from '@util/standard-applicant-sort-map';
 import { StandardApplicantRow } from '@util/types/applications-list-entry/types';
 
 @Component({
   selector: 'app-standard-applicant-select',
   standalone: true,
-  imports: [CommonModule, SortableTableComponent, PaginationComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    TextInputComponent,
+    SortableTableComponent,
+    PaginationComponent,
+  ],
   templateUrl: './standard-applicant-select.component.html',
 })
 export class StandardApplicantSelectComponent implements OnInit, OnChanges {
@@ -59,9 +68,17 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
   readonly vm = this.saSignalState.vm;
 
   private readonly loadRequest = signal<{
+    code?: string;
+    name?: string;
     pageNumber: number;
     pageSize: number;
+    sort: string[];
   } | null>(null);
+
+  form = new FormGroup({
+    code: new FormControl<string>('', { nonNullable: true }),
+    name: new FormControl<string>('', { nonNullable: true }),
+  });
 
   // Selection for the table
   selectedIds: Set<string> = new Set<string>();
@@ -69,6 +86,7 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
   ngOnInit(): void {
     this.syncSelectedIdsFromCode();
     this.setupEffects();
+    this.saSignalState.patch({ hasSearched: true });
     this.loadPage(0);
   }
 
@@ -90,7 +108,24 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
   }
 
   onPageChange(page: number): void {
+    if (!this.saState().hasSearched) {
+      return;
+    }
     this.loadPage(page);
+  }
+
+  onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    if (!this.saState().hasSearched) {
+      return;
+    }
+    this.saSignalState.patch({ sortField: sort });
+    this.loadPage(0);
+  }
+
+  onSubmit(event: SubmitEvent): void {
+    event.preventDefault();
+    this.saSignalState.patch({ hasSearched: true });
+    this.loadPage(0);
   }
 
   private setupEffects(): void {
@@ -133,8 +168,18 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
     this.saSignalState.patch({ loading: true, pageIndex: page });
 
     const pageSize = this.saState().pageSize;
+    const sort = this.saState().sortField;
+    const apiSortKey = toStandardApplicantSortKey(sort.key);
+    const code = this.form.controls.code.value.trim();
+    const name = this.form.controls.name.value.trim();
 
-    this.loadRequest.set({ pageNumber: this.saState().pageIndex, pageSize });
+    this.loadRequest.set({
+      code: code || undefined,
+      name: name || undefined,
+      pageNumber: this.saState().pageIndex,
+      pageSize,
+      sort: [`${apiSortKey},${sort.direction}`],
+    });
   }
 
   private syncSelectedIdsFromCode(): void {

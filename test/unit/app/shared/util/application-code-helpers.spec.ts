@@ -164,8 +164,14 @@ describe('application-code-helpers', () => {
       } as unknown as ApplicationCodePage;
 
       expect(mapCodeRows(page)).toEqual<CodeRow[]>([
-        { code: 'A1', title: 'Title 1', bulk: 'Yes', fee: 'FEE1' },
-        { code: '', title: '', bulk: 'No', fee: '—' },
+        {
+          code: 'A1',
+          title: 'Title 1',
+          bulk: 'Yes',
+          fee: 'FEE1',
+          isFeeDue: 'No',
+        },
+        { code: '', title: '', bulk: 'No', fee: '—', isFeeDue: 'No' },
       ]);
     });
 
@@ -266,7 +272,15 @@ describe('application-code-helpers', () => {
       );
 
       expect(rows).toEqual<CodeRowsResult>({
-        rows: [{ bulk: 'Yes', code: 'A1', fee: 'FEE1', title: 'Title 1' }],
+        rows: [
+          {
+            bulk: 'Yes',
+            code: 'A1',
+            fee: 'FEE1',
+            isFeeDue: 'No',
+            title: 'Title 1',
+          },
+        ],
         totalPages: 7,
       });
     });

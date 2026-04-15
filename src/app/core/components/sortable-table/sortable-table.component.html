@@ -1,184 +1,199 @@
-<table
-  #mojTable
-  class="govuk-table"
-  [attr.data-module]="
-    clientOrServerSort() === 'client' ? 'moj-sortable-table' : null
-  "
-  [attr.aria-describedby]="caption() ? 'sortable-' + captionId() : null"
->
-  <ng-content select="caption"></ng-content>
+@if (data() && data().length) {
+  <table
+    #mojTable
+    class="govuk-table"
+    [attr.data-module]="
+      clientOrServerSort() === 'client' ? 'moj-sortable-table' : null
+    "
+    [attr.aria-describedby]="caption() ? 'sortable-' + captionId() : null"
+  >
+    <ng-content select="caption"></ng-content>
 
-  @if (caption()) {
-    <caption
-      [class.govuk-visually-hidden]="hiddenCaption()"
-      class="govuk-table__caption govuk-table__caption--{{ captionSize() }}"
-      [id]="'sortable-' + captionId()"
-    >
-      {{
-        caption()
-      }}
-    </caption>
-  }
-
-  <thead class="govuk-table__head">
-    <tr class="govuk-table__row">
-      @if (selectable()) {
-        @if (!singleSelect()) {
-          <th
-            class="govuk-table__header moj-multi-select__select-all"
-            scope="col"
-            aria-label="Select rows"
-          >
-            <span class="govuk-visually-hidden">Select rows</span>
-
-            <div class="govuk-checkboxes govuk-checkboxes--small">
-              <div class="govuk-checkboxes__item moj-multi-select__checkbox">
-                <input
-                  #selectAll
-                  type="checkbox"
-                  class="govuk-checkboxes__input"
-                  [id]="idPrefix() + 'select-all'"
-                  [checked]="allVisibleSelected"
-                  [indeterminate]="someVisibleSelected && !allVisibleSelected"
-                  (change)="toggleSelectAllVisible(selectAll.checked)"
-                />
-                <label
-                  class="govuk-label govuk-checkboxes__label"
-                  [for]="idPrefix() + 'select-all'"
-                >
-                  <span class="govuk-visually-hidden">Select all</span>
-                </label>
-              </div>
-            </div>
-          </th>
-        } @else {
-          <th class="govuk-table__header" scope="col" aria-label="Select row">
-            <span class="govuk-visually-hidden">Select row</span>
-          </th>
-        }
-      }
-
-      @for (col of columns(); track col.field) {
-        <th
-          scope="col"
-          class="govuk-table__header"
-          [class.govuk-table__header--numeric]="col.numeric"
-          [class.app-sortable-table__cell--wrap]="!col.numeric"
-          [class.app-sortable-table__cell--nowrap]="col.field === 'actions'"
-          [attr.aria-sort]="
-            col.sortable === false
-              ? null
-              : clientOrServerSort() === 'server'
-                ? ariaSortFor(col.field)
-                : (col.defaultSort ?? 'none')
-          "
-        >
-          @if (clientOrServerSort() === 'server' && col.sortable !== false) {
-            <button
-              type="button"
-              class="app-sortable-table__header-button"
-              (click)="onHeaderClick($event, col)"
-            >
-              <span class="app-sortable-table__header-label">
-                {{ col.header }}
-              </span>
-              <span
-                class="app-sortable-table__sort-indicator"
-                aria-hidden="true"
-              ></span>
-            </button>
-          } @else {
-            {{ col.header }}
-          }
-        </th>
-      }
-    </tr>
-  </thead>
-
-  <tbody class="govuk-table__body">
-    @for (row of data(); track trackRow($index, row)) {
-      <tr
-        class="govuk-table__row"
-        [class.govuk-table__row--selected]="selectable() && isSelected(row)"
+    @if (caption()) {
+      <caption
+        [class.govuk-visually-hidden]="hiddenCaption()"
+        class="govuk-table__caption govuk-table__caption--{{ captionSize() }}"
+        [id]="'sortable-' + captionId()"
       >
-        @if (selectable()) {
-          <td class="govuk-table__cell">
-            <div class="govuk-checkboxes govuk-checkboxes--small">
-              <div class="govuk-checkboxes__item moj-multi-select__checkbox">
-                <input
-                  #cb
-                  type="checkbox"
-                  class="govuk-checkboxes__input"
-                  name="rows[]"
-                  [id]="idPrefix() + getRowId(row)"
-                  [checked]="isSelected(row)"
-                  (change)="toggleOne(row, cb.checked)"
-                />
-                <label
-                  class="govuk-label govuk-checkboxes__label"
-                  [for]="idPrefix() + getRowId(row)"
-                >
-                  <span class="govuk-visually-hidden">
-                    Select {{ row[firstColField] }}
-                  </span>
-                </label>
-              </div>
-            </div>
-          </td>
-        }
+        {{
+          caption()
+        }}
+      </caption>
+    }
 
-        @for (col of columns(); track col.field; let ci = $index) {
-          @if (ci === 0) {
+    <thead class="govuk-table__head">
+      <tr class="govuk-table__row">
+        @if (selectable()) {
+          @if (!singleSelect()) {
             <th
-              scope="row"
-              class="govuk-table__header"
-              [class.govuk-table__cell--numeric]="col.numeric"
-              [class.app-sortable-table__cell--wrap]="!col.numeric"
-              [class.app-sortable-table__cell--nowrap]="col.field === 'actions'"
-              [attr.data-sort-value]="
-                clientOrServerSort() === 'client' && col.sortable !== false
-                  ? getSortValue(row, col)
-                  : null
-              "
+              class="govuk-table__header moj-multi-select__select-all"
+              scope="col"
+              aria-label="Select rows"
             >
-              @if (col.field === dateFieldIdentifier() && dateTpl()) {
-                <ng-container
-                  *ngTemplateOutlet="dateTpl(); context: { $implicit: row }"
-                ></ng-container>
-              } @else {
-                {{ row[col.field] }}
-              }
+              <span class="govuk-visually-hidden">Select rows</span>
+
+              <div class="govuk-checkboxes govuk-checkboxes--small">
+                <div class="govuk-checkboxes__item moj-multi-select__checkbox">
+                  <input
+                    #selectAll
+                    type="checkbox"
+                    class="govuk-checkboxes__input"
+                    [id]="idPrefix() + 'select-all'"
+                    [checked]="allVisibleSelected"
+                    [indeterminate]="someVisibleSelected && !allVisibleSelected"
+                    (change)="toggleSelectAllVisible(selectAll.checked)"
+                  />
+                  <label
+                    class="govuk-label govuk-checkboxes__label"
+                    [for]="idPrefix() + 'select-all'"
+                  >
+                    <span class="govuk-visually-hidden">Select all</span>
+                  </label>
+                </div>
+              </div>
             </th>
           } @else {
-            <td
-              class="govuk-table__cell"
-              [class.govuk-table__cell--numeric]="col.numeric"
-              [class.app-sortable-table__cell--wrap]="!col.numeric"
-              [class.app-sortable-table__cell--nowrap]="col.field === 'actions'"
-              [attr.data-sort-value]="
-                clientOrServerSort() === 'client' && col.sortable !== false
-                  ? getSortValue(row, col)
-                  : null
-              "
-            >
-              @if (col.field === 'actions') {
-                <ng-container
-                  *ngTemplateOutlet="
-                    actionsTpl ?? null;
-                    context: { $implicit: row }
-                  "
-                ></ng-container>
-              } @else if (col.field === dateFieldIdentifier() && dateTpl()) {
-                <ng-container
-                  *ngTemplateOutlet="dateTpl(); context: { $implicit: row }"
-                ></ng-container>
-              } @else {
-                {{ row[col.field] }}
-              }
-            </td>
+            <th class="govuk-table__header" scope="col" aria-label="Select row">
+              <span class="govuk-visually-hidden">Select row</span>
+            </th>
           }
         }
+
+        @for (col of columns(); track col.field) {
+          <th
+            scope="col"
+            class="govuk-table__header"
+            [class.govuk-table__header--numeric]="col.numeric"
+            [class.app-sortable-table__cell--wrap]="!col.numeric"
+            [class.app-sortable-table__cell--nowrap]="col.field === 'actions'"
+            [attr.aria-sort]="
+              col.sortable === false
+                ? null
+                : clientOrServerSort() === 'server'
+                  ? ariaSortFor(col.field)
+                  : (col.defaultSort ?? 'none')
+            "
+          >
+            @if (clientOrServerSort() === 'server' && col.sortable !== false) {
+              <button
+                type="button"
+                class="app-sortable-table__header-button"
+                (click)="onHeaderClick($event, col)"
+              >
+                <span class="app-sortable-table__header-label">
+                  {{ col.header }}
+                </span>
+                <span
+                  class="app-sortable-table__sort-indicator"
+                  aria-hidden="true"
+                ></span>
+              </button>
+            } @else {
+              {{ col.header }}
+            }
+          </th>
+        }
       </tr>
-    }
-  </tbody>
-</table>
+    </thead>
+
+    <tbody class="govuk-table__body">
+      @for (row of data(); track trackRow($index, row)) {
+        <tr
+          class="govuk-table__row"
+          [class.govuk-table__row--selected]="selectable() && isSelected(row)"
+        >
+          @if (selectable()) {
+            <td class="govuk-table__cell">
+              <div class="govuk-checkboxes govuk-checkboxes--small">
+                <div class="govuk-checkboxes__item moj-multi-select__checkbox">
+                  <input
+                    #cb
+                    type="checkbox"
+                    class="govuk-checkboxes__input"
+                    name="rows[]"
+                    [id]="idPrefix() + getRowId(row)"
+                    [checked]="isSelected(row)"
+                    (change)="toggleOne(row, cb.checked)"
+                  />
+                  <label
+                    class="govuk-label govuk-checkboxes__label"
+                    [for]="idPrefix() + getRowId(row)"
+                  >
+                    <span class="govuk-visually-hidden">
+                      Select {{ row[firstColField] }}
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </td>
+          }
+
+          @for (col of columns(); track col.field; let ci = $index) {
+            @if (ci === 0) {
+              <th
+                scope="row"
+                class="govuk-table__header"
+                [class.govuk-table__cell--numeric]="col.numeric"
+                [class.app-sortable-table__cell--wrap]="!col.numeric"
+                [class.app-sortable-table__cell--nowrap]="
+                  col.field === 'actions'
+                "
+                [attr.data-sort-value]="
+                  clientOrServerSort() === 'client' && col.sortable !== false
+                    ? getSortValue(row, col)
+                    : null
+                "
+              >
+                @if (col.field === dateFieldIdentifier() && dateTpl()) {
+                  <ng-container
+                    *ngTemplateOutlet="dateTpl(); context: { $implicit: row }"
+                  ></ng-container>
+                } @else {
+                  {{ row[col.field] }}
+                }
+              </th>
+            } @else {
+              <td
+                class="govuk-table__cell"
+                [class.govuk-table__cell--numeric]="col.numeric"
+                [class.app-sortable-table__cell--wrap]="!col.numeric"
+                [class.app-sortable-table__cell--nowrap]="
+                  col.field === 'actions'
+                "
+                [attr.data-sort-value]="
+                  clientOrServerSort() === 'client' && col.sortable !== false
+                    ? getSortValue(row, col)
+                    : null
+                "
+              >
+                @if (col.field === 'actions') {
+                  <ng-container
+                    *ngTemplateOutlet="
+                      actionsTpl ?? null;
+                      context: { $implicit: row }
+                    "
+                  ></ng-container>
+                } @else if (col.field === dateFieldIdentifier() && dateTpl()) {
+                  <ng-container
+                    *ngTemplateOutlet="dateTpl(); context: { $implicit: row }"
+                  ></ng-container>
+                } @else {
+                  {{ row[col.field] }}
+                }
+              </td>
+            }
+          }
+        </tr>
+      }
+    </tbody>
+  </table>
+} @else {
+  <p
+    id="no-data-message"
+    [attr.aria-label]="noDataMessage()"
+    class="govuk-body"
+    tabindex="0"
+  >
+    {{ noDataMessage() }}
+  </p>
+}

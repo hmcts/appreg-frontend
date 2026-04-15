@@ -540,6 +540,39 @@ describe('ApplicationsList – search', () => {
       expect(spy).not.toHaveBeenCalled();
     });
 
+    it('preserves existing results and pagination when validation fails', () => {
+      const existingRows = [
+        {
+          id: 'keep',
+          date: '2025-01-01',
+          time: '10:00',
+          location: 'Court A',
+          description: 'Existing list',
+          entries: 2,
+          status: ApplicationListStatus.OPEN,
+        },
+      ] as ApplicationListRow[];
+
+      patchRecordsState(component, {
+        rows: existingRows,
+        totalPages: 4,
+      });
+
+      component.form.controls.date.setErrors({
+        dateInvalid: true,
+        dateErrorText: 'Enter a valid date',
+      });
+
+      const spy = jest.spyOn(component, 'loadApplicationsLists');
+
+      const { e } = submitEvent('search');
+      component.onSubmit(e);
+
+      expect(getRecordsState(component).rows).toEqual(existingRows);
+      expect(getRecordsState(component).totalPages).toBe(4);
+      expect(spy).not.toHaveBeenCalled();
+    });
+
     it('calls loadApplicationsLists(hasAnyParams) for search action when no validation errors', () => {
       const spy = jest
         .spyOn(component, 'loadApplicationsLists')
