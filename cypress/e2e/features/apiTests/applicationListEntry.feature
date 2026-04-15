@@ -161,7 +161,7 @@ Feature: API - Application List Entry
             | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
-            | respondent.dateOfBirth                        | todayiso-25y                   |
+            | respondent.person.dateOfBirth                 | todayiso-25y                   |
             | wordingFields.0.key                           | Reference                      |
             | wordingFields.0.value                         | {RANDOM}                       |
             | hasOffsiteFee                                 | true                           |
@@ -215,7 +215,7 @@ Feature: API - Application List Entry
             | respondent.person.contactDetails.phone        | 0117{RANDOM}                         |
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                        |
             | respondent.person.contactDetails.email        | {RANDOM}@example.com                 |
-            | respondent.dateOfBirth                        | todayiso-25y                         |
+            | respondent.person.dateOfBirth                 | todayiso-25y                         |
             | wordingFields.0.key                           | Reference                            |
             | wordingFields.0.value                         | {RANDOM}                             |
             | hasOffsiteFee                                 | true                                 |

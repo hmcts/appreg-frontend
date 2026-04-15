@@ -246,7 +246,7 @@ Feature: Applications List Update
             | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
-            | respondent.dateOfBirth                        | todayiso-25y                   |
+            | respondent.person.dateOfBirth                 | todayiso-25y                   |
             | feeStatuses.0.paymentReference                |                                |
             | feeStatuses.0.paymentStatus                   | <feeStatusDue>                 |
             | feeStatuses.0.statusDate                      | <feeStatusDate>                |
@@ -283,17 +283,17 @@ Feature: Applications List Update
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
             """
             {
-                "resultCode": "RTC",
-                "wordingFields": [
-                    {
-                        "key": "Date",
-                        "value": "24-02-2026"
-                    },
-                    {
-                        "key": "Courthouse",
-                        "value": "London Courthouse"
-                    }
-                ]
+            "resultCode": "RTC",
+            "wordingFields": [
+            {
+            "key": "Date",
+            "value": "24-02-2026"
+            },
+            {
+            "key": "Courthouse",
+            "value": "London Courthouse"
+            }
+            ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -336,7 +336,7 @@ Feature: Applications List Update
             | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
-            | respondent.dateOfBirth                        | todayiso-25y                   |
+            | respondent.person.dateOfBirth                 | todayiso-25y                   |
             | feeStatuses.0.paymentReference                |                                |
             | feeStatuses.0.paymentStatus                   | <feeStatusDue>                 |
             | feeStatuses.0.statusDate                      | <feeStatusDate>                |
@@ -388,7 +388,7 @@ Feature: Applications List Update
             | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
-            | respondent.dateOfBirth                        | todayiso-25y                   |
+            | respondent.person.dateOfBirth                 | todayiso-25y                   |
             | feeStatuses.0.paymentReference                | <feeStatusPaidReference>       |
             | feeStatuses.0.paymentStatus                   | <feeStatusPaid>                |
             | feeStatuses.0.statusDate                      | <feeStatusDate>                |

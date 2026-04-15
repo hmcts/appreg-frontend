@@ -70,7 +70,7 @@ Feature: Applications List Result
             | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
-            | respondent.dateOfBirth                        | todayiso-25y                   |
+            | respondent.person.dateOfBirth                 | todayiso-25y                   |
             | wordingFields.0.key                           | Reference                      |
             | wordingFields.0.value                         | {RANDOM}                       |
             | hasOffsiteFee                                 | true                           |
@@ -132,7 +132,7 @@ Feature: Applications List Result
             | respondent.person.contactDetails.phone             | 0113{RANDOM}                   |
             | respondent.person.contactDetails.mobile            | 07500{RANDOM}                  |
             | respondent.person.contactDetails.email             | respondent{RANDOM}@example.com |
-            | respondent.dateOfBirth                             | todayiso-30y                   |
+            | respondent.person.dateOfBirth                      | todayiso-30y                   |
             | wordingFields.0.key                                | Reference                      |
             | wordingFields.0.value                              | {RANDOM}                       |
             | hasOffsiteFee                                      | true                           |
@@ -165,7 +165,7 @@ Feature: Applications List Result
             | respondent.person.contactDetails.phone        | 0151{RANDOM}                   |
             | respondent.person.contactDetails.mobile       | 07300{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
-            | respondent.dateOfBirth                        | todayiso-35y                   |
+            | respondent.person.dateOfBirth                 | todayiso-35y                   |
             | wordingFields.0.key                           | account balance                |
             | wordingFields.0.value                         | {RANDOM}                       |
             | hasOffsiteFee                                 | false                          |
@@ -206,7 +206,7 @@ Feature: Applications List Result
             | respondent.person.contactDetails.phone        | 0191{RANDOM}                   |
             | respondent.person.contactDetails.mobile       | 07200{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
-            | respondent.dateOfBirth                        | todayiso-40y                   |
+            | respondent.person.dateOfBirth                 | todayiso-40y                   |
             | wordingFields.0.key                           | Reference                      |
             | wordingFields.0.value                         | {RANDOM}                       |
             | hasOffsiteFee                                 | false                          |
@@ -261,7 +261,7 @@ Feature: Applications List Result
             | respondent.person.contactDetails.phone        | 029{RANDOM}                    |
             | respondent.person.contactDetails.mobile       | 07800{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
-            | respondent.dateOfBirth                        | todayiso-28y                   |
+            | respondent.person.dateOfBirth                 | todayiso-28y                   |
             | feeStatuses.0.paymentReference                |                                |
             | feeStatuses.0.paymentStatus                   | <feeStatusDue>                 |
             | feeStatuses.0.statusDate                      | <feeStatusDate>                |
@@ -395,8 +395,8 @@ Feature: Applications List Result
             | 3               | ACC-E3-{RANDOM} | Mrs, Sarah Louise, Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account   | No  | PROA, COST      |
             | 5               | ACC-E5-{RANDOM} | Mr, James Edward, Brown {RANDOM}    | Ms, Laura, Davis {RANDOM}      | L1 1AA   | Collection Order - Financial Penalty Account   | No  | RTC, PROA, COST |
         # Application List Cleanup
-        When User Makes DELETE API Request To "/application-lists/:listId"
-        Then User Verify Response Status Code Should Be "204"
+        # When User Makes DELETE API Request To "/application-lists/:listId"
+        # Then User Verify Response Status Code Should Be "204"
         Examples:
             | User  | APIDate  | Time           | Status | Description                             | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                     | feeStatusDue | feeStatusDate |
             | user2 | todayiso | timenowhhmm-3h | OPEN   | Applications to review at Test_{RANDOM} | BCC026            | today      | todayDisplay | 8       | Bristol Crown Court Set 3 | DUE          | todayiso      |

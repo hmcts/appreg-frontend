@@ -460,7 +460,7 @@ Feature: Application List Row Actions
             | Application Code       | MS99006                                                           |
             | Account Reference      | ACC-{RANDOM}                                                      |
             | Application Title      | Condemnation of Unfit Food                                        |
-            | Result                 | -                                                                 |
+            | Result                 | Authorised                                                        |
             | Notes                  | Case noted with ref {RANDOM}                                      |
             | This matter was before | Ms Patel {RANDOM} Anita MAGISTRATE                                |
         Then User Clears Downloaded PDFs
@@ -562,7 +562,7 @@ Feature: Application List Row Actions
             | respondent.person.contactDetails.phone        | 0117{RANDOM}                   |
             | respondent.person.contactDetails.mobile       | 07984{RANDOM}                  |
             | respondent.person.contactDetails.email        | respondent{RANDOM}@example.com |
-            | respondent.dateOfBirth                        | todayiso-25y                   |
+            | respondent.person.dateOfBirth                 | todayiso-25y                   |
             | wordingFields.0.key                           | Reference                      |
             | wordingFields.0.value                         | {RANDOM}                       |
             | hasOffsiteFee                                 | true                           |
