@@ -367,7 +367,6 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     // Reset flag
     this.appListSignalState.patch(clearNotificationsPatch());
     this.appListSignalState.patch({ isSearch: true });
-    this.storedRecordsState.patch({ rows: [] });
 
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity({ emitEvent: false });

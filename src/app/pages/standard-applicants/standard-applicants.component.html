@@ -44,7 +44,7 @@
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 
-@if (vm().hasSearched && !vm().isLoading) {
+@if (vm().hasSearched && !vm().isLoading && !vm().searchErrors.length) {
   <!-- Sortable table component -->
   <app-sortable-table
     id="sa-sortable-table"

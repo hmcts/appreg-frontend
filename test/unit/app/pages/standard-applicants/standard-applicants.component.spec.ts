@@ -185,4 +185,16 @@ describe('StandardApplicantsComponent', () => {
       { id: 'search', text: 'Request failed' },
     ]);
   });
+
+  it('does not render table no-data state when the search fails', async () => {
+    apiStub.getStandardApplicants.mockReturnValueOnce(
+      throwError(() => new Error('Request failed')),
+    );
+
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    expect(fixture.debugElement.query(By.css('app-sortable-table'))).toBeNull();
+    expect(fixture.nativeElement.querySelector('#no-data-message')).toBeNull();
+  });
 });
