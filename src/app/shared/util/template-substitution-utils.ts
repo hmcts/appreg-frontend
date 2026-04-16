@@ -99,3 +99,27 @@ export function withWordingFieldValues(
     })),
   };
 }
+
+export function createWordingObjectValuesResolver(): (
+  template: TemplateDetail | null | undefined,
+  values: TemplateSubstitution[] | null | undefined,
+) => TemplateDetail | undefined {
+  let previousTemplate: TemplateDetail | null | undefined;
+  let previousValues: TemplateSubstitution[] | null | undefined;
+  let previousResolved: TemplateDetail | undefined;
+
+  return (
+    template: TemplateDetail | null | undefined,
+    values: TemplateSubstitution[] | null | undefined,
+  ): TemplateDetail | undefined => {
+    if (previousTemplate === template && previousValues === values) {
+      return previousResolved;
+    }
+
+    previousTemplate = template;
+    previousValues = values;
+    previousResolved = withWordingFieldValues(template, values);
+
+    return previousResolved;
+  };
+}

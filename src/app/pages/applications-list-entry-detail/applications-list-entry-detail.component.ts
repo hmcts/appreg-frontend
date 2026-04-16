@@ -138,7 +138,10 @@ import { buildFormErrorSummary } from '@util/error-summary';
 import { markFormGroupClean } from '@util/form-helpers';
 import { respondentFormsHaveAnyValue } from '@util/respondent-helpers';
 import { createSignalState } from '@util/signal-state-helpers';
-import { withWordingFieldValues } from '@util/template-substitution-utils';
+import {
+  createWordingObjectValuesResolver,
+  withWordingFieldValues,
+} from '@util/template-substitution-utils';
 
 type ChildErrorSource =
   | 'notes'
@@ -188,9 +191,8 @@ export class ApplicationsListEntryDetail implements OnInit {
   private readonly civilFeeSection?: CivilFeeSectionComponent;
 
   private readonly destroyRef = inject(DestroyRef);
-  private lastWordingObjectTemplate: TemplateDetail | null | undefined;
-  private lastWordingObjectValues: TemplateSubstitution[] | null | undefined;
-  private cachedWordingObjectValues: TemplateDetail | undefined;
+  private readonly resolveWordingObjectValues =
+    createWordingObjectValuesResolver();
 
   // APIs
   private readonly route = inject(ActivatedRoute);
@@ -322,20 +324,10 @@ export class ApplicationsListEntryDetail implements OnInit {
   getWordingObjectValues(
     template: TemplateDetail | null | undefined,
   ): TemplateDetail | undefined {
-    const values = this.form.controls.wordingFields.value;
-
-    if (
-      this.lastWordingObjectTemplate === template &&
-      this.lastWordingObjectValues === values
-    ) {
-      return this.cachedWordingObjectValues;
-    }
-
-    this.lastWordingObjectTemplate = template;
-    this.lastWordingObjectValues = values;
-    this.cachedWordingObjectValues = withWordingFieldValues(template, values);
-
-    return this.cachedWordingObjectValues;
+    return this.resolveWordingObjectValues(
+      template,
+      this.form.controls.wordingFields.value,
+    );
   }
 
   resetSuccessBanner(): void {

@@ -96,7 +96,7 @@ import { getUniqueErrors } from '@util/error-items';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { respondentFormsHaveAnyValue } from '@util/respondent-helpers';
 import { createSignalState } from '@util/signal-state-helpers';
-import { withWordingFieldValues } from '@util/template-substitution-utils';
+import { createWordingObjectValuesResolver } from '@util/template-substitution-utils';
 
 const ENTRY_CREATE_ERROR_HREFS = {
   lodgementDate: '#lodgement-date-day',
@@ -126,9 +126,8 @@ const ENTRY_CREATE_ERROR_HREFS = {
 })
 export class ApplicationsListEntryCreate implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
-  private lastWordingObjectTemplate: TemplateDetail | null | undefined;
-  private lastWordingObjectValues: TemplateSubstitution[] | null | undefined;
-  private cachedWordingObjectValues: TemplateDetail | undefined;
+  private readonly resolveWordingObjectValues =
+    createWordingObjectValuesResolver();
 
   route = inject(ActivatedRoute);
   appEntryApi = inject(ApplicationListEntriesApi);
@@ -293,20 +292,10 @@ export class ApplicationsListEntryCreate implements OnInit {
   getWordingObjectValues(
     template: TemplateDetail | null | undefined,
   ): TemplateDetail | undefined {
-    const values = this.form.controls.wordingFields.value;
-
-    if (
-      this.lastWordingObjectTemplate === template &&
-      this.lastWordingObjectValues === values
-    ) {
-      return this.cachedWordingObjectValues;
-    }
-
-    this.lastWordingObjectTemplate = template;
-    this.lastWordingObjectValues = values;
-    this.cachedWordingObjectValues = withWordingFieldValues(template, values);
-
-    return this.cachedWordingObjectValues;
+    return this.resolveWordingObjectValues(
+      template,
+      this.form.controls.wordingFields.value,
+    );
   }
 
   private buildErrorSummary(): ErrorItem[] {
