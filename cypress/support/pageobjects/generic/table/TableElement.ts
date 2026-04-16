@@ -309,4 +309,66 @@ export class TableElement {
       },
     );
   }
+
+  static findLinkInRowOfTable(
+    linkText: string,
+    tableName?: string,
+    rowData: Record<string, string> = {},
+  ): Cypress.Chainable {
+    const tableSelector = tableName
+      ? `table[aria-label="${tableName}"], table[summary="${tableName}"]`
+      : 'table';
+    return cy
+      .get(tableSelector)
+      .contains('tr', Object.values(rowData)[0] ?? '')
+      .find('a, button[role="link"]')
+      .contains(linkText);
+  }
+
+  static getLinkInRow(
+    row: JQuery<HTMLElement>,
+    linkText: string,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy
+      .wrap(row)
+      .find('a, button[role="link"]')
+      .filter((_, el) =>
+        StringUtils.normalizeText(Cypress.$(el).text()).includes(
+          StringUtils.normalizeText(linkText),
+        ),
+      )
+      .first();
+  }
+
+  static verifyLinkInTableRows(
+    columnValues: Record<string, string>,
+    linkText: string,
+  ): Cypress.Chainable<boolean> {
+    return TableSearch.searchWithPagination(
+      columnValues,
+      undefined,
+      true,
+      (row: JQuery<HTMLElement>): Cypress.Chainable<void> => {
+        return TableElement.getLinkInRow(row, linkText).should(
+          'exist',
+        ) as unknown as Cypress.Chainable<void>;
+      },
+    );
+  }
+
+  static verifyLinkIsNotVisibleInTableRows(
+    columnValues: Record<string, string>,
+    linkText: string,
+  ): void {
+    TableSearch.searchWithPagination(
+      columnValues,
+      undefined,
+      true,
+      (row: JQuery<HTMLElement>): Cypress.Chainable<void> => {
+        return TableElement.getLinkInRow(row, linkText).should(
+          'not.exist',
+        ) as unknown as Cypress.Chainable<void>;
+      },
+    );
+  }
 }

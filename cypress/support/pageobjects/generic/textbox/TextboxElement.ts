@@ -1,16 +1,23 @@
 /// <reference types="cypress" />
+import { StringUtils } from '../../../utils/StringUtils';
+
 export class TextboxElement {
   /**
-   * Finds a textbox element by label text, placeholder, or accessible name
+   * Finds a textbox element by label text (exact match, case-insensitive)
    */
   static findTextbox(
     labelOrIdentifier: string,
   ): Cypress.Chainable<JQuery<HTMLElement>> {
+    const normalized = StringUtils.normalizeText(labelOrIdentifier);
+    const escaped = normalized.replaceAll(
+      /[.*+?^${}()|[\]\\]/g,
+      String.raw`\$&`,
+    );
+    const exactRegex = new RegExp(String.raw`^\s*${escaped}\s*$`, 'i');
     return cy
       .contains(
         'label, input[placeholder], textarea[placeholder], input[aria-label], textarea[aria-label], select[aria-label]',
-        labelOrIdentifier,
-        { matchCase: false },
+        exactRegex,
       )
       .then(($el) => {
         // If it's a label, find the associated input
@@ -57,6 +64,8 @@ export class TextboxElement {
   static findContainsText(
     text: string,
   ): Cypress.Chainable<JQuery<HTMLElement>> {
-    return cy.contains(text);
+    return cy.contains(text) as unknown as Cypress.Chainable<
+      JQuery<HTMLElement>
+    >;
   }
 }

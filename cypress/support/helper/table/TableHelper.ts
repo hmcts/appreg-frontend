@@ -1,4 +1,5 @@
 /// <reference types="cypress" />
+import { AccordionElement } from '../../pageobjects/generic/accordion/accordion/AccordionElement';
 import { TableElement } from '../../pageobjects/generic/table/TableElement';
 
 import { TableNavigation } from './TableNavigation';
@@ -94,5 +95,49 @@ export class TableHelper {
     TableElement.getTableRows(caption)
       .should('exist')
       .and('have.length.greaterThan', 0);
+  }
+
+  static clickLinkInRowOfTable(
+    linkText: string,
+    tableName: string,
+    rowData: Record<string, string>,
+  ): void {
+    TableElement.findLinkInRowOfTable(linkText, tableName, rowData).click();
+  }
+
+  static clickInRowOfTable(
+    text: string,
+    tableName: string,
+    rowData: Record<string, string>,
+  ): void {
+    const tableSelector = tableName
+      ? `table[aria-label="${tableName}"], table[summary="${tableName}"]`
+      : 'table';
+    cy.get(tableSelector)
+      .contains('tr', Object.values(rowData)[0] ?? '')
+      .find('a, button')
+      .contains(text)
+      .click();
+  }
+
+  static verifySortableHeadersInAccordion(
+    accordionTitle: string,
+    headers: string,
+  ): void {
+    const sortableHeaders = headers.split(',').map((h) => h.trim());
+    for (const headerText of sortableHeaders) {
+      AccordionElement.findAccordionSection(accordionTitle)
+        .find('thead th')
+        .contains(headerText)
+        .closest('th')
+        .should('have.attr', 'aria-sort');
+    }
+  }
+
+  static clickButtonInRowOfTable(
+    tableCaption: string,
+    buttonText: string,
+  ): void {
+    TableElement.verifyButtonInTableRows(tableCaption, buttonText);
   }
 }
