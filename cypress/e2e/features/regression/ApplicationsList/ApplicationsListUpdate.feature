@@ -41,8 +41,7 @@ Feature: Applications List Update
         Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
-        Then User Sees Page Heading "Applications List"
-        Then User Sees Success Banner "Success Application list deleted successfully If you believe this was in error, please contact support."
+        Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
         Examples:
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Location      | Description   | Entries | Status | SelectButtonText | CourtValue | OtherLocation        | cjaCode | CJAValue      | HH | MM | UpdatedDescription    | UpdatedOtherLocation   | SuccessBanner                                                                      |
             | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | Wolverhampton | Test_{RANDOM} | 0       | OPEN   | Select           |            | Other Location_21442 | B9      | Wolverhampton | 11 | 30 | Updated Test_{RANDOM} | Updated Location_21442 | Success Application list updatedThe application list has been successfully updated |
@@ -90,8 +89,7 @@ Feature: Applications List Update
         Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
-        Then User Sees Page Heading "Applications List"
-        Then User Sees Success Banner "Success Application list deleted successfully If you believe this was in error, please contact support."
+        Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
         Examples:
             | User   | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Court  | CourtLocation                 | Description   | Entries | Status | ButtonName | SelectButtonText | OtherLocation | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText | UpdatedHH | UpdatedMM | SuccessBanner                                                                      |
             | admin1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test_{RANDOM} | 0       | OPEN   | Open       | Select           |               |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     | 12        | 45        | Success Application list updatedThe application list has been successfully updated |

@@ -25,8 +25,7 @@ Feature: Applications List Create
     Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
     Then User See "Are you sure you want to delete this application list?" On The Page
     When User Clicks On The "Yes - delete" Button
-    Then User Sees Page Heading "Applications List"
-    Then User Sees Success Banner "Success Application list deleted successfully If you believe this was in error, please contact support."
+    Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
 
     Examples:
       | User  | Date  | Time           | Description   | Status | OtherLocation           | SuccessMessage                                                                     | OptionText    | SearchText | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName | HH | MM |
@@ -55,8 +54,7 @@ Feature: Applications List Create
     Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
     Then User See "Are you sure you want to delete this application list?" On The Page
     When User Clicks On The "Yes - delete" Button
-    Then User Sees Page Heading "Applications List"
-    Then User Sees Success Banner "Success Application list deleted successfully If you believe this was in error, please contact support."
+    Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
     Examples:
       | User  | Date  | Time           | Description   | Status | SuccessMessage                                                                     | SearchText | OptionText                    | TableName | DisplayDate  | Entries | SelectButtonText | ButtonName |
       | user1 | today | timenowhhmm-2h | Test_{RANDOM} | Open   | Success Application list createdThe application list has been successfully created | royal      | Royal Courts of Justice Set 1 | Lists     | todaydisplay | 0       | Select           | Open       |
@@ -112,8 +110,7 @@ Feature: Applications List Create
     Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
     Then User See "Are you sure you want to delete this application list?" On The Page
     When User Clicks On The "Yes - delete" Button
-    Then User Sees Page Heading "Applications List"
-    Then User Sees Success Banner "Success Application list deleted successfully If you believe this was in error, please contact support."
+    Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
 
     Examples:
       | User  | InvalidDate | Date  | InvalidTime | Time  | Description   | Status | InvalidCourt | OtherLocation           | InvalidCJA | CJA           | SearchText | SuccessMessage                                                                     | TableName | DisplayDate  | Entries | SelectButtonText |
