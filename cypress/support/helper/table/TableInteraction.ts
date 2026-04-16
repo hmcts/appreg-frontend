@@ -140,6 +140,36 @@ export class TableInteraction {
   }
 
   /**
+   * Finds a row by column values and clicks a single (non-menu) button in that row.
+   * Use this when the row has a plain button (e.g. "Select") with no dropdown.
+   * @param tableCaption Caption of the table to scope the search
+   * @param columnValues Key-value pairs matching the target row
+   * @param buttonText Text of the button to click
+   */
+  static clickButtonInTableRow(
+    tableCaption: string,
+    columnValues: Record<string, string>,
+    buttonText: string,
+  ): Cypress.Chainable<void> {
+    return TableSearch.searchWithPagination(
+      columnValues,
+      tableCaption,
+      true,
+      (row) => {
+        return TableElement.getButtonInRow(row, buttonText).then((button) => {
+          TableInteraction.clickButton(button);
+        }) as unknown as Cypress.Chainable<void>;
+      },
+    ).then((found) => {
+      if (!found) {
+        throw new Error(
+          `Row with specified values not found in table "${tableCaption}" to click button "${buttonText}"`,
+        );
+      }
+    }) as unknown as Cypress.Chainable<void>;
+  }
+
+  /**
    * Clicks a menu item from the Actions button menu in a table caption
    * @param tableCaption Caption of the table to scope the search
    * @param toggleButtonText Text of the toggle button to open the menu (e.g. "Actions")

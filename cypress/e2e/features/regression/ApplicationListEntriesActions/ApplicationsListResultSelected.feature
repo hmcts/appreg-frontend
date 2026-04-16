@@ -281,16 +281,16 @@ Feature: Applications List Result
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User See "Applications" On The Page
         # Verify default sort order - Sequence number ascending
-        Then User Should See Table "Lists" Header "Sequence number" Has Sort Order "ascending"
-        Then User Should See Table "Lists" Header "Account number" Has Sort Order "none"
-        Then User Should See Table "Lists" Header "Applicant" Has Sort Order "none"
-        Then User Should See Table "Lists" Header "Respondent" Has Sort Order "none"
-        Then User Should See Table "Lists" Header "Postcode" Has Sort Order "none"
-        Then User Should See Table "Lists" Header "Title" Has Sort Order "none"
-        Then User Should See Table "Lists" Header "Fee" Has Sort Order "none"
-        Then User Should See Table "Lists" Header "Resulted" Has Sort Order "none"
+        Then User Should See Table "Entries" Header "Sequence number" Has Sort Order "ascending"
+        Then User Should See Table "Entries" Header "Account number" Has Sort Order "none"
+        Then User Should See Table "Entries" Header "Applicant" Has Sort Order "none"
+        Then User Should See Table "Entries" Header "Respondent" Has Sort Order "none"
+        Then User Should See Table "Entries" Header "Postcode" Has Sort Order "none"
+        Then User Should See Table "Entries" Header "Title" Has Sort Order "none"
+        Then User Should See Table "Entries" Header "Fee" Has Sort Order "none"
+        Then User Should See Table "Entries" Header "Resulted" Has Sort Order "none"
         # Verify all 8 rows
-        Then User Should See Row In Table "Lists" With Values:
+        Then User Should See Row In Table "Entries" With Values:
             | Sequence number | Account number  | Applicant                           | Respondent                     | Postcode | Title                                                      | Fee | Resulted |
             | 1               |                 | Test Acme Industries {RANDOM}       | Test Respondent Ltd {RANDOM}   | BS15 5AA | Issue of liability order summons - council tax             | No  |          |
             | 2               | ACC-E2-{RANDOM} | Mr, Henry James, Taylor {RANDOM}    | Ms, Emily Rose, Clark {RANDOM} | BS15 5AA | Issue of liability order summons - council tax             | No  |          |
@@ -301,42 +301,42 @@ Feature: Applications List Result
             | 7               | ACC-E7-{RANDOM} | Ms, Amelia, Hall                    | Metro Finance Ltd {RANDOM}     | EH1 1AA  | Collection Order - Financial Penalty Account               | No  |          |
             | 8               | ACC-E8-{RANDOM} | Mr, Daniel Paul, Hughes {RANDOM}    | Mrs, Claire, Hughes {RANDOM}   | CF10 2AA | Application for order re public health measures (premises) | Yes |          |
         # Sort by each column ascending and verify sort order changes
-        When User Clicks On Table Header "Account number" In Table "Lists"
-        Then User Should See Table "Lists" Header "Account number" Has Sort Order "ascending"
-        Then User Should See Table "Lists" Header "Sequence number" Has Sort Order "none"
-        When User Clicks On Table Header "Applicant" In Table "Lists"
-        Then User Should See Table "Lists" Header "Applicant" Has Sort Order "ascending"
-        Then User Should See Table "Lists" Header "Account number" Has Sort Order "none"
-        When User Clicks On Table Header "Respondent" In Table "Lists"
-        Then User Should See Table "Lists" Header "Respondent" Has Sort Order "ascending"
-        Then User Should See Table "Lists" Header "Applicant" Has Sort Order "none"
-        When User Clicks On Table Header "Postcode" In Table "Lists"
-        Then User Should See Table "Lists" Header "Postcode" Has Sort Order "ascending"
-        Then User Should See Table "Lists" Header "Respondent" Has Sort Order "none"
-        When User Clicks On Table Header "Title" In Table "Lists"
-        Then User Should See Table "Lists" Header "Title" Has Sort Order "ascending"
-        Then User Should See Table "Lists" Header "Postcode" Has Sort Order "none"
-        When User Clicks On Table Header "Fee" In Table "Lists"
-        Then User Should See Table "Lists" Header "Fee" Has Sort Order "ascending"
-        Then User Should See Table "Lists" Header "Title" Has Sort Order "none"
-        When User Clicks On Table Header "Resulted" In Table "Lists"
-        Then User Should See Table "Lists" Header "Resulted" Has Sort Order "ascending"
-        Then User Should See Table "Lists" Header "Fee" Has Sort Order "none"
+        When User Clicks On Table Header "Account number" In Table "Entries"
+        Then User Should See Table "Entries" Header "Account number" Has Sort Order "ascending"
+        Then User Should See Table "Entries" Header "Sequence number" Has Sort Order "none"
+        When User Clicks On Table Header "Applicant" In Table "Entries"
+        Then User Should See Table "Entries" Header "Applicant" Has Sort Order "ascending"
+        Then User Should See Table "Entries" Header "Account number" Has Sort Order "none"
+        When User Clicks On Table Header "Respondent" In Table "Entries"
+        Then User Should See Table "Entries" Header "Respondent" Has Sort Order "ascending"
+        Then User Should See Table "Entries" Header "Applicant" Has Sort Order "none"
+        When User Clicks On Table Header "Postcode" In Table "Entries"
+        Then User Should See Table "Entries" Header "Postcode" Has Sort Order "ascending"
+        Then User Should See Table "Entries" Header "Respondent" Has Sort Order "none"
+        When User Clicks On Table Header "Title" In Table "Entries"
+        Then User Should See Table "Entries" Header "Title" Has Sort Order "ascending"
+        Then User Should See Table "Entries" Header "Postcode" Has Sort Order "none"
+        When User Clicks On Table Header "Fee" In Table "Entries"
+        Then User Should See Table "Entries" Header "Fee" Has Sort Order "ascending"
+        Then User Should See Table "Entries" Header "Title" Has Sort Order "none"
+        When User Clicks On Table Header "Resulted" In Table "Entries"
+        Then User Should See Table "Entries" Header "Resulted" Has Sort Order "ascending"
+        Then User Should See Table "Entries" Header "Fee" Has Sort Order "none"
         # Sort descending by clicking again
-        When User Clicks On Table Header "Resulted" In Table "Lists"
-        Then User Should See Table "Lists" Header "Resulted" Has Sort Order "descending"
+        When User Clicks On Table Header "Resulted" In Table "Entries"
+        Then User Should See Table "Entries" Header "Resulted" Has Sort Order "descending"
         # Return to default Sequence number ascending
-        When User Clicks On Table Header "Sequence number" In Table "Lists"
-        Then User Should See Table "Lists" Header "Sequence number" Has Sort Order "ascending"
+        When User Clicks On Table Header "Sequence number" In Table "Entries"
+        Then User Should See Table "Entries" Header "Sequence number" Has Sort Order "ascending"
         Then User Should See The Button "Actions" Is Disabled
         # Select rows 2, 3 and 5 in one step
-        When User Checks The Checkbox In Row Of Table "Lists" With:
+        When User Checks The Checkbox In Row Of Table "Entries" With:
             | Sequence number | Account number  | Applicant                           | Respondent                     | Postcode | Title                                          | Fee | Resulted |
             | 2               | ACC-E2-{RANDOM} | Mr, Henry James, Taylor {RANDOM}    | Ms, Emily Rose, Clark {RANDOM} | BS15 5AA | Issue of liability order summons - council tax | No  |          |
             | 3               | ACC-E3-{RANDOM} | Mrs, Sarah Louise, Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account   | No  |          |
             | 5               | ACC-E5-{RANDOM} | Mr, James Edward, Brown {RANDOM}    | Ms, Laura, Davis {RANDOM}      | L1 1AA   | Collection Order - Financial Penalty Account   | No  | RTC      |
         Then User Should See The Button "Actions" Is Enabled
-        When User Clicks "Actions" Then "Result selected" From Caption Menu In Table "Lists"
+        When User Clicks "Actions" Then "Result selected" From Caption Menu In Table "Entries"
         Then User See "Result applications" On The Page
         # Verify all 3 selected rows appear on the result page
         Then User Should See Row In Table "Application(s) to result" With Values:
@@ -389,14 +389,14 @@ Feature: Applications List Result
         Then User Should See Tag "Existing" In Summary Card "COST - Costs granted"
         Then User Clicks On The Breadcrumb Link "Applications list details"
         # Verify rows 2, 3, 5 have PROA and COST applied; row 5 retains pre-existing RTC; rows 1, 4, 6, 7, 8 unchanged
-        Then User Should See Row In Table "Lists" With Values:
+        Then User Should See Row In Table "Entries" With Values:
             | Sequence number | Account number  | Applicant                           | Respondent                     | Postcode | Title                                          | Fee | Resulted        |
             | 2               | ACC-E2-{RANDOM} | Mr, Henry James, Taylor {RANDOM}    | Ms, Emily Rose, Clark {RANDOM} | BS15 5AA | Issue of liability order summons - council tax | No  | PROA, COST      |
             | 3               | ACC-E3-{RANDOM} | Mrs, Sarah Louise, Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account   | No  | PROA, COST      |
             | 5               | ACC-E5-{RANDOM} | Mr, James Edward, Brown {RANDOM}    | Ms, Laura, Davis {RANDOM}      | L1 1AA   | Collection Order - Financial Penalty Account   | No  | RTC, PROA, COST |
         # Application List Cleanup
-        # When User Makes DELETE API Request To "/application-lists/:listId"
-        # Then User Verify Response Status Code Should Be "204"
+        When User Makes DELETE API Request To "/application-lists/:listId"
+        Then User Verify Response Status Code Should Be "204"
         Examples:
             | User  | APIDate  | Time           | Status | Description                             | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                     | feeStatusDue | feeStatusDate |
             | user2 | todayiso | timenowhhmm-3h | OPEN   | Applications to review at Test_{RANDOM} | BCC026            | today      | todayDisplay | 8       | Bristol Crown Court Set 3 | DUE          | todayiso      |

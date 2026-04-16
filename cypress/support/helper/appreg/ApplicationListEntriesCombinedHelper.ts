@@ -34,8 +34,9 @@ export class ApplicationListEntriesCombinedHelper {
       }
 
       switch (fieldLabel) {
+        case 'List date':
         case 'Date':
-          DateTimeHelper.setDateValue('Date', value);
+          DateTimeHelper.setDateValue('List date', value);
           break;
 
         case 'Applicant organisation':
@@ -68,8 +69,14 @@ export class ApplicationListEntriesCombinedHelper {
           TextboxHelper.typeInTextbox('Respondent surname', value);
           break;
 
+        case 'Other location description':
+        case 'Other location':
         case 'List other location':
-          TextboxHelper.typeInTextbox('Other location', value);
+          TextboxHelper.typeInTextbox('Other location description', value);
+          break;
+
+        case 'Standard applicant code':
+          TextboxHelper.typeInTextbox('Standard applicant code', value);
           break;
 
         case 'Applicant code':
@@ -84,7 +91,8 @@ export class ApplicationListEntriesCombinedHelper {
           // handled in CJA case
           break;
 
-        case 'Criminal justice area': {
+        case 'Criminal justice area':
+        case 'CJA': {
           const cjaSearchText = processedCriteria['CJASearch'] || value;
           TextboxHelper.selectAutocompleteOption(
             'Criminal justice area',
@@ -95,6 +103,7 @@ export class ApplicationListEntriesCombinedHelper {
         }
 
         case 'Select application status':
+        case 'Status':
           if (value !== 'Choose') {
             DropdownHelper.selectDropdownOption(
               'Select application status',

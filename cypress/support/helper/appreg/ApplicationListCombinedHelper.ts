@@ -54,10 +54,12 @@ export class ApplicationListCombinedHelper {
           break;
 
         case 'Other location description':
+        case 'Other location':
           TextboxHelper.typeInTextbox('Other location description', value);
           break;
 
-        case 'Criminal justice area': {
+        case 'Criminal justice area':
+        case 'CJA': {
           const cjaSearchText = processedCriteria.CJASearch || value;
           TextboxHelper.selectAutocompleteOption(
             'Criminal justice area',
@@ -68,13 +70,15 @@ export class ApplicationListCombinedHelper {
         }
 
         case 'Select list status':
+        case 'Status':
           if (value !== 'Choose') {
             DropdownHelper.selectDropdownOption('Select list status', value);
           }
           break;
 
         case 'List description':
-          TextboxHelper.typeInTextbox(fieldLabel, value);
+        case 'Description':
+          TextboxHelper.typeInTextbox('List description', value);
           break;
       }
     }
