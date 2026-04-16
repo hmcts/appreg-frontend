@@ -34,6 +34,16 @@ export type WordingValidationOptions = {
   selector: 'app-wording-parser',
   imports: [ReactiveFormsModule, NgClass],
   templateUrl: './wording-parser.component.html',
+  styles: `
+    .wording-parser-text {
+      line-height: 1.9;
+    }
+
+    .wording-parser-text .govuk-input {
+      margin: 0.25rem 0.35rem 0.25rem 0;
+      vertical-align: middle;
+    }
+  `,
 })
 export class WordingParserComponent {
   private readonly fb = inject(FormBuilder);
