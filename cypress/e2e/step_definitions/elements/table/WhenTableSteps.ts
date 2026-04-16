@@ -54,6 +54,23 @@ When(
 );
 
 When(
+  'User Clicks {string} Button In Row Of Table {string} With:',
+  (
+    buttonText: string,
+    tableCaption: string,
+    dataTable: { hashes: () => { [key: string]: string }[] },
+  ) => {
+    const rows = dataTable.hashes();
+    if (rows.length === 0) {
+      throw new Error('DataTable must have at least one row of data');
+    }
+    const rowData = rows[0];
+    TableInteraction.clickButtonInTableRow(tableCaption, rowData, buttonText);
+    cy.screenshot(`clicked-button-${buttonText}-in-row`);
+  },
+);
+
+When(
   'User Clicks {string} In Row Of Table {string} And Verify Menu Options {string}',
   (
     selectButtonText: string,

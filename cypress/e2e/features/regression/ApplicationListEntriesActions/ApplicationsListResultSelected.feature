@@ -395,8 +395,8 @@ Feature: Applications List Result
             | 3               | ACC-E3-{RANDOM} | Mrs, Sarah Louise, Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account   | No  | PROA, COST      |
             | 5               | ACC-E5-{RANDOM} | Mr, James Edward, Brown {RANDOM}    | Ms, Laura, Davis {RANDOM}      | L1 1AA   | Collection Order - Financial Penalty Account   | No  | RTC, PROA, COST |
         # Application List Cleanup
-        # When User Makes DELETE API Request To "/application-lists/:listId"
-        # Then User Verify Response Status Code Should Be "204"
+        When User Makes DELETE API Request To "/application-lists/:listId"
+        Then User Verify Response Status Code Should Be "204"
         Examples:
             | User  | APIDate  | Time           | Status | Description                             | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                     | feeStatusDue | feeStatusDate |
             | user2 | todayiso | timenowhhmm-3h | OPEN   | Applications to review at Test_{RANDOM} | BCC026            | today      | todayDisplay | 8       | Bristol Crown Court Set 3 | DUE          | todayiso      |
