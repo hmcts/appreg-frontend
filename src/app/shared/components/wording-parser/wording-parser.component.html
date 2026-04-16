@@ -1,5 +1,5 @@
 <form [formGroup]="form">
-  <p class="govuk-body">
+  <p class="govuk-body wording-parser-text">
     @for (t of tokens; track $index) {
       @if (t.type == 'text') {
         {{ t.value }}&nbsp;
