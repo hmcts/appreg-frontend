@@ -193,7 +193,7 @@
     "@azure/keyvault-secrets": "4.11.1",
     "@azure/keyvault-common": "2.1.0",
     "@cucumber/messages": "^30.0.0",
-    "dompurify": "^3.3.2",
+    "dompurify": "^3.4.0",
     "glob": "^13.0.1",
     "postman-collection": "^5.2.0",
     "json-schema-faker": "^0.6.0",
