@@ -52,6 +52,7 @@ export type CodeRow = {
   title: string;
   bulk: string;
   fee: string;
+  isFeeDue: string;
 };
 
 export type CodeRowsResult = {
@@ -66,6 +67,7 @@ export function mapCodeRows(page: ApplicationCodePage): CodeRow[] {
     title: i.title ?? '',
     bulk: i.bulkRespondentAllowed ? 'Yes' : 'No',
     fee: i.feeReference ?? '—',
+    isFeeDue: i.isFeeDue ? 'Yes' : 'No',
   }));
 }
 

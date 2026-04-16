@@ -1,20 +1,51 @@
 <div id="standard-applicant">
-  <app-sortable-table
-    id="standard-applicant-table"
-    caption="Standard applicants"
-    [columns]="columns"
-    [data]="rows"
-    [selectable]="true"
-    idField="code"
-    [singleSelect]="true"
-    [selectedIds]="selectedIds"
-    (selectedIdsChange)="onSelectedIdsChange($event)"
-    appMojButtonMenu
-  />
+  <form [formGroup]="form" (ngSubmit)="onSubmit($event)">
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="code"
+        label="Code"
+        idPrefix="standard-applicant-code"
+        containerWidthClass="govuk-grid-column-one-half"
+      />
+    </div>
 
-  <app-pagination
-    [currentPage]="vm().pageIndex"
-    [totalPages]="vm().totalPages"
-    (pageChange)="onPageChange($event)"
-  />
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="name"
+        label="Standard applicant name"
+        idPrefix="standard-applicant-name"
+        widthClass="govuk-input--width-20"
+        containerWidthClass="govuk-grid-column-one-half"
+      />
+    </div>
+
+    <div class="govuk-button-group">
+      <button type="submit" class="govuk-button">Search</button>
+    </div>
+  </form>
+
+  @if (vm().hasSearched && !vm().loading) {
+    <app-sortable-table
+      id="standard-applicant-table"
+      caption="Standard applicants"
+      [columns]="columns"
+      [data]="rows"
+      [clientOrServerSort]="'server'"
+      [sortKey]="vm().sortField.key"
+      [sortDirection]="vm().sortField.direction"
+      (sortChange)="onSortChange($event)"
+      [selectable]="true"
+      idField="code"
+      [singleSelect]="true"
+      [selectedIds]="selectedIds"
+      (selectedIdsChange)="onSelectedIdsChange($event)"
+      appMojButtonMenu
+    />
+
+    <app-pagination
+      [currentPage]="vm().pageIndex"
+      [totalPages]="vm().totalPages"
+      (pageChange)="onPageChange($event)"
+    />
+  }
 </div>

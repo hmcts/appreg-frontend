@@ -7,6 +7,7 @@
 
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
+  AfterViewChecked,
   AfterViewInit,
   ChangeDetectorRef,
   Component,
@@ -51,7 +52,9 @@ export type TableColumn = {
   templateUrl: './sortable-table.component.html',
   styleUrl: './sortable-table.component.scss',
 })
-export class SortableTableComponent implements AfterViewInit, OnDestroy {
+export class SortableTableComponent
+  implements AfterViewInit, AfterViewChecked, OnDestroy
+{
   @ContentChild('actionsTemplate', { read: TemplateRef })
   actionsTpl?: TemplateRef<unknown>;
 
@@ -81,6 +84,7 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
   hiddenCaption = input(false);
   columns = input<TableColumn[]>([]);
   data = input<Row[]>([]);
+  noDataMessage = input('No results found.');
 
   dateFieldIdentifier = input<string>('date');
 
@@ -107,10 +111,11 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
   idPrefix = input('apps-');
   singleSelect = input(false);
 
-  @ViewChild('mojTable', { static: true })
-  tableRef!: ElementRef<HTMLTableElement>;
+  @ViewChild('mojTable')
+  tableRef?: ElementRef<HTMLTableElement>;
 
   private sortableInstance?: { init?: () => void; destroy?: () => void };
+  private isInitialisingSortable = false;
 
   private readonly platformId = inject(PLATFORM_ID);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -242,12 +247,31 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
    * the latest backend payload.
    */
   ngAfterViewInit(): void {
-    if (
-      !isPlatformBrowser(this.platformId) ||
-      this.clientOrServerSort() === 'server'
-    ) {
+    this.tryInitSortableTable();
+  }
+
+  ngAfterViewChecked(): void {
+    this.tryInitSortableTable();
+  }
+
+  private tryInitSortableTable(): void {
+    if (!isPlatformBrowser(this.platformId)) {
       return;
     }
+
+    if (this.clientOrServerSort() === 'server') {
+      return;
+    }
+
+    if (!this.tableRef?.nativeElement) {
+      return;
+    }
+
+    if (this.sortableInstance || this.isInitialisingSortable) {
+      return;
+    }
+
+    this.isInitialisingSortable = true;
 
     void import('@ministryofjustice/frontend')
       .then((mod) => {
@@ -268,12 +292,15 @@ export class SortableTableComponent implements AfterViewInit, OnDestroy {
           return;
         }
 
-        const instance = new SortableCtor(this.tableRef.nativeElement);
+        const instance = new SortableCtor(this.tableRef!.nativeElement);
         instance.init?.();
         this.sortableInstance = instance;
       })
       .catch(() => {
         // no-op for non-browser/test environments
+      })
+      .finally(() => {
+        this.isInitialisingSortable = false;
       });
   }
 
