@@ -4,6 +4,7 @@ import {
   isTemplateSubstitution,
   toTemplateSubstitutions,
   toWordingValues,
+  withWordingFieldValues,
   wordingFromFields,
 } from '@util/template-substitution-utils';
 
@@ -115,6 +116,33 @@ describe('template-substitution-utils', () => {
 
     it('returns undefined when entry has no wording', () => {
       expect(getEntryWordingFields({} as EntryGetDetailDto)).toBeUndefined();
+    });
+  });
+
+  describe('withWordingFieldValues', () => {
+    it('overlays staged wording values onto a template detail', () => {
+      expect(
+        withWordingFieldValues(
+          {
+            template: 'At {{Court}} for {{Date}}',
+            'substitution-key-constraints': [
+              { key: 'Court', value: 'Court A', constraint: { length: 20 } },
+              { key: 'Date', value: '2026-04-13', constraint: { length: 10 } },
+            ],
+          },
+          [{ key: 'Court', value: 'Court B' }],
+        ),
+      ).toEqual({
+        template: 'At {{Court}} for {{Date}}',
+        'substitution-key-constraints': [
+          { key: 'Court', value: 'Court B', constraint: { length: 20 } },
+          { key: 'Date', value: '2026-04-13', constraint: { length: 10 } },
+        ],
+      });
+    });
+
+    it('returns undefined when there is no template detail', () => {
+      expect(withWordingFieldValues(undefined, [])).toBeUndefined();
     });
   });
 });

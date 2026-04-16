@@ -71,6 +71,7 @@ import {
 import {
   ApplicationCodesApi,
   ApplicationListEntriesApi,
+  TemplateDetail,
   TemplateSubstitution,
 } from '@openapi';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
@@ -95,6 +96,7 @@ import { getUniqueErrors } from '@util/error-items';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { respondentFormsHaveAnyValue } from '@util/respondent-helpers';
 import { createSignalState } from '@util/signal-state-helpers';
+import { withWordingFieldValues } from '@util/template-substitution-utils';
 
 const ENTRY_CREATE_ERROR_HREFS = {
   lodgementDate: '#lodgement-date-day',
@@ -124,6 +126,9 @@ const ENTRY_CREATE_ERROR_HREFS = {
 })
 export class ApplicationsListEntryCreate implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
+  private lastWordingObjectTemplate: TemplateDetail | null | undefined;
+  private lastWordingObjectValues: TemplateSubstitution[] | null | undefined;
+  private cachedWordingObjectValues: TemplateDetail | undefined;
 
   route = inject(ActivatedRoute);
   appEntryApi = inject(ApplicationListEntriesApi);
@@ -283,6 +288,25 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.forms.form.patchValue({
       wordingFields: dto.wordingFields,
     });
+  }
+
+  getWordingObjectValues(
+    template: TemplateDetail | null | undefined,
+  ): TemplateDetail | undefined {
+    const values = this.form.controls.wordingFields.value;
+
+    if (
+      this.lastWordingObjectTemplate === template &&
+      this.lastWordingObjectValues === values
+    ) {
+      return this.cachedWordingObjectValues;
+    }
+
+    this.lastWordingObjectTemplate = template;
+    this.lastWordingObjectValues = values;
+    this.cachedWordingObjectValues = withWordingFieldValues(template, values);
+
+    return this.cachedWordingObjectValues;
   }
 
   private buildErrorSummary(): ErrorItem[] {

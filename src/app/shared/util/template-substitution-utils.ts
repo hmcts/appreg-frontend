@@ -1,5 +1,6 @@
 import {
   EntryGetDetailDto,
+  TemplateDetail,
   TemplateKeyWithConstraint,
   TemplateSubstitution,
 } from '@openapi';
@@ -66,4 +67,35 @@ export function getEntryWordingFields(
         typeof item.key === 'string' && typeof item.value === 'string',
     )
     .map(({ key, value }) => ({ key, value }));
+}
+
+export function withWordingFieldValues(
+  template: TemplateDetail | null | undefined,
+  values: TemplateSubstitution[] | null | undefined,
+): TemplateDetail | undefined {
+  if (!template) {
+    return undefined;
+  }
+
+  const valueByKey = new Map(
+    (values ?? [])
+      .filter(
+        (item): item is TemplateSubstitution & { key: string } =>
+          typeof item?.key === 'string',
+      )
+      .map((item) => [item.key, item.value ?? '']),
+  );
+
+  return {
+    ...template,
+    'substitution-key-constraints': (
+      template['substitution-key-constraints'] ?? []
+    ).map((item) => ({
+      ...item,
+      value:
+        typeof item.key === 'string' && valueByKey.has(item.key)
+          ? (valueByKey.get(item.key) ?? '')
+          : item.value,
+    })),
+  };
 }

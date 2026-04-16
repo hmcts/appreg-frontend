@@ -67,7 +67,7 @@
       <app-wording-section
         #wordingSection
         [wordingObject]="appCodeDetail.wording"
-        [wordingObjectValues]="entryDetail?.wording!"
+        [wordingObjectValues]="getWordingObjectValues(appCodeDetail.wording)"
         [wordingSubmitAttempt]="wordingSubmitAttempt()"
         (wordingFieldsDTO)="onWordingFieldsDTO($event)"
         (wordingFieldErrors)="onChildErrors('wording', $event)"
@@ -103,6 +103,7 @@
       [feeRequired]="vm().isFeeRequired"
       [autoSaveOffsiteFee]="true"
       [parentSubmitted]="vm().formSubmitted"
+      [changePaymentReferenceStateFactory]="buildChangePaymentReferenceState"
     />
   </ng-template>
 

@@ -545,7 +545,12 @@ describe('ApplicationsListEntryCreate (payment reference return)', () => {
     const appCodeDetail = {
       applicationCode: 'APP-1',
       title: 'Title',
-      wording: { template: 'Template' },
+      wording: {
+        template: 'At {{Court}}',
+        'substitution-key-constraints': [
+          { key: 'Court', value: '', constraint: { length: 20 } },
+        ],
+      },
       requiresRespondent: false,
       bulkRespondentAllowed: false,
     } as unknown as ApplicationCodeGetDetailDto;
@@ -556,6 +561,7 @@ describe('ApplicationsListEntryCreate (payment reference return)', () => {
           applicantType: 'person',
           applicationCode: 'APP-1',
           lodgementDate: '2026-01-10',
+          wordingFields: [{ key: 'Court', value: 'Court A' }],
           feeStatuses: [
             {
               paymentStatus: 'Paid',
@@ -595,6 +601,12 @@ describe('ApplicationsListEntryCreate (payment reference return)', () => {
     expect(component.vm().appCodeDetail?.applicationCode).toBe('APP-1');
     expect(component.vm().isFeeRequired).toBe(true);
     expect(component.feeMeta?.feeReference).toBe('CO9.2');
+    expect(component.getWordingObjectValues(appCodeDetail.wording)).toEqual({
+      template: 'At {{Court}}',
+      'substitution-key-constraints': [
+        { key: 'Court', value: 'Court A', constraint: { length: 20 } },
+      ],
+    });
 
     expect(updatePaymentReferenceInFeeStatusesControlSpy).toHaveBeenCalledWith(
       component.form.controls.feeStatuses,

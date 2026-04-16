@@ -63,6 +63,7 @@ import { ApplicationCodeSearchComponent } from '@components/application-codes-se
 import {
   ApplicantContext,
   EntryDetailNavState,
+  EntryDetailSnapshot,
   PaymentRefReturn,
   readNavState,
 } from '@components/applications-list-entry-detail/util/routing-state-util';
@@ -102,6 +103,7 @@ import {
   EntryGetDetailDto,
   EntryUpdateDto,
   FeeStatus,
+  TemplateDetail,
   TemplateSubstitution,
   UpdateApplicationListEntryRequestParams,
 } from '@openapi';
@@ -136,6 +138,7 @@ import { buildFormErrorSummary } from '@util/error-summary';
 import { markFormGroupClean } from '@util/form-helpers';
 import { respondentFormsHaveAnyValue } from '@util/respondent-helpers';
 import { createSignalState } from '@util/signal-state-helpers';
+import { withWordingFieldValues } from '@util/template-substitution-utils';
 
 type ChildErrorSource =
   | 'notes'
@@ -185,6 +188,9 @@ export class ApplicationsListEntryDetail implements OnInit {
   private readonly civilFeeSection?: CivilFeeSectionComponent;
 
   private readonly destroyRef = inject(DestroyRef);
+  private lastWordingObjectTemplate: TemplateDetail | null | undefined;
+  private lastWordingObjectValues: TemplateSubstitution[] | null | undefined;
+  private cachedWordingObjectValues: TemplateDetail | undefined;
 
   // APIs
   private readonly route = inject(ActivatedRoute);
@@ -284,7 +290,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     //Civil fee feeStatus payment ref edit handling
     const pr = state?.paymentRefReturn ?? null;
     if (pr) {
-      this.clearPaymentRefReturnOnly();
+      this.clearPaymentRefNavigationStateOnly();
     }
 
     // Watch applicantType changes
@@ -311,6 +317,25 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.forms.form.patchValue({
       wordingFields: dto.wordingFields,
     });
+  }
+
+  getWordingObjectValues(
+    template: TemplateDetail | null | undefined,
+  ): TemplateDetail | undefined {
+    const values = this.form.controls.wordingFields.value;
+
+    if (
+      this.lastWordingObjectTemplate === template &&
+      this.lastWordingObjectValues === values
+    ) {
+      return this.cachedWordingObjectValues;
+    }
+
+    this.lastWordingObjectTemplate = template;
+    this.lastWordingObjectValues = values;
+    this.cachedWordingObjectValues = withWordingFieldValues(template, values);
+
+    return this.cachedWordingObjectValues;
   }
 
   resetSuccessBanner(): void {
@@ -355,9 +380,9 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.persistFeeStatuses(previousFeeStatuses, next, bannerText);
   }
 
-  private clearPaymentRefReturnOnly(): void {
+  private clearPaymentRefNavigationStateOnly(): void {
     const current = (history.state ?? {}) as Record<string, unknown>;
-    const { paymentRefReturn, ...rest } = current;
+    const { paymentRefReturn, entryDetailSnapshot, ...rest } = current;
     history.replaceState(rest, '');
   }
 
@@ -958,6 +983,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
           const type = this.form.controls.applicantType.value ?? 'person';
           this.formSvc.syncApplicantTypeState(this.forms, type);
+          this.applyEntryDetailSnapshot(state?.entryDetailSnapshot);
           this.handleResultWordingContext(state);
 
           if (paymentRefReturn) {
@@ -968,10 +994,87 @@ export class ApplicationsListEntryDetail implements OnInit {
           }
 
           this.resultsFacade.loadEntryResults(listId, entryId);
-          this.loadCodesSectionFromEntry(entry);
+
+          if (state?.entryDetailSnapshot) {
+            this.appListEntryDetailPatch({
+              formReady: true,
+            });
+          } else {
+            this.loadCodesSectionFromEntry(entry);
+          }
         },
         error: (err) => this.handleFatalLoadError(err),
       });
+  }
+
+  buildChangePaymentReferenceState = (): Record<string, unknown> => ({
+    entryDetailSnapshot: this.buildEntryDetailSnapshot(),
+  });
+
+  private buildEntryDetailSnapshot(): EntryDetailSnapshot {
+    return {
+      form: this.form.getRawValue(),
+      personForm: this.personForm.getRawValue(),
+      organisationForm: this.organisationForm.getRawValue(),
+      respondentPersonForm: this.forms.respondentPersonForm.getRawValue(),
+      respondentOrganisationForm:
+        this.forms.respondentOrganisationForm.getRawValue(),
+      appCodeDetail: this.appListEntryDetailState().appCodeDetail,
+      feeMeta: this.feeMeta,
+      isFeeRequired: this.appListEntryDetailState().isFeeRequired,
+      bulkApplicationsAllowed:
+        this.appListEntryDetailState().bulkApplicationsAllowed,
+    };
+  }
+
+  private applyEntryDetailSnapshot(
+    state: EntryDetailSnapshot | undefined,
+  ): void {
+    if (!state) {
+      return;
+    }
+
+    if (state.form) {
+      this.form.patchValue(state.form, { emitEvent: false });
+    }
+    if (state.personForm) {
+      this.personForm.patchValue(state.personForm, { emitEvent: false });
+    }
+    if (state.organisationForm) {
+      this.organisationForm.patchValue(state.organisationForm, {
+        emitEvent: false,
+      });
+    }
+    if (state.respondentPersonForm) {
+      this.forms.respondentPersonForm.patchValue(state.respondentPersonForm, {
+        emitEvent: false,
+      });
+    }
+    if (state.respondentOrganisationForm) {
+      this.forms.respondentOrganisationForm.patchValue(
+        state.respondentOrganisationForm,
+        {
+          emitEvent: false,
+        },
+      );
+    }
+
+    this.feeMeta = state.feeMeta ?? this.feeMeta;
+    this.appListEntryDetailPatch({
+      appCodeDetail:
+        state.appCodeDetail ?? this.appListEntryDetailState().appCodeDetail,
+      isFeeRequired:
+        state.isFeeRequired ?? this.appListEntryDetailState().isFeeRequired,
+      bulkApplicationsAllowed:
+        state.bulkApplicationsAllowed ??
+        this.appListEntryDetailState().bulkApplicationsAllowed,
+    });
+
+    this.selectedStandardApplicantCode =
+      this.form.controls.standardApplicantCode.value;
+
+    const type = this.form.controls.applicantType.value ?? 'person';
+    this.formSvc.syncApplicantTypeState(this.forms, type);
   }
 
   private handleListCreate(): void {
@@ -1018,8 +1121,15 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     if (wordingFields) {
       patch.wordingFields = wordingFields.map((field) => field.value);
+      if (this.entryDetail?.wording) {
+        patch.wording = withWordingFieldValues(
+          this.entryDetail.wording,
+          wordingFields,
+        );
+      }
     } else {
       patch.wordingFields = this.getLegacyWordingFields(this.entryDetail);
+      patch.wording = this.entryDetail?.wording;
     }
 
     return patch;

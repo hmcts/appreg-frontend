@@ -2,10 +2,12 @@ import { Location, isPlatformBrowser } from '@angular/common';
 import { FormGroup } from '@angular/forms';
 
 import {
+  ApplicationCodeGetDetailDto,
   ApplicationListGetDetailDto,
   ApplicationListGetSummaryDto,
   ApplicationListStatus,
 } from '@openapi';
+import { CivilFeeMeta } from '@shared-types/civil-fee/civil-fee';
 import { hasStringProp, isRecord } from '@util/data-utils';
 import { has } from '@util/has';
 import { isNullableString } from '@util/string-helpers';
@@ -28,10 +30,23 @@ export type PaymentRefReturn = {
   newPaymentReference: string;
 };
 
+export type EntryDetailSnapshot = {
+  form?: unknown;
+  personForm?: unknown;
+  organisationForm?: unknown;
+  respondentPersonForm?: unknown;
+  respondentOrganisationForm?: unknown;
+  appCodeDetail?: ApplicationCodeGetDetailDto | null;
+  feeMeta?: CivilFeeMeta | null;
+  isFeeRequired?: boolean;
+  bulkApplicationsAllowed?: boolean;
+};
+
 export type EntryDetailNavState = {
   appListId?: string;
   resultApplicantContext?: ApplicantContext;
   paymentRefReturn?: PaymentRefReturn;
+  entryDetailSnapshot?: EntryDetailSnapshot;
 };
 
 function isApplicantContext(x: unknown): boolean {
