@@ -500,4 +500,24 @@ export class DateTimeHelper {
       .type(minutes)
       .should('have.value', minutes);
   }
+
+  static verifyDateValue(fieldLabel: string, expectedDate: string): void {
+    const parsedDate = TestDataGenerator.parseValue(expectedDate);
+    const dateParts = parsedDate.split('/');
+    DateTimeElement.findDayInput(fieldLabel).should('have.value', dateParts[0]);
+    DateTimeElement.findMonthInput(fieldLabel).should(
+      'have.value',
+      dateParts[1],
+    );
+    DateTimeElement.findYearInput(fieldLabel).should(
+      'have.value',
+      dateParts[2],
+    );
+  }
+
+  static verifyDateFieldDisabled(fieldLabel: string): void {
+    DateTimeElement.findDayInput(fieldLabel).should('be.disabled');
+    DateTimeElement.findMonthInput(fieldLabel).should('be.disabled');
+    DateTimeElement.findYearInput(fieldLabel).should('be.disabled');
+  }
 }

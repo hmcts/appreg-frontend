@@ -39,4 +39,24 @@ export class TextboxElement {
       });
     // });
   }
+
+  /**
+   * Finds an input/textarea by its placeholder attribute
+   */
+  static findByPlaceholder(
+    placeholder: string,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy.get(
+      `input[placeholder="${placeholder}"], textarea[placeholder="${placeholder}"]`,
+    );
+  }
+
+  /**
+   * Finds an element containing the given text within the current DOM context
+   */
+  static findContainsText(
+    text: string,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy.contains(text);
+  }
 }

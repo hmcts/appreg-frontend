@@ -162,7 +162,7 @@ Feature: Application List Entries - Move
             | User  | APIDate  | Time           | TargetTime     | Status | SourceDescription                    | TargetDescription                     | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                     |
             | user2 | todayiso | timenowhhmm-3h | timenowhhmm-4h | OPEN   | Source list to move at Test_{RANDOM} | Target list for move at Test_{RANDOM} | BCC026            | today      | todayDisplay | 3       | Bristol Crown Court Set 3 |
 
-    @regression @applicationsList @ARCPOC-446 @PJ
+    @regression @applicationsList @ARCPOC-446
     Scenario Outline: Application List - Move Selected Entries to a New List with Validation
         Given User Authenticates Via API As "<User>"
         # ── API setup: source list + entries ────────────────────────────────────

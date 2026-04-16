@@ -1,10 +1,13 @@
 import { Then } from '@badeball/cypress-cucumber-preprocessor';
 
-import { AccordionTextHelper } from '../../../../../support/helper/forms/accordion/accordionText/AccordionTextHelper';
+import { AccordionHelper } from '../../../../../support/helper/forms/accordion/accordion/AccordionHelper';
+import { TextboxHelper } from '../../../../../support/helper/forms/textbox/TextboxHelper';
 
 Then(
   'User Should See The Text {string} In The Accordion {string}',
   (expectedText: string, accordionTitle: string) => {
-    AccordionTextHelper.verifyTextInAccordion(accordionTitle, expectedText);
+    AccordionHelper.within(accordionTitle, () =>
+      TextboxHelper.verifyContainsText(expectedText),
+    );
   },
 );

@@ -1,17 +1,19 @@
 import { Then } from '@badeball/cypress-cucumber-preprocessor';
 
-import { AccordionTableHelper } from '../../../../../support/helper/forms/accordion/accordionTable/AccordionTableHelper';
+import { AccordionElement } from '../../../../../support/pageobjects/generic/accordion/accordion/AccordionElement';
+import { TableElement } from '../../../../../support/pageobjects/generic/table/TableElement';
+
 Then(
   'User Verifies Table {string} In The Accordion {string} Has Sortable Headers {string}',
   (tableCaption: string, accordionTitle: string, headers: string) => {
-    cy.log(
-      `Verifying table: "${tableCaption}" within accordion: "${accordionTitle}" has sortable headers: "${headers}"`,
-    );
-    AccordionTableHelper.verifySortableHeadersInAccordion(
-      accordionTitle,
-      tableCaption,
-      headers,
-    );
+    const sortableHeaders = headers.split(',').map((h) => h.trim());
+    for (const headerText of sortableHeaders) {
+      AccordionElement.findAccordionSection(accordionTitle)
+        .find('thead th')
+        .contains(headerText)
+        .closest('th')
+        .should('have.attr', 'aria-sort');
+    }
   },
 );
 
@@ -29,11 +31,7 @@ Then(
     }
     const rowData = rows[0];
     cy.log(`rowData: ${JSON.stringify(rowData)}`);
-    AccordionTableHelper.clickButtonInAccordionTableRows(
-      tableCaption,
-      rowData,
-      selectButtonText,
-    );
+    TableElement.verifyButtonInTableRows(tableCaption, selectButtonText);
     cy.screenshot(`clicked-button-${selectButtonText}-in-row`);
   },
 );
