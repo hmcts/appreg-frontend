@@ -9,7 +9,7 @@ Feature: Applications List Create
     When User Set Date Field "Date" To "<Date>"
     When User Set Time Field "Time" To "<Time>"
     Then User Enters "<Description>" Into The "List description" Textbox
-    Then User Enters "<OtherLocation>" Into The "Other location" Textbox
+    Then User Enters "<OtherLocation>" Into The "Other location description" Textbox
     Then User Selects "<OptionText>" From The Textbox "Criminal justice area" Autocomplete By Typing "<SearchText>"
     When User Clicks On The "Create" Button
     Then User Sees Success Banner "<SuccessMessage>"

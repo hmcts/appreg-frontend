@@ -5,4 +5,5 @@ import { ApplicationListCombinedHelper } from '../../../support/helper/appreg/Ap
 When('User Searches Application List With:', (dataTable: DataTable) => {
   const searchCriteria = dataTable.hashes()[0];
   ApplicationListCombinedHelper.searchApplicationList(searchCriteria);
+  cy.screenshot('search-application-list-results');
 });

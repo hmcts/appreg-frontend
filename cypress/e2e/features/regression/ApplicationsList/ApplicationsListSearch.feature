@@ -138,7 +138,7 @@ Feature: Applications List Search
     When User Signs In With Microsoft SSO As "<User>"
     # Test Description and status filter
     When User Toggles The Accordion "Advanced search"
-    Then User Enters "<Description>" Into The "Description" Textbox
+    Then User Enters "<Description>" Into The "List description" Textbox
     Then User Selects "<Status>" In The "Select list status" Dropdown
     When User Clicks On The "Search" Button
     Then User Should See Table "<TableName>" Column "Status" First And Last Page Has Value "<Status>"

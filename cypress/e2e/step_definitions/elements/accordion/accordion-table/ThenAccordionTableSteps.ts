@@ -11,13 +11,6 @@ Then(
 );
 
 Then(
-  'User Should See Table Has Sortable Headers {string} In The Accordion {string}',
-  (headers: string, accordionTitle: string) => {
-    TableHelper.verifySortableHeadersInAccordion(accordionTitle, headers);
-  },
-);
-
-Then(
   'User Clicks {string} Button In Row Of Table {string} With In The Accordion {string}:',
   (
     selectButtonText: string,

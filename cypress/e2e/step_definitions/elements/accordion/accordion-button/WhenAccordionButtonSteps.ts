@@ -5,7 +5,6 @@ import { ButtonHelper } from '../../../../../support/helper/forms/button/ButtonH
 
 /**
  * Step: User clicks a button within a specific accordion.
- * Uses AccordionHelper.within() to scope ButtonHelper inside the accordion content.
  */
 When(
   'User Clicks On The {string} Button In The Accordion {string}',

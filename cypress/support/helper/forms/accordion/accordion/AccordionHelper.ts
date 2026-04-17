@@ -49,11 +49,7 @@ export class AccordionHelper {
 
   /**
    * Ensures the accordion is expanded then runs the provided function scoped
-   * inside the accordion content via cy.within(). Allows reuse of any generic
-   * helper (ButtonHelper, TextboxHelper, DateTimeHelper, etc.) without needing
-   * a dedicated AccordionXxxHelper wrapper.
-   * @example
-   * AccordionHelper.within('Personal details', () => ButtonHelper.clickButton('Save'));
+   * inside the accordion content via cy.within()
    */
   static within(accordionTitle: string, fn: () => void): void {
     this.ensureAccordionExpanded(accordionTitle);

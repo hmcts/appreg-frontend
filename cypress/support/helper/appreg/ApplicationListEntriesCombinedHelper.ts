@@ -38,11 +38,11 @@ export class ApplicationListEntriesCombinedHelper {
           break;
 
         case 'Applicant organisation':
-          TextboxHelper.typeInTextbox('Applicant Org', value);
+          TextboxHelper.typeInTextbox('Applicant organisation', value);
           break;
 
         case 'Respondent organisation':
-          TextboxHelper.typeInTextbox('Respondent Org', value);
+          TextboxHelper.typeInTextbox('Respondent organisation', value);
           break;
 
         case 'CourtSearch':
