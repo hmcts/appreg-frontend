@@ -115,7 +115,7 @@ Feature: Applications List Search
     When User Signs In With Microsoft SSO As "user1"
     When User Set Date Field "Date" To "today"
     Then User Selects "Leeds Combined Court Centre Set 7" From The Textbox "Court" Autocomplete By Typing "LCCC065"
-    When User Clicks On The "Search" Button
+    When User Submits The Application List Search
     # Table and header validation
     Then User Should See Table "Lists" Has Sortable Headers "Date, Time, Location, Description, Entries, Status"
     Then User Should See Table "Lists" Header "Actions" Is Not Sortable
@@ -140,23 +140,23 @@ Feature: Applications List Search
     When User Toggles The Accordion "Advanced search"
     Then User Enters "<Description>" Into The "List description" Textbox
     Then User Selects "<Status>" In The "Select list status" Dropdown
-    When User Clicks On The "Search" Button
+    When User Submits The Application List Search
     Then User Should See Table "<TableName>" Column "Status" First And Last Page Has Value "<Status>"
     # Test time filter
     When User Clicks On The "Clear search" Button
     Then User Selects "Choose" In The "Select list status" Dropdown
     When User Set Time Field "Time" To "<Time>"
-    When User Clicks On The "Search" Button
+    When User Submits The Application List Search
     Then User Should See Table "<TableName>" Column "Time" First And Last Page Has Value "<Time>"
     # Test date filter
     When User Clicks On The "Clear search" Button
     When User Set Date Field "Date" To "<SearchDate>"
-    When User Clicks On The "Search" Button
+    When User Submits The Application List Search
     Then User Should See Table "<TableName>" Column "Date" First And Last Page Has Value "<DisplayDate>"
     # Test court location filter
     When User Clicks On The "Clear search" Button
     Then User Selects "<OptionTextCourt>" From The Textbox "Court" Autocomplete By Typing "<SearchTextCourt>"
-    When User Clicks On The "Search" Button
+    When User Submits The Application List Search
     Then User Should See Table "<TableName>" Column "Location" First And Last Page Has Value "<OptionTextCourt>"
     Examples:
       | User  | Status | TableName | Time  | SearchDate | DisplayDate | Description | SearchTextCourt | OptionTextCourt           |
@@ -170,7 +170,7 @@ Feature: Applications List Search
     Then User Selects "<OptionText>" From The Textbox "Criminal justice area" Autocomplete By Typing "<SearchText>"
     Then User Verifies The "Criminal justice area" Textbox Has Selected Value "<ExpectedValue>"
     Then User Verifies "<Info>" Is Not Visible Under The "Criminal justice area" Textbox
-    When User Clicks On The "Search" Button
+    When User Submits The Application List Search
     Then User Does Not See Validation Error Banner "There is a problem Criminal justice area not found"
     Examples:
       | User   | SearchText | OptionText | ExpectedValue  | Info             |
@@ -185,7 +185,7 @@ Feature: Applications List Search
     Then User Selects "<OptionText>" From The Textbox "Criminal justice area" Autocomplete By Typing "<SearchText>"
     # Then User Verifies The "Criminal justice area" Textbox Has Selected Value "<ExpectedValue>"
     Then User Verifies "<Info>" Is Visible Under The "Criminal justice area" Textbox
-    When User Clicks On The "Search" Button
+    When User Submits The Application List Search
     Then User Sees Validation Error Banner "<ValidationMessage>"
     Examples:
       | User   | SearchText | ValidationMessage                                  | OptionText | ExpectedValue | Info             |
@@ -214,7 +214,7 @@ Feature: Applications List Search
     Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
     Then User Verifies The "Court" Textbox Has Selected Value "<ExpectedValue>"
     Then User Verifies "<Info>" Is Not Visible Under The "Court" Textbox
-    When User Clicks On The "Search" Button
+    When User Submits The Application List Search
     Then User Does Not See Validation Error Banner "There is a problem Court location not found"
     Examples:
       | User   | SearchText | OptionText                | ExpectedValue                      | Info             |
@@ -226,7 +226,7 @@ Feature: Applications List Search
     When User Signs In With Microsoft SSO As "<User>"
     Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
     Then User Verifies "<Info>" Is Visible Under The "Court" Textbox
-    When User Clicks On The "Search" Button
+    When User Submits The Application List Search
     Then User Sees Validation Error Banner "<ValidationErrorMessage>"
     Examples:
       | User   | SearchText | ValidationErrorMessage                      | OptionText | ExpectedValue | Info             |
