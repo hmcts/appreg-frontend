@@ -248,7 +248,7 @@ export class CivilFeeSectionComponent implements OnInit {
     const rows = this.feeForm().controls.feeStatuses.value ?? [];
 
     return rows.map((fs, index) => ({
-      rowId: feeStatusRowId(fs),
+      rowId: feeStatusRowId(fs, index),
       paymentReference: fs.paymentReference ?? '',
       paymentStatus: fs.paymentStatus,
       statusDateRaw: fs.statusDate,

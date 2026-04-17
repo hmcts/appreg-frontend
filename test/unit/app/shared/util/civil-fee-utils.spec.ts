@@ -14,7 +14,7 @@ import {
   PaymentRefReturnState,
 } from '@shared-types/civil-fee/civil-fee';
 import {
-  addOrReplaceFeeStatus,
+  addFeeStatus,
   applyPaymentReferenceUpdateToFeeStatuses,
   buildCivilFeeHeading,
   feeStatusRowId,
@@ -78,10 +78,22 @@ describe('feeStatusRowId', () => {
 
     expect(rowId).toBe(`${PaymentStatus.REMITTED}|2026-01-01`);
   });
+
+  it('includes the row index when provided', () => {
+    const rowId = feeStatusRowId(
+      {
+        paymentStatus: PaymentStatus.REMITTED,
+        statusDate: '2026-01-01',
+      },
+      3,
+    );
+
+    expect(rowId).toBe(`${PaymentStatus.REMITTED}|2026-01-01|3`);
+  });
 });
 
-describe('addOrReplaceFeeStatus', () => {
-  it("appends when row id doesn't exist", () => {
+describe('addFeeStatus', () => {
+  it('appends a new row', () => {
     const current: FeeStatus[] = [
       mkFeeStatus({
         paymentStatus: PaymentStatus.PAID,
@@ -96,40 +108,19 @@ describe('addOrReplaceFeeStatus', () => {
       paymentReference: 'NEW',
     });
 
-    const { next, changed } = addOrReplaceFeeStatus(current, nextItem);
+    const { next, changed } = addFeeStatus(current, nextItem);
 
     expect(changed).toBe(true);
     expect(next).toEqual([...current, nextItem]);
     expect(next).not.toBe(current);
   });
 
-  it('returns unchanged when same row exists and values are identical', () => {
+  it('still appends when paymentStatus and statusDate match an existing row', () => {
     const current: FeeStatus[] = [
       mkFeeStatus({
         paymentStatus: PaymentStatus.PAID,
         statusDate: '2026-01-10',
         paymentReference: undefined,
-      }),
-    ];
-
-    const nextItem = mkFeeStatus({
-      paymentStatus: PaymentStatus.PAID,
-      statusDate: '2026-01-10',
-      paymentReference: undefined,
-    });
-
-    const res = addOrReplaceFeeStatus(current, nextItem);
-
-    expect(res.changed).toBe(false);
-    expect(res.next).toBe(current); // same reference when unchanged
-  });
-
-  it('replaces when same row exists but paymentReference differs', () => {
-    const current: FeeStatus[] = [
-      mkFeeStatus({
-        paymentStatus: PaymentStatus.PAID,
-        statusDate: '2026-01-10',
-        paymentReference: 'REF1',
       }),
     ];
 
@@ -139,32 +130,11 @@ describe('addOrReplaceFeeStatus', () => {
       paymentReference: 'REF2',
     });
 
-    const { next, changed } = addOrReplaceFeeStatus(current, nextItem);
+    const { next, changed } = addFeeStatus(current, nextItem);
 
     expect(changed).toBe(true);
     expect(next).not.toBe(current);
-    expect(next).toEqual([nextItem]);
-  });
-
-  it('treats undefined and empty string paymentReference as equivalent for equality check', () => {
-    const current: FeeStatus[] = [
-      mkFeeStatus({
-        paymentStatus: PaymentStatus.PAID,
-        statusDate: '2026-01-10',
-        paymentReference: undefined,
-      }),
-    ];
-
-    const nextItem = mkFeeStatus({
-      paymentStatus: PaymentStatus.PAID,
-      statusDate: '2026-01-10',
-      paymentReference: '',
-    });
-
-    const res = addOrReplaceFeeStatus(current, nextItem);
-
-    expect(res.changed).toBe(false);
-    expect(res.next).toBe(current);
+    expect(next).toEqual([...current, nextItem]);
   });
 });
 
@@ -313,7 +283,7 @@ describe('applyPaymentReferenceUpdateToFeeStatuses', () => {
 
     const { next, changed } = applyPaymentReferenceUpdateToFeeStatuses(
       current,
-      `${PaymentStatus.PAID}|2026-01-10`,
+      `${PaymentStatus.PAID}|2026-01-10|0`,
       'REF1',
     );
 
@@ -337,13 +307,38 @@ describe('applyPaymentReferenceUpdateToFeeStatuses', () => {
 
     const { next, changed } = applyPaymentReferenceUpdateToFeeStatuses(
       current,
-      `${PaymentStatus.PAID}|2026-01-10`,
+      `${PaymentStatus.PAID}|2026-01-10|0`,
       'NEW',
     );
 
     expect(changed).toBe(true);
     expect(next[0].paymentReference).toBe('NEW');
     expect(next[1]).toEqual(current[1]);
+  });
+
+  it('only updates the indexed matching row when duplicate status/date rows exist', () => {
+    const current: FeeStatus[] = [
+      mkFeeStatus({
+        paymentStatus: PaymentStatus.PAID,
+        statusDate: '2026-01-10',
+        paymentReference: 'FIRST',
+      }),
+      mkFeeStatus({
+        paymentStatus: PaymentStatus.PAID,
+        statusDate: '2026-01-10',
+        paymentReference: 'SECOND',
+      }),
+    ];
+
+    const { next, changed } = applyPaymentReferenceUpdateToFeeStatuses(
+      current,
+      `${PaymentStatus.PAID}|2026-01-10|1`,
+      'UPDATED',
+    );
+
+    expect(changed).toBe(true);
+    expect(next[0].paymentReference).toBe('FIRST');
+    expect(next[1].paymentReference).toBe('UPDATED');
   });
 
   it('treats undefined paymentReference as empty string when comparing', () => {
@@ -357,7 +352,7 @@ describe('applyPaymentReferenceUpdateToFeeStatuses', () => {
 
     const { changed } = applyPaymentReferenceUpdateToFeeStatuses(
       current,
-      `${PaymentStatus.PAID}|2026-01-10`,
+      `${PaymentStatus.PAID}|2026-01-10|0`,
       '',
     );
 
@@ -366,7 +361,7 @@ describe('applyPaymentReferenceUpdateToFeeStatuses', () => {
 });
 
 describe('updateFeeStatusesControl', () => {
-  it('does not mutate the control when changed=false (no setValue / no markAsDirty)', () => {
+  it('appends to the control and marks it dirty', () => {
     const existing: FeeStatus = mkFeeStatus({
       paymentStatus: PaymentStatus.PAID,
       statusDate: '2026-01-10',
@@ -381,35 +376,7 @@ describe('updateFeeStatusesControl', () => {
     const payload: AddFeeDetailsPayload = {
       feeStatus: PaymentStatus.PAID,
       statusDate: '2026-01-10',
-      paymentReference: 'REF1',
-    };
-
-    const { next, changed } = updateFeeStatusesControl(ctrl, payload);
-
-    expect(changed).toBe(false);
-    expect(next).toBe(ctrl.value);
-    expect(ctrl.dirty).toBe(false);
-
-    expect(setValueSpy).not.toHaveBeenCalled();
-    expect(markAsDirtySpy).not.toHaveBeenCalled();
-  });
-
-  it('mutates the control when changed=true (setValue + markAsDirty)', () => {
-    const existing: FeeStatus = mkFeeStatus({
-      paymentStatus: PaymentStatus.PAID,
-      statusDate: '2026-01-10',
-      paymentReference: 'REF1',
-    });
-
-    const ctrl = new FormControl<FeeStatus[] | null>([existing]);
-
-    const setValueSpy = jest.spyOn(ctrl, 'setValue');
-    const markAsDirtySpy = jest.spyOn(ctrl, 'markAsDirty');
-
-    const payload: AddFeeDetailsPayload = {
-      feeStatus: PaymentStatus.DUE,
-      statusDate: '2026-01-11',
-      paymentReference: null,
+      paymentReference: 'REF2',
     };
 
     const { next, changed } = updateFeeStatusesControl(ctrl, payload);
@@ -417,6 +384,14 @@ describe('updateFeeStatusesControl', () => {
     expect(changed).toBe(true);
     expect(ctrl.value).toEqual(next);
     expect(ctrl.value).toHaveLength(2);
+    expect(ctrl.value).toEqual([
+      existing,
+      mkFeeStatus({
+        paymentStatus: PaymentStatus.PAID,
+        statusDate: '2026-01-10',
+        paymentReference: 'REF2',
+      }),
+    ]);
     expect(ctrl.dirty).toBe(true);
 
     expect(setValueSpy).toHaveBeenCalledTimes(1);
@@ -437,7 +412,7 @@ describe('updatePaymentReferenceInFeeStatusesControl', () => {
     const setValueSpy = jest.spyOn(ctrl, 'setValue');
     const markAsDirtySpy = jest.spyOn(ctrl, 'markAsDirty');
 
-    const rowId = feeStatusRowId(existing);
+    const rowId = feeStatusRowId(existing, 0);
 
     const { next, changed } = updatePaymentReferenceInFeeStatusesControl(
       ctrl,
@@ -465,7 +440,7 @@ describe('updatePaymentReferenceInFeeStatusesControl', () => {
     const setValueSpy = jest.spyOn(ctrl, 'setValue');
     const markAsDirtySpy = jest.spyOn(ctrl, 'markAsDirty');
 
-    const rowId = feeStatusRowId(existing);
+    const rowId = feeStatusRowId(existing, 0);
 
     const { next, changed } = updatePaymentReferenceInFeeStatusesControl(
       ctrl,

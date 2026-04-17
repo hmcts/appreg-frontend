@@ -63,33 +63,14 @@ export function toFeeStatus(payload: {
 }
 
 /**
- * If a row with same paymentStatus|statusDate exists, replace it.
- * Otherwise append.
+ * Legacy behavior appends every fee status entry, even when the
+ * paymentStatus and statusDate match an existing row.
  */
-export function addOrReplaceFeeStatus(
+export function addFeeStatus(
   current: FeeStatus[],
   nextItem: FeeStatus,
 ): { next: FeeStatus[]; changed: boolean } {
-  const id = feeStatusRowId(nextItem);
-
-  const idx = current.findIndex((fs) => feeStatusRowId(fs) === id);
-  if (idx === -1) {
-    return { next: [...current, nextItem], changed: true };
-  }
-
-  const existing = current[idx];
-  const same =
-    existing.paymentStatus === nextItem.paymentStatus &&
-    existing.statusDate === nextItem.statusDate &&
-    (existing.paymentReference ?? '') === (nextItem.paymentReference ?? '');
-
-  if (same) {
-    return { next: current, changed: false };
-  }
-
-  const copy = current.slice();
-  copy[idx] = { ...existing, ...nextItem };
-  return { next: copy, changed: true };
+  return { next: [...current, nextItem], changed: true };
 }
 
 /**
@@ -125,8 +106,10 @@ export function buildCivilFeeHeading(
 
 export function feeStatusRowId(
   fs: Pick<FeeStatus, 'paymentStatus' | 'statusDate'>,
+  index?: number,
 ): string {
-  return `${fs.paymentStatus}|${fs.statusDate}`;
+  const baseId = `${fs.paymentStatus}|${fs.statusDate}`;
+  return typeof index === 'number' ? `${baseId}|${index}` : baseId;
 }
 
 export function readPaymentRefReturnState(state: unknown): {
@@ -164,8 +147,8 @@ export function applyPaymentReferenceUpdateToFeeStatuses(
 ): { next: FeeStatus[]; changed: boolean } {
   let changed = false;
 
-  const next = current.map((fs) => {
-    if (feeStatusRowId(fs) !== updatedRowId) {
+  const next = current.map((fs, index) => {
+    if (feeStatusRowId(fs, index) !== updatedRowId) {
       return fs;
     }
 
@@ -191,10 +174,7 @@ export function updateFeeStatusesControl(
   const current = feeStatusesCtrl.value ?? [];
   const nextItem = toFeeStatus(payload);
 
-  const { next, changed } = addOrReplaceFeeStatus(current, nextItem);
-  if (!changed) {
-    return { next, changed };
-  }
+  const { next, changed } = addFeeStatus(current, nextItem);
 
   feeStatusesCtrl.setValue(next);
   feeStatusesCtrl.markAsDirty();
