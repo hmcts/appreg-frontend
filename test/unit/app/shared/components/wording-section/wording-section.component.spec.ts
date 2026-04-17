@@ -58,18 +58,28 @@ describe('WordingSectionComponent', () => {
     expect(component.validateForSubmit()).toEqual(expectedErrors);
   });
 
-  it('onWordingFieldsDTO sets saveSuccessful() to true', () => {
+  it('onWordingFieldsDTO emits without mutating local banner state', () => {
+    fixture.componentRef.setInput('showAppliedBanner', false);
     const dto = {
       wordingFields: [{ key: 'a', value: 'b' }] as TemplateSubstitution[],
     };
 
     component.onWordingFieldsDTO(dto);
-    expect(component.saveSuccessful()).toEqual(true);
+    expect(component.showAppliedBanner()).toBe(false);
   });
 
-  it('onWordingFieldErrors sets saveSuccessful() to false', () => {
+  it('onWordingFieldErrors emits without mutating local banner state', () => {
+    fixture.componentRef.setInput('showAppliedBanner', true);
     const errors: ErrorItem[] = [{ text: 'some error' }];
     component.onWordingFieldErrors(errors);
-    expect(component.saveSuccessful()).toEqual(false);
+    expect(component.showAppliedBanner()).toBe(true);
+  });
+
+  it('onAppliedBannerDismissed emits via appliedBannerDismissed output', () => {
+    const spy = jest.spyOn(component.appliedBannerDismissed, 'emit');
+
+    component.onAppliedBannerDismissed();
+
+    expect(spy).toHaveBeenCalledTimes(1);
   });
 });

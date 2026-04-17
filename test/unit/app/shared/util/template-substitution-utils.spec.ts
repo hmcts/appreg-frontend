@@ -1,9 +1,11 @@
 import { EntryGetDetailDto, TemplateSubstitution } from '@openapi';
 import {
+  createWordingObjectValuesResolver,
   getEntryWordingFields,
   isTemplateSubstitution,
   toTemplateSubstitutions,
   toWordingValues,
+  withWordingFieldValues,
   wordingFromFields,
 } from '@util/template-substitution-utils';
 
@@ -115,6 +117,112 @@ describe('template-substitution-utils', () => {
 
     it('returns undefined when entry has no wording', () => {
       expect(getEntryWordingFields({} as EntryGetDetailDto)).toBeUndefined();
+    });
+  });
+
+  describe('withWordingFieldValues', () => {
+    it('overlays staged wording values onto a template detail', () => {
+      expect(
+        withWordingFieldValues(
+          {
+            template: 'At {{Court}} for {{Date}}',
+            'substitution-key-constraints': [
+              { key: 'Court', value: 'Court A', constraint: { length: 20 } },
+              { key: 'Date', value: '2026-04-13', constraint: { length: 10 } },
+            ],
+          },
+          [{ key: 'Court', value: 'Court B' }],
+        ),
+      ).toEqual({
+        template: 'At {{Court}} for {{Date}}',
+        'substitution-key-constraints': [
+          { key: 'Court', value: 'Court B', constraint: { length: 20 } },
+          { key: 'Date', value: '2026-04-13', constraint: { length: 10 } },
+        ],
+      });
+    });
+
+    it('returns undefined when there is no template detail', () => {
+      expect(withWordingFieldValues(undefined, [])).toBeUndefined();
+    });
+  });
+
+  describe('createWordingObjectValuesResolver', () => {
+    it('resolves wording object values on first call', () => {
+      const resolve = createWordingObjectValuesResolver();
+      const template = {
+        template: 'At {{Court}} for {{Date}}',
+        'substitution-key-constraints': [
+          { key: 'Court', value: 'Court A', constraint: { length: 20 } },
+          { key: 'Date', value: '2026-04-13', constraint: { length: 10 } },
+        ],
+      };
+      const values = [{ key: 'Court', value: 'Court B' }];
+
+      expect(resolve(template, values)).toEqual({
+        template: 'At {{Court}} for {{Date}}',
+        'substitution-key-constraints': [
+          { key: 'Court', value: 'Court B', constraint: { length: 20 } },
+          { key: 'Date', value: '2026-04-13', constraint: { length: 10 } },
+        ],
+      });
+    });
+
+    it('returns the same object instance when inputs are unchanged', () => {
+      const resolve = createWordingObjectValuesResolver();
+      const template = {
+        template: 'At {{Court}}',
+        'substitution-key-constraints': [
+          { key: 'Court', value: 'Court A', constraint: { length: 20 } },
+        ],
+      };
+      const values = [{ key: 'Court', value: 'Court B' }];
+
+      const first = resolve(template, values);
+      const second = resolve(template, values);
+
+      expect(first).toBe(second);
+    });
+
+    it('returns a new object when the template reference changes', () => {
+      const resolve = createWordingObjectValuesResolver();
+      const values = [{ key: 'Court', value: 'Court B' }];
+
+      const first = resolve(
+        {
+          template: 'At {{Court}}',
+          'substitution-key-constraints': [
+            { key: 'Court', value: 'Court A', constraint: { length: 20 } },
+          ],
+        },
+        values,
+      );
+      const second = resolve(
+        {
+          template: 'At {{Court}}',
+          'substitution-key-constraints': [
+            { key: 'Court', value: 'Court A', constraint: { length: 20 } },
+          ],
+        },
+        values,
+      );
+
+      expect(first).not.toBe(second);
+    });
+
+    it('returns a new object when the values reference changes', () => {
+      const resolve = createWordingObjectValuesResolver();
+      const template = {
+        template: 'At {{Court}}',
+        'substitution-key-constraints': [
+          { key: 'Court', value: 'Court A', constraint: { length: 20 } },
+        ],
+      };
+
+      const first = resolve(template, [{ key: 'Court', value: 'Court B' }]);
+      const second = resolve(template, [{ key: 'Court', value: 'Court B' }]);
+
+      expect(first).not.toBe(second);
     });
   });
 });

@@ -1,4 +1,4 @@
-import { Component, ViewChild, input, output, signal } from '@angular/core';
+import { Component, ViewChild, input, output } from '@angular/core';
 
 import { AlertComponent } from '@components/alert/alert.component';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
@@ -17,23 +17,25 @@ export class WordingSectionComponent {
   @ViewChild(WordingParserComponent)
   private readonly wordingParser?: WordingParserComponent;
 
-  saveSuccessful = signal(false);
-
   wordingObject = input.required<TemplateDetail>();
   wordingObjectValues = input<TemplateDetail>();
   wordingSubmitAttempt = input.required<number>();
+  showAppliedBanner = input(false);
 
   wordingFieldErrors = output<ErrorItem[]>();
   wordingFieldsDTO = output<{ wordingFields: TemplateSubstitution[] }>();
+  appliedBannerDismissed = output<void>();
 
   onWordingFieldsDTO(dto: { wordingFields: TemplateSubstitution[] }): void {
     this.wordingFieldsDTO.emit(dto);
-    this.saveSuccessful.set(true);
   }
 
   onWordingFieldErrors(errors: ErrorItem[]): void {
     this.wordingFieldErrors.emit(errors);
-    this.saveSuccessful.set(false);
+  }
+
+  onAppliedBannerDismissed(): void {
+    this.appliedBannerDismissed.emit();
   }
 
   validateForSubmit(opts?: WordingValidationOptions): ErrorItem[] {

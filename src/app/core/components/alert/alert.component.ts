@@ -1,4 +1,4 @@
-import { Component, computed, input, signal } from '@angular/core';
+import { Component, computed, input, output, signal } from '@angular/core';
 
 import { ALERT_ICON_PATHS, AlertType } from './alert-icons';
 
@@ -15,6 +15,7 @@ export class AlertComponent {
   readonly title = input<string>('');
   readonly allowDismiss = input<boolean>(false);
   readonly href = input<{ href: string; msg: string }>();
+  readonly alertDismissed = output<void>();
 
   private readonly dismissed = signal(false);
 
@@ -30,6 +31,7 @@ export class AlertComponent {
   dismiss(): void {
     if (this.allowDismiss()) {
       this.dismissed.set(true);
+      this.alertDismissed.emit();
     }
   }
 }

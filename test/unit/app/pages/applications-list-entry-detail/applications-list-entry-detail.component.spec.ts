@@ -19,6 +19,7 @@ import {
   buildOfficialsFromFormValue,
   officialsToFormPatch,
 } from '@components/applications-list-entry-detail/util/entry-detail.form';
+import * as routingStateUtil from '@components/applications-list-entry-detail/util/routing-state-util';
 import {
   ApplicationCodeGetDetailDto,
   ApplicationCodePage,
@@ -30,6 +31,7 @@ import {
   GetApplicationCodesRequestParams,
   OfficialType,
   PaymentStatus,
+  TemplateConstraintTypeEnum,
   UpdateApplicationListEntryRequestParams,
 } from '@openapi';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
@@ -677,10 +679,11 @@ describe('ApplicationsListEntryDetail', () => {
     ).toBe('The application list entry has been created successfully.');
   });
 
-  it('clearPaymentRefReturnOnly removes paymentRefReturn from history.state and preserves other keys', () => {
+  it('clearPaymentRefNavigationStateOnly removes payment reference nav state and preserves other keys', () => {
     history.replaceState(
       {
         paymentRefReturn: { updatedRowId: 'ROW-1', newPaymentReference: 'REF' },
+        entryDetailSnapshot: { form: { wordingFields: [] } },
         keep: 'KEEP_ME',
       },
       '',
@@ -689,15 +692,121 @@ describe('ApplicationsListEntryDetail', () => {
     const replaceSpy = jest.spyOn(history, 'replaceState');
 
     const subject = component as unknown as {
-      clearPaymentRefReturnOnly: () => void;
+      clearPaymentRefNavigationStateOnly: () => void;
     };
 
-    subject.clearPaymentRefReturnOnly();
+    subject.clearPaymentRefNavigationStateOnly();
 
     expect(replaceSpy).toHaveBeenCalledTimes(1);
     expect(replaceSpy).toHaveBeenCalledWith({ keep: 'KEEP_ME' }, '');
 
     replaceSpy.mockRestore();
+  });
+
+  it('restores staged snapshot before applying payment reference update', () => {
+    const readNavStateSpy = jest
+      .spyOn(routingStateUtil, 'readNavState')
+      .mockReturnValue({
+        entryDetailSnapshot: {
+          form: {
+            applicantType: 'person',
+            applicationCode: 'APP-200',
+            lodgementDate: '2025-11-01',
+            wordingFields: [
+              { key: 'Court', value: 'New Court' },
+              { key: 'Date', value: '2026-04-14' },
+            ],
+            feeStatuses: [
+              {
+                paymentStatus: 'Paid',
+                statusDate: '2025-11-01',
+                paymentReference: 'OLD',
+              },
+            ],
+          },
+          personForm: { firstName: 'Jane', surname: 'Doe' },
+          organisationForm: { name: '' },
+          respondentPersonForm: { firstName: '', surname: '' },
+          respondentOrganisationForm: { name: '' },
+          appCodeDetail: {
+            applicationCode: 'APP-200',
+            title: 'Staged title',
+            wording: {
+              template: 'At {{Court}} for {{Date}}',
+              'substitution-key-constraints': [
+                {
+                  key: 'Court',
+                  value: '',
+                  constraint: {
+                    length: 20,
+                    type: TemplateConstraintTypeEnum.TEXT,
+                  },
+                },
+                {
+                  key: 'Date',
+                  value: '',
+                  constraint: {
+                    length: 10,
+                    type: TemplateConstraintTypeEnum.TEXT,
+                  },
+                },
+              ],
+            },
+            bulkRespondentAllowed: false,
+            isFeeDue: false,
+            requiresRespondent: false,
+            feeReference: undefined,
+            startDate: '2025-01-01',
+            endDate: null,
+          },
+          feeMeta: null,
+          isFeeRequired: false,
+          bulkApplicationsAllowed: false,
+        },
+        paymentRefReturn: {
+          updatedRowId: 'Paid|2025-11-01',
+          newPaymentReference: 'NEW',
+        },
+      });
+    const updatePaymentReferenceSpy = jest
+      .spyOn(civilFeeUtils, 'updatePaymentReferenceInFeeStatusesControl')
+      .mockReturnValue({
+        next: [
+          {
+            paymentStatus: 'Paid',
+            statusDate: '2025-11-01',
+            paymentReference: 'NEW',
+          } as unknown as FeeStatus,
+        ],
+        changed: true,
+      });
+
+    mockUpdateApplicationListEntry.mockClear();
+
+    const freshFixture = TestBed.createComponent(ApplicationsListEntryDetail);
+    const freshComponent = freshFixture.componentInstance;
+    freshFixture.detectChanges();
+
+    expect(freshComponent['form'].controls.wordingFields.value).toEqual([
+      { key: 'Court', value: 'New Court' },
+      { key: 'Date', value: '2026-04-14' },
+    ]);
+
+    expect(mockUpdateApplicationListEntry).toHaveBeenCalled();
+    expect(
+      mockUpdateApplicationListEntry.mock.calls[0][0].entryUpdateDto
+        .wordingFields,
+    ).toEqual([
+      { key: 'Court', value: 'New Court' },
+      { key: 'Date', value: '2026-04-14' },
+    ]);
+    expect(
+      mockUpdateApplicationListEntry.mock.calls[0][0].entryUpdateDto
+        .applicationCode,
+    ).toBe('APP-200');
+
+    updatePaymentReferenceSpy.mockRestore();
+    readNavStateSpy.mockRestore();
   });
 
   it('persistFeeStatus does not call update API when fee details are added but entryDetail is missing', () => {
@@ -958,6 +1067,20 @@ describe('ApplicationsListEntryDetail', () => {
   });
 
   it('toEntryDetailPatch maps wordingFields to values and preserves other fields', () => {
+    component['entryDetail'] = {
+      wording: {
+        template: 'At {{courtName}} for {{organisationName}}',
+        'substitution-key-constraints': [
+          { key: 'courtName', value: 'Old Court', constraint: { length: 20 } },
+          {
+            key: 'organisationName',
+            value: 'Old Org',
+            constraint: { length: 20 },
+          },
+        ],
+      },
+    } as EntryGetDetailDto;
+
     const entryUpdateDto = {
       applicationCode: 'APP-200',
       lodgementDate: '2026-01-01',
@@ -980,8 +1103,68 @@ describe('ApplicationsListEntryDetail', () => {
         applicationCode: 'APP-200',
         lodgementDate: '2026-01-01',
         wordingFields: ['Court A', 'Org B'],
+        wording: {
+          template: 'At {{courtName}} for {{organisationName}}',
+          'substitution-key-constraints': [
+            {
+              key: 'courtName',
+              value: 'Court A',
+              constraint: { length: 20 },
+            },
+            {
+              key: 'organisationName',
+              value: 'Org B',
+              constraint: { length: 20 },
+            },
+          ],
+        },
       }),
     );
+  });
+
+  it('getWordingObjectValues prefers staged form wording over entry detail wording', () => {
+    component['form'].controls.wordingFields.setValue([
+      { key: 'Court', value: 'Court B' },
+      { key: 'Date', value: '2026-05-01' },
+    ]);
+
+    expect(
+      component.getWordingObjectValues({
+        template: 'At {{Court}} for {{Date}}',
+        'substitution-key-constraints': [
+          {
+            key: 'Court',
+            value: 'Court A',
+            constraint: {
+              length: 20,
+              type: TemplateConstraintTypeEnum.TEXT,
+            },
+          },
+          {
+            key: 'Date',
+            value: '2026-04-13',
+            constraint: {
+              length: 10,
+              type: TemplateConstraintTypeEnum.DATE,
+            },
+          },
+        ],
+      }),
+    ).toEqual({
+      template: 'At {{Court}} for {{Date}}',
+      'substitution-key-constraints': [
+        {
+          key: 'Court',
+          value: 'Court B',
+          constraint: { length: 20, type: TemplateConstraintTypeEnum.TEXT },
+        },
+        {
+          key: 'Date',
+          value: '2026-05-01',
+          constraint: { length: 10, type: TemplateConstraintTypeEnum.DATE },
+        },
+      ],
+    });
   });
 
   it('mergeEntryDetailUpdate applies patch and lets response override', () => {
