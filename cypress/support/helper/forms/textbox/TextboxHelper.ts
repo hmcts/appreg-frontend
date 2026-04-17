@@ -10,6 +10,7 @@ export class TextboxHelper {
     TextboxElement.findTextbox(selector)
       .should('be.visible')
       .should('be.enabled')
+      .clear()
       .type(text);
   }
 
@@ -123,5 +124,22 @@ export class TextboxHelper {
         return cy.get('.app-autocomplete__menu').should('contain.text', info);
       }
     });
+  }
+
+  /**
+   * Asserts that the current DOM context contains the given text.
+   * Designed for use inside AccordionHelper.within() to check accordion content.
+   * @param text The text expected to be present
+   */
+  static verifyContainsText(text: string): void {
+    TextboxElement.findContainsText(text).should('be.visible');
+  }
+
+  static typeInTextboxByPlaceholder(placeholder: string, value: string): void {
+    TextboxElement.findByPlaceholder(placeholder)
+      .should('be.visible')
+      .should('be.enabled')
+      .should('have.attr', 'placeholder', placeholder)
+      .type(value);
   }
 }

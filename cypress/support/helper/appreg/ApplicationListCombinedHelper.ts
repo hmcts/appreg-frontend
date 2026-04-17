@@ -83,11 +83,15 @@ export class ApplicationListCombinedHelper {
       }
     }
 
+    cy.intercept('GET', '**/application-lists**').as('searchApplicationLists');
+
     ButtonHelper.clickButton('Search');
 
-    // Wait for either the table to appear or the "No lists found" banner
-    // This ensures the search has completed before proceeding
-    cy.get('body', { timeout: 20000 }).should(($body) => {
+    // Wait for the API response to ensure fresh results are rendered
+    cy.wait('@searchApplicationLists', { timeout: 20000 });
+
+    // Then wait for either the table or the "No lists found" banner to appear
+    cy.get('body', { timeout: 10000 }).should(($body) => {
       const hasTable = $body.find('caption:contains("Lists")').length > 0;
       const hasNoResultsBanner = $body.text().includes('No lists found');
 

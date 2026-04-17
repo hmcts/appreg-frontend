@@ -115,7 +115,7 @@ Feature: Applications List Search
     When User Signs In With Microsoft SSO As "user1"
     When User Set Date Field "Date" To "today"
     Then User Selects "Leeds Combined Court Centre Set 7" From The Textbox "Court" Autocomplete By Typing "LCCC065"
-    When User Clicks On The "Search" Button
+    When User Submits The Application List Search
     # Table and header validation
     Then User Should See Table "Lists" Has Sortable Headers "Date, Time, Location, Description, Entries, Status"
     Then User Should See Table "Lists" Header "Actions" Is Not Sortable
@@ -138,25 +138,25 @@ Feature: Applications List Search
     When User Signs In With Microsoft SSO As "<User>"
     # Test Description and status filter
     When User Toggles The Accordion "Advanced search"
-    Then User Enters "<Description>" Into The "Description" Textbox
+    Then User Enters "<Description>" Into The "List description" Textbox
     Then User Selects "<Status>" In The "Select list status" Dropdown
-    When User Clicks On The "Search" Button
+    When User Submits The Application List Search
     Then User Should See Table "<TableName>" Column "Status" First And Last Page Has Value "<Status>"
     # Test time filter
     When User Clicks On The "Clear search" Button
     Then User Selects "Choose" In The "Select list status" Dropdown
     When User Set Time Field "Time" To "<Time>"
-    When User Clicks On The "Search" Button
+    When User Submits The Application List Search
     Then User Should See Table "<TableName>" Column "Time" First And Last Page Has Value "<Time>"
     # Test date filter
     When User Clicks On The "Clear search" Button
     When User Set Date Field "Date" To "<SearchDate>"
-    When User Clicks On The "Search" Button
+    When User Submits The Application List Search
     Then User Should See Table "<TableName>" Column "Date" First And Last Page Has Value "<DisplayDate>"
     # Test court location filter
     When User Clicks On The "Clear search" Button
     Then User Selects "<OptionTextCourt>" From The Textbox "Court" Autocomplete By Typing "<SearchTextCourt>"
-    When User Clicks On The "Search" Button
+    When User Submits The Application List Search
     Then User Should See Table "<TableName>" Column "Location" First And Last Page Has Value "<OptionTextCourt>"
     Examples:
       | User  | Status | TableName | Time  | SearchDate | DisplayDate | Description | SearchTextCourt | OptionTextCourt           |

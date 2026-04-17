@@ -1,6 +1,6 @@
 Feature: Application List Entries Print
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449 @PJ
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-453 @ARCPOC-449
     Scenario Outline: Application List - Print Selected Entries - Print Page and Print Continuous
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:

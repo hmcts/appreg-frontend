@@ -19,8 +19,8 @@ Feature: Application List Row Actions
             | Date          | Time   | Location | Description   | Entries   | Status   |
             | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
         Then User Sees Validation Error Banner "There is a problem No entries available to print"
-        Then User Clears The "Description" Textbox
-        Then User Enters "past" Into The "Description" Textbox
+        Then User Clears The "List description" Textbox
+        Then User Enters "past" Into The "List description" Textbox
         When User Clicks On The "Search" Button
         Then User Sees Notification Banner "Important No lists found Try different filters, or create a new list"
         # Application List Cleanup
@@ -515,7 +515,7 @@ Feature: Application List Row Actions
         When User Clicks On The "Yes - delete" Button
         Then User Should See The Link "Create new list"
         Then User Sees Success Banner "Success Application list deleted successfully If you believe this was in error, please contact support."
-        Then User Clears The "Description" Textbox
+        Then User Clears The "List description" Textbox
         When User Set Date Field "Date" To "<SearchDate>"
         When User Clicks On The "Search" Button
         Then User Should See The Table "<TableName>"

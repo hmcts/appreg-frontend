@@ -46,4 +46,13 @@ export class AccordionHelper {
       }
     });
   }
+
+  /**
+   * Ensures the accordion is expanded then runs the provided function scoped
+   * inside the accordion content via cy.within()
+   */
+  static within(accordionTitle: string, fn: () => void): void {
+    this.ensureAccordionExpanded(accordionTitle);
+    AccordionElement.getAccordionContent(accordionTitle).within(fn);
+  }
 }

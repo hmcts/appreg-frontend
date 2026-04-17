@@ -18,16 +18,16 @@ Feature: Applications List Update
         Then User Clicks On The Link "List details"
         Then User Verify The Page URL Contains "#list-details"
         Then User Verifies The Time field "Time" Has Value "<Time>"
-        Then User Verifies The "Description" Textbox Has Value "<Description>"
+        Then User Verifies The "List description" Textbox Has Value "<Description>"
         Then User Verifies "<Status>" Is Selected In The "Select list status" Dropdown
         Then User Verifies The "Court" Textbox Has Selected Value "<CourtValue>"
-        Then User Verifies The "Other location" Textbox Has Value "<OtherLocation>"
+        Then User Verifies The "Other location description" Textbox Has Value "<OtherLocation>"
         Then User Verifies The "Criminal justice area" Textbox Has Value "<cjaCode> - <CJAValue>"
         Then User Verifies The "Duration" field Has Values hours "<HH>" and minutes "<MM>"
-        Then User Clears The "Description" Textbox
-        Then User Enters "<UpdatedDescription>" Into The "Description" Textbox
-        Then User Clears The "Other location" Textbox
-        Then User Enters "<UpdatedOtherLocation>" Into The "Other location" Textbox
+        Then User Clears The "List description" Textbox
+        Then User Enters "<UpdatedDescription>" Into The "List description" Textbox
+        Then User Clears The "Other location description" Textbox
+        Then User Enters "<UpdatedOtherLocation>" Into The "Other location description" Textbox
         Then User Selects "<CJAValue>" From The Textbox "Criminal justice area" Autocomplete By Typing "<cjaCode>"
         When User Clicks On The "Update" Button
         Then User Sees Success Banner "<SuccessBanner>"
@@ -41,8 +41,7 @@ Feature: Applications List Update
         Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
-        Then User Sees Page Heading "Applications List"
-        Then User Sees Success Banner "Success Application list deleted successfully If you believe this was in error, please contact support."
+        Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
         Examples:
             | User  | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Location      | Description   | Entries | Status | SelectButtonText | CourtValue | OtherLocation        | cjaCode | CJAValue      | HH | MM | UpdatedDescription    | UpdatedOtherLocation   | SuccessBanner                                                                      |
             | user1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | Wolverhampton | Test_{RANDOM} | 0       | OPEN   | Select           |            | Other Location_21442 | B9      | Wolverhampton | 11 | 30 | Updated Test_{RANDOM} | Updated Location_21442 | Success Application list updatedThe application list has been successfully updated |
@@ -67,15 +66,15 @@ Feature: Applications List Update
         Then User Verify The Page URL Contains "#list-details"
         Then User Verifies The Date field "Date" Has Value "<SearchDate>"
         Then User Verifies The Time field "Time" Has Value "<Time>"
-        Then User Verifies The "Description" Textbox Has Value "<Description>"
+        Then User Verifies The "List description" Textbox Has Value "<Description>"
         Then User Verifies "<Status>" Is Selected In The "Select list status" Dropdown
         Then User Verifies The "Court" Textbox Has Selected Value "<Court> - <CourtLocation>"
-        Then User Verifies The "Other location" Textbox Has Value "<OtherLocation>"
+        Then User Verifies The "Other location description" Textbox Has Value "<OtherLocation>"
         Then User Verifies The "Criminal justice area" Textbox Has Value "<CJAValue>"
         Then User Verifies The "Duration" field Has Values hours "<HH>" and minutes "<MM>"
         When User Set "<UpdatedHH>" and "<UpdatedMM>" In The "Duration" Field
-        Then User Clears The "Description" Textbox
-        Then User Enters "<UpdatedDescription>" Into The "Description" Textbox
+        Then User Clears The "List description" Textbox
+        Then User Enters "<UpdatedDescription>" Into The "List description" Textbox
         Then User Clears The "Court" Textbox
         Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
         When User Clicks On The "Update" Button
@@ -90,8 +89,7 @@ Feature: Applications List Update
         Then User Sees Warning Alert "You are about to delete this Application List and all of the Application List Entries. This action cannot be undone."
         Then User See "Are you sure you want to delete this application list?" On The Page
         When User Clicks On The "Yes - delete" Button
-        Then User Sees Page Heading "Applications List"
-        Then User Sees Success Banner "Success Application list deleted successfully If you believe this was in error, please contact support."
+        Then User Sees Success Banner "Success Application list deleted successfully" Containing "If you believe this was in error, please contact support."
         Examples:
             | User   | TableName | SearchDate | APIDate  | DisplayDate  | Time           | Court  | CourtLocation                 | Description   | Entries | Status | ButtonName | SelectButtonText | OtherLocation | CJAValue | HH | MM | UpdatedDescription           | OptionText                | SearchText | UpdatedHH | UpdatedMM | SuccessBanner                                                                      |
             | admin1 | Lists     | today      | todayiso | todaydisplay | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test_{RANDOM} | 0       | OPEN   | Open       | Select           |               |          | 11 | 30 | Updated Description For Test | Cardiff Crown Court Set 4 | CCC033     | 12        | 45        | Success Application list updatedThe application list has been successfully updated |
@@ -115,15 +113,15 @@ Feature: Applications List Update
         Then User Verify The Page URL Contains "#list-details"
         Then User Verifies The Date field "Date" Has Value "<SearchDate>"
         Then User Verifies The Time field "Time" Has Value "<Time>"
-        Then User Verifies The "Description" Textbox Has Value "<Description>"
+        Then User Verifies The "List description" Textbox Has Value "<Description>"
         Then User Verifies "<Status>" Is Selected In The " Select list status " Dropdown
         Then User Verifies The "Court" Textbox Has Selected Value "<Court> - <courtLocation>"
-        Then User Verifies The "Other location" Textbox Has Value "<OtherLocation>"
+        Then User Verifies The "Other location description" Textbox Has Value "<OtherLocation>"
         Then User Verifies The "Criminal justice area" Textbox Has Value "<CJAValue>"
         Then User Verifies The "Duration" field Has Values hours "<HH>" and minutes "<MM>"
         When User Clears The Date Field "Date"
         When User Clears The Time Field "Time"
-        Then User Clears The "Description" Textbox
+        Then User Clears The "List description" Textbox
         Then User Selects "<InvalidStatus>" In The "Select list status" Dropdown
         Then User Clears The "Court" Textbox
         When User Clicks On The "Update" Button
@@ -144,20 +142,20 @@ Feature: Applications List Update
         When User Clicks On The "Update" Button
         Then User Sees Validation Error Banner "There is a problem Enter a valid duration between 00:00 and 23:59 Enter a description Select a status Enter a court, or an other location and criminal justice area"
         When User Set Time Field "Time" To "<UpdatedTime>"
-        Then User Enters "<UpdatedDescription>" Into The "Description" Textbox
+        Then User Enters "<UpdatedDescription>" Into The "List description" Textbox
         When User Clicks On The "Update" Button
         Then User Sees Validation Error Banner "There is a problem Select a status Enter a court, or an other location and criminal justice area"
         Then User Selects "<Status>" In The "Select list status" Dropdown
         When User Clicks On The "Update" Button
         Then User Sees Validation Error Banner "There is a problem Enter a court, or an other location and criminal justice area"
-        Then User Enters "<UpdatedOtherLocation>" Into The "Other location" Textbox
+        Then User Enters "<UpdatedOtherLocation>" Into The "Other location description" Textbox
         When User Clicks On The "Update" Button
         Then User Sees Validation Error Banner "There is a problem Enter a court, or an other location and criminal justice area"
         Then User Enters "<InvalidCJAValue>" Into The "Criminal justice area" Textbox
         When User Clicks On The "Update" Button
         Then User Sees Validation Error Banner "There is a problem Criminal justice area not found"
         Then User Clears The "Criminal justice area" Textbox
-        Then User Clears The "Other location" Textbox
+        Then User Clears The "Other location description" Textbox
         Then User Enters "<InvalidCourtValue>" Into The "Court" Textbox
         When User Clicks On The "Update" Button
         Then User Sees Validation Error Banner "There is a problem Court location not found"

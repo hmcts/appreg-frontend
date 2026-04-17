@@ -1,7 +1,5 @@
 import { processDatatableRow } from '../../utils/TestDataGenerator';
 import { AccordionHelper } from '../forms/accordion/accordion/AccordionHelper';
-import { AccordionDropdownHelper } from '../forms/accordion/accordionDropdown/AccordionDropdownHelper';
-import { AccordionTextboxHelper } from '../forms/accordion/accordionTextbox/AccordionTextboxHelper';
 import { ButtonHelper } from '../forms/button/ButtonHelper';
 import { DateTimeHelper } from '../forms/datetime/DateTimeHelper';
 import { DropdownHelper } from '../forms/dropdown/DropdownHelper';
@@ -40,11 +38,11 @@ export class ApplicationListEntriesCombinedHelper {
           break;
 
         case 'Applicant organisation':
-          TextboxHelper.typeInTextbox('Applicant Org', value);
+          TextboxHelper.typeInTextbox('Applicant organisation', value);
           break;
 
         case 'Respondent organisation':
-          TextboxHelper.typeInTextbox('Respondent Org', value);
+          TextboxHelper.typeInTextbox('Respondent organisation', value);
           break;
 
         case 'CourtSearch':
@@ -148,60 +146,50 @@ export class ApplicationListEntriesCombinedHelper {
         case 'Applicant type':
         case 'Select respondent type':
         case 'Respondent type':
-        case 'Select type':
-          AccordionDropdownHelper.selectDropdownInAccordion(
-            accordionTitle,
-            fieldLabel.includes('applicant')
-              ? 'Select applicant type'
-              : 'Select type',
-            value,
-          );
+        case 'Select type': {
+          const dropdownLabel = fieldLabel.includes('applicant')
+            ? 'Select applicant type'
+            : 'Select type';
+          AccordionHelper.within(accordionTitle, () => {
+            DropdownHelper.selectDropdownOption(dropdownLabel, value);
+          });
           // Wait for Angular to re-render form fields after type change
           cy.wait(500);
           break;
+        }
 
         case 'Organisation name':
         case 'Organization name':
         case 'Org name':
-          AccordionTextboxHelper.enterTextIntoAccordionTextbox(
-            accordionTitle,
-            'Organisation name',
-            value,
+          AccordionHelper.within(accordionTitle, () =>
+            TextboxHelper.typeInTextbox('Organisation name', value),
           );
           break;
 
         case 'Select title':
         case 'Title':
-          AccordionDropdownHelper.selectDropdownInAccordion(
-            accordionTitle,
-            'Select title',
-            value,
-          );
+          AccordionHelper.within(accordionTitle, () => {
+            DropdownHelper.selectDropdownOption('Select title', value);
+          });
           break;
 
         case 'First name':
-          AccordionTextboxHelper.enterTextIntoAccordionTextbox(
-            accordionTitle,
-            'First name',
-            value,
+          AccordionHelper.within(accordionTitle, () =>
+            TextboxHelper.typeInTextbox('First name', value),
           );
           break;
 
         case 'Middle name(s)':
         case 'Middle name':
         case 'Middle names':
-          AccordionTextboxHelper.enterTextIntoAccordionTextbox(
-            accordionTitle,
-            'Middle name(s)',
-            value,
+          AccordionHelper.within(accordionTitle, () =>
+            TextboxHelper.typeInTextbox('Middle name(s)', value),
           );
           break;
 
         case 'Surname':
-          AccordionTextboxHelper.enterTextIntoAccordionTextbox(
-            accordionTitle,
-            'Surname',
-            value,
+          AccordionHelper.within(accordionTitle, () =>
+            TextboxHelper.typeInTextbox('Surname', value),
           );
           break;
 
@@ -233,55 +221,43 @@ export class ApplicationListEntriesCombinedHelper {
 
       switch (fieldLabel) {
         case 'Address line 1':
-          AccordionTextboxHelper.enterTextIntoAccordionTextbox(
-            accordionTitle,
-            'Address line 1',
-            value,
+          AccordionHelper.within(accordionTitle, () =>
+            TextboxHelper.typeInTextbox('Address line 1', value),
           );
           break;
 
         case 'Address line 2':
-          AccordionTextboxHelper.enterTextIntoAccordionTextbox(
-            accordionTitle,
-            'Address line 2',
-            value,
+          AccordionHelper.within(accordionTitle, () =>
+            TextboxHelper.typeInTextbox('Address line 2', value),
           );
           break;
 
         case 'Town or city':
         case 'Town':
         case 'City':
-          AccordionTextboxHelper.enterTextIntoAccordionTextbox(
-            accordionTitle,
-            'Town or city',
-            value,
+          AccordionHelper.within(accordionTitle, () =>
+            TextboxHelper.typeInTextbox('Town or city', value),
           );
           break;
 
         case 'County or region':
         case 'County':
         case 'Region':
-          AccordionTextboxHelper.enterTextIntoAccordionTextbox(
-            accordionTitle,
-            'County or region',
-            value,
+          AccordionHelper.within(accordionTitle, () =>
+            TextboxHelper.typeInTextbox('County or region', value),
           );
           break;
 
         case 'Post town':
-          AccordionTextboxHelper.enterTextIntoAccordionTextbox(
-            accordionTitle,
-            'Post town',
-            value,
+          AccordionHelper.within(accordionTitle, () =>
+            TextboxHelper.typeInTextbox('Post town', value),
           );
           break;
 
         case 'Postcode':
         case 'Post code':
-          AccordionTextboxHelper.enterTextIntoAccordionTextbox(
-            accordionTitle,
-            'Postcode',
-            value,
+          AccordionHelper.within(accordionTitle, () =>
+            TextboxHelper.typeInTextbox('Postcode', value),
           );
           break;
 
@@ -314,28 +290,22 @@ export class ApplicationListEntriesCombinedHelper {
       switch (fieldLabel) {
         case 'Phone number':
         case 'Phone':
-          AccordionTextboxHelper.enterTextIntoAccordionTextbox(
-            accordionTitle,
-            'Phone number',
-            value,
+          AccordionHelper.within(accordionTitle, () =>
+            TextboxHelper.typeInTextbox('Phone number', value),
           );
           break;
 
         case 'Mobile number':
         case 'Mobile':
-          AccordionTextboxHelper.enterTextIntoAccordionTextbox(
-            accordionTitle,
-            'Mobile number',
-            value,
+          AccordionHelper.within(accordionTitle, () =>
+            TextboxHelper.typeInTextbox('Mobile number', value),
           );
           break;
 
         case 'Email address':
         case 'Email':
-          AccordionTextboxHelper.enterTextIntoAccordionTextbox(
-            accordionTitle,
-            'Email address',
-            value,
+          AccordionHelper.within(accordionTitle, () =>
+            TextboxHelper.typeInTextbox('Email address', value),
           );
           break;
 
@@ -371,11 +341,12 @@ export class ApplicationListEntriesCombinedHelper {
     // Handle Standard Applicant differently - it uses a table selection, not form fields
     if (applicantType.toLowerCase().includes('standard')) {
       // Select Standard Applicant from dropdown
-      AccordionDropdownHelper.selectDropdownInAccordion(
-        accordionTitle,
-        'Select applicant type',
-        applicantType,
-      );
+      AccordionHelper.within(accordionTitle, () => {
+        DropdownHelper.selectDropdownOption(
+          'Select applicant type',
+          applicantType,
+        );
+      });
 
       // Wait for Angular to render the standard applicant table
       cy.wait(500);

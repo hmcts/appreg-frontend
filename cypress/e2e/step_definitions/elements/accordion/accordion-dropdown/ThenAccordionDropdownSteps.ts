@@ -1,41 +1,31 @@
 import { Then } from '@badeball/cypress-cucumber-preprocessor';
 
-import { AccordionDropdownHelper } from '../../../../../support/helper/forms/accordion/accordionDropdown/AccordionDropdownHelper';
+import { AccordionHelper } from '../../../../../support/helper/forms/accordion/accordion/AccordionHelper';
+import { DropdownHelper } from '../../../../../support/helper/forms/dropdown/DropdownHelper';
 
-/**
- * Step: User Selects an option from a dropdown within a specific accordion
- */
 Then(
   'User Selects {string} From The Accordion {string} Dropdown {string}',
   (optionText: string, accordionTitle: string, dropdownLabel: string) => {
-    AccordionDropdownHelper.selectDropdownInAccordion(
-      accordionTitle,
-      dropdownLabel,
-      optionText,
-    );
+    AccordionHelper.within(accordionTitle, () => {
+      DropdownHelper.selectDropdownOption(dropdownLabel, optionText);
+    });
   },
 );
 
-/**
- * Step: Verify selected value in an accordion dropdown
- */
 Then(
   'The Accordion {string} Dropdown {string} Should Be {string}',
   (accordionTitle: string, dropdownLabel: string, expectedValue: string) => {
-    AccordionDropdownHelper.verifyDropdownValue(
-      accordionTitle,
-      dropdownLabel,
-      expectedValue,
-    );
+    AccordionHelper.within(accordionTitle, () => {
+      DropdownHelper.verifyDropdownOptionSelected(dropdownLabel, expectedValue);
+    });
   },
 );
 
 Then(
   'User Verifies Dropdown {string} Is Disabled In The Accordion {string}',
   (dropdownLabel: string, accordionTitle: string) => {
-    AccordionDropdownHelper.verifyDropdownDisabled(
-      accordionTitle,
-      dropdownLabel,
-    );
+    AccordionHelper.within(accordionTitle, () => {
+      DropdownHelper.verifyDropdownIsDisabled(dropdownLabel);
+    });
   },
 );

@@ -16,4 +16,12 @@ export class CheckboxHelper {
   ): Cypress.Chainable<JQuery<HTMLInputElement>> {
     return CheckboxElement.findCheckbox(labelText).uncheck({ force: true });
   }
+
+  static verifyEnabled(labelText: string): void {
+    CheckboxElement.findCheckbox(labelText).should('be.enabled');
+  }
+
+  static verifyUnchecked(labelText: string): void {
+    CheckboxElement.findCheckbox(labelText).should('not.be.checked');
+  }
 }
