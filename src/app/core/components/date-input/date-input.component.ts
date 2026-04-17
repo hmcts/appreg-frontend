@@ -55,6 +55,8 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
   isSearch = input(false);
   disallowFutureDates = input(false);
 
+  containerWidthClass = input('govuk-grid-column-one-half');
+
   disabled = false;
 
   private readonly fb = inject(NonNullableFormBuilder);

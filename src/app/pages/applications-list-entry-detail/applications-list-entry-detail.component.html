@@ -67,9 +67,11 @@
       <app-wording-section
         #wordingSection
         [wordingObject]="appCodeDetail.wording"
-        [wordingObjectValues]="entryDetail?.wording!"
+        [wordingObjectValues]="getWordingObjectValues(appCodeDetail.wording)"
         [wordingSubmitAttempt]="wordingSubmitAttempt()"
+        [showAppliedBanner]="wordingAppliedBannerVisible()"
         (wordingFieldsDTO)="onWordingFieldsDTO($event)"
+        (appliedBannerDismissed)="onWordingAppliedBannerDismissed()"
         (wordingFieldErrors)="onChildErrors('wording', $event)"
       />
     } @else {
@@ -103,6 +105,7 @@
       [feeRequired]="vm().isFeeRequired"
       [autoSaveOffsiteFee]="true"
       [parentSubmitted]="vm().formSubmitted"
+      [changePaymentReferenceStateFactory]="buildChangePaymentReferenceState"
     />
   </ng-template>
 
