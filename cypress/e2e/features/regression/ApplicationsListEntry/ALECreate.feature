@@ -1,6 +1,6 @@
 Feature: Applications List Entry Create
 
-  @regression @applicationListEntry @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC1 @PJ
+  @applicationListEntry @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC1 @PJ
   Scenario Outline: Create an ALE where Applicant = Person and Respondent = Person, using an Application Code with Fee Required = Y and Respondent Required = Y
     Given User Authenticates Via API As "<User>"
     # Create Application List
