@@ -33,6 +33,7 @@ import { setupHealthcheck } from './routes/health';
 import { setupInfoRoute } from './routes/info';
 import { getCca, setupSsoRoutes } from './routes/sso';
 import { setupSession } from './session';
+import { sanitizeSsrUrl } from './utils/sanitize-ssr-url';
 
 // ----- Paths (ESM-safe)
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -110,6 +111,11 @@ setupHealthcheck(app);
 setupAppConfigRoute(app);
 setupInfoRoute(app);
 setupSsoRoutes(app);
+
+app.use((req: Request, _res: Response, next: NextFunction) => {
+  req.url = sanitizeSsrUrl(req.url);
+  next();
+});
 
 // ----- Static
 app.use(
