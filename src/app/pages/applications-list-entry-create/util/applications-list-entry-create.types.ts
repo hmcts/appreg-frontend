@@ -15,6 +15,7 @@ export type EntryCreateSnapshot = {
   appCodeDetail: ApplicationCodeGetDetailDto | null;
   feeMeta: CivilFeeMeta | null;
   isFeeRequired: boolean;
+  bulkApplicationsAllowed: boolean;
   wordingAppliedBannerVisible: boolean;
 };
 

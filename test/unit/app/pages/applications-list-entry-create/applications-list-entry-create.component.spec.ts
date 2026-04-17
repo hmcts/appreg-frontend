@@ -581,6 +581,7 @@ describe('ApplicationsListEntryCreate (payment reference return)', () => {
           offsiteFeeAmount: null,
         },
         isFeeRequired: true,
+        bulkApplicationsAllowed: true,
       },
       paymentRefReturn: {
         updatedRowId: 'Paid|2026-01-10',
@@ -600,6 +601,7 @@ describe('ApplicationsListEntryCreate (payment reference return)', () => {
     );
     expect(component.vm().appCodeDetail?.applicationCode).toBe('APP-1');
     expect(component.vm().isFeeRequired).toBe(true);
+    expect(component.vm().bulkApplicationsAllowed).toBe(true);
     expect(component.feeMeta?.feeReference).toBe('CO9.2');
     expect(component.getWordingObjectValues(appCodeDetail.wording)).toEqual({
       template: 'At {{Court}}',

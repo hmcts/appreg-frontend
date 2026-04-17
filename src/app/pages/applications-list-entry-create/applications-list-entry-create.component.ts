@@ -573,6 +573,8 @@ export class ApplicationsListEntryCreate implements OnInit {
       appCodeDetail: this.appListEntryCreateState().appCodeDetail,
       feeMeta: this.feeMeta,
       isFeeRequired: this.appListEntryCreateState().isFeeRequired,
+      bulkApplicationsAllowed:
+        this.appListEntryCreateState().bulkApplicationsAllowed,
       wordingAppliedBannerVisible: this.wordingAppliedBannerVisible(),
     };
   }
@@ -621,6 +623,7 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.feeMeta = draft.feeMeta ?? null;
     this.appListEntryCreatePatch({
       isFeeRequired: draft.isFeeRequired === true,
+      bulkApplicationsAllowed: draft.bulkApplicationsAllowed === true,
     });
     this.wordingAppliedBannerVisible.set(
       draft.wordingAppliedBannerVisible === true,
