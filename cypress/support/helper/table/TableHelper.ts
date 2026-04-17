@@ -105,21 +105,6 @@ export class TableHelper {
     TableElement.findLinkInRowOfTable(linkText, tableName, rowData).click();
   }
 
-  static clickInRowOfTable(
-    text: string,
-    tableName: string,
-    rowData: Record<string, string>,
-  ): void {
-    const tableSelector = tableName
-      ? `table[aria-label="${tableName}"], table[summary="${tableName}"]`
-      : 'table';
-    cy.get(tableSelector)
-      .contains('tr', Object.values(rowData)[0] ?? '')
-      .find('a, button')
-      .contains(text)
-      .click();
-  }
-
   static verifySortableHeadersInAccordion(
     accordionTitle: string,
     headers: string,
@@ -137,7 +122,8 @@ export class TableHelper {
   static clickButtonInRowOfTable(
     tableCaption: string,
     buttonText: string,
+    rowData: Record<string, string> = {},
   ): void {
-    TableElement.verifyButtonInTableRows(tableCaption, buttonText);
+    TableElement.findButtonInRowOfTable(buttonText, tableCaption, rowData).click();
   }
 }

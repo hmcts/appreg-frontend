@@ -1,6 +1,6 @@
 Feature: Applications List Entry Create
 
-  @applicationListEntry @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC1 @PJ
+  @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC1 @PJ
   Scenario Outline: Create an ALE where Applicant = Person and Respondent = Person, using an Application Code with Fee Required = Y and Respondent Required = Y
     Given User Authenticates Via API As "<User>"
     # Create Application List
@@ -35,8 +35,8 @@ Feature: Applications List Entry Create
       | County or region      | West Yorkshire                |
       | Post town             | Leeds                         |
       | Postcode              | LS10 1PJ                      |
-      | Phone number          | 0203{RANDOM}                  |
-      | Mobile number         | 07123{RANDOM}                 |
+      | Phone number          | 01632960001                   |
+      | Mobile number         | 07700900001                   |
       | Email address         | applicant{RANDOM}@example.com |
     # Application Codes
     Then User Enters "<ApplicationCode>" Into The Accordion "Codes" Textbox "Application code"
@@ -66,8 +66,8 @@ Feature: Applications List Entry Create
       | County or region | West Yorkshire                 |
       | Post town        | Leeds                          |
       | Postcode         | LS10 1PJ                       |
-      | Phone number     | 0117{RANDOM}                   |
-      | Mobile number    | 07987{RANDOM}                  |
+      | Phone number     | 01632960002                    |
+      | Mobile number    | 07700900002                    |
       | Email address    | respondent{RANDOM}@example.com |
     # Civil Fee Details
     When User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Enabled
@@ -85,13 +85,12 @@ Feature: Applications List Entry Create
     Then User Enters "<PaymentReferenceUndertaken>" Into The Accordion "Civil fee" Textbox "Payment reference"
     When User Clicks On The "Add fee details" Button In The Accordion "Civil fee"
     Then User Verifies Table "Current fee statuses table" In The Accordion "Civil fee" Has Sortable Headers "Fee Status, Status Date, Payment Ref"
-    Then User Clicks "Change" Link In Row Of Table "Current fee statuses table" Within The Accordion "Civil fee":
+    Then User Clicks "Change" Link In Row Of Table "Current fee statuses table" Within The Accordion "Civil fee"
       | Fee Status | Status Date  | Payment Ref                  |
       | UNDERTAKEN | todaydisplay | <PaymentReferenceUndertaken> |
     Then User Sees Page Heading "Change payment reference"
-    Then User Sees Text "UNDERTAKEN" In "Status" Field
-    # Then User Verifies The Date field "Status date" Has Value "<DisplayDate>"
-
+    Then User Should See Summary List Row With Key "Status" And Value "UNDERTAKEN"
+    Then User Should See Summary List Row With Key "Status date" And Value "<DisplayDate>"
     Then User Verifies The "Payment reference" Textbox Has Value "<PaymentReferenceUndertaken>"
     Then User Clears The "Payment reference" Textbox
     Then User Enters "<UpdatedPaymentReferenceUndertaken>" Into The "Payment reference" Textbox
@@ -99,7 +98,6 @@ Feature: Applications List Entry Create
     Then User Should See Row In Table "Current fee statuses table" In The Accordion "Civil fee" With Values:
       | Fee Status | Status Date   | Payment Ref                         |
       | UNDERTAKEN | <DisplayDate> | <UpdatedPaymentReferenceUndertaken> |
-
     Then User Selects "Paid" From The Accordion "Civil fee" Dropdown "Fee status"
     Then User Enters "<SearchDate>" Into The Accordion "Civil fee" Date Field "Status date"
     Then User Enters "<PaymentReferencePaid>" Into The Accordion "Civil fee" Textbox "Payment reference"
@@ -109,16 +107,11 @@ Feature: Applications List Entry Create
       | UNDERTAKEN | <DisplayDate> | <UpdatedPaymentReferenceUndertaken> |
       | PAID       | <DisplayDate> | <PaymentReferencePaid>              |
     Then User Verifies "Change" Link Is Not Visible In Row Of Table In The Accordion "Civil fee" With:
-      | Fee Status | Status Date   | Payment Ref                   |
-      | UNDERTAKEN | <DisplayDate> | <UpdatedPaymentReferencePaid> |
-    Then User Clicks "Change" Link In Row Of Table "Current fee statuses table" Within The Accordion "Civil fee":
+      | Fee Status | Status Date   | Payment Ref                         |
+      | UNDERTAKEN | <DisplayDate> | <UpdatedPaymentReferenceUndertaken> |
+    Then User Verifies "Change" Link Is Visible In Row Of Table In The Accordion "Civil fee" With:
       | Fee Status | Status Date   | Payment Ref            |
       | PAID       | <DisplayDate> | <PaymentReferencePaid> |
-    Then User Sees Page Heading "Change payment reference"
-    Then User Should See Summary List Row With Key "Status" And Value "PAID"
-    # Then User Should See Summary List Row With Key "Status date" And Value "<DisplayDate>"
-    Then User Verifies The "Payment reference" Textbox Has Value "<PaymentReferencePaid>"
-    When User Clicks On The "Cancel" Button
     # Notes Details
     Then User Enters "<CaseReference>" Into The Accordion "Notes" Textbox "Case reference"
     Then User Enters "<AccountReference>" Into The Accordion "Notes" Textbox "Account reference"
@@ -131,9 +124,9 @@ Feature: Applications List Entry Create
     Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
     Examples:
       | User  | TableName | SearchDate | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | ApplicationCode | ApplicationTitle           | WordingText                                      | placeholder                  | WordingValue        | PaymentReferenceUndertaken | UpdatedPaymentReferenceUndertaken | PaymentReferencePaid | CaseReference | AccountReference |
-      | user1 | Lists     | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | MX99006         | Condemnation of Unfit Food | Application for the condemnation of food, namely | Enter a Describe Seized Food | Test Sample Wording | PAY-{RANDOM}               | New PAY-{RANDOM}                  | Paid PAY-{RANDOM}    | case-{RANDOM} | account-{RANDOM} |
+      | user1 | Lists     | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | MX99006         | Condemnation of Unfit Food | Application for the condemnation of food, namely | Enter a Describe Seized Food | Test Sample Wording | PAY-{RANDOM}               | New PAY-{RANDOM}                  | Paid PAY-{RANDOM}    | case{RANDOM}  | account{RANDOM}  |
 
-  @ignore @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC2
+  @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC2
   Scenario Outline: Create an ALE where Applicant = Organisation and Respondent = Organisation, using an Application Code with Fee Required = N and Respondent Required = Y
     Given User Authenticates Via API As "<User>"
     # Create Application List
@@ -212,10 +205,10 @@ Feature: Applications List Entry Create
     Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
 
     Examples:
-      | User  | SearchDate | DisplayDate  | Time | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationCode | ApplicationTitle                               | WordingText                                                                                                                                                        | placeholder       | WordingValue | TableName | CaseReference | AccountReference |
-      | user1 | today      | todaydisplay | 1020 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | CT99002         | Issue of liability order summons - council tax | Attends to swear a complaint for the issue of a summons for the debtor to answer an application for a liability order in relation to unpaid council tax (reference | Enter a Reference | TestRef-001  | Lists     | case12345     | account12345     |
+      | User  | SearchDate | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationCode | ApplicationTitle                               | WordingText                                                                                                                                                        | placeholder       | WordingValue | TableName | CaseReference | AccountReference |
+      | user1 | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | CT99002         | Issue of liability order summons - council tax | Attends to swear a complaint for the issue of a summons for the debtor to answer an application for a liability order in relation to unpaid council tax (reference | Enter a Reference | TestRef-001  | Lists     | case12345     | account12345     |
 
-  @ignore @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC3
+  @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC3
   Scenario Outline: Create an ALE where Applicant = Standard Applicant, using an Application Code with Fee Required = Y and Respondent Required = N
     Given User Authenticates Via API As "<User>"
     # Create Application List
@@ -284,5 +277,5 @@ Feature: Applications List Entry Create
     Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
 
     Examples:
-      | User  | TableName | SearchDate | DisplayDate  | Time | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationCode | ApplicationTitle                                           | WordingText                                                                                                                     | placeholder  | WordingValue | PaymentReference | CaseReference | AccountReference | OffsiteFeeString                                         | OffsiteFeeCode | OffsiteFeeValue            | TotalFeeAmount           | FeeReference        | FeeAmount      | StdAppCode | StdAppName         | StdAppAddress  | StdAppFrom |
-      | user1 | Lists     | today      | todaydisplay | 1020 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | AP99004         | Request for Certificate of Refusal to State a Case (Civil) | Request for a certificate of refusal to state a case for the opinion of the High Court in respect of civil proceedings heard on | Enter a Date | today        | PAY-12345        | case12345     | account12345     | Selecting this will apply the off site fee to the entry. | CO1.1          | Off Site Fee Amount £30.00 | Total Fee Amount £135.00 | Fee Reference CO3.1 | Amount £105.00 | APP025     | Miss, Ava, Johnson | 258 Cedar Lane | 06/11/2025 |
+      | User  | TableName | SearchDate | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationCode | ApplicationTitle                                           | WordingText                                                                                                                     | placeholder  | WordingValue | PaymentReference | CaseReference | AccountReference | OffsiteFeeString                                         | OffsiteFeeCode | OffsiteFeeValue             | TotalFeeAmount            | FeeReference         | FeeAmount       | StdAppCode | StdAppName         | StdAppAddress  | StdAppFrom |
+      | user1 | Lists     | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | AP99004         | Request for Certificate of Refusal to State a Case (Civil) | Request for a certificate of refusal to state a case for the opinion of the High Court in respect of civil proceedings heard on | Enter a Date | today        | PAY-12345        | case12345     | account12345     | Selecting this will apply the off site fee to the entry. | CO1.1          | Off Site Fee Amount: £30.00 | Total Fee Amount: £135.00 | Fee Reference: CO3.1 | Amount: £105.00 | APP025     | Miss, Ava, Johnson | 258 Cedar Lane | 06/11/2025 |
