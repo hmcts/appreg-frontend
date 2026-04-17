@@ -170,7 +170,7 @@ Feature: Applications List Search
     Then User Selects "<OptionText>" From The Textbox "Criminal justice area" Autocomplete By Typing "<SearchText>"
     Then User Verifies The "Criminal justice area" Textbox Has Selected Value "<ExpectedValue>"
     Then User Verifies "<Info>" Is Not Visible Under The "Criminal justice area" Textbox
-    When User Submits The Application List Search
+    When User Clicks On The "Search" Button
     Then User Does Not See Validation Error Banner "There is a problem Criminal justice area not found"
     Examples:
       | User   | SearchText | OptionText | ExpectedValue  | Info             |
@@ -185,7 +185,7 @@ Feature: Applications List Search
     Then User Selects "<OptionText>" From The Textbox "Criminal justice area" Autocomplete By Typing "<SearchText>"
     # Then User Verifies The "Criminal justice area" Textbox Has Selected Value "<ExpectedValue>"
     Then User Verifies "<Info>" Is Visible Under The "Criminal justice area" Textbox
-    When User Submits The Application List Search
+    When User Clicks On The "Search" Button
     Then User Sees Validation Error Banner "<ValidationMessage>"
     Examples:
       | User   | SearchText | ValidationMessage                                  | OptionText | ExpectedValue | Info             |
@@ -214,7 +214,7 @@ Feature: Applications List Search
     Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
     Then User Verifies The "Court" Textbox Has Selected Value "<ExpectedValue>"
     Then User Verifies "<Info>" Is Not Visible Under The "Court" Textbox
-    When User Submits The Application List Search
+    When User Clicks On The "Search" Button
     Then User Does Not See Validation Error Banner "There is a problem Court location not found"
     Examples:
       | User   | SearchText | OptionText                | ExpectedValue                      | Info             |
@@ -226,7 +226,7 @@ Feature: Applications List Search
     When User Signs In With Microsoft SSO As "<User>"
     Then User Selects "<OptionText>" From The Textbox "Court" Autocomplete By Typing "<SearchText>"
     Then User Verifies "<Info>" Is Visible Under The "Court" Textbox
-    When User Submits The Application List Search
+    When User Clicks On The "Search" Button
     Then User Sees Validation Error Banner "<ValidationErrorMessage>"
     Examples:
       | User   | SearchText | ValidationErrorMessage                      | OptionText | ExpectedValue | Info             |
