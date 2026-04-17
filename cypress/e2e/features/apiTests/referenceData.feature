@@ -99,7 +99,7 @@ Feature: API -Reference Data
     @api @referenceData @regression @ARCPOC-412
     Scenario Outline: Verifying Application Code
         Given User Authenticates Via API As "<User>"
-        When User Makes GET API Request To "/application-codes/RE99003?date=2016-01-01"
+        When User Makes GET API Request To "/application-codes/RE99003?date=2025-01-01"
         Then User Verify Response Status Code Should Be "200"
         Then User Verify Response Body Should Have:
             | applicationCode                                           | RE99003                                                             |
@@ -116,6 +116,8 @@ Feature: API -Reference Data
             | feeDescription                                            | Rights of entry warrant                                             |
             | feeAmount.value                                           | 2200                                                                |
             | feeAmount.currency                                        | GBP                                                                 |
+            | offsiteFeeAmount.value                                    | 3000                                                                |
+            | offsiteFeeAmount.currency                                 | GBP                                                                 |
             | startDate                                                 | 2016-01-01                                                          |
         When User Makes GET API Request To "/application-codes/XX99999?date=2016-01-01"
         Then User Verify Response Body Should Have:
