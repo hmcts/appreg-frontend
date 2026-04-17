@@ -124,6 +124,10 @@ export class TableHelper {
     buttonText: string,
     rowData: Record<string, string> = {},
   ): void {
-    TableElement.findButtonInRowOfTable(buttonText, tableCaption, rowData).click();
+    TableElement.findButtonInRowOfTable(
+      buttonText,
+      tableCaption,
+      rowData,
+    ).click();
   }
 }
