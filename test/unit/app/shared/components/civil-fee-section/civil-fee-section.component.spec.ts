@@ -14,7 +14,8 @@ import { FeeStatus } from '@openapi';
 jest.mock('@util/civil-fee-utils', () => ({
   buildCivilFeeHeading: jest.fn(() => 'MOCK_HEADING'),
   feeStatusRowId: jest.fn(
-    (fs: FeeStatus) => `row-${fs.paymentStatus}-${fs.statusDate}`,
+    (fs: FeeStatus, index?: number) =>
+      `row-${fs.paymentStatus}-${fs.statusDate}-${index ?? 'none'}`,
   ),
 }));
 
@@ -303,14 +304,14 @@ describe('CivilFeeSectionComponent', () => {
 
     expect(rows).toEqual([
       {
-        rowId: 'row-paid-2025-10-25',
+        rowId: 'row-paid-2025-10-25-0',
         paymentReference: 'REF1',
         paymentStatus: 'paid',
         statusDateRaw: '2025-10-25',
         isLast: false,
       },
       {
-        rowId: 'row-exempt-2025-01-02',
+        rowId: 'row-exempt-2025-01-02-1',
         paymentReference: '',
         paymentStatus: 'exempt',
         statusDateRaw: '2025-01-02',
