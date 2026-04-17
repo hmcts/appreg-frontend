@@ -2,12 +2,14 @@ import { Then } from '@badeball/cypress-cucumber-preprocessor';
 
 import { AccordionHelper } from '../../../../../support/helper/forms/accordion/accordion/AccordionHelper';
 import { TextboxHelper } from '../../../../../support/helper/forms/textbox/TextboxHelper';
+import { TestDataGenerator } from '../../../../../support/utils/TestDataGenerator';
 
 Then(
   'User Enters {string} Into The Accordion {string} Textbox {string}',
   (text: string, accordionTitle: string, textboxLabel: string) => {
+    const resolvedText = TestDataGenerator.replaceRandomPlaceholders(text);
     AccordionHelper.within(accordionTitle, () =>
-      TextboxHelper.typeInTextbox(textboxLabel, text),
+      TextboxHelper.typeInTextbox(textboxLabel, resolvedText),
     );
   },
 );
