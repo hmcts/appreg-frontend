@@ -1,11 +1,12 @@
 import { When } from '@badeball/cypress-cucumber-preprocessor';
 
 import { AccordionHelper } from '../../../../../support/helper/forms/accordion/accordion/AccordionHelper';
-import { TableElement } from '../../../../../support/pageobjects/generic/table/TableElement';
+import { TableInteraction } from '../../../../../support/helper/table/TableInteraction';
 
 When(
-  'User Checks The Checkbox In Row Of Table In The Accordion {string} With:',
+  'User Checks The Checkbox In Row Of Table {string} In The Accordion {string} With:',
   (
+    tableName: string,
     accordionTitle: string,
     dataTable: { hashes: () => { [key: string]: string }[] },
   ) => {
@@ -13,9 +14,10 @@ When(
     if (rows.length === 0) {
       throw new Error('DataTable must have at least one row of data');
     }
+    const caption = tableName.trim() || undefined;
     rows.forEach((rowData, index) => {
       AccordionHelper.within(accordionTitle, () => {
-        TableElement.verifyCheckboxInTableRows(rowData);
+        TableInteraction.checkCheckboxInTableRow(caption as string, rowData);
       });
       cy.screenshot(`checked-checkbox-in-row-${index + 1}`);
     });
