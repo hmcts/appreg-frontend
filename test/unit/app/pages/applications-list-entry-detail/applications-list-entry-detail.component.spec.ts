@@ -31,6 +31,7 @@ import {
   GetApplicationCodesRequestParams,
   OfficialType,
   PaymentStatus,
+  TemplateConstraintTypeEnum,
   UpdateApplicationListEntryRequestParams,
 } from '@openapi';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
@@ -736,12 +737,18 @@ describe('ApplicationsListEntryDetail', () => {
                 {
                   key: 'Court',
                   value: '',
-                  constraint: { length: 20 },
+                  constraint: {
+                    length: 20,
+                    type: TemplateConstraintTypeEnum.TEXT,
+                  },
                 },
                 {
                   key: 'Date',
                   value: '',
-                  constraint: { length: 10 },
+                  constraint: {
+                    length: 10,
+                    type: TemplateConstraintTypeEnum.TEXT,
+                  },
                 },
               ],
             },
@@ -760,6 +767,18 @@ describe('ApplicationsListEntryDetail', () => {
           updatedRowId: 'Paid|2025-11-01',
           newPaymentReference: 'NEW',
         },
+      });
+    const updatePaymentReferenceSpy = jest
+      .spyOn(civilFeeUtils, 'updatePaymentReferenceInFeeStatusesControl')
+      .mockReturnValue({
+        next: [
+          {
+            paymentStatus: 'Paid',
+            statusDate: '2025-11-01',
+            paymentReference: 'NEW',
+          } as unknown as FeeStatus,
+        ],
+        changed: true,
       });
 
     mockUpdateApplicationListEntry.mockClear();
@@ -786,6 +805,7 @@ describe('ApplicationsListEntryDetail', () => {
         .applicationCode,
     ).toBe('APP-200');
 
+    updatePaymentReferenceSpy.mockRestore();
     readNavStateSpy.mockRestore();
   });
 
@@ -1112,15 +1132,37 @@ describe('ApplicationsListEntryDetail', () => {
       component.getWordingObjectValues({
         template: 'At {{Court}} for {{Date}}',
         'substitution-key-constraints': [
-          { key: 'Court', value: 'Court A', constraint: { length: 20 } },
-          { key: 'Date', value: '2026-04-13', constraint: { length: 10 } },
+          {
+            key: 'Court',
+            value: 'Court A',
+            constraint: {
+              length: 20,
+              type: TemplateConstraintTypeEnum.TEXT,
+            },
+          },
+          {
+            key: 'Date',
+            value: '2026-04-13',
+            constraint: {
+              length: 10,
+              type: TemplateConstraintTypeEnum.DATE,
+            },
+          },
         ],
       }),
     ).toEqual({
       template: 'At {{Court}} for {{Date}}',
       'substitution-key-constraints': [
-        { key: 'Court', value: 'Court B', constraint: { length: 20 } },
-        { key: 'Date', value: '2026-05-01', constraint: { length: 10 } },
+        {
+          key: 'Court',
+          value: 'Court B',
+          constraint: { length: 20, type: TemplateConstraintTypeEnum.TEXT },
+        },
+        {
+          key: 'Date',
+          value: '2026-05-01',
+          constraint: { length: 10, type: TemplateConstraintTypeEnum.DATE },
+        },
       ],
     });
   });
