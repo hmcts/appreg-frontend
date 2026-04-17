@@ -69,7 +69,9 @@
         [wordingObject]="appCodeDetail.wording"
         [wordingObjectValues]="getWordingObjectValues(appCodeDetail.wording)"
         [wordingSubmitAttempt]="wordingSubmitAttempt()"
+        [showAppliedBanner]="wordingAppliedBannerVisible()"
         (wordingFieldsDTO)="onWordingFieldsDTO($event)"
+        (appliedBannerDismissed)="onWordingAppliedBannerDismissed()"
         (wordingFieldErrors)="onChildErrors('wording', $event)"
       />
     } @else {

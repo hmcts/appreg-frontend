@@ -246,6 +246,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   };
 
   wordingSubmitAttempt = signal(0);
+  wordingAppliedBannerVisible = signal(false);
 
   // View constants (from helpers)
   applicantColumns: TableColumn[] = APPLICANT_COLUMNS;
@@ -319,6 +320,11 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.forms.form.patchValue({
       wordingFields: dto.wordingFields,
     });
+    this.wordingAppliedBannerVisible.set(true);
+  }
+
+  onWordingAppliedBannerDismissed(): void {
+    this.wordingAppliedBannerVisible.set(false);
   }
 
   getWordingObjectValues(
@@ -478,6 +484,7 @@ export class ApplicationsListEntryDetail implements OnInit {
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
 
               this.wordingSubmitAttempt.set(0);
+              this.wordingAppliedBannerVisible.set(false);
               this.entryDetail!.wording = undefined;
             }
 
@@ -1016,6 +1023,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       isFeeRequired: this.appListEntryDetailState().isFeeRequired,
       bulkApplicationsAllowed:
         this.appListEntryDetailState().bulkApplicationsAllowed,
+      wordingAppliedBannerVisible: this.wordingAppliedBannerVisible(),
     };
   }
 
@@ -1061,6 +1069,9 @@ export class ApplicationsListEntryDetail implements OnInit {
         state.bulkApplicationsAllowed ??
         this.appListEntryDetailState().bulkApplicationsAllowed,
     });
+    this.wordingAppliedBannerVisible.set(
+      state.wordingAppliedBannerVisible === true,
+    );
 
     this.selectedStandardApplicantCode =
       this.form.controls.standardApplicantCode.value;

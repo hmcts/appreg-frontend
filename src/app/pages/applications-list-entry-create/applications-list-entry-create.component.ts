@@ -159,6 +159,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   };
 
   wordingSubmitAttempt = signal(0);
+  wordingAppliedBannerVisible = signal(false);
 
   respondentEntryTypeOptions = RESPONDENT_TYPE_OPTIONS;
   personTitleOptions = PERSON_TITLE_OPTIONS;
@@ -287,6 +288,11 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.forms.form.patchValue({
       wordingFields: dto.wordingFields,
     });
+    this.wordingAppliedBannerVisible.set(true);
+  }
+
+  onWordingAppliedBannerDismissed(): void {
+    this.wordingAppliedBannerVisible.set(false);
   }
 
   getWordingObjectValues(
@@ -448,6 +454,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
               this.wordingSubmitAttempt.set(0);
               this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
+              this.wordingAppliedBannerVisible.set(false);
 
               if (hadSubmitAttempt) {
                 this.onChildErrors('wording', []);
@@ -566,6 +573,7 @@ export class ApplicationsListEntryCreate implements OnInit {
       appCodeDetail: this.appListEntryCreateState().appCodeDetail,
       feeMeta: this.feeMeta,
       isFeeRequired: this.appListEntryCreateState().isFeeRequired,
+      wordingAppliedBannerVisible: this.wordingAppliedBannerVisible(),
     };
   }
 
@@ -614,6 +622,9 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.appListEntryCreatePatch({
       isFeeRequired: draft.isFeeRequired === true,
     });
+    this.wordingAppliedBannerVisible.set(
+      draft.wordingAppliedBannerVisible === true,
+    );
 
     const type = this.form.controls.applicantType.value ?? 'person';
     this.formSvc.syncApplicantTypeState(this.forms, type);

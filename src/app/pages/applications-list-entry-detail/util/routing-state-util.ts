@@ -40,6 +40,7 @@ export type EntryDetailSnapshot = {
   feeMeta?: CivilFeeMeta | null;
   isFeeRequired?: boolean;
   bulkApplicationsAllowed?: boolean;
+  wordingAppliedBannerVisible?: boolean;
 };
 
 export type EntryDetailNavState = {
