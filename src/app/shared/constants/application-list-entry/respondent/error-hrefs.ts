@@ -3,6 +3,7 @@ export const RESPONDENT_PERSON_ERROR_HREFS = {
   firstName: '#respondent-person-first-name',
   middleNames: '#respondent-person-middle-names',
   surname: '#respondent-person-surname',
+  dob: '#respondent-person-dob',
   addressLine1: '#respondent-person-address-line-1',
   addressLine2: '#respondent-person-address-line-2',
   addressLine3: '#respondent-person-address-line-3',

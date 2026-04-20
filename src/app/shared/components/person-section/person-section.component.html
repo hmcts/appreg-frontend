@@ -53,7 +53,10 @@
           formControlName="dob"
           label="Date of birth"
           hint=""
-          idPrefix="dob"
+          [idPrefix]="scopeId() + '-person-dob'"
+          [submitted]="submitted()"
+          [isSearch]="true"
+          [disallowFutureDates]="true"
           containerWidth="govuk-grid-column-one-third"
         />
       </div>

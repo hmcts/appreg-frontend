@@ -8,6 +8,10 @@ export function controlHasAnyValue(
     return false;
   }
 
+  if (control.dirty) {
+    return true;
+  }
+
   const hasAnyValue = (value: unknown): boolean => {
     if (value === null || value === undefined) {
       return false;

@@ -1,3 +1,4 @@
+import { APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { ApplicationNotesForm } from '@components/notes-section/notes-section.component';
 
 type NotesControlName = keyof ApplicationNotesForm['controls'];
@@ -80,6 +81,10 @@ export const PERSON_FIELD_MESSAGES = {
     required: 'Enter a last name',
     maxlength: 'Last name must be less than or equal to 60 characters',
     pattern: 'Last name contains invalid characters',
+  },
+  dob: {
+    ...APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES.date,
+    dateInFuture: 'Date must not be in the future',
   },
   ...person_org_shared_messages,
 } as const;

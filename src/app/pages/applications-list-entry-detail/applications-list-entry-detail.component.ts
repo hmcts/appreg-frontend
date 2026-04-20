@@ -721,7 +721,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     if (this.runFullSubmitValidation()) {
       return;
     }
-
+    console.log(this.buildEntryUpdateDto());
     this.submitEntryUpdate(
       this.buildEntryUpdateDto(),
       ENTRY_SUCCESS_MESSAGES.listUpdated,
