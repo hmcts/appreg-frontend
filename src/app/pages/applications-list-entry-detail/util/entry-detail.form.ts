@@ -28,6 +28,7 @@ import {
   Organisation,
   Person,
   Respondent,
+  RespondentPerson,
   TemplateSubstitution,
 } from '@openapi';
 import {
@@ -401,7 +402,7 @@ export function buildOrganisationApplicantFromRaw(
 }
 
 export function personToFormPatch(
-  person: Person | null | undefined,
+  person: Person | RespondentPerson | null | undefined,
 ): Record<string, unknown> {
   if (!person) {
     return {};
@@ -428,6 +429,15 @@ export function personToFormPatch(
     middleNames,
     surname: name?.surname ?? '',
     ...contactDetailsToFormPatch(contactDetails),
+  };
+}
+
+export function respondentPersonToFormPatch(
+  person: RespondentPerson | null | undefined,
+): Record<string, unknown> {
+  return {
+    ...personToFormPatch(person),
+    dob: person?.dateOfBirth ?? null,
   };
 }
 

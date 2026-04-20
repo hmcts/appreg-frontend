@@ -11,6 +11,7 @@ import {
   officialsToFormPatch,
   organisationToFormPatch,
   personToFormPatch,
+  respondentPersonToFormPatch,
 } from '@components/applications-list-entry-detail/util/entry-detail.form';
 import { CivilFeeForm } from '@components/civil-fee-section/civil-fee-section.component';
 import {
@@ -321,9 +322,12 @@ export class ApplicationListEntryFormService {
 
     if (r?.person) {
       forms.respondentPersonForm.reset(undefined, { emitEvent });
-      forms.respondentPersonForm.patchValue(personToFormPatch(r.person), {
-        emitEvent,
-      });
+      forms.respondentPersonForm.patchValue(
+        respondentPersonToFormPatch(r.person),
+        {
+          emitEvent,
+        },
+      );
     } else if (r?.organisation) {
       forms.respondentOrganisationForm.reset(undefined, { emitEvent });
       forms.respondentOrganisationForm.patchValue(

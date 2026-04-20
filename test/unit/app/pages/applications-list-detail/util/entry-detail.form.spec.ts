@@ -9,6 +9,7 @@ import {
   buildPersonOrgSharedControls,
   buildStandardApplicationForm,
   getRespondentEntryType,
+  respondentPersonToFormPatch,
 } from '@components/applications-list-entry-detail/util/entry-detail.form';
 import type {
   EntryGetDetailDto,
@@ -386,6 +387,27 @@ describe('applications-list entry form builders', () => {
         { key: 'Court', value: 'Court A' },
         { key: 'Date', value: '2026-04-13' },
       ]);
+    });
+  });
+
+  describe('respondentPersonToFormPatch', () => {
+    it('maps respondent person dateOfBirth into respondent dob field', () => {
+      const patch = respondentPersonToFormPatch({
+        name: {
+          firstForename: 'Jane',
+          surname: 'Doe',
+        },
+        dateOfBirth: '1990-02-03',
+        contactDetails: {
+          addressLine1: '1 Street',
+        },
+      } as never);
+
+      expect(patch).toMatchObject({
+        firstName: 'Jane',
+        surname: 'Doe',
+        dob: '1990-02-03',
+      });
     });
   });
 
