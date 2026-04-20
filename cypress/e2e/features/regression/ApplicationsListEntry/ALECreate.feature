@@ -41,8 +41,8 @@ Feature: Applications List Entry Create
     # Application Codes
     Then User Enters "<ApplicationCode>" Into The Textbox "Application code" In The Accordion "Codes"
     When User Clicks On The "Search" Button In The Accordion "Codes"
-    Then User Verifies Table "Codes" In The Accordion "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required"
-    Then User Clicks "Add code" Button In Row Of Table "Codes" Within The Accordion "Codes"
+    Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Codes"
+    Then User Clicks "Add code" Button In Row Of Table "Codes" In The Accordion "Codes"
       | Code              | Title              | Bulk | Fee req |
       | <ApplicationCode> | <ApplicationTitle> | No   | CO8.1   |
     Then User Verifies The "Application Title" Textbox Has Value "<ApplicationTitle>"
@@ -84,8 +84,8 @@ Feature: Applications List Entry Create
     Then User Enters "<SearchDate>" Into The Date Field "Status date" In The Accordion "Civil fee"
     Then User Enters "<PaymentReferenceUndertaken>" Into The Textbox "Payment reference" In The Accordion "Civil fee"
     When User Clicks On The "Add fee details" Button In The Accordion "Civil fee"
-    Then User Verifies Table "Current fee statuses table" In The Accordion "Civil fee" Has Sortable Headers "Fee Status, Status Date, Payment Ref"
-    Then User Clicks "Change" Link In Row Of Table "Current fee statuses table" Within The Accordion "Civil fee"
+    Then User Verifies Table "Current fee statuses table" Has Sortable Headers "Fee Status, Status Date, Payment Ref" In The Accordion "Civil fee"
+    Then User Clicks "Change" Link In Row Of Table "Current fee statuses table" In The Accordion "Civil fee"
       | Fee Status | Status Date  | Payment Ref                  |
       | UNDERTAKEN | todaydisplay | <PaymentReferenceUndertaken> |
     Then User Sees Page Heading "Change payment reference"
@@ -164,8 +164,8 @@ Feature: Applications List Entry Create
     # Application Codes
     Then User Enters "<ApplicationCode>" Into The Textbox "Application code" In The Accordion "Codes"
     When User Clicks On The "Search" Button In The Accordion "Codes"
-    Then User Verifies Table "Codes" In The Accordion "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required"
-    Then User Clicks "Add code" Button In Row Of Table "Codes" Within The Accordion "Codes"
+    Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Codes"
+    Then User Clicks "Add code" Button In Row Of Table "Codes" In The Accordion "Codes"
       | Code              | Title              | Bulk | Fee req |
       | <ApplicationCode> | <ApplicationTitle> | No   | CO8.1   |
     Then User Verifies The "Application Title" Textbox Has Value "<ApplicationTitle>"
@@ -240,8 +240,8 @@ Feature: Applications List Entry Create
     # Application Codes
     Then User Enters "<ApplicationCode>" Into The Textbox "Application code" In The Accordion "Codes"
     When User Clicks On The "Search" Button In The Accordion "Codes"
-    Then User Verifies Table "Codes" In The Accordion "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required"
-    Then User Clicks "Add code" Button In Row Of Table "Codes" Within The Accordion "Codes"
+    Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Codes"
+    Then User Clicks "Add code" Button In Row Of Table "Codes" In The Accordion "Codes"
       | Code              | Title              | Bulk | Fee req |
       | <ApplicationCode> | <ApplicationTitle> | No   | CO3.1   |
     Then User Verifies The "Application Title" Textbox Has Value "<ApplicationTitle>"

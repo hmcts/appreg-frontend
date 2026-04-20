@@ -83,8 +83,8 @@ Feature: Applications List Entry Create
         Then User Sees Information Alert "No application codes found Try different filters, or retry the search."
         Then User Enters "<ValidApplicationCode>" Into The Textbox "Application code" In The Accordion "Codes"
         When User Clicks On The "Search" Button In The Accordion "Codes"
-        Then User Verifies Table "Codes" In The Accordion "Codes" Has Sortable Headers "Code, Title, Bulk, Fee req"
-        Then User Clicks "Add code" Button In Row Of Table "Codes" Within The Accordion "Codes"
+        Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee req" In The Accordion "Codes"
+        Then User Clicks "Add code" Button In Row Of Table "Codes" In The Accordion "Codes"
             | Code              | Title              | Bulk | Fee req |
             | <ApplicationCode> | <ApplicationTitle> | No   | CO8.1   |
         Then User Verifies The "Application Title" Textbox Has Value "<ApplicationTitle>"
@@ -220,8 +220,8 @@ Feature: Applications List Entry Create
         # Application Codes
         Then User Enters "<ApplicationCode>" Into The Textbox "Application code" In The Accordion "Codes"
         When User Clicks On The "Search" Button In The Accordion "Codes"
-        Then User Verifies Table "Codes" In The Accordion "Codes" Has Sortable Headers "Code, Title, Bulk, Fee req"
-        Then User Clicks "Add code" Button In Row Of Table "Codes" Within The Accordion "Codes"
+        Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee req" In The Accordion "Codes"
+        Then User Clicks "Add code" Button In Row Of Table "Codes" In The Accordion "Codes"
             | Code              | Title              | Bulk | Fee req |
             | <ApplicationCode> | <ApplicationTitle> | No   | CO8.1   |
         Then User Verifies The "Application Title" Textbox Has Value "<ApplicationTitle>"
