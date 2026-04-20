@@ -247,24 +247,7 @@ export function buildPersonForm(
   fb: NonNullableFormBuilder,
   isRespondent?: boolean,
 ): PersonForm | RespondentPersonForm {
-  if (isRespondent) {
-    return fb.group({
-      title: fb.control<string | null>(null),
-      firstName: fb.control<string>('', {
-        validators: [REQUIRED, MAX_60, Validators.pattern(NAME_REGEX)],
-      }),
-      middleNames: fb.control<string>('', {
-        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
-      }),
-      surname: fb.control<string | null>(null, {
-        validators: [REQUIRED, MAX_60, Validators.pattern(NAME_REGEX)],
-      }),
-      dob: fb.control<string | null>(null),
-      ...buildPersonOrgSharedControls(fb),
-    }) as RespondentPersonForm;
-  }
-
-  return fb.group({
+  const commonFormGroup = {
     title: fb.control<string | null>(null),
     firstName: fb.control<string>('', {
       validators: [REQUIRED, MAX_60, Validators.pattern(NAME_REGEX)],
@@ -276,6 +259,17 @@ export function buildPersonForm(
       validators: [REQUIRED, MAX_60, Validators.pattern(NAME_REGEX)],
     }),
     ...buildPersonOrgSharedControls(fb),
+  };
+
+  if (isRespondent) {
+    return fb.group({
+      dob: fb.control<string | null>(null),
+      ...commonFormGroup,
+    }) as RespondentPersonForm;
+  }
+
+  return fb.group({
+    ...commonFormGroup,
   }) as PersonForm;
 }
 
