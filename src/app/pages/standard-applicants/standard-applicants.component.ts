@@ -27,6 +27,7 @@ import {
   mapSaToRow,
   standardAppColumns,
 } from '@components/standard-applicant-select/util/standard-applicant-select-row-helpers';
+import { STANDARD_APPLICANT_SEARCH_ERROR_MESSAGES } from '@components/standard-applicant-select/util/error-messages';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import {
   GetStandardApplicantsRequestParams,
@@ -39,15 +40,6 @@ import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { toStandardApplicantSortKey } from '@util/standard-applicant-sort-map';
 import { StandardApplicantRow } from '@util/types/applications-list-entry/types';
-
-const STANDARD_APPLICANTS_ERRORS = {
-  code: {
-    maxlength: 'Code must be 10 characters or fewer',
-  },
-  name: {
-    maxlength: 'Standard applicant name must be 100 characters or fewer',
-  },
-} as const;
 
 type StandardApplicantsState = {
   hasSearched: boolean;
@@ -99,7 +91,8 @@ export class StandardApplicants implements OnInit {
   private readonly loadRequest =
     signal<GetStandardApplicantsRequestParams | null>(null);
   readonly submitted = signal(false);
-  private readonly errorMap: ErrorMessageMap = STANDARD_APPLICANTS_ERRORS;
+  private readonly errorMap: ErrorMessageMap =
+    STANDARD_APPLICANT_SEARCH_ERROR_MESSAGES;
   onCreateErrorClick = onCreateErrorClickFn;
 
   form = new FormGroup({

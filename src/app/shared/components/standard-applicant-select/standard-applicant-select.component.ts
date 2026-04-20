@@ -25,6 +25,7 @@ import {
   mapSaToRow,
   standardAppColumns,
 } from './util/standard-applicant-select-row-helpers';
+import { STANDARD_APPLICANT_SEARCH_ERROR_MESSAGES } from './util/error-messages';
 import {
   StandardApplicantSelectPagingState,
   initialStandardApplicantSelectPagingState,
@@ -42,15 +43,6 @@ import { ErrorMessageMap, buildFormErrorSummary } from '@util/error-summary';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { toStandardApplicantSortKey } from '@util/standard-applicant-sort-map';
 import { StandardApplicantRow } from '@util/types/applications-list-entry/types';
-
-const STANDARD_APPLICANT_SELECT_ERRORS = {
-  code: {
-    maxlength: 'Code must be 10 characters or fewer',
-  },
-  name: {
-    maxlength: 'Standard applicant name must be 100 characters or fewer',
-  },
-} as const;
 
 export type SelectedStandardApplicantSummary = {
   code: string;
@@ -99,7 +91,8 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
     sort: string[];
   } | null>(null);
   readonly submitted = signal(false);
-  private readonly errorMap: ErrorMessageMap = STANDARD_APPLICANT_SELECT_ERRORS;
+  private readonly errorMap: ErrorMessageMap =
+    STANDARD_APPLICANT_SEARCH_ERROR_MESSAGES;
 
   form = new FormGroup({
     code: new FormControl<string>('', {
