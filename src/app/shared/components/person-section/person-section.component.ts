@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
+import { DateInputComponent } from '@components/date-input/date-input.component';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
@@ -15,11 +16,13 @@ import { buildErrorTextByDomId, errorTextForDomId } from '@util/error-items';
     ReactiveFormsModule,
     SelectInputComponent,
     TextInputComponent,
+    DateInputComponent,
   ],
   templateUrl: './person-section.component.html',
 })
 export class PersonSectionComponent {
   titleOptions = input.required<{ value: string; label: string }[]>();
+  isRespondent = input<boolean>(false); // Adds DoB field
   readonly group = input.required<FormGroup>();
   readonly scopeId = input.required<string>();
 

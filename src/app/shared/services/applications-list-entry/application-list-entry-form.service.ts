@@ -26,6 +26,8 @@ import {
   ApplicationListEntryForms,
   ApplicationsListEntryForm,
   ApplicationsListEntryFormValue,
+  PersonForm,
+  RespondentPersonForm,
 } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import {
   createEmptyOrganisation,
@@ -56,9 +58,12 @@ export class ApplicationListEntryFormService {
   createForms(): ApplicationListEntryForms {
     return {
       form: buildStandardApplicationForm(this.fb),
-      personForm: buildPersonForm(this.fb),
+      personForm: buildPersonForm(this.fb) as PersonForm,
       organisationForm: buildOrganisationForm(this.fb),
-      respondentPersonForm: buildPersonForm(this.fb),
+      respondentPersonForm: buildPersonForm(
+        this.fb,
+        true,
+      ) as RespondentPersonForm,
       respondentOrganisationForm: buildOrganisationForm(this.fb),
     };
   }

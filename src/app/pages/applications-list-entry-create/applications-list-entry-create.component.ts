@@ -247,6 +247,8 @@ export class ApplicationsListEntryCreate implements OnInit {
       this.form.value.standardApplicantCode,
     );
 
+    console.log(entryCreateDto);
+
     this.appListEntryCreatePatch({ submitted: true });
     this.appEntryApi
       .createApplicationListEntry({

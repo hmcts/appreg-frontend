@@ -40,6 +40,8 @@ import {
   PersonFormValue,
   PersonOrgSharedControls,
   RespondentEntryType,
+  RespondentPersonForm,
+  RespondentPersonFormValue,
 } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import {
   mapOptionValueToTitle,
@@ -240,7 +242,27 @@ export function buildPersonOrgSharedControls(
   };
 }
 
-export function buildPersonForm(fb: NonNullableFormBuilder): PersonForm {
+export function buildPersonForm(
+  fb: NonNullableFormBuilder,
+  isRespondent?: boolean,
+): PersonForm | RespondentPersonForm {
+  if (isRespondent) {
+    return fb.group({
+      title: fb.control<string | null>(null),
+      firstName: fb.control<string>('', {
+        validators: [REQUIRED, MAX_60, Validators.pattern(NAME_REGEX)],
+      }),
+      middleNames: fb.control<string>('', {
+        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      }),
+      surname: fb.control<string | null>(null, {
+        validators: [REQUIRED, MAX_60, Validators.pattern(NAME_REGEX)],
+      }),
+      dob: fb.control<string | null>(null),
+      ...buildPersonOrgSharedControls(fb),
+    }) as RespondentPersonForm;
+  }
+
   return fb.group({
     title: fb.control<string | null>(null),
     firstName: fb.control<string>('', {
@@ -275,7 +297,7 @@ export function buildEntryUpdateDtoFromForm(
   formValue: ApplicationsListEntryFormValue,
   applicantPersonValue: PersonFormValue,
   applicantOrgValue: OrganisationFormValue,
-  respondentPersonValue: PersonFormValue,
+  respondentPersonValue: RespondentPersonFormValue,
   respondentOrgValue: OrganisationFormValue,
 ): EntryUpdateDto {
   // Full snapshot of current server state
