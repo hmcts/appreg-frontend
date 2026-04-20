@@ -41,12 +41,17 @@ export class ApplicantSectionComponent {
   readonly updateButtonText = input('Update applicant');
 
   readonly standardApplicantCodeChange = output<string | null>();
+  readonly applicantErrorsChange = output<ErrorItem[]>();
   readonly updateClicked = output<void>();
 
   readonly entryTypeOptions = computed(() => this.applicantEntryTypeOptions);
 
   onStandardChanged(code: string | null): void {
     this.standardApplicantCodeChange.emit(code);
+  }
+
+  onStandardApplicantErrorsChanged(errors: ErrorItem[]): void {
+    this.applicantErrorsChange.emit(errors ?? []);
   }
 
   onUpdateClicked(): void {

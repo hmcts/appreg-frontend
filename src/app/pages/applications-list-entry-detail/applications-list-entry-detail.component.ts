@@ -551,6 +551,10 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
+    if (this.applicantType === 'standard') {
+      return;
+    }
+
     this.childErrors.applicant = [];
   }
 

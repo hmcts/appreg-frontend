@@ -36,6 +36,7 @@ class MockOrganisationSectionComponent {
 class MockStandardApplicantSelectComponent {
   readonly selectedCode = input<string | null>(null);
   readonly selectedCodeChange = output<string | null>();
+  readonly searchErrorsChange = output<unknown[]>();
 }
 
 describe('ApplicantSectionComponent', () => {
@@ -162,6 +163,16 @@ describe('ApplicantSectionComponent', () => {
 
     component.onStandardChanged('ABC123');
     expect(spy).toHaveBeenCalledWith('ABC123');
+  });
+
+  it('emits applicantErrorsChange when standard applicant errors are relayed', () => {
+    const spy = jest.fn();
+    const errors = [{ id: 'code', text: 'Bad code', href: '#code' }];
+
+    component.applicantErrorsChange.subscribe(spy);
+
+    component.onStandardApplicantErrorsChanged(errors);
+    expect(spy).toHaveBeenCalledWith(errors);
   });
 
   it('disables update button when isUpdateDisabled is true', () => {

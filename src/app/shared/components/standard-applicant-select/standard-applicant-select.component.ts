@@ -14,7 +14,12 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 
 import {
   mapSaToRow,
@@ -25,6 +30,9 @@ import {
   initialStandardApplicantSelectPagingState,
 } from './util/standard-applicant-select.state';
 
+import {
+  ErrorItem,
+} from '@components/error-summary/error-summary.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import {
   SortableTableComponent,
@@ -32,9 +40,19 @@ import {
 } from '@components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { StandardApplicantsApi } from '@openapi';
+import { buildFormErrorSummary, ErrorMessageMap } from '@util/error-summary';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { toStandardApplicantSortKey } from '@util/standard-applicant-sort-map';
 import { StandardApplicantRow } from '@util/types/applications-list-entry/types';
+
+const STANDARD_APPLICANT_SELECT_ERRORS = {
+  code: {
+    maxlength: 'Code must be 10 characters or fewer',
+  },
+  name: {
+    maxlength: 'Standard applicant name must be 100 characters or fewer',
+  },
+} as const;
 
 @Component({
   selector: 'app-standard-applicant-select',
@@ -54,6 +72,7 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
 
   selectedCode = input<string | null>(null);
   readonly selectedCodeChange = output<string | null>();
+  readonly searchErrorsChange = output<ErrorItem[]>();
 
   rows: StandardApplicantRow[] = [];
 
@@ -74,10 +93,18 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
     pageSize: number;
     sort: string[];
   } | null>(null);
+  readonly submitted = signal(false);
+  private readonly errorMap: ErrorMessageMap = STANDARD_APPLICANT_SELECT_ERRORS;
 
   form = new FormGroup({
-    code: new FormControl<string>('', { nonNullable: true }),
-    name: new FormControl<string>('', { nonNullable: true }),
+    code: new FormControl<string>('', {
+      nonNullable: true,
+      validators: [Validators.maxLength(10)],
+    }),
+    name: new FormControl<string>('', {
+      nonNullable: true,
+      validators: [Validators.maxLength(100)],
+    }),
   });
 
   // Selection for the table
@@ -124,8 +151,24 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
 
   onSubmit(event: SubmitEvent): void {
     event.preventDefault();
+    this.submitted.set(true);
+    this.form.markAllAsTouched();
+    this.form.updateValueAndValidity({ emitEvent: false });
+
+    const validationErrors = this.buildErrorSummary();
+    this.saSignalState.patch({ searchErrors: validationErrors });
+    this.searchErrorsChange.emit(validationErrors);
+
+    if (validationErrors.length) {
+      return;
+    }
+
     this.saSignalState.patch({ hasSearched: true });
     this.loadPage(0);
+  }
+
+  fieldError(id: string): ErrorItem | undefined {
+    return this.vm().searchErrors.find((e) => e.id === id);
   }
 
   private setupEffects(): void {
@@ -143,7 +186,9 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
           this.saSignalState.patch({
             totalPages: page.totalPages,
             loading: false,
+            searchErrors: [],
           });
+          this.searchErrorsChange.emit([]);
 
           // Keep selection consistent when page changes
           this.syncSelectedIdsFromCode();
@@ -152,12 +197,26 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
         },
         onError: () => {
           this.rows = [];
-          this.saSignalState.patch({ totalPages: 0, loading: false });
+          this.saSignalState.patch({
+            totalPages: 0,
+            loading: false,
+            searchErrors: [],
+          });
+          this.searchErrorsChange.emit([]);
           this.loadRequest.set(null);
         },
       },
       this.envInjector,
     );
+  }
+
+  private buildErrorSummary(): ErrorItem[] {
+    return buildFormErrorSummary(this.form, this.errorMap, {
+      hrefs: {
+        code: '#standard-applicant-code',
+        name: '#standard-applicant-name',
+      },
+    });
   }
 
   private loadPage(page: number): void {

@@ -256,6 +256,34 @@ describe('ApplicationsListEntryDetail', () => {
     ]);
   });
 
+  it('includes relayed standard applicant search errors in the parent summary', () => {
+    component['form'].patchValue({ applicantType: 'standard' });
+
+    component.onChildErrors('applicant', [
+      {
+        id: 'standard-applicant-code',
+        text: 'Code must be 10 characters or fewer',
+        href: '#standard-applicant-code',
+      },
+    ]);
+
+    expect(component.applicantErrorItems).toEqual([
+      {
+        id: 'standard-applicant-code',
+        text: 'Code must be 10 characters or fewer',
+        href: '#standard-applicant-code',
+      },
+    ]);
+    expect(component['appListEntryDetailState']().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'standard-applicant-code',
+          text: 'Code must be 10 characters or fewer',
+        }),
+      ]),
+    );
+  });
+
   it('isUpdateDisabled true when entryDetail is not set', () => {
     component['entryDetail'] = null;
 

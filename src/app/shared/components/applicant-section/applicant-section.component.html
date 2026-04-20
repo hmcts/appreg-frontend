@@ -34,6 +34,7 @@
       <app-standard-applicant-select
         [selectedCode]="selectedStandardApplicantCode()"
         (selectedCodeChange)="onStandardChanged($event)"
+        (searchErrorsChange)="onStandardApplicantErrorsChanged($event)"
       />
     }
   }

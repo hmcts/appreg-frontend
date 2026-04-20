@@ -36,6 +36,7 @@
         form.controls.standardApplicantCode.value
       "
       (standardApplicantCodeChange)="onStandardApplicantCodeChanged($event)"
+      (applicantErrorsChange)="onChildErrors('applicant', $event)"
       [showUpdateButton]="false"
     />
   </ng-template>
