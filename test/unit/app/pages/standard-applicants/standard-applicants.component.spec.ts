@@ -180,6 +180,46 @@ describe('StandardApplicantsComponent', () => {
     );
   });
 
+  it('does not sort when filters are invalid', async () => {
+    component.form.patchValue({
+      name: 'x'.repeat(101),
+    });
+    apiStub.getStandardApplicants.mockClear();
+
+    component.onSortChange({ key: 'useFrom', direction: 'desc' });
+    await flushSignalEffects(fixture);
+
+    expect(apiStub.getStandardApplicants).not.toHaveBeenCalled();
+    expect(component.vm().sortField).toEqual({ key: 'code', direction: 'asc' });
+    expect(component.vm().searchErrors).toEqual([
+      {
+        id: 'name',
+        text: 'Standard applicant name must be 100 characters or fewer',
+        href: '#name',
+      },
+    ]);
+  });
+
+  it('does not paginate when filters are invalid', async () => {
+    component.form.patchValue({
+      code: '12345678901',
+    });
+    apiStub.getStandardApplicants.mockClear();
+
+    component.onPageChange(3);
+    await flushSignalEffects(fixture);
+
+    expect(apiStub.getStandardApplicants).not.toHaveBeenCalled();
+    expect(component.vm().currentPage).toBe(0);
+    expect(component.vm().searchErrors).toEqual([
+      {
+        id: 'code',
+        text: 'Code must be 10 characters or fewer',
+        href: '#code',
+      },
+    ]);
+  });
+
   it('updates rows and total pages on successful response', async () => {
     apiStub.getStandardApplicants.mockReturnValueOnce(
       of({

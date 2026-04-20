@@ -258,6 +258,11 @@ describe('ApplicationsListEntryDetail', () => {
 
   it('includes relayed standard applicant search errors in the parent summary', () => {
     component['form'].patchValue({ applicantType: 'standard' });
+    (
+      component as unknown as {
+        appListEntryDetailPatch: (patch: Record<string, unknown>) => void;
+      }
+    ).appListEntryDetailPatch({ formSubmitted: true });
 
     component.onChildErrors('applicant', [
       {

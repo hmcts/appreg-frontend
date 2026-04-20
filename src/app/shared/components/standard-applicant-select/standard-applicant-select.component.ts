@@ -30,9 +30,7 @@ import {
   initialStandardApplicantSelectPagingState,
 } from './util/standard-applicant-select.state';
 
-import {
-  ErrorItem,
-} from '@components/error-summary/error-summary.component';
+import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import {
   SortableTableComponent,
@@ -40,7 +38,7 @@ import {
 } from '@components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { StandardApplicantsApi } from '@openapi';
-import { buildFormErrorSummary, ErrorMessageMap } from '@util/error-summary';
+import { ErrorMessageMap, buildFormErrorSummary } from '@util/error-summary';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { toStandardApplicantSortKey } from '@util/standard-applicant-sort-map';
 import { StandardApplicantRow } from '@util/types/applications-list-entry/types';
@@ -53,6 +51,11 @@ const STANDARD_APPLICANT_SELECT_ERRORS = {
     maxlength: 'Standard applicant name must be 100 characters or fewer',
   },
 } as const;
+
+export type SelectedStandardApplicantSummary = {
+  code: string;
+  name: string;
+};
 
 @Component({
   selector: 'app-standard-applicant-select',
@@ -72,6 +75,8 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
 
   selectedCode = input<string | null>(null);
   readonly selectedCodeChange = output<string | null>();
+  readonly selectedApplicantSummaryChange =
+    output<SelectedStandardApplicantSummary | null>();
   readonly searchErrorsChange = output<ErrorItem[]>();
 
   rows: StandardApplicantRow[] = [];
@@ -128,14 +133,30 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
 
     const first = ids.values().next().value;
     const code = first ?? null;
+    const selectedRow =
+      code === null
+        ? null
+        : (this.rows.find((row) => row.code === code) ?? null);
 
     if (code !== this.selectedCode()) {
       this.selectedCodeChange.emit(code);
     }
+
+    this.selectedApplicantSummaryChange.emit(
+      selectedRow
+        ? {
+            code: selectedRow.code ?? '',
+            name: selectedRow.name ?? '',
+          }
+        : null,
+    );
   }
 
   onPageChange(page: number): void {
     if (!this.saState().hasSearched) {
+      return;
+    }
+    if (!this.canLoadPage()) {
       return;
     }
     this.loadPage(page);
@@ -143,6 +164,9 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
 
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
     if (!this.saState().hasSearched) {
+      return;
+    }
+    if (!this.canLoadPage()) {
       return;
     }
     this.saSignalState.patch({ sortField: sort });
@@ -169,6 +193,16 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
 
   fieldError(id: string): ErrorItem | undefined {
     return this.vm().searchErrors.find((e) => e.id === id);
+  }
+
+  private canLoadPage(): boolean {
+    this.form.updateValueAndValidity({ emitEvent: false });
+
+    const validationErrors = this.buildErrorSummary();
+    this.saSignalState.patch({ searchErrors: validationErrors });
+    this.searchErrorsChange.emit(validationErrors);
+
+    return validationErrors.length === 0;
   }
 
   private setupEffects(): void {

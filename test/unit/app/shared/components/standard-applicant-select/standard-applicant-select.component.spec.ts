@@ -309,6 +309,52 @@ describe('StandardApplicantSelectComponent', () => {
     );
   }));
 
+  it('does not sort when filters are invalid', fakeAsync(() => {
+    fixture.detectChanges();
+    TestBed.tick();
+
+    mockGetStandardApplicants.mockClear();
+    component.form.patchValue({
+      name: 'x'.repeat(101),
+    });
+
+    component.onSortChange({ key: 'useTo', direction: 'desc' });
+    fixture.detectChanges();
+
+    expect(mockGetStandardApplicants).not.toHaveBeenCalled();
+    expect(component.vm().sortField).toEqual({ key: 'code', direction: 'asc' });
+    expect(component.vm().searchErrors).toEqual([
+      {
+        id: 'name',
+        text: 'Standard applicant name must be 100 characters or fewer',
+        href: '#standard-applicant-name',
+      },
+    ]);
+  }));
+
+  it('does not paginate when filters are invalid', fakeAsync(() => {
+    fixture.detectChanges();
+    TestBed.tick();
+
+    mockGetStandardApplicants.mockClear();
+    component.form.patchValue({
+      code: '12345678901',
+    });
+
+    component.onPageChange(1);
+    fixture.detectChanges();
+
+    expect(mockGetStandardApplicants).not.toHaveBeenCalled();
+    expect(component.vm().pageIndex).toBe(0);
+    expect(component.vm().searchErrors).toEqual([
+      {
+        id: 'code',
+        text: 'Code must be 10 characters or fewer',
+        href: '#standard-applicant-code',
+      },
+    ]);
+  }));
+
   it('shows validation errors and prevents submit when filters exceed max lengths', fakeAsync(() => {
     fixture.detectChanges();
     TestBed.tick();

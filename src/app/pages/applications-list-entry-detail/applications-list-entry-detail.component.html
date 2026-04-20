@@ -43,7 +43,12 @@
       [submitted]="vm().formSubmitted"
       [errorItems]="applicantErrorItems"
       [selectedStandardApplicantCode]="selectedStandardApplicantCode"
+      [savedStandardApplicantCode]="savedStandardApplicantCode"
+      [savedStandardApplicantName]="savedStandardApplicantName"
       (standardApplicantCodeChange)="onStandardApplicantCodeChanged($event)"
+      (standardApplicantSummaryChange)="
+        onSelectedStandardApplicantSummaryChanged($event)
+      "
       (applicantErrorsChange)="onChildErrors('applicant', $event)"
       [isUpdateDisabled]="isUpdateDisabled"
       (updateClicked)="onUpdateApplicant()"

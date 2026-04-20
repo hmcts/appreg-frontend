@@ -144,11 +144,19 @@ export class StandardApplicants implements OnInit {
   }
 
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    if (!this.canSearch()) {
+      return;
+    }
+
     this.signalState.patch({ sortField: sort });
     this.loadStandardApplicants(0);
   }
 
   onPageChange(page: number): void {
+    if (!this.canSearch()) {
+      return;
+    }
+
     this.loadStandardApplicants(page);
   }
 
@@ -185,6 +193,15 @@ export class StandardApplicants implements OnInit {
 
   private buildErrorSummary(): ErrorItem[] {
     return buildFormErrorSummary(this.form, this.errorMap);
+  }
+
+  private canSearch(): boolean {
+    this.form.updateValueAndValidity({ emitEvent: false });
+
+    const validationErrors = this.buildErrorSummary();
+    this.signalState.patch({ searchErrors: validationErrors });
+
+    return validationErrors.length === 0;
   }
 
   private loadStandardApplicants(page: number): void {
