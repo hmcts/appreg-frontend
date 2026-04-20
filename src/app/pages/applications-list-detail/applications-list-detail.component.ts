@@ -598,10 +598,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
     const entriesToMove = selected.map((r) => ({
       id: r.id,
-      sequenceNumber: r.sequenceNumber,
       applicant: r.applicant,
       respondent: r.respondent,
       title: r.title,
+      feeRequired: r.feeReq,
+      resulted: r.resulted,
     }));
 
     void this.router.navigate(['move'], {

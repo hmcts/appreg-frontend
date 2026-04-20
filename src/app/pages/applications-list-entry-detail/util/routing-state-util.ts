@@ -20,10 +20,18 @@ export type ApplicantContext = {
   title: string;
 };
 
-export type ApplicationEntriesResultContext = {
+export type ApplicationEntriesBaseContext = {
   id: string;
-  sequenceNumber: string;
 } & ApplicantContext;
+
+export type ApplicationEntriesResultContext = ApplicationEntriesBaseContext & {
+  sequenceNumber: string;
+};
+
+export type ApplicationEntriesMoveContext = ApplicationEntriesBaseContext & {
+  feeRequired: 'Yes' | 'No';
+  resulted: string | null;
+};
 
 export type PaymentRefReturn = {
   updatedRowId: string;

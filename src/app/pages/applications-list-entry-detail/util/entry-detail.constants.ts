@@ -30,6 +30,14 @@ export const APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS = [
   { header: 'Application Title(s)', field: 'title' },
 ];
 
+export const APPLICATION_ENTRIES_MOVE_COLUMNS = [
+  { header: 'Applicant(s)', field: 'applicant' },
+  { header: 'Respondent(s)', field: 'respondent' },
+  { header: 'Application title', field: 'title' },
+  { header: 'Fee required', field: 'feeRequired' },
+  { header: 'Resulted', field: 'resulted' },
+];
+
 export const RESULT_WORDING_COLUMNS = [
   { header: 'Applicant(s)', field: 'applicant' },
   { header: 'Respondent(s)', field: 'respondent' },
