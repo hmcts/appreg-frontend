@@ -315,14 +315,21 @@ export class TableElement {
     tableName?: string,
     rowData: Record<string, string> = {},
   ): Cypress.Chainable {
-    const tableSelector = tableName
-      ? `table[aria-label="${tableName}"], table[summary="${tableName}"]`
-      : 'table';
-    return cy
-      .get(tableSelector)
+    return TableElement.findTable(tableName)
       .contains('tr', Object.values(rowData)[0] ?? '')
       .find('a, button[role="link"]')
       .contains(linkText);
+  }
+
+  static findButtonInRowOfTable(
+    text: string,
+    tableName?: string,
+    rowData: Record<string, string> = {},
+  ): Cypress.Chainable {
+    return TableElement.findTable(tableName)
+      .contains('tr', Object.values(rowData)[0] ?? '')
+      .find('a, button')
+      .contains(text);
   }
 
   static getLinkInRow(
