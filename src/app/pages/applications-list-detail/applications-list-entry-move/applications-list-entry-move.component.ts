@@ -22,9 +22,9 @@ import {
   APPLICATION_LIST_SORT_MAP,
 } from '@components/applications-list/util/applications-list.constants';
 import { loadQuery } from '@components/applications-list/util/load-query';
-import { APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
+import { APPLICATION_ENTRIES_MOVE_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import {
-  ApplicationEntriesResultContext,
+  ApplicationEntriesMoveContext,
   toRow,
 } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ApplicationsListFormComponent } from '@components/applications-list-form/applications-list-form.component';
@@ -115,7 +115,7 @@ export class ApplicationsListEntryMoveComponent
 
   onCreateErrorClick = onCreateErrorClickFn;
 
-  columnsEntries = APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS;
+  columnsEntries = APPLICATION_ENTRIES_MOVE_COLUMNS;
   columnsLists: TableColumn[] = APPLICATIONS_LIST_COLUMNS_ACTION;
 
   private readonly errorMap = APPLICATIONS_LIST_FORM_ERROR_MESSAGES;
@@ -124,7 +124,7 @@ export class ApplicationsListEntryMoveComponent
   get createListState(): {
     createMoveTargetList: boolean;
     originalListId: string;
-    entriesToMove: ApplicationEntriesResultContext[];
+    entriesToMove: ApplicationEntriesMoveContext[];
   } {
     return {
       createMoveTargetList: true,
@@ -144,7 +144,7 @@ export class ApplicationsListEntryMoveComponent
       selectedEntries: isPlatformBrowser(this.platformId)
         ? ((
             history.state as {
-              entriesToMove?: ApplicationEntriesResultContext[];
+              entriesToMove?: ApplicationEntriesMoveContext[];
             }
           )?.entriesToMove ?? [])
         : [],

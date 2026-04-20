@@ -1,10 +1,10 @@
-import { ApplicationEntriesResultContext } from '@components/applications-list-entry-detail/util/routing-state-util';
+import { ApplicationEntriesMoveContext } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 
 export interface ApplicationsListEntryMoveState {
   listId: string;
 
-  selectedEntries: ApplicationEntriesResultContext[];
+  selectedEntries: ApplicationEntriesMoveContext[];
 
   searchErrors: ErrorItem[];
   isLoading: boolean;
