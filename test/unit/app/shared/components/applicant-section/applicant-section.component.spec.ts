@@ -133,10 +133,7 @@ describe('ApplicantSectionComponent', () => {
   it('renders the saved standard applicant tag and text when saved values exist', () => {
     fixture.componentRef.setInput('applicantType', 'standard' as ApplicantType);
     fixture.componentRef.setInput('savedStandardApplicantCode', 'SA-123');
-    fixture.componentRef.setInput(
-      'savedStandardApplicantName',
-      'Example Org',
-    );
+    fixture.componentRef.setInput('savedStandardApplicantName', 'Example Org');
     fixture.detectChanges();
 
     const tag = fixture.debugElement.query(By.css('.govuk-tag'));

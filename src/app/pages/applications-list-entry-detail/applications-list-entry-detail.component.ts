@@ -1003,12 +1003,11 @@ export class ApplicationsListEntryDetail implements OnInit {
 
           this.selectedStandardApplicantCode =
             hydrate.selectedStandardApplicantCode;
-          this.savedStandardApplicantCode = hydrate.selectedStandardApplicantCode;
+          this.savedStandardApplicantCode =
+            hydrate.selectedStandardApplicantCode;
           this.savedStandardApplicantName = null;
           this.pendingStandardApplicantSummary = null;
-          this.loadSavedStandardApplicantName(
-            this.savedStandardApplicantCode,
-          );
+          this.loadSavedStandardApplicantName(this.savedStandardApplicantCode);
 
           const type = this.form.controls.applicantType.value ?? 'person';
           this.formSvc.syncApplicantTypeState(this.forms, type);
