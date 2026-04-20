@@ -125,11 +125,10 @@ Feature: Application List Entries - Move
         Then User Should See The Button "Actions" Is Enabled
         When User Clicks "Actions" Then "Move entries" From Caption Menu In Table "Entries"
         Then User See "Move applications" On The Page
-        # Verify all 3 selected rows appear on the result page
         Then User Should See Row In Table "You are moving the following application(s)" With Values:
-            | Sequence number | Applicant(s)                        | Respondent(s)                  | Application Title(s)                           |
-            | 1               | Mr, Henry James, Taylor {RANDOM}    | Ms, Emily Rose, Clark {RANDOM} | Issue of liability order summons - council tax |
-            | 2               | Mrs, Sarah Louise, Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account   |
+            | Applicant(s)                        | Respondent(s)                  | Application title                              | Fee required | Resulted |
+            | Mr, Henry James, Taylor {RANDOM}    | Ms, Emily Rose, Clark {RANDOM} | Issue of liability order summons - council tax | No           |          |
+            | Mrs, Sarah Louise, Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account   | No           |          |
         When User Searches Application List With:
             | Date         | Time | List Description    | CourtSearch         | Court   | Status | Other location | CJA | CJASearch |
             | <SearchDate> |      | <TargetDescription> | <courtLocationCode> | <Court> |        |                |     |           |
@@ -139,9 +138,9 @@ Feature: Application List Entries - Move
         # ── Move confirm page ───────────────────────────────────────────────────
         Then User See "Are you sure you want to move these applications to this application list?" On The Page
         Then User Should See Row In Table "You are moving the following application(s)" With Values:
-            | Sequence number | Applicant(s)                        | Respondent(s)                  | Application Title(s)                           |
-            | 1               | Mr, Henry James, Taylor {RANDOM}    | Ms, Emily Rose, Clark {RANDOM} | Issue of liability order summons - council tax |
-            | 2               | Mrs, Sarah Louise, Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account   |
+            | Applicant(s)                        | Respondent(s)                  | Application title                              | Fee required | Resulted |
+            | Mr, Henry James, Taylor {RANDOM}    | Ms, Emily Rose, Clark {RANDOM} | Issue of liability order summons - council tax | No           |          |
+            | Mrs, Sarah Louise, Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account   | No           |          |
         Then User Should See Row In Table "To this applications list" With Values:
             | Date          | Time         | Location | Description         | Entries | Status   |
             | <DisplayDate> | <TargetTime> | <Court>  | <TargetDescription> | 0       | <Status> |
@@ -283,9 +282,9 @@ Feature: Application List Entries - Move
         Then User See "Move applications" On The Page
         # Verify selected entries shown on Move page
         Then User Should See Row In Table "You are moving the following application(s)" With Values:
-            | Sequence number | Applicant(s)                        | Respondent(s)                  | Application Title(s)                           |
-            | 1               | Mr, Henry James, Taylor {RANDOM}    | Ms, Emily Rose, Clark {RANDOM} | Issue of liability order summons - council tax |
-            | 2               | Mrs, Sarah Louise, Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account   |
+            | Applicant(s)                        | Respondent(s)                  | Application title                              | Fee required | Resulted |
+            | Mr, Henry James, Taylor {RANDOM}    | Ms, Emily Rose, Clark {RANDOM} | Issue of liability order summons - council tax | No           |          |
+            | Mrs, Sarah Louise, Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account   | No           |          |
         # Navigate to Create new list form from Move page
         Then User Clicks On The Link "Create new list"
         # ── Validation checks on Create form ────────────────────────────────────
@@ -317,9 +316,9 @@ Feature: Application List Entries - Move
         # ── Move confirm page ────────────────────────────────────────────────────
         Then User See "Are you sure you want to move these applications to this application list?" On The Page
         Then User Should See Row In Table "You are moving the following application(s)" With Values:
-            | Sequence number | Applicant(s)                        | Respondent(s)                  | Application Title(s)                           |
-            | 1               | Mr, Henry James, Taylor {RANDOM}    | Ms, Emily Rose, Clark {RANDOM} | Issue of liability order summons - council tax |
-            | 2               | Mrs, Sarah Louise, Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account   |
+            | Applicant(s)                        | Respondent(s)                  | Application title                              | Fee required | Resulted |
+            | Mr, Henry James, Taylor {RANDOM}    | Ms, Emily Rose, Clark {RANDOM} | Issue of liability order summons - council tax | No           |          |
+            | Mrs, Sarah Louise, Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account   | No           |          |
         Then User Should See Row In Table "To this applications list" With Values:
             | Date          | Time          | Location        | Description          | Entries | Status |
             | <DisplayDate> | <NewListTime> | <OtherLocation> | <NewListDescription> | 0       | Open   |
