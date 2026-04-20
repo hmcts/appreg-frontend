@@ -4,8 +4,8 @@ import { AccordionHelper } from '../../../../../support/helper/forms/accordion/a
 import { DateTimeHelper } from '../../../../../support/helper/forms/datetime/DateTimeHelper';
 
 Then(
-  'User Enters {string} Into The Accordion {string} Date Field {string}',
-  (dateValue: string, accordionTitle: string, dateFieldLabel: string) => {
+  'User Enters {string} Into The Date Field {string} In The Accordion {string}',
+  (dateValue: string, dateFieldLabel: string, accordionTitle: string) => {
     AccordionHelper.within(accordionTitle, () =>
       DateTimeHelper.setDateValue(dateFieldLabel, dateValue),
     );
@@ -13,8 +13,8 @@ Then(
 );
 
 Then(
-  'The Accordion {string} Date Field {string} Should Be {string}',
-  (accordionTitle: string, dateFieldLabel: string, expectedDate: string) => {
+  'The Date Field {string} Should Be {string} In The Accordion {string}',
+  (dateFieldLabel: string, expectedDate: string, accordionTitle: string) => {
     AccordionHelper.within(accordionTitle, () =>
       DateTimeHelper.verifyDateValue(dateFieldLabel, expectedDate),
     );

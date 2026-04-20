@@ -1,6 +1,6 @@
 Feature: Applications List Entry Create
 
-  @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC1 @PJ
+  @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC1
   Scenario Outline: Create an ALE where Applicant = Person and Respondent = Person, using an Application Code with Fee Required = Y and Respondent Required = Y
     Given User Authenticates Via API As "<User>"
     # Create Application List
@@ -25,7 +25,7 @@ Feature: Applications List Entry Create
     # Applicant Details
     When User Fills In The Applicant Details
       | Select applicant type | Person                        |
-      | Select title          | Mr                            |
+      | Select title          | Dr                            |
       | First name            | John {RANDOM}                 |
       | Middle name(s)        | Michael                       |
       | Surname               | Smith {RANDOM}                |
@@ -39,7 +39,7 @@ Feature: Applications List Entry Create
       | Mobile number         | 07700900001                   |
       | Email address         | applicant{RANDOM}@example.com |
     # Application Codes
-    Then User Enters "<ApplicationCode>" Into The Accordion "Codes" Textbox "Application code"
+    Then User Enters "<ApplicationCode>" Into The Textbox "Application code" In The Accordion "Codes"
     When User Clicks On The "Search" Button In The Accordion "Codes"
     Then User Verifies Table "Codes" In The Accordion "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required"
     Then User Clicks "Add code" Button In Row Of Table "Codes" Within The Accordion "Codes"
@@ -80,9 +80,9 @@ Feature: Applications List Entry Create
     Then User Should See The Text "Off Site Fee Amount: £30.00" In The Accordion "Civil fee"
     Then User Should See The Text "Total Fee Amount: £314.00" In The Accordion "Civil fee"
     Then User Should See The Text "Update fee status" In The Accordion "Civil fee"
-    Then User Selects "Undertaken" From The Accordion "Civil fee" Dropdown "Fee status"
-    Then User Enters "<SearchDate>" Into The Accordion "Civil fee" Date Field "Status date"
-    Then User Enters "<PaymentReferenceUndertaken>" Into The Accordion "Civil fee" Textbox "Payment reference"
+    Then User Selects "Undertaken" From The Dropdown "Fee status" In The Accordion "Civil fee"
+    Then User Enters "<SearchDate>" Into The Date Field "Status date" In The Accordion "Civil fee"
+    Then User Enters "<PaymentReferenceUndertaken>" Into The Textbox "Payment reference" In The Accordion "Civil fee"
     When User Clicks On The "Add fee details" Button In The Accordion "Civil fee"
     Then User Verifies Table "Current fee statuses table" In The Accordion "Civil fee" Has Sortable Headers "Fee Status, Status Date, Payment Ref"
     Then User Clicks "Change" Link In Row Of Table "Current fee statuses table" Within The Accordion "Civil fee"
@@ -98,9 +98,9 @@ Feature: Applications List Entry Create
     Then User Should See Row In Table "Current fee statuses table" In The Accordion "Civil fee" With Values:
       | Fee Status | Status Date   | Payment Ref                         |
       | UNDERTAKEN | <DisplayDate> | <UpdatedPaymentReferenceUndertaken> |
-    Then User Selects "Paid" From The Accordion "Civil fee" Dropdown "Fee status"
-    Then User Enters "<SearchDate>" Into The Accordion "Civil fee" Date Field "Status date"
-    Then User Enters "<PaymentReferencePaid>" Into The Accordion "Civil fee" Textbox "Payment reference"
+    Then User Selects "Paid" From The Dropdown "Fee status" In The Accordion "Civil fee"
+    Then User Enters "<SearchDate>" Into The Date Field "Status date" In The Accordion "Civil fee"
+    Then User Enters "<PaymentReferencePaid>" Into The Textbox "Payment reference" In The Accordion "Civil fee"
     When User Clicks On The "Add fee details" Button In The Accordion "Civil fee"
     Then User Should See Row In Table "Current fee statuses table" In The Accordion "Civil fee" With Values:
       | Fee Status | Status Date   | Payment Ref                         |
@@ -113,9 +113,9 @@ Feature: Applications List Entry Create
       | Fee Status | Status Date   | Payment Ref            |
       | PAID       | <DisplayDate> | <PaymentReferencePaid> |
     # Notes Details
-    Then User Enters "<CaseReference>" Into The Accordion "Notes" Textbox "Case reference"
-    Then User Enters "<AccountReference>" Into The Accordion "Notes" Textbox "Account reference"
-    Then User Enters "This is a test application with special requirements" Into The Accordion "Notes" Textbox "Application details"
+    Then User Enters "<CaseReference>" Into The Textbox "Case reference" In The Accordion "Notes"
+    Then User Enters "<AccountReference>" Into The Textbox "Account reference" In The Accordion "Notes"
+    Then User Enters "This is a test application with special requirements" Into The Textbox "Application details" In The Accordion "Notes"
     # Submit Application Bug ARCPOC-1239 is raised for Wordind not retaining
     Then User Verifies The "Wording" Accordion Has textbox with placeholder "<placeholder>" and Enters "<WordingValue>"
     When User Clicks On The "Apply wording" Button In The Accordion "Wording"
@@ -162,7 +162,7 @@ Feature: Applications List Entry Create
       | Mobile number         | 07123 456789                       |
       | Email address         | john.smith@example.com             |
     # Application Codes
-    Then User Enters "<ApplicationCode>" Into The Accordion "Codes" Textbox "Application code"
+    Then User Enters "<ApplicationCode>" Into The Textbox "Application code" In The Accordion "Codes"
     When User Clicks On The "Search" Button In The Accordion "Codes"
     Then User Verifies Table "Codes" In The Accordion "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required"
     Then User Clicks "Add code" Button In Row Of Table "Codes" Within The Accordion "Codes"
@@ -197,9 +197,9 @@ Feature: Applications List Entry Create
     Then User Verifies The Textbox "Payment reference" Is Disabled In The Accordion "Civil fee"
     Then User Verifies The Button "Add fee details" Is Disabled In The Accordion "Civil fee"
     # Notes Details
-    Then User Enters "<CaseReference>" Into The Accordion "Notes" Textbox "Case reference"
-    Then User Enters "<AccountReference>" Into The Accordion "Notes" Textbox "Account reference"
-    Then User Enters "This is a test application with special requirements" Into The Accordion "Notes" Textbox "Application details"
+    Then User Enters "<CaseReference>" Into The Textbox "Case reference" In The Accordion "Notes"
+    Then User Enters "<AccountReference>" Into The Textbox "Account reference" In The Accordion "Notes"
+    Then User Enters "This is a test application with special requirements" Into The Textbox "Application details" In The Accordion "Notes"
     # Submit Application
     When User Clicks On The "Create entry" Button
     Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
@@ -232,13 +232,13 @@ Feature: Applications List Entry Create
     Then User Should See The Button "Hide all sections"
     # Applicant Details - Standard Applicant
     Then User Selects "Standard Applicant" In The "Select applicant type" Dropdown
-    Then User Enters "<StdAppCode>" Into The Accordion "Applicant" Textbox "Code"
+    Then User Enters "<StdAppCode>" Into The Textbox "Code" In The Accordion "Applicant"
     When User Clicks On The "Search" Button
     When User Checks The Checkbox In Row Of Table "Standard applicants" In The Accordion "Applicant" With:
       | Code         | Name         | Address         | Use from     | Use to |
       | <StdAppCode> | <StdAppName> | <StdAppAddress> | <StdAppFrom> | —      |
     # Application Codes
-    Then User Enters "<ApplicationCode>" Into The Accordion "Codes" Textbox "Application code"
+    Then User Enters "<ApplicationCode>" Into The Textbox "Application code" In The Accordion "Codes"
     When User Clicks On The "Search" Button In The Accordion "Codes"
     Then User Verifies Table "Codes" In The Accordion "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required"
     Then User Clicks "Add code" Button In Row Of Table "Codes" Within The Accordion "Codes"
@@ -264,14 +264,14 @@ Feature: Applications List Entry Create
     # Then User Should See The Text "<OffisiteFeeCode>" In The Accordion "Civil fee"
     # Then User Should See The Text "<OffsiteFeeValue>" In The Accordion "Civil fee"
     # Then User Should See The Text "<TotalFeeAmount>" In The Accordion "Civil fee"
-    Then User Selects "Paid" From The Accordion "Civil fee" Dropdown "Fee status"
-    Then User Enters "<SearchDate>" Into The Accordion "Civil fee" Date Field "Status date"
-    Then User Enters "<PaymentReference>" Into The Accordion "Civil fee" Textbox "Payment reference"
+    Then User Selects "Paid" From The Dropdown "Fee status" In The Accordion "Civil fee"
+    Then User Enters "<SearchDate>" Into The Date Field "Status date" In The Accordion "Civil fee"
+    Then User Enters "<PaymentReference>" Into The Textbox "Payment reference" In The Accordion "Civil fee"
     When User Clicks On The "Add fee details" Button In The Accordion "Civil fee"
     # Notes Details
-    Then User Enters "<CaseReference>" Into The Accordion "Notes" Textbox "Case reference"
-    Then User Enters "<AccountReference>" Into The Accordion "Notes" Textbox "Account reference"
-    Then User Enters "This is a test application with special requirements" Into The Accordion "Notes" Textbox "Application details"
+    Then User Enters "<CaseReference>" Into The Textbox "Case reference" In The Accordion "Notes"
+    Then User Enters "<AccountReference>" Into The Textbox "Account reference" In The Accordion "Notes"
+    Then User Enters "This is a test application with special requirements" Into The Textbox "Application details" In The Accordion "Notes"
     # Submit Application
     When User Clicks On The "Create entry" Button
     Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
