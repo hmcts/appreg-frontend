@@ -6,7 +6,12 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 
 import {
   ErrorItem,
@@ -27,11 +32,22 @@ import {
   GetStandardApplicantsRequestParams,
   StandardApplicantsApi,
 } from '@openapi';
+import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
+import { ErrorMessageMap, buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { toStandardApplicantSortKey } from '@util/standard-applicant-sort-map';
 import { StandardApplicantRow } from '@util/types/applications-list-entry/types';
+
+const STANDARD_APPLICANTS_ERRORS = {
+  code: {
+    maxlength: 'Code must be 10 characters or fewer',
+  },
+  name: {
+    maxlength: 'Standard applicant name must be 100 characters or fewer',
+  },
+} as const;
 
 type StandardApplicantsState = {
   hasSearched: boolean;
@@ -82,10 +98,19 @@ export class StandardApplicants implements OnInit {
 
   private readonly loadRequest =
     signal<GetStandardApplicantsRequestParams | null>(null);
+  readonly submitted = signal(false);
+  private readonly errorMap: ErrorMessageMap = STANDARD_APPLICANTS_ERRORS;
+  onCreateErrorClick = onCreateErrorClickFn;
 
   form = new FormGroup({
-    code: new FormControl<string>('', { nonNullable: true }),
-    name: new FormControl<string>('', { nonNullable: true }),
+    code: new FormControl<string>('', {
+      nonNullable: true,
+      validators: [Validators.maxLength(10)],
+    }),
+    name: new FormControl<string>('', {
+      nonNullable: true,
+      validators: [Validators.maxLength(100)],
+    }),
   });
 
   columns: TableColumn[] = [
@@ -99,8 +124,23 @@ export class StandardApplicants implements OnInit {
 
   onSubmit(event: SubmitEvent): void {
     event.preventDefault();
+    this.submitted.set(true);
+    this.form.markAllAsTouched();
+    this.form.updateValueAndValidity({ emitEvent: false });
+
+    const validationErrors = this.buildErrorSummary();
+    this.signalState.patch({ searchErrors: validationErrors });
+
+    if (validationErrors.length) {
+      return;
+    }
+
     this.signalState.patch({ hasSearched: true });
     this.loadStandardApplicants(0);
+  }
+
+  fieldError(id: string): ErrorItem | undefined {
+    return this.vm().searchErrors.find((e) => e.id === id);
   }
 
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
@@ -141,6 +181,10 @@ export class StandardApplicants implements OnInit {
       },
       this.envInjector,
     );
+  }
+
+  private buildErrorSummary(): ErrorItem[] {
+    return buildFormErrorSummary(this.form, this.errorMap);
   }
 
   private loadStandardApplicants(page: number): void {

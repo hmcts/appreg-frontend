@@ -82,6 +82,51 @@ describe('StandardApplicantsComponent', () => {
     );
   });
 
+  it('shows validation errors and prevents submit when filters exceed max lengths', async () => {
+    component.form.patchValue({
+      code: '12345678901',
+      name: 'x'.repeat(101),
+    });
+
+    apiStub.getStandardApplicants.mockClear();
+
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    expect(apiStub.getStandardApplicants).not.toHaveBeenCalled();
+    expect(component.vm().searchErrors).toEqual([
+      {
+        id: 'code',
+        text: 'Code must be 10 characters or fewer',
+        href: '#code',
+      },
+      {
+        id: 'name',
+        text: 'Standard applicant name must be 100 characters or fewer',
+        href: '#name',
+      },
+    ]);
+    expect(component.fieldError('code')?.text).toBe(
+      'Code must be 10 characters or fewer',
+    );
+    expect(component.fieldError('name')?.text).toBe(
+      'Standard applicant name must be 100 characters or fewer',
+    );
+
+    const errorMessages = fixture.debugElement
+      .queryAll(By.css('.govuk-error-message'))
+      .map((debugEl) => debugEl.nativeElement.textContent.trim());
+
+    expect(errorMessages).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('Code must be 10 characters or fewer'),
+        expect.stringContaining(
+          'Standard applicant name must be 100 characters or fewer',
+        ),
+      ]),
+    );
+  });
+
   it('renders table after first search and shows no-data message for empty results', async () => {
     component.onSubmit(new SubmitEvent('submit'));
     await flushSignalEffects(fixture);
