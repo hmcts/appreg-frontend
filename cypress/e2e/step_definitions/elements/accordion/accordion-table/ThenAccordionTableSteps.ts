@@ -70,8 +70,8 @@ Then(
 );
 
 Then(
-  'User Verifies Table {string} In The Accordion {string} Has Sortable Headers {string}',
-  (tableCaption: string, accordionTitle: string, headers: string) => {
+  'User Verifies Table {string} Has Sortable Headers {string} In The Accordion {string}',
+  (tableCaption: string, headers: string, accordionTitle: string) => {
     AccordionHelper.within(accordionTitle, () => {
       TableVerification.verifySortableHeaders(tableCaption, headers);
     });
@@ -79,7 +79,7 @@ Then(
 );
 
 Then(
-  'User Clicks {string} Button In Row Of Table {string} Within The Accordion {string}',
+  'User Clicks {string} Button In Row Of Table {string} In The Accordion {string}',
   (
     selectButtonText: string,
     tableCaption: string,
@@ -104,7 +104,7 @@ Then(
 );
 
 Then(
-  'User Clicks {string} Link In Row Of Table {string} Within The Accordion {string}',
+  'User Clicks {string} Link In Row Of Table {string} In The Accordion {string}',
   (
     linkName: string,
     tableName: string,

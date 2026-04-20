@@ -31,6 +31,9 @@ When(
       throw new Error('DataTable must have at least one row of data');
     }
     const rowData = rows[0];
+    cy.log(
+      `Clicking "${selectButtonText}" → "${menuButtonText}" in table "${tableCaption}" for row: ${JSON.stringify(rowData)}`,
+    );
     TableInteraction.clickMenuButtonInTableRow(
       tableCaption,
       rowData,
