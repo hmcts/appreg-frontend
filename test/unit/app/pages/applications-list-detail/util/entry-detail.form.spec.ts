@@ -119,6 +119,15 @@ describe('applications-list entry form builders', () => {
       form.controls.surname.updateValueAndValidity();
       expect(form.controls.surname.errors).toHaveProperty('required');
     });
+
+    it('adds dob control only for respondent person forms', () => {
+      const applicantForm = buildPersonForm(fb);
+      const respondentForm = buildPersonForm(fb, true);
+
+      expect('dob' in applicantForm.controls).toBe(false);
+      expect('dob' in respondentForm.controls).toBe(true);
+      expect(respondentForm.getRawValue()).toMatchObject({ dob: null });
+    });
   });
 
   describe('buildOrganisationForm', () => {

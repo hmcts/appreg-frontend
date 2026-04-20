@@ -117,6 +117,23 @@ describe('respondentFormsHaveAnyValue', () => {
     ).toBe(true);
   });
 
+  it('returns true when a control is dirty even if its current value is empty', () => {
+    const respondentPersonForm = new FormGroup({
+      firstName: new FormControl<string | null>(''),
+      lastName: new FormControl<string | null>(null),
+    });
+
+    respondentPersonForm.markAsDirty();
+
+    expect(
+      respondentFormsHaveAnyValue({
+        numberOfRespondents: null,
+        respondentPersonForm,
+        respondentOrganisationForm: null,
+      }),
+    ).toBe(true);
+  });
+
   it('returns false when arrays contain no meaningful values', () => {
     const respondentPersonForm = new FormGroup({
       aliases: new FormControl<unknown>(['', '   ', null, 0]),
