@@ -80,9 +80,22 @@ export class TextboxHelper {
     // Wait for autocomplete dropdown to appear and trigger mousedown on the link
     cy.get('.app-autocomplete__menu')
       .should('be.visible')
-      .contains('.app-autocomplete__link', optionText, { matchCase: false })
-      .should('be.visible')
-      .trigger('mousedown');
+      .then(($menu) => {
+        if (optionText) {
+          cy.wrap($menu)
+            .contains('.app-autocomplete__link', optionText, {
+              matchCase: false,
+            })
+            .should('be.visible')
+            .trigger('mousedown');
+        } else {
+          cy.wrap($menu)
+            .find('.app-autocomplete__link')
+            .first()
+            .should('be.visible')
+            .trigger('mousedown');
+        }
+      });
   }
 
   /**

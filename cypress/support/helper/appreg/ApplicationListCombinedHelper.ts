@@ -34,20 +34,23 @@ export class ApplicationListCombinedHelper {
           DateTimeHelper.setTimeValue(fieldLabel, value);
           break;
 
-        case 'CourtSearch':
-          // Skip - handled by Court case
-          break;
-
-        case 'Court': {
-          // Use CourtSearch value for typing, Court value for selecting
-          const courtSearchText = processedCriteria.CourtSearch || value;
+        case 'CourtSearch': {
+          // CourtSearch = text to type into autocomplete, Court = option to select
+          const courtSelectValue = processedCriteria.Court || '';
           TextboxHelper.selectAutocompleteOption(
             'Court',
-            courtSearchText,
             value,
+            courtSelectValue,
           );
           break;
         }
+
+        case 'Court':
+          // Handled by CourtSearch case above; skip if CourtSearch not provided
+          if (!processedCriteria.CourtSearch) {
+            TextboxHelper.selectAutocompleteOption('Court', value, value);
+          }
+          break;
 
         case 'CJASearch':
           // Skip - handled by CJA case
