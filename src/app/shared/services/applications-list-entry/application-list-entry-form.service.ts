@@ -11,6 +11,7 @@ import {
   officialsToFormPatch,
   organisationToFormPatch,
   personToFormPatch,
+  respondentPersonToFormPatch,
 } from '@components/applications-list-entry-detail/util/entry-detail.form';
 import { CivilFeeForm } from '@components/civil-fee-section/civil-fee-section.component';
 import {
@@ -26,6 +27,8 @@ import {
   ApplicationListEntryForms,
   ApplicationsListEntryForm,
   ApplicationsListEntryFormValue,
+  PersonForm,
+  RespondentPersonForm,
 } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import {
   createEmptyOrganisation,
@@ -56,9 +59,12 @@ export class ApplicationListEntryFormService {
   createForms(): ApplicationListEntryForms {
     return {
       form: buildStandardApplicationForm(this.fb),
-      personForm: buildPersonForm(this.fb),
+      personForm: buildPersonForm(this.fb) as PersonForm,
       organisationForm: buildOrganisationForm(this.fb),
-      respondentPersonForm: buildPersonForm(this.fb),
+      respondentPersonForm: buildPersonForm(
+        this.fb,
+        true,
+      ) as RespondentPersonForm,
       respondentOrganisationForm: buildOrganisationForm(this.fb),
     };
   }
@@ -310,15 +316,18 @@ export class ApplicationListEntryFormService {
 
     forms.form.controls.respondent.setValue(r ?? null, { emitEvent });
     forms.form.controls.respondentEntryType.setValue(
-      getRespondentEntryType(r),
+      getRespondentEntryType(r) ?? 'person',
       { emitEvent },
     );
 
     if (r?.person) {
       forms.respondentPersonForm.reset(undefined, { emitEvent });
-      forms.respondentPersonForm.patchValue(personToFormPatch(r.person), {
-        emitEvent,
-      });
+      forms.respondentPersonForm.patchValue(
+        respondentPersonToFormPatch(r.person),
+        {
+          emitEvent,
+        },
+      );
     } else if (r?.organisation) {
       forms.respondentOrganisationForm.reset(undefined, { emitEvent });
       forms.respondentOrganisationForm.patchValue(

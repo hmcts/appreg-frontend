@@ -8,8 +8,8 @@ import { RespondentSectionComponent } from '@components/respondent-section/respo
 import type {
   ApplicationsListEntryForm,
   OrganisationForm,
-  PersonForm,
   RespondentEntryType,
+  RespondentPersonForm,
 } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 
 // Minimal runtime forms – only include controls that the rendered templates actually bind to
@@ -25,6 +25,7 @@ const buildMinimalPersonForm = () =>
     firstName: new FormControl<string>(''),
     middleNames: new FormControl<string>(''),
     surname: new FormControl<string | null>(null),
+    dob: new FormControl<string | null>(null),
     addressLine1: new FormControl<string>(''),
     addressLine2: new FormControl<string>(''),
     addressLine3: new FormControl<string>(''),
@@ -34,7 +35,7 @@ const buildMinimalPersonForm = () =>
     phoneNumber: new FormControl<string | null>(null),
     mobileNumber: new FormControl<string | null>(null),
     emailAddress: new FormControl<string | null>(null),
-  }) as unknown as PersonForm;
+  }) as unknown as RespondentPersonForm;
 
 const buildMinimalOrganisationForm = () =>
   new FormGroup({

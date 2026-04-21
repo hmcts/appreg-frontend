@@ -19,6 +19,7 @@ import {
   OrganisationFormValue,
   PersonFormValue,
   RespondentEntryType,
+  RespondentPersonFormValue,
 } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 
 /**
@@ -28,7 +29,7 @@ export function buildEntryCreateDto(
   formValue: ApplicationsListEntryFormValue,
   applicantPersonForm: PersonFormValue,
   applicantOrganisationForm: OrganisationFormValue,
-  respondentPersonForm: PersonFormValue,
+  respondentPersonForm: RespondentPersonFormValue,
   respondentOrganisationForm: OrganisationFormValue,
 ): EntryCreateDto {
   const dto: Partial<EntryCreateDto> = {
@@ -111,7 +112,7 @@ function buildApplicant(
 
 function buildRespondent(
   formValue: ApplicationsListEntryFormValue,
-  personForm: PersonFormValue,
+  personForm: RespondentPersonFormValue,
   organisationForm: OrganisationFormValue,
 ): Respondent | undefined {
   const inferredType: RespondentEntryType | null = hasRequiredPerson(personForm)
@@ -143,6 +144,7 @@ function buildRespondent(
           secondForename: toOptionalTrimmed(pf.middleNames),
           surname: sur,
         },
+        dateOfBirth: pf.dob ?? undefined,
         contactDetails: makeContactDetails(pf),
       },
     };
