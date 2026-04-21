@@ -171,7 +171,7 @@ describe('applications-list entry form builders', () => {
     it('official/mags names have maxlength and pattern', () => {
       const form = buildStandardApplicationForm(fb);
 
-      form.controls.mags1FirstName.setValue('A'.repeat(61));
+      form.controls.mags1FirstName.setValue('A'.repeat(101));
       form.controls.mags1FirstName.updateValueAndValidity();
       expect(form.controls.mags1FirstName.errors).toHaveProperty('maxlength');
 
