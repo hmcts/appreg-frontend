@@ -4,10 +4,16 @@ import './commands';
 import { TestDataGenerator } from './utils/TestDataGenerator';
 
 beforeEach(() => {
-  Cypress.session.clearAllSavedSessions().catch(() => {});
-  cy.clearCookies();
-  cy.clearLocalStorage();
-  cy.clearAllSessionStorage();
+  cy.request({
+    url: '/sso/logout',
+    failOnStatusCode: false,
+    followRedirect: false,
+  }).then(() => {
+    Cypress.session.clearAllSavedSessions().catch(() => {});
+    cy.clearCookies();
+    cy.clearLocalStorage();
+    cy.clearAllSessionStorage();
+  });
 
   TestDataGenerator.resetScenario();
   cy.viewport(1280, 720); // Set a default viewport size
