@@ -7,8 +7,8 @@ export class ButtonHelper {
    * Clicks a button by its visible text
    * @param buttonText Visible text of the button
    */
-  static clickButton(buttonText: string): void {
-    ButtonElement.findButton(buttonText).click();
+  static clickButton(buttonText: string, timeout?: number): void {
+    ButtonElement.findButton(buttonText, timeout).click();
   }
 
   static isButtonVisible(buttonText: string): Cypress.Chainable {
