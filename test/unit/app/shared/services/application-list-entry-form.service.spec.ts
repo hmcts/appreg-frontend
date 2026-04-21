@@ -59,4 +59,33 @@ describe('ApplicationListEntryFormService', () => {
     });
     expect(forms.respondentPersonForm.dirty).toBe(false);
   });
+
+  it('defaults respondent entry type to person when dto has no respondent', () => {
+    const forms = service.createForms();
+
+    forms.form.controls.respondentEntryType.setValue('organisation');
+
+    service.hydrateFromDto(
+      {
+        applicationCode: 'APP-100',
+        lodgementDate: '2026-04-20',
+        respondent: null,
+      } as unknown as EntryGetDetailDto,
+      forms,
+    );
+
+    expect(forms.form.controls.respondentEntryType.value).toBe('person');
+    expect(forms.respondentPersonForm.getRawValue()).toMatchObject({
+      firstName: '',
+      surname: null,
+      dob: null,
+      addressLine1: '',
+    });
+    expect(forms.respondentOrganisationForm.getRawValue()).toMatchObject({
+      name: '',
+      addressLine1: '',
+    });
+    expect(forms.respondentPersonForm.dirty).toBe(false);
+    expect(forms.respondentOrganisationForm.dirty).toBe(false);
+  });
 });

@@ -316,7 +316,7 @@ export class ApplicationListEntryFormService {
 
     forms.form.controls.respondent.setValue(r ?? null, { emitEvent });
     forms.form.controls.respondentEntryType.setValue(
-      getRespondentEntryType(r),
+      getRespondentEntryType(r) ?? 'person',
       { emitEvent },
     );
 
