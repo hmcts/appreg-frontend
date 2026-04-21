@@ -7,6 +7,7 @@ Feature: Applications List Search
       | todayiso | timenowhhmm-2h | OPEN   | Test Applications List for Search {RANDOM} | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
+    Then User Stores Response Body Property "description" As "listDescription"
     When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
       | standardApplicantCode                         | null                           |
       | applicationCode                               | CT99002                        |
@@ -113,19 +114,19 @@ Feature: Applications List Search
   Scenario: Verify applications list table is displayed with search results and values retained
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
-    When User Set Date Field "Date" To "today"
-    Then User Selects "Leeds Combined Court Centre Set 7" From The Textbox "Court" Autocomplete By Typing "LCCC065"
-    When User Submits The Application List Search
+    When User Searches Application List With:
+      | Date  | List description | CourtSearch | Court                             | Select list status | Other location description | Criminal justice area | CJASearch |
+      | today | @listDescription | LCCC065     | Leeds Combined Court Centre Set 7 |                    |                            |                       |           |
     # Table and header validation
     Then User Should See Table "Lists" Has Sortable Headers "Date, Time, Location, Description, Entries, Status"
     Then User Should See Table "Lists" Header "Actions" Is Not Sortable
     # Row value validation - verify the list created in Background appears
     Then User Should See Row In Table "Lists" With Values:
-      | Date         | Time           | Location                          | Entries | Status |
-      | todaydisplay | timenowhhmm-2h | Leeds Combined Court Centre Set 7 | 1       | OPEN   |
+      | Date         | Location                          | Entries | Status |
+      | todaydisplay | Leeds Combined Court Centre Set 7 | 1       | OPEN   |
     When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
-      | Date         | Time           | Location                          | Entries | Status |
-      | todaydisplay | timenowhhmm-2h | Leeds Combined Court Centre Set 7 | 1       | OPEN   |
+      | Date         | Location                          | Entries | Status |
+      | todaydisplay | Leeds Combined Court Centre Set 7 | 1       | OPEN   |
     Then User Should See The Link "List details"
     Then User Clicks On The Breadcrumb Link "Applications list"
     Then User Verifies The Date field "Date" Has Value "today"
@@ -232,55 +233,55 @@ Feature: Applications List Search
       | User   | SearchText | ValidationErrorMessage                      | OptionText | ExpectedValue | Info             |
       | admin1 | London     | There is a problem Court location not found |            | London        | No results found |
 
-  @regression @applicationsList @ARCPOC-214 @ARCPOC-417
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-417 @PJ
   Scenario: Verify application list Open
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     When User Searches Application List With:
-      | Date  | Time           | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
-      | today | timenowhhmm-2h |                  | LCCC065     |       | OPEN               |                            |                       |           |
+      | Date  | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+      | today | @listDescription | LCCC065     |       | OPEN               |                            |                       |           |
     Then User Should See Table "Lists" Has Sortable Headers "Date, Time, Location, Description, Entries, Status"
     Then User Should See Table "Lists" Header "Actions" Is Not Sortable
     When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
-      | Date         | Time           | Location                          | Entries | Status |
-      | todaydisplay | timenowhhmm-2h | Leeds Combined Court Centre Set 7 | 1       | OPEN   |
+      | Date         | Location                          | Entries | Status |
+      | todaydisplay | Leeds Combined Court Centre Set 7 | 1       | OPEN   |
     Then User Should See The Link "List details"
 
-  @regression @applicationsList @ARCPOC-214 @ARCPOC-417
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-417 @PJ
   Scenario: Verify application list row menu options for OPEN list
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     When User Searches Application List With:
-      | Date  | Time           | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
-      | today | timenowhhmm-2h |                  | LCCC065     |       | OPEN               |                            |                       |           |
+      | Date  | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+      | today | @listDescription | LCCC065     |       | OPEN               |                            |                       |           |
     When User Clicks "Select" In Row Of Table "Lists" And Verify Menu Options "Open, Print page,  Print continuous, Delete"
-      | Date         | Time           | Location                          | Entries | Status |
-      | todaydisplay | timenowhhmm-2h | Leeds Combined Court Centre Set 7 | 1       | OPEN   |
+      | Date         | Location                          | Entries | Status |
+      | todaydisplay | Leeds Combined Court Centre Set 7 | 1       | OPEN   |
 
-  @regression @applicationsList @ARCPOC-214 @ARCPOC-417
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-417 @PJ
   Scenario Outline: Verify application list row menu options for CLOSED list
     Given User Authenticates Via API As "user1"
     When User Makes POST API Request To "/application-lists" With Body:
-      | date     | time           | status | description                              | courtLocationCode |
-      | todayiso | timenowhhmm-3h | OPEN   | Test Applications List to Close {RANDOM} | <CourtCode>       |
+      | date     | time           | status | description   | courtLocationCode |
+      | todayiso | timenowhhmm-3h | OPEN   | <Description> | <CourtCode>       |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
     When User Makes PUT API Request To "/application-lists/:listId" With Body:
-      | date     | time           | status | description                              | courtLocationCode | durationHours | durationMinutes |
-      | todayiso | timenowhhmm-3h | CLOSED | Test Applications List to Close {RANDOM} | <CourtCode>       | 2             | 22              |
+      | date     | time           | status | description   | courtLocationCode | durationHours | durationMinutes |
+      | todayiso | timenowhhmm-3h | CLOSED | <Description> | <CourtCode>       | 2             | 22              |
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Property "status" Should Be "CLOSED"
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     When User Searches Application List With:
-      | Date  | Time           | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
-      | today | timenowhhmm-3h |                  | <CourtCode> |       | CLOSED             |                            |                       |           |
+      | Date  | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+      | today | <Description>    | <CourtCode> |       | CLOSED             |                            |                       |           |
     When User Clicks "Select" In Row Of Table "Lists" And Verify Menu Options "Print page,  Print continuous"
-      | Date         | Time           | Location    | Entries | Status |
-      | todaydisplay | timenowhhmm-3h | <CourtName> | 0       | CLOSED |
+      | Date         | Location    | Entries | Status |
+      | todaydisplay | <CourtName> | 0       | CLOSED |
     Examples:
-      | CourtCode | CourtName                         |
-      | LCCC025   | Leeds Combined Court Centre Set 3 |
+      | CourtCode | CourtName                         | Description                              |
+      | LCCC025   | Leeds Combined Court Centre Set 3 | Test Applications List to Close {RANDOM} |
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-452 @ARCPOC-756 @ARCPOC-891
   Scenario: Verify applications list table sorting functionality and pagination persistence
