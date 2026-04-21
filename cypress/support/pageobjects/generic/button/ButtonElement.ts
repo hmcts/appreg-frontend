@@ -7,7 +7,7 @@ export class ButtonElement {
     return cy.contains(
       'button, input[type="button"], input[type="submit"], [role="button"]',
       name,
-      { timeout },
+      ...(timeout !== undefined ? [{ timeout }] : []),
     );
   }
 }
