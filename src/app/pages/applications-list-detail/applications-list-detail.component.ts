@@ -36,6 +36,7 @@ import {
 } from './util';
 
 import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
+import { ApplicationsListDetailSearchComponent } from '@components/applications-list-detail-search/applications-list-detail-search.component';
 import { toRow } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
@@ -123,6 +124,7 @@ type PrintRequest = {
     PaginationComponent,
     NotificationBannerComponent,
     MojButtonMenuDirective,
+    ApplicationsListDetailSearchComponent,
   ],
   templateUrl: './applications-list-detail.component.html',
   styleUrls: ['./applications-list-detail.component.scss'],

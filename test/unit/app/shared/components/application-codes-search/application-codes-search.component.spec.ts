@@ -30,12 +30,14 @@ describe('ApplicationCodeSearchComponent', () => {
         title: 'Statutory Declaration - Lost documents',
         bulk: 'No',
         fee: '—',
+        isFeeDue: '',
       },
       {
         code: 'MS99003',
         title: 'Statutory Declaration - Local Authority Car Park',
         bulk: 'No',
         fee: '—',
+        isFeeDue: '',
       },
     ],
     totalPages: 0,
@@ -164,6 +166,7 @@ describe('ApplicationCodeSearchComponent', () => {
       title: ` ${mockRows.rows[0].title} `,
       bulk: mockRows.rows[0].bulk,
       fee: mockRows.rows[0].fee,
+      isFeeDue: '',
     };
 
     component.onAddCode(rowWithWhitespace);

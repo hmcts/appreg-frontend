@@ -104,6 +104,12 @@
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
     />
 
+    <app-applications-list-detail-search />
+
+    <hr
+      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+    />
+
     @if (vm().rows.length || (!noEntries && !vm().isLoading)) {
       <div
         class="app-table-scroll"

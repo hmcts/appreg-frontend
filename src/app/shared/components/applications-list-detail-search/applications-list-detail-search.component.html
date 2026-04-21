@@ -1,0 +1,73 @@
+<div>
+  <div class="govuk-grid-row">
+    <app-text-input
+      label="Applicant"
+      idPrefix="applicant"
+      containerWidthClass="govuk-grid-column-one-half"
+      widthClass="govuk-!-width-two-thirds"
+    />
+  </div>
+
+  <div class="govuk-grid-row">
+    <app-text-input
+      label="Respondent"
+      idPrefix="respondent"
+      containerWidthClass="govuk-grid-column-one-half"
+      widthClass="govuk-!-width-two-thirds"
+    />
+  </div>
+
+  <div class="govuk-grid-row">
+    <app-text-input label="Postcode" idPrefix="postcode" />
+  </div>
+
+  <ng-template #advancedFields>
+    <!-- Advanced fields block -->
+    <div class="govuk-grid-row">
+      <app-text-input label="Sequence number" idPrefix="sequence-number" />
+    </div>
+
+    <div class="govuk-grid-row">
+      <app-text-input
+        label="Account number"
+        idPrefix="account-number"
+        containerWidthClass="govuk-grid-column-one-half"
+        widthClass="govuk-!-width-two-thirds"
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <app-text-input
+        label="Title"
+        idPrefix="title"
+        containerWidthClass="govuk-grid-column-one-half"
+        widthClass="govuk-!-width-two-thirds"
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <app-select-input
+        label="Fee"
+        idPrefix="fee"
+        [options]="[
+          { label: 'Choose', value: '' },
+          { label: 'Yes', value: 'yes' },
+          { label: 'No', value: 'no' },
+        ]"
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <app-text-input label="Resulted" idPrefix="resulted" />
+    </div>
+  </ng-template>
+
+  <details class="govuk-details">
+    <summary class="govuk-details__summary">
+      <span class="govuk-details__summary-text">Advanced search</span>
+    </summary>
+    <div class="govuk-details__text">
+      <ng-container *ngTemplateOutlet="advancedFields"></ng-container>
+    </div>
+  </details>
+</div>
