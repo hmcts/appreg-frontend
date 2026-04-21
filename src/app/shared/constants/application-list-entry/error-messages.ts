@@ -15,70 +15,70 @@ type CivilFeeErrorMap = Readonly<
 const person_org_shared_messages = {
   addressLine1: {
     required: 'Enter address line 1',
-    maxlength: 'Address line 1 must be less than or equal to 60 characters',
+    maxlength: 'Address line 1 must be 35 characters or fewer',
     pattern: 'Address line 1 contains invalid characters',
   },
   addressLine2: {
-    maxlength: 'Address line 2 must be less than or equal to 60 characters',
+    maxlength: 'Address line 2 must be 35 characters or fewer',
     pattern: 'Address line 2 contains invalid characters',
   },
   addressLine3: {
-    maxlength: 'Town or city must be less than or equal to 60 characters',
+    maxlength: 'Town or city must be 35 characters or fewer',
     pattern: 'Town or city contains invalid characters',
   },
   addressLine4: {
-    maxlength: 'County or region must be less than or equal to 60 characters',
+    maxlength: 'County or region must be 35 characters or fewer',
     pattern: 'County or region contains invalid characters',
   },
   addressLine5: {
-    maxlength: 'Post town must be less than or equal to 60 characters',
+    maxlength: 'Post town must be 35 characters or fewer',
     pattern: 'Post town contains invalid characters',
   },
   postcode: {
-    maxlength: 'Postcode must be less than or equal to 60 characters',
+    maxlength: 'Postcode must be 35 characters or fewer',
     postcode: 'Enter a valid UK postcode',
   },
   phoneNumber: {
-    maxlength: 'Telephone number must be less than or equal to 60 characters',
+    maxlength: 'Telephone number must be 60 characters or fewer',
     phone: 'Enter a valid UK telephone number',
   },
   mobileNumber: {
-    maxlength: 'Mobile number must be less than or equal to 60 characters',
+    maxlength: 'Mobile number must be 60 characters or fewer',
     mobile: 'Enter a valid UK mobile number',
   },
   emailAddress: {
-    maxlength: 'Email address must be less than or equal to 60 characters',
+    maxlength: 'Email address must be 253 characters or fewer',
     email: 'Enter an email address in the correct format',
   },
 } as const;
 
 export const NOTES_ERROR_MESSAGES: NotesErrorMap = {
   accountReference: {
-    maxlength: 'Account reference must be less than or equal to 20 characters',
+    maxlength: 'Account reference must be 20 characters or fewer',
     pattern: 'Account reference must only contain letters and numbers',
   },
   caseReference: {
-    maxlength: 'Case reference must be less than or equal to 15 characters',
+    maxlength: 'Case reference must be 15 characters or fewer',
     pattern: 'Case reference must only contain letters and numbers',
   },
   notes: {
-    maxlength: 'Notes must be less than or equal to 4000 characters',
+    maxlength: 'Notes must be 4000 characters or fewer',
   },
 } as const;
 
 export const PERSON_FIELD_MESSAGES = {
   firstName: {
     required: 'Enter a first name',
-    maxlength: 'First name must be less than or equal to 60 characters',
+    maxlength: 'First name must be 100 characters or fewer',
     pattern: 'First name contains invalid characters',
   },
   middleNames: {
-    maxlength: 'Middle names must be less than or equal to 60 characters',
+    maxlength: 'Middle names must be 100 characters or fewer',
     pattern: 'Middle names contain invalid characters',
   },
   surname: {
     required: 'Enter a last name',
-    maxlength: 'Last name must be less than or equal to 60 characters',
+    maxlength: 'Last name must be 100 characters or fewer',
     pattern: 'Last name contains invalid characters',
   },
   ...person_org_shared_messages,
@@ -87,7 +87,7 @@ export const PERSON_FIELD_MESSAGES = {
 export const ORG_FIELD_MESSAGES = {
   name: {
     required: 'Enter organisation name',
-    maxlength: 'Organisation name must be less than or equal to 60 characters',
+    maxlength: 'Organisation name must be 100 characters or fewer',
     pattern: 'Organisation name contains invalid characters',
   },
   ...person_org_shared_messages,
@@ -99,7 +99,7 @@ export const CIVIL_FEE_FIELD_MESSAGES: CivilFeeErrorMap = {
     required: 'Enter a valid status date',
   },
   paymentRef: {
-    maxlength: 'Payment reference must be less than or equal to 15 characters',
+    maxlength: 'Payment reference must be 15 characters or fewer',
     invalidStatus:
       'A payment reference cannot be supplied when fee status is DUE',
   },
@@ -107,39 +107,39 @@ export const CIVIL_FEE_FIELD_MESSAGES: CivilFeeErrorMap = {
 
 export const OFFICIAL_FIELD_MESSAGES = {
   mags1FirstName: {
-    maxlength: 'First name must be less than or equal to 60 characters',
+    maxlength: 'First name must be 100 characters or fewer',
     pattern: 'First name contains invalid characters',
   },
   mags1Surname: {
     required: 'Magistrates 1 Last name is required',
-    maxlength: 'Last name must be less than or equal to 60 characters',
+    maxlength: 'Last name must be 100 characters or fewer',
     pattern: 'Last name contains invalid characters',
   },
   mags2FirstName: {
-    maxlength: 'First name must be less than or equal to 60 characters',
+    maxlength: 'First name must be 100 characters or fewer',
     pattern: 'First name contains invalid characters',
   },
   mags2Surname: {
     required: 'Magistrates 2 Last name is required',
-    maxlength: 'Last name must be less than or equal to 60 characters',
+    maxlength: 'Last name must be 100 characters or fewer',
     pattern: 'Last name contains invalid characters',
   },
   mags3FirstName: {
-    maxlength: 'First name must be less than or equal to 60 characters',
+    maxlength: 'First name must be 100 characters or fewer',
     pattern: 'First name contains invalid characters',
   },
   mags3Surname: {
     required: 'Magistrates 3 Last name is required',
-    maxlength: 'Last name must be less than or equal to 60 characters',
+    maxlength: 'Last name must be 100 characters or fewer',
     pattern: 'Last name contains invalid characters',
   },
   officialFirstName: {
-    maxlength: 'First name must be less than or equal to 60 characters',
+    maxlength: 'First name must be 100 characters or fewer',
     pattern: 'First name contains invalid characters',
   },
   officialSurname: {
     required: "Official's Last name is required",
-    maxlength: 'Last name must be less than or equal to 60 characters',
+    maxlength: 'Last name must be 100 characters or fewer',
     pattern: 'Last name contains invalid characters',
   },
 } as const;
