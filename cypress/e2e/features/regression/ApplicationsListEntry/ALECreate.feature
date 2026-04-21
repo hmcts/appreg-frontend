@@ -41,8 +41,8 @@ Feature: Applications List Entry Create
     # Application Codes
     Then User Enters "<ApplicationCode>" Into The Textbox "Application code" In The Accordion "Application codes"
     When User Clicks On The "Search" Button In The Accordion "Application codes"
-    Then User Verifies Table "Application codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Application codes"
-    Then User Clicks "Add code" Button In Row Of Table "Application codes" In The Accordion "Application codes"
+    Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Application codes"
+    Then User Clicks "Add code" Button In Row Of Table "Codes" In The Accordion "Application codes"
       | Code              | Title              | Bulk | Fee req |
       | <ApplicationCode> | <ApplicationTitle> | No   | CO8.1   |
     Then User Verifies The "Application Title" Textbox Has Value "<ApplicationTitle>"
@@ -164,8 +164,8 @@ Feature: Applications List Entry Create
     # Application Codes
     Then User Enters "<ApplicationCode>" Into The Textbox "Application code" In The Accordion "Application codes"
     When User Clicks On The "Search" Button In The Accordion "Application codes"
-    Then User Verifies Table "Application codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Application codes"
-    Then User Clicks "Add code" Button In Row Of Table "Application codes" In The Accordion "Application codes"
+    Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Application codes"
+    Then User Clicks "Add code" Button In Row Of Table "Codes" In The Accordion "Application codes"
       | Code              | Title              | Bulk | Fee req |
       | <ApplicationCode> | <ApplicationTitle> | No   | CO8.1   |
     Then User Verifies The "Application Title" Textbox Has Value "<ApplicationTitle>"
@@ -240,8 +240,8 @@ Feature: Applications List Entry Create
     # Application Codes
     Then User Enters "<ApplicationCode>" Into The Textbox "Application code" In The Accordion "Application codes"
     When User Clicks On The "Search" Button In The Accordion "Application codes"
-    Then User Verifies Table "Application codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Application codes"
-    Then User Clicks "Add code" Button In Row Of Table "Application codes" In The Accordion "Application codes"
+    Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Application codes"
+    Then User Clicks "Add code" Button In Row Of Table "Codes" In The Accordion "Application codes"
       | Code              | Title              | Bulk | Fee req |
       | <ApplicationCode> | <ApplicationTitle> | No   | CO3.1   |
     Then User Verifies The "Application Title" Textbox Has Value "<ApplicationTitle>"
