@@ -233,7 +233,7 @@ Feature: Applications List Search
       | User   | SearchText | ValidationErrorMessage                      | OptionText | ExpectedValue | Info             |
       | admin1 | London     | There is a problem Court location not found |            | London        | No results found |
 
-  @regression @applicationsList @ARCPOC-214 @ARCPOC-417 @PJ
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-417
   Scenario: Verify application list Open
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
@@ -247,7 +247,7 @@ Feature: Applications List Search
       | todaydisplay | Leeds Combined Court Centre Set 7 | 1       | OPEN   |
     Then User Should See The Link "List details"
 
-  @regression @applicationsList @ARCPOC-214 @ARCPOC-417 @PJ
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-417
   Scenario: Verify application list row menu options for OPEN list
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
@@ -258,7 +258,7 @@ Feature: Applications List Search
       | Date         | Location                          | Entries | Status |
       | todaydisplay | Leeds Combined Court Centre Set 7 | 1       | OPEN   |
 
-  @regression @applicationsList @ARCPOC-214 @ARCPOC-417 @PJ
+  @regression @applicationsList @ARCPOC-214 @ARCPOC-417
   Scenario Outline: Verify application list row menu options for CLOSED list
     Given User Authenticates Via API As "user1"
     When User Makes POST API Request To "/application-lists" With Body:
