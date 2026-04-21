@@ -2,9 +2,8 @@ import { mapSaToRow } from '@components/standard-applicant-select/util/standard-
 import { StandardApplicantGetSummaryDto } from '@openapi';
 import { formatDate } from '@util/standard-applicant-helpers';
 
-const buildStandardApplicantRows = (
-  input: StandardApplicantGetSummaryDto[],
-) => input.map((item) => mapSaToRow(item));
+const buildStandardApplicantRows = (input: StandardApplicantGetSummaryDto[]) =>
+  input.map((item) => mapSaToRow(item));
 
 describe('formatDate', () => {
   it('returns formatted date in mediumDate en-GB format for a valid ISO date', () => {
