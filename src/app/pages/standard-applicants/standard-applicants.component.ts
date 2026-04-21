@@ -23,11 +23,11 @@ import {
   SortableTableComponent,
   TableColumn,
 } from '@components/sortable-table/sortable-table.component';
+import { STANDARD_APPLICANT_SEARCH_ERROR_MESSAGES } from '@components/standard-applicant-select/util/error-messages';
 import {
   mapSaToRow,
   standardAppColumns,
 } from '@components/standard-applicant-select/util/standard-applicant-select-row-helpers';
-import { STANDARD_APPLICANT_SEARCH_ERROR_MESSAGES } from '@components/standard-applicant-select/util/error-messages';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import {
   GetStandardApplicantsRequestParams,

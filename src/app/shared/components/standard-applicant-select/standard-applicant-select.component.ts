@@ -21,11 +21,11 @@ import {
   Validators,
 } from '@angular/forms';
 
+import { STANDARD_APPLICANT_SEARCH_ERROR_MESSAGES } from './util/error-messages';
 import {
   mapSaToRow,
   standardAppColumns,
 } from './util/standard-applicant-select-row-helpers';
-import { STANDARD_APPLICANT_SEARCH_ERROR_MESSAGES } from './util/error-messages';
 import {
   StandardApplicantSelectPagingState,
   initialStandardApplicantSelectPagingState,
