@@ -6,9 +6,9 @@ const buildStandardApplicantRows = (
 ) => input.map((item) => mapSaToRow(item));
 
 describe('formatDate', () => {
-  it('returns formatted date in en-GB format for a valid ISO date', () => {
+  it('returns formatted date in mediumDate en-GB format for a valid ISO date', () => {
     const result = formatDate('2025-12-01');
-    expect(result).toBe('01/12/2025');
+    expect(result).toBe('1 Dec 2025');
   });
 
   it('returns an em dash for undefined', () => {
@@ -23,7 +23,7 @@ describe('formatDate', () => {
 
   it('passes through invalid dates (still not returning the em dash)', () => {
     const result = formatDate('not-a-date');
-    expect(result).toBe('Invalid Date');
+    expect(result).toBe('—');
   });
 });
 
@@ -58,8 +58,8 @@ describe('buildStandardApplicantRows', () => {
       code: 'SA-001',
       name: 'Mr, John Q, Public',
       address: '1 Test Street',
-      useFrom: '01/12/2025',
-      useTo: '31/12/2025',
+      useFrom: '1 Dec 2025',
+      useTo: '31 Dec 2025',
     });
   });
 
@@ -87,8 +87,8 @@ describe('buildStandardApplicantRows', () => {
       code: 'SA-ORG',
       name: 'Test Org Ltd',
       address: 'Org House',
-      useFrom: '10/01/2025',
-      useTo: '20/02/2025',
+      useFrom: '10 Jan 2025',
+      useTo: '20 Feb 2025',
     });
   });
 
@@ -128,8 +128,8 @@ describe('buildStandardApplicantRows', () => {
       code: 'SA-BOTH',
       name: 'Org Name Preferred',
       address: 'Org Address 1',
-      useFrom: '01/03/2025',
-      useTo: '15/03/2025',
+      useFrom: '1 Mar 2025',
+      useTo: '15 Mar 2025',
     });
   });
 
@@ -214,7 +214,7 @@ describe('buildStandardApplicantRows', () => {
     const rows = buildStandardApplicantRows(input);
 
     expect(rows).toHaveLength(1);
-    expect(rows[0].useFrom).toBe('01/05/2025');
+    expect(rows[0].useFrom).toBe('1 May 2025');
     expect(rows[0].useTo).toBe('—');
   });
 });

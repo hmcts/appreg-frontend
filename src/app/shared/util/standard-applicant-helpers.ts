@@ -2,6 +2,16 @@
 Helper functions for Standard Applicants
 */
 
+import { formatDate as ngFormatDate } from '@angular/common';
+
 export function formatDate(iso?: string | null): string {
-  return iso ? new Date(iso).toLocaleDateString('en-GB') : '—';
+  if (!iso) {
+    return '—';
+  }
+
+  try {
+    return ngFormatDate(iso, 'mediumDate', 'en-GB');
+  } catch {
+    return '—';
+  }
 }
