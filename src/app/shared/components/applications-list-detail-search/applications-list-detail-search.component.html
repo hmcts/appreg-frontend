@@ -1,6 +1,7 @@
-<div>
+<div [formGroup]="form">
   <div class="govuk-grid-row">
     <app-text-input
+      formControlName="applicant"
       label="Applicant"
       idPrefix="applicant"
       containerWidthClass="govuk-grid-column-one-half"
@@ -10,6 +11,7 @@
 
   <div class="govuk-grid-row">
     <app-text-input
+      formControlName="respondent"
       label="Respondent"
       idPrefix="respondent"
       containerWidthClass="govuk-grid-column-one-half"
@@ -18,17 +20,26 @@
   </div>
 
   <div class="govuk-grid-row">
-    <app-text-input label="Postcode" idPrefix="postcode" />
+    <app-text-input
+      formControlName="postcode"
+      label="Postcode"
+      idPrefix="postcode"
+    />
   </div>
 
   <ng-template #advancedFields>
     <!-- Advanced fields block -->
     <div class="govuk-grid-row">
-      <app-text-input label="Sequence number" idPrefix="sequence-number" />
+      <app-text-input
+        formControlName="sequenceNumber"
+        label="Sequence number"
+        idPrefix="sequence-number"
+      />
     </div>
 
     <div class="govuk-grid-row">
       <app-text-input
+        formControlName="accountNumber"
         label="Account number"
         idPrefix="account-number"
         containerWidthClass="govuk-grid-column-one-half"
@@ -38,6 +49,7 @@
 
     <div class="govuk-grid-row">
       <app-text-input
+        formControlName="title"
         label="Title"
         idPrefix="title"
         containerWidthClass="govuk-grid-column-one-half"
@@ -47,6 +59,7 @@
 
     <div class="govuk-grid-row">
       <app-select-input
+        formControlName="fee"
         label="Fee"
         idPrefix="fee"
         [options]="[
@@ -58,7 +71,11 @@
     </div>
 
     <div class="govuk-grid-row">
-      <app-text-input label="Resulted" idPrefix="resulted" />
+      <app-text-input
+        formControlName="resulted"
+        label="Resulted"
+        idPrefix="resulted"
+      />
     </div>
   </ng-template>
 
@@ -70,4 +87,18 @@
       <ng-container *ngTemplateOutlet="advancedFields"></ng-container>
     </div>
   </details>
+
+  <div class="govuk-button-group">
+    <button class="govuk-button" value="search" (click)="onSearch()">
+      Search
+    </button>
+    <button
+      class="govuk-button govuk-button--secondary"
+      type="button"
+      data-module="govuk-button"
+      (click)="clearSearch()"
+    >
+      Clear search
+    </button>
+  </div>
 </div>
