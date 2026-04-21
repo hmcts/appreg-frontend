@@ -6,7 +6,12 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 
 import {
   ErrorItem,
@@ -18,6 +23,7 @@ import {
   SortableTableComponent,
   TableColumn,
 } from '@components/sortable-table/sortable-table.component';
+import { STANDARD_APPLICANT_SEARCH_ERROR_MESSAGES } from '@components/standard-applicant-select/util/error-messages';
 import {
   mapSaToRow,
   standardAppColumns,
@@ -27,6 +33,8 @@ import {
   GetStandardApplicantsRequestParams,
   StandardApplicantsApi,
 } from '@openapi';
+import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
+import { ErrorMessageMap, buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
@@ -82,10 +90,20 @@ export class StandardApplicants implements OnInit {
 
   private readonly loadRequest =
     signal<GetStandardApplicantsRequestParams | null>(null);
+  readonly submitted = signal(false);
+  private readonly errorMap: ErrorMessageMap =
+    STANDARD_APPLICANT_SEARCH_ERROR_MESSAGES;
+  onCreateErrorClick = onCreateErrorClickFn;
 
   form = new FormGroup({
-    code: new FormControl<string>('', { nonNullable: true }),
-    name: new FormControl<string>('', { nonNullable: true }),
+    code: new FormControl<string>('', {
+      nonNullable: true,
+      validators: [Validators.maxLength(10)],
+    }),
+    name: new FormControl<string>('', {
+      nonNullable: true,
+      validators: [Validators.maxLength(100)],
+    }),
   });
 
   columns: TableColumn[] = [
@@ -99,16 +117,39 @@ export class StandardApplicants implements OnInit {
 
   onSubmit(event: SubmitEvent): void {
     event.preventDefault();
+    this.submitted.set(true);
+    this.form.markAllAsTouched();
+    this.form.updateValueAndValidity({ emitEvent: false });
+
+    const validationErrors = this.buildErrorSummary();
+    this.signalState.patch({ searchErrors: validationErrors });
+
+    if (validationErrors.length) {
+      return;
+    }
+
     this.signalState.patch({ hasSearched: true });
     this.loadStandardApplicants(0);
   }
 
+  fieldError(id: string): ErrorItem | undefined {
+    return this.vm().searchErrors.find((e) => e.id === id);
+  }
+
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    if (!this.canSearch()) {
+      return;
+    }
+
     this.signalState.patch({ sortField: sort });
     this.loadStandardApplicants(0);
   }
 
   onPageChange(page: number): void {
+    if (!this.canSearch()) {
+      return;
+    }
+
     this.loadStandardApplicants(page);
   }
 
@@ -141,6 +182,19 @@ export class StandardApplicants implements OnInit {
       },
       this.envInjector,
     );
+  }
+
+  private buildErrorSummary(): ErrorItem[] {
+    return buildFormErrorSummary(this.form, this.errorMap);
+  }
+
+  private canSearch(): boolean {
+    this.form.updateValueAndValidity({ emitEvent: false });
+
+    const validationErrors = this.buildErrorSummary();
+    this.signalState.patch({ searchErrors: validationErrors });
+
+    return validationErrors.length === 0;
   }
 
   private loadStandardApplicants(page: number): void {

@@ -336,6 +336,10 @@ export class ApplicationsListEntryCreate implements OnInit {
       return;
     }
 
+    if (this.form.controls.applicantType.value === 'standard') {
+      return;
+    }
+
     this.childErrors.applicant = [];
   }
 

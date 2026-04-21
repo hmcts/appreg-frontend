@@ -130,6 +130,39 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     expect(component.respondentErrorItems).toEqual([]);
   });
 
+  it('includes relayed standard applicant search errors in the parent summary', () => {
+    component.form.patchValue({ applicantType: 'standard' });
+    (
+      component as unknown as {
+        appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
+      }
+    ).appListEntryCreatePatch({ submitted: true });
+
+    component.onChildErrors('applicant', [
+      {
+        id: 'standard-applicant-code',
+        text: 'Code must be 10 characters or fewer',
+        href: '#standard-applicant-code',
+      },
+    ]);
+
+    expect(component.applicantErrorItems).toEqual([
+      {
+        id: 'standard-applicant-code',
+        text: 'Code must be 10 characters or fewer',
+        href: '#standard-applicant-code',
+      },
+    ]);
+    expect(component.vm().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'standard-applicant-code',
+          text: 'Code must be 10 characters or fewer',
+        }),
+      ]),
+    );
+  });
+
   it('payload: omits applicant/respondent when empty', () => {
     component.form.patchValue({
       applicationCode: 'A001',

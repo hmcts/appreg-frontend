@@ -35,7 +35,9 @@ class MockOrganisationSectionComponent {
 })
 class MockStandardApplicantSelectComponent {
   readonly selectedCode = input<string | null>(null);
+  readonly selectedApplicantSummaryChange = output<unknown>();
   readonly selectedCodeChange = output<string | null>();
+  readonly searchErrorsChange = output<unknown[]>();
 }
 
 describe('ApplicantSectionComponent', () => {
@@ -128,6 +130,30 @@ describe('ApplicantSectionComponent', () => {
     ).toBeNull();
   });
 
+  it('renders the saved standard applicant tag and text when saved values exist', () => {
+    fixture.componentRef.setInput('applicantType', 'standard' as ApplicantType);
+    fixture.componentRef.setInput('savedStandardApplicantCode', 'SA-123');
+    fixture.componentRef.setInput('savedStandardApplicantName', 'Example Org');
+    fixture.detectChanges();
+
+    const tag = fixture.debugElement.query(By.css('.govuk-tag'));
+    const body = fixture.debugElement.query(By.css('.govuk-body'));
+
+    expect(tag).toBeTruthy();
+    expect(tag.nativeElement.textContent).toContain('Saved');
+    expect(body).toBeTruthy();
+    expect(body.nativeElement.textContent).toContain('SA-123');
+    expect(body.nativeElement.textContent).toContain('Example Org');
+  });
+
+  it('does not render saved standard applicant text without a saved name', () => {
+    fixture.componentRef.setInput('applicantType', 'standard' as ApplicantType);
+    fixture.componentRef.setInput('savedStandardApplicantCode', 'SA-123');
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('.govuk-tag'))).toBeNull();
+  });
+
   it('emits updateClicked when the update button is clicked', () => {
     const spy = jest.fn();
     component.updateClicked.subscribe(spy);
@@ -162,6 +188,26 @@ describe('ApplicantSectionComponent', () => {
 
     component.onStandardChanged('ABC123');
     expect(spy).toHaveBeenCalledWith('ABC123');
+  });
+
+  it('emits applicantErrorsChange when standard applicant errors are relayed', () => {
+    const spy = jest.fn();
+    const errors = [{ id: 'code', text: 'Bad code', href: '#code' }];
+
+    component.applicantErrorsChange.subscribe(spy);
+
+    component.onStandardApplicantErrorsChanged(errors);
+    expect(spy).toHaveBeenCalledWith(errors);
+  });
+
+  it('emits standardApplicantSummaryChange when standard applicant summary is relayed', () => {
+    const spy = jest.fn();
+    const summary = { code: 'SA-123', name: 'Example Org' };
+
+    component.standardApplicantSummaryChange.subscribe(spy);
+
+    component.onSelectedStandardApplicantSummaryChanged(summary);
+    expect(spy).toHaveBeenCalledWith(summary);
   });
 
   it('disables update button when isUpdateDisabled is true', () => {

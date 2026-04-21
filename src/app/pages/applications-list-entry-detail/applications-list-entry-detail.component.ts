@@ -84,6 +84,7 @@ import { OfficialsSectionComponent } from '@components/officials-section/officia
 import { RespondentSectionComponent } from '@components/respondent-section/respondent-section.component';
 import { ResultWordingSectionComponent } from '@components/result-wording-section/result-wording-section.component';
 import { TableColumn } from '@components/sortable-table/sortable-table.component';
+import { SelectedStandardApplicantSummary } from '@components/standard-applicant-select/standard-applicant-select.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
 import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
@@ -103,6 +104,7 @@ import {
   EntryGetDetailDto,
   EntryUpdateDto,
   FeeStatus,
+  StandardApplicantsApi,
   TemplateDetail,
   TemplateSubstitution,
   UpdateApplicationListEntryRequestParams,
@@ -138,6 +140,7 @@ import { buildFormErrorSummary } from '@util/error-summary';
 import { markFormGroupClean } from '@util/form-helpers';
 import { respondentFormsHaveAnyValue } from '@util/respondent-helpers';
 import { createSignalState } from '@util/signal-state-helpers';
+import { formatPersonName, returnOrgName } from '@util/string-helpers';
 import {
   createWordingObjectValuesResolver,
   withWordingFieldValues,
@@ -202,6 +205,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   private readonly formSvc = inject(ApplicationListEntryFormService);
   private readonly location = inject(Location);
   private readonly applicationCodesApi = inject(ApplicationCodesApi);
+  private readonly standardApplicantsApi = inject(StandardApplicantsApi);
 
   //Utilising facade for entry results to keep component clean
   readonly resultsFacade = inject(ApplicationListEntryResultsFacade);
@@ -226,6 +230,10 @@ export class ApplicationsListEntryDetail implements OnInit {
   organisationForm!: OrganisationForm;
 
   selectedStandardApplicantCode: string | null = null;
+  savedStandardApplicantCode: string | null = null;
+  savedStandardApplicantName: string | null = null;
+  private pendingStandardApplicantSummary: SelectedStandardApplicantSummary | null =
+    null;
 
   entryDetail: EntryGetDetailDto | null = null;
 
@@ -551,6 +559,10 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
+    if (this.applicantType === 'standard') {
+      return;
+    }
+
     this.childErrors.applicant = [];
   }
 
@@ -611,7 +623,10 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   onChildErrors(source: ChildErrorSource, errors: ErrorItem[]): void {
     this.childErrors[source] = errors ?? [];
-    this.updateAllErrors();
+
+    if (this.vm().formSubmitted) {
+      this.updateAllErrors();
+    }
   }
 
   private submitEntryUpdate(
@@ -649,6 +664,7 @@ export class ApplicationsListEntryDetail implements OnInit {
             errorFound: false,
           });
           this.mergeEntryDetailUpdate(entryUpdateDto, res);
+          this.applySavedStandardApplicantSummary();
           this.appListEntryDetailPatch({ successBanner });
 
           if (this.applicantType === 'person') {
@@ -760,6 +776,12 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.formSvc.setStandardApplicantCode(this.forms, code, {
       emitEvent: false,
     });
+  }
+
+  onSelectedStandardApplicantSummaryChanged(
+    summary: SelectedStandardApplicantSummary | null,
+  ): void {
+    this.pendingStandardApplicantSummary = summary;
   }
 
   onOffsiteFeeChanged(nextValue: boolean): void {
@@ -928,6 +950,8 @@ export class ApplicationsListEntryDetail implements OnInit {
         // keep UI state in sync
         this.selectedStandardApplicantCode =
           t === 'standard' ? this.selectedStandardApplicantCode : null;
+        this.pendingStandardApplicantSummary =
+          t === 'standard' ? this.pendingStandardApplicantSummary : null;
 
         // let the service reset the subforms + standard code
         this.formSvc.onApplicantTypeChanged(this.forms, t);
@@ -979,6 +1003,11 @@ export class ApplicationsListEntryDetail implements OnInit {
 
           this.selectedStandardApplicantCode =
             hydrate.selectedStandardApplicantCode;
+          this.savedStandardApplicantCode =
+            hydrate.selectedStandardApplicantCode;
+          this.savedStandardApplicantName = null;
+          this.pendingStandardApplicantSummary = null;
+          this.loadSavedStandardApplicantName(this.savedStandardApplicantCode);
 
           const type = this.form.controls.applicantType.value ?? 'person';
           this.formSvc.syncApplicantTypeState(this.forms, type);
@@ -1078,6 +1107,69 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     const type = this.form.controls.applicantType.value ?? 'person';
     this.formSvc.syncApplicantTypeState(this.forms, type);
+  }
+
+  private loadSavedStandardApplicantName(code: string | null): void {
+    const trimmedCode = code?.trim() || '';
+    const rawLodgementDate =
+      this.form.controls.lodgementDate.value?.trim() ||
+      this.entryDetail?.lodgementDate?.trim() ||
+      '';
+    const lodgementDate = rawLodgementDate.slice(0, 10);
+
+    if (!trimmedCode || !lodgementDate) {
+      this.savedStandardApplicantName = null;
+      this.pendingStandardApplicantSummary = null;
+      return;
+    }
+
+    this.standardApplicantsApi
+      .getStandardApplicantByCodeAndDate(
+        {
+          code: trimmedCode,
+          date: lodgementDate,
+        },
+        'body',
+        false,
+        { transferCache: true },
+      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (applicant) => {
+          this.savedStandardApplicantName =
+            applicant.name?.trim() ||
+            returnOrgName(applicant.applicant)?.trim() ||
+            formatPersonName(applicant.applicant)?.trim() ||
+            null;
+          this.pendingStandardApplicantSummary = this.savedStandardApplicantName
+            ? {
+                code: trimmedCode,
+                name: this.savedStandardApplicantName,
+              }
+            : null;
+        },
+        error: () => {
+          this.savedStandardApplicantName = null;
+          this.pendingStandardApplicantSummary = null;
+        },
+      });
+  }
+
+  private applySavedStandardApplicantSummary(): void {
+    if (this.applicantType !== 'standard') {
+      this.savedStandardApplicantCode = null;
+      this.savedStandardApplicantName = null;
+      this.pendingStandardApplicantSummary = null;
+      return;
+    }
+
+    const pending = this.pendingStandardApplicantSummary;
+    const currentCode = this.selectedStandardApplicantCode?.trim() || '';
+
+    if (pending?.code.trim() === currentCode) {
+      this.savedStandardApplicantCode = pending.code.trim() || null;
+      this.savedStandardApplicantName = pending.name.trim() || null;
+    }
   }
 
   private handleListCreate(): void {
