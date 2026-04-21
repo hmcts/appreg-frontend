@@ -60,6 +60,7 @@ Feature: Applications List Entry Create
       | First name       | Jane                           |
       | Middle name(s)   | Elizabeth                      |
       | Surname          | Doe {RANDOM}                   |
+      | Date of birth    | <DOBRandom>                    |
       | Address line 1   | {RANDOM} Park Road             |
       | Address line 2   | Building C                     |
       | Town or city     | Leeds                          |
@@ -123,8 +124,8 @@ Feature: Applications List Entry Create
     When User Clicks On The "Create entry" Button
     Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
     Examples:
-      | User  | TableName | SearchDate | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | ApplicationCode | ApplicationTitle           | WordingText                                      | placeholder                  | WordingValue        | PaymentReferenceUndertaken | UpdatedPaymentReferenceUndertaken | PaymentReferencePaid | CaseReference | AccountReference |
-      | user1 | Lists     | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | MX99006         | Condemnation of Unfit Food | Application for the condemnation of food, namely | Enter a Describe Seized Food | Test Sample Wording | PAY-{RANDOM}               | New PAY-{RANDOM}                  | Paid PAY-{RANDOM}    | case{RANDOM}  | account{RANDOM}  |
+      | User  | TableName | SearchDate | DisplayDate  | DOBRandom | Time  | Court                             | Description                             | Entries | Status | ApplicationCode | ApplicationTitle           | WordingText                                      | placeholder                  | WordingValue        | PaymentReferenceUndertaken | UpdatedPaymentReferenceUndertaken | PaymentReferencePaid | CaseReference | AccountReference |
+      | user1 | Lists     | today      | todaydisplay | today-30y | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | MX99006         | Condemnation of Unfit Food | Application for the condemnation of food, namely | Enter a Describe Seized Food | Test Sample Wording | PAY-{RANDOM}               | New PAY-{RANDOM}                  | Paid PAY-{RANDOM}    | case{RANDOM}  | account{RANDOM}  |
 
   @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC2
   Scenario Outline: Create an ALE where Applicant = Organisation and Respondent = Organisation, using an Application Code with Fee Required = N and Respondent Required = Y
@@ -150,17 +151,17 @@ Feature: Applications List Entry Create
     Then User Should See The Button "Hide all sections"
     # Applicant Details
     When User Fills In The Applicant Details
-      | Select applicant type | Organisation                       |
-      | Organisation name     | Test Sample Applicant Organisation |
-      | Address line 1        | 123 High Street                    |
-      | Address line 2        | Apartment 4B                       |
-      | Town or city          | Leeds                              |
-      | County or region      | West Yorkshire                     |
-      | Post town             | Leeds                              |
-      | Postcode              | LS10 1PJ                           |
-      | Phone number          | 020 7946 0000                      |
-      | Mobile number         | 07123 456789                       |
-      | Email address         | john.smith@example.com             |
+      | Select applicant type | Organisation                                |
+      | Organisation name     | Test Sample Applicant Organisation {RANDOM} |
+      | Address line 1        | {RANDOM} High Street                        |
+      | Address line 2        | Apartment {RANDOM}                          |
+      | Town or city          | Leeds                                       |
+      | County or region      | West Yorkshire                              |
+      | Post town             | Leeds                                       |
+      | Postcode              | LS10 1PJ                                    |
+      | Phone number          | 020 7946 0000                               |
+      | Mobile number         | 07123 456789                                |
+      | Email address         | john.smith@example.com                      |
     # Application Codes
     Then User Enters "<ApplicationCode>" Into The Textbox "Application code" In The Accordion "Application codes"
     When User Clicks On The "Search" Button In The Accordion "Application codes"
@@ -262,8 +263,8 @@ Feature: Applications List Entry Create
     Then User Checks The Checkbox With Label " Off site fee applies " In The Accordion "Civil fee"
     # Bug ARCPOC-1241 is raised
     # Then User Should See The Text "<OffisiteFeeCode>" In The Accordion "Civil fee"
-    # Then User Should See The Text "<OffsiteFeeValue>" In The Accordion "Civil fee"
-    # Then User Should See The Text "<TotalFeeAmount>" In The Accordion "Civil fee"
+    Then User Should See The Text "<OffsiteFeeValue>" In The Accordion "Civil fee"
+    Then User Should See The Text "<TotalFeeAmount>" In The Accordion "Civil fee"
     Then User Selects "Paid" From The Dropdown "Fee status" In The Accordion "Civil fee"
     Then User Enters "<SearchDate>" Into The Date Field "Status date" In The Accordion "Civil fee"
     Then User Enters "<PaymentReference>" Into The Textbox "Payment reference" In The Accordion "Civil fee"
@@ -278,4 +279,5 @@ Feature: Applications List Entry Create
 
     Examples:
       | User  | TableName | SearchDate | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationCode | ApplicationTitle                                           | WordingText                                                                                                                     | placeholder  | WordingValue | PaymentReference | CaseReference | AccountReference | OffsiteFeeString                                         | OffsiteFeeCode | OffsiteFeeValue             | TotalFeeAmount            | FeeReference         | FeeAmount       | StdAppCode | StdAppName         | StdAppAddress  | StdAppFrom |
-      | user1 | Lists     | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | AP99004         | Request for Certificate of Refusal to State a Case (Civil) | Request for a certificate of refusal to state a case for the opinion of the High Court in respect of civil proceedings heard on | Enter a Date | today        | PAY-12345        | case12345     | account12345     | Selecting this will apply the off site fee to the entry. | CO1.1          | Off Site Fee Amount: £30.00 | Total Fee Amount: £135.00 | Fee Reference: CO3.1 | Amount: £105.00 | APP025     | Miss, Ava, Johnson | 258 Cedar Lane | 06/11/2025 |
+      | user1 | Lists     | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | AP99004         | Request for Certificate of Refusal to State a Case (Civil) | Request for a certificate of refusal to state a case for the opinion of the High Court in respect of civil proceedings heard on | Enter a Date | today        | PAY-12345        | case12345     | account12345     | Selecting this will apply the off site fee to the entry. | CO1.1          | Off Site Fee Amount: £30.00 | Total Fee Amount: £135.00 | Fee Reference: CO3.1 | Amount: £105.00 | APP025     | Miss, Ava, Johnson | 258 Cedar Lane | 6 Nov 2025 |
+

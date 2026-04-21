@@ -153,6 +153,7 @@ export class TextboxHelper {
       .should('be.visible')
       .should('be.enabled')
       .should('have.attr', 'placeholder', placeholder)
+      .clear()
       .type(value);
   }
 }
