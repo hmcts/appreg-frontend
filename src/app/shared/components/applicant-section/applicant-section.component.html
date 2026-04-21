@@ -31,9 +31,22 @@
       />
     }
     @case ('standard') {
+      @if (standardApplicantSummary(); as summary) {
+        <p class="govuk-body govuk-!-margin-bottom-4">
+          <strong class="govuk-tag govuk-tag--blue govuk-!-margin-right-2">
+            Saved
+          </strong>
+          <span>{{ summary.displayText }}</span>
+        </p>
+      }
+
       <app-standard-applicant-select
         [selectedCode]="selectedStandardApplicantCode()"
         (selectedCodeChange)="onStandardChanged($event)"
+        (selectedApplicantSummaryChange)="
+          onSelectedStandardApplicantSummaryChanged($event)
+        "
+        (searchErrorsChange)="onStandardApplicantErrorsChanged($event)"
       />
     }
   }

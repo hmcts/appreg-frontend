@@ -5,6 +5,7 @@
         formControlName="code"
         label="Code"
         idPrefix="standard-applicant-code"
+        [error]="fieldError('code')?.text ?? null"
         containerWidthClass="govuk-grid-column-one-half"
       />
     </div>
@@ -14,6 +15,7 @@
         formControlName="name"
         label="Standard applicant name"
         idPrefix="standard-applicant-name"
+        [error]="fieldError('name')?.text ?? null"
         widthClass="govuk-input--width-20"
         containerWidthClass="govuk-grid-column-one-half"
       />

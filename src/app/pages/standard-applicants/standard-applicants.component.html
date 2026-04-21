@@ -1,5 +1,9 @@
 @if (vm().searchErrors.length) {
-  <app-error-summary [items]="vm().searchErrors" title="There is a problem" />
+  <app-error-summary
+    [items]="vm().searchErrors"
+    title="There is a problem"
+    (itemSelect)="onCreateErrorClick($event)"
+  />
 } @else {
   @if (vm().hasSearched && !vm().isLoading && !vm().rows.length) {
     <app-notification-banner
@@ -21,6 +25,7 @@
       formControlName="code"
       label="Code"
       idPrefix="code"
+      [error]="fieldError('code')?.text ?? null"
       containerWidthClass="govuk-grid-column-one-half"
     />
   </div>
@@ -30,6 +35,7 @@
       formControlName="name"
       label="Standard applicant name"
       idPrefix="name"
+      [error]="fieldError('name')?.text ?? null"
       widthClass="govuk-input--width-20"
       containerWidthClass="govuk-grid-column-one-half"
     />

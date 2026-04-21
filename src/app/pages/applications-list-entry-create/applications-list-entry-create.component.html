@@ -36,6 +36,7 @@
         form.controls.standardApplicantCode.value
       "
       (standardApplicantCodeChange)="onStandardApplicantCodeChanged($event)"
+      (applicantErrorsChange)="onChildErrors('applicant', $event)"
       [showUpdateButton]="false"
     />
   </ng-template>
@@ -109,7 +110,7 @@
     [id]="'accordion-default'"
     [items]="[
       { heading: 'Applicant', tpl: applicantTpl, expanded: true },
-      { heading: 'Codes', tpl: codesTpl, expanded: false },
+      { heading: 'Application codes', tpl: codesTpl, expanded: false },
       { heading: 'Wording', tpl: wordingTpl, expanded: false },
       { heading: 'Respondent', tpl: respondentTpl, expanded: false },
       { heading: 'Civil fee', tpl: civilFeeTpl, expanded: false },
