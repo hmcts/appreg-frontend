@@ -1,7 +1,7 @@
 Feature: Applications List Entry Create
 
     #  Regex Validations
-    @ignore @ARCPOC-222 @ARCPOC-1107 @ARCPOC-1282 @ARCPOC-1209 @ARCPOC-1241 @ARCPOC-1238 @SC1
+    @ignore @ARCPOC-222 @ARCPOC-1107 @ARCPOC-1282 @ARCPOC-1209 @ARCPOC-1241 @ARCPOC-1238 @ARCPOC-1302 @ARCPOC-1319  @SC1
     Scenario Outline: Create an ALE where Applicant = Person and Respondent = Person, using an Application Code with Fee Required = Y and Respondent Required = Y
         Given User Authenticates Via API As "<User>"
         # Create Application List
@@ -58,7 +58,7 @@ Feature: Applications List Entry Create
             | Email address         | invalid-email-address-format@.com                                                        |
         When User Clicks On The "Create entry" Button
         # @Bug ARCPOC-1269 is raised for the below statement as validation error message is not displayed
-        Then User Sees Validation Error Banner "There is a problem Enter an application code First name must be less than or equal to 60 characters Middle names must be less than or equal to 60 characters Last name must be less than or equal to 60 characters Address line 1 must be less than or equal to 60 characters Address line 2 must be less than or equal to 60 characters Town or city must be less than or equal to 60 characters County or region must be less than or equal to 60 characters Post town must be less than or equal to 60 characters Enter a valid UK postcode Enter a valid UK telephone number Enter a valid UK mobile number Enter an email address in the correct format"
+        Then User Sees Validation Error Banner "There is a problem Enter an application code First name must be less than or equal to 100 characters Middle names must be less than or equal to 100 characters Last name must be less than or equal to 100 characters Address line 1 must be less than or equal to 35 characters Address line 2 must be less than or equal to 35 characters Town or city must be less than or equal to 35 characters County or region must be less than or equal to 35 characters Post town must be less than or equal to 35 characters Enter a valid UK postcode Enter a valid UK telephone number Enter a valid UK mobile number Enter an email address in the correct format"
         When User Fills In The Applicant Details
             | Select applicant type | Person                                                      |
             | Select title          | Mr                                                          |
@@ -75,18 +75,18 @@ Feature: Applications List Entry Create
             | Mobile number         | 07123 456789                                                |
             | Email address         | test@example.com                                            |
         # Application Codes
-        Then User Enters "<InvalidApplicationCodeExceedsLimit>" Into The Textbox "Application code" In The Accordion "Codes"
-        When User Clicks On The "Search" Button In The Accordion "Codes"
+        Then User Enters "<InvalidApplicationCodeExceedsLimit>" Into The Textbox "Application code" In The Accordion "Application Codes"
+        When User Clicks On The "Search" Button In The Accordion "Application Codes"
         Then User Sees Error Alert "There is a problem We couldn’t fetch application codes. Please try again."
-        Then User Enters "<InvalidApplicationCode>" Into The Textbox "Application code" In The Accordion "Codes"
-        When User Clicks On The "Search" Button In The Accordion "Codes"
+        Then User Enters "<InvalidApplicationCode>" Into The Textbox "Application code" In The Accordion "Application Codes"
+        When User Clicks On The "Search" Button In The Accordion "Application Codes"
         Then User Sees Information Alert "No application codes found Try different filters, or retry the search."
-        Then User Enters "<ValidApplicationCode>" Into The Textbox "Application code" In The Accordion "Codes"
-        When User Clicks On The "Search" Button In The Accordion "Codes"
-        Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee req" In The Accordion "Codes"
-        Then User Clicks "Add code" Button In Row Of Table "Codes" In The Accordion "Codes"
-            | Code              | Title              | Bulk | Fee req |
-            | <ApplicationCode> | <ApplicationTitle> | No   | CO8.1   |
+        Then User Enters "<ValidApplicationCode>" Into The Textbox "Application code" In The Accordion "Application Codes"
+        When User Clicks On The "Search" Button In The Accordion "Application Codes"
+        Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Application Codes"
+        Then User Clicks "Add code" Button In Row Of Table "Codes" In The Accordion "Application Codes"
+            | Code                   | Title              | Bulk | Fee required |
+            | <ValidApplicationCode> | <ApplicationTitle> | No   | CO8.1        |
         Then User Verifies The "Application Title" Textbox Has Value "<ApplicationTitle>"
         Then User Verifies The Date field "Lodgement date" Has Value "<SearchDate>"
         # Wording Details
@@ -107,6 +107,7 @@ Feature: Applications List Entry Create
             | First name       |        |
             | Middle name(s)   |        |
             | Surname          |        |
+            | Date of birth    |        |
             | Address line 1   |        |
             | Address line 2   |        |
             | Town or city     |        |
@@ -124,6 +125,7 @@ Feature: Applications List Entry Create
             | First name       | yeli edtj.e ic-vsñcespietagccberac( )rN(ee asaa )oayadrrti)e- abcdefghijklmnopqrstuvwxyz |
             | Middle name(s)   | yeli edtj.e ic-vsñcespietagccberac( )rN(ee asaa )oayadrrti)e- abcdefghijklmnopqrstuvwxyz |
             | Surname          | yeli edtj.e ic-vsñcespietagccberac( )rN(ee asaa )oayadrrti)e- abcdefghijklmnopqrstuvwxyz |
+            | Date of birth    | tomorrow                                                                                 |
             | Address line 1   | yeli edtj.e ic-vsñcespietagccberac( )rN(ee asaa )oayadrrti)e- abcdefghijklmnopqrstuvwxyz |
             | Address line 2   | yeli edtj.e ic-vsñcespietagccberac( )rN(ee asaa )oayadrrti)e- abcdefghijklmnopqrstuvwxyz |
             | Town or city     | yeli edtj.e ic-vsñcespietagccberac( )rN(ee asaa )oayadrrti)e- abcdefghijklmnopqrstuvwxyz |
@@ -141,6 +143,7 @@ Feature: Applications List Entry Create
             | First name       | rrgi .)ec(rnab()ant e,huscruS-iñacñ ,.Eüeüc'h maeüsa)ncnc,r |
             | Middle name(s)   | rrgi .)ec(rnab()ant e,huscruS-iñacñ ,.Eüeüc'h maeüsa)ncnc,r |
             | Surname          | rrgi .)ec(rnab()ant e,huscruS-iñacñ ,.Eüeüc'h maeüsa)ncnc,r |
+            | Date of birth    | today                                                       |
             | Address line 1   | rrgi .)ec(rnab()ant e,huscruS-iñacñ ,.Eüeüc'h maeüsa)ncnc,r |
             | Address line 2   | rrgi .)ec(rnab()ant e,huscruS-iñacñ ,.Eüeüc'h maeüsa)ncnc,r |
             | Town or city     | rrgi .)ec(rnab()ant e,huscruS-iñacñ ,.Eüeüc'h maeüsa)ncnc,r |
@@ -158,29 +161,57 @@ Feature: Applications List Entry Create
         Then User Enters "<PaymentReferenceExceedsLimit>" Into The Textbox "Payment reference" In The Accordion "Civil fee"
         When User Clicks On The "Add fee details" Button In The Accordion "Civil fee"
         Then User Sees Validation Error Banner "There is a problem Enter a valid status date A payment reference cannot be supplied when fee status is DUE Payment reference must be less than or equal to 15 characters"
-        Then User Selects "Paid" From The Dropdown "Fee status" In The Accordion "Civil fee"
+        Then User Selects "Undertaken" From The Dropdown "Fee status" In The Accordion "Civil fee"
         Then User Enters "<SearchDateFuture>" Into The Date Field "Status date" In The Accordion "Civil fee"
-        Then User Enters "<PaymentReference>" Into The Textbox "Payment reference" In The Accordion "Civil fee"
+        Then User Enters "<PaymentReferenceUndertaken>" Into The Textbox "Payment reference" In The Accordion "Civil fee"
         When User Clicks On The "Add fee details" Button In The Accordion "Civil fee"
         Then User Sees Validation Error Banner "There is a problem Enter a valid status date"
         Then User Enters "<SearchDate>" Into The Date Field "Status date" In The Accordion "Civil fee"
         When User Clicks On The "Add fee details" Button In The Accordion "Civil fee"
-        Then User Sees Success Alert "Successfully added fee details"
+        Then User Clicks "Change" Link In Row Of Table "Current fee statuses table" In The Accordion "Civil fee"
+            #  1st Civil Fee Entry Validations
+            | Fee Status | Status Date  | Payment Ref                  |
+            | UNDERTAKEN | todaydisplay | <PaymentReferenceUndertaken> |
+        Then User Sees Page Heading "Change payment reference"
+        Then User Should See Summary List Row With Key "Status" And Value "UNDERTAKEN"
+        Then User Should See Summary List Row With Key "Status date" And Value "<DisplayDate>"
+        Then User Verifies The "Payment reference" Textbox Has Value "<PaymentReferenceUndertaken>"
+        Then User Enters "<UpdatedPaymentReferenceUndertaken>" Into The "Payment reference" Textbox
+        When User Clicks On The "Save" Button
+        # Verify Wording Success Banner and Wording Value retained after saving payment reference
+        Then User Verifies The Textbox "" Contains "<WordingValue>" In The Accordion "Wording"
+        Then User Sees Success Alert "Wording applied to this entry. Save the entry to keep these changes."
+        # 2nd Civil Fee Entry Validations
+        Then User Selects "Paid" From The Dropdown "Fee status" In The Accordion "Civil fee"
+        Then User Enters "<SearchDate>" Into The Date Field "Status date" In The Accordion "Civil fee"
+        Then User Enters "<PaymentReferencePaid>" Into The Textbox "Payment reference" In The Accordion "Civil fee"
+        When User Clicks On The "Add fee details" Button In The Accordion "Civil fee"
+        Then User Clicks "Change" Link In Row Of Table "Current fee statuses table" In The Accordion "Civil fee"
+            | Fee Status | Status Date  | Payment Ref            |
+            | PAID       | todaydisplay | <PaymentReferencePaid> |
+
+        Then User Sees Page Heading "Change payment reference"
+        Then User Should See Summary List Row With Key "Status" And Value "PAID"
+        Then User Should See Summary List Row With Key "Status date" And Value "<DisplayDate>"
+        Then User Verifies The "Payment reference" Textbox Has Value "<PaymentReferencePaid>"
+        When User Clicks On The "Cancel" Button
+        # Verify Wording Success Banner and Wording Value retained after saving payment reference
+        Then User Verifies The Textbox "" Contains "<WordingValue>" In The Accordion "Wording"
+        Then User Sees Success Alert "Wording applied to this entry. Save the entry to keep these changes."
         # Notes Validation
         Then User Enters "<CaseReferenceExceedsLimit>" Into The Textbox "Case reference" In The Accordion "Notes"
         Then User Enters "<AccountReferenceExceedsLimit>" Into The Textbox "Account reference" In The Accordion "Notes"
         Then User Enters "<AccountDetails>" Into The Textbox "Application details" In The Accordion "Notes"
         When User Clicks On The "Create entry" Button
-        Then User Sees Validation Error Banner "There is a problem Enter a valid status date Case reference must be less than or equal to 15 characters Account reference must be less than or equal to 20 characters"
+        Then User Sees Validation Error Banner "There is a problem Case reference must be less than or equal to 15 characters Account reference must be less than or equal to 20 characters"
         Then User Enters "<CaseReference>" Into The Textbox "Case reference" In The Accordion "Notes"
         Then User Enters "<AccountReference>" Into The Textbox "Account reference" In The Accordion "Notes"
         When User Clicks On The "Create entry" Button
         Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
 
         Examples:
-        Then User Enters "<InvalidApplicationCodeExceedsLimit>" Into The Textbox "Application code" In The Accordion "Codes"
-            | User  | TableName | InvalidSearchDate | SearchDate | SearchDateFuture | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | InvalidApplicationCodeExceedsLimit | InvalidApplicationCode | ValidApplicationCode | ApplicationTitle           | WordingText                                      | placeholder                  | WordingValue        | WordingValueExceedsLimit                                                                              | WordingValue                          | PaymentReferenceExceedsLimit | PaymentReference | CaseReferenceExceedsLimit | CaseReference | AccountReferenceExceedsLimit | AccountReference | OffsiteFeeString                                                                                         | OffsiteFeeCode | OffsiteFeeValue             | TotalFeeAmount            | FeeReference         | FeeAmount       | AccountDetails                                       |
-            | user1 | Lists     | 31/13/2048        | today      | tomorrow         | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | INVALID_CODE                       | CT99002A               | MX99006              | Condemnation of Unfit Food | Application for the condemnation of food, namely | Enter a Describe Seized Food | Test Sample Wording | (ctgn sürrreartcée.sstegl( lmamaeceegScerttpaN( )e -))t,eanoce)erc e(v.etth. abthubienr sa,to,)rtqwer | Test Sample Wording Not Exceeds Limit | PAY-12345-12345-12345        | PAY-12345        | case123451234512345       | case12345     | account12345123451234512345  | account12345     | Selecting this will automatically apply the off site fee to the entry. This change is saved immediately. | CO1.1          | Off Site Fee Amount: £30.00 | Total Fee Amount: £284.00 | Fee Reference: CO8.1 | Amount: £284.00 | This is a test application with special requirements |
+            | User  | TableName | InvalidSearchDate | SearchDate | SearchDateFuture | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | InvalidApplicationCodeExceedsLimit | InvalidApplicationCode | ValidApplicationCode | ApplicationTitle           | WordingText                                      | placeholder                  | WordingValue        | WordingValueExceedsLimit                                                                              | WordingValue                          | PaymentReferenceExceedsLimit | PaymentReferencePaid | PaymentReferenceUndertaken | UpdatedPaymentReferenceUndertaken | CaseReferenceExceedsLimit | CaseReference | AccountReferenceExceedsLimit | AccountReference | OffsiteFeeString                                                                                         | OffsiteFeeCode | OffsiteFeeValue             | TotalFeeAmount            | FeeReference         | FeeAmount       | AccountDetails                                       |
+            | user1 | Lists     | 31/13/2048        | today      | tomorrow         | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | INVALID_CODE                       | CT99002A               | MX99006              | Condemnation of Unfit Food | Application for the condemnation of food, namely | Enter a Describe Seized Food | Test Sample Wording | (ctgn sürrreartcée.sstegl( lmamaeceegScerttpaN( )e -))t,eanoce)erc e(v.etth. abthubienr sa,to,)rtqwer | Test Sample Wording Not Exceeds Limit | PAY-12345-12345-12345        | PAY-12345            | Pay-12345-12345            | Pay-12345-12345                   | case123451234512345       | case12345     | account12345123451234512345  | account12345     | Selecting this will automatically apply the off site fee to the entry. This change is saved immediately. | CO1.1          | Off Site Fee Amount: £30.00 | Total Fee Amount: £284.00 | Fee Reference: CO8.1 | Amount: £284.00 | This is a test application with special requirements |
 
     @ignore @ARCPOC-222 @ARCPOC-1107 @SC2
     Scenario Outline: Create an ALE where Applicant = Organisation and Respondent = Organisation, using an Application Code with Fee Required = N and Respondent Required = Y
