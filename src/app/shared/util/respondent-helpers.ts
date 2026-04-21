@@ -1,14 +1,40 @@
 import { AbstractControl } from '@angular/forms';
 
+const hasStartedDateInput = (
+  candidate: AbstractControl | null | undefined,
+): boolean => {
+  if (!candidate) {
+    return false;
+  }
+
+  if (candidate.errors?.['dateInvalid']) {
+    return true;
+  }
+
+  const childControls = (candidate as { controls?: unknown }).controls;
+  if (Array.isArray(childControls)) {
+    return childControls.some((child) =>
+      hasStartedDateInput(child as AbstractControl),
+    );
+  }
+
+  if (childControls && typeof childControls === 'object') {
+    return Object.values(childControls as Record<string, AbstractControl>).some(
+      hasStartedDateInput,
+    );
+  }
+
+  return false;
+};
+
 export function controlHasAnyValue(
   control: AbstractControl | null | undefined,
 ): boolean {
-  // Recursively check control for values
   if (!control) {
     return false;
   }
 
-  if (control.dirty) {
+  if (hasStartedDateInput(control)) {
     return true;
   }
 
