@@ -85,7 +85,6 @@ import { RespondentSectionComponent } from '@components/respondent-section/respo
 import { ResultWordingSectionComponent } from '@components/result-wording-section/result-wording-section.component';
 import { TableColumn } from '@components/sortable-table/sortable-table.component';
 import { SelectedStandardApplicantSummary } from '@components/standard-applicant-select/standard-applicant-select.component';
-import { mapSaToRow } from '@components/standard-applicant-select/util/standard-applicant-select-row-helpers';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
 import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
@@ -141,6 +140,7 @@ import { buildFormErrorSummary } from '@util/error-summary';
 import { markFormGroupClean } from '@util/form-helpers';
 import { respondentFormsHaveAnyValue } from '@util/respondent-helpers';
 import { createSignalState } from '@util/signal-state-helpers';
+import { formatPersonName, returnOrgName } from '@util/string-helpers';
 import {
   createWordingObjectValuesResolver,
   withWordingFieldValues,
@@ -1111,19 +1111,23 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   private loadSavedStandardApplicantName(code: string | null): void {
     const trimmedCode = code?.trim() || '';
+    const rawLodgementDate =
+      this.form.controls.lodgementDate.value?.trim() ||
+      this.entryDetail?.lodgementDate?.trim() ||
+      '';
+    const lodgementDate = rawLodgementDate.slice(0, 10);
 
-    if (!trimmedCode) {
+    if (!trimmedCode || !lodgementDate) {
       this.savedStandardApplicantName = null;
+      this.pendingStandardApplicantSummary = null;
       return;
     }
 
     this.standardApplicantsApi
-      .getStandardApplicants(
+      .getStandardApplicantByCodeAndDate(
         {
           code: trimmedCode,
-          pageNumber: 0,
-          pageSize: 1,
-          sort: ['code,asc'],
+          date: lodgementDate,
         },
         'body',
         false,
@@ -1131,11 +1135,12 @@ export class ApplicationsListEntryDetail implements OnInit {
       )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (page) => {
-          const summary = page.content?.[0];
-          this.savedStandardApplicantName = summary
-            ? mapSaToRow(summary).name
-            : null;
+        next: (applicant) => {
+          this.savedStandardApplicantName =
+            applicant.name?.trim() ||
+            returnOrgName(applicant.applicant)?.trim() ||
+            formatPersonName(applicant.applicant)?.trim() ||
+            null;
           this.pendingStandardApplicantSummary = this.savedStandardApplicantName
             ? {
                 code: trimmedCode,
