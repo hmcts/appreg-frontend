@@ -117,6 +117,44 @@ describe('respondentFormsHaveAnyValue', () => {
     ).toBe(true);
   });
 
+  it('returns false when a control is dirty but its current values are empty', () => {
+    const respondentPersonForm = new FormGroup({
+      firstName: new FormControl<string | null>(''),
+      lastName: new FormControl<string | null>(null),
+    });
+
+    respondentPersonForm.controls.firstName.setValue('Jane');
+    respondentPersonForm.controls.firstName.setValue('');
+
+    expect(
+      respondentFormsHaveAnyValue({
+        numberOfRespondents: null,
+        respondentPersonForm,
+        respondentOrganisationForm: null,
+      }),
+    ).toBe(false);
+  });
+
+  it('returns true when a date control has active date validation errors but a null value', () => {
+    const respondentPersonForm = new FormGroup({
+      dob: new FormControl<string | null>(null),
+    });
+
+    respondentPersonForm.controls.dob.setErrors({
+      required: true,
+      dateInvalid: true,
+      dateErrorText: 'Enter a valid date',
+    });
+
+    expect(
+      respondentFormsHaveAnyValue({
+        numberOfRespondents: null,
+        respondentPersonForm,
+        respondentOrganisationForm: null,
+      }),
+    ).toBe(true);
+  });
+
   it('returns false when arrays contain no meaningful values', () => {
     const respondentPersonForm = new FormGroup({
       aliases: new FormControl<unknown>(['', '   ', null, 0]),

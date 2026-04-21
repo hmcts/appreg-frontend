@@ -41,8 +41,8 @@ import { SelectInputComponent } from '@components/select-input/select-input.comp
 import type {
   ApplicationsListEntryForm,
   OrganisationForm,
-  PersonForm,
   RespondentEntryType,
+  RespondentPersonForm,
 } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 
 type Option<T extends string> = { value: T; label: string };
@@ -61,7 +61,7 @@ type Option<T extends string> = { value: T; label: string };
 })
 export class RespondentSectionComponent {
   readonly form = input.required<ApplicationsListEntryForm>();
-  readonly personGroup = input.required<PersonForm>();
+  readonly personGroup = input.required<RespondentPersonForm>();
   readonly organisationGroup = input.required<OrganisationForm>();
   readonly bulkAllowed = input<boolean>(false);
 

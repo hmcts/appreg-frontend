@@ -43,7 +43,13 @@
       [submitted]="vm().formSubmitted"
       [errorItems]="applicantErrorItems"
       [selectedStandardApplicantCode]="selectedStandardApplicantCode"
+      [savedStandardApplicantCode]="savedStandardApplicantCode"
+      [savedStandardApplicantName]="savedStandardApplicantName"
       (standardApplicantCodeChange)="onStandardApplicantCodeChanged($event)"
+      (standardApplicantSummaryChange)="
+        onSelectedStandardApplicantSummaryChanged($event)
+      "
+      (applicantErrorsChange)="onChildErrors('applicant', $event)"
       [isUpdateDisabled]="isUpdateDisabled"
       (updateClicked)="onUpdateApplicant()"
       [showUpdateButton]="true"
@@ -143,7 +149,7 @@
     [id]="'accordion-default'"
     [items]="[
       { heading: 'Applicant', tpl: applicantTpl, expanded: false },
-      { heading: 'Codes', tpl: codesTpl, expanded: false },
+      { heading: 'Application codes', tpl: codesTpl, expanded: false },
       { heading: 'Wording', tpl: wordingTpl, expanded: false },
       { heading: 'Respondent', tpl: respondentTpl, expanded: false },
       { heading: 'Civil fee', tpl: civilFeeTpl, expanded: false },

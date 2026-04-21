@@ -28,6 +28,7 @@ import {
   Organisation,
   Person,
   Respondent,
+  RespondentPerson,
   TemplateSubstitution,
 } from '@openapi';
 import {
@@ -40,6 +41,8 @@ import {
   PersonFormValue,
   PersonOrgSharedControls,
   RespondentEntryType,
+  RespondentPersonForm,
+  RespondentPersonFormValue,
 } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import {
   mapOptionValueToTitle,
@@ -240,8 +243,11 @@ export function buildPersonOrgSharedControls(
   };
 }
 
-export function buildPersonForm(fb: NonNullableFormBuilder): PersonForm {
-  return fb.group({
+export function buildPersonForm(
+  fb: NonNullableFormBuilder,
+  isRespondent?: boolean,
+): PersonForm | RespondentPersonForm {
+  const commonFormGroup = {
     title: fb.control<string | null>(null),
     firstName: fb.control<string>('', {
       validators: [REQUIRED, MAX_60, Validators.pattern(NAME_REGEX)],
@@ -253,6 +259,17 @@ export function buildPersonForm(fb: NonNullableFormBuilder): PersonForm {
       validators: [REQUIRED, MAX_60, Validators.pattern(NAME_REGEX)],
     }),
     ...buildPersonOrgSharedControls(fb),
+  };
+
+  if (isRespondent) {
+    return fb.group({
+      dob: fb.control<string | null>(null),
+      ...commonFormGroup,
+    }) as RespondentPersonForm;
+  }
+
+  return fb.group({
+    ...commonFormGroup,
   }) as PersonForm;
 }
 
@@ -275,7 +292,7 @@ export function buildEntryUpdateDtoFromForm(
   formValue: ApplicationsListEntryFormValue,
   applicantPersonValue: PersonFormValue,
   applicantOrgValue: OrganisationFormValue,
-  respondentPersonValue: PersonFormValue,
+  respondentPersonValue: RespondentPersonFormValue,
   respondentOrgValue: OrganisationFormValue,
 ): EntryUpdateDto {
   // Full snapshot of current server state
@@ -379,7 +396,7 @@ export function buildOrganisationApplicantFromRaw(
 }
 
 export function personToFormPatch(
-  person: Person | null | undefined,
+  person: Person | RespondentPerson | null | undefined,
 ): Record<string, unknown> {
   if (!person) {
     return {};
@@ -406,6 +423,15 @@ export function personToFormPatch(
     middleNames,
     surname: name?.surname ?? '',
     ...contactDetailsToFormPatch(contactDetails),
+  };
+}
+
+export function respondentPersonToFormPatch(
+  person: RespondentPerson | null | undefined,
+): Record<string, unknown> {
+  return {
+    ...personToFormPatch(person),
+    dob: person?.dateOfBirth ?? null,
   };
 }
 

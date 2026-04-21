@@ -15,7 +15,7 @@ export type ApplicationListEntryForms = {
   form: ApplicationsListEntryForm;
   personForm: PersonForm;
   organisationForm: OrganisationForm;
-  respondentPersonForm: PersonForm;
+  respondentPersonForm: RespondentPersonForm;
   respondentOrganisationForm: OrganisationForm;
 };
 
@@ -76,6 +76,16 @@ export type PersonForm = FormGroup<
   } & PersonOrgSharedControls
 >;
 
+export type RespondentPersonForm = FormGroup<
+  {
+    title: FormControl<string | null>;
+    firstName: FormControl<string>;
+    middleNames: FormControl<string>;
+    surname: FormControl<string | null>;
+    dob: FormControl<string | null>;
+  } & PersonOrgSharedControls
+>;
+
 export type OrganisationForm = FormGroup<
   {
     name: FormControl<string>;
@@ -87,5 +97,9 @@ export type ApplicationsListEntryFormValue = ReturnType<
 >;
 
 export type PersonFormValue = ReturnType<PersonForm['getRawValue']>;
+
+export type RespondentPersonFormValue = ReturnType<
+  RespondentPersonForm['getRawValue']
+>;
 
 export type OrganisationFormValue = ReturnType<OrganisationForm['getRawValue']>;

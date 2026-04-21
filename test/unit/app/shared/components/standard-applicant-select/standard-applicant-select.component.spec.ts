@@ -86,7 +86,7 @@ describe('StandardApplicantSelectComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('loads first page on init and maps rows from API', fakeAsync(() => {
+  it('loads first page on init and maps rows from API', () => {
     const page = {
       content: [
         makeSummary({
@@ -143,7 +143,7 @@ describe('StandardApplicantSelectComponent', () => {
     mockGetStandardApplicants.mockReturnValueOnce(of(page));
 
     fixture.detectChanges();
-    TestBed.tick();
+    fixture.detectChanges();
 
     expect(mockGetStandardApplicants).toHaveBeenCalledWith(
       {
@@ -173,9 +173,9 @@ describe('StandardApplicantSelectComponent', () => {
       fixture.debugElement.query(By.css('app-sortable-table')),
     ).toBeTruthy();
     expect(fixture.debugElement.query(By.css('app-pagination'))).toBeTruthy();
-  }));
+  });
 
-  it('uses selectedCode input to initialise selectedIds and emits changes when selection changes', fakeAsync(() => {
+  it('uses selectedCode input to initialise selectedIds and emits changes when selection changes', () => {
     // Pre-set selectedCode before first change detection
     fixture.componentRef.setInput('selectedCode', 'SA-2');
 
@@ -192,7 +192,7 @@ describe('StandardApplicantSelectComponent', () => {
     const emitSpy = jest.spyOn(component.selectedCodeChange, 'emit');
 
     fixture.detectChanges();
-    TestBed.tick();
+    fixture.detectChanges();
 
     // After init, selectedIds should reflect selectedCode
     expect(component.selectedIds.has('SA-2')).toBe(true);
@@ -201,26 +201,26 @@ describe('StandardApplicantSelectComponent', () => {
     component.onSelectedIdsChange(new Set<string>(['SA-1']));
 
     expect(emitSpy).toHaveBeenCalledWith('SA-1');
-  }));
+  });
 
-  it('clears selection when selectedCode becomes null', fakeAsync(() => {
+  it('clears selection when selectedCode becomes null', () => {
     fixture.componentRef.setInput('selectedCode', 'SA-1');
     fixture.detectChanges();
-    TestBed.tick();
+    fixture.detectChanges();
 
     expect(component.selectedIds.size).toBe(1);
 
     // Simulate input change from parent
     fixture.componentRef.setInput('selectedCode', null);
     fixture.detectChanges();
-    TestBed.tick();
+    fixture.detectChanges();
 
     expect(component.selectedIds.size).toBe(0);
-  }));
+  });
 
-  it('onPageChange triggers API call for requested page and updates pageIndex', fakeAsync(() => {
+  it('onPageChange triggers API call for requested page and updates pageIndex', () => {
     fixture.detectChanges();
-    TestBed.tick();
+    fixture.detectChanges();
 
     const secondPage = {
       content: [makeSummary({ code: 'SA-10' })],
@@ -233,7 +233,7 @@ describe('StandardApplicantSelectComponent', () => {
     mockGetStandardApplicants.mockReturnValueOnce(of(secondPage));
 
     component.onPageChange(1);
-    TestBed.tick();
+    fixture.detectChanges();
 
     expect(mockGetStandardApplicants).toHaveBeenLastCalledWith(
       {
@@ -251,27 +251,27 @@ describe('StandardApplicantSelectComponent', () => {
     expect(component.vm().pageIndex).toBe(1);
     expect(component.vm().totalPages).toBe(2);
     expect(component.rows[0].code).toBe('SA-10');
-  }));
+  });
 
-  it('handles API error by clearing rows and totalPages', fakeAsync(() => {
+  it('handles API error by clearing rows and totalPages', () => {
     fixture.detectChanges();
-    TestBed.tick();
+    fixture.detectChanges();
     mockGetStandardApplicants.mockReturnValueOnce(
       throwError(() => new Error('network')),
     );
 
     component.onPageChange(1);
-    TestBed.tick();
+    fixture.detectChanges();
     expect(component.rows).toEqual([]);
     expect(component.vm().totalPages).toBe(0);
-  }));
+  });
 
-  it('maps useTo sort key to backend to and reloads first page', fakeAsync(() => {
+  it('maps useTo sort key to backend to and reloads first page', () => {
     fixture.detectChanges();
-    TestBed.tick();
+    fixture.detectChanges();
 
     component.onSortChange({ key: 'useTo', direction: 'desc' });
-    TestBed.tick();
+    fixture.detectChanges();
 
     expect(mockGetStandardApplicants).toHaveBeenLastCalledWith(
       {
@@ -286,14 +286,14 @@ describe('StandardApplicantSelectComponent', () => {
       expect.objectContaining({ transferCache: true }),
     );
     expect(component.vm().pageIndex).toBe(0);
-  }));
+  });
 
-  it('submits trimmed code and name filters', fakeAsync(() => {
+  it('submits trimmed code and name filters', () => {
     fixture.detectChanges();
     component.form.patchValue({ code: ' SA-1 ', name: ' Example ' });
 
     component.onSubmit(new SubmitEvent('submit'));
-    TestBed.tick();
+    fixture.detectChanges();
 
     expect(mockGetStandardApplicants).toHaveBeenCalledWith(
       {
@@ -306,6 +306,100 @@ describe('StandardApplicantSelectComponent', () => {
       'body',
       false,
       expect.objectContaining({ transferCache: true }),
+    );
+  });
+
+  it('does not sort when filters are invalid', fakeAsync(() => {
+    fixture.detectChanges();
+    TestBed.tick();
+
+    mockGetStandardApplicants.mockClear();
+    component.form.patchValue({
+      name: 'x'.repeat(101),
+    });
+
+    component.onSortChange({ key: 'useTo', direction: 'desc' });
+    fixture.detectChanges();
+
+    expect(mockGetStandardApplicants).not.toHaveBeenCalled();
+    expect(component.vm().sortField).toEqual({ key: 'code', direction: 'asc' });
+    expect(component.vm().searchErrors).toEqual([
+      {
+        id: 'name',
+        text: 'Standard applicant name must be 100 characters or fewer',
+        href: '#standard-applicant-name',
+      },
+    ]);
+  }));
+
+  it('does not paginate when filters are invalid', fakeAsync(() => {
+    fixture.detectChanges();
+    TestBed.tick();
+
+    mockGetStandardApplicants.mockClear();
+    component.form.patchValue({
+      code: '12345678901',
+    });
+
+    component.onPageChange(1);
+    fixture.detectChanges();
+
+    expect(mockGetStandardApplicants).not.toHaveBeenCalled();
+    expect(component.vm().pageIndex).toBe(0);
+    expect(component.vm().searchErrors).toEqual([
+      {
+        id: 'code',
+        text: 'Code must be 10 characters or fewer',
+        href: '#standard-applicant-code',
+      },
+    ]);
+  }));
+
+  it('shows validation errors and prevents submit when filters exceed max lengths', fakeAsync(() => {
+    fixture.detectChanges();
+    TestBed.tick();
+
+    mockGetStandardApplicants.mockClear();
+
+    component.form.patchValue({
+      code: '12345678901',
+      name: 'x'.repeat(101),
+    });
+
+    component.onSubmit(new SubmitEvent('submit'));
+    fixture.detectChanges();
+
+    expect(mockGetStandardApplicants).not.toHaveBeenCalled();
+    expect(component.vm().searchErrors).toEqual([
+      {
+        id: 'code',
+        text: 'Code must be 10 characters or fewer',
+        href: '#standard-applicant-code',
+      },
+      {
+        id: 'name',
+        text: 'Standard applicant name must be 100 characters or fewer',
+        href: '#standard-applicant-name',
+      },
+    ]);
+    expect(component.fieldError('code')?.text).toBe(
+      'Code must be 10 characters or fewer',
+    );
+    expect(component.fieldError('name')?.text).toBe(
+      'Standard applicant name must be 100 characters or fewer',
+    );
+
+    const errorMessages = fixture.debugElement
+      .queryAll(By.css('.govuk-error-message'))
+      .map((debugEl) => debugEl.nativeElement.textContent.trim());
+
+    expect(errorMessages).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('Code must be 10 characters or fewer'),
+        expect.stringContaining(
+          'Standard applicant name must be 100 characters or fewer',
+        ),
+      ]),
     );
   }));
 });

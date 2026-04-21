@@ -4,6 +4,7 @@ import {
   ApplicationsListEntryFormValue,
   OrganisationFormValue,
   PersonFormValue,
+  RespondentPersonFormValue,
 } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 
 function roundTrip<T extends object>(o: T): T {
@@ -88,6 +89,13 @@ function makeBlankOrganisation(): OrganisationFormValue {
   };
 }
 
+function makeBlankRespondentPerson(): RespondentPersonFormValue {
+  return {
+    ...makeBlankPerson(),
+    dob: null,
+  };
+}
+
 describe('buildEntryCreateDto', () => {
   it('omits applicant/respondent when they are not meaningfully populated', () => {
     const formValue = makeBaseFormValue({
@@ -97,7 +105,7 @@ describe('buildEntryCreateDto', () => {
 
     const person = makeBlankPerson();
     const organisation = makeBlankOrganisation();
-    const respondentPerson = makeBlankPerson();
+    const respondentPerson = makeBlankRespondentPerson();
     const respondentOrganisation = makeBlankOrganisation();
 
     const dto = buildEntryCreateDto(
@@ -129,7 +137,7 @@ describe('buildEntryCreateDto', () => {
       emailAddress: '   ',
     };
 
-    const respondentPerson = makeBlankPerson();
+    const respondentPerson = makeBlankRespondentPerson();
     const respondentOrganisation = makeBlankOrganisation();
 
     const dto = buildEntryCreateDto(
@@ -163,7 +171,7 @@ describe('buildEntryCreateDto', () => {
     const person = makeBlankPerson();
     const organisation = makeBlankOrganisation();
 
-    const respondentPerson = makeBlankPerson();
+    const respondentPerson = makeBlankRespondentPerson();
     const respondentOrganisation: OrganisationFormValue = {
       ...makeBlankOrganisation(),
       name: '   ',
@@ -201,7 +209,7 @@ describe('buildEntryCreateDto', () => {
     const organisation = makeBlankOrganisation(); // applicant org unused here
 
     // respondent organisation (IMPORTANT: populate respondent org form, not applicant org form)
-    const respondentPerson = makeBlankPerson();
+    const respondentPerson = makeBlankRespondentPerson();
     const respondentOrganisation: OrganisationFormValue = {
       ...makeBlankOrganisation(),
       name: ' Org ',
@@ -237,7 +245,7 @@ describe('buildEntryCreateDto', () => {
 
     const person = makeBlankPerson();
     const organisation = makeBlankOrganisation();
-    const respondentPerson = makeBlankPerson();
+    const respondentPerson = makeBlankRespondentPerson();
     const respondentOrganisation = makeBlankOrganisation();
 
     const dto = buildEntryCreateDto(
@@ -270,7 +278,7 @@ describe('buildEntryCreateDto', () => {
 
     const person = makeBlankPerson();
     const organisation = makeBlankOrganisation();
-    const respondentPerson = makeBlankPerson();
+    const respondentPerson = makeBlankRespondentPerson();
     const respondentOrganisation = makeBlankOrganisation();
 
     const dto = buildEntryCreateDto(
@@ -295,7 +303,7 @@ describe('buildEntryCreateDto', () => {
 
     const person = makeBlankPerson();
     const organisation = makeBlankOrganisation();
-    const respondentPerson = makeBlankPerson();
+    const respondentPerson = makeBlankRespondentPerson();
     const respondentOrganisation = makeBlankOrganisation();
 
     const dto = buildEntryCreateDto(
@@ -324,7 +332,7 @@ describe('buildEntryCreateDto', () => {
 
     const person = makeBlankPerson();
     const organisation = makeBlankOrganisation();
-    const respondentPerson = makeBlankPerson();
+    const respondentPerson = makeBlankRespondentPerson();
     const respondentOrganisation = makeBlankOrganisation();
 
     const dto = buildEntryCreateDto(
@@ -350,7 +358,7 @@ describe('buildEntryCreateDto', () => {
 
     const person = makeBlankPerson();
     const organisation = makeBlankOrganisation();
-    const respondentPerson = makeBlankPerson();
+    const respondentPerson = makeBlankRespondentPerson();
     const respondentOrganisation = makeBlankOrganisation();
 
     const dto = buildEntryCreateDto(
@@ -367,6 +375,42 @@ describe('buildEntryCreateDto', () => {
     expect('accountNumber' in payload).toBe(false);
   });
 
+  it('maps respondent person dob to dateOfBirth', () => {
+    const formValue = makeBaseFormValue({
+      applicantType: 'org',
+      respondentEntryType: 'person',
+      applicationCode: 'R001',
+    });
+
+    const person = makeBlankPerson();
+    const organisation = makeBlankOrganisation();
+    const respondentPerson: RespondentPersonFormValue = {
+      ...makeBlankRespondentPerson(),
+      firstName: ' Jane ',
+      surname: ' Doe ',
+      dob: '1990-02-03',
+      addressLine1: ' 1 Street ',
+    };
+    const respondentOrganisation = makeBlankOrganisation();
+
+    const dto = buildEntryCreateDto(
+      formValue,
+      person,
+      organisation,
+      respondentPerson,
+      respondentOrganisation,
+    );
+    const payload = roundTrip(dto as unknown as Record<string, unknown>);
+
+    const respondent = payload['respondent'] as Record<string, unknown>;
+    const respondentPersonPayload = respondent['person'] as Record<
+      string,
+      unknown
+    >;
+
+    expect(respondentPersonPayload['dateOfBirth']).toBe('1990-02-03');
+  });
+
   it('includes flattened notes fields when any note value is provided', () => {
     const formValue = makeBaseFormValue({
       applicationNotes: {
@@ -378,7 +422,7 @@ describe('buildEntryCreateDto', () => {
 
     const person = makeBlankPerson();
     const organisation = makeBlankOrganisation();
-    const respondentPerson = makeBlankPerson();
+    const respondentPerson = makeBlankRespondentPerson();
     const respondentOrganisation = makeBlankOrganisation();
 
     const dto = buildEntryCreateDto(
@@ -403,7 +447,7 @@ describe('buildEntryCreateDto', () => {
 
     const person = makeBlankPerson();
     const organisation = makeBlankOrganisation();
-    const respondentPerson = makeBlankPerson();
+    const respondentPerson = makeBlankRespondentPerson();
     const respondentOrganisation = makeBlankOrganisation();
 
     const dto = buildEntryCreateDto(
@@ -446,7 +490,7 @@ describe('buildEntryCreateDto', () => {
       formValue,
       makeBlankPerson(),
       makeBlankOrganisation(),
-      makeBlankPerson(),
+      makeBlankRespondentPerson(),
       makeBlankOrganisation(),
     );
 
@@ -497,7 +541,7 @@ describe('buildEntryCreateDto', () => {
       formValue,
       makeBlankPerson(),
       makeBlankOrganisation(),
-      makeBlankPerson(),
+      makeBlankRespondentPerson(),
       makeBlankOrganisation(),
     );
 
@@ -516,7 +560,7 @@ describe('buildEntryCreateDto', () => {
         formValue,
         makeBlankPerson(),
         makeBlankOrganisation(),
-        makeBlankPerson(),
+        makeBlankRespondentPerson(),
         makeBlankOrganisation(),
       );
 
