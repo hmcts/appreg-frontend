@@ -2,11 +2,14 @@ import { DataTable, When } from '@badeball/cypress-cucumber-preprocessor';
 
 import { ApplicationListCombinedHelper } from '../../../support/helper/appreg/ApplicationListCombinedHelper';
 import { ButtonHelper } from '../../../support/helper/forms/button/ButtonHelper';
+import { resolveAliases } from '../../../support/utils/AliasResolver';
 
 When('User Searches Application List With:', (dataTable: DataTable) => {
-  const searchCriteria = dataTable.hashes()[0];
-  ApplicationListCombinedHelper.searchApplicationList(searchCriteria);
-  cy.screenshot('search-application-list-results');
+  const rawCriteria = dataTable.hashes()[0];
+  resolveAliases(rawCriteria).then((resolved) => {
+    ApplicationListCombinedHelper.searchApplicationList(resolved);
+    cy.screenshot('search-application-list-results');
+  });
 });
 
 When('User Submits The Application List Search', () => {
