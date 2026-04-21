@@ -1161,7 +1161,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     const pending = this.pendingStandardApplicantSummary;
     const currentCode = this.selectedStandardApplicantCode?.trim() || '';
 
-    if (pending && pending.code.trim() === currentCode) {
+    if (pending?.code.trim() === currentCode) {
       this.savedStandardApplicantCode = pending.code.trim() || null;
       this.savedStandardApplicantName = pending.name.trim() || null;
     }
