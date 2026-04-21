@@ -193,6 +193,12 @@ export class ApplicationListEntriesCombinedHelper {
           );
           break;
 
+        case 'Date of birth':
+          AccordionHelper.within(accordionTitle, () =>
+            DateTimeHelper.setDateValue('Date of birth', value),
+          );
+          break;
+
         default:
           cy.log(`Unknown name field: ${fieldLabel}`);
           break;
