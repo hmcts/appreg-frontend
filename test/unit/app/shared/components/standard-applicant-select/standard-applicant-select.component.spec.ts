@@ -308,4 +308,98 @@ describe('StandardApplicantSelectComponent', () => {
       expect.objectContaining({ transferCache: true }),
     );
   });
+
+  it('does not sort when filters are invalid', fakeAsync(() => {
+    fixture.detectChanges();
+    TestBed.tick();
+
+    mockGetStandardApplicants.mockClear();
+    component.form.patchValue({
+      name: 'x'.repeat(101),
+    });
+
+    component.onSortChange({ key: 'useTo', direction: 'desc' });
+    fixture.detectChanges();
+
+    expect(mockGetStandardApplicants).not.toHaveBeenCalled();
+    expect(component.vm().sortField).toEqual({ key: 'code', direction: 'asc' });
+    expect(component.vm().searchErrors).toEqual([
+      {
+        id: 'name',
+        text: 'Standard applicant name must be 100 characters or fewer',
+        href: '#standard-applicant-name',
+      },
+    ]);
+  }));
+
+  it('does not paginate when filters are invalid', fakeAsync(() => {
+    fixture.detectChanges();
+    TestBed.tick();
+
+    mockGetStandardApplicants.mockClear();
+    component.form.patchValue({
+      code: '12345678901',
+    });
+
+    component.onPageChange(1);
+    fixture.detectChanges();
+
+    expect(mockGetStandardApplicants).not.toHaveBeenCalled();
+    expect(component.vm().pageIndex).toBe(0);
+    expect(component.vm().searchErrors).toEqual([
+      {
+        id: 'code',
+        text: 'Code must be 10 characters or fewer',
+        href: '#standard-applicant-code',
+      },
+    ]);
+  }));
+
+  it('shows validation errors and prevents submit when filters exceed max lengths', fakeAsync(() => {
+    fixture.detectChanges();
+    TestBed.tick();
+
+    mockGetStandardApplicants.mockClear();
+
+    component.form.patchValue({
+      code: '12345678901',
+      name: 'x'.repeat(101),
+    });
+
+    component.onSubmit(new SubmitEvent('submit'));
+    fixture.detectChanges();
+
+    expect(mockGetStandardApplicants).not.toHaveBeenCalled();
+    expect(component.vm().searchErrors).toEqual([
+      {
+        id: 'code',
+        text: 'Code must be 10 characters or fewer',
+        href: '#standard-applicant-code',
+      },
+      {
+        id: 'name',
+        text: 'Standard applicant name must be 100 characters or fewer',
+        href: '#standard-applicant-name',
+      },
+    ]);
+    expect(component.fieldError('code')?.text).toBe(
+      'Code must be 10 characters or fewer',
+    );
+    expect(component.fieldError('name')?.text).toBe(
+      'Standard applicant name must be 100 characters or fewer',
+    );
+
+    const errorMessages = fixture.debugElement
+      .queryAll(By.css('.govuk-error-message'))
+      .map((debugEl) => debugEl.nativeElement.textContent.trim());
+
+    expect(errorMessages).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('Code must be 10 characters or fewer'),
+        expect.stringContaining(
+          'Standard applicant name must be 100 characters or fewer',
+        ),
+      ]),
+    );
+  }));
 });

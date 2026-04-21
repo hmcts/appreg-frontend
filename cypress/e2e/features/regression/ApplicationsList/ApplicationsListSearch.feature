@@ -282,7 +282,6 @@ Feature: Applications List Search
       | CourtCode | CourtName                         |
       | LCCC025   | Leeds Combined Court Centre Set 3 |
 
-
   @regression @applicationsList @ARCPOC-214 @ARCPOC-452 @ARCPOC-756 @ARCPOC-891
   Scenario: Verify applications list table sorting functionality and pagination persistence
     Given User Is On The Portal Page

@@ -5,8 +5,8 @@ import { TextboxHelper } from '../../../../../support/helper/forms/textbox/Textb
 import { TestDataGenerator } from '../../../../../support/utils/TestDataGenerator';
 
 Then(
-  'User Enters {string} Into The Accordion {string} Textbox {string}',
-  (text: string, accordionTitle: string, textboxLabel: string) => {
+  'User Enters {string} Into The Textbox {string} In The Accordion {string}',
+  (text: string, textboxLabel: string, accordionTitle: string) => {
     const resolvedText = TestDataGenerator.replaceRandomPlaceholders(text);
     AccordionHelper.within(accordionTitle, () =>
       TextboxHelper.typeInTextbox(textboxLabel, resolvedText),
@@ -15,8 +15,8 @@ Then(
 );
 
 Then(
-  'User Verifies The Accordion {string} Textbox {string} Contains {string}',
-  (accordionTitle: string, textboxLabel: string, expectedValue: string) => {
+  'User Verifies The Textbox {string} Contains {string} In The Accordion {string}',
+  (textboxLabel: string, expectedValue: string, accordionTitle: string) => {
     AccordionHelper.within(accordionTitle, () => {
       TextboxHelper.getValueInTextbox(textboxLabel).should('eq', expectedValue);
     });

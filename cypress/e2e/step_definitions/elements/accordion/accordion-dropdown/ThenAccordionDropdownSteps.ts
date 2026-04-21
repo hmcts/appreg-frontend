@@ -4,8 +4,8 @@ import { AccordionHelper } from '../../../../../support/helper/forms/accordion/a
 import { DropdownHelper } from '../../../../../support/helper/forms/dropdown/DropdownHelper';
 
 Then(
-  'User Selects {string} From The Accordion {string} Dropdown {string}',
-  (optionText: string, accordionTitle: string, dropdownLabel: string) => {
+  'User Selects {string} From The Dropdown {string} In The Accordion {string}',
+  (optionText: string, dropdownLabel: string, accordionTitle: string) => {
     AccordionHelper.within(accordionTitle, () => {
       DropdownHelper.selectDropdownOption(dropdownLabel, optionText);
     });
@@ -13,8 +13,8 @@ Then(
 );
 
 Then(
-  'The Accordion {string} Dropdown {string} Should Be {string}',
-  (accordionTitle: string, dropdownLabel: string, expectedValue: string) => {
+  'The Dropdown {string} Should Be {string} In The Accordion {string}',
+  (dropdownLabel: string, expectedValue: string, accordionTitle: string) => {
     AccordionHelper.within(accordionTitle, () => {
       DropdownHelper.verifyDropdownOptionSelected(dropdownLabel, expectedValue);
     });

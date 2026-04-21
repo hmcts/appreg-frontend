@@ -75,16 +75,16 @@ Feature: Applications List Entry Create
             | Mobile number         | 07123 456789                                                |
             | Email address         | test@example.com                                            |
         # Application Codes
-        Then User Enters "<InvalidApplicationCodeExceedsLimit>" Into The Accordion "Codes" Textbox "Application code"
+        Then User Enters "<InvalidApplicationCodeExceedsLimit>" Into The Textbox "Application code" In The Accordion "Codes"
         When User Clicks On The "Search" Button In The Accordion "Codes"
         Then User Sees Error Alert "There is a problem We couldn’t fetch application codes. Please try again."
-        Then User Enters "<InvalidApplicationCode>" Into The Accordion "Codes" Textbox "Application code"
+        Then User Enters "<InvalidApplicationCode>" Into The Textbox "Application code" In The Accordion "Codes"
         When User Clicks On The "Search" Button In The Accordion "Codes"
         Then User Sees Information Alert "No application codes found Try different filters, or retry the search."
-        Then User Enters "<ValidApplicationCode>" Into The Accordion "Codes" Textbox "Application code"
+        Then User Enters "<ValidApplicationCode>" Into The Textbox "Application code" In The Accordion "Codes"
         When User Clicks On The "Search" Button In The Accordion "Codes"
-        Then User Verifies Table "Codes" In The Accordion "Codes" Has Sortable Headers "Code, Title, Bulk, Fee req"
-        Then User Clicks "Add code" Button In Row Of Table "Codes" Within The Accordion "Codes"
+        Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee req" In The Accordion "Codes"
+        Then User Clicks "Add code" Button In Row Of Table "Codes" In The Accordion "Codes"
             | Code              | Title              | Bulk | Fee req |
             | <ApplicationCode> | <ApplicationTitle> | No   | CO8.1   |
         Then User Verifies The "Application Title" Textbox Has Value "<ApplicationTitle>"
@@ -153,32 +153,32 @@ Feature: Applications List Entry Create
         When User Clicks On The "Create entry" Button
         # Civil Fee Validation
         Then User Sees Validation Error Banner "There is a problem Select a fee status Enter a valid status date"
-        Then User Selects "Due" From The Accordion "Civil fee" Dropdown "Fee status"
-        Then User Enters "<InvalidSearchDate>" Into The Accordion "Civil fee" Date Field "Status date"
-        Then User Enters "<PaymentReferenceExceedsLimit>" Into The Accordion "Civil fee" Textbox "Payment reference"
+        Then User Selects "Due" From The Dropdown "Fee status" In The Accordion "Civil fee"
+        Then User Enters "<InvalidSearchDate>" Into The Date Field "Status date" In The Accordion "Civil fee"
+        Then User Enters "<PaymentReferenceExceedsLimit>" Into The Textbox "Payment reference" In The Accordion "Civil fee"
         When User Clicks On The "Add fee details" Button In The Accordion "Civil fee"
         Then User Sees Validation Error Banner "There is a problem Enter a valid status date A payment reference cannot be supplied when fee status is DUE Payment reference must be less than or equal to 15 characters"
-        Then User Selects "Paid" From The Accordion "Civil fee" Dropdown "Fee status"
-        Then User Enters "<SearchDateFuture>" Into The Accordion "Civil fee" Date Field "Status date"
-        Then User Enters "<PaymentReference>" Into The Accordion "Civil fee" Textbox "Payment reference"
+        Then User Selects "Paid" From The Dropdown "Fee status" In The Accordion "Civil fee"
+        Then User Enters "<SearchDateFuture>" Into The Date Field "Status date" In The Accordion "Civil fee"
+        Then User Enters "<PaymentReference>" Into The Textbox "Payment reference" In The Accordion "Civil fee"
         When User Clicks On The "Add fee details" Button In The Accordion "Civil fee"
         Then User Sees Validation Error Banner "There is a problem Enter a valid status date"
-        Then User Enters "<SearchDate>" Into The Accordion "Civil fee" Date Field "Status date"
+        Then User Enters "<SearchDate>" Into The Date Field "Status date" In The Accordion "Civil fee"
         When User Clicks On The "Add fee details" Button In The Accordion "Civil fee"
         Then User Sees Success Alert "Successfully added fee details"
         # Notes Validation
-        Then User Enters "<CaseReferenceExceedsLimit>" Into The Accordion "Notes" Textbox "Case reference"
-        Then User Enters "<AccountReferenceExceedsLimit>" Into The Accordion "Notes" Textbox "Account reference"
-        Then User Enters "<AccountDetails>" Into The Accordion "Notes" Textbox "Application details"
+        Then User Enters "<CaseReferenceExceedsLimit>" Into The Textbox "Case reference" In The Accordion "Notes"
+        Then User Enters "<AccountReferenceExceedsLimit>" Into The Textbox "Account reference" In The Accordion "Notes"
+        Then User Enters "<AccountDetails>" Into The Textbox "Application details" In The Accordion "Notes"
         When User Clicks On The "Create entry" Button
         Then User Sees Validation Error Banner "There is a problem Enter a valid status date Case reference must be less than or equal to 15 characters Account reference must be less than or equal to 20 characters"
-        Then User Enters "<CaseReference>" Into The Accordion "Notes" Textbox "Case reference"
-        Then User Enters "<AccountReference>" Into The Accordion "Notes" Textbox "Account reference"
+        Then User Enters "<CaseReference>" Into The Textbox "Case reference" In The Accordion "Notes"
+        Then User Enters "<AccountReference>" Into The Textbox "Account reference" In The Accordion "Notes"
         When User Clicks On The "Create entry" Button
         Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
 
         Examples:
-        Then User Enters "<InvalidApplicationCodeExceedsLimit>" Into The Accordion "Codes" Textbox "Application code"
+        Then User Enters "<InvalidApplicationCodeExceedsLimit>" Into The Textbox "Application code" In The Accordion "Codes"
             | User  | TableName | InvalidSearchDate | SearchDate | SearchDateFuture | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | InvalidApplicationCodeExceedsLimit | InvalidApplicationCode | ValidApplicationCode | ApplicationTitle           | WordingText                                      | placeholder                  | WordingValue        | WordingValueExceedsLimit                                                                              | WordingValue                          | PaymentReferenceExceedsLimit | PaymentReference | CaseReferenceExceedsLimit | CaseReference | AccountReferenceExceedsLimit | AccountReference | OffsiteFeeString                                                                                         | OffsiteFeeCode | OffsiteFeeValue             | TotalFeeAmount            | FeeReference         | FeeAmount       | AccountDetails                                       |
             | user1 | Lists     | 31/13/2048        | today      | tomorrow         | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | INVALID_CODE                       | CT99002A               | MX99006              | Condemnation of Unfit Food | Application for the condemnation of food, namely | Enter a Describe Seized Food | Test Sample Wording | (ctgn sürrreartcée.sstegl( lmamaeceegScerttpaN( )e -))t,eanoce)erc e(v.etth. abthubienr sa,to,)rtqwer | Test Sample Wording Not Exceeds Limit | PAY-12345-12345-12345        | PAY-12345        | case123451234512345       | case12345     | account12345123451234512345  | account12345     | Selecting this will automatically apply the off site fee to the entry. This change is saved immediately. | CO1.1          | Off Site Fee Amount: £30.00 | Total Fee Amount: £284.00 | Fee Reference: CO8.1 | Amount: £284.00 | This is a test application with special requirements |
 
@@ -218,10 +218,10 @@ Feature: Applications List Entry Create
             | Mobile number         | 07123 456789                       |
             | Email address         | john.smith@example.com             |
         # Application Codes
-        Then User Enters "<ApplicationCode>" Into The Accordion "Codes" Textbox "Application code"
+        Then User Enters "<ApplicationCode>" Into The Textbox "Application code" In The Accordion "Codes"
         When User Clicks On The "Search" Button In The Accordion "Codes"
-        Then User Verifies Table "Codes" In The Accordion "Codes" Has Sortable Headers "Code, Title, Bulk, Fee req"
-        Then User Clicks "Add code" Button In Row Of Table "Codes" Within The Accordion "Codes"
+        Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee req" In The Accordion "Codes"
+        Then User Clicks "Add code" Button In Row Of Table "Codes" In The Accordion "Codes"
             | Code              | Title              | Bulk | Fee req |
             | <ApplicationCode> | <ApplicationTitle> | No   | CO8.1   |
         Then User Verifies The "Application Title" Textbox Has Value "<ApplicationTitle>"
@@ -251,9 +251,9 @@ Feature: Applications List Entry Create
         Then User Verifies The Textbox "Payment reference" Is Disabled In The Accordion "Civil fee"
         Then User Verifies The Button "Add fee details" Is Disabled In The Accordion "Civil fee"
         # Notes Details
-        Then User Enters "<CaseReference>" Into The Accordion "Notes" Textbox "Case reference"
-        Then User Enters "<AccountReference>" Into The Accordion "Notes" Textbox "Account reference"
-        Then User Enters "This is a test application with special requirements" Into The Accordion "Notes" Textbox "Application details"
+        Then User Enters "<CaseReference>" Into The Textbox "Case reference" In The Accordion "Notes"
+        Then User Enters "<AccountReference>" Into The Textbox "Account reference" In The Accordion "Notes"
+        Then User Enters "This is a test application with special requirements" Into The Textbox "Application details" In The Accordion "Notes"
         # Submit Application
         When User Clicks On The "Create entry" Button
         Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
