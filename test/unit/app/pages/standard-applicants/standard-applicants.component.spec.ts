@@ -1,10 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 
 import { StandardApplicants } from '@components/standard-applicants/standard-applicants.component';
-import { StandardApplicantsApi } from '@openapi';
+import { StandardApplicantPage, StandardApplicantsApi } from '@openapi';
 
 const flushSignalEffects = async (
   fixture: ComponentFixture<StandardApplicants>,
@@ -17,16 +17,32 @@ const flushSignalEffects = async (
 describe('StandardApplicantsComponent', () => {
   let component: StandardApplicants;
   let fixture: ComponentFixture<StandardApplicants>;
-  const apiStub: jest.Mocked<
-    Pick<StandardApplicantsApi, 'getStandardApplicants'>
-  > = {
-    getStandardApplicants: jest.fn(),
+  const getStandardApplicantsMock = jest.fn<
+    Observable<StandardApplicantPage>,
+    Parameters<
+      (
+        requestParameters?: Parameters<
+          StandardApplicantsApi['getStandardApplicants']
+        >[0],
+        observe?: 'body',
+        reportProgress?: boolean,
+        options?: Parameters<StandardApplicantsApi['getStandardApplicants']>[3],
+      ) => Observable<StandardApplicantPage>
+    >
+  >();
+  const apiStub: Pick<StandardApplicantsApi, 'getStandardApplicants'> = {
+    getStandardApplicants:
+      getStandardApplicantsMock as unknown as StandardApplicantsApi['getStandardApplicants'],
   };
 
   beforeEach(async () => {
-    apiStub.getStandardApplicants.mockReturnValue(
+    getStandardApplicantsMock.mockReturnValue(
       of({
+        pageNumber: 0,
+        pageSize: 10,
+        totalElements: 0,
         content: [],
+        elementsOnPage: 0,
         totalPages: 0,
       }),
     );
@@ -66,7 +82,7 @@ describe('StandardApplicantsComponent', () => {
     component.onSubmit(new SubmitEvent('submit'));
     await flushSignalEffects(fixture);
 
-    expect(apiStub.getStandardApplicants).toHaveBeenCalledWith(
+    expect(getStandardApplicantsMock).toHaveBeenCalledWith(
       {
         code: 'ABC',
         name: 'Test Applicant',
@@ -88,12 +104,12 @@ describe('StandardApplicantsComponent', () => {
       name: 'x'.repeat(101),
     });
 
-    apiStub.getStandardApplicants.mockClear();
+    getStandardApplicantsMock.mockClear();
 
     component.onSubmit(new SubmitEvent('submit'));
     await flushSignalEffects(fixture);
 
-    expect(apiStub.getStandardApplicants).not.toHaveBeenCalled();
+    expect(getStandardApplicantsMock).not.toHaveBeenCalled();
     expect(component.vm().searchErrors).toEqual([
       {
         id: 'code',
@@ -144,7 +160,7 @@ describe('StandardApplicantsComponent', () => {
     component.onPageChange(3);
     await flushSignalEffects(fixture);
 
-    expect(apiStub.getStandardApplicants).toHaveBeenCalledWith(
+    expect(getStandardApplicantsMock).toHaveBeenCalledWith(
       {
         code: undefined,
         name: undefined,
@@ -164,7 +180,7 @@ describe('StandardApplicantsComponent', () => {
     component.onSortChange({ key: 'useFrom', direction: 'desc' });
     await flushSignalEffects(fixture);
 
-    expect(apiStub.getStandardApplicants).toHaveBeenCalledWith(
+    expect(getStandardApplicantsMock).toHaveBeenCalledWith(
       {
         code: undefined,
         name: undefined,
@@ -184,12 +200,12 @@ describe('StandardApplicantsComponent', () => {
     component.form.patchValue({
       name: 'x'.repeat(101),
     });
-    apiStub.getStandardApplicants.mockClear();
+    getStandardApplicantsMock.mockClear();
 
     component.onSortChange({ key: 'useFrom', direction: 'desc' });
     await flushSignalEffects(fixture);
 
-    expect(apiStub.getStandardApplicants).not.toHaveBeenCalled();
+    expect(getStandardApplicantsMock).not.toHaveBeenCalled();
     expect(component.vm().sortField).toEqual({ key: 'code', direction: 'asc' });
     expect(component.vm().searchErrors).toEqual([
       {
@@ -204,12 +220,12 @@ describe('StandardApplicantsComponent', () => {
     component.form.patchValue({
       code: '12345678901',
     });
-    apiStub.getStandardApplicants.mockClear();
+    getStandardApplicantsMock.mockClear();
 
     component.onPageChange(3);
     await flushSignalEffects(fixture);
 
-    expect(apiStub.getStandardApplicants).not.toHaveBeenCalled();
+    expect(getStandardApplicantsMock).not.toHaveBeenCalled();
     expect(component.vm().currentPage).toBe(0);
     expect(component.vm().searchErrors).toEqual([
       {
@@ -221,8 +237,11 @@ describe('StandardApplicantsComponent', () => {
   });
 
   it('updates rows and total pages on successful response', async () => {
-    apiStub.getStandardApplicants.mockReturnValueOnce(
+    getStandardApplicantsMock.mockReturnValueOnce(
       of({
+        pageNumber: 0,
+        pageSize: 10,
+        totalElements: 1,
         content: [
           {
             code: 'SA01',
@@ -236,6 +255,7 @@ describe('StandardApplicantsComponent', () => {
             endDate: '2026-12-31',
           },
         ],
+        elementsOnPage: 1,
         totalPages: 7,
       }),
     );
@@ -248,8 +268,8 @@ describe('StandardApplicantsComponent', () => {
         code: 'SA01',
         name: 'Applicant Org',
         address: '1 Test Street',
-        useFrom: '01/01/2026',
-        useTo: '31/12/2026',
+        useFrom: '1 Jan 2026',
+        useTo: '31 Dec 2026',
       },
     ]);
     expect(component.vm().totalPages).toBe(7);
@@ -257,7 +277,7 @@ describe('StandardApplicantsComponent', () => {
   });
 
   it('captures API errors into searchErrors state', async () => {
-    apiStub.getStandardApplicants.mockReturnValueOnce(
+    getStandardApplicantsMock.mockReturnValueOnce(
       throwError(() => new Error('Request failed')),
     );
 
@@ -272,7 +292,7 @@ describe('StandardApplicantsComponent', () => {
   });
 
   it('does not render table no-data state when the search fails', async () => {
-    apiStub.getStandardApplicants.mockReturnValueOnce(
+    getStandardApplicantsMock.mockReturnValueOnce(
       throwError(() => new Error('Request failed')),
     );
 

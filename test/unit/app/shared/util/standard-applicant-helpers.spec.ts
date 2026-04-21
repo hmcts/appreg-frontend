@@ -1,8 +1,9 @@
 import { mapSaToRow } from '@components/standard-applicant-select/util/standard-applicant-select-row-helpers';
+import { StandardApplicantGetSummaryDto } from '@openapi';
 import { formatDate } from '@util/standard-applicant-helpers';
 
 const buildStandardApplicantRows = (
-  input: Parameters<typeof mapSaToRow>[0][],
+  input: StandardApplicantGetSummaryDto[],
 ) => input.map((item) => mapSaToRow(item));
 
 describe('formatDate', () => {
