@@ -178,6 +178,9 @@ export const ENTRY_ERROR_MESSAGES = {
 } as const;
 
 export const SEARCH_ERROR_MESSAGES = {
+  sequenceNumber: {
+    pattern: 'Sequence number must only contain numbers',
+  },
   accountReference: {
     maxlength: 'Account number must be 20 characters or fewer',
   },

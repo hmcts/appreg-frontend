@@ -1,7 +1,6 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
+import { of } from 'rxjs';
 
 import {
   ApplicationsListDetailSearchComponent,
@@ -147,24 +146,26 @@ describe('ApplicationsListDetailSearchComponent', () => {
           applicant: {
             organisation: {
               name: 'Applicant Org',
-              contactDetails: { addressLine1: 'Test address line' }
+              contactDetails: { addressLine1: 'Test address line' },
             },
           },
           respondent,
           applicationTitle: 'Example application',
           isFeeRequired: true,
           isResulted: true,
-          resulted: [{
-            resultCode: 'GRANTED',
-            title: ''
-          }],
+          resulted: [
+            {
+              resultCode: 'GRANTED',
+              title: '',
+            },
+          ],
           status: ApplicationListStatus.OPEN,
         },
       ],
       sort: { orders: [] },
     };
 
-    entriesApiStub.getApplicationListEntries.mockReturnValue(of(page));
+    entriesApiStub.getApplicationListEntries.mockReturnValue(of(page) as never);
 
     const results: ApplicationsListDetailSearchResult[] = [];
     component.searchResult.subscribe((result) => results.push(result));
@@ -214,29 +215,9 @@ describe('ApplicationsListDetailSearchComponent', () => {
     });
   });
 
-  it('maps 400 api field errors to highlighted search errors', async () => {
+  it('emits a sequence number validation error and skips the API call', async () => {
     const results: ApplicationsListDetailSearchResult[] = [];
     component.searchResult.subscribe((result) => results.push(result));
-
-    entriesApiStub.getApplicationListEntries.mockReturnValue(
-      throwError(
-        () =>
-          new HttpErrorResponse({
-            status: 400,
-            error: {
-              type: 'COMMON-11',
-              title: 'Method Error',
-              status: 400,
-              detail: 'Validation failed for fields:',
-              instance: '/application-lists/list-1/entries',
-              errors: {
-                sequenceNumber:
-                  'Please ensure that any times are in the format HH:mm and dates are in the format yyyy-MM-dd',
-              },
-            },
-          }),
-      ),
-    );
 
     component.form.patchValue({
       sequenceNumber: 'abc',
@@ -244,8 +225,9 @@ describe('ApplicationsListDetailSearchComponent', () => {
 
     await component.onSearch();
 
+    expect(entriesApiStub.getApplicationListEntries).not.toHaveBeenCalled();
     expect(component.errorFor('sequence-number')).toBe(
-      'Please ensure that any times are in the format HH:mm and dates are in the format yyyy-MM-dd',
+      'Sequence number must only contain numbers',
     );
     expect(results).toEqual([
       {
@@ -255,7 +237,7 @@ describe('ApplicationsListDetailSearchComponent', () => {
           {
             id: 'sequenceNumber',
             href: '#sequence-number',
-            text: 'Please ensure that any times are in the format HH:mm and dates are in the format yyyy-MM-dd',
+            text: 'Sequence number must only contain numbers',
           },
         ],
       },

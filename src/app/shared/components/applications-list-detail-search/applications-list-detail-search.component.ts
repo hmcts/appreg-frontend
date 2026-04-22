@@ -78,18 +78,19 @@ export class ApplicationsListDetailSearchComponent {
     // Max lengths aligned with openapi spec
     sequenceNumber: new FormControl<string>('', {
       nonNullable: true,
+      validators: [Validators.pattern(/^\d+$/)],
     }),
     accountReference: new FormControl<string>('', {
       nonNullable: true,
-      validators: [Validators.maxLength(20)]
+      validators: [Validators.maxLength(20)],
     }),
     applicantName: new FormControl<string>('', {
       nonNullable: true,
-      validators: [Validators.maxLength(300)]
+      validators: [Validators.maxLength(300)],
     }),
     respondentName: new FormControl<string>('', {
       nonNullable: true,
-      validators: [Validators.maxLength(300)]
+      validators: [Validators.maxLength(300)],
     }),
     respondentPostcode: new FormControl<string>('', {
       nonNullable: true,
@@ -97,7 +98,7 @@ export class ApplicationsListDetailSearchComponent {
     }),
     applicationTitle: new FormControl<string>('', {
       nonNullable: true,
-      validators: [Validators.maxLength(500)]
+      validators: [Validators.maxLength(500)],
     }),
     feeRequired: new FormControl<string>('', {
       nonNullable: true,
