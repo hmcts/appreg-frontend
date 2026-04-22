@@ -14,8 +14,12 @@ type TextInputLike = {
 };
 
 type SelectInputLike = {
-  options?: { value: string; label: string }[];
-  idPrefix?: string;
+  options?: () => { value: string; label: string }[];
+  idPrefix?: () => string;
+};
+
+type DateInputLike = {
+  pastDatesOnly?: () => boolean;
 };
 
 describe('PersonSectionComponent', () => {
@@ -183,5 +187,18 @@ describe('PersonSectionComponent', () => {
     fixture.detectChanges();
 
     expect(component.errorFor('respondent-person-first-name')).toBeNull();
+  });
+
+  it('configures respondent dob to require a past date', () => {
+    group.addControl('dob', new FormControl<string | null>(null));
+    fixture.componentRef.setInput('isRespondent', true);
+    fixture.detectChanges();
+
+    const dobDebug = fixture.debugElement.query(
+      By.css('app-date-input[formControlName="dob"]'),
+    );
+    const dobCmp = dobDebug.componentInstance as DateInputLike;
+
+    expect(dobCmp.pastDatesOnly?.()).toBe(true);
   });
 });

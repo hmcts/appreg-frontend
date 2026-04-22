@@ -85,6 +85,7 @@ export const PERSON_FIELD_MESSAGES = {
   dob: {
     ...APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES.date,
     dateInFuture: 'Date must not be in the future',
+    dateNotInPast: 'Date must be in the past',
   },
   ...person_org_shared_messages,
 } as const;
