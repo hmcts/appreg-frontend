@@ -398,13 +398,7 @@ describe('ApplicationsListEntryDetail', () => {
     );
   });
 
-  it('includes relayed application code search errors in the parent summary after submit', () => {
-    (
-      component as unknown as {
-        appListEntryDetailPatch: (patch: Record<string, unknown>) => void;
-      }
-    ).appListEntryDetailPatch({ formSubmitted: true });
-
+  it('includes relayed application code search errors in the parent summary', () => {
     component.onChildErrors('codes', [
       {
         id: 'code',

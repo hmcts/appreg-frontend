@@ -159,11 +159,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
         const code = (v ?? '').trim();
         if (!code) {
           this.clear({ emitEvent: false });
-          return;
         }
-
-        this.form.updateValueAndValidity({ emitEvent: false });
-        this.emitValidationErrors();
       });
   }
 
@@ -240,6 +236,10 @@ export class ApplicationCodeSearchComponent implements OnInit {
   }
 
   codeError(): string | null {
+    if (!this.submitted() && !this.parentSubmitted()) {
+      return null;
+    }
+
     const errors = this.getValidationErrors();
     return errors.find((error) => error.id === 'code')?.text ?? null;
   }

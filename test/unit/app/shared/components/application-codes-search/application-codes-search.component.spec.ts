@@ -175,6 +175,15 @@ describe('ApplicationCodeSearchComponent', () => {
     ]);
   });
 
+  it('does not show the max length error before search or parent submit', () => {
+    const errorsSpy = jest.spyOn(component.codeSearchErrors, 'emit');
+
+    component.form.patchValue({ code: '12345678901' });
+
+    expect(component.codeError()).toBeNull();
+    expect(errorsSpy).not.toHaveBeenCalled();
+  });
+
   it('onAddCode() should emit selectCodeAndLodgementDate when valid', () => {
     const emitSpy = jest.spyOn(component.selectCodeAndLodgementDate, 'emit');
 

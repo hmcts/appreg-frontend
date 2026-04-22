@@ -623,6 +623,18 @@ export class ApplicationsListEntryDetail implements OnInit {
   onChildErrors(source: ChildErrorSource, errors: ErrorItem[]): void {
     this.childErrors[source] = errors ?? [];
 
+    if (source === 'codes') {
+      const summaryErrors = [
+        ...getUniqueErrors(this.parentErrors, Object.values(this.childErrors).flat()),
+      ];
+
+      this.appListEntryDetailPatch({
+        summaryErrors,
+        errorFound: summaryErrors.length > 0,
+      });
+      return;
+    }
+
     if (this.vm().formSubmitted) {
       this.updateAllErrors();
     }

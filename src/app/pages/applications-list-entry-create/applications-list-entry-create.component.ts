@@ -410,6 +410,12 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   onChildErrors(source: ChildErrorSource, errors: ErrorItem[]): void {
     this.childErrors[source] = errors ?? [];
+
+    if (source === 'codes') {
+      this.updateErrors({ validateOtherSections: false });
+      return;
+    }
+
     this.updateErrors({
       validateOtherSections: this.appListEntryCreateState().submitted,
     });

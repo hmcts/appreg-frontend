@@ -164,12 +164,6 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
   });
 
   it('includes relayed application code search errors in the parent summary', () => {
-    (
-      component as unknown as {
-        appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
-      }
-    ).appListEntryCreatePatch({ submitted: true });
-
     component.onChildErrors('codes', [
       {
         id: 'code',
