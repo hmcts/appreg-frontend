@@ -124,4 +124,28 @@ describe('DateInputComponent', () => {
 
     jest.useRealTimers();
   });
+
+  it('pastDatesOnly marks today invalid and emits null', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(2026, 0, 19, 12, 0, 0));
+
+    const onChange = jest.fn<void, [string | null]>();
+    component.registerOnChange(onChange);
+
+    fixture.componentRef.setInput('pastDatesOnly', true);
+
+    component.dateForm.setValue({ day: '19', month: '1', year: '2026' });
+
+    expect(component.dateForm.valid).toBe(false);
+    expect(component.dateForm.errors).toEqual(
+      expect.objectContaining({
+        dateNotInPast: true,
+        dateInvalid: true,
+        dateErrorText: 'Date must be in the past',
+      }),
+    );
+    expect(onChange).toHaveBeenCalledWith(null);
+
+    jest.useRealTimers();
+  });
 });

@@ -54,6 +54,7 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
   submitted = input(false);
   isSearch = input(false);
   disallowFutureDates = input(false);
+  pastDatesOnly = input(false);
 
   containerWidthClass = input('govuk-grid-column-one-half');
 
@@ -91,11 +92,21 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
       return this.dateError();
     }
 
-    if (this.disallowFutureDates()) {
-      const valueDate = new Date(y, m - 1, d);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+    const valueDate = new Date(y, m - 1, d);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
+    if (this.pastDatesOnly()) {
+      if (valueDate.getTime() >= today.getTime()) {
+        return {
+          dateNotInPast: true,
+          dateInvalid: true,
+          dateErrorText: 'Date must be in the past',
+        };
+      }
+    }
+
+    if (this.disallowFutureDates()) {
       if (valueDate.getTime() > today.getTime()) {
         return {
           dateInFuture: true,
