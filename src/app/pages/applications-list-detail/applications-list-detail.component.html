@@ -104,7 +104,11 @@
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
     />
 
-    <app-applications-list-detail-search />
+    <app-applications-list-detail-search
+      [listId]="id"
+      [pageSize]="vm().pageSize"
+      (searchResult)="onSearchResult($event)"
+    />
 
     <hr
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"

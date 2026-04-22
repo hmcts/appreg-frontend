@@ -1,29 +1,34 @@
 <div [formGroup]="form">
   <div class="govuk-grid-row">
     <app-text-input
-      formControlName="applicant"
+      formControlName="applicantName"
       label="Applicant"
       idPrefix="applicant"
+      [error]="submitted() ? errorFor('applicant') : null"
       containerWidthClass="govuk-grid-column-one-half"
       widthClass="govuk-!-width-two-thirds"
+      [charLimit]="300"
     />
   </div>
 
   <div class="govuk-grid-row">
     <app-text-input
-      formControlName="respondent"
+      formControlName="respondentName"
       label="Respondent"
       idPrefix="respondent"
+      [error]="submitted() ? errorFor('respondent') : null"
       containerWidthClass="govuk-grid-column-one-half"
       widthClass="govuk-!-width-two-thirds"
+      [charLimit]="300"
     />
   </div>
 
   <div class="govuk-grid-row">
     <app-text-input
-      formControlName="postcode"
+      formControlName="respondentPostcode"
       label="Postcode"
       idPrefix="postcode"
+      [error]="submitted() ? errorFor('postcode') : null"
     />
   </div>
 
@@ -34,32 +39,35 @@
         formControlName="sequenceNumber"
         label="Sequence number"
         idPrefix="sequence-number"
+        [error]="submitted() ? errorFor('sequence-number') : null"
       />
     </div>
 
     <div class="govuk-grid-row">
       <app-text-input
-        formControlName="accountNumber"
+        formControlName="accountReference"
         label="Account number"
         idPrefix="account-number"
+        [error]="submitted() ? errorFor('account-number') : null"
         containerWidthClass="govuk-grid-column-one-half"
-        widthClass="govuk-!-width-two-thirds"
       />
     </div>
 
     <div class="govuk-grid-row">
       <app-text-input
-        formControlName="title"
+        formControlName="applicationTitle"
         label="Title"
         idPrefix="title"
+        [error]="submitted() ? errorFor('title') : null"
         containerWidthClass="govuk-grid-column-one-half"
         widthClass="govuk-!-width-two-thirds"
+        [charLimit]="500"
       />
     </div>
 
     <div class="govuk-grid-row">
       <app-select-input
-        formControlName="fee"
+        formControlName="feeRequired"
         label="Fee"
         idPrefix="fee"
         [options]="[
@@ -75,6 +83,7 @@
         formControlName="resulted"
         label="Resulted"
         idPrefix="resulted"
+        [error]="submitted() ? errorFor('resulted') : null"
       />
     </div>
   </ng-template>

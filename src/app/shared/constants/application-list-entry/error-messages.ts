@@ -176,3 +176,22 @@ export const ENTRY_ERROR_MESSAGES = {
   ...OFFICIAL_FIELD_MESSAGES,
   ...NUMBER_OF_RESPONDENT_MESSAGES,
 } as const;
+
+export const SEARCH_ERROR_MESSAGES = {
+  accountReference: {
+    maxlength: 'Account number must be 20 characters or fewer',
+  },
+  applicantName: {
+    maxlength: 'Applicant must be 300 characters or fewer',
+  },
+  respondentName: {
+    maxlength: 'Respondent must be 300 characters or fewer',
+  },
+  respondentPostcode: {
+    maxlength: 'Postcode must be 8 characters or fewer',
+    postcode: PERSON_FIELD_MESSAGES.postcode.postcode,
+  },
+  applicationTitle: {
+    maxlength: 'Title must be 500 characters or fewer',
+  },
+} as const;
