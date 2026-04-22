@@ -154,6 +154,27 @@ describe('ApplicationCodeSearchComponent', () => {
     expect(component.errored()).toBe(true);
   });
 
+  it('search() should not call fetchCodeRows$ when code exceeds max length', () => {
+    const fetchSpy = jest.spyOn(helpers, 'fetchCodeRows$');
+    const errorsSpy = jest.spyOn(component.codeSearchErrors, 'emit');
+
+    component.form.patchValue({ code: '12345678901' });
+    component.search();
+
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(component.loading()).toBe(false);
+    expect(component.codeError()).toBe(
+      'Application code must be 10 characters or fewer',
+    );
+    expect(errorsSpy).toHaveBeenCalledWith([
+      {
+        id: 'code',
+        text: 'Application code must be 10 characters or fewer',
+        href: '#applicationCode',
+      },
+    ]);
+  });
+
   it('onAddCode() should emit selectCodeAndLodgementDate when valid', () => {
     const emitSpy = jest.spyOn(component.selectCodeAndLodgementDate, 'emit');
 
@@ -197,6 +218,7 @@ describe('ApplicationCodeSearchComponent', () => {
       component.resetParentErrors,
       'emit',
     );
+    const codeSearchErrorsSpy = jest.spyOn(component.codeSearchErrors, 'emit');
 
     component.form.patchValue({ code: 'X', title: 'Y' });
     component.codesRows = mockRows.rows.slice();
@@ -215,6 +237,7 @@ describe('ApplicationCodeSearchComponent', () => {
     expect(component.currentPage()).toBe(0);
     expect(emitSpy).toHaveBeenCalledWith({ code: '', date: '' });
     expect(resetParentErrorsSpy).toHaveBeenCalled();
+    expect(codeSearchErrorsSpy).toHaveBeenCalledWith([]);
   });
 
   it('ngOnInit() should clear without re-emitting when code is emptied', () => {
@@ -237,6 +260,42 @@ describe('ApplicationCodeSearchComponent', () => {
 
     expect(component.currentPage()).toBe(5);
     expect(searchSpy).toHaveBeenCalled();
+  });
+
+  it('onPageChange() should not change page when code exceeds max length', () => {
+    const searchSpy = jest
+      .spyOn(component, 'search')
+      .mockImplementation(() => undefined);
+    const errorsSpy = jest.spyOn(component.codeSearchErrors, 'emit');
+
+    component.form.patchValue({ code: '12345678901' });
+    component.onPageChange(5);
+
+    expect(component.currentPage()).toBe(0);
+    expect(searchSpy).not.toHaveBeenCalled();
+    expect(errorsSpy).toHaveBeenCalledWith([
+      {
+        id: 'code',
+        text: 'Application code must be 10 characters or fewer',
+        href: '#applicationCode',
+      },
+    ]);
+  });
+
+  it('emits validation errors when the parent submit state turns on', () => {
+    const errorsSpy = jest.spyOn(component.codeSearchErrors, 'emit');
+
+    component.form.patchValue({ code: '12345678901' });
+    componentRef.setInput('parentSubmitted', true);
+    fixture.detectChanges();
+
+    expect(errorsSpy).toHaveBeenCalledWith([
+      {
+        id: 'code',
+        text: 'Application code must be 10 characters or fewer',
+        href: '#applicationCode',
+      },
+    ]);
   });
 
   it('initialPatchFormData() should use patchedFormData when provided', () => {

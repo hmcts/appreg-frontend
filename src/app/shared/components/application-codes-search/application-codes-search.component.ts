@@ -19,12 +19,18 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
 import { AlertComponent } from '@components/alert/alert.component';
 import { CODES_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { DateInputComponent } from '@components/date-input/date-input.component';
+import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import {
   SortableTableComponent,
@@ -34,6 +40,13 @@ import { TextInputComponent } from '@components/text-input/text-input.component'
 import { ApplicationCodeGetSummaryDto, ApplicationCodesApi } from '@openapi';
 import { ApplicationsListEntryForm } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import { CodeRow, fetchCodeRows$ } from '@util/application-code-helpers';
+import { ErrorMessageMap, buildFormErrorSummary } from '@util/error-summary';
+
+const APPLICATION_CODE_SEARCH_ERROR_MESSAGES = {
+  code: {
+    maxlength: 'Application code must be 10 characters or fewer',
+  },
+} as const;
 
 @Component({
   selector: 'app-application-code-search',
@@ -68,6 +81,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
   selectCodeAndLodgementDate = output<{ code: string; date: string }>();
   resultsChange = output<ApplicationCodeGetSummaryDto[]>();
   resetParentErrors = output<void>();
+  codeSearchErrors = output<ErrorItem[]>();
 
   private readonly route = inject(ActivatedRoute);
   private readonly codesApi = inject(ApplicationCodesApi);
@@ -80,10 +94,14 @@ export class ApplicationCodeSearchComponent implements OnInit {
   submitted = signal(false);
   loading = signal(false);
   errored = signal(false);
+  private readonly errorMap: ErrorMessageMap =
+    APPLICATION_CODE_SEARCH_ERROR_MESSAGES;
 
   form = new FormGroup({
     lodgementDate: new FormControl<string | null>(null),
-    code: new FormControl<string | null>(null),
+    code: new FormControl<string | null>(null, [
+      Validators.maxLength(10),
+    ]),
     title: new FormControl<string | null>(null),
   });
 
@@ -97,6 +115,15 @@ export class ApplicationCodeSearchComponent implements OnInit {
       }
 
       lodgementDateControl.enable({ emitEvent: false });
+    });
+
+    effect(() => {
+      if (!this.parentSubmitted()) {
+        return;
+      }
+
+      this.form.updateValueAndValidity({ emitEvent: false });
+      this.emitValidationErrors();
     });
   }
 
@@ -132,7 +159,11 @@ export class ApplicationCodeSearchComponent implements OnInit {
         const code = (v ?? '').trim();
         if (!code) {
           this.clear({ emitEvent: false });
+          return;
         }
+
+        this.form.updateValueAndValidity({ emitEvent: false });
+        this.emitValidationErrors();
       });
   }
 
@@ -140,6 +171,10 @@ export class ApplicationCodeSearchComponent implements OnInit {
     this.submitted.set(true);
     this.codesRows = [];
     this.errored.set(false);
+
+    if (!this.canSearch()) {
+      return;
+    }
 
     const code = this.form.value.code?.trim() ?? '';
     const title = this.form.value.title?.trim() ?? '';
@@ -196,8 +231,17 @@ export class ApplicationCodeSearchComponent implements OnInit {
   }
 
   onPageChange(page: number): void {
+    if (!this.canSearch()) {
+      return;
+    }
+
     this.currentPage.set(page);
     this.search();
+  }
+
+  codeError(): string | null {
+    const errors = this.getValidationErrors();
+    return errors.find((error) => error.id === 'code')?.text ?? null;
   }
 
   clear(options?: { emitEvent?: boolean }): void {
@@ -210,6 +254,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
     this.submitted.set(false);
     this.selectCodeAndLodgementDate.emit({ code: '', date: '' });
     this.resetParentErrors.emit();
+    this.codeSearchErrors.emit([]);
     this.totalPages.set(0);
     this.currentPage.set(0);
   }
@@ -223,5 +268,24 @@ export class ApplicationCodeSearchComponent implements OnInit {
       code: this.patchedFormData()?.value?.applicationCode ?? null,
       title: this.patchedFormData()?.value?.applicationTitle ?? null,
     });
+  }
+
+  private canSearch(): boolean {
+    this.form.updateValueAndValidity({ emitEvent: false });
+    return this.emitValidationErrors().length === 0;
+  }
+
+  private getValidationErrors(): ErrorItem[] {
+    return buildFormErrorSummary(this.form, this.errorMap, {
+      hrefs: {
+        code: '#applicationCode',
+      },
+    });
+  }
+
+  private emitValidationErrors(): ErrorItem[] {
+    const errors = this.getValidationErrors();
+    this.codeSearchErrors.emit(errors);
+    return errors;
   }
 }

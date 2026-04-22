@@ -150,6 +150,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   private parentErrors: ErrorItem[] = [];
   private childErrors: Record<ChildErrorSource, ErrorItem[]> = {
+    codes: [],
     notes: [],
     fee: [],
     respondent: [],
@@ -210,6 +211,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
     this.parentErrors = [];
     this.childErrors = {
+      codes: [],
       notes: [],
       fee: [],
       respondent: [],
