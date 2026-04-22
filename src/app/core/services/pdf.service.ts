@@ -668,7 +668,11 @@ export class PdfService {
 
     const person = asObj(root['person']);
     const org = asObj(root['organisation']);
-    const dob = this.cleanPart(root['dateOfBirth']);
+    const dob =
+      this.dateTimePipe.transform(
+        this.cleanPart(person?.['dateOfBirth']),
+        'mediumDate',
+      ) ?? undefined;
 
     const contactDetails =
       (org ? org['contactDetails'] : undefined) ??

@@ -11,7 +11,7 @@ export class AuthHelper {
     cy.visit(APP_URLS.HOME);
     cy.screenshot('01-HomePage-Before-SignIn');
 
-    ButtonHelper.clickButton('Sign in');
+    ButtonHelper.clickButton('Sign in', 40000);
     cy.screenshot('02-After-Clicking-SignIn-Button');
 
     MicrosoftAuthHelper.performLogin(email, password);

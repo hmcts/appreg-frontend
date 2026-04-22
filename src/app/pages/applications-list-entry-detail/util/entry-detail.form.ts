@@ -28,6 +28,7 @@ import {
   Organisation,
   Person,
   Respondent,
+  RespondentPerson,
   TemplateSubstitution,
 } from '@openapi';
 import {
@@ -40,6 +41,8 @@ import {
   PersonFormValue,
   PersonOrgSharedControls,
   RespondentEntryType,
+  RespondentPersonForm,
+  RespondentPersonFormValue,
 } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import {
   mapOptionValueToTitle,
@@ -89,7 +92,9 @@ const MAG_SLOTS: readonly MagSlot[] = [
 ] as const;
 
 //Assuming 60 max char length for names/addresses
+const MAX_35 = Validators.maxLength(35);
 const MAX_60 = Validators.maxLength(60);
+const MAX_100 = Validators.maxLength(100);
 const REQUIRED: ValidatorFn = (c) => Validators.required(c);
 const EMAIL: ValidatorFn = (c) => Validators.email(c);
 
@@ -175,31 +180,31 @@ export function buildStandardApplicationForm(
 
       mags1Title: fb.control<string | null>('mr'),
       mags1FirstName: fb.control<string | null>(null, {
-        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+        validators: [MAX_100, Validators.pattern(NAME_REGEX)],
       }),
       mags1Surname: fb.control<string | null>(null, {
-        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+        validators: [MAX_100, Validators.pattern(NAME_REGEX)],
       }),
       mags2Title: fb.control<string | null>('mr'),
       mags2FirstName: fb.control<string | null>(null, {
-        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+        validators: [MAX_100, Validators.pattern(NAME_REGEX)],
       }),
       mags2Surname: fb.control<string | null>(null, {
-        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+        validators: [MAX_100, Validators.pattern(NAME_REGEX)],
       }),
       mags3Title: fb.control<string | null>('mr'),
       mags3FirstName: fb.control<string | null>(null, {
-        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+        validators: [MAX_100, Validators.pattern(NAME_REGEX)],
       }),
       mags3Surname: fb.control<string | null>(null, {
-        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+        validators: [MAX_100, Validators.pattern(NAME_REGEX)],
       }),
       officialTitle: fb.control<string | null>('mr'),
       officialFirstName: fb.control<string | null>(null, {
-        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+        validators: [MAX_100, Validators.pattern(NAME_REGEX)],
       }),
       officialSurname: fb.control<string | null>(null, {
-        validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+        validators: [MAX_100, Validators.pattern(NAME_REGEX)],
       }),
     },
     { validators: officialNamePairValidators },
@@ -211,22 +216,22 @@ export function buildPersonOrgSharedControls(
 ): PersonOrgSharedControls {
   return {
     addressLine1: fb.control<string>('', {
-      validators: [REQUIRED, MAX_60, Validators.pattern(ADDRESS_REGEX)],
+      validators: [REQUIRED, MAX_35, Validators.pattern(ADDRESS_REGEX)],
     }),
     addressLine2: fb.control<string>('', {
-      validators: [MAX_60, Validators.pattern(ADDRESS_REGEX)],
+      validators: [MAX_35, Validators.pattern(ADDRESS_REGEX)],
     }),
     addressLine3: fb.control<string>('', {
-      validators: [MAX_60, Validators.pattern(ADDRESS_REGEX)],
+      validators: [MAX_35, Validators.pattern(ADDRESS_REGEX)],
     }),
     addressLine4: fb.control<string>('', {
-      validators: [MAX_60, Validators.pattern(ADDRESS_REGEX)],
+      validators: [MAX_35, Validators.pattern(ADDRESS_REGEX)],
     }),
     addressLine5: fb.control<string>('', {
-      validators: [MAX_60, Validators.pattern(ADDRESS_REGEX)],
+      validators: [MAX_35, Validators.pattern(ADDRESS_REGEX)],
     }),
     postcode: fb.control<string | null>(null, {
-      validators: [optional(ukPostcode), MAX_60],
+      validators: [optional(ukPostcode), MAX_35],
     }),
     phoneNumber: fb.control<string | null>(null, {
       validators: [optional(ukPhone), MAX_60],
@@ -235,24 +240,38 @@ export function buildPersonOrgSharedControls(
       validators: [optional(ukMobile), MAX_60],
     }),
     emailAddress: fb.control<string | null>(null, {
-      validators: [EMAIL, MAX_60],
+      validators: [EMAIL, Validators.maxLength(253)],
     }),
   };
 }
 
-export function buildPersonForm(fb: NonNullableFormBuilder): PersonForm {
-  return fb.group({
+export function buildPersonForm(
+  fb: NonNullableFormBuilder,
+  isRespondent?: boolean,
+): PersonForm | RespondentPersonForm {
+  const commonFormGroup = {
     title: fb.control<string | null>(null),
     firstName: fb.control<string>('', {
-      validators: [REQUIRED, MAX_60, Validators.pattern(NAME_REGEX)],
+      validators: [REQUIRED, MAX_100, Validators.pattern(NAME_REGEX)],
     }),
     middleNames: fb.control<string>('', {
-      validators: [MAX_60, Validators.pattern(NAME_REGEX)],
+      validators: [MAX_100, Validators.pattern(NAME_REGEX)],
     }),
     surname: fb.control<string | null>(null, {
-      validators: [REQUIRED, MAX_60, Validators.pattern(NAME_REGEX)],
+      validators: [REQUIRED, MAX_100, Validators.pattern(NAME_REGEX)],
     }),
     ...buildPersonOrgSharedControls(fb),
+  };
+
+  if (isRespondent) {
+    return fb.group({
+      dob: fb.control<string | null>(null),
+      ...commonFormGroup,
+    }) as RespondentPersonForm;
+  }
+
+  return fb.group({
+    ...commonFormGroup,
   }) as PersonForm;
 }
 
@@ -261,7 +280,7 @@ export function buildOrganisationForm(
 ): OrganisationForm {
   return fb.group({
     name: fb.control<string>('', {
-      validators: [REQUIRED, MAX_60, Validators.pattern(NAME_REGEX)],
+      validators: [REQUIRED, MAX_100, Validators.pattern(NAME_REGEX)],
     }),
     ...buildPersonOrgSharedControls(fb),
   }) as OrganisationForm;
@@ -275,7 +294,7 @@ export function buildEntryUpdateDtoFromForm(
   formValue: ApplicationsListEntryFormValue,
   applicantPersonValue: PersonFormValue,
   applicantOrgValue: OrganisationFormValue,
-  respondentPersonValue: PersonFormValue,
+  respondentPersonValue: RespondentPersonFormValue,
   respondentOrgValue: OrganisationFormValue,
 ): EntryUpdateDto {
   // Full snapshot of current server state
@@ -379,7 +398,7 @@ export function buildOrganisationApplicantFromRaw(
 }
 
 export function personToFormPatch(
-  person: Person | null | undefined,
+  person: Person | RespondentPerson | null | undefined,
 ): Record<string, unknown> {
   if (!person) {
     return {};
@@ -406,6 +425,15 @@ export function personToFormPatch(
     middleNames,
     surname: name?.surname ?? '',
     ...contactDetailsToFormPatch(contactDetails),
+  };
+}
+
+export function respondentPersonToFormPatch(
+  person: RespondentPerson | null | undefined,
+): Record<string, unknown> {
+  return {
+    ...personToFormPatch(person),
+    dob: person?.dateOfBirth ?? null,
   };
 }
 

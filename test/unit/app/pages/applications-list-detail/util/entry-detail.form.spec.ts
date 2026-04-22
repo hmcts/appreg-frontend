@@ -9,6 +9,7 @@ import {
   buildPersonOrgSharedControls,
   buildStandardApplicationForm,
   getRespondentEntryType,
+  respondentPersonToFormPatch,
 } from '@components/applications-list-entry-detail/util/entry-detail.form';
 import type {
   EntryGetDetailDto,
@@ -118,6 +119,15 @@ describe('applications-list entry form builders', () => {
       form.controls.surname.updateValueAndValidity();
       expect(form.controls.surname.errors).toHaveProperty('required');
     });
+
+    it('adds dob control only for respondent person forms', () => {
+      const applicantForm = buildPersonForm(fb);
+      const respondentForm = buildPersonForm(fb, true);
+
+      expect('dob' in applicantForm.controls).toBe(false);
+      expect('dob' in respondentForm.controls).toBe(true);
+      expect(respondentForm.getRawValue()).toMatchObject({ dob: null });
+    });
   });
 
   describe('buildOrganisationForm', () => {
@@ -161,7 +171,7 @@ describe('applications-list entry form builders', () => {
     it('official/mags names have maxlength and pattern', () => {
       const form = buildStandardApplicationForm(fb);
 
-      form.controls.mags1FirstName.setValue('A'.repeat(61));
+      form.controls.mags1FirstName.setValue('A'.repeat(101));
       form.controls.mags1FirstName.updateValueAndValidity();
       expect(form.controls.mags1FirstName.errors).toHaveProperty('maxlength');
 
@@ -386,6 +396,27 @@ describe('applications-list entry form builders', () => {
         { key: 'Court', value: 'Court A' },
         { key: 'Date', value: '2026-04-13' },
       ]);
+    });
+  });
+
+  describe('respondentPersonToFormPatch', () => {
+    it('maps respondent person dateOfBirth into respondent dob field', () => {
+      const patch = respondentPersonToFormPatch({
+        name: {
+          firstForename: 'Jane',
+          surname: 'Doe',
+        },
+        dateOfBirth: '1990-02-03',
+        contactDetails: {
+          addressLine1: '1 Street',
+        },
+      } as never);
+
+      expect(patch).toMatchObject({
+        firstName: 'Jane',
+        surname: 'Doe',
+        dob: '1990-02-03',
+      });
     });
   });
 

@@ -46,6 +46,21 @@
         widthClass="govuk-!-width-full"
       />
     </div>
+
+    @if (isRespondent()) {
+      <div class="govuk-grid-row">
+        <app-date-input
+          formControlName="dob"
+          label="Date of birth"
+          hint=""
+          [idPrefix]="scopeId() + '-person-dob'"
+          [submitted]="submitted()"
+          [isSearch]="true"
+          [disallowFutureDates]="true"
+          containerWidth="govuk-grid-column-one-third"
+        />
+      </div>
+    }
   </fieldset>
 
   <hr
