@@ -75,13 +75,15 @@ describe('ApplicationsListDetailSearchComponent', () => {
       {
         id: 'respondentPostcode',
         href: '#postcode',
-        text: 'Enter a valid UK postcode',
+        text: 'Postcode must be 8 characters or fewer',
       },
     ]);
     expect(component.errorFor('sequence-number')).toBe(
       'Sequence number must only contain numbers',
     );
-    expect(component.errorFor('postcode')).toBe('Enter a valid UK postcode');
+    expect(component.errorFor('postcode')).toBe(
+      'Postcode must be 8 characters or fewer',
+    );
     expect(emittedResults).toEqual([
       {
         rows: [],

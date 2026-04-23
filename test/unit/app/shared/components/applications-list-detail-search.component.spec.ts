@@ -54,7 +54,9 @@ describe('ApplicationsListDetailSearchComponent', () => {
     await component.onSearch();
 
     expect(entriesApiStub.getApplicationListEntries).not.toHaveBeenCalled();
-    expect(component.errorFor('postcode')).toBe('Enter a valid UK postcode');
+    expect(component.errorFor('postcode')).toBe(
+      'Postcode must be 8 characters or fewer',
+    );
     expect(results).toEqual([
       {
         rows: [],
@@ -63,7 +65,7 @@ describe('ApplicationsListDetailSearchComponent', () => {
           {
             id: 'respondentPostcode',
             href: '#postcode',
-            text: 'Enter a valid UK postcode',
+            text: 'Postcode must be 8 characters or fewer',
           },
         ],
       },

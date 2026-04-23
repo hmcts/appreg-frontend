@@ -193,7 +193,6 @@ export const SEARCH_ERROR_MESSAGES = {
   },
   respondentPostcode: {
     maxlength: 'Postcode must be 8 characters or fewer',
-    postcode: PERSON_FIELD_MESSAGES.postcode.postcode,
   },
   applicationTitle: {
     maxlength: 'Title must be 500 characters or fewer',

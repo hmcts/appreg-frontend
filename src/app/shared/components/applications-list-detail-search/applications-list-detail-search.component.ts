@@ -29,8 +29,6 @@ import {
 } from '@openapi';
 import { buildErrorTextByDomId, errorTextForDomId } from '@util/error-items';
 import { buildFormErrorSummary } from '@util/error-summary';
-import { optional } from '@validators/optional.validator';
-import { ukPostcode } from '@validators/uk-format.validator';
 
 const SEARCH_ERROR_HREFS = {
   sequenceNumber: '#sequence-number',
@@ -93,7 +91,7 @@ export class ApplicationsListDetailSearchComponent {
     }),
     respondentPostcode: new FormControl<string>('', {
       nonNullable: true,
-      validators: [optional(ukPostcode), Validators.maxLength(8)],
+      validators: [Validators.maxLength(8)],
     }),
     applicationTitle: new FormControl<string>('', {
       nonNullable: true,
@@ -178,7 +176,7 @@ export class ApplicationsListDetailSearchComponent {
     return buildFormErrorSummary(this.form, SEARCH_ERROR_MESSAGES, {
       hrefs: SEARCH_ERROR_HREFS,
       priorityKeys: {
-        respondentPostcode: ['postcode', 'maxlength'],
+        respondentPostcode: ['maxlength'],
       },
     });
   }

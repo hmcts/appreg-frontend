@@ -4,6 +4,7 @@ import {
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
+  Validators,
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
@@ -47,7 +48,6 @@ import { createSignalState } from '@util/signal-state-helpers';
 import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
 import { courtMustExistIfTypedValidator } from '@validators/court-exists.validator';
 import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
-import { ukPostcode } from '@validators/uk-format.validator';
 
 type AppErrorMap = typeof APPLICATIONS_ERROR_MAP;
 type ControlName = keyof AppErrorMap;
@@ -94,7 +94,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       location: new FormControl<string>(''),
       standardApplicantCode: new FormControl<string>(''),
       respondentPostcode: new FormControl<string>('', {
-        validators: ukPostcode,
+        validators: [Validators.maxLength(8)],
       }),
       accountReference: new FormControl<string>(''),
       court: new FormControl<string>(''),

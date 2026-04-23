@@ -1,7 +1,7 @@
 type ApplicationsControl = 'respondentPostcode' | 'date' | 'court' | 'cja';
 type ApplicationsErrorKeyMap = {
   date: 'dateInvalid';
-  respondentPostcode: 'postcode';
+  respondentPostcode: 'maxlength';
   court: 'courtNotFound';
   cja: 'cjaNotFound';
 };
@@ -9,7 +9,9 @@ export const APPLICATIONS_ERROR_MAP: {
   [C in ApplicationsControl]: Record<ApplicationsErrorKeyMap[C], string>;
 } = {
   date: { dateInvalid: 'Enter a valid date' },
-  respondentPostcode: { postcode: 'Enter a valid UK postcode' },
+  respondentPostcode: {
+    maxlength: 'Postcode must be 8 characters or fewer',
+  },
   court: {
     courtNotFound: 'Court location not found',
   },
