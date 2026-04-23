@@ -59,7 +59,6 @@ export type ApplicationsListDetailSearchResult = {
     SelectInputComponent,
   ],
   templateUrl: './applications-list-detail-search.component.html',
-  styleUrl: './applications-list-detail-search.component.scss',
 })
 export class ApplicationsListDetailSearchComponent {
   private readonly appListEntriesApi = inject(ApplicationListEntriesApi);
