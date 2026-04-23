@@ -26,7 +26,7 @@ export function mapEntrySummaryRows(
   }));
 }
 
-function getResultCodes(entry: EntryGetSummaryDto): string[] {
+export function getResultCodes(entry: EntryGetSummaryDto): string[] {
   const resulted = (
     entry as EntryGetSummaryDto & {
       resulted?: ResultCodeGetSummaryDto | ResultCodeGetSummaryDto[];
@@ -44,7 +44,7 @@ function getResultCodes(entry: EntryGetSummaryDto): string[] {
   return [];
 }
 
-function joinResultCodes(resultCodes: string[]): string {
+export function joinResultCodes(resultCodes: string[]): string {
   return resultCodes
     .map((resultCode) => resultCode.trim())
     .filter(Boolean)
