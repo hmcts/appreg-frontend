@@ -22,6 +22,16 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
+            "security": {
+              "allowedHosts": [
+                "appreg.demo.apps.hmcts.net",
+                "appreg.staging.apps.hmcts.net",
+                "appreg.apps.hmcts.net",
+                "appreg.ithc.apps.hmcts.net",
+                "*.dev.platform.hmcts.net",
+                "localhost"
+              ]
+            },
             "stylePreprocessorOptions": {
               "includePaths": ["./"]
             },
