@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 
 import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
 import { ApplicationCodesApi } from '@openapi';
@@ -30,12 +30,14 @@ describe('ApplicationCodeSearchComponent', () => {
         title: 'Statutory Declaration - Lost documents',
         bulk: 'No',
         fee: '—',
+        isFeeDue: '',
       },
       {
         code: 'MS99003',
         title: 'Statutory Declaration - Local Authority Car Park',
         bulk: 'No',
         fee: '—',
+        isFeeDue: '',
       },
     ],
     totalPages: 0,
@@ -88,7 +90,7 @@ describe('ApplicationCodeSearchComponent', () => {
         title: 'Statutory',
         pageNumber: 0,
         pageSize: 10,
-        sort: ['applicationCode,asc'],
+        sort: ['code,asc'],
       },
       true,
     );
@@ -114,7 +116,7 @@ describe('ApplicationCodeSearchComponent', () => {
         title: undefined,
         pageNumber: 3,
         pageSize: 25,
-        sort: ['applicationCode,asc'],
+        sort: ['code,asc'],
       },
       true,
     );
@@ -139,7 +141,7 @@ describe('ApplicationCodeSearchComponent', () => {
         title: undefined,
         pageNumber: 0,
         pageSize: 10,
-        sort: ['applicationCode,asc'],
+        sort: ['code,asc'],
       },
       true,
     );
@@ -155,6 +157,18 @@ describe('ApplicationCodeSearchComponent', () => {
 
     expect(component.loading()).toBe(false);
     expect(component.errored()).toBe(true);
+  });
+
+  it('search() keeps existing rows visible while a refetch is in progress', () => {
+    const pending$ = new Subject<CodeRowsResult>();
+    jest.spyOn(helpers, 'fetchCodeRows$').mockReturnValue(pending$);
+
+    component.codesRows = mockRows.rows.slice();
+
+    component.search();
+
+    expect(component.codesRows).toEqual(mockRows.rows);
+    expect(component.loading()).toBe(true);
   });
 
   it('search() should not call fetchCodeRows$ when code exceeds max length', () => {
@@ -197,6 +211,7 @@ describe('ApplicationCodeSearchComponent', () => {
       title: ` ${mockRows.rows[0].title} `,
       bulk: mockRows.rows[0].bulk,
       fee: mockRows.rows[0].fee,
+      isFeeDue: '',
     };
 
     component.onAddCode(rowWithWhitespace);

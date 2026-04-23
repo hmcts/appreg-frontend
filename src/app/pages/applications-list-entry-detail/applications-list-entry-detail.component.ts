@@ -455,9 +455,12 @@ export class ApplicationsListEntryDetail implements OnInit {
       date: this.form.controls.lodgementDate.value,
     };
 
+    const lodgementDate =
+      codeAndLodgementDate.date || this.form.controls.lodgementDate.value || '';
+
     this.form.patchValue({
       applicationCode: codeAndLodgementDate.code,
-      lodgementDate: codeAndLodgementDate.date,
+      lodgementDate,
     });
     // Call API to retrieve data associated with the App code
     if (this.form.value.applicationCode && this.form.value.lodgementDate) {
@@ -625,7 +628,10 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     if (source === 'codes') {
       const summaryErrors = [
-        ...getUniqueErrors(this.parentErrors, Object.values(this.childErrors).flat()),
+        ...getUniqueErrors(
+          this.parentErrors,
+          Object.values(this.childErrors).flat(),
+        ),
       ];
 
       this.appListEntryDetailPatch({

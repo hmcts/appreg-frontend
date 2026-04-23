@@ -104,9 +104,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
 
   form = new FormGroup({
     lodgementDate: new FormControl<string | null>(null),
-    code: new FormControl<string | null>(null, [
-      Validators.maxLength(10),
-    ]),
+    code: new FormControl<string | null>(null, [Validators.maxLength(10)]),
     title: new FormControl<string | null>(null),
   });
 
@@ -170,7 +168,6 @@ export class ApplicationCodeSearchComponent implements OnInit {
 
   search(): void {
     this.submitted.set(true);
-    this.codesRows = [];
     this.errored.set(false);
 
     if (!this.canSearch()) {

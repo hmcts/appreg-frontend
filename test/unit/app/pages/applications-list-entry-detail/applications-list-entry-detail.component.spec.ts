@@ -1096,6 +1096,21 @@ describe('ApplicationsListEntryDetail', () => {
     expect(resetSectionsSpy).toHaveBeenCalledWith(component.forms);
   });
 
+  it('onCodeSelected preserves the existing lodgement date when clearing the code selection', () => {
+    component['form'].patchValue({
+      applicationCode: 'APP-7',
+      lodgementDate: '2025-11-01',
+    });
+
+    mockGetApplicationCodeByCodeAndDate.mockClear();
+
+    component.onCodeSelected({ code: '', date: '' });
+
+    expect(component['form'].controls.applicationCode.value).toBe('');
+    expect(component['form'].controls.lodgementDate.value).toBe('2025-11-01');
+    expect(mockGetApplicationCodeByCodeAndDate).not.toHaveBeenCalled();
+  });
+
   it('updateApplicantErrors validates person applicant: produces first name and last name errors', () => {
     component['form'].controls.applicantType.setValue('person');
 

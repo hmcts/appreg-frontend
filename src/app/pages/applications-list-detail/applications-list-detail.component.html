@@ -105,119 +105,112 @@
     />
 
     @if (vm().rows.length || (!noEntries && !vm().isLoading)) {
-      <div
-        class="app-table-scroll"
-        [class.app-table-scroll--loading]="vm().isLoading"
+      <!-- Sortable table component -->
+      <app-sortable-table
+        id="sortable-table"
+        [columns]="columns"
+        [data]="vm().rows"
+        [loading]="vm().isLoading"
+        [selectable]="true"
+        [clientOrServerSort]="'server'"
+        [sortKey]="vm().sortField.key"
+        [sortDirection]="vm().sortField.direction"
+        idField="id"
+        (sortChange)="onSortChange($event)"
+        (selectedRowsChange)="onSelectedRowsChange($event)"
+        [(selectedIds)]="vm().selectedIds"
+        appMojButtonMenu
       >
-        <!-- Sortable table component -->
-        <app-sortable-table
-          id="sortable-table"
-          [columns]="columns"
-          [data]="vm().rows"
-          [selectable]="true"
-          [clientOrServerSort]="'server'"
-          [sortKey]="vm().sortField.key"
-          [sortDirection]="vm().sortField.direction"
-          idField="id"
-          (sortChange)="onSortChange($event)"
-          (selectedRowsChange)="onSelectedRowsChange($event)"
-          [(selectedIds)]="vm().selectedIds"
-          appMojButtonMenu
+        <caption
+          class="govuk-table__caption govuk-table__caption--m"
+          id="sortable-Lists"
         >
-          <caption
-            class="govuk-table__caption govuk-table__caption--m"
-            id="sortable-Lists"
+          <span class="table-caption__text"> Entries </span>
+
+          <span
+            class="table-caption__actions"
+            role="group"
+            aria-label="Table actions"
           >
-            <span class="table-caption__text"> Entries </span>
-
-            <span
-              class="table-caption__actions"
-              role="group"
-              aria-label="Table actions"
-            >
-              @if (vm().selectedRows.length === 0) {
-                <button
-                  type="button"
-                  class="govuk-button govuk-button--small govuk-button--primary table-caption__action-button"
-                  disabled
-                >
-                  Actions
-                </button>
-              } @else {
-                <div
-                  class="moj-button-menu"
-                  data-module="moj-button-menu"
-                  data-button-text="Actions"
-                  data-align-menu="right"
-                  data-button-classes="govuk-button govuk-button--small govuk-button--primary table-caption__action-button"
-                >
-                  <button
-                    type="button"
-                    class="govuk-button moj-button-menu__item govuk-button--secondary"
-                    (click)="onResultButtonClick()"
-                  >
-                    Result selected
-                  </button>
-
-                  <button
-                    type="button"
-                    class="govuk-button moj-button-menu__item govuk-button--secondary"
-                    (click)="onMoveButtonClick()"
-                  >
-                    Move entries
-                  </button>
-
-                  <button
-                    type="button"
-                    class="govuk-button moj-button-menu__item govuk-button--secondary"
-                    (click)="onPrintContinuousClick()"
-                  >
-                    Print continuous
-                  </button>
-
-                  <button
-                    type="button"
-                    class="govuk-button moj-button-menu__item govuk-button--secondary"
-                    (click)="onPrintPageClick()"
-                  >
-                    Print page
-                  </button>
-                </div>
-              }
-            </span>
-          </caption>
-          <!-- actions slot -->
-          <ng-template #actionsTemplate let-row>
-            <div
-              class="moj-button-menu"
-              data-module="moj-button-menu"
-              data-button-text="Select"
-              data-button-classes="govuk-button"
-            >
-              <!-- Open button -->
+            @if (vm().selectedRows.length === 0) {
               <button
                 type="button"
-                class="govuk-button moj-button-menu__item govuk-button--secondary"
-                (click)="openUpdate(row)"
+                class="govuk-button govuk-button--small govuk-button--primary table-caption__action-button"
+                disabled
               >
-                Open
+                Actions
               </button>
-
-              <!-- Delete button -->
-              <!-- TODO: implement thjs in ARCPOC-1281: https://tools.hmcts.net/jira/browse/ARCPOC-1281 -->
-              <!-- <button
-                type="button"
-                class="govuk-button moj-button-menu__item govuk-button--secondary"
+            } @else {
+              <div
+                class="moj-button-menu"
+                data-module="moj-button-menu"
+                data-button-text="Actions"
+                data-align-menu="right"
+                data-button-classes="govuk-button govuk-button--small govuk-button--primary table-caption__action-button"
               >
-                Delete
-              </button> -->
-            </div>
-          </ng-template>
-        </app-sortable-table>
-        @if (vm().isLoading) {
-          <div class="app-table-scroll__loading" aria-hidden="true"></div>
-        }
-      </div>
+                <button
+                  type="button"
+                  class="govuk-button moj-button-menu__item govuk-button--secondary"
+                  (click)="onResultButtonClick()"
+                >
+                  Result selected
+                </button>
+
+                <button
+                  type="button"
+                  class="govuk-button moj-button-menu__item govuk-button--secondary"
+                  (click)="onMoveButtonClick()"
+                >
+                  Move entries
+                </button>
+
+                <button
+                  type="button"
+                  class="govuk-button moj-button-menu__item govuk-button--secondary"
+                  (click)="onPrintContinuousClick()"
+                >
+                  Print continuous
+                </button>
+
+                <button
+                  type="button"
+                  class="govuk-button moj-button-menu__item govuk-button--secondary"
+                  (click)="onPrintPageClick()"
+                >
+                  Print page
+                </button>
+              </div>
+            }
+          </span>
+        </caption>
+        <!-- actions slot -->
+        <ng-template #actionsTemplate let-row>
+          <div
+            class="moj-button-menu"
+            data-module="moj-button-menu"
+            data-button-text="Select"
+            data-button-classes="govuk-button"
+          >
+            <!-- Open button -->
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+              (click)="openUpdate(row)"
+            >
+              Open
+            </button>
+
+            <!-- Delete button -->
+            <!-- TODO: implement thjs in ARCPOC-1281: https://tools.hmcts.net/jira/browse/ARCPOC-1281 -->
+            <!-- <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+            >
+              Delete
+            </button> -->
+          </div>
+        </ng-template>
+      </app-sortable-table>
     } @else if (noEntries && !vm().isLoading) {
       <app-notification-banner
         id="noEntries"

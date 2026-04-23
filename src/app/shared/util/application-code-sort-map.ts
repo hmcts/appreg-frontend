@@ -1,7 +1,7 @@
 export function toApplicationCodeSortKey(key: string): string {
   switch (key) {
     case 'code':
-      return 'applicationCode';
+      return 'code';
     case 'title':
       return 'title';
     case 'bulk':
@@ -9,6 +9,6 @@ export function toApplicationCodeSortKey(key: string): string {
     case 'isFeeDue':
       return 'feeDue';
     default:
-      return 'applicationCode';
+      return 'code';
   }
 }
