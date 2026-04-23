@@ -109,7 +109,7 @@
     "rimraf": "^6.0.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
-    "uuid": "^11.1.0",
+    "uuid": "^14.0.0",
     "zone.js": "0.16"
   },
   "devDependencies": {
@@ -212,7 +212,8 @@
     "find-cypress-specs@npm:^1.45.2": "patch:find-cypress-specs@npm%3A1.54.9#~/.yarn/patches/find-cypress-specs-npm-1.54.9-fc193a790b.patch",
     "picomatch": "^4.0.4",
     "brace-expansion": "^5.0.5",
-    "axios": "1.15.0"
+    "axios": "1.15.2",
+    "uuid": "^14.0.0"
   },
   "packageManager": "yarn@4.10.3"
 }
