@@ -1,7 +1,7 @@
 Feature: Applications List Entry Create
 
     #  Regex Validations
-    @ignore @ARCPOC-222 @ARCPOC-1107 @ARCPOC-1282 @ARCPOC-1209 @ARCPOC-1241 @ARCPOC-1238 @ARCPOC-1302 @ARCPOC-1319  @SC1
+    @ARCPOC-222 @ARCPOC-1107 @ARCPOC-1282 @ARCPOC-1209 @ARCPOC-1241 @ARCPOC-1238 @ARCPOC-1302 @ARCPOC-1319  @SC1
     Scenario Outline: Create an ALE where Applicant = Person and Respondent = Person, using an Application Code with Fee Required = Y and Respondent Required = Y
         Given User Authenticates Via API As "<User>"
         # Create Application List
