@@ -40,6 +40,7 @@ import { TextInputComponent } from '@components/text-input/text-input.component'
 import { ApplicationCodeGetSummaryDto, ApplicationCodesApi } from '@openapi';
 import { ApplicationsListEntryForm } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import { CodeRow, fetchCodeRows$ } from '@util/application-code-helpers';
+import { toApplicationCodeSortKey } from '@util/application-code-sort-map';
 import { ErrorMessageMap, buildFormErrorSummary } from '@util/error-summary';
 
 const APPLICATION_CODE_SEARCH_ERROR_MESSAGES = {
@@ -77,6 +78,10 @@ export class ApplicationCodeSearchComponent implements OnInit {
   // API query response
   totalPages = signal(0);
   currentPage = signal(0);
+  sortField = signal<{ key: string; direction: 'desc' | 'asc' }>({
+    key: 'code',
+    direction: 'asc',
+  });
 
   selectCodeAndLodgementDate = output<{ code: string; date: string }>();
   resultsChange = output<ApplicationCodeGetSummaryDto[]>();
@@ -176,6 +181,10 @@ export class ApplicationCodeSearchComponent implements OnInit {
     const title = this.form.value.title?.trim() ?? '';
 
     this.loading.set(true);
+
+    const sort = this.sortField();
+    const apiSortKey = toApplicationCodeSortKey(sort.key);
+
     fetchCodeRows$(
       this.codesApi,
       {
@@ -183,6 +192,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
         title: title || undefined,
         pageNumber: this.currentPage(),
         pageSize: this.pageSize(),
+        sort: [`${apiSortKey},${sort.direction}`],
       },
       true,
     )
@@ -235,6 +245,16 @@ export class ApplicationCodeSearchComponent implements OnInit {
     this.search();
   }
 
+  onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    if (!this.canSearch()) {
+      return;
+    }
+
+    this.sortField.set(sort);
+    this.currentPage.set(0);
+    this.search();
+  }
+
   codeError(): string | null {
     if (!this.submitted() && !this.parentSubmitted()) {
       return null;
@@ -257,6 +277,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
     this.codeSearchErrors.emit([]);
     this.totalPages.set(0);
     this.currentPage.set(0);
+    this.sortField.set({ key: 'code', direction: 'asc' });
   }
 
   private initialPatchFormData(): void {

@@ -82,6 +82,10 @@
         caption="Codes"
         [columns]="codesColumns"
         [data]="codesRows"
+        [clientOrServerSort]="'server'"
+        [sortKey]="sortField().key"
+        [sortDirection]="sortField().direction"
+        (sortChange)="onSortChange($event)"
         appMojButtonMenu
       >
         <ng-template #actionsTemplate let-row>

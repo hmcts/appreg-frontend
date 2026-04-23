@@ -88,6 +88,7 @@ describe('ApplicationCodeSearchComponent', () => {
         title: 'Statutory',
         pageNumber: 0,
         pageSize: 10,
+        sort: ['applicationCode,asc'],
       },
       true,
     );
@@ -113,6 +114,7 @@ describe('ApplicationCodeSearchComponent', () => {
         title: undefined,
         pageNumber: 3,
         pageSize: 25,
+        sort: ['applicationCode,asc'],
       },
       true,
     );
@@ -137,6 +139,7 @@ describe('ApplicationCodeSearchComponent', () => {
         title: undefined,
         pageNumber: 0,
         pageSize: 10,
+        sort: ['applicationCode,asc'],
       },
       true,
     );
@@ -289,6 +292,47 @@ describe('ApplicationCodeSearchComponent', () => {
         href: '#applicationCode',
       },
     ]);
+  });
+
+  it('onSortChange() should reset to page 0 and search with mapped API sort', () => {
+    const fetchSpy = jest
+      .spyOn(helpers, 'fetchCodeRows$')
+      .mockReturnValue(of(mockRows));
+
+    component.currentPage.set(4);
+    component.form.patchValue({ code: 'MS99004' });
+
+    component.onSortChange({ key: 'title', direction: 'desc' });
+
+    expect(component.currentPage()).toBe(0);
+    expect(component.sortField()).toEqual({ key: 'title', direction: 'desc' });
+    expect(fetchSpy).toHaveBeenCalledWith(
+      apiMock,
+      {
+        code: 'MS99004',
+        title: undefined,
+        pageNumber: 0,
+        pageSize: 10,
+        sort: ['title,desc'],
+      },
+      true,
+    );
+  });
+
+  it('maps fee required sorting to the backend feeDue key', () => {
+    const fetchSpy = jest
+      .spyOn(helpers, 'fetchCodeRows$')
+      .mockReturnValue(of(mockRows));
+
+    component.onSortChange({ key: 'isFeeDue', direction: 'asc' });
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      apiMock,
+      expect.objectContaining({
+        sort: ['feeDue,asc'],
+      }),
+      true,
+    );
   });
 
   it('emits validation errors when the parent submit state turns on', () => {
