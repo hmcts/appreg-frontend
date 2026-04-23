@@ -26,6 +26,7 @@
               "allowedHosts": [
                 "appreg.demo.apps.hmcts.net",
                 "appreg.staging.apps.hmcts.net",
+                "appreg-frontend-staging.staging.platform.hmcts.net",
                 "appreg.apps.hmcts.net",
                 "appreg.ithc.apps.hmcts.net",
                 "*.dev.platform.hmcts.net",
