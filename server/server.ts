@@ -162,12 +162,17 @@ async function acquireApiToken(req: ReqWithSession): Promise<string | null> {
   const sess = req.session;
   const account = sess?.account;
   const cache = sess?.tokenCache;
+  const cookieHeader = req.headers['cookie'];
+  const cookiePresent =
+    typeof cookieHeader === 'string' ? cookieHeader.length > 0 : false;
 
   if (!account || !cache || apiScopes.length === 0) {
     logger.info(
       `[proxy] acquireApiToken: missing ${
         !account ? 'account' : !cache ? 'cache' : 'scopes'
-      }`,
+      } cookiePresent=${cookiePresent} sessionIdPresent=${Boolean(
+        (req as Request & { sessionID?: string }).sessionID,
+      )}`,
     );
     return null;
   }
@@ -192,7 +197,12 @@ async function acquireApiToken(req: ReqWithSession): Promise<string | null> {
     }
     logger.warn('[proxy] acquireTokenSilent returned no accessToken');
   } catch (e) {
-    logger.warn('[proxy] acquireTokenSilent failed', e);
+    logger.warn(
+      `[proxy] acquireTokenSilent failed cookiePresent=${cookiePresent} sessionIdPresent=${Boolean(
+        (req as Request & { sessionID?: string }).sessionID,
+      )}`,
+      e,
+    );
   }
   return null;
 }

@@ -1,5 +1,5 @@
 import { HttpErrorResponse, HttpRequest } from '@angular/common/http';
-import { ErrorHandler } from '@angular/core';
+import { ErrorHandler, PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { throwError } from 'rxjs';
@@ -13,10 +13,12 @@ describe('errorInterceptor', () => {
   let errorHandler: { handleError: jest.Mock };
   let errorMessageService: { handleErrorMessage: jest.Mock };
   let telemetryService: { logException: jest.Mock };
+  let platformId: 'browser' | 'server';
 
   const req = new HttpRequest('GET', '/test?user=alice');
 
   beforeEach(() => {
+    platformId = 'browser';
     router = { navigate: jest.fn().mockResolvedValue(true) };
     errorHandler = { handleError: jest.fn() };
     errorMessageService = { handleErrorMessage: jest.fn() };
@@ -25,6 +27,7 @@ describe('errorInterceptor', () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: Router, useValue: router },
+        { provide: PLATFORM_ID, useFactory: () => platformId },
         { provide: ErrorHandler, useValue: errorHandler },
         { provide: ErrorMessageService, useValue: errorMessageService },
         { provide: TelemetryService, useValue: telemetryService },
@@ -118,6 +121,42 @@ describe('errorInterceptor', () => {
         expect(errorHandler.handleError).toHaveBeenCalledTimes(1);
         expect(errorHandler.handleError).toHaveBeenCalledWith(err);
 
+        done();
+      },
+    });
+  });
+
+  it('does not navigate to /login on 401 during SSR', (done) => {
+    platformId = 'server';
+    TestBed.resetTestingModule();
+
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: Router, useValue: router },
+        { provide: PLATFORM_ID, useFactory: () => platformId },
+        { provide: ErrorHandler, useValue: errorHandler },
+        { provide: ErrorMessageService, useValue: errorMessageService },
+        { provide: TelemetryService, useValue: telemetryService },
+      ],
+    });
+
+    const err = new HttpErrorResponse({
+      status: 401,
+      statusText: 'Unauthorized',
+      url: '/api/foo',
+    });
+
+    runInterceptorWithError(err).subscribe({
+      next: () => done.fail('expected error'),
+      error: (e) => {
+        expect(e).toBe(err);
+        expect(router.navigate).not.toHaveBeenCalled();
+        expect(errorMessageService.handleErrorMessage).toHaveBeenCalledTimes(1);
+        expect(errorMessageService.handleErrorMessage).toHaveBeenCalledWith(
+          err,
+        );
+        expect(errorHandler.handleError).toHaveBeenCalledTimes(1);
+        expect(errorHandler.handleError).toHaveBeenCalledWith(err);
         done();
       },
     });

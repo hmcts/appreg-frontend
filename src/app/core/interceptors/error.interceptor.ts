@@ -1,9 +1,10 @@
+import { isPlatformBrowser } from '@angular/common';
 import {
   HttpErrorResponse,
   HttpInterceptorFn,
   HttpRequest,
 } from '@angular/common/http';
-import { ErrorHandler, inject } from '@angular/core';
+import { ErrorHandler, PLATFORM_ID, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 
@@ -14,6 +15,7 @@ import { toSanitizedPath } from '@util/sanitized-path';
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const errorHandler = inject(ErrorHandler);
   const router = inject(Router);
+  const platformId = inject(PLATFORM_ID);
   const errorMessageService = inject(ErrorMessageService);
   const telemetryService = inject(TelemetryService);
 
@@ -25,7 +27,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           buildTelemetryProperties(req, error),
         );
 
-        if (error.status === 401) {
+        if (error.status === 401 && isPlatformBrowser(platformId)) {
           void router.navigate(['/login']);
         } else {
           errorMessageService.handleErrorMessage(error);
