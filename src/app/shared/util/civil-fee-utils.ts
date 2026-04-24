@@ -1,29 +1,21 @@
 import { FormControl } from '@angular/forms';
 
-import {
-  ApplicationCodeGetSummaryDtoFeeAmount,
-  ApplicationCodeGetSummaryDtoFeeAmountCurrencyEnum,
-  FeeStatus,
-  PaymentStatus,
-} from '@openapi';
+import { FeeStatus, PaymentStatus } from '@openapi';
 import {
   AddFeeDetailsPayload,
+  CivilFeeAmount,
   CivilFeeMeta,
   PaymentRefReturnState,
 } from '@shared-types/civil-fee/civil-fee';
 
-function formatGbpOrDash(
-  amount: ApplicationCodeGetSummaryDtoFeeAmount | null | undefined,
-): string {
+function formatGbpOrDash(amount: CivilFeeAmount | null | undefined): string {
   if (!amount || typeof amount.value !== 'number') {
     return '—';
   }
   return formatGbp(amount);
 }
 
-function formatGbp(
-  amount: ApplicationCodeGetSummaryDtoFeeAmount | null | undefined,
-): string {
+function formatGbp(amount: CivilFeeAmount | null | undefined): string {
   const pence = amount?.value;
   if (typeof pence !== 'number' || Number.isNaN(pence)) {
     return '£0.00';
@@ -38,15 +30,15 @@ function formatGbp(
 }
 
 function addMoney(
-  a: ApplicationCodeGetSummaryDtoFeeAmount | null | undefined,
-  b: ApplicationCodeGetSummaryDtoFeeAmount | null | undefined,
-): ApplicationCodeGetSummaryDtoFeeAmount {
+  a: CivilFeeAmount | null | undefined,
+  b: CivilFeeAmount | null | undefined,
+): CivilFeeAmount {
   const av = typeof a?.value === 'number' ? a.value : 0;
   const bv = typeof b?.value === 'number' ? b.value : 0;
 
   return {
     value: av + bv,
-    currency: ApplicationCodeGetSummaryDtoFeeAmountCurrencyEnum.GBP,
+    currency: 'GBP',
   };
 }
 
@@ -76,7 +68,7 @@ export function addFeeStatus(
 /**
  * Builds:
  *  - no offsite: "Fee Reference: CO7.2  Amount: £25.00"
- *  - offsite: "Fee Reference: CO7.2  Amount: £25.00  CO1.1  Off Site Fee Amount: £30.00  Total Fee Amount: £55.00"
+ *  - offsite: "Fee Reference: CO7.2  Amount: £25.00  Off Site Fee Reference: CO1.1  Off Site Fee Amount: £30.00  Total Fee Amount: £55.00"
  */
 export function buildCivilFeeHeading(
   meta: CivilFeeMeta,
@@ -90,12 +82,14 @@ export function buildCivilFeeHeading(
 
   if (hasOffsiteFee) {
     const offsiteAmount = formatGbpOrDash(meta.offsiteFeeAmount);
+    const offsiteRef = (meta.offsiteFeeReference ?? '').trim();
     const total =
       meta.feeAmount?.value !== null && meta.offsiteFeeAmount?.value !== null
         ? formatGbpOrDash(addMoney(meta.feeAmount, meta.offsiteFeeAmount))
         : '—';
 
     parts.push(
+      `Off Site Fee Reference: ${offsiteRef || '—'}`,
       `Off Site Fee Amount: ${offsiteAmount}`,
       `Total Fee Amount: ${total}`,
     );

@@ -472,7 +472,11 @@ export class ApplicationsListEntryCreate implements OnInit {
             });
             this.feeMeta = {
               feeReference: appCodeDetail.feeReference ?? null,
+              feeDescription: appCodeDetail.feeDescription ?? null,
               feeAmount: appCodeDetail.feeAmount ?? null,
+              offsiteFeeReference: appCodeDetail.offsiteFeeReference ?? null,
+              offsiteFeeDescription:
+                appCodeDetail.offsiteFeeDescription ?? null,
               offsiteFeeAmount: appCodeDetail.offsiteFeeAmount ?? null,
             };
 

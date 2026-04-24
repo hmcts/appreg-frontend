@@ -1045,7 +1045,10 @@ describe('ApplicationsListEntryDetail', () => {
         isFeeDue: true,
         requiresRespondent: false,
         feeReference: 'CO7.2',
+        feeDescription: 'Main fee description',
         feeAmount: { value: 2500, currency: 'GBP' },
+        offsiteFeeReference: 'CO1.1',
+        offsiteFeeDescription: 'Offsite fee description',
         offsiteFeeAmount: { value: 3000, currency: 'GBP' },
         startDate: '2025-01-01',
         endDate: null,
@@ -1063,7 +1066,10 @@ describe('ApplicationsListEntryDetail', () => {
     ).toBe('APP-7');
     expect(component.feeMeta).toEqual({
       feeReference: 'CO7.2',
+      feeDescription: 'Main fee description',
       feeAmount: { value: 2500, currency: 'GBP' },
+      offsiteFeeReference: 'CO1.1',
+      offsiteFeeDescription: 'Offsite fee description',
       offsiteFeeAmount: { value: 3000, currency: 'GBP' },
     });
     expect(component['appListEntryDetailState']().isFeeRequired).toBe(true);
