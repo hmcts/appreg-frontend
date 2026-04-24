@@ -34,8 +34,13 @@ import {
   selectedRow,
   tableDataReq,
 } from './util';
+import { mapEntrySummaryRows } from './util/map-entry-summary-rows';
 
 import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
+import {
+  ApplicationsListDetailSearchComponent,
+  ApplicationsListDetailSearchResult,
+} from '@components/applications-list-detail-search/applications-list-detail-search.component';
 import { toRow } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
@@ -60,9 +65,7 @@ import {
   ApplicationListGetDetailDto,
   ApplicationListGetPrintDto,
   ApplicationListsApi,
-  EntryGetSummaryDto,
   EntryPage,
-  ResultCodeGetSummaryDto,
 } from '@openapi';
 import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
@@ -74,7 +77,6 @@ import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenu, MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
-import { formatPersonName, returnOrgName } from '@util/string-helpers';
 import { parseTimeToDuration } from '@util/time-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
 import { closePermitted } from '@validators/applications-list-close.validator';
@@ -123,6 +125,7 @@ type PrintRequest = {
     PaginationComponent,
     NotificationBannerComponent,
     MojButtonMenuDirective,
+    ApplicationsListDetailSearchComponent,
   ],
   templateUrl: './applications-list-detail.component.html',
   styleUrls: ['./applications-list-detail.component.scss'],
@@ -390,6 +393,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
               pageNumber: req.pageNumber,
               pageSize: req.pageSize,
               sort: req.sort,
+              filter: req.filter,
             },
             'response',
             false,
@@ -412,7 +416,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
             return;
           }
 
-          const rows = this.mapTableResponsetoRows(dto);
+          const rows = mapEntrySummaryRows(dto.content);
 
           const total = dto.totalElements ?? rows.length;
           const pageSize = this.vm().pageSize;
@@ -562,6 +566,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       pageNumber: vm.currentPage,
       pageSize: vm.pageSize,
       sort: paramSort,
+      filter: vm.getFilters,
     });
   }
 
@@ -679,6 +684,22 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.loadListDetailsInfo();
   }
 
+  onSearchResult(result: ApplicationsListDetailSearchResult): void {
+    const hasErrors = result.errors.length > 0;
+    const filters = result.reqFilter;
+
+    this.detailSignalState.patch({
+      currentPage: 0,
+      rows: result.rows,
+      totalPages: result.totalPages,
+      selectedIds: new Set<string>(),
+      updateInvalid: hasErrors,
+      errorSummary: hasErrors ? result.errors : [],
+      preserveErrorSummaryOnLoad: false,
+      getFilters: filters,
+    });
+  }
+
   async openUpdate(row: Partial<selectedRow>): Promise<void> {
     await this.router.navigate(
       ['/applications-list', this.id, 'update-entry', row.id],
@@ -715,57 +736,6 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       errorSummary: preserveErrorSummary ? vm.errorSummary : [],
       preserveErrorSummaryOnLoad: preserveErrorSummary,
     });
-  }
-
-  // return type selectedRow[]
-  private mapTableResponsetoRows(dto: {
-    content: EntryGetSummaryDto[];
-  }): selectedRow[] {
-    return dto.content.map((entry: EntryGetSummaryDto) => {
-      return {
-        id: entry.id,
-        sequenceNumber: entry.sequenceNumber!,
-        accountNumber: entry.accountNumber ?? '',
-        applicant: entry.applicant?.person
-          ? formatPersonName(entry.applicant)
-          : returnOrgName(entry.applicant),
-        respondent: entry.respondent?.person
-          ? formatPersonName(entry.respondent)
-          : returnOrgName(entry.respondent),
-        postCode:
-          entry.respondent?.person?.contactDetails?.postcode ??
-          entry.respondent?.organisation?.contactDetails?.postcode ??
-          '',
-        title: `${entry.applicationTitle}`.trim(),
-        feeReq: entry.isFeeRequired ? 'Yes' : 'No',
-        resulted: this.joinResultCodes(this.getResultCodes(entry)),
-      };
-    });
-  }
-
-  private getResultCodes(entry: EntryGetSummaryDto): string[] {
-    const resulted = (
-      entry as EntryGetSummaryDto & {
-        resulted?: ResultCodeGetSummaryDto | ResultCodeGetSummaryDto[];
-      }
-    ).resulted;
-
-    if (Array.isArray(resulted)) {
-      return resulted
-        .map((resultCode) =>
-          typeof resultCode === 'string' ? resultCode : resultCode.resultCode,
-        )
-        .filter(Boolean);
-    }
-
-    return [];
-  }
-
-  private joinResultCodes(resultCodes: string[]): string {
-    return resultCodes
-      .map((resultCode) => resultCode.trim())
-      .filter(Boolean)
-      .join(', ');
   }
 
   private filterEntriesToPrint(

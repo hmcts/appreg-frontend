@@ -1,7 +1,11 @@
 import { FormControl, FormGroup } from '@angular/forms';
 
 import { Duration } from '@components/duration-input/duration-input.component';
-import { ApplicationListStatus, ApplicationListUpdateDto } from '@openapi';
+import {
+  ApplicationListStatus,
+  ApplicationListUpdateDto,
+  EntryApplicationListGetFilterDto,
+} from '@openapi';
 import { CloseNotPermittedError } from '@shared-types/applications-list-close/applications-list-close.type';
 
 export type DetailForm = FormGroup<{
@@ -49,7 +53,7 @@ export type tableDataReq = {
   id: string;
   pageNumber: number;
   pageSize: number;
-  filter?: { field: string; value: string }[];
+  filter?: EntryApplicationListGetFilterDto;
   sort?: string[];
 };
 export type UpdateReq = {

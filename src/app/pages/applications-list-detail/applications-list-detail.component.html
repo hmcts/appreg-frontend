@@ -104,6 +104,16 @@
       class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
     />
 
+    <app-applications-list-detail-search
+      [listId]="id"
+      [pageSize]="vm().pageSize"
+      (searchResult)="onSearchResult($event)"
+    />
+
+    <hr
+      class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+    />
+
     @if (vm().rows.length || (!noEntries && !vm().isLoading)) {
       <!-- Sortable table component -->
       <app-sortable-table

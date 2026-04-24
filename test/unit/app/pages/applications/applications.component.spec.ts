@@ -197,10 +197,10 @@ describe('ApplicationsComponent', () => {
       ).toBe(false);
     });
 
-    it('prioritises field validation errors (e.g. postcode invalid) over invalid search criteria', () => {
+    it('prioritises field validation errors (e.g. postcode too long) over invalid search criteria', () => {
       getEntriesMock.mockClear();
 
-      component.form.patchValue({ respondentPostcode: 'NOT_A_POSTCODE' });
+      component.form.patchValue({ respondentPostcode: 'AB12 3CDE' });
 
       submitSearch();
 
@@ -216,7 +216,7 @@ describe('ApplicationsComponent', () => {
           expect.objectContaining({
             id: 'respondentPostcode',
             href: '#respondentPostcode',
-            text: expect.stringContaining('valid UK postcode'),
+            text: 'Postcode must be 8 characters or fewer',
           }),
         ]),
       );

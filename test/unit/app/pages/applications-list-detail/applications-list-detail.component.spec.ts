@@ -13,8 +13,12 @@ import { of, throwError } from 'rxjs';
 
 import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail.component';
-import { selectedRow } from '@components/applications-list-detail/util';
 import { ApplicationsListDetailState } from '@components/applications-list-detail/util/applications-list-detail.state';
+import {
+  getResultCodes,
+  joinResultCodes,
+  mapEntrySummaryRows,
+} from '@components/applications-list-detail/util/map-entry-summary-rows';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { PdfService } from '@core/services/pdf.service';
 import { Row } from '@core-types/table/row.types';
@@ -65,11 +69,6 @@ type PlaceFieldsStatePatch = {
 
 type PlaceFieldsSignalStateAccessor = {
   signalState: { patch: (p: Partial<PlaceFieldsStatePatch>) => void };
-};
-
-type ResultCodeHelpersAccessor = {
-  getResultCodes(entry: EntryGetSummaryDto): string[];
-  joinResultCodes(resultCodes: string[]): string;
 };
 
 type PrintHelpersAccessor = {
@@ -317,49 +316,41 @@ describe('ApplicationsListDetail', () => {
     });
   });
 
-  describe('mapTableResponsetoRows', () => {
+  describe('mapEntrySummaryRows', () => {
     it('maps the API shape into selected rows', () => {
-      const dto = {
-        content: [
-          {
-            id: 'entry-1',
-            sequenceNumber: 42,
-            accountNumber: 'ACC-123',
-            applicant: {
-              organisation: {
-                name: 'Applicant Org',
-                contactDetails: {
-                  postcode: 'AA1 1AA',
-                },
+      const dto = [
+        {
+          id: 'entry-1',
+          sequenceNumber: 42,
+          accountNumber: 'ACC-123',
+          applicant: {
+            organisation: {
+              name: 'Applicant Org',
+              contactDetails: {
+                postcode: 'AA1 1AA',
               },
             },
-            respondent: {
-              organisation: {
-                name: 'Respondent Org',
-                contactDetails: {
-                  postcode: 'BB2 2BB',
-                },
-              },
-            },
-            applicationTitle: 'Some application title',
-            isFeeRequired: true,
-            resulted: [
-              {
-                resultCode: 'COST',
-                title: 'Costs granted',
-              },
-            ],
           },
-        ],
-      } as unknown as { content: EntryGetSummaryDto[] };
+          respondent: {
+            organisation: {
+              name: 'Respondent Org',
+              contactDetails: {
+                postcode: 'BB2 2BB',
+              },
+            },
+          },
+          applicationTitle: 'Some application title',
+          isFeeRequired: true,
+          resulted: [
+            {
+              resultCode: 'COST',
+              title: 'Costs granted',
+            },
+          ],
+        },
+      ] as unknown as EntryGetSummaryDto[];
 
-      const result = (
-        component as unknown as {
-          mapTableResponsetoRows(dto: {
-            content: EntryGetSummaryDto[];
-          }): selectedRow[];
-        }
-      ).mapTableResponsetoRows(dto);
+      const result = mapEntrySummaryRows(dto);
 
       expect(result).toHaveLength(1);
       expect(result[0]).toMatchObject({
@@ -376,56 +367,48 @@ describe('ApplicationsListDetail', () => {
     });
 
     it('uses person names when person data exists', () => {
-      const dto = {
-        content: [
-          {
-            id: 'entry-2',
-            sequenceNumber: 7,
-            accountNumber: null,
-            applicant: {
-              person: {
-                name: {
-                  surname: 'Brown',
-                  firstForename: 'Alex',
-                  secondForename: 'J',
-                  thirdForename: null,
-                  title: 'Mr',
-                },
+      const dto = [
+        {
+          id: 'entry-2',
+          sequenceNumber: 7,
+          accountNumber: null,
+          applicant: {
+            person: {
+              name: {
+                surname: 'Brown',
+                firstForename: 'Alex',
+                secondForename: 'J',
+                thirdForename: null,
+                title: 'Mr',
               },
             },
-            respondent: {
-              person: {
-                name: {
-                  surname: 'Green',
-                  firstForename: 'Sam',
-                  secondForename: null,
-                  thirdForename: null,
-                  title: null,
-                },
-                contactDetails: {
-                  postcode: 'CC3 3CC',
-                },
-              },
-            },
-            applicationTitle: 'Another title',
-            isFeeRequired: false,
-            resulted: [
-              {
-                resultCode: 'COST',
-                title: 'Costs granted',
-              },
-            ],
           },
-        ],
-      } as unknown as { content: EntryGetSummaryDto[] };
+          respondent: {
+            person: {
+              name: {
+                surname: 'Green',
+                firstForename: 'Sam',
+                secondForename: null,
+                thirdForename: null,
+                title: null,
+              },
+              contactDetails: {
+                postcode: 'CC3 3CC',
+              },
+            },
+          },
+          applicationTitle: 'Another title',
+          isFeeRequired: false,
+          resulted: [
+            {
+              resultCode: 'COST',
+              title: 'Costs granted',
+            },
+          ],
+        },
+      ] as unknown as EntryGetSummaryDto[];
 
-      const result = (
-        component as unknown as {
-          mapTableResponsetoRows(dto: {
-            content: EntryGetSummaryDto[];
-          }): selectedRow[];
-        }
-      ).mapTableResponsetoRows(dto);
+      const result = mapEntrySummaryRows(dto);
 
       expect(result).toHaveLength(1);
       expect(result[0]).toMatchObject({
@@ -443,9 +426,6 @@ describe('ApplicationsListDetail', () => {
   });
 
   describe('result code helpers', () => {
-    const resultCodeHelpers = (): ResultCodeHelpersAccessor =>
-      component as unknown as ResultCodeHelpersAccessor;
-
     it('getResultCodes returns all codes when resulted is a string array', () => {
       const entry = {
         id: 'entry-1',
@@ -456,10 +436,7 @@ describe('ApplicationsListDetail', () => {
         resulted: ['COST', 'ADJ'],
       } as unknown as EntryGetSummaryDto;
 
-      expect(resultCodeHelpers().getResultCodes(entry)).toEqual([
-        'COST',
-        'ADJ',
-      ]);
+      expect(getResultCodes(entry)).toEqual(['COST', 'ADJ']);
     });
 
     it('getResultCodes returns all codes when resulted is an object array', () => {
@@ -475,10 +452,7 @@ describe('ApplicationsListDetail', () => {
         ],
       } as unknown as EntryGetSummaryDto;
 
-      expect(resultCodeHelpers().getResultCodes(entry)).toEqual([
-        'COST',
-        'ADJ',
-      ]);
+      expect(getResultCodes(entry)).toEqual(['COST', 'ADJ']);
     });
 
     it('getResultCodes returns a single-item array for the legacy result object shape', () => {
@@ -496,7 +470,7 @@ describe('ApplicationsListDetail', () => {
         ],
       } as unknown as EntryGetSummaryDto;
 
-      expect(resultCodeHelpers().getResultCodes(entry)).toEqual(['COST']);
+      expect(getResultCodes(entry)).toEqual(['COST']);
     });
 
     it('getResultCodes returns an empty array when no result code is present', () => {
@@ -508,13 +482,11 @@ describe('ApplicationsListDetail', () => {
         status: ApplicationListStatus.OPEN,
       } as EntryGetSummaryDto;
 
-      expect(resultCodeHelpers().getResultCodes(entry)).toEqual([]);
+      expect(getResultCodes(entry)).toEqual([]);
     });
 
     it('joinResultCodes joins trimmed codes and ignores blank values', () => {
-      expect(
-        resultCodeHelpers().joinResultCodes([' COST ', '', '  ', 'ADJ']),
-      ).toBe('COST, ADJ');
+      expect(joinResultCodes([' COST ', '', '  ', 'ADJ'])).toBe('COST, ADJ');
     });
   });
 
