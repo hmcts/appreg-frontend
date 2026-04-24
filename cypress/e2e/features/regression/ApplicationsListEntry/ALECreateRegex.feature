@@ -136,8 +136,26 @@ Feature: Applications List Entry Create Regex Validations
             | Mobile number    | 12345678901234567890                                                                                  |
             | Email address    | invalid-email-address-format@.com                                                                     |
         When User Clicks On The "Create entry" Button
-        Then User Sees Validation Error Banner "There is a problem Select a fee status Enter a valid status date Date must be in the past First name must be 100 characters or fewer Middle names must be 100 characters or fewer Last name must be 100 characters or fewer Address line 1 must be 35 characters or fewer Address line 2 must be 35 characters or fewer Town or city must be 35 characters or fewer County or region must be 35 characters or fewer Post town must be 35 characters or fewer Enter a valid UK postcode Enter a valid UK telephone number Enter a valid UK mobile number Enter an email address in the correct format"
         # Bug ARCPOC-1302
+        Then User Sees Validation Error Banner "There is a problem Select a fee status Enter a valid status date Date must not be in the future First name must be 100 characters or fewer Middle names must be 100 characters or fewer Last name must be 100 characters or fewer Address line 1 must be 35 characters or fewer Address line 2 must be 35 characters or fewer Town or city must be 35 characters or fewer County or region must be 35 characters or fewer Post town must be 35 characters or fewer Enter a valid UK postcode Enter a valid UK telephone number Enter a valid UK mobile number Enter an email address in the correct format"
+        When User Fills In The Respondent Details
+            | Select type      | Person                                                                                               |
+            | Select title     | Mr                                                                                                   |
+            | First name       | MvVh@&Jwx1tF08W%*9PtbD3a@j&zXbkdCVN!+6hU@KtSw=NrvHFn3UVcCAfPczq#q=+RQ7zQwo%cVC@*dxdf08!xOJn2*=AtV*zd |
+            | Middle name(s)   | MvVh@&Jwx1tF08W%*9PtbD3a@j&zXbkdCVN!+6hU@KtSw=NrvHFn3UVcCAfPczq#q=+RQ7zQwo%cVC@*dxdf08!xOJn2*=AtV*zd |
+            | Surname          | MvVh@&Jwx1tF08W%*9PtbD3a@j&zXbkdCVN!+6hU@KtSw=NrvHFn3UVcCAfPczq#q=+RQ7zQwo%cVC@*dxdf08!xOJn2*=AtV*zd |
+            | Date of birth    | today                                                                                                |
+            | Address line 1   | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v                                                                  |
+            | Address line 2   | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v                                                                  |
+            | Town or city     | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v                                                                  |
+            | County or region | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v                                                                  |
+            | Post town        | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v                                                                  |
+            | Postcode         | SW1A 2AA                                                                                             |
+            | Phone number     | 020 7946 0000                                                                                        |
+            | Mobile number    | 07123 456789                                                                                         |
+            | Email address    | 1Bx0a@example.com                                                                                    |
+        When User Clicks On The "Create entry" Button
+        Then User Sees Validation Error Banner "There is a problem Enter a valid date"
         When User Fills In The Respondent Details
             | Select type      | Person                                                                                               |
             | Select title     | Mr                                                                                                   |
@@ -227,7 +245,6 @@ Feature: Applications List Entry Create Regex Validations
         Then User Enters "<AccountReference>" Into The Textbox "Account reference" In The Accordion "Notes"
         When User Clicks On The "Create entry" Button
         Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
-
         Examples:
             | User  | TableName | InvalidSearchDate | SearchDate | SearchDateFuture | DisplayDate  | DOB       | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | InvalidApplicationCodeExceedsLimit | InvalidApplicationCode | ValidApplicationCode | ApplicationTitle           | WordingText                                      | placeholder                  | WordingValue        | WordingValueExceedsLimit                                                                              | WordingValue                          | PaymentReferenceExceedsLimit | PaymentReferencePaid | PaymentReferenceUndertaken | UpdatedPaymentReferenceUndertaken | CaseReferenceExceedsLimit | CaseReference | AccountReferenceExceedsLimit | AccountReference | OffsiteFeeString                                                                                         | OffsiteFeeCode | OffsiteFeeValue             | TotalFeeAmount            | FeeReference         | FeeAmount       | AccountDetails                                       |
             | user1 | Lists     | 31/13/2048        | today      | tomorrow         | todaydisplay | today-30y | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | INVALID_CODE                       | CT99002A               | MX99006              | Condemnation of Unfit Food | Application for the condemnation of food, namely | Enter a Describe Seized Food | Test Sample Wording | (ctgn sürrreartcée.sstegl( lmamaeceegScerttpaN( )e -))t,eanoce)erc e(v.etth. abthubienr sa,to,)rtqwer | Test Sample Wording Not Exceeds Limit | PAY-12345-12345-12345        | PAY-12345            | Pay-12345-12345            | Pay-12345-12345                   | case123451234512345       | case12345     | account12345123451234512345  | account12345     | Selecting this will automatically apply the off site fee to the entry. This change is saved immediately. | CO1.1          | Off Site Fee Amount: £30.00 | Total Fee Amount: £284.00 | Fee Reference: CO8.1 | Amount: £284.00 | This is a test application with special requirements |
@@ -365,7 +382,7 @@ Feature: Applications List Entry Create Regex Validations
         Then User Enters "<AccountReference>" Into The Textbox "Account reference" In The Accordion "Notes"
         When User Clicks On The "Create entry" Button
         Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
-
         Examples:
             | User  | SearchDate | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationCode | ApplicationTitle                               | WordingText                                                                                                                                                        | placeholder       | WordingValue | TableName | CaseReference | AccountReference |
             | user1 | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | CT99002         | Issue of liability order summons - council tax | Attends to swear a complaint for the issue of a summons for the debtor to answer an application for a liability order in relation to unpaid council tax (reference | Enter a Reference | TestRef-001  | Lists     | case{RANDOM}  | account{RANDOM}  |
+
