@@ -211,11 +211,13 @@ Feature: Applications List Update
     @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191
     Scenario Outline: Close application list with One ALE
         Given User Authenticates Via API As "<User>"
+        # Create Application List
         When User Makes POST API Request To "/application-lists" With Body:
             | date      | time   | description   | status               | courtLocationCode | durationHours | durationMinutes |
             | <APIDate> | <Time> | <Description> | <BeforeUpdateStatus> | <Court>           |               |                 |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
+        # Create Application List Entry
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
             | standardApplicantCode                         | null                           |
             | applicationCode                               | MX99009                        |
@@ -257,6 +259,7 @@ Feature: Applications List Update
         Then User Stores Response Body Property "id" As "entryId"
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
+        # Search Created Application List
         When User Searches Application List With:
             | Date         | Time | Description   | CourtSearch | Court | Status | Other location | CJA | CJASearch |
             | <SearchDate> |      | <Description> |             |       |        |                |     |           |
@@ -281,17 +284,17 @@ Feature: Applications List Update
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
             """
             {
-            "resultCode": "RTC",
-            "wordingFields": [
-            {
-            "key": "Date",
-            "value": "24-02-2026"
-            },
-            {
-            "key": "Courthouse",
-            "value": "London Courthouse"
-            }
-            ]
+                "resultCode": "RTC",
+                "wordingFields": [
+                    {
+                        "key": "Date",
+                        "value": "24-02-2026"
+                    },
+                    {
+                        "key": "Courthouse",
+                        "value": "London Courthouse"
+                    }
+                ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
