@@ -43,6 +43,7 @@
       [columns]="civilFeeColumnsWithChangeLink()"
       [data]="feeStatusRows()"
       [dateFieldIdentifier]="'statusDateRaw'"
+      noDataMessage="No fees exist for this entry."
       appMojButtonMenu
     >
       <ng-template #dateTemplate let-row>

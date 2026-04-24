@@ -3,13 +3,16 @@
     <div class="govuk-grid-row">
       <app-text-input
         widthClass="govuk-input--width-10"
-        containerWidthClass="govuk-grid-column-one-quarter"
+        containerWidthClass="govuk-grid-column-one-half"
         formControlName="code"
         label="Application code"
         [hint]="codePlaceholder()"
         idPrefix="applicationCode"
+        [error]="codeError()"
       />
+    </div>
 
+    <div class="govuk-grid-row">
       <app-text-input
         widthClass=""
         containerWidthClass="govuk-grid-column-two-thirds"
@@ -19,6 +22,7 @@
         idPrefix="app-code-title"
       />
     </div>
+
     <div class="govuk-grid-row">
       <app-date-input
         formControlName="lodgementDate"
@@ -49,7 +53,7 @@
     </button>
   </div>
 
-  @if (loading()) {
+  @if (loading() && !codesRows.length) {
     <p class="govuk-body">Searching…</p>
   } @else if (errored()) {
     <app-alert
@@ -61,7 +65,8 @@
   } @else {
     @if (
       codesRows.length === 0 &&
-      submitted() &&
+      hasSearched() &&
+      form.valid &&
       (form.value.code || form.value.title)
     ) {
       <app-alert
@@ -78,6 +83,11 @@
         caption="Codes"
         [columns]="codesColumns"
         [data]="codesRows"
+        [loading]="loading()"
+        [clientOrServerSort]="'server'"
+        [sortKey]="sortField().key"
+        [sortDirection]="sortField().direction"
+        (sortChange)="onSortChange($event)"
         appMojButtonMenu
       >
         <ng-template #actionsTemplate let-row>

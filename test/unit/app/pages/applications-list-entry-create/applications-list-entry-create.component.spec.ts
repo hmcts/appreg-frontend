@@ -163,6 +163,25 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     );
   });
 
+  it('includes relayed application code search errors in the parent summary', () => {
+    component.onChildErrors('codes', [
+      {
+        id: 'code',
+        text: 'Application code must be 10 characters or fewer',
+        href: '#applicationCode',
+      },
+    ]);
+
+    expect(component.vm().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'code',
+          text: 'Application code must be 10 characters or fewer',
+        }),
+      ]),
+    );
+  });
+
   it('payload: omits applicant/respondent when empty', () => {
     component.form.patchValue({
       applicationCode: 'A001',
