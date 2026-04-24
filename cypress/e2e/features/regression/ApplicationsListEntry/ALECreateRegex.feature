@@ -385,3 +385,139 @@ Feature: Applications List Entry Create Regex Validations
             | User  | SearchDate | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationCode | ApplicationTitle                               | WordingText                                                                                                                                                        | placeholder       | WordingValue | TableName | CaseReference | AccountReference |
             | user1 | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | CT99002         | Issue of liability order summons - council tax | Attends to swear a complaint for the issue of a summons for the debtor to answer an application for a liability order in relation to unpaid council tax (reference | Enter a Reference | TestRef-001  | Lists     | case{RANDOM}  | account{RANDOM}  |
 
+    @ARCPOC-222 @ARCPOC-1107 @ARCPOC-1282 @ARCPOC-1209 @ARCPOC-1241 @ARCPOC-1238 @ARCPOC-1302 @ARCPOC-1319 @SC2
+    Scenario Outline: Create an ALE where Applicant = Oraganisation and Respondent = Organisation, using an Application Code with Fee Required = N and Respondent Required = Y
+        Given User Authenticates Via API As "<User>"
+        # Create Application List
+        When User Makes POST API Request To "/application-lists" With Body:
+            | date     | time   | status   | description   | durationHours | durationMinutes | courtLocationCode |
+            | todayiso | <Time> | <Status> | <Description> |               |                 | LCCC065           |
+        Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "listId"
+        Given User Is On The Portal Page
+        When User Signs In With Microsoft SSO As "<User>"
+        # Search Created Application List
+        When User Searches Application List With:
+            | Date         | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+            | <SearchDate> |      |                  |             |       | <Status>           |                            |                       |           |
+        When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
+            | Date          | Time   | Location | Description   | Entries   | Status   |
+            | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+        ## Create Application under Application List
+        Then User Clicks On The Link "Create application"
+        When User Clicks On The "Show all sections" Button
+        Then User Should See The Button "Hide all sections"
+        # Applicant Details Validations - Organisation
+        When User Fills In The Applicant Details
+            | Select applicant type | Organisation |
+            | Organisation name     |              |
+            | Address line 1        |              |
+            | Address line 2        |              |
+            | Town or city          |              |
+            | County or region      |              |
+            | Post town             |              |
+            | Postcode              |              |
+            | Phone number          |              |
+            | Mobile number         |              |
+            | Email address         |              |
+        When User Clicks On The "Create entry" Button
+        Then User Sees Validation Error Banner "Enter an application code Enter organisation name Enter address line 1"
+        When User Fills In The Applicant Details
+            | Select applicant type | Organisation                                                                                          |
+            | Organisation name     | MvVh@&Jwx1tF08W%*9PtbD3a@j&zXbkdCVN!+6hU@KtSw=NrvHFn3UVcCAfPczq#q=+RQ7zQwo%cVC@*dxdf08!xOJn2*=AtV*zda |
+            | Address line 1        | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v3                                                                  |
+            | Address line 2        | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v3                                                                  |
+            | Town or city          | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v3                                                                  |
+            | County or region      | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v3                                                                  |
+            | Post town             | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v3                                                                  |
+            | Postcode              | CIKMOV 1AA                                                                                            |
+            | Phone number          | 12345678901234567890                                                                                  |
+            | Mobile number         | 12345678901234567890                                                                                  |
+            | Email address         | invalid-email-address-format@.com                                                                     |
+        When User Clicks On The "Create entry" Button
+        Then User Sees Validation Error Banner "There is a problem Enter an application code Organisation name must be 100 characters or fewer Address line 1 must be 35 characters or fewer Address line 2 must be 35 characters or fewer Town or city must be 35 characters or fewer County or region must be 35 characters or fewer Post town must be 35 characters or fewer Enter a valid UK postcode Enter a valid UK telephone number Enter a valid UK mobile number Enter an email address in the correct format"
+        When User Fills In The Applicant Details
+            | Select applicant type | Organisation                                                                                         |
+            | Organisation name     | MvVh@&Jwx1tF08W%*9PtbD3a@j&zXbkdCVN!+6hU@KtSw=NrvHFn3UVcCAfPczq#q=+RQ7zQwo%cVC@*dxdf08!xOJn2*=AtV*zd |
+            | Address line 1        | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v                                                                  |
+            | Address line 2        | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v                                                                  |
+            | Town or city          | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v                                                                  |
+            | County or region      | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v                                                                  |
+            | Post town             | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v                                                                  |
+            | Postcode              | SW1A 2AA                                                                                             |
+            | Phone number          | 020 7946 0000                                                                                        |
+            | Mobile number         | 07123 456789                                                                                         |
+            | Email address         | kDc5U@example.com                                                                                    |
+        When User Clicks On The "Create entry" Button
+        # Application Codes
+        Then User Enters "<ApplicationCode>" Into The Textbox "Application code" In The Accordion "Application codes"
+        When User Clicks On The "Search" Button In The Accordion "Application codes"
+        Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Application codes"
+        Then User Clicks "Add code" Button In Row Of Table "Codes" In The Accordion "Application codes"
+            | Code              | Title              | Bulk | Fee req |
+            | <ApplicationCode> | <ApplicationTitle> | No   | CO8.1   |
+        Then User Verifies The "Application Title" Textbox Has Value "<ApplicationTitle>"
+        Then User Verifies The Date field "Lodgement date" Has Value "<SearchDate>"
+        # Wording Details
+        Then User Verifies The "Wording" Accordion Has Value "<WordingText>"
+        Then User Verifies The "Wording" Accordion Has textbox with placeholder "<placeholder>" and Enters "<WordingValue>"
+        # (Bug raised ARCPOC-1230/ARCPOC-1205/AARCPOC-1253 for below statement)
+        When User Clicks On The "Apply wording" Button In The Accordion "Wording"
+        Then User Sees Success Alert "Wording applied to this entry. Save the entry to keep these changes."
+        # Then User Should See The Link "Dismiss"
+        # Respondent Details Validations - Organisation
+        When User Fills In The Respondent Details
+            | Select type       | Organisation |
+            | Organisation name |              |
+            | Address line 1    |              |
+            | Address line 2    |              |
+            | Town or city      |              |
+            | County or region  |              |
+            | Post town         |              |
+            | Postcode          |              |
+            | Phone number      |              |
+            | Mobile number     |              |
+            | Email address     |              |
+        When User Clicks On The "Create entry" Button
+        Then User Sees Validation Error Banner "Enter organisation name Enter address line 1"
+        When User Fills In The Respondent Details
+            | Select type       | Organisation                                                                                          |
+            | Organisation name | MvVh@&Jwx1tF08W%*9PtbD3a@j&zXbkdCVN!+6hU@KtSw=NrvHFn3UVcCAfPczq#q=+RQ7zQwo%cVC@*dxdf08!xOJn2*=AtV*zda |
+            | Address line 1    | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v3                                                                  |
+            | Address line 2    | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v3                                                                  |
+            | Town or city      | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v3                                                                  |
+            | County or region  | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v3                                                                  |
+            | Post town         | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v3                                                                  |
+            | Postcode          | CIKMOV 1AA                                                                                            |
+            | Phone number      | 12345678901234567890                                                                                  |
+            | Mobile number     | 12345678901234567890                                                                                  |
+            | Email address     | invalid-email-address-format@.com                                                                     |
+        When User Clicks On The "Create entry" Button
+        Then User Sees Validation Error Banner "There is a problem Organisation name must be 100 characters or fewer Address line 1 must be 35 characters or fewer Address line 2 must be 35 characters or fewer Town or city must be 35 characters or fewer County or region must be 35 characters or fewer Post town must be 35 characters or fewer Enter a valid UK postcode Enter a valid UK telephone number Enter a valid UK mobile number Enter an email address in the correct format"
+        When User Fills In The Respondent Details
+            | Select type       | Organisation                                                                                         |
+            | Organisation name | MvVh@&Jwx1tF08W%*9PtbD3a@j&zXbkdCVN!+6hU@KtSw=NrvHFn3UVcCAfPczq#q=+RQ7zQwo%cVC@*dxdf08!xOJn2*=AtV*zd |
+            | Address line 1    | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v                                                                  |
+            | Address line 2    | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v                                                                  |
+            | Town or city      | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v                                                                  |
+            | County or region  | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v                                                                  |
+            | Post town         | !B9ktg=74tussmheR%pNc!Veqjtd57!y58v                                                                  |
+            | Postcode          | SW1A 2AA                                                                                             |
+            | Phone number      | 020 7946 0000                                                                                        |
+            | Mobile number     | 07123 456789                                                                                         |
+            | Email address     | valid.email@address.com                                                                              |
+        # Civil Fee Details - No fee required validations
+        Then User Should See The Text "No fee required" In The Accordion "Civil fee"
+        Then User Verifies Dropdown "Fee status" Is Disabled In The Accordion "Civil fee"
+        Then User Verifies Date Field "Status date" Is Disabled In The Accordion "Civil fee"
+        Then User Verifies The Textbox "Payment reference" Is Disabled In The Accordion "Civil fee"
+        Then User Verifies The Button "Add fee details" Is Disabled In The Accordion "Civil fee"
+        # Notes Details
+        Then User Enters "<CaseReference>" Into The Textbox "Case reference" In The Accordion "Notes"
+        Then User Enters "<AccountReference>" Into The Textbox "Account reference" In The Accordion "Notes"
+        When User Clicks On The "Create entry" Button
+        Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
+        Examples:
+            | User  | SearchDate | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationCode | ApplicationTitle                               | WordingText                                                                                                                                                        | placeholder       | WordingValue | TableName | CaseReference | AccountReference |
+            | user1 | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | CT99002         | Issue of liability order summons - council tax | Attends to swear a complaint for the issue of a summons for the debtor to answer an application for a liability order in relation to unpaid council tax (reference | Enter a Reference | TestRef-001  | Lists     | case{RANDOM}  | account{RANDOM}  |
+
