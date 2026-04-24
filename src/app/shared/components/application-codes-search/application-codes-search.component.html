@@ -65,7 +65,8 @@
   } @else {
     @if (
       codesRows.length === 0 &&
-      submitted() &&
+      hasSearched() &&
+      form.valid &&
       (form.value.code || form.value.title)
     ) {
       <app-alert

@@ -97,6 +97,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
   codesRows: CodeRow[] = [];
 
   submitted = signal(false);
+  hasSearched = signal(false);
   loading = signal(false);
   errored = signal(false);
   private readonly errorMap: ErrorMessageMap =
@@ -171,8 +172,11 @@ export class ApplicationCodeSearchComponent implements OnInit {
     this.errored.set(false);
 
     if (!this.canSearch()) {
+      this.hasSearched.set(false);
       return;
     }
+
+    this.hasSearched.set(false);
 
     const code = this.form.value.code?.trim() ?? '';
     const title = this.form.value.title?.trim() ?? '';
@@ -199,10 +203,12 @@ export class ApplicationCodeSearchComponent implements OnInit {
           this.codesRows = result.rows;
           this.loading.set(false);
           this.totalPages.set(result.totalPages);
+          this.hasSearched.set(true);
         },
         error: () => {
           this.loading.set(false);
           this.errored.set(true);
+          this.hasSearched.set(false);
         },
       });
   }
@@ -275,6 +281,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
     this.totalPages.set(0);
     this.currentPage.set(0);
     this.sortField.set({ key: 'code', direction: 'asc' });
+    this.hasSearched.set(false);
   }
 
   private initialPatchFormData(): void {

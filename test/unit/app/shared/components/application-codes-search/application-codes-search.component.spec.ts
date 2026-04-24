@@ -190,6 +190,7 @@ describe('ApplicationCodeSearchComponent', () => {
         href: '#applicationCode',
       },
     ]);
+    expect(component.hasSearched()).toBe(false);
   });
 
   it('does not show the max length error before search or parent submit', () => {
@@ -252,6 +253,7 @@ describe('ApplicationCodeSearchComponent', () => {
     component.errored.set(true);
     component.totalPages.set(8);
     component.currentPage.set(4);
+    component.hasSearched.set(true);
 
     component.clear();
 
@@ -265,6 +267,20 @@ describe('ApplicationCodeSearchComponent', () => {
     expect(emitSpy).toHaveBeenCalledWith({ code: '', date: '' });
     expect(resetParentErrorsSpy).toHaveBeenCalled();
     expect(codeSearchErrorsSpy).toHaveBeenCalledWith([]);
+    expect(component.hasSearched()).toBe(false);
+  });
+
+  it('does not mark no-results state after an invalid search becomes valid again', () => {
+    const fetchSpy = jest.spyOn(helpers, 'fetchCodeRows$');
+
+    component.form.patchValue({ code: '12345678901' });
+    component.search();
+    expect(component.hasSearched()).toBe(false);
+
+    component.form.patchValue({ code: '1234567890' });
+
+    expect(component.hasSearched()).toBe(false);
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 
   it('ngOnInit() should clear without re-emitting when code is emptied', () => {

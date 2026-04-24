@@ -167,6 +167,10 @@
   white-space: nowrap;
 }
 
+:host ::ng-deep .app-sortable-table__cell--nowrap .moj-button-menu__wrapper {
+  right: 0;
+}
+
 :host ::ng-deep th.govuk-table__header[aria-sort] > button > svg {
   position: static;
   top: auto;
