@@ -208,7 +208,7 @@ Feature: Applications List Update
             | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description   | Status | BeforeUpdateStatus | durationHours | durationMinutes |
             | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test {RANDOM} | CLOSED | OPEN               | 3             | 3               |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @tp
     Scenario Outline: Close application list with One ALE
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -281,17 +281,17 @@ Feature: Applications List Update
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
             """
             {
-            "resultCode": "RTC",
-            "wordingFields": [
-            {
-            "key": "Date",
-            "value": "24-02-2026"
-            },
-            {
-            "key": "Courthouse",
-            "value": "London Courthouse"
-            }
-            ]
+                "resultCode": "RTC",
+                "wordingFields": [
+                    {
+                        "key": "Date",
+                        "value": "24-02-2026"
+                    },
+                    {
+                        "key": "Courthouse",
+                        "value": "London Courthouse"
+                    }
+                ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
