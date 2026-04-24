@@ -550,4 +550,39 @@ describe('CivilFeeSectionComponent', () => {
     const [errors] = errorsSpy.mock.calls[0] as [ErrorItem[]];
     expect(errors.some((e) => e.id === 'paymentRef')).toBe(true);
   });
+
+  it('does not render separate offsite fee reference text beneath the heading', () => {
+    component.feeForm().controls.hasOffsiteFee.setValue(true);
+    fixture.componentRef.setInput('feeMeta', {
+      feeReference: 'CO7.2',
+      feeDescription: 'Main fee description',
+      feeAmount: { value: 2500, currency: 'GBP' },
+      offsiteFeeReference: 'CO1.1',
+      offsiteFeeDescription: 'Offsite fee description',
+      offsiteFeeAmount: { value: 3000, currency: 'GBP' },
+    });
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const bodyText = host.textContent ?? '';
+
+    expect(bodyText).not.toContain('Off site fee reference: CO1.1');
+  });
+
+  it('does not render separate offsite fee reference text when offsite fee is not selected', () => {
+    fixture.componentRef.setInput('feeMeta', {
+      feeReference: 'CO7.2',
+      feeDescription: 'Main fee description',
+      feeAmount: { value: 2500, currency: 'GBP' },
+      offsiteFeeReference: 'CO1.1',
+      offsiteFeeDescription: 'Offsite fee description',
+      offsiteFeeAmount: { value: 3000, currency: 'GBP' },
+    });
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const bodyText = host.textContent ?? '';
+
+    expect(bodyText).not.toContain('Off site fee reference: CO1.1');
+  });
 });

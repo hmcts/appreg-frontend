@@ -477,7 +477,11 @@ export class ApplicationsListEntryDetail implements OnInit {
             this.form.patchValue({ applicationTitle: appCodeDetail.title });
             this.feeMeta = {
               feeReference: appCodeDetail.feeReference ?? null,
+              feeDescription: appCodeDetail.feeDescription ?? null,
               feeAmount: appCodeDetail.feeAmount ?? null,
+              offsiteFeeReference: appCodeDetail.offsiteFeeReference ?? null,
+              offsiteFeeDescription:
+                appCodeDetail.offsiteFeeDescription ?? null,
               offsiteFeeAmount: appCodeDetail.offsiteFeeAmount ?? null,
             };
 
@@ -909,7 +913,10 @@ export class ApplicationsListEntryDetail implements OnInit {
             this.handleResultWordingContext(this.navState);
             this.feeMeta = {
               feeReference: codeDto.feeReference ?? null,
+              feeDescription: codeDto.feeDescription ?? null,
               feeAmount: codeDto.feeAmount ?? null,
+              offsiteFeeReference: codeDto.offsiteFeeReference ?? null,
+              offsiteFeeDescription: codeDto.offsiteFeeDescription ?? null,
               offsiteFeeAmount: codeDto.offsiteFeeAmount ?? null,
             };
 
