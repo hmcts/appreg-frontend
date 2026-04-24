@@ -27,7 +27,7 @@ import { AppInsights } from './modules/appinsights';
 import { Helmet } from './modules/helmet';
 import { HmctsLoggerBridge } from './modules/logger';
 import { PropertiesVolume } from './modules/properties-volume';
-import { getRedisUrl } from './redis-config';
+import { getRedisUrl, shouldUseRedis } from './redis-config';
 import { setupAppConfigRoute } from './routes/app-config';
 import { setupHealthcheck } from './routes/health';
 import { setupInfoRoute } from './routes/info';
@@ -71,20 +71,12 @@ const logger: HmctsLogger = HmctsLoggerBridge.enable(
 );
 
 // Redis config
-const runningAsEntrypoint = (() => {
-  try {
-    const thisFile = new URL(import.meta.url).pathname;
-    const entry = process.argv[1]
-      ? new URL(`file://${process.argv[1]}`).pathname
-      : '';
-    return thisFile === entry;
-  } catch {
-    return false;
-  }
-})();
-
 const redisUrl = getRedisUrl(config);
-const useRedis = isProd && runningAsEntrypoint;
+const useRedis = shouldUseRedis(config, isProd);
+
+logger.info(
+  `[session] store=${useRedis ? 'redis' : 'memory'} env=${env} redisConfigured=${Boolean(redisUrl)}`,
+);
 
 const cookieName = config.has('session.cookieName')
   ? config.get<string>('session.cookieName')
@@ -170,12 +162,17 @@ async function acquireApiToken(req: ReqWithSession): Promise<string | null> {
   const sess = req.session;
   const account = sess?.account;
   const cache = sess?.tokenCache;
+  const cookieHeader = req.headers['cookie'];
+  const cookiePresent =
+    typeof cookieHeader === 'string' ? cookieHeader.length > 0 : false;
 
   if (!account || !cache || apiScopes.length === 0) {
     logger.info(
       `[proxy] acquireApiToken: missing ${
         !account ? 'account' : !cache ? 'cache' : 'scopes'
-      }`,
+      } cookiePresent=${cookiePresent} sessionIdPresent=${Boolean(
+        (req as Request & { sessionID?: string }).sessionID,
+      )}`,
     );
     return null;
   }
@@ -200,7 +197,12 @@ async function acquireApiToken(req: ReqWithSession): Promise<string | null> {
     }
     logger.warn('[proxy] acquireTokenSilent returned no accessToken');
   } catch (e) {
-    logger.warn('[proxy] acquireTokenSilent failed', e);
+    logger.warn(
+      `[proxy] acquireTokenSilent failed cookiePresent=${cookiePresent} sessionIdPresent=${Boolean(
+        (req as Request & { sessionID?: string }).sessionID,
+      )}`,
+      e,
+    );
   }
   return null;
 }

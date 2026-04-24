@@ -1,4 +1,4 @@
-import { getRedisUrl } from '../../../server/redis-config';
+import { getRedisUrl, shouldUseRedis } from '../../../server/redis-config';
 
 type ConfigMap = Record<string, unknown>;
 
@@ -27,5 +27,31 @@ describe('redis-config', () => {
     });
 
     expect(getRedisUrl(config)).toBe('');
+  });
+
+  it('uses redis in production when a real redis url is configured', () => {
+    const config = makeConfig({
+      'secrets.appreg.redis-connection-string':
+        'rediss://default:demo-password@appreg-demo.redis.cache.windows.net:6380',
+    });
+
+    expect(shouldUseRedis(config, true)).toBe(true);
+  });
+
+  it('does not use redis outside production', () => {
+    const config = makeConfig({
+      'secrets.appreg.redis-connection-string':
+        'rediss://default:demo-password@appreg-demo.redis.cache.windows.net:6380',
+    });
+
+    expect(shouldUseRedis(config, false)).toBe(false);
+  });
+
+  it('does not use redis in production when only the placeholder value exists', () => {
+    const config = makeConfig({
+      'secrets.appreg.redis-connection-string': 'dummyRedisConnectionString',
+    });
+
+    expect(shouldUseRedis(config, true)).toBe(false);
   });
 });
