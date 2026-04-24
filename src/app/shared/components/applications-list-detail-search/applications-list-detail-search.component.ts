@@ -29,6 +29,7 @@ import {
 } from '@openapi';
 import { buildErrorTextByDomId, errorTextForDomId } from '@util/error-items';
 import { buildFormErrorSummary } from '@util/error-summary';
+import { getProblemText } from '@util/http-error-to-text';
 
 const SEARCH_ERROR_HREFS = {
   sequenceNumber: '#sequence-number',
@@ -167,7 +168,9 @@ export class ApplicationsListDetailSearchComponent {
         errors: [],
       });
     } catch (err) {
-      const apiErrors = this.buildApiErrors(err);
+      const apiErrors = this.buildApiErrors(err).length
+        ? this.buildApiErrors(err)
+        : [{ text: getProblemText(err) }];
 
       if (apiErrors.length > 0) {
         this.localErrors.set(apiErrors);

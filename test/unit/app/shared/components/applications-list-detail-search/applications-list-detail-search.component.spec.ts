@@ -248,7 +248,7 @@ describe('ApplicationsListDetailSearchComponent', () => {
     ]);
   });
 
-  it('swallows non-problem API errors without emitting search results', async () => {
+  it('emits a fallback error for non-problem API errors', async () => {
     entriesApiStub.getApplicationListEntries.mockReturnValue(
       throwError(() => new Error('boom')) as ReturnType<
         ApplicationListEntriesApi['getApplicationListEntries']
@@ -261,8 +261,15 @@ describe('ApplicationsListDetailSearchComponent', () => {
 
     await component.onSearch();
 
-    expect(component.localErrors()).toEqual([]);
-    expect(emittedResults).toEqual([]);
+    expect(component.localErrors()).toEqual([{ text: 'Request failed' }]);
+    expect(emittedResults).toEqual([
+      {
+        rows: [],
+        totalPages: 0,
+        reqFilter: {},
+        errors: [{ text: 'Request failed' }],
+      },
+    ]);
   });
 
   it('clearSearch resets state and reruns the search with an empty filter', async () => {

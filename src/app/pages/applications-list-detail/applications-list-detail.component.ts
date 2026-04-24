@@ -393,7 +393,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
               pageNumber: req.pageNumber,
               pageSize: req.pageSize,
               sort: req.sort,
-              filter: req.filter
+              filter: req.filter,
             },
             'response',
             false,

@@ -74,7 +74,6 @@ export const clearUpdateNotificationsPatch = (): Pick<
   | 'createDone'
   | 'preserveErrorSummaryOnLoad'
   | 'moveDone'
-  | 'getFilters'
 > => ({
   updateDone: false,
   updateInvalid: false,
@@ -83,5 +82,4 @@ export const clearUpdateNotificationsPatch = (): Pick<
   createDone: false,
   preserveErrorSummaryOnLoad: false,
   moveDone: false,
-  getFilters: {},
 });
