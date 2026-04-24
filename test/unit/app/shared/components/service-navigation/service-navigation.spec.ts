@@ -12,6 +12,7 @@ class DummyComponent {}
 
 class MockSessionService {
   readonly isAuthenticated = signal(true);
+  readonly refresh = jest.fn<Promise<boolean>, []>().mockResolvedValue(true);
 }
 
 class MockHeaderService {
@@ -70,6 +71,7 @@ describe('ServiceNavigationComponent', () => {
     expect(component).toBeTruthy();
     expect(component.isLoginPage()).toBe(false);
     expect(component.showMenu()).toBe(true);
+    expect(session.refresh).toHaveBeenCalledTimes(1);
   });
 
   it('computes isLoginPage based on current router URL', async () => {
@@ -77,6 +79,7 @@ describe('ServiceNavigationComponent', () => {
 
     expect(component.isLoginPage()).toBe(true);
     expect(component.showMenu()).toBe(false);
+    expect(session.refresh).toHaveBeenCalledTimes(1);
   });
 
   it('updates isLoginPage when navigating', async () => {
