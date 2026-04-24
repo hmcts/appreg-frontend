@@ -393,6 +393,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
               pageNumber: req.pageNumber,
               pageSize: req.pageSize,
               sort: req.sort,
+              filter: req.filter
             },
             'response',
             false,
@@ -565,6 +566,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       pageNumber: vm.currentPage,
       pageSize: vm.pageSize,
       sort: paramSort,
+      filter: vm.getFilters,
     });
   }
 
@@ -684,6 +686,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
   onSearchResult(result: ApplicationsListDetailSearchResult): void {
     const hasErrors = result.errors.length > 0;
+    const filters = result.reqFilter;
 
     this.detailSignalState.patch({
       currentPage: 0,
@@ -693,6 +696,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       updateInvalid: hasErrors,
       errorSummary: hasErrors ? result.errors : [],
       preserveErrorSummaryOnLoad: false,
+      getFilters: filters,
     });
   }
 

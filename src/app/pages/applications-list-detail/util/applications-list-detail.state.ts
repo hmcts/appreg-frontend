@@ -1,6 +1,9 @@
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { Row } from '@core-types/table/row.types';
-import { ApplicationListGetDetailDto } from '@openapi';
+import {
+  ApplicationListGetDetailDto,
+  EntryApplicationListGetFilterDto,
+} from '@openapi';
 
 export type EntrySummary = NonNullable<
   ApplicationListGetDetailDto['entriesSummary']
@@ -32,6 +35,9 @@ export interface ApplicationsListDetailState {
 
   // internal
   hasPrefilledFromApi: boolean;
+
+  // Request
+  getFilters: EntryApplicationListGetFilterDto;
 }
 
 export const initialApplicationsListDetailState: ApplicationsListDetailState = {
@@ -55,6 +61,8 @@ export const initialApplicationsListDetailState: ApplicationsListDetailState = {
   preserveErrorSummaryOnLoad: false,
 
   hasPrefilledFromApi: false,
+
+  getFilters: {},
 };
 
 export const clearUpdateNotificationsPatch = (): Pick<
@@ -66,6 +74,7 @@ export const clearUpdateNotificationsPatch = (): Pick<
   | 'createDone'
   | 'preserveErrorSummaryOnLoad'
   | 'moveDone'
+  | 'getFilters'
 > => ({
   updateDone: false,
   updateInvalid: false,
@@ -74,4 +83,5 @@ export const clearUpdateNotificationsPatch = (): Pick<
   createDone: false,
   preserveErrorSummaryOnLoad: false,
   moveDone: false,
+  getFilters: {},
 });

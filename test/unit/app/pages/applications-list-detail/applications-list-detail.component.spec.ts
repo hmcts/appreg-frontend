@@ -652,6 +652,7 @@ describe('ApplicationsListDetail', () => {
         createDone: false,
         preserveErrorSummaryOnLoad: false,
         moveDone: false,
+        getFilters: {},
       });
       expect(setSpy).toHaveBeenCalledWith({
         id: 'list-123',
@@ -695,6 +696,7 @@ describe('ApplicationsListDetail', () => {
         createDone: false,
         preserveErrorSummaryOnLoad: false,
         moveDone: false,
+        getFilters: {},
       });
       expect(setSpy).toHaveBeenCalledWith({
         id: 'list-123',

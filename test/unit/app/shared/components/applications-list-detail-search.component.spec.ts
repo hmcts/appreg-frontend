@@ -61,6 +61,7 @@ describe('ApplicationsListDetailSearchComponent', () => {
       {
         rows: [],
         totalPages: 0,
+        reqFilter: {},
         errors: [
           {
             id: 'respondentPostcode',
@@ -90,6 +91,7 @@ describe('ApplicationsListDetailSearchComponent', () => {
       {
         rows: [],
         totalPages: 0,
+        reqFilter: {},
         errors: [
           {
             id: 'accountReference',
@@ -213,6 +215,16 @@ describe('ApplicationsListDetailSearchComponent', () => {
         },
       ],
       totalPages: 2,
+      reqFilter: {
+        accountReference: undefined,
+        applicantName: 'Applicant Org',
+        applicationTitle: undefined,
+        feeRequired: true,
+        respondentName: undefined,
+        respondentPostcode: 'AB1 2CD',
+        resulted: undefined,
+        sequenceNumber: undefined,
+      },
       errors: [],
     });
   });
@@ -235,6 +247,7 @@ describe('ApplicationsListDetailSearchComponent', () => {
       {
         rows: [],
         totalPages: 0,
+        reqFilter: {},
         errors: [
           {
             id: 'sequenceNumber',

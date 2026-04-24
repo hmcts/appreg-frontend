@@ -88,6 +88,7 @@ describe('ApplicationsListDetailSearchComponent', () => {
       {
         rows: [],
         totalPages: 0,
+        reqFilter: {},
         errors: component.localErrors(),
       },
     ]);
@@ -192,6 +193,16 @@ describe('ApplicationsListDetailSearchComponent', () => {
             resulted: 'GRANTED',
           },
         ],
+        reqFilter: {
+          accountReference: 'ACC-42',
+          applicantName: 'Applicant Org',
+          applicationTitle: 'Example application',
+          feeRequired: false,
+          respondentName: 'Respondent Ltd',
+          respondentPostcode: 'AB1 2CD',
+          resulted: 'GRANTED',
+          sequenceNumber: 12,
+        },
         totalPages: 3,
         errors: [],
       },
@@ -228,6 +239,7 @@ describe('ApplicationsListDetailSearchComponent', () => {
       {
         rows: [],
         totalPages: 0,
+        reqFilter: {},
         errors: [
           { id: 'applicantName', text: 'Applicant is invalid' },
           { id: 'respondentPostcode', text: 'Enter a valid UK postcode' },
@@ -298,6 +310,16 @@ describe('ApplicationsListDetailSearchComponent', () => {
       {
         rows: [],
         totalPages: 0,
+        reqFilter: {
+          accountReference: undefined,
+          applicantName: undefined,
+          applicationTitle: undefined,
+          feeRequired: undefined,
+          respondentName: undefined,
+          respondentPostcode: undefined,
+          resulted: undefined,
+          sequenceNumber: undefined,
+        },
         errors: [],
       },
     ]);

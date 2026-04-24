@@ -44,6 +44,7 @@ const SEARCH_ERROR_HREFS = {
 export type ApplicationsListDetailSearchResult = {
   rows: Row[];
   totalPages: number;
+  reqFilter: EntryApplicationListGetFilterDto;
   errors: ErrorItem[];
 };
 
@@ -136,16 +137,23 @@ export class ApplicationsListDetailSearchComponent {
     const localErrors = this.buildLocalErrors();
     if (localErrors.length > 0) {
       this.localErrors.set(localErrors);
-      this.searchResult.emit({ rows: [], totalPages: 0, errors: localErrors });
+      this.searchResult.emit({
+        rows: [],
+        totalPages: 0,
+        reqFilter: {},
+        errors: localErrors,
+      });
       return;
     }
+
+    const reqFilter = this.toFilter();
 
     try {
       // GET /application-lists/{listId}/entries
       const page = await firstValueFrom(
         this.appListEntriesApi.getApplicationListEntries({
           listId: this.listId(),
-          filter: this.toFilter(),
+          filter: reqFilter,
           pageNumber: 0,
           pageSize: this.pageSize(),
           sort: ['sequenceNumber,asc'],
@@ -155,6 +163,7 @@ export class ApplicationsListDetailSearchComponent {
       this.searchResult.emit({
         rows: mapEntrySummaryRows(page.content ?? []),
         totalPages: page.totalPages ?? 0,
+        reqFilter,
         errors: [],
       });
     } catch (err) {
@@ -165,6 +174,7 @@ export class ApplicationsListDetailSearchComponent {
         this.searchResult.emit({
           rows: [],
           totalPages: 0,
+          reqFilter: {},
           errors: apiErrors,
         });
         return;
