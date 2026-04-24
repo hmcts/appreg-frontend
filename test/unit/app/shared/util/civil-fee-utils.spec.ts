@@ -1,15 +1,10 @@
 import { FormControl } from '@angular/forms';
 
-import type {
-  ApplicationCodeGetSummaryDtoFeeAmount,
-  FeeStatus,
-} from '@openapi';
-import {
-  ApplicationCodeGetSummaryDtoFeeAmountCurrencyEnum,
-  PaymentStatus,
-} from '@openapi';
+import type { FeeStatus } from '@openapi';
+import { PaymentStatus } from '@openapi';
 import {
   AddFeeDetailsPayload,
+  CivilFeeAmount,
   CivilFeeMeta,
   PaymentRefReturnState,
 } from '@shared-types/civil-fee/civil-fee';
@@ -24,9 +19,9 @@ import {
   updatePaymentReferenceInFeeStatusesControl,
 } from '@util/civil-fee-utils';
 
-const money = (value: number): ApplicationCodeGetSummaryDtoFeeAmount => ({
+const money = (value: number): CivilFeeAmount => ({
   value,
-  currency: ApplicationCodeGetSummaryDtoFeeAmountCurrencyEnum.GBP,
+  currency: 'GBP',
 });
 
 const mkFeeStatus = (overrides: Partial<FeeStatus> = {}): FeeStatus => ({
@@ -38,7 +33,10 @@ const mkFeeStatus = (overrides: Partial<FeeStatus> = {}): FeeStatus => ({
 
 const mkMeta = (overrides: Partial<CivilFeeMeta> = {}): CivilFeeMeta => ({
   feeReference: 'CO7.2',
+  feeDescription: 'Main fee description',
   feeAmount: money(2500),
+  offsiteFeeReference: 'CO1.1',
+  offsiteFeeDescription: 'Offsite fee description',
   offsiteFeeAmount: money(3000),
   ...overrides,
 });
@@ -153,6 +151,7 @@ describe('buildCivilFeeHeading', () => {
 
     expect(heading).toContain('Fee Reference: CO7.2');
     expect(heading).toContain('Amount: £25.00');
+    expect(heading).toContain('Off Site Fee Reference: CO1.1');
     expect(heading).toContain('Off Site Fee Amount: £30.00');
     expect(heading).toContain('Total Fee Amount: £55.00');
   });
@@ -179,7 +178,7 @@ describe('buildCivilFeeHeading', () => {
   });
 
   it('uses dash for total when either fee amount value is null', () => {
-    const feeAmountWithNullValue: ApplicationCodeGetSummaryDtoFeeAmount = {
+    const feeAmountWithNullValue: CivilFeeAmount = {
       ...money(0),
       value: null as unknown as number,
     };
@@ -193,6 +192,15 @@ describe('buildCivilFeeHeading', () => {
     );
 
     expect(heading).toContain('Total Fee Amount: —');
+  });
+
+  it('uses dash for offsite reference when it is blank', () => {
+    const heading = buildCivilFeeHeading(
+      mkMeta({ offsiteFeeReference: '   ' }),
+      true,
+    );
+
+    expect(heading).toContain('Off Site Fee Reference: —');
   });
 });
 

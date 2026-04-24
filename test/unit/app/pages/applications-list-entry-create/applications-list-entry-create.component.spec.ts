@@ -765,6 +765,31 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
     expect(resetSectionsSpy).not.toHaveBeenCalled();
   });
 
+  it('onCodeSelected stores the expanded fee metadata from the API detail', () => {
+    getApplicationCodeByCodeAndDateMock.mockReturnValue(
+      of({
+        feeReference: 'CO7.2',
+        feeDescription: 'Main fee description',
+        feeAmount: { value: 2500, currency: 'GBP' },
+        offsiteFeeReference: 'CO1.1',
+        offsiteFeeDescription: 'Offsite fee description',
+        offsiteFeeAmount: { value: 3000, currency: 'GBP' },
+        isFeeDue: true,
+      } as unknown),
+    );
+
+    component.onCodeSelected({ code: 'A001', date: '2026-02-01' });
+
+    expect(component.feeMeta).toEqual({
+      feeReference: 'CO7.2',
+      feeDescription: 'Main fee description',
+      feeAmount: { value: 2500, currency: 'GBP' },
+      offsiteFeeReference: 'CO1.1',
+      offsiteFeeDescription: 'Offsite fee description',
+      offsiteFeeAmount: { value: 3000, currency: 'GBP' },
+    });
+  });
+
   it('onCodeSelected clears fee metadata and fee-required state when app code is cleared', () => {
     component.form.patchValue({
       applicationCode: 'OLD',
@@ -773,7 +798,10 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
     });
     component.feeMeta = {
       feeReference: 'CO9.2',
+      feeDescription: 'Main fee description',
       feeAmount: { value: 2500, currency: 'GBP' },
+      offsiteFeeReference: 'CO1.1',
+      offsiteFeeDescription: 'Offsite fee description',
       offsiteFeeAmount: { value: 3000, currency: 'GBP' },
     };
     (
@@ -803,7 +831,10 @@ describe('ApplicationsListEntryCreate (new code selection + bulk respondent path
     });
     component.feeMeta = {
       feeReference: 'CO9.2',
+      feeDescription: 'Main fee description',
       feeAmount: { value: 2500, currency: 'GBP' },
+      offsiteFeeReference: 'CO1.1',
+      offsiteFeeDescription: 'Offsite fee description',
       offsiteFeeAmount: { value: 3000, currency: 'GBP' },
     };
     (
