@@ -78,6 +78,7 @@ Feature: Applications List Entry Create
     Then User Verifies The Checkbox With Label "Off site fee applies " In The Accordion "Civil fee" Is Unchecked
     Then User Checks The Checkbox With Label "Off site fee applies " In The Accordion "Civil fee"
     # Bug ARCPOC-1241 is raised
+    Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
     Then User Should See The Text "Off Site Fee Amount: £30.00" In The Accordion "Civil fee"
     Then User Should See The Text "Total Fee Amount: £314.00" In The Accordion "Civil fee"
     Then User Should See The Text "Update fee status" In The Accordion "Civil fee"
@@ -262,7 +263,7 @@ Feature: Applications List Entry Create
     Then User Verifies The Checkbox With Label " Off site fee applies " In The Accordion "Civil fee" Is Unchecked
     Then User Checks The Checkbox With Label " Off site fee applies " In The Accordion "Civil fee"
     # Bug ARCPOC-1241 is raised
-    # Then User Should See The Text "<OffisiteFeeCode>" In The Accordion "Civil fee"
+    Then User Should See The Text "<OffsiteFeeCode>" In The Accordion "Civil fee"
     Then User Should See The Text "<OffsiteFeeValue>" In The Accordion "Civil fee"
     Then User Should See The Text "<TotalFeeAmount>" In The Accordion "Civil fee"
     Then User Selects "Paid" From The Dropdown "Fee status" In The Accordion "Civil fee"
@@ -278,6 +279,6 @@ Feature: Applications List Entry Create
     Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
 
     Examples:
-      | User  | TableName | SearchDate | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationCode | ApplicationTitle                                           | WordingText                                                                                                                     | placeholder  | WordingValue | PaymentReference | CaseReference | AccountReference | OffsiteFeeString                                         | OffsiteFeeCode | OffsiteFeeValue             | TotalFeeAmount            | FeeReference         | FeeAmount       | StdAppCode | StdAppName         | StdAppAddress  | StdAppFrom |
-      | user1 | Lists     | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | AP99004         | Request for Certificate of Refusal to State a Case (Civil) | Request for a certificate of refusal to state a case for the opinion of the High Court in respect of civil proceedings heard on | Enter a Date | today        | PAY-12345        | case12345     | account12345     | Selecting this will apply the off site fee to the entry. | CO1.1          | Off Site Fee Amount: £30.00 | Total Fee Amount: £135.00 | Fee Reference: CO3.1 | Amount: £105.00 | APP025     | Miss, Ava, Johnson | 258 Cedar Lane | 6 Nov 2025 |
+      | User  | TableName | SearchDate | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationCode | ApplicationTitle                                           | WordingText                                                                                                                     | placeholder  | WordingValue | PaymentReference | CaseReference | AccountReference | OffsiteFeeString                                         | OffsiteFeeCode                | OffsiteFeeValue             | TotalFeeAmount            | FeeReference         | FeeAmount       | StdAppCode | StdAppName         | StdAppAddress  | StdAppFrom |
+      | user1 | Lists     | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | AP99004         | Request for Certificate of Refusal to State a Case (Civil) | Request for a certificate of refusal to state a case for the opinion of the High Court in respect of civil proceedings heard on | Enter a Date | today        | PAY-12345        | case12345     | account12345     | Selecting this will apply the off site fee to the entry. | Off Site Fee Reference: CO1.1 | Off Site Fee Amount: £30.00 | Total Fee Amount: £135.00 | Fee Reference: CO3.1 | Amount: £105.00 | APP025     | Miss, Ava, Johnson | 258 Cedar Lane | 6 Nov 2025 |
 
