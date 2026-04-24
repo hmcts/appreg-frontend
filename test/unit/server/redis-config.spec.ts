@@ -1,7 +1,4 @@
-import {
-  getRedisUrl,
-  shouldUseRedis,
-} from '../../../server/redis-config';
+import { getRedisUrl, shouldUseRedis } from '../../../server/redis-config';
 
 type ConfigMap = Record<string, unknown>;
 
