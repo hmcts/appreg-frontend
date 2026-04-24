@@ -198,7 +198,7 @@ Feature: Applications List Entry Create Regex Validations
         Then User Enters "<UpdatedPaymentReferenceUndertaken>" Into The "Payment reference" Textbox
         When User Clicks On The "Save" Button
         # Verify Wording Success Banner and Wording Value retained after saving payment reference
-        Then User Verifies The Textbox "" Contains "<WordingValue>" In The Accordion "Wording"
+        Then User Verifies The "Wording" Accordion Has textbox with placeholder "<placeholder>" and Enters "<WordingValue>"
         Then User Sees Success Alert "Wording applied to this entry. Save the entry to keep these changes."
         # 2nd Civil Fee Entry Validations
         Then User Selects "Paid" From The Dropdown "Fee status" In The Accordion "Civil fee"
@@ -215,7 +215,7 @@ Feature: Applications List Entry Create Regex Validations
         Then User Verifies The "Payment reference" Textbox Has Value "<PaymentReferencePaid>"
         When User Clicks On The "Cancel" Button
         # Verify Wording Success Banner and Wording Value retained after saving payment reference
-        Then User Verifies The Textbox "" Contains "<WordingValue>" In The Accordion "Wording"
+        Then User Verifies The "Wording" Accordion Has textbox with placeholder "<placeholder>" and Enters "<WordingValue>"
         Then User Sees Success Alert "Wording applied to this entry. Save the entry to keep these changes."
         # Notes Validation
         Then User Enters "<CaseReferenceExceedsLimit>" Into The Textbox "Case reference" In The Accordion "Notes"
@@ -232,7 +232,7 @@ Feature: Applications List Entry Create Regex Validations
             | User  | TableName | InvalidSearchDate | SearchDate | SearchDateFuture | DisplayDate  | DOB       | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | InvalidApplicationCodeExceedsLimit | InvalidApplicationCode | ValidApplicationCode | ApplicationTitle           | WordingText                                      | placeholder                  | WordingValue        | WordingValueExceedsLimit                                                                              | WordingValue                          | PaymentReferenceExceedsLimit | PaymentReferencePaid | PaymentReferenceUndertaken | UpdatedPaymentReferenceUndertaken | CaseReferenceExceedsLimit | CaseReference | AccountReferenceExceedsLimit | AccountReference | OffsiteFeeString                                                                                         | OffsiteFeeCode | OffsiteFeeValue             | TotalFeeAmount            | FeeReference         | FeeAmount       | AccountDetails                                       |
             | user1 | Lists     | 31/13/2048        | today      | tomorrow         | todaydisplay | today-30y | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | INVALID_CODE                       | CT99002A               | MX99006              | Condemnation of Unfit Food | Application for the condemnation of food, namely | Enter a Describe Seized Food | Test Sample Wording | (ctgn sürrreartcée.sstegl( lmamaeceegScerttpaN( )e -))t,eanoce)erc e(v.etth. abthubienr sa,to,)rtqwer | Test Sample Wording Not Exceeds Limit | PAY-12345-12345-12345        | PAY-12345            | Pay-12345-12345            | Pay-12345-12345                   | case123451234512345       | case12345     | account12345123451234512345  | account12345     | Selecting this will automatically apply the off site fee to the entry. This change is saved immediately. | CO1.1          | Off Site Fee Amount: £30.00 | Total Fee Amount: £284.00 | Fee Reference: CO8.1 | Amount: £284.00 | This is a test application with special requirements |
 
-    @ARCPOC-222 @ARCPOC-1107 @ARCPOC-1282 @ARCPOC-1209 @ARCPOC-1241 @ARCPOC-1238 @ARCPOC-1302 @ARCPOC-1319 @SC2
+    @ARCPOC-222 @ARCPOC-1107 @ARCPOC-1282 @ARCPOC-1209 @ARCPOC-1241 @ARCPOC-1238 @ARCPOC-1302 @ARCPOC-1319 @SC2 @PJ
     Scenario Outline: Create an ALE where Applicant = Oraganisation and Respondent = Organisation, using an Application Code with Fee Required = N and Respondent Required = Y
         Given User Authenticates Via API As "<User>"
         # Create Application List
@@ -353,7 +353,6 @@ Feature: Applications List Entry Create Regex Validations
             | Phone number      | 020 7946 0000                                                                                        |
             | Mobile number     | 07123 456789                                                                                         |
             | Email address     | valid.email@address.com                                                                              |
-        When User Clicks On The "Create entry" Button
         # Civil Fee Details - No fee required validations
         Then User Should See The Text "No fee required" In The Accordion "Civil fee"
         Then User Verifies Dropdown "Fee status" Is Disabled In The Accordion "Civil fee"
