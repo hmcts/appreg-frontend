@@ -36,7 +36,7 @@ export class NavigationHelper {
   static pageRefresh(): void {
     cy.log('Refreshing the page');
     cy.url().then((url) => {
-       cy.visit(url);
+      cy.visit(url);
     });
-}
+  }
 }
