@@ -140,6 +140,7 @@ import {
 } from '@util/template-substitution-utils';
 
 type ChildErrorSource =
+  | 'codes'
   | 'notes'
   | 'fee'
   | 'respondent'
@@ -237,6 +238,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   private parentErrors: ErrorItem[] = [];
   private childErrors: Record<ChildErrorSource, ErrorItem[]> = {
+    codes: [],
     notes: [],
     fee: [],
     respondent: [],
@@ -453,9 +455,12 @@ export class ApplicationsListEntryDetail implements OnInit {
       date: this.form.controls.lodgementDate.value,
     };
 
+    const lodgementDate =
+      codeAndLodgementDate.date || this.form.controls.lodgementDate.value || '';
+
     this.form.patchValue({
       applicationCode: codeAndLodgementDate.code,
-      lodgementDate: codeAndLodgementDate.date,
+      lodgementDate,
     });
     // Call API to retrieve data associated with the App code
     if (this.form.value.applicationCode && this.form.value.lodgementDate) {
@@ -620,6 +625,21 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   onChildErrors(source: ChildErrorSource, errors: ErrorItem[]): void {
     this.childErrors[source] = errors ?? [];
+
+    if (source === 'codes') {
+      const summaryErrors = [
+        ...getUniqueErrors(
+          this.parentErrors,
+          Object.values(this.childErrors).flat(),
+        ),
+      ];
+
+      this.appListEntryDetailPatch({
+        summaryErrors,
+        errorFound: summaryErrors.length > 0,
+      });
+      return;
+    }
 
     if (this.vm().formSubmitted) {
       this.updateAllErrors();
@@ -968,6 +988,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     this.parentErrors = [];
     this.childErrors = {
+      codes: [],
       notes: [],
       fee: [],
       respondent: [],

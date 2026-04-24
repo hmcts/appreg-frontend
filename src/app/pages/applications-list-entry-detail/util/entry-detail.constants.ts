@@ -9,11 +9,17 @@ export const APPLICANT_COLUMNS: TableColumn[] = [
 ];
 
 export const CODES_COLUMNS: TableColumn[] = [
-  { header: 'Code', field: 'code' },
-  { header: 'Title', field: 'title' },
-  { header: 'Bulk', field: 'bulk' },
-  { header: 'Fee required', field: 'isFeeDue' },
-  { header: 'Actions', field: 'actions', sortable: false },
+  { header: 'Code', field: 'code', minWidth: '8rem', wrap: false },
+  {
+    header: 'Title',
+    field: 'title',
+    minWidth: '18rem',
+    maxWidth: '28rem',
+    wrap: true,
+  },
+  { header: 'Bulk', field: 'bulk', minWidth: '7rem', wrap: false },
+  { header: 'Fee required', field: 'isFeeDue', minWidth: '7rem', wrap: false },
+  { header: 'Actions', field: 'actions', minWidth: '8rem', wrap: false },
 ];
 
 export const FEE_STATUS_OPTIONS = [

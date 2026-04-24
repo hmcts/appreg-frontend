@@ -39,6 +39,9 @@ export type TableColumn = {
   field: string;
   numeric?: boolean;
   sortable?: boolean;
+  minWidth?: string;
+  maxWidth?: string;
+  wrap?: boolean;
   sortValue?: (
     row: Record<string, unknown>,
   ) => string | number | null | undefined;
@@ -85,6 +88,7 @@ export class SortableTableComponent
   columns = input<TableColumn[]>([]);
   data = input<Row[]>([]);
   noDataMessage = input('No results found.');
+  loading = input(false);
 
   dateFieldIdentifier = input<string>('date');
 
@@ -316,7 +320,11 @@ export class SortableTableComponent
     event: Event | null,
     col: { field: string; sortable?: boolean },
   ): void {
-    if (this.clientOrServerSort() !== 'server' || col.sortable === false) {
+    if (
+      this.clientOrServerSort() !== 'server' ||
+      col.sortable === false ||
+      col.field === 'actions'
+    ) {
       return;
     }
 
@@ -338,6 +346,10 @@ export class SortableTableComponent
       key,
       'none',
     );
+  }
+
+  isSortableColumn(col: { field: string; sortable?: boolean }): boolean {
+    return col.sortable !== false && col.field !== 'actions';
   }
 
   private coerceRowId(row: Row): string | null {

@@ -7,7 +7,13 @@ export const APPLICATIONS_LIST_COLUMNS: TableColumn[] = [
     header: 'Location',
     field: 'location',
   },
-  { header: 'Description', field: 'description' },
+  {
+    header: 'Description',
+    field: 'description',
+    minWidth: '18rem',
+    maxWidth: '28rem',
+    wrap: true,
+  },
   { header: 'Entries', field: 'entries', numeric: true },
   { header: 'Status', field: 'status' },
 ];

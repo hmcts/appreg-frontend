@@ -64,6 +64,7 @@
         [parentSubmitted]="vm().formSubmitted"
         [lodgementDateDisabled]="true"
         (selectCodeAndLodgementDate)="onCodeSelected($event)"
+        (codeSearchErrors)="onChildErrors('codes', $event)"
       />
     }
   </ng-template>

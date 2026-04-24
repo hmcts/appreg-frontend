@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 
 import { ApplicationCodeSearchComponent } from '@components/application-codes-search/application-codes-search.component';
 import { ApplicationCodesApi } from '@openapi';
@@ -30,12 +30,14 @@ describe('ApplicationCodeSearchComponent', () => {
         title: 'Statutory Declaration - Lost documents',
         bulk: 'No',
         fee: '—',
+        isFeeDue: '',
       },
       {
         code: 'MS99003',
         title: 'Statutory Declaration - Local Authority Car Park',
         bulk: 'No',
         fee: '—',
+        isFeeDue: '',
       },
     ],
     totalPages: 0,
@@ -88,6 +90,7 @@ describe('ApplicationCodeSearchComponent', () => {
         title: 'Statutory',
         pageNumber: 0,
         pageSize: 10,
+        sort: ['code,asc'],
       },
       true,
     );
@@ -113,6 +116,7 @@ describe('ApplicationCodeSearchComponent', () => {
         title: undefined,
         pageNumber: 3,
         pageSize: 25,
+        sort: ['code,asc'],
       },
       true,
     );
@@ -137,6 +141,7 @@ describe('ApplicationCodeSearchComponent', () => {
         title: undefined,
         pageNumber: 0,
         pageSize: 10,
+        sort: ['code,asc'],
       },
       true,
     );
@@ -154,6 +159,49 @@ describe('ApplicationCodeSearchComponent', () => {
     expect(component.errored()).toBe(true);
   });
 
+  it('search() keeps existing rows visible while a refetch is in progress', () => {
+    const pending$ = new Subject<CodeRowsResult>();
+    jest.spyOn(helpers, 'fetchCodeRows$').mockReturnValue(pending$);
+
+    component.codesRows = mockRows.rows.slice();
+
+    component.search();
+
+    expect(component.codesRows).toEqual(mockRows.rows);
+    expect(component.loading()).toBe(true);
+  });
+
+  it('search() should not call fetchCodeRows$ when code exceeds max length', () => {
+    const fetchSpy = jest.spyOn(helpers, 'fetchCodeRows$');
+    const errorsSpy = jest.spyOn(component.codeSearchErrors, 'emit');
+
+    component.form.patchValue({ code: '12345678901' });
+    component.search();
+
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(component.loading()).toBe(false);
+    expect(component.codeError()).toBe(
+      'Application code must be 10 characters or fewer',
+    );
+    expect(errorsSpy).toHaveBeenCalledWith([
+      {
+        id: 'code',
+        text: 'Application code must be 10 characters or fewer',
+        href: '#applicationCode',
+      },
+    ]);
+    expect(component.hasSearched()).toBe(false);
+  });
+
+  it('does not show the max length error before search or parent submit', () => {
+    const errorsSpy = jest.spyOn(component.codeSearchErrors, 'emit');
+
+    component.form.patchValue({ code: '12345678901' });
+
+    expect(component.codeError()).toBeNull();
+    expect(errorsSpy).not.toHaveBeenCalled();
+  });
+
   it('onAddCode() should emit selectCodeAndLodgementDate when valid', () => {
     const emitSpy = jest.spyOn(component.selectCodeAndLodgementDate, 'emit');
 
@@ -164,6 +212,7 @@ describe('ApplicationCodeSearchComponent', () => {
       title: ` ${mockRows.rows[0].title} `,
       bulk: mockRows.rows[0].bulk,
       fee: mockRows.rows[0].fee,
+      isFeeDue: '',
     };
 
     component.onAddCode(rowWithWhitespace);
@@ -197,12 +246,14 @@ describe('ApplicationCodeSearchComponent', () => {
       component.resetParentErrors,
       'emit',
     );
+    const codeSearchErrorsSpy = jest.spyOn(component.codeSearchErrors, 'emit');
 
     component.form.patchValue({ code: 'X', title: 'Y' });
     component.codesRows = mockRows.rows.slice();
     component.errored.set(true);
     component.totalPages.set(8);
     component.currentPage.set(4);
+    component.hasSearched.set(true);
 
     component.clear();
 
@@ -215,6 +266,21 @@ describe('ApplicationCodeSearchComponent', () => {
     expect(component.currentPage()).toBe(0);
     expect(emitSpy).toHaveBeenCalledWith({ code: '', date: '' });
     expect(resetParentErrorsSpy).toHaveBeenCalled();
+    expect(codeSearchErrorsSpy).toHaveBeenCalledWith([]);
+    expect(component.hasSearched()).toBe(false);
+  });
+
+  it('does not mark no-results state after an invalid search becomes valid again', () => {
+    const fetchSpy = jest.spyOn(helpers, 'fetchCodeRows$');
+
+    component.form.patchValue({ code: '12345678901' });
+    component.search();
+    expect(component.hasSearched()).toBe(false);
+
+    component.form.patchValue({ code: '1234567890' });
+
+    expect(component.hasSearched()).toBe(false);
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 
   it('ngOnInit() should clear without re-emitting when code is emptied', () => {
@@ -237,6 +303,83 @@ describe('ApplicationCodeSearchComponent', () => {
 
     expect(component.currentPage()).toBe(5);
     expect(searchSpy).toHaveBeenCalled();
+  });
+
+  it('onPageChange() should not change page when code exceeds max length', () => {
+    const searchSpy = jest
+      .spyOn(component, 'search')
+      .mockImplementation(() => undefined);
+    const errorsSpy = jest.spyOn(component.codeSearchErrors, 'emit');
+
+    component.form.patchValue({ code: '12345678901' });
+    component.onPageChange(5);
+
+    expect(component.currentPage()).toBe(0);
+    expect(searchSpy).not.toHaveBeenCalled();
+    expect(errorsSpy).toHaveBeenCalledWith([
+      {
+        id: 'code',
+        text: 'Application code must be 10 characters or fewer',
+        href: '#applicationCode',
+      },
+    ]);
+  });
+
+  it('onSortChange() should reset to page 0 and search with mapped API sort', () => {
+    const fetchSpy = jest
+      .spyOn(helpers, 'fetchCodeRows$')
+      .mockReturnValue(of(mockRows));
+
+    component.currentPage.set(4);
+    component.form.patchValue({ code: 'MS99004' });
+
+    component.onSortChange({ key: 'title', direction: 'desc' });
+
+    expect(component.currentPage()).toBe(0);
+    expect(component.sortField()).toEqual({ key: 'title', direction: 'desc' });
+    expect(fetchSpy).toHaveBeenCalledWith(
+      apiMock,
+      {
+        code: 'MS99004',
+        title: undefined,
+        pageNumber: 0,
+        pageSize: 10,
+        sort: ['title,desc'],
+      },
+      true,
+    );
+  });
+
+  it('maps fee required sorting to the backend feeDue key', () => {
+    const fetchSpy = jest
+      .spyOn(helpers, 'fetchCodeRows$')
+      .mockReturnValue(of(mockRows));
+
+    component.onSortChange({ key: 'isFeeDue', direction: 'asc' });
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      apiMock,
+      expect.objectContaining({
+        sort: ['feeDue,asc'],
+      }),
+      true,
+    );
+  });
+
+  it('emits validation errors when the parent submit state turns on', () => {
+    const errorsSpy = jest.spyOn(component.codeSearchErrors, 'emit');
+
+    component.form.patchValue({ code: '12345678901' });
+    componentRef.setInput('parentSubmitted', true);
+    fixture.detectChanges();
+
+    expect(errorsSpy).toHaveBeenCalledWith([
+      {
+        id: 'code',
+        text: 'Application code must be 10 characters or fewer',
+        href: '#applicationCode',
+      },
+    ]);
   });
 
   it('initialPatchFormData() should use patchedFormData when provided', () => {

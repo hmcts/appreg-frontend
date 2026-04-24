@@ -11,10 +11,34 @@
   padding: 0;
 }
 
+.app-sortable-table__frame {
+  position: relative;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.app-sortable-table__frame .govuk-table {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.app-sortable-table__frame--loading {
+  opacity: 0.7;
+  transition: opacity 150ms ease-in-out;
+}
+
+.app-sortable-table__loading {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
 :host ::ng-deep tbody .app-sortable-table__cell--wrap {
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: normal;
+  hyphens: auto;
 }
 
 .app-sortable-table__cell--nowrap {
@@ -141,6 +165,10 @@
 :host ::ng-deep .app-sortable-table__cell--nowrap .moj-button-menu__item,
 :host ::ng-deep .app-sortable-table__cell--nowrap .govuk-button {
   white-space: nowrap;
+}
+
+:host ::ng-deep .app-sortable-table__cell--nowrap .moj-button-menu__wrapper {
+  right: 0;
 }
 
 :host ::ng-deep th.govuk-table__header[aria-sort] > button > svg {

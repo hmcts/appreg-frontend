@@ -150,6 +150,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   private parentErrors: ErrorItem[] = [];
   private childErrors: Record<ChildErrorSource, ErrorItem[]> = {
+    codes: [],
     notes: [],
     fee: [],
     respondent: [],
@@ -210,6 +211,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
     this.parentErrors = [];
     this.childErrors = {
+      codes: [],
       notes: [],
       fee: [],
       respondent: [],
@@ -408,6 +410,12 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   onChildErrors(source: ChildErrorSource, errors: ErrorItem[]): void {
     this.childErrors[source] = errors ?? [];
+
+    if (source === 'codes') {
+      this.updateErrors({ validateOtherSections: false });
+      return;
+    }
+
     this.updateErrors({
       validateOtherSections: this.appListEntryCreateState().submitted,
     });
