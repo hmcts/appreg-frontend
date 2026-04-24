@@ -27,7 +27,7 @@ import { AppInsights } from './modules/appinsights';
 import { Helmet } from './modules/helmet';
 import { HmctsLoggerBridge } from './modules/logger';
 import { PropertiesVolume } from './modules/properties-volume';
-import { getRedisUrl } from './redis-config';
+import { getRedisUrl, shouldUseRedis } from './redis-config';
 import { setupAppConfigRoute } from './routes/app-config';
 import { setupHealthcheck } from './routes/health';
 import { setupInfoRoute } from './routes/info';
@@ -71,20 +71,12 @@ const logger: HmctsLogger = HmctsLoggerBridge.enable(
 );
 
 // Redis config
-const runningAsEntrypoint = (() => {
-  try {
-    const thisFile = new URL(import.meta.url).pathname;
-    const entry = process.argv[1]
-      ? new URL(`file://${process.argv[1]}`).pathname
-      : '';
-    return thisFile === entry;
-  } catch {
-    return false;
-  }
-})();
-
 const redisUrl = getRedisUrl(config);
-const useRedis = isProd && runningAsEntrypoint;
+const useRedis = shouldUseRedis(config, isProd);
+
+logger.info(
+  `[session] store=${useRedis ? 'redis' : 'memory'} env=${env} redisConfigured=${Boolean(redisUrl)}`,
+);
 
 const cookieName = config.has('session.cookieName')
   ? config.get<string>('session.cookieName')
