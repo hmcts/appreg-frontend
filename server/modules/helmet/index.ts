@@ -4,6 +4,7 @@ import helmet from 'helmet';
 
 const self = "'self'";
 const localApiOrigin = 'http://localhost:4550';
+const appInsightsBrowserConfigOrigin = 'https://js.monitor.azure.com';
 const APP_INSIGHTS_CONNECTION_STRING_KEY =
   'secrets.appreg.app-insights-connection-string-fe';
 
@@ -59,7 +60,7 @@ function getAppInsightsConnectSrc(): string[] {
   }
 
   const connectionStringMap = parseConnectionString(connectionString);
-  const origins = new Set<string>();
+  const origins = new Set<string>([appInsightsBrowserConfigOrigin]);
 
   for (const endpointKey of ['ingestionendpoint', 'liveendpoint']) {
     const endpoint = connectionStringMap.get(endpointKey);
