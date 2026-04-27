@@ -47,7 +47,7 @@ describe('server/session cookie helpers', () => {
 
   test('builds xsrf cookies as browser-readable', () => {
     expect(buildXsrfCookieOptions({ secure: true }, 'auto')).toEqual({
-      httpOnly: false,
+      httpOnly: true,
       path: '/',
       sameSite: 'lax',
       secure: true,
