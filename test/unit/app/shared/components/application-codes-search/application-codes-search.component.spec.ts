@@ -206,6 +206,7 @@ describe('ApplicationCodeSearchComponent', () => {
     const emitSpy = jest.spyOn(component.selectCodeAndLodgementDate, 'emit');
 
     component.form.patchValue({ lodgementDate: '2024-01-01' });
+    component.hasSearched.set(true);
 
     const rowWithWhitespace: CodeRow = {
       code: ` ${mockRows.rows[0].code} `,
@@ -226,6 +227,7 @@ describe('ApplicationCodeSearchComponent', () => {
     expect(component.form.value.title).toBe(mockRows.rows[0].title);
 
     expect(component.submitted()).toBe(false);
+    expect(component.hasSearched()).toBe(false);
     expect(component.codesRows).toEqual([]);
   });
 

@@ -215,6 +215,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
 
   onAddCode(row: CodeRow): void {
     this.submitted.set(false);
+    this.hasSearched.set(false);
     this.codesRows = [];
 
     if (!this.listId) {
