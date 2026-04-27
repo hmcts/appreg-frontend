@@ -44,7 +44,7 @@ export function buildXsrfCookieOptions(
   secureCookies: boolean | 'auto',
 ): CookieOptions {
   return {
-    httpOnly: true,
+    httpOnly: false,
     sameSite: COOKIE_SAME_SITE,
     secure: shouldUseSecureCookies(req, secureCookies),
     path: '/',
