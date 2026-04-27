@@ -15,7 +15,7 @@ function makeEntry(
 }
 
 describe('buildResultApplicantContext', () => {
-  it('formats applicant person as surname, firstForename', () => {
+  it('formats applicant person with the shared full-name display format', () => {
     const entry = makeEntry({
       applicant: {
         person: {
@@ -34,7 +34,7 @@ describe('buildResultApplicantContext', () => {
     });
 
     expect(buildResultApplicantContext(entry, 'Application title')).toEqual({
-      applicant: 'Blooer, Simon',
+      applicant: 'Simon Blooer',
       respondent: '',
       title: 'Application title',
     });
@@ -59,7 +59,7 @@ describe('buildResultApplicantContext', () => {
     });
   });
 
-  it('formats respondent person as surname, firstForename', () => {
+  it('formats respondent person with the shared full-name display format', () => {
     const entry = makeEntry({
       respondent: {
         person: {
@@ -78,7 +78,7 @@ describe('buildResultApplicantContext', () => {
 
     expect(buildResultApplicantContext(entry, 'Application title')).toEqual({
       applicant: '',
-      respondent: 'Smith, John',
+      respondent: 'John Smith',
       title: 'Application title',
     });
   });
@@ -116,7 +116,7 @@ describe('buildResultApplicantContext', () => {
     });
 
     expect(buildResultApplicantContext(entry, 'Application title')).toEqual({
-      applicant: 'Smith, John',
+      applicant: 'John Smith',
       respondent: '',
       title: 'Application title',
     });

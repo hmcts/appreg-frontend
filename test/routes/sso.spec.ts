@@ -40,7 +40,6 @@ const buildConfigMock = () => {
   const data: Record<string, unknown> = {
     'session.cookieName': 'sid',
     'secrets.appreg.app-session-secret-fe': 'test-secret',
-    'session.secure': false,
     'secrets.appreg.azure-tenant-id-fe': 'tenant-123',
     'secrets.appreg.azure-app-id-fe': 'client-abc',
     'secrets.appreg.azure-client-secret-fe': 'secret-xyz',
@@ -69,6 +68,23 @@ jest.doMock(
   }),
   { virtual: true },
 );
+jest.doMock('../../server/modules/appinsights', () => ({
+  AppInsights: {
+    client: () => ({
+      trackException: jest.fn(),
+      trackTrace: jest.fn(),
+    }),
+  },
+}));
+jest.doMock('../../server/modules/logger', () => ({
+  HmctsLoggerBridge: {
+    enable: () => ({
+      info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+    }),
+  },
+}));
 
 type DestroySpy = jest.SpyInstance<
   ReturnType<Session['destroy']>,
@@ -196,6 +212,110 @@ async function assertLogoutRedirect(
   const spy = destroySpyRef();
   expect(spy).toBeDefined();
   expect(spy?.mock.calls.length).toBe(1);
+}
+
+function findCookie(
+  setCookie: string | string[] | undefined,
+  cookieName: string,
+): string | undefined {
+  let cookies: string[] = [];
+  if (typeof setCookie === 'string') {
+    cookies = [setCookie];
+  } else if (Array.isArray(setCookie)) {
+    cookies = setCookie;
+  }
+  return cookies.find((cookie) => cookie.startsWith(`${cookieName}=`));
+}
+
+async function createAppWithRealSession(opts?: {
+  asyncDestroy?: boolean;
+  presetAuthState?: string;
+  mode?: 'ok' | 'logout';
+}): Promise<Express> {
+  jest.resetModules();
+
+  jest.doMock('../../server/modules/appinsights', () => ({
+    AppInsights: {
+      client: () => ({
+        trackException: jest.fn(),
+        trackTrace: jest.fn(),
+      }),
+    },
+  }));
+  jest.doMock('../../server/modules/logger', () => ({
+    HmctsLoggerBridge: {
+      enable: () => ({
+        info: jest.fn(),
+        warn: jest.fn(),
+        error: jest.fn(),
+      }),
+    },
+  }));
+
+  if (opts?.mode === 'logout') {
+    jest.doMock('@azure/msal-node', () => {
+      class ConfidentialClientApplication {
+        getAuthCodeUrl() {
+          throw new Error('Not used in logout tests');
+        }
+
+        acquireTokenByCode() {
+          throw new Error('Not used in logout tests');
+        }
+
+        getTokenCache() {
+          return { serialize: () => 'SERIALIZED_CACHE' };
+        }
+      }
+
+      return { ConfidentialClientApplication };
+    });
+  } else {
+    const acquireTokenByCode = jest.fn().mockResolvedValue({
+      account: { name: 'Test User', username: 'test@example.com' },
+    });
+    const serialize = jest.fn<string, []>().mockReturnValue('SERIALIZED_CACHE');
+
+    jest.doMock('@azure/msal-node', () => {
+      class ConfidentialClientApplication {
+        acquireTokenByCode = acquireTokenByCode;
+
+        getTokenCache() {
+          return { serialize };
+        }
+      }
+
+      return { ConfidentialClientApplication };
+    });
+  }
+
+  const { setupSession } = await import('../../server/session');
+
+  const app = express();
+  app.set('trust proxy', 1);
+  app.use(
+    await setupSession({
+      isProd: true,
+      useRedis: false,
+      cookieName: 'sid',
+      sessionSecret: 'test-secret',
+    }),
+  );
+
+  if (opts?.presetAuthState) {
+    app.use((req: Request, _res: Response, next) => {
+      (req.session as AppSession).authState = opts.presetAuthState;
+      next();
+    });
+  }
+
+  if (opts?.asyncDestroy !== undefined) {
+    installDestroySpy(app, { asyncDestroy: opts.asyncDestroy });
+  }
+
+  await mountRoutes(app);
+  installErrorHandler(app);
+  return app;
 }
 
 describe('GET /sso/login', () => {
@@ -469,6 +589,63 @@ describe('GET /sso/logout', () => {
     const expectedUrl = buildExpectedLogoutUrl(tenantId, expectedComputed);
 
     await assertLogoutRedirect(app, expectedUrl, destroySpyRef, TEST_HEADERS);
+  });
+});
+
+describe('session cookie security', () => {
+  test('login callback sets Secure, HttpOnly and SameSite on HTTPS', async () => {
+    const app = await createAppWithRealSession({
+      presetAuthState: 'state-123',
+    });
+
+    const res = await request(app)
+      .get('/sso/login-callback?code=abc123&state=state-123')
+      .set(TEST_HEADERS);
+
+    const sessionCookie = findCookie(res.headers['set-cookie'], 'sid');
+
+    expect(res.status).toBe(302);
+    expect(sessionCookie).toBeDefined();
+    expect(sessionCookie).toContain('HttpOnly');
+    expect(sessionCookie).toContain('SameSite=Lax');
+    expect(sessionCookie).toContain('Secure');
+    expect(sessionCookie).toContain('Path=/');
+  });
+
+  test('login callback omits Secure on plain HTTP', async () => {
+    const app = await createAppWithRealSession({
+      presetAuthState: 'state-123',
+    });
+
+    const res = await request(app).get(
+      '/sso/login-callback?code=abc123&state=state-123',
+    );
+
+    const sessionCookie = findCookie(res.headers['set-cookie'], 'sid');
+
+    expect(res.status).toBe(302);
+    expect(sessionCookie).toBeDefined();
+    expect(sessionCookie).toContain('HttpOnly');
+    expect(sessionCookie).toContain('SameSite=Lax');
+    expect(sessionCookie).not.toContain('Secure');
+  });
+
+  test('logout clears the session cookie with hardened attributes on HTTPS', async () => {
+    const app = await createAppWithRealSession({
+      asyncDestroy: false,
+      mode: 'logout',
+    });
+
+    const res = await request(app).get('/sso/logout').set(TEST_HEADERS);
+
+    const sessionCookie = findCookie(res.headers['set-cookie'], 'sid');
+
+    expect(res.status).toBe(302);
+    expect(sessionCookie).toBeDefined();
+    expect(sessionCookie).toContain('HttpOnly');
+    expect(sessionCookie).toContain('SameSite=Lax');
+    expect(sessionCookie).toContain('Secure');
+    expect(sessionCookie).toMatch(/Expires=/);
   });
 });
 

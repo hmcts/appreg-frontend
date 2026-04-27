@@ -415,8 +415,8 @@ describe('ApplicationsListDetail', () => {
         id: 'entry-2',
         sequenceNumber: 7,
         accountNumber: '',
-        applicant: 'Mr, Alex J, Brown',
-        respondent: 'Sam, Green',
+        applicant: 'Alex Brown',
+        respondent: 'Sam Green',
         postCode: 'CC3 3CC',
         title: 'Another title',
         feeReq: 'No',
@@ -865,7 +865,7 @@ describe('ApplicationsListDetail', () => {
         },
       } as Applicant;
 
-      expect(formatPersonName(applicant)).toBe('Mr, John Paul George, Smith');
+      expect(formatPersonName(applicant)).toBe('John Smith');
     });
 
     it('skips missing forenames', () => {
@@ -881,7 +881,7 @@ describe('ApplicationsListDetail', () => {
         },
       } as Applicant;
 
-      expect(formatPersonName(applicant)).toBe('Mr, John, Smith');
+      expect(formatPersonName(applicant)).toBe('John Smith');
     });
   });
 

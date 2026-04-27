@@ -1,7 +1,7 @@
 import { selectedRow } from './applications-list-detail.types';
 
 import { EntryGetSummaryDto, ResultCodeGetSummaryDto } from '@openapi';
-import { formatPersonName, returnOrgName } from '@util/string-helpers';
+import { formatPartyName } from '@util/string-helpers';
 
 export function mapEntrySummaryRows(
   entries: EntryGetSummaryDto[],
@@ -10,12 +10,8 @@ export function mapEntrySummaryRows(
     id: entry.id,
     sequenceNumber: entry.sequenceNumber!,
     accountNumber: entry.accountNumber ?? '',
-    applicant: entry.applicant?.person
-      ? formatPersonName(entry.applicant)
-      : returnOrgName(entry.applicant),
-    respondent: entry.respondent?.person
-      ? formatPersonName(entry.respondent)
-      : returnOrgName(entry.respondent),
+    applicant: formatPartyName(entry.applicant),
+    respondent: formatPartyName(entry.respondent),
     postCode:
       entry.respondent?.person?.contactDetails?.postcode ??
       entry.respondent?.organisation?.contactDetails?.postcode ??

@@ -24,7 +24,11 @@ import { setupAppConfigRoute } from './routes/app-config';
 import { setupHealthcheck } from './routes/health';
 import { setupInfoRoute } from './routes/info';
 import { getCca, setupSsoRoutes } from './routes/sso';
-import { setupSession } from './session';
+import {
+  buildXsrfCookieOptions,
+  resolveSecureCookiesSetting,
+  setupSession,
+} from './session';
 
 type LoggerLike = {
   info: (message: string, ...meta: unknown[]) => void;
@@ -193,6 +197,11 @@ async function bootstrap(): Promise<void> {
   if (config.has('session.cookieName')) {
     cookieName = config.get<string>('session.cookieName');
   }
+  const secureCookies = resolveSecureCookiesSetting(
+    config.has('session.secure')
+      ? config.get<boolean>('session.secure')
+      : undefined,
+  );
 
   app.use(
     await setupSession({
@@ -202,9 +211,7 @@ async function bootstrap(): Promise<void> {
       cookieName,
       sessionSecret: config.get<string>('secrets.appreg.app-session-secret-fe'),
       prefix: 'appreg:sess:',
-      secureInProd: config.has('session.secure')
-        ? config.get<boolean>('session.secure')
-        : true,
+      secureCookies,
     }),
   );
 
@@ -244,12 +251,11 @@ async function bootstrap(): Promise<void> {
       const cookies = cookiesOf(req);
       if (!cookies['XSRF-TOKEN']) {
         const token = crypto.randomBytes(16).toString('hex');
-        res.cookie('XSRF-TOKEN', token, {
-          httpOnly: false,
-          sameSite: 'lax',
-          secure: env === 'production',
-          path: '/',
-        });
+        res.cookie(
+          'XSRF-TOKEN',
+          token,
+          buildXsrfCookieOptions(req, secureCookies),
+        );
       }
     }
     next();

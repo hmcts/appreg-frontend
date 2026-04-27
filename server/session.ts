@@ -1,6 +1,6 @@
 import type { HmctsLogger } from '@hmcts/nodejs-logging';
 import { RedisStore } from 'connect-redis';
-import type { RequestHandler } from 'express';
+import type { CookieOptions, Request, RequestHandler } from 'express';
 import session, {
   MemoryStore,
   type SessionOptions,
@@ -18,9 +18,49 @@ export interface SetupSessionArgs {
   cookieName: string;
   sessionSecret: string;
   prefix?: string;
-  secureInProd?: boolean;
+  secureCookies?: boolean | 'auto';
   maxAgeMs?: number;
   connectTimeoutMs?: number;
+}
+
+// 'strict' breaks SSO
+export const COOKIE_SAME_SITE = 'lax' as const;
+
+export function resolveSecureCookiesSetting(
+  secureCookies?: boolean | 'auto',
+): boolean | 'auto' {
+  return secureCookies ?? 'auto';
+}
+
+export function shouldUseSecureCookies(
+  req: Pick<Request, 'secure'>,
+  secureCookies: boolean | 'auto',
+): boolean {
+  return secureCookies === 'auto' ? req.secure : secureCookies;
+}
+
+export function buildXsrfCookieOptions(
+  req: Pick<Request, 'secure'>,
+  secureCookies: boolean | 'auto',
+): CookieOptions {
+  return {
+    httpOnly: false,
+    sameSite: COOKIE_SAME_SITE,
+    secure: shouldUseSecureCookies(req, secureCookies),
+    path: '/',
+  };
+}
+
+export function buildSessionCookieOptions(
+  req: Pick<Request, 'secure'>,
+  secureCookies: boolean | 'auto',
+): CookieOptions {
+  return {
+    httpOnly: true,
+    sameSite: COOKIE_SAME_SITE,
+    secure: shouldUseSecureCookies(req, secureCookies),
+    path: '/',
+  };
 }
 
 /**
@@ -33,7 +73,7 @@ export async function setupSession({
   cookieName,
   sessionSecret,
   prefix = 'appreg:sess:',
-  secureInProd = true,
+  secureCookies,
   maxAgeMs = 1000 * 60 * 60 * 8,
   connectTimeoutMs = 10_000,
 }: SetupSessionArgs): Promise<RequestHandler> {
@@ -73,18 +113,13 @@ export async function setupSession({
     );
   }
 
-  const prodCookie = {
+  const secureCookiesSetting = resolveSecureCookiesSetting(secureCookies);
+  const cookie = {
     httpOnly: true,
-    sameSite: 'lax' as const,
-    secure: secureInProd,
-    maxAge: maxAgeMs,
+    sameSite: COOKIE_SAME_SITE,
+    secure: secureCookiesSetting,
     path: '/',
-  };
-
-  const devCookie = {
-    httpOnly: true,
-    sameSite: 'lax' as const,
-    secure: false,
+    ...(isProd ? { maxAge: maxAgeMs } : {}),
   };
 
   const options: SessionOptions = {
@@ -92,7 +127,7 @@ export async function setupSession({
     secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
-    cookie: isProd ? prodCookie : devCookie,
+    cookie,
     rolling: false,
     store,
   };
