@@ -96,6 +96,7 @@ describe('Helmet Module', () => {
     expect(connectSrc).toContain(
       'https://westeurope.livediagnostics.monitor.azure.com',
     );
+    expect(connectSrc).toContain('https://js.monitor.azure.com');
   });
 
   it('derives App Insights hosts from EndpointSuffix and Location', () => {
@@ -120,5 +121,6 @@ describe('Helmet Module', () => {
       'https://westeurope.dc.applicationinsights.azure.com',
     );
     expect(connectSrc).toContain('https://live.applicationinsights.azure.com');
+    expect(connectSrc).toContain('https://js.monitor.azure.com');
   });
 });
