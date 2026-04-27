@@ -7,6 +7,10 @@ import { type RateLimitRequestHandler, rateLimit } from 'express-rate-limit';
 import { v4 as uuid } from 'uuid';
 
 import { buildAuthCodeRequest, buildAuthCodeUrlRequest } from '../msal';
+import {
+  buildSessionCookieOptions,
+  resolveSecureCookiesSetting,
+} from '../session';
 
 const { Logger } = nodejsLogging as unknown as {
   Logger: { getLogger(name: string): HmctsLogger };
@@ -62,6 +66,20 @@ const loginRateMax =
   (config.has?.('rateLimit.login.max') &&
     config.get<number>('rateLimit.login.max')) ||
   10;
+const secureCookies = resolveSecureCookiesSetting(
+  config.has?.('session.secure')
+    ? config.get<boolean>('session.secure')
+    : undefined,
+);
+const env = process.env['NODE_ENV'] || 'development';
+const isProd = env === 'production';
+let cookieName = 'sid';
+if (isProd) {
+  cookieName = 'appreg.sid';
+}
+if (config.has?.('session.cookieName')) {
+  cookieName = config.get<string>('session.cookieName');
+}
 
 const loginLimiter: RateLimitRequestHandler = rateLimit({
   windowMs: loginRateWindowMs,
@@ -176,6 +194,10 @@ export function setupSsoRoutes(
       `?post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`;
 
     req.session.destroy(() => {
+      res.clearCookie(
+        cookieName,
+        buildSessionCookieOptions(req, secureCookies),
+      );
       res.redirect(logoutUrl);
     });
   });

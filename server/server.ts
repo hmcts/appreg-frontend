@@ -32,7 +32,11 @@ import { setupAppConfigRoute } from './routes/app-config';
 import { setupHealthcheck } from './routes/health';
 import { setupInfoRoute } from './routes/info';
 import { getCca, setupSsoRoutes } from './routes/sso';
-import { setupSession } from './session';
+import {
+  buildXsrfCookieOptions,
+  resolveSecureCookiesSetting,
+  setupSession,
+} from './session';
 import { sanitizeSsrUrl } from './utils/sanitize-ssr-url';
 
 // ----- Paths (ESM-safe)
@@ -91,6 +95,11 @@ const cookieName = config.has('session.cookieName')
   : isProd
     ? 'appreg.sid'
     : 'sid';
+const secureCookies = resolveSecureCookiesSetting(
+  config.has('session.secure')
+    ? config.get<boolean>('session.secure')
+    : undefined,
+);
 
 app.use(
   await setupSession({
@@ -100,9 +109,7 @@ app.use(
     cookieName,
     sessionSecret: config.get<string>('secrets.appreg.app-session-secret-fe'),
     prefix: 'appreg:sess:',
-    secureInProd: config.has('session.secure')
-      ? config.get<boolean>('session.secure')
-      : true,
+    secureCookies,
   }),
 );
 
@@ -143,12 +150,11 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     const cookies = cookiesOf(req);
     if (!cookies['XSRF-TOKEN']) {
       const token = crypto.randomBytes(16).toString('hex');
-      res.cookie('XSRF-TOKEN', token, {
-        httpOnly: false,
-        sameSite: 'lax',
-        secure: env === 'production',
-        path: '/',
-      });
+      res.cookie(
+        'XSRF-TOKEN',
+        token,
+        buildXsrfCookieOptions(req, secureCookies),
+      );
     }
   }
   next();
