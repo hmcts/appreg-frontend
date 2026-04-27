@@ -128,7 +128,9 @@ export class MojButtonMenuDirective implements AfterViewInit, OnDestroy {
   }
 
   private shouldOpenUp(menu: HTMLElement): boolean {
-    const wrapper = menu.querySelector<HTMLElement>('.moj-button-menu__wrapper');
+    const wrapper = menu.querySelector<HTMLElement>(
+      '.moj-button-menu__wrapper',
+    );
     if (!wrapper) {
       return false;
     }

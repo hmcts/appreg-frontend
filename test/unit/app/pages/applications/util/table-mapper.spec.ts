@@ -98,8 +98,8 @@ describe('mapToRow', () => {
     expect(row).toEqual({
       id: 'id-123',
       date: '2025-04-24',
-      applicant: 'Ms Jane Doe',
-      respondent: 'Ms Bob Smith',
+      applicant: 'Jane Doe',
+      respondent: 'Bob Smith',
       title: 'Request for something',
       fee: 'Yes',
       resulted: 'No',
