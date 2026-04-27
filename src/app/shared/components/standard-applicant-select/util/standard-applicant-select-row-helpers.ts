@@ -1,7 +1,7 @@
 import { TableColumn } from '@components/sortable-table/sortable-table.component';
 import { StandardApplicantGetSummaryDto } from '@openapi';
 import { formatDate } from '@util/standard-applicant-helpers';
-import { formatPersonName, returnOrgName } from '@util/string-helpers';
+import { formatPartyName } from '@util/string-helpers';
 import { StandardApplicantRow } from '@util/types/applications-list-entry/types';
 
 export const standardAppColumns: TableColumn[] = [
@@ -20,7 +20,7 @@ export function mapSaToRow(
   const person = sa.applicant?.person;
   const organisation = sa.applicant?.organisation;
 
-  const name = returnOrgName(applicant) ?? formatPersonName(applicant) ?? '';
+  const name = formatPartyName(applicant) ?? '';
 
   const address =
     organisation?.contactDetails?.addressLine1 ??

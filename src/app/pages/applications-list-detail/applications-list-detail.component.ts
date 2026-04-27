@@ -74,7 +74,7 @@ import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenu, MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
-import { formatPersonName, returnOrgName } from '@util/string-helpers';
+import { formatPartyName } from '@util/string-helpers';
 import { parseTimeToDuration } from '@util/time-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
 import { closePermitted } from '@validators/applications-list-close.validator';
@@ -726,12 +726,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         id: entry.id,
         sequenceNumber: entry.sequenceNumber!,
         accountNumber: entry.accountNumber ?? '',
-        applicant: entry.applicant?.person
-          ? formatPersonName(entry.applicant)
-          : returnOrgName(entry.applicant),
-        respondent: entry.respondent?.person
-          ? formatPersonName(entry.respondent)
-          : returnOrgName(entry.respondent),
+        applicant: formatPartyName(entry.applicant),
+        respondent: formatPartyName(entry.respondent),
         postCode:
           entry.respondent?.person?.contactDetails?.postcode ??
           entry.respondent?.organisation?.contactDetails?.postcode ??

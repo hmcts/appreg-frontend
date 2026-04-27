@@ -56,7 +56,7 @@ describe('buildStandardApplicantRows', () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]).toEqual({
       code: 'SA-001',
-      name: 'Mr, John Q, Public',
+      name: 'John Public',
       address: '1 Test Street',
       useFrom: '1 Dec 2025',
       useTo: '31 Dec 2025',

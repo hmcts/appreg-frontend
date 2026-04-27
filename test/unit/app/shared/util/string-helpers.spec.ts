@@ -1,5 +1,7 @@
 import { Applicant } from '@openapi';
 import {
+  formatFullName,
+  formatPartyName,
   formatPersonName,
   mapOptionValueToTitle,
   mapTitleToOptionValue,
@@ -131,6 +133,37 @@ describe('mapOptionValueToTitle', () => {
   });
 });
 
+describe('formatFullName', () => {
+  it('returns null when name is missing', () => {
+    expect(formatFullName()).toBeNull();
+    expect(formatFullName(null)).toBeNull();
+  });
+
+  it('formats first forename and surname only', () => {
+    expect(
+      formatFullName({
+        title: 'Mr',
+        firstForename: 'John',
+        secondForename: 'Paul',
+        thirdForename: 'George',
+        surname: 'Smith',
+      }),
+    ).toBe('John Smith');
+  });
+
+  it('returns the available non-empty name part when one is missing', () => {
+    expect(
+      formatFullName({
+        title: 'Mr',
+        firstForename: 'John',
+        secondForename: null,
+        thirdForename: undefined,
+        surname: 'Smith',
+      }),
+    ).toBe('John Smith');
+  });
+});
+
 describe('formatPersonName', () => {
   it('returns null when applicant or person name is missing', () => {
     expect(formatPersonName()).toBeNull();
@@ -151,7 +184,7 @@ describe('formatPersonName', () => {
       },
     } as Applicant;
 
-    expect(formatPersonName(applicant)).toBe('Mr, John Paul George, Smith');
+    expect(formatPersonName(applicant)).toBe('John Smith');
   });
 
   it('skips missing forenames and empty title parts', () => {
@@ -167,7 +200,7 @@ describe('formatPersonName', () => {
       },
     } as Applicant;
 
-    expect(formatPersonName(applicant)).toBe('Mr, John, Smith');
+    expect(formatPersonName(applicant)).toBe('John Smith');
   });
 });
 
@@ -185,5 +218,36 @@ describe('returnOrgName', () => {
     } as Applicant;
 
     expect(returnOrgName(applicant)).toBe('Acme Ltd');
+  });
+});
+
+describe('formatPartyName', () => {
+  it('prefers organisation name over person name', () => {
+    const applicant = {
+      organisation: { name: 'Acme Ltd' },
+      person: {
+        name: {
+          title: 'Ms',
+          firstForename: 'Jane',
+          surname: 'Doe',
+        },
+      },
+    } as Applicant;
+
+    expect(formatPartyName(applicant)).toBe('Acme Ltd');
+  });
+
+  it('falls back to person name when organisation is absent', () => {
+    const applicant = {
+      person: {
+        name: {
+          title: 'Ms',
+          firstForename: 'Jane',
+          surname: 'Doe',
+        },
+      },
+    } as Applicant;
+
+    expect(formatPartyName(applicant)).toBe('Jane Doe');
   });
 });

@@ -16,6 +16,9 @@ interface MojInitEl extends HTMLElement {
   __mojInit?: boolean;
 }
 
+const OPEN_MENU_CLASS = 'app-moj-button-menu--open';
+const OPEN_UP_MENU_CLASS = 'app-moj-button-menu--open-up';
+
 @Injectable({ providedIn: 'root' })
 export class MojButtonMenu {
   private cachedCtor?: ButtonMenuCtor;
@@ -89,15 +92,57 @@ export class MojButtonMenuDirective implements AfterViewInit, OnDestroy {
 
     // initial scan
     void this.menus.initAll(this.el.nativeElement);
+    this.syncOpenMenuClasses();
 
     // observe future inserts (e.g., first page render, pagination, sorts)
     this.mo = new MutationObserver(() => {
       void this.menus.initAll(this.el.nativeElement);
+      this.syncOpenMenuClasses();
     });
-    this.mo.observe(this.el.nativeElement, { childList: true, subtree: true });
+    this.mo.observe(this.el.nativeElement, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['aria-expanded'],
+    });
   }
 
   ngOnDestroy(): void {
     this.mo?.disconnect();
+  }
+
+  private syncOpenMenuClasses(): void {
+    const menus = this.el.nativeElement.querySelectorAll<HTMLElement>(
+      '[data-module="moj-button-menu"]',
+    );
+
+    for (const menu of menus) {
+      const toggle = menu.querySelector<HTMLElement>(
+        '.moj-button-menu__toggle-button[aria-expanded="true"]',
+      );
+      const isOpen = !!toggle;
+      menu.classList.toggle(OPEN_MENU_CLASS, isOpen);
+      const shouldOpenUp = isOpen ? this.shouldOpenUp(menu) : false;
+      menu.classList.toggle(OPEN_UP_MENU_CLASS, shouldOpenUp);
+    }
+  }
+
+  private shouldOpenUp(menu: HTMLElement): boolean {
+    const wrapper = menu.querySelector<HTMLElement>(
+      '.moj-button-menu__wrapper',
+    );
+    if (!wrapper) {
+      return false;
+    }
+
+    const hostRect = this.el.nativeElement.getBoundingClientRect();
+    const menuRect = menu.getBoundingClientRect();
+    const wrapperHeight = wrapper.offsetHeight;
+    const gap = 8;
+
+    const spaceBelow = hostRect.bottom - menuRect.bottom;
+    const spaceAbove = menuRect.top - hostRect.top;
+
+    return spaceBelow < wrapperHeight + gap && spaceAbove > spaceBelow;
   }
 }

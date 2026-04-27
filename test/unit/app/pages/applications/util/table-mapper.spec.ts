@@ -98,8 +98,8 @@ describe('mapToRow', () => {
     expect(row).toEqual({
       id: 'id-123',
       date: '2025-04-24',
-      applicant: 'Ms Jane Doe',
-      respondent: 'Ms Bob Smith',
+      applicant: 'Jane Doe',
+      respondent: 'Bob Smith',
       title: 'Request for something',
       fee: 'Yes',
       resulted: 'No',
@@ -173,6 +173,26 @@ describe('mapToRow', () => {
 
     expect(row.applicant).toBe('Henry Rodriguez');
     expect(row.respondent).toBe('Olivia Harris');
+  });
+
+  it('uses only first forename and surname for person display names', () => {
+    const dto = makeDto({
+      applicant: makeApplicant({
+        person: makePerson({
+          name: {
+            title: 'Mr',
+            firstForename: 'John',
+            secondForename: 'Paul',
+            thirdForename: 'George',
+            surname: 'Smith',
+          },
+        }),
+      }),
+    });
+
+    const row = mapToRow(dto);
+
+    expect(row.applicant).toBe('John Smith');
   });
 
   it('maps fee/resulted booleans to Yes/No', () => {

@@ -10,10 +10,6 @@
   margin-bottom: 0;
 }
 
-:host ::ng-deep .app-sortable-table__frame {
-  padding-bottom: 50px; /* Prevent vertical scrollbar on single records */
-}
-
 :host ::ng-deep .app-sortable-table__frame .moj-button-menu {
   position: relative;
 }

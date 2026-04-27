@@ -47,7 +47,12 @@ export const APPLICATION_ENTRIES_MOVE_COLUMNS = [
 export const RESULT_WORDING_COLUMNS = [
   { header: 'Applicant(s)', field: 'applicant' },
   { header: 'Respondent(s)', field: 'respondent' },
-  { header: 'Application title(s)', field: 'title' },
+  {
+    header: 'Application title(s)',
+    field: 'title',
+    maxWidth: '25rem',
+    wrap: true,
+  },
 ];
 
 export const EXISTING_RESULTS_WORDING_COLUMNS = [

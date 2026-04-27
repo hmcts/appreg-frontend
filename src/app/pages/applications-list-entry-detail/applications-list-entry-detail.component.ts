@@ -133,7 +133,7 @@ import { buildFormErrorSummary } from '@util/error-summary';
 import { markFormGroupClean } from '@util/form-helpers';
 import { respondentFormsHaveAnyValue } from '@util/respondent-helpers';
 import { createSignalState } from '@util/signal-state-helpers';
-import { formatPersonName, returnOrgName } from '@util/string-helpers';
+import { formatPartyName } from '@util/string-helpers';
 import {
   createWordingObjectValuesResolver,
   withWordingFieldValues,
@@ -1159,8 +1159,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         next: (applicant) => {
           this.savedStandardApplicantName =
             applicant.name?.trim() ||
-            returnOrgName(applicant.applicant)?.trim() ||
-            formatPersonName(applicant.applicant)?.trim() ||
+            formatPartyName(applicant.applicant)?.trim() ||
             null;
           this.pendingStandardApplicantSummary = this.savedStandardApplicantName
             ? {
