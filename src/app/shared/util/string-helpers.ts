@@ -1,6 +1,6 @@
 import { FormGroup } from '@angular/forms';
 
-import { Applicant } from '@openapi';
+import { Applicant, FullName } from '@openapi';
 
 export function trimToString(v: unknown): string {
   return typeof v === 'string' ? v.trim() : '';
@@ -80,27 +80,32 @@ export function getTrimmedStringOrNullFromGroup(
   return s || null;
 }
 
-export function formatPersonName(applicant?: Applicant): string | null {
-  const name = applicant?.person?.name;
+type PartyWithName = Pick<Applicant, 'person' | 'organisation'>;
+
+export function formatFullName(name?: FullName | null): string | null {
   if (!name) {
     return null;
   }
 
-  const forenames = [
-    name.firstForename,
-    name.secondForename,
-    name.thirdForename,
-  ]
-    .filter(Boolean)
-    .join(' ');
+  const parts = [
+    trimToString(name.firstForename),
+    trimToString(name.surname),
+  ].filter(Boolean);
 
-  return [name.title, forenames, name.surname].filter(Boolean).join(', ');
+  return parts.length > 0 ? parts.join(' ') : null;
 }
 
-export function returnOrgName(applicant?: Applicant): string | null {
-  const organisation = applicant?.organisation;
-  if (!organisation) {
-    return null;
-  }
-  return organisation.name;
+/** Formats a person's display name for UI use: first forename, surname. */
+export function formatPersonName(party?: PartyWithName): string | null {
+  return formatFullName(party?.person?.name);
+}
+
+/** Formats an applicant/respondent display name, preferring organisation name. */
+export function returnOrgName(party?: PartyWithName): string | null {
+  const name = trimToString(party?.organisation?.name);
+  return name || null;
+}
+
+export function formatPartyName(party?: PartyWithName): string | null {
+  return returnOrgName(party) ?? formatPersonName(party);
 }

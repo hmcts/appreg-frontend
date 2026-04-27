@@ -1,7 +1,7 @@
 import { ApplicantContext } from './routing-state-util';
 
-import { Applicant, EntryGetDetailDto, FullName, Respondent } from '@openapi';
-import { returnOrgName } from '@util/string-helpers';
+import { EntryGetDetailDto } from '@openapi';
+import { formatPartyName } from '@util/string-helpers';
 
 export function buildResultApplicantContext(
   entry: EntryGetDetailDto,
@@ -15,7 +15,7 @@ export function buildResultApplicantContext(
 }
 
 function formatApplicantForResultContext(entry: EntryGetDetailDto): string {
-  const applicantDisplay = formatApplicantLike(entry.applicant);
+  const applicantDisplay = formatPartyName(entry.applicant) ?? '';
   if (applicantDisplay) {
     return applicantDisplay;
   }
@@ -24,38 +24,5 @@ function formatApplicantForResultContext(entry: EntryGetDetailDto): string {
 }
 
 function formatRespondentForResultContext(entry: EntryGetDetailDto): string {
-  return formatRespondentLike(entry.respondent);
-}
-
-function formatApplicantLike(applicant: Applicant | undefined): string {
-  if (returnOrgName(applicant)) {
-    return returnOrgName(applicant) ?? '';
-  }
-
-  return formatPersonNameSurnameFirst(applicant?.person?.name);
-}
-
-function formatRespondentLike(respondent: Respondent | undefined): string {
-  if (respondent?.organisation?.name?.trim()) {
-    return respondent.organisation.name.trim();
-  }
-
-  return formatPersonNameSurnameFirst(respondent?.person?.name);
-}
-
-function formatPersonNameSurnameFirst(
-  name: FullName | null | undefined,
-): string {
-  if (!name) {
-    return '';
-  }
-
-  const surname = name.surname?.trim() ?? '';
-  const firstForename = name.firstForename?.trim() ?? '';
-
-  if (surname && firstForename) {
-    return `${surname}, ${firstForename}`;
-  }
-
-  return surname || firstForename;
+  return formatPartyName(entry.respondent) ?? '';
 }
