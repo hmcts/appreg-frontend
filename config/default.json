@@ -36,6 +36,6 @@
   },
   "session": {
     "cookieName": "appreg.sid",
-    "secure": false
+    "secure": true
   }
 }
