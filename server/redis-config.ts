@@ -18,3 +18,7 @@ export function getRedisUrl(config: ConfigLike): string {
   const url = readTrimmedConfigValue(config, REDIS_URL_SECRET_KEY);
   return url !== PLACEHOLDER_REDIS_URL ? url : '';
 }
+
+export function shouldUseRedis(config: ConfigLike, isProd: boolean): boolean {
+  return isProd && getRedisUrl(config).length > 0;
+}

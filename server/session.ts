@@ -23,6 +23,11 @@ export interface SetupSessionArgs {
   connectTimeoutMs?: number;
 }
 
+function buildRedisReconnectDelay(retries: number): number {
+  const cappedRetries = Math.min(retries, 10);
+  return Math.min(1_000 * 2 ** cappedRetries, 30_000);
+}
+
 /**
  * Creates an Express session middleware.
  */
@@ -41,6 +46,7 @@ export async function setupSession({
     'hmcts applications register - session',
     AppInsights.client(),
   );
+  const sessionTtlSeconds = Math.ceil(maxAgeMs / 1000);
 
   let store: Store;
 
@@ -56,14 +62,30 @@ export async function setupSession({
       url,
       socket: {
         connectTimeout: connectTimeoutMs,
+        keepAlive: true,
+        reconnectStrategy: (retries) => {
+          const delay = buildRedisReconnectDelay(retries);
+          logger.warn(
+            `[redis] reconnecting attempt=${retries} delayMs=${delay}`,
+          );
+          return delay;
+        },
       },
     });
 
+    client.on('connect', () => logger.info('[redis] connecting'));
+    client.on('ready', () => logger.info('[redis] ready'));
+    client.on('reconnecting', () => logger.warn('[redis] reconnecting'));
+    client.on('end', () => logger.warn('[redis] connection ended'));
     client.on('error', (err) => logger.error('[redis] client error', err));
     await client.connect();
 
-    store = new RedisStore({ client, prefix });
-    logger.info('Using RedisStore');
+    store = new RedisStore({
+      client,
+      prefix,
+      ttl: sessionTtlSeconds,
+    });
+    logger.info(`Using RedisStore ttlSeconds=${sessionTtlSeconds}`);
   } else {
     store = new MemoryStore();
     logger.warn(

@@ -1,4 +1,5 @@
-import { Component, computed, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Component, PLATFORM_ID, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
   NavigationEnd,
@@ -21,6 +22,7 @@ export class ServiceNavigationComponent {
   readonly session = inject(SessionService);
   private readonly header = inject(HeaderService);
   private readonly router = inject(Router);
+  private readonly platformId = inject(PLATFORM_ID);
 
   readonly url = toSignal(
     this.router.events.pipe(
@@ -39,4 +41,10 @@ export class ServiceNavigationComponent {
       !this.isLoginPage() &&
       this.header.isVisible(),
   );
+
+  constructor() {
+    if (isPlatformBrowser(this.platformId)) {
+      void this.session.refresh();
+    }
+  }
 }
