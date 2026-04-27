@@ -150,6 +150,17 @@ export function setupSsoRoutes(
         return;
       }
 
+      // Regen session on callback
+      await new Promise<void>((resolve, reject) => {
+        req.session.regenerate((err) => {
+          if (err) {
+            reject(displayErr(err));
+            return;
+          }
+          resolve();
+        });
+      });
+
       const redirectUri = `${publicBase(req)}/sso/login-callback`;
       const tokenResponse = await getCca().acquireTokenByCode(
         buildAuthCodeRequest(code, redirectUri),
@@ -162,16 +173,12 @@ export function setupSsoRoutes(
 
       req.session.account = tokenResponse.account;
       req.session.tokenCache = getCca().getTokenCache().serialize();
+
+      // Save session
       await new Promise<void>((resolve, reject) => {
         req.session.save((err: unknown) => {
           if (err) {
-            reject(
-              err instanceof Error
-                ? err
-                : new Error(
-                    typeof err === 'string' ? err : JSON.stringify(err),
-                  ),
-            );
+            reject(displayErr(err));
             return;
           }
           resolve();
@@ -217,4 +224,10 @@ export function setupSsoRoutes(
 
   // Mount once
   app.use(router);
+}
+
+function displayErr(err: unknown): Error {
+  return err instanceof Error
+    ? err
+    : new Error(typeof err === 'string' ? err : JSON.stringify(err));
 }

@@ -90,6 +90,14 @@ type DestroySpy = jest.SpyInstance<
   ReturnType<Session['destroy']>,
   Parameters<Session['destroy']>
 >;
+type RegenerateSpy = jest.SpyInstance<
+  ReturnType<Session['regenerate']>,
+  Parameters<Session['regenerate']>
+>;
+type SaveSpy = jest.SpyInstance<
+  ReturnType<Session['save']>,
+  Parameters<Session['save']>
+>;
 
 /** Create a fresh express app with real session middleware. */
 function createBaseApp(): Express {
@@ -225,6 +233,14 @@ function findCookie(
     cookies = setCookie;
   }
   return cookies.find((cookie) => cookie.startsWith(`${cookieName}=`));
+}
+
+function cookieValue(cookie: string | undefined): string | undefined {
+  if (!cookie) {
+    return undefined;
+  }
+  const [nameValue] = cookie.split(';');
+  return nameValue?.slice(nameValue.indexOf('=') + 1);
 }
 
 async function createAppWithRealSession(opts?: {
@@ -391,6 +407,7 @@ describe('GET /sso/login-callback', () => {
   const prepare = async (
     mode: 'ok' | 'noAccount' | 'throw' = 'ok',
     presetAuthState?: string,
+    sessionErrors?: { regenerateError?: unknown; saveError?: unknown },
   ) => {
     jest.resetModules();
 
@@ -398,6 +415,10 @@ describe('GET /sso/login-callback', () => {
     type AcquireResult = { account?: { name?: string; username?: string } };
     const acquireTokenByCode = jest.fn<Promise<AcquireResult>, [AcquireArgs]>();
     const serialize = jest.fn<string, []>().mockReturnValue('SERIALIZED_CACHE');
+    const sessionSpies: {
+      regenerate?: RegenerateSpy;
+      save?: SaveSpy;
+    } = {};
 
     if (mode === 'ok') {
       acquireTokenByCode.mockResolvedValue({
@@ -432,6 +453,43 @@ describe('GET /sso/login-callback', () => {
       });
     }
 
+    if (sessionErrors) {
+      app.use((req: Request, _res: Response, next) => {
+        const s = req.session as Session;
+
+        if (
+          Object.hasOwn(sessionErrors, 'regenerateError') ||
+          Object.hasOwn(sessionErrors, 'saveError')
+        ) {
+          type Regenerate = typeof s.regenerate;
+          type RegenerateCb = Parameters<Regenerate>[0];
+          type RegenerateRet = ReturnType<Regenerate>;
+
+          sessionSpies.regenerate = jest
+            .spyOn(s, 'regenerate')
+            .mockImplementation((cb: RegenerateCb): RegenerateRet => {
+              cb(sessionErrors.regenerateError);
+              return s;
+            });
+        }
+
+        if (Object.hasOwn(sessionErrors, 'saveError')) {
+          type Save = typeof s.save;
+          type SaveCb = Parameters<Save>[0];
+          type SaveRet = ReturnType<Save>;
+
+          sessionSpies.save = jest
+            .spyOn(s, 'save')
+            .mockImplementation((cb?: SaveCb): SaveRet => {
+              cb?.(sessionErrors.saveError);
+              return s;
+            });
+        }
+
+        next();
+      });
+    }
+
     await mountRoutes(app);
 
     // Helper endpoint to inspect session after callback
@@ -446,7 +504,7 @@ describe('GET /sso/login-callback', () => {
 
     installErrorHandler(app);
 
-    return { app, acquireTokenByCode, serialize };
+    return { app, acquireTokenByCode, serialize, sessionSpies };
   };
 
   test('400 when code/state missing or state mismatched', async () => {
@@ -462,6 +520,84 @@ describe('GET /sso/login-callback', () => {
       .set(TEST_HEADERS);
     expect(r2.status).toBe(400);
     expect(r2.text).toMatch(/Invalid auth response/i);
+  });
+
+  test('regenerates the login session before storing callback token data', async () => {
+    jest.resetModules();
+
+    const uuidMock = jest.fn<string, []>();
+    uuidMock.mockReturnValueOnce('state-123').mockReturnValueOnce('nonce-456');
+    jest.doMock('uuid', () => ({ v4: uuidMock, default: uuidMock }), {
+      virtual: true,
+    });
+
+    const getAuthCodeUrl = jest
+      .fn<Promise<string>, [Record<string, unknown>]>()
+      .mockResolvedValue('https://login.example/authorize?abc=123');
+    const acquireTokenByCode = jest.fn().mockResolvedValue({
+      account: { name: 'Test User', username: 'test@example.com' },
+    });
+    const serialize = jest.fn<string, []>().mockReturnValue('SERIALIZED_CACHE');
+
+    jest.doMock('@azure/msal-node', () => {
+      class ConfidentialClientApplication {
+        getAuthCodeUrl = getAuthCodeUrl;
+        acquireTokenByCode = acquireTokenByCode;
+
+        getTokenCache() {
+          return { serialize };
+        }
+      }
+
+      return { ConfidentialClientApplication };
+    });
+
+    const app = createBaseApp();
+    await mountRoutes(app);
+
+    app.get('/__session', (req: Request, res: Response) => {
+      const s = req.session as AppSession;
+      res.json({
+        authState: s.authState ?? null,
+        account: s.account ?? null,
+        tokenCache: s.tokenCache ?? null,
+      });
+    });
+
+    installErrorHandler(app);
+
+    const agent = request.agent(app);
+    const login = await agent.get('/sso/login').set(TEST_HEADERS);
+    const initialCookie = findCookie(
+      login.headers['set-cookie'],
+      'connect.sid',
+    );
+
+    expect(login.status).toBe(302);
+    expect(initialCookie).toBeDefined();
+
+    const callback = await agent
+      .get('/sso/login-callback?code=abc123&state=state-123')
+      .set(TEST_HEADERS);
+    const regeneratedCookie = findCookie(
+      callback.headers['set-cookie'],
+      'connect.sid',
+    );
+
+    expect(callback.status).toBe(302);
+    expect(callback.headers['location']).toBe('/');
+    expect(regeneratedCookie).toBeDefined();
+    expect(cookieValue(regeneratedCookie)).not.toBe(cookieValue(initialCookie));
+
+    const sess = await agent.get('/__session');
+    expect(sess.status).toBe(200);
+    expect(sess.body).toEqual({
+      authState: null,
+      account: { name: 'Test User', username: 'test@example.com' },
+      tokenCache: 'SERIALIZED_CACHE',
+    });
+    expect(acquireTokenByCode).toHaveBeenCalledTimes(1);
+    expect(serialize).toHaveBeenCalledTimes(1);
   });
 
   test('401 when token response lacks account', async () => {
@@ -524,6 +660,56 @@ describe('GET /sso/login-callback', () => {
 
     expect(res.status).toBe(500);
     expect(logger.error).toHaveBeenCalledTimes(1);
+    expect(String(logger.error.mock.calls[0][1])).toMatch(
+      /\/sso\/login-callback/,
+    );
+  });
+
+  test('500 when session regeneration fails with a non-Error value', async () => {
+    const { app, acquireTokenByCode, sessionSpies } = await prepare(
+      'ok',
+      'state-123',
+      { regenerateError: 'regenerate failed' },
+    );
+
+    const res = await request(app)
+      .get('/sso/login-callback?code=abc&state=state-123')
+      .set(TEST_HEADERS);
+
+    expect(res.status).toBe(500);
+    expect(sessionSpies.regenerate).toHaveBeenCalledTimes(1);
+    expect(acquireTokenByCode).not.toHaveBeenCalled();
+    expect(logger.error).toHaveBeenCalledTimes(1);
+
+    const loggedError = logger.error.mock.calls[0][0] as Error;
+    expect(loggedError).toBeInstanceOf(Error);
+    expect(loggedError.message).toBe('regenerate failed');
+    expect(String(logger.error.mock.calls[0][1])).toMatch(
+      /\/sso\/login-callback/,
+    );
+  });
+
+  test('500 when saving the regenerated session fails with a non-Error value', async () => {
+    const { app, acquireTokenByCode, serialize, sessionSpies } = await prepare(
+      'ok',
+      'state-123',
+      { saveError: { reason: 'save failed' } },
+    );
+
+    const res = await request(app)
+      .get('/sso/login-callback?code=abc&state=state-123')
+      .set(TEST_HEADERS);
+
+    expect(res.status).toBe(500);
+    expect(sessionSpies.regenerate).toHaveBeenCalledTimes(1);
+    expect(sessionSpies.save).toHaveBeenCalled();
+    expect(acquireTokenByCode).toHaveBeenCalledTimes(1);
+    expect(serialize).toHaveBeenCalledTimes(1);
+    expect(logger.error).toHaveBeenCalledTimes(1);
+
+    const loggedError = logger.error.mock.calls[0][0] as Error;
+    expect(loggedError).toBeInstanceOf(Error);
+    expect(loggedError.message).toBe('{"reason":"save failed"}');
     expect(String(logger.error.mock.calls[0][1])).toMatch(
       /\/sso\/login-callback/,
     );
