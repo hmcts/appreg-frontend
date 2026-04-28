@@ -218,7 +218,7 @@ export function setupSsoRoutes(
       next(err);
     }
   });
-//
+
   // POST /sso/logout -> clear session and call Entra logout
   router.post(
     '/sso/logout',
