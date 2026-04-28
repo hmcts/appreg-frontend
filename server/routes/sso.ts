@@ -226,11 +226,22 @@ export function setupSsoRoutes(
     (req, res) => {
       const cookies = (req.cookies ?? {}) as Record<string, string | undefined>;
       const cookieToken = cookies['XSRF-TOKEN'];
-      const submittedToken = req.body['_csrf'];
+
+      const reqBody = typeof req.body === 'object' ? req.body : undefined;
+
+      if (!reqBody) {
+        res.status(400).send('Bad request: request body not found');
+        return;
+      }
+
+      const submittedToken =
+        typeof reqBody['_csrf'] === 'string' ? req.body['_csrf'] : undefined;
 
       if (
         !isValidLogoutOrigin(req) ||
-        ((!cookieToken || !submittedToken) && cookieToken !== submittedToken)
+        !cookieToken ||
+        !submittedToken ||
+        cookieToken !== submittedToken
       ) {
         res.status(403).send('Forbidden');
         return;
