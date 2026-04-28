@@ -1,0 +1,113 @@
+<div [formGroup]="form">
+  <div class="govuk-grid-row">
+    <app-text-input
+      formControlName="applicantName"
+      label="Applicant"
+      idPrefix="applicant"
+      [error]="submitted() ? errorFor('applicant') : null"
+      containerWidthClass="govuk-grid-column-one-half"
+      widthClass="govuk-!-width-two-thirds"
+      [charLimit]="300"
+    />
+  </div>
+
+  <div class="govuk-grid-row">
+    <app-text-input
+      formControlName="respondentName"
+      label="Respondent"
+      idPrefix="respondent"
+      [error]="submitted() ? errorFor('respondent') : null"
+      containerWidthClass="govuk-grid-column-one-half"
+      widthClass="govuk-!-width-two-thirds"
+      [charLimit]="300"
+    />
+  </div>
+
+  <div class="govuk-grid-row">
+    <app-text-input
+      formControlName="respondentPostcode"
+      label="Postcode"
+      idPrefix="postcode"
+      [error]="submitted() ? errorFor('postcode') : null"
+    />
+  </div>
+
+  <ng-template #advancedFields>
+    <!-- Advanced fields block -->
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="sequenceNumber"
+        label="Sequence number"
+        idPrefix="sequence-number"
+        [error]="submitted() ? errorFor('sequence-number') : null"
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="accountReference"
+        label="Account number"
+        idPrefix="account-number"
+        [error]="submitted() ? errorFor('account-number') : null"
+        containerWidthClass="govuk-grid-column-one-half"
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="applicationTitle"
+        label="Title"
+        idPrefix="title"
+        [error]="submitted() ? errorFor('title') : null"
+        containerWidthClass="govuk-grid-column-one-half"
+        widthClass="govuk-!-width-two-thirds"
+        [charLimit]="500"
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <app-select-input
+        formControlName="feeRequired"
+        label="Fee"
+        idPrefix="fee"
+        [options]="[
+          { label: 'Choose', value: '' },
+          { label: 'Yes', value: 'yes' },
+          { label: 'No', value: 'no' },
+        ]"
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="resulted"
+        label="Resulted"
+        idPrefix="resulted"
+        [error]="submitted() ? errorFor('resulted') : null"
+      />
+    </div>
+  </ng-template>
+
+  <details class="govuk-details">
+    <summary class="govuk-details__summary">
+      <span class="govuk-details__summary-text">Advanced search</span>
+    </summary>
+    <div class="govuk-details__text">
+      <ng-container *ngTemplateOutlet="advancedFields"></ng-container>
+    </div>
+  </details>
+
+  <div class="govuk-button-group">
+    <button class="govuk-button" value="search" (click)="onSearch()">
+      Search
+    </button>
+    <button
+      class="govuk-button govuk-button--secondary"
+      type="button"
+      data-module="govuk-button"
+      (click)="clearSearch()"
+    >
+      Clear search
+    </button>
+  </div>
+</div>
