@@ -4,6 +4,8 @@ import helmet from 'helmet';
 
 const self = "'self'";
 const localApiOrigin = 'http://localhost:4550';
+const defaultLocalDevServerOrigin = 'http://localhost:4000';
+const microsoftLoginOrigin = 'https://login.microsoftonline.com';
 const appInsightsBrowserConfigOrigin = 'https://js.monitor.azure.com';
 const APP_INSIGHTS_CONNECTION_STRING_KEY =
   'secrets.appreg.app-insights-connection-string-fe';
@@ -23,12 +25,16 @@ export class Helmet {
     const scriptSrc = [self];
     const connectSrc = [self, localApiOrigin, ...getAppInsightsConnectSrc()];
 
+    // logout is now a post req and we want to allow this in csp
+    const formAction = [self, microsoftLoginOrigin];
+
     if (this.developmentMode) {
       // Uncaught EvalError: Refused to evaluate a string as JavaScript because 'unsafe-eval'
       // is not an allowed source of script in the following Content Security Policy directive:
       // "script-src 'self' *.google-analytics.com 'sha256-+6WnXIl4mbFTCARd8N3COQmT3bJJmo32N8q8ZSQAIcU='".
       // seems to be related to webpack
       scriptSrc.push("'unsafe-eval'");
+      formAction.push(getLocalDevServerOrigin());
     }
 
     app.use(
@@ -38,6 +44,7 @@ export class Helmet {
             connectSrc,
             defaultSrc: [self, localApiOrigin],
             fontSrc: [self, 'data:'],
+            formAction,
             imgSrc: [self],
             objectSrc: [self],
             scriptSrc,
@@ -48,6 +55,11 @@ export class Helmet {
       }),
     );
   }
+}
+
+function getLocalDevServerOrigin(): string {
+  const port = process.env['PORT'];
+  return port ? `http://localhost:${port}` : defaultLocalDevServerOrigin;
 }
 
 function getAppInsightsConnectSrc(): string[] {

@@ -234,7 +234,7 @@ async function bootstrap(): Promise<void> {
       res.redirect('/');
     });
 
-    app.get('/sso/logout', (_req: Request, res: Response) => {
+    app.post('/sso/logout', (_req: Request, res: Response) => {
       res.redirect('/login');
     });
   } else {

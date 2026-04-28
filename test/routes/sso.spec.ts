@@ -1,3 +1,4 @@
+import cookieParser from 'cookie-parser';
 import type { Express, Request, Response } from 'express';
 import express, { NextFunction } from 'express';
 import session, { Session, SessionData } from 'express-session';
@@ -33,6 +34,13 @@ const TEST_HOST = 'sso.test.local';
 const TEST_HEADERS = {
   'x-forwarded-proto': 'https',
   'x-forwarded-host': TEST_HOST,
+};
+const TEST_XSRF_TOKEN = 'test-xsrf-token';
+const TEST_POST_HEADERS = {
+  ...TEST_HEADERS,
+  Cookie: `XSRF-TOKEN=${TEST_XSRF_TOKEN}`,
+  origin: `https://${TEST_HOST}`,
+  referer: `https://${TEST_HOST}/applications-list`,
 };
 
 // Mock config + logger once (works across jest.resetModules calls)
@@ -102,6 +110,7 @@ type SaveSpy = jest.SpyInstance<
 /** Create a fresh express app with real session middleware. */
 function createBaseApp(): Express {
   const app: Express = express();
+  app.use(cookieParser());
   app.use(
     session({
       secret: 'test-secret',
@@ -211,7 +220,10 @@ async function assertLogoutRedirect(
   destroySpyRef: () => DestroySpy | undefined,
   headers?: Record<string, string>,
 ): Promise<void> {
-  const req = request(app).get('/sso/logout');
+  const req = request(app)
+    .post('/sso/logout')
+    .type('form')
+    .send({ _csrf: TEST_XSRF_TOKEN });
   const res = headers ? await req.set(headers) : await req;
 
   expect(res.status).toBe(302);
@@ -309,6 +321,7 @@ async function createAppWithRealSession(opts?: {
 
   const app = express();
   app.set('trust proxy', 1);
+  app.use(cookieParser());
   app.use(
     await setupSession({
       isProd: true,
@@ -716,7 +729,7 @@ describe('GET /sso/login-callback', () => {
   });
 });
 
-describe('GET /sso/logout', () => {
+describe('POST /sso/logout', () => {
   const prepare = async (opts?: {
     tenantId?: string;
     asyncDestroy?: boolean;
@@ -763,7 +776,12 @@ describe('GET /sso/logout', () => {
     const expectedComputed = `https://${TEST_HOST}/login`;
     const expectedUrl = buildExpectedLogoutUrl(tenantId, expectedComputed);
 
-    await assertLogoutRedirect(app, expectedUrl, destroySpyRef, TEST_HEADERS);
+    await assertLogoutRedirect(
+      app,
+      expectedUrl,
+      destroySpyRef,
+      TEST_POST_HEADERS,
+    );
   });
 
   test('logout: still redirects when destroy calls back asynchronously (computed)', async () => {
@@ -774,7 +792,30 @@ describe('GET /sso/logout', () => {
     const expectedComputed = `https://${TEST_HOST}/login`;
     const expectedUrl = buildExpectedLogoutUrl(tenantId, expectedComputed);
 
-    await assertLogoutRedirect(app, expectedUrl, destroySpyRef, TEST_HEADERS);
+    await assertLogoutRedirect(
+      app,
+      expectedUrl,
+      destroySpyRef,
+      TEST_POST_HEADERS,
+    );
+  });
+
+  test('logout: rejects cross-origin POST requests', async () => {
+    const { app, destroySpyRef } = await prepare();
+
+    const res = await request(app)
+      .post('/sso/logout')
+      .type('form')
+      .set({
+        ...TEST_POST_HEADERS,
+        origin: 'https://attacker.example',
+        referer: `https://${TEST_HOST}/applications-list`,
+      })
+      .send({ _csrf: TEST_XSRF_TOKEN });
+
+    expect(res.status).toBe(403);
+    expect(destroySpyRef()).toBeDefined();
+    expect(destroySpyRef()?.mock.calls.length).toBe(0);
   });
 });
 
@@ -822,7 +863,11 @@ describe('session cookie security', () => {
       mode: 'logout',
     });
 
-    const res = await request(app).get('/sso/logout').set(TEST_HEADERS);
+    const res = await request(app)
+      .post('/sso/logout')
+      .type('form')
+      .set(TEST_POST_HEADERS)
+      .send({ _csrf: TEST_XSRF_TOKEN });
 
     const sessionCookie = findCookie(res.headers['set-cookie'], 'sid');
 

@@ -13,18 +13,30 @@ jest.mock('config', () => ({
 
 describe('Helmet Module', () => {
   let app: express.Express;
+  let originalPort: string | undefined;
   const dummyMiddleware = jest.fn();
   const mockedConfig = config as jest.Mocked<typeof config>;
 
   beforeEach(() => {
     // Clear all mocks and create a fresh express app.
     jest.clearAllMocks();
+    originalPort = process.env['PORT'];
+    delete process.env['PORT'];
     app = express();
 
     // Have our helmet mock return a dummy middleware function.
     (helmet as unknown as jest.Mock).mockReturnValue(dummyMiddleware);
     mockedConfig.has.mockReturnValue(false);
     mockedConfig.get.mockReturnValue('');
+  });
+
+  afterEach(() => {
+    if (originalPort === undefined) {
+      delete process.env['PORT'];
+      return;
+    }
+
+    process.env['PORT'] = originalPort;
   });
 
   it('should enable helmet with unsafe-eval in development mode', () => {
@@ -47,8 +59,12 @@ describe('Helmet Module', () => {
     // The scriptSrc array should include self.
     // In development mode, it should also include "'unsafe-eval'".
     const scriptSrc = helmetConfig.contentSecurityPolicy.directives.scriptSrc;
+    const formAction = helmetConfig.contentSecurityPolicy.directives.formAction;
     expect(scriptSrc).toContain("'self'");
     expect(scriptSrc).toContain("'unsafe-eval'");
+    expect(formAction).toContain("'self'");
+    expect(formAction).toContain('https://login.microsoftonline.com');
+    expect(formAction).toContain('http://localhost:4000');
 
     // Verify that app.use was called with the dummy middleware.
     // Here we assume that enableFor calls app.use(helmet(...))
@@ -67,9 +83,25 @@ describe('Helmet Module', () => {
     // Extract the configuration passed to helmet.
     const helmetConfig = (helmet as unknown as jest.Mock).mock.calls[0][0];
     const scriptSrc = helmetConfig.contentSecurityPolicy.directives.scriptSrc;
+    const formAction = helmetConfig.contentSecurityPolicy.directives.formAction;
 
     // In non-development mode, "'unsafe-eval'" should not be present.
     expect(scriptSrc).not.toContain("'unsafe-eval'");
+    expect(formAction).toEqual(["'self'", 'https://login.microsoftonline.com']);
+  });
+
+  it('uses the configured local dev server port for form-action', () => {
+    process.env['PORT'] = '4100';
+
+    new HelmetModule(true).enableFor(app);
+
+    const helmetConfig = (helmet as unknown as jest.Mock).mock.calls[0][0];
+    const formAction = helmetConfig.contentSecurityPolicy.directives.formAction;
+
+    expect(formAction).toContain("'self'");
+    expect(formAction).toContain('https://login.microsoftonline.com');
+    expect(formAction).toContain('http://localhost:4100');
+    expect(formAction).not.toContain('http://localhost:4000');
   });
 
   it('adds the configured App Insights ingestion origin to connect-src', () => {

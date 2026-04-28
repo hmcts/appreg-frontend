@@ -57,6 +57,33 @@ function publicBase(req: Request): string {
   return `${proto}://${host}`;
 }
 
+function displayErr(err: unknown): Error {
+  return err instanceof Error
+    ? err
+    : new Error(typeof err === 'string' ? err : JSON.stringify(err));
+}
+
+// Origin & referer checks
+function isValidLogoutOrigin(req: Request): boolean {
+  const origin = req.get('origin');
+  const referer = req.get('referer');
+  const base = publicBase(req);
+
+  if (!origin && !referer) {
+    return false;
+  }
+
+  if (origin && origin !== base) {
+    return false;
+  }
+
+  if (referer && referer !== base && !referer.startsWith(`${base}/`)) {
+    return false;
+  }
+
+  return true;
+}
+
 // --- Internal constants ------------------------------------------------------
 const loginRateWindowMs =
   (config.has?.('rateLimit.login.windowMs') &&
@@ -192,22 +219,38 @@ export function setupSsoRoutes(
     }
   });
 
-  // GET /sso/logout -> clear session and call Entra logout
-  router.get('/sso/logout', (req, res) => {
-    const postLogoutRedirectUri = `${publicBase(req)}/login`;
+  // POST /sso/logout -> clear session and call Entra logout
+  router.post(
+    '/sso/logout',
+    express.urlencoded({ extended: false }),
+    (req, res) => {
+      const cookies = (req.cookies ?? {}) as Record<string, string | undefined>;
+      const cookieToken = cookies['XSRF-TOKEN'];
+      const submittedToken = req.body['_csrf'];
 
-    const logoutUrl =
-      `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/logout` +
-      `?post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`;
+      if (
+        !isValidLogoutOrigin(req) ||
+        ((!cookieToken || !submittedToken) && cookieToken !== submittedToken)
+      ) {
+        res.status(403).send('Forbidden');
+        return;
+      }
 
-    req.session.destroy(() => {
-      res.clearCookie(
-        cookieName,
-        buildSessionCookieOptions(req, secureCookies),
-      );
-      res.redirect(logoutUrl);
-    });
-  });
+      const postLogoutRedirectUri = `${publicBase(req)}/login`;
+
+      const logoutUrl =
+        `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/logout` +
+        `?post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`;
+
+      req.session.destroy(() => {
+        res.clearCookie(
+          cookieName,
+          buildSessionCookieOptions(req, secureCookies),
+        );
+        res.redirect(logoutUrl);
+      });
+    },
+  );
 
   // GET /sso/me -> simple session probe
   router.get('/sso/me', (req: Request, res: Response): void => {
@@ -224,10 +267,4 @@ export function setupSsoRoutes(
 
   // Mount once
   app.use(router);
-}
-
-function displayErr(err: unknown): Error {
-  return err instanceof Error
-    ? err
-    : new Error(typeof err === 'string' ? err : JSON.stringify(err));
 }

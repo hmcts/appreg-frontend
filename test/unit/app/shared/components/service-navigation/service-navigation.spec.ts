@@ -53,6 +53,8 @@ describe('ServiceNavigationComponent', () => {
   });
 
   afterEach(() => {
+    document.cookie =
+      'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
     jest.restoreAllMocks();
   });
 
@@ -117,5 +119,27 @@ describe('ServiceNavigationComponent', () => {
     await fixture.whenStable();
 
     expect(component.showMenu()).toBe(false);
+  });
+
+  it('renders sign out as a POST form', async () => {
+    document.cookie = 'XSRF-TOKEN=test-token; path=/';
+    await createAt('/lists');
+
+    const form = fixture.nativeElement.querySelector(
+      'form[action="/sso/logout"]',
+    ) as HTMLFormElement | null;
+    const csrfInput = form?.querySelector(
+      'input[name="_csrf"]',
+    ) as HTMLInputElement | null;
+    const button = form?.querySelector('button[type="submit"]');
+
+    expect(form?.getAttribute('action')).toBe('/sso/logout');
+    expect(form?.getAttribute('method')).toBe('post');
+    expect(csrfInput?.getAttribute('type')).toBe('hidden');
+    expect(csrfInput?.value).toBe('test-token');
+    expect(button?.classList.contains('govuk-service-navigation__link')).toBe(
+      true,
+    );
+    expect(button?.textContent?.trim()).toBe('Sign out');
   });
 });
