@@ -114,6 +114,10 @@ export class MojButtonMenuDirective implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     this.mo?.disconnect();
     window.removeEventListener('resize', this.syncOpenMenus);
     window.removeEventListener('scroll', this.syncOpenMenus, true);
@@ -194,9 +198,8 @@ export class MojButtonMenuDirective implements AfterViewInit, OnDestroy {
     wrapper.style.marginTop = '0';
     wrapper.style.marginBottom = '0';
     wrapper.style.zIndex = '2000';
-    wrapper.style.maxHeight = `${Math.max(
-      120,
-      viewportHeight - MENU_VIEWPORT_MARGIN_PX * 2,
+    wrapper.style.maxHeight = `${Math.round(
+      Math.max(120, viewportHeight - top - MENU_VIEWPORT_MARGIN_PX),
     )}px`;
     wrapper.style.overflowY = 'auto';
   }

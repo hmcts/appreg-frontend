@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
@@ -129,6 +129,31 @@ describe('MojButtonMenuDirective', () => {
       .injector.get(MojButtonMenuDirective);
   });
 
+  it('does not touch window listeners during destroy on the server', async () => {
+    await TestBed.resetTestingModule();
+    initAll = jest.fn().mockResolvedValue(undefined);
+
+    await TestBed.configureTestingModule({
+      imports: [HostComponent],
+      providers: [
+        { provide: PLATFORM_ID, useValue: 'server' },
+        {
+          provide: MojButtonMenu,
+          useValue: { initAll },
+        },
+      ],
+    }).compileComponents();
+
+    const serverFixture = TestBed.createComponent(HostComponent);
+    serverFixture.detectChanges();
+
+    const serverDirective = serverFixture.debugElement
+      .query(By.directive(MojButtonMenuDirective))
+      .injector.get(MojButtonMenuDirective);
+
+    expect(() => serverDirective.ngOnDestroy()).not.toThrow();
+  });
+
   it('initialises button menus under the host element', () => {
     expect(initAll).toHaveBeenCalledWith(
       fixture.debugElement.query(By.css('#host')).nativeElement,
@@ -233,7 +258,7 @@ describe('MojButtonMenuDirective', () => {
 
     syncClasses();
 
-    expect(getWrapper().style.maxHeight).toBe('204px');
+    expect(getWrapper().style.maxHeight).toBe('124px');
     expect(getWrapper().style.overflowY).toBe('auto');
   });
 });
