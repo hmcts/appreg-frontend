@@ -1,9 +1,6 @@
 /// <reference types="cypress" />
-import {
-  TIMEOUT_CONSTANTS,
-  UI_CONSTANTS,
-} from '../../constants/ProjectConstants';
-import { LinkHelper } from '../forms/link/LinkHelper';
+import { TIMEOUT_CONSTANTS } from '../../constants/ProjectConstants';
+import { NavigationPage } from '../../pageobjects/pageelements/NavigationPage';
 
 export class MicrosoftAuthHelper {
   static performLogin(email: string, password: string): void {
@@ -91,7 +88,7 @@ export class MicrosoftAuthHelper {
 
   static performSignOut(): void {
     // Click the app's sign out link or button
-    LinkHelper.clickLink(UI_CONSTANTS.BUTTON_TEXT_SIGN_OUT);
+    NavigationPage.signOutLink().click();
     cy.log('AAD logout initiated');
 
     // If redirected to Microsoft account picker, click the user tile to fully sign out
