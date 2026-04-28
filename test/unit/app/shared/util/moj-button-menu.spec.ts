@@ -130,7 +130,7 @@ describe('MojButtonMenuDirective', () => {
   });
 
   it('does not touch window listeners during destroy on the server', async () => {
-    await TestBed.resetTestingModule();
+    TestBed.resetTestingModule();
     initAll = jest.fn().mockResolvedValue(undefined);
 
     await TestBed.configureTestingModule({
