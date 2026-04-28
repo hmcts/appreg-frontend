@@ -35,7 +35,7 @@
       [selectedStandardApplicantCode]="
         form.controls.standardApplicantCode.value
       "
-      [currentStandardApplicantSummary]="currentStandardApplicantSummary"
+      [currentStandardApplicantSummary]="vm().currentStandardApplicantSummary"
       (standardApplicantCodeChange)="onStandardApplicantCodeChanged($event)"
       (standardApplicantSummaryChange)="
         onSelectedStandardApplicantSummaryChanged($event)

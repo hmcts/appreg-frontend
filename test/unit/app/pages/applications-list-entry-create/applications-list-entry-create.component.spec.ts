@@ -188,21 +188,27 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
       name: 'Example Org',
     });
 
-    expect(component.currentStandardApplicantSummary).toEqual({
+    expect(component.vm().currentStandardApplicantSummary).toEqual({
       code: 'SA-123',
       name: 'Example Org',
     });
   });
 
   it('clears the current standard applicant summary when the selected code is cleared', () => {
-    component.currentStandardApplicantSummary = {
-      code: 'SA-123',
-      name: 'Example Org',
-    };
+    (
+      component as unknown as {
+        appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
+      }
+    ).appListEntryCreatePatch({
+      currentStandardApplicantSummary: {
+        code: 'SA-123',
+        name: 'Example Org',
+      },
+    });
 
     component.onStandardApplicantCodeChanged(null);
 
-    expect(component.currentStandardApplicantSummary).toBeNull();
+    expect(component.vm().currentStandardApplicantSummary).toBeNull();
   });
 
   it('payload: omits applicant/respondent when empty', () => {
@@ -681,7 +687,7 @@ describe('ApplicationsListEntryCreate (payment reference return)', () => {
     expect(component.vm().appCodeDetail?.applicationCode).toBe('APP-1');
     expect(component.vm().isFeeRequired).toBe(true);
     expect(component.vm().bulkApplicationsAllowed).toBe(true);
-    expect(component.currentStandardApplicantSummary).toEqual({
+    expect(component.vm().currentStandardApplicantSummary).toEqual({
       code: 'SA-123',
       name: 'Example Org',
     });
