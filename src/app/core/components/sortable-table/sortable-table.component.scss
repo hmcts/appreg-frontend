@@ -185,13 +185,6 @@
   z-index: 1001;
 }
 
-:host ::ng-deep .app-moj-button-menu--open-up .moj-button-menu__wrapper {
-  top: auto;
-  bottom: 100%;
-  margin-top: 0;
-  margin-bottom: 5px;
-}
-
 :host ::ng-deep th.govuk-table__header[aria-sort] > button > svg {
   position: static;
   top: auto;

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
@@ -9,16 +9,28 @@ import { MojButtonMenu, MojButtonMenuDirective } from '@util/moj-button-menu';
   imports: [MojButtonMenuDirective],
   template: `
     <div id="host" appMojButtonMenu>
-      <div id="menu-1" class="moj-button-menu" data-module="moj-button-menu">
-        <button
-          type="button"
-          class="moj-button-menu__toggle-button"
-          aria-expanded="false"
-        >
-          Toggle
-        </button>
-        <ul class="moj-button-menu__wrapper"></ul>
-      </div>
+      <table>
+        <tbody>
+          <tr id="row-1">
+            <td id="cell-1">
+              <div
+                id="menu-1"
+                class="moj-button-menu"
+                data-module="moj-button-menu"
+              >
+                <button
+                  type="button"
+                  class="moj-button-menu__toggle-button"
+                  aria-expanded="false"
+                >
+                  Toggle
+                </button>
+                <ul class="moj-button-menu__wrapper"></ul>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   `,
 })
@@ -50,34 +62,49 @@ describe('MojButtonMenuDirective', () => {
       .nativeElement as HTMLElement;
 
   const mockRects = ({
-    hostTop,
-    hostBottom,
-    menuTop,
-    menuBottom,
+    toggleTop,
+    toggleBottom,
+    toggleLeft,
+    toggleRight,
     wrapperHeight,
+    wrapperWidth,
+    viewportHeight,
+    viewportWidth,
   }: {
-    hostTop: number;
-    hostBottom: number;
-    menuTop: number;
-    menuBottom: number;
+    toggleTop: number;
+    toggleBottom: number;
+    toggleLeft: number;
+    toggleRight: number;
     wrapperHeight: number;
+    wrapperWidth: number;
+    viewportHeight: number;
+    viewportWidth: number;
   }) => {
-    const host = fixture.debugElement.query(By.css('#host'))
-      .nativeElement as HTMLElement;
-    const menu = getMenu();
+    const toggle = getToggle();
     const wrapper = getWrapper();
 
-    jest.spyOn(host, 'getBoundingClientRect').mockReturnValue({
-      top: hostTop,
-      bottom: hostBottom,
-    } as DOMRect);
-    jest.spyOn(menu, 'getBoundingClientRect').mockReturnValue({
-      top: menuTop,
-      bottom: menuBottom,
+    jest.spyOn(toggle, 'getBoundingClientRect').mockReturnValue({
+      top: toggleTop,
+      bottom: toggleBottom,
+      left: toggleLeft,
+      right: toggleRight,
+      width: toggleRight - toggleLeft,
     } as DOMRect);
     Object.defineProperty(wrapper, 'offsetHeight', {
       configurable: true,
       value: wrapperHeight,
+    });
+    Object.defineProperty(wrapper, 'offsetWidth', {
+      configurable: true,
+      value: wrapperWidth,
+    });
+    Object.defineProperty(window, 'innerHeight', {
+      configurable: true,
+      value: viewportHeight,
+    });
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      value: viewportWidth,
     });
   };
 
@@ -102,6 +129,31 @@ describe('MojButtonMenuDirective', () => {
       .injector.get(MojButtonMenuDirective);
   });
 
+  it('does not touch window listeners during destroy on the server', async () => {
+    TestBed.resetTestingModule();
+    initAll = jest.fn().mockResolvedValue(undefined);
+
+    await TestBed.configureTestingModule({
+      imports: [HostComponent],
+      providers: [
+        { provide: PLATFORM_ID, useValue: 'server' },
+        {
+          provide: MojButtonMenu,
+          useValue: { initAll },
+        },
+      ],
+    }).compileComponents();
+
+    const serverFixture = TestBed.createComponent(HostComponent);
+    serverFixture.detectChanges();
+
+    const serverDirective = serverFixture.debugElement
+      .query(By.directive(MojButtonMenuDirective))
+      .injector.get(MojButtonMenuDirective);
+
+    expect(() => serverDirective.ngOnDestroy()).not.toThrow();
+  });
+
   it('initialises button menus under the host element', () => {
     expect(initAll).toHaveBeenCalledWith(
       fixture.debugElement.query(By.css('#host')).nativeElement,
@@ -110,70 +162,103 @@ describe('MojButtonMenuDirective', () => {
 
   it('adds the open class when a menu toggle is expanded', () => {
     getToggle().setAttribute('aria-expanded', 'true');
+    mockRects({
+      toggleTop: 100,
+      toggleBottom: 140,
+      toggleLeft: 300,
+      toggleRight: 420,
+      wrapperHeight: 120,
+      wrapperWidth: 200,
+      viewportHeight: 900,
+      viewportWidth: 1200,
+    });
 
     syncClasses();
 
     expect(getMenu().classList.contains('app-moj-button-menu--open')).toBe(
       true,
     );
+    expect(getWrapper().style.position).toBe('fixed');
   });
 
   it('removes open state classes when a menu is collapsed', () => {
     const menu = getMenu();
     getToggle().setAttribute('aria-expanded', 'true');
     mockRects({
-      hostTop: 0,
-      hostBottom: 300,
-      menuTop: 250,
-      menuBottom: 280,
+      toggleTop: 100,
+      toggleBottom: 140,
+      toggleLeft: 300,
+      toggleRight: 420,
       wrapperHeight: 120,
+      wrapperWidth: 200,
+      viewportHeight: 900,
+      viewportWidth: 1200,
     });
 
     syncClasses();
     expect(menu.classList.contains('app-moj-button-menu--open')).toBe(true);
-    expect(menu.classList.contains('app-moj-button-menu--open-up')).toBe(true);
+    expect(getWrapper().style.position).toBe('fixed');
 
     getToggle().setAttribute('aria-expanded', 'false');
     syncClasses();
 
     expect(menu.classList.contains('app-moj-button-menu--open')).toBe(false);
-    expect(menu.classList.contains('app-moj-button-menu--open-up')).toBe(false);
+    expect(getWrapper().style.position).toBe('');
   });
 
-  it('marks an open menu to open upward when there is not enough space below', () => {
+  it('positions the open menu below the toggle when there is space', () => {
     getToggle().setAttribute('aria-expanded', 'true');
     mockRects({
-      hostTop: 0,
-      hostBottom: 300,
-      menuTop: 250,
-      menuBottom: 280,
+      toggleTop: 100,
+      toggleBottom: 140,
+      toggleLeft: 300,
+      toggleRight: 420,
       wrapperHeight: 120,
+      wrapperWidth: 200,
+      viewportHeight: 900,
+      viewportWidth: 1200,
     });
 
     syncClasses();
 
-    expect(getMenu().classList.contains('app-moj-button-menu--open-up')).toBe(
-      true,
-    );
+    expect(getWrapper().style.top).toBe('148px');
+    expect(getWrapper().style.left).toBe('300px');
   });
 
-  it('keeps an open menu opening downward when there is enough space below', () => {
+  it('positions the open menu above the toggle when there is not enough space below but enough above', () => {
     getToggle().setAttribute('aria-expanded', 'true');
     mockRects({
-      hostTop: 0,
-      hostBottom: 400,
-      menuTop: 120,
-      menuBottom: 150,
+      toggleTop: 260,
+      toggleBottom: 300,
+      toggleLeft: 300,
+      toggleRight: 420,
       wrapperHeight: 120,
+      wrapperWidth: 200,
+      viewportHeight: 360,
+      viewportWidth: 1200,
     });
 
     syncClasses();
 
-    expect(getMenu().classList.contains('app-moj-button-menu--open')).toBe(
-      true,
-    );
-    expect(getMenu().classList.contains('app-moj-button-menu--open-up')).toBe(
-      false,
-    );
+    expect(getWrapper().style.top).toBe('132px');
+  });
+
+  it('constrains the open menu height when it does not fit above or below', () => {
+    getToggle().setAttribute('aria-expanded', 'true');
+    mockRects({
+      toggleTop: 40,
+      toggleBottom: 80,
+      toggleLeft: 300,
+      toggleRight: 420,
+      wrapperHeight: 400,
+      wrapperWidth: 200,
+      viewportHeight: 220,
+      viewportWidth: 1200,
+    });
+
+    syncClasses();
+
+    expect(getWrapper().style.maxHeight).toBe('124px');
+    expect(getWrapper().style.overflowY).toBe('auto');
   });
 });
