@@ -31,12 +31,25 @@
       />
     }
     @case ('standard') {
+      @if (currentSelectionSummary(); as summary) {
+        <p class="govuk-body govuk-!-margin-bottom-4">
+          <strong class="govuk-tag govuk-tag--turquoise govuk-!-margin-right-2">
+            Currently selected
+          </strong>
+          <span class="govuk-body govuk-!-font-weight-bold">{{
+            summary.displayText
+          }}</span>
+        </p>
+      }
+
       @if (standardApplicantSummary(); as summary) {
         <p class="govuk-body govuk-!-margin-bottom-4">
           <strong class="govuk-tag govuk-tag--blue govuk-!-margin-right-2">
             Saved
           </strong>
-          <span>{{ summary.displayText }}</span>
+          <span class="govuk-body govuk-!-font-weight-bold">{{
+            summary.displayText
+          }}</span>
         </p>
       }
 

@@ -59,6 +59,7 @@ import {
 } from '@components/error-summary/error-summary.component';
 import { NotesSectionComponent } from '@components/notes-section/notes-section.component';
 import { RespondentSectionComponent } from '@components/respondent-section/respondent-section.component';
+import { SelectedStandardApplicantSummary } from '@components/standard-applicant-select/standard-applicant-select.component';
 import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
 import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
 import {
@@ -173,6 +174,8 @@ export class ApplicationsListEntryCreate implements OnInit {
   form = this.forms.form;
   personForm = this.forms.personForm;
   organisationForm = this.forms.organisationForm;
+  currentStandardApplicantSummary: SelectedStandardApplicantSummary | null =
+    null;
 
   // Civil fee
   civilFeeColumns = CIVIL_FEE_COLUMNS;
@@ -521,6 +524,16 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.formSvc.setStandardApplicantCode(this.forms, code, {
       emitEvent: false,
     });
+
+    if (!code) {
+      this.currentStandardApplicantSummary = null;
+    }
+  }
+
+  onSelectedStandardApplicantSummaryChanged(
+    summary: SelectedStandardApplicantSummary | null,
+  ): void {
+    this.currentStandardApplicantSummary = summary;
   }
 
   onAddFeeDetails(payload: AddFeeDetailsPayload): void {
@@ -545,6 +558,8 @@ export class ApplicationsListEntryCreate implements OnInit {
       .subscribe((t) => {
         this.appListEntryCreatePatch({ submitted: false });
         this.clearErrors();
+        this.currentStandardApplicantSummary =
+          t === 'standard' ? this.currentStandardApplicantSummary : null;
 
         // reset/rehydrate subforms + keep standardApplicantCode in sync
         this.formSvc.onApplicantTypeChanged(this.forms, t);
@@ -592,6 +607,7 @@ export class ApplicationsListEntryCreate implements OnInit {
       bulkApplicationsAllowed:
         this.appListEntryCreateState().bulkApplicationsAllowed,
       wordingAppliedBannerVisible: this.wordingAppliedBannerVisible(),
+      currentStandardApplicantSummary: this.currentStandardApplicantSummary,
     };
   }
 
@@ -644,6 +660,8 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.wordingAppliedBannerVisible.set(
       draft.wordingAppliedBannerVisible === true,
     );
+    this.currentStandardApplicantSummary =
+      draft.currentStandardApplicantSummary ?? null;
 
     const type = this.form.controls.applicantType.value ?? 'person';
     this.formSvc.syncApplicantTypeState(this.forms, type);

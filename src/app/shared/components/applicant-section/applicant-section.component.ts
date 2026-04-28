@@ -38,6 +38,8 @@ export class ApplicantSectionComponent {
   readonly submitted = input(false);
   readonly errorItems = input<ErrorItem[]>([]);
   readonly selectedStandardApplicantCode = input<string | null>(null);
+  readonly currentStandardApplicantSummary =
+    input<SelectedStandardApplicantSummary | null>(null);
   readonly savedStandardApplicantCode = input<string | null>(null);
   readonly savedStandardApplicantName = input<string | null>(null);
   readonly isUpdateDisabled = input(false);
@@ -57,6 +59,26 @@ export class ApplicantSectionComponent {
     const name = this.savedStandardApplicantName()?.trim() || null;
 
     if (!code || !name) {
+      return null;
+    }
+
+    return {
+      code,
+      name,
+      displayText: `${code} ${name}`,
+    };
+  });
+  readonly currentSelectionSummary = computed(() => {
+    const current = this.currentStandardApplicantSummary();
+    const code = current?.code?.trim() || null;
+    const name = current?.name?.trim() || null;
+
+    if (!code || !name) {
+      return null;
+    }
+
+    const saved = this.standardApplicantSummary();
+    if (saved?.code === code && saved.name === name) {
       return null;
     }
 

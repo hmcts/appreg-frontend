@@ -146,6 +146,42 @@ describe('ApplicantSectionComponent', () => {
     expect(body.nativeElement.textContent).toContain('Example Org');
   });
 
+  it('renders the current standard applicant tag and text when current values exist', () => {
+    fixture.componentRef.setInput('applicantType', 'standard' as ApplicantType);
+    fixture.componentRef.setInput('currentStandardApplicantSummary', {
+      code: 'SA-999',
+      name: 'Current Org',
+    });
+    fixture.detectChanges();
+
+    const tags = fixture.debugElement.queryAll(By.css('.govuk-tag'));
+    const body = fixture.debugElement.query(By.css('.govuk-body'));
+
+    expect(
+      tags.some((tag) =>
+        tag.nativeElement.textContent.includes('Currently selected'),
+      ),
+    ).toBe(true);
+    expect(body.nativeElement.textContent).toContain('SA-999');
+    expect(body.nativeElement.textContent).toContain('Current Org');
+  });
+
+  it('does not render duplicate current and saved tags for the same applicant', () => {
+    fixture.componentRef.setInput('applicantType', 'standard' as ApplicantType);
+    fixture.componentRef.setInput('savedStandardApplicantCode', 'SA-123');
+    fixture.componentRef.setInput('savedStandardApplicantName', 'Example Org');
+    fixture.componentRef.setInput('currentStandardApplicantSummary', {
+      code: 'SA-123',
+      name: 'Example Org',
+    });
+    fixture.detectChanges();
+
+    const tags = fixture.debugElement.queryAll(By.css('.govuk-tag'));
+
+    expect(tags).toHaveLength(1);
+    expect(tags[0].nativeElement.textContent).toContain('Saved');
+  });
+
   it('does not render saved standard applicant text without a saved name', () => {
     fixture.componentRef.setInput('applicantType', 'standard' as ApplicantType);
     fixture.componentRef.setInput('savedStandardApplicantCode', 'SA-123');

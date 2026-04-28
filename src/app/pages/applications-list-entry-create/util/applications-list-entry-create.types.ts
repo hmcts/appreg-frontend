@@ -1,3 +1,4 @@
+import { SelectedStandardApplicantSummary } from '@components/standard-applicant-select/standard-applicant-select.component';
 import { ApplicationCodeGetDetailDto } from '@openapi';
 import {
   ApplicationsListEntryFormValue,
@@ -17,6 +18,7 @@ export type EntryCreateSnapshot = {
   isFeeRequired: boolean;
   bulkApplicationsAllowed: boolean;
   wordingAppliedBannerVisible: boolean;
+  currentStandardApplicantSummary: SelectedStandardApplicantSummary | null;
 };
 
 export type ApplicantStep = 'select' | 'person' | 'org' | 'standard';

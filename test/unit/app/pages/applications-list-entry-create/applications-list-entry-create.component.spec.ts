@@ -182,6 +182,29 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     );
   });
 
+  it('stores the current standard applicant summary when the selection changes', () => {
+    component.onSelectedStandardApplicantSummaryChanged({
+      code: 'SA-123',
+      name: 'Example Org',
+    });
+
+    expect(component.currentStandardApplicantSummary).toEqual({
+      code: 'SA-123',
+      name: 'Example Org',
+    });
+  });
+
+  it('clears the current standard applicant summary when the selected code is cleared', () => {
+    component.currentStandardApplicantSummary = {
+      code: 'SA-123',
+      name: 'Example Org',
+    };
+
+    component.onStandardApplicantCodeChanged(null);
+
+    expect(component.currentStandardApplicantSummary).toBeNull();
+  });
+
   it('payload: omits applicant/respondent when empty', () => {
     component.form.patchValue({
       applicationCode: 'A001',
@@ -634,6 +657,10 @@ describe('ApplicationsListEntryCreate (payment reference return)', () => {
         },
         isFeeRequired: true,
         bulkApplicationsAllowed: true,
+        currentStandardApplicantSummary: {
+          code: 'SA-123',
+          name: 'Example Org',
+        },
       },
       paymentRefReturn: {
         updatedRowId: 'Paid|2026-01-10',
@@ -654,6 +681,10 @@ describe('ApplicationsListEntryCreate (payment reference return)', () => {
     expect(component.vm().appCodeDetail?.applicationCode).toBe('APP-1');
     expect(component.vm().isFeeRequired).toBe(true);
     expect(component.vm().bulkApplicationsAllowed).toBe(true);
+    expect(component.currentStandardApplicantSummary).toEqual({
+      code: 'SA-123',
+      name: 'Example Org',
+    });
     expect(component.feeMeta?.feeReference).toBe('CO9.2');
     expect(component.getWordingObjectValues(appCodeDetail.wording)).toEqual({
       template: 'At {{Court}}',
