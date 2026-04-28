@@ -1,6 +1,7 @@
 import { ApplicantStep } from './applications-list-entry-create.types';
 
 import { ErrorItem } from '@components/error-summary/error-summary.component';
+import { SelectedStandardApplicantSummary } from '@components/standard-applicant-select/standard-applicant-select.component';
 import { ApplicationCodeGetDetailDto } from '@openapi';
 
 export interface ApplicationsListEntryCreateState {
@@ -13,6 +14,7 @@ export interface ApplicationsListEntryCreateState {
   summaryErrors: ErrorItem[];
   bulkApplicationsAllowed: boolean;
   isFeeRequired: boolean;
+  currentStandardApplicantSummary: SelectedStandardApplicantSummary | null;
 }
 
 export const initialApplicationsListEntryCreateState: ApplicationsListEntryCreateState =
@@ -26,4 +28,5 @@ export const initialApplicationsListEntryCreateState: ApplicationsListEntryCreat
     summaryErrors: [],
     bulkApplicationsAllowed: false,
     isFeeRequired: false,
+    currentStandardApplicantSummary: null,
   };

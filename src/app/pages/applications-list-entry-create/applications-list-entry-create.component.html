@@ -35,7 +35,11 @@
       [selectedStandardApplicantCode]="
         form.controls.standardApplicantCode.value
       "
+      [currentStandardApplicantSummary]="vm().currentStandardApplicantSummary"
       (standardApplicantCodeChange)="onStandardApplicantCodeChanged($event)"
+      (standardApplicantSummaryChange)="
+        onSelectedStandardApplicantSummaryChanged($event)
+      "
       (applicantErrorsChange)="onChildErrors('applicant', $event)"
       [showUpdateButton]="false"
     />

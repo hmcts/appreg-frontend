@@ -59,6 +59,7 @@ import {
 } from '@components/error-summary/error-summary.component';
 import { NotesSectionComponent } from '@components/notes-section/notes-section.component';
 import { RespondentSectionComponent } from '@components/respondent-section/respondent-section.component';
+import { SelectedStandardApplicantSummary } from '@components/standard-applicant-select/standard-applicant-select.component';
 import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
 import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
 import {
@@ -521,6 +522,16 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.formSvc.setStandardApplicantCode(this.forms, code, {
       emitEvent: false,
     });
+
+    if (!code) {
+      this.appListEntryCreatePatch({ currentStandardApplicantSummary: null });
+    }
+  }
+
+  onSelectedStandardApplicantSummaryChanged(
+    summary: SelectedStandardApplicantSummary | null,
+  ): void {
+    this.appListEntryCreatePatch({ currentStandardApplicantSummary: summary });
   }
 
   onAddFeeDetails(payload: AddFeeDetailsPayload): void {
@@ -545,6 +556,12 @@ export class ApplicationsListEntryCreate implements OnInit {
       .subscribe((t) => {
         this.appListEntryCreatePatch({ submitted: false });
         this.clearErrors();
+        this.appListEntryCreatePatch({
+          currentStandardApplicantSummary:
+            t === 'standard'
+              ? this.appListEntryCreateState().currentStandardApplicantSummary
+              : null,
+        });
 
         // reset/rehydrate subforms + keep standardApplicantCode in sync
         this.formSvc.onApplicantTypeChanged(this.forms, t);
@@ -592,6 +609,8 @@ export class ApplicationsListEntryCreate implements OnInit {
       bulkApplicationsAllowed:
         this.appListEntryCreateState().bulkApplicationsAllowed,
       wordingAppliedBannerVisible: this.wordingAppliedBannerVisible(),
+      currentStandardApplicantSummary:
+        this.appListEntryCreateState().currentStandardApplicantSummary,
     };
   }
 
@@ -640,6 +659,8 @@ export class ApplicationsListEntryCreate implements OnInit {
     this.appListEntryCreatePatch({
       isFeeRequired: draft.isFeeRequired === true,
       bulkApplicationsAllowed: draft.bulkApplicationsAllowed === true,
+      currentStandardApplicantSummary:
+        draft.currentStandardApplicantSummary ?? null,
     });
     this.wordingAppliedBannerVisible.set(
       draft.wordingAppliedBannerVisible === true,
