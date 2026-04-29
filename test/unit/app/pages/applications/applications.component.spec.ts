@@ -60,7 +60,7 @@ function makePrintDto(
 
 function makeSelectedRow(
   id: string,
-  applicationListId?: string,
+  applicationListId: string,
 ): ApplicationRow {
   return {
     id,
