@@ -1,6 +1,6 @@
 <h1 class="govuk-heading-xl">Applications</h1>
 
-@if (vm().submitted && vm().searchErrors.length) {
+@if (vm().searchErrors.length) {
   <app-error-summary
     [title]="'There is a problem'"
     [items]="vm().searchErrors"
@@ -213,30 +213,40 @@
         role="group"
         aria-label="Table actions"
       >
-        <div
-          class="moj-button-menu"
-          data-module="moj-button-menu"
-          data-button-text="Actions"
-          data-align-menu="right"
-          data-button-classes="govuk-button govuk-button--small govuk-button--primary table-caption__action-button"
-        >
+        @if (!vm().selectedRows.length) {
           <button
             type="button"
-            class="govuk-button moj-button-menu__item govuk-button--secondary"
-            (click)="onPrintContinuousClick()"
+            class="govuk-button govuk-button--small govuk-button--primary table-caption__action-button"
+            disabled
           >
-            Print continuous
+            Actions
           </button>
+        } @else {
+          <div
+            class="moj-button-menu"
+            data-module="moj-button-menu"
+            data-button-text="Actions"
+            data-align-menu="right"
+            data-button-classes="govuk-button govuk-button--small govuk-button--primary table-caption__action-button"
+          >
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+              (click)="onPrintContinuousClick()"
+            >
+              Print continuous
+            </button>
 
-          <!-- TODO: arcpoc 1329 -->
-          <button
-            type="button"
-            class="govuk-button moj-button-menu__item govuk-button--secondary"
-            (click)="onPrintPageClick()"
-          >
-            Print page
-          </button>
-        </div>
+            <!-- TODO: arcpoc 1329 -->
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+              (click)="onPrintPageClick()"
+            >
+              Print page
+            </button>
+          </div>
+        }
       </span>
     </caption>
 

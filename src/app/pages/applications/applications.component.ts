@@ -509,7 +509,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   private patchPrintError(message: string): void {
     this.patchApp({
-      submitted: true,
       errorSummary: [{ text: message }],
     });
   }
