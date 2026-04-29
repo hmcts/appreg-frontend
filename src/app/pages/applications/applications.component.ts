@@ -59,7 +59,7 @@ import { buildFormErrorSummary } from '@util/error-summary';
 import { has } from '@util/has';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
-import { filterEntriesToPrint, handlePrintPage } from '@util/pdf-utils';
+import { filterEntriesToPrint } from '@util/pdf-utils';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
@@ -254,8 +254,9 @@ export class Applications extends PlaceFieldsBase implements OnInit {
                 APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric,
               );
             }
-            return;
           }
+
+          // TODO: arcpoc 1329
         },
         onError: (err) => {
           this.printRequest.set(null);
@@ -306,12 +307,12 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       this.vm().selectedRows,
     );
 
-    if (!selectedRowsListIds.length) {
+    if (!this.vm().selectedRows.length) {
       this.patchApp({
         submitted: true,
         searchErrors: [
           {
-            text: 'Selected applications do not have an associated applications list',
+            text: 'No applications have been selected',
           },
         ],
       });
@@ -326,6 +327,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   onPrintPageClick(): void {
+    // TODO: arcpoc 1329
     // this.patchApp(clearNotificationsPatch());
     // const selectedRowsListIds = this.getArrOfPrintListId(
     //   this.vm().selectedRows,

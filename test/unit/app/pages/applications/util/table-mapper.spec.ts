@@ -91,6 +91,7 @@ describe('mapToRow', () => {
       isFeeRequired: true,
       isResulted: false,
       status: 'OPEN' as ApplicationListStatus,
+      listId: 'test-id',
     });
 
     const row = mapToRow(dto);
@@ -104,7 +105,8 @@ describe('mapToRow', () => {
       fee: 'Yes',
       resulted: 'No',
       status: 'OPEN',
-      actions: 'id-123',
+      // actions: 'id-123',
+      applicationListId: 'test-id',
     });
   });
 
