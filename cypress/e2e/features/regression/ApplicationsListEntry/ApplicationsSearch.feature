@@ -30,7 +30,7 @@ Feature: Applications List Entry Search
         When User Signs In With Microsoft SSO As "<User>"
         Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"
-        When User Searches Application List Entry With:
+        When User Searches Applications With:
             | Date         | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | Criminal justice area | Other location description | Standard applicant code | Account reference |
             | <SearchDate> |             |       |                        |                   |                         |                    |                           |                      |                       |                            |                         |                   |
         Then User Sees Notification Banner "<NotificationMessage>"
@@ -97,7 +97,7 @@ Feature: Applications List Entry Search
         When User Signs In With Microsoft SSO As "<User>"
         Then User Clicks On The Link Using Exact Text Match "Applications"
         And User Verify The Page URL Contains "/applications"
-        When User Searches Application List Entry With:
+        When User Searches Applications With:
             | Date         | CourtSearch   | Court   | Applicant organisation | Applicant surname  | Respondent organisation | Respondent surname  | Select application status | Respondent post code | CJASearch   | Criminal justice area | Other location description | Standard applicant code | Account reference  |
             | <SearchDate> | <CourtSearch> | <Court> | <ApplicantOrg>         | <ApplicantSurname> | <RespondentOrg>         | <RespondentSurname> | <SelectStatus>            | <RespondentPostcode> | <CJASearch> | <CJA>                 | <OtherLocation>            | <ApplicantCode>         | <AccountReference> |
 
@@ -175,7 +175,7 @@ Feature: Applications List Entry Search
         When User Signs In With Microsoft SSO As "<User>"
         Then User Clicks On The Link Using Exact Text Match "Applications"
         And User Verify The Page URL Contains "/applications"
-        When User Searches Application List Entry With:
+        When User Searches Applications With:
             | Date         | CourtSearch   | Court   | Applicant organisation | Applicant surname  | Respondent organisation | Respondent surname  | Select application status | Respondent post code | CJASearch   | Criminal justice area | Other location description | Standard applicant code | Account reference  |
             | <SearchDate> | <CourtSearch> | <Court> | <ApplicantOrg>         | <ApplicantSurname> | <RespondentOrg>         | <RespondentSurname> | <SelectStatus>            | <RespondentPostcode> | <CJASearch> | <CJA>                 | <OtherLocation>            | <ApplicantCode>         | <AccountReference> |
         Then User Should See Table "<TableName>" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
@@ -195,7 +195,7 @@ Feature: Applications List Entry Search
         Then User Verify The Page URL Contains "/applications"
         When User Clicks On The "Search" Button
         Then User Sees Validation Error Banner "There is a problem Invalid Search Criteria. At least one field must be entered."
-        When User Searches Application List Entry With:
+        When User Searches Applications With:
             | Date          | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
             | <InvalidDate> |             |       | ACME                   |                   |                         |                    |                           |                      |           |                       |                            |                         |                   |
         Then User Sees Validation Error Banner "There is a problem Enter a valid date"
@@ -211,12 +211,12 @@ Feature: Applications List Entry Search
         When User Clicks On The "Search" Button
         Then User Sees Validation Error Banner "There is a problem Criminal justice area not found"
         When User Clicks On The "Clear search" Button
-        When User Searches Application List Entry With:
+        When User Searches Applications With:
             | Date | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
             |      |             |       |                        |                   |                         |                    |                           | <InvalidPostcode>    |           |                       |                            |                         |                   |
         Then User Sees Validation Error Banner "There is a problem Enter a valid UK postcode"
         When User Clicks On The "Clear search" Button
-        When User Searches Application List Entry With:
+        When User Searches Applications With:
             | Date        | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
             | <ValidDate> |             |       | ACME                   |                   |                         | Taylor             | Open                      | <ValidPostcode>      |           |                       |                            |                         |                   |
         Then User Sees Notification Banner "Important No application list entries found Try different filters"
