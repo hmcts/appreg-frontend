@@ -114,9 +114,13 @@ Feature: Applications List Entry Create
       | Fee Status | Status Date  | Payment Ref       |
       | PAID       | todaydisplay | Paid PAY-{RANDOM} |
     # Notes Details
+    # Then User Enters "<CaseReference>" Into The Textbox "Case reference" In The Accordion "Notes"
+    # Then User Enters "<AccountReference>" Into The Textbox "Account reference" In The Accordion "Notes"
     Then User Enters "case{RANDOM}" Into The Textbox "Case reference" In The Accordion "Notes"
     Then User Enters "account{RANDOM}" Into The Textbox "Account reference" In The Accordion "Notes"
     Then User Enters "This is a test application with special requirements" Into The Textbox "Application details" In The Accordion "Notes"
+    # Submit Application Bug ARCPOC-1239 is raised for Wording not retaining changes
+    Then User Verifies The Textbox "" Contains "Test Sample Wording" In The Accordion "Wording"
     # Submit Application Bug ARCPOC-1239 is raised for Wordind not retaining
     Then User Verifies The "Wording" Accordion Has textbox with placeholder "Enter a Describe Seized Food" and Enters "Test Sample Wording"
     When User Clicks On The "Apply wording" Button In The Accordion "Wording"
@@ -158,7 +162,7 @@ Feature: Applications List Entry Create
     Then User Verifies Date Field "Lodgement date" Is Disabled In The Accordion "Application codes"
     # Verify Wording Details
     Then User Verifies The "Wording" Accordion Has Value "Application for the condemnation of food, namely"
-    # Then User Verifies The Textbox "" Contains "Test Sample Wording" In The Accordion "Wording"
+    Then User Verifies The Textbox "" Contains "Test Sample Wording" In The Accordion "Wording"
     # Verify Respondent Details
     When User Verifies In The Respondent Details
       | Select type      | Person                         |
