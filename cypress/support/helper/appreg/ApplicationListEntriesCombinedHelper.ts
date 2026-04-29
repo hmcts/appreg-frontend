@@ -426,7 +426,7 @@ export class ApplicationListEntriesCombinedHelper {
     });
   }
 
-    /**
+  /**
    * Verifies all Respondent fields using reusable verification methods
    * @param criteria - Respondent field values to verify
    */
@@ -470,7 +470,10 @@ export class ApplicationListEntriesCombinedHelper {
       case 'Organisation name':
       case 'Organization name':
       case 'Org name':
-        TextboxHelper.getValueInTextbox('Organisation name').should('eq', value);
+        TextboxHelper.getValueInTextbox('Organisation name').should(
+          'eq',
+          value,
+        );
         break;
 
       case 'Select title':
@@ -485,9 +488,7 @@ export class ApplicationListEntriesCombinedHelper {
       case 'Middle name(s)':
       case 'Middle name':
       case 'Middle names':
-        TextboxHelper
-          .getValueInTextbox('Middle name(s)')
-          .should('eq', value);
+        TextboxHelper.getValueInTextbox('Middle name(s)').should('eq', value);
         break;
 
       case 'Surname':
@@ -506,27 +507,27 @@ export class ApplicationListEntriesCombinedHelper {
 
   static verifyAddressFields(fieldLabel: string, value: string): void {
     switch (fieldLabel) {
-      case 'Address line 1':  // Address line 1
+      case 'Address line 1': // Address line 1
         TextboxHelper.getValueInTextbox('Address line 1').should('eq', value);
-        break;      
+        break;
 
-      case 'Address line 2':  // Address line 2
+      case 'Address line 2': // Address line 2
         TextboxHelper.getValueInTextbox('Address line 2').should('eq', value);
         break;
 
-      case 'Town or city':  // Town or city
+      case 'Town or city': // Town or city
         TextboxHelper.getValueInTextbox('Town or city').should('eq', value);
         break;
 
-      case 'County or region':  // County or region
+      case 'County or region': // County or region
         TextboxHelper.getValueInTextbox('County or region').should('eq', value);
         break;
 
-      case 'Post town':  // Post town
+      case 'Post town': // Post town
         TextboxHelper.getValueInTextbox('Post town').should('eq', value);
         break;
 
-      case 'Postcode':  // Postcode
+      case 'Postcode': // Postcode
       case 'Post code':
         TextboxHelper.getValueInTextbox('Postcode').should('eq', value);
         break;
@@ -539,17 +540,17 @@ export class ApplicationListEntriesCombinedHelper {
 
   static verifyContactDetails(fieldLabel: string, value: string): void {
     switch (fieldLabel) {
-      case 'Phone number':  // Phone number
+      case 'Phone number': // Phone number
       case 'Phone':
         TextboxHelper.getValueInTextbox('Phone number').should('eq', value);
-        break;      
+        break;
 
-      case 'Mobile number':  // Mobile number
+      case 'Mobile number': // Mobile number
       case 'Mobile':
         TextboxHelper.getValueInTextbox('Mobile number').should('eq', value);
-        break;      
+        break;
 
-      case 'Email address':  // Email address
+      case 'Email address': // Email address
       case 'Email':
         TextboxHelper.getValueInTextbox('Email address').should('eq', value);
         break;

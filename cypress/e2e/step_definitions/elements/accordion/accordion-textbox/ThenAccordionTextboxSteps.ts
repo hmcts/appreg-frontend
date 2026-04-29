@@ -17,8 +17,21 @@ Then(
 Then(
   'User Verifies The Textbox {string} Contains {string} In The Accordion {string}',
   (textboxLabel: string, expectedValue: string, accordionTitle: string) => {
+    const resolvedExpected =
+      TestDataGenerator.replaceRandomPlaceholders(expectedValue);
     AccordionHelper.within(accordionTitle, () => {
-      TextboxHelper.getValueInTextbox(textboxLabel).should('eq', expectedValue);
+      if (!textboxLabel || textboxLabel.trim() === '') {
+        // Find the first textbox (input or textarea) in the accordion
+        cy.get('input[type="text"], textarea')
+          .first()
+          .invoke('val')
+          .should('eq', resolvedExpected);
+      } else {
+        TextboxHelper.getValueInTextbox(textboxLabel).should(
+          'eq',
+          resolvedExpected,
+        );
+      }
     });
   },
 );
@@ -46,6 +59,18 @@ Then(
   (textboxLabel: string, accordionTitle: string) => {
     AccordionHelper.within(accordionTitle, () => {
       TextboxHelper.TextboxIsDisabled(textboxLabel);
+    });
+  },
+);
+
+Then(
+  'User Should See The Textbox {string} Under {string} FieldSet In The Accordion {string}',
+  (textboxLabel: string, fieldsetLabel: string, accordionTitle: string) => {
+    AccordionHelper.within(accordionTitle, () => {
+      TextboxHelper.verifyTextboxIsVisibleUnderFieldset(
+        textboxLabel,
+        fieldsetLabel,
+      );
     });
   },
 );

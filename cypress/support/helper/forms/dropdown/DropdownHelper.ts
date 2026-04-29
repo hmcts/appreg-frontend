@@ -105,11 +105,12 @@ export class DropdownHelper {
     dropdownLabel: string,
     fieldsetLabel: string,
   ): void {
-    cy.contains('fieldset', fieldsetLabel, { matchCase: false })
-      .then(($fieldset) => {
-        cy.wrap($fieldset).within(() => {
-          DropdownElement.findDropdown(dropdownLabel).should('be.visible');
-        });
-      });
+    cy.contains('fieldset', fieldsetLabel, { matchCase: false }).then(
+      ($fieldset) => {
+        DropdownElement.findDropdownWithin($fieldset, dropdownLabel).should(
+          'be.visible',
+        );
+      },
+    );
   }
 }

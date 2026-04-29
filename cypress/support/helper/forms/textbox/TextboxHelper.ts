@@ -58,6 +58,24 @@ export class TextboxHelper {
   }
 
   /**
+   * Verifies a textbox is visible within a specific fieldset (identified by heading text)
+   * @param textboxLabel label of the textbox
+   * @param fieldsetLabel heading text of the fieldset
+   */
+  static verifyTextboxIsVisibleUnderFieldset(
+    textboxLabel: string,
+    fieldsetLabel: string,
+  ): void {
+    cy.contains('fieldset', fieldsetLabel, { matchCase: false }).then(
+      ($fieldset) => {
+        TextboxElement.findTextboxWithin($fieldset, textboxLabel).should(
+          'be.visible',
+        );
+      },
+    );
+  }
+
+  /**
    * Types text into an autocomplete textbox and selects an option from dropdown
    * @param selector selector for the textbox
    * @param text The text to type
@@ -157,7 +175,10 @@ export class TextboxHelper {
       .type(value);
   }
 
-  static verifyTextboxValue(placeholder: string, expectedValue: string): Cypress.Chainable {
+  static verifyTextboxValue(
+    placeholder: string,
+    expectedValue: string,
+  ): Cypress.Chainable {
     return TextboxElement.findByPlaceholder(placeholder)
       .should('be.visible')
       .should('have.attr', 'placeholder', placeholder)

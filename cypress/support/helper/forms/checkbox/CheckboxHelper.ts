@@ -27,5 +27,5 @@ export class CheckboxHelper {
 
   static verifyChecked(labelText: string): void {
     CheckboxElement.findCheckbox(labelText).should('be.checked');
-  } 
+  }
 }
