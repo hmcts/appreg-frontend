@@ -48,6 +48,31 @@ export class TextboxElement {
   }
 
   /**
+   * Finds a textbox within a given jQuery root element (e.g. a fieldset).
+   * Uses synchronous jQuery to avoid cy.within() nesting issues.
+   */
+  static findTextboxWithin(
+    $root: JQuery<HTMLElement>,
+    labelOrIdentifier: string,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    const normalized = StringUtils.normalizeText(labelOrIdentifier);
+    const $label = $root
+      .find('label')
+      .filter(
+        (_, el) =>
+          el.textContent?.trim().toLowerCase() === normalized.toLowerCase(),
+      );
+    if ($label.length > 0) {
+      const forAttr = $label.first().attr('for');
+      if (forAttr) {
+        return cy.get(`#${forAttr}`);
+      }
+    }
+    // Fallback: first input/textarea inside root
+    return cy.wrap($root.find('input, textarea').first());
+  }
+
+  /**
    * Finds an input/textarea by its placeholder attribute
    */
   static findByPlaceholder(

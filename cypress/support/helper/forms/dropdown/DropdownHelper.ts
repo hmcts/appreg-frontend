@@ -12,6 +12,10 @@ export class DropdownHelper {
     option: string,
   ): Cypress.Chainable<JQuery<HTMLElement>> {
     return DropdownElement.findDropdown(name).then(($dropdown) => {
+      if (!$dropdown || $dropdown.length === 0) {
+        throw new Error(`Dropdown "${name}" not found`);
+      }
+
       if ($dropdown.is('select')) {
         cy.wrap($dropdown)
           .find('option')
@@ -37,6 +41,7 @@ export class DropdownHelper {
         ).click();
         cy.wrap($dropdown).should('contain.text', option);
       }
+      return cy.wrap($dropdown);
     });
   }
 
@@ -94,5 +99,18 @@ export class DropdownHelper {
       .find('option')
       .contains(optionText)
       .should('not.exist');
+  }
+
+  static verifyDropdownIsVisibleUnderFieldset(
+    dropdownLabel: string,
+    fieldsetLabel: string,
+  ): void {
+    cy.contains('fieldset', fieldsetLabel, { matchCase: false }).then(
+      ($fieldset) => {
+        DropdownElement.findDropdownWithin($fieldset, dropdownLabel).should(
+          'be.visible',
+        );
+      },
+    );
   }
 }

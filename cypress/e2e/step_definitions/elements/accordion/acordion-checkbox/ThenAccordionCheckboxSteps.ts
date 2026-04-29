@@ -13,6 +13,15 @@ Then(
 );
 
 Then(
+  'User Verifies The Checkbox With Label {string} In The Accordion {string} Is Checked',
+  (label: string, accordionTitle: string) => {
+    AccordionHelper.within(accordionTitle, () =>
+      CheckboxHelper.verifyChecked(label),
+    );
+  },
+);
+
+Then(
   'User Checks The Checkbox With Label {string} In The Accordion {string}',
   (label: string, accordionTitle: string) => {
     AccordionHelper.within(accordionTitle, () => {

@@ -29,3 +29,15 @@ Then(
     });
   },
 );
+
+Then(
+  'User Verifies Dropdown {string} Is Visible Under {string} FieldSet In The Accordion {string}',
+  (dropdownLabel: string, fieldsetLabel: string, accordionTitle: string) => {
+    AccordionHelper.within(accordionTitle, () => {
+      DropdownHelper.verifyDropdownIsVisibleUnderFieldset(
+        dropdownLabel,
+        fieldsetLabel,
+      );
+    });
+  },
+);

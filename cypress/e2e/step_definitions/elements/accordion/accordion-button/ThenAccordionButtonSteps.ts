@@ -11,3 +11,12 @@ Then(
     });
   },
 );
+
+Then(
+  'User Verifies The Button {string} Is Enabled In The Accordion {string}',
+  (buttonText: string, accordionTitle: string) => {
+    AccordionHelper.within(accordionTitle, () => {
+      ButtonHelper.isButtonEnabled(buttonText);
+    });
+  },
+);
