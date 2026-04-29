@@ -57,6 +57,33 @@ function publicBase(req: Request): string {
   return `${proto}://${host}`;
 }
 
+function displayErr(err: unknown): Error {
+  return err instanceof Error
+    ? err
+    : new Error(typeof err === 'string' ? err : JSON.stringify(err));
+}
+
+// Origin & referer checks
+function isValidLogoutOrigin(req: Request): boolean {
+  const origin = req.get('origin');
+  const referer = req.get('referer');
+  const base = publicBase(req);
+
+  if (!origin && !referer) {
+    return false;
+  }
+
+  if (origin && origin !== base) {
+    return false;
+  }
+
+  if (referer && referer !== base && !referer.startsWith(`${base}/`)) {
+    return false;
+  }
+
+  return true;
+}
+
 // --- Internal constants ------------------------------------------------------
 const loginRateWindowMs =
   (config.has?.('rateLimit.login.windowMs') &&
@@ -150,6 +177,17 @@ export function setupSsoRoutes(
         return;
       }
 
+      // Regen session on callback
+      await new Promise<void>((resolve, reject) => {
+        req.session.regenerate((err) => {
+          if (err) {
+            reject(displayErr(err));
+            return;
+          }
+          resolve();
+        });
+      });
+
       const redirectUri = `${publicBase(req)}/sso/login-callback`;
       const tokenResponse = await getCca().acquireTokenByCode(
         buildAuthCodeRequest(code, redirectUri),
@@ -162,16 +200,12 @@ export function setupSsoRoutes(
 
       req.session.account = tokenResponse.account;
       req.session.tokenCache = getCca().getTokenCache().serialize();
+
+      // Save session
       await new Promise<void>((resolve, reject) => {
         req.session.save((err: unknown) => {
           if (err) {
-            reject(
-              err instanceof Error
-                ? err
-                : new Error(
-                    typeof err === 'string' ? err : JSON.stringify(err),
-                  ),
-            );
+            reject(displayErr(err));
             return;
           }
           resolve();
@@ -185,22 +219,49 @@ export function setupSsoRoutes(
     }
   });
 
-  // GET /sso/logout -> clear session and call Entra logout
-  router.get('/sso/logout', (req, res) => {
-    const postLogoutRedirectUri = `${publicBase(req)}/login`;
+  // POST /sso/logout -> clear session and call Entra logout
+  router.post(
+    '/sso/logout',
+    express.urlencoded({ extended: false }),
+    (req, res) => {
+      const cookies = (req.cookies ?? {}) as Record<string, string | undefined>;
+      const cookieToken = cookies['XSRF-TOKEN'];
 
-    const logoutUrl =
-      `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/logout` +
-      `?post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`;
+      const reqBody = typeof req.body === 'object' ? req.body : undefined;
 
-    req.session.destroy(() => {
-      res.clearCookie(
-        cookieName,
-        buildSessionCookieOptions(req, secureCookies),
-      );
-      res.redirect(logoutUrl);
-    });
-  });
+      if (!reqBody) {
+        res.status(400).send('Bad request: request body not found');
+        return;
+      }
+
+      const submittedToken =
+        typeof reqBody['_csrf'] === 'string' ? req.body['_csrf'] : undefined;
+
+      if (
+        !isValidLogoutOrigin(req) ||
+        !cookieToken ||
+        !submittedToken ||
+        cookieToken !== submittedToken
+      ) {
+        res.status(403).send('Forbidden');
+        return;
+      }
+
+      const postLogoutRedirectUri = `${publicBase(req)}/login`;
+
+      const logoutUrl =
+        `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/logout` +
+        `?post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`;
+
+      req.session.destroy(() => {
+        res.clearCookie(
+          cookieName,
+          buildSessionCookieOptions(req, secureCookies),
+        );
+        res.redirect(logoutUrl);
+      });
+    },
+  );
 
   // GET /sso/me -> simple session probe
   router.get('/sso/me', (req: Request, res: Response): void => {

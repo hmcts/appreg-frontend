@@ -77,9 +77,15 @@
             routerLinkActive="govuk-service-navigation__item--active"
             [routerLinkActiveOptions]="{ exact: true }"
           >
-            <a href="/sso/logout" class="govuk-service-navigation__link">
-              Sign out
-            </a>
+            <form action="/sso/logout" method="post">
+              <input type="hidden" name="_csrf" [value]="xsrfToken()" />
+              <button
+                type="submit"
+                class="govuk-service-navigation__link app-service-navigation__button"
+              >
+                Sign out
+              </button>
+            </form>
           </li>
         </ul>
       </nav>
