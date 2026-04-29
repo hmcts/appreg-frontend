@@ -191,14 +191,53 @@
 @if (vm().rows.length) {
   <!-- Sortable table component -->
   <app-sortable-table
-    [caption]="'Application list entries'"
     [columns]="columns"
     [data]="tableRows()"
+    [selectable]="true"
+    idField="id"
+    (selectedRowsChange)="onSelectedRowsChange($event)"
     appMojButtonMenu
   >
     <ng-template #dateTemplate let-row>
       {{ row.date | dateTime }}
     </ng-template>
+
+    <caption
+      class="govuk-table__caption govuk-table__caption--m"
+      id="sortable-Lists"
+    >
+      <span class="table-caption__text">Application list entries</span>
+
+      <span
+        class="table-caption__actions"
+        role="group"
+        aria-label="Table actions"
+      >
+        <div
+          class="moj-button-menu"
+          data-module="moj-button-menu"
+          data-button-text="Actions"
+          data-align-menu="right"
+          data-button-classes="govuk-button govuk-button--small govuk-button--primary table-caption__action-button"
+        >
+          <button
+            type="button"
+            class="govuk-button moj-button-menu__item govuk-button--secondary"
+            (click)="onPrintContinuousClick()"
+          >
+            Print continuous
+          </button>
+
+          <button
+            type="button"
+            class="govuk-button moj-button-menu__item govuk-button--secondary"
+            (click)="onPrintPageClick()"
+          >
+            Print page
+          </button>
+        </div>
+      </span>
+    </caption>
 
     <ng-template #actionsTemplate let-row>
       <div

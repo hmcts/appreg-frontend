@@ -69,12 +69,18 @@ import {
 } from '@openapi';
 import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
+import { PrintRequest } from '@shared-types/pdf/pdf.types';
 import {
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '@util/error-click';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenu, MojButtonMenuDirective } from '@util/moj-button-menu';
+import {
+  filterEntriesToPrint as filterEntriesToPrintDto,
+  handlePrintContinuous as handlePrintContinuousPdf,
+  handlePrintPage as handlePrintPagePdf,
+} from '@util/pdf-utils';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { parseTimeToDuration } from '@util/time-helpers';
@@ -103,11 +109,6 @@ const APPLICATION_LIST_DETAIL_SORT_MAP: Record<string, string> = {
   title: 'applicationTitle',
   feeReq: 'feeRequired',
   resulted: 'resulted',
-};
-
-type PrintRequest = {
-  id: string;
-  mode: 'page' | 'continuous';
 };
 
 @Component({
@@ -741,75 +742,42 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private filterEntriesToPrint(
     dto: ApplicationListGetPrintDto,
   ): ApplicationListGetPrintDto {
-    const selectedIds = new Set(
-      this.detailSignalState.state().selectedRows.flatMap((row) => {
-        const id = row['id'];
-        return typeof id === 'string' || typeof id === 'number'
-          ? [String(id)]
-          : [];
-      }),
+    return filterEntriesToPrintDto(
+      dto,
+      this.detailSignalState.state().selectedRows,
     );
-
-    const filteredEntries = dto.entries.filter((entry) =>
-      selectedIds.has(entry.id),
-    );
-
-    return {
-      ...dto,
-      entries: filteredEntries,
-    };
   }
 
   private async handlePrintPage(
     dto: ApplicationListGetPrintDto,
   ): Promise<void> {
-    if (!dto.entries.length) {
-      this.detailSignalState.patch({
-        errorSummary: [
-          { text: APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint },
-        ],
-      });
-      return;
-    }
-
-    try {
-      if (isPlatformBrowser(this.platformId)) {
-        await this.pdf.generatePagedApplicationListPdf(dto, {
-          crestUrl: '/assets/govuk-crest.png',
-        });
-      }
-    } catch {
-      this.detailSignalState.patch({
-        errorSummary: [
-          { text: APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry },
-        ],
-      });
-    }
+    await handlePrintPagePdf(dto, {
+      pdf: this.pdf,
+      isBrowser: isPlatformBrowser(this.platformId),
+      onError: (message) => this.patchPrintError(message),
+      noEntriesMessage: APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
+      generateErrorMessage: APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry,
+      crestUrl: '/assets/govuk-crest.png',
+    });
   }
 
   private async handlePrintContinuous(
     dto: ApplicationListGetPrintDto,
   ): Promise<void> {
-    if (!dto.entries.length) {
-      this.detailSignalState.patch({
-        errorSummary: [
-          { text: APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint },
-        ],
-      });
-      return;
-    }
+    await handlePrintContinuousPdf(dto, {
+      pdf: this.pdf,
+      isBrowser: isPlatformBrowser(this.platformId),
+      onError: (message) => this.patchPrintError(message),
+      noEntriesMessage: APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
+      generateErrorMessage: APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric,
+      isClosed: false,
+    });
+  }
 
-    try {
-      if (isPlatformBrowser(this.platformId)) {
-        await this.pdf.generateContinuousApplicationListsPdf([dto], false);
-      }
-    } catch {
-      this.detailSignalState.patch({
-        errorSummary: [
-          { text: APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric },
-        ],
-      });
-    }
+  private patchPrintError(message: string): void {
+    this.detailSignalState.patch({
+      errorSummary: [{ text: message }],
+    });
   }
 
   private prefillFromApi(dto: ApplicationListGetDetailDto): void {

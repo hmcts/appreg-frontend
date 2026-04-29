@@ -1,4 +1,13 @@
-import { Component, OnInit, computed, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import {
+  Component,
+  EnvironmentInjector,
+  OnInit,
+  PLATFORM_ID,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -7,6 +16,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { forkJoin, map } from 'rxjs';
 
 import {
   clearNotificationsPatch,
@@ -31,26 +41,44 @@ import { SuggestionsComponent } from '@components/suggestions/suggestions.compon
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { APPLICATIONS_ERROR_MAP } from '@constants/applications/error-messages';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
+import { PdfService } from '@core/services/pdf.service';
+import { Row } from '@core-types/table/row.types';
 import {
   ApplicationListEntriesApi,
+  ApplicationListGetPrintDto,
+  ApplicationListsApi,
   EntryGetFilterDto,
   EntryGetSummaryDto,
   GetEntriesRequestParams,
 } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
+import { ApplicationRow } from '@shared-types/applications/applications.type';
 import { toStatus } from '@util/application-status-helpers';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { has } from '@util/has';
+import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
+import { filterEntriesToPrint, handlePrintPage } from '@util/pdf-utils';
 import { PlaceFieldsBase } from '@util/place-fields.base';
-import { createSignalState } from '@util/signal-state-helpers';
+import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
 import { courtMustExistIfTypedValidator } from '@validators/court-exists.validator';
 import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
 
 type AppErrorMap = typeof APPLICATIONS_ERROR_MAP;
 type ControlName = keyof AppErrorMap;
+type ApplicationsPrintRequest =
+  | { id: string; mode: 'page' }
+  | { ids: string[]; mode: 'continuous'; selectedRows: ApplicationRow[] };
+
+type ApplicationsPrintResponse =
+  | { dto: ApplicationListGetPrintDto; mode: 'page' }
+  | {
+      dtos: ApplicationListGetPrintDto[];
+      mode: 'continuous';
+      selectedRows: ApplicationRow[];
+    };
 @Component({
   selector: 'app-applications',
   standalone: true,
@@ -73,8 +101,12 @@ type ControlName = keyof AppErrorMap;
   styleUrls: ['./applications.component.scss'],
 })
 export class Applications extends PlaceFieldsBase implements OnInit {
+  private readonly envInjector = inject(EnvironmentInjector);
+  private readonly platformId = inject(PLATFORM_ID);
   private readonly refFacade = inject(ReferenceDataFacade);
-  private readonly appListApi = inject(ApplicationListEntriesApi);
+  private readonly appListEntryApi = inject(ApplicationListEntriesApi);
+  private readonly appListApi = inject(ApplicationListsApi);
+  private readonly pdf = inject(PdfService);
 
   private readonly appState = createSignalState(initialApplicationsState);
   readonly vm = this.appState.vm;
@@ -83,6 +115,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   readonly tableRows = computed(() => this.vm().rows.map(mapToRow));
 
   private readonly errorMap = APPLICATIONS_ERROR_MAP;
+
+  private readonly printRequest = signal<ApplicationsPrintRequest | null>(null);
 
   override form = new FormGroup(
     {
@@ -138,6 +172,99 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refFacade);
+    this.setupEffects();
+  }
+
+  private setupEffects(): void {
+    // GET /application-lists/{listId}/print
+    setupLoadEffect(
+      {
+        request: this.printRequest,
+        load: (req: ApplicationsPrintRequest) => {
+          if (req.mode === 'continuous') {
+            return forkJoin(
+              req.ids.map((listId) =>
+                this.appListApi.printApplicationList(
+                  { listId },
+                  undefined,
+                  undefined,
+                  {
+                    transferCache: false,
+                  },
+                ),
+              ),
+            ).pipe(
+              map(
+                (dtos): ApplicationsPrintResponse => ({
+                  dtos,
+                  mode: 'continuous',
+                  selectedRows: req.selectedRows,
+                }),
+              ),
+            );
+          }
+
+          return this.appListApi
+            .printApplicationList({ listId: req.id }, undefined, undefined, {
+              transferCache: false,
+            })
+            .pipe(
+              map(
+                (dto): ApplicationsPrintResponse => ({
+                  dto,
+                  mode: 'page',
+                }),
+              ),
+            );
+        },
+        onSuccess: async (response) => {
+          this.printRequest.set(null);
+
+          const sourceDtos =
+            response.mode === 'continuous' ? response.dtos : [response.dto];
+          const selectedRows =
+            response.mode === 'continuous'
+              ? response.selectedRows
+              : this.appState.state().selectedRows;
+          const filteredDtos = sourceDtos.map((dto) =>
+            filterEntriesToPrint(dto, selectedRows),
+          );
+
+          if (response.mode === 'continuous') {
+            const printableDtos = filteredDtos.filter(
+              (dto) => dto.entries.length,
+            );
+
+            if (!printableDtos.length) {
+              this.patchPrintError(
+                APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
+              );
+              return;
+            }
+
+            try {
+              if (isPlatformBrowser(this.platformId)) {
+                await this.pdf.generateContinuousApplicationListsPdf(
+                  printableDtos,
+                  false,
+                );
+              }
+            } catch {
+              this.patchPrintError(
+                APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric,
+              );
+            }
+            return;
+          }
+        },
+        onError: (err) => {
+          this.printRequest.set(null);
+          const errMsg = getProblemText(err);
+          this.patchPrintError(errMsg);
+        },
+      },
+      this.envInjector,
+    );
   }
 
   onSubmit(e: SubmitEvent): void {
@@ -173,6 +300,48 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.loadApplications();
   }
 
+  onPrintContinuousClick(): void {
+    this.patchApp(clearNotificationsPatch());
+    const selectedRowsListIds = this.getArrOfPrintListId(
+      this.vm().selectedRows,
+    );
+
+    if (!selectedRowsListIds.length) {
+      this.patchApp({
+        submitted: true,
+        searchErrors: [
+          {
+            text: 'Selected applications do not have an associated applications list',
+          },
+        ],
+      });
+      return;
+    }
+
+    this.printRequest.set({
+      ids: selectedRowsListIds,
+      mode: 'continuous',
+      selectedRows: this.vm().selectedRows,
+    });
+  }
+
+  onPrintPageClick(): void {
+    // this.patchApp(clearNotificationsPatch());
+    // const selectedRowsListIds = this.getArrOfPrintListId(
+    //   this.vm().selectedRows,
+    // );
+    // if (!selectedRowsListIds.length) {
+    //   this.patchApp({
+    //     submitted: true,
+    //     searchErrors: [
+    //       {
+    //         text: 'Selected applications do not have an associated applications list',
+    //       },
+    //     ],
+    //   });
+    // }
+  }
+
   loadApplications(): void {
     if (this.vm().isLoading) {
       return;
@@ -190,7 +359,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
     this.patchApp({ ...startSearchPatch(), ...clearNotificationsPatch() });
 
-    this.appListApi
+    this.appListEntryApi
       .getEntries(params, undefined, undefined, { transferCache: false })
       .subscribe({
         next: (page) => {
@@ -206,6 +375,10 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   onPageChange(page: number): void {
     this.patchApp({ currentPage: page });
     this.loadApplications(); // fetch page `page`
+  }
+
+  onSelectedRowsChange(rows: Row[]): void {
+    this.patchApp({ selectedRows: rows as ApplicationRow[] });
   }
 
   clearSearch(): void {
@@ -235,7 +408,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   // Helpers
-
   private hasAnyParams(): boolean {
     const v = this.form.getRawValue();
 
@@ -310,12 +482,32 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     return filter;
   }
 
+  private getArrOfPrintListId(selectedRows: ApplicationRow[]): string[] {
+    if (!selectedRows.length) {
+      return [];
+    }
+
+    return [
+      ...new Set(
+        selectedRows
+          .map((row) => row.applicationListId?.trim())
+          .filter((id): id is string => !!id),
+      ),
+    ];
+  }
+
   toggleAdvancedSearch(): void {
     this.patchApp({ isAdvancedSearch: !this.vm().isAdvancedSearch });
   }
 
   private buildErrorSummary(): ErrorItem[] {
     return buildFormErrorSummary(this.form, this.errorMap);
+  }
+
+  private patchPrintError(message: string): void {
+    this.patchApp({
+      errorSummary: [{ text: message }],
+    });
   }
 
   isControlInvalid<C extends ControlName>(controlName: C): boolean {
