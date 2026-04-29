@@ -291,15 +291,15 @@ Feature: Applications List Result
         Then User Should See Table "Entries" Header "Resulted" Has Sort Order "none"
         # Verify all 8 rows
         Then User Should See Row In Table "Entries" With Values:
-            | Sequence number | Account number  | Applicant                           | Respondent                     | Postcode | Title                                                      | Fee | Resulted |
-            | 1               |                 | Test Acme Industries {RANDOM}       | Test Respondent Ltd {RANDOM}   | BS15 5AA | Issue of liability order summons - council tax             | No  |          |
-            | 2               | ACC-E2-{RANDOM} | Mr, Henry James, Taylor {RANDOM}    | Ms, Emily Rose, Clark {RANDOM} | BS15 5AA | Issue of liability order summons - council tax             | No  |          |
-            | 3               | ACC-E3-{RANDOM} | Mrs, Sarah Louise, Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account               | No  |          |
-            | 4               |                 | Apex Solutions Ltd {RANDOM}         | Mr, John, Smith {RANDOM}       | LS1 1AA  | Issue of liability order summons - council tax             | No  |          |
-            | 5               | ACC-E5-{RANDOM} | Mr, James Edward, Brown {RANDOM}    | Ms, Laura, Davis {RANDOM}      | L1 1AA   | Collection Order - Financial Penalty Account               | No  | RTC      |
-            | 6               | ACC-E6-{RANDOM} | Innovative Solutions Inc            | Mr, Robert, Wilson {RANDOM}    | NE1 1AA  | Issue of liability order summons - council tax             | No  |          |
-            | 7               | ACC-E7-{RANDOM} | Ms, Amelia, Hall                    | Metro Finance Ltd {RANDOM}     | EH1 1AA  | Collection Order - Financial Penalty Account               | No  |          |
-            | 8               | ACC-E8-{RANDOM} | Mr, Daniel Paul, Hughes {RANDOM}    | Mrs, Claire, Hughes {RANDOM}   | CF10 2AA | Application for order re public health measures (premises) | Yes |          |
+            | Sequence number | Account number  | Applicant                     | Respondent                     | Postcode | Title                                                      | Fee | Resulted |
+            | 1               |                 | Test Acme Industries {RANDOM} | Test Respondent Ltd {RANDOM}   | BS15 5AA | Issue of liability order summons - council tax             | No  |          |
+            | 2               | ACC-E2-{RANDOM} | Henry Taylor {RANDOM}         | Emily Clark {RANDOM}           | BS15 5AA | Issue of liability order summons - council tax             | No  |          |
+            | 3               | ACC-E3-{RANDOM} | Sarah Johnson {RANDOM}        | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account               | No  |          |
+            | 4               |                 | Apex Solutions Ltd {RANDOM}   | John Smith {RANDOM}            | LS1 1AA  | Issue of liability order summons - council tax             | No  |          |
+            | 5               | ACC-E5-{RANDOM} | James Brown {RANDOM}          | Laura Davis {RANDOM}           | L1 1AA   | Collection Order - Financial Penalty Account               | No  | RTC      |
+            | 6               | ACC-E6-{RANDOM} | Innovative Solutions Inc      | Robert Wilson {RANDOM}         | NE1 1AA  | Issue of liability order summons - council tax             | No  |          |
+            | 7               | ACC-E7-{RANDOM} | Amelia Hall                   | Metro Finance Ltd {RANDOM}     | EH1 1AA  | Collection Order - Financial Penalty Account               | No  |          |
+            | 8               | ACC-E8-{RANDOM} | Daniel Hughes {RANDOM}        | Claire Hughes {RANDOM}         | CF10 2AA | Application for order re public health measures (premises) | Yes |          |
         # Sort by each column ascending and verify sort order changes
         When User Clicks On Table Header "Account number" In Table "Entries"
         Then User Should See Table "Entries" Header "Account number" Has Sort Order "ascending"
@@ -331,19 +331,19 @@ Feature: Applications List Result
         Then User Should See The Button "Actions" Is Disabled
         # Select rows 2, 3 and 5 in one step
         When User Checks The Checkbox In Row Of Table "Entries" With:
-            | Sequence number | Account number  | Applicant                           | Respondent                     | Postcode | Title                                          | Fee | Resulted |
-            | 2               | ACC-E2-{RANDOM} | Mr, Henry James, Taylor {RANDOM}    | Ms, Emily Rose, Clark {RANDOM} | BS15 5AA | Issue of liability order summons - council tax | No  |          |
-            | 3               | ACC-E3-{RANDOM} | Mrs, Sarah Louise, Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account   | No  |          |
-            | 5               | ACC-E5-{RANDOM} | Mr, James Edward, Brown {RANDOM}    | Ms, Laura, Davis {RANDOM}      | L1 1AA   | Collection Order - Financial Penalty Account   | No  | RTC      |
+            | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                          | Fee | Resulted |
+            | 2               | ACC-E2-{RANDOM} | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | BS15 5AA | Issue of liability order summons - council tax | No  |          |
+            | 3               | ACC-E3-{RANDOM} | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account   | No  |          |
+            | 5               | ACC-E5-{RANDOM} | James Brown {RANDOM}   | Laura Davis {RANDOM}           | L1 1AA   | Collection Order - Financial Penalty Account   | No  | RTC      |
         Then User Should See The Button "Actions" Is Enabled
         When User Clicks "Actions" Then "Result selected" From Caption Menu In Table "Entries"
         Then User See "Result applications" On The Page
         # Verify all 3 selected rows appear on the result page
         Then User Should See Row In Table "Application(s) to result" With Values:
-            | Sequence number | Applicant(s)                        | Respondent(s)                  | Application Title(s)                           |
-            | 2               | Mr, Henry James, Taylor {RANDOM}    | Ms, Emily Rose, Clark {RANDOM} | Issue of liability order summons - council tax |
-            | 3               | Mrs, Sarah Louise, Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account   |
-            | 5               | Mr, James Edward, Brown {RANDOM}    | Ms, Laura, Davis {RANDOM}      | Collection Order - Financial Penalty Account   |
+            | Sequence number | Applicant(s)           | Respondent(s)                  | Application Title(s)                           |
+            | 2               | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | Issue of liability order summons - council tax |
+            | 3               | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account   |
+            | 5               | James Brown {RANDOM}   | Laura Davis {RANDOM}           | Collection Order - Financial Penalty Account   |
         Then User Should See The Button "Save changes" Is Disabled
         Then User Selects " " From The Textbox "Result code" Autocomplete By Typing "abc"
         Then User Verifies "No results found" Is Visible Under The "Result code" Textbox
@@ -390,10 +390,10 @@ Feature: Applications List Result
         Then User Clicks On The Breadcrumb Link "Applications list details"
         # Verify rows 2, 3, 5 have PROA and COST applied; row 5 retains pre-existing RTC; rows 1, 4, 6, 7, 8 unchanged
         Then User Should See Row In Table "Entries" With Values:
-            | Sequence number | Account number  | Applicant                           | Respondent                     | Postcode | Title                                          | Fee | Resulted        |
-            | 2               | ACC-E2-{RANDOM} | Mr, Henry James, Taylor {RANDOM}    | Ms, Emily Rose, Clark {RANDOM} | BS15 5AA | Issue of liability order summons - council tax | No  | PROA, COST      |
-            | 3               | ACC-E3-{RANDOM} | Mrs, Sarah Louise, Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account   | No  | PROA, COST      |
-            | 5               | ACC-E5-{RANDOM} | Mr, James Edward, Brown {RANDOM}    | Ms, Laura, Davis {RANDOM}      | L1 1AA   | Collection Order - Financial Penalty Account   | No  | RTC, PROA, COST |
+            | Sequence number | Account number  | Applicant              | Respondent                     | Postcode | Title                                          | Fee | Resulted        |
+            | 2               | ACC-E2-{RANDOM} | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | BS15 5AA | Issue of liability order summons - council tax | No  | PROA, COST      |
+            | 3               | ACC-E3-{RANDOM} | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account   | No  | PROA, COST      |
+            | 5               | ACC-E5-{RANDOM} | James Brown {RANDOM}   | Laura Davis {RANDOM}           | L1 1AA   | Collection Order - Financial Penalty Account   | No  | RTC, PROA, COST |
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"

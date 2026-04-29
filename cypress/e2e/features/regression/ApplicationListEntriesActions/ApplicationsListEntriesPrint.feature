@@ -140,10 +140,10 @@ Feature: Application List Entries Print
         Then User Should See The Button "Actions" Is Disabled
         # Select all entries
         When User Checks The Checkbox In Row Of Table "Entries" With:
-            | Sequence number | Account number  | Applicant                           | Respondent                     | Postcode | Title                                          | Fee | Resulted |
-            | 1               | ACC-E1-{RANDOM} | Mr, Henry James, Taylor {RANDOM}    | Ms, Emily Rose, Clark {RANDOM} | BS15 5AA | Issue of liability order summons - council tax | No  | AUTH     |
-            | 2               | ACC-E2-{RANDOM} | Mrs, Sarah Louise, Johnson {RANDOM} | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account   | No  | AUTH     |
-            | 3               | ACC-E3-{RANDOM} | Innovative Solutions Inc            | Mr, Owen, Davies {RANDOM}      | LS1 1AA  | Issue of liability order summons - council tax | No  | AUTH     |
+            | Sequence number | Account number  | Applicant                | Respondent                     | Postcode | Title                                          | Fee | Resulted |
+            | 1               | ACC-E1-{RANDOM} | Henry Taylor {RANDOM}    | Emily Clark {RANDOM}           | BS15 5AA | Issue of liability order summons - council tax | No  | AUTH     |
+            | 2               | ACC-E2-{RANDOM} | Sarah Johnson {RANDOM}   | Greenfield Consulting {RANDOM} | B1 1AA   | Collection Order - Financial Penalty Account   | No  | AUTH     |
+            | 3               | ACC-E3-{RANDOM} | Innovative Solutions Inc | Owen Davies {RANDOM}           | LS1 1AA  | Issue of liability order summons - council tax | No  | AUTH     |
         Then User Should See The Button "Actions" Is Enabled
         # Print continuous
         When User Clicks "Actions" Then "Print continuous" From Caption Menu In Table "Entries"
