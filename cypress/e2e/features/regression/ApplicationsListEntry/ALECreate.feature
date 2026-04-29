@@ -26,7 +26,7 @@ Feature: Applications List Entry Create
     When User Fills In The Applicant Details
       | Select applicant type | Person                        |
       | Select title          | Dr                            |
-      | First name            | John {RANDOM}                 |
+      | First name            | John                          |
       | Middle name(s)        | Michael                       |
       | Surname               | Smith {RANDOM}                |
       | Address line 1        | {RANDOM} High Street          |
@@ -77,7 +77,6 @@ Feature: Applications List Entry Create
     Then User Should See The Text "Amount: £284.00" In The Accordion "Civil fee"
     Then User Verifies The Checkbox With Label "Off site fee applies " In The Accordion "Civil fee" Is Unchecked
     Then User Checks The Checkbox With Label "Off site fee applies " In The Accordion "Civil fee"
-    # Bug ARCPOC-1241 is raised
     Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
     Then User Should See The Text "Off Site Fee Amount: £30.00" In The Accordion "Civil fee"
     Then User Should See The Text "Total Fee Amount: £314.00" In The Accordion "Civil fee"
@@ -124,6 +123,107 @@ Feature: Applications List Entry Create
     Then User Sees Success Alert "Wording applied to this entry. Save the entry to keep these changes."
     When User Clicks On The "Create entry" Button
     Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
+
+    # ---------------OPEN APPLICATION LIST ENTRY---------------
+
+    Then User Clicks On The Breadcrumb Link "Applications list details"
+    When User Clicks "Open" Button In Row Of Table "Entries" With:
+      | Sequence number | Account number  | Applicant           | Respondent        | Postcode | Title              | Fee | Resulted |
+      | 1               | account{RANDOM} | John Smith {RANDOM} | Jane Doe {RANDOM} | LS10 1PJ | <ApplicationTitle> | Yes |          |
+    When User Clicks On The "Show all sections" Button
+    Then User Should See The Button "Hide all sections"
+    Then User Sees Page Heading "Applications list entry update"
+    Then User See "Summary of application list entry" On The Page
+    # Verify Applicant Details
+    When User Verifies In The Applicant Details
+      | Select type      | Person                        |
+      | Select title     | Dr                            |
+      | First name       | John                          |
+      | Middle name(s)   | Michael                       |
+      | Surname          | Smith {RANDOM}                |
+      | Address line 1   | {RANDOM} High Street          |
+      | Address line 2   | Apartment 4B                  |
+      | Town or city     | Leeds                         |
+      | County or region | West Yorkshire                |
+      | Post town        | Leeds                         |
+      | Postcode         | LS10 1PJ                      |
+      | Phone number     | 01632960001                   |
+      | Mobile number    | 07700900001                   |
+      | Email address    | applicant{RANDOM}@example.com |
+
+    # Verify Application Codes Details
+    Then User Verifies The Textbox "Application code" Contains "<ApplicationCode>" In The Accordion "Application codes"
+    Then User Verifies The Textbox "Application title" Contains "<ApplicationTitle>" In The Accordion "Application codes"
+    Then User Verifies The Date field "Lodgement date" Has Value "<SearchDate>"
+    Then User Verifies Date Field "Lodgement date" Is Disabled In The Accordion "Application codes"
+    # Verify Wording Details
+    Then User Verifies The "Wording" Accordion Has Value "<WordingText>"
+    Then User Verifies The Textbox "" Contains "<WordingValue>" In The Accordion "Wording"
+    # Verify Respondent Details
+    When User Verifies In The Respondent Details
+      | Select type      | Person                         |
+      | Select title     | Mrs                            |
+      | First name       | Jane                           |
+      | Middle name(s)   | Elizabeth                      |
+      | Surname          | Doe {RANDOM}                   |
+      | Date of birth    | <DOBRandom>                    |
+      | Address line 1   | {RANDOM} Park Road             |
+      | Address line 2   | Building C                     |
+      | Town or city     | Leeds                          |
+      | County or region | West Yorkshire                 |
+      | Post town        | Leeds                          |
+      | Postcode         | LS10 1PJ                       |
+      | Phone number     | 01632960002                    |
+      | Mobile number    | 07700900002                    |
+      | Email address    | respondent{RANDOM}@example.com |
+    # Verify Civil Fee Details
+    Then User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Checked
+    Then User Should See The Text "Selecting this will automatically apply the off site fee to the entry. This change is saved immediately." In The Accordion "Civil fee"
+    Then User Should See The Text "Fee Reference: CO8.1" In The Accordion "Civil fee"
+    Then User Should See The Text "Amount: £284.00" In The Accordion "Civil fee"
+    Then User Should See The Text "Off Site Fee Reference: CO1.1" In The Accordion "Civil fee"
+    Then User Should See The Text "Off Site Fee Amount: £30.00" In The Accordion "Civil fee"
+    Then User Should See The Text "Total Fee Amount: £314.00" In The Accordion "Civil fee"
+    Then User Should See Row In Table "Current fee statuses table" In The Accordion "Civil fee" With Values:
+      | Fee Status | Status Date   | Payment Ref                         |
+      | UNDERTAKEN | <DisplayDate> | <UpdatedPaymentReferenceUndertaken> |
+      | PAID       | <DisplayDate> | <PaymentReferencePaid>              |
+    Then User Verifies "Change" Link Is Not Visible In Row Of Table In The Accordion "Civil fee" With:
+      | Fee Status | Status Date   | Payment Ref                         |
+      | UNDERTAKEN | <DisplayDate> | <UpdatedPaymentReferenceUndertaken> |
+    Then User Verifies "Change" Link Is Visible In Row Of Table In The Accordion "Civil fee" With:
+      | Fee Status | Status Date   | Payment Ref            |
+      | PAID       | <DisplayDate> | <PaymentReferencePaid> |
+
+    # Verify Notes Details
+    Then User Verifies The Textbox "Case reference" Contains "<CaseReference>" In The Accordion "Notes"
+    Then User Verifies The Textbox "Account reference" Contains "<AccountReference>" In The Accordion "Notes"
+    Then User Verifies The Textbox "Application details" Contains "This is a test application with special requirements" In The Accordion "Notes"
+    # Result Wording Details
+    # Then User Should See The Text "Resulting wording" In The Accordion "Result wording"
+    # Then User Should See The Textbox "Resulting wording" Contains "The application(s) listed above will be resulted when you click the 'Create entry' button at the bottom of the page. You can edit the resulting wording if necessary." In The Accordion "Result wording"
+    Then User Should See Row In Table "You are resulting the following application(s)" In The Accordion "Result wording" With Values:
+      | Applicant(s)        | Respondent(s)     | Application title(s) |
+      | John Smith {RANDOM} | Jane Doe {RANDOM} | <ApplicationTitle>   |
+    Then User Verifies The Textbox "Result code" In The Accordion "Result wording" Is Empty
+    Then User Verifies The Button "Apply result" Is Disabled In The Accordion "Result wording"
+    # Officials Details
+    Then User Verifies Dropdown "Select magistrate's title" Is Visible Under "Magistrate 1" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Magistrate's first name" Under "Magistrate 1" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Magistrate's surname" Under "Magistrate 1" FieldSet In The Accordion "Officials"
+
+    Then User Verifies Dropdown "Select magistrate's title" Is Visible Under "Magistrate 2" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Magistrate's first name" Under "Magistrate 2" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Magistrate's surname" Under "Magistrate 2" FieldSet In The Accordion "Officials"
+
+    Then User Verifies Dropdown "Select magistrate's title" Is Visible Under "Magistrate 3" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Magistrate's first name" Under "Magistrate 3" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Magistrate's surname" Under "Magistrate 3" FieldSet In The Accordion "Officials"
+
+    Then User Verifies Dropdown "Select magistrate's title" Is Visible Under "Officials" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Magistrate's first name" Under "Officials" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Magistrate's surname" Under "Officials" FieldSet In The Accordion "Officials"
+
     Examples:
       | User  | TableName | SearchDate | DisplayDate  | DOBRandom | Time  | Court                             | Description                             | Entries | Status | ApplicationCode | ApplicationTitle           | WordingText                                      | placeholder                  | WordingValue        | PaymentReferenceUndertaken | UpdatedPaymentReferenceUndertaken | PaymentReferencePaid | CaseReference | AccountReference |
       | user1 | Lists     | today      | todaydisplay | today-30y | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | MX99006         | Condemnation of Unfit Food | Application for the condemnation of food, namely | Enter a Describe Seized Food | Test Sample Wording | PAY-{RANDOM}               | New PAY-{RANDOM}                  | Paid PAY-{RANDOM}    | case{RANDOM}  | account{RANDOM}  |
@@ -134,7 +234,7 @@ Feature: Applications List Entry Create
     # Create Application List
     When User Makes POST API Request To "/application-lists" With Body:
       | date     | time   | status   | description   | durationHours | durationMinutes | courtLocationCode |
-      | todayiso | <Time> | <Status> | <Description> | 2             | 22              | LCCC065           |
+      | todayiso | <Time> | <Status> | <Description> |               |                 | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
     Given User Is On The Portal Page
@@ -216,7 +316,7 @@ Feature: Applications List Entry Create
     # Create Application List
     When User Makes POST API Request To "/application-lists" With Body:
       | date     | time   | status   | description   | durationHours | durationMinutes | courtLocationCode |
-      | todayiso | <Time> | <Status> | <Description> | 2             | 22              | LCCC065           |
+      | todayiso | <Time> | <Status> | <Description> |               |                 | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
     Given User Is On The Portal Page
@@ -232,13 +332,14 @@ Feature: Applications List Entry Create
     Then User Clicks On The Link "Create application"
     When User Clicks On The "Show all sections" Button
     Then User Should See The Button "Hide all sections"
-    # Applicant Details - Standard Applicant
+    # Applicant Details - Standard Applicant Bug-ARCPOC-1342
     Then User Selects "Standard Applicant" In The "Select applicant type" Dropdown
     Then User Enters "<StdAppCode>" Into The Textbox "Code" In The Accordion "Applicant"
     When User Clicks On The "Search" Button
     When User Checks The Checkbox In Row Of Table "Standard applicants" In The Accordion "Applicant" With:
       | Code         | Name         | Address         | Use from     | Use to |
       | <StdAppCode> | <StdAppName> | <StdAppAddress> | <StdAppFrom> | —      |
+    Then User Should See The Text "Currently selected <StdAppCode> <StdAppName>" In The Accordion "Applicant"
     # Application Codes
     Then User Enters "<ApplicationCode>" Into The Textbox "Application code" In The Accordion "Application codes"
     When User Clicks On The "Search" Button In The Accordion "Application codes"
@@ -279,6 +380,6 @@ Feature: Applications List Entry Create
     Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
 
     Examples:
-      | User  | TableName | SearchDate | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationCode | ApplicationTitle                                           | WordingText                                                                                                                     | placeholder  | WordingValue | PaymentReference | CaseReference | AccountReference | OffsiteFeeString                                         | OffsiteFeeCode                | OffsiteFeeValue             | TotalFeeAmount            | FeeReference         | FeeAmount       | StdAppCode | StdAppName         | StdAppAddress  | StdAppFrom |
-      | user1 | Lists     | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | AP99004         | Request for Certificate of Refusal to State a Case (Civil) | Request for a certificate of refusal to state a case for the opinion of the High Court in respect of civil proceedings heard on | Enter a Date | today        | PAY-12345        | case12345     | account12345     | Selecting this will apply the off site fee to the entry. | Off Site Fee Reference: CO1.1 | Off Site Fee Amount: £30.00 | Total Fee Amount: £135.00 | Fee Reference: CO3.1 | Amount: £105.00 | APP025     | Miss, Ava, Johnson | 258 Cedar Lane | 6 Nov 2025 |
+      | User  | TableName | SearchDate | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationCode | ApplicationTitle                                           | WordingText                                                                                                                     | placeholder  | WordingValue | PaymentReference | CaseReference | AccountReference | OffsiteFeeString                                         | OffsiteFeeCode                | OffsiteFeeValue             | TotalFeeAmount            | FeeReference         | FeeAmount       | StdAppCode | StdAppName  | StdAppAddress  | StdAppFrom |
+      | user1 | Lists     | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | AP99004         | Request for Certificate of Refusal to State a Case (Civil) | Request for a certificate of refusal to state a case for the opinion of the High Court in respect of civil proceedings heard on | Enter a Date | today        | PAY-12345        | case12345     | account12345     | Selecting this will apply the off site fee to the entry. | Off Site Fee Reference: CO1.1 | Off Site Fee Amount: £30.00 | Total Fee Amount: £135.00 | Fee Reference: CO3.1 | Amount: £105.00 | APP025     | Ava Johnson | 258 Cedar Lane | 6 Nov 2025 |
 

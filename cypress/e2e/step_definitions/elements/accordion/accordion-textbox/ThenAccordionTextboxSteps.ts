@@ -49,3 +49,12 @@ Then(
     });
   },
 );
+
+Then(
+  'User Verifies The Textbox {string} In The Accordion {string} Is Empty',
+  (textboxLabel: string, accordionTitle: string) => {
+    AccordionHelper.within(accordionTitle, () => {
+      TextboxHelper.getValueInTextbox(textboxLabel).should('eq', '');
+    });
+  },
+);

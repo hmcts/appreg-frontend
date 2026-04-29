@@ -18,3 +18,13 @@ When('User Fills In The Respondent Details', (dataTable: DataTable) => {
   const criteria = dataTable.rowsHash();
   ApplicationListEntriesCombinedHelper.fillRespondent({ criteria });
 });
+
+When('User Verifies In The Applicant Details', (dataTable: DataTable) => {
+  const criteria = dataTable.rowsHash();
+  ApplicationListEntriesCombinedHelper.verifyApplicant({ criteria });
+});
+
+When('User Verifies In The Respondent Details', (dataTable: DataTable) => {
+  const criteria = dataTable.rowsHash();
+  ApplicationListEntriesCombinedHelper.verifyRespondent({ criteria });
+});

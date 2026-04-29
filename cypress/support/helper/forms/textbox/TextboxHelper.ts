@@ -156,4 +156,12 @@ export class TextboxHelper {
       .clear()
       .type(value);
   }
+
+  static verifyTextboxValue(placeholder: string, expectedValue: string): Cypress.Chainable {
+    return TextboxElement.findByPlaceholder(placeholder)
+      .should('be.visible')
+      .should('have.attr', 'placeholder', placeholder)
+      .invoke('val')
+      .should('eq', expectedValue);
+  }
 }

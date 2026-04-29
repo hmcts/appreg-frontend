@@ -394,4 +394,169 @@ export class ApplicationListEntriesCombinedHelper {
     this.fillAddressFields({ accordionTitle, criteria });
     this.fillContactDetails({ accordionTitle, criteria });
   }
+
+  /**
+   * Verifies all Applicant fields using reusable verification methods
+   * @param criteria - Applicant field values to verify
+   */
+  static verifyApplicant({
+    criteria,
+  }: {
+    criteria: Record<string, string>;
+  }): void {
+    const accordionTitle = 'Applicant';
+
+    AccordionHelper.isAccordionVisible(accordionTitle);
+    AccordionHelper.ensureAccordionExpanded(accordionTitle);
+
+    cy.log('Verifying Applicant with criteria:', criteria);
+
+    const processedCriteria = processDatatableRow(criteria);
+
+    AccordionHelper.within(accordionTitle, () => {
+      for (const [fieldLabel, value] of Object.entries(processedCriteria)) {
+        if (!value || value.trim() === '') {
+          continue;
+        }
+
+        this.verifyNameFields(fieldLabel, value);
+        this.verifyAddressFields(fieldLabel, value);
+        this.verifyContactDetails(fieldLabel, value);
+      }
+    });
+  }
+
+    /**
+   * Verifies all Respondent fields using reusable verification methods
+   * @param criteria - Respondent field values to verify
+   */
+  static verifyRespondent({
+    criteria,
+  }: {
+    criteria: Record<string, string>;
+  }): void {
+    const accordionTitle = 'Respondent';
+
+    AccordionHelper.isAccordionVisible(accordionTitle);
+    AccordionHelper.ensureAccordionExpanded(accordionTitle);
+
+    cy.log('Verifying Respondent with criteria:', criteria);
+
+    const processedCriteria = processDatatableRow(criteria);
+
+    AccordionHelper.within(accordionTitle, () => {
+      for (const [fieldLabel, value] of Object.entries(processedCriteria)) {
+        if (!value || value.trim() === '') {
+          continue;
+        }
+
+        this.verifyNameFields(fieldLabel, value);
+        this.verifyAddressFields(fieldLabel, value);
+        this.verifyContactDetails(fieldLabel, value);
+      }
+    });
+  }
+
+  static verifyNameFields(fieldLabel: string, value: string): void {
+    switch (fieldLabel) {
+      case 'Select applicant type':
+      case 'Applicant type':
+        DropdownHelper.verifyDropdownOptionSelected(
+          'Select applicant type',
+          value,
+        );
+        break;
+
+      case 'Organisation name':
+      case 'Organization name':
+      case 'Org name':
+        TextboxHelper.getValueInTextbox('Organisation name').should('eq', value);
+        break;
+
+      case 'Select title':
+      case 'Title':
+        DropdownHelper.verifyDropdownOptionSelected('Select title', value);
+        break;
+
+      case 'First name':
+        TextboxHelper.getValueInTextbox('First name').should('eq', value);
+        break;
+
+      case 'Middle name(s)':
+      case 'Middle name':
+      case 'Middle names':
+        TextboxHelper
+          .getValueInTextbox('Middle name(s)')
+          .should('eq', value);
+        break;
+
+      case 'Surname':
+        TextboxHelper.getValueInTextbox('Surname').should('eq', value);
+        break;
+
+      case 'Date of birth':
+        DateTimeHelper.verifyDateValue('Date of birth', value);
+        break;
+
+      default:
+        cy.log(`Unknown name field for verification: ${fieldLabel}`);
+        break;
+    }
+  }
+
+  static verifyAddressFields(fieldLabel: string, value: string): void {
+    switch (fieldLabel) {
+      case 'Address line 1':  // Address line 1
+        TextboxHelper.getValueInTextbox('Address line 1').should('eq', value);
+        break;      
+
+      case 'Address line 2':  // Address line 2
+        TextboxHelper.getValueInTextbox('Address line 2').should('eq', value);
+        break;
+
+      case 'Town or city':  // Town or city
+        TextboxHelper.getValueInTextbox('Town or city').should('eq', value);
+        break;
+
+      case 'County or region':  // County or region
+        TextboxHelper.getValueInTextbox('County or region').should('eq', value);
+        break;
+
+      case 'Post town':  // Post town
+        TextboxHelper.getValueInTextbox('Post town').should('eq', value);
+        break;
+
+      case 'Postcode':  // Postcode
+      case 'Post code':
+        TextboxHelper.getValueInTextbox('Postcode').should('eq', value);
+        break;
+
+      default:
+        cy.log(`Unknown address field for verification: ${fieldLabel}`);
+        break;
+    }
+  }
+
+  static verifyContactDetails(fieldLabel: string, value: string): void {
+    switch (fieldLabel) {
+      case 'Phone number':  // Phone number
+      case 'Phone':
+        TextboxHelper.getValueInTextbox('Phone number').should('eq', value);
+        break;      
+
+      case 'Mobile number':  // Mobile number
+      case 'Mobile':
+        TextboxHelper.getValueInTextbox('Mobile number').should('eq', value);
+        break;      
+
+      case 'Email address':  // Email address
+      case 'Email':
+        TextboxHelper.getValueInTextbox('Email address').should('eq', value);
+        break;
+
+      default:
+        cy.log(`Unknown contact field for verification: ${fieldLabel}`);
+        break;
+    }
+  }
 }

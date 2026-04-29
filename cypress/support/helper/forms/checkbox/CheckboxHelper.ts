@@ -24,4 +24,8 @@ export class CheckboxHelper {
   static verifyUnchecked(labelText: string): void {
     CheckboxElement.findCheckbox(labelText).should('not.be.checked');
   }
+
+  static verifyChecked(labelText: string): void {
+    CheckboxElement.findCheckbox(labelText).should('be.checked');
+  } 
 }
