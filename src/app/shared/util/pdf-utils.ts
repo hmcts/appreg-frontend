@@ -4,21 +4,14 @@
 import { asObj } from './data-utils';
 import { trimToString } from './string-helpers';
 
-/**
- * Minimal interface we need from jsPDF. This keeps utils decoupled from the concrete library.
- */
-export type PdfDocLike = {
-  splitTextToSize: (text: string, width: number) => string | string[];
-  text: (
-    text: string,
-    x: number,
-    y: number,
-    opts?: { align?: 'left' | 'right' | 'center' },
-  ) => void;
-  setFontSize: (size: number) => void;
-  setLineWidth: (w: number) => void;
-  line: (x1: number, y1: number, x2: number, y2: number) => void;
-};
+import type { ApplicationListGetPrintDto } from '@openapi';
+import {
+  PdfDocLike,
+  PrintApplicationListContinuousOptions,
+  PrintApplicationListPageOptions,
+} from '@shared-types/pdf/pdf.types';
+
+type RowWithId = Record<string, unknown>;
 
 /**
  * Wrap jsPDF#splitTextToSize with some light trimming and type-guarding.
@@ -95,6 +88,67 @@ export function extractDuration(raw: unknown): string | undefined {
     '';
 
   return stripZeroHoursPrefix(durationText);
+}
+
+export function filterEntriesToPrint(
+  dto: ApplicationListGetPrintDto,
+  selectedRows: RowWithId[],
+): ApplicationListGetPrintDto {
+  const selectedIds = new Set(
+    selectedRows.flatMap((row) => {
+      const id = row['id'];
+      return typeof id === 'string' || typeof id === 'number'
+        ? [String(id)]
+        : [];
+    }),
+  );
+
+  return {
+    ...dto,
+    entries: dto.entries.filter((entry) => selectedIds.has(entry.id)),
+  };
+}
+
+export async function handlePrintPage(
+  dto: ApplicationListGetPrintDto,
+  options: PrintApplicationListPageOptions,
+): Promise<void> {
+  if (!dto.entries.length) {
+    options.onError(options.noEntriesMessage);
+    return;
+  }
+
+  try {
+    if (options.isBrowser) {
+      const generateOptions = options.crestUrl
+        ? { crestUrl: options.crestUrl }
+        : undefined;
+      await options.pdf.generatePagedApplicationListPdf(dto, generateOptions);
+    }
+  } catch {
+    options.onError(options.generateErrorMessage);
+  }
+}
+
+export async function handlePrintContinuous(
+  dto: ApplicationListGetPrintDto,
+  options: PrintApplicationListContinuousOptions,
+): Promise<void> {
+  if (!dto.entries.length) {
+    options.onError(options.noEntriesMessage);
+    return;
+  }
+
+  try {
+    if (options.isBrowser) {
+      await options.pdf.generateContinuousApplicationListsPdf(
+        [dto],
+        options.isClosed ?? false,
+      );
+    }
+  } catch {
+    options.onError(options.generateErrorMessage);
+  }
 }
 
 function stripZeroHoursPrefix(durationText: string): string | undefined {

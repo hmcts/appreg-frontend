@@ -12,6 +12,6 @@ export function mapToRow(dto: EntryGetSummaryDto): ApplicationRow {
     fee: dto.isFeeRequired ? 'Yes' : 'No',
     resulted: dto.isResulted ? 'Yes' : 'No',
     status: dto.status ?? '',
-    actions: dto.id,
+    applicationListId: dto.listId ?? '',
   };
 }

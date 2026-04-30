@@ -24,5 +24,5 @@ export type ApplicationRow = Row & {
   fee: string;
   resulted: string;
   status: string;
-  actions: string;
+  applicationListId: string;
 };

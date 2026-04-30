@@ -4,3 +4,24 @@
   :is(th.govuk-table__header, td.govuk-table__cell) {
   max-width: 175px;
 }
+
+.govuk-table__caption--m {
+  margin-bottom: 0;
+}
+
+:host ::ng-deep .app-sortable-table__frame .moj-button-menu {
+  position: relative;
+}
+
+.table-caption__actions {
+  float: right;
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.table-caption__actions .moj-button-menu,
+.table-caption__action-button {
+  margin-bottom: 1.75rem;
+}

@@ -1,5 +1,6 @@
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { EntryGetSummaryDto } from '@openapi';
+import { ApplicationRow } from '@shared-types/applications/applications.type';
 
 export interface ApplicationsState {
   isSearch: boolean;
@@ -18,6 +19,10 @@ export interface ApplicationsState {
   currentPage: number;
   totalPages: number;
   pageSize: number;
+
+  // table
+  selectedIds: Set<string>;
+  selectedRows: ApplicationRow[];
 }
 
 export const initialApplicationsState: ApplicationsState = {
@@ -34,6 +39,8 @@ export const initialApplicationsState: ApplicationsState = {
   currentPage: 0,
   totalPages: 1,
   pageSize: 10,
+  selectedIds: new Set<string>(),
+  selectedRows: [],
 };
 
 // Clear error/notification state before a new search
