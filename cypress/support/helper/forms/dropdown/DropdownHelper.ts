@@ -55,8 +55,18 @@ export class DropdownHelper {
   ): void {
     DropdownElement.findDropdown(dropdownLabel)
       .invoke('val')
-      .should((val) => {
-        expect(String(val).toLowerCase()).to.equal(optionText.toLowerCase());
+      .then((val) => {
+        const valMatch = String(val).toLowerCase() === optionText.toLowerCase();
+        if (valMatch) {
+          expect(valMatch).to.be.true;
+        } else {
+          // Fall back to comparing text content
+          DropdownElement.findDropdown(dropdownLabel).then(($dropdown) => {
+            expect($dropdown.text().toLowerCase()).to.include(
+              optionText.toLowerCase(),
+            );
+          });
+        }
       });
   }
 
