@@ -238,7 +238,7 @@ Feature: Applications List Entry Create
     When User Searches Application List With:
       | Date  | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
       | today |      |                  |             |       | OPEN               |                            |                       |           |
-    When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
+    When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
       | Date         | Time  | Location                          | Description                             | Entries | Status |
       | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   |
     ## Create Application under Application List
