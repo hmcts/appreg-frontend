@@ -1,8 +1,8 @@
 import { DataTable, When } from '@badeball/cypress-cucumber-preprocessor';
 
-import { ApplicationListEntriesCombinedHelper } from '../../../support/helper/appreg/ApplicationListEntriesCombinedHelper';
+import { ApplicationListEntriesCombinedHelper } from '../../../support/helper/appreg/ApplicationsCombinedHelper';
 
-When('User Searches Application List Entry With:', (dataTable: DataTable) => {
+When('User Searches Applications With:', (dataTable: DataTable) => {
   const searchCriteria = dataTable.hashes()[0];
   ApplicationListEntriesCombinedHelper.searchApplicationListEntry({
     criteria: searchCriteria,

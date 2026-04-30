@@ -15,8 +15,6 @@ export class ApplicationListEntriesCombinedHelper {
   }: {
     criteria: Record<string, string>;
   }): void {
-    // ensure the search accordion is opened/toggled before interacting with fields
-
     AccordionHelper.toggleAccordion('Advanced search');
 
     const processedCriteria = processDatatableRow(criteria);
