@@ -473,6 +473,41 @@ describe('ApplicationsComponent', () => {
     });
   });
 
+  describe('row selection', () => {
+    it('stores selected ids from the table', () => {
+      const selectedIds = new Set(['entry-1', 'entry-2']);
+
+      component.onSelectedIdsChange(selectedIds);
+
+      expect(component.vm().selectedIds).toBe(selectedIds);
+    });
+
+    it('keeps selected rows from other pages and replaces only current-page selections', () => {
+      const previousPageRow = makeSelectedRow('entry-page-1', 'list-a');
+      const deselectedCurrentPageRow = makeSelectedRow(
+        'entry-page-3',
+        'list-c',
+      );
+      const selectedCurrentPageRow = makeSelectedRow('entry-page-2', 'list-b');
+
+      appStateSignal(component).update((s) => ({
+        ...s,
+        rows: [
+          makeEntry({ id: 'entry-page-2', listId: 'list-b' }),
+          makeEntry({ id: 'entry-page-3', listId: 'list-c' }),
+        ],
+        selectedRows: [previousPageRow, deselectedCurrentPageRow],
+      }));
+
+      component.onSelectedRowsChange([selectedCurrentPageRow]);
+
+      expect(component.vm().selectedRows).toEqual([
+        previousPageRow,
+        selectedCurrentPageRow,
+      ]);
+    });
+  });
+
   describe('onPrintContinuousClick', () => {
     it('shows an error and does not call the API when no rows are selected', async () => {
       component.onPrintContinuousClick();

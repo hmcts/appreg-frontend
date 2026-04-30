@@ -276,6 +276,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       submitted: true,
       isSearch: true,
       rows: [],
+      selectedIds: new Set<string>(),
       selectedRows: [],
     });
 
@@ -380,8 +381,22 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.loadApplications(); // fetch page `page`
   }
 
+  onSelectedIdsChange(selectedIds: Set<string>): void {
+    this.patchApp({ selectedIds });
+  }
+
   onSelectedRowsChange(rows: Row[]): void {
-    this.patchApp({ selectedRows: rows as ApplicationRow[] });
+    const visibleIds = new Set(this.tableRows().map((row) => row.id));
+    const selectedRowsFromOtherPages = this.vm().selectedRows.filter(
+      (row) => !visibleIds.has(row.id),
+    );
+
+    this.patchApp({
+      selectedRows: [
+        ...selectedRowsFromOtherPages,
+        ...(rows as ApplicationRow[]),
+      ],
+    });
   }
 
   clearSearch(): void {

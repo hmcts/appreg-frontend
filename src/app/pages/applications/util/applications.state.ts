@@ -21,6 +21,7 @@ export interface ApplicationsState {
   pageSize: number;
 
   // table
+  selectedIds: Set<string>;
   selectedRows: ApplicationRow[];
 }
 
@@ -38,6 +39,7 @@ export const initialApplicationsState: ApplicationsState = {
   currentPage: 0,
   totalPages: 1,
   pageSize: 10,
+  selectedIds: new Set<string>(),
   selectedRows: [],
 };
 

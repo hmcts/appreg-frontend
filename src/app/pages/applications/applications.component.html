@@ -195,6 +195,8 @@
     [data]="tableRows()"
     [selectable]="true"
     idField="id"
+    [selectedIds]="vm().selectedIds"
+    (selectedIdsChange)="onSelectedIdsChange($event)"
     (selectedRowsChange)="onSelectedRowsChange($event)"
     appMojButtonMenu
   >
