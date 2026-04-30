@@ -186,22 +186,29 @@ Feature: Application List Entries Search
             | 5               | ACCSE5{RANDOM} | Registry Services {RANDOM} | Liam Wilson {RANDOM}          | NE1 2AA  | Condemnation of Unfit Food                     | Yes | AUTH     |
         # Search by applicant across person, organisation and standard applicant entries
         When User Searches Application List Entries With:
-            | Applicant             | Respondent | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
-            | Henry Taylor {RANDOM} |            |                     |                 |                |                   |     |          |
+            | Applicant | Respondent | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
+            | Taylor    |            |                     |                 |                |                   |     |          |
         Then User Should See Row In Table "Entries" With Values:
             | Sequence number | Account number | Applicant             | Respondent           | Postcode | Title                                          | Fee | Resulted |
             | 1               | ACCSE1{RANDOM} | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | BS15 5AA | Issue of liability order summons - council tax | No  | AUTH     |
         # Search by respondent across organisation and person respondents
         When User Searches Application List Entries With:
-            | Applicant | Respondent                    | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
-            |           | Civic Respondent Ltd {RANDOM} | CF1 1AA             |                 |                |                   |     |          |
+            | Applicant | Respondent       | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
+            |           | Civic Respondent |                     |                 |                |                   |     |          |
         Then User Should See Row In Table "Entries" With Values:
             | Sequence number | Account number | Applicant             | Respondent                    | Postcode | Title                      | Fee | Resulted |
             | 4               | ACCSE4{RANDOM} | Fiona Morgan {RANDOM} | Civic Respondent Ltd {RANDOM} | CF1 1AA  | Condemnation of Unfit Food | Yes |          |
+        # Search by respondent postcode
+        When User Searches Application List Entries With:
+            | Applicant | Respondent | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
+            |           |            | NE1                 |                 |                |                   |     |          |
+        Then User Should See Row In Table "Entries" With Values:
+            | Sequence number | Account number | Applicant                  | Respondent           | Postcode | Title                      | Fee | Resulted |
+            | 5               | ACCSE5{RANDOM} | Registry Services {RANDOM} | Liam Wilson {RANDOM} | NE1 2AA  | Condemnation of Unfit Food | Yes | AUTH     |
         # Search fee and resulted filters
         When User Searches Application List Entries With:
             | Applicant | Respondent | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
-            |           |            |                     |                 |                |                   | Yes |          |
+            |           |            |                     |                 |                | Condemnation      | Yes |          |
         Then User Should See Row In Table "Entries" With Values:
             | Sequence number | Account number | Applicant                  | Respondent                    | Postcode | Title                      | Fee | Resulted |
             | 4               | ACCSE4{RANDOM} | Fiona Morgan {RANDOM}      | Civic Respondent Ltd {RANDOM} | CF1 1AA  | Condemnation of Unfit Food | Yes |          |
@@ -213,6 +220,11 @@ Feature: Application List Entries Search
             | Sequence number | Account number | Applicant                  | Respondent           | Postcode | Title                                          | Fee | Resulted |
             | 1               | ACCSE1{RANDOM} | Henry Taylor {RANDOM}      | Emily Clark {RANDOM} | BS15 5AA | Issue of liability order summons - council tax | No  | AUTH     |
             | 5               | ACCSE5{RANDOM} | Registry Services {RANDOM} | Liam Wilson {RANDOM} | NE1 2AA  | Condemnation of Unfit Food                     | Yes | AUTH     |
+        # Search with no matching entries
+        When User Searches Application List Entries With:
+            | Applicant           | Respondent | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
+            | Nonexistent{RANDOM} |            |                     |                 |                |                   |     |          |
+        Then User Sees Notification Banner "Important No lists entries found Try again, or create a new list entry"
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"

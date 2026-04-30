@@ -18,7 +18,12 @@ export class ApplicationListEntriesSearchHelper {
 
     cy.log('Searching Entries table with criteria:', processedCriteria);
 
+    cy.intercept('GET', '**/application-lists/*/entries**').as(
+      'applicationListEntriesRequest',
+    );
     ButtonHelper.clickButton('Clear search');
+    cy.wait('@applicationListEntriesRequest', { timeout: 20000 });
+
     AccordionHelper.ensureAccordionExpanded('Advanced search');
 
     for (const [fieldLabel, value] of Object.entries(processedCriteria)) {
@@ -67,5 +72,38 @@ export class ApplicationListEntriesSearchHelper {
     }
 
     ButtonHelper.clickButton('Search');
+    cy.wait('@applicationListEntriesRequest', { timeout: 20000 });
+
+    const expectedSearchText = Object.values(processedCriteria).find(
+      (value) => value && value.trim() !== '',
+    );
+
+    cy.get('body', { timeout: 10000 }).should(($body) => {
+      const bodyText = $body.text();
+      const hasNoResultsBanner = bodyText.includes('No lists entries found');
+      const entriesTableText = $body
+        .find('caption:contains("Entries")')
+        .closest('table')
+        .find('tbody')
+        .text()
+        .trim();
+
+      if (hasNoResultsBanner) {
+        return;
+      }
+
+      if (!entriesTableText) {
+        throw new Error('Entries search results not loaded yet - waiting...');
+      }
+
+      if (
+        expectedSearchText &&
+        !entriesTableText.includes(expectedSearchText)
+      ) {
+        throw new Error(
+          'Entries table does not show search results yet - waiting...',
+        );
+      }
+    });
   }
 }
