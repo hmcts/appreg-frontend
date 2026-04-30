@@ -376,10 +376,6 @@ Feature: Applications List Entry Create
     Then User Should See The Textbox "Official's first name" Under "Officials" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Official's surname" Under "Officials" FieldSet In The Accordion "Officials"
 
-    Examples:
-      | User  | SearchDate | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationCode | ApplicationTitle                               | WordingText                                                                                                                                                        | placeholder       | WordingValue | TableName | CaseReference | AccountReference |
-      | user1 | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | CT99002         | Issue of liability order summons - council tax | Attends to swear a complaint for the issue of a summons for the debtor to answer an application for a liability order in relation to unpaid council tax (reference | Enter a Reference | TestRef-001  | Lists     | case{RANDOM}  | account{RANDOM}  |
-
   @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC3
   Scenario Outline: Create an ALE where Applicant = Standard Applicant, using an Application Code with Fee Required = Y and Respondent Required = N
     Given User Authenticates Via API As "<User>"
