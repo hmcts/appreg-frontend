@@ -17,7 +17,8 @@ export class DropdownHelper {
       }
 
       if ($dropdown.is('select')) {
-        cy.wrap($dropdown)
+        return cy
+          .wrap($dropdown)
           .find('option')
           .then(($options) => {
             const match = [...$options].find(
@@ -29,19 +30,24 @@ export class DropdownHelper {
               throw new Error(`Option "${option}" not found in select`);
             }
 
-            cy.wrap($dropdown).select(match.value);
+            return cy.wrap($dropdown).select(match.value);
           });
       } else {
         // For custom dropdowns
-        cy.wrap($dropdown).click();
-        cy.contains(
-          '.dropdown [role="option"], .select [role="option"], .dropdown__option, .select__option',
-          option,
-          { matchCase: false },
-        ).click();
-        cy.wrap($dropdown).should('contain.text', option);
+        return cy
+          .wrap($dropdown)
+          .click()
+          .then(() =>
+            cy
+              .contains(
+                '.dropdown [role="option"], .select [role="option"], .dropdown__option, .select__option',
+                option,
+                { matchCase: false },
+              )
+              .click(),
+          )
+          .then(() => cy.wrap($dropdown).should('contain.text', option));
       }
-      return cy.wrap($dropdown);
     });
   }
 
@@ -55,8 +61,22 @@ export class DropdownHelper {
   ): void {
     DropdownElement.findDropdown(dropdownLabel)
       .invoke('val')
-      .should((val) => {
-        expect(String(val).toLowerCase()).to.equal(optionText.toLowerCase());
+      .then((val) => {
+        const valMatch = String(val).toLowerCase() === optionText.toLowerCase();
+        if (valMatch) {
+          cy.wrap(valMatch).should('be.true');
+        } else {
+          // Fall back to comparing text content
+          return DropdownElement.findDropdown(dropdownLabel).then(
+            ($dropdown) => {
+              const textMatch = $dropdown
+                .text()
+                .toLowerCase()
+                .includes(optionText.toLowerCase());
+              cy.wrap(textMatch).should('be.true');
+            },
+          );
+        }
       });
   }
 

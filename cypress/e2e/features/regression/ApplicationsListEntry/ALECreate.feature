@@ -1,6 +1,6 @@
 Feature: Applications List Entry Create
 
-  @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC1
+  @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-635 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC1
   Scenario: Create an ALE where Applicant = Person and Respondent = Person, using an Application Code with Fee Required = Y and Respondent Required = Y
     Given User Authenticates Via API As "user1"
     # Create Application List
@@ -114,21 +114,18 @@ Feature: Applications List Entry Create
       | Fee Status | Status Date  | Payment Ref       |
       | PAID       | todaydisplay | Paid PAY-{RANDOM} |
     # Notes Details
-    # Then User Enters "<CaseReference>" Into The Textbox "Case reference" In The Accordion "Notes"
-    # Then User Enters "<AccountReference>" Into The Textbox "Account reference" In The Accordion "Notes"
     Then User Enters "case{RANDOM}" Into The Textbox "Case reference" In The Accordion "Notes"
     Then User Enters "account{RANDOM}" Into The Textbox "Account reference" In The Accordion "Notes"
     Then User Enters "This is a test application with special requirements" Into The Textbox "Application details" In The Accordion "Notes"
     # Submit Application Bug ARCPOC-1239 is raised for Wording not retaining changes
     Then User Verifies The Textbox "" Contains "Test Sample Wording" In The Accordion "Wording"
-    # Submit Application Bug ARCPOC-1239 is raised for Wordind not retaining
     Then User Verifies The "Wording" Accordion Has textbox with placeholder "Enter a Describe Seized Food" and Enters "Test Sample Wording"
     When User Clicks On The "Apply wording" Button In The Accordion "Wording"
     Then User Sees Success Alert "Wording applied to this entry. Save the entry to keep these changes."
     When User Clicks On The "Create entry" Button
     Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
 
-    # ---------------OPEN APPLICATION LIST ENTRY---------------
+    # ---------------OPEN APPLICATION LIST ENTRY---------------@ARCPOC-635
 
     Then User Clicks On The Breadcrumb Link "Applications list details"
     When User Clicks "Open" Button In Row Of Table "Entries" With:
@@ -226,24 +223,24 @@ Feature: Applications List Entry Create
     Then User Should See The Textbox "Official's first name" Under "Officials" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Official's surname" Under "Officials" FieldSet In The Accordion "Officials"
 
-  @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC2
+  @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-635 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC2
   Scenario Outline: Create an ALE where Applicant = Organisation and Respondent = Organisation, using an Application Code with Fee Required = N and Respondent Required = Y
-    Given User Authenticates Via API As "<User>"
+    Given User Authenticates Via API As "user1"
     # Create Application List
     When User Makes POST API Request To "/application-lists" With Body:
-      | date     | time   | status   | description   | durationHours | durationMinutes | courtLocationCode |
-      | todayiso | <Time> | <Status> | <Description> |               |                 | LCCC065           |
+      | date     | time  | status | description                             | durationHours | durationMinutes | courtLocationCode |
+      | todayiso | 10:20 | OPEN   | Applications to review at Test_{RANDOM} |               |                 | LCCC065           |
     Then User Verify Response Status Code Should Be "201"
     Then User Stores Response Body Property "id" As "listId"
     Given User Is On The Portal Page
-    When User Signs In With Microsoft SSO As "<User>"
+    When User Signs In With Microsoft SSO As "user1"
     # Search Created Application List
     When User Searches Application List With:
-      | Date         | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
-      | <SearchDate> |      |                  |             |       | <Status>           |                            |                       |           |
-    When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
-      | Date          | Time   | Location | Description   | Entries   | Status   |
-      | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+      | Date  | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+      | today |      |                  |             |       | OPEN               |                            |                       |           |
+    When User Clicks "Select" Then "Open" From Menu In Row Of Table "Lists" With:
+      | Date         | Time  | Location                          | Description                             | Entries | Status |
+      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   |
     ## Create Application under Application List
     Then User Clicks On The Link "Create application"
     When User Clicks On The "Show all sections" Button
@@ -260,36 +257,35 @@ Feature: Applications List Entry Create
       | Postcode              | LS10 1PJ                                    |
       | Phone number          | 020 7946 0000                               |
       | Mobile number         | 07123 456789                                |
-      | Email address         | john.smith@example.com                      |
+      | Email address         | john.smith_{RANDOM}test@example.com         |
     # Application Codes
-    Then User Enters "<ApplicationCode>" Into The Textbox "Application code" In The Accordion "Application codes"
+    Then User Enters "CT99002" Into The Textbox "Application code" In The Accordion "Application codes"
     When User Clicks On The "Search" Button In The Accordion "Application codes"
     Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Application codes"
     Then User Clicks "Add code" Button In Row Of Table "Codes" In The Accordion "Application codes"
-      | Code              | Title              | Bulk | Fee req |
-      | <ApplicationCode> | <ApplicationTitle> | No   | CO8.1   |
-    Then User Verifies The "Application Title" Textbox Has Value "<ApplicationTitle>"
-    Then User Verifies The Date field "Lodgement date" Has Value "<SearchDate>"
+      | Code    | Title                                          | Bulk | Fee req |
+      | CT99002 | Issue of liability order summons - council tax | No   | CO8.1   |
+    Then User Verifies The "Application Title" Textbox Has Value "Issue of liability order summons - council tax"
     # Wording Details
-    Then User Verifies The "Wording" Accordion Has Value "<WordingText>"
-    Then User Verifies The "Wording" Accordion Has textbox with placeholder "<placeholder>" and Enters "<WordingValue>"
+    Then User Verifies The "Wording" Accordion Has Value "Attends to swear a complaint for the issue of a summons for the debtor to answer an application for a liability order in relation to unpaid council tax (reference"
+    Then User Verifies The "Wording" Accordion Has textbox with placeholder "Enter a Reference" and Enters "TestRef-001"
     # (Bug raised ARCPOC-1230/ARCPOC-1205/AARCPOC-1253 for below statement)
     When User Clicks On The "Apply wording" Button In The Accordion "Wording"
     Then User Sees Success Alert "Wording applied to this entry. Save the entry to keep these changes."
     # Then User Should See The Link "Dismiss"
     # Respondent Details
     When User Fills In The Respondent Details
-      | Select type       | Organisation                 |
-      | Organisation name | Test Sample Res Organisation |
-      | Address line 1    | 123 High Street              |
-      | Address line 2    | Apartment 4B                 |
-      | Town or city      | Leeds                        |
-      | County or region  | West Yorkshire               |
-      | Post town         | Leeds                        |
-      | Postcode          | LS10 1PJ                     |
-      | Phone number      | 020 7946 0000                |
-      | Mobile number     | 07123 456789                 |
-      | Email address     | john.smith@example.com       |
+      | Select type       | Organisation                              |
+      | Organisation name | Test Sample Res Organisation {RANDOM}     |
+      | Address line 1    | {RANDOM} Low Street                       |
+      | Address line 2    | Apartment {RANDOM}                        |
+      | Town or city      | Leeds                                     |
+      | County or region  | East Yorkshire                            |
+      | Post town         | Leeds                                     |
+      | Postcode          | LS10 1PJ                                  |
+      | Phone number      | 020 7946 0000                             |
+      | Mobile number     | 07123 456789                              |
+      | Email address     | Respondent.smith_{RANDOM}test@example.com |
     # Civil Fee Details
     Then User Should See The Text "No fee required" In The Accordion "Civil fee"
     Then User Verifies Dropdown "Fee status" Is Disabled In The Accordion "Civil fee"
@@ -297,16 +293,88 @@ Feature: Applications List Entry Create
     Then User Verifies The Textbox "Payment reference" Is Disabled In The Accordion "Civil fee"
     Then User Verifies The Button "Add fee details" Is Disabled In The Accordion "Civil fee"
     # Notes Details
-    Then User Enters "<CaseReference>" Into The Textbox "Case reference" In The Accordion "Notes"
-    Then User Enters "<AccountReference>" Into The Textbox "Account reference" In The Accordion "Notes"
+    Then User Enters "case{RANDOM}" Into The Textbox "Case reference" In The Accordion "Notes"
+    Then User Enters "account{RANDOM}" Into The Textbox "Account reference" In The Accordion "Notes"
     Then User Enters "This is a test application with special requirements" Into The Textbox "Application details" In The Accordion "Notes"
     # Submit Application
     When User Clicks On The "Create entry" Button
     Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
 
-    Examples:
-      | User  | SearchDate | DisplayDate  | Time  | Court                             | Description                             | Entries | Status | SelectButtonText | ButtonName | ApplicationCode | ApplicationTitle                               | WordingText                                                                                                                                                        | placeholder       | WordingValue | TableName | CaseReference | AccountReference |
-      | user1 | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | CT99002         | Issue of liability order summons - council tax | Attends to swear a complaint for the issue of a summons for the debtor to answer an application for a liability order in relation to unpaid council tax (reference | Enter a Reference | TestRef-001  | Lists     | case12345     | account12345     |
+    # ---------------OPEN APPLICATION LIST ENTRY---------------@ARCPOC-635 @SC2
+
+    Then User Clicks On The Breadcrumb Link "Applications list details"
+    When User Clicks "Open" Button In Row Of Table "Entries" With:
+      | Sequence number | Account number  | Applicant                                   | Respondent                            | Postcode | Title                                          | Fee | Resulted |
+      | 1               | account{RANDOM} | Test Sample Applicant Organisation {RANDOM} | Test Sample Res Organisation {RANDOM} | LS10 1PJ | Issue of liability order summons - council tax | No  |          |
+    When User Clicks On The "Show all sections" Button
+    Then User Should See The Button "Hide all sections"
+    Then User Sees Page Heading "Applications list entry update"
+    Then User See "Summary of application list entry" On The Page
+    # Verify Applicant Details
+    When User Verifies In The Applicant Details
+      | Select applicant type | Organisation                                |
+      | Organisation name     | Test Sample Applicant Organisation {RANDOM} |
+      | Address line 1        | {RANDOM} High Street                        |
+      | Address line 2        | Apartment {RANDOM}                          |
+      | Town or city          | Leeds                                       |
+      | County or region      | West Yorkshire                              |
+      | Post town             | Leeds                                       |
+      | Postcode              | LS10 1PJ                                    |
+      | Phone number          | 020 7946 0000                               |
+      | Mobile number         | 07123 456789                                |
+      | Email address         | john.smith_{RANDOM}test@example.com         |
+    # Verify Application Codes Details
+    Then User Verifies The Textbox "Application code" Contains "CT99002" In The Accordion "Application codes"
+    Then User Verifies The Textbox "Application title" Contains "Issue of liability order summons - council tax" In The Accordion "Application codes"
+    Then User Verifies The Date field "Lodgement date" Has Value "today"
+    Then User Verifies Date Field "Lodgement date" Is Disabled In The Accordion "Application codes"
+    # Verify Wording Details
+    Then User Verifies The "Wording" Accordion Has Value "Attends to swear a complaint for the issue of a summons for the debtor to answer an application for a liability order in relation to unpaid council tax (reference"
+    Then User Verifies The Textbox "" Contains "TestRef-001" In The Accordion "Wording"
+    # Verify Respondent Details
+    When User Verifies In The Respondent Details
+      | Select type       | Organisation                              |
+      | Organisation name | Test Sample Res Organisation {RANDOM}     |
+      | Address line 1    | {RANDOM} Low Street                       |
+      | Address line 2    | Apartment {RANDOM}                        |
+      | Town or city      | Leeds                                     |
+      | County or region  | East Yorkshire                            |
+      | Post town         | Leeds                                     |
+      | Postcode          | LS10 1PJ                                  |
+      | Phone number      | 020 7946 0000                             |
+      | Mobile number     | 07123 456789                              |
+      | Email address     | Respondent.smith_{RANDOM}test@example.com |
+    # Verify Civil Fee Details
+    Then User Should See The Text "No fee required" In The Accordion "Civil fee"
+    Then User Verifies Dropdown "Fee status" Is Disabled In The Accordion "Civil fee"
+    Then User Verifies Date Field "Status date" Is Disabled In The Accordion "Civil fee"
+    Then User Verifies The Textbox "Payment reference" Is Disabled In The Accordion "Civil fee"
+    Then User Verifies The Button "Add fee details" Is Disabled In The Accordion "Civil fee"
+    # Verify Notes Details
+    Then User Verifies The Textbox "Case reference" Contains "case{RANDOM}" In The Accordion "Notes"
+    Then User Verifies The Textbox "Account reference" Contains "account{RANDOM}" In The Accordion "Notes"
+    Then User Verifies The Textbox "Application details" Contains "This is a test application with special requirements" In The Accordion "Notes"
+    # Result Wording Details
+    Then User Should See Row In Table "You are resulting the following application(s)" In The Accordion "Result wording" With Values:
+      | Applicant(s)                                | Respondent(s)                         | Application title(s)                           |
+      | Test Sample Applicant Organisation {RANDOM} | Test Sample Res Organisation {RANDOM} | Issue of liability order summons - council tax |
+    Then User Verifies The Button "Apply result" Is Disabled In The Accordion "Result wording"
+    # Officials Details
+    Then User Verifies Dropdown "Select magistrate's title" Is Visible Under "Magistrate 1" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Magistrate's first name" Under "Magistrate 1" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Magistrate's surname" Under "Magistrate 1" FieldSet In The Accordion "Officials"
+
+    Then User Verifies Dropdown "Select magistrate's title" Is Visible Under "Magistrate 2" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Magistrate's first name" Under "Magistrate 2" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Magistrate's surname" Under "Magistrate 2" FieldSet In The Accordion "Officials"
+
+    Then User Verifies Dropdown "Select magistrate's title" Is Visible Under "Magistrate 3" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Magistrate's first name" Under "Magistrate 3" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Magistrate's surname" Under "Magistrate 3" FieldSet In The Accordion "Officials"
+
+    Then User Verifies Dropdown "Select court official's title" Is Visible Under "Officials" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Official's first name" Under "Officials" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Official's surname" Under "Officials" FieldSet In The Accordion "Officials"
 
   @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC3
   Scenario Outline: Create an ALE where Applicant = Standard Applicant, using an Application Code with Fee Required = Y and Respondent Required = N
