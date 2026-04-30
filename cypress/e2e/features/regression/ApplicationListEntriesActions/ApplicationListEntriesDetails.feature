@@ -186,29 +186,29 @@ Feature: Application List Entries Search
             | 5               | ACCSE5{RANDOM} | Registry Services {RANDOM} | Liam Wilson {RANDOM}          | NE1 2AA  | Condemnation of Unfit Food                     | Yes | AUTH     |
         # Search by applicant across person, organisation and standard applicant entries
         When User Searches Application List Entries With:
-            | Applicant             | Respondent | Postcode | Sequence number | Account number | Title | Fee | Resulted |
-            | Henry Taylor {RANDOM} |            |          |                 |                |       |     |          |
+            | Applicant             | Respondent | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
+            | Henry Taylor {RANDOM} |            |                     |                 |                |                   |     |          |
         Then User Should See Row In Table "Entries" With Values:
             | Sequence number | Account number | Applicant             | Respondent           | Postcode | Title                                          | Fee | Resulted |
             | 1               | ACCSE1{RANDOM} | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | BS15 5AA | Issue of liability order summons - council tax | No  | AUTH     |
         # Search by respondent across organisation and person respondents
         When User Searches Application List Entries With:
-            | Applicant | Respondent                    | Postcode | Sequence number | Account number | Title | Fee | Resulted |
-            |           | Civic Respondent Ltd {RANDOM} | CF1 1AA  |                 |                |       |     |          |
+            | Applicant | Respondent                    | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
+            |           | Civic Respondent Ltd {RANDOM} | CF1 1AA             |                 |                |                   |     |          |
         Then User Should See Row In Table "Entries" With Values:
             | Sequence number | Account number | Applicant             | Respondent                    | Postcode | Title                      | Fee | Resulted |
             | 4               | ACCSE4{RANDOM} | Fiona Morgan {RANDOM} | Civic Respondent Ltd {RANDOM} | CF1 1AA  | Condemnation of Unfit Food | Yes |          |
         # Search fee and resulted filters
         When User Searches Application List Entries With:
-            | Applicant | Respondent | Postcode | Sequence number | Account number | Title | Fee | Resulted |
-            |           |            |          |                 |                |       | Yes |          |
+            | Applicant | Respondent | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
+            |           |            |                     |                 |                |                   | Yes |          |
         Then User Should See Row In Table "Entries" With Values:
             | Sequence number | Account number | Applicant                  | Respondent                    | Postcode | Title                      | Fee | Resulted |
             | 4               | ACCSE4{RANDOM} | Fiona Morgan {RANDOM}      | Civic Respondent Ltd {RANDOM} | CF1 1AA  | Condemnation of Unfit Food | Yes |          |
             | 5               | ACCSE5{RANDOM} | Registry Services {RANDOM} | Liam Wilson {RANDOM}          | NE1 2AA  | Condemnation of Unfit Food | Yes | AUTH     |
         When User Searches Application List Entries With:
-            | Applicant | Respondent | Postcode | Sequence number | Account number | Title | Fee | Resulted |
-            |           |            |          |                 |                |       |     | AUTH     |
+            | Applicant | Respondent | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
+            |           |            |                     |                 |                |                   |     | AUTH     |
         Then User Should See Row In Table "Entries" With Values:
             | Sequence number | Account number | Applicant                  | Respondent           | Postcode | Title                                          | Fee | Resulted |
             | 1               | ACCSE1{RANDOM} | Henry Taylor {RANDOM}      | Emily Clark {RANDOM} | BS15 5AA | Issue of liability order summons - council tax | No  | AUTH     |
