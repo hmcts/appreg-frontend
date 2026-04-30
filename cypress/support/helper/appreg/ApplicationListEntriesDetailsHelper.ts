@@ -35,8 +35,8 @@ export class ApplicationListEntriesSearchHelper {
           TextboxHelper.typeInTextbox('Respondent', value);
           break;
 
-        case 'Postcode':
-          TextboxHelper.typeInTextbox('Postcode', value);
+        case 'Respondent postcode':
+          TextboxHelper.typeInTextbox('Respondent postcode', value);
           break;
 
         case 'Sequence number':
@@ -48,8 +48,8 @@ export class ApplicationListEntriesSearchHelper {
           TextboxHelper.typeInTextbox('Account number', value);
           break;
 
-        case 'Title':
-          TextboxHelper.typeInTextbox('Title', value);
+        case 'Application title':
+          TextboxHelper.typeInTextbox('Application title', value);
           break;
 
         case 'Fee':
