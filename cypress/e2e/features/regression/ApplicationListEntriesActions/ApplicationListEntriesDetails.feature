@@ -213,6 +213,11 @@ Feature: Application List Entries Search
             | Sequence number | Account number | Applicant                  | Respondent           | Postcode | Title                                          | Fee | Resulted |
             | 1               | ACCSE1{RANDOM} | Henry Taylor {RANDOM}      | Emily Clark {RANDOM} | BS15 5AA | Issue of liability order summons - council tax | No  | AUTH     |
             | 5               | ACCSE5{RANDOM} | Registry Services {RANDOM} | Liam Wilson {RANDOM} | NE1 2AA  | Condemnation of Unfit Food                     | Yes | AUTH     |
+        # Search with no matching entries
+        When User Searches Application List Entries With:
+            | Applicant                 | Respondent | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
+            | Nonexistent Entry {RANDOM} |            |                     |                 |                |                   |     |          |
+        Then User Sees Notification Banner "Important No lists entries found Try again, or create a new list entry"
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
