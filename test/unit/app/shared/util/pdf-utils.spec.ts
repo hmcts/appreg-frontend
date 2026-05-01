@@ -75,6 +75,25 @@ describe('handlePrintPage', () => {
     });
   });
 
+  it('generates a paged PDF from printable DTOs when multiple DTOs are provided', async () => {
+    const printableDto = makeDto([{ id: 'entry-1' }]);
+    const emptyDto = makeDto([]);
+    const pdf = makePdf();
+
+    await handlePrintPage([emptyDto, printableDto], {
+      pdf,
+      isBrowser: true,
+      onError: jest.fn(),
+      noEntriesMessage: 'No entries',
+      generateErrorMessage: 'Retry',
+    });
+
+    expect(pdf.generatePagedApplicationListPdf).toHaveBeenCalledWith(
+      [printableDto],
+      undefined,
+    );
+  });
+
   it('reports the page generation error when PDF generation rejects', async () => {
     const pdf = makePdf();
     const onError = jest.fn();
@@ -111,6 +130,26 @@ describe('handlePrintContinuous', () => {
     expect(pdf.generateContinuousApplicationListsPdf).toHaveBeenCalledWith(
       [dto],
       true,
+    );
+  });
+
+  it('generates a continuous PDF from printable DTOs when multiple DTOs are provided', async () => {
+    const printableDto = makeDto([{ id: 'entry-1' }]);
+    const emptyDto = makeDto([]);
+    const pdf = makePdf();
+
+    await handlePrintContinuous([emptyDto, printableDto], {
+      pdf,
+      isBrowser: true,
+      onError: jest.fn(),
+      noEntriesMessage: 'No entries',
+      generateErrorMessage: 'Generic error',
+      isClosed: false,
+    });
+
+    expect(pdf.generateContinuousApplicationListsPdf).toHaveBeenCalledWith(
+      [printableDto],
+      false,
     );
   });
 
