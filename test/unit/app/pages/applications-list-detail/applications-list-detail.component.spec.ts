@@ -9,7 +9,7 @@ import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 
 import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail.component';
@@ -31,6 +31,7 @@ import {
   ApplicationListsApi,
   CriminalJusticeAreaGetDto,
   EntryGetSummaryDto,
+  EntryIdsDto,
   EntryPage,
 } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
@@ -95,9 +96,13 @@ describe('ApplicationsListDetail', () => {
   };
 
   const entriesApiStub: jest.Mocked<
-    Pick<ApplicationListEntriesApi, 'getApplicationListEntries'>
+    Pick<
+      ApplicationListEntriesApi,
+      'getApplicationListEntries' | 'getApplicationListEntryIds'
+    >
   > = {
     getApplicationListEntries: jest.fn(),
+    getApplicationListEntryIds: jest.fn(),
   };
 
   const menuStub: jest.Mocked<Pick<MojButtonMenu, 'initAll'>> = {
@@ -220,6 +225,13 @@ describe('ApplicationsListDetail', () => {
           headers: new HttpHeaders(),
         }),
       ),
+    );
+    entriesApiStub.getApplicationListEntryIds.mockReturnValue(
+      of({
+        ids: ['abc'],
+      } as EntryIdsDto) as unknown as ReturnType<
+        ApplicationListEntriesApi['getApplicationListEntryIds']
+      >,
     );
 
     await TestBed.configureTestingModule({
@@ -495,9 +507,7 @@ describe('ApplicationsListDetail', () => {
       component as unknown as PrintHelpersAccessor;
 
     it('returns only entries whose row ids are selected', () => {
-      patchDetailState({
-        selectedRows: [{ id: 'entry-1' } as Row, { id: 'entry-3' } as Row],
-      });
+      patchDetailState({ selectedIds: new Set(['entry-1', 'entry-3']) });
 
       const dto = {
         entries: [{ id: 'entry-1' }, { id: 'entry-2' }, { id: 'entry-3' }],
@@ -512,7 +522,7 @@ describe('ApplicationsListDetail', () => {
     });
 
     it('returns the dto with an empty entries array when nothing is selected', () => {
-      patchDetailState({ selectedRows: [] });
+      patchDetailState({ selectedIds: new Set<string>() });
 
       const dto = {
         entries: [{ id: 'entry-1' }, { id: 'entry-2' }],
@@ -743,7 +753,7 @@ describe('ApplicationsListDetail', () => {
         )
         .mockResolvedValue();
 
-      patchDetailState({ selectedRows: [{ id: 'entry-1' } as Row] });
+      patchDetailState({ selectedIds: new Set(['entry-1']) });
 
       (component as unknown as PrintRequestSignalAccessor).printRequest.set({
         id: 'list-123',
@@ -790,7 +800,7 @@ describe('ApplicationsListDetail', () => {
         )
         .mockResolvedValue();
 
-      patchDetailState({ selectedRows: [{ id: 'entry-2' } as Row] });
+      patchDetailState({ selectedIds: new Set(['entry-2']) });
 
       (component as unknown as PrintRequestSignalAccessor).printRequest.set({
         id: 'list-123',
@@ -1084,17 +1094,40 @@ describe('ApplicationsListDetail', () => {
     });
   });
 
-  it('onPageChange patches page + clears selectedIds + triggers load', () => {
+  it('onPageChange patches page + preserves selectedIds + triggers load', () => {
     const loadSpy = jest
       .spyOn(component, 'loadListDetailsInfo')
       .mockImplementation(() => undefined);
 
-    patchDetailState({ selectedIds: new Set(['a', 'b']) });
+    patchDetailState({
+      selectedIds: new Set(['a', 'b']),
+      selectedRows: [{ id: 'a' } as Row],
+    });
 
     component.onPageChange(3);
 
     expect(vm().currentPage).toBe(3);
-    expect(vm().selectedIds.size).toBe(0);
+    expect(vm().selectedIds).toEqual(new Set(['a', 'b']));
+    expect(vm().selectedRows).toEqual([]);
+    expect(loadSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('onPageChange preserves selectedIds when all matching rows are selected', () => {
+    const loadSpy = jest
+      .spyOn(component, 'loadListDetailsInfo')
+      .mockImplementation(() => undefined);
+
+    patchDetailState({
+      selectedIds: new Set(['a', 'b']),
+      allMatchingSelected: true,
+      selectedRows: [{ id: 'a' } as Row],
+    });
+
+    component.onPageChange(2);
+
+    expect(vm().currentPage).toBe(2);
+    expect(vm().selectedIds).toEqual(new Set(['a', 'b']));
+    expect(vm().selectedRows).toEqual([]);
     expect(loadSpy).toHaveBeenCalledTimes(1);
   });
 
@@ -1213,7 +1246,8 @@ describe('ApplicationsListDetail', () => {
         },
       ]);
 
-      expect(vm().selectedIds.has('stale-id')).toBe(false);
+      expect(vm().selectedIds.has('stale-id')).toBe(true);
+      expect(vm().selectedRows).toEqual([]);
       expect(vm().totalPages).toBe(0);
     });
 
@@ -1297,6 +1331,108 @@ describe('ApplicationsListDetail', () => {
     expect(vm().selectedRows).toEqual(rows);
   });
 
+  it('onSelectedIdsChange patches selected ids, visible rows, and allMatchingSelected', () => {
+    patchDetailState({
+      rows: [
+        { id: 'id-1', title: 'One' } as Row,
+        { id: 'id-2', title: 'Two' } as Row,
+      ],
+      totalEntries: 2,
+    });
+
+    component.onSelectedIdsChange(new Set(['id-1', 'id-2']));
+
+    expect(vm().selectedIds).toEqual(new Set(['id-1', 'id-2']));
+    expect(vm().selectedRows).toEqual([
+      { id: 'id-1', title: 'One' },
+      { id: 'id-2', title: 'Two' },
+    ]);
+    expect(vm().allMatchingSelected).toBe(true);
+  });
+
+  it('onHeaderSelectAllChange selects all matching rows when checked', () => {
+    const selectAllSpy = jest
+      .spyOn(component, 'onSelectAllMatchingClick')
+      .mockResolvedValue();
+
+    component.onHeaderSelectAllChange(true);
+
+    expect(selectAllSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('onHeaderSelectAllChange clears selection when unchecked', () => {
+    patchDetailState({
+      selectedIds: new Set(['id-1']),
+      selectedRows: [{ id: 'id-1' } as Row],
+      allMatchingSelected: true,
+    });
+
+    component.onHeaderSelectAllChange(false);
+
+    expect(vm().selectedIds.size).toBe(0);
+    expect(vm().selectedRows).toEqual([]);
+    expect(vm().allMatchingSelected).toBe(false);
+  });
+
+  it('onSelectAllMatchingClick loads ids from the new endpoint', async () => {
+    entriesApiStub.getApplicationListEntryIds.mockReturnValueOnce(
+      of({ ids: ['abc', 'def'] } as EntryIdsDto) as unknown as ReturnType<
+        ApplicationListEntriesApi['getApplicationListEntryIds']
+      >,
+    );
+
+    patchDetailState({
+      rows: [{ id: 'abc', title: 'Visible row' } as Row],
+      totalEntries: 2,
+      getFilters: { applicantName: 'Smith' },
+    });
+    component.id = 'list-123';
+
+    await component.onSelectAllMatchingClick();
+
+    expect(entriesApiStub.getApplicationListEntryIds).toHaveBeenCalledWith({
+      listId: 'list-123',
+      filter: { applicantName: 'Smith' },
+    });
+    expect(vm().selectedIds).toEqual(new Set(['abc', 'def']));
+    expect(vm().selectedRows).toEqual([{ id: 'abc', title: 'Visible row' }]);
+    expect(vm().allMatchingSelected).toBe(true);
+  });
+
+  it('onSelectAllMatchingClick selects visible rows immediately before ids request completes', async () => {
+    const ids$ = new Subject<EntryIdsDto>();
+    entriesApiStub.getApplicationListEntryIds.mockReturnValueOnce(
+      ids$ as unknown as ReturnType<
+        ApplicationListEntriesApi['getApplicationListEntryIds']
+      >,
+    );
+
+    patchDetailState({
+      rows: [
+        { id: 'abc', title: 'Visible row' } as Row,
+        { id: 'def', title: 'Visible row 2' } as Row,
+      ],
+      totalEntries: 4,
+    });
+    component.id = 'list-123';
+
+    const pending = component.onSelectAllMatchingClick();
+
+    expect(vm().selectedIds).toEqual(new Set(['abc', 'def']));
+    expect(vm().selectedRows).toEqual([
+      { id: 'abc', title: 'Visible row' },
+      { id: 'def', title: 'Visible row 2' },
+    ]);
+    expect(vm().allMatchingSelected).toBe(false);
+
+    ids$.next({ ids: ['abc', 'def', 'ghi', 'jkl'] });
+    ids$.complete();
+    await pending;
+
+    expect(vm().selectedIds).toEqual(new Set(['abc', 'def', 'ghi', 'jkl']));
+    expect(vm().allMatchingSelected).toBe(true);
+  });
+
   it('prefillFromApi: sets listRow when navigation state row is missing', () => {
     component.listRow = undefined;
     component['etag'] = '"etag-v2"';
@@ -1330,9 +1466,9 @@ describe('ApplicationsListDetail', () => {
   });
 
   describe('onResultButtonClick', () => {
-    it('navigates to result-selected with selected  applications', () => {
+    it('navigates to result-selected with selected  applications', async () => {
       const router = TestBed.inject(Router);
-      const navSpy = jest.spyOn(router, 'navigate');
+      const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
 
       patchDetailState({
         selectedRows: [
@@ -1353,7 +1489,7 @@ describe('ApplicationsListDetail', () => {
         ],
       });
 
-      component.onResultButtonClick();
+      await component.onResultButtonClick();
 
       expect(navSpy).toHaveBeenCalledTimes(1);
 
@@ -1375,6 +1511,73 @@ describe('ApplicationsListDetail', () => {
                 title: 'T2',
               },
             ],
+          },
+        }),
+      );
+    });
+
+    it('resolves rows across pages when selected ids exceed visible rows', async () => {
+      const router = TestBed.inject(Router);
+      const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      entriesApiStub.getApplicationListEntries.mockReturnValueOnce(
+        of({
+          pageNumber: 0,
+          pageSize: 10,
+          totalElements: 2,
+          totalPages: 1,
+          first: true,
+          last: true,
+          elementsOnPage: 2,
+          sort: { orders: [] },
+          content: [
+            {
+              id: 'entry-1',
+              sequenceNumber: 1,
+              accountNumber: '',
+              applicant: undefined,
+              respondent: undefined,
+              applicationTitle: 'First',
+              isFeeRequired: true,
+              isResulted: false,
+              status: ApplicationListStatus.OPEN,
+            },
+            {
+              id: 'entry-2',
+              sequenceNumber: 2,
+              accountNumber: '',
+              applicant: undefined,
+              respondent: undefined,
+              applicationTitle: 'Second',
+              isFeeRequired: false,
+              isResulted: false,
+              status: ApplicationListStatus.OPEN,
+            },
+          ],
+        } as EntryPage) as unknown as ReturnType<
+          ApplicationListEntriesApi['getApplicationListEntries']
+        >,
+      );
+
+      patchDetailState({
+        selectedIds: new Set(['entry-1', 'entry-2']),
+        selectedRows: [
+          { id: 'entry-1', sequenceNumber: 1, title: 'First' } as Row,
+        ],
+        totalEntries: 2,
+        totalPages: 1,
+      });
+
+      await component.onResultButtonClick();
+
+      expect(navSpy).toHaveBeenCalledWith(
+        ['result-selected'],
+        expect.objectContaining({
+          state: {
+            resultingApplications: expect.arrayContaining([
+              expect.objectContaining({ id: 'entry-1', sequenceNumber: 1 }),
+              expect.objectContaining({ id: 'entry-2', sequenceNumber: 2 }),
+            ]),
           },
         }),
       );
