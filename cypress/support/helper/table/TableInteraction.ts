@@ -122,13 +122,14 @@ export class TableInteraction {
       tableCaption,
       true,
       (row) => {
-        return TableElement.getCheckboxInRow(row).then((checkbox) => {
-          cy.wrap(checkbox)
-            .scrollIntoView()
-            .should('exist')
-            .and('not.be.disabled')
-            .check({ force: true });
-        }) as unknown as Cypress.Chainable<void>;
+        return TableElement.getCheckboxInRow(row)
+          .then((checkbox) => {
+            return cy.wrap(checkbox)
+              .scrollIntoView()
+              .should('exist')
+              .and('not.be.disabled')
+              .check({ force: true });
+          }) as unknown as Cypress.Chainable<void>;
       },
     ).then((found) => {
       if (!found) {
