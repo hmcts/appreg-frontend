@@ -254,17 +254,13 @@ export class TableVerification {
       )}`,
     );
 
-    TableSearch.searchWithPagination(
-      rowData,
-      undefined,
-      true,
-      (row) => {
-        return cy.wrap(row)
-          .find('td')
-          .first()
-          .find('input[type="checkbox"]')
-          .should('be.checked') as unknown as Cypress.Chainable<void>;
-      },
-    );
+    TableSearch.searchWithPagination(rowData, undefined, true, (row) => {
+      return cy
+        .wrap(row)
+        .find('td')
+        .first()
+        .find('input[type="checkbox"]')
+        .should('be.checked') as unknown as Cypress.Chainable<void>;
+    });
   }
 }

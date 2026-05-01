@@ -110,7 +110,7 @@ Feature: Applications List Entry Search
             | User  | SearchDate | CourtSearch | Court                             | ApplicantOrg                  | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant                     | Respondent                     | ApplicationTitle                               | Fee | Resulted | Status |
             | user1 | today      | LCCC065     | Leeds Combined Court Centre Set 7 | Applicant Industries {RANDOM} |                  |               |                   |              |                    |           |     |               |               |                  | Application list entries | todaydisplay | Applicant Industries {RANDOM} | Respondent Industries {RANDOM} | Issue of liability order summons - council tax | No  | No       | OPEN   |
 
-    @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076
+    @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1052 @ARCPOC-1076 @ARCPOC-1343
     Scenario Outline: Verify Search application list entries are listed in the table on ALE search page with Other Location and CJA, Applicant Person and Respondent Person
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -185,9 +185,9 @@ Feature: Applications List Entry Search
             | <DisplayDate> | <Applicant> | <Respondent> | <ApplicationTitle> | <Fee> | <Resulted> | <Status> |
         Examples:
             | User  | Dateiso  | Time           | Description                             | DurationHours | DurationMinutes | otherLocationDescription         | SearchDate | CourtSearch | Court | ApplicantOrg | ApplicantSurname | RespondentOrg | RespondentSurname | SelectStatus | RespondentPostcode | CJASearch | CJA    | OtherLocation | ApplicantCode | AccountReference | TableName                | DisplayDate  | Applicant             | Respondent           | ApplicationTitle                               | Fee | Resulted | Status |
-            | user1 | todayiso | timenowhhmm-2h | Applications to review at Test_{RANDOM} | 1             | 11              | Temporary Courtroom at Town Hall |            |             |       |              | Taylor {RANDOM}  |               |                   | Open         | BS15 5AA           | 01        | London |               |               |                  | Application list entries | todaydisplay | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | Issue of liability order summons - council tax | No  | No       | OPEN   |
+            | user1 | todayiso | timenowhhmm-2h | Applications to review at Test_{RANDOM} | 1             | 11              | Temporary Courtroom at Town Hall |            |             |       |              | Taylor {RANDOM}  |               |                   | Open         | BS15               | 01        | London |               |               |                  | Application list entries | todaydisplay | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | Issue of liability order summons - council tax | No  | No       | OPEN   |
 
-    @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1083
+    @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1083 @ARCPOC-1343
     Scenario: Verify Validation Error Messages on Application list entry Search Page
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
@@ -214,7 +214,9 @@ Feature: Applications List Entry Search
         When User Searches Applications With:
             | Date | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
             |      |             |       |                        |                   |                         |                    |                           | <InvalidPostcode>    |           |                       |                            |                         |                   |
-        Then User Sees Validation Error Banner "There is a problem Enter a valid UK postcode"
+
+        Then User Sees Notification Banner "Important No application list entries found Try different filters"
+        Then User See "No results found." On The Page
         When User Clicks On The "Clear search" Button
         When User Searches Applications With:
             | Date        | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
