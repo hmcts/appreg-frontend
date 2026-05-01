@@ -123,7 +123,8 @@ export class TableInteraction {
       true,
       (row) => {
         return TableElement.getCheckboxInRow(row).then((checkbox) => {
-          cy.wrap(checkbox)
+          return cy
+            .wrap(checkbox)
             .scrollIntoView()
             .should('exist')
             .and('not.be.disabled')
