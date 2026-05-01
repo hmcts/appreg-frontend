@@ -479,25 +479,31 @@ export class PdfService {
           16,
         );
 
-        // Application (left/right blocks)
-        const leftBlockParts: string[] = [];
+        // Application (Left), Officials(right)
+        const applicationsContentParts: string[] = [];
         if (e.applicationCode?.trim()) {
-          leftBlockParts.push(`Application Code: ${e.applicationCode.trim()}`);
+          applicationsContentParts.push(
+            `Application Code: ${e.applicationCode.trim()}`,
+          );
         }
-        if (e.matter?.trim()) {
-          leftBlockParts.push(e.matter.trim());
-        }
-        const leftBlock = leftBlockParts.join('\n');
-
-        const rightBlockParts: string[] = [];
         if (e.applicationDescription?.trim()) {
-          rightBlockParts.push(
+          applicationsContentParts.push(
             `Application Title: ${e.applicationDescription.trim()}`,
           );
         }
-        const rightBlock = rightBlockParts.join('\n');
+        if (e.matter?.trim()) {
+          applicationsContentParts.push(e.matter.trim());
+        }
 
-        drawTwoColRow('Application', leftBlock || '—', '', rightBlock, 10);
+        const applicationContents = applicationsContentParts.join('\n');
+        const judges = this.fallbackText(e.judge);
+        drawTwoColRow(
+          'Application',
+          applicationContents,
+          'This matter was before',
+          judges,
+          20,
+        );
 
         // Result
         const result = this.fallbackText(e.result);
@@ -521,10 +527,6 @@ export class PdfService {
         ].join('\n');
 
         drawFullRow('Notes', value, 22);
-
-        // Judges
-        const judges = this.fallbackText(e.judge);
-        drawFullRow('This matter was before', judges, 14);
       }
     }
 
@@ -603,7 +605,7 @@ export class PdfService {
       const result = asArr(x['resultWordings'])
         .map((v) => trimToString(v))
         .filter(Boolean)
-        .join(' ');
+        .join('\n');
 
       const judge = asArr(x['officials'])
         .map((v) => {
