@@ -14,10 +14,10 @@ When(
     if (rows.length === 0) {
       throw new Error('DataTable must have at least one row of data');
     }
-    const caption = tableName.trim();
+    const caption = tableName.trim() || undefined;
     rows.forEach((rowData, index) => {
       AccordionHelper.within(accordionTitle, () => {
-        TableInteraction.checkCheckboxInTableRow(caption, rowData);
+        TableInteraction.checkCheckboxInTableRow(caption as string, rowData);
       });
       cy.screenshot(`checked-checkbox-in-row-${index + 1}`);
     });
