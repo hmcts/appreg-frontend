@@ -112,6 +112,8 @@ export class SortableTableComponent
   selectedIds = input<Set<string>>(new Set<string>());
   selectedIdsChange = output<Set<string>>();
   selectedRowsChange = output<Row[]>();
+  selectAllScope = input<'visible' | 'external'>('visible');
+  selectAllChange = output<boolean>();
   idPrefix = input('apps-');
   singleSelect = input(false);
 
@@ -208,6 +210,10 @@ export class SortableTableComponent
 
   toggleSelectAllVisible(checked: boolean): void {
     if (this.singleSelect()) {
+      return;
+    }
+    if (this.selectAllScope() === 'external') {
+      this.selectAllChange.emit(checked);
       return;
     }
     const next = new Set(this.selectedIdsState());

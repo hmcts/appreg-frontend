@@ -23,6 +23,7 @@ import {
   signal,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 
 import { ApplicationsListUpdateComponent } from './applications-list-update/applications-list-update.component';
 import {
@@ -65,6 +66,7 @@ import {
   ApplicationListGetDetailDto,
   ApplicationListGetPrintDto,
   ApplicationListsApi,
+  EntryIdsDto,
   EntryPage,
 } from '@openapi';
 import { ApplicationsListFormService } from '@services/applications-list/applications-list-form.service';
@@ -77,11 +79,17 @@ import {
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenu, MojButtonMenuDirective } from '@util/moj-button-menu';
 import {
-  filterEntriesToPrint as filterEntriesToPrintDto,
   handlePrintContinuous as handlePrintContinuousPdf,
   handlePrintPage as handlePrintPagePdf,
 } from '@util/pdf-utils';
 import { PlaceFieldsBase } from '@util/place-fields.base';
+import {
+  ServerPaginatedSelectionPatch,
+  buildPageSelectionPatch,
+  buildSelectAllMatchingPatch,
+  getVisibleSelectedRows,
+  isAllMatchingSelected,
+} from '@util/server-paginated-selection';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { parseTimeToDuration } from '@util/time-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
@@ -336,7 +344,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
               errorSummary: [{ text: 'No data returned from server.' }],
               rows: [],
               totalPages: 0,
+              totalEntries: 0,
               selectedIds: new Set<string>(),
+              selectedRows: [],
+              allMatchingSelected: false,
             });
             this.listDetailRequest.set(null);
             return;
@@ -375,7 +386,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
             errorSummary: [{ text: getProblemText(err) }],
             rows: [],
             totalPages: 0,
+            totalEntries: 0,
             selectedIds: new Set<string>(),
+            selectedRows: [],
+            allMatchingSelected: false,
           });
           this.listDetailRequest.set(null);
         },
@@ -411,7 +425,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
               errorSummary: [{ text: 'No data returned from server.' }],
               rows: [],
               totalPages: 0,
+              totalEntries: 0,
               selectedIds: new Set<string>(),
+              selectedRows: [],
+              allMatchingSelected: false,
             });
             this.tableDataRequest.set(null);
             return;
@@ -423,16 +440,14 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           const pageSize = this.vm().pageSize;
           const totalPages = total > pageSize ? Math.ceil(total / pageSize) : 0;
 
-          const visible = new Set(rows.map((r) => r.id));
-          const selectedIds = new Set(
-            [...this.vm().selectedIds].filter((id) => visible.has(id)),
+          this.patchLoadSuccessState(
+            buildPageSelectionPatch({
+              rows,
+              totalPages,
+              totalEntries: total,
+              currentSelectedIds: this.vm().selectedIds,
+            }),
           );
-
-          this.patchLoadSuccessState({
-            rows,
-            totalPages,
-            selectedIds,
-          });
 
           this.tableDataRequest.set(null);
         },
@@ -448,7 +463,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
             errorSummary: [{ text: getProblemText(err) }],
             rows: [],
             totalPages: 0,
+            totalEntries: 0,
             selectedIds: new Set<string>(),
+            selectedRows: [],
+            allMatchingSelected: false,
           });
           this.tableDataRequest.set(null);
         },
@@ -543,6 +561,14 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     return !vm.isLoading && !vm.updateInvalid && (vm.rows?.length ?? 0) === 0;
   }
 
+  get selectedCount(): number {
+    return this.vm().selectedIds.size;
+  }
+
+  get hasSelection(): boolean {
+    return this.selectedCount > 0;
+  }
+
   loadListDetailsInfo(): void {
     if (!this.id) {
       return;
@@ -571,12 +597,100 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
+  onSelectedIdsChange(ids: Set<string>): void {
+    const vm = this.vm();
+    const selectedIds = new Set(ids);
+
+    this.detailSignalState.patch({
+      selectedIds,
+      selectedRows: getVisibleSelectedRows(vm.rows, selectedIds),
+      allMatchingSelected: isAllMatchingSelected(selectedIds, vm.totalEntries),
+    });
+  }
+
   onSelectedRowsChange(rows: Row[]): void {
     this.detailSignalState.patch({ selectedRows: rows });
   }
 
-  onResultButtonClick(): void {
-    const selected = this.vm().selectedRows as selectedRow[];
+  onHeaderSelectAllChange(checked: boolean): void {
+    if (checked) {
+      void this.onSelectAllMatchingClick();
+      return;
+    }
+
+    this.clearSelection();
+  }
+
+  async onSelectAllMatchingClick(): Promise<void> {
+    if (!this.id) {
+      return;
+    }
+
+    const vm = this.vm();
+    const previousSelection = {
+      selectedIds: new Set(vm.selectedIds),
+      selectedRows: [...vm.selectedRows],
+      allMatchingSelected: vm.allMatchingSelected,
+    };
+    const visibleIds = new Set(
+      vm.rows
+        .map((row) => row['id'])
+        .filter(
+          (id): id is string | number =>
+            typeof id === 'string' || typeof id === 'number',
+        )
+        .map(String),
+    );
+    const optimisticSelectedIds = new Set([
+      ...previousSelection.selectedIds,
+      ...visibleIds,
+    ]);
+
+    this.detailSignalState.patch({
+      isSelectingAll: true,
+      selectedIds: optimisticSelectedIds,
+      selectedRows: [...vm.rows],
+      allMatchingSelected:
+        visibleIds.size > 0 && visibleIds.size === vm.totalEntries,
+      errorSummary: [],
+      errorHint: '',
+    });
+
+    try {
+      const dto = await firstValueFrom(
+        this.appListEntriesApi.getApplicationListEntryIds({
+          listId: this.id,
+          filter: this.vm().getFilters,
+        }),
+      );
+
+      this.applySelectAllMatching(dto);
+    } catch (err) {
+      const errMsg = getProblemText(err);
+      this.detailSignalState.patch({
+        isSelectingAll: false,
+        ...previousSelection,
+        updateInvalid: true,
+        errorHint: errMsg,
+        errorSummary: [{ text: errMsg }],
+      });
+    }
+  }
+
+  clearSelection(): void {
+    this.detailSignalState.patch({
+      selectedIds: new Set<string>(),
+      selectedRows: [],
+      allMatchingSelected: false,
+    });
+  }
+
+  async onResultButtonClick(): Promise<void> {
+    const selected = (await this.resolveSelectedRows()) as selectedRow[];
+
+    if (selected.length === 0) {
+      return;
+    }
 
     // clear any prior messages
     this.detailSignalState.patch({ errorSummary: [], errorHint: '' });
@@ -589,7 +703,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       title: r.title,
     }));
 
-    void this.router.navigate(['result-selected'], {
+    await this.router.navigate(['result-selected'], {
       relativeTo: this.route,
       state: {
         resultingApplications,
@@ -597,8 +711,12 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
-  onMoveButtonClick(): void {
-    const selected = this.vm().selectedRows as selectedRow[];
+  async onMoveButtonClick(): Promise<void> {
+    const selected = (await this.resolveSelectedRows()) as selectedRow[];
+
+    if (selected.length === 0) {
+      return;
+    }
 
     this.detailSignalState.patch(clearUpdateNotificationsPatch());
 
@@ -611,7 +729,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       resulted: r.resulted,
     }));
 
-    void this.router.navigate(['move'], {
+    await this.router.navigate(['move'], {
       relativeTo: this.route,
       state: {
         entriesToMove,
@@ -669,7 +787,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   onPageChange(page: number): void {
     this.detailSignalState.patch({
       currentPage: page,
-      selectedIds: new Set(), // same behaviour as today
+      selectedRows: [],
     });
     this.loadListDetailsInfo();
   }
@@ -693,7 +811,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       currentPage: 0,
       rows: result.rows,
       totalPages: result.totalPages,
+      totalEntries: result.totalEntries,
       selectedIds: new Set<string>(),
+      selectedRows: [],
+      allMatchingSelected: false,
       updateInvalid: hasErrors,
       errorSummary: hasErrors ? result.errors : [],
       preserveErrorSummaryOnLoad: false,
@@ -718,9 +839,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   private patchLoadSuccessState(
-    patch: Partial<
-      Pick<ApplicationsListDetailState, 'rows' | 'totalPages' | 'selectedIds'>
-    >,
+    patch: Partial<ServerPaginatedSelectionPatch>,
   ): void {
     if (this.loadFailed()) {
       return;
@@ -742,10 +861,74 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private filterEntriesToPrint(
     dto: ApplicationListGetPrintDto,
   ): ApplicationListGetPrintDto {
-    return filterEntriesToPrintDto(
-      dto,
-      this.detailSignalState.state().selectedRows,
+    const selectedIds = this.detailSignalState.state().selectedIds;
+
+    const filteredEntries = dto.entries.filter((entry) =>
+      selectedIds.has(entry.id),
     );
+
+    return {
+      ...dto,
+      entries: filteredEntries,
+    };
+  }
+
+  private applySelectAllMatching(dto: EntryIdsDto): void {
+    this.detailSignalState.patch({
+      isSelectingAll: false,
+      ...buildSelectAllMatchingPatch(
+        dto.ids ?? [],
+        this.vm().rows,
+        this.vm().totalEntries,
+      ),
+    });
+  }
+
+  private async resolveSelectedRows(): Promise<Row[]> {
+    const vm = this.vm();
+
+    if (vm.selectedIds.size === 0) {
+      return vm.selectedRows;
+    }
+
+    if (vm.selectedIds.size === vm.selectedRows.length) {
+      return vm.selectedRows;
+    }
+
+    const selectedIds = new Set(vm.selectedIds);
+    const apiSortKey =
+      APPLICATION_LIST_DETAIL_SORT_MAP[vm.sortField.key] ?? vm.sortField.key;
+    const sort = [`${apiSortKey},${vm.sortField.direction}`];
+    const pageCount =
+      vm.totalPages > 0 ? vm.totalPages : vm.totalEntries > 0 ? 1 : 0;
+    const selectedRows: Row[] = [];
+
+    for (let pageNumber = 0; pageNumber < pageCount; pageNumber += 1) {
+      const page = await firstValueFrom(
+        this.appListEntriesApi.getApplicationListEntries({
+          listId: this.id,
+          pageNumber,
+          pageSize: vm.pageSize,
+          sort,
+          filter: vm.getFilters,
+        }),
+      );
+
+      const rows = mapEntrySummaryRows(page.content ?? []);
+      for (const row of rows) {
+        if (selectedIds.has(row.id)) {
+          selectedRows.push(row);
+        }
+      }
+
+      if (selectedRows.length === selectedIds.size) {
+        break;
+      }
+    }
+
+    this.detailSignalState.patch({ selectedRows });
+
+    return selectedRows;
   }
 
   private async handlePrintPage(
