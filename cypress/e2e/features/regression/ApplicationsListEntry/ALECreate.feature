@@ -264,7 +264,7 @@ Feature: Applications List Entry Create
     Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Application codes"
     Then User Clicks "Add code" Button In Row Of Table "Codes" In The Accordion "Application codes"
       | Code    | Title                                          | Bulk | Fee required |
-      | CT99002 | Issue of liability order summons - council tax | No   | Yes          |
+      | CT99002 | Issue of liability order summons - council tax | No   | No           |
     Then User Verifies The "Application Title" Textbox Has Value "Issue of liability order summons - council tax"
     # Wording Details
     Then User Verifies The "Wording" Accordion Has Value "Attends to swear a complaint for the issue of a summons for the debtor to answer an application for a liability order in relation to unpaid council tax (reference"
