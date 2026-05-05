@@ -240,4 +240,27 @@ export class TableVerification {
       `Column "${columnName}" should be sorted ${sortOrder}`,
     ).to.deep.equal(sorted);
   }
+
+  /**
+   * Verifies that a checkbox in the first column is checked for a specific row
+   */
+  static verifyCheckboxInRowIsChecked(
+    tableCaption: string,
+    rowData: { [key: string]: string },
+  ): void {
+    cy.log(
+      `Verifying checkbox in first column is checked for row with data: ${JSON.stringify(
+        rowData,
+      )}`,
+    );
+
+    TableSearch.searchWithPagination(rowData, undefined, true, (row) => {
+      return cy
+        .wrap(row)
+        .find('td')
+        .first()
+        .find('input[type="checkbox"]')
+        .should('be.checked') as unknown as Cypress.Chainable<void>;
+    });
+  }
 }
