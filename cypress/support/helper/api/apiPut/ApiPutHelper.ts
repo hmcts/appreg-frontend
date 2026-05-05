@@ -22,10 +22,12 @@ export class ApiPutHelper {
    */
   static putWithJsonBody(endpoint: string, jsonBody: string): void {
     const parsedBody = JSON.parse(jsonBody);
-    const processedBody = ApiBaseHelper.processDynamicValues(
-      parsedBody,
-    ) as Cypress.RequestBody;
-    ApiBaseHelper.makeRequest('PUT', endpoint, processedBody);
+    ApiBaseHelper.resolveBodyPlaceholders(parsedBody).then((resolvedBody) => {
+      const processedBody = ApiBaseHelper.processDynamicValues(
+        resolvedBody,
+      ) as Cypress.RequestBody;
+      ApiBaseHelper.makeRequest('PUT', endpoint, processedBody);
+    });
   }
 
   /**
