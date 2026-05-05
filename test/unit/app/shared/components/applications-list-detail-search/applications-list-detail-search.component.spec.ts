@@ -88,6 +88,7 @@ describe('ApplicationsListDetailSearchComponent', () => {
       {
         rows: [],
         totalPages: 0,
+        totalEntries: 0,
         reqFilter: {},
         errors: component.localErrors(),
       },
@@ -204,6 +205,7 @@ describe('ApplicationsListDetailSearchComponent', () => {
           sequenceNumber: 12,
         },
         totalPages: 3,
+        totalEntries: 1,
         errors: [],
       },
     ]);
@@ -239,6 +241,7 @@ describe('ApplicationsListDetailSearchComponent', () => {
       {
         rows: [],
         totalPages: 0,
+        totalEntries: 0,
         reqFilter: {},
         errors: [
           { id: 'applicantName', text: 'Applicant is invalid' },
@@ -266,6 +269,7 @@ describe('ApplicationsListDetailSearchComponent', () => {
       {
         rows: [],
         totalPages: 0,
+        totalEntries: 0,
         reqFilter: {},
         errors: [{ text: 'Request failed' }],
       },
@@ -317,6 +321,7 @@ describe('ApplicationsListDetailSearchComponent', () => {
       {
         rows: [],
         totalPages: 0,
+        totalEntries: 0,
         reqFilter: {
           accountReference: undefined,
           applicantName: undefined,

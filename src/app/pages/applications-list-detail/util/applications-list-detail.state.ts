@@ -14,16 +14,19 @@ export interface ApplicationsListDetailState {
   currentPage: number;
   pageSize: number;
   totalPages: number;
+  totalEntries: number;
   sortField: { key: string; direction: 'desc' | 'asc' };
 
   // rows + selection
   rows: Row[];
   selectedIds: Set<string>;
   selectedRows: Row[];
+  allMatchingSelected: boolean;
 
   // flags
   createDone: boolean;
   isLoading: boolean;
+  isSelectingAll: boolean;
   updateDone: boolean;
   updateInvalid: boolean;
   moveDone: boolean;
@@ -44,14 +47,17 @@ export const initialApplicationsListDetailState: ApplicationsListDetailState = {
   currentPage: 0,
   pageSize: 10,
   totalPages: 0,
+  totalEntries: 0,
   sortField: { key: 'sequenceNumber', direction: 'asc' },
 
   rows: [],
   selectedIds: new Set<string>(),
   selectedRows: [],
+  allMatchingSelected: false,
 
   createDone: false,
   isLoading: true,
+  isSelectingAll: false,
   updateDone: false,
   updateInvalid: false,
   moveDone: false,
