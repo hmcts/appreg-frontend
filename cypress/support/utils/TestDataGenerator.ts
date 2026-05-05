@@ -8,9 +8,13 @@ export class TestDataGenerator {
 
   /**
    * Initializes a new random value for the current scenario
+   * Uses timestamp + random to ensure uniqueness across scenarios
+   * Generates 6-digit number: 4 from timestamp + 2 from random
    */
   static initializeScenario(): void {
-    this.scenarioRandom = Math.floor(Math.random() * 100000).toString();
+    const timestamp = Date.now().toString().slice(-4); // Last 4 digits of timestamp
+    const random = Math.floor(Math.random() * 100); // 0-99
+    this.scenarioRandom = `${timestamp}${random.toString().padStart(2, '0')}`;
   }
 
   /**
@@ -35,12 +39,14 @@ export class TestDataGenerator {
   }
 
   /**
-   * Generates a random number
-   * @param max Maximum number (default: 100000)
-   * @returns Random number as string
+   * Generates a random number with timestamp for uniqueness
+   * @param max Maximum number for random component (default: 100)
+   * @returns Random number as string with timestamp prefix
    */
-  private static getRandomNumber(max: number = 100000): string {
-    return Math.floor(Math.random() * max).toString();
+  private static getRandomNumber(max: number = 100): string {
+    const timestamp = Date.now().toString().slice(-4); // Last 4 digits of timestamp
+    const random = Math.floor(Math.random() * max);
+    return `${timestamp}${random.toString().padStart(2, '0')}`;
   }
 
   /**

@@ -67,6 +67,55 @@ export class ApiBaseHelper {
   }
 
   /**
+   * Recursively resolves placeholders (:aliasName or {{aliasName}}) in request body from Cypress aliases
+   * @param body Request body to process
+   * @returns Chainable with resolved body
+   */
+  static resolveBodyPlaceholders(body: unknown): Cypress.Chainable<unknown> {
+    if (Array.isArray(body)) {
+      // Process array items in sequence
+      let chain = cy.wrap([] as unknown[]);
+      body.forEach((item) => {
+        chain = chain.then((acc) =>
+          ApiBaseHelper.resolveBodyPlaceholders(item).then((resolved) => {
+            acc.push(resolved);
+            return acc;
+          }),
+        );
+      });
+      return chain as Cypress.Chainable<unknown>;
+    }
+
+    if (body && typeof body === 'object') {
+      // Process object properties in sequence
+      let chain = cy.wrap({} as Record<string, unknown>);
+      Object.entries(body).forEach(([key, value]) => {
+        chain = chain.then((acc) =>
+          ApiBaseHelper.resolveBodyPlaceholders(value).then((resolved) => {
+            acc[key] = resolved;
+            return acc;
+          }),
+        );
+      });
+      return chain as Cypress.Chainable<unknown>;
+    }
+
+    if (typeof body === 'string') {
+      // Check if the string matches placeholder pattern
+      const placeholderRegex = /^:(\w+)$|^\{\{(\w+)\}\}$/;
+      const match = placeholderRegex.exec(body);
+      if (match) {
+        const aliasName = match[1] ?? match[2];
+        return cy.get(`@${aliasName}`).then((aliasValue) => {
+          return aliasValue as unknown;
+        });
+      }
+    }
+
+    return cy.wrap(body);
+  }
+
+  /**
    * Makes an authenticated API request
    * @param method HTTP method (GET, POST, PUT, DELETE, etc.)
    * @param endpoint API endpoint (can contain placeholders)
@@ -87,6 +136,15 @@ export class ApiBaseHelper {
           const url = baseUrl
             ? `${baseUrl}${processedEndpoint}`
             : processedEndpoint;
+
+          // Log request details
+          cy.log(`[ApiBaseHelper] ${method} request to: ${processedEndpoint}`);
+          if (body) {
+            cy.log(
+              `[ApiBaseHelper] Request body: ${JSON.stringify(body, null, 2)}`,
+            );
+          }
+
           cy.get('@authToken').then((token) => {
             cy.request({
               method,

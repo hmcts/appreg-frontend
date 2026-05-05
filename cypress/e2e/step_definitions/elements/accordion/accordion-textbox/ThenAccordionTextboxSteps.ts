@@ -20,18 +20,10 @@ Then(
     const resolvedExpected =
       TestDataGenerator.replaceRandomPlaceholders(expectedValue);
     AccordionHelper.within(accordionTitle, () => {
-      if (!textboxLabel || textboxLabel.trim() === '') {
-        // Find the first textbox (input or textarea) in the accordion
-        cy.get('input[type="text"], textarea')
-          .first()
-          .invoke('val')
-          .should('eq', resolvedExpected);
-      } else {
-        TextboxHelper.getValueInTextbox(textboxLabel).should(
-          'eq',
-          resolvedExpected,
-        );
-      }
+      TextboxHelper.getValueInTextbox(textboxLabel).should(
+        'eq',
+        resolvedExpected,
+      );
     });
   },
 );
@@ -80,6 +72,21 @@ Then(
   (textboxLabel: string, accordionTitle: string) => {
     AccordionHelper.within(accordionTitle, () => {
       TextboxHelper.getValueInTextbox(textboxLabel).should('eq', '');
+    });
+  },
+);
+
+Then(
+  'User Verifies Textbox With Placeholder {string} Contains {string} In The Accordion {string}',
+  (placeholder: string, expectedValue: string, accordionTitle: string) => {
+    const resolvedExpected =
+      TestDataGenerator.replaceRandomPlaceholders(expectedValue);
+    AccordionHelper.within(accordionTitle, () => {
+      cy.get(
+        `input[placeholder="${placeholder}"], textarea[placeholder="${placeholder}"]`,
+      )
+        .invoke('val')
+        .should('eq', resolvedExpected);
     });
   },
 );
