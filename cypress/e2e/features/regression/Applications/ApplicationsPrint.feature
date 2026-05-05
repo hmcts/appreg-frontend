@@ -365,10 +365,10 @@ Feature: Applications Print
             | Produced on            | todaydisplaylong                                                                                    |
         Then User Clears Downloaded PDFs
         # Cleanup
-        # When User Makes DELETE API Request To "/application-lists/:listId"
-        # Then User Verify Response Status Code Should Be "204"
-        # When User Makes DELETE API Request To "/application-lists/:listId2"
-        # Then User Verify Response Status Code Should Be "204"
+        When User Makes DELETE API Request To "/application-lists/:listId"
+        Then User Verify Response Status Code Should Be "204"
+        When User Makes DELETE API Request To "/application-lists/:listId2"
+        Then User Verify Response Status Code Should Be "204"
         Examples:
             | User  |
             | user1 |
