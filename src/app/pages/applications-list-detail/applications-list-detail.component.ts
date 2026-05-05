@@ -170,6 +170,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly printRequest = signal<PrintRequest | null>(null);
 
   private readonly loadFailed = signal(false);
+  private selectAllRequestVersion = 0;
 
   override form = this.appListFormService.createUpdateForm();
 
@@ -569,6 +570,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     return this.selectedCount > 0;
   }
 
+  get canUseBulkActions(): boolean {
+    return this.hasSelection && !this.vm().isSelectingAll;
+  }
+
   loadListDetailsInfo(): void {
     if (!this.id) {
       return;
@@ -626,6 +631,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       return;
     }
 
+    const requestVersion = this.nextSelectAllRequestVersion();
     const vm = this.vm();
     const previousSelection = {
       selectedIds: new Set(vm.selectedIds),
@@ -664,8 +670,16 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         }),
       );
 
+      if (requestVersion !== this.selectAllRequestVersion) {
+        return;
+      }
+
       this.applySelectAllMatching(dto);
     } catch (err) {
+      if (requestVersion !== this.selectAllRequestVersion) {
+        return;
+      }
+
       const errMsg = getProblemText(err);
       this.detailSignalState.patch({
         isSelectingAll: false,
@@ -678,9 +692,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   }
 
   clearSelection(): void {
+    this.invalidateSelectAllRequest();
     this.detailSignalState.patch({
       selectedIds: new Set<string>(),
       selectedRows: [],
+      isSelectingAll: false,
       allMatchingSelected: false,
     });
   }
@@ -803,10 +819,25 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.loadListDetailsInfo();
   }
 
+  onSearchStarted(
+    filters: ApplicationsListDetailSearchResult['reqFilter'],
+  ): void {
+    this.invalidateSelectAllRequest();
+    this.detailSignalState.patch({
+      currentPage: 0,
+      getFilters: filters,
+      selectedIds: new Set<string>(),
+      selectedRows: [],
+      isSelectingAll: false,
+      allMatchingSelected: false,
+    });
+  }
+
   onSearchResult(result: ApplicationsListDetailSearchResult): void {
     const hasErrors = result.errors.length > 0;
     const filters = result.reqFilter;
 
+    this.invalidateSelectAllRequest();
     this.detailSignalState.patch({
       currentPage: 0,
       rows: result.rows,
@@ -929,6 +960,15 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.detailSignalState.patch({ selectedRows });
 
     return selectedRows;
+  }
+
+  private nextSelectAllRequestVersion(): number {
+    this.selectAllRequestVersion += 1;
+    return this.selectAllRequestVersion;
+  }
+
+  private invalidateSelectAllRequest(): void {
+    this.selectAllRequestVersion += 1;
   }
 
   private async handlePrintPage(

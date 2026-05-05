@@ -67,6 +67,7 @@ export class ApplicationsListDetailSearchComponent {
   readonly listId = input.required<string>();
   readonly pageSize = input(10);
   readonly searchResult = output<ApplicationsListDetailSearchResult>();
+  readonly searchStarted = output<EntryApplicationListGetFilterDto>();
 
   readonly submitted = signal(false);
   readonly localErrors = signal<ErrorItem[]>([]);
@@ -150,6 +151,7 @@ export class ApplicationsListDetailSearchComponent {
     }
 
     const reqFilter = this.toFilter();
+    this.searchStarted.emit(reqFilter);
 
     try {
       // GET /application-lists/{listId}/entries

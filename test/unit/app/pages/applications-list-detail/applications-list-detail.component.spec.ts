@@ -1364,6 +1364,7 @@ describe('ApplicationsListDetail', () => {
     patchDetailState({
       selectedIds: new Set(['id-1']),
       selectedRows: [{ id: 'id-1' } as Row],
+      isSelectingAll: true,
       allMatchingSelected: true,
     });
 
@@ -1371,6 +1372,7 @@ describe('ApplicationsListDetail', () => {
 
     expect(vm().selectedIds.size).toBe(0);
     expect(vm().selectedRows).toEqual([]);
+    expect(vm().isSelectingAll).toBe(false);
     expect(vm().allMatchingSelected).toBe(false);
   });
 
@@ -1431,6 +1433,65 @@ describe('ApplicationsListDetail', () => {
 
     expect(vm().selectedIds).toEqual(new Set(['abc', 'def', 'ghi', 'jkl']));
     expect(vm().allMatchingSelected).toBe(true);
+  });
+
+  it('onSelectAllMatchingClick ignores stale responses after selection is cleared', async () => {
+    const ids$ = new Subject<EntryIdsDto>();
+    entriesApiStub.getApplicationListEntryIds.mockReturnValueOnce(
+      ids$ as unknown as ReturnType<
+        ApplicationListEntriesApi['getApplicationListEntryIds']
+      >,
+    );
+
+    patchDetailState({
+      rows: [{ id: 'abc', title: 'Visible row' } as Row],
+      totalEntries: 2,
+    });
+    component.id = 'list-123';
+
+    const pending = component.onSelectAllMatchingClick();
+    component.clearSelection();
+
+    ids$.next({ ids: ['abc', 'def'] });
+    ids$.complete();
+    await pending;
+
+    expect(vm().selectedIds.size).toBe(0);
+    expect(vm().selectedRows).toEqual([]);
+    expect(vm().allMatchingSelected).toBe(false);
+  });
+
+  it('onSearchStarted clears selection and invalidates pending select all', async () => {
+    const ids$ = new Subject<EntryIdsDto>();
+    entriesApiStub.getApplicationListEntryIds.mockReturnValueOnce(
+      ids$ as unknown as ReturnType<
+        ApplicationListEntriesApi['getApplicationListEntryIds']
+      >,
+    );
+
+    patchDetailState({
+      rows: [{ id: 'abc', title: 'Visible row' } as Row],
+      totalEntries: 2,
+      selectedIds: new Set(['abc']),
+      selectedRows: [{ id: 'abc', title: 'Visible row' } as Row],
+      getFilters: { applicantName: 'Old' },
+    });
+    component.id = 'list-123';
+
+    const pending = component.onSelectAllMatchingClick();
+    component.onSearchStarted({ applicantName: 'New' });
+
+    expect(vm().selectedIds.size).toBe(0);
+    expect(vm().selectedRows).toEqual([]);
+    expect(vm().getFilters).toEqual({ applicantName: 'New' });
+    expect(vm().isSelectingAll).toBe(false);
+
+    ids$.next({ ids: ['abc', 'def'] });
+    ids$.complete();
+    await pending;
+
+    expect(vm().selectedIds.size).toBe(0);
+    expect(vm().selectedRows).toEqual([]);
   });
 
   it('prefillFromApi: sets listRow when navigation state row is missing', () => {

@@ -107,6 +107,7 @@
     <app-applications-list-detail-search
       [listId]="id"
       [pageSize]="vm().pageSize"
+      (searchStarted)="onSearchStarted($event)"
       (searchResult)="onSearchResult($event)"
     />
 
@@ -145,7 +146,7 @@
             role="group"
             aria-label="Table actions"
           >
-            @if (!hasSelection) {
+            @if (!canUseBulkActions) {
               <button
                 type="button"
                 class="govuk-button govuk-button--small govuk-button--primary table-caption__action-button"
