@@ -118,7 +118,7 @@ Feature: Applications List Entry Create
     Then User Enters "account{RANDOM}" Into The Textbox "Account reference" In The Accordion "Notes"
     Then User Enters "This is a test application with special requirements" Into The Textbox "Application details" In The Accordion "Notes"
     # Submit Application Bug ARCPOC-1239 is raised for Wording not retaining changes
-    Then User Verifies The Textbox "" Contains "Test Sample Wording" In The Accordion "Wording"
+    Then User Verifies Textbox With Placeholder "Enter a Describe Seized Food" Contains "Test Sample Wording" In The Accordion "Wording"
     Then User Verifies The "Wording" Accordion Has textbox with placeholder "Enter a Describe Seized Food" and Enters "Test Sample Wording"
     When User Clicks On The "Apply wording" Button In The Accordion "Wording"
     Then User Sees Success Alert "Wording applied to this entry. Save the entry to keep these changes."
@@ -159,7 +159,7 @@ Feature: Applications List Entry Create
     Then User Verifies Date Field "Lodgement date" Is Disabled In The Accordion "Application codes"
     # Verify Wording Details
     Then User Verifies The "Wording" Accordion Has Value "Application for the condemnation of food, namely"
-    Then User Verifies The Textbox "" Contains "Test Sample Wording" In The Accordion "Wording"
+    Then User Verifies Textbox With Placeholder "Enter a Describe Seized Food" Contains "Test Sample Wording" In The Accordion "Wording"
     # Verify Respondent Details
     When User Verifies In The Respondent Details
       | Select type      | Person                         |
@@ -330,7 +330,7 @@ Feature: Applications List Entry Create
     Then User Verifies Date Field "Lodgement date" Is Disabled In The Accordion "Application codes"
     # Verify Wording Details
     Then User Verifies The "Wording" Accordion Has Value "Attends to swear a complaint for the issue of a summons for the debtor to answer an application for a liability order in relation to unpaid council tax (reference"
-    Then User Verifies The Textbox "" Contains "TestRef-001" In The Accordion "Wording"
+    Then User Verifies Textbox With Placeholder "Enter a Reference" Contains "TestRef-001" In The Accordion "Wording"
     # Verify Respondent Details
     When User Verifies In The Respondent Details
       | Select type       | Organisation                              |
@@ -376,7 +376,7 @@ Feature: Applications List Entry Create
     Then User Should See The Textbox "Official's first name" Under "Officials" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Official's surname" Under "Officials" FieldSet In The Accordion "Officials"
 
-  @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC3
+  @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC3 @PJ
   Scenario Outline: Create and Open an ALE where Applicant = Standard Applicant, using an Application Code with Fee Required = Y and Respondent Required = N
     Given User Authenticates Via API As "user1"
     # Create Application List
@@ -435,7 +435,7 @@ Feature: Applications List Entry Create
     Then User Should See The Text "Total Fee Amount: £135.00" In The Accordion "Civil fee"
     Then User Selects "Paid" From The Dropdown "Fee status" In The Accordion "Civil fee"
     Then User Enters "today" Into The Date Field "Status date" In The Accordion "Civil fee"
-    Then User Enters "PAY-12345-{RANDOM}" Into The Textbox "Payment reference" In The Accordion "Civil fee"
+    Then User Enters "PAY-{RANDOM}" Into The Textbox "Payment reference" In The Accordion "Civil fee"
     When User Clicks On The "Add fee details" Button In The Accordion "Civil fee"
     # Notes Details
     Then User Enters "case{RANDOM}" Into The Textbox "Case reference" In The Accordion "Notes"
@@ -444,9 +444,7 @@ Feature: Applications List Entry Create
     # Submit Application
     When User Clicks On The "Create entry" Button
     Then User Sees Success Banner "Success Application list entry created The application list entry has been created successfully."
-
     # ---------------OPEN APPLICATION LIST ENTRY-----------@ARCPOC-635 SC3
-
     Then User Clicks On The Breadcrumb Link "Applications list details"
     When User Clicks "Open" Button In Row Of Table "Entries" With:
       | Sequence number | Account number  | Applicant   | Respondent | Postcode | Title                                                      | Fee | Resulted |
@@ -459,9 +457,9 @@ Feature: Applications List Entry Create
     When User Verifies In The Applicant Details
       | Select applicant type | Standard Applicant |
     Then User Should See The Text "Saved APP025 Ava Johnson" In The Accordion "Applicant"
-    # Then User Verifies The Checkbox is Checked In Row Of Table "Standard applicants" In The Accordion "Applicant" With:
-    #   | Code   | Name        | Address        | Use from   | Use to |
-    #   | APP025 | Ava Johnson | 258 Cedar Lane | 6 Nov 2025 | —      |
+    Then User Verifies The Checkbox is Checked In Row Of Table "Standard applicants" In The Accordion "Applicant" With:
+      | Code   | Name        | Address        | Use from   | Use to |
+      | APP025 | Ava Johnson | 258 Cedar Lane | 6 Nov 2025 | —      |
     # Verify Application Codes Details
     Then User Verifies The Textbox "Application code" Contains "AP99004" In The Accordion "Application codes"
     Then User Verifies The Textbox "Application title" Contains "Request for Certificate of Refusal to State a Case (Civil)" In The Accordion "Application codes"
@@ -469,7 +467,7 @@ Feature: Applications List Entry Create
     Then User Verifies Date Field "Lodgement date" Is Disabled In The Accordion "Application codes"
     # Verify Wording Details
     Then User Verifies The "Wording" Accordion Has Value "Request for a certificate of refusal to state a case for the opinion of the High Court in respect of civil proceedings heard on"
-    Then User Verifies The Textbox "" Contains "today" In The Accordion "Wording"
+    Then User Verifies Textbox With Placeholder "Enter a Date" Contains "today" In The Accordion "Wording"
     # Verify Respondent Details Not provided as Respondent Required = N for the Application Code
     # Verify Civil Fee Details
     Then User Verifies The Checkbox With Label "Off site fee applies" In The Accordion "Civil fee" Is Checked
@@ -480,8 +478,8 @@ Feature: Applications List Entry Create
     Then User Should See The Text "Off Site Fee Amount: £30.00" In The Accordion "Civil fee"
     Then User Should See The Text "Total Fee Amount: £135.00" In The Accordion "Civil fee"
     Then User Verifies "Change" Link Is Visible In Row Of Table In The Accordion "Civil fee" With:
-      | Fee Status | Status Date  | Payment Ref        |
-      | PAID       | todaydisplay | PAY-12345-{RANDOM} |
+      | Fee Status | Status Date  | Payment Ref  |
+      | PAID       | todaydisplay | PAY-{RANDOM} |
     # Verify Notes Details
     Then User Verifies The Textbox "Case reference" Contains "case{RANDOM}" In The Accordion "Notes"
     Then User Verifies The Textbox "Account reference" Contains "account{RANDOM}" In The Accordion "Notes"
