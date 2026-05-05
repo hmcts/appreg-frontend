@@ -26,7 +26,9 @@ export class PdfService {
     dto: unknown,
     opts?: { crestUrl?: string },
   ): Promise<void> {
-    const data = this.normalise(dto);
+    const dataArr = (Array.isArray(dto) ? dto : [dto]).map((d) =>
+      this.normalise(d),
+    );
 
     const jsPDFMod = await import('jspdf');
     const { jsPDF } = jsPDFMod;
@@ -72,7 +74,7 @@ export class PdfService {
     };
 
     // Header renders crest + centred title and returns body start Y
-    const drawHeader = (): number => {
+    const drawHeader = (data: PdfList): number => {
       if (crestDataUrl) {
         try {
           doc.addImage(crestDataUrl, 'PNG', CREST_X, CREST_Y, CREST_W, CREST_H);
@@ -127,12 +129,12 @@ export class PdfService {
       doc.text(todayDMY, RIGHT_X, baseY);
     };
 
-    const ensureSpace = (needed: number): void => {
+    const ensureSpace = (needed: number, data: PdfList): void => {
       if (y + needed <= BOTTOM) {
         return;
       }
       doc.addPage();
-      pageTop = drawHeader();
+      pageTop = drawHeader(data);
       y = pageTop;
     };
 
@@ -140,6 +142,7 @@ export class PdfService {
     const writeLabelValue = (
       labelText: string,
       valueText: string | undefined,
+      data: PdfList,
       optsLV?: { emphasize?: boolean; spacing?: number },
     ): void => {
       const spacing = optsLV?.spacing ?? 12;
@@ -163,7 +166,7 @@ export class PdfService {
       );
       const valueH = valueLines.length * 16;
 
-      ensureSpace(Math.max(labelH, valueH));
+      ensureSpace(Math.max(labelH, valueH), data);
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
@@ -176,54 +179,61 @@ export class PdfService {
       y += Math.max(labelH, valueH) + spacing;
     };
 
-    // Render (use for…of instead of .forEach)
-    for (const [i, e] of data.entries.entries()) {
-      if (i === 0) {
-        pageTop = drawHeader();
-      } else {
-        doc.addPage();
-        pageTop = drawHeader();
+    let entryIndex = 0;
+    for (const data of dataArr) {
+      for (const e of data.entries) {
+        if (entryIndex > 0) {
+          doc.addPage();
+        }
+        entryIndex += 1;
+        pageTop = drawHeader(data);
+        y = pageTop;
+
+        writeLabelValue(
+          'Application\nbrought by',
+          `${this.fallbackText(e.applicant)}\n${e.accountReference}`,
+          data,
+          { spacing: 8 },
+        );
+        writeLabelValue('Respondent', this.fallbackText(e.respondent), data);
+
+        ensureSpace(36, data);
+        hrLocal(y);
+        y += 24;
+
+        const heading = this.fallbackText(e.applicationDescription);
+        writeLabelValue('Matter considered', heading, data);
+
+        writeLabelValue(
+          this.fallbackText(e.applicationCode),
+          `${this.fallbackText(e.matter)}\n`,
+          data,
+        );
+        writeLabelValue('', this.fallbackText(e.result), data);
+
+        ensureSpace(36, data);
+        hrLocal(y);
+        y += 24;
+
+        const judges = this.fallbackText(e.judge);
+        writeLabelValue('This matter was before', judges, data);
+
+        // date format = 17 Febuary 2026
+        const date = this.safeFormatDate(e.date, 'longDate');
+        writeLabelValue('Dated', date as string, data);
+
+        drawFooter();
       }
-      y = pageTop;
-
-      writeLabelValue(
-        'Application\nbrought by',
-        `${this.fallbackText(e.applicant)}\n${e.accountReference}`,
-        { spacing: 8 },
-      );
-      writeLabelValue('Respondent', this.fallbackText(e.respondent));
-
-      ensureSpace(36);
-      hrLocal(y);
-      y += 24;
-
-      const heading = this.fallbackText(e.applicationDescription);
-      writeLabelValue('Matter considered', heading);
-
-      writeLabelValue(
-        this.fallbackText(e.applicationCode),
-        `${this.fallbackText(e.matter)}\n`,
-      );
-      writeLabelValue('', this.fallbackText(e.result));
-
-      ensureSpace(36);
-      hrLocal(y);
-      y += 24;
-
-      const judges = this.fallbackText(e.judge);
-      writeLabelValue('This matter was before', judges);
-
-      // date format = 17 Febuary 2026
-      const date = this.safeFormatDate(e.date, 'longDate');
-      writeLabelValue('Dated', date as string);
-
-      drawFooter();
     }
 
+    const uniquePlaces = this.uniqueFileSafePlaces(dataArr);
     const courtPart =
-      this.fileSafe(data.courtName) ||
-      this.fileSafe(this.cjaName(data.cja)) ||
-      'court';
+      uniquePlaces.length === 1
+        ? uniquePlaces[0]
+        : dataArr.length === 1
+          ? 'court'
+          : 'applications';
+
     const datePart = this.dateForFile();
     doc.save(`${courtPart}-${datePart}-print-page.pdf`);
   }
@@ -479,25 +489,31 @@ export class PdfService {
           16,
         );
 
-        // Application (left/right blocks)
-        const leftBlockParts: string[] = [];
+        // Application (Left), Officials(right)
+        const applicationsContentParts: string[] = [];
         if (e.applicationCode?.trim()) {
-          leftBlockParts.push(`Application Code: ${e.applicationCode.trim()}`);
+          applicationsContentParts.push(
+            `Application Code: ${e.applicationCode.trim()}`,
+          );
         }
-        if (e.matter?.trim()) {
-          leftBlockParts.push(e.matter.trim());
-        }
-        const leftBlock = leftBlockParts.join('\n');
-
-        const rightBlockParts: string[] = [];
         if (e.applicationDescription?.trim()) {
-          rightBlockParts.push(
+          applicationsContentParts.push(
             `Application Title: ${e.applicationDescription.trim()}`,
           );
         }
-        const rightBlock = rightBlockParts.join('\n');
+        if (e.matter?.trim()) {
+          applicationsContentParts.push(e.matter.trim());
+        }
 
-        drawTwoColRow('Application', leftBlock || '—', '', rightBlock, 10);
+        const applicationContents = applicationsContentParts.join('\n');
+        const judges = this.fallbackText(e.judge);
+        drawTwoColRow(
+          'Application',
+          applicationContents,
+          'This matter was before',
+          judges,
+          20,
+        );
 
         // Result
         const result = this.fallbackText(e.result);
@@ -521,23 +537,10 @@ export class PdfService {
         ].join('\n');
 
         drawFullRow('Notes', value, 22);
-
-        // Judges
-        const judges = this.fallbackText(e.judge);
-        drawFullRow('This matter was before', judges, 14);
       }
     }
 
-    const uniquePlaces = Array.from(
-      new Set(
-        dataArr
-          .map(
-            (d) =>
-              this.fileSafe(d.courtName) || this.fileSafe(this.cjaName(d.cja)),
-          )
-          .filter(Boolean),
-      ),
-    );
+    const uniquePlaces = this.uniqueFileSafePlaces(dataArr);
 
     const courtPart =
       uniquePlaces.length === 1 ? uniquePlaces[0] : 'applications';
@@ -546,6 +549,19 @@ export class PdfService {
   }
 
   // -------------------- Mapping helpers --------------------
+
+  private uniqueFileSafePlaces(dataArr: PdfList[]): string[] {
+    return Array.from(
+      new Set(
+        dataArr
+          .map(
+            (d) =>
+              this.fileSafe(d.courtName) || this.fileSafe(this.cjaName(d.cja)),
+          )
+          .filter((place): place is string => Boolean(place)),
+      ),
+    );
+  }
 
   private normalise(dto: unknown): PdfList {
     const root = asObj(dto) ?? {};
@@ -603,7 +619,7 @@ export class PdfService {
       const result = asArr(x['resultWordings'])
         .map((v) => trimToString(v))
         .filter(Boolean)
-        .join(' ');
+        .join('\n');
 
       const judge = asArr(x['officials'])
         .map((v) => {

@@ -59,7 +59,11 @@ import { buildFormErrorSummary } from '@util/error-summary';
 import { has } from '@util/has';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenuDirective } from '@util/moj-button-menu';
-import { filterEntriesToPrint } from '@util/pdf-utils';
+import {
+  filterEntriesToPrint,
+  handlePrintContinuous,
+  handlePrintPage,
+} from '@util/pdf-utils';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
@@ -69,16 +73,14 @@ import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
 type AppErrorMap = typeof APPLICATIONS_ERROR_MAP;
 type ControlName = keyof AppErrorMap;
 type ApplicationsPrintRequest =
-  | { id: string; mode: 'page' }
+  | { ids: string[]; mode: 'page'; selectedRows: ApplicationRow[] }
   | { ids: string[]; mode: 'continuous'; selectedRows: ApplicationRow[] };
 
-type ApplicationsPrintResponse =
-  | { dto: ApplicationListGetPrintDto; mode: 'page' }
-  | {
-      dtos: ApplicationListGetPrintDto[];
-      mode: 'continuous';
-      selectedRows: ApplicationRow[];
-    };
+type ApplicationsPrintResponse = {
+  dtos: ApplicationListGetPrintDto[];
+  mode: 'page' | 'continuous';
+  selectedRows: ApplicationRow[];
+};
 @Component({
   selector: 'app-applications',
   standalone: true,
@@ -181,82 +183,57 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       {
         request: this.printRequest,
         load: (req: ApplicationsPrintRequest) => {
-          if (req.mode === 'continuous') {
-            return forkJoin(
-              req.ids.map((listId) =>
-                this.appListApi.printApplicationList(
-                  { listId },
-                  undefined,
-                  undefined,
-                  {
-                    transferCache: false,
-                  },
-                ),
+          return forkJoin(
+            req.ids.map((listId) =>
+              this.appListApi.printApplicationList(
+                { listId },
+                undefined,
+                undefined,
+                {
+                  transferCache: false,
+                },
               ),
-            ).pipe(
-              map(
-                (dtos): ApplicationsPrintResponse => ({
-                  dtos,
-                  mode: 'continuous',
-                  selectedRows: req.selectedRows,
-                }),
-              ),
-            );
-          }
-
-          return this.appListApi
-            .printApplicationList({ listId: req.id }, undefined, undefined, {
-              transferCache: false,
-            })
-            .pipe(
-              map(
-                (dto): ApplicationsPrintResponse => ({
-                  dto,
-                  mode: 'page',
-                }),
-              ),
-            );
+            ),
+          ).pipe(
+            map(
+              (dtos): ApplicationsPrintResponse => ({
+                dtos,
+                mode: req.mode,
+                selectedRows: req.selectedRows,
+              }),
+            ),
+          );
         },
         onSuccess: async (response) => {
           this.printRequest.set(null);
 
-          const sourceDtos =
-            response.mode === 'continuous' ? response.dtos : [response.dto];
-          const selectedRows =
-            response.mode === 'continuous'
-              ? response.selectedRows
-              : this.appState.state().selectedRows;
-          const filteredDtos = sourceDtos.map((dto) =>
-            filterEntriesToPrint(dto, selectedRows),
+          const filteredDtos = response.dtos.map((dto) =>
+            filterEntriesToPrint(dto, response.selectedRows),
           );
 
-          if (response.mode === 'continuous') {
-            const printableDtos = filteredDtos.filter(
-              (dto) => dto.entries.length,
-            );
-
-            if (!printableDtos.length) {
-              this.patchPrintError(
+          if (response.mode === 'page') {
+            await handlePrintPage(filteredDtos, {
+              pdf: this.pdf,
+              isBrowser: isPlatformBrowser(this.platformId),
+              onError: (message) => this.patchPrintError(message),
+              noEntriesMessage:
                 APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
-              );
-              return;
-            }
-
-            try {
-              if (isPlatformBrowser(this.platformId)) {
-                await this.pdf.generateContinuousApplicationListsPdf(
-                  printableDtos,
-                  false,
-                );
-              }
-            } catch {
-              this.patchPrintError(
-                APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric,
-              );
-            }
+              generateErrorMessage:
+                APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry,
+              crestUrl: '/assets/govuk-crest.png',
+            });
+            return;
           }
 
-          // TODO: arcpoc 1329
+          await handlePrintContinuous(filteredDtos, {
+            pdf: this.pdf,
+            isBrowser: isPlatformBrowser(this.platformId),
+            onError: (message) => this.patchPrintError(message),
+            noEntriesMessage: APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
+            generateErrorMessage:
+              APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric,
+            isClosed: false,
+          });
         },
         onError: (err) => {
           this.printRequest.set(null);
@@ -309,18 +286,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       this.vm().selectedRows,
     );
 
-    if (!this.vm().selectedRows.length) {
-      this.patchApp({
-        submitted: true,
-        searchErrors: [
-          {
-            text: 'No applications have been selected',
-          },
-        ],
-      });
-      return;
-    }
-
     this.printRequest.set({
       ids: selectedRowsListIds,
       mode: 'continuous',
@@ -329,21 +294,16 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   onPrintPageClick(): void {
-    // TODO: arcpoc 1329
-    // this.patchApp(clearNotificationsPatch());
-    // const selectedRowsListIds = this.getArrOfPrintListId(
-    //   this.vm().selectedRows,
-    // );
-    // if (!selectedRowsListIds.length) {
-    //   this.patchApp({
-    //     submitted: true,
-    //     searchErrors: [
-    //       {
-    //         text: 'Selected applications do not have an associated applications list',
-    //       },
-    //     ],
-    //   });
-    // }
+    this.patchApp(clearNotificationsPatch());
+    const selectedRowsListIds = this.getArrOfPrintListId(
+      this.vm().selectedRows,
+    );
+
+    this.printRequest.set({
+      ids: selectedRowsListIds,
+      mode: 'page',
+      selectedRows: this.vm().selectedRows,
+    });
   }
 
   loadApplications(): void {

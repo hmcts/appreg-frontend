@@ -12,6 +12,7 @@ import {
 } from '@shared-types/pdf/pdf.types';
 
 type RowWithId = Record<string, unknown>;
+type PrintDtoInput = ApplicationListGetPrintDto | ApplicationListGetPrintDto[];
 
 /**
  * Wrap jsPDF#splitTextToSize with some light trimming and type-guarding.
@@ -110,10 +111,12 @@ export function filterEntriesToPrint(
 }
 
 export async function handlePrintPage(
-  dto: ApplicationListGetPrintDto,
+  dto: PrintDtoInput,
   options: PrintApplicationListPageOptions,
 ): Promise<void> {
-  if (!dto.entries.length) {
+  const printableDtos = toPrintableDtos(dto);
+
+  if (!printableDtos.length) {
     options.onError(options.noEntriesMessage);
     return;
   }
@@ -123,7 +126,10 @@ export async function handlePrintPage(
       const generateOptions = options.crestUrl
         ? { crestUrl: options.crestUrl }
         : undefined;
-      await options.pdf.generatePagedApplicationListPdf(dto, generateOptions);
+      await options.pdf.generatePagedApplicationListPdf(
+        Array.isArray(dto) ? printableDtos : printableDtos[0],
+        generateOptions,
+      );
     }
   } catch {
     options.onError(options.generateErrorMessage);
@@ -131,10 +137,12 @@ export async function handlePrintPage(
 }
 
 export async function handlePrintContinuous(
-  dto: ApplicationListGetPrintDto,
+  dto: PrintDtoInput,
   options: PrintApplicationListContinuousOptions,
 ): Promise<void> {
-  if (!dto.entries.length) {
+  const printableDtos = toPrintableDtos(dto);
+
+  if (!printableDtos.length) {
     options.onError(options.noEntriesMessage);
     return;
   }
@@ -142,13 +150,18 @@ export async function handlePrintContinuous(
   try {
     if (options.isBrowser) {
       await options.pdf.generateContinuousApplicationListsPdf(
-        [dto],
+        printableDtos,
         options.isClosed ?? false,
       );
     }
   } catch {
     options.onError(options.generateErrorMessage);
   }
+}
+
+function toPrintableDtos(dto: PrintDtoInput): ApplicationListGetPrintDto[] {
+  const dtos = Array.isArray(dto) ? dto : [dto];
+  return dtos.filter((item) => item.entries.length);
 }
 
 function stripZeroHoursPrefix(durationText: string): string | undefined {

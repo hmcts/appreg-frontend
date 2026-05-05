@@ -93,11 +93,11 @@ Then(
     const rowData = rows[0];
     cy.log(`rowData: ${JSON.stringify(rowData)}`);
     AccordionHelper.within(accordionTitle, () => {
-      TableHelper.clickButtonInRowOfTable(
-        tableCaption,
-        selectButtonText,
-        rowData,
-      );
+      TableSearch.searchWithPagination(rowData, tableCaption, true, (row) => {
+        cy.wrap(row).find(`button:contains("${selectButtonText}")`).click();
+        cy.wait(2000);
+        return cy.wrap(undefined) as unknown as Cypress.Chainable<void>;
+      });
     });
     cy.screenshot(`clicked-button-${selectButtonText}-in-row`);
   },
@@ -121,5 +121,28 @@ Then(
       TableHelper.clickLinkInRowOfTable(linkName, tableName, rowData);
     });
     cy.screenshot(`clicked-link-${linkName}-in-row-${tableName}`);
+  },
+);
+
+Then(
+  'User Verifies The Checkbox is Checked In Row Of Table {string} In The Accordion {string} With:',
+  (
+    tableCaption: string,
+    accordionTitle: string,
+    dataTable: { hashes: () => { [key: string]: string }[] },
+  ) => {
+    const rows = dataTable.hashes();
+    if (rows.length === 0) {
+      throw new Error('DataTable must have at least one row of data');
+    }
+    const caption = tableCaption.trim();
+    if (!caption) {
+      throw new Error('Table caption cannot be empty');
+    }
+    for (const row of rows) {
+      AccordionHelper.within(accordionTitle, () => {
+        TableVerification.verifyCheckboxInRowIsChecked(caption, row);
+      });
+    }
   },
 );

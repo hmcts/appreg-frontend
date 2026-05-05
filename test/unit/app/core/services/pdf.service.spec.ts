@@ -199,6 +199,30 @@ describe('PdfService.generateApplicationListPdf', () => {
     expect(__instance.addPage).toHaveBeenCalledTimes(2);
   });
 
+  it('creates one page per entry across multiple DTOs and uses each parent list header', async () => {
+    const { __instance } = getJsPDF();
+
+    await service.generatePagedApplicationListPdf([
+      {
+        courtName: 'Court A',
+        date: '2025-09-17',
+        entries: [{}, {}],
+      },
+      {
+        courtName: 'Court B',
+        date: '2025-09-18',
+        entries: [{}],
+      },
+    ]);
+
+    expect(__instance.addPage).toHaveBeenCalledTimes(2);
+    expect(textCallsContain('Court A')).toBe(true);
+    expect(textCallsContain('Court B')).toBe(true);
+    expect(__instance.save).toHaveBeenCalledWith(
+      'applications-2025-09-17-print-page.pdf',
+    );
+  });
+
   it('renders header labels and footer date (produced on)', async () => {
     await service.generatePagedApplicationListPdf({
       courtName: 'Bath Magistrates Court',

@@ -60,7 +60,7 @@ This document captures structure, commands, and coding conventions for `appreg-f
 
 ## Local environment and tooling
 
-- You MUST use the Node version from `.nvmrc` (`20.20.0`).
+- You MUST use the Node version from `.nvmrc` (`24.15.0`).
 - You MUST use Yarn from `packageManager` in `package.json` (`yarn@4.10.3`) via Corepack.
 - You MUST use Java 21 for OpenAPI tooling.
 - You MUST store local credentials in untracked local config only; you MUST NOT commit secrets.

@@ -509,21 +509,6 @@ describe('ApplicationsComponent', () => {
   });
 
   describe('onPrintContinuousClick', () => {
-    it('shows an error and does not call the API when no rows are selected', async () => {
-      component.onPrintContinuousClick();
-      await flushSignalEffects(fixture);
-
-      expect(printApplicationListMock).not.toHaveBeenCalled();
-      expect(
-        pdfServiceStub.generateContinuousApplicationListsPdf,
-      ).not.toHaveBeenCalled();
-      expect(component.vm().searchErrors).toEqual([
-        {
-          text: 'No applications have been selected',
-        },
-      ]);
-    });
-
     it('fetches each unique list id and generates one filtered continuous PDF', async () => {
       const listADto = makePrintDto({
         courtName: 'Court A',
@@ -713,6 +698,178 @@ describe('ApplicationsComponent', () => {
       ).toHaveBeenCalledTimes(1);
       expect(component.vm().errorSummary).toEqual([
         { text: APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric },
+      ]);
+    });
+  });
+
+  describe('onPrintPageClick', () => {
+    it('fetches each unique list id and generates one filtered page PDF', async () => {
+      const listADto = makePrintDto({
+        courtName: 'Court A',
+        entries: [
+          {
+            id: 'entry-a1',
+            applicant: {},
+            applicationCode: '',
+            applicationTitle: '',
+            applicationWording: '',
+          },
+          {
+            id: 'not-selected',
+            applicant: {},
+            applicationCode: '',
+            applicationTitle: '',
+            applicationWording: '',
+          },
+          {
+            id: 'entry-a2',
+            applicant: {},
+            applicationCode: '',
+            applicationTitle: '',
+            applicationWording: '',
+          },
+        ],
+      });
+      const listBDto = makePrintDto({
+        courtName: 'Court B',
+        entries: [
+          {
+            id: 'entry-b1',
+            applicant: {},
+            applicationCode: '',
+            applicationTitle: '',
+            applicationWording: '',
+          },
+          {
+            id: 'entry-b2',
+            applicant: {},
+            applicationCode: '',
+            applicationTitle: '',
+            applicationWording: '',
+          },
+        ],
+      });
+
+      appStateSignal(component).update((s) => ({
+        ...s,
+        selectedRows: [
+          makeSelectedRow('entry-a1', 'list-a'),
+          makeSelectedRow('entry-a2', 'list-a'),
+          makeSelectedRow('entry-b1', 'list-b'),
+        ],
+      }));
+
+      printApplicationListMock.mockImplementation(({ listId }) => {
+        if (listId === 'list-a') {
+          return of(listADto);
+        }
+        return of(listBDto);
+      });
+
+      component.onPrintPageClick();
+      await flushSignalEffects(fixture);
+
+      expect(printApplicationListMock).toHaveBeenCalledTimes(2);
+      expect(printApplicationListMock.mock.calls[0]).toEqual([
+        { listId: 'list-a' },
+        undefined,
+        undefined,
+        { transferCache: false },
+      ]);
+      expect(printApplicationListMock.mock.calls[1]).toEqual([
+        { listId: 'list-b' },
+        undefined,
+        undefined,
+        { transferCache: false },
+      ]);
+      expect(
+        pdfServiceStub.generatePagedApplicationListPdf,
+      ).toHaveBeenCalledWith(
+        [
+          {
+            ...listADto,
+            entries: listADto.entries.filter((entry) =>
+              ['entry-a1', 'entry-a2'].includes(entry.id),
+            ),
+          },
+          {
+            ...listBDto,
+            entries: listBDto.entries.filter((entry) =>
+              ['entry-b1'].includes(entry.id),
+            ),
+          },
+        ],
+        { crestUrl: '/assets/govuk-crest.png' },
+      );
+      expect(
+        pdfServiceStub.generateContinuousApplicationListsPdf,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('shows no entries message when all fetched DTO entries are filtered out', async () => {
+      appStateSignal(component).update((s) => ({
+        ...s,
+        selectedRows: [makeSelectedRow('entry-1', 'list-a')],
+      }));
+      printApplicationListMock.mockReturnValue(
+        of(
+          makePrintDto({
+            entries: [
+              {
+                id: 'other-entry',
+                applicant: {},
+                applicationCode: '',
+                applicationTitle: '',
+                applicationWording: '',
+              },
+            ],
+          }),
+        ),
+      );
+
+      component.onPrintPageClick();
+      await flushSignalEffects(fixture);
+
+      expect(
+        pdfServiceStub.generatePagedApplicationListPdf,
+      ).not.toHaveBeenCalled();
+      expect(component.vm().errorSummary).toEqual([
+        { text: APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint },
+      ]);
+    });
+
+    it('patches a retry print error when page PDF generation rejects', async () => {
+      appStateSignal(component).update((s) => ({
+        ...s,
+        selectedRows: [makeSelectedRow('entry-1', 'list-a')],
+      }));
+      printApplicationListMock.mockReturnValue(
+        of(
+          makePrintDto({
+            entries: [
+              {
+                id: 'entry-1',
+                applicant: {},
+                applicationCode: '',
+                applicationTitle: '',
+                applicationWording: '',
+              },
+            ],
+          }),
+        ),
+      );
+      pdfServiceStub.generatePagedApplicationListPdf.mockRejectedValueOnce(
+        new Error('pdf failed'),
+      );
+
+      component.onPrintPageClick();
+      await flushSignalEffects(fixture);
+
+      expect(
+        pdfServiceStub.generatePagedApplicationListPdf,
+      ).toHaveBeenCalledTimes(1);
+      expect(component.vm().errorSummary).toEqual([
+        { text: APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry },
       ]);
     });
   });
