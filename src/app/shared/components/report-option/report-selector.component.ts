@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component, forwardRef, input } from '@angular/core';
 import {
   ControlValueAccessor,
@@ -16,7 +15,7 @@ export interface ReportOption {
 @Component({
   selector: 'app-report-selector',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

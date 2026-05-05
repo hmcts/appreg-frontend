@@ -1,78 +1,157 @@
 import { Routes } from '@angular/router';
 
-import { Applications } from '@components/applications/applications.component';
-import { ApplicationsListCreate } from '@components/applications-list/applications-list-create/applications-list-create.component';
-import { ApplicationsListDeleteComponent } from '@components/applications-list/applications-list-delete/applications-list-delete.component';
-import { ApplicationsList } from '@components/applications-list/applications-list.component';
-import { ApplicationsListBulkUpload } from '@components/applications-list-bulk-upload/applications-list-bulk-upload.component';
-import { ApplicationsListCloseComponent } from '@components/applications-list-detail/applications-list-close/applications-list-close.component';
-import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail.component';
-import { ApplicationsListEntryMoveComponent } from '@components/applications-list-detail/applications-list-entry-move/applications-list-entry-move.component';
-import { MoveConfirmComponent } from '@components/applications-list-detail/applications-list-entry-move/move-confirm/move-confirm.component';
-import { ApplicationsListEntryCreate } from '@components/applications-list-entry-create/applications-list-entry-create.component';
-import { ApplicationsListEntryDetail } from '@components/applications-list-entry-detail/applications-list-entry-detail.component';
-import { PaymentReferenceEditComponent } from '@components/civil-fee-section/payment-reference-edit/payment-reference-edit.component';
-import { ForbiddenComponent } from '@components/global-error/forbidden/forbidden.component';
-import { InternalErrorComponent } from '@components/global-error/internal-error/internal-error.component';
-import { NotFoundComponent } from '@components/global-error/not-found/not-found.component';
-import { HomeComponent } from '@components/home/home.component';
-import { Login } from '@components/login/login.component';
-import { Reports } from '@components/reports/reports.component';
-import { ResultSelected } from '@components/result-selected/result-selected.component';
-import { StandardApplicants } from '@components/standard-applicants/standard-applicants.component';
 import { sessionGuard } from '@guards/session.guard';
 
 export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    component: HomeComponent,
+    loadComponent: () =>
+      import('@components/home/home.component').then((m) => m.HomeComponent),
   },
-  { path: 'login', component: Login },
-  { path: 'forbidden', component: ForbiddenComponent },
-  { path: 'internal-error', component: InternalErrorComponent },
-  { path: 'page-not-found', component: NotFoundComponent },
+  {
+    path: 'login',
+    loadComponent: () =>
+      import('@components/login/login.component').then((m) => m.Login),
+  },
+  {
+    path: 'forbidden',
+    loadComponent: () =>
+      import('@components/global-error/forbidden/forbidden.component').then(
+        (m) => m.ForbiddenComponent,
+      ),
+  },
+  {
+    path: 'internal-error',
+    loadComponent: () =>
+      import('@components/global-error/internal-error/internal-error.component').then(
+        (m) => m.InternalErrorComponent,
+      ),
+  },
+  {
+    path: 'page-not-found',
+    loadComponent: () =>
+      import('@components/global-error/not-found/not-found.component').then(
+        (m) => m.NotFoundComponent,
+      ),
+  },
   {
     path: 'applications-list',
     canActivate: [sessionGuard],
     children: [
-      { path: '', component: ApplicationsList },
-      { path: 'create', component: ApplicationsListCreate },
-      { path: ':id', component: ApplicationsListDetail },
-      { path: ':id/delete', component: ApplicationsListDeleteComponent },
-      { path: ':id/close', component: ApplicationsListCloseComponent },
-      { path: ':id/create-entry', component: ApplicationsListEntryCreate },
+      {
+        path: '',
+        loadComponent: () =>
+          import('@components/applications-list/applications-list.component').then(
+            (m) => m.ApplicationsList,
+          ),
+      },
+      {
+        path: 'create',
+        loadComponent: () =>
+          import('@components/applications-list/applications-list-create/applications-list-create.component').then(
+            (m) => m.ApplicationsListCreate,
+          ),
+      },
+      {
+        path: ':id',
+        loadComponent: () =>
+          import('@components/applications-list-detail/applications-list-detail.component').then(
+            (m) => m.ApplicationsListDetail,
+          ),
+      },
+      {
+        path: ':id/delete',
+        loadComponent: () =>
+          import('@components/applications-list/applications-list-delete/applications-list-delete.component').then(
+            (m) => m.ApplicationsListDeleteComponent,
+          ),
+      },
+      {
+        path: ':id/close',
+        loadComponent: () =>
+          import('@components/applications-list-detail/applications-list-close/applications-list-close.component').then(
+            (m) => m.ApplicationsListCloseComponent,
+          ),
+      },
+      {
+        path: ':id/create-entry',
+        loadComponent: () =>
+          import('@components/applications-list-entry-create/applications-list-entry-create.component').then(
+            (m) => m.ApplicationsListEntryCreate,
+          ),
+      },
       {
         path: ':id/update-entry/:entryId',
-        component: ApplicationsListEntryDetail,
+        loadComponent: () =>
+          import('@components/applications-list-entry-detail/applications-list-entry-detail.component').then(
+            (m) => m.ApplicationsListEntryDetail,
+          ),
       },
       {
         path: ':id/create-entry/change-payment-reference',
-        component: PaymentReferenceEditComponent,
+        loadComponent: () =>
+          import('@components/civil-fee-section/payment-reference-edit/payment-reference-edit.component').then(
+            (m) => m.PaymentReferenceEditComponent,
+          ),
       },
       {
         path: ':id/update-entry/:entryId/change-payment-reference',
-        component: PaymentReferenceEditComponent,
+        loadComponent: () =>
+          import('@components/civil-fee-section/payment-reference-edit/payment-reference-edit.component').then(
+            (m) => m.PaymentReferenceEditComponent,
+          ),
       },
-      { path: ':id/bulk-upload', component: ApplicationsListBulkUpload },
-      { path: ':id/result-selected', component: ResultSelected },
-      { path: ':id/move', component: ApplicationsListEntryMoveComponent },
-      { path: ':id/move/confirm', component: MoveConfirmComponent },
+      {
+        path: ':id/bulk-upload',
+        loadComponent: () =>
+          import('@components/applications-list-bulk-upload/applications-list-bulk-upload.component').then(
+            (m) => m.ApplicationsListBulkUpload,
+          ),
+      },
+      {
+        path: ':id/result-selected',
+        loadComponent: () =>
+          import('@components/result-selected/result-selected.component').then(
+            (m) => m.ResultSelected,
+          ),
+      },
+      {
+        path: ':id/move',
+        loadComponent: () =>
+          import('@components/applications-list-detail/applications-list-entry-move/applications-list-entry-move.component').then(
+            (m) => m.ApplicationsListEntryMoveComponent,
+          ),
+      },
+      {
+        path: ':id/move/confirm',
+        loadComponent: () =>
+          import('@components/applications-list-detail/applications-list-entry-move/move-confirm/move-confirm.component').then(
+            (m) => m.MoveConfirmComponent,
+          ),
+      },
     ],
   },
   {
     path: 'applications',
-    component: Applications,
+    loadComponent: () =>
+      import('@components/applications/applications.component').then(
+        (m) => m.Applications,
+      ),
     canActivate: [sessionGuard],
   },
   {
     path: 'standard-applicants',
-    component: StandardApplicants,
+    loadComponent: () =>
+      import('@components/standard-applicants/standard-applicants.component').then(
+        (m) => m.StandardApplicants,
+      ),
     canActivate: [sessionGuard],
   },
   {
     path: 'reports',
-    component: Reports,
+    loadComponent: () =>
+      import('@components/reports/reports.component').then((m) => m.Reports),
     canActivate: [sessionGuard],
   },
   { path: '**', redirectTo: 'page-not-found' },

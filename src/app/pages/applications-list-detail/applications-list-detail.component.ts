@@ -7,7 +7,7 @@ Functionality:
     list-detail page
 */
 
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 import {
   HttpContext,
   HttpErrorResponse,
@@ -115,7 +115,6 @@ const APPLICATION_LIST_DETAIL_SORT_MAP: Record<string, string> = {
   selector: 'app-application-detail',
   standalone: true,
   imports: [
-    CommonModule,
     PaginationComponent,
     BreadcrumbsComponent,
     ErrorSummaryComponent,

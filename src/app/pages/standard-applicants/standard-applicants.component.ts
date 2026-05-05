@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import {
   Component,
   EnvironmentInjector,
@@ -67,7 +66,6 @@ const initialStandardApplicantsState: StandardApplicantsState = {
   selector: 'app-standard-applicants',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     TextInputComponent,
     PaginationComponent,

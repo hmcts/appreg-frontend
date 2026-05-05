@@ -9,7 +9,7 @@ Functionality:
   - Uses text-suggestion helpers for court/CJA inputs
 */
 
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 import {
   Component,
   EnvironmentInjector,
@@ -58,7 +58,6 @@ import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
   selector: 'app-applications-list',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     FormsModule,
     BreadcrumbsComponent,

@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -15,7 +14,7 @@ export type BannerSegment =
 @Component({
   selector: 'app-success-banner',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [RouterLink],
   templateUrl: 'success-banner.component.html',
 })
 export class SuccessBannerComponent implements AfterViewInit {

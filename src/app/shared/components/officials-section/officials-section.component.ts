@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component, computed, input, output } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
@@ -10,12 +9,7 @@ import { buildErrorTextByDomId, errorTextForDomId } from '@util/error-items';
 
 @Component({
   selector: 'app-officials-section',
-  imports: [
-    CommonModule,
-    TextInputComponent,
-    SelectInputComponent,
-    ReactiveFormsModule,
-  ],
+  imports: [TextInputComponent, SelectInputComponent, ReactiveFormsModule],
   templateUrl: './officials-section.component.html',
 })
 export class OfficialsSectionComponent {

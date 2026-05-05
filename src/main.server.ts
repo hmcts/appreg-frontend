@@ -1,4 +1,4 @@
-import { ApplicationRef } from '@angular/core';
+import { ApplicationRef, provideZoneChangeDetection } from '@angular/core';
 import {
   BootstrapContext,
   bootstrapApplication,
@@ -8,6 +8,13 @@ import { App } from './app/app';
 import { config } from './app/app.config.server';
 
 const bootstrap = (context: BootstrapContext): Promise<ApplicationRef> =>
-  bootstrapApplication(App, config, context);
+  bootstrapApplication(
+    App,
+    {
+      ...config,
+      providers: [provideZoneChangeDetection(), ...config.providers],
+    },
+    context,
+  );
 
 export default bootstrap;

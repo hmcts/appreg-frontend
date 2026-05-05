@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component, forwardRef, input, signal } from '@angular/core';
 import {
   AbstractControl,
@@ -21,7 +20,7 @@ export type DurationMode = 'clock' | 'duration';
 @Component({
   selector: 'app-duration-input',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [FormsModule, ReactiveFormsModule],
   templateUrl: './duration-input.component.html',
   providers: [
     {

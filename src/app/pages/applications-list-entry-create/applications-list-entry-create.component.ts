@@ -8,7 +8,7 @@ Functionality:
   - Run POST query with payload
 */
 
-import { CommonModule, Location } from '@angular/common';
+import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
@@ -107,7 +107,6 @@ const ENTRY_CREATE_ERROR_HREFS = {
   selector: 'app-applications-list-entry-create',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     RouterModule,
     BreadcrumbsComponent,

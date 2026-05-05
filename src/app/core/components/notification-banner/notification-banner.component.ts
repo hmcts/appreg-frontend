@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -13,7 +12,7 @@ type BannerVariant = 'default' | 'success';
 @Component({
   selector: 'app-notification-banner',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [RouterLink],
   templateUrl: 'notification-banner.component.html',
 })
 export class NotificationBannerComponent implements AfterViewInit {

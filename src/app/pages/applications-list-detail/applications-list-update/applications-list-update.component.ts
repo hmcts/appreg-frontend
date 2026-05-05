@@ -10,7 +10,6 @@
   On close, navigate to applications-list/:id/close confirmation page
  */
 
-import { CommonModule } from '@angular/common';
 import { Component, inject, input, signal } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -41,12 +40,7 @@ import { ApplicationListRow } from '@util/types/application-list/types';
 @Component({
   selector: 'app-applications-list-update',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    ApplicationsListFormComponent,
-  ],
+  imports: [FormsModule, ReactiveFormsModule, ApplicationsListFormComponent],
   templateUrl: './applications-list-update.component.html',
 })
 export class ApplicationsListUpdateComponent {

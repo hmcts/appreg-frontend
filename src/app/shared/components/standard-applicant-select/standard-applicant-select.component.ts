@@ -2,7 +2,6 @@
  * Standard Applicant table selection
  */
 
-import { CommonModule } from '@angular/common';
 import {
   Component,
   EnvironmentInjector,
@@ -53,7 +52,6 @@ export type SelectedStandardApplicantSummary = {
   selector: 'app-standard-applicant-select',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     TextInputComponent,
     SortableTableComponent,
