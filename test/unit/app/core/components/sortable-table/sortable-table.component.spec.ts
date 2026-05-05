@@ -241,6 +241,22 @@ describe('SortableTableComponent', () => {
       comp.toggleSelectAllVisible(false);
       expect(new Set(getSelectedIdsState())).toEqual(new Set(['x']));
     });
+
+    it('toggleSelectAllVisible emits external select-all without mutating ids when configured', async () => {
+      await create('browser');
+      setInput('selectable', true);
+      setInput('selectAllScope', 'external');
+      setInput('selectedIds', new Set<string>(['x']));
+
+      const selectAllSpy = jest.spyOn(comp.selectAllChange, 'emit');
+      const selectedIdsSpy = jest.spyOn(comp.selectedIdsChange, 'emit');
+
+      comp.toggleSelectAllVisible(true);
+
+      expect(selectAllSpy).toHaveBeenCalledWith(true);
+      expect(selectedIdsSpy).not.toHaveBeenCalled();
+      expect(new Set(getSelectedIdsState())).toEqual(new Set(['x']));
+    });
   });
 
   describe('caption rendering', () => {

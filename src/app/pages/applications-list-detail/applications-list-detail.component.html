@@ -107,6 +107,7 @@
     <app-applications-list-detail-search
       [listId]="id"
       [pageSize]="vm().pageSize"
+      (searchStarted)="onSearchStarted($event)"
       (searchResult)="onSearchResult($event)"
     />
 
@@ -126,9 +127,12 @@
         [sortKey]="vm().sortField.key"
         [sortDirection]="vm().sortField.direction"
         idField="id"
+        [selectAllScope]="'external'"
         (sortChange)="onSortChange($event)"
+        (selectAllChange)="onHeaderSelectAllChange($event)"
+        (selectedIdsChange)="onSelectedIdsChange($event)"
         (selectedRowsChange)="onSelectedRowsChange($event)"
-        [(selectedIds)]="vm().selectedIds"
+        [selectedIds]="vm().selectedIds"
         appMojButtonMenu
       >
         <caption
@@ -142,7 +146,7 @@
             role="group"
             aria-label="Table actions"
           >
-            @if (vm().selectedRows.length === 0) {
+            @if (!canUseBulkActions) {
               <button
                 type="button"
                 class="govuk-button govuk-button--small govuk-button--primary table-caption__action-button"

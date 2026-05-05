@@ -61,6 +61,7 @@ describe('ApplicationsListDetailSearchComponent', () => {
       {
         rows: [],
         totalPages: 0,
+        totalEntries: 0,
         reqFilter: {},
         errors: [
           {
@@ -91,6 +92,7 @@ describe('ApplicationsListDetailSearchComponent', () => {
       {
         rows: [],
         totalPages: 0,
+        totalEntries: 0,
         reqFilter: {},
         errors: [
           {
@@ -215,6 +217,7 @@ describe('ApplicationsListDetailSearchComponent', () => {
         },
       ],
       totalPages: 2,
+      totalEntries: 1,
       reqFilter: {
         accountReference: undefined,
         applicantName: 'Applicant Org',
@@ -247,6 +250,7 @@ describe('ApplicationsListDetailSearchComponent', () => {
       {
         rows: [],
         totalPages: 0,
+        totalEntries: 0,
         reqFilter: {},
         errors: [
           {

@@ -45,6 +45,7 @@ const SEARCH_ERROR_HREFS = {
 export type ApplicationsListDetailSearchResult = {
   rows: Row[];
   totalPages: number;
+  totalEntries: number;
   reqFilter: EntryApplicationListGetFilterDto;
   errors: ErrorItem[];
 };
@@ -66,6 +67,7 @@ export class ApplicationsListDetailSearchComponent {
   readonly listId = input.required<string>();
   readonly pageSize = input(10);
   readonly searchResult = output<ApplicationsListDetailSearchResult>();
+  readonly searchStarted = output<EntryApplicationListGetFilterDto>();
 
   readonly submitted = signal(false);
   readonly localErrors = signal<ErrorItem[]>([]);
@@ -141,6 +143,7 @@ export class ApplicationsListDetailSearchComponent {
       this.searchResult.emit({
         rows: [],
         totalPages: 0,
+        totalEntries: 0,
         reqFilter: {},
         errors: localErrors,
       });
@@ -148,6 +151,7 @@ export class ApplicationsListDetailSearchComponent {
     }
 
     const reqFilter = this.toFilter();
+    this.searchStarted.emit(reqFilter);
 
     try {
       // GET /application-lists/{listId}/entries
@@ -164,6 +168,7 @@ export class ApplicationsListDetailSearchComponent {
       this.searchResult.emit({
         rows: mapEntrySummaryRows(page.content ?? []),
         totalPages: page.totalPages ?? 0,
+        totalEntries: page.totalElements ?? 0,
         reqFilter,
         errors: [],
       });
@@ -177,6 +182,7 @@ export class ApplicationsListDetailSearchComponent {
         this.searchResult.emit({
           rows: [],
           totalPages: 0,
+          totalEntries: 0,
           reqFilter: {},
           errors: apiErrors,
         });
