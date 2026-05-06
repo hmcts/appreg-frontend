@@ -1,7 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 
+import { DateInputComponent } from '@components/date-input/date-input.component';
 import { Reports } from '@components/reports/reports.component';
 import { SearchWarrantsSectionComponent } from '@components/search-warrants-section/search-warrants-section.component';
 import {
@@ -26,7 +28,10 @@ describe('ReportsComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Reports],
-      providers: [{ provide: ReferenceDataFacade, useValue: refFacadeStub }],
+      providers: [
+        provideRouter([]),
+        { provide: ReferenceDataFacade, useValue: refFacadeStub },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(Reports);
@@ -61,5 +66,90 @@ describe('ReportsComponent', () => {
 
     expect(section.group()).toBe(component.searchWarrantsGroup);
     expect(section.suggestions()).toBe(component.suggestionsFacade);
+  });
+
+  it('calls onDownload when the download button is clicked', () => {
+    component.form.controls.report.setValue('activity-audit');
+    fixture.detectChanges();
+
+    const onDownload = jest.spyOn(component, 'onDownload');
+    const button = fixture.debugElement.query(By.css('button.govuk-button'));
+
+    button.triggerEventHandler('click');
+
+    expect(onDownload).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows date errors for the selected report on download', () => {
+    component.form.controls.report.setValue('activity-audit');
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().errorSummary).toEqual([
+      { id: 'dateFrom', href: '#date-from', text: 'Enter day, month and year' },
+      { id: 'dateTo', href: '#date-to', text: 'Enter day, month and year' },
+    ]);
+    expect(
+      fixture.nativeElement.querySelector('app-error-summary'),
+    ).toBeTruthy();
+    expect(
+      fixture.nativeElement
+        .querySelector('#date-from-day')
+        ?.classList.contains('govuk-input--error'),
+    ).toBe(true);
+  });
+
+  it('uses date input validation text for partially entered dates', () => {
+    component.form.controls.report.setValue('activity-audit');
+    fixture.detectChanges();
+
+    const dateFrom = fixture.debugElement.queryAll(
+      By.directive(DateInputComponent),
+    )[0].componentInstance as DateInputComponent;
+
+    dateFrom.dateForm.setValue({ day: '1', month: '', year: '2026' });
+    fixture.detectChanges();
+
+    component.onDownload();
+
+    expect(component.vm().errorSummary).toEqual([
+      { id: 'dateFrom', href: '#date-from', text: 'Enter month' },
+      { id: 'dateTo', href: '#date-to', text: 'Enter day, month and year' },
+    ]);
+  });
+
+  it('clears previous errors when the selected report is valid', () => {
+    component.form.controls.report.setValue('activity-audit');
+    fixture.detectChanges();
+
+    component.onDownload();
+    component.activityAuditGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+    });
+
+    component.onDownload();
+
+    expect(component.vm().errorSummary).toEqual([]);
+  });
+
+  it('shows a search warrants court suggestion error on download', () => {
+    component.form.controls.report.setValue('search-warrants');
+    component.searchWarrantsGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+    });
+    fixture.detectChanges();
+
+    component.suggestionsFacade.setCourthouseSearch('Missing Court');
+    component.suggestionsFacade.onCourthouseInputChange();
+
+    component.onDownload();
+
+    expect(component.vm().errorSummary).toEqual([
+      { id: 'court', href: '#court', text: 'Court location not found' },
+    ]);
   });
 });

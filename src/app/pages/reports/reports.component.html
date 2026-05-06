@@ -1,5 +1,13 @@
 <h1 class="govuk-heading-xl">Reports</h1>
 
+@if (vm().errorSummary.length) {
+  <app-error-summary
+    [title]="'There is a problem'"
+    [items]="vm().errorSummary"
+    (itemSelect)="onCreateErrorClick($event)"
+  />
+}
+
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
@@ -23,16 +31,21 @@
   @case ('activity-audit') {
     <app-activity-audit-section
       [group]="activityAuditGroup"
+      [submitted]="vm().submitted"
     ></app-activity-audit-section>
   }
   <!-- Fees section -->
   @case ('fees') {
-    <app-fees-section [group]="feesGroup"></app-fees-section>
+    <app-fees-section
+      [group]="feesGroup"
+      [submitted]="vm().submitted"
+    ></app-fees-section>
   }
   <!-- List maintenance section -->
   @case ('list-maintenance') {
     <app-list-maintenance-section
       [group]="listMaintenanceGroup"
+      [submitted]="vm().submitted"
     ></app-list-maintenance-section>
   }
   <!-- Search warrants section -->
@@ -40,20 +53,28 @@
     <app-search-warrants-section
       [group]="searchWarrantsGroup"
       [suggestions]="suggestionsFacade"
+      [submitted]="vm().submitted"
     />
   }
   <!-- Standard applicants section -->
   @case ('workload') {
-    <app-workload-section [group]="workloadGroup"></app-workload-section>
+    <app-workload-section
+      [group]="workloadGroup"
+      [submitted]="vm().submitted"
+    ></app-workload-section>
   }
   <!-- Duration section -->
   @case ('duration') {
-    <app-duration-section [group]="durationGroup"></app-duration-section>
+    <app-duration-section
+      [group]="durationGroup"
+      [submitted]="vm().submitted"
+    ></app-duration-section>
   }
   <!-- Private prosecutors index section -->
   @case ('private-prosecutors-index') {
     <app-private-prosecutors-index-section
       [group]="ppiGroup"
+      [submitted]="vm().submitted"
     ></app-private-prosecutors-index-section>
   }
 }
@@ -61,6 +82,8 @@
 <!-- Download button -->
 @if (form.get('report')?.value) {
   <div class="govuk-button-group">
-    <button type="button" class="govuk-button">Download</button>
+    <button type="button" class="govuk-button" (click)="onDownload()">
+      Download
+    </button>
   </div>
 }

@@ -14,4 +14,5 @@ import { TextInputComponent } from '@components/text-input/text-input.component'
 export class FeesSectionComponent {
   /** Parent passes the nested form group for the Fees section */
   @Input({ required: true }) group!: FormGroup;
+  @Input() submitted = false;
 }

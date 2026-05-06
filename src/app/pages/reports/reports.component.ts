@@ -1,20 +1,44 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+
+import { ReportsState, initialReportsState } from './util';
 
 import { ActivityAuditSectionComponent } from '@components/activity-audit-section/activity-audit-section.component';
 import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { DurationSectionComponent } from '@components/duration-section/duration-section.component';
+import {
+  ErrorItem,
+  ErrorSummaryComponent,
+} from '@components/error-summary/error-summary.component';
 import { FeesSectionComponent } from '@components/fees-section/fees-section.component';
 import { ListMaintenanceSectionComponent } from '@components/list-maintenance-section/list-maintenance-section.component';
 import { PrivateProsecutorsIndexSectionComponent } from '@components/private-prosecutors-index-section/private-prosecutors-index-section.component';
-import {
-  ReportOption,
-  ReportSelectorComponent,
-} from '@components/report-option/report-selector.component';
+import { ReportSelectorComponent } from '@components/report-option/report-selector.component';
 import { SearchWarrantsSectionComponent } from '@components/search-warrants-section/search-warrants-section.component';
 import { WorkloadSectionComponent } from '@components/workload-section/workload-section.component';
+import {
+  REPORTS_FORM_ERROR_MESSAGES,
+  REPORT_ERROR_HREFS,
+} from '@constants/reports/report-err';
+import { reportOptions } from '@constants/reports/report-selector.constant';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
+import { ReportId } from '@shared-types/reports/report.types';
+import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
+import { buildFormErrorSummary } from '@util/error-summary';
 import { PlaceFieldsBase } from '@util/place-fields.base';
+import { createSignalState } from '@util/signal-state-helpers';
+import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
+import { courtMustExistIfTypedValidator } from '@validators/court-exists.validator';
+
+const REPORT_ERROR_PRIORITY_KEYS: Record<string, string[]> = {
+  dateFrom: ['dateInvalid', 'required'],
+  dateTo: ['dateInvalid', 'required'],
+};
 
 @Component({
   selector: 'app-reports',
@@ -29,26 +53,46 @@ import { PlaceFieldsBase } from '@util/place-fields.base';
     WorkloadSectionComponent,
     DurationSectionComponent,
     PrivateProsecutorsIndexSectionComponent,
+    ErrorSummaryComponent,
   ],
   templateUrl: './reports.component.html',
 })
 export class Reports extends PlaceFieldsBase implements OnInit {
   private readonly refFacade = inject(ReferenceDataFacade);
 
+  private readonly reportState =
+    createSignalState<ReportsState>(initialReportsState);
+  private readonly reportStatePatch = this.reportState.patch;
+  readonly vm = this.reportState.vm;
+
+  onCreateErrorClick = onCreateErrorClickFn;
+
+  private readonly errorMap = REPORTS_FORM_ERROR_MESSAGES;
+
   // Reactive form backing the template
   override form = new FormGroup({
-    report: new FormControl<string | null>(null),
+    report: new FormControl<string | null>(null, {
+      validators: [(c) => Validators.required(c)],
+    }),
 
     activityAudit: new FormGroup({
-      dateFrom: new FormControl<string | null>(null),
-      dateTo: new FormControl<string | null>(null),
+      dateFrom: new FormControl<string | null>(null, {
+        validators: [(c) => Validators.required(c)],
+      }),
+      dateTo: new FormControl<string | null>(null, {
+        validators: [(c) => Validators.required(c)],
+      }),
       username: new FormControl<string | null>(''),
       activity: new FormControl<string | null>(''),
     }),
 
     fees: new FormGroup({
-      dateFrom: new FormControl<string | null>(null),
-      dateTo: new FormControl<string | null>(null),
+      dateFrom: new FormControl<string | null>(null, {
+        validators: [(c) => Validators.required(c)],
+      }),
+      dateTo: new FormControl<string | null>(null, {
+        validators: [(c) => Validators.required(c)],
+      }),
       applicantCode: new FormControl<string | null>(''),
       surnameOrOrg: new FormControl<string | null>(''),
       court: new FormControl<string | null>(''),
@@ -57,8 +101,12 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     }),
 
     listMaintenance: new FormGroup({
-      dateFrom: new FormControl<string | null>(null),
-      dateTo: new FormControl<string | null>(null),
+      dateFrom: new FormControl<string | null>(null, {
+        validators: [(c) => Validators.required(c)],
+      }),
+      dateTo: new FormControl<string | null>(null, {
+        validators: [(c) => Validators.required(c)],
+      }),
       description: new FormControl<string | null>(''),
       court: new FormControl<string | null>(''),
       otherLocation: new FormControl<string | null>(''),
@@ -66,32 +114,48 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     }),
 
     searchWarrants: new FormGroup({
-      dateFrom: new FormControl<string | null>(null),
-      dateTo: new FormControl<string | null>(null),
+      dateFrom: new FormControl<string | null>(null, {
+        validators: [(c) => Validators.required(c)],
+      }),
+      dateTo: new FormControl<string | null>(null, {
+        validators: [(c) => Validators.required(c)],
+      }),
       court: new FormControl<string | null>(''),
       otherLocation: new FormControl<string | null>(''),
       cja: new FormControl<string | null>(''),
     }),
 
     workload: new FormGroup({
-      dateFrom: new FormControl<string | null>(null),
-      dateTo: new FormControl<string | null>(null),
+      dateFrom: new FormControl<string | null>(null, {
+        validators: [(c) => Validators.required(c)],
+      }),
+      dateTo: new FormControl<string | null>(null, {
+        validators: [(c) => Validators.required(c)],
+      }),
       court: new FormControl<string | null>(''),
       otherLocation: new FormControl<string | null>(''),
       cja: new FormControl<string | null>(''),
     }),
 
     duration: new FormGroup({
-      dateFrom: new FormControl<string | null>(null),
-      dateTo: new FormControl<string | null>(null),
+      dateFrom: new FormControl<string | null>(null, {
+        validators: [(c) => Validators.required(c)],
+      }),
+      dateTo: new FormControl<string | null>(null, {
+        validators: [(c) => Validators.required(c)],
+      }),
       court: new FormControl<string | null>(''),
       otherLocation: new FormControl<string | null>(''),
       cja: new FormControl<string | null>(''),
     }),
 
     privateProsecutorsIndex: new FormGroup({
-      dateFrom: new FormControl<string | null>(null),
-      dateTo: new FormControl<string | null>(null),
+      dateFrom: new FormControl<string | null>(null, {
+        validators: [(c) => Validators.required(c)],
+      }),
+      dateTo: new FormControl<string | null>(null, {
+        validators: [(c) => Validators.required(c)],
+      }),
       applicantSurnameOrOrg: new FormControl<string | null>(''),
       applicantFirst: new FormControl<string | null>(''),
       standardApplicantName: new FormControl<string | null>(''),
@@ -105,48 +169,43 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   });
 
   // Options for the <app-report-selector>
-  reportOptions: ReportOption[] = [
-    {
-      id: 'activity-audit',
-      label: 'Activity audit',
-      hint: 'Provides a report of all user activity for a given period and optionally filtered by username and court',
-    },
-    {
-      id: 'fees',
-      label: 'Fees',
-      hint: 'Report of dealt-with applications with fee details for a date range and optional filters',
-    },
-    {
-      id: 'list-maintenance',
-      label: 'List maintenance',
-      hint: "Provides a report of all 'open' lists that are older than a specified date",
-    },
-    {
-      id: 'search-warrants',
-      label: 'Search warrants',
-      hint: 'Provides an index of all search warrants by date and location filters',
-    },
-    {
-      id: 'workload',
-      label: 'Workload',
-      hint: 'Closed lists by date and location within a specified period',
-    },
-    {
-      id: 'duration',
-      label: 'Duration',
-      hint: 'Closed lists with recorded duration for a date range and location filters',
-    },
-    {
-      id: 'private-prosecutors-index',
-      label: 'Private prosecutors index',
-      hint: 'Index of applications for MX99010 (private prosecutors)',
-    },
-  ] as const;
+  reportOptions = reportOptions;
 
   suggestionsFacade = buildSuggestionsFacade(this);
 
   ngOnInit(): void {
     this.initPlaceFields(this.searchWarrantsGroup, this.refFacade);
+
+    this.searchWarrantsGroup.addValidators([
+      cjaMustExistIfTypedValidator({
+        getTyped: () => this.state().cjaSearch ?? '',
+        getValidCodes: () => this.state().cja.map((x) => x.code),
+      }),
+      courtMustExistIfTypedValidator({
+        getTyped: () => this.state().courthouseSearch ?? '',
+        getValidCodes: () =>
+          this.state().courtLocations.map((x) => x.locationCode),
+      }),
+    ]);
+  }
+
+  onDownload(): void {
+    this.form.controls.report.markAsTouched();
+    this.form.controls.report.updateValueAndValidity({ emitEvent: false });
+    this.reportStatePatch({ submitted: true });
+
+    const selectedGroup = this.selectedReportGroup();
+    selectedGroup?.markAllAsTouched();
+    selectedGroup?.updateValueAndValidity({ emitEvent: false });
+
+    const validationErrors = this.buildErrorSummary();
+
+    if (validationErrors.length) {
+      this.reportStatePatch({ errorSummary: validationErrors });
+      return;
+    }
+
+    this.reportStatePatch({ errorSummary: [] });
   }
 
   /** Handy getter for the child binding */
@@ -182,5 +241,65 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   /** Handy getter for the child binding */
   get ppiGroup(): FormGroup {
     return this.form.get('privateProsecutorsIndex') as FormGroup;
+  }
+
+  private buildErrorSummary(): ErrorItem[] {
+    const reportId = this.form.controls.report.value as ReportId | null;
+    const selectedGroup = this.selectedReportGroup();
+
+    if (!reportId || !selectedGroup) {
+      return buildFormErrorSummary(this.form, this.errorMap, {
+        hrefs: { report: '#report-activity-audit' },
+      });
+    }
+
+    const errors = buildFormErrorSummary(selectedGroup, this.errorMap, {
+      hrefs: REPORT_ERROR_HREFS[reportId],
+      priorityKeys: REPORT_ERROR_PRIORITY_KEYS,
+    });
+
+    return this.withDateInputErrorText(errors, selectedGroup);
+  }
+
+  private withDateInputErrorText(
+    errors: ErrorItem[],
+    group: FormGroup,
+  ): ErrorItem[] {
+    return errors.map((error) => {
+      if (error.id !== 'dateFrom' && error.id !== 'dateTo') {
+        return error;
+      }
+
+      const dateErrorText = group.get(error.id)?.errors?.[
+        'dateErrorText'
+      ] as string;
+
+      if (typeof dateErrorText !== 'string') {
+        return error;
+      }
+
+      return { ...error, text: dateErrorText };
+    });
+  }
+
+  private selectedReportGroup(): FormGroup | null {
+    switch (this.form.controls.report.value) {
+      case 'activity-audit':
+        return this.activityAuditGroup;
+      case 'fees':
+        return this.feesGroup;
+      case 'list-maintenance':
+        return this.listMaintenanceGroup;
+      case 'search-warrants':
+        return this.searchWarrantsGroup;
+      case 'workload':
+        return this.workloadGroup;
+      case 'duration':
+        return this.durationGroup;
+      case 'private-prosecutors-index':
+        return this.ppiGroup;
+      default:
+        return null;
+    }
   }
 }

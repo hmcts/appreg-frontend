@@ -16,4 +16,5 @@ export class SearchWarrantsSectionComponent {
   readonly group = input.required<FormGroup>();
 
   suggestions = input.required<SuggestionsFacade>();
+  submitted = input(false);
 }

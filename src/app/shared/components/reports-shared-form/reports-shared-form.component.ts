@@ -21,7 +21,7 @@ import { TextInputComponent } from '@components/text-input/text-input.component'
     ReactiveFormsModule,
     SuggestionsComponent,
   ],
-  templateUrl: './reports-shared-form.component.html'
+  templateUrl: './reports-shared-form.component.html',
 })
 export class ReportsSharedFormComponent {
   group = input.required<FormGroup>();

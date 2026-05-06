@@ -14,4 +14,5 @@ import { TextInputComponent } from '@components/text-input/text-input.component'
 export class WorkloadSectionComponent {
   /** Parent passes the nested reactive form group for this section */
   readonly group = input.required<FormGroup>();
+  readonly submitted = input(false);
 }
