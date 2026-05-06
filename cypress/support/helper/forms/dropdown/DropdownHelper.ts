@@ -148,27 +148,9 @@ export class DropdownHelper {
                 `Dropdown "${dropdownLabel}" not found within fieldset "${fieldsetLabel}"`,
               );
             }
-
             if ($dropdown.is('select')) {
-              cy.wrap($dropdown)
-                .find('option')
-                .then(($options) => {
-                  const match = [...$options].find(
-                    (o) =>
-                      o.textContent?.trim().toLowerCase() ===
-                      optionText.toLowerCase(),
-                  );
-
-                  if (!match) {
-                    throw new Error(
-                      `Option "${optionText}" not found in select within fieldset "${fieldsetLabel}"`,
-                    );
-                  }
-
-                  cy.wrap($dropdown).select(match.value);
-                });
+              cy.wrap($dropdown).select(optionText);
             } else {
-              // For custom dropdowns
               cy.wrap($dropdown)
                 .click()
                 .then(() =>
