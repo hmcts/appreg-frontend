@@ -39,7 +39,8 @@
   @case ('search-warrants') {
     <app-search-warrants-section
       [group]="searchWarrantsGroup"
-    ></app-search-warrants-section>
+      [suggestions]="suggestionsFacade"
+    />
   }
   <!-- Standard applicants section -->
   @case ('workload') {

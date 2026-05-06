@@ -1,0 +1,72 @@
+<div [formGroup]="group()">
+  <div class="govuk-grid-row">
+    <!-- Date from -->
+    <app-date-input
+      formControlName="dateFrom"
+      label="Date from"
+      idPrefix="list-date-from"
+    />
+  </div>
+
+  <div class="govuk-grid-row">
+    <!-- Date to -->
+    <app-date-input
+      formControlName="dateTo"
+      label="Date to"
+      idPrefix="list-date-to"
+    />
+  </div>
+
+  <div class="govuk-grid-row">
+    <!-- Court -->
+    <app-suggestions
+      id="court"
+      tabindex="-1"
+      label="Court"
+      formControlName="court"
+      [search]="suggestions().courthouseSearch()"
+      (searchChange)="
+        suggestions().setCourthouseSearch($event);
+        suggestions().onCourthouseInputChange()
+      "
+      [suggestions]="suggestions().filteredCourthouses()"
+      (selectItem)="suggestions().selectCourthouse($event)"
+      [showError]="showError('court')"
+      [errorText]="errorText('court')"
+      containerWidthClass="govuk-grid-column-one-half"
+      widthClass="govuk-!-width-two-thirds"
+    />
+  </div>
+
+  <div class="govuk-grid-row">
+    <!-- Other location -->
+    <app-text-input
+      formControlName="otherLocation"
+      label="Other location description"
+      idPrefix="other-location"
+      [error]="errorText('otherLocation')"
+      containerWidthClass="govuk-grid-column-one-quarter"
+      widthClass="govuk-!-width-full"
+    />
+  </div>
+
+  <div class="govuk-grid-row">
+    <!-- CJA -->
+    <app-suggestions
+      id="cja"
+      tabindex="-1"
+      label="Criminal justice area"
+      formControlName="cja"
+      [search]="suggestions().cjaSearch()"
+      (searchChange)="
+        suggestions().setCjaSearch($event); suggestions().onCjaInputChange()
+      "
+      [suggestions]="suggestions().filteredCja()"
+      (selectItem)="suggestions().selectCja($event)"
+      [showError]="showError('cja')"
+      [errorText]="errorText('cja')"
+      containerWidthClass="govuk-grid-column-one-quarter"
+      widthClass="govuk-!-width-full"
+    />
+  </div>
+</div>

@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { ActivityAuditSectionComponent } from '@components/activity-audit-section/activity-audit-section.component';
+import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { DurationSectionComponent } from '@components/duration-section/duration-section.component';
 import { FeesSectionComponent } from '@components/fees-section/fees-section.component';
 import { ListMaintenanceSectionComponent } from '@components/list-maintenance-section/list-maintenance-section.component';
@@ -12,6 +13,8 @@ import {
 } from '@components/report-option/report-selector.component';
 import { SearchWarrantsSectionComponent } from '@components/search-warrants-section/search-warrants-section.component';
 import { WorkloadSectionComponent } from '@components/workload-section/workload-section.component';
+import { ReferenceDataFacade } from '@services/reference-data.facade';
+import { PlaceFieldsBase } from '@util/place-fields.base';
 
 @Component({
   selector: 'app-reports',
@@ -29,9 +32,11 @@ import { WorkloadSectionComponent } from '@components/workload-section/workload-
   ],
   templateUrl: './reports.component.html',
 })
-export class Reports {
+export class Reports extends PlaceFieldsBase implements OnInit {
+  private readonly refFacade = inject(ReferenceDataFacade);
+
   // Reactive form backing the template
-  form = new FormGroup({
+  override form = new FormGroup({
     report: new FormControl<string | null>(null),
 
     activityAudit: new FormGroup({
@@ -137,6 +142,12 @@ export class Reports {
       hint: 'Index of applications for MX99010 (private prosecutors)',
     },
   ] as const;
+
+  suggestionsFacade = buildSuggestionsFacade(this);
+
+  ngOnInit(): void {
+    this.initPlaceFields(this.searchWarrantsGroup, this.refFacade);
+  }
 
   /** Handy getter for the child binding */
   get activityAuditGroup(): FormGroup {
