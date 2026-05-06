@@ -1,6 +1,6 @@
 Feature: Applications Print
 
-    @regression @ARCPOC-1330 @ARCPOC-1329
+    @regression @ARCPOC-1330 @ARCPOC-1329 @ARCPOC-1294
     Scenario Outline: Print selected applications from Applications search page
         # Setup: Create Application List and Entry via API
         Given User Authenticates Via API As "<User>"
@@ -287,12 +287,7 @@ Feature: Applications Print
             | todaydisplay | Sarah Johnson {RANDOM}              | Finance Corp LTD {RANDOM}      | Collection Order - Financial Penalty Account           | No  | Yes      | OPEN   |
             | todaydisplay | ACME Industries LTD {RANDOM}        | Emma Williams {RANDOM}         | Condemnation of Unfit Food                             | Yes | Yes      | OPEN   |
             | todaydisplay | Global Trade Solutions LTD {RANDOM} | Controlled Assets Ltd {RANDOM} | Order for the disposal of uncollected controlled goods | No  | Yes      | OPEN   |
-        When User Checks The Checkbox In Row Of Table "Application list entries" With:
-            | Date         | Applicant                           | Respondent                     | Application title                                      |
-            | todaydisplay | Innovative Solutions Inc            | John Smith {RANDOM}            | Issue of liability order summons - council tax         |
-            | todaydisplay | Sarah Johnson {RANDOM}              | Finance Corp LTD {RANDOM}      | Collection Order - Financial Penalty Account           |
-            | todaydisplay | ACME Industries LTD {RANDOM}        | Emma Williams {RANDOM}         | Condemnation of Unfit Food                             |
-            | todaydisplay | Global Trade Solutions LTD {RANDOM} | Controlled Assets Ltd {RANDOM} | Order for the disposal of uncollected controlled goods |
+        When User Checks The Select All Checkbox In Table "Application list entries"
         When User Clicks "Actions" Then "Print continuous" From Caption Menu In Table "Application list entries"
         Then User Verifies PDF "applications-todayiso-print-cont" Is Downloaded
         Then User Verifies Latest Downloaded PDF Is Not Empty
