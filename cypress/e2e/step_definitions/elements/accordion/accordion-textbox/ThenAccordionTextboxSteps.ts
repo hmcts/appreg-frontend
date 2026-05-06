@@ -90,3 +90,22 @@ Then(
     });
   },
 );
+
+Then(
+  'User Enters {string} In The Textbox {string} Under {string} FieldSet In The Accordion {string}',
+  (
+    value: string,
+    textboxLabel: string,
+    fieldsetLabel: string,
+    accordionTitle: string,
+  ) => {
+    const resolvedValue = TestDataGenerator.replaceRandomPlaceholders(value);
+    AccordionHelper.within(accordionTitle, () => {
+      TextboxHelper.typeInTextboxUnderFieldset(
+        textboxLabel,
+        fieldsetLabel,
+        resolvedValue,
+      );
+    });
+  },
+);

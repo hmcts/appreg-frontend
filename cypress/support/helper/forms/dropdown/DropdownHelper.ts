@@ -133,4 +133,60 @@ export class DropdownHelper {
       },
     );
   }
+
+  static selectDropdownOptionUnderFieldset(
+    dropdownLabel: string,
+    optionText: string,
+    fieldsetLabel: string,
+  ): void {
+    cy.contains('fieldset', fieldsetLabel, { matchCase: false }).then(
+      ($fieldset) => {
+        DropdownElement.findDropdownWithin($fieldset, dropdownLabel).then(
+          ($dropdown) => {
+            if (!$dropdown || $dropdown.length === 0) {
+              throw new Error(
+                `Dropdown "${dropdownLabel}" not found within fieldset "${fieldsetLabel}"`,
+              );
+            }
+
+            if ($dropdown.is('select')) {
+              cy.wrap($dropdown)
+                .find('option')
+                .then(($options) => {
+                  const match = [...$options].find(
+                    (o) =>
+                      o.textContent?.trim().toLowerCase() ===
+                      optionText.toLowerCase(),
+                  );
+
+                  if (!match) {
+                    throw new Error(
+                      `Option "${optionText}" not found in select within fieldset "${fieldsetLabel}"`,
+                    );
+                  }
+
+                  cy.wrap($dropdown).select(match.value);
+                });
+            } else {
+              // For custom dropdowns
+              cy.wrap($dropdown)
+                .click()
+                .then(() =>
+                  cy
+                    .contains(
+                      '.dropdown [role="option"], .select [role="option"], .dropdown__option, .select__option',
+                      optionText,
+                      { matchCase: false },
+                    )
+                    .click(),
+                )
+                .then(() =>
+                  cy.wrap($dropdown).should('contain.text', optionText),
+                );
+            }
+          },
+        );
+      },
+    );
+  }
 }
