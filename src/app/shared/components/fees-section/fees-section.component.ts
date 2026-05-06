@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
@@ -8,12 +7,7 @@ import { TextInputComponent } from '@components/text-input/text-input.component'
 @Component({
   selector: 'app-fees-section',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    DateInputComponent,
-    TextInputComponent,
-  ],
+  imports: [ReactiveFormsModule, DateInputComponent, TextInputComponent],
   templateUrl: './fees-section.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

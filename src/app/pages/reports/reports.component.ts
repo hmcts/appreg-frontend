@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
@@ -18,7 +17,6 @@ import { WorkloadSectionComponent } from '@components/workload-section/workload-
   selector: 'app-reports',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     ReportSelectorComponent,
     ActivityAuditSectionComponent,

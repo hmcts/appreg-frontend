@@ -17,7 +17,7 @@
       - Manages success banners and scroll/focus behaviour for validation and server errors
       - TODO: Eventually use generic components/services for banners & scroll/focus behavior
 */
-import { CommonModule, Location } from '@angular/common';
+import { Location } from '@angular/common';
 import {
   Component,
   DestroyRef,
@@ -163,7 +163,6 @@ export const ERROR_HREFS = {
   standalone: true,
   providers: [ApplicationListEntryResultsFacade],
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     RouterModule,
     BreadcrumbsComponent,

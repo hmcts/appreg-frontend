@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
@@ -8,7 +7,7 @@ import { SessionService } from '@services/session.service';
 @Component({
   selector: 'app-not-found',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [RouterModule],
   templateUrl: './not-found.component.html',
 })
 export class NotFoundComponent implements OnInit, OnDestroy {

@@ -1,12 +1,5 @@
-/**
- * TODO: arcpoc-816
- * refactor manual subscription + local flags
- * is a good reusable signal pattern candidate to derive from
- */
-
 // TODO: add header comment
 
-import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -53,7 +46,6 @@ const APPLICATION_CODE_SEARCH_ERROR_MESSAGES = {
   selector: 'app-application-code-search',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     TextInputComponent,
     DateInputComponent,

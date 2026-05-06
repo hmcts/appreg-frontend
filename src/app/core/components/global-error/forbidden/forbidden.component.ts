@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject, input } from '@angular/core';
 
 import { HeaderService } from '@services/header.service';
@@ -6,7 +5,7 @@ import { HeaderService } from '@services/header.service';
 @Component({
   selector: 'app-forbidden',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './forbidden.component.html',
 })
 export class ForbiddenComponent implements OnInit, OnDestroy {

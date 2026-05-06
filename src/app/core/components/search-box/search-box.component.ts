@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -18,7 +17,7 @@ import {
 @Component({
   selector: 'app-search-box',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ReactiveFormsModule],
   templateUrl: './search-box.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

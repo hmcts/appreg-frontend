@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component, computed, input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
@@ -12,7 +11,6 @@ import { buildErrorTextByDomId, errorTextForDomId } from '@util/error-items';
   selector: 'app-person-section',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     SelectInputComponent,
     TextInputComponent,

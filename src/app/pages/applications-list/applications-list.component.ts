@@ -230,8 +230,6 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
   // Registers signal-driven effects that watch request signals and run API calls,
   // then update state on success/error
   private setupEffects(): void {
-    // TODO: Use global error handling after ARCPOC-822 is done
-    // Applications list search
     setupLoadEffect(
       {
         request: this.loadRequest,

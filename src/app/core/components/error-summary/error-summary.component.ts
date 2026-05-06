@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -14,7 +13,7 @@ export type ErrorItem = { text: string; href?: string; id?: string };
 @Component({
   selector: 'app-error-summary',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [RouterLink],
   templateUrl: 'error-summary.component.html',
 })
 export class ErrorSummaryComponent implements AfterViewInit {

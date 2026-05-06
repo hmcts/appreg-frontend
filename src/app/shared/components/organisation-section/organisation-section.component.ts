@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component, computed, input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
@@ -9,7 +8,7 @@ import { buildErrorTextByDomId, errorTextForDomId } from '@util/error-items';
 @Component({
   selector: 'app-organisation-section',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TextInputComponent],
+  imports: [ReactiveFormsModule, TextInputComponent],
   templateUrl: './organisation-section.component.html',
 })
 export class OrganisationSectionComponent {
