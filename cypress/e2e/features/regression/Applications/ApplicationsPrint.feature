@@ -165,7 +165,61 @@ Feature: Applications Print
             | officials.3.type                                   | CLERK                                         |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "entryId3"
-        # Result all 3 entries individually (bulk endpoint not implemented in API yet)
+        # Entry 4 - Organisation applicant + Organisation respondent (CJA list)
+        When User Makes POST API Request To "/application-lists" With Body:
+            | date     | time           | status | description                             | durationHours | durationMinutes | otherLocationDescription         | cjaCode |
+            | todayiso | timenowhhmm-2h | OPEN   | Applications to review at Test_{RANDOM} | 2             | 22              | Temporary Courtroom at Town Hall | 01      |
+        Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "listId2"
+        When User Makes POST API Request To "/application-lists/:listId2/entries" With Object Builder:
+            | standardApplicantCode                               | null                                                |
+            | applicationCode                                     | EF99020                                             |
+            | applicant.organisation.name                         | Global Trade Solutions LTD {RANDOM}                 |
+            | applicant.organisation.contactDetails.addressLine1  | 100 Business Park                                   |
+            | applicant.organisation.contactDetails.addressLine2  | Canary Wharf                                        |
+            | applicant.organisation.contactDetails.addressLine3  | London                                              |
+            | applicant.organisation.contactDetails.addressLine4  | Greater London                                      |
+            | applicant.organisation.contactDetails.addressLine5  | United Kingdom                                      |
+            | applicant.organisation.contactDetails.postcode      | E14 5AB                                             |
+            | applicant.organisation.contactDetails.phone         | 020 7946 0100                                       |
+            | applicant.organisation.contactDetails.mobile        | 07700900100                                         |
+            | applicant.organisation.contactDetails.email         | info@globaltradeuk.com                              |
+            | respondent.organisation.name                        | Controlled Assets Ltd {RANDOM}                      |
+            | respondent.organisation.contactDetails.addressLine1 | 200 Commerce Street                                 |
+            | respondent.organisation.contactDetails.addressLine2 | Sheffield                                           |
+            | respondent.organisation.contactDetails.addressLine3 | South Yorkshire                                     |
+            | respondent.organisation.contactDetails.addressLine4 | England                                             |
+            | respondent.organisation.contactDetails.addressLine5 | United Kingdom                                      |
+            | respondent.organisation.contactDetails.postcode     | S1 2GU                                              |
+            | respondent.organisation.contactDetails.phone        | 0114 496 0200                                       |
+            | respondent.organisation.contactDetails.mobile       | 07700900200                                         |
+            | respondent.organisation.contactDetails.email        | info@controlledassets.com                           |
+            | feeStatuses.0.paymentStatus                         | DUE                                                 |
+            | feeStatuses.0.statusDate                            | todayiso                                            |
+            | hasOffsiteFee                                       | false                                               |
+            | caseReference                                       | CASE-004                                            |
+            | accountNumber                                       | ACC-{RANDOM}                                        |
+            | notes                                               | Organisation applicant with organisation respondent |
+            | lodgementDate                                       | todayiso                                            |
+            | officials.0.title                                   | Mr                                                  |
+            | officials.0.surname                                 | Smith                                               |
+            | officials.0.forename                                | John                                                |
+            | officials.0.type                                    | MAGISTRATE                                          |
+            | officials.1.title                                   | Mrs                                                 |
+            | officials.1.surname                                 | Brown                                               |
+            | officials.1.forename                                | Sarah                                               |
+            | officials.1.type                                    | MAGISTRATE                                          |
+            | officials.2.title                                   | Ms                                                  |
+            | officials.2.surname                                 | Patel                                               |
+            | officials.2.forename                                | Anita                                               |
+            | officials.2.type                                    | MAGISTRATE                                          |
+            | officials.3.title                                   | Mr                                                  |
+            | officials.3.surname                                 | Miller                                              |
+            | officials.3.forename                                | Peter                                               |
+            | officials.3.type                                    | CLERK                                               |
+        Then User Verify Response Status Code Should Be "201"
+        Then User Stores Response Body Property "id" As "entryId4"
+        # Result all 4 entries individually
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId1/results" With Json Body
             """
             {
@@ -205,6 +259,19 @@ Feature: Applications Print
             }
             """
         Then User Verify Response Status Code Should Be "201"
+        When User Makes POST API Request To "/application-lists/:listId2/entries/:entryId4/results" With Json Body
+            """
+            {
+            "resultCode": "RSN",
+            "wordingFields": [
+            {
+            "key": "Reason text",
+            "value": "Applications rejected due to insufficient documentation and missing required signatures"
+            }
+            ]
+            }
+            """
+        Then User Verify Response Status Code Should Be "201"
         # UI: Search and Print
         Given User Has No Downloaded PDFs
         Given User Is On The Portal Page
@@ -212,23 +279,25 @@ Feature: Applications Print
         Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"
         When User Searches Applications With:
-            | Date  | CourtSearch | Court                             | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
-            | today | LCCC065     | Leeds Combined Court Centre Set 7 |                        |                   |                         |                    |                           |                      |           |                       |                            |                         | ACC-{RANDOM}      |
+            | Date  | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
+            | today |             |       |                        |                   |                         |                    |                           |                      |           |                       |                            |                         | ACC-{RANDOM}      |
         Then User Should See Row In Table "Application list entries" With Values:
-            | Date         | Applicant                    | Respondent                | Application title                              | Fee | Resulted | Status |
-            | todaydisplay | Innovative Solutions Inc     | John Smith {RANDOM}       | Issue of liability order summons - council tax | No  | Yes      | OPEN   |
-            | todaydisplay | Sarah Johnson {RANDOM}       | Finance Corp LTD {RANDOM} | Collection Order - Financial Penalty Account   | No  | Yes      | OPEN   |
-            | todaydisplay | ACME Industries LTD {RANDOM} | Emma Williams {RANDOM}    | Condemnation of Unfit Food                     | Yes | Yes      | OPEN   |
+            | Date         | Applicant                           | Respondent                     | Application title                                      | Fee | Resulted | Status |
+            | todaydisplay | Innovative Solutions Inc            | John Smith {RANDOM}            | Issue of liability order summons - council tax         | No  | Yes      | OPEN   |
+            | todaydisplay | Sarah Johnson {RANDOM}              | Finance Corp LTD {RANDOM}      | Collection Order - Financial Penalty Account           | No  | Yes      | OPEN   |
+            | todaydisplay | ACME Industries LTD {RANDOM}        | Emma Williams {RANDOM}         | Condemnation of Unfit Food                             | Yes | Yes      | OPEN   |
+            | todaydisplay | Global Trade Solutions LTD {RANDOM} | Controlled Assets Ltd {RANDOM} | Order for the disposal of uncollected controlled goods | No  | Yes      | OPEN   |
         When User Checks The Checkbox In Row Of Table "Application list entries" With:
-            | Date         | Applicant                    | Respondent                | Application title                              |
-            | todaydisplay | Innovative Solutions Inc     | John Smith {RANDOM}       | Issue of liability order summons - council tax |
-            | todaydisplay | Sarah Johnson {RANDOM}       | Finance Corp LTD {RANDOM} | Collection Order - Financial Penalty Account   |
-            | todaydisplay | ACME Industries LTD {RANDOM} | Emma Williams {RANDOM}    | Condemnation of Unfit Food                     |
+            | Date         | Applicant                           | Respondent                     | Application title                                      |
+            | todaydisplay | Innovative Solutions Inc            | John Smith {RANDOM}            | Issue of liability order summons - council tax         |
+            | todaydisplay | Sarah Johnson {RANDOM}              | Finance Corp LTD {RANDOM}      | Collection Order - Financial Penalty Account           |
+            | todaydisplay | ACME Industries LTD {RANDOM}        | Emma Williams {RANDOM}         | Condemnation of Unfit Food                             |
+            | todaydisplay | Global Trade Solutions LTD {RANDOM} | Controlled Assets Ltd {RANDOM} | Order for the disposal of uncollected controlled goods |
         When User Clicks "Actions" Then "Print continuous" From Caption Menu In Table "Application list entries"
-        Then User Verifies PDF "leeds-combined-court-centre-set-7-todayiso-print-cont" Is Downloaded
+        Then User Verifies PDF "applications-todayiso-print-cont" Is Downloaded
         Then User Verifies Latest Downloaded PDF Is Not Empty
         Then User Verifies Latest Downloaded PDF Contains Text "Check List Report"
-        Then User Verifies Latest Downloaded PDF Contains 3 "Applicant" Entries
+        Then User Verifies Latest Downloaded PDF Contains 4 "Applicant" Entries
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
             | Applicant              | Innovative Solutions Inc                                                                            |
             | Respondent             | Mr John Edward Smith {RANDOM}                                                                       |
@@ -255,9 +324,18 @@ Feature: Applications Print
             | Result                 | Reasons: {Applications rejected due to insufficient documentation and missing required signatures}. |
             | Notes                  | Organisation applicant with person respondent                                                       |
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
+            | Applicant              | Global Trade Solutions LTD {RANDOM}                                                                 |
+            | Respondent             | Controlled Assets Ltd {RANDOM}                                                                      |
+            | Case Reference         | CASE-004                                                                                            |
+            | Application Code       | EF99020                                                                                             |
+            | Account Reference      | ACC-{RANDOM}                                                                                        |
+            | Application Title      | Order for the disposal of uncollected controlled goods                                              |
+            | Result                 | Reasons: {Applications rejected due to insufficient documentation and missing required signatures}. |
+            | Notes                  | Organisation applicant with organisation respondent                                                 |
+            | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
         Then User Clears Downloaded PDFs
         When User Clicks "Actions" Then "Print page" From Caption Menu In Table "Application list entries"
-        Then User Verifies PDF "leeds-combined-court-centre-set-7-todayiso-print-page" Is Downloaded
+        Then User Verifies PDF "applications-todayiso-print-page" Is Downloaded
         Then User Verifies Latest Downloaded PDF Is Not Empty
         Then User Verifies Latest Downloaded PDF Contains Text "Leeds Combined Court Centre Set 7"
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
@@ -279,9 +357,17 @@ Feature: Applications Print
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
             | Dated                  | todaydisplaylong                                                                                    |
             | Produced on            | todaydisplaylong                                                                                    |
+            | Application brought by | Global Trade Solutions LTD {RANDOM}                                                                 |
+            | Respondent             | Controlled Assets Ltd {RANDOM}                                                                      |
+            | Matter considered      | Order for the disposal of uncollected controlled goods                                              |
+            | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
+            | Dated                  | todaydisplaylong                                                                                    |
+            | Produced on            | todaydisplaylong                                                                                    |
         Then User Clears Downloaded PDFs
         # Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
+        Then User Verify Response Status Code Should Be "204"
+        When User Makes DELETE API Request To "/application-lists/:listId2"
         Then User Verify Response Status Code Should Be "204"
         Examples:
             | User  |

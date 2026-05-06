@@ -11,13 +11,13 @@ export class TableNavigation {
    * @returns True if next page exists and navigation succeeded, false otherwise
    */
   static goToNextPageIfExists(): Cypress.Chainable<boolean> {
-    return cy.get('body').then(($body) => {
+    return cy.root().then(($body) => {
       const $nextButton = TableElement.getEnabledNextPaginationButton($body);
       if ($nextButton.length > 0) {
         // Capture current page before clicking
         const currentPage = TableElement.getCurrentPageNumber($body);
 
-        return cy.get('body').then(($freshBody) => {
+        return cy.root().then(($freshBody) => {
           const $freshButton =
             TableElement.getEnabledNextPaginationButton($freshBody);
           return cy
@@ -32,7 +32,7 @@ export class TableNavigation {
             })
             .then(() => {
               // Verify page actually changed
-              return cy.get('body').then(($newBody) => {
+              return cy.root().then(($newBody) => {
                 const newPage = TableElement.getCurrentPageNumber($newBody);
                 if (newPage === currentPage) {
                   // Page didn't change, stop pagination
@@ -55,13 +55,13 @@ export class TableNavigation {
    * @returns True if navigated to a different page, false if already on last page
    */
   static navigateToLastPage(): Cypress.Chainable<boolean> {
-    return cy.get('body').then(($body) => {
+    return cy.root().then(($body) => {
       const $nextButton = TableElement.getEnabledNextPaginationButton($body);
       if ($nextButton.length === 0) {
         return cy.wrap(false);
       }
       // Re-query to prevent element detachment
-      return cy.get('body').then(($freshBody) => {
+      return cy.root().then(($freshBody) => {
         const currentPage = TableElement.getCurrentPageNumber($freshBody);
         const $freshButton =
           TableElement.getEnabledNextPaginationButton($freshBody);
@@ -87,7 +87,7 @@ export class TableNavigation {
    * @returns True if navigated, false if already on page 1
    */
   static navigateToFirstPage(): Cypress.Chainable<boolean> {
-    return cy.get('body').then(($body) => {
+    return cy.root().then(($body) => {
       const $page1Link = TableElement.getFirstPageLink($body);
       // Check if we're already on page 1 (current page has aria-current="page")
       if ($page1Link.attr('aria-current') === 'page') {
@@ -116,7 +116,7 @@ export class TableNavigation {
    * @returns True if pagination exists with more than one page
    */
   static hasMultiplePages(): Cypress.Chainable<boolean> {
-    return cy.get('body').then(($body) => {
+    return cy.root().then(($body) => {
       const $pagination = TableElement.getPaginationContainer($body);
       if ($pagination.length === 0) {
         return cy.wrap(false);
