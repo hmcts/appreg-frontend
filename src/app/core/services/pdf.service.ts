@@ -600,7 +600,9 @@ export class PdfService {
         trimToString(x['applicationCode']) || trimToString(x['code']);
 
       const applicationTitle = trimToString(x['applicationTitle']);
-      const applicationWording = trimToString(x['applicationWording']);
+      const applicationWording = trimToString(x['applicationWording'])
+        .replaceAll(/[{}]/g, '')
+        .trim();
 
       const caseReference =
         trimToString(x['caseReference']) ||
@@ -617,7 +619,7 @@ export class PdfService {
       const notes = trimToString(x['notes']);
 
       const result = asArr(x['resultWordings'])
-        .map((v) => trimToString(v))
+        .map((v) => trimToString(v).replaceAll(/[{}]/g, '').trim())
         .filter(Boolean)
         .join('\n');
 
