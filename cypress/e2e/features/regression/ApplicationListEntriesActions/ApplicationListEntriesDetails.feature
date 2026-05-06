@@ -1,6 +1,6 @@
 Feature: Application List Entries Search
 
-    @regression @applicationsList @applicationListEntry
+    @regression @applicationsList @applicationListEntry @ARCPOC-1246 @ARCPOC-1226
     Scenario Outline: Application List - Search Entries - Mixed Applicants, Respondents, Fees And Results
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -225,9 +225,76 @@ Feature: Application List Entries Search
             | Applicant           | Respondent | Respondent postcode | Sequence number | Account number | Application title | Fee | Resulted |
             | Nonexistent{RANDOM} |            |                     |                 |                |                   |     |          |
         Then User Sees Notification Banner "Important No lists entries found Try again, or create a new list entry"
+        When User Clicks On The "Clear search" Button
+        # Verify default sort order - Sequence number ascending by default, all others none
+        Then User Should See Table "Entries" Header "Sequence number" Has Sort Order "ascending"
+        Then User Should See Table "Entries" Header "Account number" Has Sort Order "none"
+        Then User Should See Table "Entries" Header "Applicant" Has Sort Order "none"
+        Then User Should See Table "Entries" Header "Respondent" Has Sort Order "none"
+        Then User Should See Table "Entries" Header "Postcode" Has Sort Order "none"
+        Then User Should See Table "Entries" Header "Title" Has Sort Order "none"
+        Then User Should See Table "Entries" Header "Fee" Has Sort Order "none"
+        Then User Should See Table "Entries" Header "Resulted" Has Sort Order "none"
+        # Test Sequence number column - already ascending by default, click once for descending
+        When User Clicks On Table Header "Sequence number" In Table "Entries"
+        Then User Should See Table "Entries" Header "Sequence number" Has Sort Order "descending"
+        Then User Should See Table "Entries" Column "Sequence number" Is Sorted "descending"
+        When User Clicks On Table Header "Sequence number" In Table "Entries"
+        Then User Should See Table "Entries" Header "Sequence number" Has Sort Order "ascending"
+        Then User Should See Table "Entries" Column "Sequence number" Is Sorted "ascending"
+        # Test Applicant column
+        When User Clicks On Table Header "Applicant" In Table "Entries"
+        Then User Should See Table "Entries" Header "Applicant" Has Sort Order "ascending"
+        Then User Should See Table "Entries" Column "Applicant" Is Sorted "ascending"
+        When User Clicks On Table Header "Applicant" In Table "Entries"
+        Then User Should See Table "Entries" Header "Applicant" Has Sort Order "descending"
+        Then User Should See Table "Entries" Column "Applicant" Is Sorted "descending"
+        # Test Respondent column
+        When User Clicks On Table Header "Respondent" In Table "Entries"
+        Then User Should See Table "Entries" Header "Respondent" Has Sort Order "ascending"
+        Then User Should See Table "Entries" Column "Respondent" Is Sorted "ascending"
+        When User Clicks On Table Header "Respondent" In Table "Entries"
+        Then User Should See Table "Entries" Header "Respondent" Has Sort Order "descending"
+        Then User Should See Table "Entries" Column "Respondent" Is Sorted "descending"
+        # Test Postcode column
+        When User Clicks On Table Header "Postcode" In Table "Entries"
+        Then User Should See Table "Entries" Header "Postcode" Has Sort Order "ascending"
+        Then User Should See Table "Entries" Column "Postcode" Is Sorted "ascending"
+        When User Clicks On Table Header "Postcode" In Table "Entries"
+        Then User Should See Table "Entries" Header "Postcode" Has Sort Order "descending"
+        Then User Should See Table "Entries" Column "Postcode" Is Sorted "descending"
+        # Test Title column
+        When User Clicks On Table Header "Title" In Table "Entries"
+        Then User Should See Table "Entries" Header "Title" Has Sort Order "ascending"
+        Then User Should See Table "Entries" Column "Title" Is Sorted "ascending"
+        When User Clicks On Table Header "Title" In Table "Entries"
+        Then User Should See Table "Entries" Header "Title" Has Sort Order "descending"
+        Then User Should See Table "Entries" Column "Title" Is Sorted "descending"
+        # Test Fee column
+        When User Clicks On Table Header "Fee" In Table "Entries"
+        Then User Should See Table "Entries" Header "Fee" Has Sort Order "ascending"
+        Then User Should See Table "Entries" Column "Fee" Is Sorted "ascending"
+        When User Clicks On Table Header "Fee" In Table "Entries"
+        Then User Should See Table "Entries" Header "Fee" Has Sort Order "descending"
+        Then User Should See Table "Entries" Column "Fee" Is Sorted "descending"
+        # Test Resulted column
+        When User Clicks On Table Header "Resulted" In Table "Entries"
+        Then User Should See Table "Entries" Header "Resulted" Has Sort Order "ascending"
+        Then User Should See Table "Entries" Column "Resulted" Is Sorted "ascending"
+        When User Clicks On Table Header "Resulted" In Table "Entries"
+        Then User Should See Table "Entries" Header "Resulted" Has Sort Order "descending"
+        Then User Should See Table "Entries" Column "Resulted" Is Sorted "descending"
+        # Test Account number column
+        When User Clicks On Table Header "Account number" In Table "Entries"
+        Then User Should See Table "Entries" Header "Account number" Has Sort Order "ascending"
+        Then User Should See Table "Entries" Column "Account number" Is Sorted "ascending"
+        When User Clicks On Table Header "Account number" In Table "Entries"
+        Then User Should See Table "Entries" Header "Account number" Has Sort Order "descending"
+        Then User Should See Table "Entries" Column "Account number" Is Sorted "descending"
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"
         Examples:
             | User  | APIDate  | Time           | Status | Description                             | courtLocationCode | SearchDate | DisplayDate  | Entries | Court                     |
             | user2 | todayiso | timenowhhmm-3h | OPEN   | Applications to review at Test_{RANDOM} | BCC026            | today      | todayDisplay | 5       | Bristol Crown Court Set 3 |
+
