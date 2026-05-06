@@ -55,12 +55,15 @@ export class TextboxElement {
     $root: JQuery<HTMLElement>,
     labelOrIdentifier: string,
   ): Cypress.Chainable<JQuery<HTMLElement>> {
-    const normalized = StringUtils.normalizeText(labelOrIdentifier);
+    const normalized =
+      StringUtils.normalizeText(labelOrIdentifier).toLowerCase();
     const $label = $root
       .find('label')
       .filter(
         (_, el) =>
-          el.textContent?.trim().toLowerCase() === normalized.toLowerCase(),
+          StringUtils.normalizeText(
+            el.textContent?.trim() || '',
+          ).toLowerCase() === normalized,
       );
     if ($label.length > 0) {
       const forAttr = $label.first().attr('for');
