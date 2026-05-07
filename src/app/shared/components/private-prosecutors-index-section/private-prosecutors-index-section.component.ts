@@ -10,7 +10,12 @@ import { TextInputComponent } from '@components/text-input/text-input.component'
 @Component({
   selector: 'app-private-prosecutors-index-section',
   standalone: true,
-  imports: [ReactiveFormsModule, DateInputComponent, TextInputComponent, ReportsSharedFormComponent],
+  imports: [
+    ReactiveFormsModule,
+    DateInputComponent,
+    TextInputComponent,
+    ReportsSharedFormComponent,
+  ],
   templateUrl: './private-prosecutors-index-section.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

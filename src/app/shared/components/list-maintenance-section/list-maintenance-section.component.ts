@@ -9,7 +9,11 @@ import { TextInputComponent } from '@components/text-input/text-input.component'
 @Component({
   selector: 'app-list-maintenance-section',
   standalone: true,
-  imports: [ReactiveFormsModule, TextInputComponent, ReportsSharedFormComponent],
+  imports: [
+    ReactiveFormsModule,
+    TextInputComponent,
+    ReportsSharedFormComponent,
+  ],
   templateUrl: './list-maintenance-section.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
