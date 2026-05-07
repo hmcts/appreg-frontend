@@ -48,6 +48,11 @@ export type SelectedStandardApplicantSummary = {
   name: string;
 };
 
+type StandardApplicantFilters = {
+  code?: string;
+  name?: string;
+};
+
 @Component({
   selector: 'app-standard-applicant-select',
   standalone: true,
@@ -91,6 +96,7 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
   readonly submitted = signal(false);
   private readonly errorMap: ErrorMessageMap =
     STANDARD_APPLICANT_SEARCH_ERROR_MESSAGES;
+  private appliedFilters: StandardApplicantFilters = {};
 
   form = new FormGroup({
     code: new FormControl<string>('', {
@@ -147,9 +153,6 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
     if (!this.saState().hasSearched) {
       return;
     }
-    if (!this.canLoadPage()) {
-      return;
-    }
     this.loadPage(page);
   }
 
@@ -157,11 +160,8 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
     if (!this.saState().hasSearched) {
       return;
     }
-    if (!this.canLoadPage()) {
-      return;
-    }
     this.saSignalState.patch({ sortField: sort });
-    this.loadPage(0);
+    this.loadPage(this.vm().pageIndex);
   }
 
   onSubmit(event: SubmitEvent): void {
@@ -178,22 +178,13 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
       return;
     }
 
+    this.appliedFilters = this.getTrimmedFilters();
     this.saSignalState.patch({ hasSearched: true });
-    this.loadPage(0);
+    this.loadPage(0, this.appliedFilters);
   }
 
   fieldError(id: string): ErrorItem | undefined {
     return this.vm().searchErrors.find((e) => e.id === id);
-  }
-
-  private canLoadPage(): boolean {
-    this.form.updateValueAndValidity({ emitEvent: false });
-
-    const validationErrors = this.buildErrorSummary();
-    this.saSignalState.patch({ searchErrors: validationErrors });
-    this.searchErrorsChange.emit(validationErrors);
-
-    return validationErrors.length === 0;
   }
 
   private setupEffects(): void {
@@ -244,7 +235,20 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
     });
   }
 
-  private loadPage(page: number): void {
+  private getTrimmedFilters(): StandardApplicantFilters {
+    const code = this.form.controls.code.value.trim();
+    const name = this.form.controls.name.value.trim();
+
+    return {
+      code: code || undefined,
+      name: name || undefined,
+    };
+  }
+
+  private loadPage(
+    page: number,
+    filters: StandardApplicantFilters = this.appliedFilters,
+  ): void {
     if (this.saState().loading) {
       return;
     }
@@ -254,13 +258,11 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
     const pageSize = this.saState().pageSize;
     const sort = this.saState().sortField;
     const apiSortKey = toStandardApplicantSortKey(sort.key);
-    const code = this.form.controls.code.value.trim();
-    const name = this.form.controls.name.value.trim();
 
     this.loadRequest.set({
-      code: code || undefined,
-      name: name || undefined,
-      pageNumber: this.saState().pageIndex,
+      code: filters.code,
+      name: filters.name,
+      pageNumber: page,
       pageSize,
       sort: [`${apiSortKey},${sort.direction}`],
     });
