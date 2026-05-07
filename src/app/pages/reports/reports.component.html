@@ -32,21 +32,25 @@
     <app-activity-audit-section
       [group]="activityAuditGroup"
       [submitted]="vm().submitted"
-    ></app-activity-audit-section>
+    />
   }
   <!-- Fees section -->
   @case ('fees') {
     <app-fees-section
       [group]="feesGroup"
+      [suggestions]="suggestionsFacade"
       [submitted]="vm().submitted"
-    ></app-fees-section>
+      [getError]="fieldError.bind(this)"
+    />
   }
   <!-- List maintenance section -->
   @case ('list-maintenance') {
     <app-list-maintenance-section
       [group]="listMaintenanceGroup"
+      [suggestions]="suggestionsFacade"
       [submitted]="vm().submitted"
-    ></app-list-maintenance-section>
+      [getError]="fieldError.bind(this)"
+    />
   }
   <!-- Search warrants section -->
   @case ('search-warrants') {
@@ -73,14 +77,17 @@
       [suggestions]="suggestionsFacade"
       [submitted]="vm().submitted"
       [getError]="fieldError.bind(this)"
-    ></app-duration-section>
+    />
   }
   <!-- Private prosecutors index section -->
   @case ('private-prosecutors-index') {
     <app-private-prosecutors-index-section
       [group]="ppiGroup"
       [submitted]="vm().submitted"
-    ></app-private-prosecutors-index-section>
+      [suggestions]="suggestionsFacade"
+      [submitted]="vm().submitted"
+      [getError]="fieldError.bind(this)"
+    />
   }
 }
 
