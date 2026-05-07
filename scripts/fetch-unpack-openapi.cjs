@@ -26,7 +26,7 @@ const OUT_DIR = envOr('OUT_DIR', 'tools/openapi/vendor/openapi');
 const SPEC_FILE_REGEX = /(^|\/)openapi\.(ya?ml|json)$/i;
 const API_VER = '7.1-preview.1';
 
-let SPEC_VERSION = envOr('SPEC_VERSION', 'latest');
+let SPEC_VERSION = envOr('SPEC_VERSION', '0.1.272');
 
 function authHeaders() {
   if (process.env.SYSTEM_ACCESSTOKEN) {
