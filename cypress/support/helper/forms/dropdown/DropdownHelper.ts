@@ -133,4 +133,42 @@ export class DropdownHelper {
       },
     );
   }
+
+  static selectDropdownOptionUnderFieldset(
+    dropdownLabel: string,
+    optionText: string,
+    fieldsetLabel: string,
+  ): void {
+    cy.contains('fieldset', fieldsetLabel, { matchCase: false }).then(
+      ($fieldset) => {
+        DropdownElement.findDropdownWithin($fieldset, dropdownLabel).then(
+          ($dropdown) => {
+            if (!$dropdown || $dropdown.length === 0) {
+              throw new Error(
+                `Dropdown "${dropdownLabel}" not found within fieldset "${fieldsetLabel}"`,
+              );
+            }
+            if ($dropdown.is('select')) {
+              cy.wrap($dropdown).select(optionText);
+            } else {
+              cy.wrap($dropdown)
+                .click()
+                .then(() =>
+                  cy
+                    .contains(
+                      '.dropdown [role="option"], .select [role="option"], .dropdown__option, .select__option',
+                      optionText,
+                      { matchCase: false },
+                    )
+                    .click(),
+                )
+                .then(() =>
+                  cy.wrap($dropdown).should('contain.text', optionText),
+                );
+            }
+          },
+        );
+      },
+    );
+  }
 }

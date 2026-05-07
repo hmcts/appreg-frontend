@@ -41,3 +41,21 @@ Then(
     });
   },
 );
+
+Then(
+  'User Should Select {string} From The Dropdown {string} Under {string} FieldSet In The Accordion {string}',
+  (
+    optionText: string,
+    dropdownLabel: string,
+    fieldsetLabel: string,
+    accordionTitle: string,
+  ) => {
+    AccordionHelper.within(accordionTitle, () => {
+      DropdownHelper.selectDropdownOptionUnderFieldset(
+        dropdownLabel,
+        optionText,
+        fieldsetLabel,
+      );
+    });
+  },
+);
