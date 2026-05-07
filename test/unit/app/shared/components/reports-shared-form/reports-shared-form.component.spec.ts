@@ -64,4 +64,44 @@ describe('ReportsSharedFormComponent', () => {
 
     expect(otherLocation).toBeTruthy();
   });
+
+  it('shows field errors from the supplied getError callback after submit', () => {
+    fixture.componentRef.setInput('submitted', true);
+    fixture.componentRef.setInput('getError', (id: string) => {
+      const errors = {
+        court: 'Court location not found',
+        cja: 'Criminal justice area not found',
+        otherLocation: 'Other location has an error',
+      } as const;
+
+      return id in errors
+        ? { id, text: errors[id as keyof typeof errors] }
+        : undefined;
+    });
+    fixture.detectChanges();
+
+    expect(component.showError('court')).toBe(true);
+    expect(component.errorText('court')).toBe('Court location not found');
+    expect(component.showError('cja')).toBe(true);
+    expect(component.errorText('cja')).toBe('Criminal justice area not found');
+    expect(component.errorText('otherLocation')).toBe(
+      'Other location has an error',
+    );
+
+    expect(
+      fixture.nativeElement
+        .querySelector('input#court')
+        ?.classList.contains('govuk-input--error'),
+    ).toBe(true);
+    expect(
+      fixture.nativeElement
+        .querySelector('input#cja')
+        ?.classList.contains('govuk-input--error'),
+    ).toBe(true);
+    expect(
+      fixture.nativeElement
+        .querySelector('#other-location')
+        ?.classList.contains('govuk-input--error'),
+    ).toBe(true);
+  });
 });

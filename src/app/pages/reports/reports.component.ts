@@ -232,6 +232,10 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     return this.form.get('privateProsecutorsIndex') as FormGroup;
   }
 
+  fieldError(id: string): ErrorItem | undefined {
+    return this.vm().errorSummary.find((e) => e.id === id);
+  }
+
   private buildErrorSummary(): ErrorItem[] {
     const reportId = this.form.controls.report.value as ReportId | null;
     const selectedGroup = this.selectedReportGroup();

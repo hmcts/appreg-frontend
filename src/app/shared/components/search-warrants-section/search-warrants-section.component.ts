@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { SuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
+import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { ReportsSharedFormComponent } from '@components/reports-shared-form/reports-shared-form.component';
 
 @Component({
@@ -17,4 +18,5 @@ export class SearchWarrantsSectionComponent {
 
   suggestions = input.required<SuggestionsFacade>();
   submitted = input(false);
+  getError = input<((id: string) => ErrorItem | undefined) | null>(null);
 }

@@ -66,6 +66,7 @@ describe('ReportsComponent', () => {
 
     expect(section.group()).toBe(component.searchWarrantsGroup);
     expect(section.suggestions()).toBe(component.suggestionsFacade);
+    expect(section.getError()).toEqual(expect.any(Function));
   });
 
   it('calls onDownload when the download button is clicked', () => {
@@ -151,5 +152,67 @@ describe('ReportsComponent', () => {
     expect(component.vm().errorSummary).toEqual([
       { id: 'court', href: '#court', text: 'Court location not found' },
     ]);
+  });
+
+  it('does not require search warrants court, other location, or CJA', () => {
+    component.form.controls.report.setValue('search-warrants');
+    component.searchWarrantsGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+
+    expect(component.vm().errorSummary).toEqual([]);
+  });
+
+  it('highlights the search warrants court suggestion when it has an error', () => {
+    component.form.controls.report.setValue('search-warrants');
+    component.searchWarrantsGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+    });
+    fixture.detectChanges();
+
+    component.suggestionsFacade.setCourthouseSearch('Missing Court');
+    component.suggestionsFacade.onCourthouseInputChange();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.fieldError('court')?.text).toBe(
+      'Court location not found',
+    );
+    expect(
+      fixture.nativeElement
+        .querySelector('input#court')
+        ?.classList.contains('govuk-input--error'),
+    ).toBe(true);
+  });
+
+  it('highlights the search warrants CJA suggestion when it has an error', () => {
+    component.form.controls.report.setValue('search-warrants');
+    component.searchWarrantsGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+      otherLocation: 'Somewhere',
+    });
+    fixture.detectChanges();
+
+    component.suggestionsFacade.setCjaSearch('Missing CJA');
+    component.suggestionsFacade.onCjaInputChange();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.fieldError('cja')?.text).toBe(
+      'Criminal justice area not found',
+    );
+    expect(
+      fixture.nativeElement
+        .querySelector('input#cja')
+        ?.classList.contains('govuk-input--error'),
+    ).toBe(true);
   });
 });

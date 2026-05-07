@@ -1,18 +1,15 @@
+import { APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { ReportId } from '@shared-types/reports/report.types';
 
-const REPORT_DATE_ERROR_MESSAGES = {
-  required: 'Enter day, month and year',
-  dateInvalid: 'Enter a valid date',
-} as const;
-
 export const REPORTS_FORM_ERROR_MESSAGES = {
-  dateFrom: REPORT_DATE_ERROR_MESSAGES,
-  dateTo: REPORT_DATE_ERROR_MESSAGES,
+  dateFrom: APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES.date,
+  dateTo: APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES.date,
   court: {
-    courtNotFound: 'Court location not found',
+    courtNotFound:
+      APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES.court.courtNotFound,
   },
   cja: {
-    cjaNotFound: 'Criminal justice area not found',
+    cjaNotFound: APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES.cja.cjaNotFound,
   },
 } as const;
 

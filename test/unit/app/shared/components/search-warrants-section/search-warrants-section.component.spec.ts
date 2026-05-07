@@ -67,12 +67,18 @@ describe('SearchWarrantsSectionComponent', () => {
   });
 
   it('passes inputs through to the shared reports form', () => {
+    const getError = jest.fn();
+
+    fixture.componentRef.setInput('getError', getError);
+    fixture.detectChanges();
+
     const sharedForm = fixture.debugElement.query(
       By.directive(ReportsSharedFormComponent),
     ).componentInstance as ReportsSharedFormComponent;
 
     expect(sharedForm.group()).toBe(group);
     expect(sharedForm.suggestions()).toBe(suggestions);
+    expect(sharedForm.getError()).toBe(getError);
   });
 
   it('binds the provided FormGroup in the shared form', () => {
