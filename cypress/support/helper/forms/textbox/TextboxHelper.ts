@@ -185,4 +185,20 @@ export class TextboxHelper {
       .invoke('val')
       .should('eq', expectedValue);
   }
+
+  static typeInTextboxUnderFieldset(
+    textboxLabel: string,
+    fieldsetLabel: string,
+    text: string,
+  ): void {
+    cy.contains('fieldset', fieldsetLabel, { matchCase: false }).then(
+      ($fieldset) => {
+        TextboxElement.findTextboxWithin($fieldset, textboxLabel)
+          .should('be.visible')
+          .should('be.enabled')
+          .clear()
+          .type(text);
+      },
+    );
+  }
 }
