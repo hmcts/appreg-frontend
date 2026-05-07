@@ -7,12 +7,14 @@ import {
 } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 
+import { SuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { ListMaintenanceSectionComponent } from '@components/list-maintenance-section/list-maintenance-section.component';
 
 describe('ListMaintenanceSectionComponent', () => {
   let component: ListMaintenanceSectionComponent;
   let fixture: ComponentFixture<ListMaintenanceSectionComponent>;
   let group: FormGroup;
+  let suggestions: SuggestionsFacade;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -30,8 +32,21 @@ describe('ListMaintenanceSectionComponent', () => {
       otherLocation: new FormControl(''),
       cja: new FormControl(''),
     });
+    suggestions = {
+      courthouseSearch: jest.fn(() => ''),
+      setCourthouseSearch: jest.fn(),
+      filteredCourthouses: jest.fn(() => []),
+      onCourthouseInputChange: jest.fn(),
+      selectCourthouse: jest.fn(),
+      cjaSearch: jest.fn(() => ''),
+      setCjaSearch: jest.fn(),
+      filteredCja: jest.fn(() => []),
+      onCjaInputChange: jest.fn(),
+      selectCja: jest.fn(),
+    };
 
     fixture.componentRef.setInput('group', group);
+    fixture.componentRef.setInput('suggestions', suggestions);
 
     fixture.detectChanges();
   });
@@ -51,17 +66,13 @@ describe('ListMaintenanceSectionComponent', () => {
     expect(heading?.textContent?.trim()).toBe('List maintenance');
   });
 
-  it('binds the provided FormGroup to the grid rows via [formGroup]', () => {
-    const gridRows = fixture.debugElement.queryAll(
-      By.css('div.govuk-grid-row'),
-    );
-    expect(gridRows).toHaveLength(2);
+  it('binds the provided FormGroup to the shared and section fields', () => {
+    const formGroups = fixture.debugElement
+      .queryAll(By.directive(FormGroupDirective))
+      .map((el) => el.injector.get(FormGroupDirective).form)
+      .filter((form) => form === group);
 
-    const firstRowFormGroup = gridRows[0].injector.get(FormGroupDirective);
-    const secondRowFormGroup = gridRows[1].injector.get(FormGroupDirective);
-
-    expect(firstRowFormGroup.form).toBe(group);
-    expect(secondRowFormGroup.form).toBe(group);
+    expect(formGroups).toHaveLength(2);
   });
 
   it('renders two app-date-input components', () => {
@@ -69,9 +80,9 @@ describe('ListMaintenanceSectionComponent', () => {
     expect(dateInputs).toHaveLength(2);
   });
 
-  it('renders four app-text-input components', () => {
+  it('renders two app-text-input components', () => {
     const textInputs = fixture.debugElement.queryAll(By.css('app-text-input'));
-    expect(textInputs).toHaveLength(4);
+    expect(textInputs).toHaveLength(2);
   });
 
   it('has a text input bound to the "description" control', () => {
@@ -81,9 +92,9 @@ describe('ListMaintenanceSectionComponent', () => {
     expect(descInput).toBeTruthy();
   });
 
-  it('has a text input bound to the "court" control', () => {
+  it('has a suggestion input bound to the "court" control', () => {
     const courtInput = fixture.debugElement.query(
-      By.css('app-text-input[formControlName="court"]'),
+      By.css('app-suggestions[formControlName="court"]'),
     );
     expect(courtInput).toBeTruthy();
   });
