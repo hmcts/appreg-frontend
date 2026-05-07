@@ -66,9 +66,7 @@ import {
 } from '@util/pdf-utils';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
-import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
-import { courtMustExistIfTypedValidator } from '@validators/court-exists.validator';
-import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
+import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 
 type AppErrorMap = typeof APPLICATIONS_ERROR_MAP;
 type ControlName = keyof AppErrorMap;
@@ -120,38 +118,22 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   private readonly printRequest = signal<ApplicationsPrintRequest | null>(null);
 
-  override form = new FormGroup(
-    {
-      date: new FormControl<string | null>(null),
-      applicantOrg: new FormControl<string>(''),
-      respondentOrg: new FormControl<string>(''),
-      applicantSurname: new FormControl<string>(''),
-      respondentSurname: new FormControl<string>(''),
-      location: new FormControl<string>(''),
-      standardApplicantCode: new FormControl<string>(''),
-      respondentPostcode: new FormControl<string>('', {
-        validators: [Validators.maxLength(8)],
-      }),
-      accountReference: new FormControl<string>(''),
-      court: new FormControl<string>(''),
-      cja: new FormControl<string>(''),
-      status: new FormControl<string | null>(null),
-    },
-    {
-      validators: [
-        courtLocCjaValidator(),
-        cjaMustExistIfTypedValidator({
-          getTyped: () => this.state().cjaSearch ?? '',
-          getValidCodes: () => this.state().cja.map((x) => x.code),
-        }),
-        courtMustExistIfTypedValidator({
-          getTyped: () => this.state().courthouseSearch ?? '',
-          getValidCodes: () =>
-            this.state().courtLocations.map((x) => x.locationCode),
-        }),
-      ],
-    },
-  );
+  override form = new FormGroup({
+    date: new FormControl<string | null>(null),
+    applicantOrg: new FormControl<string>(''),
+    respondentOrg: new FormControl<string>(''),
+    applicantSurname: new FormControl<string>(''),
+    respondentSurname: new FormControl<string>(''),
+    location: new FormControl<string>(''),
+    standardApplicantCode: new FormControl<string>(''),
+    respondentPostcode: new FormControl<string>('', {
+      validators: [Validators.maxLength(8)],
+    }),
+    accountReference: new FormControl<string>(''),
+    court: new FormControl<string>(''),
+    cja: new FormControl<string>(''),
+    status: new FormControl<string | null>(null),
+  });
 
   columns = [
     { header: 'Date', field: 'date' },
@@ -175,6 +157,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refFacade);
     this.setupEffects();
+
+    addLocationValidatorsToForm(this.form, () => this.state());
   }
 
   private setupEffects(): void {

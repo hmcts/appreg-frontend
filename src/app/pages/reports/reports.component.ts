@@ -32,8 +32,7 @@ import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState } from '@util/signal-state-helpers';
-import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
-import { courtMustExistIfTypedValidator } from '@validators/court-exists.validator';
+import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 
 const REPORT_ERROR_PRIORITY_KEYS: Record<string, string[]> = {
   dateFrom: ['dateInvalid', 'required'],
@@ -176,23 +175,13 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   ngOnInit(): void {
     this.initPlaceFields(this.searchWarrantsGroup, this.refFacade);
 
-    this.searchWarrantsGroup.addValidators([
-      cjaMustExistIfTypedValidator({
-        getTyped: () => this.state().cjaSearch ?? '',
-        getValidCodes: () => this.state().cja.map((x) => x.code),
-      }),
-      courtMustExistIfTypedValidator({
-        getTyped: () => this.state().courthouseSearch ?? '',
-        getValidCodes: () =>
-          this.state().courtLocations.map((x) => x.locationCode),
-      }),
-    ]);
+    addLocationValidatorsToForm(this.searchWarrantsGroup, () => this.state());
   }
 
   onDownload(): void {
     this.form.controls.report.markAsTouched();
     this.form.controls.report.updateValueAndValidity({ emitEvent: false });
-    this.reportStatePatch({ submitted: true });
+    this.reportStatePatch({ submitted: true, errorSummary: [] });
 
     const selectedGroup = this.selectedReportGroup();
     selectedGroup?.markAllAsTouched();
@@ -205,7 +194,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    this.reportStatePatch({ errorSummary: [] });
+    // TODO: download csv
   }
 
   /** Handy getter for the child binding */
