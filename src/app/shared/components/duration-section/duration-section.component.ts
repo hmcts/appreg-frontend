@@ -1,18 +1,22 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
-import { DateInputComponent } from '@components/date-input/date-input.component';
-import { TextInputComponent } from '@components/text-input/text-input.component';
+import { SuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
+import { ErrorItem } from '@components/error-summary/error-summary.component';
+import { ReportsSharedFormComponent } from '@components/reports-shared-form/reports-shared-form.component';
 
 @Component({
   selector: 'app-duration-section',
   standalone: true,
-  imports: [ReactiveFormsModule, DateInputComponent, TextInputComponent],
+  imports: [ReactiveFormsModule, ReportsSharedFormComponent],
   templateUrl: './duration-section.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DurationSectionComponent {
   /** Parent passes the nested reactive form group for this section */
   readonly group = input.required<FormGroup>();
-  readonly submitted = input(false);
+
+  suggestions = input.required<SuggestionsFacade>();
+  submitted = input(false);
+  getError = input<((id: string) => ErrorItem | undefined) | null>(null);
 }

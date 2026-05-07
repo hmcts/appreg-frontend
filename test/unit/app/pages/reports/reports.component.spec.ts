@@ -44,6 +44,9 @@ describe('ReportsComponent', () => {
   });
 
   it('filters search warrant court suggestions via the facade', () => {
+    component.form.controls.report.setValue('search-warrants');
+    fixture.detectChanges();
+
     component.suggestionsFacade.setCourthouseSearch('alpha');
     component.suggestionsFacade.onCourthouseInputChange();
 

@@ -61,14 +61,18 @@
   @case ('workload') {
     <app-workload-section
       [group]="workloadGroup"
+      [suggestions]="suggestionsFacade"
       [submitted]="vm().submitted"
-    ></app-workload-section>
+      [getError]="fieldError.bind(this)"
+    />
   }
   <!-- Duration section -->
   @case ('duration') {
     <app-duration-section
       [group]="durationGroup"
+      [suggestions]="suggestionsFacade"
       [submitted]="vm().submitted"
+      [getError]="fieldError.bind(this)"
     ></app-duration-section>
   }
   <!-- Private prosecutors index section -->

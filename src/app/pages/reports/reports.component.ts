@@ -173,9 +173,9 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   suggestionsFacade = buildSuggestionsFacade(this);
 
   ngOnInit(): void {
-    this.initPlaceFields(this.searchWarrantsGroup, this.refFacade);
-
-    addLocationValidatorsToForm(this.searchWarrantsGroup, () => this.state());
+    this.form.controls.report.valueChanges.subscribe(() => {
+      this.initSelectedForm();
+    });
   }
 
   onDownload(): void {
@@ -294,5 +294,18 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       default:
         return null;
     }
+  }
+
+  private initSelectedForm(): void {
+    // attach validators and init place fields for the selected section
+    const group = this.selectedReportGroup();
+
+    if (!group || this.form.controls.report.value === 'activity-audit') {
+      // Activity audit is the only form without location fields
+      return;
+    }
+
+    this.initPlaceFields(group, this.refFacade);
+    addLocationValidatorsToForm(group, () => this.state());
   }
 }
