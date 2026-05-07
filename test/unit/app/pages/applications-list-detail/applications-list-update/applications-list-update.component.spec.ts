@@ -98,7 +98,7 @@ describe('ApplicationsListUpdateComponent', () => {
   };
 
   const lastPatch = (): Partial<ApplicationsListDetailState> =>
-    patchState.mock.calls[patchState.mock.calls.length - 1][0] as Partial<
+    patchState.mock.calls.at(-1)[0] as Partial<
       ApplicationsListDetailState
     >;
 
@@ -262,7 +262,6 @@ describe('ApplicationsListUpdateComponent', () => {
     const buildPayloadSpy = jest
       .spyOn(buildPayload, 'buildNormalizedPayload')
       .mockImplementation(() => {
-        // eslint-disable-next-line @typescript-eslint/only-throw-error -- exercises defensive non-Error catch branch
         throw new Error('payload failed');
       });
 
