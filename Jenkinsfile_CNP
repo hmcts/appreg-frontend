@@ -1,6 +1,6 @@
 #!groovy
 
-@Library('Infrastructure')
+@Library('Infrastructure@removemavencentral')
 
 def type = 'angular'
 def product = 'appreg'
