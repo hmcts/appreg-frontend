@@ -316,7 +316,7 @@ Feature: Applications Print
             | Application Code       | MX99006                                                                                             |
             | Account Reference      | ACC-{RANDOM}                                                                                        |
             | Application Title      | Condemnation of Unfit Food                                                                          |
-            | Result                 | Reasons: {Applications rejected due to insufficient documentation and missing required signatures}. |
+            | Result                 | Reasons: Applications rejected due to insufficient documentation and missing required signatures.   |
             | Notes                  | Organisation applicant with person respondent                                                       |
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
             | Applicant              | Global Trade Solutions LTD {RANDOM}                                                                 |
@@ -325,7 +325,7 @@ Feature: Applications Print
             | Application Code       | EF99020                                                                                             |
             | Account Reference      | ACC-{RANDOM}                                                                                        |
             | Application Title      | Order for the disposal of uncollected controlled goods                                              |
-            | Result                 | Reasons: {Applications rejected due to insufficient documentation and missing required signatures}. |
+            | Result                 | Reasons: Applications rejected due to insufficient documentation and missing required signatures.   |
             | Notes                  | Organisation applicant with organisation respondent                                                 |
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
         Then User Clears Downloaded PDFs
