@@ -30,10 +30,6 @@ def secrets = [
   ],
 ]
 
-def adoMavenMirrorSecrets = [
-  secret('ado-maven-mirror-pat', 'ADO_MAVEN_PAT'),
-]
-
 static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
   [
     $class: 'AzureKeyVaultSecret',
@@ -60,20 +56,18 @@ def publishFunctionalReports = {
   ])
 }
 
-withAzureKeyvault(adoMavenMirrorSecrets) {
-  withPipeline(type, product, component) {
-    overrideVaultEnvironments(vaultOverrides)
-    loadVaultSecrets(secrets)
-    enableSlackNotifications('#appreg-builds')
+withPipeline(type, product, component) {
+  overrideVaultEnvironments(vaultOverrides)
+  loadVaultSecrets(secrets)
+  enableSlackNotifications('#appreg-builds')
 
-    afterAlways('functionalTest:dev') {
-      script { publishFunctionalReports() }
-    }
-
-    afterAlways('functionalTest:stg') {
-      script { publishFunctionalReports() }
-    }
-
-    syncBranchesWithMaster(branchesToSync)
+  afterAlways('functionalTest:dev') {
+    script { publishFunctionalReports() }
   }
+
+  afterAlways('functionalTest:stg') {
+    script { publishFunctionalReports() }
+  }
+
+  syncBranchesWithMaster(branchesToSync)
 }

@@ -568,7 +568,6 @@ In this section, we will document how you generate the required services and mod
 These are the scripts needed:
 
 - `yarn api:fetch-unpack` - Fetches and decompresses OpenAPI spec held in Azure Artifacts (`scripts/fetch-unpack-openapi.cjs`)
-- `yarn api:prepare-generator` - Prefetches the pinned OpenAPI generator from the Azure Artifacts Maven Central mirror when `ADO_MAVEN_PAT` is available
 - `yarn api:validate` - Validates the OpenAPI spec (`tools/openapi/vendor/openapi/openapi.yaml`)
 - `yarn api:clear` - Recursively deletes current OpenAPI generated files held at `src/generated/openapi`
 - `yarn api:generate` - Generates files based on the OpenAPI spec and the config file at `tools/openapi/generator-config.yaml`
