@@ -6,7 +6,7 @@ export interface ApplicationsListBulkUploadState {
   errorSummary: ErrorItem[];
   file: File | null;
   isUploadInProgress: boolean;
-  fileUploadStatus: 'success' | 'error' | null;
+  fileUploadStatus: 'error' | null;
   jobAcknowledgement: JobAcknowledgement | null;
   listId: string;
 }

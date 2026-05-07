@@ -1,5 +1,6 @@
 {
-  "id": "9b8b4b6e-9d1a-4a6a-9a36-aaaaaaaaaaaa",
-  "type": "FEES_REPORT",
-  "status": "COMPLETED"
+  "id": "9f7b2a35-57ac-4a1c-9c41-83b6c8157af4",
+  "type": "BULK_UPLOAD_ENTRIES",
+  "status": "FAILED",
+  "message": "The uploaded file could not be processed."
 }
