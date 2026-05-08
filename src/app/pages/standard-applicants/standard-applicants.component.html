@@ -50,12 +50,17 @@
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 
-@if (vm().hasSearched && !vm().isLoading && !vm().searchErrors.length) {
+@if (
+  vm().hasSearched &&
+  (!vm().isLoading || vm().rows.length) &&
+  (vm().rows.length || !vm().searchErrors.length)
+) {
   <!-- Sortable table component -->
   <app-sortable-table
     id="sa-sortable-table"
     [columns]="columns"
     [data]="vm().rows"
+    [loading]="vm().isLoading"
     [clientOrServerSort]="'server'"
     [sortKey]="vm().sortField.key"
     [sortDirection]="vm().sortField.direction"
