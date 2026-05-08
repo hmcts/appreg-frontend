@@ -50,8 +50,10 @@ describe('focusSuccessBanner', () => {
     jest.useFakeTimers();
     const banner = document.createElement('app-success-banner');
     const focusSpy = jest.spyOn(banner, 'focus');
-    const scrollIntoView =
-      jest.fn<void, Parameters<HTMLElement['scrollIntoView']>>();
+    const scrollIntoView = jest.fn<
+      void,
+      Parameters<HTMLElement['scrollIntoView']>
+    >();
     banner.scrollIntoView = scrollIntoView;
     document.body.appendChild(banner);
 

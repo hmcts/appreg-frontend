@@ -1,16 +1,15 @@
 import { toSanitizedPath } from '@util/sanitized-path';
 
 describe('toSanitizedPath', () => {
-  it.each([null, undefined, ''])(
-    'returns an empty string for %s',
-    (url) => {
-      expect(toSanitizedPath(url)).toBe('');
-    },
-  );
+  it.each([null, undefined, ''])('returns an empty string for %s', (url) => {
+    expect(toSanitizedPath(url)).toBe('');
+  });
 
   it('returns only the pathname for an absolute URL', () => {
     expect(
-      toSanitizedPath('https://appreg.example.test/application-lists?token=abc#details'),
+      toSanitizedPath(
+        'https://appreg.example.test/application-lists?token=abc#details',
+      ),
     ).toBe('/application-lists');
   });
 

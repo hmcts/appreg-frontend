@@ -15,10 +15,7 @@ describe('NotFoundComponent', () => {
     HeaderService,
     'hideNavigation' | 'showNavigation'
   >;
-  let sessionServiceStub: Pick<
-    SessionService,
-    'isAuthenticated' | 'refresh'
-  >;
+  let sessionServiceStub: Pick<SessionService, 'isAuthenticated' | 'refresh'>;
 
   beforeEach(async () => {
     isAuthenticated = signal(false);
@@ -79,7 +76,9 @@ describe('NotFoundComponent', () => {
     fixture.detectChanges();
 
     const link = fixture.debugElement.query(By.css('a.govuk-link'));
-    expect(link.nativeElement.textContent.trim()).toBe('Go to application list');
+    expect(link.nativeElement.textContent.trim()).toBe(
+      'Go to application list',
+    );
     expect(link.nativeElement.getAttribute('href')).toBe('/applications-list');
   });
 });

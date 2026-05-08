@@ -98,9 +98,7 @@ describe('ApplicationsListUpdateComponent', () => {
   };
 
   const lastPatch = (): Partial<ApplicationsListDetailState> =>
-    patchState.mock.calls.at(-1)[0] as Partial<
-      ApplicationsListDetailState
-    >;
+    patchState.mock.calls.at(-1)[0] as Partial<ApplicationsListDetailState>;
 
   beforeEach(async () => {
     router = {

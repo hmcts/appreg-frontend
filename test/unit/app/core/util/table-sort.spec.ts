@@ -84,9 +84,9 @@ describe('ariaSortFor', () => {
   });
 
   it('maps ascending state to the aria ascending value', () => {
-    expect(ariaSortFor({ key: 'courtName', direction: 'asc' }, 'courtName')).toBe(
-      'ascending',
-    );
+    expect(
+      ariaSortFor({ key: 'courtName', direction: 'asc' }, 'courtName'),
+    ).toBe('ascending');
   });
 
   it('maps descending state to the aria descending value', () => {
