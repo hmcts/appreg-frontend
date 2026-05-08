@@ -40,10 +40,10 @@ import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { toStandardApplicantSortKey } from '@util/standard-applicant-sort-map';
 import { StandardApplicantRow } from '@util/types/applications-list-entry/types';
 
-type StandardApplicantFilters = {
-  code?: string;
-  name?: string;
-};
+type StandardApplicantFilters = Pick<
+  GetStandardApplicantsRequestParams,
+  'code' | 'name'
+>;
 
 type StandardApplicantsState = {
   hasSearched: boolean;

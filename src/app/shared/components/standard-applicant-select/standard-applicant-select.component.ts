@@ -37,7 +37,10 @@ import {
   TableColumn,
 } from '@components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
-import { StandardApplicantsApi } from '@openapi';
+import {
+  GetStandardApplicantsRequestParams,
+  StandardApplicantsApi,
+} from '@openapi';
 import { ErrorMessageMap, buildFormErrorSummary } from '@util/error-summary';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { toStandardApplicantSortKey } from '@util/standard-applicant-sort-map';
@@ -48,10 +51,10 @@ export type SelectedStandardApplicantSummary = {
   name: string;
 };
 
-type StandardApplicantFilters = {
-  code?: string;
-  name?: string;
-};
+type StandardApplicantFilters = Pick<
+  GetStandardApplicantsRequestParams,
+  'code' | 'name'
+>;
 
 @Component({
   selector: 'app-standard-applicant-select',
@@ -86,13 +89,8 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
   private readonly saState = this.saSignalState.state;
   readonly vm = this.saSignalState.vm;
 
-  private readonly loadRequest = signal<{
-    code?: string;
-    name?: string;
-    pageNumber: number;
-    pageSize: number;
-    sort: string[];
-  } | null>(null);
+  private readonly loadRequest =
+    signal<GetStandardApplicantsRequestParams | null>(null);
   readonly submitted = signal(false);
   private readonly errorMap: ErrorMessageMap =
     STANDARD_APPLICANT_SEARCH_ERROR_MESSAGES;
