@@ -89,9 +89,7 @@ import { MojButtonMenuDirective } from '@util/moj-button-menu';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
-import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
-import { courtMustExistIfTypedValidator } from '@validators/court-exists.validator';
-import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
+import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 
 type DeleteFlash = { kind: 'success' } | { kind: 'error'; code: number };
 
@@ -165,18 +163,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     this.initPlaceFields(this.form, this.refFacade);
 
     //Attach validators
-    this.form.addValidators([
-      courtLocCjaValidator(),
-      cjaMustExistIfTypedValidator({
-        getTyped: () => this.state().cjaSearch ?? '',
-        getValidCodes: () => this.state().cja.map((x) => x.code),
-      }),
-      courtMustExistIfTypedValidator({
-        getTyped: () => this.state().courthouseSearch ?? '',
-        getValidCodes: () =>
-          this.state().courtLocations.map((x) => x.locationCode),
-      }),
-    ]);
+    addLocationValidatorsToForm(this.form, () => this.state());
 
     // reset submitted to false when navigating back to prevent date/duration input errors
     this.storedRecordsState.patch({ submitted: false });
