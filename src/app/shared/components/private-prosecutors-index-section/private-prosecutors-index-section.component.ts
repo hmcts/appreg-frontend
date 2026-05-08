@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { SuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
-import { DateInputComponent } from '@components/date-input/date-input.component';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { ReportsSharedFormComponent } from '@components/reports-shared-form/reports-shared-form.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
@@ -12,7 +11,6 @@ import { TextInputComponent } from '@components/text-input/text-input.component'
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    DateInputComponent,
     TextInputComponent,
     ReportsSharedFormComponent,
   ],
