@@ -1,4 +1,16 @@
 #!/bin/sh
-yarn test:unit
-yarn test:routes
-yarn build
+
+if ! yarn test:unit; then
+  printf 'Unit tests failed: run `yarn test:unit` locally and fix the failing tests' >&2
+  exit 1
+fi
+
+if ! yarn test:routes; then
+  printf 'Route tests failed: run `yarn test:routes` locally and fix the failing tests' >&2
+  exit 1
+fi
+
+if ! yarn build; then
+  printf 'Build failed: run `yarn build` locally and fix the errors' >&2
+  exit 1
+fi
