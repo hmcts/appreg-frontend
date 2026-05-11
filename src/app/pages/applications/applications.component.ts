@@ -16,7 +16,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { forkJoin, map } from 'rxjs';
+import { firstValueFrom, forkJoin, map } from 'rxjs';
 
 import {
   clearNotificationsPatch,
@@ -65,6 +65,10 @@ import {
   handlePrintPage,
 } from '@util/pdf-utils';
 import { PlaceFieldsBase } from '@util/place-fields.base';
+import {
+  getVisibleSelectedRows,
+  isAllMatchingSelected,
+} from '@util/server-paginated-selection';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 
@@ -79,6 +83,7 @@ type ApplicationsPrintResponse = {
   mode: 'page' | 'continuous';
   selectedRows: ApplicationRow[];
 };
+
 @Component({
   selector: 'app-applications',
   standalone: true,
@@ -117,6 +122,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   private readonly errorMap = APPLICATIONS_ERROR_MAP;
 
   private readonly printRequest = signal<ApplicationsPrintRequest | null>(null);
+  private selectAllRequestVersion = 0;
 
   override form = new FormGroup({
     date: new FormControl<string | null>(null),
@@ -153,6 +159,18 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   ];
 
   onCreateErrorClick = onCreateErrorClickFn; // Clickable error summary hints
+
+  get selectedCount(): number {
+    return this.vm().selectedIds.size;
+  }
+
+  get hasSelection(): boolean {
+    return this.selectedCount > 0;
+  }
+
+  get canUseBulkActions(): boolean {
+    return this.hasSelection && !this.vm().isSelectingAll;
+  }
 
   ngOnInit(): void {
     this.initPlaceFields(this.form, this.refFacade);
@@ -231,14 +249,12 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   onSubmit(e: SubmitEvent): void {
     e.preventDefault();
+    this.invalidateSelectAllRequest();
 
     this.patchApp({
       ...clearNotificationsPatch(),
       submitted: true,
       isSearch: true,
-      rows: [],
-      selectedIds: new Set<string>(),
-      selectedRows: [],
     });
 
     this.form.markAllAsTouched();
@@ -261,41 +277,67 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       });
       return;
     }
+
+    this.patchApp({
+      currentPage: 0,
+      rows: [],
+      selectedIds: new Set<string>(),
+      selectedRows: [],
+      allMatchingSelected: false,
+      isSelectingAll: false,
+    });
+
     this.loadApplications();
   }
 
-  onPrintContinuousClick(): void {
+  async onPrintContinuousClick(): Promise<void> {
     this.patchApp(clearNotificationsPatch());
-    const selectedRowsListIds = this.getArrOfPrintListId(
-      this.vm().selectedRows,
-    );
+    let selectedRows: ApplicationRow[];
+    try {
+      selectedRows = await this.resolveSelectedRows();
+    } catch (err) {
+      this.patchPrintError(getProblemText(err));
+      return;
+    }
+
+    if (selectedRows.length === 0) {
+      return;
+    }
+
+    const selectedRowsListIds = this.getArrOfPrintListId(selectedRows);
 
     this.printRequest.set({
       ids: selectedRowsListIds,
       mode: 'continuous',
-      selectedRows: this.vm().selectedRows,
+      selectedRows,
     });
   }
 
-  onPrintPageClick(): void {
+  async onPrintPageClick(): Promise<void> {
     this.patchApp(clearNotificationsPatch());
-    const selectedRowsListIds = this.getArrOfPrintListId(
-      this.vm().selectedRows,
-    );
+    let selectedRows: ApplicationRow[];
+    try {
+      selectedRows = await this.resolveSelectedRows();
+    } catch (err) {
+      this.patchPrintError(getProblemText(err));
+      return;
+    }
+
+    if (selectedRows.length === 0) {
+      return;
+    }
+
+    const selectedRowsListIds = this.getArrOfPrintListId(selectedRows);
 
     this.printRequest.set({
       ids: selectedRowsListIds,
       mode: 'page',
-      selectedRows: this.vm().selectedRows,
+      selectedRows,
     });
   }
 
   loadApplications(): void {
     if (this.vm().isLoading) {
-      return;
-    }
-
-    if (this.vm().searchErrors.length) {
       return;
     }
 
@@ -312,7 +354,14 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       .subscribe({
         next: (page) => {
           const rows = page?.content ?? ([] as EntryGetSummaryDto[]);
-          this.patchApp(searchSuccessPatch(rows, page?.totalPages ?? 1));
+          this.patchApp({
+            ...searchSuccessPatch(
+              rows,
+              page?.totalPages ?? 1,
+              page?.totalElements ?? 0,
+            ),
+            getFilters: params.filter ?? {},
+          });
         },
         error: () => {
           this.patchApp(searchErrorPatch());
@@ -326,7 +375,13 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   onSelectedIdsChange(selectedIds: Set<string>): void {
-    this.patchApp({ selectedIds });
+    this.patchApp({
+      selectedIds,
+      allMatchingSelected: isAllMatchingSelected(
+        selectedIds,
+        this.vm().totalEntries,
+      ),
+    });
   }
 
   onSelectedRowsChange(rows: Row[]): void {
@@ -343,7 +398,17 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     });
   }
 
+  async onHeaderSelectAllChange(checked: boolean): Promise<void> {
+    if (checked) {
+      await this.onSelectAllMatchingClick();
+      return;
+    }
+
+    this.clearSelection();
+  }
+
   clearSearch(): void {
+    this.invalidateSelectAllRequest();
     this.appState.state.set(initialApplicationsState);
 
     this.form.reset({
@@ -458,6 +523,63 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     ];
   }
 
+  private async onSelectAllMatchingClick(): Promise<void> {
+    const requestVersion = this.nextSelectAllRequestVersion();
+    const vm = this.vm();
+    const previousSelection = {
+      selectedIds: new Set(vm.selectedIds),
+      selectedRows: [...vm.selectedRows],
+      allMatchingSelected: vm.allMatchingSelected,
+    };
+    const visibleRows = this.tableRows();
+    const visibleIds = new Set(
+      visibleRows
+        .map((row) => row.id)
+        .filter((id): id is string => typeof id === 'string' && id.length > 0),
+    );
+    const optimisticSelectedIds = new Set([
+      ...previousSelection.selectedIds,
+      ...visibleIds,
+    ]);
+    const selectedRowsFromOtherPages = previousSelection.selectedRows.filter(
+      (row) => !visibleIds.has(row.id),
+    );
+
+    this.patchApp({
+      ...clearNotificationsPatch(),
+      isSelectingAll: true,
+      selectedIds: optimisticSelectedIds,
+      selectedRows: [...selectedRowsFromOtherPages, ...visibleRows],
+      allMatchingSelected:
+        visibleIds.size > 0 && visibleIds.size === vm.totalEntries,
+    });
+
+    try {
+      const dto = await firstValueFrom(
+        this.appListEntryApi.getEntryIds({
+          filter: vm.getFilters,
+        }),
+      );
+
+      if (requestVersion !== this.selectAllRequestVersion) {
+        return;
+      }
+
+      this.applySelectAllMatching(dto.ids ?? []);
+    } catch (err) {
+      if (requestVersion !== this.selectAllRequestVersion) {
+        return;
+      }
+
+      const errMsg = getProblemText(err);
+      this.patchApp({
+        ...previousSelection,
+        isSelectingAll: false,
+        errorSummary: [{ text: errMsg }],
+      });
+    }
+  }
+
   toggleAdvancedSearch(): void {
     this.patchApp({ isAdvancedSearch: !this.vm().isAdvancedSearch });
   }
@@ -470,6 +592,84 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.patchApp({
       errorSummary: [{ text: message }],
     });
+  }
+
+  private applySelectAllMatching(ids: string[]): void {
+    const selectedIds = new Set(ids);
+
+    this.patchApp({
+      isSelectingAll: false,
+      selectedIds,
+      selectedRows: getVisibleSelectedRows(
+        this.tableRows(),
+        selectedIds,
+      ) as ApplicationRow[],
+      allMatchingSelected: isAllMatchingSelected(
+        selectedIds,
+        this.vm().totalEntries,
+      ),
+    });
+  }
+
+  private clearSelection(): void {
+    this.invalidateSelectAllRequest();
+    this.patchApp({
+      selectedIds: new Set<string>(),
+      selectedRows: [],
+      allMatchingSelected: false,
+      isSelectingAll: false,
+    });
+  }
+
+  private async resolveSelectedRows(): Promise<ApplicationRow[]> {
+    const vm = this.vm();
+
+    if (vm.selectedIds.size === 0) {
+      return vm.selectedRows;
+    }
+
+    if (vm.selectedIds.size === vm.selectedRows.length) {
+      return vm.selectedRows;
+    }
+
+    const selectedIds = new Set(vm.selectedIds);
+    const pageCount =
+      vm.totalPages > 0 ? vm.totalPages : vm.totalEntries > 0 ? 1 : 0;
+    const selectedRows: ApplicationRow[] = [];
+
+    for (let pageNumber = 0; pageNumber < pageCount; pageNumber += 1) {
+      const page = await firstValueFrom(
+        this.appListEntryApi.getEntries({
+          pageNumber,
+          pageSize: vm.pageSize,
+          filter: vm.getFilters,
+        }),
+      );
+
+      const rows = (page.content ?? []).map(mapToRow);
+      for (const row of rows) {
+        if (selectedIds.has(row.id)) {
+          selectedRows.push(row);
+        }
+      }
+
+      if (selectedRows.length === selectedIds.size) {
+        break;
+      }
+    }
+
+    this.patchApp({ selectedRows });
+
+    return selectedRows;
+  }
+
+  private nextSelectAllRequestVersion(): number {
+    this.selectAllRequestVersion += 1;
+    return this.selectAllRequestVersion;
+  }
+
+  private invalidateSelectAllRequest(): void {
+    this.selectAllRequestVersion += 1;
   }
 
   isControlInvalid<C extends ControlName>(controlName: C): boolean {
