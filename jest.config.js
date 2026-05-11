@@ -51,7 +51,6 @@ module.exports = {
     '^@guards/(.*)$': ['<rootDir>/src/app/guards/$1'],
   },
 
-  collectCoverage: true,
   // Note: jest doesn't track the entire project
   // only files that have an associated spec file
   collectCoverageFrom: [
