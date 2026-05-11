@@ -96,7 +96,6 @@
     "@ministryofjustice/frontend": "^6.0.0",
     "@octokit/rest": "^22.0.0",
     "applicationinsights": "^2.7.0",
-    "concurrently": "^9.2.1",
     "config": "^4.1.0",
     "connect-history-api-fallback": "^2.0.0",
     "connect-redis": "^9.0.0",
