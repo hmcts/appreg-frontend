@@ -1,2 +1,5 @@
 #!/bin/sh
-yarn lint-staged
+if ! yarn lint-staged; then
+  printf 'Pre-commit failed: linter checks did not pass.' >&2
+  exit 1
+fi
