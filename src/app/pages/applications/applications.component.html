@@ -1,6 +1,13 @@
 <h1 class="govuk-heading-xl">Applications</h1>
 
-@if (vm().searchErrors.length) {
+@if (vm().errorSummary.length) {
+  <app-error-summary
+    [title]="'There is a problem'"
+    [items]="vm().errorSummary"
+    targetId="search"
+    (itemSelect)="onCreateErrorClick($event)"
+  />
+} @else if (vm().searchErrors.length) {
   <app-error-summary
     [title]="'There is a problem'"
     [items]="vm().searchErrors"
@@ -195,7 +202,9 @@
     [data]="tableRows()"
     [selectable]="true"
     idField="id"
+    [selectAllScope]="'external'"
     [selectedIds]="vm().selectedIds"
+    (selectAllChange)="onHeaderSelectAllChange($event)"
     (selectedIdsChange)="onSelectedIdsChange($event)"
     (selectedRowsChange)="onSelectedRowsChange($event)"
     appMojButtonMenu
@@ -215,7 +224,7 @@
         role="group"
         aria-label="Table actions"
       >
-        @if (!vm().selectedRows.length) {
+        @if (!canUseBulkActions) {
           <button
             type="button"
             class="govuk-button govuk-button--small govuk-button--primary table-caption__action-button"
