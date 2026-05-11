@@ -330,6 +330,19 @@ describe('ApplicationsComponent', () => {
         'existing-row',
       ]);
     });
+
+    it('clears selecting mode when an invalid submit interrupts a pending select-all', () => {
+      appStateSignal(component).update((s) => ({
+        ...s,
+        isSelectingAll: true,
+      }));
+
+      component.form.patchValue({ respondentPostcode: 'AB12 3CDE' });
+
+      submitSearch();
+
+      expect(component.vm().isSelectingAll).toBe(false);
+    });
   });
 
   describe('loadQuery', () => {
@@ -562,9 +575,9 @@ describe('ApplicationsComponent', () => {
       }));
 
       getEntryIdsMock.mockReturnValueOnce(
-        of({ ids: ['entry-1', 'entry-2', 'entry-3', 'entry-4'] }) as ReturnType<
-          ApplicationListEntriesApi['getEntryIds']
-        >,
+        of({
+          ids: ['entry-1', 'entry-2', 'entry-3', 'entry-4'],
+        }) as unknown as ReturnType<ApplicationListEntriesApi['getEntryIds']>,
       );
 
       await component.onHeaderSelectAllChange(true);
@@ -635,7 +648,7 @@ describe('ApplicationsComponent', () => {
       }));
 
       getEntryIdsMock.mockReturnValueOnce(
-        idsSubject.asObservable() as ReturnType<
+        idsSubject.asObservable() as unknown as ReturnType<
           ApplicationListEntriesApi['getEntryIds']
         >,
       );

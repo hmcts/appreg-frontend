@@ -262,7 +262,10 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
     const validationErrors = this.buildErrorSummary();
     if (validationErrors.length) {
-      this.patchApp({ searchErrors: validationErrors });
+      this.patchApp({
+        searchErrors: validationErrors,
+        isSelectingAll: false,
+      });
       return;
     }
 
@@ -274,6 +277,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
             id: 'search-error',
           },
         ],
+        isSelectingAll: false,
       });
       return;
     }
@@ -293,49 +297,46 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   async onPrintContinuousClick(): Promise<void> {
-    this.patchApp(clearNotificationsPatch());
-    let selectedRows: ApplicationRow[];
-    try {
-      selectedRows = await this.resolveSelectedRows();
-    } catch (err) {
-      this.patchPrintError(getProblemText(err));
+    const request = await this.buildPrintRequest('continuous');
+    if (!request) {
       return;
     }
 
-    if (selectedRows.length === 0) {
-      return;
-    }
-
-    const selectedRowsListIds = this.getArrOfPrintListId(selectedRows);
-
-    this.printRequest.set({
-      ids: selectedRowsListIds,
-      mode: 'continuous',
-      selectedRows,
-    });
+    this.printRequest.set(request);
   }
 
   async onPrintPageClick(): Promise<void> {
+    const request = await this.buildPrintRequest('page');
+    if (!request) {
+      return;
+    }
+
+    this.printRequest.set(request);
+  }
+
+  private async buildPrintRequest(
+    mode: ApplicationsPrintRequest['mode'],
+  ): Promise<ApplicationsPrintRequest | null> {
     this.patchApp(clearNotificationsPatch());
     let selectedRows: ApplicationRow[];
     try {
       selectedRows = await this.resolveSelectedRows();
     } catch (err) {
       this.patchPrintError(getProblemText(err));
-      return;
+      return null;
     }
 
     if (selectedRows.length === 0) {
-      return;
+      return null;
     }
 
     const selectedRowsListIds = this.getArrOfPrintListId(selectedRows);
 
-    this.printRequest.set({
+    return {
       ids: selectedRowsListIds,
-      mode: 'page',
+      mode,
       selectedRows,
-    });
+    };
   }
 
   loadApplications(filterOverride?: EntryGetFilterDto): void {
@@ -635,8 +636,12 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     }
 
     const selectedIds = new Set(vm.selectedIds);
-    const pageCount =
-      vm.totalPages > 0 ? vm.totalPages : vm.totalEntries > 0 ? 1 : 0;
+    let pageCount = 0;
+    if (vm.totalPages > 0) {
+      pageCount = vm.totalPages;
+    } else if (vm.totalEntries > 0) {
+      pageCount = 1;
+    }
     const selectedRows: ApplicationRow[] = [];
 
     for (let pageNumber = 0; pageNumber < pageCount; pageNumber += 1) {
