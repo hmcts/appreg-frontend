@@ -51,6 +51,31 @@ module.exports = {
     '^@guards/(.*)$': ['<rootDir>/src/app/guards/$1'],
   },
 
+  collectCoverage: true,
+  // Note: jest doesn't track the entire project
+  // only files that have an associated spec file
+  collectCoverageFrom: [
+    '<rootDir>/src/**/*.{ts,js}',
+    '<rootDir>/server/**/*.{ts,js}',
+
+    // Ignore
+    '!<rootDir>/src/generated/**',
+    '!<rootDir>/src/main.ts',
+    '!<rootDir>/src/main.server.ts',
+  ],
+
+  coverageThreshold: {
+    global: {
+      lines: 80,
+    },
+  },
+
+  coveragePathIgnorePatterns: [
+    '<rootDir>/node_modules/',
+    '<rootDir>/dist/',
+    '<rootDir>/coverage/',
+  ],
+
   transformIgnorePatterns: [String.raw`node_modules/(?!.*\.mjs$)`],
   coverageDirectory: '<rootDir>/coverage',
   coverageReporters: ['html', 'lcov', 'text'],
