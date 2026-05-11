@@ -22,10 +22,6 @@ export function suppressSortEvent(event: Event | null): void {
   event.stopImmediatePropagation();
 }
 
-export function isSortActivationKey(event: KeyboardEvent): boolean {
-  return event.key === 'Enter' || event.key === ' ';
-}
-
 export function ariaSortFor(
   current: SortState,
   key: string,
