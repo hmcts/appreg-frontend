@@ -1,2 +1,2 @@
 #!/bin/sh
-yarn lint:fix
+yarn lint-staged

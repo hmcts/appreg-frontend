@@ -70,6 +70,11 @@
       }
     ]
   },
+  "lint-staged": {
+    "*.{ts,js}": "eslint --fix",
+    "*.scss": "stylelint -v -q --fix",
+    "*": "prettier --write --ignore-unknown"
+  },
   "private": true,
   "dependencies": {
     "@angular/common": "^21.2.11",
