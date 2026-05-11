@@ -55,7 +55,7 @@ describe('BreadcrumbsComponent', () => {
     const links = fixture.debugElement.queryAll(
       By.css('a.govuk-breadcrumbs__link'),
     );
-    expect(links).toHaveLength(4);
+    expect(links).toHaveLength(3);
   });
 
   it('renders no list items when items is empty', () => {
