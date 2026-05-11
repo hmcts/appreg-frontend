@@ -278,6 +278,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       return;
     }
 
+    const filter = this.loadQuery();
+
     this.patchApp({
       currentPage: 0,
       rows: [],
@@ -287,7 +289,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       isSelectingAll: false,
     });
 
-    this.loadApplications();
+    this.loadApplications(filter);
   }
 
   async onPrintContinuousClick(): Promise<void> {
@@ -336,7 +338,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     });
   }
 
-  loadApplications(): void {
+  loadApplications(filterOverride?: EntryGetFilterDto): void {
     if (this.vm().isLoading) {
       return;
     }
@@ -344,7 +346,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     const params: GetEntriesRequestParams = {
       pageNumber: this.vm().currentPage,
       pageSize: this.vm().pageSize,
-      filter: this.loadQuery(),
+      filter: filterOverride ?? this.loadQuery(),
     };
 
     this.patchApp({ ...startSearchPatch(), ...clearNotificationsPatch() });
@@ -371,7 +373,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   onPageChange(page: number): void {
     this.patchApp({ currentPage: page });
-    this.loadApplications(); // fetch page `page`
+    this.loadApplications(this.vm().getFilters); // fetch page `page`
   }
 
   onSelectedIdsChange(selectedIds: Set<string>): void {

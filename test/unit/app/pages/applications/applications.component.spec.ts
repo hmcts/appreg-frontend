@@ -518,6 +518,27 @@ describe('ApplicationsComponent', () => {
       expect(component.vm().currentPage).toBe(3);
       expect(loadSpy).toHaveBeenCalledTimes(1);
     });
+
+    it('onPageChange uses the last successful filters instead of the live form', () => {
+      getEntriesMock.mockClear();
+
+      appStateSignal(component).update((s) => ({
+        ...s,
+        getFilters: { applicantOrganisation: 'Saved Org' },
+        isLoading: false,
+      }));
+
+      component.form.patchValue({ respondentPostcode: 'AB12 3CDE' });
+
+      component.onPageChange(2);
+
+      expect(getEntriesMock).toHaveBeenCalledTimes(1);
+      const [params] = getEntriesMock.mock.calls[0];
+      expect(params?.pageNumber).toBe(2);
+      expect(params?.filter).toEqual({
+        applicantOrganisation: 'Saved Org',
+      });
+    });
   });
 
   describe('row selection', () => {
