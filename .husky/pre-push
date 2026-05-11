@@ -1,4 +1,34 @@
 #!/bin/sh
+
+echo "Running unit tests..."
 yarn test:unit
+status=$?
+
+if [ $status -ne 0 ]; then
+  echo ""
+  echo "Pre-push failed: unit tests did not pass."
+  echo "Run 'yarn test:unit' locally and fix the failing tests before pushing."
+  exit $status
+fi
+
+echo "Running route tests..."
 yarn test:routes
+status=$?
+
+if [ $status -ne 0 ]; then
+  echo ""
+  echo "Pre-push failed: route tests did not pass."
+  echo "Run 'yarn test:routes' locally and fix the failing tests before pushing."
+  exit $status
+fi
+
+echo "Running build..."
 yarn build
+status=$?
+
+if [ $status -ne 0 ]; then
+  echo ""
+  echo "Pre-push failed: Angular build failed."
+  echo "Run 'yarn build' locally and fix the reported build errors before pushing."
+  exit $status
+fi
