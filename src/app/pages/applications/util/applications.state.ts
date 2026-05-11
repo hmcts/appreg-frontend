@@ -1,5 +1,5 @@
 import { ErrorItem } from '@components/error-summary/error-summary.component';
-import { EntryGetSummaryDto } from '@openapi';
+import { EntryGetFilterDto, EntryGetSummaryDto } from '@openapi';
 import { ApplicationRow } from '@shared-types/applications/applications.type';
 
 export interface ApplicationsState {
@@ -19,10 +19,14 @@ export interface ApplicationsState {
   currentPage: number;
   totalPages: number;
   pageSize: number;
+  totalEntries: number;
 
   // table
   selectedIds: Set<string>;
   selectedRows: ApplicationRow[];
+  allMatchingSelected: boolean;
+  isSelectingAll: boolean;
+  getFilters: EntryGetFilterDto;
 }
 
 export const initialApplicationsState: ApplicationsState = {
@@ -39,8 +43,12 @@ export const initialApplicationsState: ApplicationsState = {
   currentPage: 0,
   totalPages: 1,
   pageSize: 10,
+  totalEntries: 0,
   selectedIds: new Set<string>(),
   selectedRows: [],
+  allMatchingSelected: false,
+  isSelectingAll: false,
+  getFilters: {},
 };
 
 // Clear error/notification state before a new search
@@ -66,9 +74,14 @@ export const startSearchPatch = (): Pick<
 export const searchSuccessPatch = (
   rows: EntryGetSummaryDto[],
   totalPages: number,
-): Pick<ApplicationsState, 'rows' | 'totalPages' | 'isLoading'> => ({
+  totalEntries: number,
+): Pick<
+  ApplicationsState,
+  'rows' | 'totalPages' | 'totalEntries' | 'isLoading'
+> => ({
   rows,
   totalPages,
+  totalEntries,
   isLoading: false,
 });
 

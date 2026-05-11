@@ -2,7 +2,7 @@ import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { LOCALE_ID, PLATFORM_ID, type WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 
 import { Applications } from '@components/applications/applications.component';
 import { ApplicationsState } from '@components/applications/util/applications.state';
@@ -15,6 +15,7 @@ import {
   ApplicationListsApi,
   EntryGetFilterDto,
   EntryGetSummaryDto,
+  EntryIdsDto,
   EntryPage,
 } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
@@ -82,6 +83,9 @@ const flushSignalEffects = async (
   await fixture.whenStable();
   await Promise.resolve();
   fixture.detectChanges();
+  await fixture.whenStable();
+  await Promise.resolve();
+  fixture.detectChanges();
 };
 
 describe('ApplicationsComponent', () => {
@@ -99,9 +103,16 @@ describe('ApplicationsComponent', () => {
   const getEntriesMock: jest.MockedFunction<
     ApplicationListEntriesApi['getEntries']
   > = jest.fn();
+  const getEntryIdsMock: jest.MockedFunction<
+    ApplicationListEntriesApi['getEntryIds']
+  > = jest.fn();
 
-  const appListEntriesApiStub: Pick<ApplicationListEntriesApi, 'getEntries'> = {
+  const appListEntriesApiStub: Pick<
+    ApplicationListEntriesApi,
+    'getEntries' | 'getEntryIds'
+  > = {
     getEntries: getEntriesMock,
+    getEntryIds: getEntryIdsMock,
   };
 
   const printApplicationListMock = jest.fn();
@@ -122,6 +133,7 @@ describe('ApplicationsComponent', () => {
 
   beforeEach(async () => {
     getEntriesMock.mockReset();
+    getEntryIdsMock.mockReset();
     printApplicationListMock.mockReset();
     pdfServiceStub.generatePagedApplicationListPdf.mockReset();
     pdfServiceStub.generateContinuousApplicationListsPdf.mockReset();
@@ -133,10 +145,16 @@ describe('ApplicationsComponent', () => {
           body: {
             content: [],
             totalPages: 0,
+            totalElements: 0,
             number: 0,
           } as unknown as EntryPage,
         }),
       ),
+    );
+    getEntryIdsMock.mockReturnValue(
+      of({ ids: [] } as EntryIdsDto) as unknown as ReturnType<
+        ApplicationListEntriesApi['getEntryIds']
+      >,
     );
 
     await TestBed.configureTestingModule({
@@ -168,6 +186,19 @@ describe('ApplicationsComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('renders errorSummary when action-level errors are present', () => {
+    appStateSignal(component).update((s) => ({
+      ...s,
+      errorSummary: [{ text: 'Select all failed' }],
+      searchErrors: [{ id: 'search-error', text: 'Search failed' }],
+    }));
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Select all failed');
+    expect(fixture.nativeElement.textContent).not.toContain('Search failed');
   });
 
   describe('onSubmit validation', () => {
@@ -251,11 +282,17 @@ describe('ApplicationsComponent', () => {
     it('when submitted with a param: calls loadApplications (and API) rather than invalid search criteria', () => {
       getEntriesMock.mockClear();
 
+      appStateSignal(component).update((s) => ({
+        ...s,
+        currentPage: 3,
+      }));
+
       component.form.patchValue({ applicantOrg: 'Some Org' });
 
       submitSearch();
 
       expect(getEntriesMock).toHaveBeenCalledTimes(1);
+      expect(component.vm().currentPage).toBe(0);
       expect(
         component.vm().searchErrors.some((e) => e.id === 'search-error'),
       ).toBe(false);
@@ -263,6 +300,11 @@ describe('ApplicationsComponent', () => {
 
     it('prioritises field validation errors (e.g. postcode too long) over invalid search criteria', () => {
       getEntriesMock.mockClear();
+
+      appStateSignal(component).update((s) => ({
+        ...s,
+        rows: [makeEntry({ id: 'existing-row' })],
+      }));
 
       component.form.patchValue({ respondentPostcode: 'AB12 3CDE' });
 
@@ -284,6 +326,22 @@ describe('ApplicationsComponent', () => {
           }),
         ]),
       );
+      expect(component.vm().rows.map((row) => row.id)).toEqual([
+        'existing-row',
+      ]);
+    });
+
+    it('clears selecting mode when an invalid submit interrupts a pending select-all', () => {
+      appStateSignal(component).update((s) => ({
+        ...s,
+        isSelectingAll: true,
+      }));
+
+      component.form.patchValue({ respondentPostcode: 'AB12 3CDE' });
+
+      submitSearch();
+
+      expect(component.vm().isSelectingAll).toBe(false);
     });
   });
 
@@ -329,7 +387,7 @@ describe('ApplicationsComponent', () => {
   });
 
   describe('loadApplications', () => {
-    it('does nothing when there are existing searchErrors', () => {
+    it('still loads applications when stale searchErrors are present', () => {
       getEntriesMock.mockClear();
 
       appStateSignal(component).update((s) => ({
@@ -340,7 +398,7 @@ describe('ApplicationsComponent', () => {
 
       component.loadApplications();
 
-      expect(getEntriesMock).not.toHaveBeenCalled();
+      expect(getEntriesMock).toHaveBeenCalledTimes(1);
     });
 
     it('does nothing when already loading', () => {
@@ -407,6 +465,7 @@ describe('ApplicationsComponent', () => {
         of({
           content: [makeEntry({ id: 'row-1' })],
           totalPages: 5,
+          totalElements: 11,
           number: 1,
         } as unknown as EntryPage) as unknown as ReturnType<
           ApplicationListEntriesApi['getEntries']
@@ -433,6 +492,7 @@ describe('ApplicationsComponent', () => {
 
       expect(component.vm().rows.map((r) => r.id)).toEqual(['row-1']);
       expect(component.vm().totalPages).toBe(5);
+      expect(component.vm().totalEntries).toBe(11);
       expect(component.vm().currentPage).toBe(2);
       expect(component.vm().isLoading).toBe(false);
     });
@@ -471,6 +531,27 @@ describe('ApplicationsComponent', () => {
       expect(component.vm().currentPage).toBe(3);
       expect(loadSpy).toHaveBeenCalledTimes(1);
     });
+
+    it('onPageChange uses the last successful filters instead of the live form', () => {
+      getEntriesMock.mockClear();
+
+      appStateSignal(component).update((s) => ({
+        ...s,
+        getFilters: { applicantOrganisation: 'Saved Org' },
+        isLoading: false,
+      }));
+
+      component.form.patchValue({ respondentPostcode: 'AB12 3CDE' });
+
+      component.onPageChange(2);
+
+      expect(getEntriesMock).toHaveBeenCalledTimes(1);
+      const [params] = getEntriesMock.mock.calls[0];
+      expect(params?.pageNumber).toBe(2);
+      expect(params?.filter).toEqual({
+        applicantOrganisation: 'Saved Org',
+      });
+    });
   });
 
   describe('row selection', () => {
@@ -480,6 +561,35 @@ describe('ApplicationsComponent', () => {
       component.onSelectedIdsChange(selectedIds);
 
       expect(component.vm().selectedIds).toBe(selectedIds);
+    });
+
+    it('header select-all fetches matching ids and updates selection', async () => {
+      appStateSignal(component).update((s) => ({
+        ...s,
+        rows: [
+          makeEntry({ id: 'entry-1', listId: 'list-a' }),
+          makeEntry({ id: 'entry-2', listId: 'list-b' }),
+        ],
+        totalEntries: 4,
+        getFilters: { applicantOrganisation: 'Org Ltd' },
+      }));
+
+      getEntryIdsMock.mockReturnValueOnce(
+        of({
+          ids: ['entry-1', 'entry-2', 'entry-3', 'entry-4'],
+        }) as unknown as ReturnType<ApplicationListEntriesApi['getEntryIds']>,
+      );
+
+      await component.onHeaderSelectAllChange(true);
+
+      expect(getEntryIdsMock).toHaveBeenCalledWith({
+        filter: { applicantOrganisation: 'Org Ltd' },
+      });
+      expect(component.vm().selectedIds).toEqual(
+        new Set(['entry-1', 'entry-2', 'entry-3', 'entry-4']),
+      );
+      expect(component.vm().isSelectingAll).toBe(false);
+      expect(component.vm().allMatchingSelected).toBe(true);
     });
 
     it('keeps selected rows from other pages and replaces only current-page selections', () => {
@@ -506,9 +616,118 @@ describe('ApplicationsComponent', () => {
         selectedCurrentPageRow,
       ]);
     });
+
+    it('clears selection when header select-all is unchecked', async () => {
+      appStateSignal(component).update((s) => ({
+        ...s,
+        selectedIds: new Set(['entry-1']),
+        selectedRows: [makeSelectedRow('entry-1', 'list-a')],
+        allMatchingSelected: true,
+        isSelectingAll: true,
+      }));
+
+      await component.onHeaderSelectAllChange(false);
+
+      expect(component.vm().selectedIds.size).toBe(0);
+      expect(component.vm().selectedRows).toEqual([]);
+      expect(component.vm().allMatchingSelected).toBe(false);
+      expect(component.vm().isSelectingAll).toBe(false);
+    });
+
+    it('ignores stale select-all responses after the selection is cleared', async () => {
+      const idsSubject = new Subject<EntryIdsDto>();
+
+      appStateSignal(component).update((s) => ({
+        ...s,
+        rows: [
+          makeEntry({ id: 'entry-1', listId: 'list-a' }),
+          makeEntry({ id: 'entry-2', listId: 'list-b' }),
+        ],
+        totalEntries: 4,
+        getFilters: { applicantOrganisation: 'Org Ltd' },
+      }));
+
+      getEntryIdsMock.mockReturnValueOnce(
+        idsSubject.asObservable() as unknown as ReturnType<
+          ApplicationListEntriesApi['getEntryIds']
+        >,
+      );
+
+      const selectAllPromise = component.onHeaderSelectAllChange(true);
+
+      expect(component.vm().selectedIds).toEqual(
+        new Set(['entry-1', 'entry-2']),
+      );
+      expect(component.vm().isSelectingAll).toBe(true);
+
+      await component.onHeaderSelectAllChange(false);
+
+      idsSubject.next({
+        ids: ['entry-1', 'entry-2', 'entry-3', 'entry-4'],
+      } as EntryIdsDto);
+      idsSubject.complete();
+      await selectAllPromise;
+
+      expect(component.vm().selectedIds.size).toBe(0);
+      expect(component.vm().selectedRows).toEqual([]);
+      expect(component.vm().allMatchingSelected).toBe(false);
+      expect(component.vm().isSelectingAll).toBe(false);
+    });
   });
 
   describe('onPrintContinuousClick', () => {
+    it('resolves selected rows across pages before printing', async () => {
+      appStateSignal(component).update((s) => ({
+        ...s,
+        selectedIds: new Set(['entry-1', 'entry-2']),
+        selectedRows: [makeSelectedRow('entry-1', 'list-a')],
+        totalPages: 2,
+        totalEntries: 2,
+        pageSize: 10,
+        getFilters: { applicantOrganisation: 'Org Ltd' },
+      }));
+
+      getEntriesMock.mockReturnValueOnce(
+        of({
+          content: [
+            makeEntry({ id: 'entry-1', listId: 'list-a' }),
+            makeEntry({ id: 'entry-2', listId: 'list-b' }),
+          ],
+          totalPages: 2,
+          totalElements: 2,
+          number: 0,
+        } as unknown as EntryPage) as unknown as ReturnType<
+          ApplicationListEntriesApi['getEntries']
+        >,
+      );
+
+      printApplicationListMock.mockImplementation(({ listId }) =>
+        of(
+          makePrintDto({
+            entries: [
+              {
+                id: listId === 'list-a' ? 'entry-1' : 'entry-2',
+                applicant: {},
+                applicationCode: '',
+                applicationTitle: '',
+                applicationWording: '',
+              },
+            ],
+          }),
+        ),
+      );
+
+      await component.onPrintContinuousClick();
+      await flushSignalEffects(fixture);
+
+      expect(getEntriesMock).toHaveBeenCalledWith({
+        pageNumber: 0,
+        pageSize: 10,
+        filter: { applicantOrganisation: 'Org Ltd' },
+      });
+      expect(printApplicationListMock).toHaveBeenCalledTimes(2);
+    });
+
     it('fetches each unique list id and generates one filtered continuous PDF', async () => {
       const listADto = makePrintDto({
         courtName: 'Court A',
@@ -572,7 +791,7 @@ describe('ApplicationsComponent', () => {
         return of(listBDto);
       });
 
-      component.onPrintContinuousClick();
+      await component.onPrintContinuousClick();
       await flushSignalEffects(fixture);
 
       expect(printApplicationListMock).toHaveBeenCalledTimes(2);
@@ -630,7 +849,7 @@ describe('ApplicationsComponent', () => {
         ),
       );
 
-      component.onPrintContinuousClick();
+      await component.onPrintContinuousClick();
       await flushSignalEffects(fixture);
 
       expect(
@@ -657,13 +876,42 @@ describe('ApplicationsComponent', () => {
         ),
       );
 
-      component.onPrintContinuousClick();
+      await component.onPrintContinuousClick();
       await flushSignalEffects(fixture);
 
       expect(
         pdfServiceStub.generateContinuousApplicationListsPdf,
       ).not.toHaveBeenCalled();
       expect(component.vm().errorSummary).toEqual([{ text: 'Print failed' }]);
+    });
+
+    it('patches a print error when resolving selected rows fails', async () => {
+      appStateSignal(component).update((s) => ({
+        ...s,
+        selectedIds: new Set(['entry-1', 'entry-2']),
+        selectedRows: [makeSelectedRow('entry-1', 'list-a')],
+        totalPages: 2,
+        totalEntries: 2,
+        pageSize: 10,
+        getFilters: { applicantOrganisation: 'Org Ltd' },
+      }));
+
+      getEntriesMock.mockReturnValueOnce(
+        throwError(
+          () =>
+            new HttpErrorResponse({
+              status: 500,
+              statusText: 'Server Error',
+              error: { detail: 'Resolve failed' },
+            }),
+        ),
+      );
+
+      await component.onPrintContinuousClick();
+      await flushSignalEffects(fixture);
+
+      expect(printApplicationListMock).not.toHaveBeenCalled();
+      expect(component.vm().errorSummary).toEqual([{ text: 'Resolve failed' }]);
     });
 
     it('patches a generic print error when PDF generation rejects', async () => {
@@ -686,11 +934,13 @@ describe('ApplicationsComponent', () => {
           }),
         ),
       );
-      pdfServiceStub.generateContinuousApplicationListsPdf.mockRejectedValueOnce(
-        new Error('pdf failed'),
+      pdfServiceStub.generateContinuousApplicationListsPdf.mockImplementationOnce(
+        () => {
+          throw new Error('pdf failed');
+        },
       );
 
-      component.onPrintContinuousClick();
+      await component.onPrintContinuousClick();
       await flushSignalEffects(fixture);
 
       expect(
@@ -766,7 +1016,7 @@ describe('ApplicationsComponent', () => {
         return of(listBDto);
       });
 
-      component.onPrintPageClick();
+      await component.onPrintPageClick();
       await flushSignalEffects(fixture);
 
       expect(printApplicationListMock).toHaveBeenCalledTimes(2);
@@ -827,7 +1077,7 @@ describe('ApplicationsComponent', () => {
         ),
       );
 
-      component.onPrintPageClick();
+      await component.onPrintPageClick();
       await flushSignalEffects(fixture);
 
       expect(
@@ -858,11 +1108,13 @@ describe('ApplicationsComponent', () => {
           }),
         ),
       );
-      pdfServiceStub.generatePagedApplicationListPdf.mockRejectedValueOnce(
-        new Error('pdf failed'),
+      pdfServiceStub.generatePagedApplicationListPdf.mockImplementationOnce(
+        () => {
+          throw new Error('pdf failed');
+        },
       );
 
-      component.onPrintPageClick();
+      await component.onPrintPageClick();
       await flushSignalEffects(fixture);
 
       expect(
