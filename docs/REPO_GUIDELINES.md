@@ -31,7 +31,7 @@ This document captures structure, commands, and coding conventions for `appreg-f
 
 ## API and mock generation
 
-- You MUST regenerate OpenAPI clients with `yarn api:all` when API contracts change.
+- You MUST regenerate OpenAPI clients with `yarn api:all:force` when API contracts change.
 - You SHOULD refresh WireMock mappings/errors with `yarn mock:sync` when API behavior changes.
 - You MUST NOT hand-edit generated OpenAPI output under `src/generated/openapi/**` unless regeneration tooling requires it.
 

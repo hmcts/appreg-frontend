@@ -25,6 +25,19 @@ const ARTIFACT = envOr('ARTIFACT_ID', 'appreg-api');
 const OUT_DIR = envOr('OUT_DIR', 'tools/openapi/vendor/openapi');
 const SPEC_FILE_REGEX = /(^|\/)openapi\.(ya?ml|json)$/i;
 const API_VER = '7.1-preview.1';
+const FETCH_METADATA_FILE = '.fetch-unpack-openapi.json';
+const FETCH_MAX_AGE_DAYS_INPUT = Number.parseInt(
+  envOr('OPENAPI_FETCH_MAX_AGE_DAYS', '7'),
+  10,
+);
+const FETCH_MAX_AGE_DAYS =
+  Number.isFinite(FETCH_MAX_AGE_DAYS_INPUT) && FETCH_MAX_AGE_DAYS_INPUT > 0
+    ? FETCH_MAX_AGE_DAYS_INPUT
+    : 7;
+const FETCH_MAX_AGE_MS = FETCH_MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
+const FORCE_FETCH = ['1', 'true', 'yes'].includes(
+  String(envOr('OPENAPI_FETCH_FORCE', '')).toLowerCase(),
+);
 
 let SPEC_VERSION = envOr('SPEC_VERSION', 'latest');
 
@@ -74,6 +87,105 @@ function semverLikeDesc(a, b) {
     }
   }
   return b.localeCompare(a);
+}
+
+function usingLatestSpecVersion() {
+  return !SPEC_VERSION || SPEC_VERSION.toLowerCase() === 'latest';
+}
+
+function fetchMetadataPath() {
+  return path.resolve(OUT_DIR, FETCH_METADATA_FILE);
+}
+
+async function existingOpenApiSpecExists() {
+  const specPath = path.resolve(OUT_DIR, 'openapi.yaml');
+
+  try {
+    const stat = await fsp.stat(specPath);
+    return stat.isFile();
+  } catch (e) {
+    if (e && e.code === 'ENOENT') {
+      return false;
+    }
+    throw e;
+  }
+}
+
+async function readFetchMetadata() {
+  try {
+    const raw = await fsp.readFile(fetchMetadataPath(), 'utf8');
+    return JSON.parse(raw);
+  } catch (e) {
+    if (e && e.code === 'ENOENT') {
+      return null;
+    }
+
+    if (e instanceof SyntaxError) {
+      process.stdout.write(
+        `[warn] Ignoring invalid OpenAPI fetch metadata at ${fetchMetadataPath()}.\n`,
+      );
+      return null;
+    }
+
+    throw e;
+  }
+}
+
+async function lastSuccessfulFetchIsFresh() {
+  const metadata = await readFetchMetadata();
+  if (!metadata || !metadata.fetchedAt) {
+    return false;
+  }
+
+  const fetchedAtMs = Date.parse(metadata.fetchedAt);
+  if (!Number.isFinite(fetchedAtMs)) {
+    process.stdout.write(
+      `[warn] Ignoring invalid OpenAPI fetchedAt metadata: ${metadata.fetchedAt}.\n`,
+    );
+    return false;
+  }
+
+  const ageMs = Math.max(0, Date.now() - fetchedAtMs);
+  const ageDays = Math.floor(ageMs / (24 * 60 * 60 * 1000));
+  const fresh = ageMs < FETCH_MAX_AGE_MS;
+
+  if (fresh) {
+    process.stdout.write(
+      `[ok] Existing OpenAPI spec was fetched ${ageDays} day(s) ago; skipping latest download. Set OPENAPI_FETCH_FORCE=true to clean and download.\n`,
+    );
+  } else {
+    process.stdout.write(
+      `[info] Existing OpenAPI spec was fetched ${ageDays} day(s) ago; downloading a fresh copy.\n`,
+    );
+  }
+
+  return fresh;
+}
+
+async function shouldSkipDownload() {
+  if (FORCE_FETCH || !usingLatestSpecVersion()) {
+    return false;
+  }
+
+  if (!(await existingOpenApiSpecExists())) {
+    return false;
+  }
+
+  return lastSuccessfulFetchIsFresh();
+}
+
+async function writeFetchMetadata() {
+  const metadata = {
+    artifact: ARTIFACT,
+    fetchedAt: new Date().toISOString(),
+    specVersion: SPEC_VERSION,
+  };
+
+  await fsp.writeFile(
+    fetchMetadataPath(),
+    `${JSON.stringify(metadata, null, 2)}\n`,
+    'utf8',
+  );
 }
 
 async function resolveLatestVersion() {
@@ -131,9 +243,19 @@ async function cleanOutDir() {
 }
 
 async function main() {
+  if (await shouldSkipDownload()) {
+    return;
+  }
+
+  if (FORCE_FETCH) {
+    process.stdout.write(
+      '[info] OPENAPI_FETCH_FORCE=true; cleaning and downloading spec.\n',
+    );
+  }
+
   await cleanOutDir();
 
-  if (!SPEC_VERSION || SPEC_VERSION.toLowerCase() === 'latest') {
+  if (usingLatestSpecVersion()) {
     process.stdout.write('[info] Resolving latest SPEC_VERSION from feed…\n');
     SPEC_VERSION = await resolveLatestVersion();
     process.stdout.write(`[ok] Latest version: ${SPEC_VERSION}\n`);
@@ -168,11 +290,14 @@ async function main() {
     force: true,
   });
   await fsp.rm(jarPath, { force: true });
+  await writeFetchMetadata();
 
   process.stdout.write(`[ok] Extracted to: ${OUT_DIR}\n`);
 }
 
-main().catch((e) => {
-  process.stderr.write(`[error] ${e.message}\n`);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((e) => {
+    process.stderr.write(`[error] ${e.message}\n`);
+    process.exit(1);
+  });
+}

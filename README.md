@@ -178,7 +178,7 @@ nvm use 20.19.4
 Once yarn/node has been installed, run below to generate openapi files
 
 ```powershell
-yarn api:all
+yarn api:all:force
 ```
 
 Run below to run code using Wiremock/Stub
@@ -316,7 +316,7 @@ yarn mock:gen
 
 ```bash
 yarn mock:sync
-# -> runs: yarn api:fetch-unpack && yarn mock:gen:errors && yarn mock:gen
+# -> runs: yarn api:fetch-unpack:force && yarn mock:gen:errors && yarn mock:gen
 ```
 
 ### How the generator scripts work
@@ -567,12 +567,14 @@ In this section, we will document how you generate the required services and mod
 
 These are the scripts needed:
 
-- `yarn api:fetch-unpack` - Fetches and decompresses OpenAPI spec held in Azure Artifacts (`scripts/fetch-unpack-openapi.cjs`)
+- `yarn api:fetch-unpack` - Fetches and decompresses OpenAPI spec held in Azure Artifacts (`scripts/fetch-unpack-openapi.cjs`). Skips fetch if there is a spec exists and is less than a week old.
+- `yarn api:fetch-unpack:force` - Force fetches and decompresses OpenAPI spec held in Azure Artifacts. Use this command if you want to fetch the current latest spec file in Azure Artifacts.
 - `yarn api:validate` - Validates the OpenAPI spec (`tools/openapi/vendor/openapi/openapi.yaml`)
 - `yarn api:clear` - Recursively deletes current OpenAPI generated files held at `src/generated/openapi`
 - `yarn api:generate` - Generates files based on the OpenAPI spec and the config file at `tools/openapi/generator-config.yaml`
 - `yarn api:bundle` - Bundles the OpenAPI spec, schemas, responses into `tools/dist/openapi.bundled.yaml`
 - `yarn api:all` - Runs all API scripts (api:validate -> api:clear -> api:bundle -> api:generate)
+- `yarn api:all:force` - Force fetch spec and runs all API scripts (api:validate -> api:clear -> api:bundle -> api:generate)
 
 If you want to use a specific OpenAPI spec version, you can edit `scripts/fetch-unpack-openapi.cjs` and change the following:
 
