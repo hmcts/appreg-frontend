@@ -151,7 +151,7 @@ async function lastSuccessfulFetchIsFresh() {
 
   if (fresh) {
     process.stdout.write(
-      `[ok] Existing OpenAPI spec was fetched ${ageDays} day(s) ago; skipping latest download. Set OPENAPI_FETCH_FORCE=true to clean and download.\n`,
+      `[ok] Existing OpenAPI spec was fetched ${ageDays} day(s) ago; skipping latest download. Run yarn api:fetch-unpack:force to clean and download.\n`,
     );
   } else {
     process.stdout.write(
