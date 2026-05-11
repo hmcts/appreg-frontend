@@ -343,7 +343,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     });
   }
 
-  clearSearch() {
+  clearSearch(): void {
     this.appState.state.set(initialApplicationsState);
 
     this.form.reset({

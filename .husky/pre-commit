@@ -1,9 +1,2 @@
 #!/bin/sh
 yarn lint-staged
-
-status=$?
-
-if [ $status -ne 0 ]; then
-  echo "ERROR: LINTING FAILED. Run 'yarn lint-staged' or 'yarn lint' locally and fix the given issues"
-  exit $status
-fi
