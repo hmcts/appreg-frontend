@@ -56,11 +56,9 @@ const person_org_shared_messages = {
 export const NOTES_ERROR_MESSAGES: NotesErrorMap = {
   accountReference: {
     maxlength: 'Account reference must be 20 characters or fewer',
-    pattern: 'Account reference must only contain letters and numbers',
   },
   caseReference: {
     maxlength: 'Case reference must be 15 characters or fewer',
-    pattern: 'Case reference must only contain letters and numbers',
   },
   notes: {
     maxlength: 'Notes must be 4000 characters or fewer',

@@ -153,21 +153,6 @@ describe('applications-list entry form builders', () => {
       expect(form.controls.lodgementDate.errors).toHaveProperty('required');
     });
 
-    it('applicationNotes.caseReference enforces alphanumeric only', () => {
-      const form = buildStandardApplicationForm(fb);
-      const notesGroup = form.controls.applicationNotes;
-
-      notesGroup.controls.caseReference.setValue('ABC-123'); // hyphen not allowed
-      notesGroup.controls.caseReference.updateValueAndValidity();
-      expect(notesGroup.controls.caseReference.errors).toHaveProperty(
-        'pattern',
-      );
-
-      notesGroup.controls.caseReference.setValue('ABC123');
-      notesGroup.controls.caseReference.updateValueAndValidity();
-      expect(notesGroup.controls.caseReference.errors).toBeNull();
-    });
-
     it('official/mags names have maxlength and pattern', () => {
       const form = buildStandardApplicationForm(fb);
 

@@ -11,7 +11,6 @@ import { buildEntryCreateDto } from '@components/applications-list-entry-create/
 import { ApplicationNotesForm } from '@components/notes-section/notes-section.component';
 import {
   ADDRESS_REGEX,
-  ALPHANUMERIC_REGEX,
   APPLICATION_CODE_REGEX,
   NAME_REGEX,
   STANDARD_APPLICANT_CODE_REGEX,
@@ -156,16 +155,10 @@ export function buildStandardApplicationForm(
           validators: [Validators.maxLength(4000)],
         }),
         caseReference: fb.control<string | null>(null, {
-          validators: [
-            Validators.maxLength(15),
-            Validators.pattern(ALPHANUMERIC_REGEX),
-          ],
+          validators: [Validators.maxLength(15)],
         }),
         accountReference: fb.control<string | null>(null, {
-          validators: [
-            Validators.maxLength(20),
-            Validators.pattern(ALPHANUMERIC_REGEX),
-          ],
+          validators: [Validators.maxLength(20)],
         }),
       }) as ApplicationNotesForm,
 
