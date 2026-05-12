@@ -417,6 +417,29 @@ describe('ApplicationsListEntryDetail', () => {
     );
   });
 
+  it('promotes wording child errors into the parent summary and clears the applied banner', () => {
+    component.wordingAppliedBannerVisible.set(true);
+
+    component.onChildErrors('wording', [
+      {
+        id: 'Court',
+        text: 'Enter a Court in the wording section',
+        href: '#Court',
+      },
+    ]);
+
+    expect(component.wordingAppliedBannerVisible()).toBe(false);
+    expect(component['appListEntryDetailState']().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'Court',
+          text: 'Enter a Court in the wording section',
+        }),
+      ]),
+    );
+    expect(component['appListEntryDetailState']().errorFound).toBe(true);
+  });
+
   it('isUpdateDisabled true when entryDetail is not set', () => {
     component['entryDetail'] = null;
 

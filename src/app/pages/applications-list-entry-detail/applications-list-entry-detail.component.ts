@@ -640,6 +640,15 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
+    if (source === 'wording') {
+      if (this.childErrors.wording.length > 0) {
+        this.wordingAppliedBannerVisible.set(false);
+      }
+
+      this.updateAllErrors();
+      return;
+    }
+
     if (this.vm().formSubmitted) {
       this.updateAllErrors();
     }
