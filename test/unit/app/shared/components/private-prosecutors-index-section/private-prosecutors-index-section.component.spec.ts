@@ -7,12 +7,14 @@ import {
 } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 
+import { SuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { PrivateProsecutorsIndexSectionComponent } from '@components/private-prosecutors-index-section/private-prosecutors-index-section.component';
 
 describe('PrivateProsecutorsIndexSectionComponent', () => {
   let component: PrivateProsecutorsIndexSectionComponent;
   let fixture: ComponentFixture<PrivateProsecutorsIndexSectionComponent>;
   let group: FormGroup;
+  let suggestions: SuggestionsFacade;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -35,8 +37,21 @@ describe('PrivateProsecutorsIndexSectionComponent', () => {
       otherLocation: new FormControl(''),
       cja: new FormControl(''),
     });
+    suggestions = {
+      courthouseSearch: jest.fn(() => ''),
+      setCourthouseSearch: jest.fn(),
+      filteredCourthouses: jest.fn(() => []),
+      onCourthouseInputChange: jest.fn(),
+      selectCourthouse: jest.fn(),
+      cjaSearch: jest.fn(() => ''),
+      setCjaSearch: jest.fn(),
+      filteredCja: jest.fn(() => []),
+      onCjaInputChange: jest.fn(),
+      selectCja: jest.fn(),
+    };
 
     fixture.componentRef.setInput('group', group);
+    fixture.componentRef.setInput('suggestions', suggestions);
 
     fixture.detectChanges();
   });
@@ -56,12 +71,13 @@ describe('PrivateProsecutorsIndexSectionComponent', () => {
     expect(heading?.textContent?.trim()).toBe('Private prosecutors index');
   });
 
-  it('binds the provided FormGroup to the grid row via [formGroup]', () => {
-    const gridRow = fixture.debugElement.query(By.css('div.govuk-grid-row'));
-    expect(gridRow).toBeTruthy();
+  it('binds the provided FormGroup to the shared and section fields', () => {
+    const formGroups = fixture.debugElement
+      .queryAll(By.directive(FormGroupDirective))
+      .map((el) => el.injector.get(FormGroupDirective).form)
+      .filter((form) => form === group);
 
-    const formGroupDirective = gridRow.injector.get(FormGroupDirective);
-    expect(formGroupDirective.form).toBe(group);
+    expect(formGroups).toHaveLength(2);
   });
 
   it('renders two app-date-input components', () => {
@@ -71,12 +87,12 @@ describe('PrivateProsecutorsIndexSectionComponent', () => {
 
   it('renders all expected app-text-input components', () => {
     const textInputs = fixture.debugElement.queryAll(By.css('app-text-input'));
-    expect(textInputs).toHaveLength(9);
+    expect(textInputs).toHaveLength(7);
   });
 
   it('wires specific formControlName bindings (e.g. court)', () => {
     const courtInput = fixture.debugElement.query(
-      By.css('app-text-input[formControlName="court"]'),
+      By.css('app-suggestions[formControlName="court"]'),
     );
     expect(courtInput).toBeTruthy();
   });

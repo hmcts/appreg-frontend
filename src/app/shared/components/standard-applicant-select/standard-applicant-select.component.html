@@ -26,12 +26,13 @@
     </div>
   </form>
 
-  @if (vm().hasSearched && !vm().loading) {
+  @if (vm().hasSearched && (!vm().loading || rows.length)) {
     <app-sortable-table
       id="standard-applicant-table"
       caption="Standard applicants"
       [columns]="columns"
       [data]="rows"
+      [loading]="vm().loading"
       [clientOrServerSort]="'server'"
       [sortKey]="vm().sortField.key"
       [sortDirection]="vm().sortField.direction"

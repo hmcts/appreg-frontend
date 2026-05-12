@@ -1,17 +1,27 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
-import { DateInputComponent } from '@components/date-input/date-input.component';
+import { SuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
+import { ErrorItem } from '@components/error-summary/error-summary.component';
+import { ReportsSharedFormComponent } from '@components/reports-shared-form/reports-shared-form.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 
 @Component({
   selector: 'app-fees-section',
   standalone: true,
-  imports: [ReactiveFormsModule, DateInputComponent, TextInputComponent],
+  imports: [
+    ReactiveFormsModule,
+    TextInputComponent,
+    ReportsSharedFormComponent,
+  ],
   templateUrl: './fees-section.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FeesSectionComponent {
   /** Parent passes the nested form group for the Fees section */
-  @Input({ required: true }) group!: FormGroup;
+  readonly group = input.required<FormGroup>();
+
+  suggestions = input.required<SuggestionsFacade>();
+  submitted = input(false);
+  getError = input<((id: string) => ErrorItem | undefined) | null>(null);
 }

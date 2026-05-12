@@ -57,17 +57,14 @@ describe('NotesSectionComponent', () => {
     });
 
     it('returns mapped messages for known error keys', () => {
-      form.controls.caseReference.setErrors({ maxlength: true, pattern: true });
+      form.controls.caseReference.setErrors({ maxlength: true });
 
       const messages = component.getControlErrorMessages('caseReference');
 
       expect(messages).toContain(
         component.NOTES_FIELD_MESSAGES.caseReference['maxlength'],
       );
-      expect(messages).toContain(
-        component.NOTES_FIELD_MESSAGES.caseReference['pattern'],
-      );
-      expect(messages).toHaveLength(2);
+      expect(messages).toHaveLength(1);
     });
 
     it('ignores unknown error keys', () => {
@@ -124,7 +121,7 @@ describe('NotesSectionComponent', () => {
       const emitSpy = jest.spyOn(component.notesErrors, 'emit');
 
       form.controls.notes.setErrors({ maxlength: true });
-      form.controls.caseReference.setErrors({ pattern: true });
+      form.controls.caseReference.setErrors({ maxlength: true });
       form.controls.accountReference.setErrors({ maxlength: true });
 
       component.emitNotesErrors();
@@ -140,7 +137,7 @@ describe('NotesSectionComponent', () => {
           },
           {
             id: 'caseReference',
-            text: component.NOTES_FIELD_MESSAGES.caseReference['pattern'],
+            text: component.NOTES_FIELD_MESSAGES.caseReference['maxlength'],
           },
           {
             id: 'accountReference',

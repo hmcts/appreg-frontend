@@ -40,6 +40,11 @@ import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { toStandardApplicantSortKey } from '@util/standard-applicant-sort-map';
 import { StandardApplicantRow } from '@util/types/applications-list-entry/types';
 
+type StandardApplicantFilters = Pick<
+  GetStandardApplicantsRequestParams,
+  'code' | 'name'
+>;
+
 type StandardApplicantsState = {
   hasSearched: boolean;
   currentPage: number;
@@ -91,6 +96,7 @@ export class StandardApplicants implements OnInit {
   readonly submitted = signal(false);
   private readonly errorMap: ErrorMessageMap =
     STANDARD_APPLICANT_SEARCH_ERROR_MESSAGES;
+  private appliedFilters: StandardApplicantFilters = {};
   onCreateErrorClick = onCreateErrorClickFn;
 
   form = new FormGroup({
@@ -126,8 +132,9 @@ export class StandardApplicants implements OnInit {
       return;
     }
 
+    this.appliedFilters = this.getTrimmedFilters();
     this.signalState.patch({ hasSearched: true });
-    this.loadStandardApplicants(0);
+    this.loadStandardApplicants(0, this.appliedFilters);
   }
 
   fieldError(id: string): ErrorItem | undefined {
@@ -135,16 +142,16 @@ export class StandardApplicants implements OnInit {
   }
 
   onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
-    if (!this.canSearch()) {
+    if (!this.vm().hasSearched) {
       return;
     }
 
     this.signalState.patch({ sortField: sort });
-    this.loadStandardApplicants(0);
+    this.loadStandardApplicants(this.vm().currentPage);
   }
 
   onPageChange(page: number): void {
-    if (!this.canSearch()) {
+    if (!this.vm().hasSearched) {
       return;
     }
 
@@ -186,22 +193,24 @@ export class StandardApplicants implements OnInit {
     return buildFormErrorSummary(this.form, this.errorMap);
   }
 
-  private canSearch(): boolean {
-    this.form.updateValueAndValidity({ emitEvent: false });
+  private getTrimmedFilters(): StandardApplicantFilters {
+    const code = this.form.controls.code.value.trim();
+    const name = this.form.controls.name.value.trim();
 
-    const validationErrors = this.buildErrorSummary();
-    this.signalState.patch({ searchErrors: validationErrors });
-
-    return validationErrors.length === 0;
+    return {
+      code: code || undefined,
+      name: name || undefined,
+    };
   }
 
-  private loadStandardApplicants(page: number): void {
+  private loadStandardApplicants(
+    page: number,
+    filters: StandardApplicantFilters = this.appliedFilters,
+  ): void {
     if (this.vm().isLoading) {
       return;
     }
 
-    const code = this.form.controls.code.value.trim();
-    const name = this.form.controls.name.value.trim();
     const sort = this.vm().sortField;
     const apiSortKey = toStandardApplicantSortKey(sort.key);
 
@@ -212,8 +221,8 @@ export class StandardApplicants implements OnInit {
     });
 
     this.loadRequest.set({
-      code: code || undefined,
-      name: name || undefined,
+      code: filters.code,
+      name: filters.name,
       pageNumber: page,
       pageSize: this.vm().pageSize,
       sort: [`${apiSortKey},${sort.direction}`],

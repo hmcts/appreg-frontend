@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, Subject, of, throwError } from 'rxjs';
 
 import { StandardApplicants } from '@components/standard-applicants/standard-applicants.component';
 import { StandardApplicantPage, StandardApplicantsApi } from '@openapi';
@@ -36,6 +36,7 @@ describe('StandardApplicantsComponent', () => {
   };
 
   beforeEach(async () => {
+    getStandardApplicantsMock.mockReset();
     getStandardApplicantsMock.mockReturnValue(
       of({
         pageNumber: 0,
@@ -110,18 +111,21 @@ describe('StandardApplicantsComponent', () => {
     await flushSignalEffects(fixture);
 
     expect(getStandardApplicantsMock).not.toHaveBeenCalled();
-    expect(component.vm().searchErrors).toEqual([
-      {
-        id: 'code',
-        text: 'Code must be 10 characters or fewer',
-        href: '#code',
-      },
-      {
-        id: 'name',
-        text: 'Standard applicant name must be 100 characters or fewer',
-        href: '#name',
-      },
-    ]);
+    expect(component.vm().searchErrors).toHaveLength(2);
+    expect(component.vm().searchErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'code',
+          text: 'Code must be 10 characters or fewer',
+          href: '#code',
+        }),
+        expect.objectContaining({
+          id: 'name',
+          text: 'Standard applicant name must be 100 characters or fewer',
+          href: '#name',
+        }),
+      ]),
+    );
     expect(component.fieldError('code')?.text).toBe(
       'Code must be 10 characters or fewer',
     );
@@ -156,7 +160,128 @@ describe('StandardApplicantsComponent', () => {
     ).toContain('No results found.');
   });
 
+  it('keeps the table mounted while a sort request is in flight when rows already exist', async () => {
+    const inFlightResponse = new Subject<StandardApplicantPage>();
+
+    getStandardApplicantsMock.mockReturnValueOnce(
+      of({
+        pageNumber: 0,
+        pageSize: 10,
+        totalElements: 1,
+        content: [
+          {
+            code: 'SA01',
+            applicant: {
+              organisation: {
+                name: 'Applicant Org',
+                contactDetails: { addressLine1: '1 Test Street' },
+              },
+            },
+            startDate: '2026-01-01',
+            endDate: '2026-12-31',
+          },
+        ],
+        elementsOnPage: 1,
+        totalPages: 1,
+      }),
+    );
+
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    getStandardApplicantsMock.mockReturnValueOnce(inFlightResponse);
+
+    component.onSortChange({ key: 'name', direction: 'desc' });
+    fixture.detectChanges();
+
+    const table = fixture.debugElement.query(By.css('app-sortable-table'));
+    expect(table).toBeTruthy();
+    expect(table.componentInstance.loading()).toBe(true);
+
+    inFlightResponse.next({
+      pageNumber: 0,
+      pageSize: 10,
+      totalElements: 1,
+      content: [
+        {
+          code: 'SA01',
+          applicant: {
+            organisation: {
+              name: 'Applicant Org',
+              contactDetails: { addressLine1: '1 Test Street' },
+            },
+          },
+          startDate: '2026-01-01',
+          endDate: '2026-12-31',
+        },
+      ],
+      elementsOnPage: 1,
+      totalPages: 1,
+    });
+    inFlightResponse.complete();
+    await flushSignalEffects(fixture);
+
+    expect(
+      fixture.debugElement.query(By.css('app-sortable-table')),
+    ).toBeTruthy();
+  });
+
+  it('keeps existing results visible when validation errors are shown', async () => {
+    getStandardApplicantsMock.mockReturnValueOnce(
+      of({
+        pageNumber: 0,
+        pageSize: 10,
+        totalElements: 1,
+        content: [
+          {
+            code: 'SA01',
+            applicant: {
+              organisation: {
+                name: 'Applicant Org',
+                contactDetails: { addressLine1: '1 Test Street' },
+              },
+            },
+            startDate: '2026-01-01',
+            endDate: '2026-12-31',
+          },
+        ],
+        elementsOnPage: 1,
+        totalPages: 1,
+      }),
+    );
+
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    component.form.patchValue({
+      name: 'x'.repeat(101),
+    });
+
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    expect(component.vm().searchErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'name',
+          text: 'Standard applicant name must be 100 characters or fewer',
+          href: '#name',
+        }),
+      ]),
+    );
+    expect(
+      fixture.debugElement.query(By.css('app-error-summary')),
+    ).toBeTruthy();
+    expect(
+      fixture.debugElement.query(By.css('app-sortable-table')),
+    ).toBeTruthy();
+  });
+
   it('loads selected page when pagination changes', async () => {
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+    getStandardApplicantsMock.mockClear();
+
     component.onPageChange(3);
     await flushSignalEffects(fixture);
 
@@ -176,7 +301,11 @@ describe('StandardApplicantsComponent', () => {
     );
   });
 
-  it('maps useFrom sort key to backend from parameter', async () => {
+  it('maps useFrom sort key to backend from parameter on the current page', async () => {
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+    getStandardApplicantsMock.mockClear();
+
     component.onSortChange({ key: 'useFrom', direction: 'desc' });
     await flushSignalEffects(fixture);
 
@@ -196,7 +325,84 @@ describe('StandardApplicantsComponent', () => {
     );
   });
 
-  it('does not sort when filters are invalid', async () => {
+  it('keeps the current page number when sorting after paging', async () => {
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    getStandardApplicantsMock.mockReturnValueOnce(
+      of({
+        pageNumber: 1,
+        pageSize: 10,
+        totalElements: 11,
+        content: [
+          {
+            code: 'SA10',
+            applicant: {
+              organisation: {
+                name: 'Applicant Org',
+                contactDetails: { addressLine1: '10 Test Street' },
+              },
+            },
+            startDate: '2026-01-01',
+            endDate: '2026-12-31',
+          },
+        ],
+        elementsOnPage: 1,
+        totalPages: 2,
+      }),
+    );
+
+    getStandardApplicantsMock.mockClear();
+    component.onPageChange(1);
+    await flushSignalEffects(fixture);
+
+    getStandardApplicantsMock.mockReturnValueOnce(
+      of({
+        pageNumber: 1,
+        pageSize: 10,
+        totalElements: 11,
+        content: [
+          {
+            code: 'SA01',
+            applicant: {
+              organisation: {
+                name: 'Applicant Org',
+                contactDetails: { addressLine1: '1 Test Street' },
+              },
+            },
+            startDate: '2026-01-01',
+            endDate: '2026-12-31',
+          },
+        ],
+        elementsOnPage: 1,
+        totalPages: 2,
+      }),
+    );
+
+    component.onSortChange({ key: 'useFrom', direction: 'desc' });
+    await flushSignalEffects(fixture);
+
+    expect(getStandardApplicantsMock).toHaveBeenLastCalledWith(
+      {
+        code: undefined,
+        name: undefined,
+        pageNumber: 1,
+        pageSize: 10,
+        sort: ['from,desc'],
+      },
+      'body',
+      false,
+      {
+        transferCache: true,
+      },
+    );
+    expect(component.vm().currentPage).toBe(1);
+  });
+
+  it('sorts using the last applied filters when the current form is invalid', async () => {
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
     component.form.patchValue({
       name: 'x'.repeat(101),
     });
@@ -205,18 +411,30 @@ describe('StandardApplicantsComponent', () => {
     component.onSortChange({ key: 'useFrom', direction: 'desc' });
     await flushSignalEffects(fixture);
 
-    expect(getStandardApplicantsMock).not.toHaveBeenCalled();
-    expect(component.vm().sortField).toEqual({ key: 'code', direction: 'asc' });
-    expect(component.vm().searchErrors).toEqual([
+    expect(getStandardApplicantsMock).toHaveBeenCalledWith(
       {
-        id: 'name',
-        text: 'Standard applicant name must be 100 characters or fewer',
-        href: '#name',
+        code: undefined,
+        name: undefined,
+        pageNumber: 0,
+        pageSize: 10,
+        sort: ['from,desc'],
       },
-    ]);
+      'body',
+      false,
+      {
+        transferCache: true,
+      },
+    );
+    expect(component.vm().sortField).toEqual({
+      key: 'useFrom',
+      direction: 'desc',
+    });
   });
 
-  it('does not paginate when filters are invalid', async () => {
+  it('paginates using the last applied filters when the current form is invalid', async () => {
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
     component.form.patchValue({
       code: '12345678901',
     });
@@ -225,15 +443,21 @@ describe('StandardApplicantsComponent', () => {
     component.onPageChange(3);
     await flushSignalEffects(fixture);
 
-    expect(getStandardApplicantsMock).not.toHaveBeenCalled();
-    expect(component.vm().currentPage).toBe(0);
-    expect(component.vm().searchErrors).toEqual([
+    expect(getStandardApplicantsMock).toHaveBeenCalledWith(
       {
-        id: 'code',
-        text: 'Code must be 10 characters or fewer',
-        href: '#code',
+        code: undefined,
+        name: undefined,
+        pageNumber: 3,
+        pageSize: 10,
+        sort: ['code,asc'],
       },
-    ]);
+      'body',
+      false,
+      {
+        transferCache: true,
+      },
+    );
+    expect(component.vm().currentPage).toBe(3);
   });
 
   it('updates rows and total pages on successful response', async () => {
@@ -286,12 +510,20 @@ describe('StandardApplicantsComponent', () => {
 
     expect(component.vm().rows).toEqual([]);
     expect(component.vm().totalPages).toBe(0);
-    expect(component.vm().searchErrors).toEqual([
-      { id: 'search', text: 'Request failed' },
-    ]);
+    expect(component.vm().searchErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'search',
+          text: 'Request failed',
+        }),
+      ]),
+    );
+    expect(
+      fixture.debugElement.query(By.css('app-error-summary')),
+    ).toBeTruthy();
   });
 
-  it('does not render table no-data state when the search fails', async () => {
+  it('shows an error state instead of the table no-data state when the search fails', async () => {
     getStandardApplicantsMock.mockReturnValueOnce(
       throwError(() => new Error('Request failed')),
     );
@@ -299,7 +531,13 @@ describe('StandardApplicantsComponent', () => {
     component.onSubmit(new SubmitEvent('submit'));
     await flushSignalEffects(fixture);
 
+    expect(
+      fixture.debugElement.query(By.css('app-error-summary')),
+    ).toBeTruthy();
     expect(fixture.debugElement.query(By.css('app-sortable-table'))).toBeNull();
     expect(fixture.nativeElement.querySelector('#no-data-message')).toBeNull();
+    expect(
+      fixture.debugElement.query(By.css('app-notification-banner')),
+    ).toBeNull();
   });
 });

@@ -93,10 +93,8 @@ import {
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { parseTimeToDuration } from '@util/time-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
+import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 import { closePermitted } from '@validators/applications-list-close.validator';
-import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
-import { courtMustExistIfTypedValidator } from '@validators/court-exists.validator';
-import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
 
 type ApplicationsListDetailHistoryState = {
   row?: ApplicationListRow;
@@ -189,22 +187,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.setMoveErrorFromNavigation();
 
     //Attach validators
-    this.form.addValidators([
-      courtLocCjaValidator({
-        getCourtTyped: () => this.state().courthouseSearch ?? '',
-        getCjaTyped: () => this.state().cjaSearch ?? '',
-      }),
-      courtMustExistIfTypedValidator({
-        getTyped: () => this.state().courthouseSearch ?? '',
-        getValidCodes: () =>
-          this.state().courtLocations.map((x) => x.locationCode),
-      }),
-      cjaMustExistIfTypedValidator({
-        getTyped: () => this.state().cjaSearch ?? '',
-        getValidCodes: () => this.state().cja.map((x) => x.code),
-      }),
-      closePermitted(),
-    ]);
+    addLocationValidatorsToForm(this.form, () => this.state());
+    this.form.addValidators([closePermitted()]);
 
     this.setupEffects();
 

@@ -50,9 +50,7 @@ import { getProblemText } from '@util/http-error-to-text';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { ApplicationListRow } from '@util/types/application-list/types';
-import { cjaMustExistIfTypedValidator } from '@validators/cja-exists.validator';
-import { courtMustExistIfTypedValidator } from '@validators/court-exists.validator';
-import { courtLocCjaValidator } from '@validators/court-or-cja.validator';
+import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 
 @Component({
   selector: 'app-applications-list',
@@ -107,21 +105,7 @@ export class ApplicationsListCreate extends PlaceFieldsBase implements OnInit {
     this.setupEffects();
 
     //Attach validators
-    this.form.addValidators([
-      courtLocCjaValidator({
-        getCourtTyped: () => this.state().courthouseSearch ?? '',
-        getCjaTyped: () => this.state().cjaSearch ?? '',
-      }),
-      cjaMustExistIfTypedValidator({
-        getTyped: () => this.state().cjaSearch ?? '',
-        getValidCodes: () => this.state().cja.map((x) => x.code),
-      }),
-      courtMustExistIfTypedValidator({
-        getTyped: () => this.state().courthouseSearch ?? '',
-        getValidCodes: () =>
-          this.state().courtLocations.map((x) => x.locationCode),
-      }),
-    ]);
+    addLocationValidatorsToForm(this.form, () => this.state());
 
     // If we are coming from /applications-list/:id/move
     if (isPlatformBrowser(this.platformId)) {

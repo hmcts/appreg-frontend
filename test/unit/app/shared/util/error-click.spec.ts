@@ -50,6 +50,25 @@ describe('error focus utils', () => {
       expect(focusSpy).toHaveBeenCalledWith({ preventScroll: true });
     });
 
+    it('falls back to the leaf control id when href uses a dotted nested id', () => {
+      document.body.innerHTML = '<input id="caseReference" />';
+      const el = document.getElementById('caseReference') as HTMLElement;
+
+      const scrollSpy = jest.spyOn(el, 'scrollIntoView');
+      const focusSpy = jest.spyOn(el, 'focus');
+
+      onCreateErrorClick({
+        href: '#applicationNotes.caseReference',
+      } as unknown as TestErrorItem);
+
+      expect(scrollSpy).toHaveBeenCalledWith({
+        behavior: 'smooth',
+        block: 'center',
+      });
+      jest.advanceTimersByTime(50);
+      expect(focusSpy).toHaveBeenCalledWith({ preventScroll: true });
+    });
+
     it('focuses by id when id is provided (smooth scroll path)', () => {
       document.body.innerHTML = '<input id="x" />';
       const el = document.getElementById('x') as HTMLElement;

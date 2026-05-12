@@ -37,7 +37,10 @@ import {
   TableColumn,
 } from '@components/sortable-table/sortable-table.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
-import { StandardApplicantsApi } from '@openapi';
+import {
+  GetStandardApplicantsRequestParams,
+  StandardApplicantsApi,
+} from '@openapi';
 import { ErrorMessageMap, buildFormErrorSummary } from '@util/error-summary';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { toStandardApplicantSortKey } from '@util/standard-applicant-sort-map';
@@ -47,6 +50,11 @@ export type SelectedStandardApplicantSummary = {
   code: string;
   name: string;
 };
+
+type StandardApplicantFilters = Pick<
+  GetStandardApplicantsRequestParams,
+  'code' | 'name'
+>;
 
 @Component({
   selector: 'app-standard-applicant-select',
@@ -81,16 +89,12 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
   private readonly saState = this.saSignalState.state;
   readonly vm = this.saSignalState.vm;
 
-  private readonly loadRequest = signal<{
-    code?: string;
-    name?: string;
-    pageNumber: number;
-    pageSize: number;
-    sort: string[];
-  } | null>(null);
+  private readonly loadRequest =
+    signal<GetStandardApplicantsRequestParams | null>(null);
   readonly submitted = signal(false);
   private readonly errorMap: ErrorMessageMap =
     STANDARD_APPLICANT_SEARCH_ERROR_MESSAGES;
+  private appliedFilters: StandardApplicantFilters = {};
 
   form = new FormGroup({
     code: new FormControl<string>('', {
@@ -147,9 +151,6 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
     if (!this.saState().hasSearched) {
       return;
     }
-    if (!this.canLoadPage()) {
-      return;
-    }
     this.loadPage(page);
   }
 
@@ -157,11 +158,8 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
     if (!this.saState().hasSearched) {
       return;
     }
-    if (!this.canLoadPage()) {
-      return;
-    }
     this.saSignalState.patch({ sortField: sort });
-    this.loadPage(0);
+    this.loadPage(this.vm().pageIndex);
   }
 
   onSubmit(event: SubmitEvent): void {
@@ -178,22 +176,13 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
       return;
     }
 
+    this.appliedFilters = this.getTrimmedFilters();
     this.saSignalState.patch({ hasSearched: true });
-    this.loadPage(0);
+    this.loadPage(0, this.appliedFilters);
   }
 
   fieldError(id: string): ErrorItem | undefined {
     return this.vm().searchErrors.find((e) => e.id === id);
-  }
-
-  private canLoadPage(): boolean {
-    this.form.updateValueAndValidity({ emitEvent: false });
-
-    const validationErrors = this.buildErrorSummary();
-    this.saSignalState.patch({ searchErrors: validationErrors });
-    this.searchErrorsChange.emit(validationErrors);
-
-    return validationErrors.length === 0;
   }
 
   private setupEffects(): void {
@@ -244,7 +233,20 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
     });
   }
 
-  private loadPage(page: number): void {
+  private getTrimmedFilters(): StandardApplicantFilters {
+    const code = this.form.controls.code.value.trim();
+    const name = this.form.controls.name.value.trim();
+
+    return {
+      code: code || undefined,
+      name: name || undefined,
+    };
+  }
+
+  private loadPage(
+    page: number,
+    filters: StandardApplicantFilters = this.appliedFilters,
+  ): void {
     if (this.saState().loading) {
       return;
     }
@@ -254,13 +256,11 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
     const pageSize = this.saState().pageSize;
     const sort = this.saState().sortField;
     const apiSortKey = toStandardApplicantSortKey(sort.key);
-    const code = this.form.controls.code.value.trim();
-    const name = this.form.controls.name.value.trim();
 
     this.loadRequest.set({
-      code: code || undefined,
-      name: name || undefined,
-      pageNumber: this.saState().pageIndex,
+      code: filters.code,
+      name: filters.name,
+      pageNumber: page,
       pageSize,
       sort: [`${apiSortKey},${sort.direction}`],
     });

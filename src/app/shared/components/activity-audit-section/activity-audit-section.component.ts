@@ -14,4 +14,5 @@ import { TextInputComponent } from '@components/text-input/text-input.component'
 export class ActivityAuditSectionComponent {
   /** Parent passes a nested FormGroup containing controls for this section. */
   readonly group = input.required<FormGroup>();
+  readonly submitted = input(false);
 }

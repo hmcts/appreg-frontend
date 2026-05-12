@@ -10,7 +10,7 @@
 
 import { DestroyRef, Directive, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormGroup } from '@angular/forms';
+import { AbstractControl, FormGroup } from '@angular/forms';
 import { Observable } from 'rxjs';
 
 import {
@@ -55,6 +55,7 @@ export abstract class PlaceFieldsBase {
   private readonly destroyRef = inject(DestroyRef);
 
   protected form!: FormGroup;
+  private placeForm!: FormGroup;
   protected ref!: PlaceRefFacade;
   protected locationDisabler?: { unsubscribe: () => void };
 
@@ -79,7 +80,10 @@ export abstract class PlaceFieldsBase {
   }
 
   protected initPlaceFields(form: FormGroup, ref: PlaceRefFacade): void {
-    this.form = form;
+    this.placeForm = form;
+    if (!this.form) {
+      this.form = form;
+    }
     this.ref = ref;
 
     this.patch({ courthouseSearch: '', cjaSearch: '' });
@@ -87,7 +91,9 @@ export abstract class PlaceFieldsBase {
     this.ref.courtLocations$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((items) => {
-        const code = String(this.form.controls['court'].value ?? '').trim();
+        const code = String(
+          this.placeForm.controls['court'].value ?? '',
+        ).trim();
         const match = code
           ? items.find((x) => x.locationCode === code)
           : undefined;
@@ -103,7 +109,7 @@ export abstract class PlaceFieldsBase {
     this.ref.cja$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((items) => {
-        const code = String(this.form.controls['cja'].value ?? '').trim();
+        const code = String(this.placeForm.controls['cja'].value ?? '').trim();
         const match = code ? items.find((x) => x.code === code) : undefined;
 
         this.patch({
@@ -115,9 +121,9 @@ export abstract class PlaceFieldsBase {
       });
 
     this.locationDisabler = attachLocationDisabler({
-      court: this.form.controls['court'],
-      location: this.form.controls['location'],
-      cja: this.form.controls['cja'],
+      court: this.placeForm.controls['court'],
+      location: this.locationControl,
+      cja: this.placeForm.controls['cja'],
     });
 
     if (this.locationDisabler) {
@@ -130,7 +136,7 @@ export abstract class PlaceFieldsBase {
 
     this.patch({
       filteredCourthouses: filterCourts(
-        this.form,
+        this.placeForm,
         courthouseSearch,
         courtLocations,
       ),
@@ -139,12 +145,12 @@ export abstract class PlaceFieldsBase {
 
   onCjaInputChange(): void {
     const { cjaSearch, cja } = this.state();
-    this.patch({ filteredCja: filterCja(this.form, cjaSearch, cja) });
+    this.patch({ filteredCja: filterCja(this.placeForm, cjaSearch, cja) });
   }
 
   selectCourthouse(c: unknown): void {
     const next = selectCourthouse(
-      this.form,
+      this.placeForm,
       c as { locationCode?: string } | CourtLocationGetSummaryDto,
     );
     this.patch({
@@ -155,9 +161,16 @@ export abstract class PlaceFieldsBase {
 
   selectCja(c: unknown): void {
     const next = selectCja(
-      this.form,
+      this.placeForm,
       c as { code?: string } | CriminalJusticeAreaGetDto,
     );
     this.patch({ cjaSearch: next.cjaSearch, filteredCja: next.filteredCja });
+  }
+
+  private get locationControl(): AbstractControl {
+    return (
+      this.placeForm.controls['location'] ??
+      this.placeForm.controls['otherLocation']
+    );
   }
 }

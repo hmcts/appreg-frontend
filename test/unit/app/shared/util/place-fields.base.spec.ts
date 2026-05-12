@@ -65,13 +65,41 @@ class PlaceFieldsHostComponent extends PlaceFieldsBase {
   }
 }
 
+@Component({
+  standalone: true,
+  imports: [ReactiveFormsModule],
+  template: '',
+})
+class PlaceFieldsOtherLocationHostComponent extends PlaceFieldsBase {
+  override form = new FormGroup({
+    court: new FormControl<string>('', { nonNullable: true }),
+    otherLocation: new FormControl<string>('', { nonNullable: true }),
+    cja: new FormControl<string>('', { nonNullable: true }),
+  });
+
+  private readonly refStub: RefFacadeStub = {
+    courtLocations$: new BehaviorSubject<CourtLocationGetSummaryDto[]>([]),
+    cja$: new BehaviorSubject<CriminalJusticeAreaGetDto[]>([]),
+  };
+
+  init(): void {
+    this.initPlaceFields(this.form, {
+      courtLocations$: this.refStub.courtLocations$.asObservable(),
+      cja$: this.refStub.cja$.asObservable(),
+    });
+  }
+}
+
 describe('PlaceFieldsBase', () => {
   let fixture: ComponentFixture<PlaceFieldsHostComponent>;
   let component: PlaceFieldsHostComponent;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PlaceFieldsHostComponent],
+      imports: [
+        PlaceFieldsHostComponent,
+        PlaceFieldsOtherLocationHostComponent,
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(PlaceFieldsHostComponent);
@@ -126,6 +154,20 @@ describe('PlaceFieldsBase', () => {
     expect(component.form.controls.court.disabled).toBe(true);
     expect(component.form.controls.location.disabled).toBe(false);
     expect(component.form.controls.cja.disabled).toBe(false);
+  });
+
+  it('supports reports forms that name the location control otherLocation', () => {
+    const otherFixture = TestBed.createComponent(
+      PlaceFieldsOtherLocationHostComponent,
+    );
+    const otherComponent = otherFixture.componentInstance;
+
+    otherComponent.init();
+    otherComponent.form.controls.otherLocation.setValue('Somewhere');
+
+    expect(otherComponent.form.controls.court.disabled).toBe(true);
+    expect(otherComponent.form.controls.otherLocation.disabled).toBe(false);
+    expect(otherComponent.form.controls.cja.disabled).toBe(false);
   });
 
   it('filters courthouses by name or code via onCourthouseInputChange', () => {

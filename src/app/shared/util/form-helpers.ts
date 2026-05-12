@@ -1,4 +1,4 @@
-/* 
+/*
 Form group helper functions
 */
 
@@ -19,28 +19,4 @@ export function markFormGroupClean(group: FormGroup): void {
   for (const ctrl of controls) {
     markControlClean(ctrl);
   }
-}
-
-export function readText(form: FormGroup, path: string): string {
-  const control: AbstractControl | null = form.get(path);
-
-  if (!control) {
-    return '';
-  }
-
-  const value: unknown = control.value;
-
-  if (value === null || value === undefined) {
-    return '';
-  }
-
-  if (typeof value === 'string') {
-    return value.trim();
-  }
-
-  if (typeof value === 'number' || typeof value === 'boolean') {
-    return String(value).trim();
-  }
-
-  return '';
 }

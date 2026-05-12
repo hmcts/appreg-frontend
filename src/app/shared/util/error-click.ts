@@ -14,13 +14,25 @@ function normaliseDomId(idOrHref: string): string {
   return raw.startsWith('#') ? raw.slice(1) : raw;
 }
 
+function resolveTargetElement(id: string): HTMLElement | null {
+  const exactMatch = document.getElementById(id);
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  // Error summary ids can be namespaced for uniqueness, while rendered inputs
+  // often keep the leaf control id.
+  const leafId = id.split('.').pop();
+  return leafId ? document.getElementById(leafId) : null;
+}
+
 function focusByIdOrFirstFocusable(idOrHref: string): void {
   const id = normaliseDomId(idOrHref);
   if (!id) {
     return;
   }
 
-  const root = document.getElementById(id);
+  const root = resolveTargetElement(id);
   if (!root) {
     return;
   }

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed, fakeAsync } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 
 import { StandardApplicantSelectComponent } from '@components/standard-applicant-select/standard-applicant-select.component';
 import {
@@ -266,7 +266,7 @@ describe('StandardApplicantSelectComponent', () => {
     expect(component.vm().totalPages).toBe(0);
   });
 
-  it('maps useTo sort key to backend to and reloads first page', () => {
+  it('maps useTo sort key to backend to and reloads the current page', () => {
     fixture.detectChanges();
     fixture.detectChanges();
 
@@ -286,6 +286,87 @@ describe('StandardApplicantSelectComponent', () => {
       expect.objectContaining({ transferCache: true }),
     );
     expect(component.vm().pageIndex).toBe(0);
+  });
+
+  it('keeps the current page number when sorting after paging', () => {
+    fixture.detectChanges();
+    fixture.detectChanges();
+
+    mockGetStandardApplicants.mockReturnValueOnce(
+      of({
+        content: [makeSummary({ code: 'SA-10' })],
+        pageNumber: 1,
+        pageSize: 10,
+        totalElements: 11,
+        totalPages: 2,
+      }),
+    );
+
+    component.onPageChange(1);
+    fixture.detectChanges();
+
+    mockGetStandardApplicants.mockReturnValueOnce(
+      of({
+        content: [makeSummary({ code: 'SA-1' })],
+        pageNumber: 1,
+        pageSize: 10,
+        totalElements: 11,
+        totalPages: 2,
+      }),
+    );
+
+    component.onSortChange({ key: 'useTo', direction: 'desc' });
+    fixture.detectChanges();
+
+    expect(mockGetStandardApplicants).toHaveBeenLastCalledWith(
+      {
+        code: undefined,
+        name: undefined,
+        pageNumber: 1,
+        pageSize: 10,
+        sort: ['to,desc'],
+      },
+      'body',
+      false,
+      expect.objectContaining({ transferCache: true }),
+    );
+    expect(component.vm().pageIndex).toBe(1);
+  });
+
+  it('keeps the table mounted while a sort request is in flight when rows already exist', () => {
+    fixture.detectChanges();
+    fixture.detectChanges();
+
+    const inFlightResponse = new Subject<{
+      content: StandardApplicantGetSummaryDto[];
+      pageNumber: number;
+      pageSize: number;
+      totalElements: number;
+      totalPages: number;
+    }>();
+
+    mockGetStandardApplicants.mockReturnValueOnce(inFlightResponse);
+
+    component.onSortChange({ key: 'name', direction: 'desc' });
+    fixture.detectChanges();
+
+    const table = fixture.debugElement.query(By.css('app-sortable-table'));
+    expect(table).toBeTruthy();
+    expect(table.componentInstance.loading()).toBe(true);
+
+    inFlightResponse.next({
+      content: [makeSummary({ code: 'SA-1' })],
+      pageNumber: 0,
+      pageSize: 10,
+      totalElements: 1,
+      totalPages: 1,
+    });
+    inFlightResponse.complete();
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement.query(By.css('app-sortable-table')),
+    ).toBeTruthy();
   });
 
   it('submits trimmed code and name filters', () => {
@@ -309,7 +390,7 @@ describe('StandardApplicantSelectComponent', () => {
     );
   });
 
-  it('does not sort when filters are invalid', fakeAsync(() => {
+  it('sorts using the last applied filters when the current form is invalid', fakeAsync(() => {
     fixture.detectChanges();
     TestBed.tick();
 
@@ -321,18 +402,25 @@ describe('StandardApplicantSelectComponent', () => {
     component.onSortChange({ key: 'useTo', direction: 'desc' });
     fixture.detectChanges();
 
-    expect(mockGetStandardApplicants).not.toHaveBeenCalled();
-    expect(component.vm().sortField).toEqual({ key: 'code', direction: 'asc' });
-    expect(component.vm().searchErrors).toEqual([
+    expect(mockGetStandardApplicants).toHaveBeenCalledWith(
       {
-        id: 'name',
-        text: 'Standard applicant name must be 100 characters or fewer',
-        href: '#standard-applicant-name',
+        code: undefined,
+        name: undefined,
+        pageNumber: 0,
+        pageSize: 10,
+        sort: ['to,desc'],
       },
-    ]);
+      'body',
+      false,
+      expect.objectContaining({ transferCache: true }),
+    );
+    expect(component.vm().sortField).toEqual({
+      key: 'useTo',
+      direction: 'desc',
+    });
   }));
 
-  it('does not paginate when filters are invalid', fakeAsync(() => {
+  it('paginates using the last applied filters when the current form is invalid', fakeAsync(() => {
     fixture.detectChanges();
     TestBed.tick();
 
@@ -344,15 +432,19 @@ describe('StandardApplicantSelectComponent', () => {
     component.onPageChange(1);
     fixture.detectChanges();
 
-    expect(mockGetStandardApplicants).not.toHaveBeenCalled();
-    expect(component.vm().pageIndex).toBe(0);
-    expect(component.vm().searchErrors).toEqual([
+    expect(mockGetStandardApplicants).toHaveBeenCalledWith(
       {
-        id: 'code',
-        text: 'Code must be 10 characters or fewer',
-        href: '#standard-applicant-code',
+        code: undefined,
+        name: undefined,
+        pageNumber: 1,
+        pageSize: 10,
+        sort: ['code,asc'],
       },
-    ]);
+      'body',
+      false,
+      expect.objectContaining({ transferCache: true }),
+    );
+    expect(component.vm().pageIndex).toBe(1);
   }));
 
   it('shows validation errors and prevents submit when filters exceed max lengths', fakeAsync(() => {
