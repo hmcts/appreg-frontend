@@ -1,6 +1,6 @@
 Feature: Applications Print
 
-    @regression @ARCPOC-1330 @ARCPOC-1329
+    @regression @ARCPOC-1330 @ARCPOC-1329 @ARCPOC-1351
     Scenario Outline: Print selected applications from Applications search page
         # Setup: Create Application List and Entry via API
         Given User Authenticates Via API As "<User>"
