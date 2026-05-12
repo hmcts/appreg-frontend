@@ -1,6 +1,6 @@
 Feature: Application List Bulk Upload
 
-    @regression @applicationsList @bulkUpload @ARCPOC-632
+    @applicationsList @ARCPOC-632
     Scenario Outline: Application List - Bulk Upload Entries Via CSV
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
