@@ -40,6 +40,7 @@ describe('Helmet Module', () => {
   });
 
   it('should enable helmet with unsafe-eval in development mode', () => {
+    const useSpy = jest.spyOn(app, 'use');
     const helmetInstance = new HelmetModule(true);
     helmetInstance.enableFor(app);
 
@@ -66,11 +67,33 @@ describe('Helmet Module', () => {
     expect(formAction).toContain('https://login.microsoftonline.com');
     expect(formAction).toContain('http://localhost:4000');
 
-    // Verify that app.use was called with the dummy middleware.
-    // Here we assume that enableFor calls app.use(helmet(...))
+    // Verify that app.use was called with the dummy middleware and the
+    // additional permissions policy middleware.
+    expect(useSpy).toHaveBeenCalledWith(dummyMiddleware, expect.any(Function));
+  });
+
+  it('sets the permissions policy header', () => {
     const useSpy = jest.spyOn(app, 'use');
-    helmetInstance.enableFor(app);
-    expect(useSpy).toHaveBeenCalledWith(dummyMiddleware);
+
+    new HelmetModule(false).enableFor(app);
+
+    const [, permissionsPolicyMiddleware] = useSpy.mock.calls[0] as unknown as [
+      express.RequestHandler,
+      express.RequestHandler,
+    ];
+    const setHeader = jest.fn();
+    const res = {
+      setHeader,
+    } as unknown as express.Response;
+    const next = jest.fn();
+
+    permissionsPolicyMiddleware({} as express.Request, res, next);
+
+    expect(setHeader).toHaveBeenCalledWith(
+      'Permissions-Policy',
+      'geolocation=(), microphone=(), camera=()',
+    );
+    expect(next).toHaveBeenCalledTimes(1);
   });
 
   it('should enable helmet without unsafe-eval in non-development mode', () => {
