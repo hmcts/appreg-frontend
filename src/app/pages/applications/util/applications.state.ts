@@ -20,6 +20,7 @@ export interface ApplicationsState {
   totalPages: number;
   pageSize: number;
   totalEntries: number;
+  sortField: { key: string; direction: 'desc' | 'asc' };
 
   // table
   selectedIds: Set<string>;
@@ -44,12 +45,18 @@ export const initialApplicationsState: ApplicationsState = {
   totalPages: 1,
   pageSize: 10,
   totalEntries: 0,
+  sortField: { key: 'date', direction: 'desc' },
   selectedIds: new Set<string>(),
   selectedRows: [],
   allMatchingSelected: false,
   isSelectingAll: false,
   getFilters: {},
 };
+
+export const defaultApplicationsSort = (): ApplicationsState['sortField'] => ({
+  key: 'date',
+  direction: 'desc',
+});
 
 // Clear error/notification state before a new search
 export const clearNotificationsPatch = (): Pick<
