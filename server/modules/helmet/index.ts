@@ -62,7 +62,7 @@ export class Helmet {
           preload: true,
         },
         noSniff: true,
-        frameguard: true,
+        xFrameOptions: { action: 'deny' },
       }),
       (_req, res, next) => {
         res.setHeader(
