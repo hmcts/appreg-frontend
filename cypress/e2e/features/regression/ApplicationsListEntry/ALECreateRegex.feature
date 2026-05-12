@@ -1,8 +1,8 @@
-Feature: Applications List Entry Create
+Feature: Applications List Entry Create Regex Validations
 
     #  Regex Validations
     @ARCPOC-222 @ARCPOC-1107 @ARCPOC-1282 @ARCPOC-1209 @ARCPOC-1241 @ARCPOC-1238 @ARCPOC-1302 @ARCPOC-1319  @SC1
-    Scenario Outline: Create an ALE where Applicant = Person and Respondent = Person, using an Application Code with Fee Required = Y and Respondent Required = Y
+    Scenario Outline: Create an ALE With Regex Validations where Applicant = Person and Respondent = Person, using an Application Code with Fee Required = Y and Respondent Required = Y
         Given User Authenticates Via API As "<User>"
         # Create Application List
         When User Makes POST API Request To "/application-lists" With Body:
@@ -229,7 +229,7 @@ Feature: Applications List Entry Create
             | user1 | Lists     | today      | todaydisplay | today-30y | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | Condemnation of Unfit Food | Application for the condemnation of food, namely | Enter a Describe Seized Food | Test Sample Wording | case12345     | account12345     | Selecting this will automatically apply the off site fee to the entry. This change is saved immediately. | CO1.1          | Off Site Fee Amount: £30.00 | Total Fee Amount: £284.00 | Fee Reference: CO8.1 | Amount: £284.00 |
 
     @ARCPOC-222 @ARCPOC-1107 @ARCPOC-1282 @ARCPOC-1209 @ARCPOC-1241 @ARCPOC-1238 @ARCPOC-1302 @ARCPOC-1319 @SC2
-    Scenario Outline: Create an ALE where Applicant = Oraganisation and Respondent = Organisation, using an Application Code with Fee Required = N and Respondent Required = Y
+    Scenario Outline: Create an ALE With Regex Validations where Applicant = Oraganisation and Respondent = Organisation, using an Application Code with Fee Required = N and Respondent Required = Y
         Given User Authenticates Via API As "<User>"
         # Create Application List
         When User Makes POST API Request To "/application-lists" With Body:
@@ -365,7 +365,7 @@ Feature: Applications List Entry Create
             | user1 | today      | todaydisplay | 10:20 | Leeds Combined Court Centre Set 7 | Applications to review at Test_{RANDOM} | 0       | OPEN   | Select           | Open       | Issue of liability order summons - council tax | Attends to swear a complaint for the issue of a summons for the debtor to answer an application for a liability order in relation to unpaid council tax (reference | Enter a Reference | Lists     | case{RANDOM}  | account{RANDOM}  |
 
     @regression @ARCPOC-1107 @ARCPOC-1282 @ARCPOC-1209 @ARCPOC-1241 @ARCPOC-1238 @ARCPOC-1302 @ARCPOC-1319 @SC3
-    Scenario Outline: Create an ALE where Applicant = Standard Applicant, using an Application Code with Fee Required = Y and Respondent Required = N
+    Scenario Outline: Create an ALE With Regex Validations where Applicant = Standard Applicant, using an Application Code with Fee Required = Y and Respondent Required = N
         Given User Authenticates Via API As "<User>"
         # Create Application List
         When User Makes POST API Request To "/application-lists" With Body:

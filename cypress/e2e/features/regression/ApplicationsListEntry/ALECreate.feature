@@ -224,7 +224,7 @@ Feature: Applications List Entry Create
     Then User Should See The Textbox "Official's surname" Under "Officials" FieldSet In The Accordion "Officials"
 
   @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-635 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC2
-  Scenario Outline: Create and Open an ALE where Applicant = Organisation and Respondent = Organisation, using an Application Code with Fee Required = N and Respondent Required = Y
+  Scenario: Create and Open an ALE where Applicant = Organisation and Respondent = Organisation, using an Application Code with Fee Required = N and Respondent Required = Y
     Given User Authenticates Via API As "user1"
     # Create Application List
     When User Makes POST API Request To "/application-lists" With Body:
@@ -377,7 +377,7 @@ Feature: Applications List Entry Create
     Then User Should See The Textbox "Official's surname" Under "Officials" FieldSet In The Accordion "Officials"
 
   @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC3 @PJ
-  Scenario Outline: Create and Open an ALE where Applicant = Standard Applicant, using an Application Code with Fee Required = Y and Respondent Required = N
+  Scenario: Create and Open an ALE where Applicant = Standard Applicant, using an Application Code with Fee Required = Y and Respondent Required = N
     Given User Authenticates Via API As "user1"
     # Create Application List
     When User Makes POST API Request To "/application-lists" With Body:

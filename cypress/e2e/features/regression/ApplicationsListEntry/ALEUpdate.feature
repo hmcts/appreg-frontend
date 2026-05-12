@@ -1,7 +1,7 @@
 Feature: Applications List Entry Update
 
     @applicationListEntry @regression @ARCPOC-222 @ARCPOC-428 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC1
-    Scenario: Create and Open an ALE where Applicant = Person and Respondent = Person, using an Application Code with Fee Required = Y and Respondent Required = Y
+    Scenario: Update an ALE where Applicant = Person and Respondent = Person, using an Application Code with Fee Required = Y and Respondent Required = Y
         Given User Authenticates Via API As "user1"
         # Create Application List
         When User Makes POST API Request To "/application-lists" With Body:
