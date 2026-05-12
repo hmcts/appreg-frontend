@@ -45,14 +45,32 @@ export class Helmet {
             defaultSrc: [self, localApiOrigin],
             fontSrc: [self, 'data:'],
             formAction,
-            imgSrc: [self],
-            objectSrc: [self],
+            imgSrc: [self, 'data:'],
+            objectSrc: ["'none'"],
             scriptSrc,
             styleSrc: [self, "'unsafe-inline'"],
+            baseUri: ["'self'"],
+            frameAncestors: ["'none'"],
           },
         },
-        referrerPolicy: { policy: 'origin' },
+        referrerPolicy: {
+          policy: 'strict-origin-when-cross-origin',
+        },
+        hsts: {
+          maxAge: 31536000,
+          includeSubDomains: true,
+          preload: true,
+        },
+        noSniff: true,
+        frameguard: false,
       }),
+      (_req, res, next) => {
+        res.setHeader(
+          'Permissions-Policy',
+          'geolocation=(), microphone=(), camera=()',
+        );
+        next();
+      },
     );
   }
 }
