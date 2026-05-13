@@ -91,7 +91,7 @@ const APPLICATIONS_SORT_MAP: Record<string, string> = {
   respondent: 'respondentName',
   title: 'applicationTitle',
   fee: 'feeRequired',
-  resulted: 'resulted',
+  resulted: 'isResulted',
   status: 'status',
 };
 
