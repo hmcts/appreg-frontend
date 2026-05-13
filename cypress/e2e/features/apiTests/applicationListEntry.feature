@@ -11,43 +11,43 @@ Feature: API - Application List Entry
         When User Makes POST API Request To "/application-lists/:listId/entries" With Json Body
             """
             {
-            "standardApplicantCode": null,
-            "applicationCode": "AD99002",
-            "applicant": {
-            "person": {
-            "name": {
-            "title": "Mr, Mrs",
-            "surname": "Smith{RANDOM}",
-            "firstForename": "John",
-            "secondForename": "A",
-            "thirdForename": "B"
-            },
-            "contactDetails": {
-            "addressLine1": "{RANDOM} High Street",
-            "addressLine2": "Westminster",
-            "addressLine3": "London",
-            "addressLine4": "Greater London",
-            "addressLine5": "United Kingdom",
-            "postcode": "SW1A 2AA",
-            "phone": "0207{RANDOM}",
-            "mobile": "07123{RANDOM}",
-            "email": "john.smith{RANDOM}@example.com"
-            }
-            }
-            },
-            "wordingFields": [],
-            "feeStatuses": [
-            {
-            "paymentReference": "PAY-{RANDOM}",
-            "paymentStatus": "PAID",
-            "statusDate": "todayiso+1d"
-            }
-            ],
-            "hasOffsiteFee": false,
-            "caseReference": "CASE-001",
-            "accountNumber": "APP-{RANDOM}",
-            "notes": "Application discussion ref {RANDOM}",
-            "lodgementDate": "todayiso"
+                "standardApplicantCode": null,
+                "applicationCode": "AD99002",
+                "applicant": {
+                    "person": {
+                        "name": {
+                            "title": "Mr, Mrs",
+                            "surname": "Smith{RANDOM}",
+                            "firstForename": "John",
+                            "secondForename": "A",
+                            "thirdForename": "B"
+                        },
+                        "contactDetails": {
+                            "addressLine1": "{RANDOM} High Street",
+                            "addressLine2": "Westminster",
+                            "addressLine3": "London",
+                            "addressLine4": "Greater London",
+                            "addressLine5": "United Kingdom",
+                            "postcode": "SW1A 2AA",
+                            "phone": "0207{RANDOM}",
+                            "mobile": "07123{RANDOM}",
+                            "email": "john.smith{RANDOM}@example.com"
+                        }
+                    }
+                },
+                "wordingFields": [],
+                "feeStatuses": [
+                    {
+                        "paymentReference": "PAY-{RANDOM}",
+                        "paymentStatus": "PAID",
+                        "statusDate": "todayiso"
+                    }
+                ],
+                "hasOffsiteFee": false,
+                "caseReference": "CASE-001",
+                "accountNumber": "APP-{RANDOM}",
+                "notes": "Application discussion ref {RANDOM}",
+                "lodgementDate": "todayiso"
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -55,68 +55,68 @@ Feature: API - Application List Entry
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
             """
             {
-            "resultCode": "RTC",
-            "wordingFields": [
-            {
-            "key": "Date",
-            "value": "24-02-2026"
-            },
-            {
-            "key": "Courthouse",
-            "value": "London Courthouse"
-            }
-            ]
+                "resultCode": "RTC",
+                "wordingFields": [
+                    {
+                        "key": "Date",
+                        "value": "24-02-2026"
+                    },
+                    {
+                        "key": "Courthouse",
+                        "value": "London Courthouse"
+                    }
+                ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
         When User Makes PUT API Request To "/application-lists/:listId/entries/:entryId" With Json Body
             """
             {
-            "standardApplicantCode": null,
-            "applicationCode": "AD99002",
-            "applicant": {
-            "person": {
-            "name": {
-            "title": "Mr, Mrs",
-            "surname": "Smith{RANDOM}",
-            "firstForename": "John",
-            "secondForename": "A",
-            "thirdForename": "B"
-            },
-            "contactDetails": {
-            "addressLine1": "{RANDOM} High Street",
-            "addressLine2": "Westminster",
-            "addressLine3": "London",
-            "addressLine4": "Greater London",
-            "addressLine5": "United Kingdom",
-            "postcode": "SW1A 2AA",
-            "phone": "0207{RANDOM}",
-            "mobile": "07123{RANDOM}",
-            "email": "john.smith{RANDOM}@example.com"
-            }
-            }
-            },
-            "wordingFields": [],
-            "feeStatuses": [
-            {
-            "paymentReference": "PAY-{RANDOM}",
-            "paymentStatus": "PAID",
-            "statusDate": "todayiso+1d"
-            }
-            ],
-            "hasOffsiteFee": false,
-            "caseReference": "CASE-001",
-            "accountNumber": "APP-{RANDOM}",
-            "notes": "Updated application discussion ref {RANDOM}",
-            "lodgementDate": "todayiso",
-            "officials": [
-            {
-            "title": "Mr, Mrs",
-            "surname": "Smith{RANDOM}",
-            "forename": "John",
-            "type": "MAGISTRATE"
-            }
-            ]
+                "standardApplicantCode": null,
+                "applicationCode": "AD99002",
+                "applicant": {
+                    "person": {
+                        "name": {
+                            "title": "Mr, Mrs",
+                            "surname": "Smith{RANDOM}",
+                            "firstForename": "John",
+                            "secondForename": "A",
+                            "thirdForename": "B"
+                        },
+                        "contactDetails": {
+                            "addressLine1": "{RANDOM} High Street",
+                            "addressLine2": "Westminster",
+                            "addressLine3": "London",
+                            "addressLine4": "Greater London",
+                            "addressLine5": "United Kingdom",
+                            "postcode": "SW1A 2AA",
+                            "phone": "0207{RANDOM}",
+                            "mobile": "07123{RANDOM}",
+                            "email": "john.smith{RANDOM}@example.com"
+                        }
+                    }
+                },
+                "wordingFields": [],
+                "feeStatuses": [
+                    {
+                        "paymentReference": "PAY-{RANDOM}",
+                        "paymentStatus": "PAID",
+                        "statusDate": "todayiso"
+                    }
+                ],
+                "hasOffsiteFee": false,
+                "caseReference": "CASE-001",
+                "accountNumber": "APP-{RANDOM}",
+                "notes": "Updated application discussion ref {RANDOM}",
+                "lodgementDate": "todayiso",
+                "officials": [
+                    {
+                        "title": "Mr, Mrs",
+                        "surname": "Smith{RANDOM}",
+                        "forename": "John",
+                        "type": "MAGISTRATE"
+                    }
+                ]
             }
             """
         Then User Verify Response Status Code Should Be "200"
