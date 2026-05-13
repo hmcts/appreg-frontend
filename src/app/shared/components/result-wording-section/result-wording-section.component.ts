@@ -17,6 +17,7 @@ import {
   signal,
 } from '@angular/core';
 
+import { AlertComponent } from '@components/alert/alert.component';
 import { RESULT_WORDING_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import {
   ApplicantContext,
@@ -53,6 +54,7 @@ import { ResultRow, toExistingRows } from '@util/result-code-helpers';
     SummaryListCardActionComponent,
     WordingParserComponent,
     SortableTableComponent,
+    AlertComponent,
   ],
 })
 export class ResultWordingSectionComponent {
@@ -73,6 +75,9 @@ export class ResultWordingSectionComponent {
   submitResults = output<ResultSectionSubmitPayload>();
 
   wordingFieldErrors = output<ErrorItem[]>();
+
+  showAppliedBanner = input(false);
+  appliedBannerDismissed = output<void>();
 
   private readonly pending = signal<PendingResultRow[]>([]);
   private readonly pendingVersion = signal(0);
@@ -123,6 +128,10 @@ export class ResultWordingSectionComponent {
     return this.resultCodesList()
       .filter((rc) => this.norm(`${rc.resultCode} ${rc.title}`).includes(q))
       .slice(0, 50);
+  }
+
+  onAppliedBannerDismissed(): void {
+    this.appliedBannerDismissed.emit();
   }
 
   readonly tableRows = computed<ResultRow[]>(() => {

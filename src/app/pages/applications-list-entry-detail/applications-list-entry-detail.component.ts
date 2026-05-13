@@ -250,6 +250,8 @@ export class ApplicationsListEntryDetail implements OnInit {
   wordingSubmitAttempt = signal(0);
   wordingAppliedBannerVisible = signal(false);
 
+  resultAppliedBannerVisible = signal(false);
+
   // View constants (from helpers)
   applicantColumns: TableColumn[] = APPLICANT_COLUMNS;
   codesColumns: TableColumn[] = CODES_COLUMNS;
@@ -327,6 +329,10 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   onWordingAppliedBannerDismissed(): void {
     this.wordingAppliedBannerVisible.set(false);
+  }
+
+  onResultAppliedBannerDismissed(): void {
+    this.resultAppliedBannerVisible.set(false);
   }
 
   getWordingObjectValues(

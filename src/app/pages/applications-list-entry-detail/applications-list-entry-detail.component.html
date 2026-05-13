@@ -131,6 +131,8 @@
       [clearPendingToken]="resultsFacade.clearPendingToken()"
       [wordingByCode]="resultsFacade.resultCodeWordingByCode()"
       [resultCodeTemplateByCode]="resultsFacade.resultCodeTemplateByCode()"
+      [showAppliedBanner]="resultAppliedBannerVisible()"
+      (appliedBannerDismissed)="onResultAppliedBannerDismissed()"
       (pendingChange)="onPendingChange($event)"
       (submitResults)="onSubmitResults($event)"
       (removeExisting)="onRemoveResult($event)"
