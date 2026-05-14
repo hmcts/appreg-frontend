@@ -58,7 +58,7 @@ module.exports = defineConfig({
   },
   e2e: {
     retries: {
-      runMode: 2,
+      runMode: 1,
       openMode: 0,
     },
     // Test Files Configuration
