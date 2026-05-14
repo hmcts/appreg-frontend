@@ -20,6 +20,7 @@ import { firstValueFrom, forkJoin, map } from 'rxjs';
 
 import {
   clearNotificationsPatch,
+  defaultApplicationsSort,
   initialApplicationsState,
   searchErrorPatch,
   searchSuccessPatch,
@@ -82,6 +83,16 @@ type ApplicationsPrintResponse = {
   dtos: ApplicationListGetPrintDto[];
   mode: 'page' | 'continuous';
   selectedRows: ApplicationRow[];
+};
+
+const APPLICATIONS_SORT_MAP: Record<string, string> = {
+  date: 'date',
+  applicant: 'applicantName',
+  respondent: 'respondentName',
+  title: 'applicationTitle',
+  fee: 'feeRequired',
+  resulted: 'isResulted',
+  status: 'status',
 };
 
 @Component({
@@ -287,6 +298,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.patchApp({
       currentPage: 0,
       rows: [],
+      sortField: defaultApplicationsSort(),
       selectedIds: new Set<string>(),
       selectedRows: [],
       allMatchingSelected: false,
@@ -344,9 +356,12 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       return;
     }
 
+    const apiSortKey =
+      APPLICATIONS_SORT_MAP[this.vm().sortField.key] ?? this.vm().sortField.key;
     const params: GetEntriesRequestParams = {
       pageNumber: this.vm().currentPage,
       pageSize: this.vm().pageSize,
+      sort: [`${apiSortKey},${this.vm().sortField.direction}`],
       filter: filterOverride ?? this.loadQuery(),
     };
 
@@ -375,6 +390,17 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   onPageChange(page: number): void {
     this.patchApp({ currentPage: page });
     this.loadApplications(this.vm().getFilters); // fetch page `page`
+  }
+
+  onSortChange(sort: { key: string; direction: 'desc' | 'asc' }): void {
+    this.patchApp({
+      sortField: {
+        key: sort.key,
+        direction: sort.direction,
+      },
+      currentPage: 0,
+    });
+    this.loadApplications(this.vm().getFilters);
   }
 
   onSelectedIdsChange(selectedIds: Set<string>): void {
@@ -636,6 +662,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     }
 
     const selectedIds = new Set(vm.selectedIds);
+    const apiSortKey =
+      APPLICATIONS_SORT_MAP[vm.sortField.key] ?? vm.sortField.key;
     let pageCount = 0;
     if (vm.totalPages > 0) {
       pageCount = vm.totalPages;
@@ -649,6 +677,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
         this.appListEntryApi.getEntries({
           pageNumber,
           pageSize: vm.pageSize,
+          sort: [`${apiSortKey},${vm.sortField.direction}`],
           filter: vm.getFilters,
         }),
       );
