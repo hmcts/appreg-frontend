@@ -21,13 +21,13 @@ Feature: Application List Bulk Upload
         Then User See "Bulk Upload Applications" On The Page
         When User Uploads The File "bulk-upload-entries.csv"
         When User Clicks On The "Upload file" Button
+        When User Waits For The File Upload To Complete
         Then User Sees Success Banner "Bulk upload complete"
-        Then User Clicks On The Breadcrumb Link "Applications list details"
         Then User See "Applications" On The Page
         Then User Should See Row In Table "Entries" With Values:
-            | Sequence number | Account number   | Applicant                 | Respondent             | Postcode | Title          | Fee | Resulted |
-            | 1               | AC-BULK-TEST-001 | Benjamin Young            | Greenfield Finance Ltd | WS1 1SY  | Copy documents | Yes |          |
-            | 2               | AC-BULK-TEST-002 | Global Tech Solutions Ltd | James Hargreaves       | B1 1BB   | Copy documents | Yes |          |
+            | Sequence number | Account number | Applicant                 | Respondent                      | Postcode | Title                                            | Fee | Resulted |
+            | 1               | AC-{RANDOM}-1  | Benjamin Young            | Greenfield Finance {RANDOM} Ltd | WS1 1SY  | Application to vary an overseas production order | No  |          |
+            | 2               | AC-{RANDOM}-2  | Global Tech Solutions Ltd | James Hargreaves{RANDOM}        | B1 1BB   | Warrant of Control                               | No  |          |
         # Application List Cleanup
         When User Makes DELETE API Request To "/application-lists/:listId"
         Then User Verify Response Status Code Should Be "204"

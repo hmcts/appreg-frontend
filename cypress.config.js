@@ -161,6 +161,19 @@ module.exports = defineConfig({
           }
           return null;
         },
+        generateBulkUploadCsv({ suffix }) {
+          const rows = [
+            'APPLICANT_CODE|RESP_TITLE|RESP_NAME_ORG|RESP_FORENAME1|RESP_FORENAME2|RESP_FORENAME3|RESP_SURNAME|RESP_ADDLINE1|RESP_ADDLINE2|RESP_ADDLINE3|RESP_ADDLINE4|RESP_ADDLINE5|RESP_POSTCODE|RESP_EMAIL|RESP_TEL|RESP_MOBILE|ACCOUNT_NUMBER|APPLICATION_CODE|APPLICATION_TEXT1|APPLICATION_TEXT2',
+            `APP012||Greenfield Finance ${suffix} Ltd|||||${suffix} High Street|Walsall|Darlaston|Walsall|West Midlands|WS1 1SY|greenfield-finance-${suffix}@test.cgi.com|0207 1234567|07700 900001|AC-${suffix}-1|SW99062|Benjamin Young|`,
+            `APP031|Mr||James|Edward|Thomas|Hargreaves${suffix}|${suffix} Park Road|Birmingham|Handsworth|Birchfield|West Midlands|B1 1BB|james.hargreaves-${suffix}@test.cgi.com|0121 9876543|07700 900002|AC-${suffix}-2|EF99007|£500.00|`,
+          ];
+          const csvPath = path.join(
+            __dirname,
+            'cypress/fixtures/bulk-upload-entries.csv',
+          );
+          fs.writeFileSync(csvPath, rows.join('\n'));
+          return null;
+        },
         listPdfFiles(downloadsPath) {
           if (!fs.existsSync(downloadsPath)) {
             return [];
