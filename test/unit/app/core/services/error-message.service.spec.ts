@@ -176,6 +176,20 @@ describe('ErrorMessageService', () => {
       expect(svc.errorMessage()?.status).toBe(415);
     });
 
+    it('treats job polling endpoint failures as subscribed (no navigation)', () => {
+      const id = '123e4567-e89b-12d3-a456-426614174000';
+      const err = makeErr({
+        status: 500,
+        url: `https://local/jobs/${id}`,
+        error: { title: 'Server error', status: 500 },
+      });
+
+      svc.handleErrorMessage(err);
+
+      expect(router.navigateByUrl).not.toHaveBeenCalled();
+      expect(svc.errorMessage()?.status).toBe(500);
+    });
+
     it('strips query/hash when matching endpoints (still subscribed)', () => {
       const err = makeErr({
         status: 400,

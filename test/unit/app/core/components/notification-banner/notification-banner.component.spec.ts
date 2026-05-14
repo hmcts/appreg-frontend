@@ -68,6 +68,27 @@ describe('NotificationBannerComponent (external template)', () => {
     ).toBe(true);
   });
 
+  it('keeps warning variant on the standard GOV.UK banner and role="region"', () => {
+    fixture.componentRef.setInput('variant', 'warning');
+    fixture.detectChanges();
+
+    const banner = bannerEl();
+    expect(banner.getAttribute('role')).toBe('region');
+    expect(
+      banner.classList.contains('govuk-notification-banner--success'),
+    ).toBe(false);
+  });
+
+  it('keeps the standard GOV.UK banner styling for the default variant', () => {
+    fixture.detectChanges();
+
+    const banner = bannerEl();
+    expect(banner.getAttribute('role')).toBe('region');
+    expect(
+      banner.classList.contains('govuk-notification-banner--success'),
+    ).toBe(false);
+  });
+
   it('renders heading and body text when provided', () => {
     fixture.componentRef.setInput('heading', 'No lists found');
     fixture.componentRef.setInput('body', 'Try different filters, or');
