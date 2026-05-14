@@ -219,9 +219,9 @@ Feature: Applications List Entry Create
     Then User Should See The Textbox "Magistrate's first name" Under "Magistrate 3" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Magistrate's surname" Under "Magistrate 3" FieldSet In The Accordion "Officials"
 
-    Then User Verifies Dropdown "Select court official's title" Is Visible Under "Officials" FieldSet In The Accordion "Officials"
-    Then User Should See The Textbox "Official's first name" Under "Officials" FieldSet In The Accordion "Officials"
-    Then User Should See The Textbox "Official's surname" Under "Officials" FieldSet In The Accordion "Officials"
+    Then User Verifies Dropdown "Select court official's title" Is Visible Under "Court official" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Official's first name" Under "Court official" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Official's surname" Under "Court official" FieldSet In The Accordion "Officials"
 
   @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-635 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC2
   Scenario: Create and Open an ALE where Applicant = Organisation and Respondent = Organisation, using an Application Code with Fee Required = N and Respondent Required = Y
@@ -372,11 +372,11 @@ Feature: Applications List Entry Create
     Then User Should See The Textbox "Magistrate's first name" Under "Magistrate 3" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Magistrate's surname" Under "Magistrate 3" FieldSet In The Accordion "Officials"
 
-    Then User Verifies Dropdown "Select court official's title" Is Visible Under "Officials" FieldSet In The Accordion "Officials"
-    Then User Should See The Textbox "Official's first name" Under "Officials" FieldSet In The Accordion "Officials"
-    Then User Should See The Textbox "Official's surname" Under "Officials" FieldSet In The Accordion "Officials"
+    Then User Verifies Dropdown "Select court official's title" Is Visible Under "Court official" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Official's first name" Under "Court official" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Official's surname" Under "Court official" FieldSet In The Accordion "Officials"
 
-  @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC3 @PJ
+  @applicationListEntry @regression @ARCPOC-222 @ARCPOC-427 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC3 @tp
   Scenario: Create and Open an ALE where Applicant = Standard Applicant, using an Application Code with Fee Required = Y and Respondent Required = N
     Given User Authenticates Via API As "user1"
     # Create Application List
@@ -503,9 +503,9 @@ Feature: Applications List Entry Create
     Then User Should See The Textbox "Magistrate's first name" Under "Magistrate 3" FieldSet In The Accordion "Officials"
     Then User Should See The Textbox "Magistrate's surname" Under "Magistrate 3" FieldSet In The Accordion "Officials"
 
-    Then User Verifies Dropdown "Select court official's title" Is Visible Under "Officials" FieldSet In The Accordion "Officials"
-    Then User Should See The Textbox "Official's first name" Under "Officials" FieldSet In The Accordion "Officials"
-    Then User Should See The Textbox "Official's surname" Under "Officials" FieldSet In The Accordion "Officials"
+    Then User Verifies Dropdown "Select court official's title" Is Visible Under "Court official" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Official's first name" Under "Court official" FieldSet In The Accordion "Officials"
+    Then User Should See The Textbox "Official's surname" Under "Court official" FieldSet In The Accordion "Officials"
 
   @applicationListEntry @regression @ARCPOC-1297
   Scenario Outline: Verify Application Codes sorting behaviour

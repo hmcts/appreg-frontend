@@ -1,6 +1,6 @@
 Feature: API - Application List Entry
 
-    @api @applicationListEntry @regression @ARCPOC-222 @ARCPOC-229
+    @api @applicationListEntry @regression @ARCPOC-222 @ARCPOC-229 @ARCPOC-1371
     Scenario Outline: Create Application List Entry with CJA and Other Location
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -125,7 +125,7 @@ Feature: API - Application List Entry
             | user1 |
 
 
-    @api @applicationListEntry @regression @ARCPOC-222 @ARCPOC-229
+    @api @applicationListEntry @regression @ARCPOC-222 @ARCPOC-229 @ARCPOC-1371
     Scenario Outline: Create Application List Entry with Court Location
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -246,7 +246,7 @@ Feature: API - Application List Entry
             | applicant.person.contactDetails.email        | john.smith{RANDOM}@example.com      |
             | feeStatuses.0.paymentReference               | PAY-{RANDOM}                        |
             | feeStatuses.0.paymentStatus                  | PAID                                |
-            | feeStatuses.0.statusDate                     | todayiso+1d                         |
+            | feeStatuses.0.statusDate                     | todayiso                            |
             | hasOffsiteFee                                | false                               |
             | caseReference                                | CASE-001                            |
             | accountNumber                                | APP-{RANDOM}                        |
