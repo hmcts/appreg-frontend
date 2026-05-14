@@ -1343,7 +1343,6 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     const payload = {
       ...current.payload,
-      pendingToCreate: rows ?? [],
     };
 
     this.appListEntryDetailPatch({
