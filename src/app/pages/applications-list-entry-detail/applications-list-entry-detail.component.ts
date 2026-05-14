@@ -1306,19 +1306,6 @@ export class ApplicationsListEntryDetail implements OnInit {
         payload.existingToUpdate.length > 0,
       resultsPayload: { entryId, listId, payload },
     });
-
-    // this.resultsFacade.submitResultChanges(
-    //   listId,
-    //   entryId,
-    //   payload,
-    //   () => {
-    //     this.appListEntryDetailPatch({
-    //       successBanner: ENTRY_SUCCESS_MESSAGES.resultApplied,
-    //     });
-    //     focusSuccessBanner(this.platformId);
-    //   },
-    //   (err) => this.applyMappedError(err),
-    // );
   }
 
   onRemoveResult(resultId: string): void {
@@ -1346,6 +1333,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   onPendingChange(rows: PendingResultRow[]): void {
     this.resultsFacade.setPending(rows);
 
+    // Ensure that results payload is updated when pending rows are removed
     const current = this.appListEntryDetailState().resultsPayload;
     const hasAppliedPending = current.payload.pendingToCreate.length > 0;
 
