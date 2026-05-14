@@ -1,10 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ApplicantContext } from '@components/applications-list/util/routing-state-util';
 
+import { ApplicantContext } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ResultWordingSectionComponent } from '@components/result-wording-section/result-wording-section.component';
 import {
   ResultCodeGetSummaryDto,
   ResultGetDto,
+  TemplateConstraintTypeEnum,
   TemplateDetail,
 } from '@openapi';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
@@ -147,9 +148,13 @@ describe('ResultWordingSectionComponent', () => {
         wording: {
           template: "Result '{{ Date }}' applied.",
           'substitution-key-constraints': [
-            { key: 'Date', value: '2025-10-25', constraint: { length: 10 } },
+            {
+              key: 'Date',
+              value: '2025-10-25',
+              constraint: { length: 10, type: TemplateConstraintTypeEnum.TEXT },
+            },
           ],
-        } as unknown as TemplateDetail,
+        },
       }),
     ]);
     fixture.detectChanges();
@@ -179,9 +184,13 @@ describe('ResultWordingSectionComponent', () => {
         wording: {
           template: "Result '{{ Date }}' applied.",
           'substitution-key-constraints': [
-            { key: 'Date', value: '2025-10-25', constraint: { length: 10 } },
+            {
+              key: 'Date',
+              value: '2025-10-25',
+              constraint: { length: 10, type: TemplateConstraintTypeEnum.TEXT },
+            },
           ],
-        } as unknown as TemplateDetail,
+        },
       }),
     ]);
     fixture.detectChanges();
@@ -191,7 +200,11 @@ describe('ResultWordingSectionComponent', () => {
     expect(component.getInitialWordingValuesForCard(card)).toEqual({
       template: "Result '{{ Date }}' applied.",
       'substitution-key-constraints': [
-        { key: 'Date', value: '2025-10-25', constraint: { length: 10 } },
+        {
+          key: 'Date',
+          value: '2025-10-25',
+          constraint: { length: 10, type: TemplateConstraintTypeEnum.TEXT },
+        },
       ],
     });
   });
@@ -201,7 +214,10 @@ describe('ResultWordingSectionComponent', () => {
       RC1: {
         template: "Result '{{ Date }}' applied.",
         'substitution-key-constraints': [
-          { key: 'Date', constraint: { length: 10 } },
+          {
+            key: 'Date',
+            constraint: { length: 10, type: TemplateConstraintTypeEnum.TEXT },
+          },
         ],
       },
     } as Record<string, TemplateDetail>);
@@ -332,7 +348,7 @@ describe('ResultWordingSectionComponent', () => {
       );
     expect(pendingRow).toBeDefined();
 
-    component.onRemoveClicked({ kind: 'pending', tempId: pendingRow!.tempId });
+    component.onRemoveClicked(pendingRow!);
 
     expect(component.canSubmitResults()).toBe(false);
 
@@ -343,7 +359,14 @@ describe('ResultWordingSectionComponent', () => {
   it('onRemoveClicked emits removeExisting for existing rows', () => {
     const removeSpy = jest.spyOn(component.removeExisting, 'emit');
 
-    component.onRemoveClicked({ kind: 'existing', id: 'E123' });
+    component.onRemoveClicked({
+      kind: 'existing',
+      id: 'E123',
+      resultCode: 'RC2',
+      display: 'RC2 - Second Match',
+      wordingFields: [],
+      wording: '-',
+    });
 
     expect(removeSpy).toHaveBeenCalledWith('E123');
   });
@@ -358,9 +381,13 @@ describe('ResultWordingSectionComponent', () => {
         wording: {
           template: "Result '{{ Date }}' applied.",
           'substitution-key-constraints': [
-            { key: 'Date', value: '2025-10-25', constraint: { length: 10 } },
+            {
+              key: 'Date',
+              value: '2025-10-25',
+              constraint: { length: 10, type: TemplateConstraintTypeEnum.TEXT },
+            },
           ],
-        } as unknown as TemplateDetail,
+        },
       }),
     ]);
     fixture.componentRef.setInput('markSubmittedResultsApplied', true);
@@ -402,9 +429,13 @@ describe('ResultWordingSectionComponent', () => {
         wording: {
           template: "Result '{{ Date }}' applied.",
           'substitution-key-constraints': [
-            { key: 'Date', value: '2025-10-25', constraint: { length: 10 } },
+            {
+              key: 'Date',
+              value: '2025-10-25',
+              constraint: { length: 10, type: TemplateConstraintTypeEnum.TEXT },
+            },
           ],
-        } as unknown as TemplateDetail,
+        },
       }),
     ]);
     fixture.componentRef.setInput('markSubmittedResultsApplied', true);
@@ -456,9 +487,13 @@ describe('ResultWordingSectionComponent', () => {
         wording: {
           template: "Result '{{ Date }}' applied.",
           'substitution-key-constraints': [
-            { key: 'Date', value: '2025-10-25', constraint: { length: 10 } },
+            {
+              key: 'Date',
+              value: '2025-10-25',
+              constraint: { length: 10, type: TemplateConstraintTypeEnum.TEXT },
+            },
           ],
-        } as unknown as TemplateDetail,
+        },
       }),
     ]);
     fixture.detectChanges();
@@ -502,9 +537,13 @@ describe('ResultWordingSectionComponent', () => {
         wording: {
           template: "Result '{{ Date }}' applied.",
           'substitution-key-constraints': [
-            { key: 'Date', value: '2025-10-25', constraint: { length: 10 } },
+            {
+              key: 'Date',
+              value: '2025-10-25',
+              constraint: { length: 10, type: TemplateConstraintTypeEnum.TEXT },
+            },
           ],
-        } as unknown as TemplateDetail,
+        },
       }),
     ]);
     fixture.detectChanges();
