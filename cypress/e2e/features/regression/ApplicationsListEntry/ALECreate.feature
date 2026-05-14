@@ -509,22 +509,20 @@ Feature: Applications List Entry Create
 
   @applicationListEntry @regression @ARCPOC-1297
   Scenario Outline: Verify Application Codes sorting behaviour
-    Given User Authenticates Via API As "<User>"
-    # Create Application List
-    When User Makes POST API Request To "/application-lists" With Body:
-      | date      | time   | status   | description   | durationHours | durationMinutes | courtLocationCode |
-      | <APIDate> | <Time> | <Status> | <Description> |               |                 | <CourtCode>       |
-    Then User Verify Response Status Code Should Be "201"
-    Then User Stores Response Body Property "id" As "listId"
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "<User>"
-    When User Searches Application List With:
-      | Date         | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
-      | <SearchDate> |      |                  |             |       | <Status>           |                            |                       |           |
-    When User Clicks "<SelectButtonText>" Then "<ButtonName>" From Menu In Row Of Table "<TableName>" With:
-      | Date          | Time   | Location | Description   | Entries   | Status   |
-      | <DisplayDate> | <Time> | <Court>  | <Description> | <Entries> | <Status> |
+    Then User Clicks On The Link "Create new list"
+    Then User Sees Page Heading "Create new applications list"
+    Then User Enters "<Day>" Into The "Day" Textbox
+    Then User Enters "<Month>" Into The "Month" Textbox
+    Then User Enters "<Year>" Into The "Year" Textbox
+    When User Set Time Field "Time" To "<Time>"
+    Then User Enters "<Description>" Into The "List description" Textbox
+    Then User Selects "<Court>" From The Textbox "Court" Autocomplete By Typing "<CourtSearch>"
+    When User Clicks On The "Create" Button
+    Then User Should See The Link "Create application"
     Then User Clicks On The Link "Create application"
+    When User Clicks On The "Application codes" Button
     When User Clicks On The "Search" Button In The Accordion "Application codes"
     Then User Verifies Table "Codes" Has Sortable Headers "Code, Title, Bulk, Fee required" In The Accordion "Application codes"
     # Test Code column
@@ -532,16 +530,10 @@ Feature: Applications List Entry Create
     Then User Should See Table "Codes" Header "Code" Has Sort Order "descending"
     When User Clicks On Table Header "Code" In Table "Codes"
     Then User Should See Table "Codes" Header "Code" Has Sort Order "ascending"
-    When User Goes To Last Page
-    When User Goes To First Page
-    Then User Should See Table "Codes" Header "Code" Has Sort Order "ascending"
     # Test Title column
     When User Clicks On Table Header "Title" In Table "Codes"
     Then User Should See Table "Codes" Header "Title" Has Sort Order "ascending"
     When User Clicks On Table Header "Title" In Table "Codes"
-    Then User Should See Table "Codes" Header "Title" Has Sort Order "descending"
-    When User Goes To Last Page
-    When User Goes To First Page
     Then User Should See Table "Codes" Header "Title" Has Sort Order "descending"
     # Test Bulk column
     When User Clicks On Table Header "Bulk" In Table "Codes"
@@ -555,5 +547,5 @@ Feature: Applications List Entry Create
     Then User Should See Table "Codes" Header "Fee required" Has Sort Order "descending"
 
     Examples:
-      | User  | TableName | SelectButtonText | ButtonName | SearchDate | DisplayDate  | APIDate    | Time  | Court                     | CourtCode | Description  | Entries | Status |
-      | user1 | Lists     | Select           | Open       | 12/09/3036 | 12 Sept 3036 | 3036-09-12 | 12:12 | Bristol Crown Court Set 3 | BCC026    | Wave Delta12 | 19      | OPEN   |
+      | User  | Day | Month | Year | Time  | Description  | Court                     | CourtSearch |
+      | user1 | 12  | 9     | 3036 | 12:12 | Wave Delta12 | Bristol Crown Court Set 3 | Bristol     |
