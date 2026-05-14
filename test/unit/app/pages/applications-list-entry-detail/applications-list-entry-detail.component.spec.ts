@@ -1669,11 +1669,25 @@ describe('ApplicationsListEntryDetail', () => {
   });
 
   it('onChildErrors stores resultWording child errors', () => {
-    const errors = [{ text: 'Enter a Date in the result wording section' }];
+    const errors = [
+      {
+        text: 'Enter a Date in the result wording section',
+        href: '#Date',
+      },
+    ];
 
     component.onChildErrors('resultWording', errors);
 
     expect(component['childErrors'].resultWording).toEqual(errors);
+    expect(component['appListEntryDetailState']().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          text: 'Enter a Date in the result wording section',
+          href: '#Date',
+        }),
+      ]),
+    );
+    expect(component['appListEntryDetailState']().errorFound).toBe(true);
   });
 
   it('onSubmitResults calls results facade submitResultChanges', () => {
