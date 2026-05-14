@@ -408,6 +408,10 @@ export class ResultWordingSectionComponent {
     }
   }
 
+  hasUnappliedChanges(): boolean {
+    return this.canSubmitResults();
+  }
+
   private removePending(tempId: string): void {
     this.pending.set(this.pending().filter((p) => p.tempId !== tempId));
     this.pendingChange.emit(this.pending());

@@ -185,6 +185,8 @@ export class ApplicationsListEntryDetail implements OnInit {
   private readonly wordingSection?: WordingSectionComponent;
   @ViewChild('civilFeeSection')
   private readonly civilFeeSection?: CivilFeeSectionComponent;
+  @ViewChild(ResultWordingSectionComponent)
+  private readonly resultWordingSection?: ResultWordingSectionComponent;
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly resolveWordingObjectValues =
@@ -731,6 +733,17 @@ export class ApplicationsListEntryDetail implements OnInit {
       { source: 'wording', section: this.wordingSection },
       { source: 'civilFee', section: this.civilFeeSection },
     ]);
+
+    if (this.resultWordingSection?.hasUnappliedChanges()) {
+      this.childErrors.resultWording = [
+        {
+          text: 'You have unsaved result wording changes. Please apply result before saving.',
+          href: '#result-code',
+        },
+      ];
+    } else {
+      this.childErrors.resultWording = [];
+    }
 
     this.childErrors.wording = submitErrors.wording ?? [];
     this.childErrors.civilFee = submitErrors.civilFee ?? [];
@@ -1332,28 +1345,6 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   onPendingChange(rows: PendingResultRow[]): void {
     this.resultsFacade.setPending(rows);
-
-    // Ensure that results payload is updated when pending rows are removed
-    const current = this.appListEntryDetailState().resultsPayload;
-    const hasAppliedPending = current.payload.pendingToCreate.length > 0;
-
-    if (!hasAppliedPending) {
-      return;
-    }
-
-    const payload = {
-      ...current.payload,
-    };
-
-    this.appListEntryDetailPatch({
-      pendingResults:
-        payload.pendingToCreate.length > 0 ||
-        payload.existingToUpdate.length > 0,
-      resultsPayload: {
-        ...current,
-        payload,
-      },
-    });
   }
 
   private handleFatalLoadError(err: unknown): void {
