@@ -152,6 +152,7 @@ type ChildErrorSource =
 const UPDATE_ENTRY_ERROR_MESSAGES = ENTRY_ERROR_MESSAGES;
 
 export const ERROR_HREFS = {
+  resultWording: '#result-code',
   standardApplicantCode: '#standard-applicant',
   lodgementDate: '#lodgement-date-day',
   ...(OFFICIALS_ERROR_HREFS as Record<string, string>),
@@ -738,7 +739,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       this.childErrors.resultWording = [
         {
           text: 'You have unsaved result wording changes. Please apply result before saving.',
-          href: '#result-code',
+          href: ERROR_HREFS.resultWording,
         },
       ];
     } else {
