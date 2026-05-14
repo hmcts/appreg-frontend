@@ -41,6 +41,7 @@ export const routes: Routes = [
     children: [
       {
         path: '',
+        data: { preload: true },
         loadComponent: () =>
           import('@components/applications-list/applications-list.component').then(
             (m) => m.ApplicationsList,
