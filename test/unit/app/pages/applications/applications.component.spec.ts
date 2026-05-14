@@ -1,12 +1,14 @@
 import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { LOCALE_ID, PLATFORM_ID, type WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
 
 import { Applications } from '@components/applications/applications.component';
 import { ApplicationsState } from '@components/applications/util/applications.state';
 import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
+import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { PdfService } from '@core/services/pdf.service';
 import {
   ApplicationListEntriesApi,
@@ -188,6 +190,20 @@ describe('ApplicationsComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('configures the results table for server-side sorting', () => {
+    appStateSignal(component).update((s) => ({
+      ...s,
+      rows: [makeEntry({ id: 'row-1' })],
+    }));
+    fixture.detectChanges();
+
+    const table = fixture.debugElement.query(
+      By.directive(SortableTableComponent),
+    ).componentInstance as SortableTableComponent;
+
+    expect(table.clientOrServerSort()).toBe('server');
+  });
+
   it('renders errorSummary when action-level errors are present', () => {
     appStateSignal(component).update((s) => ({
       ...s,
@@ -296,6 +312,28 @@ describe('ApplicationsComponent', () => {
       expect(
         component.vm().searchErrors.some((e) => e.id === 'search-error'),
       ).toBe(false);
+    });
+
+    it('resets sort to the default when a new search is submitted', () => {
+      getEntriesMock.mockClear();
+
+      appStateSignal(component).update((s) => ({
+        ...s,
+        isLoading: false,
+        sortField: { key: 'status', direction: 'asc' },
+      }));
+
+      component.form.patchValue({ applicantOrg: 'Some Org' });
+
+      submitSearch();
+
+      expect(component.vm().sortField).toEqual({
+        key: 'date',
+        direction: 'desc',
+      });
+
+      const [params] = getEntriesMock.mock.calls[0];
+      expect(params?.sort).toEqual(['date,desc']);
     });
 
     it('prioritises field validation errors (e.g. postcode too long) over invalid search criteria', () => {
@@ -442,6 +480,7 @@ describe('ApplicationsComponent', () => {
 
       expect(params?.pageNumber).toBe(component.vm().currentPage);
       expect(params?.pageSize).toBe(component.vm().pageSize);
+      expect(params?.sort).toEqual(['date,desc']);
       expect(params?.filter).toEqual({});
       expect(options).toEqual(
         expect.objectContaining({
@@ -479,6 +518,7 @@ describe('ApplicationsComponent', () => {
 
       expect(params?.pageNumber).toBe(component.vm().currentPage);
       expect(params?.pageSize).toBe(component.vm().pageSize);
+      expect(params?.sort).toEqual(['date,desc']);
       expect(params?.filter).toEqual(
         expect.objectContaining({
           applicantOrganisation: 'Org Ltd',
@@ -548,9 +588,45 @@ describe('ApplicationsComponent', () => {
       expect(getEntriesMock).toHaveBeenCalledTimes(1);
       const [params] = getEntriesMock.mock.calls[0];
       expect(params?.pageNumber).toBe(2);
+      expect(params?.sort).toEqual(['date,desc']);
       expect(params?.filter).toEqual({
         applicantOrganisation: 'Saved Org',
       });
+    });
+  });
+
+  describe('sorting', () => {
+    it('onSortChange stores the UI sort key, resets to the first page, and reloads applications', () => {
+      const loadSpy = jest.spyOn(component, 'loadApplications');
+
+      appStateSignal(component).update((s) => ({
+        ...s,
+        currentPage: 3,
+      }));
+
+      component.onSortChange({ key: 'title', direction: 'asc' });
+
+      expect(component.vm().sortField).toEqual({
+        key: 'title',
+        direction: 'asc',
+      });
+      expect(component.vm().currentPage).toBe(0);
+      expect(loadSpy).toHaveBeenCalledWith(component.vm().getFilters);
+    });
+
+    it('maps UI column keys to API sort keys', () => {
+      appStateSignal(component).update((s) => ({
+        ...s,
+        isLoading: false,
+        sortField: { key: 'applicant', direction: 'asc' },
+      }));
+
+      getEntriesMock.mockClear();
+
+      component.loadApplications();
+
+      const [params] = getEntriesMock.mock.calls[0];
+      expect(params?.sort).toEqual(['applicantName,asc']);
     });
   });
 
@@ -723,6 +799,7 @@ describe('ApplicationsComponent', () => {
       expect(getEntriesMock).toHaveBeenCalledWith({
         pageNumber: 0,
         pageSize: 10,
+        sort: ['date,desc'],
         filter: { applicantOrganisation: 'Org Ltd' },
       });
       expect(printApplicationListMock).toHaveBeenCalledTimes(2);

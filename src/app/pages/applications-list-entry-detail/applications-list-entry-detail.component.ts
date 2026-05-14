@@ -625,7 +625,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   onChildErrors(source: ChildErrorSource, errors: ErrorItem[]): void {
     this.childErrors[source] = errors ?? [];
 
-    if (source === 'codes') {
+    if (source === 'codes' || source === 'resultWording') {
       const summaryErrors = [
         ...getUniqueErrors(
           this.parentErrors,
@@ -637,6 +637,11 @@ export class ApplicationsListEntryDetail implements OnInit {
         summaryErrors,
         errorFound: summaryErrors.length > 0,
       });
+
+      if (source === 'resultWording' && errors?.length > 0) {
+        focusErrorSummary(this.platformId);
+      }
+
       return;
     }
 

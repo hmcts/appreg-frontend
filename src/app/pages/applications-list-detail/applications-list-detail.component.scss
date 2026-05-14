@@ -14,19 +14,36 @@
   position: relative;
 }
 
-.table-caption__actions {
-  float: right;
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  align-items: center;
-}
-
 :host ::ng-deep .app-sortable-table__loading {
   inset: 0 0 50px 0;
 }
 
-.table-caption__actions .moj-button-menu,
-.table-caption__action-button {
-  margin-bottom: 1.75rem;
+.app-bulk-upload-progress {
+  margin-top: 1.5rem;
+}
+
+.app-bulk-upload-progress__content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.app-bulk-upload-progress__spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  border: 6px solid #dee0e2;
+  border-top-color: #1d70b8;
+  border-radius: 50%;
+  animation: bulk-upload-spin 0.9s linear infinite;
+}
+
+@keyframes bulk-upload-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }

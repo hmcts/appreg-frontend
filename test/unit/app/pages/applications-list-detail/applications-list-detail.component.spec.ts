@@ -34,6 +34,7 @@ import {
   EntryIdsDto,
   EntryPage,
 } from '@openapi';
+import { JobPollingFacade } from '@services/jobs/job-polling.facade';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { getProblemText } from '@util/http-error-to-text';
 import { MojButtonMenu } from '@util/moj-button-menu';
@@ -123,6 +124,10 @@ describe('ApplicationsListDetail', () => {
   const refFacadeStub: Pick<ReferenceDataFacade, 'courtLocations$' | 'cja$'> = {
     courtLocations$: of([]),
     cja$: of([] as CriminalJusticeAreaGetDto[]),
+  };
+
+  const jobPollingFacadeStub = {
+    watchJob: jest.fn(),
   };
 
   let historyStateSpy: jest.SpyInstance;
@@ -243,6 +248,7 @@ describe('ApplicationsListDetail', () => {
         { provide: PLATFORM_ID, useValue: 'browser' },
         { provide: ApplicationListsApi, useValue: apiStub },
         { provide: ApplicationListEntriesApi, useValue: entriesApiStub },
+        { provide: JobPollingFacade, useValue: jobPollingFacadeStub },
         { provide: MojButtonMenu, useValue: menuStub },
         { provide: PdfService, useValue: pdfStub },
         { provide: ReferenceDataFacade, useValue: refFacadeStub },
@@ -285,6 +291,169 @@ describe('ApplicationsListDetail', () => {
     expect(
       fixture.debugElement.query(By.css('app-success-banner')),
     ).toBeTruthy();
+  });
+
+  describe('bulk upload polling', () => {
+    const startBulkUploadPolling = (jobId = 'job-1'): void => {
+      (
+        component as unknown as {
+          startBulkUploadPolling(jobId: string): void;
+        }
+      ).startBulkUploadPolling(jobId);
+    };
+
+    it('shows live progress content while the upload is being polled', async () => {
+      const jobUpdates = new Subject<unknown>();
+      jobPollingFacadeStub.watchJob.mockReturnValue(jobUpdates.asObservable());
+
+      startBulkUploadPolling();
+      await flushSignalEffects(fixture);
+
+      expect(jobPollingFacadeStub.watchJob).toHaveBeenCalledWith('job-1');
+      const progress = fixture.debugElement.query(
+        By.css('.app-bulk-upload-progress'),
+      );
+      expect(progress).toBeTruthy();
+      expect(progress.nativeElement.textContent).toContain(
+        'Upload in progress',
+      );
+    });
+
+    it('shows a success banner, refreshes the list, and clears the query param when the upload succeeds', async () => {
+      const loadSpy = jest
+        .spyOn(component, 'loadApplicationsLists')
+        .mockImplementation(() => undefined);
+      const router = TestBed.inject(Router);
+      const navigateSpy = jest
+        .spyOn(router, 'navigate')
+        .mockResolvedValue(true);
+
+      jobPollingFacadeStub.watchJob.mockReturnValue(
+        of({
+          id: 'job-1',
+          rawStatus: 'SUCCEEDED',
+          state: 'succeeded',
+          isTerminal: true,
+          createdCount: 3,
+          errorCount: null,
+          totalCount: 3,
+          message: null,
+          raw: {},
+        }),
+      );
+
+      startBulkUploadPolling();
+      await flushSignalEffects(fixture);
+
+      const banner = fixture.debugElement.query(By.css('app-success-banner'));
+      expect(banner).toBeTruthy();
+      expect(banner.nativeElement.textContent).toContain('3 records created.');
+      expect(loadSpy).toHaveBeenCalled();
+      expect(navigateSpy).toHaveBeenCalledWith([], {
+        relativeTo: TestBed.inject(ActivatedRoute),
+        queryParams: { bulkUploadJobId: null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    });
+
+    it('shows a warning banner when the upload completes with errors', async () => {
+      const loadSpy = jest
+        .spyOn(component, 'loadApplicationsLists')
+        .mockImplementation(() => undefined);
+
+      jobPollingFacadeStub.watchJob.mockReturnValue(
+        of({
+          id: 'job-1',
+          rawStatus: 'COMPLETED_WITH_ERRORS',
+          state: 'completed_with_errors',
+          isTerminal: true,
+          createdCount: 4,
+          errorCount: 2,
+          totalCount: 6,
+          message: null,
+          raw: {},
+        }),
+      );
+
+      startBulkUploadPolling();
+      await flushSignalEffects(fixture);
+
+      const banner = fixture.debugElement.query(
+        By.css('.govuk-notification-banner'),
+      );
+      expect(banner).toBeTruthy();
+      expect(banner.nativeElement.getAttribute('role')).toBe('region');
+      expect(
+        banner.nativeElement.classList.contains(
+          'govuk-notification-banner--success',
+        ),
+      ).toBe(false);
+      expect(banner.nativeElement.textContent).toContain(
+        'Bulk upload completed with errors',
+      );
+      expect(banner.nativeElement.textContent).toContain('4 records created.');
+      expect(banner.nativeElement.textContent).toContain(
+        '2 records had errors.',
+      );
+      expect(
+        banner.nativeElement.querySelector('.govuk-notification-banner__link'),
+      ).toBeNull();
+      expect(loadSpy).toHaveBeenCalled();
+    });
+
+    it('shows a failure error summary with the backend message and does not reload the list', async () => {
+      const loadSpy = jest
+        .spyOn(component, 'loadApplicationsLists')
+        .mockImplementation(() => undefined);
+
+      jobPollingFacadeStub.watchJob.mockReturnValue(
+        of({
+          id: 'job-1',
+          rawStatus: 'FAILED',
+          state: 'failed',
+          isTerminal: true,
+          createdCount: null,
+          errorCount: null,
+          totalCount: null,
+          message: 'The uploaded file could not be processed.',
+          raw: {},
+        }),
+      );
+
+      startBulkUploadPolling();
+      await flushSignalEffects(fixture);
+
+      const summary = fixture.debugElement.query(
+        By.css('.govuk-error-summary'),
+      );
+      expect(summary).toBeTruthy();
+      expect(summary.nativeElement.textContent).toContain('Bulk upload failed');
+      expect(summary.nativeElement.textContent).toContain(
+        'The uploaded file could not be processed.',
+      );
+      expect(loadSpy).not.toHaveBeenCalled();
+    });
+
+    it('shows an inline error summary when polling fails', async () => {
+      jobPollingFacadeStub.watchJob.mockReturnValue(
+        throwError(() => new Error('boom')),
+      );
+
+      startBulkUploadPolling();
+      await flushSignalEffects(fixture);
+
+      const summary = fixture.debugElement.query(
+        By.css('.govuk-error-summary'),
+      );
+      expect(summary).toBeTruthy();
+      expect(summary.nativeElement.textContent).toContain(
+        'Unable to load upload status',
+      );
+      expect(summary.nativeElement.textContent).toContain(
+        'Please try again later.',
+      );
+    });
   });
 
   it('shows error summary when errorSummary has items', async () => {
