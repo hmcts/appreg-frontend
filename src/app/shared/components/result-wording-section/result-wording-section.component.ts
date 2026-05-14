@@ -70,6 +70,7 @@ export class ResultWordingSectionComponent {
   caption = input<string>('You are resulting the following application(s)');
   captionSize = input<'s' | 'm' | 'l'>('s');
   buttonText = input<string>('Apply result');
+  markSubmittedResultsApplied = input(false);
 
   removeExisting = output<string>();
   pendingChange = output<PendingResultRow[]>();
@@ -87,6 +88,9 @@ export class ResultWordingSectionComponent {
   readonly wordingSubmitAttempt = signal(0);
   private readonly currentWordingErrors = signal<ErrorItem[]>([]);
   private readonly existingWordingDraftById = signal<
+    Record<string, TemplateSubstitution[]>
+  >({});
+  private readonly appliedExistingWordingDraftById = signal<
     Record<string, TemplateSubstitution[]>
   >({});
 
@@ -213,14 +217,16 @@ export class ResultWordingSectionComponent {
   readonly hasExistingEdits = computed(() => {
     const draftById = this.existingWordingDraftById();
     const originalById = this.existingOriginalFieldsById();
+    const appliedById = this.appliedExistingWordingDraftById();
 
     return this.existingRows()
       .filter((row) => this.shouldRenderParserForRow(row))
       .some((row) => {
         const originalFields = originalById[row.id] ?? [];
-        const nextFields = draftById[row.id] ?? originalFields;
+        const baselineFields = appliedById[row.id] ?? originalFields;
+        const nextFields = draftById[row.id] ?? baselineFields;
 
-        return !this.areWordingFieldsEqual(originalFields, nextFields);
+        return !this.areWordingFieldsEqual(baselineFields, nextFields);
       });
   });
 
@@ -544,6 +550,10 @@ export class ResultWordingSectionComponent {
       this.resultCodeSearch = '';
     }
 
+    if (this.markSubmittedResultsApplied()) {
+      this.markExistingDraftsApplied(payload.existingToUpdate);
+    }
+
     this.submitResults.emit(payload);
   }
 
@@ -551,14 +561,16 @@ export class ResultWordingSectionComponent {
     const pendingToCreate = this.pending().slice(0, 1);
     const draftById = this.existingWordingDraftById();
     const originalById = this.existingOriginalFieldsById();
+    const appliedById = this.appliedExistingWordingDraftById();
 
     const existingToUpdate = this.existingRows()
       .filter((row) => this.shouldRenderParserForRow(row))
       .map<UpdateExistingResultWordingPayload | null>((row) => {
-        const nextFields = draftById[row.id] ?? [];
         const originalFields = originalById[row.id] ?? [];
+        const baselineFields = appliedById[row.id] ?? originalFields;
+        const nextFields = draftById[row.id] ?? baselineFields;
 
-        if (this.areWordingFieldsEqual(originalFields, nextFields)) {
+        if (this.areWordingFieldsEqual(baselineFields, nextFields)) {
           return null;
         }
 
@@ -574,6 +586,24 @@ export class ResultWordingSectionComponent {
       pendingToCreate,
       existingToUpdate,
     };
+  }
+
+  private markExistingDraftsApplied(
+    existingToUpdate: UpdateExistingResultWordingPayload[],
+  ): void {
+    if (existingToUpdate.length === 0) {
+      return;
+    }
+
+    this.appliedExistingWordingDraftById.update((current) => {
+      const next = { ...current };
+
+      for (const item of existingToUpdate) {
+        next[item.resultId] = item.wordingFields.map((field) => ({ ...field }));
+      }
+
+      return next;
+    });
   }
 
   private areWordingFieldsEqual(

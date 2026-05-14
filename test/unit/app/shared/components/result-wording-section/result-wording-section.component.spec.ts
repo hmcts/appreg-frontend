@@ -363,6 +363,7 @@ describe('ResultWordingSectionComponent', () => {
         } as unknown as TemplateDetail,
       }),
     ]);
+    fixture.componentRef.setInput('markSubmittedResultsApplied', true);
     fixture.detectChanges();
 
     component.onSaveResult();
@@ -387,6 +388,61 @@ describe('ResultWordingSectionComponent', () => {
         wordingFields: [{ key: 'Date', value: '2026-03-04' }],
       },
     ]);
+    expect(component.canSubmitResults()).toBe(false);
+    expect(component.hasUnappliedChanges()).toBe(false);
+  });
+
+  it('marks existing wording as unapplied again when it changes after apply', () => {
+    const submitSpy = jest.spyOn(component.submitResults, 'emit');
+
+    fixture.componentRef.setInput('existingResults', [
+      makeExistingResult({
+        id: 'E1',
+        resultCode: 'RC2',
+        wording: {
+          template: "Result '{{ Date }}' applied.",
+          'substitution-key-constraints': [
+            { key: 'Date', value: '2025-10-25', constraint: { length: 10 } },
+          ],
+        } as unknown as TemplateDetail,
+      }),
+    ]);
+    fixture.componentRef.setInput('markSubmittedResultsApplied', true);
+    fixture.detectChanges();
+
+    const card = {
+      id: 'E1',
+      status: 'existing' as const,
+      title: 'RC2 - Second Match',
+      content: [],
+    };
+
+    component.onSaveResult();
+    component.onCardWordingFieldsDTO(card, {
+      wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+    });
+
+    component.onCardWordingFieldsDTO(card, {
+      wordingFields: [{ key: 'Date', value: '2026-03-05' }],
+    });
+
+    expect(component.canSubmitResults()).toBe(true);
+    expect(component.hasUnappliedChanges()).toBe(true);
+
+    component.onSaveResult();
+    component.onCardWordingFieldsDTO(card, {
+      wordingFields: [{ key: 'Date', value: '2026-03-05' }],
+    });
+
+    expect(submitSpy).toHaveBeenCalledTimes(2);
+    expect(submitSpy.mock.calls[1][0].existingToUpdate).toEqual([
+      {
+        resultId: 'E1',
+        resultCode: 'RC2',
+        wordingFields: [{ key: 'Date', value: '2026-03-05' }],
+      },
+    ]);
+    expect(component.hasUnappliedChanges()).toBe(false);
   });
 
   it('onSummaryActionClick blocks existing remove when wording errors exist', () => {

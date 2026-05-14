@@ -801,16 +801,20 @@ export class ApplicationsListEntryDetail implements OnInit {
         payload,
         () => {
           this.resultAppliedBannerVisible.set(false);
+          this.appListEntryDetailPatch({ pendingResults: false });
+          this.submitEntryUpdate(
+            this.buildEntryUpdateDto(),
+            ENTRY_SUCCESS_MESSAGES.listUpdated,
+          );
         },
         (err) => this.applyMappedError(err),
       );
-      this.appListEntryDetailPatch({ pendingResults: false });
+    } else {
+      this.submitEntryUpdate(
+        this.buildEntryUpdateDto(),
+        ENTRY_SUCCESS_MESSAGES.listUpdated,
+      );
     }
-
-    this.submitEntryUpdate(
-      this.buildEntryUpdateDto(),
-      ENTRY_SUCCESS_MESSAGES.listUpdated,
-    );
   }
 
   onSaveOfficials(): void {
