@@ -1,14 +1,7 @@
 import { Routes } from '@angular/router';
 
-import { Applications } from '@components/applications/applications.component';
-import { ApplicationsList } from '@components/applications-list/applications-list.component';
-import { ApplicationsListDetail } from '@components/applications-list-detail/applications-list-detail.component';
-import { ApplicationsListEntryCreate } from '@components/applications-list-entry-create/applications-list-entry-create.component';
-import { ApplicationsListEntryDetail } from '@components/applications-list-entry-detail/applications-list-entry-detail.component';
 import { HomeComponent } from '@components/home/home.component';
 import { Login } from '@components/login/login.component';
-import { Reports } from '@components/reports/reports.component';
-import { StandardApplicants } from '@components/standard-applicants/standard-applicants.component';
 import { sessionGuard } from '@guards/session.guard';
 
 export const routes: Routes = [
@@ -48,7 +41,10 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        component: ApplicationsList,
+        loadComponent: () =>
+          import('@components/applications-list/applications-list.component').then(
+            (m) => m.ApplicationsList,
+          ),
       },
       {
         path: 'create',
@@ -59,7 +55,10 @@ export const routes: Routes = [
       },
       {
         path: ':id',
-        component: ApplicationsListDetail,
+        loadComponent: () =>
+          import('@components/applications-list-detail/applications-list-detail.component').then(
+            (m) => m.ApplicationsListDetail,
+          ),
       },
       {
         path: ':id/delete',
@@ -77,11 +76,17 @@ export const routes: Routes = [
       },
       {
         path: ':id/create-entry',
-        component: ApplicationsListEntryCreate,
+        loadComponent: () =>
+          import('@components/applications-list-entry-create/applications-list-entry-create.component').then(
+            (m) => m.ApplicationsListEntryCreate,
+          ),
       },
       {
         path: ':id/update-entry/:entryId',
-        component: ApplicationsListEntryDetail,
+        loadComponent: () =>
+          import('@components/applications-list-entry-detail/applications-list-entry-detail.component').then(
+            (m) => m.ApplicationsListEntryDetail,
+          ),
       },
       {
         path: ':id/create-entry/change-payment-reference',
@@ -129,17 +134,24 @@ export const routes: Routes = [
   },
   {
     path: 'applications',
-    component: Applications,
+    loadComponent: () =>
+      import('@components/applications/applications.component').then(
+        (m) => m.Applications,
+      ),
     canActivate: [sessionGuard],
   },
   {
     path: 'standard-applicants',
-    component: StandardApplicants,
+    loadComponent: () =>
+      import('@components/standard-applicants/standard-applicants.component').then(
+        (m) => m.StandardApplicants,
+      ),
     canActivate: [sessionGuard],
   },
   {
     path: 'reports',
-    component: Reports,
+    loadComponent: () =>
+      import('@components/reports/reports.component').then((m) => m.Reports),
     canActivate: [sessionGuard],
   },
   { path: '**', redirectTo: 'page-not-found' },
