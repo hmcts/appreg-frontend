@@ -416,6 +416,17 @@ export class ApplicationsListEntryCreate implements OnInit {
       return;
     }
 
+    if (source === 'wording') {
+      if (this.childErrors.wording.length > 0) {
+        this.wordingAppliedBannerVisible.set(false);
+      }
+
+      this.updateErrors({
+        validateOtherSections: this.appListEntryCreateState().submitted,
+      });
+      return;
+    }
+
     this.updateErrors({
       validateOtherSections: this.appListEntryCreateState().submitted,
     });
