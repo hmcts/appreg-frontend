@@ -401,7 +401,7 @@ Feature: Applications List Entry Create
     # Applicant Details - Standard Applicant Bug-ARCPOC-1342
     Then User Selects "Standard Applicant" In The "Select applicant type" Dropdown
     Then User Enters "APP025" Into The Textbox "Code" In The Accordion "Applicant"
-    When User Clicks On The "Search" Button
+    When User Clicks On The "Search" Button In The Accordion "Applicant"
     When User Checks The Checkbox In Row Of Table "Standard applicants" In The Accordion "Applicant" With:
       | Code   | Name        | Address        | Use from   | Use to |
       | APP025 | Ava Johnson | 258 Cedar Lane | 6 Nov 2025 | —      |

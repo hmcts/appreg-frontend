@@ -47,30 +47,87 @@ export class TableSearch {
     caption?: string,
     searchAllPages: boolean = true,
     onMatch?: (row: JQuery<HTMLElement>) => Cypress.Chainable<void>,
+    retryCurrentPageBeforePagination: boolean = true,
   ): Cypress.Chainable<boolean> {
     return TableSearch.searchInCurrentPage(columnValues, caption, onMatch).then(
       (found) => {
         if (found) {
           return cy.wrap(true);
         }
-        if (!searchAllPages) {
-          return cy.wrap(false);
-        }
-        cy.screenshot(`table-page-${caption || 'table'}`);
-        return TableNavigation.goToNextPageIfExists().then((hasNext) => {
-          if (hasNext) {
-            cy.log('Row not found on current page, checking next page...');
-            return TableSearch.searchWithPagination(
+        if (retryCurrentPageBeforePagination) {
+          return TableSearch.waitForRowOnCurrentPage(
+            columnValues,
+            caption,
+            onMatch,
+          ).then((foundAfterRetry) => {
+            if (foundAfterRetry) {
+              return cy.wrap(true);
+            }
+            return TableSearch.searchNextPages(
               columnValues,
               caption,
               searchAllPages,
               onMatch,
             );
-          }
-          return cy.wrap(false);
-        });
+          });
+        }
+        return TableSearch.searchNextPages(
+          columnValues,
+          caption,
+          searchAllPages,
+          onMatch,
+        );
       },
     );
+  }
+
+  private static waitForRowOnCurrentPage(
+    columnValues: Record<string, string>,
+    caption?: string,
+    onMatch?: (row: JQuery<HTMLElement>) => Cypress.Chainable<void>,
+    timeoutMs: number = 5000,
+    intervalMs: number = 250,
+  ): Cypress.Chainable<boolean> {
+    const startedAt = Date.now();
+
+    const attempt = (): Cypress.Chainable<boolean> =>
+      cy.wait(intervalMs).then(() =>
+        TableSearch.searchInCurrentPage(columnValues, caption, onMatch).then(
+          (found) => {
+            if (found || Date.now() - startedAt >= timeoutMs) {
+              return cy.wrap(found);
+            }
+            return attempt();
+          },
+        ),
+      );
+
+    return attempt();
+  }
+
+  private static searchNextPages(
+    columnValues: Record<string, string>,
+    caption?: string,
+    searchAllPages: boolean = true,
+    onMatch?: (row: JQuery<HTMLElement>) => Cypress.Chainable<void>,
+  ): Cypress.Chainable<boolean> {
+    if (!searchAllPages) {
+      return cy.wrap(false);
+    }
+    cy.screenshot(`table-page-${caption || 'table'}`);
+    return TableNavigation.goToNextPageIfExists().then((hasNext) => {
+      if (hasNext) {
+        cy.log('Row not found on current page, checking next page...');
+        return TableSearch.searchWithPagination(
+          columnValues,
+          caption,
+          searchAllPages,
+          onMatch,
+          false,
+        );
+      }
+      return cy.wrap(false);
+    });
   }
 
   /**

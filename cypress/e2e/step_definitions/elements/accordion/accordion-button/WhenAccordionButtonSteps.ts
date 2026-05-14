@@ -10,7 +10,7 @@ When(
   'User Clicks On The {string} Button In The Accordion {string}',
   (buttonText: string, accordionTitle: string) => {
     AccordionHelper.within(accordionTitle, () =>
-      ButtonHelper.clickButton(buttonText),
+      ButtonHelper.clickButton(buttonText, 3000),
     );
   },
 );
