@@ -1,6 +1,7 @@
 {
   "name": "appreg-frontend",
   "version": "0.0.0",
+  "sideEffects": false,
   "engines": {
     "node": ">=24.15.0"
   },
