@@ -1,7 +1,7 @@
 import { Route } from '@angular/router';
 import { of } from 'rxjs';
 
-import { SelectivePreloadingStrategy } from '../../../../../../src/app/core/routing/selective-preloading.strategy';
+import { SelectivePreloadingStrategy } from '@core/routing/selective-preloading.strategy';
 
 describe('SelectivePreloadingStrategy', () => {
   let strategy: SelectivePreloadingStrategy;
