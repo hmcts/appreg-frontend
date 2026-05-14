@@ -1766,6 +1766,90 @@ describe('ApplicationsListEntryDetail', () => {
     });
   });
 
+  it('onPendingChange updates the stored payload when applied pending rows change', () => {
+    const appliedRow = makePendingResultRow({ tempId: 'tmp-applied' });
+    const remainingRow = makePendingResultRow({
+      tempId: 'tmp-remaining',
+      resultCode: 'RC3',
+    });
+    component['appListEntryDetailPatch']({
+      pendingResults: true,
+      resultsPayload: {
+        listId: 'AL-1',
+        entryId: 'EN-1',
+        payload: makeResultPayload({ pendingToCreate: [appliedRow] }),
+      },
+    });
+    const setPendingSpy = jest
+      .spyOn(component.resultsFacade, 'setPending')
+      .mockImplementation();
+
+    component.onPendingChange([remainingRow]);
+
+    const state = component['appListEntryDetailState']();
+    expect(setPendingSpy).toHaveBeenCalledWith([remainingRow]);
+    expect(state.pendingResults).toBe(true);
+    expect(state.resultsPayload.payload.pendingToCreate).toEqual([
+      remainingRow,
+    ]);
+  });
+
+  it('onPendingChange clears pendingResults when all applied pending rows are removed', () => {
+    component['appListEntryDetailPatch']({
+      pendingResults: true,
+      resultsPayload: {
+        listId: 'AL-1',
+        entryId: 'EN-1',
+        payload: makeResultPayload({
+          pendingToCreate: [makePendingResultRow()],
+        }),
+      },
+    });
+    const setPendingSpy = jest
+      .spyOn(component.resultsFacade, 'setPending')
+      .mockImplementation();
+    component.resultAppliedBannerVisible.set(true);
+
+    component.onPendingChange([]);
+
+    const state = component['appListEntryDetailState']();
+    expect(setPendingSpy).toHaveBeenCalledWith([]);
+    expect(state.pendingResults).toBe(false);
+    expect(state.resultsPayload.payload.pendingToCreate).toEqual([]);
+    expect(component.resultAppliedBannerVisible()).toBe(false);
+  });
+
+  it('onPendingChange keeps pendingResults when existing updates remain', () => {
+    const existingToUpdate = [
+      {
+        resultId: 'R-1',
+        resultCode: 'RC2',
+        wordingFields: [{ key: 'Court', value: 'Court A' }],
+      },
+    ];
+    component['appListEntryDetailPatch']({
+      pendingResults: true,
+      resultsPayload: {
+        listId: 'AL-1',
+        entryId: 'EN-1',
+        payload: makeResultPayload({
+          pendingToCreate: [makePendingResultRow()],
+          existingToUpdate,
+        }),
+      },
+    });
+    jest.spyOn(component.resultsFacade, 'setPending').mockImplementation();
+
+    component.onPendingChange([]);
+
+    const state = component['appListEntryDetailState']();
+    expect(state.pendingResults).toBe(true);
+    expect(state.resultsPayload.payload).toEqual({
+      pendingToCreate: [],
+      existingToUpdate,
+    });
+  });
+
   it('onPendingChange does not patch stored results when no pending result was applied', () => {
     const initialResultsPayload =
       component['appListEntryDetailState']().resultsPayload;

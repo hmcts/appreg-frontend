@@ -15,7 +15,7 @@ function makeResultCode(
   overrides: Partial<ResultCodeGetSummaryDto>,
 ): ResultCodeGetSummaryDto {
   const base = { resultCode: '', title: '' };
-  return { ...base, ...overrides } as unknown as ResultCodeGetSummaryDto;
+  return { ...base, ...overrides };
 }
 
 function makeExistingResult(overrides: Partial<ResultGetDto>): ResultGetDto {

@@ -1350,6 +1350,31 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   onPendingChange(rows: PendingResultRow[]): void {
     this.resultsFacade.setPending(rows);
+
+    // update stale results on change
+    const state = this.appListEntryDetailState();
+    if (!state.pendingResults) {
+      return;
+    }
+
+    const payload = {
+      ...state.resultsPayload.payload,
+      pendingToCreate: rows ?? [],
+    };
+    const pendingResults =
+      payload.pendingToCreate.length > 0 || payload.existingToUpdate.length > 0;
+
+    if (!pendingResults) {
+      this.resultAppliedBannerVisible.set(false);
+    }
+
+    this.appListEntryDetailPatch({
+      pendingResults,
+      resultsPayload: {
+        ...state.resultsPayload,
+        payload,
+      },
+    });
   }
 
   private handleFatalLoadError(err: unknown): void {
