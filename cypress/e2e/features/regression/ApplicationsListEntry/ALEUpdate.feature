@@ -85,9 +85,9 @@ Feature: Applications List Entry Update
         Then User Enters "Jane" In The Textbox "Magistrate's first name" Under "Magistrate 3" FieldSet In The Accordion "Officials"
         Then User Enters "Hardy{RANDOM}" In The Textbox "Magistrate's surname" Under "Magistrate 3" FieldSet In The Accordion "Officials"
 
-        Then User Should Select "Mrs" From The Dropdown "Select court official's title" Under "Officials" FieldSet In The Accordion "Officials"
-        Then User Enters "Violette" In The Textbox "Official's first name" Under "Officials" FieldSet In The Accordion "Officials"
-        Then User Enters "Zanetti{RANDOM}" In The Textbox "Official's surname" Under "Officials" FieldSet In The Accordion "Officials"
+        Then User Should Select "Mrs" From The Dropdown "Select court official's title" Under "Court official" FieldSet In The Accordion "Officials"
+        Then User Enters "Violette" In The Textbox "Official's first name" Under "Court official" FieldSet In The Accordion "Officials"
+        Then User Enters "Zanetti{RANDOM}" In The Textbox "Official's surname" Under "Court official" FieldSet In The Accordion "Officials"
         When User Clicks On The "Save recording officials" Button
         Then User Sees Success Banner "Success Officials updated Officials have been updated for this application list entry."
         When User Clicks On The "Save complete application" Button

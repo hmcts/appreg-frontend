@@ -44,7 +44,7 @@ Feature: Application List Entries Search
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId1/results" With Json Body
             """
             {
-            "resultCode": "AUTH"
+                "resultCode": "AUTH"
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -163,7 +163,7 @@ Feature: Application List Entries Search
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId5/results" With Json Body
             """
             {
-            "resultCode": "AUTH"
+                "resultCode": "AUTH"
             }
             """
         Then User Verify Response Status Code Should Be "201"
