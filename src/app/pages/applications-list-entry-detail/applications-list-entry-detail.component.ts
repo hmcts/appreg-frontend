@@ -646,6 +646,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
       if (source === 'resultWording' && errors?.length > 0) {
         focusErrorSummary(this.platformId);
+        this.resultAppliedBannerVisible.set(false);
       }
 
       return;
@@ -772,6 +773,24 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     if (this.runFullSubmitValidation()) {
       return;
+    }
+
+    // Save result if there are pending results to be saved
+    if (this.appListEntryDetailState().pendingResults) {
+      const listId = this.appListEntryDetailState().resultsPayload.listId;
+      const entryId = this.appListEntryDetailState().resultsPayload.entryId;
+      const payload = this.appListEntryDetailState().resultsPayload.payload;
+
+      this.resultsFacade.submitResultChanges(
+        listId,
+        entryId,
+        payload,
+        () => {
+          this.resultAppliedBannerVisible.set(false);
+        },
+        (err) => this.applyMappedError(err),
+      );
+      this.appListEntryDetailPatch({ pendingResults: false });
     }
 
     this.submitEntryUpdate(
@@ -1273,22 +1292,33 @@ export class ApplicationsListEntryDetail implements OnInit {
     const entryId = getEntryId(this.route);
     const listId = this.appListEntryDetailState().appListId;
 
-    if (!entryId) {
+    if (!entryId || !listId) {
       return;
     }
 
-    this.resultsFacade.submitResultChanges(
-      listId,
-      entryId,
-      payload,
-      () => {
-        this.appListEntryDetailPatch({
-          successBanner: ENTRY_SUCCESS_MESSAGES.resultApplied,
-        });
-        focusSuccessBanner(this.platformId);
-      },
-      (err) => this.applyMappedError(err),
-    );
+    this.resultsFacade.setPending(payload.pendingToCreate ?? []);
+
+    this.resultAppliedBannerVisible.set(true);
+
+    this.appListEntryDetailPatch({
+      pendingResults:
+        payload.pendingToCreate.length > 0 ||
+        payload.existingToUpdate.length > 0,
+      resultsPayload: { entryId, listId, payload },
+    });
+
+    // this.resultsFacade.submitResultChanges(
+    //   listId,
+    //   entryId,
+    //   payload,
+    //   () => {
+    //     this.appListEntryDetailPatch({
+    //       successBanner: ENTRY_SUCCESS_MESSAGES.resultApplied,
+    //     });
+    //     focusSuccessBanner(this.platformId);
+    //   },
+    //   (err) => this.applyMappedError(err),
+    // );
   }
 
   onRemoveResult(resultId: string): void {
@@ -1315,6 +1345,28 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   onPendingChange(rows: PendingResultRow[]): void {
     this.resultsFacade.setPending(rows);
+
+    const current = this.appListEntryDetailState().resultsPayload;
+    const hasAppliedPending = current.payload.pendingToCreate.length > 0;
+
+    if (!hasAppliedPending) {
+      return;
+    }
+
+    const payload = {
+      ...current.payload,
+      pendingToCreate: rows ?? [],
+    };
+
+    this.appListEntryDetailPatch({
+      pendingResults:
+        payload.pendingToCreate.length > 0 ||
+        payload.existingToUpdate.length > 0,
+      resultsPayload: {
+        ...current,
+        payload,
+      },
+    });
   }
 
   private handleFatalLoadError(err: unknown): void {

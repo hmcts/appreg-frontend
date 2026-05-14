@@ -15,6 +15,7 @@ import {
   input,
   output,
   signal,
+  untracked,
 } from '@angular/core';
 
 import { AlertComponent } from '@components/alert/alert.component';
@@ -82,6 +83,7 @@ export class ResultWordingSectionComponent {
   private readonly pending = signal<PendingResultRow[]>([]);
   private readonly pendingVersion = signal(0);
   private readonly appliedVersion = signal(0);
+  private lastProcessedClearPendingToken = 0;
   readonly wordingSubmitAttempt = signal(0);
   private readonly currentWordingErrors = signal<ErrorItem[]>([]);
   private readonly existingWordingDraftById = signal<
@@ -103,11 +105,17 @@ export class ResultWordingSectionComponent {
   constructor() {
     effect(() => {
       const token = this.clearPendingToken(); // reading the input signal tracks it
-      if (token === 0) {
+      if (token === 0 || token === this.lastProcessedClearPendingToken) {
         return;
       }
 
-      if (this.pendingVersion() === this.appliedVersion()) {
+      this.lastProcessedClearPendingToken = token;
+
+      const shouldClearPending = untracked(
+        () => this.pendingVersion() === this.appliedVersion(),
+      );
+
+      if (shouldClearPending) {
         this.pending.set([]);
         this.pendingChange.emit(this.pending());
         this.resultCodeSearch = '';
@@ -216,8 +224,14 @@ export class ResultWordingSectionComponent {
       });
   });
 
+  readonly hasPendingChanges = computed(
+    () =>
+      this.pending().length > 0 &&
+      this.pendingVersion() !== this.appliedVersion(),
+  );
+
   readonly canSubmitResults = computed(
-    () => this.pending().length > 0 || this.hasExistingEdits(),
+    () => this.hasPendingChanges() || this.hasExistingEdits(),
   );
 
   selectResultCode(item: ResultCodeGetSummaryDto): void {
@@ -364,6 +378,16 @@ export class ResultWordingSectionComponent {
       ...pendingRow,
       wordingFields: dto.wordingFields ?? [],
     };
+
+    if (
+      !this.areWordingFieldsEqual(
+        pendingRow.wordingFields ?? [],
+        updated.wordingFields,
+      )
+    ) {
+      this.pendingVersion.update((n) => n + 1);
+    }
+
     this.pending.set([updated]);
     this.pendingChange.emit(this.pending());
     this.handleValidationResponse(card.id, []);
@@ -513,8 +537,6 @@ export class ResultWordingSectionComponent {
 
     if (payload.pendingToCreate.length > 0) {
       this.appliedVersion.set(this.pendingVersion());
-      this.pending.set([]);
-      this.pendingChange.emit(this.pending());
       this.resultCodeSearch = '';
     }
 

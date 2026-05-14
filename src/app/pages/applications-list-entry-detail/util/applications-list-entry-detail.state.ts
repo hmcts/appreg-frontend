@@ -1,6 +1,7 @@
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { SuccessBanner } from '@core-types/banner/banner.types';
 import { ApplicationCodeGetDetailDto } from '@openapi';
+import { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
 
 export interface ApplicationsListEntryDetailState {
   appListId: string;
@@ -13,6 +14,12 @@ export interface ApplicationsListEntryDetailState {
   isFeeRequired: boolean;
   successBanner: SuccessBanner | null;
   errorHint: string | null;
+  pendingResults: boolean;
+  resultsPayload: {
+    listId: string;
+    entryId: string;
+    payload: ResultSectionSubmitPayload;
+  };
 }
 
 export const initialApplicationsListEntryDetailState: ApplicationsListEntryDetailState =
@@ -27,4 +34,10 @@ export const initialApplicationsListEntryDetailState: ApplicationsListEntryDetai
     isFeeRequired: false,
     successBanner: null,
     errorHint: 'There is a problem',
+    pendingResults: false,
+    resultsPayload: {
+      listId: '',
+      entryId: '',
+      payload: { pendingToCreate: [], existingToUpdate: [] },
+    },
   };
