@@ -15,10 +15,11 @@ import {
   provideBrowserGlobalErrorListeners,
   provideZoneChangeDetection,
 } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withPreloading } from '@angular/router';
 
 import { routes } from './app.routes';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
+import { SelectivePreloadingStrategy } from './core/routing/selective-preloading.strategy';
 import { AppConfigService } from './core/services/app-config.service';
 import { TelemetryErrorHandler } from './core/services/telemetry-error-handler.service';
 import { TelemetryService } from './core/services/telemetry.service';
@@ -35,7 +36,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes),
+    provideRouter(routes, withPreloading(SelectivePreloadingStrategy)),
     provideAppInitializer(() => {
       const appConfigService = inject(AppConfigService);
       const telemetryService = inject(TelemetryService);
