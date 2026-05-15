@@ -1,0 +1,1 @@
+This is a sample text file used to verify invalid file type upload validation.
