@@ -152,6 +152,7 @@ type ChildErrorSource =
 const UPDATE_ENTRY_ERROR_MESSAGES = ENTRY_ERROR_MESSAGES;
 
 export const ERROR_HREFS = {
+  resultWording: '#result-code',
   standardApplicantCode: '#standard-applicant',
   lodgementDate: '#lodgement-date-day',
   ...(OFFICIALS_ERROR_HREFS as Record<string, string>),
@@ -185,6 +186,8 @@ export class ApplicationsListEntryDetail implements OnInit {
   private readonly wordingSection?: WordingSectionComponent;
   @ViewChild('civilFeeSection')
   private readonly civilFeeSection?: CivilFeeSectionComponent;
+  @ViewChild(ResultWordingSectionComponent)
+  private readonly resultWordingSection?: ResultWordingSectionComponent;
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly resolveWordingObjectValues =
@@ -249,6 +252,8 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   wordingSubmitAttempt = signal(0);
   wordingAppliedBannerVisible = signal(false);
+
+  resultAppliedBannerVisible = signal(false);
 
   // View constants (from helpers)
   applicantColumns: TableColumn[] = APPLICANT_COLUMNS;
@@ -327,6 +332,10 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   onWordingAppliedBannerDismissed(): void {
     this.wordingAppliedBannerVisible.set(false);
+  }
+
+  onResultAppliedBannerDismissed(): void {
+    this.resultAppliedBannerVisible.set(false);
   }
 
   getWordingObjectValues(
@@ -640,6 +649,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
       if (source === 'resultWording' && errors?.length > 0) {
         focusErrorSummary(this.platformId);
+        this.resultAppliedBannerVisible.set(false);
       }
 
       return;
@@ -725,6 +735,17 @@ export class ApplicationsListEntryDetail implements OnInit {
       { source: 'civilFee', section: this.civilFeeSection },
     ]);
 
+    if (this.resultWordingSection?.hasUnappliedChanges()) {
+      this.childErrors.resultWording = [
+        {
+          text: 'You have unsaved result wording changes. Please apply result before saving.',
+          href: ERROR_HREFS.resultWording,
+        },
+      ];
+    } else {
+      this.childErrors.resultWording = [];
+    }
+
     this.childErrors.wording = submitErrors.wording ?? [];
     this.childErrors.civilFee = submitErrors.civilFee ?? [];
 
@@ -768,10 +789,32 @@ export class ApplicationsListEntryDetail implements OnInit {
       return;
     }
 
-    this.submitEntryUpdate(
-      this.buildEntryUpdateDto(),
-      ENTRY_SUCCESS_MESSAGES.listUpdated,
-    );
+    // Save result if there are pending results to be saved
+    if (this.appListEntryDetailState().pendingResults) {
+      const listId = this.appListEntryDetailState().resultsPayload.listId;
+      const entryId = this.appListEntryDetailState().resultsPayload.entryId;
+      const payload = this.appListEntryDetailState().resultsPayload.payload;
+
+      this.resultsFacade.submitResultChanges(
+        listId,
+        entryId,
+        payload,
+        () => {
+          this.resultAppliedBannerVisible.set(false);
+          this.appListEntryDetailPatch({ pendingResults: false });
+          this.submitEntryUpdate(
+            this.buildEntryUpdateDto(),
+            ENTRY_SUCCESS_MESSAGES.listUpdated,
+          );
+        },
+        (err) => this.applyMappedError(err),
+      );
+    } else {
+      this.submitEntryUpdate(
+        this.buildEntryUpdateDto(),
+        ENTRY_SUCCESS_MESSAGES.listUpdated,
+      );
+    }
   }
 
   onSaveOfficials(): void {
@@ -1267,22 +1310,20 @@ export class ApplicationsListEntryDetail implements OnInit {
     const entryId = getEntryId(this.route);
     const listId = this.appListEntryDetailState().appListId;
 
-    if (!entryId) {
+    if (!entryId || !listId) {
       return;
     }
 
-    this.resultsFacade.submitResultChanges(
-      listId,
-      entryId,
-      payload,
-      () => {
-        this.appListEntryDetailPatch({
-          successBanner: ENTRY_SUCCESS_MESSAGES.resultApplied,
-        });
-        focusSuccessBanner(this.platformId);
-      },
-      (err) => this.applyMappedError(err),
-    );
+    this.resultsFacade.setPending(payload.pendingToCreate ?? []);
+
+    this.resultAppliedBannerVisible.set(true);
+
+    this.appListEntryDetailPatch({
+      pendingResults:
+        payload.pendingToCreate.length > 0 ||
+        payload.existingToUpdate.length > 0,
+      resultsPayload: { entryId, listId, payload },
+    });
   }
 
   onRemoveResult(resultId: string): void {
@@ -1309,6 +1350,31 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   onPendingChange(rows: PendingResultRow[]): void {
     this.resultsFacade.setPending(rows);
+
+    // update stale results on change
+    const state = this.appListEntryDetailState();
+    if (!state.pendingResults) {
+      return;
+    }
+
+    const payload = {
+      ...state.resultsPayload.payload,
+      pendingToCreate: rows ?? [],
+    };
+    const pendingResults =
+      payload.pendingToCreate.length > 0 || payload.existingToUpdate.length > 0;
+
+    if (!pendingResults) {
+      this.resultAppliedBannerVisible.set(false);
+    }
+
+    this.appListEntryDetailPatch({
+      pendingResults,
+      resultsPayload: {
+        ...state.resultsPayload,
+        payload,
+      },
+    });
   }
 
   private handleFatalLoadError(err: unknown): void {

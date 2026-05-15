@@ -20,6 +20,7 @@ import {
   officialsToFormPatch,
 } from '@components/applications-list-entry-detail/util/entry-detail.form';
 import * as routingStateUtil from '@components/applications-list-entry-detail/util/routing-state-util';
+import { ENTRY_SUCCESS_MESSAGES } from '@constants/application-list-entry/success-messages';
 import {
   ApplicationCodeGetDetailDto,
   ApplicationCodePage,
@@ -40,6 +41,8 @@ import {
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 import { ApplicationsListEntryFormValue } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import type { AddFeeDetailsPayload } from '@shared-types/civil-fee/civil-fee';
+import type { PendingResultRow } from '@shared-types/result-code/result-code-row';
+import type { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
 import * as civilFeeUtils from '@util/civil-fee-utils';
 
 type GetCodesFn = (
@@ -97,6 +100,26 @@ type PaymentRefApplier = {
 type EntryDetailWithWordingSnapshot = EntryGetDetailDto & {
   wordingFields?: string[];
 };
+
+const makePendingResultRow = (
+  overrides: Partial<PendingResultRow> = {},
+): PendingResultRow => ({
+  kind: 'pending',
+  tempId: 'tmp-result-1',
+  resultCode: 'RC1',
+  display: 'RC1 - Result one',
+  wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+  wording: 'Result wording',
+  ...overrides,
+});
+
+const makeResultPayload = (
+  overrides: Partial<ResultSectionSubmitPayload> = {},
+): ResultSectionSubmitPayload => ({
+  pendingToCreate: [],
+  existingToUpdate: [],
+  ...overrides,
+});
 
 describe('ApplicationsListEntryDetail', () => {
   let fixture: ComponentFixture<ApplicationsListEntryDetail>;
@@ -1350,7 +1373,7 @@ describe('ApplicationsListEntryDetail', () => {
             value: '2026-04-13',
             constraint: {
               length: 10,
-              type: TemplateConstraintTypeEnum.DATE,
+              type: TemplateConstraintTypeEnum.TEXT,
             },
           },
         ],
@@ -1366,7 +1389,7 @@ describe('ApplicationsListEntryDetail', () => {
         {
           key: 'Date',
           value: '2026-05-01',
-          constraint: { length: 10, type: TemplateConstraintTypeEnum.DATE },
+          constraint: { length: 10, type: TemplateConstraintTypeEnum.TEXT },
         },
       ],
     });
@@ -1690,38 +1713,234 @@ describe('ApplicationsListEntryDetail', () => {
     expect(component['appListEntryDetailState']().errorFound).toBe(true);
   });
 
-  it('onSubmitResults calls results facade submitResultChanges', () => {
-    const updateSpy = jest
-      .spyOn(component.resultsFacade, 'submitResultChanges')
-      .mockImplementation();
-
-    component.onSubmitResults({
-      pendingToCreate: [],
+  it('onSubmitResults stores result changes for the complete application save', () => {
+    const payload = makeResultPayload({
+      pendingToCreate: [makePendingResultRow()],
       existingToUpdate: [
         {
           resultId: 'R-1',
-          resultCode: 'RC1',
-          wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+          resultCode: 'RC2',
+          wordingFields: [{ key: 'Court', value: 'Court A' }],
         },
       ],
     });
+    const setPendingSpy = jest
+      .spyOn(component.resultsFacade, 'setPending')
+      .mockImplementation();
+    const submitSpy = jest
+      .spyOn(component.resultsFacade, 'submitResultChanges')
+      .mockImplementation();
 
-    expect(updateSpy).toHaveBeenCalledWith(
+    component.onSubmitResults(payload);
+
+    const state = component['appListEntryDetailState']();
+    expect(setPendingSpy).toHaveBeenCalledWith(payload.pendingToCreate);
+    expect(submitSpy).not.toHaveBeenCalled();
+    expect(component.resultAppliedBannerVisible()).toBe(true);
+    expect(state.pendingResults).toBe(true);
+    expect(state.resultsPayload).toEqual({
+      listId: 'AL-1',
+      entryId: 'EN-1',
+      payload,
+    });
+  });
+
+  it('onSubmitResults returns early when the list id is missing', () => {
+    component['appListEntryDetailPatch']({ appListId: '' });
+    const payload = makeResultPayload({
+      pendingToCreate: [makePendingResultRow()],
+    });
+    const setPendingSpy = jest
+      .spyOn(component.resultsFacade, 'setPending')
+      .mockImplementation();
+
+    component.onSubmitResults(payload);
+
+    const state = component['appListEntryDetailState']();
+    expect(setPendingSpy).not.toHaveBeenCalled();
+    expect(component.resultAppliedBannerVisible()).toBe(false);
+    expect(state.pendingResults).toBe(false);
+    expect(state.resultsPayload.payload).toEqual({
+      pendingToCreate: [],
+      existingToUpdate: [],
+    });
+  });
+
+  it('onPendingChange updates the stored payload when applied pending rows change', () => {
+    const appliedRow = makePendingResultRow({ tempId: 'tmp-applied' });
+    const remainingRow = makePendingResultRow({
+      tempId: 'tmp-remaining',
+      resultCode: 'RC3',
+    });
+    component['appListEntryDetailPatch']({
+      pendingResults: true,
+      resultsPayload: {
+        listId: 'AL-1',
+        entryId: 'EN-1',
+        payload: makeResultPayload({ pendingToCreate: [appliedRow] }),
+      },
+    });
+    const setPendingSpy = jest
+      .spyOn(component.resultsFacade, 'setPending')
+      .mockImplementation();
+
+    component.onPendingChange([remainingRow]);
+
+    const state = component['appListEntryDetailState']();
+    expect(setPendingSpy).toHaveBeenCalledWith([remainingRow]);
+    expect(state.pendingResults).toBe(true);
+    expect(state.resultsPayload.payload.pendingToCreate).toEqual([
+      remainingRow,
+    ]);
+  });
+
+  it('onPendingChange clears pendingResults when all applied pending rows are removed', () => {
+    component['appListEntryDetailPatch']({
+      pendingResults: true,
+      resultsPayload: {
+        listId: 'AL-1',
+        entryId: 'EN-1',
+        payload: makeResultPayload({
+          pendingToCreate: [makePendingResultRow()],
+        }),
+      },
+    });
+    const setPendingSpy = jest
+      .spyOn(component.resultsFacade, 'setPending')
+      .mockImplementation();
+    component.resultAppliedBannerVisible.set(true);
+
+    component.onPendingChange([]);
+
+    const state = component['appListEntryDetailState']();
+    expect(setPendingSpy).toHaveBeenCalledWith([]);
+    expect(state.pendingResults).toBe(false);
+    expect(state.resultsPayload.payload.pendingToCreate).toEqual([]);
+    expect(component.resultAppliedBannerVisible()).toBe(false);
+  });
+
+  it('onPendingChange keeps pendingResults when existing updates remain', () => {
+    const existingToUpdate = [
+      {
+        resultId: 'R-1',
+        resultCode: 'RC2',
+        wordingFields: [{ key: 'Court', value: 'Court A' }],
+      },
+    ];
+    component['appListEntryDetailPatch']({
+      pendingResults: true,
+      resultsPayload: {
+        listId: 'AL-1',
+        entryId: 'EN-1',
+        payload: makeResultPayload({
+          pendingToCreate: [makePendingResultRow()],
+          existingToUpdate,
+        }),
+      },
+    });
+    jest.spyOn(component.resultsFacade, 'setPending').mockImplementation();
+
+    component.onPendingChange([]);
+
+    const state = component['appListEntryDetailState']();
+    expect(state.pendingResults).toBe(true);
+    expect(state.resultsPayload.payload).toEqual({
+      pendingToCreate: [],
+      existingToUpdate,
+    });
+  });
+
+  it('onPendingChange does not patch stored results when no pending result was applied', () => {
+    const initialResultsPayload =
+      component['appListEntryDetailState']().resultsPayload;
+    const row = makePendingResultRow();
+    const setPendingSpy = jest
+      .spyOn(component.resultsFacade, 'setPending')
+      .mockImplementation();
+
+    component.onPendingChange([row]);
+
+    const state = component['appListEntryDetailState']();
+    expect(setPendingSpy).toHaveBeenCalledWith([row]);
+    expect(state.resultsPayload).toBe(initialResultsPayload);
+    expect(state.pendingResults).toBe(false);
+  });
+
+  it('onUpdateApplication submits stored result changes before updating the entry', () => {
+    const payload = makeResultPayload({
+      pendingToCreate: [makePendingResultRow()],
+    });
+    const expectedDto: EntryUpdateDto = {
+      applicationCode: 'APP-1',
+    };
+    component['appListEntryDetailPatch']({
+      pendingResults: true,
+      resultsPayload: { listId: 'AL-1', entryId: 'EN-1', payload },
+    });
+    component.resultAppliedBannerVisible.set(true);
+    component['runFullSubmitValidation'] = jest.fn().mockReturnValue(false);
+    component['buildEntryUpdateDto'] = jest.fn().mockReturnValue(expectedDto);
+    component['submitEntryUpdate'] = jest.fn();
+    const submitResultsSpy = jest
+      .spyOn(component.resultsFacade, 'submitResultChanges')
+      .mockImplementation((_listId, _entryId, _payload, onSuccess) => {
+        onSuccess?.();
+      });
+    const initialAttempt = component.wordingSubmitAttempt();
+
+    component.onUpdateApplication();
+
+    expect(component.wordingSubmitAttempt()).toBe(initialAttempt + 1);
+    expect(submitResultsSpy).toHaveBeenCalledWith(
       'AL-1',
       'EN-1',
-      {
-        pendingToCreate: [],
-        existingToUpdate: [
-          {
-            resultId: 'R-1',
-            resultCode: 'RC1',
-            wordingFields: [{ key: 'Date', value: '2026-03-04' }],
-          },
-        ],
-      },
+      payload,
       expect.any(Function),
       expect.any(Function),
     );
+    expect(component.resultAppliedBannerVisible()).toBe(false);
+    expect(component['appListEntryDetailState']().pendingResults).toBe(false);
+    expect(component['submitEntryUpdate']).toHaveBeenCalledWith(
+      expectedDto,
+      ENTRY_SUCCESS_MESSAGES.listUpdated,
+    );
+  });
+
+  it('onUpdateApplication maps errors from stored result changes and does not update the entry', () => {
+    const payload = makeResultPayload({
+      existingToUpdate: [
+        {
+          resultId: 'R-1',
+          resultCode: 'RC2',
+          wordingFields: [{ key: 'Court', value: 'Court A' }],
+        },
+      ],
+    });
+    const expectedDto: EntryUpdateDto = {
+      applicationCode: 'APP-1',
+    };
+    const error = new Error('result update failed');
+    component['appListEntryDetailPatch']({
+      pendingResults: true,
+      resultsPayload: { listId: 'AL-1', entryId: 'EN-1', payload },
+    });
+    component['runFullSubmitValidation'] = jest.fn().mockReturnValue(false);
+    component['buildEntryUpdateDto'] = jest.fn().mockReturnValue(expectedDto);
+    component['submitEntryUpdate'] = jest.fn();
+    component['applyMappedError'] = jest.fn();
+    jest
+      .spyOn(component.resultsFacade, 'submitResultChanges')
+      .mockImplementation(
+        (_listId, _entryId, _payload, _onSuccess, onError) => {
+          onError?.(error);
+        },
+      );
+
+    component.onUpdateApplication();
+
+    expect(component['applyMappedError']).toHaveBeenCalledWith(error);
+    expect(component['appListEntryDetailState']().pendingResults).toBe(true);
+    expect(component['submitEntryUpdate']).not.toHaveBeenCalled();
   });
 });
 

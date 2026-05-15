@@ -15,8 +15,10 @@ import {
   input,
   output,
   signal,
+  untracked,
 } from '@angular/core';
 
+import { AlertComponent } from '@components/alert/alert.component';
 import { RESULT_WORDING_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import {
   ApplicantContext,
@@ -53,6 +55,7 @@ import { ResultRow, toExistingRows } from '@util/result-code-helpers';
     SummaryListCardActionComponent,
     WordingParserComponent,
     SortableTableComponent,
+    AlertComponent,
   ],
 })
 export class ResultWordingSectionComponent {
@@ -67,6 +70,7 @@ export class ResultWordingSectionComponent {
   caption = input<string>('You are resulting the following application(s)');
   captionSize = input<'s' | 'm' | 'l'>('s');
   buttonText = input<string>('Apply result');
+  markSubmittedResultsApplied = input(false);
 
   removeExisting = output<string>();
   pendingChange = output<PendingResultRow[]>();
@@ -74,12 +78,19 @@ export class ResultWordingSectionComponent {
 
   wordingFieldErrors = output<ErrorItem[]>();
 
+  showAppliedBanner = input(false);
+  appliedBannerDismissed = output<void>();
+
   private readonly pending = signal<PendingResultRow[]>([]);
   private readonly pendingVersion = signal(0);
   private readonly appliedVersion = signal(0);
+  private lastProcessedClearPendingToken = 0;
   readonly wordingSubmitAttempt = signal(0);
   private readonly currentWordingErrors = signal<ErrorItem[]>([]);
   private readonly existingWordingDraftById = signal<
+    Record<string, TemplateSubstitution[]>
+  >({});
+  private readonly appliedExistingWordingDraftById = signal<
     Record<string, TemplateSubstitution[]>
   >({});
 
@@ -98,11 +109,17 @@ export class ResultWordingSectionComponent {
   constructor() {
     effect(() => {
       const token = this.clearPendingToken(); // reading the input signal tracks it
-      if (token === 0) {
+      if (token === 0 || token === this.lastProcessedClearPendingToken) {
         return;
       }
 
-      if (this.pendingVersion() === this.appliedVersion()) {
+      this.lastProcessedClearPendingToken = token;
+
+      const shouldClearPending = untracked(
+        () => this.pendingVersion() === this.appliedVersion(),
+      );
+
+      if (shouldClearPending) {
         this.pending.set([]);
         this.pendingChange.emit(this.pending());
         this.resultCodeSearch = '';
@@ -123,6 +140,10 @@ export class ResultWordingSectionComponent {
     return this.resultCodesList()
       .filter((rc) => this.norm(`${rc.resultCode} ${rc.title}`).includes(q))
       .slice(0, 50);
+  }
+
+  onAppliedBannerDismissed(): void {
+    this.appliedBannerDismissed.emit();
   }
 
   readonly tableRows = computed<ResultRow[]>(() => {
@@ -196,19 +217,27 @@ export class ResultWordingSectionComponent {
   readonly hasExistingEdits = computed(() => {
     const draftById = this.existingWordingDraftById();
     const originalById = this.existingOriginalFieldsById();
+    const appliedById = this.appliedExistingWordingDraftById();
 
     return this.existingRows()
       .filter((row) => this.shouldRenderParserForRow(row))
       .some((row) => {
         const originalFields = originalById[row.id] ?? [];
-        const nextFields = draftById[row.id] ?? originalFields;
+        const baselineFields = appliedById[row.id] ?? originalFields;
+        const nextFields = draftById[row.id] ?? baselineFields;
 
-        return !this.areWordingFieldsEqual(originalFields, nextFields);
+        return !this.areWordingFieldsEqual(baselineFields, nextFields);
       });
   });
 
+  readonly hasPendingChanges = computed(
+    () =>
+      this.pending().length > 0 &&
+      this.pendingVersion() !== this.appliedVersion(),
+  );
+
   readonly canSubmitResults = computed(
-    () => this.pending().length > 0 || this.hasExistingEdits(),
+    () => this.hasPendingChanges() || this.hasExistingEdits(),
   );
 
   selectResultCode(item: ResultCodeGetSummaryDto): void {
@@ -355,6 +384,16 @@ export class ResultWordingSectionComponent {
       ...pendingRow,
       wordingFields: dto.wordingFields ?? [],
     };
+
+    if (
+      !this.areWordingFieldsEqual(
+        pendingRow.wordingFields ?? [],
+        updated.wordingFields,
+      )
+    ) {
+      this.pendingVersion.update((n) => n + 1);
+    }
+
     this.pending.set([updated]);
     this.pendingChange.emit(this.pending());
     this.handleValidationResponse(card.id, []);
@@ -373,6 +412,10 @@ export class ResultWordingSectionComponent {
     if (nextErrors.length > 0) {
       this.handleValidationResponse(card.id, nextErrors);
     }
+  }
+
+  hasUnappliedChanges(): boolean {
+    return this.canSubmitResults();
   }
 
   private removePending(tempId: string): void {
@@ -504,9 +547,11 @@ export class ResultWordingSectionComponent {
 
     if (payload.pendingToCreate.length > 0) {
       this.appliedVersion.set(this.pendingVersion());
-      this.pending.set([]);
-      this.pendingChange.emit(this.pending());
       this.resultCodeSearch = '';
+    }
+
+    if (this.markSubmittedResultsApplied()) {
+      this.markExistingDraftsApplied(payload.existingToUpdate);
     }
 
     this.submitResults.emit(payload);
@@ -516,14 +561,16 @@ export class ResultWordingSectionComponent {
     const pendingToCreate = this.pending().slice(0, 1);
     const draftById = this.existingWordingDraftById();
     const originalById = this.existingOriginalFieldsById();
+    const appliedById = this.appliedExistingWordingDraftById();
 
     const existingToUpdate = this.existingRows()
       .filter((row) => this.shouldRenderParserForRow(row))
       .map<UpdateExistingResultWordingPayload | null>((row) => {
-        const nextFields = draftById[row.id] ?? [];
         const originalFields = originalById[row.id] ?? [];
+        const baselineFields = appliedById[row.id] ?? originalFields;
+        const nextFields = draftById[row.id] ?? baselineFields;
 
-        if (this.areWordingFieldsEqual(originalFields, nextFields)) {
+        if (this.areWordingFieldsEqual(baselineFields, nextFields)) {
           return null;
         }
 
@@ -539,6 +586,24 @@ export class ResultWordingSectionComponent {
       pendingToCreate,
       existingToUpdate,
     };
+  }
+
+  private markExistingDraftsApplied(
+    existingToUpdate: UpdateExistingResultWordingPayload[],
+  ): void {
+    if (existingToUpdate.length === 0) {
+      return;
+    }
+
+    this.appliedExistingWordingDraftById.update((current) => {
+      const next = { ...current };
+
+      for (const item of existingToUpdate) {
+        next[item.resultId] = item.wordingFields.map((field) => ({ ...field }));
+      }
+
+      return next;
+    });
   }
 
   private areWordingFieldsEqual(
