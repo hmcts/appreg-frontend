@@ -2,6 +2,23 @@ import { TableSearch } from '../../../../support/helper/table/TableSearch';
 import { StringUtils } from '../../../utils/StringUtils';
 
 export class TableElement {
+  private static readonly tableHeaderSelector = 'thead th';
+  private static readonly tableBodyRowSelector = 'tbody tr';
+  private static readonly checkboxSelector = 'input[type="checkbox"]';
+  private static readonly menuContainerSelector =
+    'ul[role="list"], ul[role="menu"], .dropdown-menu, .actions-menu';
+  private static readonly captionMenuToggleSelector =
+    '.moj-button-menu__toggle-button';
+  private static readonly captionMenuItemSelector = '.moj-button-menu__item';
+  private static readonly paginationNavSelector =
+    'nav[role="navigation"][aria-label*="agination"]';
+  private static readonly paginationClassSelector =
+    '.pagination, [class*="pagination"]';
+  private static readonly pageLinkSelector = 'a[aria-label^="Page "]';
+  private static readonly activePageLinkSelector =
+    'a[aria-current="page"][aria-label^="Page "]';
+  private static readonly rowLinkSelector = 'a, button[role="link"]';
+
   /**
    * Finds a table by its caption text or returns the first table if no caption provided
    * @param caption Optional caption text of the table
@@ -33,7 +50,7 @@ export class TableElement {
   static getTableHeaders(
     tableCaption?: string,
   ): Cypress.Chainable<JQuery<HTMLElement>> {
-    return this.findTable(tableCaption).find('thead th');
+    return this.findTable(tableCaption).find(this.tableHeaderSelector);
   }
 
   /**
@@ -43,7 +60,7 @@ export class TableElement {
   static getTableRows(
     tableCaption?: string,
   ): Cypress.Chainable<JQuery<HTMLTableRowElement>> {
-    return this.findTable(tableCaption).find('tbody tr');
+    return this.findTable(tableCaption).find(this.tableBodyRowSelector);
   }
 
   /**
@@ -81,7 +98,7 @@ export class TableElement {
       .wrap(row)
       .find('td')
       .last()
-      .find('ul[role="list"], ul[role="menu"], .dropdown-menu, .actions-menu')
+      .find(this.menuContainerSelector)
       .should('be.visible')
       .find('button, a')
       .filter(
@@ -132,7 +149,7 @@ export class TableElement {
   static getCheckboxInRow(
     row: JQuery<HTMLElement>,
   ): Cypress.Chainable<JQuery<HTMLElement>> {
-    return cy.wrap(row).find('td').first().find('input[type="checkbox"]');
+    return cy.wrap(row).find('td').first().find(this.checkboxSelector);
   }
 
   /**
@@ -144,7 +161,7 @@ export class TableElement {
   ): Cypress.Chainable<JQuery<HTMLElement>> {
     return this.findTable(tableCaption)
       .find('thead')
-      .find('input[type="checkbox"]')
+      .find(this.checkboxSelector)
       .first();
   }
 
@@ -159,7 +176,7 @@ export class TableElement {
   ): Cypress.Chainable<JQuery<HTMLElement>> {
     return cy
       .contains('caption', tableCaption, { matchCase: false })
-      .find('.moj-button-menu__toggle-button')
+      .find(this.captionMenuToggleSelector)
       .filter((_, el) =>
         StringUtils.normalizeText(Cypress.$(el).text()).includes(
           StringUtils.normalizeText(toggleButtonText),
@@ -179,7 +196,7 @@ export class TableElement {
   ): Cypress.Chainable<JQuery<HTMLElement>> {
     return cy
       .contains('caption', tableCaption, { matchCase: false })
-      .find('.moj-button-menu__item')
+      .find(this.captionMenuItemSelector)
       .filter(
         (_, el) =>
           StringUtils.normalizeText(Cypress.$(el).text()) ===
@@ -206,11 +223,9 @@ export class TableElement {
     $body: JQuery<HTMLElement>,
   ): JQuery<HTMLElement> {
     // Try multiple selectors to be framework-agnostic
-    let $pagination = $body.find(
-      'nav[role="navigation"][aria-label*="agination"]',
-    );
+    let $pagination = $body.find(this.paginationNavSelector);
     if ($pagination.length === 0) {
-      $pagination = $body.find('.pagination, [class*="pagination"]');
+      $pagination = $body.find(this.paginationClassSelector);
     }
     return $pagination;
   }
@@ -225,7 +240,7 @@ export class TableElement {
     if ($pagination.length === 0) {
       return Cypress.$();
     }
-    return $pagination.find('a[aria-label^="Page "]');
+    return $pagination.find(this.pageLinkSelector);
   }
 
   /**
@@ -234,9 +249,7 @@ export class TableElement {
    * @returns The current page number, or 1 if not found
    */
   static getCurrentPageNumber($body: JQuery<HTMLElement>): number {
-    const $currentPage = $body.find(
-      'a[aria-current="page"][aria-label^="Page "]',
-    );
+    const $currentPage = $body.find(this.activePageLinkSelector);
     if ($currentPage.length > 0) {
       const ariaLabel = $currentPage.attr('aria-label') || '';
       const match = ariaLabel.match(/Page (\d+)/);
@@ -252,7 +265,7 @@ export class TableElement {
    * @returns Cypress chainable of the active page anchor
    */
   static getActivePageLink(): Cypress.Chainable<JQuery<HTMLElement>> {
-    return cy.get('a[aria-current="page"][aria-label^="Page "]');
+    return cy.get(this.activePageLinkSelector);
   }
 
   /**
@@ -276,7 +289,7 @@ export class TableElement {
     buttonText: string,
   ): Cypress.Chainable<void> {
     return this.findTable(tableCaption)
-      .find('tbody tr')
+      .find(this.tableBodyRowSelector)
       .find('td')
       .last()
       .find('button')
@@ -317,7 +330,7 @@ export class TableElement {
   ): Cypress.Chainable {
     return TableElement.findTable(tableName)
       .contains('tr', Object.values(rowData)[0] ?? '')
-      .find('a, button[role="link"]')
+      .find(this.rowLinkSelector)
       .contains(linkText);
   }
 
@@ -338,7 +351,7 @@ export class TableElement {
   ): Cypress.Chainable<JQuery<HTMLElement>> {
     return cy
       .wrap(row)
-      .find('a, button[role="link"]')
+      .find(this.rowLinkSelector)
       .filter((_, el) =>
         StringUtils.normalizeText(Cypress.$(el).text()).includes(
           StringUtils.normalizeText(linkText),

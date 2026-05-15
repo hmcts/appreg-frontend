@@ -1,6 +1,14 @@
 /// <reference types="cypress" />
 
 export class SummaryCardElement {
+  private static readonly summaryCardTitleSelector =
+    '.govuk-summary-card__title';
+  private static readonly summaryCardSelector = '.govuk-summary-card';
+  private static readonly summaryCardContentSelector =
+    '.govuk-summary-card__content';
+  private static readonly summaryCardTagSelector = '.govuk-tag';
+  private static readonly summaryCardLinkSelector = 'a.govuk-link';
+
   /**
    * Find a summary card by its title
    */
@@ -8,9 +16,9 @@ export class SummaryCardElement {
     cardTitle: string,
   ): Cypress.Chainable<JQuery<HTMLElement>> {
     return cy
-      .contains('.govuk-summary-card__title', cardTitle, { matchCase: false })
+      .contains(this.summaryCardTitleSelector, cardTitle, { matchCase: false })
       .should('be.visible')
-      .closest('.govuk-summary-card');
+      .closest(this.summaryCardSelector);
   }
 
   /**
@@ -19,7 +27,9 @@ export class SummaryCardElement {
   static getSummaryCardContent(
     cardTitle: string,
   ): Cypress.Chainable<JQuery<HTMLElement>> {
-    return this.findSummaryCard(cardTitle).find('.govuk-summary-card__content');
+    return this.findSummaryCard(cardTitle).find(
+      this.summaryCardContentSelector,
+    );
   }
 
   /**
@@ -40,7 +50,7 @@ export class SummaryCardElement {
   static findTagInCard(
     cardTitle: string,
   ): Cypress.Chainable<JQuery<HTMLElement>> {
-    return this.findSummaryCard(cardTitle).find('.govuk-tag');
+    return this.findSummaryCard(cardTitle).find(this.summaryCardTagSelector);
   }
 
   /**
@@ -50,6 +60,9 @@ export class SummaryCardElement {
     cardTitle: string,
     linkText: string,
   ): Cypress.Chainable<JQuery<HTMLElement>> {
-    return this.findSummaryCard(cardTitle).contains('a.govuk-link', linkText);
+    return this.findSummaryCard(cardTitle).contains(
+      this.summaryCardLinkSelector,
+      linkText,
+    );
   }
 }

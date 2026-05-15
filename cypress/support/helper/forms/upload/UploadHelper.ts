@@ -36,5 +36,7 @@ export class UploadHelper {
 
     // Wait for job to complete
     UploadElement.getBulkProgress(120000).should('not.exist');
+
+    cy.url().should('not.include', 'bulkUploadJobId');
   }
 }
