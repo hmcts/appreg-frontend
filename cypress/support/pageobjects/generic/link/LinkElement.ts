@@ -1,10 +1,14 @@
 /// <reference types="cypress" />
 
 export class LinkElement {
+  private static readonly linkSelector = 'a, button[role="link"]';
+  private static readonly breadcrumbNavSelector =
+    'nav[aria-label="breadcrumb"], nav[aria-label="Breadcrumb"], nav[role="navigation"], .breadcrumb, nav.breadcrumbs';
+
   static findLink(linkText: string, exact: boolean = false): Cypress.Chainable {
     if (!exact) {
       // preserve previous substring matching behavior (no change to tests)
-      return cy.contains('a, button[role="link"]', linkText);
+      return cy.contains(this.linkSelector, linkText);
     }
 
     // escape regex metacharacters in the provided text
@@ -14,7 +18,7 @@ export class LinkElement {
     const escaped = escapeRegExp(linkText);
     // match the exact text, allowing leading/trailing whitespace
     const exactRegex = new RegExp(String.raw`^\s*${escaped}\s*$`);
-    return cy.contains('a, button[role="link"]', exactRegex);
+    return cy.contains(this.linkSelector, exactRegex);
   }
 
   static findLinkExact(linkText: string): Cypress.Chainable {
@@ -22,10 +26,6 @@ export class LinkElement {
   }
 
   static findBreadcrumbLink(breadcrumbLinkText: string): Cypress.Chainable {
-    return cy
-      .get(
-        'nav[aria-label="breadcrumb"], nav[aria-label="Breadcrumb"], nav[role="navigation"], .breadcrumb, nav.breadcrumbs',
-      )
-      .contains('a', breadcrumbLinkText);
+    return cy.get(this.breadcrumbNavSelector).contains('a', breadcrumbLinkText);
   }
 }

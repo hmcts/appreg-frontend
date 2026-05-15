@@ -1,4 +1,9 @@
 export class DropdownElement {
+  private static readonly dropdownSelector =
+    'select, [role="combobox"], [role="listbox"]';
+  private static readonly dropdownWithLabelSelector =
+    'select, [role="combobox"], [role="listbox"], .dropdown, .select, label';
+
   /**
    * Finds a dropdown within a given jQuery root element (e.g. a fieldset).
    * Uses synchronous jQuery to avoid cy.within() nesting issues.
@@ -20,18 +25,12 @@ export class DropdownElement {
       }
     }
     // Fallback: first select/combobox inside root
-    return cy.wrap(
-      $root.find('select, [role="combobox"], [role="listbox"]').first(),
-    );
+    return cy.wrap($root.find(this.dropdownSelector).first());
   }
 
   static findDropdown(name: string): Cypress.Chainable<JQuery<HTMLElement>> {
     return cy
-      .contains(
-        'select, [role="combobox"], [role="listbox"], .dropdown, .select, label',
-        name,
-        { matchCase: false },
-      )
+      .contains(this.dropdownWithLabelSelector, name, { matchCase: false })
       .then(($element) => {
         // If we found a label, look for its associated dropdown
         if ($element.is('label')) {
@@ -42,7 +41,7 @@ export class DropdownElement {
             return cy
               .wrap($element)
               .parent()
-              .find('select, [role="combobox"], [role="listbox"]')
+              .find(this.dropdownSelector)
               .first();
           }
         }

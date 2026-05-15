@@ -1,6 +1,15 @@
 /// <reference types="cypress" />
 
 export class AccordionElement {
+  private static readonly accordionHeadingSelector =
+    '.govuk-accordion__section-heading-text-focus';
+  private static readonly detailsSummarySelector =
+    '.govuk-details__summary-text';
+  private static readonly accordionSectionSelector =
+    '.govuk-accordion__section, details';
+  private static readonly accordionButtonSelector =
+    '.govuk-accordion__section-button, .govuk-details__summary';
+
   private static findElementByText(
     accordionTitle: string,
     accordionSelector: string,
@@ -48,10 +57,10 @@ export class AccordionElement {
   ): Cypress.Chainable<JQuery<HTMLElement>> {
     return this.findElementByText(
       accordionTitle,
-      '.govuk-accordion__section-heading-text-focus',
-      '.govuk-details__summary-text',
+      this.accordionHeadingSelector,
+      this.detailsSummarySelector,
     ).then(($el) => {
-      const $section = $el.closest('.govuk-accordion__section, details');
+      const $section = $el.closest(this.accordionSectionSelector);
       return cy.wrap($section) as unknown as Cypress.Chainable<
         JQuery<HTMLElement>
       >;
@@ -63,12 +72,10 @@ export class AccordionElement {
   ): Cypress.Chainable<JQuery<HTMLElement>> {
     return this.findElementByText(
       accordionTitle,
-      '.govuk-accordion__section-heading-text-focus',
-      '.govuk-details__summary-text',
+      this.accordionHeadingSelector,
+      this.detailsSummarySelector,
     ).then(($el) => {
-      const $button = $el.closest(
-        '.govuk-accordion__section-button, .govuk-details__summary',
-      );
+      const $button = $el.closest(this.accordionButtonSelector);
       return cy.wrap($button) as unknown as Cypress.Chainable<
         JQuery<HTMLElement>
       >;
