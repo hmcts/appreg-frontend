@@ -38,6 +38,19 @@
   animation: bulk-upload-spin 0.9s linear infinite;
 }
 
+.table-caption__actions {
+  float: right;
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.table-caption__actions .moj-button-menu,
+.table-caption__action-button {
+  margin-bottom: 1.75rem;
+}
+
 @keyframes bulk-upload-spin {
   from {
     transform: rotate(0deg);
