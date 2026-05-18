@@ -24,3 +24,27 @@ Feature: Fees Report
             | Fee amount            |
             | Fee type              |
             | Criminal justice area |
+
+    Scenario: Fee Report - Download Report for Criminal Justice Area
+        Given User Has No Downloaded CSVs
+        Given User Is On The Portal Page
+        When User Signs In With Microsoft SSO As "user1"
+        Then User Clicks On The Link Using Exact Text Match "Reports"
+        Then User Verify The Page URL Contains "/reports"
+        When User Selects The Radio Button "Fees"
+        When User Set Date Field "Date from" To "27/03/2007"
+        When User Set Date Field "Date to" To "27/03/2007"
+        Then User Selects "London" From The Textbox "Criminal Justice Area" Autocomplete By Typing "01"
+        Then User Enters "APP001" Into The "Applicant code" Textbox
+        Then User Enters "Smith" Into The "Surname or organisation" Textbox
+        When User Clicks On The "Download" Button
+        Then User Verifies The Downloaded CSV Has Headers:
+            | Application date      |
+            | Court                 |
+            | Application code      |
+            | Applicant code        |
+            | Applicant name        |
+            | Respondent name       |
+            | Fee amount            |
+            | Fee type              |
+            | Criminal justice area |

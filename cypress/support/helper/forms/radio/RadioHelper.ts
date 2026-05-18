@@ -1,7 +1,9 @@
 import { RadioElement } from '../../../pageobjects/generic/radio/radioElement';
 
 export class RadioHelper {
-  static select(labelText: string): Cypress.Chainable<JQuery<HTMLInputElement>> {
+  static select(
+    labelText: string,
+  ): Cypress.Chainable<JQuery<HTMLInputElement>> {
     return RadioElement.findRadio(labelText).check({ force: true });
   }
 
