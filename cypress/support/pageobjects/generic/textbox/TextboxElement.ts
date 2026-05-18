@@ -24,17 +24,23 @@ export class TextboxElement {
         if ($el.is('label')) {
           const forAttr = $el.attr('for');
           if (forAttr) {
+            // Scope to the parent form group to handle duplicate IDs on the page
+            const $formGroup = $el.closest('.govuk-form-group');
+            if ($formGroup.length) {
+              return cy
+                .wrap($formGroup)
+                .find('input, textarea, select')
+                .first();
+            }
+            // Fallback: global ID lookup for unique IDs
             return cy.get(`#${forAttr}`).then(($target) => {
-              // If target is already an input/textarea/select, use it directly
               if ($target.is('input, textarea, select')) {
                 return cy.wrap($target);
               }
-              // If target is a container (component), look for input inside
               const inputInside = $target.find('input, textarea, select');
               if (inputInside.length > 0) {
                 return cy.wrap(inputInside.first());
               }
-              // Fallback: return the target as-is (might be a custom component)
               return cy.wrap($target);
             });
           }
