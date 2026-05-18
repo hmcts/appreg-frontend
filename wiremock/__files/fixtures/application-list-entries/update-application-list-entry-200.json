@@ -25,8 +25,8 @@
     "person": {
       "fullName": {
         "title": "Mr",
-        "forenames": "John",
-        "surname": "Smith"
+        "firstName": "John",
+        "lastName": "Smith"
       },
       "dateOfBirth": "1983-05-19",
       "contactDetails": {

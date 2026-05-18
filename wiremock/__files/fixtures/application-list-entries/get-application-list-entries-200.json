@@ -21,10 +21,8 @@
                 "person": {
                     "name": {
                         "title": null,
-                        "surname": "asdf",
-                        "firstForename": "asdf",
-                        "secondForename": null,
-                        "thirdForename": null
+                        "lastName": "asdf",
+                        "firstName": "asdf"
                     },
                     "contactDetails": {
                         "addressLine1": "asdfasdf",
@@ -61,10 +59,8 @@
                 "person": {
                     "name": {
                         "title": null,
-                        "surname": "asdf",
-                        "firstForename": "asdf",
-                        "secondForename": null,
-                        "thirdForename": null
+                        "lastName": "asdf",
+                        "firstName": "asdf"
                     },
                     "contactDetails": {
                         "addressLine1": "asdf",
@@ -101,10 +97,8 @@
                 "person": {
                     "name": {
                         "title": null,
-                        "surname": "asdf",
-                        "firstForename": "asdf",
-                        "secondForename": null,
-                        "thirdForename": null
+                        "lastName": "asdf",
+                        "firstName": "asdf"
                     },
                     "contactDetails": {
                         "addressLine1": "asdf",
@@ -141,10 +135,8 @@
                 "person": {
                     "name": {
                         "title": null,
-                        "surname": "Bradely",
-                        "firstForename": "Chocolate",
-                        "secondForename": null,
-                        "thirdForename": null
+                        "lastName": "Bradely",
+                        "firstName": "Chocolate"
                     },
                     "contactDetails": {
                         "addressLine1": "asdfasdf",
@@ -181,10 +173,8 @@
                 "person": {
                     "name": {
                         "title": null,
-                        "surname": "Cooper",
-                        "firstForename": "Breadly",
-                        "secondForename": null,
-                        "thirdForename": null
+                        "lastName": "Cooper",
+                        "firstName": "Breadly"
                     },
                     "contactDetails": {
                         "addressLine1": "123 Chocolate Lane",
@@ -221,10 +211,8 @@
                 "person": {
                     "name": {
                         "title": null,
-                        "surname": "Cooper",
-                        "firstForename": "Bradely",
-                        "secondForename": null,
-                        "thirdForename": null
+                        "lastName": "Cooper",
+                        "firstName": "Bradely"
                     },
                     "contactDetails": {
                         "addressLine1": "123 asdfasdfasdf",
@@ -274,10 +262,8 @@
                 "person": {
                     "name": {
                         "title": null,
-                        "surname": "asdfasdf",
-                        "firstForename": "asdf",
-                        "secondForename": null,
-                        "thirdForename": null
+                        "lastName": "asdfasdf",
+                        "firstName": "asdf"
                     },
                     "contactDetails": {
                         "addressLine1": "asdfasdf",
@@ -314,10 +300,8 @@
                 "person": {
                     "name": {
                         "title": null,
-                        "surname": "asdfasdf",
-                        "firstForename": "asdfasdf",
-                        "secondForename": null,
-                        "thirdForename": null
+                        "lastName": "asdfasdf",
+                        "firstName": "asdfasdf"
                     },
                     "contactDetails": {
                         "addressLine1": "asdfasdf",
@@ -351,10 +335,8 @@
                 "person": {
                     "name": {
                         "title": null,
-                        "surname": "Blooer",
-                        "firstForename": "Simon",
-                        "secondForename": null,
-                        "thirdForename": null
+                        "lastName": "Blooer",
+                        "firstName": "Simon"
                     },
                     "contactDetails": {
                         "addressLine1": "32 Nederlunds Av",
@@ -388,10 +370,8 @@
                 "person": {
                     "name": {
                         "title": null,
-                        "surname": "Duels",
-                        "firstForename": "Terry",
-                        "secondForename": null,
-                        "thirdForename": null
+                        "lastName": "Duels",
+                        "firstName": "Terry"
                     },
                     "contactDetails": {
                         "addressLine1": "43 Chocolate",

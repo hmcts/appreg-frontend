@@ -11,10 +11,8 @@
         "person": {
           "name": {
             "title": null,
-            "surname": null,
-            "firstForename": null,
-            "secondForename": null,
-            "thirdForename": null
+            "lastName": null,
+            "firstName": null
           },
           "contactDetails": {
             "address": {
@@ -51,10 +49,8 @@
         "person": {
           "name": {
             "title": null,
-            "surname": "Smith",
-            "firstForename": "John",
-            "secondForename": null,
-            "thirdForename": null
+            "lastName": "Smith",
+            "firstName": "John"
           },
           "contactDetails": null
         },
@@ -78,10 +74,8 @@
         "person": {
           "name": {
             "title": null,
-            "surname": null,
-            "firstForename": null,
-            "secondForename": null,
-            "thirdForename": null
+            "lastName": null,
+            "firstName": null
           },
           "contactDetails": null
         },
@@ -94,10 +88,8 @@
         "person": {
           "name": {
             "title": null,
-            "surname": "Doe",
-            "firstForename": "Jane",
-            "secondForename": null,
-            "thirdForename": null
+            "lastName": "Doe",
+            "firstName": "Jane"
           },
           "contactDetails": {
             "address": {
@@ -133,10 +125,8 @@
         "person": {
           "name": {
             "title": null,
-            "surname": null,
-            "firstForename": null,
-            "secondForename": null,
-            "thirdForename": null
+            "lastName": null,
+            "firstName": null
           },
           "contactDetails": null
         },
@@ -149,10 +139,8 @@
         "person": {
           "name": {
             "title": null,
-            "surname": "Green",
-            "firstForename": "Michael",
-            "secondForename": null,
-            "thirdForename": null
+            "lastName": "Green",
+            "firstName": "Michael"
           },
           "contactDetails": null
         },

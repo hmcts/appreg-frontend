@@ -24,8 +24,8 @@
     "person": {
       "name": {
         "title": "Dr",
-        "firstForename": "Alex",
-        "surname": "Taylor"
+        "firstName": "Alex",
+        "lastName": "Taylor"
       },
       "contactDetails": {
         "addressLine1": "123 road drive",
@@ -64,17 +64,17 @@
   "lodgementDate": "2025-12-01",
   "officials": [{
       "title": "Mrs",
-      "surname": "Smith",
+      "lastName": "Smith",
       "forename": "John",
       "type": "MAGISTRATE"
     }, {
       "title": "Mrs",
-      "surname": "fda",
+      "lastName": "fda",
       "forename": "cdcd",
       "type": "MAGISTRATE"
     },{
       "title": "Mr, Mrs",
-      "surname": "Smith",
+      "lastName": "Smith",
       "forename": "John",
       "type": "CLERK"
     }]

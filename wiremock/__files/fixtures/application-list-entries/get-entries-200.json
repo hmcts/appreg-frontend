@@ -36,10 +36,9 @@
         "person": {
           "name": {
             "title": "Mrs",
-            "surname": "Johnson",
-            "firstForename": "Sarah",
-            "secondForename": null,
-            "thirdForename": null
+            "lastName": "Johnson",
+            "firstName": "Sarah",
+            "middleName": null
           },
           "contactDetails": {
             "addressLine1": "12 The Avenue",
@@ -69,10 +68,8 @@
         "person": {
           "name": {
             "title": "Mr",
-            "surname": "Scott",
-            "firstForename": "William",
-            "secondForename": null,
-            "thirdForename": null
+            "lastName": "Scott",
+            "firstName": "William"
           },
           "contactDetails": {
             "addressLine1": "159 Spruce Avenue",
@@ -119,10 +116,8 @@
         "person": {
           "name": {
             "title": "Ms",
-            "surname": "Patel",
-            "firstForename": "Aisha",
-            "secondForename": null,
-            "thirdForename": null
+            "lastName": "Patel",
+            "firstName": "Aisha"
           },
           "contactDetails": {
             "addressLine1": "44 King Street",
@@ -142,10 +137,8 @@
         "person": {
           "name": {
             "title": "Mr",
-            "surname": "Hughes",
-            "firstForename": "Daniel",
-            "secondForename": null,
-            "thirdForename": null
+            "lastName": "Hughes",
+            "firstName": "Daniel"
           },
           "contactDetails": {
             "addressLine1": "8 Meadow Close",
@@ -192,10 +185,9 @@
         "person": {
           "name": {
             "title": "Ms",
-            "surname": "O'Neill",
-            "firstForename": "Fiona",
-            "secondForename": "Marie",
-            "thirdForename": null
+            "lastName": "O'Neill",
+            "firstName": "Fiona",
+            "middleName": "Marie"
           },
           "contactDetails": {
             "addressLine1": "23 North Road",
@@ -225,10 +217,8 @@
         "person": {
           "name": {
             "title": "Mr",
-            "surname": "Evans",
-            "firstForename": "Thomas",
-            "secondForename": null,
-            "thirdForename": null
+            "lastName": "Evans",
+            "firstName": "Thomas"
           },
           "contactDetails": {
             "addressLine1": "71 Oak Lane",
@@ -292,10 +282,8 @@
         "person": {
           "name": {
             "title": "Mr",
-            "surname": "Miller",
-            "firstForename": "James",
-            "secondForename": null,
-            "thirdForename": null
+            "lastName": "Miller",
+            "firstName": "James"
           },
           "contactDetails": {
             "addressLine1": "5 Seaview Terrace",
@@ -325,10 +313,8 @@
         "person": {
           "name": {
             "title": "Dr",
-            "surname": "Reed",
-            "firstForename": "Helen",
-            "secondForename": null,
-            "thirdForename": null
+            "lastName": "Reed",
+            "firstName": "Helen"
           },
           "contactDetails": {
             "addressLine1": "2 Bridge Street",
@@ -392,10 +378,8 @@
         "person": {
           "name": {
             "title": "Mrs",
-            "surname": "Green",
-            "firstForename": "Emily",
-            "secondForename": null,
-            "thirdForename": null
+            "lastName": "Green",
+            "firstName": "Emily"
           },
           "contactDetails": {
             "addressLine1": "90 High Street",
@@ -425,10 +409,9 @@
         "person": {
           "name": {
             "title": "Mr",
-            "surname": "Brown",
-            "firstForename": "Oliver",
-            "secondForename": "James",
-            "thirdForename": null
+            "lastName": "Brown",
+            "firstName": "Oliver",
+            "middleName": "James"
           },
           "contactDetails": {
             "addressLine1": "11 Maple Drive",
@@ -492,10 +475,8 @@
         "person": {
           "name": {
             "title": "Mr",
-            "surname": "Khan",
-            "firstForename": "Imran",
-            "secondForename": null,
-            "thirdForename": null
+            "lastName": "Khan",
+            "firstName": "Imran"
           },
           "contactDetails": {
             "addressLine1": "3 Cedar Court",
