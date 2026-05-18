@@ -5,7 +5,7 @@
   <version>1.0</version>
 
   <properties>
-    <spec.version>0.1.312</spec.version>
+    <spec.version>0.1.315</spec.version>
     <out.dir>${project.basedir}/../openapi/vendor/openapi</out.dir>
   </properties>
 
