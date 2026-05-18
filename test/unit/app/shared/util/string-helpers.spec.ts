@@ -143,10 +143,9 @@ describe('formatFullName', () => {
     expect(
       formatFullName({
         title: 'Mr',
-        firstForename: 'John',
-        secondForename: 'Paul',
-        thirdForename: 'George',
-        surname: 'Smith',
+        firstName: 'John',
+        middleName: 'Paul',
+        lastName: 'Smith',
       }),
     ).toBe('John Smith');
   });
@@ -155,10 +154,9 @@ describe('formatFullName', () => {
     expect(
       formatFullName({
         title: 'Mr',
-        firstForename: 'John',
-        secondForename: null,
-        thirdForename: undefined,
-        surname: 'Smith',
+        firstName: 'John',
+        middleName: null,
+        lastName: 'Smith',
       }),
     ).toBe('John Smith');
   });
@@ -176,10 +174,9 @@ describe('formatPersonName', () => {
       person: {
         name: {
           title: 'Mr',
-          firstForename: 'John',
-          secondForename: 'Paul',
-          thirdForename: 'George',
-          surname: 'Smith',
+          firstName: 'John',
+          middleName: 'Paul',
+          lastName: 'Smith',
         },
       },
     } as Applicant;
@@ -192,10 +189,8 @@ describe('formatPersonName', () => {
       person: {
         name: {
           title: 'Mr',
-          firstForename: 'John',
-          secondForename: null,
-          thirdForename: undefined,
-          surname: 'Smith',
+          firstName: 'John',
+          lastName: 'Smith',
         },
       },
     } as Applicant;
@@ -242,8 +237,8 @@ describe('formatPartyName', () => {
       person: {
         name: {
           title: 'Ms',
-          firstForename: 'Jane',
-          surname: 'Doe',
+          firstName: 'Jane',
+          lastName: 'Doe',
         },
       },
     } as Applicant;

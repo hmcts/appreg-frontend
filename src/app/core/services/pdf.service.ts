@@ -703,10 +703,12 @@ export class PdfService {
       // Assemble the usual suspects; trim out placeholder tokens.
       const parts = this.dedupeParts([
         this.firstTitleToken(name?.['title']),
-        this.cleanPart(name?.['firstForename'] ?? name?.['forename']),
-        this.cleanPart(name?.['secondForename'] ?? name?.['middleNames']),
-        this.cleanPart(name?.['thirdForename']),
-        this.cleanPart(name?.['surname']),
+        this.cleanPart(
+          name?.['firstName'] ?? name?.['forename'] ?? name?.['firstForename'],
+        ),
+        this.cleanPart(name?.['middleName'] ?? name?.['secondForename']),
+        // this.cleanPart(name?.['thirdForename'] ?? name?.['middleName']),
+        this.cleanPart(name?.['lastName'] ?? name?.['surname']),
       ]).filter(Boolean);
 
       const full = parts.join(' ').trim();

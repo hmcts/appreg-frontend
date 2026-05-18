@@ -83,9 +83,9 @@ function buildApplicant(
       person: {
         name: {
           title: toOptionalTrimmed(pf.title),
-          firstForename: first,
-          secondForename: toOptionalTrimmed(pf.middleNames),
-          surname: sur,
+          firstName: first,
+          middleName: toOptionalTrimmed(pf.middleNames),
+          lastName: sur,
         },
         contactDetails: makeContactDetails(pf),
       },
@@ -140,9 +140,9 @@ function buildRespondent(
       person: {
         name: {
           title: toOptionalTrimmed(pf.title),
-          firstForename: first,
-          secondForename: toOptionalTrimmed(pf.middleNames),
-          surname: sur,
+          firstName: first,
+          middleName: toOptionalTrimmed(pf.middleNames),
+          lastName: sur,
         },
         dateOfBirth: pf.dob ?? undefined,
         contactDetails: makeContactDetails(pf),

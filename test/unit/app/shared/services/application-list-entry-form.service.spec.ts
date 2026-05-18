@@ -6,7 +6,6 @@ import {
   Organisation,
   PaymentStatus,
   Person,
-  Respondent,
 } from '@openapi';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 
@@ -27,10 +26,9 @@ describe('ApplicationListEntryFormService', () => {
   const makePerson = (overrides: Partial<Person> = {}): Person => ({
     name: {
       title: 'Dr',
-      firstForename: 'Alex',
-      secondForename: 'Bee',
-      thirdForename: 'See',
-      surname: 'Carter',
+      firstName: 'Alex',
+      middleName: 'Bee',
+      lastName: 'Carter',
     },
     contactDetails: {
       addressLine1: '1 Person Street',
@@ -83,8 +81,8 @@ describe('ApplicationListEntryFormService', () => {
         respondent: {
           person: {
             name: {
-              firstForename: 'Jane',
-              surname: 'Doe',
+              firstName: 'Jane',
+              lastName: 'Doe',
             },
             dateOfBirth: '1990-02-03',
             contactDetails: {
@@ -214,7 +212,7 @@ describe('ApplicationListEntryFormService', () => {
     expect(forms.personForm.getRawValue()).toMatchObject({
       title: 'dr',
       firstName: 'Alex',
-      middleNames: 'Bee See',
+      middleNames: 'Bee',
       surname: 'Carter',
       addressLine1: '1 Person Street',
       postcode: 'AB12 3CD',
@@ -285,7 +283,7 @@ describe('ApplicationListEntryFormService', () => {
               mobile: '07700900900',
             },
           }),
-        } as Respondent,
+        },
       }),
       forms,
     );
@@ -400,8 +398,8 @@ describe('ApplicationListEntryFormService', () => {
         applicant: {
           person: expect.objectContaining({
             name: expect.objectContaining({
-              firstForename: 'Applicant',
-              surname: 'Person',
+              firstName: 'Applicant',
+              lastName: 'Person',
             }),
             contactDetails: expect.objectContaining({
               addressLine1: 'Applicant Address',
@@ -412,8 +410,8 @@ describe('ApplicationListEntryFormService', () => {
           person: expect.objectContaining({
             dateOfBirth: '1980-01-02',
             name: expect.objectContaining({
-              firstForename: 'Respondent',
-              surname: 'Person',
+              firstName: 'Respondent',
+              lastName: 'Person',
             }),
             contactDetails: expect.objectContaining({
               addressLine1: 'Respondent Address',

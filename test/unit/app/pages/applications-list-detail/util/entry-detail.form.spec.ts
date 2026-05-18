@@ -332,13 +332,13 @@ describe('applications-list entry form builders', () => {
           firstName: 'John',
           surname: 'Smith',
           addressLine1: '1 Street',
-        } as never,
-        blankOrg as never,
+        },
+        blankOrg,
         blankPerson as never,
-        blankOrg as never,
+        blankOrg,
       );
 
-      expect(dto.applicant?.person?.name?.firstForename).toBe('John');
+      expect(dto.applicant?.person?.name?.firstName).toBe('John');
       expect('standardApplicantCode' in dto).toBe(false);
     });
 
@@ -388,14 +388,14 @@ describe('applications-list entry form builders', () => {
     it('maps respondent person dateOfBirth into respondent dob field', () => {
       const patch = respondentPersonToFormPatch({
         name: {
-          firstForename: 'Jane',
-          surname: 'Doe',
+          firstName: 'Jane',
+          lastName: 'Doe',
         },
         dateOfBirth: '1990-02-03',
         contactDetails: {
           addressLine1: '1 Street',
         },
-      } as never);
+      });
 
       expect(patch).toMatchObject({
         firstName: 'Jane',

@@ -88,8 +88,8 @@ export function formatFullName(name?: FullName | null): string | null {
   }
 
   const parts = [
-    trimToString(name.firstForename),
-    trimToString(name.surname),
+    trimToString(name.firstName),
+    trimToString(name.lastName),
   ].filter(Boolean);
 
   return parts.length > 0 ? parts.join(' ') : null;

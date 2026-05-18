@@ -95,10 +95,9 @@ describe('StandardApplicantSelectComponent', () => {
             person: {
               name: {
                 title: 'Mr',
-                firstForename: 'John',
-                secondForename: 'Q',
-                thirdForename: undefined,
-                surname: 'Doe',
+                firstName: 'John',
+                middleName: 'Q',
+                lastName: 'Doe',
               },
               contactDetails: {
                 addressLine1: '1 Person St',

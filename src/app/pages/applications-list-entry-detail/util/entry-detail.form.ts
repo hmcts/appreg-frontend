@@ -21,7 +21,6 @@ import {
   EntryGetDetailDto,
   EntryUpdateDto,
   FeeStatus,
-  FullName,
   Official,
   OfficialType,
   Organisation,
@@ -44,7 +43,6 @@ import {
   RespondentPersonFormValue,
 } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import {
-  mapOptionValueToTitle,
   mapTitleToOptionValue,
   trimToString,
   trimToUndefined,
@@ -56,7 +54,6 @@ import {
 import {
   ContactFormRaw,
   OrganisationFormRaw,
-  PersonFormRaw,
 } from '@util/types/applications-list-entry/types';
 import { crossFormValidation } from '@validators/cross-form.validator';
 import { optional } from '@validators/optional.validator';
@@ -363,22 +360,6 @@ export function contactDetailsToFormPatch(cd: ContactDetails): ContactFormRaw {
   };
 }
 
-export function buildPersonApplicantFromRaw(raw: PersonFormRaw): Applicant {
-  const name: FullName = {
-    title: mapOptionValueToTitle(raw.title, PERSON_TITLE_OPTIONS),
-    firstForename: trimToString(raw.firstName),
-    secondForename: trimToUndefined(raw.middleNames),
-    surname: trimToString(raw.surname),
-  };
-
-  const person: Person = {
-    name,
-    contactDetails: buildContactDetailsFromRaw(raw),
-  };
-
-  return { person };
-}
-
 export function buildOrganisationApplicantFromRaw(
   raw: OrganisationFormRaw,
 ): Applicant {
@@ -402,21 +383,17 @@ export function personToFormPatch(
 
   const middleNamesParts: string[] = [];
 
-  if (name?.secondForename) {
-    middleNamesParts.push(name.secondForename);
-  }
-
-  if (name?.thirdForename) {
-    middleNamesParts.push(name.thirdForename);
+  if (name?.middleName) {
+    middleNamesParts.push(name.middleName);
   }
 
   const middleNames = middleNamesParts.join(' ');
 
   return {
     title: mapTitleToOptionValue(name?.title, PERSON_TITLE_OPTIONS),
-    firstName: name?.firstForename ?? '',
+    firstName: name?.firstName ?? '',
     middleNames,
-    surname: name?.surname ?? '',
+    surname: name?.lastName ?? '',
     ...contactDetailsToFormPatch(contactDetails),
   };
 }

@@ -24,8 +24,8 @@ function makePerson(
     ...rest,
     name: {
       title: 'Ms',
-      firstForename: 'Jane',
-      surname: 'Doe',
+      firstName: 'Jane',
+      lastName: 'Doe',
       ...name,
     },
     contactDetails: {
@@ -84,7 +84,7 @@ describe('mapToRow', () => {
       }),
       respondent: makeApplicant({
         person: makePerson({
-          name: { firstForename: 'Bob', surname: 'Smith' },
+          name: { firstName: 'Bob', lastName: 'Smith' },
         }),
       }),
       applicationTitle: 'Request for something',
@@ -105,7 +105,6 @@ describe('mapToRow', () => {
       fee: 'Yes',
       resulted: 'No',
       status: 'OPEN',
-      // actions: 'id-123',
       applicationListId: 'test-id',
     });
   });
@@ -159,14 +158,14 @@ describe('mapToRow', () => {
         person: makePerson({
           name: {
             title: undefined,
-            firstForename: 'Henry',
-            surname: 'Rodriguez',
+            firstName: 'Henry',
+            lastName: 'Rodriguez',
           },
         }),
       }),
       respondent: makeApplicant({
         person: makePerson({
-          name: { title: ' ', firstForename: 'Olivia', surname: 'Harris' },
+          name: { title: ' ', firstName: 'Olivia', lastName: 'Harris' },
         }),
       }),
     });
@@ -183,10 +182,9 @@ describe('mapToRow', () => {
         person: makePerson({
           name: {
             title: 'Mr',
-            firstForename: 'John',
-            secondForename: 'Paul',
-            thirdForename: 'George',
-            surname: 'Smith',
+            firstName: 'John',
+            middleName: 'Paul',
+            lastName: 'Smith',
           },
         }),
       }),
