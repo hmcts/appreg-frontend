@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 
-import { DOWNLOAD_CONSTANTS } from '../../constants/ProjectConstants';
-import { BaseDownloadHelper } from '../download/BaseDownloadHelper';
+import { DOWNLOAD_CONSTANTS } from '../../../constants/ProjectConstants';
+import { BaseDownloadHelper } from '../BaseDownloadHelper';
 
 export class PdfDownloadHelper extends BaseDownloadHelper {
   static listPdfFiles(): Cypress.Chainable<string[]> {

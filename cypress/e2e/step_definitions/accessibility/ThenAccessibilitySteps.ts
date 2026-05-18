@@ -1,6 +1,6 @@
 import { DataTable, Then } from '@badeball/cypress-cucumber-preprocessor';
 
-import { AccessibilityHelper } from '../../../../support/helper/accessibility/AccessibilityHelper';
+import { AccessibilityHelper } from '../../../support/helper/accessibility/AccessibilityHelper';
 
 Then('User Checks Accessibility Of The Current Page', () => {
   cy.log('Checking accessibility of the current page');

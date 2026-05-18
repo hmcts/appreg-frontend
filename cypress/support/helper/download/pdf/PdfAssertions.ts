@@ -1,11 +1,11 @@
 /// <reference types="cypress" />
 
-import { ComparisonUtils } from '../../utils/ComparisonUtils';
-import { StringUtils } from '../../utils/StringUtils';
+import { ComparisonUtils } from '../../../utils/ComparisonUtils';
+import { StringUtils } from '../../../utils/StringUtils';
 import {
   TestDataGenerator,
   processDatatableRow,
-} from '../../utils/TestDataGenerator';
+} from '../../../utils/TestDataGenerator';
 
 import { PdfDownloadHelper } from './PdfDownloadHelper';
 

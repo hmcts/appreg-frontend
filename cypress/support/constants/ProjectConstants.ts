@@ -29,7 +29,7 @@ export const UI_CONSTANTS = {
 } as const;
 
 // PDF
-export const PDF_CONSTANTS = {
+export const DOWNLOAD_CONSTANTS = {
   DOWNLOADS_FOLDER: 'cypress/downloads',
   POLL_INTERVAL_MS: 500,
   DEFAULT_FIND_TIMEOUT_MS: 10000,
