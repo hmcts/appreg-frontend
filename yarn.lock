@@ -12966,11 +12966,11 @@ __metadata:
   linkType: hard
 
 "jspdf-autotable@npm:^5.0.2":
-  version: 5.0.7
-  resolution: "jspdf-autotable@npm:5.0.7"
+  version: 5.0.8
+  resolution: "jspdf-autotable@npm:5.0.8"
   peerDependencies:
     jspdf: ^2 || ^3 || ^4
-  checksum: 10/5a063716615ded6327fd3d1ddbd83bbe926a9d93ec2a8d73aa603773e22d400dacc1dec66809980868554abfa594a617aed3ae9dbe4c9b83d94c3dcd0da60d1f
+  checksum: 10/cd1ff114c784cb93d37fc443b47058ddf843e7f3fdd762b4ed71584410799806e18bec82564059f28c5d08d81fd90f8e1179048e3974697a947f4ef72c5cc583
   languageName: node
   linkType: hard
 
