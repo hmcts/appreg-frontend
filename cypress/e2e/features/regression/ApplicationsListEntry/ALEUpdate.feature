@@ -70,7 +70,7 @@ Feature: Applications List Entry Update
         Then User Should See "Wording" In Summary Card "AUTH - Authorised"
         Then User Should See "Authorised." In Summary Card "AUTH - Authorised"
         When User Clicks On The "Apply result" Button
-        Then User Sees Success Banner "Success Result updated The result has been updated for this application list entry."
+        Then User Sees Success Alert "Results applied to this entry. Save the entry to keep these changes."
         Then User Verifies The Button "Apply result" Is Disabled In The Accordion "Result wording"
         # Officials
         Then User Should Select "Mr" From The Dropdown "Select magistrate's title" Under "Magistrate 1" FieldSet In The Accordion "Officials"
