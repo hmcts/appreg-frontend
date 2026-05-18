@@ -1,8 +1,8 @@
 /// <reference types="cypress" />
 import { Then } from '@badeball/cypress-cucumber-preprocessor';
 
-import { PdfAssertions } from '../../../../support/helper/pdf/PdfAssertions';
-import { PdfDownloadHelper } from '../../../../support/helper/pdf/PdfDownloadHelper';
+import { PdfAssertions } from '../../../../support/helper/download/pdf/PdfAssertions';
+import { PdfDownloadHelper } from '../../../../support/helper/download/pdf/PdfDownloadHelper';
 
 Then('User Clears Downloaded PDFs', () => {
   PdfDownloadHelper.clearDownloadsFolder();

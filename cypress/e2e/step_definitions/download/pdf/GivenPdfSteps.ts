@@ -1,7 +1,7 @@
 /// <reference types="cypress" />
 import { Given } from '@badeball/cypress-cucumber-preprocessor';
 
-import { PdfDownloadHelper } from '../../../../support/helper/pdf/PdfDownloadHelper';
+import { PdfDownloadHelper } from '../../../../support/helper/download/pdf/PdfDownloadHelper';
 
 /**
  * Step: Clear downloads folder before test starts (cleanup)
