@@ -707,7 +707,6 @@ export class PdfService {
           name?.['firstName'] ?? name?.['forename'] ?? name?.['firstForename'],
         ),
         this.cleanPart(name?.['middleName'] ?? name?.['secondForename']),
-        // this.cleanPart(name?.['thirdForename'] ?? name?.['middleName']),
         this.cleanPart(name?.['lastName'] ?? name?.['surname']),
       ]).filter(Boolean);
 
