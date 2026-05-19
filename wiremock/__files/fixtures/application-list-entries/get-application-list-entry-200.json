@@ -64,17 +64,17 @@
   "lodgementDate": "2025-12-01",
   "officials": [{
       "title": "Mrs",
-      "lastName": "Smith",
+      "surname": "Smith",
       "forename": "John",
       "type": "MAGISTRATE"
     }, {
       "title": "Mrs",
-      "lastName": "fda",
+      "surname": "fda",
       "forename": "cdcd",
       "type": "MAGISTRATE"
     },{
       "title": "Mr, Mrs",
-      "lastName": "Smith",
+      "surname": "Smith",
       "forename": "John",
       "type": "CLERK"
     }]
