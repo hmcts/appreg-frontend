@@ -24,8 +24,8 @@
     "person": {
       "name": {
         "title": "Dr",
-        "firstForename": "Alex",
-        "surname": "Taylor"
+        "firstName": "Alex",
+        "lastName": "Taylor"
       },
       "contactDetails": {
         "addressLine1": "123 road drive",

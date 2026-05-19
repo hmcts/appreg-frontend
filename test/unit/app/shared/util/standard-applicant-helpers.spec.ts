@@ -38,10 +38,9 @@ describe('buildStandardApplicantRows', () => {
           person: {
             name: {
               title: 'Mr',
-              firstForename: 'John',
-              secondForename: '',
-              thirdForename: 'Q',
-              surname: 'Public',
+              firstName: 'John',
+              middleName: 'Q',
+              lastName: 'Public',
             },
             contactDetails: {
               addressLine1: '1 Test Street',

@@ -20,7 +20,6 @@ import {
   EntryGetDetailDto,
   EntryUpdateDto,
   Organisation,
-  Person,
 } from '@openapi';
 import {
   ApplicantType,
@@ -30,10 +29,7 @@ import {
   PersonForm,
   RespondentPersonForm,
 } from '@shared-types/applications-list-entry-create/application-list-entry-form';
-import {
-  createEmptyOrganisation,
-  createEmptyPerson,
-} from '@util/applicant-helpers';
+import { createEmptyOrganisation } from '@util/applicant-helpers';
 import { markFormGroupClean } from '@util/form-helpers';
 import { getEntryWordingFields } from '@util/template-substitution-utils';
 
@@ -53,7 +49,6 @@ type HydrateResult = {
 export class ApplicationListEntryFormService {
   private readonly fb = inject(NonNullableFormBuilder);
 
-  private readonly emptyPerson: Person = createEmptyPerson();
   private readonly emptyOrganisation: Organisation = createEmptyOrganisation();
 
   createForms(): ApplicationListEntryForms {

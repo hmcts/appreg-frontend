@@ -21,10 +21,8 @@ describe('buildResultApplicantContext', () => {
         person: {
           name: {
             title: 'Mr',
-            surname: 'Blooer',
-            firstForename: 'Simon',
-            secondForename: null,
-            thirdForename: null,
+            lastName: 'Blooer',
+            firstName: 'Simon',
           },
           contactDetails: {
             addressLine1: '1 High Street',
@@ -64,10 +62,8 @@ describe('buildResultApplicantContext', () => {
       respondent: {
         person: {
           name: {
-            surname: 'Smith',
-            firstForename: 'John',
-            secondForename: null,
-            thirdForename: null,
+            lastName: 'Smith',
+            firstName: 'John',
           },
           contactDetails: {
             addressLine1: '2 High Street',
@@ -102,10 +98,9 @@ describe('buildResultApplicantContext', () => {
         person: {
           name: {
             title: 'Mr',
-            surname: 'Smith',
-            firstForename: 'John',
-            secondForename: null,
-            thirdForename: null,
+            lastName: 'Smith',
+            firstName: 'John',
+            middleName: null,
           },
           contactDetails: {
             addressLine1: '123 High Street',

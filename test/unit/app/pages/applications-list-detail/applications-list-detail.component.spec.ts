@@ -556,10 +556,9 @@ describe('ApplicationsListDetail', () => {
           applicant: {
             person: {
               name: {
-                surname: 'Brown',
-                firstForename: 'Alex',
-                secondForename: 'J',
-                thirdForename: null,
+                lastName: 'Brown',
+                firstName: 'Alex',
+                middleName: 'J',
                 title: 'Mr',
               },
             },
@@ -567,10 +566,8 @@ describe('ApplicationsListDetail', () => {
           respondent: {
             person: {
               name: {
-                surname: 'Green',
-                firstForename: 'Sam',
-                secondForename: null,
-                thirdForename: null,
+                lastName: 'Green',
+                firstName: 'Sam',
                 title: null,
               },
               contactDetails: {
@@ -1035,10 +1032,9 @@ describe('ApplicationsListDetail', () => {
       const applicant = {
         person: {
           name: {
-            surname: 'Smith',
-            firstForename: 'John',
-            secondForename: 'Paul',
-            thirdForename: 'George',
+            lastName: 'Smith',
+            firstName: 'John',
+            middleName: 'Paul',
             title: 'Mr',
           },
         },
@@ -1051,10 +1047,8 @@ describe('ApplicationsListDetail', () => {
       const applicant = {
         person: {
           name: {
-            surname: 'Smith',
-            firstForename: 'John',
-            secondForename: null,
-            thirdForename: undefined,
+            lastName: 'Smith',
+            firstName: 'John',
             title: 'Mr',
           },
         },

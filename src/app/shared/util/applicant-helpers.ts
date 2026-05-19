@@ -1,8 +1,8 @@
-/* 
+/*
 Helper functions for Applicants
 */
 
-import { ContactDetails, FullName, Organisation, Person } from '@openapi';
+import { ContactDetails, Organisation } from '@openapi';
 
 const EMPTY_CONTACT_DETAILS: ContactDetails = {
   addressLine1: '',
@@ -15,21 +15,6 @@ const EMPTY_CONTACT_DETAILS: ContactDetails = {
   mobile: '',
   email: '',
 };
-
-const EMPTY_FULL_NAME: FullName = {
-  title: '',
-  firstForename: '',
-  secondForename: '',
-  thirdForename: '',
-  surname: '',
-};
-
-export function createEmptyPerson(): Person {
-  return {
-    name: { ...EMPTY_FULL_NAME },
-    contactDetails: { ...EMPTY_CONTACT_DETAILS },
-  };
-}
 
 export function createEmptyOrganisation(): Organisation {
   return {
