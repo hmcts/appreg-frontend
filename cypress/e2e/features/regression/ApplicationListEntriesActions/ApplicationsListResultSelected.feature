@@ -46,9 +46,9 @@ Feature: Applications List Result
             | standardApplicantCode                         | null                           |
             | applicationCode                               | CT99002                        |
             | applicant.person.name.title                   | Mr                             |
-            | applicant.person.name.surname                 | Taylor {RANDOM}                |
-            | applicant.person.name.firstForename           | Henry                          |
-            | applicant.person.name.secondForename          | James                          |
+            | applicant.person.name.lastName                | Taylor {RANDOM}                |
+            | applicant.person.name.firstName               | Henry                          |
+            | applicant.person.name.middleName              | James                          |
             | applicant.person.contactDetails.addressLine1  | {RANDOM} King Street           |
             | applicant.person.contactDetails.addressLine2  | Westminster                    |
             | applicant.person.contactDetails.addressLine3  | London                         |
@@ -59,9 +59,9 @@ Feature: Applications List Result
             | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
             | applicant.person.contactDetails.email         | applicant{RANDOM}@example.com  |
             | respondent.person.name.title                  | Ms                             |
-            | respondent.person.name.surname                | Clark {RANDOM}                 |
-            | respondent.person.name.firstForename          | Emily                          |
-            | respondent.person.name.secondForename         | Rose                           |
+            | respondent.person.name.lastName               | Clark {RANDOM}                 |
+            | respondent.person.name.firstName              | Emily                          |
+            | respondent.person.name.middleName             | Rose                           |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Road           |
             | respondent.person.contactDetails.addressLine2 | Bristol                        |
             | respondent.person.contactDetails.addressLine3 | Avon                           |
@@ -84,9 +84,9 @@ Feature: Applications List Result
             | standardApplicantCode                               | null                           |
             | applicationCode                                     | EF99001                        |
             | applicant.person.name.title                         | Mrs                            |
-            | applicant.person.name.surname                       | Johnson {RANDOM}               |
-            | applicant.person.name.firstForename                 | Sarah                          |
-            | applicant.person.name.secondForename                | Louise                         |
+            | applicant.person.name.lastName                      | Johnson {RANDOM}               |
+            | applicant.person.name.firstName                     | Sarah                          |
+            | applicant.person.name.middleName                    | Louise                         |
             | applicant.person.contactDetails.addressLine1        | {RANDOM} High Street           |
             | applicant.person.contactDetails.addressLine2        | Manchester                     |
             | applicant.person.contactDetails.addressLine3        | Greater Manchester             |
@@ -123,8 +123,8 @@ Feature: Applications List Result
             | applicant.organisation.contactDetails.mobile       | 07600{RANDOM}                  |
             | applicant.organisation.contactDetails.email        | {RANDOM}@example.com           |
             | respondent.person.name.title                       | Mr                             |
-            | respondent.person.name.surname                     | Smith {RANDOM}                 |
-            | respondent.person.name.firstForename               | John                           |
+            | respondent.person.name.lastName                    | Smith {RANDOM}                 |
+            | respondent.person.name.firstName                   | John                           |
             | respondent.person.contactDetails.addressLine1      | {RANDOM} Queen Street          |
             | respondent.person.contactDetails.addressLine2      | Leeds                          |
             | respondent.person.contactDetails.addressLine3      | West Yorkshire                 |
@@ -145,9 +145,9 @@ Feature: Applications List Result
             | standardApplicantCode                         | null                           |
             | applicationCode                               | EF99001                        |
             | applicant.person.name.title                   | Mr                             |
-            | applicant.person.name.surname                 | Brown {RANDOM}                 |
-            | applicant.person.name.firstForename           | James                          |
-            | applicant.person.name.secondForename          | Edward                         |
+            | applicant.person.name.lastName                | Brown {RANDOM}                 |
+            | applicant.person.name.firstName               | James                          |
+            | applicant.person.name.middleName              | Edward                         |
             | applicant.person.contactDetails.addressLine1  | {RANDOM} Victoria Road         |
             | applicant.person.contactDetails.addressLine2  | Sheffield                      |
             | applicant.person.contactDetails.addressLine3  | South Yorkshire                |
@@ -156,8 +156,8 @@ Feature: Applications List Result
             | applicant.person.contactDetails.mobile        | 07400{RANDOM}                  |
             | applicant.person.contactDetails.email         | applicant{RANDOM}@example.com  |
             | respondent.person.name.title                  | Ms                             |
-            | respondent.person.name.surname                | Davis {RANDOM}                 |
-            | respondent.person.name.firstForename          | Laura                          |
+            | respondent.person.name.lastName               | Davis {RANDOM}                 |
+            | respondent.person.name.firstName              | Laura                          |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Church Lane           |
             | respondent.person.contactDetails.addressLine2 | Liverpool                      |
             | respondent.person.contactDetails.addressLine3 | Merseyside                     |
@@ -197,8 +197,8 @@ Feature: Applications List Result
             | standardApplicantCode                         | APP036                         |
             | applicationCode                               | CT99002                        |
             | respondent.person.name.title                  | Mr                             |
-            | respondent.person.name.surname                | Wilson {RANDOM}                |
-            | respondent.person.name.firstForename          | Robert                         |
+            | respondent.person.name.lastName               | Wilson {RANDOM}                |
+            | respondent.person.name.firstName              | Robert                         |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Station Road          |
             | respondent.person.contactDetails.addressLine2 | Newcastle                      |
             | respondent.person.contactDetails.addressLine3 | Tyne and Wear                  |
@@ -239,9 +239,9 @@ Feature: Applications List Result
             | standardApplicantCode                         | null                           |
             | applicationCode                               | MX99019                        |
             | applicant.person.name.title                   | Mr                             |
-            | applicant.person.name.surname                 | Hughes {RANDOM}                |
-            | applicant.person.name.firstForename           | Daniel                         |
-            | applicant.person.name.secondForename          | Paul                           |
+            | applicant.person.name.lastName                | Hughes {RANDOM}                |
+            | applicant.person.name.firstName               | Daniel                         |
+            | applicant.person.name.middleName              | Paul                           |
             | applicant.person.contactDetails.addressLine1  | {RANDOM} Bridge Street         |
             | applicant.person.contactDetails.addressLine2  | Cardiff                        |
             | applicant.person.contactDetails.addressLine3  | Wales                          |
@@ -251,8 +251,8 @@ Feature: Applications List Result
             | applicant.person.contactDetails.mobile        | 07900{RANDOM}                  |
             | applicant.person.contactDetails.email         | applicant{RANDOM}@example.com  |
             | respondent.person.name.title                  | Mrs                            |
-            | respondent.person.name.surname                | Hughes {RANDOM}                |
-            | respondent.person.name.firstForename          | Claire                         |
+            | respondent.person.name.lastName               | Hughes {RANDOM}                |
+            | respondent.person.name.firstName              | Claire                         |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Mill Lane             |
             | respondent.person.contactDetails.addressLine2 | Cardiff                        |
             | respondent.person.contactDetails.addressLine3 | Wales                          |

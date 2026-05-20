@@ -13,8 +13,8 @@ Feature: Application List Entries Search
             | standardApplicantCode                         | null                           |
             | applicationCode                               | CT99002                        |
             | applicant.person.name.title                   | Mr                             |
-            | applicant.person.name.surname                 | Taylor {RANDOM}                |
-            | applicant.person.name.firstForename           | Henry                          |
+            | applicant.person.name.lastName                | Taylor {RANDOM}                |
+            | applicant.person.name.firstName               | Henry                          |
             | applicant.person.contactDetails.addressLine1  | {RANDOM} King Street           |
             | applicant.person.contactDetails.addressLine2  | Westminster                    |
             | applicant.person.contactDetails.addressLine3  | London                         |
@@ -23,8 +23,8 @@ Feature: Application List Entries Search
             | applicant.person.contactDetails.mobile        | 07700900001                    |
             | applicant.person.contactDetails.email         | applicant{RANDOM}@example.com  |
             | respondent.person.name.title                  | Ms                             |
-            | respondent.person.name.surname                | Clark {RANDOM}                 |
-            | respondent.person.name.firstForename          | Emily                          |
+            | respondent.person.name.lastName               | Clark {RANDOM}                 |
+            | respondent.person.name.firstName              | Emily                          |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Road           |
             | respondent.person.contactDetails.addressLine2 | Bristol                        |
             | respondent.person.contactDetails.postcode     | BS15 5AA                       |
@@ -79,8 +79,8 @@ Feature: Application List Entries Search
             | standardApplicantCode                         | APP036                         |
             | applicationCode                               | CT99002                        |
             | respondent.person.name.title                  | Mr                             |
-            | respondent.person.name.surname                | Davies {RANDOM}                |
-            | respondent.person.name.firstForename          | Owen                           |
+            | respondent.person.name.lastName               | Davies {RANDOM}                |
+            | respondent.person.name.firstName              | Owen                           |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Castle Road           |
             | respondent.person.contactDetails.addressLine2 | Leeds                          |
             | respondent.person.contactDetails.postcode     | LS1 1AA                        |
@@ -101,8 +101,8 @@ Feature: Application List Entries Search
             | standardApplicantCode                               | null                           |
             | applicationCode                                     | MX99006                        |
             | applicant.person.name.title                         | Mrs                            |
-            | applicant.person.name.surname                       | Morgan {RANDOM}                |
-            | applicant.person.name.firstForename                 | Fiona                          |
+            | applicant.person.name.lastName                      | Morgan {RANDOM}                |
+            | applicant.person.name.firstName                     | Fiona                          |
             | applicant.person.contactDetails.addressLine1        | {RANDOM} West Street           |
             | applicant.person.contactDetails.addressLine2        | Leicester                      |
             | applicant.person.contactDetails.postcode            | LE1 1AA                        |
@@ -139,8 +139,8 @@ Feature: Application List Entries Search
             | applicant.organisation.contactDetails.mobile       | 07700900001                    |
             | applicant.organisation.contactDetails.email        | applicant{RANDOM}@example.com  |
             | respondent.person.name.title                       | Mr                             |
-            | respondent.person.name.surname                     | Wilson {RANDOM}                |
-            | respondent.person.name.firstForename               | Liam                           |
+            | respondent.person.name.lastName                    | Wilson {RANDOM}                |
+            | respondent.person.name.firstName                   | Liam                           |
             | respondent.person.contactDetails.addressLine1      | {RANDOM} Quayside              |
             | respondent.person.contactDetails.addressLine2      | Newcastle                      |
             | respondent.person.contactDetails.postcode          | NE1 2AA                        |
