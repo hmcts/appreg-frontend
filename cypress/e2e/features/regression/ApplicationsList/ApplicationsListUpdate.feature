@@ -220,9 +220,9 @@ Feature: Applications List Update
             | standardApplicantCode                         | null                           |
             | applicationCode                               | MX99009                        |
             | applicant.person.name.title                   | Mr                             |
-            | applicant.person.name.surname                 | Taylor {RANDOM}                |
-            | applicant.person.name.firstForename           | Henry                          |
-            | applicant.person.name.secondForename          | James                          |
+            | applicant.person.name.lastName                | Taylor {RANDOM}                |
+            | applicant.person.name.firstName               | Henry                          |
+            | applicant.person.name.middleName              | James                          |
             | applicant.person.contactDetails.addressLine1  | {RANDOM} King Street           |
             | applicant.person.contactDetails.addressLine2  | Westminster                    |
             | applicant.person.contactDetails.addressLine3  | London                         |
@@ -233,9 +233,9 @@ Feature: Applications List Update
             | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
             | applicant.person.contactDetails.email         | applicant{RANDOM}@example.com  |
             | respondent.person.name.title                  | Ms                             |
-            | respondent.person.name.surname                | Clark {RANDOM}                 |
-            | respondent.person.name.firstForename          | Emily                          |
-            | respondent.person.name.secondForename         | Rose                           |
+            | respondent.person.name.lastName               | Clark {RANDOM}                 |
+            | respondent.person.name.firstName              | Emily                          |
+            | respondent.person.name.middleName             | Rose                           |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Road           |
             | respondent.person.contactDetails.addressLine2 | Bristol                        |
             | respondent.person.contactDetails.addressLine3 | Avon                           |
@@ -310,9 +310,9 @@ Feature: Applications List Update
             | standardApplicantCode                         | null                           |
             | applicationCode                               | MX99009                        |
             | applicant.person.name.title                   | Mr                             |
-            | applicant.person.name.surname                 | Taylor {RANDOM}                |
-            | applicant.person.name.firstForename           | Henry                          |
-            | applicant.person.name.secondForename          | James                          |
+            | applicant.person.name.lastName                | Taylor {RANDOM}                |
+            | applicant.person.name.firstName               | Henry                          |
+            | applicant.person.name.middleName              | James                          |
             | applicant.person.contactDetails.addressLine1  | {RANDOM} King Street           |
             | applicant.person.contactDetails.addressLine2  | Westminster                    |
             | applicant.person.contactDetails.addressLine3  | London                         |
@@ -323,9 +323,9 @@ Feature: Applications List Update
             | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
             | applicant.person.contactDetails.email         | applicant{RANDOM}@example.com  |
             | respondent.person.name.title                  | Ms                             |
-            | respondent.person.name.surname                | Clark {RANDOM}                 |
-            | respondent.person.name.firstForename          | Emily                          |
-            | respondent.person.name.secondForename         | Rose                           |
+            | respondent.person.name.lastName               | Clark {RANDOM}                 |
+            | respondent.person.name.firstName              | Emily                          |
+            | respondent.person.name.middleName             | Rose                           |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Road           |
             | respondent.person.contactDetails.addressLine2 | Bristol                        |
             | respondent.person.contactDetails.addressLine3 | Avon                           |
@@ -362,9 +362,9 @@ Feature: Applications List Update
             | standardApplicantCode                         | null                           |
             | applicationCode                               | MX99009                        |
             | applicant.person.name.title                   | Mr                             |
-            | applicant.person.name.surname                 | Taylor {RANDOM}                |
-            | applicant.person.name.firstForename           | Henry                          |
-            | applicant.person.name.secondForename          | James                          |
+            | applicant.person.name.lastName                | Taylor {RANDOM}                |
+            | applicant.person.name.firstName               | Henry                          |
+            | applicant.person.name.middleName              | James                          |
             | applicant.person.contactDetails.addressLine1  | {RANDOM} King Street           |
             | applicant.person.contactDetails.addressLine2  | Westminster                    |
             | applicant.person.contactDetails.addressLine3  | London                         |
@@ -375,9 +375,9 @@ Feature: Applications List Update
             | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
             | applicant.person.contactDetails.email         | applicant{RANDOM}@example.com  |
             | respondent.person.name.title                  | Ms                             |
-            | respondent.person.name.surname                | Clark {RANDOM}                 |
-            | respondent.person.name.firstForename          | Emily                          |
-            | respondent.person.name.secondForename         | Rose                           |
+            | respondent.person.name.lastName               | Clark {RANDOM}                 |
+            | respondent.person.name.firstName              | Emily                          |
+            | respondent.person.name.middleName             | Rose                           |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Road           |
             | respondent.person.contactDetails.addressLine2 | Bristol                        |
             | respondent.person.contactDetails.addressLine3 | Avon                           |

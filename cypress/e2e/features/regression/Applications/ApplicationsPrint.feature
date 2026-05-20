@@ -14,9 +14,9 @@ Feature: Applications Print
             | standardApplicantCode                         | APP036                                    |
             | applicationCode                               | CT99002                                   |
             | respondent.person.name.title                  | Mr                                        |
-            | respondent.person.name.surname                | Smith {RANDOM}                            |
-            | respondent.person.name.firstForename          | John                                      |
-            | respondent.person.name.secondForename         | Edward                                    |
+            | respondent.person.name.lastName               | Smith {RANDOM}                            |
+            | respondent.person.name.firstName              | John                                      |
+            | respondent.person.name.middleName             | Edward                                    |
             | respondent.person.contactDetails.addressLine1 | 10 Downing Street                         |
             | respondent.person.contactDetails.addressLine2 | Westminster                               |
             | respondent.person.contactDetails.addressLine3 | London                                    |
@@ -60,9 +60,9 @@ Feature: Applications Print
             | standardApplicantCode                               | null                                          |
             | applicationCode                                     | EF99001                                       |
             | applicant.person.name.title                         | Mrs                                           |
-            | applicant.person.name.surname                       | Johnson {RANDOM}                              |
-            | applicant.person.name.firstForename                 | Sarah                                         |
-            | applicant.person.name.secondForename                | Louise                                        |
+            | applicant.person.name.lastName                      | Johnson {RANDOM}                              |
+            | applicant.person.name.firstName                     | Sarah                                         |
+            | applicant.person.name.middleName                    | Louise                                        |
             | applicant.person.contactDetails.addressLine1        | 20 High Street                                |
             | applicant.person.contactDetails.addressLine2        | Manchester                                    |
             | applicant.person.contactDetails.addressLine3        | Greater Manchester                            |
@@ -124,9 +124,9 @@ Feature: Applications Print
             | applicant.organisation.contactDetails.mobile       | 07700123456                                   |
             | applicant.organisation.contactDetails.email        | info@acme.com                                 |
             | respondent.person.name.title                       | Ms                                            |
-            | respondent.person.name.surname                     | Williams {RANDOM}                             |
-            | respondent.person.name.firstForename               | Emma                                          |
-            | respondent.person.name.secondForename              | Jane                                          |
+            | respondent.person.name.lastName                    | Williams {RANDOM}                             |
+            | respondent.person.name.firstName                   | Emma                                          |
+            | respondent.person.name.middleName                  | Jane                                          |
             | respondent.person.contactDetails.addressLine1      | 50 Oak Avenue                                 |
             | respondent.person.contactDetails.addressLine2      | Cardiff                                       |
             | respondent.person.contactDetails.addressLine3      | South Wales                                   |

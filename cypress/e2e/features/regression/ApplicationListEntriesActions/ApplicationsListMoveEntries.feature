@@ -14,9 +14,9 @@ Feature: Application List Entries - Move
             | standardApplicantCode                         | null                           |
             | applicationCode                               | CT99002                        |
             | applicant.person.name.title                   | Mr                             |
-            | applicant.person.name.surname                 | Taylor {RANDOM}                |
-            | applicant.person.name.firstForename           | Henry                          |
-            | applicant.person.name.secondForename          | James                          |
+            | applicant.person.name.lastName                | Taylor {RANDOM}                |
+            | applicant.person.name.firstName               | Henry                          |
+            | applicant.person.name.middleName              | James                          |
             | applicant.person.contactDetails.addressLine1  | {RANDOM} King Street           |
             | applicant.person.contactDetails.addressLine2  | Westminster                    |
             | applicant.person.contactDetails.addressLine3  | London                         |
@@ -25,9 +25,9 @@ Feature: Application List Entries - Move
             | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
             | applicant.person.contactDetails.email         | applicant{RANDOM}@example.com  |
             | respondent.person.name.title                  | Ms                             |
-            | respondent.person.name.surname                | Clark {RANDOM}                 |
-            | respondent.person.name.firstForename          | Emily                          |
-            | respondent.person.name.secondForename         | Rose                           |
+            | respondent.person.name.lastName               | Clark {RANDOM}                 |
+            | respondent.person.name.firstName              | Emily                          |
+            | respondent.person.name.middleName             | Rose                           |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Road           |
             | respondent.person.contactDetails.addressLine2 | Bristol                        |
             | respondent.person.contactDetails.addressLine3 | Avon                           |
@@ -50,9 +50,9 @@ Feature: Application List Entries - Move
             | standardApplicantCode                               | null                           |
             | applicationCode                                     | EF99001                        |
             | applicant.person.name.title                         | Mrs                            |
-            | applicant.person.name.surname                       | Johnson {RANDOM}               |
-            | applicant.person.name.firstForename                 | Sarah                          |
-            | applicant.person.name.secondForename                | Louise                         |
+            | applicant.person.name.lastName                      | Johnson {RANDOM}               |
+            | applicant.person.name.firstName                     | Sarah                          |
+            | applicant.person.name.middleName                    | Louise                         |
             | applicant.person.contactDetails.addressLine1        | {RANDOM} High Street           |
             | applicant.person.contactDetails.addressLine2        | Manchester                     |
             | applicant.person.contactDetails.addressLine3        | Greater Manchester             |
@@ -81,8 +81,8 @@ Feature: Application List Entries - Move
             | standardApplicantCode                         | APP036                         |
             | applicationCode                               | CT99002                        |
             | respondent.person.name.title                  | Mr                             |
-            | respondent.person.name.surname                | Owen {RANDOM}                  |
-            | respondent.person.name.firstForename          | Davies                         |
+            | respondent.person.name.lastName               | Owen {RANDOM}                  |
+            | respondent.person.name.firstName              | Davies                         |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Station Road          |
             | respondent.person.contactDetails.addressLine2 | Leeds                          |
             | respondent.person.contactDetails.addressLine3 | West Yorkshire                 |
@@ -175,9 +175,9 @@ Feature: Application List Entries - Move
             | standardApplicantCode                         | null                           |
             | applicationCode                               | CT99002                        |
             | applicant.person.name.title                   | Mr                             |
-            | applicant.person.name.surname                 | Taylor {RANDOM}                |
-            | applicant.person.name.firstForename           | Henry                          |
-            | applicant.person.name.secondForename          | James                          |
+            | applicant.person.name.lastName                | Taylor {RANDOM}                |
+            | applicant.person.name.firstName               | Henry                          |
+            | applicant.person.name.middleName              | James                          |
             | applicant.person.contactDetails.addressLine1  | {RANDOM} King Street           |
             | applicant.person.contactDetails.addressLine2  | Westminster                    |
             | applicant.person.contactDetails.addressLine3  | London                         |
@@ -186,9 +186,9 @@ Feature: Application List Entries - Move
             | applicant.person.contactDetails.mobile        | 07123{RANDOM}                  |
             | applicant.person.contactDetails.email         | applicant{RANDOM}@example.com  |
             | respondent.person.name.title                  | Ms                             |
-            | respondent.person.name.surname                | Clark {RANDOM}                 |
-            | respondent.person.name.firstForename          | Emily                          |
-            | respondent.person.name.secondForename         | Rose                           |
+            | respondent.person.name.lastName               | Clark {RANDOM}                 |
+            | respondent.person.name.firstName              | Emily                          |
+            | respondent.person.name.middleName             | Rose                           |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Road           |
             | respondent.person.contactDetails.addressLine2 | Bristol                        |
             | respondent.person.contactDetails.addressLine3 | Avon                           |
@@ -211,9 +211,9 @@ Feature: Application List Entries - Move
             | standardApplicantCode                               | null                           |
             | applicationCode                                     | EF99001                        |
             | applicant.person.name.title                         | Mrs                            |
-            | applicant.person.name.surname                       | Johnson {RANDOM}               |
-            | applicant.person.name.firstForename                 | Sarah                          |
-            | applicant.person.name.secondForename                | Louise                         |
+            | applicant.person.name.lastName                      | Johnson {RANDOM}               |
+            | applicant.person.name.firstName                     | Sarah                          |
+            | applicant.person.name.middleName                    | Louise                         |
             | applicant.person.contactDetails.addressLine1        | {RANDOM} High Street           |
             | applicant.person.contactDetails.addressLine2        | Manchester                     |
             | applicant.person.contactDetails.addressLine3        | Greater Manchester             |
@@ -242,8 +242,8 @@ Feature: Application List Entries - Move
             | standardApplicantCode                         | APP036                         |
             | applicationCode                               | CT99002                        |
             | respondent.person.name.title                  | Mr                             |
-            | respondent.person.name.surname                | Owen {RANDOM}                  |
-            | respondent.person.name.firstForename          | Davies                         |
+            | respondent.person.name.lastName               | Owen {RANDOM}                  |
+            | respondent.person.name.firstName              | Davies                         |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Station Road          |
             | respondent.person.contactDetails.addressLine2 | Leeds                          |
             | respondent.person.contactDetails.addressLine3 | West Yorkshire                 |

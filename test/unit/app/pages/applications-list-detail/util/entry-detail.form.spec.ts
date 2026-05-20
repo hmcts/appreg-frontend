@@ -434,7 +434,7 @@ describe('applications-list entry form builders', () => {
           standardApplicantCode: 'STD-OLD',
           applicant: {
             person: {
-              name: { firstForename: 'Jane', surname: 'Doe' },
+              name: { firstName: 'Jane', surname: 'Doe' },
               contactDetails: { addressLine1: '1 Street' },
             },
           },
@@ -444,7 +444,7 @@ describe('applications-list entry form builders', () => {
         undefined as never,
       );
 
-      expect(dto.applicant?.person?.name?.firstForename).toBe('Jane');
+      expect(dto.applicant?.person?.name?.firstName).toBe('Jane');
       expect('standardApplicantCode' in dto).toBe(false);
     });
   });
@@ -458,7 +458,7 @@ describe('applications-list entry form builders', () => {
           notes: 'persisted note',
           applicant: {
             person: {
-              name: { firstForename: 'Jane', surname: 'Doe' },
+              name: { firstName: 'Jane', surname: 'Doe' },
               contactDetails: { addressLine1: '1 Street' },
             },
           },
@@ -478,7 +478,7 @@ describe('applications-list entry form builders', () => {
 
       expect(dto.applicationCode).toBe('APP-200');
       expect(dto.notes).toBe('persisted note');
-      expect(dto.applicant?.person?.name?.firstForename).toBe('Jane');
+      expect(dto.applicant?.person?.name?.firstName).toBe('Jane');
     });
 
     it('prefers staged wordingFields from the form when building a fee-only update', () => {

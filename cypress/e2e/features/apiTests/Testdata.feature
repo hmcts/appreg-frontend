@@ -20,9 +20,9 @@ Feature: API - Test Data Setup - 40 ALEs
             | standardApplicantCode                         | null                            |
             | applicationCode                               | CT99002                         |
             | applicant.person.name.title                   | Mr                              |
-            | applicant.person.name.surname                 | Adams {RANDOM}                  |
-            | applicant.person.name.firstForename           | James                           |
-            | applicant.person.name.secondForename          | Edward                          |
+            | applicant.person.name.lastName                | Adams {RANDOM}                  |
+            | applicant.person.name.firstName               | James                           |
+            | applicant.person.name.middleName              | Edward                          |
             | applicant.person.contactDetails.addressLine1  | {RANDOM} Baker Street           |
             | applicant.person.contactDetails.addressLine2  | London                          |
             | applicant.person.contactDetails.addressLine3  | Greater London                  |
@@ -31,8 +31,9 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.person.contactDetails.mobile        | 07100{RANDOM}                   |
             | applicant.person.contactDetails.email         | applicant.e1.{RANDOM}@test.com  |
             | respondent.person.name.title                  | Ms                              |
-            | respondent.person.name.surname                | Brown {RANDOM}                  |
-            | respondent.person.name.firstForename          | Alice                           |
+            | respondent.person.name.lastName               | Brown {RANDOM}                  |
+            | respondent.person.name.firstName              | Alice                           |
+            | respondent.person.name.middleName             | Rose                            |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Oxford Road            |
             | respondent.person.contactDetails.addressLine2 | Manchester                      |
             | respondent.person.contactDetails.postcode     | M1 1AA                          |
@@ -54,9 +55,9 @@ Feature: API - Test Data Setup - 40 ALEs
             | standardApplicantCode                         | null                            |
             | applicationCode                               | EF99001                         |
             | applicant.person.name.title                   | Mrs                             |
-            | applicant.person.name.surname                 | Clarke {RANDOM}                 |
-            | applicant.person.name.firstForename           | Sarah                           |
-            | applicant.person.name.secondForename          | Louise                          |
+            | applicant.person.name.lastName                | Clarke {RANDOM}                 |
+            | applicant.person.name.firstName               | Sarah                           |
+            | applicant.person.name.middleName              | Louise                          |
             | applicant.person.contactDetails.addressLine1  | {RANDOM} High Street            |
             | applicant.person.contactDetails.addressLine2  | Birmingham                      |
             | applicant.person.contactDetails.postcode      | B1 1AA                          |
@@ -64,8 +65,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.person.contactDetails.mobile        | 07300{RANDOM}                   |
             | applicant.person.contactDetails.email         | applicant.e2.{RANDOM}@test.com  |
             | respondent.person.name.title                  | Mr                              |
-            | respondent.person.name.surname                | Davies {RANDOM}                 |
-            | respondent.person.name.firstForename          | Thomas                          |
+            | respondent.person.name.lastName               | Davies {RANDOM}                 |
+            | respondent.person.name.firstName              | Thomas                          |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Mill Lane              |
             | respondent.person.contactDetails.addressLine2 | Leeds                           |
             | respondent.person.contactDetails.postcode     | LS1 1AA                         |
@@ -87,8 +88,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | standardApplicantCode                         | null                            |
             | applicationCode                               | CT99002                         |
             | applicant.person.name.title                   | Mr                              |
-            | applicant.person.name.surname                 | Evans {RANDOM}                  |
-            | applicant.person.name.firstForename           | Daniel                          |
+            | applicant.person.name.lastName                | Evans {RANDOM}                  |
+            | applicant.person.name.firstName               | Daniel                          |
             | applicant.person.contactDetails.addressLine1  | {RANDOM} Station Road           |
             | applicant.person.contactDetails.addressLine2  | Bristol                         |
             | applicant.person.contactDetails.postcode      | BS1 1AA                         |
@@ -96,8 +97,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.person.contactDetails.mobile        | 07500{RANDOM}                   |
             | applicant.person.contactDetails.email         | applicant.e3.{RANDOM}@test.com  |
             | respondent.person.name.title                  | Miss                            |
-            | respondent.person.name.surname                | Foster {RANDOM}                 |
-            | respondent.person.name.firstForename          | Emma                            |
+            | respondent.person.name.lastName               | Foster {RANDOM}                 |
+            | respondent.person.name.firstName              | Emma                            |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Park Avenue            |
             | respondent.person.contactDetails.addressLine2 | Liverpool                       |
             | respondent.person.contactDetails.postcode     | L1 1AA                          |
@@ -119,8 +120,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | standardApplicantCode                               | null                            |
             | applicationCode                                     | CT99002                         |
             | applicant.person.name.title                         | Ms                              |
-            | applicant.person.name.surname                       | Green {RANDOM}                  |
-            | applicant.person.name.firstForename                 | Laura                           |
+            | applicant.person.name.lastName                      | Green {RANDOM}                  |
+            | applicant.person.name.firstName                     | Laura                           |
             | applicant.person.contactDetails.addressLine1        | {RANDOM} Church Street          |
             | applicant.person.contactDetails.addressLine2        | Sheffield                       |
             | applicant.person.contactDetails.postcode            | S1 1AA                          |
@@ -148,8 +149,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | standardApplicantCode                               | null                            |
             | applicationCode                                     | EF99001                         |
             | applicant.person.name.title                         | Mr                              |
-            | applicant.person.name.surname                       | Harris {RANDOM}                 |
-            | applicant.person.name.firstForename                 | Oliver                          |
+            | applicant.person.name.lastName                      | Harris {RANDOM}                 |
+            | applicant.person.name.firstName                     | Oliver                          |
             | applicant.person.contactDetails.addressLine1        | {RANDOM} Queen Street           |
             | applicant.person.contactDetails.addressLine2        | Edinburgh                       |
             | applicant.person.contactDetails.postcode            | EH1 1AA                         |
@@ -177,8 +178,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | standardApplicantCode                               | null                            |
             | applicationCode                                     | CT99002                         |
             | applicant.person.name.title                         | Mrs                             |
-            | applicant.person.name.surname                       | Jackson {RANDOM}                |
-            | applicant.person.name.firstForename                 | Helen                           |
+            | applicant.person.name.lastName                      | Jackson {RANDOM}                |
+            | applicant.person.name.firstName                     | Helen                           |
             | applicant.person.contactDetails.addressLine1        | {RANDOM} Bridge Road            |
             | applicant.person.contactDetails.addressLine2        | Nottingham                      |
             | applicant.person.contactDetails.postcode            | NG1 1AA                         |
@@ -206,8 +207,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | standardApplicantCode                         | null                            |
             | applicationCode                               | CT99002                         |
             | applicant.person.name.title                   | Mr                              |
-            | applicant.person.name.surname                 | King {RANDOM}                   |
-            | applicant.person.name.firstForename           | William                         |
+            | applicant.person.name.lastName                | King {RANDOM}                   |
+            | applicant.person.name.firstName               | William                         |
             | applicant.person.contactDetails.addressLine1  | {RANDOM} King's Road            |
             | applicant.person.contactDetails.addressLine2  | London                          |
             | applicant.person.contactDetails.postcode      | SW3 4AA                         |
@@ -250,8 +251,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | standardApplicantCode                               | null                            |
             | applicationCode                                     | EF99001                         |
             | applicant.person.name.title                         | Ms                              |
-            | applicant.person.name.surname                       | Morgan {RANDOM}                 |
-            | applicant.person.name.firstForename                 | Fiona                           |
+            | applicant.person.name.lastName                      | Morgan {RANDOM}                 |
+            | applicant.person.name.firstName                     | Fiona                           |
             | applicant.person.contactDetails.addressLine1        | {RANDOM} West Street            |
             | applicant.person.contactDetails.addressLine2        | Leicester                       |
             | applicant.person.contactDetails.postcode            | LE1 1AA                         |
@@ -291,8 +292,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | standardApplicantCode                         | null                            |
             | applicationCode                               | EF99001                         |
             | applicant.person.name.title                   | Mr                              |
-            | applicant.person.name.surname                 | Nelson {RANDOM}                 |
-            | applicant.person.name.firstForename           | George                          |
+            | applicant.person.name.lastName                | Nelson {RANDOM}                 |
+            | applicant.person.name.firstName               | George                          |
             | applicant.person.contactDetails.addressLine1  | {RANDOM} North Street           |
             | applicant.person.contactDetails.addressLine2  | Portsmouth                      |
             | applicant.person.contactDetails.postcode      | PO1 1AA                         |
@@ -300,8 +301,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.person.contactDetails.mobile        | 07980{RANDOM}                   |
             | applicant.person.contactDetails.email         | applicant.e9.{RANDOM}@test.com  |
             | respondent.person.name.title                  | Ms                              |
-            | respondent.person.name.surname                | Owen {RANDOM}                   |
-            | respondent.person.name.firstForename          | Rachel                          |
+            | respondent.person.name.lastName               | Owen {RANDOM}                   |
+            | respondent.person.name.firstName              | Rachel                          |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} South Road             |
             | respondent.person.contactDetails.addressLine2 | Plymouth                        |
             | respondent.person.contactDetails.postcode     | PL1 1AA                         |
@@ -323,8 +324,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | standardApplicantCode                               | null                             |
             | applicationCode                                     | CT99002                          |
             | applicant.person.name.title                         | Mrs                              |
-            | applicant.person.name.surname                       | Parker {RANDOM}                  |
-            | applicant.person.name.firstForename                 | Diana                            |
+            | applicant.person.name.lastName                      | Parker {RANDOM}                  |
+            | applicant.person.name.firstName                     | Diana                            |
             | applicant.person.contactDetails.addressLine1        | {RANDOM} East Road               |
             | applicant.person.contactDetails.addressLine2        | Cambridge                        |
             | applicant.person.contactDetails.postcode            | CB1 1AA                          |
@@ -364,8 +365,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.organisation.contactDetails.mobile       | 07130{RANDOM}                    |
             | applicant.organisation.contactDetails.email        | applicant.e11.{RANDOM}@test.com  |
             | respondent.person.name.title                       | Mr                               |
-            | respondent.person.name.surname                     | Quinn {RANDOM}                   |
-            | respondent.person.name.firstForename               | Patrick                          |
+            | respondent.person.name.lastName                    | Quinn {RANDOM}                   |
+            | respondent.person.name.firstName                   | Patrick                          |
             | respondent.person.contactDetails.addressLine1      | {RANDOM} Market Place            |
             | respondent.person.contactDetails.addressLine2      | York                             |
             | respondent.person.contactDetails.postcode          | YO1 1AA                          |
@@ -394,8 +395,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.organisation.contactDetails.mobile       | 07150{RANDOM}                    |
             | applicant.organisation.contactDetails.email        | applicant.e12.{RANDOM}@test.com  |
             | respondent.person.name.title                       | Mrs                              |
-            | respondent.person.name.surname                     | Reed {RANDOM}                    |
-            | respondent.person.name.firstForename               | Julia                            |
+            | respondent.person.name.lastName                    | Reed {RANDOM}                    |
+            | respondent.person.name.firstName                   | Julia                            |
             | respondent.person.contactDetails.addressLine1      | {RANDOM} Grove Road              |
             | respondent.person.contactDetails.addressLine2      | Sheffield                        |
             | respondent.person.contactDetails.postcode          | S2 1AA                           |
@@ -424,8 +425,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.organisation.contactDetails.mobile       | 07170{RANDOM}                    |
             | applicant.organisation.contactDetails.email        | applicant.e13.{RANDOM}@test.com  |
             | respondent.person.name.title                       | Ms                               |
-            | respondent.person.name.surname                     | Scott {RANDOM}                   |
-            | respondent.person.name.firstForename               | Claire                           |
+            | respondent.person.name.lastName                    | Scott {RANDOM}                   |
+            | respondent.person.name.firstName                   | Claire                           |
             | respondent.person.contactDetails.addressLine1      | {RANDOM} Church Lane             |
             | respondent.person.contactDetails.addressLine2      | Norwich                          |
             | respondent.person.contactDetails.postcode          | NR1 1AA                          |
@@ -535,8 +536,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.organisation.contactDetails.mobile       | 07260{RANDOM}                    |
             | applicant.organisation.contactDetails.email        | applicant.e17.{RANDOM}@test.com  |
             | respondent.person.name.title                       | Mr                               |
-            | respondent.person.name.surname                     | Turner {RANDOM}                  |
-            | respondent.person.name.firstForename               | Mark                             |
+            | respondent.person.name.lastName                    | Turner {RANDOM}                  |
+            | respondent.person.name.firstName                   | Mark                             |
             | respondent.person.contactDetails.addressLine1      | {RANDOM} College Road            |
             | respondent.person.contactDetails.addressLine2      | Oxford                           |
             | respondent.person.contactDetails.postcode          | OX2 1AA                          |
@@ -616,8 +617,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.organisation.contactDetails.mobile       | 07310{RANDOM}                    |
             | applicant.organisation.contactDetails.email        | applicant.e19.{RANDOM}@test.com  |
             | respondent.person.name.title                       | Miss                             |
-            | respondent.person.name.surname                     | Underwood {RANDOM}               |
-            | respondent.person.name.firstForename               | Natalie                          |
+            | respondent.person.name.lastName                    | Underwood {RANDOM}               |
+            | respondent.person.name.firstName                   | Natalie                          |
             | respondent.person.contactDetails.addressLine1      | {RANDOM} Bridge Street           |
             | respondent.person.contactDetails.addressLine2      | Stoke-on-Trent                   |
             | respondent.person.contactDetails.postcode          | ST1 1AA                          |
@@ -670,8 +671,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | standardApplicantCode                         | APP036                           |
             | applicationCode                               | CT99002                          |
             | respondent.person.name.title                  | Mr                               |
-            | respondent.person.name.surname                | Palmer {RANDOM}                  |
-            | respondent.person.name.firstForename          | Andrew                           |
+            | respondent.person.name.lastName               | Palmer {RANDOM}                  |
+            | respondent.person.name.firstName              | Andrew                           |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Victoria Street         |
             | respondent.person.contactDetails.addressLine2 | Exeter                           |
             | respondent.person.contactDetails.postcode     | EX1 1AA                          |
@@ -693,8 +694,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | standardApplicantCode                         | APP036                           |
             | applicationCode                               | EF99001                          |
             | respondent.person.name.title                  | Mrs                              |
-            | respondent.person.name.surname                | Quinn {RANDOM}                   |
-            | respondent.person.name.firstForename          | Sandra                           |
+            | respondent.person.name.lastName               | Quinn {RANDOM}                   |
+            | respondent.person.name.firstName              | Sandra                           |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Crown Road              |
             | respondent.person.contactDetails.addressLine2 | Gloucester                       |
             | respondent.person.contactDetails.postcode     | GL1 1AA                          |
@@ -716,8 +717,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | standardApplicantCode                         | APP036                           |
             | applicationCode                               | CT99002                          |
             | respondent.person.name.title                  | Ms                               |
-            | respondent.person.name.surname                | Roberts {RANDOM}                 |
-            | respondent.person.name.firstForename          | Victoria                         |
+            | respondent.person.name.lastName               | Roberts {RANDOM}                 |
+            | respondent.person.name.firstName              | Victoria                         |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Street           |
             | respondent.person.contactDetails.addressLine2 | Swansea                          |
             | respondent.person.contactDetails.postcode     | SA1 1AA                          |
@@ -799,8 +800,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | standardApplicantCode                         | APP036                           |
             | applicationCode                               | CT99002                          |
             | respondent.person.name.title                  | Mr                               |
-            | respondent.person.name.surname                | Victor {RANDOM}                  |
-            | respondent.person.name.firstForename          | Kenneth                          |
+            | respondent.person.name.lastName               | Victor {RANDOM}                  |
+            | respondent.person.name.firstName              | Kenneth                          |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Union Street            |
             | respondent.person.contactDetails.addressLine2 | Aberdeen                         |
             | respondent.person.contactDetails.postcode     | AB1 1AA                          |
@@ -866,8 +867,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | standardApplicantCode                         | APP036                           |
             | applicationCode                               | CT99002                          |
             | respondent.person.name.title                  | Ms                               |
-            | respondent.person.name.surname                | Xander {RANDOM}                  |
-            | respondent.person.name.firstForename          | Lesley                           |
+            | respondent.person.name.lastName               | Xander {RANDOM}                  |
+            | respondent.person.name.firstName              | Lesley                           |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Fore Street             |
             | respondent.person.contactDetails.addressLine2 | Truro                            |
             | respondent.person.contactDetails.postcode     | TR1 1AA                          |
@@ -913,8 +914,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | standardApplicantCode                         | APP013                           |
             | applicationCode                               | CT99002                          |
             | respondent.person.name.title                  | Mr                               |
-            | respondent.person.name.surname                | Zane {RANDOM}                    |
-            | respondent.person.name.firstForename          | David                            |
+            | respondent.person.name.lastName               | Zane {RANDOM}                    |
+            | respondent.person.name.firstName              | David                            |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Regent Street           |
             | respondent.person.contactDetails.addressLine2 | London                           |
             | respondent.person.contactDetails.postcode     | W1B 5AA                          |
@@ -936,8 +937,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | standardApplicantCode                         | APP013                           |
             | applicationCode                               | EF99001                          |
             | respondent.person.name.title                  | Mrs                              |
-            | respondent.person.name.surname                | Abbott {RANDOM}                  |
-            | respondent.person.name.firstForename          | Claire                           |
+            | respondent.person.name.lastName               | Abbott {RANDOM}                  |
+            | respondent.person.name.firstName              | Claire                           |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Bond Street             |
             | respondent.person.contactDetails.addressLine2 | London                           |
             | respondent.person.contactDetails.postcode     | W1S 1AA                          |
@@ -959,8 +960,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | standardApplicantCode                         | APP013                           |
             | applicationCode                               | CT99002                          |
             | respondent.person.name.title                  | Mr                               |
-            | respondent.person.name.surname                | Barker {RANDOM}                  |
-            | respondent.person.name.firstForename          | Steven                           |
+            | respondent.person.name.lastName               | Barker {RANDOM}                  |
+            | respondent.person.name.firstName              | Steven                           |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Fleet Street            |
             | respondent.person.contactDetails.addressLine2 | London                           |
             | respondent.person.contactDetails.postcode     | EC4Y 1AA                         |
@@ -1042,8 +1043,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | standardApplicantCode                         | APP013                           |
             | applicationCode                               | CT99002                          |
             | respondent.person.name.title                  | Mr                               |
-            | respondent.person.name.surname                | Fraser {RANDOM}                  |
-            | respondent.person.name.firstForename          | Callum                           |
+            | respondent.person.name.lastName               | Fraser {RANDOM}                  |
+            | respondent.person.name.firstName              | Callum                           |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Rose Street             |
             | respondent.person.contactDetails.addressLine2 | Edinburgh                        |
             | respondent.person.contactDetails.postcode     | EH3 1AA                          |
@@ -1109,8 +1110,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | standardApplicantCode                         | APP013                           |
             | applicationCode                               | EF99001                          |
             | respondent.person.name.title                  | Mrs                              |
-            | respondent.person.name.surname                | Hamilton {RANDOM}                |
-            | respondent.person.name.firstForename          | Moira                            |
+            | respondent.person.name.lastName               | Hamilton {RANDOM}                |
+            | respondent.person.name.firstName              | Moira                            |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Castle Terrace          |
             | respondent.person.contactDetails.addressLine2 | Edinburgh                        |
             | respondent.person.contactDetails.postcode     | EH4 1AA                          |
