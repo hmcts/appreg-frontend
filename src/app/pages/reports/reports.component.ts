@@ -92,7 +92,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       dateTo: new FormControl<string | null>(null, {
         validators: [(c) => Validators.required(c)],
       }),
-      applicantCode: new FormControl<string | null>(''),
+      standardApplicantCode: new FormControl<string | null>(''),
       surnameOrOrg: new FormControl<string | null>(''),
       court: new FormControl<string | null>(''),
       otherLocation: new FormControl<string | null>(''),

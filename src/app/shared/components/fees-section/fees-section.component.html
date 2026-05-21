@@ -15,19 +15,19 @@
 <div [formGroup]="group()">
   <div class="govuk-grid-row">
     <app-text-input
-      formControlName="applicantCode"
-      label="Applicant code"
-      id="applicant-code"
+      formControlName="surnameOrOrg"
+      label="Applicant surname or organisation name"
+      id="surname-or-org"
+      containerWidthClass="govuk-grid-column-one-half"
+      widthClass="govuk-!-width-two-thirds"
     />
   </div>
 
   <div class="govuk-grid-row">
     <app-text-input
-      formControlName="surnameOrOrg"
-      label="Surname or organisation"
-      id="surname-or-org"
-      containerWidthClass="govuk-grid-column-one-half"
-      widthClass="govuk-!-width-full"
+      formControlName="standardApplicantCode"
+      label="Standard applicant code"
+      id="standard-applicant-code"
     />
   </div>
 </div>
