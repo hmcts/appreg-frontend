@@ -3,7 +3,10 @@ import { ReportId } from '@shared-types/reports/report.types';
 
 export const REPORTS_FORM_ERROR_MESSAGES = {
   dateFrom: APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES.date,
-  dateTo: APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES.date,
+  dateTo: {
+    ...APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES.date,
+    dateRange: 'Date to must be on or after Date from',
+  },
   court: {
     courtNotFound:
       APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES.court.courtNotFound,

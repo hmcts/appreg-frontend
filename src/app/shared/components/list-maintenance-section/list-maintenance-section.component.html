@@ -10,17 +10,18 @@
   [suggestions]="suggestions()"
   [submitted]="submitted()"
   [getError]="getError()"
-/>
-
-<div [formGroup]="group()">
-  <!-- Description -->
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="description"
-      label="Description"
-      idPrefix="list-description"
-      containerWidthClass="govuk-grid-column-one-half"
-      widthClass="govuk-!-width-two-thirds"
-    />
+  [advancedFilters]="true"
+>
+  <div reportsAdvancedFieldsBeforeLocation [formGroup]="group()">
+    <!-- Description -->
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="description"
+        label="List description"
+        idPrefix="list-description"
+        containerWidthClass="govuk-grid-column-one-half"
+        widthClass="govuk-!-width-two-thirds"
+      />
+    </div>
   </div>
-</div>
+</app-reports-shared-form>

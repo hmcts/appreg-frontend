@@ -148,4 +148,34 @@ describe('DateInputComponent', () => {
 
     jest.useRealTimers();
   });
+
+  it('shows an external error message after submit', () => {
+    component.dateForm.setValue({ day: '31', month: '1', year: '2026' });
+    fixture.componentRef.setInput('submitted', true);
+    fixture.componentRef.setInput(
+      'externalErrorText',
+      'Date to must be on or after Date from',
+    );
+    fixture.detectChanges();
+
+    const error = fixture.nativeElement.querySelector(
+      '#date-error',
+    ) as HTMLElement;
+    const day = fixture.nativeElement.querySelector(
+      '#date-day',
+    ) as HTMLInputElement;
+    const month = fixture.nativeElement.querySelector(
+      '#date-month',
+    ) as HTMLInputElement;
+    const year = fixture.nativeElement.querySelector(
+      '#date-year',
+    ) as HTMLInputElement;
+
+    expect(error.textContent).toContain(
+      'Date to must be on or after Date from',
+    );
+    expect(day.classList.contains('govuk-input--error')).toBe(true);
+    expect(month.classList.contains('govuk-input--error')).toBe(true);
+    expect(year.classList.contains('govuk-input--error')).toBe(true);
+  });
 });

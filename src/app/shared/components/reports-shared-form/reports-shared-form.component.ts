@@ -4,7 +4,8 @@
  * Form: Date from, Date to, Court, Other location, CJA
  */
 
-import { Component, input } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { Component, computed, input, signal } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { SuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
@@ -16,6 +17,7 @@ import { TextInputComponent } from '@components/text-input/text-input.component'
 @Component({
   selector: 'app-reports-shared-form',
   imports: [
+    NgTemplateOutlet,
     DateInputComponent,
     TextInputComponent,
     ReactiveFormsModule,
@@ -29,8 +31,36 @@ export class ReportsSharedFormComponent {
 
   submitted = input(false);
   getError = input<((id: string) => ErrorItem | undefined) | null>(null);
+  advancedFilters = input(false);
+  advancedOpen = input<boolean | null>(null);
+  advancedLabel = input('Advanced filters');
+  onToggleAdvanced = input<(() => void) | null>(null);
+
+  private readonly internalAdvancedOpen = signal(false);
+
+  isAdvancedOpen = computed(
+    () =>
+      (this.advancedOpen() ?? this.internalAdvancedOpen()) ||
+      this.hasAdvancedError(),
+  );
 
   showError = (id: string): boolean =>
     this.submitted() && !!this.getError()?.(id);
   errorText = (id: string): string => this.getError()?.(id)?.text ?? '';
+
+  onAdvancedClick(e: Event): void {
+    e.preventDefault();
+
+    const toggleAdvanced = this.onToggleAdvanced();
+    if (toggleAdvanced) {
+      toggleAdvanced();
+      return;
+    }
+
+    this.internalAdvancedOpen.update((open) => !open);
+  }
+
+  private hasAdvancedError(): boolean {
+    return this.showError('cja') || this.showError('otherLocation');
+  }
 }

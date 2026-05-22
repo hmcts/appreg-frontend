@@ -66,4 +66,21 @@ describe('ActivityAuditSectionComponent (with template)', () => {
     expect(dateInputs).toHaveLength(2);
     expect(textInputs).toHaveLength(2);
   });
+
+  it('passes external date errors to date inputs', () => {
+    fixture.componentRef.setInput('submitted', true);
+    fixture.componentRef.setInput('getError', (id: string) =>
+      id === 'dateTo'
+        ? { id, text: 'Date to must be on or after Date from' }
+        : undefined,
+    );
+    fixture.detectChanges();
+
+    const dateInputs = fixture.debugElement.queryAll(By.css('app-date-input'));
+
+    expect(dateInputs[0].componentInstance.externalErrorText()).toBe('');
+    expect(dateInputs[1].componentInstance.externalErrorText()).toBe(
+      'Date to must be on or after Date from',
+    );
+  });
 });

@@ -46,6 +46,8 @@
             }
           } @else if (dateForm.errors?.['dateInvalid']) {
             {{ dateForm.errors?.['dateErrorText'] ?? 'Enter a valid date' }}
+          } @else if (externalErrorText()) {
+            {{ externalErrorText() }}
           }
         </p>
       }
