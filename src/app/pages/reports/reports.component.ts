@@ -399,7 +399,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       .pipe(take(1), takeUntilDestroyed(this.componentDestroyRef))
       .subscribe({
         next: (response) => {
-          this.saveCsv(response, jobId);
+          this.saveCsv(response);
         },
         error: (err) => {
           this.showReportError(this.toReportRequestError(err));
@@ -407,7 +407,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       });
   }
 
-  private saveCsv(response: HttpResponse<Blob>, jobId: string): void {
+  private saveCsv(response: HttpResponse<Blob>): void {
     if (!response.body) {
       this.showReportError('The report was generated but no CSV was returned.');
       return;
@@ -420,9 +420,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     const url = URL.createObjectURL(response.body);
     const link = this.document.createElement('a');
     link.href = url;
-    link.download =
-      this.getDownloadFilename(response) ??
-      `list-maintenance-report-${jobId}.csv`;
+    link.download = this.getListMaintenanceReportFilename();
     link.style.display = 'none';
 
     this.document.body.appendChild(link);
@@ -433,18 +431,13 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     this.showReportSuccess();
   }
 
-  private getDownloadFilename(response: HttpResponse<Blob>): string | null {
-    const disposition = response.headers.get('content-disposition');
-    if (!disposition) {
-      return null;
-    }
+  private getListMaintenanceReportFilename(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
 
-    const encodedFilename = /filename\*=UTF-8''([^;]+)/i.exec(disposition)?.[1];
-    if (encodedFilename) {
-      return decodeURIComponent(encodedFilename);
-    }
-
-    return /filename="?([^";]+)"?/i.exec(disposition)?.[1] ?? null;
+    return `list-maintenance-report-${year}-${month}-${day}.csv`;
   }
 
   private showReportProgress(): void {

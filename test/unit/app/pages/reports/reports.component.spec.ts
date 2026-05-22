@@ -92,6 +92,7 @@ describe('ReportsComponent', () => {
   afterEach(() => {
     anchorClickSpy.mockRestore();
     jest.clearAllMocks();
+    jest.useRealTimers();
   });
 
   it('should create', () => {
@@ -300,6 +301,7 @@ describe('ReportsComponent', () => {
     fixture.detectChanges();
 
     component.onDownload();
+    fixture.detectChanges();
 
     expect(component.vm().errorSummary).toEqual([
       {
@@ -308,6 +310,14 @@ describe('ReportsComponent', () => {
         text: 'Date to must be on or after Date from',
       },
     ]);
+    expect(
+      fixture.nativeElement.querySelector('#list-date-to-error')?.textContent,
+    ).toContain('Date to must be on or after Date from');
+    expect(
+      fixture.nativeElement
+        .querySelector('#list-date-to-day')
+        ?.classList.contains('govuk-input--error'),
+    ).toBe(true);
     expect(reportsApiMock.createListMaintenanceReport).not.toHaveBeenCalled();
   });
 
@@ -333,6 +343,8 @@ describe('ReportsComponent', () => {
   });
 
   it('creates, polls, and downloads a list maintenance report CSV', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-05-22T09:30:00'));
     reportsApiMock.createListMaintenanceReport.mockReturnValue(
       of(new HttpResponse({ body: jobAcknowledgement, status: 202 })),
     );
@@ -387,6 +399,9 @@ describe('ReportsComponent', () => {
     );
     expect(createObjectUrlSpy).toHaveBeenCalledWith(expect.any(Blob));
     expect(anchorClickSpy).toHaveBeenCalledTimes(1);
+    expect(
+      (anchorClickSpy.mock.contexts[0] as HTMLAnchorElement).download,
+    ).toBe('list-maintenance-report-2026-05-22.csv');
     expect(component.vm().reportFeedback).toEqual({
       kind: 'success',
       heading: 'Report downloaded',

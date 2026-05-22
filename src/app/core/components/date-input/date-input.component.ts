@@ -55,6 +55,7 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
   isSearch = input(false);
   disallowFutureDates = input(false);
   pastDatesOnly = input(false);
+  externalErrorText = input('');
 
   containerWidthClass = input('govuk-grid-column-one-half');
 
@@ -164,10 +165,11 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
     }
     const miss =
       this.missing('day') || this.missing('month') || this.missing('year');
+    const externalError = this.hasExternalError(submitted);
     if (!this.isSearch()) {
-      return this.dateForm.invalid || miss;
+      return this.dateForm.invalid || miss || externalError;
     }
-    return this.hasAny() && (this.dateForm.invalid || miss);
+    return this.hasAny() && (this.dateForm.invalid || miss || externalError);
   }
 
   fieldError(name: DateField, submitted: boolean): boolean {
@@ -178,13 +180,14 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
     const base = !!(c?.invalid && (c?.touched || c?.dirty));
     const miss = this.missing(name);
     const dateInvalid = !!this.dateForm.errors?.['dateInvalid'];
+    const externalError = this.hasExternalError(submitted);
     if (!submitted) {
       return base;
     }
     if (!this.isSearch()) {
-      return base || miss || dateInvalid;
+      return base || miss || dateInvalid || externalError;
     }
-    return base || (this.hasAny() && (miss || dateInvalid));
+    return base || (this.hasAny() && (miss || dateInvalid || externalError));
   }
 
   private isInteractedInvalid(name: DateField): boolean {
@@ -197,7 +200,11 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
   }
 
   ariaInvalidAfterSubmit(name: DateField): 'true' | null {
-    return this.isInteractedInvalid(name) || this.missing(name) ? 'true' : null;
+    return this.isInteractedInvalid(name) ||
+      this.missing(name) ||
+      this.hasExternalError(true)
+      ? 'true'
+      : null;
   }
 
   writeValue(value: string | null): void {
@@ -309,5 +316,9 @@ export class DateInputComponent implements ControlValueAccessor, Validator {
 
   missing(name: DateField): boolean {
     return !this.val(name);
+  }
+
+  private hasExternalError(submitted: boolean): boolean {
+    return submitted && !!this.externalErrorText().trim();
   }
 }
