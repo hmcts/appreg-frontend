@@ -6,7 +6,11 @@ import {
   Validators,
 } from '@angular/forms';
 
-import { ReportsState, initialReportsState } from './util';
+import {
+  ReportsState,
+  initialReportsState,
+  mapFeeGroupToFeesReportFilterDto,
+} from './util';
 
 import { ActivityAuditSectionComponent } from '@components/activity-audit-section/activity-audit-section.component';
 import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
@@ -26,10 +30,12 @@ import {
   REPORT_ERROR_HREFS,
 } from '@constants/reports/report-err';
 import { reportOptions } from '@constants/reports/report-selector.constant';
+import { CreateFeesReportRequestParams, ReportsApi } from '@openapi';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { ReportId } from '@shared-types/reports/report.types';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { buildFormErrorSummary } from '@util/error-summary';
+import { getProblemText } from '@util/http-error-to-text';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState } from '@util/signal-state-helpers';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
@@ -58,6 +64,7 @@ const REPORT_ERROR_PRIORITY_KEYS: Record<string, string[]> = {
 })
 export class Reports extends PlaceFieldsBase implements OnInit {
   private readonly refFacade = inject(ReferenceDataFacade);
+  private readonly reportsApi = inject(ReportsApi);
 
   private readonly reportState =
     createSignalState<ReportsState>(initialReportsState);
@@ -181,7 +188,15 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   onDownload(): void {
     this.form.controls.report.markAsTouched();
     this.form.controls.report.updateValueAndValidity({ emitEvent: false });
-    this.reportStatePatch({ submitted: true, errorSummary: [] });
+
+    // Reset state
+    this.reportStatePatch({
+      submitted: true,
+      errorSummary: [],
+      reportJobId: null,
+      reportJobStatus: null,
+      isReportGenerating: false,
+    });
 
     const selectedGroup = this.selectedReportGroup();
     selectedGroup?.markAllAsTouched();
@@ -194,7 +209,20 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    // TODO: download csv
+    if (this.form.controls.report.value === 'fees') {
+      const request: CreateFeesReportRequestParams = {
+        feesReportFilterDto: mapFeeGroupToFeesReportFilterDto(this.feesGroup),
+      };
+
+      this.reportsApi.createFeesReport(request).subscribe({
+        next: (job) => {
+          this.reportStatePatch({ reportJobId: job.id });
+        },
+        error: (err) => {
+          this.handleReportCreateError(err);
+        },
+      });
+    }
   }
 
   /** Handy getter for the child binding */
@@ -252,6 +280,14 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     });
 
     return this.withDateInputErrorText(errors, selectedGroup);
+  }
+
+  private handleReportCreateError(err: unknown): void {
+    this.reportStatePatch({
+      errorSummary: [
+        { text: getProblemText(err) ?? 'Failed to download report' },
+      ],
+    });
   }
 
   private withDateInputErrorText(
