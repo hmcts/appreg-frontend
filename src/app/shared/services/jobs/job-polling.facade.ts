@@ -10,7 +10,7 @@ import { HttpResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, exhaustMap, map, takeWhile, timer } from 'rxjs';
 
-import { JobAcknowledgement, JobsApi } from '@openapi';
+import { JobAcknowledgement, JobStatus2, JobsApi } from '@openapi';
 
 export type PolledJobState =
   | 'in_progress'
@@ -32,16 +32,20 @@ export interface PolledJobStatus {
 
 const DEFAULT_INTERVAL_MS = 2_000;
 
-const TERMINAL_SUCCESS_STATUSES = new Set(['SUCCEEDED', 'COMPLETED']);
-const IN_PROGRESS_STATUSES = new Set([
-  'RECEIVED',
-  'VALIDATING',
-  'PROCESSING',
+const TERMINAL_SUCCESS_STATUSES = new Set<string>([
+  'SUCCEEDED',
+  String(JobStatus2.COMPLETED),
+]);
+const IN_PROGRESS_STATUSES = new Set<string>([
+  String(JobStatus2.RECEIVED),
+  String(JobStatus2.VALIDATING),
+  String(JobStatus2.PROCESSING),
   'PENDING',
   'QUEUED',
   'RUNNING',
   'IN_PROGRESS',
 ]);
+const FAILED_STATUS = String(JobStatus2.FAILED);
 
 @Injectable({
   providedIn: 'root',
@@ -119,7 +123,7 @@ function normaliseJobStatus(
 
   let state: PolledJobState = 'in_progress';
 
-  if (rawStatus === 'FAILED') {
+  if (rawStatus === FAILED_STATUS) {
     state = 'failed';
   } else if (
     rawStatus === 'COMPLETED_WITH_ERRORS' ||

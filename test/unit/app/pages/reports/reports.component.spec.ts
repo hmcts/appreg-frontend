@@ -180,6 +180,34 @@ describe('ReportsComponent', () => {
     ]);
   });
 
+  it('blocks activity audit download when date to is before date from', () => {
+    component.form.controls.report.setValue('activity-audit');
+    component.activityAuditGroup.patchValue({
+      dateFrom: '2026-02-01',
+      dateTo: '2026-01-31',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().errorSummary).toEqual([
+      {
+        id: 'dateTo',
+        href: '#date-to',
+        text: 'Date to must be on or after Date from',
+      },
+    ]);
+    expect(
+      fixture.nativeElement.querySelector('#date-to-error')?.textContent,
+    ).toContain('Date to must be on or after Date from');
+    expect(
+      fixture.nativeElement
+        .querySelector('#date-to-day')
+        ?.classList.contains('govuk-input--error'),
+    ).toBe(true);
+  });
+
   it('clears previous errors when the selected report is valid', () => {
     component.form.controls.report.setValue('activity-audit');
     fixture.detectChanges();
@@ -292,6 +320,48 @@ describe('ReportsComponent', () => {
     );
   });
 
+  it('clears validation state when switching report type', () => {
+    component.form.controls.report.setValue('list-maintenance');
+    component.listMaintenanceGroup.patchValue({
+      dateFrom: '2026-02-01',
+      dateTo: '2026-01-31',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().submitted).toBe(true);
+    expect(component.vm().errorSummary).toEqual([
+      {
+        id: 'dateTo',
+        href: '#list-date-to',
+        text: 'Date to must be on or after Date from',
+      },
+    ]);
+
+    component.form.controls.report.setValue('activity-audit');
+    fixture.detectChanges();
+
+    expect(component.vm().submitted).toBe(false);
+    expect(component.vm().errorSummary).toEqual([]);
+    expect(component.vm().reportFeedback).toBeNull();
+    expect(component.activityAuditGroup.value).toEqual(
+      expect.objectContaining({
+        dateFrom: '2026-02-01',
+        dateTo: '2026-01-31',
+      }),
+    );
+    expect(
+      fixture.nativeElement.querySelector('app-error-summary'),
+    ).toBeFalsy();
+    expect(
+      fixture.nativeElement
+        .querySelector('#date-to-day')
+        ?.classList.contains('govuk-input--error'),
+    ).toBe(false);
+  });
+
   it('blocks list maintenance download when date to is before date from', () => {
     component.form.controls.report.setValue('list-maintenance');
     component.listMaintenanceGroup.patchValue({
@@ -340,6 +410,49 @@ describe('ReportsComponent', () => {
       fixture.nativeElement.querySelector('app-async-job-progress')
         ?.textContent,
     ).toContain('Report in progress');
+  });
+
+  it('prevents duplicate list maintenance create requests while progress is active', () => {
+    const createJob$ = new Subject<HttpResponse<JobAcknowledgement>>();
+    reportsApiMock.createListMaintenanceReport.mockReturnValue(createJob$);
+
+    component.form.controls.report.setValue('list-maintenance');
+    component.listMaintenanceGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(reportsApiMock.createListMaintenanceReport).toHaveBeenCalledTimes(1);
+    expect(
+      fixture.nativeElement.querySelector('button.govuk-button')?.disabled,
+    ).toBe(true);
+  });
+
+  it('cancels a pending list maintenance create request when switching report type', () => {
+    const createJob$ = new Subject<HttpResponse<JobAcknowledgement>>();
+    reportsApiMock.createListMaintenanceReport.mockReturnValue(createJob$);
+
+    component.form.controls.report.setValue('list-maintenance');
+    component.listMaintenanceGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    component.form.controls.report.setValue('activity-audit');
+    createJob$.next(
+      new HttpResponse({ body: jobAcknowledgement, status: 202 }),
+    );
+    fixture.detectChanges();
+
+    expect(jobPollingFacadeMock.watchJob).not.toHaveBeenCalled();
+    expect(component.vm().reportFeedback).toBeNull();
   });
 
   it('creates, polls, and downloads a list maintenance report CSV', () => {

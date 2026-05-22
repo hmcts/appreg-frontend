@@ -49,6 +49,7 @@
     <app-activity-audit-section
       [group]="activityAuditGroup"
       [submitted]="vm().submitted"
+      [getError]="fieldError.bind(this)"
     />
   }
   <!-- Fees section -->
@@ -110,7 +111,12 @@
 <!-- Download button -->
 @if (form.get('report')?.value) {
   <div class="govuk-button-group">
-    <button type="button" class="govuk-button" (click)="onDownload()">
+    <button
+      type="button"
+      class="govuk-button"
+      [disabled]="isReportInProgress()"
+      (click)="onDownload()"
+    >
       Download CSV
     </button>
   </div>

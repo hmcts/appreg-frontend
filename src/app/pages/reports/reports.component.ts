@@ -55,6 +55,7 @@ import { buildFormErrorSummary } from '@util/error-summary';
 import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState } from '@util/signal-state-helpers';
+import { getTrimmedStringOrNullFromGroup } from '@util/string-helpers';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 import { dateToOnOrAfterDateFromValidator } from '@validators/date-range.validator';
 
@@ -64,6 +65,7 @@ const REPORT_ERROR_PRIORITY_KEYS: Record<string, string[]> = {
 };
 
 const REPORT_POLL_INTERVAL_MS = 2_000;
+const REPORT_DATE_RANGE_VALIDATORS = [dateToOnOrAfterDateFromValidator()];
 
 @Component({
   selector: 'app-reports',
@@ -98,6 +100,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   readonly vm = this.reportState.vm;
 
   private previousReportId: ReportId | null = null;
+  private reportCreateSub: Subscription | null = null;
   private reportPollingSub: Subscription | null = null;
 
   onCreateErrorClick = onCreateErrorClickFn;
@@ -110,30 +113,40 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       validators: [(c) => Validators.required(c)],
     }),
 
-    activityAudit: new FormGroup({
-      dateFrom: new FormControl<string | null>(null, {
-        validators: [(c) => Validators.required(c)],
-      }),
-      dateTo: new FormControl<string | null>(null, {
-        validators: [(c) => Validators.required(c)],
-      }),
-      username: new FormControl<string | null>(''),
-      activity: new FormControl<string | null>(''),
-    }),
+    activityAudit: new FormGroup(
+      {
+        dateFrom: new FormControl<string | null>(null, {
+          validators: [(c) => Validators.required(c)],
+        }),
+        dateTo: new FormControl<string | null>(null, {
+          validators: [(c) => Validators.required(c)],
+        }),
+        username: new FormControl<string | null>(''),
+        activity: new FormControl<string | null>(''),
+      },
+      {
+        validators: REPORT_DATE_RANGE_VALIDATORS,
+      },
+    ),
 
-    fees: new FormGroup({
-      dateFrom: new FormControl<string | null>(null, {
-        validators: [(c) => Validators.required(c)],
-      }),
-      dateTo: new FormControl<string | null>(null, {
-        validators: [(c) => Validators.required(c)],
-      }),
-      applicantCode: new FormControl<string | null>(''),
-      surnameOrOrg: new FormControl<string | null>(''),
-      court: new FormControl<string | null>(''),
-      otherLocation: new FormControl<string | null>(''),
-      cja: new FormControl<string | null>(''),
-    }),
+    fees: new FormGroup(
+      {
+        dateFrom: new FormControl<string | null>(null, {
+          validators: [(c) => Validators.required(c)],
+        }),
+        dateTo: new FormControl<string | null>(null, {
+          validators: [(c) => Validators.required(c)],
+        }),
+        applicantCode: new FormControl<string | null>(''),
+        surnameOrOrg: new FormControl<string | null>(''),
+        court: new FormControl<string | null>(''),
+        otherLocation: new FormControl<string | null>(''),
+        cja: new FormControl<string | null>(''),
+      },
+      {
+        validators: REPORT_DATE_RANGE_VALIDATORS,
+      },
+    ),
 
     listMaintenance: new FormGroup(
       {
@@ -149,63 +162,83 @@ export class Reports extends PlaceFieldsBase implements OnInit {
         cja: new FormControl<string | null>(''),
       },
       {
-        validators: [dateToOnOrAfterDateFromValidator()],
+        validators: REPORT_DATE_RANGE_VALIDATORS,
       },
     ),
 
-    searchWarrants: new FormGroup({
-      dateFrom: new FormControl<string | null>(null, {
-        validators: [(c) => Validators.required(c)],
-      }),
-      dateTo: new FormControl<string | null>(null, {
-        validators: [(c) => Validators.required(c)],
-      }),
-      court: new FormControl<string | null>(''),
-      otherLocation: new FormControl<string | null>(''),
-      cja: new FormControl<string | null>(''),
-    }),
+    searchWarrants: new FormGroup(
+      {
+        dateFrom: new FormControl<string | null>(null, {
+          validators: [(c) => Validators.required(c)],
+        }),
+        dateTo: new FormControl<string | null>(null, {
+          validators: [(c) => Validators.required(c)],
+        }),
+        court: new FormControl<string | null>(''),
+        otherLocation: new FormControl<string | null>(''),
+        cja: new FormControl<string | null>(''),
+      },
+      {
+        validators: REPORT_DATE_RANGE_VALIDATORS,
+      },
+    ),
 
-    workload: new FormGroup({
-      dateFrom: new FormControl<string | null>(null, {
-        validators: [(c) => Validators.required(c)],
-      }),
-      dateTo: new FormControl<string | null>(null, {
-        validators: [(c) => Validators.required(c)],
-      }),
-      court: new FormControl<string | null>(''),
-      otherLocation: new FormControl<string | null>(''),
-      cja: new FormControl<string | null>(''),
-    }),
+    workload: new FormGroup(
+      {
+        dateFrom: new FormControl<string | null>(null, {
+          validators: [(c) => Validators.required(c)],
+        }),
+        dateTo: new FormControl<string | null>(null, {
+          validators: [(c) => Validators.required(c)],
+        }),
+        court: new FormControl<string | null>(''),
+        otherLocation: new FormControl<string | null>(''),
+        cja: new FormControl<string | null>(''),
+      },
+      {
+        validators: REPORT_DATE_RANGE_VALIDATORS,
+      },
+    ),
 
-    duration: new FormGroup({
-      dateFrom: new FormControl<string | null>(null, {
-        validators: [(c) => Validators.required(c)],
-      }),
-      dateTo: new FormControl<string | null>(null, {
-        validators: [(c) => Validators.required(c)],
-      }),
-      court: new FormControl<string | null>(''),
-      otherLocation: new FormControl<string | null>(''),
-      cja: new FormControl<string | null>(''),
-    }),
+    duration: new FormGroup(
+      {
+        dateFrom: new FormControl<string | null>(null, {
+          validators: [(c) => Validators.required(c)],
+        }),
+        dateTo: new FormControl<string | null>(null, {
+          validators: [(c) => Validators.required(c)],
+        }),
+        court: new FormControl<string | null>(''),
+        otherLocation: new FormControl<string | null>(''),
+        cja: new FormControl<string | null>(''),
+      },
+      {
+        validators: REPORT_DATE_RANGE_VALIDATORS,
+      },
+    ),
 
-    privateProsecutorsIndex: new FormGroup({
-      dateFrom: new FormControl<string | null>(null, {
-        validators: [(c) => Validators.required(c)],
-      }),
-      dateTo: new FormControl<string | null>(null, {
-        validators: [(c) => Validators.required(c)],
-      }),
-      applicantSurnameOrOrg: new FormControl<string | null>(''),
-      applicantFirst: new FormControl<string | null>(''),
-      standardApplicantName: new FormControl<string | null>(''),
-      respondentFirst: new FormControl<string | null>(''),
-      respondentSurname: new FormControl<string | null>(''),
-      respondentOrg: new FormControl<string | null>(''),
-      court: new FormControl<string | null>(''),
-      otherLocation: new FormControl<string | null>(''),
-      cja: new FormControl<string | null>(''),
-    }),
+    privateProsecutorsIndex: new FormGroup(
+      {
+        dateFrom: new FormControl<string | null>(null, {
+          validators: [(c) => Validators.required(c)],
+        }),
+        dateTo: new FormControl<string | null>(null, {
+          validators: [(c) => Validators.required(c)],
+        }),
+        applicantSurnameOrOrg: new FormControl<string | null>(''),
+        applicantFirst: new FormControl<string | null>(''),
+        standardApplicantName: new FormControl<string | null>(''),
+        respondentFirst: new FormControl<string | null>(''),
+        respondentSurname: new FormControl<string | null>(''),
+        respondentOrg: new FormControl<string | null>(''),
+        court: new FormControl<string | null>(''),
+        otherLocation: new FormControl<string | null>(''),
+        cja: new FormControl<string | null>(''),
+      },
+      {
+        validators: REPORT_DATE_RANGE_VALIDATORS,
+      },
+    ),
   });
 
   // Options for the <app-report-selector>
@@ -219,10 +252,15 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       this.preserveDateRange(this.previousReportId, nextReportId);
       this.previousReportId = nextReportId;
       this.initSelectedForm();
+      this.clearReportSelectionState(nextReportId);
     });
   }
 
   onDownload(): void {
+    if (this.isReportInProgress()) {
+      return;
+    }
+
     this.form.controls.report.markAsTouched();
     this.form.controls.report.updateValueAndValidity({ emitEvent: false });
     this.reportStatePatch({
@@ -286,6 +324,10 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     return this.vm().errorSummary.find((e) => e.id === id);
   }
 
+  isReportInProgress(): boolean {
+    return this.vm().reportFeedback?.kind === 'progress';
+  }
+
   private preserveDateRange(
     previousReportId: ReportId | null,
     nextReportId: ReportId | null,
@@ -301,28 +343,36 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    const dateFrom = this.readFormString(previousGroup, 'dateFrom');
-    const dateTo = this.readFormString(previousGroup, 'dateTo');
+    const dateFrom = getTrimmedStringOrNullFromGroup(previousGroup, 'dateFrom');
+    const dateTo = getTrimmedStringOrNullFromGroup(previousGroup, 'dateTo');
 
-    if (!this.readFormString(nextGroup, 'dateFrom') && dateFrom) {
+    if (!getTrimmedStringOrNullFromGroup(nextGroup, 'dateFrom') && dateFrom) {
       nextGroup.get('dateFrom')?.setValue(dateFrom);
     }
 
-    if (!this.readFormString(nextGroup, 'dateTo') && dateTo) {
+    if (!getTrimmedStringOrNullFromGroup(nextGroup, 'dateTo') && dateTo) {
       nextGroup.get('dateTo')?.setValue(dateTo);
     }
   }
 
-  private readFormString(group: FormGroup, controlName: string): string | null {
-    const value: unknown = group.get(controlName)?.value;
-    return typeof value === 'string' ? value : null;
+  private clearReportSelectionState(reportId: ReportId | null): void {
+    this.stopReportCreate();
+    this.stopReportPolling();
+    this.reportStatePatch({
+      submitted: false,
+      errorSummary: [],
+      reportFeedback: null,
+    });
+    this.reportGroupFor(reportId)?.markAsPristine();
+    this.reportGroupFor(reportId)?.markAsUntouched();
   }
 
   private createListMaintenanceReport(): void {
+    this.stopReportCreate();
     this.stopReportPolling();
     this.showReportProgress();
 
-    this.reportsApi
+    this.reportCreateSub = this.reportsApi
       .createListMaintenanceReport(
         { listMaintenanceFilterDto: this.buildListMaintenancePayload() },
         'response',
@@ -334,8 +384,12 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       )
       .pipe(take(1), takeUntilDestroyed(this.componentDestroyRef))
       .subscribe({
-        next: (response) => this.handleListMaintenanceJobCreated(response),
+        next: (response) => {
+          this.reportCreateSub = null;
+          this.handleListMaintenanceJobCreated(response);
+        },
         error: (err) => {
+          this.reportCreateSub = null;
           this.showReportError(this.toReportRequestError(err));
         },
       });
@@ -371,6 +425,11 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   private stopReportPolling(): void {
     this.reportPollingSub?.unsubscribe();
     this.reportPollingSub = null;
+  }
+
+  private stopReportCreate(): void {
+    this.reportCreateSub?.unsubscribe();
+    this.reportCreateSub = null;
   }
 
   private handleReportJobStatus(job: PolledJobStatus): void {
@@ -420,7 +479,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     const url = URL.createObjectURL(response.body);
     const link = this.document.createElement('a');
     link.href = url;
-    link.download = this.getListMaintenanceReportFilename();
+    link.download = this.getReportFilename();
     link.style.display = 'none';
 
     this.document.body.appendChild(link);
@@ -431,13 +490,20 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     this.showReportSuccess();
   }
 
-  private getListMaintenanceReportFilename(): string {
+  private getReportFilename(): string {
+    const reportId = this.getSelectedReportOption()?.id;
+    const reportName = reportId ? `${reportId}-report` : 'report';
+
+    return `${reportName}-${this.getDateStamp()}.csv`;
+  }
+
+  private getDateStamp(): string {
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
 
-    return `list-maintenance-report-${year}-${month}-${day}.csv`;
+    return `${year}-${month}-${day}`;
   }
 
   private showReportProgress(): void {
@@ -447,13 +513,26 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   }
 
   private showReportSuccess(): void {
+    const reportLabel = this.getReportLabel();
+
     this.reportStatePatch({
       reportFeedback: {
         kind: 'success',
         heading: 'Report downloaded',
-        body: 'The list maintenance report has downloaded.',
+        body: reportLabel
+          ? `The ${reportLabel} report has downloaded.`
+          : 'The report has downloaded.',
       },
     });
+  }
+
+  private getReportLabel(): string | null {
+    return this.getSelectedReportOption()?.label.toLowerCase() ?? null;
+  }
+
+  private getSelectedReportOption(): (typeof reportOptions)[number] | null {
+    const reportId = this.form.controls.report.value;
+    return reportOptions.find((option) => option.id === reportId) ?? null;
   }
 
   private showReportError(text: string): void {
