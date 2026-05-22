@@ -19,15 +19,11 @@ export function dateToOnOrAfterDateFromValidator(
 
     const dateFrom = readIsoDate(ctrl.get(fromControlName)?.value);
     const dateTo = readIsoDate(ctrl.get(toControlName)?.value);
+    const hasInvalidDateRange = !!dateFrom && !!dateTo && dateTo < dateFrom;
 
-    setControlError(
-      ctrl,
-      toControlName,
-      errorKey,
-      !!dateFrom && !!dateTo && dateTo < dateFrom,
-    );
+    setControlError(ctrl, toControlName, errorKey, hasInvalidDateRange);
 
-    return null;
+    return hasInvalidDateRange ? { [errorKey]: true } : null;
   };
 }
 

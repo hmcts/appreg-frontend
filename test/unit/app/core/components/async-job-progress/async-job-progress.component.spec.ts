@@ -19,18 +19,19 @@ describe('AsyncJobProgressComponent', () => {
     fixture.detectChanges();
   });
 
-  it('renders progress content in an aria live status region', () => {
+  it('renders progress content with an output live region', () => {
     const progress = fixture.nativeElement.querySelector(
       '.app-async-job-progress',
     ) as HTMLElement;
+    const output = fixture.nativeElement.querySelector('output') as HTMLElement;
     const spinner = fixture.nativeElement.querySelector(
       '.app-async-job-progress__spinner',
     ) as HTMLElement;
 
     expect(progress).toBeTruthy();
-    expect(progress.getAttribute('role')).toBe('status');
-    expect(progress.getAttribute('aria-live')).toBe('polite');
-    expect(progress.getAttribute('aria-atomic')).toBe('true');
+    expect(output).toBeTruthy();
+    expect(output.getAttribute('aria-live')).toBe('polite');
+    expect(output.getAttribute('aria-atomic')).toBe('true');
     expect(spinner.getAttribute('aria-hidden')).toBe('true');
     expect(progress.textContent).toContain('Report in progress');
     expect(progress.textContent).toContain(

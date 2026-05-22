@@ -327,7 +327,8 @@ describe('ReportsComponent', () => {
 
     expect(component.vm().reportFeedback).toEqual({ kind: 'progress' });
     expect(
-      fixture.nativeElement.querySelector('[role="status"]')?.textContent,
+      fixture.nativeElement.querySelector('app-async-job-progress')
+        ?.textContent,
     ).toContain('Report in progress');
   });
 

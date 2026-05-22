@@ -23,7 +23,7 @@ describe('dateToOnOrAfterDateFromValidator', () => {
     const validator = dateToOnOrAfterDateFromValidator();
     const result = validator(form);
 
-    expect(result).toBeNull();
+    expect(result).toEqual({ dateRange: true });
     expect(form.controls.dateTo.errors).toEqual({ dateRange: true });
   });
 

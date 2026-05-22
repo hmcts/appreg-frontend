@@ -1,9 +1,8 @@
-<section
-  class="app-async-job-progress govuk-inset-text"
-  role="status"
-  aria-live="polite"
-  aria-atomic="true"
->
+<section class="app-async-job-progress govuk-inset-text">
+  <output class="govuk-visually-hidden" aria-live="polite" aria-atomic="true">
+    {{ heading() }}. {{ body() }}
+  </output>
+
   <div class="app-async-job-progress__content">
     <div class="app-async-job-progress__spinner" aria-hidden="true"></div>
     <div>
