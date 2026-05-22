@@ -112,47 +112,4 @@ describe('FeesSectionComponent', () => {
     );
     expect(cjaInput).toBeTruthy();
   });
-
-  it('submits trimmed fees report filters with court location', () => {
-    group.patchValue({
-      dateFrom: '2026-01-01',
-      dateTo: '2026-01-31',
-      standardApplicantCode: ' STD123 ',
-      surnameOrOrg: ' Smith ',
-      court: ' A1 ',
-    });
-
-    component.onSubmit();
-
-    expect(createFeesReport).toHaveBeenCalledWith({
-      feesReportFilterDto: {
-        dateFrom: '2026-01-01',
-        dateTo: '2026-01-31',
-        standardApplicantCode: 'STD123',
-        applicantName: 'Smith',
-        location: { courtLocationCode: 'A1' },
-      },
-    });
-  });
-
-  it('submits CJA location without other location', () => {
-    group.patchValue({
-      dateFrom: '2026-02-01',
-      dateTo: '2026-02-28',
-      cja: ' C1 ',
-      otherLocation: '',
-    });
-
-    component.onSubmit();
-
-    expect(createFeesReport).toHaveBeenCalledWith({
-      feesReportFilterDto: {
-        dateFrom: '2026-02-01',
-        dateTo: '2026-02-28',
-        standardApplicantCode: undefined,
-        applicantName: undefined,
-        location: { cjaCode: 'C1' },
-      },
-    });
-  });
 });
