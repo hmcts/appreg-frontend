@@ -8,6 +8,23 @@
   />
 }
 
+@if (vm().reportFeedback; as feedback) {
+  @switch (feedback.kind) {
+    @case ('error') {
+      <app-error-summary [title]="feedback.title" [items]="feedback.items" />
+    }
+    @case ('progress') {
+      <app-async-job-progress
+        heading="Report in progress"
+        body="Your CSV is being generated and will download automatically when ready."
+      />
+    }
+    @case ('success') {
+      <app-success-banner [heading]="feedback.heading" [body]="feedback.body" />
+    }
+  }
+}
+
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
@@ -94,7 +111,7 @@
 @if (form.get('report')?.value) {
   <div class="govuk-button-group">
     <button type="button" class="govuk-button" (click)="onDownload()">
-      Download
+      Download CSV
     </button>
   </div>
 }

@@ -104,6 +104,8 @@ function normaliseJobStatus(
   const message = readString(raw, [
     'failureMessage',
     'errorMessage',
+    'error_description',
+    'errorDescription',
     'message',
     'detail',
     'reason',

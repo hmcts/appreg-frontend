@@ -65,6 +65,47 @@ describe('ReportsSharedFormComponent', () => {
     expect(otherLocation).toBeTruthy();
   });
 
+  it('wraps CJA and other location in an advanced filters details block when enabled', () => {
+    fixture.componentRef.setInput('advancedFilters', true);
+    fixture.detectChanges();
+
+    const details = fixture.debugElement.query(By.css('details.govuk-details'));
+    const court = fixture.debugElement.query(
+      By.css('app-suggestions[formControlName="court"]'),
+    );
+    const cja = fixture.debugElement.query(
+      By.css('app-suggestions[formControlName="cja"]'),
+    );
+    const otherLocation = fixture.debugElement.query(
+      By.css('app-text-input[formControlName="otherLocation"]'),
+    );
+
+    expect(details).toBeTruthy();
+    expect(details.nativeElement.textContent).toContain('Advanced filters');
+    expect(details.nativeElement.contains(cja.nativeElement)).toBe(true);
+    expect(details.nativeElement.contains(otherLocation.nativeElement)).toBe(
+      true,
+    );
+    expect(details.nativeElement.contains(court.nativeElement)).toBe(false);
+  });
+
+  it('opens advanced filters when an advanced field has an error', () => {
+    fixture.componentRef.setInput('advancedFilters', true);
+    fixture.componentRef.setInput('submitted', true);
+    fixture.componentRef.setInput('getError', (id: string) =>
+      id === 'cja'
+        ? { id, text: 'Criminal justice area not found' }
+        : undefined,
+    );
+    fixture.detectChanges();
+
+    const details = fixture.nativeElement.querySelector(
+      'details.govuk-details',
+    ) as HTMLDetailsElement;
+
+    expect(details.open).toBe(true);
+  });
+
   it('shows field errors from the supplied getError callback after submit', () => {
     fixture.componentRef.setInput('submitted', true);
     fixture.componentRef.setInput('getError', (id: string) => {

@@ -40,35 +40,53 @@
     />
   </div>
 
-  <div class="govuk-grid-row">
-    <!-- Other location -->
-    <app-text-input
-      formControlName="otherLocation"
-      label="Other location description"
-      idPrefix="other-location"
-      [error]="errorText('otherLocation')"
-      containerWidthClass="govuk-grid-column-one-quarter"
-      widthClass="govuk-!-width-full"
-    />
-  </div>
+  <ng-template #advancedFields>
+    <ng-content select="[reportsAdvancedFieldsBeforeLocation]"></ng-content>
 
-  <div class="govuk-grid-row">
-    <!-- CJA -->
-    <app-suggestions
-      id="cja"
-      tabindex="-1"
-      label="Criminal justice area"
-      formControlName="cja"
-      [search]="suggestions().cjaSearch()"
-      (searchChange)="
-        suggestions().setCjaSearch($event); suggestions().onCjaInputChange()
-      "
-      [suggestions]="suggestions().filteredCja()"
-      (selectItem)="suggestions().selectCja($event)"
-      [showError]="showError('cja')"
-      [errorText]="errorText('cja')"
-      containerWidthClass="govuk-grid-column-one-quarter"
-      widthClass="govuk-!-width-full"
-    />
-  </div>
+    <div class="govuk-grid-row">
+      <!-- CJA -->
+      <app-suggestions
+        id="cja"
+        tabindex="-1"
+        label="Criminal justice area"
+        formControlName="cja"
+        [search]="suggestions().cjaSearch()"
+        (searchChange)="
+          suggestions().setCjaSearch($event); suggestions().onCjaInputChange()
+        "
+        [suggestions]="suggestions().filteredCja()"
+        (selectItem)="suggestions().selectCja($event)"
+        [showError]="showError('cja')"
+        [errorText]="errorText('cja')"
+        containerWidthClass="govuk-grid-column-one-quarter"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
+
+    <div class="govuk-grid-row">
+      <!-- Other location -->
+      <app-text-input
+        formControlName="otherLocation"
+        label="Other location description"
+        idPrefix="other-location"
+        [error]="errorText('otherLocation')"
+        containerWidthClass="govuk-grid-column-one-quarter"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
+  </ng-template>
+
+  @if (advancedFilters()) {
+    <details class="govuk-details" [open]="isAdvancedOpen()">
+      <summary class="govuk-details__summary" (click)="onAdvancedClick($event)">
+        <span class="govuk-details__summary-text">{{ advancedLabel() }}</span>
+      </summary>
+
+      <div class="govuk-details__text">
+        <ng-container *ngTemplateOutlet="advancedFields"></ng-container>
+      </div>
+    </details>
+  } @else {
+    <ng-container *ngTemplateOutlet="advancedFields"></ng-container>
+  }
 </div>

@@ -1,0 +1,18 @@
+<section
+  class="app-async-job-progress govuk-inset-text"
+  role="status"
+  aria-live="polite"
+  aria-atomic="true"
+>
+  <div class="app-async-job-progress__content">
+    <div class="app-async-job-progress__spinner" aria-hidden="true"></div>
+    <div>
+      <h2 class="govuk-heading-m">
+        {{ heading() }}
+      </h2>
+      <p class="govuk-body govuk-!-margin-bottom-0">
+        {{ body() }}
+      </p>
+    </div>
+  </div>
+</section>
