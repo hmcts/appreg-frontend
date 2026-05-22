@@ -1,4 +1,10 @@
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  EnvironmentInjector,
+  OnInit,
+  inject,
+  signal,
+} from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -37,7 +43,7 @@ import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
 import { PlaceFieldsBase } from '@util/place-fields.base';
-import { createSignalState } from '@util/signal-state-helpers';
+import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 
 const REPORT_ERROR_PRIORITY_KEYS: Record<string, string[]> = {
@@ -65,11 +71,15 @@ const REPORT_ERROR_PRIORITY_KEYS: Record<string, string[]> = {
 export class Reports extends PlaceFieldsBase implements OnInit {
   private readonly refFacade = inject(ReferenceDataFacade);
   private readonly reportsApi = inject(ReportsApi);
+  private readonly envInjector = inject(EnvironmentInjector);
 
   private readonly reportState =
     createSignalState<ReportsState>(initialReportsState);
   private readonly reportStatePatch = this.reportState.patch;
   readonly vm = this.reportState.vm;
+
+  private readonly createFeesReportRequest =
+    signal<CreateFeesReportRequestParams | null>(null);
 
   onCreateErrorClick = onCreateErrorClickFn;
 
@@ -183,6 +193,8 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     this.form.controls.report.valueChanges.subscribe(() => {
       this.initSelectedForm();
     });
+
+    this.setupEffects();
   }
 
   onDownload(): void {
@@ -214,14 +226,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
         feesReportFilterDto: mapFeeGroupToFeesReportFilterDto(this.feesGroup),
       };
 
-      this.reportsApi.createFeesReport(request).subscribe({
-        next: (job) => {
-          this.reportStatePatch({ reportJobId: job.id });
-        },
-        error: (err) => {
-          this.handleReportCreateError(err);
-        },
-      });
+      this.startCreateFeesReport(request);
     }
   }
 
@@ -260,6 +265,46 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     return this.form.get('privateProsecutorsIndex') as FormGroup;
   }
 
+  private startCreateFeesReport(request: CreateFeesReportRequestParams): void {
+    this.reportStatePatch({
+      isReportGenerating: true,
+    });
+    this.createFeesReportRequest.set(request);
+  }
+
+  private setupEffects(): void {
+    setupLoadEffect(
+      {
+        request: this.createFeesReportRequest,
+        load: (request) =>
+          this.reportsApi.createFeesReport(request, 'body', false, {
+            transferCache: false,
+          }),
+        onSuccess: (job) => {
+          const errDescription = job.error_description;
+
+          if (errDescription) {
+            this.reportStatePatch({ errorSummary: [{ text: errDescription }] });
+            this.createFeesReportRequest.set(null);
+            return;
+          }
+
+          this.reportStatePatch({
+            reportJobId: job.id,
+            reportJobStatus: job.status,
+            isReportGenerating: true,
+          });
+          this.createFeesReportRequest.set(null);
+        },
+        onError: (err) => {
+          this.handleReportCreateError(err);
+          this.createFeesReportRequest.set(null);
+        },
+      },
+      this.envInjector,
+    );
+  }
+
   fieldError(id: string): ErrorItem | undefined {
     return this.vm().errorSummary.find((e) => e.id === id);
   }
@@ -284,6 +329,9 @@ export class Reports extends PlaceFieldsBase implements OnInit {
 
   private handleReportCreateError(err: unknown): void {
     this.reportStatePatch({
+      reportJobId: null,
+      reportJobStatus: null,
+      isReportGenerating: false,
       errorSummary: [
         { text: getProblemText(err) ?? 'Failed to download report' },
       ],
