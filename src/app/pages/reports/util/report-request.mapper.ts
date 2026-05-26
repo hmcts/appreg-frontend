@@ -3,9 +3,11 @@ import { FormGroup } from '@angular/forms';
 import { toOptionalTrimmed } from '@components/applications-list-entry-create/util';
 import {
   CreateListMaintenanceReportRequestParams,
+  CreateWorkloadReportRequestParams,
   FeesReportFilterDto,
   LegacyReportLocation,
   ListMaintenanceFilterDto,
+  WorkloadFilterDto,
 } from '@openapi';
 
 interface FeesReportFormValue {
@@ -28,6 +30,14 @@ interface ListMaintenanceReportFormValue {
   dateFrom: string;
   dateTo: string;
   description: string | null;
+  court: string | null;
+  otherLocation: string | null;
+  cja: string | null;
+}
+
+interface WorkloadReportFormValue {
+  dateFrom: string;
+  dateTo: string;
   court: string | null;
   otherLocation: string | null;
   cja: string | null;
@@ -57,6 +67,14 @@ export function mapListMaintenanceGroupToListMaintenanceReportRequestParams(
   };
 }
 
+export function mapWorkloadGroupToWorkloadReportRequestParams(
+  workloadGroup: FormGroup,
+): CreateWorkloadReportRequestParams {
+  return {
+    workloadFilterDto: mapWorkloadGroupToWorkloadFilterDto(workloadGroup),
+  };
+}
+
 function mapListMaintenanceGroupToListMaintenanceFilterDto(
   listMaintenanceGroup: FormGroup,
 ): ListMaintenanceFilterDto {
@@ -69,6 +87,19 @@ function mapListMaintenanceGroupToListMaintenanceFilterDto(
     dateFrom: value.dateFrom,
     dateTo: value.dateTo,
     ...(listDescription ? { listDescription } : {}),
+    ...(location ? { location } : {}),
+  };
+}
+
+function mapWorkloadGroupToWorkloadFilterDto(
+  workloadGroup: FormGroup,
+): WorkloadFilterDto {
+  const value = workloadGroup.getRawValue() as WorkloadReportFormValue;
+  const location = buildLocation(value);
+
+  return {
+    dateFrom: value.dateFrom,
+    dateTo: value.dateTo,
     ...(location ? { location } : {}),
   };
 }
