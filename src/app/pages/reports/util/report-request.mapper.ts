@@ -1,13 +1,33 @@
 import { FormGroup } from '@angular/forms';
 
 import { toOptionalTrimmed } from '@components/applications-list-entry-create/util';
-import { FeesReportFilterDto, LegacyReportLocation } from '@openapi';
+import {
+  CreateListMaintenanceReportRequestParams,
+  FeesReportFilterDto,
+  LegacyReportLocation,
+  ListMaintenanceFilterDto,
+} from '@openapi';
 
 interface FeesReportFormValue {
   dateFrom: string;
   dateTo: string;
   standardApplicantCode: string | null;
   surnameOrOrg: string | null;
+  court: string | null;
+  otherLocation: string | null;
+  cja: string | null;
+}
+
+interface ReportLocationFormValue {
+  court: string | null;
+  otherLocation: string | null;
+  cja: string | null;
+}
+
+interface ListMaintenanceReportFormValue {
+  dateFrom: string;
+  dateTo: string;
+  description: string | null;
   court: string | null;
   otherLocation: string | null;
   cja: string | null;
@@ -28,8 +48,33 @@ export function mapFeeGroupToFeesReportFilterDto(
   };
 }
 
-export function buildLocation(
-  value: FeesReportFormValue,
+export function mapListMaintenanceGroupToListMaintenanceReportRequestParams(
+  listMaintenanceGroup: FormGroup,
+): CreateListMaintenanceReportRequestParams {
+  return {
+    listMaintenanceFilterDto:
+      mapListMaintenanceGroupToListMaintenanceFilterDto(listMaintenanceGroup),
+  };
+}
+
+function mapListMaintenanceGroupToListMaintenanceFilterDto(
+  listMaintenanceGroup: FormGroup,
+): ListMaintenanceFilterDto {
+  const value =
+    listMaintenanceGroup.getRawValue() as ListMaintenanceReportFormValue;
+  const listDescription = toOptionalTrimmed(value.description);
+  const location = buildListMaintenanceLocation(value);
+
+  return {
+    dateFrom: value.dateFrom,
+    dateTo: value.dateTo,
+    ...(listDescription ? { listDescription } : {}),
+    ...(location ? { location } : {}),
+  };
+}
+
+function buildLocation(
+  value: ReportLocationFormValue,
 ): LegacyReportLocation | undefined {
   const courtLocationCode = toOptionalTrimmed(value.court);
 
@@ -48,4 +93,28 @@ export function buildLocation(
   }
 
   return undefined;
+}
+
+function buildListMaintenanceLocation(
+  value: ReportLocationFormValue,
+): LegacyReportLocation | undefined {
+  const courtLocationCode = toOptionalTrimmed(value.court);
+
+  if (courtLocationCode) {
+    return { courtLocationCode };
+  }
+
+  const otherLocationDescription = toOptionalTrimmed(value.otherLocation);
+  const cjaCode = toOptionalTrimmed(value.cja);
+  const location: LegacyReportLocation = {};
+
+  if (otherLocationDescription) {
+    location.otherLocationDescription = otherLocationDescription;
+  }
+
+  if (cjaCode) {
+    location.cjaCode = cjaCode;
+  }
+
+  return Object.keys(location).length > 0 ? location : undefined;
 }

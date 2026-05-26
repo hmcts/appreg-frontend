@@ -1,10 +1,4 @@
-import { HttpErrorResponse } from '@angular/common/http';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  input,
-  output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { SuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
@@ -30,7 +24,4 @@ export class FeesSectionComponent {
   suggestions = input.required<SuggestionsFacade>();
   submitted = input(false);
   getError = input<((id: string) => ErrorItem | undefined) | null>(null);
-
-  feeJobId = output<string>();
-  errors = output<HttpErrorResponse>();
 }

@@ -1,5 +1,4 @@
 import { ErrorItem } from '@components/error-summary/error-summary.component';
-import { JobStatus2 } from '@openapi';
 
 export type ReportFeedback =
   | {
@@ -20,16 +19,10 @@ export interface ReportsState {
   errorSummary: ErrorItem[];
   reportFeedback: ReportFeedback | null;
   submitted: boolean;
-  reportJobId: string | null;
-  reportJobStatus: JobStatus2 | null;
-  isReportGenerating: boolean;
 }
 
 export const initialReportsState: ReportsState = {
   errorSummary: [],
   reportFeedback: null,
   submitted: false,
-  reportJobId: null,
-  reportJobStatus: null,
-  isReportGenerating: false,
 };

@@ -1,8 +1,12 @@
-import { HttpHeaders, HttpResponse } from '@angular/common/http';
+import {
+  HttpErrorResponse,
+  HttpHeaders,
+  HttpResponse,
+} from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { Subject, of } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import { Reports } from '@components/reports/reports.component';
@@ -29,6 +33,7 @@ const refFacadeStub: Pick<ReferenceDataFacade, 'courtLocations$' | 'cja$'> = {
 };
 
 const reportsApiMock = {
+  createFeesReport: jest.fn(),
   createListMaintenanceReport: jest.fn(),
   downloadReport: jest.fn(),
 };
@@ -431,6 +436,71 @@ describe('ReportsComponent', () => {
     expect(
       fixture.nativeElement.querySelector('button.govuk-button')?.disabled,
     ).toBe(true);
+  });
+
+  it('shows report error and re-enables download when the fees create request fails', () => {
+    reportsApiMock.createFeesReport.mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 500,
+            statusText: 'Server Error',
+          }),
+      ),
+    );
+
+    component.form.controls.report.setValue('fees');
+    component.feesGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().reportFeedback).toEqual({
+      kind: 'error',
+      title: 'Report generation failed',
+      items: [
+        {
+          text: 'There was a problem generating the report. Try again later.',
+        },
+      ],
+    });
+    expect(component.vm().errorSummary).toEqual([]);
+    expect(
+      fixture.nativeElement.querySelector('button.govuk-button')?.disabled,
+    ).toBe(false);
+  });
+
+  it('shows report error and re-enables download when the fees job acknowledgement contains an error', () => {
+    reportsApiMock.createFeesReport.mockReturnValue(
+      of({
+        ...jobAcknowledgement,
+        error_description: 'Fees report could not be started',
+      }),
+    );
+
+    component.form.controls.report.setValue('fees');
+    component.feesGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().reportFeedback).toEqual({
+      kind: 'error',
+      title: 'Report generation failed',
+      items: [{ text: 'Fees report could not be started' }],
+    });
+    expect(jobPollingFacadeMock.watchJob).not.toHaveBeenCalled();
+    expect(
+      fixture.nativeElement.querySelector('button.govuk-button')?.disabled,
+    ).toBe(false);
   });
 
   it('cancels a pending list maintenance create request when switching report type', () => {

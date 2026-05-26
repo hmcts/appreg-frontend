@@ -22,6 +22,7 @@ import {
   ReportsState,
   initialReportsState,
   mapFeeGroupToFeesReportFilterDto,
+  mapListMaintenanceGroupToListMaintenanceReportRequestParams,
 } from './util';
 
 import { ActivityAuditSectionComponent } from '@components/activity-audit-section/activity-audit-section.component';
@@ -46,9 +47,8 @@ import {
 import { reportOptions } from '@constants/reports/report-selector.constant';
 import {
   CreateFeesReportRequestParams,
+  CreateListMaintenanceReportRequestParams,
   JobAcknowledgement,
-  LegacyReportLocation,
-  ListMaintenanceFilterDto,
   ReportsApi,
 } from '@openapi';
 import {
@@ -108,11 +108,12 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   readonly vm = this.reportState.vm;
 
   private previousReportId: ReportId | null = null;
-  private reportCreateSub: Subscription | null = null;
   private reportPollingSub: Subscription | null = null;
 
   private readonly createFeesReportRequest =
     signal<CreateFeesReportRequestParams | null>(null);
+  private readonly createListMaintenanceReportRequest =
+    signal<CreateListMaintenanceReportRequestParams | null>(null);
 
   onCreateErrorClick = onCreateErrorClickFn;
 
@@ -342,9 +343,9 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   }
 
   private startCreateFeesReport(request: CreateFeesReportRequestParams): void {
-    this.reportStatePatch({
-      isReportGenerating: true,
-    });
+    this.stopReportCreate();
+    this.stopReportPolling();
+    this.showReportProgress();
     this.createFeesReportRequest.set(request);
   }
 
@@ -361,21 +362,43 @@ export class Reports extends PlaceFieldsBase implements OnInit {
           const errDescription = job.error_description;
 
           if (errDescription) {
-            this.reportStatePatch({ errorSummary: [{ text: errDescription }] });
+            this.showReportError(errDescription);
             this.createFeesReportRequest.set(null);
             return;
           }
 
-          this.reportStatePatch({
-            reportJobId: job.id,
-            reportJobStatus: job.status,
-            isReportGenerating: true,
-          });
+          this.startReportPolling(job.id);
           this.createFeesReportRequest.set(null);
         },
         onError: (err) => {
           this.handleReportCreateError(err);
           this.createFeesReportRequest.set(null);
+        },
+      },
+      this.envInjector,
+    );
+
+    // POST /reports/list-maintenance/jobs
+    setupLoadEffect(
+      {
+        request: this.createListMaintenanceReportRequest,
+        load: (request) =>
+          this.reportsApi.createListMaintenanceReport(
+            request,
+            'response',
+            false,
+            {
+              httpHeaderAccept: 'application/vnd.hmcts.appreg.v1+json',
+              transferCache: false,
+            },
+          ),
+        onSuccess: (response) => {
+          this.createListMaintenanceReportRequest.set(null);
+          this.handleListMaintenanceJobCreated(response);
+        },
+        onError: (err) => {
+          this.createListMaintenanceReportRequest.set(null);
+          this.showReportError(this.toReportRequestError(err));
         },
       },
       this.envInjector,
@@ -433,28 +456,11 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     this.stopReportCreate();
     this.stopReportPolling();
     this.showReportProgress();
-
-    this.reportCreateSub = this.reportsApi
-      .createListMaintenanceReport(
-        { listMaintenanceFilterDto: this.buildListMaintenancePayload() },
-        'response',
-        false,
-        {
-          httpHeaderAccept: 'application/vnd.hmcts.appreg.v1+json',
-          transferCache: false,
-        },
-      )
-      .pipe(take(1), takeUntilDestroyed(this.componentDestroyRef))
-      .subscribe({
-        next: (response) => {
-          this.reportCreateSub = null;
-          this.handleListMaintenanceJobCreated(response);
-        },
-        error: (err) => {
-          this.reportCreateSub = null;
-          this.showReportError(this.toReportRequestError(err));
-        },
-      });
+    this.createListMaintenanceReportRequest.set(
+      mapListMaintenanceGroupToListMaintenanceReportRequestParams(
+        this.listMaintenanceGroup,
+      ),
+    );
   }
 
   private handleListMaintenanceJobCreated(
@@ -490,8 +496,8 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   }
 
   private stopReportCreate(): void {
-    this.reportCreateSub?.unsubscribe();
-    this.reportCreateSub = null;
+    this.createFeesReportRequest.set(null);
+    this.createListMaintenanceReportRequest.set(null);
   }
 
   private handleReportJobStatus(job: PolledJobStatus): void {
@@ -637,58 +643,6 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     return typeof id === 'string' && id.trim() ? id : null;
   }
 
-  private buildListMaintenancePayload(): ListMaintenanceFilterDto {
-    const raw = this.listMaintenanceGroup.getRawValue() as Record<
-      string,
-      string | null
-    >;
-    const payload: ListMaintenanceFilterDto = {
-      dateFrom: raw['dateFrom'] ?? '',
-      dateTo: raw['dateTo'] ?? '',
-    };
-    const description = this.trim(raw['description']);
-    const location = this.buildLegacyReportLocation(raw);
-
-    if (description) {
-      payload.listDescription = description;
-    }
-
-    if (location) {
-      payload.location = location;
-    }
-
-    return payload;
-  }
-
-  private buildLegacyReportLocation(
-    raw: Record<string, string | null>,
-  ): LegacyReportLocation | null {
-    const court = this.trim(raw['court']);
-    const otherLocation = this.trim(raw['otherLocation']);
-    const cja = this.trim(raw['cja']);
-
-    if (court) {
-      return { courtLocationCode: court };
-    }
-
-    const location: LegacyReportLocation = {};
-
-    if (otherLocation) {
-      location.otherLocationDescription = otherLocation;
-    }
-
-    if (cja) {
-      location.cjaCode = cja;
-    }
-
-    return Object.keys(location).length > 0 ? location : null;
-  }
-
-  private trim(value: string | null | undefined): string | null {
-    const trimmed = value?.trim() ?? '';
-    return trimmed || null;
-  }
-
   private buildErrorSummary(): ErrorItem[] {
     const reportId = this.form.controls.report.value as ReportId | null;
     const selectedGroup = this.selectedReportGroup();
@@ -708,14 +662,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   }
 
   private handleReportCreateError(err: unknown): void {
-    this.reportStatePatch({
-      reportJobId: null,
-      reportJobStatus: null,
-      isReportGenerating: false,
-      errorSummary: [
-        { text: getProblemText(err) ?? 'Failed to download report' },
-      ],
-    });
+    this.showReportError(this.toReportRequestError(err));
   }
 
   private withDateInputErrorText(
