@@ -355,11 +355,12 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       {
         request: this.createFeesReportRequest,
         load: (request) =>
-          this.reportsApi.createFeesReport(request, 'body', false, {
+          this.reportsApi.createFeesReport(request, 'response', false, {
+            httpHeaderAccept: 'application/vnd.hmcts.appreg.v1+json',
             transferCache: false,
           }),
-        onSuccess: (job) => {
-          const errDescription = job.error_description;
+        onSuccess: (response) => {
+          const errDescription = response.body?.error_description;
 
           if (errDescription) {
             this.showReportError(errDescription);
@@ -367,7 +368,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
             return;
           }
 
-          this.startReportPolling(job.id);
+          this.handleReportJobCreated(response);
           this.createFeesReportRequest.set(null);
         },
         onError: (err) => {
@@ -394,7 +395,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
           ),
         onSuccess: (response) => {
           this.createListMaintenanceReportRequest.set(null);
-          this.handleListMaintenanceJobCreated(response);
+          this.handleReportJobCreated(response);
         },
         onError: (err) => {
           this.createListMaintenanceReportRequest.set(null);
@@ -463,10 +464,16 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     );
   }
 
-  private handleListMaintenanceJobCreated(
+  private handleReportJobCreated(
     response: HttpResponse<JobAcknowledgement>,
   ): void {
     const jobId = this.readJobId(response.body);
+    const errDescription = response.body?.error_description;
+
+    if (errDescription) {
+      this.showReportError(errDescription);
+      return;
+    }
 
     if (response.status !== 202 || !jobId) {
       this.showReportError('The report could not be started. Try again.');
