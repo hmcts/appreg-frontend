@@ -10,24 +10,25 @@
   [suggestions]="suggestions()"
   [submitted]="submitted()"
   [getError]="getError()"
-/>
+  [advancedFilters]="true"
+>
+  <div reportsAfterDateBeforeCourt [formGroup]="group()">
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="standardApplicantCode"
+        label="Standard applicant code"
+        id="standard-applicant-code"
+      />
+    </div>
 
-<div [formGroup]="group()">
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="applicantCode"
-      label="Applicant code"
-      id="applicant-code"
-    />
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="surnameOrOrg"
+        label="Applicant surname or organisation name"
+        id="surname-or-org"
+        containerWidthClass="govuk-grid-column-one-half"
+        widthClass="govuk-!-width-two-thirds"
+      />
+    </div>
   </div>
-
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="surnameOrOrg"
-      label="Surname or organisation"
-      id="surname-or-org"
-      containerWidthClass="govuk-grid-column-one-half"
-      widthClass="govuk-!-width-full"
-    />
-  </div>
-</div>
+</app-reports-shared-form>

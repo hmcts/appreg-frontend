@@ -1,7 +1,7 @@
 /**
  * Reports page shared form fields:
  *
- * Form: Date from, Date to, Court, Other location, CJA
+ * Form: Date from, Date to, projected fields, Court, Other location, CJA
  */
 
 import { NgTemplateOutlet } from '@angular/common';
