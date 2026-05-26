@@ -23,6 +23,7 @@ import {
   initialReportsState,
   mapFeeGroupToFeesReportFilterDto,
   mapListMaintenanceGroupToListMaintenanceReportRequestParams,
+  mapWorkloadGroupToWorkloadReportRequestParams,
 } from './util';
 
 import { ActivityAuditSectionComponent } from '@components/activity-audit-section/activity-audit-section.component';
@@ -48,6 +49,7 @@ import { reportOptions } from '@constants/reports/report-selector.constant';
 import {
   CreateFeesReportRequestParams,
   CreateListMaintenanceReportRequestParams,
+  CreateWorkloadReportRequestParams,
   JobAcknowledgement,
   ReportsApi,
 } from '@openapi';
@@ -73,6 +75,14 @@ const REPORT_ERROR_PRIORITY_KEYS: Record<string, string[]> = {
 
 const REPORT_POLL_INTERVAL_MS = 2_000;
 const REPORT_DATE_RANGE_VALIDATORS = [dateToOnOrAfterDateFromValidator()];
+const REPORT_JSON_OPTIONS = {
+  httpHeaderAccept: 'application/vnd.hmcts.appreg.v1+json',
+  transferCache: false,
+} as const;
+const REPORT_CSV_OPTIONS = {
+  httpHeaderAccept: 'text/csv',
+  transferCache: false,
+} as const;
 
 @Component({
   selector: 'app-reports',
@@ -114,6 +124,8 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     signal<CreateFeesReportRequestParams | null>(null);
   private readonly createListMaintenanceReportRequest =
     signal<CreateListMaintenanceReportRequestParams | null>(null);
+  private readonly createWorkloadReportRequest =
+    signal<CreateWorkloadReportRequestParams | null>(null);
 
   onCreateErrorClick = onCreateErrorClickFn;
 
@@ -305,6 +317,10 @@ export class Reports extends PlaceFieldsBase implements OnInit {
 
       this.startCreateFeesReport(request);
     }
+
+    if (this.form.controls.report.value === 'workload') {
+      this.createWorkloadReport();
+    }
   }
 
   /** Handy getter for the child binding */
@@ -349,6 +365,15 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     this.createFeesReportRequest.set(request);
   }
 
+  private startCreateWorkloadReport(
+    request: CreateWorkloadReportRequestParams,
+  ): void {
+    this.stopReportCreate();
+    this.stopReportPolling();
+    this.showReportProgress();
+    this.createWorkloadReportRequest.set(request);
+  }
+
   private setupEffects(): void {
     // POST /reports/fees/jobs
     setupLoadEffect(
@@ -374,6 +399,29 @@ export class Reports extends PlaceFieldsBase implements OnInit {
         onError: (err) => {
           this.handleReportCreateError(err);
           this.createFeesReportRequest.set(null);
+        },
+      },
+      this.envInjector,
+    );
+
+    // POST /reports/workload/jobs
+    setupLoadEffect(
+      {
+        request: this.createWorkloadReportRequest,
+        load: (request) =>
+          this.reportsApi.createWorkloadReport(
+            request,
+            'response',
+            false,
+            REPORT_JSON_OPTIONS,
+          ),
+        onSuccess: (response) => {
+          this.createWorkloadReportRequest.set(null);
+          this.handleReportJobCreated(response);
+        },
+        onError: (err) => {
+          this.createWorkloadReportRequest.set(null);
+          this.showReportError(this.toReportRequestError(err));
         },
       },
       this.envInjector,
@@ -464,6 +512,12 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     );
   }
 
+  private createWorkloadReport(): void {
+    this.startCreateWorkloadReport(
+      mapWorkloadGroupToWorkloadReportRequestParams(this.workloadGroup),
+    );
+  }
+
   private handleReportJobCreated(
     response: HttpResponse<JobAcknowledgement>,
   ): void {
@@ -506,6 +560,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   private stopReportCreate(): void {
     this.createFeesReportRequest.set(null);
     this.createListMaintenanceReportRequest.set(null);
+    this.createWorkloadReportRequest.set(null);
   }
 
   private handleReportJobStatus(job: PolledJobStatus): void {
@@ -527,10 +582,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
 
   private downloadReport(jobId: string): void {
     this.reportsApi
-      .downloadReport({ jobId }, 'response', false, {
-        httpHeaderAccept: 'text/csv',
-        transferCache: false,
-      })
+      .downloadReport({ jobId }, 'response', false, REPORT_CSV_OPTIONS)
       .pipe(take(1), takeUntilDestroyed(this.componentDestroyRef))
       .subscribe({
         next: (response) => {

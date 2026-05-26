@@ -11,6 +11,7 @@ import { Subject, of, throwError } from 'rxjs';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import { Reports } from '@components/reports/reports.component';
 import { SearchWarrantsSectionComponent } from '@components/search-warrants-section/search-warrants-section.component';
+import { WorkloadSectionComponent } from '@components/workload-section/workload-section.component';
 import {
   CourtLocationGetSummaryDto,
   CriminalJusticeAreaGetDto,
@@ -35,6 +36,7 @@ const refFacadeStub: Pick<ReferenceDataFacade, 'courtLocations$' | 'cja$'> = {
 const reportsApiMock = {
   createFeesReport: jest.fn(),
   createListMaintenanceReport: jest.fn(),
+  createWorkloadReport: jest.fn(),
   downloadReport: jest.fn(),
 };
 
@@ -129,6 +131,19 @@ describe('ReportsComponent', () => {
     ).componentInstance as SearchWarrantsSectionComponent;
 
     expect(section.group()).toBe(component.searchWarrantsGroup);
+    expect(section.suggestions()).toBe(component.suggestionsFacade);
+    expect(section.getError()).toEqual(expect.any(Function));
+  });
+
+  it('passes the workload group and suggestions facade to the section', () => {
+    component.form.controls.report.setValue('workload');
+    fixture.detectChanges();
+
+    const section = fixture.debugElement.query(
+      By.directive(WorkloadSectionComponent),
+    ).componentInstance as WorkloadSectionComponent;
+
+    expect(section.group()).toBe(component.workloadGroup);
     expect(section.suggestions()).toBe(component.suggestionsFacade);
     expect(section.getError()).toEqual(expect.any(Function));
   });
@@ -325,6 +340,23 @@ describe('ReportsComponent', () => {
     );
   });
 
+  it('preserves date from and date to when switching to workload', () => {
+    component.form.controls.report.setValue('activity-audit');
+    component.activityAuditGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+    });
+
+    component.form.controls.report.setValue('workload');
+
+    expect(component.workloadGroup.value).toEqual(
+      expect.objectContaining({
+        dateFrom: '2026-01-01',
+        dateTo: '2026-01-31',
+      }),
+    );
+  });
+
   it('clears validation state when switching report type', () => {
     component.form.controls.report.setValue('list-maintenance');
     component.listMaintenanceGroup.patchValue({
@@ -394,6 +426,60 @@ describe('ReportsComponent', () => {
         ?.classList.contains('govuk-input--error'),
     ).toBe(true);
     expect(reportsApiMock.createListMaintenanceReport).not.toHaveBeenCalled();
+  });
+
+  it('blocks workload download when date to is before date from', () => {
+    component.form.controls.report.setValue('workload');
+    component.workloadGroup.patchValue({
+      dateFrom: '2026-02-01',
+      dateTo: '2026-01-31',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().errorSummary).toEqual([
+      {
+        id: 'dateTo',
+        href: '#list-date-to',
+        text: 'Date to must be on or after Date from',
+      },
+    ]);
+    expect(
+      fixture.nativeElement.querySelector('#list-date-to-error')?.textContent,
+    ).toContain('Date to must be on or after Date from');
+    expect(
+      fixture.nativeElement
+        .querySelector('#list-date-to-day')
+        ?.classList.contains('govuk-input--error'),
+    ).toBe(true);
+    expect(reportsApiMock.createWorkloadReport).not.toHaveBeenCalled();
+  });
+
+  it('enforces workload location mutual exclusivity in the form controls', () => {
+    component.form.controls.report.setValue('workload');
+    fixture.detectChanges();
+
+    component.workloadGroup.get('court')?.setValue('A1');
+    fixture.detectChanges();
+
+    expect(component.workloadGroup.get('otherLocation')?.disabled).toBe(true);
+    expect(component.workloadGroup.get('cja')?.disabled).toBe(true);
+    expect(
+      (
+        fixture.nativeElement.querySelector(
+          '#other-location',
+        ) as HTMLInputElement | null
+      )?.disabled,
+    ).toBe(true);
+
+    component.workloadGroup.get('court')?.setValue('');
+    component.workloadGroup.get('otherLocation')?.setValue('Annex');
+    fixture.detectChanges();
+
+    expect(component.workloadGroup.get('court')?.disabled).toBe(true);
+    expect(component.workloadGroup.get('cja')?.enabled).toBe(true);
   });
 
   it('shows report progress while the list maintenance job request is pending', () => {
@@ -636,6 +722,137 @@ describe('ReportsComponent', () => {
       fixture.nativeElement.querySelector('app-success-banner')?.textContent,
     ).toContain('Report downloaded');
   });
+
+  it('creates, polls, and downloads a workload report CSV', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-05-22T09:30:00'));
+    reportsApiMock.createWorkloadReport.mockReturnValue(
+      of(new HttpResponse({ body: jobAcknowledgement, status: 202 })),
+    );
+    jobPollingFacadeMock.watchJob.mockReturnValue(of(completedJob));
+    reportsApiMock.downloadReport.mockReturnValue(
+      of(
+        new HttpResponse({
+          body: new Blob(['header\n'], { type: 'text/csv' }),
+          headers: new HttpHeaders({
+            'content-disposition': 'attachment; filename="workload.csv"',
+          }),
+          status: 200,
+        }),
+      ),
+    );
+
+    component.form.controls.report.setValue('workload');
+    component.workloadGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+      otherLocation: '  Annex  ',
+      cja: ' C1 ',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(reportsApiMock.createWorkloadReport).toHaveBeenCalledWith(
+      {
+        workloadFilterDto: {
+          dateFrom: '2026-01-01',
+          dateTo: '2026-01-31',
+          location: {
+            otherLocationDescription: 'Annex',
+            cjaCode: 'C1',
+          },
+        },
+      },
+      'response',
+      false,
+      {
+        httpHeaderAccept: 'application/vnd.hmcts.appreg.v1+json',
+        transferCache: false,
+      },
+    );
+    expect(jobPollingFacadeMock.watchJob).toHaveBeenCalledWith('job-1', 2000);
+    expect(reportsApiMock.downloadReport).toHaveBeenCalledWith(
+      { jobId: 'job-1' },
+      'response',
+      false,
+      { httpHeaderAccept: 'text/csv', transferCache: false },
+    );
+    expect(createObjectUrlSpy).toHaveBeenCalledWith(expect.any(Blob));
+    expect(anchorClickSpy).toHaveBeenCalledTimes(1);
+    expect(
+      (anchorClickSpy.mock.contexts[0] as HTMLAnchorElement).download,
+    ).toBe('workload-report-2026-05-22.csv');
+    expect(component.vm().reportFeedback).toEqual({
+      kind: 'success',
+      heading: 'Report downloaded',
+      body: 'The workload report has downloaded.',
+    });
+  });
+
+  it('shows the backend message when workload polling fails', () => {
+    reportsApiMock.createWorkloadReport.mockReturnValue(
+      of(new HttpResponse({ body: jobAcknowledgement, status: 202 })),
+    );
+    jobPollingFacadeMock.watchJob.mockReturnValue(
+      of({
+        ...completedJob,
+        rawStatus: 'FAILED',
+        state: 'failed',
+        message: 'Backend failed the workload report',
+      } satisfies PolledJobStatus),
+    );
+
+    component.form.controls.report.setValue('workload');
+    component.workloadGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().reportFeedback).toEqual({
+      kind: 'error',
+      title: 'Report generation failed',
+      items: [{ text: 'Backend failed the workload report' }],
+    });
+    expect(fixture.nativeElement.textContent).toContain(
+      'Backend failed the workload report',
+    );
+    expect(reportsApiMock.downloadReport).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [401, 'You need to sign in to download this report.'],
+    [403, 'You do not have permission to download this report.'],
+    [500, 'There was a problem generating the report. Try again later.'],
+  ])(
+    'shows the workload request error message for HTTP %i',
+    (status, message) => {
+      reportsApiMock.createWorkloadReport.mockReturnValue(
+        throwError(() => ({ status })),
+      );
+
+      component.form.controls.report.setValue('workload');
+      component.workloadGroup.patchValue({
+        dateFrom: '2026-01-01',
+        dateTo: '2026-01-31',
+      });
+      fixture.detectChanges();
+
+      component.onDownload();
+      fixture.detectChanges();
+
+      expect(component.vm().reportFeedback).toEqual({
+        kind: 'error',
+        title: 'Report generation failed',
+        items: [{ text: message }],
+      });
+    },
+  );
 
   it('shows the backend message when list maintenance polling fails', () => {
     reportsApiMock.createListMaintenanceReport.mockReturnValue(
