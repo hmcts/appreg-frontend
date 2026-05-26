@@ -190,6 +190,37 @@ describe('ErrorMessageService', () => {
       expect(svc.errorMessage()?.status).toBe(500);
     });
 
+    it('treats report create endpoint failures as subscribed (no navigation)', () => {
+      const err = makeErr({
+        status: 400,
+        url: 'https://local/reports/fees/jobs',
+        error: {
+          title: 'Bad Request',
+          status: 400,
+          detail: 'Invalid report filters',
+        },
+      });
+
+      svc.handleErrorMessage(err);
+
+      expect(router.navigateByUrl).not.toHaveBeenCalled();
+      expect(svc.errorMessage()?.status).toBe(400);
+    });
+
+    it('treats report download endpoint failures as subscribed (no navigation)', () => {
+      const id = '123e4567-e89b-12d3-a456-426614174000';
+      const err = makeErr({
+        status: 500,
+        url: `https://local/reports/jobs/${id}/download`,
+        error: { title: 'Server error', status: 500 },
+      });
+
+      svc.handleErrorMessage(err);
+
+      expect(router.navigateByUrl).not.toHaveBeenCalled();
+      expect(svc.errorMessage()?.status).toBe(500);
+    });
+
     it('strips query/hash when matching endpoints (still subscribed)', () => {
       const err = makeErr({
         status: 400,

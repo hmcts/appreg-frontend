@@ -474,6 +474,43 @@ describe('ReportsComponent', () => {
     ).toBe(false);
   });
 
+  it('shows the backend problem message when a report create request returns 400', () => {
+    reportsApiMock.createFeesReport.mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 400,
+            statusText: 'Bad Request',
+            error: {
+              title: 'Bad Request',
+              status: 400,
+              detail: 'Invalid report filters',
+            },
+          }),
+      ),
+    );
+
+    component.form.controls.report.setValue('fees');
+    component.feesGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().reportFeedback).toEqual({
+      kind: 'error',
+      title: 'Report generation failed',
+      items: [{ text: 'Invalid report filters' }],
+    });
+    expect(component.vm().errorSummary).toEqual([]);
+    expect(
+      fixture.nativeElement.querySelector('button.govuk-button')?.disabled,
+    ).toBe(false);
+  });
+
   it('shows report error and re-enables download when the fees job acknowledgement contains an error', () => {
     reportsApiMock.createFeesReport.mockReturnValue(
       of(
