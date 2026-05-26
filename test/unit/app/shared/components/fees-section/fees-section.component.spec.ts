@@ -106,6 +106,44 @@ describe('FeesSectionComponent', () => {
     expect(applicantCodeInput).toBeTruthy();
   });
 
+  it('renders fee-specific fields after dates and before court', () => {
+    const details = fixture.nativeElement.querySelector(
+      'details.govuk-details',
+    ) as HTMLDetailsElement;
+    const dateInputs = fixture.nativeElement.querySelectorAll(
+      'app-date-input',
+    ) as NodeListOf<HTMLElement>;
+    const applicantCode = fixture.nativeElement.querySelector(
+      'app-text-input[formControlName="standardApplicantCode"]',
+    ) as HTMLElement;
+    const surnameOrOrg = fixture.nativeElement.querySelector(
+      'app-text-input[formControlName="surnameOrOrg"]',
+    ) as HTMLElement;
+    const court = fixture.nativeElement.querySelector(
+      'app-suggestions[formControlName="court"]',
+    ) as HTMLElement;
+
+    expect(details).toBeTruthy();
+    expect(dateInputs).toHaveLength(2);
+    expect(applicantCode).toBeTruthy();
+    expect(surnameOrOrg).toBeTruthy();
+    expect(court).toBeTruthy();
+    expect(details.contains(applicantCode)).toBe(false);
+    expect(details.contains(surnameOrOrg)).toBe(false);
+    expect(
+      Boolean(
+        dateInputs[1].compareDocumentPosition(applicantCode) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    ).toBe(true);
+    expect(
+      Boolean(
+        surnameOrOrg.compareDocumentPosition(court) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    ).toBe(true);
+  });
+
   it('has a suggestion input bound to the "cja" control', () => {
     const cjaInput = fixture.debugElement.query(
       By.css('app-suggestions[formControlName="cja"]'),

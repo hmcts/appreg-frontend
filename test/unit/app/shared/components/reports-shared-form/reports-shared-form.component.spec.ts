@@ -1,9 +1,48 @@
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, FormGroup } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 
 import { SuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
 import { ReportsSharedFormComponent } from '@components/reports-shared-form/reports-shared-form.component';
+
+const createReportsGroup = (): FormGroup =>
+  new FormGroup({
+    dateFrom: new FormControl(null),
+    dateTo: new FormControl(null),
+    court: new FormControl(''),
+    otherLocation: new FormControl(''),
+    cja: new FormControl(''),
+  });
+
+const createSuggestionsFacade = (): SuggestionsFacade => ({
+  courthouseSearch: jest.fn(() => ''),
+  setCourthouseSearch: jest.fn(),
+  filteredCourthouses: jest.fn(() => []),
+  onCourthouseInputChange: jest.fn(),
+  selectCourthouse: jest.fn(),
+  cjaSearch: jest.fn(() => ''),
+  setCjaSearch: jest.fn(),
+  filteredCja: jest.fn(() => []),
+  onCjaInputChange: jest.fn(),
+  selectCja: jest.fn(),
+});
+
+@Component({
+  standalone: true,
+  imports: [ReportsSharedFormComponent],
+  template: `
+    <app-reports-shared-form [group]="group" [suggestions]="suggestions">
+      <div id="projected-before-court" reportsAfterDateBeforeCourt>
+        Projected field
+      </div>
+    </app-reports-shared-form>
+  `,
+})
+class ReportsSharedFormHostComponent {
+  group = createReportsGroup();
+  suggestions = createSuggestionsFacade();
+}
 
 describe('ReportsSharedFormComponent', () => {
   let component: ReportsSharedFormComponent;
@@ -13,30 +52,13 @@ describe('ReportsSharedFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ReportsSharedFormComponent],
+      imports: [ReportsSharedFormComponent, ReportsSharedFormHostComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ReportsSharedFormComponent);
     component = fixture.componentInstance;
-    group = new FormGroup({
-      dateFrom: new FormControl(null),
-      dateTo: new FormControl(null),
-      court: new FormControl(''),
-      otherLocation: new FormControl(''),
-      cja: new FormControl(''),
-    });
-    suggestions = {
-      courthouseSearch: jest.fn(() => ''),
-      setCourthouseSearch: jest.fn(),
-      filteredCourthouses: jest.fn(() => []),
-      onCourthouseInputChange: jest.fn(),
-      selectCourthouse: jest.fn(),
-      cjaSearch: jest.fn(() => ''),
-      setCjaSearch: jest.fn(),
-      filteredCja: jest.fn(() => []),
-      onCjaInputChange: jest.fn(),
-      selectCja: jest.fn(),
-    };
+    group = createReportsGroup();
+    suggestions = createSuggestionsFacade();
 
     fixture.componentRef.setInput('group', group);
     fixture.componentRef.setInput('suggestions', suggestions);
@@ -55,6 +77,37 @@ describe('ReportsSharedFormComponent', () => {
     expect(suggestionFields).toHaveLength(2);
     expect(suggestionFields[0].attributes['formControlName']).toBe('court');
     expect(suggestionFields[1].attributes['formControlName']).toBe('cja');
+  });
+
+  it('projects marked content after the date fields and before court', () => {
+    const hostFixture = TestBed.createComponent(ReportsSharedFormHostComponent);
+    hostFixture.detectChanges();
+
+    const dateInputs = hostFixture.nativeElement.querySelectorAll(
+      'app-date-input',
+    ) as NodeListOf<HTMLElement>;
+    const projected = hostFixture.nativeElement.querySelector(
+      '#projected-before-court',
+    ) as HTMLElement;
+    const court = hostFixture.nativeElement.querySelector(
+      'app-suggestions[formControlName="court"]',
+    ) as HTMLElement;
+
+    expect(dateInputs).toHaveLength(2);
+    expect(projected).toBeTruthy();
+    expect(court).toBeTruthy();
+    expect(
+      Boolean(
+        dateInputs[1].compareDocumentPosition(projected) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    ).toBe(true);
+    expect(
+      Boolean(
+        projected.compareDocumentPosition(court) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    ).toBe(true);
   });
 
   it('uses the reports otherLocation control for the other location field', () => {
