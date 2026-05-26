@@ -470,6 +470,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     const jobId = this.readJobId(response.body);
     const errDescription = response.body?.error_description;
 
+    // Guard if the response is 202 but contains a report error
     if (errDescription) {
       this.showReportError(errDescription);
       return;

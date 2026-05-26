@@ -476,10 +476,15 @@ describe('ReportsComponent', () => {
 
   it('shows report error and re-enables download when the fees job acknowledgement contains an error', () => {
     reportsApiMock.createFeesReport.mockReturnValue(
-      of({
-        ...jobAcknowledgement,
-        error_description: 'Fees report could not be started',
-      }),
+      of(
+        new HttpResponse({
+          body: {
+            ...jobAcknowledgement,
+            error_description: 'Fees report could not be started',
+          },
+          status: 202,
+        }),
+      ),
     );
 
     component.form.controls.report.setValue('fees');
