@@ -57,7 +57,7 @@ const subscribedEndpoints: EndpointRule[] = [
   },
   {
     endpoint: new RegExp(`^/reports/jobs/${regexIdPlaceholder}/download$`),
-    responses: [0, 400, 403, 404, 406, 500, 504],
+    responses: [0, 400, 403, 404, 406, 409, 500, 504],
   },
 ];
 
