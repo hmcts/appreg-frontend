@@ -63,7 +63,7 @@ function mapListMaintenanceGroupToListMaintenanceFilterDto(
   const value =
     listMaintenanceGroup.getRawValue() as ListMaintenanceReportFormValue;
   const listDescription = toOptionalTrimmed(value.description);
-  const location = buildListMaintenanceLocation(value);
+  const location = buildLocation(value);
 
   return {
     dateFrom: value.dateFrom,
@@ -74,28 +74,6 @@ function mapListMaintenanceGroupToListMaintenanceFilterDto(
 }
 
 function buildLocation(
-  value: ReportLocationFormValue,
-): LegacyReportLocation | undefined {
-  const courtLocationCode = toOptionalTrimmed(value.court);
-
-  if (courtLocationCode) {
-    return { courtLocationCode };
-  }
-
-  const otherLocationDescription = toOptionalTrimmed(value.otherLocation);
-  const cjaCode = toOptionalTrimmed(value.cja);
-
-  if (cjaCode) {
-    return {
-      ...(otherLocationDescription ? { otherLocationDescription } : {}),
-      cjaCode,
-    };
-  }
-
-  return undefined;
-}
-
-function buildListMaintenanceLocation(
   value: ReportLocationFormValue,
 ): LegacyReportLocation | undefined {
   const courtLocationCode = toOptionalTrimmed(value.court);
