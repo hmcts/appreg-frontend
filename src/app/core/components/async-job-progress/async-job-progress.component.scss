@@ -1,0 +1,29 @@
+.app-async-job-progress {
+  margin-top: 1.5rem;
+}
+
+.app-async-job-progress__content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.app-async-job-progress__spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  border: 6px solid #dee0e2;
+  border-top-color: #1d70b8;
+  border-radius: 50%;
+  animation: async-job-progress-spin 0.9s linear infinite;
+}
+
+@keyframes async-job-progress-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

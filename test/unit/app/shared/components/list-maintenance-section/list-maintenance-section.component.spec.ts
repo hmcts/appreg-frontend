@@ -92,6 +92,29 @@ describe('ListMaintenanceSectionComponent', () => {
     expect(descInput).toBeTruthy();
   });
 
+  it('renders list description before CJA inside advanced filters', () => {
+    const details = fixture.nativeElement.querySelector(
+      'details.govuk-details',
+    ) as HTMLDetailsElement;
+    const description = details.querySelector(
+      'app-text-input[formControlName="description"]',
+    ) as HTMLElement;
+    const cja = details.querySelector(
+      'app-suggestions[formControlName="cja"]',
+    ) as HTMLElement;
+
+    expect(details).toBeTruthy();
+    expect(details.textContent).toContain('Advanced filters');
+    expect(description).toBeTruthy();
+    expect(cja).toBeTruthy();
+    expect(
+      Boolean(
+        description.compareDocumentPosition(cja) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    ).toBe(true);
+  });
+
   it('has a suggestion input bound to the "court" control', () => {
     const courtInput = fixture.debugElement.query(
       By.css('app-suggestions[formControlName="court"]'),

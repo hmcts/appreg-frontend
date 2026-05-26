@@ -311,7 +311,7 @@ describe('ApplicationsListDetail', () => {
 
       expect(jobPollingFacadeStub.watchJob).toHaveBeenCalledWith('job-1');
       const progress = fixture.debugElement.query(
-        By.css('.app-bulk-upload-progress'),
+        By.css('app-async-job-progress'),
       );
       expect(progress).toBeTruthy();
       expect(progress.nativeElement.textContent).toContain(

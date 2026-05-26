@@ -47,6 +47,7 @@ import {
 } from '@components/applications-list-detail-search/applications-list-detail-search.component';
 import { toRow } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
+import { AsyncJobProgressComponent } from '@components/async-job-progress/async-job-progress.component';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import {
   ErrorItem,
@@ -139,6 +140,7 @@ const APPLICATION_LIST_DETAIL_SORT_MAP: Record<string, string> = {
     NotificationBannerComponent,
     MojButtonMenuDirective,
     ApplicationsListDetailSearchComponent,
+    AsyncJobProgressComponent,
   ],
   templateUrl: './applications-list-detail.component.html',
   styleUrls: ['./applications-list-detail.component.scss'],
