@@ -26,10 +26,10 @@ import { ReferenceDataFacade } from '@services/reference-data.facade';
 
 const refFacadeStub: Pick<ReferenceDataFacade, 'courtLocations$' | 'cja$'> = {
   courtLocations$: of<CourtLocationGetSummaryDto[]>([
-    { name: 'Alpha Court', locationCode: 'A1' } as CourtLocationGetSummaryDto,
+    { name: 'Alpha Court', locationCode: 'A1' },
   ]),
   cja$: of<CriminalJusticeAreaGetDto[]>([
-    { code: 'C1', description: 'Area One' } as CriminalJusticeAreaGetDto,
+    { code: 'C1', description: 'Area One' },
   ]),
 };
 
@@ -171,6 +171,11 @@ describe('ReportsComponent', () => {
     expect(component.vm().errorSummary).toEqual([
       { id: 'dateFrom', href: '#date-from', text: 'Enter date from' },
       { id: 'dateTo', href: '#date-to', text: 'Enter date to' },
+      {
+        id: 'activity',
+        href: '#activity',
+        text: 'At least 1 activity is required',
+      },
     ]);
     expect(
       fixture.nativeElement.querySelector('app-error-summary'),
@@ -184,6 +189,9 @@ describe('ReportsComponent', () => {
 
   it('uses date input validation text for partially entered dates', () => {
     component.form.controls.report.setValue('activity-audit');
+    component.activityAuditGroup.patchValue({
+      activity: ['REPORT_DOWNLOADED'],
+    });
     fixture.detectChanges();
 
     const dateFrom = fixture.debugElement.queryAll(
@@ -205,11 +213,40 @@ describe('ReportsComponent', () => {
     ]);
   });
 
+  it('shows an activity required error on download', () => {
+    component.form.controls.report.setValue('activity-audit');
+    component.activityAuditGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().errorSummary).toEqual([
+      {
+        id: 'activity',
+        href: '#activity',
+        text: 'At least 1 activity is required',
+      },
+    ]);
+    expect(
+      fixture.nativeElement.querySelector('#activity-error')?.textContent,
+    ).toContain('At least 1 activity is required');
+    expect(
+      fixture.nativeElement
+        .querySelector('input#activity')
+        ?.classList.contains('govuk-input--error'),
+    ).toBe(true);
+  });
+
   it('blocks activity audit download when date to is before date from', () => {
     component.form.controls.report.setValue('activity-audit');
     component.activityAuditGroup.patchValue({
       dateFrom: '2026-02-01',
       dateTo: '2026-01-31',
+      activity: ['REPORT_DOWNLOADED'],
     });
     fixture.detectChanges();
 
@@ -241,6 +278,7 @@ describe('ReportsComponent', () => {
     component.activityAuditGroup.patchValue({
       dateFrom: '2026-01-01',
       dateTo: '2026-01-31',
+      activity: ['REPORT_DOWNLOADED'],
     });
 
     component.onDownload();
