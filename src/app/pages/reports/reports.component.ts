@@ -154,7 +154,9 @@ export class Reports extends PlaceFieldsBase implements OnInit {
           validators: [(c) => Validators.required(c)],
         }),
         username: new FormControl<string | null>(''),
-        activity: new FormControl<string | null>(''),
+        activity: new FormControl<string[]>([], {
+          validators: [(c) => Validators.required(c)],
+        }),
       },
       {
         validators: REPORT_DATE_RANGE_VALIDATORS,
