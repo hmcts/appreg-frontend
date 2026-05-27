@@ -177,7 +177,7 @@ function mapActivitiesToType(activities: string[]): ActivityType[] {
   return activities.filter(isActivityType);
 }
 
-function isActivityType(value: string): value is ActivityType {
+export function isActivityType(value: unknown): value is ActivityType {
   return Object.values(ActivityType).includes(value as ActivityType);
 }
 

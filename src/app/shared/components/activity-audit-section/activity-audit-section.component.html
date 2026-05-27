@@ -34,7 +34,6 @@
     <app-text-input
       formControlName="username"
       label="Username"
-      hint="Type the exact username you wish to audit"
       idPrefix="username"
       containerWidthClass="govuk-grid-column-one-quarter"
       widthClass="govuk-!-width-full"
@@ -42,13 +41,47 @@
   </div>
   <!-- Activity -->
   <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="activity"
-      label="Activity"
-      hint="Show activity regarding the creation"
-      idPrefix="activity"
-      containerWidthClass="govuk-grid-column-one-half"
-      widthClass="govuk-!-width-full"
-    />
+    <div class="govuk-grid-column-one-half">
+      <app-suggestions
+        label="Activity"
+        id="activity"
+        [search]="activitySearch()"
+        (searchChange)="setActivitySearch($event)"
+        [suggestions]="filteredActivities()"
+        [getItemLabel]="activityLabel"
+        [showAllValues]="true"
+        (selectItem)="selectActivity($event)"
+        [showError]="showError('activity')"
+        [errorText]="errorText('activity')"
+        containerWidthClass=""
+        widthClass="govuk-!-width-full"
+      />
+
+      @if (selectedActivities().length) {
+        <p class="govuk-body">Selected activities</p>
+
+        <dl class="govuk-summary-list activity-audit-summary-list">
+          @for (activity of selectedActivities(); track activity) {
+            <div class="govuk-summary-list__row selected-activity">
+              <dd class="govuk-summary-list__value">
+                {{ activityLabel(activity) }}
+              </dd>
+              <dd class="govuk-summary-list__actions">
+                <a
+                  class="govuk-link"
+                  href="javascript:void(0)"
+                  (click)="removeActivity(activity)"
+                >
+                  Remove
+                  <span class="govuk-visually-hidden">
+                    {{ activityLabel(activity) }}
+                  </span>
+                </a>
+              </dd>
+            </div>
+          }
+        </dl>
+      }
+    </div>
   </div>
 </div>
