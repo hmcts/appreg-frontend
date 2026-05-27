@@ -62,10 +62,8 @@ export class ActivityAuditSectionComponent {
     }
 
     return this.availableActivities()
-      .filter(
-        (activity) =>
-          this.normalise(activity).includes(query) ||
-          this.normalise(this.activityLabel(activity)).includes(query),
+      .filter((activity) =>
+        this.normalise(this.activityLabel(activity)).includes(query),
       )
       .slice(0, 20);
   });
