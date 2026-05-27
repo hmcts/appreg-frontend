@@ -327,7 +327,7 @@ describe('ApplicationCodeSearchComponent', () => {
     ]);
   });
 
-  it('onSortChange() should keep the current page and search with mapped API sort', () => {
+  it('onSortChange() should reset to page 0 and search with mapped API sort', () => {
     const fetchSpy = jest
       .spyOn(helpers, 'fetchCodeRows$')
       .mockReturnValue(of(mockRows));
@@ -337,14 +337,14 @@ describe('ApplicationCodeSearchComponent', () => {
 
     component.onSortChange({ key: 'title', direction: 'desc' });
 
-    expect(component.currentPage()).toBe(4);
+    expect(component.currentPage()).toBe(0);
     expect(component.sortField()).toEqual({ key: 'title', direction: 'desc' });
     expect(fetchSpy).toHaveBeenCalledWith(
       apiMock,
       {
         code: 'MS99004',
         title: undefined,
-        pageNumber: 4,
+        pageNumber: 0,
         pageSize: 10,
         sort: ['title,desc'],
       },

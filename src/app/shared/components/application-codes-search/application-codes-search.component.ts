@@ -247,6 +247,7 @@ export class ApplicationCodeSearchComponent implements OnInit {
     }
 
     this.sortField.set(sort);
+    this.currentPage.set(0);
     this.search();
   }
 

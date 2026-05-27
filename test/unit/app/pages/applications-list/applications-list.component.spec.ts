@@ -477,10 +477,11 @@ describe('ApplicationsList – search', () => {
     expect(args.filter).toEqual({ status: 'CLOSED' });
   });
 
-  it('onSortChange stores the UI sort key and reloads data', () => {
+  it('onSortChange stores the UI sort key, resets to page 0, and reloads data', () => {
     const loadSpy = jest
       .spyOn(component, 'loadApplicationsLists')
       .mockImplementation(() => undefined);
+    patchRecordsState(component, { currentPage: 4 });
 
     component.onSortChange({ key: 'entries', direction: 'desc' });
 
@@ -488,6 +489,7 @@ describe('ApplicationsList – search', () => {
       key: 'entries',
       direction: 'desc',
     });
+    expect(getRecordsState(component).currentPage).toBe(0);
     expect(loadSpy).toHaveBeenCalledTimes(1);
   });
 

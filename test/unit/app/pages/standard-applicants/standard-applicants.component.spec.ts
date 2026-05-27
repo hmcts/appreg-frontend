@@ -325,13 +325,13 @@ describe('StandardApplicantsComponent', () => {
     );
   });
 
-  it('keeps the current page number when sorting after paging', async () => {
+  it('resets to the first page when sorting after paging', async () => {
     component.onSubmit(new SubmitEvent('submit'));
     await flushSignalEffects(fixture);
 
     getStandardApplicantsMock.mockReturnValueOnce(
       of({
-        pageNumber: 1,
+        pageNumber: 0,
         pageSize: 10,
         totalElements: 11,
         content: [
@@ -386,7 +386,7 @@ describe('StandardApplicantsComponent', () => {
       {
         code: undefined,
         name: undefined,
-        pageNumber: 1,
+        pageNumber: 0,
         pageSize: 10,
         sort: ['from,desc'],
       },
@@ -396,7 +396,7 @@ describe('StandardApplicantsComponent', () => {
         transferCache: true,
       },
     );
-    expect(component.vm().currentPage).toBe(1);
+    expect(component.vm().currentPage).toBe(0);
   });
 
   it('sorts using the last applied filters when the current form is invalid', async () => {

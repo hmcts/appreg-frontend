@@ -158,8 +158,8 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
     if (!this.saState().hasSearched) {
       return;
     }
-    this.saSignalState.patch({ sortField: sort });
-    this.loadPage(this.vm().pageIndex);
+    this.saSignalState.patch({ sortField: sort, pageIndex: 0 });
+    this.loadPage(0);
   }
 
   onSubmit(event: SubmitEvent): void {
