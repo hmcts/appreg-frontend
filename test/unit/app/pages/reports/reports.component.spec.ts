@@ -36,6 +36,7 @@ const refFacadeStub: Pick<ReferenceDataFacade, 'courtLocations$' | 'cja$'> = {
 const reportsApiMock = {
   createFeesReport: jest.fn(),
   createListMaintenanceReport: jest.fn(),
+  createSearchWarrantsReport: jest.fn(),
   createWorkloadReport: jest.fn(),
   downloadReport: jest.fn(),
 };
@@ -168,8 +169,8 @@ describe('ReportsComponent', () => {
     fixture.detectChanges();
 
     expect(component.vm().errorSummary).toEqual([
-      { id: 'dateFrom', href: '#date-from', text: 'Enter day, month and year' },
-      { id: 'dateTo', href: '#date-to', text: 'Enter day, month and year' },
+      { id: 'dateFrom', href: '#date-from', text: 'Enter date from' },
+      { id: 'dateTo', href: '#date-to', text: 'Enter date to' },
     ]);
     expect(
       fixture.nativeElement.querySelector('app-error-summary'),
@@ -195,8 +196,12 @@ describe('ReportsComponent', () => {
     component.onDownload();
 
     expect(component.vm().errorSummary).toEqual([
-      { id: 'dateFrom', href: '#date-from', text: 'Enter month' },
-      { id: 'dateTo', href: '#date-to', text: 'Enter day, month and year' },
+      {
+        id: 'dateFrom',
+        href: '#date-from',
+        text: 'Date from must include a month',
+      },
+      { id: 'dateTo', href: '#date-to', text: 'Enter date to' },
     ]);
   });
 
@@ -262,6 +267,9 @@ describe('ReportsComponent', () => {
   });
 
   it('does not require search warrants court, other location, or CJA', () => {
+    const createJob$ = new Subject<HttpResponse<JobAcknowledgement>>();
+    reportsApiMock.createSearchWarrantsReport.mockReturnValue(createJob$);
+
     component.form.controls.report.setValue('search-warrants');
     component.searchWarrantsGroup.patchValue({
       dateFrom: '2026-01-01',
@@ -270,8 +278,23 @@ describe('ReportsComponent', () => {
     fixture.detectChanges();
 
     component.onDownload();
+    fixture.detectChanges();
 
     expect(component.vm().errorSummary).toEqual([]);
+    expect(reportsApiMock.createSearchWarrantsReport).toHaveBeenCalledWith(
+      {
+        searchWarrantsReportFilterDto: {
+          dateFrom: '2026-01-01',
+          dateTo: '2026-01-31',
+        },
+      },
+      'response',
+      false,
+      {
+        httpHeaderAccept: 'application/vnd.hmcts.appreg.v1+json',
+        transferCache: false,
+      },
+    );
   });
 
   it('highlights the search warrants court suggestion when it has an error', () => {
@@ -333,6 +356,23 @@ describe('ReportsComponent', () => {
     component.form.controls.report.setValue('list-maintenance');
 
     expect(component.listMaintenanceGroup.value).toEqual(
+      expect.objectContaining({
+        dateFrom: '2026-01-01',
+        dateTo: '2026-01-31',
+      }),
+    );
+  });
+
+  it('preserves date from and date to when switching to search warrants', () => {
+    component.form.controls.report.setValue('activity-audit');
+    component.activityAuditGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+    });
+
+    component.form.controls.report.setValue('search-warrants');
+
+    expect(component.searchWarrantsGroup.value).toEqual(
       expect.objectContaining({
         dateFrom: '2026-01-01',
         dateTo: '2026-01-31',
@@ -428,6 +468,35 @@ describe('ReportsComponent', () => {
     expect(reportsApiMock.createListMaintenanceReport).not.toHaveBeenCalled();
   });
 
+  it('blocks search warrants download when date to is before date from', () => {
+    component.form.controls.report.setValue('search-warrants');
+    component.searchWarrantsGroup.patchValue({
+      dateFrom: '2026-02-01',
+      dateTo: '2026-01-31',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().errorSummary).toEqual([
+      {
+        id: 'dateTo',
+        href: '#list-date-to',
+        text: 'Date to must be on or after Date from',
+      },
+    ]);
+    expect(
+      fixture.nativeElement.querySelector('#list-date-to-error')?.textContent,
+    ).toContain('Date to must be on or after Date from');
+    expect(
+      fixture.nativeElement
+        .querySelector('#list-date-to-day')
+        ?.classList.contains('govuk-input--error'),
+    ).toBe(true);
+    expect(reportsApiMock.createSearchWarrantsReport).not.toHaveBeenCalled();
+  });
+
   it('blocks workload download when date to is before date from', () => {
     component.form.controls.report.setValue('workload');
     component.workloadGroup.patchValue({
@@ -480,6 +549,20 @@ describe('ReportsComponent', () => {
 
     expect(component.workloadGroup.get('court')?.disabled).toBe(true);
     expect(component.workloadGroup.get('cja')?.enabled).toBe(true);
+  });
+
+  it('preserves legacy CJA-only search warrants location behaviour', () => {
+    component.form.controls.report.setValue('search-warrants');
+    fixture.detectChanges();
+
+    component.searchWarrantsGroup.get('cja')?.setValue('C1');
+    fixture.detectChanges();
+
+    expect(component.searchWarrantsGroup.get('court')?.disabled).toBe(true);
+    expect(component.searchWarrantsGroup.get('otherLocation')?.enabled).toBe(
+      true,
+    );
+    expect(component.searchWarrantsGroup.get('cja')?.enabled).toBe(true);
   });
 
   it('shows report progress while the list maintenance job request is pending', () => {
@@ -723,6 +806,72 @@ describe('ReportsComponent', () => {
     ).toContain('Report downloaded');
   });
 
+  it('creates, polls, and downloads a search warrants report CSV', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-05-22T09:30:00'));
+    reportsApiMock.createSearchWarrantsReport.mockReturnValue(
+      of(new HttpResponse({ body: jobAcknowledgement, status: 202 })),
+    );
+    jobPollingFacadeMock.watchJob.mockReturnValue(of(completedJob));
+    reportsApiMock.downloadReport.mockReturnValue(
+      of(
+        new HttpResponse({
+          body: new Blob(['header\n'], { type: 'text/csv' }),
+          headers: new HttpHeaders({
+            'content-disposition': 'attachment; filename="search-warrants.csv"',
+          }),
+          status: 200,
+        }),
+      ),
+    );
+
+    component.form.controls.report.setValue('search-warrants');
+    component.searchWarrantsGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+      cja: ' C1 ',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(reportsApiMock.createSearchWarrantsReport).toHaveBeenCalledWith(
+      {
+        searchWarrantsReportFilterDto: {
+          dateFrom: '2026-01-01',
+          dateTo: '2026-01-31',
+          location: {
+            cjaCode: 'C1',
+          },
+        },
+      },
+      'response',
+      false,
+      {
+        httpHeaderAccept: 'application/vnd.hmcts.appreg.v1+json',
+        transferCache: false,
+      },
+    );
+    expect(jobPollingFacadeMock.watchJob).toHaveBeenCalledWith('job-1', 2000);
+    expect(reportsApiMock.downloadReport).toHaveBeenCalledWith(
+      { jobId: 'job-1' },
+      'response',
+      false,
+      { httpHeaderAccept: 'text/csv', transferCache: false },
+    );
+    expect(createObjectUrlSpy).toHaveBeenCalledWith(expect.any(Blob));
+    expect(anchorClickSpy).toHaveBeenCalledTimes(1);
+    expect(
+      (anchorClickSpy.mock.contexts[0] as HTMLAnchorElement).download,
+    ).toBe('search-warrants-report-2026-05-22.csv');
+    expect(component.vm().reportFeedback).toEqual({
+      kind: 'success',
+      heading: 'Report downloaded',
+      body: 'The search warrants report has downloaded.',
+    });
+  });
+
   it('creates, polls, and downloads a workload report CSV', () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2026-05-22T09:30:00'));
@@ -838,6 +987,69 @@ describe('ReportsComponent', () => {
 
       component.form.controls.report.setValue('workload');
       component.workloadGroup.patchValue({
+        dateFrom: '2026-01-01',
+        dateTo: '2026-01-31',
+      });
+      fixture.detectChanges();
+
+      component.onDownload();
+      fixture.detectChanges();
+
+      expect(component.vm().reportFeedback).toEqual({
+        kind: 'error',
+        title: 'Report generation failed',
+        items: [{ text: message }],
+      });
+    },
+  );
+
+  it('shows the backend message when search warrants polling fails', () => {
+    reportsApiMock.createSearchWarrantsReport.mockReturnValue(
+      of(new HttpResponse({ body: jobAcknowledgement, status: 202 })),
+    );
+    jobPollingFacadeMock.watchJob.mockReturnValue(
+      of({
+        ...completedJob,
+        rawStatus: 'FAILED',
+        state: 'failed',
+        message: 'Backend failed the search warrants report',
+      } satisfies PolledJobStatus),
+    );
+
+    component.form.controls.report.setValue('search-warrants');
+    component.searchWarrantsGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().reportFeedback).toEqual({
+      kind: 'error',
+      title: 'Report generation failed',
+      items: [{ text: 'Backend failed the search warrants report' }],
+    });
+    expect(fixture.nativeElement.textContent).toContain(
+      'Backend failed the search warrants report',
+    );
+    expect(reportsApiMock.downloadReport).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [401, 'You need to sign in to download this report.'],
+    [403, 'You do not have permission to download this report.'],
+    [500, 'There was a problem generating the report. Try again later.'],
+  ])(
+    'shows the search warrants request error message for HTTP %i',
+    (status, message) => {
+      reportsApiMock.createSearchWarrantsReport.mockReturnValue(
+        throwError(() => ({ status })),
+      );
+
+      component.form.controls.report.setValue('search-warrants');
+      component.searchWarrantsGroup.patchValue({
         dateFrom: '2026-01-01',
         dateTo: '2026-01-31',
       });
