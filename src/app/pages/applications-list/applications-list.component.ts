@@ -425,6 +425,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
         direction: sort.direction,
       },
     });
+    this.storedRecordsState.patch({ currentPage: 0 });
 
     const hasAny = hasAnyParams(this.form);
     this.loadApplicationsLists(hasAny);

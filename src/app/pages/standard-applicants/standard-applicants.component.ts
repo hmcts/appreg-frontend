@@ -146,8 +146,8 @@ export class StandardApplicants implements OnInit {
       return;
     }
 
-    this.signalState.patch({ sortField: sort });
-    this.loadStandardApplicants(this.vm().currentPage);
+    this.signalState.patch({ sortField: sort, currentPage: 0 });
+    this.loadStandardApplicants(0);
   }
 
   onPageChange(page: number): void {

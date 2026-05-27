@@ -939,6 +939,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         key: sort.key,
         direction: sort.direction,
       },
+      currentPage: 0,
     });
 
     this.loadListDetailsInfo();

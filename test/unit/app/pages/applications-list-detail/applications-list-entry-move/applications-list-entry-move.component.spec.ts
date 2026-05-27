@@ -436,12 +436,19 @@ describe('ApplicationsListEntryMoveComponent', () => {
   });
 
   it('maps known sort keys and preserves unknown ones', () => {
+    (
+      component as unknown as {
+        storedRecordsState: { patch: (patch: { currentPage: number }) => void };
+      }
+    ).storedRecordsState.patch({ currentPage: 4 });
+
     component.onSortChange({ key: 'entries', direction: 'asc' });
 
     expect(component.vm().sortField).toEqual({
       key: 'entriesCount',
       direction: 'asc',
     });
+    expect(component.storedRecordsVm().currentPage).toBe(0);
 
     component.onSortChange({ key: 'customSort', direction: 'desc' });
 

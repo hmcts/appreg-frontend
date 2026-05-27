@@ -287,7 +287,7 @@ describe('StandardApplicantSelectComponent', () => {
     expect(component.vm().pageIndex).toBe(0);
   });
 
-  it('keeps the current page number when sorting after paging', () => {
+  it('resets to the first page when sorting after paging', () => {
     fixture.detectChanges();
     fixture.detectChanges();
 
@@ -307,7 +307,7 @@ describe('StandardApplicantSelectComponent', () => {
     mockGetStandardApplicants.mockReturnValueOnce(
       of({
         content: [makeSummary({ code: 'SA-1' })],
-        pageNumber: 1,
+        pageNumber: 0,
         pageSize: 10,
         totalElements: 11,
         totalPages: 2,
@@ -321,7 +321,7 @@ describe('StandardApplicantSelectComponent', () => {
       {
         code: undefined,
         name: undefined,
-        pageNumber: 1,
+        pageNumber: 0,
         pageSize: 10,
         sort: ['to,desc'],
       },
@@ -329,7 +329,7 @@ describe('StandardApplicantSelectComponent', () => {
       false,
       expect.objectContaining({ transferCache: true }),
     );
-    expect(component.vm().pageIndex).toBe(1);
+    expect(component.vm().pageIndex).toBe(0);
   });
 
   it('keeps the table mounted while a sort request is in flight when rows already exist', () => {

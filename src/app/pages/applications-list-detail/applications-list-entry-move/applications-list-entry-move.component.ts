@@ -239,6 +239,7 @@ export class ApplicationsListEntryMoveComponent
         direction: sort.direction,
       },
     });
+    this.storedRecordsState.patch({ currentPage: 0 });
     this.loadApplicationsLists();
   }
 

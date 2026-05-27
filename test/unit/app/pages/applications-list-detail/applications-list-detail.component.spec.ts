@@ -1294,10 +1294,11 @@ describe('ApplicationsListDetail', () => {
     expect(loadSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('onSortChange stores the UI sort key and reloads data', () => {
+  it('onSortChange stores the UI sort key, resets to page 0, and reloads data', () => {
     const loadSpy = jest
       .spyOn(component, 'loadListDetailsInfo')
       .mockImplementation(() => undefined);
+    patchDetailState({ currentPage: 5 });
 
     component.onSortChange({ key: 'title', direction: 'desc' });
 
@@ -1305,6 +1306,7 @@ describe('ApplicationsListDetail', () => {
       key: 'title',
       direction: 'desc',
     });
+    expect(vm().currentPage).toBe(0);
     expect(loadSpy).toHaveBeenCalledTimes(1);
   });
 
