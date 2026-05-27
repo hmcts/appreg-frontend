@@ -3,10 +3,12 @@ import { FormGroup } from '@angular/forms';
 import { toOptionalTrimmed } from '@components/applications-list-entry-create/util';
 import {
   CreateListMaintenanceReportRequestParams,
+  CreateSearchWarrantsReportRequestParams,
   CreateWorkloadReportRequestParams,
   FeesReportFilterDto,
   LegacyReportLocation,
   ListMaintenanceFilterDto,
+  SearchWarrantsReportFilterDto,
   WorkloadFilterDto,
 } from '@openapi';
 
@@ -30,6 +32,14 @@ interface ListMaintenanceReportFormValue {
   dateFrom: string;
   dateTo: string;
   description: string | null;
+  court: string | null;
+  otherLocation: string | null;
+  cja: string | null;
+}
+
+interface SearchWarrantsReportFormValue {
+  dateFrom: string;
+  dateTo: string;
   court: string | null;
   otherLocation: string | null;
   cja: string | null;
@@ -67,6 +77,17 @@ export function mapListMaintenanceGroupToListMaintenanceReportRequestParams(
   };
 }
 
+export function mapSearchWarrantsGroupToSearchWarrantsReportRequestParams(
+  searchWarrantsGroup: FormGroup,
+): CreateSearchWarrantsReportRequestParams {
+  return {
+    searchWarrantsReportFilterDto:
+      mapSearchWarrantsGroupToSearchWarrantsReportFilterDto(
+        searchWarrantsGroup,
+      ),
+  };
+}
+
 export function mapWorkloadGroupToWorkloadReportRequestParams(
   workloadGroup: FormGroup,
 ): CreateWorkloadReportRequestParams {
@@ -87,6 +108,20 @@ function mapListMaintenanceGroupToListMaintenanceFilterDto(
     dateFrom: value.dateFrom,
     dateTo: value.dateTo,
     ...(listDescription ? { listDescription } : {}),
+    ...(location ? { location } : {}),
+  };
+}
+
+function mapSearchWarrantsGroupToSearchWarrantsReportFilterDto(
+  searchWarrantsGroup: FormGroup,
+): SearchWarrantsReportFilterDto {
+  const value =
+    searchWarrantsGroup.getRawValue() as SearchWarrantsReportFormValue;
+  const location = buildLocation(value);
+
+  return {
+    dateFrom: value.dateFrom,
+    dateTo: value.dateTo,
     ...(location ? { location } : {}),
   };
 }

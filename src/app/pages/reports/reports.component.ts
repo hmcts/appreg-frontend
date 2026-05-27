@@ -23,6 +23,7 @@ import {
   initialReportsState,
   mapFeeGroupToFeesReportFilterDto,
   mapListMaintenanceGroupToListMaintenanceReportRequestParams,
+  mapSearchWarrantsGroupToSearchWarrantsReportRequestParams,
   mapWorkloadGroupToWorkloadReportRequestParams,
 } from './util';
 
@@ -49,6 +50,7 @@ import { reportOptions } from '@constants/reports/report-selector.constant';
 import {
   CreateFeesReportRequestParams,
   CreateListMaintenanceReportRequestParams,
+  CreateSearchWarrantsReportRequestParams,
   CreateWorkloadReportRequestParams,
   JobAcknowledgement,
   ReportsApi,
@@ -71,6 +73,10 @@ import { dateToOnOrAfterDateFromValidator } from '@validators/date-range.validat
 const REPORT_ERROR_PRIORITY_KEYS: Record<string, string[]> = {
   dateFrom: ['dateInvalid', 'required'],
   dateTo: ['dateInvalid', 'dateRange', 'required'],
+};
+const REPORT_DATE_LABELS: Record<'dateFrom' | 'dateTo', string> = {
+  dateFrom: 'Date from',
+  dateTo: 'Date to',
 };
 
 const REPORT_POLL_INTERVAL_MS = 2_000;
@@ -124,6 +130,8 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     signal<CreateFeesReportRequestParams | null>(null);
   private readonly createListMaintenanceReportRequest =
     signal<CreateListMaintenanceReportRequestParams | null>(null);
+  private readonly createSearchWarrantsReportRequest =
+    signal<CreateSearchWarrantsReportRequestParams | null>(null);
   private readonly createWorkloadReportRequest =
     signal<CreateWorkloadReportRequestParams | null>(null);
 
@@ -310,6 +318,10 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       this.createListMaintenanceReport();
     }
 
+    if (this.form.controls.report.value === 'search-warrants') {
+      this.createSearchWarrantsReport();
+    }
+
     if (this.form.controls.report.value === 'fees') {
       const request: CreateFeesReportRequestParams = {
         feesReportFilterDto: mapFeeGroupToFeesReportFilterDto(this.feesGroup),
@@ -365,6 +377,15 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     this.createFeesReportRequest.set(request);
   }
 
+  private startCreateSearchWarrantsReport(
+    request: CreateSearchWarrantsReportRequestParams,
+  ): void {
+    this.stopReportCreate();
+    this.stopReportPolling();
+    this.showReportProgress();
+    this.createSearchWarrantsReportRequest.set(request);
+  }
+
   private startCreateWorkloadReport(
     request: CreateWorkloadReportRequestParams,
   ): void {
@@ -399,6 +420,29 @@ export class Reports extends PlaceFieldsBase implements OnInit {
         onError: (err) => {
           this.handleReportCreateError(err);
           this.createFeesReportRequest.set(null);
+        },
+      },
+      this.envInjector,
+    );
+
+    // POST /reports/search-warrants/jobs
+    setupLoadEffect(
+      {
+        request: this.createSearchWarrantsReportRequest,
+        load: (request) =>
+          this.reportsApi.createSearchWarrantsReport(
+            request,
+            'response',
+            false,
+            REPORT_JSON_OPTIONS,
+          ),
+        onSuccess: (response) => {
+          this.createSearchWarrantsReportRequest.set(null);
+          this.handleReportJobCreated(response);
+        },
+        onError: (err) => {
+          this.createSearchWarrantsReportRequest.set(null);
+          this.showReportError(this.toReportRequestError(err));
         },
       },
       this.envInjector,
@@ -512,6 +556,14 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     );
   }
 
+  private createSearchWarrantsReport(): void {
+    this.startCreateSearchWarrantsReport(
+      mapSearchWarrantsGroupToSearchWarrantsReportRequestParams(
+        this.searchWarrantsGroup,
+      ),
+    );
+  }
+
   private createWorkloadReport(): void {
     this.startCreateWorkloadReport(
       mapWorkloadGroupToWorkloadReportRequestParams(this.workloadGroup),
@@ -560,6 +612,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   private stopReportCreate(): void {
     this.createFeesReportRequest.set(null);
     this.createListMaintenanceReportRequest.set(null);
+    this.createSearchWarrantsReportRequest.set(null);
     this.createWorkloadReportRequest.set(null);
   }
 
@@ -738,12 +791,44 @@ export class Reports extends PlaceFieldsBase implements OnInit {
         'dateErrorText'
       ] as string;
 
-      if (typeof dateErrorText !== 'string') {
-        return error;
-      }
+      const text =
+        typeof dateErrorText === 'string' ? dateErrorText : error.text;
 
-      return { ...error, text: dateErrorText };
+      return { ...error, text: this.toDateSummaryText(error.id, text) };
     });
+  }
+
+  private toDateSummaryText(id: 'dateFrom' | 'dateTo', text: string): string {
+    const label = REPORT_DATE_LABELS[id];
+    const lowerLabel = label.toLowerCase();
+    const trimmedText = text.trim();
+
+    if (trimmedText === 'Enter day, month and year') {
+      return `Enter ${lowerLabel}`;
+    }
+
+    if (trimmedText === 'Enter a valid date') {
+      return `${label} must be a valid date`;
+    }
+
+    if (trimmedText.startsWith('Enter ')) {
+      return `${label} must include ${this.addDatePartArticles(
+        trimmedText.slice('Enter '.length),
+      )}`;
+    }
+
+    if (trimmedText.startsWith('Date must')) {
+      return `${label}${trimmedText.slice('Date'.length)}`;
+    }
+
+    return text;
+  }
+
+  private addDatePartArticles(text: string): string {
+    return text
+      .replace(/\bday\b/g, 'a day')
+      .replace(/\bmonth\b/g, 'a month')
+      .replace(/\byear\b/g, 'a year');
   }
 
   private selectedReportGroup(): FormGroup | null {
