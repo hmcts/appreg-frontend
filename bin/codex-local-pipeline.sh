@@ -149,9 +149,6 @@ yarn --version
 log "Installing dependencies"
 yarn install --immutable
 
-log "Installing Puppeteer Chrome"
-./node_modules/.bin/puppeteer browsers install chrome
-
 fast_command="${FRONTEND_FAST_COMMAND:-yarn cichecks}"
 log "Running frontend verification: ${fast_command}"
 bash -lc "${fast_command}"
