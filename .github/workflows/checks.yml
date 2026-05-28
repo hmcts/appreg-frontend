@@ -18,4 +18,9 @@ jobs:
           node-version: 24
       - run: corepack enable && yarn --version
       - run: yarn install
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/puppeteer
+          key: puppeteer-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+      - run: ./node_modules/.bin/puppeteer browsers install chrome
       - run: yarn cichecks
