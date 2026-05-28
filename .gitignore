@@ -67,6 +67,9 @@ runner-results/
 # Branch retention outputs
 .github/branch-retention/out/
 
+# Codex runner scratch output
+/build/codex/
+
 # Wiremock generated files
 /wiremock/__files/errors
 /wiremock/mappings
