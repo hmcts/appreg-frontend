@@ -424,15 +424,6 @@ if [[ ! -s "${final_message_path}" ]]; then
   echo "Codex completed without writing a final message." >"${final_message_path}"
 fi
 
-detect_guardrail_changes "origin/${BASE_REF}"
-
-if [[ -n "$(git_sanitized status --short --untracked-files=normal)" ]]; then
-  echo "Applying frontend formatting before verification"
-  run_sanitized corepack enable
-  run_sanitized yarn install --immutable
-  run_sanitized yarn lint:fix
-fi
-
 if [[ -z "$(git_sanitized status --short --untracked-files=normal)" ]]; then
   {
     echo "Codex reviewed this feedback but did not produce any committable changes."
@@ -443,21 +434,13 @@ if [[ -z "$(git_sanitized status --short --untracked-files=normal)" ]]; then
     echo
     sed -n '1,200p' "${final_message_path}"
   } >"${comment_body_path}"
-  write_guardrail_warning
   {
-    echo "has_changes=false"
-    echo "pr_number=${PR_NUMBER}"
-    echo "head_ref=${HEAD_REF}"
-  } >"${metadata_path}"
+  echo "has_changes=false"
+  echo "pr_number=${PR_NUMBER}"
+  echo "head_ref=${HEAD_REF}"
+  echo "base_ref=${BASE_REF}"
+} >"${metadata_path}"
   exit 0
-fi
-
-local_pipeline_mode="${LOCAL_PIPELINE_MODE:-fast}"
-if [[ "${SKIP_LOCAL_PIPELINE:-false}" == "true" ]]; then
-  echo "Skipping local pipeline because SKIP_LOCAL_PIPELINE=true"
-else
-  verify_trusted_file "${trusted_pipeline_path}" "${trusted_pipeline_sha}" "pipeline wrapper"
-  run_sanitized "${trusted_pipeline_path}" "${local_pipeline_mode}" --base "${BASE_REF}"
 fi
 
 git_sanitized add -A
@@ -472,6 +455,7 @@ git_sanitized diff --cached --binary >"${patch_path}"
   echo "has_changes=true"
   echo "pr_number=${PR_NUMBER}"
   echo "head_ref=${HEAD_REF}"
+  echo "base_ref=${BASE_REF}"
   echo "comment_author=${COMMENT_AUTHOR}"
   echo "comment_url=${COMMENT_URL}"
 } >"${metadata_path}"
