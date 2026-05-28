@@ -2,6 +2,9 @@ import { FormGroup } from '@angular/forms';
 
 import { toOptionalTrimmed } from '@components/applications-list-entry-create/util';
 import {
+  ActivityAuditFilterDto,
+  ActivityType,
+  CreateActivityAuditReportRequestParams,
   CreateListMaintenanceReportRequestParams,
   CreateSearchWarrantsReportRequestParams,
   CreateWorkloadReportRequestParams,
@@ -53,6 +56,13 @@ interface WorkloadReportFormValue {
   cja: string | null;
 }
 
+interface ActivityAuditReportFormValue {
+  dateFrom: string;
+  dateTo: string;
+  username: string | null;
+  activity: string[];
+}
+
 export function mapFeeGroupToFeesReportFilterDto(
   feeGroup: FormGroup,
 ): FeesReportFilterDto {
@@ -93,6 +103,14 @@ export function mapWorkloadGroupToWorkloadReportRequestParams(
 ): CreateWorkloadReportRequestParams {
   return {
     workloadFilterDto: mapWorkloadGroupToWorkloadFilterDto(workloadGroup),
+  };
+}
+
+export function mapActivityAuditGroupToActivityAuditRequestParams(
+  activityAudit: FormGroup,
+): CreateActivityAuditReportRequestParams {
+  return {
+    activityAuditFilterDto: mapActivityAuditFormToParams(activityAudit),
   };
 }
 
@@ -137,6 +155,30 @@ function mapWorkloadGroupToWorkloadFilterDto(
     dateTo: value.dateTo,
     ...(location ? { location } : {}),
   };
+}
+
+function mapActivityAuditFormToParams(
+  activityAuditGroup: FormGroup,
+): ActivityAuditFilterDto {
+  const value =
+    activityAuditGroup.getRawValue() as ActivityAuditReportFormValue;
+  const username = toOptionalTrimmed(value.username);
+  const formActivities = mapActivitiesToType(value.activity);
+
+  return {
+    dateFrom: value.dateFrom,
+    dateTo: value.dateTo,
+    activityTypes: formActivities,
+    ...(username ? { username } : {}),
+  };
+}
+
+function mapActivitiesToType(activities: string[]): ActivityType[] {
+  return activities.filter(isActivityType);
+}
+
+export function isActivityType(value: unknown): value is ActivityType {
+  return Object.values(ActivityType).includes(value as ActivityType);
 }
 
 function buildLocation(

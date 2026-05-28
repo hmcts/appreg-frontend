@@ -26,10 +26,10 @@ import { ReferenceDataFacade } from '@services/reference-data.facade';
 
 const refFacadeStub: Pick<ReferenceDataFacade, 'courtLocations$' | 'cja$'> = {
   courtLocations$: of<CourtLocationGetSummaryDto[]>([
-    { name: 'Alpha Court', locationCode: 'A1' } as CourtLocationGetSummaryDto,
+    { name: 'Alpha Court', locationCode: 'A1' },
   ]),
   cja$: of<CriminalJusticeAreaGetDto[]>([
-    { code: 'C1', description: 'Area One' } as CriminalJusticeAreaGetDto,
+    { code: 'C1', description: 'Area One' },
   ]),
 };
 
@@ -38,6 +38,7 @@ const reportsApiMock = {
   createListMaintenanceReport: jest.fn(),
   createSearchWarrantsReport: jest.fn(),
   createWorkloadReport: jest.fn(),
+  createActivityAuditReport: jest.fn(),
   downloadReport: jest.fn(),
 };
 
@@ -171,6 +172,11 @@ describe('ReportsComponent', () => {
     expect(component.vm().errorSummary).toEqual([
       { id: 'dateFrom', href: '#date-from', text: 'Enter date from' },
       { id: 'dateTo', href: '#date-to', text: 'Enter date to' },
+      {
+        id: 'activity',
+        href: '#activity',
+        text: 'At least 1 activity is required',
+      },
     ]);
     expect(
       fixture.nativeElement.querySelector('app-error-summary'),
@@ -184,6 +190,9 @@ describe('ReportsComponent', () => {
 
   it('uses date input validation text for partially entered dates', () => {
     component.form.controls.report.setValue('activity-audit');
+    component.activityAuditGroup.patchValue({
+      activity: ['REPORT_DOWNLOADED'],
+    });
     fixture.detectChanges();
 
     const dateFrom = fixture.debugElement.queryAll(
@@ -205,11 +214,40 @@ describe('ReportsComponent', () => {
     ]);
   });
 
+  it('shows an activity required error on download', () => {
+    component.form.controls.report.setValue('activity-audit');
+    component.activityAuditGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().errorSummary).toEqual([
+      {
+        id: 'activity',
+        href: '#activity',
+        text: 'At least 1 activity is required',
+      },
+    ]);
+    expect(
+      fixture.nativeElement.querySelector('#activity-error')?.textContent,
+    ).toContain('At least 1 activity is required');
+    expect(
+      fixture.nativeElement
+        .querySelector('input#activity')
+        ?.classList.contains('govuk-input--error'),
+    ).toBe(true);
+  });
+
   it('blocks activity audit download when date to is before date from', () => {
     component.form.controls.report.setValue('activity-audit');
     component.activityAuditGroup.patchValue({
       dateFrom: '2026-02-01',
       dateTo: '2026-01-31',
+      activity: ['REPORT_DOWNLOADED'],
     });
     fixture.detectChanges();
 
@@ -234,6 +272,9 @@ describe('ReportsComponent', () => {
   });
 
   it('clears previous errors when the selected report is valid', () => {
+    const createJob$ = new Subject<HttpResponse<JobAcknowledgement>>();
+    reportsApiMock.createActivityAuditReport.mockReturnValue(createJob$);
+
     component.form.controls.report.setValue('activity-audit');
     fixture.detectChanges();
 
@@ -241,6 +282,7 @@ describe('ReportsComponent', () => {
     component.activityAuditGroup.patchValue({
       dateFrom: '2026-01-01',
       dateTo: '2026-01-31',
+      activity: ['REPORT_DOWNLOADED'],
     });
 
     component.onDownload();
@@ -937,6 +979,72 @@ describe('ReportsComponent', () => {
       kind: 'success',
       heading: 'Report downloaded',
       body: 'The workload report has downloaded.',
+    });
+  });
+
+  it('creates, polls, and downloads an activity audit report CSV', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-05-22T09:30:00'));
+    reportsApiMock.createActivityAuditReport.mockReturnValue(
+      of(new HttpResponse({ body: jobAcknowledgement, status: 202 })),
+    );
+    jobPollingFacadeMock.watchJob.mockReturnValue(of(completedJob));
+    reportsApiMock.downloadReport.mockReturnValue(
+      of(
+        new HttpResponse({
+          body: new Blob(['header\n'], { type: 'text/csv' }),
+          headers: new HttpHeaders({
+            'content-disposition': 'attachment; filename="activity-audit.csv"',
+          }),
+          status: 200,
+        }),
+      ),
+    );
+
+    component.form.controls.report.setValue('activity-audit');
+    component.activityAuditGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+      username: '  user.one  ',
+      activity: ['REPORT_DOWNLOADED', 'REPORT_CREATED'],
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(reportsApiMock.createActivityAuditReport).toHaveBeenCalledWith(
+      {
+        activityAuditFilterDto: {
+          dateFrom: '2026-01-01',
+          dateTo: '2026-01-31',
+          username: 'user.one',
+          activityTypes: ['REPORT_DOWNLOADED', 'REPORT_CREATED'],
+        },
+      },
+      'response',
+      false,
+      {
+        httpHeaderAccept: 'application/vnd.hmcts.appreg.v1+json',
+        transferCache: false,
+      },
+    );
+    expect(jobPollingFacadeMock.watchJob).toHaveBeenCalledWith('job-1', 2000);
+    expect(reportsApiMock.downloadReport).toHaveBeenCalledWith(
+      { jobId: 'job-1' },
+      'response',
+      false,
+      { httpHeaderAccept: 'text/csv', transferCache: false },
+    );
+    expect(createObjectUrlSpy).toHaveBeenCalledWith(expect.any(Blob));
+    expect(anchorClickSpy).toHaveBeenCalledTimes(1);
+    expect(
+      (anchorClickSpy.mock.contexts[0] as HTMLAnchorElement).download,
+    ).toBe('activity-audit-report-2026-05-22.csv');
+    expect(component.vm().reportFeedback).toEqual({
+      kind: 'success',
+      heading: 'Report downloaded',
+      body: 'The activity audit report has downloaded.',
     });
   });
 
