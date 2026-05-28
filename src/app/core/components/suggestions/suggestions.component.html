@@ -27,6 +27,7 @@
         [disabled]="disabledState()"
         [ngModel]="searchState()"
         (focus)="onFocus()"
+        (click)="onClick()"
         (blur)="onBlur()"
         (ngModelChange)="onInput($event)"
         [attr.aria-describedby]="
@@ -38,7 +39,7 @@
       @if (open || noResultsVisible) {
         <ul class="govuk-list app-autocomplete__menu">
           @if (open) {
-            @for (item of suggestionsState(); track item) {
+            @for (item of visibleSuggestions; track item) {
               <li>
                 <a
                   href="javascript:void(0)"

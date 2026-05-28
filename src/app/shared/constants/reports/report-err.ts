@@ -14,12 +14,16 @@ export const REPORTS_FORM_ERROR_MESSAGES = {
   cja: {
     cjaNotFound: APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES.cja.cjaNotFound,
   },
+  activity: {
+    required: 'At least 1 activity is required',
+  },
 } as const;
 
 export const REPORT_ERROR_HREFS: Record<ReportId, Record<string, string>> = {
   'activity-audit': {
     dateFrom: '#date-from',
     dateTo: '#date-to',
+    activity: '#activity',
   },
   fees: {
     dateFrom: '#list-date-from',

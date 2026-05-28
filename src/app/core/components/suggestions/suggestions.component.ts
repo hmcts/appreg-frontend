@@ -36,6 +36,7 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
   showError = input(false);
   errorText = input('This field is required');
   suggestions = input.required<T[]>();
+  showAllValues = input(false);
 
   search = input('');
   searchChange = output<string>();
@@ -51,6 +52,7 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
 
   private focused = false;
   private justSelected = false;
+  private allValuesVisible = false;
   private committedLabel: string | null = null;
   searchState = signal('');
   suggestionsState = signal<T[]>([]);
@@ -127,6 +129,7 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
   onInput(v: string): void {
     this.searchState.set(v);
     this.searchChange.emit(v);
+    this.allValuesVisible = this.showAllValues();
 
     this.justSelected = false;
     if (!this.hasQuery || !this.isCommittedText) {
@@ -140,10 +143,18 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
 
   onFocus(): void {
     this.focused = true;
+    this.allValuesVisible = this.showAllValues();
+  }
+
+  onClick(): void {
+    this.allValuesVisible = this.showAllValues();
   }
 
   onBlur(): void {
-    setTimeout(() => (this.focused = false), 0);
+    setTimeout(() => {
+      this.focused = false;
+      this.allValuesVisible = false;
+    }, 0);
   }
 
   labelFor(item: T): string {
@@ -194,12 +205,19 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
     const label = this.labelFor(item);
     const val = this.valueFor(item);
 
-    // update UI text
-    this.searchState.set(label);
-    this.committedLabel = label;
+    if (this.showAllValues()) {
+      this.searchState.set('');
+      this.searchChange.emit('');
+      this.committedLabel = null;
+    } else {
+      // update UI text
+      this.searchState.set(label);
+      this.committedLabel = label;
+    }
 
     // clear list UI
     this.suggestionsState.set([]);
+    this.allValuesVisible = false;
     this.justSelected = true;
 
     // update CVA/form value
@@ -230,7 +248,7 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
     return (
       this.focused &&
       this.hasQuery &&
-      (this.suggestionsState().length ?? 0) === 0 &&
+      (this.visibleSuggestions.length ?? 0) === 0 &&
       !this.isCommittedText &&
       !this.justSelected &&
       !this.disabledState()
@@ -238,11 +256,14 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
   }
 
   get open(): boolean {
+    const canShowAllValues =
+      this.showAllValues() && this.focused && this.allValuesVisible;
+
     return (
       !this.disabledState() &&
-      !!this.searchState().trim() &&
+      (this.hasQuery || canShowAllValues) &&
       !this.isCommittedText &&
-      this.suggestionsState().length > 0
+      this.visibleSuggestions.length > 0
     );
   }
 
@@ -259,5 +280,23 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
 
   private norm(s: string | null | undefined) {
     return (s ?? '').trim().toLowerCase();
+  }
+
+  get visibleSuggestions(): T[] {
+    const suggestions = this.suggestionsState();
+
+    if (!this.showAllValues()) {
+      return suggestions;
+    }
+
+    const query = this.norm(this.searchState());
+
+    if (!query) {
+      return suggestions;
+    }
+
+    return suggestions.filter((item) =>
+      this.norm(this.labelFor(item)).includes(query),
+    );
   }
 }

@@ -90,6 +90,22 @@ describe('SuggestionsComponent', () => {
     expect(component.isCommittedText).toBe(true);
   });
 
+  it('choose clears search text when showAllValues is enabled', () => {
+    setInput('showAllValues', true);
+    setInput('suggestions', [{ name: 'Alpha', value: 'A1' }]);
+    component.onInput('alp');
+
+    const emit = jest.spyOn(component.searchChange, 'emit');
+
+    component.choose({ name: 'Alpha', value: 'A1' }, {
+      preventDefault: jest.fn(),
+    } as unknown as MouseEvent);
+
+    expect(component.searchState()).toBe('');
+    expect(component.isCommittedText).toBe(false);
+    expect(emit).toHaveBeenCalledWith('');
+  });
+
   it('hasQuery is true only when search has non-whitespace content', () => {
     component.searchState.set('');
     expect(component.hasQuery).toBe(false);
@@ -117,6 +133,31 @@ describe('SuggestionsComponent', () => {
 
     component.searchState.set('   ');
     expect(component.open).toBe(false);
+  });
+
+  it('open is true on focus when showAllValues is enabled and search is empty', () => {
+    setInput('disabled', false);
+    setInput('showAllValues', true);
+    setInput('suggestions', [{ name: 'Alpha' }, { name: 'Beta' }]);
+
+    component.onFocus();
+
+    expect(component.open).toBe(true);
+    expect(component.visibleSuggestions).toEqual([
+      { name: 'Alpha' },
+      { name: 'Beta' },
+    ]);
+  });
+
+  it('showAllValues filters visible suggestions by label when search has text', () => {
+    setInput('showAllValues', true);
+    setInput('suggestions', [{ name: 'Alpha' }, { name: 'Beta' }]);
+
+    component.onFocus();
+    component.onInput('bet');
+
+    expect(component.open).toBe(true);
+    expect(component.visibleSuggestions).toEqual([{ name: 'Beta' }]);
   });
 
   it('open is false when suggestions is empty', () => {

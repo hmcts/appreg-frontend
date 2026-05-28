@@ -21,6 +21,7 @@ import { Subscription, take } from 'rxjs';
 import {
   ReportsState,
   initialReportsState,
+  mapActivityAuditGroupToActivityAuditRequestParams,
   mapFeeGroupToFeesReportFilterDto,
   mapListMaintenanceGroupToListMaintenanceReportRequestParams,
   mapSearchWarrantsGroupToSearchWarrantsReportRequestParams,
@@ -48,6 +49,7 @@ import {
 } from '@constants/reports/report-err';
 import { reportOptions } from '@constants/reports/report-selector.constant';
 import {
+  CreateActivityAuditReportRequestParams,
   CreateFeesReportRequestParams,
   CreateListMaintenanceReportRequestParams,
   CreateSearchWarrantsReportRequestParams,
@@ -134,6 +136,8 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     signal<CreateSearchWarrantsReportRequestParams | null>(null);
   private readonly createWorkloadReportRequest =
     signal<CreateWorkloadReportRequestParams | null>(null);
+  private readonly createActivityAuditReportRequest =
+    signal<CreateActivityAuditReportRequestParams | null>(null);
 
   onCreateErrorClick = onCreateErrorClickFn;
 
@@ -154,7 +158,9 @@ export class Reports extends PlaceFieldsBase implements OnInit {
           validators: [(c) => Validators.required(c)],
         }),
         username: new FormControl<string | null>(''),
-        activity: new FormControl<string | null>(''),
+        activity: new FormControl<string[]>([], {
+          validators: [(c) => Validators.required(c)],
+        }),
       },
       {
         validators: REPORT_DATE_RANGE_VALIDATORS,
@@ -333,6 +339,15 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     if (this.form.controls.report.value === 'workload') {
       this.createWorkloadReport();
     }
+
+    if (this.form.controls.report.value === 'activity-audit') {
+      const request: CreateActivityAuditReportRequestParams =
+        mapActivityAuditGroupToActivityAuditRequestParams(
+          this.activityAuditGroup,
+        );
+
+      this.startCreateActivityAuditReport(request);
+    }
   }
 
   /** Handy getter for the child binding */
@@ -393,6 +408,15 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     this.stopReportPolling();
     this.showReportProgress();
     this.createWorkloadReportRequest.set(request);
+  }
+
+  private startCreateActivityAuditReport(
+    request: CreateActivityAuditReportRequestParams,
+  ): void {
+    this.stopReportCreate();
+    this.stopReportPolling();
+    this.showReportProgress();
+    this.createActivityAuditReportRequest.set(request);
   }
 
   private setupEffects(): void {
@@ -491,6 +515,32 @@ export class Reports extends PlaceFieldsBase implements OnInit {
         },
         onError: (err) => {
           this.createListMaintenanceReportRequest.set(null);
+          this.showReportError(this.toReportRequestError(err));
+        },
+      },
+      this.envInjector,
+    );
+
+    // POST /reports/activity-audit/jobs
+    setupLoadEffect(
+      {
+        request: this.createActivityAuditReportRequest,
+        load: (request) =>
+          this.reportsApi.createActivityAuditReport(
+            request,
+            'response',
+            false,
+            {
+              httpHeaderAccept: 'application/vnd.hmcts.appreg.v1+json',
+              transferCache: false,
+            },
+          ),
+        onSuccess: (response) => {
+          this.createActivityAuditReportRequest.set(null);
+          this.handleReportJobCreated(response);
+        },
+        onError: (err) => {
+          this.createActivityAuditReportRequest.set(null);
           this.showReportError(this.toReportRequestError(err));
         },
       },
@@ -614,6 +664,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     this.createListMaintenanceReportRequest.set(null);
     this.createSearchWarrantsReportRequest.set(null);
     this.createWorkloadReportRequest.set(null);
+    this.createActivityAuditReportRequest.set(null);
   }
 
   private handleReportJobStatus(job: PolledJobStatus): void {
