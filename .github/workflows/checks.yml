@@ -18,4 +18,5 @@ jobs:
           node-version: 24
       - run: corepack enable && yarn --version
       - run: yarn install
+      - run: npx puppeteer browsers install chrome
       - run: yarn cichecks
