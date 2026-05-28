@@ -23,29 +23,39 @@
 
   <ng-content select="[reportsAfterDateBeforeCourt]"></ng-content>
 
-  <div class="govuk-grid-row">
-    <!-- Court -->
-    <app-suggestions
-      id="court"
-      tabindex="-1"
-      label="Court"
-      formControlName="court"
-      [search]="suggestions().courthouseSearch()"
-      (searchChange)="
-        suggestions().setCourthouseSearch($event);
-        suggestions().onCourthouseInputChange()
-      "
-      [suggestions]="suggestions().filteredCourthouses()"
-      (selectItem)="suggestions().selectCourthouse($event)"
-      [showError]="showError('court')"
-      [errorText]="errorText('court')"
-      containerWidthClass="govuk-grid-column-one-half"
-      widthClass="govuk-!-width-two-thirds"
-    />
-  </div>
+  <ng-template #courtField>
+    <div class="govuk-grid-row">
+      <!-- Court -->
+      <app-suggestions
+        id="court"
+        tabindex="-1"
+        label="Court"
+        formControlName="court"
+        [search]="suggestions().courthouseSearch()"
+        (searchChange)="
+          suggestions().setCourthouseSearch($event);
+          suggestions().onCourthouseInputChange()
+        "
+        [suggestions]="suggestions().filteredCourthouses()"
+        (selectItem)="suggestions().selectCourthouse($event)"
+        [showError]="showError('court')"
+        [errorText]="errorText('court')"
+        containerWidthClass="govuk-grid-column-one-half"
+        widthClass="govuk-!-width-two-thirds"
+      />
+    </div>
+  </ng-template>
+
+  @if (!courtInAdvancedFilters()) {
+    <ng-container *ngTemplateOutlet="courtField"></ng-container>
+  }
 
   <ng-template #advancedFields>
     <ng-content select="[reportsAdvancedFieldsBeforeLocation]"></ng-content>
+
+    @if (courtInAdvancedFilters()) {
+      <ng-container *ngTemplateOutlet="courtField"></ng-container>
+    }
 
     <div class="govuk-grid-row">
       <!-- CJA -->

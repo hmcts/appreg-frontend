@@ -34,6 +34,7 @@ export class ReportsSharedFormComponent {
   advancedFilters = input(false);
   advancedOpen = input<boolean | null>(null);
   advancedLabel = input('Advanced filters');
+  courtInAdvancedFilters = input(false);
   onToggleAdvanced = input<(() => void) | null>(null);
 
   private readonly internalAdvancedOpen = signal(false);
@@ -61,6 +62,10 @@ export class ReportsSharedFormComponent {
   }
 
   private hasAdvancedError(): boolean {
-    return this.showError('cja') || this.showError('otherLocation');
+    return (
+      this.showError('cja') ||
+      this.showError('otherLocation') ||
+      (this.courtInAdvancedFilters() && this.showError('court'))
+    );
   }
 }

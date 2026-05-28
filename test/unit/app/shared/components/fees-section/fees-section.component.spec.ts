@@ -86,7 +86,7 @@ describe('FeesSectionComponent', () => {
       .map((el) => el.injector.get(FormGroupDirective).form)
       .filter((form) => form === group);
 
-    expect(formGroups).toHaveLength(2);
+    expect(formGroups).toHaveLength(3);
   });
 
   it('renders two app-date-input components', () => {
@@ -106,7 +106,7 @@ describe('FeesSectionComponent', () => {
     expect(applicantCodeInput).toBeTruthy();
   });
 
-  it('renders fee-specific fields after dates and before court', () => {
+  it('keeps dates and standard applicant code outside advanced filters', () => {
     const details = fixture.nativeElement.querySelector(
       'details.govuk-details',
     ) as HTMLDetailsElement;
@@ -116,20 +116,13 @@ describe('FeesSectionComponent', () => {
     const applicantCode = fixture.nativeElement.querySelector(
       'app-text-input[formControlName="standardApplicantCode"]',
     ) as HTMLElement;
-    const surnameOrOrg = fixture.nativeElement.querySelector(
-      'app-text-input[formControlName="surnameOrOrg"]',
-    ) as HTMLElement;
-    const court = fixture.nativeElement.querySelector(
-      'app-suggestions[formControlName="court"]',
-    ) as HTMLElement;
 
     expect(details).toBeTruthy();
     expect(dateInputs).toHaveLength(2);
     expect(applicantCode).toBeTruthy();
-    expect(surnameOrOrg).toBeTruthy();
-    expect(court).toBeTruthy();
+    expect(details.contains(dateInputs[0])).toBe(false);
+    expect(details.contains(dateInputs[1])).toBe(false);
     expect(details.contains(applicantCode)).toBe(false);
-    expect(details.contains(surnameOrOrg)).toBe(false);
     expect(
       Boolean(
         dateInputs[1].compareDocumentPosition(applicantCode) &
@@ -138,8 +131,47 @@ describe('FeesSectionComponent', () => {
     ).toBe(true);
     expect(
       Boolean(
+        applicantCode.compareDocumentPosition(details) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    ).toBe(true);
+  });
+
+  it('renders remaining fees fields inside advanced filters', () => {
+    const details = fixture.nativeElement.querySelector(
+      'details.govuk-details',
+    ) as HTMLDetailsElement;
+    const surnameOrOrg = fixture.nativeElement.querySelector(
+      'app-text-input[formControlName="surnameOrOrg"]',
+    ) as HTMLElement;
+    const court = fixture.nativeElement.querySelector(
+      'app-suggestions[formControlName="court"]',
+    ) as HTMLElement;
+    const cja = fixture.nativeElement.querySelector(
+      'app-suggestions[formControlName="cja"]',
+    ) as HTMLElement;
+    const otherLocation = fixture.nativeElement.querySelector(
+      'app-text-input[formControlName="otherLocation"]',
+    ) as HTMLElement;
+
+    expect(details).toBeTruthy();
+    expect(surnameOrOrg).toBeTruthy();
+    expect(court).toBeTruthy();
+    expect(cja).toBeTruthy();
+    expect(otherLocation).toBeTruthy();
+    expect(details.contains(surnameOrOrg)).toBe(true);
+    expect(details.contains(court)).toBe(true);
+    expect(details.contains(cja)).toBe(true);
+    expect(details.contains(otherLocation)).toBe(true);
+    expect(
+      Boolean(
         surnameOrOrg.compareDocumentPosition(court) &
         Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    ).toBe(true);
+    expect(
+      Boolean(
+        court.compareDocumentPosition(cja) & Node.DOCUMENT_POSITION_FOLLOWING,
       ),
     ).toBe(true);
   });

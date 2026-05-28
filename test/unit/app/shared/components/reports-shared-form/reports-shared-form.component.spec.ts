@@ -142,6 +142,28 @@ describe('ReportsSharedFormComponent', () => {
     expect(details.nativeElement.contains(court.nativeElement)).toBe(false);
   });
 
+  it('wraps court in advanced filters when configured', () => {
+    fixture.componentRef.setInput('advancedFilters', true);
+    fixture.componentRef.setInput('courtInAdvancedFilters', true);
+    fixture.detectChanges();
+
+    const details = fixture.debugElement.query(By.css('details.govuk-details'));
+    const court = fixture.debugElement.query(
+      By.css('app-suggestions[formControlName="court"]'),
+    );
+    const cja = fixture.debugElement.query(
+      By.css('app-suggestions[formControlName="cja"]'),
+    );
+
+    expect(details.nativeElement.contains(court.nativeElement)).toBe(true);
+    expect(
+      Boolean(
+        court.nativeElement.compareDocumentPosition(cja.nativeElement) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    ).toBe(true);
+  });
+
   it('opens advanced filters when an advanced field has an error', () => {
     fixture.componentRef.setInput('advancedFilters', true);
     fixture.componentRef.setInput('submitted', true);
@@ -149,6 +171,22 @@ describe('ReportsSharedFormComponent', () => {
       id === 'cja'
         ? { id, text: 'Criminal justice area not found' }
         : undefined,
+    );
+    fixture.detectChanges();
+
+    const details = fixture.nativeElement.querySelector(
+      'details.govuk-details',
+    ) as HTMLDetailsElement;
+
+    expect(details.open).toBe(true);
+  });
+
+  it('opens advanced filters when court is advanced and has an error', () => {
+    fixture.componentRef.setInput('advancedFilters', true);
+    fixture.componentRef.setInput('courtInAdvancedFilters', true);
+    fixture.componentRef.setInput('submitted', true);
+    fixture.componentRef.setInput('getError', (id: string) =>
+      id === 'court' ? { id, text: 'Court location not found' } : undefined,
     );
     fixture.detectChanges();
 
