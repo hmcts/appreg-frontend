@@ -1,4 +1,6 @@
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 
@@ -9,6 +11,21 @@ type Item = {
   value?: string;
   locationCode?: string;
 };
+
+@Component({
+  standalone: true,
+  imports: [ReactiveFormsModule, SuggestionsComponent],
+  template: `
+    <app-suggestions
+      id="host-suggestions"
+      [suggestions]="[]"
+      [formControl]="control"
+    />
+  `,
+})
+class SuggestionsHostComponent {
+  control = new FormControl('');
+}
 
 describe('SuggestionsComponent', () => {
   let fixture: ComponentFixture<SuggestionsComponent<Item>>;
@@ -23,7 +40,7 @@ describe('SuggestionsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SuggestionsComponent],
+      imports: [SuggestionsComponent, SuggestionsHostComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(SuggestionsComponent<Item>);
@@ -294,11 +311,39 @@ describe('SuggestionsComponent', () => {
   });
 
   it('setDisabledState updates disabled flag', () => {
-    component.setDisabledState(false);
-    expect(component.disabledState()).toBe(false);
+    component.setDisabledState(true);
+    expect(component.disabledState()).toBe(true);
 
     component.setDisabledState(false);
     expect(component.disabledState()).toBe(false);
+  });
+
+  it('keeps the field disabled when either the input or form control disables it', () => {
+    component.setDisabledState(true);
+    setInput('disabled', false);
+
+    expect(component.disabledState()).toBe(true);
+
+    component.setDisabledState(false);
+    setInput('disabled', true);
+
+    expect(component.disabledState()).toBe(true);
+  });
+
+  it('reflects reactive form disabled changes in the input', () => {
+    const hostFixture = TestBed.createComponent(SuggestionsHostComponent);
+    hostFixture.detectChanges();
+
+    hostFixture.componentInstance.control.disable();
+    hostFixture.detectChanges();
+
+    expect(
+      (
+        hostFixture.nativeElement.querySelector(
+          'input#host-suggestions',
+        ) as HTMLInputElement
+      ).disabled,
+    ).toBe(true);
   });
 
   it('choose sets value based on item.value when present', () => {

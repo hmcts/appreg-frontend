@@ -25,11 +25,11 @@
         [name]="id()"
         type="text"
         [disabled]="disabledState()"
-        [ngModel]="searchState()"
+        [value]="searchState()"
         (focus)="onFocus()"
         (click)="onClick()"
         (blur)="onBlur()"
-        (ngModelChange)="onInput($event)"
+        (input)="onNativeInput($event)"
         [attr.aria-describedby]="
           (hint() ? id() + '-hint ' : '') + (showError() ? id() + '-error' : '')
         "
