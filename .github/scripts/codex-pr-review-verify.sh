@@ -186,9 +186,9 @@ cp bin/codex-local-pipeline.sh "${trusted_pipeline_path}"
 chmod +x "${trusted_pipeline_path}"
 trusted_pipeline_sha="$(file_sha256 "${trusted_pipeline_path}")"
 
-git_read_authenticated fetch origin "${head_ref}"
+git_read_authenticated fetch origin "${head_ref}:refs/remotes/origin/${head_ref}"
 if [[ -n "${base_ref}" ]]; then
-  git_read_authenticated fetch origin "${base_ref}"
+  git_read_authenticated fetch origin "${base_ref}:refs/remotes/origin/${base_ref}"
 fi
 git_sanitized checkout -B "${head_ref}" "origin/${head_ref}"
 git_sanitized apply --index --binary "${patch_path}"

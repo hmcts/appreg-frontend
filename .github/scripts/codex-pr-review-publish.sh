@@ -122,6 +122,10 @@ if [[ "${has_changes}" != "true" ]]; then
     echo "Refusing to publish unexpected review artifact metadata." >&2
     exit 1
   fi
+  if [[ "${verified_has_changes}" != "false" || "${verified_pr_number}" != "${pr_number}" || "${verified_head_ref}" != "${head_ref}" ]]; then
+    echo "Refusing to publish unverified no-change review result." >&2
+    exit 1
+  fi
   if [[ -s "${comment_body_path}" ]]; then
     gh_authenticated pr comment "${pr_number}" --repo "${GITHUB_REPOSITORY}" --body-file "${comment_body_path}"
   fi
@@ -154,7 +158,7 @@ fi
 commit_subject="Address Codex review feedback on PR #${EXPECTED_PR_NUMBER}"
 commit_subject="${commit_subject:0:72}"
 
-git_authenticated fetch origin "${head_ref}"
+git_authenticated fetch origin "${head_ref}:refs/remotes/origin/${head_ref}"
 git_authenticated checkout -B "${head_ref}" "origin/${head_ref}"
 git_local apply --index --binary "${patch_path}"
 

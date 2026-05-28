@@ -172,7 +172,7 @@ cp bin/codex-local-pipeline.sh "${trusted_pipeline_path}"
 chmod +x "${trusted_pipeline_path}"
 trusted_pipeline_sha="$(file_sha256 "${trusted_pipeline_path}")"
 
-git_read_authenticated fetch origin "${default_branch}"
+git_read_authenticated fetch origin "${default_branch}:refs/remotes/origin/${default_branch}"
 git_sanitized checkout -B "${default_branch}" "origin/${default_branch}"
 git_sanitized apply --index --binary "${patch_path}"
 

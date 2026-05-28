@@ -166,7 +166,7 @@ print(subject[:72].rstrip())
 PY
 )"
 
-git_authenticated fetch origin "${default_branch}"
+git_authenticated fetch origin "${default_branch}:refs/remotes/origin/${default_branch}"
 git_authenticated checkout -B "${default_branch}" "origin/${default_branch}"
 git_authenticated checkout -B "${branch_name}"
 git_local apply --index --binary "${patch_path}"

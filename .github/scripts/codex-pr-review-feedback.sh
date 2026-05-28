@@ -404,8 +404,8 @@ Inline review comments:
 Path(os.environ["PROMPT_PATH"]).write_text(prompt, encoding="utf-8")
 PY
 
-git_read_authenticated fetch origin "${HEAD_REF}"
-git_read_authenticated fetch origin "${BASE_REF}"
+git_read_authenticated fetch origin "${HEAD_REF}:refs/remotes/origin/${HEAD_REF}"
+git_read_authenticated fetch origin "${BASE_REF}:refs/remotes/origin/${BASE_REF}"
 git_sanitized checkout -B "${HEAD_REF}" "origin/${HEAD_REF}"
 git_sanitized show "origin/${BASE_REF}:bin/codex-local-pipeline.sh" >"${trusted_pipeline_path}"
 chmod +x "${trusted_pipeline_path}"
