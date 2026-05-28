@@ -3,7 +3,7 @@
 export class UploadElement {
   private static readonly fileInputSelector = 'input[type="file"]';
   private static readonly pageSpinnerSelector = 'app-loading-spinner';
-  private static readonly bulkProgressSelector = '.app-bulk-upload-progress';
+  private static readonly bulkProgressSelector = '.app-async-job-progress';
   static readonly bulkProgressHeading = 'Upload in progress';
   static readonly bulkProgressBody =
     'Your bulk upload is being processed. This page will refresh automatically when it finishes.';

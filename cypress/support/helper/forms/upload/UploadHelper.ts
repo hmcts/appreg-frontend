@@ -17,8 +17,8 @@ export class UploadHelper {
    *   (app-loading-spinner) to disappear, indicating the POST was accepted
    *   and the app has navigated to the list detail page.
    *
-   * Phase 2 — list detail page: asserts the progress section
-   *   (.app-bulk-upload-progress) is visible with the expected headings,
+   * Phase 2 — list detail page: asserts the async job progress section
+   *   (.app-async-job-progress) is visible with the expected headings,
    *   then waits for it to disappear once the background job finishes.
    */
   static waitForBulkUploadToComplete(): void {
