@@ -22,6 +22,7 @@ import {
   ReportsState,
   initialReportsState,
   mapActivityAuditGroupToActivityAuditRequestParams,
+  mapDurationGroupToDurationReportRequestParams,
   mapFeeGroupToFeesReportFilterDto,
   mapListMaintenanceGroupToListMaintenanceReportRequestParams,
   mapSearchWarrantsGroupToSearchWarrantsReportRequestParams,
@@ -50,6 +51,7 @@ import {
 import { reportOptions } from '@constants/reports/report-selector.constant';
 import {
   CreateActivityAuditReportRequestParams,
+  CreateDurationReportRequestParams,
   CreateFeesReportRequestParams,
   CreateListMaintenanceReportRequestParams,
   CreateSearchWarrantsReportRequestParams,
@@ -128,6 +130,8 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   private previousReportId: ReportId | null = null;
   private reportPollingSub: Subscription | null = null;
 
+  private readonly createDurationReportRequest =
+    signal<CreateDurationReportRequestParams | null>(null);
   private readonly createFeesReportRequest =
     signal<CreateFeesReportRequestParams | null>(null);
   private readonly createListMaintenanceReportRequest =
@@ -348,6 +352,10 @@ export class Reports extends PlaceFieldsBase implements OnInit {
 
       this.startCreateActivityAuditReport(request);
     }
+
+    if (this.form.controls.report.value === 'duration') {
+      this.createDurationReport();
+    }
   }
 
   /** Handy getter for the child binding */
@@ -392,6 +400,15 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     this.createFeesReportRequest.set(request);
   }
 
+  private startCreateDurationReport(
+    request: CreateDurationReportRequestParams,
+  ): void {
+    this.stopReportCreate();
+    this.stopReportPolling();
+    this.showReportProgress();
+    this.createDurationReportRequest.set(request);
+  }
+
   private startCreateSearchWarrantsReport(
     request: CreateSearchWarrantsReportRequestParams,
   ): void {
@@ -420,6 +437,29 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   }
 
   private setupEffects(): void {
+    // POST /reports/duration/jobs
+    setupLoadEffect(
+      {
+        request: this.createDurationReportRequest,
+        load: (request) =>
+          this.reportsApi.createDurationReport(
+            request,
+            'response',
+            false,
+            REPORT_JSON_OPTIONS,
+          ),
+        onSuccess: (response) => {
+          this.createDurationReportRequest.set(null);
+          this.handleReportJobCreated(response);
+        },
+        onError: (err) => {
+          this.createDurationReportRequest.set(null);
+          this.showReportError(this.toReportRequestError(err));
+        },
+      },
+      this.envInjector,
+    );
+
     // POST /reports/fees/jobs
     setupLoadEffect(
       {
@@ -606,6 +646,12 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     );
   }
 
+  private createDurationReport(): void {
+    this.startCreateDurationReport(
+      mapDurationGroupToDurationReportRequestParams(this.durationGroup),
+    );
+  }
+
   private createSearchWarrantsReport(): void {
     this.startCreateSearchWarrantsReport(
       mapSearchWarrantsGroupToSearchWarrantsReportRequestParams(
@@ -660,6 +706,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   }
 
   private stopReportCreate(): void {
+    this.createDurationReportRequest.set(null);
     this.createFeesReportRequest.set(null);
     this.createListMaintenanceReportRequest.set(null);
     this.createSearchWarrantsReportRequest.set(null);
