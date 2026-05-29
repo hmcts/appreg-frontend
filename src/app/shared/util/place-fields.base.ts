@@ -79,7 +79,11 @@ export abstract class PlaceFieldsBase {
     this.patch({ cjaSearch: value ?? '' });
   }
 
-  protected initPlaceFields(form: FormGroup, ref: PlaceRefFacade): void {
+  protected initPlaceFields(
+    form: FormGroup,
+    ref: PlaceRefFacade,
+    options: { cjaRequiresLocation?: boolean } = {},
+  ): void {
     this.placeForm = form;
     if (!this.form) {
       this.form = form;
@@ -124,6 +128,7 @@ export abstract class PlaceFieldsBase {
       court: this.placeForm.controls['court'],
       location: this.locationControl,
       cja: this.placeForm.controls['cja'],
+      cjaRequiresLocation: options.cjaRequiresLocation,
     });
 
     if (this.locationDisabler) {

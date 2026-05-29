@@ -8,7 +8,9 @@ import {
 import { By } from '@angular/platform-browser';
 
 import { SuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
-import { PrivateProsecutorsIndexSectionComponent } from '@components/private-prosecutors-index-section/private-prosecutors-index-section.component';
+import {
+  PrivateProsecutorsIndexSectionComponent,
+} from '@components/private-prosecutors-index-section/private-prosecutors-index-section.component';
 
 describe('PrivateProsecutorsIndexSectionComponent', () => {
   let component: PrivateProsecutorsIndexSectionComponent;
@@ -27,12 +29,12 @@ describe('PrivateProsecutorsIndexSectionComponent', () => {
     group = new FormGroup({
       dateFrom: new FormControl(null),
       dateTo: new FormControl(null),
-      applicantSurnameOrOrg: new FormControl(''),
-      applicantFirst: new FormControl(''),
+      applicantFirstName: new FormControl(''),
+      applicantSurname: new FormControl(''),
       standardApplicantName: new FormControl(''),
-      respondentFirst: new FormControl(''),
+      respondentFirstName: new FormControl(''),
       respondentSurname: new FormControl(''),
-      respondentOrg: new FormControl(''),
+      respondentOrganisationName: new FormControl(''),
       court: new FormControl(''),
       otherLocation: new FormControl(''),
       cja: new FormControl(''),
@@ -64,11 +66,11 @@ describe('PrivateProsecutorsIndexSectionComponent', () => {
     expect(component.group()).toBe(group);
   });
 
-  it('renders the "Private prosecutors index" heading', () => {
+  it('renders the "Private Prosecutors Index" heading', () => {
     const el: HTMLElement = fixture.nativeElement;
     const heading = el.querySelector('h1.govuk-heading-l');
     expect(heading).toBeTruthy();
-    expect(heading?.textContent?.trim()).toBe('Private prosecutors index');
+    expect(heading?.textContent?.trim()).toBe('Private Prosecutors Index');
   });
 
   it('binds the provided FormGroup to the shared and section fields', () => {
@@ -88,6 +90,19 @@ describe('PrivateProsecutorsIndexSectionComponent', () => {
   it('renders all expected app-text-input components', () => {
     const textInputs = fixture.debugElement.queryAll(By.css('app-text-input'));
     expect(textInputs).toHaveLength(7);
+  });
+
+  it('renders the private prosecutors index filter labels', () => {
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+
+    expect(text).toContain('Applicant first name');
+    expect(text).toContain('Applicant surname');
+    expect(text).toContain('Standard applicant name');
+    expect(text).toContain('Respondent first name');
+    expect(text).toContain('Respondent surname');
+    expect(text).toContain('Respondent organisation name');
+    expect(text).toContain('Other Location');
+    expect(text).toContain('CJA');
   });
 
   it('wires specific formControlName bindings (e.g. court)', () => {

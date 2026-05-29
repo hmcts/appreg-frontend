@@ -10,6 +10,13 @@ describe('courtLocCjaValidator (create/update rule)', () => {
       cja: new FormControl<string>(''),
     });
 
+  const mkOtherLocationForm = () =>
+    new FormGroup({
+      court: new FormControl<string>(''),
+      otherLocation: new FormControl<string>(''),
+      cja: new FormControl<string>(''),
+    });
+
   it('returns null when called with a non-FormGroup control', () => {
     const v = courtLocCjaValidator();
     expect(v(new FormControl('x'))).toBeNull();
@@ -28,7 +35,7 @@ describe('courtLocCjaValidator (create/update rule)', () => {
     expect(form.controls.court.errors).toEqual({ courtOrLocCjaRequired: true });
   });
 
-  it('when location provided only (no court): sets cjaRequired, keeps courtOrLocCjaRequired, does NOT set locationRequired', () => {
+  it('when only location is provided: requires CJA', () => {
     const form = mkForm();
     form.controls.location.setValue('Somewhere');
 
@@ -40,7 +47,7 @@ describe('courtLocCjaValidator (create/update rule)', () => {
     expect(form.controls.court.errors).toEqual({ courtOrLocCjaRequired: true });
   });
 
-  it('when cja provided only (no court): sets locationRequired, clears cjaRequired, keeps courtOrLocCjaRequired', () => {
+  it('when only CJA is provided: requires location', () => {
     const form = mkForm();
     form.controls.cja.setValue('ABC');
 
@@ -110,6 +117,19 @@ describe('courtLocCjaValidator (create/update rule)', () => {
     });
   });
 
+  it('supports report forms that use otherLocation instead of location', () => {
+    const form = mkOtherLocationForm();
+    form.controls.court.setValue('COURT1');
+    form.controls.otherLocation.setValue('Other location');
+
+    const v = courtLocCjaValidator();
+    v(form);
+
+    expect(form.controls.court.errors).toEqual({
+      courtLocCjaConflict: true,
+    });
+  });
+
   it('when court and cja filled: sets conflict error on court control', () => {
     const form = mkForm();
     form.controls.court.setValue('COURT1');
@@ -123,7 +143,7 @@ describe('courtLocCjaValidator (create/update rule)', () => {
     });
   });
 
-  it('when conflict exists, it preserves other court errors and still clears location/cja requiredness when court is present', () => {
+  it('preserves other court errors when a location conflict exists', () => {
     const form = mkForm();
     form.controls.court.setValue('COURT1');
     form.controls.location.setValue('Other location');

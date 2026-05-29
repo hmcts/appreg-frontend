@@ -118,6 +118,29 @@ describe('ReportsSharedFormComponent', () => {
     expect(otherLocation).toBeTruthy();
   });
 
+  it('can render other location before CJA with report-specific labels', () => {
+    fixture.componentRef.setInput('locationBeforeCja', true);
+    fixture.componentRef.setInput('otherLocationLabel', 'Other Location');
+    fixture.componentRef.setInput('cjaLabel', 'CJA');
+    fixture.detectChanges();
+
+    const cja = fixture.debugElement.query(
+      By.css('app-suggestions[formControlName="cja"]'),
+    );
+    const otherLocation = fixture.debugElement.query(
+      By.css('app-text-input[formControlName="otherLocation"]'),
+    );
+
+    expect(cja.componentInstance.label()).toBe('CJA');
+    expect(otherLocation.componentInstance.label()).toBe('Other Location');
+    expect(
+      Boolean(
+        otherLocation.nativeElement.compareDocumentPosition(cja.nativeElement) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    ).toBe(true);
+  });
+
   it('wraps CJA and other location in an advanced filters details block when enabled', () => {
     fixture.componentRef.setInput('advancedFilters', true);
     fixture.detectChanges();

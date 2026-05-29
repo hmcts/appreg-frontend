@@ -19,8 +19,11 @@ export function courtLocCjaValidator(opts?: {
       return null;
     }
 
+    const locationControlName = ctrl.get('location')
+      ? 'location'
+      : 'otherLocation';
     const court = getTrimmedStringOrNullFromGroup(ctrl, 'court');
-    const location = getTrimmedStringOrNullFromGroup(ctrl, 'location');
+    const location = getTrimmedStringOrNullFromGroup(ctrl, locationControlName);
     const cja = getTrimmedStringOrNullFromGroup(ctrl, 'cja');
 
     const courtTyped = (opts?.getCourtTyped?.() ?? '').trim();
@@ -39,7 +42,7 @@ export function courtLocCjaValidator(opts?: {
     // Only show "Other location required" when user has started/selected CJA (i.e. they're on that path)
     setControlError(
       ctrl,
-      'location',
+      locationControlName,
       'locationRequired',
       !hasCourt && hasCja && !hasLoc,
     );

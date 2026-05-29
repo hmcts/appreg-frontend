@@ -35,6 +35,9 @@ export class ReportsSharedFormComponent {
   advancedOpen = input<boolean | null>(null);
   advancedLabel = input('Advanced filters');
   courtInAdvancedFilters = input(false);
+  cjaLabel = input('Criminal justice area');
+  otherLocationLabel = input('Other location description');
+  locationBeforeCja = input(false);
   onToggleAdvanced = input<(() => void) | null>(null);
 
   private readonly internalAdvancedOpen = signal(false);

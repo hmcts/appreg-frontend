@@ -33,7 +33,8 @@ export const reportOptions: ReportOption[] = [
   },
   {
     id: 'private-prosecutors-index',
-    label: 'Private prosecutors index',
-    hint: 'Index of applications for MX99010 (private prosecutors)',
+    label: 'Private Prosecutors Index',
+    hint:
+      'Provides an index of all applications to commence a private prosecution recorded under MX99010',
   },
 ] as const;

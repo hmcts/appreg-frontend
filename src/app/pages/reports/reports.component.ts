@@ -1,5 +1,5 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import {
   Component,
   DestroyRef,
@@ -24,8 +24,10 @@ import {
   mapActivityAuditGroupToActivityAuditRequestParams,
   mapFeeGroupToFeesReportFilterDto,
   mapListMaintenanceGroupToListMaintenanceReportRequestParams,
+  mapPrivateProsecutorsIndexGroupToReportFilterDto,
   mapSearchWarrantsGroupToSearchWarrantsReportRequestParams,
   mapWorkloadGroupToWorkloadReportRequestParams,
+  PrivateProsecutorsIndexReportFilterDto,
 } from './util';
 
 import { ActivityAuditSectionComponent } from '@components/activity-audit-section/activity-audit-section.component';
@@ -37,8 +39,12 @@ import {
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
 import { FeesSectionComponent } from '@components/fees-section/fees-section.component';
-import { ListMaintenanceSectionComponent } from '@components/list-maintenance-section/list-maintenance-section.component';
-import { PrivateProsecutorsIndexSectionComponent } from '@components/private-prosecutors-index-section/private-prosecutors-index-section.component';
+import {
+  ListMaintenanceSectionComponent,
+} from '@components/list-maintenance-section/list-maintenance-section.component';
+import {
+  PrivateProsecutorsIndexSectionComponent,
+} from '@components/private-prosecutors-index-section/private-prosecutors-index-section.component';
 import { ReportSelectorComponent } from '@components/report-option/report-selector.component';
 import { SearchWarrantsSectionComponent } from '@components/search-warrants-section/search-warrants-section.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
@@ -83,8 +89,14 @@ const REPORT_DATE_LABELS: Record<'dateFrom' | 'dateTo', string> = {
 
 const REPORT_POLL_INTERVAL_MS = 2_000;
 const REPORT_DATE_RANGE_VALIDATORS = [dateToOnOrAfterDateFromValidator()];
+const REPORT_JSON_ACCEPT = 'application/vnd.hmcts.appreg.v1+json';
 const REPORT_JSON_OPTIONS = {
-  httpHeaderAccept: 'application/vnd.hmcts.appreg.v1+json',
+  httpHeaderAccept: REPORT_JSON_ACCEPT,
+  transferCache: false,
+} as const;
+const REPORT_JSON_HTTP_OPTIONS = {
+  observe: 'response' as const,
+  headers: new HttpHeaders({ Accept: REPORT_JSON_ACCEPT }),
   transferCache: false,
 } as const;
 const REPORT_CSV_OPTIONS = {
@@ -114,6 +126,7 @@ const REPORT_CSV_OPTIONS = {
 export class Reports extends PlaceFieldsBase implements OnInit {
   private readonly componentDestroyRef = inject(DestroyRef);
   private readonly document = inject(DOCUMENT);
+  private readonly http = inject(HttpClient);
   private readonly jobPollingFacade = inject(JobPollingFacade);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly refFacade = inject(ReferenceDataFacade);
@@ -138,6 +151,8 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     signal<CreateWorkloadReportRequestParams | null>(null);
   private readonly createActivityAuditReportRequest =
     signal<CreateActivityAuditReportRequestParams | null>(null);
+  private readonly createPrivateProsecutorsIndexReportRequest =
+    signal<PrivateProsecutorsIndexReportFilterDto | null>(null);
 
   onCreateErrorClick = onCreateErrorClickFn;
 
@@ -263,12 +278,12 @@ export class Reports extends PlaceFieldsBase implements OnInit {
         dateTo: new FormControl<string | null>(null, {
           validators: [(c) => Validators.required(c)],
         }),
-        applicantSurnameOrOrg: new FormControl<string | null>(''),
-        applicantFirst: new FormControl<string | null>(''),
+        applicantFirstName: new FormControl<string | null>(''),
+        applicantSurname: new FormControl<string | null>(''),
         standardApplicantName: new FormControl<string | null>(''),
-        respondentFirst: new FormControl<string | null>(''),
+        respondentFirstName: new FormControl<string | null>(''),
         respondentSurname: new FormControl<string | null>(''),
-        respondentOrg: new FormControl<string | null>(''),
+        respondentOrganisationName: new FormControl<string | null>(''),
         court: new FormControl<string | null>(''),
         otherLocation: new FormControl<string | null>(''),
         cja: new FormControl<string | null>(''),
@@ -348,6 +363,10 @@ export class Reports extends PlaceFieldsBase implements OnInit {
 
       this.startCreateActivityAuditReport(request);
     }
+
+    if (this.form.controls.report.value === 'private-prosecutors-index') {
+      this.createPrivateProsecutorsIndexReport();
+    }
   }
 
   /** Handy getter for the child binding */
@@ -417,6 +436,15 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     this.stopReportPolling();
     this.showReportProgress();
     this.createActivityAuditReportRequest.set(request);
+  }
+
+  private startCreatePrivateProsecutorsIndexReport(
+    request: PrivateProsecutorsIndexReportFilterDto,
+  ): void {
+    this.stopReportCreate();
+    this.stopReportPolling();
+    this.showReportProgress();
+    this.createPrivateProsecutorsIndexReportRequest.set(request);
   }
 
   private setupEffects(): void {
@@ -546,6 +574,28 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       },
       this.envInjector,
     );
+
+    // POST /reports/private-prosecutors-index/jobs
+    setupLoadEffect(
+      {
+        request: this.createPrivateProsecutorsIndexReportRequest,
+        load: (request) =>
+          this.http.post<JobAcknowledgement>(
+            '/reports/private-prosecutors-index/jobs',
+            request,
+            REPORT_JSON_HTTP_OPTIONS,
+          ),
+        onSuccess: (response) => {
+          this.createPrivateProsecutorsIndexReportRequest.set(null);
+          this.handleReportJobCreated(response);
+        },
+        onError: (err) => {
+          this.createPrivateProsecutorsIndexReportRequest.set(null);
+          this.showReportError(this.toReportRequestError(err));
+        },
+      },
+      this.envInjector,
+    );
   }
 
   fieldError(id: string): ErrorItem | undefined {
@@ -620,6 +670,12 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     );
   }
 
+  private createPrivateProsecutorsIndexReport(): void {
+    this.startCreatePrivateProsecutorsIndexReport(
+      mapPrivateProsecutorsIndexGroupToReportFilterDto(this.ppiGroup),
+    );
+  }
+
   private handleReportJobCreated(
     response: HttpResponse<JobAcknowledgement>,
   ): void {
@@ -665,6 +721,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     this.createSearchWarrantsReportRequest.set(null);
     this.createWorkloadReportRequest.set(null);
     this.createActivityAuditReportRequest.set(null);
+    this.createPrivateProsecutorsIndexReportRequest.set(null);
   }
 
   private handleReportJobStatus(job: PolledJobStatus): void {
@@ -918,7 +975,10 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    this.initPlaceFields(group, this.refFacade);
+    this.initPlaceFields(group, this.refFacade, {
+      cjaRequiresLocation:
+        this.form.controls.report.value === 'private-prosecutors-index',
+    });
     addLocationValidatorsToForm(group, () => this.state());
   }
 }

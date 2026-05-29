@@ -40,6 +40,7 @@ export interface LocationControls {
   court: AbstractControl;
   location: AbstractControl;
   cja: AbstractControl;
+  cjaRequiresLocation?: boolean;
 }
 
 type WithLabelValue<T> = T & { label?: string; value?: string };
@@ -49,6 +50,7 @@ export function attachLocationDisabler({
   court,
   location,
   cja,
+  cjaRequiresLocation = false,
 }: LocationControls): Subscription {
   const sync = () => {
     const hasCourt = has(court.value);
@@ -59,6 +61,16 @@ export function attachLocationDisabler({
       court.enable({ emitEvent: false });
       location.disable({ emitEvent: false });
       cja.disable({ emitEvent: false });
+    } else if (cjaRequiresLocation) {
+      court.enable({ emitEvent: false });
+      location.enable({ emitEvent: false });
+
+      if (hasLoc) {
+        court.disable({ emitEvent: false });
+        cja.enable({ emitEvent: false });
+      } else {
+        cja.disable({ emitEvent: false });
+      }
     } else if (hasLoc || hasCja) {
       court.disable({ emitEvent: false });
       location.enable({ emitEvent: false });

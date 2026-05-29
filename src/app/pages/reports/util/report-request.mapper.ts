@@ -56,11 +56,37 @@ interface WorkloadReportFormValue {
   cja: string | null;
 }
 
+interface PrivateProsecutorsIndexReportFormValue {
+  dateFrom: string;
+  dateTo: string;
+  applicantFirstName: string | null;
+  applicantSurname: string | null;
+  standardApplicantName: string | null;
+  respondentFirstName: string | null;
+  respondentSurname: string | null;
+  respondentOrganisationName: string | null;
+  court: string | null;
+  otherLocation: string | null;
+  cja: string | null;
+}
+
 interface ActivityAuditReportFormValue {
   dateFrom: string;
   dateTo: string;
   username: string | null;
   activity: string[];
+}
+
+export interface PrivateProsecutorsIndexReportFilterDto {
+  dateFrom: string;
+  dateTo: string;
+  applicantFirstName?: string;
+  applicantSurname?: string;
+  standardApplicantName?: string;
+  respondentFirstName?: string;
+  respondentSurname?: string;
+  respondentOrganisationName?: string;
+  location?: LegacyReportLocation;
 }
 
 export function mapFeeGroupToFeesReportFilterDto(
@@ -111,6 +137,36 @@ export function mapActivityAuditGroupToActivityAuditRequestParams(
 ): CreateActivityAuditReportRequestParams {
   return {
     activityAuditFilterDto: mapActivityAuditFormToParams(activityAudit),
+  };
+}
+
+export function mapPrivateProsecutorsIndexGroupToReportFilterDto(
+  privateProsecutorsIndexGroup: FormGroup,
+): PrivateProsecutorsIndexReportFilterDto {
+  const value =
+    privateProsecutorsIndexGroup.getRawValue() as PrivateProsecutorsIndexReportFormValue;
+  const applicantFirstName = toOptionalTrimmed(value.applicantFirstName);
+  const applicantSurname = toOptionalTrimmed(value.applicantSurname);
+  const standardApplicantName = toOptionalTrimmed(value.standardApplicantName);
+  const respondentFirstName = toOptionalTrimmed(value.respondentFirstName);
+  const respondentSurname = toOptionalTrimmed(value.respondentSurname);
+  const respondentOrganisationName = toOptionalTrimmed(
+    value.respondentOrganisationName,
+  );
+  const location = buildLocation(value, {
+    requireOtherLocationForCja: true,
+  });
+
+  return {
+    dateFrom: value.dateFrom,
+    dateTo: value.dateTo,
+    ...(applicantFirstName ? { applicantFirstName } : {}),
+    ...(applicantSurname ? { applicantSurname } : {}),
+    ...(standardApplicantName ? { standardApplicantName } : {}),
+    ...(respondentFirstName ? { respondentFirstName } : {}),
+    ...(respondentSurname ? { respondentSurname } : {}),
+    ...(respondentOrganisationName ? { respondentOrganisationName } : {}),
+    ...(location ? { location } : {}),
   };
 }
 
@@ -183,6 +239,7 @@ export function isActivityType(value: unknown): value is ActivityType {
 
 function buildLocation(
   value: ReportLocationFormValue,
+  options: { requireOtherLocationForCja?: boolean } = {},
 ): LegacyReportLocation | undefined {
   const courtLocationCode = toOptionalTrimmed(value.court);
 
@@ -198,7 +255,10 @@ function buildLocation(
     location.otherLocationDescription = otherLocationDescription;
   }
 
-  if (cjaCode) {
+  if (
+    cjaCode &&
+    (!options.requireOtherLocationForCja || otherLocationDescription)
+  ) {
     location.cjaCode = cjaCode;
   }
 
