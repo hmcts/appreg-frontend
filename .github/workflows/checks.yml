@@ -22,4 +22,4 @@ jobs:
           PUPPETEER_SKIP_DOWNLOAD: 'true'
       - run: yarn cichecks
         env:
-          PUPPETEER_CACHE_DIR: ${{ runner.temp }}/puppeteer
+          PUPPETEER_CACHE_DIR: ${{ runner.temp }}/puppeteer-${{ github.run_id }}-${{ github.run_attempt }}
