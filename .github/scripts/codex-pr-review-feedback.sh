@@ -32,7 +32,10 @@ patch_path="${output_dir}/changes.patch"
 metadata_path="${output_dir}/metadata.env"
 trusted_pipeline_path="${artifact_dir}/trusted-codex-local-pipeline.sh"
 trusted_pipeline_sha=""
-codex_home="${HOME:-/home/runner}"
+runner_home="${HOME:-/home/runner}"
+codex_home="${artifact_dir}/codex-home"
+codex_tmp="${artifact_dir}/codex-tmp"
+codex_runner_temp="${artifact_dir}/codex-runner-temp"
 sanitized_home="${artifact_dir}/sanitized-home"
 sanitized_tmp="${artifact_dir}/sanitized-tmp"
 guardrail_changes_path="${output_dir}/guardrail-changes.txt"
@@ -46,6 +49,20 @@ guardrail_pathspecs=(
   ".yarnrc.yml"
   ".yarn"
 )
+
+prepare_codex_home() {
+  mkdir -p "${codex_home}/.codex" "${codex_home}/.cache" "${codex_home}/.config" "${codex_tmp}" "${codex_runner_temp}"
+
+  if [[ -f "${runner_home}/.codex/auth.json" ]]; then
+    cp "${runner_home}/.codex/auth.json" "${codex_home}/.codex/auth.json"
+    chmod 600 "${codex_home}/.codex/auth.json"
+  fi
+
+  if [[ -f "${runner_home}/.codex/config.toml" ]]; then
+    cp "${runner_home}/.codex/config.toml" "${codex_home}/.codex/config.toml"
+    chmod 600 "${codex_home}/.codex/config.toml"
+  fi
+}
 
 run_sanitized() {
   env -i \
@@ -71,6 +88,9 @@ run_sanitized() {
 run_codex() {
   env -i \
     "HOME=${codex_home}" \
+    "CODEX_HOME=${codex_home}/.codex" \
+    "XDG_CACHE_HOME=${codex_home}/.cache" \
+    "XDG_CONFIG_HOME=${codex_home}/.config" \
     "PATH=${PATH:-/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin}" \
     "SHELL=${SHELL:-/bin/bash}" \
     "USER=${USER:-runner}" \
@@ -78,8 +98,8 @@ run_codex() {
     "LANG=${LANG:-C.UTF-8}" \
     "LC_ALL=${LC_ALL:-${LANG:-C.UTF-8}}" \
     "TERM=${TERM:-xterm}" \
-    "TMPDIR=${TMPDIR:-/tmp}" \
-    "RUNNER_TEMP=${RUNNER_TEMP:-/tmp}" \
+    "TMPDIR=${codex_tmp}" \
+    "RUNNER_TEMP=${codex_runner_temp}" \
     "CI=${CI:-true}" \
     "GITHUB_ACTIONS=${GITHUB_ACTIONS:-true}" \
     "GIT_CONFIG_GLOBAL=/dev/null" \
@@ -181,6 +201,7 @@ write_guardrail_warning() {
 }
 
 mkdir -p "${artifact_dir}" "${sanitized_home}" "${sanitized_tmp}" "${output_dir}"
+prepare_codex_home
 
 python3 - <<'PY' >"${feedback_env_path}"
 import json
