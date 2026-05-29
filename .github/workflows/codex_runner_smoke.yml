@@ -1,0 +1,55 @@
+name: Codex Runner Smoke Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch_prefix:
+        description: Branch prefix for the smoke-test push
+        required: false
+        default: codex-frontend-runner-smoke
+
+permissions:
+  contents: write
+
+jobs:
+  smoke-test:
+    runs-on: codex-frontend-azure-aks
+    timeout-minutes: 30
+    env:
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      BRANCH_PREFIX: ${{ inputs.branch_prefix }}
+      GH_TOKEN: ${{ github.token }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+    steps:
+      - name: Checkout default branch
+        run: |
+          git init .
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git config --local credential.helper \
+            '!f() { test "$1" = get && echo username=x-access-token && echo "password=$GH_TOKEN"; }; f'
+          git fetch --prune --no-tags origin "${DEFAULT_BRANCH}"
+          git checkout -B "${DEFAULT_BRANCH}" FETCH_HEAD
+
+      - name: Verify runner toolchain and Codex auth
+        run: ./.github/scripts/codex-runner-preflight.sh
+
+      - name: Configure Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Create, commit, and push a smoke-test branch
+        id: smoke
+        run: ./.github/scripts/codex-runner-branch-smoke.sh
+
+      - name: Write workflow summary
+        run: |
+          {
+            echo "## Codex runner smoke test"
+            echo
+            echo "- Runner: ${RUNNER_NAME}"
+            echo "- Branch: ${{ steps.smoke.outputs.branch_name }}"
+            echo "- Commit: ${{ steps.smoke.outputs.commit_sha }}"
+            echo "- File: ${{ steps.smoke.outputs.smoke_file }}"
+          } >>"$GITHUB_STEP_SUMMARY"

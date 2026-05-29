@@ -10,7 +10,7 @@ Contributors and agents MUST use Yarn 4 via Corepack (`corepack enable` + `yarn`
 
 Always:
 
-- You MUST NOT add secrets, tokens, credentials, or PII to code, logs, comments, fixtures, or tests.
+- You MUST NOT add secrets, tokens, credentials, PII, runner file contents, environment variables, or auth material to patches, PR bodies, comments, logs, artifacts, fixtures, or tests.
 - You MUST keep API-generated artifacts in sync when API contracts change (`yarn api:all`).
 - You MUST add or update tests when behavior changes.
 

@@ -8,6 +8,8 @@
 /node_modules
 npm-debug.log
 yarn-error.log
+__pycache__/
+*.py[cod]
 
 # IDEs and editors
 .idea/
@@ -64,6 +66,9 @@ runner-results/
 
 # Branch retention outputs
 .github/branch-retention/out/
+
+# Codex runner scratch output
+/build/codex/
 
 # Wiremock generated files
 /wiremock/__files/errors
