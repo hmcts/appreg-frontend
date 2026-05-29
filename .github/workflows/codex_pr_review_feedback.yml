@@ -175,9 +175,534 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  codex-review-publish:
-    needs: [detect-codex-pr, codex-review-generate, codex-review-verify]
+  codex-review-verify:
+    needs: [detect-codex-pr, codex-review-generate]
     if: needs.detect-codex-pr.outputs.is_codex_pr == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    timeout-minutes: 30
+    outputs:
+      passed: ${{ steps.verify.outputs.passed }}
+      output_artifact: codex-review-output
+      verified_artifact: codex-review-verified-0
+      failure_artifact: codex-review-verification-failure-0
+    env:
+      EXPECTED_PR_NUMBER: ${{ needs.detect-codex-pr.outputs.pr_number }}
+      EXPECTED_HEAD_REF: ${{ needs.detect-codex-pr.outputs.head_ref }}
+      GH_TOKEN: ${{ github.token }}
+      LOCAL_PIPELINE_MODE: fast
+      FRONTEND_FAST_COMMAND: yarn lint
+      CODEX_OUTPUT_ARTIFACT: codex-review-output
+      CODEX_VERIFIED_ARTIFACT: codex-review-verified-0
+      CODEX_FAILURE_ARTIFACT: codex-review-verification-failure-0
+
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+
+      - name: Download Codex review output
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.CODEX_OUTPUT_ARTIFACT }}
+          path: ${{ runner.temp }}/codex-output
+
+      - name: Verify Codex review patch
+        id: verify
+        env:
+          OUTPUT_DIR: ${{ runner.temp }}/codex-output
+        run: |
+          set +e
+          ./.github/scripts/codex-pr-review-verify.sh >"$RUNNER_TEMP/codex-review-verification.log" 2>&1
+          status=$?
+          cat "$RUNNER_TEMP/codex-review-verification.log"
+          if [[ "${status}" -eq 0 ]]; then
+            echo "passed=true" >>"$GITHUB_OUTPUT"
+          else
+            mkdir -p "$RUNNER_TEMP/codex-review-verification-failure"
+            cp "$RUNNER_TEMP/codex-review-verification.log" "$RUNNER_TEMP/codex-review-verification-failure/verification-failure.log"
+            tail -n 240 "$RUNNER_TEMP/codex-review-verification.log" >"$RUNNER_TEMP/codex-review-verification-failure/verification-failure-summary.log"
+            echo "passed=false" >>"$GITHUB_OUTPUT"
+          fi
+          exit 0
+
+      - name: Upload verified Codex review output
+        if: steps.verify.outputs.passed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.CODEX_VERIFIED_ARTIFACT }}
+          path: |
+            ${{ runner.temp }}/codex-output/codex-review-comment.md
+            ${{ runner.temp }}/codex-output/guardrail-changes.txt
+            ${{ runner.temp }}/codex-output/verification.env
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Upload review verification failure
+        if: steps.verify.outputs.passed != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.CODEX_FAILURE_ARTIFACT }}
+          path: ${{ runner.temp }}/codex-review-verification-failure
+          if-no-files-found: error
+          retention-days: 1
+
+  codex-review-repair-1:
+    needs: [detect-codex-pr, codex-review-generate, codex-review-verify]
+    if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-verify.outputs.passed != 'true'
+    runs-on: codex-frontend-azure-aks
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+    timeout-minutes: 120
+    outputs:
+      has_changes: ${{ steps.repair.outputs.has_changes }}
+    env:
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      GH_TOKEN: ${{ github.token }}
+      REPAIR_ATTEMPT: '1'
+      MAX_CODEX_REPAIR_ATTEMPTS: '3'
+      CODEX_INPUT_ARTIFACT: ${{ needs.codex-review-verify.outputs.output_artifact }}
+      CODEX_FAILURE_ARTIFACT: ${{ needs.codex-review-verify.outputs.failure_artifact }}
+      CODEX_OUTPUT_ARTIFACT: codex-review-output-repair-1
+
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ env.DEFAULT_BRANCH }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify runner toolchain and Codex auth
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: ./.github/scripts/codex-runner-preflight.sh
+
+      - name: Download Codex review output to repair
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.CODEX_INPUT_ARTIFACT }}
+          path: ${{ runner.temp }}/codex-input
+
+      - name: Download review verification failure
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.CODEX_FAILURE_ARTIFACT }}
+          path: ${{ runner.temp }}/codex-failure
+
+      - name: Repair Codex review patch
+        id: repair
+        env:
+          INPUT_DIR: ${{ runner.temp }}/codex-input
+          FAILURE_DIR: ${{ runner.temp }}/codex-failure
+          OUTPUT_DIR: ${{ runner.temp }}/codex-output
+        run: ./.github/scripts/codex-pr-review-repair.sh
+
+      - name: Upload repaired Codex review output
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.CODEX_OUTPUT_ARTIFACT }}
+          path: ${{ runner.temp }}/codex-output
+          if-no-files-found: error
+          retention-days: 1
+
+  codex-review-verify-1:
+    needs: [detect-codex-pr, codex-review-repair-1]
+    if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-repair-1.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    timeout-minutes: 30
+    outputs:
+      passed: ${{ steps.verify.outputs.passed }}
+      output_artifact: codex-review-output-repair-1
+      verified_artifact: codex-review-verified-1
+      failure_artifact: codex-review-verification-failure-1
+    env:
+      EXPECTED_PR_NUMBER: ${{ needs.detect-codex-pr.outputs.pr_number }}
+      EXPECTED_HEAD_REF: ${{ needs.detect-codex-pr.outputs.head_ref }}
+      GH_TOKEN: ${{ github.token }}
+      LOCAL_PIPELINE_MODE: fast
+      FRONTEND_FAST_COMMAND: yarn lint
+      CODEX_OUTPUT_ARTIFACT: codex-review-output-repair-1
+      CODEX_VERIFIED_ARTIFACT: codex-review-verified-1
+      CODEX_FAILURE_ARTIFACT: codex-review-verification-failure-1
+
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+
+      - name: Download Codex review output
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.CODEX_OUTPUT_ARTIFACT }}
+          path: ${{ runner.temp }}/codex-output
+
+      - name: Verify Codex review patch
+        id: verify
+        env:
+          OUTPUT_DIR: ${{ runner.temp }}/codex-output
+        run: |
+          set +e
+          ./.github/scripts/codex-pr-review-verify.sh >"$RUNNER_TEMP/codex-review-verification.log" 2>&1
+          status=$?
+          cat "$RUNNER_TEMP/codex-review-verification.log"
+          if [[ "${status}" -eq 0 ]]; then
+            echo "passed=true" >>"$GITHUB_OUTPUT"
+          else
+            mkdir -p "$RUNNER_TEMP/codex-review-verification-failure"
+            cp "$RUNNER_TEMP/codex-review-verification.log" "$RUNNER_TEMP/codex-review-verification-failure/verification-failure.log"
+            tail -n 240 "$RUNNER_TEMP/codex-review-verification.log" >"$RUNNER_TEMP/codex-review-verification-failure/verification-failure-summary.log"
+            echo "passed=false" >>"$GITHUB_OUTPUT"
+          fi
+          exit 0
+
+      - name: Upload verified Codex review output
+        if: steps.verify.outputs.passed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.CODEX_VERIFIED_ARTIFACT }}
+          path: |
+            ${{ runner.temp }}/codex-output/codex-review-comment.md
+            ${{ runner.temp }}/codex-output/guardrail-changes.txt
+            ${{ runner.temp }}/codex-output/verification.env
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Upload review verification failure
+        if: steps.verify.outputs.passed != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.CODEX_FAILURE_ARTIFACT }}
+          path: ${{ runner.temp }}/codex-review-verification-failure
+          if-no-files-found: error
+          retention-days: 1
+
+  codex-review-repair-2:
+    needs: [detect-codex-pr, codex-review-verify-1]
+    if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-verify-1.outputs.passed == 'false'
+    runs-on: codex-frontend-azure-aks
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+    timeout-minutes: 120
+    outputs:
+      has_changes: ${{ steps.repair.outputs.has_changes }}
+    env:
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      GH_TOKEN: ${{ github.token }}
+      REPAIR_ATTEMPT: '2'
+      MAX_CODEX_REPAIR_ATTEMPTS: '3'
+      CODEX_INPUT_ARTIFACT: ${{ needs.codex-review-verify-1.outputs.output_artifact }}
+      CODEX_FAILURE_ARTIFACT: ${{ needs.codex-review-verify-1.outputs.failure_artifact }}
+      CODEX_OUTPUT_ARTIFACT: codex-review-output-repair-2
+
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ env.DEFAULT_BRANCH }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify runner toolchain and Codex auth
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: ./.github/scripts/codex-runner-preflight.sh
+
+      - name: Download Codex review output to repair
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.CODEX_INPUT_ARTIFACT }}
+          path: ${{ runner.temp }}/codex-input
+
+      - name: Download review verification failure
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.CODEX_FAILURE_ARTIFACT }}
+          path: ${{ runner.temp }}/codex-failure
+
+      - name: Repair Codex review patch
+        id: repair
+        env:
+          INPUT_DIR: ${{ runner.temp }}/codex-input
+          FAILURE_DIR: ${{ runner.temp }}/codex-failure
+          OUTPUT_DIR: ${{ runner.temp }}/codex-output
+        run: ./.github/scripts/codex-pr-review-repair.sh
+
+      - name: Upload repaired Codex review output
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.CODEX_OUTPUT_ARTIFACT }}
+          path: ${{ runner.temp }}/codex-output
+          if-no-files-found: error
+          retention-days: 1
+
+  codex-review-verify-2:
+    needs: [detect-codex-pr, codex-review-repair-2]
+    if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-repair-2.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    timeout-minutes: 30
+    outputs:
+      passed: ${{ steps.verify.outputs.passed }}
+      output_artifact: codex-review-output-repair-2
+      verified_artifact: codex-review-verified-2
+      failure_artifact: codex-review-verification-failure-2
+    env:
+      EXPECTED_PR_NUMBER: ${{ needs.detect-codex-pr.outputs.pr_number }}
+      EXPECTED_HEAD_REF: ${{ needs.detect-codex-pr.outputs.head_ref }}
+      GH_TOKEN: ${{ github.token }}
+      LOCAL_PIPELINE_MODE: fast
+      FRONTEND_FAST_COMMAND: yarn lint
+      CODEX_OUTPUT_ARTIFACT: codex-review-output-repair-2
+      CODEX_VERIFIED_ARTIFACT: codex-review-verified-2
+      CODEX_FAILURE_ARTIFACT: codex-review-verification-failure-2
+
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+
+      - name: Download Codex review output
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.CODEX_OUTPUT_ARTIFACT }}
+          path: ${{ runner.temp }}/codex-output
+
+      - name: Verify Codex review patch
+        id: verify
+        env:
+          OUTPUT_DIR: ${{ runner.temp }}/codex-output
+        run: |
+          set +e
+          ./.github/scripts/codex-pr-review-verify.sh >"$RUNNER_TEMP/codex-review-verification.log" 2>&1
+          status=$?
+          cat "$RUNNER_TEMP/codex-review-verification.log"
+          if [[ "${status}" -eq 0 ]]; then
+            echo "passed=true" >>"$GITHUB_OUTPUT"
+          else
+            mkdir -p "$RUNNER_TEMP/codex-review-verification-failure"
+            cp "$RUNNER_TEMP/codex-review-verification.log" "$RUNNER_TEMP/codex-review-verification-failure/verification-failure.log"
+            tail -n 240 "$RUNNER_TEMP/codex-review-verification.log" >"$RUNNER_TEMP/codex-review-verification-failure/verification-failure-summary.log"
+            echo "passed=false" >>"$GITHUB_OUTPUT"
+          fi
+          exit 0
+
+      - name: Upload verified Codex review output
+        if: steps.verify.outputs.passed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.CODEX_VERIFIED_ARTIFACT }}
+          path: |
+            ${{ runner.temp }}/codex-output/codex-review-comment.md
+            ${{ runner.temp }}/codex-output/guardrail-changes.txt
+            ${{ runner.temp }}/codex-output/verification.env
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Upload review verification failure
+        if: steps.verify.outputs.passed != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.CODEX_FAILURE_ARTIFACT }}
+          path: ${{ runner.temp }}/codex-review-verification-failure
+          if-no-files-found: error
+          retention-days: 1
+
+  codex-review-repair-3:
+    needs: [detect-codex-pr, codex-review-verify-2]
+    if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-verify-2.outputs.passed == 'false'
+    runs-on: codex-frontend-azure-aks
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+    timeout-minutes: 120
+    outputs:
+      has_changes: ${{ steps.repair.outputs.has_changes }}
+    env:
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      GH_TOKEN: ${{ github.token }}
+      REPAIR_ATTEMPT: '3'
+      MAX_CODEX_REPAIR_ATTEMPTS: '3'
+      CODEX_INPUT_ARTIFACT: ${{ needs.codex-review-verify-2.outputs.output_artifact }}
+      CODEX_FAILURE_ARTIFACT: ${{ needs.codex-review-verify-2.outputs.failure_artifact }}
+      CODEX_OUTPUT_ARTIFACT: codex-review-output-repair-3
+
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ env.DEFAULT_BRANCH }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify runner toolchain and Codex auth
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: ./.github/scripts/codex-runner-preflight.sh
+
+      - name: Download Codex review output to repair
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.CODEX_INPUT_ARTIFACT }}
+          path: ${{ runner.temp }}/codex-input
+
+      - name: Download review verification failure
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.CODEX_FAILURE_ARTIFACT }}
+          path: ${{ runner.temp }}/codex-failure
+
+      - name: Repair Codex review patch
+        id: repair
+        env:
+          INPUT_DIR: ${{ runner.temp }}/codex-input
+          FAILURE_DIR: ${{ runner.temp }}/codex-failure
+          OUTPUT_DIR: ${{ runner.temp }}/codex-output
+        run: ./.github/scripts/codex-pr-review-repair.sh
+
+      - name: Upload repaired Codex review output
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.CODEX_OUTPUT_ARTIFACT }}
+          path: ${{ runner.temp }}/codex-output
+          if-no-files-found: error
+          retention-days: 1
+
+  codex-review-verify-3:
+    needs: [detect-codex-pr, codex-review-repair-3]
+    if: needs.detect-codex-pr.outputs.is_codex_pr == 'true' && needs.codex-review-repair-3.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    timeout-minutes: 30
+    outputs:
+      passed: ${{ steps.verify.outputs.passed }}
+      output_artifact: codex-review-output-repair-3
+      verified_artifact: codex-review-verified-3
+      failure_artifact: codex-review-verification-failure-3
+    env:
+      EXPECTED_PR_NUMBER: ${{ needs.detect-codex-pr.outputs.pr_number }}
+      EXPECTED_HEAD_REF: ${{ needs.detect-codex-pr.outputs.head_ref }}
+      GH_TOKEN: ${{ github.token }}
+      LOCAL_PIPELINE_MODE: fast
+      FRONTEND_FAST_COMMAND: yarn lint
+      CODEX_OUTPUT_ARTIFACT: codex-review-output-repair-3
+      CODEX_VERIFIED_ARTIFACT: codex-review-verified-3
+      CODEX_FAILURE_ARTIFACT: codex-review-verification-failure-3
+
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+
+      - name: Download Codex review output
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.CODEX_OUTPUT_ARTIFACT }}
+          path: ${{ runner.temp }}/codex-output
+
+      - name: Verify Codex review patch
+        id: verify
+        env:
+          OUTPUT_DIR: ${{ runner.temp }}/codex-output
+        run: |
+          set +e
+          ./.github/scripts/codex-pr-review-verify.sh >"$RUNNER_TEMP/codex-review-verification.log" 2>&1
+          status=$?
+          cat "$RUNNER_TEMP/codex-review-verification.log"
+          if [[ "${status}" -eq 0 ]]; then
+            echo "passed=true" >>"$GITHUB_OUTPUT"
+          else
+            mkdir -p "$RUNNER_TEMP/codex-review-verification-failure"
+            cp "$RUNNER_TEMP/codex-review-verification.log" "$RUNNER_TEMP/codex-review-verification-failure/verification-failure.log"
+            tail -n 240 "$RUNNER_TEMP/codex-review-verification.log" >"$RUNNER_TEMP/codex-review-verification-failure/verification-failure-summary.log"
+            echo "passed=false" >>"$GITHUB_OUTPUT"
+          fi
+          exit 0
+
+      - name: Upload verified Codex review output
+        if: steps.verify.outputs.passed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.CODEX_VERIFIED_ARTIFACT }}
+          path: |
+            ${{ runner.temp }}/codex-output/codex-review-comment.md
+            ${{ runner.temp }}/codex-output/guardrail-changes.txt
+            ${{ runner.temp }}/codex-output/verification.env
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Upload review verification failure
+        if: steps.verify.outputs.passed != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.CODEX_FAILURE_ARTIFACT }}
+          path: ${{ runner.temp }}/codex-review-verification-failure
+          if-no-files-found: error
+          retention-days: 1
+
+  codex-review-publish:
+    needs:
+      - detect-codex-pr
+      - codex-review-generate
+      - codex-review-verify
+      - codex-review-verify-1
+      - codex-review-verify-2
+      - codex-review-verify-3
+    if: |
+      always() &&
+      needs.detect-codex-pr.outputs.is_codex_pr == 'true' &&
+      (
+        needs.codex-review-verify.outputs.passed == 'true' ||
+        needs.codex-review-verify-1.outputs.passed == 'true' ||
+        needs.codex-review-verify-2.outputs.passed == 'true' ||
+        needs.codex-review-verify-3.outputs.passed == 'true'
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -189,6 +714,8 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       EXPECTED_PR_NUMBER: ${{ needs.detect-codex-pr.outputs.pr_number }}
       EXPECTED_HEAD_REF: ${{ needs.detect-codex-pr.outputs.head_ref }}
+      CODEX_OUTPUT_ARTIFACT: ${{ needs.codex-review-verify-3.outputs.passed == 'true' && needs.codex-review-verify-3.outputs.output_artifact || needs.codex-review-verify-2.outputs.passed == 'true' && needs.codex-review-verify-2.outputs.output_artifact || needs.codex-review-verify-1.outputs.passed == 'true' && needs.codex-review-verify-1.outputs.output_artifact || needs.codex-review-verify.outputs.output_artifact }}
+      CODEX_VERIFIED_ARTIFACT: ${{ needs.codex-review-verify-3.outputs.passed == 'true' && needs.codex-review-verify-3.outputs.verified_artifact || needs.codex-review-verify-2.outputs.passed == 'true' && needs.codex-review-verify-2.outputs.verified_artifact || needs.codex-review-verify-1.outputs.passed == 'true' && needs.codex-review-verify-1.outputs.verified_artifact || needs.codex-review-verify.outputs.verified_artifact }}
 
     steps:
       - name: Checkout default branch
@@ -206,13 +733,13 @@ jobs:
       - name: Download Codex review output
         uses: actions/download-artifact@v4
         with:
-          name: codex-review-output
+          name: ${{ env.CODEX_OUTPUT_ARTIFACT }}
           path: ${{ runner.temp }}/codex-output
 
       - name: Download verified Codex review output
         uses: actions/download-artifact@v4
         with:
-          name: codex-review-verified
+          name: ${{ env.CODEX_VERIFIED_ARTIFACT }}
           path: ${{ runner.temp }}/codex-verified
 
       - name: Publish Codex review feedback
@@ -234,47 +761,23 @@ jobs:
             echo "- Commit: ${{ steps.publish.outputs.commit_sha }}"
           } >>"$GITHUB_STEP_SUMMARY"
 
-  codex-review-verify:
-    needs: [detect-codex-pr, codex-review-generate]
-    if: needs.detect-codex-pr.outputs.is_codex_pr == 'true'
+  codex-review-verification-failed:
+    needs:
+      - detect-codex-pr
+      - codex-review-verify
+      - codex-review-verify-1
+      - codex-review-verify-2
+      - codex-review-verify-3
+    if: |
+      always() &&
+      needs.detect-codex-pr.outputs.is_codex_pr == 'true' &&
+      needs.codex-review-verify.outputs.passed != 'true' &&
+      needs.codex-review-verify-1.outputs.passed != 'true' &&
+      needs.codex-review-verify-2.outputs.passed != 'true' &&
+      needs.codex-review-verify-3.outputs.passed != 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: read
-    timeout-minutes: 30
-    env:
-      EXPECTED_PR_NUMBER: ${{ needs.detect-codex-pr.outputs.pr_number }}
-      EXPECTED_HEAD_REF: ${{ needs.detect-codex-pr.outputs.head_ref }}
-      GH_TOKEN: ${{ github.token }}
-      LOCAL_PIPELINE_MODE: checks-only
-
     steps:
-      - name: Checkout default branch
-        uses: actions/checkout@v5
-        with:
-          ref: ${{ github.event.repository.default_branch }}
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Download Codex review output
-        uses: actions/download-artifact@v4
-        with:
-          name: codex-review-output
-          path: ${{ runner.temp }}/codex-output
-
-      - name: Verify Codex review patch
-        id: verify
-        env:
-          OUTPUT_DIR: ${{ runner.temp }}/codex-output
-        run: ./.github/scripts/codex-pr-review-verify.sh
-
-      - name: Upload verified Codex review output
-        uses: actions/upload-artifact@v4
-        with:
-          name: codex-review-verified
-          path: |
-            ${{ runner.temp }}/codex-output/codex-review-comment.md
-            ${{ runner.temp }}/codex-output/guardrail-changes.txt
-            ${{ runner.temp }}/codex-output/verification.env
-          if-no-files-found: error
-          retention-days: 1
+      - name: Fail after repair attempts
+        run: |
+          echo "Codex review verification failed after 3 repair attempt(s)."
+          exit 1
