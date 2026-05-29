@@ -161,7 +161,7 @@ ensure_frontend_formatter() {
   fi
 
   echo "Installing frontend dependencies for pre-verification formatting."
-  run_sanitized node .yarn/releases/yarn-4.10.3.cjs install --immutable --mode=skip-builds
+  run_sanitized node .yarn/releases/yarn-4.10.3.cjs install --immutable --mode=skip-build
 }
 
 format_verified_patch() {
