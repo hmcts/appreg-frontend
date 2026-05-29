@@ -193,7 +193,7 @@ jobs:
       EXPECTED_HEAD_REF: ${{ needs.detect-codex-pr.outputs.head_ref }}
       GH_TOKEN: ${{ github.token }}
       LOCAL_PIPELINE_MODE: fast
-      FRONTEND_FAST_COMMAND: yarn lint
+      FRONTEND_FAST_COMMAND: yarn cichecks
       CODEX_OUTPUT_ARTIFACT: codex-review-output
       CODEX_VERIFIED_ARTIFACT: codex-review-verified-0
       CODEX_FAILURE_ARTIFACT: codex-review-verification-failure-0
@@ -337,7 +337,7 @@ jobs:
       EXPECTED_HEAD_REF: ${{ needs.detect-codex-pr.outputs.head_ref }}
       GH_TOKEN: ${{ github.token }}
       LOCAL_PIPELINE_MODE: fast
-      FRONTEND_FAST_COMMAND: yarn lint
+      FRONTEND_FAST_COMMAND: yarn cichecks
       CODEX_OUTPUT_ARTIFACT: codex-review-output-repair-1
       CODEX_VERIFIED_ARTIFACT: codex-review-verified-1
       CODEX_FAILURE_ARTIFACT: codex-review-verification-failure-1
@@ -481,7 +481,7 @@ jobs:
       EXPECTED_HEAD_REF: ${{ needs.detect-codex-pr.outputs.head_ref }}
       GH_TOKEN: ${{ github.token }}
       LOCAL_PIPELINE_MODE: fast
-      FRONTEND_FAST_COMMAND: yarn lint
+      FRONTEND_FAST_COMMAND: yarn cichecks
       CODEX_OUTPUT_ARTIFACT: codex-review-output-repair-2
       CODEX_VERIFIED_ARTIFACT: codex-review-verified-2
       CODEX_FAILURE_ARTIFACT: codex-review-verification-failure-2
@@ -625,7 +625,7 @@ jobs:
       EXPECTED_HEAD_REF: ${{ needs.detect-codex-pr.outputs.head_ref }}
       GH_TOKEN: ${{ github.token }}
       LOCAL_PIPELINE_MODE: fast
-      FRONTEND_FAST_COMMAND: yarn lint
+      FRONTEND_FAST_COMMAND: yarn cichecks
       CODEX_OUTPUT_ARTIFACT: codex-review-output-repair-3
       CODEX_VERIFIED_ARTIFACT: codex-review-verified-3
       CODEX_FAILURE_ARTIFACT: codex-review-verification-failure-3

@@ -93,7 +93,7 @@ jobs:
       EXPECTED_BRANCH_NAME: ${{ needs.codex-generate.outputs.branch_name }}
       GH_TOKEN: ${{ github.token }}
       LOCAL_PIPELINE_MODE: fast
-      FRONTEND_FAST_COMMAND: yarn lint
+      FRONTEND_FAST_COMMAND: yarn cichecks
       CODEX_OUTPUT_ARTIFACT: codex-jira-output
       CODEX_VERIFIED_ARTIFACT: codex-jira-verified-0
       CODEX_FAILURE_ARTIFACT: codex-jira-verification-failure-0
@@ -240,7 +240,7 @@ jobs:
       EXPECTED_BRANCH_NAME: ${{ needs.codex-generate.outputs.branch_name }}
       GH_TOKEN: ${{ github.token }}
       LOCAL_PIPELINE_MODE: fast
-      FRONTEND_FAST_COMMAND: yarn lint
+      FRONTEND_FAST_COMMAND: yarn cichecks
       CODEX_OUTPUT_ARTIFACT: codex-jira-output-repair-1
       CODEX_VERIFIED_ARTIFACT: codex-jira-verified-1
       CODEX_FAILURE_ARTIFACT: codex-jira-verification-failure-1
@@ -387,7 +387,7 @@ jobs:
       EXPECTED_BRANCH_NAME: ${{ needs.codex-generate.outputs.branch_name }}
       GH_TOKEN: ${{ github.token }}
       LOCAL_PIPELINE_MODE: fast
-      FRONTEND_FAST_COMMAND: yarn lint
+      FRONTEND_FAST_COMMAND: yarn cichecks
       CODEX_OUTPUT_ARTIFACT: codex-jira-output-repair-2
       CODEX_VERIFIED_ARTIFACT: codex-jira-verified-2
       CODEX_FAILURE_ARTIFACT: codex-jira-verification-failure-2
@@ -534,7 +534,7 @@ jobs:
       EXPECTED_BRANCH_NAME: ${{ needs.codex-generate.outputs.branch_name }}
       GH_TOKEN: ${{ github.token }}
       LOCAL_PIPELINE_MODE: fast
-      FRONTEND_FAST_COMMAND: yarn lint
+      FRONTEND_FAST_COMMAND: yarn cichecks
       CODEX_OUTPUT_ARTIFACT: codex-jira-output-repair-3
       CODEX_VERIFIED_ARTIFACT: codex-jira-verified-3
       CODEX_FAILURE_ARTIFACT: codex-jira-verification-failure-3
