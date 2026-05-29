@@ -159,12 +159,12 @@ yarn install --immutable
 
 fast_command="${FRONTEND_FAST_COMMAND:-yarn cichecks}"
 log "Running frontend verification: ${fast_command}"
-bash -lc "${fast_command}"
+bash -c "${fast_command}"
 
 if [[ "${mode}" == "full" ]]; then
   full_command="${FRONTEND_FULL_COMMAND:-yarn test:functional}"
   log "Running frontend full verification: ${full_command}"
-  bash -lc "${full_command}"
+  bash -c "${full_command}"
 fi
 
 log "Local pipeline completed"
