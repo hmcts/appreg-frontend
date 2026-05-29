@@ -47,6 +47,14 @@ require_command() {
   fi
 }
 
+enable_corepack_local() {
+  local corepack_bin="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/corepack-bin"
+
+  mkdir -p "${corepack_bin}"
+  export PATH="${corepack_bin}:${PATH}"
+  corepack enable --install-directory "${corepack_bin}"
+}
+
 repo_root="$(git rev-parse --show-toplevel)"
 cd "${repo_root}"
 
@@ -143,7 +151,7 @@ if [[ "${mode}" == "checks-only" ]]; then
 fi
 
 log "Preparing Yarn"
-corepack enable
+enable_corepack_local
 yarn --version
 
 log "Installing dependencies"
