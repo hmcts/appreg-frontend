@@ -47,6 +47,14 @@ require_command() {
   fi
 }
 
+enable_corepack_local() {
+  local corepack_bin="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/corepack-bin"
+
+  mkdir -p "${corepack_bin}"
+  export PATH="${corepack_bin}:${PATH}"
+  corepack enable --install-directory "${corepack_bin}"
+}
+
 repo_root="$(git rev-parse --show-toplevel)"
 cd "${repo_root}"
 
@@ -143,7 +151,7 @@ if [[ "${mode}" == "checks-only" ]]; then
 fi
 
 log "Preparing Yarn"
-corepack enable
+enable_corepack_local
 yarn --version
 
 log "Installing dependencies"
@@ -151,12 +159,12 @@ yarn install --immutable
 
 fast_command="${FRONTEND_FAST_COMMAND:-yarn cichecks}"
 log "Running frontend verification: ${fast_command}"
-bash -lc "${fast_command}"
+bash -c "${fast_command}"
 
 if [[ "${mode}" == "full" ]]; then
   full_command="${FRONTEND_FULL_COMMAND:-yarn test:functional}"
   log "Running frontend full verification: ${full_command}"
-  bash -lc "${full_command}"
+  bash -c "${full_command}"
 fi
 
 log "Local pipeline completed"

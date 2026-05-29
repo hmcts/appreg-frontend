@@ -11,6 +11,19 @@ require_command() {
   fi
 }
 
+enable_corepack_local() {
+  local corepack_bin="${RUNNER_TEMP:-/tmp}/corepack-bin"
+
+  mkdir -p "${corepack_bin}"
+  export PATH="${corepack_bin}:${PATH}"
+
+  if [[ -n "${GITHUB_PATH:-}" ]]; then
+    echo "${corepack_bin}" >>"${GITHUB_PATH}"
+  fi
+
+  corepack enable --install-directory "${corepack_bin}"
+}
+
 for command_name in git gh java node corepack python3 codex; do
   require_command "$command_name"
 done
@@ -24,7 +37,7 @@ corepack --version
 python3 --version
 codex --version
 
-corepack enable
+enable_corepack_local
 yarn --version
 
 if command -v docker >/dev/null 2>&1; then
