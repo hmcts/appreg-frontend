@@ -42,18 +42,47 @@ export interface LocationControls {
   cja: AbstractControl;
 }
 
+export interface LocationDisablerOptions {
+  requireLocationForCja?: boolean;
+  clearCjaWhenDisabled?: boolean;
+}
+
 type WithLabelValue<T> = T & { label?: string; value?: string };
 
 /** Wires mutually exclusive enable/disable for court vs location+cja. */
-export function attachLocationDisabler({
-  court,
-  location,
-  cja,
-}: LocationControls): Subscription {
+export function attachLocationDisabler(
+  { court, location, cja }: LocationControls,
+  options: LocationDisablerOptions = {},
+): Subscription {
+  const clearCja = () => {
+    if (options.clearCjaWhenDisabled && has(cja.value)) {
+      cja.setValue('', { emitEvent: false });
+    }
+  };
+
   const sync = () => {
     const hasCourt = has(court.value);
     const hasLoc = has(location.value);
     const hasCja = has(cja.value);
+
+    if (options.requireLocationForCja) {
+      if (hasCourt) {
+        court.enable({ emitEvent: false });
+        location.disable({ emitEvent: false });
+        clearCja();
+        cja.disable({ emitEvent: false });
+      } else if (hasLoc) {
+        court.disable({ emitEvent: false });
+        location.enable({ emitEvent: false });
+        cja.enable({ emitEvent: false });
+      } else {
+        court.enable({ emitEvent: false });
+        location.enable({ emitEvent: false });
+        clearCja();
+        cja.disable({ emitEvent: false });
+      }
+      return;
+    }
 
     if (hasCourt) {
       court.enable({ emitEvent: false });

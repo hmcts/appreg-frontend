@@ -14,6 +14,7 @@ import { AbstractControl, FormGroup } from '@angular/forms';
 import { Observable } from 'rxjs';
 
 import {
+  LocationDisablerOptions,
   attachLocationDisabler,
   onCjaInputChange as filterCja,
   onCourthouseInputChange as filterCourts,
@@ -79,7 +80,11 @@ export abstract class PlaceFieldsBase {
     this.patch({ cjaSearch: value ?? '' });
   }
 
-  protected initPlaceFields(form: FormGroup, ref: PlaceRefFacade): void {
+  protected initPlaceFields(
+    form: FormGroup,
+    ref: PlaceRefFacade,
+    options: LocationDisablerOptions = {},
+  ): void {
     this.placeForm = form;
     if (!this.form) {
       this.form = form;
@@ -120,11 +125,15 @@ export abstract class PlaceFieldsBase {
         });
       });
 
-    this.locationDisabler = attachLocationDisabler({
-      court: this.placeForm.controls['court'],
-      location: this.locationControl,
-      cja: this.placeForm.controls['cja'],
-    });
+    this.locationDisabler?.unsubscribe();
+    this.locationDisabler = attachLocationDisabler(
+      {
+        court: this.placeForm.controls['court'],
+        location: this.locationControl,
+        cja: this.placeForm.controls['cja'],
+      },
+      options,
+    );
 
     if (this.locationDisabler) {
       this.destroyRef.onDestroy(() => this.locationDisabler?.unsubscribe());

@@ -1,4 +1,5 @@
 import {
+  HttpClient,
   HttpErrorResponse,
   HttpHeaders,
   HttpResponse,
@@ -10,6 +11,7 @@ import { Subject, of, throwError } from 'rxjs';
 
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import { DurationSectionComponent } from '@components/duration-section/duration-section.component';
+import { PrivateProsecutorsIndexSectionComponent } from '@components/private-prosecutors-index-section/private-prosecutors-index-section.component';
 import { Reports } from '@components/reports/reports.component';
 import { SearchWarrantsSectionComponent } from '@components/search-warrants-section/search-warrants-section.component';
 import { WorkloadSectionComponent } from '@components/workload-section/workload-section.component';
@@ -42,6 +44,10 @@ const reportsApiMock = {
   createWorkloadReport: jest.fn(),
   createActivityAuditReport: jest.fn(),
   downloadReport: jest.fn(),
+};
+
+const httpClientMock = {
+  post: jest.fn(),
 };
 
 const jobPollingFacadeMock = {
@@ -91,6 +97,7 @@ describe('ReportsComponent', () => {
         provideRouter([]),
         { provide: ReferenceDataFacade, useValue: refFacadeStub },
         { provide: ReportsApi, useValue: reportsApiMock },
+        { provide: HttpClient, useValue: httpClientMock },
         { provide: JobPollingFacade, useValue: jobPollingFacadeMock },
       ],
     }).compileComponents();
@@ -184,6 +191,19 @@ describe('ReportsComponent', () => {
     ).componentInstance as DurationSectionComponent;
 
     expect(section.group()).toBe(component.durationGroup);
+    expect(section.suggestions()).toBe(component.suggestionsFacade);
+    expect(section.getError()).toEqual(expect.any(Function));
+  });
+
+  it('passes the Private Prosecutors Index group and suggestions facade to the section', () => {
+    component.form.controls.report.setValue('private-prosecutors-index');
+    fixture.detectChanges();
+
+    const section = fixture.debugElement.query(
+      By.directive(PrivateProsecutorsIndexSectionComponent),
+    ).componentInstance as PrivateProsecutorsIndexSectionComponent;
+
+    expect(section.group()).toBe(component.ppiGroup);
     expect(section.suggestions()).toBe(component.suggestionsFacade);
     expect(section.getError()).toEqual(expect.any(Function));
   });
@@ -525,6 +545,23 @@ describe('ReportsComponent', () => {
     );
   });
 
+  it('preserves date from and date to when switching to Private Prosecutors Index', () => {
+    component.form.controls.report.setValue('activity-audit');
+    component.activityAuditGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+    });
+
+    component.form.controls.report.setValue('private-prosecutors-index');
+
+    expect(component.ppiGroup.value).toEqual(
+      expect.objectContaining({
+        dateFrom: '2026-01-01',
+        dateTo: '2026-01-31',
+      }),
+    );
+  });
+
   it('clears validation state when switching report type', () => {
     component.form.controls.report.setValue('list-maintenance');
     component.listMaintenanceGroup.patchValue({
@@ -730,6 +767,41 @@ describe('ReportsComponent', () => {
     expect(reportsApiMock.createDurationReport).not.toHaveBeenCalled();
   });
 
+  it('shows mandatory date errors for Private Prosecutors Index on download', () => {
+    component.form.controls.report.setValue('private-prosecutors-index');
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().errorSummary).toEqual([
+      { id: 'dateFrom', href: '#list-date-from', text: 'Enter date from' },
+      { id: 'dateTo', href: '#list-date-to', text: 'Enter date to' },
+    ]);
+    expect(httpClientMock.post).not.toHaveBeenCalled();
+  });
+
+  it('blocks Private Prosecutors Index download when date to is before date from', () => {
+    component.form.controls.report.setValue('private-prosecutors-index');
+    component.ppiGroup.patchValue({
+      dateFrom: '2026-02-01',
+      dateTo: '2026-01-31',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().errorSummary).toEqual([
+      {
+        id: 'dateTo',
+        href: '#list-date-to',
+        text: 'Date to must be on or after Date from',
+      },
+    ]);
+    expect(httpClientMock.post).not.toHaveBeenCalled();
+  });
+
   it('enforces workload location mutual exclusivity in the form controls', () => {
     component.form.controls.report.setValue('workload');
     fixture.detectChanges();
@@ -753,6 +825,60 @@ describe('ReportsComponent', () => {
 
     expect(component.workloadGroup.get('court')?.disabled).toBe(true);
     expect(component.workloadGroup.get('cja')?.enabled).toBe(true);
+  });
+
+  it('enforces Private Prosecutors Index court and other location behaviour', () => {
+    component.form.controls.report.setValue('private-prosecutors-index');
+    fixture.detectChanges();
+
+    expect(component.ppiGroup.get('cja')?.disabled).toBe(true);
+    expect(
+      (fixture.nativeElement.querySelector('#cja') as HTMLInputElement | null)
+        ?.disabled,
+    ).toBe(true);
+
+    component.ppiGroup.get('otherLocation')?.setValue('Annex');
+    fixture.detectChanges();
+
+    expect(component.ppiGroup.get('court')?.disabled).toBe(true);
+    expect(component.ppiGroup.get('cja')?.enabled).toBe(true);
+
+    component.ppiGroup.get('cja')?.setValue('C1');
+    component.ppiGroup.get('otherLocation')?.setValue('');
+    fixture.detectChanges();
+
+    expect(component.ppiGroup.get('cja')?.value).toBe('');
+    expect(component.ppiGroup.get('cja')?.disabled).toBe(true);
+    expect(component.ppiGroup.get('court')?.enabled).toBe(true);
+
+    component.ppiGroup.get('court')?.setValue('A1');
+    fixture.detectChanges();
+
+    expect(component.ppiGroup.get('otherLocation')?.disabled).toBe(true);
+    expect(component.ppiGroup.get('cja')?.disabled).toBe(true);
+  });
+
+  it('blocks Private Prosecutors Index download when court and other location both have values', () => {
+    component.form.controls.report.setValue('private-prosecutors-index');
+    component.ppiGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+      court: 'A1',
+      otherLocation: 'Annex',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().errorSummary).toEqual([
+      {
+        id: 'court',
+        href: '#court',
+        text: 'Enter either Court or Other Location, not both',
+      },
+    ]);
+    expect(httpClientMock.post).not.toHaveBeenCalled();
   });
 
   it('preserves legacy CJA-only search warrants location behaviour', () => {
@@ -1354,6 +1480,88 @@ describe('ReportsComponent', () => {
     });
   });
 
+  it('creates, polls, and downloads a Private Prosecutors Index report CSV', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-05-22T09:30:00'));
+    httpClientMock.post.mockReturnValue(
+      of(new HttpResponse({ body: jobAcknowledgement, status: 202 })),
+    );
+    jobPollingFacadeMock.watchJob.mockReturnValue(of(completedJob));
+    reportsApiMock.downloadReport.mockReturnValue(
+      of(
+        new HttpResponse({
+          body: new Blob(['header\n'], { type: 'text/csv' }),
+          headers: new HttpHeaders({
+            'content-disposition':
+              'attachment; filename="private-prosecutors-index.csv"',
+          }),
+          status: 200,
+        }),
+      ),
+    );
+
+    component.form.controls.report.setValue('private-prosecutors-index');
+    component.ppiGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+      applicantFirstName: '  Alex  ',
+      applicantSurname: '',
+      standardApplicantName: '  Standard Applicant  ',
+      respondentFirstName: '  Robin  ',
+      respondentSurname: '',
+      respondentOrganisationName: '  Respondent Ltd  ',
+      otherLocation: '  Annex  ',
+      cja: ' C1 ',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(httpClientMock.post).toHaveBeenCalledWith(
+      '/reports/private-prosecutors-index/jobs',
+      {
+        dateFrom: '2026-01-01',
+        dateTo: '2026-01-31',
+        applicantFirstName: 'Alex',
+        standardApplicantName: 'Standard Applicant',
+        respondentFirstName: 'Robin',
+        respondentOrganisationName: 'Respondent Ltd',
+        location: {
+          otherLocationDescription: 'Annex',
+          cjaCode: 'C1',
+        },
+      },
+      expect.objectContaining({
+        observe: 'response',
+        transferCache: false,
+      }),
+    );
+    const requestOptions = httpClientMock.post.mock.calls[0][2] as {
+      headers: HttpHeaders;
+    };
+    expect(requestOptions.headers.get('Accept')).toBe(
+      'application/vnd.hmcts.appreg.v1+json',
+    );
+    expect(jobPollingFacadeMock.watchJob).toHaveBeenCalledWith('job-1', 2000);
+    expect(reportsApiMock.downloadReport).toHaveBeenCalledWith(
+      { jobId: 'job-1' },
+      'response',
+      false,
+      { httpHeaderAccept: 'text/csv', transferCache: false },
+    );
+    expect(createObjectUrlSpy).toHaveBeenCalledWith(expect.any(Blob));
+    expect(anchorClickSpy).toHaveBeenCalledTimes(1);
+    expect(
+      (anchorClickSpy.mock.contexts[0] as HTMLAnchorElement).download,
+    ).toBe('private-prosecutors-index-report-2026-05-22.csv');
+    expect(component.vm().reportFeedback).toEqual({
+      kind: 'success',
+      heading: 'Report downloaded',
+      body: 'The private prosecutors index report has downloaded.',
+    });
+  });
+
   it('shows the backend message when workload polling fails', () => {
     reportsApiMock.createWorkloadReport.mockReturnValue(
       of(new HttpResponse({ body: jobAcknowledgement, status: 202 })),
@@ -1527,6 +1735,67 @@ describe('ReportsComponent', () => {
 
       component.form.controls.report.setValue('search-warrants');
       component.searchWarrantsGroup.patchValue({
+        dateFrom: '2026-01-01',
+        dateTo: '2026-01-31',
+      });
+      fixture.detectChanges();
+
+      component.onDownload();
+      fixture.detectChanges();
+
+      expect(component.vm().reportFeedback).toEqual({
+        kind: 'error',
+        title: 'Report generation failed',
+        items: [{ text: message }],
+      });
+    },
+  );
+
+  it('shows the backend message when Private Prosecutors Index polling fails', () => {
+    httpClientMock.post.mockReturnValue(
+      of(new HttpResponse({ body: jobAcknowledgement, status: 202 })),
+    );
+    jobPollingFacadeMock.watchJob.mockReturnValue(
+      of({
+        ...completedJob,
+        rawStatus: 'FAILED',
+        state: 'failed',
+        message: 'Backend failed the private prosecutors index report',
+      } satisfies PolledJobStatus),
+    );
+
+    component.form.controls.report.setValue('private-prosecutors-index');
+    component.ppiGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().reportFeedback).toEqual({
+      kind: 'error',
+      title: 'Report generation failed',
+      items: [{ text: 'Backend failed the private prosecutors index report' }],
+    });
+    expect(fixture.nativeElement.textContent).toContain(
+      'Backend failed the private prosecutors index report',
+    );
+    expect(reportsApiMock.downloadReport).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [401, 'You need to sign in to download this report.'],
+    [403, 'You do not have permission to download this report.'],
+    [500, 'There was a problem generating the report. Try again later.'],
+  ])(
+    'shows the Private Prosecutors Index request error message for HTTP %i',
+    (status, message) => {
+      httpClientMock.post.mockReturnValue(throwError(() => ({ status })));
+
+      component.form.controls.report.setValue('private-prosecutors-index');
+      component.ppiGroup.patchValue({
         dateFrom: '2026-01-01',
         dateTo: '2026-01-31',
       });

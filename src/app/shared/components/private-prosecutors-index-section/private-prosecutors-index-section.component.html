@@ -1,4 +1,9 @@
-<h1 class="govuk-heading-l">Private prosecutors index</h1>
+<h1 class="govuk-heading-l">Private Prosecutors Index</h1>
+
+<p class="govuk-body">
+  Provides an index of all applications to commence a private prosecution
+  recorded under MX99010.
+</p>
 
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
@@ -10,61 +15,63 @@
   [suggestions]="suggestions()"
   [submitted]="submitted()"
   [getError]="getError()"
-/>
+  otherLocationLabel="Other Location"
+  cjaLabel="CJA"
+  locationFieldsOrder="other-location-first"
+>
+  <div reportsAfterDateBeforeCourt [formGroup]="group()">
+    <!-- Applicant first name -->
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="applicantFirstName"
+        label="Applicant First Name"
+        idPrefix="ppi-applicant-first-name"
+      />
+    </div>
 
-<div [formGroup]="group()">
-  <!-- Applicant surname/organisation -->
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="applicantSurnameOrOrg"
-      label="Surname/organisation"
-      hint="Enter the applicant’s surname or organisation"
-      idPrefix="ppi-applicant-surname-org"
-    />
+    <!-- Applicant surname -->
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="applicantSurname"
+        label="Applicant Surname"
+        idPrefix="ppi-applicant-surname"
+      />
+    </div>
+
+    <!-- Standard applicant name -->
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="standardApplicantName"
+        label="Standard Applicant Name"
+        idPrefix="ppi-standard-applicant-name"
+      />
+    </div>
+
+    <!-- Respondent first name -->
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="respondentFirstName"
+        label="Respondent First Name"
+        idPrefix="ppi-respondent-first-name"
+      />
+    </div>
+
+    <!-- Respondent surname -->
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="respondentSurname"
+        label="Respondent Surname"
+        idPrefix="ppi-respondent-surname"
+      />
+    </div>
+
+    <!-- Respondent organisation -->
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="respondentOrganisationName"
+        label="Respondent Organisation Name"
+        idPrefix="ppi-respondent-organisation-name"
+      />
+    </div>
   </div>
-  <!-- Applicant first name -->
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="applicantFirst"
-      label="Applicant first name"
-      hint="Enter the applicant’s first name"
-      idPrefix="ppi-applicant-first"
-    />
-  </div>
-  <!-- Standard applicant name -->
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="standardApplicantName"
-      label="Applicant name"
-      hint="Enter the standard applicant’s name"
-      idPrefix="ppi-standard-applicant"
-    />
-  </div>
-  <!-- Respondent first name -->
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="respondentFirst"
-      label="Respondent first name"
-      hint="Enter the respondent’s first name"
-      idPrefix="ppi-respondent-first"
-    />
-  </div>
-  <!-- Respondent surname -->
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="respondentSurname"
-      label="Respondent surname"
-      hint="Enter the respondent’s surname"
-      idPrefix="ppi-respondent-surname"
-    />
-  </div>
-  <!-- Respondent organisation -->
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="respondentOrg"
-      label="Organisation"
-      hint="Enter the respondent’s organisation name"
-      idPrefix="ppi-respondent-org"
-    />
-  </div>
-</div>
+</app-reports-shared-form>

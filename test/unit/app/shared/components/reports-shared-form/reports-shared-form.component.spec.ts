@@ -164,6 +164,32 @@ describe('ReportsSharedFormComponent', () => {
     ).toBe(true);
   });
 
+  it('supports custom location labels and other location before CJA', () => {
+    fixture.componentRef.setInput('otherLocationLabel', 'Other Location');
+    fixture.componentRef.setInput('cjaLabel', 'CJA');
+    fixture.componentRef.setInput(
+      'locationFieldsOrder',
+      'other-location-first',
+    );
+    fixture.detectChanges();
+
+    const otherLocation = fixture.debugElement.query(
+      By.css('app-text-input[formControlName="otherLocation"]'),
+    );
+    const cja = fixture.debugElement.query(
+      By.css('app-suggestions[formControlName="cja"]'),
+    );
+
+    expect(otherLocation.componentInstance.label()).toBe('Other Location');
+    expect(cja.componentInstance.label()).toBe('CJA');
+    expect(
+      Boolean(
+        otherLocation.nativeElement.compareDocumentPosition(cja.nativeElement) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    ).toBe(true);
+  });
+
   it('opens advanced filters when an advanced field has an error', () => {
     fixture.componentRef.setInput('advancedFilters', true);
     fixture.componentRef.setInput('submitted', true);

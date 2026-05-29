@@ -88,6 +88,20 @@ class PlaceFieldsOtherLocationHostComponent extends PlaceFieldsBase {
       cja$: this.refStub.cja$.asObservable(),
     });
   }
+
+  initRequireOtherLocationForCja(): void {
+    this.initPlaceFields(
+      this.form,
+      {
+        courtLocations$: this.refStub.courtLocations$.asObservable(),
+        cja$: this.refStub.cja$.asObservable(),
+      },
+      {
+        requireLocationForCja: true,
+        clearCjaWhenDisabled: true,
+      },
+    );
+  }
 }
 
 describe('PlaceFieldsBase', () => {
@@ -168,6 +182,30 @@ describe('PlaceFieldsBase', () => {
     expect(otherComponent.form.controls.court.disabled).toBe(true);
     expect(otherComponent.form.controls.otherLocation.disabled).toBe(false);
     expect(otherComponent.form.controls.cja.disabled).toBe(false);
+  });
+
+  it('can require other location before CJA is enabled', () => {
+    const otherFixture = TestBed.createComponent(
+      PlaceFieldsOtherLocationHostComponent,
+    );
+    const otherComponent = otherFixture.componentInstance;
+
+    otherComponent.initRequireOtherLocationForCja();
+
+    expect(otherComponent.form.controls.cja.disabled).toBe(true);
+
+    otherComponent.form.controls.otherLocation.setValue('Somewhere');
+
+    expect(otherComponent.form.controls.court.disabled).toBe(true);
+    expect(otherComponent.form.controls.otherLocation.disabled).toBe(false);
+    expect(otherComponent.form.controls.cja.disabled).toBe(false);
+
+    otherComponent.form.controls.cja.setValue('C1');
+    otherComponent.form.controls.otherLocation.setValue('');
+
+    expect(otherComponent.form.controls.cja.value).toBe('');
+    expect(otherComponent.form.controls.cja.disabled).toBe(true);
+    expect(otherComponent.form.controls.court.disabled).toBe(false);
   });
 
   it('filters courthouses by name or code via onCourthouseInputChange', () => {

@@ -1,5 +1,5 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import {
   Component,
   DestroyRef,
@@ -11,20 +11,24 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
+  AbstractControl,
   FormControl,
   FormGroup,
   ReactiveFormsModule,
+  ValidatorFn,
   Validators,
 } from '@angular/forms';
 import { Subscription, take } from 'rxjs';
 
 import {
+  PrivateProsecutorsIndexReportFilterDto,
   ReportsState,
   initialReportsState,
   mapActivityAuditGroupToActivityAuditRequestParams,
   mapDurationGroupToDurationReportRequestParams,
   mapFeeGroupToFeesReportFilterDto,
   mapListMaintenanceGroupToListMaintenanceReportRequestParams,
+  mapPrivateProsecutorsIndexGroupToReportFilterDto,
   mapSearchWarrantsGroupToSearchWarrantsReportRequestParams,
   mapWorkloadGroupToWorkloadReportRequestParams,
 } from './util';
@@ -71,6 +75,7 @@ import { getHttpStatus, getProblemText } from '@util/http-error-to-text';
 import { PlaceFieldsBase } from '@util/place-fields.base';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { getTrimmedStringOrNullFromGroup } from '@util/string-helpers';
+import { setControlError } from '@util/validation-helpers';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 import { dateToOnOrAfterDateFromValidator } from '@validators/date-range.validator';
 
@@ -85,8 +90,18 @@ const REPORT_DATE_LABELS: Record<'dateFrom' | 'dateTo', string> = {
 
 const REPORT_POLL_INTERVAL_MS = 2_000;
 const REPORT_DATE_RANGE_VALIDATORS = [dateToOnOrAfterDateFromValidator()];
+const REPORT_JSON_ACCEPT = 'application/vnd.hmcts.appreg.v1+json';
+const PRIVATE_PROSECUTORS_INDEX_VALIDATORS = [
+  dateToOnOrAfterDateFromValidator(),
+  privateProsecutorsIndexLocationValidator(),
+];
 const REPORT_JSON_OPTIONS = {
-  httpHeaderAccept: 'application/vnd.hmcts.appreg.v1+json',
+  httpHeaderAccept: REPORT_JSON_ACCEPT,
+  transferCache: false,
+} as const;
+const REPORT_JSON_HTTP_OPTIONS = {
+  observe: 'response' as const,
+  headers: new HttpHeaders({ Accept: REPORT_JSON_ACCEPT }),
   transferCache: false,
 } as const;
 const REPORT_CSV_OPTIONS = {
@@ -102,6 +117,36 @@ const REPORT_LOCATION_RESET_VALUE = {
   otherLocation: '',
   cja: '',
 } as const;
+
+function privateProsecutorsIndexLocationValidator(): ValidatorFn {
+  return (ctrl: AbstractControl) => {
+    if (!(ctrl instanceof FormGroup)) {
+      return null;
+    }
+
+    const court = getTrimmedStringOrNullFromGroup(ctrl, 'court');
+    const otherLocation = getTrimmedStringOrNullFromGroup(
+      ctrl,
+      'otherLocation',
+    );
+    const cja = getTrimmedStringOrNullFromGroup(ctrl, 'cja');
+
+    setControlError(
+      ctrl,
+      'court',
+      'courtOtherLocationConflict',
+      !!court && !!otherLocation,
+    );
+    setControlError(
+      ctrl,
+      'cja',
+      'cjaRequiresOtherLocation',
+      !!cja && !otherLocation,
+    );
+
+    return null;
+  };
+}
 
 @Component({
   selector: 'app-reports',
@@ -125,6 +170,7 @@ const REPORT_LOCATION_RESET_VALUE = {
 export class Reports extends PlaceFieldsBase implements OnInit {
   private readonly componentDestroyRef = inject(DestroyRef);
   private readonly document = inject(DOCUMENT);
+  private readonly http = inject(HttpClient);
   private readonly jobPollingFacade = inject(JobPollingFacade);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly refFacade = inject(ReferenceDataFacade);
@@ -151,6 +197,8 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     signal<CreateWorkloadReportRequestParams | null>(null);
   private readonly createActivityAuditReportRequest =
     signal<CreateActivityAuditReportRequestParams | null>(null);
+  private readonly createPrivateProsecutorsIndexReportRequest =
+    signal<PrivateProsecutorsIndexReportFilterDto | null>(null);
 
   onCreateErrorClick = onCreateErrorClickFn;
 
@@ -276,18 +324,18 @@ export class Reports extends PlaceFieldsBase implements OnInit {
         dateTo: new FormControl<string | null>(null, {
           validators: [(c) => Validators.required(c)],
         }),
-        applicantSurnameOrOrg: new FormControl<string | null>(''),
-        applicantFirst: new FormControl<string | null>(''),
+        applicantFirstName: new FormControl<string | null>(''),
+        applicantSurname: new FormControl<string | null>(''),
         standardApplicantName: new FormControl<string | null>(''),
-        respondentFirst: new FormControl<string | null>(''),
+        respondentFirstName: new FormControl<string | null>(''),
         respondentSurname: new FormControl<string | null>(''),
-        respondentOrg: new FormControl<string | null>(''),
+        respondentOrganisationName: new FormControl<string | null>(''),
         court: new FormControl<string | null>(''),
         otherLocation: new FormControl<string | null>(''),
         cja: new FormControl<string | null>(''),
       },
       {
-        validators: REPORT_DATE_RANGE_VALIDATORS,
+        validators: PRIVATE_PROSECUTORS_INDEX_VALIDATORS,
       },
     ),
   });
@@ -364,6 +412,10 @@ export class Reports extends PlaceFieldsBase implements OnInit {
 
     if (this.form.controls.report.value === 'duration') {
       this.createDurationReport();
+    }
+
+    if (this.form.controls.report.value === 'private-prosecutors-index') {
+      this.createPrivateProsecutorsIndexReport();
     }
   }
 
@@ -466,6 +518,15 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     this.stopReportPolling();
     this.showReportProgress();
     this.createActivityAuditReportRequest.set(request);
+  }
+
+  private startCreatePrivateProsecutorsIndexReport(
+    request: PrivateProsecutorsIndexReportFilterDto,
+  ): void {
+    this.stopReportCreate();
+    this.stopReportPolling();
+    this.showReportProgress();
+    this.createPrivateProsecutorsIndexReportRequest.set(request);
   }
 
   private setupEffects(): void {
@@ -618,6 +679,28 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       },
       this.envInjector,
     );
+
+    // POST /reports/private-prosecutors-index/jobs
+    setupLoadEffect(
+      {
+        request: this.createPrivateProsecutorsIndexReportRequest,
+        load: (request) =>
+          this.http.post<JobAcknowledgement>(
+            '/reports/private-prosecutors-index/jobs',
+            request,
+            REPORT_JSON_HTTP_OPTIONS,
+          ),
+        onSuccess: (response) => {
+          this.createPrivateProsecutorsIndexReportRequest.set(null);
+          this.handleReportJobCreated(response);
+        },
+        onError: (err) => {
+          this.createPrivateProsecutorsIndexReportRequest.set(null);
+          this.showReportError(this.toReportRequestError(err));
+        },
+      },
+      this.envInjector,
+    );
   }
 
   fieldError(id: string): ErrorItem | undefined {
@@ -698,12 +781,12 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       case 'private-prosecutors-index':
         return {
           ...REPORT_DATE_RESET_VALUE,
-          applicantSurnameOrOrg: '',
-          applicantFirst: '',
+          applicantFirstName: '',
+          applicantSurname: '',
           standardApplicantName: '',
-          respondentFirst: '',
+          respondentFirstName: '',
           respondentSurname: '',
-          respondentOrg: '',
+          respondentOrganisationName: '',
           ...REPORT_LOCATION_RESET_VALUE,
         };
     }
@@ -746,6 +829,12 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   private createWorkloadReport(): void {
     this.startCreateWorkloadReport(
       mapWorkloadGroupToWorkloadReportRequestParams(this.workloadGroup),
+    );
+  }
+
+  private createPrivateProsecutorsIndexReport(): void {
+    this.startCreatePrivateProsecutorsIndexReport(
+      mapPrivateProsecutorsIndexGroupToReportFilterDto(this.ppiGroup),
     );
   }
 
@@ -795,6 +884,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     this.createSearchWarrantsReportRequest.set(null);
     this.createWorkloadReportRequest.set(null);
     this.createActivityAuditReportRequest.set(null);
+    this.createPrivateProsecutorsIndexReportRequest.set(null);
   }
 
   private handleReportJobStatus(job: PolledJobStatus): void {
@@ -1041,14 +1131,20 @@ export class Reports extends PlaceFieldsBase implements OnInit {
 
   private initSelectedForm(): void {
     // attach validators and init place fields for the selected section
+    const reportId = this.form.controls.report.value as ReportId | null;
     const group = this.selectedReportGroup();
 
-    if (!group || this.form.controls.report.value === 'activity-audit') {
+    if (!group || reportId === 'activity-audit') {
       // Activity audit is the only form without location fields
       return;
     }
 
-    this.initPlaceFields(group, this.refFacade);
+    const requireLocationForCja = reportId === 'private-prosecutors-index';
+
+    this.initPlaceFields(group, this.refFacade, {
+      requireLocationForCja,
+      clearCjaWhenDisabled: requireLocationForCja,
+    });
     addLocationValidatorsToForm(group, () => this.state());
   }
 }

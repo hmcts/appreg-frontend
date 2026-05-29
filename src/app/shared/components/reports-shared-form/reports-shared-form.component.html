@@ -57,37 +57,49 @@
       <ng-container *ngTemplateOutlet="courtField"></ng-container>
     }
 
-    <div class="govuk-grid-row">
-      <!-- CJA -->
-      <app-suggestions
-        id="cja"
-        tabindex="-1"
-        label="Criminal justice area"
-        formControlName="cja"
-        [search]="suggestions().cjaSearch()"
-        (searchChange)="
-          suggestions().setCjaSearch($event); suggestions().onCjaInputChange()
-        "
-        [suggestions]="suggestions().filteredCja()"
-        (selectItem)="suggestions().selectCja($event)"
-        [showError]="showError('cja')"
-        [errorText]="errorText('cja')"
-        containerWidthClass="govuk-grid-column-one-quarter"
-        widthClass="govuk-!-width-full"
-      />
-    </div>
+    <ng-template #cjaField>
+      <div class="govuk-grid-row">
+        <!-- CJA -->
+        <app-suggestions
+          id="cja"
+          tabindex="-1"
+          [label]="cjaLabel()"
+          formControlName="cja"
+          [search]="suggestions().cjaSearch()"
+          (searchChange)="
+            suggestions().setCjaSearch($event); suggestions().onCjaInputChange()
+          "
+          [suggestions]="suggestions().filteredCja()"
+          (selectItem)="suggestions().selectCja($event)"
+          [showError]="showError('cja')"
+          [errorText]="errorText('cja')"
+          containerWidthClass="govuk-grid-column-one-quarter"
+          widthClass="govuk-!-width-full"
+        />
+      </div>
+    </ng-template>
 
-    <div class="govuk-grid-row">
-      <!-- Other location -->
-      <app-text-input
-        formControlName="otherLocation"
-        label="Other location description"
-        idPrefix="other-location"
-        [error]="errorText('otherLocation')"
-        containerWidthClass="govuk-grid-column-one-quarter"
-        widthClass="govuk-!-width-full"
-      />
-    </div>
+    <ng-template #otherLocationField>
+      <div class="govuk-grid-row">
+        <!-- Other location -->
+        <app-text-input
+          formControlName="otherLocation"
+          [label]="otherLocationLabel()"
+          idPrefix="other-location"
+          [error]="errorText('otherLocation')"
+          containerWidthClass="govuk-grid-column-one-quarter"
+          widthClass="govuk-!-width-full"
+        />
+      </div>
+    </ng-template>
+
+    @if (locationFieldsOrder() === 'other-location-first') {
+      <ng-container *ngTemplateOutlet="otherLocationField"></ng-container>
+      <ng-container *ngTemplateOutlet="cjaField"></ng-container>
+    } @else {
+      <ng-container *ngTemplateOutlet="cjaField"></ng-container>
+      <ng-container *ngTemplateOutlet="otherLocationField"></ng-container>
+    }
   </ng-template>
 
   @if (advancedFilters()) {

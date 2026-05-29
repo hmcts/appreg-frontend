@@ -10,9 +10,16 @@ export const REPORTS_FORM_ERROR_MESSAGES = {
   court: {
     courtNotFound:
       APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES.court.courtNotFound,
+    courtOtherLocationConflict:
+      'Enter either Court or Other Location, not both',
+  },
+  otherLocation: {
+    locationRequired:
+      APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES.location.locationRequired,
   },
   cja: {
     cjaNotFound: APPLICATIONS_LIST_CREATE_FORM_ERROR_MESSAGES.cja.cjaNotFound,
+    cjaRequiresOtherLocation: 'Enter Other Location before entering CJA',
   },
   activity: {
     required: 'At least 1 activity is required',
@@ -59,6 +66,7 @@ export const REPORT_ERROR_HREFS: Record<ReportId, Record<string, string>> = {
     dateFrom: '#list-date-from',
     dateTo: '#list-date-to',
     court: '#court',
+    otherLocation: '#other-location',
     cja: '#cja',
   },
 };
