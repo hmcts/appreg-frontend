@@ -58,6 +58,8 @@ run_sanitized() {
     "CI=${CI:-true}" \
     "GITHUB_ACTIONS=${GITHUB_ACTIONS:-true}" \
     "COREPACK_HOME=${sanitized_home}/.cache/corepack" \
+    "FRONTEND_FAST_COMMAND=${FRONTEND_FAST_COMMAND:-}" \
+    "FRONTEND_FULL_COMMAND=${FRONTEND_FULL_COMMAND:-}" \
     "GIT_CONFIG_GLOBAL=/dev/null" \
     "GIT_CONFIG_NOSYSTEM=1" \
     "GIT_TERMINAL_PROMPT=0" \
