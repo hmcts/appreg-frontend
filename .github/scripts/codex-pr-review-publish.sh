@@ -20,10 +20,10 @@ required_env "EXPECTED_HEAD_REF"
 
 output_dir="${OUTPUT_DIR}"
 metadata_path="${output_dir}/metadata.env"
-patch_path="${output_dir}/changes.patch"
 final_message_path="${output_dir}/codex-final-message.md"
 verification_dir="${VERIFICATION_DIR}"
 verification_path="${verification_dir}/verification.env"
+patch_path="${verification_dir}/changes.patch"
 comment_body_path="${verification_dir}/codex-review-comment.md"
 sanitized_home="${RUNNER_TEMP:-/tmp}/codex-review-publish-home"
 sanitized_tmp="${RUNNER_TEMP:-/tmp}/codex-review-publish-tmp"
@@ -144,7 +144,7 @@ if [[ "${verified_has_changes}" != "true" || "${verified_pr_number}" != "${pr_nu
 fi
 
 if [[ ! -s "${patch_path}" ]]; then
-  echo "Missing or empty Codex review patch artifact: ${patch_path}" >&2
+  echo "Missing or empty verified Codex review patch artifact: ${patch_path}" >&2
   exit 1
 fi
 
