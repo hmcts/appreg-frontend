@@ -89,7 +89,7 @@ PY
 )"
 branch_name="codex/${branch_slug}-${run_id}-${run_attempt}"
 
-python3 -I - <<'PY'
+PROMPT_PATH="${prompt_path}" PR_BODY_PATH="${pr_body_path}" python3 -I - <<'PY'
 import os
 from pathlib import Path
 

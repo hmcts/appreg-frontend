@@ -361,7 +361,7 @@ if ! git_read_authenticated ls-remote --exit-code --heads origin "${HEAD_REF}" >
   exit 0
 fi
 
-python3 - <<'PY'
+PROMPT_PATH="${prompt_path}" python3 - <<'PY'
 import os
 from pathlib import Path
 
