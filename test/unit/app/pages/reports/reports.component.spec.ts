@@ -110,6 +110,29 @@ describe('ReportsComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('shows the clear filters button for every report type', () => {
+    const reportIds = [
+      'activity-audit',
+      'fees',
+      'list-maintenance',
+      'search-warrants',
+      'workload',
+      'duration',
+      'private-prosecutors-index',
+    ];
+
+    for (const reportId of reportIds) {
+      component.form.controls.report.setValue(reportId);
+      fixture.detectChanges();
+
+      const clearButton = Array.from<HTMLButtonElement>(
+        fixture.nativeElement.querySelectorAll('button'),
+      ).find((button) => button.textContent?.trim() === 'Clear filters');
+
+      expect(clearButton).toBeTruthy();
+    }
+  });
+
   it('filters search warrant court suggestions via the facade', () => {
     component.form.controls.report.setValue('search-warrants');
     fixture.detectChanges();
@@ -542,6 +565,53 @@ describe('ReportsComponent', () => {
         .querySelector('#date-to-day')
         ?.classList.contains('govuk-input--error'),
     ).toBe(false);
+  });
+
+  it('clears the selected report filters and validation state', () => {
+    component.form.controls.report.setValue('workload');
+    component.workloadGroup.patchValue({
+      dateFrom: '2026-02-01',
+      dateTo: '2026-01-31',
+    });
+    component.suggestionsFacade.selectCourthouse({
+      locationCode: 'A1',
+      name: 'Alpha Court',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().submitted).toBe(true);
+    expect(component.vm().errorSummary).toHaveLength(1);
+    expect(component.suggestionsFacade.courthouseSearch()).toBe(
+      'A1 - Alpha Court',
+    );
+    expect(component.workloadGroup.get('otherLocation')?.disabled).toBe(true);
+    expect(component.workloadGroup.get('cja')?.disabled).toBe(true);
+
+    component.onClearFilters();
+    fixture.detectChanges();
+
+    expect(component.form.controls.report.value).toBe('workload');
+    expect(component.vm().submitted).toBe(false);
+    expect(component.vm().errorSummary).toEqual([]);
+    expect(component.vm().reportFeedback).toBeNull();
+    expect(component.suggestionsFacade.courthouseSearch()).toBe('');
+    expect(component.suggestionsFacade.cjaSearch()).toBe('');
+    expect(component.workloadGroup.getRawValue()).toEqual({
+      dateFrom: null,
+      dateTo: null,
+      court: '',
+      otherLocation: '',
+      cja: '',
+    });
+    expect(component.workloadGroup.get('court')?.enabled).toBe(true);
+    expect(component.workloadGroup.get('otherLocation')?.enabled).toBe(true);
+    expect(component.workloadGroup.get('cja')?.enabled).toBe(true);
+    expect(
+      fixture.nativeElement.querySelector('app-error-summary'),
+    ).toBeFalsy();
   });
 
   it('blocks list maintenance download when date to is before date from', () => {

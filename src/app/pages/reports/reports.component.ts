@@ -93,6 +93,15 @@ const REPORT_CSV_OPTIONS = {
   httpHeaderAccept: 'text/csv',
   transferCache: false,
 } as const;
+const REPORT_DATE_RESET_VALUE = {
+  dateFrom: null,
+  dateTo: null,
+} as const;
+const REPORT_LOCATION_RESET_VALUE = {
+  court: '',
+  otherLocation: '',
+  cja: '',
+} as const;
 
 @Component({
   selector: 'app-reports',
@@ -356,6 +365,29 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     if (this.form.controls.report.value === 'duration') {
       this.createDurationReport();
     }
+  }
+
+  onClearFilters(): void {
+    const reportId = this.form.controls.report.value as ReportId | null;
+    const selectedGroup = this.reportGroupFor(reportId);
+
+    if (!reportId || !selectedGroup || this.isReportInProgress()) {
+      return;
+    }
+
+    this.stopReportCreate();
+    this.stopReportPolling();
+    this.clearLocationSearchState();
+    selectedGroup.enable({ emitEvent: false });
+    selectedGroup.reset(this.emptyReportFormValue(reportId));
+    selectedGroup.markAsPristine();
+    selectedGroup.markAsUntouched();
+    selectedGroup.updateValueAndValidity({ emitEvent: false });
+    this.reportStatePatch({
+      submitted: false,
+      errorSummary: [],
+      reportFeedback: null,
+    });
   }
 
   /** Handy getter for the child binding */
@@ -633,6 +665,57 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     });
     this.reportGroupFor(reportId)?.markAsPristine();
     this.reportGroupFor(reportId)?.markAsUntouched();
+  }
+
+  private emptyReportFormValue(reportId: ReportId): Record<string, unknown> {
+    switch (reportId) {
+      case 'activity-audit':
+        return {
+          ...REPORT_DATE_RESET_VALUE,
+          username: '',
+          activity: [],
+        };
+      case 'fees':
+        return {
+          ...REPORT_DATE_RESET_VALUE,
+          standardApplicantCode: '',
+          surnameOrOrg: '',
+          ...REPORT_LOCATION_RESET_VALUE,
+        };
+      case 'list-maintenance':
+        return {
+          ...REPORT_DATE_RESET_VALUE,
+          description: '',
+          ...REPORT_LOCATION_RESET_VALUE,
+        };
+      case 'search-warrants':
+      case 'workload':
+      case 'duration':
+        return {
+          ...REPORT_DATE_RESET_VALUE,
+          ...REPORT_LOCATION_RESET_VALUE,
+        };
+      case 'private-prosecutors-index':
+        return {
+          ...REPORT_DATE_RESET_VALUE,
+          applicantSurnameOrOrg: '',
+          applicantFirst: '',
+          standardApplicantName: '',
+          respondentFirst: '',
+          respondentSurname: '',
+          respondentOrg: '',
+          ...REPORT_LOCATION_RESET_VALUE,
+        };
+    }
+  }
+
+  private clearLocationSearchState(): void {
+    this.patch({
+      courthouseSearch: '',
+      cjaSearch: '',
+      filteredCourthouses: [],
+      filteredCja: [],
+    });
   }
 
   private createListMaintenanceReport(): void {
