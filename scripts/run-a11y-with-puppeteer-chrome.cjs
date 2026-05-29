@@ -8,9 +8,7 @@ function runYarn(args, options = {}) {
   const runEntrypointWithNode =
     yarnEntrypoint &&
     (process.platform === 'win32' || /\.c?js$/.test(yarnEntrypoint));
-  const command = runEntrypointWithNode
-    ? process.execPath
-    : (yarnEntrypoint ?? 'yarn');
+  const command = runEntrypointWithNode ? process.execPath : yarnEntrypoint;
   const commandArgs = runEntrypointWithNode ? [yarnEntrypoint, ...args] : args;
 
   const result = spawnSync(command, commandArgs, {
@@ -28,16 +26,9 @@ function runYarn(args, options = {}) {
 }
 
 function assertExecutable(executablePath) {
-  try {
-    const mode =
-      process.platform === 'win32' ? fs.constants.F_OK : fs.constants.X_OK;
-    fs.accessSync(executablePath, mode);
-  } catch {
-    console.error(
-      `Puppeteer Chrome executable was not found at ${executablePath}`,
-    );
-    process.exit(1);
-  }
+  const mode =
+    process.platform === 'win32' ? fs.constants.F_OK : fs.constants.X_OK;
+  fs.accessSync(executablePath, mode);
 }
 
 const install = runYarn(
@@ -46,14 +37,13 @@ const install = runYarn(
 );
 
 if (install.status !== 0) {
-  process.exit(install.status ?? 1);
+  process.exit(install.status);
 }
 
 const executablePath = install.stdout
   .split(/\r?\n/)
   .map((line) => line.trim())
-  .filter(Boolean)
-  .at(-1);
+  .findLast(Boolean);
 
 if (!executablePath) {
   console.error('Puppeteer did not report a Chrome executable path.');
@@ -66,4 +56,4 @@ console.log(`Puppeteer Chrome executable: ${executablePath}`);
 process.env.PUPPETEER_EXECUTABLE_PATH = executablePath;
 
 const a11y = runYarn(['test:a11y']);
-process.exit(a11y.status ?? 1);
+process.exit(a11y.status);
