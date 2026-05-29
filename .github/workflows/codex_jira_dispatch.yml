@@ -175,8 +175,8 @@ jobs:
       ISSUE_STATUS: ${{ inputs.status }}
       ISSUE_ASSIGNEE: ${{ inputs.assignee }}
       ISSUE_URL: ${{ inputs.issueUrl }}
-      REPAIR_ATTEMPT: "1"
-      MAX_CODEX_REPAIR_ATTEMPTS: "3"
+      REPAIR_ATTEMPT: '1'
+      MAX_CODEX_REPAIR_ATTEMPTS: '3'
       CODEX_INPUT_ARTIFACT: ${{ needs.verify-codex-output.outputs.output_artifact }}
       CODEX_FAILURE_ARTIFACT: ${{ needs.verify-codex-output.outputs.failure_artifact }}
       CODEX_OUTPUT_ARTIFACT: codex-jira-output-repair-1
@@ -321,8 +321,8 @@ jobs:
       ISSUE_STATUS: ${{ inputs.status }}
       ISSUE_ASSIGNEE: ${{ inputs.assignee }}
       ISSUE_URL: ${{ inputs.issueUrl }}
-      REPAIR_ATTEMPT: "2"
-      MAX_CODEX_REPAIR_ATTEMPTS: "3"
+      REPAIR_ATTEMPT: '2'
+      MAX_CODEX_REPAIR_ATTEMPTS: '3'
       CODEX_INPUT_ARTIFACT: ${{ needs.verify-codex-output-1.outputs.output_artifact }}
       CODEX_FAILURE_ARTIFACT: ${{ needs.verify-codex-output-1.outputs.failure_artifact }}
       CODEX_OUTPUT_ARTIFACT: codex-jira-output-repair-2
@@ -467,8 +467,8 @@ jobs:
       ISSUE_STATUS: ${{ inputs.status }}
       ISSUE_ASSIGNEE: ${{ inputs.assignee }}
       ISSUE_URL: ${{ inputs.issueUrl }}
-      REPAIR_ATTEMPT: "3"
-      MAX_CODEX_REPAIR_ATTEMPTS: "3"
+      REPAIR_ATTEMPT: '3'
+      MAX_CODEX_REPAIR_ATTEMPTS: '3'
       CODEX_INPUT_ARTIFACT: ${{ needs.verify-codex-output-2.outputs.output_artifact }}
       CODEX_FAILURE_ARTIFACT: ${{ needs.verify-codex-output-2.outputs.failure_artifact }}
       CODEX_OUTPUT_ARTIFACT: codex-jira-output-repair-3
