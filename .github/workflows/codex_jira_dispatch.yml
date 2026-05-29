@@ -125,7 +125,7 @@ jobs:
         env:
           OUTPUT_DIR: ${{ runner.temp }}/codex-output
           VERIFICATION_DIR: ${{ runner.temp }}/codex-verified
-        run: "$RUNNER_TEMP/codex-jira-publish.sh"
+        run: '$RUNNER_TEMP/codex-jira-publish.sh'
 
       - name: Write workflow summary
         if: always()
