@@ -116,36 +116,6 @@ git_sanitized() {
     "$@"
 }
 
-ensure_frontend_formatter() {
-  if [[ -x "node_modules/.bin/prettier" ]]; then
-    return
-  fi
-
-  echo "Installing frontend dependencies for pre-patch formatting."
-  run_sanitized node .yarn/releases/yarn-4.10.3.cjs install --immutable --mode=skip-builds
-}
-
-format_changed_files() {
-  local changed_files=()
-
-  while IFS= read -r path; do
-    changed_files+=("${path}")
-  done < <(
-    {
-      git_sanitized diff --name-only --diff-filter=ACMR
-      git_sanitized ls-files --others --exclude-standard
-    } | sort -u
-  )
-
-  if [[ "${#changed_files[@]}" -eq 0 ]]; then
-    return
-  fi
-
-  ensure_frontend_formatter
-  echo "Applying Prettier before creating the Codex review patch."
-  run_sanitized node .yarn/releases/yarn-4.10.3.cjs prettier --write --ignore-unknown "${changed_files[@]}"
-}
-
 git_read_authenticated() {
   env -i \
     "HOME=${sanitized_home}" \
@@ -475,8 +445,6 @@ run_codex codex exec \
 if [[ ! -s "${final_message_path}" ]]; then
   echo "Codex completed without writing a final message." >"${final_message_path}"
 fi
-
-format_changed_files
 
 if [[ -z "$(git_sanitized status --short --untracked-files=normal)" ]]; then
   {

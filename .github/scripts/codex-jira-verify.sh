@@ -155,6 +155,39 @@ append_guardrail_warning() {
   } >>"${pr_body_path}"
 }
 
+ensure_frontend_formatter() {
+  if [[ -x "node_modules/.bin/prettier" ]]; then
+    return
+  fi
+
+  echo "Installing frontend dependencies for pre-verification formatting."
+  run_sanitized node .yarn/releases/yarn-4.10.3.cjs install --immutable --mode=skip-builds
+}
+
+format_verified_patch() {
+  local changed_files=()
+
+  while IFS= read -r path; do
+    changed_files+=("${path}")
+  done < <(git_sanitized diff --cached --name-only --diff-filter=ACMR | sort -u)
+
+  if [[ "${#changed_files[@]}" -eq 0 ]]; then
+    return
+  fi
+
+  ensure_frontend_formatter
+  echo "Applying Prettier before verifying and publishing the Codex patch."
+  run_sanitized node .yarn/releases/yarn-4.10.3.cjs prettier --write --ignore-unknown "${changed_files[@]}"
+
+  git_sanitized add -A
+  if git_sanitized diff --cached --quiet; then
+    echo "Codex patch has no staged changes after formatting." >&2
+    exit 1
+  fi
+
+  git_sanitized diff --cached --binary >"${patch_path}"
+}
+
 mkdir -p "${artifact_dir}" "${sanitized_home}" "${sanitized_tmp}"
 
 branch_name="$(metadata_value branch_name)"
@@ -168,15 +201,17 @@ if [[ ! -s "${patch_path}" ]]; then
   exit 1
 fi
 
-patch_sha="$(file_sha256 "${patch_path}")"
-
 cp bin/codex-local-pipeline.sh "${trusted_pipeline_path}"
 chmod +x "${trusted_pipeline_path}"
 trusted_pipeline_sha="$(file_sha256 "${trusted_pipeline_path}")"
 
 git_read_authenticated fetch origin "${default_branch}:refs/remotes/origin/${default_branch}"
+unset GH_TOKEN
 git_sanitized checkout -B "${default_branch}" "origin/${default_branch}"
 git_sanitized apply --index --binary "${patch_path}"
+
+format_verified_patch
+patch_sha="$(file_sha256 "${patch_path}")"
 
 detect_guardrail_changes
 append_guardrail_warning

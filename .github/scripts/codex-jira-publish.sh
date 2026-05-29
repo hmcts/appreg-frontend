@@ -22,9 +22,9 @@ required_env "EXPECTED_BRANCH_NAME"
 default_branch="${DEFAULT_BRANCH:-master}"
 output_dir="${OUTPUT_DIR}"
 metadata_path="${output_dir}/metadata.env"
-patch_path="${output_dir}/changes.patch"
 verification_dir="${VERIFICATION_DIR}"
 verification_path="${verification_dir}/verification.env"
+patch_path="${verification_dir}/changes.patch"
 pr_body_path="${verification_dir}/codex-pr-body.md"
 trusted_notify_path="${RUNNER_TEMP:-/tmp}/trusted-notify-jira-automation.py"
 sanitized_home="${RUNNER_TEMP:-/tmp}/codex-jira-publish-home"
@@ -140,7 +140,7 @@ if [[ "${branch_name}" != "${EXPECTED_BRANCH_NAME}" || "${branch_name}" != "${ve
 fi
 
 if [[ ! -s "${patch_path}" ]]; then
-  echo "Missing or empty Codex patch artifact: ${patch_path}" >&2
+  echo "Missing or empty verified Codex patch artifact: ${patch_path}" >&2
   exit 1
 fi
 

@@ -110,36 +110,6 @@ git_sanitized() {
     "$@"
 }
 
-ensure_frontend_formatter() {
-  if [[ -x "node_modules/.bin/prettier" ]]; then
-    return
-  fi
-
-  echo "Installing frontend dependencies for pre-patch formatting."
-  run_sanitized node .yarn/releases/yarn-4.10.3.cjs install --immutable --mode=skip-builds
-}
-
-format_changed_files() {
-  local changed_files=()
-
-  while IFS= read -r path; do
-    changed_files+=("${path}")
-  done < <(
-    {
-      git_sanitized diff --name-only --diff-filter=ACMR
-      git_sanitized ls-files --others --exclude-standard
-    } | sort -u
-  )
-
-  if [[ "${#changed_files[@]}" -eq 0 ]]; then
-    return
-  fi
-
-  ensure_frontend_formatter
-  echo "Applying Prettier before creating the repaired Codex patch."
-  run_sanitized node .yarn/releases/yarn-4.10.3.cjs prettier --write --ignore-unknown "${changed_files[@]}"
-}
-
 mkdir -p "${artifact_dir}" "${sanitized_home}" "${sanitized_tmp}" "${output_dir}"
 prepare_codex_home
 
@@ -240,8 +210,6 @@ fi
   echo
   sed -n '1,200p' "${final_message_path}"
 } >>"${pr_body_path}"
-
-format_changed_files
 
 if [[ -z "$(git_sanitized status --short --untracked-files=normal)" ]]; then
   echo "Codex repair left no committable changes." >&2

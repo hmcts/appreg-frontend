@@ -142,6 +142,7 @@ jobs:
         with:
           name: ${{ env.CODEX_VERIFIED_ARTIFACT }}
           path: |
+            ${{ runner.temp }}/codex-output/changes.patch
             ${{ runner.temp }}/codex-output/codex-pr-body.md
             ${{ runner.temp }}/codex-output/guardrail-changes.txt
             ${{ runner.temp }}/codex-output/verification.env
@@ -288,6 +289,7 @@ jobs:
         with:
           name: ${{ env.CODEX_VERIFIED_ARTIFACT }}
           path: |
+            ${{ runner.temp }}/codex-output/changes.patch
             ${{ runner.temp }}/codex-output/codex-pr-body.md
             ${{ runner.temp }}/codex-output/guardrail-changes.txt
             ${{ runner.temp }}/codex-output/verification.env
@@ -434,6 +436,7 @@ jobs:
         with:
           name: ${{ env.CODEX_VERIFIED_ARTIFACT }}
           path: |
+            ${{ runner.temp }}/codex-output/changes.patch
             ${{ runner.temp }}/codex-output/codex-pr-body.md
             ${{ runner.temp }}/codex-output/guardrail-changes.txt
             ${{ runner.temp }}/codex-output/verification.env
@@ -580,6 +583,7 @@ jobs:
         with:
           name: ${{ env.CODEX_VERIFIED_ARTIFACT }}
           path: |
+            ${{ runner.temp }}/codex-output/changes.patch
             ${{ runner.temp }}/codex-output/codex-pr-body.md
             ${{ runner.temp }}/codex-output/guardrail-changes.txt
             ${{ runner.temp }}/codex-output/verification.env
