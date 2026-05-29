@@ -246,7 +246,8 @@ jobs:
       EXPECTED_PR_NUMBER: ${{ needs.detect-codex-pr.outputs.pr_number }}
       EXPECTED_HEAD_REF: ${{ needs.detect-codex-pr.outputs.head_ref }}
       GH_TOKEN: ${{ github.token }}
-      LOCAL_PIPELINE_MODE: checks-only
+      LOCAL_PIPELINE_MODE: fast
+      FRONTEND_FAST_COMMAND: yarn lint
 
     steps:
       - name: Checkout default branch
@@ -255,6 +256,11 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
 
       - name: Download Codex review output
         uses: actions/download-artifact@v4
