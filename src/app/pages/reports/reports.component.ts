@@ -22,6 +22,7 @@ import {
   ReportsState,
   initialReportsState,
   mapActivityAuditGroupToActivityAuditRequestParams,
+  mapDurationGroupToDurationReportRequestParams,
   mapFeeGroupToFeesReportFilterDto,
   mapListMaintenanceGroupToListMaintenanceReportRequestParams,
   mapSearchWarrantsGroupToSearchWarrantsReportRequestParams,
@@ -50,6 +51,7 @@ import {
 import { reportOptions } from '@constants/reports/report-selector.constant';
 import {
   CreateActivityAuditReportRequestParams,
+  CreateDurationReportRequestParams,
   CreateFeesReportRequestParams,
   CreateListMaintenanceReportRequestParams,
   CreateSearchWarrantsReportRequestParams,
@@ -91,6 +93,15 @@ const REPORT_CSV_OPTIONS = {
   httpHeaderAccept: 'text/csv',
   transferCache: false,
 } as const;
+const REPORT_DATE_RESET_VALUE = {
+  dateFrom: null,
+  dateTo: null,
+} as const;
+const REPORT_LOCATION_RESET_VALUE = {
+  court: '',
+  otherLocation: '',
+  cja: '',
+} as const;
 
 @Component({
   selector: 'app-reports',
@@ -128,6 +139,8 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   private previousReportId: ReportId | null = null;
   private reportPollingSub: Subscription | null = null;
 
+  private readonly createDurationReportRequest =
+    signal<CreateDurationReportRequestParams | null>(null);
   private readonly createFeesReportRequest =
     signal<CreateFeesReportRequestParams | null>(null);
   private readonly createListMaintenanceReportRequest =
@@ -348,6 +361,33 @@ export class Reports extends PlaceFieldsBase implements OnInit {
 
       this.startCreateActivityAuditReport(request);
     }
+
+    if (this.form.controls.report.value === 'duration') {
+      this.createDurationReport();
+    }
+  }
+
+  onClearFilters(): void {
+    const reportId = this.form.controls.report.value as ReportId | null;
+    const selectedGroup = this.reportGroupFor(reportId);
+
+    if (!reportId || !selectedGroup || this.isReportInProgress()) {
+      return;
+    }
+
+    this.stopReportCreate();
+    this.stopReportPolling();
+    this.clearLocationSearchState();
+    selectedGroup.enable({ emitEvent: false });
+    selectedGroup.reset(this.emptyReportFormValue(reportId));
+    selectedGroup.markAsPristine();
+    selectedGroup.markAsUntouched();
+    selectedGroup.updateValueAndValidity({ emitEvent: false });
+    this.reportStatePatch({
+      submitted: false,
+      errorSummary: [],
+      reportFeedback: null,
+    });
   }
 
   /** Handy getter for the child binding */
@@ -392,6 +432,15 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     this.createFeesReportRequest.set(request);
   }
 
+  private startCreateDurationReport(
+    request: CreateDurationReportRequestParams,
+  ): void {
+    this.stopReportCreate();
+    this.stopReportPolling();
+    this.showReportProgress();
+    this.createDurationReportRequest.set(request);
+  }
+
   private startCreateSearchWarrantsReport(
     request: CreateSearchWarrantsReportRequestParams,
   ): void {
@@ -420,6 +469,29 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   }
 
   private setupEffects(): void {
+    // POST /reports/duration/jobs
+    setupLoadEffect(
+      {
+        request: this.createDurationReportRequest,
+        load: (request) =>
+          this.reportsApi.createDurationReport(
+            request,
+            'response',
+            false,
+            REPORT_JSON_OPTIONS,
+          ),
+        onSuccess: (response) => {
+          this.createDurationReportRequest.set(null);
+          this.handleReportJobCreated(response);
+        },
+        onError: (err) => {
+          this.createDurationReportRequest.set(null);
+          this.showReportError(this.toReportRequestError(err));
+        },
+      },
+      this.envInjector,
+    );
+
     // POST /reports/fees/jobs
     setupLoadEffect(
       {
@@ -595,6 +667,57 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     this.reportGroupFor(reportId)?.markAsUntouched();
   }
 
+  private emptyReportFormValue(reportId: ReportId): Record<string, unknown> {
+    switch (reportId) {
+      case 'activity-audit':
+        return {
+          ...REPORT_DATE_RESET_VALUE,
+          username: '',
+          activity: [],
+        };
+      case 'fees':
+        return {
+          ...REPORT_DATE_RESET_VALUE,
+          standardApplicantCode: '',
+          surnameOrOrg: '',
+          ...REPORT_LOCATION_RESET_VALUE,
+        };
+      case 'list-maintenance':
+        return {
+          ...REPORT_DATE_RESET_VALUE,
+          description: '',
+          ...REPORT_LOCATION_RESET_VALUE,
+        };
+      case 'search-warrants':
+      case 'workload':
+      case 'duration':
+        return {
+          ...REPORT_DATE_RESET_VALUE,
+          ...REPORT_LOCATION_RESET_VALUE,
+        };
+      case 'private-prosecutors-index':
+        return {
+          ...REPORT_DATE_RESET_VALUE,
+          applicantSurnameOrOrg: '',
+          applicantFirst: '',
+          standardApplicantName: '',
+          respondentFirst: '',
+          respondentSurname: '',
+          respondentOrg: '',
+          ...REPORT_LOCATION_RESET_VALUE,
+        };
+    }
+  }
+
+  private clearLocationSearchState(): void {
+    this.patch({
+      courthouseSearch: '',
+      cjaSearch: '',
+      filteredCourthouses: [],
+      filteredCja: [],
+    });
+  }
+
   private createListMaintenanceReport(): void {
     this.stopReportCreate();
     this.stopReportPolling();
@@ -603,6 +726,12 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       mapListMaintenanceGroupToListMaintenanceReportRequestParams(
         this.listMaintenanceGroup,
       ),
+    );
+  }
+
+  private createDurationReport(): void {
+    this.startCreateDurationReport(
+      mapDurationGroupToDurationReportRequestParams(this.durationGroup),
     );
   }
 
@@ -660,6 +789,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   }
 
   private stopReportCreate(): void {
+    this.createDurationReportRequest.set(null);
     this.createFeesReportRequest.set(null);
     this.createListMaintenanceReportRequest.set(null);
     this.createSearchWarrantsReportRequest.set(null);

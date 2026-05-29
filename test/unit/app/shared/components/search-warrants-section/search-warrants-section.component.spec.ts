@@ -88,4 +88,42 @@ describe('SearchWarrantsSectionComponent', () => {
 
     expect(formGroup.form).toBe(group);
   });
+
+  it('keeps dates and court outside advanced filters', () => {
+    const details = fixture.nativeElement.querySelector(
+      'details.govuk-details',
+    ) as HTMLDetailsElement;
+    const dateInputs = fixture.nativeElement.querySelectorAll(
+      'app-date-input',
+    ) as NodeListOf<HTMLElement>;
+    const court = fixture.nativeElement.querySelector(
+      'app-suggestions[formControlName="court"]',
+    ) as HTMLElement;
+
+    expect(details).toBeTruthy();
+    expect(dateInputs).toHaveLength(2);
+    expect(court).toBeTruthy();
+    expect(details.contains(dateInputs[0])).toBe(false);
+    expect(details.contains(dateInputs[1])).toBe(false);
+    expect(details.contains(court)).toBe(false);
+    expect(details.textContent).toContain('Advanced filters');
+  });
+
+  it('renders CJA and other location inside advanced filters', () => {
+    const details = fixture.nativeElement.querySelector(
+      'details.govuk-details',
+    ) as HTMLDetailsElement;
+    const cja = fixture.nativeElement.querySelector(
+      'app-suggestions[formControlName="cja"]',
+    ) as HTMLElement;
+    const otherLocation = fixture.nativeElement.querySelector(
+      'app-text-input[formControlName="otherLocation"]',
+    ) as HTMLElement;
+
+    expect(details).toBeTruthy();
+    expect(cja).toBeTruthy();
+    expect(otherLocation).toBeTruthy();
+    expect(details.contains(cja)).toBe(true);
+    expect(details.contains(otherLocation)).toBe(true);
+  });
 });

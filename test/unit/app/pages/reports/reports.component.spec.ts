@@ -9,6 +9,7 @@ import { provideRouter } from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
 
 import { DateInputComponent } from '@components/date-input/date-input.component';
+import { DurationSectionComponent } from '@components/duration-section/duration-section.component';
 import { Reports } from '@components/reports/reports.component';
 import { SearchWarrantsSectionComponent } from '@components/search-warrants-section/search-warrants-section.component';
 import { WorkloadSectionComponent } from '@components/workload-section/workload-section.component';
@@ -34,6 +35,7 @@ const refFacadeStub: Pick<ReferenceDataFacade, 'courtLocations$' | 'cja$'> = {
 };
 
 const reportsApiMock = {
+  createDurationReport: jest.fn(),
   createFeesReport: jest.fn(),
   createListMaintenanceReport: jest.fn(),
   createSearchWarrantsReport: jest.fn(),
@@ -108,6 +110,29 @@ describe('ReportsComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('shows the clear filters button for every report type', () => {
+    const reportIds = [
+      'activity-audit',
+      'fees',
+      'list-maintenance',
+      'search-warrants',
+      'workload',
+      'duration',
+      'private-prosecutors-index',
+    ];
+
+    for (const reportId of reportIds) {
+      component.form.controls.report.setValue(reportId);
+      fixture.detectChanges();
+
+      const clearButton = Array.from<HTMLButtonElement>(
+        fixture.nativeElement.querySelectorAll('button'),
+      ).find((button) => button.textContent?.trim() === 'Clear filters');
+
+      expect(clearButton).toBeTruthy();
+    }
+  });
+
   it('filters search warrant court suggestions via the facade', () => {
     component.form.controls.report.setValue('search-warrants');
     fixture.detectChanges();
@@ -146,6 +171,19 @@ describe('ReportsComponent', () => {
     ).componentInstance as WorkloadSectionComponent;
 
     expect(section.group()).toBe(component.workloadGroup);
+    expect(section.suggestions()).toBe(component.suggestionsFacade);
+    expect(section.getError()).toEqual(expect.any(Function));
+  });
+
+  it('passes the duration group and suggestions facade to the section', () => {
+    component.form.controls.report.setValue('duration');
+    fixture.detectChanges();
+
+    const section = fixture.debugElement.query(
+      By.directive(DurationSectionComponent),
+    ).componentInstance as DurationSectionComponent;
+
+    expect(section.group()).toBe(component.durationGroup);
     expect(section.suggestions()).toBe(component.suggestionsFacade);
     expect(section.getError()).toEqual(expect.any(Function));
   });
@@ -339,6 +377,37 @@ describe('ReportsComponent', () => {
     );
   });
 
+  it('does not require duration court, other location, or CJA', () => {
+    const createJob$ = new Subject<HttpResponse<JobAcknowledgement>>();
+    reportsApiMock.createDurationReport.mockReturnValue(createJob$);
+
+    component.form.controls.report.setValue('duration');
+    component.durationGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().errorSummary).toEqual([]);
+    expect(reportsApiMock.createDurationReport).toHaveBeenCalledWith(
+      {
+        durationFilterDto: {
+          dateFrom: '2026-01-01',
+          dateTo: '2026-01-31',
+        },
+      },
+      'response',
+      false,
+      {
+        httpHeaderAccept: 'application/vnd.hmcts.appreg.v1+json',
+        transferCache: false,
+      },
+    );
+  });
+
   it('highlights the search warrants court suggestion when it has an error', () => {
     component.form.controls.report.setValue('search-warrants');
     component.searchWarrantsGroup.patchValue({
@@ -439,6 +508,23 @@ describe('ReportsComponent', () => {
     );
   });
 
+  it('preserves date from and date to when switching to duration', () => {
+    component.form.controls.report.setValue('activity-audit');
+    component.activityAuditGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+    });
+
+    component.form.controls.report.setValue('duration');
+
+    expect(component.durationGroup.value).toEqual(
+      expect.objectContaining({
+        dateFrom: '2026-01-01',
+        dateTo: '2026-01-31',
+      }),
+    );
+  });
+
   it('clears validation state when switching report type', () => {
     component.form.controls.report.setValue('list-maintenance');
     component.listMaintenanceGroup.patchValue({
@@ -479,6 +565,53 @@ describe('ReportsComponent', () => {
         .querySelector('#date-to-day')
         ?.classList.contains('govuk-input--error'),
     ).toBe(false);
+  });
+
+  it('clears the selected report filters and validation state', () => {
+    component.form.controls.report.setValue('workload');
+    component.workloadGroup.patchValue({
+      dateFrom: '2026-02-01',
+      dateTo: '2026-01-31',
+    });
+    component.suggestionsFacade.selectCourthouse({
+      locationCode: 'A1',
+      name: 'Alpha Court',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().submitted).toBe(true);
+    expect(component.vm().errorSummary).toHaveLength(1);
+    expect(component.suggestionsFacade.courthouseSearch()).toBe(
+      'A1 - Alpha Court',
+    );
+    expect(component.workloadGroup.get('otherLocation')?.disabled).toBe(true);
+    expect(component.workloadGroup.get('cja')?.disabled).toBe(true);
+
+    component.onClearFilters();
+    fixture.detectChanges();
+
+    expect(component.form.controls.report.value).toBe('workload');
+    expect(component.vm().submitted).toBe(false);
+    expect(component.vm().errorSummary).toEqual([]);
+    expect(component.vm().reportFeedback).toBeNull();
+    expect(component.suggestionsFacade.courthouseSearch()).toBe('');
+    expect(component.suggestionsFacade.cjaSearch()).toBe('');
+    expect(component.workloadGroup.getRawValue()).toEqual({
+      dateFrom: null,
+      dateTo: null,
+      court: '',
+      otherLocation: '',
+      cja: '',
+    });
+    expect(component.workloadGroup.get('court')?.enabled).toBe(true);
+    expect(component.workloadGroup.get('otherLocation')?.enabled).toBe(true);
+    expect(component.workloadGroup.get('cja')?.enabled).toBe(true);
+    expect(
+      fixture.nativeElement.querySelector('app-error-summary'),
+    ).toBeFalsy();
   });
 
   it('blocks list maintenance download when date to is before date from', () => {
@@ -566,6 +699,35 @@ describe('ReportsComponent', () => {
         ?.classList.contains('govuk-input--error'),
     ).toBe(true);
     expect(reportsApiMock.createWorkloadReport).not.toHaveBeenCalled();
+  });
+
+  it('blocks duration download when date to is before date from', () => {
+    component.form.controls.report.setValue('duration');
+    component.durationGroup.patchValue({
+      dateFrom: '2026-02-01',
+      dateTo: '2026-01-31',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().errorSummary).toEqual([
+      {
+        id: 'dateTo',
+        href: '#list-date-to',
+        text: 'Date to must be on or after Date from',
+      },
+    ]);
+    expect(
+      fixture.nativeElement.querySelector('#list-date-to-error')?.textContent,
+    ).toContain('Date to must be on or after Date from');
+    expect(
+      fixture.nativeElement
+        .querySelector('#list-date-to-day')
+        ?.classList.contains('govuk-input--error'),
+    ).toBe(true);
+    expect(reportsApiMock.createDurationReport).not.toHaveBeenCalled();
   });
 
   it('enforces workload location mutual exclusivity in the form controls', () => {
@@ -669,6 +831,18 @@ describe('ReportsComponent', () => {
         ) as HTMLInputElement | null
       )?.disabled,
     ).toBe(true);
+  });
+
+  it('preserves legacy CJA-only duration location behaviour', () => {
+    component.form.controls.report.setValue('duration');
+    fixture.detectChanges();
+
+    component.durationGroup.get('cja')?.setValue('C1');
+    fixture.detectChanges();
+
+    expect(component.durationGroup.get('court')?.disabled).toBe(true);
+    expect(component.durationGroup.get('otherLocation')?.enabled).toBe(true);
+    expect(component.durationGroup.get('cja')?.enabled).toBe(true);
   });
 
   it('shows report progress while the list maintenance job request is pending', () => {
@@ -1112,6 +1286,74 @@ describe('ReportsComponent', () => {
     });
   });
 
+  it('creates, polls, and downloads a duration report CSV', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-05-22T09:30:00'));
+    reportsApiMock.createDurationReport.mockReturnValue(
+      of(new HttpResponse({ body: jobAcknowledgement, status: 202 })),
+    );
+    jobPollingFacadeMock.watchJob.mockReturnValue(of(completedJob));
+    reportsApiMock.downloadReport.mockReturnValue(
+      of(
+        new HttpResponse({
+          body: new Blob(['header\n'], { type: 'text/csv' }),
+          headers: new HttpHeaders({
+            'content-disposition': 'attachment; filename="duration.csv"',
+          }),
+          status: 200,
+        }),
+      ),
+    );
+
+    component.form.controls.report.setValue('duration');
+    component.durationGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+      otherLocation: '  Annex  ',
+      cja: ' C1 ',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(reportsApiMock.createDurationReport).toHaveBeenCalledWith(
+      {
+        durationFilterDto: {
+          dateFrom: '2026-01-01',
+          dateTo: '2026-01-31',
+          location: {
+            otherLocationDescription: 'Annex',
+            cjaCode: 'C1',
+          },
+        },
+      },
+      'response',
+      false,
+      {
+        httpHeaderAccept: 'application/vnd.hmcts.appreg.v1+json',
+        transferCache: false,
+      },
+    );
+    expect(jobPollingFacadeMock.watchJob).toHaveBeenCalledWith('job-1', 2000);
+    expect(reportsApiMock.downloadReport).toHaveBeenCalledWith(
+      { jobId: 'job-1' },
+      'response',
+      false,
+      { httpHeaderAccept: 'text/csv', transferCache: false },
+    );
+    expect(createObjectUrlSpy).toHaveBeenCalledWith(expect.any(Blob));
+    expect(anchorClickSpy).toHaveBeenCalledTimes(1);
+    expect(
+      (anchorClickSpy.mock.contexts[0] as HTMLAnchorElement).download,
+    ).toBe('duration-report-2026-05-22.csv');
+    expect(component.vm().reportFeedback).toEqual({
+      kind: 'success',
+      heading: 'Report downloaded',
+      body: 'The duration report has downloaded.',
+    });
+  });
+
   it('shows the backend message when workload polling fails', () => {
     reportsApiMock.createWorkloadReport.mockReturnValue(
       of(new HttpResponse({ body: jobAcknowledgement, status: 202 })),
@@ -1159,6 +1401,69 @@ describe('ReportsComponent', () => {
 
       component.form.controls.report.setValue('workload');
       component.workloadGroup.patchValue({
+        dateFrom: '2026-01-01',
+        dateTo: '2026-01-31',
+      });
+      fixture.detectChanges();
+
+      component.onDownload();
+      fixture.detectChanges();
+
+      expect(component.vm().reportFeedback).toEqual({
+        kind: 'error',
+        title: 'Report generation failed',
+        items: [{ text: message }],
+      });
+    },
+  );
+
+  it('shows the backend message when duration polling fails', () => {
+    reportsApiMock.createDurationReport.mockReturnValue(
+      of(new HttpResponse({ body: jobAcknowledgement, status: 202 })),
+    );
+    jobPollingFacadeMock.watchJob.mockReturnValue(
+      of({
+        ...completedJob,
+        rawStatus: 'FAILED',
+        state: 'failed',
+        message: 'Backend failed the duration report',
+      } satisfies PolledJobStatus),
+    );
+
+    component.form.controls.report.setValue('duration');
+    component.durationGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().reportFeedback).toEqual({
+      kind: 'error',
+      title: 'Report generation failed',
+      items: [{ text: 'Backend failed the duration report' }],
+    });
+    expect(fixture.nativeElement.textContent).toContain(
+      'Backend failed the duration report',
+    );
+    expect(reportsApiMock.downloadReport).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [401, 'You need to sign in to download this report.'],
+    [403, 'You do not have permission to download this report.'],
+    [500, 'There was a problem generating the report. Try again later.'],
+  ])(
+    'shows the duration request error message for HTTP %i',
+    (status, message) => {
+      reportsApiMock.createDurationReport.mockReturnValue(
+        throwError(() => ({ status })),
+      );
+
+      component.form.controls.report.setValue('duration');
+      component.durationGroup.patchValue({
         dateFrom: '2026-01-01',
         dateTo: '2026-01-31',
       });

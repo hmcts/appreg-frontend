@@ -5,9 +5,11 @@ import {
   ActivityAuditFilterDto,
   ActivityType,
   CreateActivityAuditReportRequestParams,
+  CreateDurationReportRequestParams,
   CreateListMaintenanceReportRequestParams,
   CreateSearchWarrantsReportRequestParams,
   CreateWorkloadReportRequestParams,
+  DurationFilterDto,
   FeesReportFilterDto,
   LegacyReportLocation,
   ListMaintenanceFilterDto,
@@ -26,6 +28,14 @@ interface FeesReportFormValue {
 }
 
 interface ReportLocationFormValue {
+  court: string | null;
+  otherLocation: string | null;
+  cja: string | null;
+}
+
+interface DurationReportFormValue {
+  dateFrom: string;
+  dateTo: string;
   court: string | null;
   otherLocation: string | null;
   cja: string | null;
@@ -78,6 +88,14 @@ export function mapFeeGroupToFeesReportFilterDto(
   };
 }
 
+export function mapDurationGroupToDurationReportRequestParams(
+  durationGroup: FormGroup,
+): CreateDurationReportRequestParams {
+  return {
+    durationFilterDto: mapDurationGroupToDurationFilterDto(durationGroup),
+  };
+}
+
 export function mapListMaintenanceGroupToListMaintenanceReportRequestParams(
   listMaintenanceGroup: FormGroup,
 ): CreateListMaintenanceReportRequestParams {
@@ -111,6 +129,19 @@ export function mapActivityAuditGroupToActivityAuditRequestParams(
 ): CreateActivityAuditReportRequestParams {
   return {
     activityAuditFilterDto: mapActivityAuditFormToParams(activityAudit),
+  };
+}
+
+function mapDurationGroupToDurationFilterDto(
+  durationGroup: FormGroup,
+): DurationFilterDto {
+  const value = durationGroup.getRawValue() as DurationReportFormValue;
+  const location = buildLocation(value);
+
+  return {
+    dateFrom: value.dateFrom,
+    dateTo: value.dateTo,
+    ...(location ? { location } : {}),
   };
 }
 

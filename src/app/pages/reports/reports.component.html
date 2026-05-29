@@ -119,5 +119,13 @@
     >
       Download CSV
     </button>
+    <button
+      type="button"
+      class="govuk-button govuk-button--secondary"
+      [disabled]="isReportInProgress()"
+      (click)="onClearFilters()"
+    >
+      Clear filters
+    </button>
   </div>
 }
