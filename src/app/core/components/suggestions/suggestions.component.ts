@@ -1,24 +1,21 @@
 import { CommonModule } from '@angular/common';
 import {
   Component,
+  computed,
   effect,
   forwardRef,
   input,
   output,
   signal,
 } from '@angular/core';
-import {
-  ControlValueAccessor,
-  FormsModule,
-  NG_VALUE_ACCESSOR,
-} from '@angular/forms';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 import { asString, hasStringProp, isRecord } from '@util/data-utils';
 
 @Component({
   selector: 'app-suggestions',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   templateUrl: './suggestions.component.html',
   providers: [
     {
@@ -57,7 +54,10 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
   searchState = signal('');
   suggestionsState = signal<T[]>([]);
   valueState = signal('');
-  disabledState = signal(false);
+  private readonly controlDisabledState = signal(false);
+  disabledState = computed(
+    () => this.disabled() || this.controlDisabledState(),
+  );
   getItemLabelState = signal<((item: T) => string) | null>(null);
 
   private readonly syncSearchInput = effect(() => {
@@ -92,10 +92,6 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
     this.valueState.set(this.value());
   });
 
-  private readonly syncDisabledInput = effect(() => {
-    this.disabledState.set(this.disabled());
-  });
-
   private readonly syncGetItemLabelInput = effect(() => {
     this.getItemLabelState.set(this.getItemLabel());
   });
@@ -123,7 +119,7 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.disabledState.set(isDisabled);
+    this.controlDisabledState.set(isDisabled);
   }
 
   onInput(v: string): void {
@@ -139,6 +135,10 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
     if (!v.trim()) {
       this.setValueInternal('');
     }
+  }
+
+  onNativeInput(event: Event): void {
+    this.onInput((event.target as HTMLInputElement).value ?? '');
   }
 
   onFocus(): void {

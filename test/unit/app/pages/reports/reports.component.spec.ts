@@ -607,6 +607,70 @@ describe('ReportsComponent', () => {
     expect(component.searchWarrantsGroup.get('cja')?.enabled).toBe(true);
   });
 
+  it('keeps workload CJA disabled after switching away and back when court has a value', () => {
+    component.form.controls.report.setValue('workload');
+    fixture.detectChanges();
+
+    component.workloadGroup.get('court')?.setValue('A1');
+    fixture.detectChanges();
+
+    expect(component.workloadGroup.get('cja')?.disabled).toBe(true);
+    expect(
+      (
+        fixture.nativeElement.querySelector(
+          'input#cja',
+        ) as HTMLInputElement | null
+      )?.disabled,
+    ).toBe(true);
+
+    component.form.controls.report.setValue('search-warrants');
+    fixture.detectChanges();
+    component.form.controls.report.setValue('workload');
+    fixture.detectChanges();
+
+    expect(component.workloadGroup.get('court')?.value).toBe('A1');
+    expect(component.workloadGroup.get('cja')?.disabled).toBe(true);
+    expect(
+      (
+        fixture.nativeElement.querySelector(
+          'input#cja',
+        ) as HTMLInputElement | null
+      )?.disabled,
+    ).toBe(true);
+  });
+
+  it('keeps workload court disabled after switching away and back when CJA has a value', () => {
+    component.form.controls.report.setValue('workload');
+    fixture.detectChanges();
+
+    component.workloadGroup.get('cja')?.setValue('C1');
+    fixture.detectChanges();
+
+    expect(component.workloadGroup.get('court')?.disabled).toBe(true);
+    expect(
+      (
+        fixture.nativeElement.querySelector(
+          'input#court',
+        ) as HTMLInputElement | null
+      )?.disabled,
+    ).toBe(true);
+
+    component.form.controls.report.setValue('search-warrants');
+    fixture.detectChanges();
+    component.form.controls.report.setValue('workload');
+    fixture.detectChanges();
+
+    expect(component.workloadGroup.get('cja')?.value).toBe('C1');
+    expect(component.workloadGroup.get('court')?.disabled).toBe(true);
+    expect(
+      (
+        fixture.nativeElement.querySelector(
+          'input#court',
+        ) as HTMLInputElement | null
+      )?.disabled,
+    ).toBe(true);
+  });
+
   it('shows report progress while the list maintenance job request is pending', () => {
     const createJob$ = new Subject<HttpResponse<JobAcknowledgement>>();
     reportsApiMock.createListMaintenanceReport.mockReturnValue(createJob$);
