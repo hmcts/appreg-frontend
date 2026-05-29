@@ -38,6 +38,7 @@ module.exports = defineConfig([
     'tools/',
     'functional-output/',
     'wiremock/',
+    'scripts/',
   ]),
 
   // Base (shared) – no type-aware parser configured here
