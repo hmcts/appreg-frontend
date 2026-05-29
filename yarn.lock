@@ -7087,7 +7087,6 @@ __metadata:
     pa11y: "npm:^9.0.0"
     pdf-parse: "npm:^2.4.5"
     prettier: "npm:^3.6.2"
-    puppeteer: "npm:24.38.0"
     redis: "npm:^5.8.3"
     rimraf: "npm:^6.0.1"
     rxjs: "npm:~7.8.0"
@@ -16077,7 +16076,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"puppeteer@npm:24.38.0, puppeteer@npm:^24.37.5":
+"puppeteer@npm:^24.37.5":
   version: 24.38.0
   resolution: "puppeteer@npm:24.38.0"
   dependencies:
