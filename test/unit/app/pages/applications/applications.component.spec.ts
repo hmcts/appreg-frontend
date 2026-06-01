@@ -1218,6 +1218,9 @@ describe('ApplicationsComponent', () => {
 
       expect(firstDateCell?.textContent?.trim()).toBe('9 Jan 2025');
       expect(firstDateCell?.textContent).not.toContain('2025-01-09');
+      expect(
+        firstDateCell?.classList.contains('app-sortable-table__cell--nowrap'),
+      ).toBe(true);
     });
   });
 });
