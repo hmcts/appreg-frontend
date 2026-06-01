@@ -153,7 +153,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   });
 
   columns = [
-    { header: 'Date', field: 'date' },
+    { header: 'Date', field: 'date', wrap: false },
     { header: 'Applicant', field: 'applicant' },
     { header: 'Respondent', field: 'respondent' },
     { header: 'Application title', field: 'title' },
