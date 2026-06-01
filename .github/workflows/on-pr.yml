@@ -3,6 +3,12 @@ name: PR Tasks
 on:
   pull_request:
     types: [opened, reopened, synchronize]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: PR number to configure
+        required: true
+        type: string
 
 permissions:
   id-token: write
@@ -30,7 +36,7 @@ jobs:
 
       - name: Add redirect URIs for PR environment
         env:
-          PR_NUMBER: ${{ github.event.number }}
+          PR_NUMBER: ${{ github.event_name == 'workflow_dispatch' && inputs.pr_number || github.event.number }}
           OBJECT_ID: ${{ secrets.APPREG_OBJECT_ID }}
         run: |
           set -euo pipefail
