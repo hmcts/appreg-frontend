@@ -37,7 +37,10 @@ import {
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
-import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
+import {
+  SortableTableComponent,
+  TableColumn,
+} from '@components/sortable-table/sortable-table.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { APPLICATIONS_ERROR_MAP } from '@constants/applications/error-messages';
@@ -152,8 +155,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     status: new FormControl<string | null>(null),
   });
 
-  columns = [
-    { header: 'Date', field: 'date' },
+  columns: TableColumn[] = [
+    { header: 'Date', field: 'date', wrap: false },
     { header: 'Applicant', field: 'applicant' },
     { header: 'Respondent', field: 'respondent' },
     { header: 'Application title', field: 'title' },
