@@ -126,6 +126,22 @@ run_notify() {
     python3 -I "${trusted_notify_path}" "$@"
 }
 
+dispatch_pr_tasks() {
+  local pr_url="$1"
+  local pr_number
+
+  pr_number="$(gh_authenticated pr view "${pr_url}" --repo "${GITHUB_REPOSITORY}" --json number --jq '.number')"
+  if [[ -z "${pr_number}" ]]; then
+    echo "Unable to determine PR number for ${pr_url}" >&2
+    exit 1
+  fi
+
+  gh_authenticated workflow run on-pr.yml \
+    --repo "${GITHUB_REPOSITORY}" \
+    --ref "${default_branch}" \
+    -f "pr_number=${pr_number}"
+}
+
 mkdir -p "${sanitized_home}" "${sanitized_tmp}"
 
 cp .github/scripts/notify-jira-automation.py "${trusted_notify_path}"
@@ -192,6 +208,8 @@ if [[ -z "${pr_url}" ]]; then
       --body-file "${pr_body_path}"
   )"
 fi
+
+dispatch_pr_tasks "${pr_url}"
 
 commit_sha="$(git_local rev-parse HEAD)"
 run_notify \
