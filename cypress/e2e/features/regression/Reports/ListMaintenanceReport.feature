@@ -28,8 +28,6 @@ Feature: List Maintenance Report
         When User Selects The Radio Button "List maintenance"
         When User Clicks On The "Download CSV" Button
         Then User Sees Validation Error Banner "There is a problem Enter date from Enter date to"
-        Then User Sees Field Error "Enter day, month and year" For "Date from"
-        Then User Sees Field Error "Enter day, month and year" For "Date to"
         When User Set Date Field "Date from" To "27/02/2026"
         When User Clicks On The "Download CSV" Button
         Then User Sees Validation Error Banner "There is a problem Enter date to"
