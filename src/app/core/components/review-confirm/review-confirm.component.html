@@ -20,7 +20,7 @@
             <button
               class="govuk-button"
               [class.govuk-button--warning]="isRedButton()"
-              [disabled]="isConfirmed()"
+              [disabled]="buttonDisabled()"
               (click)="onConfirm()"
             >
               {{ confirmButtonTxt() }}

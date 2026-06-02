@@ -168,6 +168,7 @@ describe('UpdateOfficialsConfirmComponent', () => {
     expect(component.errorSummary()).toEqual([
       { text: 'Officials could not be updated' },
     ]);
+    expect(component.isSubmitting()).toBe(false);
   });
 
   it('goes back to the update officials page with state', () => {

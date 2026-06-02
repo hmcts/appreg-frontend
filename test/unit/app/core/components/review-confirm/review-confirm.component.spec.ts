@@ -57,6 +57,29 @@ describe('ReviewConfirmComponent', () => {
     expect(emitSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('onConfirm uses parent-controlled disabled state when disabled input is provided', () => {
+    const emitSpy = jest.spyOn(component.confirm, 'emit');
+    fixture.componentRef.setInput('disabled', false);
+    fixture.detectChanges();
+
+    component.onConfirm();
+
+    expect(component.isConfirmed()).toBe(false);
+    expect(component.buttonDisabled()).toBe(false);
+    expect(emitSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('onConfirm does not emit when parent-controlled disabled state is true', () => {
+    const emitSpy = jest.spyOn(component.confirm, 'emit');
+    fixture.componentRef.setInput('disabled', true);
+    fixture.detectChanges();
+
+    component.onConfirm();
+
+    expect(component.buttonDisabled()).toBe(true);
+    expect(emitSpy).not.toHaveBeenCalled();
+  });
+
   it('onCancel sets isConfirmed=false and emits cancelled', () => {
     const emitSpy = jest.spyOn(component.cancelled, 'emit');
 

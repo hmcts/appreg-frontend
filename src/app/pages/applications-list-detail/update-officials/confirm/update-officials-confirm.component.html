@@ -3,6 +3,7 @@
   confirmButtonTxt="Confirm and update officials"
   cancelButtonTxt="Back"
   [isRedButton]="false"
+  [disabled]="isSubmitting()"
   (confirm)="onConfirm()"
   (cancelled)="goBack()"
 >
