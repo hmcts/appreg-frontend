@@ -40,6 +40,12 @@ sanitized_home="${artifact_dir}/sanitized-home"
 sanitized_tmp="${artifact_dir}/sanitized-tmp"
 guardrail_changes_path="${output_dir}/guardrail-changes.txt"
 guardrail_review_required="false"
+usage_events_path="${artifact_dir}/codex-events.jsonl"
+usage_summary_path="${output_dir}/codex-usage-summary.json"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# shellcheck source=.github/scripts/codex-usage-metrics.sh
+source "${script_dir}/codex-usage-metrics.sh"
 guardrail_pathspecs=(
   "bin/codex-local-pipeline.sh"
   ".github/scripts"
@@ -435,7 +441,9 @@ trusted_pipeline_sha="$(file_sha256 "${trusted_pipeline_path}")"
 unset GH_TOKEN
 
 echo "Running Codex review feedback for PR #${PR_NUMBER} on ${HEAD_REF}"
-run_codex codex exec \
+run_codex_exec_with_usage "pr-review-feedback" "${usage_events_path}" "${usage_summary_path}" \
+  run_codex codex exec \
+  --json \
   --cd "${PWD}" \
   --sandbox workspace-write \
   --ephemeral \
