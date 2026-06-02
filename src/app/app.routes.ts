@@ -145,6 +145,13 @@ export const routes: Routes = [
             (m) => m.MoveConfirmComponent,
           ),
       },
+      {
+        path: ':id/bulk-update-fee',
+        loadComponent: () =>
+          import('@components/applications-list-detail/applications-list-detail-bulk-update-fees/applications-list-detail-bulk-update-fees.component').then(
+            (m) => m.ApplicationsListDetailBulkUpdateFeesComponent,
+          ),
+      },
     ],
   },
   {

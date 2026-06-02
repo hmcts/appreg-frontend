@@ -886,6 +886,32 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
+  async onUpdateFeeButtonClick(): Promise<void> {
+    const selected = (await this.resolveSelectedRows()) as selectedRow[];
+
+    if (selected.length === 0) {
+      return;
+    }
+
+    // clear any prior messages
+    this.detailSignalState.patch({ errorSummary: [], errorHint: '' });
+
+    const entriesToUpdateFee = selected.map((r) => ({
+      id: r.id,
+      sequenceNumber: r.sequenceNumber,
+      applicant: r.applicant,
+      respondent: r.respondent,
+      title: r.title,
+    }));
+
+    await this.router.navigate(['bulk-update-fee'], {
+      relativeTo: this.route,
+      state: {
+        entriesToUpdateFee,
+      },
+    });
+  }
+
   async onMoveButtonClick(): Promise<void> {
     const selected = (await this.resolveSelectedRows()) as selectedRow[];
 
