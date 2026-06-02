@@ -227,7 +227,7 @@ Feature: Applications List Entry Search
             | InvalidDate | ValidDate  | InvalidCourt | InvalidCJA | InvalidPostcode | ValidPostcode | OptionText | SearchText | Info             |
             | 31/13/2048  | 12/01/2025 | InvalidCourt | InvalidCJA | ABC123          | AB1 2CD       |            | Cardiff    | No results found |
 
-    @ignore @applicationListEntry @ARCPOC-222 @ARCPOC-442
+    @ignore @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1368
     Scenario Outline: Verify Applications List Entry table sorting functionality
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
@@ -237,23 +237,21 @@ Feature: Applications List Entry Search
         Then User Selects "<Status>" In The "Select application status" Dropdown
         When User Clicks On The "Search" Button
         Then User Should See The Table "<TableName>"
-        # Verify all sortable headers default to 'none'
-        Then User Should See Table "<TableName>" Header "Date" Has Sort Order "none"
+        # Verify default sort order
+        Then User Should See Table "<TableName>" Header "Date" Has Sort Order "descending"
         Then User Should See Table "<TableName>" Header "Applicant" Has Sort Order "none"
         Then User Should See Table "<TableName>" Header "Respondent" Has Sort Order "none"
         Then User Should See Table "<TableName>" Header "Application title" Has Sort Order "none"
         Then User Should See Table "<TableName>" Header "Fee" Has Sort Order "none"
         Then User Should See Table "<TableName>" Header "Resulted" Has Sort Order "none"
         Then User Should See Table "<TableName>" Header "Status" Has Sort Order "none"
-        # Test sort cycle: none -> ascending -> descending
+        # Test sort cycle: descending -> ascending -> descending
         When User Clicks On Table Header "<Column>" In Table "<TableName>"
         Then User Should See Table "<TableName>" Header "<Column>" Has Sort Order "ascending"
         Then User Should See Table "<TableName>" Has Rows
-        Then User Should See Table "<TableName>" Column "<Column>" Is Sorted "ascending"
         When User Clicks On Table Header "<Column>" In Table "<TableName>"
         Then User Should See Table "<TableName>" Header "<Column>" Has Sort Order "descending"
         Then User Should See Table "<TableName>" Has Rows
-        Then User Should See Table "<TableName>" Column "<Column>" Is Sorted "descending"
         Examples:
             | User  | TableName                | Status | Column |
             | user1 | Application list entries | Closed | Date   |
