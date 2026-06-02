@@ -7,16 +7,38 @@ Then('User Clears Downloaded CSVs', () => {
 });
 
 Then(
-  'User Verifies The Downloaded CSV Has Headers:',
-  (dataTable: DataTable) => {
-    const expectedHeaders = dataTable.raw().map((row) => row[0]);
-    CsvDownloadHelper.getLatestCsvHeaders().then((actualHeaders) => {
+  'User Verifies The Downloaded CSV Has Headers In Row {int}:',
+  (row: number, dataTable: DataTable) => {
+    CsvDownloadHelper.getLatestCsvContent().then((content) => {
+      const lines = content.split('\n');
+      const targetRow = lines[row - 1]; // Convert to 0-based index
+      const expectedHeaders = dataTable.raw().map((headerRow) => headerRow[0]);
       expectedHeaders.forEach((header) => {
-        expect(actualHeaders).to.include(
+        expect(targetRow).to.include(
           header,
-          `Expected CSV header "${header}" to be present`,
+          `Expected CSV row ${row} to contain header "${header}"`,
         );
       });
     });
   },
 );
+
+Then(
+  'User Verifies Latest Downloaded CSV Contains Text {string} In Row {int}',
+  (expectedText: string, row: number) => {
+    CsvDownloadHelper.getLatestCsvContent().then((content) => {
+      const lines = content.split('\n');
+      const targetRow = lines[row - 1]; // Convert to 0-based index
+      expect(targetRow).to.include(
+        expectedText,
+        `Expected CSV row ${row} to contain text "${expectedText}"`,
+      );
+    });
+  },
+);
+
+Then('User Verifies CSV {string} Is Downloaded', (partialName: string) => {
+  CsvDownloadHelper.findCsvByName(partialName).then((filename) => {
+    cy.log(`✓ CSV Downloaded: ${filename}`);
+  });
+});

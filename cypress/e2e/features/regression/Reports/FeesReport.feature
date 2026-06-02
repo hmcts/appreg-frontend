@@ -10,14 +10,15 @@ Feature: Fees Report
         Then User See "Reports" On The Page
         Then User See "Select the report you wish to download?" On The Page
         When User Selects The Radio Button "Fees"
-        When User Clicks On The "Download" Button
-        Then User Sees Validation Error Banner "There is a problem Enter day, month and year"
+        When User Toggles The Accordion "Advanced search"
+        When User Clicks On The "Download CSV" Button
+        Then User Sees Validation Error Banner "There is a problem Enter date from Enter date to"
         When User Set Date Field "Date from" To "27/02/2026"
         When User Set Date Field "Date to" To "27/03/2026"
         Then User Selects "Cardiff Crown Court Set 4" From The Textbox "Court" Autocomplete By Typing "Cardiff"
-        Then User Enters "APP001" Into The "Applicant code" Textbox
+        Then User Enters "APP001" Into The "Standard applicant code" Textbox
         Then User Enters "Smith" Into The "Surname or organisation" Textbox
-        When User Clicks On The "Download" Button
+        When User Clicks On The "Download CSV" Button
         Then User Verifies The Downloaded CSV Has Headers:
             | Application date      |
             | Court                 |

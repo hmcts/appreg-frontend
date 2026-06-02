@@ -212,6 +212,13 @@ module.exports = defineConfig({
           }
           return null;
         },
+        readFile(filePath) {
+          if (!fs.existsSync(filePath)) {
+            throw new Error(`File not found: ${filePath}`);
+          }
+          return fs.readFileSync(filePath, 'utf8');
+        },
+
         // ── Bulk upload tasks ─────────────────────────────────────────────
         generateBulkUploadCsv({ suffix }) {
           const rows = [
