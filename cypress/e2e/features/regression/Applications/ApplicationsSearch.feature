@@ -227,7 +227,7 @@ Feature: Applications List Entry Search
             | InvalidDate | ValidDate  | InvalidCourt | InvalidCJA | InvalidPostcode | ValidPostcode | OptionText | SearchText | Info             |
             | 31/13/2048  | 12/01/2025 | InvalidCourt | InvalidCJA | ABC123          | AB1 2CD       |            | Cardiff    | No results found |
 
-    @ignore @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1368
+    @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1368
     Scenario Outline: Verify Applications List Entry table sorting functionality
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "<User>"
