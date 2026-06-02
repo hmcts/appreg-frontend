@@ -227,33 +227,57 @@ Feature: Applications List Entry Search
             | InvalidDate | ValidDate  | InvalidCourt | InvalidCJA | InvalidPostcode | ValidPostcode | OptionText | SearchText | Info             |
             | 31/13/2048  | 12/01/2025 | InvalidCourt | InvalidCJA | ABC123          | AB1 2CD       |            | Cardiff    | No results found |
 
-    @ignore @applicationListEntry @ARCPOC-222 @ARCPOC-442
-    Scenario Outline: Verify Applications List Entry table sorting functionality
+    @regression @applicationListEntry @ARCPOC-222 @ARCPOC-442 @ARCPOC-1368
+    Scenario: Verify Applications List Entry table sorting functionality
         Given User Is On The Portal Page
-        When User Signs In With Microsoft SSO As "<User>"
+        When User Signs In With Microsoft SSO As "user1"
         Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"
         # Search to get table with data
-        Then User Selects "<Status>" In The "Select application status" Dropdown
+        Then User Selects "Closed" In The "Select application status" Dropdown
         When User Clicks On The "Search" Button
-        Then User Should See The Table "<TableName>"
-        # Verify all sortable headers default to 'none'
-        Then User Should See Table "<TableName>" Header "Date" Has Sort Order "none"
-        Then User Should See Table "<TableName>" Header "Applicant" Has Sort Order "none"
-        Then User Should See Table "<TableName>" Header "Respondent" Has Sort Order "none"
-        Then User Should See Table "<TableName>" Header "Application title" Has Sort Order "none"
-        Then User Should See Table "<TableName>" Header "Fee" Has Sort Order "none"
-        Then User Should See Table "<TableName>" Header "Resulted" Has Sort Order "none"
-        Then User Should See Table "<TableName>" Header "Status" Has Sort Order "none"
-        # Test sort cycle: none -> ascending -> descending
-        When User Clicks On Table Header "<Column>" In Table "<TableName>"
-        Then User Should See Table "<TableName>" Header "<Column>" Has Sort Order "ascending"
-        Then User Should See Table "<TableName>" Has Rows
-        Then User Should See Table "<TableName>" Column "<Column>" Is Sorted "ascending"
-        When User Clicks On Table Header "<Column>" In Table "<TableName>"
-        Then User Should See Table "<TableName>" Header "<Column>" Has Sort Order "descending"
-        Then User Should See Table "<TableName>" Has Rows
-        Then User Should See Table "<TableName>" Column "<Column>" Is Sorted "descending"
-        Examples:
-            | User  | TableName                | Status | Column |
-            | user1 | Application list entries | Closed | Date   |
+        Then User Should See The Table "Application list entries"
+        Then User Should See Table "Application list entries" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
+        # Verify default sort order
+        Then User Should See Table "Application list entries" Header "Date" Has Sort Order "descending"
+        Then User Should See Table "Application list entries" Header "Applicant" Has Sort Order "none"
+        Then User Should See Table "Application list entries" Header "Respondent" Has Sort Order "none"
+        Then User Should See Table "Application list entries" Header "Application title" Has Sort Order "none"
+        Then User Should See Table "Application list entries" Header "Fee" Has Sort Order "none"
+        Then User Should See Table "Application list entries" Header "Resulted" Has Sort Order "none"
+        Then User Should See Table "Application list entries" Header "Status" Has Sort Order "none"
+        # Test Date column
+        When User Clicks On Table Header "Date" In Table "Application list entries"
+        Then User Should See Table "Application list entries" Header "Date" Has Sort Order "ascending"
+        When User Clicks On Table Header "Date" In Table "Application list entries"
+        Then User Should See Table "Application list entries" Header "Date" Has Sort Order "descending"
+        # Test Applicant column
+        When User Clicks On Table Header "Applicant" In Table "Application list entries"
+        Then User Should See Table "Application list entries" Header "Applicant" Has Sort Order "ascending"
+        When User Clicks On Table Header "Applicant" In Table "Application list entries"
+        Then User Should See Table "Application list entries" Header "Applicant" Has Sort Order "descending"
+        # Test Respondent column
+        When User Clicks On Table Header "Respondent" In Table "Application list entries"
+        Then User Should See Table "Application list entries" Header "Respondent" Has Sort Order "ascending"
+        When User Clicks On Table Header "Respondent" In Table "Application list entries"
+        Then User Should See Table "Application list entries" Header "Respondent" Has Sort Order "descending"
+        # Test Application title column
+        When User Clicks On Table Header "Application title" In Table "Application list entries"
+        Then User Should See Table "Application list entries" Header "Application title" Has Sort Order "ascending"
+        When User Clicks On Table Header "Application title" In Table "Application list entries"
+        Then User Should See Table "Application list entries" Header "Application title" Has Sort Order "descending"
+        # Test Fee column
+        When User Clicks On Table Header "Fee" In Table "Application list entries"
+        Then User Should See Table "Application list entries" Header "Fee" Has Sort Order "ascending"
+        When User Clicks On Table Header "Fee" In Table "Application list entries"
+        Then User Should See Table "Application list entries" Header "Fee" Has Sort Order "descending"
+        # Test Resulted column
+        When User Clicks On Table Header "Resulted" In Table "Application list entries"
+        Then User Should See Table "Application list entries" Header "Resulted" Has Sort Order "ascending"
+        When User Clicks On Table Header "Resulted" In Table "Application list entries"
+        Then User Should See Table "Application list entries" Header "Resulted" Has Sort Order "descending"
+        # Test Status column
+        When User Clicks On Table Header "Status" In Table "Application list entries"
+        Then User Should See Table "Application list entries" Header "Status" Has Sort Order "ascending"
+        When User Clicks On Table Header "Status" In Table "Application list entries"
+        Then User Should See Table "Application list entries" Header "Status" Has Sort Order "descending"
