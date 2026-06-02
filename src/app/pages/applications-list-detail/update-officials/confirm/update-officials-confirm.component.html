@@ -1,0 +1,34 @@
+<app-review-confirm
+  title="Check officials before updating"
+  confirmButtonTxt="Confirm and update officials"
+  cancelButtonTxt="Back"
+  [isRedButton]="false"
+  (confirm)="onConfirm()"
+  (cancelled)="goBack()"
+>
+  @if (errorSummary().length) {
+    <app-error-summary
+      [title]="'There is a problem'"
+      [items]="errorSummary()"
+      (itemSelect)="onCreateErrorClick($event)"
+    />
+  }
+
+  <app-sortable-table
+    id="update-officials-confirm-applications-table"
+    [caption]="'Application(s) to update'"
+    [columns]="columns"
+    [data]="rows"
+  />
+
+  <h2 class="govuk-heading-m govuk-!-margin-top-6">Officials</h2>
+
+  <dl class="govuk-summary-list">
+    @for (official of officialRows; track official.label) {
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">{{ official.label }}</dt>
+        <dd class="govuk-summary-list__value">{{ official.value }}</dd>
+      </div>
+    }
+  </dl>
+</app-review-confirm>

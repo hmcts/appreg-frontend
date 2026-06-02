@@ -45,6 +45,13 @@
   />
 }
 
+@if (vm().updateOfficialsDone) {
+  <app-success-banner
+    heading="Officials updated"
+    linkText="The officials have been successfully updated"
+  />
+}
+
 @if (vm().bulkUploadFeedback?.kind === 'progress') {
   <app-async-job-progress
     [heading]="vm().bulkUploadFeedback?.heading ?? ''"
@@ -207,6 +214,14 @@
                   (click)="onMoveButtonClick()"
                 >
                   Move entries
+                </button>
+
+                <button
+                  type="button"
+                  class="govuk-button moj-button-menu__item govuk-button--secondary"
+                  (click)="onUpdateOfficialsButtonClick()"
+                >
+                  Update officials
                 </button>
 
                 <button
