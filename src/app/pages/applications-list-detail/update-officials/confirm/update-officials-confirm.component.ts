@@ -18,7 +18,12 @@ import {
 } from '@components/error-summary/error-summary.component';
 import { ReviewConfirmComponent } from '@components/review-confirm/review-confirm.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
-import { ApplicationListEntriesApi, Official, OfficialType } from '@openapi';
+import {
+  ApplicationListEntriesApi,
+  BulkOfficialsUpdateDto,
+  Official,
+  OfficialType,
+} from '@openapi';
 import {
   focusErrorSummary,
   onCreateErrorClick as onCreateErrorClickFn,
@@ -95,7 +100,7 @@ export class UpdateOfficialsConfirmComponent implements OnInit {
       .replaceApplicationListEntryOfficials({
         listId: this.listId,
         bulkOfficialsUpdateDto: {
-          entryIds: entryIds as unknown as Set<string>,
+          entryIds: entryIds as unknown as BulkOfficialsUpdateDto['entryIds'],
           officials: this.officials,
         },
       })
