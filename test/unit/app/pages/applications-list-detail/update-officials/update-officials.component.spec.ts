@@ -161,7 +161,7 @@ describe('UpdateOfficialsComponent', () => {
       {
         id: 'mags1Surname',
         href: '#officials-mags1-surname',
-        text: 'Magistrates 1 Last name is required',
+        text: 'Magistrates 1 last name is required',
       },
     ]);
   });
