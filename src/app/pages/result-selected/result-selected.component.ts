@@ -23,10 +23,7 @@ import { SuccessBannerComponent } from '@components/success-banner/success-banne
 import { ENTRY_SUCCESS_MESSAGES } from '@constants/application-list-entry/success-messages';
 import { SuccessBanner } from '@core-types/banner/banner.types';
 import { ResultGetDto } from '@openapi';
-import {
-  ApplicationListEntryResultsFacade,
-  BulkResultChange,
-} from '@services/applications-list-entry/application-list-entry-results.facade';
+import { ApplicationListEntryResultsFacade } from '@services/applications-list-entry/application-list-entry-results.facade';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
 import {
@@ -56,7 +53,6 @@ export class ResultSelected implements OnInit {
   private readonly selectedResultCode = signal<string>('');
 
   isSubmitting = signal(false);
-  batchResults!: BulkResultChange[];
 
   successBanner = signal<SuccessBanner | null>(null);
 
@@ -79,8 +75,6 @@ export class ResultSelected implements OnInit {
   });
 
   onCreateErrorClick = onCreateErrorClickFn;
-
-  idToSequenceNumberMap!: Record<string, string | undefined>;
 
   columns = APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS;
 
@@ -147,55 +141,42 @@ export class ResultSelected implements OnInit {
   }
 
   onSubmitResults(payload: ResultSectionSubmitPayload): void {
+    if (this.isSubmitting()) {
+      return;
+    }
+
     const item = payload.pendingToCreate?.[0] ?? payload.existingToUpdate?.[0];
 
     if (item) {
       this.selectedResultCode.set(item.resultCode);
     }
 
-    this.idToSequenceNumberMap = Object.fromEntries(
-      this.rows.map((row) => [row.id, row.sequenceNumber]),
-    );
-
     if (!this.listId || !this.rows?.length) {
       return;
     }
+
     this.isSubmitting.set(true);
-    this.batchResults = [];
+    this.errorSummaryItems.set([]);
+    this.successBanner.set(null);
+
     this.resultsFacade.submitResultChangesForEntries(
       this.listId,
       this.rows.map((row) => row.id),
       payload,
-      (results) => {
+      () => {
         this.isSubmitting.set(false);
-        this.batchResults = results;
+        this.errorSummaryItems.set([]);
 
-        const errorItems: ErrorItem[] = results
-          .filter((r) => !r.success)
-          .map((r) => {
-            return {
-              text: `Sequence number ${this.idToSequenceNumberMap[r.entryId]} failed to update`,
-            } as ErrorItem;
-          });
-
-        this.errorSummaryItems.set(errorItems);
-        if (errorItems.length > 0) {
-          focusErrorSummary(this.platformId);
-        }
-
-        this.successBanner.set(
-          errorItems.length === 0
-            ? {
-                heading: 'Result codes applied successfully',
-                body: `Result code '${this.selectedResultCode()}' applied successfully to application list entries`,
-              }
-            : null,
-        );
+        this.successBanner.set({
+          heading: 'Result codes applied successfully',
+          body: `Result code '${this.selectedResultCode()}' applied successfully to application list entries`,
+        });
 
         focusSuccessBanner(this.platformId);
       },
       (err) => {
         this.isSubmitting.set(false);
+        this.successBanner.set(null);
         this.applyMappedError(err);
         focusErrorSummary(this.platformId);
       },

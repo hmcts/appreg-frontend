@@ -574,13 +574,12 @@ describe('ResultWordingSectionComponent', () => {
     ).toBe(true);
   });
 
-  it('clearPendingToken effect resets search when pendingVersion === appliedVersion', () => {
+  it('clearPendingToken effect resets search after a submitted pending row succeeds', () => {
     const pendingEmitSpy = jest.spyOn(component.pendingChange, 'emit');
 
-    // First complete one apply cycle so pendingVersion === appliedVersion.
     component.selectResultCode(codes[0]);
     component.onSaveResult();
-    expect(component.canSubmitResults()).toBe(false);
+    expect(component.canSubmitResults()).toBe(true);
 
     component.resultCodeSearch = 'something';
 

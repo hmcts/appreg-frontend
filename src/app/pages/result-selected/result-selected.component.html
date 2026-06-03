@@ -32,6 +32,7 @@
   [clearPendingToken]="resultsFacade.clearPendingToken()"
   [wordingByCode]="resultsFacade.resultCodeWordingByCode()"
   [resultCodeTemplateByCode]="resultsFacade.resultCodeTemplateByCode()"
+  [submitting]="isSubmitting()"
   (pendingChange)="onPendingChange($event)"
   (submitResults)="onSubmitResults($event)"
   (removeExisting)="onRemoveResult($event)"

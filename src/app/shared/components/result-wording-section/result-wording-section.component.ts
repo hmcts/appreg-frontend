@@ -71,6 +71,7 @@ export class ResultWordingSectionComponent {
   captionSize = input<'s' | 'm' | 'l'>('s');
   buttonText = input<string>('Apply result');
   markSubmittedResultsApplied = input(false);
+  submitting = input(false);
 
   removeExisting = output<string>();
   pendingChange = output<PendingResultRow[]>();
@@ -84,6 +85,7 @@ export class ResultWordingSectionComponent {
   private readonly pending = signal<PendingResultRow[]>([]);
   private readonly pendingVersion = signal(0);
   private readonly appliedVersion = signal(0);
+  private lastSubmittedPendingVersion = 0;
   private lastProcessedClearPendingToken = 0;
   readonly wordingSubmitAttempt = signal(0);
   private readonly currentWordingErrors = signal<ErrorItem[]>([]);
@@ -116,10 +118,14 @@ export class ResultWordingSectionComponent {
       this.lastProcessedClearPendingToken = token;
 
       const shouldClearPending = untracked(
-        () => this.pendingVersion() === this.appliedVersion(),
+        () =>
+          this.pendingVersion() === this.appliedVersion() ||
+          (this.lastSubmittedPendingVersion > 0 &&
+            this.pendingVersion() === this.lastSubmittedPendingVersion),
       );
 
       if (shouldClearPending) {
+        this.lastSubmittedPendingVersion = 0;
         this.pending.set([]);
         this.pendingChange.emit(this.pending());
         this.resultCodeSearch = '';
@@ -546,7 +552,12 @@ export class ResultWordingSectionComponent {
     }
 
     if (payload.pendingToCreate.length > 0) {
-      this.appliedVersion.set(this.pendingVersion());
+      if (this.markSubmittedResultsApplied()) {
+        this.appliedVersion.set(this.pendingVersion());
+      } else {
+        this.lastSubmittedPendingVersion = this.pendingVersion();
+      }
+
       this.resultCodeSearch = '';
     }
 

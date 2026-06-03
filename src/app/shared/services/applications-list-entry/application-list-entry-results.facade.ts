@@ -1,6 +1,6 @@
 import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Observable, catchError, forkJoin, map, of } from 'rxjs';
+import { Observable, catchError, forkJoin, map, of, switchMap } from 'rxjs';
 
 import {
   ApplicationListEntryResultsApi,
@@ -12,22 +12,6 @@ import {
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import type { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
 import { getAllResultCodes, getEntryResults$ } from '@util/result-code-helpers';
-
-export type BulkResultChange =
-  | {
-      action: 'create' | 'update';
-      entryId: string;
-      resultId?: string;
-      success: true;
-      response: ResultGetDto;
-    }
-  | {
-      action: 'create' | 'update';
-      entryId: string;
-      resultId?: string;
-      success: false;
-      error: unknown;
-    };
 
 export type BulkResultRemoval =
   | {
@@ -90,7 +74,7 @@ export class ApplicationListEntryResultsFacade {
     listId: string,
     entryIds: string[],
     payload: ResultSectionSubmitPayload,
-    onSuccess?: (results: BulkResultChange[]) => void,
+    onSuccess?: () => void,
     onError?: (err: unknown) => void,
   ): void {
     if (!listId || !payload) {
@@ -104,7 +88,7 @@ export class ApplicationListEntryResultsFacade {
         .map((result) => [result.id, result]),
     );
 
-    const updateRequests: Observable<BulkResultChange>[] = [];
+    const updateRequests: Observable<ResultGetDto>[] = [];
     (payload.existingToUpdate ?? [])
       .filter((item) => !!item.resultId && !!item.resultCode)
       .forEach((item) => {
@@ -123,77 +107,50 @@ export class ApplicationListEntryResultsFacade {
             }
 
             updateRequests.push(
-              this.entryResultsApi
-                .updateApplicationListEntryResult({
-                  listId,
-                  entryId: result.entryId,
-                  resultId: result.id,
-                  resultUpdateDto: {
-                    resultCode: item.resultCode.trim(),
-                    wordingFields: item.wordingFields ?? [],
-                  },
-                })
-                .pipe(
-                  map(
-                    (response): BulkResultChange => ({
-                      action: 'update',
-                      entryId: result.entryId,
-                      resultId: result.id,
-                      success: true,
-                      response,
-                    }),
-                  ),
-                  catchError((error: unknown) =>
-                    of<BulkResultChange>({
-                      action: 'update',
-                      entryId: result.entryId,
-                      resultId: result.id,
-                      success: false,
-                      error,
-                    }),
-                  ),
-                ),
+              this.entryResultsApi.updateApplicationListEntryResult({
+                listId,
+                entryId: result.entryId,
+                resultId: result.id,
+                resultUpdateDto: {
+                  resultCode: item.resultCode.trim(),
+                  wordingFields: item.wordingFields ?? [],
+                },
+              }),
             );
           });
       });
 
-    const createRequests: Observable<BulkResultChange>[] = [];
+    const selectedEntryIds = [
+      ...new Set((entryIds ?? []).filter((entryId) => !!entryId)),
+    ];
+    const createdResultCodes = [
+      ...new Set(
+        (payload.pendingToCreate ?? [])
+          .map((item) => this.normCode(item.resultCode))
+          .filter((code) => !!code),
+      ),
+    ];
+
+    const createRequests: Observable<unknown>[] = [];
     (payload.pendingToCreate ?? [])
       .filter((item) => !!item.resultCode)
       .forEach((item) => {
-        (entryIds ?? [])
-          .filter((entryId) => !!entryId)
-          .forEach((entryId) => {
-            createRequests.push(
-              this.entryResultsApi
-                .createApplicationListEntryResult({
-                  listId,
-                  entryId,
-                  resultCreateDto: {
-                    resultCode: item.resultCode.trim(),
-                    wordingFields: item.wordingFields ?? [],
-                  },
-                })
-                .pipe(
-                  map(
-                    (response): BulkResultChange => ({
-                      action: 'create',
-                      entryId,
-                      success: true,
-                      response,
-                    }),
-                  ),
-                  catchError((error: unknown) =>
-                    of<BulkResultChange>({
-                      action: 'create',
-                      entryId,
-                      success: false,
-                      error,
-                    }),
-                  ),
-                ),
-            );
-          });
+        if (selectedEntryIds.length === 0) {
+          return;
+        }
+
+        createRequests.push(
+          this.entryResultsApi.bulkResultApplicationListEntries({
+            listId,
+            bulkResultDto: {
+              entryIds: selectedEntryIds as unknown as Set<string>,
+              result: {
+                resultCode: item.resultCode.trim(),
+                wordingFields: item.wordingFields ?? [],
+              },
+            },
+          }),
+        );
       });
 
     const allRequests = [...updateRequests, ...createRequests];
@@ -202,29 +159,68 @@ export class ApplicationListEntryResultsFacade {
     }
 
     forkJoin(allRequests)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (results) => {
-          const successfulResponses = results
-            .filter((result) => result.success)
-            .map((result) => result.response);
-
-          this.mergeCreatedEntryResults(successfulResponses);
-
-          const hasCreateFailures = results.some(
-            (result) => result.action === 'create' && !result.success,
+      .pipe(
+        switchMap((results) => {
+          this.mergeCreatedEntryResults(
+            results.filter((result): result is ResultGetDto =>
+              this.isResultGetDto(result),
+            ),
           );
-          const hasCreateRequests = createRequests.length > 0;
 
-          if (hasCreateRequests && !hasCreateFailures) {
+          if (createRequests.length === 0) {
+            return of(false);
+          }
+
+          return this.getCreatedEntryResultsForEntries$(
+            listId,
+            selectedEntryIds,
+            createdResultCodes,
+          ).pipe(
+            map((createdResults) => {
+              this.mergeCreatedEntryResults(createdResults);
+              return true;
+            }),
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (hasCreateRequests) => {
+          if (hasCreateRequests) {
             this.clearPendingToken.update((n) => n + 1);
             this.pendingRows.set([]);
           }
 
-          onSuccess?.(results);
+          onSuccess?.();
         },
         error: (err) => onError?.(err),
       });
+  }
+
+  private getCreatedEntryResultsForEntries$(
+    listId: string,
+    entryIds: string[],
+    resultCodes: string[],
+  ): Observable<ResultGetDto[]> {
+    if (!listId || entryIds.length === 0 || resultCodes.length === 0) {
+      return of([]);
+    }
+
+    const resultCodeSet = new Set(resultCodes);
+
+    return forkJoin(
+      entryIds.map((entryId) =>
+        getEntryResults$(this.entryResultsApi, { listId, entryId }),
+      ),
+    ).pipe(
+      map((resultsByEntry) =>
+        resultsByEntry
+          .flat()
+          .filter((result) =>
+            resultCodeSet.has(this.normCode(result.resultCode)),
+          ),
+      ),
+    );
   }
 
   removeCreatedEntryResults(
@@ -578,5 +574,15 @@ export class ApplicationListEntryResultsFacade {
 
   private normalizedWordingTemplate(result: ResultGetDto): string {
     return (result.wording?.template ?? '').trim();
+  }
+
+  private isResultGetDto(value: unknown): value is ResultGetDto {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      'id' in value &&
+      'entryId' in value &&
+      'resultCode' in value
+    );
   }
 }

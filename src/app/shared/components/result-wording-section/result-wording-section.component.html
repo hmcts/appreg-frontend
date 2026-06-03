@@ -54,7 +54,7 @@
     type="button"
     class="govuk-button"
     (click)="onSaveResult()"
-    [disabled]="!canSubmitResults()"
+    [disabled]="submitting() || !canSubmitResults()"
   >
     {{ buttonText() }}
   </button>
