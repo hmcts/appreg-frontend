@@ -32,9 +32,11 @@
   }
 
   <section id="civil-fee-section">
-    <h2 class="govuk-heading-s">
-      {{ feeRequired() ? feeHeadingText() : 'No fee required' }}
-    </h2>
+    @if (!noFeeMeta()) {
+      <h2 class="govuk-heading-s">
+        {{ feeRequired() ? feeHeadingText() : 'No fee required' }}
+      </h2>
+    }
 
     <app-sortable-table
       id="civil-fee-table"

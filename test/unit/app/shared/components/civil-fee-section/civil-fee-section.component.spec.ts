@@ -509,10 +509,13 @@ describe('CivilFeeSectionComponent', () => {
   });
 
   it('validateForSubmit returns current civil fee errors', () => {
+    const emitSpy = jest.spyOn(component.civilFeeErrors, 'emit');
+
     fixture.componentRef.setInput('feeRequired', true);
     fixture.detectChanges();
 
     const errors = component.validateForSubmit();
+    const lastCall = emitSpy.mock.calls.at(-1) as [ErrorItem[]] | undefined;
 
     expect(errors).toEqual(
       expect.arrayContaining([
@@ -526,6 +529,32 @@ describe('CivilFeeSectionComponent', () => {
         }),
       ]),
     );
+    expect(lastCall?.[0]).toEqual(errors);
+  });
+
+  it('validateForSubmit emits an empty error list when the civil fee fields are valid', () => {
+    const emitSpy = jest.spyOn(component.civilFeeErrors, 'emit');
+
+    const f = component.feeForm().controls;
+    f.feeStatuses.setValue([
+      {
+        paymentStatus: 'PAID',
+        statusDate: '2026-01-01',
+        paymentReference: 'REF-123',
+      },
+    ]);
+    f.feeStatus.setValue('PAID');
+    f.feeStatusDate.setValue('2026-01-01');
+    f.paymentRef.setValue('REF-123');
+
+    fixture.componentRef.setInput('feeRequired', true);
+    fixture.detectChanges();
+
+    const errors = component.validateForSubmit();
+    const lastCall = emitSpy.mock.calls.at(-1) as [ErrorItem[]] | undefined;
+
+    expect(errors).toEqual([]);
+    expect(lastCall?.[0]).toEqual([]);
   });
 
   it("onAddFeeDetailsClick blocks when feeStatus is 'DUE' and paymentRef is provided", () => {

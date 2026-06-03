@@ -5,10 +5,12 @@ export interface BulkUpdateFeeState {
   listId: string;
   selectedEntries: ApplicationEntriesBaseContext[];
   feeErrors: ErrorItem[];
+  submitted: boolean;
 }
 
 export const initialBulkUpdateFeeState: BulkUpdateFeeState = {
   listId: '',
   selectedEntries: [],
   feeErrors: [],
+  submitted: false,
 };

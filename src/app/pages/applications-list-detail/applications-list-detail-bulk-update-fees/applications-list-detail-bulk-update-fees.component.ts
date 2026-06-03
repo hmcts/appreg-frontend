@@ -1,23 +1,66 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  PLATFORM_ID,
+  ViewChild,
+  inject,
+} from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { BulkUpdateFeeState, initialBulkUpdateFeeState } from './util';
 
-import { APPLICATION_ENTRIES_MOVE_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
+import {
+  APPLICATION_ENTRIES_MOVE_COLUMNS,
+  CIVIL_FEE_COLUMNS,
+  FEE_STATUS_OPTIONS,
+} from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { ApplicationEntriesBaseContext } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
-import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
+import {
+  CivilFeeForm,
+  CivilFeeSectionComponent,
+} from '@components/civil-fee-section/civil-fee-section.component';
+import {
+  ErrorItem,
+  ErrorSummaryComponent,
+} from '@components/error-summary/error-summary.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
-import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
+import { FeeStatus } from '@openapi';
+import {
+  AddFeeDetailsPayload,
+  CivilFeeMeta,
+} from '@shared-types/civil-fee/civil-fee';
+import { collectChildSubmitErrors } from '@util/child-submit-validation';
+import {
+  readPaymentRefReturnState,
+  updateFeeStatusesControl,
+  updatePaymentReferenceInFeeStatusesControl,
+} from '@util/civil-fee-utils';
+import {
+  focusErrorSummary,
+  onCreateErrorClick as onCreateErrorClickFn,
+} from '@util/error-click';
 import { createSignalState } from '@util/signal-state-helpers';
+
+type BulkUpdateFeeSnapshot = {
+  listId?: string;
+  selectedEntries?: ApplicationEntriesBaseContext[];
+  feeForm?: unknown;
+  feeMeta?: CivilFeeMeta | null;
+  submitted?: boolean;
+  feeErrors?: ErrorItem[];
+};
 
 @Component({
   selector: 'app-applications-list-detail-bulk-update-fees',
+  standalone: true,
   imports: [
     BreadcrumbsComponent,
     ErrorSummaryComponent,
     SortableTableComponent,
+    CivilFeeSectionComponent,
   ],
   templateUrl: './applications-list-detail-bulk-update-fees.component.html',
   styleUrl: './applications-list-detail-bulk-update-fees.component.scss',
@@ -30,12 +73,26 @@ export class ApplicationsListDetailBulkUpdateFeesComponent implements OnInit {
   // Initialise signal state
   private readonly bulkFeeUpdateSignalState =
     createSignalState<BulkUpdateFeeState>(initialBulkUpdateFeeState);
-  private readonly feeState = this.bulkFeeUpdateSignalState.state;
   private readonly feeStatePatch = this.bulkFeeUpdateSignalState.patch;
   readonly vm = this.bulkFeeUpdateSignalState.vm;
 
   // Reuse columns from another page
   columnsEntries = APPLICATION_ENTRIES_MOVE_COLUMNS;
+
+  // Civil fee
+  civilFeeColumns = CIVIL_FEE_COLUMNS;
+  feeStatusOptions = FEE_STATUS_OPTIONS;
+  feeMeta: CivilFeeMeta | null = null;
+  civilFeeForm: CivilFeeForm = new FormGroup({
+    hasOffsiteFee: new FormControl<boolean | null>(null),
+    feeStatus: new FormControl<string | null>(null),
+    feeStatusDate: new FormControl<string | null>(null),
+    paymentRef: new FormControl<string | null>(null),
+    feeStatuses: new FormControl<FeeStatus[] | null>(null),
+  });
+
+  @ViewChild('civilFeeSection')
+  private readonly civilFeeSection?: CivilFeeSectionComponent;
 
   onCreateErrorClick = onCreateErrorClickFn;
 
@@ -51,8 +108,107 @@ export class ApplicationsListDetailBulkUpdateFeesComponent implements OnInit {
 
     if (!listId || !selectedEntries.length) {
       void this.router.navigate(['../'], { relativeTo: this.route });
+      return;
     }
 
     this.feeStatePatch({ listId, selectedEntries });
+    this.restoreNavigationState();
+  }
+
+  onAddFeeDetails(payload: AddFeeDetailsPayload): void {
+    updateFeeStatusesControl(this.civilFeeForm.controls.feeStatuses, payload);
+    this.feeStatePatch({ feeErrors: [] });
+  }
+
+  onOffsiteFeeChanged(nextValue: boolean): void {
+    this.civilFeeForm.controls.hasOffsiteFee.setValue(nextValue, {
+      emitEvent: false,
+    });
+    this.civilFeeForm.controls.hasOffsiteFee.markAsDirty();
+  }
+
+  onCivilFeeErrors(errors: ErrorItem[]): void {
+    this.feeStatePatch({ feeErrors: errors ?? [] });
+  }
+
+  addFees(): void {
+    this.feeStatePatch({ submitted: true, feeErrors: [] });
+    this.validateChildSectionsForSubmit();
+
+    if (this.vm().feeErrors.length > 0) {
+      focusErrorSummary(this.platformId);
+    }
+  }
+
+  buildChangePaymentReferenceState = (): Record<string, unknown> => ({
+    entriesToUpdateFee: this.vm().selectedEntries,
+    bulkUpdateFeeSnapshot: this.buildBulkUpdateFeeSnapshot(),
+  });
+
+  private validateChildSectionsForSubmit(): void {
+    const submitErrors = collectChildSubmitErrors([
+      { source: 'civilFee', section: this.civilFeeSection },
+    ]);
+
+    this.feeStatePatch({
+      feeErrors: submitErrors.civilFee ?? [],
+    });
+  }
+
+  private restoreNavigationState(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const state = history.state as Record<string, unknown> | null;
+    if (state === null || typeof state !== 'object') {
+      return;
+    }
+
+    const snapshot = state['bulkUpdateFeeSnapshot'];
+    if (snapshot && typeof snapshot === 'object') {
+      this.applyBulkUpdateFeeSnapshot(snapshot);
+    }
+
+    const paymentRefReturn = readPaymentRefReturnState(
+      state['paymentRefReturn'],
+    );
+    if (paymentRefReturn) {
+      updatePaymentReferenceInFeeStatusesControl(
+        this.civilFeeForm.controls.feeStatuses,
+        paymentRefReturn.updatedRowId,
+        paymentRefReturn.newPaymentReference,
+      );
+    }
+  }
+
+  private buildBulkUpdateFeeSnapshot(): BulkUpdateFeeSnapshot {
+    return {
+      listId: this.vm().listId,
+      selectedEntries: this.vm().selectedEntries,
+      feeForm: this.civilFeeForm.getRawValue(),
+      feeMeta: this.feeMeta,
+      submitted: this.vm().submitted,
+      feeErrors: this.vm().feeErrors,
+    };
+  }
+
+  private applyBulkUpdateFeeSnapshot(snapshot: BulkUpdateFeeSnapshot): void {
+    this.feeStatePatch({
+      listId: snapshot.listId ?? this.vm().listId,
+      selectedEntries: snapshot.selectedEntries ?? this.vm().selectedEntries,
+    });
+
+    if (snapshot.feeForm && typeof snapshot.feeForm === 'object') {
+      this.civilFeeForm.patchValue(snapshot.feeForm, { emitEvent: false });
+    }
+
+    this.feeMeta = snapshot.feeMeta ?? this.feeMeta;
+    this.feeStatePatch({
+      submitted: snapshot.submitted === true,
+      feeErrors: Array.isArray(snapshot.feeErrors)
+        ? snapshot.feeErrors
+        : this.vm().feeErrors,
+    });
   }
 }

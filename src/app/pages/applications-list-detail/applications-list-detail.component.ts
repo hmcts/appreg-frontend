@@ -896,7 +896,12 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     // clear any prior messages
     this.detailSignalState.patch({ errorSummary: [], errorHint: '' });
 
-    const entriesToUpdateFee = selected.map((r) => ({
+    // Exclude entries with no fee required
+    const selectedFeesRequired = selected.filter(
+      (element) => element.feeReq !== 'No',
+    );
+
+    const entriesToUpdateFee = selectedFeesRequired.map((r) => ({
       id: r.id,
       applicant: r.applicant,
       respondent: r.respondent,

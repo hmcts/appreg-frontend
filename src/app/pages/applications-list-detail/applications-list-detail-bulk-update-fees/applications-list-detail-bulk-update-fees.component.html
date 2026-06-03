@@ -14,7 +14,6 @@
   <app-error-summary
     [title]="'There is a problem'"
     [items]="vm().feeErrors"
-    targetId="entry-selected-table"
     (itemSelect)="onCreateErrorClick($event)"
   />
 }
@@ -30,3 +29,24 @@
   [data]="vm().selectedEntries"
   appMojButtonMenu
 />
+
+<hr class="govuk-section-break govuk-section-break--m" />
+
+<app-civil-fee-section
+  #civilFeeSection
+  [noFeeMeta]="true"
+  [feeForm]="civilFeeForm"
+  [civilFeeColumns]="civilFeeColumns"
+  [feeStatusOptions]="feeStatusOptions"
+  [feeMeta]="feeMeta"
+  [feeRequired]="true"
+  [parentSubmitted]="vm().submitted"
+  [changePaymentReferenceStateFactory]="buildChangePaymentReferenceState"
+  (addFeeDetails)="onAddFeeDetails($event)"
+  (civilFeeErrors)="onCivilFeeErrors($event)"
+  (offsiteFeeChanged)="onOffsiteFeeChanged($event)"
+/>
+
+<button type="button" class="govuk-button" (click)="addFees()">
+  Update fee details
+</button>

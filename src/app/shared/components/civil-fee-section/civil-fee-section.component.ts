@@ -89,6 +89,8 @@ export class CivilFeeSectionComponent implements OnInit {
   // Application code returns whether a fee is required
   feeRequired = input<boolean>(false);
 
+  noFeeMeta = input<boolean>(false);
+
   ngOnInit(): void {
     runInInjectionContext(this.injector, () => {
       effect(() => {
@@ -198,7 +200,9 @@ export class CivilFeeSectionComponent implements OnInit {
 
   validateForSubmit(): ErrorItem[] {
     this.attachValidatorsForSubmitAttempt();
-    return this.buildCivilFeeErrors();
+    const errors = this.buildCivilFeeErrors();
+    this.civilFeeErrors.emit(errors);
+    return errors;
   }
 
   private buildCivilFeeErrors(): ErrorItem[] {
