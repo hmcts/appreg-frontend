@@ -115,7 +115,7 @@ export const OFFICIAL_FIELD_MESSAGES = {
     pattern: 'First name contains invalid characters',
   },
   mags1Surname: {
-    required: 'Magistrates 1 Last name is required',
+    required: 'Magistrates 1 last name is required',
     maxlength: 'Last name must be 100 characters or fewer',
     pattern: 'Last name contains invalid characters',
   },
@@ -124,7 +124,7 @@ export const OFFICIAL_FIELD_MESSAGES = {
     pattern: 'First name contains invalid characters',
   },
   mags2Surname: {
-    required: 'Magistrates 2 Last name is required',
+    required: 'Magistrates 2 last name is required',
     maxlength: 'Last name must be 100 characters or fewer',
     pattern: 'Last name contains invalid characters',
   },
@@ -133,7 +133,7 @@ export const OFFICIAL_FIELD_MESSAGES = {
     pattern: 'First name contains invalid characters',
   },
   mags3Surname: {
-    required: 'Magistrates 3 Last name is required',
+    required: 'Magistrates 3 last name is required',
     maxlength: 'Last name must be 100 characters or fewer',
     pattern: 'Last name contains invalid characters',
   },
@@ -142,7 +142,7 @@ export const OFFICIAL_FIELD_MESSAGES = {
     pattern: 'First name contains invalid characters',
   },
   officialSurname: {
-    required: "Official's Last name is required",
+    required: "Official's last name is required",
     maxlength: 'Last name must be 100 characters or fewer',
     pattern: 'Last name contains invalid characters',
   },

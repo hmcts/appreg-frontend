@@ -226,7 +226,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
 
     if (vm.errorSummary.length > 0 || vm.updateInvalid) {
       this.resetErrorSummary();
-    } else if (vm.updateDone) {
+    } else if (vm.updateDone || vm.updateOfficialsDone) {
       this.resetSuccessBanner();
     }
   }
@@ -243,6 +243,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private resetSuccessBanner(): void {
     this.detailSignalState.patch({
       updateDone: false,
+      updateOfficialsDone: false,
     });
   }
 
@@ -382,6 +383,13 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       this.route.snapshot.queryParamMap.get('moveEntriesSuccessful') === 'true'
     ) {
       this.vm().moveDone = true;
+    }
+
+    if (
+      this.route.snapshot.queryParamMap.get('updateOfficialsSuccessful') ===
+      'true'
+    ) {
+      this.vm().updateOfficialsDone = true;
     }
   }
 
@@ -823,6 +831,32 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       selectedRows: [],
       isSelectingAll: false,
       allMatchingSelected: false,
+    });
+  }
+
+  async onUpdateOfficialsButtonClick(): Promise<void> {
+    const selected = (await this.resolveSelectedRows()) as selectedRow[];
+
+    if (selected.length === 0) {
+      return;
+    }
+
+    // clear any prior messages
+    this.detailSignalState.patch({ errorSummary: [], errorHint: '' });
+
+    const updateOfficialsApplications = selected.map((r) => ({
+      id: r.id,
+      sequenceNumber: r.sequenceNumber,
+      applicant: r.applicant,
+      respondent: r.respondent,
+      title: r.title,
+    }));
+
+    await this.router.navigate(['update-officials'], {
+      relativeTo: this.route,
+      state: {
+        updateOfficialsApplications,
+      },
     });
   }
 

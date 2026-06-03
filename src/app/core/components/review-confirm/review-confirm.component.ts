@@ -2,6 +2,7 @@ import {
   Component,
   OnDestroy,
   OnInit,
+  computed,
   inject,
   input,
   output,
@@ -22,11 +23,13 @@ export class ReviewConfirmComponent implements OnInit, OnDestroy {
   confirmButtonTxt = input<string>('Continue');
   cancelButtonTxt = input<string>('Cancel');
   isRedButton = input<boolean>(true);
+  disabled = input<boolean | null>(null);
 
   confirm = output<void>();
   cancelled = output<void>();
 
   isConfirmed = signal(false);
+  buttonDisabled = computed(() => this.disabled() ?? this.isConfirmed());
 
   headerService = inject(HeaderService);
 
@@ -39,7 +42,14 @@ export class ReviewConfirmComponent implements OnInit, OnDestroy {
   }
 
   onConfirm(): void {
-    this.isConfirmed.set(true);
+    if (this.buttonDisabled()) {
+      return;
+    }
+
+    if (this.disabled() === null) {
+      this.isConfirmed.set(true);
+    }
+
     this.confirm.emit();
   }
 

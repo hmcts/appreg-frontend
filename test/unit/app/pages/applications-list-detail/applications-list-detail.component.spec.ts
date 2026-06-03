@@ -828,6 +828,7 @@ describe('ApplicationsListDetail', () => {
         createDone: false,
         preserveErrorSummaryOnLoad: false,
         moveDone: false,
+        updateOfficialsDone: false,
       });
       expect(setSpy).toHaveBeenCalledWith({
         id: 'list-123',
@@ -871,6 +872,7 @@ describe('ApplicationsListDetail', () => {
         createDone: false,
         preserveErrorSummaryOnLoad: false,
         moveDone: false,
+        updateOfficialsDone: false,
       });
       expect(setSpy).toHaveBeenCalledWith({
         id: 'list-123',
@@ -1245,7 +1247,7 @@ describe('ApplicationsListDetail', () => {
     });
   });
 
-  it('ResetSuccessBanner should reset success banner by setting updateDone to false', () => {
+  it('ResetSuccessBanner should reset success banners', () => {
     const patchSpy = jest.spyOn(component['detailSignalState'], 'patch');
 
     (
@@ -1254,6 +1256,7 @@ describe('ApplicationsListDetail', () => {
 
     expect(patchSpy).toHaveBeenCalledWith({
       updateDone: false,
+      updateOfficialsDone: false,
     });
   });
 
@@ -1460,6 +1463,19 @@ describe('ApplicationsListDetail', () => {
 
     expect(routeSpy).toHaveBeenCalledWith('listCreated');
     expect(component.vm().createDone).toBe(false);
+  });
+
+  it('setSuccessBanner: sets updateOfficialsDone when updateOfficialsSuccessful=true', () => {
+    const route = TestBed.inject(ActivatedRoute);
+    jest
+      .spyOn(route.snapshot.queryParamMap, 'get')
+      .mockImplementation((key: string) =>
+        key === 'updateOfficialsSuccessful' ? 'true' : null,
+      );
+
+    component.setSuccessBanner();
+
+    expect(component.vm().updateOfficialsDone).toBe(true);
   });
 
   it('openUpdate: navigates with state & queryParams', async () => {

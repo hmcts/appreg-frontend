@@ -118,6 +118,20 @@ export const routes: Routes = [
           ),
       },
       {
+        path: ':id/update-officials',
+        loadComponent: () =>
+          import('@components/applications-list-detail/update-officials/update-officials.component').then(
+            (m) => m.UpdateOfficialsComponent,
+          ),
+      },
+      {
+        path: ':id/update-officials/confirm',
+        loadComponent: () =>
+          import('@components/applications-list-detail/update-officials/confirm/update-officials-confirm.component').then(
+            (m) => m.UpdateOfficialsConfirmComponent,
+          ),
+      },
+      {
         path: ':id/move',
         loadComponent: () =>
           import('@components/applications-list-detail/applications-list-entry-move/applications-list-entry-move.component').then(
