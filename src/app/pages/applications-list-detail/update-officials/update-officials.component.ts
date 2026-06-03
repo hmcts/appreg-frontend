@@ -27,6 +27,7 @@ import { buildFormErrorSummary } from '@util/error-summary';
 
 @Component({
   selector: 'app-update-officials',
+  standalone: true,
   imports: [
     BreadcrumbsComponent,
     ErrorSummaryComponent,

@@ -18,12 +18,7 @@ import {
 } from '@components/error-summary/error-summary.component';
 import { ReviewConfirmComponent } from '@components/review-confirm/review-confirm.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
-import {
-  ApplicationListEntriesApi,
-  BulkOfficialsUpdateDto,
-  Official,
-  OfficialType,
-} from '@openapi';
+import { ApplicationListEntriesApi, Official, OfficialType } from '@openapi';
 import {
   focusErrorSummary,
   onCreateErrorClick as onCreateErrorClickFn,
@@ -37,6 +32,7 @@ type OfficialSummaryRow = {
 
 @Component({
   selector: 'app-update-officials-confirm',
+  standalone: true,
   imports: [
     ErrorSummaryComponent,
     ReviewConfirmComponent,
@@ -100,7 +96,7 @@ export class UpdateOfficialsConfirmComponent implements OnInit {
       .replaceApplicationListEntryOfficials({
         listId: this.listId,
         bulkOfficialsUpdateDto: {
-          entryIds: entryIds as unknown as BulkOfficialsUpdateDto['entryIds'],
+          entryIds,
           officials: this.officials,
         },
       })
