@@ -63,7 +63,6 @@ type BulkUpdateFeeSnapshot = {
     CivilFeeSectionComponent,
   ],
   templateUrl: './applications-list-detail-bulk-update-fees.component.html',
-  styleUrl: './applications-list-detail-bulk-update-fees.component.scss',
 })
 export class ApplicationsListDetailBulkUpdateFeesComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -137,13 +136,32 @@ export class ApplicationsListDetailBulkUpdateFeesComponent implements OnInit {
 
     if (this.vm().feeErrors.length > 0) {
       focusErrorSummary(this.platformId);
+      return;
     }
+
+    const formFeeStatuses = this.civilFeeForm.value.feeStatuses;
+    const isOffSiteFee = this.civilFeeForm.value.hasOffsiteFee;
+
+    void this.router.navigate(
+      ['/applications-list', this.vm().listId, 'bulk-update-fee', 'confirm'],
+      {
+        state: {
+          selectedEntries: this.vm().selectedEntries,
+          feeTable: formFeeStatuses,
+          isOffSiteFee,
+        },
+      },
+    );
   }
 
   buildChangePaymentReferenceState = (): Record<string, unknown> => ({
     entriesToUpdateFee: this.vm().selectedEntries,
     bulkUpdateFeeSnapshot: this.buildBulkUpdateFeeSnapshot(),
   });
+
+  disableUpdateButton(): boolean {
+    return (this.civilFeeForm.value.feeStatuses?.length ?? 0) === 0;
+  }
 
   private validateChildSectionsForSubmit(): void {
     const submitErrors = collectChildSubmitErrors([

@@ -483,6 +483,24 @@ describe('CivilFeeSectionComponent', () => {
     expect(f.feeStatusDate.hasError('required')).toBe(false);
   });
 
+  it('on parent submit: when fee rows already exist, the add-fee inputs do not show submit errors', () => {
+    const f = component.feeForm().controls;
+
+    f.feeStatuses.setValue([
+      {
+        id: 'ROW-1',
+        paymentStatus: 'Paid',
+        statusDate: '01/01/2026',
+      } as unknown as FeeStatus,
+    ]);
+
+    fixture.componentRef.setInput('feeRequired', true);
+    fixture.componentRef.setInput('parentSubmitted', true);
+    fixture.detectChanges();
+
+    expect(component.showErrors()).toBe(false);
+  });
+
   it('on parent submit: emits civilFeeErrors for missing fee status and status date when fee is required and no rows exist', () => {
     const emitSpy = jest.spyOn(component.civilFeeErrors, 'emit');
 

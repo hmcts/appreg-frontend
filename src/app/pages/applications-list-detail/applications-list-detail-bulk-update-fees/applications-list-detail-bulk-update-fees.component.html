@@ -47,6 +47,11 @@
   (offsiteFeeChanged)="onOffsiteFeeChanged($event)"
 />
 
-<button type="button" class="govuk-button" (click)="addFees()">
+<button
+  type="button"
+  class="govuk-button"
+  (click)="addFees()"
+  [disabled]="disableUpdateButton()"
+>
   Update fee details
 </button>

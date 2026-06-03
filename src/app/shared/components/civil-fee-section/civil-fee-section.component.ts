@@ -108,7 +108,10 @@ export class CivilFeeSectionComponent implements OnInit {
       return false;
     }
 
-    return this.submitted() || this.parentSubmitted();
+    const feeRowsEmpty =
+      (this.feeForm().controls.feeStatuses.value ?? []).length === 0;
+
+    return this.submitted() || (this.parentSubmitted() && feeRowsEmpty);
   });
 
   readonly feeStatusOptionsWithPlaceholder = computed<
