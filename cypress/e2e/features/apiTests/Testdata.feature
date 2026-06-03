@@ -216,8 +216,8 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.person.contactDetails.mobile        | 07940{RANDOM}                   |
             | applicant.person.contactDetails.email         | applicant.e7.{RANDOM}@test.com  |
             | respondent.person.name.title                  | Mrs                             |
-            | respondent.person.name.surname                | Lewis {RANDOM}                  |
-            | respondent.person.name.firstForename          | Charlotte                       |
+            | respondent.person.name.lastName               | Lewis {RANDOM}                  |
+            | respondent.person.name.firstName              | Charlotte                       |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Abbey Road             |
             | respondent.person.contactDetails.addressLine2 | London                          |
             | respondent.person.contactDetails.postcode     | NW8 9AY                         |

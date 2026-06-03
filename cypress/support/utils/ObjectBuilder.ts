@@ -5,9 +5,9 @@ export class ObjectBuilder {
   /**
    * Converts a flat object with dot-notation keys into a nested object structure
    * Example:
-   *   { "applicant.person.name.title": "Mr", "applicant.person.name.surname": "Smith" }
+   *   { "applicant.person.name.title": "Mr", "applicant.person.name.lastName": "Smith" }
    * becomes:
-   *   { applicant: { person: { name: { title: "Mr", surname: "Smith" } } } }
+   *   { applicant: { person: { name: { title: "Mr", lastName: "Smith" } } } }
    *
    * Also supports array notation:
    *   { "wordingFields.0.key": "Reference", "wordingFields.0.value": "123" }

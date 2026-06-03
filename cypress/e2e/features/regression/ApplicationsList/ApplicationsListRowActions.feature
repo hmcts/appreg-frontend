@@ -48,10 +48,9 @@ Feature: Application List Row Actions
                     "person": {
                         "name": {
                             "title": "Mr",
-                            "surname": "Taylor {RANDOM}",
-                            "firstForename": "Henry",
-                            "secondForename": "James",
-                            "thirdForename": null
+                            "firstName": "Henry",
+                            "middleName": "James",
+                            "lastName": "Taylor {RANDOM}"
                         },
                         "contactDetails": {
                             "addressLine1": "{RANDOM} King Street",
@@ -71,10 +70,9 @@ Feature: Application List Row Actions
                     "person": {
                         "name": {
                             "title": "Ms",
-                            "surname": "Clark {RANDOM}",
-                            "firstForename": "Emily",
-                            "secondForename": "Rose",
-                            "thirdForename": null
+                            "firstName": "Emily",
+                            "middleName": "Rose",
+                            "lastName": "Clark {RANDOM}"
                         },
                         "contactDetails": {
                             "addressLine1": "{RANDOM} Market Road",
@@ -142,10 +140,9 @@ Feature: Application List Row Actions
                     "person": {
                         "name": {
                             "title": "Mr",
-                            "surname": "Smith {RANDOM}",
-                            "firstForename": "John",
-                            "secondForename": "A",
-                            "thirdForename": "B"
+                            "firstName": "John",
+                            "middleName": "A B",
+                            "lastName": "Smith {RANDOM}"
                         },
                         "contactDetails": {
                             "addressLine1": "{RANDOM} High Street",

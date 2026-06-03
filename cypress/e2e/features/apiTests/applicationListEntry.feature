@@ -16,11 +16,10 @@ Feature: API - Application List Entry
           "applicant": {
               "person": {
                   "name": {
-                      "title": "Mr, Mrs",
-                      "surname": "Smith{RANDOM}",
-                      "firstForename": "John",
-                      "secondForename": "A",
-                      "thirdForename": "B"
+                      "title": "Mr",
+                      "firstName": "John",
+                      "middleName": "A B",
+                      "lastName": "Smith{RANDOM}"
                   },
                   "contactDetails": {
                       "addressLine1": "{RANDOM} High Street",
@@ -47,7 +46,15 @@ Feature: API - Application List Entry
           "caseReference": "CASE-001",
           "accountNumber": "APP-{RANDOM}",
           "notes": "Application discussion ref {RANDOM}",
-          "lodgementDate": "todayiso"
+          "lodgementDate": "todayiso",
+          "officials": [
+              {
+                  "title": "Mr",
+                  "surname": "Smith{RANDOM}",
+                  "forename": "John",
+                  "type": "MAGISTRATE"
+              }
+          ]
       }
       """
     Then User Verify Response Status Code Should Be "201"
@@ -77,11 +84,10 @@ Feature: API - Application List Entry
           "applicant": {
               "person": {
                   "name": {
-                      "title": "Mr, Mrs",
-                      "surname": "Smith{RANDOM}",
-                      "firstForename": "John",
-                      "secondForename": "A",
-                      "thirdForename": "B"
+                      "title": "Mr",
+                      "firstName": "John",
+                      "middleName": "A B",
+                      "lastName": "Smith{RANDOM}"
                   },
                   "contactDetails": {
                       "addressLine1": "{RANDOM} High Street",
@@ -111,7 +117,7 @@ Feature: API - Application List Entry
           "lodgementDate": "todayiso",
           "officials": [
               {
-                  "title": "Mr, Mrs",
+                  "title": "Mr",
                   "surname": "Smith{RANDOM}",
                   "forename": "John",
                   "type": "MAGISTRATE"
@@ -231,7 +237,7 @@ Feature: API - Application List Entry
       | standardApplicantCode                        | null                                |
       | applicationCode                              | AD99002                             |
       | applicant.person.name.title                  | Mr                                  |
-      | applicant.person.name.surname                | Smith {RANDOM}                      |
+      | applicant.person.name.lastName               | Smith {RANDOM}                      |
       | applicant.person.name.firstName              | John                                |
       | applicant.person.name.middleName             | A                                   |
       | applicant.person.contactDetails.addressLine1 | {RANDOM} High Street                |
