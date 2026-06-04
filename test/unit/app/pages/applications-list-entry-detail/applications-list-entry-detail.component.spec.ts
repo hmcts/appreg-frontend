@@ -279,10 +279,6 @@ describe('ApplicationsListEntryDetail', () => {
 
     expect(freshComponent.breadcrumbs()).toEqual([
       { label: 'Applications', link: '/applications' },
-      {
-        label: 'Application list entry details',
-        link: '/applications-list/AL-1',
-      },
     ]);
     expect(freshComponent.cancelLink()).toEqual(['/applications']);
   });
@@ -1130,7 +1126,7 @@ describe('ApplicationsListEntryDetail', () => {
     component['form'].patchValue({
       respondent: {
         person: {
-          name: { firstForename: 'Old', surname: 'Respondent' },
+          name: { firstName: 'Old', lastName: 'Respondent' },
           contactDetails: { addressLine1: '1 Street' },
         },
       },
