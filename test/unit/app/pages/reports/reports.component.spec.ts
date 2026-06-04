@@ -614,6 +614,52 @@ describe('ReportsComponent', () => {
     ).toBeFalsy();
   });
 
+  it('clears private prosecutors index filters and validation state', () => {
+    component.form.controls.report.setValue('private-prosecutors-index');
+    component.ppiGroup.patchValue({
+      dateFrom: '2026-02-01',
+      dateTo: '2026-01-31',
+      applicantOrg: '  Org Ltd  ',
+      applicantFirst: '  Jane  ',
+      applicantLast: '  Smith  ',
+      standardApplicantName: '  Standard  ',
+      respondentFirst: '  John  ',
+      respondentSurname: '  Doe  ',
+      respondentOrg: '  Resp Org  ',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().submitted).toBe(true);
+    expect(component.vm().errorSummary).toHaveLength(1);
+
+    component.onClearFilters();
+    fixture.detectChanges();
+
+    expect(component.form.controls.report.value).toBe(
+      'private-prosecutors-index',
+    );
+    expect(component.vm().submitted).toBe(false);
+    expect(component.vm().errorSummary).toEqual([]);
+    expect(component.vm().reportFeedback).toBeNull();
+    expect(component.ppiGroup.getRawValue()).toEqual({
+      dateFrom: null,
+      dateTo: null,
+      applicantOrg: '',
+      applicantFirst: '',
+      applicantLast: '',
+      standardApplicantName: '',
+      respondentFirst: '',
+      respondentSurname: '',
+      respondentOrg: '',
+      court: '',
+      otherLocation: '',
+      cja: '',
+    });
+  });
+
   it('blocks list maintenance download when date to is before date from', () => {
     component.form.controls.report.setValue('list-maintenance');
     component.listMaintenanceGroup.patchValue({

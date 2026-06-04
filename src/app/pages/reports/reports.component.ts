@@ -742,8 +742,9 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       case 'private-prosecutors-index':
         return {
           ...REPORT_DATE_RESET_VALUE,
-          applicantSurnameOrOrg: '',
+          applicantOrg: '',
           applicantFirst: '',
+          applicantLast: '',
           standardApplicantName: '',
           respondentFirst: '',
           respondentSurname: '',
