@@ -201,12 +201,15 @@ run_frontend_sonar_analysis() {
 
   local sonar_host_url="${SONAR_HOST_URL:-https://sonarcloud.io}"
   local sonar_organization="${SONAR_ORGANIZATION:-hmcts}"
+  local sonar_quality_gate_timeout="${SONAR_QUALITY_GATE_TIMEOUT_SECONDS:-300}"
   local sonar_args=(
     -Dproject.settings=sonar-project.properties
     "-Dsonar.host.url=${sonar_host_url}"
     "-Dsonar.pullrequest.key=${pr_number}"
     "-Dsonar.pullrequest.branch=${head_ref}"
     "-Dsonar.pullrequest.base=${base_ref:-master}"
+    "-Dsonar.qualitygate.wait=true"
+    "-Dsonar.qualitygate.timeout=${sonar_quality_gate_timeout}"
   )
 
   if [[ -n "${sonar_organization}" ]]; then
