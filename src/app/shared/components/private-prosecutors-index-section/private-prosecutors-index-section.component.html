@@ -10,61 +10,73 @@
   [suggestions]="suggestions()"
   [submitted]="submitted()"
   [getError]="getError()"
-/>
+  [advancedFilters]="true"
+  [courtInAdvancedFilters]="true"
+>
+  <div reportsAfterDateBeforeCourt [formGroup]="group()">
+    <!-- Applicant surname/organisation -->
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="applicantFirst"
+        label="Applicant first name"
+        idPrefix="ppi-applicant-first"
+        containerWidthClass="govuk-grid-column-one-quarter"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
 
-<div [formGroup]="group()">
-  <!-- Applicant surname/organisation -->
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="applicantSurnameOrOrg"
-      label="Surname/organisation"
-      hint="Enter the applicant’s surname or organisation"
-      idPrefix="ppi-applicant-surname-org"
-    />
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="applicantSurnameOrOrg"
+        label="Applicant surname/organisation"
+        idPrefix="ppi-applicant-surname-org"
+        containerWidthClass="govuk-grid-column-one-quarter"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
+    <!-- Applicant first name -->
   </div>
-  <!-- Applicant first name -->
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="applicantFirst"
-      label="Applicant first name"
-      hint="Enter the applicant’s first name"
-      idPrefix="ppi-applicant-first"
-    />
+
+  <div reportsAdvancedFieldsBeforeLocation [formGroup]="group()">
+    <!-- Standard applicant name -->
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="standardApplicantName"
+        label="Standard applicant name"
+        idPrefix="ppi-standard-applicant"
+        containerWidthClass="govuk-grid-column-one-quarter"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
+    <!-- Respondent first name -->
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="respondentFirst"
+        label="Respondent first name"
+        idPrefix="ppi-respondent-first"
+        containerWidthClass="govuk-grid-column-one-quarter"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
+    <!-- Respondent surname -->
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="respondentSurname"
+        label="Respondent surname"
+        idPrefix="ppi-respondent-surname"
+        containerWidthClass="govuk-grid-column-one-quarter"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
+    <!-- Respondent organisation -->
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="respondentOrg"
+        label="Respondent organisation"
+        idPrefix="ppi-respondent-org"
+        containerWidthClass="govuk-grid-column-one-quarter"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
   </div>
-  <!-- Standard applicant name -->
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="standardApplicantName"
-      label="Applicant name"
-      hint="Enter the standard applicant’s name"
-      idPrefix="ppi-standard-applicant"
-    />
-  </div>
-  <!-- Respondent first name -->
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="respondentFirst"
-      label="Respondent first name"
-      hint="Enter the respondent’s first name"
-      idPrefix="ppi-respondent-first"
-    />
-  </div>
-  <!-- Respondent surname -->
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="respondentSurname"
-      label="Respondent surname"
-      hint="Enter the respondent’s surname"
-      idPrefix="ppi-respondent-surname"
-    />
-  </div>
-  <!-- Respondent organisation -->
-  <div class="govuk-grid-row">
-    <app-text-input
-      formControlName="respondentOrg"
-      label="Organisation"
-      hint="Enter the respondent’s organisation name"
-      idPrefix="ppi-respondent-org"
-    />
-  </div>
-</div>
+</app-reports-shared-form>
