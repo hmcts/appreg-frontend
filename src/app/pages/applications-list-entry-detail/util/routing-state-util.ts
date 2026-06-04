@@ -53,6 +53,7 @@ export type EntryDetailSnapshot = {
 
 export type EntryDetailNavState = {
   appListId?: string;
+  fromApplicationsPage?: boolean;
   resultApplicantContext?: ApplicantContext;
   paymentRefReturn?: PaymentRefReturn;
   entryDetailSnapshot?: EntryDetailSnapshot;
@@ -93,6 +94,13 @@ export function isNavState(x: unknown): x is EntryDetailNavState {
 
   // appListId optional
   if (!isNullableString(x['appListId'])) {
+    return false;
+  }
+
+  if (
+    x['fromApplicationsPage'] !== undefined &&
+    typeof x['fromApplicationsPage'] !== 'boolean'
+  ) {
     return false;
   }
 

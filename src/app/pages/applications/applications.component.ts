@@ -326,6 +326,10 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.printRequest.set(request);
   }
 
+  onUpdateNotesClick(): void {
+    /** TODO: ARCPOC-1333 */
+  }
+
   private async buildPrintRequest(
     mode: ApplicationsPrintRequest['mode'],
   ): Promise<ApplicationsPrintRequest | null> {

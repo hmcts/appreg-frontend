@@ -60,6 +60,25 @@ describe('readNavState', () => {
     expect(res).toEqual(state);
   });
 
+  it('accepts fromApplicationsPage when it is a boolean', () => {
+    const state = { appListId: 'AL-1', fromApplicationsPage: true };
+    const loc = makeLocation(state);
+
+    const res = readNavState(loc, 'browser' as unknown as object);
+
+    expect(res).toEqual(state);
+  });
+
+  it('returns null when fromApplicationsPage is not a boolean', () => {
+    const loc = makeLocation({
+      appListId: 'AL-1',
+      fromApplicationsPage: 'yes',
+    });
+    const res = readNavState(loc, 'browser' as unknown as object);
+
+    expect(res).toBeNull();
+  });
+
   it('returns null when row exists but is not an object', () => {
     const loc = makeLocation({ row: 'nope' });
     const res = readNavState(loc, 'browser' as unknown as object);

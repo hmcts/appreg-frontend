@@ -1,12 +1,4 @@
-<app-breadcrumbs
-  [items]="[
-    { label: 'Applications list', link: '/applications-list' },
-    {
-      label: 'Applications list details',
-      link: '/applications-list/' + vm().appListId,
-    },
-  ]"
-/>
+<app-breadcrumbs [items]="breadcrumbs()" />
 
 @if (vm().errorFound) {
   <app-error-summary
@@ -167,10 +159,7 @@
     <button type="submit" class="govuk-button" (click)="onUpdateApplication()">
       Save complete application
     </button>
-    <a
-      class="govuk-button govuk-button--secondary"
-      [routerLink]="['/applications-list', vm().appListId]"
-    >
+    <a class="govuk-button govuk-button--secondary" [routerLink]="cancelLink()">
       Cancel
     </a>
   </div>
