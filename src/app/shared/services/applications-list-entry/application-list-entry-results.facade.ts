@@ -13,22 +13,6 @@ import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import type { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
 import { getAllResultCodes, getEntryResults$ } from '@util/result-code-helpers';
 
-export type BulkResultChange =
-  | {
-      action: 'create' | 'update';
-      entryId: string;
-      resultId?: string;
-      success: true;
-      response: ResultGetDto;
-    }
-  | {
-      action: 'create' | 'update';
-      entryId: string;
-      resultId?: string;
-      success: false;
-      error: unknown;
-    };
-
 export type BulkResultRemoval =
   | {
       entryId: string;
@@ -40,6 +24,16 @@ export type BulkResultRemoval =
       resultId: string;
       success: false;
       error: unknown;
+    };
+
+type BulkResultUpdate =
+  | {
+      result: ResultGetDto;
+      success: true;
+    }
+  | {
+      error: unknown;
+      success: false;
     };
 
 @Injectable()
@@ -90,7 +84,7 @@ export class ApplicationListEntryResultsFacade {
     listId: string,
     entryIds: string[],
     payload: ResultSectionSubmitPayload,
-    onSuccess?: (results: BulkResultChange[]) => void,
+    onSuccess?: () => void,
     onError?: (err: unknown) => void,
   ): void {
     if (!listId || !payload) {
@@ -104,7 +98,7 @@ export class ApplicationListEntryResultsFacade {
         .map((result) => [result.id, result]),
     );
 
-    const updateRequests: Observable<BulkResultChange>[] = [];
+    const updateRequests: Observable<BulkResultUpdate>[] = [];
     (payload.existingToUpdate ?? [])
       .filter((item) => !!item.resultId && !!item.resultCode)
       .forEach((item) => {
@@ -135,68 +129,51 @@ export class ApplicationListEntryResultsFacade {
                 })
                 .pipe(
                   map(
-                    (response): BulkResultChange => ({
-                      action: 'update',
-                      entryId: result.entryId,
-                      resultId: result.id,
+                    (updatedResult): BulkResultUpdate => ({
+                      result: updatedResult,
                       success: true,
-                      response,
                     }),
                   ),
                   catchError((error: unknown) =>
-                    of<BulkResultChange>({
-                      action: 'update',
-                      entryId: result.entryId,
-                      resultId: result.id,
-                      success: false,
+                    of({
                       error,
-                    }),
+                      success: false,
+                    } as BulkResultUpdate),
                   ),
                 ),
             );
           });
       });
 
-    const createRequests: Observable<BulkResultChange>[] = [];
+    const selectedEntryIds = [
+      ...new Set((entryIds ?? []).filter((entryId) => !!entryId)),
+    ];
+    const createRequests: Observable<ResultGetDto[]>[] = [];
     (payload.pendingToCreate ?? [])
       .filter((item) => !!item.resultCode)
       .forEach((item) => {
-        (entryIds ?? [])
-          .filter((entryId) => !!entryId)
-          .forEach((entryId) => {
-            createRequests.push(
-              this.entryResultsApi
-                .createApplicationListEntryResult({
-                  listId,
-                  entryId,
-                  resultCreateDto: {
-                    resultCode: item.resultCode.trim(),
-                    wordingFields: item.wordingFields ?? [],
-                  },
-                })
-                .pipe(
-                  map(
-                    (response): BulkResultChange => ({
-                      action: 'create',
-                      entryId,
-                      success: true,
-                      response,
-                    }),
-                  ),
-                  catchError((error: unknown) =>
-                    of<BulkResultChange>({
-                      action: 'create',
-                      entryId,
-                      success: false,
-                      error,
-                    }),
-                  ),
-                ),
-            );
-          });
+        if (selectedEntryIds.length === 0) {
+          return;
+        }
+
+        createRequests.push(
+          this.entryResultsApi.bulkResultApplicationListEntries({
+            listId,
+            bulkResultDto: {
+              entryIds: selectedEntryIds as unknown as Set<string>,
+              result: {
+                resultCode: item.resultCode.trim(),
+                wordingFields: item.wordingFields ?? [],
+              },
+            },
+          }),
+        );
       });
 
-    const allRequests = [...updateRequests, ...createRequests];
+    const allRequests: Observable<BulkResultUpdate | ResultGetDto[]>[] = [
+      ...updateRequests,
+      ...createRequests,
+    ];
     if (allRequests.length === 0) {
       return;
     }
@@ -205,23 +182,26 @@ export class ApplicationListEntryResultsFacade {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (results) => {
-          const successfulResponses = results
-            .filter((result) => result.success)
-            .map((result) => result.response);
-
-          this.mergeCreatedEntryResults(successfulResponses);
-
-          const hasCreateFailures = results.some(
-            (result) => result.action === 'create' && !result.success,
+          this.mergeCreatedEntryResults(
+            results.flatMap((result) => this.toResultGetDtos(result)),
           );
-          const hasCreateRequests = createRequests.length > 0;
 
-          if (hasCreateRequests && !hasCreateFailures) {
+          const failedUpdates = results.filter(
+            (result): result is Extract<BulkResultUpdate, { success: false }> =>
+              this.isBulkResultUpdate(result) && !result.success,
+          );
+
+          if (createRequests.length > 0) {
             this.clearPendingToken.update((n) => n + 1);
             this.pendingRows.set([]);
           }
 
-          onSuccess?.(results);
+          if (failedUpdates.length > 0) {
+            onError?.(failedUpdates[0].error);
+            return;
+          }
+
+          onSuccess?.();
         },
         error: (err) => onError?.(err),
       });
@@ -578,5 +558,43 @@ export class ApplicationListEntryResultsFacade {
 
   private normalizedWordingTemplate(result: ResultGetDto): string {
     return (result.wording?.template ?? '').trim();
+  }
+
+  private isResultGetDto(value: unknown): value is ResultGetDto {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      'id' in value &&
+      'entryId' in value &&
+      'resultCode' in value
+    );
+  }
+
+  private toResultGetDtos(value: unknown): ResultGetDto[] {
+    if (this.isBulkResultUpdate(value)) {
+      return value.success ? [value.result] : [];
+    }
+
+    if (Array.isArray(value)) {
+      return value.filter((item): item is ResultGetDto =>
+        this.isResultGetDto(item),
+      );
+    }
+
+    return this.isResultGetDto(value) ? [value] : [];
+  }
+
+  private isBulkResultUpdate(value: unknown): value is BulkResultUpdate {
+    if (typeof value !== 'object' || value === null || !('success' in value)) {
+      return false;
+    }
+
+    const update = value as Partial<BulkResultUpdate>;
+
+    if (update.success === true) {
+      return this.isResultGetDto(update.result);
+    }
+
+    return update.success === false && 'error' in value;
   }
 }
