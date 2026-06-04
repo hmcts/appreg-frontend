@@ -14,7 +14,18 @@
   [courtInAdvancedFilters]="true"
 >
   <div reportsAfterDateBeforeCourt [formGroup]="group()">
-    <!-- Applicant surname/organisation -->
+    <!-- Applicant organisation -->
+    <div class="govuk-grid-row">
+      <app-text-input
+        formControlName="applicantOrg"
+        label="Applicant organisation name"
+        idPrefix="ppi-applicant-org"
+        containerWidthClass="govuk-grid-column-one-quarter"
+        widthClass="govuk-!-width-full"
+      />
+    </div>
+
+    <!-- Applicant first/last name -->
     <div class="govuk-grid-row">
       <app-text-input
         formControlName="applicantFirst"
@@ -23,18 +34,15 @@
         containerWidthClass="govuk-grid-column-one-quarter"
         widthClass="govuk-!-width-full"
       />
-    </div>
 
-    <div class="govuk-grid-row">
       <app-text-input
-        formControlName="applicantSurnameOrOrg"
-        label="Applicant surname/organisation"
-        idPrefix="ppi-applicant-surname-org"
+        formControlName="applicantLast"
+        label="Applicant last name"
+        idPrefix="ppi-applicant-last"
         containerWidthClass="govuk-grid-column-one-quarter"
         widthClass="govuk-!-width-full"
       />
     </div>
-    <!-- Applicant first name -->
   </div>
 
   <div reportsAdvancedFieldsBeforeLocation [formGroup]="group()">

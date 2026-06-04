@@ -7,12 +7,14 @@ import {
   CreateActivityAuditReportRequestParams,
   CreateDurationReportRequestParams,
   CreateListMaintenanceReportRequestParams,
+  CreatePrivateProsecutorsIndexReportRequestParams,
   CreateSearchWarrantsReportRequestParams,
   CreateWorkloadReportRequestParams,
   DurationFilterDto,
   FeesReportFilterDto,
   LegacyReportLocation,
   ListMaintenanceFilterDto,
+  PrivateProsecutorsIndexFilterDto,
   SearchWarrantsReportFilterDto,
   WorkloadFilterDto,
 } from '@openapi';
@@ -73,6 +75,21 @@ interface ActivityAuditReportFormValue {
   activity: string[];
 }
 
+interface PpiReportFormValue {
+  dateFrom: string;
+  dateTo: string;
+  applicantOrg: string | null;
+  applicantFirst: string | null;
+  applicantLast: string | null;
+  standardApplicantName: string | null;
+  respondentFirst: string | null;
+  respondentSurname: string | null;
+  respondentOrg: string | null;
+  court: string | null;
+  otherLocation: string | null;
+  cja: string | null;
+}
+
 export function mapFeeGroupToFeesReportFilterDto(
   feeGroup: FormGroup,
 ): FeesReportFilterDto {
@@ -129,6 +146,14 @@ export function mapActivityAuditGroupToActivityAuditRequestParams(
 ): CreateActivityAuditReportRequestParams {
   return {
     activityAuditFilterDto: mapActivityAuditFormToParams(activityAudit),
+  };
+}
+
+export function mapPPIRequestParams(
+  ppi: FormGroup,
+): CreatePrivateProsecutorsIndexReportRequestParams {
+  return {
+    privateProsecutorsIndexFilterDto: mapPPIFormToParams(ppi),
   };
 }
 
@@ -201,6 +226,31 @@ function mapActivityAuditFormToParams(
     dateTo: value.dateTo,
     activityTypes: formActivities,
     ...(username ? { username } : {}),
+  };
+}
+
+function mapPPIFormToParams(ppi: FormGroup): PrivateProsecutorsIndexFilterDto {
+  const value = ppi.getRawValue() as PpiReportFormValue;
+  const location = buildLocation(value);
+  const applicantSurname = toOptionalTrimmed(value.applicantLast);
+  const applicantFirstName = toOptionalTrimmed(value.applicantFirst);
+  const applicantOrganisationName = toOptionalTrimmed(value.applicantOrg);
+  const standardApplicantName = toOptionalTrimmed(value.standardApplicantName);
+  const respondentSurname = toOptionalTrimmed(value.respondentSurname);
+  const respondentFirstName = toOptionalTrimmed(value.respondentFirst);
+  const respondentOrganisationName = toOptionalTrimmed(value.respondentOrg);
+
+  return {
+    dateFrom: value.dateFrom,
+    dateTo: value.dateTo,
+    ...(applicantSurname ? { applicantSurname } : {}),
+    ...(applicantFirstName ? { applicantFirstName } : {}),
+    ...(applicantOrganisationName ? { applicantOrganisationName } : {}),
+    ...(standardApplicantName ? { standardApplicantName } : {}),
+    ...(respondentSurname ? { respondentSurname } : {}),
+    ...(respondentFirstName ? { respondentFirstName } : {}),
+    ...(respondentOrganisationName ? { respondentOrganisationName } : {}),
+    ...(location ? { location } : {}),
   };
 }
 
