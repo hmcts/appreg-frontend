@@ -244,6 +244,16 @@
             data-align-menu="right"
             data-button-classes="govuk-button govuk-button--small govuk-button--primary table-caption__action-button"
           >
+            <!-- Update notes -->
+            <!-- TODO: ARCPOC-1333 -->
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+              (click)="onUpdateNotesClick()"
+            >
+              Update notes
+            </button>
+
             <button
               type="button"
               class="govuk-button moj-button-menu__item govuk-button--secondary"
@@ -277,19 +287,16 @@
         <button
           type="button"
           class="govuk-button moj-button-menu__item govuk-button--secondary"
-          [routerLink]="['/applications', row.id]"
+          [routerLink]="[
+            '/applications-list',
+            row.applicationListId,
+            'update-entry',
+            row.id,
+          ]"
+          [state]="{ fromApplicationsPage: true }"
+          [disabled]="row.status === 'CLOSED'"
         >
           Open
-        </button>
-
-        <!-- Update -->
-        <!-- TODO: Currently there's not pages for just application so this route doesn't work. Need to create page for this -->
-        <button
-          type="button"
-          class="govuk-button moj-button-menu__item govuk-button--secondary"
-          [routerLink]="['/applications', row.id, 'update']"
-        >
-          Update
         </button>
       </div>
     </ng-template>

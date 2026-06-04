@@ -267,6 +267,14 @@ export class ApplicationsListEntryDetail implements OnInit {
   // Result wording data
   resultApplicantContext: ApplicantContext[] = [];
   private navState: EntryDetailNavState | null = null;
+  readonly breadcrumbs = signal([
+    { label: 'Applications list', link: '/applications-list' },
+    {
+      label: 'Applications list details',
+      link: '/applications-list/',
+    },
+  ]);
+  readonly cancelLink = signal<string[]>(['/applications-list']);
 
   //Civil fee
   feeMeta: CivilFeeMeta | null = null;
@@ -296,6 +304,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
 
     this.appListEntryDetailPatch({ appListId: listId });
+    this.setupNavigationLinks(listId, state?.fromApplicationsPage ?? false);
 
     //Civil fee feeStatus payment ref edit handling
     const pr = state?.paymentRefReturn ?? null;
@@ -310,6 +319,26 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     //Shows success banner if navigated from create page with ?listCreated=true
     this.handleListCreate();
+  }
+
+  private setupNavigationLinks(
+    listId: string,
+    fromApplicationsPage: boolean,
+  ): void {
+    if (fromApplicationsPage) {
+      this.breadcrumbs.set([{ label: 'Applications', link: '/applications' }]);
+      this.cancelLink.set(['/applications']);
+      return;
+    }
+
+    this.breadcrumbs.set([
+      { label: 'Applications list', link: '/applications-list' },
+      {
+        label: 'Applications list details',
+        link: `/applications-list/${listId}`,
+      },
+    ]);
+    this.cancelLink.set(['/applications-list', listId]);
   }
 
   private createForms(): void {

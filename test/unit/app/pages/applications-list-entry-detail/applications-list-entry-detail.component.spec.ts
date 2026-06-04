@@ -1,5 +1,6 @@
 // applications-list-entry-detail.spec.ts
 
+import { Location } from '@angular/common';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { PLATFORM_ID } from '@angular/core';
@@ -124,6 +125,9 @@ const makeResultPayload = (
 describe('ApplicationsListEntryDetail', () => {
   let fixture: ComponentFixture<ApplicationsListEntryDetail>;
   let component: ApplicationsListEntryDetail;
+  const locationStub = {
+    getState: jest.fn(),
+  } as unknown as Location;
 
   let mockGetApplicationCodes: jest.MockedFunction<GetCodesFn>;
   let mockGetApplicationCodeByCodeAndDate: jest.MockedFunction<GetCodeDetailFn>;
@@ -241,6 +245,7 @@ describe('ApplicationsListEntryDetail', () => {
       providers: [
         provideRouter([]),
         { provide: PLATFORM_ID, useValue: 'browser' },
+        { provide: Location, useValue: locationStub },
         { provide: ApplicationCodesApi, useValue: codesApiMock },
         { provide: ApplicationListEntriesApi, useValue: entriesApiMock },
         { provide: StandardApplicantsApi, useValue: standardApplicantsApiMock },
@@ -259,6 +264,34 @@ describe('ApplicationsListEntryDetail', () => {
 
   it('maps lodgementDate error summary links to the date input day field', () => {
     expect(ERROR_HREFS.lodgementDate).toBe('#lodgement-date-day');
+  });
+
+  it('uses applications breadcrumbs and cancel link when opened from Applications', () => {
+    locationStub.getState = jest.fn().mockReturnValue({
+      appListId: 'AL-1',
+      fromApplicationsPage: true,
+    });
+
+    const freshFixture = TestBed.createComponent(ApplicationsListEntryDetail);
+    const freshComponent = freshFixture.componentInstance;
+
+    freshFixture.detectChanges();
+
+    expect(freshComponent.breadcrumbs()).toEqual([
+      { label: 'Applications', link: '/applications' },
+    ]);
+    expect(freshComponent.cancelLink()).toEqual(['/applications']);
+  });
+
+  it('keeps applications-list breadcrumbs and cancel link by default', () => {
+    expect(component.breadcrumbs()).toEqual([
+      { label: 'Applications list', link: '/applications-list' },
+      {
+        label: 'Applications list details',
+        link: '/applications-list/AL-1',
+      },
+    ]);
+    expect(component.cancelLink()).toEqual(['/applications-list', 'AL-1']);
   });
 
   it('ngOnInit loads entry and application code and patches form', () => {
@@ -1093,7 +1126,7 @@ describe('ApplicationsListEntryDetail', () => {
     component['form'].patchValue({
       respondent: {
         person: {
-          name: { firstForename: 'Old', surname: 'Respondent' },
+          name: { firstName: 'Old', lastName: 'Respondent' },
           contactDetails: { addressLine1: '1 Street' },
         },
       },
