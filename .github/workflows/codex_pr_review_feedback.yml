@@ -182,7 +182,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
-    timeout-minutes: 30
+    timeout-minutes: 60
     outputs:
       passed: ${{ steps.verify.outputs.passed }}
       output_artifact: codex-review-output
@@ -194,6 +194,10 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       LOCAL_PIPELINE_MODE: fast
       FRONTEND_FAST_COMMAND: yarn lint
+      RUN_SONAR: 'true'
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL || 'https://sonarcloud.io' }}
+      SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION || 'hmcts' }}
       CODEX_OUTPUT_ARTIFACT: codex-review-output
       CODEX_VERIFIED_ARTIFACT: codex-review-verified-0
       CODEX_FAILURE_ARTIFACT: codex-review-verification-failure-0
@@ -210,6 +214,12 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
 
       - name: Download Codex review output
         uses: actions/download-artifact@v4
@@ -326,7 +336,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
-    timeout-minutes: 30
+    timeout-minutes: 60
     outputs:
       passed: ${{ steps.verify.outputs.passed }}
       output_artifact: codex-review-output-repair-1
@@ -338,6 +348,10 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       LOCAL_PIPELINE_MODE: fast
       FRONTEND_FAST_COMMAND: yarn lint
+      RUN_SONAR: 'true'
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL || 'https://sonarcloud.io' }}
+      SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION || 'hmcts' }}
       CODEX_OUTPUT_ARTIFACT: codex-review-output-repair-1
       CODEX_VERIFIED_ARTIFACT: codex-review-verified-1
       CODEX_FAILURE_ARTIFACT: codex-review-verification-failure-1
@@ -354,6 +368,12 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
 
       - name: Download Codex review output
         uses: actions/download-artifact@v4
@@ -470,7 +490,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
-    timeout-minutes: 30
+    timeout-minutes: 60
     outputs:
       passed: ${{ steps.verify.outputs.passed }}
       output_artifact: codex-review-output-repair-2
@@ -482,6 +502,10 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       LOCAL_PIPELINE_MODE: fast
       FRONTEND_FAST_COMMAND: yarn lint
+      RUN_SONAR: 'true'
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL || 'https://sonarcloud.io' }}
+      SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION || 'hmcts' }}
       CODEX_OUTPUT_ARTIFACT: codex-review-output-repair-2
       CODEX_VERIFIED_ARTIFACT: codex-review-verified-2
       CODEX_FAILURE_ARTIFACT: codex-review-verification-failure-2
@@ -498,6 +522,12 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
 
       - name: Download Codex review output
         uses: actions/download-artifact@v4
@@ -614,7 +644,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
-    timeout-minutes: 30
+    timeout-minutes: 60
     outputs:
       passed: ${{ steps.verify.outputs.passed }}
       output_artifact: codex-review-output-repair-3
@@ -626,6 +656,10 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       LOCAL_PIPELINE_MODE: fast
       FRONTEND_FAST_COMMAND: yarn lint
+      RUN_SONAR: 'true'
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL || 'https://sonarcloud.io' }}
+      SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION || 'hmcts' }}
       CODEX_OUTPUT_ARTIFACT: codex-review-output-repair-3
       CODEX_VERIFIED_ARTIFACT: codex-review-verified-3
       CODEX_FAILURE_ARTIFACT: codex-review-verification-failure-3
@@ -642,6 +676,12 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
 
       - name: Download Codex review output
         uses: actions/download-artifact@v4
