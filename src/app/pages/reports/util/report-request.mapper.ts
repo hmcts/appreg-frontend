@@ -229,7 +229,9 @@ function mapActivityAuditFormToParams(
   };
 }
 
-function mapPPIFormToParams(ppi: FormGroup): PrivateProsecutorsIndexFilterDto {
+export function mapPPIFormToParams(
+  ppi: FormGroup,
+): PrivateProsecutorsIndexFilterDto {
   const value = ppi.getRawValue() as PpiReportFormValue;
   const location = buildLocation(value);
   const applicantSurname = toOptionalTrimmed(value.applicantLast);
