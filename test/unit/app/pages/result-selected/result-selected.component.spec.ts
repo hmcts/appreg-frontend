@@ -41,7 +41,7 @@ describe('ResultSelectedComponent', () => {
 
   beforeEach(async () => {
     mockApi = {
-      bulkResultApplicationListEntries: jest.fn().mockReturnValue(of(null)),
+      bulkResultApplicationListEntries: jest.fn().mockReturnValue(of([])),
       createApplicationListEntryResult: jest.fn().mockReturnValue(of(null)),
       deleteApplicationListEntryResult: jest.fn().mockReturnValue(of(null)),
       getApplicationListEntryResults: jest
@@ -217,7 +217,7 @@ describe('ResultSelectedComponent', () => {
 
   it('onSubmitResults sends one bulk request and shows success when it succeeds', () => {
     component.listId = 'list-success';
-    const hydratedResult = {
+    const createdResult = {
       id: 'result-1',
       entryId: 'entry-1',
       resultCode: 'ADJ',
@@ -226,20 +226,9 @@ describe('ResultSelectedComponent', () => {
         'substitution-key-constraints': [],
       },
     } as ResultGetDto;
-    mockApi.getApplicationListEntryResults
-      .mockReturnValueOnce(
-        of({
-          content: [
-            hydratedResult,
-            {
-              id: 'result-2',
-              entryId: 'entry-1',
-              resultCode: 'OTHER',
-            },
-          ],
-        }),
-      )
-      .mockReturnValueOnce(of({ content: [] }));
+    mockApi.bulkResultApplicationListEntries.mockReturnValueOnce(
+      of([createdResult]),
+    );
     component.rows = [
       {
         id: 'entry-1',
@@ -287,8 +276,8 @@ describe('ResultSelectedComponent', () => {
       },
     });
     expect(mockApi.createApplicationListEntryResult).not.toHaveBeenCalled();
-    expect(mockApi.getApplicationListEntryResults).toHaveBeenCalledTimes(2);
-    expect(component.createdEntryResults()).toEqual([hydratedResult]);
+    expect(mockApi.getApplicationListEntryResults).not.toHaveBeenCalled();
+    expect(component.createdEntryResults()).toEqual([createdResult]);
     expect(component.errorSummaryItems()).toEqual([]);
     expect(component.successBanner()).toEqual({
       heading: 'Result codes applied successfully',

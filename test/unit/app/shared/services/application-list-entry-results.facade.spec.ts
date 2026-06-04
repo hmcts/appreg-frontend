@@ -48,7 +48,7 @@ describe('ApplicationListEntryResultsFacade', () => {
 
   beforeEach(() => {
     entryResultsApi = {
-      bulkResultApplicationListEntries: jest.fn(() => of(null) as unknown),
+      bulkResultApplicationListEntries: jest.fn(() => of([]) as unknown),
       createApplicationListEntryResult: jest.fn(() => of(null) as unknown),
       deleteApplicationListEntryResult: jest.fn(() => of(null) as unknown),
       getApplicationListEntryResults: jest.fn(
@@ -211,28 +211,21 @@ describe('ApplicationListEntryResultsFacade', () => {
   });
 
   describe('submitResultChangesForEntries', () => {
-    it('creates pending results with one bulk request, hydrates saved results, and clears pending when it succeeds', () => {
+    it('creates pending results with one bulk request, stores returned results, and clears pending when it succeeds', () => {
       const onSuccess = jest.fn();
       const createdForEntry1 = makeResult({
         id: 'R-10',
         entryId: 'E-1',
         resultCode: 'rc2',
       });
-      const unrelatedForEntry1 = makeResult({
-        id: 'R-99',
-        entryId: 'E-1',
-        resultCode: 'OTHER',
-      });
       const createdForEntry2 = makeResult({
         id: 'R-11',
         entryId: 'E-2',
         resultCode: 'RC2',
       });
-      entryResultsApi.getApplicationListEntryResults
-        .mockReturnValueOnce(
-          of({ content: [createdForEntry1, unrelatedForEntry1] }) as unknown,
-        )
-        .mockReturnValueOnce(of({ content: [createdForEntry2] }) as unknown);
+      entryResultsApi.bulkResultApplicationListEntries.mockReturnValueOnce(
+        of([createdForEntry1, createdForEntry2]) as unknown,
+      );
 
       facade.submitResultChangesForEntries(
         'L-1',
@@ -269,23 +262,7 @@ describe('ApplicationListEntryResultsFacade', () => {
       ).not.toHaveBeenCalled();
       expect(
         entryResultsApi.getApplicationListEntryResults,
-      ).toHaveBeenCalledTimes(2);
-      expect(
-        entryResultsApi.getApplicationListEntryResults,
-      ).toHaveBeenNthCalledWith(1, {
-        listId: 'L-1',
-        entryId: 'E-1',
-        pageNumber: 0,
-        pageSize: 100,
-      });
-      expect(
-        entryResultsApi.getApplicationListEntryResults,
-      ).toHaveBeenNthCalledWith(2, {
-        listId: 'L-1',
-        entryId: 'E-2',
-        pageNumber: 0,
-        pageSize: 100,
-      });
+      ).not.toHaveBeenCalled();
       expect(facade.newlyCreatedEntryResults()).toEqual([
         createdForEntry1,
         createdForEntry2,

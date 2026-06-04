@@ -1,6 +1,6 @@
 import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Observable, catchError, forkJoin, map, of, switchMap } from 'rxjs';
+import { Observable, catchError, forkJoin, map, of } from 'rxjs';
 
 import {
   ApplicationListEntryResultsApi,
@@ -123,15 +123,7 @@ export class ApplicationListEntryResultsFacade {
     const selectedEntryIds = [
       ...new Set((entryIds ?? []).filter((entryId) => !!entryId)),
     ];
-    const createdResultCodes = [
-      ...new Set(
-        (payload.pendingToCreate ?? [])
-          .map((item) => this.normCode(item.resultCode))
-          .filter((code) => !!code),
-      ),
-    ];
-
-    const createRequests: Observable<unknown>[] = [];
+    const createRequests: Observable<ResultGetDto[]>[] = [];
     (payload.pendingToCreate ?? [])
       .filter((item) => !!item.resultCode)
       .forEach((item) => {
@@ -153,40 +145,23 @@ export class ApplicationListEntryResultsFacade {
         );
       });
 
-    const allRequests = [...updateRequests, ...createRequests];
+    const allRequests: Observable<ResultGetDto | ResultGetDto[]>[] = [
+      ...updateRequests,
+      ...createRequests,
+    ];
     if (allRequests.length === 0) {
       return;
     }
 
     forkJoin(allRequests)
-      .pipe(
-        switchMap((results) => {
-          this.mergeCreatedEntryResults(
-            results.filter((result): result is ResultGetDto =>
-              this.isResultGetDto(result),
-            ),
-          );
-
-          if (createRequests.length === 0) {
-            return of(false);
-          }
-
-          return this.getCreatedEntryResultsForEntries$(
-            listId,
-            selectedEntryIds,
-            createdResultCodes,
-          ).pipe(
-            map((createdResults) => {
-              this.mergeCreatedEntryResults(createdResults);
-              return true;
-            }),
-          );
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (hasCreateRequests) => {
-          if (hasCreateRequests) {
+        next: (results) => {
+          this.mergeCreatedEntryResults(
+            results.flatMap((result) => this.toResultGetDtos(result)),
+          );
+
+          if (createRequests.length > 0) {
             this.clearPendingToken.update((n) => n + 1);
             this.pendingRows.set([]);
           }
@@ -195,32 +170,6 @@ export class ApplicationListEntryResultsFacade {
         },
         error: (err) => onError?.(err),
       });
-  }
-
-  private getCreatedEntryResultsForEntries$(
-    listId: string,
-    entryIds: string[],
-    resultCodes: string[],
-  ): Observable<ResultGetDto[]> {
-    if (!listId || entryIds.length === 0 || resultCodes.length === 0) {
-      return of([]);
-    }
-
-    const resultCodeSet = new Set(resultCodes);
-
-    return forkJoin(
-      entryIds.map((entryId) =>
-        getEntryResults$(this.entryResultsApi, { listId, entryId }),
-      ),
-    ).pipe(
-      map((resultsByEntry) =>
-        resultsByEntry
-          .flat()
-          .filter((result) =>
-            resultCodeSet.has(this.normCode(result.resultCode)),
-          ),
-      ),
-    );
   }
 
   removeCreatedEntryResults(
@@ -584,5 +533,15 @@ export class ApplicationListEntryResultsFacade {
       'entryId' in value &&
       'resultCode' in value
     );
+  }
+
+  private toResultGetDtos(value: unknown): ResultGetDto[] {
+    if (Array.isArray(value)) {
+      return value.filter((item): item is ResultGetDto =>
+        this.isResultGetDto(item),
+      );
+    }
+
+    return this.isResultGetDto(value) ? [value] : [];
   }
 }
