@@ -844,6 +844,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     this.createSearchWarrantsReportRequest.set(null);
     this.createWorkloadReportRequest.set(null);
     this.createActivityAuditReportRequest.set(null);
+    this.createPpiRequest.set(null);
   }
 
   private handleReportJobStatus(job: PolledJobStatus): void {
