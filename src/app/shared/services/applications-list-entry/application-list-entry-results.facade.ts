@@ -26,6 +26,16 @@ export type BulkResultRemoval =
       error: unknown;
     };
 
+type BulkResultUpdate =
+  | {
+      result: ResultGetDto;
+      success: true;
+    }
+  | {
+      error: unknown;
+      success: false;
+    };
+
 @Injectable()
 export class ApplicationListEntryResultsFacade {
   private readonly destroyRef = inject(DestroyRef);
@@ -88,7 +98,7 @@ export class ApplicationListEntryResultsFacade {
         .map((result) => [result.id, result]),
     );
 
-    const updateRequests: Observable<ResultGetDto>[] = [];
+    const updateRequests: Observable<BulkResultUpdate>[] = [];
     (payload.existingToUpdate ?? [])
       .filter((item) => !!item.resultId && !!item.resultCode)
       .forEach((item) => {
@@ -107,15 +117,30 @@ export class ApplicationListEntryResultsFacade {
             }
 
             updateRequests.push(
-              this.entryResultsApi.updateApplicationListEntryResult({
-                listId,
-                entryId: result.entryId,
-                resultId: result.id,
-                resultUpdateDto: {
-                  resultCode: item.resultCode.trim(),
-                  wordingFields: item.wordingFields ?? [],
-                },
-              }),
+              this.entryResultsApi
+                .updateApplicationListEntryResult({
+                  listId,
+                  entryId: result.entryId,
+                  resultId: result.id,
+                  resultUpdateDto: {
+                    resultCode: item.resultCode.trim(),
+                    wordingFields: item.wordingFields ?? [],
+                  },
+                })
+                .pipe(
+                  map(
+                    (updatedResult): BulkResultUpdate => ({
+                      result: updatedResult,
+                      success: true,
+                    }),
+                  ),
+                  catchError((error: unknown) =>
+                    of({
+                      error,
+                      success: false,
+                    } as BulkResultUpdate),
+                  ),
+                ),
             );
           });
       });
@@ -145,7 +170,7 @@ export class ApplicationListEntryResultsFacade {
         );
       });
 
-    const allRequests: Observable<ResultGetDto | ResultGetDto[]>[] = [
+    const allRequests: Observable<BulkResultUpdate | ResultGetDto[]>[] = [
       ...updateRequests,
       ...createRequests,
     ];
@@ -161,9 +186,19 @@ export class ApplicationListEntryResultsFacade {
             results.flatMap((result) => this.toResultGetDtos(result)),
           );
 
+          const failedUpdates = results.filter(
+            (result): result is Extract<BulkResultUpdate, { success: false }> =>
+              this.isBulkResultUpdate(result) && !result.success,
+          );
+
           if (createRequests.length > 0) {
             this.clearPendingToken.update((n) => n + 1);
             this.pendingRows.set([]);
+          }
+
+          if (failedUpdates.length > 0) {
+            onError?.(failedUpdates[0].error);
+            return;
           }
 
           onSuccess?.();
@@ -536,6 +571,10 @@ export class ApplicationListEntryResultsFacade {
   }
 
   private toResultGetDtos(value: unknown): ResultGetDto[] {
+    if (this.isBulkResultUpdate(value)) {
+      return value.success ? [value.result] : [];
+    }
+
     if (Array.isArray(value)) {
       return value.filter((item): item is ResultGetDto =>
         this.isResultGetDto(item),
@@ -543,5 +582,19 @@ export class ApplicationListEntryResultsFacade {
     }
 
     return this.isResultGetDto(value) ? [value] : [];
+  }
+
+  private isBulkResultUpdate(value: unknown): value is BulkResultUpdate {
+    if (typeof value !== 'object' || value === null || !('success' in value)) {
+      return false;
+    }
+
+    const update = value as Partial<BulkResultUpdate>;
+
+    if (update.success === true) {
+      return this.isResultGetDto(update.result);
+    }
+
+    return update.success === false && 'error' in value;
   }
 }

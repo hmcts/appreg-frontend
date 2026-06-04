@@ -468,6 +468,60 @@ describe('ApplicationListEntryResultsFacade', () => {
       });
       expect(onSuccess).toHaveBeenCalled();
     });
+
+    it('merges successful looped updates and reports failed updates', () => {
+      const onSuccess = jest.fn();
+      const onError = jest.fn();
+      const error = new Error('update failed');
+      const originalResult1 = makeResult({
+        id: 'R-1',
+        entryId: 'E-1',
+        resultCode: 'RC1',
+      });
+      const originalResult2 = makeResult({
+        id: 'R-2',
+        entryId: 'E-2',
+        resultCode: 'RC1',
+      });
+      const updatedResult1 = makeResult({
+        id: 'R-1',
+        entryId: 'E-1',
+        resultCode: 'RC1',
+        wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+      });
+
+      facade.addCreatedEntryResults([originalResult1, originalResult2]);
+      entryResultsApi.updateApplicationListEntryResult
+        .mockReturnValueOnce(of(updatedResult1))
+        .mockReturnValueOnce(throwError(() => error));
+
+      facade.submitResultChangesForEntries(
+        'L-1',
+        ['E-1', 'E-2'],
+        {
+          pendingToCreate: [],
+          existingToUpdate: [
+            {
+              resultId: 'R-1',
+              resultCode: 'RC1',
+              wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+            },
+          ],
+        },
+        onSuccess,
+        onError,
+      );
+
+      expect(
+        entryResultsApi.updateApplicationListEntryResult,
+      ).toHaveBeenCalledTimes(2);
+      expect(facade.newlyCreatedEntryResults()).toEqual([
+        updatedResult1,
+        originalResult2,
+      ]);
+      expect(onSuccess).not.toHaveBeenCalled();
+      expect(onError).toHaveBeenCalledWith(error);
+    });
   });
 
   describe('removeCreatedEntryResults', () => {
