@@ -25,6 +25,7 @@ import {
   mapDurationGroupToDurationReportRequestParams,
   mapFeeGroupToFeesReportFilterDto,
   mapListMaintenanceGroupToListMaintenanceReportRequestParams,
+  mapPPIRequestParams,
   mapSearchWarrantsGroupToSearchWarrantsReportRequestParams,
   mapWorkloadGroupToWorkloadReportRequestParams,
 } from './util';
@@ -54,6 +55,7 @@ import {
   CreateDurationReportRequestParams,
   CreateFeesReportRequestParams,
   CreateListMaintenanceReportRequestParams,
+  CreatePrivateProsecutorsIndexReportRequestParams,
   CreateSearchWarrantsReportRequestParams,
   CreateWorkloadReportRequestParams,
   JobAcknowledgement,
@@ -151,6 +153,8 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     signal<CreateWorkloadReportRequestParams | null>(null);
   private readonly createActivityAuditReportRequest =
     signal<CreateActivityAuditReportRequestParams | null>(null);
+  private readonly createPpiRequest =
+    signal<CreatePrivateProsecutorsIndexReportRequestParams | null>(null);
 
   onCreateErrorClick = onCreateErrorClickFn;
 
@@ -276,8 +280,9 @@ export class Reports extends PlaceFieldsBase implements OnInit {
         dateTo: new FormControl<string | null>(null, {
           validators: [(c) => Validators.required(c)],
         }),
-        applicantSurnameOrOrg: new FormControl<string | null>(''),
+        applicantOrg: new FormControl<string | null>(''),
         applicantFirst: new FormControl<string | null>(''),
+        applicantLast: new FormControl<string | null>(''),
         standardApplicantName: new FormControl<string | null>(''),
         respondentFirst: new FormControl<string | null>(''),
         respondentSurname: new FormControl<string | null>(''),
@@ -364,6 +369,10 @@ export class Reports extends PlaceFieldsBase implements OnInit {
 
     if (this.form.controls.report.value === 'duration') {
       this.createDurationReport();
+    }
+
+    if (this.form.controls.report.value === 'private-prosecutors-index') {
+      this.createPpiReport();
     }
   }
 
@@ -466,6 +475,15 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     this.stopReportPolling();
     this.showReportProgress();
     this.createActivityAuditReportRequest.set(request);
+  }
+
+  private startCreatePpiReport(
+    request: CreatePrivateProsecutorsIndexReportRequestParams,
+  ): void {
+    this.stopReportCreate();
+    this.stopReportPolling();
+    this.showReportProgress();
+    this.createPpiRequest.set(request);
   }
 
   private setupEffects(): void {
@@ -618,6 +636,32 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       },
       this.envInjector,
     );
+
+    // POST /reports/private-prosecutors-index/jobs
+    setupLoadEffect(
+      {
+        request: this.createPpiRequest,
+        load: (request) =>
+          this.reportsApi.createPrivateProsecutorsIndexReport(
+            request,
+            'response',
+            false,
+            {
+              httpHeaderAccept: 'application/vnd.hmcts.appreg.v1+json',
+              transferCache: false,
+            },
+          ),
+        onSuccess: (response) => {
+          this.createPpiRequest.set(null);
+          this.handleReportJobCreated(response);
+        },
+        onError: (err) => {
+          this.createPpiRequest.set(null);
+          this.showReportError(this.toReportRequestError(err));
+        },
+      },
+      this.envInjector,
+    );
   }
 
   fieldError(id: string): ErrorItem | undefined {
@@ -698,8 +742,9 @@ export class Reports extends PlaceFieldsBase implements OnInit {
       case 'private-prosecutors-index':
         return {
           ...REPORT_DATE_RESET_VALUE,
-          applicantSurnameOrOrg: '',
+          applicantOrg: '',
           applicantFirst: '',
+          applicantLast: '',
           standardApplicantName: '',
           respondentFirst: '',
           respondentSurname: '',
@@ -749,6 +794,10 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     );
   }
 
+  private createPpiReport(): void {
+    this.startCreatePpiReport(mapPPIRequestParams(this.ppiGroup));
+  }
+
   private handleReportJobCreated(
     response: HttpResponse<JobAcknowledgement>,
   ): void {
@@ -795,6 +844,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     this.createSearchWarrantsReportRequest.set(null);
     this.createWorkloadReportRequest.set(null);
     this.createActivityAuditReportRequest.set(null);
+    this.createPpiRequest.set(null);
   }
 
   private handleReportJobStatus(job: PolledJobStatus): void {

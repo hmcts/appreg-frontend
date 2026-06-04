@@ -38,6 +38,7 @@ const reportsApiMock = {
   createDurationReport: jest.fn(),
   createFeesReport: jest.fn(),
   createListMaintenanceReport: jest.fn(),
+  createPrivateProsecutorsIndexReport: jest.fn(),
   createSearchWarrantsReport: jest.fn(),
   createWorkloadReport: jest.fn(),
   createActivityAuditReport: jest.fn(),
@@ -63,6 +64,15 @@ const completedJob: PolledJobStatus = {
   totalCount: null,
   message: null,
   raw: {},
+};
+
+type ReportsHarness = {
+  createPpiReport: () => void;
+  startCreatePpiReport: (request: unknown) => void;
+  stopReportCreate: () => void;
+  stopReportPolling: () => void;
+  showReportProgress: () => void;
+  createPpiRequest: () => unknown;
 };
 
 describe('ReportsComponent', () => {
@@ -186,6 +196,130 @@ describe('ReportsComponent', () => {
     expect(section.group()).toBe(component.durationGroup);
     expect(section.suggestions()).toBe(component.suggestionsFacade);
     expect(section.getError()).toEqual(expect.any(Function));
+  });
+
+  it('createPpiReport delegates to the PPI request mapper and start helper', () => {
+    reportsApiMock.createPrivateProsecutorsIndexReport.mockReturnValue(
+      of(new HttpResponse({ body: jobAcknowledgement, status: 202 })),
+    );
+    jobPollingFacadeMock.watchJob.mockReturnValue(of(completedJob));
+
+    component.form.controls.report.setValue('private-prosecutors-index');
+    component.ppiGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+      applicantOrg: '  Org Ltd  ',
+      applicantFirst: '  Jane  ',
+      applicantLast: '  Smith  ',
+      standardApplicantName: '  Standard  ',
+      respondentFirst: '  John  ',
+      respondentSurname: '  Doe  ',
+      respondentOrg: '  Resp Org  ',
+      court: ' A1 ',
+    });
+    fixture.detectChanges();
+
+    const harness = component as unknown as ReportsHarness;
+    const startCreatePpiReportSpy = jest.spyOn(harness, 'startCreatePpiReport');
+
+    harness.createPpiReport();
+
+    expect(startCreatePpiReportSpy).toHaveBeenCalledWith({
+      privateProsecutorsIndexFilterDto: {
+        dateFrom: '2026-01-01',
+        dateTo: '2026-01-31',
+        applicantOrganisationName: 'Org Ltd',
+        applicantFirstName: 'Jane',
+        applicantSurname: 'Smith',
+        standardApplicantName: 'Standard',
+        respondentFirstName: 'John',
+        respondentSurname: 'Doe',
+        respondentOrganisationName: 'Resp Org',
+        location: {
+          courtLocationCode: 'A1',
+        },
+      },
+    });
+  });
+
+  it('startCreatePpiReport stores the request and begins report creation state', () => {
+    reportsApiMock.createPrivateProsecutorsIndexReport.mockReturnValue(
+      of(new HttpResponse({ body: jobAcknowledgement, status: 202 })),
+    );
+    jobPollingFacadeMock.watchJob.mockReturnValue(of(completedJob));
+
+    const request = {
+      privateProsecutorsIndexFilterDto: {
+        dateFrom: '2026-01-01',
+        dateTo: '2026-01-31',
+      },
+    };
+
+    const harness = component as unknown as ReportsHarness;
+    const stopReportCreateSpy = jest.spyOn(harness, 'stopReportCreate');
+    const stopReportPollingSpy = jest.spyOn(harness, 'stopReportPolling');
+    const showReportProgressSpy = jest.spyOn(harness, 'showReportProgress');
+
+    harness.startCreatePpiReport(request);
+
+    expect(stopReportCreateSpy).toHaveBeenCalledTimes(1);
+    expect(stopReportPollingSpy).toHaveBeenCalledTimes(1);
+    expect(showReportProgressSpy).toHaveBeenCalledTimes(1);
+    expect(harness.createPpiRequest()).toEqual(request);
+    expect(component.vm().reportFeedback).toEqual({ kind: 'progress' });
+  });
+
+  it('onDownload creates a private prosecutors index report request', () => {
+    const createJob$ = new Subject<HttpResponse<JobAcknowledgement>>();
+    reportsApiMock.createPrivateProsecutorsIndexReport.mockReturnValue(
+      createJob$,
+    );
+
+    component.form.controls.report.setValue('private-prosecutors-index');
+    component.ppiGroup.patchValue({
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
+      applicantOrg: '  Org Ltd  ',
+      applicantFirst: '  Jane  ',
+      applicantLast: '  Smith  ',
+      standardApplicantName: '  Standard  ',
+      respondentFirst: '  John  ',
+      respondentSurname: '  Doe  ',
+      respondentOrg: '  Resp Org  ',
+      court: ' A1 ',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().errorSummary).toEqual([]);
+    expect(
+      reportsApiMock.createPrivateProsecutorsIndexReport,
+    ).toHaveBeenCalledWith(
+      {
+        privateProsecutorsIndexFilterDto: {
+          dateFrom: '2026-01-01',
+          dateTo: '2026-01-31',
+          applicantOrganisationName: 'Org Ltd',
+          applicantFirstName: 'Jane',
+          applicantSurname: 'Smith',
+          standardApplicantName: 'Standard',
+          respondentFirstName: 'John',
+          respondentSurname: 'Doe',
+          respondentOrganisationName: 'Resp Org',
+          location: {
+            courtLocationCode: 'A1',
+          },
+        },
+      },
+      'response',
+      false,
+      {
+        httpHeaderAccept: 'application/vnd.hmcts.appreg.v1+json',
+        transferCache: false,
+      },
+    );
   });
 
   it('calls onDownload when the download button is clicked', () => {
@@ -612,6 +746,52 @@ describe('ReportsComponent', () => {
     expect(
       fixture.nativeElement.querySelector('app-error-summary'),
     ).toBeFalsy();
+  });
+
+  it('clears private prosecutors index filters and validation state', () => {
+    component.form.controls.report.setValue('private-prosecutors-index');
+    component.ppiGroup.patchValue({
+      dateFrom: '2026-02-01',
+      dateTo: '2026-01-31',
+      applicantOrg: '  Org Ltd  ',
+      applicantFirst: '  Jane  ',
+      applicantLast: '  Smith  ',
+      standardApplicantName: '  Standard  ',
+      respondentFirst: '  John  ',
+      respondentSurname: '  Doe  ',
+      respondentOrg: '  Resp Org  ',
+    });
+    fixture.detectChanges();
+
+    component.onDownload();
+    fixture.detectChanges();
+
+    expect(component.vm().submitted).toBe(true);
+    expect(component.vm().errorSummary).toHaveLength(1);
+
+    component.onClearFilters();
+    fixture.detectChanges();
+
+    expect(component.form.controls.report.value).toBe(
+      'private-prosecutors-index',
+    );
+    expect(component.vm().submitted).toBe(false);
+    expect(component.vm().errorSummary).toEqual([]);
+    expect(component.vm().reportFeedback).toBeNull();
+    expect(component.ppiGroup.getRawValue()).toEqual({
+      dateFrom: null,
+      dateTo: null,
+      applicantOrg: '',
+      applicantFirst: '',
+      applicantLast: '',
+      standardApplicantName: '',
+      respondentFirst: '',
+      respondentSurname: '',
+      respondentOrg: '',
+      court: '',
+      otherLocation: '',
+      cja: '',
+    });
   });
 
   it('blocks list maintenance download when date to is before date from', () => {

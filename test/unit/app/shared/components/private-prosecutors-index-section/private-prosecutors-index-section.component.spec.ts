@@ -27,8 +27,9 @@ describe('PrivateProsecutorsIndexSectionComponent', () => {
     group = new FormGroup({
       dateFrom: new FormControl(null),
       dateTo: new FormControl(null),
-      applicantSurnameOrOrg: new FormControl(''),
+      applicantOrg: new FormControl(''),
       applicantFirst: new FormControl(''),
+      applicantLast: new FormControl(''),
       standardApplicantName: new FormControl(''),
       respondentFirst: new FormControl(''),
       respondentSurname: new FormControl(''),
@@ -77,7 +78,7 @@ describe('PrivateProsecutorsIndexSectionComponent', () => {
       .map((el) => el.injector.get(FormGroupDirective).form)
       .filter((form) => form === group);
 
-    expect(formGroups).toHaveLength(2);
+    expect(formGroups).toHaveLength(3);
   });
 
   it('renders two app-date-input components', () => {
@@ -87,7 +88,7 @@ describe('PrivateProsecutorsIndexSectionComponent', () => {
 
   it('renders all expected app-text-input components', () => {
     const textInputs = fixture.debugElement.queryAll(By.css('app-text-input'));
-    expect(textInputs).toHaveLength(7);
+    expect(textInputs).toHaveLength(8);
   });
 
   it('wires specific formControlName bindings (e.g. court)', () => {
