@@ -8,6 +8,7 @@ import { SortableTableComponent } from '@components/sortable-table/sortable-tabl
 import { TableComponent } from '@components/table/table.component';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import { ApplicationListEntriesApi, FeeStatus } from '@openapi';
+// import { getProblemText } from '@util/http-error-to-text';
 
 type UpdateFeeState = {
   selectedEntries: [];
@@ -97,8 +98,17 @@ export class FeeUpdateConfirmComponent implements OnInit {
     //       queryParams: { bulkFeeUpdateSuccessful: true },
     //     });
     //   },
-    //   error: () => {
-    //     this.goBack();
+    //   error: (err) => {
+    //     const errorPayload = getProblemText(err);
+
+    //     void this.router.navigate(['/applications-list', this.listId], {
+    //       queryParams: {
+    //         updateFee: 'error',
+    //       },
+    //       state: {
+    //         updateFeeError: errorPayload,
+    //       },
+    //     });
     //   },
     // });
   }

@@ -112,6 +112,7 @@ type ApplicationsListDetailHistoryState = {
     detail?: string;
   };
   moveError?: string;
+  updateFeeError?: string;
 };
 
 const APPLICATION_LIST_DETAIL_SORT_MAP: Record<string, string> = {
@@ -197,6 +198,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.setSuccessBanner();
     this.setCloseErrorFromNavigation();
     this.setMoveErrorFromNavigation();
+    this.setUpdateFeeErrorFromNavigation();
 
     //Attach validators
     addLocationValidatorsToForm(this.form, () => this.state());
@@ -313,9 +315,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           kind: 'success',
           heading: 'Bulk upload complete',
           body:
-            job.createdCount !== null
-              ? `${this.formatCount(job.createdCount, 'record')} created.`
-              : 'All records were uploaded successfully.',
+            job.createdCount === null
+              ? 'All records were uploaded successfully.'
+              : `${this.formatCount(job.createdCount, 'record')} created.`,
         };
 
       case 'completed_with_errors':
@@ -391,6 +393,13 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     ) {
       this.vm().updateOfficialsDone = true;
     }
+
+    if (
+      this.route.snapshot.queryParamMap.get('bulkFeeUpdateSuccessful') ===
+      'true'
+    ) {
+      this.vm().updateFeesDone = true;
+    }
   }
 
   private setCloseErrorFromNavigation(): void {
@@ -443,6 +452,32 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
       updateInvalid: true,
       errorHint: 'There is a problem',
       errorSummary: [{ id: '', href: '', text: moveError }],
+      preserveErrorSummaryOnLoad: true,
+    });
+  }
+
+  private setUpdateFeeErrorFromNavigation(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const isFeeError =
+      this.route.snapshot.queryParamMap.get('updateFee') === 'error';
+    const feeState = history.state as ApplicationsListDetailHistoryState;
+    const feeError = feeState.updateFeeError;
+
+    if (!isFeeError || !feeError) {
+      return;
+    }
+
+    if (!feeError) {
+      return;
+    }
+
+    this.detailSignalState.patch({
+      updateInvalid: true,
+      errorHint: 'There is a problem',
+      errorSummary: [{ id: '', href: '', text: feeError }],
       preserveErrorSummaryOnLoad: true,
     });
   }
@@ -900,6 +935,19 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     const selectedFeesRequired = selected.filter(
       (element) => element.feeReq !== 'No',
     );
+
+    if (selectedFeesRequired.length === 0) {
+      this.detailSignalState.patch({
+        errorSummary: [
+          {
+            text: 'Cannot update application(s) that do not require a fee',
+            href: '',
+            id: '',
+          },
+        ],
+      });
+      return;
+    }
 
     const entriesToUpdateFee = selectedFeesRequired.map((r) => ({
       id: r.id,

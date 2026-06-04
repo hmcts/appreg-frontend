@@ -52,6 +52,13 @@
   />
 }
 
+@if (vm().updateFeesDone) {
+  <app-success-banner
+    heading="Fees updated"
+    linkText="Fees have been successfully updated"
+  />
+}
+
 @if (vm().bulkUploadFeedback?.kind === 'progress') {
   <app-async-job-progress
     [heading]="vm().bulkUploadFeedback?.heading ?? ''"
