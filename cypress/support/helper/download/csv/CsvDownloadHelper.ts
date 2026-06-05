@@ -37,4 +37,15 @@ export class CsvDownloadHelper extends BaseDownloadHelper {
       this.readCsvHeaders(filename),
     );
   }
+
+  static getLatestCsvContent(): Cypress.Chainable<string> {
+    return this.getLatestCsvOrFail().then((filename) => {
+      const filePath = `${this.getDownloadsPath()}/${filename}`;
+      Cypress.log({
+        name: 'getLatestCsvContent',
+        message: `Reading CSV content from: ${filename}`,
+      });
+      return cy.task<string>('readFile', filePath);
+    });
+  }
 }
