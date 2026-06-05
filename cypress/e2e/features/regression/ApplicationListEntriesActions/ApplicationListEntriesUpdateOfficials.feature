@@ -102,22 +102,23 @@ Feature: Application List Entries Update Officials
             | Sequence number | Applicant(s)           | Respondent(s)                  | Application Title(s)                           |
             | 1               | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | Issue of liability order summons - council tax |
             | 2               | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account   |
-
+        # Magistrate 1
         Then User Selects "Mr" From The "Select magistrate's title" Dropdown Within The "Magistrate 1" FieldSet
         Then User Fills In The "Magistrate's first name" Textbox With "John" Within The "Magistrate 1" FieldSet
         Then User Fills In The "Magistrate's surname" Textbox With "Smith_{RANDOM}" Within The "Magistrate 1" FieldSet
-
+        # Magistrate 2
         Then User Selects "Dr" From The "Select magistrate's title" Dropdown Within The "Magistrate 2" FieldSet
         Then User Fills In The "Magistrate's first name" Textbox With "Emily" Within The "Magistrate 2" FieldSet
         Then User Fills In The "Magistrate's surname" Textbox With "Davis_{RANDOM}" Within The "Magistrate 2" FieldSet
-
+        # Magistrate 3
         Then User Selects "Miss" From The "Select magistrate's title" Dropdown Within The "Magistrate 3" FieldSet
         Then User Fills In The "Magistrate's first name" Textbox With "Jane" Within The "Magistrate 3" FieldSet
         Then User Fills In The "Magistrate's surname" Textbox With "Hardy_{RANDOM}" Within The "Magistrate 3" FieldSet
-
+        # Court Official
         Then User Selects "Mrs" From The "Select court official's title" Dropdown Within The "Court official" FieldSet
         Then User Fills In The "Official's first name" Textbox With "Violette" Within The "Court official" FieldSet
         Then User Fills In The "Official's surname" Textbox With "Zanetti_{RANDOM}" Within The "Court official" FieldSet
+        # Save Officials
         When User Clicks On The "Save recording officials" Button
         Then User Sees Page Heading "Check officials before updating"
         Then User See "Officials" On The Page
