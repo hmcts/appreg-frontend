@@ -155,6 +155,17 @@ append_guardrail_warning() {
   } >>"${pr_body_path}"
 }
 
+block_sonar_for_guardrail_changes() {
+  if [[ "${guardrail_review_required}" != "true" ]]; then
+    return
+  fi
+
+  echo "::error::Refusing to run Sonar with SONAR_TOKEN because Codex changed verification-sensitive files." >&2
+  echo "Manual review is required before exposing Sonar credentials to changed package, workflow, runner, or verification tooling." >&2
+  sed 's/^/- /' "${guardrail_changes_path}" >&2
+  exit 1
+}
+
 ensure_frontend_formatter() {
   if [[ -x "node_modules/.bin/prettier" ]]; then
     return
@@ -193,6 +204,8 @@ run_frontend_sonar_analysis() {
     echo "Skipping Sonar analysis because RUN_SONAR is not true."
     return
   fi
+
+  block_sonar_for_guardrail_changes
 
   if [[ -z "${SONAR_TOKEN:-}" ]]; then
     echo "::error::SONAR_TOKEN is required for Codex verification Sonar analysis." >&2
