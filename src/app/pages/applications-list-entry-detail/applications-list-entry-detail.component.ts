@@ -528,7 +528,10 @@ export class ApplicationsListEntryDetail implements OnInit {
             };
 
             if (hasSelectionChanged) {
-              this.formSvc.resetSectionsOnApplicationCodeChange(this.forms);
+              this.formSvc.resetSectionsOnApplicationCodeChange(
+                this.forms,
+                true,
+              );
 
               this.wordingSubmitAttempt.set(0);
               this.wordingAppliedBannerVisible.set(false);
