@@ -27,7 +27,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.person.contactDetails.addressLine2  | London                          |
             | applicant.person.contactDetails.addressLine3  | Greater London                  |
             | applicant.person.contactDetails.postcode      | NW1 6XE                         |
-            | applicant.person.contactDetails.phone         | 0207{RANDOM}                    |
+            | applicant.person.contactDetails.phone         | 02077{RANDOM}                   |
             | applicant.person.contactDetails.mobile        | 07100{RANDOM}                   |
             | applicant.person.contactDetails.email         | applicant.e1.{RANDOM}@test.com  |
             | respondent.person.name.title                  | Ms                              |
@@ -61,7 +61,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.person.contactDetails.addressLine1  | {RANDOM} High Street            |
             | applicant.person.contactDetails.addressLine2  | Birmingham                      |
             | applicant.person.contactDetails.postcode      | B1 1AA                          |
-            | applicant.person.contactDetails.phone         | 0121{RANDOM}                    |
+            | applicant.person.contactDetails.phone         | 01214{RANDOM}                   |
             | applicant.person.contactDetails.mobile        | 07300{RANDOM}                   |
             | applicant.person.contactDetails.email         | applicant.e2.{RANDOM}@test.com  |
             | respondent.person.name.title                  | Mr                              |
@@ -93,7 +93,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.person.contactDetails.addressLine1  | {RANDOM} Station Road           |
             | applicant.person.contactDetails.addressLine2  | Bristol                         |
             | applicant.person.contactDetails.postcode      | BS1 1AA                         |
-            | applicant.person.contactDetails.phone         | 0117{RANDOM}                    |
+            | applicant.person.contactDetails.phone         | 01174{RANDOM}                   |
             | applicant.person.contactDetails.mobile        | 07500{RANDOM}                   |
             | applicant.person.contactDetails.email         | applicant.e3.{RANDOM}@test.com  |
             | respondent.person.name.title                  | Miss                            |
@@ -125,7 +125,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.person.contactDetails.addressLine1        | {RANDOM} Church Street          |
             | applicant.person.contactDetails.addressLine2        | Sheffield                       |
             | applicant.person.contactDetails.postcode            | S1 1AA                          |
-            | applicant.person.contactDetails.phone               | 0114{RANDOM}                    |
+            | applicant.person.contactDetails.phone               | 01142{RANDOM}                   |
             | applicant.person.contactDetails.mobile              | 07700{RANDOM}                   |
             | applicant.person.contactDetails.email               | applicant.e4.{RANDOM}@test.com  |
             | respondent.organisation.name                        | Green Corp {RANDOM}             |
@@ -154,7 +154,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.person.contactDetails.addressLine1        | {RANDOM} Queen Street           |
             | applicant.person.contactDetails.addressLine2        | Edinburgh                       |
             | applicant.person.contactDetails.postcode            | EH1 1AA                         |
-            | applicant.person.contactDetails.phone               | 0131{RANDOM}                    |
+            | applicant.person.contactDetails.phone               | 01318{RANDOM}                   |
             | applicant.person.contactDetails.mobile              | 07900{RANDOM}                   |
             | applicant.person.contactDetails.email               | applicant.e5.{RANDOM}@test.com  |
             | respondent.organisation.name                        | Harris Holdings {RANDOM}        |
@@ -183,7 +183,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.person.contactDetails.addressLine1        | {RANDOM} Bridge Road            |
             | applicant.person.contactDetails.addressLine2        | Nottingham                      |
             | applicant.person.contactDetails.postcode            | NG1 1AA                         |
-            | applicant.person.contactDetails.phone               | 0115{RANDOM}                    |
+            | applicant.person.contactDetails.phone               | 01157{RANDOM}                   |
             | applicant.person.contactDetails.mobile              | 07920{RANDOM}                   |
             | applicant.person.contactDetails.email               | applicant.e6.{RANDOM}@test.com  |
             | respondent.organisation.name                        | Jackson & Sons {RANDOM}         |
@@ -212,12 +212,12 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.person.contactDetails.addressLine1  | {RANDOM} King's Road            |
             | applicant.person.contactDetails.addressLine2  | London                          |
             | applicant.person.contactDetails.postcode      | SW3 4AA                         |
-            | applicant.person.contactDetails.phone         | 0207{RANDOM}                    |
+            | applicant.person.contactDetails.phone         | 02077{RANDOM}                   |
             | applicant.person.contactDetails.mobile        | 07940{RANDOM}                   |
             | applicant.person.contactDetails.email         | applicant.e7.{RANDOM}@test.com  |
             | respondent.person.name.title                  | Mrs                             |
-            | respondent.person.name.surname                | Lewis {RANDOM}                  |
-            | respondent.person.name.firstForename          | Charlotte                       |
+            | respondent.person.name.lastName               | Lewis {RANDOM}                  |
+            | respondent.person.name.firstName              | Charlotte                       |
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Abbey Road             |
             | respondent.person.contactDetails.addressLine2 | London                          |
             | respondent.person.contactDetails.postcode     | NW8 9AY                         |
@@ -237,11 +237,17 @@ Feature: API - Test Data Setup - 40 ALEs
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
             """
             {
-            "resultCode": "RTC",
-            "wordingFields": [
-            { "key": "Date", "value": "todayiso" },
-            { "key": "Courthouse", "value": "Leeds Combined Court Centre" }
-            ]
+                "resultCode": "RTC",
+                "wordingFields": [
+                    {
+                        "key": "Date",
+                        "value": "todayiso"
+                    },
+                    {
+                        "key": "Courthouse",
+                        "value": "Leeds Combined Court Centre"
+                    }
+                ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -256,7 +262,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.person.contactDetails.addressLine1        | {RANDOM} West Street            |
             | applicant.person.contactDetails.addressLine2        | Leicester                       |
             | applicant.person.contactDetails.postcode            | LE1 1AA                         |
-            | applicant.person.contactDetails.phone               | 0116{RANDOM}                    |
+            | applicant.person.contactDetails.phone               | 01167{RANDOM}                   |
             | applicant.person.contactDetails.mobile              | 07960{RANDOM}                   |
             | applicant.person.contactDetails.email               | applicant.e8.{RANDOM}@test.com  |
             | respondent.organisation.name                        | Morgan Enterprises {RANDOM}     |
@@ -278,11 +284,17 @@ Feature: API - Test Data Setup - 40 ALEs
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
             """
             {
-            "resultCode": "RTC",
-            "wordingFields": [
-            { "key": "Date", "value": "todayiso" },
-            { "key": "Courthouse", "value": "Leeds Combined Court Centre" }
-            ]
+                "resultCode": "RTC",
+                "wordingFields": [
+                    {
+                        "key": "Date",
+                        "value": "todayiso"
+                    },
+                    {
+                        "key": "Courthouse",
+                        "value": "Leeds Combined Court Centre"
+                    }
+                ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -297,7 +309,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.person.contactDetails.addressLine1  | {RANDOM} North Street           |
             | applicant.person.contactDetails.addressLine2  | Portsmouth                      |
             | applicant.person.contactDetails.postcode      | PO1 1AA                         |
-            | applicant.person.contactDetails.phone         | 0239{RANDOM}                    |
+            | applicant.person.contactDetails.phone         | 02396{RANDOM}                   |
             | applicant.person.contactDetails.mobile        | 07980{RANDOM}                   |
             | applicant.person.contactDetails.email         | applicant.e9.{RANDOM}@test.com  |
             | respondent.person.name.title                  | Ms                              |
@@ -329,7 +341,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.person.contactDetails.addressLine1        | {RANDOM} East Road               |
             | applicant.person.contactDetails.addressLine2        | Cambridge                        |
             | applicant.person.contactDetails.postcode            | CB1 1AA                          |
-            | applicant.person.contactDetails.phone               | 0122{RANDOM}                     |
+            | applicant.person.contactDetails.phone               | 01224{RANDOM}                    |
             | applicant.person.contactDetails.mobile              | 07110{RANDOM}                    |
             | applicant.person.contactDetails.email               | applicant.e10.{RANDOM}@test.com  |
             | respondent.organisation.name                        | Parker Group {RANDOM}            |
@@ -361,7 +373,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.organisation.contactDetails.addressLine2 | Leeds                            |
             | applicant.organisation.contactDetails.addressLine3 | West Yorkshire                   |
             | applicant.organisation.contactDetails.postcode     | LS1 1AA                          |
-            | applicant.organisation.contactDetails.phone        | 0113{RANDOM}                     |
+            | applicant.organisation.contactDetails.phone        | 01134{RANDOM}                    |
             | applicant.organisation.contactDetails.mobile       | 07130{RANDOM}                    |
             | applicant.organisation.contactDetails.email        | applicant.e11.{RANDOM}@test.com  |
             | respondent.person.name.title                       | Mr                               |
@@ -391,7 +403,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.organisation.contactDetails.addressLine1 | {RANDOM} Park Lane               |
             | applicant.organisation.contactDetails.addressLine2 | Manchester                       |
             | applicant.organisation.contactDetails.postcode     | M2 1AA                           |
-            | applicant.organisation.contactDetails.phone        | 0161{RANDOM}                     |
+            | applicant.organisation.contactDetails.phone        | 01613{RANDOM}                    |
             | applicant.organisation.contactDetails.mobile       | 07150{RANDOM}                    |
             | applicant.organisation.contactDetails.email        | applicant.e12.{RANDOM}@test.com  |
             | respondent.person.name.title                       | Mrs                              |
@@ -421,7 +433,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.organisation.contactDetails.addressLine1 | {RANDOM} High Road               |
             | applicant.organisation.contactDetails.addressLine2 | Bristol                          |
             | applicant.organisation.contactDetails.postcode     | BS2 1AA                          |
-            | applicant.organisation.contactDetails.phone        | 0117{RANDOM}                     |
+            | applicant.organisation.contactDetails.phone        | 01172{RANDOM}                    |
             | applicant.organisation.contactDetails.mobile       | 07170{RANDOM}                    |
             | applicant.organisation.contactDetails.email        | applicant.e13.{RANDOM}@test.com  |
             | respondent.person.name.title                       | Ms                               |
@@ -451,7 +463,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.organisation.contactDetails.addressLine1  | {RANDOM} Trade Street            |
             | applicant.organisation.contactDetails.addressLine2  | Birmingham                       |
             | applicant.organisation.contactDetails.postcode      | B2 1AA                           |
-            | applicant.organisation.contactDetails.phone         | 0121{RANDOM}                     |
+            | applicant.organisation.contactDetails.phone         | 01213{RANDOM}                    |
             | applicant.organisation.contactDetails.mobile        | 07190{RANDOM}                    |
             | applicant.organisation.contactDetails.email         | applicant.e14.{RANDOM}@test.com  |
             | respondent.organisation.name                        | Echo Holdings {RANDOM}           |
@@ -478,7 +490,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.organisation.contactDetails.addressLine1  | {RANDOM} Brook Street            |
             | applicant.organisation.contactDetails.addressLine2  | Liverpool                        |
             | applicant.organisation.contactDetails.postcode      | L2 1AA                           |
-            | applicant.organisation.contactDetails.phone         | 0151{RANDOM}                     |
+            | applicant.organisation.contactDetails.phone         | 01513{RANDOM}                    |
             | applicant.organisation.contactDetails.mobile        | 07220{RANDOM}                    |
             | applicant.organisation.contactDetails.email         | applicant.e15.{RANDOM}@test.com  |
             | respondent.organisation.name                        | Golf Consulting {RANDOM}         |
@@ -505,7 +517,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.organisation.contactDetails.addressLine1  | {RANDOM} Harbour Road            |
             | applicant.organisation.contactDetails.addressLine2  | Portsmouth                       |
             | applicant.organisation.contactDetails.postcode      | PO2 1AA                          |
-            | applicant.organisation.contactDetails.phone         | 0239{RANDOM}                     |
+            | applicant.organisation.contactDetails.phone         | 02396{RANDOM}                    |
             | applicant.organisation.contactDetails.mobile        | 07240{RANDOM}                    |
             | applicant.organisation.contactDetails.email         | applicant.e16.{RANDOM}@test.com  |
             | respondent.organisation.name                        | India Services {RANDOM}          |
@@ -532,7 +544,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.organisation.contactDetails.addressLine1 | {RANDOM} Science Park            |
             | applicant.organisation.contactDetails.addressLine2 | Cambridge                        |
             | applicant.organisation.contactDetails.postcode     | CB2 1AA                          |
-            | applicant.organisation.contactDetails.phone        | 0122{RANDOM}                     |
+            | applicant.organisation.contactDetails.phone        | 01224{RANDOM}                    |
             | applicant.organisation.contactDetails.mobile       | 07260{RANDOM}                    |
             | applicant.organisation.contactDetails.email        | applicant.e17.{RANDOM}@test.com  |
             | respondent.person.name.title                       | Mr                               |
@@ -557,11 +569,17 @@ Feature: API - Test Data Setup - 40 ALEs
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
             """
             {
-            "resultCode": "RTC",
-            "wordingFields": [
-            { "key": "Date", "value": "todayiso" },
-            { "key": "Courthouse", "value": "Leeds Combined Court Centre" }
-            ]
+                "resultCode": "RTC",
+                "wordingFields": [
+                    {
+                        "key": "Date",
+                        "value": "todayiso"
+                    },
+                    {
+                        "key": "Courthouse",
+                        "value": "Leeds Combined Court Centre"
+                    }
+                ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -574,7 +592,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.organisation.contactDetails.addressLine1  | {RANDOM} Tech Hub                |
             | applicant.organisation.contactDetails.addressLine2  | Edinburgh                        |
             | applicant.organisation.contactDetails.postcode      | EH2 1AA                          |
-            | applicant.organisation.contactDetails.phone         | 0131{RANDOM}                     |
+            | applicant.organisation.contactDetails.phone         | 01313{RANDOM}                    |
             | applicant.organisation.contactDetails.mobile        | 07280{RANDOM}                    |
             | applicant.organisation.contactDetails.email         | applicant.e18.{RANDOM}@test.com  |
             | respondent.organisation.name                        | Lima Partners {RANDOM}           |
@@ -596,11 +614,17 @@ Feature: API - Test Data Setup - 40 ALEs
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
             """
             {
-            "resultCode": "RTC",
-            "wordingFields": [
-            { "key": "Date", "value": "todayiso" },
-            { "key": "Courthouse", "value": "Leeds Combined Court Centre" }
-            ]
+                "resultCode": "RTC",
+                "wordingFields": [
+                    {
+                        "key": "Date",
+                        "value": "todayiso"
+                    },
+                    {
+                        "key": "Courthouse",
+                        "value": "Leeds Combined Court Centre"
+                    }
+                ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -613,7 +637,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.organisation.contactDetails.addressLine1 | {RANDOM} Broad Street            |
             | applicant.organisation.contactDetails.addressLine2 | Wolverhampton                    |
             | applicant.organisation.contactDetails.postcode     | WV1 1AA                          |
-            | applicant.organisation.contactDetails.phone        | 0190{RANDOM}                     |
+            | applicant.organisation.contactDetails.phone        | 01902{RANDOM}                    |
             | applicant.organisation.contactDetails.mobile       | 07310{RANDOM}                    |
             | applicant.organisation.contactDetails.email        | applicant.e19.{RANDOM}@test.com  |
             | respondent.person.name.title                       | Miss                             |
@@ -643,7 +667,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | applicant.organisation.contactDetails.addressLine1  | {RANDOM} Castle Street           |
             | applicant.organisation.contactDetails.addressLine2  | Derby                            |
             | applicant.organisation.contactDetails.postcode      | DE1 1AA                          |
-            | applicant.organisation.contactDetails.phone         | 0133{RANDOM}                     |
+            | applicant.organisation.contactDetails.phone         | 01334{RANDOM}                    |
             | applicant.organisation.contactDetails.mobile        | 07330{RANDOM}                    |
             | applicant.organisation.contactDetails.email         | applicant.e20.{RANDOM}@test.com  |
             | respondent.organisation.name                        | Oscar Trading {RANDOM}           |
@@ -676,7 +700,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Victoria Street         |
             | respondent.person.contactDetails.addressLine2 | Exeter                           |
             | respondent.person.contactDetails.postcode     | EX1 1AA                          |
-            | respondent.person.contactDetails.phone        | 0139{RANDOM}                     |
+            | respondent.person.contactDetails.phone        | 01393{RANDOM}                    |
             | respondent.person.contactDetails.mobile       | 07350{RANDOM}                    |
             | respondent.person.contactDetails.email        | respondent.e21.{RANDOM}@test.com |
             | respondent.person.dateOfBirth                 | todayiso-42y                     |
@@ -699,7 +723,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Crown Road              |
             | respondent.person.contactDetails.addressLine2 | Gloucester                       |
             | respondent.person.contactDetails.postcode     | GL1 1AA                          |
-            | respondent.person.contactDetails.phone        | 0145{RANDOM}                     |
+            | respondent.person.contactDetails.phone        | 01455{RANDOM}                    |
             | respondent.person.contactDetails.mobile       | 07360{RANDOM}                    |
             | respondent.person.contactDetails.email        | respondent.e22.{RANDOM}@test.com |
             | respondent.person.dateOfBirth                 | todayiso-33y                     |
@@ -722,7 +746,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Market Street           |
             | respondent.person.contactDetails.addressLine2 | Swansea                          |
             | respondent.person.contactDetails.postcode     | SA1 1AA                          |
-            | respondent.person.contactDetails.phone        | 0179{RANDOM}                     |
+            | respondent.person.contactDetails.phone        | 01793{RANDOM}                    |
             | respondent.person.contactDetails.mobile       | 07370{RANDOM}                    |
             | respondent.person.contactDetails.email        | respondent.e23.{RANDOM}@test.com |
             | respondent.person.dateOfBirth                 | todayiso-29y                     |
@@ -743,7 +767,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | respondent.organisation.contactDetails.addressLine1 | {RANDOM} Retail Park             |
             | respondent.organisation.contactDetails.addressLine2 | Middlesbrough                    |
             | respondent.organisation.contactDetails.postcode     | TS1 1AA                          |
-            | respondent.organisation.contactDetails.phone        | 0164{RANDOM}                     |
+            | respondent.organisation.contactDetails.phone        | 01642{RANDOM}                    |
             | respondent.organisation.contactDetails.mobile       | 07380{RANDOM}                    |
             | respondent.organisation.contactDetails.email        | respondent.e24.{RANDOM}@test.com |
             | wordingFields.0.key                                 | Reference                        |
@@ -763,7 +787,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | respondent.organisation.contactDetails.addressLine1 | {RANDOM} Finance Quarter         |
             | respondent.organisation.contactDetails.addressLine2 | Cardiff                          |
             | respondent.organisation.contactDetails.postcode     | CF2 1AA                          |
-            | respondent.organisation.contactDetails.phone        | 0292{RANDOM}                     |
+            | respondent.organisation.contactDetails.phone        | 02924{RANDOM}                    |
             | respondent.organisation.contactDetails.mobile       | 07390{RANDOM}                    |
             | respondent.organisation.contactDetails.email        | respondent.e25.{RANDOM}@test.com |
             | wordingFields.0.key                                 | account balance                  |
@@ -783,7 +807,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | respondent.organisation.contactDetails.addressLine1 | {RANDOM} Quay Street             |
             | respondent.organisation.contactDetails.addressLine2 | Southampton                      |
             | respondent.organisation.contactDetails.postcode     | SO2 1AA                          |
-            | respondent.organisation.contactDetails.phone        | 0238{RANDOM}                     |
+            | respondent.organisation.contactDetails.phone        | 02381{RANDOM}                    |
             | respondent.organisation.contactDetails.mobile       | 07410{RANDOM}                    |
             | respondent.organisation.contactDetails.email        | respondent.e26.{RANDOM}@test.com |
             | wordingFields.0.key                                 | Reference                        |
@@ -805,7 +829,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Union Street            |
             | respondent.person.contactDetails.addressLine2 | Aberdeen                         |
             | respondent.person.contactDetails.postcode     | AB1 1AA                          |
-            | respondent.person.contactDetails.phone        | 0122{RANDOM}                     |
+            | respondent.person.contactDetails.phone        | 01223{RANDOM}                    |
             | respondent.person.contactDetails.mobile       | 07420{RANDOM}                    |
             | respondent.person.contactDetails.email        | respondent.e27.{RANDOM}@test.com |
             | respondent.person.dateOfBirth                 | todayiso-50y                     |
@@ -821,11 +845,17 @@ Feature: API - Test Data Setup - 40 ALEs
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
             """
             {
-            "resultCode": "RTC",
-            "wordingFields": [
-            { "key": "Date", "value": "todayiso" },
-            { "key": "Courthouse", "value": "Leeds Combined Court Centre" }
-            ]
+                "resultCode": "RTC",
+                "wordingFields": [
+                    {
+                        "key": "Date",
+                        "value": "todayiso"
+                    },
+                    {
+                        "key": "Courthouse",
+                        "value": "Leeds Combined Court Centre"
+                    }
+                ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -838,7 +868,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | respondent.organisation.contactDetails.addressLine1 | {RANDOM} Depot Road              |
             | respondent.organisation.contactDetails.addressLine2 | Dundee                           |
             | respondent.organisation.contactDetails.postcode     | DD1 1AA                          |
-            | respondent.organisation.contactDetails.phone        | 0138{RANDOM}                     |
+            | respondent.organisation.contactDetails.phone        | 01382{RANDOM}                    |
             | respondent.organisation.contactDetails.mobile       | 07430{RANDOM}                    |
             | respondent.organisation.contactDetails.email        | respondent.e28.{RANDOM}@test.com |
             | wordingFields.0.key                                 | account balance                  |
@@ -853,11 +883,17 @@ Feature: API - Test Data Setup - 40 ALEs
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
             """
             {
-            "resultCode": "RTC",
-            "wordingFields": [
-            { "key": "Date", "value": "todayiso" },
-            { "key": "Courthouse", "value": "Leeds Combined Court Centre" }
-            ]
+                "resultCode": "RTC",
+                "wordingFields": [
+                    {
+                        "key": "Date",
+                        "value": "todayiso"
+                    },
+                    {
+                        "key": "Courthouse",
+                        "value": "Leeds Combined Court Centre"
+                    }
+                ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -872,7 +908,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Fore Street             |
             | respondent.person.contactDetails.addressLine2 | Truro                            |
             | respondent.person.contactDetails.postcode     | TR1 1AA                          |
-            | respondent.person.contactDetails.phone        | 0187{RANDOM}                     |
+            | respondent.person.contactDetails.phone        | 01877{RANDOM}                    |
             | respondent.person.contactDetails.mobile       | 07440{RANDOM}                    |
             | respondent.person.contactDetails.email        | respondent.e29.{RANDOM}@test.com |
             | respondent.person.dateOfBirth                 | todayiso-36y                     |
@@ -893,7 +929,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | respondent.organisation.contactDetails.addressLine1 | {RANDOM} Commercial Road         |
             | respondent.organisation.contactDetails.addressLine2 | Reading                          |
             | respondent.organisation.contactDetails.postcode     | RG1 1AA                          |
-            | respondent.organisation.contactDetails.phone        | 0118{RANDOM}                     |
+            | respondent.organisation.contactDetails.phone        | 01189{RANDOM}                    |
             | respondent.organisation.contactDetails.mobile       | 07450{RANDOM}                    |
             | respondent.organisation.contactDetails.email        | respondent.e30.{RANDOM}@test.com |
             | wordingFields.0.key                                 | Reference                        |
@@ -919,7 +955,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Regent Street           |
             | respondent.person.contactDetails.addressLine2 | London                           |
             | respondent.person.contactDetails.postcode     | W1B 5AA                          |
-            | respondent.person.contactDetails.phone        | 0207{RANDOM}                     |
+            | respondent.person.contactDetails.phone        | 02077{RANDOM}                    |
             | respondent.person.contactDetails.mobile       | 07460{RANDOM}                    |
             | respondent.person.contactDetails.email        | respondent.e31.{RANDOM}@test.com |
             | respondent.person.dateOfBirth                 | todayiso-44y                     |
@@ -942,7 +978,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Bond Street             |
             | respondent.person.contactDetails.addressLine2 | London                           |
             | respondent.person.contactDetails.postcode     | W1S 1AA                          |
-            | respondent.person.contactDetails.phone        | 0207{RANDOM}                     |
+            | respondent.person.contactDetails.phone        | 02077{RANDOM}                    |
             | respondent.person.contactDetails.mobile       | 07470{RANDOM}                    |
             | respondent.person.contactDetails.email        | respondent.e32.{RANDOM}@test.com |
             | respondent.person.dateOfBirth                 | todayiso-31y                     |
@@ -965,7 +1001,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Fleet Street            |
             | respondent.person.contactDetails.addressLine2 | London                           |
             | respondent.person.contactDetails.postcode     | EC4Y 1AA                         |
-            | respondent.person.contactDetails.phone        | 0207{RANDOM}                     |
+            | respondent.person.contactDetails.phone        | 02077{RANDOM}                    |
             | respondent.person.contactDetails.mobile       | 07480{RANDOM}                    |
             | respondent.person.contactDetails.email        | respondent.e33.{RANDOM}@test.com |
             | respondent.person.dateOfBirth                 | todayiso-26y                     |
@@ -986,7 +1022,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | respondent.organisation.contactDetails.addressLine1 | {RANDOM} Canal Street            |
             | respondent.organisation.contactDetails.addressLine2 | Nottingham                       |
             | respondent.organisation.contactDetails.postcode     | NG1 2AA                          |
-            | respondent.organisation.contactDetails.phone        | 0115{RANDOM}                     |
+            | respondent.organisation.contactDetails.phone        | 01152{RANDOM}                    |
             | respondent.organisation.contactDetails.mobile       | 07490{RANDOM}                    |
             | respondent.organisation.contactDetails.email        | respondent.e34.{RANDOM}@test.com |
             | wordingFields.0.key                                 | Reference                        |
@@ -1006,7 +1042,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | respondent.organisation.contactDetails.addressLine1 | {RANDOM} Warehouse Way           |
             | respondent.organisation.contactDetails.addressLine2 | Leicester                        |
             | respondent.organisation.contactDetails.postcode     | LE2 1AA                          |
-            | respondent.organisation.contactDetails.phone        | 0116{RANDOM}                     |
+            | respondent.organisation.contactDetails.phone        | 01162{RANDOM}                    |
             | respondent.organisation.contactDetails.mobile       | 07510{RANDOM}                    |
             | respondent.organisation.contactDetails.email        | respondent.e35.{RANDOM}@test.com |
             | wordingFields.0.key                                 | account balance                  |
@@ -1026,7 +1062,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | respondent.organisation.contactDetails.addressLine1 | {RANDOM} Port Road               |
             | respondent.organisation.contactDetails.addressLine2 | Felixstowe                       |
             | respondent.organisation.contactDetails.postcode     | IP11 1AA                         |
-            | respondent.organisation.contactDetails.phone        | 0394{RANDOM}                     |
+            | respondent.organisation.contactDetails.phone        | 03942{RANDOM}                    |
             | respondent.organisation.contactDetails.mobile       | 07520{RANDOM}                    |
             | respondent.organisation.contactDetails.email        | respondent.e36.{RANDOM}@test.com |
             | wordingFields.0.key                                 | Reference                        |
@@ -1048,7 +1084,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Rose Street             |
             | respondent.person.contactDetails.addressLine2 | Edinburgh                        |
             | respondent.person.contactDetails.postcode     | EH3 1AA                          |
-            | respondent.person.contactDetails.phone        | 0131{RANDOM}                     |
+            | respondent.person.contactDetails.phone        | 01314{RANDOM}                    |
             | respondent.person.contactDetails.mobile       | 07530{RANDOM}                    |
             | respondent.person.contactDetails.email        | respondent.e37.{RANDOM}@test.com |
             | respondent.person.dateOfBirth                 | todayiso-39y                     |
@@ -1064,11 +1100,17 @@ Feature: API - Test Data Setup - 40 ALEs
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
             """
             {
-            "resultCode": "RTC",
-            "wordingFields": [
-            { "key": "Date", "value": "todayiso" },
-            { "key": "Courthouse", "value": "Leeds Combined Court Centre" }
-            ]
+                "resultCode": "RTC",
+                "wordingFields": [
+                    {
+                        "key": "Date",
+                        "value": "todayiso"
+                    },
+                    {
+                        "key": "Courthouse",
+                        "value": "Leeds Combined Court Centre"
+                    }
+                ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -1081,7 +1123,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | respondent.organisation.contactDetails.addressLine1 | {RANDOM} Quarry Road             |
             | respondent.organisation.contactDetails.addressLine2 | Aberdeen                         |
             | respondent.organisation.contactDetails.postcode     | AB2 1AA                          |
-            | respondent.organisation.contactDetails.phone        | 0122{RANDOM}                     |
+            | respondent.organisation.contactDetails.phone        | 01223{RANDOM}                    |
             | respondent.organisation.contactDetails.mobile       | 07540{RANDOM}                    |
             | respondent.organisation.contactDetails.email        | respondent.e38.{RANDOM}@test.com |
             | wordingFields.0.key                                 | account balance                  |
@@ -1096,11 +1138,17 @@ Feature: API - Test Data Setup - 40 ALEs
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
             """
             {
-            "resultCode": "RTC",
-            "wordingFields": [
-            { "key": "Date", "value": "todayiso" },
-            { "key": "Courthouse", "value": "Leeds Combined Court Centre" }
-            ]
+                "resultCode": "RTC",
+                "wordingFields": [
+                    {
+                        "key": "Date",
+                        "value": "todayiso"
+                    },
+                    {
+                        "key": "Courthouse",
+                        "value": "Leeds Combined Court Centre"
+                    }
+                ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -1115,7 +1163,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | respondent.person.contactDetails.addressLine1 | {RANDOM} Castle Terrace          |
             | respondent.person.contactDetails.addressLine2 | Edinburgh                        |
             | respondent.person.contactDetails.postcode     | EH4 1AA                          |
-            | respondent.person.contactDetails.phone        | 0131{RANDOM}                     |
+            | respondent.person.contactDetails.phone        | 01315{RANDOM}                    |
             | respondent.person.contactDetails.mobile       | 07550{RANDOM}                    |
             | respondent.person.contactDetails.email        | respondent.e39.{RANDOM}@test.com |
             | respondent.person.dateOfBirth                 | todayiso-48y                     |
@@ -1136,7 +1184,7 @@ Feature: API - Test Data Setup - 40 ALEs
             | respondent.organisation.contactDetails.addressLine1 | {RANDOM} University Road         |
             | respondent.organisation.contactDetails.addressLine2 | Durham                           |
             | respondent.organisation.contactDetails.postcode     | DH1 1AA                          |
-            | respondent.organisation.contactDetails.phone        | 0191{RANDOM}                     |
+            | respondent.organisation.contactDetails.phone        | 01914{RANDOM}                    |
             | respondent.organisation.contactDetails.mobile       | 07560{RANDOM}                    |
             | respondent.organisation.contactDetails.email        | respondent.e40.{RANDOM}@test.com |
             | wordingFields.0.key                                 | Reference                        |

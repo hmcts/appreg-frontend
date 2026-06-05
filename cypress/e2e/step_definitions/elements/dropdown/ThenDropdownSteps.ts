@@ -1,5 +1,7 @@
 import { DataTable, Then } from '@badeball/cypress-cucumber-preprocessor';
 
+import { TestDataGenerator } from '../../../../support/utils/TestDataGenerator';
+
 import { DropdownHelper } from '../../../../support/helper/forms/dropdown/DropdownHelper';
 
 Then('User Should See The Dropdown {string}', (dropdownLabel: string) => {
@@ -95,5 +97,23 @@ Then(
         optionText,
       );
     }
+  },
+);
+
+Then(
+  'User Selects {string} From The {string} Dropdown Within The {string} FieldSet',
+  (optionText: string, dropdownLabel: string, fieldsetLabel: string) => {
+    const substituteOptionText =
+      TestDataGenerator.replaceRandomPlaceholders(optionText);
+    const substituteDropdownLabel =
+      TestDataGenerator.replaceRandomPlaceholders(dropdownLabel);
+    const substituteFieldsetLabel =
+      TestDataGenerator.replaceRandomPlaceholders(fieldsetLabel);
+
+    DropdownHelper.selectDropdownOptionUnderFieldset(
+      substituteDropdownLabel,
+      substituteOptionText,
+      substituteFieldsetLabel,
+    );
   },
 );
