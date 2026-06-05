@@ -202,14 +202,25 @@ run_frontend_sonar_analysis() {
   local sonar_host_url="${SONAR_HOST_URL:-https://sonarcloud.io}"
   local sonar_organization="${SONAR_ORGANIZATION:-hmcts}"
   local sonar_branch_name="${SONAR_BRANCH_NAME:-${branch_name}}"
+  local sonar_pr_number="${SONAR_PR_NUMBER:-}"
+  local sonar_pr_base="${SONAR_PR_BASE:-${default_branch}}"
   local sonar_quality_gate_timeout="${SONAR_QUALITY_GATE_TIMEOUT_SECONDS:-300}"
   local sonar_args=(
     -Dproject.settings=sonar-project.properties
     "-Dsonar.host.url=${sonar_host_url}"
-    "-Dsonar.branch.name=${sonar_branch_name}"
     "-Dsonar.qualitygate.wait=true"
     "-Dsonar.qualitygate.timeout=${sonar_quality_gate_timeout}"
   )
+
+  if [[ -n "${sonar_pr_number}" ]]; then
+    sonar_args+=(
+      "-Dsonar.pullrequest.key=${sonar_pr_number}"
+      "-Dsonar.pullrequest.branch=${sonar_branch_name}"
+      "-Dsonar.pullrequest.base=${sonar_pr_base}"
+    )
+  else
+    sonar_args+=("-Dsonar.branch.name=${sonar_branch_name}")
+  fi
 
   if [[ -n "${sonar_organization}" ]]; then
     sonar_args+=("-Dsonar.organization=${sonar_organization}")
@@ -219,7 +230,11 @@ run_frontend_sonar_analysis() {
   echo "Generating frontend coverage for Sonar analysis."
   run_sanitized node .yarn/releases/yarn-4.10.3.cjs test:coverage --runInBand
 
-  echo "Running Sonar analysis for Codex branch ${sonar_branch_name}."
+  if [[ -n "${sonar_pr_number}" ]]; then
+    echo "Running Sonar PR analysis for Codex PR #${sonar_pr_number} (${sonar_branch_name} -> ${sonar_pr_base})."
+  else
+    echo "Running Sonar analysis for Codex branch ${sonar_branch_name}."
+  fi
   run_sanitized env "SONAR_TOKEN=${SONAR_TOKEN}" \
     node .yarn/releases/yarn-4.10.3.cjs \
     dlx -p sonarqube-scanner sonar-scanner "${sonar_args[@]}"
