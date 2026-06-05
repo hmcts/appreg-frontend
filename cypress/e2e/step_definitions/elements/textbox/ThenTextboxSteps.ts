@@ -90,3 +90,14 @@ Then(
     TextboxHelper.verifyInfoNotVisible(field, info);
   },
 );
+
+Then(
+  'User Fills In The {string} Textbox With {string} Within The {string} FieldSet',
+  (field: string, value: string, fieldset: string) => {
+    const substituteValue = TestDataGenerator.replaceRandomPlaceholders(value);
+    TextboxHelper.typeInTextboxUnderFieldset(field, fieldset, substituteValue);
+    cy.screenshot(
+      `TypedInTextbox-${field}-${substituteValue}-UnderFieldset-${fieldset}`,
+    );
+  },
+);
