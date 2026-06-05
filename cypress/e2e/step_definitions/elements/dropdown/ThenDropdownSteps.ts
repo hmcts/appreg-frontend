@@ -1,8 +1,8 @@
 import { DataTable, Then } from '@badeball/cypress-cucumber-preprocessor';
 
+import { DropdownHelper } from '../../../../support/helper/forms/dropdown/DropdownHelper';
 import { TestDataGenerator } from '../../../../support/utils/TestDataGenerator';
 
-import { DropdownHelper } from '../../../../support/helper/forms/dropdown/DropdownHelper';
 
 Then('User Should See The Dropdown {string}', (dropdownLabel: string) => {
   DropdownHelper.verifyDropdownIsVisible(dropdownLabel);

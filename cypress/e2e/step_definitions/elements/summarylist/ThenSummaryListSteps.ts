@@ -8,7 +8,8 @@ Then(
   'User Should See Summary List Row With Key {string} And Value {string}',
   (key: string, value: string) => {
     const resolvedDateValue = DateTimeUtil.parseDateValue(value);
-    const resolvedValue = TestDataGenerator.replaceRandomPlaceholders(resolvedDateValue);
+    const resolvedValue =
+      TestDataGenerator.replaceRandomPlaceholders(resolvedDateValue);
 
     SummaryListHelper.verifySummaryListRow(key, resolvedValue);
     cy.screenshot(`VerifiedSummaryListRow-${key}-${resolvedValue}`);
