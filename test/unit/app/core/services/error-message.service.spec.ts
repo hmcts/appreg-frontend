@@ -104,6 +104,32 @@ describe('ErrorMessageService', () => {
       expect(svc.errorMessage()?.status).toBe(404);
     });
 
+    it('does not navigate for application code detail 404s with dated lookups', () => {
+      const err = makeErr({
+        status: 404,
+        url: 'https://local/application-codes/APP-100?date=1000-01-01',
+        error: { title: 'Not Found', status: 404 },
+      });
+
+      svc.handleErrorMessage(err);
+
+      expect(router.navigateByUrl).not.toHaveBeenCalled();
+      expect(svc.errorMessage()?.status).toBe(404);
+    });
+
+    it('does not navigate for standard applicant detail 404s with dated lookups', () => {
+      const err = makeErr({
+        status: 404,
+        url: 'https://local/standard-applicants/SA-123?date=1000-01-01',
+        error: { title: 'Not Found', status: 404 },
+      });
+
+      svc.handleErrorMessage(err);
+
+      expect(router.navigateByUrl).not.toHaveBeenCalled();
+      expect(svc.errorMessage()?.status).toBe(404);
+    });
+
     it('navigates to /forbidden for non-subscribed 403', () => {
       const err = makeErr({
         status: 403,

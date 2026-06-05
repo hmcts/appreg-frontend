@@ -12,11 +12,24 @@ type EndpointRule = { endpoint: string | RegExp; responses: number[] };
 
 // Contains endpoints where errors are handled in their component
 const regexIdPlaceholder = '[0-9a-fA-F-]{36}';
+const referenceDataCodePlaceholder = '[^/]+';
 
 const subscribedEndpoints: EndpointRule[] = [
   { endpoint: '/application-lists', responses: [400, 403, 404, 406, 500, 504] },
   { endpoint: '/application-codes', responses: [400, 403, 406, 500, 504] },
 
+  {
+    endpoint: new RegExp(
+      `^/application-codes/${referenceDataCodePlaceholder}$`,
+    ),
+    responses: [404],
+  },
+  {
+    endpoint: new RegExp(
+      `^/standard-applicants/${referenceDataCodePlaceholder}$`,
+    ),
+    responses: [404],
+  },
   {
     endpoint: new RegExp(`^/application-codes/${regexIdPlaceholder}$`),
     responses: [400, 403, 413, 415, 500, 504],
