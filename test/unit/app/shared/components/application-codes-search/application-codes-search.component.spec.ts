@@ -77,7 +77,11 @@ describe('ApplicationCodeSearchComponent', () => {
       .spyOn(helpers, 'fetchCodeRows$')
       .mockReturnValue(of(mockRows));
 
-    component.form.patchValue({ code: ' MS99004 ', title: ' Statutory ' });
+    component.form.patchValue({
+      lodgementDate: '2024-01-01',
+      code: ' MS99004 ',
+      title: ' Statutory ',
+    });
 
     component.search();
 
@@ -88,6 +92,7 @@ describe('ApplicationCodeSearchComponent', () => {
       {
         code: 'MS99004',
         title: 'Statutory',
+        date: '2024-01-01',
         pageNumber: 0,
         pageSize: 10,
         sort: ['code,asc'],
@@ -106,6 +111,7 @@ describe('ApplicationCodeSearchComponent', () => {
 
     component.currentPage.set(3);
     component.pageSize.set(25);
+    component.form.patchValue({ lodgementDate: '2024-02-01' });
 
     component.search();
 
@@ -114,6 +120,7 @@ describe('ApplicationCodeSearchComponent', () => {
       {
         code: undefined,
         title: undefined,
+        date: '2024-02-01',
         pageNumber: 3,
         pageSize: 25,
         sort: ['code,asc'],
@@ -130,7 +137,11 @@ describe('ApplicationCodeSearchComponent', () => {
       }),
     );
 
-    component.form.patchValue({ code: null, title: null });
+    component.form.patchValue({
+      lodgementDate: '2024-03-01',
+      code: null,
+      title: null,
+    });
 
     component.search();
 
@@ -139,6 +150,7 @@ describe('ApplicationCodeSearchComponent', () => {
       {
         code: undefined,
         title: undefined,
+        date: '2024-03-01',
         pageNumber: 0,
         pageSize: 10,
         sort: ['code,asc'],
@@ -146,6 +158,28 @@ describe('ApplicationCodeSearchComponent', () => {
       true,
     );
     expect(component.codesRows).toEqual([]);
+  });
+
+  it('shows no-results message after a date-only search returns no rows', () => {
+    jest.spyOn(helpers, 'fetchCodeRows$').mockReturnValue(
+      of({
+        rows: [],
+        totalPages: 0,
+      }),
+    );
+
+    component.form.patchValue({
+      lodgementDate: '1000-01-01',
+      code: null,
+      title: null,
+    });
+
+    component.search();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain(
+      'No application codes found',
+    );
   });
 
   it('search() should handle API error', () => {
@@ -200,6 +234,16 @@ describe('ApplicationCodeSearchComponent', () => {
 
     expect(component.codeError()).toBeNull();
     expect(errorsSpy).not.toHaveBeenCalled();
+  });
+
+  it('treats lodgement date as a search filter for no-results display', () => {
+    component.form.patchValue({
+      lodgementDate: '1000-01-01',
+      code: null,
+      title: null,
+    });
+
+    expect(component.hasSearchFilter()).toBe(true);
   });
 
   it('onAddCode() should emit selectCodeAndLodgementDate when valid', () => {
@@ -333,7 +377,10 @@ describe('ApplicationCodeSearchComponent', () => {
       .mockReturnValue(of(mockRows));
 
     component.currentPage.set(4);
-    component.form.patchValue({ code: 'MS99004' });
+    component.form.patchValue({
+      lodgementDate: '2024-04-01',
+      code: 'MS99004',
+    });
 
     component.onSortChange({ key: 'title', direction: 'desc' });
 
@@ -344,6 +391,7 @@ describe('ApplicationCodeSearchComponent', () => {
       {
         code: 'MS99004',
         title: undefined,
+        date: '2024-04-01',
         pageNumber: 0,
         pageSize: 10,
         sort: ['title,desc'],
@@ -363,6 +411,26 @@ describe('ApplicationCodeSearchComponent', () => {
       apiMock,
       expect.objectContaining({
         sort: ['feeDue,asc'],
+      }),
+      true,
+    );
+  });
+
+  it('uses the lodgement date when searching in disabled mode', () => {
+    const fetchSpy = jest
+      .spyOn(helpers, 'fetchCodeRows$')
+      .mockReturnValue(of(mockRows));
+
+    componentRef.setInput('lodgementDateDisabled', true);
+    fixture.detectChanges();
+    component.form.controls.lodgementDate.setValue('2026-04-13');
+
+    component.search();
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      apiMock,
+      expect.objectContaining({
+        date: '2026-04-13',
       }),
       true,
     );

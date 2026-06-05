@@ -64,10 +64,7 @@
     />
   } @else {
     @if (
-      codesRows.length === 0 &&
-      hasSearched() &&
-      form.valid &&
-      (form.value.code || form.value.title)
+      codesRows.length === 0 && hasSearched() && form.valid && hasSearchFilter()
     ) {
       <app-alert
         alertType="information"
