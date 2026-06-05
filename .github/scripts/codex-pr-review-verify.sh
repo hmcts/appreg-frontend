@@ -155,6 +155,17 @@ append_guardrail_warning() {
   } >>"${comment_body_path}"
 }
 
+block_sonar_for_guardrail_changes() {
+  if [[ "${guardrail_review_required}" != "true" ]]; then
+    return
+  fi
+
+  echo "::error::Refusing to run Sonar with SONAR_TOKEN because Codex changed verification-sensitive files." >&2
+  echo "Manual review is required before exposing Sonar credentials to changed package, workflow, runner, or verification tooling." >&2
+  sed 's/^/- /' "${guardrail_changes_path}" >&2
+  exit 1
+}
+
 ensure_frontend_formatter() {
   if [[ -x "node_modules/.bin/prettier" ]]; then
     return
@@ -194,6 +205,8 @@ run_frontend_sonar_analysis() {
     return
   fi
 
+  block_sonar_for_guardrail_changes
+
   if [[ -z "${SONAR_TOKEN:-}" ]]; then
     echo "::error::SONAR_TOKEN is required for Codex review verification Sonar analysis." >&2
     exit 1
@@ -201,12 +214,15 @@ run_frontend_sonar_analysis() {
 
   local sonar_host_url="${SONAR_HOST_URL:-https://sonarcloud.io}"
   local sonar_organization="${SONAR_ORGANIZATION:-hmcts}"
+  local sonar_quality_gate_timeout="${SONAR_QUALITY_GATE_TIMEOUT_SECONDS:-300}"
   local sonar_args=(
     -Dproject.settings=sonar-project.properties
     "-Dsonar.host.url=${sonar_host_url}"
     "-Dsonar.pullrequest.key=${pr_number}"
     "-Dsonar.pullrequest.branch=${head_ref}"
     "-Dsonar.pullrequest.base=${base_ref:-master}"
+    "-Dsonar.qualitygate.wait=true"
+    "-Dsonar.qualitygate.timeout=${sonar_quality_gate_timeout}"
   )
 
   if [[ -n "${sonar_organization}" ]]; then

@@ -195,7 +195,7 @@ jobs:
       LOCAL_PIPELINE_MODE: fast
       FRONTEND_FAST_COMMAND: yarn lint
       RUN_SONAR: 'true'
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_TOKEN: ${{ secrets.CODEX_SONAR_TOKEN }}
       SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL || 'https://sonarcloud.io' }}
       SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION || 'hmcts' }}
       CODEX_OUTPUT_ARTIFACT: codex-review-output
@@ -349,7 +349,7 @@ jobs:
       LOCAL_PIPELINE_MODE: fast
       FRONTEND_FAST_COMMAND: yarn lint
       RUN_SONAR: 'true'
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_TOKEN: ${{ secrets.CODEX_SONAR_TOKEN }}
       SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL || 'https://sonarcloud.io' }}
       SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION || 'hmcts' }}
       CODEX_OUTPUT_ARTIFACT: codex-review-output-repair-1
@@ -503,7 +503,7 @@ jobs:
       LOCAL_PIPELINE_MODE: fast
       FRONTEND_FAST_COMMAND: yarn lint
       RUN_SONAR: 'true'
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_TOKEN: ${{ secrets.CODEX_SONAR_TOKEN }}
       SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL || 'https://sonarcloud.io' }}
       SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION || 'hmcts' }}
       CODEX_OUTPUT_ARTIFACT: codex-review-output-repair-2
@@ -657,7 +657,7 @@ jobs:
       LOCAL_PIPELINE_MODE: fast
       FRONTEND_FAST_COMMAND: yarn lint
       RUN_SONAR: 'true'
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_TOKEN: ${{ secrets.CODEX_SONAR_TOKEN }}
       SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL || 'https://sonarcloud.io' }}
       SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION || 'hmcts' }}
       CODEX_OUTPUT_ARTIFACT: codex-review-output-repair-3
