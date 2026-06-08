@@ -58,4 +58,13 @@ export class BannerElement {
       .contains(this.successAlertSelector, heading, { timeout: 10000 })
       .should('contain.text', bodyText);
   }
+
+  static findErrorAlertWithBody(
+    heading: string,
+    bodyText: string,
+  ): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy
+      .contains(this.errorAlertSelector, heading, { timeout: 10000 })
+      .should('contain.text', bodyText);
+  }
 }
