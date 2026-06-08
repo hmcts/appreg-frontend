@@ -15,7 +15,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { firstValueFrom, forkJoin, map } from 'rxjs';
 
 import {
@@ -130,6 +130,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   private readonly appListApi = inject(ApplicationListsApi);
   private readonly pdf = inject(PdfService);
   private readonly searchState = inject(ApplicationsSearchStateService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   private readonly appState = createSignalState(initialApplicationsState);
   readonly vm = this.appState.vm;
@@ -343,6 +345,49 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   onUpdateNotesClick(): void {
     /** TODO: ARCPOC-1333 */
+  }
+
+  async onResultSelectedClick(): Promise<void> {
+    const rows = this.vm().selectedRows;
+
+    if (!rows.length) {
+      this.patchApp({
+        errorSummary: [{ text: 'Please select rows to result them' }],
+      });
+      return;
+    }
+
+    const rowsToResult = rows.filter(
+      (row) => row.status.trim().toLowerCase() !== 'closed',
+    );
+
+    // Only result status = 'open' applications
+    if (!rowsToResult.length) {
+      this.patchApp({
+        errorSummary: [
+          { text: "You can only result applications whose status is 'OPEN'" },
+        ],
+      });
+      return;
+    }
+
+    // Exclude status as we can only result open applications
+    const entriesToResult = rowsToResult.map((row) => ({
+      id: row.id,
+      date: row.date,
+      applicant: row.applicant,
+      respondent: row.respondent,
+      title: row.title,
+      fee: row.fee,
+      resulted: row.resulted,
+    }));
+
+    await this.router.navigate(['result-selected'], {
+      relativeTo: this.route,
+      state: {
+        entriesToResult,
+      },
+    });
   }
 
   private async buildPrintRequest(

@@ -244,6 +244,15 @@
             data-align-menu="right"
             data-button-classes="govuk-button govuk-button--small govuk-button--primary table-caption__action-button"
           >
+            <!-- Result selected -->
+            <button
+              type="button"
+              class="govuk-button moj-button-menu__item govuk-button--secondary"
+              (click)="onResultSelectedClick()"
+            >
+              Result selected
+            </button>
+
             <!-- Update notes -->
             <!-- TODO: ARCPOC-1333 -->
             <button
