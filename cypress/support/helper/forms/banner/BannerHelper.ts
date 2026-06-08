@@ -49,4 +49,10 @@ export class BannerHelper {
       'be.visible',
     );
   }
+
+  static verifyErrorBannerContaining(heading: string, bodyText: string): void {
+    BannerElement.findErrorAlertWithBody(heading, bodyText).should(
+      'be.visible',
+    );
+  }
 }
