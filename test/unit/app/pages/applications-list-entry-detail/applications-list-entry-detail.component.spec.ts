@@ -1172,7 +1172,7 @@ describe('ApplicationsListEntryDetail', () => {
     });
     expect(component['appListEntryDetailState']().isFeeRequired).toBe(true);
 
-    expect(resetSectionsSpy).toHaveBeenCalledWith(component.forms);
+    expect(resetSectionsSpy).toHaveBeenCalledWith(component.forms, true);
   });
 
   it('onCodeSelected preserves the existing lodgement date when clearing the code selection', () => {

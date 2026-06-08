@@ -197,7 +197,10 @@ export class ApplicationListEntryFormService {
     });
   }
 
-  resetSectionsOnApplicationCodeChange(forms: ApplicationListEntryForms): void {
+  resetSectionsOnApplicationCodeChange(
+    forms: ApplicationListEntryForms,
+    isUpdate?: boolean,
+  ): void {
     forms.form.patchValue({
       // wording section fields
       wordingFields: null,
@@ -207,9 +210,11 @@ export class ApplicationListEntryFormService {
       numberOfRespondents: null,
     });
 
-    // reset respondent section forms person and organisation
-    forms.respondentPersonForm.reset();
-    forms.respondentOrganisationForm.reset();
+    // reset respondent section forms person and organisation if its ALE create
+    if (!isUpdate) {
+      forms.respondentPersonForm.reset();
+      forms.respondentOrganisationForm.reset();
+    }
 
     markFormGroupClean(forms.respondentPersonForm);
     markFormGroupClean(forms.respondentOrganisationForm);
