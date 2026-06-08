@@ -5140,16 +5140,16 @@ __metadata:
   linkType: hard
 
 "@redocly/cli@npm:^2.1.4":
-  version: 2.31.5
-  resolution: "@redocly/cli@npm:2.31.5"
+  version: 2.31.6
+  resolution: "@redocly/cli@npm:2.31.6"
   dependencies:
     "@opentelemetry/exporter-trace-otlp-http": "npm:0.214.0"
     "@opentelemetry/resources": "npm:2.6.1"
     "@opentelemetry/sdk-trace-node": "npm:2.6.1"
     "@opentelemetry/semantic-conventions": "npm:1.40.0"
     "@redocly/cli-otel": "npm:0.3.1"
-    "@redocly/openapi-core": "npm:2.31.5"
-    "@redocly/respect-core": "npm:2.31.5"
+    "@redocly/openapi-core": "npm:2.31.6"
+    "@redocly/respect-core": "npm:2.31.6"
     ajv: "npm:@redocly/ajv@8.18.1"
     ajv-formats: "npm:^3.0.1"
     colorette: "npm:^1.2.0"
@@ -5161,20 +5161,20 @@ __metadata:
     mobx: "npm:^6.0.4"
     picomatch: "npm:^4.0.4"
     pluralize: "npm:^8.0.0"
-    react: "npm:^17.0.0 || ^18.2.0 || ^19.2.1"
-    react-dom: "npm:^17.0.0 || ^18.2.0 || ^19.2.1"
-    redoc: "npm:2.5.1"
+    react: "npm:^17.0.0 || ^18.2.0 || ^19.2.7"
+    react-dom: "npm:^17.0.0 || ^18.2.0 || ^19.2.7"
+    redoc: "npm:2.5.3"
     semver: "npm:^7.5.2"
     set-cookie-parser: "npm:^2.3.5"
     simple-websocket: "npm:^9.0.0"
-    styled-components: "npm:6.4.1"
+    styled-components: "npm:6.4.2"
     ulid: "npm:^3.0.1"
     undici: "npm:6.24.0"
     yargs: "npm:17.0.1"
   bin:
     openapi: bin/cli.js
     redocly: bin/cli.js
-  checksum: 10/11f4e500ee4e7a5707cc1a0d17b5f78099ffcbad21f4486bb5ce816443c15c46be57929a85e6a32527118ef69648014fa8db4c9a30b0c56972dcf9730b2cfd3a
+  checksum: 10/23b42e662d5de8ec4782c33231da8b4b10f33896511f1e6b6a574b4eb09bf35f0ed9811a98e471564889618012edcfda9581ae33a0bfce9af1b5943ae024e30c
   languageName: node
   linkType: hard
 
@@ -5194,9 +5194,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@redocly/openapi-core@npm:2.31.5":
-  version: 2.31.5
-  resolution: "@redocly/openapi-core@npm:2.31.5"
+"@redocly/openapi-core@npm:2.31.6":
+  version: 2.31.6
+  resolution: "@redocly/openapi-core@npm:2.31.6"
   dependencies:
     "@redocly/ajv": "npm:^8.18.1"
     "@redocly/config": "npm:^0.49.0"
@@ -5208,13 +5208,13 @@ __metadata:
     picomatch: "npm:^4.0.4"
     pluralize: "npm:^8.0.0"
     yaml-ast-parser: "npm:0.0.43"
-  checksum: 10/69bb14668500fc18f03630006738c1bca8a43c4b4ddbdabc8df90f755e3a47d3b96b06154facafce513782310ec9a6c726de05c9df20b939c4da82302672af62
+  checksum: 10/7a80a2f8841ce0bb6b64327174f1ac14897393385b622c8c08545558602ae01de8a0fe485318941cfcb4360dcae0c02810e05cbc202a2a918f3a1f742bdee70f
   languageName: node
   linkType: hard
 
-"@redocly/openapi-core@npm:^1.4.0":
-  version: 1.34.10
-  resolution: "@redocly/openapi-core@npm:1.34.10"
+"@redocly/openapi-core@npm:^1.34.15":
+  version: 1.34.15
+  resolution: "@redocly/openapi-core@npm:1.34.15"
   dependencies:
     "@redocly/ajv": "npm:8.11.2"
     "@redocly/config": "npm:0.22.0"
@@ -5225,18 +5225,18 @@ __metadata:
     minimatch: "npm:5.1.9"
     pluralize: "npm:8.0.0"
     yaml-ast-parser: "npm:0.0.43"
-  checksum: 10/a5d99860161948eb46fe84b0ac908cc147a4193d83cdbdb5942a12adc9400e8f00d0f5269c8f796b58755754fccd8abe0ee9ef3f8b0b29d3c11a40b04b559020
+  checksum: 10/c197d2ae83d527311b2cf1118086045d6ec6e2cd2ec1fd3c5997a3f45394e23a3106029cddf00a070ecdfdd211d060d7e08883595a7e6a13bf435889c997c24e
   languageName: node
   linkType: hard
 
-"@redocly/respect-core@npm:2.31.5":
-  version: 2.31.5
-  resolution: "@redocly/respect-core@npm:2.31.5"
+"@redocly/respect-core@npm:2.31.6":
+  version: 2.31.6
+  resolution: "@redocly/respect-core@npm:2.31.6"
   dependencies:
     "@faker-js/faker": "npm:^7.6.0"
     "@noble/hashes": "npm:^1.8.0"
     "@redocly/ajv": "npm:^8.18.1"
-    "@redocly/openapi-core": "npm:2.31.5"
+    "@redocly/openapi-core": "npm:2.31.6"
     ajv: "npm:@redocly/ajv@8.18.1"
     better-ajv-errors: "npm:^2.0.3"
     colorette: "npm:^2.0.20"
@@ -5245,7 +5245,7 @@ __metadata:
     openapi-sampler: "npm:^1.7.1"
     outdent: "npm:^0.8.0"
     picomatch: "npm:^4.0.4"
-  checksum: 10/adf4038b5c70b24174c3d990fc1de95d9410dcc77a75659175e436dedd1a13f9cb43ea867fe3c82b0417a762307c319d03b54a30a93208621c00d64a7383d0e5
+  checksum: 10/0d5d4e173f5667cea2c8ed0128705c9880decf628af9bd277377fa131e1ed97c91dc21d51aff17c2404aba30dabec84907204a90a5664daec99d8b692e459081
   languageName: node
   linkType: hard
 
@@ -10795,7 +10795,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-xml-parser@npm:^5.3.8":
+"fast-xml-parser@npm:^5.3.8, fast-xml-parser@npm:^5.5.1":
   version: 5.8.0
   resolution: "fast-xml-parser@npm:5.8.0"
   dependencies:
@@ -15198,7 +15198,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"openapi-sampler@npm:^1.5.0, openapi-sampler@npm:^1.7.1":
+"openapi-sampler@npm:^1.6.2":
+  version: 1.7.4
+  resolution: "openapi-sampler@npm:1.7.4"
+  dependencies:
+    "@types/json-schema": "npm:^7.0.7"
+    fast-xml-parser: "npm:^5.5.1"
+    json-pointer: "npm:0.6.2"
+  checksum: 10/da1b21f9eef3041ff38207613f8886f1958c5566bab725f927c76d691cd9f5fc92f32d15ca3df7998cdb9a5697d65befb1a0d8bef006c2dae6d72ce6fff5dc41
+  languageName: node
+  linkType: hard
+
+"openapi-sampler@npm:^1.7.1":
   version: 1.7.1
   resolution: "openapi-sampler@npm:1.7.1"
   dependencies:
@@ -16185,14 +16196,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:^17.0.0 || ^18.2.0 || ^19.2.1":
-  version: 19.2.4
-  resolution: "react-dom@npm:19.2.4"
+"react-dom@npm:^17.0.0 || ^18.2.0 || ^19.2.7":
+  version: 19.2.7
+  resolution: "react-dom@npm:19.2.7"
   dependencies:
     scheduler: "npm:^0.27.0"
   peerDependencies:
-    react: ^19.2.4
-  checksum: 10/ec17721a8cb131bc33480a9f738bc5bbfe4bd11b11cf69f3f473605346578a329ad26ceef6ef0761ea67a4b455803407dd7ed4ba3d8a5abd2cee8c32d221e498
+    react: ^19.2.7
+  checksum: 10/9564f4b83843ca5518ed5f807c93cb1663706559cde52f3ef814b41e60b63b16e684d849926458f0ba436745d7eabf822cba1c528be370e7b2f35a4c91e35941
   languageName: node
   linkType: hard
 
@@ -16229,10 +16240,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:^17.0.0 || ^18.2.0 || ^19.2.1":
-  version: 19.2.4
-  resolution: "react@npm:19.2.4"
-  checksum: 10/18179fe217f67eb2d0bc61cd04e7ad3c282ea09a1dface7eacd71816f62609f4bbf566c447c704335284deb8397b00bca084e0cd60e6f437279a7498e2d0bfe0
+"react@npm:^17.0.0 || ^18.2.0 || ^19.2.7":
+  version: 19.2.7
+  resolution: "react@npm:19.2.7"
+  checksum: 10/2939997e87d7f0ee0d9d2bb556866b616b999dfb7916283647034eda867a045a39c4f7a736c8ea6beffffcd78397fc30f63a7a3aaf8425b683c3060670859560
   languageName: node
   linkType: hard
 
@@ -16307,11 +16318,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"redoc@npm:2.5.1":
-  version: 2.5.1
-  resolution: "redoc@npm:2.5.1"
+"redoc@npm:2.5.3":
+  version: 2.5.3
+  resolution: "redoc@npm:2.5.3"
   dependencies:
-    "@redocly/openapi-core": "npm:^1.4.0"
+    "@redocly/openapi-core": "npm:^1.34.15"
     classnames: "npm:^2.3.2"
     decko: "npm:^1.2.0"
     dompurify: "npm:^3.2.4"
@@ -16321,7 +16332,7 @@ __metadata:
     mark.js: "npm:^8.11.1"
     marked: "npm:^4.3.0"
     mobx-react: "npm:9.2.0"
-    openapi-sampler: "npm:^1.5.0"
+    openapi-sampler: "npm:^1.6.2"
     path-browserify: "npm:^1.0.1"
     perfect-scrollbar: "npm:^1.5.5"
     polished: "npm:^4.2.2"
@@ -16338,7 +16349,7 @@ __metadata:
     react: ^16.8.4 || ^17.0.0 || ^18.0.0 || ^19.0.0
     react-dom: ^16.8.4 || ^17.0.0 || ^18.0.0 || ^19.0.0
     styled-components: ^4.1.1 || ^5.1.1 || ^6.0.5
-  checksum: 10/e8f329f4acc2653c6265b1066af6cd16009552ab2c5f4033d88ae98ba4b78b5af222881a6429317fd18b9294b26a9f7b00415da7dc9c6cf1bee67480125f1cc5
+  checksum: 10/f9ccca5082310f80c10da8c374eea1089a5f4214fd06ef465869627259d8783914db74306f3381de6a84e067e7a8cdbd0d21a7f6875efbfd10a870fe090a6cac
   languageName: node
   linkType: hard
 
@@ -17778,9 +17789,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"styled-components@npm:6.4.1":
-  version: 6.4.1
-  resolution: "styled-components@npm:6.4.1"
+"styled-components@npm:6.4.2":
+  version: 6.4.2
+  resolution: "styled-components@npm:6.4.2"
   dependencies:
     "@emotion/is-prop-valid": "npm:1.4.0"
     css-to-react-native: "npm:3.2.0"
@@ -17798,7 +17809,7 @@ __metadata:
       optional: true
     react-native:
       optional: true
-  checksum: 10/616311c4f0617711a8959400e15460b43efa11fbca09574d749f77ff102ac3ff7a4c27b1be19ba95809bf28f883fed6479429a4d4c2e2a2826b6b676e59d1624
+  checksum: 10/9298e414c4c6719ab5936eb2ed11d74717f55bd6e620660da8f672caac4f76f455630a8472aaf5e633b2c106262f9ad854b5caa4ec414ede8b1dc94b5686298c
   languageName: node
   linkType: hard
 
