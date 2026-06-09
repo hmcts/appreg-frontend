@@ -1,7 +1,9 @@
+import { Location } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { FeeUpdateConfirmComponent } from '@components/applications-list-detail/applications-list-detail-bulk-update-fees/fee-update-confirm/fee-update-confirm.component';
 import { ApplicationListEntriesApi, FeeStatus } from '@openapi';
@@ -181,5 +183,98 @@ describe('FeeUpdateConfirmComponent', () => {
     expect(host.textContent).toContain('PAID');
     expect(host.textContent).toContain('Jan 1, 2026');
     expect(host.textContent).toContain('REF-1');
+  });
+
+  it('goes back to the edit page on init when required navigation state is missing', () => {
+    expect(routerNavigate).toHaveBeenCalledWith(
+      ['/applications-list', 'list-1', 'bulk-update-fee'],
+      {
+        state: {
+          entriesToUpdateFee: [],
+          bulkUpdateFeeSnapshot: {
+            listId: 'list-1',
+            selectedEntries: [],
+            feeForm: {
+              feeStatuses: [],
+              hasOffsiteFee: false,
+            },
+          },
+        },
+      },
+    );
+  });
+
+  it('navigates back to the list page when goBack is called without a list id', () => {
+    component.listId = null;
+
+    component.goBack();
+
+    expect(routerNavigate).toHaveBeenCalledWith(['/applications-list']);
+  });
+
+  it('navigates back instead of submitting when confirm is clicked without fee data', () => {
+    component.selectedEntries = [] as never;
+    component.feeStatuses = [];
+
+    component.onConfirm();
+
+    expect(bulkUpdateApplicationListEntryFees).not.toHaveBeenCalled();
+    expect(routerNavigate).toHaveBeenCalledWith(
+      ['/applications-list', 'list-1', 'bulk-update-fee'],
+      {
+        state: {
+          entriesToUpdateFee: [],
+          bulkUpdateFeeSnapshot: {
+            listId: 'list-1',
+            selectedEntries: [],
+            feeForm: {
+              feeStatuses: [],
+              hasOffsiteFee: false,
+            },
+          },
+        },
+      },
+    );
+  });
+
+  it('navigates back to the detail page with an error message when the update fails', () => {
+    bulkUpdateApplicationListEntryFees.mockReturnValueOnce(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 400,
+            error: { detail: 'Fee update failed' },
+          }),
+      ),
+    );
+    component.selectedEntries = [
+      {
+        id: 'entry-1',
+        applicant: 'Applicant',
+        respondent: 'Respondent',
+        title: 'Title',
+      },
+    ] as never;
+    component.feeStatuses = [
+      {
+        paymentStatus: 'PAID',
+        statusDate: '2026-01-01',
+        paymentReference: 'REF-1',
+      } as FeeStatus,
+    ];
+
+    component.onConfirm();
+
+    expect(routerNavigate).toHaveBeenCalledWith(
+      ['/applications-list', 'list-1'],
+      {
+        queryParams: {
+          updateFee: 'error',
+        },
+        state: {
+          updateFeeError: 'Fee update failed',
+        },
+      },
+    );
   });
 });

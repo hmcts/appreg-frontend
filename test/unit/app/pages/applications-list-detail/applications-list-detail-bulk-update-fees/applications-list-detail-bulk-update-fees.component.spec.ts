@@ -154,6 +154,235 @@ describe('ApplicationsListDetailBulkUpdateFeesComponent', () => {
     expect(component.vm().submitted).toBe(true);
   });
 
+  it('restores snapshot state including fee metadata and validation errors', () => {
+    history.replaceState(
+      {
+        entriesToUpdateFee: [
+          {
+            id: 'entry-1',
+            applicant: 'Applicant',
+            respondent: 'Respondent',
+            title: 'Title',
+          },
+        ],
+        bulkUpdateFeeSnapshot: {
+          listId: 'list-456',
+          selectedEntries: [
+            {
+              id: 'entry-2',
+              applicant: 'Updated Applicant',
+              respondent: 'Updated Respondent',
+              title: 'Updated Title',
+            },
+          ],
+          feeForm: {
+            hasOffsiteFee: true,
+            feeStatuses: [
+              {
+                paymentStatus: 'PAID',
+                statusDate: '2026-01-01',
+                paymentReference: 'RESTORED-REF',
+              },
+            ],
+          },
+          feeMeta: {
+            latestStatusDate: '2026-01-01',
+            statusDateMinimum: '2025-01-01',
+          },
+          submitted: true,
+          feeErrors: [{ text: 'Fee details are required' }],
+        },
+      },
+      '',
+    );
+
+    const fixture = TestBed.createComponent(
+      ApplicationsListDetailBulkUpdateFeesComponent,
+    );
+    const component = fixture.componentInstance;
+
+    component.ngOnInit();
+
+    expect(component.vm().listId).toBe('list-456');
+    expect(component.vm().selectedEntries).toEqual([
+      {
+        id: 'entry-2',
+        applicant: 'Updated Applicant',
+        respondent: 'Updated Respondent',
+        title: 'Updated Title',
+      },
+    ]);
+    expect(component.civilFeeForm.getRawValue()).toMatchObject({
+      hasOffsiteFee: true,
+      feeStatuses: [
+        {
+          paymentStatus: 'PAID',
+          statusDate: '2026-01-01',
+          paymentReference: 'RESTORED-REF',
+        },
+      ],
+    });
+    expect(component.feeMeta).toEqual({
+      latestStatusDate: '2026-01-01',
+      statusDateMinimum: '2025-01-01',
+    });
+    expect(component.vm().submitted).toBe(true);
+    expect(component.vm().feeErrors).toEqual([
+      { text: 'Fee details are required' },
+    ]);
+  });
+
+  it('stores fee errors from child sections', () => {
+    history.replaceState(
+      {
+        entriesToUpdateFee: [
+          {
+            id: 'entry-1',
+            applicant: 'Applicant',
+            respondent: 'Respondent',
+            title: 'Title',
+          },
+        ],
+      },
+      '',
+    );
+
+    const fixture = TestBed.createComponent(
+      ApplicationsListDetailBulkUpdateFeesComponent,
+    );
+    const component = fixture.componentInstance;
+    component.ngOnInit();
+
+    component.onCivilFeeErrors([{ text: 'Payment reference is invalid' }]);
+
+    expect(component.vm().feeErrors).toEqual([
+      { text: 'Payment reference is invalid' },
+    ]);
+  });
+
+  it('disables the update button until at least one fee status exists', () => {
+    history.replaceState(
+      {
+        entriesToUpdateFee: [
+          {
+            id: 'entry-1',
+            applicant: 'Applicant',
+            respondent: 'Respondent',
+            title: 'Title',
+          },
+        ],
+      },
+      '',
+    );
+
+    const fixture = TestBed.createComponent(
+      ApplicationsListDetailBulkUpdateFeesComponent,
+    );
+    const component = fixture.componentInstance;
+    component.ngOnInit();
+
+    expect(component.disableUpdateButton()).toBe(true);
+
+    component.onAddFeeDetails({
+      feeStatus: PaymentStatus.PAID,
+      statusDate: '2026-06-03',
+      paymentReference: 'ABC123',
+    });
+
+    expect(component.disableUpdateButton()).toBe(false);
+  });
+
+  it('navigates to confirm with selected entries and fee data when add fees succeeds', () => {
+    history.replaceState(
+      {
+        entriesToUpdateFee: [
+          {
+            id: 'entry-1',
+            applicant: 'Applicant',
+            respondent: 'Respondent',
+            title: 'Title',
+          },
+        ],
+      },
+      '',
+    );
+
+    const fixture = TestBed.createComponent(
+      ApplicationsListDetailBulkUpdateFeesComponent,
+    );
+    const component = fixture.componentInstance;
+    component.ngOnInit();
+    component.onOffsiteFeeChanged(true);
+    component.onAddFeeDetails({
+      feeStatus: PaymentStatus.PAID,
+      statusDate: '2026-06-03',
+      paymentReference: 'ABC123',
+    });
+
+    component.addFees();
+
+    expect(routerNavigate).toHaveBeenCalledWith(
+      ['/applications-list', 'list-123', 'bulk-update-fee', 'confirm'],
+      {
+        state: {
+          selectedEntries: [
+            {
+              id: 'entry-1',
+              applicant: 'Applicant',
+              respondent: 'Respondent',
+              title: 'Title',
+            },
+          ],
+          feeTable: [
+            {
+              paymentStatus: 'PAID',
+              statusDate: '2026-06-03',
+              paymentReference: 'ABC123',
+            },
+          ],
+          isOffSiteFee: true,
+        },
+      },
+    );
+  });
+
+  it('prevents confirm navigation when child validation returns errors', () => {
+    history.replaceState(
+      {
+        entriesToUpdateFee: [
+          {
+            id: 'entry-1',
+            applicant: 'Applicant',
+            respondent: 'Respondent',
+            title: 'Title',
+          },
+        ],
+      },
+      '',
+    );
+
+    const fixture = TestBed.createComponent(
+      ApplicationsListDetailBulkUpdateFeesComponent,
+    );
+    const component = fixture.componentInstance;
+    component.ngOnInit();
+    Object.defineProperty(component, 'civilFeeSection', {
+      value: {
+        validateForSubmit: jest.fn(() => [{ text: 'Civil fee is invalid' }]),
+      },
+    });
+
+    component.addFees();
+
+    expect(component.vm().feeErrors).toEqual([
+      { text: 'Civil fee is invalid' },
+    ]);
+    expect(routerNavigate).not.toHaveBeenCalledWith(
+      ['/applications-list', 'list-123', 'bulk-update-fee', 'confirm'],
+      expect.anything(),
+    );
+  });
+
   it('navigates away when no selected entries are provided', () => {
     history.replaceState({}, '');
 
