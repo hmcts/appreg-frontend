@@ -160,7 +160,7 @@ export class ApplicationListEntryResultsFacade {
           this.entryResultsApi.bulkResultApplicationListEntries({
             listId,
             bulkResultDto: {
-              entryIds: selectedEntryIds as unknown as Set<string>,
+              entryIds: selectedEntryIds,
               result: {
                 resultCode: item.resultCode.trim(),
                 wordingFields: item.wordingFields ?? [],
