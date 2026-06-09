@@ -1,6 +1,6 @@
 Feature: List Maintenance Report
 
-    @reports @reports @ARCPOC-381 @ARCPOC-246
+    @regression @reports @ARCPOC-381 @ARCPOC-246
     Scenario: List Maintenance Report - Render report filters
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
@@ -18,7 +18,7 @@ Feature: List Maintenance Report
         Then User Should See The Textbox "Criminal justice area"
         Then User Should See The Textbox "Other location description"
 
-    @reports @reports @ARCPOC-381 @ARCPOC-246
+    @regression @reports @ARCPOC-381 @ARCPOC-246
     Scenario: List Maintenance Report - Validate date fields
         Given User Has No Downloaded CSVs
         Given User Is On The Portal Page
@@ -44,7 +44,7 @@ Feature: List Maintenance Report
         When User Clicks On The "Download CSV" Button
         Then User Sees Validation Error Banner "There is a problem Date to must be on or after Date from"
 
-    @reports @reports @ARCPOC-381 @ARCPOC-246
+    @regression @reports @ARCPOC-381 @ARCPOC-246
     Scenario: List Maintenance Report - Preserve dates and enforce location exclusivity
         Given User Is On The Portal Page
         When User Signs In With Microsoft SSO As "user1"
@@ -61,7 +61,7 @@ Feature: List Maintenance Report
         Then User Should See The Textbox "Court" Is Disabled
         Then User Should See The Textbox "Criminal justice area" Is Enabled
 
-    @reports @reports @ARCPOC-381 @ARCPOC-246 @SC2
+    @regression @reports @ARCPOC-381 @ARCPOC-246 @SC2
     Scenario: List Maintenance Report - Download completed CSV
         Given User Has No Downloaded CSVs
         Given User Is On The Portal Page
