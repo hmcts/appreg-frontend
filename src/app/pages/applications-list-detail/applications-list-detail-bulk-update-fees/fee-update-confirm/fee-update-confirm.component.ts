@@ -7,8 +7,14 @@ import { ReviewConfirmComponent } from '@components/review-confirm/review-confir
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { TableComponent } from '@components/table/table.component';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
-import { ApplicationListEntriesApi, FeeStatus } from '@openapi';
-// import { getProblemText } from '@util/http-error-to-text';
+import {
+  ApplicationListEntriesApi,
+  BulkFeeDetailsDto,
+  BulkFeesUpdateDto,
+  BulkUpdateApplicationListEntryFeesRequestParams,
+  FeeStatus,
+} from '@openapi';
+import { getProblemText } from '@util/http-error-to-text';
 
 type UpdateFeeState = {
   selectedEntries: [];
@@ -81,36 +87,36 @@ export class FeeUpdateConfirmComponent implements OnInit {
       return;
     }
 
-    // const bulkFeesUpdateDto = this.buildBulkUpdateFeesPayload(
-    //   this.feeStatuses,
-    //   this.selectedEntries,
-    //   this.isOffSiteFee,
-    // );
+    const bulkFeesUpdateDto = this.buildBulkUpdateFeesPayload(
+      this.feeStatuses,
+      this.selectedEntries,
+      this.isOffSiteFee,
+    );
 
-    // const params: BulkUpdateApplicationListEntryFeesRequestParams = {
-    //   listId,
-    //   bulkFeesUpdateDto,
-    // };
+    const params: BulkUpdateApplicationListEntryFeesRequestParams = {
+      listId,
+      bulkFeesUpdateDto,
+    };
 
-    // this.appListEntryApi.bulkUpdateApplicationListEntryFees(params).subscribe({
-    //   next: () => {
-    //     void this.router.navigate(['/applications-list', listId], {
-    //       queryParams: { bulkFeeUpdateSuccessful: true },
-    //     });
-    //   },
-    //   error: (err) => {
-    //     const errorPayload = getProblemText(err);
+    this.appListEntryApi.bulkUpdateApplicationListEntryFees(params).subscribe({
+      next: () => {
+        void this.router.navigate(['/applications-list', listId], {
+          queryParams: { bulkFeeUpdateSuccessful: true },
+        });
+      },
+      error: (err) => {
+        const errorPayload = getProblemText(err);
 
-    //     void this.router.navigate(['/applications-list', this.listId], {
-    //       queryParams: {
-    //         updateFee: 'error',
-    //       },
-    //       state: {
-    //         updateFeeError: errorPayload,
-    //       },
-    //     });
-    //   },
-    // });
+        void this.router.navigate(['/applications-list', this.listId], {
+          queryParams: {
+            updateFee: 'error',
+          },
+          state: {
+            updateFeeError: errorPayload,
+          },
+        });
+      },
+    });
   }
 
   goBack(): void {
@@ -138,23 +144,25 @@ export class FeeUpdateConfirmComponent implements OnInit {
     );
   }
 
-  // private buildBulkUpdateFeesPayload(
-  //   fees: FeeStatus[],
-  //   entries: { id: string }[],
-  //   isOffSiteFee: boolean,
-  // ): BulkFeesUpdateDto {
-  //   const entryIds = new Set(entries.map((entry) => entry.id));
+  private buildBulkUpdateFeesPayload(
+    fees: FeeStatus[],
+    entries: { id: string }[],
+    isOffSiteFee: boolean,
+  ): BulkFeesUpdateDto {
+    const entryIds = [
+      ...new Set(entries.map((entry) => entry.id)),
+    ] as unknown as Set<string>;
 
-  //   const feeStatuses: BulkFeeDetailsDto[] = fees.map((feeStatus) => ({
-  //     paymentStatus: feeStatus.paymentStatus,
-  //     statusDate: feeStatus.statusDate,
-  //     paymentReference: feeStatus.paymentReference ?? undefined,
-  //     hasOffsiteFee: isOffSiteFee,
-  //   }));
+    const feeStatuses: BulkFeeDetailsDto[] = fees.map((feeStatus) => ({
+      paymentStatus: feeStatus.paymentStatus,
+      statusDate: feeStatus.statusDate,
+      paymentReference: feeStatus.paymentReference ?? undefined,
+      hasOffsiteFee: isOffSiteFee,
+    }));
 
-  //   return {
-  //     entryIds,
-  //     feeDetails: feeStatuses
-  //   };
-  // }
+    return {
+      entryIds,
+      feeDetails: feeStatuses,
+    };
+  }
 }

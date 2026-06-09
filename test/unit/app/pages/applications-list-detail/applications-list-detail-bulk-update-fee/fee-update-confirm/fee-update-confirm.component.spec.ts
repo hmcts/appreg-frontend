@@ -1,6 +1,6 @@
 import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, Location, Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 
 import { FeeUpdateConfirmComponent } from '@components/applications-list-detail/applications-list-detail-bulk-update-fees/fee-update-confirm/fee-update-confirm.component';
@@ -83,13 +83,15 @@ describe('FeeUpdateConfirmComponent', () => {
     expect(bulkUpdateApplicationListEntryFees).toHaveBeenCalledWith({
       listId: 'list-1',
       bulkFeesUpdateDto: {
-        entryIds: new Set(['entry-1', 'entry-2']),
-        feeDetails: {
-          paymentStatus: 'PAID',
-          statusDate: '2026-01-01',
-          paymentReference: 'REF-1',
-          hasOffsiteFee: true,
-        },
+        entryIds: ['entry-1', 'entry-2'],
+        feeDetails: [
+          {
+            paymentStatus: 'PAID',
+            statusDate: '2026-01-01',
+            paymentReference: 'REF-1',
+            hasOffsiteFee: true,
+          },
+        ],
       },
     });
   });
