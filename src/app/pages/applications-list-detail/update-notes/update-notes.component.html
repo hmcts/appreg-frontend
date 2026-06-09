@@ -1,0 +1,62 @@
+<app-breadcrumbs
+  [items]="[
+    { label: 'Applications list', link: '/applications-list' },
+    { label: 'Applications', link: '/applications-list/' + listId },
+  ]"
+/>
+
+@if (errorSummaryItems().length) {
+  <app-error-summary title="There is a problem" [items]="errorSummaryItems()" />
+}
+
+<h1 class="govuk-heading-xl">Update Application Notes</h1>
+
+@if (context(); as application) {
+  <p class="govuk-body govuk-!-font-weight-bold">
+    Applicant: {{ application.applicant || 'Not provided' }}
+  </p>
+  @if (applicationContextLine()) {
+    <p class="govuk-body govuk-!-font-weight-bold">
+      {{ applicationContextLine() }}
+    </p>
+  }
+}
+
+<form [formGroup]="form">
+  <div class="govuk-form-group">
+    <label class="govuk-label govuk-label--s" for="application-notes">
+      Application Notes
+    </label>
+    <app-govuk-textarea
+      [control]="form.controls.applicationNotes"
+      id="application-notes"
+      name="applicationNotes"
+      ariaDescribedBy="application-notes-hint"
+      [rows]="6"
+      [maxCharacterLimit]="400"
+    />
+  </div>
+
+  <div class="govuk-form-group">
+    <label class="govuk-label govuk-label--s" for="additional-notes">
+      Additional Notes
+    </label>
+    <app-govuk-textarea
+      [control]="form.controls.additionalNotes"
+      id="additional-notes"
+      name="additionalNotes"
+      ariaDescribedBy="additional-notes-hint"
+      [rows]="6"
+      [maxCharacterLimit]="400"
+    />
+  </div>
+
+  <div class="govuk-button-group govuk-!-margin-top-6">
+    <a class="govuk-link" [routerLink]="['/applications-list', listId]">
+      Return to Applications
+    </a>
+    <button type="button" class="govuk-button" disabled>
+      Save Additional Notes
+    </button>
+  </div>
+</form>

@@ -170,14 +170,9 @@ export class ApplicationCodeSearchComponent implements OnInit {
 
     this.hasSearched.set(false);
 
-    const {
-      code: rawCode,
-      title: rawTitle,
-      lodgementDate: rawLodgementDate,
-    } = this.form.getRawValue();
+    const { code: rawCode, title: rawTitle } = this.form.getRawValue();
     const code = rawCode?.trim() ?? '';
     const title = rawTitle?.trim() ?? '';
-    const lodgementDate = rawLodgementDate?.trim() ?? '';
 
     this.loading.set(true);
 
@@ -189,7 +184,6 @@ export class ApplicationCodeSearchComponent implements OnInit {
       {
         code: code || undefined,
         title: title || undefined,
-        date: lodgementDate || undefined,
         pageNumber: this.currentPage(),
         pageSize: this.pageSize(),
         sort: [`${apiSortKey},${sort.direction}`],

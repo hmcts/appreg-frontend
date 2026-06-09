@@ -92,7 +92,6 @@ describe('ApplicationCodeSearchComponent', () => {
       {
         code: 'MS99004',
         title: 'Statutory',
-        date: '2024-01-01',
         pageNumber: 0,
         pageSize: 10,
         sort: ['code,asc'],
@@ -120,7 +119,6 @@ describe('ApplicationCodeSearchComponent', () => {
       {
         code: undefined,
         title: undefined,
-        date: '2024-02-01',
         pageNumber: 3,
         pageSize: 25,
         sort: ['code,asc'],
@@ -150,7 +148,6 @@ describe('ApplicationCodeSearchComponent', () => {
       {
         code: undefined,
         title: undefined,
-        date: '2024-03-01',
         pageNumber: 0,
         pageSize: 10,
         sort: ['code,asc'],
@@ -391,7 +388,6 @@ describe('ApplicationCodeSearchComponent', () => {
       {
         code: 'MS99004',
         title: undefined,
-        date: '2024-04-01',
         pageNumber: 0,
         pageSize: 10,
         sort: ['title,desc'],
@@ -416,7 +412,7 @@ describe('ApplicationCodeSearchComponent', () => {
     );
   });
 
-  it('uses the lodgement date when searching in disabled mode', () => {
+  it('does not send the lodgement date when searching in disabled mode', () => {
     const fetchSpy = jest
       .spyOn(helpers, 'fetchCodeRows$')
       .mockReturnValue(of(mockRows));
@@ -429,9 +425,7 @@ describe('ApplicationCodeSearchComponent', () => {
 
     expect(fetchSpy).toHaveBeenCalledWith(
       apiMock,
-      expect.objectContaining({
-        date: '2026-04-13',
-      }),
+      expect.not.objectContaining({ date: '2026-04-13' }),
       true,
     );
   });

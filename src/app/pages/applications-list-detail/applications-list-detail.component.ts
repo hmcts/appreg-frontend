@@ -886,6 +886,43 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     });
   }
 
+  async onUpdateNotesButtonClick(): Promise<void> {
+    const selected = (await this.resolveSelectedRows()) as selectedRow[];
+
+    if (selected.length !== 1) {
+      this.detailSignalState.patch({
+        updateInvalid: true,
+        errorHint: 'There is a problem',
+        errorSummary: [
+          {
+            text:
+              selected.length === 0
+                ? 'Select one application to update notes'
+                : 'Select only one application to update notes',
+          },
+        ],
+      });
+      return;
+    }
+
+    this.detailSignalState.patch({ errorSummary: [], errorHint: '' });
+
+    const row = selected[0];
+
+    await this.router.navigate(['update-notes', row.id], {
+      relativeTo: this.route,
+      state: {
+        updateNotesApplication: {
+          id: row.id,
+          sequenceNumber: row.sequenceNumber,
+          applicant: row.applicant,
+          respondent: row.respondent,
+          title: row.title,
+        },
+      },
+    });
+  }
+
   async onMoveButtonClick(): Promise<void> {
     const selected = (await this.resolveSelectedRows()) as selectedRow[];
 

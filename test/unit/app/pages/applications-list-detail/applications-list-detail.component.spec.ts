@@ -1826,6 +1826,63 @@ describe('ApplicationsListDetail', () => {
     });
   });
 
+  describe('onUpdateNotesButtonClick', () => {
+    it('navigates to update-notes with the selected application context', async () => {
+      const router = TestBed.inject(Router);
+      const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      patchDetailState({
+        selectedRows: [
+          {
+            id: 'entry-1',
+            sequenceNumber: 1,
+            applicant: 'A',
+            respondent: 'R',
+            title: 'T1',
+          } as Row,
+        ],
+      });
+
+      await component.onUpdateNotesButtonClick();
+
+      expect(navSpy).toHaveBeenCalledWith(
+        ['update-notes', 'entry-1'],
+        expect.objectContaining({
+          state: {
+            updateNotesApplication: {
+              id: 'entry-1',
+              sequenceNumber: 1,
+              applicant: 'A',
+              respondent: 'R',
+              title: 'T1',
+            },
+          },
+        }),
+      );
+    });
+
+    it('shows an error when more than one application is selected', async () => {
+      const router = TestBed.inject(Router);
+      const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      patchDetailState({
+        selectedRows: [
+          { id: 'entry-1', sequenceNumber: 1 } as Row,
+          { id: 'entry-2', sequenceNumber: 2 } as Row,
+        ],
+      });
+
+      await component.onUpdateNotesButtonClick();
+
+      expect(navSpy).not.toHaveBeenCalled();
+      expect(vm().updateInvalid).toBe(true);
+      expect(vm().errorHint).toBe('There is a problem');
+      expect(vm().errorSummary).toEqual([
+        { text: 'Select only one application to update notes' },
+      ]);
+    });
+  });
+
   it('can patch place fields state (sanity)', async () => {
     patchPlaceFieldsState({
       cjaSearch: 'ABC - Something',
