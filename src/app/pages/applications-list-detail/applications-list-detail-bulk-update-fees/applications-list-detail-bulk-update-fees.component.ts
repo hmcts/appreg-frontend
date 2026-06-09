@@ -5,12 +5,14 @@ import {
   PLATFORM_ID,
   ViewChild,
   inject,
+  signal,
 } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { BulkUpdateFeeState, initialBulkUpdateFeeState } from './util';
 
+import { AlertComponent } from '@components/alert/alert.component';
 import {
   APPLICATION_ENTRIES_MOVE_COLUMNS,
   CIVIL_FEE_COLUMNS,
@@ -61,6 +63,7 @@ type BulkUpdateFeeSnapshot = {
     ErrorSummaryComponent,
     SortableTableComponent,
     CivilFeeSectionComponent,
+    AlertComponent,
   ],
   templateUrl: './applications-list-detail-bulk-update-fees.component.html',
 })
@@ -93,6 +96,8 @@ export class ApplicationsListDetailBulkUpdateFeesComponent implements OnInit {
   @ViewChild('civilFeeSection')
   private readonly civilFeeSection?: CivilFeeSectionComponent;
 
+  applictionsHaveBeenRemoved = signal(false);
+
   onCreateErrorClick = onCreateErrorClickFn;
 
   ngOnInit(): void {
@@ -109,6 +114,17 @@ export class ApplicationsListDetailBulkUpdateFeesComponent implements OnInit {
       void this.router.navigate(['../'], { relativeTo: this.route });
       return;
     }
+
+    // If we have filtered out applications then display an info banner
+    const removedApplications = isPlatformBrowser(this.platformId)
+      ? ((
+          history.state as {
+            removedApplicationsWarning?: boolean;
+          }
+        )?.removedApplicationsWarning ?? false)
+      : false;
+
+    this.applictionsHaveBeenRemoved.set(removedApplications);
 
     this.feeStatePatch({ listId, selectedEntries });
     this.restoreNavigationState();

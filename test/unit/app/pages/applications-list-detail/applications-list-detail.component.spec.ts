@@ -1440,6 +1440,49 @@ describe('ApplicationsListDetail', () => {
       expect(navigateSpy).toHaveBeenCalledWith(['bulk-update-fee'], {
         relativeTo: TestBed.inject(ActivatedRoute),
         state: {
+          removedApplicationsWarning: true,
+          entriesToUpdateFee: [
+            {
+              id: 'entry-2',
+              applicant: 'Applicant 2',
+              respondent: 'Respondent 2',
+              title: 'Title 2',
+              feeRequired: 'Yes',
+              resulted: 'ADJ',
+            },
+          ],
+        },
+      });
+    });
+
+    it('sets removedApplicationsWarning to false when every selected row requires a fee', async () => {
+      const navigateSpy = jest
+        .spyOn(TestBed.inject(Router), 'navigate')
+        .mockResolvedValue(true);
+      jest
+        .spyOn(
+          component as unknown as {
+            resolveSelectedRows(): Promise<Row[]>;
+          },
+          'resolveSelectedRows',
+        )
+        .mockResolvedValue([
+          {
+            id: 'entry-2',
+            applicant: 'Applicant 2',
+            respondent: 'Respondent 2',
+            title: 'Title 2',
+            feeReq: 'Yes',
+            resulted: 'ADJ',
+          },
+        ]);
+
+      await component.onUpdateFeeButtonClick();
+
+      expect(navigateSpy).toHaveBeenCalledWith(['bulk-update-fee'], {
+        relativeTo: TestBed.inject(ActivatedRoute),
+        state: {
+          removedApplicationsWarning: false,
           entriesToUpdateFee: [
             {
               id: 'entry-2',

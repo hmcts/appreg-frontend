@@ -232,6 +232,63 @@ describe('ApplicationsListDetailBulkUpdateFeesComponent', () => {
     ]);
   });
 
+  it('shows the removed-applications info alert when the navigation state requests it', () => {
+    history.replaceState(
+      {
+        entriesToUpdateFee: [
+          {
+            id: 'entry-1',
+            applicant: 'Applicant',
+            respondent: 'Respondent',
+            title: 'Title',
+          },
+        ],
+        removedApplicationsWarning: true,
+      },
+      '',
+    );
+
+    const fixture = TestBed.createComponent(
+      ApplicationsListDetailBulkUpdateFeesComponent,
+    );
+    const component = fixture.componentInstance;
+
+    fixture.detectChanges();
+
+    expect(component.applictionsHaveBeenRemoved()).toBe(true);
+    expect(fixture.nativeElement.textContent).toContain(
+      'Application(s) which do not require a fee have been removed',
+    );
+  });
+
+  it('does not show the removed-applications info alert by default', () => {
+    history.replaceState(
+      {
+        entriesToUpdateFee: [
+          {
+            id: 'entry-1',
+            applicant: 'Applicant',
+            respondent: 'Respondent',
+            title: 'Title',
+          },
+        ],
+      },
+      '',
+    );
+
+    const fixture = TestBed.createComponent(
+      ApplicationsListDetailBulkUpdateFeesComponent,
+    );
+    const component = fixture.componentInstance;
+
+    fixture.detectChanges();
+
+    expect(component.applictionsHaveBeenRemoved()).toBe(false);
+    expect(fixture.nativeElement.textContent).not.toContain(
+      'Application(s) which do not require a fee have been removed',
+    );
+  });
+
   it('stores fee errors from child sections', () => {
     history.replaceState(
       {

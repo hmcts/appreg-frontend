@@ -18,6 +18,13 @@
   />
 }
 
+@if (applictionsHaveBeenRemoved()) {
+  <app-alert
+    [alertType]="'information'"
+    [message]="'Application(s) which do not require a fee have been removed'"
+  ></app-alert>
+}
+
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />

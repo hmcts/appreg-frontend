@@ -961,6 +961,8 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     await this.router.navigate(['bulk-update-fee'], {
       relativeTo: this.route,
       state: {
+        removedApplicationsWarning:
+          selectedFeesRequired.length < selected.length,
         entriesToUpdateFee,
       },
     });
