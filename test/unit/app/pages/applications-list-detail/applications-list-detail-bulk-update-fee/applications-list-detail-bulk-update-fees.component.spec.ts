@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApplicationsListDetailBulkUpdateFeesComponent } from '@components/applications-list-detail/applications-list-detail-bulk-update-fees/applications-list-detail-bulk-update-fees.component';
+import { PaymentStatus } from '@openapi';
 
 describe('ApplicationsListDetailBulkUpdateFeesComponent', () => {
   const routerNavigate = jest.fn().mockResolvedValue(true);
@@ -54,7 +55,7 @@ describe('ApplicationsListDetailBulkUpdateFeesComponent', () => {
 
     component.ngOnInit();
     component.onAddFeeDetails({
-      feeStatus: 'PAID',
+      feeStatus: PaymentStatus.PAID,
       statusDate: '2026-06-03',
       paymentReference: 'ABC123',
     });
