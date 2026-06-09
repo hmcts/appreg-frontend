@@ -117,10 +117,10 @@ describe('ErrorMessageService', () => {
       expect(svc.errorMessage()?.status).toBe(404);
     });
 
-    it('does not navigate for standard applicant detail 404s with dated lookups', () => {
+    it('does not navigate for standard applicant detail 404s with code-only lookups', () => {
       const err = makeErr({
         status: 404,
-        url: 'https://local/standard-applicants/SA-123?date=1000-01-01',
+        url: 'https://local/standard-applicants/SA-123',
         error: { title: 'Not Found', status: 404 },
       });
 

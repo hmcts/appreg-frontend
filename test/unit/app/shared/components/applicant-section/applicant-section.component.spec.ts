@@ -190,6 +190,24 @@ describe('ApplicantSectionComponent', () => {
     expect(fixture.debugElement.query(By.css('.govuk-tag'))).toBeNull();
   });
 
+  it('renders a warning with the raw saved standard applicant code when details are unavailable', () => {
+    fixture.componentRef.setInput('applicantType', 'standard' as ApplicantType);
+    fixture.componentRef.setInput('savedStandardApplicantCode', 'SA-123');
+    fixture.componentRef.setInput(
+      'savedStandardApplicantDetailsUnavailable',
+      true,
+    );
+    fixture.detectChanges();
+
+    const warning = fixture.debugElement.query(By.css('.govuk-warning-text'));
+
+    expect(warning).toBeTruthy();
+    expect(warning.nativeElement.textContent).toContain(
+      'Only the saved Standard Applicant code is available',
+    );
+    expect(warning.nativeElement.textContent).toContain('SA-123');
+  });
+
   it('emits updateClicked when the update button is clicked', () => {
     const spy = jest.fn();
     component.updateClicked.subscribe(spy);

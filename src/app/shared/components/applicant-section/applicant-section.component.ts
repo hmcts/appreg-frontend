@@ -42,6 +42,7 @@ export class ApplicantSectionComponent {
     input<SelectedStandardApplicantSummary | null>(null);
   readonly savedStandardApplicantCode = input<string | null>(null);
   readonly savedStandardApplicantName = input<string | null>(null);
+  readonly savedStandardApplicantDetailsUnavailable = input(false);
   readonly isUpdateDisabled = input(false);
 
   readonly showUpdateButton = input(true);
@@ -66,6 +67,18 @@ export class ApplicantSectionComponent {
       code,
       name,
       displayText: `${code} ${name}`,
+    };
+  });
+  readonly savedStandardApplicantFallback = computed(() => {
+    const code = this.savedStandardApplicantCode()?.trim() || null;
+
+    if (!code || !this.savedStandardApplicantDetailsUnavailable()) {
+      return null;
+    }
+
+    return {
+      code,
+      displayText: code,
     };
   });
   readonly currentSelectionSummary = computed(() => {
