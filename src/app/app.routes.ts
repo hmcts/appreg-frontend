@@ -103,13 +103,7 @@ export const routes: Routes = [
             (m) => m.PaymentReferenceEditComponent,
           ),
       },
-      {
-        path: ':id/bulk-update-fee/change-payment-reference',
-        loadComponent: () =>
-          import('@components/civil-fee-section/payment-reference-edit/payment-reference-edit.component').then(
-            (m) => m.PaymentReferenceEditComponent,
-          ),
-      },
+
       {
         path: ':id/bulk-upload',
         loadComponent: () =>
@@ -164,6 +158,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('@components/applications-list-detail/applications-list-detail-bulk-update-fees/fee-update-confirm/fee-update-confirm.component').then(
             (m) => m.FeeUpdateConfirmComponent,
+          ),
+      },
+      {
+        path: ':id/bulk-update-fee/change-payment-reference',
+        loadComponent: () =>
+          import('@components/civil-fee-section/payment-reference-edit/payment-reference-edit.component').then(
+            (m) => m.PaymentReferenceEditComponent,
           ),
       },
     ],
