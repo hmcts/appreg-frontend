@@ -75,7 +75,7 @@ type GetCodeDetailFn = (
 ) => Observable<ApplicationCodeGetDetailDto>;
 
 type GetStandardApplicantDetailFn = (
-  params: { code: string; date?: string },
+  params: { code: string },
   observe?: 'body',
   reportProgress?: boolean,
   options?: { transferCache?: boolean; context?: unknown },
@@ -132,7 +132,7 @@ describe('ApplicationsListEntryDetail', () => {
   let mockGetApplicationCodes: jest.MockedFunction<GetCodesFn>;
   let mockGetApplicationCodeByCodeAndDate: jest.MockedFunction<GetCodeDetailFn>;
   let mockGetStandardApplicants: jest.MockedFunction<GetStandardApplicantsFn>;
-  let mockGetStandardApplicantByCodeAndDate: jest.MockedFunction<GetStandardApplicantDetailFn>;
+  let mockGetStandardApplicantByCode: jest.MockedFunction<GetStandardApplicantDetailFn>;
   let mockGetApplicationListEntry: jest.MockedFunction<GetEntryFn>;
   let mockUpdateApplicationListEntry: jest.MockedFunction<UpdateEntryFn>;
 
@@ -171,7 +171,7 @@ describe('ApplicationsListEntryDetail', () => {
     mockGetApplicationCodes = jest.fn();
     mockGetApplicationCodeByCodeAndDate = jest.fn();
     mockGetStandardApplicants = jest.fn();
-    mockGetStandardApplicantByCodeAndDate = jest.fn();
+    mockGetStandardApplicantByCode = jest.fn();
     mockGetApplicationListEntry = jest.fn();
     mockUpdateApplicationListEntry = jest.fn();
 
@@ -237,7 +237,7 @@ describe('ApplicationsListEntryDetail', () => {
 
     const standardApplicantsApiMock = {
       getStandardApplicants: mockGetStandardApplicants,
-      getStandardApplicantByCodeAndDate: mockGetStandardApplicantByCodeAndDate,
+      getStandardApplicantByCode: mockGetStandardApplicantByCode,
     } as unknown as StandardApplicantsApi;
 
     await TestBed.configureTestingModule({
@@ -364,7 +364,7 @@ describe('ApplicationsListEntryDetail', () => {
         standardApplicantCode: 'SA-123',
       } as unknown as EntryGetDetailDto),
     );
-    mockGetStandardApplicantByCodeAndDate.mockReturnValueOnce(
+    mockGetStandardApplicantByCode.mockReturnValueOnce(
       of({
         code: 'SA-123',
         name: 'Exact Applicant Name',
@@ -378,13 +378,13 @@ describe('ApplicationsListEntryDetail', () => {
 
     freshFixture.detectChanges();
 
-    expect(mockGetStandardApplicantByCodeAndDate).toHaveBeenCalledWith(
+    expect(mockGetStandardApplicantByCode).toHaveBeenCalledWith(
       { code: 'SA-123' },
       'body',
       false,
       expect.objectContaining({ transferCache: true }),
     );
-    expect(mockGetStandardApplicantByCodeAndDate).not.toHaveBeenCalledWith(
+    expect(mockGetStandardApplicantByCode).not.toHaveBeenCalledWith(
       expect.objectContaining({ date: expect.any(String) }),
       expect.anything(),
       expect.anything(),
@@ -410,7 +410,7 @@ describe('ApplicationsListEntryDetail', () => {
         standardApplicantCode: 'SA-123',
       } as unknown as EntryGetDetailDto),
     );
-    mockGetStandardApplicantByCodeAndDate.mockReturnValueOnce(
+    mockGetStandardApplicantByCode.mockReturnValueOnce(
       of({
         code: 'SA-123',
         applicant: {
@@ -443,7 +443,7 @@ describe('ApplicationsListEntryDetail', () => {
         standardApplicantCode: 'SA-404',
       } as unknown as EntryGetDetailDto),
     );
-    mockGetStandardApplicantByCodeAndDate.mockReturnValueOnce(
+    mockGetStandardApplicantByCode.mockReturnValueOnce(
       throwError(() => new Error('Not found')),
     );
 
@@ -452,7 +452,7 @@ describe('ApplicationsListEntryDetail', () => {
 
     freshFixture.detectChanges();
 
-    expect(mockGetStandardApplicantByCodeAndDate).toHaveBeenCalledWith(
+    expect(mockGetStandardApplicantByCode).toHaveBeenCalledWith(
       { code: 'SA-404' },
       'body',
       false,

@@ -1233,7 +1233,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.savedStandardApplicantDetailsUnavailable = false;
 
     this.standardApplicantsApi
-      .getStandardApplicantByCodeAndDate(
+      .getStandardApplicantByCode(
         {
           code: trimmedCode,
         },
