@@ -1,1 +1,18 @@
-<p>applications-result-selected works!</p>
+<!-- Breadcrumbs -->
+<app-breadcrumbs [items]="[{ label: 'Applications', link: '/applications' }]" />
+
+@if (errorFound()) {
+  <app-error-summary
+    [title]="'There is a problem'"
+    [items]="errorSummaryItems()"
+    targetId="results-applicant-table"
+    (itemSelect)="onCreateErrorClick($event)"
+  />
+} @else if (successBanner(); as successBanner) {
+  <app-success-banner
+    [heading]="successBanner.heading"
+    [body]="successBanner.body"
+  />
+}
+
+<h1 class="govuk-heading-xl">Result applications</h1>
