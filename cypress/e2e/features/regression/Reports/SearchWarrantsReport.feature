@@ -1,6 +1,6 @@
 Feature: SearchWarrants Report
 
-    @reports @ARCPOC-381 @ARCPOC-247
+    @regression @reports @ARCPOC-381 @ARCPOC-247
     Scenario Outline: SearchWarrants Report - Download Report for Courts
         Given User Has No Downloaded CSVs
         Given User Is On The Portal Page
@@ -50,7 +50,7 @@ Feature: SearchWarrants Report
             | CSVFileName                     |
             | search-warrants-report-todayiso |
 
-    @reports @ARCPOC-381 @ARCPOC-247 @SC2
+    @regression @reports @ARCPOC-381 @ARCPOC-247 @SC2
     Scenario Outline: SearchWarrants Report - Download Report for CJA and Other Location
         Given User Has No Downloaded CSVs
         Given User Is On The Portal Page
