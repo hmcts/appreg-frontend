@@ -228,6 +228,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   selectedStandardApplicantCode: string | null = null;
   savedStandardApplicantCode: string | null = null;
   savedStandardApplicantName: string | null = null;
+  savedStandardApplicantDetailsUnavailable = false;
   private pendingStandardApplicantSummary: SelectedStandardApplicantSummary | null =
     null;
 
@@ -1115,6 +1116,7 @@ export class ApplicationsListEntryDetail implements OnInit {
           this.savedStandardApplicantCode =
             hydrate.selectedStandardApplicantCode;
           this.savedStandardApplicantName = null;
+          this.savedStandardApplicantDetailsUnavailable = false;
           this.pendingStandardApplicantSummary = null;
           this.loadSavedStandardApplicantName(this.savedStandardApplicantCode);
 
@@ -1220,23 +1222,20 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   private loadSavedStandardApplicantName(code: string | null): void {
     const trimmedCode = code?.trim() || '';
-    const rawLodgementDate =
-      this.form.controls.lodgementDate.value?.trim() ||
-      this.entryDetail?.lodgementDate?.trim() ||
-      '';
-    const lodgementDate = rawLodgementDate.slice(0, 10);
 
-    if (!trimmedCode || !lodgementDate) {
+    if (!trimmedCode) {
       this.savedStandardApplicantName = null;
+      this.savedStandardApplicantDetailsUnavailable = false;
       this.pendingStandardApplicantSummary = null;
       return;
     }
+
+    this.savedStandardApplicantDetailsUnavailable = false;
 
     this.standardApplicantsApi
       .getStandardApplicantByCodeAndDate(
         {
           code: trimmedCode,
-          date: lodgementDate,
         },
         'body',
         false,
@@ -1249,6 +1248,8 @@ export class ApplicationsListEntryDetail implements OnInit {
             applicant.name?.trim() ||
             formatPartyName(applicant.applicant)?.trim() ||
             null;
+          this.savedStandardApplicantDetailsUnavailable =
+            this.savedStandardApplicantName === null;
           this.pendingStandardApplicantSummary = this.savedStandardApplicantName
             ? {
                 code: trimmedCode,
@@ -1258,6 +1259,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         },
         error: () => {
           this.savedStandardApplicantName = null;
+          this.savedStandardApplicantDetailsUnavailable = true;
           this.pendingStandardApplicantSummary = null;
         },
       });
@@ -1267,6 +1269,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     if (this.applicantType !== 'standard') {
       this.savedStandardApplicantCode = null;
       this.savedStandardApplicantName = null;
+      this.savedStandardApplicantDetailsUnavailable = false;
       this.pendingStandardApplicantSummary = null;
       return;
     }
@@ -1277,6 +1280,8 @@ export class ApplicationsListEntryDetail implements OnInit {
     if (pending?.code.trim() === currentCode) {
       this.savedStandardApplicantCode = pending.code.trim() || null;
       this.savedStandardApplicantName = pending.name.trim() || null;
+      this.savedStandardApplicantDetailsUnavailable =
+        this.savedStandardApplicantName === null;
     }
   }
 

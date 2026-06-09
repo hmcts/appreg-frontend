@@ -10,7 +10,7 @@ import {
   convertToParamMap,
   provideRouter,
 } from '@angular/router';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 
 import {
   ApplicationsListEntryDetail,
@@ -75,7 +75,7 @@ type GetCodeDetailFn = (
 ) => Observable<ApplicationCodeGetDetailDto>;
 
 type GetStandardApplicantDetailFn = (
-  params: { code: string; date: string },
+  params: { code: string; date?: string },
   observe?: 'body',
   reportProgress?: boolean,
   options?: { transferCache?: boolean; context?: unknown },
@@ -356,7 +356,7 @@ describe('ApplicationsListEntryDetail', () => {
     ]);
   });
 
-  it('hydrates saved standard applicant name via exact code and lodgement date lookup', () => {
+  it('hydrates saved standard applicant name via code-only lookup', () => {
     mockGetApplicationListEntry.mockReturnValueOnce(
       of({
         lodgementDate: '2025-11-01T12:34:56Z',
@@ -379,7 +379,19 @@ describe('ApplicationsListEntryDetail', () => {
     freshFixture.detectChanges();
 
     expect(mockGetStandardApplicantByCodeAndDate).toHaveBeenCalledWith(
-      { code: 'SA-123', date: '2025-11-01' },
+      { code: 'SA-123' },
+      'body',
+      false,
+      expect.objectContaining({ transferCache: true }),
+    );
+    expect(mockGetStandardApplicantByCodeAndDate).not.toHaveBeenCalledWith(
+      expect.objectContaining({ date: expect.any(String) }),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+    );
+    expect(mockGetApplicationCodeByCodeAndDate).toHaveBeenCalledWith(
+      { code: 'APP-100', date: '2025-11-01' },
       'body',
       false,
       expect.objectContaining({ transferCache: true }),
@@ -387,6 +399,7 @@ describe('ApplicationsListEntryDetail', () => {
     expect(freshComponent.savedStandardApplicantName).toBe(
       'Exact Applicant Name',
     );
+    expect(freshComponent.savedStandardApplicantDetailsUnavailable).toBe(false);
   });
 
   it('hydrates saved standard applicant name from applicant details when top-level name is absent', () => {
@@ -419,6 +432,35 @@ describe('ApplicationsListEntryDetail', () => {
     expect(freshComponent.savedStandardApplicantName).toBe(
       'Fallback Organisation Name',
     );
+    expect(freshComponent.savedStandardApplicantDetailsUnavailable).toBe(false);
+  });
+
+  it('keeps the saved standard applicant code available when the code lookup fails', () => {
+    mockGetApplicationListEntry.mockReturnValueOnce(
+      of({
+        lodgementDate: '2025-11-01T12:34:56Z',
+        applicationCode: 'APP-100',
+        standardApplicantCode: 'SA-404',
+      } as unknown as EntryGetDetailDto),
+    );
+    mockGetStandardApplicantByCodeAndDate.mockReturnValueOnce(
+      throwError(() => new Error('Not found')),
+    );
+
+    const freshFixture = TestBed.createComponent(ApplicationsListEntryDetail);
+    const freshComponent = freshFixture.componentInstance;
+
+    freshFixture.detectChanges();
+
+    expect(mockGetStandardApplicantByCodeAndDate).toHaveBeenCalledWith(
+      { code: 'SA-404' },
+      'body',
+      false,
+      expect.objectContaining({ transferCache: true }),
+    );
+    expect(freshComponent.savedStandardApplicantCode).toBe('SA-404');
+    expect(freshComponent.savedStandardApplicantName).toBeNull();
+    expect(freshComponent.savedStandardApplicantDetailsUnavailable).toBe(true);
   });
 
   it('includes relayed standard applicant search errors in the parent summary', () => {
