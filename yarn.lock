@@ -205,22 +205,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular-builders/common@npm:5.0.3":
-  version: 5.0.3
-  resolution: "@angular-builders/common@npm:5.0.3"
+"@angular-builders/common@npm:5.0.4":
+  version: 5.0.4
+  resolution: "@angular-builders/common@npm:5.0.4"
   dependencies:
     "@angular-devkit/core": "npm:^21.0.0"
     ts-node: "npm:^10.0.0"
     tsconfig-paths: "npm:^4.2.0"
-  checksum: 10/6387bec964c0519714b246121b32fb61f72feb865411a55835d9cda8bba294140087fb37cd45e80afb3bf9d3960ac7a1c58c2636f55ea204a9b0a667169748f7
+  checksum: 10/719ee09a0d53e196576bbd7efed76a4e3eb6aac10cdeb9173f2f3629600120979c52ad45448eb35a8af5dc4d0f5a75f02544169fbb954e55a160f384d38ae379
   languageName: node
   linkType: hard
 
 "@angular-builders/jest@npm:^21":
-  version: 21.0.3
-  resolution: "@angular-builders/jest@npm:21.0.3"
+  version: 21.0.4
+  resolution: "@angular-builders/jest@npm:21.0.4"
   dependencies:
-    "@angular-builders/common": "npm:5.0.3"
+    "@angular-builders/common": "npm:5.0.4"
     "@angular-devkit/architect": "npm:>=0.2100.0 < 0.2200.0"
     "@angular-devkit/core": "npm:^21.0.0"
     jest-preset-angular: "npm:^16.0.0"
@@ -231,7 +231,8 @@ __metadata:
     "@angular/core": ^21.0.0
     "@angular/platform-browser-dynamic": ^21.0.0
     jest: ^30.0.0
-  checksum: 10/4ffe9a7704827d26043c153de00825d9a13037ee935983070be7ea5d21911e542c8ab4efafc17de53be0effd22bd18e34dc63014bad54271e372d5b117b968e3
+    rxjs: ">=7.0.0"
+  checksum: 10/97bbd991b4cf586ffe16d1159fe319eaa736fa4a278f46d635d42ba2a2abca1c674cc5cf30ecdd46a9d55155cae1ccbfea0d31ee74dce334953762f650eadc6f
   languageName: node
   linkType: hard
 
