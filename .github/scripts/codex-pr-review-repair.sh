@@ -208,9 +208,15 @@ Operational rules:
 - Fix only the implementation, tests, or documentation required to resolve the verification failure.
 - Do not remove, weaken, or bypass failing tests, lint rules, accessibility rules, or repository guardrails.
 - Follow the repository's Angular, TypeScript, HMCTS design-system, Prettier, ESLint, and Stylelint patterns.
+- Run lightweight targeted checks you can reasonably run in this CI job, such as `git diff --check`,
+  source inspection, or focused commands that do not install dependencies.
+- Do not run `yarn`, `npm`, `npx`, `node .yarn/releases/yarn-4.10.3.cjs`, Jest, Cypress,
+  or `./bin/codex-local-pipeline.sh` inside the Codex repair sandbox. Dependency installs and
+  browser/test tooling can require network/DNS or `node_modules` state that the sandbox may not
+  provide; trusted workflow jobs run frontend verification after Codex exits.
 - Do not push branches, open pull requests, or request reviews. The workflow handles Git and PR updates in a separate trusted job after verification passes.
 - Leave the working tree containing the full intended patch after your repair.
-- In your final message, summarize the repair and list any targeted checks you ran.
+- In your final message, summarize the repair and list any lightweight targeted checks you ran.
 
 Repair attempt: {os.environ["REPAIR_ATTEMPT"]} of {os.environ.get("MAX_CODEX_REPAIR_ATTEMPTS", "3")}
 

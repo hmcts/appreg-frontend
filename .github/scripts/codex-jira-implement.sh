@@ -138,7 +138,12 @@ Operational rules:
 - Make a focused production change that satisfies the ticket.
 - Follow the repository's existing Angular, TypeScript, test, style, accessibility, and HMCTS design-system patterns.
 - Add or update unit, route, accessibility, or smoke tests where behavior changes.
-- Run the most relevant targeted verification commands you can reasonably run in this CI job.
+- Run lightweight targeted checks you can reasonably run in this CI job, such as `git diff --check`,
+  source inspection, or focused commands that do not install dependencies.
+- Do not run `yarn`, `npm`, `npx`, `node .yarn/releases/yarn-4.10.3.cjs`, Jest, Cypress,
+  or `./bin/codex-local-pipeline.sh` inside the Codex generation sandbox. Dependency installs and
+  browser/test tooling can require network/DNS or `node_modules` state that the sandbox may not
+  provide; trusted workflow jobs run frontend verification after Codex exits.
 - Do not push branches, open pull requests, or request reviews. The workflow handles Git and PR creation in a separate trusted job after you finish.
 - Leave the working tree containing only the intended code/test/documentation changes.
 - In your final message, include a concise change summary and the exact testing or verification commands you ran with their outcomes. This final message is added to the pull request description.
@@ -168,7 +173,7 @@ Codex ran on the Azure AKS self-hosted frontend runner scale set using the Jira 
 
 ### Testing done
 
-Codex may run targeted checks during generation. This workflow verifies the generated patch in a separate no-write job before the trusted publish job opens the pull request. See the Codex final message below and workflow logs for details.
+Codex may run lightweight targeted checks during generation. This workflow verifies the generated patch in a separate no-write job before the trusted publish job opens the pull request. See the Codex final message below and workflow logs for details.
 
 ### Security Vulnerability Assessment
 
