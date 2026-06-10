@@ -20,6 +20,7 @@ import {
   EntryIdsDto,
   EntryPage,
 } from '@openapi';
+import { ApplicationsSearchStateService } from '@services/applications/applications-search-state.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { ApplicationRow } from '@shared-types/applications/applications.type';
 
@@ -93,6 +94,7 @@ const flushSignalEffects = async (
 describe('ApplicationsComponent', () => {
   let component: Applications;
   let fixture: ComponentFixture<Applications>;
+  let searchState: ApplicationsSearchStateService;
 
   const referenceDataFacadeStub: Pick<
     ReferenceDataFacade,
@@ -181,6 +183,9 @@ describe('ApplicationsComponent', () => {
       ],
     }).compileComponents();
 
+    searchState = TestBed.inject(ApplicationsSearchStateService);
+    searchState.reset();
+
     fixture = TestBed.createComponent(Applications);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -188,6 +193,67 @@ describe('ApplicationsComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('retains search results and filters when the page is recreated', () => {
+    getEntriesMock.mockClear();
+    getEntriesMock.mockReturnValueOnce(
+      of({
+        content: [
+          makeEntry({
+            id: 'retained-row',
+            applicationTitle: 'Retained title',
+          }),
+        ],
+        totalPages: 1,
+        totalElements: 1,
+        number: 0,
+      } as unknown as EntryPage) as unknown as ReturnType<
+        ApplicationListEntriesApi['getEntries']
+      >,
+    );
+
+    component.form.patchValue({ applicantOrg: 'Org Ltd' });
+
+    component.onSubmit({
+      preventDefault: jest.fn(),
+      submitter: { value: 'search' } as HTMLButtonElement,
+    } as unknown as SubmitEvent);
+
+    expect(component.vm().rows.map((row) => row.id)).toEqual(['retained-row']);
+
+    const freshFixture = TestBed.createComponent(Applications);
+    const freshComponent = freshFixture.componentInstance;
+    freshFixture.detectChanges();
+
+    expect(getEntriesMock).toHaveBeenCalledTimes(1);
+    expect(freshComponent.vm().rows.map((row) => row.id)).toEqual([
+      'retained-row',
+    ]);
+    expect(freshComponent.form.controls.applicantOrg.value).toBe('Org Ltd');
+  });
+
+  it('clears retained search results and filters when Clear search is used', () => {
+    searchState.state.set({
+      ...searchState.vm(),
+      isSearch: true,
+      submitted: true,
+      rows: [makeEntry({ id: 'stored-row' })],
+      totalEntries: 1,
+    });
+    searchState.setFormState({
+      ...searchState.formState(),
+      applicantOrg: 'Org Ltd',
+    });
+
+    component.clearSearch();
+
+    const freshFixture = TestBed.createComponent(Applications);
+    const freshComponent = freshFixture.componentInstance;
+    freshFixture.detectChanges();
+
+    expect(freshComponent.vm().rows).toEqual([]);
+    expect(freshComponent.form.controls.applicantOrg.value).toBe('');
   });
 
   it('configures the results table for server-side sorting', () => {

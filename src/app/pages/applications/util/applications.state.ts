@@ -30,7 +30,7 @@ export interface ApplicationsState {
   getFilters: EntryGetFilterDto;
 }
 
-export const initialApplicationsState: ApplicationsState = {
+export const createInitialApplicationsState = (): ApplicationsState => ({
   isSearch: false,
   isLoading: false,
   submitted: false,
@@ -51,7 +51,10 @@ export const initialApplicationsState: ApplicationsState = {
   allMatchingSelected: false,
   isSelectingAll: false,
   getFilters: {},
-};
+});
+
+export const initialApplicationsState: ApplicationsState =
+  createInitialApplicationsState();
 
 export const defaultApplicationsSort = (): ApplicationsState['sortField'] => ({
   key: 'date',

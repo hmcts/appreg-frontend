@@ -21,7 +21,6 @@ import { firstValueFrom, forkJoin, map } from 'rxjs';
 import {
   clearNotificationsPatch,
   defaultApplicationsSort,
-  initialApplicationsState,
   searchErrorPatch,
   searchSuccessPatch,
   startSearchPatch,
@@ -52,6 +51,7 @@ import {
   EntryGetSummaryDto,
   GetEntriesRequestParams,
 } from '@openapi';
+import { ApplicationsSearchStateService } from '@services/applications/applications-search-state.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { ApplicationRow } from '@shared-types/applications/applications.type';
 import { toStatus } from '@util/application-status-helpers';
@@ -70,7 +70,7 @@ import {
   getVisibleSelectedRows,
   isAllMatchingSelected,
 } from '@util/server-paginated-selection';
-import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
+import { setupLoadEffect } from '@util/signal-state-helpers';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 
 type AppErrorMap = typeof APPLICATIONS_ERROR_MAP;
@@ -124,7 +124,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   private readonly appListApi = inject(ApplicationListsApi);
   private readonly pdf = inject(PdfService);
 
-  private readonly appState = createSignalState(initialApplicationsState);
+  private readonly appState = inject(ApplicationsSearchStateService);
   readonly vm = this.appState.vm;
   private readonly patchApp = this.appState.patch;
 
@@ -184,7 +184,9 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   ngOnInit(): void {
+    this.restoreSearchFormState();
     this.initPlaceFields(this.form, this.refFacade);
+    this.restorePlaceSearchState();
     this.setupEffects();
 
     addLocationValidatorsToForm(this.form, () => this.state());
@@ -294,6 +296,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     }
 
     const filter = this.loadQuery();
+    this.saveSearchFormState();
 
     this.patchApp({
       currentPage: 0,
@@ -442,7 +445,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   clearSearch(): void {
     this.invalidateSelectAllRequest();
-    this.appState.state.set(initialApplicationsState);
+    this.appState.reset();
 
     this.form.reset({
       date: null,
@@ -464,6 +467,58 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       cjaSearch: '',
       filteredCourthouses: [],
       filteredCja: [],
+    });
+  }
+
+  private restoreSearchFormState(): void {
+    const saved = this.appState.formState();
+
+    this.form.patchValue(
+      {
+        date: saved.date,
+        applicantOrg: saved.applicantOrg,
+        respondentOrg: saved.respondentOrg,
+        applicantSurname: saved.applicantSurname,
+        respondentSurname: saved.respondentSurname,
+        location: saved.location,
+        standardApplicantCode: saved.standardApplicantCode,
+        respondentPostcode: saved.respondentPostcode,
+        accountReference: saved.accountReference,
+        court: saved.court,
+        cja: saved.cja,
+        status: saved.status,
+      },
+      { emitEvent: false },
+    );
+  }
+
+  private restorePlaceSearchState(): void {
+    const saved = this.appState.formState();
+
+    this.patch({
+      courthouseSearch: saved.courthouseSearch,
+      cjaSearch: saved.cjaSearch,
+    });
+  }
+
+  private saveSearchFormState(): void {
+    const raw = this.form.getRawValue();
+
+    this.appState.setFormState({
+      date: raw.date ?? null,
+      applicantOrg: raw.applicantOrg ?? '',
+      respondentOrg: raw.respondentOrg ?? '',
+      applicantSurname: raw.applicantSurname ?? '',
+      respondentSurname: raw.respondentSurname ?? '',
+      location: raw.location ?? '',
+      standardApplicantCode: raw.standardApplicantCode ?? '',
+      respondentPostcode: raw.respondentPostcode ?? '',
+      accountReference: raw.accountReference ?? '',
+      court: raw.court ?? '',
+      cja: raw.cja ?? '',
+      status: raw.status ?? null,
+      courthouseSearch: this.state().courthouseSearch ?? '',
+      cjaSearch: this.state().cjaSearch ?? '',
     });
   }
 
