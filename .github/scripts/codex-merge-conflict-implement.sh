@@ -184,6 +184,12 @@ Operational rules:
 - Do not make unrelated product changes, do not refactor unrelated code, and do not alter this automation.
 - Do not include secrets, tokens, credentials, PII, runner file contents, environment variables, or auth material in patches, PR bodies, comments, logs, or artifacts.
 - Preserve existing Angular, TypeScript, HMCTS design-system, test, route, accessibility, and formatting patterns.
+- Run lightweight targeted checks you can reasonably run in this CI job, such as `git diff --check`,
+  source inspection, or focused commands that do not install dependencies.
+- Do not run `yarn`, `npm`, `npx`, `node .yarn/releases/yarn-4.10.3.cjs`, Jest, Cypress,
+  or `./bin/codex-local-pipeline.sh` inside the Codex merge-conflict sandbox. Dependency installs and
+  browser/test tooling can require network/DNS or `node_modules` state that the sandbox may not
+  provide; trusted workflow jobs run frontend verification after Codex exits.
 - Leave the working tree with no conflict markers and no unmerged files.
 - Do not push branches, open pull requests, or comment on GitHub. The workflow handles publishing in a separate trusted job.
 
