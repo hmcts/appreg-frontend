@@ -6,6 +6,7 @@ import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
 
 import { Applications } from '@components/applications/applications.component';
+import { ApplicationsSearchStateService } from '@components/applications/util/applications-search-state.service';
 import { ApplicationsState } from '@components/applications/util/applications.state';
 import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
@@ -93,6 +94,7 @@ const flushSignalEffects = async (
 describe('ApplicationsComponent', () => {
   let component: Applications;
   let fixture: ComponentFixture<Applications>;
+  let searchStateService: ApplicationsSearchStateService;
 
   const referenceDataFacadeStub: Pick<
     ReferenceDataFacade,
@@ -181,6 +183,9 @@ describe('ApplicationsComponent', () => {
       ],
     }).compileComponents();
 
+    searchStateService = TestBed.inject(ApplicationsSearchStateService);
+    searchStateService.reset();
+
     fixture = TestBed.createComponent(Applications);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -215,6 +220,77 @@ describe('ApplicationsComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('Select all failed');
     expect(fixture.nativeElement.textContent).not.toContain('Search failed');
+  });
+
+  it('restores the previous successful search state when the page is recreated', () => {
+    getEntriesMock.mockClear();
+    getEntriesMock.mockReturnValueOnce(
+      of({
+        content: [makeEntry({ id: 'entry-1', listId: 'list-a' })],
+        totalPages: 3,
+        totalElements: 21,
+        number: 1,
+      } as unknown as EntryPage) as unknown as ReturnType<
+        ApplicationListEntriesApi['getEntries']
+      >,
+    );
+
+    appStateSignal(component).update((s) => ({
+      ...s,
+      currentPage: 1,
+      isAdvancedSearch: true,
+      sortField: { key: 'title', direction: 'asc' },
+    }));
+    component.form.patchValue({ applicantOrg: 'Saved Org' });
+
+    component.loadApplications();
+
+    const freshFixture = TestBed.createComponent(Applications);
+    const freshComponent = freshFixture.componentInstance;
+    freshFixture.detectChanges();
+
+    expect(getEntriesMock).toHaveBeenCalledTimes(1);
+    expect(freshComponent.form.controls.applicantOrg.value).toBe('Saved Org');
+    expect(freshComponent.vm().rows.map((row) => row.id)).toEqual(['entry-1']);
+    expect(freshComponent.vm().currentPage).toBe(1);
+    expect(freshComponent.vm().totalPages).toBe(3);
+    expect(freshComponent.vm().totalEntries).toBe(21);
+    expect(freshComponent.vm().sortField).toEqual({
+      key: 'title',
+      direction: 'asc',
+    });
+    expect(freshComponent.vm().isAdvancedSearch).toBe(true);
+    expect(freshComponent.vm().getFilters).toEqual({
+      applicantOrganisation: 'Saved Org',
+    });
+  });
+
+  it('clears the stored search state when the search is cleared', () => {
+    getEntriesMock.mockClear();
+    getEntriesMock.mockReturnValueOnce(
+      of({
+        content: [makeEntry({ id: 'entry-1', listId: 'list-a' })],
+        totalPages: 1,
+        totalElements: 1,
+        number: 0,
+      } as unknown as EntryPage) as unknown as ReturnType<
+        ApplicationListEntriesApi['getEntries']
+      >,
+    );
+
+    component.form.patchValue({ applicantOrg: 'Saved Org' });
+    component.loadApplications();
+
+    component.clearSearch();
+
+    const freshFixture = TestBed.createComponent(Applications);
+    const freshComponent = freshFixture.componentInstance;
+    freshFixture.detectChanges();
+
+    expect(freshComponent.form.controls.applicantOrg.value).toBe('');
+    expect(freshComponent.vm().rows).toEqual([]);
+    expect(freshComponent.vm().isSearch).toBe(false);
+    expect(freshComponent.vm().getFilters).toEqual({});
   });
 
   describe('onSubmit validation', () => {

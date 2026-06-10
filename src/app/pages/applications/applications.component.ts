@@ -19,6 +19,12 @@ import { RouterLink } from '@angular/router';
 import { firstValueFrom, forkJoin, map } from 'rxjs';
 
 import {
+  ApplicationsSearchFormValue,
+  ApplicationsSearchStateService,
+  DEFAULT_APPLICATIONS_SEARCH_FORM,
+  cloneApplicationsState,
+} from './util/applications-search-state.service';
+import {
   clearNotificationsPatch,
   defaultApplicationsSort,
   initialApplicationsState,
@@ -123,6 +129,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   private readonly appListEntryApi = inject(ApplicationListEntriesApi);
   private readonly appListApi = inject(ApplicationListsApi);
   private readonly pdf = inject(PdfService);
+  private readonly searchState = inject(ApplicationsSearchStateService);
 
   private readonly appState = createSignalState(initialApplicationsState);
   readonly vm = this.appState.vm;
@@ -184,10 +191,18 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   ngOnInit(): void {
+    this.restoreSearchState();
     this.initPlaceFields(this.form, this.refFacade);
     this.setupEffects();
 
     addLocationValidatorsToForm(this.form, () => this.state());
+  }
+
+  private restoreSearchState(): void {
+    const snapshot = this.searchState.state();
+
+    this.form.reset(snapshot.form, { emitEvent: false });
+    this.appState.state.set(cloneApplicationsState(snapshot.state));
   }
 
   private setupEffects(): void {
@@ -384,6 +399,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
             ),
             getFilters: params.filter ?? {},
           });
+          this.saveSearchState();
         },
         error: () => {
           this.patchApp(searchErrorPatch());
@@ -442,22 +458,10 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   clearSearch(): void {
     this.invalidateSelectAllRequest();
-    this.appState.state.set(initialApplicationsState);
+    this.appState.state.set(cloneApplicationsState(initialApplicationsState));
+    this.searchState.reset();
 
-    this.form.reset({
-      date: null,
-      applicantOrg: '',
-      respondentOrg: '',
-      applicantSurname: '',
-      respondentSurname: '',
-      location: '',
-      standardApplicantCode: '',
-      respondentPostcode: '',
-      accountReference: '',
-      court: '',
-      cja: '',
-      status: null,
-    });
+    this.form.reset(DEFAULT_APPLICATIONS_SEARCH_FORM);
 
     this.patch({
       courthouseSearch: '',
@@ -614,7 +618,34 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   toggleAdvancedSearch(): void {
-    this.patchApp({ isAdvancedSearch: !this.vm().isAdvancedSearch });
+    const isAdvancedSearch = !this.vm().isAdvancedSearch;
+
+    this.patchApp({ isAdvancedSearch });
+    this.searchState.setAdvancedSearch(isAdvancedSearch);
+  }
+
+  private saveSearchState(): void {
+    this.searchState.save(this.searchFormValue(), this.vm());
+  }
+
+  private searchFormValue(): ApplicationsSearchFormValue {
+    const value = this.form.getRawValue();
+
+    return {
+      date: value.date ?? null,
+      applicantOrg: value.applicantOrg ?? '',
+      respondentOrg: value.respondentOrg ?? '',
+      applicantSurname: value.applicantSurname ?? '',
+      respondentSurname: value.respondentSurname ?? '',
+      location: value.location ?? '',
+      standardApplicantCode: value.standardApplicantCode ?? '',
+      respondentPostcode: value.respondentPostcode ?? '',
+      accountReference: value.accountReference ?? '',
+      court: value.court ?? '',
+      cja: value.cja ?? '',
+      status: value.status ?? null,
+      isAdvancedSearch: this.vm().isAdvancedSearch,
+    };
   }
 
   private buildErrorSummary(): ErrorItem[] {
