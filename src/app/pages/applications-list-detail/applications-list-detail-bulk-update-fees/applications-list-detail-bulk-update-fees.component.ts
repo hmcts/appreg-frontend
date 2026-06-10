@@ -179,6 +179,10 @@ export class ApplicationsListDetailBulkUpdateFeesComponent implements OnInit {
     return (this.civilFeeForm.value.feeStatuses?.length ?? 0) === 0;
   }
 
+  informationText(): string {
+    return this.vm().selectedEntries.length === 1 ? 'entry' : 'entries';
+  }
+
   private validateChildSectionsForSubmit(): void {
     const submitErrors = collectChildSubmitErrors([
       { source: 'civilFee', section: this.civilFeeSection },

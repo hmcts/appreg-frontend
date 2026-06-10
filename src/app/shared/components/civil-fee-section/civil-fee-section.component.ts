@@ -91,6 +91,8 @@ export class CivilFeeSectionComponent implements OnInit {
 
   noFeeMeta = input<boolean>(false);
 
+  informationText = input('entry');
+
   ngOnInit(): void {
     runInInjectionContext(this.injector, () => {
       effect(() => {
