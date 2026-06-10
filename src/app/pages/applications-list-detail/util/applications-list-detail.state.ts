@@ -38,6 +38,7 @@ export interface ApplicationsListDetailState {
   updateOfficialsDone?: boolean;
   updateInvalid: boolean;
   moveDone: boolean;
+  updateFeesDone: boolean;
 
   // errors
   errorHint: string;
@@ -73,6 +74,7 @@ export const initialApplicationsListDetailState: ApplicationsListDetailState = {
   updateOfficialsDone: false,
   updateInvalid: false,
   moveDone: false,
+  updateFeesDone: false,
 
   errorHint: '',
   errorSummary: [],
@@ -94,6 +96,7 @@ export const clearUpdateNotificationsPatch = (): Pick<
   | 'createDone'
   | 'preserveErrorSummaryOnLoad'
   | 'moveDone'
+  | 'updateFeesDone'
 > => ({
   updateDone: false,
   updateOfficialsDone: false,
@@ -103,4 +106,5 @@ export const clearUpdateNotificationsPatch = (): Pick<
   createDone: false,
   preserveErrorSummaryOnLoad: false,
   moveDone: false,
+  updateFeesDone: false,
 });

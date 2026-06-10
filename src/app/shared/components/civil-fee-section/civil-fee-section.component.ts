@@ -89,6 +89,10 @@ export class CivilFeeSectionComponent implements OnInit {
   // Application code returns whether a fee is required
   feeRequired = input<boolean>(false);
 
+  noFeeMeta = input<boolean>(false);
+
+  informationText = input('entry');
+
   ngOnInit(): void {
     runInInjectionContext(this.injector, () => {
       effect(() => {
@@ -106,7 +110,10 @@ export class CivilFeeSectionComponent implements OnInit {
       return false;
     }
 
-    return this.submitted() || this.parentSubmitted();
+    const feeRowsEmpty =
+      (this.feeForm().controls.feeStatuses.value ?? []).length === 0;
+
+    return this.submitted() || (this.parentSubmitted() && feeRowsEmpty);
   });
 
   readonly feeStatusOptionsWithPlaceholder = computed<
@@ -198,7 +205,9 @@ export class CivilFeeSectionComponent implements OnInit {
 
   validateForSubmit(): ErrorItem[] {
     this.attachValidatorsForSubmitAttempt();
-    return this.buildCivilFeeErrors();
+    const errors = this.buildCivilFeeErrors();
+    this.civilFeeErrors.emit(errors);
+    return errors;
   }
 
   private buildCivilFeeErrors(): ErrorItem[] {

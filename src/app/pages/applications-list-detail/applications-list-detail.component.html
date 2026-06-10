@@ -52,6 +52,13 @@
   />
 }
 
+@if (vm().updateFeesDone) {
+  <app-success-banner
+    heading="Fees updated"
+    linkText="Fees have been successfully updated"
+  />
+}
+
 @if (vm().bulkUploadFeedback?.kind === 'progress') {
   <app-async-job-progress
     [heading]="vm().bulkUploadFeedback?.heading ?? ''"
@@ -222,6 +229,14 @@
                   (click)="onUpdateOfficialsButtonClick()"
                 >
                   Update officials
+                </button>
+
+                <button
+                  type="button"
+                  class="govuk-button moj-button-menu__item govuk-button--secondary"
+                  (click)="onUpdateFeeButtonClick()"
+                >
+                  Update fee details
                 </button>
 
                 <button

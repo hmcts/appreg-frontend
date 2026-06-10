@@ -1,0 +1,65 @@
+<app-breadcrumbs
+  [items]="[
+    { label: 'Applications list', link: '/applications-list' },
+    {
+      label: 'Applications list details',
+      link: '/applications-list/' + vm().listId,
+    },
+  ]"
+/>
+
+<h1 class="govuk-heading-xl">Update fee details</h1>
+
+@if (vm().feeErrors.length) {
+  <app-error-summary
+    [title]="'There is a problem'"
+    [items]="vm().feeErrors"
+    (itemSelect)="onCreateErrorClick($event)"
+  />
+}
+
+@if (applictionsHaveBeenRemoved()) {
+  <app-alert
+    [alertType]="'information'"
+    [message]="'Application(s) which do not require a fee have been removed'"
+  />
+}
+
+<hr
+  class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
+/>
+
+<app-sortable-table
+  id="entry-selected-table"
+  [caption]="'Updating fees for the following application(s)'"
+  [columns]="columnsEntries"
+  [data]="vm().selectedEntries"
+  appMojButtonMenu
+/>
+
+<hr class="govuk-section-break govuk-section-break--m" />
+
+<app-civil-fee-section
+  #civilFeeSection
+  [noFeeMeta]="true"
+  [feeForm]="civilFeeForm"
+  [civilFeeColumns]="civilFeeColumns"
+  [feeStatusOptions]="feeStatusOptions"
+  [feeMeta]="feeMeta"
+  [feeRequired]="true"
+  [parentSubmitted]="vm().submitted"
+  [informationText]="informationText()"
+  [changePaymentReferenceStateFactory]="buildChangePaymentReferenceState"
+  (addFeeDetails)="onAddFeeDetails($event)"
+  (civilFeeErrors)="onCivilFeeErrors($event)"
+  (offsiteFeeChanged)="onOffsiteFeeChanged($event)"
+/>
+
+<button
+  type="button"
+  class="govuk-button"
+  (click)="addFees()"
+  [disabled]="disableUpdateButton()"
+>
+  Update fee details
+</button>
