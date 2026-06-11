@@ -252,10 +252,17 @@ export class WordingParserComponent {
     const formValue = form.value as Record<string, string>;
 
     return {
-      wordingFields: Object.entries(formValue).map(([key, value]) => ({
-        key: this.normalisedKeyToKeyMap.get(key),
-        value: value ?? '',
-      })),
+      wordingFields: Object.entries(formValue)
+        .map(([key, value]) => {
+          const originalKey = this.normalisedKeyToKeyMap.get(key);
+          return originalKey
+            ? {
+                key: originalKey,
+                value: value ?? '',
+              }
+            : undefined;
+        })
+        .filter((item): item is TemplateSubstitution => item !== undefined),
     };
   }
 
