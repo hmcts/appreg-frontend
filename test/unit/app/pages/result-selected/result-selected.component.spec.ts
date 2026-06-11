@@ -208,8 +208,8 @@ describe('ResultSelectedComponent', () => {
 
     component.onSubmitResults({
       pendingToCreate: [],
-      pendingToRemove: [],
-    } as unknown as ResultSectionSubmitPayload);
+      existingToUpdate: [],
+    } as ResultSectionSubmitPayload);
 
     expect(submitSpy).not.toHaveBeenCalled();
     expect(component.isSubmitting()).toBe(false);
@@ -270,7 +270,7 @@ describe('ResultSelectedComponent', () => {
         },
       ],
       existingToUpdate: [],
-    } as ResultSectionSubmitPayload);
+    });
 
     expect(mockApi.bulkResultApplicationListEntries).toHaveBeenCalledTimes(2);
     expect(mockApi.bulkResultApplicationListEntries).toHaveBeenCalledWith({

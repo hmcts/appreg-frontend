@@ -145,7 +145,7 @@ export class ResultSelected implements OnInit {
       return;
     }
 
-    const item = payload.pendingToCreate ?? payload.existingToUpdate;
+    const item = [...payload.pendingToCreate, ...payload.existingToUpdate];
 
     if (item) {
       this.selectedResultCode.set(item.map((element) => element.resultCode));
