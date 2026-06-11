@@ -260,11 +260,19 @@ describe('ResultSelectedComponent', () => {
           wordingFields: [],
           wording: '-',
         },
+        {
+          kind: 'pending',
+          tempId: 'tmp_123-123',
+          resultCode: 'FRB',
+          display: 'FRB - Fee Remitted (Benefits)',
+          wordingFields: [],
+          wording: '-',
+        },
       ],
       existingToUpdate: [],
     } as ResultSectionSubmitPayload);
 
-    expect(mockApi.bulkResultApplicationListEntries).toHaveBeenCalledTimes(1);
+    expect(mockApi.bulkResultApplicationListEntries).toHaveBeenCalledTimes(2);
     expect(mockApi.bulkResultApplicationListEntries).toHaveBeenCalledWith({
       listId: 'list-success',
       bulkResultDto: {
@@ -275,13 +283,23 @@ describe('ResultSelectedComponent', () => {
         },
       },
     });
+    expect(mockApi.bulkResultApplicationListEntries).toHaveBeenCalledWith({
+      listId: 'list-success',
+      bulkResultDto: {
+        entryIds: ['entry-1', 'entry-2'],
+        result: {
+          resultCode: 'FRB',
+          wordingFields: [],
+        },
+      },
+    });
     expect(mockApi.createApplicationListEntryResult).not.toHaveBeenCalled();
     expect(mockApi.getApplicationListEntryResults).not.toHaveBeenCalled();
     expect(component.createdEntryResults()).toEqual([createdResult]);
     expect(component.errorSummaryItems()).toEqual([]);
     expect(component.successBanner()).toEqual({
       heading: 'Result codes applied successfully',
-      body: "Result code 'ADJ' applied successfully to application list entries",
+      body: "Result code(s) 'ADJ, FRB' applied successfully to application list entries",
     });
     expect(component.isSubmitting()).toBe(false);
 
@@ -343,7 +361,7 @@ describe('ResultSelectedComponent', () => {
     component.onSubmitResults({
       pendingToCreate: [pendingRow],
       existingToUpdate: [],
-    } as ResultSectionSubmitPayload);
+    });
 
     expect(mockApi.bulkResultApplicationListEntries).toHaveBeenCalledTimes(1);
     expect(mockApi.createApplicationListEntryResult).not.toHaveBeenCalled();
@@ -396,7 +414,7 @@ describe('ResultSelectedComponent', () => {
         },
       ],
       existingToUpdate: [],
-    } as ResultSectionSubmitPayload);
+    });
 
     expect(submitSpy).not.toHaveBeenCalled();
     submitSpy.mockRestore();

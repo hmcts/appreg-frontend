@@ -272,6 +272,68 @@ describe('ApplicationListEntryResultsFacade', () => {
       expect(onSuccess).toHaveBeenCalled();
     });
 
+    it('creates one bulk request per pending result code', () => {
+      const onSuccess = jest.fn();
+
+      entryResultsApi.bulkResultApplicationListEntries
+        .mockReturnValueOnce(
+          of([makeResult({ id: 'R-10', entryId: 'E-1' })]) as unknown,
+        )
+        .mockReturnValueOnce(
+          of([
+            makeResult({ id: 'R-11', entryId: 'E-1', resultCode: 'RC3' }),
+          ]) as unknown,
+        );
+
+      facade.submitResultChangesForEntries(
+        'L-1',
+        ['E-1', 'E-2'],
+        {
+          pendingToCreate: [
+            {
+              resultCode: ' rc2 ',
+              wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+            } as PendingResultRow,
+            {
+              resultCode: ' rc3 ',
+              wordingFields: [{ key: 'Place', value: 'London' }],
+            } as PendingResultRow,
+          ],
+          existingToUpdate: [],
+        },
+        onSuccess,
+      );
+
+      expect(
+        entryResultsApi.bulkResultApplicationListEntries,
+      ).toHaveBeenCalledTimes(2);
+      expect(
+        entryResultsApi.bulkResultApplicationListEntries,
+      ).toHaveBeenNthCalledWith(1, {
+        listId: 'L-1',
+        bulkResultDto: {
+          entryIds: ['E-1', 'E-2'],
+          result: {
+            resultCode: 'rc2',
+            wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+          },
+        },
+      });
+      expect(
+        entryResultsApi.bulkResultApplicationListEntries,
+      ).toHaveBeenNthCalledWith(2, {
+        listId: 'L-1',
+        bulkResultDto: {
+          entryIds: ['E-1', 'E-2'],
+          result: {
+            resultCode: 'rc3',
+            wordingFields: [{ key: 'Place', value: 'London' }],
+          },
+        },
+      });
+      expect(onSuccess).toHaveBeenCalled();
+    });
+
     it('keeps pending rows and calls onError when the bulk request fails', () => {
       const onSuccess = jest.fn();
       const onError = jest.fn();

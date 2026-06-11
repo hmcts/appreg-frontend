@@ -50,7 +50,7 @@ export class ResultSelected implements OnInit {
   readonly resultsFacade = inject(ApplicationListEntryResultsFacade);
 
   listId!: string;
-  private readonly selectedResultCode = signal<string>('');
+  private readonly selectedResultCode = signal<string[]>([]);
 
   isSubmitting = signal(false);
 
@@ -145,10 +145,10 @@ export class ResultSelected implements OnInit {
       return;
     }
 
-    const item = payload.pendingToCreate?.[0] ?? payload.existingToUpdate?.[0];
+    const item = payload.pendingToCreate ?? payload.existingToUpdate;
 
     if (item) {
-      this.selectedResultCode.set(item.resultCode);
+      this.selectedResultCode.set(item.map((element) => element.resultCode));
     }
 
     if (!this.listId || !this.rows?.length) {
@@ -169,7 +169,7 @@ export class ResultSelected implements OnInit {
 
         this.successBanner.set({
           heading: 'Result codes applied successfully',
-          body: `Result code '${this.selectedResultCode()}' applied successfully to application list entries`,
+          body: `Result code(s) '${this.selectedResultCode().join(', ')}' applied successfully to application list entries`,
         });
 
         focusSuccessBanner(this.platformId);

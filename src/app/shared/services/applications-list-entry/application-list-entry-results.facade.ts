@@ -410,11 +410,13 @@ export class ApplicationListEntryResultsFacade {
   setPending(rows: PendingResultRow[]): void {
     this.pendingRows.set(rows ?? []);
 
-    // only one pending allowed
-    const code = rows?.[0]?.resultCode;
-    if (code) {
-      this.ensureResultWording(code);
-    }
+    // Get result wording for each pending code
+    const codes = rows?.map((row) => row.resultCode);
+    codes.forEach((code) => {
+      if (code) {
+        this.ensureResultWording(code);
+      }
+    });
   }
 
   private toTemplateDetail(
