@@ -20,6 +20,7 @@ import {
   EntryIdsDto,
   EntryPage,
 } from '@openapi';
+import { ApplicationsSearchStateService } from '@services/applications/applications-search-state.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { ApplicationRow } from '@shared-types/applications/applications.type';
 
@@ -90,9 +91,14 @@ const flushSignalEffects = async (
   fixture.detectChanges();
 };
 
+const RESTORED_APPLICANT_ORG = 'Persisted Applicant Organisation';
+const RESTORED_ENTRY_ID = 'persisted-entry';
+const RESTORED_LIST_ID = 'persisted-list';
+
 describe('ApplicationsComponent', () => {
   let component: Applications;
   let fixture: ComponentFixture<Applications>;
+  let searchStateService: ApplicationsSearchStateService;
 
   const referenceDataFacadeStub: Pick<
     ReferenceDataFacade,
@@ -181,6 +187,9 @@ describe('ApplicationsComponent', () => {
       ],
     }).compileComponents();
 
+    searchStateService = TestBed.inject(ApplicationsSearchStateService);
+    searchStateService.reset();
+
     fixture = TestBed.createComponent(Applications);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -215,6 +224,95 @@ describe('ApplicationsComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('Select all failed');
     expect(fixture.nativeElement.textContent).not.toContain('Search failed');
+  });
+
+  it('restores the previous successful search state when the page is recreated', () => {
+    getEntriesMock.mockClear();
+    getEntriesMock.mockReturnValueOnce(
+      of({
+        content: [
+          makeEntry({ id: RESTORED_ENTRY_ID, listId: RESTORED_LIST_ID }),
+        ],
+        totalPages: 3,
+        totalElements: 21,
+        number: 1,
+      } as unknown as EntryPage) as unknown as ReturnType<
+        ApplicationListEntriesApi['getEntries']
+      >,
+    );
+
+    appStateSignal(component).update((s) => ({
+      ...s,
+      currentPage: 1,
+      isAdvancedSearch: true,
+      sortField: { key: 'title', direction: 'asc' },
+    }));
+    component.form.patchValue({ applicantOrg: RESTORED_APPLICANT_ORG });
+
+    component.loadApplications();
+
+    const freshFixture = TestBed.createComponent(Applications);
+    const freshComponent = freshFixture.componentInstance;
+    freshFixture.detectChanges();
+
+    expect(getEntriesMock).toHaveBeenCalledTimes(1);
+    expect(freshComponent.form.controls.applicantOrg.value).toBe(
+      RESTORED_APPLICANT_ORG,
+    );
+    expect(freshComponent.vm().rows.map((row) => row.id)).toEqual([
+      RESTORED_ENTRY_ID,
+    ]);
+    expect(freshComponent.vm().currentPage).toBe(1);
+    expect(freshComponent.vm().totalPages).toBe(3);
+    expect(freshComponent.vm().totalEntries).toBe(21);
+    expect(freshComponent.vm().sortField).toEqual({
+      key: 'title',
+      direction: 'asc',
+    });
+    expect(freshComponent.vm().isAdvancedSearch).toBe(true);
+    expect(freshComponent.vm().getFilters).toEqual({
+      applicantOrganisation: RESTORED_APPLICANT_ORG,
+    });
+  });
+
+  it('clears the stored search state when the search is cleared', () => {
+    getEntriesMock.mockClear();
+    getEntriesMock.mockReturnValueOnce(
+      of({
+        content: [
+          makeEntry({ id: RESTORED_ENTRY_ID, listId: RESTORED_LIST_ID }),
+        ],
+        totalPages: 1,
+        totalElements: 1,
+        number: 0,
+      } as unknown as EntryPage) as unknown as ReturnType<
+        ApplicationListEntriesApi['getEntries']
+      >,
+    );
+
+    component.form.patchValue({ applicantOrg: RESTORED_APPLICANT_ORG });
+    component.loadApplications();
+
+    component.clearSearch();
+
+    const freshFixture = TestBed.createComponent(Applications);
+    const freshComponent = freshFixture.componentInstance;
+    freshFixture.detectChanges();
+
+    expect(freshComponent.form.controls.applicantOrg.value).toBe('');
+    expect(freshComponent.vm().rows).toEqual([]);
+    expect(freshComponent.vm().isSearch).toBe(false);
+    expect(freshComponent.vm().getFilters).toEqual({});
+  });
+
+  it('restores the advanced search state after it is toggled', () => {
+    component.toggleAdvancedSearch();
+
+    const freshFixture = TestBed.createComponent(Applications);
+    const freshComponent = freshFixture.componentInstance;
+    freshFixture.detectChanges();
+
+    expect(freshComponent.vm().isAdvancedSearch).toBe(true);
   });
 
   describe('onSubmit validation', () => {
