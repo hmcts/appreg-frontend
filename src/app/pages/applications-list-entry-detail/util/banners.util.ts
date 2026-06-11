@@ -23,3 +23,16 @@ export function focusSuccessBanner(platformId: object): void {
     el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
   });
 }
+
+// Focus on alert component that's in child accordions
+export function focusLocalBanner(platformId: object): void {
+  if (!isPlatformBrowser(platformId)) {
+    return;
+  }
+
+  setTimeout(() => {
+    const el = document.querySelector<HTMLElement>('app-alert');
+    el?.focus?.();
+    el?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+  });
+}
