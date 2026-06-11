@@ -359,7 +359,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     });
     this.wordingAppliedBannerVisible.set(true);
 
-    focusLocalBanner(this.platformId);
+    focusLocalBanner(this.platformId, '#wording-local-banner');
   }
 
   onWordingAppliedBannerDismissed(): void {
@@ -1357,7 +1357,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     this.resultAppliedBannerVisible.set(true);
 
-    focusLocalBanner(this.platformId);
+    focusLocalBanner(this.platformId, '#results-local-banner');
 
     this.appListEntryDetailPatch({
       pendingResults:

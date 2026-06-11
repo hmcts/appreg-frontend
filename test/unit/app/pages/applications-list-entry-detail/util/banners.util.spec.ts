@@ -99,6 +99,30 @@ describe('focusLocalBanner', () => {
   it('focuses and scrolls the local banner on the browser platform', () => {
     jest.useFakeTimers();
     const banner = document.createElement('app-alert');
+    banner.id = 'results-local-banner';
+    const focusSpy = jest.spyOn(banner, 'focus');
+    const scrollIntoView = jest.fn<
+      void,
+      Parameters<HTMLElement['scrollIntoView']>
+    >();
+    banner.scrollIntoView = scrollIntoView;
+    document.body.appendChild(banner);
+
+    focusLocalBanner(BROWSER_PLATFORM_ID, '#results-local-banner');
+    expect(focusSpy).not.toHaveBeenCalled();
+
+    jest.runOnlyPendingTimers();
+
+    expect(focusSpy).toHaveBeenCalledTimes(1);
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      behavior: 'smooth',
+      block: 'center',
+    });
+  });
+
+  it('uses app-alert as the default selector when no banner id is provided', () => {
+    jest.useFakeTimers();
+    const banner = document.createElement('app-alert');
     const focusSpy = jest.spyOn(banner, 'focus');
     const scrollIntoView = jest.fn<
       void,
@@ -108,8 +132,6 @@ describe('focusLocalBanner', () => {
     document.body.appendChild(banner);
 
     focusLocalBanner(BROWSER_PLATFORM_ID);
-    expect(focusSpy).not.toHaveBeenCalled();
-
     jest.runOnlyPendingTimers();
 
     expect(focusSpy).toHaveBeenCalledTimes(1);
