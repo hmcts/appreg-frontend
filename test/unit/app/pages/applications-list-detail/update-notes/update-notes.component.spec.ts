@@ -138,7 +138,7 @@ describe('UpdateNotesComponent', () => {
       'Application entry updated successfully',
     );
     expect(component.form.getRawValue()).toEqual({
-      applicationNotes: 'Existing application notes\nCourt admin note',
+      applicationNotes: 'Existing application notes Court admin note',
       additionalNotes: '',
     });
     expect(component.isSubmitting()).toBe(false);

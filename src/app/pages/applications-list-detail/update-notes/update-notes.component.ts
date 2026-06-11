@@ -258,9 +258,7 @@ export class UpdateNotesComponent implements OnInit {
       return currentNotes;
     }
 
-    return currentNotes
-      ? `${currentNotes}\n${additionalNotes}`
-      : additionalNotes;
+    return currentNotes ? `${currentNotes} ${additionalNotes}` : additionalNotes;
   }
 
   private applyEntry(entry: EntryGetDetailDto): void {
