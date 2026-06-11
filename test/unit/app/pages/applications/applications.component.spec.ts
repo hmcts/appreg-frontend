@@ -2,7 +2,12 @@ import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { LOCALE_ID, PLATFORM_ID, type WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import {
+  ActivatedRoute,
+  Router,
+  convertToParamMap,
+  provideRouter,
+} from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
 
 import { Applications } from '@components/applications/applications.component';
@@ -168,6 +173,7 @@ describe('ApplicationsComponent', () => {
         { provide: ApplicationListsApi, useValue: appListsApiStub },
         { provide: PdfService, useValue: pdfServiceStub },
         { provide: PLATFORM_ID, useValue: 'browser' },
+        provideRouter([]),
         {
           provide: ActivatedRoute,
           useValue: {
@@ -749,6 +755,68 @@ describe('ApplicationsComponent', () => {
       expect(component.vm().allMatchingSelected).toBe(false);
       expect(component.vm().isSelectingAll).toBe(false);
     });
+  });
+
+  describe('onUpdateNotesClick', () => {
+    it('navigates to update-notes with the selected application context', async () => {
+      const router = TestBed.inject(Router);
+      const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+      const selectedRow: ApplicationRow = {
+        ...makeSelectedRow('entry-1', 'list-1'),
+        applicant: 'William Scott',
+        respondent: 'Ryan Quinn',
+        title: 'Appeal by Case Stated (Civil)',
+      };
+
+      appStateSignal(component).update((s) => ({
+        ...s,
+        selectedRows: [selectedRow],
+      }));
+
+      await component.onUpdateNotesClick();
+
+      expect(navSpy).toHaveBeenCalledWith(
+        ['/applications-list', 'list-1', 'update-notes', 'entry-1'],
+        {
+          state: {
+            updateNotesApplication: {
+              id: 'entry-1',
+              applicant: 'William Scott',
+              respondent: 'Ryan Quinn',
+              title: 'Appeal by Case Stated (Civil)',
+            },
+          },
+        },
+      );
+      expect(component.vm().errorSummary).toEqual([]);
+    });
+
+    it.each([
+      [[], 'Select one application to update notes'],
+      [
+        [
+          makeSelectedRow('entry-1', 'list-1'),
+          makeSelectedRow('entry-2', 'list-2'),
+        ],
+        'Select only one application to update notes',
+      ],
+    ] as [ApplicationRow[], string][])(
+      'shows a selection error when %s rows are selected',
+      async (selectedRows, message) => {
+        const router = TestBed.inject(Router);
+        const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+        appStateSignal(component).update((s) => ({
+          ...s,
+          selectedRows,
+        }));
+
+        await component.onUpdateNotesClick();
+
+        expect(navSpy).not.toHaveBeenCalled();
+        expect(component.vm().errorSummary).toEqual([{ text: message }]);
+      },
+    );
   });
 
   describe('onPrintContinuousClick', () => {

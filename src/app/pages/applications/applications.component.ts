@@ -15,7 +15,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom, forkJoin, map } from 'rxjs';
 
 import {
@@ -123,6 +123,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   private readonly appListEntryApi = inject(ApplicationListEntriesApi);
   private readonly appListApi = inject(ApplicationListsApi);
   private readonly pdf = inject(PdfService);
+  private readonly router = inject(Router);
 
   private readonly appState = createSignalState(initialApplicationsState);
   readonly vm = this.appState.vm;
@@ -326,8 +327,54 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.printRequest.set(request);
   }
 
-  onUpdateNotesClick(): void {
-    /** TODO: ARCPOC-1333 */
+  async onUpdateNotesClick(): Promise<void> {
+    this.patchApp(clearNotificationsPatch());
+
+    let selectedRows: ApplicationRow[];
+    try {
+      selectedRows = await this.resolveSelectedRows();
+    } catch (err) {
+      this.patchApp({ errorSummary: [{ text: getProblemText(err) }] });
+      return;
+    }
+
+    if (selectedRows.length !== 1) {
+      this.patchApp({
+        errorSummary: [
+          {
+            text:
+              selectedRows.length === 0
+                ? 'Select one application to update notes'
+                : 'Select only one application to update notes',
+          },
+        ],
+      });
+      return;
+    }
+
+    const row = selectedRows[0];
+    if (!row.applicationListId || !row.id) {
+      this.patchApp({
+        errorSummary: [
+          { text: 'Unable to update notes for selected application' },
+        ],
+      });
+      return;
+    }
+
+    await this.router.navigate(
+      ['/applications-list', row.applicationListId, 'update-notes', row.id],
+      {
+        state: {
+          updateNotesApplication: {
+            id: row.id,
+            applicant: row.applicant,
+            respondent: row.respondent,
+            title: row.title,
+          },
+        },
+      },
+    );
   }
 
   private async buildPrintRequest(
