@@ -6,7 +6,12 @@ import session, {
   type SessionOptions,
   type Store,
 } from 'express-session';
-import { type RedisClientType, createClient } from 'redis';
+import {
+  type RedisClientType,
+  type RedisClusterType,
+  createClient,
+  createCluster,
+} from 'redis';
 
 import { AppInsights } from '../server/modules/appinsights';
 import { HmctsLoggerBridge } from '../server/modules/logger';
@@ -23,8 +28,33 @@ export interface SetupSessionArgs {
   connectTimeoutMs?: number;
 }
 
+type RedisSessionClient = RedisClientType | RedisClusterType;
+
 // 'strict' breaks SSO
 export const COOKIE_SAME_SITE = 'lax' as const;
+
+function parseRedisConnectionUrl(url: string): URL | undefined {
+  try {
+    return new URL(url);
+  } catch {
+    return undefined;
+  }
+}
+
+function isManagedRedisUrl(parsedUrl: URL | undefined): boolean {
+  return Boolean(
+    parsedUrl?.protocol === 'rediss:' &&
+    parsedUrl.hostname.endsWith('.redis.azure.net'),
+  );
+}
+
+function decodeUrlComponent(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
 
 export function resolveSecureCookiesSetting(
   secureCookies?: boolean | 'auto',
@@ -92,18 +122,46 @@ export async function setupSession({
       );
     }
 
-    const client: RedisClientType = createClient({
-      url,
-      socket: {
-        connectTimeout: connectTimeoutMs,
-      },
-    });
+    const parsedUrl = parseRedisConnectionUrl(url);
+    const useClusterClient = isManagedRedisUrl(parsedUrl);
+    const clusterCredentials = parsedUrl
+      ? {
+          ...(parsedUrl.username
+            ? { username: decodeUrlComponent(parsedUrl.username) }
+            : {}),
+          ...(parsedUrl.password
+            ? { password: decodeUrlComponent(parsedUrl.password) }
+            : {}),
+        }
+      : {};
+
+    const client: RedisSessionClient = useClusterClient
+      ? createCluster({
+          rootNodes: [{ url }],
+          defaults: {
+            ...clusterCredentials,
+            socket: {
+              tls: true,
+              connectTimeout: connectTimeoutMs,
+            },
+          },
+        })
+      : createClient({
+          url,
+          socket: {
+            connectTimeout: connectTimeoutMs,
+          },
+        });
 
     client.on('error', (err) => logger.error('[redis] client error', err));
     await client.connect();
 
     store = new RedisStore({ client, prefix });
-    logger.info('Using RedisStore');
+    logger.info(
+      useClusterClient
+        ? 'Using RedisStore with Redis cluster client'
+        : 'Using RedisStore',
+    );
   } else {
     store = new MemoryStore();
     logger.warn(

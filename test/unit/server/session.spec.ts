@@ -18,7 +18,15 @@ const mockRedisClient = {
   connect: jest.fn<Promise<void>, []>().mockResolvedValue(undefined),
   on: jest.fn(),
 };
+const mockRedisClusterClient = {
+  connect: jest.fn<Promise<void>, []>().mockResolvedValue(undefined),
+  on: jest.fn(),
+};
 const mockCreateClient = jest.fn(() => mockRedisClient);
+const mockCreateCluster = jest.fn(() => mockRedisClusterClient);
+const managedRedisUrl =
+  'rediss://:secret@' +
+  'appreg-infrastructure-stg.uksouth.redis.azure.net:10000?tls=true';
 
 jest.mock('express-session', () => ({
   __esModule: true,
@@ -32,6 +40,7 @@ jest.mock('connect-redis', () => ({
 
 jest.mock('redis', () => ({
   createClient: mockCreateClient,
+  createCluster: mockCreateCluster,
 }));
 
 jest.mock('../../../server/modules/appinsights', () => ({
@@ -67,8 +76,11 @@ describe('server/session cookie helpers', () => {
     mockMemoryStore.mockClear();
     mockRedisStore.mockClear();
     mockCreateClient.mockClear();
+    mockCreateCluster.mockClear();
     mockRedisClient.connect.mockClear();
     mockRedisClient.on.mockClear();
+    mockRedisClusterClient.connect.mockClear();
+    mockRedisClusterClient.on.mockClear();
   });
 
   const lastSessionOptions = (): CapturedSessionOptions => {
@@ -120,6 +132,7 @@ describe('server/session cookie helpers', () => {
     expect(middleware).toBe(mockSessionMiddleware);
     expect(mockMemoryStore).toHaveBeenCalledTimes(1);
     expect(mockCreateClient).not.toHaveBeenCalled();
+    expect(mockCreateCluster).not.toHaveBeenCalled();
     expect(mockSession).toHaveBeenCalledTimes(1);
     expect(lastSessionOptions()).toEqual(
       expect.objectContaining({
@@ -171,6 +184,7 @@ describe('server/session cookie helpers', () => {
     );
 
     expect(mockCreateClient).not.toHaveBeenCalled();
+    expect(mockCreateCluster).not.toHaveBeenCalled();
     expect(mockSession).not.toHaveBeenCalled();
   });
 
@@ -193,6 +207,7 @@ describe('server/session cookie helpers', () => {
         connectTimeout: 4321,
       },
     });
+    expect(mockCreateCluster).not.toHaveBeenCalled();
     expect(mockRedisClient.on).toHaveBeenCalledWith(
       'error',
       expect.any(Function),
@@ -214,5 +229,42 @@ describe('server/session cookie helpers', () => {
         store: { kind: 'redis-store' },
       }),
     );
+  });
+
+  test('setupSession uses Redis cluster client for Azure Managed Redis', async () => {
+    await setupSession({
+      isProd: true,
+      useRedis: true,
+      redisUrl: ` ${managedRedisUrl} `,
+      cookieName: 'appreg.sid',
+      sessionSecret: 'test-secret',
+      prefix: 'test:sess:',
+      connectTimeoutMs: 4321,
+    });
+
+    expect(mockCreateClient).not.toHaveBeenCalled();
+    expect(mockCreateCluster).toHaveBeenCalledWith({
+      rootNodes: [
+        {
+          url: managedRedisUrl,
+        },
+      ],
+      defaults: {
+        password: 'secret',
+        socket: {
+          tls: true,
+          connectTimeout: 4321,
+        },
+      },
+    });
+    expect(mockRedisClusterClient.on).toHaveBeenCalledWith(
+      'error',
+      expect.any(Function),
+    );
+    expect(mockRedisClusterClient.connect).toHaveBeenCalledTimes(1);
+    expect(mockRedisStore).toHaveBeenCalledWith({
+      client: mockRedisClusterClient,
+      prefix: 'test:sess:',
+    });
   });
 });
