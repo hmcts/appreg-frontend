@@ -1,9 +1,9 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 
 import {
   ApplicationsState,
   initialApplicationsState,
-} from './applications.state';
+} from '@components/applications/util/applications.state';
 
 export type ApplicationsSearchFormValue = {
   date: string | null;
@@ -48,12 +48,12 @@ export const cloneApplicationsState = (
   ...state,
   isLoading: false,
   isSelectingAll: false,
-  searchErrors: [...state.searchErrors],
-  errorSummary: [...state.errorSummary],
-  rows: [...state.rows],
+  searchErrors: state.searchErrors.map((error) => ({ ...error })),
+  errorSummary: state.errorSummary.map((error) => ({ ...error })),
+  rows: state.rows.map((row) => ({ ...row })),
   sortField: { ...state.sortField },
   selectedIds: new Set(state.selectedIds),
-  selectedRows: [...state.selectedRows],
+  selectedRows: state.selectedRows.map((row) => ({ ...row })),
   getFilters: { ...state.getFilters },
 });
 
@@ -79,13 +79,14 @@ const cloneSnapshot = (
   providedIn: 'root',
 })
 export class ApplicationsSearchStateService {
-  private readonly _state =
+  private readonly snapshotState =
     signal<ApplicationsSearchSnapshot>(defaultSnapshot());
 
-  readonly state = computed(() => cloneSnapshot(this._state()));
+  readonly state = (): ApplicationsSearchSnapshot =>
+    cloneSnapshot(this.snapshotState());
 
   save(form: ApplicationsSearchFormValue, state: ApplicationsState): void {
-    this._state.set(
+    this.snapshotState.set(
       cloneSnapshot({
         form,
         state,
@@ -94,7 +95,7 @@ export class ApplicationsSearchStateService {
   }
 
   setAdvancedSearch(isAdvancedSearch: boolean): void {
-    this._state.update((current) =>
+    this.snapshotState.update((current) =>
       cloneSnapshot({
         form: {
           ...current.form,
@@ -109,6 +110,6 @@ export class ApplicationsSearchStateService {
   }
 
   reset(): void {
-    this._state.set(defaultSnapshot());
+    this.snapshotState.set(defaultSnapshot());
   }
 }

@@ -19,12 +19,6 @@ import { RouterLink } from '@angular/router';
 import { firstValueFrom, forkJoin, map } from 'rxjs';
 
 import {
-  ApplicationsSearchFormValue,
-  ApplicationsSearchStateService,
-  DEFAULT_APPLICATIONS_SEARCH_FORM,
-  cloneApplicationsState,
-} from './util/applications-search-state.service';
-import {
   clearNotificationsPatch,
   defaultApplicationsSort,
   initialApplicationsState,
@@ -58,6 +52,12 @@ import {
   EntryGetSummaryDto,
   GetEntriesRequestParams,
 } from '@openapi';
+import {
+  ApplicationsSearchFormValue,
+  ApplicationsSearchStateService,
+  DEFAULT_APPLICATIONS_SEARCH_FORM,
+  cloneApplicationsState,
+} from '@services/applications/applications-search-state.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { ApplicationRow } from '@shared-types/applications/applications.type';
 import { toStatus } from '@util/application-status-helpers';

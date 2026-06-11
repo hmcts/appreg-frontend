@@ -6,7 +6,6 @@ import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
 
 import { Applications } from '@components/applications/applications.component';
-import { ApplicationsSearchStateService } from '@components/applications/util/applications-search-state.service';
 import { ApplicationsState } from '@components/applications/util/applications.state';
 import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
@@ -21,6 +20,7 @@ import {
   EntryIdsDto,
   EntryPage,
 } from '@openapi';
+import { ApplicationsSearchStateService } from '@services/applications/applications-search-state.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { ApplicationRow } from '@shared-types/applications/applications.type';
 
@@ -90,6 +90,10 @@ const flushSignalEffects = async (
   await Promise.resolve();
   fixture.detectChanges();
 };
+
+const RESTORED_APPLICANT_ORG = 'Persisted Applicant Organisation';
+const RESTORED_ENTRY_ID = 'persisted-entry';
+const RESTORED_LIST_ID = 'persisted-list';
 
 describe('ApplicationsComponent', () => {
   let component: Applications;
@@ -226,7 +230,9 @@ describe('ApplicationsComponent', () => {
     getEntriesMock.mockClear();
     getEntriesMock.mockReturnValueOnce(
       of({
-        content: [makeEntry({ id: 'entry-1', listId: 'list-a' })],
+        content: [
+          makeEntry({ id: RESTORED_ENTRY_ID, listId: RESTORED_LIST_ID }),
+        ],
         totalPages: 3,
         totalElements: 21,
         number: 1,
@@ -241,7 +247,7 @@ describe('ApplicationsComponent', () => {
       isAdvancedSearch: true,
       sortField: { key: 'title', direction: 'asc' },
     }));
-    component.form.patchValue({ applicantOrg: 'Saved Org' });
+    component.form.patchValue({ applicantOrg: RESTORED_APPLICANT_ORG });
 
     component.loadApplications();
 
@@ -250,8 +256,12 @@ describe('ApplicationsComponent', () => {
     freshFixture.detectChanges();
 
     expect(getEntriesMock).toHaveBeenCalledTimes(1);
-    expect(freshComponent.form.controls.applicantOrg.value).toBe('Saved Org');
-    expect(freshComponent.vm().rows.map((row) => row.id)).toEqual(['entry-1']);
+    expect(freshComponent.form.controls.applicantOrg.value).toBe(
+      RESTORED_APPLICANT_ORG,
+    );
+    expect(freshComponent.vm().rows.map((row) => row.id)).toEqual([
+      RESTORED_ENTRY_ID,
+    ]);
     expect(freshComponent.vm().currentPage).toBe(1);
     expect(freshComponent.vm().totalPages).toBe(3);
     expect(freshComponent.vm().totalEntries).toBe(21);
@@ -261,7 +271,7 @@ describe('ApplicationsComponent', () => {
     });
     expect(freshComponent.vm().isAdvancedSearch).toBe(true);
     expect(freshComponent.vm().getFilters).toEqual({
-      applicantOrganisation: 'Saved Org',
+      applicantOrganisation: RESTORED_APPLICANT_ORG,
     });
   });
 
@@ -269,7 +279,9 @@ describe('ApplicationsComponent', () => {
     getEntriesMock.mockClear();
     getEntriesMock.mockReturnValueOnce(
       of({
-        content: [makeEntry({ id: 'entry-1', listId: 'list-a' })],
+        content: [
+          makeEntry({ id: RESTORED_ENTRY_ID, listId: RESTORED_LIST_ID }),
+        ],
         totalPages: 1,
         totalElements: 1,
         number: 0,
@@ -278,7 +290,7 @@ describe('ApplicationsComponent', () => {
       >,
     );
 
-    component.form.patchValue({ applicantOrg: 'Saved Org' });
+    component.form.patchValue({ applicantOrg: RESTORED_APPLICANT_ORG });
     component.loadApplications();
 
     component.clearSearch();
@@ -291,6 +303,16 @@ describe('ApplicationsComponent', () => {
     expect(freshComponent.vm().rows).toEqual([]);
     expect(freshComponent.vm().isSearch).toBe(false);
     expect(freshComponent.vm().getFilters).toEqual({});
+  });
+
+  it('restores the advanced search state after it is toggled', () => {
+    component.toggleAdvancedSearch();
+
+    const freshFixture = TestBed.createComponent(Applications);
+    const freshComponent = freshFixture.componentInstance;
+    freshFixture.detectChanges();
+
+    expect(freshComponent.vm().isAdvancedSearch).toBe(true);
   });
 
   describe('onSubmit validation', () => {
