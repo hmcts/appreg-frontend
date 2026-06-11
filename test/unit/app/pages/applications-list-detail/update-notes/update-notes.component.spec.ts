@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { PLATFORM_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import {
@@ -27,9 +28,13 @@ describe('UpdateNotesComponent', () => {
   };
 
   const entriesApiStub: jest.Mocked<
-    Pick<ApplicationListEntriesApi, 'getApplicationListEntry'>
+    Pick<
+      ApplicationListEntriesApi,
+      'getApplicationListEntry' | 'updateClosedApplicationListEntry'
+    >
   > = {
     getApplicationListEntry: jest.fn(),
+    updateClosedApplicationListEntry: jest.fn(),
   };
 
   const entryDetail: EntryGetDetailDto = {
@@ -51,6 +56,7 @@ describe('UpdateNotesComponent', () => {
 
   beforeEach(async () => {
     entriesApiStub.getApplicationListEntry.mockReturnValue(of(entryDetail));
+    entriesApiStub.updateClosedApplicationListEntry.mockReturnValue(of({}));
     history.replaceState({ updateNotesApplication: navigationContext }, '');
 
     await TestBed.configureTestingModule({
@@ -66,6 +72,10 @@ describe('UpdateNotesComponent', () => {
     fixture = TestBed.createComponent(UpdateNotesComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   it('loads route ids, selected application context and existing application notes', () => {
@@ -102,5 +112,91 @@ describe('UpdateNotesComponent', () => {
     expect(freshComponent.errorSummaryItems()).toEqual([
       { text: 'Unable to load application notes' },
     ]);
+  });
+
+  it('saves additional notes using the closed entry update endpoint', () => {
+    component.form.controls.additionalNotes.setValue('Court admin note');
+
+    component.onSaveAdditionalNotes();
+
+    expect(
+      entriesApiStub.updateClosedApplicationListEntry,
+    ).toHaveBeenCalledWith(
+      {
+        listId: 'list-1',
+        entryId: 'entry-1',
+        entryUpdateClosedDto: {
+          additionalNotes: 'Court admin note',
+        },
+      },
+      'body',
+      false,
+      { transferCache: false },
+    );
+    expect(component.errorSummaryItems()).toEqual([]);
+    expect(component.successMessage()).toBe(
+      'Application entry updated successfully',
+    );
+    expect(component.form.getRawValue()).toEqual({
+      applicationNotes: 'Existing application notes\nCourt admin note',
+      additionalNotes: '',
+    });
+    expect(component.isSubmitting()).toBe(false);
+  });
+
+  it('uses returned notes from the save response when available', () => {
+    entriesApiStub.updateClosedApplicationListEntry.mockReturnValue(
+      of({ notes: 'Updated notes returned by API' }),
+    );
+    component.form.controls.additionalNotes.setValue('Court admin note');
+
+    component.onSaveAdditionalNotes();
+
+    expect(component.form.getRawValue()).toEqual({
+      applicationNotes: 'Updated notes returned by API',
+      additionalNotes: '',
+    });
+    expect(component.form.controls.additionalNotes.pristine).toBe(true);
+    expect(component.form.controls.additionalNotes.touched).toBe(false);
+  });
+
+  it('does not save when additional notes exceed 400 characters', () => {
+    component.form.controls.additionalNotes.setValue('a'.repeat(401));
+
+    component.onSaveAdditionalNotes();
+
+    expect(
+      entriesApiStub.updateClosedApplicationListEntry,
+    ).not.toHaveBeenCalled();
+    expect(component.errorSummaryItems()).toEqual([
+      {
+        id: 'additional-notes',
+        href: '#additional-notes',
+        text: 'Additional Notes must be 400 characters or fewer',
+      },
+    ]);
+    expect(component.isAdditionalNotesInvalid()).toBe(true);
+  });
+
+  it.each([
+    [404, 'Application List Entry not found'],
+    [409, 'Application List Entry cannot be updated in its current state'],
+    [500, 'Unable to save notes. Please try again later'],
+  ])('shows a mapped save error for HTTP %s', (status, message) => {
+    entriesApiStub.updateClosedApplicationListEntry.mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status,
+          }),
+      ),
+    );
+
+    component.form.controls.additionalNotes.setValue('Court admin note');
+    component.onSaveAdditionalNotes();
+
+    expect(component.successMessage()).toBeNull();
+    expect(component.errorSummaryItems()).toEqual([{ text: message }]);
+    expect(component.isSubmitting()).toBe(false);
   });
 });

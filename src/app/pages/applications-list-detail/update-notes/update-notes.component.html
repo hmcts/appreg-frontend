@@ -6,7 +6,13 @@
 />
 
 @if (errorSummaryItems().length) {
-  <app-error-summary title="There is a problem" [items]="errorSummaryItems()" />
+  <app-error-summary
+    title="There is a problem"
+    [items]="errorSummaryItems()"
+    (itemSelect)="onCreateErrorClick($event)"
+  />
+} @else if (successMessage(); as message) {
+  <app-success-banner [heading]="message" />
 }
 
 <h1 class="govuk-heading-xl">Update Application Notes</h1>
@@ -37,17 +43,31 @@
     />
   </div>
 
-  <div class="govuk-form-group">
+  <div
+    class="govuk-form-group"
+    [class.govuk-form-group--error]="isAdditionalNotesInvalid()"
+  >
     <label class="govuk-label govuk-label--s" for="additional-notes">
       Additional Notes
     </label>
+    @if (isAdditionalNotesInvalid()) {
+      <p id="additional-notes-error" class="govuk-error-message">
+        <span class="govuk-visually-hidden">Error:</span>
+        {{ additionalNotesError() }}
+      </p>
+    }
     <app-govuk-textarea
       [control]="form.controls.additionalNotes"
       id="additional-notes"
       name="additionalNotes"
-      ariaDescribedBy="additional-notes-hint"
+      [ariaDescribedBy]="
+        isAdditionalNotesInvalid()
+          ? 'additional-notes-error additional-notes-hint'
+          : 'additional-notes-hint'
+      "
       [rows]="6"
       [maxCharacterLimit]="400"
+      [isInvalid]="isAdditionalNotesInvalid()"
     />
   </div>
 
@@ -55,8 +75,13 @@
     <a class="govuk-link" [routerLink]="['/applications-list', listId]">
       Return to Applications
     </a>
-    <button type="button" class="govuk-button" disabled>
-      Save Additional Notes
+    <button
+      type="button"
+      class="govuk-button"
+      [disabled]="isSubmitting()"
+      (click)="onSaveAdditionalNotes()"
+    >
+      {{ isSubmitting() ? 'Saving...' : 'Save Additional Notes' }}
     </button>
   </div>
 </form>
