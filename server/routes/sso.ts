@@ -173,6 +173,12 @@ export function setupSsoRoutes(
       const state =
         typeof req.query['state'] === 'string' ? req.query['state'] : undefined;
       if (!code || !state || state !== req.session.authState) {
+        logger.warn(
+          `[sso] invalid auth response codePresent=${Boolean(code)} ` +
+            `statePresent=${Boolean(state)} ` +
+            `sessionAuthStatePresent=${Boolean(req.session.authState)} ` +
+            `stateMatches=${state === req.session.authState}`,
+        );
         res.status(400).send('Invalid auth response.');
         return;
       }
