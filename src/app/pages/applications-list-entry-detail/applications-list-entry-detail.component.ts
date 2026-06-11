@@ -36,7 +36,7 @@ import {
   ApplicationsListEntryDetailState,
   initialApplicationsListEntryDetailState,
 } from './util/applications-list-entry-detail.state';
-import { focusSuccessBanner } from './util/banners.util';
+import { focusLocalBanner, focusSuccessBanner } from './util/banners.util';
 import {
   APPLICANT_COLUMNS,
   CIVIL_FEE_COLUMNS,
@@ -358,6 +358,8 @@ export class ApplicationsListEntryDetail implements OnInit {
       wordingFields: dto.wordingFields,
     });
     this.wordingAppliedBannerVisible.set(true);
+
+    focusLocalBanner(this.platformId, '#wording-local-banner');
   }
 
   onWordingAppliedBannerDismissed(): void {
@@ -1354,6 +1356,8 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.resultsFacade.setPending(payload.pendingToCreate ?? []);
 
     this.resultAppliedBannerVisible.set(true);
+
+    focusLocalBanner(this.platformId, '#results-local-banner');
 
     this.appListEntryDetailPatch({
       pendingResults:

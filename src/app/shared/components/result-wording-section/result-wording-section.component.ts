@@ -134,17 +134,26 @@ export class ResultWordingSectionComponent {
   }
 
   get filteredResultCodes(): ResultCodeGetSummaryDto[] {
-    if (this.pending().length > 0) {
-      return [];
-    }
-
     const q = this.norm(this.resultCodeSearch);
     if (!q) {
       return [];
     }
 
+    const pendingCodes = new Set(
+      this.pending().map((row) => this.normCode(row.resultCode)),
+    );
+    const existingCodes = new Set(
+      (this.existingResults() ?? []).map((row) =>
+        this.normCode(row.resultCode),
+      ),
+    );
+
     return this.resultCodesList()
       .filter((rc) => this.norm(`${rc.resultCode} ${rc.title}`).includes(q))
+      .filter((rc) => {
+        const code = this.normCode(rc.resultCode);
+        return !pendingCodes.has(code) && !existingCodes.has(code);
+      })
       .slice(0, 50);
   }
 
@@ -270,8 +279,7 @@ export class ResultWordingSectionComponent {
       wording: '-',
     };
 
-    //Only allow one result to be added at a time
-    this.pending.set([row]);
+    this.pending.update((pendingRows) => [...pendingRows, row]);
     this.pendingVersion.update((n) => n + 1);
     this.pendingChange.emit(this.pending());
     this.resultCodeSearch = '';
@@ -400,7 +408,9 @@ export class ResultWordingSectionComponent {
       this.pendingVersion.update((n) => n + 1);
     }
 
-    this.pending.set([updated]);
+    this.pending.update((rows) =>
+      rows.map((row) => (row.tempId === pendingRow.tempId ? updated : row)),
+    );
     this.pendingChange.emit(this.pending());
     this.handleValidationResponse(card.id, []);
   }
@@ -569,7 +579,10 @@ export class ResultWordingSectionComponent {
   }
 
   private buildSubmitPayload(): ResultSectionSubmitPayload {
-    const pendingToCreate = this.pending().slice(0, 1);
+    const pendingToCreate = this.pending().map((row) => ({
+      ...row,
+      wordingFields: (row.wordingFields ?? []).map((field) => ({ ...field })),
+    }));
     const draftById = this.existingWordingDraftById();
     const originalById = this.existingOriginalFieldsById();
     const appliedById = this.appliedExistingWordingDraftById();
