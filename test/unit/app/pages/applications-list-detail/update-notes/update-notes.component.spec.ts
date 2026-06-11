@@ -99,6 +99,18 @@ describe('UpdateNotesComponent', () => {
     expect(component.form.controls.applicationNotes.disabled).toBe(true);
   });
 
+  it('shows the character counter only for Additional Notes', () => {
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.querySelector('#application-notes-hint')).toBeNull();
+    expect(
+      element.querySelector('#application-notes')?.getAttribute('aria-describedby'),
+    ).toBeNull();
+    expect(element.querySelector('#additional-notes-hint')?.textContent).toContain(
+      'You have 400 characters remaining',
+    );
+  });
+
   it('shows an error summary item when application notes cannot be loaded', async () => {
     entriesApiStub.getApplicationListEntry.mockReturnValue(
       throwError(() => new Error('load failed')),
