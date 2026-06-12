@@ -1,10 +1,12 @@
 import {
   Component,
+  OnInit,
   PLATFORM_ID,
   computed,
   inject,
   signal,
 } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { ApplicationsColumns } from '../applications.component';
 
@@ -55,9 +57,10 @@ type ApplicationsResultContext = Pick<
   templateUrl: './applications-result-selected.component.html',
   styleUrl: './applications-result-selected.component.scss',
 })
-export class ApplicationsResultSelectedComponent {
+export class ApplicationsResultSelectedComponent implements OnInit {
   private readonly platformId = inject(PLATFORM_ID);
   readonly resultsFacade = inject(ApplicationListEntryResultsFacade);
+  private readonly router = inject(Router);
 
   private readonly selectedResultCode = signal<string[]>([]);
 
@@ -72,12 +75,20 @@ export class ApplicationsResultSelectedComponent {
 
   columns = ApplicationsColumns.filter((column) => column.field !== 'actions');
 
-  rows: ApplicationsResultContext[] =
-    (
-      history.state as {
-        entriesToResult?: ApplicationsResultContext[];
-      }
-    )?.entriesToResult ?? [];
+  rows: ApplicationsResultContext[] = [];
+
+  ngOnInit(): void {
+    this.rows =
+      (
+        history.state as {
+          entriesToResult?: ApplicationsResultContext[];
+        }
+      )?.entriesToResult ?? [];
+
+    if (!this.rows.length) {
+      void this.router.navigate(['../']);
+    }
+  }
 
   readonly createdEntryResults = computed(() => {
     const createdResults = this.resultsFacade.newlyCreatedEntryResults() ?? [];

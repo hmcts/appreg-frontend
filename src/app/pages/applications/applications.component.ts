@@ -350,7 +350,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   async onResultSelectedClick(): Promise<void> {
-    const rows = this.vm().selectedRows;
+    const rows = await this.resolveSelectedRows();
 
     if (!rows.length) {
       this.patchApp({
