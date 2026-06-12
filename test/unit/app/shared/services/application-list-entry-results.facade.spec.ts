@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 
 import {
   ApplicationListEntryResultsApi,
@@ -30,6 +30,40 @@ function makeDetail(
     wording: 'Wording',
     ...overrides,
   } as unknown as ResultCodeGetDetailDto;
+}
+
+type PrivateFacadeMethods = {
+  toUniqueEntryIds: (entryIds: string[]) => string[];
+  buildCreateRequests: (
+    selectedEntryIds: string[],
+    payload: {
+      pendingToCreate: PendingResultRow[];
+      existingToUpdate: Array<{
+        resultId: string;
+        resultCode: string;
+        wordingFields: Array<{ key: string; value: string }>;
+      }>;
+    },
+    requestFactory: (
+      item: PendingResultRow,
+      ids: string[],
+    ) => Observable<ResultGetDto[]>,
+  ) => Observable<ResultGetDto[]>[];
+  submitCombinedRequests: (
+    updateRequests: Observable<
+      | { result: ResultGetDto; success: true }
+      | { error: unknown; success: false }
+    >[],
+    createRequests: Observable<ResultGetDto[]>[],
+    onSuccess?: () => void,
+    onError?: (err: unknown) => void,
+  ) => void;
+};
+
+function getFacadeInternals(
+  value: ApplicationListEntryResultsFacade,
+): PrivateFacadeMethods {
+  return value as unknown as PrivateFacadeMethods;
 }
 
 describe('ApplicationListEntryResultsFacade', () => {
@@ -91,6 +125,138 @@ describe('ApplicationListEntryResultsFacade', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  describe('toUniqueEntryIds(), buildCreateRequests(), submitCombinedRequests()', () => {
+    it('toUniqueEntryIds removes duplicates and empty values', () => {
+      const internals = getFacadeInternals(facade);
+
+      expect(
+        internals.toUniqueEntryIds(['E-1', '', 'E-2', 'E-1', null as never]),
+      ).toEqual(['E-1', 'E-2']);
+    });
+
+    it('buildCreateRequests filters empty result codes and passes shared entry ids to the request factory', () => {
+      const internals = getFacadeInternals(facade);
+      const requestFactory = jest.fn(() => of([]));
+
+      const requests = internals.buildCreateRequests(
+        ['E-1', 'E-2'],
+        {
+          pendingToCreate: [
+            {
+              resultCode: 'RC1',
+              wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+            } as PendingResultRow,
+            {
+              resultCode: '',
+              wordingFields: [{ key: 'Place', value: 'London' }],
+            } as PendingResultRow,
+            {
+              resultCode: 'RC2',
+              wordingFields: [],
+            } as unknown as PendingResultRow,
+          ],
+          existingToUpdate: [],
+        },
+        requestFactory,
+      );
+
+      expect(requests).toHaveLength(2);
+      expect(requestFactory).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ resultCode: 'RC1' }),
+        ['E-1', 'E-2'],
+      );
+      expect(requestFactory).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ resultCode: 'RC2' }),
+        ['E-1', 'E-2'],
+      );
+    });
+
+    it('buildCreateRequests returns no requests when there are no selected entry ids', () => {
+      const internals = getFacadeInternals(facade);
+      const requestFactory = jest.fn(() => of([]));
+
+      const requests = internals.buildCreateRequests(
+        [],
+        {
+          pendingToCreate: [
+            {
+              resultCode: 'RC1',
+              wordingFields: [],
+            } as unknown as PendingResultRow,
+          ],
+          existingToUpdate: [],
+        },
+        requestFactory,
+      );
+
+      expect(requests).toEqual([]);
+      expect(requestFactory).not.toHaveBeenCalled();
+    });
+
+    it('submitCombinedRequests merges created results, clears pending state, and calls onSuccess when requests succeed', () => {
+      const internals = getFacadeInternals(facade);
+      const onSuccess = jest.fn();
+      const onError = jest.fn();
+      const mergedResult = makeResult({
+        id: 'R-200',
+        entryId: 'E-1',
+        resultCode: 'RC2',
+      });
+
+      facade.pendingRows.set([
+        {
+          resultCode: 'RC2',
+          wordingFields: [{ key: 'Date', value: '2026-03-04' }],
+        } as PendingResultRow,
+      ]);
+
+      internals.submitCombinedRequests(
+        [
+          of({
+            result: makeResult({ id: 'R-100', entryId: 'E-9' }),
+            success: true as const,
+          }),
+        ],
+        [of([mergedResult])],
+        onSuccess,
+        onError,
+      );
+
+      expect(facade.newlyCreatedEntryResults()).toEqual([
+        makeResult({ id: 'R-100', entryId: 'E-9' }),
+        mergedResult,
+      ]);
+      expect(facade.clearPendingToken()).toBe(1);
+      expect(facade.pendingRows()).toEqual([]);
+      expect(onSuccess).toHaveBeenCalled();
+      expect(onError).not.toHaveBeenCalled();
+    });
+
+    it('submitCombinedRequests reports failed wrapped updates and does not call onSuccess', () => {
+      const internals = getFacadeInternals(facade);
+      const onSuccess = jest.fn();
+      const onError = jest.fn();
+      const error = new Error('update failed');
+
+      internals.submitCombinedRequests(
+        [
+          of({
+            error,
+            success: false as const,
+          }),
+        ],
+        [],
+        onSuccess,
+        onError,
+      );
+
+      expect(onSuccess).not.toHaveBeenCalled();
+      expect(onError).toHaveBeenCalledWith(error);
+    });
   });
 
   describe('loadEntryResults', () => {
