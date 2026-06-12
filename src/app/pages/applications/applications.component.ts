@@ -381,6 +381,13 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       return;
     }
 
+    if (rowsToResult.length >= 50) {
+      this.patchApp({
+        errorSummary: [{ text: 'You can only result 50 or less applications' }],
+      });
+      return;
+    }
+
     // Exclude status as we can only result open applications
     const entriesToResult = rowsToResult.map((row) => ({
       id: row.id,

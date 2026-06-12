@@ -2,7 +2,7 @@ import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { LOCALE_ID, PLATFORM_ID, type WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
 
 import { Applications } from '@components/applications/applications.component';
@@ -1298,6 +1298,80 @@ describe('ApplicationsComponent', () => {
       expect(component.vm().errorSummary).toEqual([
         { text: APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry },
       ]);
+    });
+  });
+
+  describe('onResultSelectedClick', () => {
+    const makeResultRow = (id: string): ApplicationRow => ({
+      ...makeSelectedRow(id, `list-${id}`),
+      date: '2026-06-12',
+      applicant: `Applicant ${id}`,
+      respondent: `Respondent ${id}`,
+      title: `Title ${id}`,
+      status: 'Open',
+    });
+
+    it('shows an error and does not navigate when 50 applications are selected to result', async () => {
+      const rows = Array.from({ length: 50 }, (_, index) =>
+        makeResultRow(`entry-${index + 1}`),
+      );
+      const resolveSelectedRowsSpy = jest
+        .spyOn(
+          component as unknown as {
+            resolveSelectedRows(): Promise<ApplicationRow[]>;
+          },
+          'resolveSelectedRows',
+        )
+        .mockResolvedValue(rows);
+      const navigateSpy = jest
+        .spyOn((component as unknown as { router: Router }).router, 'navigate')
+        .mockResolvedValue(true);
+
+      await component.onResultSelectedClick();
+
+      expect(resolveSelectedRowsSpy).toHaveBeenCalled();
+      expect(navigateSpy).not.toHaveBeenCalled();
+      expect(component.vm().errorSummary).toEqual([
+        { text: 'You can only result 50 or less applications' },
+      ]);
+    });
+
+    it('navigates to result-selected when fewer than 50 open applications are selected', async () => {
+      const rows = Array.from({ length: 49 }, (_, index) =>
+        makeResultRow(`entry-${index + 1}`),
+      );
+      const navigateSpy = jest
+        .spyOn((component as unknown as { router: Router }).router, 'navigate')
+        .mockResolvedValue(true);
+
+      jest
+        .spyOn(
+          component as unknown as {
+            resolveSelectedRows(): Promise<ApplicationRow[]>;
+          },
+          'resolveSelectedRows',
+        )
+        .mockResolvedValue(rows);
+
+      await component.onResultSelectedClick();
+
+      expect(navigateSpy).toHaveBeenCalledWith(
+        ['result-selected'],
+        expect.objectContaining({
+          relativeTo: TestBed.inject(ActivatedRoute),
+          state: {
+            entriesToResult: rows.map((row) => ({
+              id: row.id,
+              listId: row.applicationListId,
+              date: row.date,
+              applicant: row.applicant,
+              respondent: row.respondent,
+              title: row.title,
+            })),
+            ignoredSelected: false,
+          },
+        }),
+      );
     });
   });
 
