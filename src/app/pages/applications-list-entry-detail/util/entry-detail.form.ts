@@ -303,10 +303,10 @@ export function buildEntryUpdateDtoFromForm(
     caseReference: detail.caseReference,
     accountNumber: detail.accountNumber,
     notes: detail.notes,
+    officials: detail.officials,
   };
 
-  // Reuse existing mapper to build a “patch”
-  const patch: Partial<EntryUpdateDto> = {
+  const patch = {
     ...buildEntryCreateDto(
       formValue,
       applicantPersonValue,
@@ -315,7 +315,9 @@ export function buildEntryUpdateDtoFromForm(
       respondentOrgValue,
     ),
     ...buildOfficialsFromFormValue(formValue),
-  };
+  } as Partial<EntryUpdateDto> & { lodgementDate?: string };
+
+  delete patch.lodgementDate;
 
   const dto: EntryUpdateDto = {
     ...base,
@@ -472,7 +474,6 @@ export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
   }
 
   const base: EntryUpdateDto = {
-    // full copy of current server state
     standardApplicantCode: detail.standardApplicantCode,
     applicationCode: detail.applicationCode,
     applicant: detail.applicant,
@@ -487,7 +488,7 @@ export function buildEntryUpdateDtoWithChange<K extends keyof EntryUpdateDto>(
     caseReference: detail.caseReference,
     accountNumber: detail.accountNumber,
     notes: detail.notes,
-    ...(detail as { officials?: Official[] }),
+    officials: detail.officials,
   };
 
   const dto: EntryUpdateDto = {

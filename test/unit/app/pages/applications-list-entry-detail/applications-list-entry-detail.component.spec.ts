@@ -1273,11 +1273,10 @@ describe('ApplicationsListEntryDetail', () => {
     const formSvc = TestBed.inject(ApplicationListEntryFormService);
 
     const dto: EntryUpdateDto = {
-      lodgementDate: '2025-11-01',
       applicationCode: 'APP-100',
       standardApplicantCode: 'SA-999',
       applicant: undefined,
-    } as unknown as EntryUpdateDto;
+    };
 
     jest.spyOn(formSvc, 'buildUpdateDto').mockReturnValue(dto);
 
@@ -1308,6 +1307,52 @@ describe('ApplicationsListEntryDetail', () => {
 
     expect(component['appListEntryDetailState']().successBanner?.heading).toBe(
       'Applicant updated',
+    );
+  });
+
+  it('onUpdateApplicant sends an update payload without lodgementDate or detail-only fields', () => {
+    component['entryDetail'] = {
+      id: 'EN-1',
+      listId: 'AL-1',
+      applicationCode: 'APP100',
+      numberOfRespondents: 0,
+      lodgementDate: '2025-11-01',
+      wording: {
+        template: 'At {{Court}}',
+        'substitution-key-constraints': [
+          { key: 'Court', value: 'Court A', constraint: { length: 20 } },
+        ],
+      },
+    } as EntryGetDetailDto;
+
+    component['form'].patchValue({
+      applicantType: 'standard',
+      applicationCode: 'APP100',
+      lodgementDate: '2026-01-01',
+    });
+    component.onStandardApplicantCodeChanged('SA-999');
+    component['form'].controls.standardApplicantCode.setValue('SA-999', {
+      emitEvent: false,
+    });
+
+    mockUpdateApplicationListEntry.mockClear();
+
+    component.onUpdateApplicant();
+
+    expect(mockUpdateApplicationListEntry).toHaveBeenCalledTimes(1);
+
+    const updatePayload = mockUpdateApplicationListEntry.mock.calls[0][0]
+      .entryUpdateDto as Record<string, unknown>;
+
+    expect(updatePayload).not.toHaveProperty('lodgementDate');
+    expect(updatePayload).not.toHaveProperty('id');
+    expect(updatePayload).not.toHaveProperty('listId');
+    expect(updatePayload).not.toHaveProperty('wording');
+    expect(updatePayload).toEqual(
+      expect.objectContaining({
+        applicationCode: 'APP100',
+        standardApplicantCode: 'SA-999',
+      }),
     );
   });
 
