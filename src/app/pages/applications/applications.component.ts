@@ -389,9 +389,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       applicant: row.applicant,
       respondent: row.respondent,
       title: row.title,
-      fee: row.fee,
-      resulted: row.resulted,
-      status: row.status,
     }));
 
     await this.router.navigate(['result-selected'], {

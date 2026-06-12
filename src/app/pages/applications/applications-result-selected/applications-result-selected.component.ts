@@ -35,14 +35,7 @@ import {
 
 type ApplicationsResultContext = Pick<
   ApplicationRow,
-  | 'id'
-  | 'date'
-  | 'applicant'
-  | 'respondent'
-  | 'title'
-  | 'fee'
-  | 'resulted'
-  | 'status'
+  'id' | 'date' | 'applicant' | 'respondent' | 'title'
 > & {
   listId: string;
 };
