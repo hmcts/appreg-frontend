@@ -1,3 +1,4 @@
+import { isPlatformBrowser } from '@angular/common';
 import {
   Component,
   OnInit,
@@ -87,19 +88,21 @@ export class ApplicationsResultSelectedComponent implements OnInit {
   rows: ApplicationsResultContext[] = [];
 
   ngOnInit(): void {
-    this.rows =
-      (
-        history.state as {
-          entriesToResult?: ApplicationsResultContext[];
-        }
-      )?.entriesToResult ?? [];
+    this.rows = isPlatformBrowser(this.platformId)
+      ? ((
+          history.state as {
+            entriesToResult?: ApplicationsResultContext[];
+          }
+        )?.entriesToResult ?? [])
+      : [];
 
-    const hasExcludedRows =
-      (
-        history.state as {
-          ignoredSelected?: boolean;
-        }
-      ).ignoredSelected ?? false;
+    const hasExcludedRows = isPlatformBrowser(this.platformId)
+      ? ((
+          history.state as {
+            ignoredSelected?: boolean;
+          }
+        ).ignoredSelected ?? false)
+      : false;
 
     if (!this.rows.length) {
       void this.router.navigate(['../'], { relativeTo: this.route });
