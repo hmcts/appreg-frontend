@@ -359,6 +359,7 @@ describe('ApplicationListEntryFormService', () => {
         },
       }),
     );
+    expect(dto as Record<string, unknown>).not.toHaveProperty('lodgementDate');
     expect(dto.applicant).toBeUndefined();
   });
 
