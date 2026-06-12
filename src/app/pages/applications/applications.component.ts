@@ -101,6 +101,17 @@ const APPLICATIONS_SORT_MAP: Record<string, string> = {
   status: 'status',
 };
 
+export const ApplicationsColumns = [
+  { header: 'Date', field: 'date', wrap: false },
+  { header: 'Applicant', field: 'applicant' },
+  { header: 'Respondent', field: 'respondent' },
+  { header: 'Application title', field: 'title' },
+  { header: 'Fee', field: 'fee' },
+  { header: 'Resulted', field: 'resulted' },
+  { header: 'Status', field: 'status' },
+  { header: 'Actions', field: 'actions', sortable: false },
+];
+
 @Component({
   selector: 'app-applications',
   standalone: true,
@@ -161,16 +172,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     status: new FormControl<string | null>(null),
   });
 
-  columns = [
-    { header: 'Date', field: 'date', wrap: false },
-    { header: 'Applicant', field: 'applicant' },
-    { header: 'Respondent', field: 'respondent' },
-    { header: 'Application title', field: 'title' },
-    { header: 'Fee', field: 'fee' },
-    { header: 'Resulted', field: 'resulted' },
-    { header: 'Status', field: 'status' },
-    { header: 'Actions', field: 'actions', sortable: false },
-  ];
+  columns = ApplicationsColumns;
 
   status = [
     { label: 'Choose', value: '' },
@@ -364,9 +366,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     // Only result status = 'open' applications
     if (!rowsToResult.length) {
       this.patchApp({
-        errorSummary: [
-          { text: "You can only result applications whose status is 'OPEN'" },
-        ],
+        errorSummary: [{ text: 'You can only result open application(s)' }],
       });
       return;
     }
@@ -374,12 +374,14 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     // Exclude status as we can only result open applications
     const entriesToResult = rowsToResult.map((row) => ({
       id: row.id,
+      listId: row.applicationListId,
       date: row.date,
       applicant: row.applicant,
       respondent: row.respondent,
       title: row.title,
       fee: row.fee,
       resulted: row.resulted,
+      status: row.status,
     }));
 
     await this.router.navigate(['result-selected'], {
