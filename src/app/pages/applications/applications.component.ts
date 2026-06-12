@@ -388,6 +388,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       relativeTo: this.route,
       state: {
         entriesToResult,
+        ignoredSelected: rows.length > rowsToResult.length,
       },
     });
   }

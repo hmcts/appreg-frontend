@@ -10,6 +10,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApplicationsColumns } from '../applications.component';
 
+import { AlertComponent } from '@components/alert/alert.component';
 import { focusSuccessBanner } from '@components/applications-list-entry-detail/util/banners.util';
 import { mapHttpErrorToSummary } from '@components/applications-list-entry-detail/util/errors.util';
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
@@ -48,11 +49,13 @@ type ApplicationsResultContext = Pick<
 @Component({
   selector: 'app-applications-result-selected',
   providers: [ApplicationListEntryResultsFacade],
+  standalone: true,
   imports: [
     BreadcrumbsComponent,
     ErrorSummaryComponent,
     SuccessBannerComponent,
     ResultWordingSectionComponent,
+    AlertComponent,
   ],
   templateUrl: './applications-result-selected.component.html',
   styleUrl: './applications-result-selected.component.scss',
@@ -70,6 +73,8 @@ export class ApplicationsResultSelectedComponent implements OnInit {
   errorSummaryItems = signal<ErrorItem[]>([]);
   errorFound = computed(() => this.errorSummaryItems().length > 0);
 
+  showInfoBanner = signal(false);
+
   isSubmitting = signal(false);
 
   onCreateErrorClick = onCreateErrorClickFn;
@@ -86,9 +91,18 @@ export class ApplicationsResultSelectedComponent implements OnInit {
         }
       )?.entriesToResult ?? [];
 
+    const hasExcludedRows =
+      (
+        history.state as {
+          ignoredSelected?: boolean;
+        }
+      ).ignoredSelected ?? false;
+
     if (!this.rows.length) {
       void this.router.navigate(['../'], { relativeTo: this.route });
     }
+
+    this.showInfoBanner.set(hasExcludedRows);
   }
 
   readonly createdEntryResults = computed(() => {

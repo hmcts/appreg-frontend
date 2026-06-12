@@ -17,6 +17,13 @@
 
 <h1 class="govuk-heading-xl">Result applications</h1>
 
+@if (showInfoBanner()) {
+  <app-alert
+    [alertType]="'information'"
+    [message]="'Application(s) which are closed have been removed from the selection'"
+  />
+}
+
 <app-result-wording-section
   [resultApplicantContext]="rows"
   [resultCodesList]="resultsFacade.resultCodesSignal()"
