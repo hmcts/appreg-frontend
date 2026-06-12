@@ -79,7 +79,10 @@ export class ApplicationsResultSelectedComponent implements OnInit {
 
   onCreateErrorClick = onCreateErrorClickFn;
 
-  columns = ApplicationsColumns.filter((column) => column.field !== 'actions');
+  columns = ApplicationsColumns.filter(
+    (column) =>
+      !['actions', 'fee', 'status', 'resulted'].includes(column.field),
+  );
 
   rows: ApplicationsResultContext[] = [];
 

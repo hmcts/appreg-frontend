@@ -32,6 +32,7 @@ import {
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { SummaryListCardActionComponent } from '@components/summary-list-card-action/summary-list-card-action.component';
 import { WordingParserComponent } from '@components/wording-parser/wording-parser.component';
+import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import { SummaryListCardAction } from '@core-types/summary-list-card-action/summary-list-card.type';
 import {
   ResultCodeGetSummaryDto,
@@ -56,6 +57,7 @@ import { ResultRow, toExistingRows } from '@util/result-code-helpers';
     WordingParserComponent,
     SortableTableComponent,
     AlertComponent,
+    DateTimePipe,
   ],
 })
 export class ResultWordingSectionComponent {

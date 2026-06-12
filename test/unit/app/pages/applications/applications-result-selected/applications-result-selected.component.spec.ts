@@ -118,6 +118,12 @@ describe('ApplicationsResultSelectedComponent', () => {
     ]);
   });
 
+  it('omits actions, fees, status, and resulted columns from the table', () => {
+    expect(component.columns.map((column) => column.field)).not.toEqual(
+      expect.arrayContaining(['actions', 'fee', 'status', 'resulted']),
+    );
+  });
+
   it('onSubmitResults groups entries by listId and applies pending results via bulkResultEntries', () => {
     const createdResult = {
       id: 'result-1',
