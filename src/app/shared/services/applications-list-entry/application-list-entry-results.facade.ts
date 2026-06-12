@@ -36,6 +36,11 @@ type BulkResultUpdate =
       success: false;
     };
 
+type EntryGroupByListId = {
+  listId: string;
+  entryIds: string[];
+};
+
 @Injectable()
 export class ApplicationListEntryResultsFacade {
   private readonly destroyRef = inject(DestroyRef);
@@ -91,120 +96,67 @@ export class ApplicationListEntryResultsFacade {
       return;
     }
 
-    const currentCreatedResults = this.newlyCreatedEntryResults() ?? [];
-    const createdById = new Map(
-      currentCreatedResults
-        .filter((result) => !!result.id)
-        .map((result) => [result.id, result]),
+    const updateRequests = this.buildUpdateRequests(payload, [
+      { listId, entryIds },
+    ]);
+    const createRequests = this.buildCreateRequests(
+      this.toUniqueEntryIds(entryIds),
+      payload,
+      (item, selectedEntryIds) =>
+        this.entryResultsApi.bulkResultApplicationListEntries({
+          listId,
+          bulkResultDto: {
+            entryIds: selectedEntryIds,
+            result: {
+              resultCode: item.resultCode.trim(),
+              wordingFields: item.wordingFields ?? [],
+            },
+          },
+        }),
     );
 
-    const updateRequests: Observable<BulkResultUpdate>[] = [];
-    (payload.existingToUpdate ?? [])
-      .filter((item) => !!item.resultId && !!item.resultCode)
-      .forEach((item) => {
-        const anchor = createdById.get(item.resultId);
-        if (!anchor?.entryId) {
-          return;
-        }
+    this.submitCombinedRequests(
+      updateRequests,
+      createRequests,
+      onSuccess,
+      onError,
+    );
+  }
 
-        currentCreatedResults
-          .filter((result) =>
-            this.areLogicallyEquivalentResults(result, anchor),
-          )
-          .forEach((result) => {
-            if (!result.entryId || !result.id) {
-              return;
-            }
-
-            updateRequests.push(
-              this.entryResultsApi
-                .updateApplicationListEntryResult({
-                  listId,
-                  entryId: result.entryId,
-                  resultId: result.id,
-                  resultUpdateDto: {
-                    resultCode: item.resultCode.trim(),
-                    wordingFields: item.wordingFields ?? [],
-                  },
-                })
-                .pipe(
-                  map(
-                    (updatedResult): BulkResultUpdate => ({
-                      result: updatedResult,
-                      success: true,
-                    }),
-                  ),
-                  catchError((error: unknown) =>
-                    of({
-                      error,
-                      success: false,
-                    } as BulkResultUpdate),
-                  ),
-                ),
-            );
-          });
-      });
-
-    const selectedEntryIds = [
-      ...new Set((entryIds ?? []).filter((entryId) => !!entryId)),
-    ];
-    const createRequests: Observable<ResultGetDto[]>[] = [];
-    (payload.pendingToCreate ?? [])
-      .filter((item) => !!item.resultCode)
-      .forEach((item) => {
-        if (selectedEntryIds.length === 0) {
-          return;
-        }
-
-        createRequests.push(
-          this.entryResultsApi.bulkResultApplicationListEntries({
-            listId,
-            bulkResultDto: {
-              entryIds: selectedEntryIds,
-              result: {
-                resultCode: item.resultCode.trim(),
-                wordingFields: item.wordingFields ?? [],
-              },
-            },
-          }),
-        );
-      });
-
-    const allRequests: Observable<BulkResultUpdate | ResultGetDto[]>[] = [
-      ...updateRequests,
-      ...createRequests,
-    ];
-    if (allRequests.length === 0) {
+  submitResultsWithManyListIds(
+    entryGroups: EntryGroupByListId[],
+    payload: ResultSectionSubmitPayload,
+    onSuccess?: () => void,
+    onError?: (err: unknown) => void,
+  ): void {
+    if (!payload || !entryGroups.length) {
       return;
     }
 
-    forkJoin(allRequests)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (results) => {
-          this.mergeCreatedEntryResults(
-            results.flatMap((result) => this.toResultGetDtos(result)),
-          );
+    const updateRequests = this.buildUpdateRequests(payload, entryGroups);
+    const createRequests = this.buildCreateRequests(
+      this.toUniqueEntryIds(
+        entryGroups.flatMap((group) => group.entryIds ?? []),
+      ),
+      payload,
+      (item, selectedEntryIds) =>
+        this.entryResultsApi.bulkResultEntries({
+          bulkResultDto: {
+            entryIds: selectedEntryIds,
+            result: {
+              resultCode: item.resultCode.trim(),
+              wordingFields: item.wordingFields ?? [],
+            },
+          },
+        }),
+    );
 
-          const failedUpdates = results.filter(
-            (result): result is Extract<BulkResultUpdate, { success: false }> =>
-              this.isBulkResultUpdate(result) && !result.success,
-          );
-
-          if (createRequests.length > 0) {
-            this.clearPendingToken.update((n) => n + 1);
-            this.pendingRows.set([]);
-          }
-
-          if (failedUpdates.length > 0) {
-            onError?.(failedUpdates[0].error);
-            return;
-          }
-
-          onSuccess?.();
-        },
-        error: (err) => onError?.(err),
-      });
+    this.submitCombinedRequests(
+      updateRequests,
+      createRequests,
+      onSuccess,
+      onError,
+    );
   }
 
   removeCreatedEntryResults(
@@ -560,6 +512,151 @@ export class ApplicationListEntryResultsFacade {
 
   private normalizedWordingTemplate(result: ResultGetDto): string {
     return (result.wording?.template ?? '').trim();
+  }
+
+  private toUniqueEntryIds(entryIds: string[]): string[] {
+    return [...new Set((entryIds ?? []).filter((entryId) => !!entryId))];
+  }
+
+  private buildCreateRequests(
+    selectedEntryIds: string[],
+    payload: ResultSectionSubmitPayload,
+    requestFactory: (
+      item: PendingResultRow,
+      selectedEntryIds: string[],
+    ) => Observable<ResultGetDto[]>,
+  ): Observable<ResultGetDto[]>[] {
+    if (selectedEntryIds.length === 0) {
+      return [];
+    }
+
+    return (payload.pendingToCreate ?? [])
+      .filter((item) => !!item.resultCode)
+      .map((item) => requestFactory(item, selectedEntryIds));
+  }
+
+  private submitCombinedRequests(
+    updateRequests: Observable<BulkResultUpdate>[],
+    createRequests: Observable<ResultGetDto[]>[],
+    onSuccess?: () => void,
+    onError?: (err: unknown) => void,
+  ): void {
+    const allRequests: Observable<BulkResultUpdate | ResultGetDto[]>[] = [
+      ...updateRequests,
+      ...createRequests,
+    ];
+    if (allRequests.length === 0) {
+      return;
+    }
+
+    forkJoin(allRequests)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (results) => {
+          this.mergeCreatedEntryResults(
+            results.flatMap((result) => this.toResultGetDtos(result)),
+          );
+
+          const failedUpdates = results.filter(
+            (result): result is Extract<BulkResultUpdate, { success: false }> =>
+              this.isBulkResultUpdate(result) && !result.success,
+          );
+
+          if (createRequests.length > 0) {
+            this.clearPendingToken.update((n) => n + 1);
+            this.pendingRows.set([]);
+          }
+
+          if (failedUpdates.length > 0) {
+            onError?.(failedUpdates[0].error);
+            return;
+          }
+
+          onSuccess?.();
+        },
+        error: (err) => onError?.(err),
+      });
+  }
+
+  private buildUpdateRequests(
+    payload: ResultSectionSubmitPayload,
+    entryGroups: EntryGroupByListId[],
+  ): Observable<BulkResultUpdate>[] {
+    const currentCreatedResults = this.newlyCreatedEntryResults() ?? [];
+    const createdById = new Map(
+      currentCreatedResults
+        .filter((result) => !!result.id)
+        .map((result) => [result.id, result]),
+    );
+    const entryIdToListId = new Map<string, string>();
+
+    (entryGroups ?? [])
+      .filter((group) => !!group.listId)
+      .forEach((group) => {
+        [
+          ...new Set((group.entryIds ?? []).filter((entryId) => !!entryId)),
+        ].forEach((entryId) => {
+          entryIdToListId.set(entryId, group.listId);
+        });
+      });
+
+    const updateRequests: Observable<BulkResultUpdate>[] = [];
+
+    (payload.existingToUpdate ?? [])
+      .filter((item) => !!item.resultId && !!item.resultCode)
+      .forEach((item) => {
+        const anchor = createdById.get(item.resultId);
+        if (!anchor?.entryId) {
+          return;
+        }
+
+        currentCreatedResults
+          .filter(
+            (result) =>
+              this.areLogicallyEquivalentResults(result, anchor) &&
+              !!result.entryId &&
+              !!entryIdToListId.get(result.entryId),
+          )
+          .forEach((result) => {
+            if (!result.entryId || !result.id) {
+              return;
+            }
+
+            const listId = entryIdToListId.get(result.entryId);
+            if (!listId) {
+              return;
+            }
+
+            updateRequests.push(
+              this.entryResultsApi
+                .updateApplicationListEntryResult({
+                  listId,
+                  entryId: result.entryId,
+                  resultId: result.id,
+                  resultUpdateDto: {
+                    resultCode: item.resultCode.trim(),
+                    wordingFields: item.wordingFields ?? [],
+                  },
+                })
+                .pipe(
+                  map(
+                    (updatedResult): BulkResultUpdate => ({
+                      result: updatedResult,
+                      success: true,
+                    }),
+                  ),
+                  catchError((error: unknown) =>
+                    of({
+                      error,
+                      success: false,
+                    } as BulkResultUpdate),
+                  ),
+                ),
+            );
+          });
+      });
+
+    return updateRequests;
   }
 
   private isResultGetDto(value: unknown): value is ResultGetDto {

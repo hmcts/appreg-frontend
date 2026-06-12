@@ -14,7 +14,11 @@
   [captionSize]="captionSize()"
   [columns]="applicantRespondentColumns()"
   [data]="resultApplicantContext()"
-/>
+>
+  <ng-template #dateTemplate let-row>
+    {{ row.date | dateTime }}
+  </ng-template>
+</app-sortable-table>
 
 <div class="govuk-grid-row govuk-!-margin-top-8">
   <app-suggestions

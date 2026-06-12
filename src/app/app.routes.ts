@@ -170,6 +170,14 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'applications/result-selected',
+    loadComponent: () =>
+      import('@components/applications/applications-result-selected/applications-result-selected.component').then(
+        (m) => m.ApplicationsResultSelectedComponent,
+      ),
+    canActivate: [sessionGuard],
+  },
+  {
     path: 'applications',
     loadComponent: () =>
       import('@components/applications/applications.component').then(

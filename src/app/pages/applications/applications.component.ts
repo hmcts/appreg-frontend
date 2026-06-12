@@ -15,7 +15,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { firstValueFrom, forkJoin, map } from 'rxjs';
 
 import {
@@ -101,6 +101,17 @@ const APPLICATIONS_SORT_MAP: Record<string, string> = {
   status: 'status',
 };
 
+export const ApplicationsColumns = [
+  { header: 'Date', field: 'date', wrap: false },
+  { header: 'Applicant', field: 'applicant' },
+  { header: 'Respondent', field: 'respondent' },
+  { header: 'Application title', field: 'title' },
+  { header: 'Fee', field: 'fee' },
+  { header: 'Resulted', field: 'resulted' },
+  { header: 'Status', field: 'status' },
+  { header: 'Actions', field: 'actions', sortable: false },
+];
+
 @Component({
   selector: 'app-applications',
   standalone: true,
@@ -130,6 +141,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   private readonly appListApi = inject(ApplicationListsApi);
   private readonly pdf = inject(PdfService);
   private readonly searchState = inject(ApplicationsSearchStateService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   private readonly appState = createSignalState(initialApplicationsState);
   readonly vm = this.appState.vm;
@@ -159,16 +172,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     status: new FormControl<string | null>(null),
   });
 
-  columns = [
-    { header: 'Date', field: 'date', wrap: false },
-    { header: 'Applicant', field: 'applicant' },
-    { header: 'Respondent', field: 'respondent' },
-    { header: 'Application title', field: 'title' },
-    { header: 'Fee', field: 'fee' },
-    { header: 'Resulted', field: 'resulted' },
-    { header: 'Status', field: 'status' },
-    { header: 'Actions', field: 'actions', sortable: false },
-  ];
+  columns = ApplicationsColumns;
 
   status = [
     { label: 'Choose', value: '' },
@@ -343,6 +347,64 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   onUpdateNotesClick(): void {
     /** TODO: ARCPOC-1333 */
+  }
+
+  async onResultSelectedClick(): Promise<void> {
+    let rows = [];
+    try {
+      rows = await this.resolveSelectedRows();
+    } catch (err) {
+      this.patchApp({
+        errorSummary: [
+          { text: `Failed to resolve selected rows: ${getProblemText(err)}` },
+        ],
+      });
+      return;
+    }
+
+    if (!rows.length) {
+      this.patchApp({
+        errorSummary: [{ text: 'Please select rows to result them' }],
+      });
+      return;
+    }
+
+    const rowsToResult = rows.filter(
+      (row) => row.status.trim().toLowerCase() !== 'closed',
+    );
+
+    // Only result status = 'open' applications
+    if (!rowsToResult.length) {
+      this.patchApp({
+        errorSummary: [{ text: 'You can only result open application(s)' }],
+      });
+      return;
+    }
+
+    if (rowsToResult.length >= 50) {
+      this.patchApp({
+        errorSummary: [{ text: 'You can only result 50 or less applications' }],
+      });
+      return;
+    }
+
+    // Exclude status as we can only result open applications
+    const entriesToResult = rowsToResult.map((row) => ({
+      id: row.id,
+      listId: row.applicationListId,
+      date: row.date,
+      applicant: row.applicant,
+      respondent: row.respondent,
+      title: row.title,
+    }));
+
+    await this.router.navigate(['result-selected'], {
+      relativeTo: this.route,
+      state: {
+        entriesToResult,
+        ignoredSelected: rows.length > rowsToResult.length,
+      },
+    });
   }
 
   private async buildPrintRequest(

@@ -1,0 +1,43 @@
+<!-- Breadcrumbs -->
+<app-breadcrumbs [items]="[{ label: 'Applications', link: '/applications' }]" />
+
+@if (errorFound()) {
+  <app-error-summary
+    [title]="'There is a problem'"
+    [items]="errorSummaryItems()"
+    targetId="results-applicant-table"
+    (itemSelect)="onCreateErrorClick($event)"
+  />
+} @else if (successBanner(); as successBanner) {
+  <app-success-banner
+    [heading]="successBanner.heading"
+    [body]="successBanner.body"
+  />
+}
+
+<h1 class="govuk-heading-xl">Result applications</h1>
+
+@if (showInfoBanner()) {
+  <app-alert
+    [alertType]="'information'"
+    [message]="'Application(s) which are closed have been removed from the selection'"
+  />
+}
+
+<app-result-wording-section
+  [resultApplicantContext]="rows"
+  [resultCodesList]="resultsFacade.resultCodesSignal()"
+  [existingResults]="createdEntryResults()"
+  [clearPendingToken]="resultsFacade.clearPendingToken()"
+  [wordingByCode]="resultsFacade.resultCodeWordingByCode()"
+  [resultCodeTemplateByCode]="resultsFacade.resultCodeTemplateByCode()"
+  [submitting]="isSubmitting()"
+  (pendingChange)="onPendingChange($event)"
+  (submitResults)="onSubmitResults($event)"
+  (removeExisting)="onRemoveResult($event)"
+  (wordingFieldErrors)="onError($event)"
+  [applicantRespondentColumns]="columns"
+  [captionSize]="'m'"
+  [caption]="'Application(s) to result'"
+  [buttonText]="'Save changes'"
+/>
