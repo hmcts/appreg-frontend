@@ -253,6 +253,7 @@ describe('server/session cookie helpers', () => {
         password: 'secret',
         socket: {
           tls: true,
+          servername: 'appreg-infrastructure-stg.uksouth.redis.azure.net',
           connectTimeout: 4321,
         },
       },

@@ -142,6 +142,7 @@ export async function setupSession({
             ...clusterCredentials,
             socket: {
               tls: true,
+              servername: parsedUrl?.hostname,
               connectTimeout: connectTimeoutMs,
             },
           },
