@@ -766,6 +766,7 @@ describe('ApplicationsComponent', () => {
         applicant: 'William Scott',
         respondent: 'Ryan Quinn',
         title: 'Appeal by Case Stated (Civil)',
+        status: ApplicationListStatus.CLOSED,
       };
 
       appStateSignal(component).update((s) => ({
@@ -789,6 +790,30 @@ describe('ApplicationsComponent', () => {
         },
       );
       expect(component.vm().errorSummary).toEqual([]);
+    });
+
+    it('shows an error when the selected application is not from a closed list', async () => {
+      const router = TestBed.inject(Router);
+      const navSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      appStateSignal(component).update((s) => ({
+        ...s,
+        selectedRows: [
+          {
+            ...makeSelectedRow('entry-1', 'list-1'),
+            status: ApplicationListStatus.OPEN,
+          },
+        ],
+      }));
+
+      await component.onUpdateNotesClick();
+
+      expect(navSpy).not.toHaveBeenCalled();
+      expect(component.vm().errorSummary).toEqual([
+        {
+          text: 'Application List Entry cannot be updated in its current state',
+        },
+      ]);
     });
 
     it.each([

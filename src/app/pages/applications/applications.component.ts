@@ -45,6 +45,7 @@ import { DateTimePipe } from '@core/pipes/dateTime.pipe';
 import { PdfService } from '@core/services/pdf.service';
 import { Row } from '@core-types/table/row.types';
 import {
+  ApplicationListStatus,
   ApplicationListEntriesApi,
   ApplicationListGetPrintDto,
   ApplicationListsApi,
@@ -357,6 +358,17 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       this.patchApp({
         errorSummary: [
           { text: 'Unable to update notes for selected application' },
+        ],
+      });
+      return;
+    }
+
+    if (toStatus(row.status) !== ApplicationListStatus.CLOSED) {
+      this.patchApp({
+        errorSummary: [
+          {
+            text: 'Application List Entry cannot be updated in its current state',
+          },
         ],
       });
       return;
