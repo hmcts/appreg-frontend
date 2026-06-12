@@ -6,7 +6,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApplicationsColumns } from '../applications.component';
 
@@ -61,6 +61,7 @@ export class ApplicationsResultSelectedComponent implements OnInit {
   private readonly platformId = inject(PLATFORM_ID);
   readonly resultsFacade = inject(ApplicationListEntryResultsFacade);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   private readonly selectedResultCode = signal<string[]>([]);
 
@@ -86,7 +87,7 @@ export class ApplicationsResultSelectedComponent implements OnInit {
       )?.entriesToResult ?? [];
 
     if (!this.rows.length) {
-      void this.router.navigate(['../']);
+      void this.router.navigate(['../'], { relativeTo: this.route });
     }
   }
 
@@ -184,6 +185,7 @@ export class ApplicationsResultSelectedComponent implements OnInit {
             return;
           }
 
+          this.errorSummaryItems.set([]);
           this.successBanner.set(ENTRY_SUCCESS_MESSAGES.resultsRemoved);
           focusSuccessBanner(this.platformId);
         },
