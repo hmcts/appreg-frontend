@@ -350,7 +350,17 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   async onResultSelectedClick(): Promise<void> {
-    const rows = await this.resolveSelectedRows();
+    let rows = [];
+    try {
+      rows = await this.resolveSelectedRows();
+    } catch (err) {
+      this.patchApp({
+        errorSummary: [
+          { text: `Failed to resolve selected rows: ${getProblemText(err)}` },
+        ],
+      });
+      return;
+    }
 
     if (!rows.length) {
       this.patchApp({
