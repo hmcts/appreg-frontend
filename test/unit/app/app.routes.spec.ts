@@ -8,13 +8,21 @@ describe('app.routes', () => {
     const standardApplicantsRoute = routes.find(
       (route) => route.path === 'standard-applicants',
     );
+    const standardApplicantsIndexRoute =
+      standardApplicantsRoute?.children?.find((route) => route.path === '');
+    const standardApplicantsDetailRoute =
+      standardApplicantsRoute?.children?.find((route) => route.path === ':id');
     const reportsRoute = routes.find((route) => route.path === 'reports');
 
     expect(applicationsRoute?.loadComponent).toBeDefined();
     expect(applicationsRoute?.component).toBeUndefined();
 
-    expect(standardApplicantsRoute?.loadComponent).toBeDefined();
+    expect(standardApplicantsRoute?.loadComponent).toBeUndefined();
     expect(standardApplicantsRoute?.component).toBeUndefined();
+    expect(standardApplicantsIndexRoute?.loadComponent).toBeDefined();
+    expect(standardApplicantsIndexRoute?.component).toBeUndefined();
+    expect(standardApplicantsDetailRoute?.loadComponent).toBeDefined();
+    expect(standardApplicantsDetailRoute?.component).toBeUndefined();
 
     expect(reportsRoute?.loadComponent).toBeDefined();
     expect(reportsRoute?.component).toBeUndefined();
