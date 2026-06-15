@@ -158,6 +158,18 @@ export class StandardApplicants implements OnInit {
     this.loadStandardApplicants(page);
   }
 
+  clearSearch(): void {
+    this.form.reset();
+    this.appliedFilters = {};
+    this.signalState.patch({
+      hasSearched: false,
+      currentPage: 0,
+      totalPages: 0,
+      rows: [],
+      searchErrors: [],
+    });
+  }
+
   private setupEffects(): void {
     setupLoadEffect(
       {

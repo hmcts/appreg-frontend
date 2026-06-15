@@ -130,6 +130,19 @@ describe('ErrorMessageService', () => {
       expect(svc.errorMessage()?.status).toBe(404);
     });
 
+    it('does not navigate for standard applicant search failures handled by the component', () => {
+      const err = makeErr({
+        status: 500,
+        url: 'https://local/standard-applicants?code=SA',
+        error: { title: 'Server error', status: 500 },
+      });
+
+      svc.handleErrorMessage(err);
+
+      expect(router.navigateByUrl).not.toHaveBeenCalled();
+      expect(svc.errorMessage()?.status).toBe(500);
+    });
+
     it('navigates to /forbidden for non-subscribed 403', () => {
       const err = makeErr({
         status: 403,
