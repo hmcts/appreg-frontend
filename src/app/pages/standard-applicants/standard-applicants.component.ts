@@ -11,6 +11,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import {
   ErrorItem,
@@ -85,6 +86,8 @@ const initialStandardApplicantsState: StandardApplicantsState = {
 export class StandardApplicants implements OnInit {
   private readonly envInjector = inject(EnvironmentInjector);
   private readonly saApi = inject(StandardApplicantsApi);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   private readonly signalState = createSignalState<StandardApplicantsState>(
     initialStandardApplicantsState,
@@ -135,6 +138,26 @@ export class StandardApplicants implements OnInit {
     this.appliedFilters = this.getTrimmedFilters();
     this.signalState.patch({ hasSearched: true });
     this.loadStandardApplicants(0, this.appliedFilters);
+  }
+
+  async onViewClick(row: StandardApplicantRow): Promise<void> {
+    this.signalState.patch({
+      searchErrors: [],
+    });
+
+    if (!row.code) {
+      this.signalState.patch({
+        searchErrors: [
+          { text: 'Failed to load standard applicant. No code found' },
+        ],
+      });
+      return;
+    }
+
+    await this.router.navigate([row.code], {
+      relativeTo: this.route,
+      state: row,
+    });
   }
 
   fieldError(id: string): ErrorItem | undefined {

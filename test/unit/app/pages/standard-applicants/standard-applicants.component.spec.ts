@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { Observable, Subject, of, throwError } from 'rxjs';
 
 import { StandardApplicants } from '@components/standard-applicants/standard-applicants.component';
@@ -17,6 +17,8 @@ const flushSignalEffects = async (
 describe('StandardApplicantsComponent', () => {
   let component: StandardApplicants;
   let fixture: ComponentFixture<StandardApplicants>;
+  let router: Router;
+  let route: ActivatedRoute;
   const getStandardApplicantsMock = jest.fn<
     Observable<StandardApplicantPage>,
     Parameters<
@@ -58,6 +60,8 @@ describe('StandardApplicantsComponent', () => {
 
     fixture = TestBed.createComponent(StandardApplicants);
     component = fixture.componentInstance;
+    router = TestBed.inject(Router);
+    route = TestBed.inject(ActivatedRoute);
     await flushSignalEffects(fixture);
   });
 
@@ -539,5 +543,41 @@ describe('StandardApplicantsComponent', () => {
     expect(
       fixture.debugElement.query(By.css('app-notification-banner')),
     ).toBeNull();
+  });
+
+  it('shows an error and does not navigate when onViewClick is called without a code', async () => {
+    const navigateSpy = jest.spyOn(router, 'navigate');
+
+    await component.onViewClick({
+      code: '',
+      name: 'Applicant Org',
+      address: '1 Test Street',
+      useFrom: '1 Jan 2026',
+      useTo: '31 Dec 2026',
+    });
+
+    expect(navigateSpy).not.toHaveBeenCalled();
+    expect(component.vm().searchErrors).toEqual([
+      { text: 'Failed to load standard applicant. No code found' },
+    ]);
+  });
+
+  it('navigates to the standard applicant view with row state when onViewClick is called with a code', async () => {
+    const row = {
+      code: 'SA01',
+      name: 'Applicant Org',
+      address: '1 Test Street',
+      useFrom: '1 Jan 2026',
+      useTo: '31 Dec 2026',
+    };
+    const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    await component.onViewClick(row);
+
+    expect(component.vm().searchErrors).toEqual([]);
+    expect(navigateSpy).toHaveBeenCalledWith(['SA01'], {
+      relativeTo: route,
+      state: row,
+    });
   });
 });
