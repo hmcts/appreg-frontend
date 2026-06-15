@@ -382,6 +382,53 @@ describe('applications-list entry form builders', () => {
         { key: 'Date', value: '2026-04-13' },
       ]);
     });
+
+    it('builds update payloads from an allowlist and excludes read-only detail fields', () => {
+      const dto = buildEntryUpdateDtoFromForm(
+        {
+          ...baseDetail,
+          id: 'ENTRY-1',
+          listId: 'LIST-1',
+          lodgementDate: '2025-01-01',
+          wording: {
+            template: 'At {{Court}}',
+            'substitution-key-constraints': [
+              { key: 'Court', value: 'Court A', constraint: { length: 20 } },
+            ],
+          },
+        } as EntryGetDetailDto,
+        {
+          applicantType: 'person',
+          standardApplicantCode: null,
+          applicationCode: 'APP-200',
+          lodgementDate: '2026-01-02',
+          respondentEntryType: 'person',
+          applicationNotes: {
+            notes: null,
+            caseReference: null,
+            accountReference: null,
+          },
+        } as never,
+        {
+          ...blankPerson,
+          firstName: 'John',
+          surname: 'Smith',
+          addressLine1: '1 Street',
+        } as never,
+        blankOrg as never,
+        blankPerson as never,
+        blankOrg as never,
+      );
+
+      const payload = dto as Record<string, unknown>;
+
+      expect(payload).not.toHaveProperty('lodgementDate');
+      expect(payload).not.toHaveProperty('id');
+      expect(payload).not.toHaveProperty('listId');
+      expect(payload).not.toHaveProperty('wording');
+      expect(payload.applicationCode).toBe('APP-200');
+      expect(payload.applicant).toBeDefined();
+    });
   });
 
   describe('respondentPersonToFormPatch', () => {
@@ -447,10 +494,50 @@ describe('applications-list entry form builders', () => {
       expect(dto.applicant?.person?.name?.firstName).toBe('Jane');
       expect('standardApplicantCode' in dto).toBe(false);
     });
+
+    it('does not copy read-only detail fields into partial update payloads', () => {
+      const dto = buildEntryUpdateDtoWithChange(
+        {
+          id: 'ENTRY-1',
+          listId: 'LIST-1',
+          applicationCode: 'APP-100',
+          lodgementDate: '2025-01-01',
+          wording: {
+            template: 'At {{Court}}',
+            'substitution-key-constraints': [
+              { key: 'Court', value: 'Court A', constraint: { length: 20 } },
+            ],
+          },
+          officials: [
+            {
+              type: 'CLERK',
+              forename: 'Clara',
+              surname: 'Clerk',
+            },
+          ],
+        } as unknown as EntryGetDetailDto,
+        'feeStatuses',
+        [],
+      );
+
+      const payload = dto as Record<string, unknown>;
+
+      expect(payload).not.toHaveProperty('lodgementDate');
+      expect(payload).not.toHaveProperty('id');
+      expect(payload).not.toHaveProperty('listId');
+      expect(payload).not.toHaveProperty('wording');
+      expect(payload.officials).toEqual([
+        {
+          type: 'CLERK',
+          forename: 'Clara',
+          surname: 'Clerk',
+        },
+      ]);
+    });
   });
 
   describe('buildEntryUpdateDtoForFeeChange', () => {
-    it('uses current applicationCode and lodgementDate from the form while preserving unrelated persisted fields', () => {
+    it('uses current applicationCode from the form while preserving unrelated persisted fields', () => {
       const dto = buildEntryUpdateDtoForFeeChange(
         {
           applicationCode: 'APP-100',
@@ -479,6 +566,9 @@ describe('applications-list entry form builders', () => {
       expect(dto.applicationCode).toBe('APP-200');
       expect(dto.notes).toBe('persisted note');
       expect(dto.applicant?.person?.name?.firstName).toBe('Jane');
+      expect(dto as Record<string, unknown>).not.toHaveProperty(
+        'lodgementDate',
+      );
     });
 
     it('prefers staged wordingFields from the form when building a fee-only update', () => {
