@@ -277,6 +277,69 @@ describe('StandardApplicantsComponent', () => {
     ).toBeTruthy();
   });
 
+  it('clears filters, results, pagination and errors when Clear search is clicked', async () => {
+    getStandardApplicantsMock.mockReturnValueOnce(
+      of({
+        pageNumber: 0,
+        pageSize: 10,
+        totalElements: 1,
+        content: [
+          {
+            code: 'SA01',
+            applicant: {
+              organisation: {
+                name: 'Applicant Org',
+                contactDetails: { addressLine1: '1 Test Street' },
+              },
+            },
+            startDate: '2026-01-01',
+            endDate: '2026-12-31',
+          },
+        ],
+        elementsOnPage: 1,
+        totalPages: 4,
+      }),
+    );
+
+    component.form.patchValue({
+      code: 'SA01',
+      name: 'Applicant Org',
+    });
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    component.form.patchValue({
+      name: 'x'.repeat(101),
+    });
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    expect(component.vm().hasSearched).toBe(true);
+    expect(component.vm().rows).toHaveLength(1);
+    expect(component.vm().totalPages).toBe(4);
+    expect(component.vm().searchErrors).toHaveLength(1);
+
+    const clearButton = fixture.debugElement.query(
+      By.css('form .govuk-button--secondary'),
+    );
+    clearButton.nativeElement.click();
+    await flushSignalEffects(fixture);
+
+    expect(component.form.getRawValue()).toEqual({ code: '', name: '' });
+    expect(component.vm()).toEqual(
+      expect.objectContaining({
+        hasSearched: false,
+        currentPage: 0,
+        totalPages: 0,
+        rows: [],
+        searchErrors: [],
+      }),
+    );
+    expect(fixture.debugElement.query(By.css('app-sortable-table'))).toBeNull();
+    expect(fixture.debugElement.query(By.css('app-pagination'))).toBeNull();
+    expect(fixture.debugElement.query(By.css('app-error-summary'))).toBeNull();
+  });
+
   it('loads selected page when pagination changes', async () => {
     component.onSubmit(new SubmitEvent('submit'));
     await flushSignalEffects(fixture);
