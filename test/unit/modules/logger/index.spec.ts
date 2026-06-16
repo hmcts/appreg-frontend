@@ -132,4 +132,39 @@ describe('HmctsLoggerBridge', () => {
     const { message } = trackTrace.mock.calls[0][0];
     expect(message).toBe('start {"k":"v"} 42 true null');
   });
+
+  it('keeps logging when App Insights trace tracking throws', () => {
+    const name = 'telemetry-trace-failure';
+    const base = Logger.getLogger(name);
+    const originalWarn = base.warn;
+    const client = {
+      trackException: jest.fn(),
+      trackTrace: jest.fn(() => {
+        throw new TypeError('trackTrace unavailable');
+      }),
+    } as unknown as TelemetryClient;
+
+    const logger = HmctsLoggerBridge.enable(name, client);
+
+    expect(() => logger.warn('route extraction warning')).not.toThrow();
+    expect(originalWarn).toHaveBeenCalledWith('route extraction warning');
+  });
+
+  it('keeps logging when App Insights exception tracking throws', () => {
+    const name = 'telemetry-exception-failure';
+    const base = Logger.getLogger(name);
+    const originalError = base.error;
+    const client = {
+      trackException: jest.fn(() => {
+        throw new TypeError('trackException unavailable');
+      }),
+      trackTrace: jest.fn(),
+    } as unknown as TelemetryClient;
+    const err = new Error('boom');
+
+    const logger = HmctsLoggerBridge.enable(name, client);
+
+    expect(() => logger.error('failed', err)).not.toThrow();
+    expect(originalError).toHaveBeenCalledWith('failed', err);
+  });
 });
