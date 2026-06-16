@@ -240,7 +240,8 @@ module.exports = defineConfig({
       // Determine API base URL dynamically based on TEST_URL
       const testUrl = process.env.TEST_URL || config.baseUrl || '';
       const explicitApiBaseUrl =
-        process.env.APPREG_API_BASE_URL || appConfigGet(appConfig, 'api.baseUrl');
+        process.env.APPREG_API_BASE_URL ||
+        appConfigGet(appConfig, 'api.baseUrl');
       let apiBaseUrl = explicitApiBaseUrl;
 
       if (testUrl.includes('demo')) {
