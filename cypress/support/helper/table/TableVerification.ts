@@ -88,7 +88,7 @@ export class TableVerification {
         columnIndex,
         parsedExpectedValue,
       )
-        .then(() => cy.wrap(TableNavigation.navigateToLastPage()))
+        .then(() => TableNavigation.navigateToLastPage())
         .then((hasMultiplePages) => {
           if (hasMultiplePages) {
             cy.log('Checking last page...');
@@ -123,7 +123,7 @@ export class TableVerification {
         columnIndex,
         parsedExpectedValue,
       )
-        .then(() => cy.wrap(TableNavigation.goToNextPageIfExists()))
+        .then(() => TableNavigation.goToNextPageIfExists())
         .then((hasNext) => {
           if (hasNext) {
             return checkPage(columnIndex);
@@ -264,39 +264,38 @@ export class TableVerification {
     });
   }
   static verifyButtonDisabledInRow(
-  tableCaption: string,
-  rowData: { [key: string]: string },
-  buttonText: string,
-): void {
-  cy.log(
-    `Verifying button "${buttonText}" is disabled for row with data: ${JSON.stringify(
-      rowData,
-    )}`,
-  );
+    tableCaption: string,
+    rowData: { [key: string]: string },
+    buttonText: string,
+  ): void {
+    cy.log(
+      `Verifying button "${buttonText}" is disabled for row with data: ${JSON.stringify(
+        rowData,
+      )}`,
+    );
 
-  const escapedButtonText = buttonText.replaceAll(
-    /[.*+?^${}()|[\]\\]/g,
-    String.raw`\$&`,
-  );
-  const exactButtonText = new RegExp(String.raw`^\s*${escapedButtonText}\s*$`);
+    const escapedButtonText = buttonText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const exactButtonText = new RegExp(
+      String.raw`^\s*${escapedButtonText}\s*$`,
+    );
 
-  TableSearch.searchWithPagination(rowData, undefined, true, (row) => {
-    return cy
-      .wrap(row)
-      .contains(
-        'button, [role="button"], input[type="button"], input[type="submit"], a',
-        exactButtonText,
-      )
-      .should(($el) => {
-        const isDisabled =
-          $el.is(':disabled') ||
-          $el.attr('disabled') !== undefined ||
-          $el.attr('aria-disabled') === 'true';
+    TableSearch.searchWithPagination(rowData, undefined, true, (row) => {
+      return cy
+        .wrap(row)
+        .contains(
+          'button, [role="button"], input[type="button"], input[type="submit"], a',
+          exactButtonText,
+        )
+        .should(($el) => {
+          const isDisabled =
+            $el.is(':disabled') ||
+            $el.attr('disabled') !== undefined ||
+            $el.attr('aria-disabled') === 'true';
 
-        expect(isDisabled, `Button "${buttonText}" should be disabled`).to.eq(
-          true,
-        );
-      });
-  });
-}
+          expect(isDisabled, `Button "${buttonText}" should be disabled`).to.eq(
+            true,
+          );
+        });
+    });
+  }
 }
