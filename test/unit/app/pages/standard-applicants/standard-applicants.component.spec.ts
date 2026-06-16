@@ -332,11 +332,92 @@ describe('StandardApplicantsComponent', () => {
         currentPage: 0,
         totalPages: 0,
         rows: [],
+        isLoading: false,
         searchErrors: [],
       }),
     );
     expect(fixture.debugElement.query(By.css('app-sortable-table'))).toBeNull();
     expect(fixture.debugElement.query(By.css('app-pagination'))).toBeNull();
+    expect(fixture.debugElement.query(By.css('app-error-summary'))).toBeNull();
+  });
+
+  it('ignores an in-flight search response after Clear search is clicked', async () => {
+    const inFlightResponse = new Subject<StandardApplicantPage>();
+    getStandardApplicantsMock.mockReturnValueOnce(inFlightResponse);
+
+    component.form.patchValue({ code: 'SA01' });
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    expect(component.vm().isLoading).toBe(true);
+
+    const clearButton = fixture.debugElement.query(
+      By.css('form .govuk-button--secondary'),
+    );
+    clearButton.nativeElement.click();
+    await flushSignalEffects(fixture);
+
+    inFlightResponse.next({
+      pageNumber: 0,
+      pageSize: 10,
+      totalElements: 1,
+      content: [
+        {
+          code: 'SA01',
+          applicant: {
+            organisation: {
+              name: 'Applicant Org',
+              contactDetails: { addressLine1: '1 Test Street' },
+            },
+          },
+          startDate: '2026-01-01',
+          endDate: '2026-12-31',
+        },
+      ],
+      elementsOnPage: 1,
+      totalPages: 1,
+    });
+    inFlightResponse.complete();
+    await flushSignalEffects(fixture);
+
+    expect(component.vm()).toEqual(
+      expect.objectContaining({
+        hasSearched: false,
+        rows: [],
+        totalPages: 0,
+        isLoading: false,
+        searchErrors: [],
+      }),
+    );
+    expect(fixture.debugElement.query(By.css('app-sortable-table'))).toBeNull();
+  });
+
+  it('ignores an in-flight search error after Clear search is clicked', async () => {
+    const inFlightResponse = new Subject<StandardApplicantPage>();
+    getStandardApplicantsMock.mockReturnValueOnce(inFlightResponse);
+
+    component.form.patchValue({ code: 'SA01' });
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    const clearButton = fixture.debugElement.query(
+      By.css('form .govuk-button--secondary'),
+    );
+    clearButton.nativeElement.click();
+    await flushSignalEffects(fixture);
+
+    inFlightResponse.error(new Error('Late failure'));
+    await flushSignalEffects(fixture);
+
+    expect(component.vm()).toEqual(
+      expect.objectContaining({
+        hasSearched: false,
+        rows: [],
+        totalPages: 0,
+        isLoading: false,
+        searchErrors: [],
+      }),
+    );
     expect(fixture.debugElement.query(By.css('app-error-summary'))).toBeNull();
   });
 

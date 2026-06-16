@@ -5,6 +5,7 @@ import { Subject, of, throwError } from 'rxjs';
 import { StandardApplicantSelectComponent } from '@components/standard-applicant-select/standard-applicant-select.component';
 import {
   StandardApplicantGetSummaryDto,
+  StandardApplicantPage,
   StandardApplicantsApi,
 } from '@openapi';
 
@@ -386,6 +387,124 @@ describe('StandardApplicantSelectComponent', () => {
       'body',
       false,
       expect.objectContaining({ transferCache: true }),
+    );
+  });
+
+  it('clears filters and reloads the first page when Clear search is clicked', () => {
+    fixture.detectChanges();
+    fixture.detectChanges();
+
+    mockGetStandardApplicants.mockReturnValueOnce(
+      of({
+        content: [makeSummary({ code: 'SA-2' })],
+        pageNumber: 0,
+        pageSize: 10,
+        totalElements: 1,
+        totalPages: 1,
+        elementsOnPage: 1,
+      }),
+    );
+
+    component.form.patchValue({ code: ' SA-2 ', name: ' Example ' });
+    component.onSubmit(new SubmitEvent('submit'));
+    fixture.detectChanges();
+
+    expect(component.rows[0].code).toBe('SA-2');
+
+    mockGetStandardApplicants.mockClear();
+    mockGetStandardApplicants.mockReturnValueOnce(
+      of({
+        content: [makeSummary({ code: 'SA-1' })],
+        pageNumber: 0,
+        pageSize: 10,
+        totalElements: 1,
+        totalPages: 1,
+        elementsOnPage: 1,
+      }),
+    );
+
+    const clearButton = fixture.debugElement.query(
+      By.css('form .govuk-button--secondary'),
+    );
+    clearButton.nativeElement.click();
+    fixture.detectChanges();
+
+    expect(component.form.getRawValue()).toEqual({ code: '', name: '' });
+    expect(mockGetStandardApplicants).toHaveBeenCalledWith(
+      {
+        code: undefined,
+        name: undefined,
+        pageNumber: 0,
+        pageSize: 10,
+        sort: ['code,asc'],
+      },
+      'body',
+      false,
+      expect.objectContaining({ transferCache: true }),
+    );
+    expect(component.rows[0].code).toBe('SA-1');
+    expect(component.vm()).toEqual(
+      expect.objectContaining({
+        hasSearched: true,
+        pageIndex: 0,
+        totalPages: 1,
+        loading: false,
+        searchErrors: [],
+      }),
+    );
+  });
+
+  it('ignores an in-flight search response after Clear search is clicked', () => {
+    fixture.detectChanges();
+    fixture.detectChanges();
+
+    const inFlightResponse = new Subject<StandardApplicantPage>();
+    mockGetStandardApplicants.mockReturnValueOnce(inFlightResponse);
+
+    component.form.patchValue({ code: 'SA-2' });
+    component.onSubmit(new SubmitEvent('submit'));
+    fixture.detectChanges();
+
+    expect(component.vm().loading).toBe(true);
+
+    mockGetStandardApplicants.mockReturnValueOnce(
+      of({
+        content: [makeSummary({ code: 'SA-1' })],
+        pageNumber: 0,
+        pageSize: 10,
+        totalElements: 1,
+        totalPages: 1,
+        elementsOnPage: 1,
+      }),
+    );
+
+    const clearButton = fixture.debugElement.query(
+      By.css('form .govuk-button--secondary'),
+    );
+    clearButton.nativeElement.click();
+    fixture.detectChanges();
+
+    inFlightResponse.next({
+      content: [makeSummary({ code: 'SA-STALE' })],
+      pageNumber: 0,
+      pageSize: 10,
+      totalElements: 1,
+      totalPages: 1,
+      elementsOnPage: 1,
+    });
+    inFlightResponse.complete();
+    fixture.detectChanges();
+
+    expect(component.rows).toHaveLength(1);
+    expect(component.rows[0].code).toBe('SA-1');
+    expect(component.vm()).toEqual(
+      expect.objectContaining({
+        hasSearched: true,
+        pageIndex: 0,
+        totalPages: 1,
+        loading: false,
+        searchErrors: [],
+      }),
     );
   });
 

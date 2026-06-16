@@ -159,6 +159,7 @@ export class StandardApplicants implements OnInit {
   }
 
   clearSearch(): void {
+    this.loadRequest.set(null);
     this.form.reset();
     this.appliedFilters = {};
     this.signalState.patch({
@@ -166,6 +167,7 @@ export class StandardApplicants implements OnInit {
       currentPage: 0,
       totalPages: 0,
       rows: [],
+      isLoading: false,
       searchErrors: [],
     });
   }
