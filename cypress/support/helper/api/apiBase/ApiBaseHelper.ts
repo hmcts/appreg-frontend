@@ -169,4 +169,59 @@ export class ApiBaseHelper {
       },
     );
   }
+
+  static makeRawRequest(
+    method: string,
+    endpoint: string,
+    options?: {
+      body?: Cypress.RequestBody;
+      headers?: Record<string, string>;
+    },
+  ): void {
+    ApiBaseHelper.resolveEndpointPlaceholders(endpoint).then(
+      (resolvedEndpoint) => {
+        const processedEndpoint =
+          TestDataGenerator.parseValue(resolvedEndpoint);
+
+        cy.task<string>('getEnv', 'API_BASE_URL').then((baseUrl) => {
+          const url = baseUrl
+            ? `${baseUrl}${processedEndpoint}`
+            : processedEndpoint;
+
+          cy.log(`[ApiBaseHelper] ${method} request to: ${processedEndpoint}`);
+          if (options?.body) {
+            cy.log(
+              `[ApiBaseHelper] Raw request body: ${JSON.stringify(
+                options.body,
+                null,
+                2,
+              )}`,
+            );
+          }
+
+          cy.get('@authToken').then((token) => {
+            cy.request({
+              method,
+              url,
+              failOnStatusCode: false,
+              headers: {
+                Authorization: `Bearer ${token as unknown as string}`,
+                Accept: 'application/vnd.hmcts.appreg.v1+json',
+                ...(options?.headers ?? {}),
+              },
+              body: options?.body,
+            }).then((response) => {
+              cy.wrap(response).as('lastApiResponse');
+              cy.log(
+                `[ApiBaseHelper] Received response with status: ${response.status}`,
+              );
+              cy.log(
+                `[ApiBaseHelper] Response body: ${JSON.stringify(response.body)}`,
+              );
+            });
+          });
+        });
+      },
+    );
+  }
 }

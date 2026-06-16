@@ -24,10 +24,58 @@ Then('User Verify Response Body Should Have:', (dataTable: DataTable) => {
 });
 
 Then(
+  'User Verify Response Body Array Property {string} Should Contain Values:',
+  (arrayPropertyPath: string, dataTable: DataTable) => {
+    const values = dataTable
+      .raw()
+      .flat()
+      .map((value) => value.trim())
+      .filter(Boolean);
+    ApiResponseHelper.verifyResponseBodyArrayPropertyShouldContainValues(
+      arrayPropertyPath,
+      values,
+    );
+  },
+);
+
+Then(
+  'User Verify Response Body Array Property {string} At Field {string} Should Contain Values:',
+  (arrayPropertyPath: string, fieldPath: string, dataTable: DataTable) => {
+    const values = dataTable
+      .raw()
+      .flat()
+      .map((value) => value.trim())
+      .filter(Boolean);
+    ApiResponseHelper.verifyResponseBodyArrayPropertyFieldShouldContainValues(
+      arrayPropertyPath,
+      fieldPath,
+      values,
+    );
+  },
+);
+
+Then(
   'User Verify Response Body Property {string} Should Be {string}',
   (propertyPath: string, expectedValue: string) => {
     ApiResponseHelper.verifyResponseBodyPropertyShouldBe(
       propertyPath,
+      expectedValue,
+    );
+  },
+);
+
+Then(
+  'User Verify Response Header {string} Should Be Present',
+  (headerName: string) => {
+    ApiResponseHelper.verifyResponseHeaderShouldBePresent(headerName);
+  },
+);
+
+Then(
+  'User Verify Response Header {string} Should Contain {string}',
+  (headerName: string, expectedValue: string) => {
+    ApiResponseHelper.verifyResponseHeaderShouldContain(
+      headerName,
       expectedValue,
     );
   },

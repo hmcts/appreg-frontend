@@ -6,6 +6,22 @@ import { DropdownHelper } from '../forms/dropdown/DropdownHelper';
 import { TextboxHelper } from '../forms/textbox/TextboxHelper';
 
 export class ApplicationListEntriesCombinedHelper {
+  private static waitForTypeSpecificFields(type: string): void {
+    const normalisedType = type.trim().toLowerCase();
+
+    if (normalisedType.includes('standard')) {
+      cy.get('#standard-applicant-table').should('be.visible');
+      return;
+    }
+
+    if (normalisedType.includes('organisation')) {
+      TextboxHelper.verifyTextboxIsVisible('Organisation name');
+      return;
+    }
+
+    TextboxHelper.verifyTextboxIsVisible('First name');
+  }
+
   /**
    * Performs a search for a specific application entry using unique identifiers
    * @param criteria - Search criteria object (field label -> value)
@@ -151,8 +167,9 @@ export class ApplicationListEntriesCombinedHelper {
           AccordionHelper.within(accordionTitle, () => {
             DropdownHelper.selectDropdownOption(dropdownLabel, value);
           });
-          // Wait for Angular to re-render form fields after type change
-          cy.wait(500);
+          AccordionHelper.within(accordionTitle, () => {
+            this.waitForTypeSpecificFields(value);
+          });
           break;
         }
 
@@ -351,9 +368,9 @@ export class ApplicationListEntriesCombinedHelper {
           applicantType,
         );
       });
-
-      // Wait for Angular to render the standard applicant table
-      cy.wait(500);
+      AccordionHelper.within(accordionTitle, () => {
+        this.waitForTypeSpecificFields(applicantType);
+      });
 
       // Select from standard applicant table by Code
       const codeToSelect =

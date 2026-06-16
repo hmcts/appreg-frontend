@@ -342,7 +342,6 @@ Feature: Applications List Update
             | caseReference                                 | CASE-{RANDOM}                  |
             | accountNumber                                 | ACC-{RANDOM}                   |
             | notes                                         | Case noted with ref {RANDOM}   |
-            | lodgementDate                                 | todayiso                       |
             | officials.0.title                             | Mr                             |
             | officials.0.surname                           | Turner {RANDOM}                |
             | officials.0.forename                          | Graham                         |
@@ -394,7 +393,6 @@ Feature: Applications List Update
             | caseReference                                 | CASE-{RANDOM}                  |
             | accountNumber                                 | ACC-{RANDOM}                   |
             | notes                                         | Case noted with ref {RANDOM}   |
-            | lodgementDate                                 | todayiso                       |
             | officials.0.title                             | Mr                             |
             | officials.0.surname                           | Turner {RANDOM}                |
             | officials.0.forename                          | Graham                         |

@@ -40,14 +40,77 @@ export class ApiPostHelper {
     flatProcessedRow: Record<string, string>,
   ): void {
     const nestedBody = ObjectBuilder.buildNestedObject(flatProcessedRow);
-    const processedBody = ApiBaseHelper.processDynamicValues(
-      nestedBody,
-    ) as Cypress.RequestBody;
+    ApiBaseHelper.resolveBodyPlaceholders(nestedBody).then((resolvedBody) => {
+      const processedBody = ApiBaseHelper.processDynamicValues(
+        resolvedBody,
+      ) as Cypress.RequestBody;
 
-    // Log the built request for debugging
-    cy.log('Built nested object from dot-notation');
-    cy.log('Request Body:', JSON.stringify(processedBody, null, 2));
+      // Log the built request for debugging
+      cy.log('Built nested object from dot-notation');
+      cy.log('Request Body:', JSON.stringify(processedBody, null, 2));
 
-    ApiBaseHelper.makeRequest('POST', endpoint, processedBody);
+      ApiBaseHelper.makeRequest('POST', endpoint, processedBody);
+    });
+  }
+
+  static postMultipartFile(
+    endpoint: string,
+    fileName: string,
+    contentType: string,
+  ): void {
+    if (fileName === 'bulk-upload-entries.csv') {
+      const suffix = Cypress._.random(100000, 999999).toString();
+      cy.task<string>('buildBulkUploadCsv', { suffix }).then((fileContents) => {
+        ApiPostHelper.postMultipartFileContents(
+          endpoint,
+          fileName,
+          fileContents,
+          contentType,
+        );
+      });
+      return;
+    }
+
+    cy.readFile(`cypress/fixtures/${fileName}`, 'utf8').then((fileContents) => {
+      ApiPostHelper.postMultipartFileContents(
+        endpoint,
+        fileName,
+        fileContents,
+        contentType,
+      );
+    });
+  }
+
+  static postRaw(
+    endpoint: string,
+    body: string,
+    headers?: Record<string, string>,
+  ): void {
+    ApiBaseHelper.makeRawRequest('POST', endpoint, {
+      body,
+      headers,
+    });
+  }
+
+  private static postMultipartFileContents(
+    endpoint: string,
+    fileName: string,
+    fileContents: string,
+    contentType: string,
+  ): void {
+    const boundary = `----CypressFormBoundary${Date.now()}`;
+    const multipartBody =
+      `--${boundary}\r\n` +
+      `Content-Disposition: form-data; name="file"; filename="${fileName}"\r\n` +
+      `Content-Type: ${contentType}\r\n\r\n` +
+      `${fileContents}\r\n` +
+      `--${boundary}--\r\n`;
+
+    ApiBaseHelper.makeRawRequest('POST', endpoint, {
+      body: multipartBody,
+      headers: {
+        'Content-Type': `multipart/form-data; boundary=${boundary}`,
+      },
+    });
   }
 }

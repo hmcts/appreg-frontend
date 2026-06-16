@@ -109,6 +109,127 @@ export class ApiResponseHelper {
     });
   }
 
+  static verifyResponseHeaderShouldBePresent(headerName: string): void {
+    cy.get('@lastApiResponse').then((response) => {
+      const apiResponse = response as unknown as Cypress.Response<unknown>;
+      if (!apiResponse) {
+        throw new Error('No API response found to verify.');
+      }
+
+      const headerValue = apiResponse.headers[headerName.toLowerCase()];
+      cy.log(
+        `Verifying response header "${headerName}" is present: ${JSON.stringify(
+          headerValue,
+        )}`,
+      );
+      expect(headerValue).to.not.equal(undefined);
+      expect(String(headerValue)).to.not.equal('');
+    });
+  }
+
+  static verifyResponseHeaderShouldContain(
+    headerName: string,
+    expectedValue: string,
+  ): void {
+    cy.get('@lastApiResponse').then((response) => {
+      const apiResponse = response as unknown as Cypress.Response<unknown>;
+      if (!apiResponse) {
+        throw new Error('No API response found to verify.');
+      }
+
+      const headerValue = apiResponse.headers[headerName.toLowerCase()];
+      if (!headerValue) {
+        throw new Error(`Response header "${headerName}" not found.`);
+      }
+
+      ApiResponseHelper.resolveExpectedValue(expectedValue).then((expected) => {
+        cy.log(
+          `Verifying response header "${headerName}" contains ${JSON.stringify(
+            expected,
+          )}: ${JSON.stringify(headerValue)}`,
+        );
+        expect(String(headerValue)).to.contain(String(expected));
+      });
+    });
+  }
+
+  static verifyResponseBodyArrayPropertyFieldShouldContainValues(
+    arrayPropertyPath: string,
+    fieldPath: string,
+    expectedValues: string[],
+  ): void {
+    cy.get('@lastApiResponse').then((response) => {
+      const apiResponse = response as unknown as Cypress.Response<unknown>;
+      if (!apiResponse) {
+        throw new Error('No API response found to verify.');
+      }
+
+      const body = apiResponse.body as Record<string, unknown>;
+      const current = ApiResponseHelper.resolvePath(body, arrayPropertyPath);
+
+      if (!Array.isArray(current)) {
+        throw new TypeError(
+          `Expected an array for property ${arrayPropertyPath}, but got ${typeof current}`,
+        );
+      }
+
+      const actualValues = current.map((item, index) => {
+        if (!item || typeof item !== 'object') {
+          throw new TypeError(
+            `Expected array element ${index} in ${arrayPropertyPath} to be an object.`,
+          );
+        }
+        return ApiResponseHelper.resolvePath(
+          item as Record<string, unknown>,
+          fieldPath,
+        );
+      });
+
+      for (const expectedValue of expectedValues) {
+        ApiResponseHelper.resolveExpectedValue(expectedValue).then(
+          (expected) => {
+            cy.log(
+              `Assert array field: ${arrayPropertyPath}.${fieldPath} contains ${JSON.stringify(expected)} | Actual: ${JSON.stringify(actualValues)}`,
+            );
+            expect(actualValues).to.include(expected);
+          },
+        );
+      }
+    });
+  }
+
+  static verifyResponseBodyArrayPropertyShouldContainValues(
+    arrayPropertyPath: string,
+    expectedValues: string[],
+  ): void {
+    cy.get('@lastApiResponse').then((response) => {
+      const apiResponse = response as unknown as Cypress.Response<unknown>;
+      if (!apiResponse) {
+        throw new Error('No API response found to verify.');
+      }
+
+      const body = apiResponse.body as Record<string, unknown>;
+      const current = ApiResponseHelper.resolvePath(body, arrayPropertyPath);
+
+      if (!Array.isArray(current)) {
+        throw new TypeError(
+          `Expected an array for property ${arrayPropertyPath}, but got ${typeof current}`,
+        );
+      }
+
+      for (const expectedValue of expectedValues) {
+        ApiResponseHelper.resolveExpectedValue(expectedValue).then(
+          (expected) => {
+            cy.log(
+              `Assert array: ${arrayPropertyPath} contains ${JSON.stringify(expected)} | Actual: ${JSON.stringify(current)}`,
+            );
+            expect(current).to.include(expected);
+          },
+        );
+      }
+    });
+  }
+
   /**
    * Resolves expected values by handling aliases and dynamic placeholders
    * @param value Expected value (can contain :alias references or {RANDOM})

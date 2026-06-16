@@ -5,6 +5,26 @@ import { TableHelper } from '../../../../../support/helper/table/TableHelper';
 import { TableSearch } from '../../../../../support/helper/table/TableSearch';
 import { TableVerification } from '../../../../../support/helper/table/TableVerification';
 
+const waitForPostRowButtonClickState = (selectButtonText: string): void => {
+  if (selectButtonText.toLowerCase() !== 'add code') {
+    return;
+  }
+
+  cy.contains('label', 'Application title', { matchCase: false })
+    .invoke('attr', 'for')
+    .then((inputId) => {
+      if (!inputId) {
+        throw new Error(
+          'Could not locate the Application title input after selecting an application code',
+        );
+      }
+
+      cy.get(`#${inputId}`).should(($input) => {
+        expect($input.val(), 'Application title value').to.not.equal('');
+      });
+    });
+};
+
 Then(
   'User Verifies {string} Link Is Not Visible In Row Of Table In The Accordion {string} With:',
   (
@@ -95,7 +115,7 @@ Then(
     AccordionHelper.within(accordionTitle, () => {
       TableSearch.searchWithPagination(rowData, tableCaption, true, (row) => {
         cy.wrap(row).find(`button:contains("${selectButtonText}")`).click();
-        cy.wait(2000);
+        waitForPostRowButtonClickState(selectButtonText);
         return cy.wrap(undefined) as unknown as Cypress.Chainable<void>;
       });
     });

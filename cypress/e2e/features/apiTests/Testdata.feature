@@ -4,9 +4,12 @@ Feature: API - Test Data Setup - 40 ALEs
     Scenario: Create Application List With 40 Mixed ALEs for Test Data
         Given User Authenticates Via API As "user1"
         # Create the Application List
-        When User Makes POST API Request To "/application-lists" With Body:
-            | date     | time           | status | description                     | courtLocationCode |
-            | todayiso | timenowhhmm-2h | OPEN   | Test Data List 40 ALEs {RANDOM} | LCCC065           |
+        When User Makes POST API Request To "/application-lists" With Object Builder:
+            | date              | todayiso                    |
+            | time              | timenowhhmm-2h              |
+            | status            | OPEN                        |
+            | description       | Test Data List 40 ALEs {RANDOM} |
+            | courtLocationCode | LCCC065                     |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "listId"
         Then User Stores Response Body Property "description" As "listDescription"
@@ -234,22 +237,12 @@ Feature: API - Test Data Setup - 40 ALEs
             | lodgementDate                                 | todayiso                        |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "entryId"
-        When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
-            """
-            {
-                "resultCode": "RTC",
-                "wordingFields": [
-                    {
-                        "key": "Date",
-                        "value": "todayiso"
-                    },
-                    {
-                        "key": "Courthouse",
-                        "value": "Leeds Combined Court Centre"
-                    }
-                ]
-            }
-            """
+        When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Object Builder:
+            | resultCode            | RTC                        |
+            | wordingFields.0.key   | Date                       |
+            | wordingFields.0.value | todayiso                   |
+            | wordingFields.1.key   | Courthouse                 |
+            | wordingFields.1.value | Leeds Combined Court Centre |
         Then User Verify Response Status Code Should Be "201"
 
         # Entry 8 - Person applicant + Organisation respondent, EF99001, no fee → result applied
@@ -281,22 +274,12 @@ Feature: API - Test Data Setup - 40 ALEs
             | lodgementDate                                       | todayiso                        |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "entryId"
-        When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
-            """
-            {
-                "resultCode": "RTC",
-                "wordingFields": [
-                    {
-                        "key": "Date",
-                        "value": "todayiso"
-                    },
-                    {
-                        "key": "Courthouse",
-                        "value": "Leeds Combined Court Centre"
-                    }
-                ]
-            }
-            """
+        When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Object Builder:
+            | resultCode            | RTC                        |
+            | wordingFields.0.key   | Date                       |
+            | wordingFields.0.value | todayiso                   |
+            | wordingFields.1.key   | Courthouse                 |
+            | wordingFields.1.value | Leeds Combined Court Centre |
         Then User Verify Response Status Code Should Be "201"
 
         # Entry 9 - Person applicant + Person respondent, EF99001, no fee
@@ -566,22 +549,12 @@ Feature: API - Test Data Setup - 40 ALEs
             | lodgementDate                                      | todayiso                         |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "entryId"
-        When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
-            """
-            {
-                "resultCode": "RTC",
-                "wordingFields": [
-                    {
-                        "key": "Date",
-                        "value": "todayiso"
-                    },
-                    {
-                        "key": "Courthouse",
-                        "value": "Leeds Combined Court Centre"
-                    }
-                ]
-            }
-            """
+        When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Object Builder:
+            | resultCode            | RTC                        |
+            | wordingFields.0.key   | Date                       |
+            | wordingFields.0.value | todayiso                   |
+            | wordingFields.1.key   | Courthouse                 |
+            | wordingFields.1.value | Leeds Combined Court Centre |
         Then User Verify Response Status Code Should Be "201"
 
         # Entry 18 - Organisation applicant + Organisation respondent, EF99001, no fee → result applied
@@ -611,22 +584,12 @@ Feature: API - Test Data Setup - 40 ALEs
             | lodgementDate                                       | todayiso                         |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "entryId"
-        When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
-            """
-            {
-                "resultCode": "RTC",
-                "wordingFields": [
-                    {
-                        "key": "Date",
-                        "value": "todayiso"
-                    },
-                    {
-                        "key": "Courthouse",
-                        "value": "Leeds Combined Court Centre"
-                    }
-                ]
-            }
-            """
+        When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Object Builder:
+            | resultCode            | RTC                        |
+            | wordingFields.0.key   | Date                       |
+            | wordingFields.0.value | todayiso                   |
+            | wordingFields.1.key   | Courthouse                 |
+            | wordingFields.1.value | Leeds Combined Court Centre |
         Then User Verify Response Status Code Should Be "201"
 
         # Entry 19 - Organisation applicant + Person respondent, EF99001, no fee
@@ -842,22 +805,12 @@ Feature: API - Test Data Setup - 40 ALEs
             | lodgementDate                                 | todayiso                         |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "entryId"
-        When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
-            """
-            {
-                "resultCode": "RTC",
-                "wordingFields": [
-                    {
-                        "key": "Date",
-                        "value": "todayiso"
-                    },
-                    {
-                        "key": "Courthouse",
-                        "value": "Leeds Combined Court Centre"
-                    }
-                ]
-            }
-            """
+        When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Object Builder:
+            | resultCode            | RTC                        |
+            | wordingFields.0.key   | Date                       |
+            | wordingFields.0.value | todayiso                   |
+            | wordingFields.1.key   | Courthouse                 |
+            | wordingFields.1.value | Leeds Combined Court Centre |
         Then User Verify Response Status Code Should Be "201"
 
         # Entry 28 - Standard APP036 + Organisation respondent, EF99001, no fee → result applied
@@ -880,22 +833,12 @@ Feature: API - Test Data Setup - 40 ALEs
             | lodgementDate                                       | todayiso                         |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "entryId"
-        When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
-            """
-            {
-                "resultCode": "RTC",
-                "wordingFields": [
-                    {
-                        "key": "Date",
-                        "value": "todayiso"
-                    },
-                    {
-                        "key": "Courthouse",
-                        "value": "Leeds Combined Court Centre"
-                    }
-                ]
-            }
-            """
+        When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Object Builder:
+            | resultCode            | RTC                        |
+            | wordingFields.0.key   | Date                       |
+            | wordingFields.0.value | todayiso                   |
+            | wordingFields.1.key   | Courthouse                 |
+            | wordingFields.1.value | Leeds Combined Court Centre |
         Then User Verify Response Status Code Should Be "201"
 
         # Entry 29 - Standard APP036 + Person respondent, CT99002, no offsite fee
@@ -1097,22 +1040,12 @@ Feature: API - Test Data Setup - 40 ALEs
             | lodgementDate                                 | todayiso                         |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "entryId"
-        When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
-            """
-            {
-                "resultCode": "RTC",
-                "wordingFields": [
-                    {
-                        "key": "Date",
-                        "value": "todayiso"
-                    },
-                    {
-                        "key": "Courthouse",
-                        "value": "Leeds Combined Court Centre"
-                    }
-                ]
-            }
-            """
+        When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Object Builder:
+            | resultCode            | RTC                        |
+            | wordingFields.0.key   | Date                       |
+            | wordingFields.0.value | todayiso                   |
+            | wordingFields.1.key   | Courthouse                 |
+            | wordingFields.1.value | Leeds Combined Court Centre |
         Then User Verify Response Status Code Should Be "201"
 
         # Entry 38 - Standard APP013 + Organisation respondent, EF99001, no fee → result applied
@@ -1135,22 +1068,12 @@ Feature: API - Test Data Setup - 40 ALEs
             | lodgementDate                                       | todayiso                         |
         Then User Verify Response Status Code Should Be "201"
         Then User Stores Response Body Property "id" As "entryId"
-        When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
-            """
-            {
-                "resultCode": "RTC",
-                "wordingFields": [
-                    {
-                        "key": "Date",
-                        "value": "todayiso"
-                    },
-                    {
-                        "key": "Courthouse",
-                        "value": "Leeds Combined Court Centre"
-                    }
-                ]
-            }
-            """
+        When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Object Builder:
+            | resultCode            | RTC                        |
+            | wordingFields.0.key   | Date                       |
+            | wordingFields.0.value | todayiso                   |
+            | wordingFields.1.key   | Courthouse                 |
+            | wordingFields.1.value | Leeds Combined Court Centre |
         Then User Verify Response Status Code Should Be "201"
 
         # Entry 39 - Standard APP013 + Person respondent, EF99001, no fee
