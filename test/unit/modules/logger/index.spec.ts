@@ -55,12 +55,15 @@ describe('HmctsLoggerBridge', () => {
 
     expect(trackTrace).toHaveBeenCalledTimes(1);
     const traceArg = trackTrace.mock.calls[0][0];
-    expect(traceArg).toMatchObject({ message: 'hello {"a":1}', severity: 1 });
+    expect(traceArg).toMatchObject({
+      message: 'hello {"a":1}',
+      severity: 'Information',
+    });
 
     expect(trackException).not.toHaveBeenCalled();
   });
 
-  it('records exception and uses severity=error(3)', () => {
+  it('records exception and uses error severity', () => {
     const name = 'err-case';
     const client = newClient();
     const trackTrace = jest.spyOn(client as never, 'trackTrace');
@@ -77,7 +80,7 @@ describe('HmctsLoggerBridge', () => {
     expect(trackTrace).toHaveBeenCalledTimes(1);
     expect(trackTrace.mock.calls[0][0]).toMatchObject({
       message: 'failed boom',
-      severity: 3,
+      severity: 'Error',
     });
   });
 
@@ -108,13 +111,13 @@ describe('HmctsLoggerBridge', () => {
     logger.error('e');
 
     const severities = trackTrace.mock.calls.map(
-      (c) => (c[0] as { severity: number }).severity,
+      (c) => (c[0] as { severity: string }).severity,
     );
     if (logger.debug) {
-      expect(severities[0]).toBe(0);
-      expect(severities.slice(1)).toEqual([1, 2, 3]);
+      expect(severities[0]).toBe('Verbose');
+      expect(severities.slice(1)).toEqual(['Information', 'Warning', 'Error']);
     } else {
-      expect(severities).toEqual([1, 2, 3]);
+      expect(severities).toEqual(['Information', 'Warning', 'Error']);
     }
   });
 

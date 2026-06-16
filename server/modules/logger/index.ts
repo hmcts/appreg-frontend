@@ -1,5 +1,5 @@
 import { type HmctsLogger, Logger } from '@hmcts/nodejs-logging';
-import type { TelemetryClient } from 'applicationinsights';
+import type { TelemetryClient, TraceTelemetry } from 'applicationinsights';
 
 type LevelName = 'debug' | 'info' | 'warn' | 'error';
 type LoggerWithLevels = {
@@ -10,13 +10,18 @@ type LoggerWithLevels = {
 };
 
 const SEVERITY = {
-  debug: 0,
-  info: 1,
-  warn: 2,
-  error: 3,
-} as const satisfies Record<LevelName, 0 | 1 | 2 | 3>;
+  debug: 'Verbose',
+  info: 'Information',
+  warn: 'Warning',
+  error: 'Error',
+} as const satisfies Record<
+  LevelName,
+  Exclude<TraceTelemetry['severity'], undefined>
+>;
 
-const toSeverity = (level: LevelName): 0 | 1 | 2 | 3 => SEVERITY[level];
+const toSeverity = (
+  level: LevelName,
+): Exclude<TraceTelemetry['severity'], undefined> => SEVERITY[level];
 
 const stringifyArgs = (args: unknown[]): string =>
   args
