@@ -185,6 +185,22 @@ export class StandardApplicantSelectComponent implements OnInit, OnChanges {
     return this.vm().searchErrors.find((e) => e.id === id);
   }
 
+  clearSearch(): void {
+    this.loadRequest.set(null);
+    this.form.reset();
+    this.appliedFilters = {};
+    this.rows = [];
+    this.saSignalState.patch({
+      hasSearched: true,
+      pageIndex: 0,
+      totalPages: 0,
+      loading: false,
+      searchErrors: [],
+    });
+    this.searchErrorsChange.emit([]);
+    this.loadPage(0, this.appliedFilters);
+  }
+
   private setupEffects(): void {
     setupLoadEffect(
       {
