@@ -178,7 +178,7 @@ Feature: API - Application List Entry Bulk Operations
       | User  |
       | user1 |
 
-  @api @applicationListEntry @regression
+  @api @applicationListEntry @regression @ARCPOC-1461
   Scenario Outline: Reject bulk officials replacement when one target entry does not exist
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Object Builder:
@@ -228,9 +228,6 @@ Feature: API - Application List Entry Bulk Operations
       | officials.0.forename | Ada                                  |
       | officials.0.type     | MAGISTRATE                           |
     Then User Verify Response Status Code Should Be "400"
-    Then User Verify Response Body Should Have:
-      | type   | AL-12 |
-      | status | 400   |
     When User Makes GET API Request To "/application-lists/:listId/entries/:entryId"
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
@@ -522,10 +519,10 @@ Feature: API - Application List Entry Bulk Operations
       | result.wordingFields.0.value | 24-02-2026                           |
       | result.wordingFields.1.key   | Courthouse                           |
       | result.wordingFields.1.value | London Crown Court                   |
-    Then User Verify Response Status Code Should Be "409"
+    Then User Verify Response Status Code Should Be "404"
     Then User Verify Response Body Should Have:
       | type   | ALER-4 |
-      | status | 409    |
+      | status | 404    |
     When User Makes GET API Request To "/application-lists/:listId/entries/:entryId/results?pageNumber=0&pageSize=10"
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:

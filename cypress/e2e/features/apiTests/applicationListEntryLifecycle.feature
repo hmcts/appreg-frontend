@@ -432,7 +432,7 @@ Feature: API - Application List Entry Lifecycle
       | User  |
       | user1 |
 
-  @api @applicationListEntry @regression @ARCPOC-797
+  @api @applicationListEntry @regression @ARCPOC-797 @ARCPOC-1461
   Scenario Outline: Soft delete an application list entry
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Object Builder:
@@ -477,6 +477,8 @@ Feature: API - Application List Entry Lifecycle
     When User Makes DELETE API Request To "/application-lists/:listId/entries/:entryId"
     Then User Verify Response Status Code Should Be "204"
     When User Makes GET API Request To "/application-lists/:listId/entries/:entryId"
+    Then User Verify Response Status Code Should Be "404"
+    When User Makes DELETE API Request To "/application-lists/:listId/entries/:entryId"
     Then User Verify Response Status Code Should Be "409"
     When User Makes GET API Request To "/application-lists/:listId/entries?pageNumber=0&pageSize=10&sort=sequenceNumber,asc"
     Then User Verify Response Status Code Should Be "200"

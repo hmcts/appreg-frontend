@@ -145,7 +145,7 @@ Feature: API - Application List Entry Results
       | User  |
       | user1 |
 
-  @api @applicationListEntryResults @regression @ARCPOC-580 @ARCPOC-932 @ARCPOC-1454
+  @api @applicationListEntryResults @regression @ARCPOC-580 @ARCPOC-932 @ARCPOC-1454 @ARCPOC-1461
   Scenario Outline: Delete an application list entry result
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Object Builder:

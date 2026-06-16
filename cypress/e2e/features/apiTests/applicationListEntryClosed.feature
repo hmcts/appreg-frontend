@@ -1,7 +1,6 @@
 Feature: API - Application List Entry Closed Updates
 
-  # TODO: map follow-on JIRA keys for closed-entry coverage.
-  @api @applicationListEntry @regression
+  @api @applicationListEntry @regression @ARCPOC-1461
   Scenario Outline: Update a closed application list entry through the closed-entry endpoint
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Object Builder:
@@ -68,8 +67,7 @@ Feature: API - Application List Entry Closed Updates
       | User  |
       | user1 |
 
-  # TODO: map follow-on JIRA keys for closed-entry coverage.
-  @api @applicationListEntry @regression
+  @api @applicationListEntry @regression @ARCPOC-1461
   Scenario Outline: Reject closed-entry update when the application list is not closed
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Object Builder:
