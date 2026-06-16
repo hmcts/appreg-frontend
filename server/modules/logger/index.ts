@@ -1,5 +1,5 @@
 import { type HmctsLogger, Logger } from '@hmcts/nodejs-logging';
-import type { TelemetryClient } from 'applicationinsights';
+import type { TelemetryClient, TraceTelemetry } from 'applicationinsights';
 
 type LevelName = 'debug' | 'info' | 'warn' | 'error';
 type LoggerWithLevels = {
@@ -10,13 +10,18 @@ type LoggerWithLevels = {
 };
 
 const SEVERITY = {
-  debug: 0,
-  info: 1,
-  warn: 2,
-  error: 3,
-} as const satisfies Record<LevelName, 0 | 1 | 2 | 3>;
+  debug: 'Verbose',
+  info: 'Information',
+  warn: 'Warning',
+  error: 'Error',
+} as const satisfies Record<
+  LevelName,
+  Exclude<TraceTelemetry['severity'], undefined>
+>;
 
-const toSeverity = (level: LevelName): 0 | 1 | 2 | 3 => SEVERITY[level];
+const toSeverity = (
+  level: LevelName,
+): Exclude<TraceTelemetry['severity'], undefined> => SEVERITY[level];
 
 const stringifyArgs = (args: unknown[]): string =>
   args
@@ -33,6 +38,32 @@ const stringifyArgs = (args: unknown[]): string =>
     })
     .join(' ');
 
+const trackExceptionSafely = (
+  client: TelemetryClient | null | undefined,
+  exception: Error,
+): void => {
+  try {
+    client?.trackException({ exception });
+  } catch {
+    // Telemetry must not break SSR route extraction or application logging.
+  }
+};
+
+const trackTraceSafely = (
+  client: TelemetryClient | null | undefined,
+  level: LevelName,
+  args: unknown[],
+): void => {
+  try {
+    client?.trackTrace({
+      message: stringifyArgs(args),
+      severity: toSeverity(level),
+    });
+  } catch {
+    // Telemetry must not break SSR route extraction or application logging.
+  }
+};
+
 /**
  * HmctsLoggerBridge — creates an HMCTS logger and mirrors its output to App Insights.
  * Uses a WeakSet to avoid double-wrapping the same logger instance.
@@ -41,7 +72,10 @@ export class HmctsLoggerBridge {
   private static readonly wrapped = new WeakSet<LoggerWithLevels>();
   private static readonly LEVELS = ['debug', 'info', 'warn', 'error'] as const;
 
-  static enable(name: string, client: TelemetryClient): HmctsLogger {
+  static enable(
+    name: string,
+    client: TelemetryClient | null | undefined,
+  ): HmctsLogger {
     const base = Logger.getLogger(name) as unknown as LoggerWithLevels;
 
     if (!this.wrapped.has(base)) {
@@ -54,13 +88,10 @@ export class HmctsLoggerBridge {
         const wrapped: typeof original = ((...args: unknown[]) => {
           const err = args.find((a) => a instanceof Error);
           if (err) {
-            client.trackException({ exception: err });
+            trackExceptionSafely(client, err);
           }
 
-          client.trackTrace({
-            message: stringifyArgs(args),
-            severity: toSeverity(level),
-          });
+          trackTraceSafely(client, level, args);
 
           return original.apply(base as unknown as object, args);
         }) as typeof original;
