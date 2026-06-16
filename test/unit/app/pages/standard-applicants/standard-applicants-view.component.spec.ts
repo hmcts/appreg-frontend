@@ -16,8 +16,7 @@ describe('StandardApplicantsViewComponent', () => {
   const getStandardApplicantByCodeMock = jest.fn();
 
   const apiStub: Pick<StandardApplicantsApi, 'getStandardApplicantByCode'> = {
-    getStandardApplicantByCode:
-      getStandardApplicantByCodeMock as unknown as StandardApplicantsApi['getStandardApplicantByCode'],
+    getStandardApplicantByCode: getStandardApplicantByCodeMock,
   };
 
   const routeStub: Partial<ActivatedRoute> = {
