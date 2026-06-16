@@ -96,7 +96,7 @@
     "@microsoft/applicationinsights-web": "^3.2.2",
     "@ministryofjustice/frontend": "^6.0.0",
     "@octokit/rest": "^22.0.0",
-    "applicationinsights": "^2.7.0",
+    "applicationinsights": "^3.15.0",
     "config": "^4.1.0",
     "connect-history-api-fallback": "^2.0.0",
     "connect-redis": "^9.0.0",
