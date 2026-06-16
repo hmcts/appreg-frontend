@@ -15,7 +15,7 @@ export class ApplicationListEntriesCombinedHelper {
   }: {
     criteria: Record<string, string>;
   }): void {
-    AccordionHelper.toggleAccordion('Advanced search');
+    AccordionHelper.ensureAccordionExpanded('Advanced search');
 
     const processedCriteria = processDatatableRow(criteria);
 

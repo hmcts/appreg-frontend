@@ -27,7 +27,7 @@ export class TableVerification {
           .trim();
         expect(cellText.toLowerCase()).to.equal(expectedValue.toLowerCase());
       });
-    }) as unknown as Cypress.Chainable<void>;
+    });
   }
 
   /**
@@ -88,7 +88,7 @@ export class TableVerification {
         columnIndex,
         parsedExpectedValue,
       )
-        .then(() => TableNavigation.navigateToLastPage())
+        .then(() => cy.wrap(TableNavigation.navigateToLastPage()))
         .then((hasMultiplePages) => {
           if (hasMultiplePages) {
             cy.log('Checking last page...');
@@ -100,7 +100,7 @@ export class TableVerification {
           }
           cy.log('Single page table - first page check is sufficient');
         });
-    }) as unknown as Cypress.Chainable<void>;
+    });
   }
 
   /**
@@ -123,12 +123,12 @@ export class TableVerification {
         columnIndex,
         parsedExpectedValue,
       )
-        .then(() => TableNavigation.goToNextPageIfExists())
+        .then(() => cy.wrap(TableNavigation.goToNextPageIfExists()))
         .then((hasNext) => {
           if (hasNext) {
             return checkPage(columnIndex);
           }
-        }) as unknown as Cypress.Chainable<void>;
+        });
     }
 
     return TableElement.getTableHeaders(tableCaption).then(($headers) => {
@@ -260,7 +260,43 @@ export class TableVerification {
         .find('td')
         .first()
         .find('input[type="checkbox"]')
-        .should('be.checked') as unknown as Cypress.Chainable<void>;
+        .should('be.checked');
     });
   }
+  static verifyButtonDisabledInRow(
+  tableCaption: string,
+  rowData: { [key: string]: string },
+  buttonText: string,
+): void {
+  cy.log(
+    `Verifying button "${buttonText}" is disabled for row with data: ${JSON.stringify(
+      rowData,
+    )}`,
+  );
+
+  const escapedButtonText = buttonText.replaceAll(
+    /[.*+?^${}()|[\]\\]/g,
+    String.raw`\$&`,
+  );
+  const exactButtonText = new RegExp(String.raw`^\s*${escapedButtonText}\s*$`);
+
+  TableSearch.searchWithPagination(rowData, undefined, true, (row) => {
+    return cy
+      .wrap(row)
+      .contains(
+        'button, [role="button"], input[type="button"], input[type="submit"], a',
+        exactButtonText,
+      )
+      .should(($el) => {
+        const isDisabled =
+          $el.is(':disabled') ||
+          $el.attr('disabled') !== undefined ||
+          $el.attr('aria-disabled') === 'true';
+
+        expect(isDisabled, `Button "${buttonText}" should be disabled`).to.eq(
+          true,
+        );
+      });
+  });
+}
 }

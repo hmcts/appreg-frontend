@@ -208,7 +208,7 @@ Feature: Applications List Update
             | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description   | Status | BeforeUpdateStatus | durationHours | durationMinutes |
             | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test {RANDOM} | CLOSED | OPEN               | 3             | 3               |
 
-    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191
+    @regression @applicationsList @ARCPOC-214 @ARCPOC-1073 @ARCPOC-1191 @TP
     Scenario Outline: Close application list with One ALE
         Given User Authenticates Via API As "<User>"
         When User Makes POST API Request To "/application-lists" With Body:
@@ -281,17 +281,17 @@ Feature: Applications List Update
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId/results" With Json Body
             """
             {
-            "resultCode": "RTC",
-            "wordingFields": [
-            {
-            "key": "Date",
-            "value": "24-02-2026"
-            },
-            {
-            "key": "Courthouse",
-            "value": "London Courthouse"
-            }
-            ]
+                "resultCode": "RTC",
+                "wordingFields": [
+                    {
+                        "key": "Date",
+                        "value": "24-02-2026"
+                    },
+                    {
+                        "key": "Courthouse",
+                        "value": "London Courthouse"
+                    }
+                ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
@@ -342,7 +342,6 @@ Feature: Applications List Update
             | caseReference                                 | CASE-{RANDOM}                  |
             | accountNumber                                 | ACC-{RANDOM}                   |
             | notes                                         | Case noted with ref {RANDOM}   |
-            | lodgementDate                                 | todayiso                       |
             | officials.0.title                             | Mr                             |
             | officials.0.surname                           | Turner {RANDOM}                |
             | officials.0.forename                          | Graham                         |
@@ -394,7 +393,6 @@ Feature: Applications List Update
             | caseReference                                 | CASE-{RANDOM}                  |
             | accountNumber                                 | ACC-{RANDOM}                   |
             | notes                                         | Case noted with ref {RANDOM}   |
-            | lodgementDate                                 | todayiso                       |
             | officials.0.title                             | Mr                             |
             | officials.0.surname                           | Turner {RANDOM}                |
             | officials.0.forename                          | Graham                         |
@@ -409,6 +407,17 @@ Feature: Applications List Update
         Then User See "Are you sure you want to close this application list?" On The Page
         When User Clicks On The "Continue" Button
         Then User Sees Success Banner "Success Application list closed successfully If you believe this was in error, please contact support."
+        # ARCPOC-1437 Verify Closed ALE cannot be opened
+        Then User Clicks On The Link Using Exact Text Match "Applications"
+        Then User Verify The Page URL Contains "/applications"
+        When User Searches Applications With:
+            | Date  | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
+            | today |             |       |                        |                   |                         |                    |                           |                      |           |                       |                            |                         | ACC-{RANDOM}      |
+        Then User Should See Table "Application list entries" Has Sortable Headers "Date, Applicant, Respondent, Application title, Fee, Resulted, Status"
+        Then User Verify "Open" Button Is Disabled In Row Of Table "Application list entries" With:
+            | Date          | Applicant             | Respondent           | Application title                                        | Fee | Resulted | Status |
+            | <DisplayDate> | Henry Taylor {RANDOM} | Emily Clark {RANDOM} | Application for order re public health measures (person) | Yes | Yes      | CLOSED |
+
         Examples:
             | User  | TableName | APIDate  | DisplayDate  | SearchDate | Time           | Court  | courtLocation                 | Description   | Status | BeforeUpdateStatus | durationHours | durationMinutes | feeStatusPaidReference | feeStatusDue | feeStatusDate | feeStatusPaid |
             | user1 | Lists     | todayiso | todaydisplay | today      | timenowhhmm-3h | RCJ001 | Royal Courts of Justice Set 1 | Test {RANDOM} | CLOSED | OPEN               | 3             | 3               | REF-{RANDOM}           | DUE          | todayiso      | PAID          |
