@@ -84,9 +84,9 @@ Feature: Application List Row Actions
                             "phone": "0117{RANDOM}",
                             "mobile": "07984{RANDOM}",
                             "email": "respondent{RANDOM}@example.com"
-                        }
+                        },
+                        "dateOfBirth": "todayiso-25y"
                     },
-                    "dateOfBirth": "todayiso-25y",
                     "organisation": null
                 },
                 "numberOfRespondents": null,

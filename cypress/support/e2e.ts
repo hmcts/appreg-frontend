@@ -3,6 +3,14 @@
 import './commands';
 import { TestDataGenerator } from './utils/TestDataGenerator';
 
+const isApiSpec = Cypress.spec.relative.includes('/apiTests/');
+
+if (isApiSpec) {
+  Cypress.Screenshot.defaults({
+    screenshotOnRunFailure: false,
+  });
+}
+
 beforeEach(() => {
   cy.request({
     url: '/sso/logout',
@@ -20,6 +28,10 @@ beforeEach(() => {
 });
 
 afterEach(function () {
+  if (isApiSpec) {
+    return;
+  }
+
   const state = this.currentTest?.state ?? 'unknown';
   const title = (this.currentTest?.title ?? 'unnamed')
     .replace(/[^a-zA-Z0-9-_]/g, '_')

@@ -5,5 +5,5 @@
     "types": ["jest", "node"]
   },
   "files": ["setup.jest.ts"],
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "cypress/support/utils/**/*.ts"]
 }

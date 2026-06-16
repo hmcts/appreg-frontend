@@ -1,5 +1,8 @@
 /// <reference types="cypress" />
-import { TIMEOUT_CONSTANTS } from '../../constants/ProjectConstants';
+import {
+  AUTH_CONSTANTS,
+  TIMEOUT_CONSTANTS,
+} from '../../constants/ProjectConstants';
 import { NavigationPage } from '../../pageobjects/pageelements/NavigationPage';
 
 export class MicrosoftAuthHelper {
@@ -82,7 +85,9 @@ export class MicrosoftAuthHelper {
       },
     );
 
-    cy.wait(TIMEOUT_CONSTANTS.REDIRECT_SETTLE_MS);
+    cy.location('hostname', {
+      timeout: TIMEOUT_CONSTANTS.LONG_TIMEOUT,
+    }).should('not.include', AUTH_CONSTANTS.MICROSOFT_LOGIN_DOMAIN);
     cy.screenshot('04-After-Microsoft-Auth');
   }
 

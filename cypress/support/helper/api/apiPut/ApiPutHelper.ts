@@ -40,14 +40,16 @@ export class ApiPutHelper {
     flatProcessedRow: Record<string, string>,
   ): void {
     const nestedBody = ObjectBuilder.buildNestedObject(flatProcessedRow);
-    const processedBody = ApiBaseHelper.processDynamicValues(
-      nestedBody,
-    ) as Cypress.RequestBody;
+    ApiBaseHelper.resolveBodyPlaceholders(nestedBody).then((resolvedBody) => {
+      const processedBody = ApiBaseHelper.processDynamicValues(
+        resolvedBody,
+      ) as Cypress.RequestBody;
 
-    // Log the built request for debugging
-    cy.log('Built nested object from dot-notation');
-    cy.log('Request Body:', JSON.stringify(processedBody, null, 2));
+      // Log the built request for debugging
+      cy.log('Built nested object from dot-notation');
+      cy.log('Request Body:', JSON.stringify(processedBody, null, 2));
 
-    ApiBaseHelper.makeRequest('PUT', endpoint, processedBody);
+      ApiBaseHelper.makeRequest('PUT', endpoint, processedBody);
+    });
   }
 }

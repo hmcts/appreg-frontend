@@ -285,12 +285,123 @@ Feature: Applications List Search
 
   @regression @applicationsList @ARCPOC-214 @ARCPOC-452 @ARCPOC-756 @ARCPOC-891
   Scenario: Verify applications list table sorting functionality and pagination persistence
+    Given User Authenticates Via API As "user1"
+    When User Makes POST API Request To "/application-lists" With Object Builder:
+      | date                     | todayiso                         |
+      | time                     | 05:54                            |
+      | status                   | OPEN                             |
+      | description              | Sort Seed {RANDOM} Alpha         |
+      | durationHours            | 1                                |
+      | durationMinutes          | 0                                |
+      | otherLocationDescription | Sorting London Venue 01 {RANDOM} |
+      | cjaCode                  | 01                               |
+    Then User Verify Response Status Code Should Be "201"
+    When User Makes POST API Request To "/application-lists" With Object Builder:
+      | date                     | todayiso                         |
+      | time                     | 05:54                            |
+      | status                   | OPEN                             |
+      | description              | Sort Seed {RANDOM} Bravo         |
+      | durationHours            | 1                                |
+      | durationMinutes          | 0                                |
+      | otherLocationDescription | Sorting London Venue 02 {RANDOM} |
+      | cjaCode                  | 01                               |
+    Then User Verify Response Status Code Should Be "201"
+    When User Makes POST API Request To "/application-lists" With Object Builder:
+      | date                     | todayiso                         |
+      | time                     | 05:54                            |
+      | status                   | OPEN                             |
+      | description              | Sort Seed {RANDOM} Charlie       |
+      | durationHours            | 1                                |
+      | durationMinutes          | 0                                |
+      | otherLocationDescription | Sorting London Venue 03 {RANDOM} |
+      | cjaCode                  | 01                               |
+    Then User Verify Response Status Code Should Be "201"
+    When User Makes POST API Request To "/application-lists" With Object Builder:
+      | date                     | todayiso                         |
+      | time                     | 05:54                            |
+      | status                   | OPEN                             |
+      | description              | Sort Seed {RANDOM} Delta         |
+      | durationHours            | 1                                |
+      | durationMinutes          | 0                                |
+      | otherLocationDescription | Sorting London Venue 04 {RANDOM} |
+      | cjaCode                  | 01                               |
+    Then User Verify Response Status Code Should Be "201"
+    When User Makes POST API Request To "/application-lists" With Object Builder:
+      | date                     | todayiso                         |
+      | time                     | 05:54                            |
+      | status                   | OPEN                             |
+      | description              | Sort Seed {RANDOM} Echo          |
+      | durationHours            | 1                                |
+      | durationMinutes          | 0                                |
+      | otherLocationDescription | Sorting London Venue 05 {RANDOM} |
+      | cjaCode                  | 01                               |
+    Then User Verify Response Status Code Should Be "201"
+    When User Makes POST API Request To "/application-lists" With Object Builder:
+      | date                     | todayiso                         |
+      | time                     | 05:54                            |
+      | status                   | OPEN                             |
+      | description              | Sort Seed {RANDOM} Foxtrot       |
+      | durationHours            | 1                                |
+      | durationMinutes          | 0                                |
+      | otherLocationDescription | Sorting London Venue 06 {RANDOM} |
+      | cjaCode                  | 01                               |
+    Then User Verify Response Status Code Should Be "201"
+    When User Makes POST API Request To "/application-lists" With Object Builder:
+      | date                     | todayiso                         |
+      | time                     | 05:54                            |
+      | status                   | OPEN                             |
+      | description              | Sort Seed {RANDOM} Golf          |
+      | durationHours            | 1                                |
+      | durationMinutes          | 0                                |
+      | otherLocationDescription | Sorting London Venue 07 {RANDOM} |
+      | cjaCode                  | 01                               |
+    Then User Verify Response Status Code Should Be "201"
+    When User Makes POST API Request To "/application-lists" With Object Builder:
+      | date                     | todayiso                         |
+      | time                     | 05:54                            |
+      | status                   | OPEN                             |
+      | description              | Sort Seed {RANDOM} Hotel         |
+      | durationHours            | 1                                |
+      | durationMinutes          | 0                                |
+      | otherLocationDescription | Sorting London Venue 08 {RANDOM} |
+      | cjaCode                  | 01                               |
+    Then User Verify Response Status Code Should Be "201"
+    When User Makes POST API Request To "/application-lists" With Object Builder:
+      | date                     | todayiso                         |
+      | time                     | 05:54                            |
+      | status                   | OPEN                             |
+      | description              | Sort Seed {RANDOM} India         |
+      | durationHours            | 1                                |
+      | durationMinutes          | 0                                |
+      | otherLocationDescription | Sorting London Venue 09 {RANDOM} |
+      | cjaCode                  | 01                               |
+    Then User Verify Response Status Code Should Be "201"
+    When User Makes POST API Request To "/application-lists" With Object Builder:
+      | date                     | todayiso                         |
+      | time                     | 05:54                            |
+      | status                   | OPEN                             |
+      | description              | Sort Seed {RANDOM} Juliet        |
+      | durationHours            | 1                                |
+      | durationMinutes          | 0                                |
+      | otherLocationDescription | Sorting London Venue 10 {RANDOM} |
+      | cjaCode                  | 01                               |
+    Then User Verify Response Status Code Should Be "201"
+    When User Makes POST API Request To "/application-lists" With Object Builder:
+      | date                     | todayiso                         |
+      | time                     | 05:54                            |
+      | status                   | OPEN                             |
+      | description              | Sort Seed {RANDOM} Kilo          |
+      | durationHours            | 1                                |
+      | durationMinutes          | 0                                |
+      | otherLocationDescription | Sorting London Venue 11 {RANDOM} |
+      | cjaCode                  | 01                               |
+    Then User Verify Response Status Code Should Be "201"
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
     # Search to get table with multiple pages
     When User Searches Application List With:
-      | Date | Time  | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
-      |      | 05:54 |                  |             |       |                    |                            | London                |           |
+      | Date | Time  | List description   | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+      |      | 05:54 | Sort Seed {RANDOM} |             |       |                    |                            | London                |           |
     Then User Should See The Table "Lists"
     # Verify all sortable headers default to 'none'
     Then User Should See Table "Lists" Header "Time" Has Sort Order "none"
@@ -307,8 +418,8 @@ Feature: Applications List Search
     # Search to get table with multiple pages
     When User Clicks On The "Clear search" Button
     When User Searches Application List With:
-      | Date       | Time | List description | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
-      | 26/03/2026 |      |                  |             |       |                    |                            |                       |           |
+      | Date | Time  | List description   | CourtSearch | Court | Select list status | Other location description | Criminal justice area | CJASearch |
+      |      | 05:54 | Sort Seed {RANDOM} |             |       |                    |                            | London                |           |
     # Test Time column
     When User Clicks On Table Header "Time" In Table "Lists"
     Then User Should See Table "Lists" Header "Time" Has Sort Order "ascending"

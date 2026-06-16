@@ -7,9 +7,10 @@ import { TestDataGenerator } from '../../../../support/utils/TestDataGenerator';
 /**
  * Uploads a fixture file via the file input element.
  *
- * For bulk-upload-entries.csv, regenerates the CSV with unique data
+ * For bulk-upload-entries.csv, generates unique CSV content in-memory
  * (names, addresses, emails, account numbers) before uploading, using
- * the scenario-scoped {RANDOM} suffix to avoid data collisions across runs.
+ * the scenario-scoped {RANDOM} suffix to avoid data collisions across runs
+ * without mutating the shared fixture on disk.
  *
  * All other files are uploaded as-is from cypress/fixtures.
  */
@@ -17,7 +18,11 @@ import { TestDataGenerator } from '../../../../support/utils/TestDataGenerator';
 When('User Uploads The File {string}', (fileName: string) => {
   if (fileName === 'bulk-upload-entries.csv') {
     const suffix = TestDataGenerator.replaceRandomPlaceholders('{RANDOM}');
-    cy.task('generateBulkUploadCsv', { suffix });
+    cy.task<string>('buildBulkUploadCsv', { suffix }).then((fileContents) => {
+      UploadHelper.selectFileContents(fileName, fileContents, 'text/csv');
+      cy.screenshot(`uploaded-file-${fileName}`);
+    });
+    return;
   }
   UploadHelper.selectFile(fileName);
   cy.screenshot(`uploaded-file-${fileName}`);

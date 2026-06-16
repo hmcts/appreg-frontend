@@ -2,6 +2,13 @@
  * Utility for building nested objects from flat dot-notation keys
  */
 export class ObjectBuilder {
+  private static readonly LITERAL_MAP: Record<string, unknown> = {
+    __null__: null,
+    __empty_array__: [],
+    __empty_object__: {},
+    __empty_string__: '',
+  };
+
   /**
    * Converts a flat object with dot-notation keys into a nested object structure
    * Example:
@@ -23,15 +30,22 @@ export class ObjectBuilder {
     const result: Record<string, unknown> = {};
 
     for (const [path, value] of Object.entries(flatObj)) {
-      // Skip null or empty string values that represent intentional nulls
-      if (value === 'null' || value === '') {
+      if (this.shouldOmitValue(value)) {
         continue;
       }
 
-      this.setNestedValue(result, path, value);
+      this.setNestedValue(result, path, this.parseLiteral(value));
     }
 
     return result;
+  }
+
+  private static shouldOmitValue(value: string): boolean {
+    return value === 'null' || value === '';
+  }
+
+  private static parseLiteral(value: string): unknown {
+    return value in this.LITERAL_MAP ? this.LITERAL_MAP[value] : value;
   }
 
   /**
@@ -43,19 +57,41 @@ export class ObjectBuilder {
   private static setNestedValue(
     obj: Record<string, unknown>,
     path: string,
-    value: string,
+    value: unknown,
   ): void {
     const pathSegments = this.parsePath(path);
+    if (pathSegments.length === 0) {
+      return;
+    }
+
+    if (pathSegments.length === 1) {
+      obj[pathSegments[0]] = value;
+      return;
+    }
+
     let current: Record<string, unknown> = obj;
 
     for (let i = 0; i < pathSegments.length - 1; i++) {
       const segment = pathSegments[i];
       const nextSegment = pathSegments[i + 1];
       const isNextArray = /^\d+$/.test(nextSegment);
+      const isArrayLeaf = isNextArray && i + 1 === pathSegments.length - 1;
 
       if (!(segment in current)) {
         // Create array if next segment is a number, otherwise create object
         current[segment] = isNextArray ? [] : {};
+      }
+
+      if (isArrayLeaf && Array.isArray(current[segment])) {
+        const arrayIndex = parseInt(nextSegment, 10);
+        const arr = current[segment] as unknown[];
+
+        while (arr.length <= arrayIndex) {
+          arr.push(undefined);
+        }
+
+        arr[arrayIndex] = value;
+        return;
       }
 
       // Navigate deeper

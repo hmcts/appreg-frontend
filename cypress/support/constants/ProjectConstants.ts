@@ -14,7 +14,6 @@ export const TIMEOUT_CONSTANTS = {
   DEFAULT_TIMEOUT: 10000,
   EXTENDED_TIMEOUT: 15000,
   LONG_TIMEOUT: 30000,
-  REDIRECT_SETTLE_MS: 2000,
 } as const;
 
 // HTTP Status Codes
@@ -31,7 +30,7 @@ export const UI_CONSTANTS = {
 // PDF
 export const DOWNLOAD_CONSTANTS = {
   DOWNLOADS_FOLDER: 'cypress/downloads',
-  POLL_INTERVAL_MS: 500,
+  POLL_INTERVAL_MS: 250,
   DEFAULT_FIND_TIMEOUT_MS: 10000,
 } as const;
 
