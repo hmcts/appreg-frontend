@@ -74,12 +74,16 @@ export class StandardApplicantsViewComponent implements OnInit {
 
     const title = data.applicant?.person?.name.title ?? '';
 
-    const standardApplicantName = `${title} ${
+    let standardApplicantName =
       data.name ??
       returnOrgName(data.applicant) ??
       formatPartyName(data.applicant) ??
-      '—'
-    }`;
+      '—';
+
+    if (title !== '') {
+      const applicantName = standardApplicantName;
+      standardApplicantName = `${title} ${applicantName}`;
+    }
 
     return {
       standardApplicantName,
