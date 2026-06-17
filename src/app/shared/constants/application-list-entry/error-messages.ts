@@ -176,6 +176,46 @@ export const ENTRY_ERROR_MESSAGES = {
   ...NUMBER_OF_RESPONDENT_MESSAGES,
 } as const;
 
+export const APPLICANT_ENTRY_ERROR_MESSAGES = {
+  ...ENTRY_ERROR_MESSAGES,
+  firstName: {
+    ...ENTRY_ERROR_MESSAGES.firstName,
+    required: 'Enter applicant first name',
+  },
+  surname: {
+    ...ENTRY_ERROR_MESSAGES.surname,
+    required: 'Enter applicant last name',
+  },
+  addressLine1: {
+    ...ENTRY_ERROR_MESSAGES.addressLine1,
+    required: 'Enter applicant address line 1',
+  },
+  name: {
+    ...ENTRY_ERROR_MESSAGES.name,
+    required: 'Enter applicant organisation name',
+  },
+} as const;
+
+export const RESPONDENT_ENTRY_ERROR_MESSAGES = {
+  ...ENTRY_ERROR_MESSAGES,
+  firstName: {
+    ...ENTRY_ERROR_MESSAGES.firstName,
+    required: 'Enter respondent first name',
+  },
+  surname: {
+    ...ENTRY_ERROR_MESSAGES.surname,
+    required: 'Enter respondent last name',
+  },
+  addressLine1: {
+    ...ENTRY_ERROR_MESSAGES.addressLine1,
+    required: 'Enter respondent address line 1',
+  },
+  name: {
+    ...ENTRY_ERROR_MESSAGES.name,
+    required: 'Enter respondent organisation name',
+  },
+} as const;
+
 export const SEARCH_ERROR_MESSAGES = {
   sequenceNumber: {
     pattern: 'Sequence number must only contain numbers',

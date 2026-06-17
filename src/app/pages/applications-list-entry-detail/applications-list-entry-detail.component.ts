@@ -80,7 +80,11 @@ import { TableColumn } from '@components/sortable-table/sortable-table.component
 import { SelectedStandardApplicantSummary } from '@components/standard-applicant-select/standard-applicant-select.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
-import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
+import {
+  APPLICANT_ENTRY_ERROR_MESSAGES,
+  ENTRY_ERROR_MESSAGES,
+  RESPONDENT_ENTRY_ERROR_MESSAGES,
+} from '@constants/application-list-entry/error-messages';
 import {
   APPLICANT_ORG_ERROR_HREFS,
   APPLICANT_PERSON_ERROR_HREFS,
@@ -586,7 +590,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
       this.childErrors.applicant = buildFormErrorSummary(
         this.personGroup,
-        UPDATE_ENTRY_ERROR_MESSAGES,
+        APPLICANT_ENTRY_ERROR_MESSAGES,
         { hrefs: APPLICANT_PERSON_ERROR_HREFS },
       );
       return;
@@ -598,7 +602,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
       this.childErrors.applicant = buildFormErrorSummary(
         this.organisationGroup,
-        UPDATE_ENTRY_ERROR_MESSAGES,
+        APPLICANT_ENTRY_ERROR_MESSAGES,
         { hrefs: APPLICANT_ORG_ERROR_HREFS },
       );
       return;
@@ -631,7 +635,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         respondentEntryType: this.form.controls.respondentEntryType.value,
         respondentPersonForm: this.forms.respondentPersonForm,
         respondentOrganisationForm: this.forms.respondentOrganisationForm,
-        errorMessages: UPDATE_ENTRY_ERROR_MESSAGES,
+        errorMessages: RESPONDENT_ENTRY_ERROR_MESSAGES,
         respondentPersonHrefs: RESPONDENT_PERSON_ERROR_HREFS,
         respondentOrganisationHrefs: RESPONDENT_ORG_ERROR_HREFS,
         respondentBulkControl: this.form.controls.numberOfRespondents,

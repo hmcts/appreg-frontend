@@ -80,6 +80,42 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     expect(component.vm().summaryErrors.length).toBeGreaterThan(0);
   });
 
+  it('onSubmit: identifies applicant and respondent person required errors in the summary', () => {
+    (
+      component as unknown as {
+        appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
+      }
+    ).appListEntryCreatePatch({
+      appCodeDetail: { requiresRespondent: true },
+    });
+
+    component.form.patchValue({
+      applicationCode: 'A001',
+      lodgementDate: '2026-02-01',
+      applicantType: 'person',
+      respondentEntryType: 'person',
+    });
+
+    component.onSubmit(new Event('submit'));
+
+    expect(createApplicationListEntryMock).not.toHaveBeenCalled();
+    expect(component.vm().errorFound).toBe(true);
+    expect(component.vm().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'firstName',
+          text: 'Enter applicant first name',
+          href: '#applicant-person-first-name',
+        }),
+        expect.objectContaining({
+          id: 'firstName',
+          text: 'Enter respondent first name',
+          href: '#respondent-person-first-name',
+        }),
+      ]),
+    );
+  });
+
   it('onSubmit: validates respondent when partially filled even if not required', () => {
     (
       component as unknown as {

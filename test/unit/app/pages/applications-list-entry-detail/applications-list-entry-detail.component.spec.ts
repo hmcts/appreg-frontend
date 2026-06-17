@@ -1259,10 +1259,10 @@ describe('ApplicationsListEntryDetail', () => {
     expect(applicantErrors.length).toBeGreaterThan(0);
 
     const hasFirstNameError = applicantErrors.some((e) =>
-      /Enter a first name/i.test(e.text),
+      /Enter applicant first name/i.test(e.text),
     );
     const hasSurnameError = applicantErrors.some((e) =>
-      /Enter a last name/i.test(e.text),
+      /Enter applicant last name/i.test(e.text),
     );
 
     expect(hasFirstNameError).toBe(true);
@@ -1409,7 +1409,7 @@ describe('ApplicationsListEntryDetail', () => {
 
     expect(
       component['appListEntryDetailState']().summaryErrors.some((e) =>
-        /organisation name/i.test(e.text),
+        /Enter respondent organisation name/i.test(e.text),
       ),
     ).toBe(true);
   });
