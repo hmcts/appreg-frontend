@@ -4,110 +4,130 @@
 
 <h1 class="govuk-heading-xl">Standard applicant details</h1>
 
-<dl class="govuk-summary-list">
-  <h1 class="govuk-heading-l">Applicant</h1>
-  <!-- Code -->
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">Code</dt>
-    <dd class="govuk-summary-list__value">{{ code() }}</dd>
-  </div>
+<div class="govuk-grid-row">
+  <section class="govuk-grid-column-one-half">
+    <h2 class="govuk-heading-l">Applicant</h2>
+    <dl class="govuk-summary-list">
+      <!-- Code -->
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">Code</dt>
+        <dd class="govuk-summary-list__value">{{ code() }}</dd>
+      </div>
 
-  <!-- Standard applicant name -->
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">Standard applicant name</dt>
-    <dd class="govuk-summary-list__value">
-      {{ summaryListValues.standardApplicantName }}
-    </dd>
-  </div>
-</dl>
+      <!-- Standard applicant name -->
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">Standard applicant name</dt>
+        <dd class="govuk-summary-list__value">
+          {{ summaryListValues.standardApplicantName }}
+        </dd>
+      </div>
+    </dl>
+  </section>
+</div>
 
-<dl class="govuk-summary-list">
-  <h1 class="govuk-heading-l">Address</h1>
-  <!-- Address line 1 -->
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">Address line 1</dt>
-    <dd class="govuk-summary-list__value">
-      {{ summaryListValues.addressLine1 }}
-    </dd>
-  </div>
+<div class="govuk-grid-row">
+  <section class="govuk-grid-column-one-half">
+    <h2 class="govuk-heading-l">Address</h2>
+    <dl class="govuk-summary-list">
+      <!-- Address line 1 -->
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">Address line 1</dt>
+        <dd class="govuk-summary-list__value">
+          {{ summaryListValues.addressLine1 }}
+        </dd>
+      </div>
 
-  <!-- Address line 2 -->
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">Address line 2</dt>
-    <dd class="govuk-summary-list__value">
-      {{ summaryListValues.addressLine2 }}
-    </dd>
-  </div>
+      <!-- Address line 2 -->
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">Address line 2</dt>
+        <dd class="govuk-summary-list__value">
+          {{ summaryListValues.addressLine2 }}
+        </dd>
+      </div>
 
-  <!-- Address line 3 -->
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">Address line 3</dt>
-    <dd class="govuk-summary-list__value">
-      {{ summaryListValues.addressLine3 }}
-    </dd>
-  </div>
+      <!-- Address line 3 -->
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">Address line 3</dt>
+        <dd class="govuk-summary-list__value">
+          {{ summaryListValues.addressLine3 }}
+        </dd>
+      </div>
 
-  <!-- Address line 4 -->
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">Address line 4</dt>
-    <dd class="govuk-summary-list__value">
-      {{ summaryListValues.addressLine4 }}
-    </dd>
-  </div>
+      <!-- Address line 4 -->
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">Address line 4</dt>
+        <dd class="govuk-summary-list__value">
+          {{ summaryListValues.addressLine4 }}
+        </dd>
+      </div>
 
-  <!-- Address line 5 -->
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">Address line 5</dt>
-    <dd class="govuk-summary-list__value">
-      {{ summaryListValues.addressLine5 }}
-    </dd>
-  </div>
+      <!-- Address line 5 -->
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">Address line 5</dt>
+        <dd class="govuk-summary-list__value">
+          {{ summaryListValues.addressLine5 }}
+        </dd>
+      </div>
 
-  <!-- Postcode -->
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">Postcode</dt>
-    <dd class="govuk-summary-list__value">{{ summaryListValues.postcode }}</dd>
-  </div>
-</dl>
+      <!-- Postcode -->
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">Postcode</dt>
+        <dd class="govuk-summary-list__value">
+          {{ summaryListValues.postcode }}
+        </dd>
+      </div>
+    </dl>
+  </section>
+</div>
 
-<dl class="govuk-summary-list">
-  <h1 class="govuk-heading-l">Contact</h1>
-  <!-- Telephone number -->
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">Telephone number</dt>
-    <dd class="govuk-summary-list__value">
-      {{ summaryListValues.telephoneNumber }}
-    </dd>
-  </div>
+<div class="govuk-grid-row">
+  <section class="govuk-grid-column-one-half">
+    <h2 class="govuk-heading-l">Contact</h2>
+    <dl class="govuk-summary-list">
+      <!-- Telephone number -->
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">Telephone number</dt>
+        <dd class="govuk-summary-list__value">
+          {{ summaryListValues.telephoneNumber }}
+        </dd>
+      </div>
 
-  <!-- Mobile number -->
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">Mobile number</dt>
-    <dd class="govuk-summary-list__value">
-      {{ summaryListValues.mobileNumber }}
-    </dd>
-  </div>
+      <!-- Mobile number -->
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">Mobile number</dt>
+        <dd class="govuk-summary-list__value">
+          {{ summaryListValues.mobileNumber }}
+        </dd>
+      </div>
 
-  <!-- Email -->
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">Email address</dt>
-    <dd class="govuk-summary-list__value">
-      {{ summaryListValues.emailAddress }}
-    </dd>
-  </div>
-</dl>
+      <!-- Email -->
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">Email address</dt>
+        <dd class="govuk-summary-list__value">
+          {{ summaryListValues.emailAddress }}
+        </dd>
+      </div>
+    </dl>
+  </section>
+</div>
 
-<dl class="govuk-summary-list">
-  <h1 class="govuk-heading-l">Usage</h1>
-  <!-- Use From -->
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">Use from</dt>
-    <dd class="govuk-summary-list__value">{{ summaryListValues.useFrom }}</dd>
-  </div>
+<div class="govuk-grid-row">
+  <section class="govuk-grid-column-one-half">
+    <h2 class="govuk-heading-l">Usage</h2>
+    <dl class="govuk-summary-list">
+      <!-- Use From -->
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">Use from</dt>
+        <dd class="govuk-summary-list__value">
+          {{ summaryListValues.useFrom }}
+        </dd>
+      </div>
 
-  <!-- Use to -->
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">Use to</dt>
-    <dd class="govuk-summary-list__value">{{ summaryListValues.useTo }}</dd>
-  </div>
-</dl>
+      <!-- Use to -->
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">Use to</dt>
+        <dd class="govuk-summary-list__value">{{ summaryListValues.useTo }}</dd>
+      </div>
+    </dl>
+  </section>
+</div>
