@@ -10,7 +10,7 @@ export class TextboxHelper {
     TextboxElement.findTextbox(selector)
       .should('be.visible')
       .should('be.enabled')
-      .clear()
+      .clear({ force: true })
       .type(text);
   }
 
