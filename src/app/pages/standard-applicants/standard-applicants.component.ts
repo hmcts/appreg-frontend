@@ -1,7 +1,9 @@
+import { isPlatformBrowser } from '@angular/common';
 import {
   Component,
   EnvironmentInjector,
   OnInit,
+  PLATFORM_ID,
   inject,
   signal,
 } from '@angular/core';
@@ -33,6 +35,8 @@ import {
   GetStandardApplicantsRequestParams,
   StandardApplicantsApi,
 } from '@openapi';
+import { StandardApplicantsSearchFormService } from '@services/standard-applicants/standard-applicants-search-form.service';
+import { StandardApplicantsSearchStateService } from '@services/standard-applicants/standard-applicants-search-state.service';
 import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { ErrorMessageMap, buildFormErrorSummary } from '@util/error-summary';
 import { getProblemText } from '@util/http-error-to-text';
@@ -41,12 +45,12 @@ import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
 import { toStandardApplicantSortKey } from '@util/standard-applicant-sort-map';
 import { StandardApplicantRow } from '@util/types/applications-list-entry/types';
 
-type StandardApplicantFilters = Pick<
+export type StandardApplicantFilters = Pick<
   GetStandardApplicantsRequestParams,
   'code' | 'name'
 >;
 
-type StandardApplicantsState = {
+export type StandardApplicantsState = {
   hasSearched: boolean;
   currentPage: number;
   totalPages: number;
@@ -88,6 +92,9 @@ export class StandardApplicants implements OnInit {
   private readonly saApi = inject(StandardApplicantsApi);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly searchForm = inject(StandardApplicantsSearchFormService);
+  private readonly searchState = inject(StandardApplicantsSearchStateService);
 
   private readonly signalState = createSignalState<StandardApplicantsState>(
     initialStandardApplicantsState,
@@ -118,8 +125,17 @@ export class StandardApplicants implements OnInit {
     { header: 'Actions', field: 'actions', sortable: false },
   ];
 
+  preserveErrOnLoad = signal(false);
+
   ngOnInit(): void {
     this.setupEffects();
+    this.signalState.patch(initialStandardApplicantsState);
+    this.restoreSearchState();
+    this.setLoadErrorFromNavigation();
+
+    if (this.vm().hasSearched) {
+      this.loadStandardApplicants(this.vm().currentPage, this.appliedFilters);
+    }
   }
 
   onSubmit(event: SubmitEvent): void {
@@ -130,13 +146,15 @@ export class StandardApplicants implements OnInit {
 
     const validationErrors = this.buildErrorSummary();
     this.signalState.patch({ searchErrors: validationErrors });
+    this.persistFormState();
 
     if (validationErrors.length) {
       return;
     }
 
     this.appliedFilters = this.getTrimmedFilters();
-    this.signalState.patch({ hasSearched: true });
+    this.signalState.patch({ hasSearched: true, currentPage: 0 });
+    this.persistSearchState();
     this.loadStandardApplicants(0, this.appliedFilters);
   }
 
@@ -154,6 +172,8 @@ export class StandardApplicants implements OnInit {
       return;
     }
 
+    this.persistSearchState();
+
     await this.router.navigate([row.code], {
       relativeTo: this.route,
       state: row,
@@ -170,6 +190,8 @@ export class StandardApplicants implements OnInit {
     }
 
     this.signalState.patch({ sortField: sort, currentPage: 0 });
+    this.persistSearchState();
+    this.preserveErrOnLoad.set(false);
     this.loadStandardApplicants(0);
   }
 
@@ -178,10 +200,15 @@ export class StandardApplicants implements OnInit {
       return;
     }
 
+    this.signalState.patch({ currentPage: page });
+    this.persistSearchState();
+    this.preserveErrOnLoad.set(false);
     this.loadStandardApplicants(page);
   }
 
   clearSearch(): void {
+    this.searchForm.reset();
+    this.searchState.reset();
     this.loadRequest.set(null);
     this.form.reset();
     this.appliedFilters = {};
@@ -193,6 +220,7 @@ export class StandardApplicants implements OnInit {
       isLoading: false,
       searchErrors: [],
     });
+    this.preserveErrOnLoad.set(false);
   }
 
   private setupEffects(): void {
@@ -208,8 +236,8 @@ export class StandardApplicants implements OnInit {
             rows: (page.content ?? []).map((sa) => mapSaToRow(sa)),
             totalPages: page.totalPages ?? 0,
             isLoading: false,
-            searchErrors: [],
           });
+          this.persistSearchState();
           this.loadRequest.set(null);
         },
         onError: (err) => {
@@ -224,6 +252,38 @@ export class StandardApplicants implements OnInit {
       },
       this.envInjector,
     );
+  }
+
+  private restoreSearchState(): void {
+    this.form.patchValue(this.searchForm.state(), { emitEvent: false });
+
+    const storedState = this.searchState.state();
+
+    this.appliedFilters = { ...storedState.appliedFilters };
+    this.signalState.patch({
+      hasSearched: storedState.hasSearched,
+      currentPage: storedState.currentPage,
+      pageSize: storedState.pageSize,
+      sortField: { ...storedState.sortField },
+    });
+  }
+
+  private persistSearchState(): void {
+    this.persistFormState();
+    this.searchState.setState({
+      hasSearched: this.vm().hasSearched,
+      currentPage: this.vm().currentPage,
+      pageSize: this.vm().pageSize,
+      sortField: { ...this.vm().sortField },
+      appliedFilters: { ...this.appliedFilters },
+    });
+  }
+
+  private persistFormState(): void {
+    this.searchForm.setState({
+      code: this.form.controls.code.value,
+      name: this.form.controls.name.value,
+    });
   }
 
   private buildErrorSummary(): ErrorItem[] {
@@ -254,7 +314,7 @@ export class StandardApplicants implements OnInit {
     this.signalState.patch({
       currentPage: page,
       isLoading: true,
-      searchErrors: [],
+      searchErrors: this.preserveErrOnLoad() ? this.vm().searchErrors : [], // Keep on load error if present
     });
 
     this.loadRequest.set({
@@ -263,6 +323,27 @@ export class StandardApplicants implements OnInit {
       pageNumber: page,
       pageSize: this.vm().pageSize,
       sort: [`${apiSortKey},${sort.direction}`],
+    });
+  }
+
+  private setLoadErrorFromNavigation(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const errorExists =
+      this.route.snapshot.queryParamMap.get('applicantDetailFailedToLoad') ===
+      'error';
+    const state = history.state as { loadError?: string } | null;
+    const errMsg = state?.loadError;
+
+    if (!errorExists || !errMsg) {
+      return;
+    }
+
+    this.preserveErrOnLoad.set(true);
+    this.signalState.patch({
+      searchErrors: [{ text: errMsg }],
     });
   }
 }

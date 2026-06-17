@@ -5,6 +5,8 @@ import { Observable, Subject, of, throwError } from 'rxjs';
 
 import { StandardApplicants } from '@components/standard-applicants/standard-applicants.component';
 import { StandardApplicantPage, StandardApplicantsApi } from '@openapi';
+import { StandardApplicantsSearchFormService } from '@services/standard-applicants/standard-applicants-search-form.service';
+import { StandardApplicantsSearchStateService } from '@services/standard-applicants/standard-applicants-search-state.service';
 
 const flushSignalEffects = async (
   fixture: ComponentFixture<StandardApplicants>,
@@ -19,6 +21,8 @@ describe('StandardApplicantsComponent', () => {
   let fixture: ComponentFixture<StandardApplicants>;
   let router: Router;
   let route: ActivatedRoute;
+  let searchForm: StandardApplicantsSearchFormService;
+  let searchState: StandardApplicantsSearchStateService;
   const getStandardApplicantsMock = jest.fn<
     Observable<StandardApplicantPage>,
     Parameters<
@@ -62,6 +66,8 @@ describe('StandardApplicantsComponent', () => {
     component = fixture.componentInstance;
     router = TestBed.inject(Router);
     route = TestBed.inject(ActivatedRoute);
+    searchForm = TestBed.inject(StandardApplicantsSearchFormService);
+    searchState = TestBed.inject(StandardApplicantsSearchStateService);
     await flushSignalEffects(fixture);
   });
 
@@ -76,6 +82,46 @@ describe('StandardApplicantsComponent', () => {
   it('does not render table or pagination before first search', () => {
     expect(fixture.debugElement.query(By.css('app-sortable-table'))).toBeNull();
     expect(fixture.debugElement.query(By.css('app-pagination'))).toBeNull();
+  });
+
+  it('restores saved form values and reruns the saved search on init', async () => {
+    searchForm.setState({
+      code: 'SA01',
+      name: 'Applicant Org',
+    });
+    searchState.setState({
+      hasSearched: true,
+      currentPage: 1,
+      pageSize: 10,
+      sortField: { key: 'name', direction: 'desc' },
+      appliedFilters: {
+        code: 'SA01',
+        name: 'Applicant Org',
+      },
+    });
+
+    fixture = TestBed.createComponent(StandardApplicants);
+    component = fixture.componentInstance;
+    await flushSignalEffects(fixture);
+
+    expect(component.form.getRawValue()).toEqual({
+      code: 'SA01',
+      name: 'Applicant Org',
+    });
+    expect(getStandardApplicantsMock).toHaveBeenCalledWith(
+      {
+        code: 'SA01',
+        name: 'Applicant Org',
+        pageNumber: 1,
+        pageSize: 10,
+        sort: ['name,desc'],
+      },
+      'body',
+      false,
+      {
+        transferCache: true,
+      },
+    );
   });
 
   it('submits search and requests first page with trimmed filters', async () => {
@@ -722,6 +768,65 @@ describe('StandardApplicantsComponent', () => {
     expect(navigateSpy).toHaveBeenCalledWith(['SA01'], {
       relativeTo: route,
       state: row,
+    });
+  });
+
+  it('persists the current search snapshot before navigating to the view', async () => {
+    getStandardApplicantsMock.mockReturnValueOnce(
+      of({
+        pageNumber: 0,
+        pageSize: 10,
+        totalElements: 1,
+        content: [
+          {
+            code: 'SA01',
+            applicant: {
+              organisation: {
+                name: 'Applicant Org',
+                contactDetails: { addressLine1: '1 Test Street' },
+              },
+            },
+            startDate: '2026-01-01',
+            endDate: '2026-12-31',
+          },
+        ],
+        elementsOnPage: 1,
+        totalPages: 1,
+      }),
+    );
+
+    component.form.patchValue({
+      code: ' SA01 ',
+      name: ' Applicant Org ',
+    });
+
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    await component.onViewClick({
+      code: 'SA01',
+      name: 'Applicant Org',
+      address: '1 Test Street',
+      useFrom: '1 Jan 2026',
+      useTo: '31 Dec 2026',
+    });
+
+    expect(navigateSpy).toHaveBeenCalled();
+    expect(searchForm.state()).toEqual({
+      code: ' SA01 ',
+      name: ' Applicant Org ',
+    });
+    expect(searchState.state()).toEqual({
+      hasSearched: true,
+      currentPage: 0,
+      pageSize: 10,
+      sortField: { key: 'code', direction: 'asc' },
+      appliedFilters: {
+        code: 'SA01',
+        name: 'Applicant Org',
+      },
     });
   });
 });
