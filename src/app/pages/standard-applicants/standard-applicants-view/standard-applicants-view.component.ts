@@ -46,23 +46,27 @@ export class StandardApplicantsViewComponent implements OnInit {
 
     this.code.set(code);
 
-    this.saApi.getStandardApplicantByCode({ code: this.code() }).subscribe({
-      next: (response) => {
-        this.summaryListValues = this.mapResponseToSummaryList(response);
-      },
-      error: (err) => {
-        const errMsg = getProblemText(err);
+    this.saApi
+      .getStandardApplicantByCode({ code: this.code() }, undefined, undefined, {
+        transferCache: true,
+      })
+      .subscribe({
+        next: (response) => {
+          this.summaryListValues = this.mapResponseToSummaryList(response);
+        },
+        error: (err) => {
+          const errMsg = getProblemText(err);
 
-        void this.router.navigate(['/standard-applicants'], {
-          queryParams: {
-            applicantDetailFailedToLoad: 'error',
-          },
-          state: {
-            loadError: errMsg,
-          },
-        });
-      },
-    });
+          void this.router.navigate(['/standard-applicants'], {
+            queryParams: {
+              applicantDetailFailedToLoad: 'error',
+            },
+            state: {
+              loadError: errMsg,
+            },
+          });
+        },
+      });
   }
 
   private mapResponseToSummaryList(
