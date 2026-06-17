@@ -495,6 +495,77 @@ describe('StandardApplicantsComponent', () => {
     );
   });
 
+  it('ignores page changes while a page load is already in flight', async () => {
+    const inFlightResponse = new Subject<StandardApplicantPage>();
+
+    getStandardApplicantsMock.mockReturnValueOnce(
+      of({
+        pageNumber: 0,
+        pageSize: 10,
+        totalElements: 1,
+        content: [
+          {
+            code: 'SA01',
+            applicant: {
+              organisation: {
+                name: 'Applicant Org',
+                contactDetails: { addressLine1: '1 Test Street' },
+              },
+            },
+            startDate: '2026-01-01',
+            endDate: '2026-12-31',
+          },
+        ],
+        elementsOnPage: 1,
+        totalPages: 4,
+      }),
+    );
+
+    component.onSubmit(new SubmitEvent('submit'));
+    await flushSignalEffects(fixture);
+
+    getStandardApplicantsMock.mockReturnValueOnce(inFlightResponse);
+
+    component.onPageChange(1);
+    await flushSignalEffects(fixture);
+
+    expect(component.vm().currentPage).toBe(1);
+    expect(searchState.state().currentPage).toBe(1);
+    expect(component.vm().isLoading).toBe(true);
+
+    getStandardApplicantsMock.mockClear();
+
+    component.onPageChange(2);
+    await flushSignalEffects(fixture);
+
+    expect(getStandardApplicantsMock).not.toHaveBeenCalled();
+    expect(component.vm().currentPage).toBe(1);
+    expect(searchState.state().currentPage).toBe(1);
+
+    inFlightResponse.next({
+      pageNumber: 1,
+      pageSize: 10,
+      totalElements: 1,
+      content: [
+        {
+          code: 'SA01',
+          applicant: {
+            organisation: {
+              name: 'Applicant Org',
+              contactDetails: { addressLine1: '1 Test Street' },
+            },
+          },
+          startDate: '2026-01-01',
+          endDate: '2026-12-31',
+        },
+      ],
+      elementsOnPage: 1,
+      totalPages: 4,
+    });
+    inFlightResponse.complete();
+    await flushSignalEffects(fixture);
+  });
+
   it('maps useFrom sort key to backend from parameter on the current page', async () => {
     component.onSubmit(new SubmitEvent('submit'));
     await flushSignalEffects(fixture);

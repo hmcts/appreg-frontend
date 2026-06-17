@@ -196,7 +196,7 @@ export class StandardApplicants implements OnInit {
   }
 
   onPageChange(page: number): void {
-    if (!this.vm().hasSearched) {
+    if (!this.vm().hasSearched || this.vm().isLoading) {
       return;
     }
 
