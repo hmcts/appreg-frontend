@@ -1,0 +1,26 @@
+{
+  "code": "{{upper request.pathSegments.[1]}}",
+  "name": "Alex Taylor",
+  "applicant": {
+    "person": {
+      "name": {
+        "title": "Mr",
+        "firstName": "Alex",
+        "lastName": "Taylor"
+      },
+      "contactDetails": {
+        "addressLine1": "1 Crown Sq",
+        "addressLine2": null,
+        "addressLine3": "Manchester",
+        "addressLine4": null,
+        "addressLine5": null,
+        "postcode": "M1 1AA",
+        "email": "alex.taylor@example.test",
+        "phone": "+44 161 000 0000",
+        "mobile": null
+      }
+    }
+  },
+  "startDate": "2020-01-01",
+  "endDate": null
+}

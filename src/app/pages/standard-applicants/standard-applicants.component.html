@@ -1,3 +1,5 @@
+<h1 class="govuk-heading-xl">Standard applicants</h1>
+
 @if (vm().searchErrors.length) {
   <app-error-summary
     [items]="vm().searchErrors"
@@ -12,8 +14,6 @@
     />
   }
 }
-
-<h1 class="govuk-heading-xl">Standard applicants</h1>
 
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
@@ -116,8 +116,9 @@
         <button
           type="button"
           class="govuk-button moj-button-menu__item govuk-button"
+          (click)="onViewClick(row)"
         >
-          Open
+          View
         </button>
       </div>
     </ng-template>

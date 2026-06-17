@@ -187,11 +187,23 @@ export const routes: Routes = [
   },
   {
     path: 'standard-applicants',
-    loadComponent: () =>
-      import('@components/standard-applicants/standard-applicants.component').then(
-        (m) => m.StandardApplicants,
-      ),
     canActivate: [sessionGuard],
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('@components/standard-applicants/standard-applicants.component').then(
+            (m) => m.StandardApplicants,
+          ),
+      },
+      {
+        path: ':id',
+        loadComponent: () =>
+          import('@components/standard-applicants/standard-applicants-view/standard-applicants-view.component').then(
+            (m) => m.StandardApplicantsViewComponent,
+          ),
+      },
+    ],
   },
   {
     path: 'reports',
