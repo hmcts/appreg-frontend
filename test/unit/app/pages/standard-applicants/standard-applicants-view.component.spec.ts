@@ -99,7 +99,6 @@ describe('StandardApplicantsViewComponent', () => {
     });
 
     expect(component.summaryListValues).toEqual({
-      code: 'SA01',
       standardApplicantName: 'Applicant Org',
       addressLine1: '1 Test Street',
       addressLine2: 'Suite 2',
@@ -144,8 +143,7 @@ describe('StandardApplicantsViewComponent', () => {
     });
 
     expect(component.summaryListValues).toEqual({
-      code: 'SA02',
-      standardApplicantName: 'Alex Taylor',
+      standardApplicantName: 'Mr Alex Taylor',
       addressLine1: '2 Test Street',
       addressLine2: '—',
       addressLine3: 'Leeds',
