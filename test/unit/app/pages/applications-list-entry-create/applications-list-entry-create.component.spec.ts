@@ -166,6 +166,50 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     expect(component.respondentErrorItems).toEqual([]);
   });
 
+  it('updates respondent required messages when respondent becomes populated after submit', () => {
+    (
+      component as unknown as {
+        appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
+      }
+    ).appListEntryCreatePatch({
+      appCodeDetail: { requiresRespondent: false },
+    });
+
+    component.form.patchValue({
+      applicationCode: '   ', // keep submit invalid while respondent is empty
+      respondentEntryType: 'person',
+      numberOfRespondents: null,
+    });
+    component.forms.respondentPersonForm.reset();
+    component.forms.respondentOrganisationForm.reset();
+
+    component.onSubmit(new Event('submit'));
+    expect(component.respondentErrorItems).toEqual([]);
+
+    component.forms.respondentPersonForm.patchValue({ firstName: 'Jane' });
+
+    expect(component.respondentSubmittedAndRequired).toBe(true);
+    expect(component.respondentErrorItems).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          text: 'Enter respondent last name',
+          href: '#respondent-person-surname',
+        }),
+        expect.objectContaining({
+          text: 'Enter respondent address line 1',
+          href: '#respondent-person-address-line-1',
+        }),
+      ]),
+    );
+    expect(component.vm().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          text: 'Enter respondent last name',
+        }),
+      ]),
+    );
+  });
+
   it('includes relayed standard applicant search errors in the parent summary', () => {
     component.form.patchValue({ applicantType: 'standard' });
     (

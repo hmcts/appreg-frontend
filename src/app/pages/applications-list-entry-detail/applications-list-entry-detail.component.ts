@@ -30,7 +30,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { map } from 'rxjs';
+import { map, merge } from 'rxjs';
 
 import {
   ApplicationsListEntryDetailState,
@@ -319,6 +319,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     // Watch applicantType changes
     this.bindApplicantTypeChanges();
+    this.bindRespondentValidationChanges();
 
     this.loadEntryAndPatchForm(listId, entryId, pr, state);
 
@@ -648,7 +649,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.childErrors.respondent = [];
   }
 
-  private updateAllErrors(): void {
+  private updateAllErrors(opts: { focusSummary?: boolean } = {}): void {
     this.updateApplicantErrors();
     this.updateRespondentErrors();
 
@@ -665,7 +666,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       errorFound,
     });
 
-    if (errorFound) {
+    if (errorFound && opts.focusSummary !== false) {
       focusErrorSummary(this.platformId);
     }
   }
@@ -1071,6 +1072,23 @@ export class ApplicationsListEntryDetail implements OnInit {
         // let the service reset the subforms + standard code
         this.formSvc.onApplicantTypeChanged(this.forms, t);
         this.formSvc.syncApplicantTypeState(this.forms, t);
+      });
+  }
+
+  private bindRespondentValidationChanges(): void {
+    merge(
+      this.form.controls.respondentEntryType.valueChanges,
+      this.form.controls.numberOfRespondents.valueChanges,
+      this.forms.respondentPersonForm.valueChanges,
+      this.forms.respondentOrganisationForm.valueChanges,
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (!this.appListEntryDetailState().formSubmitted) {
+          return;
+        }
+
+        this.updateAllErrors({ focusSummary: false });
       });
   }
 

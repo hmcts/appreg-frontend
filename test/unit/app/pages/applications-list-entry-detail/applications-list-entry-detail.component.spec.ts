@@ -1414,6 +1414,47 @@ describe('ApplicationsListEntryDetail', () => {
     ).toBe(true);
   });
 
+  it('updates respondent required messages when respondent becomes populated after submit', () => {
+    component['forms'].respondentPersonForm.reset();
+    component['forms'].respondentOrganisationForm.reset();
+    component['form'].patchValue({
+      respondentEntryType: 'person',
+      numberOfRespondents: null,
+    });
+    component['appListEntryDetailPatch']({
+      appCodeDetail: {
+        requiresRespondent: false,
+      } as ApplicationCodeGetDetailDto,
+      formSubmitted: true,
+    });
+
+    expect(component.respondentErrorItems).toEqual([]);
+
+    component['forms'].respondentPersonForm.patchValue({
+      firstName: 'Jane',
+    });
+
+    expect(component.respondentErrorItems).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          text: 'Enter respondent last name',
+          href: '#respondent-person-surname',
+        }),
+        expect.objectContaining({
+          text: 'Enter respondent address line 1',
+          href: '#respondent-person-address-line-1',
+        }),
+      ]),
+    );
+    expect(component['appListEntryDetailState']().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          text: 'Enter respondent last name',
+        }),
+      ]),
+    );
+  });
+
   it('toEntryDetailPatch maps wordingFields to values and preserves other fields', () => {
     component['entryDetail'] = {
       wording: {

@@ -26,7 +26,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { map } from 'rxjs';
+import { map, merge } from 'rxjs';
 
 import {
   ApplicationsListEntryCreateState,
@@ -191,6 +191,7 @@ export class ApplicationsListEntryCreate implements OnInit {
   ngOnInit(): void {
     this.appListEntryCreateState().id = this.route.snapshot.paramMap.get('id')!;
     this.bindApplicantTypeChanges();
+    this.bindRespondentValidationChanges();
     this.restoreNavigationState();
   }
 
@@ -386,7 +387,10 @@ export class ApplicationsListEntryCreate implements OnInit {
     return isRespondentRequired || respondentFormHasValues;
   }
 
-  private updateErrors(opts: { validateOtherSections: boolean }): void {
+  private updateErrors(opts: {
+    validateOtherSections: boolean;
+    focusSummary?: boolean;
+  }): void {
     // Full or partial validation
     if (opts.validateOtherSections) {
       this.updateApplicantErrors();
@@ -406,6 +410,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
     if (
       opts.validateOtherSections &&
+      opts.focusSummary !== false &&
       this.appListEntryCreateState().errorFound
     ) {
       focusErrorSummary(this.platformId);
@@ -580,6 +585,26 @@ export class ApplicationsListEntryCreate implements OnInit {
         // reset/rehydrate subforms + keep standardApplicantCode in sync
         this.formSvc.onApplicantTypeChanged(this.forms, t);
         this.formSvc.syncApplicantTypeState(this.forms, t);
+      });
+  }
+
+  private bindRespondentValidationChanges(): void {
+    merge(
+      this.form.controls.respondentEntryType.valueChanges,
+      this.form.controls.numberOfRespondents.valueChanges,
+      this.forms.respondentPersonForm.valueChanges,
+      this.forms.respondentOrganisationForm.valueChanges,
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (!this.appListEntryCreateState().submitted) {
+          return;
+        }
+
+        this.updateErrors({
+          validateOtherSections: true,
+          focusSummary: false,
+        });
       });
   }
 
