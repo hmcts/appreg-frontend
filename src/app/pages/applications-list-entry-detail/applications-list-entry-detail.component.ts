@@ -30,7 +30,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { map } from 'rxjs';
+import { map, merge } from 'rxjs';
 
 import {
   ApplicationsListEntryDetailState,
@@ -80,7 +80,11 @@ import { TableColumn } from '@components/sortable-table/sortable-table.component
 import { SelectedStandardApplicantSummary } from '@components/standard-applicant-select/standard-applicant-select.component';
 import { SuccessBannerComponent } from '@components/success-banner/success-banner.component';
 import { WordingSectionComponent } from '@components/wording-section/wording-section.component';
-import { ENTRY_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
+import {
+  APPLICANT_ENTRY_ERROR_MESSAGES,
+  ENTRY_ERROR_MESSAGES,
+  RESPONDENT_ENTRY_ERROR_MESSAGES,
+} from '@constants/application-list-entry/error-messages';
 import {
   APPLICANT_ORG_ERROR_HREFS,
   APPLICANT_PERSON_ERROR_HREFS,
@@ -315,6 +319,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
     // Watch applicantType changes
     this.bindApplicantTypeChanges();
+    this.bindRespondentValidationChanges();
 
     this.loadEntryAndPatchForm(listId, entryId, pr, state);
 
@@ -586,7 +591,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
       this.childErrors.applicant = buildFormErrorSummary(
         this.personGroup,
-        UPDATE_ENTRY_ERROR_MESSAGES,
+        APPLICANT_ENTRY_ERROR_MESSAGES,
         { hrefs: APPLICANT_PERSON_ERROR_HREFS },
       );
       return;
@@ -598,7 +603,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
       this.childErrors.applicant = buildFormErrorSummary(
         this.organisationGroup,
-        UPDATE_ENTRY_ERROR_MESSAGES,
+        APPLICANT_ENTRY_ERROR_MESSAGES,
         { hrefs: APPLICANT_ORG_ERROR_HREFS },
       );
       return;
@@ -631,7 +636,7 @@ export class ApplicationsListEntryDetail implements OnInit {
         respondentEntryType: this.form.controls.respondentEntryType.value,
         respondentPersonForm: this.forms.respondentPersonForm,
         respondentOrganisationForm: this.forms.respondentOrganisationForm,
-        errorMessages: UPDATE_ENTRY_ERROR_MESSAGES,
+        errorMessages: RESPONDENT_ENTRY_ERROR_MESSAGES,
         respondentPersonHrefs: RESPONDENT_PERSON_ERROR_HREFS,
         respondentOrganisationHrefs: RESPONDENT_ORG_ERROR_HREFS,
         respondentBulkControl: this.form.controls.numberOfRespondents,
@@ -644,7 +649,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     this.childErrors.respondent = [];
   }
 
-  private updateAllErrors(): void {
+  private updateAllErrors(opts: { focusSummary?: boolean } = {}): void {
     this.updateApplicantErrors();
     this.updateRespondentErrors();
 
@@ -661,7 +666,7 @@ export class ApplicationsListEntryDetail implements OnInit {
       errorFound,
     });
 
-    if (errorFound) {
+    if (errorFound && opts.focusSummary !== false) {
       focusErrorSummary(this.platformId);
     }
   }
@@ -1067,6 +1072,23 @@ export class ApplicationsListEntryDetail implements OnInit {
         // let the service reset the subforms + standard code
         this.formSvc.onApplicantTypeChanged(this.forms, t);
         this.formSvc.syncApplicantTypeState(this.forms, t);
+      });
+  }
+
+  private bindRespondentValidationChanges(): void {
+    merge(
+      this.form.controls.respondentEntryType.valueChanges,
+      this.form.controls.numberOfRespondents.valueChanges,
+      this.forms.respondentPersonForm.valueChanges,
+      this.forms.respondentOrganisationForm.valueChanges,
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (!this.appListEntryDetailState().formSubmitted) {
+          return;
+        }
+
+        this.updateAllErrors({ focusSummary: false });
       });
   }
 

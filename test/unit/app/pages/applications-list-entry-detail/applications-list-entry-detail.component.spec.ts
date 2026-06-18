@@ -1259,10 +1259,10 @@ describe('ApplicationsListEntryDetail', () => {
     expect(applicantErrors.length).toBeGreaterThan(0);
 
     const hasFirstNameError = applicantErrors.some((e) =>
-      /Enter a first name/i.test(e.text),
+      /Enter applicant first name/i.test(e.text),
     );
     const hasSurnameError = applicantErrors.some((e) =>
-      /Enter a last name/i.test(e.text),
+      /Enter applicant last name/i.test(e.text),
     );
 
     expect(hasFirstNameError).toBe(true);
@@ -1409,9 +1409,50 @@ describe('ApplicationsListEntryDetail', () => {
 
     expect(
       component['appListEntryDetailState']().summaryErrors.some((e) =>
-        /organisation name/i.test(e.text),
+        /Enter respondent organisation name/i.test(e.text),
       ),
     ).toBe(true);
+  });
+
+  it('updates respondent required messages when respondent becomes populated after submit', () => {
+    component['forms'].respondentPersonForm.reset();
+    component['forms'].respondentOrganisationForm.reset();
+    component['form'].patchValue({
+      respondentEntryType: 'person',
+      numberOfRespondents: null,
+    });
+    component['appListEntryDetailPatch']({
+      appCodeDetail: {
+        requiresRespondent: false,
+      } as ApplicationCodeGetDetailDto,
+      formSubmitted: true,
+    });
+
+    expect(component.respondentErrorItems).toEqual([]);
+
+    component['forms'].respondentPersonForm.patchValue({
+      firstName: 'Jane',
+    });
+
+    expect(component.respondentErrorItems).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          text: 'Enter respondent last name',
+          href: '#respondent-person-surname',
+        }),
+        expect.objectContaining({
+          text: 'Enter respondent address line 1',
+          href: '#respondent-person-address-line-1',
+        }),
+      ]),
+    );
+    expect(component['appListEntryDetailState']().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          text: 'Enter respondent last name',
+        }),
+      ]),
+    );
   });
 
   it('toEntryDetailPatch maps wordingFields to values and preserves other fields', () => {

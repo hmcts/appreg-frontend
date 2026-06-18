@@ -80,6 +80,42 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     expect(component.vm().summaryErrors.length).toBeGreaterThan(0);
   });
 
+  it('onSubmit: identifies applicant and respondent person required errors in the summary', () => {
+    (
+      component as unknown as {
+        appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
+      }
+    ).appListEntryCreatePatch({
+      appCodeDetail: { requiresRespondent: true },
+    });
+
+    component.form.patchValue({
+      applicationCode: 'A001',
+      lodgementDate: '2026-02-01',
+      applicantType: 'person',
+      respondentEntryType: 'person',
+    });
+
+    component.onSubmit(new Event('submit'));
+
+    expect(createApplicationListEntryMock).not.toHaveBeenCalled();
+    expect(component.vm().errorFound).toBe(true);
+    expect(component.vm().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'firstName',
+          text: 'Enter applicant first name',
+          href: '#applicant-person-first-name',
+        }),
+        expect.objectContaining({
+          id: 'firstName',
+          text: 'Enter respondent first name',
+          href: '#respondent-person-first-name',
+        }),
+      ]),
+    );
+  });
+
   it('onSubmit: validates respondent when partially filled even if not required', () => {
     (
       component as unknown as {
@@ -128,6 +164,50 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     expect(component.vm().submitted).toBe(true);
     expect(component.respondentSubmittedAndRequired).toBe(false);
     expect(component.respondentErrorItems).toEqual([]);
+  });
+
+  it('updates respondent required messages when respondent becomes populated after submit', () => {
+    (
+      component as unknown as {
+        appListEntryCreatePatch: (patch: Record<string, unknown>) => void;
+      }
+    ).appListEntryCreatePatch({
+      appCodeDetail: { requiresRespondent: false },
+    });
+
+    component.form.patchValue({
+      applicationCode: '   ', // keep submit invalid while respondent is empty
+      respondentEntryType: 'person',
+      numberOfRespondents: null,
+    });
+    component.forms.respondentPersonForm.reset();
+    component.forms.respondentOrganisationForm.reset();
+
+    component.onSubmit(new Event('submit'));
+    expect(component.respondentErrorItems).toEqual([]);
+
+    component.forms.respondentPersonForm.patchValue({ firstName: 'Jane' });
+
+    expect(component.respondentSubmittedAndRequired).toBe(true);
+    expect(component.respondentErrorItems).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          text: 'Enter respondent last name',
+          href: '#respondent-person-surname',
+        }),
+        expect.objectContaining({
+          text: 'Enter respondent address line 1',
+          href: '#respondent-person-address-line-1',
+        }),
+      ]),
+    );
+    expect(component.vm().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          text: 'Enter respondent last name',
+        }),
+      ]),
+    );
   });
 
   it('includes relayed standard applicant search errors in the parent summary', () => {
