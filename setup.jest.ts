@@ -1,8 +1,41 @@
 import '@angular/compiler';
 import '@angular/common/locales/global/en-GB';
-import { setupZoneTestEnv } from 'jest-preset-angular/setup-env/zone';
+import 'zone.js';
+import 'zone.js/testing';
 
-setupZoneTestEnv();
+import {
+  COMPILER_OPTIONS,
+  NgModule,
+  provideZoneChangeDetection,
+} from '@angular/core';
+import { getTestBed } from '@angular/core/testing';
+import {
+  BrowserTestingModule,
+  platformBrowserTesting,
+} from '@angular/platform-browser/testing';
+import { TextDecoder, TextEncoder } from 'util';
+
+if (typeof globalThis.TextEncoder === 'undefined') {
+  globalThis.TextEncoder = TextEncoder as typeof globalThis.TextEncoder;
+  globalThis.TextDecoder = TextDecoder as typeof globalThis.TextDecoder;
+}
+
+class TestModule {}
+
+NgModule({
+  providers: [provideZoneChangeDetection()],
+})(TestModule);
+
+getTestBed().initTestEnvironment(
+  [BrowserTestingModule, TestModule],
+  platformBrowserTesting([
+    {
+      provide: COMPILER_OPTIONS,
+      useValue: {},
+      multi: true,
+    },
+  ]),
+);
 
 // Mock govuk and moj frontend bundles so tests can run without dom errors
 // Shared in all tests so if we need specific behaviour then a local mock is needed
