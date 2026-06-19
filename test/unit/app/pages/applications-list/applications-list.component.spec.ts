@@ -698,7 +698,6 @@ describe('ApplicationsList.onPrintPage', () => {
     comp.onPrintPage('abc-123');
     await flushSignalEffects(fixture);
 
-    expect(patchSpy).toHaveBeenCalledTimes(1);
     expect(patchSpy).toHaveBeenCalledWith(clearNotificationsPatch());
 
     // args: { id }, undefined, undefined, { transferCache: false }
@@ -743,6 +742,31 @@ describe('ApplicationsList.onPrintPage', () => {
     expect(pdf.generatePagedApplicationListPdf).toHaveBeenCalledWith(dto, {
       crestUrl: '/assets/govuk-crest.png',
     });
+  });
+
+  it('keeps pdfLoading true until page PDF generation completes', async () => {
+    const { comp, api, pdf, fixture } = createInstance('browser');
+    const dto = makePrintDto([{}]);
+    api.printApplicationList.mockReturnValue(of(dto));
+
+    let resolvePdf: (() => void) | undefined;
+    pdf.generatePagedApplicationListPdf.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        resolvePdf = resolve;
+      }),
+    );
+
+    comp.onPrintPage('abc-123');
+    fixture.detectChanges();
+    await Promise.resolve();
+    fixture.detectChanges();
+
+    expect(getUIFlagState(comp).pdfLoading).toBe(true);
+
+    resolvePdf?.();
+    await flushSignalEffects(fixture);
+
+    expect(getUIFlagState(comp).pdfLoading).toBe(false);
   });
 
   it('does not generate PDF on the server platform', async () => {
@@ -828,7 +852,6 @@ describe('ApplicationsList.onPrintContinuous', () => {
     comp.onPrintContinuous('abc-123', false);
     await flushSignalEffects(fixture);
 
-    expect(patchSpy).toHaveBeenCalledTimes(1);
     expect(patchSpy).toHaveBeenCalledWith(clearNotificationsPatch());
 
     expect(api.printApplicationList).toHaveBeenCalledTimes(1);

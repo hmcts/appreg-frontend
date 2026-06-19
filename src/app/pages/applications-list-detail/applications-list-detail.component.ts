@@ -694,17 +694,19 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
           ),
         onSuccess: async (dto) => {
           const mode = this.printRequest()?.mode;
-          this.detailSignalState.patch({ pdfLoading: false });
           this.printRequest.set(null);
+          try {
+            const filteredDto = this.filterEntriesToPrint(dto);
 
-          const filteredDto = this.filterEntriesToPrint(dto);
+            if (mode === 'page') {
+              await this.handlePrintPage(filteredDto);
+              return;
+            }
 
-          if (mode === 'page') {
-            await this.handlePrintPage(filteredDto);
-            return;
+            await this.handlePrintContinuous(filteredDto);
+          } finally {
+            this.detailSignalState.patch({ pdfLoading: false });
           }
-
-          await this.handlePrintContinuous(filteredDto);
         },
         onError: (err) => {
           this.printRequest.set(null);

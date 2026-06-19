@@ -271,13 +271,14 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
           ),
         onSuccess: async (dto) => {
           this.printPageRequest.set(null);
-          this.appListSignalState.patch({ pdfLoading: false });
-          if (!this.hasEntries(dto)) {
-            this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint);
-            return;
-          }
-
           try {
+            if (!this.hasEntries(dto)) {
+              this.showInline(
+                APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
+              );
+              return;
+            }
+
             if (isPlatformBrowser(this.platformId)) {
               await this.pdf.generatePagedApplicationListPdf(dto, {
                 crestUrl: '/assets/govuk-crest.png',
@@ -285,6 +286,8 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
             }
           } catch {
             this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry);
+          } finally {
+            this.appListSignalState.patch({ pdfLoading: false });
           }
         },
         onError: (err) => {
@@ -313,13 +316,14 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
             .pipe(map((dto) => ({ dto, isClosed: req.isClosed }))),
         onSuccess: async ({ dto, isClosed }) => {
           this.printContinuousRequest.set(null);
-          this.appListSignalState.patch({ pdfLoading: false });
-          if (!this.hasEntries(dto)) {
-            this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint);
-            return;
-          }
-
           try {
+            if (!this.hasEntries(dto)) {
+              this.showInline(
+                APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
+              );
+              return;
+            }
+
             if (isPlatformBrowser(this.platformId)) {
               await this.pdf.generateContinuousApplicationListsPdf(
                 [dto],
@@ -330,6 +334,8 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
             this.showInline(
               APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric,
             );
+          } finally {
+            this.appListSignalState.patch({ pdfLoading: false });
           }
         },
         onError: () => {

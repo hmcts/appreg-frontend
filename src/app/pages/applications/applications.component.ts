@@ -242,35 +242,38 @@ export class Applications extends PlaceFieldsBase implements OnInit {
         },
         onSuccess: async (response) => {
           this.printRequest.set(null);
-          this.appState.patch({ loading: false });
+          try {
+            const filteredDtos = response.dtos.map((dto) =>
+              filterEntriesToPrint(dto, response.selectedRows),
+            );
 
-          const filteredDtos = response.dtos.map((dto) =>
-            filterEntriesToPrint(dto, response.selectedRows),
-          );
+            if (response.mode === 'page') {
+              await handlePrintPage(filteredDtos, {
+                pdf: this.pdf,
+                isBrowser: isPlatformBrowser(this.platformId),
+                onError: (message) => this.patchPrintError(message),
+                noEntriesMessage:
+                  APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
+                generateErrorMessage:
+                  APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry,
+                crestUrl: '/assets/govuk-crest.png',
+              });
+              return;
+            }
 
-          if (response.mode === 'page') {
-            await handlePrintPage(filteredDtos, {
+            await handlePrintContinuous(filteredDtos, {
               pdf: this.pdf,
               isBrowser: isPlatformBrowser(this.platformId),
               onError: (message) => this.patchPrintError(message),
               noEntriesMessage:
                 APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
               generateErrorMessage:
-                APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry,
-              crestUrl: '/assets/govuk-crest.png',
+                APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric,
+              isClosed: false,
             });
-            return;
+          } finally {
+            this.appState.patch({ loading: false });
           }
-
-          await handlePrintContinuous(filteredDtos, {
-            pdf: this.pdf,
-            isBrowser: isPlatformBrowser(this.platformId),
-            onError: (message) => this.patchPrintError(message),
-            noEntriesMessage: APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
-            generateErrorMessage:
-              APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric,
-            isClosed: false,
-          });
         },
         onError: (err) => {
           this.printRequest.set(null);

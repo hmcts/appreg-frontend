@@ -1299,6 +1299,47 @@ describe('ApplicationsComponent', () => {
         { text: APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry },
       ]);
     });
+
+    it('keeps loading true until page PDF generation completes', async () => {
+      appStateSignal(component).update((s) => ({
+        ...s,
+        selectedRows: [makeSelectedRow('entry-1', 'list-a')],
+      }));
+      printApplicationListMock.mockReturnValue(
+        of(
+          makePrintDto({
+            entries: [
+              {
+                id: 'entry-1',
+                applicant: {},
+                applicationCode: '',
+                applicationTitle: '',
+                applicationWording: '',
+              },
+            ],
+          }),
+        ),
+      );
+
+      let resolvePdf: (() => void) | undefined;
+      pdfServiceStub.generatePagedApplicationListPdf.mockReturnValueOnce(
+        new Promise<void>((resolve) => {
+          resolvePdf = resolve;
+        }),
+      );
+
+      await component.onPrintPageClick();
+      fixture.detectChanges();
+      await Promise.resolve();
+      fixture.detectChanges();
+
+      expect(component.vm().loading).toBe(true);
+
+      resolvePdf?.();
+      await flushSignalEffects(fixture);
+
+      expect(component.vm().loading).toBe(false);
+    });
   });
 
   describe('buildPrintRequest', () => {
