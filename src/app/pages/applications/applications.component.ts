@@ -29,6 +29,7 @@ import {
 import { mapToRow } from './util/table-mapper';
 
 import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
+import { AsyncJobProgressComponent } from '@components/async-job-progress/async-job-progress.component';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import {
   ErrorItem,
@@ -131,6 +132,7 @@ export const ApplicationsColumns = [
     NotificationBannerComponent,
     MojButtonMenuDirective,
     DateTimePipe,
+    AsyncJobProgressComponent,
   ],
   templateUrl: './applications.component.html',
   styleUrls: ['./applications.component.scss'],
@@ -268,9 +270,12 @@ export class Applications extends PlaceFieldsBase implements OnInit {
               APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric,
             isClosed: false,
           });
+
+          this.appState.patch({ loading: false });
         },
         onError: (err) => {
           this.printRequest.set(null);
+          this.appState.patch({ loading: false });
           const errMsg = getProblemText(err);
           this.patchPrintError(errMsg);
         },
@@ -335,6 +340,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       return;
     }
 
+    this.appState.patch({ loading: true });
     this.printRequest.set(request);
   }
 
@@ -344,6 +350,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       return;
     }
 
+    this.appState.patch({ loading: true });
     this.printRequest.set(request);
   }
 

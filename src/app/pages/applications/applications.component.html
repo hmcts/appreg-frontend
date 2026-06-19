@@ -23,6 +23,13 @@
   }
 }
 
+@if (vm().loading) {
+  <app-async-job-progress
+    heading="PDF in progress"
+    body="Your PDF is being generated and will download automatically when ready."
+  />
+}
+
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
