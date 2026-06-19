@@ -334,22 +334,24 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   async onPrintContinuousClick(): Promise<void> {
+    this.appState.patch({ loading: true });
     const request = await this.buildPrintRequest('continuous');
     if (!request) {
+      this.appState.patch({ loading: false });
       return;
     }
 
-    this.appState.patch({ loading: true });
     this.printRequest.set(request);
   }
 
   async onPrintPageClick(): Promise<void> {
+    this.appState.patch({ loading: true });
     const request = await this.buildPrintRequest('page');
     if (!request) {
+      this.appState.patch({ loading: false });
       return;
     }
 
-    this.appState.patch({ loading: true });
     this.printRequest.set(request);
   }
 
