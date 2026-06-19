@@ -1301,6 +1301,42 @@ describe('ApplicationsComponent', () => {
     });
   });
 
+  describe('buildPrintRequest', () => {
+    it('returns early and patches an error when more than 100 rows are selected', async () => {
+      const resolveSelectedRowsSpy = jest
+        .spyOn(
+          component as unknown as {
+            resolveSelectedRows(): Promise<ApplicationRow[]>;
+          },
+          'resolveSelectedRows',
+        )
+        .mockResolvedValue([]);
+
+      appStateSignal(component).update((state) => ({
+        ...state,
+        selectedIds: new Set(
+          Array.from({ length: 101 }, (_, index) => `entry-${index + 1}`),
+        ),
+      }));
+
+      const request = await (
+        component as unknown as {
+          buildPrintRequest(mode: 'page' | 'continuous'): Promise<{
+            ids: string[];
+            mode: 'page' | 'continuous';
+            selectedRows: ApplicationRow[];
+          } | null | void>;
+        }
+      ).buildPrintRequest('page');
+
+      expect(request).toBeUndefined();
+      expect(resolveSelectedRowsSpy).not.toHaveBeenCalled();
+      expect(component.vm().errorSummary).toEqual([
+        { text: 'Please select less than 100 rows' },
+      ]);
+    });
+  });
+
   describe('onResultSelectedClick', () => {
     const makeResultRow = (id: string): ApplicationRow => ({
       ...makeSelectedRow(id, `list-${id}`),
@@ -1311,10 +1347,7 @@ describe('ApplicationsComponent', () => {
       status: 'Open',
     });
 
-    it('shows an error and does not navigate when 50 applications are selected to result', async () => {
-      const rows = Array.from({ length: 50 }, (_, index) =>
-        makeResultRow(`entry-${index + 1}`),
-      );
+    it('shows an error and does not resolve rows when more than 100 applications are selected to result', async () => {
       const resolveSelectedRowsSpy = jest
         .spyOn(
           component as unknown as {
@@ -1322,17 +1355,24 @@ describe('ApplicationsComponent', () => {
           },
           'resolveSelectedRows',
         )
-        .mockResolvedValue(rows);
+        .mockResolvedValue([]);
       const navigateSpy = jest
         .spyOn((component as unknown as { router: Router }).router, 'navigate')
         .mockResolvedValue(true);
 
+      appStateSignal(component).update((state) => ({
+        ...state,
+        selectedIds: new Set(
+          Array.from({ length: 101 }, (_, index) => `entry-${index + 1}`),
+        ),
+      }));
+
       await component.onResultSelectedClick();
 
-      expect(resolveSelectedRowsSpy).toHaveBeenCalled();
+      expect(resolveSelectedRowsSpy).not.toHaveBeenCalled();
       expect(navigateSpy).not.toHaveBeenCalled();
       expect(component.vm().errorSummary).toEqual([
-        { text: 'You can only result 50 or less applications' },
+        { text: 'Please select less than 100 rows' },
       ]);
     });
 

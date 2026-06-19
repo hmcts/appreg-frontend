@@ -101,6 +101,8 @@ const APPLICATIONS_SORT_MAP: Record<string, string> = {
   status: 'status',
 };
 
+const MAX_BULK_ROWS = 100;
+
 export const ApplicationsColumns = [
   { header: 'Date', field: 'date', wrap: false },
   { header: 'Applicant', field: 'applicant' },
@@ -350,7 +352,14 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   async onResultSelectedClick(): Promise<void> {
-    let rows = [];
+    if (this.vm().selectedIds.size > MAX_BULK_ROWS) {
+      this.patchApp({
+        errorSummary: [{ text: 'Please select less than 100 rows' }],
+      });
+      return;
+    }
+
+    let rows: ApplicationRow[] = [];
     try {
       rows = await this.resolveSelectedRows();
     } catch (err) {
@@ -381,13 +390,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    if (rowsToResult.length >= 50) {
-      this.patchApp({
-        errorSummary: [{ text: 'You can only result 50 or less applications' }],
-      });
-      return;
-    }
-
     // Exclude status as we can only result open applications
     const entriesToResult = rowsToResult.map((row) => ({
       id: row.id,
@@ -409,8 +411,16 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   private async buildPrintRequest(
     mode: ApplicationsPrintRequest['mode'],
-  ): Promise<ApplicationsPrintRequest | null> {
+  ): Promise<ApplicationsPrintRequest | null | void> {
     this.patchApp(clearNotificationsPatch());
+
+    if (this.vm().selectedIds.size > MAX_BULK_ROWS) {
+      this.patchApp({
+        errorSummary: [{ text: 'Please select less than 100 rows' }],
+      });
+      return;
+    }
+
     let selectedRows: ApplicationRow[];
     try {
       selectedRows = await this.resolveSelectedRows();
