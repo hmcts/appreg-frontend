@@ -242,6 +242,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
         },
         onSuccess: async (response) => {
           this.printRequest.set(null);
+          this.appState.patch({ loading: false });
 
           const filteredDtos = response.dtos.map((dto) =>
             filterEntriesToPrint(dto, response.selectedRows),
@@ -270,8 +271,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
               APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric,
             isClosed: false,
           });
-
-          this.appState.patch({ loading: false });
         },
         onError: (err) => {
           this.printRequest.set(null);
