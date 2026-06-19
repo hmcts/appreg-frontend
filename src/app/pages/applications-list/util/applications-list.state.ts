@@ -9,6 +9,7 @@ export interface ApplicationsListState {
   errorSummary: ErrorItem[];
   sortField: { key: string; direction: 'desc' | 'asc' };
   listCloseDone: boolean;
+  pdfLoading: boolean;
 }
 
 export const initialApplicationsListState: ApplicationsListState = {
@@ -20,6 +21,7 @@ export const initialApplicationsListState: ApplicationsListState = {
   errorSummary: [],
   sortField: { key: 'date', direction: 'desc' },
   listCloseDone: false,
+  pdfLoading: false,
 };
 
 // Clear all error/success/notification states

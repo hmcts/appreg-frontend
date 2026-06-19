@@ -54,6 +54,7 @@ import {
 } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ApplicationsListFormComponent } from '@components/applications-list-form/applications-list-form.component';
 import { buildSuggestionsFacade } from '@components/applications-list-form/facade/applications-list-form.facade';
+import { AsyncJobProgressComponent } from '@components/async-job-progress/async-job-progress.component';
 import {
   ErrorItem,
   ErrorSummaryComponent,
@@ -109,6 +110,7 @@ type DeleteFlash = { kind: 'success' } | { kind: 'error'; code: number };
     PageHeaderComponent,
     DateTimePipe,
     ApplicationsListFormComponent,
+    AsyncJobProgressComponent,
   ],
   templateUrl: './applications-list.component.html',
 })
@@ -269,6 +271,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
           ),
         onSuccess: async (dto) => {
           this.printPageRequest.set(null);
+          this.appListSignalState.patch({ pdfLoading: false });
           if (!this.hasEntries(dto)) {
             this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint);
             return;
@@ -285,6 +288,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
           }
         },
         onError: (err) => {
+          this.appListSignalState.patch({ pdfLoading: false });
           this.printPageRequest.set(null);
           const status = getHttpStatus(err);
           if (status === 404) {
@@ -309,6 +313,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
             .pipe(map((dto) => ({ dto, isClosed: req.isClosed }))),
         onSuccess: async ({ dto, isClosed }) => {
           this.printContinuousRequest.set(null);
+          this.appListSignalState.patch({ pdfLoading: false });
           if (!this.hasEntries(dto)) {
             this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint);
             return;
@@ -328,6 +333,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
           }
         },
         onError: () => {
+          this.appListSignalState.patch({ pdfLoading: false });
           this.printContinuousRequest.set(null);
           this.showInline(APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric);
         },
@@ -401,6 +407,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     }
 
     this.appListSignalState.patch(clearNotificationsPatch());
+    this.appListSignalState.patch({ pdfLoading: true });
     this.printPageRequest.set(id);
   }
 
@@ -414,7 +421,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     }
 
     this.appListSignalState.patch(clearNotificationsPatch());
-
+    this.appListSignalState.patch({ pdfLoading: true });
     this.printContinuousRequest.set({ id, isClosed });
   }
 
