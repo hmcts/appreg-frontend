@@ -1,7 +1,10 @@
+import { isPlatformBrowser } from '@angular/common';
 import {
+  AfterViewInit,
   Component,
   OnDestroy,
   OnInit,
+  PLATFORM_ID,
   computed,
   inject,
   input,
@@ -17,13 +20,16 @@ import { HeaderService } from '@services/header.service';
   imports: [],
   templateUrl: './review-confirm.component.html',
 })
-export class ReviewConfirmComponent implements OnInit, OnDestroy {
+export class ReviewConfirmComponent
+  implements OnInit, OnDestroy, AfterViewInit
+{
   numberOfItems = input<number>(0);
   title = input<string>('');
   confirmButtonTxt = input<string>('Continue');
   cancelButtonTxt = input<string>('Cancel');
   isRedButton = input<boolean>(true);
   disabled = input<boolean | null>(null);
+  scrollToTopOnInit = input<boolean>(false);
 
   confirm = output<void>();
   cancelled = output<void>();
@@ -32,6 +38,7 @@ export class ReviewConfirmComponent implements OnInit, OnDestroy {
   buttonDisabled = computed(() => this.disabled() ?? this.isConfirmed());
 
   headerService = inject(HeaderService);
+  private readonly platformId = inject(PLATFORM_ID);
 
   ngOnInit(): void {
     this.headerService.hideNavigation();
@@ -39,6 +46,14 @@ export class ReviewConfirmComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.headerService.showNavigation();
+  }
+
+  ngAfterViewInit(): void {
+    if (!this.scrollToTopOnInit() || !isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    setTimeout(() => window.scrollTo(0, 0), 0);
   }
 
   onConfirm(): void {

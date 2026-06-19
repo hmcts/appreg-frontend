@@ -27,6 +27,11 @@ describe('ReviewConfirmComponent', () => {
     component = fixture.componentInstance;
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.restoreAllMocks();
+  });
+
   it('should create', () => {
     expect(component).toBeTruthy();
   });
@@ -104,5 +109,32 @@ describe('ReviewConfirmComponent', () => {
     expect(component.confirmButtonTxt()).toBe('Delete');
     expect(component.cancelButtonTxt()).toBe('Back');
     expect(component.isRedButton()).toBe(false);
+  });
+
+  it('scrolls to the top after view init when scrollToTopOnInit is true', () => {
+    jest.useFakeTimers();
+    const scrollSpy = jest
+      .spyOn(window, 'scrollTo')
+      .mockImplementation(() => undefined);
+
+    fixture.componentRef.setInput('scrollToTopOnInit', true);
+    fixture.detectChanges();
+
+    jest.runAllTimers();
+
+    expect(scrollSpy).toHaveBeenCalledWith(0, 0);
+  });
+
+  it('does not scroll to the top by default', () => {
+    jest.useFakeTimers();
+    const scrollSpy = jest
+      .spyOn(window, 'scrollTo')
+      .mockImplementation(() => undefined);
+
+    fixture.detectChanges();
+
+    jest.runOnlyPendingTimers();
+
+    expect(scrollSpy).not.toHaveBeenCalled();
   });
 });
