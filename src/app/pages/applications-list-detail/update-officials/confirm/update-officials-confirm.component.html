@@ -1,3 +1,8 @@
+<app-alert
+  [alertType]="'information'"
+  [message]="'This action will overwrite the current officials for the selected application(s)'"
+/>
+
 <app-review-confirm
   title="Check officials before updating"
   confirmButtonTxt="Confirm and update officials"
@@ -8,11 +13,6 @@
   (confirm)="onConfirm()"
   (cancelled)="goBack()"
 >
-  <div class="govuk-body">
-    This action will overwrite the current officials for the selected
-    application(s)
-  </div>
-
   @if (errorSummary().length) {
     <app-error-summary
       [title]="'There is a problem'"

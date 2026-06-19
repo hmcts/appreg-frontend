@@ -8,6 +8,7 @@ import {
   UpdateOfficialsNavState,
 } from '../update-officials.types';
 
+import { AlertComponent } from '@components/alert/alert.component';
 import {
   APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS,
   PERSON_TITLE_OPTIONS,
@@ -37,6 +38,7 @@ type OfficialSummaryRow = {
     ErrorSummaryComponent,
     ReviewConfirmComponent,
     SortableTableComponent,
+    AlertComponent,
   ],
   templateUrl: './update-officials-confirm.component.html',
 })
