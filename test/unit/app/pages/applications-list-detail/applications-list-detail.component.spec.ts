@@ -754,6 +754,43 @@ describe('ApplicationsListDetail', () => {
         ],
       });
     });
+
+    it('keeps pdfLoading true until page PDF generation completes', async () => {
+      let resolvePdf: (() => void) | undefined;
+      const pendingPdf = new Promise<void>((resolve) => {
+        resolvePdf = resolve;
+      });
+      pdfStub.generatePagedApplicationListPdf.mockReturnValueOnce(pendingPdf);
+
+      patchDetailState({
+        selectedIds: new Set(['entry-1']),
+        selectedRows: [
+          {
+            id: 'entry-1',
+            applicant: 'Applicant 1',
+            respondent: 'Respondent 1',
+            title: 'Title 1',
+            location: 'LOC1',
+            feeReq: 'Yes',
+            resulted: 'No',
+            status: 'OPEN',
+          } as Row,
+        ],
+      });
+      component.id = 'list-123';
+      component.onPrintPageClick();
+      fixture.detectChanges();
+      await Promise.resolve();
+      fixture.detectChanges();
+
+      expect(vm().pdfLoading).toBe(true);
+
+      resolvePdf?.();
+      await pendingPdf;
+      await flushSignalEffects(fixture);
+
+      expect(vm().pdfLoading).toBe(false);
+    });
   });
 
   describe('handlePrintContinuous', () => {

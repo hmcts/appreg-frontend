@@ -29,6 +29,7 @@ import {
 import { mapToRow } from './util/table-mapper';
 
 import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
+import { AsyncJobProgressComponent } from '@components/async-job-progress/async-job-progress.component';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import {
   ErrorItem,
@@ -101,6 +102,8 @@ const APPLICATIONS_SORT_MAP: Record<string, string> = {
   status: 'status',
 };
 
+const MAX_BULK_ROWS = 100;
+
 export const ApplicationsColumns = [
   { header: 'Date', field: 'date', wrap: false },
   { header: 'Applicant', field: 'applicant' },
@@ -129,6 +132,7 @@ export const ApplicationsColumns = [
     NotificationBannerComponent,
     MojButtonMenuDirective,
     DateTimePipe,
+    AsyncJobProgressComponent,
   ],
   templateUrl: './applications.component.html',
   styleUrls: ['./applications.component.scss'],
@@ -238,37 +242,42 @@ export class Applications extends PlaceFieldsBase implements OnInit {
         },
         onSuccess: async (response) => {
           this.printRequest.set(null);
+          try {
+            const filteredDtos = response.dtos.map((dto) =>
+              filterEntriesToPrint(dto, response.selectedRows),
+            );
 
-          const filteredDtos = response.dtos.map((dto) =>
-            filterEntriesToPrint(dto, response.selectedRows),
-          );
+            if (response.mode === 'page') {
+              await handlePrintPage(filteredDtos, {
+                pdf: this.pdf,
+                isBrowser: isPlatformBrowser(this.platformId),
+                onError: (message) => this.patchPrintError(message),
+                noEntriesMessage:
+                  APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
+                generateErrorMessage:
+                  APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry,
+                crestUrl: '/assets/govuk-crest.png',
+              });
+              return;
+            }
 
-          if (response.mode === 'page') {
-            await handlePrintPage(filteredDtos, {
+            await handlePrintContinuous(filteredDtos, {
               pdf: this.pdf,
               isBrowser: isPlatformBrowser(this.platformId),
               onError: (message) => this.patchPrintError(message),
               noEntriesMessage:
                 APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
               generateErrorMessage:
-                APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateRetry,
-              crestUrl: '/assets/govuk-crest.png',
+                APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric,
+              isClosed: false,
             });
-            return;
+          } finally {
+            this.appState.patch({ loading: false });
           }
-
-          await handlePrintContinuous(filteredDtos, {
-            pdf: this.pdf,
-            isBrowser: isPlatformBrowser(this.platformId),
-            onError: (message) => this.patchPrintError(message),
-            noEntriesMessage: APPLICATIONS_LIST_ERROR_MESSAGES.noEntriesToPrint,
-            generateErrorMessage:
-              APPLICATIONS_LIST_ERROR_MESSAGES.pdfGenerateGeneric,
-            isClosed: false,
-          });
         },
         onError: (err) => {
           this.printRequest.set(null);
+          this.appState.patch({ loading: false });
           const errMsg = getProblemText(err);
           this.patchPrintError(errMsg);
         },
@@ -328,8 +337,10 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   async onPrintContinuousClick(): Promise<void> {
+    this.appState.patch({ loading: true });
     const request = await this.buildPrintRequest('continuous');
     if (!request) {
+      this.appState.patch({ loading: false });
       return;
     }
 
@@ -337,8 +348,10 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   async onPrintPageClick(): Promise<void> {
+    this.appState.patch({ loading: true });
     const request = await this.buildPrintRequest('page');
     if (!request) {
+      this.appState.patch({ loading: false });
       return;
     }
 
@@ -350,7 +363,14 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   async onResultSelectedClick(): Promise<void> {
-    let rows = [];
+    if (this.vm().selectedIds.size > MAX_BULK_ROWS) {
+      this.patchApp({
+        errorSummary: [{ text: 'Please select less than 100 rows' }],
+      });
+      return;
+    }
+
+    let rows: ApplicationRow[] = [];
     try {
       rows = await this.resolveSelectedRows();
     } catch (err) {
@@ -381,13 +401,6 @@ export class Applications extends PlaceFieldsBase implements OnInit {
       return;
     }
 
-    if (rowsToResult.length >= 50) {
-      this.patchApp({
-        errorSummary: [{ text: 'You can only result 50 or less applications' }],
-      });
-      return;
-    }
-
     // Exclude status as we can only result open applications
     const entriesToResult = rowsToResult.map((row) => ({
       id: row.id,
@@ -409,8 +422,16 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   private async buildPrintRequest(
     mode: ApplicationsPrintRequest['mode'],
-  ): Promise<ApplicationsPrintRequest | null> {
+  ): Promise<ApplicationsPrintRequest | null | void> {
     this.patchApp(clearNotificationsPatch());
+
+    if (this.vm().selectedIds.size > MAX_BULK_ROWS) {
+      this.patchApp({
+        errorSummary: [{ text: 'Please select less than 100 rows' }],
+      });
+      return;
+    }
+
     let selectedRows: ApplicationRow[];
     try {
       selectedRows = await this.resolveSelectedRows();

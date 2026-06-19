@@ -28,6 +28,8 @@ export interface ApplicationsState {
   allMatchingSelected: boolean;
   isSelectingAll: boolean;
   getFilters: EntryGetFilterDto;
+
+  loading: boolean;
 }
 
 export const initialApplicationsState: ApplicationsState = {
@@ -51,6 +53,7 @@ export const initialApplicationsState: ApplicationsState = {
   allMatchingSelected: false,
   isSelectingAll: false,
   getFilters: {},
+  loading: false,
 };
 
 export const defaultApplicationsSort = (): ApplicationsState['sortField'] => ({

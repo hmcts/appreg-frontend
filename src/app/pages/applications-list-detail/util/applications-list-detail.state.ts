@@ -53,6 +53,8 @@ export interface ApplicationsListDetailState {
 
   // Request
   getFilters: EntryApplicationListGetFilterDto;
+
+  pdfLoading: boolean;
 }
 
 export const initialApplicationsListDetailState: ApplicationsListDetailState = {
@@ -84,6 +86,8 @@ export const initialApplicationsListDetailState: ApplicationsListDetailState = {
   hasPrefilledFromApi: false,
 
   getFilters: {},
+
+  pdfLoading: false,
 };
 
 export const clearUpdateNotificationsPatch = (): Pick<

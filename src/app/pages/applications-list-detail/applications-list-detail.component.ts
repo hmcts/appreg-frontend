@@ -695,18 +695,22 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
         onSuccess: async (dto) => {
           const mode = this.printRequest()?.mode;
           this.printRequest.set(null);
+          try {
+            const filteredDto = this.filterEntriesToPrint(dto);
 
-          const filteredDto = this.filterEntriesToPrint(dto);
+            if (mode === 'page') {
+              await this.handlePrintPage(filteredDto);
+              return;
+            }
 
-          if (mode === 'page') {
-            await this.handlePrintPage(filteredDto);
-            return;
+            await this.handlePrintContinuous(filteredDto);
+          } finally {
+            this.detailSignalState.patch({ pdfLoading: false });
           }
-
-          await this.handlePrintContinuous(filteredDto);
         },
         onError: (err) => {
           this.printRequest.set(null);
+          this.detailSignalState.patch({ pdfLoading: false });
           const errMsg = getProblemText(err);
           this.detailSignalState.patch({
             errorSummary: [
@@ -997,7 +1001,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   onPrintContinuousClick(): void {
     // clear any prior messages
     this.detailSignalState.patch(clearUpdateNotificationsPatch());
+    this.detailSignalState.patch({ pdfLoading: true });
     if (!this.id) {
+      this.detailSignalState.patch({ pdfLoading: false });
       return;
     }
 
@@ -1010,7 +1016,9 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   onPrintPageClick(): void {
     // clear any prior messages
     this.detailSignalState.patch(clearUpdateNotificationsPatch());
+    this.detailSignalState.patch({ pdfLoading: true });
     if (!this.id) {
+      this.detailSignalState.patch({ pdfLoading: false });
       return;
     }
 

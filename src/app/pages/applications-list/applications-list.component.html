@@ -38,6 +38,13 @@
   />
 }
 
+@if (vm().pdfLoading) {
+  <app-async-job-progress
+    heading="PDF in progress"
+    body="Your PDF is being generated and will download automatically when ready."
+  />
+}
+
 <app-page-header
   title="Applications List"
   [actions]="[
