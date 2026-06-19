@@ -1,8 +1,14 @@
+<app-alert
+  [alertType]="'information'"
+  [message]="'This action will overwrite the current officials for the selected application(s)'"
+/>
+
 <app-review-confirm
   title="Check officials before updating"
   confirmButtonTxt="Confirm and update officials"
   cancelButtonTxt="Back"
   [isRedButton]="false"
+  [scrollToTopOnInit]="true"
   [disabled]="isSubmitting()"
   (confirm)="onConfirm()"
   (cancelled)="goBack()"
