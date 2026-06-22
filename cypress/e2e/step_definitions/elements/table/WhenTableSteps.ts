@@ -74,6 +74,23 @@ When(
 );
 
 When(
+  'User Clicks {string} Link In Row Of Table {string} With:',
+  (
+    linkName: string,
+    tableName: string,
+    dataTable: { hashes: () => { [key: string]: string }[] },
+  ) => {
+    const rows = dataTable.hashes();
+    if (rows.length === 0) {
+      throw new Error('DataTable must have at least one row of data');
+    }
+    const rowData = rows[0];
+    TableInteraction.clickLinkInRowOfTable(linkName, tableName, rowData);
+    cy.screenshot(`clicked-link-${linkName}-in-row-${tableName}`);
+  },
+);
+
+When(
   'User Clicks {string} In Row Of Table {string} And Verify Menu Options {string}',
   (
     selectButtonText: string,

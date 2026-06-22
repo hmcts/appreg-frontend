@@ -1,6 +1,6 @@
 Feature: Applications List Entry Update
 
-    @applicationListEntry @regression @ARCPOC-222 @ARCPOC-428 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @SC1
+    @applicationListEntry @regression @ARCPOC-222 @ARCPOC-428 @ARCPOC-1238 @ARCPOC-1239 @ARCPOC-1241 @ARCPOC-1444
     Scenario: Update an ALE where Applicant = Person and Respondent = Person, using an Application Code with Fee Required = Y and Respondent Required = Y
         Given User Authenticates Via API As "user1"
         # Create Application List
@@ -62,13 +62,27 @@ Feature: Applications List Entry Update
         Then User Should See The Button "Hide all sections"
         Then User Sees Page Heading "Applications list entry update"
         Then User See "Summary of application list entry" On The Page
-        #Result Wording
+        #Result Wording - AUTH
+        Then User Selects "AUTH - Authorised" From The Textbox "Result code" Autocomplete By Typing "auth"
+        Then User Should See Summary Card With Title "AUTH - Authorised"
+        Then User Should See Tag "Pending" In Summary Card "AUTH - Authorised"
+        Then User Should See The Link "Remove" In Summary Card "AUTH - Authorised"
+        Then User Clicks The Link "Remove" In Summary Card "AUTH - Authorised"
         Then User Selects "AUTH - Authorised" From The Textbox "Result code" Autocomplete By Typing "auth"
         Then User Should See Summary Card With Title "AUTH - Authorised"
         Then User Should See Tag "Pending" In Summary Card "AUTH - Authorised"
         Then User Should See The Link "Remove" In Summary Card "AUTH - Authorised"
         Then User Should See "Wording" In Summary Card "AUTH - Authorised"
         Then User Should See "Authorised." In Summary Card "AUTH - Authorised"
+        # Reult Wording - PROA
+        Then User Selects "PROA - Production Order (to allow access)" From The Textbox "Result code" Autocomplete By Typing "PROA"
+        Then User Should See Summary Card With Title "PROA - Production Order (to allow access)"
+        Then User Should See Tag "Pending" In Summary Card "PROA - Production Order (to allow access)"
+        Then User Should See The Link "Remove" In Summary Card "PROA - Production Order (to allow access)"
+        Then User Should See "Wording" In Summary Card "PROA - Production Order (to allow access)"
+        Then User Should See "Production Order made for access to be allowed to material within" In Summary Card "PROA - Production Order (to allow access)"
+        Then User Verifies The "PROA - Production Order (to allow access)" Summary Card Has Textbox With Placeholder "Enter a Number of days" And Enters "30"
+        # Apply Results
         When User Clicks On The "Apply result" Button
         Then User Sees Success Alert "Results applied to this entry. Save the entry to keep these changes."
         Then User Verifies The Button "Apply result" Is Disabled In The Accordion "Result wording"
@@ -92,3 +106,6 @@ Feature: Applications List Entry Update
         Then User Sees Success Banner "Success Officials updated Officials have been updated for this application list entry."
         When User Clicks On The "Save complete application" Button
         Then User Sees Success Banner "Success Application list entry updated The application list entry has been updated successfully."
+        # Remove Reult to check 'Removed' banner
+        Then User Clicks The Link "Remove" In Summary Card "PROA - Production Order (to allow access)"
+        Then User Sees Success Banner "Success Result removed The result has been removed from this application list entry."

@@ -171,6 +171,39 @@ export class TableInteraction {
   }
 
   /**
+   * Clicks a link in a specific table row based on column values
+   * @param linkName Text of the link to click
+   * @param tableCaption Caption of the table to scope the search
+   * @param columnValues Key-value pairs matching the target row
+   */
+  static clickLinkInRowOfTable(
+    linkName: string,
+    tableCaption: string,
+    columnValues: Record<string, string>,
+  ): Cypress.Chainable<void> {
+    return TableSearch.searchWithPagination(
+      columnValues,
+      tableCaption,
+      true,
+      (row) => {
+        return TableElement.getLinkInRow(row, linkName).then((link) => {
+          cy.wrap(link)
+            .scrollIntoView()
+            .should('be.visible')
+            .and('not.be.disabled')
+            .click();
+        }) as unknown as Cypress.Chainable<void>;
+      },
+    ).then((found) => {
+      if (!found) {
+        throw new Error(
+          `Row with specified values not found in table "${tableCaption}" to click link "${linkName}"`,
+        );
+      }
+    }) as unknown as Cypress.Chainable<void>;
+  }
+
+  /**
    * Clicks a menu item from the Actions button menu in a table caption
    * @param tableCaption Caption of the table to scope the search
    * @param toggleButtonText Text of the toggle button to open the menu (e.g. "Actions")
