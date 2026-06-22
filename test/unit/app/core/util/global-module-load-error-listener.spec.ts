@@ -60,15 +60,12 @@ describe('installGlobalModuleLoadErrorListener', () => {
   let target: {
     addEventListener: jest.Mock;
     location: { reload: jest.Mock };
-    sessionStorage: Storage;
+    sessionStorage?: Storage;
   };
 
   beforeEach(() => {
     currentTime = 1_000;
-    listeners = {
-      error: [],
-      unhandledrejection: [],
-    };
+    resetListeners();
     logRecovery = jest.fn();
     reload = jest.fn();
     target = {
@@ -180,6 +177,73 @@ describe('installGlobalModuleLoadErrorListener', () => {
     });
   });
 
+  it('stops reloading after two attempts across page reloads', () => {
+    installListener();
+
+    emit('error', { message: 'ChunkLoadError: first stale chunk' });
+    expect(reload).toHaveBeenCalledTimes(1);
+
+    simulatePageReload();
+    currentTime += 1_000;
+    installListener();
+    emit('error', { message: 'ChunkLoadError: second stale chunk' });
+    expect(reload).toHaveBeenCalledTimes(2);
+
+    simulatePageReload();
+    currentTime += 1_000;
+    installListener();
+    emit('error', { message: 'ChunkLoadError: third stale chunk' });
+
+    expect(reload).toHaveBeenCalledTimes(2);
+    expect(logRecovery).toHaveBeenLastCalledWith({
+      attemptsInWindow: 2,
+      errorType: 'ChunkLoadError',
+      maxAttempts: 2,
+      reloadAttempted: false,
+      windowMs: 60_000,
+    });
+  });
+
+  it('does not reload when session storage is unavailable', () => {
+    Object.defineProperty(target, 'sessionStorage', {
+      get: () => {
+        throw new Error('Session storage is blocked');
+      },
+    });
+    installListener();
+
+    emit('error', { message: 'ChunkLoadError: stale chunk' });
+
+    expect(reload).not.toHaveBeenCalled();
+    expect(logRecovery).toHaveBeenCalledWith({
+      attemptsInWindow: 1,
+      errorType: 'ChunkLoadError',
+      maxAttempts: 2,
+      reloadAttempted: false,
+      windowMs: 60_000,
+    });
+  });
+
+  it('does not reload when reload attempts cannot be persisted', () => {
+    target.sessionStorage = createStorage({
+      setItem: () => {
+        throw new Error('Session storage writes are blocked');
+      },
+    });
+    installListener();
+
+    emit('error', { message: 'ChunkLoadError: stale chunk' });
+
+    expect(reload).not.toHaveBeenCalled();
+    expect(logRecovery).toHaveBeenCalledWith({
+      attemptsInWindow: 1,
+      errorType: 'ChunkLoadError',
+      maxAttempts: 2,
+      reloadAttempted: false,
+      windowMs: 60_000,
+    });
+  });
+
   function installListener(): boolean {
     return installGlobalModuleLoadErrorListener({
       logRecovery,
@@ -193,6 +257,18 @@ describe('installGlobalModuleLoadErrorListener', () => {
       listener(event as unknown as Event);
     });
   }
+
+  function resetListeners(): void {
+    listeners = {
+      error: [],
+      unhandledrejection: [],
+    };
+  }
+
+  function simulatePageReload(): void {
+    resetGlobalModuleLoadErrorListenerForTesting();
+    resetListeners();
+  }
 });
 
 function createNamedError(name: string, message: string): Error {
@@ -202,10 +278,9 @@ function createNamedError(name: string, message: string): Error {
   return error;
 }
 
-function createStorage(): Storage {
+function createStorage(overrides: Partial<Storage> = {}): Storage {
   const store = new Map<string, string>();
-
-  return {
+  const storage: Storage = {
     get length(): number {
       return store.size;
     },
@@ -221,4 +296,6 @@ function createStorage(): Storage {
       store.set(key, value);
     },
   };
+
+  return Object.assign(storage, overrides);
 }

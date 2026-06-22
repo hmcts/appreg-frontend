@@ -23,6 +23,11 @@ type GlobalModuleLoadErrorListenerOptions = {
   target?: ModuleLoadErrorListenerTarget;
 };
 
+type StoredReloadAttempts = {
+  attempts: number[];
+  storageAvailable: boolean;
+};
+
 const RELOAD_ATTEMPT_STORAGE_KEY = 'appreg.moduleLoadErrorReloadAttempts';
 const RELOAD_ATTEMPT_WINDOW_MS = 60_000;
 const MAX_RELOAD_ATTEMPTS = 2;
@@ -129,12 +134,16 @@ function getReloadDecision(
   reloadAllowed: boolean;
 } {
   const storage = getSessionStorage(target);
-  const attempts = getReloadAttempts(storage).filter(
+  const storedAttempts = getReloadAttempts(storage);
+  const persistableStorage = storedAttempts.storageAvailable
+    ? storage
+    : undefined;
+  const attempts = storedAttempts.attempts.filter(
     (timestamp) => now - timestamp < RELOAD_ATTEMPT_WINDOW_MS,
   );
 
   if (attempts.length >= MAX_RELOAD_ATTEMPTS) {
-    storeReloadAttempts(storage, attempts);
+    storeReloadAttempts(persistableStorage, attempts);
 
     return {
       attemptsInWindow: attempts.length,
@@ -143,65 +152,96 @@ function getReloadDecision(
   }
 
   attempts.push(now);
-  storeReloadAttempts(storage, attempts);
+  const attemptsPersisted = storeReloadAttempts(persistableStorage, attempts);
 
   return {
     attemptsInWindow: attempts.length,
-    reloadAllowed: true,
+    reloadAllowed: attemptsPersisted,
   };
 }
 
-function getReloadAttempts(storage: Storage | undefined): number[] {
+function getReloadAttempts(storage: Storage | undefined): StoredReloadAttempts {
   const storedAttempts = readStoredReloadAttempts(storage);
 
-  if (storedAttempts.length > 0) {
+  if (storedAttempts.attempts.length > 0) {
     return storedAttempts;
   }
 
-  return [...inMemoryReloadAttempts];
+  return {
+    attempts: [...inMemoryReloadAttempts],
+    storageAvailable: storedAttempts.storageAvailable,
+  };
 }
 
-function readStoredReloadAttempts(storage: Storage | undefined): number[] {
+function readStoredReloadAttempts(
+  storage: Storage | undefined,
+): StoredReloadAttempts {
   if (!storage) {
-    return [];
+    return {
+      attempts: [],
+      storageAvailable: false,
+    };
+  }
+
+  let value: string | null;
+
+  try {
+    value = storage.getItem(RELOAD_ATTEMPT_STORAGE_KEY);
+  } catch {
+    return {
+      attempts: [],
+      storageAvailable: false,
+    };
+  }
+
+  if (!value) {
+    return {
+      attempts: [],
+      storageAvailable: true,
+    };
   }
 
   try {
-    const value = storage.getItem(RELOAD_ATTEMPT_STORAGE_KEY);
-
-    if (!value) {
-      return [];
-    }
-
     const parsed = parseJson(value);
 
-    if (!isUnknownArray(parsed)) {
-      return [];
+    if (isUnknownArray(parsed)) {
+      return {
+        attempts: parsed.filter(
+          (timestamp): timestamp is number =>
+            typeof timestamp === 'number' && Number.isFinite(timestamp),
+        ),
+        storageAvailable: true,
+      };
     }
-
-    return parsed.filter(
-      (timestamp): timestamp is number =>
-        typeof timestamp === 'number' && Number.isFinite(timestamp),
-    );
   } catch {
-    return [];
+    return {
+      attempts: [],
+      storageAvailable: true,
+    };
   }
+
+  return {
+    attempts: [],
+    storageAvailable: true,
+  };
 }
 
 function storeReloadAttempts(
   storage: Storage | undefined,
   attempts: number[],
-): void {
+): boolean {
   inMemoryReloadAttempts = attempts;
 
   if (!storage) {
-    return;
+    return false;
   }
 
   try {
     storage.setItem(RELOAD_ATTEMPT_STORAGE_KEY, JSON.stringify(attempts));
+    return true;
   } catch {
-    // Keep the in-memory copy for the current page lifecycle if storage fails.
+    // Avoid reloads unless the cap can survive the reload.
+    return false;
   }
 }
 
