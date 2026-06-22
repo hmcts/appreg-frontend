@@ -186,7 +186,10 @@ export class DropdownHelper {
                 `Dropdown "${dropdownLabel}" not found within fieldset "${fieldsetLabel}"`,
               );
             }
-            DropdownHelper.verifyDropdownOptionSelected(dropdownLabel, optionText);
+            DropdownHelper.verifyDropdownOptionSelected(
+              dropdownLabel,
+              optionText,
+            );
           },
         );
       },

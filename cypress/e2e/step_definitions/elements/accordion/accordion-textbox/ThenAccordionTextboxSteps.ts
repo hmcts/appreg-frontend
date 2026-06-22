@@ -126,5 +126,5 @@ Then(
         fieldsetLabel,
       ).should('eq', resolvedExpected);
     });
-  }
+  },
 );
