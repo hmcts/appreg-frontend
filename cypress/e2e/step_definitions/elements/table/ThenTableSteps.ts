@@ -31,13 +31,15 @@ Then(
       throw new Error('DataTable must have at least one row of data');
     }
 
-    // Verify each row in the data table
-    for (const row of rows) {
-      TableSearch.verifyRowExists(row, tableCaption);
-      cy.screenshot(
-        `table-row-${tableCaption}-${Object.values(row).join('-')}`,
-      );
-    }
+    return rows.reduce<Cypress.Chainable<unknown>>(
+      (chain, row) =>
+        chain.then(() =>
+          TableSearch.searchWithPagination(row, tableCaption).then(() =>
+            cy.screenshot(`table-row-${Object.values(row).join('-')}`),
+          ),
+        ),
+      cy.wrap(null),
+    );
   },
 );
 
@@ -51,11 +53,15 @@ Then('User Should See Row In Table With Values:', (dataTable: DataTable) => {
     throw new Error('DataTable must have at least one row of data');
   }
 
-  // Verify each row in the data table
-  for (const row of rows) {
-    TableSearch.verifyRowExists(row);
-    cy.screenshot(`table-row-${Object.values(row).join('-')}`);
-  }
+  return rows.reduce<Cypress.Chainable<unknown>>(
+    (chain, row) =>
+      chain.then(() =>
+        TableSearch.searchWithPagination(row).then(() =>
+          cy.screenshot(`table-row-${Object.values(row).join('-')}`),
+        ),
+      ),
+    cy.wrap(null),
+  );
 });
 
 /**

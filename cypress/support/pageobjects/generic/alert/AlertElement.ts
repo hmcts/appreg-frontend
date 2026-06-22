@@ -1,3 +1,5 @@
+/// <reference types="cypress" />
+
 export class AlertElement {
   private static readonly alertSelector = '[role="alert"]';
   private static readonly warningAlertSelector =

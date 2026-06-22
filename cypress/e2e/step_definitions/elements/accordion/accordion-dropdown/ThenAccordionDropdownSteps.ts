@@ -59,3 +59,21 @@ Then(
     });
   },
 );
+
+Then(
+  'User Verifies The Dropdown {string} Contains {string} Under FieldSet {string} In The Accordion {string}',
+  (
+    dropdownLabel: string,
+    optionText: string,
+    fieldsetLabel: string,
+    accordionTitle: string,
+  ) => {
+    AccordionHelper.within(accordionTitle, () => {
+      DropdownHelper.verifyDropdownOptionSelectedUnderFieldset(
+        dropdownLabel,
+        optionText,
+        fieldsetLabel,
+      );
+    });
+  },
+);

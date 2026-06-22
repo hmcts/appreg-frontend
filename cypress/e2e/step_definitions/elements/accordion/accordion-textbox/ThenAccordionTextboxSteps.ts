@@ -109,3 +109,22 @@ Then(
     });
   },
 );
+
+Then(
+  'User Verifies The Textbox {string} Contains {string} Under {string} FieldSet In The Accordion {string}',
+  (
+    textboxLabel: string,
+    expectedValue: string,
+    fieldsetLabel: string,
+    accordionTitle: string,
+  ) => {
+    const resolvedExpected =
+      TestDataGenerator.replaceRandomPlaceholders(expectedValue);
+    AccordionHelper.within(accordionTitle, () => {
+      TextboxHelper.getValueInTextboxUnderFieldset(
+        textboxLabel,
+        fieldsetLabel,
+      ).should('eq', resolvedExpected);
+    });
+  }
+);

@@ -201,4 +201,18 @@ export class TextboxHelper {
       },
     );
   }
+
+  static getValueInTextboxUnderFieldset(
+    textboxLabel: string,
+    fieldsetLabel: string,
+  ): Cypress.Chainable {
+    return cy.contains('fieldset', fieldsetLabel, { matchCase: false }).then(
+      ($fieldset) => {
+        return TextboxElement.findTextboxWithin($fieldset, textboxLabel)
+          .should('be.visible')
+          .should('be.enabled')
+          .invoke('val');
+      },
+    );              
+  }
 }
