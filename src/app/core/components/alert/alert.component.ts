@@ -4,6 +4,9 @@ import { ALERT_ICON_PATHS, AlertType } from './alert-icons';
 
 @Component({
   selector: 'app-alert',
+  host: {
+    '[attr.alerttype]': 'alertType()',
+  },
   standalone: true,
   imports: [],
   templateUrl: './alert.component.html',
