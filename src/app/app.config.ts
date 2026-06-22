@@ -23,6 +23,7 @@ import { SelectivePreloadingStrategy } from './core/routing/selective-preloading
 import { AppConfigService } from './core/services/app-config.service';
 import { TelemetryErrorHandler } from './core/services/telemetry-error-handler.service';
 import { TelemetryService } from './core/services/telemetry.service';
+import { installGlobalModuleLoadErrorListener } from './core/util/global-module-load-error-listener';
 
 import { BASE_PATH, Configuration, provideApi } from '@openapi';
 
@@ -40,6 +41,24 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => {
       const appConfigService = inject(AppConfigService);
       const telemetryService = inject(TelemetryService);
+
+      installGlobalModuleLoadErrorListener({
+        logRecovery: ({
+          attemptsInWindow,
+          errorType,
+          maxAttempts,
+          reloadAttempted,
+          windowMs,
+        }) => {
+          telemetryService.logTrace('Frontend asset load error recovery', {
+            attemptsInWindow,
+            errorType,
+            maxAttempts,
+            reloadAttempted,
+            windowMs,
+          });
+        },
+      });
 
       return appConfigService
         .loadAppConfig()
