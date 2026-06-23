@@ -102,7 +102,7 @@ Feature: Application List Entries Bulk Update Officials
         When User Clicks "Actions" Then "Update officials" From Caption Menu In Table "Entries"
         Then User Sees Page Heading "Update officials"
         And User Should See Row In Table "Application(s) to update" With Values:
-            | Sequence number | Applicant(s)           | Respondent(s)         | Application Title(s)                           |
+            | Sequence number | Applicant              | Respondent            | Application title                              |
             | 1               | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}  | Issue of liability order summons - council tax |
             | 2               | Sarah Johnson {RANDOM} | Greenfield Consulting | Collection Order - Financial Penalty Account   |
         # Magistrate 1
