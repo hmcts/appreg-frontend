@@ -38,6 +38,7 @@ describe('ApplicationsListDetailSearchComponent', () => {
     fixture = TestBed.createComponent(ApplicationsListDetailSearchComponent);
     component = fixture.componentInstance;
     fixture.componentRef.setInput('listId', 'list-1');
+    fixture.componentRef.setInput('incrementSubmitAttempt', jest.fn());
     fixture.detectChanges();
   });
 

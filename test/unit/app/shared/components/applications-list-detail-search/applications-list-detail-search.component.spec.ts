@@ -49,6 +49,7 @@ describe('ApplicationsListDetailSearchComponent', () => {
     component = fixture.componentInstance;
     fixture.componentRef.setInput('listId', 'list-1');
     fixture.componentRef.setInput('pageSize', 25);
+    fixture.componentRef.setInput('incrementSubmitAttempt', jest.fn());
     component.searchResult.subscribe((result) => emittedResults.push(result));
     fixture.detectChanges();
   });

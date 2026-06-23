@@ -17,7 +17,6 @@ import {
   ApplicationListEntryResultsFacade,
   BulkResultRemoval,
 } from '@services/applications-list-entry/application-list-entry-results.facade';
-import * as errorClick from '@util/error-click';
 
 describe('ApplicationsResultSelectedComponent', () => {
   let component: ApplicationsResultSelectedComponent;
@@ -269,10 +268,6 @@ describe('ApplicationsResultSelectedComponent', () => {
       ),
     );
 
-    const focusErrorSpy = jest
-      .spyOn(errorClick, 'focusErrorSummary')
-      .mockImplementation(() => {});
-
     component.onSubmitResults({
       pendingToCreate: [
         {
@@ -292,7 +287,6 @@ describe('ApplicationsResultSelectedComponent', () => {
       { text: 'Result code is not valid for these applications' },
     ]);
     expect(component.isSubmitting()).toBe(false);
-    expect(focusErrorSpy).toHaveBeenCalledWith(TestBed.inject(PLATFORM_ID));
   });
 
   it('onRemoveResult removes matching created results across multiple lists', () => {
