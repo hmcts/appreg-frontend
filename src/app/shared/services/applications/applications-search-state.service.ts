@@ -1,115 +1,66 @@
 import { Injectable, signal } from '@angular/core';
 
 import {
-  ApplicationsState,
-  initialApplicationsState,
+  type ApplicationsState,
+  defaultApplicationsSort,
 } from '@components/applications/util/applications.state';
+import { EntryGetFilterDto } from '@openapi';
 
-export type ApplicationsSearchFormValue = {
-  date: string | null;
-  applicantOrg: string;
-  respondentOrg: string;
-  applicantSurname: string;
-  respondentSurname: string;
-  location: string;
-  standardApplicantCode: string;
-  respondentPostcode: string;
-  accountReference: string;
-  court: string;
-  cja: string;
-  status: string | null;
-  isAdvancedSearch: boolean;
+export type ApplicationsSearchState = Pick<
+  ApplicationsState,
+  'currentPage' | 'pageSize' | 'sortField'
+> & {
+  hasSearched: boolean;
+  appliedFilters: EntryGetFilterDto;
 };
 
-export type ApplicationsSearchSnapshot = {
-  form: ApplicationsSearchFormValue;
-  state: ApplicationsState;
+export const DEFAULT_APPLICATIONS_SEARCH_STATE: ApplicationsSearchState = {
+  hasSearched: false,
+  currentPage: 0,
+  pageSize: 10,
+  sortField: defaultApplicationsSort(),
+  appliedFilters: {},
 };
 
-export const DEFAULT_APPLICATIONS_SEARCH_FORM: ApplicationsSearchFormValue = {
-  date: null,
-  applicantOrg: '',
-  respondentOrg: '',
-  applicantSurname: '',
-  respondentSurname: '',
-  location: '',
-  standardApplicantCode: '',
-  respondentPostcode: '',
-  accountReference: '',
-  court: '',
-  cja: '',
-  status: null,
-  isAdvancedSearch: false,
-};
-
-export const cloneApplicationsState = (
-  state: ApplicationsState,
-): ApplicationsState => ({
+const cloneSearchState = (
+  state: ApplicationsSearchState,
+): ApplicationsSearchState => ({
   ...state,
-  isLoading: false,
-  isSelectingAll: false,
-  searchErrors: state.searchErrors.map((error) => ({ ...error })),
-  errorSummary: state.errorSummary.map((error) => ({ ...error })),
-  rows: state.rows.map((row) => ({ ...row })),
   sortField: { ...state.sortField },
-  selectedIds: new Set(state.selectedIds),
-  selectedRows: state.selectedRows.map((row) => ({ ...row })),
-  getFilters: { ...state.getFilters },
-});
-
-const cloneSearchForm = (
-  form: ApplicationsSearchFormValue,
-): ApplicationsSearchFormValue => ({
-  ...form,
-});
-
-const defaultSnapshot = (): ApplicationsSearchSnapshot => ({
-  form: cloneSearchForm(DEFAULT_APPLICATIONS_SEARCH_FORM),
-  state: cloneApplicationsState(initialApplicationsState),
-});
-
-const cloneSnapshot = (
-  snapshot: ApplicationsSearchSnapshot,
-): ApplicationsSearchSnapshot => ({
-  form: cloneSearchForm(snapshot.form),
-  state: cloneApplicationsState(snapshot.state),
+  appliedFilters: { ...state.appliedFilters },
 });
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApplicationsSearchStateService {
-  private readonly snapshotState =
-    signal<ApplicationsSearchSnapshot>(defaultSnapshot());
+  private readonly _state = signal<ApplicationsSearchState>(
+    cloneSearchState(DEFAULT_APPLICATIONS_SEARCH_STATE),
+  );
 
-  readonly state = (): ApplicationsSearchSnapshot =>
-    cloneSnapshot(this.snapshotState());
+  readonly state = (): ApplicationsSearchState =>
+    cloneSearchState(this._state());
 
-  save(form: ApplicationsSearchFormValue, state: ApplicationsState): void {
-    this.snapshotState.set(
-      cloneSnapshot({
-        form,
-        state,
-      }),
-    );
+  setState(next: ApplicationsSearchState): void {
+    this._state.set(cloneSearchState(next));
   }
 
-  setAdvancedSearch(isAdvancedSearch: boolean): void {
-    this.snapshotState.update((current) =>
-      cloneSnapshot({
-        form: {
-          ...current.form,
-          isAdvancedSearch,
-        },
-        state: {
-          ...current.state,
-          isAdvancedSearch,
-        },
+  patchState(patch: Partial<ApplicationsSearchState>): void {
+    this._state.update((current) =>
+      cloneSearchState({
+        ...current,
+        ...patch,
+        sortField: patch.sortField
+          ? { ...patch.sortField }
+          : { ...current.sortField },
+        appliedFilters: patch.appliedFilters
+          ? { ...patch.appliedFilters }
+          : { ...current.appliedFilters },
       }),
     );
   }
 
   reset(): void {
-    this.snapshotState.set(defaultSnapshot());
+    this._state.set(cloneSearchState(DEFAULT_APPLICATIONS_SEARCH_STATE));
   }
 }
