@@ -570,4 +570,13 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
 
     return null;
   }
+
+  showNoResultsFound(): boolean {
+    return (
+      !this.vm().isLoading &&
+      !this.vm().errorSummary.length &&
+      this.storedRecordsVm().submitted &&
+      !this.vm().searchErrors.length
+    );
+  }
 }

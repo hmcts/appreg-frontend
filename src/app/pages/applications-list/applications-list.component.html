@@ -92,10 +92,7 @@
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"
 />
 
-@if (
-  storedRecordsVm().rows.length ||
-  (storedRecordsVm().submitted && !vm().isLoading)
-) {
+@if (storedRecordsVm().rows.length) {
   <!-- Sortable table component -->
   <app-sortable-table
     id="sortable-table"
@@ -198,4 +195,8 @@
     [totalPages]="storedRecordsVm().totalPages"
     (pageChange)="onPageChange($event)"
   />
+} @else {
+  @if (showNoResultsFound()) {
+    <p class="govuk-body">No results found.</p>
+  }
 }
