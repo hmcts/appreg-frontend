@@ -180,6 +180,11 @@ export class ApplicationsListDetailBulkUpdateFeesComponent implements OnInit {
   });
 
   disableUpdateButton(): boolean {
+    // Allow just offsite fee to be applied
+    if (this.civilFeeForm.value.hasOffsiteFee) {
+      return false;
+    }
+
     return (this.civilFeeForm.value.feeStatuses?.length ?? 0) === 0;
   }
 

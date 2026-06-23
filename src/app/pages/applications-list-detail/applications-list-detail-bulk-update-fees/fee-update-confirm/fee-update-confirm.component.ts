@@ -70,11 +70,7 @@ export class FeeUpdateConfirmComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (
-      !this.listId ||
-      !this.selectedEntries.length ||
-      !this.feeStatuses.length
-    ) {
+    if (!this.listId || !this.selectedEntries.length) {
       this.goBack();
     }
   }

@@ -91,6 +91,7 @@ export class CivilFeeSectionComponent implements OnInit {
   feeRequired = input<boolean>(false);
 
   noFeeMeta = input<boolean>(false);
+  allowJustFeeEntry = input<boolean>(false);
 
   informationText = input('entry');
 
@@ -163,21 +164,23 @@ export class CivilFeeSectionComponent implements OnInit {
     this.submitted.set(true);
     const f = this.feeForm().controls;
 
-    // Lazy attach validators so they do not show on parent update.
-    f.feeStatus.setValidators([(c) => Validators.required(c)]);
-    f.feeStatusDate.setValidators([(c) => Validators.required(c)]);
-    f.paymentRef.setValidators([
-      this.paymentRefNotAllowedWhenDueValidator,
-      (c) => Validators.maxLength(15)(c),
-    ]);
+    if (!this.allowJustFeeEntry()) {
+      // Lazy attach validators so they do not show on parent update.
+      f.feeStatus.setValidators([(c) => Validators.required(c)]);
+      f.feeStatusDate.setValidators([(c) => Validators.required(c)]);
+      f.paymentRef.setValidators([
+        this.paymentRefNotAllowedWhenDueValidator,
+        (c) => Validators.maxLength(15)(c),
+      ]);
 
-    f.feeStatus.updateValueAndValidity({ emitEvent: false });
-    f.feeStatusDate.updateValueAndValidity({ emitEvent: false });
-    f.paymentRef.updateValueAndValidity({ emitEvent: false });
+      f.feeStatus.updateValueAndValidity({ emitEvent: false });
+      f.feeStatusDate.updateValueAndValidity({ emitEvent: false });
+      f.paymentRef.updateValueAndValidity({ emitEvent: false });
 
-    f.feeStatus.markAsTouched();
-    f.feeStatusDate.markAsTouched();
-    f.paymentRef.markAsTouched();
+      f.feeStatus.markAsTouched();
+      f.feeStatusDate.markAsTouched();
+      f.paymentRef.markAsTouched();
+    }
 
     this.emitCivilFeeErrors();
 
@@ -190,7 +193,7 @@ export class CivilFeeSectionComponent implements OnInit {
     }
 
     const payload: AddFeeDetailsPayload = {
-      feeStatus: f.feeStatus.value?.trim() as PaymentStatus,
+      feeStatus: (f.feeStatus.value?.trim() as PaymentStatus) || null,
       statusDate: (f.feeStatusDate.value ?? '').trim(),
       paymentReference: (f.paymentRef.value ?? null)?.trim() || null,
     };
@@ -215,11 +218,15 @@ export class CivilFeeSectionComponent implements OnInit {
   private buildCivilFeeErrors(): ErrorItem[] {
     const entries: ErrorItem[] = [];
 
-    (['feeStatus', 'feeStatusDate', 'paymentRef'] as const).forEach((name) => {
-      this.getControlErrorMessages(name).forEach((message) => {
-        entries.push({ id: name, text: message });
-      });
-    });
+    if (!this.allowJustFeeEntry()) {
+      (['feeStatus', 'feeStatusDate', 'paymentRef'] as const).forEach(
+        (name) => {
+          this.getControlErrorMessages(name).forEach((message) => {
+            entries.push({ id: name, text: message });
+          });
+        },
+      );
+    }
 
     return entries;
   }
