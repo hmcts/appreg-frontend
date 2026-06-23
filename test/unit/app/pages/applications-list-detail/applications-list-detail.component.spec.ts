@@ -160,7 +160,6 @@ describe('ApplicationsListDetail', () => {
 
     const dto = {
       entriesCount: 0,
-      entriesSummary: [],
     } as unknown as ApplicationListGetDetailDto;
 
     apiStub.getApplicationList.mockReturnValue(
@@ -1567,19 +1566,6 @@ describe('ApplicationsListDetail', () => {
 
       const dto = {
         entriesCount: 1,
-        entriesSummary: [
-          {
-            uuid: 'abc',
-            sequenceNumber: 7,
-            accountNumber: '',
-            applicant: null,
-            respondent: 'Acme',
-            postCode: null,
-            applicationTitle: 'Land Registry Appeal',
-            feeRequired: true,
-            result: false,
-          },
-        ],
       } as unknown as ApplicationListGetDetailDto;
 
       apiStub.getApplicationList.mockReturnValueOnce(

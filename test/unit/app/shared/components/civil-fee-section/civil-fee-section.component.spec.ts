@@ -148,15 +148,18 @@ describe('CivilFeeSectionComponent', () => {
   it('onAddFeeDetailsClick lazily attaches validators and emits civilFeeErrors when invalid', () => {
     const errorsSpy = jest.fn();
     const addSpy = jest.fn();
+    const submitAttemptSpy = jest.fn();
 
     component.civilFeeErrors.subscribe(errorsSpy);
     component.addFeeDetails.subscribe(addSpy);
+    component.submitAttempted.subscribe(submitAttemptSpy);
 
     // leave required fields empty -> invalid
     component.onAddFeeDetailsClick();
 
     // should NOT emit addFeeDetails
     expect(addSpy).not.toHaveBeenCalled();
+    expect(submitAttemptSpy).toHaveBeenCalledTimes(1);
 
     // should emit error items
     expect(errorsSpy).toHaveBeenCalled();
@@ -178,9 +181,11 @@ describe('CivilFeeSectionComponent', () => {
   it('onAddFeeDetailsClick emits AddFeeDetailsPayload when valid (trims + null paymentReference)', () => {
     const errorsSpy = jest.fn();
     const addSpy = jest.fn();
+    const submitAttemptSpy = jest.fn();
 
     component.civilFeeErrors.subscribe(errorsSpy);
     component.addFeeDetails.subscribe(addSpy);
+    component.submitAttempted.subscribe(submitAttemptSpy);
 
     const f = component.feeForm().controls;
 
@@ -191,6 +196,7 @@ describe('CivilFeeSectionComponent', () => {
     component.onAddFeeDetailsClick();
 
     expect(addSpy).toHaveBeenCalledTimes(1);
+    expect(submitAttemptSpy).toHaveBeenCalledTimes(1);
     expect(addSpy).toHaveBeenCalledWith({
       feeStatus: 'paid',
       statusDate: '2025-11-01',

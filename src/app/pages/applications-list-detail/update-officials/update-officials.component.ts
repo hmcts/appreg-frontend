@@ -19,10 +19,7 @@ import { SortableTableComponent } from '@components/sortable-table/sortable-tabl
 import { OFFICIAL_FIELD_MESSAGES } from '@constants/application-list-entry/error-messages';
 import { OFFICIALS_ERROR_HREFS } from '@constants/application-list-entry/respondent/error-hrefs';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
-import {
-  focusErrorSummary,
-  onCreateErrorClick as onCreateErrorClickFn,
-} from '@util/error-click';
+import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { buildFormErrorSummary } from '@util/error-summary';
 
 @Component({
@@ -82,7 +79,6 @@ export class UpdateOfficialsComponent implements OnInit {
     const errors = this.buildOfficialsErrorSummary();
     if (errors.length) {
       this.errorSummary.set(errors);
-      focusErrorSummary(this.platformId);
       return;
     }
 
@@ -97,7 +93,6 @@ export class UpdateOfficialsComponent implements OnInit {
           text: 'Enter at least one official',
         },
       ]);
-      focusErrorSummary(this.platformId);
       return;
     }
 

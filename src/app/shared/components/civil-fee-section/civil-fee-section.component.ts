@@ -82,6 +82,7 @@ export class CivilFeeSectionComponent implements OnInit {
   civilFeeErrors = output<ErrorItem[]>();
   addFeeDetails = output<AddFeeDetailsPayload>();
   offsiteFeeChanged = output<boolean>();
+  submitAttempted = output<void>();
 
   submitted = signal(false);
   parentSubmitted = input(false);
@@ -158,6 +159,7 @@ export class CivilFeeSectionComponent implements OnInit {
       return;
     }
 
+    this.submitAttempted.emit();
     this.submitted.set(true);
     const f = this.feeForm().controls;
 

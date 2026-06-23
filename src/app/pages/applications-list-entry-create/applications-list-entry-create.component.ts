@@ -93,7 +93,6 @@ import {
   updatePaymentReferenceInFeeStatusesControl,
 } from '@util/civil-fee-utils';
 import {
-  focusErrorSummary,
   focusField,
   onCreateErrorClick as onCreateErrorClickFn,
 } from '@util/error-click';
@@ -415,7 +414,7 @@ export class ApplicationsListEntryCreate implements OnInit {
       opts.focusSummary !== false &&
       this.appListEntryCreateState().errorFound
     ) {
-      focusErrorSummary(this.platformId);
+      this.submitAttempt.update((attempt) => attempt + 1);
     }
   }
 
@@ -557,6 +556,10 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   onAddFeeDetails(payload: AddFeeDetailsPayload): void {
     updateFeeStatusesControl(this.form.controls.feeStatuses, payload);
+  }
+
+  onCivilFeeSubmitAttempt(): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
   }
 
   onOffsiteFeeChanged(nextValue: boolean): void {

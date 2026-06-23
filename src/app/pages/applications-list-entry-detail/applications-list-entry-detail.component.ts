@@ -128,10 +128,7 @@ import {
   updateFeeStatusesControl,
   updatePaymentReferenceInFeeStatusesControl,
 } from '@util/civil-fee-utils';
-import {
-  focusErrorSummary,
-  onCreateErrorClick as onCreateErrorClickFn,
-} from '@util/error-click';
+import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { getUniqueErrors } from '@util/error-items';
 import { buildFormErrorSummary } from '@util/error-summary';
 import { markFormGroupClean } from '@util/form-helpers';
@@ -668,12 +665,13 @@ export class ApplicationsListEntryDetail implements OnInit {
     });
 
     if (errorFound && opts.focusSummary !== false) {
-      focusErrorSummary(this.platformId);
+      this.submitAttempt.update((attempt) => attempt + 1);
     }
   }
 
   onChildErrors(source: ChildErrorSource, errors: ErrorItem[]): void {
     this.childErrors[source] = errors ?? [];
+    this.submitAttempt.update((attempt) => attempt + 1);
 
     if (source === 'codes' || source === 'resultWording') {
       const summaryErrors = [
@@ -689,7 +687,6 @@ export class ApplicationsListEntryDetail implements OnInit {
       });
 
       if (source === 'resultWording' && errors?.length > 0) {
-        focusErrorSummary(this.platformId);
         this.resultAppliedBannerVisible.set(false);
       }
 
@@ -715,6 +712,7 @@ export class ApplicationsListEntryDetail implements OnInit {
     successBanner: SuccessBanner,
   ): void {
     const entryId = getEntryId(this.route);
+    this.submitAttempt.update((attempt) => attempt + 1);
     if (!entryId || !this.entryDetail) {
       this.appListEntryDetailPatch({
         errorFound: true,
@@ -722,7 +720,6 @@ export class ApplicationsListEntryDetail implements OnInit {
           { text: 'Entry is not loaded. Reload the page and try again.' },
         ],
       });
-      focusErrorSummary(this.platformId);
       return;
     }
 
@@ -759,7 +756,6 @@ export class ApplicationsListEntryDetail implements OnInit {
         error: (err) => {
           this.appListEntryDetailPatch({ formSubmitted: false });
           this.applyMappedError(err);
-          focusErrorSummary(this.platformId);
         },
       });
   }
@@ -909,6 +905,10 @@ export class ApplicationsListEntryDetail implements OnInit {
     }
 
     this.persistHasOffsiteFee(nextValue, prev);
+  }
+
+  onCivilFeeSubmitAttempt(): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
   }
 
   private persistHasOffsiteFee(nextValue: boolean, prevValue: boolean): void {
@@ -1446,14 +1446,13 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   private handleFatalLoadError(err: unknown): void {
     const { errorHint, errorSummary } = mapHttpErrorToSummary(err);
+    this.submitAttempt.update((attempt) => attempt + 1);
 
     this.appListEntryDetailPatch({
       errorHint,
       summaryErrors: errorSummary,
       errorFound: true,
     });
-
-    focusErrorSummary(this.platformId);
   }
 
   private handleResultWordingContext(

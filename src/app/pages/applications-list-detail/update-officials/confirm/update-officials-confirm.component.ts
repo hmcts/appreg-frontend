@@ -20,10 +20,7 @@ import {
 import { ReviewConfirmComponent } from '@components/review-confirm/review-confirm.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { ApplicationListEntriesApi, Official, OfficialType } from '@openapi';
-import {
-  focusErrorSummary,
-  onCreateErrorClick as onCreateErrorClickFn,
-} from '@util/error-click';
+import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { getProblemText } from '@util/http-error-to-text';
 
 type OfficialSummaryRow = {
@@ -114,7 +111,6 @@ export class UpdateOfficialsConfirmComponent implements OnInit {
         },
         error: (err: unknown) => {
           this.errorSummary.set([{ text: getProblemText(err) }]);
-          focusErrorSummary(this.platformId);
         },
       });
   }

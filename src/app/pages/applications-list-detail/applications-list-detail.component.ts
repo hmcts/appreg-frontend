@@ -1032,10 +1032,11 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.detailSignalState.patch(patch);
   };
 
+  readonly incrementSubmitAttemptFn = (): void => {
+    this.submitAttempt.update((attempt) => attempt + 1);
+  };
+
   readonly setUpdateRequestFn = (req: UpdateReq | null): void => {
-    if (req !== null) {
-      this.submitAttempt.update((attempt) => attempt + 1);
-    }
     this.updateRequest.set(req);
   };
 

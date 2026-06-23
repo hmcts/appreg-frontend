@@ -160,6 +160,7 @@
     <app-applications-list-detail-search
       [listId]="id"
       [pageSize]="vm().pageSize"
+      [incrementSubmitAttempt]="incrementSubmitAttemptFn"
       (searchStarted)="onSearchStarted($event)"
       (searchResult)="onSearchResult($event)"
     />
@@ -328,6 +329,7 @@
       [etag]="etag"
       [patchState]="patchStateFn"
       [setUpdateRequest]="setUpdateRequestFn"
+      [incrementSubmitAttempt]="incrementSubmitAttemptFn"
       [suggestionsFacade]="suggestionsFacade"
       [listRow]="listRow"
     />

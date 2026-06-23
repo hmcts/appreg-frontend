@@ -104,6 +104,7 @@
       [feeMeta]="feeMeta"
       (addFeeDetails)="onAddFeeDetails($event)"
       (civilFeeErrors)="onChildErrors('civilFee', $event)"
+      (submitAttempted)="onCivilFeeSubmitAttempt()"
       (offsiteFeeChanged)="onOffsiteFeeChanged($event)"
       [feeRequired]="vm().isFeeRequired"
       [autoSaveOffsiteFee]="true"
