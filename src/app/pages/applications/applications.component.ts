@@ -19,7 +19,6 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { firstValueFrom, forkJoin, map } from 'rxjs';
 
 import {
-  type ApplicationsState,
   clearNotificationsPatch,
   defaultApplicationsSort,
   initialApplicationsState,
@@ -55,11 +54,11 @@ import {
   GetEntriesRequestParams,
 } from '@openapi';
 import {
+  ApplicationsSearchFormService,
   ApplicationsSearchFormValue,
-  ApplicationsSearchStateService,
   DEFAULT_APPLICATIONS_SEARCH_FORM,
-  cloneApplicationsState,
-} from '@services/applications/applications-search-state.service';
+} from '@services/applications/applications-search-form.service';
+import { ApplicationsSearchStateService } from '@services/applications/applications-search-state.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { ApplicationRow } from '@shared-types/applications/applications.type';
 import { toStatus } from '@util/application-status-helpers';
@@ -145,6 +144,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   private readonly appListEntryApi = inject(ApplicationListEntriesApi);
   private readonly appListApi = inject(ApplicationListsApi);
   private readonly pdf = inject(PdfService);
+  private readonly searchForm = inject(ApplicationsSearchFormService);
   private readonly searchState = inject(ApplicationsSearchStateService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -200,35 +200,34 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   ngOnInit(): void {
-    const shouldRefreshRestoredSearch = this.restoreSearchState();
+    this.restoreSearchState();
     this.initPlaceFields(this.form, this.refFacade);
     this.setupEffects();
 
     addLocationValidatorsToForm(this.form, () => this.state());
 
-    if (shouldRefreshRestoredSearch) {
+    if (this.vm().isSearch) {
       this.loadApplications(this.vm().getFilters);
     }
   }
 
-  private restoreSearchState(): boolean {
-    const snapshot = this.searchState.state();
+  private restoreSearchState(): void {
+    const storedForm = this.searchForm.state();
+    const storedState = this.searchState.state();
 
-    this.form.reset(snapshot.form, { emitEvent: false });
-    this.appState.state.set(cloneApplicationsState(snapshot.state));
-
-    return (
-      this.searchState.consumeRefreshOnRestore() &&
-      this.hasRestoredSearch(snapshot.state)
-    );
-  }
-
-  private hasRestoredSearch(state: ApplicationsState): boolean {
-    return (
-      state.isSearch ||
-      state.rows.length > 0 ||
-      Object.keys(state.getFilters).length > 0
-    );
+    this.form.reset(storedForm, { emitEvent: false });
+    this.appState.state.set({
+      ...initialApplicationsState,
+      isSearch: storedState.hasSearched,
+      submitted: storedState.hasSearched,
+      isAdvancedSearch: storedForm.isAdvancedSearch,
+      currentPage: storedState.currentPage,
+      pageSize: storedState.pageSize,
+      sortField: { ...storedState.sortField },
+      getFilters: { ...storedState.appliedFilters },
+      selectedIds: new Set<string>(),
+      selectedRows: [],
+    });
   }
 
   private setupEffects(): void {
@@ -318,6 +317,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     this.form.updateValueAndValidity({ emitEvent: false });
 
     const validationErrors = this.buildErrorSummary();
+    this.persistFormState();
+
     if (validationErrors.length) {
       this.patchApp({
         searchErrors: validationErrors,
@@ -559,7 +560,14 @@ export class Applications extends PlaceFieldsBase implements OnInit {
 
   clearSearch(): void {
     this.invalidateSelectAllRequest();
-    this.appState.state.set(cloneApplicationsState(initialApplicationsState));
+    this.appState.state.set({
+      ...initialApplicationsState,
+      sortField: defaultApplicationsSort(),
+      selectedIds: new Set<string>(),
+      selectedRows: [],
+      getFilters: {},
+    });
+    this.searchForm.reset();
     this.searchState.reset();
 
     this.form.reset(DEFAULT_APPLICATIONS_SEARCH_FORM);
@@ -722,11 +730,22 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     const isAdvancedSearch = !this.vm().isAdvancedSearch;
 
     this.patchApp({ isAdvancedSearch });
-    this.searchState.setAdvancedSearch(isAdvancedSearch);
+    this.searchForm.patchState({ isAdvancedSearch });
   }
 
   private saveSearchState(): void {
-    this.searchState.save(this.searchFormValue(), this.vm());
+    this.persistFormState();
+    this.searchState.setState({
+      hasSearched: this.vm().isSearch,
+      currentPage: this.vm().currentPage,
+      pageSize: this.vm().pageSize,
+      sortField: { ...this.vm().sortField },
+      appliedFilters: { ...this.vm().getFilters },
+    });
+  }
+
+  private persistFormState(): void {
+    this.searchForm.setState(this.searchFormValue());
   }
 
   private searchFormValue(): ApplicationsSearchFormValue {

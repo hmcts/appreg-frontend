@@ -106,7 +106,6 @@ import {
   TemplateSubstitution,
   UpdateApplicationListEntryRequestParams,
 } from '@openapi';
-import { ApplicationsSearchStateService } from '@services/applications/applications-search-state.service';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 import { ApplicationListEntryResultsFacade } from '@services/applications-list-entry/application-list-entry-results.facade';
 import {
@@ -207,9 +206,6 @@ export class ApplicationsListEntryDetail implements OnInit {
   private readonly location = inject(Location);
   private readonly applicationCodesApi = inject(ApplicationCodesApi);
   private readonly standardApplicantsApi = inject(StandardApplicantsApi);
-  private readonly applicationsSearchState = inject(
-    ApplicationsSearchStateService,
-  );
 
   //Utilising facade for entry results to keep component clean
   readonly resultsFacade = inject(ApplicationListEntryResultsFacade);
@@ -475,7 +471,6 @@ export class ApplicationsListEntryDetail implements OnInit {
       .subscribe({
         next: (res) => {
           this.mergeEntryDetailUpdate(entryUpdateDto, res);
-          this.markApplicationsSearchForRefresh();
 
           this.form.controls.feeStatuses.markAsPristine();
 
@@ -749,7 +744,6 @@ export class ApplicationsListEntryDetail implements OnInit {
             errorFound: false,
           });
           this.mergeEntryDetailUpdate(entryUpdateDto, res);
-          this.markApplicationsSearchForRefresh();
           this.applySavedStandardApplicantSummary();
           this.appListEntryDetailPatch({ successBanner });
 
@@ -949,7 +943,6 @@ export class ApplicationsListEntryDetail implements OnInit {
       .subscribe({
         next: (res) => {
           this.mergeEntryDetailUpdate(entryUpdateDto, res);
-          this.markApplicationsSearchForRefresh();
           this.persistedHasOffsiteFee = nextValue;
           this.form.controls.hasOffsiteFee.markAsPristine();
 
@@ -1409,7 +1402,6 @@ export class ApplicationsListEntryDetail implements OnInit {
       entryId,
       resultId,
       () => {
-        this.markApplicationsSearchForRefresh();
         this.appListEntryDetailPatch({
           successBanner: ENTRY_SUCCESS_MESSAGES.resultRemoved,
         });
@@ -1500,9 +1492,5 @@ export class ApplicationsListEntryDetail implements OnInit {
           }
         : apiContext,
     ];
-  }
-
-  private markApplicationsSearchForRefresh(): void {
-    this.applicationsSearchState.requestRefreshOnRestore();
   }
 }

@@ -39,7 +39,6 @@ import {
   TemplateConstraintTypeEnum,
   UpdateApplicationListEntryRequestParams,
 } from '@openapi';
-import { ApplicationsSearchStateService } from '@services/applications/applications-search-state.service';
 import { ApplicationListEntryFormService } from '@services/applications-list-entry/application-list-entry-form.service';
 import { ApplicationsListEntryFormValue } from '@shared-types/applications-list-entry-create/application-list-entry-form';
 import type { AddFeeDetailsPayload } from '@shared-types/civil-fee/civil-fee';
@@ -136,7 +135,6 @@ describe('ApplicationsListEntryDetail', () => {
   let mockGetStandardApplicantByCode: jest.MockedFunction<GetStandardApplicantDetailFn>;
   let mockGetApplicationListEntry: jest.MockedFunction<GetEntryFn>;
   let mockUpdateApplicationListEntry: jest.MockedFunction<UpdateEntryFn>;
-  let applicationsSearchState: ApplicationsSearchStateService;
 
   const routeStub: ActivatedRoute = {
     snapshot: {
@@ -257,9 +255,6 @@ describe('ApplicationsListEntryDetail', () => {
         provideHttpClientTesting(),
       ],
     }).compileComponents();
-
-    applicationsSearchState = TestBed.inject(ApplicationsSearchStateService);
-    applicationsSearchState.reset();
 
     fixture = TestBed.createComponent(ApplicationsListEntryDetail);
     component = fixture.componentInstance;
@@ -682,7 +677,6 @@ describe('ApplicationsListEntryDetail', () => {
 
     expect(component['persistedHasOffsiteFee']).toBe(true);
     expect(component['form'].controls.hasOffsiteFee.pristine).toBe(true);
-    expect(applicationsSearchState.consumeRefreshOnRestore()).toBe(true);
 
     const state = component['appListEntryDetailState']();
     expect(state.successBanner).toBeTruthy();
@@ -711,7 +705,6 @@ describe('ApplicationsListEntryDetail', () => {
     const state = component['appListEntryDetailState']();
     expect(state.successBanner).toBeTruthy();
     expect(state.successBanner?.heading).toBe('Result removed');
-    expect(applicationsSearchState.consumeRefreshOnRestore()).toBe(true);
 
     removeSpy.mockRestore();
   });
@@ -1315,7 +1308,6 @@ describe('ApplicationsListEntryDetail', () => {
     expect(component['appListEntryDetailState']().successBanner?.heading).toBe(
       'Applicant updated',
     );
-    expect(applicationsSearchState.consumeRefreshOnRestore()).toBe(true);
   });
 
   it('onUpdateApplicant sends an update payload without lodgementDate or detail-only fields', () => {
@@ -1722,7 +1714,6 @@ describe('ApplicationsListEntryDetail', () => {
         feeStatuses: next,
       }),
     );
-    expect(applicationsSearchState.consumeRefreshOnRestore()).toBe(true);
 
     spy.mockRestore();
   });

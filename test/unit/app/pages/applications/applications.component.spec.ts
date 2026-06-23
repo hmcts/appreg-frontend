@@ -6,7 +6,7 @@ import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
 
 import { Applications } from '@components/applications/applications.component';
-import { ApplicationsState } from '@components/applications/util/applications.state';
+import { type ApplicationsState } from '@components/applications/util/applications.state';
 import { APPLICATIONS_LIST_ERROR_MESSAGES } from '@components/applications-list/util/applications-list.constants';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { PdfService } from '@core/services/pdf.service';
@@ -20,6 +20,7 @@ import {
   EntryIdsDto,
   EntryPage,
 } from '@openapi';
+import { ApplicationsSearchFormService } from '@services/applications/applications-search-form.service';
 import { ApplicationsSearchStateService } from '@services/applications/applications-search-state.service';
 import { ReferenceDataFacade } from '@services/reference-data.facade';
 import { ApplicationRow } from '@shared-types/applications/applications.type';
@@ -98,6 +99,7 @@ const RESTORED_LIST_ID = 'persisted-list';
 describe('ApplicationsComponent', () => {
   let component: Applications;
   let fixture: ComponentFixture<Applications>;
+  let searchFormService: ApplicationsSearchFormService;
   let searchStateService: ApplicationsSearchStateService;
 
   const referenceDataFacadeStub: Pick<
@@ -187,7 +189,9 @@ describe('ApplicationsComponent', () => {
       ],
     }).compileComponents();
 
+    searchFormService = TestBed.inject(ApplicationsSearchFormService);
     searchStateService = TestBed.inject(ApplicationsSearchStateService);
+    searchFormService.reset();
     searchStateService.reset();
 
     fixture = TestBed.createComponent(Applications);
@@ -226,9 +230,9 @@ describe('ApplicationsComponent', () => {
     expect(fixture.nativeElement.textContent).not.toContain('Search failed');
   });
 
-  it('restores the previous successful search state when the page is recreated', () => {
+  it('restores the previous successful search state and reruns the query when the page is recreated', () => {
     getEntriesMock.mockClear();
-    getEntriesMock.mockReturnValueOnce(
+    getEntriesMock.mockReturnValue(
       of({
         content: [
           makeEntry({ id: RESTORED_ENTRY_ID, listId: RESTORED_LIST_ID }),
@@ -255,7 +259,14 @@ describe('ApplicationsComponent', () => {
     const freshComponent = freshFixture.componentInstance;
     freshFixture.detectChanges();
 
-    expect(getEntriesMock).toHaveBeenCalledTimes(1);
+    expect(getEntriesMock).toHaveBeenCalledTimes(2);
+    expect(getEntriesMock.mock.calls[1][0]).toEqual(
+      expect.objectContaining({
+        pageNumber: 1,
+        sort: ['applicationTitle,asc'],
+        filter: { applicantOrganisation: RESTORED_APPLICANT_ORG },
+      }),
+    );
     expect(freshComponent.form.controls.applicantOrg.value).toBe(
       RESTORED_APPLICANT_ORG,
     );
@@ -275,7 +286,7 @@ describe('ApplicationsComponent', () => {
     });
   });
 
-  it('refreshes the restored search once when an application list entry was updated', () => {
+  it('uses freshly fetched rows for a restored search', () => {
     getEntriesMock.mockClear();
     getEntriesMock
       .mockReturnValueOnce(
@@ -320,8 +331,6 @@ describe('ApplicationsComponent', () => {
     component.form.patchValue({ applicantOrg: RESTORED_APPLICANT_ORG });
     component.loadApplications();
 
-    searchStateService.requestRefreshOnRestore();
-
     const freshFixture = TestBed.createComponent(Applications);
     const freshComponent = freshFixture.componentInstance;
     freshFixture.detectChanges();
@@ -337,7 +346,6 @@ describe('ApplicationsComponent', () => {
     expect(freshComponent.vm().rows.map((row) => row.applicationTitle)).toEqual(
       ['Updated title'],
     );
-    expect(searchStateService.consumeRefreshOnRestore()).toBe(false);
   });
 
   it('clears the stored search state when the search is cleared', () => {
