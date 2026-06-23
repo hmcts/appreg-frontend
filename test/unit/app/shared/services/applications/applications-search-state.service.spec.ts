@@ -187,4 +187,21 @@ describe('ApplicationsSearchStateService', () => {
       state: initialApplicationsState,
     });
   });
+
+  it('tracks refresh-on-restore requests as a one-shot signal', () => {
+    expect(service.consumeRefreshOnRestore()).toBe(false);
+
+    service.requestRefreshOnRestore();
+
+    expect(service.consumeRefreshOnRestore()).toBe(true);
+    expect(service.consumeRefreshOnRestore()).toBe(false);
+  });
+
+  it('clears a pending refresh-on-restore request when reset', () => {
+    service.requestRefreshOnRestore();
+
+    service.reset();
+
+    expect(service.consumeRefreshOnRestore()).toBe(false);
+  });
 });

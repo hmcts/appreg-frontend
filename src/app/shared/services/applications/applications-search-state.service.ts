@@ -81,6 +81,7 @@ const cloneSnapshot = (
 export class ApplicationsSearchStateService {
   private readonly snapshotState =
     signal<ApplicationsSearchSnapshot>(defaultSnapshot());
+  private readonly refreshOnRestore = signal(false);
 
   readonly state = (): ApplicationsSearchSnapshot =>
     cloneSnapshot(this.snapshotState());
@@ -92,6 +93,20 @@ export class ApplicationsSearchStateService {
         state,
       }),
     );
+  }
+
+  requestRefreshOnRestore(): void {
+    this.refreshOnRestore.set(true);
+  }
+
+  consumeRefreshOnRestore(): boolean {
+    const shouldRefresh = this.refreshOnRestore();
+
+    if (shouldRefresh) {
+      this.refreshOnRestore.set(false);
+    }
+
+    return shouldRefresh;
   }
 
   setAdvancedSearch(isAdvancedSearch: boolean): void {
@@ -111,5 +126,6 @@ export class ApplicationsSearchStateService {
 
   reset(): void {
     this.snapshotState.set(defaultSnapshot());
+    this.refreshOnRestore.set(false);
   }
 }

@@ -24,6 +24,7 @@ import { SuccessBannerComponent } from '@components/success-banner/success-banne
 import { ENTRY_SUCCESS_MESSAGES } from '@constants/application-list-entry/success-messages';
 import { SuccessBanner } from '@core-types/banner/banner.types';
 import { ResultGetDto } from '@openapi';
+import { ApplicationsSearchStateService } from '@services/applications/applications-search-state.service';
 import { ApplicationListEntryResultsFacade } from '@services/applications-list-entry/application-list-entry-results.facade';
 import { ApplicationRow } from '@shared-types/applications/applications.type';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
@@ -57,6 +58,9 @@ type ApplicationsResultContext = Pick<
 export class ApplicationsResultSelectedComponent implements OnInit {
   private readonly platformId = inject(PLATFORM_ID);
   readonly resultsFacade = inject(ApplicationListEntryResultsFacade);
+  private readonly applicationsSearchState = inject(
+    ApplicationsSearchStateService,
+  );
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
@@ -199,6 +203,7 @@ export class ApplicationsResultSelectedComponent implements OnInit {
           }
 
           this.errorSummaryItems.set([]);
+          this.applicationsSearchState.requestRefreshOnRestore();
           this.successBanner.set(ENTRY_SUCCESS_MESSAGES.resultsRemoved);
           focusSuccessBanner(this.platformId);
         },
@@ -238,6 +243,7 @@ export class ApplicationsResultSelectedComponent implements OnInit {
       () => {
         this.isSubmitting.set(false);
         this.errorSummaryItems.set([]);
+        this.applicationsSearchState.requestRefreshOnRestore();
         this.successBanner.set({
           heading: 'Result codes applied successfully',
           body: `Result code(s) '${this.selectedResultCode().join(', ')}' applied successfully to application(s)`,

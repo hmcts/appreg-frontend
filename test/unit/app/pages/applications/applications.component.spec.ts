@@ -275,6 +275,71 @@ describe('ApplicationsComponent', () => {
     });
   });
 
+  it('refreshes the restored search once when an application list entry was updated', () => {
+    getEntriesMock.mockClear();
+    getEntriesMock
+      .mockReturnValueOnce(
+        of({
+          content: [
+            makeEntry({
+              id: RESTORED_ENTRY_ID,
+              listId: RESTORED_LIST_ID,
+              applicationTitle: 'Original title',
+            }),
+          ],
+          totalPages: 3,
+          totalElements: 21,
+          number: 1,
+        } as unknown as EntryPage) as unknown as ReturnType<
+          ApplicationListEntriesApi['getEntries']
+        >,
+      )
+      .mockReturnValueOnce(
+        of({
+          content: [
+            makeEntry({
+              id: RESTORED_ENTRY_ID,
+              listId: RESTORED_LIST_ID,
+              applicationTitle: 'Updated title',
+            }),
+          ],
+          totalPages: 3,
+          totalElements: 21,
+          number: 1,
+        } as unknown as EntryPage) as unknown as ReturnType<
+          ApplicationListEntriesApi['getEntries']
+        >,
+      );
+
+    appStateSignal(component).update((s) => ({
+      ...s,
+      currentPage: 1,
+      isAdvancedSearch: true,
+      sortField: { key: 'title', direction: 'asc' },
+    }));
+    component.form.patchValue({ applicantOrg: RESTORED_APPLICANT_ORG });
+    component.loadApplications();
+
+    searchStateService.requestRefreshOnRestore();
+
+    const freshFixture = TestBed.createComponent(Applications);
+    const freshComponent = freshFixture.componentInstance;
+    freshFixture.detectChanges();
+
+    expect(getEntriesMock).toHaveBeenCalledTimes(2);
+    expect(getEntriesMock.mock.calls[1][0]).toEqual(
+      expect.objectContaining({
+        pageNumber: 1,
+        sort: ['applicationTitle,asc'],
+        filter: { applicantOrganisation: RESTORED_APPLICANT_ORG },
+      }),
+    );
+    expect(freshComponent.vm().rows.map((row) => row.applicationTitle)).toEqual(
+      ['Updated title'],
+    );
+    expect(searchStateService.consumeRefreshOnRestore()).toBe(false);
+  });
+
   it('clears the stored search state when the search is cleared', () => {
     getEntriesMock.mockClear();
     getEntriesMock.mockReturnValueOnce(

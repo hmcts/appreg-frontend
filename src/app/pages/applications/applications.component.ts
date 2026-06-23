@@ -19,6 +19,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { firstValueFrom, forkJoin, map } from 'rxjs';
 
 import {
+  type ApplicationsState,
   clearNotificationsPatch,
   defaultApplicationsSort,
   initialApplicationsState,
@@ -199,18 +200,35 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   }
 
   ngOnInit(): void {
-    this.restoreSearchState();
+    const shouldRefreshRestoredSearch = this.restoreSearchState();
     this.initPlaceFields(this.form, this.refFacade);
     this.setupEffects();
 
     addLocationValidatorsToForm(this.form, () => this.state());
+
+    if (shouldRefreshRestoredSearch) {
+      this.loadApplications(this.vm().getFilters);
+    }
   }
 
-  private restoreSearchState(): void {
+  private restoreSearchState(): boolean {
     const snapshot = this.searchState.state();
 
     this.form.reset(snapshot.form, { emitEvent: false });
     this.appState.state.set(cloneApplicationsState(snapshot.state));
+
+    return (
+      this.searchState.consumeRefreshOnRestore() &&
+      this.hasRestoredSearch(snapshot.state)
+    );
+  }
+
+  private hasRestoredSearch(state: ApplicationsState): boolean {
+    return (
+      state.isSearch ||
+      state.rows.length > 0 ||
+      Object.keys(state.getFilters).length > 0
+    );
   }
 
   private setupEffects(): void {

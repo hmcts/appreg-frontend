@@ -13,6 +13,7 @@ import {
   ResultCodesApi,
   ResultGetDto,
 } from '@openapi';
+import { ApplicationsSearchStateService } from '@services/applications/applications-search-state.service';
 import {
   ApplicationListEntryResultsFacade,
   BulkResultRemoval,
@@ -22,6 +23,7 @@ import * as errorClick from '@util/error-click';
 describe('ApplicationsResultSelectedComponent', () => {
   let component: ApplicationsResultSelectedComponent;
   let fixture: ComponentFixture<ApplicationsResultSelectedComponent>;
+  let applicationsSearchState: ApplicationsSearchStateService;
 
   let mockApi: {
     bulkResultApplicationListEntries: jest.Mock;
@@ -94,6 +96,9 @@ describe('ApplicationsResultSelectedComponent', () => {
         provideHttpClient(),
       ],
     }).compileComponents();
+
+    applicationsSearchState = TestBed.inject(ApplicationsSearchStateService);
+    applicationsSearchState.reset();
 
     fixture = TestBed.createComponent(ApplicationsResultSelectedComponent);
     component = fixture.componentInstance;
@@ -169,6 +174,7 @@ describe('ApplicationsResultSelectedComponent', () => {
       body: "Result code(s) 'ADJ' applied successfully to application(s)",
     });
     expect(component.isSubmitting()).toBe(false);
+    expect(applicationsSearchState.consumeRefreshOnRestore()).toBe(true);
     expect(focusSuccessSpy).toHaveBeenCalledWith(TestBed.inject(PLATFORM_ID));
   });
 
@@ -394,6 +400,7 @@ describe('ApplicationsResultSelectedComponent', () => {
     expect(component.successBanner()).toEqual(
       ENTRY_SUCCESS_MESSAGES.resultsRemoved,
     );
+    expect(applicationsSearchState.consumeRefreshOnRestore()).toBe(true);
     expect(focusSuccessSpy).toHaveBeenCalledWith(TestBed.inject(PLATFORM_ID));
   });
 });
