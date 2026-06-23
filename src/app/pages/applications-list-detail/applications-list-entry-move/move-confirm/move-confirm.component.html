@@ -16,13 +16,15 @@
     appMojButtonMenu
   />
 
-  <app-table
-    [rows]="[targetList]"
-    [columns]="columns"
-    [caption]="'To this applications list'"
-  >
-    <ng-template #dateTemplate let-row>
-      {{ row?.date | dateTime }}
-    </ng-template>
-  </app-table>
+  <div class="govuk-!-margin-top-6">
+    <app-table
+      [rows]="[targetList]"
+      [columns]="columns"
+      [caption]="'To this applications list'"
+    >
+      <ng-template #dateTemplate let-row>
+        {{ row?.date | dateTime }}
+      </ng-template>
+    </app-table>
+  </div>
 </app-review-confirm>
