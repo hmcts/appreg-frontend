@@ -8,8 +8,6 @@
   ]"
 />
 
-<h1 class="govuk-heading-xl">Update fee details</h1>
-
 @if (vm().feeErrors.length) {
   <app-error-summary
     [title]="'There is a problem'"
@@ -25,6 +23,8 @@
     [message]="'Application(s) which do not require a fee have been removed'"
   />
 }
+
+<h1 class="govuk-heading-xl">Update fee details</h1>
 
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"

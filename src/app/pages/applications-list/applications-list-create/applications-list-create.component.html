@@ -1,7 +1,5 @@
 <app-breadcrumbs [items]="breadcrumbs()" />
 
-<h1 class="govuk-heading-xl">Create new applications list</h1>
-
 @if (vm().errorSummary.length || vm().createInvalid) {
   <app-error-summary
     [title]="vm().errorHint"
@@ -10,6 +8,8 @@
     (itemSelect)="onCreateErrorClick($event)"
   />
 }
+
+<h1 class="govuk-heading-xl">Create new applications list</h1>
 
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"

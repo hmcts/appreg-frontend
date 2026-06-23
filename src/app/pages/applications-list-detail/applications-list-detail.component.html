@@ -3,18 +3,6 @@
   [items]="[{ label: 'Applications list', link: '/applications-list' }]"
 />
 
-<app-page-header
-  title="Applications List"
-  [actions]="[
-    {
-      label: 'Create application',
-      routerLink: ['create-entry'],
-      startIcon: true,
-      variant: 'primary',
-    },
-  ]"
-/>
-
 @if (vm().createDone) {
   <app-success-banner
     heading="Application list created"
@@ -97,6 +85,18 @@
     [focusKey]="submitAttempt()"
   />
 }
+
+<app-page-header
+  title="Applications List"
+  [actions]="[
+    {
+      label: 'Create application',
+      routerLink: ['create-entry'],
+      startIcon: true,
+      variant: 'primary',
+    },
+  ]"
+/>
 
 <!-- Tabs -->
 <div class="govuk-tabs" data-module="govuk-tabs">
