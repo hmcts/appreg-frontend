@@ -97,6 +97,7 @@ export class ApplicationsListDetailBulkUpdateFeesComponent implements OnInit {
   private readonly civilFeeSection?: CivilFeeSectionComponent;
 
   applictionsHaveBeenRemoved = signal(false);
+  readonly submitAttempt = signal(0);
 
   onCreateErrorClick = onCreateErrorClickFn;
 
@@ -147,6 +148,7 @@ export class ApplicationsListDetailBulkUpdateFeesComponent implements OnInit {
   }
 
   addFees(): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
     this.feeStatePatch({ submitted: true, feeErrors: [] });
     this.validateChildSectionsForSubmit();
 

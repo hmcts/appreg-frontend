@@ -165,6 +165,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   wordingSubmitAttempt = signal(0);
   wordingAppliedBannerVisible = signal(false);
+  readonly submitAttempt = signal(0);
 
   respondentEntryTypeOptions = RESPONDENT_TYPE_OPTIONS;
   personTitleOptions = PERSON_TITLE_OPTIONS;
@@ -228,6 +229,7 @@ export class ApplicationsListEntryCreate implements OnInit {
 
   onSubmit(e: Event): void {
     e.preventDefault();
+    this.submitAttempt.update((attempt) => attempt + 1);
 
     this.resetFlags();
     this.wordingSubmitAttempt.update((n) => n + 1);

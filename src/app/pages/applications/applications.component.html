@@ -4,6 +4,7 @@
   <app-error-summary
     [title]="'There is a problem'"
     [items]="vm().errorSummary"
+    [focusKey]="submitAttempt()"
     targetId="search"
     (itemSelect)="onCreateErrorClick($event)"
   />
@@ -11,6 +12,7 @@
   <app-error-summary
     [title]="'There is a problem'"
     [items]="vm().searchErrors"
+    [focusKey]="submitAttempt()"
     targetId="search"
     (itemSelect)="onCreateErrorClick($event)"
   />

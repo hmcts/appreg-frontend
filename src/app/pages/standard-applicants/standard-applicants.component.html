@@ -3,6 +3,7 @@
 @if (vm().searchErrors.length) {
   <app-error-summary
     [items]="vm().searchErrors"
+    [focusKey]="submitAttempt()"
     title="There is a problem"
     (itemSelect)="onCreateErrorClick($event)"
   />

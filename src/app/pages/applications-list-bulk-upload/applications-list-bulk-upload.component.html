@@ -13,6 +13,7 @@
   <app-error-summary
     [title]="'There is a problem'"
     [items]="vm().errorSummary"
+    [focusKey]="submitAttempt()"
   />
 }
 
@@ -20,6 +21,7 @@
   <app-error-summary
     [title]="'There is a problem'"
     [items]="[{ text: 'Please upload a valid CSV file.' }]"
+    [focusKey]="submitAttempt()"
     targetId="file-upload-1"
   />
 }

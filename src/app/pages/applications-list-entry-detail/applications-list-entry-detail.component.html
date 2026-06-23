@@ -4,6 +4,7 @@
   <app-error-summary
     [title]="vm().errorHint || 'There is a problem'"
     [items]="vm().summaryErrors"
+    [focusKey]="submitAttempt()"
     targetId="codes-table"
     (itemSelect)="onCreateErrorClick($event)"
   />

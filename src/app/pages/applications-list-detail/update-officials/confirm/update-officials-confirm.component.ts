@@ -52,6 +52,7 @@ export class UpdateOfficialsConfirmComponent implements OnInit {
   readonly columns = APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS;
   readonly errorSummary = signal<ErrorItem[]>([]);
   readonly isSubmitting = signal(false);
+  readonly submitAttempt = signal(0);
   readonly onCreateErrorClick = onCreateErrorClickFn;
 
   private readonly titleLabels = new Map(
@@ -80,6 +81,8 @@ export class UpdateOfficialsConfirmComponent implements OnInit {
   }
 
   onConfirm(): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
+
     if (this.isSubmitting()) {
       return;
     }

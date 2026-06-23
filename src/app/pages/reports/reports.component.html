@@ -4,6 +4,7 @@
   <app-error-summary
     [title]="'There is a problem'"
     [items]="vm().errorSummary"
+    [focusKey]="submitAttempt()"
     (itemSelect)="onCreateErrorClick($event)"
   />
 }
@@ -11,7 +12,11 @@
 @if (vm().reportFeedback; as feedback) {
   @switch (feedback.kind) {
     @case ('error') {
-      <app-error-summary [title]="feedback.title" [items]="feedback.items" />
+      <app-error-summary
+        [title]="feedback.title"
+        [items]="feedback.items"
+        [focusKey]="submitAttempt()"
+      />
     }
     @case ('progress') {
       <app-async-job-progress

@@ -59,16 +59,56 @@ describe('ErrorSummaryComponent (external template)', () => {
     jest.useFakeTimers();
     fixture.detectChanges(); // triggers ngAfterViewInit
 
-    // Access the private ViewChild through a typed shape
-    const el = (
-      comp as unknown as {
-        summaryEl: { nativeElement: HTMLDivElement };
-      }
-    ).summaryEl.nativeElement;
+    const el = fixture.nativeElement.querySelector(
+      '[data-component="error-summary"]',
+    ) as HTMLDivElement;
     const focusSpy = jest.spyOn(el, 'focus');
 
     jest.runAllTimers();
     expect(focusSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('autoFocus focuses when items are added after initial render', () => {
+    fixture.componentRef.setInput('items', []);
+    fixture.componentRef.setInput('autoFocus', true);
+
+    jest.useFakeTimers();
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement.querySelector(
+      '[data-component="error-summary"]',
+    ) as HTMLDivElement;
+    const focusSpy = jest.spyOn(el, 'focus');
+
+    fixture.componentRef.setInput('items', [{ text: 'Late error' }]);
+    fixture.detectChanges();
+
+    jest.runAllTimers();
+    expect(focusSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('focuses again when focusKey changes even if items stay the same', () => {
+    const items = [{ text: 'Repeated error', id: 'field-id' }];
+    fixture.componentRef.setInput('items', items);
+    fixture.componentRef.setInput('autoFocus', true);
+    fixture.componentRef.setInput('focusKey', 1);
+
+    jest.useFakeTimers();
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement.querySelector(
+      '[data-component="error-summary"]',
+    ) as HTMLDivElement;
+    const focusSpy = jest.spyOn(el, 'focus');
+
+    jest.runAllTimers();
+    expect(focusSpy).toHaveBeenCalledTimes(1);
+
+    fixture.componentRef.setInput('focusKey', 2);
+    fixture.detectChanges();
+
+    jest.runAllTimers();
+    expect(focusSpy).toHaveBeenCalledTimes(2);
   });
 
   it('emits itemSelect when a link is clicked', () => {

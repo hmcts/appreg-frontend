@@ -55,6 +55,7 @@ export class ResultSelected implements OnInit {
   isSubmitting = signal(false);
 
   successBanner = signal<SuccessBanner | null>(null);
+  readonly submitAttempt = signal(0);
 
   errorHint: string | null = 'There is a problem';
   errorFound = computed(() => this.errorSummaryItems().length > 0);
@@ -141,6 +142,8 @@ export class ResultSelected implements OnInit {
   }
 
   onSubmitResults(payload: ResultSectionSubmitPayload): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
+
     if (this.isSubmitting()) {
       return;
     }

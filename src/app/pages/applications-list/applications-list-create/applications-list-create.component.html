@@ -6,6 +6,7 @@
   <app-error-summary
     [title]="vm().errorHint"
     [items]="vm().errorSummary"
+    [focusKey]="submitAttempt()"
     (itemSelect)="onCreateErrorClick($event)"
   />
 }

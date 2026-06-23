@@ -63,6 +63,7 @@ export class ApplicationsResultSelectedComponent implements OnInit {
   private readonly selectedResultCode = signal<string[]>([]);
 
   successBanner = signal<SuccessBanner | null>(null);
+  readonly submitAttempt = signal(0);
 
   errorSummaryItems = signal<ErrorItem[]>([]);
   errorFound = computed(() => this.errorSummaryItems().length > 0);
@@ -221,6 +222,8 @@ export class ApplicationsResultSelectedComponent implements OnInit {
   }
 
   onSubmitResults(payload: ResultSectionSubmitPayload): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
+
     if (this.isSubmitting() || !this.rows.length) {
       return;
     }

@@ -46,6 +46,7 @@ export class UpdateOfficialsComponent implements OnInit {
   readonly form = this.formService.createForms().form;
   readonly columns = APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS;
   readonly errorSummary = signal<ErrorItem[]>([]);
+  readonly submitAttempt = signal(0);
 
   readonly onCreateErrorClick = onCreateErrorClickFn;
 
@@ -74,6 +75,7 @@ export class UpdateOfficialsComponent implements OnInit {
   }
 
   onSaveOfficials(): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity({ emitEvent: false });
 

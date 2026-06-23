@@ -155,6 +155,7 @@ export class Reports extends PlaceFieldsBase implements OnInit {
     signal<CreateActivityAuditReportRequestParams | null>(null);
   private readonly createPpiRequest =
     signal<CreatePrivateProsecutorsIndexReportRequestParams | null>(null);
+  readonly submitAttempt = signal(0);
 
   onCreateErrorClick = onCreateErrorClickFn;
 
@@ -315,6 +316,8 @@ export class Reports extends PlaceFieldsBase implements OnInit {
   }
 
   onDownload(): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
+
     if (this.isReportInProgress()) {
       return;
     }

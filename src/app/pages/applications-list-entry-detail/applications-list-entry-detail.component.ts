@@ -257,6 +257,7 @@ export class ApplicationsListEntryDetail implements OnInit {
 
   wordingSubmitAttempt = signal(0);
   wordingAppliedBannerVisible = signal(false);
+  readonly submitAttempt = signal(0);
 
   resultAppliedBannerVisible = signal(false);
 
@@ -804,6 +805,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   onUpdateApplicant(): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
     this.resetErrors();
     this.resetSuccessBanner();
     this.appListEntryDetailPatch({ formSubmitted: true });
@@ -819,6 +821,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   onUpdateApplication(): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
     this.resetErrors();
     this.resetSuccessBanner();
     this.appListEntryDetailPatch({ formSubmitted: true });
@@ -858,6 +861,7 @@ export class ApplicationsListEntryDetail implements OnInit {
   }
 
   onSaveOfficials(): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
     this.resetErrors();
     this.resetSuccessBanner();
     this.appListEntryDetailPatch({ formSubmitted: true });

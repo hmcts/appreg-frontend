@@ -34,6 +34,7 @@
     [title]="vm().errorHint || 'There is a problem'"
     (itemSelect)="onCreateErrorClick($event)"
     [items]="vm().errorSummary"
+    [focusKey]="submitAttempt()"
   />
 }
 
@@ -93,6 +94,7 @@
   <app-error-summary
     [title]="vm().bulkUploadFeedback?.heading ?? 'There is a problem'"
     [items]="[{ text: vm().bulkUploadFeedback?.body ?? '' }]"
+    [focusKey]="submitAttempt()"
   />
 }
 
