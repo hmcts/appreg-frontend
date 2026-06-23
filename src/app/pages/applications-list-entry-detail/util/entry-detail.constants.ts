@@ -31,24 +31,24 @@ export const FEE_STATUS_OPTIONS = [
 
 export const APPLICATION_ENTRIES_RESULT_WORDING_COLUMNS = [
   { header: 'Sequence number', field: 'sequenceNumber' },
-  { header: 'Applicant(s)', field: 'applicant' },
-  { header: 'Respondent(s)', field: 'respondent' },
-  { header: 'Application Title(s)', field: 'title' },
+  { header: 'Applicant', field: 'applicant' },
+  { header: 'Respondent', field: 'respondent' },
+  { header: 'Application title', field: 'title' },
 ];
 
 export const APPLICATION_ENTRIES_MOVE_COLUMNS = [
-  { header: 'Applicant(s)', field: 'applicant' },
-  { header: 'Respondent(s)', field: 'respondent' },
+  { header: 'Applicant', field: 'applicant' },
+  { header: 'Respondent', field: 'respondent' },
   { header: 'Application title', field: 'title' },
   { header: 'Fee required', field: 'feeRequired' },
   { header: 'Resulted', field: 'resulted' },
 ];
 
 export const RESULT_WORDING_COLUMNS = [
-  { header: 'Applicant(s)', field: 'applicant' },
-  { header: 'Respondent(s)', field: 'respondent' },
+  { header: 'Applicant', field: 'applicant' },
+  { header: 'Respondent', field: 'respondent' },
   {
-    header: 'Application title(s)',
+    header: 'Application title',
     field: 'title',
     maxWidth: '25rem',
     wrap: true,

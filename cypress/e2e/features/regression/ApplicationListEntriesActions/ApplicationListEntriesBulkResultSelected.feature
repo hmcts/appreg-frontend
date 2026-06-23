@@ -340,7 +340,7 @@ Feature: Applications List  - Bulk Result Selected
         Then User See "Result applications" On The Page
         # Verify all 3 selected rows appear on the result page
         Then User Should See Row In Table "Application(s) to result" With Values:
-            | Sequence number | Applicant(s)           | Respondent(s)                  | Application Title(s)                           |
+            | Sequence number | Applicant              | Respondent                     | Application title                              |
             | 2               | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | Issue of liability order summons - council tax |
             | 3               | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Collection Order - Financial Penalty Account   |
             | 5               | James Brown {RANDOM}   | Laura Davis {RANDOM}           | Collection Order - Financial Penalty Account   |
