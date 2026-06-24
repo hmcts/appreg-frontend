@@ -179,6 +179,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   private readonly printRequest = signal<PrintRequest | null>(null);
 
   private readonly loadFailed = signal(false);
+  readonly submitAttempt = signal(0);
   private selectAllRequestVersion = 0;
   private bulkUploadPollingSub: Subscription | null = null;
 
@@ -1031,6 +1032,10 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
     this.detailSignalState.patch(patch);
   };
 
+  readonly incrementSubmitAttemptFn = (): void => {
+    this.submitAttempt.update((attempt) => attempt + 1);
+  };
+
   readonly setUpdateRequestFn = (req: UpdateReq | null): void => {
     this.updateRequest.set(req);
   };
@@ -1072,6 +1077,7 @@ export class ApplicationsListDetail extends PlaceFieldsBase implements OnInit {
   onSearchStarted(
     filters: ApplicationsListDetailSearchResult['reqFilter'],
   ): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
     this.invalidateSelectAllRequest();
     this.detailSignalState.patch({
       currentPage: 0,

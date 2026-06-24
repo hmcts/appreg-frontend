@@ -1,9 +1,8 @@
-<h1 class="govuk-heading-xl">Reports</h1>
-
 @if (vm().errorSummary.length) {
   <app-error-summary
     [title]="'There is a problem'"
     [items]="vm().errorSummary"
+    [focusKey]="submitAttempt()"
     (itemSelect)="onCreateErrorClick($event)"
   />
 }
@@ -11,7 +10,11 @@
 @if (vm().reportFeedback; as feedback) {
   @switch (feedback.kind) {
     @case ('error') {
-      <app-error-summary [title]="feedback.title" [items]="feedback.items" />
+      <app-error-summary
+        [title]="feedback.title"
+        [items]="feedback.items"
+        [focusKey]="submitAttempt()"
+      />
     }
     @case ('progress') {
       <app-async-job-progress
@@ -24,6 +27,8 @@
     }
   }
 }
+
+<h1 class="govuk-heading-xl">Reports</h1>
 
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"

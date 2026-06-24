@@ -5,6 +5,7 @@
   <app-error-summary
     [title]="'There is a problem'"
     [items]="errorSummaryItems()"
+    [focusKey]="submitAttempt()"
     targetId="results-applicant-table"
     (itemSelect)="onCreateErrorClick($event)"
   />

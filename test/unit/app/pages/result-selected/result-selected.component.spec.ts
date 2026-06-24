@@ -17,7 +17,6 @@ import {
 } from '@services/applications-list-entry/application-list-entry-results.facade';
 import { PendingResultRow } from '@shared-types/result-code/result-code-row';
 import { ResultSectionSubmitPayload } from '@shared-types/result-wording-section/result-section.types';
-import * as errorClick from '@util/error-click';
 
 describe('ResultSelectedComponent', () => {
   let component: ResultSelected;
@@ -354,10 +353,6 @@ describe('ResultSelectedComponent', () => {
       ),
     );
 
-    const focusErrorSpy = jest
-      .spyOn(errorClick, 'focusErrorSummary')
-      .mockImplementation(() => {});
-
     component.onSubmitResults({
       pendingToCreate: [pendingRow],
       existingToUpdate: [],
@@ -373,10 +368,6 @@ describe('ResultSelectedComponent', () => {
     ]);
     expect(component.isSubmitting()).toBe(false);
     expect(facadeInstance.pendingRows()).toEqual([pendingRow]);
-
-    expect(focusErrorSpy).toHaveBeenCalledWith(TestBed.inject(PLATFORM_ID));
-
-    focusErrorSpy.mockRestore();
   });
 
   it('onSubmitResults ignores duplicate submissions while a bulk request is in flight', () => {
@@ -533,27 +524,19 @@ describe('ResultSelectedComponent', () => {
     removeSpy.mockRestore();
   });
 
-  it('onError should set errorSummaryItems and call focusErrorSummary with platformId', () => {
+  it('onError should set errorSummaryItems and increment submitAttempt', () => {
     const errors = [
       { text: 'Error 1', href: '#field1' },
     ] as unknown as ErrorItem[];
 
     const setSpy = jest.spyOn(component.errorSummaryItems, 'set');
-
-    const focusSpy = jest
-      .spyOn(errorClick, 'focusErrorSummary')
-      .mockImplementation(() => {});
+    const initialSubmitAttempt = component.submitAttempt();
 
     component.onError(errors);
 
     expect(setSpy).toHaveBeenCalledTimes(1);
     expect(setSpy).toHaveBeenCalledWith(errors);
-
-    const injectedPlatformId = TestBed.inject(PLATFORM_ID);
-    expect(focusSpy).toHaveBeenCalledTimes(1);
-    expect(focusSpy).toHaveBeenCalledWith(injectedPlatformId);
-
-    focusSpy.mockRestore();
+    expect(component.submitAttempt()).toBe(initialSubmitAttempt + 1);
     setSpy.mockRestore();
   });
 });

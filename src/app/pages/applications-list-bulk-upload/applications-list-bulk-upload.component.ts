@@ -64,6 +64,7 @@ export class ApplicationsListBulkUpload implements OnInit {
 
   private readonly bulkUploadRequest =
     signal<BulkUploadApplicationListEntriesRequestParams | null>(null);
+  readonly submitAttempt = signal(0);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -162,6 +163,7 @@ export class ApplicationsListBulkUpload implements OnInit {
   }
 
   onSubmit(): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
     this.bulkUploadPatch({ isUploadInProgress: true });
 
     if (!this.bulkUploadState().file) {

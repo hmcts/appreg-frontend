@@ -157,6 +157,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     id: string;
     isClosed: boolean;
   } | null>(null);
+  readonly submitAttempt = signal(0);
 
   columns: TableColumn[] = APPLICATIONS_LIST_COLUMNS_ACTION;
 
@@ -358,6 +359,7 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
 
   onSubmit(event: SubmitEvent): void {
     event.preventDefault();
+    this.submitAttempt.update((attempt) => attempt + 1);
     const btn = event.submitter as HTMLButtonElement | null;
     const action = btn?.value ?? 'search';
 
@@ -567,5 +569,14 @@ export class ApplicationsList extends PlaceFieldsBase implements OnInit {
     }
 
     return null;
+  }
+
+  showNoResultsFound(): boolean {
+    return (
+      !this.vm().isLoading &&
+      !this.vm().errorSummary.length &&
+      this.storedRecordsVm().submitted &&
+      !this.vm().searchErrors.length
+    );
   }
 }

@@ -461,7 +461,7 @@ describe('ApplicationsComponent', () => {
       expect(component.vm().searchErrors).toEqual([
         expect.objectContaining({
           id: 'search-error',
-          text: expect.stringContaining('Invalid Search Criteria'),
+          text: expect.stringContaining('Invalid search criteria'),
         }),
       ]);
     });

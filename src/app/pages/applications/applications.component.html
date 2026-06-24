@@ -1,9 +1,8 @@
-<h1 class="govuk-heading-xl">Applications</h1>
-
 @if (vm().errorSummary.length) {
   <app-error-summary
     [title]="'There is a problem'"
     [items]="vm().errorSummary"
+    [focusKey]="submitAttempt()"
     targetId="search"
     (itemSelect)="onCreateErrorClick($event)"
   />
@@ -11,6 +10,7 @@
   <app-error-summary
     [title]="'There is a problem'"
     [items]="vm().searchErrors"
+    [focusKey]="submitAttempt()"
     targetId="search"
     (itemSelect)="onCreateErrorClick($event)"
   />
@@ -29,6 +29,8 @@
     body="Your PDF is being generated and will download automatically when ready."
   />
 }
+
+<h1 class="govuk-heading-xl">Applications</h1>
 
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"

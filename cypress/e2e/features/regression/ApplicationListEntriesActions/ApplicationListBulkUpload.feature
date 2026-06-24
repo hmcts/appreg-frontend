@@ -26,7 +26,7 @@ Feature: Application List Bulk Upload
         When User Clicks On The "Upload file" Button
         When User Waits For The File Upload To Complete
         Then User Sees Success Banner "Success" Containing "Bulk upload complete All records were uploaded successfully."
-        Then User See "Applications List" On The Page
+        Then User See "Applications list" On The Page
         Then User Should See Row In Table "Entries" With Values:
             | Sequence number | Account number | Applicant                 | Respondent                      | Postcode | Title                                            | Fee | Resulted |
             | 1               | AC-{RANDOM}-1  | Benjamin Young            | Greenfield Finance {RANDOM} Ltd | WS1 1SY  | Application to vary an overseas production order | No  |          |

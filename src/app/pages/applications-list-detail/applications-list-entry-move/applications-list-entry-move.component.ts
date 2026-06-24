@@ -105,6 +105,7 @@ export class ApplicationsListEntryMoveComponent
 
   private readonly loadRequest =
     signal<GetApplicationListsRequestParams | null>(null);
+  readonly submitAttempt = signal(0);
 
   readonly searchFormState = this.searchForm.state;
 
@@ -173,6 +174,7 @@ export class ApplicationsListEntryMoveComponent
   onSearch(event: SubmitEvent): void {
     // Search applications list
     event.preventDefault();
+    this.submitAttempt.update((attempt) => attempt + 1);
     this.moveEntryPatch({
       searchErrors: [],
       searchDone: false,

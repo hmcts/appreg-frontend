@@ -1,10 +1,13 @@
+import { isPlatformBrowser } from '@angular/common';
 import {
-  AfterViewInit,
   Component,
   ElementRef,
-  ViewChild,
+  PLATFORM_ID,
+  effect,
+  inject,
   input,
   output,
+  viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
@@ -16,7 +19,7 @@ export type ErrorItem = { text: string; href?: string; id?: string };
   imports: [RouterLink],
   templateUrl: 'error-summary.component.html',
 })
-export class ErrorSummaryComponent implements AfterViewInit {
+export class ErrorSummaryComponent {
   /** Heading text (defaults to GOV.UK copy) */
   title = input('There is a problem');
   /** List of error items; if an item has no href and targetId is provided, a hash link is used */
@@ -25,15 +28,56 @@ export class ErrorSummaryComponent implements AfterViewInit {
   targetId = input<string>();
   /** Auto-focus the summary on render (recommended for a11y) */
   autoFocus = input(true);
+  /** Optional submit/error cycle key to refocus even when items have not changed */
+  focusKey = input<number>(0);
   /** If you want to run custom logic (e.g. focus a form field), listen to this */
   itemSelect = output<ErrorItem>();
 
-  @ViewChild('summaryEl')
-  private readonly summaryEl?: ElementRef<HTMLDivElement>;
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly summaryEl =
+    viewChild<ElementRef<HTMLDivElement>>('summaryEl');
+  private lastFocusedItemsKey = '';
+  private lastFocusedCycleKey = '';
 
-  ngAfterViewInit(): void {
-    if (this.autoFocus()) {
-      setTimeout(() => this.summaryEl?.nativeElement.focus(), 0);
-    }
+  constructor() {
+    effect(() => {
+      const summaryEl = this.summaryEl()?.nativeElement;
+      const items = this.items();
+      const focusKey = this.focusKey();
+
+      if (!items.length) {
+        this.lastFocusedItemsKey = '';
+        this.lastFocusedCycleKey = '';
+        return;
+      }
+
+      if (
+        !summaryEl ||
+        !this.autoFocus() ||
+        !isPlatformBrowser(this.platformId)
+      ) {
+        return;
+      }
+
+      const itemsKey = items
+        .map(({ text, href, id }) => `${text}|${href ?? ''}|${id ?? ''}`)
+        .join('||');
+      const cycleKey =
+        focusKey === undefined || focusKey === null ? '' : String(focusKey);
+
+      if (
+        itemsKey === this.lastFocusedItemsKey &&
+        cycleKey === this.lastFocusedCycleKey
+      ) {
+        return;
+      }
+
+      this.lastFocusedItemsKey = itemsKey;
+      this.lastFocusedCycleKey = cycleKey;
+      setTimeout(() => {
+        summaryEl.focus();
+        summaryEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 0);
+    });
   }
 }

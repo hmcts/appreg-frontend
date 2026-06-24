@@ -1,8 +1,7 @@
-<h1 class="govuk-heading-xl">Standard applicants</h1>
-
 @if (vm().searchErrors.length) {
   <app-error-summary
     [items]="vm().searchErrors"
+    [focusKey]="submitAttempt()"
     title="There is a problem"
     (itemSelect)="onCreateErrorClick($event)"
   />
@@ -14,6 +13,8 @@
     />
   }
 }
+
+<h1 class="govuk-heading-xl">Standard applicants</h1>
 
 <hr
   class="govuk-section-break govuk-section-break--m govuk-section-break--visible"

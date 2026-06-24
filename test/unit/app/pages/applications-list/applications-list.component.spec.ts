@@ -374,7 +374,7 @@ describe('ApplicationsList – search', () => {
     expect(service.getApplicationLists).not.toHaveBeenCalled();
     expect(getUIFlagState(component).searchErrors[0]).toEqual({
       id: '',
-      text: 'Invalid Search Criteria. At least one field must be entered.',
+      text: 'Invalid search criteria. At least one field must be entered.',
     });
   });
 
@@ -791,7 +791,7 @@ describe('ApplicationsList.onPrintPage', () => {
     comp.onPrintPage('abc-123');
     await flushSignalEffects(fixture);
 
-    expect(showInlineSpy).toHaveBeenCalledWith('Application List not found');
+    expect(showInlineSpy).toHaveBeenCalledWith('Application list not found');
   });
 
   it('maps non-404 errors to generic banner', async () => {

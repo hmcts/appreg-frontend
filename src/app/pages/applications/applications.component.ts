@@ -160,6 +160,8 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   private readonly printRequest = signal<ApplicationsPrintRequest | null>(null);
   private selectAllRequestVersion = 0;
 
+  readonly submitAttempt = signal(0);
+
   override form = new FormGroup({
     date: new FormControl<string | null>(null),
     applicantOrg: new FormControl<string>(''),
@@ -306,6 +308,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
   onSubmit(e: SubmitEvent): void {
     e.preventDefault();
     this.invalidateSelectAllRequest();
+    this.submitAttempt.update((attempt) => attempt + 1);
 
     this.patchApp({
       ...clearNotificationsPatch(),

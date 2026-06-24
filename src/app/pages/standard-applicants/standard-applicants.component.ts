@@ -104,6 +104,7 @@ export class StandardApplicants implements OnInit {
   private readonly loadRequest =
     signal<GetStandardApplicantsRequestParams | null>(null);
   readonly submitted = signal(false);
+  readonly submitAttempt = signal(0);
   private readonly errorMap: ErrorMessageMap =
     STANDARD_APPLICANT_SEARCH_ERROR_MESSAGES;
   private appliedFilters: StandardApplicantFilters = {};
@@ -140,6 +141,7 @@ export class StandardApplicants implements OnInit {
 
   onSubmit(event: SubmitEvent): void {
     event.preventDefault();
+    this.submitAttempt.update((attempt) => attempt + 1);
     this.submitted.set(true);
     this.form.markAllAsTouched();
     this.form.updateValueAndValidity({ emitEvent: false });

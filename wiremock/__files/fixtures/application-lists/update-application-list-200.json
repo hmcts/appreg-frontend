@@ -14,18 +14,5 @@
   "durationMinutes": 0,
 
   "version": 2,
-  "entriesCount": 1,
-  "entriesSummary": [
-    {
-      "uuid": "11111111-2222-3333-4444-555555555555",
-      "sequenceNumber": 1,
-      "accountNumber": "ACC000146",
-      "applicant": null,
-      "respondent": "Legal Aid Board",
-      "postCode": "BA15 1LA",
-      "applicationTitle": "Appeal to Crown Court",
-      "feeRequired": false,
-      "result": null
-    }
-  ]
+  "entriesCount": 1
 }

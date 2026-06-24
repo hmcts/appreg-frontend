@@ -13,6 +13,7 @@
   <app-error-summary
     [title]="errorHint || 'There is a problem'"
     [items]="errorSummaryItems()"
+    [focusKey]="submitAttempt()"
     targetId="results-applicant-table"
     (itemSelect)="onCreateErrorClick($event)"
   />

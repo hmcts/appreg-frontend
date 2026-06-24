@@ -1,13 +1,6 @@
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { Row } from '@core-types/table/row.types';
-import {
-  ApplicationListGetDetailDto,
-  EntryApplicationListGetFilterDto,
-} from '@openapi';
-
-export type EntrySummary = NonNullable<
-  ApplicationListGetDetailDto['entriesSummary']
->[number];
+import { EntryApplicationListGetFilterDto } from '@openapi';
 
 export interface BulkUploadFeedback {
   kind: 'progress' | 'success' | 'warning' | 'error';

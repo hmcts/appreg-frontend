@@ -40,10 +40,7 @@ import {
   updateFeeStatusesControl,
   updatePaymentReferenceInFeeStatusesControl,
 } from '@util/civil-fee-utils';
-import {
-  focusErrorSummary,
-  onCreateErrorClick as onCreateErrorClickFn,
-} from '@util/error-click';
+import { onCreateErrorClick as onCreateErrorClickFn } from '@util/error-click';
 import { createSignalState } from '@util/signal-state-helpers';
 
 type BulkUpdateFeeSnapshot = {
@@ -97,6 +94,7 @@ export class ApplicationsListDetailBulkUpdateFeesComponent implements OnInit {
   private readonly civilFeeSection?: CivilFeeSectionComponent;
 
   applictionsHaveBeenRemoved = signal(false);
+  readonly submitAttempt = signal(0);
 
   onCreateErrorClick = onCreateErrorClickFn;
 
@@ -146,12 +144,16 @@ export class ApplicationsListDetailBulkUpdateFeesComponent implements OnInit {
     this.feeStatePatch({ feeErrors: errors ?? [] });
   }
 
+  onCivilFeeSubmitAttempt(): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
+  }
+
   addFees(): void {
+    this.submitAttempt.update((attempt) => attempt + 1);
     this.feeStatePatch({ submitted: true, feeErrors: [] });
     this.validateChildSectionsForSubmit();
 
     if (this.vm().feeErrors.length > 0) {
-      focusErrorSummary(this.platformId);
       return;
     }
 

@@ -55,7 +55,7 @@ Feature: Applications List Search
   Scenario: Verify components on applications list search page
     Given User Is On The Portal Page
     When User Signs In With Microsoft SSO As "user1"
-    Then User Sees Page Heading "Applications List"
+    Then User Sees Page Heading "Applications list"
     Then User Should See The Date Field "Date"
     Then User Sees Text "For example, 27 3 2007" In "Date" Field
     Then User Should See The Time Field "Time"
@@ -96,7 +96,7 @@ Feature: Applications List Search
     When User Signs In With Microsoft SSO As "<User>"
     # Verify validation when clicking Search without entering any data
     When User Clicks On The "Search" Button
-    Then User Sees Validation Error Banner "There is a problem Invalid Search Criteria. At least one field must be entered."
+    Then User Sees Validation Error Banner "There is a problem Invalid search criteria. At least one field must be entered."
     # Verify date validation with invalid date
     When User Set Date Field "Date" To "99/99/9999"
     When User Clicks On The "Search" Button

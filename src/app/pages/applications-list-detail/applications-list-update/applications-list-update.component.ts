@@ -62,6 +62,7 @@ export class ApplicationsListUpdateComponent {
   readonly vm = input.required<ApplicationsListDetailState>();
 
   readonly setUpdateRequest = input.required<(req: UpdateReq | null) => void>();
+  readonly incrementSubmitAttempt = input.required<() => void>();
 
   suggestionsFacade = input.required<SuggestionsFacade>();
 
@@ -74,6 +75,8 @@ export class ApplicationsListUpdateComponent {
   } as const;
 
   onUpdate(): void {
+    this.incrementSubmitAttempt()();
+
     // reset flags/errors
     this.patchState()(clearUpdateNotificationsPatch());
 
