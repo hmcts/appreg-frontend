@@ -1,6 +1,6 @@
 Feature: Applications Print
 
-    @regression @ARCPOC-1330 @ARCPOC-1329 @ARCPOC-1351
+    @regression @ARCPOC-214 @ARCPOC-1330 @ARCPOC-1329 @ARCPOC-1351
     Scenario Outline: Print selected applications from Applications search page
         # Setup: Create Application List and Entry via API
         Given User Authenticates Via API As "<User>"
@@ -223,52 +223,52 @@ Feature: Applications Print
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId1/results" With Json Body
             """
             {
-            "resultCode": "RSN",
-            "wordingFields": [
-            {
-            "key": "Reason text",
-            "value": "Applications rejected due to insufficient documentation and missing required signatures"
-            }
-            ]
+                "resultCode": "RSN",
+                "wordingFields": [
+                    {
+                        "key": "Reason text",
+                        "value": "Applications rejected due to insufficient documentation and missing required signatures"
+                    }
+                ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId2/results" With Json Body
             """
             {
-            "resultCode": "RSN",
-            "wordingFields": [
-            {
-            "key": "Reason text",
-            "value": "Applications rejected due to insufficient documentation and missing required signatures"
-            }
-            ]
+                "resultCode": "RSN",
+                "wordingFields": [
+                    {
+                        "key": "Reason text",
+                        "value": "Applications rejected due to insufficient documentation and missing required signatures"
+                    }
+                ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
         When User Makes POST API Request To "/application-lists/:listId/entries/:entryId3/results" With Json Body
             """
             {
-            "resultCode": "RSN",
-            "wordingFields": [
-            {
-            "key": "Reason text",
-            "value": "Applications rejected due to insufficient documentation and missing required signatures"
-            }
-            ]
+                "resultCode": "RSN",
+                "wordingFields": [
+                    {
+                        "key": "Reason text",
+                        "value": "Applications rejected due to insufficient documentation and missing required signatures"
+                    }
+                ]
             }
             """
         Then User Verify Response Status Code Should Be "201"
         When User Makes POST API Request To "/application-lists/:listId2/entries/:entryId4/results" With Json Body
             """
             {
-            "resultCode": "RSN",
-            "wordingFields": [
-            {
-            "key": "Reason text",
-            "value": "Applications rejected due to insufficient documentation and missing required signatures"
-            }
-            ]
+                "resultCode": "RSN",
+                "wordingFields": [
+                    {
+                        "key": "Reason text",
+                        "value": "Applications rejected due to insufficient documentation and missing required signatures"
+                    }
+                ]
             }
             """
         Then User Verify Response Status Code Should Be "201"

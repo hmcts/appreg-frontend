@@ -362,11 +362,6 @@ Feature: Applications List  - Bulk Result Selected
         When User Clicks On The "Save changes" Button
         Then User Sees Validation Error Banner "There is a problem Enter a Courthouse in the result wording section"
         Then User Verifies The "RTC - Refer to Court" Summary Card Has Textbox With Placeholder "Enter a Courthouse" And Enters "Bristol Crown Court"
-        # When User Clicks On The "Save changes" Button
-        # Then User Should See Tag "Existing" In Summary Card "RTC - Refer to Court"
-        # Then User Sees Success Banner "Result codes applied successfully" Containing "RTC"
-        # Then User Sees Success Banner "Results removed The results have been removed from these application list entries."
-        # Apply PROA with wording (number of days)
         Then User Selects "PROA - Production Order (to allow access)" From The Textbox "Result code" Autocomplete By Typing "PROA"
         Then User Should See Summary Card With Title "PROA - Production Order (to allow access)"
         Then User Should See Tag "Pending" In Summary Card "PROA - Production Order (to allow access)"
@@ -374,10 +369,6 @@ Feature: Applications List  - Bulk Result Selected
         Then User Should See "Wording" In Summary Card "PROA - Production Order (to allow access)"
         Then User Should See "Production Order made for access to be allowed to material within" In Summary Card "PROA - Production Order (to allow access)"
         Then User Verifies The "PROA - Production Order (to allow access)" Summary Card Has Textbox With Placeholder "Enter a Number of days" And Enters "30"
-        # When User Clicks On The "Save changes" Button
-        # Then User Sees Success Banner "Result codes applied successfully" Containing "PROA"
-        # Then User Should See Tag "Existing" In Summary Card "PROA - Production Order (to allow access)"
-        # Apply COST with wording (amount)
         Then User Selects "COST - Costs granted" From The Textbox "Result code" Autocomplete By Typing "COST"
         Then User Should See Summary Card With Title "COST - Costs granted"
         Then User Should See Tag "Pending" In Summary Card "COST - Costs granted"
