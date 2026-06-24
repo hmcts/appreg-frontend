@@ -220,7 +220,7 @@ Feature: Applications List Entry Search
         Then User Clicks On The Link Using Exact Text Match "Applications"
         Then User Verify The Page URL Contains "/applications"
         When User Clicks On The "Search" Button
-        Then User Sees Validation Error Banner "There is a problem Invalid Search Criteria. At least one field must be entered."
+        Then User Sees Validation Error Banner "There is a problem Invalid search criteria. At least one field must be entered."
         When User Searches Applications With:
             | Date          | CourtSearch | Court | Applicant organisation | Applicant surname | Respondent organisation | Respondent surname | Select application status | Respondent post code | CJASearch | Criminal justice area | Other location description | Standard applicant code | Account reference |
             | <InvalidDate> |             |       | ACME                   |                   |                         |                    |                           |                      |           |                       |                            |                         |                   |
