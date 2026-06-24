@@ -79,6 +79,7 @@ import {
   isAllMatchingSelected,
 } from '@util/server-paginated-selection';
 import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
+import { trimStringToLowerCase } from '@util/string-helpers';
 import { addLocationValidatorsToForm } from '@validators/add-location-validators-to-form';
 
 type AppErrorMap = typeof APPLICATIONS_ERROR_MAP;
@@ -414,7 +415,7 @@ export class Applications extends PlaceFieldsBase implements OnInit {
     }
 
     const rowsToResult = rows.filter(
-      (row) => row.status.trim().toLowerCase() !== 'closed',
+      (row) => trimStringToLowerCase(row.status) !== 'closed',
     );
 
     // Only result status = 'open' applications

@@ -14,6 +14,7 @@ import { isActivityType } from '@components/reports/util';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
 import { TextInputComponent } from '@components/text-input/text-input.component';
 import { ActivityType } from '@openapi';
+import { trimStringToLowerCase } from '@util/string-helpers';
 
 @Component({
   selector: 'app-activity-audit-section',
@@ -55,7 +56,7 @@ export class ActivityAuditSectionComponent {
   });
 
   readonly filteredActivities = computed(() => {
-    const query = this.normalise(this.activitySearch());
+    const query = trimStringToLowerCase(this.activitySearch());
 
     if (!query) {
       return this.availableActivities();
@@ -63,7 +64,7 @@ export class ActivityAuditSectionComponent {
 
     return this.availableActivities()
       .filter((activity) =>
-        this.normalise(this.activityLabel(activity)).includes(query),
+        trimStringToLowerCase(this.activityLabel(activity)).includes(query),
       )
       .slice(0, 20);
   });
@@ -122,16 +123,5 @@ export class ActivityAuditSectionComponent {
         values.filter((item): item is ActivityType => isActivityType(item)),
       ),
     );
-  }
-
-  // private isActivityType(value: unknown): value is ActivityType {
-  //   return (
-  //     typeof value === 'string' &&
-  //     this.activityOptions.includes(value as ActivityType)
-  //   );
-  // }
-
-  private normalise(value: string): string {
-    return value.trim().toLowerCase();
   }
 }

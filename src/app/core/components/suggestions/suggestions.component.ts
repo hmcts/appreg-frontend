@@ -11,6 +11,7 @@ import {
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 import { asString, hasStringProp, isRecord } from '@util/data-utils';
+import { trimStringToLowerCase } from '@util/string-helpers';
 
 @Component({
   selector: 'app-suggestions',
@@ -274,12 +275,9 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
   get isCommittedText(): boolean {
     return (
       !!this.committedLabel &&
-      this.norm(this.searchState()) === this.norm(this.committedLabel)
+      trimStringToLowerCase(this.searchState()) ===
+        trimStringToLowerCase(this.committedLabel)
     );
-  }
-
-  private norm(s: string | null | undefined) {
-    return (s ?? '').trim().toLowerCase();
   }
 
   get visibleSuggestions(): T[] {
@@ -289,14 +287,14 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
       return suggestions;
     }
 
-    const query = this.norm(this.searchState());
+    const query = trimStringToLowerCase(this.searchState());
 
     if (!query) {
       return suggestions;
     }
 
     return suggestions.filter((item) =>
-      this.norm(this.labelFor(item)).includes(query),
+      trimStringToLowerCase(this.labelFor(item)).includes(query),
     );
   }
 }

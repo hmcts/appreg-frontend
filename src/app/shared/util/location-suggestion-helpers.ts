@@ -29,6 +29,7 @@ import { AbstractControl, FormGroup } from '@angular/forms';
 import { Subscription, merge } from 'rxjs';
 
 import { has } from './has';
+import { trimStringToLowerCase } from './string-helpers';
 
 import { FormRaw } from '@core-types/forms/forms.types';
 import {
@@ -167,7 +168,7 @@ function filterSuggestions<T>(
   matches: (item: T, q: string) => boolean,
   limit = 20,
 ): T[] {
-  const q = (query ?? '').trim().toLowerCase();
+  const q = trimStringToLowerCase(query ?? '');
   if (!q) {
     return [];
   }
