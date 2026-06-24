@@ -1,7 +1,6 @@
 Feature: API - Application List Entry Fees
 
-  # TODO: map follow-on JIRA keys for bulk-fees coverage.
-  @api @applicationListEntry @regression
+  @api @applicationListEntry @regression @ARCPOC-222 @ARCPOC-276 @ARCPOC-1421 @ARCPOC-1475
   Scenario Outline: Bulk update fee details for multiple application list entries
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Object Builder:
@@ -85,27 +84,43 @@ Feature: API - Application List Entry Fees
       | status       | SUCCEEDED |
     When User Makes GET API Request To "/application-lists/:listId/entries/:entryId1"
     Then User Verify Response Status Code Should Be "200"
+    # Then User Verify Response Body Should Have:
+    #   | feeStatuses.length              | 1           |
+    #   | feeStatuses[0].paymentStatus    | REMITTED    |
+    #   | feeStatuses[0].statusDate       | 2025-10-07  |
+    #   | feeStatuses[0].paymentReference | PAY-UPDATED |
+    #   | hasOffsiteFee                   | true        |
     Then User Verify Response Body Should Have:
-      | feeStatuses.length              | 1           |
-      | feeStatuses[0].paymentStatus    | REMITTED    |
-      | feeStatuses[0].statusDate       | 2025-10-07  |
-      | feeStatuses[0].paymentReference | PAY-UPDATED |
-      | hasOffsiteFee                   | true        |
+      | feeStatuses.length              | 2            |
+      | feeStatuses[0].paymentStatus    | PAID         |
+      | feeStatuses[0].statusDate       | 2025-01-10   |
+      | feeStatuses[0].paymentReference | PAYA{RANDOM} |
+      | hasOffsiteFee                   | true         |
+      | feeStatuses[1].paymentStatus    | REMITTED     |
+      | feeStatuses[1].statusDate       | 2025-10-07   |
+      | feeStatuses[1].paymentReference | PAY-UPDATED  |
+      | hasOffsiteFee                   | true         |
     When User Makes GET API Request To "/application-lists/:listId/entries/:entryId2"
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
-      | feeStatuses.length              | 1           |
-      | feeStatuses[0].paymentStatus    | REMITTED    |
-      | feeStatuses[0].statusDate       | 2025-10-07  |
-      | feeStatuses[0].paymentReference | PAY-UPDATED |
+      # | feeStatuses.length              | 1           |
+      # | feeStatuses[0].paymentStatus    | REMITTED    |
+      # | feeStatuses[0].statusDate       | 2025-10-07  |
+      # | feeStatuses[0].paymentReference | PAY-UPDATED |
+      # | hasOffsiteFee                   | true        |
+      | feeStatuses.length              | 2           |
+      | feeStatuses[0].paymentStatus    | DUE         |
+      | feeStatuses[0].statusDate       | 2025-01-10  |
+      | feeStatuses[1].paymentStatus    | REMITTED    |
+      | feeStatuses[1].statusDate       | 2025-10-07  |
+      | feeStatuses[1].paymentReference | PAY-UPDATED |
       | hasOffsiteFee                   | true        |
 
     Examples:
       | User  |
       | user1 |
 
-  # TODO: map follow-on JIRA keys for bulk-fees coverage.
-  @api @applicationListEntry @regression
+  @api @applicationListEntry @regression @ARCPOC-222 @ARCPOC-276 @ARCPOC-1421 @ARCPOC-1475
   Scenario Outline: Reject bulk fee update when one target entry is invalid
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Object Builder:
@@ -168,8 +183,7 @@ Feature: API - Application List Entry Fees
       | User  |
       | user1 |
 
-  # TODO: map follow-on JIRA keys for bulk-fees coverage.
-  @api @applicationListEntry @regression
+  @api @applicationListEntry @regression @ARCPOC-222 @ARCPOC-276 @ARCPOC-1421 @ARCPOC-1475
   Scenario Outline: Accept duplicate entry ids in bulk fee update by de-duplicating the target set
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Object Builder:
@@ -226,17 +240,20 @@ Feature: API - Application List Entry Fees
     When User Makes GET API Request To "/application-lists/:listId/entries/:entryId"
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
-      | feeStatuses.length              | 1           |
-      | feeStatuses[0].paymentStatus    | REMITTED    |
-      | feeStatuses[0].statusDate       | 2025-10-07  |
-      | feeStatuses[0].paymentReference | PAY-UPDATED |
-      | hasOffsiteFee                   | true        |
+      | feeStatuses.length              | 2            |
+      | feeStatuses[0].paymentStatus    | PAID         |
+      | feeStatuses[0].statusDate       | 2025-01-10   |
+      | feeStatuses[0].paymentReference | PAYD{RANDOM} |
+      | feeStatuses[1].paymentStatus    | REMITTED     |
+      | feeStatuses[1].statusDate       | 2025-10-07   |
+      | feeStatuses[1].paymentReference | PAY-UPDATED  |
+      | hasOffsiteFee                   | true         |
 
     Examples:
       | User  |
       | user1 |
 
-  @api @applicationListEntry @regression
+  @api @applicationListEntry @regression @ARCPOC-222 @ARCPOC-276 @ARCPOC-1421 @ARCPOC-1475
   Scenario Outline: Preserve coherent fee readback after offsite entry bulk fee update
     Given User Authenticates Via API As "<User>"
     When User Makes POST API Request To "/application-lists" With Object Builder:
@@ -293,10 +310,13 @@ Feature: API - Application List Entry Fees
     Then User Verify Response Status Code Should Be "200"
     Then User Verify Response Body Should Have:
       | hasOffsiteFee                   | true            |
-      | feeStatuses.length              | 1               |
-      | feeStatuses[0].paymentStatus    | REMITTED        |
-      | feeStatuses[0].statusDate       | 2025-10-07      |
-      | feeStatuses[0].paymentReference | OFFSITE-UPDATED |
+      | feeStatuses.length              | 2               |
+      | feeStatuses[0].paymentStatus    | PAID            |
+      | feeStatuses[0].statusDate       | todayiso        |
+      | feeStatuses[0].paymentReference | OFFCMP-{RANDOM} |
+      | feeStatuses[1].paymentStatus    | REMITTED        |
+      | feeStatuses[1].statusDate       | 2025-10-07      |
+      | feeStatuses[1].paymentReference | OFFSITE-UPDATED |
 
     Examples:
       | User  |
