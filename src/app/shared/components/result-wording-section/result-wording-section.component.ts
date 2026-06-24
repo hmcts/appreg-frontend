@@ -31,6 +31,12 @@ import {
   TableColumn,
 } from '@components/sortable-table/sortable-table.component';
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
+import {
+  ResultCodeSuggestionItem,
+  SuggestionsItem,
+  isResultCodeSuggestionItem,
+  toResultCodeSuggestionItem,
+} from '@components/suggestions/suggestions.types';
 import { SummaryListCardActionComponent } from '@components/summary-list-card-action/summary-list-card-action.component';
 import { WordingParserComponent } from '@components/wording-parser/wording-parser.component';
 import { DateTimePipe } from '@core/pipes/dateTime.pipe';
@@ -107,9 +113,6 @@ export class ResultWordingSectionComponent {
 
   applicantRespondentColumns = input<TableColumn[]>(RESULT_WORDING_COLUMNS);
 
-  resultCodeLabel = (rc: ResultCodeGetSummaryDto): string =>
-    `${rc.resultCode} - ${rc.title}`;
-
   resultCodeSearch = '';
 
   constructor() {
@@ -137,7 +140,7 @@ export class ResultWordingSectionComponent {
     });
   }
 
-  get filteredResultCodes(): ResultCodeGetSummaryDto[] {
+  get filteredResultCodes(): ResultCodeSuggestionItem[] {
     const q = this.norm(this.resultCodeSearch);
     if (!q) {
       return [];
@@ -158,6 +161,7 @@ export class ResultWordingSectionComponent {
         const code = this.normCode(rc.resultCode);
         return !pendingCodes.has(code) && !existingCodes.has(code);
       })
+      .map(toResultCodeSuggestionItem)
       .slice(0, 50);
   }
 
@@ -258,6 +262,12 @@ export class ResultWordingSectionComponent {
   readonly canSubmitResults = computed(
     () => this.hasPendingChanges() || this.hasExistingEdits(),
   );
+
+  onResultCodeSuggestionSelected(item: SuggestionsItem): void {
+    if (isResultCodeSuggestionItem(item)) {
+      this.selectResultCode(item);
+    }
+  }
 
   selectResultCode(item: ResultCodeGetSummaryDto): void {
     const code = item.resultCode.trim();

@@ -10,7 +10,8 @@ import {
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
-import { asString, hasStringProp, isRecord } from '@util/data-utils';
+import { SuggestionsItem } from './suggestions.types';
+
 import { trimStringToLowerCase } from '@util/string-helpers';
 
 @Component({
@@ -26,21 +27,20 @@ import { trimStringToLowerCase } from '@util/string-helpers';
     },
   ],
 })
-export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
+export class SuggestionsComponent implements ControlValueAccessor {
   id = input('');
   label = input('');
   hint = input('');
   disabled = input(false);
   showError = input(false);
   errorText = input('This field is required');
-  suggestions = input.required<T[]>();
+  suggestions = input.required<SuggestionsItem[]>();
   showAllValues = input(false);
 
   search = input('');
   searchChange = output<string>();
 
-  getItemLabel = input<((item: T) => string) | null>(null);
-  selectItem = output<T>();
+  selectItem = output<SuggestionsItem>();
 
   value = input('');
   valueChange = output<string>();
@@ -53,20 +53,15 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
   private allValuesVisible = false;
   private committedLabel: string | null = null;
   searchState = signal('');
-  suggestionsState = signal<T[]>([]);
+  suggestionsState = signal<SuggestionsItem[]>([]);
   valueState = signal('');
   private readonly controlDisabledState = signal(false);
   disabledState = computed(
     () => this.disabled() || this.controlDisabledState(),
   );
-  getItemLabelState = signal<((item: T) => string) | null>(null);
 
   private readonly syncSearchInput = effect(() => {
-    const next = asString(this.search());
-    if (next === null) {
-      return;
-    }
-
+    const next = this.search();
     this.searchState.set(next);
     const trimmed = next.trim();
 
@@ -93,9 +88,6 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
     this.valueState.set(this.value());
   });
 
-  private readonly syncGetItemLabelInput = effect(() => {
-    this.getItemLabelState.set(this.getItemLabel());
-  });
   private onChange: (value: string) => void = () => {};
   private onTouched: () => void = () => {};
 
@@ -158,46 +150,15 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
     }, 0);
   }
 
-  labelFor(item: T): string {
-    const getItemLabel = this.getItemLabelState();
-    if (getItemLabel) {
-      return getItemLabel(item);
-    }
-    if (isRecord(item)) {
-      if (hasStringProp(item, 'name')) {
-        return item.name;
-      }
-      if (hasStringProp(item, 'description')) {
-        return item.description;
-      }
-    }
-    return String(item as unknown);
+  labelFor(item: SuggestionsItem): string {
+    return item.label;
   }
 
-  private valueFor(item: T): string {
-    if (item === null || item === undefined) {
-      return '';
-    }
-    if (typeof item === 'string') {
-      return item;
-    }
-
-    if (isRecord(item)) {
-      const v = item['value'];
-      if (typeof v === 'string') {
-        return v;
-      }
-
-      const lc = item['locationCode'];
-      if (typeof lc === 'string') {
-        return lc;
-      }
-    }
-
-    return '';
+  private valueFor(item: SuggestionsItem): string {
+    return item.value;
   }
 
-  choose(item: T, e: MouseEvent): void {
+  choose(item: SuggestionsItem, e: MouseEvent): void {
     e.preventDefault();
 
     // still emit the object if parent wants it
@@ -234,15 +195,8 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
     this.onChange(v);
   }
 
-  labelOf(item: T): string {
-    if (item === null) {
-      return '';
-    }
-    if (typeof item === 'string') {
-      return item;
-    }
-    const o = item as { name?: string; description?: string; code?: string };
-    return o.name ?? o.description ?? o.code ?? '';
+  labelOf(item: SuggestionsItem): string {
+    return this.labelFor(item);
   }
 
   get noResultsVisible(): boolean {
@@ -280,7 +234,7 @@ export class SuggestionsComponent<T = unknown> implements ControlValueAccessor {
     );
   }
 
-  get visibleSuggestions(): T[] {
+  get visibleSuggestions(): SuggestionsItem[] {
     const suggestions = this.suggestionsState();
 
     if (!this.showAllValues()) {

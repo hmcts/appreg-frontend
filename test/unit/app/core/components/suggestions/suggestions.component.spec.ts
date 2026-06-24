@@ -3,14 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 import { SuggestionsComponent } from '@components/suggestions/suggestions.component';
-
-type Item = {
-  name?: string;
-  description?: string;
-  code?: string;
-  value?: string;
-  locationCode?: string;
-};
+import { CourtSuggestionItem } from '@components/suggestions/suggestions.types';
 
 @Component({
   standalone: true,
@@ -28,8 +21,21 @@ class SuggestionsHostComponent {
 }
 
 describe('SuggestionsComponent', () => {
-  let fixture: ComponentFixture<SuggestionsComponent<Item>>;
-  let component: SuggestionsComponent<Item>;
+  let fixture: ComponentFixture<SuggestionsComponent>;
+  let component: SuggestionsComponent;
+
+  const suggestion = (
+    value: string,
+    label: string,
+    overrides: Partial<CourtSuggestionItem> = {},
+  ): CourtSuggestionItem => ({
+    kind: 'court',
+    value,
+    label,
+    locationCode: value,
+    name: label,
+    ...overrides,
+  });
 
   const setInput = (name: string, value: unknown, detectChanges = true) => {
     fixture.componentRef.setInput(name, value);
@@ -43,7 +49,7 @@ describe('SuggestionsComponent', () => {
       imports: [SuggestionsComponent, SuggestionsHostComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(SuggestionsComponent<Item>);
+    fixture = TestBed.createComponent(SuggestionsComponent);
     component = fixture.componentInstance;
 
     // required input
@@ -62,45 +68,35 @@ describe('SuggestionsComponent', () => {
     expect(emit).toHaveBeenCalledWith('  abc ');
   });
 
-  it('labelFor uses getItemLabel when provided', () => {
-    setInput('getItemLabel', (it: Item) => `X:${it.code ?? ''}`);
-    expect(component.labelFor({ code: 'C1' })).toBe('X:C1');
+  it('labelFor uses the canonical suggestion label', () => {
+    expect(component.labelFor(suggestion('C1', 'C1 - Alpha Court'))).toBe(
+      'C1 - Alpha Court',
+    );
   });
 
-  it('labelFor falls back to name, then description, else String(item)', () => {
-    setInput('getItemLabel', null);
-
-    expect(component.labelFor({ name: 'Alpha' })).toBe('Alpha');
-    expect(component.labelFor({ description: 'Desc' })).toBe('Desc');
-    expect(component.labelFor({ code: 'C9' })).toBe('[object Object]');
-
-    expect(component.labelFor('plain' as unknown as Item)).toBe('plain');
-    expect(component.labelFor(42 as unknown as Item)).toBe('42');
-  });
-
-  it('labelOf maps by name/description/code and handles primitives/null', () => {
-    expect(component.labelOf(null as unknown as Item)).toBe('');
-    expect(component.labelOf('s' as unknown as Item)).toBe('s');
-    expect(component.labelOf({ name: 'N' })).toBe('N');
-    expect(component.labelOf({ description: 'D' })).toBe('D');
-    expect(component.labelOf({ code: 'C' })).toBe('C');
-
-    expect(component.labelOf(7 as unknown as Item)).toBe('');
+  it('labelOf delegates to the typed label resolution rules', () => {
+    expect(component.labelOf(suggestion('C1', 'C1 - Alpha Court'))).toBe(
+      'C1 - Alpha Court',
+    );
   });
 
   it('choose prevents default, emits selectItem, sets search/committedLabel, clears suggestions, and marks justSelected', () => {
-    setInput('suggestions', [{ name: 'Alpha' }, { name: 'Beta' }]);
+    setInput('suggestions', [
+      suggestion('A1', 'Alpha'),
+      suggestion('B1', 'Beta'),
+    ]);
 
     const emit = jest.spyOn(component.selectItem, 'emit');
 
     const ev = { preventDefault: jest.fn() } as unknown as MouseEvent;
 
-    component.choose({ name: 'Alpha' }, ev);
+    const alpha = suggestion('A1', 'Alpha');
+    component.choose(alpha, ev);
 
     expect(
       (ev as unknown as { preventDefault: jest.Mock }).preventDefault,
     ).toHaveBeenCalledTimes(1);
-    expect(emit).toHaveBeenCalledWith({ name: 'Alpha' });
+    expect(emit).toHaveBeenCalledWith(alpha);
 
     expect(component.searchState()).toBe('Alpha');
     expect(component.suggestionsState()).toEqual([]);
@@ -109,12 +105,12 @@ describe('SuggestionsComponent', () => {
 
   it('choose clears search text when showAllValues is enabled', () => {
     setInput('showAllValues', true);
-    setInput('suggestions', [{ name: 'Alpha', value: 'A1' }]);
+    setInput('suggestions', [suggestion('A1', 'Alpha')]);
     component.onInput('alp');
 
     const emit = jest.spyOn(component.searchChange, 'emit');
 
-    component.choose({ name: 'Alpha', value: 'A1' }, {
+    component.choose(suggestion('A1', 'Alpha'), {
       preventDefault: jest.fn(),
     } as unknown as MouseEvent);
 
@@ -137,13 +133,13 @@ describe('SuggestionsComponent', () => {
   it('open is false when disabled', () => {
     setInput('disabled', true);
     component.onInput('abc');
-    setInput('suggestions', [{ name: 'N' }]);
+    setInput('suggestions', [suggestion('N1', 'N')]);
     expect(component.open).toBe(false);
   });
 
   it('open is false when search is empty/whitespace', () => {
     setInput('disabled', false);
-    setInput('suggestions', [{ name: 'N' }]);
+    setInput('suggestions', [suggestion('N1', 'N')]);
 
     component.searchState.set('');
     expect(component.open).toBe(false);
@@ -155,26 +151,32 @@ describe('SuggestionsComponent', () => {
   it('open is true on focus when showAllValues is enabled and search is empty', () => {
     setInput('disabled', false);
     setInput('showAllValues', true);
-    setInput('suggestions', [{ name: 'Alpha' }, { name: 'Beta' }]);
+    setInput('suggestions', [
+      suggestion('A1', 'Alpha'),
+      suggestion('B1', 'Beta'),
+    ]);
 
     component.onFocus();
 
     expect(component.open).toBe(true);
     expect(component.visibleSuggestions).toEqual([
-      { name: 'Alpha' },
-      { name: 'Beta' },
+      suggestion('A1', 'Alpha'),
+      suggestion('B1', 'Beta'),
     ]);
   });
 
   it('showAllValues filters visible suggestions by label when search has text', () => {
     setInput('showAllValues', true);
-    setInput('suggestions', [{ name: 'Alpha' }, { name: 'Beta' }]);
+    setInput('suggestions', [
+      suggestion('A1', 'Alpha'),
+      suggestion('B1', 'Beta'),
+    ]);
 
     component.onFocus();
     component.onInput('bet');
 
     expect(component.open).toBe(true);
-    expect(component.visibleSuggestions).toEqual([{ name: 'Beta' }]);
+    expect(component.visibleSuggestions).toEqual([suggestion('B1', 'Beta')]);
   });
 
   it('open is false when suggestions is empty', () => {
@@ -186,7 +188,7 @@ describe('SuggestionsComponent', () => {
 
   it('open is false when committed text matches search', () => {
     setInput('disabled', false);
-    setInput('suggestions', [{ name: 'Alpha' }]);
+    setInput('suggestions', [suggestion('A1', 'Alpha')]);
     setInput('search', 'Alpha');
 
     expect(component.isCommittedText).toBe(true);
@@ -196,7 +198,7 @@ describe('SuggestionsComponent', () => {
   it('open is true when enabled, search has text, suggestions exist, and text is not committed', () => {
     setInput('disabled', false);
     component.onInput('abc');
-    setInput('suggestions', [{ description: 'Ok' }]);
+    setInput('suggestions', [suggestion('A1', 'Ok')]);
     expect(component.open).toBe(true);
   });
 
@@ -261,21 +263,21 @@ describe('SuggestionsComponent', () => {
 
   it('writeValue sets value and does not clear search/suggestions when value is non-empty', () => {
     component.onInput('V1');
-    setInput('suggestions', [{ name: 'Alpha' }]);
+    setInput('suggestions', [suggestion('A1', 'Alpha')]);
 
     component.writeValue('V1');
 
     expect(component.valueState()).toBe('V1');
     expect(component.searchState()).toBe('V1');
-    expect(component.suggestionsState()).toEqual([{ name: 'Alpha' }]);
+    expect(component.suggestionsState()).toEqual([suggestion('A1', 'Alpha')]);
   });
 
   it('writeValue(null) clears value, search, suggestions, and committed state', () => {
     component.onInput('abc');
-    setInput('suggestions', [{ name: 'Alpha' }]);
+    setInput('suggestions', [suggestion('A1', 'Alpha')]);
 
     // simulate committed state
-    component.choose({ name: 'Alpha' }, {
+    component.choose(suggestion('A1', 'Alpha'), {
       preventDefault: jest.fn(),
     } as unknown as MouseEvent);
     expect(component.isCommittedText).toBe(true);
@@ -292,18 +294,18 @@ describe('SuggestionsComponent', () => {
     const onChange = jest.fn();
     component.registerOnChange(onChange);
 
-    component.choose({ name: 'Alpha' }, {
+    component.choose(suggestion('A1', 'Alpha'), {
       preventDefault: jest.fn(),
     } as unknown as MouseEvent);
 
-    expect(onChange).toHaveBeenCalledWith('');
+    expect(onChange).toHaveBeenCalledWith('A1');
   });
 
   it('registerOnTouched is invoked when choose() is called', () => {
     const onTouched = jest.fn();
     component.registerOnTouched(onTouched);
 
-    component.choose({ name: 'Alpha' }, {
+    component.choose(suggestion('A1', 'Alpha'), {
       preventDefault: jest.fn(),
     } as unknown as MouseEvent);
 
@@ -351,7 +353,7 @@ describe('SuggestionsComponent', () => {
     const emitValue = jest.spyOn(component.valueChange, 'emit');
     component.registerOnChange(onChange);
 
-    component.choose({ name: 'Alpha', value: 'V123' }, {
+    component.choose(suggestion('V123', 'Alpha'), {
       preventDefault: jest.fn(),
     } as unknown as MouseEvent);
 
@@ -365,9 +367,12 @@ describe('SuggestionsComponent', () => {
     const emitValue = jest.spyOn(component.valueChange, 'emit');
     component.registerOnChange(onChange);
 
-    component.choose({ name: 'Loc', locationCode: 'LC9' }, {
-      preventDefault: jest.fn(),
-    } as unknown as MouseEvent);
+    component.choose(
+      suggestion('', 'Loc', { locationCode: 'LC9', value: 'LC9' }),
+      {
+        preventDefault: jest.fn(),
+      } as unknown as MouseEvent,
+    );
 
     expect(component.valueState()).toBe('LC9');
     expect(emitValue).toHaveBeenCalledWith('LC9');
@@ -375,8 +380,10 @@ describe('SuggestionsComponent', () => {
   });
 
   it('onInput clears committed label when text differs, enabling dropdown to open again', () => {
+    const alpha = suggestion('A', 'Alpha');
+
     // commit "Alpha"
-    component.choose({ name: 'Alpha', value: 'A' }, {
+    component.choose(alpha, {
       preventDefault: jest.fn(),
     } as unknown as MouseEvent);
     expect(component.isCommittedText).toBe(true);
@@ -389,21 +396,8 @@ describe('SuggestionsComponent', () => {
 
     // with suggestions, dropdown can open
     setInput('disabled', false);
-    setInput('suggestions', [{ name: 'Alpha' }]);
+    setInput('suggestions', [alpha]);
     expect(component.open).toBe(true);
-  });
-
-  it('ngOnChanges returns early when search currentValue is not a string (asString -> null)', () => {
-    component.choose({ name: 'Alpha' }, {
-      preventDefault: jest.fn(),
-    } as unknown as MouseEvent);
-    expect(component.isCommittedText).toBe(true);
-
-    // pass a non-string currentValue (asString should return null => no state change)
-    setInput('search', { not: 'a string' });
-
-    // still committed because changes should have been ignored
-    expect(component.isCommittedText).toBe(true);
   });
 
   it('ngOnChanges does not auto-commit while focused', () => {
