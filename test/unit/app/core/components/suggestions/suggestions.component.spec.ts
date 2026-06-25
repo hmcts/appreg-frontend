@@ -196,6 +196,55 @@ describe('SuggestionsComponent', () => {
     expect(component.open).toBe(true);
   });
 
+  it('renders combobox attributes and associates the popup by id when suggestions are visible', () => {
+    setInput('id', 'court');
+    setInput('showAllValues', true);
+    setInput('suggestions', [suggestion('A1', 'Alpha')]);
+
+    component.onFocus();
+    fixture.detectChanges();
+
+    const input = fixture.nativeElement.querySelector(
+      'input#court',
+    ) as HTMLInputElement;
+    const listbox = fixture.nativeElement.querySelector(
+      'ul#court-listbox',
+    ) as HTMLUListElement;
+
+    expect(input.getAttribute('role')).toBe('combobox');
+    expect(input.getAttribute('aria-autocomplete')).toBe('list');
+    expect(input.getAttribute('aria-expanded')).toBe('true');
+    expect(input.getAttribute('aria-controls')).toBe('court-listbox');
+    expect(listbox).toBeTruthy();
+  });
+
+  it('renders no results as a polite live region', () => {
+    setInput('id', 'court');
+    component.onInput('missing');
+    component.onFocus();
+    fixture.detectChanges();
+
+    const status = fixture.nativeElement.querySelector(
+      '#court-status',
+    ) as HTMLElement;
+
+    expect(status.textContent?.trim()).toBe('No results found');
+    expect(status.getAttribute('aria-live')).toBe('polite');
+  });
+
+  it('onKeydown opens all values for ArrowDown and Enter when enabled', () => {
+    setInput('showAllValues', true);
+    setInput('suggestions', [suggestion('A1', 'Alpha')]);
+    setInput('disabled', false);
+    component.onFocus();
+
+    component.onKeydown(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+    expect(component.open).toBe(true);
+
+    component.onKeydown(new KeyboardEvent('keydown', { key: 'Enter' }));
+    expect(component.open).toBe(true);
+  });
+
   it('noResultsVisible is true when focused + hasQuery + suggestions empty + not committed + not justSelected + not disabled', () => {
     setInput('disabled', false);
     setInput('suggestions', []);

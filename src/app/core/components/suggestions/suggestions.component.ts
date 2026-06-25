@@ -143,6 +143,16 @@ export class SuggestionsComponent implements ControlValueAccessor {
     this.allValuesVisible = this.showAllValues();
   }
 
+  onKeydown(event: KeyboardEvent): void {
+    if (this.disabledState()) {
+      return;
+    }
+
+    if (event.key === 'ArrowDown' || event.key === 'Enter') {
+      this.allValuesVisible = this.showAllValues();
+    }
+  }
+
   onBlur(): void {
     setTimeout(() => {
       this.focused = false;
@@ -193,6 +203,18 @@ export class SuggestionsComponent implements ControlValueAccessor {
     this.valueState.set(v);
     this.valueChange.emit(v);
     this.onChange(v);
+  }
+
+  get statusId(): string {
+    return `${this.id()}-status`;
+  }
+
+  get listboxId(): string {
+    return `${this.id()}-listbox`;
+  }
+
+  get popupVisible(): boolean {
+    return this.open || this.noResultsVisible;
   }
 
   get noResultsVisible(): boolean {
