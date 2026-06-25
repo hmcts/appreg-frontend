@@ -19,6 +19,7 @@ import { trimStringToLowerCase } from '@util/string-helpers';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './suggestions.component.html',
+  styleUrl: './suggestions.component.scss',
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -42,9 +43,6 @@ export class SuggestionsComponent implements ControlValueAccessor {
 
   selectItem = output<SuggestionsItem>();
 
-  value = input('');
-  valueChange = output<string>();
-
   widthClass = input('govuk-input--width-10');
   containerWidthClass = input('govuk-grid-column-one-quarter');
 
@@ -53,8 +51,7 @@ export class SuggestionsComponent implements ControlValueAccessor {
   private allValuesVisible = false;
   private committedLabel: string | null = null;
   searchState = signal('');
-  suggestionsState = signal<SuggestionsItem[]>([]);
-  valueState = signal('');
+  private readonly controlValue = signal('');
   private readonly controlDisabledState = signal(false);
   disabledState = computed(
     () => this.disabled() || this.controlDisabledState(),
@@ -80,12 +77,30 @@ export class SuggestionsComponent implements ControlValueAccessor {
     }
   });
 
-  private readonly syncSuggestionsInput = effect(() => {
-    this.suggestionsState.set(this.suggestions());
-  });
+  private readonly syncControlValueDisplay = effect(() => {
+    const value = this.controlValue();
 
-  private readonly syncValueInput = effect(() => {
-    this.valueState.set(this.value());
+    if (!value || this.focused) {
+      return;
+    }
+
+    if (this.hasQuery && !this.isCommittedText) {
+      return;
+    }
+
+    const label = this.suggestions().find(
+      (item) => item.value === value,
+    )?.label;
+
+    if (!label && this.hasQuery) {
+      return;
+    }
+
+    const displayValue = label ?? value;
+
+    this.searchState.set(displayValue);
+    this.committedLabel = displayValue;
+    this.justSelected = true;
   });
 
   private onChange: (value: string) => void = () => {};
@@ -93,13 +108,12 @@ export class SuggestionsComponent implements ControlValueAccessor {
 
   writeValue(next: string | null = ''): void {
     const resolved = next ?? '';
-    this.valueState.set(resolved);
+    this.controlValue.set(resolved);
 
     if (!resolved) {
       this.searchState.set('');
       this.committedLabel = null;
       this.justSelected = false;
-      this.suggestionsState.set([]);
     }
   }
 
@@ -157,6 +171,7 @@ export class SuggestionsComponent implements ControlValueAccessor {
     setTimeout(() => {
       this.focused = false;
       this.allValuesVisible = false;
+      this.onTouched();
     }, 0);
   }
 
@@ -187,8 +202,6 @@ export class SuggestionsComponent implements ControlValueAccessor {
       this.committedLabel = label;
     }
 
-    // clear list UI
-    this.suggestionsState.set([]);
     this.allValuesVisible = false;
     this.justSelected = true;
 
@@ -200,8 +213,7 @@ export class SuggestionsComponent implements ControlValueAccessor {
   }
 
   private setValueInternal(v: string): void {
-    this.valueState.set(v);
-    this.valueChange.emit(v);
+    this.controlValue.set(v);
     this.onChange(v);
   }
 
@@ -253,7 +265,7 @@ export class SuggestionsComponent implements ControlValueAccessor {
   }
 
   get visibleSuggestions(): SuggestionsItem[] {
-    const suggestions = this.suggestionsState();
+    const suggestions = this.suggestions();
 
     if (!this.showAllValues()) {
       return suggestions;

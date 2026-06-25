@@ -11,13 +11,14 @@ import { CourtSuggestionItem } from '@components/suggestions/suggestions.types';
   template: `
     <app-suggestions
       id="host-suggestions"
-      [suggestions]="[]"
+      [suggestions]="suggestions"
       [formControl]="control"
     />
   `,
 })
 class SuggestionsHostComponent {
   control = new FormControl('');
+  suggestions: CourtSuggestionItem[] = [];
 }
 
 describe('SuggestionsComponent', () => {
@@ -74,7 +75,7 @@ describe('SuggestionsComponent', () => {
     );
   });
 
-  it('choose prevents default, emits selectItem, sets search/committedLabel, clears suggestions, and marks justSelected', () => {
+  it('choose prevents default, emits selectItem, and commits the selected label', () => {
     setInput('suggestions', [
       suggestion('A1', 'Alpha'),
       suggestion('B1', 'Beta'),
@@ -93,8 +94,8 @@ describe('SuggestionsComponent', () => {
     expect(emit).toHaveBeenCalledWith(alpha);
 
     expect(component.searchState()).toBe('Alpha');
-    expect(component.suggestionsState()).toEqual([]);
     expect(component.isCommittedText).toBe(true);
+    expect(component.open).toBe(false);
   });
 
   it('choose clears search text when showAllValues is enabled', () => {
@@ -304,18 +305,20 @@ describe('SuggestionsComponent', () => {
     jest.runOnlyPendingTimers?.();
   });
 
-  it('writeValue sets value and does not clear search/suggestions when value is non-empty', () => {
-    component.onInput('V1');
-    setInput('suggestions', [suggestion('A1', 'Alpha')]);
+  it('writeValue displays the matching suggestion label when value is non-empty', () => {
+    setInput('suggestions', [suggestion('V1', 'V1 - Alpha')]);
 
     component.writeValue('V1');
+    fixture.detectChanges();
 
-    expect(component.valueState()).toBe('V1');
-    expect(component.searchState()).toBe('V1');
-    expect(component.suggestionsState()).toEqual([suggestion('A1', 'Alpha')]);
+    expect(component.searchState()).toBe('V1 - Alpha');
+    expect(component.isCommittedText).toBe(true);
+    expect(component.visibleSuggestions).toEqual([
+      suggestion('V1', 'V1 - Alpha'),
+    ]);
   });
 
-  it('writeValue(null) clears value, search, suggestions, and committed state', () => {
+  it('writeValue(null) clears search and committed state without clearing parent suggestions', () => {
     component.onInput('abc');
     setInput('suggestions', [suggestion('A1', 'Alpha')]);
 
@@ -327,10 +330,19 @@ describe('SuggestionsComponent', () => {
 
     component.writeValue(null);
 
-    expect(component.valueState()).toBe('');
     expect(component.searchState()).toBe('');
     expect(component.isCommittedText).toBe(false);
-    expect(component.suggestionsState()).toEqual([]);
+    expect(component.visibleSuggestions).toEqual([suggestion('A1', 'Alpha')]);
+  });
+
+  it('writeValue does not replace a committed parent search label when matching suggestions are absent', () => {
+    setInput('search', 'A1 - Alpha');
+
+    component.writeValue('A1');
+    fixture.detectChanges();
+
+    expect(component.searchState()).toBe('A1 - Alpha');
+    expect(component.isCommittedText).toBe(true);
   });
 
   it('registerOnChange is invoked when value changes via choose()', () => {
@@ -353,6 +365,20 @@ describe('SuggestionsComponent', () => {
     } as unknown as MouseEvent);
 
     expect(onTouched).toHaveBeenCalledTimes(1);
+  });
+
+  it('registerOnTouched is invoked when the input blurs', () => {
+    jest.useFakeTimers();
+    const onTouched = jest.fn();
+    component.registerOnTouched(onTouched);
+
+    component.onFocus();
+    component.onBlur();
+    jest.runOnlyPendingTimers();
+
+    expect(onTouched).toHaveBeenCalledTimes(1);
+
+    jest.useRealTimers();
   });
 
   it('setDisabledState updates disabled flag', () => {
@@ -391,23 +417,39 @@ describe('SuggestionsComponent', () => {
     ).toBe(true);
   });
 
+  it('reflects reactive form value writes in the input display', () => {
+    const hostFixture = TestBed.createComponent(SuggestionsHostComponent);
+    hostFixture.componentInstance.suggestions = [
+      suggestion('A1', 'A1 - Alpha'),
+      suggestion('B1', 'B1 - Beta'),
+    ];
+    hostFixture.detectChanges();
+
+    hostFixture.componentInstance.control.setValue('B1');
+    hostFixture.detectChanges();
+
+    expect(
+      (
+        hostFixture.nativeElement.querySelector(
+          'input#host-suggestions',
+        ) as HTMLInputElement
+      ).value,
+    ).toBe('B1 - Beta');
+  });
+
   it('choose sets value based on item.value when present', () => {
     const onChange = jest.fn();
-    const emitValue = jest.spyOn(component.valueChange, 'emit');
     component.registerOnChange(onChange);
 
     component.choose(suggestion('V123', 'Alpha'), {
       preventDefault: jest.fn(),
     } as unknown as MouseEvent);
 
-    expect(component.valueState()).toBe('V123');
-    expect(emitValue).toHaveBeenCalledWith('V123');
     expect(onChange).toHaveBeenCalledWith('V123');
   });
 
   it('choose sets value based on item.locationCode when value is missing', () => {
     const onChange = jest.fn();
-    const emitValue = jest.spyOn(component.valueChange, 'emit');
     component.registerOnChange(onChange);
 
     component.choose(
@@ -417,8 +459,6 @@ describe('SuggestionsComponent', () => {
       } as unknown as MouseEvent,
     );
 
-    expect(component.valueState()).toBe('LC9');
-    expect(emitValue).toHaveBeenCalledWith('LC9');
     expect(onChange).toHaveBeenCalledWith('LC9');
   });
 

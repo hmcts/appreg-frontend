@@ -26,15 +26,16 @@ describe('suggestions.types', () => {
     });
   });
 
-  it('maps a court DTO without a name to a code-only label', () => {
+  it('maps a court DTO with a blank name to a code-only label', () => {
     expect(
       toCourtSuggestionItem({
-        name: 'test',
+        name: '',
         locationCode: 'A1',
       }),
     ).toEqual({
       kind: 'court',
       locationCode: 'A1',
+      name: '',
       label: 'A1',
       value: 'A1',
     });
