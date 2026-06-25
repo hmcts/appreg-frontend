@@ -69,6 +69,7 @@ import {
   ErrorItem,
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
+import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import {
   ApplicationNotesForm,
   NotesSectionComponent,
@@ -179,6 +180,7 @@ export const ERROR_HREFS = {
     ApplicantSectionComponent,
     WordingSectionComponent,
     OfficialsSectionComponent,
+    HelpDetailsComponent,
   ],
   templateUrl: './applications-list-entry-detail.component.html',
 })

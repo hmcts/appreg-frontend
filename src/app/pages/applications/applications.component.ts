@@ -35,6 +35,7 @@ import {
   ErrorItem,
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
+import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import { SelectInputComponent } from '@components/select-input/select-input.component';
@@ -133,6 +134,7 @@ export const ApplicationsColumns = [
     MojButtonMenuDirective,
     DateTimePipe,
     AsyncJobProgressComponent,
+    HelpDetailsComponent,
   ],
   templateUrl: './applications.component.html',
   styleUrls: ['./applications.component.scss'],

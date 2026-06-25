@@ -25,6 +25,7 @@ import {
 
 import { BreadcrumbsComponent } from '@components/breadcrumbs/breadcrumbs.component';
 import { ErrorSummaryComponent } from '@components/error-summary/error-summary.component';
+import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { LoadingSpinner } from '@components/loading-spinner/loading-spinner';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
 import {
@@ -43,6 +44,7 @@ import { createSignalState, setupLoadEffect } from '@util/signal-state-helpers';
     PageHeaderComponent,
     ErrorSummaryComponent,
     LoadingSpinner,
+    HelpDetailsComponent,
   ],
   templateUrl: './applications-list-bulk-upload.component.html',
   styleUrl: './applications-list-bulk-upload.component.scss',

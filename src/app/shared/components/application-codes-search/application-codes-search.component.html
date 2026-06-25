@@ -1,30 +1,22 @@
-<details class="govuk-details">
-  <summary class="govuk-details__summary">
-    <span class="govuk-details__summary-text">
-      Help with application codes
-    </span>
-  </summary>
+<app-help-details summary="Help with application codes">
+  <p class="govuk-body">
+    Select the application code that matches the nature of the application being
+    recorded.
+  </p>
 
-  <div class="govuk-details__text">
-    <p class="govuk-body">
-      Select the application code that matches the nature of the application
-      being recorded.
-    </p>
+  <p class="govuk-body">
+    The lodgement date is the date the court office received the application.
+  </p>
 
-    <p class="govuk-body">
-      The lodgement date is the date the court office received the application.
-    </p>
+  <p class="govuk-body">
+    The lodgement date is used to find the correct fee for the date the
+    application was received.
+  </p>
 
-    <p class="govuk-body">
-      The lodgement date is used to find the correct fee for the date the
-      application was received.
-    </p>
-
-    <p class="govuk-body">
-      Once the lodgement date is saved it cannot be changed.
-    </p>
-  </div>
-</details>
+  <p class="govuk-body">
+    Once the lodgement date is saved it cannot be changed.
+  </p>
+</app-help-details>
 
 <fieldset class="govuk-fieldset">
   <form [formGroup]="form">

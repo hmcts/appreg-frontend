@@ -53,6 +53,7 @@ import {
   ErrorItem,
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
+import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
@@ -142,6 +143,7 @@ const APPLICATION_LIST_DETAIL_SORT_MAP: Record<string, string> = {
     MojButtonMenuDirective,
     ApplicationsListDetailSearchComponent,
     AsyncJobProgressComponent,
+    HelpDetailsComponent,
   ],
   templateUrl: './applications-list-detail.component.html',
   styleUrls: ['./applications-list-detail.component.scss'],

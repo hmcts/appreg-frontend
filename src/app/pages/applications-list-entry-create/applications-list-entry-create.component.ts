@@ -57,6 +57,7 @@ import {
   ErrorItem,
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
+import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { NotesSectionComponent } from '@components/notes-section/notes-section.component';
 import { RespondentSectionComponent } from '@components/respondent-section/respondent-section.component';
 import { SelectedStandardApplicantSummary } from '@components/standard-applicant-select/standard-applicant-select.component';
@@ -121,6 +122,7 @@ const ENTRY_CREATE_ERROR_HREFS = {
     ApplicantSectionComponent,
     CivilFeeSectionComponent,
     RespondentSectionComponent,
+    HelpDetailsComponent,
   ],
   viewProviders: [
     { provide: ControlContainer, useExisting: FormGroupDirective },

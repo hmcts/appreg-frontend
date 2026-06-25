@@ -25,33 +25,23 @@
 
 <h1 class="govuk-heading-xl">Applications</h1>
 
-<details class="govuk-details">
-  <summary class="govuk-details__summary">
-    <span class="govuk-details__summary-text">
-      Help with searching applications
-    </span>
-  </summary>
+<app-help-details summary="Help with searching applications">
+  <p class="govuk-body">
+    Use this page to search for applications when you do not know which
+    application list they are in.
+  </p>
 
-  <div class="govuk-details__text">
-    <p class="govuk-body">
-      Use this page to search for applications when you do not know which
-      application list they are in.
-    </p>
-
-    <ul class="govuk-list govuk-list--bullet">
-      <li>Select one or more applications to use the Actions menu.</li>
-      <li>Result selected applies a result to selected open applications.</li>
-      <li>
-        Print continuous prints selected applications together as a court list
-        or register.
-      </li>
-      <li>
-        Print page prints each selected application starting on a new page.
-      </li>
-      <li>Closed applications cannot be opened from this page.</li>
-    </ul>
-  </div>
-</details>
+  <ul class="govuk-list govuk-list--bullet">
+    <li>Select one or more applications to use the Actions menu.</li>
+    <li>Result selected applies a result to selected open applications.</li>
+    <li>
+      Print continuous prints selected applications together as a court list or
+      register.
+    </li>
+    <li>Print page prints each selected application starting on a new page.</li>
+    <li>Closed applications cannot be opened from this page.</li>
+  </ul>
+</app-help-details>
 
 @if (vm().loading) {
   <app-async-job-progress

@@ -1,26 +1,18 @@
-<details class="govuk-details">
-  <summary class="govuk-details__summary">
-    <span class="govuk-details__summary-text">
-      Help with applicant details
-    </span>
-  </summary>
+<app-help-details summary="Help with applicant details">
+  <p class="govuk-body">
+    Enter applicant details for a single applicant or organisation.
+  </p>
 
-  <div class="govuk-details__text">
-    <p class="govuk-body">
-      Enter applicant details for a single applicant or organisation.
-    </p>
+  <p class="govuk-body">
+    If you select a standard applicant, you can choose a different standard
+    applicant, but you cannot edit the standard applicant’s details on this
+    page.
+  </p>
 
-    <p class="govuk-body">
-      If you select a standard applicant, you can choose a different standard
-      applicant, but you cannot edit the standard applicant’s details on this
-      page.
-    </p>
-
-    <p class="govuk-body">
-      The selected standard applicant is shown above the search results.
-    </p>
-  </div>
-</details>
+  <p class="govuk-body">
+    The selected standard applicant is shown above the search results.
+  </p>
+</app-help-details>
 
 <div [formGroup]="form()">
   <div class="govuk-grid-row">

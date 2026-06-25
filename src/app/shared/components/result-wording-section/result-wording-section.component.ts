@@ -25,6 +25,7 @@ import {
   ApplicationEntriesResultContext,
 } from '@components/applications-list-entry-detail/util/routing-state-util';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
+import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import {
   SortableTableComponent,
   TableColumn,
@@ -58,6 +59,7 @@ import { ResultRow, toExistingRows } from '@util/result-code-helpers';
     SortableTableComponent,
     AlertComponent,
     DateTimePipe,
+    HelpDetailsComponent,
   ],
 })
 export class ResultWordingSectionComponent {

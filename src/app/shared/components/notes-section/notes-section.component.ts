@@ -3,6 +3,7 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { ErrorItem } from '@components/error-summary/error-summary.component';
 import { GovukTextareaComponent } from '@components/govuk-textarea/govuk-textarea.component';
+import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { NOTES_ERROR_MESSAGES } from '@constants/application-list-entry/error-messages';
 
 export type ApplicationNotesForm = FormGroup<{
@@ -12,7 +13,7 @@ export type ApplicationNotesForm = FormGroup<{
 }>;
 @Component({
   selector: 'app-notes-section',
-  imports: [GovukTextareaComponent, ReactiveFormsModule],
+  imports: [GovukTextareaComponent, ReactiveFormsModule, HelpDetailsComponent],
   templateUrl: './notes-section.component.html',
 })
 export class NotesSectionComponent {

@@ -24,6 +24,7 @@ import { AlertComponent } from '@components/alert/alert.component';
 import { CODES_COLUMNS } from '@components/applications-list-entry-detail/util/entry-detail.constants';
 import { DateInputComponent } from '@components/date-input/date-input.component';
 import { ErrorItem } from '@components/error-summary/error-summary.component';
+import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import {
   SortableTableComponent,
@@ -52,6 +53,7 @@ const APPLICATION_CODE_SEARCH_ERROR_MESSAGES = {
     SortableTableComponent,
     PaginationComponent,
     AlertComponent,
+    HelpDetailsComponent,
   ],
   templateUrl: './application-codes-search.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

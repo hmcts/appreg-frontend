@@ -19,6 +19,7 @@ import {
   ErrorItem,
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
+import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
 import {
@@ -83,6 +84,7 @@ const initialStandardApplicantsState: StandardApplicantsState = {
     ErrorSummaryComponent,
     MojButtonMenuDirective,
     NotificationBannerComponent,
+    HelpDetailsComponent,
   ],
   templateUrl: './standard-applicants.component.html',
   styleUrl: './standard-applicants.component.scss',
