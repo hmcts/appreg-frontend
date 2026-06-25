@@ -74,12 +74,6 @@ describe('SuggestionsComponent', () => {
     );
   });
 
-  it('labelOf delegates to the typed label resolution rules', () => {
-    expect(component.labelOf(suggestion('C1', 'C1 - Alpha Court'))).toBe(
-      'C1 - Alpha Court',
-    );
-  });
-
   it('choose prevents default, emits selectItem, sets search/committedLabel, clears suggestions, and marks justSelected', () => {
     setInput('suggestions', [
       suggestion('A1', 'Alpha'),

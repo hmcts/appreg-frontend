@@ -195,10 +195,6 @@ export class SuggestionsComponent implements ControlValueAccessor {
     this.onChange(v);
   }
 
-  labelOf(item: SuggestionsItem): string {
-    return this.labelFor(item);
-  }
-
   get noResultsVisible(): boolean {
     return (
       this.focused &&
