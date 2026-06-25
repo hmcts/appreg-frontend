@@ -12,7 +12,7 @@ Feature: Applications Print
         # Entry 1 - Standard applicant + Person respondent
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
             | standardApplicantCode                         | APP036                                    |
-            | applicationCode                               | CT99002                                   |
+            | applicationCode                               | AP99003                                   |
             | respondent.person.name.title                  | Mr                                        |
             | respondent.person.name.lastName               | Smith {RANDOM}                            |
             | respondent.person.name.firstName              | John                                      |
@@ -27,8 +27,8 @@ Feature: Applications Print
             | respondent.person.contactDetails.mobile       | 07123456789                               |
             | respondent.person.contactDetails.email        | john-doe@gmail.com                        |
             | respondent.person.dateOfBirth                 | 1990-01-01                                |
-            | wordingFields.0.key                           | Reference                                 |
-            | wordingFields.0.value                         | TEST-REF-001                              |
+            | wordingFields.0.key                           | Date of Hearing                           |
+            | wordingFields.0.value                         | today                                     |
             | feeStatuses.0.paymentReference                | PAY-001                                   |
             | feeStatuses.0.paymentStatus                   | PAID                                      |
             | feeStatuses.0.statusDate                      | todayiso                                  |
@@ -58,7 +58,7 @@ Feature: Applications Print
         # Entry 2 - Person applicant + Organisation respondent
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
             | standardApplicantCode                               | null                                          |
-            | applicationCode                                     | EF99001                                       |
+            | applicationCode                                     | MX99011                                       |
             | applicant.person.name.title                         | Mrs                                           |
             | applicant.person.name.lastName                      | Johnson {RANDOM}                              |
             | applicant.person.name.firstName                     | Sarah                                         |
@@ -82,7 +82,7 @@ Feature: Applications Print
             | respondent.organisation.contactDetails.phone        | 0121 456789                                   |
             | respondent.organisation.contactDetails.mobile       | 07812345678                                   |
             | respondent.organisation.contactDetails.email        | info@financecorp.com                          |
-            | wordingFields.0.key                                 | account balance                               |
+            | wordingFields.0.key                                 | Reference                                     |
             | wordingFields.0.value                               | 5000                                          |
             | feeStatuses.0.paymentStatus                         | DUE                                           |
             | feeStatuses.0.statusDate                            | todayiso                                      |
@@ -173,7 +173,7 @@ Feature: Applications Print
         Then User Stores Response Body Property "id" As "listId2"
         When User Makes POST API Request To "/application-lists/:listId2/entries" With Object Builder:
             | standardApplicantCode                               | null                                                |
-            | applicationCode                                     | EF99020                                             |
+            | applicationCode                                     | MX99007                                             |
             | applicant.organisation.name                         | Global Trade Solutions LTD {RANDOM}                 |
             | applicant.organisation.contactDetails.addressLine1  | 100 Business Park                                   |
             | applicant.organisation.contactDetails.addressLine2  | Canary Wharf                                        |
@@ -194,6 +194,8 @@ Feature: Applications Print
             | respondent.organisation.contactDetails.phone        | 0114 496 0200                                       |
             | respondent.organisation.contactDetails.mobile       | 07700900200                                         |
             | respondent.organisation.contactDetails.email        | info@controlledassets.com                           |
+            | wordingFields.0.key                                 | Specify Name                                        |
+            | wordingFields.0.value                               | John                                                |
             | feeStatuses.0.paymentStatus                         | DUE                                                 |
             | feeStatuses.0.statusDate                            | todayiso                                            |
             | hasOffsiteFee                                       | false                                               |
