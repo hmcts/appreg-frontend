@@ -59,6 +59,7 @@ import {
   ErrorItem,
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
+import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { NotificationBannerComponent } from '@components/notification-banner/notification-banner.component';
 import { PageHeaderComponent } from '@components/page-header/page-header.component';
 import { PaginationComponent } from '@components/pagination/pagination.component';
@@ -111,6 +112,7 @@ type DeleteFlash = { kind: 'success' } | { kind: 'error'; code: number };
     DateTimePipe,
     ApplicationsListFormComponent,
     AsyncJobProgressComponent,
+    HelpDetailsComponent,
   ],
   templateUrl: './applications-list.component.html',
 })

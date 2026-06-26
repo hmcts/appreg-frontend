@@ -39,6 +39,7 @@ import {
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
 import { FeesSectionComponent } from '@components/fees-section/fees-section.component';
+import { HelpDetailsComponent } from '@components/help-details/help-details.component';
 import { ListMaintenanceSectionComponent } from '@components/list-maintenance-section/list-maintenance-section.component';
 import { PrivateProsecutorsIndexSectionComponent } from '@components/private-prosecutors-index-section/private-prosecutors-index-section.component';
 import { ReportSelectorComponent } from '@components/report-option/report-selector.component';
@@ -121,6 +122,7 @@ const REPORT_LOCATION_RESET_VALUE = {
     ErrorSummaryComponent,
     SuccessBannerComponent,
     AsyncJobProgressComponent,
+    HelpDetailsComponent,
   ],
   templateUrl: './reports.component.html',
 })

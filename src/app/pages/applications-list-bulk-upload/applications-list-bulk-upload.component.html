@@ -27,18 +27,31 @@
 
 <app-page-header title="Bulk Upload Applications" />
 
+<app-help-details summary="Help with bulk upload">
+  <p class="govuk-body">
+    Use bulk upload to add applications to this list from a CSV file.
+  </p>
+
+  <ul class="govuk-list govuk-list--bullet">
+    <li>The file must match the current bulk upload template.</li>
+    <li>The filename must end in .csv.</li>
+    <li>
+      After you upload the file, the applications list page shows the upload
+      progress.
+    </li>
+    <li>The file is validated before applications are added to the list.</li>
+    <li>
+      If the upload fails, the error message explains what needs to be
+      corrected.
+    </li>
+  </ul>
+</app-help-details>
+
 <div class="govuk-grid-row">
   <div class="govuk-grid-column-two-thirds">
     <p class="govuk-body">
-      <strong>Select the bulk applications file you wish to upload.</strong>
+      Select the bulk applications file you wish to upload.
     </p>
-    <ul class="govuk-list govuk-list--bullet">
-      <li>
-        the file <strong>must</strong> match the current template for bulk
-        uploads.
-      </li>
-      <li>the filename must end in <strong>.csv</strong></li>
-    </ul>
 
     @if (!vm().isUploadInProgress) {
       <div class="govuk-form-group remove-bot-margin govuk-width-container">

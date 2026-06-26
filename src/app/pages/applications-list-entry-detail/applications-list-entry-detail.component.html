@@ -66,6 +66,8 @@
   </ng-template>
 
   <ng-template #wordingTpl>
+    <app-application-wording-help />
+
     @if (vm().appCodeDetail; as appCodeDetail) {
       <app-wording-section
         #wordingSection
@@ -96,6 +98,8 @@
   </ng-template>
 
   <ng-template #civilFeeTpl>
+    <app-civil-fee-help />
+
     <app-civil-fee-section
       #civilFeeSection
       [civilFeeColumns]="civilFeeColumns"
