@@ -55,6 +55,7 @@ const person_org_shared_messages = {
 
 export const NOTES_ERROR_MESSAGES: NotesErrorMap = {
   accountReference: {
+    required: 'Enter an account reference for EF application codes',
     maxlength: 'Account reference must be 20 characters or fewer',
   },
   caseReference: {
