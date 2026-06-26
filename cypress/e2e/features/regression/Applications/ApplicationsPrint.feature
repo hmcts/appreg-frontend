@@ -299,17 +299,17 @@ Feature: Applications Print
             | Applicant              | Innovative Solutions Inc                                                                            |
             | Respondent             | Mr John Edward Smith {RANDOM}                                                                       |
             | Case Reference         | CASE-001                                                                                            |
-            | Application Code       | CT99002                                                                                             |
+            | Application Code       | AP99003                                                                                             |
             | Account Reference      | ACC-{RANDOM}                                                                                        |
-            | Application Title      | Issue of liability order summons - council tax                                                      |
+            | Application Title      | Appeal by Case Stated (Civil)                                                                       |
             | Notes                  | Standard applicant with person respondent                                                           |
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
             | Applicant              | Mrs Sarah Louise Johnson {RANDOM}                                                                   |
             | Respondent             | Finance Corp LTD {RANDOM}                                                                           |
             | Case Reference         | CASE-002                                                                                            |
-            | Application Code       | EF99001                                                                                             |
+            | Application Code       | MX99011                                                                                             |
             | Account Reference      | ACC-{RANDOM}                                                                                        |
-            | Application Title      | Collection Order - Financial Penalty Account                                                        |
+            | Application Title      | Application to remove an educational institution from the register                                  |
             | Notes                  | Person applicant with organisation respondent                                                       |
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
             | Applicant              | ACME Industries LTD {RANDOM}                                                                        |
@@ -324,9 +324,9 @@ Feature: Applications Print
             | Applicant              | Global Trade Solutions LTD {RANDOM}                                                                 |
             | Respondent             | Controlled Assets Ltd {RANDOM}                                                                      |
             | Case Reference         | CASE-004                                                                                            |
-            | Application Code       | EF99020                                                                                             |
+            | Application Code       | MX99007                                                                                             |
             | Account Reference      | ACC-{RANDOM}                                                                                        |
-            | Application Title      | Order for the disposal of uncollected controlled goods                                              |
+            | Application Title      | Application for a licence for a child to work abroad                                                |
             | Result                 | Reasons: Applications rejected due to insufficient documentation and missing required signatures.   |
             | Notes                  | Organisation applicant with organisation respondent                                                 |
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
@@ -338,25 +338,25 @@ Feature: Applications Print
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
             | Application brought by | Innovative Solutions Inc                                                                            |
             | Respondent             | Mr John Edward Smith {RANDOM}                                                                       |
-            | Matter considered      | Issue of liability order summons - council tax                                                      |
+            | Matter considered      | Application for a licence for a child to work abroad                                                |
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
             | Dated                  | todaydisplaylong                                                                                    |
             | Produced on            | todaydisplaylong                                                                                    |
             | Application brought by | Mrs Sarah Louise Johnson {RANDOM}                                                                   |
             | Respondent             | Finance Corp LTD {RANDOM}                                                                           |
-            | Matter considered      | Collection Order - Financial Penalty Account                                                        |
+            | Matter considered      | Condemnation of Unfit Food                                                                          |
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
             | Dated                  | todaydisplaylong                                                                                    |
             | Produced on            | todaydisplaylong                                                                                    |
             | Application brought by | ACME Industries LTD {RANDOM}                                                                        |
             | Respondent             | Ms Emma Jane Williams {RANDOM}                                                                      |
-            | Matter considered      | Condemnation of Unfit Food                                                                          |
+            | Matter considered      | Appeal by Case Stated (Civil)                                                                       |
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
             | Dated                  | todaydisplaylong                                                                                    |
             | Produced on            | todaydisplaylong                                                                                    |
             | Application brought by | Global Trade Solutions LTD {RANDOM}                                                                 |
             | Respondent             | Controlled Assets Ltd {RANDOM}                                                                      |
-            | Matter considered      | Order for the disposal of uncollected controlled goods                                              |
+            | Matter considered      | Application to remove an educational institution from the register                                  |
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
             | Dated                  | todaydisplaylong                                                                                    |
             | Produced on            | todaydisplaylong                                                                                    |
