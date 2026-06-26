@@ -28,7 +28,7 @@ import {
   ErrorItem,
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
-import { HelpDetailsComponent } from '@components/help-details/help-details.component';
+import { CivilFeeHelpComponent } from '@components/help-details/civil-fee-help.component';
 import { SortableTableComponent } from '@components/sortable-table/sortable-table.component';
 import { FeeStatus } from '@openapi';
 import {
@@ -62,7 +62,7 @@ type BulkUpdateFeeSnapshot = {
     SortableTableComponent,
     CivilFeeSectionComponent,
     AlertComponent,
-    HelpDetailsComponent,
+    CivilFeeHelpComponent,
   ],
   templateUrl: './applications-list-detail-bulk-update-fees.component.html',
 })

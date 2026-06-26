@@ -69,7 +69,8 @@ import {
   ErrorItem,
   ErrorSummaryComponent,
 } from '@components/error-summary/error-summary.component';
-import { HelpDetailsComponent } from '@components/help-details/help-details.component';
+import { ApplicationWordingHelpComponent } from '@components/help-details/application-wording-help.component';
+import { CivilFeeHelpComponent } from '@components/help-details/civil-fee-help.component';
 import {
   ApplicationNotesForm,
   NotesSectionComponent,
@@ -180,7 +181,8 @@ export const ERROR_HREFS = {
     ApplicantSectionComponent,
     WordingSectionComponent,
     OfficialsSectionComponent,
-    HelpDetailsComponent,
+    ApplicationWordingHelpComponent,
+    CivilFeeHelpComponent,
   ],
   templateUrl: './applications-list-entry-detail.component.html',
 })
