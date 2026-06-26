@@ -80,6 +80,47 @@ describe('ApplicationsListEntryCreate (payload + helpers)', () => {
     expect(component.vm().summaryErrors.length).toBeGreaterThan(0);
   });
 
+  it('onSubmit: blocks create call when EF application code has no account reference', () => {
+    component.form.patchValue({
+      applicationCode: 'EF123',
+      lodgementDate: '2026-02-01',
+      applicantType: 'standard',
+      standardApplicantCode: 'SA-1',
+      applicationNotes: {
+        accountReference: null,
+      },
+    });
+
+    component.onSubmit(new Event('submit'));
+
+    expect(createApplicationListEntryMock).not.toHaveBeenCalled();
+    expect(component.vm().errorFound).toBe(true);
+    expect(component.vm().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'applicationNotes.accountReference',
+          text: 'Enter an account reference for EF application codes',
+        }),
+      ]),
+    );
+  });
+
+  it('onSubmit: allows a non-EF application code with no account reference', () => {
+    component.form.patchValue({
+      applicationCode: 'APP123',
+      lodgementDate: '2026-02-01',
+      applicantType: 'standard',
+      standardApplicantCode: 'SA-1',
+      applicationNotes: {
+        accountReference: null,
+      },
+    });
+
+    component.onSubmit(new Event('submit'));
+
+    expect(createApplicationListEntryMock).toHaveBeenCalledTimes(1);
+  });
+
   it('onSubmit: identifies applicant and respondent person required errors in the summary', () => {
     (
       component as unknown as {

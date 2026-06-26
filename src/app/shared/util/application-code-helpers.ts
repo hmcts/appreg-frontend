@@ -26,6 +26,12 @@ export function fetchCodeDetail$(
   });
 }
 
+export function requiresAccountReference(
+  applicationCode: string | null | undefined,
+): boolean {
+  return applicationCode?.trim().toUpperCase().startsWith('EF') === true;
+}
+
 /** Safe accessors (avoid any/unknown). */
 export function titleFromDetail(d: ApplicationCodeGetDetailDto): string {
   return d?.title ?? '';

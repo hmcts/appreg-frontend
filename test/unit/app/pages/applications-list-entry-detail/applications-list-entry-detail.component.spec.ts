@@ -775,6 +775,39 @@ describe('ApplicationsListEntryDetail', () => {
     expect(component['submitEntryUpdate']).not.toHaveBeenCalled();
   });
 
+  it('onUpdateApplication returns early when EF application code has no account reference', () => {
+    component['entryDetail'] = {
+      id: 'EN-1',
+      listId: 'AL-1',
+      applicationCode: 'EF123',
+      numberOfRespondents: 0,
+      lodgementDate: '2025-11-01',
+    };
+    component['form'].patchValue({
+      applicantType: 'standard',
+      standardApplicantCode: 'SA-123',
+      applicationCode: 'EF123',
+      lodgementDate: '2025-11-01',
+      applicationNotes: {
+        accountReference: null,
+      },
+    });
+    component.onStandardApplicantCodeChanged('SA-123');
+    component['submitEntryUpdate'] = jest.fn();
+
+    component.onUpdateApplication();
+
+    expect(component['submitEntryUpdate']).not.toHaveBeenCalled();
+    expect(component['appListEntryDetailState']().summaryErrors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'applicationNotes.accountReference',
+          text: 'Enter an account reference for EF application codes',
+        }),
+      ]),
+    );
+  });
+
   it('onUpdateApplication calls submitEntryUpdate when validation passes', () => {
     component['entryDetail'] = {
       id: 'EN-1',
