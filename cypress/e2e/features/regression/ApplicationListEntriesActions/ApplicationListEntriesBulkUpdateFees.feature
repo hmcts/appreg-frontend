@@ -146,7 +146,7 @@ Feature: Application List Entries Bulk Update Fees
         When User Clicks "Actions" Then "Update fee details" From Caption Menu In Table "Entries"
         Then User Sees Page Heading "Update fee details"
         And User Should See Row In Table "Updating fees for the following application(s)" With Values:
-            | Applicant(s)           | Respondent(s)                  | Application title                                                  | Fee required | Resulted |
+            | Applicant              | Respondent                     | Application title                                                  | Fee required | Resulted |
             | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | Condemnation of Unfit Food                                         | Yes          |          |
             | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Application for order re public health measures (person)           | Yes          |          |
             | Michael Brown {RANDOM} | Emily Clark {RANDOM}           | Application to remove an educational institution from the register | Yes          |          |
@@ -175,7 +175,7 @@ Feature: Application List Entries Bulk Update Fees
             | PAID       | todaydisplay | PAY-{RANDOM} |
         Then User Sees Page Heading "Update fee details"
         Then User Should See Row In Table "Updating fees for the following application(s)" With Values:
-            | Applicant(s)           | Respondent(s)                  | Application title                                                  | Fee required | Resulted |
+            | Applicant              | Respondent                     | Application title                                                  | Fee required | Resulted |
             | Henry Taylor {RANDOM}  | Emily Clark {RANDOM}           | Condemnation of Unfit Food                                         | Yes          |          |
             | Sarah Johnson {RANDOM} | Greenfield Consulting {RANDOM} | Application for order re public health measures (person)           | Yes          |          |
             | Michael Brown {RANDOM} | Emily Clark {RANDOM}           | Application to remove an educational institution from the register | Yes          |          |

@@ -12,7 +12,7 @@ Feature: Applications Print
         # Entry 1 - Standard applicant + Person respondent
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
             | standardApplicantCode                         | APP036                                    |
-            | applicationCode                               | CT99002                                   |
+            | applicationCode                               | AP99003                                   |
             | respondent.person.name.title                  | Mr                                        |
             | respondent.person.name.lastName               | Smith {RANDOM}                            |
             | respondent.person.name.firstName              | John                                      |
@@ -27,8 +27,8 @@ Feature: Applications Print
             | respondent.person.contactDetails.mobile       | 07123456789                               |
             | respondent.person.contactDetails.email        | john-doe@gmail.com                        |
             | respondent.person.dateOfBirth                 | 1990-01-01                                |
-            | wordingFields.0.key                           | Reference                                 |
-            | wordingFields.0.value                         | TEST-REF-001                              |
+            | wordingFields.0.key                           | Date of Hearing                           |
+            | wordingFields.0.value                         | today                                     |
             | feeStatuses.0.paymentReference                | PAY-001                                   |
             | feeStatuses.0.paymentStatus                   | PAID                                      |
             | feeStatuses.0.statusDate                      | todayiso                                  |
@@ -58,7 +58,7 @@ Feature: Applications Print
         # Entry 2 - Person applicant + Organisation respondent
         When User Makes POST API Request To "/application-lists/:listId/entries" With Object Builder:
             | standardApplicantCode                               | null                                          |
-            | applicationCode                                     | EF99001                                       |
+            | applicationCode                                     | MX99011                                       |
             | applicant.person.name.title                         | Mrs                                           |
             | applicant.person.name.lastName                      | Johnson {RANDOM}                              |
             | applicant.person.name.firstName                     | Sarah                                         |
@@ -82,7 +82,7 @@ Feature: Applications Print
             | respondent.organisation.contactDetails.phone        | 0121 456789                                   |
             | respondent.organisation.contactDetails.mobile       | 07812345678                                   |
             | respondent.organisation.contactDetails.email        | info@financecorp.com                          |
-            | wordingFields.0.key                                 | account balance                               |
+            | wordingFields.0.key                                 | Reference                                     |
             | wordingFields.0.value                               | 5000                                          |
             | feeStatuses.0.paymentStatus                         | DUE                                           |
             | feeStatuses.0.statusDate                            | todayiso                                      |
@@ -173,7 +173,7 @@ Feature: Applications Print
         Then User Stores Response Body Property "id" As "listId2"
         When User Makes POST API Request To "/application-lists/:listId2/entries" With Object Builder:
             | standardApplicantCode                               | null                                                |
-            | applicationCode                                     | EF99020                                             |
+            | applicationCode                                     | MX99007                                             |
             | applicant.organisation.name                         | Global Trade Solutions LTD {RANDOM}                 |
             | applicant.organisation.contactDetails.addressLine1  | 100 Business Park                                   |
             | applicant.organisation.contactDetails.addressLine2  | Canary Wharf                                        |
@@ -194,6 +194,8 @@ Feature: Applications Print
             | respondent.organisation.contactDetails.phone        | 0114 496 0200                                       |
             | respondent.organisation.contactDetails.mobile       | 07700900200                                         |
             | respondent.organisation.contactDetails.email        | info@controlledassets.com                           |
+            | wordingFields.0.key                                 | Specify Name                                        |
+            | wordingFields.0.value                               | John                                                |
             | feeStatuses.0.paymentStatus                         | DUE                                                 |
             | feeStatuses.0.statusDate                            | todayiso                                            |
             | hasOffsiteFee                                       | false                                               |
@@ -297,17 +299,17 @@ Feature: Applications Print
             | Applicant              | Innovative Solutions Inc                                                                            |
             | Respondent             | Mr John Edward Smith {RANDOM}                                                                       |
             | Case Reference         | CASE-001                                                                                            |
-            | Application Code       | CT99002                                                                                             |
+            | Application Code       | AP99003                                                                                             |
             | Account Reference      | ACC-{RANDOM}                                                                                        |
-            | Application Title      | Issue of liability order summons - council tax                                                      |
+            | Application Title      | Appeal by Case Stated (Civil)                                                                       |
             | Notes                  | Standard applicant with person respondent                                                           |
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
             | Applicant              | Mrs Sarah Louise Johnson {RANDOM}                                                                   |
             | Respondent             | Finance Corp LTD {RANDOM}                                                                           |
             | Case Reference         | CASE-002                                                                                            |
-            | Application Code       | EF99001                                                                                             |
+            | Application Code       | MX99011                                                                                             |
             | Account Reference      | ACC-{RANDOM}                                                                                        |
-            | Application Title      | Collection Order - Financial Penalty Account                                                        |
+            | Application Title      | Application to remove an educational institution from the register                                  |
             | Notes                  | Person applicant with organisation respondent                                                       |
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
             | Applicant              | ACME Industries LTD {RANDOM}                                                                        |
@@ -322,9 +324,9 @@ Feature: Applications Print
             | Applicant              | Global Trade Solutions LTD {RANDOM}                                                                 |
             | Respondent             | Controlled Assets Ltd {RANDOM}                                                                      |
             | Case Reference         | CASE-004                                                                                            |
-            | Application Code       | EF99020                                                                                             |
+            | Application Code       | MX99007                                                                                             |
             | Account Reference      | ACC-{RANDOM}                                                                                        |
-            | Application Title      | Order for the disposal of uncollected controlled goods                                              |
+            | Application Title      | Application for a licence for a child to work abroad                                                |
             | Result                 | Reasons: Applications rejected due to insufficient documentation and missing required signatures.   |
             | Notes                  | Organisation applicant with organisation respondent                                                 |
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
@@ -336,25 +338,25 @@ Feature: Applications Print
         Then User Verifies Latest Downloaded PDF Contains The Following Values:
             | Application brought by | Innovative Solutions Inc                                                                            |
             | Respondent             | Mr John Edward Smith {RANDOM}                                                                       |
-            | Matter considered      | Issue of liability order summons - council tax                                                      |
+            | Matter considered      | Application for a licence for a child to work abroad                                                |
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
             | Dated                  | todaydisplaylong                                                                                    |
             | Produced on            | todaydisplaylong                                                                                    |
             | Application brought by | Mrs Sarah Louise Johnson {RANDOM}                                                                   |
             | Respondent             | Finance Corp LTD {RANDOM}                                                                           |
-            | Matter considered      | Collection Order - Financial Penalty Account                                                        |
+            | Matter considered      | Condemnation of Unfit Food                                                                          |
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
             | Dated                  | todaydisplaylong                                                                                    |
             | Produced on            | todaydisplaylong                                                                                    |
             | Application brought by | ACME Industries LTD {RANDOM}                                                                        |
             | Respondent             | Ms Emma Jane Williams {RANDOM}                                                                      |
-            | Matter considered      | Condemnation of Unfit Food                                                                          |
+            | Matter considered      | Appeal by Case Stated (Civil)                                                                       |
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
             | Dated                  | todaydisplaylong                                                                                    |
             | Produced on            | todaydisplaylong                                                                                    |
             | Application brought by | Global Trade Solutions LTD {RANDOM}                                                                 |
             | Respondent             | Controlled Assets Ltd {RANDOM}                                                                      |
-            | Matter considered      | Order for the disposal of uncollected controlled goods                                              |
+            | Matter considered      | Application to remove an educational institution from the register                                  |
             | This matter was before | Mr Smith John MAGISTRATE Mrs Brown Sarah MAGISTRATE Ms Patel Anita MAGISTRATE Mr Miller Peter CLERK |
             | Dated                  | todaydisplaylong                                                                                    |
             | Produced on            | todaydisplaylong                                                                                    |
